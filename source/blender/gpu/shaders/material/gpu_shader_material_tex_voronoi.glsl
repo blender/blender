@@ -1,11 +1,17 @@
 /*
+ * Original code is under the MIT License, Copyright (c) 2013 Inigo Quilez.
+ *
  * Smooth Voronoi:
  *
  * - https://wiki.blender.org/wiki/User:OmarSquircleArt/GSoC2019/Documentation/Smooth_Voronoi
  *
- * Distance To Edge:
+ * Distance To Edge based on:
  *
- * - https://www.shadertoy.com/view/llG3zy
+ * - https://www.iquilezles.org/www/articles/voronoilines/voronoilines.htm
+ * - https://www.shadertoy.com/view/ldl3W8
+ *
+ * With optimization to change -2..2 scan window to -1..1 for better performance,
+ * as explained in https://www.shadertoy.com/view/llG3zy.
  *
  */
 

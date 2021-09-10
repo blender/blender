@@ -337,52 +337,41 @@ void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
   const char *display_device = CTX_data_scene(C)->display_settings.display_device;
   struct ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
 
-  wmWindow *win = CTX_wm_window(C);
-  bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mx, my);
-  if (area == NULL) {
-    int mval[2] = {mx, my};
-    if (WM_window_find_under_cursor(wm, NULL, win, mval, &win, mval)) {
-      mx = mval[0];
-      my = mval[1];
-      screen = WM_window_get_active_screen(win);
-      area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mx, my);
-    }
-    else {
-      win = NULL;
-    }
-  }
+  wmWindow *win;
+  ScrArea *area;
+  int mval[2] = {mx, my};
+  datadropper_win_area_find(C, mval, mval, &win, &area);
 
   if (area) {
     if (area->spacetype == SPACE_IMAGE) {
-      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my);
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval[0], mval[1]);
       if (region) {
         SpaceImage *sima = area->spacedata.first;
-        int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
+        int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
 
-        if (ED_space_image_color_sample(sima, region, mval, r_col, NULL)) {
+        if (ED_space_image_color_sample(sima, region, region_mval, r_col, NULL)) {
           return;
         }
       }
     }
     else if (area->spacetype == SPACE_NODE) {
-      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my);
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval[0], mval[1]);
       if (region) {
         SpaceNode *snode = area->spacedata.first;
-        const int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
+        int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
 
-        if (ED_space_node_color_sample(bmain, snode, region, mval, r_col)) {
+        if (ED_space_node_color_sample(bmain, snode, region, region_mval, r_col)) {
           return;
         }
       }
     }
     else if (area->spacetype == SPACE_CLIP) {
-      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my);
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval[0], mval[1]);
       if (region) {
         SpaceClip *sc = area->spacedata.first;
-        int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
+        int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
 
-        if (ED_space_clip_color_sample(sc, region, mval, r_col)) {
+        if (ED_space_clip_color_sample(sc, region, region_mval, r_col)) {
           return;
         }
       }
@@ -391,7 +380,6 @@ void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
 
   if (win) {
     /* Fallback to simple opengl picker. */
-    const int mval[2] = {mx, my};
     WM_window_pixel_sample_read(wm, win, mval, r_col);
     IMB_colormanagement_display_to_scene_linear_v3(r_col, display);
   }

@@ -21,6 +21,8 @@
  * \ingroup spnode
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_light_types.h"
@@ -50,6 +52,7 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
+#include "ED_image.h"
 #include "ED_node.h" /* own include */
 #include "ED_render.h"
 #include "ED_screen.h"
@@ -396,7 +399,7 @@ void snode_dag_update(bContext *C, SpaceNode *snode)
   Main *bmain = CTX_data_main(C);
 
   /* for groups, update all ID's using this */
-  if (snode->edittree != snode->nodetree) {
+  if ((snode->edittree->id.flag & LIB_EMBEDDED_DATA) == 0) {
     FOREACH_NODETREE_BEGIN (bmain, tntree, id) {
       if (ntreeHasTree(tntree, snode->edittree)) {
         DEG_id_tag_update(id, 0);
@@ -611,9 +614,8 @@ void snode_set_context(const bContext *C)
   /* check the tree type */
   if (!treetype || (treetype->poll && !treetype->poll(C, treetype))) {
     /* invalid tree type, skip
-     * NB: not resetting the node path here, invalid bNodeTreeType
-     * may still be registered at a later point.
-     */
+     * NOTE: not resetting the node path here, invalid #bNodeTreeType
+     * may still be registered at a later point. */
     return;
   }
 
@@ -718,17 +720,45 @@ void ED_node_set_active(
         ED_node_tag_update_nodetree(bmain, ntree, node);
       }
 
-      /* if active texture changed, free glsl materials */
       if ((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
+        /* If active texture changed, free glsl materials. */
         LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
           if (ma->nodetree && ma->use_nodes && ntreeHasTree(ma->nodetree, ntree)) {
             GPU_material_free(&ma->gpumaterial);
+
+            /* Sync to active texpaint slot, otherwise we can end up painting on a different slot
+             * than we are looking at. */
+            if (ma->texpaintslot) {
+              Image *image = (Image *)node->id;
+              for (int i = 0; i < ma->tot_slots; i++) {
+                if (ma->texpaintslot[i].ima == image) {
+                  ma->paint_active_slot = i;
+                }
+              }
+            }
           }
         }
 
         LISTBASE_FOREACH (World *, wo, &bmain->worlds) {
           if (wo->nodetree && wo->use_nodes && ntreeHasTree(wo->nodetree, ntree)) {
             GPU_material_free(&wo->gpumaterial);
+          }
+        }
+
+        /* Sync to Image Editor. */
+        Image *image = (Image *)node->id;
+        wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+        LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+          const bScreen *screen = WM_window_get_active_screen(win);
+          LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+            LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+              if (sl->spacetype == SPACE_IMAGE) {
+                SpaceImage *sima = (SpaceImage *)sl;
+                if (!sima->pin) {
+                  ED_space_image_set(bmain, sima, image, true);
+                }
+              }
+            }
           }
         }
 
@@ -1226,6 +1256,32 @@ int node_find_indicated_socket(
   return 0;
 }
 
+/* ****************** Link Dimming *********************** */
+
+float node_link_dim_factor(const View2D *v2d, const bNodeLink *link)
+{
+  if (link->fromsock == nullptr || link->tosock == nullptr) {
+    return 1.0f;
+  }
+
+  const float min_endpoint_distance = std::min(
+      std::max(BLI_rctf_length_x(&v2d->cur, link->fromsock->locx),
+               BLI_rctf_length_y(&v2d->cur, link->fromsock->locy)),
+      std::max(BLI_rctf_length_x(&v2d->cur, link->tosock->locx),
+               BLI_rctf_length_y(&v2d->cur, link->tosock->locy)));
+
+  if (min_endpoint_distance == 0.0f) {
+    return 1.0f;
+  }
+  const float viewport_width = BLI_rctf_size_x(&v2d->cur);
+  return std::clamp(1.0f - min_endpoint_distance / viewport_width * 10.0f, 0.05f, 1.0f);
+}
+
+bool node_link_is_hidden_or_dimmed(const View2D *v2d, const bNodeLink *link)
+{
+  return nodeLinkIsHidden(link) || node_link_dim_factor(v2d, link) < 0.5f;
+}
+
 /* ****************** Duplicate *********************** */
 
 static void node_duplicate_reparent_recursive(bNode *node)
@@ -1275,9 +1331,8 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* copy links between selected nodes
-   * NB: this depends on correct node->new_node and sock->new_sock pointers from above copy!
-   */
+  /* Copy links between selected nodes.
+   * NOTE: this depends on correct node->new_node and sock->new_sock pointers from above copy! */
   bNodeLink *lastlink = (bNodeLink *)ntree->links.last;
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
     /* This creates new links between copied nodes.
@@ -2135,9 +2190,9 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  /* copy links between selected nodes
-   * NB: this depends on correct node->new_node and sock->new_sock pointers from above copy!
-   */
+  /* Copy links between selected nodes.
+   * NOTE: this depends on correct node->new_node and sock->new_sock pointers from above copy! */
+
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
     /* This creates new links between copied nodes. */
     if (link->tonode && (link->tonode->flag & NODE_SELECT) && link->fromnode &&

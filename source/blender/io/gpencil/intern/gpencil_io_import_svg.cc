@@ -42,7 +42,7 @@
 #define NANOSVG_ALL_COLOR_KEYWORDS
 #define NANOSVG_IMPLEMENTATION
 
-#include "nanosvg/nanosvg.h"
+#include "nanosvg.h"
 
 using blender::MutableSpan;
 
@@ -148,6 +148,8 @@ bool GpencilImporterSVG::read()
         for (bGPDspoint &pt : MutableSpan(gps->points, gps->totpoints)) {
           sub_v3_v3(&pt.x, gp_center);
         }
+        /* Calc stroke bounding box. */
+        BKE_gpencil_stroke_boundingbox_calc(gps);
       }
     }
   }

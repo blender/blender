@@ -308,10 +308,7 @@ static void bakeModifier(Main *UNUSED(bmain),
 static void freeData(GpencilModifierData *md)
 {
   TintGpencilModifierData *mmd = (TintGpencilModifierData *)md;
-  if (mmd->colorband) {
-    MEM_freeN(mmd->colorband);
-    mmd->colorband = NULL;
-  }
+  MEM_SAFE_FREE(mmd->colorband);
   if (mmd->curve_intensity) {
     BKE_curvemapping_free(mmd->curve_intensity);
   }

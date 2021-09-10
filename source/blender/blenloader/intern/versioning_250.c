@@ -23,8 +23,7 @@
 #else
 #  include "BLI_winstuff.h"
 #  include "winsock2.h"
-#  include <io.h>   /* for open close read */
-#  include <zlib.h> /* odd include order-issue */
+#  include <io.h> /* for open close read */
 #endif
 
 /* allow readfile to use deprecated functionality */
@@ -132,7 +131,7 @@ static void sequencer_init_preview_region(ARegion *region)
   region->v2d.max[0] = 12000.0f;
   region->v2d.max[1] = 12000.0f;
   region->v2d.cur = region->v2d.tot;
-  region->v2d.align = V2D_ALIGN_FREE;  // (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
+  region->v2d.align = V2D_ALIGN_FREE; /* `(V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y)` */
   region->v2d.keeptot = V2D_KEEPTOT_FREE;
 }
 
@@ -639,6 +638,46 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
   }
 }
 
+static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
+{
+  Main *bmain = (Main *)user_data;
+  if (seq->type == SEQ_TYPE_SOUND_HD) {
+    char str[FILE_MAX];
+    BLI_join_dirfile(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
+    BLI_path_abs(str, BKE_main_blendfile_path(bmain));
+    seq->sound = BKE_sound_new_file(bmain, str);
+  }
+#define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
+#define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
+  /* don't know, if anybody used that this way, but just in case, upgrade to new way... */
+  if ((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) && !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
+    BLI_snprintf(seq->strip->proxy->dir, FILE_MAXDIR, "%s/BL_proxy", seq->strip->dir);
+  }
+#undef SEQ_USE_PROXY_CUSTOM_DIR
+#undef SEQ_USE_PROXY_CUSTOM_FILE
+  return true;
+}
+
+static bool seq_set_volume_cb(Sequence *seq, void *UNUSED(user_data))
+{
+  seq->volume = 1.0f;
+  return true;
+}
+
+static bool seq_set_sat_cb(Sequence *seq, void *UNUSED(user_data))
+{
+  if (seq->sat == 0.0f) {
+    seq->sat = 1.0f;
+  }
+  return true;
+}
+
+static bool seq_set_pitch_cb(Sequence *seq, void *UNUSED(user_data))
+{
+  seq->pitch = 1.0f;
+  return true;
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 {
@@ -655,11 +694,12 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     Tex *tx;
     ParticleSettings *part;
     Object *ob;
-    // PTCacheID *pid;
-    // ListBase pidlist;
+#if 0
+    PTCacheID *pid;
+    ListBase pidlist;
+#endif
 
     bSound *sound;
-    Sequence *seq;
 
     for (sound = bmain->sounds.first; sound; sound = sound->id.next) {
       if (sound->newpackedfile) {
@@ -670,23 +710,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
     for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
       if (scene->ed && scene->ed->seqbasep) {
-        SEQ_ALL_BEGIN (scene->ed, seq) {
-          if (seq->type == SEQ_TYPE_SOUND_HD) {
-            char str[FILE_MAX];
-            BLI_join_dirfile(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
-            BLI_path_abs(str, BKE_main_blendfile_path(bmain));
-            seq->sound = BKE_sound_new_file(bmain, str);
-          }
-#define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
-#define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
-          /* don't know, if anybody used that this way, but just in case, upgrade to new way... */
-          if ((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) && !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
-            BLI_snprintf(seq->strip->proxy->dir, FILE_MAXDIR, "%s/BL_proxy", seq->strip->dir);
-          }
-#undef SEQ_USE_PROXY_CUSTOM_DIR
-#undef SEQ_USE_PROXY_CUSTOM_FILE
-        }
-        SEQ_ALL_END;
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_sound_proxy_update_cb, bmain);
       }
     }
 
@@ -766,12 +790,15 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     /* set old pointcaches to have disk cache flag */
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 
-      // BKE_ptcache_ids_from_object(&pidlist, ob);
+#if 0
+      BKE_ptcache_ids_from_object(&pidlist, ob);
 
-      // for (pid = pidlist.first; pid; pid = pid->next)
-      //  pid->cache->flag |= PTCACHE_DISK_CACHE;
+      for (pid = pidlist.first; pid; pid = pid->next) {
+       pid->cache->flag |= PTCACHE_DISK_CACHE;
+      }
 
-      // BLI_freelistN(&pidlist);
+      BLI_freelistN(&pidlist);
+#endif
     }
 
     /* type was a mixed flag & enum. move the 2d flag elsewhere */
@@ -789,18 +816,23 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     Tex *tex;
     Scene *sce;
     ToolSettings *ts;
-    // PTCacheID *pid;
-    // ListBase pidlist;
+#if 0
+    PTCacheID *pid;
+    ListBase pidlist;
+#endif
 
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
-      // BKE_ptcache_ids_from_object(&pidlist, ob);
+#if 0
+      BKE_ptcache_ids_from_object(&pidlist, ob);
 
-      // for (pid = pidlist.first; pid; pid = pid->next) {
-      //  if (BLI_listbase_is_empty(pid->ptcaches))
-      //      pid->ptcaches->first = pid->ptcaches->last = pid->cache;
-      //}
+      for (pid = pidlist.first; pid; pid = pid->next) {
+        if (BLI_listbase_is_empty(pid->ptcaches)) {
+          pid->ptcaches->first = pid->ptcaches->last = pid->cache;
+        }
+      }
 
-      // BLI_freelistN(&pidlist);
+      BLI_freelistN(&pidlist);
+#endif
 
       if (ob->totcol && ob->matbits == NULL) {
         int a;
@@ -842,7 +874,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     Object *ob;
 
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
-      if (ob->flag & 8192) {  // OB_POSEMODE = 8192
+      if (ob->flag & 8192) { /* OB_POSEMODE = 8192. */
         ob->mode |= OB_MODE_POSE;
       }
     }
@@ -1382,7 +1414,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 250, 17)) {
     Scene *sce;
-    Sequence *seq;
 
     /* initialize to sane default so toggling on border shows something */
     for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
@@ -1395,13 +1426,11 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       }
 
       if ((sce->r.ffcodecdata.flags & FFMPEG_MULTIPLEX_AUDIO) == 0) {
-        sce->r.ffcodecdata.audio_codec = 0x0;  // CODEC_ID_NONE
+        sce->r.ffcodecdata.audio_codec = 0x0; /* `CODEC_ID_NONE` */
       }
-
-      SEQ_ALL_BEGIN (sce->ed, seq) {
-        seq->volume = 1.0f;
+      if (sce->ed) {
+        SEQ_for_each_callback(&sce->ed->seqbase, seq_set_volume_cb, NULL);
       }
-      SEQ_ALL_END;
     }
 
     /* particle brush strength factor was changed from int to float */
@@ -1669,13 +1698,9 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
-      Sequence *seq;
-      SEQ_ALL_BEGIN (scene->ed, seq) {
-        if (seq->sat == 0.0f) {
-          seq->sat = 1.0f;
-        }
+      if (scene->ed) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_set_sat_cb, NULL);
       }
-      SEQ_ALL_END;
     }
 
     /* GSOC 2010 Sculpt - New settings for Brush */
@@ -1735,7 +1760,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
       /* New Settings */
       if (!MAIN_VERSION_ATLEAST(bmain, 252, 5)) {
-        brush->flag |= BRUSH_SPACE_ATTEN;  // explicitly enable adaptive space
+        brush->flag |= BRUSH_SPACE_ATTEN; /* Explicitly enable adaptive space. */
 
         /* spacing was originally in pixels, convert it to percentage for new version
          * size should not be zero due to sanity check above
@@ -2150,15 +2175,13 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 259, 1)) {
     {
       Scene *scene;
-      Sequence *seq;
 
       for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
         scene->r.ffcodecdata.audio_channels = 2;
         scene->audio.volume = 1.0f;
-        SEQ_ALL_BEGIN (scene->ed, seq) {
-          seq->pitch = 1.0f;
+        if (scene->ed) {
+          SEQ_for_each_callback(&scene->ed->seqbase, seq_set_pitch_cb, NULL);
         }
-        SEQ_ALL_END;
       }
     }
 

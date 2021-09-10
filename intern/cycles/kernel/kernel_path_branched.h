@@ -92,6 +92,7 @@ ccl_device_forceinline void kernel_branched_path_volume(KernelGlobals *kg,
   volume_ray.t = (hit) ? isect->t : FLT_MAX;
 
   float step_size = volume_stack_step_size(kg, state->volume_stack);
+  const int object = sd->object;
 
 #      ifdef __VOLUME_DECOUPLED__
   /* decoupled ray marching only supported on CPU */
@@ -134,7 +135,8 @@ ccl_device_forceinline void kernel_branched_path_volume(KernelGlobals *kg,
 
         if (result == VOLUME_PATH_SCATTERED &&
             kernel_path_volume_bounce(kg, sd, &tp, &ps, &L->state, &pray)) {
-          kernel_path_indirect(kg, indirect_sd, emission_sd, &pray, tp * num_samples_inv, &ps, L);
+          kernel_path_indirect(
+              kg, indirect_sd, emission_sd, &pray, tp * num_samples_inv, &ps, L, object);
 
           /* for render passes, sum and reset indirect light pass variables
            * for the next samples */
@@ -180,7 +182,7 @@ ccl_device_forceinline void kernel_branched_path_volume(KernelGlobals *kg,
         kernel_path_volume_connect_light(kg, sd, emission_sd, tp, state, L);
 
         if (kernel_path_volume_bounce(kg, sd, &tp, &ps, &L->state, &pray)) {
-          kernel_path_indirect(kg, indirect_sd, emission_sd, &pray, tp, &ps, L);
+          kernel_path_indirect(kg, indirect_sd, emission_sd, &pray, tp, &ps, L, object);
 
           /* for render passes, sum and reset indirect light pass variables
            * for the next samples */
@@ -266,7 +268,8 @@ ccl_device_noinline_cpu void kernel_branched_path_surface_indirect_light(KernelG
 
       ps.rng_hash = state->rng_hash;
 
-      kernel_path_indirect(kg, indirect_sd, emission_sd, &bsdf_ray, tp * num_samples_inv, &ps, L);
+      kernel_path_indirect(
+          kg, indirect_sd, emission_sd, &bsdf_ray, tp * num_samples_inv, &ps, L, sd->object);
 
       /* for render passes, sum and reset indirect light pass variables
        * for the next samples */
@@ -395,7 +398,7 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
   for (;;) {
     /* Find intersection with objects in scene. */
     Intersection isect;
-    bool hit = kernel_path_scene_intersect(kg, &state, &ray, &isect, L);
+    bool hit = kernel_path_scene_intersect(kg, &state, &ray, &isect, L, sd.object);
 
 #    ifdef __VOLUME__
     /* Volume integration. */

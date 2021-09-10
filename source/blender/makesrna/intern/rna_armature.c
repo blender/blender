@@ -56,7 +56,7 @@ static void rna_Armature_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 
   DEG_id_tag_update(id, 0);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
-  /*WM_main_add_notifier(NC_OBJECT|ND_POSE, NULL); */
+  // WM_main_add_notifier(NC_OBJECT|ND_POSE, NULL);
 }
 
 static void rna_Armature_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -260,28 +260,16 @@ static char *rna_Bone_path(PointerRNA *ptr)
   return BLI_sprintfN("bones[\"%s\"]", name_esc);
 }
 
-static IDProperty *rna_Bone_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_Bone_idprops(PointerRNA *ptr)
 {
   Bone *bone = ptr->data;
-
-  if (create && !bone->prop) {
-    IDPropertyTemplate val = {0};
-    bone->prop = IDP_New(IDP_GROUP, &val, "RNA_Bone ID properties");
-  }
-
-  return bone->prop;
+  return &bone->prop;
 }
 
-static IDProperty *rna_EditBone_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_EditBone_idprops(PointerRNA *ptr)
 {
   EditBone *ebone = ptr->data;
-
-  if (create && !ebone->prop) {
-    IDPropertyTemplate val = {0};
-    ebone->prop = IDP_New(IDP_GROUP, &val, "RNA_EditBone ID properties");
-  }
-
-  return ebone->prop;
+  return &ebone->prop;
 }
 
 static void rna_bone_layer_set(int *layer, const bool *values)
@@ -1006,7 +994,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   }
   RNA_def_property_float_sdna(prop, NULL, "rad_head");
   /* XXX range is 0 to lim, where lim = 10000.0f * MAX2(1.0, view3d->grid); */
-  /*RNA_def_property_range(prop, 0, 1000); */
+  // RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
   RNA_def_property_ui_text(
       prop, "Envelope Head Radius", "Radius of head of bone (for Envelope deform only)");
@@ -1020,7 +1008,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   }
   RNA_def_property_float_sdna(prop, NULL, "rad_tail");
   /* XXX range is 0 to lim, where lim = 10000.0f * MAX2(1.0, view3d->grid); */
-  /*RNA_def_property_range(prop, 0, 1000); */
+  // RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
   RNA_def_property_ui_text(
       prop, "Envelope Tail Radius", "Radius of tail of bone (for Envelope deform only)");
@@ -1358,7 +1346,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 
   /* calculated and read only, not actual data access */
   prop = RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
-  /* RNA_def_property_float_sdna(prop, NULL, ""); */ /* Doesn't access any real data. */
+  // RNA_def_property_float_sdna(prop, NULL, ""); /* Doesn't access any real data. */
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_flag(prop, PROP_THICK_WRAP); /* no reference to original data */

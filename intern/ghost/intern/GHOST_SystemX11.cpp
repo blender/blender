@@ -390,21 +390,21 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
 }
 
 /**
- * Create a new offscreen context.
- * Never explicitly delete the context, use disposeContext() instead.
+ * Create a new off-screen context.
+ * Never explicitly delete the context, use #disposeContext() instead.
  * \return The new context (or 0 if creation failed).
  */
 GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSettings)
 {
-  // During development:
-  //   try 4.x compatibility profile
-  //   try 3.3 compatibility profile
-  //   fall back to 3.0 if needed
-  //
-  // Final Blender 2.8:
-  //   try 4.x core profile
-  //   try 3.3 core profile
-  //   no fallbacks
+  /* During development:
+   *   try 4.x compatibility profile
+   *   try 3.3 compatibility profile
+   *   fall back to 3.0 if needed
+   *
+   * Final Blender 2.8:
+   *   try 4.x core profile
+   *   try 3.3 core profile
+   *   no fall-backs. */
 
   const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
 
@@ -802,8 +802,7 @@ static bool checkTabletProximity(Display *display, XDevice *device)
 
   if (state) {
     XInputClass *cls = state->data;
-    // printf("%d class%s :\n", state->num_classes,
-    //       (state->num_classes > 1) ? "es" : "");
+    // printf("%d class%s :\n", state->num_classes, (state->num_classes > 1) ? "es" : "");
     for (int loop = 0; loop < state->num_classes; loop++) {
       switch (cls->c_class) {
         case ValuatorClass:
@@ -1189,9 +1188,9 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         else {
           printf("Bad keycode lookup. Keysym 0x%x Status: %s\n",
                  (unsigned int)key_sym,
-                 (status == XLookupNone ?
-                      "XLookupNone" :
-                      status == XLookupKeySym ? "XLookupKeySym" : "Unknown status"));
+                 (status == XLookupNone   ? "XLookupNone" :
+                  status == XLookupKeySym ? "XLookupKeySym" :
+                                            "Unknown status"));
 
           printf("'%.*s' %p %p\n", len, utf8_buf, xic, m_xim);
         }
@@ -1923,7 +1922,7 @@ static GHOST_TKey ghost_key_from_keycode(const XkbDescPtr xkb_descr, const KeyCo
 
 #undef MAKE_ID
 
-/* from xclip.c xcout() v0.11 */
+/* From `xclip.c` #xcout() v0.11. */
 
 #define XCLIB_XCOUT_NONE 0          /* no context */
 #define XCLIB_XCOUT_SENTCONVSEL 1   /* sent a request */
@@ -2014,7 +2013,7 @@ void GHOST_SystemX11::getClipboard_xcout(const XEvent *evt,
         return;
       }
 
-      // not using INCR mechanism, just read the property
+      /* Not using INCR mechanism, just read the property. */
       XGetWindowProperty(m_display,
                          win,
                          m_atom.XCLIP_OUT,

@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "DNA_cachefile_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -63,9 +64,11 @@
 
 #include <stdio.h>
 
-/***************************** Render Engines ********************************/
+/* -------------------------------------------------------------------- */
+/** \name Render Engines
+ * \{ */
 
-/* Update 3D viewport render or draw engine on changes to the scene or view settings . */
+/* Update 3D viewport render or draw engine on changes to the scene or view settings. */
 void ED_render_view3d_update(Depsgraph *depsgraph,
                              wmWindow *window,
                              ScrArea *area,
@@ -204,6 +207,19 @@ void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
       ntreeCompositUpdateRLayers(scene->nodetree);
     }
   }
+
+  /* Update #CacheFiles to ensure that procedurals are properly taken into account. */
+  LISTBASE_FOREACH (CacheFile *, cachefile, &bmain->cachefiles) {
+    /* Only update cache-files which are set to use a render procedural.
+     * We do not use #BKE_cachefile_uses_render_procedural here as we need to update regardless of
+     * the current engine or its settings. */
+    if (cachefile->use_render_procedural) {
+      DEG_id_tag_update(&cachefile->id, ID_RECALC_COPY_ON_WRITE);
+      /* Rebuild relations so that modifiers are reconnected to or disconnected from the
+       * cache-file. */
+      DEG_relations_tag_update(bmain);
+    }
+  }
 }
 
 void ED_render_view_layer_changed(Main *bmain, bScreen *screen)
@@ -213,10 +229,16 @@ void ED_render_view_layer_changed(Main *bmain, bScreen *screen)
   }
 }
 
-/***************************** Updates ***********************************
- * ED_render_id_flush_update gets called from DEG_id_tag_update, to do   *
- * editor level updates when the ID changes. when these ID blocks are in *
- * the dependency graph, we can get rid of the manual dependency checks. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Updates
+ *
+ * #ED_render_id_flush_update gets called from #DEG_id_tag_update,
+ * to do editor level updates when the ID changes.
+ * When these ID blocks are in the dependency graph,
+ * we can get rid of the manual dependency checks.
+ * \{ */
 
 static void material_changed(Main *UNUSED(bmain), Material *ma)
 {
@@ -322,3 +344,5 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
       break;
   }
 }
+
+/** \} */

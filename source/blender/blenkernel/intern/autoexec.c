@@ -56,7 +56,7 @@ bool BKE_autoexec_match(const char *path)
     if (path_cmp->path[0] == '\0') {
       /* pass */
     }
-    else if ((path_cmp->flag & USER_PATHCMP_GLOB)) {
+    else if (path_cmp->flag & USER_PATHCMP_GLOB) {
       if (fnmatch(path_cmp->path, path, fnmatch_flags) == 0) {
         return true;
       }

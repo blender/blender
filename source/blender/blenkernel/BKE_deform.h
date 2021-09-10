@@ -30,6 +30,7 @@ extern "C" {
 
 struct BlendDataReader;
 struct BlendWriter;
+struct ID;
 struct ListBase;
 struct MDeformVert;
 struct MEdge;
@@ -37,6 +38,18 @@ struct MLoop;
 struct MPoly;
 struct Object;
 struct bDeformGroup;
+
+bool BKE_object_supports_vertex_groups(const struct Object *ob);
+const struct ListBase *BKE_object_defgroup_list(const struct Object *ob);
+struct ListBase *BKE_object_defgroup_list_mutable(struct Object *ob);
+
+int BKE_object_defgroup_count(const struct Object *ob);
+int BKE_object_defgroup_active_index_get(const struct Object *ob);
+void BKE_object_defgroup_active_index_set(struct Object *ob, const int new_index);
+
+const struct ListBase *BKE_id_defgroup_list_get(const struct ID *id);
+struct ListBase *BKE_id_defgroup_list_get_mutable(struct ID *id);
+int BKE_id_defgroup_name_index(const struct ID *id, const char *name);
 
 struct bDeformGroup *BKE_object_defgroup_new(struct Object *ob, const char *name);
 void BKE_defgroup_copy_list(struct ListBase *outbase, const struct ListBase *inbase);
@@ -171,6 +184,7 @@ void BKE_defvert_blend_write(struct BlendWriter *writer, int count, struct MDefo
 void BKE_defvert_blend_read(struct BlendDataReader *reader,
                             int count,
                             struct MDeformVert *mdverts);
+void BKE_defbase_blend_write(struct BlendWriter *writer, const ListBase *defbase);
 
 #ifdef __cplusplus
 }

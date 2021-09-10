@@ -578,27 +578,26 @@ static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 {
   Volume *volume = (Volume *)id;
   const bool is_undo = BLO_write_is_undo(writer);
-  if (volume->id.us > 0 || is_undo) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    volume->runtime.grids = nullptr;
 
-    /* Do not store packed files in case this is a library override ID. */
-    if (ID_IS_OVERRIDE_LIBRARY(volume) && !is_undo) {
-      volume->packedfile = nullptr;
-    }
+  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  volume->runtime.grids = nullptr;
 
-    /* write LibData */
-    BLO_write_id_struct(writer, Volume, id_address, &volume->id);
-    BKE_id_blend_write(writer, &volume->id);
-
-    /* direct data */
-    BLO_write_pointer_array(writer, volume->totcol, volume->mat);
-    if (volume->adt) {
-      BKE_animdata_blend_write(writer, volume->adt);
-    }
-
-    BKE_packedfile_blend_write(writer, volume->packedfile);
+  /* Do not store packed files in case this is a library override ID. */
+  if (ID_IS_OVERRIDE_LIBRARY(volume) && !is_undo) {
+    volume->packedfile = nullptr;
   }
+
+  /* write LibData */
+  BLO_write_id_struct(writer, Volume, id_address, &volume->id);
+  BKE_id_blend_write(writer, &volume->id);
+
+  /* direct data */
+  BLO_write_pointer_array(writer, volume->totcol, volume->mat);
+  if (volume->adt) {
+    BKE_animdata_blend_write(writer, volume->adt);
+  }
+
+  BKE_packedfile_blend_write(writer, volume->packedfile);
 }
 
 static void volume_blend_read_data(BlendDataReader *reader, ID *id)

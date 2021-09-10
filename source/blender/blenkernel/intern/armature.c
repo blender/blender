@@ -212,25 +212,24 @@ static void write_bone(BlendWriter *writer, Bone *bone)
 static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   bArmature *arm = (bArmature *)id;
-  if (arm->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    arm->bonehash = NULL;
-    arm->edbo = NULL;
-    /* Must always be cleared (armatures don't have their own edit-data). */
-    arm->needs_flush_to_id = 0;
-    arm->act_edbone = NULL;
 
-    BLO_write_id_struct(writer, bArmature, id_address, &arm->id);
-    BKE_id_blend_write(writer, &arm->id);
+  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  arm->bonehash = NULL;
+  arm->edbo = NULL;
+  /* Must always be cleared (armatures don't have their own edit-data). */
+  arm->needs_flush_to_id = 0;
+  arm->act_edbone = NULL;
 
-    if (arm->adt) {
-      BKE_animdata_blend_write(writer, arm->adt);
-    }
+  BLO_write_id_struct(writer, bArmature, id_address, &arm->id);
+  BKE_id_blend_write(writer, &arm->id);
 
-    /* Direct data */
-    LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
-      write_bone(writer, bone);
-    }
+  if (arm->adt) {
+    BKE_animdata_blend_write(writer, arm->adt);
+  }
+
+  /* Direct data */
+  LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
+    write_bone(writer, bone);
   }
 }
 
@@ -1882,7 +1881,7 @@ void BKE_bone_parent_transform_invert(struct BoneParentTransform *bpt)
 {
   invert_m4(bpt->rotscale_mat);
   invert_m4(bpt->loc_mat);
-  invert_v3(bpt->post_scale);
+  invert_v3_safe(bpt->post_scale);
 }
 
 void BKE_bone_parent_transform_combine(const struct BoneParentTransform *in1,
@@ -2663,7 +2662,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
     }
   }
 
-  /* printf("rebuild pose %s, %d bones\n", ob->id.name, counter); */
+  // printf("rebuild pose %s, %d bones\n", ob->id.name, counter);
 
   /* synchronize protected layers with proxy */
   /* HACK! To preserve 2.7x behavior that you always can pose even locked bones,

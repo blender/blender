@@ -54,6 +54,11 @@ class MFParamsBuilder {
 
   MFParamsBuilder(const class MultiFunction &fn, int64_t min_array_size);
 
+  template<typename T> void add_readonly_single_input_value(T value, StringRef expected_name = "")
+  {
+    T *value_ptr = &scope_.add_value<T>(std::move(value), __func__);
+    this->add_readonly_single_input(value_ptr, expected_name);
+  }
   template<typename T> void add_readonly_single_input(const T *value, StringRef expected_name = "")
   {
     this->add_readonly_single_input(scope_.construct<GVArray_For_SingleValueRef>(
@@ -82,6 +87,12 @@ class MFParamsBuilder {
   {
     this->add_readonly_vector_input(
         scope_.construct<GVVectorArray_For_GVectorArray>(__func__, vector_array), expected_name);
+  }
+  void add_readonly_vector_input(const GSpan single_vector, StringRef expected_name = "")
+  {
+    this->add_readonly_vector_input(
+        scope_.construct<GVVectorArray_For_SingleGSpan>(__func__, single_vector, min_array_size_),
+        expected_name);
   }
   void add_readonly_vector_input(const GVVectorArray &ref, StringRef expected_name = "")
   {

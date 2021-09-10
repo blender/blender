@@ -32,10 +32,10 @@ class GHOST_IWindow;
 /**
  * Interface class for events received from GHOST.
  * You should not need to inherit this class. The system will pass these events
- * to the GHOST_IEventConsumer::processEvent() method of event consumers.<br>
- * Use the getType() method to retrieve the type of event and the getData()
+ * to the #GHOST_IEventConsumer::processEvent() method of event consumers.<br>
+ * Use the #getType() method to retrieve the type of event and the #getData()
  * method to get the event data out. Using the event type you can cast the
- * event data to the correct event dat structure.
+ * event data to the correct event data structure.
  * \see GHOST_IEventConsumer#processEvent
  * \see GHOST_TEventType
  */

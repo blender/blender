@@ -527,7 +527,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
         fe = fe->nextEdge();
         continue;
       }
-      if ((maxCard < qiMajority)) {
+      if (maxCard < qiMajority) {
         // ARB: change &wFace to wFace and use reference in called function
         tmpQI = computeVisibility<G, I>(
             ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders);
@@ -725,7 +725,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
         fe = fe->nextEdge();
         continue;
       }
-      if ((maxCard < qiMajority)) {
+      if (maxCard < qiMajority) {
         // ARB: change &wFace to wFace and use reference in called function
         tmpQI = computeVisibility<G, I>(
             ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders);
@@ -891,7 +891,7 @@ static void computeFastVisibility(ViewMap *ioViewMap, G &grid, real epsilon)
         continue;
       }
       if (even_test) {
-        if ((maxCard < qiMajority)) {
+        if (maxCard < qiMajority) {
           // ARB: change &wFace to wFace and use reference in called function
           tmpQI = computeVisibility<G, I>(
               ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders);
@@ -1607,7 +1607,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
     memset(qiClasses, 0, 256 * sizeof(*qiClasses));
     set<ViewShape *> occluders;
     do {
-      if ((maxCard < qiMajority)) {
+      if (maxCard < qiMajority) {
         tmpQI = ComputeRayCastingVisibility(fe, _Grid, epsilon, occluders, &aFace, timestamp++);
 
 #if LOGGING
@@ -1763,7 +1763,7 @@ void ViewMapBuilder::ComputeFastRayCastingVisibility(ViewMap *ioViewMap, real ep
     fe = (*ve)->fedgeA();
     do {
       if (even_test) {
-        if ((maxCard < qiMajority)) {
+        if (maxCard < qiMajority) {
           tmpQI = ComputeRayCastingVisibility(fe, _Grid, epsilon, occluders, &aFace, timestamp++);
 
           // ARB: This is an error condition, not an alert condition.
@@ -2285,7 +2285,7 @@ struct less_SVertex2D {
     Vec3r A = x->point2D();
     Vec3r B = y->point2D();
     for (unsigned int i = 0; i < 3; i++) {
-      if ((fabs(A[i] - B[i])) < epsilon) {
+      if (fabs(A[i] - B[i]) < epsilon) {
         continue;
       }
       if (A[i] < B[i]) {

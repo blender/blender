@@ -10,7 +10,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software  Foundation,
+ * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
@@ -20,11 +20,13 @@
 
 #include "NOD_derived_node_tree.hh"
 #include "NOD_geometry_nodes_eval_log.hh"
-#include "NOD_node_tree_multi_function.hh"
+#include "NOD_multi_function.hh"
 
 #include "FN_generic_pointer.hh"
 
 #include "DNA_modifier_types.h"
+
+#include "FN_multi_function.hh"
 
 namespace geo_log = blender::nodes::geometry_nodes_eval_log;
 
@@ -45,7 +47,7 @@ struct GeometryNodesEvaluationParams {
    * necessary in all cases. Sometimes `log_socket_value_fn` might just want to look at the value
    * and then it can be freed. */
   Vector<DSocket> force_compute_sockets;
-  nodes::MultiFunctionByNode *mf_by_node;
+  nodes::NodeMultiFunctions *mf_by_node;
   const NodesModifierData *modifier_;
   Depsgraph *depsgraph;
   Object *self_object;

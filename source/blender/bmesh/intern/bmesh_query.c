@@ -766,7 +766,7 @@ bool BM_edge_loop_pair(BMEdge *e, BMLoop **r_la, BMLoop **r_lb)
 }
 
 /**
- * Fast alternative to ``(BM_vert_edge_count(v) == 2)``
+ * Fast alternative to `(BM_vert_edge_count(v) == 2)`.
  */
 bool BM_vert_is_edge_pair(const BMVert *v)
 {
@@ -779,7 +779,7 @@ bool BM_vert_is_edge_pair(const BMVert *v)
 }
 
 /**
- * Fast alternative to ``(BM_vert_edge_count(v) == 2)``
+ * Fast alternative to `(BM_vert_edge_count(v) == 2)`
  * that checks both edges connect to the same faces.
  */
 bool BM_vert_is_edge_pair_manifold(const BMVert *v)
@@ -896,7 +896,7 @@ int BM_vert_face_count_at_most(const BMVert *v, int count_max)
 /**
  * Return true if the vertex is connected to _any_ faces.
  *
- * same as ``BM_vert_face_count(v) != 0`` or ``BM_vert_find_first_loop(v) == NULL``
+ * same as `BM_vert_face_count(v) != 0` or `BM_vert_find_first_loop(v) == NULL`.
  */
 bool BM_vert_face_check(const BMVert *v)
 {
@@ -2637,7 +2637,7 @@ int BM_mesh_calc_face_groups(BMesh *bm,
   STACK_DECLARE(stack);
 
   BMIter iter;
-  BMFace *f;
+  BMFace *f, *f_next;
   int i;
 
   STACK_INIT(group_array, bm->totface);
@@ -2662,6 +2662,8 @@ int BM_mesh_calc_face_groups(BMesh *bm,
   /* detect groups */
   stack = MEM_mallocN(sizeof(*stack) * tot_faces, __func__);
 
+  f_next = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL);
+
   while (tot_touch != tot_faces) {
     int *group_item;
     bool ok = false;
@@ -2670,10 +2672,10 @@ int BM_mesh_calc_face_groups(BMesh *bm,
 
     STACK_INIT(stack, tot_faces);
 
-    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-      if (BM_elem_flag_test(f, BM_ELEM_TAG) == false) {
-        BM_elem_flag_enable(f, BM_ELEM_TAG);
-        STACK_PUSH(stack, f);
+    for (; f_next; f_next = BM_iter_step(&iter)) {
+      if (BM_elem_flag_test(f_next, BM_ELEM_TAG) == false) {
+        BM_elem_flag_enable(f_next, BM_ELEM_TAG);
+        STACK_PUSH(stack, f_next);
         ok = true;
         break;
       }
@@ -2799,9 +2801,8 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
   STACK_DECLARE(stack);
 
   BMIter iter;
-  BMEdge *e;
+  BMEdge *e, *e_next;
   int i;
-
   STACK_INIT(group_array, bm->totedge);
 
   /* init the array */
@@ -2822,6 +2823,8 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
   /* detect groups */
   stack = MEM_mallocN(sizeof(*stack) * tot_edges, __func__);
 
+  e_next = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL);
+
   while (tot_touch != tot_edges) {
     int *group_item;
     bool ok = false;
@@ -2830,10 +2833,10 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
 
     STACK_INIT(stack, tot_edges);
 
-    BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-      if (BM_elem_flag_test(e, BM_ELEM_TAG) == false) {
-        BM_elem_flag_enable(e, BM_ELEM_TAG);
-        STACK_PUSH(stack, e);
+    for (; e_next; e_next = BM_iter_step(&iter)) {
+      if (BM_elem_flag_test(e_next, BM_ELEM_TAG) == false) {
+        BM_elem_flag_enable(e_next, BM_ELEM_TAG);
+        STACK_PUSH(stack, e_next);
         ok = true;
         break;
       }

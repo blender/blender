@@ -29,8 +29,8 @@ extern "C" {
 
 struct ListBase;
 struct Scene;
-struct Sequence;
 struct SeqCollection;
+struct Sequence;
 
 int SEQ_transform_get_left_handle_frame(struct Sequence *seq);
 int SEQ_transform_get_right_handle_frame(struct Sequence *seq);
@@ -41,6 +41,7 @@ bool SEQ_transform_sequence_can_be_translated(struct Sequence *seq);
 bool SEQ_transform_single_image_check(struct Sequence *seq);
 void SEQ_transform_fix_single_image_seq_offsets(struct Sequence *seq);
 bool SEQ_transform_test_overlap(struct ListBase *seqbasep, struct Sequence *test);
+bool SEQ_transform_test_overlap_seq_seq(struct Sequence *seq1, struct Sequence *seq2);
 void SEQ_transform_translate_sequence(struct Scene *scene, struct Sequence *seq, int delta);
 bool SEQ_transform_seqbase_shuffle_ex(struct ListBase *seqbasep,
                                       struct Sequence *test,

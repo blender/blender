@@ -142,8 +142,16 @@ static void brush_free_data(ID *id)
 
 static void brush_make_local(Main *bmain, ID *id, const int flags)
 {
+  if (!ID_IS_LINKED(id)) {
+    return;
+  }
+
   Brush *brush = (Brush *)id;
   const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
+  const bool force_local = (flags & LIB_ID_MAKELOCAL_FORCE_LOCAL) != 0;
+  const bool force_copy = (flags & LIB_ID_MAKELOCAL_FORCE_COPY) != 0;
+  BLI_assert(force_copy == false || force_copy != force_local);
+
   bool is_local = false, is_lib = false;
 
   /* - only lib users: do nothing (unless force_local is set)
@@ -151,19 +159,17 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
    * - mixed: make copy
    */
 
-  if (!ID_IS_LINKED(brush)) {
-    return;
-  }
-
   if (brush->clone.image) {
     /* Special case: ima always local immediately. Clone image should only have one user anyway. */
     BKE_lib_id_make_local(bmain, &brush->clone.image->id, false, 0);
   }
 
-  BKE_library_ID_test_usages(bmain, brush, &is_local, &is_lib);
+  if (!force_local && !force_copy) {
+    BKE_library_ID_test_usages(bmain, brush, &is_local, &is_lib);
+  }
 
-  if (lib_local || is_local) {
-    if (!is_lib) {
+  if (lib_local || is_local || force_copy || force_local) {
+    if (!is_lib || force_local) {
       BKE_lib_id_clear_library_data(bmain, &brush->id);
       BKE_lib_id_expand_local(bmain, &brush->id);
 
@@ -202,48 +208,47 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
 static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Brush *brush = (Brush *)id;
-  if (brush->id.us > 0 || BLO_write_is_undo(writer)) {
-    BLO_write_id_struct(writer, Brush, id_address, &brush->id);
-    BKE_id_blend_write(writer, &brush->id);
 
-    if (brush->curve) {
-      BKE_curvemapping_blend_write(writer, brush->curve);
-    }
+  BLO_write_id_struct(writer, Brush, id_address, &brush->id);
+  BKE_id_blend_write(writer, &brush->id);
 
-    if (brush->gpencil_settings) {
-      BLO_write_struct(writer, BrushGpencilSettings, brush->gpencil_settings);
+  if (brush->curve) {
+    BKE_curvemapping_blend_write(writer, brush->curve);
+  }
 
-      if (brush->gpencil_settings->curve_sensitivity) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_sensitivity);
-      }
-      if (brush->gpencil_settings->curve_strength) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_strength);
-      }
-      if (brush->gpencil_settings->curve_jitter) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_jitter);
-      }
-      if (brush->gpencil_settings->curve_rand_pressure) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_pressure);
-      }
-      if (brush->gpencil_settings->curve_rand_strength) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_strength);
-      }
-      if (brush->gpencil_settings->curve_rand_uv) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_uv);
-      }
-      if (brush->gpencil_settings->curve_rand_hue) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_hue);
-      }
-      if (brush->gpencil_settings->curve_rand_saturation) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_saturation);
-      }
-      if (brush->gpencil_settings->curve_rand_value) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_value);
-      }
+  if (brush->gpencil_settings) {
+    BLO_write_struct(writer, BrushGpencilSettings, brush->gpencil_settings);
+
+    if (brush->gpencil_settings->curve_sensitivity) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_sensitivity);
     }
-    if (brush->gradient) {
-      BLO_write_struct(writer, ColorBand, brush->gradient);
+    if (brush->gpencil_settings->curve_strength) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_strength);
     }
+    if (brush->gpencil_settings->curve_jitter) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_jitter);
+    }
+    if (brush->gpencil_settings->curve_rand_pressure) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_pressure);
+    }
+    if (brush->gpencil_settings->curve_rand_strength) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_strength);
+    }
+    if (brush->gpencil_settings->curve_rand_uv) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_uv);
+    }
+    if (brush->gpencil_settings->curve_rand_hue) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_hue);
+    }
+    if (brush->gpencil_settings->curve_rand_saturation) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_saturation);
+    }
+    if (brush->gpencil_settings->curve_rand_value) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_value);
+    }
+  }
+  if (brush->gradient) {
+    BLO_write_struct(writer, ColorBand, brush->gradient);
   }
 }
 
@@ -660,10 +665,7 @@ static void brush_gpencil_curvemap_reset(CurveMap *cuma, int tot, int preset)
       break;
   }
 
-  if (cuma->table) {
-    MEM_freeN(cuma->table);
-    cuma->table = NULL;
-  }
+  MEM_SAFE_FREE(cuma->table);
 }
 
 void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
@@ -1131,7 +1133,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       brush->gpencil_settings->draw_strength = 0.3f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
-      brush->gpencil_settings->sculpt_flag = GP_SCULPT_FLAG_SMOOTH_PRESSURE;
+      brush->gpencil_settings->sculpt_flag = GP_SCULPT_FLAGMODE_APPLY_THICKNESS;
       brush->gpencil_settings->sculpt_mode_flag |= GP_SCULPT_FLAGMODE_APPLY_POSITION;
 
       break;
@@ -1145,7 +1147,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       brush->gpencil_settings->draw_strength = 0.3f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
-      brush->gpencil_settings->sculpt_flag = GP_SCULPT_FLAG_SMOOTH_PRESSURE;
       brush->gpencil_settings->sculpt_mode_flag |= GP_SCULPT_FLAGMODE_APPLY_POSITION;
 
       break;

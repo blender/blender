@@ -32,6 +32,7 @@ struct BlendLibReader;
 struct BlendWriter;
 struct ID;
 struct IDProperty;
+struct IDPropertyUIData;
 
 typedef union IDPropertyTemplate {
   int i;
@@ -183,6 +184,10 @@ void IDP_Reset(struct IDProperty *prop, const struct IDProperty *reference);
 #  define IDP_Id(prop) ((ID *)(prop)->data.pointer)
 #endif
 
+int IDP_coerce_to_int_or_zero(const struct IDProperty *prop);
+float IDP_coerce_to_float_or_zero(const struct IDProperty *prop);
+double IDP_coerce_to_double_or_zero(const struct IDProperty *prop);
+
 /**
  * Call a callback for each idproperty in the hierarchy under given root one (included).
  *
@@ -208,6 +213,28 @@ void IDP_BlendReadData_impl(struct BlendDataReader *reader,
 #define IDP_BlendDataRead(reader, prop) IDP_BlendReadData_impl(reader, prop, __func__)
 void IDP_BlendReadLib(struct BlendLibReader *reader, struct IDProperty *prop);
 void IDP_BlendReadExpand(struct BlendExpander *expander, struct IDProperty *prop);
+
+typedef enum eIDPropertyUIDataType {
+  /** Other properties types that don't support RNA UI data. */
+  IDP_UI_DATA_TYPE_UNSUPPORTED = -1,
+  /** IDP_INT or IDP_ARRAY with subtype IDP_INT. */
+  IDP_UI_DATA_TYPE_INT = 0,
+  /** IDP_FLOAT and IDP_DOUBLE or IDP_ARRAY properties with a float or double subtypes. */
+  IDP_UI_DATA_TYPE_FLOAT = 1,
+  /** IDP_STRING properties. */
+  IDP_UI_DATA_TYPE_STRING = 2,
+  /** IDP_ID. */
+  IDP_UI_DATA_TYPE_ID = 3,
+} eIDPropertyUIDataType;
+
+bool IDP_ui_data_supported(const struct IDProperty *prop);
+eIDPropertyUIDataType IDP_ui_data_type(const struct IDProperty *prop);
+void IDP_ui_data_free(struct IDProperty *prop);
+void IDP_ui_data_free_unique_contents(struct IDPropertyUIData *ui_data,
+                                      eIDPropertyUIDataType type,
+                                      const struct IDPropertyUIData *other);
+struct IDPropertyUIData *IDP_ui_data_ensure(struct IDProperty *prop);
+struct IDPropertyUIData *IDP_ui_data_copy(const struct IDProperty *prop);
 
 #ifdef __cplusplus
 }

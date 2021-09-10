@@ -39,19 +39,21 @@
 using blender::bke::AttributeKind;
 using blender::bke::GeometryInstanceGroup;
 
-static bNodeSocketTemplate geo_node_point_distribute_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_FLOAT, N_("Distance Min"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 100000.0f, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Density Max"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 100000.0f, PROP_NONE},
-    {SOCK_STRING, N_("Density Attribute")},
-    {SOCK_INT, N_("Seed"), 0, 0, 0, 0, -10000, 10000},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_point_distribute_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_point_distribute_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Float>("Distance Min").min(0.0f).max(100000.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Density Max")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(100000.0f)
+      .subtype(PROP_NONE);
+  b.add_input<decl::String>("Density Attribute");
+  b.add_input<decl::Int>("Seed").min(-10000).max(10000);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_point_distribute_layout(uiLayout *layout,
                                              bContext *UNUSED(C),
@@ -67,8 +69,6 @@ static void node_point_distribute_update(bNodeTree *UNUSED(ntree), bNode *node)
   nodeSetSocketAvailability(sock_min_dist, ELEM(node->custom1, GEO_NODE_POINT_DISTRIBUTE_POISSON));
 }
 
-namespace blender::nodes {
-
 /**
  * Use an arbitrary choice of axes for a usable rotation attribute directly out of this node.
  */
@@ -81,13 +81,6 @@ static float3 normal_to_euler_rotation(const float3 normal)
   return rotation;
 }
 
-static Span<MLoopTri> get_mesh_looptris(const Mesh &mesh)
-{
-  const MLoopTri *looptris = BKE_mesh_runtime_looptri_ensure(&mesh);
-  const int looptris_len = BKE_mesh_runtime_looptri_len(&mesh);
-  return {looptris, looptris_len};
-}
-
 static void sample_mesh_surface(const Mesh &mesh,
                                 const float4x4 &transform,
                                 const float base_density,
@@ -97,7 +90,8 @@ static void sample_mesh_surface(const Mesh &mesh,
                                 Vector<float3> &r_bary_coords,
                                 Vector<int> &r_looptri_indices)
 {
-  Span<MLoopTri> looptris = get_mesh_looptris(mesh);
+  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
+                                BKE_mesh_runtime_looptri_len(&mesh)};
 
   for (const int looptri_index : looptris.index_range()) {
     const MLoopTri &looptri = looptris[looptri_index];
@@ -208,7 +202,8 @@ BLI_NOINLINE static void update_elimination_mask_based_on_density_factors(
     Span<int> looptri_indices,
     MutableSpan<bool> elimination_mask)
 {
-  Span<MLoopTri> looptris = get_mesh_looptris(mesh);
+  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
+                                BKE_mesh_runtime_looptri_len(&mesh)};
   for (const int i : bary_coords.index_range()) {
     if (elimination_mask[i]) {
       continue;
@@ -365,7 +360,8 @@ BLI_NOINLINE static void compute_special_attributes(Span<GeometryInstanceGroup> 
     const GeometrySet &set = set_group.geometry_set;
     const MeshComponent &component = *set.get_component_for_read<MeshComponent>();
     const Mesh &mesh = *component.get_for_read();
-    Span<MLoopTri> looptris = get_mesh_looptris(mesh);
+    const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
+                                  BKE_mesh_runtime_looptri_len(&mesh)};
 
     for (const float4x4 &transform : set_group.transforms) {
       const int offset = instance_start_offsets[i_instance];
@@ -654,9 +650,9 @@ void register_node_type_geo_point_distribute()
 
   geo_node_type_base(
       &ntype, GEO_NODE_POINT_DISTRIBUTE, "Point Distribute", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_point_distribute_in, geo_node_point_distribute_out);
-  node_type_update(&ntype, node_point_distribute_update);
+  node_type_update(&ntype, blender::nodes::node_point_distribute_update);
+  ntype.declare = blender::nodes::geo_node_point_distribute_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_point_distribute_exec;
-  ntype.draw_buttons = geo_node_point_distribute_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_point_distribute_layout;
   nodeRegisterType(&ntype);
 }

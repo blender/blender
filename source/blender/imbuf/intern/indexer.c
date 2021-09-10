@@ -357,7 +357,7 @@ int IMB_proxy_size_to_array_index(IMB_Proxy_Size pr_size)
     case IMB_PROXY_100:
       return 3;
     default:
-      BLI_assert(!"Unhandled proxy size enum!");
+      BLI_assert_msg(0, "Unhandled proxy size enum!");
       return -1;
   }
 }
@@ -376,7 +376,7 @@ int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
     case IMB_TC_RECORD_RUN_NO_GAPS:
       return 3;
     default:
-      BLI_assert(!"Unhandled timecode type enum!");
+      BLI_assert_msg(0, "Unhandled timecode type enum!");
       return -1;
   }
 }
@@ -1022,7 +1022,7 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 
   stream_size = avio_size(context->iFormatCtx->pb);
 
-  context->frame_rate = av_q2d(av_guess_frame_rate(context->iFormatCtx, context->iStream, NULL));
+  context->frame_rate = av_q2d(context->iStream->r_frame_rate);
   context->pts_time_base = av_q2d(context->iStream->time_base);
 
   while (av_read_frame(context->iFormatCtx, next_packet) >= 0) {

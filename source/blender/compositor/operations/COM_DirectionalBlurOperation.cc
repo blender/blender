@@ -146,4 +146,58 @@ bool DirectionalBlurOperation::determineDependingAreaOfInterest(rcti * /*input*/
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
+void DirectionalBlurOperation::get_area_of_interest(const int input_idx,
+                                                    const rcti &UNUSED(output_area),
+                                                    rcti &r_input_area)
+{
+  BLI_assert(input_idx == 0);
+  UNUSED_VARS_NDEBUG(input_idx);
+  r_input_area.xmin = 0;
+  r_input_area.xmax = this->getWidth();
+  r_input_area.ymin = 0;
+  r_input_area.ymax = this->getHeight();
+}
+
+void DirectionalBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                            const rcti &area,
+                                                            Span<MemoryBuffer *> inputs)
+{
+  const MemoryBuffer *input = inputs[0];
+  const int iterations = pow(2.0f, this->m_data->iter);
+  for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
+    const int x = it.x;
+    const int y = it.y;
+    float color_accum[4];
+    input->read_elem_bilinear(x, y, color_accum);
+
+    /* Blur pixel. */
+    /* TODO(manzanilla): Many values used on iterations can be calculated beforehand. Create a
+     * table on operation initialization. */
+    float ltx = this->m_tx;
+    float lty = this->m_ty;
+    float lsc = this->m_sc;
+    float lrot = this->m_rot;
+    for (int i = 0; i < iterations; i++) {
+      const float cs = cosf(lrot), ss = sinf(lrot);
+      const float isc = 1.0f / (1.0f + lsc);
+
+      const float v = isc * (y - this->m_center_y_pix) + lty;
+      const float u = isc * (x - this->m_center_x_pix) + ltx;
+
+      float color[4];
+      input->read_elem_bilinear(
+          cs * u + ss * v + this->m_center_x_pix, cs * v - ss * u + this->m_center_y_pix, color);
+      add_v4_v4(color_accum, color);
+
+      /* Double transformations. */
+      ltx += this->m_tx;
+      lty += this->m_ty;
+      lrot += this->m_rot;
+      lsc += this->m_sc;
+    }
+
+    mul_v4_v4fl(it.out, color_accum, 1.0f / (iterations + 1));
+  }
+}
+
 }  // namespace blender::compositor

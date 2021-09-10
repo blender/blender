@@ -41,6 +41,49 @@ NodeOperation::NodeOperation()
   this->m_btree = nullptr;
 }
 
+/**
+ * Generate a hash that identifies the operation result in the current execution.
+ * Requires `hash_output_params` to be implemented, otherwise `std::nullopt` is returned.
+ * If the operation parameters or its linked inputs change, the hash must be re-generated.
+ */
+std::optional<NodeOperationHash> NodeOperation::generate_hash()
+{
+  params_hash_ = get_default_hash_2(m_width, m_height);
+
+  /* Hash subclasses params. */
+  is_hash_output_params_implemented_ = true;
+  hash_output_params();
+  if (!is_hash_output_params_implemented_) {
+    return std::nullopt;
+  }
+
+  hash_param(getOutputSocket()->getDataType());
+  NodeOperationHash hash;
+  hash.params_hash_ = params_hash_;
+
+  hash.parents_hash_ = 0;
+  for (NodeOperationInput &socket : m_inputs) {
+    NodeOperation &input = socket.getLink()->getOperation();
+    const bool is_constant = input.get_flags().is_constant_operation;
+    combine_hashes(hash.parents_hash_, get_default_hash(is_constant));
+    if (is_constant) {
+      const float *elem = ((ConstantOperation *)&input)->get_constant_elem();
+      const int num_channels = COM_data_type_num_channels(socket.getDataType());
+      for (const int i : IndexRange(num_channels)) {
+        combine_hashes(hash.parents_hash_, get_default_hash(elem[i]));
+      }
+    }
+    else {
+      combine_hashes(hash.parents_hash_, get_default_hash(input.get_id()));
+    }
+  }
+
+  hash.type_hash_ = typeid(*this).hash_code();
+  hash.operation_ = this;
+
+  return hash;
+}
+
 NodeOperationOutput *NodeOperation::getOutputSocket(unsigned int index)
 {
   return &m_outputs[index];
@@ -82,8 +125,12 @@ void NodeOperation::determineResolution(unsigned int resolution[2],
     input.determineResolution(resolution, preferredResolution);
     used_resolution_index = m_resolutionInputSocketIndex;
   }
-  unsigned int temp2[2] = {resolution[0], resolution[1]};
 
+  if (modify_determined_resolution_fn_) {
+    modify_determined_resolution_fn_(resolution);
+  }
+
+  unsigned int temp2[2] = {resolution[0], resolution[1]};
   unsigned int temp[2];
   for (unsigned int index = 0; index < m_inputs.size(); index++) {
     if (index == used_resolution_index) {
@@ -99,6 +146,11 @@ void NodeOperation::determineResolution(unsigned int resolution[2],
 void NodeOperation::setResolutionInputSocketIndex(unsigned int index)
 {
   this->m_resolutionInputSocketIndex = index;
+}
+
+void NodeOperation::init_data()
+{
+  /* Pass. */
 }
 void NodeOperation::initExecution()
 {
@@ -218,7 +270,7 @@ void NodeOperation::get_area_of_interest(NodeOperation *input_op,
       return;
     }
   }
-  BLI_assert(!"input_op is not an input operation.");
+  BLI_assert_msg(0, "input_op is not an input operation.");
 }
 
 /**

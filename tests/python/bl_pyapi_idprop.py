@@ -246,6 +246,69 @@ class TestBufferProtocol(TestHelper, unittest.TestCase):
         self.assertEqual(list(view1), list(view2))
         self.assertEqual(view1.tobytes(), view2.tobytes())
 
+class TestRNAData(TestHelper, unittest.TestCase):
+
+    def test_custom_properties_none(self):
+        bpy.data.objects.new("test", None)
+        test_object = bpy.data.objects["test"]
+
+        # Access default RNA data values.
+        test_object.id_properties_clear()
+        test_object["test_prop"] = 0.5
+        ui_data_test_prop = test_object.id_properties_ui("test_prop")
+
+        rna_data = ui_data_test_prop.as_dict()
+        self.assertTrue("min" in rna_data)
+        self.assertLess(rna_data["min"], -10000.0)
+        self.assertEqual(rna_data["subtype"], "NONE")
+        self.assertGreater(rna_data["soft_max"], 10000.0)
+
+        # Change RNA data values.
+        ui_data_test_prop.update(subtype="TEMPERATURE", min=0, soft_min=0.1)
+        rna_data = ui_data_test_prop.as_dict()
+        self.assertEqual(rna_data["min"], 0)
+        self.assertEqual(rna_data["soft_min"], 0.1)
+        self.assertEqual(rna_data["subtype"], "TEMPERATURE")
+
+        # Copy RNA data values from one property to another.
+        test_object["test_prop_2"] = 11.7
+        ui_data_test_prop_2 = test_object.id_properties_ui("test_prop_2")
+        ui_data_test_prop_2.update_from(ui_data_test_prop)
+        rna_data = ui_data_test_prop_2.as_dict()
+        self.assertEqual(rna_data["min"], 0)
+        self.assertEqual(rna_data["soft_min"], 0.1)
+        self.assertEqual(rna_data["subtype"], "TEMPERATURE")
+        self.assertGreater(rna_data["soft_max"], 10000.0)
+
+        # Copy RNA data values to another object's property.
+        bpy.data.objects.new("test_2", None)
+        test_object_2 = bpy.data.objects["test_2"]
+        test_object_2["test_prop_3"] = 20.1
+        ui_data_test_prop_3 = test_object_2.id_properties_ui("test_prop_3")
+        ui_data_test_prop_3.update_from(ui_data_test_prop_2)
+        rna_data = ui_data_test_prop_3.as_dict()
+        self.assertEqual(rna_data["min"], 0)
+        self.assertEqual(rna_data["soft_min"], 0.1)
+        self.assertEqual(rna_data["subtype"], "TEMPERATURE")
+        self.assertGreater(rna_data["soft_max"], 10000.0)
+
+        # Test RNA data for string property.
+        test_object.id_properties_clear()
+        test_object["test_string_prop"] = "Hello there!"
+        ui_data_test_prop_string = test_object.id_properties_ui("test_string_prop")
+        ui_data_test_prop_string.update(default="Goodbye where?")
+        rna_data = ui_data_test_prop_string.as_dict()
+        self.assertEqual(rna_data["default"], "Goodbye where?")
+
+        # Test RNA data for array property.
+        test_object.id_properties_clear()
+        test_object["test_array_prop"] = [1, 2, 3]
+        ui_data_test_prop_array = test_object.id_properties_ui("test_array_prop")
+        ui_data_test_prop_array.update(default=[1, 2])
+        rna_data = ui_data_test_prop_array.as_dict()
+        self.assertEqual(rna_data["default"], [1, 2])
+
+
 
 if __name__ == '__main__':
     import sys

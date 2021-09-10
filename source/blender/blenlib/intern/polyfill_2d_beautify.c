@@ -25,7 +25,7 @@
  * on a simple polygon representation where we _know_:
  *
  * - The polygon is primitive with no holes with a continuous boundary.
- * - Tris have consistent winding.
+ * - Triangles have consistent winding.
  * - 2d (saves some hassles projecting face pairs on an axis for every edge-rotation)
  *   also saves us having to store all previous edge-states (see #EdRotState in bmesh_beautify.c)
  *

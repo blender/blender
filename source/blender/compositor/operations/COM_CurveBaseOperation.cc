@@ -25,6 +25,7 @@ namespace blender::compositor {
 CurveBaseOperation::CurveBaseOperation()
 {
   this->m_curveMapping = nullptr;
+  this->flags.can_be_constant = true;
 }
 
 CurveBaseOperation::~CurveBaseOperation()

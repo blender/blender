@@ -227,6 +227,11 @@ def update_render_passes(self, context):
     view_layer.update_render_passes()
 
 
+def update_render_engine(self, context):
+    scene = context.scene
+    scene.update_render_engine()
+
+
 class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     device: EnumProperty(
@@ -240,6 +245,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Feature set to use for rendering",
         items=enum_feature_set,
         default='SUPPORTED',
+        update=update_render_engine,
     )
     shading_system: BoolProperty(
         name="Open Shading Language",
@@ -263,6 +269,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Use Denoising",
         description="Denoise the rendered image",
         default=False,
+        update=update_render_passes,
     )
     use_preview_denoising: BoolProperty(
         name="Use Viewport Denoising",
@@ -401,7 +408,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     adaptive_threshold: FloatProperty(
         name="Adaptive Sampling Threshold",
-        description="Noise level step to stop sampling at, lower values reduce noise the cost of render time. Zero for automatic setting based on number of AA samples",
+        description="Noise level step to stop sampling at, lower values reduce noise at the cost of render time. Zero for automatic setting based on number of AA samples",
         min=0.0, max=1.0,
         default=0.0,
         precision=4,
@@ -1163,12 +1170,6 @@ class CyclesVisibilitySettings(bpy.types.PropertyGroup):
 
     @classmethod
     def register(cls):
-        bpy.types.Object.cycles_visibility = PointerProperty(
-            name="Cycles Visibility Settings",
-            description="Cycles visibility settings",
-            type=cls,
-        )
-
         bpy.types.World.cycles_visibility = PointerProperty(
             name="Cycles Visibility Settings",
             description="Cycles visibility settings",
@@ -1177,7 +1178,6 @@ class CyclesVisibilitySettings(bpy.types.PropertyGroup):
 
     @classmethod
     def unregister(cls):
-        del bpy.types.Object.cycles_visibility
         del bpy.types.World.cycles_visibility
 
 
@@ -1267,18 +1267,12 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
         default=0.1,
     )
 
-    is_shadow_catcher: BoolProperty(
-        name="Shadow Catcher",
-        description="Only render shadows on this object, for compositing renders into real footage",
-        default=False,
-    )
-
-    is_holdout: BoolProperty(
-        name="Holdout",
-        description="Render objects as a holdout or matte, creating a "
-        "hole in the image with zero alpha, to fill out in "
-        "compositing with real footage or another render",
-        default=False,
+    ao_distance: FloatProperty(
+        name="AO Distance",
+        description="AO distance used for approximate global illumination (0 means use world setting)",
+        min=0.0,
+        default=0.0,
+        subtype='DISTANCE',
     )
 
     @classmethod
@@ -1324,30 +1318,6 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
 
 class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
 
-    pass_debug_bvh_traversed_nodes: BoolProperty(
-        name="Debug BVH Traversed Nodes",
-        description="Store Debug BVH Traversed Nodes pass",
-        default=False,
-        update=update_render_passes,
-    )
-    pass_debug_bvh_traversed_instances: BoolProperty(
-        name="Debug BVH Traversed Instances",
-        description="Store Debug BVH Traversed Instances pass",
-        default=False,
-        update=update_render_passes,
-    )
-    pass_debug_bvh_intersections: BoolProperty(
-        name="Debug BVH Intersections",
-        description="Store Debug BVH Intersections",
-        default=False,
-        update=update_render_passes,
-    )
-    pass_debug_ray_bounces: BoolProperty(
-        name="Debug Ray Bounces",
-        description="Store Debug Ray Bounces pass",
-        default=False,
-        update=update_render_passes,
-    )
     pass_debug_render_time: BoolProperty(
         name="Debug Render Time",
         description="Render time in milliseconds per sample and pixel",

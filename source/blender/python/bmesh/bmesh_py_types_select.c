@@ -205,7 +205,6 @@ static PyObject *bpy_bmeditselseq_subscript_slice(BPy_BMEditSelSeq *self,
                                                   Py_ssize_t stop)
 {
   int count = 0;
-  bool ok;
 
   PyObject *list;
   BMEditSelection *ese;
@@ -214,30 +213,22 @@ static PyObject *bpy_bmeditselseq_subscript_slice(BPy_BMEditSelSeq *self,
 
   list = PyList_New(0);
 
-  ese = self->bm->selected.first;
-
-  ok = (ese != NULL);
-
-  if (UNLIKELY(ok == false)) {
-    return list;
-  }
-
-  /* first loop up-until the start */
-  for (ok = true; ok; ok = ((ese = ese->next) != NULL)) {
+  /* First loop up-until the start. */
+  for (ese = self->bm->selected.first; ese; ese = ese->next) {
     if (count == start) {
       break;
     }
     count++;
   }
 
-  /* add items until stop */
-  do {
+  /* Add items until stop. */
+  for (; ese; ese = ese->next) {
     PyList_APPEND(list, BPy_BMElem_CreatePyObject(self->bm, &ese->ele->head));
     count++;
     if (count == stop) {
       break;
     }
-  } while ((ese = ese->next));
+  }
 
   return list;
 }
@@ -282,9 +273,11 @@ static PyObject *bpy_bmeditselseq_subscript(BPy_BMEditSelSeq *self, PyObject *ke
       const Py_ssize_t len = bpy_bmeditselseq_length(self);
       if (start < 0) {
         start += len;
+        CLAMP_MIN(start, 0);
       }
       if (stop < 0) {
         stop += len;
+        CLAMP_MIN(stop, 0);
       }
     }
 

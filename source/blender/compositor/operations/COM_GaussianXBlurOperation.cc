@@ -25,13 +25,8 @@
 
 namespace blender::compositor {
 
-GaussianXBlurOperation::GaussianXBlurOperation() : BlurBaseOperation(DataType::Color)
+GaussianXBlurOperation::GaussianXBlurOperation() : GaussianBlurBaseOperation(eDimension::X)
 {
-  this->m_gausstab = nullptr;
-#ifdef BLI_HAVE_SSE2
-  this->m_gausstab_sse = nullptr;
-#endif
-  this->m_filtersize = 0;
 }
 
 void *GaussianXBlurOperation::initializeTileData(rcti * /*rect*/)
@@ -45,13 +40,14 @@ void *GaussianXBlurOperation::initializeTileData(rcti * /*rect*/)
   return buffer;
 }
 
+/* TODO(manzanilla): to be removed with tiled implementation. */
 void GaussianXBlurOperation::initExecution()
 {
-  BlurBaseOperation::initExecution();
+  GaussianBlurBaseOperation::initExecution();
 
   initMutex();
 
-  if (this->m_sizeavailable) {
+  if (this->m_sizeavailable && execution_model_ == eExecutionModel::Tiled) {
     float rad = max_ff(m_size * m_data.sizex, 0.0f);
     m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
@@ -63,6 +59,7 @@ void GaussianXBlurOperation::initExecution()
   }
 }
 
+/* TODO(manzanilla): to be removed with tiled implementation. */
 void GaussianXBlurOperation::updateGauss()
 {
   if (this->m_gausstab == nullptr) {
@@ -158,7 +155,7 @@ void GaussianXBlurOperation::executeOpenCL(OpenCLDevice *device,
 
 void GaussianXBlurOperation::deinitExecution()
 {
-  BlurBaseOperation::deinitExecution();
+  GaussianBlurBaseOperation::deinitExecution();
 
   if (this->m_gausstab) {
     MEM_freeN(this->m_gausstab);

@@ -334,7 +334,7 @@ static int validate_array_length(PyObject *rvalue,
     }
 
     if (tot != len) {
-      /* BLI_snprintf(error_str, error_str_size, "sequence must have length of %d", len); */
+      // BLI_snprintf(error_str, error_str_size, "sequence must have length of %d", len);
       PyErr_Format(PyExc_ValueError,
                    "%s %.200s.%.200s, sequence must have %d items total, not %d",
                    error_prefix,

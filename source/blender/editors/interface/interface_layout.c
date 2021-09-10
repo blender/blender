@@ -282,7 +282,7 @@ static int ui_layout_vary_direction(uiLayout *layout)
 
 static bool ui_layout_variable_size(uiLayout *layout)
 {
-  /* Note that this code is probably a bit flakey, we'd probably want to know whether it's
+  /* Note that this code is probably a bit flaky, we'd probably want to know whether it's
    * variable in X and/or Y, etc. But for now it mimics previous one,
    * with addition of variable flag set for children of grid-flow layouts. */
   return ui_layout_vary_direction(layout) == UI_ITEM_VARY_X || layout->variable_size;
@@ -2911,6 +2911,12 @@ static uiBut *ui_item_menu(uiLayout *layout,
 
 void uiItemM_ptr(uiLayout *layout, MenuType *mt, const char *name, int icon)
 {
+  uiBlock *block = layout->root->block;
+  bContext *C = block->evil_C;
+  if (WM_menutype_poll(C, mt) == false) {
+    return;
+  }
+
   if (!name) {
     name = CTX_IFACE_(mt->translation_context, mt->label);
   }
@@ -2949,6 +2955,9 @@ void uiItemMContents(uiLayout *layout, const char *menuname)
 
   uiBlock *block = layout->root->block;
   bContext *C = block->evil_C;
+  if (WM_menutype_poll(C, mt) == false) {
+    return;
+  }
   UI_menutype_draw(C, mt, layout);
 }
 
@@ -5956,8 +5965,8 @@ uiLayout *uiItemsAlertBox(uiBlock *block, const int size, const eAlertIcon icon)
   const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
   const int dialog_width = icon_size + (text_points_max * size * U.dpi_fac);
   /* By default, the space between icon and text/buttons will be equal to the 'columnspace',
-     this extra padding will add some space by increasing the left column width,
-     making the icon placement more symmetrical, between the block edge and the text. */
+   * this extra padding will add some space by increasing the left column width,
+   * making the icon placement more symmetrical, between the block edge and the text. */
   const float icon_padding = 5.0f * U.dpi_fac;
   /* Calculate the factor of the fixed icon column depending on the block width. */
   const float split_factor = ((float)icon_size + icon_padding) /

@@ -87,6 +87,8 @@ static void greasepencil_copy_data(Main *UNUSED(bmain),
     gpd_dst->mat = MEM_dupallocN(gpd_src->mat);
   }
 
+  BKE_defgroup_copy_list(&gpd_dst->vertex_group_names, &gpd_src->vertex_group_names);
+
   /* copy layers */
   BLI_listbase_clear(&gpd_dst->layers);
   LISTBASE_FOREACH (bGPDlayer *, gpl_src, &gpd_src->layers) {
@@ -129,7 +131,7 @@ static void greasepencil_free_data(ID *id)
 {
   /* Really not ideal, but for now will do... In theory custom behaviors like not freeing cache
    * should be handled through specific API, and not be part of the generic one. */
-  BKE_gpencil_free((bGPdata *)id, true);
+  BKE_gpencil_free_data((bGPdata *)id, true);
 }
 
 static void greasepencil_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -148,45 +150,46 @@ static void greasepencil_foreach_id(ID *id, LibraryForeachIDData *data)
 static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   bGPdata *gpd = (bGPdata *)id;
-  if (gpd->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
-    /* XXX not sure why the whole run-time data is not cleared in reading code,
-     * for now mimicking it here. */
-    gpd->runtime.sbuffer = NULL;
-    gpd->runtime.sbuffer_used = 0;
-    gpd->runtime.sbuffer_size = 0;
-    gpd->runtime.tot_cp_points = 0;
 
-    /* write gpd data block to file */
-    BLO_write_id_struct(writer, bGPdata, id_address, &gpd->id);
-    BKE_id_blend_write(writer, &gpd->id);
+  /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
+  /* XXX not sure why the whole run-time data is not cleared in reading code,
+   * for now mimicking it here. */
+  gpd->runtime.sbuffer = NULL;
+  gpd->runtime.sbuffer_used = 0;
+  gpd->runtime.sbuffer_size = 0;
+  gpd->runtime.tot_cp_points = 0;
 
-    if (gpd->adt) {
-      BKE_animdata_blend_write(writer, gpd->adt);
-    }
+  /* write gpd data block to file */
+  BLO_write_id_struct(writer, bGPdata, id_address, &gpd->id);
+  BKE_id_blend_write(writer, &gpd->id);
 
-    BLO_write_pointer_array(writer, gpd->totcol, gpd->mat);
+  if (gpd->adt) {
+    BKE_animdata_blend_write(writer, gpd->adt);
+  }
 
-    /* write grease-pencil layers to file */
-    BLO_write_struct_list(writer, bGPDlayer, &gpd->layers);
-    LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-      /* Write mask list. */
-      BLO_write_struct_list(writer, bGPDlayer_Mask, &gpl->mask_layers);
-      /* write this layer's frames to file */
-      BLO_write_struct_list(writer, bGPDframe, &gpl->frames);
-      LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-        /* write strokes */
-        BLO_write_struct_list(writer, bGPDstroke, &gpf->strokes);
-        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-          BLO_write_struct_array(writer, bGPDspoint, gps->totpoints, gps->points);
-          BLO_write_struct_array(writer, bGPDtriangle, gps->tot_triangles, gps->triangles);
-          BKE_defvert_blend_write(writer, gps->totpoints, gps->dvert);
-          if (gps->editcurve != NULL) {
-            bGPDcurve *gpc = gps->editcurve;
-            BLO_write_struct(writer, bGPDcurve, gpc);
-            BLO_write_struct_array(
-                writer, bGPDcurve_point, gpc->tot_curve_points, gpc->curve_points);
-          }
+  BKE_defbase_blend_write(writer, &gpd->vertex_group_names);
+
+  BLO_write_pointer_array(writer, gpd->totcol, gpd->mat);
+
+  /* write grease-pencil layers to file */
+  BLO_write_struct_list(writer, bGPDlayer, &gpd->layers);
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    /* Write mask list. */
+    BLO_write_struct_list(writer, bGPDlayer_Mask, &gpl->mask_layers);
+    /* write this layer's frames to file */
+    BLO_write_struct_list(writer, bGPDframe, &gpl->frames);
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+      /* write strokes */
+      BLO_write_struct_list(writer, bGPDstroke, &gpf->strokes);
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+        BLO_write_struct_array(writer, bGPDspoint, gps->totpoints, gps->points);
+        BLO_write_struct_array(writer, bGPDtriangle, gps->tot_triangles, gps->triangles);
+        BKE_defvert_blend_write(writer, gps->totpoints, gps->dvert);
+        if (gps->editcurve != NULL) {
+          bGPDcurve *gpc = gps->editcurve;
+          BLO_write_struct(writer, bGPDcurve, gpc);
+          BLO_write_struct_array(
+              writer, bGPDcurve_point, gpc->tot_curve_points, gpc->curve_points);
         }
       }
     }
@@ -205,7 +208,7 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
   BKE_animdata_blend_read_data(reader, gpd->adt);
 
   /* Ensure full objectmode for linked grease pencil. */
-  if (gpd->id.lib != NULL) {
+  if (ID_IS_LINKED(gpd)) {
     gpd->flag &= ~GP_DATA_STROKE_PAINTMODE;
     gpd->flag &= ~GP_DATA_STROKE_EDITMODE;
     gpd->flag &= ~GP_DATA_STROKE_SCULPTMODE;
@@ -226,6 +229,8 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
       BLO_read_list(reader, &palette->colors);
     }
   }
+
+  BLO_read_list(reader, &gpd->vertex_group_names);
 
   /* Materials. */
   BLO_read_pointer_array(reader, (void **)&gpd->mat);
@@ -490,13 +495,15 @@ void BKE_gpencil_free_layers(ListBase *list)
 }
 
 /** Free (or release) any data used by this grease pencil (does not free the gpencil itself). */
-void BKE_gpencil_free(bGPdata *gpd, bool free_all)
+void BKE_gpencil_free_data(bGPdata *gpd, bool free_all)
 {
   /* free layers */
   BKE_gpencil_free_layers(&gpd->layers);
 
   /* materials */
   MEM_SAFE_FREE(gpd->mat);
+
+  BLI_freelistN(&gpd->vertex_group_names);
 
   /* free all data */
   if (free_all) {
@@ -511,8 +518,9 @@ void BKE_gpencil_free(bGPdata *gpd, bool free_all)
  */
 void BKE_gpencil_eval_delete(bGPdata *gpd_eval)
 {
-  BKE_gpencil_free(gpd_eval, true);
+  BKE_gpencil_free_data(gpd_eval, true);
   BKE_libblock_free_data(&gpd_eval->id, false);
+  BLI_assert(!gpd_eval->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
   MEM_freeN(gpd_eval);
 }
 
@@ -796,32 +804,6 @@ bGPdata *BKE_gpencil_data_addnew(Main *bmain, const char name[])
 /* ************************************************** */
 /* Primitive Creation */
 /* Utilities for easier bulk-creation of geometry */
-
-/**
- * Populate stroke with point data from data buffers.
- * \param gps: Grease pencil stroke
- * \param array: Flat array of point data values. Each entry has #GP_PRIM_DATABUF_SIZE values.
- * \param totpoints: Total of points
- * \param mat: 4x4 transform matrix to transform points into the right coordinate space.
- */
-void BKE_gpencil_stroke_add_points(bGPDstroke *gps,
-                                   const float *array,
-                                   const int totpoints,
-                                   const float mat[4][4])
-{
-  for (int i = 0; i < totpoints; i++) {
-    bGPDspoint *pt = &gps->points[i];
-    const int x = GP_PRIM_DATABUF_SIZE * i;
-
-    pt->x = array[x];
-    pt->y = array[x + 1];
-    pt->z = array[x + 2];
-    mul_m4_v3(mat, &pt->x);
-
-    pt->pressure = array[x + 3];
-    pt->strength = array[x + 4];
-  }
-}
 
 /**
  * Create a new stroke, with pre-allocated data buffers.
@@ -2087,8 +2069,9 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
 {
   bGPdata *gpd = ob->data;
   MDeformVert *dvert = NULL;
-  const int def_nr = BLI_findindex(&ob->defbase, defgroup);
-  const int totgrp = BLI_listbase_count(&ob->defbase);
+
+  const int def_nr = BLI_findindex(&gpd->vertex_group_names, defgroup);
+  const int totgrp = BLI_listbase_count(&gpd->vertex_group_names);
 
   /* Remove points data */
   if (gpd) {
@@ -2117,7 +2100,7 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
   }
 
   /* Remove the group */
-  BLI_freelinkN(&ob->defbase, defgroup);
+  BLI_freelinkN(&gpd->vertex_group_names, defgroup);
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 }
 
@@ -2747,7 +2730,7 @@ void BKE_gpencil_visible_stroke_advanced_iter(ViewLayer *view_layer,
                                               int cfra)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
-  const bool is_multiedit = ((GPENCIL_MULTIEDIT_SESSIONS_ON(gpd)) && (!GPENCIL_PLAY_ON(gpd)));
+  const bool is_multiedit = (GPENCIL_MULTIEDIT_SESSIONS_ON(gpd) && (!GPENCIL_PLAY_ON(gpd)));
   const bool is_onion = do_onion && ((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0);
   const bool is_drawing = (gpd->runtime.sbuffer_used > 0);
 

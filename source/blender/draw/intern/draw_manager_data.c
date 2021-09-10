@@ -74,7 +74,7 @@ static void draw_call_sort(DRWCommand *array, DRWCommand *array_tmp, int array_l
       return;
     }
   }
-  /* Cumulate batch indices */
+  /* Accumulate batch indices */
   for (int i = 1; i < ARRAY_SIZE(idx); i++) {
     idx[i] += idx[i - 1];
   }
@@ -453,7 +453,7 @@ void DRW_shgroup_vertex_buffer(DRWShadingGroup *shgroup,
 {
   int location = GPU_shader_get_ssbo(shgroup->shader, name);
   if (location == -1) {
-    BLI_assert(false && "Unable to locate binding of shader storage buffer objects.");
+    BLI_assert_msg(0, "Unable to locate binding of shader storage buffer objects.");
     return;
   }
   drw_shgroup_uniform_create_ex(
@@ -528,10 +528,10 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
   drw_call_calc_orco(ob, ob_infos->orcotexfac);
   /* Random float value. */
   uint random = (DST.dupli_source) ?
-                    DST.dupli_source->random_id :
-                    /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
-                     * put it in ob->runtime and make depsgraph ensure it is up to date. */
-                    BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
+                     DST.dupli_source->random_id :
+                     /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
+                      * put it in ob->runtime and make depsgraph ensure it is up to date. */
+                     BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
   ob_infos->ob_random = random * (1.0f / (float)0xFFFFFFFF);
   /* Object State. */
   ob_infos->ob_flag = 1.0f; /* Required to have a correct sign */
@@ -1532,13 +1532,6 @@ static void draw_frustum_boundbox_calc(const float (*viewinv)[4],
 #endif
 
   projmat_dimensions(projmat, &left, &right, &bottom, &top, &near, &far);
-
-  if (is_persp) {
-    left *= near;
-    right *= near;
-    bottom *= near;
-    top *= near;
-  }
 
   r_bbox->vec[0][2] = r_bbox->vec[3][2] = r_bbox->vec[7][2] = r_bbox->vec[4][2] = -near;
   r_bbox->vec[0][0] = r_bbox->vec[3][0] = left;

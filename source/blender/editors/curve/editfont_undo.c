@@ -379,7 +379,7 @@ static void font_undosys_step_decode(struct bContext *C,
 
   Curve *cu = obedit->data;
   undofont_to_editfont(&us->data, cu);
-  DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(&cu->id, ID_RECALC_GEOMETRY);
 
   ED_undo_object_set_active_or_warn(
       CTX_data_scene(C), CTX_data_view_layer(C), obedit, us_p->name, &LOG);

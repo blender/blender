@@ -90,7 +90,7 @@ static bool set_knots(const FloatArraySamplePtr &knots, float *&nu_knots)
 
 void AbcNurbsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
-  Curve *cu = static_cast<Curve *>(BKE_curve_add(bmain, "abc_curve", OB_SURF));
+  Curve *cu = static_cast<Curve *>(BKE_curve_add(bmain, m_data_name.c_str(), OB_SURF));
   cu->actvert = CU_ACT_NONE;
 
   std::vector<std::pair<INuPatchSchema, IObject>>::iterator it;
@@ -179,8 +179,6 @@ void AbcNurbsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
 
     BLI_addtail(BKE_curve_nurbs_get(cu), nu);
   }
-
-  BLI_strncpy(cu->id.name + 2, m_data_name.c_str(), m_data_name.size() + 1);
 
   m_object = BKE_object_add_only_object(bmain, OB_SURF, m_object_name.c_str());
   m_object->data = cu;

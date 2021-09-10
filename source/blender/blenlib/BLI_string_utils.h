@@ -75,10 +75,10 @@ char *BLI_string_join_array_by_sep_char_with_tableN(char sep,
   BLI_string_join_array_by_sep_char_with_tableN( \
       sep, table, ((const char *[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 
-void BLI_string_flip_side_name(char *r_name,
-                               const char *from_name,
-                               const bool strip_number,
-                               const size_t name_len);
+size_t BLI_string_flip_side_name(char *r_name,
+                                 const char *from_name,
+                                 const bool strip_number,
+                                 const size_t name_len);
 
 bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
                        void *arg,

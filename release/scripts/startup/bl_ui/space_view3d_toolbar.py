@@ -1029,7 +1029,7 @@ class VIEW3D_PT_tools_vertexpaint_options(Panel, View3DPaintPanel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(self, _context):
+    def poll(cls, _context):
         # This is currently unused, since there aren't any Vertex Paint mode specific options.
         return False
 

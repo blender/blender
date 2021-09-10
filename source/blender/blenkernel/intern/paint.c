@@ -108,14 +108,13 @@ static void palette_free_data(ID *id)
 static void palette_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Palette *palette = (Palette *)id;
-  if (palette->id.us > 0 || BLO_write_is_undo(writer)) {
-    PaletteColor *color;
-    BLO_write_id_struct(writer, Palette, id_address, &palette->id);
-    BKE_id_blend_write(writer, &palette->id);
 
-    for (color = palette->colors.first; color; color = color->next) {
-      BLO_write_struct(writer, PaletteColor, color);
-    }
+  PaletteColor *color;
+  BLO_write_id_struct(writer, Palette, id_address, &palette->id);
+  BKE_id_blend_write(writer, &palette->id);
+
+  for (color = palette->colors.first; color; color = color->next) {
+    BLO_write_struct(writer, PaletteColor, color);
   }
 }
 
@@ -187,12 +186,11 @@ static void paint_curve_free_data(ID *id)
 static void paint_curve_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   PaintCurve *pc = (PaintCurve *)id;
-  if (pc->id.us > 0 || BLO_write_is_undo(writer)) {
-    BLO_write_id_struct(writer, PaintCurve, id_address, &pc->id);
-    BKE_id_blend_write(writer, &pc->id);
 
-    BLO_write_struct_array(writer, PaintCurvePoint, pc->tot_points, pc->points);
-  }
+  BLO_write_id_struct(writer, PaintCurve, id_address, &pc->id);
+  BKE_id_blend_write(writer, &pc->id);
+
+  BLO_write_struct_array(writer, PaintCurvePoint, pc->tot_points, pc->points);
 }
 
 static void paint_curve_blend_read_data(BlendDataReader *reader, ID *id)
@@ -880,7 +878,7 @@ static int palettecolor_compare_luminance(const void *a1, const void *a2)
 
 void BKE_palette_sort_hsv(tPaletteColorHSV *color_array, const int totcol)
 {
-  /* Sort by Hue , Saturation and Value. */
+  /* Sort by Hue, Saturation and Value. */
   qsort(color_array, totcol, sizeof(tPaletteColorHSV), palettecolor_compare_hsv);
 }
 

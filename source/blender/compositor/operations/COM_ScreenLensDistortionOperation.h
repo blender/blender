@@ -18,14 +18,14 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "DNA_node_types.h"
 
 struct RNG;
 
 namespace blender::compositor {
 
-class ScreenLensDistortionOperation : public NodeOperation {
+class ScreenLensDistortionOperation : public MultiThreadedOperation {
  private:
   /**
    * Cached reference to the inputProgram
@@ -49,6 +49,8 @@ class ScreenLensDistortionOperation : public NodeOperation {
 
  public:
   ScreenLensDistortionOperation();
+
+  void init_data() override;
 
   /**
    * The inner loop of this operation.
@@ -84,6 +86,11 @@ class ScreenLensDistortionOperation : public NodeOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
 
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+
  private:
   void determineUV(float result[6], float x, float y) const;
   void updateVariables(float distortion, float dispersion);
@@ -91,7 +98,7 @@ class ScreenLensDistortionOperation : public NodeOperation {
   void get_uv(const float xy[2], float uv[2]) const;
   void distort_uv(const float uv[2], float t, float xy[2]) const;
   bool get_delta(float r_sq, float k4, const float uv[2], float delta[2]) const;
-  void accumulate(MemoryBuffer *buffer,
+  void accumulate(const MemoryBuffer *buffer,
                   int a,
                   int b,
                   float r_sq,

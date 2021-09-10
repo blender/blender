@@ -120,6 +120,9 @@ MINLINE double interpd(double a, double b, double t);
 MINLINE float ratiof(float min, float max, float pos);
 MINLINE double ratiod(double min, double max, double pos);
 
+MINLINE float scalenorm(float a, float b, float x);
+MINLINE double scalenormd(double a, double b, double x);
+
 /* NOTE: Compilers will upcast all types smaller than int to int when performing arithmetic
  * operation. */
 MINLINE int square_s(short a);
@@ -169,6 +172,9 @@ MINLINE size_t clamp_z(size_t value, size_t min, size_t max);
 
 MINLINE int compare_ff(float a, float b, const float max_diff);
 MINLINE int compare_ff_relative(float a, float b, const float max_diff, const int max_ulps);
+MINLINE bool compare_threshold_relative(const float value1,
+                                        const float value2,
+                                        const float thresh);
 
 MINLINE float signf(float f);
 MINLINE int signum_i_ex(float a, float eps);
@@ -192,6 +198,8 @@ MINLINE unsigned int log2_ceil_u(unsigned int x);
 
 MINLINE int divide_round_i(int a, int b);
 MINLINE int mod_i(int i, int n);
+
+MINLINE float round_to_even(float f);
 
 MINLINE signed char round_fl_to_char(float a);
 MINLINE unsigned char round_fl_to_uchar(float a);

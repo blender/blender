@@ -106,7 +106,7 @@
 
 /* for debugging add... */
 #ifndef NDEBUG
-/* printf("%u %u %u %u\n", _t[0], _t[1], _t[2], _t[3]); \ */
+// printf("%u %u %u %u\n", _t[0], _t[1], _t[2], _t[3]);
 #  define FACE_ASSERT(face, vert_max) \
     { \
       unsigned int *_t = face; \
@@ -292,10 +292,10 @@ static void maskrasterize_spline_differentiate_point_outset(float (*diff_feather
     co_curr = diff_points[k_curr];
     co_next = diff_points[k_next];
 
-    /* sub_v2_v2v2(d_prev, co_prev, co_curr); */ /* precalc */
+    // sub_v2_v2v2(d_prev, co_prev, co_curr); /* precalc */
     sub_v2_v2v2(d_next, co_curr, co_next);
 
-    /* normalize_v2(d_prev); */ /* precalc */
+    // normalize_v2(d_prev); /* precalc */
     normalize_v2(d_next);
 
     if ((do_test == false) ||
@@ -619,7 +619,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
     unsigned int tot_boundary_found = 0;
 #endif
 
-    if (masklay->restrictflag & MASK_RESTRICT_RENDER) {
+    if (masklay->visibility_flag & MASK_HIDE_RENDER) {
       /* skip the layer */
       mr_handle->layers_tot--;
       masklay_index--;
@@ -937,7 +937,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       ListBase isect_remedgebase = {NULL, NULL};
 
       /* now we have all the splines */
-      face_coords = MEM_mallocN((sizeof(float[3])) * sf_vert_tot, "maskrast_face_coords");
+      face_coords = MEM_mallocN(sizeof(float[3]) * sf_vert_tot, "maskrast_face_coords");
 
       /* init bounds */
       BLI_rctf_init_minmax(&bounds);
@@ -1213,7 +1213,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         layer->falloff = masklay->falloff;
       }
 
-      /* printf("tris %d, feather tris %d\n", sf_tri_tot, tot_feather_quads); */
+      // printf("tris %d, feather tris %d\n", sf_tri_tot, tot_feather_quads);
     }
 
     /* add trianges */

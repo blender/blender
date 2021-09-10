@@ -37,6 +37,8 @@
 #endif
 #include "MEM_guardedalloc.h"
 
+#include "BLF_api.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
@@ -334,6 +336,7 @@ typedef struct FileListEntryCache {
   /* Previews handling. */
   TaskPool *previews_pool;
   ThreadQueue *previews_done;
+  size_t previews_todo_count;
 } FileListEntryCache;
 
 /* FileListCache.flags */
@@ -376,12 +379,13 @@ enum {
   FLF_ASSETS_ONLY = 1 << 4,
 };
 
+struct FileListReadJob;
 typedef struct FileList {
   FileDirEntryArr filelist;
 
   eFileSelectType type;
   /* The library this list was created for. Stored here so we know when to re-read. */
-  FileSelectAssetLibraryUID *asset_library;
+  AssetLibraryReference *asset_library_ref;
 
   short flags;
 
@@ -412,8 +416,7 @@ typedef struct FileList {
   bool (*check_dir_fn)(struct FileList *, char *, const bool);
 
   /* Fill filelist (to be called by read job). */
-  void (*read_job_fn)(
-      Main *, struct FileList *, const char *, short *, short *, float *, ThreadMutex *);
+  void (*read_job_fn)(struct FileListReadJob *, short *, short *, float *);
 
   /* Filter an entry of current filelist. */
   bool (*filter_fn)(struct FileListInternEntry *, const char *, FileListFilter *);
@@ -456,34 +459,22 @@ enum {
 
 static ImBuf *gSpecialFileImages[SPECIAL_IMG_MAX];
 
-static void filelist_readjob_main(Main *current_main,
-                                  FileList *filelist,
-                                  const char *main_name,
+static void filelist_readjob_main(struct FileListReadJob *job_params,
                                   short *stop,
                                   short *do_update,
-                                  float *progress,
-                                  ThreadMutex *lock);
-static void filelist_readjob_lib(Main *current_main,
-                                 FileList *filelist,
-                                 const char *main_name,
+                                  float *progress);
+static void filelist_readjob_lib(struct FileListReadJob *job_params,
                                  short *stop,
                                  short *do_update,
-                                 float *progress,
-                                 ThreadMutex *lock);
-static void filelist_readjob_dir(Main *current_main,
-                                 FileList *filelist,
-                                 const char *main_name,
+                                 float *progress);
+static void filelist_readjob_dir(struct FileListReadJob *job_params,
                                  short *stop,
                                  short *do_update,
-                                 float *progress,
-                                 ThreadMutex *lock);
-static void filelist_readjob_main_assets(Main *current_main,
-                                         FileList *filelist,
-                                         const char *main_name,
+                                 float *progress);
+static void filelist_readjob_main_assets(struct FileListReadJob *job_params,
                                          short *stop,
                                          short *do_update,
-                                         float *progress,
-                                         ThreadMutex *lock);
+                                         float *progress);
 
 /* helper, could probably go in BKE actually? */
 static int groupname_to_code(const char *group);
@@ -1044,13 +1035,13 @@ void filelist_setfilter_options(FileList *filelist,
  * Checks two libraries for equality.
  * \return True if the libraries match.
  */
-static bool filelist_compare_asset_libraries(const FileSelectAssetLibraryUID *library_a,
-                                             const FileSelectAssetLibraryUID *library_b)
+static bool filelist_compare_asset_libraries(const AssetLibraryReference *library_a,
+                                             const AssetLibraryReference *library_b)
 {
   if (library_a->type != library_b->type) {
     return false;
   }
-  if (library_a->type == FILE_ASSET_LIBRARY_CUSTOM) {
+  if (library_a->type == ASSET_LIBRARY_CUSTOM) {
     /* Don't only check the index, also check that it's valid. */
     bUserAssetLibrary *library_ptr_a = BKE_preferences_asset_library_find_from_index(
         &U, library_a->custom_library_index);
@@ -1062,28 +1053,28 @@ static bool filelist_compare_asset_libraries(const FileSelectAssetLibraryUID *li
 }
 
 /**
- * \param asset_library: May be NULL to unset the library.
+ * \param asset_library_ref: May be NULL to unset the library.
  */
-void filelist_setlibrary(FileList *filelist, const FileSelectAssetLibraryUID *asset_library)
+void filelist_setlibrary(FileList *filelist, const AssetLibraryReference *asset_library_ref)
 {
   /* Unset if needed. */
-  if (!asset_library) {
-    if (filelist->asset_library) {
-      MEM_SAFE_FREE(filelist->asset_library);
+  if (!asset_library_ref) {
+    if (filelist->asset_library_ref) {
+      MEM_SAFE_FREE(filelist->asset_library_ref);
       filelist->flags |= FL_FORCE_RESET;
     }
     return;
   }
 
-  if (!filelist->asset_library) {
-    filelist->asset_library = MEM_mallocN(sizeof(*filelist->asset_library),
-                                          "filelist asset library");
-    *filelist->asset_library = *asset_library;
+  if (!filelist->asset_library_ref) {
+    filelist->asset_library_ref = MEM_mallocN(sizeof(*filelist->asset_library_ref),
+                                              "filelist asset library");
+    *filelist->asset_library_ref = *asset_library_ref;
 
     filelist->flags |= FL_FORCE_RESET;
   }
-  else if (!filelist_compare_asset_libraries(filelist->asset_library, asset_library)) {
-    *filelist->asset_library = *asset_library;
+  else if (!filelist_compare_asset_libraries(filelist->asset_library_ref, asset_library_ref)) {
+    *filelist->asset_library_ref = *asset_library_ref;
     filelist->flags |= FL_FORCE_RESET;
   }
 }
@@ -1153,7 +1144,7 @@ ImBuf *filelist_file_getimage(const FileDirEntry *file)
   return file->preview_icon_id ? BKE_icon_imbuf_get_buffer(file->preview_icon_id) : NULL;
 }
 
-static ImBuf *filelist_geticon_image_ex(FileDirEntry *file)
+ImBuf *filelist_geticon_image_ex(const FileDirEntry *file)
 {
   ImBuf *ibuf = NULL;
 
@@ -1369,9 +1360,6 @@ static void filelist_entry_clear(FileDirEntry *entry)
   if (entry->name && ((entry->flags & FILE_ENTRY_NAME_FREE) != 0)) {
     MEM_freeN(entry->name);
   }
-  if (entry->description) {
-    MEM_freeN(entry->description);
-  }
   if (entry->relpath) {
     MEM_freeN(entry->relpath);
   }
@@ -1494,6 +1482,7 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
     /* That way task freeing function won't free th preview, since it does not own it anymore. */
     atomic_cas_ptr((void **)&preview_taskdata->preview, preview, NULL);
     BLI_thread_queue_push(cache->previews_done, preview);
+    atomic_fetch_and_sub_z(&cache->previews_todo_count, 1);
   }
 
   //  printf("%s: End (%d)...\n", __func__, threadid);
@@ -1520,6 +1509,7 @@ static void filelist_cache_preview_ensure_running(FileListEntryCache *cache)
   if (!cache->previews_pool) {
     cache->previews_pool = BLI_task_pool_create_background(cache, TASK_PRIORITY_LOW);
     cache->previews_done = BLI_thread_queue_init();
+    cache->previews_todo_count = 0;
 
     IMB_thumb_locks_acquire();
   }
@@ -1553,6 +1543,7 @@ static void filelist_cache_previews_free(FileListEntryCache *cache)
     BLI_task_pool_free(cache->previews_pool);
     cache->previews_pool = NULL;
     cache->previews_done = NULL;
+    cache->previews_todo_count = 0;
 
     IMB_thumb_locks_release();
   }
@@ -1599,7 +1590,7 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
   preview->flags = entry->typeflag;
   preview->in_memory_preview = intern_entry->local_data.preview_image;
   preview->icon_id = 0;
-  //      printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
+  // printf("%s: %d - %s\n", __func__, preview->index, preview->path);
 
   filelist_cache_preview_ensure_running(cache);
 
@@ -1632,6 +1623,8 @@ static void filelist_cache_init(FileListEntryCache *cache, size_t cache_size)
 
   cache->size = cache_size;
   cache->flags = FLC_IS_INIT;
+
+  cache->previews_todo_count = 0;
 
   /* We cannot translate from non-main thread, so init translated strings once from here. */
   IMB_thumb_ensure_translations();
@@ -1786,7 +1779,7 @@ void filelist_free(struct FileList *filelist)
     filelist->selection_state = NULL;
   }
 
-  MEM_SAFE_FREE(filelist->asset_library);
+  MEM_SAFE_FREE(filelist->asset_library_ref);
 
   memset(&filelist->filter_data, 0, sizeof(filelist->filter_data));
 
@@ -1806,12 +1799,22 @@ BlendHandle *filelist_lib(struct FileList *filelist)
   return filelist->libfiledata;
 }
 
-static const char *fileentry_uiname(const char *root,
-                                    const char *relpath,
-                                    const eFileSel_File_Types typeflag,
-                                    char *buff)
+static char *fileentry_uiname(const char *root,
+                              const char *relpath,
+                              const eFileSel_File_Types typeflag,
+                              char *buff)
 {
   char *name = NULL;
+
+  if (typeflag & FILE_TYPE_FTFONT && !(typeflag & FILE_TYPE_BLENDERLIB)) {
+    char abspath[FILE_MAX_LIBEXTRA];
+    BLI_join_dirfile(abspath, sizeof(abspath), root, relpath);
+    name = BLF_display_name_from_file(abspath);
+    if (name) {
+      /* Allocated string, so no need to BLI_strdup.*/
+      return name;
+    }
+  }
 
   if (typeflag & FILE_TYPE_BLENDERLIB) {
     char abspath[FILE_MAX_LIBEXTRA];
@@ -1834,7 +1837,7 @@ static const char *fileentry_uiname(const char *root,
   }
   BLI_assert(name);
 
-  return name;
+  return BLI_strdup(name);
 }
 
 const char *filelist_dir(struct FileList *filelist)
@@ -1852,7 +1855,7 @@ bool filelist_is_dir(struct FileList *filelist, const char *path)
  */
 void filelist_setdir(struct FileList *filelist, char *r_dir)
 {
-  const bool allow_invalid = filelist->asset_library != NULL;
+  const bool allow_invalid = filelist->asset_library_ref != NULL;
   BLI_assert(strlen(r_dir) < FILE_MAX_LIBEXTRA);
 
   BLI_path_normalize_dir(BKE_main_blendfile_path_from_global(), r_dir);
@@ -1934,7 +1937,6 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
   else {
     ret->name = entry->name;
   }
-  ret->description = BLI_strdupcat(filelist->filelist.root, entry->relpath);
   ret->uid = entry->uid;
   ret->blentype = entry->blentype;
   ret->typeflag = entry->typeflag;
@@ -2384,7 +2386,8 @@ void filelist_cache_previews_set(FileList *filelist, const bool use_previews)
   if (use_previews && (filelist->flags & FL_IS_READY)) {
     cache->flags |= FLC_PREVIEWS_ACTIVE;
 
-    BLI_assert((cache->previews_pool == NULL) && (cache->previews_done == NULL));
+    BLI_assert((cache->previews_pool == NULL) && (cache->previews_done == NULL) &&
+               (cache->previews_todo_count == 0));
 
     //      printf("%s: Init Previews...\n", __func__);
 
@@ -2455,6 +2458,18 @@ bool filelist_cache_previews_running(FileList *filelist)
   FileListEntryCache *cache = &filelist->filelist_cache;
 
   return (cache->previews_pool != NULL);
+}
+
+bool filelist_cache_previews_done(FileList *filelist)
+{
+  FileListEntryCache *cache = &filelist->filelist_cache;
+  if ((cache->flags & FLC_PREVIEWS_ACTIVE) == 0) {
+    /* There are no previews. */
+    return false;
+  }
+
+  return (cache->previews_pool == NULL) || (cache->previews_done == NULL) ||
+         (cache->previews_todo_count == (size_t)BLI_thread_queue_len(cache->previews_done));
 }
 
 /* would recognize .blend as well */
@@ -3040,7 +3055,7 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
       ok = 1;
       if (ok) {
         if (!(filelist->filter_data.flags & FLF_HIDE_DOT) || id->name[2] != '.') {
-          if (id->lib == NULL) {
+          if (!ID_IS_LINKED(id)) {
             files->entry->relpath = BLI_strdup(id->name + 2);
           }
           else {
@@ -3106,14 +3121,29 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
 }
 #endif
 
+typedef struct FileListReadJob {
+  ThreadMutex lock;
+  char main_name[FILE_MAX];
+  Main *current_main;
+  struct FileList *filelist;
+
+  /** Shallow copy of #filelist for thread-safe access.
+   *
+   * The job system calls #filelist_readjob_update which moves any read file from #tmp_filelist
+   * into #filelist in a thread-safe way.
+   *
+   * NOTE: #tmp_filelist is freed in #filelist_readjob_free, so any copied pointers need to be set
+   * to NULL to avoid double-freeing them. */
+  struct FileList *tmp_filelist;
+} FileListReadJob;
+
 static void filelist_readjob_do(const bool do_lib,
-                                FileList *filelist,
-                                const char *main_name,
+                                FileListReadJob *job_params,
                                 const short *stop,
                                 short *do_update,
-                                float *progress,
-                                ThreadMutex *lock)
+                                float *progress)
 {
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
   ListBase entries = {0};
   BLI_Stack *todo_dirs;
   TodoDir *td_dir;
@@ -3137,7 +3167,7 @@ static void filelist_readjob_do(const bool do_lib,
   BLI_strncpy(dir, filelist->filelist.root, sizeof(dir));
   BLI_strncpy(filter_glob, filelist->filter_data.filter_glob, sizeof(filter_glob));
 
-  BLI_path_normalize_dir(main_name, dir);
+  BLI_path_normalize_dir(job_params->main_name, dir);
   td_dir->dir = BLI_strdup(dir);
 
   while (!BLI_stack_is_empty(todo_dirs) && !(*stop)) {
@@ -3172,7 +3202,7 @@ static void filelist_readjob_do(const bool do_lib,
     if (!nbr_entries) {
       is_lib = false;
       nbr_entries = filelist_readjob_list_dir(
-          subdir, &entries, filter_glob, do_lib, main_name, skip_currpar);
+          subdir, &entries, filter_glob, do_lib, job_params->main_name, skip_currpar);
     }
 
     for (entry = entries.first; entry; entry = entry->next) {
@@ -3184,7 +3214,7 @@ static void filelist_readjob_do(const bool do_lib,
       MEM_freeN(entry->relpath);
       entry->relpath = BLI_strdup(dir + 2); /* + 2 to remove '//'
                                              * added by BLI_path_rel to rel_subdir. */
-      entry->name = BLI_strdup(fileentry_uiname(root, entry->relpath, entry->typeflag, dir));
+      entry->name = fileentry_uiname(root, entry->relpath, entry->typeflag, dir);
       entry->free_name = true;
 
       /* Here we decide whether current filedirentry is to be listed too, or not. */
@@ -3199,7 +3229,7 @@ static void filelist_readjob_do(const bool do_lib,
         else {
           /* We have a directory we want to list, add it to todo list! */
           BLI_join_dirfile(dir, sizeof(dir), root, entry->relpath);
-          BLI_path_normalize_dir(main_name, dir);
+          BLI_path_normalize_dir(job_params->main_name, dir);
           td_dir = BLI_stack_push_r(todo_dirs);
           td_dir->level = recursion_level + 1;
           td_dir->dir = BLI_strdup(dir);
@@ -3209,14 +3239,14 @@ static void filelist_readjob_do(const bool do_lib,
     }
 
     if (nbr_entries) {
-      BLI_mutex_lock(lock);
+      BLI_mutex_lock(&job_params->lock);
 
       *do_update = true;
 
       BLI_movelisttolist(&filelist->filelist.entries, &entries);
       filelist->filelist.nbr_entries += nbr_entries;
 
-      BLI_mutex_unlock(lock);
+      BLI_mutex_unlock(&job_params->lock);
     }
 
     nbr_done_dirs++;
@@ -3234,51 +3264,40 @@ static void filelist_readjob_do(const bool do_lib,
   BLI_stack_free(todo_dirs);
 }
 
-static void filelist_readjob_dir(Main *UNUSED(current_main),
-                                 FileList *filelist,
-                                 const char *main_name,
+static void filelist_readjob_dir(FileListReadJob *job_params,
                                  short *stop,
                                  short *do_update,
-                                 float *progress,
-                                 ThreadMutex *lock)
+                                 float *progress)
 {
-  filelist_readjob_do(false, filelist, main_name, stop, do_update, progress, lock);
+  filelist_readjob_do(false, job_params, stop, do_update, progress);
 }
 
-static void filelist_readjob_lib(Main *UNUSED(current_main),
-                                 FileList *filelist,
-                                 const char *main_name,
+static void filelist_readjob_lib(FileListReadJob *job_params,
                                  short *stop,
                                  short *do_update,
-                                 float *progress,
-                                 ThreadMutex *lock)
+                                 float *progress)
 {
-  filelist_readjob_do(true, filelist, main_name, stop, do_update, progress, lock);
+  filelist_readjob_do(true, job_params, stop, do_update, progress);
 }
 
-static void filelist_readjob_main(Main *current_main,
-                                  FileList *filelist,
-                                  const char *main_name,
+static void filelist_readjob_main(FileListReadJob *job_params,
                                   short *stop,
                                   short *do_update,
-                                  float *progress,
-                                  ThreadMutex *lock)
+                                  float *progress)
 {
   /* TODO! */
-  filelist_readjob_dir(current_main, filelist, main_name, stop, do_update, progress, lock);
+  filelist_readjob_dir(job_params, stop, do_update, progress);
 }
 
 /**
  * \warning Acts on main, so NOT thread-safe!
  */
-static void filelist_readjob_main_assets(Main *current_main,
-                                         FileList *filelist,
-                                         const char *UNUSED(main_name),
+static void filelist_readjob_main_assets(FileListReadJob *job_params,
                                          short *UNUSED(stop),
                                          short *do_update,
-                                         float *UNUSED(progress),
-                                         ThreadMutex *UNUSED(lock))
+                                         float *UNUSED(progress))
 {
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
   BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
              (filelist->filelist.nbr_entries == FILEDIR_NBR_ENTRIES_UNSET));
 
@@ -3290,7 +3309,7 @@ static void filelist_readjob_main_assets(Main *current_main,
   ID *id_iter;
   int nbr_entries = 0;
 
-  FOREACH_MAIN_ID_BEGIN (current_main, id_iter) {
+  FOREACH_MAIN_ID_BEGIN (job_params->current_main, id_iter) {
     if (!id_iter->asset_data) {
       continue;
     }
@@ -3322,15 +3341,6 @@ static void filelist_readjob_main_assets(Main *current_main,
   }
 }
 
-typedef struct FileListReadJob {
-  ThreadMutex lock;
-  char main_name[FILE_MAX];
-  Main *current_main;
-  struct FileList *filelist;
-  /** XXX We may use a simpler struct here... just a linked list and root path? */
-  struct FileList *tmp_filelist;
-} FileListReadJob;
-
 static void filelist_readjob_startjob(void *flrjv, short *stop, short *do_update, float *progress)
 {
   FileListReadJob *flrj = flrjv;
@@ -3354,17 +3364,11 @@ static void filelist_readjob_startjob(void *flrjv, short *stop, short *do_update
   flrj->tmp_filelist->libfiledata = NULL;
   memset(&flrj->tmp_filelist->filelist_cache, 0, sizeof(flrj->tmp_filelist->filelist_cache));
   flrj->tmp_filelist->selection_state = NULL;
-  flrj->tmp_filelist->asset_library = NULL;
+  flrj->tmp_filelist->asset_library_ref = NULL;
 
   BLI_mutex_unlock(&flrj->lock);
 
-  flrj->tmp_filelist->read_job_fn(flrj->current_main,
-                                  flrj->tmp_filelist,
-                                  flrj->main_name,
-                                  stop,
-                                  do_update,
-                                  progress,
-                                  &flrj->lock);
+  flrj->tmp_filelist->read_job_fn(flrj, stop, do_update, progress);
 }
 
 static void filelist_readjob_update(void *flrjv)
@@ -3432,7 +3436,7 @@ static void filelist_readjob_free(void *flrjv)
   MEM_freeN(flrj);
 }
 
-void filelist_readjob_start(FileList *filelist, const bContext *C)
+void filelist_readjob_start(FileList *filelist, const int space_notifier, const bContext *C)
 {
   Main *bmain = CTX_data_main(C);
   wmJob *wm_job;
@@ -3464,7 +3468,7 @@ void filelist_readjob_start(FileList *filelist, const bContext *C)
     filelist_readjob_endjob(flrj);
     filelist_readjob_free(flrj);
 
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST | NA_JOB_FINISHED, NULL);
+    WM_event_add_notifier(C, space_notifier | NA_JOB_FINISHED, NULL);
     return;
   }
 
@@ -3476,10 +3480,7 @@ void filelist_readjob_start(FileList *filelist, const bContext *C)
                        WM_JOB_PROGRESS,
                        WM_JOB_TYPE_FILESEL_READDIR);
   WM_jobs_customdata_set(wm_job, flrj, filelist_readjob_free);
-  WM_jobs_timer(wm_job,
-                0.01,
-                NC_SPACE | ND_SPACE_FILE_LIST,
-                NC_SPACE | ND_SPACE_FILE_LIST | NA_JOB_FINISHED);
+  WM_jobs_timer(wm_job, 0.01, space_notifier, space_notifier | NA_JOB_FINISHED);
   WM_jobs_callbacks(
       wm_job, filelist_readjob_startjob, NULL, filelist_readjob_update, filelist_readjob_endjob);
 

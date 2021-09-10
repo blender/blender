@@ -918,7 +918,7 @@ void ED_annotation_draw_view3d(
     return;
   }
 
-  /* when rendering to the offscreen buffer we don't want to
+  /* When rendering to the off-screen buffer we don't want to
    * deal with the camera border, otherwise map the coords to the camera border. */
   if ((rv3d->persp == RV3D_CAMOB) && !(G.f & G_FLAG_RENDER_VIEWPORT)) {
     rctf rectf;

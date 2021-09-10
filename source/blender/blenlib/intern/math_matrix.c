@@ -276,7 +276,7 @@ void mul_m4_m4m4_uniq(float R[4][4], const float A[4][4], const float B[4][4])
 {
   BLI_assert(!ELEM(R, A, B));
 
-  /* matrix product: R[j][k] = A[j][i] . B[i][k] */
+  /* Matrix product: `R[j][k] = A[j][i] . B[i][k]`. */
 #ifdef BLI_HAVE_SSE2
   __m128 A0 = _mm_loadu_ps(A[0]);
   __m128 A1 = _mm_loadu_ps(A[1]);
@@ -321,7 +321,7 @@ void mul_m4_m4m4_db_uniq(double R[4][4], const double A[4][4], const double B[4]
 {
   BLI_assert(!ELEM(R, A, B));
 
-  /* matrix product: R[j][k] = A[j][i] . B[i][k] */
+  /* Matrix product: `R[j][k] = A[j][i] . B[i][k]`. */
 
   R[0][0] = B[0][0] * A[0][0] + B[0][1] * A[1][0] + B[0][2] * A[2][0] + B[0][3] * A[3][0];
   R[0][1] = B[0][0] * A[0][1] + B[0][1] * A[1][1] + B[0][2] * A[2][1] + B[0][3] * A[3][1];
@@ -349,7 +349,7 @@ void mul_m4db_m4db_m4fl_uniq(double R[4][4], const double A[4][4], const float B
   /* Remove second check since types don't match. */
   BLI_assert(!ELEM(R, A /*, B */));
 
-  /* matrix product: R[j][k] = A[j][i] . B[i][k] */
+  /* Matrix product: `R[j][k] = A[j][i] . B[i][k]`. */
 
   R[0][0] = B[0][0] * A[0][0] + B[0][1] * A[1][0] + B[0][2] * A[2][0] + B[0][3] * A[3][0];
   R[0][1] = B[0][0] * A[0][1] + B[0][1] * A[1][1] + B[0][2] * A[2][1] + B[0][3] * A[3][1];

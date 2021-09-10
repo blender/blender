@@ -272,8 +272,7 @@ typedef struct Object {
 
   ListBase constraintChannels DNA_DEPRECATED; /* XXX deprecated... old animation system */
   ListBase effect DNA_DEPRECATED;             /* XXX deprecated... keep for readfile */
-  /** List of bDeformGroup (vertex groups) names and flag only. */
-  ListBase defbase;
+  ListBase defbase DNA_DEPRECATED;            /* Only for versioning, moved to object data. */
   /** List of ModifierData structures. */
   ListBase modifiers;
   /** List of GpencilModifierData structures. */
@@ -337,7 +336,7 @@ typedef struct Object {
   /** Deprecated, use 'matbits'. */
   short colbits DNA_DEPRECATED;
 
-  /** Transformation settings and transform locks . */
+  /** Transformation settings and transform locks. */
   short transflag, protectflag;
   short trackflag, upflag;
   /** Used for DopeSheet filtering settings (expanded/collapsed). */
@@ -375,7 +374,7 @@ typedef struct Object {
   /** Custom index, for renderpasses. */
   short index;
   /** Current deformation group, NOTE: index starts at 1. */
-  unsigned short actdef;
+  unsigned short actdef DNA_DEPRECATED;
   /** Current face map, NOTE: index starts at 1. */
   unsigned short actfmap;
   char _pad2[2];
@@ -386,14 +385,14 @@ typedef struct Object {
   short softflag;
 
   /** For restricting view, select, render etc. accessible in outliner. */
-  char restrictflag;
+  short visibility_flag;
 
-  /** Flag for pinning. */
-  char shapeflag;
   /** Current shape key for menu or pinned. */
   short shapenr;
+  /** Flag for pinning. */
+  char shapeflag;
 
-  char _pad3[2];
+  char _pad3[1];
 
   /** Object constraints. */
   ListBase constraints;
@@ -434,6 +433,7 @@ typedef struct Object {
   ObjectLineArt lineart;
 
   /** Runtime evaluation data (keep last). */
+  void *_pad9;
   Object_Runtime runtime;
 } Object;
 
@@ -466,8 +466,6 @@ typedef struct ObHook {
 
 /* used many places, should be specialized. */
 #define SELECT 1
-
-#define OBJECT_ACTIVE_MODIFIER_NONE -1
 
 /* type */
 enum {
@@ -671,11 +669,19 @@ enum {
 #  define OB_FLAG_UNUSED_12 (1 << 12) /* cleared */
 #endif
 
-/* ob->restrictflag */
+/* ob->visibility_flag */
 enum {
-  OB_RESTRICT_VIEWPORT = 1 << 0,
-  OB_RESTRICT_SELECT = 1 << 1,
-  OB_RESTRICT_RENDER = 1 << 2,
+  OB_HIDE_VIEWPORT = 1 << 0,
+  OB_HIDE_SELECT = 1 << 1,
+  OB_HIDE_RENDER = 1 << 2,
+  OB_HIDE_CAMERA = 1 << 3,
+  OB_HIDE_DIFFUSE = 1 << 4,
+  OB_HIDE_GLOSSY = 1 << 5,
+  OB_HIDE_TRANSMISSION = 1 << 6,
+  OB_HIDE_VOLUME_SCATTER = 1 << 7,
+  OB_HIDE_SHADOW = 1 << 8,
+  OB_HOLDOUT = 1 << 9,
+  OB_SHADOW_CATCHER = 1 << 10
 };
 
 /* ob->shapeflag */

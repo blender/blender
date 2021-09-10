@@ -28,10 +28,13 @@ class GaussianBokehBlurOperation : public BlurBaseOperation {
  private:
   float *m_gausstab;
   int m_radx, m_rady;
+  float radxf_;
+  float radyf_;
   void updateGauss();
 
  public:
   GaussianBokehBlurOperation();
+  void init_data() override;
   void initExecution() override;
   void *initializeTileData(rcti *rect) override;
   /**
@@ -47,6 +50,13 @@ class GaussianBokehBlurOperation : public BlurBaseOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
+
+  void get_area_of_interest(const int input_idx,
+                            const rcti &output_area,
+                            rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 class GaussianBlurReferenceOperation : public BlurBaseOperation {
@@ -61,6 +71,7 @@ class GaussianBlurReferenceOperation : public BlurBaseOperation {
 
  public:
   GaussianBlurReferenceOperation();
+  void init_data() override;
   void initExecution() override;
   void *initializeTileData(rcti *rect) override;
   /**
@@ -76,6 +87,13 @@ class GaussianBlurReferenceOperation : public BlurBaseOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
+
+  void get_area_of_interest(const int input_idx,
+                            const rcti &output_area,
+                            rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

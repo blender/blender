@@ -17,6 +17,8 @@
  */
 
 #include "COM_BlurBaseOperation.h"
+#include "COM_ConstantOperation.h"
+
 #include "BLI_math.h"
 #include "MEM_guardedalloc.h"
 
@@ -36,11 +38,15 @@ BlurBaseOperation::BlurBaseOperation(DataType data_type)
   this->m_size = 1.0f;
   this->m_sizeavailable = false;
   this->m_extend_bounds = false;
+  use_variable_size_ = false;
 }
-void BlurBaseOperation::initExecution()
+
+void BlurBaseOperation::init_data()
 {
-  this->m_inputProgram = this->getInputSocketReader(0);
-  this->m_inputSize = this->getInputSocketReader(1);
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    updateSize();
+  }
+
   this->m_data.image_in_width = this->getWidth();
   this->m_data.image_in_height = this->getHeight();
   if (this->m_data.relative) {
@@ -61,6 +67,12 @@ void BlurBaseOperation::initExecution()
     this->m_data.sizex = round_fl_to_int(this->m_data.percentx * 0.01f * sizex);
     this->m_data.sizey = round_fl_to_int(this->m_data.percenty * 0.01f * sizey);
   }
+}
+
+void BlurBaseOperation::initExecution()
+{
+  this->m_inputProgram = this->getInputSocketReader(0);
+  this->m_inputSize = this->getInputSocketReader(1);
 
   QualityStepHelper::initExecution(COM_QH_MULTIPLY);
 }
@@ -165,23 +177,82 @@ void BlurBaseOperation::setData(const NodeBlurData *data)
   memcpy(&m_data, data, sizeof(NodeBlurData));
 }
 
+int BlurBaseOperation::get_blur_size(eDimension dim) const
+{
+  switch (dim) {
+    case eDimension::X:
+      return m_data.sizex;
+    case eDimension::Y:
+      return m_data.sizey;
+  }
+  return -1;
+}
+
 void BlurBaseOperation::updateSize()
 {
-  if (!this->m_sizeavailable) {
-    float result[4];
-    this->getInputSocketReader(1)->readSampled(result, 0, 0, PixelSampler::Nearest);
-    this->m_size = result[0];
-    this->m_sizeavailable = true;
+  if (this->m_sizeavailable || use_variable_size_) {
+    return;
   }
+
+  switch (execution_model_) {
+    case eExecutionModel::Tiled: {
+      float result[4];
+      this->getInputSocketReader(1)->readSampled(result, 0, 0, PixelSampler::Nearest);
+      this->m_size = result[0];
+      break;
+    }
+    case eExecutionModel::FullFrame: {
+      NodeOperation *size_input = get_input_operation(SIZE_INPUT_INDEX);
+      if (size_input->get_flags().is_constant_operation) {
+        m_size = *static_cast<ConstantOperation *>(size_input)->get_constant_elem();
+      } /* Else use default. */
+      break;
+    }
+  }
+  this->m_sizeavailable = true;
 }
 
 void BlurBaseOperation::determineResolution(unsigned int resolution[2],
                                             unsigned int preferredResolution[2])
 {
-  NodeOperation::determineResolution(resolution, preferredResolution);
-  if (this->m_extend_bounds) {
-    resolution[0] += 2 * this->m_size * m_data.sizex;
-    resolution[1] += 2 * this->m_size * m_data.sizey;
+  if (!m_extend_bounds) {
+    NodeOperation::determineResolution(resolution, preferredResolution);
+    return;
+  }
+
+  switch (execution_model_) {
+    case eExecutionModel::Tiled: {
+      NodeOperation::determineResolution(resolution, preferredResolution);
+      resolution[0] += 2 * m_size * m_data.sizex;
+      resolution[1] += 2 * m_size * m_data.sizey;
+      break;
+    }
+    case eExecutionModel::FullFrame: {
+      /* Setting a modifier ensures all non main inputs have extended bounds as preferred
+       * resolution, avoiding unnecessary resolution conversions that would hide constant
+       * operations. */
+      set_determined_resolution_modifier([=](unsigned int res[2]) {
+        /* Rounding to even prevents jiggling in backdrop while switching size values. */
+        res[0] += round_to_even(2 * m_size * m_data.sizex);
+        res[1] += round_to_even(2 * m_size * m_data.sizey);
+      });
+      NodeOperation::determineResolution(resolution, preferredResolution);
+      break;
+    }
+  }
+}
+
+void BlurBaseOperation::get_area_of_interest(const int input_idx,
+                                             const rcti &output_area,
+                                             rcti &r_input_area)
+{
+  switch (input_idx) {
+    case 0:
+      r_input_area = output_area;
+      break;
+    case 1:
+      r_input_area = use_variable_size_ ? output_area : COM_SINGLE_ELEM_AREA;
+      break;
   }
 }
 

@@ -184,7 +184,7 @@ size_t BLI_system_memory_max_in_megabytes(void)
   /* Maximum addressable bytes on this platform.
    *
    * NOTE: Due to the shift arithmetic this is a half of the memory. */
-  const size_t limit_bytes_half = (((size_t)1) << ((sizeof(size_t[8])) - 1));
+  const size_t limit_bytes_half = (((size_t)1) << (sizeof(size_t[8]) - 1));
   /* Convert it to megabytes and return. */
   return (limit_bytes_half >> 20) * 2;
 }

@@ -265,6 +265,8 @@ int node_find_indicated_socket(struct SpaceNode *snode,
                                struct bNodeSocket **sockp,
                                const float cursor[2],
                                int in_out);
+float node_link_dim_factor(const struct View2D *v2d, const struct bNodeLink *link);
+bool node_link_is_hidden_or_dimmed(const struct View2D *v2d, const struct bNodeLink *link);
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);
@@ -326,7 +328,7 @@ extern const char *node_context_dir[];
 #define BASIS_RAD (0.2f * U.widget_unit)
 #define NODE_DYS (U.widget_unit / 2)
 #define NODE_DY U.widget_unit
-#define NODE_SOCKDY (0.08f * U.widget_unit)
+#define NODE_SOCKDY (0.1f * U.widget_unit)
 #define NODE_WIDTH(node) (node->width * UI_DPI_FAC)
 #define NODE_HEIGHT(node) (node->height * UI_DPI_FAC)
 #define NODE_MARGIN_X (1.10f * U.widget_unit)

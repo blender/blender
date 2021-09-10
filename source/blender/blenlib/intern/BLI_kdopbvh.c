@@ -22,7 +22,7 @@
  * \brief BVH-tree implementation.
  *
  * k-DOP BVH (Discrete Oriented Polytope, Bounding Volume Hierarchy).
- * A k-DOP is represented as k/2 pairs of min , max values for k/2 directions (intervals, "slabs").
+ * A k-DOP is represented as k/2 pairs of min, max values for k/2 directions (intervals, "slabs").
  *
  * See: http://www.gris.uni-tuebingen.de/people/staff/jmezger/papers/bvh.pdf
  *
@@ -868,7 +868,7 @@ static void non_recursive_bvh_div_nodes(const BVHTree *tree,
  * \{ */
 
 /**
- * \note many callers don't check for ``NULL`` return.
+ * \note many callers don't check for `NULL` return.
  */
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 {

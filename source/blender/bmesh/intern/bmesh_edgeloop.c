@@ -209,8 +209,7 @@ static void vs_add(
   /* This edge stores a direct path back to the original vertex so we can
    * backtrack without having to store an array of previous verts. */
 
-  /* WARNING - setting the edge is not common practice
-   * but currently harmless, take care. */
+  /* WARNING: Setting the edge is not common practice but currently harmless, take care. */
   BLI_assert(BM_vert_in_edge(e_prev, v));
   v->e = e_prev;
 

@@ -58,7 +58,8 @@ enum {
 };
 #define ORIENTATION_USE_PLANE(ty) ELEM(ty, ORIENTATION_NORMAL, ORIENTATION_EDGE, ORIENTATION_FACE)
 
-int getTransformOrientation_ex(const struct bContext *C,
+int getTransformOrientation_ex(ViewLayer *view_layer,
+                               const View3D *v3d,
                                struct Object *ob,
                                struct Object *obedit,
                                float normal[3],

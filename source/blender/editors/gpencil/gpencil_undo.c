@@ -125,15 +125,13 @@ static void gpencil_undo_free_node(bGPundonode *undo_node)
    */
   undo_node->gpd->adt = NULL;
 
-  BKE_gpencil_free(undo_node->gpd, false);
+  BKE_gpencil_free_data(undo_node->gpd, false);
   MEM_freeN(undo_node->gpd);
 }
 
 void gpencil_undo_push(bGPdata *gpd)
 {
   bGPundonode *undo_node;
-
-  // printf("\t\tGP - undo push\n");
 
   if (cur_node) {
     /* Remove all undone nodes from stack. */

@@ -90,6 +90,7 @@
 #include "COM_OutputFileNode.h"
 #include "COM_PixelateNode.h"
 #include "COM_PlaneTrackDeformNode.h"
+#include "COM_PosterizeNode.h"
 #include "COM_RenderLayersNode.h"
 #include "COM_RotateNode.h"
 #include "COM_ScaleNode.h"
@@ -424,6 +425,9 @@ Node *COM_convert_bnode(bNode *b_node)
     case CMP_NODE_ANTIALIASING:
       node = new AntiAliasingNode(b_node);
       break;
+    case CMP_NODE_POSTERIZE:
+      node = new PosterizeNode(b_node);
+      break;
   }
   return node;
 }
@@ -460,6 +464,9 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
                             NodeOperationOutput *fromSocket,
                             NodeOperationInput *toSocket)
 {
+  /* Data type conversions are executed before resolutions to ensure convert operations have
+   * resolution. This method have to ensure same datatypes are linked for new operations. */
+  BLI_assert(fromSocket->getDataType() == toSocket->getDataType());
   ResizeMode mode = toSocket->getResizeMode();
 
   NodeOperation *toOperation = &toSocket->getOperation();
@@ -515,7 +522,7 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
     NodeOperation *first = nullptr;
     ScaleOperation *scaleOperation = nullptr;
     if (doScale) {
-      scaleOperation = new ScaleOperation();
+      scaleOperation = new ScaleRelativeOperation(fromSocket->getDataType());
       scaleOperation->getInputSocket(1)->setResizeMode(ResizeMode::None);
       scaleOperation->getInputSocket(2)->setResizeMode(ResizeMode::None);
       first = scaleOperation;
@@ -535,7 +542,7 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
       builder.addOperation(scaleOperation);
     }
 
-    TranslateOperation *translateOperation = new TranslateOperation();
+    TranslateOperation *translateOperation = new TranslateOperation(toSocket->getDataType());
     translateOperation->getInputSocket(1)->setResizeMode(ResizeMode::None);
     translateOperation->getInputSocket(2)->setResizeMode(ResizeMode::None);
     if (!first) {

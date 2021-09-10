@@ -20,8 +20,8 @@
 
 #pragma once
 
-struct AnimationEvalContext;
 struct ARegionType;
+struct AnimationEvalContext;
 struct ChannelDriver; /* DNA_anim_types.h */
 struct ID;            /* DNA_ID.h */
 struct ListBase;      /* DNA_listBase.h */
@@ -30,7 +30,7 @@ struct PathResolvedRNA;
 struct Text;              /* defined in DNA_text_types.h */
 struct bConstraint;       /* DNA_constraint_types.h */
 struct bConstraintOb;     /* DNA_constraint_types.h */
-struct bConstraintTarget; /* DNA_constraint_types.h*/
+struct bConstraintTarget; /* DNA_constraint_types.h */
 struct bContext;
 struct bContextDataResult;
 struct bPythonConstraint; /* DNA_constraint_types.h */

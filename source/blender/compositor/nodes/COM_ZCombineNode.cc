@@ -58,8 +58,9 @@ void ZCombineNode::convertToOperations(NodeConverter &converter,
   }
   else {
     /* XXX custom1 is "use_alpha", what on earth is this supposed to do here?!? */
-    // not full anti alias, use masking for Z combine. be aware it uses anti aliasing.
-    // step 1 create mask
+    /* not full anti alias, use masking for Z combine. be aware it uses anti aliasing. */
+
+    /* Step 1 create mask. */
     NodeOperation *maskoperation;
     if (this->getbNode()->custom1) {
       maskoperation = new MathGreaterThanOperation();
@@ -76,13 +77,13 @@ void ZCombineNode::convertToOperations(NodeConverter &converter,
       converter.mapInputSocket(getInputSocket(3), maskoperation->getInputSocket(1));
     }
 
-    // step 2 anti alias mask bit of an expensive operation, but does the trick
+    /* Step 2 anti alias mask bit of an expensive operation, but does the trick. */
     AntiAliasOperation *antialiasoperation = new AntiAliasOperation();
     converter.addOperation(antialiasoperation);
 
     converter.addLink(maskoperation->getOutputSocket(), antialiasoperation->getInputSocket(0));
 
-    // use mask to blend between the input colors.
+    /* use mask to blend between the input colors. */
     ZCombineMaskOperation *zcombineoperation = this->getbNode()->custom1 ?
                                                    new ZCombineMaskAlphaOperation() :
                                                    new ZCombineMaskOperation();

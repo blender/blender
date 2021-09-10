@@ -859,7 +859,7 @@ static int graphkeys_box_select_exec(bContext *C, wmOperator *op)
      *   as frame-range one is often used for tweaking timing when "blocking",
      *   while channels is not that useful.
      */
-    if ((BLI_rcti_size_x(&rect)) >= (BLI_rcti_size_y(&rect))) {
+    if (BLI_rcti_size_x(&rect) >= BLI_rcti_size_y(&rect)) {
       mode = BEZT_OK_FRAMERANGE;
     }
     else {

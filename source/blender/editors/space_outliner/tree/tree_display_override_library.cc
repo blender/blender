@@ -150,27 +150,25 @@ TreeElement *TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar,
       }
 
       /* Create data-block list parent element on demand. */
-      if (id != nullptr) {
-        TreeElement *ten;
+      TreeElement *ten;
 
-        if (filter_id_type) {
-          ten = tenlib;
-        }
-        else {
-          ten = outliner_add_element(
-              &space_outliner_, &tenlib->subtree, lbarray[a], nullptr, TSE_ID_BASE, 0);
-          ten->directdata = lbarray[a];
-          ten->name = outliner_idcode_to_plural(GS(id->name));
-        }
+      if (filter_id_type) {
+        ten = tenlib;
+      }
+      else {
+        ten = outliner_add_element(
+            &space_outliner_, &tenlib->subtree, lbarray[a], nullptr, TSE_ID_BASE, 0);
+        ten->directdata = lbarray[a];
+        ten->name = outliner_idcode_to_plural(GS(id->name));
+      }
 
-        for (ID *id : List<ID>(lbarray[a])) {
-          if (override_library_id_filter_poll(lib, id)) {
-            TreeElement *override_tree_element = outliner_add_element(
-                &space_outliner_, &ten->subtree, id, ten, TSE_LIBRARY_OVERRIDE_BASE, 0);
+      for (ID *id : List<ID>(lbarray[a])) {
+        if (override_library_id_filter_poll(lib, id)) {
+          TreeElement *override_tree_element = outliner_add_element(
+              &space_outliner_, &ten->subtree, id, ten, TSE_LIBRARY_OVERRIDE_BASE, 0);
 
-            if (BLI_listbase_is_empty(&override_tree_element->subtree)) {
-              outliner_free_tree_element(override_tree_element, &ten->subtree);
-            }
+          if (BLI_listbase_is_empty(&override_tree_element->subtree)) {
+            outliner_free_tree_element(override_tree_element, &ten->subtree);
           }
         }
       }

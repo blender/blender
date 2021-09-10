@@ -91,6 +91,7 @@ extern char datatoc_extra_wire_frag_glsl[];
 extern char datatoc_extra_wire_vert_glsl[];
 extern char datatoc_facing_frag_glsl[];
 extern char datatoc_facing_vert_glsl[];
+extern char datatoc_grid_background_frag_glsl[];
 extern char datatoc_grid_frag_glsl[];
 extern char datatoc_grid_vert_glsl[];
 extern char datatoc_image_frag_glsl[];
@@ -198,6 +199,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *facing;
   GPUShader *gpencil_canvas;
   GPUShader *grid;
+  GPUShader *grid_background;
   GPUShader *grid_image;
   GPUShader *image;
   GPUShader *motion_path_line;
@@ -211,7 +213,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *paint_point;
   GPUShader *paint_texture;
   GPUShader *paint_vertcol;
-  GPUShader *paint_weight;
+  GPUShader *paint_weight[2];
   GPUShader *paint_wire;
   GPUShader *particle_dot;
   GPUShader *particle_shape;
@@ -1053,6 +1055,20 @@ GPUShader *OVERLAY_shader_grid(void)
   return sh_data->grid;
 }
 
+GPUShader *OVERLAY_shader_grid_background(void)
+{
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
+  if (!sh_data->grid_background) {
+    sh_data->grid_background = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){datatoc_common_view_lib_glsl,
+                                 datatoc_edit_uv_tiled_image_borders_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_grid_background_frag_glsl, NULL},
+    });
+  }
+  return sh_data->grid_background;
+}
+
 GPUShader *OVERLAY_shader_grid_image(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
@@ -1334,13 +1350,14 @@ GPUShader *OVERLAY_shader_paint_vertcol(void)
   return sh_data->paint_vertcol;
 }
 
-GPUShader *OVERLAY_shader_paint_weight(void)
+GPUShader *OVERLAY_shader_paint_weight(const bool shading)
 {
+  int index = shading ? 1 : 0;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
-  if (!sh_data->paint_weight) {
-    sh_data->paint_weight = GPU_shader_create_from_arrays({
+  if (!sh_data->paint_weight[index]) {
+    sh_data->paint_weight[index] = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg->lib,
                                  datatoc_common_globals_lib_glsl,
                                  datatoc_common_view_lib_glsl,
@@ -1349,10 +1366,10 @@ GPUShader *OVERLAY_shader_paint_weight(void)
         .frag = (const char *[]){datatoc_common_globals_lib_glsl,
                                  datatoc_paint_weight_frag_glsl,
                                  NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
+        .defs = (const char *[]){sh_cfg->def, shading ? "#define FAKE_SHADING\n" : "", NULL},
     });
   }
-  return sh_data->paint_weight;
+  return sh_data->paint_weight[index];
 }
 
 GPUShader *OVERLAY_shader_paint_wire(void)

@@ -35,20 +35,18 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-static bNodeSocketTemplate geo_node_volume_to_mesh_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Density")},
-    {SOCK_FLOAT, N_("Voxel Size"), 0.3f, 0.0f, 0.0f, 0.0f, 0.01f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Voxel Amount"), 64.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
-    {SOCK_FLOAT, N_("Threshold"), 0.1f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
-    {SOCK_FLOAT, N_("Adaptivity"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_volume_to_mesh_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_volume_to_mesh_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Density");
+  b.add_input<decl::Float>("Voxel Size").default_value(0.3f).min(0.01f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Voxel Amount").default_value(64.0f).min(0.0f);
+  b.add_input<decl::Float>("Threshold").default_value(0.1f).min(0.0f);
+  b.add_input<decl::Float>("Adaptivity").min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_volume_to_mesh_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -56,8 +54,6 @@ static void geo_node_volume_to_mesh_layout(uiLayout *layout, bContext *UNUSED(C)
   uiLayoutSetPropDecorate(layout, false);
   uiItemR(layout, ptr, "resolution_mode", 0, IFACE_("Resolution"), ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void geo_node_volume_to_mesh_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -149,6 +145,9 @@ static void geo_node_volume_to_mesh_exec(GeoNodeExecParams params)
 
 #ifdef WITH_OPENVDB
   create_mesh_from_volume(geometry_set_in, geometry_set_out, params);
+#else
+  params.error_message_add(NodeWarningType::Error,
+                           TIP_("Disabled, Blender was compiled without OpenVDB"));
 #endif
 
   params.set_output("Geometry", geometry_set_out);
@@ -161,13 +160,13 @@ void register_node_type_geo_volume_to_mesh()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_VOLUME_TO_MESH, "Volume to Mesh", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_volume_to_mesh_in, geo_node_volume_to_mesh_out);
+  ntype.declare = blender::nodes::geo_node_volume_to_mesh_declare;
   node_type_storage(
       &ntype, "NodeGeometryVolumeToMesh", node_free_standard_storage, node_copy_standard_storage);
   node_type_size(&ntype, 200, 120, 700);
   node_type_init(&ntype, blender::nodes::geo_node_volume_to_mesh_init);
   node_type_update(&ntype, blender::nodes::geo_node_volume_to_mesh_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_volume_to_mesh_exec;
-  ntype.draw_buttons = geo_node_volume_to_mesh_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_volume_to_mesh_layout;
   nodeRegisterType(&ntype);
 }

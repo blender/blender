@@ -37,7 +37,7 @@
  *
  * BMHeader flags should **never** be read or written to by bmesh operators (see Operators below).
  *
- * Access to header flags is done with ``BM_elem_flag_*()`` functions.
+ * Access to header flags is done with `BM_elem_flag_*()` functions.
  * \subsection bm_faces Faces
  *
  * Faces in BMesh are stored as a circular linked list of loops. Loops store per-face-vertex data
@@ -55,7 +55,7 @@
  *
  * - BMLoop#v - pointer to the vertex associated with this loop.
  * - BMLoop#e - pointer to the edge associated with this loop,
- *   between verts ``(loop->v, loop->next->v)``
+ *   between verts `(loop->v, loop->next->v)`
  * - BMLoop#f - pointer to the face associated with this loop.
  * \subsection bm_two_side_face 2-Sided Faces
  *
@@ -113,7 +113,7 @@
  *
  * These slots are identified by name, using strings.
  *
- * Access to slots is done with ``BMO_slot_***()`` functions.
+ * Access to slots is done with `BMO_slot_***()` functions.
  * \subsection bm_tool_flags Tool Flags
  *
  * The BMesh API provides a set of flags for faces, edges and vertices,
@@ -126,7 +126,7 @@
  * These flags should not be confused with header flags, which are used to store persistent flags
  * (e.g. selection, hide status, etc).
  *
- * Access to tool flags is done with ``BMO_elem_flag_***()`` functions.
+ * Access to tool flags is done with `BMO_elem_flag_***()` functions.
  *
  * \warning Operators are **never** allowed to read or write to header flags.
  * They act entirely on the data inside their input slots.
@@ -162,14 +162,14 @@
  *
  * These conventions should be used throughout the bmesh module.
  *
- * - ``bmesh_kernel_*()`` - Low level API, for primitive functions that others are built ontop of.
- * - ``bmesh_***()`` - Low level API function.
- * - ``bm_***()`` -     'static' functions, not a part of the API at all,
+ * - `bmesh_kernel_*()` - Low level API, for primitive functions that others are built ontop of.
+ * - `bmesh_***()` - Low level API function.
+ * - `bm_***()` -     'static' functions, not a part of the API at all,
  *   but use prefix since they operate on BMesh data.
- * - ``BM_***()`` -     High level BMesh API function for use anywhere.
- * - ``BMO_***()`` -    High level operator API function for use anywhere.
- * - ``bmo_***()`` -    Low level / internal operator API functions.
- * - ``_bm_***()`` -    Functions which are called via macros only.
+ * - `BM_***()` -     High level BMesh API function for use anywhere.
+ * - `BMO_***()` -    High level operator API function for use anywhere.
+ * - `bmo_***()` -    Low level / internal operator API functions.
+ * - `_bm_***()` -    Functions which are called via macros only.
  *
  * \section bm_todo BMesh TODO's
  *

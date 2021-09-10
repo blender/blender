@@ -20,8 +20,13 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+#include <string.h>
+
+#include "MEM_guardedalloc.h"
+
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -29,29 +34,275 @@
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_collection_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_genfile.h"
 #include "DNA_listBase.h"
+#include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_text_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
+#include "BKE_asset.h"
 #include "BKE_collection.h"
+#include "BKE_deform.h"
+#include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
+#include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 
+#include "RNA_access.h"
+#include "RNA_enum_types.h"
+
 #include "BLO_readfile.h"
 #include "MEM_guardedalloc.h"
 #include "readfile.h"
-#include "versioning_common.h"
 
 #include "SEQ_sequencer.h"
 
-#include "MEM_guardedalloc.h"
+#include "RNA_access.h"
 
 #include "versioning_common.h"
+
+static IDProperty *idproperty_find_ui_container(IDProperty *idprop_group)
+{
+  LISTBASE_FOREACH (IDProperty *, prop, &idprop_group->data.group) {
+    if (prop->type == IDP_GROUP && STREQ(prop->name, "_RNA_UI")) {
+      return prop;
+    }
+  }
+  return NULL;
+}
+
+static void version_idproperty_move_data_int(IDPropertyUIDataInt *ui_data,
+                                             const IDProperty *prop_ui_data)
+{
+  IDProperty *min = IDP_GetPropertyFromGroup(prop_ui_data, "min");
+  if (min != NULL) {
+    ui_data->min = ui_data->soft_min = IDP_coerce_to_int_or_zero(min);
+  }
+  IDProperty *max = IDP_GetPropertyFromGroup(prop_ui_data, "max");
+  if (max != NULL) {
+    ui_data->max = ui_data->soft_max = IDP_coerce_to_int_or_zero(max);
+  }
+  IDProperty *soft_min = IDP_GetPropertyFromGroup(prop_ui_data, "soft_min");
+  if (soft_min != NULL) {
+    ui_data->soft_min = IDP_coerce_to_int_or_zero(soft_min);
+    ui_data->soft_min = MIN2(ui_data->soft_min, ui_data->min);
+  }
+  IDProperty *soft_max = IDP_GetPropertyFromGroup(prop_ui_data, "soft_max");
+  if (soft_max != NULL) {
+    ui_data->soft_max = IDP_coerce_to_int_or_zero(soft_max);
+    ui_data->soft_max = MAX2(ui_data->soft_max, ui_data->max);
+  }
+  IDProperty *step = IDP_GetPropertyFromGroup(prop_ui_data, "step");
+  if (step != NULL) {
+    ui_data->step = IDP_coerce_to_int_or_zero(soft_max);
+  }
+  IDProperty *default_value = IDP_GetPropertyFromGroup(prop_ui_data, "default");
+  if (default_value != NULL) {
+    if (default_value->type == IDP_ARRAY) {
+      if (default_value->subtype == IDP_INT) {
+        ui_data->default_array = MEM_dupallocN(IDP_Array(default_value));
+        ui_data->default_array_len = default_value->len;
+      }
+    }
+    else if (default_value->type == IDP_INT) {
+      ui_data->default_value = IDP_coerce_to_int_or_zero(default_value);
+    }
+  }
+}
+
+static void version_idproperty_move_data_float(IDPropertyUIDataFloat *ui_data,
+                                               const IDProperty *prop_ui_data)
+{
+  IDProperty *min = IDP_GetPropertyFromGroup(prop_ui_data, "min");
+  if (min != NULL) {
+    ui_data->min = ui_data->soft_min = IDP_coerce_to_double_or_zero(min);
+  }
+  IDProperty *max = IDP_GetPropertyFromGroup(prop_ui_data, "max");
+  if (max != NULL) {
+    ui_data->max = ui_data->soft_max = IDP_coerce_to_double_or_zero(max);
+  }
+  IDProperty *soft_min = IDP_GetPropertyFromGroup(prop_ui_data, "soft_min");
+  if (soft_min != NULL) {
+    ui_data->soft_min = IDP_coerce_to_double_or_zero(soft_min);
+    ui_data->soft_min = MAX2(ui_data->soft_min, ui_data->min);
+  }
+  IDProperty *soft_max = IDP_GetPropertyFromGroup(prop_ui_data, "soft_max");
+  if (soft_max != NULL) {
+    ui_data->soft_max = IDP_coerce_to_double_or_zero(soft_max);
+    ui_data->soft_max = MIN2(ui_data->soft_max, ui_data->max);
+  }
+  IDProperty *step = IDP_GetPropertyFromGroup(prop_ui_data, "step");
+  if (step != NULL) {
+    ui_data->step = IDP_coerce_to_float_or_zero(step);
+  }
+  IDProperty *precision = IDP_GetPropertyFromGroup(prop_ui_data, "precision");
+  if (precision != NULL) {
+    ui_data->precision = IDP_coerce_to_int_or_zero(precision);
+  }
+  IDProperty *default_value = IDP_GetPropertyFromGroup(prop_ui_data, "default");
+  if (default_value != NULL) {
+    if (default_value->type == IDP_ARRAY) {
+      if (ELEM(default_value->subtype, IDP_FLOAT, IDP_DOUBLE)) {
+        ui_data->default_array = MEM_dupallocN(IDP_Array(default_value));
+        ui_data->default_array_len = default_value->len;
+      }
+    }
+    else if (ELEM(default_value->type, IDP_DOUBLE, IDP_FLOAT)) {
+      ui_data->default_value = IDP_coerce_to_double_or_zero(default_value);
+    }
+  }
+}
+
+static void version_idproperty_move_data_string(IDPropertyUIDataString *ui_data,
+                                                const IDProperty *prop_ui_data)
+{
+  IDProperty *default_value = IDP_GetPropertyFromGroup(prop_ui_data, "default");
+  if (default_value != NULL && default_value->type == IDP_STRING) {
+    ui_data->default_value = BLI_strdup(IDP_String(default_value));
+  }
+}
+
+static void version_idproperty_ui_data(IDProperty *idprop_group)
+{
+  if (idprop_group == NULL) { /* NULL check here to reduce verbosity of calls to this function. */
+    return;
+  }
+
+  IDProperty *ui_container = idproperty_find_ui_container(idprop_group);
+  if (ui_container == NULL) {
+    return;
+  }
+
+  LISTBASE_FOREACH (IDProperty *, prop, &idprop_group->data.group) {
+    IDProperty *prop_ui_data = IDP_GetPropertyFromGroup(ui_container, prop->name);
+    if (prop_ui_data == NULL) {
+      continue;
+    }
+
+    if (!IDP_ui_data_supported(prop)) {
+      continue;
+    }
+
+    IDPropertyUIData *ui_data = IDP_ui_data_ensure(prop);
+
+    IDProperty *subtype = IDP_GetPropertyFromGroup(prop_ui_data, "subtype");
+    if (subtype != NULL && subtype->type == IDP_STRING) {
+      const char *subtype_string = IDP_String(subtype);
+      int result = PROP_NONE;
+      RNA_enum_value_from_id(rna_enum_property_subtype_items, subtype_string, &result);
+      ui_data->rna_subtype = result;
+    }
+
+    IDProperty *description = IDP_GetPropertyFromGroup(prop_ui_data, "description");
+    if (description != NULL && description->type == IDP_STRING) {
+      ui_data->description = BLI_strdup(IDP_String(description));
+    }
+
+    /* Type specific data. */
+    switch (IDP_ui_data_type(prop)) {
+      case IDP_UI_DATA_TYPE_STRING:
+        version_idproperty_move_data_string((IDPropertyUIDataString *)ui_data, prop_ui_data);
+        break;
+      case IDP_UI_DATA_TYPE_ID:
+        break;
+      case IDP_UI_DATA_TYPE_INT:
+        version_idproperty_move_data_int((IDPropertyUIDataInt *)ui_data, prop_ui_data);
+        break;
+      case IDP_UI_DATA_TYPE_FLOAT:
+        version_idproperty_move_data_float((IDPropertyUIDataFloat *)ui_data, prop_ui_data);
+        break;
+      case IDP_UI_DATA_TYPE_UNSUPPORTED:
+        BLI_assert_unreachable();
+        break;
+    }
+
+    IDP_FreeFromGroup(ui_container, prop_ui_data);
+  }
+
+  IDP_FreeFromGroup(idprop_group, ui_container);
+}
+
+static void do_versions_idproperty_bones_recursive(Bone *bone)
+{
+  version_idproperty_ui_data(bone->prop);
+  LISTBASE_FOREACH (Bone *, child_bone, &bone->childbase) {
+    do_versions_idproperty_bones_recursive(child_bone);
+  }
+}
+
+/**
+ * For every data block that supports them, initialize the new IDProperty UI data struct based on
+ * the old more complicated storage. Assumes only the top level of IDProperties below the parent
+ * group had UI data in a "_RNA_UI" group.
+ *
+ * \note The following IDProperty groups in DNA aren't exposed in the UI or are runtime-only, so
+ * they don't have UI data: wmOperator, bAddon, bUserMenuItem_Op, wmKeyMapItem, wmKeyConfigPref,
+ * uiList, FFMpegCodecData, View3DShading, bToolRef, TimeMarker, ViewLayer, bPoseChannel.
+ */
+static void do_versions_idproperty_ui_data(Main *bmain)
+{
+  /* ID data. */
+  ID *id;
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    IDProperty *idprop_group = IDP_GetProperties(id, false);
+    version_idproperty_ui_data(idprop_group);
+  }
+  FOREACH_MAIN_ID_END;
+
+  /* Bones. */
+  LISTBASE_FOREACH (bArmature *, armature, &bmain->armatures) {
+    LISTBASE_FOREACH (Bone *, bone, &armature->bonebase) {
+      do_versions_idproperty_bones_recursive(bone);
+    }
+  }
+
+  /* Nodes and node sockets. */
+  LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      version_idproperty_ui_data(node->prop);
+    }
+    LISTBASE_FOREACH (bNodeSocket *, socket, &ntree->inputs) {
+      version_idproperty_ui_data(socket->prop);
+    }
+    LISTBASE_FOREACH (bNodeSocket *, socket, &ntree->outputs) {
+      version_idproperty_ui_data(socket->prop);
+    }
+  }
+
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    /* The UI data from exposed node modifier properties is just copied from the corresponding node
+     * group, but the copying only runs when necessary, so we still need to version data here. */
+    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+      if (md->type == eModifierType_Nodes) {
+        NodesModifierData *nmd = (NodesModifierData *)md;
+        version_idproperty_ui_data(nmd->settings.properties);
+      }
+    }
+
+    /* Object post bones. */
+    if (ob->type == OB_ARMATURE && ob->pose != NULL) {
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+        version_idproperty_ui_data(pchan->prop);
+      }
+    }
+  }
+
+  /* Sequences. */
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    if (scene->ed != NULL) {
+      LISTBASE_FOREACH (Sequence *, seq, &scene->ed->seqbase) {
+        version_idproperty_ui_data(seq->prop);
+      }
+    }
+  }
+}
 
 static void sort_linked_ids(Main *bmain)
 {
@@ -88,6 +339,93 @@ static void assert_sorted_ids(Main *bmain)
 #else
   UNUSED_VARS_NDEBUG(bmain);
 #endif
+}
+
+static void move_vertex_group_names_to_object_data(Main *bmain)
+{
+  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+    if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
+      ListBase *new_defbase = BKE_object_defgroup_list_mutable(object);
+
+      /* Choose the longest vertex group name list among all linked duplicates. */
+      if (BLI_listbase_count(&object->defbase) < BLI_listbase_count(new_defbase)) {
+        BLI_freelistN(&object->defbase);
+      }
+      else {
+        /* Clear the list in case the it was already assigned from another object. */
+        BLI_freelistN(new_defbase);
+        *new_defbase = object->defbase;
+      }
+    }
+  }
+}
+
+static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const ListBase *seqbase)
+{
+  /* Old SpeedControlVars->flags. */
+#define SEQ_SPEED_INTEGRATE (1 << 0)
+#define SEQ_SPEED_COMPRESS_IPO_Y (1 << 2)
+
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if (seq->type == SEQ_TYPE_SPEED) {
+      SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
+      const char *substr = NULL;
+      float globalSpeed = v->globalSpeed;
+      if (seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
+        if (globalSpeed == 1.0f) {
+          v->speed_control_type = SEQ_SPEED_STRETCH;
+        }
+        else {
+          v->speed_control_type = SEQ_SPEED_MULTIPLY;
+          v->speed_fader = globalSpeed *
+                           ((float)seq->seq1->len /
+                            max_ff((float)(seq->seq1->enddisp - seq->seq1->start), 1.0f));
+        }
+      }
+      else if (v->flags & SEQ_SPEED_INTEGRATE) {
+        v->speed_control_type = SEQ_SPEED_MULTIPLY;
+        v->speed_fader = seq->speed_fader * globalSpeed;
+      }
+      else if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
+        globalSpeed *= 100.0f;
+        v->speed_control_type = SEQ_SPEED_LENGTH;
+        v->speed_fader_length = seq->speed_fader * globalSpeed;
+        substr = "speed_length";
+      }
+      else {
+        v->speed_control_type = SEQ_SPEED_FRAME_NUMBER;
+        v->speed_fader_frame_number = (int)(seq->speed_fader * globalSpeed);
+        substr = "speed_frame_number";
+      }
+
+      v->flags &= ~(SEQ_SPEED_INTEGRATE | SEQ_SPEED_COMPRESS_IPO_Y);
+
+      if (substr || globalSpeed != 1.0f) {
+        FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_factor", 0, NULL);
+        if (fcu) {
+          if (globalSpeed != 1.0f) {
+            for (int i = 0; i < fcu->totvert; i++) {
+              BezTriple *bezt = &fcu->bezt[i];
+              bezt->vec[0][1] *= globalSpeed;
+              bezt->vec[1][1] *= globalSpeed;
+              bezt->vec[2][1] *= globalSpeed;
+            }
+          }
+          if (substr) {
+            char *new_path = BLI_str_replaceN(fcu->rna_path, "speed_factor", substr);
+            MEM_freeN(fcu->rna_path);
+            fcu->rna_path = new_path;
+          }
+        }
+      }
+    }
+    else if (seq->type == SEQ_TYPE_META) {
+      do_versions_sequencer_speed_effect_recursive(scene, &seq->seqbase);
+    }
+  }
+
+#undef SEQ_SPEED_INTEGRATE
+#undef SEQ_SPEED_COMPRESS_IPO_Y
 }
 
 void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
@@ -134,6 +472,18 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     assert_sorted_ids(bmain);
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 11)) {
+    move_vertex_group_names_to_object_data(bmain);
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 13)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != NULL) {
+        do_versions_sequencer_speed_effect_recursive(scene, &scene->ed->seqbase);
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -146,6 +496,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
+    do_versions_idproperty_ui_data(bmain);
   }
 }
 
@@ -173,33 +524,6 @@ static void version_switch_node_input_prefix(Main *bmain)
     }
   }
   FOREACH_NODETREE_END;
-}
-
-static void version_node_socket_name(bNodeTree *ntree,
-                                     const int node_type,
-                                     const char *old_name,
-                                     const char *new_name)
-{
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == node_type) {
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-        if (STREQ(socket->name, old_name)) {
-          strcpy(socket->name, new_name);
-        }
-        if (STREQ(socket->identifier, old_name)) {
-          strcpy(socket->identifier, new_name);
-        }
-      }
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-        if (STREQ(socket->name, old_name)) {
-          strcpy(socket->name, new_name);
-        }
-        if (STREQ(socket->identifier, old_name)) {
-          strcpy(socket->identifier, new_name);
-        }
-      }
-    }
-  }
 }
 
 static bool replace_bbone_len_scale_rnapath(char **p_old_path, int *p_index)
@@ -277,6 +601,33 @@ static void do_version_bones_bbone_len_scale(ListBase *lb)
 
     do_version_bones_bbone_len_scale(&bone->childbase);
   }
+}
+
+static void do_version_constraints_spline_ik_joint_bindings(ListBase *lb)
+{
+  /* Binding array data could be freed without properly resetting its size data. */
+  LISTBASE_FOREACH (bConstraint *, con, lb) {
+    if (con->type == CONSTRAINT_TYPE_SPLINEIK) {
+      bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
+      if (data->points == NULL) {
+        data->numpoints = 0;
+      }
+    }
+  }
+}
+
+static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
+                                                              bNode *node,
+                                                              bNodeSocket *socket)
+{
+  const bNodeSocketValueFloat *socket_value = (const bNodeSocketValueFloat *)socket->default_value;
+  const float old_value = socket_value->value;
+  nodeRemoveSocket(ntree, node, socket);
+  bNodeSocket *new_socket = nodeAddSocket(
+      ntree, node, SOCK_IN, nodeStaticSocketType(SOCK_VECTOR, PROP_TRANSLATION), "Size", "Size");
+  bNodeSocketValueVector *value_vector = (bNodeSocketValueVector *)new_socket->default_value;
+  copy_v3_fl(value_vector->value, old_value);
+  return new_socket;
 }
 
 /* NOLINTNEXTLINE: readability-function-size */
@@ -499,6 +850,238 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 10)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *tool_settings = scene->toolsettings;
+      if (tool_settings->snap_uv_mode & (1 << 4)) {
+        tool_settings->snap_uv_mode |= (1 << 6); /* SCE_SNAP_MODE_INCREMENT */
+        tool_settings->snap_uv_mode &= ~(1 << 4);
+      }
+    }
+    LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
+      if (!(mat->lineart.flags & LRT_MATERIAL_CUSTOM_OCCLUSION_EFFECTIVENESS)) {
+        mat->lineart.mat_occlusion = 1;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 13)) {
+    /* Convert Surface Deform to sparse-capable bind structure. */
+    if (!DNA_struct_elem_find(
+            fd->filesdna, "SurfaceDeformModifierData", "int", "num_mesh_verts")) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+          if (md->type == eModifierType_SurfaceDeform) {
+            SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+            if (smd->num_bind_verts && smd->verts) {
+              smd->num_mesh_verts = smd->num_bind_verts;
+
+              for (unsigned int i = 0; i < smd->num_bind_verts; i++) {
+                smd->verts[i].vertex_idx = i;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (!DNA_struct_elem_find(
+            fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library")) {
+      LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+        BKE_asset_library_reference_init_default(&workspace->asset_library_ref);
+      }
+    }
+
+    if (!DNA_struct_elem_find(
+            fd->filesdna, "FileAssetSelectParams", "AssetLibraryReference", "asset_library_ref")) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+            if (space->spacetype == SPACE_FILE) {
+              SpaceFile *sfile = (SpaceFile *)space;
+              if (sfile->browse_mode != FILE_BROWSE_MODE_ASSETS) {
+                continue;
+              }
+              BKE_asset_library_reference_init_default(&sfile->asset_params->asset_library_ref);
+            }
+          }
+        }
+      }
+    }
+
+    /* Set default 2D annotation placement. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+      ts->gpencil_v2d_align = GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR;
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 14)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *tool_settings = scene->toolsettings;
+      tool_settings->snap_flag &= ~SCE_SNAP_SEQ;
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 15)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SEQ) {
+            SpaceSeq *sseq = (SpaceSeq *)sl;
+            sseq->flag |= SEQ_SHOW_GRID;
+          }
+        }
+      }
+    }
+  }
+
+  /* Font names were copied directly into ID names, see: T90417. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 16)) {
+    ListBase *lb = which_libbase(bmain, ID_VF);
+    BKE_main_id_repair_duplicate_names_listbase(lb);
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 17)) {
+    if (!DNA_struct_elem_find(
+            fd->filesdna, "View3DOverlay", "float", "normals_constant_screen_size")) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+            if (sl->spacetype == SPACE_VIEW3D) {
+              View3D *v3d = (View3D *)sl;
+              v3d->overlay.normals_constant_screen_size = 7.0f;
+            }
+          }
+        }
+      }
+    }
+
+    /* Fix SplineIK constraint's inconsistency between binding points array and its stored size.
+     */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      /* NOTE: Objects should never have SplineIK constraint, so no need to apply this fix on
+       * their constraints. */
+      if (ob->pose) {
+        LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+          do_version_constraints_spline_ik_joint_bindings(&pchan->constraints);
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 18)) {
+    if (!DNA_struct_elem_find(
+            fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library_ref")) {
+      LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+        BKE_asset_library_reference_init_default(&workspace->asset_library_ref);
+      }
+    }
+
+    if (!DNA_struct_elem_find(
+            fd->filesdna, "FileAssetSelectParams", "AssetLibraryReference", "asset_library_ref")) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+            if (space->spacetype != SPACE_FILE) {
+              continue;
+            }
+
+            SpaceFile *sfile = (SpaceFile *)space;
+            if (sfile->browse_mode != FILE_BROWSE_MODE_ASSETS) {
+              continue;
+            }
+            BKE_asset_library_reference_init_default(&sfile->asset_params->asset_library_ref);
+          }
+        }
+      }
+    }
+
+    /* Previously, only text ending with `.py` would run, apply this logic
+     * to existing files so text that happens to have the "Register" enabled
+     * doesn't suddenly start running code on startup that was previously ignored. */
+    LISTBASE_FOREACH (Text *, text, &bmain->texts) {
+      if ((text->flags & TXT_ISSCRIPT) && !BLI_path_extension_check(text->id.name + 2, ".py")) {
+        text->flags &= ~TXT_ISSCRIPT;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 19)) {
+    /* Add node storage for subdivision surface node. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == GEO_NODE_SUBDIVISION_SURFACE) {
+            if (node->storage == NULL) {
+              NodeGeometrySubdivisionSurface *data = MEM_callocN(
+                  sizeof(NodeGeometrySubdivisionSurface), __func__);
+              data->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES;
+              data->boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL;
+              node->storage = data;
+            }
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+
+    /* Disable Fade Inactive Overlay by default as it is redundant after introducing flash on
+     * mode transfer. */
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_VIEW3D) {
+            View3D *v3d = (View3D *)sl;
+            v3d->overlay.flag &= ~V3D_OVERLAY_FADE_INACTIVE;
+          }
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
+      sequencer_tool_settings->overlap_mode = SEQ_OVERLAP_SHUFFLE;
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 20)) {
+    /* Use new vector Size socket in Cube Mesh Primitive node. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+
+      LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
+        if (link->tonode->type == GEO_NODE_MESH_PRIMITIVE_CUBE) {
+          bNode *node = link->tonode;
+          if (STREQ(link->tosock->identifier, "Size") && link->tosock->type == SOCK_FLOAT) {
+            bNode *link_fromnode = link->fromnode;
+            bNodeSocket *link_fromsock = link->fromsock;
+            bNodeSocket *socket = link->tosock;
+            BLI_assert(socket);
+
+            bNodeSocket *new_socket = do_version_replace_float_size_with_vector(
+                ntree, node, socket);
+            nodeAddLink(ntree, link_fromnode, link_fromsock, node, new_socket);
+          }
+        }
+      }
+
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != GEO_NODE_MESH_PRIMITIVE_CUBE) {
+          continue;
+        }
+        LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+          if (STREQ(socket->identifier, "Size") && (socket->type == SOCK_FLOAT)) {
+            do_version_replace_float_size_with_vector(ntree, node, socket);
+            break;
+          }
+        }
+      }
+    }
   }
 
   /**

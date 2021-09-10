@@ -26,28 +26,15 @@
 
 #include "BKE_material.h"
 
-static bNodeSocketTemplate geo_node_select_by_material_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_MATERIAL,
-     N_("Material"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     PROP_NONE,
-     SOCK_HIDE_LABEL},
-    {SOCK_STRING, N_("Selection")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_select_by_material_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_select_by_material_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Material>("Material").hide_label(true);
+  b.add_input<decl::String>("Selection");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void select_mesh_by_material(const Mesh &mesh,
                                     const Material *material,
@@ -99,8 +86,7 @@ void register_node_type_geo_select_by_material()
 
   geo_node_type_base(
       &ntype, GEO_NODE_SELECT_BY_MATERIAL, "Select by Material", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_select_by_material_in, geo_node_select_by_material_out);
+  ntype.declare = blender::nodes::geo_node_select_by_material_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_select_by_material_exec;
   nodeRegisterType(&ntype);
 }

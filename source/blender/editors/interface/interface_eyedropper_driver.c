@@ -84,10 +84,7 @@ static void driverdropper_exit(bContext *C, wmOperator *op)
 {
   WM_cursor_modal_restore(CTX_wm_window(C));
 
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-    op->customdata = NULL;
-  }
+  MEM_SAFE_FREE(op->customdata);
 }
 
 static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *event)

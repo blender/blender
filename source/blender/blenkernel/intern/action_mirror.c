@@ -322,6 +322,25 @@ static void action_flip_pchan(Object *ob_arm,
     /* Move back to bone-space space, using the flipped bone if it exists. */
     mul_m4_m4m4(chan_mat, arm_mat_inv, chan_mat);
 
+    /* The rest pose having an X-axis that is not mapping to a left/right direction (so aligned
+     * with the Y or Z axis) creates issues when flipping the pose. Instead of a negative scale on
+     * the X-axis, it turns into a 180 degree rotation over the Y-axis.
+     * This has only been observed with bones that can't be flipped,
+     * hence the check for `pchan_flip`. */
+    const float unit_x[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+    const bool is_problematic = pchan_flip == NULL &&
+                                fabsf(dot_v4v4(pchan->bone->arm_mat[0], unit_x)) <= 1e-6;
+    if (is_problematic) {
+      /* Matrix needs to flip both the X and Z axes to come out right. */
+      float extra_mat[4][4] = {
+          {-1.0f, 0.0f, 0.0f, 0.0f},
+          {0.0f, 1.0f, 0.0f, 0.0f},
+          {0.0f, 0.0f, -1.0f, 0.0f},
+          {0.0f, 0.0f, 0.0f, 1.0f},
+      };
+      mul_m4_m4m4(chan_mat, extra_mat, chan_mat);
+    }
+
     BKE_pchan_apply_mat4(&pchan_temp, chan_mat, false);
 
     /* Write the values back to the F-curves. */

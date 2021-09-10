@@ -69,6 +69,7 @@ set(SRC
   intern/CCGSubSurf_util.c
   intern/DerivedMesh.cc
   intern/action.c
+  intern/action_bones.cc
   intern/action_mirror.c
   intern/addon.c
   intern/anim_data.c
@@ -79,6 +80,7 @@ set(SRC
   intern/armature.c
   intern/armature_deform.c
   intern/armature_pose.cc
+  intern/armature_selection.cc
   intern/armature_update.c
   intern/asset.cc
   intern/attribute.c
@@ -143,7 +145,7 @@ set(SRC
   intern/geometry_set_instances.cc
   intern/gpencil.c
   intern/gpencil_curve.c
-  intern/gpencil_geom.c
+  intern/gpencil_geom.cc
   intern/gpencil_modifier.c
   intern/hair.c
   intern/icons.cc
@@ -192,7 +194,7 @@ set(SRC
   intern/mesh_mirror.c
   intern/mesh_normals.cc
   intern/mesh_remap.c
-  intern/mesh_remesh_voxel.c
+  intern/mesh_remesh_voxel.cc
   intern/mesh_runtime.c
   intern/mesh_sample.cc
   intern/mesh_tangent.c
@@ -287,6 +289,7 @@ set(SRC
 
   BKE_DerivedMesh.h
   BKE_action.h
+  BKE_action.hh
   BKE_addon.h
   BKE_anim_data.h
   BKE_anim_path.h
@@ -294,6 +297,7 @@ set(SRC
   BKE_animsys.h
   BKE_appdir.h
   BKE_armature.h
+  BKE_armature.hh
   BKE_asset.h
   BKE_attribute.h
   BKE_attribute_access.hh

@@ -27,7 +27,7 @@ namespace blender::compositor {
 
 using fREAL = float;
 
-// returns next highest power of 2 of x, as well its log2 in L2
+/* Returns next highest power of 2 of x, as well its log2 in L2. */
 static unsigned int nextPow2(unsigned int x, unsigned int *L2)
 {
   unsigned int pw, x_notpow2 = x & (x - 1);
@@ -45,8 +45,8 @@ static unsigned int nextPow2(unsigned int x, unsigned int *L2)
 
 //------------------------------------------------------------------------------
 
-// from FXT library by Joerg Arndt, faster in order bitreversal
-// use: r = revbin_upd(r, h) where h = N>>1
+/* From FXT library by Joerg Arndt, faster in order bit-reversal
+ * use: `r = revbin_upd(r, h)` where `h = N>>1`. */
 static unsigned int revbin_upd(unsigned int r, unsigned int h)
 {
   while (!((r ^= h) & h)) {
@@ -127,7 +127,7 @@ static void FHT(fREAL *data, unsigned int M, unsigned int inverse)
 //------------------------------------------------------------------------------
 /* 2D Fast Hartley Transform, Mx/My -> log2 of width/height,
  * nzp -> the row where zero pad data starts,
- * inverse -> see above */
+ * inverse -> see above. */
 static void FHT2D(
     fREAL *data, unsigned int Mx, unsigned int My, unsigned int nzp, unsigned int inverse)
 {
@@ -136,14 +136,14 @@ static void FHT2D(
   Nx = 1 << Mx;
   Ny = 1 << My;
 
-  // rows (forward transform skips 0 pad data)
+  /* Rows (forward transform skips 0 pad data). */
   maxy = inverse ? Ny : nzp;
   for (j = 0; j < maxy; j++) {
     FHT(&data[Nx * j], Mx, inverse);
   }
 
-  // transpose data
-  if (Nx == Ny) {  // square
+  /* Transpose data. */
+  if (Nx == Ny) { /* Square. */
     for (j = 0; j < Ny; j++) {
       for (i = j + 1; i < Nx; i++) {
         unsigned int op = i + (j << Mx), np = j + (i << My);
@@ -151,12 +151,12 @@ static void FHT2D(
       }
     }
   }
-  else {  // rectangular
+  else { /* Rectangular. */
     unsigned int k, Nym = Ny - 1, stm = 1 << (Mx + My);
     for (i = 0; stm > 0; i++) {
 #define PRED(k) (((k & Nym) << Mx) + (k >> My))
       for (j = PRED(i); j > i; j = PRED(j)) {
-        /* pass */
+        /* Pass. */
       }
       if (j < i) {
         continue;
@@ -172,12 +172,12 @@ static void FHT2D(
   SWAP(unsigned int, Nx, Ny);
   SWAP(unsigned int, Mx, My);
 
-  // now columns == transposed rows
+  /* Now columns == transposed rows. */
   for (j = 0; j < Ny; j++) {
     FHT(&data[Nx * j], Mx, inverse);
   }
 
-  // finalize
+  /* Finalize. */
   for (j = 0; j <= (Ny >> 1); j++) {
     unsigned int jm = (Ny - j) & (Ny - 1);
     unsigned int ji = j << Mx;
@@ -199,7 +199,7 @@ static void FHT2D(
 
 //------------------------------------------------------------------------------
 
-/* 2D convolution calc, d1 *= d2, M/N - > log2 of width/height */
+/* 2D convolution calc, d1 *= d2, M/N - > log2 of width/height. */
 static void fht_convolve(fREAL *d1, const fREAL *d2, unsigned int M, unsigned int N)
 {
   fREAL a, b;
@@ -275,18 +275,18 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
          0,
          rdst->getWidth() * rdst->getHeight() * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float));
 
-  // convolution result width & height
+  /* Convolution result width & height. */
   w2 = 2 * kernelWidth - 1;
   h2 = 2 * kernelHeight - 1;
-  // FFT pow2 required size & log2
+  /* FFT pow2 required size & log2. */
   w2 = nextPow2(w2, &log2_w);
   h2 = nextPow2(h2, &log2_h);
 
-  // alloc space
+  /* Allocate space. */
   data1 = (fREAL *)MEM_callocN(3 * w2 * h2 * sizeof(fREAL), "convolve_fast FHT data1");
   data2 = (fREAL *)MEM_callocN(w2 * h2 * sizeof(fREAL), "convolve_fast FHT data2");
 
-  // normalize convolutor
+  /* Normalize convolutor. */
   wt[0] = wt[1] = wt[2] = 0.0f;
   for (y = 0; y < kernelHeight; y++) {
     colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_DATA_TYPE_COLOR_CHANNELS];
@@ -310,10 +310,10 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
     }
   }
 
-  // copy image data, unpacking interleaved RGBA into separate channels
-  // only need to calc data1 once
+  /* Copy image data, unpacking interleaved RGBA into separate channels
+   * only need to calc data1 once. */
 
-  // block add-overlap
+  /* Block add-overlap. */
   hw = kernelWidth >> 1;
   hh = kernelHeight >> 1;
   xbsz = (w2 + 1) - kernelWidth;
@@ -329,13 +329,13 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
   for (ybl = 0; ybl < nyb; ybl++) {
     for (xbl = 0; xbl < nxb; xbl++) {
 
-      // each channel one by one
+      /* Each channel one by one. */
       for (ch = 0; ch < 3; ch++) {
         fREAL *data1ch = &data1[ch * w2 * h2];
 
-        // only need to calc fht data from in2 once, can re-use for every block
+        /* Only need to calc fht data from in2 once, can re-use for every block. */
         if (!in2done) {
-          // in2, channel ch -> data1
+          /* in2, channel ch -> data1 */
           for (y = 0; y < kernelHeight; y++) {
             fp = &data1ch[y * w2];
             colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_DATA_TYPE_COLOR_CHANNELS];
@@ -345,7 +345,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
           }
         }
 
-        // in1, channel ch -> data2
+        /* in1, channel ch -> data2 */
         memset(data2, 0, w2 * h2 * sizeof(fREAL));
         for (y = 0; y < ybsz; y++) {
           int yy = ybl * ybsz + y;
@@ -363,20 +363,20 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
           }
         }
 
-        // forward FHT
-        // zero pad data start is different for each == height+1
+        /* Forward FHT
+         * zero pad data start is different for each == height+1. */
         if (!in2done) {
           FHT2D(data1ch, log2_w, log2_h, kernelHeight + 1, 0);
         }
         FHT2D(data2, log2_w, log2_h, kernelHeight + 1, 0);
 
-        // FHT2D transposed data, row/col now swapped
-        // convolve & inverse FHT
+        /* FHT2D transposed data, row/col now swapped
+         * convolve & inverse FHT. */
         fht_convolve(data2, data1ch, log2_h, log2_w);
         FHT2D(data2, log2_h, log2_w, 0, 1);
-        // data again transposed, so in order again
+        /* Data again transposed, so in order again. */
 
-        // overlap-add result
+        /* Overlap-add result. */
         for (y = 0; y < (int)h2; y++) {
           const int yy = ybl * ybsz + y - hh;
           if ((yy < 0) || (yy >= imageHeight)) {
@@ -416,8 +416,8 @@ void GlareFogGlowOperation::generateGlare(float *data,
   unsigned int sz = 1 << settings->size;
   const float cs_r = 1.0f, cs_g = 1.0f, cs_b = 1.0f;
 
-  // temp. src image
-  // make the convolution kernel
+  /* Temp. src image
+   * make the convolution kernel. */
   rcti kernelRect;
   BLI_rcti_init(&kernelRect, 0, sz, 0, sz);
   ckrn = new MemoryBuffer(DataType::Color, kernelRect);
@@ -433,9 +433,9 @@ void GlareFogGlowOperation::generateGlare(float *data,
       fcol[0] = expf(d * cs_r);
       fcol[1] = expf(d * cs_g);
       fcol[2] = expf(d * cs_b);
-      // linear window good enough here, visual result counts, not scientific analysis
-      // w = (1.0f-fabs(u))*(1.0f-fabs(v));
-      // actually, Hanning window is ok, cos^2 for some reason is slower
+      /* Linear window good enough here, visual result counts, not scientific analysis:
+       * `w = (1.0f-fabs(u))*(1.0f-fabs(v));`
+       * actually, Hanning window is ok, `cos^2` for some reason is slower. */
       w = (0.5f + 0.5f * cosf(u * (float)M_PI)) * (0.5f + 0.5f * cosf(v * (float)M_PI));
       mul_v3_fl(fcol, w);
       ckrn->writePixel(x, y, fcol);

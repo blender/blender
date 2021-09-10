@@ -843,7 +843,7 @@ bool ED_view3d_unproject_v3(
   const int viewport[4] = {0, 0, region->winx, region->winy};
   const float region_co[3] = {regionx, regiony, regionz};
 
-  return GPU_matrix_unproject_3fv(region_co, rv3d->viewmat, rv3d->winmat, viewport, world);
+  return GPU_matrix_unproject_3fv(region_co, rv3d->viewinv, rv3d->winmat, viewport, world);
 }
 
 /** \} */

@@ -186,7 +186,7 @@ typedef enum eWM_GizmoFlagMapTypeUpdateFlag {
  * \brief Gizmo tweak flag.
  * Bitflag passed to gizmo while tweaking.
  *
- * \note Gizmos are responsible for handling this #wmGizmo.modal callback!.
+ * \note Gizmos are responsible for handling this #wmGizmo.modal callback.
  */
 typedef enum {
   /* Drag with extra precision (Shift). */

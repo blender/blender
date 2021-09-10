@@ -24,7 +24,6 @@ SetValueOperation::SetValueOperation()
 {
   this->addOutputSocket(DataType::Value);
   flags.is_set_operation = true;
-  flags.is_fullframe_operation = true;
 }
 
 void SetValueOperation::executePixelSampled(float output[4],
@@ -40,15 +39,6 @@ void SetValueOperation::determineResolution(unsigned int resolution[2],
 {
   resolution[0] = preferredResolution[0];
   resolution[1] = preferredResolution[1];
-}
-
-void SetValueOperation::update_memory_buffer(MemoryBuffer *output,
-                                             const rcti &area,
-                                             Span<MemoryBuffer *> UNUSED(inputs))
-{
-  BLI_assert(output->is_a_single_elem());
-  float *out_elem = output->get_elem(area.xmin, area.ymin);
-  *out_elem = m_value;
 }
 
 }  // namespace blender::compositor

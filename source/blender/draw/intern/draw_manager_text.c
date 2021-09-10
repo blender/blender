@@ -152,11 +152,9 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
 
       BLF_position(
           font_id, (float)(vos->sco[0] + vos->xoffs), (float)(vos->sco[1] + vos->yoffs), 2.0f);
-
-      ((vos->flag & DRW_TEXT_CACHE_ASCII) ? BLF_draw_ascii : BLF_draw)(
-          font_id,
-          (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) : vos->str,
-          vos->str_len);
+      BLF_draw(font_id,
+               (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) : vos->str,
+               vos->str_len);
     }
   }
 
@@ -235,7 +233,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
    * etc.). See bug T36090.
    */
   struct DRWTextStore *dt = DRW_text_cache_ensure();
-  const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE | (unit->system ? 0 : DRW_TEXT_CACHE_ASCII);
+  const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
   Mesh *me = ob->data;
   BMEditMesh *em = me->edit_mesh;
   float v1[3], v2[3], v3[3], vmid[3], fvec[3];
@@ -266,7 +264,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   }
   const short edge_tex_sep = (short)((edge_tex_count - 1) * 5.0f * U.dpi_fac);
 
-  /* make the precision of the display value proportionate to the gridsize */
+  /* Make the precision of the display value proportionate to the grid-size. */
 
   if (grid <= 0.01f) {
     conv_float = "%.6g";

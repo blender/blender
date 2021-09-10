@@ -30,12 +30,17 @@ SunBeamsOperation::SunBeamsOperation()
   this->flags.complex = true;
 }
 
-void SunBeamsOperation::initExecution()
+void SunBeamsOperation::calc_rays_common_data()
 {
   /* convert to pixels */
   this->m_source_px[0] = this->m_data.source[0] * this->getWidth();
   this->m_source_px[1] = this->m_data.source[1] * this->getHeight();
   this->m_ray_length_px = this->m_data.ray_length * MAX2(this->getWidth(), this->getHeight());
+}
+
+void SunBeamsOperation::initExecution()
+{
+  calc_rays_common_data();
 }
 
 /**
@@ -46,14 +51,14 @@ void SunBeamsOperation::initExecution()
  * (u,v) is used to designate sector space coordinates
  *
  * For a target point (x,y) the sector should be chosen such that
- *   ``u >= v >= 0``
+ *   `u >= v >= 0`
  * This removes the need to handle all sorts of special cases.
  *
  * Template parameters:
- * fxu : buffer increment in x for sector u+1
- * fxv : buffer increment in x for sector v+1
- * fyu : buffer increment in y for sector u+1
- * fyv : buffer increment in y for sector v+1
+ * \param fxu: buffer increment in x for sector `u + 1`.
+ * \param fxv: buffer increment in x for sector `v + 1`.
+ * \param fyu: buffer increment in y for sector `u + 1`.
+ * \param fyv: buffer increment in y for sector `v + 1`.
  */
 template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
 
@@ -140,7 +145,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
 
     falloff_factor = dist_max > dist_min ? dr / (float)(dist_max - dist_min) : 0.0f;
 
-    float *iter = input->getBuffer() + COM_DATA_TYPE_COLOR_CHANNELS * (x + input->getWidth() * y);
+    float *iter = input->getBuffer() + input->get_coords_offset(x, y);
     return iter;
   }
 
@@ -159,7 +164,6 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
                    float dist_max)
   {
     const rcti &rect = input->get_rect();
-    int buffer_width = input->getWidth();
     int x, y, num;
     float v, dv;
     float falloff_factor;
@@ -168,9 +172,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
     zero_v4(output);
 
     if ((int)(co[0] - source[0]) == 0 && (int)(co[1] - source[1]) == 0) {
-      copy_v4_v4(output,
-                 input->getBuffer() + COM_DATA_TYPE_COLOR_CHANNELS *
-                                          ((int)source[0] + input->getWidth() * (int)source[1]));
+      copy_v4_v4(output, input->get_elem(source[0], source[1]));
       return;
     }
 
@@ -210,7 +212,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
       /* decrement u */
       x -= fxu;
       y -= fyu;
-      buffer -= (fxu + fyu * buffer_width) * COM_DATA_TYPE_COLOR_CHANNELS;
+      buffer -= fxu * input->elem_stride + fyu * input->row_stride;
 
       /* decrement v (in steps of dv < 1) */
       v_local -= dv;
@@ -219,7 +221,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
 
         x -= fxv;
         y -= fyv;
-        buffer -= (fxv + fyv * buffer_width) * COM_DATA_TYPE_COLOR_CHANNELS;
+        buffer -= fxv * input->elem_stride + fyv * input->row_stride;
       }
     }
 
@@ -354,6 +356,41 @@ bool SunBeamsOperation::determineDependingAreaOfInterest(rcti *input,
   calc_ray_shift(&rect, input->xmax, input->ymax, this->m_source_px, this->m_ray_length_px);
 
   return NodeOperation::determineDependingAreaOfInterest(&rect, readOperation, output);
+}
+
+void SunBeamsOperation::get_area_of_interest(const int input_idx,
+                                             const rcti &output_area,
+                                             rcti &r_input_area)
+{
+  BLI_assert(input_idx == 0);
+  UNUSED_VARS(input_idx);
+  calc_rays_common_data();
+
+  r_input_area = output_area;
+  /* Enlarges the rect by moving each corner toward the source.
+   * This is the maximum distance that pixels can influence each other
+   * and gives a rect that contains all possible accumulated pixels. */
+  calc_ray_shift(&r_input_area, output_area.xmin, output_area.ymin, m_source_px, m_ray_length_px);
+  calc_ray_shift(&r_input_area, output_area.xmin, output_area.ymax, m_source_px, m_ray_length_px);
+  calc_ray_shift(&r_input_area, output_area.xmax, output_area.ymin, m_source_px, m_ray_length_px);
+  calc_ray_shift(&r_input_area, output_area.xmax, output_area.ymax, m_source_px, m_ray_length_px);
+}
+
+void SunBeamsOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                     const rcti &area,
+                                                     Span<MemoryBuffer *> inputs)
+{
+  MemoryBuffer *input = inputs[0];
+  float coords[2];
+  for (int y = area.ymin; y < area.ymax; y++) {
+    coords[1] = y;
+    float *out_elem = output->get_elem(area.xmin, y);
+    for (int x = area.xmin; x < area.xmax; x++) {
+      coords[0] = x;
+      accumulate_line(input, out_elem, coords, m_source_px, 0.0f, m_ray_length_px);
+      out_elem += output->elem_stride;
+    }
+  }
 }
 
 }  // namespace blender::compositor

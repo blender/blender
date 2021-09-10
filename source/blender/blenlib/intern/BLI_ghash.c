@@ -1270,7 +1270,7 @@ void BLI_gset_flag_clear(GSet *gs, uint flag)
 /* -------------------------------------------------------------------- */
 /** \name GSet Combined Key/Value Usage
  *
- * \note Not typical ``set`` use, only use when the pointer identity matters.
+ * \note Not typical `set` use, only use when the pointer identity matters.
  * This can be useful when the key references data stored outside the GSet.
  * \{ */
 

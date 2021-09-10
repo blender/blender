@@ -1716,22 +1716,10 @@ void BKE_scopes_update(Scopes *scopes,
 
 void BKE_scopes_free(Scopes *scopes)
 {
-  if (scopes->waveform_1) {
-    MEM_freeN(scopes->waveform_1);
-    scopes->waveform_1 = NULL;
-  }
-  if (scopes->waveform_2) {
-    MEM_freeN(scopes->waveform_2);
-    scopes->waveform_2 = NULL;
-  }
-  if (scopes->waveform_3) {
-    MEM_freeN(scopes->waveform_3);
-    scopes->waveform_3 = NULL;
-  }
-  if (scopes->vecscope) {
-    MEM_freeN(scopes->vecscope);
-    scopes->vecscope = NULL;
-  }
+  MEM_SAFE_FREE(scopes->waveform_1);
+  MEM_SAFE_FREE(scopes->waveform_2);
+  MEM_SAFE_FREE(scopes->waveform_3);
+  MEM_SAFE_FREE(scopes->vecscope);
 }
 
 void BKE_scopes_new(Scopes *scopes)

@@ -72,7 +72,7 @@ static int set_pointer_type(ButsContextPath *path, bContextDataResult *result, S
     PointerRNA *ptr = &path->ptr[i];
 
     if (RNA_struct_is_a(ptr->type, type)) {
-      CTX_data_pointer_set(result, ptr->owner_id, ptr->type, ptr->data);
+      CTX_data_pointer_set_ptr(result, ptr);
       return CTX_RESULT_OK;
     }
   }
@@ -987,7 +987,8 @@ int /*eContextResult*/ buttons_context(const bContext *C,
           matnr = 0;
         }
         /* Keep aligned with rna_Object_material_slots_get. */
-        CTX_data_pointer_set(result, &ob->id, &RNA_MaterialSlot, POINTER_FROM_INT(matnr + 1));
+        CTX_data_pointer_set(
+            result, &ob->id, &RNA_MaterialSlot, (void *)(matnr + (uintptr_t)&ob->id));
       }
     }
 
@@ -1002,7 +1003,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
 
     if (ct->user && ct->user->ptr.data) {
       ButsTextureUser *user = ct->user;
-      CTX_data_pointer_set(result, user->ptr.owner_id, user->ptr.type, user->ptr.data);
+      CTX_data_pointer_set_ptr(result, &user->ptr);
     }
 
     return CTX_RESULT_OK;
@@ -1091,7 +1092,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     PointerRNA *ptr = get_pointer_type(path, &RNA_ParticleSettings);
 
     if (ptr && ptr->data) {
-      CTX_data_pointer_set(result, ptr->owner_id, &RNA_ParticleSettings, ptr->data);
+      CTX_data_pointer_set_ptr(result, ptr);
       return CTX_RESULT_OK;
     }
 

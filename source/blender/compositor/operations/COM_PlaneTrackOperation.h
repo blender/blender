@@ -73,6 +73,8 @@ class PlaneTrackMaskOperation : public PlaneDistortMaskOperation, public PlaneTr
   {
   }
 
+  void init_data() override;
+
   void initExecution() override;
 
   void determineResolution(unsigned int resolution[2],
@@ -91,6 +93,8 @@ class PlaneTrackWarpImageOperation : public PlaneDistortWarpImageOperation,
   PlaneTrackWarpImageOperation() : PlaneTrackCommon()
   {
   }
+
+  void init_data() override;
 
   void initExecution() override;
 

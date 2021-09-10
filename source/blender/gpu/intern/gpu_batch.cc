@@ -184,7 +184,7 @@ int GPU_batch_instbuf_add_ex(GPUBatch *batch, GPUVertBuf *insts, bool own_vbo)
     }
   }
   /* we only make it this far if there is no room for another GPUVertBuf */
-  BLI_assert(0 && "Not enough Instance VBO slot in batch");
+  BLI_assert_msg(0, "Not enough Instance VBO slot in batch");
   return -1;
 }
 
@@ -207,7 +207,7 @@ int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
     }
   }
   /* we only make it this far if there is no room for another GPUVertBuf */
-  BLI_assert(0 && "Not enough VBO slot in batch");
+  BLI_assert_msg(0, "Not enough VBO slot in batch");
   return -1;
 }
 
@@ -268,7 +268,7 @@ void GPU_batch_draw_advanced(
   }
   if (i_count == 0) {
     i_count = (batch->inst[0]) ? batch->inst_(0)->vertex_len : 1;
-    /* Meh. This is to be able to use different numbers of verts in instance vbos. */
+    /* Meh. This is to be able to use different numbers of verts in instance VBO's. */
     if (batch->inst[1] != nullptr) {
       i_count = min_ii(i_count, batch->inst_(1)->vertex_len);
     }

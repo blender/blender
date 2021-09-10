@@ -235,7 +235,7 @@ TEST(span, FillIndices)
 
 TEST(span, SizeInBytes)
 {
-  std::array<int, 10> a;
+  std::array<int, 10> a{};
   Span<int> a_span(a);
   EXPECT_EQ(a_span.size_in_bytes(), static_cast<int64_t>(sizeof(a)));
   EXPECT_EQ(a_span.size_in_bytes(), 40);

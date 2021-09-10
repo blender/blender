@@ -37,7 +37,7 @@ bool RetrackRegionTracker::Track(const FloatImage& image1,
   }
   // Now track x2 and y2 backward, to get xx1 and yy1 which, if the track is
   // good, should match x1 and y1 (but may not if the track is bad).
-  double xx1 = *x2, yy1 = *x2;
+  double xx1 = *x2, yy1 = *y2;
   if (!tracker_->Track(image2, image1, *x2, *y2, &xx1, &yy1)) {
     return false;
   }

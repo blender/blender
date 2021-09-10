@@ -215,7 +215,7 @@ static void mball_undosys_step_decode(struct bContext *C,
     }
     undomball_to_editmball(&elem->data, mb);
     mb->needs_flush_to_id = 1;
-    DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(&mb->id, ID_RECALC_GEOMETRY);
   }
 
   /* The first element is always active */

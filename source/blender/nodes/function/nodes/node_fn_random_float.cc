@@ -18,17 +18,17 @@
 
 #include "BLI_hash.h"
 
-static bNodeSocketTemplate fn_node_random_float_in[] = {
-    {SOCK_FLOAT, N_("Min"), 0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Max"), 1.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_INT, N_("Seed"), 0, 0, 0, 0, -10000, 10000},
-    {-1, ""},
+namespace blender::nodes {
+
+static void fn_node_random_float_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Min").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("Max").default_value(1.0f).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Int>("Seed").min(-10000).max(10000);
+  b.add_output<decl::Float>("Value");
 };
 
-static bNodeSocketTemplate fn_node_random_float_out[] = {
-    {SOCK_FLOAT, N_("Value")},
-    {-1, ""},
-};
+}  // namespace blender::nodes
 
 class RandomFloatFunction : public blender::fn::MultiFunction {
  public:
@@ -67,10 +67,11 @@ class RandomFloatFunction : public blender::fn::MultiFunction {
   }
 };
 
-static void fn_node_random_float_expand_in_mf_network(
-    blender::nodes::NodeMFNetworkBuilder &builder)
+static void fn_node_random_float_build_multi_function(
+    blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  builder.construct_and_set_matching_fn<RandomFloatFunction>();
+  static RandomFloatFunction fn;
+  builder.set_matching_fn(fn);
 }
 
 void register_node_type_fn_random_float()
@@ -78,7 +79,7 @@ void register_node_type_fn_random_float()
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_RANDOM_FLOAT, "Random Float", 0, 0);
-  node_type_socket_templates(&ntype, fn_node_random_float_in, fn_node_random_float_out);
-  ntype.expand_in_mf_network = fn_node_random_float_expand_in_mf_network;
+  ntype.declare = blender::nodes::fn_node_random_float_declare;
+  ntype.build_multi_function = fn_node_random_float_build_multi_function;
   nodeRegisterType(&ntype);
 }

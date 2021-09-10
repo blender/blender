@@ -708,7 +708,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
           prim.totpoly++;
         }
 
-        /* Moving cursor  to the next triangle fan. */
+        /* Moving cursor to the next triangle fan. */
         if (mp_has_normals) {
           normal_indices += 2;
         }

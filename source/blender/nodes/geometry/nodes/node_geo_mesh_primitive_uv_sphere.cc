@@ -25,19 +25,15 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_mesh_primitive_uv_sphere_in[] = {
-    {SOCK_INT, N_("Segments"), 32, 0.0f, 0.0f, 0.0f, 3, 1024},
-    {SOCK_INT, N_("Rings"), 16, 0.0f, 0.0f, 0.0f, 2, 1024},
-    {SOCK_FLOAT, N_("Radius"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_mesh_primitive_uv_sphere_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_mesh_primitive_uv_shpere_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Int>("Segments").default_value(32).min(3).max(1024);
+  b.add_input<decl::Int>("Rings").default_value(16).min(2).max(1024);
+  b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static int sphere_vert_total(const int segments, const int rings)
 {
@@ -69,26 +65,24 @@ static void calculate_sphere_vertex_data(MutableSpan<MVert> verts,
                                          const int rings)
 {
   const float delta_theta = M_PI / rings;
-  const float delta_phi = (2 * M_PI) / segments;
+  const float delta_phi = (2.0f * M_PI) / segments;
 
   copy_v3_v3(verts[0].co, float3(0.0f, 0.0f, radius));
   normal_float_to_short_v3(verts[0].no, float3(0.0f, 0.0f, 1.0f));
 
   int vert_index = 1;
-  float theta = delta_theta;
-  for (const int UNUSED(ring) : IndexRange(rings - 1)) {
-    float phi = 0.0f;
-    const float z = cosf(theta);
-    for (const int UNUSED(segment) : IndexRange(segments)) {
+  for (const int ring : IndexRange(1, rings - 1)) {
+    const float theta = ring * delta_theta;
+    const float z = std::cos(theta);
+    for (const int segment : IndexRange(1, segments)) {
+      const float phi = segment * delta_phi;
       const float sin_theta = std::sin(theta);
       const float x = sin_theta * std::cos(phi);
       const float y = sin_theta * std::sin(phi);
       copy_v3_v3(verts[vert_index].co, float3(x, y, z) * radius);
       normal_float_to_short_v3(verts[vert_index].no, float3(x, y, z));
-      phi += delta_phi;
       vert_index++;
     }
-    theta += delta_theta;
   }
 
   copy_v3_v3(verts.last().co, float3(0.0f, 0.0f, -radius));
@@ -291,6 +285,12 @@ static void geo_node_mesh_primitive_uv_sphere_exec(GeoNodeExecParams params)
   const int segments_num = params.extract_input<int>("Segments");
   const int rings_num = params.extract_input<int>("Rings");
   if (segments_num < 3 || rings_num < 2) {
+    if (segments_num < 3) {
+      params.error_message_add(NodeWarningType::Info, TIP_("Segments must be at least 3"));
+    }
+    if (rings_num < 3) {
+      params.error_message_add(NodeWarningType::Info, TIP_("Rings must be at least 3"));
+    }
     params.set_output("Geometry", GeometrySet());
     return;
   }
@@ -309,8 +309,7 @@ void register_node_type_geo_mesh_primitive_uv_sphere()
 
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, "UV Sphere", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_mesh_primitive_uv_sphere_in, geo_node_mesh_primitive_uv_sphere_out);
+  ntype.declare = blender::nodes::geo_node_mesh_primitive_uv_shpere_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_uv_sphere_exec;
   nodeRegisterType(&ntype);
 }

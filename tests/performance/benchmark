@@ -66,6 +66,8 @@ def print_row(config: api.TestConfig, entries: List, end='\n') -> None:
 
             if status == 'outdated':
                 result += " (outdated)"
+        elif status == 'failed':
+            result = "failed: " + entry.error_msg
         else:
             result = status
 
@@ -81,15 +83,20 @@ def match_entry(entry: api.TestEntry, args: argparse.Namespace):
            entry.test.find(args.test) != -1 or \
            entry.category.find(args.test) != -1
 
-def run_entry(env: api.TestEnvironment, config: api.TestConfig, row: List, entry: api.TestEntry):
+def run_entry(env: api.TestEnvironment,
+              config: api.TestConfig,
+              row: List,
+              entry: api.TestEntry,
+              update_only: bool):
     # Check if entry needs to be run.
-    if entry.status not in ('queued', 'outdated'):
+    if update_only and entry.status not in ('queued', 'outdated'):
         print_row(config, row, end='\r')
         return False
 
     # Run test entry.
     revision = entry.revision
     git_hash = entry.git_hash
+    environment = entry.environment
     testname = entry.test
     testcategory = entry.category
     device_type = entry.device_type
@@ -105,20 +112,39 @@ def run_entry(env: api.TestEnvironment, config: api.TestConfig, row: List, entry
         logname += '_' + device_id
     env.set_log_file(config.logs_dir / (logname + '.log'), clear=True)
 
+    # Clear output
+    entry.output = None
+    entry.error_msg = ''
+
     # Build revision, or just set path to existing executable.
     entry.status = 'building'
     print_row(config, row, end='\r')
+    executable_ok = True
     if len(entry.executable):
-        env.set_blender_executable(pathlib.Path(entry.executable))
+        env.set_blender_executable(pathlib.Path(entry.executable), environment)
     else:
         env.checkout(git_hash)
-        env.build(git_hash)
+        executable_ok = env.build()
+        if not executable_ok:
+            entry.status = 'failed'
+            entry.error_msg = 'Failed to build'
+        else:
+            env.set_blender_executable(env.blender_executable, environment)
 
     # Run test and update output and status.
-    entry.status = 'running'
-    print_row(config, row, end='\r')
-    entry.output = test.run(env, device_id)
-    entry.status = 'done' if entry.output else 'failed'
+    if executable_ok:
+        entry.status = 'running'
+        print_row(config, row, end='\r')
+
+        try:
+            entry.output = test.run(env, device_id)
+            if not entry.output:
+                raise Exception("Test produced no output")
+            entry.status = 'done'
+        except Exception as e:
+            entry.status = 'failed'
+            entry.error_msg = str(e)
+
     print_row(config, row, end='\r')
 
     # Update device name in case the device changed since the entry was created.
@@ -126,7 +152,7 @@ def run_entry(env: api.TestEnvironment, config: api.TestConfig, row: List, entry
 
     # Restore default logging and Blender executable.
     env.unset_log_file()
-    env.unset_blender_executable()
+    env.set_default_blender_executable()
 
     return True
 
@@ -155,7 +181,7 @@ def cmd_list(env: api.TestEnvironment, argv: List) -> None:
     print('')
 
     print('CONFIGS')
-    configs = env.get_configs(names_only=True)
+    configs = env.get_config_names()
     for config_name in configs:
         print(config_name)
 
@@ -200,7 +226,7 @@ def cmd_reset(env: api.TestEnvironment, argv: List):
 
         config.queue.write()
 
-def cmd_run(env: api.TestEnvironment, argv: List):
+def cmd_run(env: api.TestEnvironment, argv: List, update_only: bool):
     # Run tests.
     parser = argparse.ArgumentParser()
     parser.add_argument('config', nargs='?', default=None)
@@ -214,7 +240,7 @@ def cmd_run(env: api.TestEnvironment, argv: List):
         for row in config.queue.rows(use_revision_columns(config)):
             if match_entry(row[0], args):
                 for entry in row:
-                    if run_entry(env, config, row, entry):
+                    if run_entry(env, config, row, entry, update_only):
                         updated = True
                         # Write queue every time in case running gets interrupted,
                         # so it can be resumed.
@@ -249,8 +275,9 @@ def main():
              '  \n'
              '  list                                 List available tests, devices and configurations\n'
              '  \n'
-             '  run [<config>] [<test>]              Execute tests for configuration\n'
-             '  reset [<config>] [<test>]            Clear tests results from config, for re-running\n'
+             '  run [<config>] [<test>]              Execute all tests in configuration\n'
+             '  update [<config>] [<test>]           Execute only queued and outdated tests\n'
+             '  reset [<config>] [<test>]            Clear tests results in configuration\n'
              '  status [<config>] [<test>]           List configurations and their tests\n'
              '  \n'
              '  graph a.json b.json... -o out.html   Create graph from results in JSON files\n')
@@ -285,7 +312,9 @@ def main():
     if args.command == 'list':
         cmd_list(env, argv)
     elif args.command == 'run':
-        cmd_run(env, argv)
+        cmd_run(env, argv, update_only=False)
+    elif args.command == 'update':
+        cmd_run(env, argv, update_only=True)
     elif args.command == 'reset':
         cmd_reset(env, argv)
     elif args.command == 'status':

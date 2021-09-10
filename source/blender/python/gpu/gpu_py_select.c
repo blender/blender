@@ -22,8 +22,8 @@
  * \note Currently only used for gizmo selection,
  * will need to add begin/end and a way to access the hits.
  *
- * - Use ``bpygpu_`` for local API.
- * - Use ``BPyGPU`` for public API.
+ * - Use `bpygpu_` for local API.
+ * - Use `BPyGPU` for public API.
  */
 
 #include <Python.h>

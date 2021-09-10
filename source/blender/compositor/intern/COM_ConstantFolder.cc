@@ -44,7 +44,9 @@ static bool is_constant_foldable(NodeOperation *operation)
 {
   if (operation->get_flags().can_be_constant && !operation->get_flags().is_constant_operation) {
     for (int i = 0; i < operation->getNumberOfInputSockets(); i++) {
-      if (!operation->get_input_operation(i)->get_flags().is_constant_operation) {
+      NodeOperation *input = operation->get_input_operation(i);
+      if (!input->get_flags().is_constant_operation ||
+          !static_cast<ConstantOperation *>(input)->can_get_constant_elem()) {
         return false;
       }
     }
@@ -53,12 +55,12 @@ static bool is_constant_foldable(NodeOperation *operation)
   return false;
 }
 
-static Vector<NodeOperation *> find_constant_foldable_operations(Span<NodeOperation *> operations)
+static Set<NodeOperation *> find_constant_foldable_operations(Span<NodeOperation *> operations)
 {
-  Vector<NodeOperation *> foldable_ops;
+  Set<NodeOperation *> foldable_ops;
   for (NodeOperation *op : operations) {
     if (is_constant_foldable(op)) {
-      foldable_ops.append(op);
+      foldable_ops.add(op);
     }
   }
   return foldable_ops;
@@ -83,7 +85,7 @@ static ConstantOperation *create_constant_operation(DataType data_type, const fl
       return value_op;
     }
     default: {
-      BLI_assert(!"Non implemented data type");
+      BLI_assert_msg(0, "Non implemented data type");
       return nullptr;
     }
   }
@@ -94,6 +96,7 @@ ConstantOperation *ConstantFolder::fold_operation(NodeOperation *operation)
   const DataType data_type = operation->getOutputSocket()->getDataType();
   MemoryBuffer fold_buf(data_type, first_elem_area_);
   Vector<MemoryBuffer *> input_bufs = get_constant_input_buffers(operation);
+  operation->init_data();
   operation->render(&fold_buf, {first_elem_area_}, input_bufs);
 
   MemoryBuffer *constant_buf = create_constant_buffer(data_type);
@@ -132,7 +135,7 @@ Vector<MemoryBuffer *> ConstantFolder::get_constant_input_buffers(NodeOperation 
 /** Returns constant operations resulted from folded operations. */
 Vector<ConstantOperation *> ConstantFolder::try_fold_operations(Span<NodeOperation *> operations)
 {
-  Vector<NodeOperation *> foldable_ops = find_constant_foldable_operations(operations);
+  Set<NodeOperation *> foldable_ops = find_constant_foldable_operations(operations);
   if (foldable_ops.size() == 0) {
     return Vector<ConstantOperation *>();
   }

@@ -128,7 +128,7 @@ static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
 BLI_INLINE void workbench_object_drawcall(DRWShadingGroup *grp, struct GPUBatch *geom, Object *ob)
 {
   if (ob->type == OB_POINTCLOUD) {
-    /* Draw range to avoid drawcall batching messing up the instance attrib. */
+    /* Draw range to avoid drawcall batching messing up the instance attribute. */
     DRW_shgroup_call_instance_range(grp, ob, geom, 0, 0);
   }
   else {

@@ -28,20 +28,18 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-static bNodeSocketTemplate geo_node_points_to_volume_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_FLOAT, N_("Density"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
-    {SOCK_FLOAT, N_("Voxel Size"), 0.3f, 0.0f, 0.0f, 0.0f, 0.01f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Voxel Amount"), 64.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
-    {SOCK_STRING, N_("Radius")},
-    {SOCK_FLOAT, N_("Radius"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_points_to_volume_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_points_to_volume_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Float>("Density").default_value(1.0f).min(0.0f);
+  b.add_input<decl::Float>("Voxel Size").default_value(0.3f).min(0.01f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Voxel Amount").default_value(64.0f).min(0.0f);
+  b.add_input<decl::String>("Radius");
+  b.add_input<decl::Float>("Radius", "Radius_001").default_value(0.5f).min(0.0f);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_points_to_volume_layout(uiLayout *layout,
                                              bContext *UNUSED(C),
@@ -52,8 +50,6 @@ static void geo_node_points_to_volume_layout(uiLayout *layout,
   uiItemR(layout, ptr, "resolution_mode", 0, IFACE_("Resolution"), ICON_NONE);
   uiItemR(layout, ptr, "input_type_radius", 0, IFACE_("Radius"), ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void geo_node_points_to_volume_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -268,7 +264,6 @@ void register_node_type_geo_points_to_volume()
 
   geo_node_type_base(
       &ntype, GEO_NODE_POINTS_TO_VOLUME, "Points to Volume", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_points_to_volume_in, geo_node_points_to_volume_out);
   node_type_storage(&ntype,
                     "NodeGeometryPointsToVolume",
                     node_free_standard_storage,
@@ -276,7 +271,8 @@ void register_node_type_geo_points_to_volume()
   node_type_size(&ntype, 170, 120, 700);
   node_type_init(&ntype, blender::nodes::geo_node_points_to_volume_init);
   node_type_update(&ntype, blender::nodes::geo_node_points_to_volume_update);
+  ntype.declare = blender::nodes::geo_node_points_to_volume_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_points_to_volume_exec;
-  ntype.draw_buttons = geo_node_points_to_volume_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_points_to_volume_layout;
   nodeRegisterType(&ntype);
 }

@@ -28,17 +28,13 @@
 #  include "RBI_hull_api.h"
 #endif
 
-static bNodeSocketTemplate geo_node_convex_hull_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_convex_hull_out[] = {
-    {SOCK_GEOMETRY, N_("Convex Hull")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_convex_hull_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Convex Hull");
+}
 
 using bke::GeometryInstanceGroup;
 
@@ -82,7 +78,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
       copy_v3_v3(result->mvert[i].co, co);
     }
     else {
-      BLI_assert(!"Unexpected new vertex in hull output");
+      BLI_assert_msg(0, "Unexpected new vertex in hull output");
     }
   }
 
@@ -150,7 +146,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
 
   plConvexHullDelete(hull);
 
-  BKE_mesh_calc_normals(result);
+  BKE_mesh_normals_tag_dirty(result);
   return result;
 }
 
@@ -304,6 +300,8 @@ static void geo_node_convex_hull_exec(GeoNodeExecParams params)
   }
   params.set_output("Convex Hull", GeometrySet::create_with_mesh(mesh));
 #else
+  params.error_message_add(NodeWarningType::Error,
+                           TIP_("Disabled, Blender was compiled without Bullet"));
   params.set_output("Convex Hull", geometry_set);
 #endif /* WITH_BULLET */
 }
@@ -315,7 +313,7 @@ void register_node_type_geo_convex_hull()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CONVEX_HULL, "Convex Hull", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_convex_hull_in, geo_node_convex_hull_out);
+  ntype.declare = blender::nodes::geo_node_convex_hull_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_convex_hull_exec;
   nodeRegisterType(&ntype);
 }

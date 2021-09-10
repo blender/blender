@@ -18,11 +18,11 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class InvertOperation : public NodeOperation {
+class InvertOperation : public MultiThreadedOperation {
  private:
   /**
    * Cached reference to the inputProgram
@@ -59,6 +59,10 @@ class InvertOperation : public NodeOperation {
   {
     this->m_alpha = alpha;
   }
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

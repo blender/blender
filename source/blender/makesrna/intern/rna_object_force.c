@@ -133,8 +133,9 @@ static bool rna_Cache_get_valid_owner_ID(PointerRNA *ptr, Object **ob, Scene **s
       *scene = (Scene *)ptr->owner_id;
       break;
     default:
-      BLI_assert(!"Trying to get PTCacheID from an invalid ID type "
-                  "(Only scenes and objects are supported).");
+      BLI_assert_msg(0,
+                     "Trying to get PTCacheID from an invalid ID type "
+                     "(Only scenes and objects are supported).");
       break;
   }
 

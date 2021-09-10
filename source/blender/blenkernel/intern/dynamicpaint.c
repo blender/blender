@@ -844,10 +844,7 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
     if (temp_s_num) {
       MEM_freeN(temp_s_num);
     }
-    if (temp_t_index) {
-      MEM_freeN(temp_t_index);
-    }
-    grid->temp_t_index = NULL;
+    MEM_SAFE_FREE(temp_t_index);
 
     if (error || !grid->s_num) {
       setError(surface->canvas, N_("Not enough free memory"));
@@ -988,10 +985,7 @@ void dynamicPaint_freeSurface(const DynamicPaintModifierData *pmd, DynamicPaintS
   }
   surface->pointcache = NULL;
 
-  if (surface->effector_weights) {
-    MEM_freeN(surface->effector_weights);
-  }
-  surface->effector_weights = NULL;
+  MEM_SAFE_FREE(surface->effector_weights);
 
   BLI_remlink(&(surface->canvas->surfaces), surface);
   dynamicPaint_freeSurfaceData(surface);
@@ -3984,7 +3978,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
     total_sample = gaussianTotal;
   }
 
-  /* Supersampling */
+  /* Super-sampling */
   for (ss = 0; ss < samples; ss++) {
     float ray_start[3], ray_dir[3];
     float sample_factor = 0.0f;
@@ -4005,7 +3999,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
     float hitCoord[3];
     int hitTri = -1;
 
-    /* Supersampling factor */
+    /* Super-sampling factor. */
     if (samples > 1 && surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
       sample_factor = gaussianFactors[ss];
     }
@@ -4246,25 +4240,25 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
       numOfHits++;
     }
 
-    /* apply sample strength */
+    /* Apply sample strength. */
     brushStrength += sampleStrength;
-  }  // end supersampling
+  } /* End super-sampling. */
 
-  /* if any sample was inside paint range */
+  /* If any sample was inside paint range. */
   if (brushStrength > 0.0f || depth > 0.0f) {
-    /* apply supersampling results */
+    /* Apply super-sampling results. */
     if (samples > 1) {
       brushStrength /= total_sample;
     }
     CLAMP(brushStrength, 0.0f, 1.0f);
 
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-      /* Get final pixel color and alpha */
+      /* Get final pixel color and alpha. */
       paintColor[0] /= numOfHits;
       paintColor[1] /= numOfHits;
       paintColor[2] /= numOfHits;
     }
-    /* get final object space depth */
+    /* Get final object space depth. */
     else if (ELEM(surface->type, MOD_DPAINT_SURFACE_T_DISPLACE, MOD_DPAINT_SURFACE_T_WAVE)) {
       depth /= bData->bNormal[index].normal_scale * total_sample;
     }

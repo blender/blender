@@ -34,6 +34,7 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
+#include "DNA_sound_types.h"
 #include "IMB_imbuf.h"
 
 #include "SEQ_iterator.h"
@@ -111,8 +112,8 @@ static void seq_update_sound_bounds_recursive_impl(Scene *scene,
 {
   Sequence *seq;
 
-  /* for sound we go over full meta tree to update bounds of the sound strips,
-   * since sound is played outside of evaluating the imbufs, */
+  /* For sound we go over full meta tree to update bounds of the sound strips,
+   * since sound is played outside of evaluating the imbufs. */
   for (seq = metaseq->seqbase.first; seq; seq = seq->next) {
     if (seq->type == SEQ_TYPE_META) {
       seq_update_sound_bounds_recursive_impl(
@@ -134,7 +135,8 @@ static void seq_update_sound_bounds_recursive_impl(Scene *scene,
                                    seq->scene_sound,
                                    seq->start + startofs,
                                    seq->start + seq->len - endofs,
-                                   startofs + seq->anim_startofs);
+                                   startofs + seq->anim_startofs,
+                                   seq->sound->offset_time);
       }
     }
   }
@@ -247,7 +249,7 @@ void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
       seq_time_update_meta_strip(scene, seq);
     }
 
-    Editing *ed = SEQ_editing_get(scene, false);
+    Editing *ed = SEQ_editing_get(scene);
     MetaStack *ms = SEQ_meta_stack_active_get(ed);
     if (ms != NULL) {
       SEQ_time_update_meta_strip_range(scene, ms->parseq);
@@ -257,15 +259,6 @@ void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
   }
 }
 
-/** Comparison function suitable to be used with BLI_listbase_sort()... */
-int SEQ_time_cmp_time_startdisp(const void *a, const void *b)
-{
-  const Sequence *seq_a = a;
-  const Sequence *seq_b = b;
-
-  return (seq_a->startdisp > seq_b->startdisp);
-}
-
 int SEQ_time_find_next_prev_edit(Scene *scene,
                                  int timeline_frame,
                                  const short side,
@@ -273,7 +266,7 @@ int SEQ_time_find_next_prev_edit(Scene *scene,
                                  const bool do_center,
                                  const bool do_unselected)
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   Sequence *seq;
 
   int dist, best_dist, best_frame = timeline_frame;

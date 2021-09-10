@@ -570,7 +570,7 @@ static PyObject *Color_mul(PyObject *v1, PyObject *v2)
     }
   }
   else {
-    BLI_assert(!"internal error");
+    BLI_assert_msg(0, "internal error");
   }
 
   PyErr_Format(PyExc_TypeError,
@@ -865,6 +865,11 @@ static PyGetSetDef Color_getseters[] = {
      (getter)BaseMathObject_is_frozen_get,
      (setter)NULL,
      BaseMathObject_is_frozen_doc,
+     NULL},
+    {"is_valid",
+     (getter)BaseMathObject_is_valid_get,
+     (setter)NULL,
+     BaseMathObject_is_valid_doc,
      NULL},
     {"owner", (getter)BaseMathObject_owner_get, (setter)NULL, BaseMathObject_owner_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */

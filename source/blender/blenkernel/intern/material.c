@@ -179,31 +179,30 @@ static void material_foreach_id(ID *id, LibraryForeachIDData *data)
 static void material_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Material *ma = (Material *)id;
-  if (ma->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    ma->texpaintslot = NULL;
-    BLI_listbase_clear(&ma->gpumaterial);
 
-    /* write LibData */
-    BLO_write_id_struct(writer, Material, id_address, &ma->id);
-    BKE_id_blend_write(writer, &ma->id);
+  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  ma->texpaintslot = NULL;
+  BLI_listbase_clear(&ma->gpumaterial);
 
-    if (ma->adt) {
-      BKE_animdata_blend_write(writer, ma->adt);
-    }
+  /* write LibData */
+  BLO_write_id_struct(writer, Material, id_address, &ma->id);
+  BKE_id_blend_write(writer, &ma->id);
 
-    /* nodetree is integral part of material, no libdata */
-    if (ma->nodetree) {
-      BLO_write_struct(writer, bNodeTree, ma->nodetree);
-      ntreeBlendWrite(writer, ma->nodetree);
-    }
+  if (ma->adt) {
+    BKE_animdata_blend_write(writer, ma->adt);
+  }
 
-    BKE_previewimg_blend_write(writer, ma->preview);
+  /* nodetree is integral part of material, no libdata */
+  if (ma->nodetree) {
+    BLO_write_struct(writer, bNodeTree, ma->nodetree);
+    ntreeBlendWrite(writer, ma->nodetree);
+  }
 
-    /* grease pencil settings */
-    if (ma->gp_style) {
-      BLO_write_struct(writer, MaterialGPencilStyle, ma->gp_style);
-    }
+  BKE_previewimg_blend_write(writer, ma->preview);
+
+  /* grease pencil settings */
+  if (ma->gp_style) {
+    BLO_write_struct(writer, MaterialGPencilStyle, ma->gp_style);
   }
 }
 
@@ -1802,6 +1801,7 @@ void BKE_material_copybuf_free(void)
 {
   if (matcopybuf.nodetree) {
     ntreeFreeLocalTree(matcopybuf.nodetree);
+    BLI_assert(!matcopybuf.nodetree->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
     MEM_freeN(matcopybuf.nodetree);
     matcopybuf.nodetree = NULL;
   }

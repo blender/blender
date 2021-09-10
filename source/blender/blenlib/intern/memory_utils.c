@@ -19,7 +19,7 @@
  * \brief Generic memory manipulation API.
  *
  * This is to extend on existing functions
- * such as ``memcpy`` & ``memcmp``.
+ * such as `memcpy` & `memcmp`.
  */
 #include <string.h>
 

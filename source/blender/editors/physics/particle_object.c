@@ -124,7 +124,8 @@ static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   mode_orig = ob->mode;
-  object_remove_particle_system(bmain, scene, ob);
+  ParticleSystem *psys = psys_get_current(ob);
+  object_remove_particle_system(bmain, scene, ob, psys);
 
   /* possible this isn't the active object
    * object_remove_particle_system() clears the mode on the last psys
@@ -1331,7 +1332,12 @@ static int duplicate_particle_systems_exec(bContext *C, wmOperator *op)
   const bool duplicate_settings = RNA_boolean_get(op->ptr, "use_duplicate_settings");
   Scene *scene = CTX_data_scene(C);
   Object *ob = ED_object_active_context(C);
+  /* Context pointer is only valid in the Properties Editor. */
   ParticleSystem *psys = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data;
+  if (psys == NULL) {
+    psys = psys_get_current(ob);
+  }
+
   copy_particle_systems_to_object(
       C, scene, ob, psys, ob, PAR_COPY_SPACE_OBJECT, duplicate_settings);
   return OPERATOR_FINISHED;

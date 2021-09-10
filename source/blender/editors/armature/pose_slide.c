@@ -77,11 +77,12 @@
 #include "UI_resources.h"
 
 #include "ED_armature.h"
-#include "ED_keyframes_draw.h"
+#include "ED_keyframes_keylist.h"
 #include "ED_markers.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_util.h"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
@@ -137,15 +138,15 @@ typedef struct tPoseSlideOp {
   Scene *scene;
   /** area that we're operating in (needed for modal()) */
   ScrArea *area;
-  /** Header of the region used for drawing the slider. */
-  ARegion *region_header;
+  /** Region we're operating in (needed for modal()). */
+  ARegion *region;
   /** len of the PoseSlideObject array. */
   uint objects_len;
 
   /** links between posechannels and f-curves for all the pose objects. */
   ListBase pfLinks;
   /** binary tree for quicker searching for keyframes (when applicable) */
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist;
 
   /** current frame number - global time */
   int cframe;
@@ -168,26 +169,7 @@ typedef struct tPoseSlideOp {
   /** Axis-limits for transforms. */
   ePoseSlide_AxisLock axislock;
 
-  /** Allow overshoot or clamp between 0% and 100%. */
-  bool overshoot;
-
-  /** Reduces factor delta from mouse movement. */
-  bool precision;
-
-  /** Move factor in 10% steps. */
-  bool increments;
-
-  /** Draw callback handler. */
-  void *draw_handle;
-
-  /** Accumulative, unclamped and unrounded factor. */
-  float raw_factor;
-
-  /** 0-1 value for determining the influence of whatever is relevant. */
-  float factor;
-
-  /** Last cursor position in screen space used for mouse movement delta calculation. */
-  int last_cursor_x;
+  struct tSlider *slider;
 
   /** Numeric input. */
   NumInput num;
@@ -232,256 +214,6 @@ static const EnumPropertyItem prop_axis_lock_types[] = {
 
 /* ------------------------------------ */
 
-static void draw_overshoot_triangle(const uint8_t color[4],
-                                    const bool facing_right,
-                                    const float x,
-                                    const float y)
-{
-  const uint shdr_pos_2d = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-  GPU_blend(GPU_BLEND_ALPHA);
-  GPU_polygon_smooth(true);
-  immUniformColor3ubvAlpha(color, 225);
-  const float triangle_side_length = facing_right ? 6 * U.pixelsize : -6 * U.pixelsize;
-  const float triangle_offset = facing_right ? 2 * U.pixelsize : -2 * U.pixelsize;
-
-  immBegin(GPU_PRIM_TRIS, 3);
-  immVertex2f(shdr_pos_2d, x + triangle_offset + triangle_side_length, y);
-  immVertex2f(shdr_pos_2d, x + triangle_offset, y + triangle_side_length / 2);
-  immVertex2f(shdr_pos_2d, x + triangle_offset, y - triangle_side_length / 2);
-  immEnd();
-
-  GPU_polygon_smooth(false);
-  GPU_blend(GPU_BLEND_NONE);
-  immUnbindProgram();
-}
-
-static void draw_ticks(const float start_factor,
-                       const float end_factor,
-                       const float line_start[2],
-                       const float base_tick_height,
-                       const float line_width,
-                       const uint8_t color_overshoot[4],
-                       const uint8_t color_line[4])
-{
-  /* Use factor represented as 0-100 int to avoid floating point precision problems. */
-  const int tick_increment = 10;
-
-  /* Round initial_tick_factor up to the next tick_increment. */
-  int tick_percentage = ceil((start_factor * 100) / tick_increment) * tick_increment;
-
-  while (tick_percentage <= (int)(end_factor * 100)) {
-    float tick_height;
-    /* Different ticks have different heights. Multiples of 100% are the tallest, 50% is a bit
-     * smaller and the rest is the minimum size. */
-    if (tick_percentage % 100 == 0) {
-      tick_height = base_tick_height;
-    }
-    else if (tick_percentage % 50 == 0) {
-      tick_height = base_tick_height * 0.8;
-    }
-    else {
-      tick_height = base_tick_height * 0.5;
-    }
-
-    const float x = line_start[0] +
-                    (((float)tick_percentage / 100) - start_factor) * SLIDE_PIXEL_DISTANCE;
-    const rctf tick_rect = {
-        .xmin = x - (line_width / 2),
-        .xmax = x + (line_width / 2),
-        .ymin = line_start[1] - (tick_height / 2),
-        .ymax = line_start[1] + (tick_height / 2),
-    };
-
-    if (tick_percentage < 0 || tick_percentage > 100) {
-      UI_draw_roundbox_3ub_alpha(&tick_rect, true, 1, color_overshoot, 255);
-    }
-    else {
-      UI_draw_roundbox_3ub_alpha(&tick_rect, true, 1, color_line, 255);
-    }
-    tick_percentage += tick_increment;
-  }
-}
-
-static void draw_main_line(const rctf *main_line_rect,
-                           const float factor,
-                           const bool overshoot,
-                           const uint8_t color_overshoot[4],
-                           const uint8_t color_line[4])
-{
-  if (overshoot) {
-    /* In overshoot mode, draw the 0-100% range differently to provide a visual reference. */
-    const float line_zero_percent = main_line_rect->xmin -
-                                    ((factor - 0.5f - OVERSHOOT_RANGE_DELTA) *
-                                     SLIDE_PIXEL_DISTANCE);
-
-    const float clamped_line_zero_percent = clamp_f(
-        line_zero_percent, main_line_rect->xmin, main_line_rect->xmax);
-    const float clamped_line_hundred_percent = clamp_f(
-        line_zero_percent + SLIDE_PIXEL_DISTANCE, main_line_rect->xmin, main_line_rect->xmax);
-
-    const rctf left_overshoot_line_rect = {
-        .xmin = main_line_rect->xmin,
-        .xmax = clamped_line_zero_percent,
-        .ymin = main_line_rect->ymin,
-        .ymax = main_line_rect->ymax,
-    };
-    const rctf right_overshoot_line_rect = {
-        .xmin = clamped_line_hundred_percent,
-        .xmax = main_line_rect->xmax,
-        .ymin = main_line_rect->ymin,
-        .ymax = main_line_rect->ymax,
-    };
-    UI_draw_roundbox_3ub_alpha(&left_overshoot_line_rect, true, 0, color_overshoot, 255);
-    UI_draw_roundbox_3ub_alpha(&right_overshoot_line_rect, true, 0, color_overshoot, 255);
-
-    const rctf non_overshoot_line_rect = {
-        .xmin = clamped_line_zero_percent,
-        .xmax = clamped_line_hundred_percent,
-        .ymin = main_line_rect->ymin,
-        .ymax = main_line_rect->ymax,
-    };
-    UI_draw_roundbox_3ub_alpha(&non_overshoot_line_rect, true, 0, color_line, 255);
-  }
-  else {
-    UI_draw_roundbox_3ub_alpha(main_line_rect, true, 0, color_line, 255);
-  }
-}
-
-static void draw_backdrop(const int fontid,
-                          const rctf *main_line_rect,
-                          const float color_bg[4],
-                          const short region_y_size,
-                          const float base_tick_height)
-{
-  float string_pixel_size[2];
-  const char *percentage_string_placeholder = "000%%";
-  BLF_width_and_height(fontid,
-                       percentage_string_placeholder,
-                       sizeof(percentage_string_placeholder),
-                       &string_pixel_size[0],
-                       &string_pixel_size[1]);
-  const float pad[2] = {(region_y_size - base_tick_height) / 2, 2.0f * U.pixelsize};
-  const rctf backdrop_rect = {
-      .xmin = main_line_rect->xmin - string_pixel_size[0] - pad[0],
-      .xmax = main_line_rect->xmax + pad[0],
-      .ymin = pad[1],
-      .ymax = region_y_size - pad[1],
-  };
-  UI_draw_roundbox_aa(&backdrop_rect, true, 4.0f, color_bg);
-}
-
-/**
- * Draw an on screen Slider for a Pose Slide Operator.
- */
-static void pose_slide_draw_2d_slider(const struct bContext *UNUSED(C), ARegion *region, void *arg)
-{
-  tPoseSlideOp *pso = arg;
-
-  /* Only draw in region from which the Operator was started. */
-  if (region != pso->region_header) {
-    return;
-  }
-
-  uint8_t color_text[4];
-  uint8_t color_line[4];
-  uint8_t color_handle[4];
-  uint8_t color_overshoot[4];
-  float color_bg[4];
-
-  /* Get theme colors. */
-  UI_GetThemeColor4ubv(TH_TEXT, color_text);
-  UI_GetThemeColor4ubv(TH_TEXT, color_line);
-  UI_GetThemeColor4ubv(TH_TEXT, color_overshoot);
-  UI_GetThemeColor4ubv(TH_ACTIVE, color_handle);
-  UI_GetThemeColor3fv(TH_BACK, color_bg);
-
-  color_bg[3] = 0.5f;
-  color_overshoot[0] = color_overshoot[0] * 0.7;
-  color_overshoot[1] = color_overshoot[1] * 0.7;
-  color_overshoot[2] = color_overshoot[2] * 0.7;
-
-  /* Get the default font. */
-  const uiStyle *style = UI_style_get();
-  const uiFontStyle *fstyle = &style->widget;
-  const int fontid = fstyle->uifont_id;
-  BLF_color3ubv(fontid, color_text);
-  BLF_rotation(fontid, 0.0f);
-
-  const float line_width = 1.5 * U.pixelsize;
-  const float base_tick_height = 12.0 * U.pixelsize;
-  const float line_y = region->winy / 2;
-
-  rctf main_line_rect = {
-      .xmin = (region->winx / 2) - (SLIDE_PIXEL_DISTANCE / 2),
-      .xmax = (region->winx / 2) + (SLIDE_PIXEL_DISTANCE / 2),
-      .ymin = line_y - line_width / 2,
-      .ymax = line_y + line_width / 2,
-  };
-  float line_start_factor = 0;
-  int handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * pso->factor;
-
-  if (pso->overshoot) {
-    main_line_rect.xmin = main_line_rect.xmin - SLIDE_PIXEL_DISTANCE * OVERSHOOT_RANGE_DELTA;
-    main_line_rect.xmax = main_line_rect.xmax + SLIDE_PIXEL_DISTANCE * OVERSHOOT_RANGE_DELTA;
-    line_start_factor = pso->factor - 0.5f - OVERSHOOT_RANGE_DELTA;
-    handle_pos_x = region->winx / 2;
-  }
-
-  draw_backdrop(fontid, &main_line_rect, color_bg, pso->region_header->winy, base_tick_height);
-
-  draw_main_line(&main_line_rect, pso->factor, pso->overshoot, color_overshoot, color_line);
-
-  const float factor_range = pso->overshoot ? 1 + OVERSHOOT_RANGE_DELTA * 2 : 1;
-  const float line_start_position[2] = {main_line_rect.xmin, line_y};
-  draw_ticks(line_start_factor,
-             line_start_factor + factor_range,
-             line_start_position,
-             base_tick_height,
-             line_width,
-             color_overshoot,
-             color_line);
-
-  /* Draw triangles at the ends of the line in overshoot mode to indicate direction of 0-100%
-   * range. */
-  if (pso->overshoot) {
-    if (pso->factor > 1 + OVERSHOOT_RANGE_DELTA + 0.5) {
-      draw_overshoot_triangle(color_line, false, main_line_rect.xmin, line_y);
-    }
-    if (pso->factor < 0 - OVERSHOOT_RANGE_DELTA - 0.5) {
-      draw_overshoot_triangle(color_line, true, main_line_rect.xmax, line_y);
-    }
-  }
-
-  char percentage_string[256];
-
-  /* Draw handle indicating current factor. */
-  const rctf handle_rect = {
-      .xmin = handle_pos_x - (line_width),
-      .xmax = handle_pos_x + (line_width),
-      .ymin = line_y - (base_tick_height / 2),
-      .ymax = line_y + (base_tick_height / 2),
-  };
-
-  UI_draw_roundbox_3ub_alpha(&handle_rect, true, 1, color_handle, 255);
-  BLI_snprintf(percentage_string, sizeof(percentage_string), "%.0f%%", pso->factor * 100);
-
-  /* Draw percentage string. */
-  float percentage_string_pixel_size[2];
-  BLF_width_and_height(fontid,
-                       percentage_string,
-                       sizeof(percentage_string),
-                       &percentage_string_pixel_size[0],
-                       &percentage_string_pixel_size[1]);
-
-  BLF_position(fontid,
-               main_line_rect.xmin - 24.0 * U.pixelsize - percentage_string_pixel_size[0] / 2,
-               (region->winy / 2) - percentage_string_pixel_size[1] / 2,
-               0.0f);
-  BLF_draw(fontid, percentage_string, sizeof(percentage_string));
-}
-
 /** Operator custom-data initialization. */
 static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 {
@@ -492,21 +224,22 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 
   /* Get info from context. */
   pso->scene = CTX_data_scene(C);
-  pso->area = CTX_wm_area(C);            /* Only really needed when doing modal(). */
-  pso->region_header = CTX_wm_region(C); /* Only really needed when doing modal(). */
+  pso->area = CTX_wm_area(C);     /* Only really needed when doing modal(). */
+  pso->region = CTX_wm_region(C); /* Only really needed when doing modal(). */
 
   pso->cframe = pso->scene->r.cfra;
   pso->mode = mode;
 
   /* Set range info from property values - these may get overridden for the invoke(). */
-  pso->factor = RNA_float_get(op->ptr, "factor");
-  pso->raw_factor = pso->factor;
   pso->prevFrame = RNA_int_get(op->ptr, "prev_frame");
   pso->nextFrame = RNA_int_get(op->ptr, "next_frame");
 
   /* Get the set of properties/axes that can be operated on. */
   pso->channels = RNA_enum_get(op->ptr, "channels");
   pso->axislock = RNA_enum_get(op->ptr, "axis_lock");
+
+  pso->slider = ED_slider_create(C);
+  ED_slider_factor_set(pso->slider, RNA_float_get(op->ptr, "factor"));
 
   /* For each Pose-Channel which gets affected, get the F-Curves for that channel
    * and set the relevant transform flags. */
@@ -544,21 +277,13 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 
   /* Do basic initialize of RB-BST used for finding keyframes, but leave the filling of it up
    * to the caller of this (usually only invoke() will do it, to make things more efficient). */
-  BLI_dlrbTree_init(&pso->keys);
+  pso->keylist = ED_keylist_create();
 
   /* Initialize numeric input. */
   initNumInput(&pso->num);
   pso->num.idx_max = 0; /* One axis. */
   pso->num.val_flag[0] |= NUM_NO_NEGATIVE;
   pso->num.unit_type[0] = B_UNIT_NONE; /* Percentages don't have any units. */
-
-  /* Register UI drawing callback. */
-  ARegion *region_header = BKE_area_find_region_type(pso->area, RGN_TYPE_HEADER);
-  if (region_header != NULL) {
-    pso->region_header = region_header;
-    pso->draw_handle = ED_region_draw_cb_activate(
-        region_header->type, pose_slide_draw_2d_slider, pso, REGION_DRAW_POST_PIXEL);
-  }
 
   /* Return status is whether we've got all the data we were requested to get. */
   return 1;
@@ -567,22 +292,21 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 /**
  * Exiting the operator (free data).
  */
-static void pose_slide_exit(wmOperator *op)
+static void pose_slide_exit(bContext *C, wmOperator *op)
 {
   tPoseSlideOp *pso = op->customdata;
+
+  ED_slider_destroy(C, pso->slider);
 
   /* Hide Bone Overlay. */
   View3D *v3d = pso->area->spacedata.first;
   v3d->overlay.flag = pso->overlay_flag;
 
-  /* Remove UI drawing callback. */
-  ED_region_draw_cb_exit(pso->region_header->type, pso->draw_handle);
-
   /* Free the temp pchan links and their data. */
   poseAnim_mapping_free(&pso->pfLinks);
 
   /* Free RB-BST for keyframes (if it contained data). */
-  BLI_dlrbTree_free(&pso->keys);
+  ED_keylist_free(pso->keylist);
 
   if (pso->ob_data_array != NULL) {
     MEM_freeN(pso->ob_data_array);
@@ -655,8 +379,8 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
   /* Calculate the relative weights of the endpoints. */
   if (pso->mode == POSESLIDE_BREAKDOWN) {
     /* Get weights from the factor control. */
-    w1 = pso->factor; /* This must come second. */
-    w2 = 1.0f - w1;   /* This must come first. */
+    w1 = ED_slider_factor_get(pso->slider); /* This must come second. */
+    w2 = 1.0f - w1;                         /* This must come first. */
   }
   else {
     /* - these weights are derived from the relative distance of these
@@ -682,13 +406,13 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
     case POSESLIDE_PUSH: /* Make the current pose more pronounced. */
     {
       /* Slide the pose away from the breakdown pose in the timeline */
-      (*val) -= ((sVal * w2) + (eVal * w1) - (*val)) * pso->factor;
+      (*val) -= ((sVal * w2) + (eVal * w1) - (*val)) * ED_slider_factor_get(pso->slider);
       break;
     }
     case POSESLIDE_RELAX: /* Make the current pose more like its surrounding ones. */
     {
       /* Slide the pose towards the breakdown pose in the timeline */
-      (*val) += ((sVal * w2) + (eVal * w1) - (*val)) * pso->factor;
+      (*val) += ((sVal * w2) + (eVal * w1) - (*val)) * ED_slider_factor_get(pso->slider);
       break;
     }
     case POSESLIDE_BREAKDOWN: /* Make the current pose slide around between the endpoints. */
@@ -833,7 +557,7 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
   float prevFrameF, nextFrameF;
 
   if (!pose_frame_range_from_object_get(pso, pfl->ob, &prevFrameF, &nextFrameF)) {
-    BLI_assert(!"Invalid pfl data");
+    BLI_assert_msg(0, "Invalid pfl data");
     return;
   }
 
@@ -888,7 +612,7 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
       normalize_qt(quat_prev);
       normalize_qt(quat_next);
 
-      interp_qt_qtqt(quat_final, quat_prev, quat_next, pso->factor);
+      interp_qt_qtqt(quat_final, quat_prev, quat_next, ED_slider_factor_get(pso->slider));
     }
     else {
       /* POSESLIDE_PUSH and POSESLIDE_RELAX. */
@@ -906,11 +630,12 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
       normalize_qt(quat_curr);
 
       if (pso->mode == POSESLIDE_PUSH) {
-        interp_qt_qtqt(quat_final, quat_breakdown, quat_curr, 1.0f + pso->factor);
+        interp_qt_qtqt(
+            quat_final, quat_breakdown, quat_curr, 1.0f + ED_slider_factor_get(pso->slider));
       }
       else {
         BLI_assert(pso->mode == POSESLIDE_RELAX);
-        interp_qt_qtqt(quat_final, quat_curr, quat_breakdown, pso->factor);
+        interp_qt_qtqt(quat_final, quat_curr, quat_breakdown, ED_slider_factor_get(pso->slider));
       }
     }
 
@@ -931,11 +656,11 @@ static void pose_slide_rest_pose_apply_vec3(tPoseSlideOp *pso, float vec[3], flo
         ((lock & PS_LOCK_Z) && (idx == 2))) {
       float diff_val = default_value - vec[idx];
       if (pso->mode == POSESLIDE_RELAX_REST) {
-        vec[idx] += pso->factor * diff_val;
+        vec[idx] += ED_slider_factor_get(pso->slider) * diff_val;
       }
       else {
         /* Push */
-        vec[idx] -= pso->factor * diff_val;
+        vec[idx] -= ED_slider_factor_get(pso->slider) * diff_val;
       }
     }
   }
@@ -953,11 +678,11 @@ static void pose_slide_rest_pose_apply_other_rot(tPoseSlideOp *pso, float vec[4]
   for (int idx = 0; idx < 4; idx++) {
     float diff_val = default_values[idx] - vec[idx];
     if (pso->mode == POSESLIDE_RELAX_REST) {
-      vec[idx] += pso->factor * diff_val;
+      vec[idx] += ED_slider_factor_get(pso->slider) * diff_val;
     }
     else {
       /* Push */
-      vec[idx] -= pso->factor * diff_val;
+      vec[idx] -= ED_slider_factor_get(pso->slider) * diff_val;
     }
   }
 }
@@ -1130,9 +855,7 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
   char limits_str[UI_MAX_DRAW_STR];
   char axis_str[50];
   char mode_str[32];
-  char overshoot_str[50];
-  char precision_str[50];
-  char increments_str[50];
+  char slider_str[UI_MAX_DRAW_STR];
   char bone_vis_str[50];
 
   switch (pso->mode) {
@@ -1203,28 +926,9 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
       break;
   }
 
-  if (pso->overshoot) {
-    STRNCPY(overshoot_str, TIP_("[E] - Disable overshoot"));
-  }
-  else {
-    STRNCPY(overshoot_str, TIP_("[E] - Enable overshoot"));
-  }
-
-  if (pso->precision) {
-    STRNCPY(precision_str, TIP_("[Shift] - Precision active"));
-  }
-  else {
-    STRNCPY(precision_str, TIP_("Shift - Hold for precision"));
-  }
-
-  if (pso->increments) {
-    STRNCPY(increments_str, TIP_("[Ctrl] - Increments active"));
-  }
-  else {
-    STRNCPY(increments_str, TIP_("Ctrl - Hold for 10% increments"));
-  }
-
   STRNCPY(bone_vis_str, TIP_("[H] - Toggle bone visibility"));
+
+  ED_slider_status_string_get(pso->slider, slider_str, sizeof(slider_str));
 
   if (hasNumInput(&pso->num)) {
     Scene *scene = pso->scene;
@@ -1237,12 +941,10 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
   else {
     BLI_snprintf(status_str,
                  sizeof(status_str),
-                 "%s: %s | %s | %s | %s | %s",
+                 "%s: %s | %s | %s",
                  mode_str,
                  limits_str,
-                 overshoot_str,
-                 precision_str,
-                 increments_str,
+                 slider_str,
                  bone_vis_str);
   }
 
@@ -1253,10 +955,14 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
 /**
  * Common code for invoke() methods.
  */
-static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *pso)
+static int pose_slide_invoke_common(bContext *C, wmOperator *op, const wmEvent *event)
 {
   tPChanFCurveLink *pfl;
   wmWindow *win = CTX_wm_window(C);
+
+  tPoseSlideOp *pso = op->customdata;
+
+  ED_slider_init(pso->slider, event);
 
   /* For each link, add all its keyframes to the search tree. */
   for (pfl = pso->pfLinks.first; pfl; pfl = pfl->next) {
@@ -1265,58 +971,54 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
     /* Do this for each F-Curve. */
     for (ld = pfl->fcurves.first; ld; ld = ld->next) {
       FCurve *fcu = (FCurve *)ld->data;
-      fcurve_to_keylist(pfl->ob->adt, fcu, &pso->keys, 0);
+      fcurve_to_keylist(pfl->ob->adt, fcu, pso->keylist, 0);
     }
   }
 
   /* Cancel if no keyframes found. */
-  if (pso->keys.root) {
-    ActKeyColumn *ak;
-    float cframe = (float)pso->cframe;
+  if (ED_keylist_is_empty(pso->keylist)) {
+    BKE_report(op->reports, RPT_ERROR, "No keyframes to slide between");
+    pose_slide_exit(C, op);
+    return OPERATOR_CANCELLED;
+  }
 
-    /* Firstly, check if the current frame is a keyframe. */
-    ak = (ActKeyColumn *)BLI_dlrbTree_search_exact(&pso->keys, compare_ak_cfraPtr, &cframe);
+  float cframe = (float)pso->cframe;
 
-    if (ak == NULL) {
-      /* Current frame is not a keyframe, so search. */
-      ActKeyColumn *pk = (ActKeyColumn *)BLI_dlrbTree_search_prev(
-          &pso->keys, compare_ak_cfraPtr, &cframe);
-      ActKeyColumn *nk = (ActKeyColumn *)BLI_dlrbTree_search_next(
-          &pso->keys, compare_ak_cfraPtr, &cframe);
+  /* Firstly, check if the current frame is a keyframe. */
+  const ActKeyColumn *ak = ED_keylist_find_exact(pso->keylist, cframe);
 
-      /* New set the frames. */
-      /* Prev frame. */
-      pso->prevFrame = (pk) ? (pk->cfra) : (pso->cframe - 1);
-      RNA_int_set(op->ptr, "prev_frame", pso->prevFrame);
-      /* Next frame. */
-      pso->nextFrame = (nk) ? (nk->cfra) : (pso->cframe + 1);
-      RNA_int_set(op->ptr, "next_frame", pso->nextFrame);
-    }
-    else {
-      /* Current frame itself is a keyframe, so just take keyframes on either side. */
-      /* Prev frame. */
-      pso->prevFrame = (ak->prev) ? (ak->prev->cfra) : (pso->cframe - 1);
-      RNA_int_set(op->ptr, "prev_frame", pso->prevFrame);
-      /* Next frame. */
-      pso->nextFrame = (ak->next) ? (ak->next->cfra) : (pso->cframe + 1);
-      RNA_int_set(op->ptr, "next_frame", pso->nextFrame);
-    }
+  if (ak == NULL) {
+    /* Current frame is not a keyframe, so search. */
+    const ActKeyColumn *pk = ED_keylist_find_prev(pso->keylist, cframe);
+    const ActKeyColumn *nk = ED_keylist_find_next(pso->keylist, cframe);
 
-    /* Apply NLA mapping corrections so the frame look-ups work. */
-    for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
-      tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
-      if (ob_data->valid) {
-        ob_data->prevFrameF = BKE_nla_tweakedit_remap(
-            ob_data->ob->adt, pso->prevFrame, NLATIME_CONVERT_UNMAP);
-        ob_data->nextFrameF = BKE_nla_tweakedit_remap(
-            ob_data->ob->adt, pso->nextFrame, NLATIME_CONVERT_UNMAP);
-      }
-    }
+    /* New set the frames. */
+    /* Prev frame. */
+    pso->prevFrame = (pk) ? (pk->cfra) : (pso->cframe - 1);
+    RNA_int_set(op->ptr, "prev_frame", pso->prevFrame);
+    /* Next frame. */
+    pso->nextFrame = (nk) ? (nk->cfra) : (pso->cframe + 1);
+    RNA_int_set(op->ptr, "next_frame", pso->nextFrame);
   }
   else {
-    BKE_report(op->reports, RPT_ERROR, "No keyframes to slide between");
-    pose_slide_exit(op);
-    return OPERATOR_CANCELLED;
+    /* Current frame itself is a keyframe, so just take keyframes on either side. */
+    /* Prev frame. */
+    pso->prevFrame = (ak->prev) ? (ak->prev->cfra) : (pso->cframe - 1);
+    RNA_int_set(op->ptr, "prev_frame", pso->prevFrame);
+    /* Next frame. */
+    pso->nextFrame = (ak->next) ? (ak->next->cfra) : (pso->cframe + 1);
+    RNA_int_set(op->ptr, "next_frame", pso->nextFrame);
+  }
+
+  /* Apply NLA mapping corrections so the frame look-ups work. */
+  for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
+    tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
+    if (ob_data->valid) {
+      ob_data->prevFrameF = BKE_nla_tweakedit_remap(
+          ob_data->ob->adt, pso->prevFrame, NLATIME_CONVERT_UNMAP);
+      ob_data->nextFrameF = BKE_nla_tweakedit_remap(
+          ob_data->ob->adt, pso->nextFrame, NLATIME_CONVERT_UNMAP);
+    }
   }
 
   /* Initial apply for operator. */
@@ -1340,35 +1042,11 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
   /* Add a modal handler for this operator. */
   WM_event_add_modal_handler(C, op);
 
-  /* Hide Bone Overlay. */
+  /* Save current bone visibility. */
   View3D *v3d = pso->area->spacedata.first;
   pso->overlay_flag = v3d->overlay.flag;
-  v3d->overlay.flag |= V3D_OVERLAY_HIDE_BONES;
 
   return OPERATOR_RUNNING_MODAL;
-}
-
-/**
- * Calculate factor based on mouse movement, clamp or round to increments if
- * enabled by the user. Store the new factor value.
- */
-static void pose_slide_mouse_update_factor(tPoseSlideOp *pso, wmOperator *op, const wmEvent *event)
-{
-  const float factor_delta = (event->x - pso->last_cursor_x) / ((float)(SLIDE_PIXEL_DISTANCE));
-  /* Reduced factor delta in precision mode (shift held). */
-  pso->raw_factor += pso->precision ? (factor_delta / 8) : factor_delta;
-  pso->factor = pso->raw_factor;
-  pso->last_cursor_x = event->x;
-
-  if (!pso->overshoot) {
-    pso->factor = clamp_f(pso->factor, 0, 1);
-  }
-
-  if (pso->increments) {
-    pso->factor = round(pso->factor * 10) / 10;
-  }
-
-  RNA_float_set(op->ptr, "factor", pso->factor);
 }
 
 /**
@@ -1434,6 +1112,8 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   const bool has_numinput = hasNumInput(&pso->num);
 
+  do_pose_update = ED_slider_modal(pso->slider, event);
+
   switch (event->type) {
     case LEFTMOUSE: /* Confirm. */
     case EVT_RETKEY:
@@ -1449,7 +1129,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         /* Insert keyframes as required. */
         pose_slide_autoKeyframe(C, pso);
-        pose_slide_exit(op);
+        pose_slide_exit(C, op);
 
         /* Done! */
         return OPERATOR_FINISHED;
@@ -1472,7 +1152,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
         pose_slide_refresh(C, pso);
 
         /* Clean up temp data. */
-        pose_slide_exit(op);
+        pose_slide_exit(C, op);
 
         /* Canceled! */
         return OPERATOR_CANCELLED;
@@ -1485,9 +1165,6 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
     {
       /* Only handle mouse-move if not doing numinput. */
       if (has_numinput == false) {
-        /* Update factor based on position of mouse. */
-        pose_slide_mouse_update_factor(pso, op, event);
-
         /* Update pose to reflect the new values (see below). */
         do_pose_update = true;
       }
@@ -1500,12 +1177,13 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* Grab percentage from numeric input, and store this new value for redo
          * NOTE: users see ints, while internally we use a 0-1 float
          */
-        value = pso->factor * 100.0f;
+        value = ED_slider_factor_get(pso->slider) * 100.0f;
         applyNumInput(&pso->num, &value);
 
-        pso->factor = value / 100.0f;
-        CLAMP(pso->factor, 0.0f, 1.0f);
-        RNA_float_set(op->ptr, "factor", pso->factor);
+        float factor = value / 100;
+        CLAMP(factor, 0.0f, 1.0f);
+        ED_slider_factor_set(pso->slider, factor);
+        RNA_float_set(op->ptr, "factor", ED_slider_factor_get(pso->slider));
 
         /* Update pose to reflect the new values (see below) */
         do_pose_update = true;
@@ -1567,55 +1245,14 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
             break;
           }
 
-          /* Overshoot. */
-          case EVT_EKEY: {
-            pso->overshoot = !pso->overshoot;
-            do_pose_update = true;
-            break;
-          }
-
-          /* Precision mode. */
-          case EVT_LEFTSHIFTKEY:
-          case EVT_RIGHTSHIFTKEY: {
-            pso->precision = true;
-            do_pose_update = true;
-            break;
-          }
-
-          /* Increments mode. */
-          case EVT_LEFTCTRLKEY:
-          case EVT_RIGHTCTRLKEY: {
-            pso->increments = true;
-            do_pose_update = true;
-            break;
-          }
-
           /* Toggle Bone visibility. */
           case EVT_HKEY: {
             View3D *v3d = pso->area->spacedata.first;
             v3d->overlay.flag ^= V3D_OVERLAY_HIDE_BONES;
+            ED_region_tag_redraw(pso->region);
           }
 
           default: /* Some other unhandled key... */
-            break;
-        }
-      }
-      /* Precision and stepping only active while button is held. */
-      else if (event->val == KM_RELEASE) {
-        switch (event->type) {
-          case EVT_LEFTSHIFTKEY:
-          case EVT_RIGHTSHIFTKEY: {
-            pso->precision = false;
-            do_pose_update = true;
-            break;
-          }
-          case EVT_LEFTCTRLKEY:
-          case EVT_RIGHTCTRLKEY: {
-            pso->increments = false;
-            do_pose_update = true;
-            break;
-          }
-          default:
             break;
         }
       }
@@ -1652,10 +1289,10 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 /**
  * Common code for cancel()
  */
-static void pose_slide_cancel(bContext *UNUSED(C), wmOperator *op)
+static void pose_slide_cancel(bContext *C, wmOperator *op)
 {
   /* Cleanup and done. */
-  pose_slide_exit(op);
+  pose_slide_exit(C, op);
 }
 
 /**
@@ -1675,7 +1312,7 @@ static int pose_slide_exec_common(bContext *C, wmOperator *op, tPoseSlideOp *pso
   pose_slide_autoKeyframe(C, pso);
 
   /* Cleanup and done. */
-  pose_slide_exit(op);
+  pose_slide_exit(C, op);
 
   return OPERATOR_FINISHED;
 }
@@ -1743,23 +1380,14 @@ static void pose_slide_opdef_properties(wmOperatorType *ot)
  */
 static int pose_slide_push_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  tPoseSlideOp *pso;
-
   /* Initialize data. */
   if (pose_slide_init(C, op, POSESLIDE_PUSH) == 0) {
-    pose_slide_exit(op);
+    pose_slide_exit(C, op);
     return OPERATOR_CANCELLED;
   }
 
-  pso = op->customdata;
-
-  pso->last_cursor_x = event->x;
-
-  /* Initialize factor so that it won't pop on first mouse move. */
-  pose_slide_mouse_update_factor(pso, op, event);
-
   /* Do common setup work. */
-  return pose_slide_invoke_common(C, op, pso);
+  return pose_slide_invoke_common(C, op, event);
 }
 
 /**
@@ -1771,7 +1399,7 @@ static int pose_slide_push_exec(bContext *C, wmOperator *op)
 
   /* Initialize data (from RNA-props). */
   if (pose_slide_init(C, op, POSESLIDE_PUSH) == 0) {
-    pose_slide_exit(op);
+    pose_slide_exit(C, op);
     return OPERATOR_CANCELLED;
   }
 
@@ -1809,23 +1437,14 @@ void POSE_OT_push(wmOperatorType *ot)
  */
 static int pose_slide_relax_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  tPoseSlideOp *pso;
-
   /* Initialize data. */
   if (pose_slide_init(C, op, POSESLIDE_RELAX) == 0) {
-    pose_slide_exit(op);
+    pose_slide_exit(C, op);
     return OPERATOR_CANCELLED;
   }
 
-  pso = op->customdata;
-
-  pso->last_cursor_x = event->x;
-
-  /* Initialize factor so that it won't pop on first mouse move. */
-  pose_slide_mouse_update_factor(pso, op, event);
-
   /* Do common setup work. */
-  return pose_slide_invoke_common(C, op, pso);
+  return pose_slide_invoke_common(C, op, event);
 }
 
 /**
@@ -1837,7 +1456,7 @@ static int pose_slide_relax_exec(bContext *C, wmOperator *op)
 
   /* Initialize data (from RNA-props). */
   if (pose_slide_init(C, op, POSESLIDE_RELAX) == 0) {
-    pose_slide_exit(op);
+    pose_slide_exit(C, op);
     return OPERATOR_CANCELLED;
   }
 
@@ -1874,23 +1493,14 @@ void POSE_OT_relax(wmOperatorType *ot)
  */
 static int pose_slide_push_rest_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  tPoseSlideOp *pso;
-
   /* Initialize data. */
   if (pose_slide_init(C, op, POSESLIDE_PUSH_REST) == 0) {
-    pose_slide_exit(op);
+    pose_slide_exit(C, op);
     return OPERATOR_CANCELLED;
   }
 
-  pso = op->customdata;
-
-  pso->last_cursor_x = event->x;
-
-  /* Initialize factor so that it won't pop on first mouse move. */
-  pose_slide_mouse_update_factor(pso, op, event);
-
   /* do common setup work */
-  return pose_slide_invoke_common(C, op, pso);
+  return pose_slide_invoke_common(C, op, event);
 }
 
 /**
@@ -1902,7 +1512,7 @@ static int pose_slide_push_rest_exec(bContext *C, wmOperator *op)
 
   /* Initialize data (from RNA-props). */
   if (pose_slide_init(C, op, POSESLIDE_PUSH_REST) == 0) {
-    pose_slide_exit(op);
+    pose_slide_exit(C, op);
     return OPERATOR_CANCELLED;
   }
 
@@ -1940,23 +1550,14 @@ void POSE_OT_push_rest(wmOperatorType *ot)
  */
 static int pose_slide_relax_rest_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  tPoseSlideOp *pso;
-
   /* Initialize data. */
   if (pose_slide_init(C, op, POSESLIDE_RELAX_REST) == 0) {
-    pose_slide_exit(op);
+    pose_slide_exit(C, op);
     return OPERATOR_CANCELLED;
   }
 
-  pso = op->customdata;
-
-  pso->last_cursor_x = event->x;
-
-  /* Initialize factor so that it won't pop on first mouse move. */
-  pose_slide_mouse_update_factor(pso, op, event);
-
   /* Do common setup work. */
-  return pose_slide_invoke_common(C, op, pso);
+  return pose_slide_invoke_common(C, op, event);
 }
 
 /**
@@ -1968,7 +1569,7 @@ static int pose_slide_relax_rest_exec(bContext *C, wmOperator *op)
 
   /* Initialize data (from RNA-props). */
   if (pose_slide_init(C, op, POSESLIDE_RELAX_REST) == 0) {
-    pose_slide_exit(op);
+    pose_slide_exit(C, op);
     return OPERATOR_CANCELLED;
   }
 
@@ -2006,23 +1607,14 @@ void POSE_OT_relax_rest(wmOperatorType *ot)
  */
 static int pose_slide_breakdown_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  tPoseSlideOp *pso;
-
   /* Initialize data. */
   if (pose_slide_init(C, op, POSESLIDE_BREAKDOWN) == 0) {
-    pose_slide_exit(op);
+    pose_slide_exit(C, op);
     return OPERATOR_CANCELLED;
   }
 
-  pso = op->customdata;
-
-  pso->last_cursor_x = event->x;
-
-  /* Initialize factor so that it won't pop on first mouse move. */
-  pose_slide_mouse_update_factor(pso, op, event);
-
   /* Do common setup work. */
-  return pose_slide_invoke_common(C, op, pso);
+  return pose_slide_invoke_common(C, op, event);
 }
 
 /**
@@ -2034,7 +1626,7 @@ static int pose_slide_breakdown_exec(bContext *C, wmOperator *op)
 
   /* Initialize data (from RNA-props). */
   if (pose_slide_init(C, op, POSESLIDE_BREAKDOWN) == 0) {
-    pose_slide_exit(op);
+    pose_slide_exit(C, op);
     return OPERATOR_CANCELLED;
   }
 
@@ -2109,26 +1701,22 @@ typedef union tPosePropagate_ModeData {
  */
 static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float startFrame)
 {
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist = ED_keylist_create();
 
   Object *ob = pfl->ob;
   AnimData *adt = ob->adt;
   LinkData *ld;
   float endFrame = startFrame;
 
-  /* Set up optimized data-structures for searching for relevant keyframes + holds. */
-  BLI_dlrbTree_init(&keys);
-
   for (ld = pfl->fcurves.first; ld; ld = ld->next) {
     FCurve *fcu = (FCurve *)ld->data;
-    fcurve_to_keylist(adt, fcu, &keys, 0);
+    fcurve_to_keylist(adt, fcu, keylist, 0);
   }
 
   /* Find the long keyframe (i.e. hold), and hence obtain the endFrame value
    * - the best case would be one that starts on the frame itself
    */
-  ActKeyColumn *ab = (ActKeyColumn *)BLI_dlrbTree_search_exact(
-      &keys, compare_ak_cfraPtr, &startFrame);
+  const ActKeyColumn *ab = ED_keylist_find_exact(keylist, startFrame);
 
   /* There are only two cases for no-exact match:
    *  1) the current frame is just before another key but not on a key itself
@@ -2139,11 +1727,11 @@ static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float st
    */
   if (ab == NULL) {
     /* We've got case 1, so try the one after. */
-    ab = (ActKeyColumn *)BLI_dlrbTree_search_next(&keys, compare_ak_cfraPtr, &startFrame);
+    ab = ED_keylist_find_next(keylist, startFrame);
 
     if ((actkeyblock_get_valid_hold(ab) & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
       /* Try the block before this frame then as last resort. */
-      ab = (ActKeyColumn *)BLI_dlrbTree_search_prev(&keys, compare_ak_cfraPtr, &startFrame);
+      ab = ED_keylist_find_prev(keylist, startFrame);
     }
   }
 
@@ -2158,7 +1746,7 @@ static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float st
   if (ab) {
     /* Go to next if it is also valid and meets "extension" criteria. */
     while (ab->next) {
-      ActKeyColumn *abn = ab->next;
+      const ActKeyColumn *abn = ab->next;
 
       /* Must be valid. */
       if ((actkeyblock_get_valid_hold(abn) & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
@@ -2178,7 +1766,7 @@ static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float st
   }
 
   /* Free temp memory. */
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 
   /* Return the end frame we've found. */
   return endFrame;

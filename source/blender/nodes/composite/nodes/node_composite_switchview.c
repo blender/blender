@@ -132,7 +132,7 @@ static void init_switch_view(const bContext *C, PointerRNA *ptr)
     for (nr = 0, srv = rd->views.first; srv; srv = srv->next, nr++) {
       sock = ntreeCompositSwitchViewAddSocket(ntree, node, srv->name);
 
-      if ((srv->viewflag & SCE_VIEW_DISABLE)) {
+      if (srv->viewflag & SCE_VIEW_DISABLE) {
         sock->flag |= SOCK_HIDDEN;
       }
     }
@@ -146,7 +146,7 @@ void register_node_type_cmp_switch_view(void)
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, NULL, cmp_node_switch_view_out);
 
   ntype.initfunc_api = init_switch_view;

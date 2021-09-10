@@ -20,7 +20,7 @@
 
 #include <string.h>
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 #include "DNA_movieclip_types.h"
 
@@ -34,7 +34,7 @@ namespace blender::compositor {
 /**
  * Class with implementation of green screen gradient rasterization
  */
-class KeyingScreenOperation : public NodeOperation {
+class KeyingScreenOperation : public MultiThreadedOperation {
  protected:
   typedef struct TriangulationData {
     VoronoiTriangulationPoint *triangulated_points;
@@ -43,6 +43,7 @@ class KeyingScreenOperation : public NodeOperation {
     rcti *triangles_AABB;
   } TriangulationData;
 
+  /* TODO(manzanilla): rename to #TrianguledArea on removing tiled implementation. */
   typedef struct TileData {
     int *triangles;
     int triangles_total;
@@ -84,6 +85,13 @@ class KeyingScreenOperation : public NodeOperation {
   }
 
   void executePixel(float output[4], int x, int y, void *data) override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+
+ private:
+  TileData *triangulate(const rcti *rect);
 };
 
 }  // namespace blender::compositor

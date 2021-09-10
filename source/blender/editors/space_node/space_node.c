@@ -664,42 +664,29 @@ static void node_main_region_draw(const bContext *C, ARegion *region)
 
 /* ************* dropboxes ************* */
 
-static bool node_group_drop_poll(bContext *UNUSED(C),
-                                 wmDrag *drag,
-                                 const wmEvent *UNUSED(event),
-                                 const char **UNUSED(r_tooltip))
+static bool node_group_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   return WM_drag_is_ID_type(drag, ID_NT);
 }
 
-static bool node_object_drop_poll(bContext *UNUSED(C),
-                                  wmDrag *drag,
-                                  const wmEvent *UNUSED(event),
-                                  const char **UNUSED(r_tooltip))
+static bool node_object_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   return WM_drag_is_ID_type(drag, ID_OB);
 }
 
 static bool node_collection_drop_poll(bContext *UNUSED(C),
                                       wmDrag *drag,
-                                      const wmEvent *UNUSED(event),
-                                      const char **UNUSED(r_tooltip))
+                                      const wmEvent *UNUSED(event))
 {
   return WM_drag_is_ID_type(drag, ID_GR);
 }
 
-static bool node_texture_drop_poll(bContext *UNUSED(C),
-                                   wmDrag *drag,
-                                   const wmEvent *UNUSED(event),
-                                   const char **UNUSED(r_tooltip))
+static bool node_texture_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   return WM_drag_is_ID_type(drag, ID_TE);
 }
 
-static bool node_ima_drop_poll(bContext *UNUSED(C),
-                               wmDrag *drag,
-                               const wmEvent *UNUSED(event),
-                               const char **UNUSED(r_tooltip))
+static bool node_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
     /* rule might not work? */
@@ -708,10 +695,7 @@ static bool node_ima_drop_poll(bContext *UNUSED(C),
   return WM_drag_is_ID_type(drag, ID_IM);
 }
 
-static bool node_mask_drop_poll(bContext *UNUSED(C),
-                                wmDrag *drag,
-                                const wmEvent *UNUSED(event),
-                                const char **UNUSED(r_tooltip))
+static bool node_mask_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   return WM_drag_is_ID_type(drag, ID_MSK);
 }
@@ -753,32 +737,38 @@ static void node_dropboxes(void)
                  "NODE_OT_add_object",
                  node_object_drop_poll,
                  node_id_drop_copy,
-                 WM_drag_free_imported_drag_ID);
+                 WM_drag_free_imported_drag_ID,
+                 NULL);
   WM_dropbox_add(lb,
                  "NODE_OT_add_collection",
                  node_collection_drop_poll,
                  node_id_drop_copy,
-                 WM_drag_free_imported_drag_ID);
+                 WM_drag_free_imported_drag_ID,
+                 NULL);
   WM_dropbox_add(lb,
                  "NODE_OT_add_texture",
                  node_texture_drop_poll,
                  node_id_drop_copy,
-                 WM_drag_free_imported_drag_ID);
+                 WM_drag_free_imported_drag_ID,
+                 NULL);
   WM_dropbox_add(lb,
                  "NODE_OT_add_group",
                  node_group_drop_poll,
                  node_group_drop_copy,
-                 WM_drag_free_imported_drag_ID);
+                 WM_drag_free_imported_drag_ID,
+                 NULL);
   WM_dropbox_add(lb,
                  "NODE_OT_add_file",
                  node_ima_drop_poll,
                  node_id_path_drop_copy,
-                 WM_drag_free_imported_drag_ID);
+                 WM_drag_free_imported_drag_ID,
+                 NULL);
   WM_dropbox_add(lb,
                  "NODE_OT_add_mask",
                  node_mask_drop_poll,
                  node_id_drop_copy,
-                 WM_drag_free_imported_drag_ID);
+                 WM_drag_free_imported_drag_ID,
+                 NULL);
 }
 
 /* ************* end drop *********** */

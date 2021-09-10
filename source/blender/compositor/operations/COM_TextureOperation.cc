@@ -157,14 +157,8 @@ void TextureBaseOperation::executePixelSampled(float output[4],
                         m_sceneColorManage,
                         false);
 
-  if (texres.talpha) {
-    output[3] = texres.ta;
-  }
-  else {
-    output[3] = texres.tin;
-  }
-
-  if ((retval & TEX_RGB)) {
+  output[3] = texres.talpha ? texres.ta : texres.tin;
+  if (retval & TEX_RGB) {
     output[0] = texres.tr;
     output[1] = texres.tg;
     output[2] = texres.tb;
@@ -172,6 +166,69 @@ void TextureBaseOperation::executePixelSampled(float output[4],
   else {
     output[0] = output[1] = output[2] = output[3];
   }
+}
+
+void TextureBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                        const rcti &area,
+                                                        Span<MemoryBuffer *> inputs)
+{
+  const int op_width = this->getWidth();
+  const int op_height = this->getHeight();
+  const float center_x = op_width / 2;
+  const float center_y = op_height / 2;
+  TexResult tex_result = {0};
+  float vec[3];
+  const int thread_id = WorkScheduler::current_thread_id();
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const float *tex_offset = it.in(0);
+    const float *tex_size = it.in(1);
+    float u = (it.x - center_x) / op_width * 2;
+    float v = (it.y - center_y) / op_height * 2;
+
+    /* When no interpolation/filtering happens in multitex() force nearest interpolation.
+     * We do it here because (a) we can't easily say multitex() that we want nearest
+     * interpolation and (b) in such configuration multitex() simply floor's the value
+     * which often produces artifacts.
+     */
+    if (m_texture != nullptr && (m_texture->imaflag & TEX_INTERPOL) == 0) {
+      u += 0.5f / center_x;
+      v += 0.5f / center_y;
+    }
+
+    vec[0] = tex_size[0] * (u + tex_offset[0]);
+    vec[1] = tex_size[1] * (v + tex_offset[1]);
+    vec[2] = tex_size[2] * tex_offset[2];
+
+    const int retval = multitex_ext(this->m_texture,
+                                    vec,
+                                    nullptr,
+                                    nullptr,
+                                    0,
+                                    &tex_result,
+                                    thread_id,
+                                    m_pool,
+                                    m_sceneColorManage,
+                                    false);
+
+    it.out[3] = tex_result.talpha ? tex_result.ta : tex_result.tin;
+    if (retval & TEX_RGB) {
+      it.out[0] = tex_result.tr;
+      it.out[1] = tex_result.tg;
+      it.out[2] = tex_result.tb;
+    }
+    else {
+      it.out[0] = it.out[1] = it.out[2] = it.out[3];
+    }
+  }
+}
+
+void TextureAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                         const rcti &area,
+                                                         Span<MemoryBuffer *> inputs)
+{
+  MemoryBuffer texture(DataType::Color, area);
+  TextureBaseOperation::update_memory_buffer_partial(&texture, area, inputs);
+  output->copy_from(&texture, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);
 }
 
 }  // namespace blender::compositor

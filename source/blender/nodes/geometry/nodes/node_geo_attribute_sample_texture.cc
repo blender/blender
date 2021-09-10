@@ -28,20 +28,16 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_sample_texture_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_TEXTURE, N_("Texture")},
-    {SOCK_STRING, N_("Mapping")},
-    {SOCK_STRING, N_("Result")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_attribute_sample_texture_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_attribute_sample_texture_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Texture>("Texture").hide_label(true);
+  b.add_input<decl::String>("Mapping");
+  b.add_input<decl::String>("Result");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static AttributeDomain get_result_domain(const GeometryComponent &component,
                                          const StringRef result_name,
@@ -135,8 +131,7 @@ void register_node_type_geo_sample_texture()
                      NODE_CLASS_ATTRIBUTE,
                      0);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_socket_templates(
-      &ntype, geo_node_attribute_sample_texture_in, geo_node_attribute_sample_texture_out);
+  ntype.declare = blender::nodes::geo_node_attribute_sample_texture_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_sample_texture_exec;
   nodeRegisterType(&ntype);
 }

@@ -300,7 +300,7 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
         text_color[3] = is_active ? 1.0f : 0.9f;
       }
       BLF_color4fv(font.id, text_color);
-      BLF_draw_ascii(font.id, axis_str, 2);
+      BLF_draw(font.id, axis_str, 2);
       GPU_matrix_pop();
     }
   }

@@ -21,20 +21,20 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_primitive_circle_in[] = {
-    {SOCK_INT, N_("Resolution"), 32.0f, 0.0f, 0.0f, 0.0f, 3.0f, 512.0f},
-    {SOCK_VECTOR, N_("Point 1"), -1.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Point 2"), 0.0f, 1.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Point 3"), 1.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_FLOAT, N_("Radius"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_curve_primitive_circle_out[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {SOCK_VECTOR, N_("Center")},
-    {-1, ""},
-};
+static void geo_node_curve_primitive_circle_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Int>("Resolution").default_value(32).min(3).max(512);
+  b.add_input<decl::Vector>("Point 1")
+      .default_value({-1.0f, 0.0f, 0.0f})
+      .subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>("Point 2").default_value({0.0f, 1.0f, 0.0f}).subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>("Point 3").default_value({1.0f, 0.0f, 0.0f}).subtype(PROP_TRANSLATION);
+  b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>("Curve");
+  b.add_output<decl::Vector>("Center");
+}
 
 static void geo_node_curve_primitive_circle_layout(uiLayout *layout,
                                                    bContext *UNUSED(C),
@@ -42,8 +42,6 @@ static void geo_node_curve_primitive_circle_layout(uiLayout *layout,
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void geo_node_curve_primitive_circle_init(bNodeTree *UNUSED(tree), bNode *node)
 {
@@ -83,9 +81,10 @@ static bool colinear_f3_f3_f3(const float3 p1, const float3 p2, const float3 p3)
 }
 
 static std::unique_ptr<CurveEval> create_point_circle_curve(
-    const float3 p1, const float3 p2, const float3 p3, const int resolution, float center_out[3])
+    const float3 p1, const float3 p2, const float3 p3, const int resolution, float3 &r_center)
 {
   if (colinear_f3_f3_f3(p1, p2, p3)) {
+    r_center = float3(0);
     return nullptr;
   }
 
@@ -118,6 +117,7 @@ static std::unique_ptr<CurveEval> create_point_circle_curve(
 
   /* If the 3 planes do not intersect at one point, just return empty geometry. */
   if (!isect_plane_plane_plane_v3(plane_1, plane_2, plane_3, center)) {
+    r_center = float3(0);
     return nullptr;
   }
 
@@ -141,7 +141,7 @@ static std::unique_ptr<CurveEval> create_point_circle_curve(
   curve->add_spline(std::move(spline));
   curve->attributes.reallocate(curve->splines().size());
 
-  copy_v3_v3(center_out, center);
+  r_center = center;
   return curve;
 }
 
@@ -179,18 +179,13 @@ static void geo_node_curve_primitive_circle_exec(GeoNodeExecParams params)
 
   std::unique_ptr<CurveEval> curve;
   if (mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS) {
-    float center_point[3];
+    float3 center_point;
     curve = create_point_circle_curve(params.extract_input<float3>("Point 1"),
                                       params.extract_input<float3>("Point 2"),
                                       params.extract_input<float3>("Point 3"),
                                       std::max(params.extract_input<int>("Resolution"), 3),
                                       center_point);
-    if (curve) {
-      params.set_output("Center", float3(center_point));
-    }
-    else {
-      params.set_output("Center", float3(0, 0, 0));
-    }
+    params.set_output("Center", center_point);
   }
   else if (mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS) {
     curve = create_radius_circle_curve(std::max(params.extract_input<int>("Resolution"), 3),
@@ -212,8 +207,6 @@ void register_node_type_geo_curve_primitive_circle()
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_PRIMITIVE_CIRCLE, "Curve Circle", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_curve_primitive_circle_in, geo_node_curve_primitive_circle_out);
 
   node_type_init(&ntype, blender::nodes::geo_node_curve_primitive_circle_init);
   node_type_update(&ntype, blender::nodes::geo_node_curve_primitive_circle_update);
@@ -221,8 +214,8 @@ void register_node_type_geo_curve_primitive_circle()
                     "NodeGeometryCurvePrimitiveCircle",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-
+  ntype.declare = blender::nodes::geo_node_curve_primitive_circle_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_primitive_circle_exec;
-  ntype.draw_buttons = geo_node_curve_primitive_circle_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_curve_primitive_circle_layout;
   nodeRegisterType(&ntype);
 }

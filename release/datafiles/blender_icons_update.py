@@ -1,17 +1,47 @@
 #!/usr/bin/env python3
 
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
+
 # This script updates icons from the SVG file
 import os
 import subprocess
 import sys
 
 
-def run(cmd):
+def run(cmd, *, env=None):
     print("   ", " ".join(cmd))
-    subprocess.check_call(cmd)
+    subprocess.check_call(cmd, env=env)
 
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
+
+env = {}
+# Developers may have ASAN enabled, avoid non-zero exit codes.
+env["ASAN_OPTIONS"] = "exitcode=0:" + os.environ.get("ASAN_OPTIONS", "")
+
+# These NEED to be set on windows for python to initialize properly.
+if sys.platform[:3] == "win":
+    env["PATHEXT"] = os.environ.get("PATHEXT", "")
+    env["SystemDrive"] = os.environ.get("SystemDrive", "")
+    env["SystemRoot"] = os.environ.get("SystemRoot", "")
 
 inkscape_bin = os.environ.get("INKSCAPE_BIN", "inkscape")
 blender_bin = os.environ.get("BLENDER_BIN", "blender")
@@ -32,7 +62,7 @@ cmd = (
     "--export-type=png",
     "--export-filename=" + os.path.join(BASEDIR, "blender_icons16.png"),
 )
-run(cmd)
+run(cmd, env=env)
 
 cmd = (
     inkscape_bin,
@@ -42,7 +72,7 @@ cmd = (
     "--export-type=png",
     "--export-filename=" + os.path.join(BASEDIR, "blender_icons32.png"),
 )
-run(cmd)
+run(cmd, env=env)
 
 
 # For testing it can be good to clear all old
@@ -64,7 +94,7 @@ cmd = (
     "--minx_icon", "2", "--maxx_icon", "2", "--miny_icon", "2", "--maxy_icon", "2",
     "--spacex_icon", "1", "--spacey_icon", "1",
 )
-run(cmd)
+run(cmd, env=env)
 
 cmd = (
     blender_bin, "--background", "--factory-startup", "-noaudio",
@@ -78,7 +108,7 @@ cmd = (
     "--minx_icon", "4", "--maxx_icon", "4", "--miny_icon", "4", "--maxy_icon", "4",
     "--spacex_icon", "2", "--spacey_icon", "2",
 )
-run(cmd)
+run(cmd, env=env)
 
 os.remove(os.path.join(BASEDIR, "blender_icons16.png"))
 os.remove(os.path.join(BASEDIR, "blender_icons32.png"))

@@ -57,10 +57,20 @@ size_t BLI_strncpy_rlen(char *__restrict dst,
 size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 
+bool BLI_str_quoted_substr_range(const char *__restrict str,
+                                 const char *__restrict prefix,
+                                 int *__restrict r_start,
+                                 int *__restrict r_end) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1, 2, 3, 4);
+#if 0 /* UNUSED */
 char *BLI_str_quoted_substrN(const char *__restrict str,
                              const char *__restrict prefix) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL() ATTR_MALLOC;
-
+#endif
+bool BLI_str_quoted_substr(const char *__restrict str,
+                           const char *__restrict prefix,
+                           char *result,
+                           size_t result_maxlen);
 char *BLI_str_replaceN(const char *__restrict str,
                        const char *__restrict substr_old,
                        const char *__restrict substr_new) ATTR_WARN_UNUSED_RESULT
@@ -92,8 +102,15 @@ char *BLI_sprintfN(const char *__restrict format, ...) ATTR_WARN_UNUSED_RESULT
 
 size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
     ATTR_NONNULL();
+size_t BLI_str_unescape_ex(char *__restrict dst,
+                           const char *__restrict src,
+                           const size_t src_maxncpy,
+                           /* Additional arguments. */
+                           const size_t dst_maxncpy,
+                           bool *r_is_complete) ATTR_NONNULL();
 size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const size_t src_maxncpy)
     ATTR_NONNULL();
+
 const char *BLI_str_escape_find_quote(const char *str) ATTR_NONNULL();
 
 size_t BLI_str_format_int_grouped(char dst[16], int num) ATTR_NONNULL();

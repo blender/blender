@@ -17,6 +17,8 @@
  */
 
 #include "COM_ProjectorLensDistortionOperation.h"
+#include "COM_ConstantOperation.h"
+
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -32,6 +34,20 @@ ProjectorLensDistortionOperation::ProjectorLensDistortionOperation()
   this->m_dispersionAvailable = false;
   this->m_dispersion = 0.0f;
 }
+
+void ProjectorLensDistortionOperation::init_data()
+{
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    NodeOperation *dispersion_input = get_input_operation(1);
+    if (dispersion_input->get_flags().is_constant_operation) {
+      this->m_dispersion =
+          static_cast<ConstantOperation *>(dispersion_input)->get_constant_elem()[0];
+    }
+    this->m_kr = 0.25f * max_ff(min_ff(this->m_dispersion, 1.0f), 0.0f);
+    this->m_kr2 = this->m_kr * 20;
+  }
+}
+
 void ProjectorLensDistortionOperation::initExecution()
 {
   this->initMutex();
@@ -97,6 +113,7 @@ bool ProjectorLensDistortionOperation::determineDependingAreaOfInterest(
   return false;
 }
 
+/* TODO(manzanilla): to be removed with tiled implementation. */
 void ProjectorLensDistortionOperation::updateDispersion()
 {
   if (this->m_dispersionAvailable) {
@@ -112,6 +129,43 @@ void ProjectorLensDistortionOperation::updateDispersion()
     this->m_dispersionAvailable = true;
   }
   this->unlockMutex();
+}
+
+void ProjectorLensDistortionOperation::get_area_of_interest(const int input_idx,
+                                                            const rcti &output_area,
+                                                            rcti &r_input_area)
+{
+  if (input_idx == 1) {
+    /* Dispersion input is used as constant only. */
+    r_input_area = COM_SINGLE_ELEM_AREA;
+    return;
+  }
+
+  r_input_area.ymax = output_area.ymax;
+  r_input_area.ymin = output_area.ymin;
+  r_input_area.xmin = output_area.xmin - this->m_kr2 - 2;
+  r_input_area.xmax = output_area.xmax + this->m_kr2 + 2;
+}
+
+void ProjectorLensDistortionOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                                    const rcti &area,
+                                                                    Span<MemoryBuffer *> inputs)
+{
+  const MemoryBuffer *input_image = inputs[0];
+  const float height = this->getHeight();
+  const float width = this->getWidth();
+  float color[4];
+  for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
+    const float v = (it.y + 0.5f) / height;
+    const float u = (it.x + 0.5f) / width;
+    input_image->read_elem_bilinear((u * width + this->m_kr2) - 0.5f, v * height - 0.5f, color);
+    it.out[0] = color[0];
+    input_image->read_elem(it.x, it.y, color);
+    it.out[1] = color[1];
+    input_image->read_elem_bilinear((u * width - this->m_kr2) - 0.5f, v * height - 0.5f, color);
+    it.out[2] = color[2];
+    it.out[3] = 1.0f;
+  }
 }
 
 }  // namespace blender::compositor

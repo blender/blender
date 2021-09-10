@@ -107,7 +107,7 @@ void RenderLayersNode::testRenderLink(NodeConverter &converter,
           type = DataType::Value;
           break;
         default:
-          BLI_assert(!"Unexpected number of channels for pass");
+          BLI_assert_msg(0, "Unexpected number of channels for pass");
           type = DataType::Value;
           break;
       }
@@ -143,7 +143,7 @@ void RenderLayersNode::missingSocketLink(NodeConverter &converter, NodeOutput *o
       break;
     }
     default: {
-      BLI_assert("!Unexpected data type");
+      BLI_assert_msg(0, "Unexpected data type");
       return;
     }
   }

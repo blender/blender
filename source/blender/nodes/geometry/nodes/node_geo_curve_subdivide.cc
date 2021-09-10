@@ -29,17 +29,15 @@ using blender::fn::GVArray_For_GSpan;
 using blender::fn::GVArray_For_Span;
 using blender::fn::GVArray_Typed;
 
-static bNodeSocketTemplate geo_node_curve_subdivide_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Cuts")},
-    {SOCK_INT, N_("Cuts"), 1, 0, 0, 0, 0, 1000},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_curve_subdivide_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_curve_subdivide_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Cuts");
+  b.add_input<decl::Int>("Cuts", "Cuts_001").default_value(1).min(0).max(1000);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_curve_subdivide_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -56,8 +54,6 @@ static void geo_node_curve_subdivide_init(bNodeTree *UNUSED(tree), bNode *node)
   data->cuts_type = GEO_NODE_ATTRIBUTE_INPUT_INTEGER;
   node->storage = data;
 }
-
-namespace blender::nodes {
 
 static void geo_node_curve_subdivide_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -116,38 +112,6 @@ static void subdivide_attribute(Span<T> src,
 }
 
 /**
- * De Casteljau Bezier subdivision.
- *
- * <pre>
- *           handle_prev         handle_next
- *                O----------------O
- *               /                  \
- *              /      x---O---x     \
- *             /         new_*        \
- *            /                        \
- *           O                          O
- *       point_prev                  point_next
- * </pre>
- */
-static void calculate_new_bezier_point(const float3 &point_prev,
-                                       float3 &handle_prev,
-                                       float3 &new_left_handle,
-                                       float3 &new_position,
-                                       float3 &new_right_handle,
-                                       float3 &handle_next,
-                                       const float3 &point_next,
-                                       const float parameter)
-{
-  const float3 center_point = float3::interpolate(handle_prev, handle_next, parameter);
-
-  handle_prev = float3::interpolate(point_prev, handle_prev, parameter);
-  handle_next = float3::interpolate(handle_next, point_next, parameter);
-  new_left_handle = float3::interpolate(handle_prev, center_point, parameter);
-  new_right_handle = float3::interpolate(center_point, handle_next, parameter);
-  new_position = float3::interpolate(new_left_handle, new_right_handle, parameter);
-}
-
-/**
  * In order to generate a Bezier spline with the same shape as the input spline, apply the
  * De Casteljau algorithm iteratively for the provided number of cuts, constantly updating the
  * previous result point's right handle and the left handle at the end of the segment.
@@ -171,6 +135,10 @@ static void subdivide_bezier_segment(const BezierSpline &src,
 {
   const bool is_last_cyclic_segment = index == (src.size() - 1);
   const int next_index = is_last_cyclic_segment ? 0 : index + 1;
+
+  /* The first point in the segment is always copied. */
+  dst_positions[offset] = src_positions[index];
+
   if (src.segment_is_vector(index)) {
     if (is_last_cyclic_segment) {
       dst_type_left.first() = BezierSpline::HandleType::Vector;
@@ -178,7 +146,6 @@ static void subdivide_bezier_segment(const BezierSpline &src,
     dst_type_left.slice(offset + 1, result_size).fill(BezierSpline::HandleType::Vector);
     dst_type_right.slice(offset, result_size).fill(BezierSpline::HandleType::Vector);
 
-    dst_positions[offset] = src_positions[index];
     const float factor_delta = 1.0f / result_size;
     for (const int cut : IndexRange(result_size)) {
       const float factor = cut * factor_delta;
@@ -194,21 +161,38 @@ static void subdivide_bezier_segment(const BezierSpline &src,
     dst_type_right.slice(offset, result_size).fill(BezierSpline::HandleType::Free);
 
     const int i_segment_last = is_last_cyclic_segment ? 0 : offset + result_size;
-    dst_positions[offset] = src_positions[index];
-    dst_handles_right[offset] = src_handles_right[index];
-    dst_handles_left[i_segment_last] = src_handles_left[next_index];
+
+    /* Create a Bezier segment to update iteratively for every subdivision
+     * and references to the meaningful values for ease of use. */
+    BezierSpline temp;
+    temp.resize(2);
+    float3 &segment_start = temp.positions().first();
+    float3 &segment_end = temp.positions().last();
+    float3 &handle_prev = temp.handle_positions_right().first();
+    float3 &handle_next = temp.handle_positions_left().last();
+    segment_start = src_positions[index];
+    segment_end = src_positions[next_index];
+    handle_prev = src_handles_right[index];
+    handle_next = src_handles_left[next_index];
 
     for (const int cut : IndexRange(result_size - 1)) {
       const float parameter = 1.0f / (result_size - cut);
-      calculate_new_bezier_point(dst_positions[offset + cut],
-                                 dst_handles_right[offset + cut],
-                                 dst_handles_left[offset + cut + 1],
-                                 dst_positions[offset + cut + 1],
-                                 dst_handles_right[offset + cut + 1],
-                                 dst_handles_left[i_segment_last],
-                                 src_positions[next_index],
-                                 parameter);
+      const BezierSpline::InsertResult insert = temp.calculate_segment_insertion(0, 1, parameter);
+
+      /* Copy relevant temporary data to the result. */
+      dst_handles_right[offset + cut] = insert.handle_prev;
+      dst_handles_left[offset + cut + 1] = insert.left_handle;
+      dst_positions[offset + cut + 1] = insert.position;
+
+      /* Update the segment to prepare it for the next subdivision. */
+      segment_start = insert.position;
+      handle_prev = insert.right_handle;
+      handle_next = insert.handle_next;
     }
+
+    /* Copy the handles for the last segment from the temporary spline. */
+    dst_handles_right[offset + result_size - 1] = handle_prev;
+    dst_handles_left[i_segment_last] = handle_next;
   }
 }
 
@@ -394,13 +378,13 @@ void register_node_type_geo_curve_subdivide()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_SUBDIVIDE, "Curve Subdivide", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_curve_subdivide_in, geo_node_curve_subdivide_out);
-  ntype.draw_buttons = geo_node_curve_subdivide_layout;
+  ntype.declare = blender::nodes::geo_node_curve_subdivide_declare;
+  ntype.draw_buttons = blender::nodes::geo_node_curve_subdivide_layout;
   node_type_storage(&ntype,
                     "NodeGeometryCurveSubdivide",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  node_type_init(&ntype, geo_node_curve_subdivide_init);
+  node_type_init(&ntype, blender::nodes::geo_node_curve_subdivide_init);
   node_type_update(&ntype, blender::nodes::geo_node_curve_subdivide_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_subdivide_exec;
   nodeRegisterType(&ntype);

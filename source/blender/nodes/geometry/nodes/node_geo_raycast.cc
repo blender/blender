@@ -24,26 +24,28 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_raycast_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_GEOMETRY, N_("Target Geometry")},
-    {SOCK_STRING, N_("Ray Direction")},
-    {SOCK_VECTOR, N_("Ray Direction"), 0.0, 0.0, 1.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_STRING, N_("Ray Length")},
-    {SOCK_FLOAT, N_("Ray Length"), 100.0, 0.0, 0.0, 0.0, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_STRING, N_("Target Attribute")},
-    {SOCK_STRING, N_("Is Hit")},
-    {SOCK_STRING, N_("Hit Position")},
-    {SOCK_STRING, N_("Hit Normal")},
-    {SOCK_STRING, N_("Hit Distance")},
-    {SOCK_STRING, N_("Hit Attribute")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_raycast_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_raycast_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Target Geometry");
+  b.add_input<decl::String>("Ray Direction");
+  b.add_input<decl::Vector>("Ray Direction", "Ray Direction_001")
+      .default_value({0.0f, 0.0f, 1.0f});
+  b.add_input<decl::String>("Ray Length");
+  b.add_input<decl::Float>("Ray Length", "Ray Length_001")
+      .default_value(100.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE);
+  b.add_input<decl::String>("Target Attribute");
+  b.add_input<decl::String>("Is Hit");
+  b.add_input<decl::String>("Hit Position");
+  b.add_input<decl::String>("Hit Normal");
+  b.add_input<decl::String>("Hit Distance");
+  b.add_input<decl::String>("Hit Attribute");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_raycast_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -66,17 +68,15 @@ static void geo_node_raycast_init(bNodeTree *UNUSED(tree), bNode *node)
 static void geo_node_raycast_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeGeometryRaycast *node_storage = (NodeGeometryRaycast *)node->storage;
-  blender::nodes::update_attribute_input_socket_availabilities(
+  update_attribute_input_socket_availabilities(
       *node,
       "Ray Direction",
       (GeometryNodeAttributeInputMode)node_storage->input_type_ray_direction);
-  blender::nodes::update_attribute_input_socket_availabilities(
+  update_attribute_input_socket_availabilities(
       *node, "Ray Length", (GeometryNodeAttributeInputMode)node_storage->input_type_ray_length);
 }
 
-namespace blender::nodes {
-
-static void raycast_to_mesh(const Mesh *mesh,
+static void raycast_to_mesh(const Mesh &mesh,
                             const VArray<float3> &ray_origins,
                             const VArray<float3> &ray_directions,
                             const VArray<float> &ray_lengths,
@@ -95,62 +95,64 @@ static void raycast_to_mesh(const Mesh *mesh,
   BLI_assert(ray_origins.size() == r_hit_distances.size() || r_hit_distances.is_empty());
 
   BVHTreeFromMesh tree_data;
-  BKE_bvhtree_from_mesh_get(&tree_data, mesh, BVHTREE_FROM_LOOPTRI, 4);
+  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_LOOPTRI, 4);
+  if (tree_data.tree == nullptr) {
+    free_bvhtree_from_mesh(&tree_data);
+    return;
+  }
 
-  if (tree_data.tree != nullptr) {
-    for (const int i : ray_origins.index_range()) {
-      const float ray_length = ray_lengths[i];
-      const float3 ray_origin = ray_origins[i];
-      const float3 ray_direction = ray_directions[i].normalized();
+  for (const int i : ray_origins.index_range()) {
+    const float ray_length = ray_lengths[i];
+    const float3 ray_origin = ray_origins[i];
+    const float3 ray_direction = ray_directions[i].normalized();
 
-      BVHTreeRayHit hit;
-      hit.index = -1;
-      hit.dist = ray_length;
-      if (BLI_bvhtree_ray_cast(tree_data.tree,
-                               ray_origin,
-                               ray_direction,
-                               0.0f,
-                               &hit,
-                               tree_data.raycast_callback,
-                               &tree_data) != -1) {
-        if (!r_hit.is_empty()) {
-          r_hit[i] = hit.index >= 0;
-        }
-        if (!r_hit_indices.is_empty()) {
-          /* Index should always be a valid looptri index, use 0 when hit failed. */
-          r_hit_indices[i] = max_ii(hit.index, 0);
-        }
-        if (!r_hit_positions.is_empty()) {
-          r_hit_positions[i] = hit.co;
-        }
-        if (!r_hit_normals.is_empty()) {
-          r_hit_normals[i] = hit.no;
-        }
-        if (!r_hit_distances.is_empty()) {
-          r_hit_distances[i] = hit.dist;
-        }
+    BVHTreeRayHit hit;
+    hit.index = -1;
+    hit.dist = ray_length;
+    if (BLI_bvhtree_ray_cast(tree_data.tree,
+                             ray_origin,
+                             ray_direction,
+                             0.0f,
+                             &hit,
+                             tree_data.raycast_callback,
+                             &tree_data) != -1) {
+      if (!r_hit.is_empty()) {
+        r_hit[i] = hit.index >= 0;
       }
-      else {
-        if (!r_hit.is_empty()) {
-          r_hit[i] = false;
-        }
-        if (!r_hit_indices.is_empty()) {
-          r_hit_indices[i] = 0;
-        }
-        if (!r_hit_positions.is_empty()) {
-          r_hit_positions[i] = float3(0.0f, 0.0f, 0.0f);
-        }
-        if (!r_hit_normals.is_empty()) {
-          r_hit_normals[i] = float3(0.0f, 0.0f, 0.0f);
-        }
-        if (!r_hit_distances.is_empty()) {
-          r_hit_distances[i] = ray_length;
-        }
+      if (!r_hit_indices.is_empty()) {
+        /* Index should always be a valid looptri index, use 0 when hit failed. */
+        r_hit_indices[i] = max_ii(hit.index, 0);
+      }
+      if (!r_hit_positions.is_empty()) {
+        r_hit_positions[i] = hit.co;
+      }
+      if (!r_hit_normals.is_empty()) {
+        r_hit_normals[i] = hit.no;
+      }
+      if (!r_hit_distances.is_empty()) {
+        r_hit_distances[i] = hit.dist;
       }
     }
-
-    free_bvhtree_from_mesh(&tree_data);
+    else {
+      if (!r_hit.is_empty()) {
+        r_hit[i] = false;
+      }
+      if (!r_hit_indices.is_empty()) {
+        r_hit_indices[i] = 0;
+      }
+      if (!r_hit_positions.is_empty()) {
+        r_hit_positions[i] = float3(0.0f, 0.0f, 0.0f);
+      }
+      if (!r_hit_normals.is_empty()) {
+        r_hit_normals[i] = float3(0.0f, 0.0f, 0.0f);
+      }
+      if (!r_hit_distances.is_empty()) {
+        r_hit_distances[i] = ray_length;
+      }
+    }
   }
+
+  free_bvhtree_from_mesh(&tree_data);
 }
 
 static bke::mesh_surface_sample::eAttributeMapMode get_map_mode(
@@ -166,7 +168,7 @@ static bke::mesh_surface_sample::eAttributeMapMode get_map_mode(
 }
 
 static void raycast_from_points(const GeoNodeExecParams &params,
-                                const GeometrySet &src_geometry,
+                                const GeometrySet &target_geometry,
                                 GeometryComponent &dst_component,
                                 const StringRef hit_name,
                                 const StringRef hit_position_name,
@@ -177,7 +179,8 @@ static void raycast_from_points(const GeoNodeExecParams &params,
 {
   BLI_assert(hit_attribute_names.size() == hit_attribute_output_names.size());
 
-  const MeshComponent *src_mesh_component = src_geometry.get_component_for_read<MeshComponent>();
+  const MeshComponent *src_mesh_component =
+      target_geometry.get_component_for_read<MeshComponent>();
   if (src_mesh_component == nullptr) {
     return;
   }
@@ -211,8 +214,7 @@ static void raycast_from_points(const GeoNodeExecParams &params,
       dst_component.attribute_try_get_for_output_only<float>(hit_distance_name, result_domain);
 
   /* Positions and looptri indices are always needed for interpolation,
-   * so create temporary arrays if no output attribute is given.
-   */
+   * so create temporary arrays if no output attribute is given. */
   Array<int> hit_indices;
   Array<float3> hit_positions_internal;
   if (!hit_attribute_names.is_empty()) {
@@ -232,7 +234,7 @@ static void raycast_from_points(const GeoNodeExecParams &params,
                                                hit_distance_attribute.as_span() :
                                                MutableSpan<float>();
 
-  raycast_to_mesh(src_mesh,
+  raycast_to_mesh(*src_mesh,
                   ray_origins,
                   ray_directions,
                   ray_lengths,
@@ -268,34 +270,32 @@ static void raycast_from_points(const GeoNodeExecParams &params,
 static void geo_node_raycast_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  GeometrySet cast_geometry_set = params.extract_input<GeometrySet>("Target Geometry");
+  GeometrySet target_geometry_set = params.extract_input<GeometrySet>("Target Geometry");
 
   const std::string hit_name = params.extract_input<std::string>("Is Hit");
   const std::string hit_position_name = params.extract_input<std::string>("Hit Position");
   const std::string hit_normal_name = params.extract_input<std::string>("Hit Normal");
   const std::string hit_distance_name = params.extract_input<std::string>("Hit Distance");
 
-  const Array<std::string> hit_attribute_names = {
-      params.extract_input<std::string>("Target Attribute")};
-  const Array<std::string> hit_attribute_output_names = {
-      params.extract_input<std::string>("Hit Attribute")};
+  const Array<std::string> hit_names = {params.extract_input<std::string>("Target Attribute")};
+  const Array<std::string> hit_output_names = {params.extract_input<std::string>("Hit Attribute")};
 
   geometry_set = bke::geometry_set_realize_instances(geometry_set);
-  cast_geometry_set = bke::geometry_set_realize_instances(cast_geometry_set);
+  target_geometry_set = bke::geometry_set_realize_instances(target_geometry_set);
 
-  static const Array<GeometryComponentType> SupportedTypes = {
+  static const Array<GeometryComponentType> types = {
       GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE};
-  for (GeometryComponentType geo_type : SupportedTypes) {
-    if (geometry_set.has(geo_type)) {
+  for (const GeometryComponentType type : types) {
+    if (geometry_set.has(type)) {
       raycast_from_points(params,
-                          cast_geometry_set,
-                          geometry_set.get_component_for_write(geo_type),
+                          target_geometry_set,
+                          geometry_set.get_component_for_write(type),
                           hit_name,
                           hit_position_name,
                           hit_normal_name,
                           hit_distance_name,
-                          hit_attribute_names,
-                          hit_attribute_output_names);
+                          hit_names,
+                          hit_output_names);
     }
   }
 
@@ -309,13 +309,13 @@ void register_node_type_geo_raycast()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_raycast_in, geo_node_raycast_out);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, geo_node_raycast_init);
-  node_type_update(&ntype, geo_node_raycast_update);
+  node_type_init(&ntype, blender::nodes::geo_node_raycast_init);
+  node_type_update(&ntype, blender::nodes::geo_node_raycast_update);
   node_type_storage(
       &ntype, "NodeGeometryRaycast", node_free_standard_storage, node_copy_standard_storage);
+  ntype.declare = blender::nodes::geo_node_raycast_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_raycast_exec;
-  ntype.draw_buttons = geo_node_raycast_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_raycast_layout;
   nodeRegisterType(&ntype);
 }

@@ -424,7 +424,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 {
   /* TODO: implement graceful termination through Cocoa mechanism
    * to avoid session log off to be canceled. */
-  /* Note that Cmd+Q is already handled by keyhandler. */
+  /* Note that Cmd+Q is already handled by key-handler. */
   systemCocoa->handleQuitRequest();
   return NSTerminateCancel;
 }
@@ -761,7 +761,7 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
 }
 
 /**
- * Create a new offscreen context.
+ * Create a new off-screen context.
  * Never explicitly delete the context, use #disposeContext() instead.
  * \return The new context (or 0 if creation failed).
  */
@@ -1587,7 +1587,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         {
           NSTimeInterval timestamp = [event timestamp];
           if (timestamp < m_last_warp_timestamp) {
-            /* After warping we can still receive older unwarped mouse events,
+            /* After warping we can still receive older unwrapped mouse events,
              * ignore those. */
             break;
           }
@@ -1629,7 +1629,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
                                        y_accum + (y_mouse - warped_y_mouse));
 
             /* This is the current time that matches NSEvent timestamp. */
-            m_last_warp_timestamp = mach_absolute_time() * 1e-9;
+            m_last_warp_timestamp = [[NSProcessInfo processInfo] systemUptime];
           }
 
           // Generate event

@@ -78,7 +78,7 @@ static int mathutils_array_parse_fast(float *array,
 }
 
 /**
- * helper function that returns a Python ``__hash__``.
+ * helper function that returns a Python `__hash__`.
  *
  * \note consistent with the equivalent tuple of floats (CPython's 'tuplehash')
  */
@@ -95,7 +95,11 @@ Py_hash_t mathutils_array_hash(const float *array, size_t array_len)
   x = 0x345678UL;
   i = 0;
   while (--len >= 0) {
+#if PY_VERSION_HEX >= 0x30a0000 /* Version: 3.10. */
+    y = _Py_HashDouble(NULL, (double)(array[i++]));
+#else
     y = _Py_HashDouble((double)(array[i++]));
+#endif
     if (y == -1) {
       return -1;
     }
@@ -595,6 +599,15 @@ uchar Mathutils_RegisterCallback(Mathutils_Callback *cb)
   return i;
 }
 
+int _BaseMathObject_CheckCallback(BaseMathObject *self)
+{
+  Mathutils_Callback *cb = mathutils_callbacks[self->cb_type];
+  if (LIKELY(cb->check(self) != -1)) {
+    return 0;
+  }
+  return -1;
+}
+
 /* use macros to check for NULL */
 int _BaseMathObject_ReadCallback(BaseMathObject *self)
 {
@@ -681,6 +694,13 @@ char BaseMathObject_is_frozen_doc[] =
 PyObject *BaseMathObject_is_frozen_get(BaseMathObject *self, void *UNUSED(closure))
 {
   return PyBool_FromLong((self->flag & BASE_MATH_FLAG_IS_FROZEN) != 0);
+}
+
+char BaseMathObject_is_valid_doc[] =
+    "True when the owner of this data is valid.\n\n:type: boolean";
+PyObject *BaseMathObject_is_valid_get(BaseMathObject *self, void *UNUSED(closure))
+{
+  return PyBool_FromLong(BaseMath_CheckCallback(self) == 0);
 }
 
 char BaseMathObject_freeze_doc[] =

@@ -1026,7 +1026,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
   PBVHNode *node = data->nodes[n];
   float(*vnors)[3] = data->vnors;
 
-  if ((node->flag & PBVH_UpdateNormals)) {
+  if (node->flag & PBVH_UpdateNormals) {
     unsigned int mpoly_prev = UINT_MAX;
     float fn[3];
 
@@ -2798,7 +2798,7 @@ float (*BKE_pbvh_vert_coords_alloc(PBVH *pbvh))[3]
 void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int totvert)
 {
   if (totvert != pbvh->totvert) {
-    BLI_assert(!"PBVH: Given deforming vcos number does not natch PBVH vertex number!");
+    BLI_assert_msg(0, "PBVH: Given deforming vcos number does not natch PBVH vertex number!");
     return;
   }
 

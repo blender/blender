@@ -78,6 +78,15 @@ void GVectorArray::extend(IndexMask mask, const GVectorArray &values)
   this->extend(mask, virtual_values);
 }
 
+void GVectorArray::clear(IndexMask mask)
+{
+  for (const int64_t i : mask) {
+    Item &item = items_[i];
+    type_.destruct_n(item.start, item.length);
+    item.length = 0;
+  }
+}
+
 GMutableSpan GVectorArray::operator[](const int64_t index)
 {
   Item &item = items_[index];

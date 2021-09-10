@@ -91,7 +91,7 @@ enum {
 /* -------------------------------------------------------------------- */
 /** \name wmGizmoMap Selection Array API
  *
- * Just handle ``wm_gizmomap_select_array_*``, not flags or callbacks.
+ * Just handle `wm_gizmomap_select_array_*`, not flags or callbacks.
  *
  * \{ */
 
@@ -264,7 +264,7 @@ bool WM_gizmomap_minmax(const wmGizmoMap *gzmap,
   }
 
   bool ok = false;
-  BLI_assert(!"TODO");
+  BLI_assert_msg(0, "TODO");
   return ok;
 }
 
@@ -616,11 +616,7 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
     const int viewport[4] = {0, 0, region->winx, region->winy};
     float co_3d_origin[3];
 
-    /* Avoid multiple calculations. */
-    struct GPUMatrixUnproject_Precalc unproj_precalc;
-    GPU_matrix_unproject_precalc(&unproj_precalc, rv3d->viewmat, rv3d->winmat, viewport);
-
-    GPU_matrix_unproject_3fv_with_precalc(&unproj_precalc, co_screen, co_3d_origin);
+    GPU_matrix_unproject_3fv(co_screen, rv3d->viewinv, rv3d->winmat, viewport, co_3d_origin);
 
     uint *buf_iter = buffer;
     int hit_found = -1;
@@ -631,7 +627,7 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
       wmGizmo *gz = visible_gizmos[buf_iter[3] >> 8];
       float co_3d[3];
       co_screen[2] = int_as_float(buf_iter[1]);
-      GPU_matrix_unproject_3fv_with_precalc(&unproj_precalc, co_screen, co_3d);
+      GPU_matrix_unproject_3fv(co_screen, rv3d->viewinv, rv3d->winmat, viewport, co_3d);
       float select_bias = gz->select_bias;
       if ((gz->flag & WM_GIZMO_DRAW_NO_SCALE) == 0) {
         select_bias *= gz->scale_final;

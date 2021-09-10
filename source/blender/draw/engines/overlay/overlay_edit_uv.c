@@ -24,6 +24,7 @@
 #include "draw_cache_impl.h"
 #include "draw_manager_text.h"
 
+#include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
@@ -332,14 +333,8 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       BLI_snprintf(text, 5, "%d", tile->tile_number);
       float tile_location[3] = {
           ((tile->tile_number - 1001) % 10), ((tile->tile_number - 1001) / 10), 0.0f};
-      DRW_text_cache_add(dt,
-                         tile_location,
-                         text,
-                         strlen(text),
-                         10,
-                         10,
-                         DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_ASCII,
-                         color);
+      DRW_text_cache_add(
+          dt, tile_location, text, strlen(text), 10, 10, DRW_TEXT_CACHE_GLOBALSPACE, color);
     }
   }
 

@@ -248,11 +248,11 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const double shutter_close = (double)RNA_float_get(op->ptr, "shutter_close");
 
   // This default prim path is not sanitized. This happens in usd_capi.cc
-  char *default_prim_path = RNA_string_get_alloc(op->ptr, "default_prim_path", NULL, 0);
+  char *default_prim_path = RNA_string_get_alloc(op->ptr, "default_prim_path", NULL, 0, NULL);
 
   default_prim_path = usd_ensure_prim_path(default_prim_path);
 
-  char *root_prim_path = RNA_string_get_alloc(op->ptr, "root_prim_path", NULL, 0);
+  char *root_prim_path = RNA_string_get_alloc(op->ptr, "root_prim_path", NULL, 0, NULL);
 
   // Do not allow / path
   if (root_prim_path[0] == '/' && strlen(root_prim_path) == 1)
@@ -260,7 +260,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   root_prim_path = usd_ensure_prim_path(root_prim_path);
 
-  char *material_prim_path = RNA_string_get_alloc(op->ptr, "material_prim_path", NULL, 0);
+  char *material_prim_path = RNA_string_get_alloc(op->ptr, "material_prim_path", NULL, 0, NULL);
 
   int global_forward = RNA_enum_get(op->ptr, "export_global_forward_selection");
   int global_up = RNA_enum_get(op->ptr, "export_global_up_selection");

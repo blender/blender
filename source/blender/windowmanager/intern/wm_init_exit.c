@@ -109,6 +109,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
+#include "ED_asset.h"
 #include "ED_gpencil.h"
 #include "ED_keyframes_edit.h"
 #include "ED_keyframing.h"
@@ -221,7 +222,10 @@ static void sound_jack_sync_callback(Main *bmain, int mode, double time)
   }
 }
 
-/* only called once, for startup */
+/**
+ * Initialize Blender and load the startup file & preferences
+ * (only called once).
+ */
 void WM_init(bContext *C, int argc, const char **argv)
 {
 
@@ -247,24 +251,22 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   ED_undosys_type_init();
 
-  BKE_library_callback_free_notifier_reference_set(
-      WM_main_remove_notifier_reference);                    /* lib_id.c */
-  BKE_region_callback_free_gizmomap_set(wm_gizmomap_remove); /* screen.c */
+  BKE_library_callback_free_notifier_reference_set(WM_main_remove_notifier_reference);
+  BKE_region_callback_free_gizmomap_set(wm_gizmomap_remove);
   BKE_region_callback_refresh_tag_gizmomap_set(WM_gizmomap_tag_refresh);
-  BKE_library_callback_remap_editor_id_reference_set(
-      WM_main_remap_editor_id_reference);                     /* lib_id.c */
-  BKE_spacedata_callback_id_remap_set(ED_spacedata_id_remap); /* screen.c */
+  BKE_library_callback_remap_editor_id_reference_set(WM_main_remap_editor_id_reference);
+  BKE_spacedata_callback_id_remap_set(ED_spacedata_id_remap);
   DEG_editors_set_update_cb(ED_render_id_flush_update, ED_render_scene_update);
 
-  ED_spacetypes_init(); /* editors/space_api/spacetype.c */
+  ED_spacetypes_init();
 
   ED_node_init_butfuncs();
 
   BLF_init();
 
   BLT_lang_init();
-  /* Must call first before doing any '.blend' file reading,
-   * since versioning code may create new IDs... See T57066. */
+  /* Must call first before doing any `.blend` file reading,
+   * since versioning code may create new IDs. See T57066. */
   BLT_lang_set(NULL);
 
   /* Init icons before reading .blend files for preview icons, which can
@@ -272,16 +274,11 @@ void WM_init(bContext *C, int argc, const char **argv)
    * for scripts that do background processing with preview icons. */
   BKE_icons_init(BIFICONID_LAST);
 
-  /* reports can't be initialized before the wm,
+  /* Reports can't be initialized before the window-manager,
    * but keep before file reading, since that may report errors */
   wm_init_reports(C);
 
   WM_msgbus_types_init();
-
-  /* get the default database, plus a wm */
-  bool is_factory_startup = true;
-  const bool use_data = true;
-  const bool use_userdef = true;
 
   /* Studio-lights needs to be init before we read the home-file,
    * otherwise the versioning cannot find the default studio-light. */
@@ -289,20 +286,45 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   BLI_assert((G.fileflags & G_FILE_NO_UI) == 0);
 
-  wm_homefile_read(C,
-                   NULL,
-                   G.factory_startup,
-                   false,
-                   use_data,
-                   use_userdef,
-                   NULL,
-                   WM_init_state_app_template_get(),
-                   &is_factory_startup);
+  /**
+   * NOTE(@campbellbarton): Startup file and order of initialization.
+   *
+   * Loading #BLENDER_STARTUP_FILE, #BLENDER_USERPREF_FILE, starting Python and other sub-systems,
+   * have inter-dependencies, for example.
+   *
+   * - Some sub-systems depend on the preferences (initializing icons depend on the theme).
+   * - Add-ons depends on the preferences to know what has been enabled.
+   * - Add-ons depends on the window-manger to register their key-maps.
+   * - Evaluating the startup file depends on Python for animation-drivers (see T89046).
+   * - Starting Python depends on the startup file so key-maps can be added in the window-manger.
+   *
+   * Loading preferences early, then application subsystems and finally the startup data would
+   * simplify things if it weren't for key-maps being part of the window-manager
+   * which is blend file data.
+   * Creating a dummy window-manager early, or moving the key-maps into the preferences
+   * would resolve this and may be worth looking into long-term, see: D12184 for details.
+   */
+  struct wmFileReadPost_Params *params_file_read_post = NULL;
+  wm_homefile_read_ex(C,
+                      &(const struct wmHomeFileRead_Params){
+                          .use_data = true,
+                          .use_userdef = true,
+                          .use_factory_settings = G.factory_startup,
+                          .use_empty_data = false,
+                          .filepath_startup_override = NULL,
+                          .app_template_override = WM_init_state_app_template_get(),
+                      },
+                      NULL,
+                      &params_file_read_post);
 
-  /* Call again to set from userpreferences... */
+  /* NOTE: leave `G_MAIN->name` set to an empty string since this
+   * matches behavior after loading a new file. */
+  BLI_assert(G_MAIN->name[0] == '\0');
+
+  /* Call again to set from preferences. */
   BLT_lang_set(NULL);
 
-  /* For fsMenu. Called here so can include user preference paths if needed. */
+  /* For file-system. Called here so can include user preference paths if needed. */
   ED_file_init();
 
   /* That one is generated on demand, we need to be sure it's clear on init. */
@@ -311,12 +333,13 @@ void WM_init(bContext *C, int argc, const char **argv)
   if (!G.background) {
 
 #ifdef WITH_INPUT_NDOF
-    /* sets 3D mouse deadzone */
+    /* Sets 3D mouse dead-zone. */
     WM_ndof_deadzone_set(U.ndof_deadzone);
 #endif
     WM_init_opengl();
 
     if (!WM_platform_support_perform_checks()) {
+      /* No attempt to avoid memory leaks here. */
       exit(-1);
     }
 
@@ -327,20 +350,11 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   ED_spacemacros_init();
 
-  /* NOTE(campbell): there is a bug where python needs initializing before loading the
-   * startup.blend because it may contain PyDrivers. It also needs to be after
-   * initializing space types and other internal data.
-   *
-   * However can't redo this at the moment. Solution is to load python
-   * before wm_homefile_read() or make py-drivers check if python is running.
-   * Will try fix when the crash can be repeated. */
-
 #ifdef WITH_PYTHON
   BPY_python_start(C, argc, argv);
   BPY_python_reset(C);
 #else
-  (void)argc; /* unused */
-  (void)argv; /* unused */
+  UNUSED_VARS(argc, argv);
 #endif
 
   if (!G.background) {
@@ -357,14 +371,6 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   wm_history_file_read();
 
-  /* allow a path of "", this is what happens when making a new file */
-#if 0
-  if (BKE_main_blendfile_path_from_global()[0] == '\0') {
-    BLI_join_dirfile(
-        G_MAIN->name, sizeof(G_MAIN->name), BKE_appdir_folder_default(), "untitled.blend");
-  }
-#endif
-
   BLI_strncpy(G.lib, BKE_main_blendfile_path_from_global(), sizeof(G.lib));
 
 #ifdef WITH_COMPOSITOR
@@ -374,30 +380,7 @@ void WM_init(bContext *C, int argc, const char **argv)
   }
 #endif
 
-  {
-    Main *bmain = CTX_data_main(C);
-    /* NOTE: logic here is from wm_file_read_post,
-     * call functions that depend on Python being initialized. */
-
-    /* normally 'wm_homefile_read' will do this,
-     * however python is not initialized when called from this function.
-     *
-     * unlikely any handlers are set but its possible,
-     * note that recovering the last session does its own callbacks. */
-    CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
-
-    BKE_callback_exec_null(bmain, BKE_CB_EVT_VERSION_UPDATE);
-    BKE_callback_exec_null(bmain, BKE_CB_EVT_LOAD_POST);
-    if (is_factory_startup) {
-      BKE_callback_exec_null(bmain, BKE_CB_EVT_LOAD_FACTORY_STARTUP_POST);
-    }
-
-    wm_file_read_report(C, bmain);
-
-    if (!G.background) {
-      CTX_wm_window_set(C, NULL);
-    }
-  }
+  wm_homefile_read_post(C, params_file_read_post);
 }
 
 void WM_init_splash(bContext *C)
@@ -552,7 +535,6 @@ void WM_exit_ex(bContext *C, const bool do_python)
   wm_surfaces_free();
   wm_dropbox_free();
   WM_menutype_free();
-  WM_uilisttype_free();
 
   /* all non-screen and non-space stuff editors did, like editmode */
   if (C) {
@@ -571,6 +553,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   RE_engines_exit();
 
   ED_preview_free_dbase(); /* frees a Main dbase, before BKE_blender_free! */
+  ED_assetlist_storage_exit();
 
   if (wm) {
     /* Before BKE_blender_free! - since the ListBases get freed there. */
@@ -607,6 +590,8 @@ void WM_exit_ex(bContext *C, const bool do_python)
   wm_gizmomaptypes_free();
   wm_gizmogrouptype_free();
   wm_gizmotype_free();
+  /* Same for UI-list types. */
+  WM_uilisttype_free();
 
   BLF_exit();
 

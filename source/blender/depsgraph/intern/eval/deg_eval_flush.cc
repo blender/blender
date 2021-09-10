@@ -58,15 +58,15 @@
 
 #include "intern/eval/deg_eval_copy_on_write.h"
 
-// Invalidate data-block data when update is flushed on it.
-//
-// The idea of this is to help catching cases when area is accessing data which
-// is not yet evaluated, which could happen due to missing relations. The issue
-// is that usually that data will be kept from previous frame, and it looks to
-// be plausible.
-//
-// This ensures that data does not look plausible, making it much easier to
-// catch usage of invalid state.
+/* Invalidate data-block data when update is flushed on it.
+ *
+ * The idea of this is to help catching cases when area is accessing data which
+ * is not yet evaluated, which could happen due to missing relations. The issue
+ * is that usually that data will be kept from previous frame, and it looks to
+ * be plausible.
+ *
+ * This ensures that data does not look plausible, making it much easier to
+ * catch usage of invalid state. */
 #undef INVALIDATE_ON_FLUSH
 
 namespace blender::deg {

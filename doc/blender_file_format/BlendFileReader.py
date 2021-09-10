@@ -123,7 +123,7 @@ def Align(handle):
 class BlendFile:
     '''
     Reads a blendfile and store the header, all the fileblocks, and catalogue
-    structs foound in the DNA fileblock
+    structs found in the DNA fileblock
 
     - BlendFile.Header  (BlendFileHeader instance)
     - BlendFile.Blocks  (list of BlendFileBlock instances)

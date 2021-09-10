@@ -94,15 +94,9 @@ void SCULPT_pbvh_clear(Object *ob)
     ss->pbvh = NULL;
   }
 
-  if (ss->pmap) {
-    MEM_freeN(ss->pmap);
-    ss->pmap = NULL;
-  }
+  MEM_SAFE_FREE(ss->pmap);
 
-  if (ss->pmap_mem) {
-    MEM_freeN(ss->pmap_mem);
-    ss->pmap_mem = NULL;
-  }
+  MEM_SAFE_FREE(ss->pmap_mem);
 
   BKE_object_free_derived_caches(ob);
 

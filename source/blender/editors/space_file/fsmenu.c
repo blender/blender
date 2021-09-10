@@ -969,7 +969,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
         BLI_join_dirfile(name, sizeof(name), xdg_runtime_dir, "gvfs/");
         const uint dir_len = BLI_filelist_dir_contents(name, &dir);
         for (uint i = 0; i < dir_len; i++) {
-          if ((dir[i].type & S_IFDIR)) {
+          if (dir[i].type & S_IFDIR) {
             const char *dirname = dir[i].relname;
             if (dirname[0] != '.') {
               /* Dir names contain a lot of unwanted text.

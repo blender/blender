@@ -28,7 +28,7 @@
 #  define _USE_MATH_DEFINES
 #endif
 
-// NOTE: Keep first, BLI_path_util conflicts with OIIO's format.
+/* NOTE: Keep first, #BLI_path_util conflicts with OIIO's format. */
 #include "openimageio_api.h"
 #include <OpenImageIO/imageio.h>
 #include <memory>

@@ -58,7 +58,7 @@ template<class T> static const char *bc_get_joint_name(T *node)
 FCurve *AnimationImporter::create_fcurve(int array_index, const char *rna_path)
 {
   FCurve *fcu = BKE_fcurve_create();
-  fcu->flag = (FCURVE_VISIBLE | FCURVE_AUTO_HANDLES | FCURVE_SELECTED);
+  fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
   fcu->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
   fcu->array_index = array_index;
   return fcu;
@@ -102,7 +102,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
       for (i = 0; i < dim; i++) {
         FCurve *fcu = BKE_fcurve_create();
 
-        fcu->flag = (FCURVE_VISIBLE | FCURVE_AUTO_HANDLES | FCURVE_SELECTED);
+        fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
         fcu->array_index = 0;
         fcu->auto_smoothing = U.auto_smoothing_new;
 
@@ -1090,7 +1090,7 @@ void AnimationImporter::translate_Animations(
           apply_matrix_curves(ob, animcurves, root, node, transform);
         }
         else {
-          /* calculate rnapaths and array index of fcurves according to transformation and
+          /* Calculate RNA-paths and array index of F-curves according to transformation and
            * animation class */
           Assign_transform_animations(transform, &bindings[j], &animcurves, is_joint, joint_path);
 
@@ -1363,7 +1363,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
     calc_joint_parent_mat_rest(par, nullptr, root, node);
     mul_m4_m4m4(temp, par, matfra);
 
-    /* evaluate_joint_world_transform_at_frame(temp, NULL, node, fra); */
+    // evaluate_joint_world_transform_at_frame(temp, NULL, node, fra);
 
     /* calc special matrix */
     mul_m4_series(mat, irest, temp, irest_dae, rest);

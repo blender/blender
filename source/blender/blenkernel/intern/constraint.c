@@ -2343,7 +2343,7 @@ static void translike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         break;
 
       default:
-        BLI_assert(!"Unknown Copy Transforms mix mode");
+        BLI_assert_msg(0, "Unknown Copy Transforms mix mode");
     }
   }
 }
@@ -2982,6 +2982,16 @@ static void actcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
 
   if (VALID_CONS_TARGET(ct) || data->flag & ACTCON_USE_EVAL_TIME) {
     switch (data->mix_mode) {
+      /* Simple matrix multiplication. */
+      case ACTCON_MIX_BEFORE_FULL:
+        mul_m4_m4m4(cob->matrix, ct->matrix, cob->matrix);
+        break;
+
+      case ACTCON_MIX_AFTER_FULL:
+        mul_m4_m4m4(cob->matrix, cob->matrix, ct->matrix);
+        break;
+
+      /* Aligned Inherit Scale emulation. */
       case ACTCON_MIX_BEFORE:
         mul_m4_m4m4_aligned_scale(cob->matrix, ct->matrix, cob->matrix);
         break;
@@ -2990,12 +3000,17 @@ static void actcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
         mul_m4_m4m4_aligned_scale(cob->matrix, cob->matrix, ct->matrix);
         break;
 
-      case ACTCON_MIX_AFTER_FULL:
-        mul_m4_m4m4(cob->matrix, cob->matrix, ct->matrix);
+      /* Fully separate handling of channels. */
+      case ACTCON_MIX_BEFORE_SPLIT:
+        mul_m4_m4m4_split_channels(cob->matrix, ct->matrix, cob->matrix);
+        break;
+
+      case ACTCON_MIX_AFTER_SPLIT:
+        mul_m4_m4m4_split_channels(cob->matrix, cob->matrix, ct->matrix);
         break;
 
       default:
-        BLI_assert(!"Unknown Action mix mode");
+        BLI_assert_msg(0, "Unknown Action mix mode");
     }
   }
 }
@@ -4616,9 +4631,7 @@ static void splineik_free(bConstraint *con)
   bSplineIKConstraint *data = con->data;
 
   /* binding array */
-  if (data->points) {
-    MEM_freeN(data->points);
-  }
+  MEM_SAFE_FREE(data->points);
 }
 
 static void splineik_copy(bConstraint *con, bConstraint *srccon)
@@ -5417,6 +5430,11 @@ static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBa
     return;
   }
 
+  /* Do not process data if using a render time procedural. */
+  if (BKE_cache_file_uses_render_procedural(cache_file, scene, DEG_get_mode(cob->depsgraph))) {
+    return;
+  }
+
   const float frame = DEG_get_ctime(cob->depsgraph);
   const float time = BKE_cachefile_time_offset(cache_file, frame, FPS);
 
@@ -5664,6 +5682,111 @@ bool BKE_constraint_remove_ex(ListBase *list, Object *ob, bConstraint *con, bool
   return false;
 }
 
+/* Apply the specified constraint in the given constraint stack */
+bool BKE_constraint_apply_for_object(Depsgraph *depsgraph,
+                                     Scene *scene,
+                                     Object *ob,
+                                     bConstraint *con)
+{
+  if (!con) {
+    return false;
+  }
+
+  const float ctime = BKE_scene_frame_get(scene);
+
+  bConstraint *new_con = BKE_constraint_duplicate_ex(con, 0, !ID_IS_LINKED(ob));
+  ListBase single_con = {new_con, new_con};
+
+  bConstraintOb *cob = BKE_constraints_make_evalob(
+      depsgraph, scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+  /* Undo the effect of the current constraint stack evaluation. */
+  mul_m4_m4m4(cob->matrix, ob->constinv, cob->matrix);
+
+  /* Evaluate single constraint. */
+  BKE_constraints_solve(depsgraph, &single_con, cob, ctime);
+  /* Copy transforms back. This will leave the object in a bad state
+   * as ob->constinv will be wrong until next evaluation. */
+  BKE_constraints_clear_evalob(cob);
+
+  /* Free the copied constraint. */
+  BKE_constraint_free_data(new_con);
+  BLI_freelinkN(&single_con, new_con);
+
+  /* Apply transform from matrix. */
+  BKE_object_apply_mat4(ob, ob->obmat, true, true);
+
+  return true;
+}
+
+bool BKE_constraint_apply_and_remove_for_object(Depsgraph *depsgraph,
+                                                Scene *scene,
+                                                ListBase /*bConstraint*/ *constraints,
+                                                Object *ob,
+                                                bConstraint *con)
+{
+  if (!BKE_constraint_apply_for_object(depsgraph, scene, ob, con)) {
+    return false;
+  }
+
+  return BKE_constraint_remove_ex(constraints, ob, con, true);
+}
+
+bool BKE_constraint_apply_for_pose(
+    Depsgraph *depsgraph, Scene *scene, Object *ob, bPoseChannel *pchan, bConstraint *con)
+{
+  if (!con) {
+    return false;
+  }
+
+  const float ctime = BKE_scene_frame_get(scene);
+
+  bConstraint *new_con = BKE_constraint_duplicate_ex(con, 0, !ID_IS_LINKED(ob));
+  ListBase single_con;
+  single_con.first = new_con;
+  single_con.last = new_con;
+
+  float vec[3];
+  copy_v3_v3(vec, pchan->pose_mat[3]);
+
+  bConstraintOb *cob = BKE_constraints_make_evalob(
+      depsgraph, scene, ob, pchan, CONSTRAINT_OBTYPE_BONE);
+  /* Undo the effects of currently applied constraints. */
+  mul_m4_m4m4(cob->matrix, pchan->constinv, cob->matrix);
+  /* Evaluate single constraint. */
+  BKE_constraints_solve(depsgraph, &single_con, cob, ctime);
+  BKE_constraints_clear_evalob(cob);
+
+  /* Free the copied constraint. */
+  BKE_constraint_free_data(new_con);
+  BLI_freelinkN(&single_con, new_con);
+
+  /* Prevent constraints breaking a chain. */
+  if (pchan->bone->flag & BONE_CONNECTED) {
+    copy_v3_v3(pchan->pose_mat[3], vec);
+  }
+
+  /* Apply transform from matrix. */
+  float mat[4][4];
+  BKE_armature_mat_pose_to_bone(pchan, pchan->pose_mat, mat);
+  BKE_pchan_apply_mat4(pchan, mat, true);
+
+  return true;
+}
+
+bool BKE_constraint_apply_and_remove_for_pose(Depsgraph *depsgraph,
+                                              Scene *scene,
+                                              ListBase /*bConstraint*/ *constraints,
+                                              Object *ob,
+                                              bConstraint *con,
+                                              bPoseChannel *pchan)
+{
+  if (!BKE_constraint_apply_for_pose(depsgraph, scene, ob, pchan, con)) {
+    return false;
+  }
+
+  return BKE_constraint_remove_ex(constraints, ob, con, true);
+}
+
 void BKE_constraint_panel_expand(bConstraint *con)
 {
   con->ui_expand_flag |= UI_PANEL_DATA_EXPAND_ROOT;
@@ -5766,6 +5889,17 @@ static bConstraint *add_new_constraint(Object *ob,
       if (pchan) {
         con->ownspace = CONSTRAINT_SPACE_POSE;
         con->flag |= CONSTRAINT_SPACEONCE;
+      }
+      break;
+    }
+    case CONSTRAINT_TYPE_ACTION: {
+      /* The Before or Split modes require computing in local space, but
+       * for objects the Local space doesn't make sense (T78462, D6095 etc).
+       * So only default to Before (Split) if the constraint is on a bone. */
+      if (pchan) {
+        bActionConstraint *data = con->data;
+        data->mix_mode = ACTCON_MIX_BEFORE_SPLIT;
+        con->ownspace = CONSTRAINT_SPACE_LOCAL;
       }
       break;
     }
@@ -6523,7 +6657,7 @@ void BKE_constraint_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *con
     BLO_read_id_address(reader, id->lib, &con->ipo); /* XXX deprecated - old animation system */
 
     /* If linking from a library, clear 'local' library override flag. */
-    if (id->lib != NULL) {
+    if (ID_IS_LINKED(id)) {
       con->flag &= ~CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
     }
   }

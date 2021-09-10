@@ -52,8 +52,8 @@ set(INC
 set(SRC
   intern/draw_cache.c
   intern/draw_cache_extract_mesh.cc
-  intern/draw_cache_extract_mesh_extractors.c
   intern/draw_cache_extract_mesh_render_data.c
+  intern/mesh_extractors/extract_mesh.c
   intern/mesh_extractors/extract_mesh_ibo_edituv.cc
   intern/mesh_extractors/extract_mesh_ibo_fdots.cc
   intern/mesh_extractors/extract_mesh_ibo_lines.cc
@@ -91,7 +91,7 @@ set(SRC
   intern/draw_cache_impl_particles.c
   intern/draw_cache_impl_pointcloud.c
   intern/draw_cache_impl_volume.c
-  intern/draw_color_management.c
+  intern/draw_color_management.cc
   intern/draw_common.c
   intern/draw_debug.c
   intern/draw_fluid.c
@@ -193,7 +193,6 @@ set(SRC
   intern/DRW_render.h
   intern/draw_cache.h
   intern/draw_cache_extract.h
-  intern/draw_cache_extract_mesh_private.h
   intern/draw_cache_impl.h
   intern/draw_cache_inline.h
   intern/draw_color_management.h
@@ -207,6 +206,7 @@ set(SRC
   intern/draw_manager_text.h
   intern/draw_shader.h
   intern/draw_view.h
+  intern/mesh_extractors/extract_mesh.h
   intern/smaa_textures.h
   engines/basic/basic_engine.h
   engines/eevee/eevee_engine.h
@@ -447,6 +447,7 @@ data_to_c_simple(engines/overlay/shaders/extra_wire_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/extra_wire_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/facing_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/facing_vert.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/grid_background_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/grid_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/grid_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/image_vert.glsl SRC)
@@ -482,6 +483,13 @@ data_to_c_simple(engines/image/shaders/engine_image_vert.glsl SRC)
 
 list(APPEND INC
 )
+
+if(WITH_DRAW_DEBUG)
+  list(APPEND SRC
+    engines/select/select_debug_engine.c
+  )
+  add_definitions(-DWITH_DRAW_DEBUG)
+endif()
 
 if(WITH_MOD_FLUID)
   list(APPEND INC

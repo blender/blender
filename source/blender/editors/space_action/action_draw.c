@@ -144,12 +144,14 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   uchar col1[4], col2[4];
   uchar col1a[4], col2a[4];
   uchar col1b[4], col2b[4];
+  uchar col_summary[4];
 
   const bool show_group_colors = U.animation_flag & USER_ANIM_SHOW_CHANNEL_GROUP_COLORS;
 
   /* get theme colors */
   UI_GetThemeColor4ubv(TH_SHADE2, col2);
   UI_GetThemeColor4ubv(TH_HILITE, col1);
+  UI_GetThemeColor4ubv(TH_ANIM_ACTIVE, col_summary);
 
   UI_GetThemeColor4ubv(TH_GROUP, col2a);
   UI_GetThemeColor4ubv(TH_GROUP_ACTIVE, col1a);
@@ -244,7 +246,10 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
         else if (ac->datatype == ANIMCONT_GPENCIL) {
           uchar *color;
           uchar gpl_col[4];
-          if ((show_group_colors) && (ale->type == ANIMTYPE_GPLAYER)) {
+          if (ale->type == ANIMTYPE_SUMMARY) {
+            color = col_summary;
+          }
+          else if ((show_group_colors) && (ale->type == ANIMTYPE_GPLAYER)) {
             bGPDlayer *gpl = (bGPDlayer *)ale->data;
             rgb_float_to_uchar(gpl_col, gpl->color);
             gpl_col[3] = col1[3];
@@ -254,24 +259,34 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
           else {
             color = sel ? col1 : col2;
           }
-          /* frames less than one get less saturated background */
-          immUniformColor4ubv(color);
-          immRectf(pos, 0.0f, ymin, v2d->cur.xmin, ymax);
 
-          /* frames one and higher get a saturated background */
-          immUniformColor3ubvAlpha(color, MIN2(255, color[3] * 2));
-          immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+          /* Color overlay on frames between the start/end frames. */
+          immUniformColor4ubv(color);
+          immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
+
+          /* Color overlay outside the start/end frame range get a more transparent overlay. */
+          immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
+          immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
+          immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
         }
         else if (ac->datatype == ANIMCONT_MASK) {
           /* TODO: this is a copy of gpencil. */
-          /* frames less than one get less saturated background */
-          uchar *color = sel ? col1 : col2;
-          immUniformColor4ubv(color);
-          immRectf(pos, 0.0f, ymin, v2d->cur.xmin, ymax);
+          uchar *color;
+          if (ale->type == ANIMTYPE_SUMMARY) {
+            color = col_summary;
+          }
+          else {
+            color = sel ? col1 : col2;
+          }
 
-          /* frames one and higher get a saturated background */
-          immUniformColor3ubvAlpha(color, MIN2(255, color[3] * 2));
-          immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+          /* Color overlay on frames between the start/end frames. */
+          immUniformColor4ubv(color);
+          immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
+
+          /* Color overlay outside the start/end frame range get a more transparent overlay. */
+          immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
+          immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
+          immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
         }
       }
     }
@@ -302,6 +317,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
 
   ymax = ACHANNEL_FIRST_TOP(ac);
 
+  struct AnimKeylistDrawList *draw_list = ED_keylist_draw_list_create();
+
   for (ale = anim_data.first; ale; ale = ale->next, ymax -= ACHANNEL_STEP(ac)) {
     float ymin = ymax - ACHANNEL_HEIGHT(ac);
     float ycenter = (ymin + ymax) / 2.0f;
@@ -316,33 +333,40 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
         /* draw 'keyframes' for each specific datatype */
         switch (ale->datatype) {
           case ALE_ALL:
-            draw_summary_channel(v2d, ale->data, ycenter, ac->yscale_fac, action_flag);
+            draw_summary_channel(draw_list, ale->data, ycenter, ac->yscale_fac, action_flag);
             break;
           case ALE_SCE:
-            draw_scene_channel(v2d, ads, ale->key_data, ycenter, ac->yscale_fac, action_flag);
+            draw_scene_channel(
+                draw_list, ads, ale->key_data, ycenter, ac->yscale_fac, action_flag);
             break;
           case ALE_OB:
-            draw_object_channel(v2d, ads, ale->key_data, ycenter, ac->yscale_fac, action_flag);
+            draw_object_channel(
+                draw_list, ads, ale->key_data, ycenter, ac->yscale_fac, action_flag);
             break;
           case ALE_ACT:
-            draw_action_channel(v2d, adt, ale->key_data, ycenter, ac->yscale_fac, action_flag);
+            draw_action_channel(
+                draw_list, adt, ale->key_data, ycenter, ac->yscale_fac, action_flag);
             break;
           case ALE_GROUP:
-            draw_agroup_channel(v2d, adt, ale->data, ycenter, ac->yscale_fac, action_flag);
+            draw_agroup_channel(draw_list, adt, ale->data, ycenter, ac->yscale_fac, action_flag);
             break;
           case ALE_FCURVE:
-            draw_fcurve_channel(v2d, adt, ale->key_data, ycenter, ac->yscale_fac, action_flag);
+            draw_fcurve_channel(
+                draw_list, adt, ale->key_data, ycenter, ac->yscale_fac, action_flag);
             break;
           case ALE_GPFRAME:
-            draw_gpl_channel(v2d, ads, ale->data, ycenter, ac->yscale_fac, action_flag);
+            draw_gpl_channel(draw_list, ads, ale->data, ycenter, ac->yscale_fac, action_flag);
             break;
           case ALE_MASKLAY:
-            draw_masklay_channel(v2d, ads, ale->data, ycenter, ac->yscale_fac, action_flag);
+            draw_masklay_channel(draw_list, ads, ale->data, ycenter, ac->yscale_fac, action_flag);
             break;
         }
       }
     }
   }
+
+  ED_keylist_draw_list_flush(draw_list, v2d);
+  ED_keylist_draw_list_free(draw_list);
 
   /* free temporary channels used for drawing */
   ANIM_animdata_freelist(&anim_data);

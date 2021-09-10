@@ -248,7 +248,7 @@ class Map {
     this->add_new_as(std::move(key), std::move(value));
   }
   template<typename ForwardKey, typename... ForwardValue>
-  void add_new_as(ForwardKey &&key, ForwardValue &&... value)
+  void add_new_as(ForwardKey &&key, ForwardValue &&...value)
   {
     this->add_new__impl(
         std::forward<ForwardKey>(key), hash_(key), std::forward<ForwardValue>(value)...);
@@ -278,7 +278,7 @@ class Map {
     return this->add_as(std::move(key), std::move(value));
   }
   template<typename ForwardKey, typename... ForwardValue>
-  bool add_as(ForwardKey &&key, ForwardValue &&... value)
+  bool add_as(ForwardKey &&key, ForwardValue &&...value)
   {
     return this->add__impl(
         std::forward<ForwardKey>(key), hash_(key), std::forward<ForwardValue>(value)...);
@@ -308,7 +308,7 @@ class Map {
     return this->add_overwrite_as(std::move(key), std::move(value));
   }
   template<typename ForwardKey, typename... ForwardValue>
-  bool add_overwrite_as(ForwardKey &&key, ForwardValue &&... value)
+  bool add_overwrite_as(ForwardKey &&key, ForwardValue &&...value)
   {
     return this->add_overwrite__impl(
         std::forward<ForwardKey>(key), hash_(key), std::forward<ForwardValue>(value)...);
@@ -414,7 +414,7 @@ class Map {
     return this->pop_default_as(key, std::move(default_value));
   }
   template<typename ForwardKey, typename... ForwardValue>
-  Value pop_default_as(const ForwardKey &key, ForwardValue &&... default_value)
+  Value pop_default_as(const ForwardKey &key, ForwardValue &&...default_value)
   {
     Slot *slot = this->lookup_slot_ptr(key, hash_(key));
     if (slot == nullptr) {
@@ -526,7 +526,7 @@ class Map {
     return this->lookup_default_as(key, default_value);
   }
   template<typename ForwardKey, typename... ForwardValue>
-  Value lookup_default_as(const ForwardKey &key, ForwardValue &&... default_value) const
+  Value lookup_default_as(const ForwardKey &key, ForwardValue &&...default_value) const
   {
     const Value *ptr = this->lookup_ptr_as(key);
     if (ptr != nullptr) {
@@ -558,7 +558,7 @@ class Map {
     return this->lookup_or_add_as(std::move(key), std::move(value));
   }
   template<typename ForwardKey, typename... ForwardValue>
-  Value &lookup_or_add_as(ForwardKey &&key, ForwardValue &&... value)
+  Value &lookup_or_add_as(ForwardKey &&key, ForwardValue &&...value)
   {
     return this->lookup_or_add__impl(
         std::forward<ForwardKey>(key), hash_(key), std::forward<ForwardValue>(value)...);
@@ -1058,7 +1058,7 @@ class Map {
   }
 
   template<typename ForwardKey, typename... ForwardValue>
-  void add_new__impl(ForwardKey &&key, uint64_t hash, ForwardValue &&... value)
+  void add_new__impl(ForwardKey &&key, uint64_t hash, ForwardValue &&...value)
   {
     BLI_assert(!this->contains_as(key));
 
@@ -1075,7 +1075,7 @@ class Map {
   }
 
   template<typename ForwardKey, typename... ForwardValue>
-  bool add__impl(ForwardKey &&key, uint64_t hash, ForwardValue &&... value)
+  bool add__impl(ForwardKey &&key, uint64_t hash, ForwardValue &&...value)
   {
     this->ensure_can_add();
 
@@ -1148,7 +1148,7 @@ class Map {
   }
 
   template<typename ForwardKey, typename... ForwardValue>
-  Value &lookup_or_add__impl(ForwardKey &&key, uint64_t hash, ForwardValue &&... value)
+  Value &lookup_or_add__impl(ForwardKey &&key, uint64_t hash, ForwardValue &&...value)
   {
     this->ensure_can_add();
 
@@ -1166,7 +1166,7 @@ class Map {
   }
 
   template<typename ForwardKey, typename... ForwardValue>
-  bool add_overwrite__impl(ForwardKey &&key, uint64_t hash, ForwardValue &&... value)
+  bool add_overwrite__impl(ForwardKey &&key, uint64_t hash, ForwardValue &&...value)
   {
     auto create_func = [&](Value *ptr) {
       new (static_cast<void *>(ptr)) Value(std::forward<ForwardValue>(value)...);
@@ -1283,13 +1283,13 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
   }
 
   template<typename ForwardKey, typename... ForwardValue>
-  void add_new(ForwardKey &&key, ForwardValue &&... value)
+  void add_new(ForwardKey &&key, ForwardValue &&...value)
   {
     map_.insert({std::forward<ForwardKey>(key), Value(std::forward<ForwardValue>(value)...)});
   }
 
   template<typename ForwardKey, typename... ForwardValue>
-  bool add(ForwardKey &&key, ForwardValue &&... value)
+  bool add(ForwardKey &&key, ForwardValue &&...value)
   {
     return map_
         .insert({std::forward<ForwardKey>(key), Value(std::forward<ForwardValue>(value)...)})

@@ -17,20 +17,16 @@
 #include "BKE_spline.hh"
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_primitive_quadratic_bezier_in[] = {
-    {SOCK_INT, N_("Resolution"), 16.0f, 0.0f, 0.0f, 0.0f, 3, 256, PROP_UNSIGNED},
-    {SOCK_VECTOR, N_("Start"), -1.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Middle"), 0.0f, 2.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("End"), 1.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_curve_primitive_quadratic_bezier_out[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_curve_primitive_quadratic_bezier_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Int>("Resolution").default_value(16).min(3).max(256).subtype(PROP_UNSIGNED);
+  b.add_input<decl::Vector>("Start").default_value({-1.0f, 0.0f, 0.0f}).subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>("Middle").default_value({0.0f, 2.0f, 0.0f}).subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>("End").default_value({1.0f, 0.0f, 0.0f}).subtype(PROP_TRANSLATION);
+  b.add_output<decl::Geometry>("Curve");
+}
 
 static std::unique_ptr<CurveEval> create_quadratic_bezier_curve(const float3 p1,
                                                                 const float3 p2,
@@ -74,9 +70,7 @@ void register_node_type_geo_curve_primitive_quadratic_bezier()
                      "Quadratic Bezier",
                      NODE_CLASS_GEOMETRY,
                      0);
-  node_type_socket_templates(&ntype,
-                             geo_node_curve_primitive_quadratic_bezier_in,
-                             geo_node_curve_primitive_quadratic_bezier_out);
+  ntype.declare = blender::nodes::geo_node_curve_primitive_quadratic_bezier_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_primitive_quadratic_bezier_exec;
   nodeRegisterType(&ntype);
 }

@@ -196,7 +196,8 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_ortho(v2d);
 
   /* time grid */
-  UI_view2d_draw_lines_x__discrete_frames_or_seconds(v2d, scene, saction->flag & SACTION_DRAWTIME);
+  UI_view2d_draw_lines_x__discrete_frames_or_seconds(
+      v2d, scene, saction->flag & SACTION_DRAWTIME, true);
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
 
@@ -535,9 +536,9 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
         saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
         ED_area_tag_refresh(area);
       }
-      /* autocolor only really needs to change when channels are added/removed,
+      /* Auto-color only really needs to change when channels are added/removed,
        * or previously hidden stuff appears
-       * (assume for now that if just adding these works, that will be fine)
+       * (assume for now that if just adding these works, that will be fine).
        */
       else if (((wmn->data == ND_KEYFRAME) && ELEM(wmn->action, NA_ADDED, NA_REMOVED)) ||
                ((wmn->data == ND_ANIMCHAN) && (wmn->action != NA_SELECTED))) {

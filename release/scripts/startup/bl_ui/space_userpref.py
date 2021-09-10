@@ -619,7 +619,7 @@ class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
         split = layout.split(factor=0.4)
         split.alignment = 'RIGHT'
         split.label(text="")
-        split.operator("file.associate_blend", text="Make Default")
+        split.operator("preferences.associate_blend", text="Make Default")
 
 
 class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
@@ -997,7 +997,6 @@ class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
 
         col = flow.column()
-        col.row().prop(font_style, "font_kerning_style", expand=True)
         col.prop(font_style, "points")
 
         col = flow.column(align=True)
@@ -1366,11 +1365,6 @@ class USERPREF_PT_saveload_autorun(FilePathsPanel, Panel):
 class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
     bl_label = "Asset Libraries"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return prefs.experimental.use_asset_browser
-
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = False
@@ -1420,7 +1414,7 @@ class USERPREF_PT_saveload_blend(SaveLoadPanel, CenterAlignMixIn, Panel):
 
         col = layout.column(heading="Save")
         col.prop(view, "use_save_prompt")
-        col.prop(paths, "use_save_preview_images")
+        col.prop(paths, "file_preview_type")
 
         col = layout.column(heading="Default To")
         col.prop(paths, "use_relative_paths")
@@ -2258,7 +2252,7 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
             context, (
                 ({"property": "use_sculpt_vertex_colors"}, "T71947"),
                 ({"property": "use_sculpt_tools_tilt"}, "T82877"),
-                ({"property": "use_asset_browser"}, ("project/profile/124/", "Milestone 1")),
+                ({"property": "use_extended_asset_browser"}, ("project/view/130/", "Project Page")),
                 ({"property": "use_override_templates"}, ("T73318", "Milestone 4")),
             ),
         )

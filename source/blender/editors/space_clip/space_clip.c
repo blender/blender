@@ -605,10 +605,7 @@ static int /*eContextResult*/ clip_context(const bContext *C,
 }
 
 /* dropboxes */
-static bool clip_drop_poll(bContext *UNUSED(C),
-                           wmDrag *drag,
-                           const wmEvent *UNUSED(event),
-                           const char **UNUSED(r_tooltip))
+static bool clip_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
     /* rule might not work? */
@@ -639,7 +636,7 @@ static void clip_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, 0);
 
-  WM_dropbox_add(lb, "CLIP_OT_open", clip_drop_poll, clip_drop_copy, NULL);
+  WM_dropbox_add(lb, "CLIP_OT_open", clip_drop_poll, clip_drop_copy, NULL, NULL);
 }
 
 static void clip_refresh(const bContext *C, ScrArea *area)
@@ -1112,7 +1109,7 @@ static void dopesheet_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_ortho(v2d);
 
   /* time grid */
-  UI_view2d_draw_lines_x__discrete_frames_or_seconds(v2d, scene, sc->flag & SC_SHOW_SECONDS);
+  UI_view2d_draw_lines_x__discrete_frames_or_seconds(v2d, scene, sc->flag & SC_SHOW_SECONDS, true);
 
   /* data... */
   clip_draw_dopesheet_main(sc, region, scene);

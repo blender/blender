@@ -830,7 +830,7 @@ typedef struct SpaceAction {
   /** The currently active context (when not showing action). */
   bDopeSheet ads;
 
-  /** For Time-Slide transform mode drawing - current frame?. */
+  /** For Time-Slide transform mode drawing - current frame? */
   float timeslide;
 
   short flag;
@@ -838,7 +838,7 @@ typedef struct SpaceAction {
   char mode;
   /* Storage for sub-space types. */
   char mode_prev;
-  /** Automatic keyframe snapping mode  . */
+  /** Automatic keyframe snapping mode. */
   char autosnap;
   /** (eTimeline_Cache_Flag). */
   char cache_display;
@@ -856,11 +856,11 @@ typedef enum eSAction_Flag {
   /* draw time in seconds instead of time in frames */
   SACTION_DRAWTIME = (1 << 2),
   /* don't filter action channels according to visibility */
-  // SACTION_NOHIDE = (1 << 3), /* XXX deprecated... old animation systems. */
+  // SACTION_NOHIDE = (1 << 3), /* Deprecated, old animation systems. */
   /* don't kill overlapping keyframes after transform */
   SACTION_NOTRANSKEYCULL = (1 << 4),
   /* don't include keyframes that are out of view */
-  // SACTION_HORIZOPTIMISEON = (1 << 5), // XXX deprecated... old irrelevant trick
+  // SACTION_HORIZOPTIMISEON = (1 << 5), /* Deprecated, old irrelevant trick. */
   /* show pose-markers (local to action) in Action Editor mode. */
   SACTION_POSEMARKERS_SHOW = (1 << 6),
   /* don't draw action channels using group colors (where applicable) */

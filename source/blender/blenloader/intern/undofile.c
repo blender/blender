@@ -48,6 +48,7 @@
 
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_undo_system.h"
 
 /* keep last */
 #include "BLI_strict_flags.h"
@@ -272,4 +273,98 @@ bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename)
     return false;
   }
   return true;
+}
+
+static ssize_t undo_read(FileReader *reader, void *buffer, size_t size)
+{
+  UndoReader *undo = (UndoReader *)reader;
+
+  static size_t seek = SIZE_MAX; /* The current position. */
+  static size_t offset = 0;      /* Size of previous chunks. */
+  static MemFileChunk *chunk = NULL;
+  size_t chunkoffset, readsize, totread;
+
+  undo->memchunk_identical = true;
+
+  if (size == 0) {
+    return 0;
+  }
+
+  if (seek != (size_t)undo->reader.offset) {
+    chunk = undo->memfile->chunks.first;
+    seek = 0;
+
+    while (chunk) {
+      if (seek + chunk->size > (size_t)undo->reader.offset) {
+        break;
+      }
+      seek += chunk->size;
+      chunk = chunk->next;
+    }
+    offset = seek;
+    seek = (size_t)undo->reader.offset;
+  }
+
+  if (chunk) {
+    totread = 0;
+
+    do {
+      /* First check if it's on the end if current chunk. */
+      if (seek - offset == chunk->size) {
+        offset += chunk->size;
+        chunk = chunk->next;
+      }
+
+      /* Debug, should never happen. */
+      if (chunk == NULL) {
+        printf("illegal read, chunk zero\n");
+        return 0;
+      }
+
+      chunkoffset = seek - offset;
+      readsize = size - totread;
+
+      /* Data can be spread over multiple chunks, so clamp size
+       * to within this chunk, and then it will read further in
+       * the next chunk. */
+      if (chunkoffset + readsize > chunk->size) {
+        readsize = chunk->size - chunkoffset;
+      }
+
+      memcpy(POINTER_OFFSET(buffer, totread), chunk->buf + chunkoffset, readsize);
+      totread += readsize;
+      undo->reader.offset += (off64_t)readsize;
+      seek += readsize;
+
+      /* `is_identical` of current chunk represents whether it changed compared to previous undo
+       * step. this is fine in redo case, but not in undo case, where we need an extra flag
+       * defined when saving the next (future) step after the one we want to restore, as we are
+       * supposed to 'come from' that future undo step, and not the one before current one. */
+      undo->memchunk_identical &= undo->undo_direction == STEP_REDO ? chunk->is_identical :
+                                                                      chunk->is_identical_future;
+    } while (totread < size);
+
+    return (ssize_t)totread;
+  }
+
+  return 0;
+}
+
+static void undo_close(FileReader *reader)
+{
+  MEM_freeN(reader);
+}
+
+FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction)
+{
+  UndoReader *undo = MEM_callocN(sizeof(UndoReader), __func__);
+
+  undo->memfile = memfile;
+  undo->undo_direction = undo_direction;
+
+  undo->reader.read = undo_read;
+  undo->reader.seek = NULL;
+  undo->reader.close = undo_close;
+
+  return (FileReader *)undo;
 }

@@ -3399,10 +3399,7 @@ static void p_chart_lscm_end(PChart *chart)
     EIG_linear_solver_delete(chart->u.lscm.context);
   }
 
-  if (chart->u.lscm.abf_alpha) {
-    MEM_freeN(chart->u.lscm.abf_alpha);
-    chart->u.lscm.abf_alpha = NULL;
-  }
+  MEM_SAFE_FREE(chart->u.lscm.abf_alpha);
 
   chart->u.lscm.context = NULL;
   chart->u.lscm.pin1 = NULL;

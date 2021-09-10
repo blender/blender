@@ -352,7 +352,7 @@ static bool object_modifier_remove(
 
   /* special cases */
   if (md->type == eModifierType_ParticleSystem) {
-    object_remove_particle_system(bmain, scene, ob);
+    object_remove_particle_system(bmain, scene, ob, ((ParticleSystemModifierData *)md)->psys);
     return true;
   }
 
@@ -1923,8 +1923,8 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const eMultiresSubdivideModeType subdivide_mode = (eMultiresSubdivideModeType)(
-      RNA_enum_get(op->ptr, "mode"));
+  const eMultiresSubdivideModeType subdivide_mode = (eMultiresSubdivideModeType)(RNA_enum_get(
+      op->ptr, "mode"));
   multiresModifier_subdivide(object, mmd, subdivide_mode);
 
   ED_object_iter_other(
@@ -3100,7 +3100,7 @@ void OBJECT_OT_ocean_bake(wmOperatorType *ot)
 /** \} */
 
 /* ------------------------------------------------------------------- */
-/** \name Laplaciandeform Bind Operator
+/** \name Laplacian-Deform Bind Operator
  * \{ */
 
 static bool laplaciandeform_poll(bContext *C)

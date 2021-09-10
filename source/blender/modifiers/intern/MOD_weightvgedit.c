@@ -112,7 +112,9 @@ static void requiredDataMask(Object *UNUSED(ob),
   /* No need to ask for CD_PREVIEW_MLOOPCOL... */
 }
 
-static bool dependsOnTime(ModifierData *md)
+static bool dependsOnTime(struct Scene *UNUSED(scene),
+                          ModifierData *md,
+                          const int UNUSED(dag_eval_mode))
 {
   WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
 
@@ -194,12 +196,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* Check if we can just return the original mesh.
    * Must have verts and therefore verts assigned to vgroups to do anything useful!
    */
-  if ((numVerts == 0) || BLI_listbase_is_empty(&ctx->object->defbase)) {
+  if ((numVerts == 0) || BLI_listbase_is_empty(&mesh->vertex_group_names)) {
     return mesh;
   }
 
   /* Get vgroup idx from its name. */
-  const int defgrp_index = BKE_object_defgroup_name_index(ctx->object, wmd->defgrp_name);
+  const int defgrp_index = BKE_id_defgroup_name_index(&mesh->id, wmd->defgrp_name);
   if (defgrp_index == -1) {
     return mesh;
   }

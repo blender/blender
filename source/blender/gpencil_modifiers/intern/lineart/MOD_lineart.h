@@ -208,7 +208,7 @@ typedef struct LineartChainRegisterEntry {
 enum eLineArtTileRecursiveLimit {
   /* If tile gets this small, it's already much smaller than a pixel. No need to continue
    * splitting. */
-  LRT_TILE_RECURSIVE_PERSPECTIVE = 30,
+  LRT_TILE_RECURSIVE_PERSPECTIVE = 16,
   /* This is a tried-and-true safe value for high poly models that also needed ortho rendering. */
   LRT_TILE_RECURSIVE_ORTHO = 10,
 };
@@ -227,6 +227,8 @@ typedef struct LineartRenderBuffer {
   double width_per_tile, height_per_tile;
   double view_projection[4][4];
   double view[4][4];
+
+  float overscan;
 
   struct LineartBoundingArea *initial_bounding_areas;
   unsigned int bounding_area_count;
@@ -473,7 +475,8 @@ typedef struct LineartBoundingArea {
 BLI_INLINE int lineart_LineIntersectTest2d(
     const double *a1, const double *a2, const double *b1, const double *b2, double *aRatio)
 {
-#define USE_VECTOR_LINE_INTERSECTION
+/* Legacy intersection math aligns better with occlusion function quirks. */
+/* #define USE_VECTOR_LINE_INTERSECTION */
 #ifdef USE_VECTOR_LINE_INTERSECTION
 
   /* from isect_line_line_v2_point() */
@@ -549,7 +552,7 @@ BLI_INLINE int lineart_LineIntersectTest2d(
       k1 = (a2[1] - a1[1]) / x_diff;
       k2 = (b2[1] - b1[1]) / x_diff2;
 
-      if ((k1 == k2))
+      if (k1 == k2)
         return 0;
 
       x = (a1[1] - b1[1] - k1 * a1[0] + k2 * b1[0]) / (k2 - k1);
@@ -575,9 +578,9 @@ BLI_INLINE int lineart_LineIntersectTest2d(
 }
 
 struct Depsgraph;
-struct Scene;
-struct LineartRenderBuffer;
 struct LineartGpencilModifierData;
+struct LineartRenderBuffer;
+struct Scene;
 
 void MOD_lineart_destroy_render_data(struct LineartGpencilModifierData *lmd);
 
@@ -602,8 +605,8 @@ LineartBoundingArea *MOD_lineart_get_parent_bounding_area(LineartRenderBuffer *r
 
 LineartBoundingArea *MOD_lineart_get_bounding_area(LineartRenderBuffer *rb, double x, double y);
 
-struct bGPDlayer;
 struct bGPDframe;
+struct bGPDlayer;
 
 void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   struct Depsgraph *depsgraph,

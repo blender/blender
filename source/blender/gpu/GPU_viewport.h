@@ -120,7 +120,7 @@ void GPU_viewport_free(GPUViewport *viewport);
 
 void GPU_viewport_colorspace_set(GPUViewport *viewport,
                                  ColorManagedViewSettings *view_settings,
-                                 ColorManagedDisplaySettings *display_settings,
+                                 const ColorManagedDisplaySettings *display_settings,
                                  float dither);
 
 void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, struct GPUOffScreen *ofs);

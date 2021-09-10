@@ -251,6 +251,13 @@ void ED_gpencil_brush_draw_eraser(struct Brush *brush, int x, int y);
 
 /* ----------- Add Primitive Utilities -------------- */
 
+/* Number of values defining each point in the built-in data buffers for primitives. */
+#define GP_PRIM_DATABUF_SIZE 5
+void ED_gpencil_stroke_init_data(struct bGPDstroke *gps,
+                                 const float *array,
+                                 const int totpoints,
+                                 const float mat[4][4]);
+
 void ED_gpencil_create_blank(struct bContext *C, struct Object *ob, float mat[4][4]);
 void ED_gpencil_create_monkey(struct bContext *C, struct Object *ob, float mat[4][4]);
 void ED_gpencil_create_stroke(struct bContext *C, struct Object *ob, float mat[4][4]);
@@ -384,8 +391,15 @@ struct bGPDstroke *ED_gpencil_stroke_nearest_to_ends(struct bContext *C,
                                                      struct bGPDlayer *gpl,
                                                      struct bGPDframe *gpf,
                                                      struct bGPDstroke *gps,
+                                                     const float ctrl1[2],
+                                                     const float ctrl2[2],
                                                      const float radius,
                                                      int *r_index);
+void ED_gpencil_stroke_extremes_to2d(const struct GP_SpaceConversion *gsc,
+                                     const float diff_mat[4][4],
+                                     struct bGPDstroke *gps,
+                                     float r_ctrl1[2],
+                                     float r_ctrl2[2]);
 
 struct bGPDstroke *ED_gpencil_stroke_join_and_trim(struct bGPdata *gpd,
                                                    struct bGPDframe *gpf,

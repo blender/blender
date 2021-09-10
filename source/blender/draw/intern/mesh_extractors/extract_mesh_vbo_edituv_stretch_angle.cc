@@ -25,7 +25,7 @@
 
 #include "BKE_mesh.h"
 
-#include "draw_cache_extract_mesh_private.h"
+#include "extract_mesh.h"
 
 namespace blender::draw {
 
@@ -222,7 +222,7 @@ constexpr MeshExtract create_extractor_edituv_edituv_stretch_angle()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_StretchAngle_Data);
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edituv_stretch_angle);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.edituv_stretch_angle);
   return extractor;
 }
 

@@ -809,14 +809,9 @@ static const EnumPropertyItem *rna_lang_enum_properties_itemf(bContext *UNUSED(C
 }
 #  endif
 
-static IDProperty *rna_AddonPref_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_AddonPref_idprops(PointerRNA *ptr)
 {
-  if (create && !ptr->data) {
-    IDPropertyTemplate val = {0};
-    ptr->data = IDP_New(IDP_GROUP, &val, "RNA_AddonPreferences group");
-  }
-
-  return ptr->data;
+  return (IDProperty **)&ptr->data;
 }
 
 static PointerRNA rna_Addon_preferences_get(PointerRNA *ptr)
@@ -1105,7 +1100,7 @@ int rna_show_statusbar_vram_editable(struct PointerRNA *UNUSED(ptr), const char 
 static size_t max_memory_in_megabytes(void)
 {
   /* Maximum addressable bytes on this platform. */
-  const size_t limit_bytes = (((size_t)1) << ((sizeof(size_t[8])) - 1));
+  const size_t limit_bytes = (((size_t)1) << (sizeof(size_t[8]) - 1));
   /* Convert it to megabytes and return. */
   return (limit_bytes >> 20);
 }
@@ -1123,12 +1118,6 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem font_kerning_style[] = {
-      {0, "UNFITTED", 0, "Unfitted", "Use scaled but un-grid-fitted kerning distances"},
-      {1, "FITTED", 0, "Fitted", "Use scaled and grid-fitted kerning distances"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   srna = RNA_def_struct(brna, "ThemeFontStyle", NULL);
   RNA_def_struct_sdna(srna, "uiFontStyle");
   RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
@@ -1137,12 +1126,6 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
   prop = RNA_def_property(srna, "points", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 6, 24);
   RNA_def_property_ui_text(prop, "Points", "Font size in points");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
-  prop = RNA_def_property(srna, "font_kerning_style", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "kerning");
-  RNA_def_property_enum_items(prop, font_kerning_style);
-  RNA_def_property_ui_text(prop, "Kerning Style", "Which style to use for font kerning");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "shadow", PROP_INT, PROP_PIXEL);
@@ -6076,6 +6059,13 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem preview_type_items[] = {
+      {USER_FILE_PREVIEW_NONE, "NONE", 0, "None", "Do not create blend previews"},
+      {USER_FILE_PREVIEW_SCREENSHOT, "SCREENSHOT", 0, "Screenshot", "Capture the entire window"},
+      {USER_FILE_PREVIEW_CAMERA, "CAMERA", 0, "Camera View", "Workbench render of scene"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "PreferencesFilePaths", NULL);
   RNA_def_struct_sdna(srna, "UserDef");
   RNA_def_struct_nested(brna, srna, "Preferences");
@@ -6160,7 +6150,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
       prop,
       "Python Scripts Directory",
       "Alternate script path, matching the default layout with subdirectories: "
-      "startup, addons, modules, and presets (requires restart)");
+      "startup, add-ons, modules, and presets (requires restart)");
   /* TODO: editing should reset sys.path! */
 
   prop = RNA_def_property(srna, "i18n_branches_directory", PROP_STRING, PROP_DIRPATH);
@@ -6231,12 +6221,9 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Recent Files", "Maximum number of recently opened files to remember");
 
-  prop = RNA_def_property(srna, "use_save_preview_images", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_SAVE_PREVIEWS);
-  RNA_def_property_ui_text(prop,
-                           "Save Preview Images",
-                           "Enables automatic saving of preview images in the .blend file "
-                           "as well as a thumbnail of the .blend");
+  prop = RNA_def_property(srna, "file_preview_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, preview_type_items);
+  RNA_def_property_ui_text(prop, "File Preview Type", "What type of blend preview to create");
 
   rna_def_userdef_filepaths_asset_library(brna);
 
@@ -6302,12 +6289,12 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Sculpt Mode Tilt Support", "Support for pen tablet tilt events in Sculpt Mode");
 
-  prop = RNA_def_property(srna, "use_asset_browser", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_asset_browser", 1);
-  RNA_def_property_ui_text(
-      prop,
-      "Asset Browser",
-      "Enable Asset Browser editor and operators to manage data-blocks as asset");
+  prop = RNA_def_property(srna, "use_extended_asset_browser", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(prop,
+                           "Extended Asset Browser",
+                           "Enable Asset Browser editor and operators to manage regular "
+                           "data-blocks as assets, not just poses");
+  RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 
   prop = RNA_def_property(srna, "use_override_templates", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_override_templates", 1);

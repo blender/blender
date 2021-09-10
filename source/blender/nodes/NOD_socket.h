@@ -43,7 +43,7 @@ struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree,
                                                   struct bNodeSocketTemplate *stemp,
                                                   eNodeSocketInOut in_out);
 
-void node_verify_socket_templates(struct bNodeTree *ntree, struct bNode *node);
+void node_verify_sockets(struct bNodeTree *ntree, struct bNode *node, bool do_id_user);
 
 void node_socket_init_default_value(struct bNodeSocket *sock);
 void node_socket_copy_default_value(struct bNodeSocket *to, const struct bNodeSocket *from);

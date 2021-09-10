@@ -167,9 +167,9 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     const int numVerts = mesh->totvert;
 
     /* Use new generic get_texture_coords, but do not modify our DNA struct for it...
-     * XXX Why use a ModifierData stuff here ? Why not a simple, generic struct for parameters ?
-     *     What e.g. if a modifier wants to use several textures ?
-     *     Why use only v_co, and not MVert (or both) ?
+     * XXX Why use a ModifierData stuff here ? Why not a simple, generic struct for parameters?
+     *     What e.g. if a modifier wants to use several textures?
+     *     Why use only v_co, and not MVert (or both)?
      */
     t_map.texture = texture;
     t_map.map_object = tex_map_object;
@@ -230,7 +230,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
 
     MEM_freeN(tex_co);
   }
-  else if ((ref_didx = BKE_object_defgroup_name_index(ob, defgrp_name)) != -1) {
+  else if ((ref_didx = BKE_id_defgroup_name_index(&mesh->id, defgrp_name)) != -1) {
     MDeformVert *dvert = NULL;
 
     /* Check whether we want to set vgroup weights from a constant weight factor or a vertex

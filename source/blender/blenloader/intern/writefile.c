@@ -69,7 +69,7 @@
  * - write #TEST (#RenderInfo struct. 128x128 blend file preview is optional).
  * - write #GLOB (#FileGlobal struct) (some global vars).
  * - write #DNA1 (#SDNA struct)
- * - write #USER (#UserDef struct) if filename is ``~/.config/blender/X.XX/config/startup.blend``.
+ * - write #USER (#UserDef struct) if filename is `~/.config/blender/X.XX/config/startup.blend`.
  */
 
 #include <fcntl.h>
@@ -83,7 +83,6 @@
 #  include "BLI_winstuff.h"
 #  include "winsock2.h"
 #  include <io.h>
-#  include <zlib.h> /* odd include order-issue */
 #else
 #  include <unistd.h> /* FreeBSD, for write() and close(). */
 #endif
@@ -101,7 +100,12 @@
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_endian_defines.h"
+#include "BLI_endian_switch.h"
+#include "BLI_link_utils.h"
+#include "BLI_linklist.h"
+#include "BLI_math_base.h"
 #include "BLI_mempool.h"
+#include "BLI_threads.h"
 #include "MEM_guardedalloc.h" /* MEM_freeN */
 
 #include "BKE_blender_version.h"
@@ -129,14 +133,21 @@
 
 #include <errno.h>
 
+#include <zstd.h>
+
 /* Make preferences read-only. */
 #define U (*((const UserDef *)&U))
 
 /* ********* my write, buffered writing with minimum size chunks ************ */
 
 /* Use optimal allocation since blocks of this size are kept in memory for undo. */
-#define MYWRITE_BUFFER_SIZE (MEM_SIZE_OPTIMAL(1 << 17)) /* 128kb */
-#define MYWRITE_MAX_CHUNK (MEM_SIZE_OPTIMAL(1 << 15))   /* ~32kb */
+#define MEM_BUFFER_SIZE (MEM_SIZE_OPTIMAL(1 << 17)) /* 128kb */
+#define MEM_CHUNK_SIZE (MEM_SIZE_OPTIMAL(1 << 15))  /* ~32kb */
+
+#define ZSTD_BUFFER_SIZE (1 << 21) /* 2mb */
+#define ZSTD_CHUNK_SIZE (1 << 20)  /* 1mb */
+
+#define ZSTD_COMPRESSION_LEVEL 3
 
 /** Use if we want to store how many bytes have been written to the file. */
 // #define USE_WRITE_DATA_LEN
@@ -147,8 +158,15 @@
 
 typedef enum {
   WW_WRAP_NONE = 1,
-  WW_WRAP_ZLIB,
+  WW_WRAP_ZSTD,
 } eWriteWrapType;
+
+typedef struct ZstdFrame {
+  struct ZstdFrame *next, *prev;
+
+  uint32_t compressed_size;
+  uint32_t uncompressed_size;
+} ZstdFrame;
 
 typedef struct WriteWrap WriteWrap;
 struct WriteWrap {
@@ -161,15 +179,23 @@ struct WriteWrap {
   bool use_buf;
 
   /* internal */
-  union {
-    int file_handle;
-    gzFile gz_handle;
-  } _user_data;
+  int file_handle;
+  struct {
+    ListBase threadpool;
+    ListBase tasks;
+    ThreadMutex mutex;
+    ThreadCondition condition;
+    int next_frame;
+    int num_frames;
+
+    int level;
+    ListBase frames;
+
+    bool write_error;
+  } zstd;
 };
 
 /* none */
-#define FILE_HANDLE(ww) (ww)->_user_data.file_handle
-
 static bool ww_open_none(WriteWrap *ww, const char *filepath)
 {
   int file;
@@ -177,7 +203,7 @@ static bool ww_open_none(WriteWrap *ww, const char *filepath)
   file = BLI_open(filepath, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
 
   if (file != -1) {
-    FILE_HANDLE(ww) = file;
+    ww->file_handle = file;
     return true;
   }
 
@@ -185,39 +211,170 @@ static bool ww_open_none(WriteWrap *ww, const char *filepath)
 }
 static bool ww_close_none(WriteWrap *ww)
 {
-  return (close(FILE_HANDLE(ww)) != -1);
+  return (close(ww->file_handle) != -1);
 }
 static size_t ww_write_none(WriteWrap *ww, const char *buf, size_t buf_len)
 {
-  return write(FILE_HANDLE(ww), buf, buf_len);
+  return write(ww->file_handle, buf, buf_len);
 }
-#undef FILE_HANDLE
 
-/* zlib */
-#define FILE_HANDLE(ww) (ww)->_user_data.gz_handle
+/* zstd */
 
-static bool ww_open_zlib(WriteWrap *ww, const char *filepath)
+typedef struct {
+  struct ZstdWriteBlockTask *next, *prev;
+  void *data;
+  size_t size;
+  int frame_number;
+  WriteWrap *ww;
+} ZstdWriteBlockTask;
+
+static void *zstd_write_task(void *userdata)
 {
-  gzFile file;
+  ZstdWriteBlockTask *task = userdata;
+  WriteWrap *ww = task->ww;
 
-  file = BLI_gzopen(filepath, "wb1");
+  size_t out_buf_len = ZSTD_compressBound(task->size);
+  void *out_buf = MEM_mallocN(out_buf_len, "Zstd out buffer");
+  size_t out_size = ZSTD_compress(
+      out_buf, out_buf_len, task->data, task->size, ZSTD_COMPRESSION_LEVEL);
 
-  if (file != Z_NULL) {
-    FILE_HANDLE(ww) = file;
-    return true;
+  MEM_freeN(task->data);
+
+  BLI_mutex_lock(&ww->zstd.mutex);
+
+  while (ww->zstd.next_frame != task->frame_number) {
+    BLI_condition_wait(&ww->zstd.condition, &ww->zstd.mutex);
   }
 
-  return false;
+  if (ZSTD_isError(out_size)) {
+    ww->zstd.write_error = true;
+  }
+  else {
+    if (ww_write_none(ww, out_buf, out_size) == out_size) {
+      ZstdFrame *frameinfo = MEM_mallocN(sizeof(ZstdFrame), "zstd frameinfo");
+      frameinfo->uncompressed_size = task->size;
+      frameinfo->compressed_size = out_size;
+      BLI_addtail(&ww->zstd.frames, frameinfo);
+    }
+    else {
+      ww->zstd.write_error = true;
+    }
+  }
+
+  ww->zstd.next_frame++;
+
+  BLI_mutex_unlock(&ww->zstd.mutex);
+  BLI_condition_notify_all(&ww->zstd.condition);
+
+  MEM_freeN(out_buf);
+  return NULL;
 }
-static bool ww_close_zlib(WriteWrap *ww)
+
+static bool ww_open_zstd(WriteWrap *ww, const char *filepath)
 {
-  return (gzclose(FILE_HANDLE(ww)) == Z_OK);
+  if (!ww_open_none(ww, filepath)) {
+    return false;
+  }
+
+  /* Leave one thread open for the main writing logic, unless we only have one HW thread. */
+  int num_threads = max_ii(1, BLI_system_thread_count() - 1);
+  BLI_threadpool_init(&ww->zstd.threadpool, zstd_write_task, num_threads);
+  BLI_mutex_init(&ww->zstd.mutex);
+  BLI_condition_init(&ww->zstd.condition);
+
+  return true;
 }
-static size_t ww_write_zlib(WriteWrap *ww, const char *buf, size_t buf_len)
+
+static void zstd_write_u32_le(WriteWrap *ww, uint32_t val)
 {
-  return gzwrite(FILE_HANDLE(ww), buf, buf_len);
+#ifdef __BIG_ENDIAN__
+  BLI_endian_switch_uint32(&val);
+#endif
+  ww_write_none(ww, (char *)&val, sizeof(uint32_t));
 }
-#undef FILE_HANDLE
+
+/* In order to implement efficient seeking when reading the .blend, we append
+ * a skippable frame that encodes information about the other frames present
+ * in the file.
+ * The format here follows the upstream spec for seekable files:
+ * https://github.com/facebook/zstd/blob/master/contrib/seekable_format/zstd_seekable_compression_format.md
+ * If this information is not present in a file (e.g. if it was compressed
+ * with external tools), it can still be opened in Blender, but seeking will
+ * not be supported, so more memory might be needed. */
+static void zstd_write_seekable_frames(WriteWrap *ww)
+{
+  /* Write seek table header (magic number and frame size). */
+  zstd_write_u32_le(ww, 0x184D2A5E);
+
+  /* The actual frame number might not match ww->zstd.num_frames if there was a write error. */
+  const uint32_t num_frames = BLI_listbase_count(&ww->zstd.frames);
+  /* Each frame consists of two u32, so 8 bytes each.
+   * After the frames, a footer containing two u32 and one byte (9 bytes total) is written. */
+  const uint32_t frame_size = num_frames * 8 + 9;
+  zstd_write_u32_le(ww, frame_size);
+
+  /* Write seek table entries. */
+  LISTBASE_FOREACH (ZstdFrame *, frame, &ww->zstd.frames) {
+    zstd_write_u32_le(ww, frame->compressed_size);
+    zstd_write_u32_le(ww, frame->uncompressed_size);
+  }
+
+  /* Write seek table footer (number of frames, option flags and second magic number). */
+  zstd_write_u32_le(ww, num_frames);
+  const char flags = 0; /* We don't store checksums for each frame. */
+  ww_write_none(ww, &flags, 1);
+  zstd_write_u32_le(ww, 0x8F92EAB1);
+}
+
+static bool ww_close_zstd(WriteWrap *ww)
+{
+  BLI_threadpool_end(&ww->zstd.threadpool);
+  BLI_freelistN(&ww->zstd.tasks);
+
+  BLI_mutex_end(&ww->zstd.mutex);
+  BLI_condition_end(&ww->zstd.condition);
+
+  zstd_write_seekable_frames(ww);
+  BLI_freelistN(&ww->zstd.frames);
+
+  return ww_close_none(ww) && !ww->zstd.write_error;
+}
+
+static size_t ww_write_zstd(WriteWrap *ww, const char *buf, size_t buf_len)
+{
+  if (ww->zstd.write_error) {
+    return 0;
+  }
+
+  ZstdWriteBlockTask *task = MEM_mallocN(sizeof(ZstdWriteBlockTask), __func__);
+  task->data = MEM_mallocN(buf_len, __func__);
+  memcpy(task->data, buf, buf_len);
+  task->size = buf_len;
+  task->frame_number = ww->zstd.num_frames++;
+  task->ww = ww;
+
+  BLI_mutex_lock(&ww->zstd.mutex);
+  BLI_addtail(&ww->zstd.tasks, task);
+
+  /* If there's a free worker thread, just push the block into that thread.
+   * Otherwise, we wait for the earliest thread to finish.
+   * We look up the earliest thread while holding the mutex, but release it
+   * before joining the thread to prevent a deadlock. */
+  ZstdWriteBlockTask *first_task = ww->zstd.tasks.first;
+  BLI_mutex_unlock(&ww->zstd.mutex);
+  if (!BLI_available_threads(&ww->zstd.threadpool)) {
+    BLI_threadpool_remove(&ww->zstd.threadpool, first_task);
+
+    /* If the task list was empty before we pushed our task, there should
+     * always be a free thread. */
+    BLI_assert(first_task != task);
+    BLI_remlink(&ww->zstd.tasks, first_task);
+    MEM_freeN(first_task);
+  }
+  BLI_threadpool_insert(&ww->zstd.threadpool, task);
+
+  return buf_len;
+}
 
 /* --- end compression types --- */
 
@@ -226,11 +383,11 @@ static void ww_handle_init(eWriteWrapType ww_type, WriteWrap *r_ww)
   memset(r_ww, 0, sizeof(*r_ww));
 
   switch (ww_type) {
-    case WW_WRAP_ZLIB: {
-      r_ww->open = ww_open_zlib;
-      r_ww->close = ww_close_zlib;
-      r_ww->write = ww_write_zlib;
-      r_ww->use_buf = false;
+    case WW_WRAP_ZSTD: {
+      r_ww->open = ww_open_zstd;
+      r_ww->close = ww_close_zstd;
+      r_ww->write = ww_write_zstd;
+      r_ww->use_buf = true;
       break;
     }
     default: {
@@ -252,10 +409,17 @@ static void ww_handle_init(eWriteWrapType ww_type, WriteWrap *r_ww)
 typedef struct {
   const struct SDNA *sdna;
 
-  /** Use for file and memory writing (fixed size of #MYWRITE_BUFFER_SIZE). */
-  uchar *buf;
-  /** Number of bytes used in #WriteData.buf (flushed when exceeded). */
-  size_t buf_used_len;
+  struct {
+    /** Use for file and memory writing (size stored in max_size). */
+    uchar *buf;
+    /** Number of bytes used in #WriteData.buf (flushed when exceeded). */
+    size_t used_len;
+
+    /** Maximum size of the buffer. */
+    size_t max_size;
+    /** Threshold above which writes get their own chunk. */
+    size_t chunk_size;
+  } buffer;
 
 #ifdef USE_WRITE_DATA_LEN
   /** Total number of bytes written. */
@@ -271,7 +435,7 @@ typedef struct {
   bool use_memfile;
 
   /**
-   * Wrap writing, so we can use zlib or
+   * Wrap writing, so we can use zstd or
    * other compression types later, see: G_FILE_COMPRESS
    * Will be NULL for UNDO.
    */
@@ -291,7 +455,15 @@ static WriteData *writedata_new(WriteWrap *ww)
   wd->ww = ww;
 
   if ((ww == NULL) || (ww->use_buf)) {
-    wd->buf = MEM_mallocN(MYWRITE_BUFFER_SIZE, "wd->buf");
+    if (ww == NULL) {
+      wd->buffer.max_size = MEM_BUFFER_SIZE;
+      wd->buffer.chunk_size = MEM_CHUNK_SIZE;
+    }
+    else {
+      wd->buffer.max_size = ZSTD_BUFFER_SIZE;
+      wd->buffer.chunk_size = ZSTD_CHUNK_SIZE;
+    }
+    wd->buffer.buf = MEM_mallocN(wd->buffer.max_size, "wd->buffer.buf");
   }
 
   return wd;
@@ -304,7 +476,7 @@ static void writedata_do_write(WriteData *wd, const void *mem, size_t memlen)
   }
 
   if (memlen > INT_MAX) {
-    BLI_assert(!"Cannot write chunks bigger than INT_MAX.");
+    BLI_assert_msg(0, "Cannot write chunks bigger than INT_MAX.");
     return;
   }
 
@@ -325,8 +497,8 @@ static void writedata_do_write(WriteData *wd, const void *mem, size_t memlen)
 
 static void writedata_free(WriteData *wd)
 {
-  if (wd->buf) {
-    MEM_freeN(wd->buf);
+  if (wd->buffer.buf) {
+    MEM_freeN(wd->buffer.buf);
   }
   MEM_freeN(wd);
 }
@@ -343,9 +515,9 @@ static void writedata_free(WriteData *wd)
  */
 static void mywrite_flush(WriteData *wd)
 {
-  if (wd->buf_used_len != 0) {
-    writedata_do_write(wd, wd->buf, wd->buf_used_len);
-    wd->buf_used_len = 0;
+  if (wd->buffer.used_len != 0) {
+    writedata_do_write(wd, wd->buffer.buf, wd->buffer.used_len);
+    wd->buffer.used_len = 0;
   }
 }
 
@@ -369,20 +541,20 @@ static void mywrite(WriteData *wd, const void *adr, size_t len)
   wd->write_len += len;
 #endif
 
-  if (wd->buf == NULL) {
+  if (wd->buffer.buf == NULL) {
     writedata_do_write(wd, adr, len);
   }
   else {
     /* if we have a single big chunk, write existing data in
      * buffer and write out big chunk in smaller pieces */
-    if (len > MYWRITE_MAX_CHUNK) {
-      if (wd->buf_used_len != 0) {
-        writedata_do_write(wd, wd->buf, wd->buf_used_len);
-        wd->buf_used_len = 0;
+    if (len > wd->buffer.chunk_size) {
+      if (wd->buffer.used_len != 0) {
+        writedata_do_write(wd, wd->buffer.buf, wd->buffer.used_len);
+        wd->buffer.used_len = 0;
       }
 
       do {
-        size_t writelen = MIN2(len, MYWRITE_MAX_CHUNK);
+        size_t writelen = MIN2(len, wd->buffer.chunk_size);
         writedata_do_write(wd, adr, writelen);
         adr = (const char *)adr + writelen;
         len -= writelen;
@@ -392,14 +564,14 @@ static void mywrite(WriteData *wd, const void *adr, size_t len)
     }
 
     /* if data would overflow buffer, write out the buffer */
-    if (len + wd->buf_used_len > MYWRITE_BUFFER_SIZE - 1) {
-      writedata_do_write(wd, wd->buf, wd->buf_used_len);
-      wd->buf_used_len = 0;
+    if (len + wd->buffer.used_len > wd->buffer.max_size - 1) {
+      writedata_do_write(wd, wd->buffer.buf, wd->buffer.used_len);
+      wd->buffer.used_len = 0;
     }
 
     /* append data at end of buffer */
-    memcpy(&wd->buf[wd->buf_used_len], adr, len);
-    wd->buf_used_len += len;
+    memcpy(&wd->buffer.buf[wd->buffer.used_len], adr, len);
+    wd->buffer.used_len += len;
   }
 }
 
@@ -430,9 +602,9 @@ static WriteData *mywrite_begin(WriteWrap *ww, MemFile *compare, MemFile *curren
  */
 static bool mywrite_end(WriteData *wd)
 {
-  if (wd->buf_used_len != 0) {
-    writedata_do_write(wd, wd->buf, wd->buf_used_len);
-    wd->buf_used_len = 0;
+  if (wd->buffer.used_len != 0) {
+    writedata_do_write(wd, wd->buffer.buf, wd->buffer.used_len);
+    wd->buffer.used_len = 0;
   }
 
   if (wd->use_memfile) {
@@ -538,7 +710,7 @@ static void writedata(WriteData *wd, int filecode, size_t len, const void *adr)
   }
 
   if (len > INT_MAX) {
-    BLI_assert(!"Cannot write chunks bigger than INT_MAX.");
+    BLI_assert_msg(0, "Cannot write chunks bigger than INT_MAX.");
     return;
   }
 
@@ -668,7 +840,7 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)
   current_screen_compat(mainvar, false, &curscreen, &curscene, &view_layer);
 
   LISTBASE_FOREACH (Scene *, sce, &mainvar->scenes) {
-    if (sce->id.lib == NULL && (sce == curscene || (sce->r.scemode & R_BG_RENDER))) {
+    if (!ID_IS_LINKED(sce) && (sce == curscene || (sce->r.scemode & R_BG_RENDER))) {
       RenderInfo data;
       data.sfra = sce->r.sfra;
       data.efra = sce->r.efra;
@@ -757,8 +929,8 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
     BLO_write_struct(writer, bPathCompare, path_cmp);
   }
 
-  LISTBASE_FOREACH (const bUserAssetLibrary *, asset_library, &userdef->asset_libraries) {
-    BLO_write_struct(writer, bUserAssetLibrary, asset_library);
+  LISTBASE_FOREACH (const bUserAssetLibrary *, asset_library_ref, &userdef->asset_libraries) {
+    BLO_write_struct(writer, bUserAssetLibrary, asset_library_ref);
   }
 
   LISTBASE_FOREACH (const uiStyle *, style, &userdef->uistyles) {
@@ -982,6 +1154,14 @@ static bool write_file_handle(Main *mainvar,
         BLI_assert(
             (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
 
+        /* We only write unused IDs in undo case.
+         * NOTE: All Scenes, WindowManagers and WorkSpaces should always be written to disk, so
+         * their usercount should never be NULL currently. */
+        if (id->us == 0 && !wd->use_memfile) {
+          BLI_assert(!ELEM(GS(id->name), ID_SCE, ID_WM, ID_WS));
+          continue;
+        }
+
         const bool do_override = !ELEM(override_storage, NULL, bmain) &&
                                  ID_IS_OVERRIDE_LIBRARY_REAL(id);
 
@@ -1015,12 +1195,23 @@ static bool write_file_handle(Main *mainvar,
 
         memcpy(id_buffer, id, idtype_struct_size);
 
+        /* Clear runtime data to reduce false detection of changed data in undo/redo context. */
         ((ID *)id_buffer)->tag = 0;
+        ((ID *)id_buffer)->us = 0;
+        ((ID *)id_buffer)->icon_id = 0;
         /* Those listbase data change every time we add/remove an ID, and also often when
          * renaming one (due to re-sorting). This avoids generating a lot of false 'is changed'
          * detections between undo steps. */
         ((ID *)id_buffer)->prev = NULL;
         ((ID *)id_buffer)->next = NULL;
+        /* Those runtime pointers should never be set during writing stage, but just in case clear
+         * them too. */
+        ((ID *)id_buffer)->orig_id = NULL;
+        ((ID *)id_buffer)->newid = NULL;
+        /* Even though in theory we could be able to preserve this python instance across undo even
+         * when we need to re-read the ID into its original address, this is currently cleared in
+         * #direct_link_id_common in `readfile.c` anyway, */
+        ((ID *)id_buffer)->py_instance = NULL;
 
         const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
         if (id_type->blend_write != NULL) {
@@ -1131,7 +1322,6 @@ bool BLO_write_file(Main *mainvar,
                     ReportList *reports)
 {
   char tempname[FILE_MAX + 1];
-  eWriteWrapType ww_type;
   WriteWrap ww;
 
   eBLO_WritePathRemap remap_mode = params->remap_mode;
@@ -1153,14 +1343,7 @@ bool BLO_write_file(Main *mainvar,
   /* open temporary file, so we preserve the original in case we crash */
   BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
 
-  if (write_flags & G_FILE_COMPRESS) {
-    ww_type = WW_WRAP_ZLIB;
-  }
-  else {
-    ww_type = WW_WRAP_NONE;
-  }
-
-  ww_handle_init(ww_type, &ww);
+  ww_handle_init((write_flags & G_FILE_COMPRESS) ? WW_WRAP_ZSTD : WW_WRAP_NONE, &ww);
 
   if (ww.open(&ww, tempname) == false) {
     BKE_reportf(

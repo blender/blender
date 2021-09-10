@@ -88,7 +88,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss, float result[3],
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   /* Do not modify corner vertices. */
-  if (neighbor_count <= 2) {
+  if (neighbor_count <= 2 && is_boundary) {
     copy_v3_v3(result, SCULPT_vertex_co_get(ss, index));
     return;
   }
@@ -367,7 +367,7 @@ void SCULPT_smooth(Sculpt *sd,
   last = max_iterations * (bstrength - count * fract);
 
   if (type == PBVH_FACES && !ss->pmap) {
-    BLI_assert(!"sculpt smooth: pmap missing");
+    BLI_assert_msg(0, "sculpt smooth: pmap missing");
     return;
   }
 

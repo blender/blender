@@ -41,6 +41,7 @@ void BKE_mesh_foreach_mapped_vert(struct Mesh *mesh,
                                   MeshForeachFlag flag);
 void BKE_mesh_foreach_mapped_edge(
     struct Mesh *mesh,
+    int tot_edges,
     void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
     void *userData);
 void BKE_mesh_foreach_mapped_loop(struct Mesh *mesh,

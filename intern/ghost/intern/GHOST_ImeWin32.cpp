@@ -30,10 +30,17 @@
 #  include "GHOST_WindowWin32.h"
 #  include "utfconv.h"
 
+/* ISO_639-1 2-Letter Abbreviations. */
+#  define IMELANG_ENGLISH "en"
+#  define IMELANG_CHINESE "zh"
+#  define IMELANG_JAPANESE "ja"
+#  define IMELANG_KOREAN "ko"
+
 GHOST_ImeWin32::GHOST_ImeWin32()
     : is_composing_(false),
-      ime_status_(false),
-      input_language_id_(LANG_USER_DEFAULT),
+      language_(IMELANG_ENGLISH),
+      conversion_modes_(IME_CMODE_ALPHANUMERIC),
+      sentence_mode_(IME_SMODE_NONE),
       system_caret_(false),
       caret_rect_(-1, -1, 0, 0),
       is_first(true),
@@ -45,18 +52,65 @@ GHOST_ImeWin32::~GHOST_ImeWin32()
 {
 }
 
-bool GHOST_ImeWin32::SetInputLanguage()
+void GHOST_ImeWin32::UpdateInputLanguage()
 {
-  /**
-   * Retrieve the current keyboard layout from Windows and determine whether
-   * or not the current input context has IMEs.
-   * Also save its input language for language-specific operations required
-   * while composing a text.
-   */
-  HKL keyboard_layout = ::GetKeyboardLayout(0);
-  input_language_id_ = LOWORD(keyboard_layout);
-  ime_status_ = ::ImmIsIME(keyboard_layout);
-  return ime_status_;
+  /* Get the current input locale full name. */
+  WCHAR locale[LOCALE_NAME_MAX_LENGTH];
+  LCIDToLocaleName(
+      MAKELCID(LOWORD(::GetKeyboardLayout(0)), SORT_DEFAULT), locale, LOCALE_NAME_MAX_LENGTH, 0);
+  /* Get the 2-letter ISO-63901 abbreviation of the input locale name. */
+  WCHAR language_u16[W32_ISO639_LEN];
+  GetLocaleInfoEx(locale, LOCALE_SISO639LANGNAME, language_u16, W32_ISO639_LEN);
+  /* Store this as a UTF-8 string. */
+  WideCharToMultiByte(
+      CP_UTF8, 0, language_u16, W32_ISO639_LEN, language_, W32_ISO639_LEN, NULL, NULL);
+}
+
+BOOL GHOST_ImeWin32::IsLanguage(const char name[W32_ISO639_LEN])
+{
+  return (strcmp(name, language_) == 0);
+}
+
+void GHOST_ImeWin32::UpdateConversionStatus(HWND window_handle)
+{
+  HIMC imm_context = ::ImmGetContext(window_handle);
+  if (imm_context) {
+    if (::ImmGetOpenStatus(imm_context)) {
+      ::ImmGetConversionStatus(imm_context, &conversion_modes_, &sentence_mode_);
+    }
+    else {
+      conversion_modes_ = IME_CMODE_ALPHANUMERIC;
+      sentence_mode_ = IME_SMODE_NONE;
+    }
+    ::ImmReleaseContext(window_handle, imm_context);
+  }
+  else {
+    conversion_modes_ = IME_CMODE_ALPHANUMERIC;
+    sentence_mode_ = IME_SMODE_NONE;
+  }
+}
+
+bool GHOST_ImeWin32::IsEnglishMode()
+{
+  return (conversion_modes_ & IME_CMODE_NOCONVERSION) ||
+         !(conversion_modes_ & (IME_CMODE_NATIVE | IME_CMODE_FULLSHAPE));
+}
+
+bool GHOST_ImeWin32::IsImeKeyEvent(char ascii)
+{
+  if (!(IsEnglishMode())) {
+    /* In Chinese, Japanese, Korean, all alpha keys are processed by IME. */
+    if ((ascii >= 'A' && ascii <= 'Z') || (ascii >= 'a' && ascii <= 'z')) {
+      return true;
+    }
+    if (IsLanguage(IMELANG_JAPANESE) && (ascii >= ' ' && ascii <= '~')) {
+      return true;
+    }
+    else if (IsLanguage(IMELANG_CHINESE) && ascii && strchr("!\"$'(),.:;<>?[\\]^_`", ascii)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 void GHOST_ImeWin32::CreateImeWindow(HWND window_handle)
@@ -73,13 +127,8 @@ void GHOST_ImeWin32::CreateImeWindow(HWND window_handle)
    * Since some third-party Japanese IME also uses ::GetCaretPos() to determine
    * their window position, we also create a caret for Japanese IMEs.
    */
-  if (PRIMARYLANGID(input_language_id_) == LANG_CHINESE ||
-      PRIMARYLANGID(input_language_id_) == LANG_JAPANESE) {
-    if (!system_caret_) {
-      if (::CreateCaret(window_handle, NULL, 1, 1)) {
-        system_caret_ = true;
-      }
-    }
+  if (!system_caret_ && (IsLanguage(IMELANG_CHINESE) || IsLanguage(IMELANG_JAPANESE))) {
+    system_caret_ = ::CreateCaret(window_handle, NULL, 1, 1);
   }
   /* Restore the positions of the IME windows. */
   UpdateImeWindow(window_handle);
@@ -132,16 +181,9 @@ void GHOST_ImeWin32::MoveImeWindow(HWND window_handle, HIMC imm_context)
   CANDIDATEFORM candidate_position = {0, CFS_CANDIDATEPOS, {x, y}, {0, 0, 0, 0}};
   ::ImmSetCandidateWindow(imm_context, &candidate_position);
   if (system_caret_) {
-    switch (PRIMARYLANGID(input_language_id_)) {
-      case LANG_JAPANESE:
-        ::SetCaretPos(x, y + caret_rect_.getHeight());
-        break;
-      default:
-        ::SetCaretPos(x, y);
-        break;
-    }
+    ::SetCaretPos(x, y);
   }
-  if (PRIMARYLANGID(input_language_id_) == LANG_KOREAN) {
+  if (IsLanguage(IMELANG_KOREAN)) {
     /**
      * Chinese IMEs and Japanese IMEs require the upper-left corner of
      * the caret to move the position of their candidate windows.
@@ -231,83 +273,79 @@ void GHOST_ImeWin32::GetCaret(HIMC imm_context, LPARAM lparam, ImeComposition *c
    */
   int target_start = -1;
   int target_end = -1;
-  switch (PRIMARYLANGID(input_language_id_)) {
-    case LANG_KOREAN:
-      if (lparam & CS_NOMOVECARET) {
-        target_start = 0;
-        target_end = 1;
-      }
-      break;
-    case LANG_CHINESE: {
-      int clause_size = ImmGetCompositionStringW(imm_context, GCS_COMPCLAUSE, NULL, 0);
-      if (clause_size) {
-        static std::vector<unsigned long> clauses;
-        clause_size = clause_size / sizeof(clauses[0]);
-        clauses.resize(clause_size);
-        ImmGetCompositionStringW(
-            imm_context, GCS_COMPCLAUSE, &clauses[0], sizeof(clauses[0]) * clause_size);
-        if (composition->cursor_position == composition->ime_string.size()) {
-          target_start = clauses[clause_size - 2];
-          target_end = clauses[clause_size - 1];
-        }
-        else {
-          for (int i = 0; i < clause_size - 1; i++) {
-            if (clauses[i] == composition->cursor_position) {
-              target_start = clauses[i];
-              target_end = clauses[i + 1];
-              break;
-            }
-          }
-        }
+  if (IsLanguage(IMELANG_KOREAN)) {
+    if (lparam & CS_NOMOVECARET) {
+      target_start = 0;
+      target_end = 1;
+    }
+  }
+  else if (IsLanguage(IMELANG_CHINESE)) {
+    int clause_size = ImmGetCompositionStringW(imm_context, GCS_COMPCLAUSE, NULL, 0);
+    if (clause_size) {
+      static std::vector<unsigned long> clauses;
+      clause_size = clause_size / sizeof(clauses[0]);
+      clauses.resize(clause_size);
+      ImmGetCompositionStringW(
+          imm_context, GCS_COMPCLAUSE, &clauses[0], sizeof(clauses[0]) * clause_size);
+      if (composition->cursor_position == composition->ime_string.size()) {
+        target_start = clauses[clause_size - 2];
+        target_end = clauses[clause_size - 1];
       }
       else {
-        if (composition->cursor_position != -1) {
-          target_start = composition->cursor_position;
-          target_end = composition->ime_string.size();
-        }
-      }
-      break;
-    }
-    case LANG_JAPANESE:
-
-      /**
-       * For Japanese IMEs, the robustest way to retrieve the caret
-       * is scanning the attribute of the latest composition string and
-       * retrieving the beginning and the end of the target clause, i.e.
-       * a clause being converted.
-       */
-      if (lparam & GCS_COMPATTR) {
-        int attribute_size = ::ImmGetCompositionStringW(imm_context, GCS_COMPATTR, NULL, 0);
-        if (attribute_size > 0) {
-          char *attribute_data = new char[attribute_size];
-          if (attribute_data) {
-            ::ImmGetCompositionStringW(imm_context, GCS_COMPATTR, attribute_data, attribute_size);
-            for (target_start = 0; target_start < attribute_size; ++target_start) {
-              if (IsTargetAttribute(attribute_data[target_start]))
-                break;
-            }
-            for (target_end = target_start; target_end < attribute_size; ++target_end) {
-              if (!IsTargetAttribute(attribute_data[target_end]))
-                break;
-            }
-            if (target_start == attribute_size) {
-              /**
-               * This composition clause does not contain any target clauses,
-               * i.e. this clauses is an input clause.
-               * We treat whole this clause as a target clause.
-               */
-              target_end = target_start;
-              target_start = 0;
-            }
-            if (target_start != -1 && target_start < attribute_size &&
-                attribute_data[target_start] == ATTR_TARGET_NOTCONVERTED) {
-              composition->cursor_position = target_start;
-            }
+        for (int i = 0; i < clause_size - 1; i++) {
+          if (clauses[i] == composition->cursor_position) {
+            target_start = clauses[i];
+            target_end = clauses[i + 1];
+            break;
           }
-          delete[] attribute_data;
         }
       }
-      break;
+    }
+    else {
+      if (composition->cursor_position != -1) {
+        target_start = composition->cursor_position;
+        target_end = composition->ime_string.size();
+      }
+    }
+  }
+  else if (IsLanguage(IMELANG_JAPANESE)) {
+    /**
+     * For Japanese IMEs, the robustest way to retrieve the caret
+     * is scanning the attribute of the latest composition string and
+     * retrieving the beginning and the end of the target clause, i.e.
+     * a clause being converted.
+     */
+    if (lparam & GCS_COMPATTR) {
+      int attribute_size = ::ImmGetCompositionStringW(imm_context, GCS_COMPATTR, NULL, 0);
+      if (attribute_size > 0) {
+        char *attribute_data = new char[attribute_size];
+        if (attribute_data) {
+          ::ImmGetCompositionStringW(imm_context, GCS_COMPATTR, attribute_data, attribute_size);
+          for (target_start = 0; target_start < attribute_size; ++target_start) {
+            if (IsTargetAttribute(attribute_data[target_start]))
+              break;
+          }
+          for (target_end = target_start; target_end < attribute_size; ++target_end) {
+            if (!IsTargetAttribute(attribute_data[target_end]))
+              break;
+          }
+          if (target_start == attribute_size) {
+            /**
+             * This composition clause does not contain any target clauses,
+             * i.e. this clauses is an input clause.
+             * We treat whole this clause as a target clause.
+             */
+            target_end = target_start;
+            target_start = 0;
+          }
+          if (target_start != -1 && target_start < attribute_size &&
+              attribute_data[target_start] == ATTR_TARGET_NOTCONVERTED) {
+            composition->cursor_position = target_start;
+          }
+        }
+        delete[] attribute_data;
+      }
+    }
   }
   composition->target_start = target_start;
   composition->target_end = target_end;

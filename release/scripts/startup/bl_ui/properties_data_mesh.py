@@ -41,7 +41,6 @@ class MESH_MT_vertex_group_context_menu(Menu):
         ).sort_type = 'BONE_HIERARCHY'
         layout.separator()
         layout.operator("object.vertex_group_copy", icon='DUPLICATE')
-        layout.operator("object.vertex_group_copy_to_linked")
         layout.operator("object.vertex_group_copy_to_selected")
         layout.separator()
         layout.operator("object.vertex_group_mirror", icon='ARROW_LEFTRIGHT').use_topology = False
@@ -647,7 +646,7 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         if len(colliding_names) == 0:
             return
 
-        layout.label(text="Name Collisions: {}".format(", ".join(colliding_names)), icon='INFO')
+        layout.label(text="Name collisions: {}".format(", ".join(colliding_names)), icon='ERROR')
 
 
 classes = (

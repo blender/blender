@@ -968,9 +968,9 @@ void ElementResize(const TransInfo *t,
       float obsizemat[3][3];
       /* Reorient the size mat to fit the oriented object. */
       mul_m3_m3m3(obsizemat, tmat, td->axismtx);
-      /* print_m3("obsizemat", obsizemat); */
+      // print_m3("obsizemat", obsizemat);
       TransMat3ToSize(obsizemat, td->axismtx, fsize);
-      /* print_v3("fsize", fsize); */
+      // print_v3("fsize", fsize);
     }
     else {
       mat3_to_size(fsize, tmat);
@@ -1065,102 +1065,6 @@ void ElementResize(const TransInfo *t,
   constraintTransLim(t, td);
 }
 
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Transform (Frame Utils)
- * \{ */
-
-/**
- * This function returns the snapping 'mode' for Animation Editors only.
- * We cannot use the standard snapping due to NLA-strip scaling complexities.
- *
- * TODO: these modifier checks should be key-mappable.
- */
-short getAnimEdit_SnapMode(TransInfo *t)
-{
-  short autosnap = SACTSNAP_OFF;
-
-  if (t->spacetype == SPACE_ACTION) {
-    SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
-
-    if (saction) {
-      autosnap = saction->autosnap;
-    }
-  }
-  else if (t->spacetype == SPACE_GRAPH) {
-    SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
-
-    if (sipo) {
-      autosnap = sipo->autosnap;
-    }
-  }
-  else if (t->spacetype == SPACE_NLA) {
-    SpaceNla *snla = (SpaceNla *)t->area->spacedata.first;
-
-    if (snla) {
-      autosnap = snla->autosnap;
-    }
-  }
-  else {
-    autosnap = SACTSNAP_OFF;
-  }
-
-  /* toggle autosnap on/off
-   * - when toggling on, prefer nearest frame over 1.0 frame increments
-   */
-  if (t->modifiers & MOD_SNAP_INVERT) {
-    if (autosnap) {
-      autosnap = SACTSNAP_OFF;
-    }
-    else {
-      autosnap = SACTSNAP_FRAME;
-    }
-  }
-
-  return autosnap;
-}
-
-/* This function is used by Animation Editor specific transform functions to do
- * the Snap Keyframe to Nearest Frame/Marker
- */
-void doAnimEdit_SnapFrame(
-    TransInfo *t, TransData *td, TransData2D *td2d, AnimData *adt, short autosnap)
-{
-  if (autosnap != SACTSNAP_OFF) {
-    float val;
-
-    /* convert frame to nla-action time (if needed) */
-    if (adt && (t->spacetype != SPACE_SEQ)) {
-      val = BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_MAP);
-    }
-    else {
-      val = *(td->val);
-    }
-
-    snapFrameTransform(t, autosnap, true, val, &val);
-
-    /* convert frame out of nla-action time */
-    if (adt && (t->spacetype != SPACE_SEQ)) {
-      *(td->val) = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
-    }
-    else {
-      *(td->val) = val;
-    }
-  }
-
-  /* If the handles are to be moved too
-   * (as side-effect of keyframes moving, to keep the general effect)
-   * offset them by the same amount so that the general angles are maintained
-   * (i.e. won't change while handles are free-to-roam and keyframes are snap-locked).
-   */
-  if ((td->flag & TD_MOVEHANDLE1) && td2d->h1) {
-    td2d->h1[0] = td2d->ih1[0] + *td->val - td->ival;
-  }
-  if ((td->flag & TD_MOVEHANDLE2) && td2d->h2) {
-    td2d->h2[0] = td2d->ih2[0] + *td->val - td->ival;
-  }
-}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1328,14 +1232,24 @@ void transform_mode_default_modal_orientation_set(TransInfo *t, int type)
     return;
   }
 
+  View3D *v3d = NULL;
   RegionView3D *rv3d = NULL;
   if ((type == V3D_ORIENT_VIEW) && (t->spacetype == SPACE_VIEW3D) && t->region &&
       (t->region->regiontype == RGN_TYPE_WINDOW)) {
+    v3d = t->view;
     rv3d = t->region->regiondata;
   }
 
   t->orient[O_DEFAULT].type = ED_transform_calc_orientation_from_type_ex(
-      NULL, t->orient[O_DEFAULT].matrix, NULL, rv3d, NULL, NULL, type, 0);
+      t->scene,
+      t->view_layer,
+      v3d,
+      rv3d,
+      NULL,
+      NULL,
+      type,
+      V3D_AROUND_CENTER_BOUNDS,
+      t->orient[O_DEFAULT].matrix);
 
   if (t->orient_curr == O_DEFAULT) {
     /* Update Orientation. */

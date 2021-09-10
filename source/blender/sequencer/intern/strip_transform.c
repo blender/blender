@@ -40,6 +40,10 @@
 #include "SEQ_time.h"
 #include "SEQ_transform.h"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"seq.strip_transform"};
+
 static int seq_tx_get_start(Sequence *seq)
 {
   return seq->start;
@@ -204,7 +208,7 @@ bool SEQ_transform_sequence_can_be_translated(Sequence *seq)
   return !(seq->type & SEQ_TYPE_EFFECT) || (SEQ_effect_get_num_inputs(seq->type) == 0);
 }
 
-static bool seq_overlap(Sequence *seq1, Sequence *seq2)
+bool SEQ_transform_test_overlap_seq_seq(Sequence *seq1, Sequence *seq2)
 {
   return (seq1 != seq2 && seq1->machine == seq2->machine &&
           ((seq1->enddisp <= seq2->startdisp) || (seq1->startdisp >= seq2->enddisp)) == 0);
@@ -216,7 +220,7 @@ bool SEQ_transform_test_overlap(ListBase *seqbasep, Sequence *test)
 
   seq = seqbasep->first;
   while (seq) {
-    if (seq_overlap(test, seq)) {
+    if (SEQ_transform_test_overlap_seq_seq(test, seq)) {
       return true;
     }
 
@@ -269,9 +273,9 @@ bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
     }
 
     test->machine += channel_delta;
-    SEQ_time_update_sequence(
-        evil_scene,
-        test);  // XXX: I don't think this is needed since were only moving vertically, Campbell.
+
+    /* XXX: I don't think this is needed since were only moving vertically, Campbell. */
+    SEQ_time_update_sequence(evil_scene, test);
   }
 
   if ((test->machine < 1) || (test->machine > MAXSEQ)) {
@@ -312,7 +316,13 @@ static int shuffle_seq_time_offset_test(SeqCollection *strips_to_shuffle,
 
   SEQ_ITERATOR_FOREACH (seq, strips_to_shuffle) {
     LISTBASE_FOREACH (Sequence *, seq_other, seqbasep) {
-      if (!seq_overlap(seq, seq_other)) {
+      if (!SEQ_transform_test_overlap_seq_seq(seq, seq_other)) {
+        continue;
+      }
+      if (UNLIKELY(SEQ_collection_has_strip(seq_other, strips_to_shuffle))) {
+        CLOG_WARN(&LOG,
+                  "Strip overlaps with itself or another strip, that is to be shuffled."
+                  "This should never happen.");
         continue;
       }
       if (dir == 'L') {

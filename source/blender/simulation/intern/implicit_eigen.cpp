@@ -797,7 +797,7 @@ void SIM_mass_spring_force_drag(Implicit_Data *data, float drag)
   for (int i = 0; i < numverts; i++) {
     float tmp[3][3];
 
-    /* NB: uses root space velocity, no need to transform */
+    /* NOTE: Uses root space velocity, no need to transform. */
     madd_v3_v3fl(data->F.v3(i), data->V.v3(i), -drag);
 
     copy_m3_m3(tmp, I);
@@ -894,8 +894,8 @@ BLI_INLINE void dfdx_damp(float to[3][3],
                           float rest,
                           float damping)
 {
-  /* inner spring damping   vel is the relative velocity  of the endpoints. */
-  //  return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
+  /* Inner spring damping vel is the relative velocity of the endpoints. */
+  // return (I - outerprod(dir, dir)) * (-damping * -(dot(dir, vel) / Max(length, rest)));
   mul_fvectorT_fvector(to, dir, dir);
   sub_fmatrix_fmatrix(to, I, to);
   mul_fmatrix_S(to, (-damping * -(dot_v3v3(dir, vel) / MAX2(length, rest))));

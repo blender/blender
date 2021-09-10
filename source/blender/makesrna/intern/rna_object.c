@@ -218,6 +218,12 @@ static EnumPropertyItem instance_items_pointcloud[] = {
     {OB_DUPLIVERTS, "POINTS", 0, "Points", "Instantiate child objects on all points"},
     {0, NULL, 0, NULL, NULL},
 };
+
+static EnumPropertyItem instance_items_empty[] = {
+    {0, "NONE", 0, "None", ""},
+    INSTANCE_ITEM_COLLECTION,
+    {0, NULL, 0, NULL, NULL},
+};
 #endif
 #undef INSTANCE_ITEMS_SHARED
 #undef INSTANCE_ITEM_COLLECTION
@@ -751,7 +757,7 @@ static const EnumPropertyItem *rna_Object_instance_type_itemf(bContext *UNUSED(C
   const EnumPropertyItem *item;
 
   if (ob->type == OB_EMPTY) {
-    item = instance_items;
+    item = instance_items_empty;
   }
   else if (ob->type == OB_POINTCLOUD) {
     item = instance_items_pointcloud;
@@ -790,9 +796,27 @@ static void rna_Object_dup_collection_set(PointerRNA *ptr,
   }
 }
 
+static void rna_Object_vertex_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  Object *ob = (Object *)ptr->data;
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    iter->valid = 0;
+    return;
+  }
+
+  ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
+  iter->valid = defbase != NULL;
+
+  rna_iterator_listbase_begin(iter, defbase, NULL);
+}
+
 static void rna_VertexGroup_name_set(PointerRNA *ptr, const char *value)
 {
   Object *ob = (Object *)ptr->owner_id;
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    return;
+  }
+
   bDeformGroup *dg = (bDeformGroup *)ptr->data;
   BLI_strncpy_utf8(dg->name, value, sizeof(dg->name));
   BKE_object_defgroup_unique_name(dg, ob);
@@ -801,15 +825,25 @@ static void rna_VertexGroup_name_set(PointerRNA *ptr, const char *value)
 static int rna_VertexGroup_index_get(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    return -1;
+  }
 
-  return BLI_findindex(&ob->defbase, ptr->data);
+  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  return BLI_findindex(defbase, ptr->data);
 }
 
 static PointerRNA rna_Object_active_vertex_group_get(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    return PointerRNA_NULL;
+  }
+
+  const ListBase *defbase = BKE_object_defgroup_list(ob);
+
   return rna_pointer_inherit_refine(
-      ptr, &RNA_VertexGroup, BLI_findlink(&ob->defbase, ob->actdef - 1));
+      ptr, &RNA_VertexGroup, BLI_findlink(defbase, BKE_object_defgroup_active_index_get(ob) - 1));
 }
 
 static void rna_Object_active_vertex_group_set(PointerRNA *ptr,
@@ -817,7 +851,13 @@ static void rna_Object_active_vertex_group_set(PointerRNA *ptr,
                                                struct ReportList *reports)
 {
   Object *ob = (Object *)ptr->owner_id;
-  int index = BLI_findindex(&ob->defbase, value.data);
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    return;
+  }
+
+  const ListBase *defbase = BKE_object_defgroup_list(ob);
+
+  int index = BLI_findindex(defbase, value.data);
   if (index == -1) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -827,19 +867,27 @@ static void rna_Object_active_vertex_group_set(PointerRNA *ptr,
     return;
   }
 
-  ob->actdef = index + 1;
+  BKE_object_defgroup_active_index_set(ob, index + 1);
 }
 
 static int rna_Object_active_vertex_group_index_get(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  return ob->actdef - 1;
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    return -1;
+  }
+
+  return BKE_object_defgroup_active_index_get(ob) - 1;
 }
 
 static void rna_Object_active_vertex_group_index_set(PointerRNA *ptr, int value)
 {
   Object *ob = (Object *)ptr->owner_id;
-  ob->actdef = value + 1;
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    return;
+  }
+
+  BKE_object_defgroup_active_index_set(ob, value + 1);
 }
 
 static void rna_Object_active_vertex_group_index_range(
@@ -848,15 +896,24 @@ static void rna_Object_active_vertex_group_index_range(
   Object *ob = (Object *)ptr->owner_id;
 
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&ob->defbase) - 1);
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    *max = 0;
+    return;
+  }
+  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  *max = max_ii(0, BLI_listbase_count(defbase) - 1);
 }
 
 void rna_object_vgroup_name_index_get(PointerRNA *ptr, char *value, int index)
 {
   Object *ob = (Object *)ptr->owner_id;
-  bDeformGroup *dg;
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    value[0] = '\0';
+    return;
+  }
 
-  dg = BLI_findlink(&ob->defbase, index - 1);
+  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const bDeformGroup *dg = BLI_findlink(defbase, index - 1);
 
   if (dg) {
     BLI_strncpy(value, dg->name, sizeof(dg->name));
@@ -869,21 +926,34 @@ void rna_object_vgroup_name_index_get(PointerRNA *ptr, char *value, int index)
 int rna_object_vgroup_name_index_length(PointerRNA *ptr, int index)
 {
   Object *ob = (Object *)ptr->owner_id;
-  bDeformGroup *dg;
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    return 0;
+  }
 
-  dg = BLI_findlink(&ob->defbase, index - 1);
+  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  bDeformGroup *dg = BLI_findlink(defbase, index - 1);
   return (dg) ? strlen(dg->name) : 0;
 }
 
 void rna_object_vgroup_name_index_set(PointerRNA *ptr, const char *value, short *index)
 {
   Object *ob = (Object *)ptr->owner_id;
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    *index = -1;
+    return;
+  }
+
   *index = BKE_object_defgroup_name_index(ob, value) + 1;
 }
 
 void rna_object_vgroup_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
 {
   Object *ob = (Object *)ptr->owner_id;
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    result[0] = '\0';
+    return;
+  }
+
   bDeformGroup *dg = BKE_object_defgroup_find_name(ob, value);
   if (dg) {
     /* No need for BLI_strncpy_utf8, since this matches an existing group. */
@@ -1256,8 +1326,8 @@ static int rna_Object_rotation_4d_editable(PointerRNA *ptr, int index)
 
 static int rna_MaterialSlot_index(PointerRNA *ptr)
 {
-  /* There is an offset of one, so that `ptr->data` is not null. */
-  return POINTER_AS_INT(ptr->data) - 1;
+  /* There is an offset, so that `ptr->data` is not null and unique across IDs. */
+  return (uintptr_t)ptr->data - (uintptr_t)ptr->owner_id;
 }
 
 static int rna_MaterialSlot_material_editable(PointerRNA *ptr, const char **UNUSED(r_info))
@@ -1420,10 +1490,11 @@ static void rna_Object_material_slots_next(CollectionPropertyIterator *iter)
 static PointerRNA rna_Object_material_slots_get(CollectionPropertyIterator *iter)
 {
   PointerRNA ptr;
-  RNA_pointer_create((ID *)iter->internal.count.ptr,
+  ID *id = (ID *)iter->internal.count.ptr;
+  RNA_pointer_create(id,
                      &RNA_MaterialSlot,
-                     /* Add one, so that `ptr->data` is not null. */
-                     POINTER_FROM_INT(iter->internal.count.item + 1),
+                     /* Add offset, so that `ptr->data` is not null and unique across IDs. */
+                     (void *)(iter->internal.count.item + (uintptr_t)id),
                      &ptr);
   return ptr;
 }
@@ -1933,16 +2004,25 @@ static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
   }
 }
 
+static bool check_object_vgroup_support_and_warn(const Object *ob,
+                                                 const char *op_name,
+                                                 ReportList *reports)
+{
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    const char *ob_type_name = "Unknown";
+    RNA_enum_name_from_value(rna_enum_object_type_items, ob->type, &ob_type_name);
+    BKE_reportf(reports, RPT_ERROR, "%s is not supported for '%s' objects", op_name, ob_type_name);
+    return false;
+  }
+  return true;
+}
+
 static bDeformGroup *rna_Object_vgroup_new(Object *ob,
                                            Main *bmain,
                                            ReportList *reports,
                                            const char *name)
 {
-  if (!OB_TYPE_SUPPORT_VGROUP(ob->type)) {
-    const char *ob_type_name = "Unknown";
-    RNA_enum_name_from_value(rna_enum_object_type_items, ob->type, &ob_type_name);
-    BKE_reportf(
-        reports, RPT_ERROR, "VertexGroups.new(): is not supported for '%s' objects", ob_type_name);
+  if (!check_object_vgroup_support_and_warn(ob, "VertexGroups.new()", reports)) {
     return NULL;
   }
 
@@ -1959,8 +2039,14 @@ static void rna_Object_vgroup_remove(Object *ob,
                                      ReportList *reports,
                                      PointerRNA *defgroup_ptr)
 {
+  if (!check_object_vgroup_support_and_warn(ob, "VertexGroups.remove()", reports)) {
+    return;
+  }
+
   bDeformGroup *defgroup = defgroup_ptr->data;
-  if (BLI_findindex(&ob->defbase, defgroup) == -1) {
+  ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
+
+  if (BLI_findindex(defbase, defgroup) == -1) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "DeformGroup '%s' not in object '%s'",
@@ -1976,8 +2062,12 @@ static void rna_Object_vgroup_remove(Object *ob,
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
-static void rna_Object_vgroup_clear(Object *ob, Main *bmain)
+static void rna_Object_vgroup_clear(Object *ob, Main *bmain, ReportList *reports)
 {
+  if (!check_object_vgroup_support_and_warn(ob, "VertexGroups.clear()", reports)) {
+    return;
+  }
+
   BKE_object_defgroup_remove_all(ob);
 
   DEG_relations_tag_update(bmain);
@@ -2687,7 +2777,6 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_int_sdna(prop, NULL, "actdef");
   RNA_def_property_int_funcs(prop,
                              "rna_Object_active_vertex_group_index_get",
                              "rna_Object_active_vertex_group_index_set",
@@ -2712,7 +2801,7 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 
   func = RNA_def_function(srna, "clear", "rna_Object_vgroup_clear");
-  RNA_def_function_flag(func, FUNC_USE_MAIN);
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Delete all vertex groups from object");
 }
 
@@ -2843,6 +2932,97 @@ static void rna_def_object_lineart(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0f, DEG2RAD(180.0f), 0.01f, 1);
   RNA_def_property_ui_text(prop, "Crease", "Angles smaller than this will be treated as creases");
   RNA_def_property_update(prop, 0, "rna_object_lineart_update");
+}
+
+static void rna_def_object_visibility(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  /* Hide options. */
+  prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "visibility_flag", OB_HIDE_VIEWPORT);
+  RNA_def_property_ui_text(prop, "Disable in Viewports", "Globally disable in viewports");
+  RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, -1);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
+
+  prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "visibility_flag", OB_HIDE_SELECT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Disable Selection", "Disable selection in viewport");
+  RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, -1);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
+
+  prop = RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "visibility_flag", OB_HIDE_RENDER);
+  RNA_def_property_ui_text(prop, "Disable in Renders", "Globally disable in renders");
+  RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, -1);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
+
+  /* Instancer options. */
+  prop = RNA_def_property(srna, "show_instancer_for_render", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "duplicator_visibility_flag", OB_DUPLI_FLAG_RENDER);
+  RNA_def_property_ui_text(prop, "Render Instancer", "Make instancer visible when rendering");
+  RNA_def_property_update(
+      prop, NC_OBJECT | ND_DRAW, "rna_Object_duplicator_visibility_flag_update");
+
+  prop = RNA_def_property(srna, "show_instancer_for_viewport", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "duplicator_visibility_flag", OB_DUPLI_FLAG_VIEWPORT);
+  RNA_def_property_ui_text(prop, "Display Instancer", "Make instancer visible in the viewport");
+  RNA_def_property_update(
+      prop, NC_OBJECT | ND_DRAW, "rna_Object_duplicator_visibility_flag_update");
+
+  /* Ray visibility. */
+  prop = RNA_def_property(srna, "visible_camera", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "visibility_flag", OB_HIDE_CAMERA);
+  RNA_def_property_ui_text(prop, "Camera Visibility", "Object visibility to camera rays");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
+  prop = RNA_def_property(srna, "visible_diffuse", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "visibility_flag", OB_HIDE_DIFFUSE);
+  RNA_def_property_ui_text(prop, "Diffuse Visibility", "Object visibility to diffuse rays");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
+  prop = RNA_def_property(srna, "visible_glossy", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "visibility_flag", OB_HIDE_GLOSSY);
+  RNA_def_property_ui_text(prop, "Glossy Visibility", "Object visibility to glossy rays");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
+  prop = RNA_def_property(srna, "visible_transmission", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "visibility_flag", OB_HIDE_TRANSMISSION);
+  RNA_def_property_ui_text(
+      prop, "Transmission Visibility", "Object visibility to transmission rays");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
+  prop = RNA_def_property(srna, "visible_volume_scatter", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "visibility_flag", OB_HIDE_VOLUME_SCATTER);
+  RNA_def_property_ui_text(
+      prop, "Volume Scatter Visibility", "Object visibility to volume scattering rays");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
+  prop = RNA_def_property(srna, "visible_shadow", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "visibility_flag", OB_HIDE_SHADOW);
+  RNA_def_property_ui_text(prop, "Shadow Visibility", "Object visibility to shadow rays");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
+  /* Holdout and shadow catcher. */
+  prop = RNA_def_property(srna, "is_holdout", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "visibility_flag", OB_HOLDOUT);
+  RNA_def_property_ui_text(
+      prop,
+      "Holdout",
+      "Render objects as a holdout or matte, creating a hole in the image with zero alpha, to "
+      "fill out in compositing with real footage or another render");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
+
+  prop = RNA_def_property(srna, "is_shadow_catcher", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "visibility_flag", OB_SHADOW_CATCHER);
+  RNA_def_property_ui_text(
+      prop,
+      "Shadow Catcher",
+      "Only render shadows and reflections on this object, for compositing renders into real "
+      "footage. Objects with this setting are considered to already exist in the footage, "
+      "objects without it are synthetic objects being composited into it");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 }
 
 static void rna_def_object(BlenderRNA *brna)
@@ -3274,7 +3454,15 @@ static void rna_def_object(BlenderRNA *brna)
 
   /* vertex groups */
   prop = RNA_def_property(srna, "vertex_groups", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "defbase", NULL);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Object_vertex_groups_begin",
+                                    "rna_iterator_listbase_next",
+                                    "rna_iterator_listbase_end",
+                                    "rna_iterator_listbase_get",
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL);
   RNA_def_property_struct_type(prop, "VertexGroup");
   RNA_def_property_override_clear_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Vertex Groups", "Vertex groups of the object");
@@ -3416,37 +3604,7 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "RigidBodyConstraint");
   RNA_def_property_ui_text(prop, "Rigid Body Constraint", "Constraint constraining rigid bodies");
 
-  /* restrict */
-  prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_VIEWPORT);
-  RNA_def_property_ui_text(prop, "Disable in Viewports", "Globally disable in viewports");
-  RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, -1);
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
-
-  prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_SELECT);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Disable Selection", "Disable selection in viewport");
-  RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, -1);
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
-
-  prop = RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_RENDER);
-  RNA_def_property_ui_text(prop, "Disable in Renders", "Globally disable in renders");
-  RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, -1);
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
-
-  prop = RNA_def_property(srna, "show_instancer_for_render", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "duplicator_visibility_flag", OB_DUPLI_FLAG_RENDER);
-  RNA_def_property_ui_text(prop, "Render Instancer", "Make instancer visible when rendering");
-  RNA_def_property_update(
-      prop, NC_OBJECT | ND_DRAW, "rna_Object_duplicator_visibility_flag_update");
-
-  prop = RNA_def_property(srna, "show_instancer_for_viewport", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "duplicator_visibility_flag", OB_DUPLI_FLAG_VIEWPORT);
-  RNA_def_property_ui_text(prop, "Display Instancer", "Make instancer visible in the viewport");
-  RNA_def_property_update(
-      prop, NC_OBJECT | ND_DRAW, "rna_Object_duplicator_visibility_flag_update");
+  rna_def_object_visibility(srna);
 
   /* instancing */
   prop = RNA_def_property(srna, "instance_type", PROP_ENUM, PROP_NONE);

@@ -34,9 +34,9 @@ struct ListBase;
 
 struct ARegion;
 struct ARegionType;
+struct FModifier;
 struct Main;
 struct NlaStrip;
-struct FModifier;
 struct PanelType;
 struct ReportList;
 struct ScrArea;
@@ -290,7 +290,7 @@ typedef enum eAnimFilter_Flags {
    * (i.e. scene visibility criteria).
    *
    * XXX: it's hard to think of any examples where this *ISN'T* the case...
-   * perhaps becomes implicit?.
+   * perhaps becomes implicit?
    */
   ANIMFILTER_DATA_VISIBLE = (1 << 0),
   /** channel is visible within the channel-list hierarchy
@@ -678,6 +678,10 @@ void ANIM_draw_framerange(struct Scene *scene, struct View2D *v2d);
 
 /* ------------- UI Panel Drawing -------------- */
 
+bool ANIM_nla_context_track_ptr(const struct bContext *C, struct PointerRNA *r_ptr);
+bool ANIM_nla_context_strip_ptr(const struct bContext *C, struct PointerRNA *r_ptr);
+
+struct NlaTrack *ANIM_nla_context_track(const struct bContext *C);
 struct NlaStrip *ANIM_nla_context_strip(const struct bContext *C);
 struct FCurve *ANIM_graph_context_fcurve(const struct bContext *C);
 

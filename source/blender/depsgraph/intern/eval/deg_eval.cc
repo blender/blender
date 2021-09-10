@@ -103,7 +103,7 @@ void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_nod
   ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(state->graph);
 
   /* Sanity checks. */
-  BLI_assert(!operation_node->is_noop() && "NOOP nodes should not actually be scheduled");
+  BLI_assert_msg(!operation_node->is_noop(), "NOOP nodes should not actually be scheduled");
   /* Perform operation. */
   if (state->do_stats) {
     const double start_time = PIL_check_seconds_timer();
@@ -223,7 +223,7 @@ bool need_evaluate_operation_at_stage(DepsgraphEvalState *state,
     case EvaluationStage::SINGLE_THREADED_WORKAROUND:
       return true;
   }
-  BLI_assert(!"Unhandled evaluation stage, should never happen.");
+  BLI_assert_msg(0, "Unhandled evaluation stage, should never happen.");
   return false;
 }
 

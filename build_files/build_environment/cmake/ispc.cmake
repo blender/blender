@@ -35,6 +35,7 @@ elseif(APPLE)
   else()
     set(ISPC_EXTRA_ARGS_APPLE
       -DBISON_EXECUTABLE=/usr/local/opt/bison/bin/bison
+      -DFLEX_EXECUTABLE=/usr/local/opt/flex/bin/flex
       -DARM_ENABLED=Off
     )
   endif()
@@ -43,6 +44,7 @@ elseif(UNIX)
     -DCMAKE_C_COMPILER=${LIBDIR}/llvm/bin/clang
     -DCMAKE_CXX_COMPILER=${LIBDIR}/llvm/bin/clang++
     -DARM_ENABLED=Off
+    -DFLEX_EXECUTABLE=${LIBDIR}/flex/bin/flex
   )
 endif()
 
@@ -81,5 +83,10 @@ if(WIN32)
   add_dependencies(
     external_ispc
     external_flexbison
+  )
+elseif(UNIX AND NOT APPLE)
+  add_dependencies(
+    external_ispc
+    external_flex
   )
 endif()

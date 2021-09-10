@@ -53,7 +53,7 @@ eExecutionModel CompositorContext::get_execution_model() const
       case 0:
         return eExecutionModel::Tiled;
       default:
-        BLI_assert(!"Invalid execution mode");
+        BLI_assert_msg(0, "Invalid execution mode");
     }
   }
   return eExecutionModel::Tiled;

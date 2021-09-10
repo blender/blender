@@ -25,26 +25,16 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_mesh_primitive_line_in[] = {
-    {SOCK_INT, N_("Count"), 10, 0.0f, 0.0f, 0.0f, 1, 10000},
-    {SOCK_FLOAT, N_("Resolution"), 1.0f, 0.0f, 0.0f, 0.0f, 0.01f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_VECTOR,
-     N_("Start Location"),
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     -FLT_MAX,
-     FLT_MAX,
-     PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Offset"), 0.0f, 0.0f, 1.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_mesh_primitive_line_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_mesh_primitive_line_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Int>("Count").default_value(10).min(1).max(10000);
+  b.add_input<decl::Float>("Resolution").default_value(1.0f).min(0.1f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>("Start Location").subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>("Offset").default_value({0.0f, 0.0f, 1.0f}).subtype(PROP_TRANSLATION);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_mesh_primitive_line_layout(uiLayout *layout,
                                                 bContext *UNUSED(C),
@@ -93,8 +83,6 @@ static void geo_node_mesh_primitive_line_update(bNodeTree *UNUSED(tree), bNode *
                                 count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
 }
 
-namespace blender::nodes {
-
 static void fill_edge_data(MutableSpan<MEdge> edges)
 {
   for (const int i : edges.index_range()) {
@@ -104,7 +92,7 @@ static void fill_edge_data(MutableSpan<MEdge> edges)
   }
 }
 
-static Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
+Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
 {
   if (count < 1) {
     return nullptr;
@@ -118,11 +106,9 @@ static Mesh *create_line_mesh(const float3 start, const float3 delta, const int 
   short normal[3];
   normal_float_to_short_v3(normal, delta.normalized());
 
-  float3 co = start;
   for (const int i : verts.index_range()) {
-    copy_v3_v3(verts[i].co, co);
+    copy_v3_v3(verts[i].co, start + delta * i);
     copy_v3_v3_short(verts[i].no, normal);
-    co += delta;
   }
 
   fill_edge_data(edges);
@@ -178,13 +164,12 @@ void register_node_type_geo_mesh_primitive_line()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_LINE, "Mesh Line", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_mesh_primitive_line_in, geo_node_mesh_primitive_line_out);
-  node_type_init(&ntype, geo_node_mesh_primitive_line_init);
-  node_type_update(&ntype, geo_node_mesh_primitive_line_update);
+  ntype.declare = blender::nodes::geo_node_mesh_primitive_line_declare;
+  node_type_init(&ntype, blender::nodes::geo_node_mesh_primitive_line_init);
+  node_type_update(&ntype, blender::nodes::geo_node_mesh_primitive_line_update);
   node_type_storage(
       &ntype, "NodeGeometryMeshLine", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_line_exec;
-  ntype.draw_buttons = geo_node_mesh_primitive_line_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_mesh_primitive_line_layout;
   nodeRegisterType(&ntype);
 }

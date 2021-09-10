@@ -570,6 +570,8 @@ void ED_object_parent_clear(Object *ob, const int type)
 
       /* clear parenting relationship completely */
       ob->parent = NULL;
+      ob->partype = PAROBJECT;
+      ob->parsubstr[0] = 0;
       break;
     }
     case CLEAR_PARENT_KEEP_TRANSFORM: {
@@ -2022,7 +2024,7 @@ static void single_obdata_users(
             break;
           default:
             printf("ERROR %s: can't copy %s\n", __func__, id->name);
-            BLI_assert(!"This should never happen.");
+            BLI_assert_msg(0, "This should never happen.");
 
             /* We need to end the FOREACH_OBJECT_FLAG_BEGIN iterator to prevent memory leak. */
             BKE_scene_objects_iterator_end(&iter_macro);
@@ -2723,24 +2725,55 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 /** \name Drop Named Material on Object Operator
  * \{ */
 
+char *ED_object_ot_drop_named_material_tooltip(bContext *C,
+                                               PointerRNA *properties,
+                                               const wmEvent *event)
+{
+  int mat_slot = 0;
+  Object *ob = ED_view3d_give_material_slot_under_cursor(C, event->mval, &mat_slot);
+  if (ob == NULL) {
+    return BLI_strdup("");
+  }
+  mat_slot = max_ii(mat_slot, 1);
+
+  char name[MAX_ID_NAME - 2];
+  RNA_string_get(properties, "name", name);
+
+  Material *prev_mat = BKE_object_material_get(ob, mat_slot);
+
+  char *result;
+  if (prev_mat) {
+    const char *tooltip = TIP_("Drop %s on %s (slot %d, replacing %s)");
+    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, mat_slot, prev_mat->id.name + 2);
+  }
+  else {
+    const char *tooltip = TIP_("Drop %s on %s (slot %d)");
+    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, mat_slot);
+  }
+  return result;
+}
+
 static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);
-  Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
+  int mat_slot = 0;
+  Object *ob = ED_view3d_give_material_slot_under_cursor(C, event->mval, &mat_slot);
+  mat_slot = max_ii(mat_slot, 1);
+
   Material *ma;
   char name[MAX_ID_NAME - 2];
 
   RNA_string_get(op->ptr, "name", name);
   ma = (Material *)BKE_libblock_find_name(bmain, ID_MA, name);
-  if (base == NULL || ma == NULL) {
+  if (ob == NULL || ma == NULL) {
     return OPERATOR_CANCELLED;
   }
 
-  BKE_object_material_assign(CTX_data_main(C), base->object, ma, 1, BKE_MAT_ASSIGN_USERPREF);
+  BKE_object_material_assign(CTX_data_main(C), ob, ma, mat_slot, BKE_MAT_ASSIGN_USERPREF);
 
-  DEG_id_tag_update(&base->object->id, ID_RECALC_TRANSFORM);
+  DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, base->object);
+  WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, ob);
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
   WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
 

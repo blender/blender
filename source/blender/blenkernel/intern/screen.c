@@ -255,18 +255,16 @@ static void screen_foreach_id(ID *id, LibraryForeachIDData *data)
 static void screen_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   bScreen *screen = (bScreen *)id;
-  /* Screens are reference counted, only saved if used by a workspace. */
-  if (screen->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* write LibData */
-    /* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
-    BLO_write_struct_at_address_with_filecode(writer, ID_SCRN, bScreen, id_address, screen);
-    BKE_id_blend_write(writer, &screen->id);
 
-    BKE_previewimg_blend_write(writer, screen->preview);
+  /* write LibData */
+  /* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
+  BLO_write_struct_at_address_with_filecode(writer, ID_SCRN, bScreen, id_address, screen);
+  BKE_id_blend_write(writer, &screen->id);
 
-    /* direct data */
-    BKE_screen_area_map_blend_write(writer, AREAMAP_FROM_SCREEN(screen));
-  }
+  BKE_previewimg_blend_write(writer, screen->preview);
+
+  /* direct data */
+  BKE_screen_area_map_blend_write(writer, AREAMAP_FROM_SCREEN(screen));
 }
 
 /* Cannot use IDTypeInfo callback yet, because of the return value. */
@@ -682,19 +680,13 @@ void BKE_area_region_free(SpaceType *st, ARegion *region)
   BKE_area_region_panels_free(&region->panels);
 
   LISTBASE_FOREACH (uiList *, uilst, &region->ui_lists) {
-    if (uilst->dyn_data) {
-      uiListDyn *dyn_data = uilst->dyn_data;
-      if (dyn_data->items_filter_flags) {
-        MEM_freeN(dyn_data->items_filter_flags);
-      }
-      if (dyn_data->items_filter_neworder) {
-        MEM_freeN(dyn_data->items_filter_neworder);
-      }
-      MEM_freeN(dyn_data);
+    if (uilst->dyn_data && uilst->dyn_data->free_runtime_data_fn) {
+      uilst->dyn_data->free_runtime_data_fn(uilst);
     }
     if (uilst->properties) {
       IDP_FreeProperty(uilst->properties);
     }
+    MEM_SAFE_FREE(uilst->dyn_data);
   }
 
   if (region->gizmo_map != NULL) {
@@ -736,7 +728,7 @@ void BKE_screen_area_map_free(ScrAreaMap *area_map)
 }
 
 /** Free (or release) any data used by this screen (does not free the screen itself). */
-void BKE_screen_free(bScreen *screen)
+void BKE_screen_free_data(bScreen *screen)
 {
   screen_free_data(&screen->id);
 }
@@ -772,7 +764,7 @@ void BKE_screen_remove_double_scrverts(bScreen *screen)
       while (v1) {
         if (v1->newv == NULL) { /* !?! */
           if (v1->vec.x == verg->vec.x && v1->vec.y == verg->vec.y) {
-            /* printf("doublevert\n"); */
+            // printf("doublevert\n");
             v1->newv = verg;
           }
         }

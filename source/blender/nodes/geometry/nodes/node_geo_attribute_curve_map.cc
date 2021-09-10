@@ -24,17 +24,15 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_curve_map_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Attribute")},
-    {SOCK_STRING, N_("Result")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_attribute_curve_map_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_attribute_curve_map_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Attribute");
+  b.add_input<decl::String>("Result");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_attribute_curve_map_layout(uiLayout *layout,
                                                 bContext *UNUSED(C),
@@ -100,8 +98,6 @@ static void geo_node_attribute_curve_map_update(bNodeTree *UNUSED(ntree), bNode 
     data->curve_vec->cur = 0;
   }
 }
-
-namespace blender::nodes {
 
 static AttributeDomain get_result_domain(const GeometryComponent &component,
                                          StringRef input_name,
@@ -216,16 +212,15 @@ void register_node_type_geo_attribute_curve_map()
 
   geo_node_type_base(
       &ntype, GEO_NODE_ATTRIBUTE_CURVE_MAP, "Attribute Curve Map", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_attribute_curve_map_in, geo_node_attribute_curve_map_out);
-  node_type_update(&ntype, geo_node_attribute_curve_map_update);
-  node_type_init(&ntype, geo_node_attribute_curve_map_init);
+  node_type_update(&ntype, blender::nodes::geo_node_attribute_curve_map_update);
+  node_type_init(&ntype, blender::nodes::geo_node_attribute_curve_map_init);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype,
                     "NodeAttributeCurveMap",
-                    geo_node_attribute_curve_map_free_storage,
-                    geo_node_attribute_curve_map_copy_storage);
+                    blender::nodes::geo_node_attribute_curve_map_free_storage,
+                    blender::nodes::geo_node_attribute_curve_map_copy_storage);
+  ntype.declare = blender::nodes::geo_node_attribute_curve_map_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_curve_map_exec;
-  ntype.draw_buttons = geo_node_attribute_curve_map_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_attribute_curve_map_layout;
   nodeRegisterType(&ntype);
 }

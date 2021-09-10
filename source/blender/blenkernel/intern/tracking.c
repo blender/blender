@@ -1525,7 +1525,7 @@ MovieTrackingMarker *BKE_tracking_marker_get(MovieTrackingTrack *track, int fram
   const int num_markers = track->markersnr;
 
   if (num_markers == 0) {
-    BLI_assert(!"Detected degenerated track, should never happen.");
+    BLI_assert_msg(0, "Detected degenerated track, should never happen.");
     return NULL;
   }
 

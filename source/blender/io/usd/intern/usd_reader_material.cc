@@ -325,7 +325,7 @@ void compute_node_loc(const int column, float *r_locx, float *r_locy, NodePlacem
   r_ctx->column_offsets[column] += r_ctx->vertical_step + 10.0f;
 }
 
-}  // End anonymous namespace.
+}  // namespace
 
 USDMaterialReader::USDMaterialReader(const USDImportParams &params, Main *bmain)
     : params_(params), bmain_(bmain)

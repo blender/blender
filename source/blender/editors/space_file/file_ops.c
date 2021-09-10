@@ -513,6 +513,7 @@ void FILE_OT_select_box(wmOperatorType *ot)
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = file_box_select_exec;
   ot->modal = file_box_select_modal;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
   ot->cancel = WM_gesture_box_cancel;
 
@@ -545,6 +546,9 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   const bool fill = RNA_boolean_get(op->ptr, "fill");
   const bool do_diropen = RNA_boolean_get(op->ptr, "open");
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
+  const bool only_activate_if_selected = RNA_boolean_get(op->ptr, "only_activate_if_selected");
+  /* Used so right mouse clicks can do both, activate and spawn the context menu. */
+  const bool pass_through = RNA_boolean_get(op->ptr, "pass_through");
 
   if (region->regiontype != RGN_TYPE_WINDOW) {
     return OPERATOR_CANCELLED;
@@ -562,8 +566,13 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     int numfiles = filelist_files_ensure(sfile->files);
 
     if ((idx >= 0) && (idx < numfiles)) {
+      const bool is_selected = filelist_entry_select_index_get(sfile->files, idx, CHECK_ALL) &
+                               FILE_SEL_SELECTED;
+      if (only_activate_if_selected && is_selected) {
+        /* Don't deselect other items. */
+      }
       /* single select, deselect all selected first */
-      if (!extend) {
+      else if (!extend) {
         file_select_deselect_all(sfile, FILE_SEL_SELECTED);
       }
     }
@@ -592,7 +601,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   WM_event_add_mousemove(CTX_wm_window(C)); /* for directory changes */
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
-  return OPERATOR_FINISHED;
+  return pass_through ? (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH) : OPERATOR_FINISHED;
 }
 
 void FILE_OT_select(wmOperatorType *ot)
@@ -606,6 +615,7 @@ void FILE_OT_select(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = file_select_invoke;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 
   /* properties */
@@ -626,6 +636,20 @@ void FILE_OT_select(wmOperatorType *ot)
                          "Deselect On Nothing",
                          "Deselect all when nothing under the cursor");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna,
+                         "only_activate_if_selected",
+                         false,
+                         "Only Activate if Selected",
+                         "Do not change selection if the item under the cursor is already "
+                         "selected, only activate it");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna,
+                         "pass_through",
+                         false,
+                         "Pass Through",
+                         "Even on successful execution, pass the event on so other operators can "
+                         "execute on it as well");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */
@@ -864,6 +888,7 @@ void FILE_OT_select_walk(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = file_walk_select_invoke;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 
   /* properties */
@@ -951,6 +976,7 @@ void FILE_OT_select_all(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_select_all_exec;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 
   /* properties */
@@ -1003,6 +1029,7 @@ void FILE_OT_view_selected(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_view_selected_exec;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 }
 
@@ -1014,7 +1041,6 @@ void FILE_OT_view_selected(wmOperatorType *ot)
 
 /* Note we could get rid of this one, but it's used by some addon so...
  * Does not hurt keeping it around for now. */
-/* TODO: disallow bookmark editing in assets mode? */
 static int bookmark_select_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1047,7 +1073,8 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bookmark_select_exec;
-  ot->poll = ED_operator_file_active;
+  /* Bookmarks are for file browsing only (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 
   /* properties */
   prop = RNA_def_string(ot->srna, "dir", NULL, FILE_MAXDIR, "Directory", "");
@@ -1093,7 +1120,8 @@ void FILE_OT_bookmark_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bookmark_add_exec;
-  ot->poll = ED_operator_file_active;
+  /* Bookmarks are for file browsing only (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 }
 
 /** \} */
@@ -1147,7 +1175,8 @@ void FILE_OT_bookmark_delete(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bookmark_delete_exec;
-  ot->poll = ED_operator_file_active;
+  /* Bookmarks are for file browsing only (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 
   /* properties */
   prop = RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
@@ -1205,7 +1234,8 @@ void FILE_OT_bookmark_cleanup(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bookmark_cleanup_exec;
-  ot->poll = ED_operator_file_active;
+  /* Bookmarks are for file browsing only (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 
   /* properties */
 }
@@ -1293,8 +1323,9 @@ void FILE_OT_bookmark_move(wmOperatorType *ot)
   ot->description = "Move the active bookmark up/down in the list";
 
   /* api callbacks */
-  ot->poll = ED_operator_file_active;
   ot->exec = bookmark_move_exec;
+  /* Bookmarks are for file browsing only (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER; /* No undo! */
@@ -1341,7 +1372,8 @@ void FILE_OT_reset_recent(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = reset_recent_exec;
-  ot->poll = ED_operator_file_active;
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 }
 
 /** \} */
@@ -1356,7 +1388,9 @@ int file_highlight_set(SpaceFile *sfile, ARegion *region, int mx, int my)
   FileSelectParams *params;
   int numfiles, origfile;
 
-  if (sfile == NULL || sfile->files == NULL) {
+  /* In case blender starts where the mouse is over a File browser,
+   * this operator can be invoked when the `sfile` or `sfile->layout` isn't initialized yet. */
+  if (sfile == NULL || sfile->files == NULL || sfile->layout == NULL) {
     return 0;
   }
 
@@ -1414,6 +1448,7 @@ void FILE_OT_highlight(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = file_highlight_invoke;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 }
 
@@ -1465,6 +1500,7 @@ void FILE_OT_sort_column_ui_context(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = file_column_sort_ui_context_invoke;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 
   ot->flag = OPTYPE_INTERNAL;
@@ -1478,7 +1514,7 @@ void FILE_OT_sort_column_ui_context(wmOperatorType *ot)
 
 static bool file_operator_poll(bContext *C)
 {
-  bool poll = ED_operator_file_active(C);
+  bool poll = ED_operator_file_browsing_active(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
 
   if (!sfile || !sfile->op) {
@@ -1801,7 +1837,7 @@ void FILE_OT_execute(struct wmOperatorType *ot)
    *
    * Avoid using #file_operator_poll since this is also used for entering directories
    * which is used even when the file manager doesn't have an operator. */
-  ot->poll = ED_operator_file_active;
+  ot->poll = ED_operator_file_browsing_active;
 }
 
 /**
@@ -1856,7 +1892,7 @@ void FILE_OT_mouse_execute(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = file_execute_mouse_invoke;
-  ot->poll = ED_operator_file_active;
+  ot->poll = ED_operator_file_browsing_active;
 
   ot->flag = OPTYPE_INTERNAL;
 }
@@ -1895,6 +1931,7 @@ void FILE_OT_refresh(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_refresh_exec;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
@@ -1935,7 +1972,8 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_parent_exec;
-  ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
 }
 
 /** \} */
@@ -1970,7 +2008,8 @@ void FILE_OT_previous(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_previous_exec;
-  ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
 }
 
 /** \} */
@@ -2006,7 +2045,8 @@ void FILE_OT_next(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_next_exec;
-  ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
 }
 
 /** \} */
@@ -2197,7 +2237,7 @@ void FILE_OT_smoothscroll(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = file_smoothscroll_invoke;
-
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 }
 
@@ -2241,7 +2281,8 @@ void FILE_OT_filepath_drop(wmOperatorType *ot)
   ot->idname = "FILE_OT_filepath_drop";
 
   ot->exec = filepath_drop_exec;
-  ot->poll = WM_operator_winactive;
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 
   RNA_def_string_file_path(ot->srna, "filepath", "Path", FILE_MAX, "", "");
 }
@@ -2340,7 +2381,9 @@ static int file_directory_new_exec(bContext *C, wmOperator *op)
 
   /* If we don't enter the directory directly, remember file to jump into editing. */
   if (do_diropen == false) {
-    BLI_assert(params->rename_id == NULL || !"File rename handling should immediately clear rename_id when done, because otherwise it will keep taking precedence over renamefile.");
+    BLI_assert_msg(params->rename_id == NULL,
+                   "File rename handling should immediately clear rename_id when done, "
+                   "because otherwise it will keep taking precedence over renamefile.");
     BLI_strncpy(params->renamefile, name, FILE_MAXFILE);
     rename_flag = FILE_PARAMS_RENAME_PENDING;
   }
@@ -2373,7 +2416,8 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = file_directory_new_exec;
-  ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
 
   prop = RNA_def_string_dir_path(
       ot->srna, "directory", NULL, FILE_MAX, "Directory", "Name of new directory");
@@ -2496,7 +2540,7 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
 
       /* don't do for now because it selects entire text instead of
        * placing cursor at the end */
-      /* UI_textbutton_activate_but(C, but); */
+      // UI_textbutton_activate_but(C, but);
     }
 #if defined(WIN32)
     else if (!can_create_dir(params->dir)) {
@@ -2616,44 +2660,8 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_hidedot_exec;
-  ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Associate File Type Operator (Windows only)
- * \{ */
-
-static int associate_blend_exec(bContext *UNUSED(C), wmOperator *op)
-{
-#ifdef WIN32
-  WM_cursor_wait(true);
-  if (BLI_windows_register_blend_extension(true)) {
-    BKE_report(op->reports, RPT_INFO, "File association registered");
-    WM_cursor_wait(false);
-    return OPERATOR_FINISHED;
-  }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "Unable to register file association");
-    WM_cursor_wait(false);
-    return OPERATOR_CANCELLED;
-  }
-#else
-  BKE_report(op->reports, RPT_WARNING, "Operator Not supported");
-  return OPERATOR_CANCELLED;
-#endif
-}
-
-void FILE_OT_associate_blend(struct wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Register File Association";
-  ot->description = "Use this installation for .blend files and to display thumbnails";
-  ot->idname = "FILE_OT_associate_blend";
-
-  /* api callbacks */
-  ot->exec = associate_blend_exec;
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
 }
 
 /** \} */
@@ -2666,7 +2674,8 @@ static bool file_filenum_poll(bContext *C)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
 
-  if (!ED_operator_file_active(C)) {
+  /* File browsing only operator (not asset browsing). */
+  if (!ED_operator_file_browsing_active(C)) {
     return false;
   }
 
@@ -2765,20 +2774,6 @@ static void file_rename_state_activate(SpaceFile *sfile, int file_idx, bool requ
   }
 }
 
-static int file_rename_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
-{
-  ScrArea *area = CTX_wm_area(C);
-  SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
-  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-
-  if (params) {
-    file_rename_state_activate(sfile, params->active_file, true);
-    ED_area_tag_redraw(area);
-  }
-
-  return OPERATOR_FINISHED;
-}
-
 static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ScrArea *area = CTX_wm_area(C);
@@ -2786,16 +2781,11 @@ static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 
   if (params) {
-    file_rename_state_activate(sfile, params->highlight_file, false);
+    file_rename_state_activate(sfile, params->active_file, false);
     ED_area_tag_redraw(area);
   }
 
   return OPERATOR_FINISHED;
-}
-
-static bool file_rename_poll(bContext *C)
-{
-  return ED_operator_file_active(C) && !ED_fileselect_is_asset_browser(CTX_wm_space_file(C));
 }
 
 void FILE_OT_rename(struct wmOperatorType *ot)
@@ -2806,9 +2796,9 @@ void FILE_OT_rename(struct wmOperatorType *ot)
   ot->idname = "FILE_OT_rename";
 
   /* api callbacks */
-  ot->invoke = file_rename_invoke;
   ot->exec = file_rename_exec;
-  ot->poll = file_rename_poll;
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 }
 
 /** \} */
@@ -2819,53 +2809,40 @@ void FILE_OT_rename(struct wmOperatorType *ot)
 
 static bool file_delete_poll(bContext *C)
 {
-  bool poll = ED_operator_file_active(C);
+  if (!ED_operator_file_browsing_active(C)) {
+    return false;
+  }
+
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-
-  if (sfile && params) {
-    char dir[FILE_MAX_LIBEXTRA];
-    int numfiles = filelist_files_ensure(sfile->files);
-    int i;
-    int num_selected = 0;
-
-    if (filelist_islibrary(sfile->files, dir, NULL)) {
-      poll = 0;
-    }
-    for (i = 0; i < numfiles; i++) {
-      if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
-        num_selected++;
-      }
-    }
-    if (num_selected <= 0) {
-      poll = 0;
-    }
-  }
-  else {
-    poll = 0;
+  if (!sfile || !params) {
+    return false;
   }
 
-  return poll;
+  char dir[FILE_MAX_LIBEXTRA];
+  if (filelist_islibrary(sfile->files, dir, NULL)) {
+    return false;
+  }
+
+  int numfiles = filelist_files_ensure(sfile->files);
+  for (int i = 0; i < numfiles; i++) {
+    if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
+      /* Has a selected file -> the operator can run. */
+      return true;
+    }
+  }
+
+  return false;
 }
 
 static bool file_delete_single(const FileSelectParams *params,
                                FileDirEntry *file,
                                const char **r_error_message)
 {
-  if (file->typeflag & FILE_TYPE_ASSET) {
-    ID *id = filelist_file_get_id(file);
-    if (!id) {
-      *r_error_message = "File is not a local data-block asset.";
-      return false;
-    }
-    ED_asset_clear_id(id);
-  }
-  else {
-    char str[FILE_MAX];
-    BLI_join_dirfile(str, sizeof(str), params->dir, file->relpath);
-    if (BLI_delete_soft(str, r_error_message) != 0 || BLI_exists(str)) {
-      return false;
-    }
+  char str[FILE_MAX];
+  BLI_join_dirfile(str, sizeof(str), params->dir, file->relpath);
+  if (BLI_delete_soft(str, r_error_message) != 0 || BLI_exists(str)) {
+    return false;
   }
 
   return true;
@@ -2958,6 +2935,7 @@ void FILE_OT_start_filter(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_start_filter_exec;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 }
 

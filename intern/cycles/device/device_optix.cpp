@@ -234,9 +234,6 @@ class OptiXDevice : public CUDADevice {
           }
         };
 #  endif
-#  if OPTIX_ABI_VERSION >= 41 && defined(WITH_CYCLES_DEBUG)
-    options.validationMode = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL;
-#  endif
     check_result_optix(optixDeviceContextCreate(cuContext, &options, &context));
 #  ifdef WITH_CYCLES_LOGGING
     check_result_optix(optixDeviceContextSetLogCallback(
@@ -369,13 +366,8 @@ class OptiXDevice : public CUDADevice {
 
     OptixModuleCompileOptions module_options = {};
     module_options.maxRegisterCount = 0;  // Do not set an explicit register limit
-#  ifdef WITH_CYCLES_DEBUG
-    module_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
-    module_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
-#  else
     module_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
     module_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO;
-#  endif
 
 #  if OPTIX_ABI_VERSION >= 41
     module_options.boundValues = nullptr;
@@ -578,11 +570,7 @@ class OptiXDevice : public CUDADevice {
 
     OptixPipelineLinkOptions link_options = {};
     link_options.maxTraceDepth = 1;
-#  ifdef WITH_CYCLES_DEBUG
-    link_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
-#  else
     link_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO;
-#  endif
 #  if OPTIX_ABI_VERSION < 24
     link_options.overrideUsesMotionBlur = motion_blur;
 #  endif

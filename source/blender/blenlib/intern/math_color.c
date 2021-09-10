@@ -153,7 +153,7 @@ void rgb_to_ycc(float r, float g, float b, float *r_y, float *r_cb, float *r_cr,
       cr = (0.5f * sr) - (0.41869f * sg) - (0.08131f * sb) + 128.0f;
       break;
     default:
-      BLI_assert(!"invalid colorspace");
+      BLI_assert_msg(0, "invalid colorspace");
       break;
   }
 
@@ -685,10 +685,12 @@ static void blackbody_temperature_to_rgb(float rgb[3], float t)
     rgb[2] = 0.0f;
   }
   else {
-    int i = (t >= 6365.0f) ?
-                5 :
-                (t >= 3315.0f) ? 4 :
-                                 (t >= 1902.0f) ? 3 : (t >= 1449.0f) ? 2 : (t >= 1167.0f) ? 1 : 0;
+    int i = (t >= 6365.0f) ? 5 :
+            (t >= 3315.0f) ? 4 :
+            (t >= 1902.0f) ? 3 :
+            (t >= 1449.0f) ? 2 :
+            (t >= 1167.0f) ? 1 :
+                             0;
 
     const float *r = blackbody_table_r[i];
     const float *g = blackbody_table_g[i];

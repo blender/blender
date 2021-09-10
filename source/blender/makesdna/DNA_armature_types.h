@@ -76,7 +76,12 @@ typedef struct Bone {
 
   /** dist, weight: for non-deformgroup deforms. */
   float dist, weight;
-  /** width: for block bones. keep in this order, transform!. */
+  /**
+   * The width for block bones.
+   *
+   * \note keep in this order for transform code which stores a pointer to `xwidth`,
+   * accessing length and `zwidth` as offsets.
+   */
   float xwidth, length, zwidth;
   /**
    * Radius for head/tail sphere, defining deform as well,
@@ -202,9 +207,8 @@ typedef enum eArmature_DeformFlag {
   ARM_DEF_INVERT_VGROUP = (1 << 4),
 } eArmature_DeformFlag;
 
-/* armature->pathflag */
-// XXX deprecated... old animation system (armature only viz)
-#ifdef DNA_DEPRECATED_ALLOW
+#ifdef DNA_DEPRECATED_ALLOW /* Old animation system (armature only viz). */
+/** #bArmature.pathflag */
 typedef enum eArmature_PathFlag {
   ARM_PATH_FNUMS = (1 << 0),
   ARM_PATH_KFRAS = (1 << 1),

@@ -70,8 +70,9 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_clip.h"
+#include "ED_fileselect.h"
 #include "ED_image.h"
-#include "ED_keyframes_draw.h"
+#include "ED_keyframes_keylist.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -274,9 +275,35 @@ bool ED_operator_outliner_active_no_editobject(bContext *C)
   return false;
 }
 
+/**
+ * \note Will return true for file spaces in either file or asset browsing mode! See
+ *       #ED_operator_file_browsing_active() (file browsing only) and
+ *       #ED_operator_asset_browsing_active() (asset browsing only).
+ */
 bool ED_operator_file_active(bContext *C)
 {
   return ed_spacetype_test(C, SPACE_FILE);
+}
+
+/**
+ * \note Will only return true if the file space is in file browsing mode, not asset browsing! See
+ *       #ED_operator_file_active() (file or asset browsing) and
+ *       #ED_operator_asset_browsing_active() (asset browsing only).
+ */
+bool ED_operator_file_browsing_active(bContext *C)
+{
+  if (ed_spacetype_test(C, SPACE_FILE)) {
+    return ED_fileselect_is_file_browser(CTX_wm_space_file(C));
+  }
+  return false;
+}
+
+bool ED_operator_asset_browsing_active(bContext *C)
+{
+  if (ed_spacetype_test(C, SPACE_FILE)) {
+    return ED_fileselect_is_asset_browser(CTX_wm_space_file(C));
+  }
+  return false;
 }
 
 bool ED_operator_spreadsheet_active(bContext *C)
@@ -354,7 +381,7 @@ bool ED_operator_console_active(bContext *C)
 static bool ed_object_hidden(const Object *ob)
 {
   /* if hidden but in edit mode, we still display, can happen with animation */
-  return ((ob->restrictflag & OB_RESTRICT_VIEWPORT) && !(ob->mode & OB_MODE_EDIT));
+  return ((ob->visibility_flag & OB_HIDE_VIEWPORT) && !(ob->mode & OB_MODE_EDIT));
 }
 
 bool ED_operator_object_active(bContext *C)
@@ -376,7 +403,7 @@ bool ED_operator_object_active_editable_ex(bContext *C, const Object *ob)
   }
 
   if (ed_object_hidden(ob)) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot edit hidden obect");
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit hidden object");
     return false;
   }
 
@@ -996,10 +1023,7 @@ AZone *ED_area_azones_update(ScrArea *area, const int xy[2])
 
 static void actionzone_exit(wmOperator *op)
 {
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-  }
-  op->customdata = NULL;
+  MEM_SAFE_FREE(op->customdata);
 
   G.moving &= ~G_TRANSFORM_WM;
 }
@@ -1110,13 +1134,21 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
         if ((ED_area_actionzone_find_xy(sad->sa1, &event->x) != sad->az) &&
             (screen_geom_area_map_find_active_scredge(
                  AREAMAP_FROM_SCREEN(screen), &screen_rect, event->x, event->y) == NULL)) {
-          /* Are we still in same area? */
-          if (BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->x, event->y) == sad->sa1) {
+
+          /* What area are we now in? */
+          ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->x, event->y);
+
+          if (area == sad->sa1) {
             /* Same area, so possible split. */
             WM_cursor_set(win,
                           SCREEN_DIR_IS_VERTICAL(sad->gesture_dir) ? WM_CURSOR_H_SPLIT :
                                                                      WM_CURSOR_V_SPLIT);
             is_gesture = (delta_max > split_threshold);
+          }
+          else if (!area || area->global) {
+            /* No area or Top bar or Status bar. */
+            WM_cursor_set(win, WM_CURSOR_STOP);
+            is_gesture = false;
           }
           else {
             /* Different area, so possible join. */
@@ -1137,7 +1169,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
         }
         else {
-          WM_cursor_set(CTX_wm_window(C), WM_CURSOR_CROSS);
+          WM_cursor_set(win, WM_CURSOR_CROSS);
           is_gesture = false;
         }
       }
@@ -1281,10 +1313,7 @@ static bool area_swap_init(wmOperator *op, const wmEvent *event)
 static void area_swap_exit(bContext *C, wmOperator *op)
 {
   WM_cursor_modal_restore(CTX_wm_window(C));
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-  }
-  op->customdata = NULL;
+  MEM_SAFE_FREE(op->customdata);
 }
 
 static void area_swap_cancel(bContext *C, wmOperator *op)
@@ -1445,15 +1474,39 @@ static void SCREEN_OT_area_dupli(wmOperatorType *ot)
  * Close selected area, replace by expanding a neighbor
  * \{ */
 
-/* operator callback */
-static int area_close_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+/**
+ * \note This can be used interactively or from Python.
+ *
+ * \note Most of the window management operators don't support execution from Python.
+ * An exception is made for closing areas since it allows application templates
+ * to customize the layout.
+ */
+static int area_close_exec(bContext *C, wmOperator *op)
 {
+  bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
-  if ((area != NULL) && screen_area_close(C, CTX_wm_screen(C), area)) {
-    WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
-    return OPERATOR_FINISHED;
+
+  /* This operator is scriptable, so the area passed could be invalid. */
+  if (BLI_findindex(&screen->areabase, area) == -1) {
+    BKE_report(op->reports, RPT_ERROR, "Area not found in the active screen");
+    return OPERATOR_CANCELLED;
   }
-  return OPERATOR_CANCELLED;
+
+  if (!screen_area_close(C, screen, area)) {
+    BKE_report(op->reports, RPT_ERROR, "Unable to close area");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Ensure the event loop doesn't attempt to continue handling events.
+   *
+   * This causes execution from the Python console fail to return to the prompt as it should.
+   * This glitch could be solved in the event loop handling as other operators may also
+   * destructively manipulate windowing data. */
+  CTX_wm_window_set(C, NULL);
+
+  WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
+
+  return OPERATOR_FINISHED;
 }
 
 static bool area_close_poll(bContext *C)
@@ -1485,7 +1538,7 @@ static void SCREEN_OT_area_close(wmOperatorType *ot)
   ot->name = "Close Area";
   ot->description = "Close selected area";
   ot->idname = "SCREEN_OT_area_close";
-  ot->invoke = area_close_invoke;
+  ot->exec = area_close_exec;
   ot->poll = area_close_poll;
 }
 
@@ -1717,19 +1770,19 @@ static int area_snap_calc_location(const bScreen *screen,
       int snap_dist_best = INT_MAX;
       {
         const float div_array[] = {
-            /* Middle. */
-            1.0f / 2.0f,
-            /* Thirds. */
-            1.0f / 3.0f,
-            2.0f / 3.0f,
-            /* Quarters. */
-            1.0f / 4.0f,
-            3.0f / 4.0f,
-            /* Eighth. */
-            1.0f / 8.0f,
-            3.0f / 8.0f,
-            5.0f / 8.0f,
-            7.0f / 8.0f,
+            0.0f,
+            1.0f / 12.0f,
+            2.0f / 12.0f,
+            3.0f / 12.0f,
+            4.0f / 12.0f,
+            5.0f / 12.0f,
+            6.0f / 12.0f,
+            7.0f / 12.0f,
+            8.0f / 12.0f,
+            9.0f / 12.0f,
+            10.0f / 12.0f,
+            11.0f / 12.0f,
+            1.0f,
         };
         /* Test the snap to the best division. */
         for (int i = 0; i < ARRAY_SIZE(div_array); i++) {
@@ -1865,10 +1918,7 @@ static void area_move_apply(bContext *C, wmOperator *op)
 
 static void area_move_exit(bContext *C, wmOperator *op)
 {
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-  }
-  op->customdata = NULL;
+  MEM_SAFE_FREE(op->customdata);
 
   /* this makes sure aligned edges will result in aligned grabbing */
   BKE_screen_remove_double_scrverts(CTX_wm_screen(C));
@@ -2879,7 +2929,7 @@ static void areas_do_frame_follow(bContext *C, bool middle)
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
         /* do follow here if editor type supports it */
-        if ((screen_ctx->redraws_flag & TIME_FOLLOW)) {
+        if (screen_ctx->redraws_flag & TIME_FOLLOW) {
           if ((region->regiontype == RGN_TYPE_WINDOW &&
                ELEM(area->spacetype, SPACE_SEQ, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) ||
               (area->spacetype == SPACE_CLIP && region->regiontype == RGN_TYPE_PREVIEW)) {
@@ -3030,8 +3080,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   float cfra = (float)(CFRA);
 
   /* init binarytree-list for getting keyframes */
-  DLRBT_Tree keys;
-  BLI_dlrbTree_init(&keys);
+  struct AnimKeylist *keylist = ED_keylist_create();
 
   /* seed up dummy dopesheet context with flags to perform necessary filtering */
   if ((scene->flag & SCE_KEYS_NO_SELONLY) == 0) {
@@ -3040,14 +3089,14 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   }
 
   /* populate tree with keyframe nodes */
-  scene_to_keylist(&ads, scene, &keys, 0);
+  scene_to_keylist(&ads, scene, keylist, 0);
 
   if (ob) {
-    ob_to_keylist(&ads, ob, &keys, 0);
+    ob_to_keylist(&ads, ob, keylist, 0);
 
     if (ob->type == OB_GPENCIL) {
       const bool active = !(scene->flag & SCE_KEYS_NO_SELONLY);
-      gpencil_to_keylist(&ads, ob->data, &keys, active);
+      gpencil_to_keylist(&ads, ob->data, keylist, active);
     }
   }
 
@@ -3055,17 +3104,17 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
     Mask *mask = CTX_data_edit_mask(C);
     if (mask) {
       MaskLayer *masklay = BKE_mask_layer_active(mask);
-      mask_to_keylist(&ads, masklay, &keys);
+      mask_to_keylist(&ads, masklay, keylist);
     }
   }
 
   /* find matching keyframe in the right direction */
-  ActKeyColumn *ak;
+  const ActKeyColumn *ak;
   if (next) {
-    ak = (ActKeyColumn *)BLI_dlrbTree_search_next(&keys, compare_ak_cfraPtr, &cfra);
+    ak = ED_keylist_find_next(keylist, cfra);
   }
   else {
-    ak = (ActKeyColumn *)BLI_dlrbTree_search_prev(&keys, compare_ak_cfraPtr, &cfra);
+    ak = ED_keylist_find_prev(keylist, cfra);
   }
 
   while ((ak != NULL) && (done == false)) {
@@ -3086,7 +3135,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   }
 
   /* free temp stuff */
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 
   /* any success? */
   if (done == false) {
@@ -4461,10 +4510,8 @@ static bool match_region_with_redraws(const ScrArea *area,
   return false;
 }
 
-static void screen_animation_region_tag_redraw(ScrArea *area,
-                                               ARegion *region,
-                                               const Scene *scene,
-                                               eScreen_Redraws_Flag redraws)
+static void screen_animation_region_tag_redraw(
+    bContext *C, ScrArea *area, ARegion *region, const Scene *scene, eScreen_Redraws_Flag redraws)
 {
   /* Do follow time here if editor type supports it */
   if ((redraws & TIME_FOLLOW) &&
@@ -4488,8 +4535,27 @@ static void screen_animation_region_tag_redraw(ScrArea *area,
    * We do need to redraw when this area is in full screen as no other areas
    * will be tagged for redrawing. */
   if (region->regiontype == RGN_TYPE_WINDOW && !area->full) {
-    if (ELEM(area->spacetype, SPACE_GRAPH, SPACE_NLA, SPACE_ACTION)) {
+    if (ELEM(area->spacetype, SPACE_NLA, SPACE_ACTION)) {
       return;
+    }
+
+    /* Drivers Editor needs a full redraw on playback for graph_draw_driver_debug().
+     * This will make it slower than regular graph editor during playback, but drawing this in
+     * graph_main_region_draw_overlay() is not feasible because it requires animation filtering
+     * which has significant overhead which needs to be avoided in the overlay which is redrawn on
+     * every UI interaction. */
+    if (area->spacetype == SPACE_GRAPH) {
+      const SpaceGraph *sipo = area->spacedata.first;
+      if (sipo->mode != SIPO_MODE_DRIVERS) {
+        return;
+      }
+      bAnimContext ac;
+      if (ANIM_animdata_get_context(C, &ac) == false) {
+        return;
+      }
+      if (ac.datatype != ANIMCONT_DRIVERS) {
+        return;
+      }
     }
 
     if (area->spacetype == SPACE_SEQ) {
@@ -4685,7 +4751,7 @@ static int screen_animation_step_invoke(bContext *C, wmOperator *UNUSED(op), con
         }
 
         if (redraw) {
-          screen_animation_region_tag_redraw(area, region, scene, sad->redraws);
+          screen_animation_region_tag_redraw(C, area, region, scene, sad->redraws);
         }
       }
     }
@@ -5668,10 +5734,7 @@ static void keymap_modal_set(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "SCREEN_OT_area_move");
 }
 
-static bool blend_file_drop_poll(bContext *UNUSED(C),
-                                 wmDrag *drag,
-                                 const wmEvent *UNUSED(event),
-                                 const char **UNUSED(r_tooltip))
+static bool blend_file_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
     if (drag->icon == ICON_FILE_BLEND) {
@@ -5701,8 +5764,9 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 
   /* dropbox for entire window */
   ListBase *lb = WM_dropboxmap_find("Window", 0, 0);
-  WM_dropbox_add(lb, "WM_OT_drop_blend_file", blend_file_drop_poll, blend_file_drop_copy, NULL);
-  WM_dropbox_add(lb, "UI_OT_drop_color", UI_drop_color_poll, UI_drop_color_copy, NULL);
+  WM_dropbox_add(
+      lb, "WM_OT_drop_blend_file", blend_file_drop_poll, blend_file_drop_copy, NULL, NULL);
+  WM_dropbox_add(lb, "UI_OT_drop_color", UI_drop_color_poll, UI_drop_color_copy, NULL, NULL);
 
   keymap_modal_set(keyconf);
 }

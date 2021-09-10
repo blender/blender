@@ -208,6 +208,18 @@ class StringRefBase {
   constexpr int64_t find_first_not_of(char c, int64_t pos = 0) const;
   constexpr int64_t find_last_not_of(StringRef chars, int64_t pos = INT64_MAX) const;
   constexpr int64_t find_last_not_of(char c, int64_t pos = INT64_MAX) const;
+
+  /**
+   * Return a new StringRef that does not contain leading and trailing whitespace.
+   */
+  constexpr StringRef trim() const;
+
+  /**
+   * Return a new StringRef that removes all the leading and trailing characters
+   * that occur in `characters_to_remove`.
+   */
+  constexpr StringRef trim(StringRef characters_to_remove) const;
+  constexpr StringRef trim(char character_to_remove) const;
 };
 
 /**
@@ -538,6 +550,36 @@ constexpr inline int64_t StringRefBase::find_last_not_of(StringRef chars, int64_
 constexpr inline int64_t StringRefBase::find_last_not_of(char c, int64_t pos) const
 {
   return this->find_last_not_of(StringRef(&c, 1), pos);
+}
+
+constexpr StringRef StringRefBase::trim() const
+{
+  return this->trim(" \t\r\n");
+}
+
+constexpr StringRef StringRefBase::trim(const char character_to_remove) const
+{
+  return this->trim(StringRef(&character_to_remove, 1));
+}
+
+/**
+ * Return a new StringRef that removes all the leading and trailing characters
+ * that occur in `characters_to_remove`.
+ */
+constexpr StringRef StringRefBase::trim(StringRef characters_to_remove) const
+{
+  const int64_t find_front = this->find_first_not_of(characters_to_remove);
+  if (find_front == not_found) {
+    return StringRef();
+  }
+  const int64_t find_end = this->find_last_not_of(characters_to_remove);
+  /* `find_end` cannot be `not_found`, because that means the string is only
+   * `characters_to_remove`, in which case `find_front` would already have
+   * been `not_found`. */
+  BLI_assert_msg(find_end != not_found,
+                 "forward search found characters-to-not-remove, but backward search did not");
+  const int64_t substr_len = find_end - find_front + 1;
+  return this->substr(find_front, substr_len);
 }
 
 }  // namespace blender

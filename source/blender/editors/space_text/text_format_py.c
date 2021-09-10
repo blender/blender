@@ -315,10 +315,10 @@ static char txtfmt_py_format_identifier(const char *str)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if        ((txtfmt_py_find_specialvar(str))   != -1) { fmt = FMT_TYPE_SPECIAL;
-  } else if ((txtfmt_py_find_builtinfunc(str))  != -1) { fmt = FMT_TYPE_KEYWORD;
-  } else if ((txtfmt_py_find_decorator(str))    != -1) { fmt = FMT_TYPE_RESERVED;
-  } else                                               { fmt = FMT_TYPE_DEFAULT;
+  if        (txtfmt_py_find_specialvar(str)   != -1) { fmt = FMT_TYPE_SPECIAL;
+  } else if (txtfmt_py_find_builtinfunc(str)  != -1) { fmt = FMT_TYPE_KEYWORD;
+  } else if (txtfmt_py_find_decorator(str)    != -1) { fmt = FMT_TYPE_RESERVED;
+  } else                                             { fmt = FMT_TYPE_DEFAULT;
   }
 
   /* clang-format on */

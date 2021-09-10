@@ -871,7 +871,7 @@ void MEM_guarded_freeN(void *vmemh)
 
   if (memh == NULL) {
     MemorY_ErroR("free", "attempt to free NULL pointer");
-    /* print_error(err_stream, "%d\n", (memh+4000)->tag1); */
+    // print_error(err_stream, "%d\n", (memh+4000)->tag1);
     return;
   }
 

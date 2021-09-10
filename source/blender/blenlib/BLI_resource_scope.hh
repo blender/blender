@@ -148,7 +148,7 @@ class ResourceScope : NonCopyable, NonMovable {
   /**
    * Utility method to construct an instance of type T that will be owned by the ResourceScope.
    */
-  template<typename T, typename... Args> T &construct(const char *name, Args &&... args)
+  template<typename T, typename... Args> T &construct(const char *name, Args &&...args)
   {
     destruct_ptr<T> value_ptr = m_allocator.construct<T>(std::forward<Args>(args)...);
     T &value_ref = *value_ptr;

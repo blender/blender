@@ -39,8 +39,8 @@ void ColorSpillNode::convertToOperations(NodeConverter &converter,
   ColorSpillOperation *operation;
   operation = new ColorSpillOperation();
   operation->setSettings((NodeColorspill *)editorsnode->storage);
-  operation->setSpillChannel(editorsnode->custom1 - 1);  // Channel for spilling
-  operation->setSpillMethod(editorsnode->custom2);       // Channel method
+  operation->setSpillChannel(editorsnode->custom1 - 1); /* Channel for spilling */
+  operation->setSpillMethod(editorsnode->custom2);      /* Channel method */
   converter.addOperation(operation);
 
   converter.mapInputSocket(inputSocketImage, operation->getInputSocket(0));

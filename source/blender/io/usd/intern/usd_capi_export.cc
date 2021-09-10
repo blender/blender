@@ -196,7 +196,7 @@ static void export_startjob(void *customdata,
   }
 
   usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, upAxis);
-  usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender ") +
+  usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender v") +
                                               BKE_blender_version_string());
 
   /* Set up the stage for animated data. */

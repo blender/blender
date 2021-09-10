@@ -268,7 +268,7 @@ void GLFrameBuffer::bind(bool enabled_srgb)
   }
 
   if (context_ != GLContext::get()) {
-    BLI_assert(!"Trying to use the same frame-buffer in multiple context");
+    BLI_assert_msg(0, "Trying to use the same frame-buffer in multiple context");
     return;
   }
 
@@ -379,7 +379,7 @@ void GLFrameBuffer::clear_attachment(GPUAttachmentType type,
       glClearBufferfv(GL_DEPTH, 0, &depth);
     }
     else {
-      BLI_assert(!"Unhandled data format");
+      BLI_assert_msg(0, "Unhandled data format");
     }
   }
   else {
@@ -395,7 +395,7 @@ void GLFrameBuffer::clear_attachment(GPUAttachmentType type,
         glClearBufferiv(GL_COLOR, slot, (GLint *)clear_value);
         break;
       default:
-        BLI_assert(!"Unhandled data format");
+        BLI_assert_msg(0, "Unhandled data format");
         break;
     }
   }

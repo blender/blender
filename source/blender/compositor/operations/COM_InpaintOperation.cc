@@ -28,7 +28,7 @@ namespace blender::compositor {
 #define ASSERT_XY_RANGE(x, y) \
   BLI_assert(x >= 0 && x < this->getWidth() && y >= 0 && y < this->getHeight())
 
-// Inpaint (simple convolve using average of known pixels)
+/* In-paint (simple convolve using average of known pixels). */
 InpaintSimpleOperation::InpaintSimpleOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -39,6 +39,7 @@ InpaintSimpleOperation::InpaintSimpleOperation()
   this->m_manhattan_distance = nullptr;
   this->m_cached_buffer = nullptr;
   this->m_cached_buffer_ready = false;
+  flags.is_fullframe_operation = true;
 }
 void InpaintSimpleOperation::initExecution()
 {
@@ -284,6 +285,49 @@ bool InpaintSimpleOperation::determineDependingAreaOfInterest(rcti * /*input*/,
   newInput.ymin = 0;
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+}
+
+void InpaintSimpleOperation::get_area_of_interest(const int input_idx,
+                                                  const rcti &UNUSED(output_area),
+                                                  rcti &r_input_area)
+{
+  BLI_assert(input_idx == 0);
+  UNUSED_VARS_NDEBUG(input_idx);
+  r_input_area.xmin = 0;
+  r_input_area.xmax = this->getWidth();
+  r_input_area.ymin = 0;
+  r_input_area.ymax = this->getHeight();
+}
+
+void InpaintSimpleOperation::update_memory_buffer(MemoryBuffer *output,
+                                                  const rcti &area,
+                                                  Span<MemoryBuffer *> inputs)
+{
+  /* TODO(manzanilla): once tiled implementation is removed, run multi-threaded where possible. */
+  MemoryBuffer *input = inputs[0];
+  if (!m_cached_buffer_ready) {
+    if (input->is_a_single_elem()) {
+      MemoryBuffer *tmp = input->inflate();
+      m_cached_buffer = tmp->release_ownership_buffer();
+      delete tmp;
+    }
+    else {
+      m_cached_buffer = (float *)MEM_dupallocN(input->getBuffer());
+    }
+
+    this->calc_manhattan_distance();
+
+    int curr = 0;
+    int x, y;
+    while (this->next_pixel(x, y, curr, this->m_iterations)) {
+      this->pix_step(x, y);
+    }
+    m_cached_buffer_ready = true;
+  }
+
+  const int num_channels = COM_data_type_num_channels(getOutputSocket()->getDataType());
+  MemoryBuffer buf(m_cached_buffer, num_channels, input->getWidth(), input->getHeight());
+  output->copy_from(&buf, area);
 }
 
 }  // namespace blender::compositor

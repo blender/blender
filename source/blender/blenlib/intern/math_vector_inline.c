@@ -847,6 +847,19 @@ MINLINE void invert_v3(float r[3])
   r[2] = 1.0f / r[2];
 }
 
+MINLINE void invert_v3_safe(float r[3])
+{
+  if (r[0] != 0.0f) {
+    r[0] = 1.0f / r[0];
+  }
+  if (r[1] != 0.0f) {
+    r[1] = 1.0f / r[1];
+  }
+  if (r[2] != 0.0f) {
+    r[2] = 1.0f / r[2];
+  }
+}
+
 MINLINE void abs_v2(float r[2])
 {
   r[0] = fabsf(r[0]);
@@ -1132,6 +1145,9 @@ MINLINE float len_v3v3(const float a[3], const float b[3])
   return len_v3(d);
 }
 
+/**
+ * \note any vectors containing `nan` will be zeroed out.
+ */
 MINLINE float normalize_v2_v2_length(float r[2], const float a[2], const float unit_length)
 {
   float d = dot_v2v2(a, a);
@@ -1141,6 +1157,7 @@ MINLINE float normalize_v2_v2_length(float r[2], const float a[2], const float u
     mul_v2_v2fl(r, a, unit_length / d);
   }
   else {
+    /* Either the vector is small or one of it's values contained `nan`. */
     zero_v2(r);
     d = 0.0f;
   }
@@ -1162,17 +1179,20 @@ MINLINE float normalize_v2_length(float n[2], const float unit_length)
   return normalize_v2_v2_length(n, n, unit_length);
 }
 
+/**
+ * \note any vectors containing `nan` will be zeroed out.
+ */
 MINLINE float normalize_v3_v3_length(float r[3], const float a[3], const float unit_length)
 {
   float d = dot_v3v3(a, a);
 
-  /* a larger value causes normalize errors in a
-   * scaled down models with camera extreme close */
+  /* A larger value causes normalize errors in a scaled down models with camera extreme close. */
   if (d > 1.0e-35f) {
     d = sqrtf(d);
     mul_v3_v3fl(r, a, unit_length / d);
   }
   else {
+    /* Either the vector is small or one of it's values contained `nan`. */
     zero_v3(r);
     d = 0.0f;
   }
@@ -1312,7 +1332,7 @@ MINLINE bool is_one_v3(const float v[3])
 /* -------------------------------------------------------------------- */
 /** \name Vector Comparison
  *
- * \note use ``value <= limit``, so a limit of zero doesn't fail on an exact match.
+ * \note use `value <= limit`, so a limit of zero doesn't fail on an exact match.
  * \{ */
 
 MINLINE bool equals_v2v2(const float v1[2], const float v2[2])

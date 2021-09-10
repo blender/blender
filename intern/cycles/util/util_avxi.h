@@ -54,7 +54,7 @@ struct avxi {
   __forceinline avxi(const __m256i a) : m256(a)
   {
   }
-  __forceinline operator const __m256i &(void)const
+  __forceinline operator const __m256i &(void) const
   {
     return m256;
   }

@@ -17,12 +17,19 @@
  */
 
 #include "COM_BokehBlurOperation.h"
+#include "COM_ConstantOperation.h"
+
 #include "BLI_math.h"
 #include "COM_OpenCLDevice.h"
 
 #include "RE_pipeline.h"
 
 namespace blender::compositor {
+
+constexpr int IMAGE_INPUT_INDEX = 0;
+constexpr int BOKEH_INPUT_INDEX = 1;
+constexpr int BOUNDING_BOX_INPUT_INDEX = 2;
+constexpr int SIZE_INPUT_INDEX = 3;
 
 BokehBlurOperation::BokehBlurOperation()
 {
@@ -44,6 +51,23 @@ BokehBlurOperation::BokehBlurOperation()
   this->m_extend_bounds = false;
 }
 
+void BokehBlurOperation::init_data()
+{
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    updateSize();
+  }
+
+  NodeOperation *bokeh = get_input_operation(BOKEH_INPUT_INDEX);
+  const int width = bokeh->getWidth();
+  const int height = bokeh->getHeight();
+
+  const float dimension = MIN2(width, height);
+
+  m_bokehMidX = width / 2.0f;
+  m_bokehMidY = height / 2.0f;
+  m_bokehDimension = dimension / 2.0f;
+}
+
 void *BokehBlurOperation::initializeTileData(rcti * /*rect*/)
 {
   lockMutex();
@@ -58,18 +82,11 @@ void *BokehBlurOperation::initializeTileData(rcti * /*rect*/)
 void BokehBlurOperation::initExecution()
 {
   initMutex();
+
   this->m_inputProgram = getInputSocketReader(0);
   this->m_inputBokehProgram = getInputSocketReader(1);
   this->m_inputBoundingBoxReader = getInputSocketReader(2);
 
-  int width = this->m_inputBokehProgram->getWidth();
-  int height = this->m_inputBokehProgram->getHeight();
-
-  float dimension = MIN2(width, height);
-
-  this->m_bokehMidX = width / 2.0f;
-  this->m_bokehMidY = height / 2.0f;
-  this->m_bokehDimension = dimension / 2.0f;
   QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
@@ -225,23 +242,146 @@ void BokehBlurOperation::executeOpenCL(OpenCLDevice *device,
 
 void BokehBlurOperation::updateSize()
 {
-  if (!this->m_sizeavailable) {
-    float result[4];
-    this->getInputSocketReader(3)->readSampled(result, 0, 0, PixelSampler::Nearest);
-    this->m_size = result[0];
-    CLAMP(this->m_size, 0.0f, 10.0f);
-    this->m_sizeavailable = true;
+  if (this->m_sizeavailable) {
+    return;
   }
+
+  switch (execution_model_) {
+    case eExecutionModel::Tiled: {
+      float result[4];
+      this->getInputSocketReader(3)->readSampled(result, 0, 0, PixelSampler::Nearest);
+      this->m_size = result[0];
+      CLAMP(this->m_size, 0.0f, 10.0f);
+      break;
+    }
+    case eExecutionModel::FullFrame: {
+      NodeOperation *size_input = get_input_operation(SIZE_INPUT_INDEX);
+      if (size_input->get_flags().is_constant_operation) {
+        m_size = *static_cast<ConstantOperation *>(size_input)->get_constant_elem();
+        CLAMP(m_size, 0.0f, 10.0f);
+      } /* Else use default. */
+      break;
+    }
+  }
+  this->m_sizeavailable = true;
 }
 
 void BokehBlurOperation::determineResolution(unsigned int resolution[2],
                                              unsigned int preferredResolution[2])
 {
-  NodeOperation::determineResolution(resolution, preferredResolution);
-  if (this->m_extend_bounds) {
-    const float max_dim = MAX2(resolution[0], resolution[1]);
-    resolution[0] += 2 * this->m_size * max_dim / 100.0f;
-    resolution[1] += 2 * this->m_size * max_dim / 100.0f;
+  if (!m_extend_bounds) {
+    NodeOperation::determineResolution(resolution, preferredResolution);
+    return;
+  }
+
+  switch (execution_model_) {
+    case eExecutionModel::Tiled: {
+      NodeOperation::determineResolution(resolution, preferredResolution);
+      const float max_dim = MAX2(resolution[0], resolution[1]);
+      resolution[0] += 2 * this->m_size * max_dim / 100.0f;
+      resolution[1] += 2 * this->m_size * max_dim / 100.0f;
+      break;
+    }
+    case eExecutionModel::FullFrame: {
+      set_determined_resolution_modifier([=](unsigned int res[2]) {
+        const float max_dim = MAX2(res[0], res[1]);
+        /* Rounding to even prevents image jiggling in backdrop while switching size values. */
+        float add_size = round_to_even(2 * this->m_size * max_dim / 100.0f);
+        res[0] += add_size;
+        res[1] += add_size;
+      });
+      NodeOperation::determineResolution(resolution, preferredResolution);
+      break;
+    }
+  }
+}
+
+void BokehBlurOperation::get_area_of_interest(const int input_idx,
+                                              const rcti &output_area,
+                                              rcti &r_input_area)
+{
+  switch (input_idx) {
+    case IMAGE_INPUT_INDEX: {
+      const float max_dim = MAX2(this->getWidth(), this->getHeight());
+      const float add_size = m_size * max_dim / 100.0f;
+      r_input_area.xmin = output_area.xmin - add_size;
+      r_input_area.xmax = output_area.xmax + add_size;
+      r_input_area.ymin = output_area.ymin - add_size;
+      r_input_area.ymax = output_area.ymax + add_size;
+      break;
+    }
+    case BOKEH_INPUT_INDEX: {
+      NodeOperation *bokeh_input = getInputOperation(BOKEH_INPUT_INDEX);
+      r_input_area.xmin = 0;
+      r_input_area.xmax = bokeh_input->getWidth();
+      r_input_area.ymin = 0;
+      r_input_area.ymax = bokeh_input->getHeight();
+      break;
+    }
+    case BOUNDING_BOX_INPUT_INDEX:
+      r_input_area = output_area;
+      break;
+    case SIZE_INPUT_INDEX: {
+      r_input_area = COM_SINGLE_ELEM_AREA;
+      break;
+    }
+  }
+}
+
+void BokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                      const rcti &area,
+                                                      Span<MemoryBuffer *> inputs)
+{
+  const float max_dim = MAX2(this->getWidth(), this->getHeight());
+  const int pixel_size = m_size * max_dim / 100.0f;
+  const float m = m_bokehDimension / pixel_size;
+
+  const MemoryBuffer *image_input = inputs[IMAGE_INPUT_INDEX];
+  const MemoryBuffer *bokeh_input = inputs[BOKEH_INPUT_INDEX];
+  MemoryBuffer *bounding_input = inputs[BOUNDING_BOX_INPUT_INDEX];
+  BuffersIterator<float> it = output->iterate_with({bounding_input}, area);
+  const rcti &image_rect = image_input->get_rect();
+  for (; !it.is_end(); ++it) {
+    const int x = it.x;
+    const int y = it.y;
+    const float bounding_box = *it.in(0);
+    if (bounding_box <= 0.0f) {
+      image_input->read_elem(x, y, it.out);
+      continue;
+    }
+
+    float color_accum[4] = {0};
+    float multiplier_accum[4] = {0};
+    if (pixel_size < 2) {
+      image_input->read_elem(x, y, color_accum);
+      multiplier_accum[0] = 1.0f;
+      multiplier_accum[1] = 1.0f;
+      multiplier_accum[2] = 1.0f;
+      multiplier_accum[3] = 1.0f;
+    }
+    const int miny = MAX2(y - pixel_size, image_rect.ymin);
+    const int maxy = MIN2(y + pixel_size, image_rect.ymax);
+    const int minx = MAX2(x - pixel_size, image_rect.xmin);
+    const int maxx = MIN2(x + pixel_size, image_rect.xmax);
+    const int step = getStep();
+    const int elem_stride = image_input->elem_stride * step;
+    const int row_stride = image_input->row_stride * step;
+    const float *row_color = image_input->get_elem(minx, miny);
+    for (int ny = miny; ny < maxy; ny += step, row_color += row_stride) {
+      const float *color = row_color;
+      const float v = m_bokehMidY - (ny - y) * m;
+      for (int nx = minx; nx < maxx; nx += step, color += elem_stride) {
+        const float u = m_bokehMidX - (nx - x) * m;
+        float bokeh[4];
+        bokeh_input->read_elem_checked(u, v, bokeh);
+        madd_v4_v4v4(color_accum, bokeh, color);
+        add_v4_v4(multiplier_accum, bokeh);
+      }
+    }
+    it.out[0] = color_accum[0] * (1.0f / multiplier_accum[0]);
+    it.out[1] = color_accum[1] * (1.0f / multiplier_accum[1]);
+    it.out[2] = color_accum[2] * (1.0f / multiplier_accum[2]);
+    it.out[3] = color_accum[3] * (1.0f / multiplier_accum[3]);
   }
 }
 

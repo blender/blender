@@ -60,6 +60,8 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
     }
     catch (const std::runtime_error &) {
       /* fallback to X11. */
+      delete m_system;
+      m_system = nullptr;
     }
     if (!m_system) {
       m_system = new GHOST_SystemX11();

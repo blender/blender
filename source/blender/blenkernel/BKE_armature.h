@@ -28,7 +28,6 @@ extern "C" {
 #endif
 
 struct AnimationEvalContext;
-struct bAction;
 struct BMEditMesh;
 struct Bone;
 struct Depsgraph;
@@ -39,6 +38,7 @@ struct Mesh;
 struct Object;
 struct PoseTree;
 struct Scene;
+struct bAction;
 struct bArmature;
 struct bConstraint;
 struct bGPDstroke;
@@ -207,9 +207,18 @@ void BKE_pose_where_is_bone_tail(struct bPoseChannel *pchan);
 
 /* Evaluate the action and apply it to the pose. If any pose bones are selected, only FCurves that
  * relate to those bones are evaluated. */
-void BKE_pose_apply_action(struct Object *ob,
-                           struct bAction *action,
-                           struct AnimationEvalContext *anim_eval_context);
+void BKE_pose_apply_action_selected_bones(struct Object *ob,
+                                          struct bAction *action,
+                                          struct AnimationEvalContext *anim_eval_context);
+/* Evaluate the action and apply it to the pose. Ignore selection state of the bones. */
+void BKE_pose_apply_action_all_bones(struct Object *ob,
+                                     struct bAction *action,
+                                     struct AnimationEvalContext *anim_eval_context);
+
+void BKE_pose_apply_action_blend(struct Object *ob,
+                                 struct bAction *action,
+                                 struct AnimationEvalContext *anim_eval_context,
+                                 float blend_factor);
 
 void vec_roll_to_mat3(const float vec[3], const float roll, float r_mat[3][3]);
 void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float r_mat[3][3]);

@@ -62,7 +62,7 @@ void MovieClipNode::convertToOperations(NodeConverter &converter,
     }
   }
 
-  // always connect the output image
+  /* Always connect the output image. */
   MovieClipOperation *operation = new MovieClipOperation();
   operation->setMovieClip(movieClip);
   operation->setMovieClipUser(movieClipUser);

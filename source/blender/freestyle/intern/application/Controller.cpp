@@ -707,7 +707,7 @@ void Controller::ComputeSteerableViewMap()
       for (unsigned int x = 0; x < img[i]->width(); ++x) {
         //img[i]->setPixel(x, y, (float)qGray(qimg.pixel(x, y)) / 255.0f);
         img[i]->setPixel(x, y, (float)qGray(qimg.pixel(x, y)));
-        //float c = qGray(qimg.pixel(x, y));
+        // float c = qGray(qimg.pixel(x, y));
         //img[i]->setPixel(x, y, qGray(qimg.pixel(x, y)));
       }
     }

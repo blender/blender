@@ -226,6 +226,9 @@ void POSE_OT_ik_add(struct wmOperatorType *ot);
 void POSE_OT_ik_clear(struct wmOperatorType *ot);
 
 void CONSTRAINT_OT_delete(struct wmOperatorType *ot);
+void CONSTRAINT_OT_apply(struct wmOperatorType *ot);
+void CONSTRAINT_OT_copy(struct wmOperatorType *ot);
+void CONSTRAINT_OT_copy_to_selected(struct wmOperatorType *ot);
 
 void CONSTRAINT_OT_move_up(struct wmOperatorType *ot);
 void CONSTRAINT_OT_move_to_index(struct wmOperatorType *ot);
@@ -247,7 +250,6 @@ void OBJECT_OT_vertex_group_assign_new(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_remove_from(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_select(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_deselect(struct wmOperatorType *ot);
-void OBJECT_OT_vertex_group_copy_to_linked(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy_to_selected(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_normalize(struct wmOperatorType *ot);
@@ -304,7 +306,7 @@ void OBJECT_OT_bake(wmOperatorType *ot);
 /* object_random.c */
 void TRANSFORM_OT_vertex_random(struct wmOperatorType *ot);
 
-/* object_remesh.c */
+/* object_remesh.cc */
 void OBJECT_OT_voxel_remesh(struct wmOperatorType *ot);
 void OBJECT_OT_voxel_size_edit(struct wmOperatorType *ot);
 void OBJECT_OT_quadriflow_remesh(struct wmOperatorType *ot);

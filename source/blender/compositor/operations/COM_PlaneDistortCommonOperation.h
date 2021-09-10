@@ -20,7 +20,7 @@
 
 #include <string.h>
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 #include "DNA_movieclip_types.h"
 #include "DNA_tracking_types.h"
@@ -32,7 +32,7 @@ namespace blender::compositor {
 
 #define PLANE_DISTORT_MAX_SAMPLES 64
 
-class PlaneDistortBaseOperation : public NodeOperation {
+class PlaneDistortBaseOperation : public MultiThreadedOperation {
  protected:
   struct MotionSample {
     float frameSpaceCorners[4][2]; /* Corners coordinates in pixel space. */
@@ -78,6 +78,11 @@ class PlaneDistortWarpImageOperation : public PlaneDistortBaseOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 class PlaneDistortMaskOperation : public PlaneDistortBaseOperation {
@@ -91,6 +96,13 @@ class PlaneDistortMaskOperation : public PlaneDistortBaseOperation {
   void initExecution() override;
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+
+ private:
+  int get_jitter_samples_inside_count(int x, int y, MotionSample &sample_data);
 };
 
 }  // namespace blender::compositor

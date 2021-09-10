@@ -108,6 +108,9 @@ typedef struct BlendFileReadReport {
      * during this file read. */
     int missing_libraries;
     int missing_linked_id;
+    /* Some sub-categories of the above `missing_linked_id` counter. */
+    int missing_obdata;
+    int missing_obproxies;
     /* Number of root override IDs that were resynced. */
     int resynced_lib_overrides;
   } count;
@@ -115,6 +118,7 @@ typedef struct BlendFileReadReport {
   /* Number of libraries which had overrides that needed to be resynced, and a single linked list
    * of those. */
   int resynced_lib_overrides_libraries_count;
+  bool do_resynced_lib_overrides_libraries_list;
   struct LinkNode *resynced_lib_overrides_libraries;
 } BlendFileReadReport;
 
@@ -168,6 +172,9 @@ struct LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
                                                     int ofblocktype,
                                                     int *r_tot_info_items);
 struct LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_tot_prev);
+struct PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
+                                                        int ofblocktype,
+                                                        const char *name);
 struct LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh);
 
 void BLO_blendhandle_close(BlendHandle *bh);

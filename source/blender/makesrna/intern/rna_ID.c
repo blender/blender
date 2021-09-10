@@ -126,6 +126,97 @@ static const EnumPropertyItem rna_enum_override_library_property_operation_items
     {0, NULL, 0, NULL, NULL},
 };
 
+/**
+ * \note Uses #IDFilterEnumPropertyItem, not EnumPropertyItem, to support 64 bit items.
+ */
+const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
+    /* Datablocks */
+    {FILTER_ID_AC, "filter_action", ICON_ANIM_DATA, "Actions", "Show Action data-blocks"},
+    {FILTER_ID_AR,
+     "filter_armature",
+     ICON_ARMATURE_DATA,
+     "Armatures",
+     "Show Armature data-blocks"},
+    {FILTER_ID_BR, "filter_brush", ICON_BRUSH_DATA, "Brushes", "Show Brushes data-blocks"},
+    {FILTER_ID_CA, "filter_camera", ICON_CAMERA_DATA, "Cameras", "Show Camera data-blocks"},
+    {FILTER_ID_CF, "filter_cachefile", ICON_FILE, "Cache Files", "Show Cache File data-blocks"},
+    {FILTER_ID_CU, "filter_curve", ICON_CURVE_DATA, "Curves", "Show Curve data-blocks"},
+    {FILTER_ID_GD,
+     "filter_grease_pencil",
+     ICON_GREASEPENCIL,
+     "Grease Pencil",
+     "Show Grease pencil data-blocks"},
+    {FILTER_ID_GR,
+     "filter_group",
+     ICON_OUTLINER_COLLECTION,
+     "Collections",
+     "Show Collection data-blocks"},
+    {FILTER_ID_HA, "filter_hair", ICON_HAIR_DATA, "Hairs", "Show/hide Hair data-blocks"},
+    {FILTER_ID_IM, "filter_image", ICON_IMAGE_DATA, "Images", "Show Image data-blocks"},
+    {FILTER_ID_LA, "filter_light", ICON_LIGHT_DATA, "Lights", "Show Light data-blocks"},
+    {FILTER_ID_LP,
+     "filter_light_probe",
+     ICON_OUTLINER_DATA_LIGHTPROBE,
+     "Light Probes",
+     "Show Light Probe data-blocks"},
+    {FILTER_ID_LS,
+     "filter_linestyle",
+     ICON_LINE_DATA,
+     "Freestyle Linestyles",
+     "Show Freestyle's Line Style data-blocks"},
+    {FILTER_ID_LT, "filter_lattice", ICON_LATTICE_DATA, "Lattices", "Show Lattice data-blocks"},
+    {FILTER_ID_MA,
+     "filter_material",
+     ICON_MATERIAL_DATA,
+     "Materials",
+     "Show Material data-blocks"},
+    {FILTER_ID_MB, "filter_metaball", ICON_META_DATA, "Metaballs", "Show Metaball data-blocks"},
+    {FILTER_ID_MC,
+     "filter_movie_clip",
+     ICON_TRACKER_DATA,
+     "Movie Clips",
+     "Show Movie Clip data-blocks"},
+    {FILTER_ID_ME, "filter_mesh", ICON_MESH_DATA, "Meshes", "Show Mesh data-blocks"},
+    {FILTER_ID_MSK, "filter_mask", ICON_MOD_MASK, "Masks", "Show Mask data-blocks"},
+    {FILTER_ID_NT, "filter_node_tree", ICON_NODETREE, "Node Trees", "Show Node Tree data-blocks"},
+    {FILTER_ID_OB, "filter_object", ICON_OBJECT_DATA, "Objects", "Show Object data-blocks"},
+    {FILTER_ID_PA,
+     "filter_particle_settings",
+     ICON_PARTICLE_DATA,
+     "Particles Settings",
+     "Show Particle Settings data-blocks"},
+    {FILTER_ID_PAL, "filter_palette", ICON_COLOR, "Palettes", "Show Palette data-blocks"},
+    {FILTER_ID_PC,
+     "filter_paint_curve",
+     ICON_CURVE_BEZCURVE,
+     "Paint Curves",
+     "Show Paint Curve data-blocks"},
+    {FILTER_ID_PT,
+     "filter_pointcloud",
+     ICON_POINTCLOUD_DATA,
+     "Point Clouds",
+     "Show/hide Point Cloud data-blocks"},
+    {FILTER_ID_SCE, "filter_scene", ICON_SCENE_DATA, "Scenes", "Show Scene data-blocks"},
+    {FILTER_ID_SIM,
+     "filter_simulation",
+     ICON_PHYSICS,
+     "Simulations",
+     "Show Simulation data-blocks"}, /* TODO: Use correct icon. */
+    {FILTER_ID_SPK, "filter_speaker", ICON_SPEAKER, "Speakers", "Show Speaker data-blocks"},
+    {FILTER_ID_SO, "filter_sound", ICON_SOUND, "Sounds", "Show Sound data-blocks"},
+    {FILTER_ID_TE, "filter_texture", ICON_TEXTURE_DATA, "Textures", "Show Texture data-blocks"},
+    {FILTER_ID_TXT, "filter_text", ICON_TEXT, "Texts", "Show Text data-blocks"},
+    {FILTER_ID_VF, "filter_font", ICON_FONT_DATA, "Fonts", "Show Font data-blocks"},
+    {FILTER_ID_VO, "filter_volume", ICON_VOLUME_DATA, "Volumes", "Show/hide Volume data-blocks"},
+    {FILTER_ID_WO, "filter_world", ICON_WORLD_DATA, "Worlds", "Show World data-blocks"},
+    {FILTER_ID_WS,
+     "filter_work_space",
+     ICON_WORKSPACE,
+     "Workspaces",
+     "Show workspace data-blocks"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "DNA_anim_types.h"
@@ -493,9 +584,10 @@ StructRNA *rna_ID_refine(PointerRNA *ptr)
   return ID_code_to_RNA_type(GS(id->name));
 }
 
-IDProperty *rna_ID_idprops(PointerRNA *ptr, bool create)
+IDProperty **rna_ID_idprops(PointerRNA *ptr)
 {
-  return IDP_GetProperties(ptr->data, create);
+  ID *id = (ID *)ptr->data;
+  return &id->properties;
 }
 
 void rna_ID_fake_user_set(PointerRNA *ptr, bool value)
@@ -510,9 +602,9 @@ void rna_ID_fake_user_set(PointerRNA *ptr, bool value)
   }
 }
 
-IDProperty *rna_PropertyGroup_idprops(PointerRNA *ptr, bool UNUSED(create))
+IDProperty **rna_PropertyGroup_idprops(PointerRNA *ptr)
 {
-  return ptr->data;
+  return (IDProperty **)&ptr->data;
 }
 
 void rna_PropertyGroup_unregister(Main *UNUSED(bmain), StructRNA *type)
@@ -649,6 +741,58 @@ static void rna_ID_override_template_create(ID *id, ReportList *reports)
   BKE_lib_override_library_template_create(id);
 }
 
+static void rna_ID_override_library_operations_update(ID *id,
+                                                      IDOverrideLibrary *UNUSED(override_library),
+                                                      Main *bmain,
+                                                      ReportList *reports)
+{
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    BKE_reportf(reports, RPT_ERROR, "ID '%s' isn't an override", id->name);
+    return;
+  }
+
+  BKE_lib_override_library_operations_create(bmain, id);
+}
+
+static void rna_ID_override_library_reset(ID *id,
+                                          IDOverrideLibrary *UNUSED(override_library),
+                                          Main *bmain,
+                                          ReportList *reports,
+                                          bool do_hierarchy)
+{
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    BKE_reportf(reports, RPT_ERROR, "ID '%s' isn't an override", id->name);
+    return;
+  }
+
+  if (do_hierarchy) {
+    BKE_lib_override_library_id_hierarchy_reset(bmain, id);
+  }
+  else {
+    BKE_lib_override_library_id_reset(bmain, id);
+  }
+}
+
+static void rna_ID_override_library_destroy(ID *id,
+                                            IDOverrideLibrary *UNUSED(override_library),
+                                            Main *bmain,
+                                            ReportList *reports,
+                                            bool do_hierarchy)
+{
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    BKE_reportf(reports, RPT_ERROR, "ID '%s' isn't an override", id->name);
+    return;
+  }
+
+  if (do_hierarchy) {
+    BKE_lib_override_library_delete(bmain, id);
+  }
+  else {
+    BKE_libblock_remap(bmain, id, id->override_library->reference, ID_REMAP_SKIP_INDIRECT_USAGE);
+    BKE_id_delete(bmain, id);
+  }
+}
+
 static IDOverrideLibraryProperty *rna_ID_override_library_properties_add(
     IDOverrideLibrary *override_library, ReportList *reports, const char rna_path[])
 {
@@ -661,6 +805,18 @@ static IDOverrideLibraryProperty *rna_ID_override_library_properties_add(
   }
 
   return result;
+}
+
+static void rna_ID_override_library_properties_remove(IDOverrideLibrary *override_library,
+                                                      ReportList *reports,
+                                                      IDOverrideLibraryProperty *override_property)
+{
+  if (BLI_findindex(&override_library->properties, override_property) == -1) {
+    BKE_report(reports, RPT_ERROR, "Override property cannot be removed");
+    return;
+  }
+
+  BKE_lib_override_library_property_delete(override_library, override_property);
 }
 
 static IDOverrideLibraryPropertyOperation *rna_ID_override_library_property_operations_add(
@@ -688,6 +844,19 @@ static IDOverrideLibraryPropertyOperation *rna_ID_override_library_property_oper
     BKE_report(reports, RPT_DEBUG, "No new override operation created, operation already exists");
   }
   return result;
+}
+
+static void rna_ID_override_library_property_operations_remove(
+    IDOverrideLibraryProperty *override_property,
+    ReportList *reports,
+    IDOverrideLibraryPropertyOperation *override_operation)
+{
+  if (BLI_findindex(&override_property->operations, override_operation) == -1) {
+    BKE_report(reports, RPT_ERROR, "Override operation cannot be removed");
+    return;
+  }
+
+  BKE_lib_override_library_property_operation_delete(override_property, override_operation);
 }
 
 static void rna_ID_update_tag(ID *id, Main *bmain, ReportList *reports, int flag)
@@ -1162,12 +1331,12 @@ static PointerRNA rna_IDPreview_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_ImagePreview, prv_img);
 }
 
-static IDProperty *rna_IDPropertyWrapPtr_idprops(PointerRNA *ptr, bool UNUSED(create))
+static IDProperty **rna_IDPropertyWrapPtr_idprops(PointerRNA *ptr)
 {
   if (ptr == NULL) {
     return NULL;
   }
-  return ptr->data;
+  return (IDProperty **)&ptr->data;
 }
 
 static void rna_Library_version_get(PointerRNA *ptr, int *value)
@@ -1541,6 +1710,16 @@ static void rna_def_ID_override_library_property_operations(BlenderRNA *brna, Pr
                          "New Operation",
                          "Created operation");
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_ID_override_library_property_operations_remove");
+  RNA_def_function_ui_description(func, "Remove and delete an operation");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func,
+                         "operation",
+                         "IDOverrideLibraryPropertyOperation",
+                         "Operation",
+                         "Override operation to be deleted");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
 static void rna_def_ID_override_library_property(BlenderRNA *brna)
@@ -1597,12 +1776,23 @@ static void rna_def_ID_override_library_properties(BlenderRNA *brna, PropertyRNA
   parm = RNA_def_string(
       func, "rna_path", NULL, 256, "RNA Path", "RNA-Path of the property to add");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "remove", "rna_ID_override_library_properties_remove");
+  RNA_def_function_ui_description(func, "Remove and delete a property");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func,
+                         "property",
+                         "IDOverrideLibraryProperty",
+                         "Property",
+                         "Override property to be deleted");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
 static void rna_def_ID_override_library(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
+  FunctionRNA *func;
 
   srna = RNA_def_struct(brna, "IDOverrideLibrary", NULL);
   RNA_def_struct_ui_text(
@@ -1617,6 +1807,35 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
                             "Properties",
                             "List of overridden properties");
   rna_def_ID_override_library_properties(brna, prop);
+
+  /* Update function. */
+  func = RNA_def_function(srna, "operations_update", "rna_ID_override_library_operations_update");
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(func,
+                                  "Update the library override operations based on the "
+                                  "differences between this override ID and its reference");
+
+  func = RNA_def_function(srna, "reset", "rna_ID_override_library_reset");
+  RNA_def_function_ui_description(func,
+                                  "Reset this override to match again its linked reference ID");
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  RNA_def_boolean(
+      func,
+      "do_hierarchy",
+      true,
+      "",
+      "Also reset all the dependencies of this override to match their reference linked IDs");
+
+  func = RNA_def_function(srna, "destroy", "rna_ID_override_library_destroy");
+  RNA_def_function_ui_description(
+      func, "Delete this override ID and remap its usages to its linked reference ID instead");
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  RNA_def_boolean(func,
+                  "do_hierarchy",
+                  true,
+                  "",
+                  "Also delete all the dependencies of this override and remap their usages to "
+                  "their reference linked IDs");
 
   rna_def_ID_override_library_property(brna);
 }

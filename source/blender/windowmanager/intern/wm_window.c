@@ -1058,7 +1058,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
   if (win != wm->windrawable && win->ghostwin) {
-    //      win->lmbut = 0; /* keeps hanging when mousepressed while other window opened */
+    // win->lmbut = 0; /* Keeps hanging when mouse-pressed while other window opened. */
     wm_window_clear_drawable(wm);
 
     if (G.debug & G_DEBUG_EVENTS) {
@@ -1416,7 +1416,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
         wm_event_add(win, &event);
 
-        /* printf("Drop detected\n"); */
+        // printf("Drop detected\n");
 
         /* add drag data to wm for paths: */
 
@@ -1922,12 +1922,11 @@ static void wm_window_screen_pos_get(const wmWindow *win,
   r_scr_pos[1] = desktop_pos[1] - (int)(U.pixelsize * win->posy);
 }
 
-bool WM_window_find_under_cursor(const wmWindowManager *wm,
-                                 const wmWindow *win_ignore,
-                                 const wmWindow *win,
-                                 const int mval[2],
-                                 wmWindow **r_win,
-                                 int r_mval[2])
+wmWindow *WM_window_find_under_cursor(const wmWindowManager *wm,
+                                      const wmWindow *win_ignore,
+                                      const wmWindow *win,
+                                      const int mval[2],
+                                      int r_mval[2])
 {
   int desk_pos[2];
   wm_window_desktop_pos_get(win, mval, desk_pos);
@@ -1946,16 +1945,15 @@ bool WM_window_find_under_cursor(const wmWindowManager *wm,
     int scr_pos[2];
     wm_window_screen_pos_get(win_iter, desk_pos, scr_pos);
 
-    if (scr_pos[0] >= 0 && win_iter->posy >= 0 && scr_pos[0] <= WM_window_pixels_x(win_iter) &&
+    if (scr_pos[0] >= 0 && scr_pos[1] >= 0 && scr_pos[0] <= WM_window_pixels_x(win_iter) &&
         scr_pos[1] <= WM_window_pixels_y(win_iter)) {
 
-      *r_win = win_iter;
       copy_v2_v2_int(r_mval, scr_pos);
-      return true;
+      return win_iter;
     }
   }
 
-  return false;
+  return NULL;
 }
 
 void WM_window_pixel_sample_read(const wmWindowManager *wm,

@@ -145,7 +145,7 @@ typedef struct FreestyleConfig {
   int flags;
   float sphere_radius;
   float dkr_epsilon;
-  /** In radians!. */
+  /** In radians. */
   float crease_angle;
 
   ListBase linesets;

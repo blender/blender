@@ -126,23 +126,22 @@ static void vfont_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 {
   VFont *vf = (VFont *)id;
   const bool is_undo = BLO_write_is_undo(writer);
-  if (vf->id.us > 0 || is_undo) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    vf->data = NULL;
-    vf->temp_pf = NULL;
 
-    /* Do not store packed files in case this is a library override ID. */
-    if (ID_IS_OVERRIDE_LIBRARY(vf) && !is_undo) {
-      vf->packedfile = NULL;
-    }
+  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  vf->data = NULL;
+  vf->temp_pf = NULL;
 
-    /* write LibData */
-    BLO_write_id_struct(writer, VFont, id_address, &vf->id);
-    BKE_id_blend_write(writer, &vf->id);
-
-    /* direct data */
-    BKE_packedfile_blend_write(writer, vf->packedfile);
+  /* Do not store packed files in case this is a library override ID. */
+  if (ID_IS_OVERRIDE_LIBRARY(vf) && !is_undo) {
+    vf->packedfile = NULL;
   }
+
+  /* write LibData */
+  BLO_write_id_struct(writer, VFont, id_address, &vf->id);
+  BKE_id_blend_write(writer, &vf->id);
+
+  /* direct data */
+  BKE_packedfile_blend_write(writer, vf->packedfile);
 }
 
 static void vfont_blend_read_data(BlendDataReader *reader, ID *id)
@@ -337,13 +336,9 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
 
     vfd = BLI_vfontdata_from_freetypefont(pf);
     if (vfd) {
-      vfont = BKE_libblock_alloc(bmain, ID_VF, filename, 0);
+      /* If there's a font name, use it for the ID name. */
+      vfont = BKE_libblock_alloc(bmain, ID_VF, vfd->name[0] ? vfd->name : filename, 0);
       vfont->data = vfd;
-
-      /* if there's a font name, use it for the ID name */
-      if (vfd->name[0] != '\0') {
-        BLI_strncpy(vfont->id.name + 2, vfd->name, sizeof(vfont->id.name) - 2);
-      }
       BLI_strncpy(vfont->filepath, filepath, sizeof(vfont->filepath));
 
       /* if autopack is on store the packedfile in de font structure */
@@ -719,6 +714,13 @@ typedef struct VFontToCurveIter {
     float max;
   } bisect;
   bool ok;
+  /**
+   * Wrap words that extends beyond the text-box width (enabled by default).
+   *
+   * Currently only disabled when scale-to-fit is enabled,
+   * so floating-point error doesn't cause unexpected wrapping, see T89241.
+   */
+  bool word_wrap;
   int status;
 } VFontToCurveIter;
 
@@ -781,6 +783,7 @@ static bool vfont_to_curve(Object *ob,
   char32_t ascii;
   bool ok = false;
   const float font_size = cu->fsize * iter_data->scale_to_fit;
+  const bool word_wrap = iter_data->word_wrap;
   const float xof_scale = cu->xof / font_size;
   const float yof_scale = cu->yof / font_size;
   int last_line = -1;
@@ -951,43 +954,59 @@ static bool vfont_to_curve(Object *ob,
 
     twidth = char_width(cu, che, info);
 
-    /* Calculate positions */
-    if ((tb_scale.w != 0.0f) && (ct->dobreak == 0) &&
-        (((xof - tb_scale.x) + twidth) > xof_scale + tb_scale.w)) {
-      //      CLOG_WARN(&LOG, "linewidth exceeded: %c%c%c...", mem[i], mem[i+1], mem[i+2]);
-      for (j = i; j && (mem[j] != '\n') && (chartransdata[j].dobreak == 0); j--) {
-        bool dobreak = false;
-        if (ELEM(mem[j], ' ', '-')) {
-          ct -= (i - (j - 1));
-          cnr -= (i - (j - 1));
-          if (mem[j] == ' ') {
-            wsnr--;
-          }
-          if (mem[j] == '-') {
-            wsnr++;
-          }
-          i = j - 1;
-          xof = ct->xof;
-          ct[1].dobreak = 1;
-          custrinfo[i + 1].flag |= CU_CHINFO_WRAP;
-          dobreak = true;
+    /* Calculate positions. */
+
+    if ((tb_scale.w != 0.0f) && (ct->dobreak == 0)) { /* May need wrapping. */
+      const float x_available = xof_scale + tb_scale.w;
+      const float x_used = (xof - tb_scale.x) + twidth;
+
+      if (word_wrap == false) {
+        /* When scale to fit is used, don't do any wrapping.
+         *
+         * Floating precision error can cause the text to be slightly larger.
+         * Assert this is a small value as large values indicate incorrect
+         * calculations with scale-to-fit which shouldn't be ignored. See T89241. */
+        if (x_used > x_available) {
+          BLI_assert_msg(compare_ff_relative(x_used, x_available, FLT_EPSILON, 64),
+                         "VFontToCurveIter.scale_to_fit not set correctly!");
         }
-        else if (chartransdata[j].dobreak) {
-          //              CLOG_WARN(&LOG, "word too long: %c%c%c...", mem[j], mem[j+1], mem[j+2]);
-          ct->dobreak = 1;
-          custrinfo[i + 1].flag |= CU_CHINFO_WRAP;
-          ct -= 1;
-          cnr -= 1;
-          i--;
-          xof = ct->xof;
-          dobreak = true;
-        }
-        if (dobreak) {
-          if (tb_scale.h == 0.0f) {
-            /* NOTE: If underlined text is truncated away, the extra space is also truncated. */
-            custrinfo[i + 1].flag |= CU_CHINFO_OVERFLOW;
+      }
+      else if (x_used > x_available) {
+        // CLOG_WARN(&LOG, "linewidth exceeded: %c%c%c...", mem[i], mem[i+1], mem[i+2]);
+        for (j = i; j && (mem[j] != '\n') && (chartransdata[j].dobreak == 0); j--) {
+          bool dobreak = false;
+          if (ELEM(mem[j], ' ', '-')) {
+            ct -= (i - (j - 1));
+            cnr -= (i - (j - 1));
+            if (mem[j] == ' ') {
+              wsnr--;
+            }
+            if (mem[j] == '-') {
+              wsnr++;
+            }
+            i = j - 1;
+            xof = ct->xof;
+            ct[1].dobreak = 1;
+            custrinfo[i + 1].flag |= CU_CHINFO_WRAP;
+            dobreak = true;
           }
-          goto makebreak;
+          else if (chartransdata[j].dobreak) {
+            // CLOG_WARN(&LOG, "word too long: %c%c%c...", mem[j], mem[j+1], mem[j+2]);
+            ct->dobreak = 1;
+            custrinfo[i + 1].flag |= CU_CHINFO_WRAP;
+            ct -= 1;
+            cnr -= 1;
+            i--;
+            xof = ct->xof;
+            dobreak = true;
+          }
+          if (dobreak) {
+            if (tb_scale.h == 0.0f) {
+              /* NOTE: If underlined text is truncated away, the extra space is also truncated. */
+              custrinfo[i + 1].flag |= CU_CHINFO_OVERFLOW;
+            }
+            goto makebreak;
+          }
         }
       }
     }
@@ -1549,6 +1568,7 @@ static bool vfont_to_curve(Object *ob,
           const float total_text_height = lnr * linedist;
           iter_data->scale_to_fit = tb_scale.h / total_text_height;
           iter_data->status = VFONT_TO_CURVE_SCALE_ONCE;
+          iter_data->word_wrap = false;
         }
       }
       else if (tb_scale.h == 0.0f) {
@@ -1556,10 +1576,10 @@ static bool vfont_to_curve(Object *ob,
         if (longest_line_length > tb_scale.w) {
           /* We make sure longest line before it broke can fit here. */
           float scale_to_fit = tb_scale.w / longest_line_length;
-          scale_to_fit -= FLT_EPSILON;
 
           iter_data->scale_to_fit = scale_to_fit;
           iter_data->status = VFONT_TO_CURVE_SCALE_ONCE;
+          iter_data->word_wrap = false;
         }
       }
     }
@@ -1620,6 +1640,7 @@ static bool vfont_to_curve(Object *ob,
           else {
             iter_data->scale_to_fit = iter_data->bisect.min;
             iter_data->status = VFONT_TO_CURVE_SCALE_ONCE;
+            iter_data->word_wrap = false;
           }
         }
       }
@@ -1689,6 +1710,7 @@ bool BKE_vfont_to_curve_ex(Object *ob,
   VFontToCurveIter data = {
       .iteraction = cu->totbox * FONT_TO_CURVE_SCALE_ITERATIONS,
       .scale_to_fit = 1.0f,
+      .word_wrap = true,
       .ok = true,
       .status = VFONT_TO_CURVE_INIT,
   };

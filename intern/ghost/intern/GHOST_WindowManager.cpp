@@ -45,7 +45,7 @@ GHOST_TSuccess GHOST_WindowManager::addWindow(GHOST_IWindow *window)
   GHOST_TSuccess success = GHOST_kFailure;
   if (window) {
     if (!getWindowFound(window)) {
-      // Store the pointer to the window
+      /* Store the pointer to the window. */
       m_windows.push_back(window);
       success = GHOST_kSuccess;
     }

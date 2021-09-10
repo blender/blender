@@ -95,7 +95,7 @@ void BCAnimationCurve::delete_fcurve(FCurve *fcu)
 FCurve *BCAnimationCurve::create_fcurve(int array_index, const char *rna_path)
 {
   FCurve *fcu = BKE_fcurve_create();
-  fcu->flag = (FCURVE_VISIBLE | FCURVE_AUTO_HANDLES | FCURVE_SELECTED);
+  fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
   fcu->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
   fcu->array_index = array_index;
   return fcu;
@@ -173,10 +173,9 @@ std::string BCAnimationCurve::get_animation_name(Object *ob) const
         name = "";
       }
       else {
-        char *boneName = BLI_str_quoted_substrN(fcurve->rna_path, "pose.bones[");
-        if (boneName) {
+        char boneName[MAXBONENAME];
+        if (BLI_str_quoted_substr(fcurve->rna_path, "pose.bones[", boneName, sizeof(boneName))) {
           name = id_name(ob) + "_" + std::string(boneName);
-          MEM_freeN(boneName);
         }
         else {
           name = "";

@@ -60,18 +60,13 @@ class GHOST_XrSession {
   void destroyActions(const char *action_set_name,
                       uint32_t count,
                       const char *const *action_names);
-  bool createActionSpaces(const char *action_set_name,
-                          uint32_t count,
-                          const GHOST_XrActionSpaceInfo *infos);
-  void destroyActionSpaces(const char *action_set_name,
-                           uint32_t count,
-                           const GHOST_XrActionSpaceInfo *infos);
   bool createActionBindings(const char *action_set_name,
                             uint32_t count,
                             const GHOST_XrActionProfileInfo *infos);
   void destroyActionBindings(const char *action_set_name,
                              uint32_t count,
-                             const GHOST_XrActionProfileInfo *infos);
+                             const char *const *action_names,
+                             const char *const *profile_paths);
   bool attachActionSets();
 
   /**
@@ -81,14 +76,19 @@ class GHOST_XrSession {
   bool syncActions(const char *action_set_name = nullptr);
   bool applyHapticAction(const char *action_set_name,
                          const char *action_name,
+                         const char *subaction_path,
                          const int64_t &duration,
                          const float &frequency,
                          const float &amplitude);
-  void stopHapticAction(const char *action_set_name, const char *action_name);
+  void stopHapticAction(const char *action_set_name,
+                        const char *action_name,
+                        const char *subaction_path);
 
   /* Custom data (owned by Blender, not GHOST) accessors. */
   void *getActionSetCustomdata(const char *action_set_name);
   void *getActionCustomdata(const char *action_set_name, const char *action_name);
+  uint32_t getActionCount(const char *action_set_name);
+  void getActionCustomdataArray(const char *action_set_name, void **r_customdata_array);
 
  private:
   /** Pointer back to context managing this session. Would be nice to avoid, but needed to access
@@ -117,6 +117,7 @@ class GHOST_XrSession {
                 XrCompositionLayerProjectionView &r_proj_layer_view,
                 XrSpaceLocation &view_location,
                 XrView &view,
+                uint32_t view_idx,
                 void *draw_customdata);
   void beginFrameDrawing();
   void endFrameDrawing(std::vector<XrCompositionLayerBaseHeader *> &layers);

@@ -371,25 +371,24 @@ static void transformops_exit(bContext *C, wmOperator *op)
   G.moving = 0;
 }
 
+static int transformops_mode(wmOperator *op)
+{
+  for (TransformModeItem *tmode = transform_modes; tmode->idname; tmode++) {
+    if (op->type->idname == tmode->idname) {
+      return tmode->mode;
+    }
+  }
+
+  return RNA_enum_get(op->ptr, "mode");
+}
+
 static int transformops_data(bContext *C, wmOperator *op, const wmEvent *event)
 {
   int retval = 1;
   if (op->customdata == NULL) {
     TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data2");
-    TransformModeItem *tmode;
-    int mode = -1;
 
-    for (tmode = transform_modes; tmode->idname; tmode++) {
-      if (op->type->idname == tmode->idname) {
-        mode = tmode->mode;
-        break;
-      }
-    }
-
-    if (mode == -1) {
-      mode = RNA_enum_get(op->ptr, "mode");
-    }
-
+    int mode = transformops_mode(op);
     retval = initTransform(C, t, op, event, mode);
 
     /* store data */
@@ -556,6 +555,16 @@ static bool transform_poll_property(const bContext *UNUSED(C),
     }
   }
 
+  /* Orientation Axis. */
+  {
+    if (STREQ(prop_id, "orient_axis")) {
+      eTfmMode mode = (eTfmMode)transformops_mode(op);
+      if (mode == TFM_ALIGN) {
+        return false;
+      }
+    }
+  }
+
   /* Proportional Editing. */
   {
     PropertyRNA *prop_pet = RNA_struct_find_property(op->ptr, "use_proportional_edit");
@@ -700,6 +709,12 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
     RNA_def_property_ui_text(prop, "Center Override", "Force using this center value (when set)");
   }
 
+  if (flags & P_VIEW2D_EDGE_PAN) {
+    prop = RNA_def_boolean(
+        ot->srna, "view2d_edge_pan", false, "Edge Pan", "Enable edge panning in 2D view");
+    RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  }
+
   if ((flags & P_NO_DEFAULTS) == 0) {
     prop = RNA_def_boolean(ot->srna,
                            "release_confirm",
@@ -745,7 +760,8 @@ static void TRANSFORM_OT_translate(struct wmOperatorType *ot)
 
   Transform_Properties(ot,
                        P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP |
-                           P_OPTIONS | P_GPENCIL_EDIT | P_CURSOR_EDIT | P_POST_TRANSFORM);
+                           P_OPTIONS | P_GPENCIL_EDIT | P_CURSOR_EDIT | P_VIEW2D_EDGE_PAN |
+                           P_POST_TRANSFORM);
 }
 
 static void TRANSFORM_OT_resize(struct wmOperatorType *ot)

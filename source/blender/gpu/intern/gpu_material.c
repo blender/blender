@@ -452,8 +452,8 @@ static void compute_sss_translucence_kernel(const GPUSssKernelData *kd,
     /* Distance from surface. */
     float d = kd->max_radius * ((float)i + 0.00001f) / ((float)resolution);
 
-    /* For each distance d we compute the radiance incoming from an hypothetic parallel plane. */
-    /* Compute radius of the footprint on the hypothetic plane */
+    /* For each distance d we compute the radiance incoming from an hypothetical parallel plane. */
+    /* Compute radius of the footprint on the hypothetical plane. */
     float r_fp = sqrtf(kd->max_radius * kd->max_radius - d * d);
     float r_step = r_fp / INTEGRAL_RESOLUTION;
     float area_accum = 0.0f;
@@ -758,6 +758,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   /* Only free after GPU_pass_shader_get where GPUUniformBuf
    * read data from the local tree. */
   ntreeFreeLocalTree(localtree);
+  BLI_assert(!localtree->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
   MEM_freeN(localtree);
 
   /* note that even if building the shader fails in some way, we still keep

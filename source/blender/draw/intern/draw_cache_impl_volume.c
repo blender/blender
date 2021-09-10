@@ -304,7 +304,7 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
   BLI_addtail(&cache->grids, cache_grid);
 
   /* TODO: can we load this earlier, avoid accessing the global and take
-   * advantage of dependency graph multithreading? */
+   * advantage of dependency graph multi-threading? */
   BKE_volume_load(volume, G.main);
 
   /* Test if we support textures with the number of channels. */

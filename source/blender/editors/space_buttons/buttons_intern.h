@@ -34,8 +34,8 @@ struct Tex;
 struct bContext;
 struct bContextDataResult;
 struct bNode;
-struct bNodeTree;
 struct bNodeSocket;
+struct bNodeTree;
 struct wmOperatorType;
 
 struct SpaceProperties_Runtime {

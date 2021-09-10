@@ -1152,51 +1152,53 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
   for (int object_index = 0; object_index < num_objects; object_index++) {
     Object *ob = objects[object_index];
+    if (ob->flag & OB_DONE) {
+      continue;
+    }
 
-    if ((ob->flag & OB_DONE) == 0) {
-      bool do_inverse_offset = false;
-      ob->flag |= OB_DONE;
+    bool do_inverse_offset = false;
+    ob->flag |= OB_DONE;
 
-      if (centermode == ORIGIN_TO_CURSOR) {
-        copy_v3_v3(cent, cursor);
-        invert_m4_m4(ob->imat, ob->obmat);
-        mul_m4_v3(ob->imat, cent);
-      }
+    if (centermode == ORIGIN_TO_CURSOR) {
+      copy_v3_v3(cent, cursor);
+      invert_m4_m4(ob->imat, ob->obmat);
+      mul_m4_v3(ob->imat, cent);
+    }
 
-      if (ob->data == NULL) {
-        /* special support for dupligroups */
-        if ((ob->transflag & OB_DUPLICOLLECTION) && ob->instance_collection &&
-            (ob->instance_collection->id.tag & LIB_TAG_DOIT) == 0) {
-          if (ID_IS_LINKED(ob->instance_collection)) {
-            tot_lib_error++;
+    if (ob->data == NULL) {
+      /* special support for dupligroups */
+      if ((ob->transflag & OB_DUPLICOLLECTION) && ob->instance_collection &&
+          (ob->instance_collection->id.tag & LIB_TAG_DOIT) == 0) {
+        if (ID_IS_LINKED(ob->instance_collection)) {
+          tot_lib_error++;
+        }
+        else {
+          if (centermode == ORIGIN_TO_CURSOR) {
+            /* done */
           }
           else {
-            if (centermode == ORIGIN_TO_CURSOR) {
-              /* done */
-            }
-            else {
-              float min[3], max[3];
-              /* only bounds support */
-              INIT_MINMAX(min, max);
-              BKE_object_minmax_dupli(depsgraph, scene, ob, min, max, true);
-              mid_v3_v3v3(cent, min, max);
-              invert_m4_m4(ob->imat, ob->obmat);
-              mul_m4_v3(ob->imat, cent);
-            }
-
-            add_v3_v3(ob->instance_collection->instance_offset, cent);
-
-            tot_change++;
-            ob->instance_collection->id.tag |= LIB_TAG_DOIT;
-            do_inverse_offset = true;
+            float min[3], max[3];
+            /* only bounds support */
+            INIT_MINMAX(min, max);
+            BKE_object_minmax_dupli(depsgraph, scene, ob, min, max, true);
+            mid_v3_v3v3(cent, min, max);
+            invert_m4_m4(ob->imat, ob->obmat);
+            mul_m4_v3(ob->imat, cent);
           }
+
+          add_v3_v3(ob->instance_collection->instance_offset, cent);
+
+          tot_change++;
+          ob->instance_collection->id.tag |= LIB_TAG_DOIT;
+          do_inverse_offset = true;
         }
       }
-      else if (ID_IS_LINKED(ob->data)) {
-        tot_lib_error++;
-      }
-
-      if (obedit == NULL && ob->type == OB_MESH) {
+    }
+    else if (ID_IS_LINKED(ob->data)) {
+      tot_lib_error++;
+    }
+    else if (ob->type == OB_MESH) {
+      if (obedit == NULL) {
         Mesh *me = ob->data;
 
         if (centermode == ORIGIN_TO_CURSOR) {
@@ -1222,265 +1224,265 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         me->id.tag |= LIB_TAG_DOIT;
         do_inverse_offset = true;
       }
-      else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
-        Curve *cu = ob->data;
+    }
+    else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+      Curve *cu = ob->data;
 
+      if (centermode == ORIGIN_TO_CURSOR) {
+        /* done */
+      }
+      else if (around == V3D_AROUND_CENTER_BOUNDS) {
+        BKE_curve_center_bounds(cu, cent);
+      }
+      else { /* #V3D_AROUND_CENTER_MEDIAN. */
+        BKE_curve_center_median(cu, cent);
+      }
+
+      /* don't allow Z change if curve is 2D */
+      if ((ob->type == OB_CURVE) && !(cu->flag & CU_3D)) {
+        cent[2] = 0.0;
+      }
+
+      negate_v3_v3(cent_neg, cent);
+      BKE_curve_translate(cu, cent_neg, 1);
+
+      tot_change++;
+      cu->id.tag |= LIB_TAG_DOIT;
+      do_inverse_offset = true;
+
+      if (obedit) {
+        if (centermode == GEOMETRY_TO_ORIGIN) {
+          DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
+        }
+        break;
+      }
+    }
+    else if (ob->type == OB_FONT) {
+      /* Get from bounding-box. */
+
+      Curve *cu = ob->data;
+
+      if (ob->runtime.bb == NULL && (centermode != ORIGIN_TO_CURSOR)) {
+        /* Do nothing. */
+      }
+      else {
         if (centermode == ORIGIN_TO_CURSOR) {
-          /* done */
+          /* Done. */
         }
-        else if (around == V3D_AROUND_CENTER_BOUNDS) {
-          BKE_curve_center_bounds(cu, cent);
-        }
-        else { /* #V3D_AROUND_CENTER_MEDIAN. */
-          BKE_curve_center_median(cu, cent);
-        }
-
-        /* don't allow Z change if curve is 2D */
-        if ((ob->type == OB_CURVE) && !(cu->flag & CU_3D)) {
-          cent[2] = 0.0;
+        else {
+          /* extra 0.5 is the height o above line */
+          cent[0] = 0.5f * (ob->runtime.bb->vec[4][0] + ob->runtime.bb->vec[0][0]);
+          cent[1] = 0.5f * (ob->runtime.bb->vec[0][1] + ob->runtime.bb->vec[2][1]);
         }
 
-        negate_v3_v3(cent_neg, cent);
-        BKE_curve_translate(cu, cent_neg, 1);
+        cent[2] = 0.0f;
+
+        cu->xof = cu->xof - cent[0];
+        cu->yof = cu->yof - cent[1];
 
         tot_change++;
         cu->id.tag |= LIB_TAG_DOIT;
         do_inverse_offset = true;
-
-        if (obedit) {
-          if (centermode == GEOMETRY_TO_ORIGIN) {
-            DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
-          }
-          break;
-        }
       }
-      else if (ob->type == OB_FONT) {
-        /* Get from bounding-box. */
+    }
+    else if (ob->type == OB_ARMATURE) {
+      bArmature *arm = ob->data;
 
-        Curve *cu = ob->data;
-
-        if (ob->runtime.bb == NULL && (centermode != ORIGIN_TO_CURSOR)) {
-          /* Do nothing. */
-        }
-        else {
-          if (centermode == ORIGIN_TO_CURSOR) {
-            /* Done. */
-          }
-          else {
-            /* extra 0.5 is the height o above line */
-            cent[0] = 0.5f * (ob->runtime.bb->vec[4][0] + ob->runtime.bb->vec[0][0]);
-            cent[1] = 0.5f * (ob->runtime.bb->vec[0][1] + ob->runtime.bb->vec[2][1]);
-          }
-
-          cent[2] = 0.0f;
-
-          cu->xof = cu->xof - cent[0];
-          cu->yof = cu->yof - cent[1];
-
-          tot_change++;
-          cu->id.tag |= LIB_TAG_DOIT;
-          do_inverse_offset = true;
-        }
-      }
-      else if (ob->type == OB_ARMATURE) {
-        bArmature *arm = ob->data;
-
-        if (ID_REAL_USERS(arm) > 1) {
+      if (ID_REAL_USERS(arm) > 1) {
 #if 0
           BKE_report(op->reports, RPT_ERROR, "Cannot apply to a multi user armature");
           return;
 #endif
-          tot_multiuser_arm_error++;
-        }
-        else {
-          /* Function to recenter armatures in editarmature.c
-           * Bone + object locations are handled there.
-           */
-          ED_armature_origin_set(bmain, ob, cursor, centermode, around);
-
-          tot_change++;
-          arm->id.tag |= LIB_TAG_DOIT;
-          /* do_inverse_offset = true; */ /* docenter_armature() handles this */
-
-          Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-          BKE_object_transform_copy(ob_eval, ob);
-          BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
-          BKE_object_where_is_calc(depsgraph, scene, ob_eval);
-          BKE_pose_where_is(depsgraph, scene, ob_eval); /* needed for bone parents */
-
-          ignore_parent_tx(bmain, depsgraph, scene, ob);
-
-          if (obedit) {
-            break;
-          }
-        }
+        tot_multiuser_arm_error++;
       }
-      else if (ob->type == OB_MBALL) {
-        MetaBall *mb = ob->data;
-
-        if (centermode == ORIGIN_TO_CURSOR) {
-          /* done */
-        }
-        else if (around == V3D_AROUND_CENTER_BOUNDS) {
-          BKE_mball_center_bounds(mb, cent);
-        }
-        else { /* #V3D_AROUND_CENTER_MEDIAN. */
-          BKE_mball_center_median(mb, cent);
-        }
-
-        negate_v3_v3(cent_neg, cent);
-        BKE_mball_translate(mb, cent_neg);
+      else {
+        /* Function to recenter armatures in editarmature.c
+         * Bone + object locations are handled there.
+         */
+        ED_armature_origin_set(bmain, ob, cursor, centermode, around);
 
         tot_change++;
-        mb->id.tag |= LIB_TAG_DOIT;
-        do_inverse_offset = true;
-
-        if (obedit) {
-          if (centermode == GEOMETRY_TO_ORIGIN) {
-            DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
-          }
-          break;
-        }
-      }
-      else if (ob->type == OB_LATTICE) {
-        Lattice *lt = ob->data;
-
-        if (centermode == ORIGIN_TO_CURSOR) {
-          /* done */
-        }
-        else if (around == V3D_AROUND_CENTER_BOUNDS) {
-          BKE_lattice_center_bounds(lt, cent);
-        }
-        else { /* #V3D_AROUND_CENTER_MEDIAN. */
-          BKE_lattice_center_median(lt, cent);
-        }
-
-        negate_v3_v3(cent_neg, cent);
-        BKE_lattice_translate(lt, cent_neg, 1);
-
-        tot_change++;
-        lt->id.tag |= LIB_TAG_DOIT;
-        do_inverse_offset = true;
-      }
-      else if (ob->type == OB_GPENCIL) {
-        bGPdata *gpd = ob->data;
-        float gpcenter[3];
-        if (gpd) {
-          if (centermode == ORIGIN_TO_GEOMETRY) {
-            zero_v3(gpcenter);
-            BKE_gpencil_centroid_3d(gpd, gpcenter);
-            add_v3_v3(gpcenter, ob->obmat[3]);
-          }
-          if (centermode == ORIGIN_TO_CURSOR) {
-            copy_v3_v3(gpcenter, cursor);
-          }
-          if (ELEM(centermode, ORIGIN_TO_GEOMETRY, ORIGIN_TO_CURSOR)) {
-            bGPDspoint *pt;
-            float imat[3][3], bmat[3][3];
-            float offset_global[3];
-            float offset_local[3];
-            int i;
-
-            sub_v3_v3v3(offset_global, gpcenter, ob->obmat[3]);
-            copy_m3_m4(bmat, obact->obmat);
-            invert_m3_m3(imat, bmat);
-            mul_m3_v3(imat, offset_global);
-            mul_v3_m3v3(offset_local, imat, offset_global);
-
-            float diff_mat[4][4];
-            float inverse_diff_mat[4][4];
-
-            /* recalculate all strokes
-             * (all layers are considered without evaluating lock attributes) */
-            LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-              /* calculate difference matrix */
-              BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
-              /* undo matrix */
-              invert_m4_m4(inverse_diff_mat, diff_mat);
-              LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-                LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-                  for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-                    float mpt[3];
-                    mul_v3_m4v3(mpt, inverse_diff_mat, &pt->x);
-                    sub_v3_v3(mpt, offset_local);
-                    mul_v3_m4v3(&pt->x, diff_mat, mpt);
-                  }
-                }
-              }
-            }
-            tot_change++;
-            if (centermode == ORIGIN_TO_GEOMETRY) {
-              copy_v3_v3(ob->loc, gpcenter);
-            }
-            DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-            DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
-
-            ob->id.tag |= LIB_TAG_DOIT;
-            do_inverse_offset = true;
-          }
-          else {
-            BKE_report(op->reports,
-                       RPT_WARNING,
-                       "Grease Pencil Object does not support this set origin option");
-          }
-        }
-      }
-
-      /* offset other selected objects */
-      if (do_inverse_offset && (centermode != GEOMETRY_TO_ORIGIN)) {
-        float obmat[4][4];
-
-        /* was the object data modified
-         * NOTE: the functions above must set 'cent'. */
-
-        /* convert the offset to parent space */
-        BKE_object_to_mat4(ob, obmat);
-        mul_v3_mat3_m4v3(centn, obmat, cent); /* omit translation part */
-
-        add_v3_v3(ob->loc, centn);
+        arm->id.tag |= LIB_TAG_DOIT;
+        /* do_inverse_offset = true; */ /* docenter_armature() handles this */
 
         Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
         BKE_object_transform_copy(ob_eval, ob);
+        BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
         BKE_object_where_is_calc(depsgraph, scene, ob_eval);
-        if (ob->type == OB_ARMATURE) {
-          /* needed for bone parents */
-          BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
-          BKE_pose_where_is(depsgraph, scene, ob_eval);
-        }
+        BKE_pose_where_is(depsgraph, scene, ob_eval); /* needed for bone parents */
 
         ignore_parent_tx(bmain, depsgraph, scene, ob);
 
-        /* other users? */
-        // CTX_DATA_BEGIN (C, Object *, ob_other, selected_editable_objects)
-        //{
-
-        /* use existing context looper */
-        for (int other_object_index = 0; other_object_index < num_objects; other_object_index++) {
-          Object *ob_other = objects[other_object_index];
-
-          if ((ob_other->flag & OB_DONE) == 0 &&
-              ((ob->data && (ob->data == ob_other->data)) ||
-               (ob->instance_collection == ob_other->instance_collection &&
-                (ob->transflag | ob_other->transflag) & OB_DUPLICOLLECTION))) {
-            ob_other->flag |= OB_DONE;
-            DEG_id_tag_update(&ob_other->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-
-            mul_v3_mat3_m4v3(centn, ob_other->obmat, cent); /* omit translation part */
-            add_v3_v3(ob_other->loc, centn);
-
-            Object *ob_other_eval = DEG_get_evaluated_object(depsgraph, ob_other);
-            BKE_object_transform_copy(ob_other_eval, ob_other);
-            BKE_object_where_is_calc(depsgraph, scene, ob_other_eval);
-            if (ob_other->type == OB_ARMATURE) {
-              /* needed for bone parents */
-              BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
-              BKE_pose_where_is(depsgraph, scene, ob_other_eval);
-            }
-            ignore_parent_tx(bmain, depsgraph, scene, ob_other);
-          }
+        if (obedit) {
+          break;
         }
-        // CTX_DATA_END;
       }
+    }
+    else if (ob->type == OB_MBALL) {
+      MetaBall *mb = ob->data;
+
+      if (centermode == ORIGIN_TO_CURSOR) {
+        /* done */
+      }
+      else if (around == V3D_AROUND_CENTER_BOUNDS) {
+        BKE_mball_center_bounds(mb, cent);
+      }
+      else { /* #V3D_AROUND_CENTER_MEDIAN. */
+        BKE_mball_center_median(mb, cent);
+      }
+
+      negate_v3_v3(cent_neg, cent);
+      BKE_mball_translate(mb, cent_neg);
+
+      tot_change++;
+      mb->id.tag |= LIB_TAG_DOIT;
+      do_inverse_offset = true;
+
+      if (obedit) {
+        if (centermode == GEOMETRY_TO_ORIGIN) {
+          DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
+        }
+        break;
+      }
+    }
+    else if (ob->type == OB_LATTICE) {
+      Lattice *lt = ob->data;
+
+      if (centermode == ORIGIN_TO_CURSOR) {
+        /* done */
+      }
+      else if (around == V3D_AROUND_CENTER_BOUNDS) {
+        BKE_lattice_center_bounds(lt, cent);
+      }
+      else { /* #V3D_AROUND_CENTER_MEDIAN. */
+        BKE_lattice_center_median(lt, cent);
+      }
+
+      negate_v3_v3(cent_neg, cent);
+      BKE_lattice_translate(lt, cent_neg, 1);
+
+      tot_change++;
+      lt->id.tag |= LIB_TAG_DOIT;
+      do_inverse_offset = true;
+    }
+    else if (ob->type == OB_GPENCIL) {
+      bGPdata *gpd = ob->data;
+      float gpcenter[3];
+      if (gpd) {
+        if (centermode == ORIGIN_TO_GEOMETRY) {
+          zero_v3(gpcenter);
+          BKE_gpencil_centroid_3d(gpd, gpcenter);
+          add_v3_v3(gpcenter, ob->obmat[3]);
+        }
+        if (centermode == ORIGIN_TO_CURSOR) {
+          copy_v3_v3(gpcenter, cursor);
+        }
+        if (ELEM(centermode, ORIGIN_TO_GEOMETRY, ORIGIN_TO_CURSOR)) {
+          bGPDspoint *pt;
+          float imat[3][3], bmat[3][3];
+          float offset_global[3];
+          float offset_local[3];
+          int i;
+
+          sub_v3_v3v3(offset_global, gpcenter, ob->obmat[3]);
+          copy_m3_m4(bmat, obact->obmat);
+          invert_m3_m3(imat, bmat);
+          mul_m3_v3(imat, offset_global);
+          mul_v3_m3v3(offset_local, imat, offset_global);
+
+          float diff_mat[4][4];
+          float inverse_diff_mat[4][4];
+
+          /* recalculate all strokes
+           * (all layers are considered without evaluating lock attributes) */
+          LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+            /* calculate difference matrix */
+            BKE_gpencil_layer_transform_matrix_get(depsgraph, obact, gpl, diff_mat);
+            /* undo matrix */
+            invert_m4_m4(inverse_diff_mat, diff_mat);
+            LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+              LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+                for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+                  float mpt[3];
+                  mul_v3_m4v3(mpt, inverse_diff_mat, &pt->x);
+                  sub_v3_v3(mpt, offset_local);
+                  mul_v3_m4v3(&pt->x, diff_mat, mpt);
+                }
+              }
+            }
+          }
+          tot_change++;
+          if (centermode == ORIGIN_TO_GEOMETRY) {
+            copy_v3_v3(ob->loc, gpcenter);
+          }
+          DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+          DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+
+          ob->id.tag |= LIB_TAG_DOIT;
+          do_inverse_offset = true;
+        }
+        else {
+          BKE_report(op->reports,
+                     RPT_WARNING,
+                     "Grease Pencil Object does not support this set origin option");
+        }
+      }
+    }
+
+    /* offset other selected objects */
+    if (do_inverse_offset && (centermode != GEOMETRY_TO_ORIGIN)) {
+      float obmat[4][4];
+
+      /* was the object data modified
+       * NOTE: the functions above must set 'cent'. */
+
+      /* convert the offset to parent space */
+      BKE_object_to_mat4(ob, obmat);
+      mul_v3_mat3_m4v3(centn, obmat, cent); /* omit translation part */
+
+      add_v3_v3(ob->loc, centn);
+
+      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      BKE_object_transform_copy(ob_eval, ob);
+      BKE_object_where_is_calc(depsgraph, scene, ob_eval);
+      if (ob->type == OB_ARMATURE) {
+        /* needed for bone parents */
+        BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
+        BKE_pose_where_is(depsgraph, scene, ob_eval);
+      }
+
+      ignore_parent_tx(bmain, depsgraph, scene, ob);
+
+      /* other users? */
+      // CTX_DATA_BEGIN (C, Object *, ob_other, selected_editable_objects)
+      //{
+
+      /* use existing context looper */
+      for (int other_object_index = 0; other_object_index < num_objects; other_object_index++) {
+        Object *ob_other = objects[other_object_index];
+
+        if ((ob_other->flag & OB_DONE) == 0 &&
+            ((ob->data && (ob->data == ob_other->data)) ||
+             (ob->instance_collection == ob_other->instance_collection &&
+              (ob->transflag | ob_other->transflag) & OB_DUPLICOLLECTION))) {
+          ob_other->flag |= OB_DONE;
+          DEG_id_tag_update(&ob_other->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+
+          mul_v3_mat3_m4v3(centn, ob_other->obmat, cent); /* omit translation part */
+          add_v3_v3(ob_other->loc, centn);
+
+          Object *ob_other_eval = DEG_get_evaluated_object(depsgraph, ob_other);
+          BKE_object_transform_copy(ob_other_eval, ob_other);
+          BKE_object_where_is_calc(depsgraph, scene, ob_other_eval);
+          if (ob_other->type == OB_ARMATURE) {
+            /* needed for bone parents */
+            BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
+            BKE_pose_where_is(depsgraph, scene, ob_other_eval);
+          }
+          ignore_parent_tx(bmain, depsgraph, scene, ob_other);
+        }
+      }
+      // CTX_DATA_END;
     }
   }
   MEM_freeN(objects);

@@ -100,7 +100,7 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   sseq->mainb = SEQ_DRAW_IMG_IMBUF;
   sseq->flag = SEQ_SHOW_GPENCIL | SEQ_USE_ALPHA | SEQ_SHOW_MARKERS | SEQ_SHOW_FCURVES |
                SEQ_ZOOM_TO_FIT | SEQ_SHOW_STRIP_OVERLAY | SEQ_SHOW_STRIP_NAME |
-               SEQ_SHOW_STRIP_SOURCE | SEQ_SHOW_STRIP_DURATION;
+               SEQ_SHOW_STRIP_SOURCE | SEQ_SHOW_STRIP_DURATION | SEQ_SHOW_GRID;
 
   /* Tool header. */
   region = MEM_callocN(sizeof(ARegion), "tool header for sequencer");
@@ -194,7 +194,7 @@ static void sequencer_free(SpaceLink *sl)
   SpaceSeq *sseq = (SpaceSeq *)sl;
   SequencerScopes *scopes = &sseq->scopes;
 
-  /* XXX  if (sseq->gpd) BKE_gpencil_free(sseq->gpd); */
+  /* XXX  if (sseq->gpd) BKE_gpencil_free_data(sseq->gpd); */
 
   if (scopes->zebra_ibuf) {
     IMB_freeImBuf(scopes->zebra_ibuf);
@@ -364,10 +364,7 @@ static void sequencer_listener(const wmSpaceTypeListenerParams *params)
 
 /* ************* dropboxes ************* */
 
-static bool image_drop_poll(bContext *C,
-                            wmDrag *drag,
-                            const wmEvent *event,
-                            const char **UNUSED(r_tooltip))
+static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
@@ -384,10 +381,7 @@ static bool image_drop_poll(bContext *C,
   return 0;
 }
 
-static bool movie_drop_poll(bContext *C,
-                            wmDrag *drag,
-                            const wmEvent *event,
-                            const char **UNUSED(r_tooltip))
+static bool movie_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
@@ -403,10 +397,7 @@ static bool movie_drop_poll(bContext *C,
   return 0;
 }
 
-static bool sound_drop_poll(bContext *C,
-                            wmDrag *drag,
-                            const wmEvent *event,
-                            const char **UNUSED(r_tooltip))
+static bool sound_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
@@ -448,9 +439,12 @@ static void sequencer_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
 
-  WM_dropbox_add(lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy, NULL);
-  WM_dropbox_add(lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy, NULL);
-  WM_dropbox_add(lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, NULL);
+  WM_dropbox_add(
+      lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy, NULL, NULL);
+  WM_dropbox_add(
+      lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy, NULL, NULL);
+  WM_dropbox_add(
+      lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, NULL, NULL);
 }
 
 /* ************* end drop *********** */

@@ -85,10 +85,10 @@ void WM_event_print(const wmEvent *event)
     event_ids_from_type_and_value(event->prevtype, event->prevval, &prev_type_id, &prev_val_id);
 
     printf(
-        "wmEvent  type:%d / %s, val:%d / %s,\n"
-        "         prev_type:%d / %s, prev_val:%d / %s,\n"
-        "         shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d, is_repeat:%d,\n"
-        "         mouse:(%d,%d), ascii:'%c', utf8:'%.*s', pointer:%p\n",
+        "wmEvent type:%d / %s, val:%d / %s,\n"
+        "        prev_type:%d / %s, prev_val:%d / %s,\n"
+        "        shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d, is_repeat:%d,\n"
+        "        mouse:(%d,%d), ascii:'%c', utf8:'%.*s', pointer:%p\n",
         event->type,
         type_id,
         event->val,
@@ -487,11 +487,13 @@ int WM_event_absolute_delta_y(const struct wmEvent *event)
 /**
  * Most OS's use `Ctrl+Space` / `OsKey+Space` to switch IME,
  * so don't type in the space character.
+ *
+ * \note Shift is excluded from this check since it prevented typing `Shift+Space`, see: T85517.
  */
 bool WM_event_is_ime_switch(const struct wmEvent *event)
 {
   return event->val == KM_PRESS && event->type == EVT_SPACEKEY &&
-         (event->ctrl || event->oskey || event->shift || event->alt);
+         (event->ctrl || event->oskey || event->alt);
 }
 #endif
 

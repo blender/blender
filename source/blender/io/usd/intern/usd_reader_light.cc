@@ -27,7 +27,6 @@
 #include "DNA_object_types.h"
 
 #include <pxr/usd/usdLux/light.h>
-
 #include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdLux/diskLight.h>
 #include <pxr/usd/usdLux/distantLight.h>
@@ -287,7 +286,6 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         if (get_authored_value(distant_light.GetAngleAttr(), motionSampleTime, &angle) ||
             prim_.GetAttribute(usdtokens::angle).Get(&angle, motionSampleTime)) {
           blight->sun_angle = angle * (float)M_PI / 180.0f;
-          ;
         }
       }
       break;

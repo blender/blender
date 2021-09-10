@@ -62,7 +62,6 @@ void FILE_OT_bookmark_cleanup(struct wmOperatorType *ot);
 void FILE_OT_bookmark_move(struct wmOperatorType *ot);
 void FILE_OT_reset_recent(wmOperatorType *ot);
 void FILE_OT_hidedot(struct wmOperatorType *ot);
-void FILE_OT_associate_blend(struct wmOperatorType *ot);
 void FILE_OT_execute(struct wmOperatorType *ot);
 void FILE_OT_mouse_execute(struct wmOperatorType *ot);
 void FILE_OT_cancel(struct wmOperatorType *ot);
@@ -92,6 +91,9 @@ void file_sfile_to_operator_ex(struct Main *bmain,
 void file_sfile_to_operator(struct Main *bmain, struct wmOperator *op, struct SpaceFile *sfile);
 
 void file_operator_to_sfile(struct Main *bmain, struct SpaceFile *sfile, struct wmOperator *op);
+
+/* space_file.c */
+extern const char *file_context_dir[]; /* doc access */
 
 /* filesel.c */
 void fileselect_refresh_params(struct SpaceFile *sfile);

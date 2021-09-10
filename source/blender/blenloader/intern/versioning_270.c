@@ -291,7 +291,7 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
   }
 
   /* Make sure new sockets are properly created. */
-  node_verify_socket_templates(ntree, node);
+  node_verify_sockets(ntree, node, false);
   /* Convert value from old storage to new sockets. */
   NodeHueSat *nhs = node->storage;
   bNodeSocket *hue = nodeFindSocket(node, SOCK_IN, "Hue"),
@@ -357,7 +357,7 @@ static void do_versions_compositor_render_passes(bNodeTree *ntree)
        */
       do_versions_compositor_render_passes_storage(node);
       /* Make sure new sockets are properly created. */
-      node_verify_socket_templates(ntree, node);
+      node_verify_sockets(ntree, node, false);
       /* Make sure all possibly created sockets have proper storage. */
       do_versions_compositor_render_passes_storage(node);
     }
@@ -423,6 +423,45 @@ static void do_version_bbone_easing_fcurve_fix(ID *UNUSED(id),
       }
     }
   }
+}
+
+static bool seq_update_proxy_cb(Sequence *seq, void *UNUSED(user_data))
+{
+  seq->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Stereo Display 3d Format");
+
+#define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
+#define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
+  if (seq->strip && seq->strip->proxy && !seq->strip->proxy->storage) {
+    if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
+      seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_DIR;
+    }
+    if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+      seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_FILE;
+    }
+  }
+#undef SEQ_USE_PROXY_CUSTOM_DIR
+#undef SEQ_USE_PROXY_CUSTOM_FILE
+  return true;
+}
+
+static bool seq_update_effectdata_cb(Sequence *seq, void *UNUSED(user_data))
+{
+
+  if (seq->type != SEQ_TYPE_TEXT) {
+    return true;
+  }
+
+  if (seq->effectdata == NULL) {
+    struct SeqEffectHandle effect_handle = SEQ_effect_handle_get(seq);
+    effect_handle.init(seq);
+  }
+
+  TextVars *data = seq->effectdata;
+  if (data->color[3] == 0.0f) {
+    copy_v4_fl(data->color, 1.0f);
+    data->shadow_color[3] = 1.0f;
+  }
+  return true;
 }
 
 /* NOLINTNEXTLINE: readability-function-size */
@@ -908,8 +947,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     Image *ima;
 
     for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
-      Sequence *seq;
-
       BKE_scene_add_render_view(scene, STEREO_LEFT_NAME);
       srv = scene->r.views.first;
       BLI_strncpy(srv->suffix, STEREO_LEFT_SUFFIX, sizeof(srv->suffix));
@@ -918,23 +955,9 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
       srv = scene->r.views.last;
       BLI_strncpy(srv->suffix, STEREO_RIGHT_SUFFIX, sizeof(srv->suffix));
 
-      SEQ_ALL_BEGIN (scene->ed, seq) {
-        seq->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Stereo Display 3d Format");
-
-#define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
-#define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
-        if (seq->strip && seq->strip->proxy && !seq->strip->proxy->storage) {
-          if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
-            seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_DIR;
-          }
-          if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-            seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_FILE;
-          }
-        }
-#undef SEQ_USE_PROXY_CUSTOM_DIR
-#undef SEQ_USE_PROXY_CUSTOM_FILE
+      if (scene->ed) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_update_proxy_cb, NULL);
       }
-      SEQ_ALL_END;
     }
 
     for (screen = bmain->screens.first; screen; screen = screen->id.next) {
@@ -1115,8 +1138,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "gpencil_v3d_align")) {
         ts->gpencil_v3d_align = GP_PROJECT_VIEWSPACE;
         ts->gpencil_v2d_align = GP_PROJECT_VIEWSPACE;
-        ts->gpencil_seq_align = GP_PROJECT_VIEWSPACE;
-        ts->gpencil_ima_align = GP_PROJECT_VIEWSPACE;
       }
     }
 
@@ -1217,25 +1238,9 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
-      Sequence *seq;
-
-      SEQ_ALL_BEGIN (scene->ed, seq) {
-        if (seq->type != SEQ_TYPE_TEXT) {
-          continue;
-        }
-
-        if (seq->effectdata == NULL) {
-          struct SeqEffectHandle effect_handle = SEQ_effect_handle_get(seq);
-          effect_handle.init(seq);
-        }
-
-        TextVars *data = seq->effectdata;
-        if (data->color[3] == 0.0f) {
-          copy_v4_fl(data->color, 1.0f);
-          data->shadow_color[3] = 1.0f;
-        }
+      if (scene->ed) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_update_effectdata_cb, NULL);
       }
-      SEQ_ALL_END;
     }
 
     /* Adding "Properties" region to DopeSheet */

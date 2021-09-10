@@ -47,15 +47,15 @@ void GlareStreaksOperation::generateGlare(float *data,
       const float p4 = pow(4.0, (double)n);
       const float vxp = vx * p4, vyp = vy * p4;
       const float wt = pow((double)settings->fade, (double)p4);
-      const float cmo = 1.0f -
-                        (float)pow((double)settings->colmod,
-                                   (double)n +
-                                       1);  // colormodulation amount relative to current pass
+
+      /* Color-modulation amount relative to current pass. */
+      const float cmo = 1.0f - (float)pow((double)settings->colmod, (double)n + 1);
+
       float *tdstcol = tdst.getBuffer();
       for (y = 0; y < tsrc.getHeight() && (!breaked); y++) {
         for (x = 0; x < tsrc.getWidth(); x++, tdstcol += 4) {
-          // first pass no offset, always same for every pass, exact copy,
-          // otherwise results in uneven brightness, only need once
+          /* First pass no offset, always same for every pass, exact copy,
+           * otherwise results in uneven brightness, only need once. */
           if (n == 0) {
             tsrc.read(c1, x, y);
           }
@@ -65,7 +65,7 @@ void GlareStreaksOperation::generateGlare(float *data,
           tsrc.readBilinear(c2, x + vxp, y + vyp);
           tsrc.readBilinear(c3, x + vxp * 2.0f, y + vyp * 2.0f);
           tsrc.readBilinear(c4, x + vxp * 3.0f, y + vyp * 3.0f);
-          // modulate color to look vaguely similar to a color spectrum
+          /* Modulate color to look vaguely similar to a color spectrum. */
           c2[1] *= cmo;
           c2[2] *= cmo;
 

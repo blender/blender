@@ -106,9 +106,13 @@ class GHOST_ContextD3D : public GHOST_Context {
   }
 
   class GHOST_SharedOpenGLResource *createSharedOpenGLResource(
-      unsigned int width, unsigned int height, ID3D11RenderTargetView *render_target);
+      unsigned int width,
+      unsigned int height,
+      DXGI_FORMAT format,
+      ID3D11RenderTargetView *render_target);
   class GHOST_SharedOpenGLResource *createSharedOpenGLResource(unsigned int width,
-                                                               unsigned int height);
+                                                               unsigned int height,
+                                                               DXGI_FORMAT format);
   void disposeSharedOpenGLResource(class GHOST_SharedOpenGLResource *shared_res);
   GHOST_TSuccess blitFromOpenGLContext(class GHOST_SharedOpenGLResource *shared_res,
                                        unsigned int width,

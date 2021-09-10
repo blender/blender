@@ -539,8 +539,8 @@ void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map,
  * \param totfinal: The size of \a final_origindex
  * \param final_origindex: The size of the final array.
  *
- * \note ``totsource`` could be ``totpoly``,
- *       ``totfinal`` could be ``tottessface`` and ``final_origindex`` its ORIGINDEX customdata.
+ * \note `totsource` could be `totpoly`,
+ *       `totfinal` could be `tottessface` and `final_origindex` its ORIGINDEX custom-data.
  *       This would allow an MPoly to loop over its tessfaces.
  */
 void BKE_mesh_origindex_map_create(MeshElemMap **r_map,

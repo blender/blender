@@ -23,18 +23,14 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_mesh_subdivide_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_INT, N_("Level"), 1, 0, 0, 0, 0, 6},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_mesh_subdivide_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_mesh_subdivide_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_mesh_subdivide_exec(GeoNodeExecParams params)
 {
@@ -88,10 +84,10 @@ static void geo_node_mesh_subdivide_exec(GeoNodeExecParams params)
   }
 
   Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh_in);
-  BKE_mesh_calc_normals(mesh_out);
+  BKE_mesh_normals_tag_dirty(mesh_out);
 
   MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-  mesh_component.replace_mesh_but_keep_vertex_group_names(mesh_out);
+  mesh_component.replace(mesh_out);
 
   BKE_subdiv_free(subdiv);
 
@@ -105,7 +101,7 @@ void register_node_type_geo_mesh_subdivide()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_SUBDIVIDE, "Mesh Subdivide", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_mesh_subdivide_in, geo_node_mesh_subdivide_out);
+  ntype.declare = blender::nodes::geo_node_mesh_subdivide_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_mesh_subdivide_exec;
   nodeRegisterType(&ntype);
 }

@@ -24,8 +24,8 @@
 
 struct BMAllocTemplate;
 struct BMLoopNorEditDataArray;
-struct MLoopNorSpaceArray;
 struct BMPartialUpdate;
+struct MLoopNorSpaceArray;
 
 void BM_mesh_elem_toolflags_ensure(BMesh *bm);
 void BM_mesh_elem_toolflags_clear(BMesh *bm);

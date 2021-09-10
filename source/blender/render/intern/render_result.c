@@ -222,7 +222,6 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
 {
   const int view_id = BLI_findstringindex(&rr->views, viewname, offsetof(RenderView, name));
   RenderPass *rpass = MEM_callocN(sizeof(RenderPass), name);
-  size_t rectsize = ((size_t)rr->rectx) * rr->recty * channels;
 
   rpass->channels = channels;
   rpass->rectx = rl->rectx;
@@ -246,33 +245,6 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
                           0,
                           NULL,
                           false);
-    }
-  }
-
-  /* Always allocate combined for display, in case of save buffers
-   * other passes are not allocated and only saved to the EXR file. */
-  if (rl->exrhandle == NULL || STREQ(rpass->name, RE_PASSNAME_COMBINED)) {
-    float *rect;
-    int x;
-
-    rpass->rect = MEM_callocN(sizeof(float) * rectsize, name);
-    if (rpass->rect == NULL) {
-      MEM_freeN(rpass);
-      return NULL;
-    }
-
-    if (STREQ(rpass->name, RE_PASSNAME_VECTOR)) {
-      /* initialize to max speed */
-      rect = rpass->rect;
-      for (x = rectsize - 1; x >= 0; x--) {
-        rect[x] = PASS_VECTOR_MAX;
-      }
-    }
-    else if (STREQ(rpass->name, RE_PASSNAME_Z)) {
-      rect = rpass->rect;
-      for (x = rectsize - 1; x >= 0; x--) {
-        rect[x] = 10e10;
-      }
     }
   }
 
@@ -316,6 +288,8 @@ RenderResult *render_result_new(
     rr->do_exr_tile = true;
   }
 
+  rr->passes_allocated = false;
+
   render_result_views_new(rr, &re->r);
 
   /* check renderdata for amount of layers */
@@ -332,7 +306,6 @@ RenderResult *render_result_new(
     BLI_strncpy(rl->name, view_layer->name, sizeof(rl->name));
     rl->layflag = view_layer->layflag;
 
-    /* for debugging: view_layer->passflag | SCE_PASS_RAYHITS; */
     rl->passflag = view_layer->passflag;
 
     rl->rectx = rectx;
@@ -398,9 +371,6 @@ RenderResult *render_result_new(
       }
       if (view_layer->passflag & SCE_PASS_MIST) {
         RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, RE_PASSNAME_MIST, view, "Z");
-      }
-      if (rl->passflag & SCE_PASS_RAYHITS) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 4, RE_PASSNAME_RAYHITS, view, "RGB");
       }
       if (view_layer->passflag & SCE_PASS_DIFFUSE_DIRECT) {
         RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_DIFFUSE_DIRECT, view, "RGB");
@@ -474,7 +444,7 @@ RenderResult *render_result_new(
     }
 
     /* NOTE: this has to be in sync with `scene.c`. */
-    rl->layflag = 0x7FFF; /* solid ztra halo strand */
+    rl->layflag = SCE_LAY_FLAG_DEFAULT;
     rl->passflag = SCE_PASS_COMBINED;
 
     re->active_view_layer = 0;
@@ -486,6 +456,40 @@ RenderResult *render_result_new(
   rr->yof = re->disprect.ymin + BLI_rcti_cent_y(&re->disprect) - (re->winy / 2);
 
   return rr;
+}
+
+void render_result_passes_allocated_ensure(RenderResult *rr)
+{
+  LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
+    LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
+      if (rl->exrhandle != NULL && !STREQ(rp->name, RE_PASSNAME_COMBINED)) {
+        continue;
+      }
+
+      if (rp->rect != NULL) {
+        continue;
+      }
+
+      const size_t rectsize = ((size_t)rr->rectx) * rr->recty * rp->channels;
+      rp->rect = MEM_callocN(sizeof(float) * rectsize, rp->name);
+
+      if (STREQ(rp->name, RE_PASSNAME_VECTOR)) {
+        /* initialize to max speed */
+        float *rect = rp->rect;
+        for (int x = rectsize - 1; x >= 0; x--) {
+          rect[x] = PASS_VECTOR_MAX;
+        }
+      }
+      else if (STREQ(rp->name, RE_PASSNAME_Z)) {
+        float *rect = rp->rect;
+        for (int x = rectsize - 1; x >= 0; x--) {
+          rect[x] = 10e10;
+        }
+      }
+    }
+  }
+
+  rr->passes_allocated = true;
 }
 
 void render_result_clone_passes(Render *re, RenderResult *rr, const char *viewname)
@@ -581,7 +585,6 @@ static int passtype_from_name(const char *name)
   CHECK_PASS(INDEXOB);
   CHECK_PASS(INDEXMA);
   CHECK_PASS(MIST);
-  CHECK_PASS(RAYHITS);
   CHECK_PASS(DIFFUSE_DIRECT);
   CHECK_PASS(DIFFUSE_INDIRECT);
   CHECK_PASS(DIFFUSE_COLOR);
@@ -789,7 +792,7 @@ void render_result_views_new(RenderResult *rr, const RenderData *rd)
   render_result_views_free(rr);
 
   /* check renderdata for amount of views */
-  if ((rd->scemode & R_MULTIVIEW)) {
+  if (rd->scemode & R_MULTIVIEW) {
     for (srv = rd->views.first; srv; srv = srv->next) {
       if (BKE_scene_multiview_is_render_view_active(rd, srv) == false) {
         continue;
@@ -1248,6 +1251,7 @@ void render_result_exr_file_end(Render *re, RenderEngine *engine)
   render_result_free_list(&re->fullresult, re->result);
   re->result = render_result_new(re, &re->disprect, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
   re->result->stamp_data = stamp_data;
+  render_result_passes_allocated_ensure(re->result);
   BLI_rw_mutex_unlock(&re->resultmutex);
 
   LISTBASE_FOREACH (RenderLayer *, rl, &re->result->layers) {

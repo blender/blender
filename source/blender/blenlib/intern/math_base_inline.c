@@ -199,6 +199,13 @@ MINLINE float scalenorm(float a, float b, float x)
   return (x * (b - a)) + a;
 }
 
+/* Map a normalized value, i.e. from interval [0, 1] to interval [a, b]. */
+MINLINE double scalenormd(double a, double b, double x)
+{
+  BLI_assert(x <= 1 && x >= 0);
+  return (x * (b - a)) + a;
+}
+
 /* Used for zoom values. */
 MINLINE float power_of_2(float val)
 {
@@ -356,6 +363,14 @@ MINLINE signed char round_db_to_char_clamp(double a){
 #undef _round_clamp_fl_impl
 #undef _round_clamp_db_impl
 
+/**
+ * Round to closest even number, halfway cases are rounded away from zero.
+ */
+MINLINE float round_to_even(float f)
+{
+  return roundf(f * 0.5f) * 2.0f;
+}
+
 /* integer division that rounds 0.5 up, particularly useful for color blending
  * with integers, to avoid gradual darkening when rounding down */
 MINLINE int divide_round_i(int a, int b)
@@ -410,7 +425,7 @@ MINLINE float pingpongf(float value, float scale)
   return fabsf(fractf((value - scale) / (scale * 2.0f)) * scale * 2.0f - scale);
 }
 
-// Square.
+/* Square. */
 
 MINLINE int square_s(short a)
 {
@@ -442,7 +457,7 @@ MINLINE double square_d(double a)
   return a * a;
 }
 
-// Cube.
+/* Cube. */
 
 MINLINE int cube_s(short a)
 {
@@ -474,7 +489,7 @@ MINLINE double cube_d(double a)
   return a * a * a;
 }
 
-// Min/max
+/* Min/max */
 
 MINLINE float min_ff(float a, float b)
 {
@@ -639,6 +654,18 @@ MINLINE int compare_ff_relative(float a, float b, const float max_diff, const in
   /* Important to compare sign from integers, since (-0.0f < 0) is false
    * (though this shall not be an issue in common cases)... */
   return ((ua.i < 0) != (ub.i < 0)) ? 0 : (abs(ua.i - ub.i) <= max_ulps) ? 1 : 0;
+}
+
+MINLINE bool compare_threshold_relative(const float value1, const float value2, const float thresh)
+{
+  const float abs_diff = fabsf(value1 - value2);
+  /* Avoid letting the threshold get too small just because the values happen to be close to zero.
+   */
+  if (fabsf(value2) < 1) {
+    return abs_diff > thresh;
+  }
+  /* Using relative threshold in general. */
+  return abs_diff > thresh * fabsf(value2);
 }
 
 MINLINE float signf(float f)
@@ -807,9 +834,9 @@ MINLINE unsigned char unit_float_to_uchar_clamp(float val)
 
 MINLINE unsigned short unit_float_to_ushort_clamp(float val)
 {
-  return (unsigned short)((val >= 1.0f - 0.5f / 65535) ?
-                              65535 :
-                              (val <= 0.0f) ? 0 : (val * 65535.0f + 0.5f));
+  return (unsigned short)((val >= 1.0f - 0.5f / 65535) ? 65535 :
+                          (val <= 0.0f)                ? 0 :
+                                                         (val * 65535.0f + 0.5f));
 }
 #define unit_float_to_ushort_clamp(val) \
   ((CHECK_TYPE_INLINE(val, float)), unit_float_to_ushort_clamp(val))

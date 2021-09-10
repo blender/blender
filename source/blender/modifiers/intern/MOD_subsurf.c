@@ -358,13 +358,8 @@ static bool get_show_adaptive_options(const bContext *C, Panel *panel)
 
   /* Don't show adaptive options if the cycles experimental feature set is disabled. */
   Scene *scene = CTX_data_scene(C);
-  PointerRNA scene_ptr;
-  RNA_id_pointer_create(&scene->id, &scene_ptr);
-  if (BKE_scene_uses_cycles(scene)) {
-    PointerRNA cycles_ptr = RNA_pointer_get(&scene_ptr, "cycles");
-    if (RNA_enum_get(&cycles_ptr, "feature_set") != 1) { /* EXPERIMENTAL */
-      return false;
-    }
+  if (!BKE_scene_uses_cycles_experimental_features(scene)) {
+    return false;
   }
 
   return true;

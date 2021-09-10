@@ -57,6 +57,8 @@
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
+#include "ED_asset.h"
+
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
@@ -131,12 +133,10 @@ static bool ui_but_is_unit_radians(const uiBut *but)
 
 /* ************* window matrix ************** */
 
-void ui_block_to_window_fl(const ARegion *region, uiBlock *block, float *r_x, float *r_y)
+void ui_block_to_region_fl(const ARegion *region, uiBlock *block, float *r_x, float *r_y)
 {
   const int getsizex = BLI_rcti_size_x(&region->winrct) + 1;
   const int getsizey = BLI_rcti_size_y(&region->winrct) + 1;
-  const int sx = region->winrct.xmin;
-  const int sy = region->winrct.ymin;
 
   float gx = *r_x;
   float gy = *r_y;
@@ -146,12 +146,17 @@ void ui_block_to_window_fl(const ARegion *region, uiBlock *block, float *r_x, fl
     gy += block->panel->ofsy;
   }
 
-  *r_x = ((float)sx) +
-         ((float)getsizex) * (0.5f + 0.5f * (gx * block->winmat[0][0] + gy * block->winmat[1][0] +
+  *r_x = ((float)getsizex) * (0.5f + 0.5f * (gx * block->winmat[0][0] + gy * block->winmat[1][0] +
                                              block->winmat[3][0]));
-  *r_y = ((float)sy) +
-         ((float)getsizey) * (0.5f + 0.5f * (gx * block->winmat[0][1] + gy * block->winmat[1][1] +
+  *r_y = ((float)getsizey) * (0.5f + 0.5f * (gx * block->winmat[0][1] + gy * block->winmat[1][1] +
                                              block->winmat[3][1]));
+}
+
+void ui_block_to_window_fl(const ARegion *region, uiBlock *block, float *r_x, float *r_y)
+{
+  ui_block_to_region_fl(region, block, r_x, r_y);
+  *r_x += region->winrct.xmin;
+  *r_y += region->winrct.ymin;
 }
 
 void ui_block_to_window(const ARegion *region, uiBlock *block, int *r_x, int *r_y)
@@ -163,6 +168,16 @@ void ui_block_to_window(const ARegion *region, uiBlock *block, int *r_x, int *r_
 
   *r_x = (int)(fx + 0.5f);
   *r_y = (int)(fy + 0.5f);
+}
+
+void ui_block_to_region_rctf(const ARegion *region,
+                             uiBlock *block,
+                             rctf *rct_dst,
+                             const rctf *rct_src)
+{
+  *rct_dst = *rct_src;
+  ui_block_to_region_fl(region, block, &rct_dst->xmin, &rct_dst->ymin);
+  ui_block_to_region_fl(region, block, &rct_dst->xmax, &rct_dst->ymax);
 }
 
 void ui_block_to_window_rctf(const ARegion *region,
@@ -242,6 +257,14 @@ void ui_window_to_region(const ARegion *region, int *r_x, int *r_y)
 }
 
 void ui_window_to_region_rcti(const ARegion *region, rcti *rect_dst, const rcti *rct_src)
+{
+  rect_dst->xmin = rct_src->xmin - region->winrct.xmin;
+  rect_dst->xmax = rct_src->xmax - region->winrct.xmin;
+  rect_dst->ymin = rct_src->ymin - region->winrct.ymin;
+  rect_dst->ymax = rct_src->ymax - region->winrct.ymin;
+}
+
+void ui_window_to_region_rctf(const ARegion *region, rctf *rect_dst, const rctf *rct_src)
 {
   rect_dst->xmin = rct_src->xmin - region->winrct.xmin;
   rect_dst->xmax = rct_src->xmax - region->winrct.xmin;
@@ -2432,7 +2455,7 @@ bool ui_but_is_rna_valid(uiBut *but)
  */
 bool ui_but_supports_cycling(const uiBut *but)
 {
-  return ((ELEM(but->type, UI_BTYPE_ROW, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER, UI_BTYPE_LISTBOX)) ||
+  return (ELEM(but->type, UI_BTYPE_ROW, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER, UI_BTYPE_LISTBOX) ||
           (but->type == UI_BTYPE_MENU && ui_but_menu_step_poll(but)) ||
           (but->type == UI_BTYPE_COLOR && ((uiButColor *)but)->is_pallete_color) ||
           (but->menu_step_func != NULL));
@@ -2629,7 +2652,7 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
   const int unit_type = UI_but_unit_type_get(but);
 
   /* Time unit is a bit special, not handled by BKE_scene_unit_scale() for now. */
-  if (unit_type == PROP_UNIT_TIME) { /* WARNING - using evil_C :| */
+  if (unit_type == PROP_UNIT_TIME) { /* WARNING: using evil_C :| */
     Scene *scene = CTX_data_scene(but->block->evil_C);
     return FRA2TIME(value);
   }
@@ -3440,6 +3463,15 @@ void UI_blocklist_update_window_matrix(const bContext *C, const ListBase *lb)
   }
 }
 
+void UI_blocklist_update_view_for_buttons(const bContext *C, const ListBase *lb)
+{
+  LISTBASE_FOREACH (uiBlock *, block, lb) {
+    if (block->active) {
+      ui_but_update_view_for_active(C, block);
+    }
+  }
+}
+
 void UI_blocklist_draw(const bContext *C, const ListBase *lb)
 {
   LISTBASE_FOREACH (uiBlock *, block, lb) {
@@ -3985,9 +4017,11 @@ uiBut *ui_but_change_type(uiBut *but, eButType new_type)
       UNUSED_VARS_NDEBUG(found_layout);
       ui_button_group_replace_but_ptr(uiLayoutGetBlock(but->layout), old_but_ptr, but);
     }
+#ifdef WITH_PYTHON
     if (UI_editsource_enable_check()) {
       UI_editsource_but_replace(old_but_ptr, but);
     }
+#endif
   }
 
   return but;
@@ -6139,17 +6173,19 @@ int UI_but_return_value_get(uiBut *but)
 void UI_but_drag_set_id(uiBut *but, ID *id)
 {
   but->dragtype = WM_DRAG_ID;
-  if ((but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
     WM_drag_data_free(but->dragtype, but->dragpoin);
     but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
   }
   but->dragpoin = (void *)id;
 }
 
+/**
+ * \param asset: May be passed from a temporary variable, drag data only stores a copy of this.
+ */
 void UI_but_drag_set_asset(uiBut *but,
-                           const char *name,
+                           const AssetHandle *asset,
                            const char *path,
-                           int id_type,
                            int import_type,
                            int icon,
                            struct ImBuf *imb,
@@ -6157,14 +6193,14 @@ void UI_but_drag_set_asset(uiBut *but,
 {
   wmDragAsset *asset_drag = MEM_mallocN(sizeof(*asset_drag), "wmDragAsset");
 
-  BLI_strncpy(asset_drag->name, name, sizeof(asset_drag->name));
+  BLI_strncpy(asset_drag->name, ED_asset_handle_get_name(asset), sizeof(asset_drag->name));
   asset_drag->path = path;
-  asset_drag->id_type = id_type;
+  asset_drag->id_type = ED_asset_handle_get_id_type(asset);
   asset_drag->import_type = import_type;
 
   but->dragtype = WM_DRAG_ASSET;
   ui_def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
-  if ((but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
     WM_drag_data_free(but->dragtype, but->dragpoin);
   }
   but->dragpoin = asset_drag;
@@ -6176,7 +6212,7 @@ void UI_but_drag_set_asset(uiBut *but,
 void UI_but_drag_set_rna(uiBut *but, PointerRNA *ptr)
 {
   but->dragtype = WM_DRAG_RNA;
-  if ((but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
     WM_drag_data_free(but->dragtype, but->dragpoin);
     but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
   }
@@ -6186,7 +6222,7 @@ void UI_but_drag_set_rna(uiBut *but, PointerRNA *ptr)
 void UI_but_drag_set_path(uiBut *but, const char *path, const bool use_free)
 {
   but->dragtype = WM_DRAG_PATH;
-  if ((but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
     WM_drag_data_free(but->dragtype, but->dragpoin);
     but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
   }
@@ -6199,7 +6235,7 @@ void UI_but_drag_set_path(uiBut *but, const char *path, const bool use_free)
 void UI_but_drag_set_name(uiBut *but, const char *name)
 {
   but->dragtype = WM_DRAG_NAME;
-  if ((but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
     WM_drag_data_free(but->dragtype, but->dragpoin);
     but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
   }
@@ -6217,7 +6253,7 @@ void UI_but_drag_set_image(
 {
   but->dragtype = WM_DRAG_PATH;
   ui_def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
-  if ((but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
     WM_drag_data_free(but->dragtype, but->dragpoin);
     but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
   }

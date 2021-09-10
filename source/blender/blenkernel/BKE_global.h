@@ -70,6 +70,7 @@ typedef struct Global {
    *   * -16384 and below: Reserved for python (add-ons) usage.
    *   *     -1: Disable faster motion paths computation (since 08/2018).
    *   * 1 - 30: EEVEE debug/stats values (01/2018).
+   *   *     31: Enable the Select Debug Engine. Only available with #WITH_DRAW_DEBUG (08/2021).
    *   *    101: Enable UI debug drawing of fullscreen area's corner widget (10/2014).
    *   *    666: Use quicker batch delete for outliners' delete hierarchy (01/2019).
    *   *    777: Enable UI node panel's sockets polling (11/2011).
@@ -144,7 +145,8 @@ enum {
   G_DEBUG_DEPSGRAPH_TIME = (1 << 11),       /* depsgraph timing statistics and messages */
   G_DEBUG_DEPSGRAPH_NO_THREADS = (1 << 12), /* single threaded depsgraph */
   G_DEBUG_DEPSGRAPH_PRETTY = (1 << 13),     /* use pretty colors in depsgraph messages */
-  G_DEBUG_DEPSGRAPH_UUID = (1 << 14),       /* use pretty colors in depsgraph messages */
+  G_DEBUG_DEPSGRAPH_UUID = (1 << 14),       /* Verify validness of session-wide identifiers
+                                             * assigned to ID datablocks */
   G_DEBUG_DEPSGRAPH = (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_EVAL | G_DEBUG_DEPSGRAPH_TAG |
                        G_DEBUG_DEPSGRAPH_TIME | G_DEBUG_DEPSGRAPH_UUID),
   G_DEBUG_SIMDATA = (1 << 15),               /* sim debug data display */

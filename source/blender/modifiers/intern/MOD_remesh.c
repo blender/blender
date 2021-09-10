@@ -159,7 +159,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
     if (rmd->voxel_size == 0.0f) {
       return NULL;
     }
-    result = BKE_mesh_remesh_voxel_to_mesh_nomain(mesh, rmd->voxel_size, rmd->adaptivity, 0.0f);
+    result = BKE_mesh_remesh_voxel(mesh, rmd->voxel_size, rmd->adaptivity, 0.0f);
     if (result == NULL) {
       return NULL;
     }

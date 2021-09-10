@@ -94,7 +94,7 @@ typedef struct Report {
   /** ReportType. */
   short type;
   short flag;
-  /** `strlen(message)`, saves some time calculating the word wrap . */
+  /** `strlen(message)`, saves some time calculating the word wrap. */
   int len;
   const char *typestr;
   const char *message;

@@ -18,12 +18,12 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "COM_QualityStepHelper.h"
 
 namespace blender::compositor {
 
-class BilateralBlurOperation : public NodeOperation, public QualityStepHelper {
+class BilateralBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
  private:
   SocketReader *m_inputColorProgram;
   SocketReader *m_inputDeterminatorProgram;
@@ -55,7 +55,14 @@ class BilateralBlurOperation : public NodeOperation, public QualityStepHelper {
   void setData(NodeBilateralBlurData *data)
   {
     this->m_data = data;
+    this->m_space = data->sigma_space + data->iter;
   }
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

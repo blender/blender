@@ -17,17 +17,13 @@
 #include "BKE_spline.hh"
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_length_in[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_curve_length_out[] = {
-    {SOCK_FLOAT, N_("Length")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_curve_length_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Curve");
+  b.add_output<decl::Float>("Length");
+}
 
 static void geo_node_curve_length_exec(GeoNodeExecParams params)
 {
@@ -52,7 +48,7 @@ void register_node_type_geo_curve_length()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_LENGTH, "Curve Length", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_curve_length_in, geo_node_curve_length_out);
+  ntype.declare = blender::nodes::geo_node_curve_length_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_length_exec;
   nodeRegisterType(&ntype);
 }

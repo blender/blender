@@ -160,6 +160,8 @@ typedef struct MaterialLineArt {
 
 typedef enum eMaterialLineArtFlags {
   LRT_MATERIAL_MASK_ENABLED = (1 << 0),
+
+  /* Deprecated, kept for versioning code. */
   LRT_MATERIAL_CUSTOM_OCCLUSION_EFFECTIVENESS = (1 << 1),
 } eMaterialLineArtFlags;
 
@@ -295,37 +297,21 @@ typedef struct Material {
 #define MAP_COL (1 << 0)
 #define MAP_ALPHA (1 << 7)
 
-/* pmapto */
-/* init */
-#define MAP_PA_INIT ((1 << 5) - 1)
-#define MAP_PA_TIME (1 << 0)
-#define MAP_PA_LIFE (1 << 1)
-#define MAP_PA_DENS (1 << 2)
-#define MAP_PA_SIZE (1 << 3)
-#define MAP_PA_LENGTH (1 << 4)
-/* reset */
-#define MAP_PA_IVEL (1 << 5)
-/* physics */
-#define MAP_PA_PVEL (1 << 6)
-/* path cache */
-#define MAP_PA_CLUMP (1 << 7)
-#define MAP_PA_KINK (1 << 8)
-#define MAP_PA_ROUGH (1 << 9)
-#define MAP_PA_FREQ (1 << 10)
-
 /* pr_type */
-#define MA_FLAT 0
-#define MA_SPHERE 1
-#define MA_CUBE 2
-#define MA_SHADERBALL 3
-#define MA_SPHERE_A 4 /* Used for icon renders only. */
-#define MA_TEXTURE 5
-#define MA_LAMP 6
-#define MA_SKY 7
-#define MA_HAIR 10
-#define MA_ATMOS 11
-#define MA_CLOTH 12
-#define MA_FLUID 13
+typedef enum ePreviewType {
+  MA_FLAT = 0,
+  MA_SPHERE = 1,
+  MA_CUBE = 2,
+  MA_SHADERBALL = 3,
+  MA_SPHERE_A = 4, /* Used for icon renders only. */
+  MA_TEXTURE = 5,
+  MA_LAMP = 6,
+  MA_SKY = 7,
+  MA_HAIR = 10,
+  MA_ATMOS = 11,
+  MA_CLOTH = 12,
+  MA_FLUID = 13,
+} ePreviewType;
 
 /* pr_flag */
 #define MA_PREVIEW_WORLD (1 << 0)

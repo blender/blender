@@ -1085,7 +1085,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     EDBM_update(obedit->data,
                 &(const struct EDBMUpdate_Params){
                     .calc_looptri = true,
-                    .calc_normals = false,
+                    .calc_normals = true,
                     .is_destructive = true,
                 });
   }

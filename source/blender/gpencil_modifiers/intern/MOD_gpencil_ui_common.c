@@ -9,7 +9,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software  Foundation,
+ * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
@@ -346,7 +346,7 @@ static void gpencil_modifier_panel_header(const bContext *UNUSED(C), Panel *pane
   uiItemMenuF(row, "", ICON_DOWNARROW_HLT, gpencil_modifier_ops_extra_draw, md);
 
   /* Remove button. */
-  sub = uiLayoutRow(row, true);
+  sub = uiLayoutRow(row, false);
   uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
   uiItemO(sub, "", ICON_X, "OBJECT_OT_gpencil_modifier_remove");
 

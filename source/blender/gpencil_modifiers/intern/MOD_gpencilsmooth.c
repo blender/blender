@@ -132,7 +132,7 @@ static void deformStroke(GpencilModifierData *md,
         const float val = mmd->factor * weight;
         /* perform smoothing */
         if (mmd->flag & GP_SMOOTH_MOD_LOCATION) {
-          BKE_gpencil_stroke_smooth(gps, i, val);
+          BKE_gpencil_stroke_smooth_point(gps, i, val);
         }
         if (mmd->flag & GP_SMOOTH_MOD_STRENGTH) {
           BKE_gpencil_stroke_smooth_strength(gps, i, val);

@@ -126,7 +126,7 @@ static int geometry_extract_apply(bContext *C,
                          .calc_face_normal = true,
                      }));
 
-  BMEditMesh *em = BKE_editmesh_create(bm, false);
+  BMEditMesh *em = BKE_editmesh_create(bm);
 
   /* Generate the tags for deleting geometry in the extracted object. */
   tag_fn(bm, params);
@@ -206,7 +206,7 @@ static int geometry_extract_apply(bContext *C,
                                         }),
                                         mesh);
 
-  BKE_editmesh_free(em);
+  BKE_editmesh_free_data(em);
   MEM_freeN(em);
 
   if (new_mesh->totvert == 0) {

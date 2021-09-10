@@ -25,7 +25,7 @@
 
 #include "BKE_deform.h"
 
-#include "draw_cache_extract_mesh_private.h"
+#include "extract_mesh.h"
 
 namespace blender::draw {
 
@@ -176,7 +176,7 @@ constexpr MeshExtract create_extractor_weights()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_Weight_Data);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.weights);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.weights);
   return extractor;
 }
 

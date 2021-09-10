@@ -749,7 +749,7 @@ static void autokeyframe_object(
     /* Get flags used for inserting keyframes. */
     flag = ANIM_get_keyframing_flags(scene, true);
 
-    /* add datasource override for the object */
+    /* Add data-source override for the object. */
     ANIM_relative_keyingset_add_source(&dsources, id, NULL, NULL);
 
     if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (active_ks)) {

@@ -41,6 +41,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
+#include "BKE_lib_id.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -380,7 +381,7 @@ static void lineart_occlusion_single_line(LineartRenderBuffer *rb, LineartEdge *
           /* Ignore this triangle if an intersection line directly comes from it, */
           lineart_occlusion_is_adjacent_intersection(e, (LineartTriangle *)tri) ||
           /* Or if this triangle isn't effectively occluding anything nor it's providing a
-            material flag. */
+           * material flag. */
           ((!tri->base.mat_occlusion) && (!tri->base.material_mask_bits))) {
         continue;
       }
@@ -1691,12 +1692,11 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
   }
 
   if (obi->free_use_mesh) {
-    BKE_mesh_free(obi->original_me);
-    MEM_freeN(obi->original_me);
+    BKE_id_free(NULL, obi->original_me);
   }
 
   if (rb->remove_doubles) {
-    BMEditMesh *em = BKE_editmesh_create(bm, false);
+    BMEditMesh *em = BKE_editmesh_create(bm);
     BMOperator findop, weldop;
 
     /* See bmesh_opdefines.c and bmesh_operators.c for op names and argument formatting. */
@@ -1803,10 +1803,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
     tri->material_mask_bits |= ((mat && (mat->lineart.flags & LRT_MATERIAL_MASK_ENABLED)) ?
                                     mat->lineart.material_mask_bits :
                                     0);
-    tri->mat_occlusion |= ((mat &&
-                            (mat->lineart.flags & LRT_MATERIAL_CUSTOM_OCCLUSION_EFFECTIVENESS)) ?
-                               mat->lineart.mat_occlusion :
-                               1);
+    tri->mat_occlusion |= (mat ? mat->lineart.mat_occlusion : 1);
 
     tri->intersection_mask = obi->override_intersection_mask;
 
@@ -1956,7 +1953,7 @@ static uchar lineart_intersection_mask_check(Collection *c, Object *ob)
  * See if this object in such collection is used for generating line art,
  * Disabling a collection for line art will doable all objects inside.
  */
-static int lineart_usage_check(Collection *c, Object *ob)
+static int lineart_usage_check(Collection *c, Object *ob, bool is_render)
 {
 
   if (!c) {
@@ -1969,8 +1966,12 @@ static int lineart_usage_check(Collection *c, Object *ob)
     return ob->lineart.usage;
   }
 
-  if (c->children.first == NULL) {
+  if (c->gobject.first) {
     if (BKE_collection_has_object(c, (Object *)(ob->id.orig_id))) {
+      if ((is_render && (c->flag & COLLECTION_HIDE_RENDER)) ||
+          ((!is_render) && (c->flag & COLLECTION_HIDE_VIEWPORT))) {
+        return OBJECT_LRT_EXCLUDE;
+      }
       if (ob->lineart.usage == OBJECT_LRT_INHERIT) {
         switch (c->lineart_usage) {
           case COLLECTION_LRT_OCCLUSION_ONLY:
@@ -1989,7 +1990,7 @@ static int lineart_usage_check(Collection *c, Object *ob)
   }
 
   LISTBASE_FOREACH (CollectionChild *, cc, &c->children) {
-    int result = lineart_usage_check(cc->collection, ob);
+    int result = lineart_usage_check(cc->collection, ob, is_render);
     if (result > OBJECT_LRT_INHERIT) {
       return result;
     }
@@ -2016,7 +2017,10 @@ static void lineart_geometry_load_assign_thread(LineartObjectLoadTaskInfo *olti_
   use_olti->pending = obi;
 }
 
-static bool lineart_geometry_check_visible(double (*model_view_proj)[4], Object *use_ob)
+static bool lineart_geometry_check_visible(double (*model_view_proj)[4],
+                                           double shift_x,
+                                           double shift_y,
+                                           Object *use_ob)
 {
   BoundBox *bb = BKE_object_boundbox_get(use_ob);
   if (!bb) {
@@ -2030,6 +2034,8 @@ static bool lineart_geometry_check_visible(double (*model_view_proj)[4], Object 
     copy_v3db_v3fl(co[i], bb->vec[i]);
     copy_v3_v3_db(tmp, co[i]);
     mul_v4_m4v3_db(co[i], model_view_proj, tmp);
+    co[i][0] -= shift_x * 2 * co[i][3];
+    co[i][1] -= shift_y * 2 * co[i][3];
   }
 
   bool cond[6] = {true, true, true, true, true, true};
@@ -2065,11 +2071,6 @@ static void lineart_main_load_geometries(
   int fit = BKE_camera_sensor_fit(cam->sensor_fit, rb->w, rb->h);
   double asp = ((double)rb->w / (double)rb->h);
 
-  double t_start;
-
-  if (G.debug_value == 4000) {
-    t_start = PIL_check_seconds_timer();
-  }
   int bound_box_discard_count = 0;
 
   if (cam->type == CAM_PERSP) {
@@ -2079,12 +2080,18 @@ static void lineart_main_load_geometries(
     if (fit == CAMERA_SENSOR_FIT_HOR && asp < 1) {
       sensor /= asp;
     }
-    double fov = focallength_to_fov(cam->lens, sensor);
+    const double fov = focallength_to_fov(cam->lens / (1 + rb->overscan), sensor);
     lineart_matrix_perspective_44d(proj, fov, asp, cam->clip_start, cam->clip_end);
   }
   else if (cam->type == CAM_ORTHO) {
-    double w = cam->ortho_scale / 2;
+    const double w = cam->ortho_scale / 2;
     lineart_matrix_ortho_44d(proj, -w, w, -w / asp, w / asp, cam->clip_start, cam->clip_end);
+  }
+
+  double t_start;
+
+  if (G.debug_value == 4000) {
+    t_start = PIL_check_seconds_timer();
   }
 
   invert_m4_m4(inv, rb->cam_obmat);
@@ -2112,9 +2119,11 @@ static void lineart_main_load_geometries(
   LineartObjectLoadTaskInfo *olti = lineart_mem_acquire(
       &rb->render_data_pool, sizeof(LineartObjectLoadTaskInfo) * thread_count);
 
+  bool is_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
+
   DEG_OBJECT_ITER_BEGIN (depsgraph, ob, flags) {
     LineartObjectInfo *obi = lineart_mem_acquire(&rb->render_data_pool, sizeof(LineartObjectInfo));
-    obi->usage = lineart_usage_check(scene->master_collection, ob);
+    obi->usage = lineart_usage_check(scene->master_collection, ob, is_render);
     obi->override_intersection_mask = lineart_intersection_mask_check(scene->master_collection,
                                                                       ob);
     Mesh *use_mesh;
@@ -2125,7 +2134,7 @@ static void lineart_main_load_geometries(
 
     Object *use_ob = DEG_get_evaluated_object(depsgraph, ob);
     /* Prepare the matrix used for transforming this specific object (instance). This has to be
-     * done before mesh boundbox check because the function needs that.  */
+     * done before mesh boundbox check because the function needs that. */
     mul_m4db_m4db_m4fl_uniq(obi->model_view_proj, rb->view_projection, ob->obmat);
     mul_m4db_m4db_m4fl_uniq(obi->model_view, rb->view, ob->obmat);
 
@@ -2133,7 +2142,7 @@ static void lineart_main_load_geometries(
       continue;
     }
 
-    if (!lineart_geometry_check_visible(obi->model_view_proj, use_ob)) {
+    if (!lineart_geometry_check_visible(obi->model_view_proj, rb->shift_x, rb->shift_y, use_ob)) {
       if (G.debug_value == 4000) {
         bound_box_discard_count++;
       }
@@ -2156,7 +2165,7 @@ static void lineart_main_load_geometries(
       obi->free_use_mesh = true;
     }
 
-    /* Make normal matrix.  */
+    /* Make normal matrix. */
     float imat[4][4];
     invert_m4_m4(imat, ob->obmat);
     transpose_m4(imat);
@@ -2478,8 +2487,8 @@ static bool lineart_triangle_edge_image_space_occlusion(SpinLock *UNUSED(spl),
       }
     }
     else if (st_r == 0) {
-      INTERSECT_JUST_GREATER(is, order, 0, LCross);
-      if (LRT_ABC(LCross) && is[LCross] > 0) {
+      INTERSECT_JUST_GREATER(is, order, DBL_TRIANGLE_LIM, LCross);
+      if (LRT_ABC(LCross) && is[LCross] > DBL_TRIANGLE_LIM) {
         INTERSECT_JUST_GREATER(is, order, is[LCross], RCross);
       }
       else {
@@ -3026,6 +3035,11 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->shift_x = fit == CAMERA_SENSOR_FIT_HOR ? c->shiftx : c->shiftx / asp;
   rb->shift_y = fit == CAMERA_SENSOR_FIT_VERT ? c->shifty : c->shifty * asp;
 
+  rb->overscan = lmd->overscan;
+
+  rb->shift_x /= (1 + rb->overscan);
+  rb->shift_y /= (1 + rb->overscan);
+
   rb->crease_threshold = cos(M_PI - lmd->crease_threshold);
   rb->angle_splitting_threshold = lmd->angle_splitting_threshold;
   rb->chaining_image_threshold = lmd->chaining_image_threshold;
@@ -3442,9 +3456,9 @@ static bool lineart_bounding_area_triangle_intersect(LineartRenderBuffer *fb,
     return true;
   }
 
-  if ((lineart_bounding_area_edge_intersect(fb, FBC1, FBC2, ba)) ||
-      (lineart_bounding_area_edge_intersect(fb, FBC2, FBC3, ba)) ||
-      (lineart_bounding_area_edge_intersect(fb, FBC3, FBC1, ba))) {
+  if (lineart_bounding_area_edge_intersect(fb, FBC1, FBC2, ba) ||
+      lineart_bounding_area_edge_intersect(fb, FBC2, FBC3, ba) ||
+      lineart_bounding_area_edge_intersect(fb, FBC3, FBC1, ba)) {
     return true;
   }
 
@@ -4217,9 +4231,6 @@ static void lineart_gpencil_generate(LineartCache *cache,
 
   /* (!orig_col && !orig_ob) means the whole scene is selected. */
 
-  float mat[4][4];
-  unit_m4(mat);
-
   int enabled_types = cache->rb_edge_types;
   bool invert_input = modifier_flags & LRT_GPENCIL_INVERT_SOURCE_VGROUP;
   bool match_output = modifier_flags & LRT_GPENCIL_MATCH_OUTPUT_VGROUP;
@@ -4271,28 +4282,19 @@ static void lineart_gpencil_generate(LineartCache *cache,
     /* Preserved: If we ever do asynchronous generation, this picked flag should be set here. */
     // ec->picked = 1;
 
-    int array_idx = 0;
-    int count = MOD_lineart_chain_count(ec);
+    const int count = MOD_lineart_chain_count(ec);
     bGPDstroke *gps = BKE_gpencil_stroke_add(gpf, color_idx, count, thickness, false);
 
-    float *stroke_data = MEM_callocN(sizeof(float) * count * GP_PRIM_DATABUF_SIZE,
-                                     "line art add stroke");
-
-    LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
-      stroke_data[array_idx] = eci->gpos[0];
-      stroke_data[array_idx + 1] = eci->gpos[1];
-      stroke_data[array_idx + 2] = eci->gpos[2];
-      mul_m4_v3(gp_obmat_inverse, &stroke_data[array_idx]);
-      stroke_data[array_idx + 3] = 1;       /* thickness. */
-      stroke_data[array_idx + 4] = opacity; /* hardness?. */
-      array_idx += 5;
+    int i;
+    LISTBASE_FOREACH_INDEX (LineartEdgeChainItem *, eci, &ec->chain, i) {
+      bGPDspoint *point = &gps->points[i];
+      mul_v3_m4v3(&point->x, gp_obmat_inverse, eci->gpos);
+      point->pressure = 1.0f;
+      point->strength = opacity;
     }
 
-    BKE_gpencil_stroke_add_points(gps, stroke_data, count, mat);
     BKE_gpencil_dvert_ensure(gps);
     gps->mat_nr = max_ii(material_nr, 0);
-
-    MEM_freeN(stroke_data);
 
     if (source_vgname && vgname) {
       Object *eval_ob = DEG_get_evaluated_object(depsgraph, ec->object_ref);
@@ -4302,7 +4304,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
           int dindex = 0;
           Mesh *me = (Mesh *)eval_ob->data;
           if (me->dvert) {
-            LISTBASE_FOREACH (bDeformGroup *, db, &eval_ob->defbase) {
+            LISTBASE_FOREACH (bDeformGroup *, db, &me->vertex_group_names) {
               if ((!source_vgname) || strstr(db->name, source_vgname) == db->name) {
                 if (match_output) {
                   gpdg = BKE_object_defgroup_name_index(gpencil_object, db->name);

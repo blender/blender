@@ -23,6 +23,8 @@
  * that benefit from accessing connectivity information.
  */
 
+#include "BLI_assert.h"
+
 /* disable holes for now,
  * these are ifdef'd because they use more memory and can't be saved in DNA currently */
 // #define USE_BMESH_HOLES
@@ -183,7 +185,7 @@ typedef struct BMLoop {
   struct BMFace *f;
 
   /**
-   * Other loops connected to this edge,.
+   * Other loops connected to this edge.
    *
    * This is typically use for accessing an edges faces,
    * however this is done by stepping over it's loops.

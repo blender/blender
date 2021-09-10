@@ -50,6 +50,7 @@
 
 #include "BLO_blend_validate.h"
 
+#include "ED_asset.h"
 #include "ED_gpencil.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
@@ -268,6 +269,8 @@ static void ed_undo_step_post(bContext *C,
   WM_toolsystem_refresh_active(C);
   WM_toolsystem_refresh_screen_all(bmain);
 
+  ED_assetlist_storage_tag_main_data_dirty();
+
   if (CLOG_CHECK(&LOG, 1)) {
     BKE_undosys_print(wm->undo_stack);
   }
@@ -321,7 +324,7 @@ static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *
 
   /* FIXME: See comments in `ed_undo_step_direction`. */
   if (ED_gpencil_session_active()) {
-    BLI_assert(!"Not implemented currently.");
+    BLI_assert_msg(0, "Not implemented currently.");
   }
 
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -369,7 +372,7 @@ static int ed_undo_step_by_index(bContext *C, const int undo_index, ReportList *
 
   /* FIXME: See comments in `ed_undo_step_direction`. */
   if (ED_gpencil_session_active()) {
-    BLI_assert(!"Not implemented currently.");
+    BLI_assert_msg(0, "Not implemented currently.");
   }
 
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -571,7 +574,12 @@ static bool ed_undo_is_init_poll(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   if (wm->undo_stack == NULL) {
-    CTX_wm_operator_poll_msg_set(C, "Undo disabled at startup");
+    /* This message is intended for Python developers,
+     * it will be part of the exception when attempting to call undo in background mode. */
+    CTX_wm_operator_poll_msg_set(
+        C,
+        "Undo disabled at startup in background-mode. "
+        "Call `ed.undo_push()` to explicitly initialize the undo-system.");
     return false;
   }
   return true;
@@ -692,7 +700,7 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
       CTX_wm_region_set(C, region_win);
     }
 
-    if ((WM_operator_repeat_check(C, op)) && (WM_operator_poll(C, op->type)) &&
+    if (WM_operator_repeat_check(C, op) && WM_operator_poll(C, op->type) &&
         /* NOTE: undo/redo can't run if there are jobs active,
          * check for screen jobs only so jobs like material/texture/world preview
          * (which copy their data), won't stop redo, see T29579],

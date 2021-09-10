@@ -155,11 +155,12 @@ void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, cons
  * \param from_name: original name,
  * assumed to be a pointer to a string of at least \a name_len size.
  * \param strip_number: If set, remove number extensions.
+ * \return The number of bytes written into \a r_name.
  */
-void BLI_string_flip_side_name(char *r_name,
-                               const char *from_name,
-                               const bool strip_number,
-                               const size_t name_len)
+size_t BLI_string_flip_side_name(char *r_name,
+                                 const char *from_name,
+                                 const bool strip_number,
+                                 const size_t name_len)
 {
   size_t len;
   char *prefix = alloca(name_len);  /* The part before the facing */
@@ -172,18 +173,16 @@ void BLI_string_flip_side_name(char *r_name,
   *prefix = *suffix = *replace = *number = '\0';
 
   /* always copy the name, since this can be called with an uninitialized string */
-  BLI_strncpy(r_name, from_name, name_len);
-
-  len = BLI_strnlen(from_name, name_len);
+  len = BLI_strncpy_rlen(r_name, from_name, name_len);
   if (len < 3) {
     /* we don't do names like .R or .L */
-    return;
+    return len;
   }
 
   /* We first check the case with a .### extension, let's find the last period */
   if (isdigit(r_name[len - 1])) {
-    index = strrchr(r_name, '.');     /* last occurrence. */
-    if (index && isdigit(index[1])) { /* doesn't handle case bone.1abc2 correct..., whatever! */
+    index = strrchr(r_name, '.');     /* Last occurrence. */
+    if (index && isdigit(index[1])) { /* Doesn't handle case `bone.1abc2` correct..., whatever! */
       if (strip_number == false) {
         BLI_strncpy(number, index, name_len);
       }
@@ -194,7 +193,7 @@ void BLI_string_flip_side_name(char *r_name,
 
   BLI_strncpy(prefix, r_name, name_len);
 
-  /* first case; separator . - _ with extensions r R l L. */
+  /* First case; separator (`.` or `_`) with extensions in `r R l L`. */
   if ((len > 1) && is_char_sep(r_name[len - 2])) {
     is_set = true;
     switch (r_name[len - 1]) {
@@ -274,7 +273,7 @@ void BLI_string_flip_side_name(char *r_name,
     }
   }
 
-  BLI_snprintf(r_name, name_len, "%s%s%s%s", prefix, replace, suffix, number);
+  return BLI_snprintf_rlen(r_name, name_len, "%s%s%s%s", prefix, replace, suffix, number);
 }
 
 /* Unique name utils. */

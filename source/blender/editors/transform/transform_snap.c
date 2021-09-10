@@ -575,7 +575,7 @@ static void initSnappingMode(TransInfo *t)
 {
   ToolSettings *ts = t->settings;
   /* All obedit types will match. */
-  const int obedit_type = t->data_container->obedit ? t->data_container->obedit->type : -1;
+  const int obedit_type = t->obedit_type;
   ViewLayer *view_layer = t->view_layer;
   Base *base_act = view_layer->basact;
 
@@ -594,7 +594,7 @@ static void initSnappingMode(TransInfo *t)
   else if (t->spacetype == SPACE_SEQ) {
     t->tsnap.mode = SEQ_tool_settings_snap_mode_get(t->scene);
   }
-  else {
+  else if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE) && !(t->options & CTX_CAMERA)) {
     /* force project off when not supported */
     if ((ts->snap_mode & SCE_SNAP_MODE_FACE) == 0) {
       t->tsnap.project = 0;
@@ -608,16 +608,31 @@ static void initSnappingMode(TransInfo *t)
       t->tsnap.mode |= SCE_SNAP_MODE_GRID;
     }
   }
+  else if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) {
+    /* No incremental snapping. */
+    t->tsnap.mode = 0;
+  }
+  else {
+    /* Fallback. */
+    t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
+  }
 
-  if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) &&
-      (t->options & CTX_CAMERA) == 0) {
+  if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE) && !(t->options & CTX_CAMERA)) {
     /* Only 3D view or UV. */
     /* Not with camera selected in camera view. */
 
     setSnappingCallback(t);
 
-    if ((obedit_type != -1) &&
-        ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) {
+    if (t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) {
+      /* In "Edit Strokes" mode,
+       * snap tool can perform snap to selected or active objects (see T49632)
+       * TODO: perform self snap in gpencil_strokes.
+       *
+       * When we're moving the origins, allow snapping onto our own geometry (see T69132). */
+      t->tsnap.modeSelect = SNAP_ALL;
+    }
+    else if ((obedit_type != -1) &&
+             ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) {
       /* Edit mode */
       /* Temporary limited to edit mode meshes, armature, curves, metaballs. */
 
@@ -636,17 +651,7 @@ static void initSnappingMode(TransInfo *t)
     }
     else if (obedit_type == -1) {
       /* Object mode */
-      if (t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) {
-        /* In "Edit Strokes" mode,
-         * snap tool can perform snap to selected or active objects (see T49632)
-         * TODO: perform self snap in gpencil_strokes.
-         *
-         * When we're moving the origins, allow snapping onto our own geometry (see T69132). */
-        t->tsnap.modeSelect = SNAP_ALL;
-      }
-      else {
-        t->tsnap.modeSelect = SNAP_NOT_SELECTED;
-      }
+      t->tsnap.modeSelect = SNAP_NOT_SELECTED;
     }
     else {
       /* Increment if snap is not possible */
@@ -656,10 +661,6 @@ static void initSnappingMode(TransInfo *t)
   else if (ELEM(t->spacetype, SPACE_NODE, SPACE_SEQ)) {
     setSnappingCallback(t);
     t->tsnap.modeSelect = SNAP_NOT_SELECTED;
-  }
-  else {
-    /* Fallback. */
-    t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
   }
 
   if (t->spacetype == SPACE_VIEW3D) {
@@ -1464,46 +1465,8 @@ bool snapNodesTransform(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name snap Frames
+/** \name snap Grid
  * \{ */
-
-/* This function is used by Animation Editor specific transform functions to do
- * the Snap Keyframe to Nearest Frame/Marker
- */
-void snapFrameTransform(TransInfo *t,
-                        const eAnimEdit_AutoSnap autosnap,
-                        const bool is_frame_value,
-                        const float delta,
-                        float *r_val)
-{
-  double val = delta;
-  switch (autosnap) {
-    case SACTSNAP_STEP:
-    case SACTSNAP_FRAME:
-      val = floor(val + 0.5);
-      break;
-    case SACTSNAP_MARKER:
-      /* snap to nearest marker */
-      /* TODO: need some more careful checks for where data comes from. */
-      val = ED_markers_find_nearest_marker_time(&t->scene->markers, (float)val);
-      break;
-    case SACTSNAP_SECOND:
-    case SACTSNAP_TSTEP: {
-      /* second step */
-      const Scene *scene = t->scene;
-      const double secf = FPS;
-      val = floor((val / secf) + 0.5);
-      if (is_frame_value) {
-        val *= secf;
-      }
-      break;
-    }
-    case SACTSNAP_OFF: {
-      break;
-    }
-  }
-  *r_val = (float)val;
-}
 
 static void snap_grid_apply(
     TransInfo *t, const int max_index, const float grid_dist, const float loc[3], float r_out[3])

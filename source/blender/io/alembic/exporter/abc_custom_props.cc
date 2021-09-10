@@ -60,9 +60,6 @@ void CustomPropertiesExporter::write_all(const IDProperty *group)
 
   /* Loop over the properties, just like IDP_foreach_property() does, but without the recursion. */
   LISTBASE_FOREACH (IDProperty *, id_property, &group->data.group) {
-    if (STREQ(id_property->name, "_RNA_UI")) {
-      continue;
-    }
     write(id_property);
   }
 }
@@ -141,7 +138,7 @@ void CustomPropertiesExporter::write_idparray(const IDProperty *idp_array)
       continue;
     }
     std::cerr << "Custom property " << idp_array->name << " has elements of varying type";
-    BLI_assert(!"Mixed type IDP_ARRAY custom property found");
+    BLI_assert_msg(0, "Mixed type IDP_ARRAY custom property found");
   }
 #endif
 

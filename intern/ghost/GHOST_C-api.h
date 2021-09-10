@@ -188,8 +188,8 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              GHOST_GLSettings glSettings);
 
 /**
- * Create a new offscreen context.
- * Never explicitly delete the context, use disposeContext() instead.
+ * Create a new off-screen context.
+ * Never explicitly delete the context, use #disposeContext() instead.
  * \param systemhandle: The handle to the system.
  * \param platform_support_callback: An optional callback to check platform support.
  * \return A handle to the new context ( == NULL if creation failed).
@@ -628,7 +628,7 @@ extern void GHOST_ScreenToClient(
     GHOST_WindowHandle windowhandle, int32_t inX, int32_t inY, int32_t *outX, int32_t *outY);
 
 /**
- * Converts a point in screen coordinates to client rectangle coordinates
+ * Converts a point in client rectangle coordinates to screen coordinates.
  * \param windowhandle: The handle to the window.
  * \param inX: The x-coordinate in the client rectangle.
  * \param inY: The y-coordinate in the client rectangle.
@@ -1067,22 +1067,6 @@ void GHOST_XrDestroyActions(GHOST_XrContextHandle xr_context,
                             const char *const *action_names);
 
 /**
- * Create spaces for pose-based OpenXR actions.
- */
-int GHOST_XrCreateActionSpaces(GHOST_XrContextHandle xr_context,
-                               const char *action_set_name,
-                               uint32_t count,
-                               const GHOST_XrActionSpaceInfo *infos);
-
-/**
- * Destroy previously created spaces for OpenXR actions.
- */
-void GHOST_XrDestroyActionSpaces(GHOST_XrContextHandle xr_context,
-                                 const char *action_set_name,
-                                 uint32_t count,
-                                 const GHOST_XrActionSpaceInfo *infos);
-
-/**
  * Create input/output path bindings for OpenXR actions.
  */
 int GHOST_XrCreateActionBindings(GHOST_XrContextHandle xr_context,
@@ -1096,7 +1080,8 @@ int GHOST_XrCreateActionBindings(GHOST_XrContextHandle xr_context,
 void GHOST_XrDestroyActionBindings(GHOST_XrContextHandle xr_context,
                                    const char *action_set_name,
                                    uint32_t count,
-                                   const GHOST_XrActionProfileInfo *infos);
+                                   const char *const *action_names,
+                                   const char *const *profile_paths);
 
 /**
  * Attach all created action sets to the current OpenXR session.
@@ -1117,6 +1102,7 @@ int GHOST_XrSyncActions(GHOST_XrContextHandle xr_context, const char *action_set
 int GHOST_XrApplyHapticAction(GHOST_XrContextHandle xr_context,
                               const char *action_set_name,
                               const char *action_name,
+                              const char *subaction_path,
                               const int64_t *duration,
                               const float *frequency,
                               const float *amplitude);
@@ -1126,7 +1112,8 @@ int GHOST_XrApplyHapticAction(GHOST_XrContextHandle xr_context,
  */
 void GHOST_XrStopHapticAction(GHOST_XrContextHandle xr_context,
                               const char *action_set_name,
-                              const char *action_name);
+                              const char *action_name,
+                              const char *subaction_path);
 
 /**
  * Get action set custom data (owned by Blender, not GHOST).
@@ -1140,6 +1127,18 @@ void *GHOST_XrGetActionSetCustomdata(GHOST_XrContextHandle xr_context,
 void *GHOST_XrGetActionCustomdata(GHOST_XrContextHandle xr_context,
                                   const char *action_set_name,
                                   const char *action_name);
+
+/**
+ * Get the number of actions in an action set.
+ */
+unsigned int GHOST_XrGetActionCount(GHOST_XrContextHandle xr_context, const char *action_set_name);
+
+/**
+ * Get custom data for all actions in an action set.
+ */
+void GHOST_XrGetActionCustomdataArray(GHOST_XrContextHandle xr_context,
+                                      const char *action_set_name,
+                                      void **r_customdata_array);
 
 #endif /* WITH_XR_OPENXR */
 

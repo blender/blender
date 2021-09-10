@@ -229,9 +229,9 @@ void register_node_type_sh_group(void)
 {
   static bNodeType ntype;
 
-  /* NB: cannot use sh_node_type_base for node group, because it would map the node type
-   * to the shared NODE_GROUP integer type id.
-   */
+  /* NOTE: cannot use #sh_node_type_base for node group, because it would map the node type
+   * to the shared #NODE_GROUP integer type id. */
+
   node_type_base_custom(&ntype, "ShaderNodeGroup", "Group", NODE_CLASS_GROUP, NODE_CONST_OUTPUT);
   ntype.type = NODE_GROUP;
   ntype.poll = sh_node_poll_default;

@@ -16,6 +16,9 @@
 
 /** \file
  * \ingroup editors
+ *
+ * The public API for assets is defined in dedicated headers. This is a utility file that just
+ * includes all of these.
  */
 
 #pragma once
@@ -24,13 +27,23 @@
 extern "C" {
 #endif
 
-bool ED_asset_mark_id(const struct bContext *C, struct ID *id);
-bool ED_asset_clear_id(struct ID *id);
-
-bool ED_asset_can_make_single_from_context(const struct bContext *C);
+/* Barely anything here. Just general editor level functions. Actual asset level code is in
+ * dedicated headers. */
 
 void ED_operatortypes_asset(void);
 
 #ifdef __cplusplus
 }
+#endif
+
+#include "../asset/ED_asset_filter.h"
+#include "../asset/ED_asset_handle.h"
+#include "../asset/ED_asset_library.h"
+#include "../asset/ED_asset_list.h"
+#include "../asset/ED_asset_mark_clear.h"
+#include "../asset/ED_asset_temp_id_consumer.h"
+
+/* C++ only headers. */
+#ifdef __cplusplus
+#  include "../asset/ED_asset_list.hh"
 #endif

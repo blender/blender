@@ -322,15 +322,6 @@ bool RenderBuffers::get_pass_rect(
           pixels[0] = saturate(f * scale_exposure);
         }
       }
-#ifdef WITH_CYCLES_DEBUG
-      else if (type == PASS_BVH_TRAVERSED_NODES || type == PASS_BVH_TRAVERSED_INSTANCES ||
-               type == PASS_BVH_INTERSECTIONS || type == PASS_RAY_BOUNCES) {
-        for (int i = 0; i < size; i++, in += pass_stride, pixels++) {
-          float f = *in;
-          pixels[0] = f * scale;
-        }
-      }
-#endif
       else {
         for (int i = 0; i < size; i++, in += pass_stride, pixels++) {
           float f = *in;

@@ -382,7 +382,7 @@ static int make(const char *input_file_name, const char *output_file_name)
     }
     else if (strstr(l, msgstr_kw) == l) {
       l = l + msgstr_len;
-      // Now we are in a msgstr section
+      /* Now we are in a `msgstr` section. */
       section = SECTION_STR;
       if (l[0] == '[') {
         if (!is_plural) {

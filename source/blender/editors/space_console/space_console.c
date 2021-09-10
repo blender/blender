@@ -158,10 +158,7 @@ static void console_cursor(wmWindow *win, ScrArea *UNUSED(area), ARegion *region
 
 /* ************* dropboxes ************* */
 
-static bool id_drop_poll(bContext *UNUSED(C),
-                         wmDrag *drag,
-                         const wmEvent *UNUSED(event),
-                         const char **UNUSED(tooltip))
+static bool id_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   return WM_drag_get_local_ID(drag, 0) != NULL;
 }
@@ -176,10 +173,7 @@ static void id_drop_copy(wmDrag *drag, wmDropBox *drop)
   MEM_freeN(text);
 }
 
-static bool path_drop_poll(bContext *UNUSED(C),
-                           wmDrag *drag,
-                           const wmEvent *UNUSED(event),
-                           const char **UNUSED(tooltip))
+static bool path_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   return (drag->type == WM_DRAG_PATH);
 }
@@ -196,8 +190,8 @@ static void console_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
 
-  WM_dropbox_add(lb, "CONSOLE_OT_insert", id_drop_poll, id_drop_copy, NULL);
-  WM_dropbox_add(lb, "CONSOLE_OT_insert", path_drop_poll, path_drop_copy, NULL);
+  WM_dropbox_add(lb, "CONSOLE_OT_insert", id_drop_poll, id_drop_copy, NULL, NULL);
+  WM_dropbox_add(lb, "CONSOLE_OT_insert", path_drop_poll, path_drop_copy, NULL, NULL);
 }
 
 /* ************* end drop *********** */

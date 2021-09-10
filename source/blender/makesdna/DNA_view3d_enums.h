@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-/** Settings for offscreen rendering */
+/** Settings for off-screen rendering. */
 typedef enum eV3DOffscreenDrawFlag {
   V3D_OFSDRAW_NONE = (0),
   V3D_OFSDRAW_SHOW_ANNOTATION = (1 << 0),

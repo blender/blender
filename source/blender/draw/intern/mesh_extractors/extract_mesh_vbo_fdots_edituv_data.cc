@@ -21,7 +21,8 @@
  * \ingroup draw
  */
 
-#include "draw_cache_extract_mesh_private.h"
+#include "extract_mesh.h"
+
 #include "draw_cache_impl.h"
 
 namespace blender::draw {
@@ -88,7 +89,7 @@ constexpr MeshExtract create_extractor_fdots_edituv_data()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_EditUVFdotData_Data);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_edituv_data);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.fdots_edituv_data);
   return extractor;
 }
 

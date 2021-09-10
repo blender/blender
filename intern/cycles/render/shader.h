@@ -154,6 +154,14 @@ class Shader : public Node {
   void tag_update(Scene *scene);
   void tag_used(Scene *scene);
 
+  /* Return true when either of the surface or displacement socket of the output node is linked.
+   * This should be used to ensure that surface attributes are also requested even when only the
+   * displacement socket is linked. */
+  bool has_surface_link() const
+  {
+    return has_surface || has_displacement;
+  }
+
   bool need_update_geometry() const;
 };
 

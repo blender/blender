@@ -390,6 +390,9 @@ set(ICON_NAMES
   small_caps
   modifier
   con_action
+  mod_length
+  mod_dash
+  mod_lineart
   holdout_off
   holdout_on
   indirect_only_off
@@ -583,6 +586,9 @@ set(ICON_NAMES
   uv_facesel
   uv_islandsel
   uv_sync_select
+  gp_caps_flat
+  gp_caps_round
+  fixed_size
   transform_origins
   gizmo
   orientation_cursor

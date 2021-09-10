@@ -219,7 +219,7 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
   scene->r.pefra = round_fl_to_int(max);
 
   /* Set notifier that things have changed. */
-  // XXX Err... there's nothing for frame ranges yet, but this should do fine too.
+  /* XXX: Err... there's nothing for frame ranges yet, but this should do fine too. */
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, ac.scene);
 
   return OPERATOR_FINISHED;
@@ -398,7 +398,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
             ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* Loop through filtered data and add keys between selected keyframes on every frame . */
+  /* Loop through filtered data and add keys between selected keyframes on every frame. */
   for (ale = anim_data.first; ale; ale = ale->next) {
     FCurve *fcu = (FCurve *)ale->key_data;
     FCurve *gcu = BKE_fcurve_create();

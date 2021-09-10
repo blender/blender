@@ -73,6 +73,7 @@
 #include "BKE_rigidbody.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "RNA_access.h"
 
@@ -141,7 +142,8 @@ static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *
 {
   ID *id = cb_data->user_data;
   if (*cb_data->id_pointer == id) {
-    DEG_id_tag_update_ex(cb_data->bmain, cb_data->id_owner, ID_RECALC_TAG_FOR_UNDO);
+    DEG_id_tag_update_ex(
+        cb_data->bmain, cb_data->id_owner, ID_RECALC_TAG_FOR_UNDO | ID_RECALC_COPY_ON_WRITE);
     return IDWALK_RET_STOP_ITER;
   }
   return IDWALK_RET_NOP;
@@ -151,7 +153,7 @@ static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *
  * Pull an ID out of a library (make it local). Only call this for IDs that
  * don't have other library users.
  */
-static void lib_id_clear_library_data_ex(Main *bmain, ID *id)
+void BKE_lib_id_clear_library_data(Main *bmain, ID *id)
 {
   const bool id_in_mainlist = (id->tag & LIB_TAG_NO_MAIN) == 0 &&
                               (id->flag & LIB_EMBEDDED_DATA) == 0;
@@ -191,13 +193,10 @@ static void lib_id_clear_library_data_ex(Main *bmain, ID *id)
    * IDs here, this is down automatically in `lib_id_expand_local_cb()`. */
   Key *key = BKE_key_from_id(id);
   if (key != NULL) {
-    lib_id_clear_library_data_ex(bmain, &key->id);
+    BKE_lib_id_clear_library_data(bmain, &key->id);
   }
-}
 
-void BKE_lib_id_clear_library_data(Main *bmain, ID *id)
-{
-  lib_id_clear_library_data_ex(bmain, id);
+  DEG_relations_tag_update(bmain);
 }
 
 void id_lib_extern(ID *id)
@@ -365,7 +364,7 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
     if (*id_pointer != NULL && ID_IS_LINKED(*id_pointer)) {
       BLI_assert(*id_pointer != id_self);
 
-      lib_id_clear_library_data_ex(bmain, *id_pointer);
+      BKE_lib_id_clear_library_data(bmain, *id_pointer);
     }
     return IDWALK_RET_NOP;
   }
@@ -407,7 +406,15 @@ static void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id)
  */
 void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
 {
+  if (!ID_IS_LINKED(id)) {
+    return;
+  }
+
   const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
+  const bool force_local = (flags & LIB_ID_MAKELOCAL_FORCE_LOCAL) != 0;
+  const bool force_copy = (flags & LIB_ID_MAKELOCAL_FORCE_COPY) != 0;
+  BLI_assert(force_copy == false || force_copy != force_local);
+
   bool is_local = false, is_lib = false;
 
   /* - only lib users: do nothing (unless force_local is set)
@@ -417,15 +424,13 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
    * we always want to localize, and we skip remapping (done later).
    */
 
-  if (!ID_IS_LINKED(id)) {
-    return;
+  if (!force_copy && !force_local) {
+    BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
   }
 
-  BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
-
-  if (lib_local || is_local) {
-    if (!is_lib) {
-      lib_id_clear_library_data_ex(bmain, id);
+  if (lib_local || is_local || force_copy || force_local) {
+    if (!is_lib || force_local) {
+      BKE_lib_id_clear_library_data(bmain, id);
       BKE_lib_id_expand_local(bmain, id);
     }
     else {
@@ -499,7 +504,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
     return false;
   }
 
-  BLI_assert(!"IDType Missing IDTypeInfo");
+  BLI_assert_msg(0, "IDType Missing IDTypeInfo");
   return false;
 }
 
@@ -603,7 +608,7 @@ ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
     }
   }
   else {
-    BLI_assert(!"IDType Missing IDTypeInfo");
+    BLI_assert_msg(0, "IDType Missing IDTypeInfo");
   }
 
   /* Update ID refcount, remap pointers to self in new ID. */
@@ -971,7 +976,7 @@ void BKE_main_id_repair_duplicate_names_listbase(ListBase *lb)
 {
   int lb_len = 0;
   LISTBASE_FOREACH (ID *, id, lb) {
-    if (id->lib == NULL) {
+    if (!ID_IS_LINKED(id)) {
       lb_len += 1;
     }
   }
@@ -984,7 +989,7 @@ void BKE_main_id_repair_duplicate_names_listbase(ListBase *lb)
   GSet *gset = BLI_gset_str_new_ex(__func__, lb_len);
   int i = 0;
   LISTBASE_FOREACH (ID *, id, lb) {
-    if (id->lib == NULL) {
+    if (!ID_IS_LINKED(id)) {
       id_array[i] = id;
       i++;
     }
@@ -1053,7 +1058,7 @@ void *BKE_libblock_alloc_notest(short type)
   if (size != 0) {
     return MEM_callocN(size, name);
   }
-  BLI_assert(!"Request to allocate unknown data type");
+  BLI_assert_msg(0, "Request to allocate unknown data type");
   return NULL;
 }
 
@@ -1134,7 +1139,7 @@ void BKE_libblock_init_empty(ID *id)
     return;
   }
 
-  BLI_assert(!"IDType Missing IDTypeInfo");
+  BLI_assert_msg(0, "IDType Missing IDTypeInfo");
 }
 
 /* ********** ID session-wise UUID management. ********** */
@@ -1317,14 +1322,6 @@ void *BKE_libblock_copy(Main *bmain, const ID *id)
   return idn;
 }
 
-/* XXX TODO: get rid of this useless wrapper at some point... */
-void *BKE_libblock_copy_for_localize(const ID *id)
-{
-  ID *idn;
-  BKE_libblock_copy_ex(NULL, id, &idn, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
-  return idn;
-}
-
 /* ***************** ID ************************ */
 ID *BKE_libblock_find_name(struct Main *bmain, const short type, const char *name)
 {
@@ -1485,7 +1482,7 @@ static bool id_name_final_build(char *name, char *base_name, size_t base_name_le
 
     /* Code above may have generated invalid utf-8 string, due to raw truncation.
      * Ensure we get a valid one now. */
-    base_name_len -= (size_t)BLI_utf8_invalid_strip(base_name, base_name_len);
+    base_name_len -= (size_t)BLI_str_utf8_invalid_strip(base_name, base_name_len);
 
     /* Also truncate orig name, and start the whole check again. */
     name[base_name_len] = '\0';
@@ -1735,7 +1732,7 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname, const boo
   else {
     /* disallow non utf8 chars,
      * the interface checks for this but new ID's based on file names don't */
-    BLI_utf8_invalid_strip(name, strlen(name));
+    BLI_str_utf8_invalid_strip(name, strlen(name));
   }
 
   ID *id_sorting_hint = NULL;
@@ -1849,7 +1846,7 @@ static void library_make_local_copying_check(ID *id,
       from_id = ((Key *)from_id)->from;
     }
 
-    if (from_id->lib == NULL) {
+    if (!ID_IS_LINKED(from_id)) {
       /* Local user, early out to avoid some gset querying... */
       continue;
     }
@@ -2018,7 +2015,7 @@ void BKE_library_make_local(Main *bmain,
        * currently there are some indirect usages. So instead of making a copy that we'll likely
        * get rid of later, directly make that data block local.
        * Saves a tremendous amount of time with complex scenes... */
-      lib_id_clear_library_data_ex(bmain, id);
+      BKE_lib_id_clear_library_data(bmain, id);
       BKE_lib_id_expand_local(bmain, id);
       id->tag &= ~LIB_TAG_DOIT;
 
@@ -2077,7 +2074,7 @@ void BKE_library_make_local(Main *bmain,
     ID *id = it->link;
 
     BLI_assert(id->newid != NULL);
-    BLI_assert(id->lib != NULL);
+    BLI_assert(ID_IS_LINKED(id));
 
     BKE_libblock_remap(bmain, id, id->newid, ID_REMAP_SKIP_INDIRECT_USAGE);
     if (old_to_new_ids) {
@@ -2112,7 +2109,7 @@ void BKE_library_make_local(Main *bmain,
       bool is_local = false, is_lib = false;
 
       /* Proxies only work when the proxified object is linked-in from a library. */
-      if (ob->proxy->id.lib == NULL) {
+      if (!ID_IS_LINKED(ob->proxy)) {
         CLOG_WARN(&LOG,
                   "proxy object %s will lose its link to %s, because the "
                   "proxified object is local.",
@@ -2230,7 +2227,7 @@ void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id, char separa
 {
   strcpy(name, id->name + 2);
 
-  if (id->lib != NULL) {
+  if (ID_IS_LINKED(id)) {
     const size_t idname_len = strlen(id->name + 2);
     const size_t libname_len = strlen(id->lib->id.name + 2);
 
@@ -2283,7 +2280,7 @@ void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI],
  */
 char *BKE_id_to_unique_string_key(const struct ID *id)
 {
-  if (id->lib == NULL) {
+  if (!ID_IS_LINKED(id)) {
     return BLI_strdup(id->name);
   }
 

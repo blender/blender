@@ -29,12 +29,16 @@ extern "C" {
 
 struct ListBase;
 struct Main;
+struct Scene;
+struct Sequence;
 
 extern struct ListBase seqbase_clipboard;
 extern int seqbase_clipboard_frame;
 void SEQ_clipboard_pointers_store(struct Main *bmain, struct ListBase *seqbase);
 void SEQ_clipboard_pointers_restore(struct ListBase *seqbase, struct Main *bmain);
 void SEQ_clipboard_free(void);
+void SEQ_clipboard_active_seq_name_store(struct Scene *scene);
+bool SEQ_clipboard_pasted_seq_was_active(struct Sequence *pasted_seq);
 
 #ifdef __cplusplus
 }

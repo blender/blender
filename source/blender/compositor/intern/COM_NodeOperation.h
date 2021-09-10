@@ -22,6 +22,8 @@
 #include <sstream>
 #include <string>
 
+#include "BLI_ghash.h"
+#include "BLI_hash.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 #include "BLI_threads.h"
@@ -73,12 +75,6 @@ enum class ResizeMode {
   /** \brief Fit the width and the height of the input image to the width and height of the working
    * area of the node, image will be equally larger than the working area */
   Stretch = NS_CR_STRETCH,
-};
-
-enum class PixelSampler {
-  Nearest = 0,
-  Bilinear = 1,
-  Bicubic = 2,
 };
 
 class NodeOperationInput {
@@ -275,6 +271,42 @@ struct NodeOperationFlags {
   }
 };
 
+/** Hash that identifies an operation output result in the current execution. */
+struct NodeOperationHash {
+ private:
+  NodeOperation *operation_;
+  size_t type_hash_;
+  size_t parents_hash_;
+  size_t params_hash_;
+
+  friend class NodeOperation;
+
+ public:
+  NodeOperation *get_operation() const
+  {
+    return operation_;
+  }
+
+  bool operator==(const NodeOperationHash &other) const
+  {
+    return type_hash_ == other.type_hash_ && parents_hash_ == other.parents_hash_ &&
+           params_hash_ == other.params_hash_;
+  }
+
+  bool operator!=(const NodeOperationHash &other) const
+  {
+    return !(*this == other);
+  }
+
+  bool operator<(const NodeOperationHash &other) const
+  {
+    return type_hash_ < other.type_hash_ ||
+           (type_hash_ == other.type_hash_ && parents_hash_ < other.parents_hash_) ||
+           (type_hash_ == other.type_hash_ && parents_hash_ == other.parents_hash_ &&
+            params_hash_ < other.params_hash_);
+  }
+};
+
 /**
  * \brief NodeOperation contains calculation logic
  *
@@ -288,10 +320,15 @@ class NodeOperation {
   Vector<NodeOperationInput> m_inputs;
   Vector<NodeOperationOutput> m_outputs;
 
+  size_t params_hash_;
+  bool is_hash_output_params_implemented_;
+
   /**
    * \brief the index of the input socket that will be used to determine the resolution
    */
   unsigned int m_resolutionInputSocketIndex;
+
+  std::function<void(unsigned int resolution[2])> modify_determined_resolution_fn_;
 
   /**
    * \brief mutex reference for very special node initializations
@@ -367,6 +404,8 @@ class NodeOperation {
     return flags;
   }
 
+  std::optional<NodeOperationHash> generate_hash();
+
   unsigned int getNumberOfInputSockets() const
   {
     return m_inputs.size();
@@ -423,6 +462,12 @@ class NodeOperation {
   {
     exec_system_ = system;
   }
+
+  /**
+   * Initializes operation data needed after operations are linked and resolutions determined. For
+   * rendering heap memory data use initExecution().
+   */
+  virtual void init_data();
 
   virtual void initExecution();
 
@@ -516,6 +561,15 @@ class NodeOperation {
    * operation \param index: the index to set
    */
   void setResolutionInputSocketIndex(unsigned int index);
+
+  /**
+   * Set a custom function to modify determined resolution from main input just before setting it
+   * as preferred resolution for the other inputs.
+   */
+  void set_determined_resolution_modifier(std::function<void(unsigned int resolution[2])> fn)
+  {
+    modify_determined_resolution_fn_ = fn;
+  }
 
   /**
    * \brief get the render priority of this node.
@@ -612,6 +666,33 @@ class NodeOperation {
 
  protected:
   NodeOperation();
+
+  /* Overridden by subclasses to allow merging equal operations on compiling. Implementations must
+   * hash any subclass parameter that affects the output result using `hash_params` methods. */
+  virtual void hash_output_params()
+  {
+    is_hash_output_params_implemented_ = false;
+  }
+
+  static void combine_hashes(size_t &combined, size_t other)
+  {
+    combined = BLI_ghashutil_combine_hash(combined, other);
+  }
+
+  template<typename T> void hash_param(T param)
+  {
+    combine_hashes(params_hash_, get_default_hash(param));
+  }
+
+  template<typename T1, typename T2> void hash_params(T1 param1, T2 param2)
+  {
+    combine_hashes(params_hash_, get_default_hash_2(param1, param2));
+  }
+
+  template<typename T1, typename T2, typename T3> void hash_params(T1 param1, T2 param2, T3 param3)
+  {
+    combine_hashes(params_hash_, get_default_hash_3(param1, param2, param3));
+  }
 
   void addInputSocket(DataType datatype, ResizeMode resize_mode = ResizeMode::Center);
   void addOutputSocket(DataType datatype);

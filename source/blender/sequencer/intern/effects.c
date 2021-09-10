@@ -39,6 +39,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
@@ -61,6 +62,7 @@
 
 #include "SEQ_effects.h"
 #include "SEQ_proxy.h"
+#include "SEQ_relations.h"
 #include "SEQ_render.h"
 #include "SEQ_utils.h"
 
@@ -1428,10 +1430,9 @@ static void do_mul_effect_byte(float facf0,
   fac1 = (int)(256.0f * facf0);
   fac3 = (int)(256.0f * facf1);
 
-  /* formula:
-   * fac * (a * b) + (1 - fac) * a  => fac * a * (b - 1) + axaux = c * px + py * s; //+centx
-   * yaux = -s * px + c * py; //+centy
-   */
+  /* Formula:
+   * `fac * (a * b) + (1 - fac) * a => fac * a * (b - 1) + axaux = c * px + py * s;` // + centx
+   * `yaux = -s * px + c * py;` // + centy */
 
   while (y--) {
 
@@ -1483,9 +1484,8 @@ static void do_mul_effect_float(
   fac1 = facf0;
   fac3 = facf1;
 
-  /* formula:
-   * fac * (a * b) + (1 - fac) * a  =>  fac * a * (b - 1) + a
-   */
+  /* Formula:
+   * `fac * (a * b) + (1 - fac) * a => fac * a * (b - 1) + a`. */
 
   while (y--) {
     x = xo;
@@ -2166,11 +2166,7 @@ static int num_inputs_wipe(void)
 
 static void free_wipe_effect(Sequence *seq, const bool UNUSED(do_id_user))
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static void copy_wipe_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
@@ -2384,10 +2380,7 @@ static int num_inputs_transform(void)
 
 static void free_transform_effect(Sequence *seq, const bool UNUSED(do_id_user))
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static void copy_transform_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
@@ -2725,11 +2718,7 @@ static int num_inputs_glow(void)
 
 static void free_glow_effect(Sequence *seq, const bool UNUSED(do_id_user))
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static void copy_glow_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
@@ -2855,11 +2844,7 @@ static int num_inputs_color(void)
 
 static void free_solid_color(Sequence *seq, const bool UNUSED(do_id_user))
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static void copy_solid_color(Sequence *dst, Sequence *src, const int UNUSED(flag))
@@ -3040,7 +3025,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
   if (!i) {
     Sequence *meta;
 
-    meta = seq_find_metastrip_by_sequence(&ed->seqbase, NULL, seq);
+    meta = SEQ_find_metastrip_by_sequence(&ed->seqbase, NULL, seq);
 
     if (meta) {
       i = do_adjustment_impl(context, meta, timeline_frame);
@@ -3086,18 +3071,16 @@ static void init_speed_effect(Sequence *seq)
   seq->effectdata = MEM_callocN(sizeof(SpeedControlVars), "speedcontrolvars");
 
   v = (SpeedControlVars *)seq->effectdata;
-  v->globalSpeed = 1.0;
-  v->frameMap = NULL;
-  v->flags |= SEQ_SPEED_INTEGRATE; /* should be default behavior */
-  v->length = 0;
+  v->speed_control_type = SEQ_SPEED_STRETCH;
+  v->speed_fader = 1.0f;
+  v->speed_fader_length = 0.0f;
+  v->speed_fader_frame_number = 0.0f;
 }
 
 static void load_speed_effect(Sequence *seq)
 {
   SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
-
   v->frameMap = NULL;
-  v->length = 0;
 }
 
 static int num_inputs_speed(void)
@@ -3111,10 +3094,7 @@ static void free_speed_effect(Sequence *seq, const bool UNUSED(do_id_user))
   if (v->frameMap) {
     MEM_freeN(v->frameMap);
   }
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static void copy_speed_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
@@ -3123,35 +3103,11 @@ static void copy_speed_effect(Sequence *dst, Sequence *src, const int UNUSED(fla
   dst->effectdata = MEM_dupallocN(src->effectdata);
   v = (SpeedControlVars *)dst->effectdata;
   v->frameMap = NULL;
-  v->length = 0;
 }
 
 static int early_out_speed(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
 {
   return EARLY_DO_EFFECT;
-}
-
-static void store_icu_yrange_speed(Sequence *seq, short UNUSED(adrcode), float *ymin, float *ymax)
-{
-  SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
-
-  /* if not already done, load / initialize data */
-  SEQ_effect_handle_get(seq);
-
-  if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
-    *ymin = -100.0;
-    *ymax = 100.0;
-  }
-  else {
-    if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
-      *ymin = 0.0;
-      *ymax = 1.0;
-    }
-    else {
-      *ymin = 0.0;
-      *ymax = seq->len;
-    }
-  }
 }
 
 /**
@@ -3168,141 +3124,116 @@ static int seq_effect_speed_get_strip_content_length(const Sequence *seq)
   return seq->len;
 }
 
-void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
+static FCurve *seq_effect_speed_speed_factor_curve_get(Scene *scene, Sequence *seq)
 {
-  int timeline_frame;
-  float fallback_fac = 1.0f;
-  SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
-  FCurve *fcu = NULL;
-  int flags = v->flags;
+  return id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_factor", 0, NULL);
+}
 
-  /* if not already done, load / initialize data */
-  SEQ_effect_handle_get(seq);
-
-  if ((force == false) && (seq->len == v->length) && (v->frameMap != NULL)) {
-    return;
-  }
+/* Build frame map when speed in mode #SEQ_SPEED_MULTIPLY is animated.
+ * This is, because `target_frame` value is integrated over time. */
+void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
+{
   if ((seq->seq1 == NULL) || (seq->len < 1)) {
-    /* make coverity happy and check for (CID 598) input strip ... */
+    return; /* Make coverity happy and check for (CID 598) input strip... */
+  }
+
+  FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq);
+  if (fcu == NULL) {
     return;
   }
 
-  /* XXX(campbell): new in 2.5x. should we use the animation system this way?
-   * The fcurve is needed because many frames need evaluating at once. */
-  fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_factor", 0, NULL);
-  if (!v->frameMap || v->length != seq->len) {
-    if (v->frameMap) {
-      MEM_freeN(v->frameMap);
-    }
-
-    v->length = seq->len;
-
-    v->frameMap = MEM_callocN(sizeof(float) * v->length, "speedcontrol frameMap");
+  SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
+  if (v->frameMap) {
+    MEM_freeN(v->frameMap);
   }
 
-  fallback_fac = 1.0;
+  const int effect_strip_length = seq->enddisp - seq->startdisp;
+  v->frameMap = MEM_mallocN(sizeof(float) * effect_strip_length, __func__);
+  v->frameMap[0] = 0.0f;
 
-  const int target_strip_length = seq_effect_speed_get_strip_content_length(seq->seq1);
-
-  if (seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
-    if ((seq->seq1->enddisp != seq->seq1->start) && (target_strip_length != 0)) {
-      fallback_fac = (float)target_strip_length / (float)(seq->seq1->enddisp - seq->seq1->start);
-      flags = SEQ_SPEED_INTEGRATE;
-      fcu = NULL;
-    }
+  float target_frame = 0;
+  for (int frame_index = 1; frame_index < effect_strip_length; frame_index++) {
+    target_frame += evaluate_fcurve(fcu, seq->startdisp + frame_index);
+    v->frameMap[frame_index] = target_frame;
   }
-  else {
-    /* if there is no fcurve, use value as simple multiplier */
-    if (!fcu) {
-      fallback_fac = seq->speed_fader; /* Same as speed_factor in RNA. */
-    }
+}
+
+static void seq_effect_speed_frame_map_ensure(Scene *scene, Sequence *seq)
+{
+  SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
+  if (v->frameMap != NULL) {
+    return;
   }
 
-  if (flags & SEQ_SPEED_INTEGRATE) {
-    float cursor = 0;
-    float facf;
-
-    v->frameMap[0] = 0;
-    v->lastValidFrame = 0;
-
-    for (timeline_frame = 1; timeline_frame < v->length; timeline_frame++) {
-      if (fcu) {
-        facf = evaluate_fcurve(fcu, seq->startdisp + timeline_frame);
-      }
-      else {
-        facf = fallback_fac;
-      }
-      facf *= v->globalSpeed;
-
-      cursor += facf;
-
-      if (cursor >= target_strip_length) {
-        v->frameMap[timeline_frame] = target_strip_length - 1;
-      }
-      else {
-        v->frameMap[timeline_frame] = cursor;
-        v->lastValidFrame = timeline_frame;
-      }
-    }
-  }
-  else {
-    float facf;
-
-    v->lastValidFrame = 0;
-    for (timeline_frame = 0; timeline_frame < v->length; timeline_frame++) {
-
-      if (fcu) {
-        facf = evaluate_fcurve(fcu, seq->startdisp + timeline_frame);
-      }
-      else {
-        facf = fallback_fac;
-      }
-
-      if (flags & SEQ_SPEED_COMPRESS_IPO_Y) {
-        facf *= target_strip_length;
-      }
-      facf *= v->globalSpeed;
-
-      if (facf >= target_strip_length) {
-        facf = target_strip_length - 1;
-      }
-      else {
-        v->lastValidFrame = timeline_frame;
-      }
-      v->frameMap[timeline_frame] = facf;
-    }
-  }
+  seq_effect_speed_rebuild_map(scene, seq);
 }
 
 /* Override timeline_frame when rendering speed effect input. */
-float seq_speed_effect_target_frame_get(const SeqRenderData *context,
-                                        Sequence *seq,
+float seq_speed_effect_target_frame_get(Scene *scene,
+                                        Sequence *seq_speed,
                                         float timeline_frame,
                                         int input)
 {
-  int frame_index = seq_give_frame_index(seq, timeline_frame);
-  SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
-  seq_effect_speed_rebuild_map(context->scene, seq, false);
+  if (seq_speed->seq1 == NULL) {
+    return 0.0f;
+  }
+
+  SEQ_effect_handle_get(seq_speed); /* Ensure, that data are initialized. */
+  int frame_index = seq_give_frame_index(seq_speed, timeline_frame);
+  SpeedControlVars *s = (SpeedControlVars *)seq_speed->effectdata;
+  const Sequence *source = seq_speed->seq1;
+
+  float target_frame = 0.0f;
+  switch (s->speed_control_type) {
+    case SEQ_SPEED_STRETCH: {
+      /* Only right handle controls effect speed! */
+      const float target_content_length = seq_effect_speed_get_strip_content_length(source) -
+                                          source->startofs;
+      const float speed_effetct_length = seq_speed->enddisp - seq_speed->startdisp;
+      const float ratio = frame_index / speed_effetct_length;
+      target_frame = target_content_length * ratio;
+      break;
+    }
+    case SEQ_SPEED_MULTIPLY: {
+      FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq_speed);
+      if (fcu != NULL) {
+        seq_effect_speed_frame_map_ensure(scene, seq_speed);
+        target_frame = s->frameMap[frame_index];
+      }
+      else {
+        target_frame = frame_index * s->speed_fader;
+      }
+      break;
+    }
+    case SEQ_SPEED_LENGTH:
+      target_frame = seq_effect_speed_get_strip_content_length(source) *
+                     (s->speed_fader_length / 100.0f);
+      break;
+    case SEQ_SPEED_FRAME_NUMBER:
+      target_frame = s->speed_fader_frame_number;
+      break;
+  }
+
+  CLAMP(target_frame, 0, seq_effect_speed_get_strip_content_length(source));
+  target_frame += seq_speed->start;
 
   /* No interpolation. */
   if ((s->flags & SEQ_SPEED_USE_INTERPOLATION) == 0) {
-    return seq->start + s->frameMap[frame_index];
+    return target_frame;
   }
 
-  /* We need to provide current and next image for interpolation. */
-  if (input == 0) { /* Current frame. */
-    return floor(seq->start + s->frameMap[frame_index]);
-  }
-  /* Next frame. */
-  return ceil(seq->start + s->frameMap[frame_index]);
+  /* Interpolation is used, switch between current and next frame based on which input is
+   * requested. */
+  return input == 0 ? target_frame : ceil(target_frame);
 }
 
-static float speed_effect_interpolation_ratio_get(SpeedControlVars *s,
-                                                  Sequence *seq,
+static float speed_effect_interpolation_ratio_get(Scene *scene,
+                                                  Sequence *seq_speed,
                                                   float timeline_frame)
 {
-  int frame_index = seq_give_frame_index(seq, timeline_frame);
-  return s->frameMap[frame_index] - floor(s->frameMap[frame_index]);
+  const float target_frame = seq_speed_effect_target_frame_get(
+      scene, seq_speed, timeline_frame, 0);
+  return target_frame - floor(target_frame);
 }
 
 static ImBuf *do_speed_effect(const SeqRenderData *context,
@@ -3320,7 +3251,7 @@ static ImBuf *do_speed_effect(const SeqRenderData *context,
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {
     out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-    facf0 = facf1 = speed_effect_interpolation_ratio_get(s, seq, timeline_frame);
+    facf0 = facf1 = speed_effect_interpolation_ratio_get(context->scene, seq, timeline_frame);
     /* Current frame is ibuf1, next frame is ibuf2. */
     out = seq_render_effect_execute_threaded(
         &cross_effect, context, NULL, timeline_frame, facf0, facf1, ibuf1, ibuf2, ibuf3);
@@ -3394,11 +3325,7 @@ static int num_inputs_gaussian_blur(void)
 
 static void free_gaussian_blur_effect(Sequence *seq, const bool UNUSED(do_id_user))
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static void copy_gaussian_blur_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
@@ -3831,31 +3758,47 @@ static void init_text_effect(Sequence *seq)
 
 void SEQ_effect_text_font_unload(TextVars *data, const bool do_id_user)
 {
-  if (data) {
-    /* Unlink the VFont */
-    if (do_id_user && data->text_font != NULL) {
-      id_us_min(&data->text_font->id);
-      data->text_font = NULL;
-    }
+  if (data == NULL) {
+    return;
+  }
 
-    /* Unload the BLF font. */
-    if (data->text_blf_id >= 0) {
-      BLF_unload_id(data->text_blf_id);
-    }
+  /* Unlink the VFont */
+  if (do_id_user && data->text_font != NULL) {
+    id_us_min(&data->text_font->id);
+    data->text_font = NULL;
+  }
+
+  /* Unload the BLF font. */
+  if (data->text_blf_id >= 0) {
+    BLF_unload_id(data->text_blf_id);
   }
 }
 
 void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
 {
-  if (data->text_font != NULL) {
-    if (do_id_user) {
-      id_us_plus(&data->text_font->id);
-    }
+  VFont *vfont = data->text_font;
+  if (vfont == NULL) {
+    return;
+  }
 
+  if (do_id_user) {
+    id_us_plus(&vfont->id);
+  }
+
+  if (vfont->packedfile != NULL) {
+    PackedFile *pf = vfont->packedfile;
+    /* Create a name that's unique between library data-blocks to avoid loading
+     * a font per strip which will load fonts many times. */
+    char name[MAX_ID_FULL_NAME];
+    BKE_id_full_name_get(name, &vfont->id, 0);
+
+    data->text_blf_id = BLF_load_mem(name, pf->data, pf->size);
+  }
+  else {
     char path[FILE_MAX];
-    STRNCPY(path, data->text_font->filepath);
+    STRNCPY(path, vfont->filepath);
     BLI_assert(BLI_thread_is_main());
-    BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&data->text_font->id));
+    BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
 
     data->text_blf_id = BLF_load(path);
   }
@@ -3926,9 +3869,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   if (data->text_blf_id == SEQ_FONT_NOT_LOADED) {
     data->text_blf_id = -1;
 
-    if (data->text_font) {
-      data->text_blf_id = BLF_load(data->text_font->filepath);
-    }
+    SEQ_effect_text_font_load(data, false);
   }
 
   if (data->text_blf_id >= 0) {
@@ -4052,11 +3993,7 @@ static void copy_effect_default(Sequence *dst, Sequence *src, const int UNUSED(f
 
 static void free_effect_default(Sequence *seq, const bool UNUSED(do_id_user))
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static int early_out_noop(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
@@ -4081,14 +4018,6 @@ static int early_out_mul_input2(Sequence *UNUSED(seq), float facf0, float facf1)
     return EARLY_USE_INPUT_1;
   }
   return EARLY_DO_EFFECT;
-}
-
-static void store_icu_yrange_noop(Sequence *UNUSED(seq),
-                                  short UNUSED(adrcode),
-                                  float *UNUSED(ymin),
-                                  float *UNUSED(ymax))
-{
-  /* defaults are fine */
 }
 
 static void get_default_fac_noop(Sequence *UNUSED(seq),
@@ -4130,7 +4059,6 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
   rval.free = free_noop;
   rval.early_out = early_out_noop;
   rval.get_default_fac = get_default_fac_noop;
-  rval.store_icu_yrange = store_icu_yrange_noop;
   rval.execute = NULL;
   rval.init_execution = init_execution;
   rval.execute_slice = NULL;
@@ -4244,7 +4172,6 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
       rval.copy = copy_speed_effect;
       rval.execute = do_speed_effect;
       rval.early_out = early_out_speed;
-      rval.store_icu_yrange = store_icu_yrange_speed;
       break;
     case SEQ_TYPE_COLOR:
       rval.init = init_solid_color;

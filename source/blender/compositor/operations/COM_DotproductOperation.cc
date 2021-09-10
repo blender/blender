@@ -28,6 +28,7 @@ DotproductOperation::DotproductOperation()
   this->setResolutionInputSocketIndex(0);
   this->m_input1Operation = nullptr;
   this->m_input2Operation = nullptr;
+  flags.can_be_constant = true;
 }
 void DotproductOperation::initExecution()
 {
@@ -53,6 +54,17 @@ void DotproductOperation::executePixelSampled(float output[4],
   this->m_input1Operation->readSampled(input1, x, y, sampler);
   this->m_input2Operation->readSampled(input2, x, y, sampler);
   output[0] = -(input1[0] * input2[0] + input1[1] * input2[1] + input1[2] * input2[2]);
+}
+
+void DotproductOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                       const rcti &area,
+                                                       Span<MemoryBuffer *> inputs)
+{
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const float *input1 = it.in(0);
+    const float *input2 = it.in(1);
+    *it.out = -(input1[0] * input2[0] + input1[1] * input2[1] + input1[2] * input2[2]);
+  }
 }
 
 }  // namespace blender::compositor

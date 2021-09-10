@@ -54,18 +54,6 @@
 /** \name Transform (Sequencer Slide)
  * \{ */
 
-static eRedrawFlag seq_slide_handleEvent(struct TransInfo *t, const wmEvent *event)
-{
-  BLI_assert(t->mode == TFM_SEQ_SLIDE);
-  const wmKeyMapItem *kmi = t->custom.mode.data;
-  if (kmi && event->type == kmi->type && event->val == kmi->val) {
-    /* Allows the "Expand to Fit" effect to be enabled as a toggle. */
-    t->flag ^= T_ALT_TRANSFORM;
-    return TREDRAW_HARD;
-  }
-  return TREDRAW_NOTHING;
-}
-
 static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRAW_STR])
 {
   char tvec[NUM_STR_REP_LEN * 3];
@@ -79,17 +67,7 @@ static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRA
   }
 
   ofs += BLI_snprintf_rlen(
-      str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Sequence Slide: %s%s, ("), &tvec[0], t->con.text);
-
-  const wmKeyMapItem *kmi = t->custom.mode.data;
-  if (kmi) {
-    ofs += WM_keymap_item_to_string(kmi, false, str + ofs, UI_MAX_DRAW_STR - ofs);
-  }
-
-  ofs += BLI_snprintf_rlen(str + ofs,
-                           UI_MAX_DRAW_STR - ofs,
-                           TIP_(" or Alt) Expand to fit %s"),
-                           WM_bool_as_string((t->flag & T_ALT_TRANSFORM) != 0));
+      str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Sequence Slide: %s%s"), &tvec[0], t->con.text);
 }
 
 static void applySeqSlideValue(TransInfo *t, const float val[2])
@@ -129,7 +107,7 @@ static void applySeqSlide(TransInfo *t, const int UNUSED(mval[2]))
     transform_convert_sequencer_channel_clamp(t, values_final);
 
     if (t->con.mode & CON_APPLY) {
-      t->con.applyVec(t, NULL, NULL, t->values, values_final);
+      t->con.applyVec(t, NULL, NULL, values_final, values_final);
     }
   }
 
@@ -148,7 +126,6 @@ static void applySeqSlide(TransInfo *t, const int UNUSED(mval[2]))
 void initSeqSlide(TransInfo *t)
 {
   t->transform = applySeqSlide;
-  t->handleEvent = seq_slide_handleEvent;
   t->tsnap.applySnap = transform_snap_sequencer_apply_translate;
 
   initMouseInputMode(t, &t->mouse, INPUT_VECTOR);

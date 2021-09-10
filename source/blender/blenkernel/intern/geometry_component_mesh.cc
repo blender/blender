@@ -53,7 +53,6 @@ GeometryComponent *MeshComponent::copy() const
   if (mesh_ != nullptr) {
     new_component->mesh_ = BKE_mesh_copy_for_eval(mesh_, false);
     new_component->ownership_ = GeometryOwnershipType::Owned;
-    new_component->vertex_group_names_ = blender::Map(vertex_group_names_);
   }
   return new_component;
 }
@@ -67,7 +66,6 @@ void MeshComponent::clear()
     }
     mesh_ = nullptr;
   }
-  vertex_group_names_.clear();
 }
 
 bool MeshComponent::has_mesh() const
@@ -84,23 +82,6 @@ void MeshComponent::replace(Mesh *mesh, GeometryOwnershipType ownership)
   ownership_ = ownership;
 }
 
-/* This function exists for the same reason as #vertex_group_names_. Non-nodes modifiers need to
- * be able to replace the mesh data without losing the vertex group names, which may have come
- * from another object. */
-void MeshComponent::replace_mesh_but_keep_vertex_group_names(Mesh *mesh,
-                                                             GeometryOwnershipType ownership)
-{
-  BLI_assert(this->is_mutable());
-  if (mesh_ != nullptr) {
-    if (ownership_ == GeometryOwnershipType::Owned) {
-      BKE_id_free(nullptr, mesh_);
-    }
-    mesh_ = nullptr;
-  }
-  mesh_ = mesh;
-  ownership_ = ownership;
-}
-
 /* Return the mesh and clear the component. The caller takes over responsibility for freeing the
  * mesh (if the component was responsible before). */
 Mesh *MeshComponent::release()
@@ -109,28 +90,6 @@ Mesh *MeshComponent::release()
   Mesh *mesh = mesh_;
   mesh_ = nullptr;
   return mesh;
-}
-
-void MeshComponent::copy_vertex_group_names_from_object(const Object &object)
-{
-  BLI_assert(this->is_mutable());
-  vertex_group_names_.clear();
-  int index = 0;
-  LISTBASE_FOREACH (const bDeformGroup *, group, &object.defbase) {
-    vertex_group_names_.add(group->name, index);
-    index++;
-  }
-}
-
-const blender::Map<std::string, int> &MeshComponent::vertex_group_names() const
-{
-  return vertex_group_names_;
-}
-
-/* This is only exposed for the internal attribute API. */
-blender::Map<std::string, int> &MeshComponent::vertex_group_names()
-{
-  return vertex_group_names_;
 }
 
 /* Get the mesh from this component. This method can be used by multiple threads at the same
@@ -864,12 +823,15 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
     BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
     const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
     const Mesh *mesh = mesh_component.get_for_read();
-    const int vertex_group_index = mesh_component.vertex_group_names().lookup_default_as(
-        attribute_name, -1);
+    if (mesh == nullptr) {
+      return {};
+    }
+    const int vertex_group_index = BLI_findstringindex(
+        &mesh->vertex_group_names, attribute_name.data(), offsetof(bDeformGroup, name));
     if (vertex_group_index < 0) {
       return {};
     }
-    if (mesh == nullptr || mesh->dvert == nullptr) {
+    if (mesh->dvert == nullptr) {
       static const float default_value = 0.0f;
       return {std::make_unique<fn::GVArray_For_SingleValueRef>(
                   CPPType::get<float>(), mesh->totvert, &default_value),
@@ -889,8 +851,9 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
     if (mesh == nullptr) {
       return {};
     }
-    const int vertex_group_index = mesh_component.vertex_group_names().lookup_default_as(
-        attribute_name, -1);
+
+    const int vertex_group_index = BLI_findstringindex(
+        &mesh->vertex_group_names, attribute_name.data(), offsetof(bDeformGroup, name));
     if (vertex_group_index < 0) {
       return {};
     }
@@ -913,15 +876,15 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
   {
     BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
     MeshComponent &mesh_component = static_cast<MeshComponent &>(component);
-
-    const int vertex_group_index = mesh_component.vertex_group_names().pop_default_as(
-        attribute_name, -1);
-    if (vertex_group_index < 0) {
-      return false;
-    }
     Mesh *mesh = mesh_component.get_for_write();
     if (mesh == nullptr) {
       return true;
+    }
+
+    const int vertex_group_index = BLI_findstringindex(
+        &mesh->vertex_group_names, attribute_name.data(), offsetof(bDeformGroup, name));
+    if (vertex_group_index < 0) {
+      return false;
     }
     if (mesh->dvert == nullptr) {
       return true;
@@ -938,14 +901,14 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
   {
     BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
     const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-    for (const auto item : mesh_component.vertex_group_names().items()) {
-      const StringRefNull name = item.key;
-      const int vertex_group_index = item.value;
-      if (vertex_group_index >= 0) {
-        AttributeMetaData meta_data{ATTR_DOMAIN_POINT, CD_PROP_FLOAT};
-        if (!callback(name, meta_data)) {
-          return false;
-        }
+    const Mesh *mesh = mesh_component.get_for_read();
+    if (mesh == nullptr) {
+      return true;
+    }
+
+    LISTBASE_FOREACH (const bDeformGroup *, group, &mesh->vertex_group_names) {
+      if (!callback(group->name, {ATTR_DOMAIN_POINT, CD_PROP_FLOAT})) {
+        return false;
       }
     }
     return true;

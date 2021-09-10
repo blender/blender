@@ -52,6 +52,7 @@ typedef enum ThumbSource {
 #define THUMB_SIZE_MAX (100 * 1024 * 1024)
 
 #define PREVIEW_RENDER_DEFAULT_HEIGHT 128
+#define PREVIEW_RENDER_LARGE_HEIGHT 256
 
 /* Note this can also be used as versioning system,
  * to force refreshing all thumbnails if e.g. we change some thumb generating code or so.

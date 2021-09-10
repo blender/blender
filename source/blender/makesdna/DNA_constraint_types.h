@@ -37,7 +37,7 @@ struct Ipo;
 struct Text;
 
 /* channels reside in Object or Action (ListBase) constraintChannels */
-// XXX deprecated... old AnimSys
+/* XXX: deprecated... old AnimSys. */
 typedef struct bConstraintChannel {
   struct bConstraintChannel *next, *prev;
   struct Ipo *ipo;
@@ -425,7 +425,7 @@ typedef struct bRigidBodyJointConstraint {
 typedef struct bClampToConstraint {
   /** 'target' must be a curve. */
   struct Object *tar;
-  /** Which axis/plane to compare owner's location on . */
+  /** Which axis/plane to compare owner's location on. */
   int flag;
   /** For legacy reasons, this is flag2. used for any extra settings. */
   int flag2;
@@ -474,7 +474,7 @@ typedef struct bTransformConstraint {
   float from_min[3];
   /** To map on to to_min/max range. */
   float from_max[3];
-  /** Range of motion on owner caused by target . */
+  /** Range of motion on owner caused by target. */
   float to_min[3];
   float to_max[3];
 
@@ -482,7 +482,7 @@ typedef struct bTransformConstraint {
   float from_min_rot[3];
   /** To map on to to_min/max range. */
   float from_max_rot[3];
-  /** Range of motion on owner caused by target . */
+  /** Range of motion on owner caused by target. */
   float to_min_rot[3];
   float to_max_rot[3];
 
@@ -490,7 +490,7 @@ typedef struct bTransformConstraint {
   float from_min_scale[3];
   /** To map on to to_min/max range. */
   float from_max_scale[3];
-  /** Range of motion on owner caused by target . */
+  /** Range of motion on owner caused by target. */
   float to_min_scale[3];
   float to_max_scale[3];
 } bTransformConstraint;
@@ -901,10 +901,16 @@ typedef enum eActionConstraint_Flags {
 typedef enum eActionConstraint_MixMode {
   /* Multiply the action transformation on the right. */
   ACTCON_MIX_AFTER_FULL = 0,
+  /* Multiply the action transformation on the left. */
+  ACTCON_MIX_BEFORE_FULL = 3,
   /* Multiply the action transformation on the right, with anti-shear scale handling. */
   ACTCON_MIX_AFTER = 1,
   /* Multiply the action transformation on the left, with anti-shear scale handling. */
   ACTCON_MIX_BEFORE = 2,
+  /* Separately combine Translation, Rotation and Scale, with rotation on the right. */
+  ACTCON_MIX_AFTER_SPLIT = 4,
+  /* Separately combine Translation, Rotation and Scale, with rotation on the left. */
+  ACTCON_MIX_BEFORE_SPLIT = 5,
 } eActionConstraint_MixMode;
 
 /* Locked-Axis Values (Locked Track) */
@@ -1102,7 +1108,7 @@ typedef enum eRotLimit_Flags {
 /* distance limit constraint */
 /* bDistLimitConstraint->flag */
 typedef enum eDistLimit_Flag {
-  /* "soft" cushion effect when reaching the limit sphere */  // NOT IMPLEMENTED!
+  /* "soft" cushion effect when reaching the limit sphere */ /* NOT IMPLEMENTED! */
   LIMITDIST_USESOFT = (1 << 0),
   /* as for all Limit constraints - allow to be used during transform? */
   LIMITDIST_TRANSFORM = (1 << 1),

@@ -240,7 +240,7 @@ static void lattice_undosys_step_decode(struct bContext *C,
     }
     undolatt_to_editlatt(&elem->data, lt->editlatt);
     lt->editlatt->needs_flush_to_id = 1;
-    DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(&lt->id, ID_RECALC_GEOMETRY);
   }
 
   /* The first element is always active */

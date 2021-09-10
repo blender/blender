@@ -22,28 +22,26 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_map_range_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Attribute")},
-    {SOCK_STRING, N_("Result")},
-    {SOCK_FLOAT, N_("From Min"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_FLOAT, N_("From Max"), 1.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_FLOAT, N_("To Min"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_FLOAT, N_("To Max"), 1.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_FLOAT, N_("Steps"), 4.0f, 4.0f, 4.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_VECTOR, N_("From Min"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_VECTOR, N_("From Max"), 1.0f, 1.0f, 1.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_VECTOR, N_("To Min"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_VECTOR, N_("To Max"), 1.0f, 1.0f, 1.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_VECTOR, N_("Steps"), 4.0f, 4.0f, 4.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_BOOLEAN, N_("Clamp")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_attribute_map_range_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_attribute_map_range_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Attribute");
+  b.add_input<decl::String>("Result");
+  b.add_input<decl::Float>("From Min");
+  b.add_input<decl::Float>("From Max").default_value(1.0f);
+  b.add_input<decl::Float>("To Min");
+  b.add_input<decl::Float>("To Max").default_value(1.0f);
+  b.add_input<decl::Float>("Steps").default_value(4.0f);
+  b.add_input<decl::Vector>("From Min", "From Min_001");
+  b.add_input<decl::Vector>("From Max", "From Max_001").default_value({1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Vector>("To Min", "To Min_001");
+  b.add_input<decl::Vector>("To Max", "To Max_001").default_value({1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Vector>("Steps", "Steps_001").default_value({4.0f, 4.0f, 4.0f});
+  b.add_input<decl::Bool>("Clamp");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void fn_attribute_map_range_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -100,8 +98,6 @@ static void geo_node_attribute_map_range_update(bNodeTree *UNUSED(ntree), bNode 
                             data_type == CD_PROP_FLOAT3 &&
                                 node_storage.interpolation_type == NODE_MAP_RANGE_STEPPED);
 }
-
-namespace blender::nodes {
 
 static float map_linear(const float value,
                         const float min_from,
@@ -425,13 +421,12 @@ void register_node_type_geo_attribute_map_range()
 
   geo_node_type_base(
       &ntype, GEO_NODE_ATTRIBUTE_MAP_RANGE, "Attribute Map Range", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_attribute_map_range_in, geo_node_attribute_map_range_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_map_range_exec;
-  node_type_init(&ntype, geo_node_attribute_map_range_init);
-  node_type_update(&ntype, geo_node_attribute_map_range_update);
+  node_type_init(&ntype, blender::nodes::geo_node_attribute_map_range_init);
+  node_type_update(&ntype, blender::nodes::geo_node_attribute_map_range_update);
   node_type_storage(
       &ntype, "NodeAttributeMapRange", node_free_standard_storage, node_copy_standard_storage);
-  ntype.draw_buttons = fn_attribute_map_range_layout;
+  ntype.declare = blender::nodes::geo_node_attribute_map_range_declare;
+  ntype.draw_buttons = blender::nodes::fn_attribute_map_range_layout;
   nodeRegisterType(&ntype);
 }

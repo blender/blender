@@ -2026,7 +2026,7 @@ static const EnumPropertyItem prop_animchannel_settings_types[] = {
  * \param mode: eAnimChannels_SetFlag.
  * \param onlysel: only selected channels get the flag set.
  *
- * TODO: enable a setting which turns flushing on/off?.
+ * TODO: enable a setting which turns flushing on/off?
  */
 static void setflag_anim_channels(bAnimContext *ac,
                                   eAnimChannel_Settings setting,
@@ -2683,8 +2683,9 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
   /* loop over data, doing box select */
   for (ale = anim_data.first; ale; ale = ale->next) {
     float ymin;
-    /* Skip grease pencil datablock. Only use grease pencil layers. */
+
     if (ale->type == ANIMTYPE_GPDATABLOCK) {
+      ymax -= ACHANNEL_STEP(ac);
       continue;
     }
 

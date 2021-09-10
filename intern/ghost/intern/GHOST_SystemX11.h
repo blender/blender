@@ -148,8 +148,8 @@ class GHOST_SystemX11 : public GHOST_System {
                               const GHOST_IWindow *parentWindow = 0);
 
   /**
-   * Create a new offscreen context.
-   * Never explicitly delete the context, use disposeContext() instead.
+   * Create a new off-screen context.
+   * Never explicitly delete the context, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
   GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings);

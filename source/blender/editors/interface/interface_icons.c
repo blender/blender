@@ -66,6 +66,7 @@
 
 #include "ED_datafiles.h"
 #include "ED_keyframes_draw.h"
+#include "ED_keyframes_keylist.h"
 #include "ED_render.h"
 
 #include "UI_interface.h"
@@ -285,29 +286,27 @@ static void vicon_small_tri_right_draw(int x, int y, int w, int UNUSED(h), float
 static void vicon_keytype_draw_wrapper(
     int x, int y, int w, int h, float alpha, short key_type, short handle_type)
 {
-  /* init dummy theme state for Action Editor - where these colors are defined
-   * (since we're doing this offscreen, free from any particular space_id)
-   */
+  /* Initialize dummy theme state for Action Editor - where these colors are defined
+   * (since we're doing this off-screen, free from any particular space_id). */
   struct bThemeState theme_state;
 
   UI_Theme_Store(&theme_state);
   UI_SetTheme(SPACE_ACTION, RGN_TYPE_WINDOW);
 
-  /* the "x" and "y" given are the bottom-left coordinates of the icon,
-   * while the draw_keyframe_shape() function needs the midpoint for
-   * the keyframe
-   */
+  /* The "x" and "y" given are the bottom-left coordinates of the icon,
+   * while the #draw_keyframe_shape() function needs the midpoint for the keyframe. */
   const float xco = x + w / 2 + 0.5f;
   const float yco = y + h / 2 + 0.5f;
 
   GPUVertFormat *format = immVertexFormat();
-  const uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  const uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  uint color_id = GPU_vertformat_attr_add(
+  KeyframeShaderBindings sh_bindings;
+  sh_bindings.pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  sh_bindings.size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  sh_bindings.color_id = GPU_vertformat_attr_add(
       format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-  uint outline_color_id = GPU_vertformat_attr_add(
+  sh_bindings.outline_color_id = GPU_vertformat_attr_add(
       format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-  const uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
+  sh_bindings.flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
   GPU_program_point_size(true);
   immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
@@ -328,11 +327,7 @@ static void vicon_keytype_draw_wrapper(
                       key_type,
                       KEYFRAME_SHAPE_BOTH,
                       alpha,
-                      pos_id,
-                      size_id,
-                      color_id,
-                      outline_color_id,
-                      flags_id,
+                      &sh_bindings,
                       handle_type,
                       KEYFRAME_EXTREME_NONE);
 
@@ -1016,7 +1011,7 @@ static void init_iconfile_list(struct ListBase *list)
 
   int index = 1;
   for (int i = 0; i < totfile; i++) {
-    if ((dir[i].type & S_IFREG)) {
+    if (dir[i].type & S_IFREG) {
       const char *filename = dir[i].relname;
 
       if (BLI_path_extension_check(filename, ".png")) {
@@ -1346,8 +1341,8 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
     case ICON_TYPE_PREVIEW: {
       ID *id = (icon->id_type != 0) ? icon->obj : NULL;
       PreviewImage *prv = id ? BKE_previewimg_id_ensure(id) : icon->obj;
-      /* Using jobs for screen previews crashes due to offscreen rendering.
-       * XXX would be nicer if PreviewImage could store if it supports jobs */
+      /* Using jobs for screen previews crashes due to off-screen rendering.
+       * XXX: would be nicer if #PreviewImage could store if it supports jobs. */
       const bool use_jobs = !id || (GS(id->name) != ID_SCR);
 
       if (prv) {
@@ -1500,7 +1495,7 @@ static void icon_draw_rect(float x,
   /* sanity check */
   if (w <= 0 || h <= 0 || w > 2000 || h > 2000) {
     printf("%s: icons are %i x %i pixels?\n", __func__, w, h);
-    BLI_assert(!"invalid icon size");
+    BLI_assert_msg(0, "invalid icon size");
     return;
   }
   /* modulate color */
@@ -2143,7 +2138,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 static int ui_id_screen_get_icon(const bContext *C, ID *id)
 {
   BKE_icon_id_ensure(id);
-  /* Don't use jobs here, offscreen rendering doesn't like this and crashes. */
+  /* Don't use jobs here, off-screen rendering doesn't like this and crashes. */
   ui_id_icon_render(C, id, false);
 
   return id->icon_id;
@@ -2201,7 +2196,7 @@ int UI_icon_from_library(const ID *id)
   return ICON_NONE;
 }
 
-int UI_icon_from_rnaptr(bContext *C, PointerRNA *ptr, int rnaicon, const bool big)
+int UI_icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, const bool big)
 {
   ID *id = NULL;
 
@@ -2427,6 +2422,7 @@ void UI_icon_draw_ex(float x,
 ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon)
 {
 #ifdef WITH_HEADLESS
+  UNUSED_VARS(icon);
   return NULL;
 #else
   const int ALERT_IMG_SIZE = 256;

@@ -18,15 +18,22 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "COM_QualityStepHelper.h"
 
 namespace blender::compositor {
 
 //#define COM_DEFOCUS_SEARCH
 
-class VariableSizeBokehBlurOperation : public NodeOperation, public QualityStepHelper {
+class VariableSizeBokehBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
  private:
+  static constexpr int IMAGE_INPUT_INDEX = 0;
+  static constexpr int BOKEH_INPUT_INDEX = 1;
+  static constexpr int SIZE_INPUT_INDEX = 2;
+#ifdef COM_DEFOCUS_SEARCH
+  static constexpr int DEFOCUS_INPUT_INDEX = 3;
+#endif
+
   int m_maxBlur;
   float m_threshold;
   bool m_do_size_scale; /* scale size, matching 'BokehBlurNode' */
@@ -84,8 +91,14 @@ class VariableSizeBokehBlurOperation : public NodeOperation, public QualityStepH
                      MemoryBuffer **inputMemoryBuffers,
                      std::list<cl_mem> *clMemToCleanUp,
                      std::list<cl_kernel> *clKernelsToCleanUp) override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
+/* Currently unused. If ever used, it needs full-frame implementation. */
 #ifdef COM_DEFOCUS_SEARCH
 class InverseSearchRadiusOperation : public NodeOperation {
  private:

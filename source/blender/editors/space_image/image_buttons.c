@@ -1013,14 +1013,14 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
       uiLayoutRow(col, true), imfptr, "color_mode", UI_ITEM_R_EXPAND, IFACE_("Color"), ICON_NONE);
 
   /* only display depth setting if multiple depths can be used */
-  if ((ELEM(depth_ok,
-            R_IMF_CHAN_DEPTH_1,
-            R_IMF_CHAN_DEPTH_8,
-            R_IMF_CHAN_DEPTH_10,
-            R_IMF_CHAN_DEPTH_12,
-            R_IMF_CHAN_DEPTH_16,
-            R_IMF_CHAN_DEPTH_24,
-            R_IMF_CHAN_DEPTH_32)) == 0) {
+  if (ELEM(depth_ok,
+           R_IMF_CHAN_DEPTH_1,
+           R_IMF_CHAN_DEPTH_8,
+           R_IMF_CHAN_DEPTH_10,
+           R_IMF_CHAN_DEPTH_12,
+           R_IMF_CHAN_DEPTH_16,
+           R_IMF_CHAN_DEPTH_24,
+           R_IMF_CHAN_DEPTH_32) == 0) {
     uiItemR(uiLayoutRow(col, true), imfptr, "color_depth", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   }
 
@@ -1189,7 +1189,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
     const int menus_width = 160 * dpi_fac;
     const bool is_render_result = (ima->type == IMA_TYPE_R_RESULT);
 
-    /* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
+    /* Use BKE_image_acquire_renderresult so we get the correct slot in the menu. */
     rr = BKE_image_acquire_renderresult(scene, ima);
     uiblock_layer_pass_buttons(
         layout, ima, rr, iuser, menus_width, is_render_result ? &ima->render_slot : NULL);

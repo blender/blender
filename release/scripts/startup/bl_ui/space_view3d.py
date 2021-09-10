@@ -1854,6 +1854,7 @@ class VIEW3D_MT_select_gpencil(Menu):
 
         layout.operator("gpencil.select_linked", text="Linked")
         layout.operator("gpencil.select_alternate")
+        layout.operator("gpencil.select_random")
         layout.operator_menu_enum("gpencil.select_grouped", "type", text="Grouped")
 
         if context.mode == 'VERTEX_GPENCIL':
@@ -6386,7 +6387,13 @@ class VIEW3D_PT_overlay_edit_mesh_normals(Panel):
 
         sub = row.row(align=True)
         sub.active = overlay.show_vertex_normals or overlay.show_face_normals or overlay.show_split_normals
-        sub.prop(overlay, "normals_length", text="Size")
+        if overlay.use_normals_constant_screen_size:
+            sub.prop(overlay, "normals_constant_screen_size", text="Size")
+        else:
+            sub.prop(overlay, "normals_length", text="Size")
+
+        row.prop(overlay, "use_normals_constant_screen_size", text="", icon='FIXED_SIZE')
+
 
 
 class VIEW3D_PT_overlay_edit_mesh_freestyle(Panel):

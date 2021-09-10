@@ -1216,8 +1216,10 @@ static bNodeSocket *bc_group_add_input_socket(bNodeTree *ntree,
 {
   bNodeSocket *to_socket = (bNodeSocket *)BLI_findlink(&to_node->inputs, to_index);
 
-  //bNodeSocket *socket = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
-  //return socket;
+#  if 0
+  bNodeSocket *socket = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
+  return socket;
+#  endif
 
   bNodeSocket *gsock = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
   bNode *inputGroup = ntreeFindType(ntree, NODE_GROUP_INPUT);
@@ -1235,8 +1237,10 @@ static bNodeSocket *bc_group_add_output_socket(bNodeTree *ntree,
 {
   bNodeSocket *from_socket = (bNodeSocket *)BLI_findlink(&from_node->outputs, from_index);
 
-  //bNodeSocket *socket = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
-  //return socket;
+#  if 0
+  bNodeSocket *socket = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
+  return socket;
+#  endif
 
   bNodeSocket *gsock = ntreeAddSocketInterfaceFromSocket(ntree, from_node, from_socket);
   bNode *outputGroup = ntreeFindType(ntree, NODE_GROUP_OUTPUT);

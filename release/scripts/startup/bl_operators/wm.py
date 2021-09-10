@@ -1367,31 +1367,32 @@ class WM_OT_properties_edit(Operator):
         }
 
     def get_value_eval(self):
+        failed = False
         try:
             value_eval = eval(self.value)
             # assert else None -> None, not "None", see T33431.
             assert(type(value_eval) in {str, float, int, bool, tuple, list})
         except:
+            failed = True
             value_eval = self.value
 
-        return value_eval
+        return value_eval, failed
 
     def get_default_eval(self):
+        failed = False
         try:
             default_eval = eval(self.default)
             # assert else None -> None, not "None", see T33431.
             assert(type(default_eval) in {str, float, int, bool, tuple, list})
         except:
+            failed = True
             default_eval = self.default
 
-        return default_eval
+        return default_eval, failed
 
     def execute(self, context):
         from rna_prop_ui import (
-            rna_idprop_ui_prop_get,
-            rna_idprop_ui_prop_clear,
             rna_idprop_ui_prop_update,
-            rna_idprop_ui_prop_default_set,
             rna_idprop_value_item_type,
         )
 
@@ -1405,8 +1406,8 @@ class WM_OT_properties_edit(Operator):
             self.report({'ERROR'}, "Direct execution not supported")
             return {'CANCELLED'}
 
-        value_eval = self.get_value_eval()
-        default_eval = self.get_default_eval()
+        value_eval, value_failed = self.get_value_eval()
+        default_eval, default_failed = self.get_default_eval()
 
         # First remove
         item = eval("context.%s" % data_path)
@@ -1417,7 +1418,7 @@ class WM_OT_properties_edit(Operator):
 
         prop_type_old = type(item[prop_old])
 
-        rna_idprop_ui_prop_clear(item, prop_old)
+        # Deleting the property will also remove the UI data.
         del item[prop_old]
 
         # Reassign
@@ -1431,27 +1432,43 @@ class WM_OT_properties_edit(Operator):
         prop_type_new = type(prop_value)
         prop_type, is_array = rna_idprop_value_item_type(prop_value)
 
-        prop_ui = rna_idprop_ui_prop_get(item, prop)
-
-        if prop_type in {float, int}:
-            prop_ui["min"] = prop_type(self.min)
-            prop_ui["max"] = prop_type(self.max)
-
-            if self.use_soft_limits:
-                prop_ui["soft_min"] = prop_type(self.soft_min)
-                prop_ui["soft_max"] = prop_type(self.soft_max)
-            else:
-                prop_ui["soft_min"] = prop_type(self.min)
-                prop_ui["soft_max"] = prop_type(self.max)
-
-        if prop_type == float and is_array and self.subtype != 'NONE':
-            prop_ui["subtype"] = self.subtype
-        else:
-            prop_ui.pop("subtype", None)
-
-        prop_ui["description"] = self.description
-
-        rna_idprop_ui_prop_default_set(item, prop, default_eval)
+        if prop_type == int:
+            ui_data = item.id_properties_ui(prop)
+            if type(default_eval) == str:
+                self.report({'WARNING'}, "Could not evaluate number from default value")
+                default_eval = None
+            elif hasattr(default_eval, "__len__"):
+                default_eval = [int(round(value)) for value in default_eval]
+            ui_data.update(
+                min=int(round(self.min)),
+                max=int(round(self.max)),
+                soft_min=int(round(self.soft_min)),
+                soft_max=int(round(self.soft_max)),
+                default=default_eval,
+                subtype=self.subtype,
+                description=self.description
+            )
+        elif prop_type == float:
+            ui_data = item.id_properties_ui(prop)
+            if type(default_eval) == str:
+                self.report({'WARNING'}, "Could not evaluate number from default value")
+                default_eval = None
+            ui_data.update(
+                min=self.min,
+                max=self.max,
+                soft_min=self.soft_min,
+                soft_max=self.soft_max,
+                default=default_eval,
+                subtype=self.subtype,
+                description=self.description
+            )
+        elif prop_type == str and not is_array and not default_failed: # String arrays do not support UI data.
+            ui_data = item.id_properties_ui(prop)
+            ui_data.update(
+                default=self.default,
+                subtype=self.subtype,
+                description=self.description
+            )
 
         # If we have changed the type of the property, update its potential anim curves!
         if prop_type_old != prop_type_new:
@@ -1492,7 +1509,6 @@ class WM_OT_properties_edit(Operator):
 
     def invoke(self, context, _event):
         from rna_prop_ui import (
-            rna_idprop_ui_prop_get,
             rna_idprop_value_to_python,
             rna_idprop_value_item_type
         )
@@ -1519,35 +1535,34 @@ class WM_OT_properties_edit(Operator):
         self.is_overridable_library = bool(is_overridable)
 
         # default default value
-        prop_type, is_array = rna_idprop_value_item_type(self.get_value_eval())
+        value, value_failed = self.get_value_eval()
+        prop_type, is_array = rna_idprop_value_item_type(value)
         if prop_type in {int, float}:
             self.default = str(prop_type(0))
         else:
             self.default = ""
 
         # setup defaults
-        prop_ui = rna_idprop_ui_prop_get(item, prop, create=False)
-        if prop_ui:
-            self.min = prop_ui.get("min", -1000000000)
-            self.max = prop_ui.get("max", 1000000000)
-            self.description = prop_ui.get("description", "")
-
-            defval = prop_ui.get("default", None)
-            if defval is not None:
-                self.default = str(rna_idprop_value_to_python(defval))
-
-            self.soft_min = prop_ui.get("soft_min", self.min)
-            self.soft_max = prop_ui.get("soft_max", self.max)
+        if prop_type in {int, float}:
+            ui_data = item.id_properties_ui(prop)
+            rna_data = ui_data.as_dict()
+            self.subtype =  rna_data["subtype"]
+            self.min = rna_data["min"]
+            self.max = rna_data["max"]
+            self.soft_min = rna_data["soft_min"]
+            self.soft_max = rna_data["soft_max"]
             self.use_soft_limits = (
                 self.min != self.soft_min or
                 self.max != self.soft_max
             )
+            self.default = str(rna_data["default"])
+        if prop_type == str and not is_array and not value_failed: # String arrays do not support UI data.
+            ui_data = item.id_properties_ui(prop)
+            rna_data = ui_data.as_dict()
+            self.subtype =  rna_data["subtype"]
+            self.default = str(rna_data["default"])
 
-            subtype = prop_ui.get("subtype", None)
-        else:
-            subtype = None
-
-        self._init_subtype(prop_type, is_array, subtype)
+        self._init_subtype(prop_type, is_array, self.subtype)
 
         # store for comparison
         self._cmp_props = self._cmp_props_get()
@@ -1688,7 +1703,6 @@ class WM_OT_properties_remove(Operator):
 
     def execute(self, context):
         from rna_prop_ui import (
-            rna_idprop_ui_prop_clear,
             rna_idprop_ui_prop_update,
         )
         data_path = self.data_path
@@ -1701,7 +1715,6 @@ class WM_OT_properties_remove(Operator):
         prop = self.property
         rna_idprop_ui_prop_update(item, prop)
         del item[prop]
-        rna_idprop_ui_prop_clear(item, prop)
 
         return {'FINISHED'}
 

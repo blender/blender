@@ -20,14 +20,14 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
 /*-----------------------------------------------------------------------------*/
 /* Edge Detection (First Pass) */
 
-class SMAAEdgeDetectionOperation : public NodeOperation {
+class SMAAEdgeDetectionOperation : public MultiThreadedOperation {
  protected:
   SocketReader *m_imageReader;
   SocketReader *m_valueReader;
@@ -60,15 +60,20 @@ class SMAAEdgeDetectionOperation : public NodeOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 /*-----------------------------------------------------------------------------*/
 /*  Blending Weight Calculation (Second Pass) */
 
-class SMAABlendingWeightCalculationOperation : public NodeOperation {
+class SMAABlendingWeightCalculationOperation : public MultiThreadedOperation {
  private:
   SocketReader *m_imageReader;
-
+  std::function<void(int x, int y, float *out)> sample_image_fn_;
   int m_corner_rounding;
 
  public:
@@ -96,6 +101,14 @@ class SMAABlendingWeightCalculationOperation : public NodeOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
 
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_started(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+
  private:
   /* Diagonal Search Functions */
   int searchDiag1(int x, int y, int dir, bool *found);
@@ -117,7 +130,7 @@ class SMAABlendingWeightCalculationOperation : public NodeOperation {
 /*-----------------------------------------------------------------------------*/
 /* Neighborhood Blending (Third Pass) */
 
-class SMAANeighborhoodBlendingOperation : public NodeOperation {
+class SMAANeighborhoodBlendingOperation : public MultiThreadedOperation {
  private:
   SocketReader *m_image1Reader;
   SocketReader *m_image2Reader;
@@ -144,6 +157,11 @@ class SMAANeighborhoodBlendingOperation : public NodeOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

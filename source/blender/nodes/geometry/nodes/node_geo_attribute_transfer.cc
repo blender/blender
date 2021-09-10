@@ -29,18 +29,16 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_transfer_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_GEOMETRY, N_("Source Geometry")},
-    {SOCK_STRING, N_("Source")},
-    {SOCK_STRING, N_("Destination")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_attribute_transfer_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_attribute_transfer_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Source Geometry");
+  b.add_input<decl::String>("Source");
+  b.add_input<decl::String>("Destination");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_attribute_transfer_layout(uiLayout *layout,
                                                bContext *UNUSED(C),
@@ -51,8 +49,6 @@ static void geo_node_attribute_transfer_layout(uiLayout *layout,
   uiItemR(layout, ptr, "domain", 0, IFACE_("Domain"), ICON_NONE);
   uiItemR(layout, ptr, "mapping", 0, IFACE_("Mapping"), ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void geo_node_attribute_transfer_init(bNodeTree *UNUSED(tree), bNode *node)
 {
@@ -204,7 +200,8 @@ static void get_closest_mesh_polygons(const Mesh &mesh,
   Array<int> looptri_indices(positions.size());
   get_closest_mesh_looptris(mesh, positions, looptri_indices, r_distances_sq, r_positions);
 
-  Span<MLoopTri> looptris = bke::mesh_surface_sample::get_mesh_looptris(mesh);
+  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
+                                BKE_mesh_runtime_looptri_len(&mesh)};
   for (const int i : positions.index_range()) {
     const MLoopTri &looptri = looptris[looptri_indices[i]];
     r_poly_indices[i] = looptri.poly;
@@ -370,10 +367,12 @@ static void transfer_attribute_nearest(const GeometrySet &src_geometry,
           break;
         }
         case ATTR_DOMAIN_CORNER: {
-          use_mesh = true;
-          mesh_indices.reinitialize(tot_samples);
-          mesh_distances_sq.reinitialize(tot_samples);
-          get_closest_mesh_corners(*mesh, dst_positions, mesh_indices, mesh_distances_sq, {});
+          if (mesh->totloop > 0) {
+            use_mesh = true;
+            mesh_indices.reinitialize(tot_samples);
+            mesh_distances_sq.reinitialize(tot_samples);
+            get_closest_mesh_corners(*mesh, dst_positions, mesh_indices, mesh_distances_sq, {});
+          }
           break;
         }
         default: {
@@ -518,14 +517,13 @@ void register_node_type_geo_attribute_transfer()
 
   geo_node_type_base(
       &ntype, GEO_NODE_ATTRIBUTE_TRANSFER, "Attribute Transfer", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_attribute_transfer_in, geo_node_attribute_transfer_out);
   node_type_init(&ntype, blender::nodes::geo_node_attribute_transfer_init);
   node_type_storage(&ntype,
                     "NodeGeometryAttributeTransfer",
                     node_free_standard_storage,
                     node_copy_standard_storage);
+  ntype.declare = blender::nodes::geo_node_attribute_transfer_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_transfer_exec;
-  ntype.draw_buttons = geo_node_attribute_transfer_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_attribute_transfer_layout;
   nodeRegisterType(&ntype);
 }

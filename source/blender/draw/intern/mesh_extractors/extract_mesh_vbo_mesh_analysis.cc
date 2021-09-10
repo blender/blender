@@ -30,7 +30,7 @@
 #include "BKE_editmesh_bvh.h"
 #include "BKE_editmesh_cache.h"
 
-#include "draw_cache_extract_mesh_private.h"
+#include "extract_mesh.h"
 
 namespace blender::draw {
 
@@ -641,7 +641,7 @@ constexpr MeshExtract create_extractor_mesh_analysis()
   extractor.data_type = MR_DATA_POLY_NOR | MR_DATA_LOOPTRI;
   extractor.data_size = 0;
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.mesh_analysis);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.mesh_analysis);
   return extractor;
 }
 

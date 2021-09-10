@@ -18,22 +18,18 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_primitive_spiral_in[] = {
-    {SOCK_INT, N_("Resolution"), 32.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1024.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, N_("Rotations"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_FLOAT},
-    {SOCK_FLOAT, N_("Start Radius"), 1.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("End Radius"), 2.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Height"), 2.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_DISTANCE},
-    {SOCK_BOOLEAN, N_("Reverse")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_curve_primitive_spiral_out[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_curve_primitive_spiral_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Int>("Resolution").default_value(32).min(1).max(1024).subtype(PROP_UNSIGNED);
+  b.add_input<decl::Float>("Rotations").default_value(2.0f).min(0.0f);
+  b.add_input<decl::Float>("Start Radius").default_value(1.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("End Radius").default_value(2.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Height").default_value(2.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Bool>("Reverse");
+  b.add_output<decl::Geometry>("Curve");
+}
 
 static std::unique_ptr<CurveEval> create_spiral_curve(const float rotations,
                                                       const int resolution,
@@ -100,8 +96,7 @@ void register_node_type_geo_curve_primitive_spiral()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_SPIRAL, "Spiral", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_curve_primitive_spiral_in, geo_node_curve_primitive_spiral_out);
+  ntype.declare = blender::nodes::geo_node_curve_primitive_spiral_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_primitive_spiral_exec;
   nodeRegisterType(&ntype);
 }

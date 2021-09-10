@@ -193,7 +193,7 @@ static void select_cache_init(void *vedata)
     if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
       DRW_PASS_CREATE(psl->select_id_vert_pass, state);
       pd->shgrp_vert = DRW_shgroup_create(sh->select_id_flat, psl->select_id_vert_pass);
-      DRW_shgroup_uniform_float_copy(pd->shgrp_vert, "sizeVertex", G_draw.block.sizeVertex);
+      DRW_shgroup_uniform_float_copy(pd->shgrp_vert, "sizeVertex", 2 * G_draw.block.sizeVertex);
     }
   }
 

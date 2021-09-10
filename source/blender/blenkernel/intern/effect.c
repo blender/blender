@@ -481,7 +481,9 @@ static void eff_tri_ray_hit(void *UNUSED(userData),
   hit->index = 1;
 }
 
-// get visibility of a wind ray
+/**
+ * Get visibility of a wind ray.
+ */
 static float eff_calc_visibility(ListBase *colliders,
                                  EffectorCache *eff,
                                  EffectorData *efd,
@@ -547,7 +549,7 @@ static float eff_calc_visibility(ListBase *colliders,
   return visibility;
 }
 
-// noise function for wind e.g.
+/* Noise function for wind e.g. */
 static float wind_func(struct RNG *rng, float strength)
 {
   int random = (BLI_rng_get_int(rng) + 1) % 128; /* max 2357 */
@@ -861,7 +863,7 @@ static void get_effector_tot(
       int totpart = eff->psys->totpart;
       int amount = eff->psys->part->effector_amount;
 
-      *step = (totpart > amount) ? totpart / amount : 1;
+      *step = (totpart > amount) ? (int)ceil((float)totpart / (float)amount) : 1;
     }
   }
   else {

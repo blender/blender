@@ -506,6 +506,11 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 void RNA_def_property_free_pointers(PropertyRNA *prop);
 int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *identifier);
 
+int RNA_def_property_free_identifier_deferred_prepare(StructOrFunctionRNA *cont_,
+                                                      const char *identifier,
+                                                      void **handle);
+void RNA_def_property_free_identifier_deferred_finish(StructOrFunctionRNA *cont_, void *handle);
+
 void RNA_def_property_free_pointers_set_py_data_callback(
     void (*py_data_clear_fn)(PropertyRNA *prop));
 

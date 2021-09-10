@@ -717,7 +717,7 @@ static const char *unit_find_str(const char *str, const char *substr, bool case_
       if (str_found == str ||
           /* Weak unicode support!, so "µm" won't match up be replaced by "m"
            * since non ascii utf8 values will NEVER return true */
-          isalpha_or_utf8(*BLI_str_prev_char_utf8(str_found)) == 0) {
+          isalpha_or_utf8(*BLI_str_find_prev_char_utf8(str_found, str)) == 0) {
         /* Next char cannot be alphanum. */
         int len_name = strlen(substr);
 
@@ -833,7 +833,7 @@ static char *find_next_op(const char *str, char *remaining_str, int len_max)
       return remaining_str + i;
     }
   }
-  BLI_assert(!"String should be NULL terminated");
+  BLI_assert_msg(0, "String should be NULL terminated");
   return remaining_str + i;
 }
 
@@ -1303,7 +1303,7 @@ const char *BKE_unit_identifier_get(const void *usys_pt, int index)
 {
   const bUnitDef *unit = ((const bUnitCollection *)usys_pt)->units + index;
   if (unit->identifier == NULL) {
-    BLI_assert(false && "identifier for this unit is not specified yet");
+    BLI_assert_msg(0, "identifier for this unit is not specified yet");
   }
   return unit->identifier;
 }

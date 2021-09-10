@@ -526,8 +526,13 @@ bool BlenderSync::object_has_particle_hair(BL::Object b_ob)
 
 /* Old particle hair. */
 void BlenderSync::sync_particle_hair(
-    Hair *hair, BL::Mesh &b_mesh, BL::Object &b_ob, bool motion, int motion_step)
+    Hair *hair, BL::Mesh &b_mesh, BObjectInfo &b_ob_info, bool motion, int motion_step)
 {
+  if (!b_ob_info.is_real_object_data()) {
+    return;
+  }
+  BL::Object b_ob = b_ob_info.real_object;
+
   /* obtain general settings */
   if (b_ob.mode() == b_ob.mode_PARTICLE_EDIT || b_ob.mode() == b_ob.mode_EDIT) {
     return;
@@ -788,10 +793,10 @@ static void export_hair_curves_motion(Hair *hair, BL::Hair b_hair, int motion_st
 }
 
 /* Hair object. */
-void BlenderSync::sync_hair(Hair *hair, BL::Object &b_ob, bool motion, int motion_step)
+void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, int motion_step)
 {
   /* Convert Blender hair to Cycles curves. */
-  BL::Hair b_hair(b_ob.data());
+  BL::Hair b_hair(b_ob_info.object_data);
   if (motion) {
     export_hair_curves_motion(hair, b_hair, motion_step);
   }
@@ -800,16 +805,16 @@ void BlenderSync::sync_hair(Hair *hair, BL::Object &b_ob, bool motion, int motio
   }
 }
 #else
-void BlenderSync::sync_hair(Hair *hair, BL::Object &b_ob, bool motion, int motion_step)
+void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, int motion_step)
 {
   (void)hair;
-  (void)b_ob;
+  (void)b_ob_info;
   (void)motion;
   (void)motion_step;
 }
 #endif
 
-void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Hair *hair)
+void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Hair *hair)
 {
   /* make a copy of the shaders as the caller in the main thread still need them for syncing the
    * attributes */
@@ -819,19 +824,19 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Hair *ha
   new_hair.set_used_shaders(used_shaders);
 
   if (view_layer.use_hair) {
-    if (b_ob.type() == BL::Object::type_HAIR) {
+    if (b_ob_info.object_data.is_a(&RNA_Hair)) {
       /* Hair object. */
-      sync_hair(&new_hair, b_ob, false);
+      sync_hair(&new_hair, b_ob_info, false);
     }
     else {
       /* Particle hair. */
       bool need_undeformed = new_hair.need_attribute(scene, ATTR_STD_GENERATED);
       BL::Mesh b_mesh = object_to_mesh(
-          b_data, b_ob, b_depsgraph, need_undeformed, Mesh::SUBDIVISION_NONE);
+          b_data, b_ob_info, b_depsgraph, need_undeformed, Mesh::SUBDIVISION_NONE);
 
       if (b_mesh) {
-        sync_particle_hair(&new_hair, b_mesh, b_ob, false);
-        free_object_to_mesh(b_data, b_ob, b_mesh);
+        sync_particle_hair(&new_hair, b_mesh, b_ob_info, false);
+        free_object_to_mesh(b_data, b_ob_info, b_mesh);
       }
     }
   }
@@ -859,7 +864,7 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Hair *ha
 }
 
 void BlenderSync::sync_hair_motion(BL::Depsgraph b_depsgraph,
-                                   BL::Object b_ob,
+                                   BObjectInfo &b_ob_info,
                                    Hair *hair,
                                    int motion_step)
 {
@@ -869,18 +874,19 @@ void BlenderSync::sync_hair_motion(BL::Depsgraph b_depsgraph,
   }
 
   /* Export deformed coordinates. */
-  if (ccl::BKE_object_is_deform_modified(b_ob, b_scene, preview)) {
-    if (b_ob.type() == BL::Object::type_HAIR) {
+  if (ccl::BKE_object_is_deform_modified(b_ob_info, b_scene, preview)) {
+    if (b_ob_info.object_data.is_a(&RNA_Hair)) {
       /* Hair object. */
-      sync_hair(hair, b_ob, true, motion_step);
+      sync_hair(hair, b_ob_info, true, motion_step);
       return;
     }
     else {
       /* Particle hair. */
-      BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_depsgraph, false, Mesh::SUBDIVISION_NONE);
+      BL::Mesh b_mesh = object_to_mesh(
+          b_data, b_ob_info, b_depsgraph, false, Mesh::SUBDIVISION_NONE);
       if (b_mesh) {
-        sync_particle_hair(hair, b_mesh, b_ob, true, motion_step);
-        free_object_to_mesh(b_data, b_ob, b_mesh);
+        sync_particle_hair(hair, b_mesh, b_ob_info, true, motion_step);
+        free_object_to_mesh(b_data, b_ob_info, b_mesh);
         return;
       }
     }

@@ -88,7 +88,7 @@ bool ED_region_panel_category_gutter_calc_rect(const ARegion *region, rcti *r_re
       r_region_gutter->xmin = r_region_gutter->xmax - category_tabs_width;
     }
     else {
-      BLI_assert(!"Unsupported alignment");
+      BLI_assert_msg(0, "Unsupported alignment");
     }
     return true;
   }

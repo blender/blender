@@ -161,10 +161,12 @@ void BCAnimationSampler::update_animation_curves(BCAnimation &animation,
 BCSample &BCAnimationSampler::sample_object(Object *ob, int frame_index, bool for_opensim)
 {
   BCSample &ob_sample = sample_data.add(ob, frame_index);
-  // if (export_settings.get_apply_global_orientation()) {
-  //  const BCMatrix &global_transform = export_settings.get_global_transform();
-  //  ob_sample.get_matrix(global_transform);
-  //}
+#if 0
+  if (export_settings.get_apply_global_orientation()) {
+    const BCMatrix &global_transform = export_settings.get_global_transform();
+    ob_sample.get_matrix(global_transform);
+  }
+#endif
 
   if (ob->type == OB_ARMATURE) {
     bPoseChannel *pchan;
@@ -445,10 +447,9 @@ void BCAnimationSampler::initialize_curves(BCAnimationCurveMap &curves, Object *
     for (; fcu; fcu = fcu->next) {
       object_type = BC_ANIMATION_TYPE_OBJECT;
       if (ob->type == OB_ARMATURE) {
-        char *boneName = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
-        if (boneName) {
+        char boneName[MAXBONENAME];
+        if (BLI_str_quoted_substr(fcu->rna_path, "pose.bones[", boneName, sizeof(boneName))) {
           object_type = BC_ANIMATION_TYPE_BONE;
-          MEM_freeN(boneName);
         }
       }
 

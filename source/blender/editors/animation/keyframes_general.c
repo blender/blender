@@ -92,10 +92,7 @@ void delete_fcurve_key(FCurve *fcu, int index, bool do_recalc)
   fcu->totvert--;
 
   if (fcu->totvert == 0) {
-    if (fcu->bezt) {
-      MEM_freeN(fcu->bezt);
-    }
-    fcu->bezt = NULL;
+    MEM_SAFE_FREE(fcu->bezt);
   }
 
   /* recalc handles - only if it won't cause problems */
@@ -136,10 +133,7 @@ bool delete_fcurve_keys(FCurve *fcu)
 
 void clear_fcurve_keys(FCurve *fcu)
 {
-  if (fcu->bezt) {
-    MEM_freeN(fcu->bezt);
-  }
-  fcu->bezt = NULL;
+  MEM_SAFE_FREE(fcu->bezt);
 
   fcu->totvert = 0;
 }
@@ -767,11 +761,10 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
     if ((aci->id_type == ID_OB) && (((Object *)aci->id)->type == OB_ARMATURE) && aci->rna_path) {
       Object *ob = (Object *)aci->id;
 
-      char *bone_name = BLI_str_quoted_substrN(aci->rna_path, "pose.bones[");
-      if (bone_name) {
-        bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
-        MEM_freeN(bone_name);
-
+      bPoseChannel *pchan;
+      char bone_name[sizeof(pchan->name)];
+      if (BLI_str_quoted_substr(aci->rna_path, "pose.bones[", bone_name, sizeof(bone_name))) {
+        pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
         if (pchan) {
           aci->is_bone = true;
         }
@@ -830,31 +823,35 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
   return 0;
 }
 
-static void flip_names(tAnimCopybufItem *aci, char **name)
+static void flip_names(tAnimCopybufItem *aci, char **r_name)
 {
   if (aci->is_bone) {
-    char *str_start;
-    if ((str_start = strstr(aci->rna_path, "pose.bones["))) {
-      /* ninja coding, try to change the name */
+    int ofs_start;
+    int ofs_end;
+
+    if (BLI_str_quoted_substr_range(aci->rna_path, "pose.bones[", &ofs_start, &ofs_end)) {
+      char *str_start = aci->rna_path + ofs_start;
+      const char *str_end = aci->rna_path + ofs_end;
+
+      /* Swap out the name.
+       * Note that there is no need to un-escape the string to flip it. */
       char bname_new[MAX_VGROUP_NAME];
-      char *str_iter, *str_end;
+      char *str_iter;
       int length, prefix_l, postfix_l;
 
-      str_start += 12;
       prefix_l = str_start - aci->rna_path;
-
-      str_end = strchr(str_start, '\"');
 
       length = str_end - str_start;
       postfix_l = strlen(str_end);
 
-      /* more ninja stuff, temporary substitute with NULL terminator */
+      /* Temporary substitute with NULL terminator. */
+      BLI_assert(str_start[length] == '\"');
       str_start[length] = 0;
       BLI_string_flip_side_name(bname_new, str_start, false, sizeof(bname_new));
       str_start[length] = '\"';
 
-      str_iter = *name = MEM_mallocN(sizeof(char) * (prefix_l + postfix_l + length + 1),
-                                     "flipped_path");
+      str_iter = *r_name = MEM_mallocN(sizeof(char) * (prefix_l + postfix_l + length + 1),
+                                       "flipped_path");
 
       BLI_strncpy(str_iter, aci->rna_path, prefix_l + 1);
       str_iter += prefix_l;

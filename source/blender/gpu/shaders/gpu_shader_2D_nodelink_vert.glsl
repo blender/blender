@@ -18,6 +18,7 @@ in vec2 P2;
 in vec2 P3;
 in ivec4 colid_doarrow;
 in ivec2 domuted;
+in float dim_factor;
 
 uniform vec4 colors[6];
 
@@ -39,6 +40,7 @@ uniform vec2 bezierPts[4];
 uniform vec4 colors[3];
 uniform bool doArrow;
 uniform bool doMuted;
+uniform float dim_factor;
 
 #  define colShadow colors[0]
 #  define colStart colors[1]
@@ -97,6 +99,8 @@ void main(void)
       finalColor[3] = 0.65;
     }
   }
+
+  finalColor[3] *= dim_factor;
 
   /* Expand into a line */
   gl_Position.xy += exp_axis * expandSize * expand_dist;

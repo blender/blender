@@ -246,7 +246,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       DRW_shgroup_uniform_float_copy(grp, "studioLightIntensity", shading->studiolight_intensity);
       BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE);
       DRW_shgroup_uniform_texture_ex(grp, "studioLight", sl->equirect_radiance_gputexture, state);
-      /* Do not fadeout when doing probe rendering, only when drawing the background */
+      /* Do not fade-out when doing probe rendering, only when drawing the background. */
       DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", 1.0f);
     }
     else {

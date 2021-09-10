@@ -61,6 +61,7 @@
 
 #include "BLT_translation.h"
 
+#include "ED_asset.h"
 #include "ED_fileselect.h"
 #include "ED_info.h"
 #include "ED_screen.h"
@@ -326,6 +327,7 @@ void WM_main_remap_editor_id_reference(ID *old_id, ID *new_id)
       }
     }
   }
+  ED_assetlist_storage_id_remap(old_id, new_id);
 
   wmWindowManager *wm = bmain->wm.first;
   if (wm && wm->message_bus) {
@@ -2849,8 +2851,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
             if (event->custom == EVT_DATA_DRAGDROP) {
               ListBase *lb = (ListBase *)event->customdata;
               LISTBASE_FOREACH (wmDrag *, drag, lb) {
-                const char *tooltip = NULL;
-                if (drop->poll(C, drag, event, &tooltip)) {
+                if (drop->poll(C, drag, event)) {
                   /* Optionally copy drag information to operator properties. Don't call it if the
                    * operator fails anyway, it might do more than just set properties (e.g.
                    * typically import an asset). */
@@ -3470,8 +3471,8 @@ void wm_event_do_handlers(bContext *C)
             }
             CTX_wm_area_set(C, NULL);
 
-            /* NOTE: do not escape on WM_HANDLER_BREAK,
-             * mousemove needs handled for previous area. */
+            /* NOTE: do not escape on #WM_HANDLER_BREAK,
+             * mouse-move needs handled for previous area. */
           }
         }
 
@@ -4356,8 +4357,8 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
       }
     }
 
-    wmWindow *win_other;
-    if (WM_window_find_under_cursor(wm, win, win, mval, &win_other, mval)) {
+    wmWindow *win_other = WM_window_find_under_cursor(wm, win, win, mval, mval);
+    if (win_other) {
       event->x = mval[0];
       event->y = mval[1];
       return win_other;

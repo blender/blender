@@ -110,6 +110,31 @@ void BokehImageOperation::executePixelSampled(float output[4],
   output[3] = (insideBokehMax + insideBokehMed + insideBokehMin) / 3.0f;
 }
 
+void BokehImageOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                       const rcti &area,
+                                                       Span<MemoryBuffer *> UNUSED(inputs))
+{
+  const float shift = this->m_data->lensshift;
+  const float shift2 = shift / 2.0f;
+  const float distance = this->m_circularDistance;
+  for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
+    const float insideBokehMax = isInsideBokeh(distance, it.x, it.y);
+    const float insideBokehMed = isInsideBokeh(distance - fabsf(shift2 * distance), it.x, it.y);
+    const float insideBokehMin = isInsideBokeh(distance - fabsf(shift * distance), it.x, it.y);
+    if (shift < 0) {
+      it.out[0] = insideBokehMax;
+      it.out[1] = insideBokehMed;
+      it.out[2] = insideBokehMin;
+    }
+    else {
+      it.out[0] = insideBokehMin;
+      it.out[1] = insideBokehMed;
+      it.out[2] = insideBokehMax;
+    }
+    it.out[3] = (insideBokehMax + insideBokehMed + insideBokehMin) / 3.0f;
+  }
+}
+
 void BokehImageOperation::deinitExecution()
 {
   if (this->m_deleteData) {

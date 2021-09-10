@@ -20,9 +20,16 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+#include <cstring>
+
+#include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
+
+#include "BKE_lib_id.h"
+#include "BKE_main.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -47,4 +54,62 @@ ARegion *do_versions_add_region_if_not_found(ListBase *regionbase,
   new_region->regiontype = region_type;
   BLI_insertlinkafter(regionbase, link_after_region, new_region);
   return new_region;
+}
+
+/**
+ * Rename if the ID doesn't exist.
+ *
+ * \return the ID (if found).
+ */
+ID *do_versions_rename_id(Main *bmain,
+                          const short id_type,
+                          const char *name_src,
+                          const char *name_dst)
+{
+  /* We can ignore libraries */
+  ListBase *lb = which_libbase(bmain, id_type);
+  ID *id = nullptr;
+  LISTBASE_FOREACH (ID *, idtest, lb) {
+    if (idtest->lib == nullptr) {
+      if (STREQ(idtest->name + 2, name_src)) {
+        id = idtest;
+      }
+      if (STREQ(idtest->name + 2, name_dst)) {
+        return nullptr;
+      }
+    }
+  }
+  if (id != nullptr) {
+    BLI_strncpy(id->name + 2, name_dst, sizeof(id->name) - 2);
+    /* We know it's unique, this just sorts. */
+    BLI_libblock_ensure_unique_name(bmain, id->name);
+  }
+  return id;
+}
+
+void version_node_socket_name(bNodeTree *ntree,
+                              const int node_type,
+                              const char *old_name,
+                              const char *new_name)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == node_type) {
+      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+        if (STREQ(socket->name, old_name)) {
+          BLI_strncpy(socket->name, new_name, sizeof(socket->name));
+        }
+        if (STREQ(socket->identifier, old_name)) {
+          BLI_strncpy(socket->identifier, new_name, sizeof(socket->name));
+        }
+      }
+      LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+        if (STREQ(socket->name, old_name)) {
+          BLI_strncpy(socket->name, new_name, sizeof(socket->name));
+        }
+        if (STREQ(socket->identifier, old_name)) {
+          BLI_strncpy(socket->identifier, new_name, sizeof(socket->name));
+        }
+      }
+    }
+  }
 }

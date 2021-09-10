@@ -190,7 +190,7 @@ static void HC_relaxation_iteration_uv(BMEditMesh *em,
     /* This is supposed to happen only if "Pin Edges" is on,
      * since we have initialization on stroke start.
      * If ever uv brushes get their own mode we should check for toolsettings option too. */
-    if ((sculptdata->uv[i].flag & MARK_BOUNDARY)) {
+    if (sculptdata->uv[i].flag & MARK_BOUNDARY) {
       continue;
     }
 
@@ -268,7 +268,7 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
     /* This is supposed to happen only if "Pin Edges" is on,
      * since we have initialization on stroke start.
      * If ever uv brushes get their own mode we should check for toolsettings option too. */
-    if ((sculptdata->uv[i].flag & MARK_BOUNDARY)) {
+    if (sculptdata->uv[i].flag & MARK_BOUNDARY) {
       continue;
     }
 

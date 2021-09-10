@@ -160,6 +160,21 @@ class MFSignatureBuilder {
     }
   }
 
+  void add(StringRef name, const MFParamType &param_type)
+  {
+    switch (param_type.interface_type()) {
+      case MFParamType::Input:
+        this->input(name, param_type.data_type());
+        break;
+      case MFParamType::Mutable:
+        this->mutable_(name, param_type.data_type());
+        break;
+      case MFParamType::Output:
+        this->output(name, param_type.data_type());
+        break;
+    }
+  }
+
   /* Context */
 
   /** This indicates that the function accesses the context. This disables optimizations that

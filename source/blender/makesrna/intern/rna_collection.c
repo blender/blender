@@ -170,7 +170,7 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
   Collection *coll_dst = (Collection *)ptr_dst->owner_id;
 
   if (ptr_item_dst->type == NULL || ptr_item_src->type == NULL) {
-    //    BLI_assert(0 && "invalid source or destination object.");
+    // BLI_assert_msg(0, "invalid source or destination object.");
     return false;
   }
 
@@ -185,7 +185,7 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
       &coll_dst->gobject, ob_dst, offsetof(CollectionObject, ob));
 
   if (cob_dst == NULL) {
-    BLI_assert(0 && "Could not find destination object in destination collection!");
+    BLI_assert_msg(0, "Could not find destination object in destination collection!");
     return false;
   }
 
@@ -288,7 +288,7 @@ static bool rna_Collection_children_override_apply(Main *bmain,
       &coll_dst->children, subcoll_dst, offsetof(CollectionChild, collection));
 
   if (collchild_dst == NULL) {
-    BLI_assert(0 && "Could not find destination sub-collection in destination collection!");
+    BLI_assert_msg(0, "Could not find destination sub-collection in destination collection!");
     return false;
   }
 
@@ -322,17 +322,17 @@ static void rna_Collection_flag_set(PointerRNA *ptr, const bool value, const int
 
 static void rna_Collection_hide_select_set(PointerRNA *ptr, bool value)
 {
-  rna_Collection_flag_set(ptr, value, COLLECTION_RESTRICT_SELECT);
+  rna_Collection_flag_set(ptr, value, COLLECTION_HIDE_SELECT);
 }
 
 static void rna_Collection_hide_viewport_set(PointerRNA *ptr, bool value)
 {
-  rna_Collection_flag_set(ptr, value, COLLECTION_RESTRICT_VIEWPORT);
+  rna_Collection_flag_set(ptr, value, COLLECTION_HIDE_VIEWPORT);
 }
 
 static void rna_Collection_hide_render_set(PointerRNA *ptr, bool value)
 {
-  rna_Collection_flag_set(ptr, value, COLLECTION_RESTRICT_RENDER);
+  rna_Collection_flag_set(ptr, value, COLLECTION_HIDE_RENDER);
 }
 
 static void rna_Collection_flag_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -496,7 +496,7 @@ void RNA_def_collections(BlenderRNA *brna)
 
   /* Flags */
   prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_SELECT);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_HIDE_SELECT);
   RNA_def_property_boolean_funcs(prop, NULL, "rna_Collection_hide_select_set");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, -1);
@@ -504,7 +504,7 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_flag_update");
 
   prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_VIEWPORT);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_HIDE_VIEWPORT);
   RNA_def_property_boolean_funcs(prop, NULL, "rna_Collection_hide_viewport_set");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, -1);
@@ -512,7 +512,7 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_flag_update");
 
   prop = RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_RENDER);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_HIDE_RENDER);
   RNA_def_property_boolean_funcs(prop, NULL, "rna_Collection_hide_render_set");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, -1);

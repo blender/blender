@@ -18,12 +18,12 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "DNA_node_types.h"
 
 namespace blender::compositor {
 
-class ProjectorLensDistortionOperation : public NodeOperation {
+class ProjectorLensDistortionOperation : public MultiThreadedOperation {
  private:
   /**
    * Cached reference to the inputProgram
@@ -31,6 +31,7 @@ class ProjectorLensDistortionOperation : public NodeOperation {
   SocketReader *m_inputProgram;
 
   float m_dispersion;
+  /* TODO(manzanilla): to be removed with tiled implementation. */
   bool m_dispersionAvailable;
 
   float m_kr, m_kr2;
@@ -43,6 +44,7 @@ class ProjectorLensDistortionOperation : public NodeOperation {
    */
   void executePixel(float output[4], int x, int y, void *data) override;
 
+  void init_data() override;
   /**
    * Initialize the execution
    */
@@ -59,6 +61,11 @@ class ProjectorLensDistortionOperation : public NodeOperation {
                                         rcti *output) override;
 
   void updateDispersion();
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

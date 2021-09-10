@@ -724,10 +724,7 @@ static void layerFree_grid_paint_mask(void *data, int count, int UNUSED(size))
   GridPaintMask *gpm = data;
 
   for (int i = 0; i < count; i++) {
-    if (gpm[i].data) {
-      MEM_freeN(gpm[i].data);
-    }
-    gpm[i].data = NULL;
+    MEM_SAFE_FREE(gpm[i].data);
     gpm[i].level = 0;
   }
 }
@@ -3557,7 +3554,7 @@ bool CustomData_bmesh_merge(const CustomData *source,
       totelem = bm->totface;
       break;
     default: /* should never happen */
-      BLI_assert(!"invalid type given");
+      BLI_assert_msg(0, "invalid type given");
       iter_type = BM_VERTS_OF_MESH;
       totelem = bm->totvert;
       break;
@@ -4249,7 +4246,7 @@ void CustomData_blend_write_prepare(CustomData *data,
     CustomDataLayer *layer = &data->layers[i];
     if (layer->flag & CD_FLAG_NOCOPY) { /* Layers with this flag set are not written to file. */
       data->totlayer--;
-      /* CLOG_WARN(&LOG, "skipping layer %p (%s)", layer, layer->name); */
+      // CLOG_WARN(&LOG, "skipping layer %p (%s)", layer, layer->name);
     }
     else {
       if (UNLIKELY((size_t)j >= write_layers_size)) {

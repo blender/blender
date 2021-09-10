@@ -180,7 +180,7 @@ int DocumentExporter::exportCurrentScene()
   bContext *C = blender_context.get_context();
 
   PointerRNA sceneptr, unit_settings;
-  PropertyRNA *system; /* unused , *scale; */
+  PropertyRNA *system; /* unused, *scale; */
 
   clear_global_id_map();
 

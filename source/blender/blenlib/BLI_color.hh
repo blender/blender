@@ -34,11 +34,11 @@ namespace blender {
  * Usage:
  *
  * Convert a theme byte color to a linearrgb premultiplied.
- * ```
+ * \code{.cc}
  * ColorTheme4b theme_color;
  * ColorSceneLinear4f<eAlpha::Premultiplied> linearrgb_color =
  *     BLI_color_convert_to_scene_linear(theme_color).premultiply_alpha();
- * ```
+ * \endcode
  *
  * The API is structured to make most use of inlining. Most notable are space
  * conversions done via `BLI_color_convert_to*` functions.

@@ -123,7 +123,7 @@ int Spline::evaluated_edges_size() const
 float Spline::length() const
 {
   Span<float> lengths = this->evaluated_lengths();
-  return (lengths.size() == 0) ? 0 : this->evaluated_lengths().last();
+  return lengths.is_empty() ? 0.0f : this->evaluated_lengths().last();
 }
 
 int Spline::segments_size() const
@@ -189,7 +189,11 @@ static float3 direction_bisect(const float3 &prev, const float3 &middle, const f
   const float3 dir_prev = (middle - prev).normalized();
   const float3 dir_next = (next - middle).normalized();
 
-  return (dir_prev + dir_next).normalized();
+  const float3 result = (dir_prev + dir_next).normalized();
+  if (UNLIKELY(result.is_zero())) {
+    return float3(0.0f, 0.0f, 1.0f);
+  }
+  return result;
 }
 
 static void calculate_tangents(Span<float3> positions,
@@ -197,6 +201,7 @@ static void calculate_tangents(Span<float3> positions,
                                MutableSpan<float3> tangents)
 {
   if (positions.size() == 1) {
+    tangents.first() = float3(0.0f, 0.0f, 1.0f);
     return;
   }
 
@@ -237,13 +242,8 @@ Span<float3> Spline::evaluated_tangents() const
 
   Span<float3> positions = this->evaluated_positions();
 
-  if (eval_size == 1) {
-    evaluated_tangents_cache_.first() = float3(1.0f, 0.0f, 0.0f);
-  }
-  else {
-    calculate_tangents(positions, is_cyclic_, evaluated_tangents_cache_);
-    this->correct_end_tangents();
-  }
+  calculate_tangents(positions, is_cyclic_, evaluated_tangents_cache_);
+  this->correct_end_tangents();
 
   tangent_cache_dirty_ = false;
   return evaluated_tangents_cache_;
@@ -410,7 +410,7 @@ Spline::LookupResult Spline::lookup_evaluated_length(const float length) const
 
   const float *offset = std::lower_bound(lengths.begin(), lengths.end(), length);
   const int index = offset - lengths.begin();
-  const int next_index = (index == this->size() - 1) ? 0 : index + 1;
+  const int next_index = (index == this->evaluated_points_size() - 1) ? 0 : index + 1;
 
   const float previous_length = (index == 0) ? 0.0f : lengths[index - 1];
   const float factor = (length - previous_length) / (lengths[index] - previous_length);

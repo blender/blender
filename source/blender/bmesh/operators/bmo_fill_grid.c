@@ -645,20 +645,20 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   bm_edgeloop_flag_set(estore_a, BM_ELEM_HIDDEN, true);
   bm_edgeloop_flag_set(estore_b, BM_ELEM_HIDDEN, true);
 
-  if ((BM_mesh_edgeloops_find_path(
-          bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_first, v_b_first)) &&
-      (BM_mesh_edgeloops_find_path(
-          bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_last, v_b_last))) {
+  if (BM_mesh_edgeloops_find_path(
+          bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_first, v_b_first) &&
+      BM_mesh_edgeloops_find_path(
+          bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_last, v_b_last)) {
     estore_rail_a = eloops_rail.first;
     estore_rail_b = eloops_rail.last;
   }
   else {
     BM_mesh_edgeloops_free(&eloops_rail);
 
-    if ((BM_mesh_edgeloops_find_path(
-            bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_first, v_b_last)) &&
-        (BM_mesh_edgeloops_find_path(
-            bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_last, v_b_first))) {
+    if (BM_mesh_edgeloops_find_path(
+            bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_first, v_b_last) &&
+        BM_mesh_edgeloops_find_path(
+            bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_last, v_b_first)) {
       estore_rail_a = eloops_rail.first;
       estore_rail_b = eloops_rail.last;
       BM_edgeloop_flip(bm, estore_b);

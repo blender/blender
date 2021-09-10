@@ -21,7 +21,8 @@
  * \ingroup draw
  */
 
-#include "draw_cache_extract_mesh_private.h"
+#include "extract_mesh.h"
+
 #include "draw_cache_impl.h"
 
 namespace blender::draw {
@@ -252,7 +253,7 @@ constexpr MeshExtract create_extractor_edit_data()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(EditLoopData *);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edit_data);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.edit_data);
   return extractor;
 }
 

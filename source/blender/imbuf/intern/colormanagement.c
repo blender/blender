@@ -759,11 +759,7 @@ static bool colormanage_use_look(const char *look, const char *view_name)
 
 void colormanage_cache_free(ImBuf *ibuf)
 {
-  if (ibuf->display_buffer_flags) {
-    MEM_freeN(ibuf->display_buffer_flags);
-
-    ibuf->display_buffer_flags = NULL;
-  }
+  MEM_SAFE_FREE(ibuf->display_buffer_flags);
 
   if (ibuf->colormanage_cache) {
     ColormanageCacheData *cache_data = colormanage_cachedata_get(ibuf);
@@ -1189,6 +1185,14 @@ static void colormanage_check_colorspace_settings(
   (void)what;
 }
 
+static bool seq_callback(Sequence *seq, void *UNUSED(user_data))
+{
+  if (seq->strip) {
+    colormanage_check_colorspace_settings(&seq->strip->colorspace_settings, "sequencer strip");
+  }
+  return true;
+}
+
 void IMB_colormanagement_check_file_config(Main *bmain)
 {
   Scene *scene;
@@ -1221,13 +1225,9 @@ void IMB_colormanagement_check_file_config(Main *bmain)
     }
 
     /* check sequencer strip input color space settings */
-    Sequence *seq;
-    SEQ_ALL_BEGIN (scene->ed, seq) {
-      if (seq->strip) {
-        colormanage_check_colorspace_settings(&seq->strip->colorspace_settings, "sequencer strip");
-      }
+    if (scene->ed != NULL) {
+      SEQ_for_each_callback(&scene->ed->seqbase, seq_callback, NULL);
     }
-    SEQ_ALL_END;
   }
 
   /* ** check input color space settings ** */
@@ -1542,7 +1542,7 @@ static void display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle,
         rgba_uchar_to_float(fp, cp);
       }
       else {
-        BLI_assert(!"Buffers of 3 or 4 channels are only supported here");
+        BLI_assert_msg(0, "Buffers of 3 or 4 channels are only supported here");
       }
     }
 
@@ -3437,7 +3437,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf,
             pixel[0] = linear_buffer[linear_index];
           }
           else {
-            BLI_assert(!"Unsupported number of channels in partial buffer update");
+            BLI_assert_msg(0, "Unsupported number of channels in partial buffer update");
           }
         }
         else if (byte_buffer) {

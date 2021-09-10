@@ -221,21 +221,31 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   }
   else {
     float dvec[3];
+    copy_v3_v3(dvec, vec);
+    if (t->spacetype == SPACE_GRAPH) {
+      /* WORKAROUND:
+       * Special case where snapping is done in #recalData.
+       * Update the header based on the first element. */
+      const short autosnap = getAnimEdit_SnapMode(t);
+      float ival = TRANS_DATA_CONTAINER_FIRST_OK(t)->data->ival;
+      float val = ival + dvec[0];
+      snapFrameTransform(t, autosnap, ival, val, &dvec[0]);
+    }
+
     if (t->con.mode & CON_APPLY) {
       int i = 0;
-      zero_v3(dvec);
       if (t->con.mode & CON_AXIS0) {
-        dvec[i++] = vec[0];
+        dvec[i++] = dvec[0];
       }
       if (t->con.mode & CON_AXIS1) {
-        dvec[i++] = vec[1];
+        dvec[i++] = dvec[1];
       }
       if (t->con.mode & CON_AXIS2) {
-        dvec[i++] = vec[2];
+        dvec[i++] = dvec[2];
       }
-    }
-    else {
-      copy_v3_v3(dvec, vec);
+      while (i != 3) {
+        dvec[i++] = 0.0f;
+      }
     }
 
     if (t->flag & T_2D_EDIT) {
@@ -266,7 +276,8 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   if (t->flag & T_AUTOIK) {
     short chainlen = t->settings->autoik_chainlen;
     if (chainlen) {
-      ofs += BLI_snprintf_rlen(str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("AutoIK-Len: %d"), chainlen);
+      ofs += BLI_snprintf_rlen(
+          str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Auto IK Length: %d"), chainlen);
       ofs += BLI_strncpy_rlen(str + ofs, "   ", UI_MAX_DRAW_STR - ofs);
     }
   }

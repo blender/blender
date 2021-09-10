@@ -188,7 +188,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
       }
     }
 
-    /* Estimated a maximum size so we don't go offscreen for low height
+    /* Estimated a maximum size so we don't go off-screen for low height
      * areas near the bottom of the window on refreshes. */
     handle->max_size_y = UI_UNIT_Y * 16.0f;
   }

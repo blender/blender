@@ -163,12 +163,12 @@ def import_from_id(template_id, *, ignore_not_found=False):
         return import_from_path(path, ignore_not_found=ignore_not_found)
 
 
-def activate(*, template_id=None):
+def activate(*, template_id=None, reload_scripts=False):
     template_id_prev = _app_template["id"]
 
     # not needed but may as well avoids redundant
     # disable/enable for all add-ons on 'File -> New'
-    if template_id_prev == template_id:
+    if not reload_scripts and template_id_prev == template_id:
         return
 
     if template_id_prev:
@@ -188,6 +188,4 @@ def reset(*, reload_scripts=False):
     if _bpy.app.debug_python:
         print("bl_app_template_utils.reset('%s')" % template_id)
 
-    # TODO reload_scripts
-
-    activate(template_id=template_id)
+    activate(template_id=template_id, reload_scripts=reload_scripts)

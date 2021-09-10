@@ -966,7 +966,7 @@ static int acf_group_setting_flag(bAnimContext *ac, eAnimChannel_Settings settin
        * proved to be a hazard for workflows...
        */
       return (ac->spacetype == SPACE_GRAPH) ? AGRP_EXPANDED_G : /* Graph Editor case */
-                 AGRP_EXPANDED;                                 /* DopeSheet and elsewhere */
+                                              AGRP_EXPANDED;                                 /* DopeSheet and elsewhere */
     }
 
     case ACHANNEL_SETTING_MUTE: /* muted */

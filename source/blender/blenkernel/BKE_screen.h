@@ -332,6 +332,9 @@ typedef void (*uiListFilterItemsFunc)(struct uiList *ui_list,
                                       struct PointerRNA *,
                                       const char *propname);
 
+/* Listen to notifiers. Only for lists defined in C. */
+typedef void (*uiListListener)(struct uiList *ui_list, wmRegionListenerParams *params);
+
 typedef struct uiListType {
   struct uiListType *next, *prev;
 
@@ -340,6 +343,9 @@ typedef struct uiListType {
   uiListDrawItemFunc draw_item;
   uiListDrawFilterFunc draw_filter;
   uiListFilterItemsFunc filter_items;
+
+  /* For lists defined in C only. */
+  uiListListener listener;
 
   /* RNA integration */
   ExtensionRNA rna_ext;
@@ -467,7 +473,7 @@ void BKE_screen_view3d_shading_init(struct View3DShading *shading);
 /* screen */
 void BKE_screen_foreach_id_screen_area(struct LibraryForeachIDData *data, struct ScrArea *area);
 
-void BKE_screen_free(struct bScreen *screen);
+void BKE_screen_free_data(struct bScreen *screen);
 void BKE_screen_area_map_free(struct ScrAreaMap *area_map) ATTR_NONNULL();
 
 struct ScrEdge *BKE_screen_find_edge(const struct bScreen *screen,

@@ -47,6 +47,10 @@ class HueSaturationValueCorrectOperation : public CurveBaseOperation {
    * Deinitialize the execution
    */
   void deinitExecution() override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

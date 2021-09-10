@@ -46,13 +46,13 @@ void GlareNode::convertToOperations(NodeConverter &converter,
     case 3:
       glareoperation = new GlareGhostOperation();
       break;
-    case 2:  // streaks
+    case 2: /* Streaks. */
       glareoperation = new GlareStreaksOperation();
       break;
-    case 1:  // fog glow
+    case 1: /* Fog glow. */
       glareoperation = new GlareFogGlowOperation();
       break;
-    case 0:  // simple star
+    case 0: /* Simple star. */
       glareoperation = new GlareSimpleStarOperation();
       break;
   }

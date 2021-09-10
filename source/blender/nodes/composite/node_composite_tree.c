@@ -67,7 +67,7 @@ static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCa
   func(calldata, NODE_CLASS_OP_COLOR, N_("Color"));
   func(calldata, NODE_CLASS_OP_VECTOR, N_("Vector"));
   func(calldata, NODE_CLASS_OP_FILTER, N_("Filter"));
-  func(calldata, NODE_CLASS_CONVERTOR, N_("Convertor"));
+  func(calldata, NODE_CLASS_CONVERTER, N_("Converter"));
   func(calldata, NODE_CLASS_MATTE, N_("Matte"));
   func(calldata, NODE_CLASS_DISTORT, N_("Distort"));
   func(calldata, NODE_CLASS_GROUP, N_("Group"));
@@ -264,14 +264,15 @@ void ntreeCompositExecTree(Scene *scene,
 
 /* *********************************************** */
 
-/* Update the outputs of the render layer nodes.
+/**
+ * Update the outputs of the render layer nodes.
  * Since the outputs depend on the render engine, this part is a bit complex:
- * - ntreeCompositUpdateRLayers is called and loops over all render layer nodes.
+ * - #ntreeCompositUpdateRLayers is called and loops over all render layer nodes.
  * - Each render layer node calls the update function of the
  *   render engine that's used for its scene.
  * - The render engine calls RE_engine_register_pass for each pass.
- * - RE_engine_register_pass calls ntreeCompositRegisterPass,.
- *   which calls node_cmp_rlayers_register_pass for every render layer node.
+ * - #RE_engine_register_pass calls #ntreeCompositRegisterPass,
+ *   which calls #node_cmp_rlayers_register_pass for every render layer node.
  */
 void ntreeCompositUpdateRLayers(bNodeTree *ntree)
 {

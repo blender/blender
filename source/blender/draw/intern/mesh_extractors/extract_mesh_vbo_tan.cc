@@ -30,7 +30,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_tangent.h"
 
-#include "draw_cache_extract_mesh_private.h"
+#include "extract_mesh.h"
 
 namespace blender::draw {
 
@@ -226,7 +226,7 @@ constexpr MeshExtract create_extractor_tan()
   extractor.data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_LOOPTRI;
   extractor.data_size = 0;
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.tan);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.tan);
   return extractor;
 }
 
@@ -252,7 +252,7 @@ constexpr MeshExtract create_extractor_tan_hq()
   extractor.data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_LOOPTRI;
   extractor.data_size = 0;
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.tan);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.tan);
   return extractor;
 }
 

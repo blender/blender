@@ -347,9 +347,9 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd,
   if (!mdef) {
     return;
   }
-  mdef_index = BKE_object_defgroup_name_index(ob, pd->vertex_attribute_name);
+  mdef_index = BKE_id_defgroup_name_index(&mesh->id, pd->vertex_attribute_name);
   if (mdef_index < 0) {
-    mdef_index = ob->actdef - 1;
+    mdef_index = BKE_object_defgroup_active_index_get(ob) - 1;
   }
   if (mdef_index < 0) {
     return;
@@ -494,10 +494,7 @@ static void free_pointdensity(PointDensity *pd)
     pd->point_tree = NULL;
   }
 
-  if (pd->point_data) {
-    MEM_freeN(pd->point_data);
-    pd->point_data = NULL;
-  }
+  MEM_SAFE_FREE(pd->point_data);
   pd->totpoints = 0;
 }
 

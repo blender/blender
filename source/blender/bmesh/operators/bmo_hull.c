@@ -465,7 +465,7 @@ static BMVert **hull_verts_from_bullet(plConvexHull hull,
       hull_verts[i] = input_verts[original_index];
     }
     else {
-      BLI_assert(!"Unexpected new vertex in hull output");
+      BLI_assert_msg(0, "Unexpected new vertex in hull output");
     }
   }
 

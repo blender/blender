@@ -501,7 +501,7 @@ enum {
   CD_FAKE = 1 << 8,
 
   /* Vertices. */
-  CD_FAKE_MDEFORMVERT = CD_FAKE | CD_MDEFORMVERT, /* *sigh* due to how vgroups are stored :( . */
+  CD_FAKE_MDEFORMVERT = CD_FAKE | CD_MDEFORMVERT, /* *sigh* due to how vgroups are stored :(. */
   CD_FAKE_SHAPEKEY = CD_FAKE |
                      CD_SHAPEKEY, /* Not available as real CD layer in non-bmesh context. */
 

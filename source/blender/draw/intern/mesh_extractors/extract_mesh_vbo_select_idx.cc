@@ -21,7 +21,7 @@
  * \ingroup draw
  */
 
-#include "draw_cache_extract_mesh_private.h"
+#include "extract_mesh.h"
 
 namespace blender::draw {
 
@@ -205,7 +205,7 @@ constexpr MeshExtract create_extractor_poly_idx()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(uint32_t *);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.poly_idx);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.poly_idx);
   return extractor;
 }
 
@@ -220,7 +220,7 @@ constexpr MeshExtract create_extractor_edge_idx()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(uint32_t *);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edge_idx);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.edge_idx);
   return extractor;
 }
 
@@ -237,7 +237,7 @@ constexpr MeshExtract create_extractor_vert_idx()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(uint32_t *);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.vert_idx);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.vert_idx);
   return extractor;
 }
 
@@ -279,7 +279,7 @@ constexpr MeshExtract create_extractor_fdot_idx()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(uint32_t *);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdot_idx);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.fdot_idx);
   return extractor;
 }
 

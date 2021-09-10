@@ -325,6 +325,12 @@ struct bGPDframe *BKE_gpencil_frame_retime_get(struct Depsgraph *depsgraph,
                                                struct Scene *scene,
                                                struct Object *ob,
                                                struct bGPDlayer *gpl);
+int BKE_gpencil_time_modifier_cfra(struct Depsgraph *depsgraph,
+                                   struct Scene *scene,
+                                   struct Object *ob,
+                                   struct bGPDlayer *gpl,
+                                   const int cfra,
+                                   const bool is_render);
 
 void BKE_gpencil_modifier_blend_write(struct BlendWriter *writer, struct ListBase *modbase);
 void BKE_gpencil_modifier_blend_read_data(struct BlendDataReader *reader, struct ListBase *lb);

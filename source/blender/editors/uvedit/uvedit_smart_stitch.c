@@ -265,26 +265,11 @@ static StitchPreviewer *stitch_preview_init(void)
 static void stitch_preview_delete(StitchPreviewer *stitch_preview)
 {
   if (stitch_preview) {
-    if (stitch_preview->preview_polys) {
-      MEM_freeN(stitch_preview->preview_polys);
-      stitch_preview->preview_polys = NULL;
-    }
-    if (stitch_preview->uvs_per_polygon) {
-      MEM_freeN(stitch_preview->uvs_per_polygon);
-      stitch_preview->uvs_per_polygon = NULL;
-    }
-    if (stitch_preview->preview_stitchable) {
-      MEM_freeN(stitch_preview->preview_stitchable);
-      stitch_preview->preview_stitchable = NULL;
-    }
-    if (stitch_preview->preview_unstitchable) {
-      MEM_freeN(stitch_preview->preview_unstitchable);
-      stitch_preview->preview_unstitchable = NULL;
-    }
-    if (stitch_preview->static_tris) {
-      MEM_freeN(stitch_preview->static_tris);
-      stitch_preview->static_tris = NULL;
-    }
+    MEM_SAFE_FREE(stitch_preview->preview_polys);
+    MEM_SAFE_FREE(stitch_preview->uvs_per_polygon);
+    MEM_SAFE_FREE(stitch_preview->preview_stitchable);
+    MEM_SAFE_FREE(stitch_preview->preview_unstitchable);
+    MEM_SAFE_FREE(stitch_preview->static_tris);
     MEM_freeN(stitch_preview);
   }
 }
@@ -1769,7 +1754,7 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), void
 
     GPU_blend(GPU_BLEND_ALPHA);
 
-    /* Static Tris */
+    /* Static Triangles. */
     if (stitch_preview->static_tris) {
       UI_GetThemeColor4fv(TH_STITCH_PREVIEW_ACTIVE, col);
       vbo = GPU_vertbuf_create_with_format(&format);
@@ -1928,6 +1913,11 @@ static StitchState *stitch_init(bContext *C,
   state->obedit = obedit;
   state->em = em;
 
+  /* Workaround for sync-select & face-select mode which implies all selected faces are detached,
+   * for stitch this isn't useful behavior, see T86924. */
+  const int selectmode_orig = scene->toolsettings->selectmode;
+  scene->toolsettings->selectmode = SCE_SELECT_VERTEX;
+
   /* in uv synch selection, all uv's are visible */
   if (ts->uv_flag & UV_SYNC_SELECTION) {
     state->element_map = BM_uv_element_map_create(state->em->bm, scene, false, false, true, true);
@@ -1935,6 +1925,9 @@ static StitchState *stitch_init(bContext *C,
   else {
     state->element_map = BM_uv_element_map_create(state->em->bm, scene, true, false, true, true);
   }
+
+  scene->toolsettings->selectmode = selectmode_orig;
+
   if (!state->element_map) {
     state_delete(state);
     return NULL;
@@ -1989,7 +1982,7 @@ static StitchState *stitch_init(bContext *C,
   /* Now, on to generate our uv connectivity data */
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
     if (!(ts->uv_flag & UV_SYNC_SELECTION) &&
-        ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || !BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
+        (BM_elem_flag_test(efa, BM_ELEM_HIDDEN) || !BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
       continue;
     }
 
@@ -2172,8 +2165,8 @@ static StitchState *stitch_init(bContext *C,
                                            "uv_stitch_selection_stack");
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-        if (!(ts->uv_flag & UV_SYNC_SELECTION) && ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) ||
-                                                   !BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
+        if (!(ts->uv_flag & UV_SYNC_SELECTION) &&
+            (BM_elem_flag_test(efa, BM_ELEM_HIDDEN) || !BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
           continue;
         }
 

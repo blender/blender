@@ -55,6 +55,22 @@ private:
 	int m_position;
 
 	/**
+	 * The start offset in seconds relative to the media container start time.
+	 * IE how much the sound should be delayed to be kept in sync with the rest of the containter streams.
+	 */
+	double m_start_offset;
+
+	/**
+	 * The start time pts of the stream. All packets before this timestamp shouldn't be played back (only decoded).
+	 */
+	int64_t m_st_time;
+
+	/**
+	 * The duration of the audio stream in samples.
+	 */
+	int64_t m_duration;
+
+	/**
 	 * The specification of the audio data.
 	 */
 	DeviceSpecs m_specs;
@@ -182,6 +198,7 @@ public:
 	virtual void seek(int position);
 	virtual int getLength() const;
 	virtual int getPosition() const;
+	virtual double getStartOffset() const;
 	virtual Specs getSpecs() const;
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };

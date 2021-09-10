@@ -66,15 +66,12 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-
 #include "BKE_object.h"
-
 #include "BKE_scene.h"
 #include "BKE_world.h"
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
-
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_path_util.h"
@@ -621,8 +618,7 @@ bool USD_import(struct bContext *C,
 {
   blender::io::usd::ensure_usd_plugin_path_registered();
 
-  /* Using new here since MEM_* funcs do not call ctor to properly initialize
-   * data. */
+  /* Using new here since `MEM_*` functions do not call constructor to properly initialize data. */
   ImportJobData *job = new ImportJobData();
   job->bmain = CTX_data_main(C);
   job->scene = CTX_data_scene(C);

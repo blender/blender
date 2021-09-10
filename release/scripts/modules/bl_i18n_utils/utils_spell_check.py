@@ -48,6 +48,7 @@ class SpellChecker:
         "equi",  # equi-angular, etc.
         "fader",
         "globbing",
+        "haptics",
         "hasn",  # hasn't
         "hetero",
         "hoc",  # ad-hoc
@@ -188,7 +189,7 @@ class SpellChecker:
         "reprojection", "reproject", "reprojecting",
         "resize",
         "restpose",
-        "resync",
+        "resync", "resynced",
         "retarget", "retargets", "retargeting", "retargeted",
         "retiming",
         "rigidbody",
@@ -227,6 +228,7 @@ class SpellChecker:
         "un",
         "unassociate", "unassociated",
         "unbake",
+        "uncheck",
         "unclosed",
         "uncomment",
         "unculled",
@@ -381,6 +383,7 @@ class SpellChecker:
         "albedo",
         "anamorphic",
         "anisotropic", "anisotropy",
+        "bimanual",  # OpenXR?
         "bitangent",
         "boid", "boids",
         "ceil",
@@ -430,6 +433,7 @@ class SpellChecker:
         "spacebar",
         "subtractive",
         "superellipse",
+        "thumbstick",
         "tooltip", "tooltips",
         "trackpad",
         "tuple",
@@ -493,7 +497,7 @@ class SpellChecker:
         "pinlight",
         "qi",
         "radiosity",
-        "raycasting",
+        "raycast", "raycasting",
         "raytrace", "raytracing", "raytraced",
         "refractions",
         "remesher", "remeshing", "remesh",
@@ -698,6 +702,7 @@ class SpellChecker:
         "msgid", "msgids",
         "mux",
         "ndof",
+        "pbr",  # Physically Based Rendering
         "ppc",
         "precisa",
         "px",

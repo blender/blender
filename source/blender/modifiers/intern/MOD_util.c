@@ -254,15 +254,22 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
 void MOD_get_vgroup(
     Object *ob, struct Mesh *mesh, const char *name, MDeformVert **dvert, int *defgrp_index)
 {
-  *defgrp_index = BKE_object_defgroup_name_index(ob, name);
-  *dvert = NULL;
-
-  if (*defgrp_index != -1) {
-    if (ob->type == OB_LATTICE) {
+  if (mesh) {
+    *defgrp_index = BKE_id_defgroup_name_index(&mesh->id, name);
+    if (*defgrp_index != -1) {
+      *dvert = mesh->dvert;
+    }
+    else {
+      *dvert = NULL;
+    }
+  }
+  else {
+    *defgrp_index = BKE_object_defgroup_name_index(ob, name);
+    if (*defgrp_index != -1 && ob->type == OB_LATTICE) {
       *dvert = BKE_lattice_deform_verts_get(ob);
     }
-    else if (mesh) {
-      *dvert = mesh->dvert;
+    else {
+      *dvert = NULL;
     }
   }
 }

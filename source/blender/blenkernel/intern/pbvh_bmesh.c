@@ -914,7 +914,7 @@ static void long_edge_queue_edge_add_recursive(
       for (int i = 0; i < ARRAY_SIZE(l_adjacent); i++) {
         float len_sq_other = BM_edge_calc_length_squared(l_adjacent[i]->e);
         if (len_sq_other > max_ff(len_sq_cmp, limit_len_sq)) {
-          //                  edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
+          // edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
           long_edge_queue_edge_add_recursive(
               eq_ctx, l_adjacent[i]->radial_next, l_adjacent[i], len_sq_other, limit_len);
         }
@@ -1168,12 +1168,12 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     }
 
     /**
-     * The 2 new faces created and assigned to ``f_new`` have their
+     * The 2 new faces created and assigned to `f_new` have their
      * verts & edges shuffled around.
      *
      * - faces wind anticlockwise in this example.
-     * - original edge is ``(v1, v2)``
-     * - original face is ``(v1, v2, v3)``
+     * - original edge is `(v1, v2)`
+     * - original face is `(v1, v2, v3)`
      *
      * <pre>
      *         + v3(v_opp)
@@ -1189,8 +1189,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
      *  (first) (second)
      * </pre>
      *
-     * - f_new (first):  ``v_tri=(v1, v4, v3), e_tri=(e1, e5, e4)``
-     * - f_new (second): ``v_tri=(v4, v2, v3), e_tri=(e2, e3, e5)``
+     * - f_new (first):  `v_tri=(v1, v4, v3), e_tri=(e1, e5, e4)`
+     * - f_new (second): `v_tri=(v4, v2, v3), e_tri=(e2, e3, e5)`
      */
 
     /* Create two new faces */

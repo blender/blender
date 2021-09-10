@@ -42,6 +42,7 @@
 #include "BKE_cloth.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -262,17 +263,19 @@ static bool do_init_cloth(Object *ob, ClothModifierData *clmd, Mesh *result, int
 static int do_step_cloth(
     Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, Mesh *result, int framenr)
 {
+  /* simulate 1 frame forward */
   ClothVertex *verts = NULL;
   Cloth *cloth;
   ListBase *effectors = NULL;
   MVert *mvert;
   unsigned int i = 0;
   int ret = 0;
+  bool vert_mass_changed = false;
 
-  /* simulate 1 frame forward */
   cloth = clmd->clothObject;
   verts = cloth->verts;
   mvert = result->mvert;
+  vert_mass_changed = verts->mass != clmd->sim_parms->mass;
 
   /* force any pinned verts to their constrained location. */
   for (i = 0; i < clmd->clothObject->mvert_num; i++, verts++) {
@@ -283,6 +286,11 @@ static int do_step_cloth(
     /* Get the current position. */
     copy_v3_v3(verts->xconst, mvert[i].co);
     mul_m4_v3(ob->obmat, verts->xconst);
+
+    if (vert_mass_changed) {
+      verts->mass = clmd->sim_parms->mass;
+      SIM_mass_spring_set_implicit_vertex_mass(cloth->implicit, i, verts->mass);
+    }
   }
 
   effectors = BKE_effectors_create(depsgraph, ob, NULL, clmd->sim_parms->effector_weights, false);
@@ -440,11 +448,7 @@ void cloth_free_modifier(ClothModifierData *clmd)
     SIM_cloth_solver_free(clmd);
 
     /* Free the verts. */
-    if (cloth->verts != NULL) {
-      MEM_freeN(cloth->verts);
-    }
-
-    cloth->verts = NULL;
+    MEM_SAFE_FREE(cloth->verts);
     cloth->mvert_num = 0;
 
     /* Free the springs. */
@@ -522,11 +526,7 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
     SIM_cloth_solver_free(clmd);
 
     /* Free the verts. */
-    if (cloth->verts != NULL) {
-      MEM_freeN(cloth->verts);
-    }
-
-    cloth->verts = NULL;
+    MEM_SAFE_FREE(cloth->verts);
     cloth->mvert_num = 0;
 
     /* Free the springs. */
@@ -1575,7 +1575,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
           BLI_edgeset_free(existing_vert_pairs);
           free_bvhtree_from_mesh(&treedata);
           if (tmp_mesh) {
-            BKE_mesh_free(tmp_mesh);
+            BKE_id_free(NULL, &tmp_mesh->id);
           }
           return false;
         }
@@ -1584,7 +1584,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     BLI_edgeset_free(existing_vert_pairs);
     free_bvhtree_from_mesh(&treedata);
     if (tmp_mesh) {
-      BKE_mesh_free(tmp_mesh);
+      BKE_id_free(NULL, &tmp_mesh->id);
     }
     BLI_rng_free(rng);
   }

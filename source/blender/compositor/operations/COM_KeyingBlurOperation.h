@@ -18,14 +18,14 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
 /**
  * Class with implementation of blurring for keying node
  */
-class KeyingBlurOperation : public NodeOperation {
+class KeyingBlurOperation : public MultiThreadedOperation {
  protected:
   int m_size;
   int m_axis;
@@ -54,6 +54,13 @@ class KeyingBlurOperation : public NodeOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
+
+  void get_area_of_interest(const int input_idx,
+                            const rcti &output_area,
+                            rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

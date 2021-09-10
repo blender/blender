@@ -49,9 +49,9 @@
 
 #include "atomic_ops_utils.h"
 
-#if defined(__arm__)
-/* Attempt to fix compilation error on Debian armel kernel.
- * arm7 architecture does have both 32 and 64bit atomics, however
+#if defined(__arm__) || defined(__riscv)
+/* Attempt to fix compilation error on Debian armel and RISC-V kernels.
+ * Both architectures do have both 32 and 64bit atomics, however
  * its gcc doesn't have __GCC_HAVE_SYNC_COMPARE_AND_SWAP_n defined.
  */
 #  define JE_FORCE_SYNC_COMPARE_AND_SWAP_1
@@ -60,9 +60,108 @@
 #  define JE_FORCE_SYNC_COMPARE_AND_SWAP_8
 #endif
 
-/******************************************************************************/
-/* 64-bit operations. */
-#if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_8) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_8))
+/* Define the `ATOMIC_FORCE_USE_FALLBACK` to force lock-based fallback implementation to be used
+ * (even on platforms where there is native implementation available via compiler.
+ * Useful for development purposes. */
+#undef ATOMIC_FORCE_USE_FALLBACK
+
+/* -------------------------------------------------------------------- */
+/** \name Spin-lock implementation
+ *
+ * Used to implement atomics on unsupported platforms.
+ * The spin implementation is shared for all platforms to make sure it compiles and tested.
+ * \{ */
+
+typedef struct AtomicSpinLock {
+  volatile int lock;
+
+  /* Pad the structure size to a cache-line, to avoid unwanted sharing with other data. */
+  int pad[32 - sizeof(int)];
+} __attribute__((aligned(32))) AtomicSpinLock;
+
+ATOMIC_INLINE void atomic_spin_lock(volatile AtomicSpinLock *lock)
+{
+  while (__sync_lock_test_and_set(&lock->lock, 1)) {
+    while (lock->lock) {
+    }
+  }
+}
+
+ATOMIC_INLINE void atomic_spin_unlock(volatile AtomicSpinLock *lock)
+{
+  __sync_lock_release(&lock->lock);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Common part of locking fallback implementation
+ * \{ */
+
+/* Global lock, shared by all atomic operations implementations.
+ *
+ * Could be split into per-size locks, although added complexity and being more error-proone does
+ * not seem to worth it for a fall-back implementation. */
+static _ATOMIC_MAYBE_UNUSED AtomicSpinLock _atomic_global_lock = {0};
+
+#define ATOMIC_LOCKING_OP_AND_FETCH_DEFINE(_type, _op_name, _op) \
+  ATOMIC_INLINE _type##_t atomic_##_op_name##_and_fetch_##_type(_type##_t *p, _type##_t x) \
+  { \
+    atomic_spin_lock(&_atomic_global_lock); \
+    const _type##_t original_value = *(p); \
+    const _type##_t new_value = original_value _op(x); \
+    *(p) = new_value; \
+    atomic_spin_unlock(&_atomic_global_lock); \
+    return new_value; \
+  }
+
+#define ATOMIC_LOCKING_FETCH_AND_OP_DEFINE(_type, _op_name, _op) \
+  ATOMIC_INLINE _type##_t atomic_fetch_and_##_op_name##_##_type(_type##_t *p, _type##_t x) \
+  { \
+    atomic_spin_lock(&_atomic_global_lock); \
+    const _type##_t original_value = *(p); \
+    *(p) = original_value _op(x); \
+    atomic_spin_unlock(&_atomic_global_lock); \
+    return original_value; \
+  }
+
+#define ATOMIC_LOCKING_ADD_AND_FETCH_DEFINE(_type) \
+  ATOMIC_LOCKING_OP_AND_FETCH_DEFINE(_type, add, +)
+
+#define ATOMIC_LOCKING_SUB_AND_FETCH_DEFINE(_type) \
+  ATOMIC_LOCKING_OP_AND_FETCH_DEFINE(_type, sub, -)
+
+#define ATOMIC_LOCKING_FETCH_AND_ADD_DEFINE(_type) \
+  ATOMIC_LOCKING_FETCH_AND_OP_DEFINE(_type, add, +)
+
+#define ATOMIC_LOCKING_FETCH_AND_SUB_DEFINE(_type) \
+  ATOMIC_LOCKING_FETCH_AND_OP_DEFINE(_type, sub, -)
+
+#define ATOMIC_LOCKING_FETCH_AND_OR_DEFINE(_type) ATOMIC_LOCKING_FETCH_AND_OP_DEFINE(_type, or, |)
+
+#define ATOMIC_LOCKING_FETCH_AND_AND_DEFINE(_type) \
+  ATOMIC_LOCKING_FETCH_AND_OP_DEFINE(_type, and, &)
+
+#define ATOMIC_LOCKING_CAS_DEFINE(_type) \
+  ATOMIC_INLINE _type##_t atomic_cas_##_type(_type##_t *v, _type##_t old, _type##_t _new) \
+  { \
+    atomic_spin_lock(&_atomic_global_lock); \
+    const _type##_t original_value = *v; \
+    if (*v == old) { \
+      *v = _new; \
+    } \
+    atomic_spin_unlock(&_atomic_global_lock); \
+    return original_value; \
+  }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name 64-bit operations
+ * \{ */
+
+#if !defined(ATOMIC_FORCE_USE_FALLBACK) && \
+    (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_8) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_8))
 /* Unsigned */
 ATOMIC_INLINE uint64_t atomic_add_and_fetch_uint64(uint64_t *p, uint64_t x)
 {
@@ -115,7 +214,7 @@ ATOMIC_INLINE int64_t atomic_cas_int64(int64_t *v, int64_t old, int64_t _new)
   return __sync_val_compare_and_swap(v, old, _new);
 }
 
-#elif (defined(__amd64__) || defined(__x86_64__))
+#elif !defined(ATOMIC_FORCE_USE_FALLBACK) && (defined(__amd64__) || defined(__x86_64__))
 /* Unsigned */
 ATOMIC_INLINE uint64_t atomic_fetch_and_add_uint64(uint64_t *p, uint64_t x)
 {
@@ -190,12 +289,36 @@ ATOMIC_INLINE int64_t atomic_cas_int64(int64_t *v, int64_t old, int64_t _new)
   return ret;
 }
 #else
-#  error "Missing implementation for 64-bit atomic operations"
+
+/* Unsigned */
+
+ATOMIC_LOCKING_ADD_AND_FETCH_DEFINE(uint64)
+ATOMIC_LOCKING_SUB_AND_FETCH_DEFINE(uint64)
+
+ATOMIC_LOCKING_FETCH_AND_ADD_DEFINE(uint64)
+ATOMIC_LOCKING_FETCH_AND_SUB_DEFINE(uint64)
+
+ATOMIC_LOCKING_CAS_DEFINE(uint64)
+
+/* Signed */
+ATOMIC_LOCKING_ADD_AND_FETCH_DEFINE(int64)
+ATOMIC_LOCKING_SUB_AND_FETCH_DEFINE(int64)
+
+ATOMIC_LOCKING_FETCH_AND_ADD_DEFINE(int64)
+ATOMIC_LOCKING_FETCH_AND_SUB_DEFINE(int64)
+
+ATOMIC_LOCKING_CAS_DEFINE(int64)
+
 #endif
 
-/******************************************************************************/
-/* 32-bit operations. */
-#if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_4))
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name 32-bit operations
+ * \{ */
+
+#if !defined(ATOMIC_FORCE_USE_FALLBACK) && \
+    (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_4))
 /* Unsigned */
 ATOMIC_INLINE uint32_t atomic_add_and_fetch_uint32(uint32_t *p, uint32_t x)
 {
@@ -228,7 +351,8 @@ ATOMIC_INLINE int32_t atomic_cas_int32(int32_t *v, int32_t old, int32_t _new)
   return __sync_val_compare_and_swap(v, old, _new);
 }
 
-#elif (defined(__i386__) || defined(__amd64__) || defined(__x86_64__))
+#elif !defined(ATOMIC_FORCE_USE_FALLBACK) && \
+    (defined(__i386__) || defined(__amd64__) || defined(__x86_64__))
 /* Unsigned */
 ATOMIC_INLINE uint32_t atomic_add_and_fetch_uint32(uint32_t *p, uint32_t x)
 {
@@ -286,10 +410,25 @@ ATOMIC_INLINE int32_t atomic_cas_int32(int32_t *v, int32_t old, int32_t _new)
 }
 
 #else
-#  error "Missing implementation for 32-bit atomic operations"
+
+/* Unsigned */
+
+ATOMIC_LOCKING_ADD_AND_FETCH_DEFINE(uint32)
+ATOMIC_LOCKING_SUB_AND_FETCH_DEFINE(uint32)
+
+ATOMIC_LOCKING_CAS_DEFINE(uint32)
+
+/* Signed */
+
+ATOMIC_LOCKING_ADD_AND_FETCH_DEFINE(int32)
+ATOMIC_LOCKING_SUB_AND_FETCH_DEFINE(int32)
+
+ATOMIC_LOCKING_CAS_DEFINE(int32)
+
 #endif
 
-#if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_4))
+#if !defined(ATOMIC_FORCE_USE_FALLBACK) && \
+    (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_4))
 /* Unsigned */
 ATOMIC_INLINE uint32_t atomic_fetch_and_add_uint32(uint32_t *p, uint32_t x)
 {
@@ -323,12 +462,27 @@ ATOMIC_INLINE int32_t atomic_fetch_and_and_int32(int32_t *p, int32_t x)
 }
 
 #else
-#  error "Missing implementation for 32-bit atomic operations"
+
+/* Unsigned */
+ATOMIC_LOCKING_FETCH_AND_ADD_DEFINE(uint32)
+ATOMIC_LOCKING_FETCH_AND_OR_DEFINE(uint32)
+ATOMIC_LOCKING_FETCH_AND_AND_DEFINE(uint32)
+
+/* Signed */
+ATOMIC_LOCKING_FETCH_AND_ADD_DEFINE(int32)
+ATOMIC_LOCKING_FETCH_AND_OR_DEFINE(int32)
+ATOMIC_LOCKING_FETCH_AND_AND_DEFINE(int32)
+
 #endif
 
-/******************************************************************************/
-/* 16-bit operations. */
-#if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_2) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_2))
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name 16-bit operations
+ * \{ */
+
+#if !defined(ATOMIC_FORCE_USE_FALLBACK) && \
+    (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_2) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_2))
 
 /* Signed */
 ATOMIC_INLINE int16_t atomic_fetch_and_and_int16(int16_t *p, int16_t b)
@@ -341,12 +495,21 @@ ATOMIC_INLINE int16_t atomic_fetch_and_or_int16(int16_t *p, int16_t b)
 }
 
 #else
-#  error "Missing implementation for 16-bit atomic operations"
+
+ATOMIC_LOCKING_FETCH_AND_AND_DEFINE(int16)
+ATOMIC_LOCKING_FETCH_AND_OR_DEFINE(int16)
+
 #endif
 
-/******************************************************************************/
-/* 8-bit operations. */
-#if (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_1) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_1))
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name 8-bit operations
+ * \{ */
+
+#if !defined(ATOMIC_FORCE_USE_FALLBACK) && \
+    (defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_1) || defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_1))
+
 /* Unsigned */
 ATOMIC_INLINE uint8_t atomic_fetch_and_and_uint8(uint8_t *p, uint8_t b)
 {
@@ -368,7 +531,27 @@ ATOMIC_INLINE int8_t atomic_fetch_and_or_int8(int8_t *p, int8_t b)
 }
 
 #else
-#  error "Missing implementation for 8-bit atomic operations"
+
+/* Unsigned */
+ATOMIC_LOCKING_FETCH_AND_AND_DEFINE(uint8)
+ATOMIC_LOCKING_FETCH_AND_OR_DEFINE(uint8)
+
+/* Signed */
+ATOMIC_LOCKING_FETCH_AND_AND_DEFINE(int8)
+ATOMIC_LOCKING_FETCH_AND_OR_DEFINE(int8)
+
 #endif
+
+/** \} */
+
+#undef ATOMIC_LOCKING_OP_AND_FETCH_DEFINE
+#undef ATOMIC_LOCKING_FETCH_AND_OP_DEFINE
+#undef ATOMIC_LOCKING_ADD_AND_FETCH_DEFINE
+#undef ATOMIC_LOCKING_SUB_AND_FETCH_DEFINE
+#undef ATOMIC_LOCKING_FETCH_AND_ADD_DEFINE
+#undef ATOMIC_LOCKING_FETCH_AND_SUB_DEFINE
+#undef ATOMIC_LOCKING_FETCH_AND_OR_DEFINE
+#undef ATOMIC_LOCKING_FETCH_AND_AND_DEFINE
+#undef ATOMIC_LOCKING_CAS_DEFINE
 
 #endif /* __ATOMIC_OPS_UNIX_H__ */

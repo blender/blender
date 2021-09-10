@@ -582,6 +582,23 @@ static int rna_color_quantize(PropertyRNA *prop, PropertyDefRNA *dp)
           (IS_DNATYPE_FLOAT_COMPAT(dp->dnatype) == 0));
 }
 
+/**
+ * Return the identifier for an enum which is defined in "RNA_enum_items.h".
+ *
+ * Prevents expanding duplicate enums bloating the binary size.
+ */
+static const char *rna_enum_id_from_pointer(const EnumPropertyItem *item)
+{
+#define RNA_MAKESRNA
+#define DEF_ENUM(id) \
+  if (item == id) { \
+    return STRINGIFY(id); \
+  }
+#include "RNA_enum_items.h"
+#undef RNA_MAKESRNA
+  return NULL;
+}
+
 static const char *rna_function_string(const void *func)
 {
   return (func) ? (const char *)func : "NULL";
@@ -3675,36 +3692,54 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
       int i, defaultfound = 0, totflag = 0;
 
       if (eprop->item) {
-        fprintf(f,
-                "static const EnumPropertyItem rna_%s%s_%s_items[%d] = {\n\t",
-                srna->identifier,
-                strnest,
-                prop->identifier,
-                eprop->totitem + 1);
+        /* Inline the enum if this is not a defined in "RNA_enum_items.h". */
+        const char *item_global_id = rna_enum_id_from_pointer(eprop->item);
+        if (item_global_id == NULL) {
+          fprintf(f,
+                  "static const EnumPropertyItem rna_%s%s_%s_items[%d] = {\n\t",
+                  srna->identifier,
+                  strnest,
+                  prop->identifier,
+                  eprop->totitem + 1);
 
-        for (i = 0; i < eprop->totitem; i++) {
-          fprintf(f, "{%d, ", eprop->item[i].value);
-          rna_print_c_string(f, eprop->item[i].identifier);
-          fprintf(f, ", ");
-          fprintf(f, "%d, ", eprop->item[i].icon);
-          rna_print_c_string(f, eprop->item[i].name);
-          fprintf(f, ", ");
-          rna_print_c_string(f, eprop->item[i].description);
-          fprintf(f, "},\n\t");
+          for (i = 0; i < eprop->totitem; i++) {
+            fprintf(f, "{%d, ", eprop->item[i].value);
+            rna_print_c_string(f, eprop->item[i].identifier);
+            fprintf(f, ", ");
+            fprintf(f, "%d, ", eprop->item[i].icon);
+            rna_print_c_string(f, eprop->item[i].name);
+            fprintf(f, ", ");
+            rna_print_c_string(f, eprop->item[i].description);
+            fprintf(f, "},\n\t");
 
-          if (eprop->item[i].identifier[0]) {
-            if (prop->flag & PROP_ENUM_FLAG) {
-              totflag |= eprop->item[i].value;
+            if (eprop->item[i].identifier[0]) {
+              if (prop->flag & PROP_ENUM_FLAG) {
+                totflag |= eprop->item[i].value;
+              }
+              else {
+                if (eprop->defaultvalue == eprop->item[i].value) {
+                  defaultfound = 1;
+                }
+              }
             }
-            else {
-              if (eprop->defaultvalue == eprop->item[i].value) {
-                defaultfound = 1;
+          }
+
+          fprintf(f, "{0, NULL, 0, NULL, NULL}\n};\n\n");
+        }
+        else {
+          for (i = 0; i < eprop->totitem; i++) {
+            if (eprop->item[i].identifier[0]) {
+              if (prop->flag & PROP_ENUM_FLAG) {
+                totflag |= eprop->item[i].value;
+              }
+              else {
+                if (eprop->defaultvalue == eprop->item[i].value) {
+                  defaultfound = 1;
+                }
               }
             }
           }
         }
-
-        fprintf(f, "{0, NULL, 0, NULL, NULL}\n};\n\n");
 
         if (prop->flag & PROP_ENUM_FLAG) {
           if (eprop->defaultvalue & ~totflag) {
@@ -4047,7 +4082,13 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
               rna_function_string(eprop->get_ex),
               rna_function_string(eprop->set_ex));
       if (eprop->item) {
-        fprintf(f, "rna_%s%s_%s_items, ", srna->identifier, strnest, prop->identifier);
+        const char *item_global_id = rna_enum_id_from_pointer(eprop->item);
+        if (item_global_id != NULL) {
+          fprintf(f, "%s, ", item_global_id);
+        }
+        else {
+          fprintf(f, "rna_%s%s_%s_items, ", srna->identifier, strnest, prop->identifier);
+        }
       }
       else {
         fprintf(f, "NULL, ");

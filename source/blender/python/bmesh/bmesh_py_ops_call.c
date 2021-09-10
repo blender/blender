@@ -608,7 +608,7 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
   /* keep switch in same order as above */
   switch (slot->slot_type) {
     case BMO_OP_SLOT_BOOL:
-      item = PyBool_FromLong((BMO_SLOT_AS_BOOL(slot)));
+      item = PyBool_FromLong(BMO_SLOT_AS_BOOL(slot));
       break;
     case BMO_OP_SLOT_INT:
       item = PyLong_FromLong(BMO_SLOT_AS_INT(slot));

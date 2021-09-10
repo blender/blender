@@ -90,6 +90,36 @@ Sequence *SEQ_iterator_yield(SeqIterator *iterator)
   return seq;
 }
 
+static bool seq_for_each_recursive(ListBase *seqbase, SeqForEachFunc callback, void *user_data)
+{
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if (!callback(seq, user_data)) {
+      /* Callback signaled stop, return. */
+      return false;
+    }
+    if (seq->type == SEQ_TYPE_META) {
+      if (!seq_for_each_recursive(&seq->seqbase, callback, user_data)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+/**
+ * Utility function to recursively iterate through all sequence strips in a `seqbase` list.
+ * Uses callback to do operations on each sequence element.
+ * The callback can stop the iteration if needed.
+ *
+ * \param seqbase: #ListBase of sequences to be iterated over.
+ * \param callback: query function callback, returns false if iteration should stop.
+ * \param user_data: pointer to user data that can be used in the callback function.
+ */
+void SEQ_for_each_callback(ListBase *seqbase, SeqForEachFunc callback, void *user_data)
+{
+  seq_for_each_recursive(seqbase, callback, user_data);
+}
+
 /**
  * Free strip collection.
  *
@@ -120,6 +150,14 @@ SeqCollection *SEQ_collection_create(const char *name)
 uint SEQ_collection_len(const SeqCollection *collection)
 {
   return BLI_gset_len(collection->set);
+}
+
+/**
+ * Check if seq is in collection.
+ */
+bool SEQ_collection_has_strip(const Sequence *seq, const SeqCollection *collection)
+{
+  return BLI_gset_haskey(collection->set, seq);
 }
 
 /**
@@ -184,6 +222,22 @@ void SEQ_collection_merge(SeqCollection *collection_dst, SeqCollection *collecti
 }
 
 /**
+ * Remove strips from collection that are also in `exclude_elements`. Source collection will be
+ * freed.
+ *
+ * \param collection: collection from which strips are removed
+ * \param exclude_elements: collection of strips to be removed
+ */
+void SEQ_collection_exclude(SeqCollection *collection, SeqCollection *exclude_elements)
+{
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, exclude_elements) {
+    SEQ_collection_remove_strip(seq, collection);
+  }
+  SEQ_collection_free(exclude_elements);
+}
+
+/**
  * Expand collection by running SEQ_query() for each strip, which will be used as reference.
  * Results of these queries will be merged into provided collection.
  *
@@ -198,22 +252,44 @@ void SEQ_collection_expand(ListBase *seqbase,
                                                SeqCollection *collection))
 {
   /* Collect expanded results for each sequence in provided SeqIteratorCollection. */
-  ListBase expand_collections = {0};
+  SeqCollection *query_matches = SEQ_collection_create(__func__);
 
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, collection) {
-    SeqCollection *expand_collection = SEQ_query_by_reference(seq, seqbase, seq_query_func);
-    BLI_addtail(&expand_collections, expand_collection);
+    SEQ_collection_merge(query_matches, SEQ_query_by_reference(seq, seqbase, seq_query_func));
   }
 
   /* Merge all expanded results in provided SeqIteratorCollection. */
-  LISTBASE_FOREACH_MUTABLE (SeqCollection *, expand_collection, &expand_collections) {
-    BLI_remlink(&expand_collections, expand_collection);
-    SEQ_collection_merge(collection, expand_collection);
+  SEQ_collection_merge(collection, query_matches);
+}
+
+/**
+ * Duplicate collection
+ *
+ * \param collection: collection to be duplicated
+ * \return duplicate of collection
+ */
+SeqCollection *SEQ_collection_duplicate(SeqCollection *collection)
+{
+  SeqCollection *duplicate = SEQ_collection_create(__func__);
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    SEQ_collection_append_strip(seq, duplicate);
   }
+  return duplicate;
 }
 
 /** \} */
+
+static void query_all_strips_recursive(ListBase *seqbase, SeqCollection *collection)
+{
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if (seq->type == SEQ_TYPE_META) {
+      query_all_strips_recursive(&seq->seqbase, collection);
+    }
+    SEQ_collection_append_strip(seq, collection);
+  }
+}
 
 /**
  * Query all strips in seqbase and nested meta strips.
@@ -226,7 +302,7 @@ SeqCollection *SEQ_query_all_strips_recursive(ListBase *seqbase)
   SeqCollection *collection = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (seq->type == SEQ_TYPE_META) {
-      SEQ_collection_merge(collection, SEQ_query_all_strips_recursive(&seq->seqbase));
+      query_all_strips_recursive(&seq->seqbase, collection);
     }
     SEQ_collection_append_strip(seq, collection);
   }
@@ -242,9 +318,7 @@ SeqCollection *SEQ_query_all_strips_recursive(ListBase *seqbase)
 SeqCollection *SEQ_query_all_strips(ListBase *seqbase)
 {
   SeqCollection *collection = SEQ_collection_create(__func__);
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    SEQ_collection_append_strip(seq, collection);
-  }
+  query_all_strips_recursive(seqbase, collection);
   return collection;
 }
 
@@ -259,6 +333,24 @@ SeqCollection *SEQ_query_selected_strips(ListBase *seqbase)
   SeqCollection *collection = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if ((seq->flag & SELECT) == 0) {
+      continue;
+    }
+    SEQ_collection_append_strip(seq, collection);
+  }
+  return collection;
+}
+
+/**
+ * Query all unselected strips in seqbase.
+ *
+ * \param seqbase: ListBase in which strips are queried
+ * \return strip collection
+ */
+SeqCollection *SEQ_query_unselected_strips(ListBase *seqbase)
+{
+  SeqCollection *collection = SEQ_collection_create(__func__);
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if ((seq->flag & SELECT) != 0) {
       continue;
     }
     SEQ_collection_append_strip(seq, collection);

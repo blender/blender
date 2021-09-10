@@ -204,6 +204,7 @@ typedef struct View3DOverlay {
   /** Edit mode settings. */
   int edit_flag;
   float normals_length;
+  float normals_constant_screen_size;
   float backwire_opacity;
 
   /** Paint mode settings. */
@@ -238,6 +239,8 @@ typedef struct View3DOverlay {
   float gpencil_vertex_paint_opacity;
   /** Handles display type for curves. */
   int handle_display;
+
+  char _pad[4];
 } View3DOverlay;
 
 /* View3DOverlay->handle_display */
@@ -551,6 +554,7 @@ enum {
   // V3D_OVERLAY_EDIT_CU_HANDLES = (1 << 20),
 
   V3D_OVERLAY_EDIT_CU_NORMALS = (1 << 21),
+  V3D_OVERLAY_EDIT_CONSTANT_SCREEN_SIZE_NORMALS = (1 << 22),
 };
 
 /** #View3DOverlay.paint_flag */

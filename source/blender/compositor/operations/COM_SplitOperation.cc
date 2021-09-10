@@ -40,7 +40,7 @@ SplitOperation::SplitOperation()
 
 void SplitOperation::initExecution()
 {
-  // When initializing the tree during initial load the width and height can be zero.
+  /* When initializing the tree during initial load the width and height can be zero. */
   this->m_image1Input = getInputSocketReader(0);
   this->m_image2Input = getInputSocketReader(1);
 }
@@ -77,6 +77,19 @@ void SplitOperation::determineResolution(unsigned int resolution[2],
   this->setResolutionInputSocketIndex((tempResolution[0] && tempResolution[1]) ? 0 : 1);
 
   NodeOperation::determineResolution(resolution, preferredResolution);
+}
+
+void SplitOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                  const rcti &area,
+                                                  Span<MemoryBuffer *> inputs)
+{
+  const int percent = this->m_xSplit ? this->m_splitPercentage * this->getWidth() / 100.0f :
+                                       this->m_splitPercentage * this->getHeight() / 100.0f;
+  const size_t elem_bytes = COM_data_type_bytes_len(getOutputSocket()->getDataType());
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const bool is_image1 = this->m_xSplit ? it.x > percent : it.y > percent;
+    memcpy(it.out, it.in(is_image1 ? 0 : 1), elem_bytes);
+  }
 }
 
 }  // namespace blender::compositor

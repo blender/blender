@@ -399,7 +399,7 @@ typedef struct WORKBENCH_ViewLayerData {
 /* inline helper functions */
 BLI_INLINE bool workbench_is_specular_highlight_enabled(WORKBENCH_PrivateData *wpd)
 {
-  if ((wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT)) {
+  if (wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT) {
     if (STUDIOLIGHT_ENABLED(wpd) || MATCAP_ENABLED(wpd)) {
       return (wpd->studio_light->flag & STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS) != 0;
     }

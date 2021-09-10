@@ -111,34 +111,51 @@ static void space_image_gpu_texture_get(Image *image,
     /* Update multi-index and pass for the current eye. */
     BKE_image_multilayer_index(image->rr, &sima->iuser);
   }
-  BKE_image_multiview_index(image, &sima->iuser);
+  else {
+    BKE_image_multiview_index(image, &sima->iuser);
+  }
 
-  if (ibuf) {
-    const int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(ibuf);
-    if (sima_flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1))) {
-      if (ibuf->zbuf) {
-        BLI_assert(!"Integer based depth buffers not supported");
-      }
-      else if (ibuf->zbuf_float) {
-        *r_gpu_texture = GPU_texture_create_2d(
-            __func__, ibuf->x, ibuf->y, 0, GPU_R16F, ibuf->zbuf_float);
-        *r_owns_texture = true;
-      }
-      else if (ibuf->rect_float && ibuf->channels == 1) {
-        *r_gpu_texture = GPU_texture_create_2d(
-            __func__, ibuf->x, ibuf->y, 0, GPU_R16F, ibuf->rect_float);
-        *r_owns_texture = true;
-      }
+  if (ibuf == NULL) {
+    return;
+  }
+
+  if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
+    /* This code-path is only supposed to happen when drawing a lazily-allocatable render result.
+     * In all the other cases the `ED_space_image_acquire_buffer()` is expected to return NULL as
+     * an image buffer when it has no pixels. */
+
+    BLI_assert(image->type == IMA_TYPE_R_RESULT);
+
+    float zero[4] = {0, 0, 0, 0};
+    *r_gpu_texture = GPU_texture_create_2d(__func__, 1, 1, 0, GPU_RGBA16F, zero);
+    *r_owns_texture = true;
+    return;
+  }
+
+  const int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(ibuf);
+  if (sima_flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1))) {
+    if (ibuf->zbuf) {
+      BLI_assert_msg(0, "Integer based depth buffers not supported");
     }
-    else if (image->source == IMA_SRC_TILED) {
-      *r_gpu_texture = BKE_image_get_gpu_tiles(image, iuser, ibuf);
-      *r_tex_tile_data = BKE_image_get_gpu_tilemap(image, iuser, NULL);
-      *r_owns_texture = false;
+    else if (ibuf->zbuf_float) {
+      *r_gpu_texture = GPU_texture_create_2d(
+          __func__, ibuf->x, ibuf->y, 0, GPU_R16F, ibuf->zbuf_float);
+      *r_owns_texture = true;
     }
-    else {
-      *r_gpu_texture = BKE_image_get_gpu_texture(image, iuser, ibuf);
-      *r_owns_texture = false;
+    else if (ibuf->rect_float && ibuf->channels == 1) {
+      *r_gpu_texture = GPU_texture_create_2d(
+          __func__, ibuf->x, ibuf->y, 0, GPU_R16F, ibuf->rect_float);
+      *r_owns_texture = true;
     }
+  }
+  else if (image->source == IMA_SRC_TILED) {
+    *r_gpu_texture = BKE_image_get_gpu_tiles(image, iuser, ibuf);
+    *r_tex_tile_data = BKE_image_get_gpu_tilemap(image, iuser, NULL);
+    *r_owns_texture = false;
+  }
+  else {
+    *r_gpu_texture = BKE_image_get_gpu_texture(image, iuser, ibuf);
+    *r_owns_texture = false;
   }
 }
 

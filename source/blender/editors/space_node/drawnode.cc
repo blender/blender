@@ -165,7 +165,7 @@ static void node_buts_curvevec(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 }
 
 #define SAMPLE_FLT_ISNONE FLT_MAX
-/* bad bad, 2.5 will do better?... no it won't... */
+/* Bad bad, 2.5 will do better? ... no it won't! */
 static float _sample_col[4] = {SAMPLE_FLT_ISNONE};
 void ED_node_sample_set(const float col[4])
 {
@@ -362,8 +362,12 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
   float x = BLI_rctf_cent_x(rct) - (0.5f * width);
   float y = rct->ymax - label_height;
 
-  BLF_position(fontid, x, y, 0);
-  BLF_draw(fontid, label, BLF_DRAW_STR_DUMMY_MAX);
+  /* label */
+  const bool has_label = node->label[0] != '\0';
+  if (has_label) {
+    BLF_position(fontid, x, y, 0);
+    BLF_draw(fontid, label, BLF_DRAW_STR_DUMMY_MAX);
+  }
 
   /* draw text body */
   if (node->id) {
@@ -374,7 +378,8 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
 
     /* 'x' doesn't need aspect correction */
     x = rct->xmin + margin;
-    y = rct->ymax - (label_height + line_spacing);
+    y = rct->ymax - label_height - (has_label ? line_spacing : 0);
+
     /* early exit */
     int y_min = y + ((margin * 2) - (y - rct->ymin));
 
@@ -455,10 +460,8 @@ static void node_draw_frame(const bContext *C,
     UI_draw_roundbox_aa(rct, false, BASIS_RAD, color);
   }
 
-  /* label */
-  if (node->label[0] != '\0') {
-    node_draw_frame_label(ntree, node, snode->runtime->aspect);
-  }
+  /* label and text */
+  node_draw_frame_label(ntree, node, snode->runtime->aspect);
 
   UI_block_end(C, node->block);
   UI_block_draw(C, node->block);
@@ -1953,8 +1956,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
                    0,
                    0,
                    0,
-                   false,
-                   false);
+                   UI_TEMPLATE_LIST_FLAG_NONE);
     RNA_property_collection_lookup_int(
         ptr, RNA_struct_find_property(ptr, "layer_slots"), active_index, &active_input_ptr);
   }
@@ -1972,8 +1974,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
                    0,
                    0,
                    0,
-                   false,
-                   false);
+                   UI_TEMPLATE_LIST_FLAG_NONE);
     RNA_property_collection_lookup_int(
         ptr, RNA_struct_find_property(ptr, "file_slots"), active_index, &active_input_ptr);
   }
@@ -3598,8 +3599,26 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_TEXTURE: {
-      uiTemplateID(
-          layout, C, ptr, "default_value", "texture.new", nullptr, nullptr, 0, ICON_NONE, nullptr);
+      if (text[0] == '\0') {
+        uiTemplateID(layout,
+                     C,
+                     ptr,
+                     "default_value",
+                     "texture.new",
+                     nullptr,
+                     nullptr,
+                     0,
+                     ICON_NONE,
+                     nullptr);
+      }
+      else {
+        /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
+        uiLayout *row = uiLayoutSplit(layout, 0.3f, false);
+        uiItemL(row, text, 0);
+        uiTemplateID(
+            row, C, ptr, "default_value", "texture.new", nullptr, nullptr, 0, ICON_NONE, nullptr);
+      }
+
       break;
     }
     case SOCK_MATERIAL: {
@@ -3911,8 +3930,10 @@ static struct {
   GPUVertBuf *inst_vbo;
   uint p0_id, p1_id, p2_id, p3_id;
   uint colid_id, muted_id;
+  uint dim_factor_id;
   GPUVertBufRaw p0_step, p1_step, p2_step, p3_step;
   GPUVertBufRaw colid_step, muted_step;
+  GPUVertBufRaw dim_factor_step;
   uint count;
   bool enabled;
 } g_batch_link;
@@ -3927,6 +3948,8 @@ static void nodelink_batch_reset()
       g_batch_link.inst_vbo, g_batch_link.colid_id, &g_batch_link.colid_step);
   GPU_vertbuf_attr_get_raw_data(
       g_batch_link.inst_vbo, g_batch_link.muted_id, &g_batch_link.muted_step);
+  GPU_vertbuf_attr_get_raw_data(
+      g_batch_link.inst_vbo, g_batch_link.dim_factor_id, &g_batch_link.dim_factor_step);
   g_batch_link.count = 0;
 }
 
@@ -4044,6 +4067,8 @@ static void nodelink_batch_init()
       &format_inst, "colid_doarrow", GPU_COMP_U8, 4, GPU_FETCH_INT);
   g_batch_link.muted_id = GPU_vertformat_attr_add(
       &format_inst, "domuted", GPU_COMP_U8, 2, GPU_FETCH_INT);
+  g_batch_link.dim_factor_id = GPU_vertformat_attr_add(
+      &format_inst, "dim_factor", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   g_batch_link.inst_vbo = GPU_vertbuf_create_with_format_ex(&format_inst, GPU_USAGE_STREAM);
   /* Alloc max count but only draw the range we need. */
   GPU_vertbuf_data_alloc(g_batch_link.inst_vbo, NODELINK_GROUP_SIZE);
@@ -4119,7 +4144,8 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
                                     int th_col2,
                                     int th_col3,
                                     bool drawarrow,
-                                    bool drawmuted)
+                                    bool drawmuted,
+                                    float dim_factor)
 {
   /* Only allow these colors. If more is needed, you need to modify the shader accordingly. */
   BLI_assert(ELEM(th_col1, TH_WIRE_INNER, TH_WIRE, TH_ACTIVE, TH_EDGE_SELECT, TH_REDALERT));
@@ -4138,6 +4164,7 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
   colid[3] = drawarrow;
   char *muted = (char *)GPU_vertbuf_raw_step(&g_batch_link.muted_step);
   muted[0] = drawmuted;
+  *(float *)GPU_vertbuf_raw_step(&g_batch_link.dim_factor_step) = dim_factor;
 
   if (g_batch_link.count == NODELINK_GROUP_SIZE) {
     nodelink_batch_draw(snode);
@@ -4152,6 +4179,8 @@ void node_draw_link_bezier(const View2D *v2d,
                            int th_col2,
                            int th_col3)
 {
+  const float dim_factor = node_link_dim_factor(v2d, link);
+
   float vec[4][2];
   const bool highlighted = link->flag & NODE_LINK_TEMP_HIGHLIGHT;
   if (node_link_bezier_handles(v2d, snode, link, vec)) {
@@ -4164,8 +4193,17 @@ void node_draw_link_bezier(const View2D *v2d,
 
     if (g_batch_link.enabled && !highlighted) {
       /* Add link to batch. */
-      nodelink_batch_add_link(
-          snode, vec[0], vec[1], vec[2], vec[3], th_col1, th_col2, th_col3, drawarrow, drawmuted);
+      nodelink_batch_add_link(snode,
+                              vec[0],
+                              vec[1],
+                              vec[2],
+                              vec[3],
+                              th_col1,
+                              th_col2,
+                              th_col3,
+                              drawarrow,
+                              drawmuted,
+                              dim_factor);
     }
     else {
       /* Draw single link. */
@@ -4190,6 +4228,7 @@ void node_draw_link_bezier(const View2D *v2d,
       GPU_batch_uniform_1f(batch, "arrowSize", ARROW_SIZE);
       GPU_batch_uniform_1i(batch, "doArrow", drawarrow);
       GPU_batch_uniform_1i(batch, "doMuted", drawmuted);
+      GPU_batch_uniform_1f(batch, "dim_factor", dim_factor);
       GPU_batch_draw(batch);
     }
   }

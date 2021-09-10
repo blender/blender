@@ -230,7 +230,7 @@ static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km,
                                          bool repeat,
                                          bool head)
 {
-  /*  wmWindowManager *wm = CTX_wm_manager(C); */
+  // wmWindowManager *wm = CTX_wm_manager(C);
   wmKeyMapItem *kmi = NULL;
   char idname_bl[OP_MAX_TYPENAME];
   int modifier = 0;

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
@@ -26,7 +26,7 @@ namespace blender::compositor {
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
-class ColorSpillOperation : public NodeOperation {
+class ColorSpillOperation : public MultiThreadedOperation {
  protected:
   NodeColorspill *m_settings;
   SocketReader *m_inputImageReader;
@@ -65,6 +65,10 @@ class ColorSpillOperation : public NodeOperation {
   }
 
   float calculateMapValue(float fac, float *input);
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

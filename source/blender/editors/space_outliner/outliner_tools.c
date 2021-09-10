@@ -92,6 +92,7 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
 
 #include "outliner_intern.h"
@@ -845,8 +846,20 @@ static void id_override_library_create_fn(bContext *C,
         if (!ID_IS_LINKED(te->store_elem->id)) {
           break;
         }
+        /* If we'd need to override that aren't ID, but it is not overridable, abort. */
+        if (!ID_IS_OVERRIDABLE_LIBRARY(te->store_elem->id)) {
+          BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+          BKE_reportf(reports,
+                      RPT_WARNING,
+                      "Could not create library override from data-block '%s', one of its parents "
+                      "is not overridable ('%s')",
+                      id_root->name,
+                      te->store_elem->id->name);
+          return;
+        }
         te->store_elem->id->tag |= LIB_TAG_DOIT;
       }
+
       success = BKE_lib_override_library_create(
           bmain, CTX_data_scene(C), CTX_data_view_layer(C), id_root, id_reference, NULL);
     }
@@ -1269,18 +1282,31 @@ static void ebone_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), 
   }
 }
 
-static void sequence_fn(int event, TreeElement *te, TreeStoreElem *tselem, void *scene_ptr)
+static void sequence_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *scene_ptr)
 {
   Sequence *seq = (Sequence *)te->directdata;
-  if (event == OL_DOP_SELECT) {
-    Scene *scene = (Scene *)scene_ptr;
-    Editing *ed = SEQ_editing_get(scene, false);
-    if (BLI_findindex(ed->seqbasep, seq) != -1) {
+  Scene *scene = (Scene *)scene_ptr;
+  Editing *ed = SEQ_editing_get(scene);
+  if (BLI_findindex(ed->seqbasep, seq) != -1) {
+    if (event == OL_DOP_SELECT) {
       ED_sequencer_select_sequence_single(scene, seq, true);
     }
+    else if (event == OL_DOP_DESELECT) {
+      seq->flag &= ~SELECT;
+    }
+    else if (event == OL_DOP_HIDE) {
+      if (!(seq->flag & SEQ_MUTE)) {
+        seq->flag |= SEQ_MUTE;
+        SEQ_relations_invalidate_dependent(scene, seq);
+      }
+    }
+    else if (event == OL_DOP_UNHIDE) {
+      if (seq->flag & SEQ_MUTE) {
+        seq->flag &= ~SEQ_MUTE;
+        SEQ_relations_invalidate_dependent(scene, seq);
+      }
+    }
   }
-
-  (void)tselem;
 }
 
 static void gpencil_layer_fn(int event,
@@ -1747,8 +1773,6 @@ typedef enum eOutlinerIdOpTypes {
   OUTLINER_IDOP_INVALID = 0,
 
   OUTLINER_IDOP_UNLINK,
-  OUTLINER_IDOP_MARK_ASSET,
-  OUTLINER_IDOP_CLEAR_ASSET,
   OUTLINER_IDOP_LOCAL,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY,
@@ -1775,8 +1799,6 @@ typedef enum eOutlinerIdOpTypes {
 /* TODO: implement support for changing the ID-block used. */
 static const EnumPropertyItem prop_id_op_types[] = {
     {OUTLINER_IDOP_UNLINK, "UNLINK", 0, "Unlink", ""},
-    {OUTLINER_IDOP_MARK_ASSET, "MARK_ASSET", 0, "Mark Asset", ""},
-    {OUTLINER_IDOP_CLEAR_ASSET, "CLEAR_ASSET", 0, "Clear Asset", ""},
     {OUTLINER_IDOP_LOCAL, "LOCAL", 0, "Make Local", ""},
     {OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
     {OUTLINER_IDOP_DELETE, "DELETE", ICON_X, "Delete", ""},
@@ -1859,9 +1881,6 @@ static bool outliner_id_operation_item_poll(bContext *C,
   }
 
   switch (enum_value) {
-    case OUTLINER_IDOP_MARK_ASSET:
-    case OUTLINER_IDOP_CLEAR_ASSET:
-      return U.experimental.use_asset_browser;
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE:
       if (ID_IS_OVERRIDABLE_LIBRARY(tselem->id)) {
         return true;
@@ -2014,14 +2033,6 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
           BKE_report(op->reports, RPT_WARNING, "Not yet implemented");
           break;
       }
-      break;
-    }
-    case OUTLINER_IDOP_MARK_ASSET: {
-      WM_operator_name_call(C, "ASSET_OT_mark", WM_OP_EXEC_DEFAULT, NULL);
-      break;
-    }
-    case OUTLINER_IDOP_CLEAR_ASSET: {
-      WM_operator_name_call(C, "ASSET_OT_clear", WM_OP_EXEC_DEFAULT, NULL);
       break;
     }
     case OUTLINER_IDOP_LOCAL: {
@@ -2712,16 +2723,6 @@ void OUTLINER_OT_modifier_operation(wmOperatorType *ot)
 /** \name Data Menu Operator
  * \{ */
 
-/* XXX: select linked is for RNA structs only. */
-static const EnumPropertyItem prop_data_op_types[] = {
-    {OL_DOP_SELECT, "SELECT", 0, "Select", ""},
-    {OL_DOP_DESELECT, "DESELECT", 0, "Deselect", ""},
-    {OL_DOP_HIDE, "HIDE", 0, "Hide", ""},
-    {OL_DOP_UNHIDE, "UNHIDE", 0, "Unhide", ""},
-    {OL_DOP_SELECT_LINKED, "SELECT_LINKED", 0, "Select Linked", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
 static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
@@ -2765,6 +2766,8 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
       Scene *scene = CTX_data_scene(C);
       outliner_do_data_operation(
           space_outliner, datalevel, event, &space_outliner->tree, sequence_fn, scene);
+      WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
+      ED_undo_push(C, "Sequencer operation");
 
       break;
     }
@@ -2792,6 +2795,42 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+/* Dynamically populate an enum of Keying Sets */
+static const EnumPropertyItem *outliner_data_op_sets_enum_item_fn(bContext *C,
+                                                                  PointerRNA *UNUSED(ptr),
+                                                                  PropertyRNA *UNUSED(prop),
+                                                                  bool *UNUSED(r_free))
+{
+  /* Check for invalid states. */
+  if (C == NULL) {
+    return DummyRNA_DEFAULT_items;
+  }
+
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+  if (space_outliner == NULL) {
+    return DummyRNA_DEFAULT_items;
+  }
+
+  static const EnumPropertyItem optype_sel_and_hide[] = {
+      {OL_DOP_SELECT, "SELECT", 0, "Select", ""},
+      {OL_DOP_DESELECT, "DESELECT", 0, "Deselect", ""},
+      {OL_DOP_HIDE, "HIDE", 0, "Hide", ""},
+      {OL_DOP_UNHIDE, "UNHIDE", 0, "Unhide", ""},
+      {0, NULL, 0, NULL, NULL}};
+
+  static const EnumPropertyItem optype_sel_linked[] = {
+      {OL_DOP_SELECT_LINKED, "SELECT_LINKED", 0, "Select Linked", ""}, {0, NULL, 0, NULL, NULL}};
+
+  TreeElement *te = get_target_element(space_outliner);
+  TreeStoreElem *tselem = TREESTORE(te);
+
+  if (tselem->type == TSE_RNA_STRUCT) {
+    return optype_sel_linked;
+  }
+
+  return optype_sel_and_hide;
+}
+
 void OUTLINER_OT_data_operation(wmOperatorType *ot)
 {
   /* identifiers */
@@ -2805,7 +2844,8 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 
   ot->flag = 0;
 
-  ot->prop = RNA_def_enum(ot->srna, "type", prop_data_op_types, 0, "Data Operation", "");
+  ot->prop = RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Data Operation", "");
+  RNA_def_enum_funcs(ot->prop, outliner_data_op_sets_enum_item_fn);
 }
 
 /** \} */

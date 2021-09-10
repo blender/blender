@@ -23,7 +23,7 @@
 
 #include "BLI_string.h"
 
-#include "draw_cache_extract_mesh_private.h"
+#include "extract_mesh.h"
 
 namespace blender::draw {
 
@@ -123,7 +123,7 @@ constexpr MeshExtract create_extractor_uv()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = 0;
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.uv);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.uv);
   return extractor;
 }
 

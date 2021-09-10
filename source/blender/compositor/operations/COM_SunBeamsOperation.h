@@ -17,11 +17,11 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class SunBeamsOperation : public NodeOperation {
+class SunBeamsOperation : public MultiThreadedOperation {
  public:
   SunBeamsOperation();
 
@@ -39,6 +39,14 @@ class SunBeamsOperation : public NodeOperation {
   {
     m_data = data;
   }
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+
+ private:
+  void calc_rays_common_data();
 
  private:
   NodeSunBeams m_data;

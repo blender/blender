@@ -211,8 +211,17 @@ static bool is_cursor_visible_2d(const DRWContextState *draw_ctx)
     return false;
   }
   SpaceImage *sima = (SpaceImage *)space_data;
-  if (sima->mode != SI_MODE_UV) {
-    return false;
+  switch (sima->mode) {
+    case SI_MODE_VIEW:
+      return false;
+      break;
+    case SI_MODE_PAINT:
+      return false;
+      break;
+    case SI_MODE_MASK:
+      break;
+    case SI_MODE_UV:
+      break;
   }
   return (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS) != 0;
 }

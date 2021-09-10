@@ -385,7 +385,7 @@ void ColorSpaceManager::free_memory()
 {
 #ifdef WITH_OCIO
   map_free_memory(cached_colorspaces);
-  map_free_memory(cached_colorspaces);
+  map_free_memory(cached_processors);
 #endif
 }
 

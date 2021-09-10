@@ -95,6 +95,22 @@ void CropOperation::executePixelSampled(float output[4], float x, float y, Pixel
   }
 }
 
+void CropOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                 const rcti &area,
+                                                 Span<MemoryBuffer *> inputs)
+{
+  rcti crop_area;
+  BLI_rcti_init(&crop_area, m_xmin, m_xmax, m_ymin, m_ymax);
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    if (BLI_rcti_isect_pt(&crop_area, it.x, it.y)) {
+      copy_v4_v4(it.out, it.in(0));
+    }
+    else {
+      zero_v4(it.out);
+    }
+  }
+}
+
 CropImageOperation::CropImageOperation() : CropBaseOperation()
 {
   /* pass */
@@ -112,6 +128,18 @@ bool CropImageOperation::determineDependingAreaOfInterest(rcti *input,
   newInput.ymin = input->ymin + this->m_ymin;
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+}
+
+void CropImageOperation::get_area_of_interest(const int input_idx,
+                                              const rcti &output_area,
+                                              rcti &r_input_area)
+{
+  BLI_assert(input_idx == 0);
+  UNUSED_VARS_NDEBUG(input_idx);
+  r_input_area.xmax = output_area.xmax + this->m_xmin;
+  r_input_area.xmin = output_area.xmin + this->m_xmin;
+  r_input_area.ymax = output_area.ymax + this->m_ymin;
+  r_input_area.ymin = output_area.ymin + this->m_ymin;
 }
 
 void CropImageOperation::determineResolution(unsigned int resolution[2],
@@ -133,6 +161,23 @@ void CropImageOperation::executePixelSampled(float output[4],
   }
   else {
     zero_v4(output);
+  }
+}
+
+void CropImageOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                      const rcti &area,
+                                                      Span<MemoryBuffer *> inputs)
+{
+  rcti op_area;
+  BLI_rcti_init(&op_area, 0, getWidth(), 0, getHeight());
+  const MemoryBuffer *input = inputs[0];
+  for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
+    if (BLI_rcti_isect_pt(&op_area, it.x, it.y)) {
+      input->read_elem_checked(it.x + this->m_xmin, it.y + this->m_ymin, it.out);
+    }
+    else {
+      zero_v4(it.out);
+    }
   }
 }
 

@@ -38,24 +38,6 @@
 
 #include "../generic/py_capi_utils.h"
 
-char *BPy_enum_as_string(const EnumPropertyItem *item)
-{
-  DynStr *dynstr = BLI_dynstr_new();
-
-  /* We can't compare with the first element in the array
-   * since it may be a category (without an identifier). */
-  for (bool is_first = true; item->identifier; item++) {
-    if (item->identifier[0]) {
-      BLI_dynstr_appendf(dynstr, is_first ? "'%s'" : ", '%s'", item->identifier);
-      is_first = false;
-    }
-  }
-
-  char *cstring = BLI_dynstr_get_cstring(dynstr);
-  BLI_dynstr_free(dynstr);
-  return cstring;
-}
-
 short BPy_reports_to_error(ReportList *reports, PyObject *exception, const bool clear)
 {
   char *report_str;

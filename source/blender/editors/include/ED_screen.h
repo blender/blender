@@ -317,6 +317,8 @@ bool ED_operator_animview_active(struct bContext *C);
 bool ED_operator_outliner_active(struct bContext *C);
 bool ED_operator_outliner_active_no_editobject(struct bContext *C);
 bool ED_operator_file_active(struct bContext *C);
+bool ED_operator_file_browsing_active(struct bContext *C);
+bool ED_operator_asset_browsing_active(struct bContext *C);
 bool ED_operator_spreadsheet_active(struct bContext *C);
 bool ED_operator_action_active(struct bContext *C);
 bool ED_operator_buttons_active(struct bContext *C);

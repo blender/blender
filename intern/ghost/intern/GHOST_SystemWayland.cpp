@@ -52,8 +52,6 @@
 
 #include <cstring>
 
-#include <linux/input-event-codes.h>
-
 /* selected input event code defines from 'linux/input-event-codes.h'
  * We include some of the button input event codes here, since the header is
  * only available in more recent kernel versions. The event codes are used to
@@ -1806,12 +1804,42 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
   static const int32_t stride = sizex * 4; /* ARGB */
   cursor->file_buffer->size = size_t(stride * sizey);
 
+#ifdef HAVE_MEMFD_CREATE
   const int fd = memfd_create("blender-cursor-custom", MFD_CLOEXEC | MFD_ALLOW_SEALING);
-  fcntl(fd, F_ADD_SEALS, F_SEAL_SHRINK);
-  posix_fallocate(fd, 0, int32_t(cursor->file_buffer->size));
+  if (fd >= 0) {
+    fcntl(fd, F_ADD_SEALS, F_SEAL_SHRINK | F_SEAL_SEAL);
+  }
+#else
+  char *path = getenv("XDG_RUNTIME_DIR");
+  if (!path) {
+    errno = ENOENT;
+    return GHOST_kFailure;
+  }
+
+  char *tmpname;
+  asprintf(&tmpname, "%s/%s", path, "blender-XXXXXX");
+  const int fd = mkostemp(tmpname, O_CLOEXEC);
+  if (fd >= 0) {
+    unlink(tmpname);
+  }
+  free(tmpname);
+#endif
+
+  if (fd < 0) {
+    return GHOST_kFailure;
+  }
+
+  if (posix_fallocate(fd, 0, int32_t(cursor->file_buffer->size)) != 0) {
+    return GHOST_kFailure;
+  }
 
   cursor->file_buffer->data = mmap(
       nullptr, cursor->file_buffer->size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+  if (cursor->file_buffer->data == MAP_FAILED) {
+    close(fd);
+    return GHOST_kFailure;
+  }
 
   struct wl_shm_pool *pool = wl_shm_create_pool(d->shm, fd, int32_t(cursor->file_buffer->size));
 

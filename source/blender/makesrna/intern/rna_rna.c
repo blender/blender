@@ -123,7 +123,8 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
     {PROP_UNIT_AREA, "AREA", 0, "Area", ""},
     {PROP_UNIT_VOLUME, "VOLUME", 0, "Volume", ""},
     {PROP_UNIT_ROTATION, "ROTATION", 0, "Rotation", ""},
-    {PROP_UNIT_TIME, "TIME", 0, "Time", ""},
+    {PROP_UNIT_TIME, "TIME", 0, "Time (Scene Relative)", ""},
+    {PROP_UNIT_TIME_ABSOLUTE, "TIME_ABSOLUTE", 0, "Time (Absolute)", ""},
     {PROP_UNIT_VELOCITY, "VELOCITY", 0, "Velocity", ""},
     {PROP_UNIT_ACCELERATION, "ACCELERATION", 0, "Acceleration", ""},
     {PROP_UNIT_MASS, "MASS", 0, "Mass", ""},
@@ -458,29 +459,6 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
       }
     }
   } while ((srna = srna->base));
-
-  /* this was used pre 2.5beta0, now ID property access uses python's
-   * getitem style access
-   * - ob["foo"] rather than ob.foo */
-#  if 0
-  if (ptr->data) {
-    IDProperty *group, *idp;
-
-    group = RNA_struct_idprops(ptr, 0);
-
-    if (group) {
-      for (idp = group->data.group.first; idp; idp = idp->next) {
-        if (STREQ(idp->name, key)) {
-          propptr.type = &RNA_Property;
-          propptr.data = idp;
-
-          *r_ptr = propptr;
-          return true;
-        }
-      }
-    }
-  }
-#  endif
   return false;
 }
 
@@ -2089,7 +2067,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
   switch (RNA_property_type(prop_local)) {
     case PROP_BOOLEAN:
       /* TODO: support boolean ops? Really doubt this would ever be useful though. */
-      BLI_assert(0 && "Boolean properties support no override diff operation");
+      BLI_assert_msg(0, "Boolean properties support no override diff operation");
       break;
     case PROP_INT: {
       int prop_min, prop_max;
@@ -2123,7 +2101,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
                 for (int j = len_local; j--;) {
                   array_b[j] = j >= i ? -array_b[j] : fac * (array_a[j] - array_b[j]);
                   if (array_b[j] < prop_min || array_b[j] > prop_max) {
-                    /* We failed to  find a suitable diff op,
+                    /* We failed to find a suitable diff op,
                      * fall back to plain REPLACE one. */
                     opop->operation = IDOVERRIDE_LIBRARY_OP_REPLACE;
                     do_set = false;
@@ -2143,7 +2121,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
             break;
           }
           default:
-            BLI_assert(0 && "Unsupported RNA override diff operation on integer");
+            BLI_assert_msg(0, "Unsupported RNA override diff operation on integer");
             break;
         }
 
@@ -2175,7 +2153,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
             break;
           }
           default:
-            BLI_assert(0 && "Unsupported RNA override diff operation on integer");
+            BLI_assert_msg(0, "Unsupported RNA override diff operation on integer");
             break;
         }
       }
@@ -2213,7 +2191,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
                 for (int j = len_local; j--;) {
                   array_b[j] = j >= i ? -array_b[j] : fac * (array_a[j] - array_b[j]);
                   if (array_b[j] < prop_min || array_b[j] > prop_max) {
-                    /* We failed to  find a suitable diff op,
+                    /* We failed to find a suitable diff op,
                      * fall back to plain REPLACE one. */
                     opop->operation = IDOVERRIDE_LIBRARY_OP_REPLACE;
                     do_set = false;
@@ -2256,7 +2234,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
             break;
           }
           default:
-            BLI_assert(0 && "Unsupported RNA override diff operation on float");
+            BLI_assert_msg(0, "Unsupported RNA override diff operation on float");
             break;
         }
 
@@ -2299,7 +2277,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
             break;
           }
           default:
-            BLI_assert(0 && "Unsupported RNA override diff operation on float");
+            BLI_assert_msg(0, "Unsupported RNA override diff operation on float");
             break;
         }
       }
@@ -2307,17 +2285,17 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
     }
     case PROP_ENUM:
       /* TODO: support add/sub, for bitflags? */
-      BLI_assert(0 && "Enum properties support no override diff operation");
+      BLI_assert_msg(0, "Enum properties support no override diff operation");
       break;
     case PROP_POINTER:
-      BLI_assert(0 && "Pointer properties support no override diff operation");
+      BLI_assert_msg(0, "Pointer properties support no override diff operation");
       break;
     case PROP_STRING:
-      BLI_assert(0 && "String properties support no override diff operation");
+      BLI_assert_msg(0, "String properties support no override diff operation");
       break;
     case PROP_COLLECTION:
       /* XXX TODO: support this of course... */
-      BLI_assert(0 && "Collection properties support no override diff operation");
+      BLI_assert_msg(0, "Collection properties support no override diff operation");
       break;
     default:
       break;
@@ -2364,7 +2342,7 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
             RNA_property_boolean_set_array(ptr_dst, prop_dst, array_a);
             break;
           default:
-            BLI_assert(0 && "Unsupported RNA override operation on boolean");
+            BLI_assert_msg(0, "Unsupported RNA override operation on boolean");
             return false;
         }
 
@@ -2380,7 +2358,7 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
             RNA_PROPERTY_SET_SINGLE(boolean, ptr_dst, prop_dst, index, value);
             break;
           default:
-            BLI_assert(0 && "Unsupported RNA override operation on boolean");
+            BLI_assert_msg(0, "Unsupported RNA override operation on boolean");
             return false;
         }
       }
@@ -2421,7 +2399,7 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
             }
             break;
           default:
-            BLI_assert(0 && "Unsupported RNA override operation on integer");
+            BLI_assert_msg(0, "Unsupported RNA override operation on integer");
             return false;
         }
 
@@ -2459,7 +2437,7 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
                                         storage_value);
             break;
           default:
-            BLI_assert(0 && "Unsupported RNA override operation on integer");
+            BLI_assert_msg(0, "Unsupported RNA override operation on integer");
             return false;
         }
       }
@@ -2506,7 +2484,7 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
             }
             break;
           default:
-            BLI_assert(0 && "Unsupported RNA override operation on float");
+            BLI_assert_msg(0, "Unsupported RNA override operation on float");
             return false;
         }
 
@@ -2552,7 +2530,7 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
                                         storage_value);
             break;
           default:
-            BLI_assert(0 && "Unsupported RNA override operation on float");
+            BLI_assert_msg(0, "Unsupported RNA override operation on float");
             return false;
         }
       }
@@ -2566,7 +2544,7 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
           break;
         /* TODO: support add/sub, for bitflags? */
         default:
-          BLI_assert(0 && "Unsupported RNA override operation on enum");
+          BLI_assert_msg(0, "Unsupported RNA override operation on enum");
           return false;
       }
       return true;
@@ -2579,7 +2557,7 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
           RNA_property_pointer_set(ptr_dst, prop_dst, value, NULL);
           break;
         default:
-          BLI_assert(0 && "Unsupported RNA override operation on pointer");
+          BLI_assert_msg(0, "Unsupported RNA override operation on pointer");
           return false;
       }
       return true;
@@ -2593,7 +2571,7 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
           RNA_property_string_set(ptr_dst, prop_dst, value);
           break;
         default:
-          BLI_assert(0 && "Unsupported RNA override operation on string");
+          BLI_assert_msg(0, "Unsupported RNA override operation on string");
           return false;
       }
 
@@ -2609,7 +2587,7 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
       const bool is_dst_idprop = (prop_dst->magic != RNA_MAGIC) ||
                                  (prop_dst->flag & PROP_IDPROPERTY) != 0;
       if (!(is_src_idprop && is_dst_idprop)) {
-        BLI_assert(0 && "You need to define a specific override apply callback for collections");
+        BLI_assert_msg(0, "You need to define a specific override apply callback for collections");
         return false;
       }
 
@@ -2668,7 +2646,7 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
           return RNA_property_collection_move(ptr_dst, prop_dst, item_index_added, item_index_dst);
         }
         default:
-          BLI_assert(0 && "Unsupported RNA override operation on collection");
+          BLI_assert_msg(0, "Unsupported RNA override operation on collection");
           return false;
       }
     }

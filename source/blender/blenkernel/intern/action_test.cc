@@ -30,16 +30,16 @@ namespace blender::bke::tests {
 
 TEST(action_groups, ReconstructGroupsWithReordering)
 {
-  // Construct an Action with three groups.
-  bAction action = {0};
-  FCurve groupAcurve1 = {0};
-  FCurve groupAcurve2 = {0};
-  FCurve groupBcurve1 = {0};
-  FCurve groupBcurve2 = {0};
-  FCurve groupBcurve3 = {0};
-  // Group C has no curves intentionally.
-  FCurve groupDcurve1 = {0};
-  FCurve groupDcurve2 = {0};
+  /* Construct an Action with three groups. */
+  bAction action = {{nullptr}};
+  FCurve groupAcurve1 = {nullptr};
+  FCurve groupAcurve2 = {nullptr};
+  FCurve groupBcurve1 = {nullptr};
+  FCurve groupBcurve2 = {nullptr};
+  FCurve groupBcurve3 = {nullptr};
+  /* Group C has no curves intentionally. */
+  FCurve groupDcurve1 = {nullptr};
+  FCurve groupDcurve2 = {nullptr};
 
   groupAcurve1.rna_path = (char *)"groupAcurve1";
   groupAcurve2.rna_path = (char *)"groupAcurve2";
@@ -54,18 +54,18 @@ TEST(action_groups, ReconstructGroupsWithReordering)
   BLI_addtail(&action.curves, &groupBcurve1);
   BLI_addtail(&action.curves, &groupBcurve2);
   BLI_addtail(&action.curves, &groupDcurve1);
-  BLI_addtail(&action.curves, &groupBcurve3);  // <-- The error that should be corrected.
+  BLI_addtail(&action.curves, &groupBcurve3); /* <-- The error that should be corrected. */
   BLI_addtail(&action.curves, &groupDcurve2);
 
-  // Introduce another error type, by changing some `prev` pointers.
-  groupBcurve1.prev = NULL;
+  /* Introduce another error type, by changing some `prev` pointers. */
+  groupBcurve1.prev = nullptr;
   groupBcurve3.prev = &groupBcurve2;
   groupDcurve1.prev = &groupBcurve3;
 
-  bActionGroup groupA = {0};
-  bActionGroup groupB = {0};
-  bActionGroup groupC = {0};
-  bActionGroup groupD = {0};
+  bActionGroup groupA = {nullptr};
+  bActionGroup groupB = {nullptr};
+  bActionGroup groupC = {nullptr};
+  bActionGroup groupD = {nullptr};
   strcpy(groupA.name, "groupA");
   strcpy(groupB.name, "groupB");
   strcpy(groupC.name, "groupC");
@@ -87,7 +87,7 @@ TEST(action_groups, ReconstructGroupsWithReordering)
   groupA.channels.first = &groupAcurve1;
   groupA.channels.last = &groupAcurve2;
   groupB.channels.first = &groupBcurve1;
-  groupB.channels.last = &groupBcurve3;  // The last channel in group B, after group C curve 1.
+  groupB.channels.last = &groupBcurve3; /* The last channel in group B, after group C curve 1. */
   groupD.channels.first = &groupDcurve1;
   groupD.channels.last = &groupDcurve2;
 

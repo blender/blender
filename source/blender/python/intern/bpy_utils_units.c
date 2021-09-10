@@ -67,7 +67,7 @@ static const char *bpyunits_ucategorie_items[] = {
 /**
  * These fields are just empty placeholders, actual values get set in initializations functions.
  * This allows us to avoid many handwriting, and above all,
- * to keep all systems/categories definition stuff in ``BKE_unit.h``.
+ * to keep all systems/categories definition stuff in `BKE_unit.h`.
  */
 static PyStructSequence_Field bpyunits_systems_fields[ARRAY_SIZE(bpyunits_usystem_items)];
 static PyStructSequence_Field bpyunits_categories_fields[ARRAY_SIZE(bpyunits_ucategorie_items)];
@@ -114,7 +114,7 @@ static PyObject *py_structseq_from_strings(PyTypeObject *py_type,
   BLI_assert(py_struct_seq != NULL);
 
   for (str_iter = str_items; *str_iter; str_iter++) {
-    PyStructSequence_SET_ITEM(py_struct_seq, pos++, PyUnicode_FromString((*str_iter)));
+    PyStructSequence_SET_ITEM(py_struct_seq, pos++, PyUnicode_FromString(*str_iter));
   }
 
   return py_struct_seq;

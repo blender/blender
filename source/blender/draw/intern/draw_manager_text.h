@@ -48,7 +48,7 @@ void DRW_text_edit_mesh_measure_stats(struct ARegion *region,
                                       const struct UnitSettings *unit);
 
 enum {
-  DRW_TEXT_CACHE_ASCII = (1 << 0),
+  // DRW_UNUSED_1 = (1 << 0),  /* dirty */
   DRW_TEXT_CACHE_GLOBALSPACE = (1 << 1),
   DRW_TEXT_CACHE_LOCALCLIP = (1 << 2),
   /* reference the string by pointer */

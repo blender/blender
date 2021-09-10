@@ -38,6 +38,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
+#include "BKE_main_idmap.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -192,6 +193,10 @@ void BKE_main_free(Main *mainvar)
 
   if (mainvar->relations) {
     BKE_main_relations_free(mainvar);
+  }
+
+  if (mainvar->id_map) {
+    BKE_main_idmap_destroy(mainvar->id_map);
   }
 
   BLI_spin_end((SpinLock *)mainvar->lock);
@@ -400,11 +405,8 @@ ImBuf *BKE_main_thumbnail_to_imbuf(Main *bmain, BlendThumbnail *data)
   }
 
   if (data) {
-    /* NOTE: we cannot use IMB_allocFromBuffer(), since it tries to dupalloc passed buffer,
-     *       which will fail here (we do not want to pass the first two ints!). */
-    img = IMB_allocImBuf(
-        (unsigned int)data->width, (unsigned int)data->height, 32, IB_rect | IB_metadata);
-    memcpy(img->rect, data->rect, BLEN_THUMB_MEMSIZE(data->width, data->height) - sizeof(*data));
+    img = IMB_allocFromBuffer(
+        (const uint *)data->rect, NULL, (uint)data->width, (uint)data->height, 4);
   }
 
   return img;

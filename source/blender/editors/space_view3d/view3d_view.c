@@ -964,12 +964,13 @@ static bool drw_select_filter_object_mode_lock_for_weight_paint(Object *ob, void
  *
  * \note (vc->obedit == NULL) can be set to explicitly skip edit-object selection.
  */
-int view3d_opengl_select(ViewContext *vc,
-                         uint *buffer,
-                         uint bufsize,
-                         const rcti *input,
-                         eV3DSelectMode select_mode,
-                         eV3DSelectObjectFilter select_filter)
+int view3d_opengl_select_ex(ViewContext *vc,
+                            uint *buffer,
+                            uint bufsize,
+                            const rcti *input,
+                            eV3DSelectMode select_mode,
+                            eV3DSelectObjectFilter select_filter,
+                            const bool do_material_slot_selection)
 {
   struct bThemeState theme_state;
   const wmWindowManager *wm = CTX_wm_manager(vc->C);
@@ -1119,6 +1120,7 @@ int view3d_opengl_select(ViewContext *vc,
                          use_obedit_skip,
                          draw_surface,
                          use_nearest,
+                         do_material_slot_selection,
                          &rect,
                          drw_select_loop_pass,
                          &drw_select_loop_user_data,
@@ -1149,6 +1151,7 @@ int view3d_opengl_select(ViewContext *vc,
                          use_obedit_skip,
                          draw_surface,
                          use_nearest,
+                         do_material_slot_selection,
                          &rect,
                          drw_select_loop_pass,
                          &drw_select_loop_user_data,
@@ -1176,6 +1179,16 @@ finally:
   UI_Theme_Restore(&theme_state);
 
   return hits;
+}
+
+int view3d_opengl_select(ViewContext *vc,
+                         uint *buffer,
+                         uint bufsize,
+                         const rcti *input,
+                         eV3DSelectMode select_mode,
+                         eV3DSelectObjectFilter select_filter)
+{
+  return view3d_opengl_select_ex(vc, buffer, bufsize, input, select_mode, select_filter, false);
 }
 
 int view3d_opengl_select_with_id_filter(ViewContext *vc,

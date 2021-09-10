@@ -333,6 +333,46 @@ void BezierSpline::correct_end_tangents() const
   }
 }
 
+/**
+ * De Casteljau Bezier subdivision.
+ * \param index: The index of the segment's start control point.
+ * \param next_index: The index of the control point at the end of the segment. Could be 0,
+ * if the spline is cyclic.
+ * \param parameter: The factor along the segment, between 0 and 1. Note that this is used
+ * directly by the calculation, it doesn't correspond to a portion of the evaluated length.
+ *
+ * <pre>
+ *           handle_prev         handle_next
+ *                x----------------x
+ *               /                  \
+ *              /      x---O---x     \
+ *             /        result        \
+ *            /                        \
+ *           O                          O
+ *       point_prev                  point_next
+ * </pre>
+ */
+BezierSpline::InsertResult BezierSpline::calculate_segment_insertion(const int index,
+                                                                     const int next_index,
+                                                                     const float parameter)
+{
+  BLI_assert(parameter <= 1.0f && parameter >= 0.0f);
+  BLI_assert(next_index == 0 || next_index == index + 1);
+  const float3 &point_prev = positions_[index];
+  const float3 &handle_prev = handle_positions_right_[index];
+  const float3 &handle_next = handle_positions_left_[next_index];
+  const float3 &point_next = positions_[next_index];
+  const float3 center_point = float3::interpolate(handle_prev, handle_next, parameter);
+
+  BezierSpline::InsertResult result;
+  result.handle_prev = float3::interpolate(point_prev, handle_prev, parameter);
+  result.handle_next = float3::interpolate(handle_next, point_next, parameter);
+  result.left_handle = float3::interpolate(result.handle_prev, center_point, parameter);
+  result.right_handle = float3::interpolate(center_point, result.handle_next, parameter);
+  result.position = float3::interpolate(result.left_handle, result.right_handle, parameter);
+  return result;
+}
+
 static void bezier_forward_difference_3d(const float3 &point_0,
                                          const float3 &point_1,
                                          const float3 &point_2,

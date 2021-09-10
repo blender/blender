@@ -18,11 +18,11 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class GammaCorrectOperation : public NodeOperation {
+class GammaCorrectOperation : public MultiThreadedOperation {
  private:
   /**
    * Cached reference to the inputProgram
@@ -46,9 +46,13 @@ class GammaCorrectOperation : public NodeOperation {
    * Deinitialize the execution
    */
   void deinitExecution() override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
-class GammaUncorrectOperation : public NodeOperation {
+class GammaUncorrectOperation : public MultiThreadedOperation {
  private:
   /**
    * Cached reference to the inputProgram
@@ -72,6 +76,10 @@ class GammaUncorrectOperation : public NodeOperation {
    * Deinitialize the execution
    */
   void deinitExecution() override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

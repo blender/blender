@@ -638,7 +638,7 @@ const bTheme U_theme_default = {
       .sub_back = RGBA(0x0000003e),
     },
     .shade1 = RGBA(0xa0a0a000),
-    .grid = RGBA(0x404040ff),
+    .grid = RGBA(0x212121ff),
     .vertex_select = RGBA(0xff8500ff),
     .bone_pose = RGBA(0x50c8ff50),
     .cframe = RGBA(0x5680c2ff),

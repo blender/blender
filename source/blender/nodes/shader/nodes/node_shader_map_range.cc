@@ -261,9 +261,10 @@ class MapRangeSmootherstepFunction : public blender::fn::MultiFunction {
   }
 };
 
-static void sh_node_map_range_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
+static void sh_node_map_range_build_multi_function(
+    blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.bnode();
+  bNode &bnode = builder.node();
   bool clamp = bnode.custom1 != 0;
   int interpolation_type = bnode.custom2;
 
@@ -301,7 +302,6 @@ static void sh_node_map_range_expand_in_mf_network(blender::nodes::NodeMFNetwork
       break;
     }
     default:
-      builder.set_not_implemented();
       break;
   }
 }
@@ -310,12 +310,12 @@ void register_node_type_sh_map_range(void)
 {
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_MAP_RANGE, "Map Range", NODE_CLASS_CONVERTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_MAP_RANGE, "Map Range", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, sh_node_map_range_in, sh_node_map_range_out);
   node_type_init(&ntype, node_shader_init_map_range);
   node_type_update(&ntype, node_shader_update_map_range);
   node_type_gpu(&ntype, gpu_shader_map_range);
-  ntype.expand_in_mf_network = sh_node_map_range_expand_in_mf_network;
+  ntype.build_multi_function = sh_node_map_range_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

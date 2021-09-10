@@ -140,7 +140,7 @@ bool ED_workspace_layout_delete(WorkSpace *workspace, WorkSpaceLayout *layout_ol
 
   BLI_assert(BLI_findindex(&workspace->layouts, layout_old) != -1);
 
-  /* don't allow deleting temp fullscreens for now */
+  /* Don't allow deleting temp full-screens for now. */
   if (BKE_screen_is_fullscreen_area(screen_old)) {
     return false;
   }

@@ -129,6 +129,20 @@ void MemoryBuffer::clear()
   memset(m_buffer, 0, buffer_len() * m_num_channels * sizeof(float));
 }
 
+BuffersIterator<float> MemoryBuffer::iterate_with(Span<MemoryBuffer *> inputs)
+{
+  return iterate_with(inputs, m_rect);
+}
+
+BuffersIterator<float> MemoryBuffer::iterate_with(Span<MemoryBuffer *> inputs, const rcti &area)
+{
+  BuffersIteratorBuilder<float> builder(m_buffer, m_rect, area, elem_stride);
+  for (MemoryBuffer *input : inputs) {
+    builder.add_input(input->getBuffer(), input->get_rect(), input->elem_stride);
+  }
+  return builder.build();
+}
+
 /**
  * Converts a single elem buffer to a full size buffer (allocates memory for all
  * elements in resolution).
@@ -231,7 +245,9 @@ void MemoryBuffer::copy_from(const MemoryBuffer *src,
 
 void MemoryBuffer::copy_from(const uchar *src, const rcti &area)
 {
-  copy_from(src, area, 0, this->get_num_channels(), this->get_num_channels(), 0);
+  const int elem_stride = this->get_num_channels();
+  const int row_stride = elem_stride * getWidth();
+  copy_from(src, area, 0, this->get_num_channels(), elem_stride, row_stride, 0);
 }
 
 void MemoryBuffer::copy_from(const uchar *src,
@@ -239,10 +255,18 @@ void MemoryBuffer::copy_from(const uchar *src,
                              const int channel_offset,
                              const int elem_size,
                              const int elem_stride,
+                             const int row_stride,
                              const int to_channel_offset)
 {
-  copy_from(
-      src, area, channel_offset, elem_size, elem_stride, area.xmin, area.ymin, to_channel_offset);
+  copy_from(src,
+            area,
+            channel_offset,
+            elem_size,
+            elem_stride,
+            row_stride,
+            area.xmin,
+            area.ymin,
+            to_channel_offset);
 }
 
 void MemoryBuffer::copy_from(const uchar *src,
@@ -250,6 +274,7 @@ void MemoryBuffer::copy_from(const uchar *src,
                              const int channel_offset,
                              const int elem_size,
                              const int elem_stride,
+                             const int row_stride,
                              const int to_x,
                              const int to_y,
                              const int to_channel_offset)
@@ -259,10 +284,9 @@ void MemoryBuffer::copy_from(const uchar *src,
 
   const int width = BLI_rcti_size_x(&area);
   const int height = BLI_rcti_size_y(&area);
-  const int src_row_stride = width * elem_stride;
-  const uchar *const src_start = src + area.ymin * src_row_stride + channel_offset;
+  const uchar *const src_start = src + area.ymin * row_stride + channel_offset;
   for (int y = 0; y < height; y++) {
-    const uchar *from_elem = src_start + y * src_row_stride;
+    const uchar *from_elem = src_start + y * row_stride + area.xmin * elem_stride;
     float *to_elem = &this->get_value(to_x, to_y + y, to_channel_offset);
     const float *row_end = to_elem + width * this->elem_stride;
     while (to_elem < row_end) {
@@ -332,7 +356,16 @@ void MemoryBuffer::copy_from(const ImBuf *src,
   else if (src->rect) {
     const uchar *uc_buf = (uchar *)src->rect;
     const int elem_stride = src->channels;
-    copy_from(uc_buf, area, channel_offset, elem_size, elem_stride, to_x, to_y, to_channel_offset);
+    const int row_stride = elem_stride * src->x;
+    copy_from(uc_buf,
+              area,
+              channel_offset,
+              elem_size,
+              elem_stride,
+              row_stride,
+              to_x,
+              to_y,
+              to_channel_offset);
     if (ensure_linear_space) {
       colorspace_to_scene_linear(this, area, src->rect_colorspace);
     }
@@ -391,12 +424,48 @@ void MemoryBuffer::addPixel(int x, int y, const float color[4])
   }
 }
 
+static void read_ewa_elem(void *userdata, int x, int y, float result[4])
+{
+  const MemoryBuffer *buffer = static_cast<const MemoryBuffer *>(userdata);
+  buffer->read_elem_checked(x, y, result);
+}
+
+void MemoryBuffer::read_elem_filtered(
+    const float x, const float y, float dx[2], float dy[2], float *out) const
+{
+  BLI_assert(this->m_datatype == DataType::Color);
+
+  const float deriv[2][2] = {{dx[0], dx[1]}, {dy[0], dy[1]}};
+
+  float inv_width = 1.0f / (float)this->getWidth(), inv_height = 1.0f / (float)this->getHeight();
+  /* TODO(sergey): Render pipeline uses normalized coordinates and derivatives,
+   * but compositor uses pixel space. For now let's just divide the values and
+   * switch compositor to normalized space for EWA later.
+   */
+  float uv_normal[2] = {get_relative_x(x) * inv_width, get_relative_y(y) * inv_height};
+  float du_normal[2] = {deriv[0][0] * inv_width, deriv[0][1] * inv_height};
+  float dv_normal[2] = {deriv[1][0] * inv_width, deriv[1][1] * inv_height};
+
+  BLI_ewa_filter(this->getWidth(),
+                 this->getHeight(),
+                 false,
+                 true,
+                 uv_normal,
+                 du_normal,
+                 dv_normal,
+                 read_ewa_elem,
+                 const_cast<MemoryBuffer *>(this),
+                 out);
+}
+
+/* TODO(manzanilla): to be removed with tiled implementation. */
 static void read_ewa_pixel_sampled(void *userdata, int x, int y, float result[4])
 {
   MemoryBuffer *buffer = (MemoryBuffer *)userdata;
   buffer->read(result, x, y);
 }
 
+/* TODO(manzanilla): to be removed with tiled implementation. */
 void MemoryBuffer::readEWA(float *result, const float uv[2], const float derivatives[2][2])
 {
   if (m_is_a_single_elem) {

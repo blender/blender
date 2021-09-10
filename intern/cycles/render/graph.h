@@ -356,7 +356,7 @@ class ShaderGraph : public NodeOwner {
   /* This function is used to create a node of a specified type instead of
    * calling 'new', and sets the graph as the owner of the node.
    */
-  template<typename T, typename... Args> T *create_node(Args &&... args)
+  template<typename T, typename... Args> T *create_node(Args &&...args)
   {
     T *node = new T(args...);
     node->set_owner(this);

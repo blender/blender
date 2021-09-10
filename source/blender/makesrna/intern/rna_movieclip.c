@@ -140,7 +140,7 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem clip_tc_items[] = {
-      {IMB_TC_NONE, "NONE", 0, "No TC in use", ""},
+      {IMB_TC_NONE, "NONE", 0, "None", ""},
       {IMB_TC_RECORD_RUN,
        "RECORD_RUN",
        0,

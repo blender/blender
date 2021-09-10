@@ -25,6 +25,7 @@
 #include "BLI_utildefines.h"
 
 #include "idprop_py_api.h"
+#include "idprop_py_ui_api.h"
 
 #include "BKE_idprop.h"
 
@@ -713,8 +714,12 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
       prop->next = prop_exist->next;
       prop->flag = prop_exist->flag;
 
+      /* Don't free and reset the existing property's UI data, since this only assigns a value. */
+      IDPropertyUIData *ui_data = prop_exist->ui_data;
+      prop_exist->ui_data = NULL;
       IDP_FreePropertyContent(prop_exist);
       *prop_exist = *prop;
+      prop_exist->ui_data = ui_data;
       MEM_freeN(prop);
     }
     else {
@@ -1836,7 +1841,7 @@ static int BPy_IDArray_ass_slice(BPy_IDArray *self, int begin, int end, PyObject
   /* NOTE: we count on int/float being the same size here */
   vec = MEM_mallocN(alloc_len, "array assignment");
 
-  if (PyC_AsArray(vec, seq, size, py_type, is_double, "slice assignment: ") == -1) {
+  if (PyC_AsArray(vec, elem_size, seq, size, py_type, "slice assignment: ") == -1) {
     MEM_freeN(vec);
     return -1;
   }
@@ -2135,6 +2140,7 @@ static PyObject *BPyInit_idprop_types(void)
   submodule = PyModule_Create(&IDProp_types_module_def);
 
   IDProp_Init_Types();
+  IDPropertyUIData_Init_Types();
 
   /* bmesh_py_types.c */
   PyModule_AddType(submodule, &BPy_IDGroup_Type);

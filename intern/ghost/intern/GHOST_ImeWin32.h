@@ -36,6 +36,9 @@
 #  include "GHOST_Rect.h"
 #  include <vector>
 
+/* MSDN LOCALE_SISO639LANGNAME states maximum length of 9, including terminating null. */
+#  define W32_ISO639_LEN 9
+
 class GHOST_EventIME : public GHOST_Event {
  public:
   /**
@@ -88,7 +91,7 @@ class GHOST_EventIME : public GHOST_Event {
  *      An application CAN call ::DefWindowProc().
  * 2.5. WM_INPUTLANGCHANGE (0x0051)
  *      Call the functions listed below:
- *      - GHOST_ImeWin32::SetInputLanguage().
+ *      - GHOST_ImeWin32::UpdateInputLanguage().
  *      An application CAN call ::DefWindowProc().
  */
 
@@ -146,15 +149,19 @@ class GHOST_ImeWin32 {
     return is_composing_;
   }
 
-  /**
-   * Retrieves the input language from Windows and update it.
-   * Return values
-   *   * true
-   *     The given input language has IMEs.
-   *   * false
-   *     The given input language does not have IMEs.
-   */
-  bool SetInputLanguage();
+  /* Retrieve the input language from Windows and store it. */
+  void UpdateInputLanguage();
+
+  BOOL IsLanguage(const char name[W32_ISO639_LEN]);
+
+  /* Saves the current conversion status. */
+  void UpdateConversionStatus(HWND window_handle);
+
+  /* Is the IME currently in conversion mode? */
+  bool IsEnglishMode();
+
+  /* Checks a key whether IME has to do handling. */
+  bool IsImeKeyEvent(char ascii);
 
   /**
    * Create the IME windows, and allocate required resources for them.
@@ -338,38 +345,14 @@ class GHOST_ImeWin32 {
    */
   bool is_composing_;
 
-  /**
-   * This value represents whether or not the current input context has IMEs.
-   * The following table shows the list of IME status:
-   *   Value  Description
-   *   false  The current input language does not have IMEs.
-   *   true   The current input language has IMEs.
-   */
-  bool ime_status_;
+  /* Abbreviated ISO 639-1 name of the input language, such as "en" for English. */
+  char language_[W32_ISO639_LEN];
 
-  /**
-   * The current input Language ID retrieved from Windows, which consists of:
-   *   * Primary Language ID (bit 0 to bit 9), which shows a natural language
-   *     (English, Korean, Chinese, Japanese, etc.) and;
-   *   * Sub-Language ID (bit 10 to bit 15), which shows a geometrical region
-   *     the language is spoken (For English, United States, United Kingdom,
-   *     Australia, Canada, etc.)
-   * The following list enumerates some examples for the Language ID:
-   *   * "en-US" (0x0409)
-   *     MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
-   *   * "ko-KR" (0x0412)
-   *     MAKELANGID(LANG_KOREAN,  SUBLANG_KOREAN);
-   *   * "zh-TW" (0x0404)
-   *     MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_TRADITIONAL);
-   *   * "zh-CN" (0x0804)
-   *     MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED);
-   *   * "ja-JP" (0x0411)
-   *     MAKELANGID(LANG_JAPANESE, SUBLANG_JAPANESE_JAPAN), etc.
-   *   (See `winnt.h` for other available values.)
-   * This Language ID is used for processing language-specific operations in
-   * IME functions.
-   */
-  LANGID input_language_id_;
+  /* Current Conversion Mode Values. Retrieved with ImmGetConversionStatus. */
+  DWORD conversion_modes_;
+
+  /* Current Sentence Mode. Retrieved with ImmGetConversionStatus. */
+  DWORD sentence_mode_;
 
   /**
    * Represents whether or not the current input context has created a system

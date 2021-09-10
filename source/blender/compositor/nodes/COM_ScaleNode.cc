@@ -43,7 +43,7 @@ void ScaleNode::convertToOperations(NodeConverter &converter,
 
   switch (bnode->custom1) {
     case CMP_SCALE_RELATIVE: {
-      ScaleOperation *operation = new ScaleOperation();
+      ScaleRelativeOperation *operation = new ScaleRelativeOperation();
       converter.addOperation(operation);
 
       converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
@@ -59,7 +59,7 @@ void ScaleNode::convertToOperations(NodeConverter &converter,
       scaleFactorOperation->setValue(context.getRenderPercentageAsFactor());
       converter.addOperation(scaleFactorOperation);
 
-      ScaleOperation *operation = new ScaleOperation();
+      ScaleRelativeOperation *operation = new ScaleRelativeOperation();
       converter.addOperation(operation);
 
       converter.mapInputSocket(inputSocket, operation->getInputSocket(0));

@@ -161,6 +161,12 @@ void ED_region_do_listen(wmRegionListenerParams *params)
   if (region->type && region->type->listener) {
     region->type->listener(params);
   }
+
+  LISTBASE_FOREACH (uiList *, list, &region->ui_lists) {
+    if (list->type && list->type->listener) {
+      list->type->listener(list, params);
+    }
+  }
 }
 
 /* only exported for WM */
@@ -828,9 +834,8 @@ void ED_area_status_text(ScrArea *area, const char *str)
         BLI_strncpy(region->headerstr, str, UI_MAX_DRAW_STR);
         BLI_str_rstrip(region->headerstr);
       }
-      else if (region->headerstr) {
-        MEM_freeN(region->headerstr);
-        region->headerstr = NULL;
+      else {
+        MEM_SAFE_FREE(region->headerstr);
       }
       ED_region_tag_redraw(region);
     }
@@ -853,9 +858,8 @@ void ED_workspace_status_text(bContext *C, const char *str)
     }
     BLI_strncpy(workspace->status_text, str, UI_MAX_DRAW_STR);
   }
-  else if (workspace->status_text) {
-    MEM_freeN(workspace->status_text);
-    workspace->status_text = NULL;
+  else {
+    MEM_SAFE_FREE(workspace->status_text);
   }
 
   /* Redraw status bar. */
@@ -3018,6 +3022,8 @@ void ED_region_panels_layout_ex(const bContext *C,
     y = -y;
   }
 
+  UI_blocklist_update_view_for_buttons(C, &region->uiblocks);
+
   if (update_tot_size) {
     /* this also changes the 'cur' */
     UI_view2d_totRect_set(v2d, x, y);
@@ -3672,7 +3678,7 @@ static void region_visible_rect_calc(ARegion *region, rcti *rect)
           /* Skip floating. */
         }
         else {
-          BLI_assert(!"Region overlap with unknown alignment");
+          BLI_assert_msg(0, "Region overlap with unknown alignment");
         }
       }
     }

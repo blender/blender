@@ -107,7 +107,7 @@ static TransDataContainer *edge_slide_container_first_ok(TransInfo *t)
       return tc;
     }
   }
-  BLI_assert(!"Should never happen, at least one EdgeSlideData should be valid");
+  BLI_assert_msg(0, "Should never happen, at least one EdgeSlideData should be valid");
   return NULL;
 }
 
@@ -852,7 +852,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
 #undef EDGESLIDE_VERT_IS_INNER
   }
 
-  /* EDBM_flag_disable_all(em, BM_ELEM_SELECT); */
+  // EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
   BLI_assert(STACK_SIZE(sv_array) == (uint)sv_tot);
 
@@ -1037,7 +1037,7 @@ static EdgeSlideData *createEdgeSlideVerts_single_side(TransInfo *t, TransDataCo
     }
   }
 
-  /* EDBM_flag_disable_all(em, BM_ELEM_SELECT); */
+  // EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
   sld->sv = sv_array;
   sld->totsv = sv_tot;

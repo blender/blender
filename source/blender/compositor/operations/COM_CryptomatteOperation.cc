@@ -57,8 +57,8 @@ void CryptomatteOperation::executePixel(float output[4], int x, int y, void *dat
       ::memcpy(&m3hash, &input[0], sizeof(uint32_t));
       /* Since the red channel is likely to be out of display range,
        * setting green and blue gives more meaningful images. */
-      output[1] = ((float)((m3hash << 8)) / (float)UINT32_MAX);
-      output[2] = ((float)((m3hash << 16)) / (float)UINT32_MAX);
+      output[1] = ((float)(m3hash << 8) / (float)UINT32_MAX);
+      output[2] = ((float)(m3hash << 16) / (float)UINT32_MAX);
     }
     for (float hash : m_objectIndex) {
       if (input[0] == hash) {
@@ -66,6 +66,36 @@ void CryptomatteOperation::executePixel(float output[4], int x, int y, void *dat
       }
       if (input[2] == hash) {
         output[3] += input[3];
+      }
+    }
+  }
+}
+
+void CryptomatteOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                        const rcti &area,
+                                                        Span<MemoryBuffer *> inputs)
+{
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    zero_v4(it.out);
+    for (int i = 0; i < it.get_num_inputs(); i++) {
+      const float *input = it.in(i);
+      if (i == 0) {
+        /* Write the front-most object as false color for picking. */
+        it.out[0] = input[0];
+        uint32_t m3hash;
+        ::memcpy(&m3hash, &input[0], sizeof(uint32_t));
+        /* Since the red channel is likely to be out of display range,
+         * setting green and blue gives more meaningful images. */
+        it.out[1] = ((float)(m3hash << 8) / (float)UINT32_MAX);
+        it.out[2] = ((float)(m3hash << 16) / (float)UINT32_MAX);
+      }
+      for (const float hash : m_objectIndex) {
+        if (input[0] == hash) {
+          it.out[3] += input[1];
+        }
+        if (input[2] == hash) {
+          it.out[3] += input[3];
+        }
       }
     }
   }

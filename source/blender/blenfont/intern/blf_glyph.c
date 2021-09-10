@@ -55,64 +55,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_strict_flags.h"
 
-KerningCacheBLF *blf_kerning_cache_find(FontBLF *font)
-{
-  KerningCacheBLF *p;
-
-  p = (KerningCacheBLF *)font->kerning_caches.first;
-  while (p) {
-    if (p->mode == font->kerning_mode) {
-      return p;
-    }
-    p = p->next;
-  }
-  return NULL;
-}
-
-/* Create a new glyph cache for the current kerning mode. */
-KerningCacheBLF *blf_kerning_cache_new(FontBLF *font, GlyphCacheBLF *gc)
-{
-  KerningCacheBLF *kc;
-
-  kc = (KerningCacheBLF *)MEM_callocN(sizeof(KerningCacheBLF), "blf_kerning_cache_new");
-  kc->next = NULL;
-  kc->prev = NULL;
-  kc->mode = font->kerning_mode;
-
-  unsigned int i, j;
-  for (i = 0; i < 0x80; i++) {
-    for (j = 0; j < 0x80; j++) {
-      GlyphBLF *g = blf_glyph_search(gc, i);
-      if (!g) {
-        FT_UInt glyph_index = FT_Get_Char_Index(font->face, i);
-        g = blf_glyph_add(font, gc, glyph_index, i);
-      }
-      /* Can fail on certain fonts */
-      GlyphBLF *g_prev = blf_glyph_search(gc, j);
-
-      FT_Vector delta = {
-          .x = 0,
-          .y = 0,
-      };
-      if (g && g_prev && FT_Get_Kerning(font->face, g_prev->idx, g->idx, kc->mode, &delta) == 0) {
-        kc->table[i][j] = (int)delta.x >> 6;
-      }
-      else {
-        kc->table[i][j] = 0;
-      }
-    }
-  }
-
-  BLI_addhead(&font->kerning_caches, kc);
-  return kc;
-}
-
-void blf_kerning_cache_clear(FontBLF *font)
-{
-  font->kerning_cache = NULL;
-  BLI_freelistN(&font->kerning_caches);
-}
-
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, unsigned int size, unsigned int dpi)
 {
   GlyphCacheBLF *p;
@@ -144,8 +86,6 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
   memset(gc->glyph_ascii_table, 0, sizeof(gc->glyph_ascii_table));
   memset(gc->bucket, 0, sizeof(gc->bucket));
 
-  gc->glyphs_len_max = (int)font->face->num_glyphs;
-  gc->glyphs_len_free = (int)font->face->num_glyphs;
   gc->ascender = ((float)font->face->size->metrics.ascender) / 64.0f;
   gc->descender = ((float)font->face->size->metrics.descender) / 64.0f;
 
@@ -514,7 +454,6 @@ void blf_glyph_render(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, fl
     memcpy(&gc->bitmap_result[gc->bitmap_len], g->bitmap, (size_t)buff_size);
     gc->bitmap_len = bitmap_len;
 
-    gc->glyphs_len_free--;
     g->glyph_cache = gc;
   }
 

@@ -32,6 +32,7 @@ BufferOperation::BufferOperation(MemoryBuffer *buffer, DataType data_type)
   setResolution(resolution);
   addOutputSocket(data_type);
   flags.is_constant_operation = buffer_->is_a_single_elem();
+  flags.is_fullframe_operation = false;
 }
 
 const float *BufferOperation::get_constant_elem()
@@ -40,20 +41,32 @@ const float *BufferOperation::get_constant_elem()
   return buffer_->getBuffer();
 }
 
+void BufferOperation::initExecution()
+{
+  if (buffer_->is_a_single_elem()) {
+    initMutex();
+  }
+}
+
 void *BufferOperation::initializeTileData(rcti * /*rect*/)
 {
   if (buffer_->is_a_single_elem() == false) {
     return buffer_;
   }
 
+  lockMutex();
   if (!inflated_buffer_) {
     inflated_buffer_ = buffer_->inflate();
   }
+  unlockMutex();
   return inflated_buffer_;
 }
 
 void BufferOperation::deinitExecution()
 {
+  if (buffer_->is_a_single_elem()) {
+    deinitMutex();
+  }
   delete inflated_buffer_;
 }
 

@@ -110,4 +110,49 @@ void KeyingOperation::executePixelSampled(float output[4], float x, float y, Pix
   }
 }
 
+void KeyingOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                   const rcti &area,
+                                                   Span<MemoryBuffer *> inputs)
+{
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const float *pixel_color = it.in(0);
+    const float *screen_color = it.in(1);
+
+    const int primary_channel = max_axis_v3(screen_color);
+    const float min_pixel_color = min_fff(pixel_color[0], pixel_color[1], pixel_color[2]);
+
+    if (min_pixel_color > 1.0f) {
+      /* Overexposure doesn't happen on screen itself and usually happens
+       * on light sources in the shot, this need to be checked separately
+       * because saturation and falloff calculation is based on the fact
+       * that pixels are not overexposed.
+       */
+      it.out[0] = 1.0f;
+    }
+    else {
+      const float saturation = get_pixel_saturation(pixel_color, m_screenBalance, primary_channel);
+      const float screen_saturation = get_pixel_saturation(
+          screen_color, m_screenBalance, primary_channel);
+
+      if (saturation < 0) {
+        /* Means main channel of pixel is different from screen,
+         * assume this is completely a foreground.
+         */
+        it.out[0] = 1.0f;
+      }
+      else if (saturation >= screen_saturation) {
+        /* Matched main channels and higher saturation on pixel
+         * is treated as completely background.
+         */
+        it.out[0] = 0.0f;
+      }
+      else {
+        /* Nice alpha falloff on edges. */
+        const float distance = 1.0f - saturation / screen_saturation;
+        it.out[0] = distance;
+      }
+    }
+  }
+}
+
 }  // namespace blender::compositor

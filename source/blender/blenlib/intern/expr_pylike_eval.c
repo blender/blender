@@ -569,7 +569,7 @@ static int opcode_arg_count(eOpCode code)
     case OPCODE_FUNC3:
       return 3;
     default:
-      BLI_assert(!"unexpected opcode");
+      BLI_assert_msg(0, "unexpected opcode");
       return -1;
   }
 }

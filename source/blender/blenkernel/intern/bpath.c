@@ -534,6 +534,46 @@ static bool rewrite_path_alloc(char **path,
   return false;
 }
 
+typedef struct Seq_callback_data {
+  const char *absbase;
+  void *bpath_user_data;
+  BPathVisitor visit_cb;
+  const int flag;
+} Seq_callback_data;
+
+static bool seq_rewrite_path_callback(Sequence *seq, void *user_data)
+{
+  if (SEQ_HAS_PATH(seq)) {
+    StripElem *se = seq->strip->stripdata;
+    Seq_callback_data *cd = (Seq_callback_data *)user_data;
+
+    if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM) && se) {
+      rewrite_path_fixed_dirfile(
+          seq->strip->dir, se->name, cd->visit_cb, cd->absbase, cd->bpath_user_data);
+    }
+    else if ((seq->type == SEQ_TYPE_IMAGE) && se) {
+      /* might want an option not to loop over all strips */
+      unsigned int len = (unsigned int)MEM_allocN_len(se) / (unsigned int)sizeof(*se);
+      unsigned int i;
+
+      if (cd->flag & BKE_BPATH_TRAVERSE_SKIP_MULTIFILE) {
+        /* only operate on one path */
+        len = MIN2(1u, len);
+      }
+
+      for (i = 0; i < len; i++, se++) {
+        rewrite_path_fixed_dirfile(
+            seq->strip->dir, se->name, cd->visit_cb, cd->absbase, cd->bpath_user_data);
+      }
+    }
+    else {
+      /* simple case */
+      rewrite_path_fixed(seq->strip->dir, cd->visit_cb, cd->absbase, cd->bpath_user_data);
+    }
+  }
+  return true;
+}
+
 /**
  * Run visitor function 'visit' on all paths contained in 'id'.
  */
@@ -701,38 +741,8 @@ void BKE_bpath_traverse_id(
     case ID_SCE: {
       Scene *scene = (Scene *)id;
       if (scene->ed) {
-        Sequence *seq;
-
-        SEQ_ALL_BEGIN (scene->ed, seq) {
-          if (SEQ_HAS_PATH(seq)) {
-            StripElem *se = seq->strip->stripdata;
-
-            if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM) && se) {
-              rewrite_path_fixed_dirfile(
-                  seq->strip->dir, se->name, visit_cb, absbase, bpath_user_data);
-            }
-            else if ((seq->type == SEQ_TYPE_IMAGE) && se) {
-              /* might want an option not to loop over all strips */
-              unsigned int len = (unsigned int)MEM_allocN_len(se) / (unsigned int)sizeof(*se);
-              unsigned int i;
-
-              if (flag & BKE_BPATH_TRAVERSE_SKIP_MULTIFILE) {
-                /* only operate on one path */
-                len = MIN2(1u, len);
-              }
-
-              for (i = 0; i < len; i++, se++) {
-                rewrite_path_fixed_dirfile(
-                    seq->strip->dir, se->name, visit_cb, absbase, bpath_user_data);
-              }
-            }
-            else {
-              /* simple case */
-              rewrite_path_fixed(seq->strip->dir, visit_cb, absbase, bpath_user_data);
-            }
-          }
-        }
-        SEQ_ALL_END;
+        Seq_callback_data user_data = {absbase, bpath_user_data, visit_cb, flag};
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_rewrite_path_callback, &user_data);
       }
       break;
     }

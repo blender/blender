@@ -817,7 +817,7 @@ class IMAGE_HT_header(Header):
                 row.prop(sima, "show_stereo_3d", text="")
             if show_maskedit:
                 row = layout.row()
-                row.popover(panel='CLIP_PT_mask_display')
+                row.popover(panel='IMAGE_PT_mask_display')
 
             # layers.
             layout.template_image_layers(ima, iuser)
@@ -825,12 +825,6 @@ class IMAGE_HT_header(Header):
             # draw options.
             row = layout.row()
             row.prop(sima, "display_channels", icon_only=True)
-
-            row = layout.row(align=True)
-            if ima.type == 'COMPOSITE':
-                row.operator("image.record_composite", icon='REC')
-            if ima.type == 'COMPOSITE' and ima.source in {'MOVIE', 'SEQUENCE'}:
-                row.operator("image.play_composite", icon='PLAY')
 
 
 class IMAGE_MT_editor_menus(Menu):
@@ -917,8 +911,7 @@ class IMAGE_PT_active_mask_point(MASK_PT_point, Panel):
 
 class IMAGE_PT_mask_display(MASK_PT_display, Panel):
     bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "Mask"
+    bl_region_type = 'HEADER'
 
 
 # --- end mask ---
@@ -1460,7 +1453,7 @@ class IMAGE_PT_udim_grid(Panel):
     def poll(cls, context):
         sima = context.space_data
 
-        return sima.show_uvedit and sima.image is None
+        return sima.show_uvedit
 
     def draw(self, context):
         layout = self.layout

@@ -207,7 +207,7 @@ static void SOUND_OT_open_mono(wmOperatorType *ot)
 
 static void sound_update_animation_flags(Scene *scene);
 
-static int sound_update_animation_flags_fn(Sequence *seq, void *user_data)
+static bool sound_update_animation_flags_fn(Sequence *seq, void *user_data)
 {
   struct FCurve *fcu;
   Scene *scene = (Scene *)user_data;
@@ -244,24 +244,22 @@ static int sound_update_animation_flags_fn(Sequence *seq, void *user_data)
     sound_update_animation_flags(seq->scene);
   }
 
-  return 0;
+  return true;
 }
 
 static void sound_update_animation_flags(Scene *scene)
 {
   struct FCurve *fcu;
   bool driven;
-  Sequence *seq;
 
   if (scene->id.tag & LIB_TAG_DOIT) {
     return;
   }
   scene->id.tag |= LIB_TAG_DOIT;
 
-  SEQ_ALL_BEGIN (scene->ed, seq) {
-    SEQ_recursive_apply(seq, sound_update_animation_flags_fn, scene);
+  if (scene->ed != NULL) {
+    SEQ_for_each_callback(&scene->ed->seqbase, sound_update_animation_flags_fn, scene);
   }
-  SEQ_ALL_END;
 
   fcu = id_data_find_fcurve(&scene->id, scene, &RNA_Scene, "audio_volume", 0, &driven);
   if (fcu || driven) {

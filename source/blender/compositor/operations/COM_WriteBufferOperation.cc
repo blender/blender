@@ -126,7 +126,7 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
    *
    * NOTE: list of cl_mem will be filled by 2, and needs to be cleaned up by 4
    */
-  // STEP 1
+  /* STEP 1 */
   const unsigned int outputBufferWidth = outputBuffer->getWidth();
   const unsigned int outputBufferHeight = outputBuffer->getHeight();
 
@@ -144,7 +144,7 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
 
-  // STEP 2
+  /* STEP 2 */
   std::list<cl_mem> *clMemToCleanUp = new std::list<cl_mem>();
   clMemToCleanUp->push_back(clOutputBuffer);
   std::list<cl_kernel> *clKernelsToCleanUp = new std::list<cl_kernel>();
@@ -156,7 +156,7 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
                                clMemToCleanUp,
                                clKernelsToCleanUp);
 
-  // STEP 3
+  /* STEP 3 */
 
   size_t origin[3] = {0, 0, 0};
   size_t region[3] = {outputBufferWidth, outputBufferHeight, 1};
@@ -185,7 +185,7 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
 
   this->getMemoryProxy()->getBuffer()->fill_from(*outputBuffer);
 
-  // STEP 4
+  /* STEP 4 */
   while (!clMemToCleanUp->empty()) {
     cl_mem mem = clMemToCleanUp->front();
     error = clReleaseMemObject(mem);

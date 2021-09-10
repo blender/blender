@@ -82,6 +82,9 @@ void ED_file_path_button(bScreen *screen,
   PointerRNA params_rna_ptr;
   uiBut *but;
 
+  BLI_assert_msg(params != NULL,
+                 "File select parameters not set. The caller is expected to check this.");
+
   RNA_pointer_create(&screen->id, &RNA_FileSelectParams, params, &params_rna_ptr);
 
   /* callbacks for operator check functions */
@@ -185,9 +188,8 @@ static void file_draw_icon(const SpaceFile *sfile,
         BLI_assert(asset_params != NULL);
 
         UI_but_drag_set_asset(but,
-                              file->name,
+                              &(AssetHandle){.file_data = file},
                               BLI_strdup(blend_path),
-                              file->blentype,
                               asset_params->import_type,
                               icon,
                               preview_image,
@@ -500,9 +502,8 @@ static void file_draw_preview(const SpaceFile *sfile,
         BLI_assert(asset_params != NULL);
 
         UI_but_drag_set_asset(but,
-                              file->name,
+                              &(AssetHandle){.file_data = file},
                               BLI_strdup(blend_path),
-                              file->blentype,
                               asset_params->import_type,
                               icon,
                               imb,
@@ -1105,7 +1106,7 @@ bool file_draw_hint_if_invalid(const SpaceFile *sfile, const ARegion *region)
     return false;
   }
   /* Check if the library exists. */
-  if ((asset_params->asset_library.type == FILE_ASSET_LIBRARY_LOCAL) ||
+  if ((asset_params->asset_library_ref.type == ASSET_LIBRARY_LOCAL) ||
       filelist_is_dir(sfile->files, asset_params->base_params.dir)) {
     return false;
   }

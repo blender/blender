@@ -189,11 +189,11 @@ static char txtfmt_osl_format_identifier(const char *str)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if        ((txtfmt_osl_find_specialvar(str))   != -1) { fmt = FMT_TYPE_SPECIAL;
-  } else if ((txtfmt_osl_find_builtinfunc(str))  != -1) { fmt = FMT_TYPE_KEYWORD;
-  } else if ((txtfmt_osl_find_reserved(str))     != -1) { fmt = FMT_TYPE_RESERVED;
-  } else if ((txtfmt_osl_find_preprocessor(str)) != -1) { fmt = FMT_TYPE_DIRECTIVE;
-  } else                                                { fmt = FMT_TYPE_DEFAULT;
+  if        (txtfmt_osl_find_specialvar(str)   != -1) { fmt = FMT_TYPE_SPECIAL;
+  } else if (txtfmt_osl_find_builtinfunc(str)  != -1) { fmt = FMT_TYPE_KEYWORD;
+  } else if (txtfmt_osl_find_reserved(str)     != -1) { fmt = FMT_TYPE_RESERVED;
+  } else if (txtfmt_osl_find_preprocessor(str) != -1) { fmt = FMT_TYPE_DIRECTIVE;
+  } else                                              { fmt = FMT_TYPE_DEFAULT;
   }
 
   /* clang-format on */

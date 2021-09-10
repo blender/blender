@@ -178,7 +178,7 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
     }
     /* We might have cut some multi-bytes utf8 chars
      * (e.g. trailing '°' of degrees values can become only 'A')... */
-    BLI_utf8_invalid_strip(&str[j * ln], strlen(&str[j * ln]));
+    BLI_str_utf8_invalid_strip(&str[j * ln], strlen(&str[j * ln]));
   }
 }
 
@@ -309,7 +309,7 @@ bool user_string_to_number(bContext *C,
   return success;
 
 #else
-  UNUSED_VARS(C, unit, type);
+  UNUSED_VARS(C, unit, type, use_single_line_error, r_error);
   *r_value = atof(str);
   return true;
 #endif

@@ -206,6 +206,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
       tclmd->point_cache->step = clmd->point_cache->step;
       tclmd->point_cache->startframe = clmd->point_cache->startframe;
       tclmd->point_cache->endframe = clmd->point_cache->endframe;
+      tclmd->point_cache->flag |= (clmd->point_cache->flag & PTCACHE_FLAGS_COPY);
     }
   }
 
@@ -219,7 +220,9 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   tclmd->solver_result = NULL;
 }
 
-static bool dependsOnTime(ModifierData *UNUSED(md))
+static bool dependsOnTime(struct Scene *UNUSED(scene),
+                          ModifierData *UNUSED(md),
+                          const int UNUSED(dag_eval_mode))
 {
   return true;
 }

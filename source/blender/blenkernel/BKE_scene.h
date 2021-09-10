@@ -174,6 +174,10 @@ bool BKE_scene_uses_blender_eevee(const struct Scene *scene);
 bool BKE_scene_uses_blender_workbench(const struct Scene *scene);
 bool BKE_scene_uses_cycles(const struct Scene *scene);
 
+/* Return whether the Cycles experimental feature is enabled. It is invalid to call without first
+ * ensuring that Cycles is the active render engine (e.g. with BKE_scene_uses_cycles). */
+bool BKE_scene_uses_cycles_experimental_features(struct Scene *scene);
+
 void BKE_scene_copy_data_eevee(struct Scene *sce_dst, const struct Scene *sce_src);
 
 void BKE_scene_disable_color_management(struct Scene *scene);
@@ -259,14 +263,6 @@ void BKE_scene_cursor_to_mat4(const struct View3DCursor *cursor, float mat[4][4]
 void BKE_scene_cursor_from_mat4(struct View3DCursor *cursor,
                                 const float mat[4][4],
                                 bool use_compat);
-
-/* Dependency graph evaluation. */
-
-/* Evaluate parts of sequences which needs to be done as a part of a dependency graph evaluation.
- * This does NOT include actual rendering of the strips, but rather makes them up-to-date for
- * animation playback and makes them ready for the sequencer's rendering pipeline to render them.
- */
-void BKE_scene_eval_sequencer_sequences(struct Depsgraph *depsgraph, struct Scene *scene);
 
 #ifdef __cplusplus
 }

@@ -18,12 +18,14 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class BoxMaskOperation : public NodeOperation {
+class BoxMaskOperation : public MultiThreadedOperation {
  private:
+  using MaskFunc = std::function<float(bool is_inside, const float *mask, const float *value)>;
+
   /**
    * Cached reference to the inputProgram
    */
@@ -64,6 +66,16 @@ class BoxMaskOperation : public NodeOperation {
   {
     this->m_maskType = maskType;
   }
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+
+ private:
+  void apply_mask(MemoryBuffer *output,
+                  const rcti &area,
+                  Span<MemoryBuffer *> inputs,
+                  MaskFunc mask_func);
 };
 
 }  // namespace blender::compositor

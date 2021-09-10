@@ -109,6 +109,7 @@ class Spline {
   SplinePtr copy() const;
   SplinePtr copy_only_settings() const;
   SplinePtr copy_without_attributes() const;
+  static void copy_base_settings(const Spline &src, Spline &dst);
 
   Spline::Type type() const;
 
@@ -209,8 +210,6 @@ class Spline {
   virtual void correct_end_tangents() const = 0;
   virtual void copy_settings(Spline &dst) const = 0;
   virtual void copy_data(Spline &dst) const = 0;
-
-  static void copy_base_settings(const Spline &src, Spline &dst);
 };
 
 /**
@@ -306,6 +305,7 @@ class BezierSpline final : public Spline {
   blender::MutableSpan<HandleType> handle_types_right();
   blender::Span<blender::float3> handle_positions_right() const;
   blender::MutableSpan<blender::float3> handle_positions_right();
+  void ensure_auto_handles() const;
 
   void translate(const blender::float3 &translation) override;
   void transform(const blender::float4x4 &matrix) override;
@@ -337,12 +337,22 @@ class BezierSpline final : public Spline {
                         blender::MutableSpan<blender::float3> positions) const;
   bool segment_is_vector(const int start_index) const;
 
+  /** See comment and diagram for #calculate_segment_insertion. */
+  struct InsertResult {
+    blender::float3 handle_prev;
+    blender::float3 left_handle;
+    blender::float3 position;
+    blender::float3 right_handle;
+    blender::float3 handle_next;
+  };
+  InsertResult calculate_segment_insertion(const int index,
+                                           const int next_index,
+                                           const float parameter);
+
  private:
   void correct_end_tangents() const final;
   void copy_settings(Spline &dst) const final;
   void copy_data(Spline &dst) const final;
-
-  void ensure_auto_handles() const;
 };
 
 /**
@@ -532,6 +542,7 @@ struct CurveEval {
 
   blender::Span<SplinePtr> splines() const;
   blender::MutableSpan<SplinePtr> splines();
+  bool has_spline_with_type(const Spline::Type type) const;
 
   void resize(const int size);
   void add_spline(SplinePtr spline);

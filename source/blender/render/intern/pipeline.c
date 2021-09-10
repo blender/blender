@@ -354,6 +354,7 @@ RenderResult *RE_AcquireResultWrite(Render *re)
 {
   if (re) {
     BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+    render_result_passes_allocated_ensure(re->result);
     return re->result;
   }
 
@@ -568,6 +569,7 @@ Render *RE_NewRender(const char *name)
     BLI_strncpy(re->name, name, RE_MAXNAME);
     BLI_rw_mutex_init(&re->resultmutex);
     BLI_rw_mutex_init(&re->partsmutex);
+    BLI_mutex_init(&re->highlighted_tiles_mutex);
   }
 
   RE_InitRenderCB(re);
@@ -632,11 +634,16 @@ void RE_FreeRender(Render *re)
 
   BLI_rw_mutex_end(&re->resultmutex);
   BLI_rw_mutex_end(&re->partsmutex);
+  BLI_mutex_end(&re->highlighted_tiles_mutex);
 
   BLI_freelistN(&re->view_layers);
   BLI_freelistN(&re->r.views);
 
   BKE_curvemapping_free_data(&re->r.mblur_shutter_curve);
+
+  if (re->highlighted_tiles != NULL) {
+    BLI_gset_free(re->highlighted_tiles, MEM_freeN);
+  }
 
   /* main dbase can already be invalid now, some database-free code checks it */
   re->main = NULL;
@@ -1034,6 +1041,7 @@ static void render_result_uncrop(Render *re)
       render_result_disprect_to_full_resolution(re);
 
       rres = render_result_new(re, &re->disprect, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
+      render_result_passes_allocated_ensure(rres);
       rres->stamp_data = BKE_stamp_data_copy(re->result->stamp_data);
 
       render_result_clone_passes(re, rres, NULL);
@@ -1863,6 +1871,21 @@ static void render_pipeline_free(Render *re)
   }
   /* Destroy the opengl context in the correct thread. */
   RE_gl_context_destroy(re);
+
+  /* In the case the engine did not mark tiles as finished (un-highlight, which could happen in the
+   * case of cancelled render) ensure the storage is empty. */
+  if (re->highlighted_tiles != NULL) {
+    BLI_mutex_lock(&re->highlighted_tiles_mutex);
+
+    /* Rendering is supposed to be finished here, so no new tiles are expected to be written.
+     * Only make it so possible read-only access to the highlighted tiles is thread-safe. */
+    BLI_assert(re->highlighted_tiles);
+
+    BLI_gset_free(re->highlighted_tiles, MEM_freeN);
+    re->highlighted_tiles = NULL;
+
+    BLI_mutex_unlock(&re->highlighted_tiles_mutex);
+  }
 }
 
 /* general Blender frame render call */
@@ -2524,7 +2547,7 @@ void RE_RenderAnim(Render *re,
       if (G.is_break == true) {
         /* remove touched file */
         if (is_movie == false && do_write_file) {
-          if ((rd.mode & R_TOUCH)) {
+          if (rd.mode & R_TOUCH) {
             if (!is_multiview_name) {
               if ((BLI_file_size(name) == 0)) {
                 /* BLI_exists(name) is implicit */
@@ -2806,7 +2829,6 @@ RenderPass *RE_pass_find_by_type(volatile RenderLayer *rl, int passtype, const c
   CHECK_PASS(INDEXOB);
   CHECK_PASS(INDEXMA);
   CHECK_PASS(MIST);
-  CHECK_PASS(RAYHITS);
   CHECK_PASS(DIFFUSE_DIRECT);
   CHECK_PASS(DIFFUSE_INDIRECT);
   CHECK_PASS(DIFFUSE_COLOR);

@@ -754,12 +754,10 @@ def register_classes_factory(classes):
     which simply registers and unregisters a sequence of classes.
     """
     def register():
-        from bpy.utils import register_class
         for cls in classes:
             register_class(cls)
 
     def unregister():
-        from bpy.utils import unregister_class
         for cls in reversed(classes):
             unregister_class(cls)
 
@@ -861,6 +859,7 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
             "icon": getattr(tool_cls, "bl_icon", None),
             "cursor": getattr(tool_cls, "bl_cursor", None),
             "widget": getattr(tool_cls, "bl_widget", None),
+            "widget_properties": getattr(tool_cls, "bl_widget_properties", None),
             "keymap": getattr(tool_cls, "bl_keymap", None),
             "data_block": getattr(tool_cls, "bl_data_block", None),
             "operator": getattr(tool_cls, "bl_operator", None),

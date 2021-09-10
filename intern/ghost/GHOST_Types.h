@@ -611,9 +611,9 @@ typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__ *task, uint64_
 struct GHOST_XrDrawViewInfo;
 struct GHOST_XrError;
 /**
- * The XR view (i.e. the OpenXR runtime) may require a different graphics library than OpenGL. An
- * offscreen texture of the viewport will then be drawn into using OpenGL, but the final texture
- * draw call will happen through another lib (say DirectX).
+ * The XR view (i.e. the OpenXR runtime) may require a different graphics library than OpenGL.
+ * An off-screen texture of the viewport will then be drawn into using OpenGL,
+ * but the final texture draw call will happen through another library (say DirectX).
  *
  * This enum defines the possible graphics bindings to attempt to enable.
  */
@@ -669,6 +669,14 @@ typedef struct {
   void *exit_customdata;
 } GHOST_XrSessionBeginInfo;
 
+/** Texture format for XR swapchain. */
+typedef enum GHOST_TXrSwapchainFormat {
+  GHOST_kXrSwapchainFormatRGBA8,
+  GHOST_kXrSwapchainFormatRGBA16,
+  GHOST_kXrSwapchainFormatRGBA16F,
+  GHOST_kXrSwapchainFormatRGB10_A2,
+} GHOST_TXrSwapchainFormat;
+
 typedef struct GHOST_XrDrawViewInfo {
   int ofsx, ofsy;
   int width, height;
@@ -681,8 +689,13 @@ typedef struct GHOST_XrDrawViewInfo {
     float angle_up, angle_down;
   } fov;
 
+  GHOST_TXrSwapchainFormat swapchain_format;
   /** Set if the buffer should be submitted with a SRGB transfer applied. */
   char expects_srgb_buffer;
+
+  /** The view that this info represents. Not necessarily the "eye index" (e.g. for quad view
+   * systems, etc). */
+  char view_idx;
 } GHOST_XrDrawViewInfo;
 
 typedef struct GHOST_XrError {
@@ -715,29 +728,27 @@ typedef struct GHOST_XrActionInfo {
   const char **subaction_paths;
   /** States for each subaction path. */
   void *states;
+  /** Input thresholds/regions for each subaction path. */
+  float *float_thresholds;
+  int16_t *axis_flags;
 
   GHOST_XrCustomdataFreeFn customdata_free_fn;
   void *customdata; /* wmXrAction */
 } GHOST_XrActionInfo;
 
-typedef struct GHOST_XrActionSpaceInfo {
-  const char *action_name;
-  uint32_t count_subaction_paths;
-  const char **subaction_paths;
-  /** Poses for each subaction path. */
-  const GHOST_XrPose *poses;
-} GHOST_XrActionSpaceInfo;
-
 typedef struct GHOST_XrActionBindingInfo {
-  const char *action_name;
-  uint32_t count_interaction_paths;
-  /** Interaction path: User (sub-action) path + component path. */
-  const char **interaction_paths;
+  const char *component_path;
+  float float_threshold;
+  int16_t axis_flag;
+  GHOST_XrPose pose;
 } GHOST_XrActionBindingInfo;
 
 typedef struct GHOST_XrActionProfileInfo {
+  const char *action_name;
   const char *profile_path;
-  uint32_t count_bindings;
+  uint32_t count_subaction_paths;
+  const char **subaction_paths;
+  /* Bindings for each subaction path. */
   const GHOST_XrActionBindingInfo *bindings;
 } GHOST_XrActionProfileInfo;
 

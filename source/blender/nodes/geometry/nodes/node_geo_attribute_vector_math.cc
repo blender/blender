@@ -17,6 +17,8 @@
 #include "BLI_math_base_safe.h"
 #include "BLI_task.hh"
 
+#include "RNA_enum_types.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -24,24 +26,22 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_vector_math_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("A")},
-    {SOCK_VECTOR, N_("A"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_STRING, N_("B")},
-    {SOCK_VECTOR, N_("B"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_FLOAT, N_("B"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_STRING, N_("C")},
-    {SOCK_VECTOR, N_("C"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_FLOAT, N_("C"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_STRING, N_("Result")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_attribute_vector_math_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_attribute_vector_math_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("A");
+  b.add_input<decl::Vector>("A", "A_001");
+  b.add_input<decl::String>("B");
+  b.add_input<decl::Vector>("B", "B_001");
+  b.add_input<decl::Float>("B", "B_002");
+  b.add_input<decl::String>("C");
+  b.add_input<decl::Vector>("C", "C_001");
+  b.add_input<decl::Float>("C", "C_002");
+  b.add_input<decl::String>("Result");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static bool operation_use_input_b(const NodeVectorMathOperation operation)
 {
@@ -152,7 +152,19 @@ static CustomDataType operation_get_result_type(const NodeVectorMathOperation op
   return CD_PROP_FLOAT3;
 }
 
-namespace blender::nodes {
+static void geo_node_vector_math_label(bNodeTree *UNUSED(ntree),
+                                       bNode *node,
+                                       char *label,
+                                       int maxlen)
+{
+  NodeAttributeMath &node_storage = *(NodeAttributeMath *)node->storage;
+  const char *name;
+  bool enum_label = RNA_enum_name(rna_enum_node_vec_math_items, node_storage.operation, &name);
+  if (!enum_label) {
+    name = "Unknown";
+  }
+  BLI_snprintf(label, maxlen, IFACE_("Vector %s"), IFACE_(name));
+}
 
 static void geo_node_attribute_vector_math_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -545,13 +557,14 @@ void register_node_type_geo_attribute_vector_math()
 
   geo_node_type_base(
       &ntype, GEO_NODE_ATTRIBUTE_VECTOR_MATH, "Attribute Vector Math", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_attribute_vector_math_in, geo_node_attribute_vector_math_out);
+  ntype.declare = blender::nodes::geo_node_attribute_vector_math_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_vector_math_exec;
-  ntype.draw_buttons = geo_node_attribute_vector_math_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_attribute_vector_math_layout;
+  node_type_label(&ntype, blender::nodes::geo_node_vector_math_label);
   node_type_update(&ntype, blender::nodes::geo_node_attribute_vector_math_update);
-  node_type_init(&ntype, geo_node_attribute_vector_math_init);
+  node_type_init(&ntype, blender::nodes::geo_node_attribute_vector_math_init);
   node_type_storage(
       &ntype, "NodeAttributeVectorMath", node_free_standard_storage, node_copy_standard_storage);
+
   nodeRegisterType(&ntype);
 }

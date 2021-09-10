@@ -34,11 +34,11 @@
  * Otherwise #GHash should be used instead.
  *
  * #SmallHashEntry.key
- * - ``SMHASH_KEY_UNUSED`` means the key in the cell has not been initialized.
+ * - `SMHASH_KEY_UNUSED` means the key in the cell has not been initialized.
  *
  * #SmallHashEntry.val
- * - ``SMHASH_CELL_UNUSED`` means this cell is inside a key series.
- * - ``SMHASH_CELL_FREE`` means this cell terminates a key series.
+ * - `SMHASH_CELL_UNUSED` means this cell is inside a key series.
+ * - `SMHASH_CELL_FREE` means this cell terminates a key series.
  *
  * Note that the values and keys are often pointers or index values,
  * use the maximum values to avoid real pointers colliding with magic numbers.

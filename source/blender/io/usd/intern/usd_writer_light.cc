@@ -217,7 +217,7 @@ void USDLightWriter::do_write(HierarchyContext &context)
       break;
     }
     default:
-      BLI_assert(!"is_supported() returned true for unsupported light type");
+      BLI_assert_msg(0, "is_supported() returned true for unsupported light type");
   }
 
   float usd_intensity = light->energy * usd_export_context_.export_params.light_intensity_scale;

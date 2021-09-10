@@ -233,7 +233,7 @@ void depsgraph_tag_to_component_opcode(const ID *id,
     case ID_RECALC_GEOMETRY_ALL_MODES:
     case ID_RECALC_ALL:
     case ID_RECALC_PSYS_ALL:
-      BLI_assert(!"Should not happen");
+      BLI_assert_msg(0, "Should not happen");
       break;
     case ID_RECALC_TAG_FOR_UNDO:
       break; /* Must be ignored by depsgraph. */
@@ -452,7 +452,7 @@ const char *update_source_as_string(eUpdateSource source)
     case DEG_UPDATE_SOURCE_VISIBILITY:
       return "VISIBILITY";
   }
-  BLI_assert(!"Should never happen.");
+  BLI_assert_msg(0, "Should never happen.");
   return "UNKNOWN";
 }
 
@@ -646,8 +646,8 @@ void graph_id_tag_update(
 {
   const int debug_flags = (graph != nullptr) ? DEG_debug_flags_get((::Depsgraph *)graph) : G.debug;
   if (graph != nullptr && graph->is_evaluating) {
-    if (debug_flags & G_DEBUG_DEPSGRAPH) {
-      printf("ID tagged for update during dependency graph evaluation.");
+    if (debug_flags & G_DEBUG_DEPSGRAPH_TAG) {
+      printf("ID tagged for update during dependency graph evaluation.\n");
     }
     return;
   }

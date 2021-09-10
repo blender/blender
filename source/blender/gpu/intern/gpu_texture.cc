@@ -154,7 +154,7 @@ void Texture::attach_to(FrameBuffer *fb, GPUAttachmentType type)
       return;
     }
   }
-  BLI_assert(!"GPU: Error: Texture: Not enough attachment");
+  BLI_assert_msg(0, "GPU: Error: Texture: Not enough attachment");
 }
 
 void Texture::detach_from(FrameBuffer *fb)
@@ -166,7 +166,7 @@ void Texture::detach_from(FrameBuffer *fb)
       return;
     }
   }
-  BLI_assert(!"GPU: Error: Texture: Framebuffer is not attached");
+  BLI_assert_msg(0, "GPU: Error: Texture: Framebuffer is not attached");
 }
 
 void Texture::update(eGPUDataFormat format, const void *data)
@@ -241,55 +241,61 @@ static inline GPUTexture *gpu_texture_create(const char *name,
 }
 
 GPUTexture *GPU_texture_create_1d(
-    const char *name, int w, int mips, eGPUTextureFormat format, const float *data)
+    const char *name, int w, int mip_len, eGPUTextureFormat format, const float *data)
 {
-  return gpu_texture_create(name, w, 0, 0, GPU_TEXTURE_1D, mips, format, GPU_DATA_FLOAT, data);
+  return gpu_texture_create(name, w, 0, 0, GPU_TEXTURE_1D, mip_len, format, GPU_DATA_FLOAT, data);
 }
 
 GPUTexture *GPU_texture_create_1d_array(
-    const char *name, int w, int h, int mips, eGPUTextureFormat format, const float *data)
+    const char *name, int w, int h, int mip_len, eGPUTextureFormat format, const float *data)
 {
   return gpu_texture_create(
-      name, w, h, 0, GPU_TEXTURE_1D_ARRAY, mips, format, GPU_DATA_FLOAT, data);
+      name, w, h, 0, GPU_TEXTURE_1D_ARRAY, mip_len, format, GPU_DATA_FLOAT, data);
 }
 
 GPUTexture *GPU_texture_create_2d(
-    const char *name, int w, int h, int mips, eGPUTextureFormat format, const float *data)
+    const char *name, int w, int h, int mip_len, eGPUTextureFormat format, const float *data)
 {
-  return gpu_texture_create(name, w, h, 0, GPU_TEXTURE_2D, mips, format, GPU_DATA_FLOAT, data);
+  return gpu_texture_create(name, w, h, 0, GPU_TEXTURE_2D, mip_len, format, GPU_DATA_FLOAT, data);
 }
 
-GPUTexture *GPU_texture_create_2d_array(
-    const char *name, int w, int h, int d, int mips, eGPUTextureFormat format, const float *data)
+GPUTexture *GPU_texture_create_2d_array(const char *name,
+                                        int w,
+                                        int h,
+                                        int d,
+                                        int mip_len,
+                                        eGPUTextureFormat format,
+                                        const float *data)
 {
   return gpu_texture_create(
-      name, w, h, d, GPU_TEXTURE_2D_ARRAY, mips, format, GPU_DATA_FLOAT, data);
+      name, w, h, d, GPU_TEXTURE_2D_ARRAY, mip_len, format, GPU_DATA_FLOAT, data);
 }
 
 GPUTexture *GPU_texture_create_3d(const char *name,
                                   int w,
                                   int h,
                                   int d,
-                                  int mips,
+                                  int mip_len,
                                   eGPUTextureFormat texture_format,
                                   eGPUDataFormat data_format,
                                   const void *data)
 {
   return gpu_texture_create(
-      name, w, h, d, GPU_TEXTURE_3D, mips, texture_format, data_format, data);
+      name, w, h, d, GPU_TEXTURE_3D, mip_len, texture_format, data_format, data);
 }
 
 GPUTexture *GPU_texture_create_cube(
-    const char *name, int w, int mips, eGPUTextureFormat format, const float *data)
+    const char *name, int w, int mip_len, eGPUTextureFormat format, const float *data)
 {
-  return gpu_texture_create(name, w, w, 0, GPU_TEXTURE_CUBE, mips, format, GPU_DATA_FLOAT, data);
+  return gpu_texture_create(
+      name, w, w, 0, GPU_TEXTURE_CUBE, mip_len, format, GPU_DATA_FLOAT, data);
 }
 
 GPUTexture *GPU_texture_create_cube_array(
-    const char *name, int w, int d, int mips, eGPUTextureFormat format, const float *data)
+    const char *name, int w, int d, int mip_len, eGPUTextureFormat format, const float *data)
 {
   return gpu_texture_create(
-      name, w, w, d, GPU_TEXTURE_CUBE_ARRAY, mips, format, GPU_DATA_FLOAT, data);
+      name, w, w, d, GPU_TEXTURE_CUBE_ARRAY, mip_len, format, GPU_DATA_FLOAT, data);
 }
 
 /* DDS texture loading. Return NULL if support is not available. */

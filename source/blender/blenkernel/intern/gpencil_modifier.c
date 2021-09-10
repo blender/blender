@@ -257,9 +257,13 @@ bool BKE_gpencil_is_first_lineart_in_stack(const Object *ob, const GpencilModifi
   return false;
 }
 
-/* apply time modifiers */
-static int gpencil_time_modifier(
-    Depsgraph *depsgraph, Scene *scene, Object *ob, bGPDlayer *gpl, int cfra, bool is_render)
+/* Get Time modifier frame number. */
+int BKE_gpencil_time_modifier_cfra(Depsgraph *depsgraph,
+                                   Scene *scene,
+                                   Object *ob,
+                                   bGPDlayer *gpl,
+                                   const int cfra,
+                                   const bool is_render)
 {
   bGPdata *gpd = ob->data;
   const bool is_edit = GPENCIL_ANY_EDIT_MODE(gpd);
@@ -269,7 +273,7 @@ static int gpencil_time_modifier(
     if (GPENCIL_MODIFIER_ACTIVE(md, is_render)) {
       const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
 
-      if ((GPENCIL_MODIFIER_EDIT(md, is_edit)) && (!is_render)) {
+      if (GPENCIL_MODIFIER_EDIT(md, is_edit) && (!is_render)) {
         continue;
       }
 
@@ -665,7 +669,7 @@ static int gpencil_remap_time_get(Depsgraph *depsgraph, Scene *scene, Object *ob
 
   int remap_cfra = cfra_eval;
   if (time_remap) {
-    remap_cfra = gpencil_time_modifier(depsgraph, scene, ob, gpl, cfra_eval, is_render);
+    remap_cfra = BKE_gpencil_time_modifier_cfra(depsgraph, scene, ob, gpl, cfra_eval, is_render);
   }
 
   return remap_cfra;
@@ -715,7 +719,7 @@ static void gpencil_copy_activeframe_to_eval(
       bGPDframe *gpf_orig = gpl_orig->actframe;
 
       int remap_cfra = gpencil_remap_time_get(depsgraph, scene, ob, gpl_orig);
-      if (gpf_orig && gpf_orig->framenum != remap_cfra) {
+      if ((gpf_orig == NULL) || (gpf_orig && gpf_orig->framenum != remap_cfra)) {
         gpf_orig = BKE_gpencil_layer_frame_get(gpl_orig, remap_cfra, GP_GETFRAME_USE_PREV);
       }
 
@@ -834,7 +838,7 @@ void BKE_gpencil_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
     if (GPENCIL_MODIFIER_ACTIVE(md, is_render)) {
       const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
 
-      if ((GPENCIL_MODIFIER_EDIT(md, is_edit)) && (!is_render)) {
+      if (GPENCIL_MODIFIER_EDIT(md, is_edit) && (!is_render)) {
         continue;
       }
 
@@ -1021,7 +1025,7 @@ void BKE_gpencil_modifier_blend_read_lib(BlendLibReader *reader, Object *ob)
   BKE_gpencil_modifiers_foreach_ID_link(ob, BKE_object_modifiers_lib_link_common, reader);
 
   /* If linking from a library, clear 'local' library override flag. */
-  if (ob->id.lib != NULL) {
+  if (ID_IS_LINKED(ob)) {
     LISTBASE_FOREACH (GpencilModifierData *, mod, &ob->greasepencil_modifiers) {
       mod->flag &= ~eGpencilModifierFlag_OverrideLibrary_Local;
     }

@@ -155,7 +155,9 @@ static void image_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
 
   for (int eye = 0; eye < 2; eye++) {
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      image_dst->gputexture[i][eye] = NULL;
+      for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
+        image_dst->gputexture[i][eye][resolution] = NULL;
+      }
     }
   }
 
@@ -208,9 +210,11 @@ static void image_foreach_cache(ID *id,
 
   for (int eye = 0; eye < 2; eye++) {
     for (int a = 0; a < TEXTARGET_COUNT; a++) {
-      key.offset_in_ID = offsetof(Image, gputexture[a][eye]);
-      key.cache_v = image->gputexture[a][eye];
-      function_callback(id, &key, (void **)&image->gputexture[a][eye], 0, user_data);
+      for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
+        key.offset_in_ID = offsetof(Image, gputexture[a][eye][resolution]);
+        key.cache_v = image->gputexture[a][eye];
+        function_callback(id, &key, (void **)&image->gputexture[a][eye][resolution], 0, user_data);
+      }
     }
   }
 
@@ -229,12 +233,28 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 {
   Image *ima = (Image *)id;
   const bool is_undo = BLO_write_is_undo(writer);
-  if (ima->id.us > 0 || is_undo) {
-    ImagePackedFile *imapf;
 
-    BLI_assert(ima->packedfile == NULL);
+  /* Clear all data that isn't read to reduce false detection of changed image during memfile undo.
+   */
+  ima->lastused = 0;
+  ima->cache = NULL;
+  ima->gpuflag = 0;
+  BLI_listbase_clear(&ima->anims);
+  BLI_listbase_clear(&ima->gpu_refresh_areas);
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 2; j++) {
+      for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
+        ima->gputexture[i][j][resolution] = NULL;
+      }
+    }
+  }
+
+  ImagePackedFile *imapf;
+
+  BLI_assert(ima->packedfile == NULL);
+  if (!is_undo) {
     /* Do not store packed files in case this is a library override ID. */
-    if (ID_IS_OVERRIDE_LIBRARY(ima) && !is_undo) {
+    if (ID_IS_OVERRIDE_LIBRARY(ima)) {
       BLI_listbase_clear(&ima->packedfiles);
     }
     else {
@@ -244,29 +264,29 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
         ima->packedfile = imapf->packedfile;
       }
     }
-
-    /* write LibData */
-    BLO_write_id_struct(writer, Image, id_address, &ima->id);
-    BKE_id_blend_write(writer, &ima->id);
-
-    for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
-      BLO_write_struct(writer, ImagePackedFile, imapf);
-      BKE_packedfile_blend_write(writer, imapf->packedfile);
-    }
-
-    BKE_previewimg_blend_write(writer, ima->preview);
-
-    LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
-      BLO_write_struct(writer, ImageView, iv);
-    }
-    BLO_write_struct(writer, Stereo3dFormat, ima->stereo3d_format);
-
-    BLO_write_struct_list(writer, ImageTile, &ima->tiles);
-
-    ima->packedfile = NULL;
-
-    BLO_write_struct_list(writer, RenderSlot, &ima->renderslots);
   }
+
+  /* write LibData */
+  BLO_write_id_struct(writer, Image, id_address, &ima->id);
+  BKE_id_blend_write(writer, &ima->id);
+
+  for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
+    BLO_write_struct(writer, ImagePackedFile, imapf);
+    BKE_packedfile_blend_write(writer, imapf->packedfile);
+  }
+
+  BKE_previewimg_blend_write(writer, ima->preview);
+
+  LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
+    BLO_write_struct(writer, ImageView, iv);
+  }
+  BLO_write_struct(writer, Stereo3dFormat, ima->stereo3d_format);
+
+  BLO_write_struct_list(writer, ImageTile, &ima->tiles);
+
+  ima->packedfile = NULL;
+
+  BLO_write_struct_list(writer, RenderSlot, &ima->renderslots);
 }
 
 static void image_blend_read_data(BlendDataReader *reader, ID *id)
@@ -300,6 +320,7 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
     tile->ok = IMA_OK;
   }
+  ima->lastused = 0;
   ima->gpuflag = 0;
   BLI_listbase_clear(&ima->gpu_refresh_areas);
 }
@@ -519,7 +540,7 @@ void BKE_image_free_buffers(Image *ima)
 }
 
 /** Free (or release) any data used by this image (does not free the image itself). */
-void BKE_image_free(Image *ima)
+void BKE_image_free_data(Image *ima)
 {
   image_free_data(&ima->id);
 }
@@ -662,12 +683,21 @@ bool BKE_image_has_opengl_texture(Image *ima)
 {
   for (int eye = 0; eye < 2; eye++) {
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      if (ima->gputexture[i][eye] != NULL) {
-        return true;
+      for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
+        if (ima->gputexture[i][eye][resolution] != NULL) {
+          return true;
+        }
       }
     }
   }
   return false;
+}
+
+static int image_get_tile_number_from_iuser(Image *ima, const ImageUser *iuser)
+{
+  BLI_assert(ima != NULL && ima->tiles.first);
+  ImageTile *tile = ima->tiles.first;
+  return (iuser && iuser->tile) ? iuser->tile : tile->tile_number;
 }
 
 ImageTile *BKE_image_get_tile(Image *ima, int tile_number)
@@ -676,18 +706,14 @@ ImageTile *BKE_image_get_tile(Image *ima, int tile_number)
     return NULL;
   }
 
-  /* Verify valid tile range. */
-  if ((tile_number != 0) && (tile_number < 1001 || tile_number > IMA_UDIM_MAX)) {
-    return NULL;
-  }
-
-  /* Tile number 0 is a special case and refers to the first tile, typically
+  /* Tiles 0 and 1001 are a special case and refer to the first tile, typically
    * coming from non-UDIM-aware code. */
   if (ELEM(tile_number, 0, 1001)) {
     return ima->tiles.first;
   }
 
-  if (ima->source != IMA_SRC_TILED) {
+  /* Must have a tiled image and a valid tile number at this point. */
+  if (ima->source != IMA_SRC_TILED || tile_number < 1001 || tile_number > IMA_UDIM_MAX) {
     return NULL;
   }
 
@@ -702,7 +728,7 @@ ImageTile *BKE_image_get_tile(Image *ima, int tile_number)
 
 ImageTile *BKE_image_get_tile_from_iuser(Image *ima, const ImageUser *iuser)
 {
-  return BKE_image_get_tile(ima, (iuser && iuser->tile) ? iuser->tile : 1001);
+  return BKE_image_get_tile(ima, image_get_tile_number_from_iuser(ima, iuser));
 }
 
 int BKE_image_get_tile_from_pos(struct Image *ima,
@@ -1020,7 +1046,7 @@ Image *BKE_image_add_generated(Main *bmain,
   int view_id;
   const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 
-  /* STRNCPY(ima->filepath, name); */ /* don't do this, this writes in ain invalid filepath! */
+  // STRNCPY(ima->filepath, name); /* don't do this, this writes in ain invalid filepath! */
   ima->gen_x = width;
   ima->gen_y = height;
   ima->gen_type = gen_type;
@@ -1778,7 +1804,7 @@ static bool do_add_image_extension(char *string,
         }
       }
       else {
-        BLI_assert(!"Unsupported jp2 codec was specified in im_format->jp2_codec");
+        BLI_assert_msg(0, "Unsupported jp2 codec was specified in im_format->jp2_codec");
       }
     }
     else {
@@ -1949,7 +1975,7 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
       im_format->jp2_codec = R_IMF_JP2_CODEC_J2K;
     }
     else {
-      BLI_assert(!"Unsupported jp2 codec was specified in file type");
+      BLI_assert_msg(0, "Unsupported jp2 codec was specified in file type");
     }
   }
 #endif
@@ -3017,7 +3043,7 @@ void BKE_imbuf_write_prepare(ImBuf *ibuf, const ImageFormatData *imf)
       ibuf->foptions.flag |= JP2_J2K;
     }
     else {
-      BLI_assert(!"Unsupported jp2 codec was specified in im_format->jp2_codec");
+      BLI_assert_msg(0, "Unsupported jp2 codec was specified in im_format->jp2_codec");
     }
   }
 #endif
@@ -3513,9 +3539,11 @@ static void image_free_tile(Image *ima, ImageTile *tile)
     }
 
     for (int eye = 0; eye < 2; eye++) {
-      if (ima->gputexture[i][eye] != NULL) {
-        GPU_texture_free(ima->gputexture[i][eye]);
-        ima->gputexture[i][eye] = NULL;
+      for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
+        if (ima->gputexture[i][eye][resolution] != NULL) {
+          GPU_texture_free(ima->gputexture[i][eye][resolution]);
+          ima->gputexture[i][eye][resolution] = NULL;
+        }
       }
     }
   }
@@ -3783,14 +3811,16 @@ ImageTile *BKE_image_add_tile(struct Image *ima, int tile_number, const char *la
   }
 
   for (int eye = 0; eye < 2; eye++) {
-    /* Reallocate GPU tile array. */
-    if (ima->gputexture[TEXTARGET_2D_ARRAY][eye] != NULL) {
-      GPU_texture_free(ima->gputexture[TEXTARGET_2D_ARRAY][eye]);
-      ima->gputexture[TEXTARGET_2D_ARRAY][eye] = NULL;
-    }
-    if (ima->gputexture[TEXTARGET_TILE_MAPPING][eye] != NULL) {
-      GPU_texture_free(ima->gputexture[TEXTARGET_TILE_MAPPING][eye]);
-      ima->gputexture[TEXTARGET_TILE_MAPPING][eye] = NULL;
+    for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
+      /* Reallocate GPU tile array. */
+      if (ima->gputexture[TEXTARGET_2D_ARRAY][eye][resolution] != NULL) {
+        GPU_texture_free(ima->gputexture[TEXTARGET_2D_ARRAY][eye][resolution]);
+        ima->gputexture[TEXTARGET_2D_ARRAY][eye][resolution] = NULL;
+      }
+      if (ima->gputexture[TEXTARGET_TILE_MAPPING][eye][resolution] != NULL) {
+        GPU_texture_free(ima->gputexture[TEXTARGET_TILE_MAPPING][eye][resolution]);
+        ima->gputexture[TEXTARGET_TILE_MAPPING][eye][resolution] = NULL;
+      }
     }
   }
 
@@ -3803,8 +3833,8 @@ bool BKE_image_remove_tile(struct Image *ima, ImageTile *tile)
     return false;
   }
 
-  if (tile == ima->tiles.first) {
-    /* Can't remove first tile. */
+  if (BLI_listbase_is_single(&ima->tiles)) {
+    /* Can't remove the last remaining tile. */
     return false;
   }
 
@@ -3813,6 +3843,67 @@ bool BKE_image_remove_tile(struct Image *ima, ImageTile *tile)
   MEM_freeN(tile);
 
   return true;
+}
+
+void BKE_image_reassign_tile(struct Image *ima, ImageTile *tile, int new_tile_number)
+{
+  if (ima == NULL || tile == NULL || ima->source != IMA_SRC_TILED) {
+    return;
+  }
+
+  if (new_tile_number < 1001 || new_tile_number > IMA_UDIM_MAX) {
+    return;
+  }
+
+  const int old_tile_number = tile->tile_number;
+  tile->tile_number = new_tile_number;
+
+  if (BKE_image_is_multiview(ima)) {
+    const int totviews = BLI_listbase_count(&ima->views);
+    for (int i = 0; i < totviews; i++) {
+      ImBuf *ibuf = image_get_cached_ibuf_for_index_entry(ima, i, old_tile_number);
+      image_remove_ibuf(ima, i, old_tile_number);
+      image_assign_ibuf(ima, ibuf, i, new_tile_number);
+      IMB_freeImBuf(ibuf);
+    }
+  }
+  else {
+    ImBuf *ibuf = image_get_cached_ibuf_for_index_entry(ima, 0, old_tile_number);
+    image_remove_ibuf(ima, 0, old_tile_number);
+    image_assign_ibuf(ima, ibuf, 0, new_tile_number);
+    IMB_freeImBuf(ibuf);
+  }
+
+  for (int eye = 0; eye < 2; eye++) {
+    for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
+
+      /* Reallocate GPU tile array. */
+      if (ima->gputexture[TEXTARGET_2D_ARRAY][eye][resolution] != NULL) {
+        GPU_texture_free(ima->gputexture[TEXTARGET_2D_ARRAY][eye][resolution]);
+        ima->gputexture[TEXTARGET_2D_ARRAY][eye][resolution] = NULL;
+      }
+      if (ima->gputexture[TEXTARGET_TILE_MAPPING][eye][resolution] != NULL) {
+        GPU_texture_free(ima->gputexture[TEXTARGET_TILE_MAPPING][eye][resolution]);
+        ima->gputexture[TEXTARGET_TILE_MAPPING][eye][resolution] = NULL;
+      }
+    }
+  }
+}
+
+static int tile_sort_cb(const void *a, const void *b)
+{
+  const ImageTile *tile_a = a;
+  const ImageTile *tile_b = b;
+  return (tile_a->tile_number > tile_b->tile_number) ? 1 : 0;
+}
+
+void BKE_image_sort_tiles(struct Image *ima)
+{
+  if (ima == NULL || ima->source != IMA_SRC_TILED) {
+    return;
+  }
+
+  BLI_listbase_sort(&ima->tiles, tile_sort_cb);
 }
 
 bool BKE_image_fill_tile(struct Image *ima,
@@ -4890,7 +4981,7 @@ static void image_get_entry_and_index(Image *ima, ImageUser *iuser, int *r_entry
     }
   }
   else if (ima->source == IMA_SRC_TILED) {
-    frame = (iuser && iuser->tile) ? iuser->tile : 1001;
+    frame = image_get_tile_number_from_iuser(ima, iuser);
   }
 
   *r_entry = frame;
@@ -4955,7 +5046,7 @@ static ImBuf *image_get_cached_ibuf(Image *ima, ImageUser *iuser, int *r_entry, 
   }
   else if (ima->source == IMA_SRC_TILED) {
     if (ELEM(ima->type, IMA_TYPE_IMAGE, IMA_TYPE_MULTILAYER)) {
-      entry = (iuser && iuser->tile) ? iuser->tile : 1001;
+      entry = image_get_tile_number_from_iuser(ima, iuser);
       ibuf = image_get_cached_ibuf_for_index_entry(ima, index, entry);
 
       if ((ima->type == IMA_TYPE_IMAGE) && ibuf != NULL) {
@@ -5507,7 +5598,7 @@ void BKE_image_user_file_path(ImageUser *iuser, Image *ima, char *filepath)
       index = iuser ? iuser->framenr : ima->lastframe;
     }
     else {
-      index = (iuser && iuser->tile) ? iuser->tile : 1001;
+      index = image_get_tile_number_from_iuser(ima, iuser);
     }
 
     BLI_path_sequence_decode(filepath, head, tail, &numlen);

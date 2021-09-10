@@ -97,6 +97,8 @@ class MeshesToIMeshInfo {
   /* Transformation matrix to transform a coordinate in the corresponding
    * Mesh to the local space of the first Mesh. */
   Array<float4x4> to_target_transform;
+  /* For each input mesh, whether or not their transform is negative. */
+  Array<bool> has_negative_transform;
   /* For each input mesh, how to remap the material slot numbers to
    * the material slots in the first mesh. */
   Span<Array<short>> material_remaps;
@@ -277,6 +279,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
   r_info->mesh_edge_offset = Array<int>(nmeshes);
   r_info->mesh_poly_offset = Array<int>(nmeshes);
   r_info->to_target_transform = Array<float4x4>(nmeshes);
+  r_info->has_negative_transform = Array<bool>(nmeshes);
   r_info->material_remaps = material_remaps;
   int v = 0;
   int e = 0;
@@ -309,6 +312,12 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
     const float4x4 objn_mat = (obmats[mi] == nullptr) ? float4x4::identity() :
                                                         clean_obmat(*obmats[mi]);
     r_info->to_target_transform[mi] = inv_target_mat * objn_mat;
+    r_info->has_negative_transform[mi] = objn_mat.is_negative();
+
+    /* All meshes 1 and up will be transformed into the local space of operand 0.
+     * Historical behavior of the modifier has been to flip the faces of any meshes
+     * that would have a negative transform if you do that. */
+    bool need_face_flip = r_info->has_negative_transform[mi] != r_info->has_negative_transform[0];
 
     Vector<Vert *> verts(me->totvert);
     Span<MVert> mverts = Span(me->mvert, me->totvert);
@@ -346,14 +355,21 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
 
     for (const MPoly &poly : Span(me->mpoly, me->totpoly)) {
       int flen = poly.totloop;
-      face_vert.clear();
-      face_edge_orig.clear();
+      face_vert.resize(flen);
+      face_edge_orig.resize(flen);
       const MLoop *l = &me->mloop[poly.loopstart];
       for (int i = 0; i < flen; ++i) {
         int mverti = r_info->mesh_vert_offset[mi] + l->v;
         const Vert *fv = r_info->mesh_to_imesh_vert[mverti];
-        face_vert.append(fv);
-        face_edge_orig.append(e + l->e);
+        if (need_face_flip) {
+          face_vert[flen - i - 1] = fv;
+          int iedge = i < flen - 1 ? flen - i - 2 : flen - 1;
+          face_edge_orig[iedge] = e + l->e;
+        }
+        else {
+          face_vert[i] = fv;
+          face_edge_orig[i] = e + l->e;
+        }
         ++l;
       }
       r_info->mesh_to_imesh_face[f] = arena.add_face(face_vert, f, face_edge_orig);

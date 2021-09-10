@@ -248,7 +248,7 @@ void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type)
     }
   }
 
-  BLI_assert(!"Too many draw engines enabled at the same time");
+  BLI_assert_msg(0, "Too many draw engines enabled at the same time");
   return NULL;
 }
 
@@ -556,7 +556,7 @@ void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, struct GPUOffScreen
 
 void GPU_viewport_colorspace_set(GPUViewport *viewport,
                                  ColorManagedViewSettings *view_settings,
-                                 ColorManagedDisplaySettings *display_settings,
+                                 const ColorManagedDisplaySettings *display_settings,
                                  float dither)
 {
   /**

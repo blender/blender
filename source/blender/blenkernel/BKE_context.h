@@ -23,6 +23,9 @@
  * \ingroup bke
  */
 
+/* XXX temporary, until AssetHandle is designed properly and queries can return a pointer to it. */
+#include "DNA_asset_types.h"
+
 #include "DNA_listBase.h"
 #include "DNA_object_enums.h"
 #include "RNA_types.h"
@@ -253,9 +256,11 @@ int /*eContextResult*/ CTX_data_get(
     const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb, short *r_type);
 
 void CTX_data_id_pointer_set(bContextDataResult *result, struct ID *id);
+void CTX_data_pointer_set_ptr(bContextDataResult *result, const PointerRNA *ptr);
 void CTX_data_pointer_set(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
 
 void CTX_data_id_list_add(bContextDataResult *result, struct ID *id);
+void CTX_data_list_add_ptr(bContextDataResult *result, const PointerRNA *ptr);
 void CTX_data_list_add(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
 
 void CTX_data_dir_set(bContextDataResult *result, const char **dir);
@@ -356,6 +361,9 @@ struct bGPDframe *CTX_data_active_gpencil_frame(const bContext *C);
 int CTX_data_visible_gpencil_layers(const bContext *C, ListBase *list);
 int CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list);
 int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
+
+const struct AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C);
+struct AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid);
 
 bool CTX_wm_interface_locked(const bContext *C);
 

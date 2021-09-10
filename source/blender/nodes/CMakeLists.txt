@@ -104,6 +104,7 @@ set(SRC
   composite/nodes/node_composite_outputFile.c
   composite/nodes/node_composite_pixelate.c
   composite/nodes/node_composite_planetrackdeform.c
+  composite/nodes/node_composite_posterize.c
   composite/nodes/node_composite_premulkey.c
   composite/nodes/node_composite_rgb.c
   composite/nodes/node_composite_rotate.c
@@ -165,18 +166,24 @@ set(SRC
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_convex_hull.cc
   geometry/nodes/node_geo_curve_endpoints.cc
+  geometry/nodes/node_geo_curve_fill.cc
   geometry/nodes/node_geo_curve_length.cc
   geometry/nodes/node_geo_curve_primitive_bezier_segment.cc
   geometry/nodes/node_geo_curve_primitive_circle.cc
   geometry/nodes/node_geo_curve_primitive_line.cc
   geometry/nodes/node_geo_curve_primitive_quadratic_bezier.cc
+  geometry/nodes/node_geo_curve_primitive_quadrilateral.cc
   geometry/nodes/node_geo_curve_primitive_spiral.cc
   geometry/nodes/node_geo_curve_primitive_star.cc
   geometry/nodes/node_geo_curve_resample.cc
   geometry/nodes/node_geo_curve_reverse.cc
+  geometry/nodes/node_geo_curve_select_by_handle_type.cc
+  geometry/nodes/node_geo_curve_set_handles.cc
+  geometry/nodes/node_geo_curve_spline_type.cc
   geometry/nodes/node_geo_curve_subdivide.cc
   geometry/nodes/node_geo_curve_to_mesh.cc
   geometry/nodes/node_geo_curve_to_points.cc
+  geometry/nodes/node_geo_curve_trim.cc
   geometry/nodes/node_geo_delete_geometry.cc
   geometry/nodes/node_geo_edge_split.cc
   geometry/nodes/node_geo_input_material.cc
@@ -340,11 +347,12 @@ set(SRC
   intern/node_common.c
   intern/node_exec.cc
   intern/node_geometry_exec.cc
+  intern/node_multi_function.cc
+  intern/node_declaration.cc
+  intern/node_socket_declarations.cc
   intern/node_socket.cc
-  intern/node_tree_multi_function.cc
   intern/node_tree_ref.cc
   intern/node_util.c
-  intern/type_callbacks.cc
   intern/type_conversions.cc
 
   composite/node_composite_util.h
@@ -361,13 +369,14 @@ set(SRC
   NOD_geometry_exec.hh
   NOD_geometry_nodes_eval_log.hh
   NOD_math_functions.hh
-  NOD_node_tree_multi_function.hh
+  NOD_multi_function.hh
+  NOD_node_declaration.hh
+  NOD_socket_declarations.hh
   NOD_node_tree_ref.hh
   NOD_shader.h
   NOD_socket.h
   NOD_static_types.h
   NOD_texture.h
-  NOD_type_callbacks.hh
   NOD_type_conversions.hh
   intern/node_common.h
   intern/node_exec.h

@@ -59,14 +59,36 @@ void RNA_api_texture(StructRNA *srna)
   PropertyRNA *parm;
 
   func = RNA_def_function(srna, "evaluate", "texture_evaluate");
-  RNA_def_function_ui_description(func, "Evaluate the texture at the coordinates given");
+  RNA_def_function_ui_description(
+      func, "Evaluate the texture at the a given coordinate and returns the result");
 
-  parm = RNA_def_float_vector(func, "value", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
+  parm = RNA_def_float_vector(
+      func,
+      "value",
+      3,
+      NULL,
+      -FLT_MAX,
+      FLT_MAX,
+      "The coordinates (x,y,z) of the texture, in case of a 3D texture, the z value is the slice "
+      "of the texture that is evaluated. For 2D textures such as images, the z value is ignored",
+      "",
+      -1e4,
+      1e4);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
   /* return location and normal */
   parm = RNA_def_float_vector(
-      func, "result", 4, NULL, -FLT_MAX, FLT_MAX, "Result", NULL, -1e4, 1e4);
+      func,
+      "result",
+      4,
+      NULL,
+      -FLT_MAX,
+      FLT_MAX,
+      "The result of the texture where (x,y,z,w) are (red, green, blue, intensity). For greyscale "
+      "textures, often intensity only will be used",
+      NULL,
+      -1e4,
+      1e4);
   RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
   RNA_def_function_output(func, parm);
 }

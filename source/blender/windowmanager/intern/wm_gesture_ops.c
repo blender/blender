@@ -23,8 +23,8 @@
  * Default operator callbacks for use with gestures (border/circle/lasso/straightline).
  * Operators themselves are defined elsewhere.
  *
- * - Keymaps are in ``wm_operators.c``.
- * - Property definitions are in ``wm_operator_props.c``.
+ * - Keymaps are in `wm_operators.c`.
+ * - Property definitions are in `wm_operator_props.c`.
  */
 
 #include "MEM_guardedalloc.h"
@@ -585,7 +585,7 @@ void wm_tweakevent_test(bContext *C, const wmEvent *event, int action)
   }
   else {
     /* no tweaks if event was handled */
-    if ((action & WM_HANDLER_BREAK)) {
+    if (action & WM_HANDLER_BREAK) {
       WM_gesture_end(win, win->tweak);
     }
     else {

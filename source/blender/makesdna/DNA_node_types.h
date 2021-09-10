@@ -37,6 +37,8 @@ struct Collection;
 struct ID;
 struct Image;
 struct ListBase;
+struct Material;
+struct Tex;
 struct bGPdata;
 struct bNodeInstanceHash;
 struct bNodeLink;
@@ -44,8 +46,6 @@ struct bNodePreview;
 struct bNodeTreeExec;
 struct bNodeType;
 struct uiBlock;
-struct Tex;
-struct Material;
 
 #define NODE_MAXSTR 64
 
@@ -1328,6 +1328,13 @@ typedef struct NodeAttributeConvert {
   int8_t domain;
 } NodeAttributeConvert;
 
+typedef struct NodeGeometrySubdivisionSurface {
+  /* eSubsurfUVSmooth. */
+  uint8_t uv_smooth;
+  /* eSubsurfBoundarySmooth. */
+  uint8_t boundary_smooth;
+} NodeGeometrySubdivisionSurface;
+
 typedef struct NodeGeometryMeshCircle {
   /* GeometryNodeMeshCircleFillType. */
   uint8_t fill_type;
@@ -1355,6 +1362,25 @@ typedef struct NodeSwitch {
   uint8_t input_type;
 } NodeSwitch;
 
+typedef struct NodeGeometryCurveSplineType {
+  /* GeometryNodeSplineType. */
+  uint8_t spline_type;
+} NodeGeometryCurveSplineType;
+
+typedef struct NodeGeometryCurveSetHandles {
+  /* GeometryNodeCurveHandleType. */
+  uint8_t handle_type;
+  /* GeometryNodeCurveHandleMode. */
+  uint8_t mode;
+} NodeGeometryCurveSetHandles;
+
+typedef struct NodeGeometryCurveSelectHandles {
+  /* GeometryNodeCurveHandleType. */
+  uint8_t handle_type;
+  /* GeometryNodeCurveHandleMode. */
+  uint8_t mode;
+} NodeGeometryCurveSelectHandles;
+
 typedef struct NodeGeometryCurvePrimitiveLine {
   /* GeometryNodeCurvePrimitiveLineMode. */
   uint8_t mode;
@@ -1370,6 +1396,11 @@ typedef struct NodeGeometryCurvePrimitiveCircle {
   uint8_t mode;
 } NodeGeometryCurvePrimitiveCircle;
 
+typedef struct NodeGeometryCurvePrimitiveQuad {
+  /* GeometryNodeCurvePrimitiveQuadMode. */
+  uint8_t mode;
+} NodeGeometryCurvePrimitiveQuad;
+
 typedef struct NodeGeometryCurveResample {
   /* GeometryNodeCurveSampleMode. */
   uint8_t mode;
@@ -1379,6 +1410,11 @@ typedef struct NodeGeometryCurveSubdivide {
   /* GeometryNodeAttributeInputMode (integer or attribute). */
   uint8_t cuts_type;
 } NodeGeometryCurveSubdivide;
+
+typedef struct NodeGeometryCurveTrim {
+  /* GeometryNodeCurveInterpolateMode. */
+  uint8_t mode;
+} NodeGeometryCurveTrim;
 
 typedef struct NodeGeometryCurveToPoints {
   /* GeometryNodeCurveSampleMode. */
@@ -1400,6 +1436,10 @@ typedef struct NodeGeometryRaycast {
   uint8_t input_type_ray_length;
   char _pad[1];
 } NodeGeometryRaycast;
+
+typedef struct NodeGeometryCurveFill {
+  uint8_t mode;
+} NodeGeometryCurveFill;
 
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
@@ -1800,9 +1840,9 @@ typedef enum NodeShaderOutputTarget {
 /* Geometry Nodes */
 
 typedef enum GeometryNodeAttributeProximityTargetType {
-  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_POINTS = 0,
-  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_EDGES = 1,
-  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_FACES = 2,
+  GEO_NODE_PROXIMITY_TARGET_POINTS = 0,
+  GEO_NODE_PROXIMITY_TARGET_EDGES = 1,
+  GEO_NODE_PROXIMITY_TARGET_FACES = 2,
 } GeometryNodeAttributeProximityTargetType;
 
 typedef enum GeometryNodeBooleanOperation {
@@ -1811,10 +1851,28 @@ typedef enum GeometryNodeBooleanOperation {
   GEO_NODE_BOOLEAN_DIFFERENCE = 2,
 } GeometryNodeBooleanOperation;
 
+typedef enum GeometryNodeSplineType {
+  GEO_NODE_SPLINE_TYPE_BEZIER = 0,
+  GEO_NODE_SPLINE_TYPE_NURBS = 1,
+  GEO_NODE_SPLINE_TYPE_POLY = 2,
+} GeometryNodeSplineType;
+
 typedef enum GeometryNodeCurvePrimitiveCircleMode {
   GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS = 0,
   GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS = 1
 } GeometryNodeCurvePrimitiveCircleMode;
+
+typedef enum GeometryNodeCurveHandleType {
+  GEO_NODE_CURVE_HANDLE_FREE = 0,
+  GEO_NODE_CURVE_HANDLE_AUTO = 1,
+  GEO_NODE_CURVE_HANDLE_VECTOR = 2,
+  GEO_NODE_CURVE_HANDLE_ALIGN = 3
+} GeometryNodeCurveHandleType;
+
+typedef enum GeometryNodeCurveHandleMode {
+  GEO_NODE_CURVE_HANDLE_LEFT = (1 << 0),
+  GEO_NODE_CURVE_HANDLE_RIGHT = (1 << 1)
+} GeometryNodeCurveHandleMode;
 
 typedef enum GeometryNodeTriangulateNGons {
   GEO_NODE_TRIANGULATE_NGON_BEAUTY = 0,
@@ -1831,6 +1889,7 @@ typedef enum GeometryNodeTriangulateQuads {
 typedef enum GeometryNodePointInstanceType {
   GEO_NODE_POINT_INSTANCE_TYPE_OBJECT = 0,
   GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION = 1,
+  GEO_NODE_POINT_INSTANCE_TYPE_GEOMETRY = 2,
 } GeometryNodePointInstanceType;
 
 typedef enum GeometryNodePointInstanceFlag {
@@ -1920,6 +1979,14 @@ typedef enum GeometryNodeCurvePrimitiveLineMode {
   GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION = 1
 } GeometryNodeCurvePrimitiveLineMode;
 
+typedef enum GeometryNodeCurvePrimitiveQuadMode {
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE = 0,
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_PARALLELOGRAM = 1,
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_TRAPEZOID = 2,
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_KITE = 3,
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_POINTS = 4,
+} GeometryNodeCurvePrimitiveQuadMode;
+
 typedef enum GeometryNodeCurvePrimitiveBezierSegmentMode {
   GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_POSITION = 0,
   GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_OFFSET = 1,
@@ -1931,6 +1998,11 @@ typedef enum GeometryNodeCurveSampleMode {
   GEO_NODE_CURVE_SAMPLE_EVALUATED = 2,
 } GeometryNodeCurveSampleMode;
 
+typedef enum GeometryNodeCurveInterpolateMode {
+  GEO_NODE_CURVE_INTERPOLATE_FACTOR = 0,
+  GEO_NODE_CURVE_INTERPOLATE_LENGTH = 1,
+} GeometryNodeCurveInterpolateMode;
+
 typedef enum GeometryNodeAttributeTransferMapMode {
   GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,
   GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST = 1,
@@ -1940,6 +2012,11 @@ typedef enum GeometryNodeRaycastMapMode {
   GEO_NODE_RAYCAST_INTERPOLATED = 0,
   GEO_NODE_RAYCAST_NEAREST = 1,
 } GeometryNodeRaycastMapMode;
+
+typedef enum GeometryNodeCurveFillMode {
+  GEO_NODE_CURVE_FILL_MODE_TRIANGULATED = 0,
+  GEO_NODE_CURVE_FILL_MODE_NGONS = 1,
+} GeometryNodeCurveFillMode;
 
 #ifdef __cplusplus
 }

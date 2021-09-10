@@ -26,8 +26,7 @@
 namespace blender {
 namespace deg {
 
-// Utility class which takes care of calculating average of time series, such as
-// FPS counters.
+/* Utility class which takes care of calculating average of time series, such as FPS counters. */
 template<int MaxSamples> class AveragedTimeSampler {
  public:
   AveragedTimeSampler() : num_samples_(0), next_sample_index_(0)
@@ -38,13 +37,13 @@ template<int MaxSamples> class AveragedTimeSampler {
   {
     samples_[next_sample_index_] = value;
 
-    // Move to the next index, keeping wrapping at the end of array into account.
+    /* Move to the next index, keeping wrapping at the end of array into account. */
     ++next_sample_index_;
     if (next_sample_index_ == MaxSamples) {
       next_sample_index_ = 0;
     }
 
-    // Update number of stored samples.
+    /* Update number of stored samples. */
     if (num_samples_ != MaxSamples) {
       ++num_samples_;
     }
@@ -62,10 +61,10 @@ template<int MaxSamples> class AveragedTimeSampler {
  protected:
   double samples_[MaxSamples];
 
-  // Number of samples which are actually stored in the array.
+  /* Number of samples which are actually stored in the array. */
   int num_samples_;
 
-  // Index in the samples_ array under which next sample will be stored.
+  /* Index in the samples_ array under which next sample will be stored. */
   int next_sample_index_;
 };
 

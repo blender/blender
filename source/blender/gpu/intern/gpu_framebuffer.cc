@@ -495,7 +495,7 @@ void GPU_framebuffer_py_reference_set(GPUFrameBuffer *gpu_fb, void **py_ref)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name  Frame-Buffer Stack
+/** \name Frame-Buffer Stack
  *
  * Keeps track of frame-buffer binding operation to restore previously bound frame-buffers.
  * \{ */
@@ -591,7 +591,7 @@ static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
 }
 
 GPUOffScreen *GPU_offscreen_create(
-    int width, int height, bool depth, bool high_bitdepth, char err_out[256])
+    int width, int height, bool depth, eGPUTextureFormat format, char err_out[256])
 {
   GPUOffScreen *ofs = (GPUOffScreen *)MEM_callocN(sizeof(GPUOffScreen), __func__);
 
@@ -600,8 +600,7 @@ GPUOffScreen *GPU_offscreen_create(
   height = max_ii(1, height);
   width = max_ii(1, width);
 
-  ofs->color = GPU_texture_create_2d(
-      "ofs_color", width, height, 1, (high_bitdepth) ? GPU_RGBA16F : GPU_RGBA8, nullptr);
+  ofs->color = GPU_texture_create_2d("ofs_color", width, height, 1, format, nullptr);
 
   if (depth) {
     ofs->depth = GPU_texture_create_2d(
@@ -609,7 +608,13 @@ GPUOffScreen *GPU_offscreen_create(
   }
 
   if ((depth && !ofs->depth) || !ofs->color) {
-    BLI_snprintf(err_out, 256, "GPUTexture: Texture allocation failed.");
+    const char error[] = "GPUTexture: Texture allocation failed.";
+    if (err_out) {
+      BLI_snprintf(err_out, 256, error);
+    }
+    else {
+      fprintf(stderr, error);
+    }
     GPU_offscreen_free(ofs);
     return nullptr;
   }

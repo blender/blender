@@ -105,6 +105,7 @@ typedef enum {
   /* specials */
   UI_WTYPE_ICON,
   UI_WTYPE_ICON_LABEL,
+  UI_WTYPE_PREVIEW_TILE,
   UI_WTYPE_SWATCH,
   UI_WTYPE_RGB_PICKER,
   UI_WTYPE_UNITVEC,
@@ -1377,8 +1378,6 @@ static int ui_but_draw_menu_icon(const uiBut *but)
 static void widget_draw_icon(
     const uiBut *but, BIFIconID icon, float alpha, const rcti *rect, const uchar mono_color[4])
 {
-  float xs = 0.0f, ys = 0.0f;
-
   if (but->flag & UI_BUT_ICON_PREVIEW) {
     GPU_blend(GPU_BLEND_ALPHA);
     widget_draw_preview(icon, alpha, rect);
@@ -1420,6 +1419,7 @@ static void widget_draw_icon(
 
   if (icon && icon != ICON_BLANK1) {
     const float ofs = 1.0f / aspect;
+    float xs, ys;
 
     if (but->drawflag & UI_BUT_ICON_LEFT) {
       /* special case - icon_only pie buttons */
@@ -1498,15 +1498,15 @@ static void widget_draw_submenu_tria(const uiBut *but,
 
 static void ui_text_clip_give_prev_off(uiBut *but, const char *str)
 {
-  const char *prev_utf8 = BLI_str_find_prev_char_utf8(str, str + but->ofs);
+  const char *prev_utf8 = BLI_str_find_prev_char_utf8(str + but->ofs, str);
   const int bytes = str + but->ofs - prev_utf8;
 
   but->ofs -= bytes;
 }
 
-static void ui_text_clip_give_next_off(uiBut *but, const char *str)
+static void ui_text_clip_give_next_off(uiBut *but, const char *str, const char *str_end)
 {
-  const char *next_utf8 = BLI_str_find_next_char_utf8(str + but->ofs, NULL);
+  const char *next_utf8 = BLI_str_find_next_char_utf8(str + but->ofs, str_end);
   const int bytes = next_utf8 - (str + but->ofs);
 
   but->ofs += bytes;
@@ -1575,11 +1575,6 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
 
   /* need to set this first */
   UI_fontstyle_set(fstyle);
-
-  if (fstyle->kerning == 1) {
-    /* for BLF_width */
-    BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
 
   float strwidth = BLF_width(fstyle->uifont_id, str, max_len);
 
@@ -1674,10 +1669,6 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
     strwidth = BLF_width(fstyle->uifont_id, str, max_len);
   }
 
-  if (fstyle->kerning == 1) {
-    BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
   BLI_assert(strwidth <= okwidth);
 
   return strwidth;
@@ -1736,11 +1727,6 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
   /* need to set this first */
   UI_fontstyle_set(fstyle);
 
-  if (fstyle->kerning == 1) {
-    /* for BLF_width */
-    BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
   /* define ofs dynamically */
   if (but->ofs > but->pos) {
     but->ofs = but->pos;
@@ -1753,7 +1739,8 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
   but->strwidth = BLF_width(fstyle->uifont_id, but->editstr + but->ofs, INT_MAX);
 
   if (but->strwidth > okwidth) {
-    int len = strlen(but->editstr);
+    const int editstr_len = strlen(but->editstr);
+    int len = editstr_len;
 
     while (but->strwidth > okwidth) {
       float width;
@@ -1763,7 +1750,7 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
 
       /* if cursor is at 20 pixels of right side button we clip left */
       if (width > okwidth - 20) {
-        ui_text_clip_give_next_off(but, but->editstr);
+        ui_text_clip_give_next_off(but, but->editstr, but->editstr + editstr_len);
       }
       else {
         int bytes;
@@ -1771,7 +1758,7 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
         if (width < 20 && but->ofs > 0) {
           ui_text_clip_give_prev_off(but, but->editstr);
         }
-        bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->editstr, but->editstr + len));
+        bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->editstr + len, but->editstr));
         if (bytes == -1) {
           bytes = 1;
         }
@@ -1784,10 +1771,6 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
         break;
       }
     }
-  }
-
-  if (fstyle->kerning == 1) {
-    BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
   }
 }
 
@@ -1806,11 +1789,6 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
   /* need to set this first */
   UI_fontstyle_set(fstyle);
 
-  if (fstyle->kerning == 1) {
-    /* for BLF_width */
-    BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
   but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr, sizeof(but->drawstr));
   but->ofs = 0;
 
@@ -1828,7 +1806,7 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
 
     /* chop off the leading text, starting from the right */
     while (but->strwidth > okwidth && cp2 > but->drawstr) {
-      const char *prev_utf8 = BLI_str_find_prev_char_utf8(but->drawstr, cp2);
+      const char *prev_utf8 = BLI_str_find_prev_char_utf8(cp2, but->drawstr);
       const int bytes = cp2 - prev_utf8;
 
       /* shift the text after and including cp2 back by 1 char,
@@ -1848,7 +1826,7 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
 
     /* after the leading text is gone, chop off the : and following space, with ofs */
     while ((but->strwidth > okwidth) && (but->ofs < 2)) {
-      ui_text_clip_give_next_off(but, but->drawstr);
+      ui_text_clip_give_next_off(but, but->drawstr, but->drawstr + drawstr_len);
       but->strwidth = BLF_width(
           fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
       if (but->strwidth < 10) {
@@ -1869,10 +1847,6 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
                   but->ofs;
     but->strwidth = strwidth;
     but->drawstr[drawstr_len] = 0;
-  }
-
-  if (fstyle->kerning == 1) {
-    BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
   }
 }
 
@@ -1983,11 +1957,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   }
   else {
     align = UI_STYLE_TEXT_CENTER;
-  }
-
-  if (fstyle->kerning == 1) {
-    /* for BLF_width */
-    BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
   }
 
   /* Special case: when we're entering text for multiple buttons,
@@ -2151,10 +2120,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 #endif
   }
 
-  if (fstyle->kerning == 1) {
-    BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
 #if 0
   ui_rasterpos_safe(x, y, but->aspect);
   transopts = ui_translate_buttons();
@@ -2232,10 +2197,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
         }
 
         if (ul_index != -1) {
-          if (fstyle->kerning == 1) {
-            BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-          }
-
           int ul_width = round_fl_to_int(BLF_width(fstyle->uifont_id, "_", 2));
 
           struct UnderlineData ul_data = {
@@ -2256,10 +2217,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
           BLF_position(fstyle->uifont_id, pos_x, pos_y, 0.0f);
           BLF_color4ubv(fstyle->uifont_id, wcol->text);
           BLF_draw(fstyle->uifont_id, "_", 2);
-
-          if (fstyle->kerning == 1) {
-            BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-          }
         }
       }
     }
@@ -2292,7 +2249,7 @@ static void widget_draw_extra_icons(const uiWidgetColors *wcol,
   const float icon_size = ICON_SIZE_FROM_BUTRECT(rect);
 
   /* Offset of icons from the right edge. Keep in sync
-     with 'ui_but_extra_operator_icon_mouse_over_get'. */
+   * with 'ui_but_extra_operator_icon_mouse_over_get'. */
   if (!BLI_listbase_is_empty(&but->extra_op_icons)) {
     /* Eyeballed. */
     rect->xmax -= 0.2 * icon_size;
@@ -2481,8 +2438,8 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
   }
   else {
     /* In case a separate text label and some other button are placed under each other,
-       and the outline of the button does not contrast with the background.
-       Add an offset (thickness of the outline) so that the text does not stick out visually. */
+     * and the outline of the button does not contrast with the background.
+     * Add an offset (thickness of the outline) so that the text does not stick out visually. */
     if (but->drawflag & UI_BUT_TEXT_LEFT) {
       rect->xmin += U.pixelsize;
     }
@@ -3116,7 +3073,7 @@ void ui_draw_gradient(const rcti *rect,
       copy_v3_v3(col1[3], col1[2]);
       break;
     default:
-      BLI_assert(!"invalid 'type' argument");
+      BLI_assert_msg(0, "invalid 'type' argument");
       hsv_to_rgb(1.0, 1.0, 1.0, &col1[2][0], &col1[2][1], &col1[2][2]);
       copy_v3_v3(col1[0], col1[2]);
       copy_v3_v3(col1[1], col1[2]);
@@ -4019,6 +3976,14 @@ static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roun
   widgetbase_draw(&wtb, wcol);
 }
 
+static void widget_preview_tile(
+    uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
+{
+  const uiStyle *style = UI_style_get();
+  ui_draw_preview_item_stateless(
+      &style->widget, rect, but->drawstr, but->icon, wcol->text, UI_STYLE_TEXT_CENTER);
+}
+
 static void widget_menuiconbut(uiWidgetColors *wcol,
                                rcti *rect,
                                int UNUSED(state),
@@ -4484,6 +4449,13 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.custom = widget_icon_has_anim;
       break;
 
+    case UI_WTYPE_PREVIEW_TILE:
+      wt.draw = NULL;
+      /* Drawn via the `custom` callback. */
+      wt.text = NULL;
+      wt.custom = widget_preview_tile;
+      break;
+
     case UI_WTYPE_SWATCH:
       wt.custom = widget_swatch;
       break;
@@ -4779,6 +4751,10 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
         wt = widget_type(UI_WTYPE_BOX);
         break;
 
+      case UI_BTYPE_PREVIEW_TILE:
+        wt = widget_type(UI_WTYPE_PREVIEW_TILE);
+        break;
+
       case UI_BTYPE_EXTRA:
         widget_draw_extra_mask(C, but, widget_type(UI_WTYPE_BOX), rect);
         break;
@@ -4932,13 +4908,15 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
     wt->draw(&wt->wcol, rect, state, roundboxalign);
   }
 
-  if (use_alpha_blend) {
-    GPU_blend(GPU_BLEND_ALPHA);
-  }
+  if (wt->text) {
+    if (use_alpha_blend) {
+      GPU_blend(GPU_BLEND_ALPHA);
+    }
 
-  wt->text(fstyle, &wt->wcol, but, rect);
-  if (use_alpha_blend) {
-    GPU_blend(GPU_BLEND_NONE);
+    wt->text(fstyle, &wt->wcol, but, rect);
+    if (use_alpha_blend) {
+      GPU_blend(GPU_BLEND_NONE);
+    }
   }
 }
 
@@ -5348,11 +5326,6 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
       /* need to set this first */
       UI_fontstyle_set(fstyle);
 
-      if (fstyle->kerning == 1) {
-        /* for BLF_width */
-        BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-      }
-
       if (separator_type == UI_MENU_ITEM_SEPARATOR_SHORTCUT) {
         /* Shrink rect to exclude the shortcut string. */
         rect->xmax -= BLF_width(fstyle->uifont_id, cpoin + 1, INT_MAX) + UI_DPI_ICON_SIZE;
@@ -5375,11 +5348,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
         }
       }
       else {
-        BLI_assert(!"Unknwon menu item separator type");
-      }
-
-      if (fstyle->kerning == 1) {
-        BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+        BLI_assert_msg(0, "Unknwon menu item separator type");
       }
     }
   }
@@ -5460,17 +5429,20 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
   }
 }
 
-void ui_draw_preview_item(
-    const uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state)
+/**
+ * Version of #ui_draw_preview_item() that does not draw the menu background and item text based on
+ * state. It just draws the preview and text directly.
+ */
+void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
+                                    rcti *rect,
+                                    const char *name,
+                                    int iconid,
+                                    const uchar text_col[4],
+                                    eFontStyle_Align text_align)
 {
   rcti trect = *rect;
   const float text_size = UI_UNIT_Y;
   float font_dims[2] = {0.0f, 0.0f};
-  uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
-
-  /* drawing button background */
-  wt->state(wt, state, 0, UI_EMBOSS_UNDEFINED);
-  wt->draw(&wt->wcol, rect, 0, 0);
 
   /* draw icon in rect above the space reserved for the label */
   rect->ymin += text_size;
@@ -5482,8 +5454,6 @@ void ui_draw_preview_item(
       fstyle->uifont_id, name, BLF_DRAW_STR_DUMMY_MAX, &font_dims[0], &font_dims[1]);
 
   /* text rect */
-  trect.xmin += 0;
-  trect.xmax = trect.xmin + font_dims[0] + U.widget_unit / 2;
   trect.ymin += U.widget_unit / 2;
   trect.ymax = trect.ymin + font_dims[1];
   if (trect.xmax > rect->xmax - PREVIEW_PAD) {
@@ -5502,11 +5472,27 @@ void ui_draw_preview_item(
     UI_fontstyle_draw(fstyle,
                       &trect,
                       drawstr,
-                      wt->wcol.text,
+                      text_col,
                       &(struct uiFontStyleDraw_Params){
-                          .align = UI_STYLE_TEXT_CENTER,
+                          .align = text_align,
                       });
   }
+}
+
+void ui_draw_preview_item(const uiFontStyle *fstyle,
+                          rcti *rect,
+                          const char *name,
+                          int iconid,
+                          int state,
+                          eFontStyle_Align text_align)
+{
+  uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
+
+  /* drawing button background */
+  wt->state(wt, state, 0, UI_EMBOSS_UNDEFINED);
+  wt->draw(&wt->wcol, rect, 0, 0);
+
+  ui_draw_preview_item_stateless(fstyle, rect, name, iconid, wt->wcol.text, text_align);
 }
 
 /** \} */

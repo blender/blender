@@ -119,16 +119,10 @@ static char *rna_ViewLayer_path(PointerRNA *ptr)
   return BLI_sprintfN("view_layers[\"%s\"]", name_esc);
 }
 
-static IDProperty *rna_ViewLayer_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_ViewLayer_idprops(PointerRNA *ptr)
 {
   ViewLayer *view_layer = (ViewLayer *)ptr->data;
-
-  if (create && !view_layer->id_properties) {
-    IDPropertyTemplate val = {0};
-    view_layer->id_properties = IDP_New(IDP_GROUP, &val, "ViewLayer ID properties");
-  }
-
-  return view_layer->id_properties;
+  return &view_layer->id_properties;
 }
 
 static bool rna_LayerCollection_visible_get(LayerCollection *layer_collection, bContext *C)
@@ -140,7 +134,7 @@ static bool rna_LayerCollection_visible_get(LayerCollection *layer_collection, b
   }
 
   if (v3d->local_collections_uuid & layer_collection->local_collections_bits) {
-    return (layer_collection->runtime_flag & LAYER_COLLECTION_RESTRICT_VIEWPORT) == 0;
+    return (layer_collection->runtime_flag & LAYER_COLLECTION_HIDE_VIEWPORT) == 0;
   }
 
   return false;

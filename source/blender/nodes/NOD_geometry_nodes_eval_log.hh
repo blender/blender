@@ -31,6 +31,7 @@
  */
 
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_map.hh"
 
@@ -90,6 +91,24 @@ class GeometryValueLog : public ValueLog {
   std::unique_ptr<GeometrySet> full_geometry_;
 
  public:
+  struct MeshInfo {
+    int tot_verts, tot_edges, tot_faces;
+  };
+  struct CurveInfo {
+    int tot_splines;
+  };
+  struct PointCloudInfo {
+    int tot_points;
+  };
+  struct InstancesInfo {
+    int tot_instances;
+  };
+
+  std::optional<MeshInfo> mesh_info;
+  std::optional<CurveInfo> curve_info;
+  std::optional<PointCloudInfo> pointcloud_info;
+  std::optional<InstancesInfo> instances_info;
+
   GeometryValueLog(const GeometrySet &geometry_set, bool log_full_geometry);
 
   Span<GeometryAttributeInfo> attributes() const
@@ -249,6 +268,7 @@ class TreeLog {
   const NodeLog *lookup_node_log(StringRef node_name) const;
   const NodeLog *lookup_node_log(const bNode &node) const;
   const TreeLog *lookup_child_log(StringRef node_name) const;
+  void foreach_node_log(FunctionRef<void(const NodeLog &)> fn) const;
 };
 
 /** Contains information about an entire geometry nodes evaluation. */
@@ -278,6 +298,7 @@ class ModifierLog {
                                                              const bNodeSocket &socket);
   static const NodeLog *find_node_by_spreadsheet_editor_context(
       const SpaceSpreadsheet &sspreadsheet);
+  void foreach_node_log(FunctionRef<void(const NodeLog &)> fn) const;
 
  private:
   using LogByTreeContext = Map<const DTreeContext *, TreeLog *>;

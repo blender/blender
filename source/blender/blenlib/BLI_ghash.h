@@ -77,7 +77,7 @@ enum {
 /* -------------------------------------------------------------------- */
 /** \name GHash API
  *
- * Defined in ``BLI_ghash.c``
+ * Defined in `BLI_ghash.c`
  * \{ */
 
 GHash *BLI_ghash_new_ex(GHashHashFP hashfp,
@@ -333,11 +333,11 @@ double BLI_gset_calc_quality(GSet *gs);
 /* -------------------------------------------------------------------- */
 /** \name GHash/GSet Utils
  *
- * Defined in ``BLI_ghash_utils.c``
+ * Defined in `BLI_ghash_utils.c`
  * \{ */
 
 /**
- * Callbacks for GHash (``BLI_ghashutil_``)
+ * Callbacks for GHash (`BLI_ghashutil_`)
  *
  * \note '_p' suffix denotes void pointer arg,
  * so we can have functions that take correctly typed args too.

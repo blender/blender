@@ -22,7 +22,7 @@
  *
  * GPU Capabilities & workarounds
  * This module expose the reported implementation limits & enabled
- * workaround for drivers that needs specific codepaths.
+ * workaround for drivers that needs specific code-paths.
  */
 
 #pragma once

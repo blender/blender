@@ -48,6 +48,22 @@ blender::MutableSpan<SplinePtr> CurveEval::splines()
   return splines_;
 }
 
+/**
+ * \return True if the curve contains a spline with the given type.
+ *
+ * \note If you are looping over all of the splines in the same scope anyway,
+ * it's better to avoid calling this function, in case there are many splines.
+ */
+bool CurveEval::has_spline_with_type(const Spline::Type type) const
+{
+  for (const SplinePtr &spline : this->splines()) {
+    if (spline->type() == type) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void CurveEval::resize(const int size)
 {
   splines_.resize(size);

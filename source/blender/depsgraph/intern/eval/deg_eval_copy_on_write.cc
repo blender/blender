@@ -348,7 +348,7 @@ bool scene_copy_inplace_no_main(const Scene *scene, Scene *new_scene)
 
 /* For the given scene get view layer which corresponds to an original for the
  * scene's evaluated one. This depends on how the scene is pulled into the
- * dependency  graph. */
+ * dependency graph. */
 ViewLayer *get_original_view_layer(const Depsgraph *depsgraph, const IDNode *id_node)
 {
   if (id_node->linked_state == DEG_ID_LINKED_DIRECTLY) {
@@ -899,7 +899,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
     done = id_copy_inplace_no_main(id_orig, id_cow);
   }
   if (!done) {
-    BLI_assert(!"No idea how to perform CoW on datablock");
+    BLI_assert_msg(0, "No idea how to perform CoW on datablock");
   }
   /* Update pointers to nested ID datablocks. */
   DEG_COW_PRINT(

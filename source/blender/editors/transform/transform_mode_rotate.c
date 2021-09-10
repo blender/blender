@@ -34,8 +34,10 @@
 #include "UI_interface.h"
 
 #include "transform.h"
-#include "transform_mode.h"
+#include "transform_convert.h"
 #include "transform_snap.h"
+
+#include "transform_mode.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Rotation) Matrix Cache

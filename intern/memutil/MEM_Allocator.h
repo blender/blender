@@ -62,8 +62,8 @@ template<typename _Tp> struct MEM_Allocator {
     return &__x;
   }
 
-  // NB: __n is permitted to be 0.  The C++ standard says nothing
-  // about what the return value is when __n == 0.
+  /* NOTE: `__n` is permitted to be 0.
+   * The C++ standard says nothing about what the return value is when `__n == 0`. */
   _Tp *allocate(size_type __n, const void * = 0)
   {
     _Tp *__ret = NULL;

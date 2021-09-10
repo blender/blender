@@ -1,0 +1,7 @@
+Project: NanoSVG
+URL: https://github.com/memononen/nanosvg
+License: zlib
+Upstream version: 
+Local modifications: Added some functionality to manage grease pencil layers
+
+Added a fix to SVG import arc and float errors (https://developer.blender.org/rB11dc674c78b49fc4e0b7c134c375b6c8b8eacbcc)

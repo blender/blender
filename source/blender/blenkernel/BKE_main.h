@@ -48,6 +48,7 @@ struct BLI_mempool;
 struct BlendThumbnail;
 struct GHash;
 struct GSet;
+struct IDNameLib_Map;
 struct ImBuf;
 struct Library;
 struct MainLock;
@@ -190,6 +191,9 @@ typedef struct Main {
    * Used by code doing a lot of remapping etc. at once to speed things up.
    */
   struct MainIDRelations *relations;
+
+  /* IDMap of IDs. Currently used when reading (expanding) libraries. */
+  struct IDNameLib_Map *id_map;
 
   struct MainLock *lock;
 } Main;

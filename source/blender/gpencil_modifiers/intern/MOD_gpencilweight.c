@@ -246,7 +246,7 @@ static bool isDisabled(GpencilModifierData *md, int UNUSED(userRenderParams))
 {
   WeightGpencilModifierData *mmd = (WeightGpencilModifierData *)md;
 
-  return !(mmd->target_vgname && mmd->target_vgname[0] != '\0');
+  return (mmd->target_vgname[0] == '\0');
 }
 
 static void distance_panel_draw(const bContext *UNUSED(C), Panel *panel)

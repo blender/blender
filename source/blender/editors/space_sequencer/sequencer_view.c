@@ -90,7 +90,7 @@ static int sequencer_view_all_exec(bContext *C, wmOperator *op)
 
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
   Scene *scene = CTX_data_scene(C);
-  const Editing *ed = SEQ_editing_get(scene, false);
+  const Editing *ed = SEQ_editing_get(scene);
 
   SEQ_timeline_boundbox(scene, SEQ_active_seqbase_get(ed), &box);
   UI_view2d_smooth_view(C, region, &box, smooth_viewtx);
@@ -274,8 +274,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   View2D *v2d = UI_view2d_fromcontext(C);
   ARegion *region = CTX_wm_region(C);
-  Editing *ed = SEQ_editing_get(scene, false);
-  Sequence *last_seq = SEQ_select_active_get(scene);
+  Editing *ed = SEQ_editing_get(scene);
   Sequence *seq;
   rctf cur_new = v2d->cur;
 
@@ -293,7 +292,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
   }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if ((seq->flag & SELECT) || (seq == last_seq)) {
+    if (seq->flag & SELECT) {
       xmin = min_ii(xmin, seq->startdisp);
       xmax = max_ii(xmax, seq->enddisp);
 

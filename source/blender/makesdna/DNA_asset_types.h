@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 
 #ifdef __cplusplus
@@ -35,6 +36,15 @@ typedef struct AssetTag {
   struct AssetTag *next, *prev;
   char name[64]; /* MAX_NAME */
 } AssetTag;
+
+#
+#
+typedef struct AssetFilterSettings {
+  /** Tags to match against. These are newly allocated, and compared against the
+   * #AssetMetaData.tags. */
+  ListBase tags;     /* AssetTag */
+  uint64_t id_types; /* rna_enum_id_type_filter_items */
+} AssetFilterSettings;
 
 /**
  * \brief The meta-data of an asset.
@@ -61,6 +71,51 @@ typedef struct AssetMetaData {
 
   char _pad[4];
 } AssetMetaData;
+
+typedef enum eAssetLibraryType {
+  /* For the future. Display assets bundled with Blender by default. */
+  // ASSET_LIBRARY_BUNDLED = 0,
+  /** Display assets from the current session (current "Main"). */
+  ASSET_LIBRARY_LOCAL = 1,
+  /* For the future. Display assets for the current project. */
+  // ASSET_LIBRARY_PROJECT = 2,
+
+  /** Display assets from custom asset libraries, as defined in the preferences
+   * (#bUserAssetLibrary). The name will be taken from #FileSelectParams.asset_library_ref.idname
+   * then.
+   * In RNA, we add the index of the custom library to this to identify it by index. So keep
+   * this last! */
+  ASSET_LIBRARY_CUSTOM = 100,
+} eAssetLibraryType;
+
+/**
+ * Information to identify a asset library. May be either one of the predefined types (current
+ * 'Main', builtin library, project library), or a custom type as defined in the Preferences.
+ *
+ * If the type is set to #ASSET_LIBRARY_CUSTOM, `custom_library_index` must be set to identify the
+ * custom library. Otherwise it is not used.
+ */
+typedef struct AssetLibraryReference {
+  short type; /* eAssetLibraryType */
+  char _pad1[2];
+  /**
+   * If showing a custom asset library (#ASSET_LIBRARY_CUSTOM), this is the index of the
+   * #bUserAssetLibrary within #UserDef.asset_libraries.
+   * Should be ignored otherwise (but better set to -1 then, for sanity and debugging).
+   */
+  int custom_library_index;
+} AssetLibraryReference;
+
+/**
+ * Not part of the core design, we should try to get rid of it. Only needed to wrap FileDirEntry
+ * into a type with PropertyGroup as base, so we can have an RNA collection of #AssetHandle's to
+ * pass to the UI.
+ */
+#
+#
+typedef struct AssetHandle {
+  const struct FileDirEntry *file_data;
+} AssetHandle;
 
 #ifdef __cplusplus
 }

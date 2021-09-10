@@ -259,7 +259,13 @@ pid_t GetTID() {
 #endif
   static bool lacks_gettid = false;
   if (!lacks_gettid) {
+#ifdef OS_MACOSX
+    uint64_t tid64;
+    const int error = pthread_threadid_np(NULL, &tid64);
+    pid_t tid = error ? -1 : (pid_t)tid64;
+#else
     pid_t tid = syscall(__NR_gettid);
+#endif
     if (tid != -1) {
       return tid;
     }

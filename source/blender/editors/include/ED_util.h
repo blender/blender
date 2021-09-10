@@ -24,6 +24,7 @@
 #pragma once
 
 #include "BLI_compiler_attrs.h"
+#include "WM_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,6 +61,24 @@ void ED_region_draw_mouse_line_cb(const struct bContext *C,
 
 void ED_region_image_metadata_draw(
     int x, int y, struct ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy);
+
+/* Slider */
+struct tSlider;
+
+struct tSlider *ED_slider_create(struct bContext *C);
+void ED_slider_init(struct tSlider *slider, const struct wmEvent *event);
+bool ED_slider_modal(struct tSlider *slider, const struct wmEvent *event);
+void ED_slider_destroy(struct bContext *C, struct tSlider *slider);
+
+void ED_slider_status_string_get(const struct tSlider *slider,
+                                 char *status_string,
+                                 const size_t size_of_status_string);
+
+float ED_slider_factor_get(struct tSlider *slider);
+void ED_slider_factor_set(struct tSlider *slider, float factor);
+
+bool ED_slider_allow_overshoot_get(struct tSlider *slider);
+void ED_slider_allow_overshoot_set(struct tSlider *slider, const bool value);
 
 /* ************** XXX OLD CRUFT WARNING ************* */
 

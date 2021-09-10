@@ -259,7 +259,7 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
 }
 
 /**
- * Create a new offscreen context.
+ * Create a new off-screen context.
  * Never explicitly delete the window, use #disposeContext() instead.
  * \return The new context (or 0 if creation failed).
  */
@@ -363,7 +363,7 @@ GHOST_TSuccess GHOST_SystemWin32::disposeContext(GHOST_IContext *context)
 }
 
 /**
- * Create a new offscreen DirectX 11 context.
+ * Create a new off-screen DirectX 11 context.
  * Never explicitly delete the window, use #disposeContext() instead.
  * \return The new context (or 0 if creation failed).
  */
@@ -1219,6 +1219,12 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
       ascii = utf8_char[0] & 0x80 ? '?' : utf8_char[0];
     }
 
+#ifdef WITH_INPUT_IME
+    if (window->getImeInput()->IsImeKeyEvent(ascii)) {
+      return NULL;
+    }
+#endif /* WITH_INPUT_IME */
+
     event = new GHOST_EventKey(system->getMilliSeconds(),
                                keyDown ? GHOST_kEventKeyDown : GHOST_kEventKeyUp,
                                window,
@@ -1418,7 +1424,8 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_INPUTLANGCHANGE: {
           system->handleKeyboardChange();
 #ifdef WITH_INPUT_IME
-          window->getImeInput()->SetInputLanguage();
+          window->getImeInput()->UpdateInputLanguage();
+          window->getImeInput()->UpdateConversionStatus(hwnd);
 #endif
           break;
         }
@@ -1455,9 +1462,16 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         ////////////////////////////////////////////////////////////////////////
         // IME events, processed, read more in GHOST_IME.h
         ////////////////////////////////////////////////////////////////////////
+        case WM_IME_NOTIFY: {
+          /* Update conversion status when IME is changed or input mode is changed. */
+          if (wParam == IMN_SETOPENSTATUS || wParam == IMN_SETCONVERSIONMODE) {
+            window->getImeInput()->UpdateConversionStatus(hwnd);
+          }
+          break;
+        }
         case WM_IME_SETCONTEXT: {
           GHOST_ImeWin32 *ime = window->getImeInput();
-          ime->SetInputLanguage();
+          ime->UpdateInputLanguage();
           ime->CreateImeWindow(hwnd);
           ime->CleanupComposition(hwnd);
           ime->CheckFirst(hwnd);
@@ -1466,8 +1480,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_IME_STARTCOMPOSITION: {
           GHOST_ImeWin32 *ime = window->getImeInput();
           eventHandled = true;
-          /* remove input event before start comp event, avoid redundant input */
-          eventManager->removeTypeEvents(GHOST_kEventKeyDown, window);
           ime->CreateImeWindow(hwnd);
           ime->ResetComposition(hwnd);
           event = processImeEvent(GHOST_kEventImeCompositionStart, window, &ime->eventImeData);
@@ -1729,7 +1741,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_MOUSELEAVE: {
           window->m_mousePresent = false;
           if (window->getTabletData().Active == GHOST_kTabletModeNone) {
-            processCursorEvent(window);
+            event = processCursorEvent(window);
           }
           GHOST_Wintab *wt = window->getWintab();
           if (wt) {
@@ -2111,10 +2123,9 @@ GHOST_TSuccess GHOST_SystemWin32::showMessageBox(const char *title,
   config.cbSize = sizeof(config);
   config.hInstance = 0;
   config.dwCommonButtons = 0;
-  config.pszMainIcon = (dialog_options & GHOST_DialogError ?
-                            TD_ERROR_ICON :
-                            dialog_options & GHOST_DialogWarning ? TD_WARNING_ICON :
-                                                                   TD_INFORMATION_ICON);
+  config.pszMainIcon = (dialog_options & GHOST_DialogError   ? TD_ERROR_ICON :
+                        dialog_options & GHOST_DialogWarning ? TD_WARNING_ICON :
+                                                               TD_INFORMATION_ICON);
   config.pszWindowTitle = L"Blender";
   config.pszMainInstruction = title_16;
   config.pszContent = message_16;

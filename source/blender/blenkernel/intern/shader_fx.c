@@ -326,7 +326,7 @@ void BKE_shaderfx_blend_read_lib(BlendLibReader *reader, Object *ob)
   BKE_shaderfx_foreach_ID_link(ob, BKE_object_modifiers_lib_link_common, reader);
 
   /* If linking from a library, clear 'local' library override flag. */
-  if (ob->id.lib != NULL) {
+  if (ID_IS_LINKED(ob)) {
     LISTBASE_FOREACH (ShaderFxData *, fx, &ob->shader_fx) {
       fx->flag &= ~eShaderFxFlag_OverrideLibrary_Local;
     }

@@ -631,7 +631,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_NODE_SHADER:
           cp = ts->nodeclass_shader;
           break;
-        case TH_NODE_CONVERTOR:
+        case TH_NODE_CONVERTER:
           cp = ts->syntaxv;
           break;
         case TH_NODE_GROUP:
@@ -1089,7 +1089,7 @@ bTheme *UI_GetTheme(void)
 }
 
 /**
- * for the rare case we need to temp swap in a different theme (offscreen render)
+ * For the rare case we need to temp swap in a different theme (off-screen render).
  */
 void UI_Theme_Store(struct bThemeState *theme_state)
 {

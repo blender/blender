@@ -40,6 +40,28 @@ float *BKE_image_get_float_pixels_for_frame(void *image, int frame, int tile);
 
 CCL_NAMESPACE_BEGIN
 
+struct BObjectInfo {
+  /* Object directly provided by the depsgraph iterator. This object is only valid during one
+   * iteration and must not be accessed afterwards. Transforms and visibility should be checked on
+   * this object. */
+  BL::Object iter_object;
+
+  /* This object remains alive even after the object iterator is done. It corresponds to one
+   * original object. It is the object that owns the object data below. */
+  BL::Object real_object;
+
+  /* The object-data referenced by the iter object. This is still valid after the depsgraph
+   * iterator is done. It might have a different type compared to real_object.data(). */
+  BL::ID object_data;
+
+  /* True when the current geometry is the data of the referenced object. False when it is a
+   * geometry instance that does not have a 1-to-1 relationship with an object. */
+  bool is_real_object_data() const
+  {
+    return const_cast<BL::Object &>(real_object).data() == object_data;
+  }
+};
+
 typedef BL::ShaderNodeAttribute::attribute_type_enum BlenderAttributeType;
 BlenderAttributeType blender_attribute_name_split_type(ustring name, string *r_real_name);
 
@@ -47,7 +69,7 @@ void python_thread_state_save(void **python_thread_state);
 void python_thread_state_restore(void **python_thread_state);
 
 static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
-                                      BL::Object &object,
+                                      BObjectInfo &b_ob_info,
                                       BL::Depsgraph & /*depsgraph*/,
                                       bool /*calc_undeformed*/,
                                       Mesh::SubdivisionType subdivision_type)
@@ -69,9 +91,9 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
 #endif
 
   BL::Mesh mesh(PointerRNA_NULL);
-  if (object.type() == BL::Object::type_MESH) {
+  if (b_ob_info.object_data.is_a(&RNA_Mesh)) {
     /* TODO: calc_undeformed is not used. */
-    mesh = BL::Mesh(object.data());
+    mesh = BL::Mesh(b_ob_info.object_data);
 
     /* Make a copy to split faces if we use autosmooth, otherwise not needed.
      * Also in edit mode do we need to make a copy, to ensure data layers like
@@ -79,12 +101,15 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
     if (mesh.is_editmode() ||
         (mesh.use_auto_smooth() && subdivision_type == Mesh::SUBDIVISION_NONE)) {
       BL::Depsgraph depsgraph(PointerRNA_NULL);
-      mesh = object.to_mesh(false, depsgraph);
+      assert(b_ob_info.is_real_object_data());
+      mesh = b_ob_info.real_object.to_mesh(false, depsgraph);
     }
   }
   else {
     BL::Depsgraph depsgraph(PointerRNA_NULL);
-    mesh = object.to_mesh(false, depsgraph);
+    if (b_ob_info.is_real_object_data()) {
+      mesh = b_ob_info.real_object.to_mesh(false, depsgraph);
+    }
   }
 
 #if 0
@@ -108,10 +133,14 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
 }
 
 static inline void free_object_to_mesh(BL::BlendData & /*data*/,
-                                       BL::Object &object,
+                                       BObjectInfo &b_ob_info,
                                        BL::Mesh &mesh)
 {
+  if (!b_ob_info.is_real_object_data()) {
+    return;
+  }
   /* Free mesh if we didn't just use the existing one. */
+  BL::Object object = b_ob_info.real_object;
   if (object.data().ptr.data != mesh.ptr.data) {
     object.to_mesh_clear();
   }
@@ -145,7 +174,7 @@ static inline void curvemapping_minmax(/*const*/ BL::CurveMapping &cumap,
                                        float *min_x,
                                        float *max_x)
 {
-  /* const int num_curves = cumap.curves.length(); */ /* Gives linking error so far. */
+  // const int num_curves = cumap.curves.length(); /* Gives linking error so far. */
   const int num_curves = rgb_curve ? 4 : 3;
   *min_x = FLT_MAX;
   *max_x = -FLT_MAX;
@@ -219,9 +248,13 @@ static inline bool BKE_object_is_modified(BL::Object &self, BL::Scene &scene, bo
   return self.is_modified(scene, (preview) ? (1 << 0) : (1 << 1)) ? true : false;
 }
 
-static inline bool BKE_object_is_deform_modified(BL::Object &self, BL::Scene &scene, bool preview)
+static inline bool BKE_object_is_deform_modified(BObjectInfo &self, BL::Scene &scene, bool preview)
 {
-  return self.is_deform_modified(scene, (preview) ? (1 << 0) : (1 << 1)) ? true : false;
+  if (!self.is_real_object_data()) {
+    return false;
+  }
+  return self.real_object.is_deform_modified(scene, (preview) ? (1 << 0) : (1 << 1)) ? true :
+                                                                                       false;
 }
 
 static inline int render_resolution_x(BL::RenderSettings &b_render)
@@ -246,7 +279,11 @@ static inline string image_user_file_path(BL::ImageUser &iuser,
 
   string filepath_str = string(filepath);
   if (load_tiled && ima.source() == BL::Image::source_TILED) {
-    string_replace(filepath_str, "1001", "<UDIM>");
+    string udim;
+    if (ima.tiles.length() > 0) {
+      udim = to_string(ima.tiles[0].number());
+    }
+    string_replace(filepath_str, udim, "<UDIM>");
   }
   return filepath_str;
 }
@@ -420,7 +457,7 @@ static inline void set_enum(PointerRNA &ptr, const char *name, const string &ide
 static inline string get_string(PointerRNA &ptr, const char *name)
 {
   char cstrbuf[1024];
-  char *cstr = RNA_string_get_alloc(&ptr, name, cstrbuf, sizeof(cstrbuf));
+  char *cstr = RNA_string_get_alloc(&ptr, name, cstrbuf, sizeof(cstrbuf), NULL);
   string str(cstr);
   if (cstr != cstrbuf)
     MEM_freeN(cstr);
@@ -568,6 +605,45 @@ static inline BL::FluidDomainSettings object_fluid_gas_domain_find(BL::Object &b
   return BL::FluidDomainSettings(PointerRNA_NULL);
 }
 
+static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob,
+                                                                   bool check_velocity,
+                                                                   bool *has_subdivision_modifier)
+{
+  for (int i = b_ob.modifiers.length() - 1; i >= 0; --i) {
+    BL::Modifier b_mod = b_ob.modifiers[i];
+
+    if (b_mod.type() == BL::Modifier::type_MESH_SEQUENCE_CACHE) {
+      BL::MeshSequenceCacheModifier mesh_cache = BL::MeshSequenceCacheModifier(b_mod);
+
+      if (check_velocity) {
+        if (!MeshSequenceCacheModifier_has_velocity_get(&mesh_cache.ptr)) {
+          return BL::MeshSequenceCacheModifier(PointerRNA_NULL);
+        }
+      }
+
+      return mesh_cache;
+    }
+
+    /* Skip possible particles system modifiers as they do not modify the geometry. */
+    if (b_mod.type() == BL::Modifier::type_PARTICLE_SYSTEM) {
+      continue;
+    }
+
+    /* Only skip the subsurf modifier if we are not checking for the mesh sequence cache modifier
+     * for motion blur. */
+    if (b_mod.type() == BL::Modifier::type_SUBSURF && !check_velocity) {
+      if (has_subdivision_modifier) {
+        *has_subdivision_modifier = true;
+      }
+      continue;
+    }
+
+    break;
+  }
+
+  return BL::MeshSequenceCacheModifier(PointerRNA_NULL);
+}
+
 static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
                                                             bool preview,
                                                             bool experimental)
@@ -596,15 +672,14 @@ static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
 
 static inline uint object_ray_visibility(BL::Object &b_ob)
 {
-  PointerRNA cvisibility = RNA_pointer_get(&b_ob.ptr, "cycles_visibility");
   uint flag = 0;
 
-  flag |= get_boolean(cvisibility, "camera") ? PATH_RAY_CAMERA : 0;
-  flag |= get_boolean(cvisibility, "diffuse") ? PATH_RAY_DIFFUSE : 0;
-  flag |= get_boolean(cvisibility, "glossy") ? PATH_RAY_GLOSSY : 0;
-  flag |= get_boolean(cvisibility, "transmission") ? PATH_RAY_TRANSMIT : 0;
-  flag |= get_boolean(cvisibility, "shadow") ? PATH_RAY_SHADOW : 0;
-  flag |= get_boolean(cvisibility, "scatter") ? PATH_RAY_VOLUME_SCATTER : 0;
+  flag |= b_ob.visible_camera() ? PATH_RAY_CAMERA : 0;
+  flag |= b_ob.visible_diffuse() ? PATH_RAY_DIFFUSE : 0;
+  flag |= b_ob.visible_glossy() ? PATH_RAY_GLOSSY : 0;
+  flag |= b_ob.visible_transmission() ? PATH_RAY_TRANSMIT : 0;
+  flag |= b_ob.visible_shadow() ? PATH_RAY_SHADOW : 0;
+  flag |= b_ob.visible_volume_scatter() ? PATH_RAY_VOLUME_SCATTER : 0;
 
   return flag;
 }

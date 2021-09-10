@@ -33,24 +33,22 @@
  *
  * \{ */
 
-GHOST_XrActionSpace::GHOST_XrActionSpace(XrInstance instance,
-                                         XrSession session,
+GHOST_XrActionSpace::GHOST_XrActionSpace(XrSession session,
                                          XrAction action,
-                                         const GHOST_XrActionSpaceInfo &info,
-                                         uint32_t subaction_idx)
+                                         const char *action_name,
+                                         const char *profile_path,
+                                         XrPath subaction_path,
+                                         const char *subaction_path_str,
+                                         const GHOST_XrPose &pose)
 {
-  const char *subaction_path = info.subaction_paths[subaction_idx];
-  CHECK_XR(xrStringToPath(instance, subaction_path, &m_subaction_path),
-           (std::string("Failed to get user path \"") + subaction_path + "\".").data());
-
   XrActionSpaceCreateInfo action_space_info{XR_TYPE_ACTION_SPACE_CREATE_INFO};
   action_space_info.action = action;
-  action_space_info.subactionPath = m_subaction_path;
-  copy_ghost_pose_to_openxr_pose(info.poses[subaction_idx], action_space_info.poseInActionSpace);
+  action_space_info.subactionPath = subaction_path;
+  copy_ghost_pose_to_openxr_pose(pose, action_space_info.poseInActionSpace);
 
   CHECK_XR(xrCreateActionSpace(session, &action_space_info, &m_space),
-           (std::string("Failed to create space \"") + subaction_path + "\" for action \"" +
-            info.action_name + "\".")
+           (std::string("Failed to create space \"") + subaction_path_str + "\" for action \"" +
+            action_name + "\" and profile \"" + profile_path + "\".")
                .data());
 }
 
@@ -66,11 +64,6 @@ XrSpace GHOST_XrActionSpace::getSpace() const
   return m_space;
 }
 
-const XrPath &GHOST_XrActionSpace::getSubactionPath() const
-{
-  return m_subaction_path;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -79,13 +72,19 @@ const XrPath &GHOST_XrActionSpace::getSubactionPath() const
  * \{ */
 
 GHOST_XrActionProfile::GHOST_XrActionProfile(XrInstance instance,
+                                             XrSession session,
                                              XrAction action,
-                                             const char *profile_path,
-                                             const GHOST_XrActionBindingInfo &info)
+                                             GHOST_XrActionType type,
+                                             const GHOST_XrActionProfileInfo &info)
 {
-  CHECK_XR(
-      xrStringToPath(instance, profile_path, &m_profile),
-      (std::string("Failed to get interaction profile path \"") + profile_path + "\".").data());
+  CHECK_XR(xrStringToPath(instance, info.profile_path, &m_profile),
+           (std::string("Failed to get interaction profile path \"") + info.profile_path + "\".")
+               .data());
+
+  const bool is_float_action = (type == GHOST_kXrActionTypeFloatInput ||
+                                type == GHOST_kXrActionTypeVector2fInput);
+  const bool is_button_action = (is_float_action || type == GHOST_kXrActionTypeBooleanInput);
+  const bool is_pose_action = (type == GHOST_kXrActionTypePoseInput);
 
   /* Create bindings. */
   XrInteractionProfileSuggestedBinding bindings_info{
@@ -93,29 +92,78 @@ GHOST_XrActionProfile::GHOST_XrActionProfile(XrInstance instance,
   bindings_info.interactionProfile = m_profile;
   bindings_info.countSuggestedBindings = 1;
 
-  for (uint32_t interaction_idx = 0; interaction_idx < info.count_interaction_paths;
-       ++interaction_idx) {
-    const char *interaction_path = info.interaction_paths[interaction_idx];
+  for (uint32_t subaction_idx = 0; subaction_idx < info.count_subaction_paths; ++subaction_idx) {
+    const char *subaction_path_str = info.subaction_paths[subaction_idx];
+    const GHOST_XrActionBindingInfo &binding_info = info.bindings[subaction_idx];
+
+    const std::string interaction_path = std::string(subaction_path_str) +
+                                         binding_info.component_path;
     if (m_bindings.find(interaction_path) != m_bindings.end()) {
       continue;
     }
 
     XrActionSuggestedBinding sbinding;
     sbinding.action = action;
-    CHECK_XR(xrStringToPath(instance, interaction_path, &sbinding.binding),
+    CHECK_XR(xrStringToPath(instance, interaction_path.data(), &sbinding.binding),
              (std::string("Failed to get interaction path \"") + interaction_path + "\".").data());
     bindings_info.suggestedBindings = &sbinding;
 
     /* Although the bindings will be re-suggested in GHOST_XrSession::attachActionSets(), it
      * greatly improves error checking to suggest them here first. */
     CHECK_XR(xrSuggestInteractionProfileBindings(instance, &bindings_info),
-             (std::string("Failed to create binding for profile \"") + profile_path +
-              "\" and action \"" + info.action_name +
-              "\". Are the profile and action paths correct?")
+             (std::string("Failed to create binding for action \"") + info.action_name +
+              "\" and profile \"" + info.profile_path +
+              "\". Are the action and profile paths correct?")
                  .data());
 
     m_bindings.insert({interaction_path, sbinding.binding});
+
+    if (m_subaction_data.find(subaction_path_str) == m_subaction_data.end()) {
+      std::map<std::string, GHOST_XrSubactionData>::iterator it =
+          m_subaction_data
+              .emplace(
+                  std::piecewise_construct, std::make_tuple(subaction_path_str), std::make_tuple())
+              .first;
+      GHOST_XrSubactionData &subaction = it->second;
+
+      CHECK_XR(xrStringToPath(instance, subaction_path_str, &subaction.subaction_path),
+               (std::string("Failed to get user path \"") + subaction_path_str + "\".").data());
+
+      if (is_float_action || is_button_action) {
+        if (is_float_action) {
+          subaction.float_threshold = binding_info.float_threshold;
+        }
+        if (is_button_action) {
+          subaction.axis_flag = binding_info.axis_flag;
+        }
+      }
+      else if (is_pose_action) {
+        /* Create action space for pose bindings. */
+        subaction.space = std::make_unique<GHOST_XrActionSpace>(session,
+                                                                action,
+                                                                info.action_name,
+                                                                info.profile_path,
+                                                                subaction.subaction_path,
+                                                                subaction_path_str,
+                                                                binding_info.pose);
+      }
+    }
   }
+}
+
+XrPath GHOST_XrActionProfile::getProfile() const
+{
+  return m_profile;
+}
+
+const GHOST_XrSubactionData *GHOST_XrActionProfile::getSubaction(XrPath subaction_path) const
+{
+  for (auto &[subaction_path_str, subaction] : m_subaction_data) {
+    if (subaction.subaction_path == subaction_path) {
+      return &subaction;
+    }
+  }
+  return nullptr;
 }
 
 void GHOST_XrActionProfile::getBindings(
@@ -152,14 +200,18 @@ GHOST_XrAction::GHOST_XrAction(XrInstance instance,
                                const GHOST_XrActionInfo &info)
     : m_type(info.type),
       m_states(info.states),
+      m_float_thresholds(info.float_thresholds),
+      m_axis_flags(info.axis_flags),
       m_custom_data_(
           std::make_unique<GHOST_C_CustomDataWrapper>(info.customdata, info.customdata_free_fn))
 {
   m_subaction_paths.resize(info.count_subaction_paths);
 
   for (uint32_t i = 0; i < info.count_subaction_paths; ++i) {
-    CHECK_XR(xrStringToPath(instance, info.subaction_paths[i], &m_subaction_paths[i]),
-             (std::string("Failed to get user path \"") + info.subaction_paths[i] + "\".").data());
+    const char *subaction_path_str = info.subaction_paths[i];
+    CHECK_XR(xrStringToPath(instance, subaction_path_str, &m_subaction_paths[i]),
+             (std::string("Failed to get user path \"") + subaction_path_str + "\".").data());
+    m_subaction_indices.insert({subaction_path_str, i});
   }
 
   XrActionCreateInfo action_info{XR_TYPE_ACTION_CREATE_INFO};
@@ -201,52 +253,25 @@ GHOST_XrAction::~GHOST_XrAction()
   }
 }
 
-bool GHOST_XrAction::createSpace(XrInstance instance,
-                                 XrSession session,
-                                 const GHOST_XrActionSpaceInfo &info)
-{
-  uint32_t subaction_idx = 0;
-  for (; subaction_idx < info.count_subaction_paths; ++subaction_idx) {
-    if (m_spaces.find(info.subaction_paths[subaction_idx]) != m_spaces.end()) {
-      return false;
-    }
-  }
-
-  for (subaction_idx = 0; subaction_idx < info.count_subaction_paths; ++subaction_idx) {
-    m_spaces.emplace(std::piecewise_construct,
-                     std::make_tuple(info.subaction_paths[subaction_idx]),
-                     std::make_tuple(instance, session, m_action, info, subaction_idx));
-  }
-
-  return true;
-}
-
-void GHOST_XrAction::destroySpace(const char *subaction_path)
-{
-  if (m_spaces.find(subaction_path) != m_spaces.end()) {
-    m_spaces.erase(subaction_path);
-  }
-}
-
 bool GHOST_XrAction::createBinding(XrInstance instance,
-                                   const char *profile_path,
-                                   const GHOST_XrActionBindingInfo &info)
+                                   XrSession session,
+                                   const GHOST_XrActionProfileInfo &info)
 {
-  if (m_profiles.find(profile_path) != m_profiles.end()) {
+  if (m_profiles.find(info.profile_path) != m_profiles.end()) {
     return false;
   }
 
   m_profiles.emplace(std::piecewise_construct,
-                     std::make_tuple(profile_path),
-                     std::make_tuple(instance, m_action, profile_path, info));
+                     std::make_tuple(info.profile_path),
+                     std::make_tuple(instance, session, m_action, m_type, info));
 
   return true;
 }
 
-void GHOST_XrAction::destroyBinding(const char *interaction_profile_path)
+void GHOST_XrAction::destroyBinding(const char *profile_path)
 {
-  if (m_profiles.find(interaction_profile_path) != m_profiles.end()) {
-    m_profiles.erase(interaction_profile_path);
+  if (m_profiles.find(profile_path) != m_profiles.end()) {
+    m_profiles.erase(profile_path);
   }
 }
 
@@ -255,12 +280,38 @@ void GHOST_XrAction::updateState(XrSession session,
                                  XrSpace reference_space,
                                  const XrTime &predicted_display_time)
 {
+  const bool is_float_action = (m_type == GHOST_kXrActionTypeFloatInput ||
+                                m_type == GHOST_kXrActionTypeVector2fInput);
+  const bool is_button_action = (is_float_action || m_type == GHOST_kXrActionTypeBooleanInput);
+
   XrActionStateGetInfo state_info{XR_TYPE_ACTION_STATE_GET_INFO};
   state_info.action = m_action;
 
   const size_t count_subaction_paths = m_subaction_paths.size();
   for (size_t subaction_idx = 0; subaction_idx < count_subaction_paths; ++subaction_idx) {
     state_info.subactionPath = m_subaction_paths[subaction_idx];
+
+    /* Set subaction data based on current interaction profile. */
+    XrInteractionProfileState profile_state{XR_TYPE_INTERACTION_PROFILE_STATE};
+    CHECK_XR(xrGetCurrentInteractionProfile(session, state_info.subactionPath, &profile_state),
+             "Failed to get current interaction profile.");
+
+    const GHOST_XrSubactionData *subaction = nullptr;
+    for (auto &[profile_path, profile] : m_profiles) {
+      if (profile.getProfile() == profile_state.interactionProfile) {
+        subaction = profile.getSubaction(state_info.subactionPath);
+        break;
+      }
+    }
+
+    if (subaction != nullptr) {
+      if (is_float_action) {
+        m_float_thresholds[subaction_idx] = subaction->float_threshold;
+      }
+      if (is_button_action) {
+        m_axis_flags[subaction_idx] = subaction->axis_flag;
+      }
+    }
 
     switch (m_type) {
       case GHOST_kXrActionTypeBooleanInput: {
@@ -299,14 +350,9 @@ void GHOST_XrAction::updateState(XrSession session,
             xrGetActionStatePose(session, &state_info, &state),
             (std::string("Failed to get state for pose action \"") + action_name + "\".").data());
         if (state.isActive) {
-          XrSpace pose_space = XR_NULL_HANDLE;
-          for (auto &[path, space] : m_spaces) {
-            if (space.getSubactionPath() == state_info.subactionPath) {
-              pose_space = space.getSpace();
-              break;
-            }
-          }
-
+          XrSpace pose_space = ((subaction != nullptr) && (subaction->space != nullptr)) ?
+                                   subaction->space->getSpace() :
+                                   XR_NULL_HANDLE;
           if (pose_space != XR_NULL_HANDLE) {
             XrSpaceLocation space_location{XR_TYPE_SPACE_LOCATION};
             CHECK_XR(
@@ -329,6 +375,7 @@ void GHOST_XrAction::updateState(XrSession session,
 
 void GHOST_XrAction::applyHapticFeedback(XrSession session,
                                          const char *action_name,
+                                         const char *subaction_path_str,
                                          const int64_t &duration,
                                          const float &frequency,
                                          const float &amplitude)
@@ -342,24 +389,46 @@ void GHOST_XrAction::applyHapticFeedback(XrSession session,
   XrHapticActionInfo haptic_info{XR_TYPE_HAPTIC_ACTION_INFO};
   haptic_info.action = m_action;
 
-  for (std::vector<XrPath>::iterator it = m_subaction_paths.begin(); it != m_subaction_paths.end();
-       ++it) {
-    haptic_info.subactionPath = *it;
-    CHECK_XR(xrApplyHapticFeedback(session, &haptic_info, (const XrHapticBaseHeader *)&vibration),
-             (std::string("Failed to apply haptic action \"") + action_name + "\".").data());
+  if (subaction_path_str != nullptr) {
+    SubactionIndexMap::iterator it = m_subaction_indices.find(subaction_path_str);
+    if (it != m_subaction_indices.end()) {
+      haptic_info.subactionPath = m_subaction_paths[it->second];
+      CHECK_XR(
+          xrApplyHapticFeedback(session, &haptic_info, (const XrHapticBaseHeader *)&vibration),
+          (std::string("Failed to apply haptic action \"") + action_name + "\".").data());
+    }
+  }
+  else {
+    for (const XrPath &subaction_path : m_subaction_paths) {
+      haptic_info.subactionPath = subaction_path;
+      CHECK_XR(
+          xrApplyHapticFeedback(session, &haptic_info, (const XrHapticBaseHeader *)&vibration),
+          (std::string("Failed to apply haptic action \"") + action_name + "\".").data());
+    }
   }
 }
 
-void GHOST_XrAction::stopHapticFeedback(XrSession session, const char *action_name)
+void GHOST_XrAction::stopHapticFeedback(XrSession session,
+                                        const char *action_name,
+                                        const char *subaction_path_str)
 {
   XrHapticActionInfo haptic_info{XR_TYPE_HAPTIC_ACTION_INFO};
   haptic_info.action = m_action;
 
-  for (std::vector<XrPath>::iterator it = m_subaction_paths.begin(); it != m_subaction_paths.end();
-       ++it) {
-    haptic_info.subactionPath = *it;
-    CHECK_XR(xrStopHapticFeedback(session, &haptic_info),
-             (std::string("Failed to stop haptic action \"") + action_name + "\".").data());
+  if (subaction_path_str != nullptr) {
+    SubactionIndexMap::iterator it = m_subaction_indices.find(subaction_path_str);
+    if (it != m_subaction_indices.end()) {
+      haptic_info.subactionPath = m_subaction_paths[it->second];
+      CHECK_XR(xrStopHapticFeedback(session, &haptic_info),
+               (std::string("Failed to stop haptic action \"") + action_name + "\".").data());
+    }
+  }
+  else {
+    for (const XrPath &subaction_path : m_subaction_paths) {
+      haptic_info.subactionPath = subaction_path;
+      CHECK_XR(xrStopHapticFeedback(session, &haptic_info),
+               (std::string("Failed to stop haptic action \"") + action_name + "\".").data());
+    }
   }
 }
 
@@ -465,6 +534,19 @@ void *GHOST_XrActionSet::getCustomdata()
     return nullptr;
   }
   return m_custom_data_->custom_data_;
+}
+
+uint32_t GHOST_XrActionSet::getActionCount() const
+{
+  return (uint32_t)m_actions.size();
+}
+
+void GHOST_XrActionSet::getActionCustomdataArray(void **r_customdata_array)
+{
+  uint32_t i = 0;
+  for (auto &[name, action] : m_actions) {
+    r_customdata_array[i++] = action.getCustomdata();
+  }
 }
 
 void GHOST_XrActionSet::getBindings(

@@ -118,6 +118,7 @@
 #include "intern/node/deg_node_operation.h"
 #include "intern/node/deg_node_time.h"
 
+#include "intern/depsgraph.h"
 #include "intern/depsgraph_relation.h"
 #include "intern/depsgraph_type.h"
 
@@ -326,7 +327,7 @@ void DepsgraphRelationBuilder::add_customdata_mask(Object *object,
     IDNode *id_node = graph_->find_id_node(&object->id);
 
     if (id_node == nullptr) {
-      BLI_assert(!"ID should always be valid");
+      BLI_assert_msg(0, "ID should always be valid");
     }
     else {
       id_node->customdata_masks |= customdata_masks;
@@ -338,7 +339,7 @@ void DepsgraphRelationBuilder::add_special_eval_flag(ID *id, uint32_t flag)
 {
   IDNode *id_node = graph_->find_id_node(id);
   if (id_node == nullptr) {
-    BLI_assert(!"ID should always be valid");
+    BLI_assert_msg(0, "ID should always be valid");
   }
   else {
     id_node->eval_flags |= flag;
@@ -543,12 +544,13 @@ void DepsgraphRelationBuilder::build_id(ID *id)
       build_movieclip((MovieClip *)id);
       break;
     case ID_ME:
-    case ID_CU:
     case ID_MB:
+    case ID_CU:
     case ID_LT:
     case ID_HA:
     case ID_PT:
     case ID_VO:
+    case ID_GD:
       build_object_data_geometry_datablock(id);
       break;
     case ID_SPK:
@@ -571,9 +573,6 @@ void DepsgraphRelationBuilder::build_id(ID *id)
       break;
     case ID_PA:
       build_particle_settings((ParticleSettings *)id);
-      break;
-    case ID_GD:
-      build_gpencil((bGPdata *)id);
       break;
 
     case ID_LI:
@@ -1007,11 +1006,13 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
 
     /* Bone Parent */
     case PARBONE: {
-      ComponentKey parent_bone_key(parent_id, NodeType::BONE, object->parsubstr);
-      OperationKey parent_transform_key(
-          parent_id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
-      add_relation(parent_bone_key, object_transform_key, "Bone Parent");
-      add_relation(parent_transform_key, object_transform_key, "Armature Parent");
+      if (object->parsubstr[0] != '\0') {
+        ComponentKey parent_bone_key(parent_id, NodeType::BONE, object->parsubstr);
+        OperationKey parent_transform_key(
+            parent_id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
+        add_relation(parent_bone_key, object_transform_key, "Bone Parent");
+        add_relation(parent_transform_key, object_transform_key, "Armature Parent");
+      }
       break;
     }
 
@@ -1610,7 +1611,7 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
         }
       }
     }
-    if (property_entry_key.prop != nullptr && RNA_property_is_idprop(property_entry_key.prop)) {
+    if (rna_prop_affects_parameters_node(&property_entry_key.ptr, property_entry_key.prop)) {
       RNAPathKey property_exit_key(property_entry_key.id,
                                    property_entry_key.ptr,
                                    property_entry_key.prop,
@@ -1713,7 +1714,7 @@ void DepsgraphRelationBuilder::build_driver_id_property(ID *id, const char *rna_
   if (prop == nullptr) {
     return;
   }
-  if (!RNA_property_is_idprop(prop)) {
+  if (!rna_prop_affects_parameters_node(&ptr, prop)) {
     return;
   }
   const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
@@ -2095,7 +2096,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
         ctx.node = reinterpret_cast<::DepsNodeHandle *>(&handle);
         mti->updateDepsgraph(md, &ctx);
       }
-      if (BKE_object_modifier_use_time(object, md)) {
+      if (BKE_object_modifier_use_time(scene_, object, md, graph_->mode)) {
         TimeSourceKey time_src_key;
         add_relation(time_src_key, obdata_ubereval_key, "Time Source");
       }
@@ -2224,6 +2225,11 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
   OperationKey obdata_geom_eval_key(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
   OperationKey obdata_geom_done_key(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE);
   add_relation(obdata_geom_eval_key, obdata_geom_done_key, "ObData Geom Eval Done");
+
+  /* Link object data evaluation to parameter evaluation. */
+  ComponentKey parameters_key(obdata, NodeType::PARAMETERS);
+  add_relation(parameters_key, obdata_geom_eval_key, "ObData Geom Params");
+
   /* Type-specific links. */
   const ID_Type id_type = GS(obdata->name);
   switch (id_type) {
@@ -2314,7 +2320,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       break;
     }
     default:
-      BLI_assert(!"Should not happen");
+      BLI_assert_msg(0, "Should not happen");
       break;
   }
 }
@@ -2497,7 +2503,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
       add_relation(group_shading_key, shading_key, "Group Node");
     }
     else {
-      BLI_assert(!"Unknown ID type used for node");
+      BLI_assert_msg(0, "Unknown ID type used for node");
     }
   }
 
@@ -2601,18 +2607,6 @@ void DepsgraphRelationBuilder::build_image(Image *image)
   }
   build_idproperties(image->id.properties);
   build_parameters(&image->id);
-}
-
-void DepsgraphRelationBuilder::build_gpencil(bGPdata *gpd)
-{
-  if (built_map_.checkIsBuiltAndTag(gpd)) {
-    return;
-  }
-  /* animation */
-  build_animdata(&gpd->id);
-  build_parameters(&gpd->id);
-
-  // TODO: parent object (when that feature is implemented)
 }
 
 void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file)
@@ -2763,6 +2757,45 @@ void DepsgraphRelationBuilder::build_simulation(Simulation *simulation)
   add_relation(nodetree_key, simulation_eval_key, "NodeTree -> Simulation", 0);
 }
 
+using Seq_build_prop_cb_data = struct Seq_build_prop_cb_data {
+  DepsgraphRelationBuilder *builder;
+  ComponentKey sequencer_key;
+  bool has_audio_strips;
+};
+
+static bool seq_build_prop_cb(Sequence *seq, void *user_data)
+{
+  Seq_build_prop_cb_data *cd = (Seq_build_prop_cb_data *)user_data;
+
+  cd->builder->build_idproperties(seq->prop);
+  if (seq->sound != nullptr) {
+    cd->builder->build_sound(seq->sound);
+    ComponentKey sound_key(&seq->sound->id, NodeType::AUDIO);
+    cd->builder->add_relation(sound_key, cd->sequencer_key, "Sound -> Sequencer");
+    cd->has_audio_strips = true;
+  }
+  if (seq->scene != nullptr) {
+    cd->builder->build_scene_parameters(seq->scene);
+    /* This is to support 3D audio. */
+    cd->has_audio_strips = true;
+  }
+  if (seq->type == SEQ_TYPE_SCENE && seq->scene != nullptr) {
+    if (seq->flag & SEQ_SCENE_STRIPS) {
+      cd->builder->build_scene_sequencer(seq->scene);
+      ComponentKey sequence_scene_audio_key(&seq->scene->id, NodeType::AUDIO);
+      cd->builder->add_relation(
+          sequence_scene_audio_key, cd->sequencer_key, "Sequence Scene Audio -> Sequencer");
+      ComponentKey sequence_scene_key(&seq->scene->id, NodeType::SEQUENCER);
+      cd->builder->add_relation(
+          sequence_scene_key, cd->sequencer_key, "Sequence Scene -> Sequencer");
+    }
+    ViewLayer *sequence_view_layer = BKE_view_layer_default_render(seq->scene);
+    cd->builder->build_scene_speakers(seq->scene, sequence_view_layer);
+  }
+  /* TODO(sergey): Movie clip, camera, mask. */
+  return true;
+}
+
 void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)
 {
   if (scene->ed == nullptr) {
@@ -2775,36 +2808,11 @@ void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)
   ComponentKey scene_audio_key(&scene->id, NodeType::AUDIO);
   /* Make sure dependencies from sequences data goes to the sequencer evaluation. */
   ComponentKey sequencer_key(&scene->id, NodeType::SEQUENCER);
-  Sequence *seq;
-  bool has_audio_strips = false;
-  SEQ_ALL_BEGIN (scene->ed, seq) {
-    build_idproperties(seq->prop);
-    if (seq->sound != nullptr) {
-      build_sound(seq->sound);
-      ComponentKey sound_key(&seq->sound->id, NodeType::AUDIO);
-      add_relation(sound_key, sequencer_key, "Sound -> Sequencer");
-      has_audio_strips = true;
-    }
-    if (seq->scene != nullptr) {
-      build_scene_parameters(seq->scene);
-      /* This is to support 3D audio. */
-      has_audio_strips = true;
-    }
-    if (seq->type == SEQ_TYPE_SCENE && seq->scene != nullptr) {
-      if (seq->flag & SEQ_SCENE_STRIPS) {
-        build_scene_sequencer(seq->scene);
-        ComponentKey sequence_scene_audio_key(&seq->scene->id, NodeType::AUDIO);
-        add_relation(sequence_scene_audio_key, sequencer_key, "Sequence Scene Audio -> Sequencer");
-        ComponentKey sequence_scene_key(&seq->scene->id, NodeType::SEQUENCER);
-        add_relation(sequence_scene_key, sequencer_key, "Sequence Scene -> Sequencer");
-      }
-      ViewLayer *sequence_view_layer = BKE_view_layer_default_render(seq->scene);
-      build_scene_speakers(seq->scene, sequence_view_layer);
-    }
-    /* TODO(sergey): Movie clip, camera, mask. */
-  }
-  SEQ_ALL_END;
-  if (has_audio_strips) {
+
+  Seq_build_prop_cb_data cb_data = {this, sequencer_key, false};
+
+  SEQ_for_each_callback(&scene->ed->seqbase, seq_build_prop_cb, &cb_data);
+  if (cb_data.has_audio_strips) {
     add_relation(sequencer_key, scene_audio_key, "Sequencer -> Audio");
   }
 }

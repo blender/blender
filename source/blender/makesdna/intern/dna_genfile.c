@@ -84,8 +84,8 @@
  * **Remember to read/write integer and short aligned!**
  *
  * While writing a file, the names of a struct is indicated with a type number,
- * to be found with: ``type = DNA_struct_find_nr(SDNA *, const char *)``
- * The value of ``type`` corresponds with the index within the structs array
+ * to be found with: `type = DNA_struct_find_nr(SDNA *, const char *)`
+ * The value of `type` corresponds with the index within the structs array
  *
  * For the moment: the complete DNA file is included in a .blend file. For
  * the future we can think of smarter methods, like only included the used
@@ -101,7 +101,7 @@
  *  - Change of a pointer type: when the name doesn't change the contents is copied.
  *
  * NOT YET:
- *  - array (``vec[3]``) to float struct (``vec3f``).
+ *  - array (`vec[3]`) to float struct (`vec3f`).
  *
  * DONE:
  *  - Endian compatibility.
@@ -1398,7 +1398,7 @@ static void init_reconstruct_step_for_member(const SDNA *oldsdna,
         r_step->data.cast_pointer.array_len = shared_array_length;
       }
       else {
-        BLI_assert(!"invalid pointer size");
+        BLI_assert_msg(0, "invalid pointer size");
         r_step->type = RECONSTRUCT_STEP_INIT_ZERO;
       }
       break;

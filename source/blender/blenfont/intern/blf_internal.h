@@ -53,55 +53,66 @@ struct FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem
 void blf_font_attach_from_mem(struct FontBLF *font, const unsigned char *mem, int mem_size);
 
 void blf_font_size(struct FontBLF *font, unsigned int size, unsigned int dpi);
-void blf_font_draw(struct FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info);
+void blf_font_draw(struct FontBLF *font,
+                   const char *str,
+                   size_t str_len,
+                   struct ResultBLF *r_info);
 void blf_font_draw__wrap(struct FontBLF *font,
                          const char *str,
-                         size_t len,
+                         size_t str_len,
                          struct ResultBLF *r_info);
 void blf_font_draw_ascii(struct FontBLF *font,
                          const char *str,
-                         size_t len,
+                         size_t str_len,
                          struct ResultBLF *r_info);
-int blf_font_draw_mono(struct FontBLF *font, const char *str, size_t len, int cwidth);
+int blf_font_draw_mono(struct FontBLF *font, const char *str, size_t str_len, int cwidth);
 void blf_font_draw_buffer(struct FontBLF *font,
                           const char *str,
-                          size_t len,
+                          size_t str_len,
                           struct ResultBLF *r_info);
 void blf_font_draw_buffer__wrap(struct FontBLF *font,
                                 const char *str,
-                                size_t len,
+                                size_t str_len,
                                 struct ResultBLF *r_info);
 size_t blf_font_width_to_strlen(
-    struct FontBLF *font, const char *str, size_t len, float width, float *r_width);
+    struct FontBLF *font, const char *str, size_t str_len, float width, float *r_width);
 size_t blf_font_width_to_rstrlen(
-    struct FontBLF *font, const char *str, size_t len, float width, float *r_width);
+    struct FontBLF *font, const char *str, size_t str_len, float width, float *r_width);
 void blf_font_boundbox(struct FontBLF *font,
                        const char *str,
-                       size_t len,
+                       size_t str_len,
                        struct rctf *r_box,
                        struct ResultBLF *r_info);
 void blf_font_boundbox__wrap(struct FontBLF *font,
                              const char *str,
-                             size_t len,
+                             size_t str_len,
                              struct rctf *r_box,
                              struct ResultBLF *r_info);
 void blf_font_width_and_height(struct FontBLF *font,
                                const char *str,
-                               size_t len,
+                               size_t str_len,
                                float *r_width,
                                float *r_height,
                                struct ResultBLF *r_info);
-float blf_font_width(struct FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info);
-float blf_font_height(struct FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info);
+float blf_font_width(struct FontBLF *font,
+                     const char *str,
+                     size_t str_len,
+                     struct ResultBLF *r_info);
+float blf_font_height(struct FontBLF *font,
+                      const char *str,
+                      size_t str_len,
+                      struct ResultBLF *r_info);
 float blf_font_fixed_width(struct FontBLF *font);
 int blf_font_height_max(struct FontBLF *font);
 int blf_font_width_max(struct FontBLF *font);
 float blf_font_descender(struct FontBLF *font);
 float blf_font_ascender(struct FontBLF *font);
 
+char *blf_display_name(struct FontBLF *font);
+
 void blf_font_boundbox_foreach_glyph(struct FontBLF *font,
                                      const char *str,
-                                     size_t len,
+                                     size_t str_len,
                                      bool (*user_fn)(const char *str,
                                                      const size_t str_step_ofs,
                                                      const struct rcti *glyph_step_bounds,
@@ -114,14 +125,10 @@ void blf_font_boundbox_foreach_glyph(struct FontBLF *font,
 
 int blf_font_count_missing_chars(struct FontBLF *font,
                                  const char *str,
-                                 const size_t len,
+                                 const size_t str_len,
                                  int *r_tot_chars);
 
 void blf_font_free(struct FontBLF *font);
-
-struct KerningCacheBLF *blf_kerning_cache_find(struct FontBLF *font);
-struct KerningCacheBLF *blf_kerning_cache_new(struct FontBLF *font, struct GlyphCacheBLF *gc);
-void blf_kerning_cache_clear(struct FontBLF *font);
 
 struct GlyphCacheBLF *blf_glyph_cache_find(struct FontBLF *font,
                                            unsigned int size,

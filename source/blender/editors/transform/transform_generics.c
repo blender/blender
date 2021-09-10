@@ -60,6 +60,7 @@
 #include "UI_view2d.h"
 
 #include "transform.h"
+#include "transform_convert.h"
 #include "transform_mode.h"
 #include "transform_orientations.h"
 #include "transform_snap.h"
@@ -152,8 +153,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->flag = 0;
 
-  if (obact && !(t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) &&
-      ELEM(object_mode, OB_MODE_EDIT, OB_MODE_EDIT_GPENCIL)) {
+  if (obact && ELEM(object_mode, OB_MODE_EDIT, OB_MODE_EDIT_GPENCIL)) {
     t->obedit_type = obact->type;
   }
   else {
@@ -343,9 +343,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else {
     if (region) {
-      /* XXX for now, get View2D  from the active region */
+      /* XXX: For now, get View2D from the active region. */
       t->view = &region->v2d;
-      /* XXX for now, the center point is the midpoint of the data */
+      /* XXX: For now, the center point is the midpoint of the data. */
     }
     else {
       t->view = NULL;
@@ -625,6 +625,11 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 #endif
 
+  /* Disable cursor wrap when edge panning is enabled. */
+  if (t->options & CTX_VIEW2D_EDGE_PAN) {
+    t->flag |= T_NO_CURSOR_WRAP;
+  }
+
   setTransformViewAspect(t, t->aspect);
 
   if (op && (prop = RNA_struct_find_property(op->ptr, "center_override")) &&
@@ -786,7 +791,7 @@ static void restoreElement(TransData *td)
 {
   transdata_restore_basic((TransDataBasic *)td);
 
-  if (td->val) {
+  if (td->val && td->val != td->loc) {
     *td->val = td->ival;
   }
 
@@ -910,7 +915,7 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
         BKE_mask_coord_from_movieclip(space_clip->clip, &space_clip->user, co, cursor);
       }
       else {
-        BLI_assert(!"Shall not happen");
+        BLI_assert_msg(0, "Shall not happen");
       }
 
       r_center[0] = co[0] * t->aspect[0];

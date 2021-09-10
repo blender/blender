@@ -1294,13 +1294,12 @@ float BLI_noise_generic_turbulence(
  * source code in the book "Texturing and Modeling: A procedural approach"
  */
 
-/*
- * Procedural fBm evaluated at "point"; returns value stored in "value".
+/**
+ * Procedural `fBm` evaluated at "point"; returns value stored in "value".
  *
- * Parameters:
- *    ``H''  is the fractal increment parameter
- *    ``lacunarity''  is the gap between successive frequencies
- *    ``octaves''  is the number of frequencies in the fBm
+ * \param H: is the fractal increment parameter.
+ * \param lacunarity:  is the gap between successive frequencies.
+ * \param octaves: is the number of frequencies in the `fBm`.
  */
 float BLI_noise_mg_fbm(
     float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
@@ -1359,15 +1358,16 @@ float BLI_noise_mg_fbm(
 
 } /* fBm() */
 
-/*
- * Procedural multifractal evaluated at "point";
+/**
+ * Procedural multi-fractal evaluated at "point";
  * returns value stored in "value".
  *
- * Parameters:
- *    ``H''  determines the highest fractal dimension
- *    ``lacunarity''  is gap between successive frequencies
- *    ``octaves''  is the number of frequencies in the fBm
- *    ``offset''  is the zero offset, which determines multifractality (NOT USED??)
+ * \param H: determines the highest fractal dimension.
+ * \param lacunarity: is gap between successive frequencies.
+ * \param octaves: is the number of frequencies in the `fBm`.
+ *
+ * \note There used to be a parameter called `offset`, old docs read:
+ * is the zero offset, which determines multi-fractality.
  */
 
 /* this one is in fact rather confusing,
@@ -1429,15 +1429,14 @@ float BLI_noise_mg_multi_fractal(
 
 } /* multifractal() */
 
-/*
+/**
  * Heterogeneous procedural terrain function: stats by altitude method.
  * Evaluated at "point"; returns value stored in "value".
  *
- * Parameters:
- *       ``H''  determines the fractal dimension of the roughest areas
- *       ``lacunarity''  is the gap between successive frequencies
- *       ``octaves''  is the number of frequencies in the fBm
- *       ``offset''  raises the terrain from `sea level'
+ * \param H: Determines the fractal dimension of the roughest areas.
+ * \param lacunarity: Is the gap between successive frequencies.
+ * \param octaves: Is the number of frequencies in the `fBm`.
+ * \param offset: Raises the terrain from `sea level`.
  */
 float BLI_noise_mg_hetero_terrain(float x,
                                   float y,
