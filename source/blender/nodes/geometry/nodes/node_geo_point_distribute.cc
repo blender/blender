@@ -649,7 +649,7 @@ void register_node_type_geo_point_distribute()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_POINT_DISTRIBUTE, "Point Distribute", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_LEGACY_POINT_DISTRIBUTE, "Point Distribute", NODE_CLASS_GEOMETRY, 0);
   node_type_update(&ntype, blender::nodes::node_point_distribute_update);
   ntype.declare = blender::nodes::geo_node_point_distribute_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_point_distribute_exec;

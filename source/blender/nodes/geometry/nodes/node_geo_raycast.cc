@@ -308,7 +308,7 @@ void register_node_type_geo_raycast()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_LEGACY_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY, 0);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_init(&ntype, blender::nodes::geo_node_raycast_init);
   node_type_update(&ntype, blender::nodes::geo_node_raycast_update);

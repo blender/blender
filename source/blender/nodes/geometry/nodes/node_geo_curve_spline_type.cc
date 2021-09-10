@@ -288,7 +288,7 @@ void register_node_type_geo_curve_spline_type()
 {
   static bNodeType ntype;
   geo_node_type_base(
-      &ntype, GEO_NODE_CURVE_SPLINE_TYPE, "Set Spline Type", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_LEGACY_CURVE_SPLINE_TYPE, "Set Spline Type", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_curve_spline_type_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_spline_type_exec;
   node_type_init(&ntype, blender::nodes::geo_node_curve_spline_type_init);

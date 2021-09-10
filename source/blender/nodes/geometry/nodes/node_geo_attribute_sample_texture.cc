@@ -126,7 +126,7 @@ void register_node_type_geo_sample_texture()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype,
-                     GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE,
+                     GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE,
                      "Attribute Sample Texture",
                      NODE_CLASS_ATTRIBUTE,
                      0);

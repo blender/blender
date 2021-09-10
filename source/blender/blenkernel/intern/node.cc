@@ -511,7 +511,8 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
           ELEM(node->type, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB)) {
         BKE_curvemapping_blend_write(writer, (const CurveMapping *)node->storage);
       }
-      else if ((ntree->type == NTREE_GEOMETRY) && (node->type == GEO_NODE_ATTRIBUTE_CURVE_MAP)) {
+      else if ((ntree->type == NTREE_GEOMETRY) &&
+               (node->type == GEO_NODE_LEGACY_ATTRIBUTE_CURVE_MAP)) {
         BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
         NodeAttributeCurveMap *data = (NodeAttributeCurveMap *)node->storage;
         BKE_curvemapping_blend_write(writer, (const CurveMapping *)data->curve_vec);
@@ -689,7 +690,7 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
           BKE_curvemapping_blend_read(reader, (CurveMapping *)node->storage);
           break;
         }
-        case GEO_NODE_ATTRIBUTE_CURVE_MAP: {
+        case GEO_NODE_LEGACY_ATTRIBUTE_CURVE_MAP: {
           NodeAttributeCurveMap *data = (NodeAttributeCurveMap *)node->storage;
           BLO_read_data_address(reader, &data->curve_vec);
           if (data->curve_vec) {
@@ -3888,7 +3889,7 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
       }
     }
     if ((node->typeinfo->nclass == NODE_CLASS_TEXTURE) ||
-        (node->typeinfo->type == GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE)) {
+        (node->typeinfo->type == GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE)) {
       tnode->flag &= ~NODE_ACTIVE_TEXTURE;
     }
   }
@@ -3898,7 +3899,7 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
     node->flag |= NODE_ACTIVE_ID;
   }
   if ((node->typeinfo->nclass == NODE_CLASS_TEXTURE) ||
-      (node->typeinfo->type == GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE)) {
+      (node->typeinfo->type == GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE)) {
     node->flag |= NODE_ACTIVE_TEXTURE;
   }
 }
