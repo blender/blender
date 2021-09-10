@@ -1442,7 +1442,9 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   if (preview->in_memory_preview) {
     if (BKE_previewimg_is_finished(preview->in_memory_preview, ICON_SIZE_PREVIEW)) {
       ImBuf *imbuf = BKE_previewimg_to_imbuf(preview->in_memory_preview, ICON_SIZE_PREVIEW);
-      preview->icon_id = BKE_icon_imbuf_create(imbuf);
+      if (imbuf) {
+        preview->icon_id = BKE_icon_imbuf_create(imbuf);
+      }
       done = true;
     }
   }
