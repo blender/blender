@@ -1862,6 +1862,7 @@ static int constraint_move_down_exec(bContext *C, wmOperator *op)
     BLI_remlink(conlist, con);
     BLI_insertlinkafter(conlist, nextCon, con);
 
+    ED_object_constraint_update(CTX_data_main(C), ob);
     WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
 
     return OPERATOR_FINISHED;
@@ -1917,6 +1918,7 @@ static int constraint_move_up_exec(bContext *C, wmOperator *op)
     BLI_remlink(conlist, con);
     BLI_insertlinkbefore(conlist, prevCon, con);
 
+    ED_object_constraint_update(CTX_data_main(C), ob);
     WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
 
     return OPERATOR_FINISHED;
@@ -1969,6 +1971,8 @@ static int constraint_move_to_index_exec(bContext *C, wmOperator *op)
 
   if (con) {
     ED_object_constraint_move_to_index(ob, con, new_index);
+
+    ED_object_constraint_update(CTX_data_main(C), ob);
 
     return OPERATOR_FINISHED;
   }
