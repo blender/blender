@@ -116,6 +116,7 @@ set(SRC
   intern/mesh_boolean.cc
   intern/mesh_intersect.cc
   intern/noise.c
+  intern/noise.cc
   intern/path_util.c
   intern/polyfill_2d.c
   intern/polyfill_2d_beautify.c
@@ -203,6 +204,7 @@ set(SRC
   BLI_filereader.h
   BLI_float2.hh
   BLI_float3.hh
+  BLI_float4.hh
   BLI_float4x4.hh
   BLI_fnmatch.h
   BLI_function_ref.hh
@@ -264,6 +266,7 @@ set(SRC
   BLI_mpq3.hh
   BLI_multi_value_map.hh
   BLI_noise.h
+  BLI_noise.hh
   BLI_path_util.h
   BLI_polyfill_2d.h
   BLI_polyfill_2d_beautify.h
