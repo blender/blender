@@ -485,6 +485,8 @@ GHOST_TXrGraphicsBinding GHOST_XrContext::determineGraphicsBindingTypeToUse(
         ((create_info->context_flag & GHOST_kXrContextGpuNVIDIA) != 0)) {
       continue;
     }
+#else
+    ((void)create_info);
 #endif
 
     assert(type != GHOST_kXrGraphicsUnknown);
