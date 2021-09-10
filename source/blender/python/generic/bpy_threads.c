@@ -29,9 +29,12 @@
 /* analogue of PyEval_SaveThread() */
 BPy_ThreadStatePtr BPY_thread_save(void)
 {
-  /* Don't use `PyThreadState_Get()`, to avoid a fatal error issued when a thread state is NULL
-   * (the thread state can be NULL when quitting Blender). */
-  if (PyGILState_Check()) {
+  /* Use `_PyThreadState_UncheckedGet()` instead of `PyThreadState_Get()`, to avoid a fatal error
+   * issued when a thread state is NULL (the thread state can be NULL when quitting Blender).
+   *
+   * `PyEval_SaveThread()` will release the GIL, so this thread has to have the GIL to begin with
+   * or badness will ensue. */
+  if (_PyThreadState_UncheckedGet() && PyGILState_Check()) {
     return (BPy_ThreadStatePtr)PyEval_SaveThread();
   }
   return NULL;
