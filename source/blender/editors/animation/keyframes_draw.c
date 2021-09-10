@@ -519,7 +519,7 @@ static void ED_keylist_draw_list_build_keylists(AnimKeylistDrawList *draw_list)
 {
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  /* Create a thread per item, a single item is complex enough to deserve its own thread. */
+  /* Create a task per item, a single item is complex enough to deserve its own task. */
   settings.min_iter_per_thread = 1;
 
   BLI_task_parallel_listbase(
