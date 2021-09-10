@@ -98,6 +98,8 @@ class TestEnvironment:
         try:
             self.call([self.cmake_executable, '.'] + self.cmake_options, self.build_dir)
             self.call([self.cmake_executable, '--build', '.', '-j', jobs, '--target', 'install'], self.build_dir)
+        except KeyboardInterrupt as e:
+            raise e
         except:
             return False
 
@@ -193,17 +195,13 @@ class TestEnvironment:
                     lines.append(line_str)
                     if f:
                         f.write(line_str)
-        except KeyboardInterrupt:
+        except KeyboardInterrupt as e:
             # Avoid processes that keep running when interrupting.
             proc.terminate()
+            raise e
 
-        if f:
-            f.close()
-
-        # Print command output on error
+        # Raise error on failure
         if proc.returncode != 0 and not silent:
-            for line in lines:
-                print(line.rstrip())
             raise Exception("Error executing command")
 
         return lines

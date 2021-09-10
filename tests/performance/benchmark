@@ -141,6 +141,8 @@ def run_entry(env: api.TestEnvironment,
             if not entry.output:
                 raise Exception("Test produced no output")
             entry.status = 'done'
+        except KeyboardInterrupt as e:
+            raise e
         except Exception as e:
             entry.status = 'failed'
             entry.error_msg = str(e)
@@ -236,16 +238,25 @@ def cmd_run(env: api.TestEnvironment, argv: List, update_only: bool):
     configs = env.get_configs(args.config)
     for config in configs:
         updated = False
+        cancel = False
         print_header(config)
         for row in config.queue.rows(use_revision_columns(config)):
             if match_entry(row[0], args):
                 for entry in row:
-                    if run_entry(env, config, row, entry, update_only):
-                        updated = True
-                        # Write queue every time in case running gets interrupted,
-                        # so it can be resumed.
-                        config.queue.write()
+                    try:
+                        if run_entry(env, config, row, entry, update_only):
+                            updated = True
+                            # Write queue every time in case running gets interrupted,
+                            # so it can be resumed.
+                            config.queue.write()
+                    except KeyboardInterrupt as e:
+                        cancel = True
+                        break
+
                 print_row(config, row)
+
+            if cancel:
+                break
 
         if updated:
             # Generate graph if test were run.
