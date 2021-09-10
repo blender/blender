@@ -346,10 +346,12 @@ static void draw_keylist_block(const DrawKeylistUIData *ctx, const ActKeyColumn 
 }
 
 static void draw_keylist_blocks(const DrawKeylistUIData *ctx,
-                                const ListBase * /*ActKeyColumn*/ columns,
+                                const ActKeyColumn *keys,
+                                const int key_len,
                                 float ypos)
 {
-  LISTBASE_FOREACH (ActKeyColumn *, ab, columns) {
+  for (int i = 0; i < key_len; i++) {
+    const ActKeyColumn *ab = &keys[i];
     draw_keylist_block(ctx, ab, ypos);
   }
 }
@@ -362,13 +364,15 @@ static bool draw_keylist_is_visible_key(const View2D *v2d, const ActKeyColumn *a
 static void draw_keylist_keys(const DrawKeylistUIData *ctx,
                               View2D *v2d,
                               const KeyframeShaderBindings *sh_bindings,
-                              const ListBase * /*ActKeyColumn*/ keys,
+                              const ActKeyColumn *keys,
+                              const int key_len,
                               float ypos,
                               eSAction_Flag saction_flag)
 {
   short handle_type = KEYFRAME_HANDLE_NONE, extreme_type = KEYFRAME_EXTREME_NONE;
 
-  LISTBASE_FOREACH (ActKeyColumn *, ak, keys) {
+  for (int i = 0; i < key_len; i++) {
+    const ActKeyColumn *ak = &keys[i];
     if (draw_keylist_is_visible_key(v2d, ak)) {
       if (ctx->show_ipo) {
         handle_type = ak->handle_type;
@@ -469,8 +473,9 @@ static void ED_keylist_draw_list_elem_draw_blocks(AnimKeylistDrawListElem *elem,
   DrawKeylistUIData ctx;
   draw_keylist_ui_data_init(&ctx, v2d, elem->yscale_fac, elem->channel_locked, elem->saction_flag);
 
-  const ListBase *keys = ED_keylist_listbase(elem->keylist);
-  draw_keylist_blocks(&ctx, keys, elem->ypos);
+  const int key_len = ED_keylist_array_len(elem->keylist);
+  const ActKeyColumn *keys = ED_keylist_array(elem->keylist);
+  draw_keylist_blocks(&ctx, keys, key_len, elem->ypos);
 }
 
 static void ED_keylist_draw_list_elem_draw_keys(AnimKeylistDrawListElem *elem,
@@ -479,8 +484,15 @@ static void ED_keylist_draw_list_elem_draw_keys(AnimKeylistDrawListElem *elem,
 {
   DrawKeylistUIData ctx;
   draw_keylist_ui_data_init(&ctx, v2d, elem->yscale_fac, elem->channel_locked, elem->saction_flag);
-  const ListBase *keys = ED_keylist_listbase(elem->keylist);
-  draw_keylist_keys(&ctx, v2d, sh_bindings, keys, elem->ypos, elem->saction_flag);
+
+  const int key_len = ED_keylist_array_len(elem->keylist);
+  const ActKeyColumn *keys = ED_keylist_array(elem->keylist);
+  draw_keylist_keys(&ctx, v2d, sh_bindings, keys, key_len, elem->ypos, elem->saction_flag);
+}
+
+static void ED_keylist_draw_list_elem_prepare_for_drawing(AnimKeylistDrawListElem *elem)
+{
+  ED_keylist_prepare_for_direct_access(elem->keylist);
 }
 
 typedef struct AnimKeylistDrawList {
@@ -496,6 +508,7 @@ static void ED_keylist_draw_list_build_keylists(AnimKeylistDrawList *draw_list)
 {
   LISTBASE_FOREACH (AnimKeylistDrawListElem *, elem, &draw_list->channels) {
     ED_keylist_draw_list_elem_build_keylist(elem);
+    ED_keylist_draw_list_elem_prepare_for_drawing(elem);
   }
 }
 

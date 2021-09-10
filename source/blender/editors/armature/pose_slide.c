@@ -976,6 +976,7 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, const wmEvent *
   }
 
   /* Cancel if no keyframes found. */
+  ED_keylist_prepare_for_direct_access(pso->keylist);
   if (ED_keylist_is_empty(pso->keylist)) {
     BKE_report(op->reports, RPT_ERROR, "No keyframes to slide between");
     pose_slide_exit(C, op);
@@ -1712,6 +1713,7 @@ static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float st
     FCurve *fcu = (FCurve *)ld->data;
     fcurve_to_keylist(adt, fcu, keylist, 0);
   }
+  ED_keylist_prepare_for_direct_access(keylist);
 
   /* Find the long keyframe (i.e. hold), and hence obtain the endFrame value
    * - the best case would be one that starts on the frame itself
