@@ -284,69 +284,36 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext(GHOST_GLSettings glSet
   HDC mHDC = GetDC(wnd);
   HDC prev_hdc = wglGetCurrentDC();
   HGLRC prev_context = wglGetCurrentContext();
-#if defined(WITH_GL_PROFILE_CORE)
-  for (int minor = 5; minor >= 0; --minor) {
+
+  const int versions[][2] = {{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0}, {3, 3}};
+  const int versions_len = sizeof(versions) / sizeof(versions[0]);
+
+  for (int i = 0; i < versions_len; i++) {
+    int major = versions[i][0];
+    int minor = versions[i][1];
+
     context = new GHOST_ContextWGL(false,
                                    true,
                                    wnd,
                                    mHDC,
                                    WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-                                   4,
+                                   major,
                                    minor,
                                    (debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
                                    GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
 
     if (context->initializeDrawingContext()) {
-      goto finished;
+      break;
     }
     else {
       delete context;
+      context = nullptr;
     }
   }
 
-  context = new GHOST_ContextWGL(false,
-                                 true,
-                                 wnd,
-                                 mHDC,
-                                 WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-                                 3,
-                                 3,
-                                 (debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
-                                 GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
-
-  if (context->initializeDrawingContext()) {
-    goto finished;
+  if (prev_context) {
+    wglMakeCurrent(prev_hdc, prev_context);
   }
-  else {
-    delete context;
-    return NULL;
-  }
-
-#elif defined(WITH_GL_PROFILE_COMPAT)
-  // ask for 2.1 context, driver gives any GL version >= 2.1
-  // (hopefully the latest compatibility profile)
-  // 2.1 ignores the profile bit & is incompatible with core profile
-  context = new GHOST_ContextWGL(false,
-                                 true,
-                                 NULL,
-                                 NULL,
-                                 0,  // no profile bit
-                                 2,
-                                 1,
-                                 (debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
-                                 GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
-
-  if (context->initializeDrawingContext()) {
-    return context;
-  }
-  else {
-    delete context;
-  }
-#else
-#  error  // must specify either core or compat at build time
-#endif
-finished:
-  wglMakeCurrent(prev_hdc, prev_context);
   return context;
 }
 
