@@ -1955,7 +1955,9 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
   if (entry->local_data.preview_image &&
       BKE_previewimg_is_finished(entry->local_data.preview_image, ICON_SIZE_PREVIEW)) {
     ImBuf *ibuf = BKE_previewimg_to_imbuf(entry->local_data.preview_image, ICON_SIZE_PREVIEW);
-    ret->preview_icon_id = BKE_icon_imbuf_create(ibuf);
+    if (ibuf) {
+      ret->preview_icon_id = BKE_icon_imbuf_create(ibuf);
+    }
   }
   BLI_addtail(&cache->cached_entries, ret);
   return ret;
