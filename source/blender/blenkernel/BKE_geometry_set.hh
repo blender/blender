@@ -657,9 +657,16 @@ class AttributeFieldInput : public fn::FieldInput {
   {
   }
 
+  StringRefNull attribute_name() const
+  {
+    return name_;
+  }
+
   const GVArray *get_varray_for_context(const fn::FieldContext &context,
                                         IndexMask mask,
                                         ResourceScope &scope) const override;
+
+  std::string socket_inspection_name() const override;
 
   uint64_t hash() const override;
   bool is_equal_to(const fn::FieldNode &other) const override;
@@ -682,6 +689,8 @@ class AnonymousAttributeFieldInput : public fn::FieldInput {
   const GVArray *get_varray_for_context(const fn::FieldContext &context,
                                         IndexMask mask,
                                         ResourceScope &scope) const override;
+
+  std::string socket_inspection_name() const override;
 
   uint64_t hash() const override;
   bool is_equal_to(const fn::FieldNode &other) const override;

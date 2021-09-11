@@ -462,6 +462,29 @@ void evaluate_constant_field(const GField &field, void *r_value)
   varrays[0]->get_to_uninitialized(0, r_value);
 }
 
+/**
+ * If the field depends on some input, the same field is returned.
+ * Otherwise the field is evaluated and a new field is created that just computes this constant.
+ *
+ * Making the field constant has two benefits:
+ * - The field-tree becomes a single node, which is more efficient when the field is evaluated many
+ *   times.
+ * - Memory of the input fields may be freed.
+ */
+GField make_field_constant_if_possible(GField field)
+{
+  if (field.node().depends_on_input()) {
+    return field;
+  }
+  const CPPType &type = field.cpp_type();
+  BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
+  evaluate_constant_field(field, buffer);
+  auto constant_fn = std::make_unique<CustomMF_GenericConstant>(type, buffer, true);
+  type.destruct(buffer);
+  auto operation = std::make_shared<FieldOperation>(std::move(constant_fn));
+  return GField{operation, 0};
+}
+
 const GVArray *FieldContext::get_varray_for_input(const FieldInput &field_input,
                                                   IndexMask mask,
                                                   ResourceScope &scope) const
@@ -469,6 +492,55 @@ const GVArray *FieldContext::get_varray_for_input(const FieldInput &field_input,
   /* By default ask the field input to create the varray. Another field context might overwrite
    * the context here. */
   return field_input.get_varray_for_context(*this, mask, scope);
+}
+
+/* --------------------------------------------------------------------
+ * FieldOperation.
+ */
+
+FieldOperation::FieldOperation(std::unique_ptr<const MultiFunction> function,
+                               Vector<GField> inputs)
+    : FieldOperation(*function, std::move(inputs))
+{
+  owned_function_ = std::move(function);
+}
+
+static bool any_field_depends_on_input(Span<GField> fields)
+{
+  for (const GField &field : fields) {
+    if (field.node().depends_on_input()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+FieldOperation::FieldOperation(const MultiFunction &function, Vector<GField> inputs)
+    : FieldNode(false, any_field_depends_on_input(inputs)),
+      function_(&function),
+      inputs_(std::move(inputs))
+{
+}
+
+void FieldOperation::foreach_field_input(FunctionRef<void(const FieldInput &)> foreach_fn) const
+{
+  for (const GField &field : inputs_) {
+    field.node().foreach_field_input(foreach_fn);
+  }
+}
+
+/* --------------------------------------------------------------------
+ * FieldInput.
+ */
+
+FieldInput::FieldInput(const CPPType &type, std::string debug_name)
+    : FieldNode(true, true), type_(&type), debug_name_(std::move(debug_name))
+{
+}
+
+void FieldInput::foreach_field_input(FunctionRef<void(const FieldInput &)> foreach_fn) const
+{
+  foreach_fn(*this);
 }
 
 /* --------------------------------------------------------------------

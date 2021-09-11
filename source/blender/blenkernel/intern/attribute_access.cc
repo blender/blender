@@ -32,6 +32,8 @@
 #include "BLI_float2.hh"
 #include "BLI_span.hh"
 
+#include "BLT_translation.h"
+
 #include "CLG_log.h"
 
 #include "NOD_type_conversions.hh"
@@ -1318,6 +1320,13 @@ const GVArray *AttributeFieldInput::get_varray_for_context(const fn::FieldContex
   return nullptr;
 }
 
+std::string AttributeFieldInput::socket_inspection_name() const
+{
+  std::stringstream ss;
+  ss << TIP_("Attribute: ") << name_;
+  return ss.str();
+}
+
 uint64_t AttributeFieldInput::hash() const
 {
   return get_default_hash_2(name_, type_);
@@ -1344,6 +1353,13 @@ const GVArray *AnonymousAttributeFieldInput::get_varray_for_context(
     return scope.add(std::move(attribute), __func__);
   }
   return nullptr;
+}
+
+std::string AnonymousAttributeFieldInput::socket_inspection_name() const
+{
+  std::stringstream ss;
+  ss << TIP_("Anonymous Attribute: ") << debug_name_;
+  return ss.str();
 }
 
 uint64_t AnonymousAttributeFieldInput::hash() const

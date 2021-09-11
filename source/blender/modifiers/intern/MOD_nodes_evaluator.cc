@@ -892,8 +892,10 @@ class GeometryNodesEvaluator {
       OutputState &output_state = node_state.outputs[i];
       const DOutputSocket socket{node.context(), &socket_ref};
       const CPPType *cpp_type = get_socket_cpp_type(socket_ref);
-      GField &field = *allocator.construct<GField>(operation, output_index).release();
-      this->forward_output(socket, {cpp_type, &field});
+      GField new_field{operation, output_index};
+      new_field = fn::make_field_constant_if_possible(std::move(new_field));
+      GField &field_to_forward = *allocator.construct<GField>(std::move(new_field)).release();
+      this->forward_output(socket, {cpp_type, &field_to_forward});
       output_state.has_been_computed = true;
       output_index++;
     }
@@ -1411,8 +1413,8 @@ class GeometryNodesEvaluator {
   {
     if (const FieldCPPType *field_cpp_type = dynamic_cast<const FieldCPPType *>(&type)) {
       const CPPType &base_type = field_cpp_type->field_type();
-      auto constant_fn = std::make_unique<fn::CustomMF_GenericConstant>(base_type,
-                                                                        base_type.default_value());
+      auto constant_fn = std::make_unique<fn::CustomMF_GenericConstant>(
+          base_type, base_type.default_value(), false);
       auto operation = std::make_shared<fn::FieldOperation>(std::move(constant_fn));
       new (r_value) GField(std::move(operation), 0);
       return;
