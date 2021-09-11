@@ -72,80 +72,65 @@ struct SampleModeParam {
   std::optional<int> count;
 };
 
-static SplinePtr resample_spline(const Spline &input_spline, const int count)
+static SplinePtr resample_spline(const Spline &src, const int count)
 {
-  std::unique_ptr<PolySpline> output_spline = std::make_unique<PolySpline>();
-  output_spline->set_cyclic(input_spline.is_cyclic());
-  output_spline->normal_mode = input_spline.normal_mode;
+  std::unique_ptr<PolySpline> dst = std::make_unique<PolySpline>();
+  Spline::copy_base_settings(src, *dst);
 
-  if (input_spline.evaluated_edges_size() < 1 || count == 1) {
-    output_spline->add_point(input_spline.positions().first(),
-                             input_spline.tilts().first(),
-                             input_spline.radii().first());
-    output_spline->attributes.reallocate(1);
-    input_spline.attributes.foreach_attribute(
+  if (src.evaluated_edges_size() < 1 || count == 1) {
+    dst->add_point(src.positions().first(), src.tilts().first(), src.radii().first());
+    dst->attributes.reallocate(1);
+    src.attributes.foreach_attribute(
         [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-          std::optional<GSpan> src = input_spline.attributes.get_for_read(attribute_id);
-          BLI_assert(src);
-          if (!output_spline->attributes.create(attribute_id, meta_data.data_type)) {
-            BLI_assert_unreachable();
-            return false;
+          std::optional<GSpan> src_attribute = src.attributes.get_for_read(attribute_id);
+          if (dst->attributes.create(attribute_id, meta_data.data_type)) {
+            std::optional<GMutableSpan> dst_attribute = dst->attributes.get_for_write(
+                attribute_id);
+            if (dst_attribute) {
+              src_attribute->type().copy_assign(src_attribute->data(), dst_attribute->data());
+              return true;
+            }
           }
-          std::optional<GMutableSpan> dst = output_spline->attributes.get_for_write(attribute_id);
-          if (!dst) {
-            BLI_assert_unreachable();
-            return false;
-          }
-          src->type().copy_assign(src->data(), dst->data());
-          return true;
+          BLI_assert_unreachable();
+          return false;
         },
         ATTR_DOMAIN_POINT);
-    return output_spline;
+    return dst;
   }
 
-  output_spline->resize(count);
+  dst->resize(count);
 
-  Array<float> uniform_samples = input_spline.sample_uniform_index_factors(count);
+  Array<float> uniform_samples = src.sample_uniform_index_factors(count);
 
-  input_spline.sample_with_index_factors<float3>(
-      input_spline.evaluated_positions(), uniform_samples, output_spline->positions());
+  src.sample_with_index_factors<float3>(
+      src.evaluated_positions(), uniform_samples, dst->positions());
 
-  input_spline.sample_with_index_factors<float>(
-      input_spline.interpolate_to_evaluated(input_spline.radii()),
-      uniform_samples,
-      output_spline->radii());
+  src.sample_with_index_factors<float>(
+      src.interpolate_to_evaluated(src.radii()), uniform_samples, dst->radii());
 
-  input_spline.sample_with_index_factors<float>(
-      input_spline.interpolate_to_evaluated(input_spline.tilts()),
-      uniform_samples,
-      output_spline->tilts());
+  src.sample_with_index_factors<float>(
+      src.interpolate_to_evaluated(src.tilts()), uniform_samples, dst->tilts());
 
-  output_spline->attributes.reallocate(count);
-  input_spline.attributes.foreach_attribute(
+  src.attributes.foreach_attribute(
       [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-        std::optional<GSpan> input_attribute = input_spline.attributes.get_for_read(attribute_id);
-        BLI_assert(input_attribute);
-        if (!output_spline->attributes.create(attribute_id, meta_data.data_type)) {
-          BLI_assert_unreachable();
-          return false;
-        }
-        std::optional<GMutableSpan> output_attribute = output_spline->attributes.get_for_write(
-            attribute_id);
-        if (!output_attribute) {
-          BLI_assert_unreachable();
-          return false;
+        std::optional<GSpan> input_attribute = src.attributes.get_for_read(attribute_id);
+        if (dst->attributes.create(attribute_id, meta_data.data_type)) {
+          std::optional<GMutableSpan> output_attribute = dst->attributes.get_for_write(
+              attribute_id);
+          if (output_attribute) {
+            src.sample_with_index_factors(*src.interpolate_to_evaluated(*input_attribute),
+                                          uniform_samples,
+                                          *output_attribute);
+            return true;
+          }
         }
 
-        input_spline.sample_with_index_factors(
-            *input_spline.interpolate_to_evaluated(*input_attribute),
-            uniform_samples,
-            *output_attribute);
-
-        return true;
+        BLI_assert_unreachable();
+        return false;
       },
       ATTR_DOMAIN_POINT);
 
-  return output_spline;
+  return dst;
 }
 
 static SplinePtr resample_spline_evaluated(const Spline &src)
