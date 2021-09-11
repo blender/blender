@@ -242,7 +242,7 @@ void MFProcedure::add_parameter(MFParamType::InterfaceType interface_type, MFVar
 
 void MFProcedure::set_entry(MFInstruction &entry)
 {
-  if (entry_ != NULL) {
+  if (entry_ != nullptr) {
     entry_->prev_.remove_first_occurrence_and_reorder(MFInstructionCursor::ForEntry());
   }
   entry_ = &entry;
