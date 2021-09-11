@@ -592,7 +592,7 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
     MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(cd_dyn_vert, v2);
     const bool bound2 = mv2->flag & DYNVERT_SMOOTH_BOUNDARY;
 
-    if (bound1 && !bound2) {
+    if (bound1 != bound2) {
       continue;
     }
 
@@ -2948,7 +2948,7 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
         continue;
       }
 
-      if (!(mv1->flag & DYNVERT_ALL_BOUNDARY) != !(mv2->flag & DYNVERT_ALL_BOUNDARY)) {
+      if ((mv1->flag & DYNVERT_ALL_BOUNDARY) != (mv2->flag & DYNVERT_ALL_BOUNDARY)) {
         continue;
       }
 
