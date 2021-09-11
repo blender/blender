@@ -43,6 +43,55 @@ enum class MFInstructionType {
 };
 
 /**
+ * An #MFInstructionCursor points to a position in a multi-function procedure, where an instruction
+ * can be inserted.
+ */
+class MFInstructionCursor {
+ public:
+  enum Type {
+    None,
+    Entry,
+    Call,
+    Destruct,
+    Branch,
+    Dummy,
+  };
+
+ private:
+  Type type_ = None;
+  MFInstruction *instruction_ = nullptr;
+  /* Only used when it is a branch instruction. */
+  bool branch_output_ = false;
+
+ public:
+  MFInstructionCursor() = default;
+  MFInstructionCursor(MFCallInstruction &instruction);
+  MFInstructionCursor(MFDestructInstruction &instruction);
+  MFInstructionCursor(MFBranchInstruction &instruction, bool branch_output);
+  MFInstructionCursor(MFDummyInstruction &instruction);
+
+  static MFInstructionCursor ForEntry();
+
+  MFInstruction *next(MFProcedure &procedure) const;
+  void set_next(MFProcedure &procedure, MFInstruction *new_instruction) const;
+
+  MFInstruction *instruction() const;
+
+  Type type() const;
+
+  friend bool operator==(const MFInstructionCursor &a, const MFInstructionCursor &b)
+  {
+    return a.type_ == b.type_ && a.instruction_ == b.instruction_ &&
+           a.branch_output_ == b.branch_output_;
+  }
+
+  friend bool operator!=(const MFInstructionCursor &a, const MFInstructionCursor &b)
+  {
+    return !(a == b);
+  }
+};
+
+/**
  * A variable is similar to a virtual register in other libraries. During evaluation, every is
  * either uninitialized or contains a value for every index (remember, a multi-function procedure
  * is always evaluated for many indices at the same time).
@@ -73,7 +122,7 @@ class MFVariable : NonCopyable, NonMovable {
 class MFInstruction : NonCopyable, NonMovable {
  protected:
   MFInstructionType type_;
-  Vector<MFInstruction *> prev_;
+  Vector<MFInstructionCursor> prev_;
 
   friend MFProcedure;
   friend MFCallInstruction;
@@ -89,8 +138,7 @@ class MFInstruction : NonCopyable, NonMovable {
    * Other instructions that come before this instruction. There can be multiple previous
    * instructions when branching is used in the procedure.
    */
-  Span<MFInstruction *> prev();
-  Span<const MFInstruction *> prev() const;
+  Span<MFInstructionCursor> prev() const;
 };
 
 /**
@@ -276,6 +324,50 @@ using MFProcedure = fn::MFProcedure;
 }  // namespace multi_function_procedure_types
 
 /* --------------------------------------------------------------------
+ * MFInstructionCursor inline methods.
+ */
+
+inline MFInstructionCursor::MFInstructionCursor(MFCallInstruction &instruction)
+    : type_(Call), instruction_(&instruction)
+{
+}
+
+inline MFInstructionCursor::MFInstructionCursor(MFDestructInstruction &instruction)
+    : type_(Destruct), instruction_(&instruction)
+{
+}
+
+inline MFInstructionCursor::MFInstructionCursor(MFBranchInstruction &instruction,
+                                                bool branch_output)
+    : type_(Branch), instruction_(&instruction), branch_output_(branch_output)
+{
+}
+
+inline MFInstructionCursor::MFInstructionCursor(MFDummyInstruction &instruction)
+    : type_(Dummy), instruction_(&instruction)
+{
+}
+
+inline MFInstructionCursor MFInstructionCursor::ForEntry()
+{
+  MFInstructionCursor cursor;
+  cursor.type_ = Type::Entry;
+  return cursor;
+}
+
+inline MFInstruction *MFInstructionCursor::instruction() const
+{
+  /* This isn't really const correct unfortunately, because to make it correct we'll need a const
+   * version of #MFInstructionCursor. */
+  return instruction_;
+}
+
+inline MFInstructionCursor::Type MFInstructionCursor::type() const
+{
+  return type_;
+}
+
+/* --------------------------------------------------------------------
  * MFVariable inline methods.
  */
 
@@ -308,12 +400,7 @@ inline MFInstructionType MFInstruction::type() const
   return type_;
 }
 
-inline Span<MFInstruction *> MFInstruction::prev()
-{
-  return prev_;
-}
-
-inline Span<const MFInstruction *> MFInstruction::prev() const
+inline Span<MFInstructionCursor> MFInstruction::prev() const
 {
   return prev_;
 }

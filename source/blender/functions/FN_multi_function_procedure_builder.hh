@@ -25,31 +25,6 @@
 namespace blender::fn {
 
 /**
- * An #MFInstructionCursor points to a position in a multi-function procedure, where an instruction
- * can be inserted.
- */
-class MFInstructionCursor {
- private:
-  MFInstruction *instruction_ = nullptr;
-  /* Only used when it is a branch instruction. */
-  bool branch_output_ = false;
-  /* Only used when instruction is null. */
-  bool is_entry_ = false;
-
- public:
-  MFInstructionCursor() = default;
-
-  MFInstructionCursor(MFCallInstruction &instruction);
-  MFInstructionCursor(MFDestructInstruction &instruction);
-  MFInstructionCursor(MFBranchInstruction &instruction, bool branch_output);
-  MFInstructionCursor(MFDummyInstruction &instruction);
-
-  static MFInstructionCursor Entry();
-
-  void insert(MFProcedure &procedure, MFInstruction *new_instruction);
-};
-
-/**
  * Utility class to build a #MFProcedure.
  */
 class MFProcedureBuilder {
@@ -64,7 +39,7 @@ class MFProcedureBuilder {
   struct Loop;
 
   MFProcedureBuilder(MFProcedure &procedure,
-                     MFInstructionCursor initial_cursor = MFInstructionCursor::Entry());
+                     MFInstructionCursor initial_cursor = MFInstructionCursor::ForEntry());
 
   MFProcedureBuilder(Span<MFProcedureBuilder *> builders);
 
@@ -120,38 +95,6 @@ struct MFProcedureBuilder::Loop {
   MFInstruction *begin = nullptr;
   MFDummyInstruction *end = nullptr;
 };
-
-/* --------------------------------------------------------------------
- * MFInstructionCursor inline methods.
- */
-
-inline MFInstructionCursor::MFInstructionCursor(MFCallInstruction &instruction)
-    : instruction_(&instruction)
-{
-}
-
-inline MFInstructionCursor::MFInstructionCursor(MFDestructInstruction &instruction)
-    : instruction_(&instruction)
-{
-}
-
-inline MFInstructionCursor::MFInstructionCursor(MFBranchInstruction &instruction,
-                                                bool branch_output)
-    : instruction_(&instruction), branch_output_(branch_output)
-{
-}
-
-inline MFInstructionCursor::MFInstructionCursor(MFDummyInstruction &instruction)
-    : instruction_(&instruction)
-{
-}
-
-inline MFInstructionCursor MFInstructionCursor::Entry()
-{
-  MFInstructionCursor cursor;
-  cursor.is_entry_ = true;
-  return cursor;
-}
 
 /* --------------------------------------------------------------------
  * MFProcedureBuilder inline methods.
@@ -253,7 +196,7 @@ inline void MFProcedureBuilder::add_output_parameter(MFVariable &variable)
 inline void MFProcedureBuilder::link_to_cursors(MFInstruction *instruction)
 {
   for (MFInstructionCursor &cursor : cursors_) {
-    cursor.insert(*procedure_, instruction);
+    cursor.set_next(*procedure_, instruction);
   }
 }
 

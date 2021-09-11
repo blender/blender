@@ -18,50 +18,6 @@
 
 namespace blender::fn {
 
-void MFInstructionCursor::insert(MFProcedure &procedure, MFInstruction *new_instruction)
-{
-  if (instruction_ == nullptr) {
-    if (is_entry_) {
-      procedure.set_entry(*new_instruction);
-    }
-    else {
-      /* The cursors points at nothing, nothing to do. */
-    }
-  }
-  else {
-    switch (instruction_->type()) {
-      case MFInstructionType::Call: {
-        static_cast<MFCallInstruction *>(instruction_)->set_next(new_instruction);
-        break;
-      }
-      case MFInstructionType::Branch: {
-        MFBranchInstruction &branch_instruction = *static_cast<MFBranchInstruction *>(
-            instruction_);
-        if (branch_output_) {
-          branch_instruction.set_branch_true(new_instruction);
-        }
-        else {
-          branch_instruction.set_branch_false(new_instruction);
-        }
-        break;
-      }
-      case MFInstructionType::Destruct: {
-        static_cast<MFDestructInstruction *>(instruction_)->set_next(new_instruction);
-        break;
-      }
-      case MFInstructionType::Dummy: {
-        static_cast<MFDummyInstruction *>(instruction_)->set_next(new_instruction);
-        break;
-      }
-      case MFInstructionType::Return: {
-        /* It shouldn't be possible to build a cursor that points to a return instruction. */
-        BLI_assert_unreachable();
-        break;
-      }
-    }
-  }
-}
-
 void MFProcedureBuilder::add_destruct(MFVariable &variable)
 {
   MFDestructInstruction &instruction = procedure_->new_destruct_instruction();

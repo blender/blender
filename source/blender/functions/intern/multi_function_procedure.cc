@@ -21,6 +21,65 @@
 
 namespace blender::fn {
 
+void MFInstructionCursor::set_next(MFProcedure &procedure, MFInstruction *new_instruction) const
+{
+  switch (type_) {
+    case Type::None: {
+      break;
+    }
+    case Type::Entry: {
+      procedure.set_entry(*new_instruction);
+      break;
+    }
+    case Type::Call: {
+      static_cast<MFCallInstruction *>(instruction_)->set_next(new_instruction);
+      break;
+    }
+    case Type::Branch: {
+      MFBranchInstruction &branch_instruction = *static_cast<MFBranchInstruction *>(instruction_);
+      if (branch_output_) {
+        branch_instruction.set_branch_true(new_instruction);
+      }
+      else {
+        branch_instruction.set_branch_false(new_instruction);
+      }
+      break;
+    }
+    case Type::Destruct: {
+      static_cast<MFDestructInstruction *>(instruction_)->set_next(new_instruction);
+      break;
+    }
+    case Type::Dummy: {
+      static_cast<MFDummyInstruction *>(instruction_)->set_next(new_instruction);
+      break;
+    }
+  }
+}
+
+MFInstruction *MFInstructionCursor::next(MFProcedure &procedure) const
+{
+  switch (type_) {
+    case Type::None:
+      return nullptr;
+    case Type::Entry:
+      return procedure.entry();
+    case Type::Call:
+      return static_cast<MFCallInstruction *>(instruction_)->next();
+    case Type::Branch: {
+      MFBranchInstruction &branch_instruction = *static_cast<MFBranchInstruction *>(instruction_);
+      if (branch_output_) {
+        return branch_instruction.branch_true();
+      }
+      return branch_instruction.branch_false();
+    }
+    case Type::Destruct:
+      return static_cast<MFDestructInstruction *>(instruction_)->next();
+    case Type::Dummy:
+      return static_cast<MFDummyInstruction *>(instruction_)->next();
+  }
+  return nullptr;
+}
+
 void MFVariable::set_name(std::string name)
 {
   name_ = std::move(name);
@@ -29,10 +88,10 @@ void MFVariable::set_name(std::string name)
 void MFCallInstruction::set_next(MFInstruction *instruction)
 {
   if (next_ != nullptr) {
-    next_->prev_.remove_first_occurrence_and_reorder(this);
+    next_->prev_.remove_first_occurrence_and_reorder(*this);
   }
   if (instruction != nullptr) {
-    instruction->prev_.append(this);
+    instruction->prev_.append(*this);
   }
   next_ = instruction;
 }
@@ -71,10 +130,10 @@ void MFBranchInstruction::set_condition(MFVariable *variable)
 void MFBranchInstruction::set_branch_true(MFInstruction *instruction)
 {
   if (branch_true_ != nullptr) {
-    branch_true_->prev_.remove_first_occurrence_and_reorder(this);
+    branch_true_->prev_.remove_first_occurrence_and_reorder({*this, true});
   }
   if (instruction != nullptr) {
-    instruction->prev_.append(this);
+    instruction->prev_.append({*this, true});
   }
   branch_true_ = instruction;
 }
@@ -82,10 +141,10 @@ void MFBranchInstruction::set_branch_true(MFInstruction *instruction)
 void MFBranchInstruction::set_branch_false(MFInstruction *instruction)
 {
   if (branch_false_ != nullptr) {
-    branch_false_->prev_.remove_first_occurrence_and_reorder(this);
+    branch_false_->prev_.remove_first_occurrence_and_reorder({*this, false});
   }
   if (instruction != nullptr) {
-    instruction->prev_.append(this);
+    instruction->prev_.append({*this, false});
   }
   branch_false_ = instruction;
 }
@@ -104,10 +163,10 @@ void MFDestructInstruction::set_variable(MFVariable *variable)
 void MFDestructInstruction::set_next(MFInstruction *instruction)
 {
   if (next_ != nullptr) {
-    next_->prev_.remove_first_occurrence_and_reorder(this);
+    next_->prev_.remove_first_occurrence_and_reorder(*this);
   }
   if (instruction != nullptr) {
-    instruction->prev_.append(this);
+    instruction->prev_.append(*this);
   }
   next_ = instruction;
 }
@@ -115,10 +174,10 @@ void MFDestructInstruction::set_next(MFInstruction *instruction)
 void MFDummyInstruction::set_next(MFInstruction *instruction)
 {
   if (next_ != nullptr) {
-    next_->prev_.remove_first_occurrence_and_reorder(this);
+    next_->prev_.remove_first_occurrence_and_reorder(*this);
   }
   if (instruction != nullptr) {
-    instruction->prev_.append(this);
+    instruction->prev_.append(*this);
   }
   next_ = instruction;
 }
@@ -183,7 +242,11 @@ void MFProcedure::add_parameter(MFParamType::InterfaceType interface_type, MFVar
 
 void MFProcedure::set_entry(MFInstruction &entry)
 {
+  if (entry_ != NULL) {
+    entry_->prev_.remove_first_occurrence_and_reorder(MFInstructionCursor::ForEntry());
+  }
   entry_ = &entry;
+  entry_->prev_.append(MFInstructionCursor::ForEntry());
 }
 
 MFProcedure::~MFProcedure()
@@ -420,7 +483,11 @@ MFProcedure::InitState MFProcedure::find_initialization_state_before_instruction
 
   Set<const MFInstruction *> checked_instructions;
   Stack<const MFInstruction *> instructions_to_check;
-  instructions_to_check.push_multiple(target_instruction.prev_);
+  for (const MFInstructionCursor &cursor : target_instruction.prev_) {
+    if (cursor.instruction() != nullptr) {
+      instructions_to_check.push(cursor.instruction());
+    }
+  }
 
   while (!instructions_to_check.is_empty()) {
     const MFInstruction &instruction = *instructions_to_check.pop();
@@ -467,7 +534,11 @@ MFProcedure::InitState MFProcedure::find_initialization_state_before_instruction
       if (&instruction == entry_) {
         check_entry_instruction();
       }
-      instructions_to_check.push_multiple(instruction.prev_);
+      for (const MFInstructionCursor &cursor : instruction.prev_) {
+        if (cursor.instruction() != nullptr) {
+          instructions_to_check.push(cursor.instruction());
+        }
+      }
     }
   }
 
@@ -607,13 +678,10 @@ class MFProcedureDotExport {
 
   bool has_to_be_block_begin(const MFInstruction &instruction)
   {
-    if (procedure_.entry() == &instruction) {
-      return true;
-    }
     if (instruction.prev().size() != 1) {
       return true;
     }
-    if (instruction.prev()[0]->type() == MFInstructionType::Branch) {
+    if (instruction.prev()[0].type() == MFInstructionCursor::Type::Branch) {
       return true;
     }
     return false;
@@ -623,7 +691,7 @@ class MFProcedureDotExport {
   {
     const MFInstruction *current = &representative;
     while (!this->has_to_be_block_begin(*current)) {
-      current = current->prev()[0];
+      current = current->prev()[0].instruction();
       if (current == &representative) {
         /* There is a loop without entry or exit, just break it up here. */
         break;
