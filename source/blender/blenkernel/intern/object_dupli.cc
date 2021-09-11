@@ -855,7 +855,7 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
       dupli->ob_data = (ID *)volume;
     }
   }
-  if (ctx->object->type != OB_CURVE || geometry_set_is_instance) {
+  if (!ELEM(ctx->object->type, OB_CURVE, OB_FONT) || geometry_set_is_instance) {
     const CurveComponent *curve_component = geometry_set.get_component_for_read<CurveComponent>();
     if (curve_component != nullptr) {
       const Curve *curve = curve_component->get_curve_for_render();

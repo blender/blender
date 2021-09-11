@@ -1341,6 +1341,11 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(modifier_type);
 
+  /* Surface and lattice objects don't output geometry sets. */
+  if (mti->modifyGeometrySet != NULL && ELEM(ob->type, OB_SURF, OB_LATTICE)) {
+    return false;
+  }
+
   /* Only geometry objects should be able to get modifiers T25291. */
   if (ob->type == OB_HAIR) {
     return (mti->modifyHair != NULL) || (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly);

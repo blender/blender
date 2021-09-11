@@ -99,7 +99,7 @@ void BKE_displist_make_mball_forRender(struct Depsgraph *depsgraph,
                                        struct Object *ob,
                                        struct ListBase *dispbase);
 
-bool BKE_curve_calc_modifiers_pre(struct Depsgraph *depsgraph,
+void BKE_curve_calc_modifiers_pre(struct Depsgraph *depsgraph,
                                   const struct Scene *scene,
                                   struct Object *ob,
                                   struct ListBase *source_nurb,

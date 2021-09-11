@@ -98,7 +98,7 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
   object->runtime = runtime;
   object->runtime.data_orig = data_orig;
   object->runtime.bb = bb;
-  if (ELEM(object->type, OB_MESH, OB_LATTICE) && data_eval != nullptr) {
+  if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_CURVE, OB_FONT) && data_eval != nullptr) {
     if (object->id.recalc & ID_RECALC_GEOMETRY) {
       /* If geometry is tagged for update it means, that part of
        * evaluated mesh are not valid anymore. In this case we can not
@@ -112,9 +112,11 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
       BKE_object_free_derived_caches(object);
     }
     else {
-      /* Do same thing as object update: override actual object data
-       * pointer with evaluated datablock. */
-      object->data = data_eval;
+      /* Do same thing as object update: override actual object data pointer with evaluated
+       * datablock, but only if the evaluated data has the same type as the original data. */
+      if (GS(((ID *)object->data)->name) == GS(data_eval->name)) {
+        object->data = data_eval;
+      }
 
       /* Evaluated mesh simply copied edit_mesh pointer from
        * original mesh during update, need to make sure no dead

@@ -94,7 +94,7 @@ void AbcCurveReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
 {
   Curve *cu = BKE_curve_add(bmain, m_data_name.c_str(), OB_CURVE);
 
-  cu->flag |= CU_DEFORM_FILL | CU_3D;
+  cu->flag |= CU_3D;
   cu->actvert = CU_ACT_NONE;
   cu->resolu = 1;
 

@@ -51,16 +51,6 @@ static void add_final_mesh_as_geometry_component(const Object &object, GeometryS
   }
 }
 
-static void add_curve_data_as_geometry_component(const Object &object, GeometrySet &geometry_set)
-{
-  BLI_assert(object.type == OB_CURVE);
-  if (object.data != nullptr) {
-    std::unique_ptr<CurveEval> curve = curve_eval_from_dna_curve(*(const Curve *)object.data);
-    CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-    curve_component.replace(curve.release(), GeometryOwnershipType::Owned);
-  }
-}
-
 /**
  * \note This doesn't extract instances from the "dupli" system for non-geometry-nodes instances.
  */
@@ -83,9 +73,6 @@ static GeometrySet object_get_geometry_set_for_read(const Object &object)
   GeometrySet geometry_set;
   if (object.type == OB_MESH) {
     add_final_mesh_as_geometry_component(object, geometry_set);
-  }
-  else if (object.type == OB_CURVE) {
-    add_curve_data_as_geometry_component(object, geometry_set);
   }
 
   /* TODO: Cover the case of point-clouds without modifiers-- they may not be covered by the

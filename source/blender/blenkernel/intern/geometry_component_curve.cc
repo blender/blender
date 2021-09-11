@@ -64,6 +64,8 @@ void CurveComponent::clear()
       delete curve_;
     }
     if (curve_for_render_ != nullptr) {
+      /* The curve created by this component should not have any edit mode data. */
+      BLI_assert(curve_for_render_->editfont == nullptr && curve_for_render_->editnurb == nullptr);
       BKE_id_free(nullptr, curve_for_render_);
       curve_for_render_ = nullptr;
     }
