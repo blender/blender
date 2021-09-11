@@ -10091,6 +10091,12 @@ static void def_geo_curve_resample(StructRNA *srna)
   PropertyRNA *prop;
 
   static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_CURVE_SAMPLE_EVALUATED,
+       "EVALUATED",
+       0,
+       "Evaluated",
+       "Output the input spline's evaluated points, based on the resolution attribute for NURBS "
+       "and Bezier splines. Poly splines are unchanged"},
       {GEO_NODE_CURVE_SAMPLE_COUNT,
        "COUNT",
        0,
