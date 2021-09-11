@@ -1786,7 +1786,8 @@ static bool constraint_copy_to_selected_poll(bContext *C)
 
   if (pchan) {
     bool found = false;
-    CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, chan, selected_pose_bones, Object *, UNUSED(ob)) {
+    CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, chan, selected_pose_bones, Object *, ob) {
+      UNUSED_VARS(ob);
       if (pchan != chan) {
         /** NOTE: Can not return here, because CTX_DATA_BEGIN_WITH_ID allocated
          * a list that needs to be freed by CTX_DATA_END. */
