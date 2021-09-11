@@ -104,17 +104,6 @@ DispList *BKE_displist_find(ListBase *lb, int type)
   return nullptr;
 }
 
-bool BKE_displist_has_faces(const ListBase *lb)
-{
-  LISTBASE_FOREACH (const DispList *, dl, lb) {
-    if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 void BKE_displist_copy(ListBase *lbn, const ListBase *lb)
 {
   BKE_displist_free(lbn);
@@ -691,21 +680,7 @@ void BKE_displist_make_mball(Depsgraph *depsgraph, Scene *scene, Object *ob)
     BKE_mball_texspace_calc(ob);
 
     object_deform_mball(ob, &ob->runtime.curve_cache->disp);
-
-    /* No-op for MBALLs anyway... */
-    boundbox_displist_object(ob);
   }
-}
-
-void BKE_displist_make_mball_forRender(Depsgraph *depsgraph,
-                                       Scene *scene,
-                                       Object *ob,
-                                       ListBase *dispbase)
-{
-  BKE_mball_polygonize(depsgraph, scene, ob, dispbase);
-  BKE_mball_texspace_calc(ob);
-
-  object_deform_mball(ob, dispbase);
 }
 
 static ModifierData *curve_get_tessellate_point(const Scene *scene,
@@ -1606,27 +1581,26 @@ void BKE_displist_minmax(const ListBase *dispbase, float min[3], float max[3])
 /* this is confusing, there's also min_max_object, applying the obmat... */
 static void boundbox_displist_object(Object *ob)
 {
-  if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-    /* Curve's BB is already calculated as a part of modifier stack,
-     * here we only calculate object BB based on final display list. */
+  BLI_assert(ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT));
+  /* Curve's BB is already calculated as a part of modifier stack,
+   * here we only calculate object BB based on final display list. */
 
-    /* object's BB is calculated from final displist */
-    if (ob->runtime.bb == nullptr) {
-      ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), __func__);
-    }
+  /* object's BB is calculated from final displist */
+  if (ob->runtime.bb == nullptr) {
+    ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), __func__);
+  }
 
-    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
-    if (mesh_eval) {
-      BKE_object_boundbox_calc_from_mesh(ob, mesh_eval);
-    }
-    else {
-      float min[3], max[3];
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  if (mesh_eval) {
+    BKE_object_boundbox_calc_from_mesh(ob, mesh_eval);
+  }
+  else {
+    float min[3], max[3];
 
-      INIT_MINMAX(min, max);
-      BKE_displist_minmax(&ob->runtime.curve_cache->disp, min, max);
-      BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
+    INIT_MINMAX(min, max);
+    BKE_displist_minmax(&ob->runtime.curve_cache->disp, min, max);
+    BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
 
-      ob->runtime.bb->flag &= ~BOUNDBOX_DIRTY;
-    }
+    ob->runtime.bb->flag &= ~BOUNDBOX_DIRTY;
   }
 }
