@@ -37,7 +37,7 @@
  *    use is to compose multiple existing fields into new fields.
  *
  * When fields are evaluated, they are converted into a multi-function procedure which allows
- * efficient compution. In the future, we might support different field evaluation mechanisms for
+ * efficient computation. In the future, we might support different field evaluation mechanisms for
  * e.g. the following scenarios:
  *  - Latency of a single evaluation is more important than throughput.
  *  - Evaluation should happen on other hardware like GPUs.

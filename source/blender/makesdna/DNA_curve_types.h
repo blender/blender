@@ -303,7 +303,7 @@ typedef struct Curve {
 
   /**
    * A pointer to curve data from evaluation. Owned by the object's #geometry_set_eval, either as a
-   * geometry instance or the data of the evalauted #CurveComponent. The curve may also contain
+   * geometry instance or the data of the evaluated #CurveComponent. The curve may also contain
    * data in the #nurb list, but for evaluated curves this is the proper place to retrieve data,
    * since it also contains the result of geometry nodes evaluation, and isn't just a copy of the
    * original object data.

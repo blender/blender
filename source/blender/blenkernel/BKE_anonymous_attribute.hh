@@ -120,7 +120,7 @@ template<bool IsStrongReference> class OwnedAnonymousAttributeID {
     return BKE_anonymous_attribute_id_has_strong_references(data_);
   }
 
-  /** Extract the onwership of the currently wrapped anonymous id. */
+  /** Extract the ownership of the currently wrapped anonymous id. */
   const AnonymousAttributeID *extract()
   {
     const AnonymousAttributeID *extracted_data = data_;

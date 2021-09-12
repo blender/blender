@@ -479,7 +479,7 @@ GHOST_TXrGraphicsBinding GHOST_XrContext::determineGraphicsBindingTypeToUse(
   /* Return the first working type. */
   for (GHOST_TXrGraphicsBinding type : enabled_types) {
 #ifdef WIN32
-    /* The SteamVR OpenGL backend currently fails for NVIDIA gpus. Disable it and allow falling
+    /* The SteamVR OpenGL backend currently fails for NVIDIA GPU's. Disable it and allow falling
      * back to the DirectX one. */
     if ((m_runtime_id == OPENXR_RUNTIME_STEAMVR) && (type == GHOST_kXrGraphicsOpenGL) &&
         ((create_info->context_flag & GHOST_kXrContextGpuNVIDIA) != 0)) {
