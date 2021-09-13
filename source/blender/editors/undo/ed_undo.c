@@ -578,8 +578,8 @@ static bool ed_undo_is_init_poll(bContext *C)
      * it will be part of the exception when attempting to call undo in background mode. */
     CTX_wm_operator_poll_msg_set(
         C,
-        "Undo disabled at startup in background-mode. "
-        "Call `ed.undo_push()` to explicitly initialize the undo-system.");
+        "Undo disabled at startup in background-mode "
+        "(call `ed.undo_push()` to explicitly initialize the undo-system)");
     return false;
   }
   return true;

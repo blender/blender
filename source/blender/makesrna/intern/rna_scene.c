@@ -2845,7 +2845,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
        "IMAGE",
        ICON_IMAGE_DATA,
        "Image",
-       "Strick stroke to the image"},
+       "Stick stroke to the image"},
       /* Weird, GP_PROJECT_VIEWALIGN is inverted. */
       {0, "VIEW", ICON_RESTRICT_VIEW_ON, "View", "Stick stroke to the view"},
       {0, NULL, 0, NULL, NULL},
