@@ -54,7 +54,8 @@ GPUShader *GPU_shader_create_from_python(const char *vertcode,
                                          const char *fragcode,
                                          const char *geomcode,
                                          const char *libcode,
-                                         const char *defines);
+                                         const char *defines,
+                                         const char *name);
 GPUShader *GPU_shader_create_ex(const char *vertcode,
                                 const char *fragcode,
                                 const char *geomcode,
@@ -84,6 +85,8 @@ void GPU_shader_free(GPUShader *shader);
 
 void GPU_shader_bind(GPUShader *shader);
 void GPU_shader_unbind(void);
+
+const char *GPU_shader_get_name(GPUShader *shader);
 
 /* Returns true if transform feedback was successfully enabled. */
 bool GPU_shader_transform_feedback_enable(GPUShader *shader, struct GPUVertBuf *vertbuf);
