@@ -377,7 +377,8 @@ void register_node_type_geo_curve_subdivide()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_LEGACY_CURVE_SUBDIVIDE, "Curve Subdivide", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_LEGACY_CURVE_SUBDIVIDE, "Curve Subdivide", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_curve_subdivide_declare;
   ntype.draw_buttons = blender::nodes::geo_node_curve_subdivide_layout;
   node_type_storage(&ntype,

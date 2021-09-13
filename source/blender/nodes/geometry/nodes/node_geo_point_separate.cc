@@ -164,7 +164,8 @@ void register_node_type_geo_point_separate()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_LEGACY_POINT_SEPARATE, "Point Separate", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_LEGACY_POINT_SEPARATE, "Point Separate", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_point_instance_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_point_separate_exec;
   ntype.geometry_node_execute_supports_laziness = true;

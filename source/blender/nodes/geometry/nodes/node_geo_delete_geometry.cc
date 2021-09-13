@@ -668,7 +668,8 @@ void register_node_type_geo_delete_geometry()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_LEGACY_DELETE_GEOMETRY, "Delete Geometry", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_LEGACY_DELETE_GEOMETRY, "Delete Geometry", NODE_CLASS_GEOMETRY, 0);
 
   ntype.declare = blender::nodes::geo_node_delete_geometry_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_delete_geometry_exec;

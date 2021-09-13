@@ -413,7 +413,7 @@ void LightManager::device_update_distribution(Device *,
   /* point lights */
   bool use_lamp_mis = false;
   int light_index = 0;
-  
+
   if (num_lights > 0) {
     float lightarea = (totarea > 0.0f) ? totarea / num_lights : 1.0f;
     foreach (Light *light, scene->lights) {

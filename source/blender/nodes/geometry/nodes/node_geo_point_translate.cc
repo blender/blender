@@ -95,7 +95,8 @@ void register_node_type_geo_point_translate()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_LEGACY_POINT_TRANSLATE, "Point Translate", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_LEGACY_POINT_TRANSLATE, "Point Translate", NODE_CLASS_GEOMETRY, 0);
   node_type_init(&ntype, blender::nodes::geo_node_point_translate_init);
   node_type_update(&ntype, blender::nodes::geo_node_point_translate_update);
   node_type_storage(&ntype,

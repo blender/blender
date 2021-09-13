@@ -157,8 +157,11 @@ void register_node_type_geo_attribute_separate_xyz()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_LEGACY_ATTRIBUTE_SEPARATE_XYZ, "Attribute Separate XYZ", NODE_CLASS_ATTRIBUTE, 0);
+  geo_node_type_base(&ntype,
+                     GEO_NODE_LEGACY_ATTRIBUTE_SEPARATE_XYZ,
+                     "Attribute Separate XYZ",
+                     NODE_CLASS_ATTRIBUTE,
+                     0);
   ntype.declare = blender::nodes::geo_node_attribute_separate_xyz_declare;
   node_type_init(&ntype, blender::nodes::geo_node_attribute_separate_xyz_init);
   node_type_update(&ntype, blender::nodes::geo_node_attribute_separate_xyz_update);

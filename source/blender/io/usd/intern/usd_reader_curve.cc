@@ -46,7 +46,7 @@ void USDCurvesReader::create_object(Main *bmain, const double /* motionSampleTim
 {
   curve_ = BKE_curve_add(bmain, name_.c_str(), OB_CURVE);
 
-  curve_->flag |=  CU_3D;
+  curve_->flag |= CU_3D;
   curve_->actvert = CU_ACT_NONE;
   curve_->resolu = 2;
 

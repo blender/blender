@@ -6080,8 +6080,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_filter_files", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_FILTERFILEEXTS);
-  RNA_def_property_ui_text(
-      prop, "Filter Files", "Enable filtering of files in the File Browser");
+  RNA_def_property_ui_text(prop, "Filter Files", "Enable filtering of files in the File Browser");
 
   prop = RNA_def_property(srna, "show_recent_locations", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_HIDE_RECENT);
