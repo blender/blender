@@ -88,6 +88,7 @@ static void mesh_bisect_interactive_calc(bContext *C,
   int y_start = RNA_int_get(op->ptr, "ystart");
   int x_end = RNA_int_get(op->ptr, "xend");
   int y_end = RNA_int_get(op->ptr, "yend");
+  const bool use_flip = RNA_boolean_get(op->ptr, "flip");
 
   /* reference location (some point in front of the view) for finding a point on a plane */
   const float *co_ref = rv3d->ofs;
@@ -105,6 +106,9 @@ static void mesh_bisect_interactive_calc(bContext *C,
   /* cross both to get a normal */
   cross_v3_v3v3(plane_no, co_a, co_b);
   normalize_v3(plane_no); /* not needed but nicer for user */
+  if (use_flip) {
+    negate_v3(plane_no);
+  }
 
   /* point on plane, can use either start or endpoint */
   ED_view3d_win_to_3d(v3d, region, co_ref, co_a_ss, plane_co);
@@ -140,7 +144,18 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  int ret = WM_gesture_straightline_invoke(C, op, event);
+  /* Support flipping if side matters. */
+  int ret;
+  const bool clear_inner = RNA_boolean_get(op->ptr, "clear_inner");
+  const bool clear_outer = RNA_boolean_get(op->ptr, "clear_outer");
+  const bool use_fill = RNA_boolean_get(op->ptr, "use_fill");
+  if ((clear_inner != clear_outer) || use_fill) {
+    ret = WM_gesture_straightline_active_side_invoke(C, op, event);
+  }
+  else {
+    ret = WM_gesture_straightline_invoke(C, op, event);
+  }
+
   if (ret & OPERATOR_RUNNING_MODAL) {
     View3D *v3d = CTX_wm_view3d(C);
 
