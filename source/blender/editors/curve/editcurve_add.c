@@ -515,7 +515,6 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
   bool newob = false;
   bool enter_editmode;
   ushort local_view_bits;
-  float dia;
   float loc[3], rot[3];
   float mat[4][4];
 
@@ -555,9 +554,10 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
     }
   }
 
-  ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
-  dia = RNA_float_get(op->ptr, "radius");
-  mul_mat3_m4_fl(mat, dia);
+  float radius = RNA_float_get(op->ptr, "radius");
+  float scale[3];
+  copy_v3_fl(scale, radius);
+  ED_object_new_primitive_matrix(C, obedit, loc, rot, scale, mat);
 
   nu = ED_curve_add_nurbs_primitive(C, obedit, mat, type, newob);
   editnurb = object_editcurve_get(obedit);
