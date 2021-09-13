@@ -592,7 +592,7 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
     MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(cd_dyn_vert, v2);
     const bool bound2 = mv2->flag & DYNVERT_SMOOTH_BOUNDARY;
 
-    if (bound1 != bound2) {
+    if (bound1 && !bound2) {
       continue;
     }
 
@@ -3440,13 +3440,13 @@ static bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
   return false;
 }
 
-static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
-                                     BMEdge *e,
-                                     BMVert *v1,
-                                     BMVert *v2,
-                                     GHash *deleted_verts,
-                                     BLI_Buffer *deleted_faces,
-                                     EdgeQueueContext *eq_ctx)
+ATTR_NO_OPT static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
+                                                 BMEdge *e,
+                                                 BMVert *v1,
+                                                 BMVert *v2,
+                                                 GHash *deleted_verts,
+                                                 BLI_Buffer *deleted_faces,
+                                                 EdgeQueueContext *eq_ctx)
 {
   BMVert *v_del, *v_conn;
 
@@ -3458,6 +3458,9 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     return;
   }
 
+  pbvh_check_vert_boundary(pbvh, v1);
+  pbvh_check_vert_boundary(pbvh, v2);
+
   const int mupdateflag = DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
   // updateflag |= DYNVERT_NEED_TRIANGULATE;  // to check for non-manifold flaps
 
@@ -3466,16 +3469,28 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   check_vert_fan_are_tris(pbvh, e->v1);
   check_vert_fan_are_tris(pbvh, e->v2);
 
+  MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v1);
+  MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v2);
+
   /* one of the two vertices may be masked, select the correct one for deletion */
-  if (DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v1) <
-      DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v2)) {
+  if (!(mv1->flag & DYNVERT_ALL_CORNER) || DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v1) <
+                                               DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v2)) {
     v_del = v1;
     v_conn = v2;
   }
   else {
     v_del = v2;
     v_conn = v1;
+
+    SWAP(MDynTopoVert *, mv1, mv2);
   }
+
+  if ((mv1->flag & DYNVERT_ALL_CORNER) ||
+      (mv1->flag & DYNVERT_ALL_BOUNDARY) != (mv2->flag & DYNVERT_ALL_BOUNDARY)) {
+    return;
+  }
+
+  bool snap = !(mv2->flag & DYNVERT_ALL_CORNER);
 
 #if 0
   // don't allow non-manifold case of
@@ -3595,79 +3610,81 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   }
 #endif
 
-  // snap customdata
-
-  int ni_conn = BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset);
-  const float v_ws[2] = {0.5f, 0.5f};
-  const void *v_blocks[2] = {v_del->head.data, v_conn->head.data};
-  CustomData_bmesh_interp(&pbvh->bm->vdata, v_blocks, v_ws, NULL, 2, v_conn->head.data);
-  BM_ELEM_CD_SET_INT(v_conn, pbvh->cd_vert_node_offset, ni_conn);
-
   BMLoop *l;
-  BMLoop **ls = NULL;
-  void **blocks = NULL;
-  float *ws = NULL;
-
-  BLI_array_staticdeclare(ls, 64);
-  BLI_array_staticdeclare(blocks, 64);
-  BLI_array_staticdeclare(ws, 64);
-
-  int totl = 0;
-
-  BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
-    MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
-    mv_l->flag |= mupdateflag;
-
-    BLI_array_append(ls, l);
-    totl++;
-  }
-  BM_LOOPS_OF_VERT_ITER_END;
-
-  BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_conn) {
-    MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
-    mv_l->flag |= mupdateflag;
-
-    BLI_array_append(ls, l);
-    totl++;
-  }
-  BM_LOOPS_OF_VERT_ITER_END;
-
-  float w = totl > 0 ? 1.0f / (float)(totl) : 1.0f;
-
-  for (int i = 0; i < totl; i++) {
-    BLI_array_append(blocks, ls[i]->head.data);
-    BLI_array_append(ws, w);
-  }
 
   // snap customdata
-  if (totl > 0) {
-    CustomData_bmesh_interp(
-        &pbvh->bm->ldata, (const void **)blocks, ws, NULL, totl, ls[0]->head.data);
-    //*
+  if (snap) {
+    int ni_conn = BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset);
+    const float v_ws[2] = {0.5f, 0.5f};
+    const void *v_blocks[2] = {v_del->head.data, v_conn->head.data};
+    CustomData_bmesh_interp(&pbvh->bm->vdata, v_blocks, v_ws, NULL, 2, v_conn->head.data);
+    BM_ELEM_CD_SET_INT(v_conn, pbvh->cd_vert_node_offset, ni_conn);
+
+    BMLoop **ls = NULL;
+    void **blocks = NULL;
+    float *ws = NULL;
+
+    BLI_array_staticdeclare(ls, 64);
+    BLI_array_staticdeclare(blocks, 64);
+    BLI_array_staticdeclare(ws, 64);
+
+    int totl = 0;
+
     BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
-      BMLoop *l2 = l->v != v_del ? l->next : l;
+      MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
+      mv_l->flag |= mupdateflag;
 
-      if (l2 == ls[0]) {
-        continue;
-      }
-
-      CustomData_bmesh_copy_data(
-          &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &l2->head.data);
+      BLI_array_append(ls, l);
+      totl++;
     }
     BM_LOOPS_OF_VERT_ITER_END;
 
     BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_conn) {
-      BMLoop *l2 = l->v != v_conn ? l->next : l;
+      MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
+      mv_l->flag |= mupdateflag;
 
-      if (l2 == ls[0]) {
-        continue;
-      }
-
-      CustomData_bmesh_copy_data(
-          &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &l2->head.data);
+      BLI_array_append(ls, l);
+      totl++;
     }
     BM_LOOPS_OF_VERT_ITER_END;
-    //*/
+
+    float w = totl > 0 ? 1.0f / (float)(totl) : 1.0f;
+
+    for (int i = 0; i < totl; i++) {
+      BLI_array_append(blocks, ls[i]->head.data);
+      BLI_array_append(ws, w);
+    }
+
+    // snap customdata
+    if (totl > 0) {
+      CustomData_bmesh_interp(
+          &pbvh->bm->ldata, (const void **)blocks, ws, NULL, totl, ls[0]->head.data);
+      //*
+      BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
+        BMLoop *l2 = l->v != v_del ? l->next : l;
+
+        if (l2 == ls[0]) {
+          continue;
+        }
+
+        CustomData_bmesh_copy_data(
+            &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &l2->head.data);
+      }
+      BM_LOOPS_OF_VERT_ITER_END;
+
+      BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_conn) {
+        BMLoop *l2 = l->v != v_conn ? l->next : l;
+
+        if (l2 == ls[0]) {
+          continue;
+        }
+
+        CustomData_bmesh_copy_data(
+            &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &l2->head.data);
+      }
+      BM_LOOPS_OF_VERT_ITER_END;
+      //*/
+    }
   }
 
   validate_vert_faces(pbvh, pbvh->bm, v_conn, false, true);
@@ -3750,7 +3767,17 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   BM_log_vert_removed(pbvh->bm_log, v_del, pbvh->cd_vert_mask_offset);
 
   BLI_ghash_insert(deleted_verts, (void *)v_del, NULL);
-  BM_edge_collapse(pbvh->bm, e, v_del, true, true);
+
+  if (!snap) {
+    float co[3];
+
+    copy_v3_v3(co, v_conn->co);
+    BM_edge_collapse(pbvh->bm, e, v_del, true, true);
+    copy_v3_v3(v_conn->co, co);
+  }
+  else {
+    BM_edge_collapse(pbvh->bm, e, v_del, true, true);
+  }
 
   for (int i = 0; i < BLI_array_len(delvs); i++) {
     BMVert *v = delvs[i];

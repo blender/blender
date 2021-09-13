@@ -1530,6 +1530,11 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
   BLI_array_free(fsets);
 }
 
+bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, BMVert *v)
+{
+  return pbvh_check_vert_boundary(pbvh, v);
+}
+
 void BKE_pbvh_update_vert_boundary(int cd_dyn_vert,
                                    int cd_faceset_offset,
                                    BMVert *v,
