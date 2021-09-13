@@ -191,16 +191,6 @@ class SEQUENCER_PT_overlay(Panel):
         pass
 
 
-class SEQUENCER_PT_overlay(Panel):
-    bl_space_type = 'SEQUENCE_EDITOR'
-    bl_region_type = 'HEADER'
-    bl_label = "Overlays"
-    bl_ui_units_x = 7
-
-    def draw(self, _context):
-        pass
-
-
 class SEQUENCER_PT_preview_overlay(Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'HEADER'
