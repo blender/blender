@@ -2209,6 +2209,11 @@ enum uiTemplateListFlags {
   UI_TEMPLATE_LIST_SORT_LOCK = (1 << 1),
   /* Don't allow resizing the list, i.e. don't add the grip button. */
   UI_TEMPLATE_LIST_NO_GRIP = (1 << 2),
+  /** Do not show filtering options, not even the button to expand/collapse them. Also hides the
+   * grip button. */
+  UI_TEMPLATE_LIST_NO_FILTER_OPTIONS = (1 << 3),
+  /** For #UILST_LAYOUT_BIG_PREVIEW_GRID, don't reserve space for the name label. */
+  UI_TEMPLATE_LIST_NO_NAMES = (1 << 4),
 
   UI_TEMPLATE_LIST_FLAGS_LAST
 };
@@ -2289,6 +2294,12 @@ int uiTemplateRecentFiles(struct uiLayout *layout, int rows);
 void uiTemplateFileSelectPath(uiLayout *layout,
                               struct bContext *C,
                               struct FileSelectParams *params);
+
+enum {
+  UI_TEMPLATE_ASSET_DRAW_NO_NAMES = (1 << 0),
+  UI_TEMPLATE_ASSET_DRAW_NO_FILTER = (1 << 1),
+  UI_TEMPLATE_ASSET_DRAW_NO_LIBRARY = (1 << 2),
+};
 void uiTemplateAssetView(struct uiLayout *layout,
                          struct bContext *C,
                          const char *list_id,
@@ -2299,6 +2310,7 @@ void uiTemplateAssetView(struct uiLayout *layout,
                          struct PointerRNA *active_dataptr,
                          const char *active_propname,
                          const struct AssetFilterSettings *filter_settings,
+                         const int display_flags,
                          const char *activate_opname,
                          struct PointerRNA *r_activate_op_properties,
                          const char *drag_opname,
