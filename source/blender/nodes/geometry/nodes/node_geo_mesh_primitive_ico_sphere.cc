@@ -44,7 +44,7 @@ static Mesh *create_ico_sphere_mesh(const int subdivisions, const float radius)
 
   BMO_op_callf(bm,
                BMO_FLAG_DEFAULTS,
-               "create_icosphere subdivisions=%i diameter=%f matrix=%m4 calc_uvs=%b",
+               "create_icosphere subdivisions=%i radius=%f matrix=%m4 calc_uvs=%b",
                subdivisions,
                std::abs(radius),
                transform.values,
