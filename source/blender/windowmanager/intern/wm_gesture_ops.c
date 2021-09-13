@@ -992,6 +992,7 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 
         if (gesture->use_snap) {
           wm_gesture_straightline_do_angle_snap(rect);
+          gesture_straightline_apply(C, op);
         }
 
         wm_gesture_tag_redraw(win);
