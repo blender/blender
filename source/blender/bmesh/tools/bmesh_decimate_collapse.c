@@ -1038,8 +1038,8 @@ static bool bm_edge_collapse(BMesh *bm,
 
     e_a_other[1]->head.hflag |= e_a_other[0]->head.hflag;
     e_b_other[1]->head.hflag |= e_b_other[0]->head.hflag;
-    BM_edge_splice(bm, e_a_other[1], e_a_other[0]);
-    BM_edge_splice(bm, e_b_other[1], e_b_other[0]);
+    BM_edge_splice(bm, e_a_other[1], e_a_other[0], false);
+    BM_edge_splice(bm, e_b_other[1], e_b_other[0], false);
 
 #ifdef USE_SYMMETRY
     /* update mirror map */
@@ -1098,7 +1098,7 @@ static bool bm_edge_collapse(BMesh *bm,
     BM_vert_splice(bm, v_other, v_clear);
 
     e_a_other[1]->head.hflag |= e_a_other[0]->head.hflag;
-    BM_edge_splice(bm, e_a_other[1], e_a_other[0]);
+    BM_edge_splice(bm, e_a_other[1], e_a_other[0], false);
 
 #ifdef USE_SYMMETRY
     /* update mirror map */

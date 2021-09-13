@@ -2044,7 +2044,7 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
     if (check_edge_exists) {
       if (e_splice) {
         /* removes e_splice */
-        BM_edge_splice(bm, e_old, e_splice);
+        BM_edge_splice(bm, e_old, e_splice, false);
       }
     }
 
@@ -2096,7 +2096,8 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
                                          BMVert *v_kill,
                                          const bool do_del,
                                          const bool check_edge_exists,
-                                         const bool kill_degenerate_faces)
+                                         const bool kill_degenerate_faces,
+                                         const bool combine_flags)
 {
   BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
   BMVert *v_target = BM_edge_other_vert(e_kill, v_kill);
@@ -2153,7 +2154,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
 
       if (check_edge_exists) {
         if (e_target) {
-          BM_edge_splice(bm, e_target, e);
+          BM_edge_splice(bm, e_target, e, combine_flags);
         }
       }
     }
@@ -2573,7 +2574,8 @@ static void bmesh_kernel_vert_separate__cleanup(BMesh *bm, LinkNode *edges_separ
       do {
         BMEdge *e = n_step->link;
         BLI_assert(e != e_orig);
-        if ((e->v1 == e_orig->v1) && (e->v2 == e_orig->v2) && BM_edge_splice(bm, e_orig, e)) {
+        if ((e->v1 == e_orig->v1) && (e->v2 == e_orig->v2) &&
+            BM_edge_splice(bm, e_orig, e, false)) {
           /* don't visit again */
           n_prev->next = n_step->next;
         }
@@ -2700,7 +2702,7 @@ void BM_vert_separate_tested_edges(BMesh *UNUSED(bm),
  *
  * \note Edges must already have the same vertices.
  */
-bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src)
+bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src, bool combine_flags)
 {
   BMLoop *l;
 
@@ -2726,6 +2728,18 @@ bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src)
 
   BM_CHECK_ELEMENT(e_src);
   BM_CHECK_ELEMENT(e_dst);
+
+  if (combine_flags) {
+    /* sharp flag is inverted to BM_ELEM_SMOOTH,  which we
+       must take into account*/
+
+    if (!(e_dst->head.hflag & BM_ELEM_SMOOTH) || !(e_src->head.hflag & BM_ELEM_SMOOTH)) {
+      e_dst->head.hflag = (e_dst->head.hflag | e_src->head.hflag) & ~BM_ELEM_SMOOTH;
+    }
+    else {
+      e_dst->head.hflag |= e_src->head.hflag;
+    }
+  }
 
   /* removes from disks too */
   BM_edge_kill(bm, e_src);

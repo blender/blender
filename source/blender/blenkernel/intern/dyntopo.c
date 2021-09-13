@@ -3440,13 +3440,13 @@ static bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
   return false;
 }
 
-ATTR_NO_OPT static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
-                                                 BMEdge *e,
-                                                 BMVert *v1,
-                                                 BMVert *v2,
-                                                 GHash *deleted_verts,
-                                                 BLI_Buffer *deleted_faces,
-                                                 EdgeQueueContext *eq_ctx)
+static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
+                                     BMEdge *e,
+                                     BMVert *v1,
+                                     BMVert *v2,
+                                     GHash *deleted_verts,
+                                     BLI_Buffer *deleted_faces,
+                                     EdgeQueueContext *eq_ctx)
 {
   BMVert *v_del, *v_conn;
 
@@ -3487,6 +3487,15 @@ ATTR_NO_OPT static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   if ((mv1->flag & DYNVERT_ALL_CORNER) ||
       (mv1->flag & DYNVERT_ALL_BOUNDARY) != (mv2->flag & DYNVERT_ALL_BOUNDARY)) {
+    return;
+  }
+
+  /*have to check edge flags directly, vertex flag test above isn't specific enough and
+    can sometimes let bad edges through*/
+  if ((mv1->flag & DYNVERT_SHARP_BOUNDARY) && (e->head.hflag & BM_ELEM_SMOOTH)) {
+    return;
+  }
+  if ((mv1->flag & DYNVERT_SEAM_BOUNDARY) && !(e->head.hflag & BM_ELEM_SEAM)) {
     return;
   }
 
@@ -3730,6 +3739,7 @@ ATTR_NO_OPT static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   const int tag = BM_ELEM_TAG_ALT;
 
   // log edges around v_conn as removed
+#if 0
   BMEdge *e2 = v_conn->e;
   do {
     e2->head.hflag &= ~tag;
@@ -3738,28 +3748,35 @@ ATTR_NO_OPT static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       // BM_log_edge_removed(pbvh->bm_log, e2);
     }
   } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_conn)) != v_conn->e);
+#endif
+  BMEdge *e2;
 
-  e2 = v_del->e;
-  // remove faces and log edges around v_del from pbvh
-  do {
-    BMLoop *l = e2->l;
+  for (int step = 0; step < 2; step++) {
+    BMVert *v_step = step ? v_del : v_conn;
 
-    e2->head.hflag |= tag;
+    e2 = v_step->e;
 
-    if (e2 != e) {
-      BM_log_edge_removed(pbvh->bm_log, e2);
-    }
-
-    if (!l) {
-      continue;  // edge will be killed later
-    }
-
+    // remove faces and log edges around v_del from pbvh
     do {
-      if (BM_ELEM_CD_GET_INT(l->f, pbvh->cd_face_node_offset) != DYNTOPO_NODE_NONE) {
-        pbvh_bmesh_face_remove(pbvh, l->f, true, false, false);
+      BMLoop *l = e2->l;
+
+      e2->head.hflag |= tag;
+
+      if (e2 != e) {
+        BM_log_edge_removed(pbvh->bm_log, e2);
       }
-    } while ((l = l->radial_next) != e2->l);
-  } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_del)) != v_del->e);
+
+      if (!l) {
+        continue;  // edge will be killed later
+      }
+
+      do {
+        if (BM_ELEM_CD_GET_INT(l->f, pbvh->cd_face_node_offset) != DYNTOPO_NODE_NONE) {
+          pbvh_bmesh_face_remove(pbvh, l->f, true, false, false);
+        }
+      } while ((l = l->radial_next) != e2->l);
+    } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_step)) != v_step->e);
+  }
 
   pbvh_bmesh_vert_remove(pbvh, v_del);
 
@@ -3772,11 +3789,11 @@ ATTR_NO_OPT static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     float co[3];
 
     copy_v3_v3(co, v_conn->co);
-    BM_edge_collapse(pbvh->bm, e, v_del, true, true);
+    BM_edge_collapse(pbvh->bm, e, v_del, true, true, true);
     copy_v3_v3(v_conn->co, co);
   }
   else {
-    BM_edge_collapse(pbvh->bm, e, v_del, true, true);
+    BM_edge_collapse(pbvh->bm, e, v_del, true, true, true);
   }
 
   for (int i = 0; i < BLI_array_len(delvs); i++) {

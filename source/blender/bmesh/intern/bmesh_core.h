@@ -62,7 +62,7 @@ void BM_face_kill(BMesh *bm, BMFace *f);
 void BM_edge_kill(BMesh *bm, BMEdge *e);
 void BM_vert_kill(BMesh *bm, BMVert *v);
 
-bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src);
+bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src, bool combine_flags);
 bool BM_vert_splice(BMesh *bm, BMVert *v_dst, BMVert *v_src);
 bool BM_vert_splice_check_double(BMVert *v_a, BMVert *v_b);
 
@@ -123,7 +123,8 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
                                          BMVert *v_kill,
                                          const bool do_del,
                                          const bool check_edge_exists,
-                                         const bool kill_degenerate_faces);
+                                         const bool kill_degenerate_faces,
+                                         const bool combine_flags);
 BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e);
 
 BMVert *bmesh_kernel_unglue_region_make_vert(BMesh *bm, BMLoop *l_sep);

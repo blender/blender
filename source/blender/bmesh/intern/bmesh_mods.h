@@ -64,7 +64,8 @@ BMVert *BM_edge_collapse(BMesh *bm,
                          BMEdge *e_kill,
                          BMVert *v_kill,
                          const bool do_del,
-                         const bool kill_degenerate_faces);
+                         const bool kill_degenerate_faces,
+                         const bool combine_flags);
 
 BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac);
 
