@@ -62,7 +62,8 @@ void AlphaOverPremultiplyOperation::update_memory_buffer_row(PixelCursor &p)
     const float *over_color = p.color2;
     const float value = *p.value;
 
-    if (over_color[3] <= 0.0f) {
+    /* Zero alpha values should still permit an add of RGB data. */
+    if (over_color[3] < 0.0f) {
       copy_v4_v4(p.out, color1);
     }
     else if (value == 1.0f && over_color[3] >= 1.0f) {
