@@ -41,7 +41,7 @@ class CUDADeviceGraphicsInterop : public DeviceGraphicsInterop {
   CUDADeviceGraphicsInterop &operator=(const CUDADeviceGraphicsInterop &other) = delete;
   CUDADeviceGraphicsInterop &operator=(CUDADeviceGraphicsInterop &&other) = delete;
 
-  virtual void set_destination(const DeviceGraphicsInteropDestination &destination) override;
+  virtual void set_display_interop(const DisplayDriver::GraphicsInterop &display_interop) override;
 
   virtual device_ptr map() override;
   virtual void unmap() override;

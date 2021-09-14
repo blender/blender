@@ -22,12 +22,14 @@
 
 #include "RNA_blender_cpp.h"
 
-#include "render/gpu_display.h"
+#include "render/display_driver.h"
+
+#include "util/util_thread.h"
 #include "util/util_unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
-/* Base class of shader used for GPU display rendering. */
+/* Base class of shader used for display driver rendering. */
 class BlenderDisplayShader {
  public:
   static constexpr const char *position_attribute_name = "pos";
@@ -96,11 +98,11 @@ class BlenderDisplaySpaceShader : public BlenderDisplayShader {
   uint shader_program_ = 0;
 };
 
-/* GPU display implementation which is specific for Blender viewport integration. */
-class BlenderGPUDisplay : public GPUDisplay {
+/* Display driver implementation which is specific for Blender viewport integration. */
+class BlenderDisplayDriver : public DisplayDriver {
  public:
-  BlenderGPUDisplay(BL::RenderEngine &b_engine, BL::Scene &b_scene);
-  ~BlenderGPUDisplay();
+  BlenderDisplayDriver(BL::RenderEngine &b_engine, BL::Scene &b_scene);
+  ~BlenderDisplayDriver();
 
   virtual void graphics_interop_activate() override;
   virtual void graphics_interop_deactivate() override;
@@ -110,22 +112,15 @@ class BlenderGPUDisplay : public GPUDisplay {
   void set_zoom(float zoom_x, float zoom_y);
 
  protected:
-  virtual bool do_update_begin(const GPUDisplayParams &params,
-                               int texture_width,
-                               int texture_height) override;
-  virtual void do_update_end() override;
+  virtual bool update_begin(const Params &params, int texture_width, int texture_height) override;
+  virtual void update_end() override;
 
-  virtual void do_copy_pixels_to_texture(const half4 *rgba_pixels,
-                                         int texture_x,
-                                         int texture_y,
-                                         int pixels_width,
-                                         int pixels_height) override;
-  virtual void do_draw(const GPUDisplayParams &params) override;
+  virtual half4 *map_texture_buffer() override;
+  virtual void unmap_texture_buffer() override;
 
-  virtual half4 *do_map_texture_buffer() override;
-  virtual void do_unmap_texture_buffer() override;
+  virtual GraphicsInterop graphics_interop_get() override;
 
-  virtual DeviceGraphicsInteropDestination do_graphics_interop_get() override;
+  virtual void draw(const Params &params) override;
 
   /* Helper function which allocates new GPU context. */
   void gl_context_create();
@@ -152,13 +147,13 @@ class BlenderGPUDisplay : public GPUDisplay {
    * This buffer is used to render texture in the viewport.
    *
    * NOTE: The buffer needs to be bound. */
-  void vertex_buffer_update(const GPUDisplayParams &params);
+  void vertex_buffer_update(const Params &params);
 
   BL::RenderEngine b_engine_;
 
   /* OpenGL context which is used the render engine doesn't have its own. */
   void *gl_context_ = nullptr;
-  /* The when Blender RenderEngine side context is not available and the GPUDisplay is to create
+  /* The when Blender RenderEngine side context is not available and the DisplayDriver is to create
    * its own context. */
   bool use_gl_context_ = false;
   /* Mutex used to guard the `gl_context_`. */

@@ -16,24 +16,11 @@
 
 #pragma once
 
+#include "render/display_driver.h"
+
 #include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
-
-/* Information about interoperability destination.
- * Is provided by the GPUDisplay. */
-class DeviceGraphicsInteropDestination {
- public:
-  /* Dimensions of the buffer, in pixels. */
-  int buffer_width = 0;
-  int buffer_height = 0;
-
-  /* OpenGL pixel buffer object. */
-  int opengl_pbo_id = 0;
-
-  /* Clear the entire destination before doing partial write to it. */
-  bool need_clear = false;
-};
 
 /* Device-side graphics interoperability support.
  *
@@ -46,7 +33,7 @@ class DeviceGraphicsInterop {
 
   /* Update this device-side graphics interoperability object with the given destination resource
    * information. */
-  virtual void set_destination(const DeviceGraphicsInteropDestination &destination) = 0;
+  virtual void set_display_interop(const DisplayDriver::GraphicsInterop &display_interop) = 0;
 
   virtual device_ptr map() = 0;
   virtual void unmap() = 0;

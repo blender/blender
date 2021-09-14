@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "blender/blender_gpu_display.h"
+#include "blender/blender_display_driver.h"
 
 #include "device/device.h"
 #include "util/util_logging.h"
@@ -273,17 +273,17 @@ uint BlenderDisplaySpaceShader::get_shader_program()
 }
 
 /* --------------------------------------------------------------------
- * BlenderGPUDisplay.
+ * BlenderDisplayDriver.
  */
 
-BlenderGPUDisplay::BlenderGPUDisplay(BL::RenderEngine &b_engine, BL::Scene &b_scene)
+BlenderDisplayDriver::BlenderDisplayDriver(BL::RenderEngine &b_engine, BL::Scene &b_scene)
     : b_engine_(b_engine), display_shader_(BlenderDisplayShader::create(b_engine, b_scene))
 {
   /* Create context while on the main thread. */
   gl_context_create();
 }
 
-BlenderGPUDisplay::~BlenderGPUDisplay()
+BlenderDisplayDriver::~BlenderDisplayDriver()
 {
   gl_resources_destroy();
 }
@@ -292,19 +292,18 @@ BlenderGPUDisplay::~BlenderGPUDisplay()
  * Update procedure.
  */
 
-bool BlenderGPUDisplay::do_update_begin(const GPUDisplayParams &params,
+bool BlenderDisplayDriver::update_begin(const Params &params,
                                         int texture_width,
                                         int texture_height)
 {
-  /* Note that it's the responsibility of BlenderGPUDisplay to ensure updating and drawing
+  /* Note that it's the responsibility of BlenderDisplayDriver to ensure updating and drawing
    * the texture does not happen at the same time. This is achieved indirectly.
    *
    * When enabling the OpenGL context, it uses an internal mutex lock DST.gl_context_lock.
    * This same lock is also held when do_draw() is called, which together ensure mutual
    * exclusion.
    *
-   * This locking is not performed at the GPU display level, because that would cause lock
-   * inversion. */
+   * This locking is not performed on the Cycles side, because that would cause lock inversion. */
   if (!gl_context_enable()) {
     return false;
   }
@@ -361,7 +360,7 @@ bool BlenderGPUDisplay::do_update_begin(const GPUDisplayParams &params,
   return true;
 }
 
-void BlenderGPUDisplay::do_update_end()
+void BlenderDisplayDriver::update_end()
 {
   gl_upload_sync_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
   glFlush();
@@ -370,53 +369,17 @@ void BlenderGPUDisplay::do_update_end()
 }
 
 /* --------------------------------------------------------------------
- * Texture update from CPU buffer.
- */
-
-void BlenderGPUDisplay::do_copy_pixels_to_texture(
-    const half4 *rgba_pixels, int texture_x, int texture_y, int pixels_width, int pixels_height)
-{
-  /* This call copies pixels to a Pixel Buffer Object (PBO) which is much cheaper from CPU time
-   * point of view than to copy data directly to the OpenGL texture.
-   *
-   * The possible downside of this approach is that it might require a higher peak memory when
-   * doing partial updates of the texture (although, in practice even partial updates might peak
-   * with a full-frame buffer stored on the CPU if the GPU is currently occupied). */
-
-  half4 *mapped_rgba_pixels = map_texture_buffer();
-  if (!mapped_rgba_pixels) {
-    return;
-  }
-
-  if (texture_x == 0 && texture_y == 0 && pixels_width == texture_.width &&
-      pixels_height == texture_.height) {
-    const size_t size_in_bytes = sizeof(half4) * texture_.width * texture_.height;
-    memcpy(mapped_rgba_pixels, rgba_pixels, size_in_bytes);
-  }
-  else {
-    const half4 *rgba_row = rgba_pixels;
-    half4 *mapped_rgba_row = mapped_rgba_pixels + texture_y * texture_.width + texture_x;
-    for (int y = 0; y < pixels_height;
-         ++y, rgba_row += pixels_width, mapped_rgba_row += texture_.width) {
-      memcpy(mapped_rgba_row, rgba_row, sizeof(half4) * pixels_width);
-    }
-  }
-
-  unmap_texture_buffer();
-}
-
-/* --------------------------------------------------------------------
  * Texture buffer mapping.
  */
 
-half4 *BlenderGPUDisplay::do_map_texture_buffer()
+half4 *BlenderDisplayDriver::map_texture_buffer()
 {
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture_.gl_pbo_id);
 
   half4 *mapped_rgba_pixels = reinterpret_cast<half4 *>(
       glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY));
   if (!mapped_rgba_pixels) {
-    LOG(ERROR) << "Error mapping BlenderGPUDisplay pixel buffer object.";
+    LOG(ERROR) << "Error mapping BlenderDisplayDriver pixel buffer object.";
   }
 
   if (texture_.need_clear) {
@@ -431,7 +394,7 @@ half4 *BlenderGPUDisplay::do_map_texture_buffer()
   return mapped_rgba_pixels;
 }
 
-void BlenderGPUDisplay::do_unmap_texture_buffer()
+void BlenderDisplayDriver::unmap_texture_buffer()
 {
   glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 
@@ -442,9 +405,9 @@ void BlenderGPUDisplay::do_unmap_texture_buffer()
  * Graphics interoperability.
  */
 
-DeviceGraphicsInteropDestination BlenderGPUDisplay::do_graphics_interop_get()
+BlenderDisplayDriver::GraphicsInterop BlenderDisplayDriver::graphics_interop_get()
 {
-  DeviceGraphicsInteropDestination interop_dst;
+  GraphicsInterop interop_dst;
 
   interop_dst.buffer_width = texture_.buffer_width;
   interop_dst.buffer_height = texture_.buffer_height;
@@ -456,12 +419,12 @@ DeviceGraphicsInteropDestination BlenderGPUDisplay::do_graphics_interop_get()
   return interop_dst;
 }
 
-void BlenderGPUDisplay::graphics_interop_activate()
+void BlenderDisplayDriver::graphics_interop_activate()
 {
   gl_context_enable();
 }
 
-void BlenderGPUDisplay::graphics_interop_deactivate()
+void BlenderDisplayDriver::graphics_interop_deactivate()
 {
   gl_context_disable();
 }
@@ -470,17 +433,17 @@ void BlenderGPUDisplay::graphics_interop_deactivate()
  * Drawing.
  */
 
-void BlenderGPUDisplay::clear()
+void BlenderDisplayDriver::clear()
 {
   texture_.need_clear = true;
 }
 
-void BlenderGPUDisplay::set_zoom(float zoom_x, float zoom_y)
+void BlenderDisplayDriver::set_zoom(float zoom_x, float zoom_y)
 {
   zoom_ = make_float2(zoom_x, zoom_y);
 }
 
-void BlenderGPUDisplay::do_draw(const GPUDisplayParams &params)
+void BlenderDisplayDriver::draw(const Params &params)
 {
   /* See do_update_begin() for why no locking is required here. */
   const bool transparent = true;  // TODO(sergey): Derive this from Film.
@@ -584,7 +547,7 @@ void BlenderGPUDisplay::do_draw(const GPUDisplayParams &params)
   }
 }
 
-void BlenderGPUDisplay::gl_context_create()
+void BlenderDisplayDriver::gl_context_create()
 {
   /* When rendering in viewport there is no render context available via engine.
    * Check whether own context is to be created here.
@@ -613,7 +576,7 @@ void BlenderGPUDisplay::gl_context_create()
   }
 }
 
-bool BlenderGPUDisplay::gl_context_enable()
+bool BlenderDisplayDriver::gl_context_enable()
 {
   if (use_gl_context_) {
     if (!gl_context_) {
@@ -628,7 +591,7 @@ bool BlenderGPUDisplay::gl_context_enable()
   return true;
 }
 
-void BlenderGPUDisplay::gl_context_disable()
+void BlenderDisplayDriver::gl_context_disable()
 {
   if (use_gl_context_) {
     if (gl_context_) {
@@ -641,7 +604,7 @@ void BlenderGPUDisplay::gl_context_disable()
   RE_engine_render_context_disable(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
 }
 
-void BlenderGPUDisplay::gl_context_dispose()
+void BlenderDisplayDriver::gl_context_dispose()
 {
   if (gl_context_) {
     const bool drw_state = DRW_opengl_context_release();
@@ -653,7 +616,7 @@ void BlenderGPUDisplay::gl_context_dispose()
   }
 }
 
-bool BlenderGPUDisplay::gl_draw_resources_ensure()
+bool BlenderDisplayDriver::gl_draw_resources_ensure()
 {
   if (!texture_.gl_id) {
     /* If there is no texture allocated, there is nothing to draw. Inform the draw call that it can
@@ -680,7 +643,7 @@ bool BlenderGPUDisplay::gl_draw_resources_ensure()
   return true;
 }
 
-void BlenderGPUDisplay::gl_resources_destroy()
+void BlenderDisplayDriver::gl_resources_destroy()
 {
   gl_context_enable();
 
@@ -703,7 +666,7 @@ void BlenderGPUDisplay::gl_resources_destroy()
   gl_context_dispose();
 }
 
-bool BlenderGPUDisplay::gl_texture_resources_ensure()
+bool BlenderDisplayDriver::gl_texture_resources_ensure()
 {
   if (texture_.creation_attempted) {
     return texture_.is_created;
@@ -740,7 +703,7 @@ bool BlenderGPUDisplay::gl_texture_resources_ensure()
   return true;
 }
 
-void BlenderGPUDisplay::texture_update_if_needed()
+void BlenderDisplayDriver::texture_update_if_needed()
 {
   if (!texture_.need_update) {
     return;
@@ -754,7 +717,7 @@ void BlenderGPUDisplay::texture_update_if_needed()
   texture_.need_update = false;
 }
 
-void BlenderGPUDisplay::vertex_buffer_update(const GPUDisplayParams &params)
+void BlenderDisplayDriver::vertex_buffer_update(const Params &params)
 {
   /* Invalidate old contents - avoids stalling if the buffer is still waiting in queue to be
    * rendered. */
@@ -767,23 +730,23 @@ void BlenderGPUDisplay::vertex_buffer_update(const GPUDisplayParams &params)
 
   vpointer[0] = 0.0f;
   vpointer[1] = 0.0f;
-  vpointer[2] = params.offset.x;
-  vpointer[3] = params.offset.y;
+  vpointer[2] = params.full_offset.x;
+  vpointer[3] = params.full_offset.y;
 
   vpointer[4] = 1.0f;
   vpointer[5] = 0.0f;
-  vpointer[6] = (float)params.size.x + params.offset.x;
-  vpointer[7] = params.offset.y;
+  vpointer[6] = (float)params.size.x + params.full_offset.x;
+  vpointer[7] = params.full_offset.y;
 
   vpointer[8] = 1.0f;
   vpointer[9] = 1.0f;
-  vpointer[10] = (float)params.size.x + params.offset.x;
-  vpointer[11] = (float)params.size.y + params.offset.y;
+  vpointer[10] = (float)params.size.x + params.full_offset.x;
+  vpointer[11] = (float)params.size.y + params.full_offset.y;
 
   vpointer[12] = 0.0f;
   vpointer[13] = 1.0f;
-  vpointer[14] = params.offset.x;
-  vpointer[15] = (float)params.size.y + params.offset.y;
+  vpointer[14] = params.full_offset.x;
+  vpointer[15] = (float)params.size.y + params.full_offset.y;
 
   glUnmapBuffer(GL_ARRAY_BUFFER);
 }

@@ -16,12 +16,12 @@
 
 #include "device/device.h"
 
+#include "integrator/path_trace_display.h"
 #include "integrator/path_trace_work.h"
 #include "integrator/path_trace_work_cpu.h"
 #include "integrator/path_trace_work_gpu.h"
 #include "render/buffers.h"
 #include "render/film.h"
-#include "render/gpu_display.h"
 #include "render/scene.h"
 
 #include "kernel/kernel_types.h"
@@ -185,12 +185,12 @@ PassAccessor::PassAccessInfo PathTraceWork::get_display_pass_access_info(PassMod
   return pass_access_info;
 }
 
-PassAccessor::Destination PathTraceWork::get_gpu_display_destination_template(
-    const GPUDisplay *gpu_display) const
+PassAccessor::Destination PathTraceWork::get_display_destination_template(
+    const PathTraceDisplay *display) const
 {
   PassAccessor::Destination destination(film_->get_display_pass());
 
-  const int2 display_texture_size = gpu_display->get_texture_size();
+  const int2 display_texture_size = display->get_texture_size();
   const int texture_x = effective_buffer_params_.full_x - effective_full_params_.full_x;
   const int texture_y = effective_buffer_params_.full_y - effective_full_params_.full_y;
 

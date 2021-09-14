@@ -25,7 +25,7 @@
 #include "render/bake.h"
 #include "render/buffers.h"
 #include "render/camera.h"
-#include "render/gpu_display.h"
+#include "render/display_driver.h"
 #include "render/graph.h"
 #include "render/integrator.h"
 #include "render/light.h"
@@ -162,7 +162,7 @@ bool Session::ready_to_reset()
 
 void Session::run_main_render_loop()
 {
-  path_trace_->clear_gpu_display();
+  path_trace_->clear_display();
 
   while (true) {
     RenderWork render_work = run_update_for_next_iteration();
@@ -514,9 +514,9 @@ void Session::set_pause(bool pause)
   }
 }
 
-void Session::set_gpu_display(unique_ptr<GPUDisplay> gpu_display)
+void Session::set_display_driver(unique_ptr<DisplayDriver> driver)
 {
-  path_trace_->set_gpu_display(move(gpu_display));
+  path_trace_->set_display_driver(move(driver));
 }
 
 double Session::get_estimated_remaining_time() const

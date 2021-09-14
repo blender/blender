@@ -42,7 +42,7 @@
 #include "util/util_progress.h"
 #include "util/util_time.h"
 
-#include "blender/blender_gpu_display.h"
+#include "blender/blender_display_driver.h"
 #include "blender/blender_session.h"
 #include "blender/blender_sync.h"
 #include "blender/blender_util.h"
@@ -159,9 +159,10 @@ void BlenderSession::create_session()
 
   /* Create GPU display. */
   if (!b_engine.is_preview() && !headless) {
-    unique_ptr<BlenderGPUDisplay> gpu_display = make_unique<BlenderGPUDisplay>(b_engine, b_scene);
-    gpu_display_ = gpu_display.get();
-    session->set_gpu_display(move(gpu_display));
+    unique_ptr<BlenderDisplayDriver> display_driver = make_unique<BlenderDisplayDriver>(b_engine,
+                                                                                        b_scene);
+    display_driver_ = display_driver.get();
+    session->set_display_driver(move(display_driver));
   }
 
   /* Viewport and preview (as in, material preview) does not do tiled rendering, so can inform
@@ -446,7 +447,7 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
 
   /* Use final write for preview renders, otherwise render result wouldn't be be updated on Blender
    * side. */
-  /* TODO(sergey): Investigate whether GPUDisplay can be used for the preview as well. */
+  /* TODO(sergey): Investigate whether DisplayDriver can be used for the preview as well. */
   if (b_engine.is_preview()) {
     session->update_render_tile_cb = [&]() { write_render_tile(); };
   }
@@ -708,7 +709,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
 
   session->read_render_tile_cb = [&]() { read_render_tile(); };
   session->write_render_tile_cb = [&]() { write_render_tile(); };
-  session->set_gpu_display(nullptr);
+  session->set_display_driver(nullptr);
 
   if (!session->progress.get_cancel()) {
     /* Sync scene. */
@@ -895,7 +896,7 @@ void BlenderSession::draw(BL::SpaceImageEditor &space_image)
   }
 
   BL::Array<float, 2> zoom = space_image.zoom();
-  gpu_display_->set_zoom(zoom[0], zoom[1]);
+  display_driver_->set_zoom(zoom[0], zoom[1]);
 
   session->draw();
 }

@@ -50,10 +50,10 @@ class PathTraceWorkCPU : public PathTraceWork {
                               int start_sample,
                               int samples_num) override;
 
-  virtual void copy_to_gpu_display(GPUDisplay *gpu_display,
-                                   PassMode pass_mode,
-                                   int num_samples) override;
-  virtual void destroy_gpu_resources(GPUDisplay *gpu_display) override;
+  virtual void copy_to_display(PathTraceDisplay *display,
+                               PassMode pass_mode,
+                               int num_samples) override;
+  virtual void destroy_gpu_resources(PathTraceDisplay *display) override;
 
   virtual bool copy_render_buffers_from_device() override;
   virtual bool copy_render_buffers_to_device() override;

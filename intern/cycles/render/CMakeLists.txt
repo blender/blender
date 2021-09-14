@@ -35,7 +35,6 @@ set(SRC
   denoising.cpp
   film.cpp
   geometry.cpp
-  gpu_display.cpp
   graph.cpp
   hair.cpp
   image.cpp
@@ -78,9 +77,9 @@ set(SRC_HEADERS
   colorspace.h
   constant_fold.h
   denoising.h
+  display_driver.h
   film.h
   geometry.h
-  gpu_display.h
   graph.h
   hair.h
   image.h

@@ -15,12 +15,12 @@
  */
 
 #include "integrator/path_trace_work_gpu.h"
+#include "integrator/path_trace_display.h"
 
 #include "device/device.h"
 
 #include "integrator/pass_accessor_gpu.h"
 #include "render/buffers.h"
-#include "render/gpu_display.h"
 #include "render/scene.h"
 #include "util/util_logging.h"
 #include "util/util_tbb.h"
@@ -46,7 +46,7 @@ PathTraceWorkGPU::PathTraceWorkGPU(Device *device,
       queued_paths_(device, "queued_paths", MEM_READ_WRITE),
       num_queued_paths_(device, "num_queued_paths", MEM_READ_WRITE),
       work_tiles_(device, "work_tiles", MEM_READ_WRITE),
-      gpu_display_rgba_half_(device, "display buffer half", MEM_READ_WRITE),
+      display_rgba_half_(device, "display buffer half", MEM_READ_WRITE),
       max_num_paths_(queue_->num_concurrent_states(sizeof(IntegratorStateCPU))),
       min_num_active_paths_(queue_->num_concurrent_busy_states()),
       max_active_path_index_(0)
@@ -652,7 +652,7 @@ int PathTraceWorkGPU::get_num_active_paths()
 bool PathTraceWorkGPU::should_use_graphics_interop()
 {
   /* There are few aspects with the graphics interop when using multiple devices caused by the fact
-   * that the GPUDisplay has a single texture:
+   * that the PathTraceDisplay has a single texture:
    *
    *   CUDA will return `CUDA_ERROR_NOT_SUPPORTED` from `cuGraphicsGLRegisterBuffer()` when
    *   attempting to register OpenGL PBO which has been mapped. Which makes sense, because
@@ -678,9 +678,9 @@ bool PathTraceWorkGPU::should_use_graphics_interop()
   return interop_use_;
 }
 
-void PathTraceWorkGPU::copy_to_gpu_display(GPUDisplay *gpu_display,
-                                           PassMode pass_mode,
-                                           int num_samples)
+void PathTraceWorkGPU::copy_to_display(PathTraceDisplay *display,
+                                       PassMode pass_mode,
+                                       int num_samples)
 {
   if (device_->have_error()) {
     /* Don't attempt to update GPU display if the device has errors: the error state will make
@@ -694,7 +694,7 @@ void PathTraceWorkGPU::copy_to_gpu_display(GPUDisplay *gpu_display,
   }
 
   if (should_use_graphics_interop()) {
-    if (copy_to_gpu_display_interop(gpu_display, pass_mode, num_samples)) {
+    if (copy_to_display_interop(display, pass_mode, num_samples)) {
       return;
     }
 
@@ -703,12 +703,12 @@ void PathTraceWorkGPU::copy_to_gpu_display(GPUDisplay *gpu_display,
     interop_use_ = false;
   }
 
-  copy_to_gpu_display_naive(gpu_display, pass_mode, num_samples);
+  copy_to_display_naive(display, pass_mode, num_samples);
 }
 
-void PathTraceWorkGPU::copy_to_gpu_display_naive(GPUDisplay *gpu_display,
-                                                 PassMode pass_mode,
-                                                 int num_samples)
+void PathTraceWorkGPU::copy_to_display_naive(PathTraceDisplay *display,
+                                             PassMode pass_mode,
+                                             int num_samples)
 {
   const int full_x = effective_buffer_params_.full_x;
   const int full_y = effective_buffer_params_.full_y;
@@ -725,44 +725,42 @@ void PathTraceWorkGPU::copy_to_gpu_display_naive(GPUDisplay *gpu_display,
    * NOTE: allocation happens to the final resolution so that no re-allocation happens on every
    * change of the resolution divider. However, if the display becomes smaller, shrink the
    * allocated memory as well. */
-  if (gpu_display_rgba_half_.data_width != final_width ||
-      gpu_display_rgba_half_.data_height != final_height) {
-    gpu_display_rgba_half_.alloc(final_width, final_height);
+  if (display_rgba_half_.data_width != final_width ||
+      display_rgba_half_.data_height != final_height) {
+    display_rgba_half_.alloc(final_width, final_height);
     /* TODO(sergey): There should be a way to make sure device-side memory is allocated without
      * transferring zeroes to the device. */
-    queue_->zero_to_device(gpu_display_rgba_half_);
+    queue_->zero_to_device(display_rgba_half_);
   }
 
   PassAccessor::Destination destination(film_->get_display_pass());
-  destination.d_pixels_half_rgba = gpu_display_rgba_half_.device_pointer;
+  destination.d_pixels_half_rgba = display_rgba_half_.device_pointer;
 
   get_render_tile_film_pixels(destination, pass_mode, num_samples);
 
-  queue_->copy_from_device(gpu_display_rgba_half_);
+  queue_->copy_from_device(display_rgba_half_);
   queue_->synchronize();
 
-  gpu_display->copy_pixels_to_texture(
-      gpu_display_rgba_half_.data(), texture_x, texture_y, width, height);
+  display->copy_pixels_to_texture(display_rgba_half_.data(), texture_x, texture_y, width, height);
 }
 
-bool PathTraceWorkGPU::copy_to_gpu_display_interop(GPUDisplay *gpu_display,
-                                                   PassMode pass_mode,
-                                                   int num_samples)
+bool PathTraceWorkGPU::copy_to_display_interop(PathTraceDisplay *display,
+                                               PassMode pass_mode,
+                                               int num_samples)
 {
   if (!device_graphics_interop_) {
     device_graphics_interop_ = queue_->graphics_interop_create();
   }
 
-  const DeviceGraphicsInteropDestination graphics_interop_dst =
-      gpu_display->graphics_interop_get();
-  device_graphics_interop_->set_destination(graphics_interop_dst);
+  const DisplayDriver::GraphicsInterop graphics_interop_dst = display->graphics_interop_get();
+  device_graphics_interop_->set_display_interop(graphics_interop_dst);
 
   const device_ptr d_rgba_half = device_graphics_interop_->map();
   if (!d_rgba_half) {
     return false;
   }
 
-  PassAccessor::Destination destination = get_gpu_display_destination_template(gpu_display);
+  PassAccessor::Destination destination = get_display_destination_template(display);
   destination.d_pixels_half_rgba = d_rgba_half;
 
   get_render_tile_film_pixels(destination, pass_mode, num_samples);
@@ -772,14 +770,14 @@ bool PathTraceWorkGPU::copy_to_gpu_display_interop(GPUDisplay *gpu_display,
   return true;
 }
 
-void PathTraceWorkGPU::destroy_gpu_resources(GPUDisplay *gpu_display)
+void PathTraceWorkGPU::destroy_gpu_resources(PathTraceDisplay *display)
 {
   if (!device_graphics_interop_) {
     return;
   }
-  gpu_display->graphics_interop_activate();
+  display->graphics_interop_activate();
   device_graphics_interop_ = nullptr;
-  gpu_display->graphics_interop_deactivate();
+  display->graphics_interop_deactivate();
 }
 
 void PathTraceWorkGPU::get_render_tile_film_pixels(const PassAccessor::Destination &destination,

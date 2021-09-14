@@ -31,9 +31,9 @@ set(INC_SYS
 set(SRC
   blender_camera.cpp
   blender_device.cpp
+  blender_display_driver.cpp
   blender_image.cpp
   blender_geometry.cpp
-  blender_gpu_display.cpp
   blender_light.cpp
   blender_mesh.cpp
   blender_object.cpp
@@ -51,7 +51,7 @@ set(SRC
 
   CCL_api.h
   blender_device.h
-  blender_gpu_display.h
+  blender_display_driver.h
   blender_id_map.h
   blender_image.h
   blender_object_cull.h

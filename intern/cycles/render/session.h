@@ -35,9 +35,9 @@ CCL_NAMESPACE_BEGIN
 class BufferParams;
 class Device;
 class DeviceScene;
+class DisplayDriver;
 class PathTrace;
 class Progress;
-class GPUDisplay;
 class RenderBuffers;
 class Scene;
 class SceneParams;
@@ -143,7 +143,7 @@ class Session {
   void set_samples(int samples);
   void set_time_limit(double time_limit);
 
-  void set_gpu_display(unique_ptr<GPUDisplay> gpu_display);
+  void set_display_driver(unique_ptr<DisplayDriver> driver);
 
   double get_estimated_remaining_time() const;
 

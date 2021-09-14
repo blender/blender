@@ -37,14 +37,15 @@ CUDADeviceGraphicsInterop::~CUDADeviceGraphicsInterop()
   }
 }
 
-void CUDADeviceGraphicsInterop::set_destination(
-    const DeviceGraphicsInteropDestination &destination)
+void CUDADeviceGraphicsInterop::set_display_interop(
+    const DisplayDriver::GraphicsInterop &display_interop)
 {
-  const int64_t new_buffer_area = int64_t(destination.buffer_width) * destination.buffer_height;
+  const int64_t new_buffer_area = int64_t(display_interop.buffer_width) *
+                                  display_interop.buffer_height;
 
-  need_clear_ = destination.need_clear;
+  need_clear_ = display_interop.need_clear;
 
-  if (opengl_pbo_id_ == destination.opengl_pbo_id && buffer_area_ == new_buffer_area) {
+  if (opengl_pbo_id_ == display_interop.opengl_pbo_id && buffer_area_ == new_buffer_area) {
     return;
   }
 
@@ -55,12 +56,12 @@ void CUDADeviceGraphicsInterop::set_destination(
   }
 
   const CUresult result = cuGraphicsGLRegisterBuffer(
-      &cu_graphics_resource_, destination.opengl_pbo_id, CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE);
+      &cu_graphics_resource_, display_interop.opengl_pbo_id, CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE);
   if (result != CUDA_SUCCESS) {
     LOG(ERROR) << "Error registering OpenGL buffer: " << cuewErrorString(result);
   }
 
-  opengl_pbo_id_ = destination.opengl_pbo_id;
+  opengl_pbo_id_ = display_interop.opengl_pbo_id;
   buffer_area_ = new_buffer_area;
 }
 

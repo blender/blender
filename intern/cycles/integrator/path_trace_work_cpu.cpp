@@ -22,9 +22,9 @@
 #include "kernel/kernel_path_state.h"
 
 #include "integrator/pass_accessor_cpu.h"
+#include "integrator/path_trace_display.h"
 
 #include "render/buffers.h"
-#include "render/gpu_display.h"
 #include "render/scene.h"
 
 #include "util/util_atomic.h"
@@ -161,14 +161,14 @@ void PathTraceWorkCPU::render_samples_full_pipeline(KernelGlobals *kernel_global
   }
 }
 
-void PathTraceWorkCPU::copy_to_gpu_display(GPUDisplay *gpu_display,
-                                           PassMode pass_mode,
-                                           int num_samples)
+void PathTraceWorkCPU::copy_to_display(PathTraceDisplay *display,
+                                       PassMode pass_mode,
+                                       int num_samples)
 {
-  half4 *rgba_half = gpu_display->map_texture_buffer();
+  half4 *rgba_half = display->map_texture_buffer();
   if (!rgba_half) {
-    /* TODO(sergey): Look into using copy_to_gpu_display() if mapping failed. Might be needed for
-     * some implementations of GPUDisplay which can not map memory? */
+    /* TODO(sergey): Look into using copy_to_display() if mapping failed. Might be needed for
+     * some implementations of PathTraceDisplay which can not map memory? */
     return;
   }
 
@@ -178,7 +178,7 @@ void PathTraceWorkCPU::copy_to_gpu_display(GPUDisplay *gpu_display,
 
   const PassAccessorCPU pass_accessor(pass_access_info, kfilm.exposure, num_samples);
 
-  PassAccessor::Destination destination = get_gpu_display_destination_template(gpu_display);
+  PassAccessor::Destination destination = get_display_destination_template(display);
   destination.pixels_half_rgba = rgba_half;
 
   tbb::task_arena local_arena = local_tbb_arena_create(device_);
@@ -186,10 +186,10 @@ void PathTraceWorkCPU::copy_to_gpu_display(GPUDisplay *gpu_display,
     pass_accessor.get_render_tile_pixels(buffers_.get(), effective_buffer_params_, destination);
   });
 
-  gpu_display->unmap_texture_buffer();
+  display->unmap_texture_buffer();
 }
 
-void PathTraceWorkCPU::destroy_gpu_resources(GPUDisplay * /*gpu_display*/)
+void PathTraceWorkCPU::destroy_gpu_resources(PathTraceDisplay * /*display*/)
 {
 }
 

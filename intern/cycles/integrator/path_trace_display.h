@@ -16,63 +16,36 @@
 
 #pragma once
 
-#include "device/device_graphics_interop.h"
+#include "render/display_driver.h"
+
 #include "util/util_half.h"
 #include "util/util_thread.h"
 #include "util/util_types.h"
+#include "util/util_unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
 class BufferParams;
 
-/* GPUDisplay class takes care of drawing render result in a viewport. The render result is stored
- * in a GPU-side texture, which is updated from a path tracer and drawn by an application.
+/* PathTraceDisplay is used for efficient render buffer display.
  *
- * The base GPUDisplay does some special texture state tracking, which allows render Session to
- * make decisions on whether reset for an updated state is possible or not. This state should only
- * be tracked in a base class and a particular implementation should not worry about it.
+ * The host applications implements a DisplayDriver, storing a render pass in a GPU-side
+ * textures. This texture is continuously updated by the path tracer and drawn by the host
+ * application.
  *
- * The subclasses should only implement the pure virtual methods, which allows them to not worry
- * about parent method calls, which helps them to be as small and reliable as possible. */
+ * PathTraceDisplay is a wrapper around the DisplayDriver, adding thread safety, state tracking
+ * and error checking. */
 
-class GPUDisplayParams {
+class PathTraceDisplay {
  public:
-  /* Offset of the display within a viewport.
-   * For example, set to a lower-bottom corner of border render in Blender's viewport. */
-  int2 offset = make_int2(0, 0);
-
-  /* Full viewport size.
-   *
-   * NOTE: Is not affected by the resolution divider. */
-  int2 full_size = make_int2(0, 0);
-
-  /* Effective viewport size.
-   * In the case of border render, size of the border rectangle.
-   *
-   * NOTE: Is not affected by the resolution divider. */
-  int2 size = make_int2(0, 0);
-
-  bool modified(const GPUDisplayParams &other) const
-  {
-    return !(offset == other.offset && full_size == other.full_size && size == other.size);
-  }
-};
-
-class GPUDisplay {
- public:
-  GPUDisplay() = default;
-  virtual ~GPUDisplay() = default;
+  PathTraceDisplay(unique_ptr<DisplayDriver> driver);
+  virtual ~PathTraceDisplay() = default;
 
   /* Reset the display for the new state of render session. Is called whenever session is reset,
    * which happens on changes like viewport navigation or viewport dimension change.
    *
    * This call will configure parameters for a changed buffer and reset the texture state. */
   void reset(const BufferParams &buffer_params);
-
-  const GPUDisplayParams &get_params() const
-  {
-    return params_;
-  }
 
   /* --------------------------------------------------------------------
    * Update procedure.
@@ -94,7 +67,8 @@ class GPUDisplay {
   /* --------------------------------------------------------------------
    * Texture update from CPU buffer.
    *
-   * NOTE: The GPUDisplay should be marked for an update being in process with `update_begin()`.
+   * NOTE: The PathTraceDisplay should be marked for an update being in process with
+   * `update_begin()`.
    *
    * Most portable implementation, which must be supported by all platforms. Might not be the most
    * efficient one.
@@ -115,7 +89,8 @@ class GPUDisplay {
    * This functionality is used to update GPU-side texture content without need to maintain CPU
    * side buffer on the caller.
    *
-   * NOTE: The GPUDisplay should be marked for an update being in process with `update_begin()`.
+   * NOTE: The PathTraceDisplay should be marked for an update being in process with
+   * `update_begin()`.
    *
    * NOTE: Texture buffer can not be mapped while graphics interoperability is active. This means
    * that `map_texture_buffer()` is not allowed between `graphics_interop_begin()` and
@@ -145,14 +120,14 @@ class GPUDisplay {
    * that `graphics_interop_get()` is not allowed between `map_texture_buffer()` and
    * `unmap_texture_buffer()` calls. */
 
-  /* Get GPUDisplay graphics interoperability information which acts as a destination for the
+  /* Get PathTraceDisplay graphics interoperability information which acts as a destination for the
    * device API. */
-  DeviceGraphicsInteropDestination graphics_interop_get();
+  DisplayDriver::GraphicsInterop graphics_interop_get();
 
   /* (De)activate GPU display for graphics interoperability outside of regular display update
    * routines. */
-  virtual void graphics_interop_activate();
-  virtual void graphics_interop_deactivate();
+  void graphics_interop_activate();
+  void graphics_interop_deactivate();
 
   /* --------------------------------------------------------------------
    * Drawing.
@@ -168,42 +143,21 @@ class GPUDisplay {
    * after clear will write new pixel values for an updating area, leaving everything else zeroed.
    *
    * If the GPU display supports graphics interoperability then the zeroing the display is to be
-   * delegated to the device via the `DeviceGraphicsInteropDestination`. */
-  virtual void clear() = 0;
+   * delegated to the device via the `DisplayDriver::GraphicsInterop`. */
+  void clear();
 
   /* Draw the current state of the texture.
    *
    * Returns true if this call did draw an updated state of the texture. */
   bool draw();
 
- protected:
-  /* Implementation-specific calls which subclasses are to implement.
-   * These `do_foo()` method corresponds to their `foo()` calls, but they are purely virtual to
-   * simplify their particular implementation. */
-  virtual bool do_update_begin(const GPUDisplayParams &params,
-                               int texture_width,
-                               int texture_height) = 0;
-  virtual void do_update_end() = 0;
-
-  virtual void do_copy_pixels_to_texture(const half4 *rgba_pixels,
-                                         int texture_x,
-                                         int texture_y,
-                                         int pixels_width,
-                                         int pixels_height) = 0;
-
-  virtual half4 *do_map_texture_buffer() = 0;
-  virtual void do_unmap_texture_buffer() = 0;
-
-  /* Note that this might be called in parallel to do_update_begin() and do_update_end(),
-   * the subclass is responsible for appropriate mutex locks to avoid multiple threads
-   * editing and drawing the texture at the same time. */
-  virtual void do_draw(const GPUDisplayParams &params) = 0;
-
-  virtual DeviceGraphicsInteropDestination do_graphics_interop_get() = 0;
-
  private:
+  /* Display driver implemented by the host application. */
+  unique_ptr<DisplayDriver> driver_;
+
+  /* Current display parameters */
   thread_mutex mutex_;
-  GPUDisplayParams params_;
+  DisplayDriver::Params params_;
 
   /* Mark texture as its content has been updated.
    * Used from places which knows that the texture content has been brought up-to-date, so that the

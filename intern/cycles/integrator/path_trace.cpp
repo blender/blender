@@ -19,8 +19,8 @@
 #include "device/cpu/device.h"
 #include "device/device.h"
 #include "integrator/pass_accessor.h"
+#include "integrator/path_trace_display.h"
 #include "integrator/render_scheduler.h"
-#include "render/gpu_display.h"
 #include "render/pass.h"
 #include "render/scene.h"
 #include "render/tile.h"
@@ -67,11 +67,11 @@ PathTrace::PathTrace(Device *device,
 PathTrace::~PathTrace()
 {
   /* Destroy any GPU resource which was used for graphics interop.
-   * Need to have access to the GPUDisplay as it is the only source of drawing context which is
-   * used for interop. */
-  if (gpu_display_) {
+   * Need to have access to the PathTraceDisplay as it is the only source of drawing context which
+   * is used for interop. */
+  if (display_) {
     for (auto &&path_trace_work : path_trace_works_) {
-      path_trace_work->destroy_gpu_resources(gpu_display_.get());
+      path_trace_work->destroy_gpu_resources(display_.get());
     }
   }
 }
@@ -94,7 +94,7 @@ bool PathTrace::ready_to_reset()
 {
   /* The logic here is optimized for the best feedback in the viewport, which implies having a GPU
    * display. Of there is no such display, the logic here will break. */
-  DCHECK(gpu_display_);
+  DCHECK(display_);
 
   /* The logic here tries to provide behavior which feels the most interactive feel to artists.
    * General idea is to be able to reset as quickly as possible, while still providing interactive
@@ -126,8 +126,8 @@ void PathTrace::reset(const BufferParams &full_params, const BufferParams &big_t
   /* NOTE: GPU display checks for buffer modification and avoids unnecessary re-allocation.
    * It is requires to inform about reset whenever it happens, so that the redraw state tracking is
    * properly updated. */
-  if (gpu_display_) {
-    gpu_display_->reset(full_params);
+  if (display_) {
+    display_->reset(full_params);
   }
 
   render_state_.has_denoised_result = false;
@@ -535,25 +535,30 @@ void PathTrace::denoise(const RenderWork &render_work)
   render_scheduler_.report_denoise_time(render_work, time_dt() - start_time);
 }
 
-void PathTrace::set_gpu_display(unique_ptr<GPUDisplay> gpu_display)
+void PathTrace::set_display_driver(unique_ptr<DisplayDriver> driver)
 {
-  gpu_display_ = move(gpu_display);
+  if (driver) {
+    display_ = make_unique<PathTraceDisplay>(move(driver));
+  }
+  else {
+    display_ = nullptr;
+  }
 }
 
-void PathTrace::clear_gpu_display()
+void PathTrace::clear_display()
 {
-  if (gpu_display_) {
-    gpu_display_->clear();
+  if (display_) {
+    display_->clear();
   }
 }
 
 void PathTrace::draw()
 {
-  if (!gpu_display_) {
+  if (!display_) {
     return;
   }
 
-  did_draw_after_reset_ |= gpu_display_->draw();
+  did_draw_after_reset_ |= display_->draw();
 }
 
 void PathTrace::update_display(const RenderWork &render_work)
@@ -562,13 +567,13 @@ void PathTrace::update_display(const RenderWork &render_work)
     return;
   }
 
-  if (!gpu_display_ && !tile_buffer_update_cb) {
+  if (!display_ && !tile_buffer_update_cb) {
     VLOG(3) << "Ignore display update.";
     return;
   }
 
   if (full_params_.width == 0 || full_params_.height == 0) {
-    VLOG(3) << "Skipping GPUDisplay update due to 0 size of the render buffer.";
+    VLOG(3) << "Skipping PathTraceDisplay update due to 0 size of the render buffer.";
     return;
   }
 
@@ -580,13 +585,13 @@ void PathTrace::update_display(const RenderWork &render_work)
     tile_buffer_update_cb();
   }
 
-  if (gpu_display_) {
+  if (display_) {
     VLOG(3) << "Perform copy to GPUDisplay work.";
 
     const int resolution_divider = render_work.resolution_divider;
     const int texture_width = max(1, full_params_.width / resolution_divider);
     const int texture_height = max(1, full_params_.height / resolution_divider);
-    if (!gpu_display_->update_begin(texture_width, texture_height)) {
+    if (!display_->update_begin(texture_width, texture_height)) {
       LOG(ERROR) << "Error beginning GPUDisplay update.";
       return;
     }
@@ -600,10 +605,10 @@ void PathTrace::update_display(const RenderWork &render_work)
      * all works in parallel. */
     const int num_samples = get_num_samples_in_buffer();
     for (auto &&path_trace_work : path_trace_works_) {
-      path_trace_work->copy_to_gpu_display(gpu_display_.get(), pass_mode, num_samples);
+      path_trace_work->copy_to_display(display_.get(), pass_mode, num_samples);
     }
 
-    gpu_display_->update_end();
+    display_->update_end();
   }
 
   render_scheduler_.report_display_update_time(render_work, time_dt() - start_time);

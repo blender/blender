@@ -344,7 +344,7 @@ class RenderScheduler {
     /* Number of rendered samples on top of the start sample. */
     int num_rendered_samples = 0;
 
-    /* Point in time the latest GPUDisplay work has been scheduled. */
+    /* Point in time the latest PathTraceDisplay work has been scheduled. */
     double last_display_update_time = 0.0;
     /* Value of -1 means display was never updated. */
     int last_display_update_sample = -1;

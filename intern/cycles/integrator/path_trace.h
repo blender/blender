@@ -31,12 +31,13 @@ CCL_NAMESPACE_BEGIN
 class AdaptiveSampling;
 class Device;
 class DeviceScene;
+class DisplayDriver;
 class Film;
 class RenderBuffers;
 class RenderScheduler;
 class RenderWork;
+class PathTraceDisplay;
 class Progress;
-class GPUDisplay;
 class TileManager;
 
 /* PathTrace class takes care of kernel graph and scheduling on a (multi)device. It takes care of
@@ -98,13 +99,13 @@ class PathTrace {
    * Use this to configure the adaptive sampler before rendering any samples. */
   void set_adaptive_sampling(const AdaptiveSampling &adaptive_sampling);
 
-  /* Set GPU display which takes care of drawing the render result. */
-  void set_gpu_display(unique_ptr<GPUDisplay> gpu_display);
+  /* Set display driver which takes care of drawing the render result. */
+  void set_display_driver(unique_ptr<DisplayDriver> driver);
 
-  /* Clear the GPU display by filling it in with all zeroes. */
-  void clear_gpu_display();
+  /* Clear the display buffer by filling it in with all zeroes. */
+  void clear_display();
 
-  /* Perform drawing of the current state of the GPUDisplay. */
+  /* Perform drawing of the current state of the DisplayDriver. */
   void draw();
 
   /* Cancel rendering process as soon as possible, without waiting for full tile to be sampled.
@@ -252,7 +253,7 @@ class PathTrace {
   RenderScheduler &render_scheduler_;
   TileManager &tile_manager_;
 
-  unique_ptr<GPUDisplay> gpu_display_;
+  unique_ptr<PathTraceDisplay> display_;
 
   /* Per-compute device descriptors of work which is responsible for path tracing on its configured
    * device. */

@@ -39,7 +39,7 @@ class HIPDeviceGraphicsInterop : public DeviceGraphicsInterop {
   HIPDeviceGraphicsInterop &operator=(const HIPDeviceGraphicsInterop &other) = delete;
   HIPDeviceGraphicsInterop &operator=(HIPDeviceGraphicsInterop &&other) = delete;
 
-  virtual void set_destination(const DeviceGraphicsInteropDestination &destination) override;
+  virtual void set_display_interop(const DisplayDriver::GraphicsInterop &display_interop) override;
 
   virtual device_ptr map() override;
   virtual void unmap() override;
@@ -52,6 +52,9 @@ class HIPDeviceGraphicsInterop : public DeviceGraphicsInterop {
   uint opengl_pbo_id_ = 0;
   /* Buffer area in pixels of the corresponding PBO. */
   int64_t buffer_area_ = 0;
+
+  /* The destination was requested to be cleared. */
+  bool need_clear_ = false;
 
   hipGraphicsResource hip_graphics_resource_ = nullptr;
 };

@@ -48,10 +48,10 @@ class PathTraceWorkGPU : public PathTraceWork {
                               int start_sample,
                               int samples_num) override;
 
-  virtual void copy_to_gpu_display(GPUDisplay *gpu_display,
-                                   PassMode pass_mode,
-                                   int num_samples) override;
-  virtual void destroy_gpu_resources(GPUDisplay *gpu_display) override;
+  virtual void copy_to_display(PathTraceDisplay *display,
+                               PassMode pass_mode,
+                               int num_samples) override;
+  virtual void destroy_gpu_resources(PathTraceDisplay *display) override;
 
   virtual bool copy_render_buffers_from_device() override;
   virtual bool copy_render_buffers_to_device() override;
@@ -88,16 +88,16 @@ class PathTraceWorkGPU : public PathTraceWork {
 
   int get_num_active_paths();
 
-  /* Check whether graphics interop can be used for the GPUDisplay update. */
+  /* Check whether graphics interop can be used for the PathTraceDisplay update. */
   bool should_use_graphics_interop();
 
-  /* Naive implementation of the `copy_to_gpu_display()` which performs film conversion on the
-   * device, then copies pixels to the host and pushes them to the `gpu_display`. */
-  void copy_to_gpu_display_naive(GPUDisplay *gpu_display, PassMode pass_mode, int num_samples);
+  /* Naive implementation of the `copy_to_display()` which performs film conversion on the
+   * device, then copies pixels to the host and pushes them to the `display`. */
+  void copy_to_display_naive(PathTraceDisplay *display, PassMode pass_mode, int num_samples);
 
-  /* Implementation of `copy_to_gpu_display()` which uses driver's OpenGL/GPU interoperability
+  /* Implementation of `copy_to_display()` which uses driver's OpenGL/GPU interoperability
    * functionality, avoiding copy of pixels to the host. */
-  bool copy_to_gpu_display_interop(GPUDisplay *gpu_display, PassMode pass_mode, int num_samples);
+  bool copy_to_display_interop(PathTraceDisplay *display, PassMode pass_mode, int num_samples);
 
   /* Synchronously run film conversion kernel and store display result in the given destination. */
   void get_render_tile_film_pixels(const PassAccessor::Destination &destination,
@@ -139,9 +139,9 @@ class PathTraceWorkGPU : public PathTraceWork {
   /* Temporary buffer for passing work tiles to kernel. */
   device_vector<KernelWorkTile> work_tiles_;
 
-  /* Temporary buffer used by the copy_to_gpu_display() whenever graphics interoperability is not
+  /* Temporary buffer used by the copy_to_display() whenever graphics interoperability is not
    * available. Is allocated on-demand. */
-  device_vector<half4> gpu_display_rgba_half_;
+  device_vector<half4> display_rgba_half_;
 
   unique_ptr<DeviceGraphicsInterop> device_graphics_interop_;
 
