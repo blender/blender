@@ -161,6 +161,7 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
 
 struct EdgeQueueContext;
 
+static bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root);
 static bool check_face_is_tri(PBVH *pbvh, BMFace *f);
 static bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v);
 static void pbvh_split_edges(struct EdgeQueueContext *eq_ctx,
@@ -3693,7 +3694,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     int totl = 0;
 
     BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
-      MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
+      MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->next->v);
       mv_l->flag |= mupdateflag;
 
       BLI_array_append(ls, l);
@@ -3702,7 +3703,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     BM_LOOPS_OF_VERT_ITER_END;
 
     BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_conn) {
-      MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
+      MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->next->v);
       mv_l->flag |= mupdateflag;
 
       BLI_array_append(ls, l);
@@ -3961,6 +3962,16 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   MDynTopoVert *mv3 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_conn);
   mv3->flag |= mupdateflag;
+
+  if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
+    printf("eek!\n");
+  }
+
+  for (int i = 0; i < 3; i++) {
+    if (!check_for_fins(pbvh, v_conn)) {
+      break;
+    }
+  }
 
   if (wasbad) {
     fix_mesh(pbvh, pbvh->bm);

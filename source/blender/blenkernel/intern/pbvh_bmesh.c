@@ -251,7 +251,9 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
   bool has_visible = false;
 
   /* Create vert hash sets */
-  n->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
+  if (!n->bm_unique_verts) {
+    n->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
+  }
   n->bm_other_verts = BLI_table_gset_new("bm_other_verts");
 
   BB_reset(&n->vb);
@@ -356,7 +358,9 @@ static void pbvh_bmesh_node_split(
   c1->bm_faces = BLI_table_gset_new_ex("bm_faces", BLI_table_gset_len(n->bm_faces) / 2);
   c2->bm_faces = BLI_table_gset_new_ex("bm_faces", BLI_table_gset_len(n->bm_faces) / 2);
 
-  c1->bm_unique_verts = c2->bm_unique_verts = NULL;
+  c1->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
+  c2->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
+
   c1->bm_other_verts = c2->bm_other_verts = NULL;
 
   /* Partition the parent node's faces between the two children */
@@ -389,17 +393,32 @@ static void pbvh_bmesh_node_split(
       BLI_table_gset_insert(empty, key);
       BLI_table_gset_remove(other, key, NULL);
       break;
-    } TGSET_ITER_END
+    }
+    TGSET_ITER_END
   }
 #endif
   /* Clear this node */
 
   BMVert *v;
+  TableGSet *bm_unique_verts = n->bm_unique_verts;
 
-  /* Mark this node's unique verts as unclaimed */
+  /* Assign verts to c1 and c2.  Note that the previous
+     method of simply marking them as untaken and rebuilding
+     unique verts later doesn't work, as it assumes that dyntopo
+     never assigns verts to nodes that don't contain their
+     faces.*/
   if (n->bm_unique_verts) {
     TGSET_ITER (v, n->bm_unique_verts) {
-      BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
+      int ni;
+
+      if (v->co[axis] < mid) {
+        BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, (c1 - pbvh->nodes));
+        BLI_table_gset_add(c1->bm_unique_verts, v);
+      }
+      else {
+        BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, (c2 - pbvh->nodes));
+        BLI_table_gset_add(c2->bm_unique_verts, v);
+      }
     }
     TGSET_ITER_END
 
