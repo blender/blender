@@ -54,8 +54,7 @@ void GeometryDataSource::foreach_default_column_ids(
           return true;
         }
         SpreadsheetColumnID column_id;
-        std::string name = attribute_id.name();
-        column_id.name = (char *)name.c_str();
+        column_id.name = (char *)attribute_id.name().data();
         fn(column_id);
         return true;
       });
