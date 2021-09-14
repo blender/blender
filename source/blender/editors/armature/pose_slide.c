@@ -1268,6 +1268,8 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* Perform pose updates - in response to some user action
    * (e.g. pressing a key or moving the mouse). */
   if (do_pose_update) {
+    RNA_float_set(op->ptr, "factor", ED_slider_factor_get(pso->slider));
+
     /* Update percentage indicator in header. */
     pose_slide_draw_status(C, pso);
 
