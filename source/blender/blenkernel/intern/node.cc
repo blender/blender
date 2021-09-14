@@ -653,6 +653,7 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
   BLO_read_list(reader, &ntree->nodes);
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     node->typeinfo = nullptr;
+    node->declaration = nullptr;
 
     BLO_read_list(reader, &node->inputs);
     BLO_read_list(reader, &node->outputs);
@@ -1014,10 +1015,8 @@ IDTypeInfo IDType_ID_NT = {
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
 {
   if (ntype->declare != nullptr) {
-    blender::nodes::NodeDeclaration node_decl;
-    blender::nodes::NodeDeclarationBuilder builder{node_decl};
-    ntype->declare(builder);
-    node_decl.build(*ntree, *node);
+    nodeDeclarationEnsure(ntree, node);
+    node->declaration->build(*ntree, *node);
     return;
   }
   bNodeSocketTemplate *sockdef;
@@ -2216,6 +2215,10 @@ bNode *BKE_node_copy_ex(bNodeTree *ntree,
   bNodeLink *link_dst, *link_src;
 
   *node_dst = *node_src;
+
+  /* Reset the declaration of the new node. */
+  node_dst->declaration = nullptr;
+
   /* can be called for nodes outside a node tree (e.g. clipboard) */
   if (ntree) {
     if (unique_name) {
@@ -3103,6 +3106,8 @@ static void node_free_node(bNodeTree *ntree, bNode *node)
     MEM_freeN(node->prop);
   }
 
+  delete node->declaration;
+
   MEM_freeN(node);
 
   if (ntree) {
@@ -3931,6 +3936,21 @@ int nodeSocketLinkLimit(const bNodeSocket *sock)
   }
 
   return sock->limit;
+}
+
+/**
+ * If the node implements a `declare` function, this function makes sure that `node->declaration`
+ * is up to date.
+ */
+void nodeDeclarationEnsure(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  if (node->typeinfo->declare == nullptr) {
+    return;
+  }
+
+  node->declaration = new blender::nodes::NodeDeclaration();
+  blender::nodes::NodeDeclarationBuilder builder{*node->declaration};
+  node->typeinfo->declare(builder);
 }
 
 /* ************** Node Clipboard *********** */

@@ -60,6 +60,8 @@ class NodeDeclaration {
 
   Span<SocketDeclarationPtr> inputs() const;
   Span<SocketDeclarationPtr> outputs() const;
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("NodeDeclaration")
 };
 
 class NodeDeclarationBuilder {

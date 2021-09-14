@@ -216,6 +216,16 @@ typedef enum eNodeSocketFlag {
   SOCK_HIDE_LABEL = (1 << 12),
 } eNodeSocketFlag;
 
+/** Workaround to forward-declare C++ type in C header. */
+#ifdef __cplusplus
+namespace blender::nodes {
+class NodeDeclaration;
+}
+using NodeDeclarationHandle = blender::nodes::NodeDeclaration;
+#else
+typedef struct NodeDeclarationHandle NodeDeclarationHandle;
+#endif
+
 /* TODO: Limit data in bNode to what we want to see saved. */
 typedef struct bNode {
   struct bNode *next, *prev, *new_node;
@@ -315,6 +325,26 @@ typedef struct bNode {
    * needs to be a float to feed GPU_uniform.
    */
   float sss_id;
+
+  /**
+   * Describes the desired interface of the node. This is run-time data only.
+   * The actual interface of the node may deviate from the declaration temporarily.
+   * It's possible to sync the actual state of the node to the desired state. Currently, this is
+   * only done when a node is created or loaded.
+   *
+   * In the future, we may want to keep more data only in the declaration, so that it does not have
+   * to be synced to other places that are stored in files. That especially applies to data that
+   * can't be edited by users directly (e.g. min/max values of sockets, tooltips, ...).
+   *
+   * The declaration of a node can be recreated at any time when it is used. Caching it here is
+   * just a bit more efficient when it is used a lot. To make sure that the cache is up-to-date,
+   * call #nodeDeclarationEnsure before using it.
+   *
+   * Currently, the declaration is the same for every node of the same type. Going forward, that is
+   * intended to change though. Especially when nodes become more dynamic with respect to how many
+   * sockets they have.
+   */
+  NodeDeclarationHandle *declaration;
 } bNode;
 
 /* node->flag */
