@@ -62,25 +62,24 @@ class MFParamsBuilder {
 
   template<typename T> void add_readonly_single_input_value(T value, StringRef expected_name = "")
   {
-    T *value_ptr = &scope_.add_value<T>(std::move(value), __func__);
+    T *value_ptr = &scope_.add_value<T>(std::move(value));
     this->add_readonly_single_input(value_ptr, expected_name);
   }
   template<typename T> void add_readonly_single_input(const T *value, StringRef expected_name = "")
   {
-    this->add_readonly_single_input(scope_.construct<GVArray_For_SingleValueRef>(
-                                        __func__, CPPType::get<T>(), min_array_size_, value),
-                                    expected_name);
+    this->add_readonly_single_input(
+        scope_.construct<GVArray_For_SingleValueRef>(CPPType::get<T>(), min_array_size_, value),
+        expected_name);
   }
   void add_readonly_single_input(const GSpan span, StringRef expected_name = "")
   {
-    this->add_readonly_single_input(scope_.construct<GVArray_For_GSpan>(__func__, span),
-                                    expected_name);
+    this->add_readonly_single_input(scope_.construct<GVArray_For_GSpan>(span), expected_name);
   }
   void add_readonly_single_input(GPointer value, StringRef expected_name = "")
   {
-    this->add_readonly_single_input(scope_.construct<GVArray_For_SingleValueRef>(
-                                        __func__, *value.type(), min_array_size_, value.get()),
-                                    expected_name);
+    this->add_readonly_single_input(
+        scope_.construct<GVArray_For_SingleValueRef>(*value.type(), min_array_size_, value.get()),
+        expected_name);
   }
   void add_readonly_single_input(const GVArray &ref, StringRef expected_name = "")
   {
@@ -91,13 +90,13 @@ class MFParamsBuilder {
 
   void add_readonly_vector_input(const GVectorArray &vector_array, StringRef expected_name = "")
   {
-    this->add_readonly_vector_input(
-        scope_.construct<GVVectorArray_For_GVectorArray>(__func__, vector_array), expected_name);
+    this->add_readonly_vector_input(scope_.construct<GVVectorArray_For_GVectorArray>(vector_array),
+                                    expected_name);
   }
   void add_readonly_vector_input(const GSpan single_vector, StringRef expected_name = "")
   {
     this->add_readonly_vector_input(
-        scope_.construct<GVVectorArray_For_SingleGSpan>(__func__, single_vector, min_array_size_),
+        scope_.construct<GVVectorArray_For_SingleGSpan>(single_vector, min_array_size_),
         expected_name);
   }
   void add_readonly_vector_input(const GVVectorArray &ref, StringRef expected_name = "")
@@ -225,7 +224,7 @@ class MFParams {
   template<typename T> const VArray<T> &readonly_single_input(int param_index, StringRef name = "")
   {
     const GVArray &array = this->readonly_single_input(param_index, name);
-    return builder_->scope_.construct<GVArray_Typed<T>>(__func__, array);
+    return builder_->scope_.construct<GVArray_Typed<T>>(array);
   }
   const GVArray &readonly_single_input(int param_index, StringRef name = "")
   {
@@ -266,8 +265,7 @@ class MFParams {
       if (!type.is_trivially_destructible()) {
         /* Make sure the temporary elements will be destructed in the end. */
         builder_->scope_.add_destruct_call(
-            [&type, buffer, mask = builder_->mask_]() { type.destruct_indices(buffer, mask); },
-            __func__);
+            [&type, buffer, mask = builder_->mask_]() { type.destruct_indices(buffer, mask); });
       }
       span = GMutableSpan{type, buffer, builder_->min_array_size_};
     }
@@ -278,7 +276,7 @@ class MFParams {
   const VVectorArray<T> &readonly_vector_input(int param_index, StringRef name = "")
   {
     const GVVectorArray &vector_array = this->readonly_vector_input(param_index, name);
-    return builder_->scope_.construct<VVectorArray_For_GVVectorArray<T>>(__func__, vector_array);
+    return builder_->scope_.construct<VVectorArray_For_GVVectorArray<T>>(vector_array);
   }
   const GVVectorArray &readonly_vector_input(int param_index, StringRef name = "")
   {

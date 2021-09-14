@@ -50,11 +50,10 @@ class ResourceScope : NonCopyable, NonMovable {
   struct ResourceData {
     void *data;
     void (*free)(void *data);
-    const char *debug_name;
   };
 
-  LinearAllocator<> m_allocator;
-  Vector<ResourceData> m_resources;
+  LinearAllocator<> allocator_;
+  Vector<ResourceData> resources_;
 
  public:
   ResourceScope() = default;
@@ -62,8 +61,8 @@ class ResourceScope : NonCopyable, NonMovable {
   ~ResourceScope()
   {
     /* Free in reversed order. */
-    for (int64_t i = m_resources.size(); i--;) {
-      ResourceData &data = m_resources[i];
+    for (int64_t i = resources_.size(); i--;) {
+      ResourceData &data = resources_[i];
       data.free(data.data);
     }
   }
@@ -72,20 +71,17 @@ class ResourceScope : NonCopyable, NonMovable {
    * Pass ownership of the resource to the ResourceScope. It will be destructed and freed when
    * the collector is destructed.
    */
-  template<typename T> T *add(std::unique_ptr<T> resource, const char *name)
+  template<typename T> T *add(std::unique_ptr<T> resource)
   {
     BLI_assert(resource.get() != nullptr);
     T *ptr = resource.release();
     if (ptr == nullptr) {
       return nullptr;
     }
-    this->add(
-        ptr,
-        [](void *data) {
-          T *typed_data = reinterpret_cast<T *>(data);
-          delete typed_data;
-        },
-        name);
+    this->add(ptr, [](void *data) {
+      T *typed_data = reinterpret_cast<T *>(data);
+      delete typed_data;
+    });
     return ptr;
   }
 
@@ -93,7 +89,7 @@ class ResourceScope : NonCopyable, NonMovable {
    * Pass ownership of the resource to the ResourceScope. It will be destructed when the
    * collector is destructed.
    */
-  template<typename T> T *add(destruct_ptr<T> resource, const char *name)
+  template<typename T> T *add(destruct_ptr<T> resource)
   {
     T *ptr = resource.release();
     if (ptr == nullptr) {
@@ -104,13 +100,10 @@ class ResourceScope : NonCopyable, NonMovable {
       return ptr;
     }
 
-    this->add(
-        ptr,
-        [](void *data) {
-          T *typed_data = reinterpret_cast<T *>(data);
-          typed_data->~T();
-        },
-        name);
+    this->add(ptr, [](void *data) {
+      T *typed_data = reinterpret_cast<T *>(data);
+      typed_data->~T();
+    });
     return ptr;
   }
 
@@ -118,33 +111,31 @@ class ResourceScope : NonCopyable, NonMovable {
    * Pass ownership of some resource to the ResourceScope. The given free function will be
    * called when the collector is destructed.
    */
-  void add(void *userdata, void (*free)(void *), const char *name)
+  void add(void *userdata, void (*free)(void *))
   {
     ResourceData data;
-    data.debug_name = name;
     data.data = userdata;
     data.free = free;
-    m_resources.append(data);
+    resources_.append(data);
   }
 
   /**
    * Construct an object with the same value in the ResourceScope and return a reference to the
    * new value.
    */
-  template<typename T> T &add_value(T &&value, const char *name)
+  template<typename T> T &add_value(T &&value)
   {
-    return this->construct<T>(name, std::forward<T>(value));
+    return this->construct<T>(std::forward<T>(value));
   }
 
   /**
    * The passed in function will be called when the scope is destructed.
    */
-  template<typename Func> void add_destruct_call(Func func, const char *name)
+  template<typename Func> void add_destruct_call(Func func)
   {
-    void *buffer = m_allocator.allocate(sizeof(Func), alignof(Func));
+    void *buffer = allocator_.allocate(sizeof(Func), alignof(Func));
     new (buffer) Func(std::move(func));
-    this->add(
-        buffer, [](void *data) { (*(Func *)data)(); }, name);
+    this->add(buffer, [](void *data) { (*(Func *)data)(); });
   }
 
   /**
@@ -153,36 +144,18 @@ class ResourceScope : NonCopyable, NonMovable {
    */
   LinearAllocator<> &linear_allocator()
   {
-    return m_allocator;
+    return allocator_;
   }
 
   /**
    * Utility method to construct an instance of type T that will be owned by the ResourceScope.
    */
-  template<typename T, typename... Args> T &construct(const char *name, Args &&...args)
+  template<typename T, typename... Args> T &construct(Args &&...args)
   {
-    destruct_ptr<T> value_ptr = m_allocator.construct<T>(std::forward<Args>(args)...);
+    destruct_ptr<T> value_ptr = allocator_.construct<T>(std::forward<Args>(args)...);
     T &value_ref = *value_ptr;
-    this->add(std::move(value_ptr), name);
+    this->add(std::move(value_ptr));
     return value_ref;
-  }
-
-  /**
-   * Print the names of all the resources that are owned by this ResourceScope. This can be
-   * useful for debugging.
-   */
-  void print(StringRef name) const
-  {
-    if (m_resources.size() == 0) {
-      std::cout << "\"" << name << "\" has no resources.\n";
-      return;
-    }
-    else {
-      std::cout << "Resources for \"" << name << "\":\n";
-      for (const ResourceData &data : m_resources) {
-        std::cout << "  " << data.data << ": " << data.debug_name << '\n';
-      }
-    }
   }
 };
 

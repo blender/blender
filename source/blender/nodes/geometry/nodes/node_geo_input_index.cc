@@ -37,7 +37,7 @@ class IndexFieldInput final : public fn::FieldInput {
     auto index_func = [](int i) { return i; };
     return &scope.construct<
         fn::GVArray_For_EmbeddedVArray<int, VArray_For_Func<int, decltype(index_func)>>>(
-        __func__, mask.min_array_size(), mask.min_array_size(), index_func);
+        mask.min_array_size(), mask.min_array_size(), index_func);
   }
 };
 

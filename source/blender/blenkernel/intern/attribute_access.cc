@@ -1315,7 +1315,7 @@ const GVArray *AttributeFieldInput::get_varray_for_context(const fn::FieldContex
     const AttributeDomain domain = geometry_context->domain();
     const CustomDataType data_type = cpp_type_to_custom_data_type(*type_);
     GVArrayPtr attribute = component.attribute_try_get_for_read(name_, domain, data_type);
-    return scope.add(std::move(attribute), __func__);
+    return scope.add(std::move(attribute));
   }
   return nullptr;
 }
@@ -1350,7 +1350,7 @@ const GVArray *AnonymousAttributeFieldInput::get_varray_for_context(
     const CustomDataType data_type = cpp_type_to_custom_data_type(*type_);
     GVArrayPtr attribute = component.attribute_try_get_for_read(
         anonymous_id_.get(), domain, data_type);
-    return scope.add(std::move(attribute), __func__);
+    return scope.add(std::move(attribute));
   }
   return nullptr;
 }

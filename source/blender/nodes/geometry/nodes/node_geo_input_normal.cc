@@ -104,10 +104,10 @@ static const GVArray *construct_mesh_normals_gvarray(const MeshComponent &mesh_c
 
   switch (domain) {
     case ATTR_DOMAIN_FACE: {
-      return scope.add_value(mesh_face_normals(mesh, verts, polys, loops, mask), __func__).get();
+      return scope.add_value(mesh_face_normals(mesh, verts, polys, loops, mask)).get();
     }
     case ATTR_DOMAIN_POINT: {
-      return scope.add_value(mesh_vertex_normals(mesh, verts, polys, loops, mask), __func__).get();
+      return scope.add_value(mesh_vertex_normals(mesh, verts, polys, loops, mask)).get();
     }
     case ATTR_DOMAIN_EDGE: {
       /* In this case, start with vertex normals and convert to the edge domain, since the
@@ -128,7 +128,7 @@ static const GVArray *construct_mesh_normals_gvarray(const MeshComponent &mesh_c
       }
 
       return &scope.construct<fn::GVArray_For_ArrayContainer<Array<float3>>>(
-          __func__, std::move(edge_normals));
+          std::move(edge_normals));
     }
     case ATTR_DOMAIN_CORNER: {
       /* The normals on corners are just the mesh's face normals, so start with the face normal
@@ -140,7 +140,7 @@ static const GVArray *construct_mesh_normals_gvarray(const MeshComponent &mesh_c
        * will still be normalized, since the face normal is just copied to every corner. */
       GVArrayPtr loop_normals = mesh_component.attribute_try_adapt_domain(
           std::move(face_normals), ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER);
-      return scope.add_value(std::move(loop_normals), __func__).get();
+      return scope.add_value(std::move(loop_normals)).get();
     }
     default:
       return nullptr;
