@@ -141,7 +141,7 @@ class ResourceScope : NonCopyable, NonMovable {
    */
   template<typename Func> void add_destruct_call(Func func, const char *name)
   {
-    void *buffer = m_allocator.allocate(sizeof(func), alignof(func));
+    void *buffer = m_allocator.allocate(sizeof(Func), alignof(Func));
     new (buffer) Func(std::move(func));
     this->add(
         buffer, [](void *data) { (*(Func *)data)(); }, name);
