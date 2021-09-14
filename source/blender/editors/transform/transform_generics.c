@@ -252,7 +252,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     /* turn gizmo off during transform */
     if (t->flag & T_MODAL) {
       t->gizmo_flag = v3d->gizmo_flag;
-      v3d->gizmo_flag = V3D_GIZMO_HIDE;
+      v3d->gizmo_flag |= V3D_GIZMO_HIDE_DEFAULT_MODAL;
     }
 
     if (t->scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) {

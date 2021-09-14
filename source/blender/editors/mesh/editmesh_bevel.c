@@ -310,7 +310,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 
     if (v3d) {
       opdata->gizmo_flag = v3d->gizmo_flag;
-      v3d->gizmo_flag = V3D_GIZMO_HIDE;
+      v3d->gizmo_flag |= V3D_GIZMO_HIDE_DEFAULT_MODAL;
     }
   }
 

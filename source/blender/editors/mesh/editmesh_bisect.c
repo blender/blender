@@ -182,7 +182,7 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     /* Misc other vars. */
     G.moving = G_TRANSFORM_EDIT;
     opdata->gizmo_flag = v3d->gizmo_flag;
-    v3d->gizmo_flag = V3D_GIZMO_HIDE;
+    v3d->gizmo_flag |= V3D_GIZMO_HIDE_DEFAULT_MODAL;
 
     /* Initialize modal callout. */
     ED_workspace_status_text(C, TIP_("LMB: Click and drag to draw cut line"));
