@@ -39,6 +39,7 @@
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 
+#include "BKE_attribute.h"
 #include "BKE_effect.h"
 #include "BKE_fluid.h"
 #include "BKE_global.h"
@@ -529,8 +530,7 @@ static bool BKE_fluid_modifier_init(
     copy_v3_v3_int(fds->res_max, res);
 
     /* Set time, frame length = 0.1 is at 25fps. */
-    float fps = scene->r.frs_sec / scene->r.frs_sec_base;
-    fds->frame_length = DT_DEFAULT * (25.0f / fps) * fds->time_scale;
+    fds->frame_length = DT_DEFAULT * (25.0f / FPS) * fds->time_scale;
     /* Initially dt is equal to frame length (dt can change with adaptive-time stepping though). */
     fds->dt = fds->frame_length;
     fds->time_per_frame = 0;
@@ -3256,7 +3256,10 @@ static void update_effectors(
   BKE_effectors_free(effectors);
 }
 
-static Mesh *create_liquid_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Object *ob)
+static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
+                                    Scene *scene,
+                                    Mesh *orgmesh,
+                                    Object *ob)
 {
   Mesh *me;
   MVert *mverts;
@@ -3303,22 +3306,6 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obj
   /* Normals are per vertex, so these must match. */
   BLI_assert(num_verts == num_normals);
 
-  /* If needed, vertex velocities will be read too. */
-  bool use_speedvectors = fds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS;
-  FluidDomainVertexVelocity *velarray = NULL;
-  float time_mult = 25.0f * DT_DEFAULT;
-
-  if (use_speedvectors) {
-    if (fds->mesh_velocities) {
-      MEM_freeN(fds->mesh_velocities);
-    }
-
-    fds->mesh_velocities = MEM_calloc_arrayN(
-        num_verts, sizeof(FluidDomainVertexVelocity), "fluid_mesh_vertvelocities");
-    fds->totvert = num_verts;
-    velarray = fds->mesh_velocities;
-  }
-
   me = BKE_mesh_new_nomain(num_verts, 0, 0, num_faces * 3, num_faces);
   if (!me) {
     return NULL;
@@ -3349,6 +3336,18 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obj
 
   /* Normals. */
   normals = MEM_callocN(sizeof(short[3]) * num_normals, "Fluidmesh_tmp_normals");
+
+  /* Velocities. */
+  /* If needed, vertex velocities will be read too. */
+  bool use_speedvectors = fds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS;
+  float(*velarray)[3] = NULL;
+  float time_mult = fds->dx / (DT_DEFAULT * (25.0f / FPS));
+
+  if (use_speedvectors) {
+    CustomDataLayer *velocity_layer = BKE_id_attribute_new(
+        &me->id, "velocity", CD_PROP_FLOAT3, ATTR_DOMAIN_POINT, NULL);
+    velarray = velocity_layer->data;
+  }
 
   /* Loop for vertices and normals. */
   for (i = 0, no_s = normals; i < num_verts && i < num_normals; i++, mverts++, no_s += 3) {
@@ -3389,18 +3388,18 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obj
 #  endif
 
     if (use_speedvectors) {
-      velarray[i].vel[0] = manta_liquid_get_vertvel_x_at(fds->fluid, i) * (fds->dx / time_mult);
-      velarray[i].vel[1] = manta_liquid_get_vertvel_y_at(fds->fluid, i) * (fds->dx / time_mult);
-      velarray[i].vel[2] = manta_liquid_get_vertvel_z_at(fds->fluid, i) * (fds->dx / time_mult);
+      velarray[i][0] = manta_liquid_get_vertvel_x_at(fds->fluid, i) * time_mult;
+      velarray[i][1] = manta_liquid_get_vertvel_y_at(fds->fluid, i) * time_mult;
+      velarray[i][2] = manta_liquid_get_vertvel_z_at(fds->fluid, i) * time_mult;
 #  ifdef DEBUG_PRINT
       /* Debugging: Print velocities of vertices. */
-      printf("velarray[%d].vel[0]: %f, velarray[%d].vel[1]: %f, velarray[%d].vel[2]: %f\n",
+      printf("velarray[%d][0]: %f, velarray[%d][1]: %f, velarray[%d][2]: %f\n",
              i,
-             velarray[i].vel[0],
+             velarray[i][0],
              i,
-             velarray[i].vel[1],
+             velarray[i][1],
              i,
-             velarray[i].vel[2]);
+             velarray[i][2]);
 #  endif
     }
   }
@@ -3670,8 +3669,7 @@ static void manta_guiding(
     Depsgraph *depsgraph, Scene *scene, Object *ob, FluidModifierData *fmd, int frame)
 {
   FluidDomainSettings *fds = fmd->domain;
-  float fps = scene->r.frs_sec / scene->r.frs_sec_base;
-  float dt = DT_DEFAULT * (25.0f / fps) * fds->time_scale;
+  float dt = DT_DEFAULT * (25.0f / FPS) * fds->time_scale;
 
   BLI_mutex_lock(&object_update_lock);
 
@@ -3842,8 +3840,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
   copy_v3_v3_int(o_shift, fds->shift);
 
   /* Ensure that time parameters are initialized correctly before every step. */
-  float fps = scene->r.frs_sec / scene->r.frs_sec_base;
-  fds->frame_length = DT_DEFAULT * (25.0f / fps) * fds->time_scale;
+  fds->frame_length = DT_DEFAULT * (25.0f / FPS) * fds->time_scale;
   fds->dt = fds->frame_length;
   fds->time_per_frame = 0;
 
@@ -4216,7 +4213,7 @@ struct Mesh *BKE_fluid_modifier_do(
     if (needs_viewport_update) {
       /* Return generated geometry depending on domain type. */
       if (fmd->domain->type == FLUID_DOMAIN_TYPE_LIQUID) {
-        result = create_liquid_geometry(fmd->domain, me, ob);
+        result = create_liquid_geometry(fmd->domain, scene, me, ob);
       }
       if (fmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
         result = create_smoke_geometry(fmd->domain, me, ob);
@@ -4773,8 +4770,6 @@ static void BKE_fluid_modifier_freeDomain(FluidModifierData *fmd)
       fmd->domain->point_cache[0] = NULL;
     }
 
-    MEM_SAFE_FREE(fmd->domain->mesh_velocities);
-
     if (fmd->domain->coba) {
       MEM_freeN(fmd->domain->coba);
     }
@@ -5010,16 +5005,12 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
     tfds->viscosity_exponent = fds->viscosity_exponent;
 
     /* mesh options */
-    if (fds->mesh_velocities) {
-      tfds->mesh_velocities = MEM_dupallocN(fds->mesh_velocities);
-    }
     tfds->mesh_concave_upper = fds->mesh_concave_upper;
     tfds->mesh_concave_lower = fds->mesh_concave_lower;
     tfds->mesh_particle_radius = fds->mesh_particle_radius;
     tfds->mesh_smoothen_pos = fds->mesh_smoothen_pos;
     tfds->mesh_smoothen_neg = fds->mesh_smoothen_neg;
     tfds->mesh_scale = fds->mesh_scale;
-    tfds->totvert = fds->totvert;
     tfds->mesh_generator = fds->mesh_generator;
 
     /* secondary particle options */

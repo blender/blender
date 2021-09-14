@@ -226,7 +226,7 @@ void register_node_type_geo_align_rotation_to_vector()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype,
-                     GEO_NODE_ALIGN_ROTATION_TO_VECTOR,
+                     GEO_NODE_LEGACY_ALIGN_ROTATION_TO_VECTOR,
                      "Align Rotation to Vector",
                      NODE_CLASS_GEOMETRY,
                      0);

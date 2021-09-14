@@ -236,6 +236,7 @@ class BlenderSync {
   id_map<ParticleSystemKey, ParticleSystem> particle_system_map;
   set<Geometry *> geometry_synced;
   set<Geometry *> geometry_motion_synced;
+  set<Geometry *> geometry_motion_attribute_synced;
   set<float> motion_times;
   void *world_map;
   bool world_recalc;

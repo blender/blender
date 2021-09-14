@@ -31,6 +31,8 @@
 extern "C" {
 #endif
 
+struct AnonymousAttributeID;
+
 /** Descriptor and storage for a custom data layer. */
 typedef struct CustomDataLayer {
   /** Type of data in layer. */
@@ -53,6 +55,13 @@ typedef struct CustomDataLayer {
   char name[64];
   /** Layer data. */
   void *data;
+  /**
+   * Run-time identifier for this layer. If no one has a strong reference to this id anymore,
+   * the layer can be removed. The custom data layer only has a weak reference to the id, because
+   * otherwise there will always be a strong reference and the attribute can't be removed
+   * automatically.
+   */
+  const struct AnonymousAttributeID *anonymous_id;
 } CustomDataLayer;
 
 #define MAX_CUSTOMDATA_LAYER_NAME 64

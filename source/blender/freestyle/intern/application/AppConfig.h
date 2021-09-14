@@ -115,10 +115,6 @@ static const string OPTIONS_FILE("options.xml");
 static const string OPTIONS_CURRENT_DIRS_FILE("current_dirs.xml");
 static const string OPTIONS_QGLVIEWER_FILE("qglviewer.xml");
 
-// Default options
-static const real DEFAULT_SPHERE_RADIUS = 1.0;
-static const real DEFAULT_DKR_EPSILON = 0.0;
-
 }  // namespace Config
 
 } /* namespace Freestyle */

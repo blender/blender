@@ -60,7 +60,7 @@ class USDGenericMeshWriter : public USDAbstractWriter {
                            bool as_point_groups);
   void write_face_maps(const Object *ob, const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
-  void write_surface_velocity(Object *object, const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+  void write_surface_velocity(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
 
  protected:
   ModifierData *m_subsurf_mod;

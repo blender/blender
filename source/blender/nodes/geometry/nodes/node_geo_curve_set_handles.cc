@@ -130,7 +130,7 @@ void register_node_type_geo_curve_set_handles()
 {
   static bNodeType ntype;
   geo_node_type_base(
-      &ntype, GEO_NODE_CURVE_SET_HANDLES, "Set Handle Type", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_LEGACY_CURVE_SET_HANDLES, "Set Handle Type", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_curve_set_handles_decalre;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_set_handles_exec;
   node_type_init(&ntype, blender::nodes::geo_node_curve_set_handles_init);

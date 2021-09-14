@@ -85,7 +85,7 @@ void register_node_type_geo_select_by_material()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_SELECT_BY_MATERIAL, "Select by Material", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_LEGACY_SELECT_BY_MATERIAL, "Select by Material", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_select_by_material_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_select_by_material_exec;
   nodeRegisterType(&ntype);

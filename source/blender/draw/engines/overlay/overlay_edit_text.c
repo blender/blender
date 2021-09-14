@@ -180,19 +180,12 @@ static void edit_text_cache_populate_boxes(OVERLAY_Data *vedata, Object *ob)
 void OVERLAY_edit_text_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  Curve *cu = ob->data;
   struct GPUBatch *geom;
   bool do_in_front = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
 
-  bool has_surface = (cu->flag & (CU_FRONT | CU_BACK)) || cu->ext1 != 0.0f || cu->ext2 != 0.0f;
-  if ((cu->flag & CU_FAST) || !has_surface) {
-    geom = DRW_cache_text_edge_wire_get(ob);
-    if (geom) {
-      DRW_shgroup_call(pd->edit_text_wire_grp[do_in_front], geom, ob);
-    }
-  }
-  else {
-    /* object mode draws */
+  geom = DRW_cache_text_edge_wire_get(ob);
+  if (geom) {
+    DRW_shgroup_call(pd->edit_text_wire_grp[do_in_front], geom, ob);
   }
 
   edit_text_cache_populate_select(vedata, ob);

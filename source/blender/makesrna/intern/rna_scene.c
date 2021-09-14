@@ -2845,7 +2845,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
        "IMAGE",
        ICON_IMAGE_DATA,
        "Image",
-       "Strick stroke to the image"},
+       "Stick stroke to the image"},
       /* Weird, GP_PROJECT_VIEWALIGN is inverted. */
       {0, "VIEW", ICON_RESTRICT_VIEW_ON, "View", "Stick stroke to the view"},
       {0, NULL, 0, NULL, NULL},
@@ -4597,12 +4597,12 @@ void rna_def_freestyle_settings(BlenderRNA *brna)
       {FREESTYLE_CONTROL_SCRIPT_MODE,
        "SCRIPT",
        0,
-       "Python Scripting Mode",
+       "Python Scripting",
        "Advanced mode for using style modules written in Python"},
       {FREESTYLE_CONTROL_EDITOR_MODE,
        "EDITOR",
        0,
-       "Parameter Editor Mode",
+       "Parameter Editor",
        "Basic mode for interactive style parameter editing"},
       {0, NULL, 0, NULL, NULL},
   };
@@ -4613,7 +4613,7 @@ void rna_def_freestyle_settings(BlenderRNA *brna)
       {FREESTYLE_QI_RANGE,
        "RANGE",
        0,
-       "QI Range",
+       "Quantitative Invisibility",
        "Select feature edges within a range of quantitative invisibility (QI) values"},
       {0, NULL, 0, NULL, NULL},
   };
@@ -4930,14 +4930,6 @@ void rna_def_freestyle_settings(BlenderRNA *brna)
       prop, "Face Smoothness", "Take face smoothness into account in view map calculation");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
-  prop = RNA_def_property(srna, "use_advanced_options", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_ADVANCED_OPTIONS_FLAG);
-  RNA_def_property_ui_text(
-      prop,
-      "Advanced Options",
-      "Enable advanced edge detection options (sphere radius and Kr derivative epsilon)");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
-
   prop = RNA_def_property(srna, "use_view_map_cache", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_VIEW_MAP_CACHE);
   RNA_def_property_ui_text(
@@ -4957,11 +4949,13 @@ void rna_def_freestyle_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "sphere_radius", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "sphere_radius");
+  RNA_def_property_float_default(prop, 1.0);
   RNA_def_property_range(prop, 0.0, 1000.0);
   RNA_def_property_ui_text(prop, "Sphere Radius", "Sphere radius for computing curvatures");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
   prop = RNA_def_property(srna, "kr_derivative_epsilon", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_default(prop, 0.0);
   RNA_def_property_float_sdna(prop, NULL, "dkr_epsilon");
   RNA_def_property_range(prop, -1000.0, 1000.0);
   RNA_def_property_ui_text(

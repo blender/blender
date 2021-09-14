@@ -152,7 +152,8 @@ void register_node_type_geo_attribute_fill()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_ATTRIBUTE_FILL, "Attribute Fill", NODE_CLASS_ATTRIBUTE, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_LEGACY_ATTRIBUTE_FILL, "Attribute Fill", NODE_CLASS_ATTRIBUTE, 0);
   node_type_init(&ntype, blender::nodes::geo_node_attribute_fill_init);
   node_type_update(&ntype, blender::nodes::geo_node_attribute_fill_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_fill_exec;

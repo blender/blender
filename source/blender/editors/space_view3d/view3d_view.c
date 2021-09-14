@@ -137,7 +137,6 @@ void ED_view3d_smooth_view_ex(
 {
   RegionView3D *rv3d = region->regiondata;
   struct SmoothView3DStore sms = {{0}};
-  bool ok = false;
 
   /* initialize sms */
   view3d_smooth_view_state_backup(&sms.dst, v3d, rv3d);
@@ -200,92 +199,75 @@ void ED_view3d_smooth_view_ex(
     sms.to_camera = true; /* restore view3d values in end */
   }
 
-  /* skip smooth viewing for external render engine draw */
-  if (smooth_viewtx && !(v3d->shading.type == OB_RENDER && rv3d->render_engine)) {
-    bool changed = false; /* zero means no difference */
-
-    if (sview->camera_old != sview->camera) {
-      changed = true;
-    }
-    else if (sms.dst.dist != rv3d->dist) {
-      changed = true;
-    }
-    else if (sms.dst.lens != v3d->lens) {
-      changed = true;
-    }
-    else if (!equals_v3v3(sms.dst.ofs, rv3d->ofs)) {
-      changed = true;
-    }
-    else if (!equals_v4v4(sms.dst.quat, rv3d->viewquat)) {
-      changed = true;
-    }
-
-    /* The new view is different from the old one
-     * so animate the view */
-    if (changed) {
-      /* original values */
-      if (sview->camera_old) {
-        Object *ob_camera_old_eval = DEG_get_evaluated_object(depsgraph, sview->camera_old);
-        if (sview->ofs != NULL) {
-          sms.src.dist = ED_view3d_offset_distance(ob_camera_old_eval->obmat, sview->ofs, 0.0f);
-        }
-        ED_view3d_from_object(
-            ob_camera_old_eval, sms.src.ofs, sms.src.quat, &sms.src.dist, &sms.src.lens);
-      }
-      /* grid draw as floor */
-      if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) {
-        /* use existing if exists, means multiple calls to smooth view
-         * won't lose the original 'view' setting */
-        rv3d->view = RV3D_VIEW_USER;
-      }
-
-      sms.time_allowed = (double)smooth_viewtx / 1000.0;
-
-      /* if this is view rotation only
-       * we can decrease the time allowed by
-       * the angle between quats
-       * this means small rotations won't lag */
-      if (sview->quat && !sview->ofs && !sview->dist) {
-        /* scale the time allowed by the rotation */
-        /* 180deg == 1.0 */
-        sms.time_allowed *= (double)fabsf(
-                                angle_signed_normalized_qtqt(sms.dst.quat, sms.src.quat)) /
-                            M_PI;
-      }
-
-      /* ensure it shows correct */
-      if (sms.to_camera) {
-        /* use ortho if we move from an ortho view to an ortho camera */
-        Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, sview->camera);
-        rv3d->persp = (((rv3d->is_persp == false) && (ob_camera_eval->type == OB_CAMERA) &&
-                        (((Camera *)ob_camera_eval->data)->type == CAM_ORTHO)) ?
-                           RV3D_ORTHO :
-                           RV3D_PERSP);
-      }
-
-      rv3d->rflag |= RV3D_NAVIGATING;
-
-      /* not essential but in some cases the caller will tag the area for redraw, and in that
-       * case we can get a flicker of the 'org' user view but we want to see 'src' */
-      view3d_smooth_view_state_restore(&sms.src, v3d, rv3d);
-
-      /* keep track of running timer! */
-      if (rv3d->sms == NULL) {
-        rv3d->sms = MEM_mallocN(sizeof(struct SmoothView3DStore), "smoothview v3d");
-      }
-      *rv3d->sms = sms;
-      if (rv3d->smooth_timer) {
-        WM_event_remove_timer(wm, win, rv3d->smooth_timer);
-      }
-      /* #TIMER1 is hard-coded in key-map. */
-      rv3d->smooth_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 100.0);
-
-      ok = true;
-    }
+  if ((sview->camera_old == sview->camera) &&   /* Camera. */
+      (sms.dst.dist == rv3d->dist) &&           /* Distance. */
+      (sms.dst.lens == v3d->lens) &&            /* Lens. */
+      equals_v3v3(sms.dst.ofs, rv3d->ofs) &&    /* Offset. */
+      equals_v4v4(sms.dst.quat, rv3d->viewquat) /* Rotation. */
+  ) {
+    /* Early return if nothing changed. */
+    return;
   }
 
-  /* if we get here nothing happens */
-  if (ok == false) {
+  /* Skip smooth viewing for external render engine draw. */
+  if (smooth_viewtx && !(v3d->shading.type == OB_RENDER && rv3d->render_engine)) {
+
+    /* original values */
+    if (sview->camera_old) {
+      Object *ob_camera_old_eval = DEG_get_evaluated_object(depsgraph, sview->camera_old);
+      if (sview->ofs != NULL) {
+        sms.src.dist = ED_view3d_offset_distance(ob_camera_old_eval->obmat, sview->ofs, 0.0f);
+      }
+      ED_view3d_from_object(
+          ob_camera_old_eval, sms.src.ofs, sms.src.quat, &sms.src.dist, &sms.src.lens);
+    }
+    /* grid draw as floor */
+    if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) {
+      /* use existing if exists, means multiple calls to smooth view
+       * won't lose the original 'view' setting */
+      rv3d->view = RV3D_VIEW_USER;
+    }
+
+    sms.time_allowed = (double)smooth_viewtx / 1000.0;
+
+    /* If this is view rotation only we can decrease the time allowed by the angle between quats
+     * this means small rotations won't lag. */
+    if (sview->quat && !sview->ofs && !sview->dist) {
+      /* scale the time allowed by the rotation */
+      /* 180deg == 1.0 */
+      sms.time_allowed *= (double)fabsf(angle_signed_normalized_qtqt(sms.dst.quat, sms.src.quat)) /
+                          M_PI;
+    }
+
+    /* ensure it shows correct */
+    if (sms.to_camera) {
+      /* use ortho if we move from an ortho view to an ortho camera */
+      Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, sview->camera);
+      rv3d->persp = (((rv3d->is_persp == false) && (ob_camera_eval->type == OB_CAMERA) &&
+                      (((Camera *)ob_camera_eval->data)->type == CAM_ORTHO)) ?
+                         RV3D_ORTHO :
+                         RV3D_PERSP);
+    }
+
+    rv3d->rflag |= RV3D_NAVIGATING;
+
+    /* not essential but in some cases the caller will tag the area for redraw, and in that
+     * case we can get a flicker of the 'org' user view but we want to see 'src' */
+    view3d_smooth_view_state_restore(&sms.src, v3d, rv3d);
+
+    /* keep track of running timer! */
+    if (rv3d->sms == NULL) {
+      rv3d->sms = MEM_mallocN(sizeof(struct SmoothView3DStore), "smoothview v3d");
+    }
+    *rv3d->sms = sms;
+    if (rv3d->smooth_timer) {
+      WM_event_remove_timer(wm, win, rv3d->smooth_timer);
+    }
+    /* #TIMER1 is hard-coded in key-map. */
+    rv3d->smooth_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 100.0);
+  }
+  else {
+    /* Animation is disabled, apply immediately. */
     if (sms.to_camera == false) {
       copy_v3_v3(rv3d->ofs, sms.dst.ofs);
       copy_qt_qt(rv3d->viewquat, sms.dst.quat);
@@ -300,6 +282,8 @@ void ED_view3d_smooth_view_ex(
     }
 
     ED_region_tag_redraw(region);
+
+    WM_event_add_mousemove(win);
   }
 }
 
@@ -320,6 +304,7 @@ void ED_view3d_smooth_view(bContext *C,
 /* only meant for timer usage */
 static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, bool sync_boxview)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   RegionView3D *rv3d = region->regiondata;
   struct SmoothView3DStore *sms = rv3d->sms;
   float step, step_inv;
@@ -333,6 +318,7 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, b
 
   /* end timer */
   if (step >= 1.0f) {
+    wmWindow *win = CTX_wm_window(C);
 
     /* if we went to camera, store the original */
     if (sms->to_camera) {
@@ -355,9 +341,12 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, b
     MEM_freeN(rv3d->sms);
     rv3d->sms = NULL;
 
-    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), rv3d->smooth_timer);
+    WM_event_remove_timer(wm, win, rv3d->smooth_timer);
     rv3d->smooth_timer = NULL;
     rv3d->rflag &= ~RV3D_NAVIGATING;
+
+    /* Event handling won't know if a UI item has been moved under the pointer. */
+    WM_event_add_mousemove(win);
   }
   else {
     /* ease in/out */
@@ -380,12 +369,9 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, b
 
     const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
-    if (ED_screen_animation_playing(CTX_wm_manager(C))) {
+    if (ED_screen_animation_playing(wm)) {
       ED_view3d_camera_lock_autokey(v3d, rv3d, C, true, true);
     }
-
-    /* Event handling won't know if a UI item has been moved under the pointer. */
-    WM_event_add_mousemove(CTX_wm_window(C));
   }
 
   if (sync_boxview && (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW)) {

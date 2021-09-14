@@ -83,9 +83,9 @@ static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
       reverse_data<float>(splines[i]->tilts());
 
       splines[i]->attributes.foreach_attribute(
-          [&](StringRefNull name, const AttributeMetaData &meta_data) {
+          [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
             std::optional<blender::fn::GMutableSpan> output_attribute =
-                splines[i]->attributes.get_for_write(name);
+                splines[i]->attributes.get_for_write(attribute_id);
             if (!output_attribute) {
               BLI_assert_unreachable();
               return false;
@@ -121,7 +121,8 @@ static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
 void register_node_type_geo_curve_reverse()
 {
   static bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_REVERSE, "Curve Reverse", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_LEGACY_CURVE_REVERSE, "Curve Reverse", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_curve_reverse_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_reverse_exec;
   nodeRegisterType(&ntype);

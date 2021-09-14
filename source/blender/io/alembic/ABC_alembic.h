@@ -117,7 +117,9 @@ struct Mesh *ABC_read_mesh(struct CacheReader *reader,
                            struct Mesh *existing_mesh,
                            const float time,
                            const char **err_str,
-                           int read_flags);
+                           const int read_flags,
+                           const char *velocity_name,
+                           const float velocity_scale);
 
 bool ABC_mesh_topology_changed(struct CacheReader *reader,
                                struct Object *ob,
@@ -132,16 +134,6 @@ struct CacheReader *CacheReader_open_alembic_object(struct CacheArchiveHandle *h
                                                     struct CacheReader *reader,
                                                     struct Object *object,
                                                     const char *object_path);
-
-bool ABC_has_vec3_array_property_named(struct CacheReader *reader, const char *name);
-
-/* r_vertex_velocities should point to a preallocated array of num_vertices floats */
-int ABC_read_velocity_cache(struct CacheReader *reader,
-                            const char *velocity_name,
-                            float time,
-                            float velocity_scale,
-                            int num_vertices,
-                            float *r_vertex_velocities);
 
 #ifdef __cplusplus
 }

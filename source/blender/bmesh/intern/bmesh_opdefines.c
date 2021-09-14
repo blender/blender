@@ -1587,7 +1587,7 @@ static BMOpDefine bmo_create_uvsphere_def = {
   /* slots_in */
   {{"u_segments",      BMO_OP_SLOT_INT}, /* number of u segments */
    {"v_segments",      BMO_OP_SLOT_INT}, /* number of v segment */
-   {"diameter",        BMO_OP_SLOT_FLT}, /* diameter */
+   {"radius",          BMO_OP_SLOT_FLT}, /* radius */
    {"matrix",          BMO_OP_SLOT_MAT}, /* matrix to multiply the new geometry with */
    {"calc_uvs",        BMO_OP_SLOT_BOOL}, /* calculate default UVs */
    {{'\0'}},
@@ -1610,7 +1610,7 @@ static BMOpDefine bmo_create_icosphere_def = {
   "create_icosphere",
   /* slots_in */
   {{"subdivisions",    BMO_OP_SLOT_INT}, /* how many times to recursively subdivide the sphere */
-   {"diameter",        BMO_OP_SLOT_FLT}, /* diameter */
+   {"radius",          BMO_OP_SLOT_FLT}, /* radius */
    {"matrix",          BMO_OP_SLOT_MAT}, /* matrix to multiply the new geometry with */
    {"calc_uvs",        BMO_OP_SLOT_BOOL}, /* calculate default UVs */
    {{'\0'}},
@@ -1656,8 +1656,8 @@ static BMOpDefine bmo_create_cone_def = {
   {{"cap_ends",        BMO_OP_SLOT_BOOL},  /* whether or not to fill in the ends with faces */
    {"cap_tris",        BMO_OP_SLOT_BOOL},  /* fill ends with triangles instead of ngons */
    {"segments",        BMO_OP_SLOT_INT},  /* number of vertices in the base circle */
-   {"diameter1",       BMO_OP_SLOT_FLT},  /* diameter of one end */
-   {"diameter2",       BMO_OP_SLOT_FLT},  /* diameter of the opposite */
+   {"radius1",         BMO_OP_SLOT_FLT},  /* radius of one end */
+   {"radius2",         BMO_OP_SLOT_FLT},  /* radius of the opposite */
    {"depth",           BMO_OP_SLOT_FLT},  /* distance between ends */
    {"matrix",          BMO_OP_SLOT_MAT},  /* matrix to multiply the new geometry with */
    {"calc_uvs",        BMO_OP_SLOT_BOOL}, /* calculate default UVs */

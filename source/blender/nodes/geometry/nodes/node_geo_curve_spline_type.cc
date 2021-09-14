@@ -74,14 +74,14 @@ template<typename CopyFn>
 static void copy_attributes(const Spline &input_spline, Spline &output_spline, CopyFn copy_fn)
 {
   input_spline.attributes.foreach_attribute(
-      [&](StringRefNull name, const AttributeMetaData &meta_data) {
-        std::optional<GSpan> src = input_spline.attributes.get_for_read(name);
+      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+        std::optional<GSpan> src = input_spline.attributes.get_for_read(attribute_id);
         BLI_assert(src);
-        if (!output_spline.attributes.create(name, meta_data.data_type)) {
+        if (!output_spline.attributes.create(attribute_id, meta_data.data_type)) {
           BLI_assert_unreachable();
           return false;
         }
-        std::optional<GMutableSpan> dst = output_spline.attributes.get_for_write(name);
+        std::optional<GMutableSpan> dst = output_spline.attributes.get_for_write(attribute_id);
         if (!dst) {
           BLI_assert_unreachable();
           return false;
@@ -288,7 +288,7 @@ void register_node_type_geo_curve_spline_type()
 {
   static bNodeType ntype;
   geo_node_type_base(
-      &ntype, GEO_NODE_CURVE_SPLINE_TYPE, "Set Spline Type", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_LEGACY_CURVE_SPLINE_TYPE, "Set Spline Type", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_curve_spline_type_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_spline_type_exec;
   node_type_init(&ntype, blender::nodes::geo_node_curve_spline_type_init);

@@ -604,7 +604,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
        * only available in preview renders since currently do not have a good cache policy, the
        * data being loaded at once for all the frames. */
       if (experimental && b_v3d) {
-        b_mesh_cache = object_mesh_cache_find(b_ob, false, &has_subdivision_modifier);
+        b_mesh_cache = object_mesh_cache_find(b_ob, &has_subdivision_modifier);
         use_procedural = b_mesh_cache && b_mesh_cache.cache_file().use_render_procedural();
       }
 
@@ -719,6 +719,14 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
     }
   }
 
+  /* Check which geometry already has motion blur so it can be skipped. */
+  geometry_motion_attribute_synced.clear();
+  for (Geometry *geom : scene->geometry) {
+    if (geom->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
+      geometry_motion_attribute_synced.insert(geom);
+    }
+  }
+
   /* note iteration over motion_times set happens in sorted order */
   foreach (float relative_time, motion_times) {
     /* center time is already handled. */
@@ -748,6 +756,8 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
     /* sync object */
     sync_objects(b_depsgraph, b_v3d, relative_time);
   }
+
+  geometry_motion_attribute_synced.clear();
 
   /* we need to set the python thread state again because this
    * function assumes it is being executed from python and will

@@ -263,7 +263,7 @@ TEST(multi_function, CustomMF_Constant)
 TEST(multi_function, CustomMF_GenericConstant)
 {
   int value = 42;
-  CustomMF_GenericConstant fn{CPPType::get<int32_t>(), (const void *)&value};
+  CustomMF_GenericConstant fn{CPPType::get<int32_t>(), (const void *)&value, false};
   EXPECT_EQ(fn.param_name(0), "42");
 
   Array<int> outputs(4, 0);

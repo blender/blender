@@ -56,25 +56,26 @@ static void copy_spline_domain_attributes(const CurveComponent &curve_component,
                                           Span<int> offsets,
                                           PointCloudComponent &points)
 {
-  curve_component.attribute_foreach([&](StringRefNull name, const AttributeMetaData &meta_data) {
-    if (meta_data.domain != ATTR_DOMAIN_CURVE) {
-      return true;
-    }
-    GVArrayPtr spline_attribute = curve_component.attribute_get_for_read(
-        name, ATTR_DOMAIN_CURVE, meta_data.data_type);
+  curve_component.attribute_foreach(
+      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+        if (meta_data.domain != ATTR_DOMAIN_CURVE) {
+          return true;
+        }
+        GVArrayPtr spline_attribute = curve_component.attribute_get_for_read(
+            attribute_id, ATTR_DOMAIN_CURVE, meta_data.data_type);
 
-    OutputAttribute result_attribute = points.attribute_try_get_for_output_only(
-        name, ATTR_DOMAIN_POINT, meta_data.data_type);
-    GMutableSpan result = result_attribute.as_span();
+        OutputAttribute result_attribute = points.attribute_try_get_for_output_only(
+            attribute_id, ATTR_DOMAIN_POINT, meta_data.data_type);
+        GMutableSpan result = result_attribute.as_span();
 
-    /* Only copy the attributes of splines in the offsets. */
-    for (const int i : offsets.index_range()) {
-      spline_attribute->get(offsets[i], result[i]);
-    }
+        /* Only copy the attributes of splines in the offsets. */
+        for (const int i : offsets.index_range()) {
+          spline_attribute->get(offsets[i], result[i]);
+        }
 
-    result_attribute.save();
-    return true;
-  });
+        result_attribute.save();
+        return true;
+      });
 }
 
 /**
@@ -124,20 +125,20 @@ static void copy_endpoint_attributes(Span<SplinePtr> splines,
 
       /* Copy the point attribute data over. */
       for (const auto &item : start_data.point_attributes.items()) {
-        const StringRef name = item.key;
+        const AttributeIDRef attribute_id = item.key;
         GMutableSpan point_span = item.value;
 
-        BLI_assert(spline.attributes.get_for_read(name));
-        GSpan spline_span = *spline.attributes.get_for_read(name);
+        BLI_assert(spline.attributes.get_for_read(attribute_id));
+        GSpan spline_span = *spline.attributes.get_for_read(attribute_id);
         blender::fn::GVArray_For_GSpan(spline_span).get(0, point_span[i]);
       }
 
       for (const auto &item : end_data.point_attributes.items()) {
-        const StringRef name = item.key;
+        const AttributeIDRef attribute_id = item.key;
         GMutableSpan point_span = item.value;
 
-        BLI_assert(spline.attributes.get_for_read(name));
-        GSpan spline_span = *spline.attributes.get_for_read(name);
+        BLI_assert(spline.attributes.get_for_read(attribute_id));
+        GSpan spline_span = *spline.attributes.get_for_read(attribute_id);
         blender::fn::GVArray_For_GSpan(spline_span).get(spline.size() - 1, point_span[i]);
       }
     }

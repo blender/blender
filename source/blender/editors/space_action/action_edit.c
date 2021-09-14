@@ -192,7 +192,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
         bGPDlayer *gpl = ale->data;
         bGPDframe *gpf;
 
-        /* find gp-frame which is less than or equal to cframe */
+        /* Find gp-frame which is less than or equal to current-frame. */
         for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
           const float framenum = (float)gpf->framenum;
           *min = min_ff(*min, framenum);
@@ -204,7 +204,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
         MaskLayer *masklay = ale->data;
         MaskLayerShape *masklay_shape;
 
-        /* find mask layer which is less than or equal to cframe */
+        /* Find mask layer which is less than or equal to current-frame. */
         for (masklay_shape = masklay->splines_shapes.first; masklay_shape;
              masklay_shape = masklay_shape->next) {
           const float framenum = (float)masklay_shape->frame;

@@ -158,8 +158,8 @@ static void trim_poly_spline(Spline &spline,
   linear_trim_data<float>(start, end, spline.tilts());
 
   spline.attributes.foreach_attribute(
-      [&](StringRefNull name, const AttributeMetaData &UNUSED(meta_data)) {
-        std::optional<GMutableSpan> src = spline.attributes.get_for_write(name);
+      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &UNUSED(meta_data)) {
+        std::optional<GMutableSpan> src = spline.attributes.get_for_write(attribute_id);
         BLI_assert(src);
         attribute_math::convert_to_static_type(src->type(), [&](auto dummy) {
           using T = decltype(dummy);
@@ -193,14 +193,14 @@ static PolySpline trim_nurbs_spline(const Spline &spline,
 
   /* Copy generic attribute data. */
   spline.attributes.foreach_attribute(
-      [&](StringRefNull name, const AttributeMetaData &meta_data) {
-        std::optional<GSpan> src = spline.attributes.get_for_read(name);
+      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+        std::optional<GSpan> src = spline.attributes.get_for_read(attribute_id);
         BLI_assert(src);
-        if (!new_spline.attributes.create(name, meta_data.data_type)) {
+        if (!new_spline.attributes.create(attribute_id, meta_data.data_type)) {
           BLI_assert_unreachable();
           return false;
         }
-        std::optional<GMutableSpan> dst = new_spline.attributes.get_for_write(name);
+        std::optional<GMutableSpan> dst = new_spline.attributes.get_for_write(attribute_id);
         BLI_assert(dst);
 
         attribute_math::convert_to_static_type(src->type(), [&](auto dummy) {
@@ -249,8 +249,8 @@ static void trim_bezier_spline(Spline &spline,
   linear_trim_data<float>(start, end, bezier_spline.radii());
   linear_trim_data<float>(start, end, bezier_spline.tilts());
   spline.attributes.foreach_attribute(
-      [&](StringRefNull name, const AttributeMetaData &UNUSED(meta_data)) {
-        std::optional<GMutableSpan> src = spline.attributes.get_for_write(name);
+      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &UNUSED(meta_data)) {
+        std::optional<GMutableSpan> src = spline.attributes.get_for_write(attribute_id);
         BLI_assert(src);
         attribute_math::convert_to_static_type(src->type(), [&](auto dummy) {
           using T = decltype(dummy);

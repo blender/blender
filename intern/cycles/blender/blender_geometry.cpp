@@ -189,8 +189,10 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
   /* Ensure we only sync instanced geometry once. */
   Geometry *geom = object->get_geometry();
 
-  if (geometry_motion_synced.find(geom) != geometry_motion_synced.end())
+  if (geometry_motion_synced.find(geom) != geometry_motion_synced.end() ||
+      geometry_motion_attribute_synced.find(geom) != geometry_motion_attribute_synced.end()) {
     return;
+  }
 
   geometry_motion_synced.insert(geom);
 

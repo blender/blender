@@ -42,7 +42,9 @@ class AbcMeshReader : public AbcObjectReader {
 
   struct Mesh *read_mesh(struct Mesh *existing_mesh,
                          const Alembic::Abc::ISampleSelector &sample_sel,
-                         int read_flag,
+                         const int read_flag,
+                         const char *velocity_name,
+                         const float velocity_scale,
                          const char **err_str) override;
   bool topology_changed(Mesh *existing_mesh,
                         const Alembic::Abc::ISampleSelector &sample_sel) override;
@@ -73,7 +75,9 @@ class AbcSubDReader : public AbcObjectReader {
   void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
   struct Mesh *read_mesh(struct Mesh *existing_mesh,
                          const Alembic::Abc::ISampleSelector &sample_sel,
-                         int read_flag,
+                         const int read_flag,
+                         const char *velocity_name,
+                         const float velocity_scale,
                          const char **err_str);
 };
 

@@ -70,7 +70,7 @@ def git_branch_release_version(branch, tag):
     return release_version
 
 
-def svn_libraries_base_url(release_version, branch):
+def svn_libraries_base_url(release_version, branch=None):
     if release_version:
         svn_branch = "tags/blender-" + release_version + "-release"
     elif branch:

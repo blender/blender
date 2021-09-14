@@ -555,8 +555,11 @@ void register_node_type_geo_attribute_vector_math()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_ATTRIBUTE_VECTOR_MATH, "Attribute Vector Math", NODE_CLASS_ATTRIBUTE, 0);
+  geo_node_type_base(&ntype,
+                     GEO_NODE_LEGACY_ATTRIBUTE_VECTOR_MATH,
+                     "Attribute Vector Math",
+                     NODE_CLASS_ATTRIBUTE,
+                     0);
   ntype.declare = blender::nodes::geo_node_attribute_vector_math_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_vector_math_exec;
   ntype.draw_buttons = blender::nodes::geo_node_attribute_vector_math_layout;

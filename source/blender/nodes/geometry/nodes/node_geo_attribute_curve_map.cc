@@ -211,7 +211,7 @@ void register_node_type_geo_attribute_curve_map()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_ATTRIBUTE_CURVE_MAP, "Attribute Curve Map", NODE_CLASS_ATTRIBUTE, 0);
+      &ntype, GEO_NODE_LEGACY_ATTRIBUTE_CURVE_MAP, "Attribute Curve Map", NODE_CLASS_ATTRIBUTE, 0);
   node_type_update(&ntype, blender::nodes::geo_node_attribute_curve_map_update);
   node_type_init(&ntype, blender::nodes::geo_node_attribute_curve_map_init);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);

@@ -41,10 +41,12 @@
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -78,6 +80,8 @@
 
 #include "NOD_geometry_nodes_eval_log.hh"
 
+#include "FN_field_cpp_type.hh"
+
 #include "node_intern.h" /* own include */
 
 #ifdef WITH_COMPOSITOR
@@ -88,7 +92,11 @@ using blender::Map;
 using blender::Set;
 using blender::Span;
 using blender::Vector;
+using blender::VectorSet;
 using blender::fn::CPPType;
+using blender::fn::FieldCPPType;
+using blender::fn::FieldInput;
+using blender::fn::GField;
 using blender::fn::GPointer;
 namespace geo_log = blender::nodes::geometry_nodes_eval_log;
 
@@ -850,31 +858,70 @@ static void create_inspection_string_for_generic_value(const geo_log::GenericVal
   };
 
   const GPointer value = value_log.value();
-  if (value.is_type<int>()) {
-    ss << *value.get<int>() << TIP_(" (Integer)");
+  const CPPType &type = *value.type();
+  if (const FieldCPPType *field_type = dynamic_cast<const FieldCPPType *>(&type)) {
+    const CPPType &base_type = field_type->field_type();
+    BUFFER_FOR_CPP_TYPE_VALUE(base_type, buffer);
+    const GField &field = field_type->get_gfield(value.get());
+    if (field.node().depends_on_input()) {
+      if (base_type.is<int>()) {
+        ss << TIP_("Integer Field");
+      }
+      else if (base_type.is<float>()) {
+        ss << TIP_("Float Field");
+      }
+      else if (base_type.is<blender::float3>()) {
+        ss << TIP_("Vector Field");
+      }
+      else if (base_type.is<bool>()) {
+        ss << TIP_("Boolean Field");
+      }
+      else if (base_type.is<std::string>()) {
+        ss << TIP_("String Field");
+      }
+      ss << TIP_(" based on:\n");
+
+      /* Use vector set to deduplicate inputs. */
+      VectorSet<std::reference_wrapper<const FieldInput>> field_inputs;
+      field.node().foreach_field_input(
+          [&](const FieldInput &field_input) { field_inputs.add(field_input); });
+      for (const FieldInput &field_input : field_inputs) {
+        ss << "\u2022 " << field_input.socket_inspection_name();
+        if (field_input != field_inputs.as_span().last().get()) {
+          ss << ".\n";
+        }
+      }
+    }
+    else {
+      blender::fn::evaluate_constant_field(field, buffer);
+      if (base_type.is<int>()) {
+        ss << *(int *)buffer << TIP_(" (Integer)");
+      }
+      else if (base_type.is<float>()) {
+        ss << *(float *)buffer << TIP_(" (Float)");
+      }
+      else if (base_type.is<blender::float3>()) {
+        ss << *(blender::float3 *)buffer << TIP_(" (Vector)");
+      }
+      else if (base_type.is<bool>()) {
+        ss << ((*(bool *)buffer) ? TIP_("True") : TIP_("False")) << TIP_(" (Boolean)");
+      }
+      else if (base_type.is<std::string>()) {
+        ss << *(std::string *)buffer << TIP_(" (String)");
+      }
+      base_type.destruct(buffer);
+    }
   }
-  else if (value.is_type<float>()) {
-    ss << *value.get<float>() << TIP_(" (Float)");
-  }
-  else if (value.is_type<blender::float3>()) {
-    ss << *value.get<blender::float3>() << TIP_(" (Vector)");
-  }
-  else if (value.is_type<bool>()) {
-    ss << (*value.get<bool>() ? TIP_("True") : TIP_("False")) << TIP_(" (Boolean)");
-  }
-  else if (value.is_type<std::string>()) {
-    ss << *value.get<std::string>() << TIP_(" (String)");
-  }
-  else if (value.is_type<Object *>()) {
+  else if (type.is<Object *>()) {
     id_to_inspection_string((ID *)*value.get<Object *>(), ID_OB);
   }
-  else if (value.is_type<Material *>()) {
+  else if (type.is<Material *>()) {
     id_to_inspection_string((ID *)*value.get<Material *>(), ID_MA);
   }
-  else if (value.is_type<Tex *>()) {
+  else if (type.is<Tex *>()) {
     id_to_inspection_string((ID *)*value.get<Tex *>(), ID_TE);
   }
-  else if (value.is_type<Collection *>()) {
+  else if (type.is<Collection *>()) {
     id_to_inspection_string((ID *)*value.get<Collection *>(), ID_GR);
   }
 }

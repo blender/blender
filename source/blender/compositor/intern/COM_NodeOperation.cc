@@ -63,6 +63,10 @@ std::optional<NodeOperationHash> NodeOperation::generate_hash()
 
   hash.parents_hash_ = 0;
   for (NodeOperationInput &socket : m_inputs) {
+    if (!socket.isConnected()) {
+      continue;
+    }
+
     NodeOperation &input = socket.getLink()->getOperation();
     const bool is_constant = input.get_flags().is_constant_operation;
     combine_hashes(hash.parents_hash_, get_default_hash(is_constant));

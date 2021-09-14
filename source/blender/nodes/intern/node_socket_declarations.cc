@@ -148,6 +148,8 @@ bNodeSocket &Vector::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_ou
       &ntree, &node, in_out, SOCK_VECTOR, subtype_, identifier_.c_str(), name_.c_str());
   bNodeSocketValueVector &value = *(bNodeSocketValueVector *)socket.default_value;
   copy_v3_v3(value.value, default_value_);
+  value.min = soft_min_value_;
+  value.max = soft_max_value_;
   return socket;
 }
 

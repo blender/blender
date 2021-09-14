@@ -105,12 +105,13 @@ static PyObject *pygpu_shader__tp_new(PyTypeObject *UNUSED(type), PyObject *args
     const char *geocode;
     const char *libcode;
     const char *defines;
+    const char *name;
   } params = {0};
 
   static const char *_keywords[] = {
-      "vertexcode", "fragcode", "geocode", "libcode", "defines", NULL};
+      "vertexcode", "fragcode", "geocode", "libcode", "defines", "name", NULL};
 
-  static _PyArg_Parser _parser = {"ss|$sss:GPUShader.__new__", _keywords, 0};
+  static _PyArg_Parser _parser = {"ss|$ssss:GPUShader.__new__", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
                                         &_parser,
@@ -118,12 +119,17 @@ static PyObject *pygpu_shader__tp_new(PyTypeObject *UNUSED(type), PyObject *args
                                         &params.fragcode,
                                         &params.geocode,
                                         &params.libcode,
-                                        &params.defines)) {
+                                        &params.defines,
+                                        &params.name)) {
     return NULL;
   }
 
-  GPUShader *shader = GPU_shader_create_from_python(
-      params.vertexcode, params.fragcode, params.geocode, params.libcode, params.defines);
+  GPUShader *shader = GPU_shader_create_from_python(params.vertexcode,
+                                                    params.fragcode,
+                                                    params.geocode,
+                                                    params.libcode,
+                                                    params.defines,
+                                                    params.name);
 
   if (shader == NULL) {
     PyErr_SetString(PyExc_Exception, "Shader Compile Error, see console for more details");
@@ -639,6 +645,13 @@ static struct PyMethodDef pygpu_shader__tp_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
+PyDoc_STRVAR(pygpu_shader_name_doc,
+             "The name of the shader object for debugging purposes (read-only).\n\n:type: str");
+static PyObject *pygpu_shader_name(BPyGPUShader *self)
+{
+  return PyUnicode_FromString(GPU_shader_get_name(self->shader));
+}
+
 PyDoc_STRVAR(
     pygpu_shader_program_doc,
     "The name of the program object for use by the OpenGL API (read-only).\n\n:type: int");
@@ -649,6 +662,7 @@ static PyObject *pygpu_shader_program_get(BPyGPUShader *self, void *UNUSED(closu
 
 static PyGetSetDef pygpu_shader__tp_getseters[] = {
     {"program", (getter)pygpu_shader_program_get, (setter)NULL, pygpu_shader_program_doc, NULL},
+    {"name", (getter)pygpu_shader_name, (setter)NULL, pygpu_shader_name_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
@@ -662,7 +676,8 @@ static void pygpu_shader__tp_dealloc(BPyGPUShader *self)
 
 PyDoc_STRVAR(
     pygpu_shader__tp_doc,
-    ".. class:: GPUShader(vertexcode, fragcode, geocode=None, libcode=None, defines=None)\n"
+    ".. class:: GPUShader(vertexcode, fragcode, geocode=None, libcode=None, defines=None, "
+    "name='pyGPUShader')\n"
     "\n"
     "   GPUShader combines multiple GLSL shaders into a program used for drawing.\n"
     "   It must contain at least a vertex and fragment shaders.\n"
@@ -688,6 +703,8 @@ PyDoc_STRVAR(
     "   :param libcode: Code with functions and presets to be shared between shaders.\n"
     "   :type value: str\n"
     "   :param defines: Preprocessor directives.\n"
+    "   :type value: str\n"
+    "   :param name: Name of shader code, for debugging purposes.\n"
     "   :type value: str\n");
 PyTypeObject BPyGPUShader_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUShader",

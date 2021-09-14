@@ -695,7 +695,7 @@ static void duplidata_value_free(void *val)
 static void duplidata_key_free(void *key)
 {
   DupliKey *dupli_key = (DupliKey *)key;
-  if (dupli_key->ob_data == NULL) {
+  if (dupli_key->ob_data == dupli_key->ob->data) {
     drw_batch_cache_generate_requested(dupli_key->ob);
   }
   else {

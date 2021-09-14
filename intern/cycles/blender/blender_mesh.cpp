@@ -347,16 +347,57 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
   }
 }
 
-static void attr_create_generic(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, bool subdivision)
+static void attr_create_motion(Mesh *mesh, BL::Attribute &b_attribute, const float motion_scale)
+{
+  if (!(b_attribute.domain() == BL::Attribute::domain_POINT) &&
+      (b_attribute.data_type() == BL::Attribute::data_type_FLOAT_VECTOR)) {
+    return;
+  }
+
+  BL::FloatVectorAttribute b_vector_attribute(b_attribute);
+  const int numverts = mesh->get_verts().size();
+
+  /* Find or add attribute */
+  float3 *P = &mesh->get_verts()[0];
+  Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+  if (!attr_mP) {
+    attr_mP = mesh->attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
+  }
+
+  /* Only export previous and next frame, we don't have any in between data. */
+  float motion_times[2] = {-1.0f, 1.0f};
+  for (int step = 0; step < 2; step++) {
+    const float relative_time = motion_times[step] * 0.5f * motion_scale;
+    float3 *mP = attr_mP->data_float3() + step * numverts;
+
+    for (int i = 0; i < numverts; i++) {
+      mP[i] = P[i] + get_float3(b_vector_attribute.data[i].vector()) * relative_time;
+    }
+  }
+}
+
+static void attr_create_generic(Scene *scene,
+                                Mesh *mesh,
+                                BL::Mesh &b_mesh,
+                                const bool subdivision,
+                                const bool need_motion,
+                                const float motion_scale)
 {
   if (subdivision) {
     /* TODO: Handle subdivision correctly. */
     return;
   }
   AttributeSet &attributes = mesh->attributes;
+  static const ustring u_velocity("velocity");
 
   for (BL::Attribute &b_attribute : b_mesh.attributes) {
     const ustring name{b_attribute.name().c_str()};
+
+    if (need_motion && name == u_velocity) {
+      attr_create_motion(mesh, b_attribute, motion_scale);
+    }
+
     if (!mesh->need_attribute(scene, name)) {
       continue;
     }
@@ -859,8 +900,10 @@ static void create_mesh(Scene *scene,
                         Mesh *mesh,
                         BL::Mesh &b_mesh,
                         const array<Node *> &used_shaders,
-                        bool subdivision = false,
-                        bool subdivide_uvs = true)
+                        const bool need_motion,
+                        const float motion_scale,
+                        const bool subdivision = false,
+                        const bool subdivide_uvs = true)
 {
   /* count vertices and faces */
   int numverts = b_mesh.vertices.length();
@@ -974,7 +1017,7 @@ static void create_mesh(Scene *scene,
   attr_create_vertex_color(scene, mesh, b_mesh, subdivision);
   attr_create_sculpt_vertex_color(scene, mesh, b_mesh, subdivision);
   attr_create_random_per_island(scene, mesh, b_mesh, subdivision);
-  attr_create_generic(scene, mesh, b_mesh, subdivision);
+  attr_create_generic(scene, mesh, b_mesh, subdivision, need_motion, motion_scale);
 
   if (subdivision) {
     attr_create_subd_uv_map(scene, mesh, b_mesh, subdivide_uvs);
@@ -1002,6 +1045,8 @@ static void create_subd_mesh(Scene *scene,
                              BObjectInfo &b_ob_info,
                              BL::Mesh &b_mesh,
                              const array<Node *> &used_shaders,
+                             const bool need_motion,
+                             const float motion_scale,
                              float dicing_rate,
                              int max_subdivisions)
 {
@@ -1010,7 +1055,7 @@ static void create_subd_mesh(Scene *scene,
   BL::SubsurfModifier subsurf_mod(b_ob.modifiers[b_ob.modifiers.length() - 1]);
   bool subdivide_uvs = subsurf_mod.uv_smooth() != BL::SubsurfModifier::uv_smooth_NONE;
 
-  create_mesh(scene, mesh, b_mesh, used_shaders, true, subdivide_uvs);
+  create_mesh(scene, mesh, b_mesh, used_shaders, need_motion, motion_scale, true, subdivide_uvs);
 
   /* export creases */
   size_t num_creases = 0;
@@ -1074,96 +1119,6 @@ static bool mesh_need_motion_attribute(BObjectInfo &b_ob_info, Scene *scene)
   return true;
 }
 
-static void sync_mesh_cached_velocities(BObjectInfo &b_ob_info, Scene *scene, Mesh *mesh)
-{
-  if (!mesh_need_motion_attribute(b_ob_info, scene)) {
-    return;
-  }
-
-  BL::Object b_ob = b_ob_info.real_object;
-  BL::MeshSequenceCacheModifier b_mesh_cache = object_mesh_cache_find(b_ob, true, nullptr);
-
-  if (!b_mesh_cache) {
-    return;
-  }
-
-  if (!MeshSequenceCacheModifier_read_velocity_get(&b_mesh_cache.ptr)) {
-    return;
-  }
-
-  const size_t numverts = mesh->get_verts().size();
-
-  if (b_mesh_cache.vertex_velocities.length() != numverts) {
-    return;
-  }
-
-  /* Find or add attribute */
-  float3 *P = &mesh->get_verts()[0];
-  Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-
-  if (!attr_mP) {
-    attr_mP = mesh->attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
-  }
-
-  /* Only export previous and next frame, we don't have any in between data. */
-  float motion_times[2] = {-1.0f, 1.0f};
-  for (int step = 0; step < 2; step++) {
-    const float relative_time = motion_times[step] * scene->motion_shutter_time() * 0.5f;
-    float3 *mP = attr_mP->data_float3() + step * numverts;
-
-    BL::MeshSequenceCacheModifier::vertex_velocities_iterator vvi;
-    int i = 0;
-
-    for (b_mesh_cache.vertex_velocities.begin(vvi); vvi != b_mesh_cache.vertex_velocities.end();
-         ++vvi, ++i) {
-      mP[i] = P[i] + get_float3(vvi->velocity()) * relative_time;
-    }
-  }
-}
-
-static void sync_mesh_fluid_motion(BObjectInfo &b_ob_info, Scene *scene, Mesh *mesh)
-{
-  if (!b_ob_info.is_real_object_data()) {
-    return;
-  }
-  if (!mesh_need_motion_attribute(b_ob_info, scene)) {
-    return;
-  }
-
-  BL::Object b_ob = b_ob_info.real_object;
-  BL::FluidDomainSettings b_fluid_domain = object_fluid_liquid_domain_find(b_ob);
-
-  if (!b_fluid_domain)
-    return;
-
-  /* If the mesh has modifiers following the fluid domain we can't export motion. */
-  if (b_fluid_domain.mesh_vertices.length() != mesh->get_verts().size())
-    return;
-
-  /* Find or add attribute */
-  float3 *P = &mesh->get_verts()[0];
-  Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-
-  if (!attr_mP) {
-    attr_mP = mesh->attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
-  }
-
-  /* Only export previous and next frame, we don't have any in between data. */
-  float motion_times[2] = {-1.0f, 1.0f};
-  for (int step = 0; step < 2; step++) {
-    float relative_time = motion_times[step] * scene->motion_shutter_time() * 0.5f;
-    float3 *mP = attr_mP->data_float3() + step * mesh->get_verts().size();
-
-    BL::FluidDomainSettings::mesh_vertices_iterator svi;
-    int i = 0;
-
-    for (b_fluid_domain.mesh_vertices.begin(svi); svi != b_fluid_domain.mesh_vertices.end();
-         ++svi, ++i) {
-      mP[i] = P[i] + get_float3(svi->velocity()) * relative_time;
-    }
-  }
-}
-
 void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Mesh *mesh)
 {
   /* make a copy of the shaders as the caller in the main thread still need them for syncing the
@@ -1187,6 +1142,13 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
         b_data, b_ob_info, b_depsgraph, need_undeformed, new_mesh.get_subdivision_type());
 
     if (b_mesh) {
+      /* Motion blur attribute is relative to seconds, we need it relative to frames. */
+      const bool need_motion = mesh_need_motion_attribute(b_ob_info, scene);
+      const float motion_scale = (need_motion) ?
+                                     scene->motion_shutter_time() /
+                                         (b_scene.render().fps() / b_scene.render().fps_base()) :
+                                     0.0f;
+
       /* Sync mesh itself. */
       if (new_mesh.get_subdivision_type() != Mesh::SUBDIVISION_NONE)
         create_subd_mesh(scene,
@@ -1194,20 +1156,22 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
                          b_ob_info,
                          b_mesh,
                          new_mesh.get_used_shaders(),
+                         need_motion,
+                         motion_scale,
                          dicing_rate,
                          max_subdivisions);
       else
-        create_mesh(scene, &new_mesh, b_mesh, new_mesh.get_used_shaders(), false);
+        create_mesh(scene,
+                    &new_mesh,
+                    b_mesh,
+                    new_mesh.get_used_shaders(),
+                    need_motion,
+                    motion_scale,
+                    false);
 
       free_object_to_mesh(b_data, b_ob_info, b_mesh);
     }
   }
-
-  /* cached velocities (e.g. from alembic archive) */
-  sync_mesh_cached_velocities(b_ob_info, scene, &new_mesh);
-
-  /* mesh fluid motion mantaflow */
-  sync_mesh_fluid_motion(b_ob_info, scene, &new_mesh);
 
   /* update original sockets */
 
@@ -1242,19 +1206,6 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
                                    Mesh *mesh,
                                    int motion_step)
 {
-  /* Fluid motion blur already exported. */
-  BL::FluidDomainSettings b_fluid_domain = object_fluid_liquid_domain_find(b_ob_info.real_object);
-  if (b_fluid_domain) {
-    return;
-  }
-
-  /* Cached motion blur already exported. */
-  BL::MeshSequenceCacheModifier mesh_cache = object_mesh_cache_find(
-      b_ob_info.real_object, true, nullptr);
-  if (mesh_cache) {
-    return;
-  }
-
   /* Skip if no vertices were exported. */
   size_t numverts = mesh->get_verts().size();
   if (numverts == 0) {

@@ -39,8 +39,12 @@
 
 #include "ED_view3d.h"
 
+#include "CLG_log.h"
+
 /* own includes */
 #include "gizmo_library_intern.h"
+
+static CLG_LogRef LOG = {"ed.gizmo.library_utils"};
 
 /* factor for precision tweaking */
 #define GIZMO_PRECISION_FAC 0.05f
@@ -182,7 +186,7 @@ bool gizmo_window_project_2d(bContext *C,
                              bool use_offset,
                              float r_co[2])
 {
-  float mat[4][4];
+  float mat[4][4], imat[4][4];
   {
     float mat_identity[4][4];
     struct WM_GizmoMatrixParams params = {NULL};
@@ -191,6 +195,14 @@ bool gizmo_window_project_2d(bContext *C,
       params.matrix_offset = mat_identity;
     }
     WM_gizmo_calc_matrix_final_params(gz, &params, mat);
+  }
+
+  if (!invert_m4_m4(imat, mat)) {
+    CLOG_WARN(&LOG,
+              "Gizmo \"%s\" of group \"%s\" has matrix that could not be inverted "
+              "(projection will fail)",
+              gz->type->idname,
+              gz->parent_gzgroup->type->idname);
   }
 
   /* rotate mouse in relation to the center and relocate it */
@@ -202,8 +214,6 @@ bool gizmo_window_project_2d(bContext *C,
     plane_from_point_normal_v3(plane, mat[3], mat[2]);
     bool clip_ray = ((RegionView3D *)region->regiondata)->is_persp;
     if (ED_view3d_win_to_3d_on_plane(region, plane, mval, clip_ray, co)) {
-      float imat[4][4];
-      invert_m4_m4(imat, mat);
       mul_m4_v3(imat, co);
       r_co[0] = co[(axis + 1) % 3];
       r_co[1] = co[(axis + 2) % 3];
@@ -213,8 +223,6 @@ bool gizmo_window_project_2d(bContext *C,
   }
 
   float co[3] = {mval[0], mval[1], 0.0f};
-  float imat[4][4];
-  invert_m4_m4(imat, mat);
   mul_m4_v3(imat, co);
   copy_v2_v2(r_co, co);
   return true;
@@ -223,7 +231,7 @@ bool gizmo_window_project_2d(bContext *C,
 bool gizmo_window_project_3d(
     bContext *C, const struct wmGizmo *gz, const float mval[2], bool use_offset, float r_co[3])
 {
-  float mat[4][4];
+  float mat[4][4], imat[4][4];
   {
     float mat_identity[4][4];
     struct WM_GizmoMatrixParams params = {NULL};
@@ -234,20 +242,25 @@ bool gizmo_window_project_3d(
     WM_gizmo_calc_matrix_final_params(gz, &params, mat);
   }
 
+  if (!invert_m4_m4(imat, mat)) {
+    CLOG_WARN(&LOG,
+              "Gizmo \"%s\" of group \"%s\" has matrix that could not be inverted "
+              "(projection will fail)",
+              gz->type->idname,
+              gz->parent_gzgroup->type->idname);
+  }
+
   if (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
     View3D *v3d = CTX_wm_view3d(C);
     ARegion *region = CTX_wm_region(C);
     /* NOTE: we might want a custom reference point passed in,
      * instead of the gizmo center. */
     ED_view3d_win_to_3d(v3d, region, mat[3], mval, r_co);
-    invert_m4(mat);
-    mul_m4_v3(mat, r_co);
+    mul_m4_v3(imat, r_co);
     return true;
   }
 
   float co[3] = {mval[0], mval[1], 0.0f};
-  float imat[4][4];
-  invert_m4_m4(imat, mat);
   mul_m4_v3(imat, co);
   copy_v2_v2(r_co, co);
   return true;

@@ -74,6 +74,12 @@ char *BKE_packedfile_unpack_to_file(struct ReportList *reports,
                                     const char *local_name,
                                     struct PackedFile *pf,
                                     enum ePF_FileStatus how);
+char *BKE_packedfile_unpack(struct Main *bmain,
+                            struct ReportList *reports,
+                            struct ID *id,
+                            const char *orig_file_name,
+                            struct PackedFile *pf,
+                            enum ePF_FileStatus how);
 int BKE_packedfile_unpack_vfont(struct Main *bmain,
                                 struct ReportList *reports,
                                 struct VFont *vfont,

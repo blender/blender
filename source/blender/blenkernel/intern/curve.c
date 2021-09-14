@@ -5269,6 +5269,8 @@ void BKE_curve_transform_ex(Curve *cu,
   BezTriple *bezt;
   int i;
 
+  const bool is_uniform_scaled = is_uniform_scaled_m4(mat);
+
   LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
     if (nu->type == CU_BEZIER) {
       i = nu->pntsu;
@@ -5278,6 +5280,11 @@ void BKE_curve_transform_ex(Curve *cu,
         mul_m4_v3(mat, bezt->vec[2]);
         if (do_props) {
           bezt->radius *= unit_scale;
+        }
+        if (!is_uniform_scaled) {
+          if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) || ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM)) {
+            bezt->h1 = bezt->h2 = HD_ALIGN;
+          }
         }
       }
       BKE_nurb_handles_calc(nu);

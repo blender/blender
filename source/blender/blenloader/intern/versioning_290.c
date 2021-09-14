@@ -1092,8 +1092,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
           if (md->type == eModifierType_MeshSequenceCache) {
             MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
             mcmd->velocity_scale = 1.0f;
-            mcmd->vertex_velocities = NULL;
-            mcmd->num_vertices = 0;
           }
         }
       }
@@ -1559,7 +1557,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_ATTRIBUTE_MATH && node->storage == NULL) {
+          if (node->type == GEO_NODE_LEGACY_ATTRIBUTE_MATH && node->storage == NULL) {
             const int old_use_attibute_a = (1 << 0);
             const int old_use_attibute_b = (1 << 1);
             NodeAttributeMath *data = MEM_callocN(sizeof(NodeAttributeMath), "NodeAttributeMath");
@@ -1720,7 +1718,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         continue;
       }
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == GEO_NODE_POINT_INSTANCE && node->storage == NULL) {
+        if (node->type == GEO_NODE_LEGACY_POINT_INSTANCE && node->storage == NULL) {
           NodeGeometryPointInstance *data = (NodeGeometryPointInstance *)MEM_callocN(
               sizeof(NodeGeometryPointInstance), __func__);
           data->instance_type = node->custom1;
@@ -1737,7 +1735,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_ATTRIBUTE_MATH) {
+          if (node->type == GEO_NODE_LEGACY_ATTRIBUTE_MATH) {
             NodeAttributeMath *data = (NodeAttributeMath *)node->storage;
             data->input_type_c = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
           }
@@ -1796,7 +1794,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         continue;
       }
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == GEO_NODE_ATTRIBUTE_RANDOMIZE && node->storage == NULL) {
+        if (node->type == GEO_NODE_LEGACY_ATTRIBUTE_RANDOMIZE && node->storage == NULL) {
           NodeAttributeRandomize *data = (NodeAttributeRandomize *)MEM_callocN(
               sizeof(NodeAttributeRandomize), __func__);
           data->data_type = node->custom1;
@@ -1832,7 +1830,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_GEOMETRY) {
-        version_node_socket_name(ntree, GEO_NODE_ATTRIBUTE_PROXIMITY, "Result", "Distance");
+        version_node_socket_name(ntree, GEO_NODE_LEGACY_ATTRIBUTE_PROXIMITY, "Result", "Distance");
       }
     }
     FOREACH_NODETREE_END;
@@ -1841,7 +1839,8 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 10)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_GEOMETRY) {
-        version_node_socket_name(ntree, GEO_NODE_ATTRIBUTE_PROXIMITY, "Location", "Position");
+        version_node_socket_name(
+            ntree, GEO_NODE_LEGACY_ATTRIBUTE_PROXIMITY, "Location", "Position");
       }
     }
     FOREACH_NODETREE_END;
@@ -1935,7 +1934,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_ATTRIBUTE_FILL) {
+          if (node->type == GEO_NODE_LEGACY_ATTRIBUTE_FILL) {
             node->custom2 = ATTR_DOMAIN_AUTO;
           }
         }

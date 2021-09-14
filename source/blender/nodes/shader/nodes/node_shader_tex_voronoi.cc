@@ -69,7 +69,7 @@ static bNodeSocketTemplate sh_node_tex_voronoi_out[] = {
 
 static void node_shader_init_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexVoronoi *tex = MEM_callocN(sizeof(NodeTexVoronoi), "NodeTexVoronoi");
+  NodeTexVoronoi *tex = (NodeTexVoronoi *)MEM_callocN(sizeof(NodeTexVoronoi), "NodeTexVoronoi");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->dimensions = 3;
@@ -77,6 +77,51 @@ static void node_shader_init_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node)
   tex->feature = SHD_VORONOI_F1;
 
   node->storage = tex;
+}
+
+static const char *gpu_shader_get_name(const int feature, const int dimensions)
+{
+  BLI_assert(feature >= 0 && feature < 5);
+  BLI_assert(dimensions > 0 && dimensions < 5);
+
+  switch (feature) {
+    case SHD_VORONOI_F1:
+      return std::array{
+          "node_tex_voronoi_f1_1d",
+          "node_tex_voronoi_f1_2d",
+          "node_tex_voronoi_f1_3d",
+          "node_tex_voronoi_f1_4d",
+      }[dimensions - 1];
+    case SHD_VORONOI_F2:
+      return std::array{
+          "node_tex_voronoi_f2_1d",
+          "node_tex_voronoi_f2_2d",
+          "node_tex_voronoi_f2_3d",
+          "node_tex_voronoi_f2_4d",
+      }[dimensions - 1];
+    case SHD_VORONOI_SMOOTH_F1:
+      return std::array{
+          "node_tex_voronoi_smooth_f1_1d",
+          "node_tex_voronoi_smooth_f1_2d",
+          "node_tex_voronoi_smooth_f1_3d",
+          "node_tex_voronoi_smooth_f1_4d",
+      }[dimensions - 1];
+    case SHD_VORONOI_DISTANCE_TO_EDGE:
+      return std::array{
+          "node_tex_voronoi_distance_to_edge_1d",
+          "node_tex_voronoi_distance_to_edge_2d",
+          "node_tex_voronoi_distance_to_edge_3d",
+          "node_tex_voronoi_distance_to_edge_4d",
+      }[dimensions - 1];
+    case SHD_VORONOI_N_SPHERE_RADIUS:
+      return std::array{
+          "node_tex_voronoi_n_sphere_radius_1d",
+          "node_tex_voronoi_n_sphere_radius_2d",
+          "node_tex_voronoi_n_sphere_radius_3d",
+          "node_tex_voronoi_n_sphere_radius_4d",
+      }[dimensions - 1];
+  }
+  return nullptr;
 }
 
 static int node_shader_gpu_tex_voronoi(GPUMaterial *mat,
@@ -88,57 +133,12 @@ static int node_shader_gpu_tex_voronoi(GPUMaterial *mat,
   node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
-  static const char *names[][5] = {
-      [SHD_VORONOI_F1] =
-          {
-              "",
-              "node_tex_voronoi_f1_1d",
-              "node_tex_voronoi_f1_2d",
-              "node_tex_voronoi_f1_3d",
-              "node_tex_voronoi_f1_4d",
-          },
-      [SHD_VORONOI_F2] =
-          {
-              "",
-              "node_tex_voronoi_f2_1d",
-              "node_tex_voronoi_f2_2d",
-              "node_tex_voronoi_f2_3d",
-              "node_tex_voronoi_f2_4d",
-          },
-      [SHD_VORONOI_SMOOTH_F1] =
-          {
-              "",
-              "node_tex_voronoi_smooth_f1_1d",
-              "node_tex_voronoi_smooth_f1_2d",
-              "node_tex_voronoi_smooth_f1_3d",
-              "node_tex_voronoi_smooth_f1_4d",
-          },
-      [SHD_VORONOI_DISTANCE_TO_EDGE] =
-          {
-              "",
-              "node_tex_voronoi_distance_to_edge_1d",
-              "node_tex_voronoi_distance_to_edge_2d",
-              "node_tex_voronoi_distance_to_edge_3d",
-              "node_tex_voronoi_distance_to_edge_4d",
-          },
-      [SHD_VORONOI_N_SPHERE_RADIUS] =
-          {
-              "",
-              "node_tex_voronoi_n_sphere_radius_1d",
-              "node_tex_voronoi_n_sphere_radius_2d",
-              "node_tex_voronoi_n_sphere_radius_3d",
-              "node_tex_voronoi_n_sphere_radius_4d",
-          },
-  };
-
   NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
   float metric = tex->distance;
 
-  BLI_assert(tex->feature >= 0 && tex->feature < 5);
-  BLI_assert(tex->dimensions > 0 && tex->dimensions < 5);
+  const char *name = gpu_shader_get_name(tex->feature, tex->dimensions);
 
-  return GPU_stack_link(
-      mat, node, names[tex->feature][tex->dimensions], in, out, GPU_constant(&metric));
+  return GPU_stack_link(mat, node, name, in, out, GPU_constant(&metric));
 }
 
 static void node_shader_update_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node)

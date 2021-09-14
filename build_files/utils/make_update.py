@@ -222,6 +222,10 @@ if __name__ == "__main__":
 
     # Test if we are building a specific release version.
     branch = make_utils.git_branch(args.git_command)
+    if branch == 'HEAD':
+        sys.stderr.write('Blender git repository is in detached HEAD state, must be in a branch\n')
+        sys.exit(1)
+
     tag = make_utils.git_tag(args.git_command)
     release_version = make_utils.git_branch_release_version(branch, tag)
 

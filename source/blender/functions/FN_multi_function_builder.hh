@@ -326,18 +326,21 @@ template<typename From, typename To> class CustomMF_Convert : public MultiFuncti
 
 /**
  * A multi-function that outputs the same value every time. The value is not owned by an instance
- * of this function. The caller is responsible for destructing and freeing the value.
+ * of this function. If #make_value_copy is false, the caller is responsible for destructing and
+ * freeing the value.
  */
 class CustomMF_GenericConstant : public MultiFunction {
  private:
   const CPPType &type_;
   const void *value_;
   MFSignature signature_;
+  bool owns_value_;
 
   template<typename T> friend class CustomMF_Constant;
 
  public:
-  CustomMF_GenericConstant(const CPPType &type, const void *value);
+  CustomMF_GenericConstant(const CPPType &type, const void *value, bool make_value_copy);
+  ~CustomMF_GenericConstant();
   void call(IndexMask mask, MFParams params, MFContext context) const override;
   uint64_t hash() const override;
   bool equals(const MultiFunction &other) const override;
@@ -414,6 +417,15 @@ class CustomMF_DefaultOutput : public MultiFunction {
   CustomMF_DefaultOutput(StringRef name,
                          Span<MFDataType> input_types,
                          Span<MFDataType> output_types);
+  void call(IndexMask mask, MFParams params, MFContext context) const override;
+};
+
+class CustomMF_GenericCopy : public MultiFunction {
+ private:
+  MFSignature signature_;
+
+ public:
+  CustomMF_GenericCopy(StringRef name, MFDataType data_type);
   void call(IndexMask mask, MFParams params, MFContext context) const override;
 };
 

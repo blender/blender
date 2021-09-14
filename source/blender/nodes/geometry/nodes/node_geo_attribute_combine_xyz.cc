@@ -136,8 +136,11 @@ void register_node_type_geo_attribute_combine_xyz()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_ATTRIBUTE_COMBINE_XYZ, "Attribute Combine XYZ", NODE_CLASS_ATTRIBUTE, 0);
+  geo_node_type_base(&ntype,
+                     GEO_NODE_LEGACY_ATTRIBUTE_COMBINE_XYZ,
+                     "Attribute Combine XYZ",
+                     NODE_CLASS_ATTRIBUTE,
+                     0);
   node_type_init(&ntype, blender::nodes::geo_node_attribute_combine_xyz_init);
   node_type_update(&ntype, blender::nodes::geo_node_attribute_combine_xyz_update);
   node_type_storage(

@@ -52,10 +52,10 @@ static void copy_attributes_to_points(CurveEval &curve,
                                       Span<Vector<int>> point_to_vert_maps)
 {
   MutableSpan<SplinePtr> splines = curve.splines();
-  Set<std::string> source_attribute_names = mesh_component.attribute_names();
+  Set<AttributeIDRef> source_attribute_ids = mesh_component.attribute_ids();
 
   /* Copy builtin control point attributes. */
-  if (source_attribute_names.contains_as("tilt")) {
+  if (source_attribute_ids.contains("tilt")) {
     const GVArray_Typed<float> tilt_attribute = mesh_component.attribute_get_for_read<float>(
         "tilt", ATTR_DOMAIN_POINT, 0.0f);
     threading::parallel_for(splines.index_range(), 256, [&](IndexRange range) {
@@ -64,9 +64,9 @@ static void copy_attributes_to_points(CurveEval &curve,
             *tilt_attribute, point_to_vert_maps[i], splines[i]->tilts());
       }
     });
-    source_attribute_names.remove_contained_as("tilt");
+    source_attribute_ids.remove_contained("tilt");
   }
-  if (source_attribute_names.contains_as("radius")) {
+  if (source_attribute_ids.contains("radius")) {
     const GVArray_Typed<float> radius_attribute = mesh_component.attribute_get_for_read<float>(
         "radius", ATTR_DOMAIN_POINT, 1.0f);
     threading::parallel_for(splines.index_range(), 256, [&](IndexRange range) {
@@ -75,15 +75,15 @@ static void copy_attributes_to_points(CurveEval &curve,
             *radius_attribute, point_to_vert_maps[i], splines[i]->radii());
       }
     });
-    source_attribute_names.remove_contained_as("radius");
+    source_attribute_ids.remove_contained("radius");
   }
 
   /* Don't copy other builtin control point attributes. */
-  source_attribute_names.remove_as("position");
+  source_attribute_ids.remove("position");
 
   /* Copy dynamic control point attributes. */
-  for (const StringRef name : source_attribute_names) {
-    const GVArrayPtr mesh_attribute = mesh_component.attribute_try_get_for_read(name,
+  for (const AttributeIDRef &attribute_id : source_attribute_ids) {
+    const GVArrayPtr mesh_attribute = mesh_component.attribute_try_get_for_read(attribute_id,
                                                                                 ATTR_DOMAIN_POINT);
     /* Some attributes might not exist if they were builtin attribute on domains that don't
      * have any elements, i.e. a face attribute on the output of the line primitive node. */
@@ -96,8 +96,9 @@ static void copy_attributes_to_points(CurveEval &curve,
     threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
         /* Create attribute on the spline points. */
-        splines[i]->attributes.create(name, data_type);
-        std::optional<GMutableSpan> spline_attribute = splines[i]->attributes.get_for_write(name);
+        splines[i]->attributes.create(attribute_id, data_type);
+        std::optional<GMutableSpan> spline_attribute = splines[i]->attributes.get_for_write(
+            attribute_id);
         BLI_assert(spline_attribute);
 
         /* Copy attribute based on the map for this spline. */
@@ -305,7 +306,8 @@ void register_node_type_geo_mesh_to_curve()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MESH_TO_CURVE, "Mesh to Curve", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_LEGACY_MESH_TO_CURVE, "Mesh to Curve", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_mesh_to_curve_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_mesh_to_curve_exec;
   nodeRegisterType(&ntype);

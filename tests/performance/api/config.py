@@ -161,7 +161,13 @@ class TestConfig:
     def read_blender_executables(env, name) -> List:
         config = TestConfig._read_config_module(env.base_dir / name)
         builds = getattr(config, 'builds', {})
-        return [pathlib.Path(build) for build in builds.values()]
+        executables = []
+
+        for executable in builds.values():
+            executable, _ = TestConfig._split_environment_variables(executable)
+            executables.append(pathlib.Path(executable))
+
+        return executables
 
     @staticmethod
     def _read_config_module(base_dir: pathlib.Path) -> None:
@@ -274,7 +280,8 @@ class TestConfig:
 
         return entries
 
-    def _split_environment_variables(self, revision):
+    @staticmethod
+    def _split_environment_variables(revision):
         if isinstance(revision, str):
             return revision, {}
         else:

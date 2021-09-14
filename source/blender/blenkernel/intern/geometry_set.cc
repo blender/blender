@@ -408,7 +408,7 @@ bool BKE_object_has_geometry_set_instances(const Object *ob)
   if (ob->type == OB_VOLUME) {
     return has_mesh || has_pointcloud || has_curve;
   }
-  if (ob->type == OB_CURVE) {
+  if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
     return has_mesh || has_pointcloud || has_volume;
   }
   return false;

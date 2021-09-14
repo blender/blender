@@ -102,6 +102,8 @@ class Int : public SocketDeclaration {
 class Vector : public SocketDeclaration {
  private:
   float3 default_value_ = {0, 0, 0};
+  float soft_min_value_ = -FLT_MAX;
+  float soft_max_value_ = FLT_MAX;
   PropertySubType subtype_ = PROP_NONE;
 
  public:
@@ -114,6 +116,18 @@ class Vector : public SocketDeclaration {
   Vector &subtype(PropertySubType subtype)
   {
     subtype_ = subtype;
+    return *this;
+  }
+
+  Vector &min(const float min)
+  {
+    soft_min_value_ = min;
+    return *this;
+  }
+
+  Vector &max(const float max)
+  {
+    soft_max_value_ = max;
     return *this;
   }
 
