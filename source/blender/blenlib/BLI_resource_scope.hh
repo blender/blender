@@ -137,6 +137,17 @@ class ResourceScope : NonCopyable, NonMovable {
   }
 
   /**
+   * The passed in function will be called when the scope is destructed.
+   */
+  template<typename Func> void add_destruct_call(Func func, const char *name)
+  {
+    void *buffer = m_allocator.allocate(sizeof(func), alignof(func));
+    new (buffer) Func(std::move(func));
+    this->add(
+        buffer, [](void *data) { (*(Func *)data)(); }, name);
+  }
+
+  /**
    * Returns a reference to a linear allocator that is owned by the ResourcesCollector. Memory
    * allocated through this allocator will be freed when the collector is destructed.
    */

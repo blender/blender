@@ -978,7 +978,7 @@ static bool evaluate_as_one(const MultiFunction &fn,
     return false;
   }
   for (VariableState *state : param_variable_states) {
-    if (!state->is_one()) {
+    if (state != nullptr && !state->is_one()) {
       return false;
     }
   }
@@ -997,8 +997,13 @@ static void execute_call_instruction(const MFCallInstruction &instruction,
 
   for (const int param_index : fn.param_indices()) {
     const MFVariable *variable = instruction.params()[param_index];
-    VariableState &variable_state = variable_states.get_variable_state(*variable);
-    param_variable_states[param_index] = &variable_state;
+    if (variable == nullptr) {
+      param_variable_states[param_index] = nullptr;
+    }
+    else {
+      VariableState &variable_state = variable_states.get_variable_state(*variable);
+      param_variable_states[param_index] = &variable_state;
+    }
   }
 
   /* If all inputs to the function are constant, it's enough to call the function only once instead
@@ -1008,19 +1013,29 @@ static void execute_call_instruction(const MFCallInstruction &instruction,
 
     for (const int param_index : fn.param_indices()) {
       const MFParamType param_type = fn.param_type(param_index);
-      VariableState &variable_state = *param_variable_states[param_index];
-      variable_states.add_as_param__one(variable_state, params, param_type, mask);
+      VariableState *variable_state = param_variable_states[param_index];
+      if (variable_state == nullptr) {
+        params.add_ignored_single_output();
+      }
+      else {
+        variable_states.add_as_param__one(*variable_state, params, param_type, mask);
+      }
     }
 
     fn.call(IndexRange(1), params, context);
   }
   else {
-    MFParamsBuilder params(fn, mask.min_array_size());
+    MFParamsBuilder params(fn, &mask);
 
     for (const int param_index : fn.param_indices()) {
       const MFParamType param_type = fn.param_type(param_index);
-      VariableState &variable_state = *param_variable_states[param_index];
-      variable_states.add_as_param(variable_state, params, param_type, mask);
+      VariableState *variable_state = param_variable_states[param_index];
+      if (variable_state == nullptr) {
+        params.add_ignored_single_output();
+      }
+      else {
+        variable_states.add_as_param(*variable_state, params, param_type, mask);
+      }
     }
 
     fn.call(mask, params, context);

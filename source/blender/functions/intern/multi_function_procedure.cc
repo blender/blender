@@ -325,7 +325,14 @@ bool MFProcedure::validate_all_instruction_pointers_set() const
 bool MFProcedure::validate_all_params_provided() const
 {
   for (const MFCallInstruction *instruction : call_instructions_) {
-    for (const MFVariable *variable : instruction->params_) {
+    const MultiFunction &fn = instruction->fn();
+    for (const int param_index : fn.param_indices()) {
+      const MFParamType param_type = fn.param_type(param_index);
+      if (param_type.category() == MFParamType::SingleOutput) {
+        /* Single outputs are optional. */
+        continue;
+      }
+      const MFVariable *variable = instruction->params_[param_index];
       if (variable == nullptr) {
         return false;
       }
@@ -351,6 +358,9 @@ bool MFProcedure::validate_same_variables_in_one_call() const
     for (const int param_index : fn.param_indices()) {
       const MFParamType param_type = fn.param_type(param_index);
       const MFVariable *variable = instruction->params_[param_index];
+      if (variable == nullptr) {
+        continue;
+      }
       for (const int other_param_index : fn.param_indices()) {
         if (other_param_index == param_index) {
           continue;
@@ -681,7 +691,9 @@ class MFProcedureDotExport {
     if (instruction.prev().size() != 1) {
       return true;
     }
-    if (instruction.prev()[0].type() == MFInstructionCursor::Type::Branch) {
+    if (ELEM(instruction.prev()[0].type(),
+             MFInstructionCursor::Type::Branch,
+             MFInstructionCursor::Type::Entry)) {
       return true;
     }
     return false;

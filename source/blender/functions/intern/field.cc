@@ -189,17 +189,43 @@ static void build_multi_function_procedure_for_fields(MFProcedure &procedure,
         field_with_index.current_input_index++;
       }
       else {
-        /* All inputs variables are ready, now add the function call. */
-        Vector<MFVariable *> input_variables;
-        for (const GField &field : operation_inputs) {
-          input_variables.append(variable_by_field.lookup(field));
-        }
+        /* All inputs variables are ready, now gather all variables that are used by the function
+         * and call it. */
         const MultiFunction &multi_function = operation.multi_function();
-        Vector<MFVariable *> output_variables = builder.add_call(multi_function, input_variables);
-        /* Add newly created variables to the map. */
-        for (const int i : output_variables.index_range()) {
-          variable_by_field.add_new({operation, i}, output_variables[i]);
+        Vector<MFVariable *> variables(multi_function.param_amount());
+
+        int param_input_index = 0;
+        int param_output_index = 0;
+        for (const int param_index : multi_function.param_indices()) {
+          const MFParamType param_type = multi_function.param_type(param_index);
+          const MFParamType::InterfaceType interface_type = param_type.interface_type();
+          if (interface_type == MFParamType::Input) {
+            const GField &input_field = operation_inputs[param_input_index];
+            variables[param_index] = variable_by_field.lookup(input_field);
+            param_input_index++;
+          }
+          else if (interface_type == MFParamType::Output) {
+            const GFieldRef output_field{operation, param_output_index};
+            const bool output_is_ignored =
+                field_tree_info.field_users.lookup(output_field).is_empty() &&
+                !output_fields.contains(output_field);
+            if (output_is_ignored) {
+              /* Ignored outputs don't need a variable. */
+              variables[param_index] = nullptr;
+            }
+            else {
+              /* Create a new variable for used outputs. */
+              MFVariable &new_variable = procedure.new_variable(param_type.data_type());
+              variables[param_index] = &new_variable;
+              variable_by_field.add_new(output_field, &new_variable);
+            }
+            param_output_index++;
+          }
+          else {
+            BLI_assert_unreachable();
+          }
         }
+        builder.add_call_with_all_variables(multi_function, variables);
       }
     }
   }
@@ -334,7 +360,7 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
     build_multi_function_procedure_for_fields(
         procedure, scope, field_tree_info, varying_fields_to_evaluate);
     MFProcedureExecutor procedure_executor{"Procedure", procedure};
-    MFParamsBuilder mf_params{procedure_executor, array_size};
+    MFParamsBuilder mf_params{procedure_executor, &mask};
     MFContextBuilder mf_context;
 
     /* Provide inputs to the procedure executor. */
