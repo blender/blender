@@ -1589,7 +1589,7 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
       continue;
@@ -1638,7 +1638,7 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
       continue;
@@ -1684,7 +1684,7 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
       continue;
@@ -1730,7 +1730,7 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
       continue;
@@ -1781,7 +1781,7 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
       continue;
@@ -1827,7 +1827,7 @@ static void do_boundary_brush_smooth_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
       continue;
@@ -1913,7 +1913,7 @@ static void SCULPT_boundary_autosmooth(SculptSession *ss, SculptBoundary *bounda
         float sco[3];
 
         SCULPT_neighbor_coords_average_interior(
-            ss, sco, vd.vertex, ss->cache->brush->autosmooth_projection, NULL);
+            ss, sco, vd.vertex, ss->cache->brush->autosmooth_projection, NULL, false);
 
         float *co = SCULPT_brush_deform_target_vertex_co_get(
             ss, ss->cache->brush->deform_target, &vd);
@@ -1952,7 +1952,7 @@ static void SCULPT_boundary_build_smoothco(SculptSession *ss, SculptBoundary *bo
 
         float sco[3];
 
-        SCULPT_neighbor_coords_average_interior(ss, sco, vd.vertex, projection, NULL);
+        SCULPT_neighbor_coords_average_interior(ss, sco, vd.vertex, projection, NULL, false);
 
         float *co = SCULPT_brush_deform_target_vertex_co_get(
             ss, ss->cache->brush->deform_target, &vd);

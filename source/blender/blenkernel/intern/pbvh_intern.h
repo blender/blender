@@ -26,6 +26,7 @@
 /** \file
  * \ingroup bli
  */
+struct MDynTopoVert;
 
 /* Axis-aligned bounding box */
 typedef struct {
@@ -217,6 +218,7 @@ struct PBVH {
 
   int balance_counter;
   int stroke_id;  // used to keep origdata up to date in PBVH_BMESH
+  struct MDynTopoVert *mdyntopo_verts;
 };
 
 /* pbvh.c */

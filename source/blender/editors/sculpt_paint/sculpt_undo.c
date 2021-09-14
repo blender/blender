@@ -1602,7 +1602,7 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
     }
 
     if (ss->deform_modifiers_active) {
-      SCULPT_orig_vert_data_update(&orig_data, &vd);
+      SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
       int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, unode->index[vd.i]);
 

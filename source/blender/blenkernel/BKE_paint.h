@@ -34,6 +34,7 @@
 extern "C" {
 #endif
 
+struct MDynTopoVert;
 struct BMFace;
 struct BMesh;
 struct BlendDataReader;
@@ -658,6 +659,8 @@ typedef struct SculptSession {
   int stroke_id, boundary_symmetry;
 
   bool fast_draw;  // hides facesets/masks and forces smooth to save GPU bandwidth
+  struct MDynTopoVert *mdyntopo_verts;  // for non-bmesh
+  int mdyntopo_verts_size;
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);
@@ -665,6 +668,7 @@ void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
 void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
+bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, int totvert);
 
 /* Create new color layer on object if it doesn't have one and if experimental feature set has
  * sculpt vertex color enabled. Returns truth if new layer has been added, false otherwise. */

@@ -217,8 +217,9 @@ void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
 
 SculptVertRef SCULPT_active_vertex_get(SculptSession *ss);
 const float *SCULPT_active_vertex_co_get(SculptSession *ss);
-const float *SCULPT_vertex_origco_get(SculptSession *ss, SculptVertRef vertex);
+float *SCULPT_vertex_origco_get(SculptSession *ss, SculptVertRef vertex);
 void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3]);
+MDynTopoVert *SCULPT_vertex_get_mdyntopo(SculptSession *ss, SculptVertRef vertex);
 
 /* Returns PBVH deformed vertices array if shape keys or deform modifiers are used, otherwise
  * returns mesh original vertices array. */
@@ -646,7 +647,8 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
                                         float projection,
                                         bool check_fsets,
                                         int cd_temp,
-                                        int cd_dyn_vert);
+                                        int cd_dyn_vert,
+                                        bool do_origco);
 
 /* Smoothing api */
 void SCULPT_neighbor_coords_average(
@@ -659,7 +661,8 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float result[3],
                                              SculptVertRef index,
                                              float projection,
-                                             SculptCustomLayer *bound_scl);
+                                             SculptCustomLayer *bound_scl,
+                                             bool do_origco);
 
 void SCULPT_smooth_vcol_boundary(
     Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, float bstrength);
@@ -670,7 +673,8 @@ void SCULPT_smooth(Sculpt *sd,
                    const int totnode,
                    float bstrength,
                    const bool smooth_mask,
-                   float projection);
+                   float projection,
+                   bool do_origco);
 
 void SCULPT_do_smooth_brush(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float projection);
@@ -923,6 +927,7 @@ typedef struct SculptThreadedTaskData {
   float smooth_projection;
   float rake_projection;
   SculptCustomLayer *scl, *scl2;
+  bool do_origco;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/
@@ -1446,11 +1451,13 @@ void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
                                       const float angle);
 void SCULPT_cache_free(StrokeCache *cache);
 
+void SCULPT_vertex_check_origdata(SculptSession *ss, SculptVertRef vertex);
+
 void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
                                 Object *ob,
                                 PBVHNode *node,
                                 SculptUndoType type);
-void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter *iter);
+void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, SculptVertRef vertex);
 void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data,
                                       Object *ob,
                                       struct SculptUndoNode *unode);
@@ -1692,3 +1699,13 @@ void SCULPT_replay_log_append(struct Sculpt *sd, struct SculptSession *ss, struc
 void SCULPT_replay_test(void);
 
 #endif
+
+#define SCULPT_stroke_needs_original(brush) \
+  ELEM(brush->sculpt_tool, \
+       SCULPT_TOOL_DRAW_SHARP, \
+       SCULPT_TOOL_GRAB, \
+       SCULPT_TOOL_ROTATE, \
+       SCULPT_TOOL_THUMB, \
+       SCULPT_TOOL_ELASTIC_DEFORM, \
+       SCULPT_TOOL_BOUNDARY, \
+       SCULPT_TOOL_POSE)

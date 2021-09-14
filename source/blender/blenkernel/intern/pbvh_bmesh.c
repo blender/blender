@@ -833,6 +833,8 @@ void BKE_pbvh_bmesh_update_origvert(
 
 bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, BMVert *v, int stroke_id)
 {
+  // keep this up to date with surface_smooth_v_safe in dyntopo.c
+
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
 
   if (mv->stroke_id != stroke_id) {

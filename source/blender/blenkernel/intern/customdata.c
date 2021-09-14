@@ -1552,7 +1552,8 @@ static void layerDynTopoVert_interp(
   float mul = 1.0f / totweight;
 
   mul_v3_fl(co, mul);
-  mul_v3_fl(no, mul);
+  normalize_v3(no);
+
   mul_v4_fl(color, mul);
   origmask *= mul;
 

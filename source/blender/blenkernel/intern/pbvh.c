@@ -607,6 +607,8 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          const MPoly *mpoly,
                          const MLoop *mloop,
                          MVert *verts,
+                         MDynTopoVert *mdyntopo_verts,
+
                          int totvert,
                          struct CustomData *vdata,
                          struct CustomData *ldata,
@@ -624,6 +626,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   pbvh->mloop = mloop;
   pbvh->looptri = looptri;
   pbvh->verts = verts;
+  pbvh->mdyntopo_verts = mdyntopo_verts;
   pbvh->vert_bitmap = BLI_BITMAP_NEW(totvert, "bvh->vert_bitmap");
   pbvh->totvert = totvert;
   pbvh->leaf_limit = LEAF_LIMIT;

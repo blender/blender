@@ -560,10 +560,26 @@ static BMEdge *bmesh_edge_create_log(PBVH *pbvh, BMVert *v1, BMVert *v2, BMEdge 
 BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
 {
   float co[3];
+  float origco[3], origco1[3];
+  float origno1[3];
   float tan[3];
   float tot = 0.0;
 
+  MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
+
+  if (mv1->stroke_id != pbvh->stroke_id) {
+    copy_v3_v3(origco1, v->co);
+    copy_v3_v3(origno1, v->no);
+  }
+  else {
+    copy_v3_v3(origco1, mv1->origco);
+    copy_v3_v3(origno1, dot_v3v3(mv1->origno, mv1->origno) == 0.0f ? v->no : mv1->origno);
+  }
+
+  // BKE_pbvh_bmesh_check_origdata(pbvh, v, pbvh->stroke_id);
+
   zero_v3(co);
+  zero_v3(origco);
 
   // this is a manual edge walk
 
@@ -572,11 +588,14 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
     return;
   }
 
-  pbvh_check_vert_boundary(pbvh, v);
+  if (mv1->flag & DYNVERT_NEED_BOUNDARY) {
+    return;  // can't update boundary in thread
+  }
+
+  // pbvh_check_vert_boundary(pbvh, v);
 
   const int cd_dyn_vert = pbvh->cd_dyn_vert;
 
-  MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
   const bool bound1 = mv1->flag & DYNVERT_SMOOTH_BOUNDARY;
 
   if (mv1->flag & DYNVERT_SMOOTH_CORNER) {
@@ -601,6 +620,18 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
 
     madd_v3_v3fl(tan, v->no, -d * 0.99f);
     add_v3_v3(co, tan);
+
+    if (mv2->stroke_id == pbvh->stroke_id) {
+      sub_v3_v3v3(tan, mv2->origco, origco1);
+    }
+    else {
+      sub_v3_v3v3(tan, v2->co, origco1);
+    }
+
+    d = dot_v3v3(tan, origno1);
+    madd_v3_v3fl(tan, origno1, -d * 0.99f);
+    add_v3_v3(origco, tan);
+
     tot += 1.0f;
 
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
@@ -610,12 +641,32 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
   }
 
   mul_v3_fl(co, 1.0f / tot);
-  float x = v->co[0], y = v->co[1], z = v->co[2];
+  mul_v3_fl(origco, 1.0f / tot);
+
+  volatile float x = v->co[0], y = v->co[1], z = v->co[2];
+  volatile float nx = x + co[0] * fac, ny = y + co[1] * fac, nz = z + co[2] * fac;
 
   // conflicts here should be pretty rare.
-  atomic_cas_float(&v->co[0], x, x + co[0] * fac);
-  atomic_cas_float(&v->co[1], y, y + co[1] * fac);
-  atomic_cas_float(&v->co[2], z, z + co[2] * fac);
+  atomic_cas_float(&v->co[0], x, nx);
+  atomic_cas_float(&v->co[1], y, ny);
+  atomic_cas_float(&v->co[2], z, nz);
+
+  // conflicts here should be pretty rare.
+  x = mv1->origco[0];
+  y = mv1->origco[1];
+  z = mv1->origco[2];
+
+  nx = x + origco[0] * fac;
+  ny = y + origco[1] * fac;
+  nz = z + origco[2] * fac;
+
+  atomic_cas_float(&mv1->origco[0], x, nx);
+  atomic_cas_float(&mv1->origco[1], y, ny);
+  atomic_cas_float(&mv1->origco[2], z, nz);
+
+  volatile int stroke_id = mv1->stroke_id;
+
+  // atomic_cas_int32(&mv1->stroke_id, stroke_id, pbvh->stroke_id);
 }
 
 static void pbvh_kill_vert(PBVH *pbvh, BMVert *v)
@@ -3624,8 +3675,10 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   // snap customdata
   if (snap) {
     int ni_conn = BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset);
+
     const float v_ws[2] = {0.5f, 0.5f};
     const void *v_blocks[2] = {v_del->head.data, v_conn->head.data};
+
     CustomData_bmesh_interp(&pbvh->bm->vdata, v_blocks, v_ws, NULL, 2, v_conn->head.data);
     BM_ELEM_CD_SET_INT(v_conn, pbvh->cd_vert_node_offset, ni_conn);
 

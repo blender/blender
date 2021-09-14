@@ -768,6 +768,11 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
   SCULPT_pbvh_clear(ob);
 
+  if (ss->mdyntopo_verts) {
+    MEM_freeN(ss->mdyntopo_verts);
+    ss->mdyntopo_verts = NULL;
+  }
+
   ss->bm_smooth_shading = (scene->toolsettings->sculpt->flags & SCULPT_DYNTOPO_SMOOTH_SHADING) !=
                           0;
 

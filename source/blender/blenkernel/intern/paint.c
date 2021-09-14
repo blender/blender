@@ -85,6 +85,8 @@ void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
 void SCULPT_dyntopo_node_layers_add(SculptSession *ss);
 BMesh *SCULPT_dyntopo_empty_bmesh();
 
+static void init_mdyntopo_layer(SculptSession *ss, int totvert);
+
 static void palette_init_data(ID *id)
 {
   Palette *palette = (Palette *)id;
@@ -1483,6 +1485,11 @@ void BKE_sculptsession_free(Object *ob)
   if (ob && ob->sculpt) {
     SculptSession *ss = ob->sculpt;
 
+    if (ss->mdyntopo_verts) {
+      MEM_freeN(ss->mdyntopo_verts);
+      ss->mdyntopo_verts = NULL;
+    }
+
     if (ss->bm_log && BM_log_free(ss->bm_log, true)) {
       ss->bm_log = NULL;
     }
@@ -1671,7 +1678,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   }
 
   ss->shapekey_active = (mmd == NULL) ? BKE_keyblock_from_object(ob) : NULL;
-
   ss->boundary_symmetry = (int)BKE_get_fset_boundary_symflag(ob);
 
   /* NOTE: Weight pPaint require mesh info for loop lookup, but it never uses multires code path,
@@ -1724,6 +1730,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   ss->fast_draw = (scene->toolsettings->sculpt->flags & SCULPT_FAST_DRAW) != 0;
 
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
+
   BLI_assert(pbvh == ss->pbvh);
   UNUSED_VARS_NDEBUG(pbvh);
 
@@ -2190,11 +2197,14 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
   BKE_sculpt_sync_face_set_visibility(me, NULL);
 
+  BKE_sculptsession_check_mdyntopo(ob->sculpt, me->totvert);
+
   BKE_pbvh_build_mesh(pbvh,
                       me,
                       me->mpoly,
                       me->mloop,
                       me->mvert,
+                      ob->sculpt->mdyntopo_verts,
                       me->totvert,
                       &me->vdata,
                       &me->ldata,
@@ -2235,11 +2245,40 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
                        subdiv_ccg->grid_flag_mats,
                        subdiv_ccg->grid_hidden,
                        ob->sculpt->fast_draw);
+
+  BKE_sculptsession_check_mdyntopo(ob->sculpt, BKE_pbvh_get_grid_num_vertices(pbvh));
+
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
   return pbvh;
 }
 
+bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, int totvert)
+{
+  if (!ss->bm && (!ss->mdyntopo_verts || totvert != ss->mdyntopo_verts_size)) {
+    init_mdyntopo_layer(ss, totvert);
+    return true;
+  }
+
+  return false;
+}
+
+static void init_mdyntopo_layer(SculptSession *ss, int totvert)
+{
+  if (ss->mdyntopo_verts) {
+    MEM_freeN(ss->mdyntopo_verts);
+  }
+
+  ss->mdyntopo_verts = MEM_calloc_arrayN(totvert, sizeof(*ss->mdyntopo_verts), "mdyntopo_verts");
+  ss->mdyntopo_verts_size = totvert;
+
+  MDynTopoVert *mv = ss->mdyntopo_verts;
+
+  for (int i = 0; i < totvert; i++, mv++) {
+    mv->flag = DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT;
+    mv->stroke_id = -1;
+  }
+}
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 {
   if (ob == NULL || ob->sculpt == NULL) {
@@ -2331,6 +2370,9 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     }
     else if (ob->type == OB_MESH) {
       Mesh *me_eval_deform = object_eval->runtime.mesh_deform_eval;
+
+      BKE_sculptsession_check_mdyntopo(ob->sculpt, me_eval_deform->totvert);
+
       pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform, respect_hide);
     }
 #endif

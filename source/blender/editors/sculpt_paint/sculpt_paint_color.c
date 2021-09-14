@@ -140,7 +140,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   IMB_colormanagement_srgb_to_scene_linear_v3(brush_color);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     bool affect_vertex = false;
     float distance_to_stroke_location = 0.0f;

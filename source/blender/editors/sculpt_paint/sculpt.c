@@ -158,15 +158,40 @@ int SCULPT_vertex_count_get(SculptSession *ss)
   return 0;
 }
 
-const float *SCULPT_vertex_origco_get(SculptSession *ss, SculptVertRef vertex)
+MDynTopoVert *SCULPT_vertex_get_mdyntopo(SculptSession *ss, SculptVertRef vertex)
 {
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    BMVert *v = (BMVert *)vertex.i;
-    return BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v)->origco;
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      BMVert *v = (BMVert *)vertex.i;
+      return BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+    }
+
+    case PBVH_GRIDS:
+    case PBVH_FACES: {
+      return ss->mdyntopo_verts + vertex.i;
+    }
   }
 
-  // XXX implement me
-  return SCULPT_vertex_co_get(ss, vertex);
+  return NULL;
+}
+
+float *SCULPT_vertex_origco_get(SculptSession *ss, SculptVertRef vertex)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      BMVert *v = (BMVert *)vertex.i;
+      return BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v)->origco;
+    }
+
+    case PBVH_GRIDS:
+    case PBVH_FACES: {
+      MDynTopoVert *mv = ss->mdyntopo_verts + vertex.i;
+
+      return ss->mdyntopo_verts[vertex.i].origco;
+    }
+  }
+
+  return NULL;
 }
 
 const float *SCULPT_vertex_co_get(SculptSession *ss, SculptVertRef index)
@@ -2284,6 +2309,9 @@ typedef enum StrokeFlags {
 void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, SculptUndoNode *unode)
 {
   SculptSession *ss = ob->sculpt;
+
+  // do nothing
+
   BMesh *bm = ss->bm;
 
   memset(data, 0, sizeof(*data));
@@ -2295,12 +2323,9 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, Scul
   if (bm) {
     data->bm_log = ss->bm_log;
   }
+
   else {
-    data->datatype = data->unode->type;
-    data->coords = data->unode->co;
-    data->normals = data->unode->no;
-    data->vmasks = data->unode->mask;
-    data->colors = data->unode->col;
+    // data->datatype = data->unode->type;
   }
 }
 
@@ -2316,75 +2341,58 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
   SculptUndoNode *unode = NULL;
   data->ss = ob->sculpt;
 
-  /*do not allocate an undo node for bmesh pbvh*/
+  // don't need undo node here anymore
   if (!ob->sculpt->bm) {
-    unode = SCULPT_undo_push_node(ob, node, type);
+    // unode = SCULPT_undo_push_node(ob, node, type);
   }
 
   SCULPT_orig_vert_data_unode_init(data, ob, unode);
   data->datatype = type;
 }
 
-/**
- * Update a #SculptOrigVertData for a particular vertex from the PBVH iterator.
- */
-void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter *iter)
+void SCULPT_vertex_check_origdata(SculptSession *ss, SculptVertRef vertex)
 {
   // check if we need to update original data for current stroke
-  if (orig_data->bm_log) {
-    MDynTopoVert *mv = BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert);
-    if (mv->stroke_id != orig_data->ss->stroke_id) {
-      mv->stroke_id = orig_data->ss->stroke_id;
+  MDynTopoVert *mv = ss->bm ? BKE_PBVH_DYNVERT(ss->cd_dyn_vert, (BMVert *)vertex.i) :
+                              ss->mdyntopo_verts + vertex.i;
 
-      copy_v3_v3(mv->origco, iter->bm_vert->co);
-      copy_v3_v3(mv->origno, iter->bm_vert->no);
+  if (mv->stroke_id != ss->stroke_id) {
+    mv->stroke_id = ss->stroke_id;
 
-      const int cd_vcol = iter->cd_vcol_offset;
-      const int cd_mask = iter->cd_vert_mask_offset;
+    copy_v3_v3(mv->origco, SCULPT_vertex_co_get(ss, vertex));
+    SCULPT_vertex_normal_get(ss, vertex, mv->origno);
 
-      if (cd_vcol >= 0) {
-        MPropCol *col = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, cd_vcol);
-        copy_v4_v4(mv->origcolor, col->color);
-      }
-
-      if (cd_mask >= 0) {
-        mv->origmask = BM_ELEM_CD_GET_FLOAT(iter->bm_vert, cd_mask);
-      }
+    const float *color = SCULPT_vertex_color_get(ss, vertex);
+    if (color) {
+      copy_v4_v4(mv->origcolor, color);
     }
+
+    mv->origmask = SCULPT_vertex_mask_get(ss, vertex);
   }
+}
+
+/**
+ * DEPRECATED use Update a #SculptOrigVertData for a particular vertex from the PBVH iterator.
+ */
+void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, SculptVertRef vertex)
+{
+  // check if we need to update original data for current stroke
+  MDynTopoVert *mv = SCULPT_vertex_get_mdyntopo(orig_data->ss, vertex);
+
+  SCULPT_vertex_check_origdata(orig_data->ss, vertex);
 
   if (orig_data->datatype == SCULPT_UNDO_COORDS) {
-    if (orig_data->bm_log) {
-      orig_data->co = BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert)->origco;
+    float *no = mv->origno;
+    normal_float_to_short_v3(orig_data->_no, no);
 
-      float *no = BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert)->origno;
-      normal_float_to_short_v3(orig_data->_no, no);
-      orig_data->no = orig_data->_no;
-
-      orig_data->col = iter->cd_vcol_offset >= 0 ?
-                           BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert)->origcolor :
-                           NULL;
-    }
-    else {
-      orig_data->co = orig_data->coords[iter->i];
-      orig_data->no = orig_data->normals[iter->i];
-    }
+    orig_data->no = orig_data->_no;
+    orig_data->co = mv->origco;
   }
   else if (orig_data->datatype == SCULPT_UNDO_COLOR) {
-    if (orig_data->bm_log) {
-      orig_data->col = BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert)->origcolor;
-    }
-    else {
-      orig_data->col = orig_data->colors[iter->i];
-    }
+    orig_data->col = mv->origcolor;
   }
   else if (orig_data->datatype == SCULPT_UNDO_MASK) {
-    if (orig_data->bm_log) {
-      orig_data->mask = BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert)->origmask;
-    }
-    else {
-      orig_data->mask = orig_data->vmasks[iter->i];
-    }
+    orig_data->mask = mv->origmask;
   }
 }
 
@@ -2547,7 +2555,7 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
   SCULPT_orig_vert_data_unode_init(&orig_data, data->ob, unode);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     if (orig_data.unode->type == SCULPT_UNDO_COORDS) {
       copy_v3_v3(vd.co, orig_data.co);
@@ -4050,20 +4058,25 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     }
 #endif
 
-    SCULPT_bmesh_four_neighbor_average(ss,
-                                       avg,
-                                       direction2,
-                                       vd.bm_vert,
-                                       data->rake_projection,
-                                       check_fsets,
-                                       data->cd_temp,
-                                       data->cd_dyn_vert);
+    int steps = data->do_origco ? 2 : 1;
 
-    sub_v3_v3v3(val, avg, vd.co);
+    for (int step = 0; step < steps; step++) {
+      float *co = step ? (float *)SCULPT_vertex_origco_get(ss, vd.vertex) : vd.co;
 
-    madd_v3_v3v3fl(val, vd.co, val, fade);
+      SCULPT_bmesh_four_neighbor_average(ss,
+                                         avg,
+                                         direction2,
+                                         vd.bm_vert,
+                                         data->rake_projection,
+                                         check_fsets,
+                                         data->cd_temp,
+                                         data->cd_dyn_vert,
+                                         step);
 
-    SCULPT_clip(sd, ss, vd.co, val);
+      sub_v3_v3v3(val, avg, co);
+      madd_v3_v3v3fl(val, co, val, fade);
+      SCULPT_clip(sd, ss, co, val);
+    }
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -4146,7 +4159,8 @@ static void bmesh_topology_rake(
                                    .strength = factor,
                                    .cd_temp = cd_temp,
                                    .cd_dyn_vert = ss->cd_dyn_vert,
-                                   .rake_projection = brush->topology_rake_projection};
+                                   .rake_projection = brush->topology_rake_projection,
+                                   .do_origco = SCULPT_stroke_needs_original(brush)};
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
 
@@ -4220,7 +4234,7 @@ static void do_mask_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       do_mask_brush_draw(sd, ob, nodes, totnode);
       break;
     case BRUSH_MASK_SMOOTH:
-      SCULPT_smooth(sd, ob, nodes, totnode, ss->cache->bstrength, true, 0.0f);
+      SCULPT_smooth(sd, ob, nodes, totnode, ss->cache->bstrength, true, 0.0f, false);
       break;
   }
 }
@@ -4537,7 +4551,7 @@ static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -4620,7 +4634,7 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -4789,7 +4803,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -5188,7 +5202,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
   const bool grab_silhouette = brush->flag2 & BRUSH_GRAB_SILHOUETTE;
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -5289,7 +5303,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
       &params, ss->cache->radius, force, 1.0f, brush->elastic_deform_volume_preservation);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     float final_disp[3];
     switch (brush->elastic_deform_type) {
       case BRUSH_ELASTIC_DEFORM_GRAB:
@@ -5740,7 +5754,7 @@ static void do_thumb_brush_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -5813,7 +5827,7 @@ static void do_rotate_brush_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -5916,7 +5930,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -7710,11 +7724,18 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
                     totnode,
                     brush->autosmooth_factor * (1.0f - ss->cache->pressure),
                     false,
-                    brush->autosmooth_projection);
+                    brush->autosmooth_projection,
+                    false);
     }
     else {
-      SCULPT_smooth(
-          sd, ob, nodes, totnode, brush->autosmooth_factor, false, brush->autosmooth_projection);
+      SCULPT_smooth(sd,
+                    ob,
+                    nodes,
+                    totnode,
+                    brush->autosmooth_factor,
+                    false,
+                    brush->autosmooth_projection,
+                    false);
     }
 
     if (brush->autosmooth_radius_factor != 1.0f) {
