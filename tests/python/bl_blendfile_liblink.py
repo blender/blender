@@ -212,7 +212,7 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
 
         assert(len(bpy.data.meshes) == 1)
         # This one fails currently, for unclear reasons.
-        # ~ assert(bpy.data.meshes[0].library is not None)
+        assert(bpy.data.meshes[0].library is not None)
         assert(bpy.data.meshes[0].users == 1)
         assert(len(bpy.data.objects) == 1)
         assert(bpy.data.objects[0].library is None)
