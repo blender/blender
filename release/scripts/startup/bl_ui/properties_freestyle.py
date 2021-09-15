@@ -168,8 +168,8 @@ class VIEWLAYER_PT_freestyle(ViewLayerFreestyleButtonsPanel, Panel):
         col.prop(freestyle, "as_render_pass", text="As Render Pass")
 
 
-class VIEWLAYER_PT_freestyle_edge_detection_options(ViewLayerFreestyleButtonsPanel, Panel):
-    bl_label = "Edge Detection Options"
+class VIEWLAYER_PT_freestyle_edge_detection(ViewLayerFreestyleButtonsPanel, Panel):
+    bl_label = "Edge Detection"
     bl_parent_id = "VIEWLAYER_PT_freestyle"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
@@ -435,7 +435,7 @@ class VIEWLAYER_PT_freestyle_lineset_collection(ViewLayerFreestyleLineStyle, Pan
         lineset = freestyle.linesets.active
 
         layout.active = lineset.select_by_collection
-        layout.row().prop(lineset, "collection", text="Freestyle Lineset Collection")
+        layout.row().prop(lineset, "collection", text="Line Set Collection")
         layout.row().prop(lineset, "collection_negation", expand=True, text="Negation")
 
 
@@ -1258,12 +1258,14 @@ class MATERIAL_PT_freestyle_line(MaterialFreestyleButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         mat = context.material
 
-        row = layout.row()
-        row.prop(mat, "line_color", text="")
-        row.prop(mat, "line_priority", text="Priority")
+        col = layout.column()
+        col.prop(mat, "line_color")
+        col.prop(mat, "line_priority", text="Priority")
 
 
 classes = (
@@ -1271,7 +1273,7 @@ classes = (
     VIEWLAYER_UL_linesets,
     RENDER_MT_lineset_context_menu,
     VIEWLAYER_PT_freestyle,
-    VIEWLAYER_PT_freestyle_edge_detection_options,
+    VIEWLAYER_PT_freestyle_edge_detection,
     VIEWLAYER_PT_freestyle_style_modules,
     VIEWLAYER_PT_freestyle_lineset,
     VIEWLAYER_PT_freestyle_lineset_visibilty,
