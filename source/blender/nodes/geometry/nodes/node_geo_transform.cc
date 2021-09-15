@@ -69,8 +69,7 @@ void transform_mesh(Mesh *mesh,
   else {
     const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
     BKE_mesh_transform(mesh, matrix.values, false);
-    mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-    mesh->runtime.cd_dirty_poly |= CD_MASK_NORMAL;
+    BKE_mesh_normals_tag_dirty(mesh);
   }
 }
 

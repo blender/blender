@@ -926,7 +926,7 @@ static void tag_normals_dirty_when_writing_position(GeometryComponent &component
 {
   Mesh *mesh = get_mesh_from_component_for_write(component);
   if (mesh != nullptr) {
-    mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+    BKE_mesh_normals_tag_dirty(mesh);
   }
 }
 

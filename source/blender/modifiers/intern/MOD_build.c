@@ -281,7 +281,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct
   MEM_freeN(faceMap);
 
   if (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) {
-    result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+    BKE_mesh_normals_tag_dirty(result);
   }
 
   /* TODO(sybren): also copy flags & tags? */

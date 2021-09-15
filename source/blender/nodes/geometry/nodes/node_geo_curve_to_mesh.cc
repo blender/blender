@@ -294,8 +294,7 @@ static Mesh *curve_to_mesh_calculate(const CurveEval &curve, const CurveEval &pr
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
   mesh->flag |= ME_AUTOSMOOTH;
   mesh->smoothresh = DEG2RADF(180.0f);
-  mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-  mesh->runtime.cd_dirty_poly |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(mesh);
 
   threading::parallel_for(curves.index_range(), 128, [&](IndexRange curves_range) {
     for (const int i_spline : curves_range) {

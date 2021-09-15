@@ -3573,7 +3573,7 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
   }
 
   BKE_mesh_calc_edges(result, false, false);
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(result);
   return result;
 }
 

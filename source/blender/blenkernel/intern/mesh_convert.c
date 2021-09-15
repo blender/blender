@@ -525,7 +525,7 @@ Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob, const ListBase *
   }
 
   mesh = BKE_mesh_new_nomain(totvert, totedge, 0, totloop, totpoly);
-  mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(mesh);
 
   if (totvert != 0) {
     memcpy(mesh->mvert, allvert, totvert * sizeof(MVert));

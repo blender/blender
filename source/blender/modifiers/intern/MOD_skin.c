@@ -1960,7 +1960,7 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, origmesh);
   BM_mesh_free(bm);
 
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(result);
 
   skin_set_orig_indices(result);
 

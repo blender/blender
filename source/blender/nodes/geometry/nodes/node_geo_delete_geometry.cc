@@ -559,7 +559,7 @@ static Mesh *delete_mesh_selection(const Mesh &mesh_in,
       mesh_in, *result, vertex_map, edge_map, selected_poly_indices, new_loop_starts);
   BKE_mesh_calc_edges_loose(result);
   /* Tag to recalculate normals later. */
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(result);
 
   return result;
 }

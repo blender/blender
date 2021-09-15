@@ -988,7 +988,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
   /* must recalculate normals with vgroups since they can displace unevenly T26888. */
   if ((mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) || do_rim || dvert) {
-    result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+    BKE_mesh_normals_tag_dirty(result);
   }
   else if (do_shell) {
     uint i;

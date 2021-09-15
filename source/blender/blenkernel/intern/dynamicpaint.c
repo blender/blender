@@ -2064,7 +2064,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
     }
 
     if (update_normals) {
-      result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+      BKE_mesh_normals_tag_dirty(result);
     }
   }
   /* make a copy of mesh to use as brush data */

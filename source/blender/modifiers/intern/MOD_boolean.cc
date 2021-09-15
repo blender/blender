@@ -161,7 +161,7 @@ static Mesh *get_quick_mesh(
             mul_m4_v3(omat, mv->co);
           }
 
-          result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+          BKE_mesh_normals_tag_dirty(result);
         }
 
         break;
@@ -506,7 +506,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
 
         BM_mesh_free(bm);
-        result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+        BKE_mesh_normals_tag_dirty(result);
       }
 
       if (result == nullptr) {
@@ -541,7 +541,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
           result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
           BM_mesh_free(bm);
-          result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+          BKE_mesh_normals_tag_dirty(result);
         }
       }
     }

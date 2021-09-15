@@ -786,7 +786,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
    * TODO: we may need to set other dirty flags as well?
    */
   if (use_recalc_normals) {
-    result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+    BKE_mesh_normals_tag_dirty(result);
   }
 
   if (vgroup_start_cap_remap) {
