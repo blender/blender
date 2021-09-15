@@ -383,6 +383,12 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
                                              ViewLayer *view_layer,
                                              const View3D *v3d)
 {
+  if (scene == NULL) {
+    /* In some cases, like the asset drag&drop e.g., the caller code manages instantiation itself.
+     */
+    return;
+  }
+
   LinkNode *itemlink;
   Collection *active_collection = NULL;
   const bool do_obdata = (lapp_data->flag & FILE_OBDATA_INSTANCE) != 0;
@@ -1281,6 +1287,10 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
   return id;
 }
 
+/*
+ * NOTE: `scene` (and related `view_layer` and `v3d`) pointers may be NULL, in which case no
+ * instantiation of linked objects, collections etc. will be performed.
+ */
 ID *WM_file_link_datablock(Main *bmain,
                            Scene *scene,
                            ViewLayer *view_layer,
@@ -1293,6 +1303,10 @@ ID *WM_file_link_datablock(Main *bmain,
       bmain, scene, view_layer, v3d, filepath, id_code, id_name, false);
 }
 
+/*
+ * NOTE: `scene` (and related `view_layer` and `v3d`) pointers may be NULL, in which case no
+ * instantiation of appended objects, collections etc. will be performed.
+ */
 ID *WM_file_append_datablock(Main *bmain,
                              Scene *scene,
                              ViewLayer *view_layer,
