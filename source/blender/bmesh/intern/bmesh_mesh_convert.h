@@ -67,7 +67,7 @@ struct BMeshToMeshParams {
   uint update_shapekey_indices : 1;
   struct CustomData_MeshMasks cd_mask_extra;
   uint copy_temp_cdlayers : 1;
-  uint copy_mesh_id_layers : 1;
+  uint ignore_mesh_id_layers : 1;
 };
 
 void BM_enter_multires_space(struct Object *ob, struct BMesh *bm, int space);

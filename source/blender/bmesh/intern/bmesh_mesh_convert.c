@@ -931,10 +931,10 @@ void BM_mesh_bm_to_me(
   {
     CustomData_MeshMasks mask = CD_MASK_MESH;
     CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
-    CustomDataMask extra2 = params->copy_mesh_id_layers ? CD_MASK_MESH_ID : 0;
+    CustomDataMask extra2 = !params->ignore_mesh_id_layers ? CD_MASK_MESH_ID : 0;
 
     // copy id layers? temporarily clear cd_temporary and cd_flag_elem_nocopy flags
-    if (params->copy_mesh_id_layers) {
+    if (!params->ignore_mesh_id_layers) {
       for (int i = 0; i < 4; i++) {
         int idx = CustomData_get_layer_index(srcdatas[i], CD_MESH_ID);
 
@@ -1313,7 +1313,7 @@ void BM_mesh_bm_to_me(
   BKE_mesh_runtime_clear_geometry(me);
 
   // restore original cd layer flags to bmesh id layers
-  if (params->copy_mesh_id_layers) {
+  if (!params->ignore_mesh_id_layers) {
     for (int i = 0; i < 4; i++) {
       int idx = CustomData_get_layer_index(srcdatas[i], CD_MESH_ID);
       if (idx >= 0) {

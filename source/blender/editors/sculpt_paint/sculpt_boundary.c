@@ -1270,8 +1270,7 @@ static void end_vis_object(SculptSession *ss, Object *ob, BMesh *bm)
                    me,
                    (&(struct BMeshToMeshParams){.calc_object_remap = false,
                                                 .update_shapekey_indices = false,
-                                                .copy_temp_cdlayers = false,
-                                                .copy_mesh_id_layers = false}));
+                                                .copy_temp_cdlayers = false}));
 
   DEG_id_tag_update(&me->id, ID_RECALC_ALL);
 }

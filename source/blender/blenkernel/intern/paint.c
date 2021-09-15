@@ -1395,19 +1395,13 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
           ss->bm,
           ob->data,
           (&(struct BMeshToMeshParams){.calc_object_remap = false,
-#ifdef WHEN_GLOBAL_UNDO_WORKS
-
                                        /*
                                         for memfile undo steps we need to
                                         save id and temporary layers
                                        */
                                        .copy_temp_cdlayers = true,
-                                       .copy_mesh_id_layers = true,
+                                       .ignore_mesh_id_layers = false,
                                        .cd_mask_extra = CD_MASK_MESH_ID | CD_MASK_DYNTOPO_VERT
-#else
-                                       .copy_temp_cdlayers = false,
-                                       .copy_mesh_id_layers = false
-#endif
 
           }));
     }

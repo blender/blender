@@ -1081,7 +1081,7 @@ static void bm_log_full_mesh_intern(BMesh *bm, BMLog *log, BMLogEntry *entry)
                                    .calc_object_remap = false,
                                    .cd_mask_extra = cd_mask_extra,
                                    .copy_temp_cdlayers = true,
-                                   .copy_mesh_id_layers = true}),
+                                   .ignore_mesh_id_layers = false}),
       NULL);
 }
 

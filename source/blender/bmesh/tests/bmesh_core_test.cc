@@ -10,10 +10,9 @@ TEST(bmesh_core, BMVertCreate)
   BMVert *bv1, *bv2, *bv3;
   const float co1[3] = {1.0f, 2.0f, 0.0f};
 
-  BMeshCreateParams bm_params;
+  BMeshCreateParams bm_params = {0};
+
   bm_params.use_toolflags = true;
-  bm_params.use_unique_ids = false;
-  bm_params.no_reuse_ids = false;
 
   bm = BM_mesh_create(&bm_mesh_allocsize_default, &bm_params);
   EXPECT_EQ(bm->totvert, 0);
