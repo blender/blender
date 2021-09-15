@@ -559,6 +559,11 @@ static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_PreferencesSystem, ptr->data);
 }
 
+static PointerRNA rna_UserDef_apps_get(PointerRNA *ptr)
+{
+  return rna_pointer_inherit_refine(ptr, &RNA_PreferencesApps, ptr->data);
+}
+
 static void rna_UserDef_audio_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
   BKE_sound_init(bmain);
@@ -4590,12 +4595,6 @@ static void rna_def_userdef_view(BlenderRNA *brna)
                            "Color range used for weight visualization in weight painting mode");
   RNA_def_property_update(prop, 0, "rna_UserDef_weight_color_update");
 
-  prop = RNA_def_property(srna, "show_layout_ui", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "app_flag", USER_APP_LOCK_CORNER_SPLIT);
-  RNA_def_property_ui_text(
-      prop, "Editor Corner Splitting", "Split and join editors by dragging from corners");
-  RNA_def_property_update(prop, 0, "rna_userdef_screen_update");
-
   prop = RNA_def_property(srna, "show_navigate_ui", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_GIZMO_NAVIGATE);
   RNA_def_property_ui_text(
@@ -6230,6 +6229,24 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Asset Libraries", "");
 }
 
+static void rna_def_userdef_apps(BlenderRNA *brna)
+{
+  PropertyRNA *prop;
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "PreferencesApps", NULL);
+  RNA_def_struct_sdna(srna, "UserDef");
+  RNA_def_struct_nested(brna, srna, "Preferences");
+  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+  RNA_def_struct_ui_text(srna, "Apps", "Preferences that work only for apps");
+
+  prop = RNA_def_property(srna, "show_corner_split", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "app_flag", USER_APP_LOCK_CORNER_SPLIT);
+  RNA_def_property_ui_text(
+      prop, "Corner Splitting", "Split and join editors by dragging from corners");
+  RNA_def_property_update(prop, 0, "rna_userdef_screen_update");
+}
+
 static void rna_def_userdef_experimental(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -6445,6 +6462,12 @@ void RNA_def_userdef(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "System & OpenGL", "Graphics driver and operating system settings");
 
+  prop = RNA_def_property(srna, "apps", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "PreferencesApps");
+  RNA_def_property_pointer_funcs(prop, "rna_UserDef_apps_get", NULL, NULL, NULL);
+  RNA_def_property_ui_text(prop, "Apps", "Preferences that work only for apps");
+
   prop = RNA_def_property(srna, "experimental", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "PreferencesExperimental");
@@ -6506,6 +6529,7 @@ void RNA_def_userdef(BlenderRNA *brna)
   rna_def_userdef_studiolights(brna);
   rna_def_userdef_studiolight(brna);
   rna_def_userdef_pathcompare(brna);
+  rna_def_userdef_apps(brna);
   rna_def_userdef_experimental(brna);
 
   USERDEF_TAG_DIRTY_PROPERTY_UPDATE_DISABLE;
