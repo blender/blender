@@ -387,14 +387,21 @@ static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
 
   LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
     /* check group visibility - drawstep first to avoid unnecessary call of group poll callback */
-    if (!wm_gizmogroup_is_visible_in_drawstep(gzgroup, drawstep) ||
-        !WM_gizmo_group_type_poll(C, gzgroup->type)) {
+    if (!wm_gizmogroup_is_visible_in_drawstep(gzgroup, drawstep)) {
       continue;
     }
 
-    /* When modal only show other gizmo groups tagged with #WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL. */
-    if (gz_modal && (gzgroup != gz_modal->parent_gzgroup)) {
-      if ((gzgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL) == 0) {
+    if (gz_modal && (gzgroup == gz_modal->parent_gzgroup)) {
+      if (gzgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE) {
+        continue;
+      }
+    }
+    else { /* Don't poll modal gizmo since some poll functions unlink. */
+      if (!WM_gizmo_group_type_poll(C, gzgroup->type)) {
+        continue;
+      }
+      /* When modal only show other gizmo groups tagged with #WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL. */
+      if (gz_modal && ((gzgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL) == 0)) {
         continue;
       }
     }

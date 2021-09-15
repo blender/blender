@@ -610,14 +610,6 @@ enum {
   V3D_GIZMO_HIDE_TOOL = (1 << 3),
 };
 
-/**
- * Hide these gizmos when modal operators are active,
- * the intention is to hide all gizmos except for navigation since from a user-perspective
- * these are closer to UI-level interface elements. Hiding them makes the UI flicker, also,
- * the 3D view-axis can be useful to see during interactions.
- */
-#define V3D_GIZMO_HIDE_DEFAULT_MODAL (V3D_GIZMO_HIDE_CONTEXT | V3D_GIZMO_HIDE_TOOL)
-
 /** #View3d.gizmo_show_object */
 enum {
   V3D_GIZMO_SHOW_OBJECT_TRANSLATE = (1 << 0),

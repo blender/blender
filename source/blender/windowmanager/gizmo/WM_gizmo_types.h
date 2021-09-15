@@ -120,6 +120,10 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
    * Also show this group when another group is being interacted with.
    */
   WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL = (1 << 5),
+
+  /** Don't draw this gizmo group when it is modal. */
+  WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE = (1 << 6),
+
   /**
    * When used with tool, only run when activating the tool,
    * instead of linking the gizmo while the tool is active.
@@ -130,7 +134,7 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
    * when a tool can activate multiple operators based on the key-map.
    * We could even move the options into the key-map item.
    * ~ campbell. */
-  WM_GIZMOGROUPTYPE_TOOL_INIT = (1 << 6),
+  WM_GIZMOGROUPTYPE_TOOL_INIT = (1 << 7),
 
   /**
    * This gizmo type supports using the fallback tools keymap.
@@ -138,7 +142,7 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
    *
    * Often useful in combination with #WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK
    */
-  WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP = (1 << 7),
+  WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP = (1 << 8),
 
   /**
    * Use this from a gizmos refresh callback so we can postpone the refresh operation
@@ -149,14 +153,14 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
    * for selection operations. This means gizmos that use this check don't interfere
    * with click drag events by popping up under the cursor and catching the tweak event.
    */
-  WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK = (1 << 8),
+  WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK = (1 << 9),
 
   /**
    * Cause continuous redraws, i.e. set the region redraw flag on every main loop iteration. This
    * should really be avoided by using proper region redraw tagging, notifiers and the message-bus,
    * however for VR it's sometimes needed.
    */
-  WM_GIZMOGROUPTYPE_VR_REDRAWS = (1 << 9),
+  WM_GIZMOGROUPTYPE_VR_REDRAWS = (1 << 10),
 } eWM_GizmoFlagGroupTypeFlag;
 
 /**

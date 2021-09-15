@@ -249,12 +249,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->view = v3d;
     t->animtimer = (animscreen) ? animscreen->animtimer : NULL;
 
-    /* turn gizmo off during transform */
-    if (t->flag & T_MODAL) {
-      t->gizmo_flag = v3d->gizmo_flag;
-      v3d->gizmo_flag |= V3D_GIZMO_HIDE_DEFAULT_MODAL;
-    }
-
     if (t->scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) {
       t->flag |= T_V3D_ALIGN;
     }
@@ -740,13 +734,6 @@ void postTrans(bContext *C, TransInfo *t)
       if (sima->flag & SI_LIVE_UNWRAP) {
         ED_uvedit_live_unwrap_end(t->state == TRANS_CANCEL);
       }
-    }
-  }
-  else if (t->spacetype == SPACE_VIEW3D) {
-    View3D *v3d = t->area->spacedata.first;
-    /* restore gizmo */
-    if (t->flag & T_MODAL) {
-      v3d->gizmo_flag = t->gizmo_flag;
     }
   }
 
