@@ -95,7 +95,8 @@ bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v) ATTR_WARN_UNUSED_RESULT 
 
 #include "intern/bmesh_structure_inline.h"
 
-void bm_assign_id(BMesh *bm, BMElem *elem, uint id);
+void bm_assign_id(BMesh *bm, BMElem *elem, uint id, bool check_unique);
+void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id);
 void bm_alloc_id(BMesh *bm, BMElem *elem);
 void bm_free_id(BMesh *bm, BMElem *elem);
 void bm_init_idmap_cdlayers(BMesh *bm);

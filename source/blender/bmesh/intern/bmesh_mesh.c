@@ -178,18 +178,22 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
 
   bm->idmap.flag = 0;
 
-  if (params->use_unique_ids) {
+  if (!params->temporary_ids) {
+    bm->idmap.flag |= BM_PERMANENT_IDS;
+  }
+
+  if (params->id_map) {
+    bm->idmap.flag |= BM_HAS_ID_MAP;
+  }
+
+  if (params->no_reuse_ids) {
+    bm->idmap.flag |= BM_NO_REUSE_IDS;
+  }
+
+  if (params->create_unique_ids) {
     bm->idmap.flag |= BM_HAS_IDS;
 
-    if (params->use_id_map) {
-      bm->idmap.flag |= BM_HAS_ID_MAP;
-    }
-
-    bm->idmap.flag |= params->use_id_elem_mask;
-
-    if (params->no_reuse_ids) {
-      bm->idmap.flag |= BM_NO_REUSE_IDS;
-    }
+    bm->idmap.flag |= params->id_elem_mask;
 
 #ifndef WITH_BM_ID_FREELIST
     bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
@@ -221,7 +225,7 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
   CustomData_reset(&bm->ldata);
   CustomData_reset(&bm->pdata);
 
-  if (params->use_unique_ids) {
+  if (params->create_unique_ids) {
     bm_init_idmap_cdlayers(bm);
 
     if (bm->vdata.totlayer) {

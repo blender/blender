@@ -389,7 +389,7 @@
 
 // Does the compiler support result_of?
 #ifndef EIGEN_HAS_STD_RESULT_OF
-#if EIGEN_MAX_CPP_VER>=11 && ((__has_feature(cxx_lambdas) || (defined(__cplusplus) && __cplusplus >= 201103L)))
+#if __cplusplus < 201703L && EIGEN_MAX_CPP_VER>=11 && ((__has_feature(cxx_lambdas) || (defined(__cplusplus) && __cplusplus >= 201103L && __cplusplus)))
 #define EIGEN_HAS_STD_RESULT_OF 1
 #else
 #define EIGEN_HAS_STD_RESULT_OF 0

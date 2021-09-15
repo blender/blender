@@ -1778,6 +1778,11 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   MEM_freeN(nodeinfo);
 }
 
+void BKE_pbvh_set_bm_log(PBVH *pbvh, struct BMLog *log)
+{
+  pbvh->bm_log = log;
+}
+
 /*
 static double last_update_time[128] = {
     0,
@@ -1828,7 +1833,8 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                                         sym_axis,
                                                         updatePBVH,
                                                         mask_cb,
-                                                        mask_cb_data);
+                                                        mask_cb_data,
+                                                        0);
 
   // double end = PIL_check_seconds_timer();
 
@@ -4711,9 +4717,10 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
 
   BMesh *bm = BM_mesh_create(
       &templ,
-      &((struct BMeshCreateParams){.use_id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
-                                   .use_id_map = true,
-                                   .use_unique_ids = true,
+      &((struct BMeshCreateParams){.id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
+                                   .id_map = true,
+                                   .create_unique_ids = true,
+                                   .temporary_ids = false,
                                    .no_reuse_ids = false}));
 
   // reinit pools

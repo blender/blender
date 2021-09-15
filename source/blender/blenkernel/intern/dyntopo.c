@@ -3262,7 +3262,7 @@ static bool pbvh_bmesh_subdivide_long_edges(
 
 #ifdef USE_NEW_SPLIT
   BMEdge **edges = NULL;
-  BLI_array_staticdeclare(edges, 1024);
+  BLI_array_declare(edges);
 #endif
 
   while (!BLI_heapsimple_is_empty(eq_ctx->q->heap)) {
@@ -5193,7 +5193,8 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     int sym_axis,
                                     bool updatePBVH,
                                     DyntopoMaskCB mask_cb,
-                                    void *mask_cb_data)
+                                    void *mask_cb_data,
+                                    int custom_max_steps)
 {
 
   /* 2 is enough for edge faces - manifold edge */
@@ -5354,10 +5355,17 @@ typedef struct EdgeQueueContext {
     //(pbvh->bm_min_edge_len * 0.5f + pbvh->bm_max_edge_len * 0.5f);
     brusharea = brusharea * brusharea * M_PI;
 
-    int max_steps = (int)((float)DYNTOPO_MAX_ITER * ratio);
-    max_steps = (int)(brusharea * ratio * 2.0f);
+    int max_steps;
 
-    max_steps = MIN2(max_steps, DYNTOPO_MAX_ITER);
+    if (custom_max_steps == 0) {
+      //(int)((float)DYNTOPO_MAX_ITER * ratio);
+      max_steps = (int)(brusharea * ratio * 2.0f);
+
+      max_steps = MIN2(max_steps, DYNTOPO_MAX_ITER);
+    }
+    else {
+      max_steps = custom_max_steps;
+    }
 
 #  ifdef DYNTOPO_REPORT
     printf("brusharea: %.2f, ratio: %.2f\n", brusharea, ratio);
@@ -5427,8 +5435,15 @@ typedef struct EdgeQueueContext {
     float brusharea = radius / (pbvh->bm_min_edge_len * 0.5f + pbvh->bm_max_edge_len * 0.5f);
     brusharea = brusharea * brusharea * M_PI;
 
-    int max_steps = (int)((float)DYNTOPO_MAX_ITER * ratio);
-    max_steps = MIN2(max_steps, DYNTOPO_MAX_ITER);
+    int max_steps;
+
+    if (custom_max_steps == 0) {
+      max_steps = (int)((float)DYNTOPO_MAX_ITER * ratio);
+      max_steps = MIN2(max_steps, DYNTOPO_MAX_ITER);
+    }
+    else {
+      max_steps = custom_max_steps;
+    }
 
 #ifdef DYNTOPO_REPORT
     printf("collapse max_steps %d\n", max_steps);
@@ -5682,7 +5697,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 {
   BMEdge **edges = edges1;
   BMFace **faces = NULL;
-  BLI_array_staticdeclare(faces, 512);
+  BLI_array_declare(faces);
 
   bm_log_message("  == split edges == ");
 
@@ -5976,6 +5991,12 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
   bm_log_message("  == split edges (triangulate) == ");
 
+  BMVert **vs = NULL;
+  BLI_array_staticdeclare(vs, 32);
+
+  BMFace **newfaces = NULL;
+  BLI_array_declare(newfaces);
+
   for (int i = 0; i < totface; i++) {
     BMFace *f = faces[i];
     int mask = 0;
@@ -5995,6 +6016,8 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
       j++;
     } while ((l = l->next) != f->l_first);
 
+    int flen = j;
+
     if (mask >= ARRAY_SIZE(splitmap)) {
       printf("splitmap error!\n");
       continue;
@@ -6007,13 +6030,15 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
       continue;
     }
 
-    if (n != f->len) {
-      printf("error!\n");
+    if (n != f->len || n != flen) {
+      printf("%s: error! %d %d\n", __func__, n, flen);
       continue;
     }
 
     BMFace *f2 = f;
-    BMVert **vs = BLI_array_alloca(vs, n);
+
+    BLI_array_clear(vs);
+    BLI_array_reserve(vs, n);
 
     l = f->l_first;
     j = 0;
@@ -6021,7 +6046,13 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
       vs[j++] = l->v;
     } while ((l = l->next) != f->l_first);
 
-    BMFace **newfaces = BLI_array_alloca(newfaces, n);
+    if (j != n) {
+      printf("error! %s\n", __func__);
+      continue;
+    }
+
+    BLI_array_reserve(newfaces, n);
+
     int count = 0;
 
     for (j = 0; j < n; j++) {
@@ -6079,7 +6110,12 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
           BM_ELEM_CD_SET_INT(newf, pbvh->cd_face_node_offset, DYNTOPO_NODE_NONE);
         }
 
-        newfaces[count++] = newf;
+        if (count < n) {
+          newfaces[count++] = newf;
+        }
+        else {
+          printf("error!\n");
+        }
         f2 = newf;
       }
       else {
@@ -6110,7 +6146,10 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
     BM_log_face_added(pbvh->bm_log, f);
   }
 
+  BLI_array_free(vs);
+  BLI_array_free(newfaces);
   BLI_array_free(faces);
+
 #  ifdef EXPAND_SPLIT_REGION
   if (edges != edges1) {
     BLI_array_free(edges);

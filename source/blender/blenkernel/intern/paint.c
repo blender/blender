@@ -84,6 +84,7 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me);
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
 void SCULPT_dyntopo_node_layers_add(SculptSession *ss);
 BMesh *SCULPT_dyntopo_empty_bmesh();
+void SCULPT_undo_ensure_bmlog(Object *ob);
 
 static void init_mdyntopo_layer(SculptSession *ss, int totvert);
 
@@ -1085,7 +1086,8 @@ bool BKE_paint_ensure(ToolSettings *ts, struct Paint **r_paint)
     paint->symmetry_flags |= PAINT_SYMM_X;
 
     /* Make sure at least dyntopo subdivision is enabled */
-    data->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE | SCULPT_DYNTOPO_CLEANUP;
+    data->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE | SCULPT_DYNTOPO_CLEANUP |
+                   SCULPT_DYNTOPO_ENABLED;
   }
   else if ((GpPaint **)r_paint == &ts->gp_paint) {
     GpPaint *data = MEM_callocN(sizeof(*data), __func__);
@@ -1957,8 +1959,9 @@ void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene)
     sd->dyntopo_radius_scale = 1.0f;
   }
 
+  // we check these flags here in case versioning code fails
   if (!sd->detail_range || !sd->dyntopo_spacing) {
-    sd->flags |= SCULPT_DYNTOPO_CLEANUP;  // should really do this in do_versions_290.c
+    sd->flags |= SCULPT_DYNTOPO_CLEANUP | SCULPT_DYNTOPO_ENABLED;
   }
 
   if (!sd->detail_range) {
@@ -2323,14 +2326,10 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     ob->sculpt->pbvh = pbvh;
   }
   else {
-#ifdef WHEN_GLOBAL_UNDO_WORKS
+#if 1  // def WHEN_GLOBAL_UNDO_WORKS
     /*detect if we are loading from an undo memfile step*/
     Mesh *mesh_orig = BKE_object_get_original_mesh(ob);
     bool is_dyntopo = (mesh_orig->flag & ME_SCULPT_DYNAMIC_TOPOLOGY);
-
-    is_dyntopo = is_dyntopo && CustomData_has_layer(&mesh_orig->vdata, CD_MESH_ID);
-    is_dyntopo = is_dyntopo && CustomData_has_layer(&mesh_orig->edata, CD_MESH_ID);
-    is_dyntopo = is_dyntopo && CustomData_has_layer(&mesh_orig->pdata, CD_MESH_ID);
 
     if (is_dyntopo) {
       BMesh *bm = SCULPT_dyntopo_empty_bmesh();
@@ -2343,11 +2342,13 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
                          (&(struct BMeshFromMeshParams){.calc_face_normal = true,
                                                         .use_shapekey = true,
                                                         .active_shapekey = ob->shapenr,
-                                                        .copy_id_layers = true,
+                                                        .ignore_id_layers = false,
                                                         .copy_temp_cdlayers = true,
                                                         .cd_mask_extra = CD_MASK_DYNTOPO_VERT}));
 
       SCULPT_dyntopo_node_layers_add(ob->sculpt);
+
+      SCULPT_undo_ensure_bmlog(ob);
 
       pbvh = build_pbvh_for_dynamic_topology(ob);
     }

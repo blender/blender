@@ -2671,6 +2671,10 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
     inherit = 0x7FFFFFFF;
   }
 
+  if (!(sd->flags & SCULPT_DYNTOPO_ENABLED)) {
+    out->flag |= DYNTOPO_DISABLED;
+  }
+
   if (inherit & DYNTOPO_INHERIT_MODE) {
     if (sd->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT) {
       out->mode = DYNTOPO_DETAIL_CONSTANT;

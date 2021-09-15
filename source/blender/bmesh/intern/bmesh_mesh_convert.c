@@ -95,6 +95,7 @@
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h" /* For element checking. */
+#include "range_tree.h"
 
 static void bm_unmark_temp_cdlayers(BMesh *bm)
 {
@@ -227,6 +228,10 @@ void BM_enter_multires_space(Object *ob, BMesh *bm, int space)
  * since this should be kept fast for edit-mode switching and storing undo steps.
  *
  * \warning This function doesn't calculate face normals.
+ *
+ * Mesh IDs will be imported unless requested.  If the bmesh was created
+ * with id map enabled then IDs will be checked for uniqueness, otherwise
+ * they are imported as is.
  */
 
 void BM_mesh_bm_from_me(Object *ob,
@@ -249,11 +254,40 @@ void BM_mesh_bm_from_me(Object *ob,
   CustomData_MeshMasks mask = CD_MASK_BMESH;
   CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
 
+  MultiresModifierData *mmd = ob ? get_multires_modifier(NULL, ob, true) : NULL;
+  const CustomData *cdatas[] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
+  const CustomData *bmdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+
+  bool check_id_unqiue = false;
+
+  if (!params->ignore_id_layers) {
+    for (int i = 0; i < 4; i++) {
+      int type = 1 << i;
+
+      if (CustomData_has_layer(cdatas[i], CD_MESH_ID)) {
+        bm->idmap.flag |= type | BM_HAS_IDS;
+      }
+    }
+
+    bm_init_idmap_cdlayers(bm);
+  }
+
+  // check_id_unqiue
+  if ((bm->idmap.flag & BM_HAS_IDS)) {
+#ifndef WITH_BM_ID_FREELIST
+    if (!bm->idmap.idtree) {
+      bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
+    }
+#endif
+
+    if (bm->idmap.flag & BM_HAS_ID_MAP) {
+      check_id_unqiue = true;
+    }
+  }
+
   if (params->copy_temp_cdlayers) {
     bm_unmark_temp_cdlayers(bm);
   }
-
-  MultiresModifierData *mmd = ob ? get_multires_modifier(NULL, ob, true) : NULL;
 
   if (params->copy_temp_cdlayers) {
     mask.vmask |= CD_MASK_MESH_ID;
@@ -405,9 +439,7 @@ void BM_mesh_bm_from_me(Object *ob,
                     0;
 
   if (bm->idmap.flag & BM_HAS_IDS) {
-    if (params->copy_id_layers) {
-      const CustomData *cdatas[] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
-
+    if (!params->ignore_id_layers) {
       for (int i = 0; i < 4; i++) {
         existing_id_layers[i] = (int *)CustomData_get_layer(cdatas[i], CD_MESH_ID);
 
@@ -453,7 +485,7 @@ void BM_mesh_bm_from_me(Object *ob,
 
     if (has_ids & BM_VERT) {
       if (use_exist_ids & BM_VERT) {
-        bm_assign_id(bm, (BMElem *)v, existing_id_layers[0][i]);
+        bm_assign_id(bm, (BMElem *)v, existing_id_layers[0][i], false);
       }
       else {
         bm_alloc_id(bm, (BMElem *)v);
@@ -502,7 +534,7 @@ void BM_mesh_bm_from_me(Object *ob,
 
     if (has_ids & BM_EDGE) {
       if (use_exist_ids & BM_EDGE) {
-        bm_assign_id(bm, (BMElem *)e, existing_id_layers[1][i]);
+        bm_assign_id(bm, (BMElem *)e, existing_id_layers[1][i], false);
       }
       else {
         bm_alloc_id(bm, (BMElem *)e);
@@ -573,7 +605,7 @@ void BM_mesh_bm_from_me(Object *ob,
 
       if (has_ids & BM_LOOP) {
         if (use_exist_ids & BM_LOOP) {
-          bm_assign_id(bm, (BMElem *)l_iter, existing_id_layers[2][j - 1]);
+          bm_assign_id(bm, (BMElem *)l_iter, existing_id_layers[2][j - 1], false);
         }
         else {
           bm_alloc_id(bm, (BMElem *)l_iter);
@@ -586,7 +618,7 @@ void BM_mesh_bm_from_me(Object *ob,
 
     if (has_ids & BM_FACE) {
       if (use_exist_ids & BM_FACE) {
-        bm_assign_id(bm, (BMElem *)f, existing_id_layers[3][i]);
+        bm_assign_id(bm, (BMElem *)f, existing_id_layers[3][i], false);
       }
       else {
         bm_alloc_id(bm, (BMElem *)f);
@@ -601,6 +633,99 @@ void BM_mesh_bm_from_me(Object *ob,
     bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP); /* Added in order, clear dirty flag. */
   }
 
+  if (check_id_unqiue) {
+    // validate IDs
+
+    // first clear idmap, we want it to have the first elements
+    // in each id run, not the last
+    if (bm->idmap.map) {
+      memset(bm->idmap.map, 0, sizeof(void *) * bm->idmap.map_size);
+    }
+    else if (bm->idmap.ghash) {
+      BLI_ghash_free(bm->idmap.ghash, NULL, NULL);
+      bm->idmap.ghash = BLI_ghash_ptr_new("bm->idmap.ghash");
+    }
+
+    int iters[] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, -1, BM_FACES_OF_MESH};
+
+    // find first element in each id run and assign to map
+    for (int i = 0; i < 4; i++) {
+      int type = 1 << i;
+      int iter = iters[i];
+
+      if (!(bm->idmap.flag & type)) {
+        continue;
+      }
+
+      if (iter == -1) {
+        iter = BM_FACES_OF_MESH;
+      }
+
+      BMElem *elem;
+      BMIter iterstate;
+      BM_ITER_MESH (elem, &iterstate, bm, iter) {
+        if (i == 2) {  // loops
+          BMFace *f = (BMFace *)elem;
+          BMLoop *l = f->l_first;
+
+          do {
+            uint id = (uint)BM_ELEM_GET_ID(bm, (BMElem *)l);
+
+            if (!BM_ELEM_FROM_ID(bm, id)) {
+              bm_assign_id_intern(bm, (BMElem *)l, id);
+            }
+          } while ((l = l->next) != f->l_first);
+        }
+        else {
+          uint id = (uint)BM_ELEM_GET_ID(bm, elem);
+
+          if (!BM_ELEM_FROM_ID(bm, id)) {
+            bm_assign_id_intern(bm, elem, id);
+          }
+        }
+      }
+    }
+
+    // now assign new IDs where necessary
+
+    for (int i = 0; i < 4; i++) {
+      int type = 1 << i;
+      int iter = iters[i];
+
+      if (!(bm->idmap.flag & type)) {
+        continue;
+      }
+
+      if (iter == -1) {
+        iter = BM_FACES_OF_MESH;
+      }
+
+      BMElem *elem;
+      BMIter iterstate;
+
+      BM_ITER_MESH (elem, &iterstate, bm, iter) {
+        if (i == 2) {  // loops
+          BMFace *f = (BMFace *)elem;
+          BMLoop *l = f->l_first;
+
+          do {
+            uint id = (uint)BM_ELEM_GET_ID(bm, (BMElem *)l);
+
+            if (BM_ELEM_FROM_ID(bm, id) != (BMElem *)l) {
+              bm_alloc_id(bm, (BMElem *)l);
+            }
+          } while ((l = l->next) != f->l_first);
+        }
+        else {
+          uint id = (uint)BM_ELEM_GET_ID(bm, elem);
+
+          if (BM_ELEM_FROM_ID(bm, id) != elem) {
+            bm_alloc_id(bm, elem);
+          }
+        }
+      }
+    }
+  }
   /* -------------------------------------------------------------------- */
   /* MSelect clears the array elements (avoid adding multiple times).
    *

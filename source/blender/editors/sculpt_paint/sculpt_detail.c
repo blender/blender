@@ -121,21 +121,70 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 
   SCULPT_dyntopo_automasking_init(ss, sd, NULL, ob, &mask_cb, &mask_cb_data);
 
-  while (BKE_pbvh_bmesh_update_topology(ss->pbvh,
-                                        PBVH_Collapse | PBVH_Subdivide,
-                                        center,
-                                        NULL,
-                                        size,
-                                        false,
-                                        false,
-                                        -1,
-                                        false,
-                                        mask_cb,
-                                        mask_cb_data)) {
+  const int max_steps = 10;
+  const int max_dyntopo_steps_coll = 1 << 13;
+  const int max_dyntopo_steps_subd = 1 << 15;
 
-    for (int i = 0; i < totnodes; i++) {
-      BKE_pbvh_node_mark_topology_update(nodes[i]);
+  int i = 0;
+  bool modified = true;
+
+  while (modified) {
+    modified = BKE_pbvh_bmesh_update_topology(ss->pbvh,
+                                              PBVH_Collapse,
+                                              center,
+                                              NULL,
+                                              size,
+                                              false,
+                                              false,
+                                              -1,
+                                              false,
+                                              mask_cb,
+                                              mask_cb_data,
+                                              max_dyntopo_steps_coll);
+
+    for (int j = 0; j < totnodes; j++) {
+      BKE_pbvh_node_mark_topology_update(nodes[j]);
     }
+
+    modified |= BKE_pbvh_bmesh_update_topology(ss->pbvh,
+                                               PBVH_Subdivide,
+                                               center,
+                                               NULL,
+                                               size,
+                                               false,
+                                               false,
+                                               -1,
+                                               false,
+                                               mask_cb,
+                                               mask_cb_data,
+                                               max_dyntopo_steps_subd);
+    for (int j = 0; j < totnodes; j++) {
+      BKE_pbvh_node_mark_topology_update(nodes[j]);
+    }
+
+    if (i++ > max_steps) {
+      break;
+    }
+  }
+
+  /* one more time, but with cleanup valence 3/4 verts enabled */
+  for (i = 0; i < 2; i++) {
+    for (int j = 0; j < totnodes; j++) {
+      BKE_pbvh_node_mark_topology_update(nodes[j]);
+    }
+
+    BKE_pbvh_bmesh_update_topology(ss->pbvh,
+                                   PBVH_Cleanup,
+                                   center,
+                                   NULL,
+                                   size,
+                                   false,
+                                   false,
+                                   -1,
+                                   false,
+                                   mask_cb,
+                                   mask_cb_data,
+                                   max_dyntopo_steps_coll);
   }
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);

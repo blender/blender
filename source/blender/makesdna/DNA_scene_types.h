@@ -2253,7 +2253,8 @@ typedef enum eSculptFlags {
   // hides facesets/masks and forces indexed mode to save GPU bandwidth
   SCULPT_FAST_DRAW = (1 << 20),
   SCULPT_DYNTOPO_LOCAL_SUBDIVIDE = (1 << 21),
-  SCULPT_DYNTOPO_LOCAL_COLLAPSE = (1 << 22)
+  SCULPT_DYNTOPO_LOCAL_COLLAPSE = (1 << 22),
+  SCULPT_DYNTOPO_ENABLED = (1 << 23),
 } eSculptFlags;
 
 /** #ImagePaintSettings.mode */

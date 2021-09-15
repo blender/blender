@@ -301,6 +301,8 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_face_areas);
 void BKE_pbvh_free(PBVH *pbvh);
 
+void BKE_pbvh_set_bm_log(PBVH *pbvh, struct BMLog *log);
+
 /** update original data, only data whose r_** parameters are passed in will be updated*/
 void BKE_pbvh_bmesh_update_origvert(
     PBVH *pbvh, struct BMVert *v, float **r_co, float **r_no, float **r_color, bool log_undo);
@@ -445,17 +447,19 @@ typedef enum {
 
 typedef float (*DyntopoMaskCB)(SculptVertRef vertex, void *userdata);
 
-bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
-                                    PBVHTopologyUpdateMode mode,
-                                    const float center[3],
-                                    const float view_normal[3],
-                                    float radius,
-                                    const bool use_frontface,
-                                    const bool use_projected,
-                                    int symaxis,
-                                    bool updatePBVH,
-                                    DyntopoMaskCB mask_cb,
-                                    void *mask_cb_data);
+bool BKE_pbvh_bmesh_update_topology(
+    PBVH *pbvh,
+    PBVHTopologyUpdateMode mode,
+    const float center[3],
+    const float view_normal[3],
+    float radius,
+    const bool use_frontface,
+    const bool use_projected,
+    int symaxis,
+    bool updatePBVH,
+    DyntopoMaskCB mask_cb,
+    void *mask_cb_data,
+    int custom_max_steps);  // if 0, will use defaul hueristics for max steps
 
 bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                           bool (*searchcb)(PBVHNode *node, void *data),

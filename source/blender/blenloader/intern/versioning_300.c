@@ -1178,6 +1178,27 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
   }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 22)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+
+      if (ts) {
+        ts->unified_paint_settings.flag |= UNIFIED_PAINT_FLAG_HARD_EDGE_MODE;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 23)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+
+      if (ts && ts->sculpt) {
+        ts->sculpt->flags |= SCULPT_DYNTOPO_ENABLED;
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

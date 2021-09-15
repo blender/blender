@@ -332,7 +332,7 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
 
 BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
 {
-  MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_dyn_vert);
+  MDynTopoVert *mv = (MDynTopoVert *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_dyn_vert);
 
   if (mv->flag & DYNVERT_NEED_BOUNDARY) {
     bke_pbvh_update_vert_boundary(

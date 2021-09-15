@@ -71,6 +71,8 @@
 #include "bmesh.h"
 #include "sculpt_intern.h"
 
+#define WHEN_GLOBAL_UNDO_WORKS
+
 /* Implementation of undo system for objects in sculpt mode.
  *
  * Each undo step in sculpt mode consists of list of nodes, each node contains:
@@ -714,13 +716,16 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
   ss->active_face_index.i = ss->active_vertex_index.i = 0;
 
   /* Create empty BMesh and enable logging. */
-  ss->bm = BM_mesh_create(
-      &bm_mesh_allocsize_default,
-      &((struct BMeshCreateParams){.use_toolflags = false,
-                                   .use_unique_ids = true,
-                                   .use_id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
-                                   .use_id_map = true,
-                                   .no_reuse_ids = false}));
+  ss->bm = SCULPT_dyntopo_empty_bmesh();
+#if 0
+  ss->bm = BM_mesh_create(&bm_mesh_allocsize_default,
+                          &((struct BMeshCreateParams){.use_toolflags = false,
+                                                       .create_unique_ids = true,
+                                                       .id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
+                                                       .id_map = true,
+                                                       .temporary_ids = false,
+                                                       .no_reuse_ids = false}));
+#endif
 
   BM_mesh_bm_from_me(NULL,
                      ss->bm,
@@ -758,7 +763,13 @@ static void sculpt_undo_bmesh_restore_begin(
         not entirely sure why, and in thoery it shouldn't be necassary.
         ids end up corrupted.
         */
+
+#if 1
       // BM_log_all_ids(ss->bm, ss->bm_log, unode->bm_entry);
+
+      // need to run bmlog undo on empty log,
+      // getting a refcount error in the log
+      // ref counting system otherwise
 
       if (dir == -1) {
         BM_log_undo_skip(ss->bm, ss->bm_log);
@@ -766,6 +777,7 @@ static void sculpt_undo_bmesh_restore_begin(
       else {
         BM_log_redo_skip(ss->bm, ss->bm_log);
       }
+#endif
     }
 
     SCULPT_dynamic_topology_disable(C, unode);
@@ -775,13 +787,18 @@ static void sculpt_undo_bmesh_restore_begin(
     /*load bmesh from mesh data*/
     sculpt_undo_bmesh_enable(ob, unode, true);
 
-    /* Restore mesh ids from last log entry, i.e. the one pushed in the primary if branch above */
+#if 1
+    // need to run bmlog undo on empty log,
+    // getting a refcount error in the log
+    // ref counting system otherwise
+
     if (dir == 1) {
       BM_log_redo(ss->bm, ss->bm_log, NULL, dyntopop_node_idx_layer_id);
     }
     else {
       BM_log_undo(ss->bm, ss->bm_log, NULL, dyntopop_node_idx_layer_id);
     }
+#endif
 
     unode->applied = true;
   }
@@ -799,22 +816,27 @@ static void sculpt_undo_bmesh_restore_end(
     /*load bmesh from mesh data*/
     sculpt_undo_bmesh_enable(ob, unode, false);
 
-    /* Restore mesh ids from last log entry, i.e. the one pushed in the else branch below */
+#if 1
+    // need to run bmlog undo on empty log,
+    // getting a refcount error in the log
+    // ref counting system otherwise
+
     if (dir == -1) {
       BM_log_undo(ss->bm, ss->bm_log, NULL, dyntopop_node_idx_layer_id);
     }
     else {
       BM_log_redo(ss->bm, ss->bm_log, NULL, dyntopop_node_idx_layer_id);
     }
+#endif
 
     unode->applied = false;
   }
   else {
+#if 1
     if (ss->bm && ss->bm_log) {
-      /*note that we can't log ids here.
-        not entirely sure why, and in thoery it shouldn't be necassary.
-        ids end up corrupted.
-        */
+      // need to run bmlog undo on empty log,
+      // getting a refcount error in the log
+      // ref counting system otherwise
 
       if (dir == -1) {
         BM_log_undo_skip(ss->bm, ss->bm_log);
@@ -823,6 +845,7 @@ static void sculpt_undo_bmesh_restore_end(
         BM_log_redo_skip(ss->bm, ss->bm_log);
       }
     }
+#endif
 
     /* Disable dynamic topology sculpting. */
     SCULPT_dynamic_topology_disable(C, NULL);
@@ -1703,6 +1726,56 @@ static SculptUndoNode *sculpt_undo_face_sets_push(Object *ob, SculptUndoType typ
   return unode;
 }
 
+void SCULPT_undo_ensure_bmlog(Object *ob)
+{
+  if (!ob->sculpt) {
+    return;
+  }
+
+  UndoStack *ustack = ED_undo_stack_get();
+
+  if (!ustack) {
+    return;
+  }
+
+  UndoStep *us = BKE_undosys_stack_active_with_type(ustack, BKE_UNDOSYS_TYPE_SCULPT);
+
+  if (!us) {
+    return;
+  }
+
+  UndoSculpt *usculpt = sculpt_undosys_step_get_nodes(us);
+
+  SculptSession *ss = ob->sculpt;
+  Mesh *me = BKE_object_get_original_mesh(ob);
+
+  if (!ss->bm && !(me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY)) {
+    return;
+  }
+
+  if (!usculpt) {
+    // happens during file load
+    return;
+  }
+
+  SculptUndoNode *unode = usculpt->nodes.first;
+
+  // this can happen in certain cases when going to/from other undo types
+  // I think.
+  if (!ss->bm_log) {
+    if (unode && unode->bm_entry) {
+      ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
+    }
+    else {
+      ss->bm_log = BM_log_create(ss->bm, ss->cd_dyn_vert);
+    }
+
+    if (ss->pbvh) {
+      BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
+    }
+  }
+}
+
 static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
@@ -1710,6 +1783,8 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
   PBVHVertexIter vd;
 
   SculptUndoNode *unode = usculpt->nodes.first;
+
+  SCULPT_undo_ensure_bmlog(ob);
 
   bool new_node = false;
 
@@ -1721,14 +1796,20 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
     unode->type = type;
     unode->applied = true;
 
+    /* note that every undo type must push a bm_entry for
+       so we can recreate the BMLog from chained entries
+       when going to/from other undo system steps */
+
     if (type == SCULPT_UNDO_DYNTOPO_END) {
-      unode->bm_entry = BM_log_all_ids(ss->bm, ss->bm_log, NULL);
+      // unode->bm_entry = BM_log_all_ids(ss->bm, ss->bm_log, NULL);
+      unode->bm_entry = BM_log_entry_add(ss->bm, ss->bm_log);
 
       // BM_log_full_mesh(ss->bm, ss->bm_log);
       // BM_log_before_all_removed(ss->bm, ss->bm_log);
     }
     else if (type == SCULPT_UNDO_DYNTOPO_BEGIN) {
-      unode->bm_entry = BM_log_all_ids(ss->bm, ss->bm_log, NULL);
+      // unode->bm_entry = BM_log_all_ids(ss->bm, ss->bm_log, NULL);
+      unode->bm_entry = BM_log_entry_add(ss->bm, ss->bm_log);
 
       // BM_log_all_added(ss->bm, ss->bm_log);
       // BM_log_full_mesh(ss->bm, ss->bm_log);
@@ -2013,6 +2094,8 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
 
 void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_first_entry_check)
 {
+  SCULPT_undo_ensure_bmlog(ob);
+
   UndoStack *ustack = ED_undo_stack_get();
 
   if (ob != NULL) {
@@ -2275,6 +2358,11 @@ static UndoSculpt *sculpt_undosys_step_get_nodes(UndoStep *us_p)
 static UndoSculpt *sculpt_undo_get_nodes(void)
 {
   UndoStack *ustack = ED_undo_stack_get();
+
+  if (!ustack) {  // happens during file load
+    return NULL;
+  }
+
   UndoStep *us = BKE_undosys_stack_init_or_active_with_type(ustack, BKE_UNDOSYS_TYPE_SCULPT);
   return sculpt_undosys_step_get_nodes(us);
 }
@@ -2328,7 +2416,8 @@ static void sculpt_undo_push_all_grids(Object *object)
    * to the current operation without making any stroke in between.
    *
    * Skip pushing nodes based on the following logic: on redo SCULPT_UNDO_COORDS will ensure
-   * PBVH for the new base geometry, which will have same coordinates as if we create PBVH here. */
+   * PBVH for the new base geometry, which will have same coordinates as if we create PBVH here.
+   */
   if (ss->pbvh == NULL) {
     return;
   }

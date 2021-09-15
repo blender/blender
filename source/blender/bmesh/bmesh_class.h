@@ -410,7 +410,8 @@ enum {
   // firsst four bits are reserved for BM_VERT/EDGE/LOOP/FACE
   BM_HAS_IDS = 1 << 4,
   BM_HAS_ID_MAP = 1 << 5,
-  BM_NO_REUSE_IDS = 1 << 6
+  BM_NO_REUSE_IDS = 1 << 6,
+  BM_PERMANENT_IDS = 1 << 7
 };
 
 /** #BMHeader.htype (char) */

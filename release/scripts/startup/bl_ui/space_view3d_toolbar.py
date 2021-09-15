@@ -783,7 +783,7 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
         col.label(text="Local Brush Settings")
 
         row = col.row()
-        row.prop(brush.dyntopo, "disabled", text="Disable Dyntopo")
+        row.prop(brush.dyntopo, "disabled", text="Disable Dyntopo locally for this brush")
 
         col.label(text="Overrides")
         inherit_all = "ALL" in brush.dyntopo.inherit
@@ -825,7 +825,7 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
 # TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
-    bl_label = "Dyntopo"
+    bl_label = "Dynamic Mode"
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 12
 
@@ -856,6 +856,8 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
 
         col = layout.column()
         col.active = context.sculpt_object.use_dynamic_topology_sculpting
+
+        col.prop(sculpt, "use_dyntopo");
 
         sub = col.column()
         sub.active = (brush and brush.sculpt_tool != 'MASK')

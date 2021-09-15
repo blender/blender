@@ -91,9 +91,10 @@ BMesh *SCULPT_dyntopo_empty_bmesh()
   BMesh *bm = BM_mesh_create(
       &allocsize,
       &((struct BMeshCreateParams){.use_toolflags = false,
-                                   .use_unique_ids = true,
-                                   .use_id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
-                                   .use_id_map = true,
+                                   .create_unique_ids = true,
+                                   .id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
+                                   .id_map = true,
+                                   .temporary_ids = false,
                                    .no_reuse_ids = false}));
 
   return bm;
@@ -780,13 +781,13 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   BKE_mesh_mselect_clear(me);
 
 #if 1
-  ss->bm = BM_mesh_create(
-      &allocsize,
-      &((struct BMeshCreateParams){.use_toolflags = false,
-                                   .use_unique_ids = true,
-                                   .use_id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
-                                   .use_id_map = true,
-                                   .no_reuse_ids = false}));
+  ss->bm = BM_mesh_create(&allocsize,
+                          &((struct BMeshCreateParams){.use_toolflags = false,
+                                                       .create_unique_ids = true,
+                                                       .id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
+                                                       .id_map = true,
+                                                       .temporary_ids = false,
+                                                       .no_reuse_ids = false}));
 
   BM_mesh_bm_from_me(NULL,
                      ss->bm,
@@ -1193,7 +1194,10 @@ void SCULPT_OT_dynamic_topology_toggle(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Dynamic Topology Toggle";
   ot->idname = "SCULPT_OT_dynamic_topology_toggle";
-  ot->description = "Dynamic topology alters the mesh topology while sculpting";
+  ot->description =
+      "Dynamic mode; note that you must now check the DynTopo"
+      "option to enable dynamic remesher (which updates topology will sculpting)"
+      "this is on by default.";
 
   /* API callbacks. */
   ot->invoke = sculpt_dynamic_topology_toggle_invoke;

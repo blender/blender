@@ -43,7 +43,7 @@ struct BMeshFromMeshParams {
   int active_shapekey;
   struct CustomData_MeshMasks cd_mask_extra;
   uint copy_temp_cdlayers : 1;
-  uint copy_id_layers : 1;  // make sure to enable ids when creating bmesh properly
+  uint ignore_id_layers : 1;
 };
 
 struct Object;

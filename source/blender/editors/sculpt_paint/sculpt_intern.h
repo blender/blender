@@ -1700,6 +1700,8 @@ void SCULPT_replay_test(void);
 
 #endif
 
+struct BMesh *SCULPT_dyntopo_empty_bmesh();
+
 #define SCULPT_stroke_needs_original(brush) \
   ELEM(brush->sculpt_tool, \
        SCULPT_TOOL_DRAW_SHARP, \

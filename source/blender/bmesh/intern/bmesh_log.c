@@ -765,7 +765,7 @@ static void bm_log_verts_restore(
     }
 #endif
 
-    bm_assign_id(bm, (BMElem *)v, POINTER_AS_UINT(key));
+    bm_assign_id(bm, (BMElem *)v, POINTER_AS_UINT(key), false);
 
     if (callbacks) {
       callbacks->on_vert_add(v, callbacks->userdata);
@@ -816,7 +816,7 @@ static void bm_log_edges_restore(
     }
 #endif
 
-    bm_assign_id(bm, (BMElem *)e, POINTER_AS_UINT(key));
+    bm_assign_id(bm, (BMElem *)e, POINTER_AS_UINT(key), false);
 
     if ((uint)BM_ELEM_GET_ID(bm, e) != id) {
       printf("%s: error assigning id\n", __func__);
@@ -913,14 +913,14 @@ static void bm_log_faces_restore(
       CustomData_bmesh_copy_data(&entry->pdata, &bm->pdata, lf->customdata_f, &f->head.data);
     }
 
-    bm_assign_id(bm, (BMElem *)f, POINTER_AS_UINT(key));
+    bm_assign_id(bm, (BMElem *)f, POINTER_AS_UINT(key), false);
 
     BMLoop *l = f->l_first;
     int j = 0;
 
     do {
       if (have_loop_ids) {
-        bm_assign_id(bm, (BMElem *)l, lf->l_ids[j]);
+        bm_assign_id(bm, (BMElem *)l, lf->l_ids[j], false);
       }
 
       if (lf->customdata[j]) {
@@ -1689,7 +1689,7 @@ static void full_copy_load(BMesh *bm, BMLog *log, BMLogEntry *entry)
 
                                                     .cd_mask_extra = cd_mask_extra,
                                                     .copy_temp_cdlayers = true,
-                                                    .copy_id_layers = true}));
+                                                    .ignore_id_layers = false}));
 
   bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
 
@@ -1841,7 +1841,7 @@ static void log_idmap_load(BMesh *bm, BMLog *log, BMLogEntry *entry)
     int *lmap = idmap->maps[BM_LOOP];
 
     BM_ITER_MESH_INDEX (elem, &iter, bm, iters[i], j) {
-      bm_assign_id(bm, elem, (uint)map[j]);
+      bm_assign_id(bm, elem, (uint)map[j], false);
 
       // deal with loops
       if (type == BM_FACE && cd_loop_id >= 0) {
@@ -1849,7 +1849,7 @@ static void log_idmap_load(BMesh *bm, BMLog *log, BMLogEntry *entry)
         BMLoop *l = f->l_first;
 
         do {
-          bm_assign_id(bm, (BMElem *)l, (uint)lmap[loopi]);
+          bm_assign_id(bm, (BMElem *)l, (uint)lmap[loopi], false);
 
           loopi++;
         } while ((l = l->next) != f->l_first);
@@ -1905,7 +1905,7 @@ static void log_idmap_swap(BMesh *bm, BMLog *log, BMLogEntry *entry)
     BM_ITER_MESH_INDEX (elem, &iter, bm, iters[i], j) {
       int id = BM_ELEM_CD_GET_INT(elem, cd_id);
 
-      bm_assign_id(bm, elem, (uint)map[j]);
+      bm_assign_id(bm, elem, (uint)map[j], false);
       map[j] = id;
 
       // deal with loops
@@ -1916,7 +1916,7 @@ static void log_idmap_swap(BMesh *bm, BMLog *log, BMLogEntry *entry)
         do {
           int id2 = BM_ELEM_CD_GET_INT(l, cd_loop_id);
 
-          bm_assign_id(bm, (BMElem *)l, (uint)lmap[loopi]);
+          bm_assign_id(bm, (BMElem *)l, (uint)lmap[loopi], false);
           lmap[loopi] = id2;
 
           loopi++;
@@ -1973,7 +1973,7 @@ static void full_copy_swap(BMesh *bm, BMLog *log, BMLogEntry *entry)
 
                                                     .cd_mask_extra = cd_mask_extra,
                                                     .copy_temp_cdlayers = true,
-                                                    .copy_id_layers = true}));
+                                                    .ignore_id_layers = false}));
 
   bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
   bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
@@ -2454,7 +2454,7 @@ BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, fl
   uint id = range_tree_uint_take_any(log->bm->idmap.idtree);
 
   bm_free_id(log->bm, (BMElem *)e);
-  bm_assign_id(log->bm, (BMElem *)e, id);
+  bm_assign_id(log->bm, (BMElem *)e, id, false);
 
   bm_log_message(" esplit: add new vert %d", id3);
   BM_log_vert_added(log, newv, -1);

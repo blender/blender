@@ -108,7 +108,7 @@ void bm_id_freelist_push(BMesh *bm, uint id)
 
 // static const int _typemap[] = {0, 0, 1, 0, 2, 0, 0, 0, 3};
 
-static void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
+void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
 {
   // CustomData *cdata = &bm->vdata + _typemap[elem->head.htype];
   // int cd_id_off = cdata->layers[cdata->typemap[CD_MESH_ID]].offset;
@@ -143,8 +143,15 @@ static void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
   }
 }
 
-void bm_assign_id(BMesh *bm, BMElem *elem, uint id)
+void bm_assign_id(BMesh *bm, BMElem *elem, uint id, bool check_unqiue)
 {
+  if (check_unqiue && (bm->idmap.flag & BM_HAS_ID_MAP)) {
+    if (BM_ELEM_FROM_ID(bm, id)) {
+
+      printf("had to alloc a new id in bm_assign_id for %x; old id: %d\n", elem, (int)id);
+    }
+  }
+
 #ifdef WITH_BM_ID_FREELIST
   bm_id_freelist_take(bm, id);
 #else
@@ -965,10 +972,11 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
   bm_new = BM_mesh_create(
       &allocsize,
       &((struct BMeshCreateParams){.use_toolflags = bm_old->use_toolflags,
-                                   .use_id_elem_mask = bm_old->idmap.flag &
-                                                       (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE),
-                                   .use_unique_ids = !!(bm_old->idmap.flag & BM_HAS_IDS),
-                                   .use_id_map = !!(bm_old->idmap.flag & BM_HAS_ID_MAP),
+                                   .id_elem_mask = bm_old->idmap.flag &
+                                                   (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE),
+                                   .create_unique_ids = !!(bm_old->idmap.flag & BM_HAS_IDS),
+                                   .id_map = !!(bm_old->idmap.flag & BM_HAS_ID_MAP),
+                                   .temporary_ids = !(bm_old->idmap.flag & BM_PERMANENT_IDS),
                                    .no_reuse_ids = !!(bm_old->idmap.flag & BM_NO_REUSE_IDS)}));
 
   BM_mesh_copy_init_customdata(bm_new, bm_old, &allocsize);
@@ -1161,28 +1169,31 @@ void bm_init_idmap_cdlayers(BMesh *bm)
     return;
   }
 
-  if ((bm->idmap.flag & BM_VERT) && !CustomData_has_layer(&bm->vdata, CD_MESH_ID)) {
-    BM_data_layer_add(bm, &bm->vdata, CD_MESH_ID);
-    bm->vdata.layers[CustomData_get_layer_index(&bm->vdata, CD_MESH_ID)].flag |=
-        CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
-  }
+  bool temp_ids = !(bm->idmap.flag & BM_PERMANENT_IDS);
 
-  if ((bm->idmap.flag & BM_EDGE) && !CustomData_has_layer(&bm->edata, CD_MESH_ID)) {
-    BM_data_layer_add(bm, &bm->edata, CD_MESH_ID);
-    bm->edata.layers[CustomData_get_layer_index(&bm->edata, CD_MESH_ID)].flag |=
-        CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
-  }
+  int types[4] = {BM_VERT, BM_EDGE, BM_LOOP, BM_FACE};
+  CustomData *cdatas[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
 
-  if ((bm->idmap.flag & BM_LOOP) && !CustomData_has_layer(&bm->ldata, CD_MESH_ID)) {
-    BM_data_layer_add(bm, &bm->ldata, CD_MESH_ID);
-    bm->ldata.layers[CustomData_get_layer_index(&bm->ldata, CD_MESH_ID)].flag |=
-        CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
-  }
+  for (int i = 0; i < 4; i++) {
+    CustomDataLayer *layer;
 
-  if ((bm->idmap.flag & BM_FACE) && !CustomData_has_layer(&bm->pdata, CD_MESH_ID)) {
-    BM_data_layer_add(bm, &bm->pdata, CD_MESH_ID);
-    bm->pdata.layers[CustomData_get_layer_index(&bm->pdata, CD_MESH_ID)].flag |=
-        CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
+    if (!(bm->idmap.flag & types[i])) {
+      continue;
+    }
+
+    if (!CustomData_has_layer(cdatas[i], CD_MESH_ID)) {
+      BM_data_layer_add(bm, cdatas[i], CD_MESH_ID);
+    }
+
+    layer = cdatas[i]->layers + CustomData_get_layer_index(cdatas[i], CD_MESH_ID);
+    layer->flag |= CD_FLAG_ELEM_NOCOPY;
+
+    if (temp_ids) {
+      layer->flag |= CD_FLAG_TEMPORARY;
+    }
+    else {
+      layer->flag &= ~CD_FLAG_TEMPORARY;
+    }
   }
 
   bm_update_idmap_cdlayers(bm);
