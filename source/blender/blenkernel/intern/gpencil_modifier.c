@@ -938,6 +938,11 @@ void BKE_gpencil_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
         BKE_curvemapping_blend_write(writer, gpmd->curve_intensity);
       }
     }
+    else if (md->type == eGpencilModifierType_Dash) {
+      DashGpencilModifierData *gpmd = (DashGpencilModifierData *)md;
+      BLO_write_struct_array(
+          writer, DashGpencilModifierSegment, gpmd->segments_len, gpmd->segments);
+    }
   }
 }
 
@@ -1016,6 +1021,10 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
         BKE_curvemapping_blend_read(reader, gpmd->curve_intensity);
         BKE_curvemapping_init(gpmd->curve_intensity);
       }
+    }
+    else if (md->type == eGpencilModifierType_Dash) {
+      DashGpencilModifierData *gpmd = (DashGpencilModifierData *)md;
+      BLO_read_data_address(reader, &gpmd->segments);
     }
   }
 }

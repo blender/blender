@@ -319,5 +319,23 @@
     .material = NULL,\
   }
 
+#define _DNA_DEFAULT_DashGpencilModifierData \
+  { \
+    .dash_offset = 0, \
+    .segments = NULL, \
+    .segments_len = 1, \
+    .segment_active_index = 0, \
+  }
+
+#define _DNA_DEFAULT_DashGpencilModifierSegment \
+  { \
+    .name = "", \
+    .dash = 2, \
+    .gap = 1, \
+    .radius = 1.0f, \
+    .opacity = 1.0f, \
+    .mat_nr = -1, \
+  }
+
 
 /* clang-format off */

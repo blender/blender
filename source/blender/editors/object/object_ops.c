@@ -156,6 +156,10 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy);
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy_to_selected);
 
+  WM_operatortype_append(GPENCIL_OT_segment_add);
+  WM_operatortype_append(GPENCIL_OT_segment_remove);
+  WM_operatortype_append(GPENCIL_OT_segment_move);
+
   /* grease pencil line art */
   WM_operatortypes_lineart();
 
