@@ -81,6 +81,9 @@ set(SRC
   sculpt_displacement.h
   sculpt_replay.c
 
+  sculpt.cc
+  sculpt.hh
+
   paint_intern.h
   sculpt_intern.h
 )
