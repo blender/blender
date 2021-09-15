@@ -85,9 +85,9 @@ class ASSET_OT_open_containing_blend_file(Operator):
     @classmethod
     def poll(cls, context):
         asset_file_handle = getattr(context, 'asset_file_handle', None)
-        asset_library = getattr(context, 'asset_library', None)
+        asset_library_ref = getattr(context, 'asset_library_ref', None)
 
-        if not asset_library:
+        if not asset_library_ref:
             cls.poll_message_set("No asset library selected")
             return False
         if not asset_file_handle:
@@ -100,13 +100,13 @@ class ASSET_OT_open_containing_blend_file(Operator):
 
     def execute(self, context):
         asset_file_handle = context.asset_file_handle
-        asset_library = context.asset_library
+        asset_library_ref = context.asset_library_ref
 
         if asset_file_handle.local_id:
             self.report({'WARNING'}, "This asset is stored in the current blend file")
             return {'CANCELLED'}
 
-        asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset_file_handle, asset_library)
+        asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset_file_handle, asset_library_ref)
         self.open_in_new_blender(asset_lib_path)
 
         wm = context.window_manager
