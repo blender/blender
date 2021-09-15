@@ -719,6 +719,9 @@ typedef struct VFontToCurveIter {
    *
    * Currently only disabled when scale-to-fit is enabled,
    * so floating-point error doesn't cause unexpected wrapping, see T89241.
+   *
+   * \note This should only be set once, in the #VFONT_TO_CURVE_INIT pass
+   * otherwise iterations wont behave predictably, see T89241.
    */
   bool word_wrap;
   int status;
@@ -1640,7 +1643,6 @@ static bool vfont_to_curve(Object *ob,
           else {
             iter_data->scale_to_fit = iter_data->bisect.min;
             iter_data->status = VFONT_TO_CURVE_SCALE_ONCE;
-            iter_data->word_wrap = false;
           }
         }
       }
