@@ -41,7 +41,7 @@ static std::unique_ptr<CurveEval> create_spiral_curve(const float rotations,
   std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
   std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
 
-  const int totalpoints = resolution * rotations;
+  const int totalpoints = std::max(int(resolution * rotations), 1);
   const float delta_radius = (end_radius - start_radius) / (float)totalpoints;
   float radius = start_radius;
   const float delta_height = height / (float)totalpoints;
