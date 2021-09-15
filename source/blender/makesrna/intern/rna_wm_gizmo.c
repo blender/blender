@@ -1401,7 +1401,7 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
        "SHOW_MODAL_ALL",
        0,
        "Show Modal All",
-       "Show all while interacting"},
+       "Show all while interacting, as well as this group when another is being interacted with"},
       {WM_GIZMOGROUPTYPE_TOOL_INIT,
        "TOOL_INIT",
        0,

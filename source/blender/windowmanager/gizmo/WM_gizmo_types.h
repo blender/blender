@@ -115,7 +115,10 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
   WM_GIZMOGROUPTYPE_SELECT = (1 << 3),
   /** The gizmo group is to be kept (not removed on loading a new file for eg). */
   WM_GIZMOGROUPTYPE_PERSISTENT = (1 << 4),
-  /** Show all other gizmos when interacting. */
+  /**
+   * Show all other gizmos when interacting.
+   * Also show this group when another group is being interacted with.
+   */
   WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL = (1 << 5),
   /**
    * When used with tool, only run when activating the tool,
