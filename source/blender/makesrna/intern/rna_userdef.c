@@ -6246,6 +6246,11 @@ static void rna_def_userdef_apps(BlenderRNA *brna)
       prop, "Corner Splitting", "Split and join editors by dragging from corners");
   RNA_def_property_update(prop, 0, "rna_userdef_screen_update");
 
+  prop = RNA_def_property(srna, "show_edge_resize", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "app_flag", USER_APP_LOCK_EDGE_RESIZE);
+  RNA_def_property_ui_text(prop, "Edge Resize", "Resize editors by dragging from the edges");
+  RNA_def_property_update(prop, 0, "rna_userdef_screen_update");
+
   prop = RNA_def_property(srna, "show_regions_visibility_toggle", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "app_flag", USER_APP_HIDE_REGION_TOGGLE);
   RNA_def_property_ui_text(
