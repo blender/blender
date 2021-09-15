@@ -27,7 +27,7 @@ static void geo_node_attribute_vector_rotate_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
   b.add_input<decl::String>("Vector");
-  b.add_input<decl::Vector>("Vector", "Vector_001").min(0.0f).max(1.0f).hide_value(true);
+  b.add_input<decl::Vector>("Vector", "Vector_001").min(0.0f).max(1.0f).hide_value();
   b.add_input<decl::String>("Center");
   b.add_input<decl::Vector>("Center", "Center_001").subtype(PROP_XYZ);
   b.add_input<decl::String>("Axis");

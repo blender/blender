@@ -33,7 +33,7 @@ namespace blender::nodes {
 
 static void geo_node_join_geometry_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry").multi_input(true);
+  b.add_input<decl::Geometry>("Geometry").multi_input();
   b.add_output<decl::Geometry>("Geometry");
 }
 

@@ -76,19 +76,19 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   friend class NodeDeclarationBuilder;
 
  public:
-  Self &hide_label(bool value)
+  Self &hide_label(bool value = true)
   {
     decl_->hide_label_ = value;
     return *(Self *)this;
   }
 
-  Self &hide_value(bool value)
+  Self &hide_value(bool value = true)
   {
     decl_->hide_value_ = value;
     return *(Self *)this;
   }
 
-  Self &multi_input(bool value)
+  Self &multi_input(bool value = true)
   {
     decl_->is_multi_input_ = value;
     return *(Self *)this;

@@ -33,7 +33,7 @@ namespace blender::nodes {
 static void geo_node_attribute_sample_texture_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Texture>("Texture").hide_label(true);
+  b.add_input<decl::Texture>("Texture").hide_label();
   b.add_input<decl::String>("Mapping");
   b.add_input<decl::String>("Result");
   b.add_output<decl::Geometry>("Geometry");

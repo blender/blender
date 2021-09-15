@@ -31,7 +31,7 @@ namespace blender::nodes {
 static void geo_node_select_by_material_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Material>("Material").hide_label(true);
+  b.add_input<decl::Material>("Material").hide_label();
   b.add_input<decl::String>("Selection");
   b.add_output<decl::Geometry>("Geometry");
 }

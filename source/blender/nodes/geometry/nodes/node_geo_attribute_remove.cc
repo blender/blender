@@ -21,7 +21,7 @@ namespace blender::nodes {
 static void geo_node_attribute_remove_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::String>("Attribute").multi_input(true);
+  b.add_input<decl::String>("Attribute").multi_input();
   b.add_output<decl::Geometry>("Geometry");
 }
 

@@ -28,7 +28,7 @@ namespace blender::nodes {
 static void geo_node_boolean_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry 1");
-  b.add_input<decl::Geometry>("Geometry 2").multi_input(true);
+  b.add_input<decl::Geometry>("Geometry 2").multi_input();
   b.add_input<decl::Bool>("Self Intersection");
   b.add_input<decl::Bool>("Hole Tolerant");
   b.add_output<decl::Geometry>("Geometry");
