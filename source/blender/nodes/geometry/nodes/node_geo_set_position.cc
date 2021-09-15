@@ -24,7 +24,7 @@ static void geo_node_set_position_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
   b.add_input<decl::Vector>("Position");
-  b.add_input<decl::Bool>("Selection").default_value(true);
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value();
   b.add_output<decl::Geometry>("Geometry");
 }
 
