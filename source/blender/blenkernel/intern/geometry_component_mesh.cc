@@ -175,6 +175,34 @@ static void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
   mixer.finalize();
 }
 
+/* A vertex is selected if all connected face corners were selected and it is not loose. */
+template<>
+void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
+                                            const VArray<bool> &old_values,
+                                            MutableSpan<bool> r_values)
+{
+  BLI_assert(r_values.size() == mesh.totvert);
+  Array<bool> loose_verts(mesh.totvert, true);
+
+  r_values.fill(true);
+  for (const int loop_index : IndexRange(mesh.totloop)) {
+    const MLoop &loop = mesh.mloop[loop_index];
+    const int point_index = loop.v;
+
+    loose_verts[point_index] = false;
+    if (!old_values[loop_index]) {
+      r_values[point_index] = false;
+    }
+  }
+
+  /* Deselect loose vertices without corners that are still selected from the 'true' default. */
+  for (const int vert_index : IndexRange(mesh.totvert)) {
+    if (loose_verts[vert_index]) {
+      r_values[vert_index] = false;
+    }
+  }
+}
+
 static GVArrayPtr adapt_mesh_domain_corner_to_point(const Mesh &mesh, GVArrayPtr varray)
 {
   GVArrayPtr new_varray;
@@ -191,6 +219,13 @@ static GVArrayPtr adapt_mesh_domain_corner_to_point(const Mesh &mesh, GVArrayPtr
   return new_varray;
 }
 
+/**
+ * Each corner's value is simply a copy of the value at its vertex.
+ *
+ * \note Theoretically this interpolation does not need to compute all values at once.
+ * However, doing that makes the implementation simpler, and this can be optimized in the future if
+ * only some values are required.
+ */
 template<typename T>
 static void adapt_mesh_domain_point_to_corner_impl(const Mesh &mesh,
                                                    const VArray<T> &old_values,
@@ -209,10 +244,6 @@ static GVArrayPtr adapt_mesh_domain_point_to_corner(const Mesh &mesh, GVArrayPtr
   GVArrayPtr new_varray;
   attribute_math::convert_to_static_type(varray->type(), [&](auto dummy) {
     using T = decltype(dummy);
-    /* It is not strictly necessary to compute the value for all corners here. Instead one could
-     * lazily lookup the mesh topology when a specific index accessed. This can be more efficient
-     * when an algorithm only accesses very few of the corner values. However, for the algorithms
-     * we currently have, precomputing the array is fine. Also, it is easier to implement. */
     Array<T> values(mesh.totloop);
     adapt_mesh_domain_point_to_corner_impl<T>(mesh, varray->typed<T>(), values);
     new_varray = std::make_unique<fn::GVArray_For_ArrayContainer<Array<T>>>(std::move(values));
@@ -242,6 +273,26 @@ static void adapt_mesh_domain_corner_to_face_impl(const Mesh &mesh,
   }
 
   mixer.finalize();
+}
+
+/* A face is selected if all of its corners were selected. */
+template<>
+void adapt_mesh_domain_corner_to_face_impl(const Mesh &mesh,
+                                           const VArray<bool> &old_values,
+                                           MutableSpan<bool> r_values)
+{
+  BLI_assert(r_values.size() == mesh.totpoly);
+
+  r_values.fill(true);
+  for (const int poly_index : IndexRange(mesh.totpoly)) {
+    const MPoly &poly = mesh.mpoly[poly_index];
+    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+      if (!old_values[loop_index]) {
+        r_values[poly_index] = false;
+        break;
+      }
+    }
+  }
 }
 
 static GVArrayPtr adapt_mesh_domain_corner_to_face(const Mesh &mesh, GVArrayPtr varray)
@@ -282,6 +333,41 @@ static void adapt_mesh_domain_corner_to_edge_impl(const Mesh &mesh,
   mixer.finalize();
 }
 
+/* An edge is selected if all corners on adjacent faces were selected. */
+template<>
+void adapt_mesh_domain_corner_to_edge_impl(const Mesh &mesh,
+                                           const VArray<bool> &old_values,
+                                           MutableSpan<bool> r_values)
+{
+  BLI_assert(r_values.size() == mesh.totedge);
+
+  /* It may be possible to rely on the #ME_LOOSEEDGE flag, but that seems error-prone. */
+  Array<bool> loose_edges(mesh.totedge, true);
+
+  r_values.fill(true);
+  for (const int poly_index : IndexRange(mesh.totpoly)) {
+    const MPoly &poly = mesh.mpoly[poly_index];
+
+    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+      const int loop_index_next = (loop_index == poly.totloop) ? poly.loopstart : (loop_index + 1);
+      const MLoop &loop = mesh.mloop[loop_index];
+      const int edge_index = loop.e;
+      loose_edges[edge_index] = false;
+
+      if (!old_values[loop_index] || !old_values[loop_index_next]) {
+        r_values[edge_index] = false;
+      }
+    }
+  }
+
+  /* Deselect loose edges without corners that are still selected from the 'true' default. */
+  for (const int edge_index : IndexRange(mesh.totedge)) {
+    if (loose_edges[edge_index]) {
+      r_values[edge_index] = false;
+    }
+  }
+}
+
 static GVArrayPtr adapt_mesh_domain_corner_to_edge(const Mesh &mesh, GVArrayPtr varray)
 {
   GVArrayPtr new_varray;
@@ -317,6 +403,27 @@ void adapt_mesh_domain_face_to_point_impl(const Mesh &mesh,
   mixer.finalize();
 }
 
+/* A vertex is selected if any of the connected faces were selected. */
+template<>
+void adapt_mesh_domain_face_to_point_impl(const Mesh &mesh,
+                                          const VArray<bool> &old_values,
+                                          MutableSpan<bool> r_values)
+{
+  BLI_assert(r_values.size() == mesh.totvert);
+
+  r_values.fill(false);
+  for (const int poly_index : IndexRange(mesh.totpoly)) {
+    const MPoly &poly = mesh.mpoly[poly_index];
+    if (old_values[poly_index]) {
+      for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+        const MLoop &loop = mesh.mloop[loop_index];
+        const int vert_index = loop.v;
+        r_values[vert_index] = true;
+      }
+    }
+  }
+}
+
 static GVArrayPtr adapt_mesh_domain_face_to_point(const Mesh &mesh, GVArrayPtr varray)
 {
   GVArrayPtr new_varray;
@@ -331,6 +438,7 @@ static GVArrayPtr adapt_mesh_domain_face_to_point(const Mesh &mesh, GVArrayPtr v
   return new_varray;
 }
 
+/* Each corner's value is simply a copy of the value at its face. */
 template<typename T>
 void adapt_mesh_domain_face_to_corner_impl(const Mesh &mesh,
                                            const VArray<T> &old_values,
@@ -378,6 +486,27 @@ void adapt_mesh_domain_face_to_edge_impl(const Mesh &mesh,
   mixer.finalize();
 }
 
+/* An edge is selected if any connected face was selected. */
+template<>
+void adapt_mesh_domain_face_to_edge_impl(const Mesh &mesh,
+                                         const VArray<bool> &old_values,
+                                         MutableSpan<bool> r_values)
+{
+  BLI_assert(r_values.size() == mesh.totedge);
+
+  r_values.fill(false);
+  for (const int poly_index : IndexRange(mesh.totpoly)) {
+    const MPoly &poly = mesh.mpoly[poly_index];
+    if (old_values[poly_index]) {
+      for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+        const MLoop &loop = mesh.mloop[loop_index];
+        const int edge_index = loop.e;
+        r_values[edge_index] = true;
+      }
+    }
+  }
+}
+
 static GVArrayPtr adapt_mesh_domain_face_to_edge(const Mesh &mesh, GVArrayPtr varray)
 {
   GVArrayPtr new_varray;
@@ -416,6 +545,28 @@ static void adapt_mesh_domain_point_to_face_impl(const Mesh &mesh,
   mixer.finalize();
 }
 
+/* A face is selected if all of its vertices were selected too. */
+template<>
+void adapt_mesh_domain_point_to_face_impl(const Mesh &mesh,
+                                          const VArray<bool> &old_values,
+                                          MutableSpan<bool> r_values)
+{
+  BLI_assert(r_values.size() == mesh.totpoly);
+
+  r_values.fill(true);
+  for (const int poly_index : IndexRange(mesh.totpoly)) {
+    const MPoly &poly = mesh.mpoly[poly_index];
+    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+      MLoop &loop = mesh.mloop[loop_index];
+      const int vert_index = loop.v;
+      if (!old_values[vert_index]) {
+        r_values[poly_index] = false;
+        break;
+      }
+    }
+  }
+}
+
 static GVArrayPtr adapt_mesh_domain_point_to_face(const Mesh &mesh, GVArrayPtr varray)
 {
   GVArrayPtr new_varray;
@@ -450,6 +601,20 @@ static void adapt_mesh_domain_point_to_edge_impl(const Mesh &mesh,
   }
 
   mixer.finalize();
+}
+
+/* An edge is selected if both of its vertices were selected. */
+template<>
+void adapt_mesh_domain_point_to_edge_impl(const Mesh &mesh,
+                                          const VArray<bool> &old_values,
+                                          MutableSpan<bool> r_values)
+{
+  BLI_assert(r_values.size() == mesh.totedge);
+
+  for (const int edge_index : IndexRange(mesh.totedge)) {
+    const MEdge &edge = mesh.medge[edge_index];
+    r_values[edge_index] = old_values[edge.v1] && old_values[edge.v2];
+  }
 }
 
 static GVArrayPtr adapt_mesh_domain_point_to_edge(const Mesh &mesh, GVArrayPtr varray)
@@ -490,6 +655,29 @@ void adapt_mesh_domain_edge_to_corner_impl(const Mesh &mesh,
   mixer.finalize();
 }
 
+/* A corner is selected if its two adjacent edges were selected. */
+template<>
+void adapt_mesh_domain_edge_to_corner_impl(const Mesh &mesh,
+                                           const VArray<bool> &old_values,
+                                           MutableSpan<bool> r_values)
+{
+  BLI_assert(r_values.size() == mesh.totloop);
+
+  r_values.fill(false);
+
+  for (const int poly_index : IndexRange(mesh.totpoly)) {
+    const MPoly &poly = mesh.mpoly[poly_index];
+    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+      const int loop_index_prev = loop_index - 1 + (loop_index == poly.loopstart) * poly.totloop;
+      const MLoop &loop = mesh.mloop[loop_index];
+      const MLoop &loop_prev = mesh.mloop[loop_index_prev];
+      if (old_values[loop.e] && old_values[loop_prev.e]) {
+        r_values[loop_index] = true;
+      }
+    }
+  }
+}
+
 static GVArrayPtr adapt_mesh_domain_edge_to_corner(const Mesh &mesh, GVArrayPtr varray)
 {
   GVArrayPtr new_varray;
@@ -520,6 +708,24 @@ static void adapt_mesh_domain_edge_to_point_impl(const Mesh &mesh,
   }
 
   mixer.finalize();
+}
+
+/* A vertex is selected if any connected edge was selected. */
+template<>
+void adapt_mesh_domain_edge_to_point_impl(const Mesh &mesh,
+                                          const VArray<bool> &old_values,
+                                          MutableSpan<bool> r_values)
+{
+  BLI_assert(r_values.size() == mesh.totvert);
+
+  r_values.fill(false);
+  for (const int edge_index : IndexRange(mesh.totedge)) {
+    const MEdge &edge = mesh.medge[edge_index];
+    if (old_values[edge_index]) {
+      r_values[edge.v1] = true;
+      r_values[edge.v2] = true;
+    }
+  }
 }
 
 static GVArrayPtr adapt_mesh_domain_edge_to_point(const Mesh &mesh, GVArrayPtr varray)
@@ -558,6 +764,28 @@ static void adapt_mesh_domain_edge_to_face_impl(const Mesh &mesh,
   }
 
   mixer.finalize();
+}
+
+/* A face is selected if all of its edges are selected. */
+template<>
+void adapt_mesh_domain_edge_to_face_impl(const Mesh &mesh,
+                                         const VArray<bool> &old_values,
+                                         MutableSpan<bool> r_values)
+{
+  BLI_assert(r_values.size() == mesh.totpoly);
+
+  r_values.fill(true);
+  for (const int poly_index : IndexRange(mesh.totpoly)) {
+    const MPoly &poly = mesh.mpoly[poly_index];
+    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+      const MLoop &loop = mesh.mloop[loop_index];
+      const int edge_index = loop.e;
+      if (!old_values[edge_index]) {
+        r_values[poly_index] = false;
+        break;
+      }
+    }
+  }
 }
 
 static GVArrayPtr adapt_mesh_domain_edge_to_face(const Mesh &mesh, GVArrayPtr varray)
