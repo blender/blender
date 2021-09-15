@@ -29,26 +29,13 @@
 
 using blender::fn::GVArray_For_GSpan;
 
-static bNodeSocketTemplate geo_node_join_geometry_in[] = {
-    {SOCK_GEOMETRY,
-     N_("Geometry"),
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     -1.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_MULTI_INPUT},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_join_geometry_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_join_geometry_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry").multi_input(true);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static Mesh *join_mesh_topology_and_builtin_attributes(Span<const MeshComponent *> src_components)
 {
@@ -508,7 +495,7 @@ void register_node_type_geo_join_geometry()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_JOIN_GEOMETRY, "Join Geometry", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_join_geometry_in, geo_node_join_geometry_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_join_geometry_exec;
+  ntype.declare = blender::nodes::geo_node_join_geometry_declare;
   nodeRegisterType(&ntype);
 }

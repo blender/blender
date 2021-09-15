@@ -16,6 +16,8 @@
 
 #include "NOD_node_declaration.hh"
 
+#include "BKE_node.h"
+
 namespace blender::nodes {
 
 void NodeDeclaration::build(bNodeTree &ntree, bNode &node) const
@@ -60,6 +62,33 @@ bNodeSocket &SocketDeclaration::update_or_build(bNodeTree &ntree,
 {
   /* By default just rebuild. */
   return this->build(ntree, node, (eNodeSocketInOut)socket.in_out);
+}
+
+void SocketDeclaration::set_common_flags(bNodeSocket &socket) const
+{
+  SET_FLAG_FROM_TEST(socket.flag, hide_value_, SOCK_HIDE_VALUE);
+  SET_FLAG_FROM_TEST(socket.flag, hide_label_, SOCK_HIDE_LABEL);
+  SET_FLAG_FROM_TEST(socket.flag, is_multi_input_, SOCK_MULTI_INPUT);
+}
+
+bool SocketDeclaration::matches_common_data(const bNodeSocket &socket) const
+{
+  if (socket.name != name_) {
+    return false;
+  }
+  if (socket.identifier != identifier_) {
+    return false;
+  }
+  if (((socket.flag & SOCK_HIDE_VALUE) != 0) != hide_value_) {
+    return false;
+  }
+  if (((socket.flag & SOCK_HIDE_LABEL) != 0) != hide_label_) {
+    return false;
+  }
+  if (((socket.flag & SOCK_MULTI_INPUT) != 0) != is_multi_input_) {
+    return false;
+  }
+  return true;
 }
 
 }  // namespace blender::nodes
