@@ -753,8 +753,15 @@ enum {
  *
  * The em_height here is relative to FT_Face->bbox.
  */
-#define ASCENT(vfd) ((vfd)->ascender * (vfd)->em_height)
-#define DESCENT(vfd) ((vfd)->em_height - ASCENT(vfd))
+
+static float vfont_ascent(const VFontData *vfd)
+{
+  return vfd->ascender * vfd->em_height;
+}
+static float vfont_descent(const VFontData *vfd)
+{
+  return vfd->em_height - vfont_ascent(vfd);
+}
 
 static bool vfont_to_curve(Object *ob,
                            Curve *cu,
@@ -1237,17 +1244,17 @@ static bool vfont_to_curve(Object *ob,
           case CU_ALIGN_Y_TOP_BASELINE:
             break;
           case CU_ALIGN_Y_TOP:
-            yoff = textbox_y_origin - ASCENT(vfd);
+            yoff = textbox_y_origin - vfont_ascent(vfd);
             break;
           case CU_ALIGN_Y_CENTER:
-            yoff = ((((vfd->em_height + (lines - 1) * linedist) * 0.5f) - ASCENT(vfd)) -
+            yoff = ((((vfd->em_height + (lines - 1) * linedist) * 0.5f) - vfont_ascent(vfd)) -
                     (tb_scale.h * 0.5f) + textbox_y_origin);
             break;
           case CU_ALIGN_Y_BOTTOM_BASELINE:
             yoff = textbox_y_origin + ((lines - 1) * linedist) - tb_scale.h;
             break;
           case CU_ALIGN_Y_BOTTOM:
-            yoff = textbox_y_origin + ((lines - 1) * linedist) - tb_scale.h + DESCENT(vfd);
+            yoff = textbox_y_origin + ((lines - 1) * linedist) - tb_scale.h + vfont_descent(vfd);
             break;
         }
 
@@ -1268,16 +1275,16 @@ static bool vfont_to_curve(Object *ob,
         case CU_ALIGN_Y_TOP_BASELINE:
           break;
         case CU_ALIGN_Y_TOP:
-          yoff = -ASCENT(vfd);
+          yoff = -vfont_ascent(vfd);
           break;
         case CU_ALIGN_Y_CENTER:
-          yoff = ((vfd->em_height + (lnr - 1) * linedist) * 0.5f) - ASCENT(vfd);
+          yoff = ((vfd->em_height + (lnr - 1) * linedist) * 0.5f) - vfont_ascent(vfd);
           break;
         case CU_ALIGN_Y_BOTTOM_BASELINE:
           yoff = (lnr - 1) * linedist;
           break;
         case CU_ALIGN_Y_BOTTOM:
-          yoff = (lnr - 1) * linedist + DESCENT(vfd);
+          yoff = (lnr - 1) * linedist + vfont_descent(vfd);
           break;
       }
 
