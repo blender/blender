@@ -1706,7 +1706,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
  *
  * Only for local IDs (linked ones already have a unique ID in their library).
  *
- * \param do_linked_data if true, also ensure a unique name in case the given \a id is linked
+ * \param do_linked_data: if true, also ensure a unique name in case the given \a id is linked
  * (otherwise, just ensure that it is properly sorted).
  *
  * \return true if a new name had to be created.

@@ -298,7 +298,7 @@ static void opencl_deinitialize()
   g_work_scheduler.opencl.initialized = false;
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Single threaded Scheduling
@@ -310,7 +310,7 @@ static void threading_model_single_thread_execute(WorkPackage *package)
   device.execute(package);
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Queue Scheduling
@@ -388,7 +388,7 @@ static void threading_model_queue_deinitialize()
   }
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Task Scheduling
@@ -426,7 +426,7 @@ static void threading_model_task_stop()
   BLI_thread_local_delete(g_thread_device);
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Public API
@@ -587,6 +587,6 @@ int WorkScheduler::current_thread_id()
   return device->thread_id();
 }
 
-/* \} */
+/** \} */
 
 }  // namespace blender::compositor

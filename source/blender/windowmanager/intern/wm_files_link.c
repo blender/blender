@@ -565,7 +565,7 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
   }
 }
 
-/* \} */
+/** \} */
 
 static int foreach_libblock_append_callback(LibraryIDLinkCallbackData *cb_data)
 {

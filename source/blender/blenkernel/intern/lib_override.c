@@ -333,11 +333,11 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
  * main. You can add more local IDs to be remapped to use new overriding ones by setting their
  * LIB_TAG_DOIT tag.
  *
- * \param reference_library the library from which the linked data being overridden come from
+ * \param reference_library: the library from which the linked data being overridden come from
  * (i.e. the library of the linked reference ID).
  *
- * \param do_no_main Create the new override data outside of Main database. Used for resyncing of
- * linked overrides.
+ * \param do_no_main: Create the new override data outside of Main database.
+ * Used for resyncing of linked overrides.
  *
  * \return \a true on success, \a false otherwise.
  */
@@ -901,7 +901,7 @@ static void lib_override_library_create_post_process(Main *bmain,
  * \param id_reference: Some reference ID used to do some post-processing after overrides have been
  * created, may be NULL. Typically, the Empty object instantiating the linked collection we
  * override, currently.
- * \param r_id_root_override if not NULL, the override generated for the given \a id_root.
+ * \param r_id_root_override: if not NULL, the override generated for the given \a id_root.
  * \return true if override was successfully created.
  */
 bool BKE_lib_override_library_create(Main *bmain,
