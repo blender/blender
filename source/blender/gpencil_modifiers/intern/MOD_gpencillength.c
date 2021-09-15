@@ -143,7 +143,6 @@ static void bakeModifier(Main *UNUSED(bmain),
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-      LengthGpencilModifierData *lmd = (LengthGpencilModifierData *)md;
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
         deformStroke(md, depsgraph, ob, gpl, gpf, gps);
       }
