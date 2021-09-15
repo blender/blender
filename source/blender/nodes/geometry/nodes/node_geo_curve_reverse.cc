@@ -29,31 +29,6 @@ static void geo_node_curve_reverse_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Curve");
 }
 
-/**
- * Reverse the data in a MutableSpan object.
- */
-template<typename T> static void reverse_data(MutableSpan<T> r_data)
-{
-  const int size = r_data.size();
-  for (const int i : IndexRange(size / 2)) {
-    std::swap(r_data[size - 1 - i], r_data[i]);
-  }
-}
-
-/**
- * Reverse and Swap the data between 2 MutableSpans.
- */
-template<typename T> static void reverse_data(MutableSpan<T> left, MutableSpan<T> right)
-{
-  BLI_assert(left.size() == right.size());
-  const int size = left.size();
-
-  for (const int i : IndexRange(size / 2 + size % 2)) {
-    std::swap(left[i], right[size - 1 - i]);
-    std::swap(right[i], left[size - 1 - i]);
-  }
-}
-
 static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
@@ -78,9 +53,9 @@ static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
         continue;
       }
 
-      reverse_data<float3>(splines[i]->positions());
-      reverse_data<float>(splines[i]->radii());
-      reverse_data<float>(splines[i]->tilts());
+      splines[i]->positions().reverse();
+      splines[i]->radii().reverse();
+      splines[i]->tilts().reverse();
 
       splines[i]->attributes.foreach_attribute(
           [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
@@ -92,7 +67,7 @@ static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
             }
             attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
               using T = decltype(dummy);
-              reverse_data(output_attribute->typed<T>());
+              output_attribute->typed<T>().reverse();
             });
             return true;
           },
@@ -100,12 +75,17 @@ static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
 
       /* Deal with extra info on derived types. */
       if (BezierSpline *spline = dynamic_cast<BezierSpline *>(splines[i].get())) {
-        reverse_data<BezierSpline::HandleType>(spline->handle_types_left());
-        reverse_data<BezierSpline::HandleType>(spline->handle_types_right());
-        reverse_data<float3>(spline->handle_positions_left(), spline->handle_positions_right());
+        spline->handle_types_left().reverse();
+        spline->handle_types_right().reverse();
+
+        spline->handle_positions_left().reverse();
+        spline->handle_positions_right().reverse();
+        for (int i : spline->handle_positions_left().index_range()) {
+          std::swap(spline->handle_positions_left()[i], spline->handle_positions_right()[i]);
+        }
       }
       else if (NURBSpline *spline = dynamic_cast<NURBSpline *>(splines[i].get())) {
-        reverse_data<float>(spline->weights());
+        spline->weights().reverse();
       }
       /* Nothing to do for poly splines. */
 
