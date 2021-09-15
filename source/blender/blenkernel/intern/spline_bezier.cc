@@ -166,6 +166,17 @@ MutableSpan<float3> BezierSpline::handle_positions_right()
   return handle_positions_right_;
 }
 
+void BezierSpline::reverse_impl()
+{
+  this->handle_positions_left().reverse();
+  this->handle_positions_right().reverse();
+  std::swap(this->handle_positions_left_, this->handle_positions_right_);
+
+  this->handle_types_left().reverse();
+  this->handle_types_right().reverse();
+  std::swap(this->handle_types_left_, this->handle_types_right_);
+}
+
 static float3 previous_position(Span<float3> positions, const bool cyclic, const int i)
 {
   if (i == 0) {

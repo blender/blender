@@ -19,6 +19,8 @@
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
+#include "BKE_attribute_access.hh"
+#include "BKE_attribute_math.hh"
 #include "BKE_spline.hh"
 
 #include "FN_generic_virtual_array.hh"
@@ -28,6 +30,8 @@ using blender::float3;
 using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
+using blender::attribute_math::convert_to_static_type;
+using blender::bke::AttributeIDRef;
 using blender::fn::GMutableSpan;
 using blender::fn::GSpan;
 using blender::fn::GVArray;
@@ -107,6 +111,31 @@ void Spline::transform(const blender::float4x4 &matrix)
   for (float3 &position : this->positions()) {
     position = matrix * position;
   }
+  this->mark_cache_invalid();
+}
+
+void Spline::reverse()
+{
+  this->positions().reverse();
+  this->radii().reverse();
+  this->tilts().reverse();
+
+  this->attributes.foreach_attribute(
+      [&](const AttributeIDRef &id, const AttributeMetaData &meta_data) {
+        std::optional<blender::fn::GMutableSpan> attribute = this->attributes.get_for_write(id);
+        if (!attribute) {
+          BLI_assert_unreachable();
+          return false;
+        }
+        convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+          using T = decltype(dummy);
+          attribute->typed<T>().reverse();
+        });
+        return true;
+      },
+      ATTR_DOMAIN_POINT);
+
+  this->reverse_impl();
   this->mark_cache_invalid();
 }
 

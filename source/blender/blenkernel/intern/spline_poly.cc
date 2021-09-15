@@ -91,6 +91,10 @@ Span<float> PolySpline::tilts() const
   return tilts_;
 }
 
+void PolySpline::reverse_impl()
+{
+}
+
 void PolySpline::mark_cache_invalid()
 {
   tangent_cache_dirty_ = true;

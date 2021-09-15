@@ -142,6 +142,11 @@ Span<float> NURBSpline::weights() const
   return weights_;
 }
 
+void NURBSpline::reverse_impl()
+{
+  this->weights().reverse();
+}
+
 void NURBSpline::mark_cache_invalid()
 {
   basis_cache_dirty_ = true;

@@ -49,47 +49,9 @@ static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
 
   threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
     for (const int i : range) {
-      if (!selection[i]) {
-        continue;
+      if (selection[i]) {
+        splines[i]->reverse();
       }
-
-      splines[i]->positions().reverse();
-      splines[i]->radii().reverse();
-      splines[i]->tilts().reverse();
-
-      splines[i]->attributes.foreach_attribute(
-          [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-            std::optional<blender::fn::GMutableSpan> output_attribute =
-                splines[i]->attributes.get_for_write(attribute_id);
-            if (!output_attribute) {
-              BLI_assert_unreachable();
-              return false;
-            }
-            attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
-              using T = decltype(dummy);
-              output_attribute->typed<T>().reverse();
-            });
-            return true;
-          },
-          ATTR_DOMAIN_POINT);
-
-      /* Deal with extra info on derived types. */
-      if (BezierSpline *spline = dynamic_cast<BezierSpline *>(splines[i].get())) {
-        spline->handle_types_left().reverse();
-        spline->handle_types_right().reverse();
-
-        spline->handle_positions_left().reverse();
-        spline->handle_positions_right().reverse();
-        for (int i : spline->handle_positions_left().index_range()) {
-          std::swap(spline->handle_positions_left()[i], spline->handle_positions_right()[i]);
-        }
-      }
-      else if (NURBSpline *spline = dynamic_cast<NURBSpline *>(splines[i].get())) {
-        spline->weights().reverse();
-      }
-      /* Nothing to do for poly splines. */
-
-      splines[i]->mark_cache_invalid();
     }
   });
 
