@@ -250,6 +250,9 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
 
   BLI_addtail(&rl->passes, rpass);
 
+  /* The result contains non-allocated pass now, so tag it as such. */
+  rr->passes_allocated = false;
+
   return rpass;
 }
 
