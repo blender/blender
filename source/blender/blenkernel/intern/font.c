@@ -721,7 +721,7 @@ typedef struct VFontToCurveIter {
    * so floating-point error doesn't cause unexpected wrapping, see T89241.
    *
    * \note This should only be set once, in the #VFONT_TO_CURVE_INIT pass
-   * otherwise iterations wont behave predictably, see T89241.
+   * otherwise iterations wont behave predictably, see T91401.
    */
   bool word_wrap;
   int status;
