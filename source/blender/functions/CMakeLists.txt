@@ -34,6 +34,7 @@ set(SRC
   intern/generic_virtual_vector_array.cc
   intern/multi_function.cc
   intern/multi_function_builder.cc
+  intern/multi_function_parallel.cc
   intern/multi_function_procedure.cc
   intern/multi_function_procedure_builder.cc
   intern/multi_function_procedure_executor.cc
@@ -54,6 +55,7 @@ set(SRC
   FN_multi_function_data_type.hh
   FN_multi_function_param_type.hh
   FN_multi_function_params.hh
+  FN_multi_function_parallel.hh
   FN_multi_function_procedure.hh
   FN_multi_function_procedure_builder.hh
   FN_multi_function_procedure_executor.hh
@@ -63,6 +65,22 @@ set(SRC
 set(LIB
   bf_blenlib
 )
+
+if(WITH_TBB)
+  add_definitions(-DWITH_TBB)
+  if(WIN32)
+    # TBB includes Windows.h which will define min/max macros
+    # that will collide with the stl versions.
+    add_definitions(-DNOMINMAX)
+  endif()
+  list(APPEND INC_SYS
+    ${TBB_INCLUDE_DIRS}
+  )
+
+  list(APPEND LIB
+    ${TBB_LIBRARIES}
+  )
+endif()
 
 blender_add_lib(bf_functions "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 

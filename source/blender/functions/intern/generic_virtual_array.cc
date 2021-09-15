@@ -387,4 +387,47 @@ void GVMutableArray_GSpan::disable_not_applied_warning()
   show_not_saved_warning_ = false;
 }
 
+/* --------------------------------------------------------------------
+ * GVArray_For_SlicedGVArray.
+ */
+
+void GVArray_For_SlicedGVArray::get_impl(const int64_t index, void *r_value) const
+{
+  varray_.get(index + offset_, r_value);
+}
+
+void GVArray_For_SlicedGVArray::get_to_uninitialized_impl(const int64_t index, void *r_value) const
+{
+  varray_.get_to_uninitialized(index + offset_, r_value);
+}
+
+/* --------------------------------------------------------------------
+ * GVArray_Slice.
+ */
+
+GVArray_Slice::GVArray_Slice(const GVArray &varray, const IndexRange slice)
+{
+  if (varray.is_span()) {
+    /* Create a new virtual for the sliced span. */
+    const GSpan span = varray.get_internal_span();
+    const GSpan sliced_span = span.slice(slice.start(), slice.size());
+    varray_span_.emplace(sliced_span);
+    varray_ = &*varray_span_;
+  }
+  else if (varray.is_single()) {
+    /* Can just use the existing virtual array, because it's the same value for the indices in the
+     * slice anyway. */
+    varray_ = &varray;
+  }
+  else {
+    /* Generic version when none of the above method works.
+     * We don't necessarily want to materialize the input varray because there might be
+     * large distances between the required indices. Then we would materialize many elements that
+     * are not accessed later on.
+     */
+    varray_any_.emplace(varray, slice);
+    varray_ = &*varray_any_;
+  }
+}
+
 }  // namespace blender::fn
