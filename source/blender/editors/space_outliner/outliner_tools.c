@@ -194,9 +194,22 @@ static void get_element_operation_type(
 static TreeElement *get_target_element(SpaceOutliner *space_outliner)
 {
   TreeElement *te = outliner_find_element_with_flag(&space_outliner->tree, TSE_ACTIVE);
-  BLI_assert(te);
 
   return te;
+}
+
+static bool outliner_operation_tree_element_poll(bContext *C)
+{
+  if (!ED_operator_outliner_active(C)) {
+    return false;
+  }
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+  TreeElement *te = get_target_element(space_outliner);
+  if (te == NULL) {
+    return false;
+  }
+
+  return true;
 }
 
 static void unlink_action_fn(bContext *C,
@@ -1843,6 +1856,10 @@ static bool outliner_id_operation_item_poll(bContext *C,
                                             PropertyRNA *UNUSED(prop),
                                             const int enum_value)
 {
+  if (!outliner_operation_tree_element_poll(C)) {
+    return false;
+  }
+
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   TreeElement *te = get_target_element(space_outliner);
   TreeStoreElem *tselem = TREESTORE(te);
@@ -2240,7 +2257,7 @@ void OUTLINER_OT_id_operation(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = WM_menu_invoke;
   ot->exec = outliner_id_operation_exec;
-  ot->poll = ED_operator_outliner_active;
+  ot->poll = outliner_operation_tree_element_poll;
 
   ot->flag = 0;
 
@@ -2347,7 +2364,7 @@ void OUTLINER_OT_lib_operation(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = WM_menu_invoke;
   ot->exec = outliner_lib_operation_exec;
-  ot->poll = ED_operator_outliner_active;
+  ot->poll = outliner_operation_tree_element_poll;
 
   ot->prop = RNA_def_enum(
       ot->srna, "type", outliner_lib_op_type_items, 0, "Library Operation", "");
@@ -2406,13 +2423,7 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
-
   bAction *act;
-
-  /* check for invalid states */
-  if (space_outliner == NULL) {
-    return OPERATOR_CANCELLED;
-  }
 
   TreeElement *te = get_target_element(space_outliner);
   get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
@@ -2468,7 +2479,7 @@ void OUTLINER_OT_action_set(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = WM_enum_search_invoke;
   ot->exec = outliner_action_set_exec;
-  ot->poll = ED_operator_outliner_active;
+  ot->poll = outliner_operation_tree_element_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2517,12 +2528,6 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
-
-  /* check for invalid states */
-  if (space_outliner == NULL) {
-    return OPERATOR_CANCELLED;
-  }
-
   TreeElement *te = get_target_element(space_outliner);
   get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
@@ -2718,12 +2723,6 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
-
-  /* check for invalid states */
-  if (space_outliner == NULL) {
-    return OPERATOR_CANCELLED;
-  }
-
   TreeElement *te = get_target_element(space_outliner);
   get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
@@ -2793,7 +2792,7 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = WM_menu_invoke;
   ot->exec = outliner_data_operation_exec;
-  ot->poll = ED_operator_outliner_active;
+  ot->poll = outliner_operation_tree_element_poll;
 
   ot->flag = 0;
 
