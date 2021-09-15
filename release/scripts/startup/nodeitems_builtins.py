@@ -564,6 +564,8 @@ geometry_node_categories = [
         NodeItem("GeometryNodeLegacyMaterialAssign", poll=geometry_nodes_fields_legacy_poll),
         NodeItem("GeometryNodeLegacySelectByMaterial", poll=geometry_nodes_fields_legacy_poll),
 
+        NodeItem("GeometryNodeMaterialAssign", poll=geometry_nodes_fields_poll),
+        NodeItem("GeometryNodeMaterialSelection", poll=geometry_nodes_fields_poll),
         NodeItem("GeometryNodeMaterialReplace"),
     ]),
     GeometryNodeCategory("GEO_MESH", "Mesh", items=[

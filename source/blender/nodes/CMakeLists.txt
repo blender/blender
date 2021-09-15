@@ -141,6 +141,9 @@ set(SRC
   function/nodes/node_fn_random_float.cc
   function/node_function_util.cc
 
+  geometry/nodes/legacy/node_geo_material_assign.cc
+  geometry/nodes/legacy/node_geo_select_by_material.cc
+
   geometry/nodes/node_geo_align_rotation_to_vector.cc
   geometry/nodes/node_geo_attribute_capture.cc
   geometry/nodes/node_geo_attribute_clamp.cc
@@ -195,6 +198,7 @@ set(SRC
   geometry/nodes/node_geo_join_geometry.cc
   geometry/nodes/node_geo_material_assign.cc
   geometry/nodes/node_geo_material_replace.cc
+  geometry/nodes/node_geo_material_selection.cc
   geometry/nodes/node_geo_mesh_primitive_circle.cc
   geometry/nodes/node_geo_mesh_primitive_cone.cc
   geometry/nodes/node_geo_mesh_primitive_cube.cc
@@ -214,7 +218,6 @@ set(SRC
   geometry/nodes/node_geo_point_translate.cc
   geometry/nodes/node_geo_points_to_volume.cc
   geometry/nodes/node_geo_raycast.cc
-  geometry/nodes/node_geo_select_by_material.cc
   geometry/nodes/node_geo_separate_components.cc
   geometry/nodes/node_geo_set_position.cc
   geometry/nodes/node_geo_subdivision_surface.cc

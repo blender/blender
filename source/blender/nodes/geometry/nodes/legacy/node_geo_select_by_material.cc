@@ -22,63 +22,56 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_task.hh"
+
 #include "BKE_material.h"
 
 namespace blender::nodes {
 
-static void geo_node_material_assign_declare(NodeDeclarationBuilder &b)
+static void geo_node_legacy_select_by_material_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
   b.add_input<decl::Material>("Material").hide_label();
-  b.add_input<decl::Bool>("Selection").default_value(true);
+  b.add_input<decl::String>("Selection");
   b.add_output<decl::Geometry>("Geometry");
 }
 
-static void assign_material_to_faces(Mesh &mesh, const IndexMask selection, Material *material)
+static void select_mesh_by_material(const Mesh &mesh,
+                                    const Material *material,
+                                    const MutableSpan<bool> r_selection)
 {
-  int new_material_index = -1;
+  BLI_assert(mesh.totpoly == r_selection.size());
+  Vector<int> material_indices;
   for (const int i : IndexRange(mesh.totcol)) {
-    Material *other_material = mesh.mat[i];
-    if (other_material == material) {
-      new_material_index = i;
-      break;
+    if (mesh.mat[i] == material) {
+      material_indices.append(i);
     }
   }
-  if (new_material_index == -1) {
-    /* Append a new material index. */
-    new_material_index = mesh.totcol;
-    BKE_id_material_eval_assign(&mesh.id, new_material_index + 1, material);
-  }
-
-  mesh.mpoly = (MPoly *)CustomData_duplicate_referenced_layer(&mesh.pdata, CD_MPOLY, mesh.totpoly);
-  for (const int i : selection) {
-    MPoly &poly = mesh.mpoly[i];
-    poly.mat_nr = new_material_index;
-  }
+  threading::parallel_for(r_selection.index_range(), 1024, [&](IndexRange range) {
+    for (const int i : range) {
+      r_selection[i] = material_indices.contains(mesh.mpoly[i].mat_nr);
+    }
+  });
 }
 
-static void geo_node_material_assign_exec(GeoNodeExecParams params)
+static void geo_node_legacy_select_by_material_exec(GeoNodeExecParams params)
 {
   Material *material = params.extract_input<Material *>("Material");
-  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+  const std::string selection_name = params.extract_input<std::string>("Selection");
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-
   geometry_set = geometry_set_realize_instances(geometry_set);
 
   if (geometry_set.has<MeshComponent>()) {
     MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-    Mesh *mesh = mesh_component.get_for_write();
+    const Mesh *mesh = mesh_component.get_for_read();
     if (mesh != nullptr) {
-
-      GeometryComponentFieldContext field_context{mesh_component, ATTR_DOMAIN_FACE};
-
-      fn::FieldEvaluator selection_evaluator{field_context, mesh->totpoly};
-      selection_evaluator.add(selection_field);
-      selection_evaluator.evaluate();
-      const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
-
-      assign_material_to_faces(*mesh, selection, material);
+      OutputAttribute_Typed<bool> selection =
+          mesh_component.attribute_try_get_for_output_only<bool>(selection_name, ATTR_DOMAIN_FACE);
+      if (selection) {
+        select_mesh_by_material(*mesh, material, selection.as_span());
+        selection.save();
+      }
     }
   }
 
@@ -87,12 +80,13 @@ static void geo_node_material_assign_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_material_assign()
+void register_node_type_geo_legacy_select_by_material()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MATERIAL_ASSIGN, "Material Assign", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_material_assign_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_material_assign_exec;
+  geo_node_type_base(
+      &ntype, GEO_NODE_LEGACY_SELECT_BY_MATERIAL, "Select by Material", NODE_CLASS_GEOMETRY, 0);
+  ntype.declare = blender::nodes::geo_node_legacy_select_by_material_declare;
+  ntype.geometry_node_execute = blender::nodes::geo_node_legacy_select_by_material_exec;
   nodeRegisterType(&ntype);
 }

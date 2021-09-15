@@ -5153,6 +5153,9 @@ static void registerGeometryNodes()
 {
   register_node_type_geo_group();
 
+  register_node_type_geo_legacy_material_assign();
+  register_node_type_geo_legacy_select_by_material();
+
   register_node_type_geo_align_rotation_to_vector();
   register_node_type_geo_attribute_clamp();
   register_node_type_geo_attribute_color_ramp();
@@ -5225,7 +5228,7 @@ static void registerGeometryNodes()
   register_node_type_geo_raycast();
   register_node_type_geo_sample_texture();
   register_node_type_geo_select_by_handle_type();
-  register_node_type_geo_select_by_material();
+  register_node_type_geo_material_selection();
   register_node_type_geo_separate_components();
   register_node_type_geo_set_position();
   register_node_type_geo_subdivision_surface();

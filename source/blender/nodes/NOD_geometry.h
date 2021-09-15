@@ -29,6 +29,9 @@ void register_node_tree_type_geo(void);
 void register_node_type_geo_group(void);
 void register_node_type_geo_custom_group(bNodeType *ntype);
 
+void register_node_type_geo_legacy_material_assign(void);
+void register_node_type_geo_legacy_select_by_material(void);
+
 void register_node_type_geo_align_rotation_to_vector(void);
 void register_node_type_geo_attribute_clamp(void);
 void register_node_type_geo_attribute_color_ramp(void);
@@ -80,6 +83,7 @@ void register_node_type_geo_is_viewport(void);
 void register_node_type_geo_join_geometry(void);
 void register_node_type_geo_material_assign(void);
 void register_node_type_geo_material_replace(void);
+void register_node_type_geo_material_selection(void);
 void register_node_type_geo_mesh_primitive_circle(void);
 void register_node_type_geo_mesh_primitive_cone(void);
 void register_node_type_geo_mesh_primitive_cube(void);
@@ -101,7 +105,6 @@ void register_node_type_geo_points_to_volume(void);
 void register_node_type_geo_raycast(void);
 void register_node_type_geo_sample_texture(void);
 void register_node_type_geo_select_by_handle_type(void);
-void register_node_type_geo_select_by_material(void);
 void register_node_type_geo_separate_components(void);
 void register_node_type_geo_set_position(void);
 void register_node_type_geo_subdivision_surface(void);
