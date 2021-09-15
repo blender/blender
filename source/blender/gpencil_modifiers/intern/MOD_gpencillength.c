@@ -108,27 +108,6 @@ static void applyLength(LengthGpencilModifierData *lmd, bGPdata *gpd, bGPDstroke
   }
 }
 
-static void bakeModifier(Main *UNUSED(bmain),
-                         Depsgraph *UNUSED(depsgraph),
-                         GpencilModifierData *md,
-                         Object *ob)
-{
-
-  bGPdata *gpd = ob->data;
-
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-      LengthGpencilModifierData *lmd = (LengthGpencilModifierData *)md;
-      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        applyLength(lmd, gpd, gps);
-      }
-    }
-  }
-}
-
-/* -------------------------------- */
-
-/* Generic "generateStrokes" callback */
 static void deformStroke(GpencilModifierData *md,
                          Depsgraph *UNUSED(depsgraph),
                          Object *ob,
@@ -151,6 +130,24 @@ static void deformStroke(GpencilModifierData *md,
                                      lmd->flag & GP_LENGTH_INVERT_LAYERPASS,
                                      lmd->flag & GP_LENGTH_INVERT_MATERIAL)) {
     applyLength(lmd, gpd, gps);
+  }
+}
+
+static void bakeModifier(Main *UNUSED(bmain),
+                         Depsgraph *depsgraph,
+                         GpencilModifierData *md,
+                         Object *ob)
+{
+
+  bGPdata *gpd = ob->data;
+
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+      LengthGpencilModifierData *lmd = (LengthGpencilModifierData *)md;
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+        deformStroke(md, depsgraph, ob, gpl, gpf, gps);
+      }
+    }
   }
 }
 
