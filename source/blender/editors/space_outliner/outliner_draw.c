@@ -2633,7 +2633,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
             data.icon = ICON_FILE_TEXT;
           }
           else {
-            /* Helps distinguish text-based formats like the filebrowser does. */
+            /* Helps distinguish text-based formats like the file-browser does. */
             data.icon = ED_file_extension_icon(text->filepath);
           }
           break;

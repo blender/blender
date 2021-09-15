@@ -460,7 +460,7 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
           lapp_data, bmain, scene, view_layer, &active_collection);
 
       /* In case user requested instantiation of collections as empties, we do so for the one they
-       * explicitely selected (originally directly linked IDs). */
+       * explicitly selected (originally directly linked IDs). */
       if ((lapp_data->flag & FILE_COLLECTION_INSTANCE) != 0 &&
           (item->append_tag & WM_APPEND_TAG_INDIRECT) == 0) {
         /* BKE_object_add(...) messes with the selection. */
@@ -588,7 +588,7 @@ static int foreach_libblock_append_callback(LibraryIDLinkCallbackData *cb_data)
   if (item == NULL) {
     item = wm_link_append_data_item_add(data->lapp_data, id->name, GS(id->name), NULL);
     item->new_id = id;
-    /* Since we did not have an item for that ID yet, we now user did not selected it explicitely,
+    /* Since we did not have an item for that ID yet, we now user did not selected it explicitly,
      * it was rather linked indirectly. This info is important for instantiation of collections. */
     item->append_tag |= WM_APPEND_TAG_INDIRECT;
     BLI_ghash_insert(data->lapp_data->new_id_to_item, id, item);
@@ -603,8 +603,9 @@ static int foreach_libblock_append_callback(LibraryIDLinkCallbackData *cb_data)
 /* Perform append operation, using modern ID usage looper to detect which ID should be kept linked,
  * made local, duplicated as local, re-used from local etc.
  *
- * TODO: Expose somehow this logic to the two other parts of code performing actual append  (i.e.
- * copy/paste and bpy link/append API). Then we can heavily simplify `BKE_library_make_local()`. */
+ * TODO: Expose somehow this logic to the two other parts of code performing actual append
+ * (i.e. copy/paste and `bpy` link/append API).
+ * Then we can heavily simplify #BKE_library_make_local(). */
 static void wm_append_do(WMLinkAppendData *lapp_data,
                          ReportList *reports,
                          Main *bmain,
@@ -630,7 +631,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     BLI_ghash_insert(lapp_data->new_id_to_item, id, item);
   }
 
-  /* Note: Since we append items for IDs not already listed (i.e. implicitely linked indirect
+  /* NOTE: Since we append items for IDs not already listed (i.e. implicitly linked indirect
    * dependencies), this list will grow and we will process those IDs later, leading to a flatten
    * recursive processing of all the linked dependencies. */
   for (itemlink = lapp_data->items.list; itemlink; itemlink = itemlink->next) {
@@ -641,7 +642,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     }
     BLI_assert(item->customdata == NULL);
 
-    /* Clear tag previously used to mark IDs needing post-processing (instanciation of loose
+    /* Clear tag previously used to mark IDs needing post-processing (instantiation of loose
      * objects etc.). */
     id->tag &= ~LIB_TAG_DOIT;
 
