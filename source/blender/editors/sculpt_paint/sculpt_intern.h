@@ -1711,3 +1711,5 @@ struct BMesh *SCULPT_dyntopo_empty_bmesh();
        SCULPT_TOOL_ELASTIC_DEFORM, \
        SCULPT_TOOL_BOUNDARY, \
        SCULPT_TOOL_POSE)
+
+void SCULPT_undo_ensure_bmlog(struct Object *ob);

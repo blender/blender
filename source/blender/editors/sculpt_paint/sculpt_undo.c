@@ -1741,6 +1741,14 @@ void SCULPT_undo_ensure_bmlog(Object *ob)
   UndoStep *us = BKE_undosys_stack_active_with_type(ustack, BKE_UNDOSYS_TYPE_SCULPT);
 
   if (!us) {
+    // check next step
+    if (ustack->step_active && ustack->step_active->next &&
+        ustack->step_active->next->type == BKE_UNDOSYS_TYPE_SCULPT) {
+      us = ustack->step_active->next;
+    }
+  }
+
+  if (!us) {
     return;
   }
 
@@ -1785,6 +1793,10 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
   SculptUndoNode *unode = usculpt->nodes.first;
 
   SCULPT_undo_ensure_bmlog(ob);
+
+  if (!ss->bm_log) {
+    ss->bm_log = BM_log_create(ss->bm, ss->cd_dyn_vert);
+  }
 
   bool new_node = false;
 
@@ -2287,7 +2299,7 @@ static void sculpt_undosys_step_decode(
          * The undo steps must enter/exit for us. */
         me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
 #endif
-        ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, true, NULL);
+        ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, true, NULL, false);
       }
 
       if (ob->sculpt) {

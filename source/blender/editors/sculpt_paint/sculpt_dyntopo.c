@@ -894,7 +894,9 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   /* Enable logging for undo/redo. */
-  ss->bm_log = BM_log_create(ss->bm, ss->cd_dyn_vert);
+  if (!ss->bm_log) {
+    ss->bm_log = BM_log_create(ss->bm, ss->cd_dyn_vert);
+  }
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
    * are re-evaluated and the PBVH is re-created. */

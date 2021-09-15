@@ -10215,7 +10215,8 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
                                    Scene *scene,
                                    Object *ob,
                                    const bool force_dyntopo,
-                                   ReportList *reports)
+                                   ReportList *reports,
+                                   bool do_undo)
 {
   const int mode_flag = OB_MODE_SCULPT;
   Mesh *me = BKE_mesh_from_object(ob);
@@ -10270,17 +10271,33 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
     if (!has_multires && ((message_unsupported == NULL) || force_dyntopo)) {
       /* Needed because we may be entering this mode before the undo system loads. */
       wmWindowManager *wm = bmain->wm.first;
-      bool has_undo = wm->undo_stack != NULL;
+      bool has_undo = do_undo && wm->undo_stack != NULL;
 
       /* Undo push is needed to prevent memory leak. */
       if (has_undo) {
         SCULPT_undo_push_begin(ob, "Dynamic topology enable");
       }
 
+      bool need_bmlog = !ob->sculpt->bm_log;
+
       SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
+
       if (has_undo) {
         SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
         SCULPT_undo_push_end();
+      }
+      else if (need_bmlog) {
+        if (ob->sculpt->bm_log) {
+          BM_log_free(ob->sculpt->bm_log, true);
+          ob->sculpt->bm_log = NULL;
+        }
+
+        SCULPT_undo_ensure_bmlog(ob);
+
+        // SCULPT_undo_ensure_bmlog failed to find a sculpt undo step
+        if (!ob->sculpt->bm_log) {
+          ob->sculpt->bm_log = BM_log_create(ob->sculpt->bm, ob->sculpt->cd_dyn_vert);
+        }
       }
     }
     else {
@@ -10300,7 +10317,7 @@ void ED_object_sculptmode_enter(struct bContext *C, Depsgraph *depsgraph, Report
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
-  ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, false, reports);
+  ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, false, reports, true);
 }
 
 void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
@@ -10380,7 +10397,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
     if (depsgraph) {
       depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     }
-    ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, false, op->reports);
+    ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, false, op->reports, true);
     BKE_paint_toolslots_brush_validate(bmain, &ts->sculpt->paint);
 
     if (ob->mode & mode_flag) {
