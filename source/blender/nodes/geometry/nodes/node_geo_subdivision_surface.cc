@@ -37,14 +37,13 @@ static void geo_node_subdivision_surface_layout(uiLayout *layout,
                                                 bContext *UNUSED(C),
                                                 PointerRNA *ptr)
 {
-#ifndef WITH_OPENSUBDIV
-  UNUSED_VARS(ptr);
-  uiItemL(layout, IFACE_("Disabled, built without OpenSubdiv"), ICON_ERROR);
-#else
+#ifdef WITH_OPENSUBDIV
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   uiItemR(layout, ptr, "uv_smooth", 0, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "boundary_smooth", 0, nullptr, ICON_NONE);
+#else
+  UNUSED_VARS(layout, ptr);
 #endif
 }
 
