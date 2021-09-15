@@ -4591,7 +4591,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_UserDef_weight_color_update");
 
   prop = RNA_def_property(srna, "show_layout_ui", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "app_flag", USER_APP_LOCK_UI_LAYOUT);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "app_flag", USER_APP_LOCK_CORNER_SPLIT);
   RNA_def_property_ui_text(
       prop, "Editor Corner Splitting", "Split and join editors by dragging from corners");
   RNA_def_property_update(prop, 0, "rna_userdef_screen_update");
