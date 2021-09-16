@@ -4858,47 +4858,27 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         case EVT_LEFTSHIFTKEY:
         case EVT_RIGHTSHIFTKEY:
           if (event.val == KM_PRESS) {
-            if (event_state->ctrl || event_state->alt || event_state->oskey) {
-              keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
-            }
-            else {
-              keymodifier = KM_MOD_FIRST;
-            }
+            keymodifier = KM_MOD_HELD;
           }
           event.shift = event_state->shift = keymodifier;
           break;
         case EVT_LEFTCTRLKEY:
         case EVT_RIGHTCTRLKEY:
           if (event.val == KM_PRESS) {
-            if (event_state->shift || event_state->alt || event_state->oskey) {
-              keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
-            }
-            else {
-              keymodifier = KM_MOD_FIRST;
-            }
+            keymodifier = KM_MOD_HELD;
           }
           event.ctrl = event_state->ctrl = keymodifier;
           break;
         case EVT_LEFTALTKEY:
         case EVT_RIGHTALTKEY:
           if (event.val == KM_PRESS) {
-            if (event_state->ctrl || event_state->shift || event_state->oskey) {
-              keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
-            }
-            else {
-              keymodifier = KM_MOD_FIRST;
-            }
+            keymodifier = KM_MOD_HELD;
           }
           event.alt = event_state->alt = keymodifier;
           break;
         case EVT_OSKEY:
           if (event.val == KM_PRESS) {
-            if (event_state->ctrl || event_state->alt || event_state->shift) {
-              keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
-            }
-            else {
-              keymodifier = KM_MOD_FIRST;
-            }
+            keymodifier = KM_MOD_HELD;
           }
           event.oskey = event_state->oskey = keymodifier;
           break;

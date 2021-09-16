@@ -484,13 +484,10 @@ static void keymap_event_set(
     kmi->shift = kmi->ctrl = kmi->alt = kmi->oskey = KM_ANY;
   }
   else {
-    kmi->shift = (modifier & KM_SHIFT) ? KM_MOD_FIRST :
-                                         ((modifier & KM_SHIFT2) ? KM_MOD_SECOND : false);
-    kmi->ctrl = (modifier & KM_CTRL) ? KM_MOD_FIRST :
-                                       ((modifier & KM_CTRL2) ? KM_MOD_SECOND : false);
-    kmi->alt = (modifier & KM_ALT) ? KM_MOD_FIRST : ((modifier & KM_ALT2) ? KM_MOD_SECOND : false);
-    kmi->oskey = (modifier & KM_OSKEY) ? KM_MOD_FIRST :
-                                         ((modifier & KM_OSKEY2) ? KM_MOD_SECOND : false);
+    kmi->shift = (modifier & KM_SHIFT) ? KM_MOD_HELD : KM_NOTHING;
+    kmi->ctrl = (modifier & KM_CTRL) ? KM_MOD_HELD : KM_NOTHING;
+    kmi->alt = (modifier & KM_ALT) ? KM_MOD_HELD : KM_NOTHING;
+    kmi->oskey = (modifier & KM_OSKEY) ? KM_MOD_HELD : KM_NOTHING;
   }
 }
 
@@ -1164,7 +1161,6 @@ int WM_keymap_item_raw_to_string(const short shift,
 
   buf[0] = '\0';
 
-  /* TODO: support order (KM_SHIFT vs. KM_SHIFT2) ? */
   if (shift == KM_ANY && ctrl == KM_ANY && alt == KM_ANY && oskey == KM_ANY) {
     /* Don't show anything for any mapping. */
   }
