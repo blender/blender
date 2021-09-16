@@ -1025,6 +1025,9 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
     else if (md->type == eGpencilModifierType_Dash) {
       DashGpencilModifierData *gpmd = (DashGpencilModifierData *)md;
       BLO_read_data_address(reader, &gpmd->segments);
+      for (int i = 0; i < gpmd->segments_len; i++) {
+        gpmd->segments[i].dmd = gpmd;
+      }
     }
   }
 }
