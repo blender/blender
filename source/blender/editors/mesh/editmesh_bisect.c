@@ -777,7 +777,7 @@ static void MESH_GGT_bisect(struct wmGizmoGroupType *gzgt)
   gzgt->name = "Mesh Bisect";
   gzgt->idname = "MESH_GGT_bisect";
 
-  gzgt->flag = WM_GIZMOGROUPTYPE_3D;
+  gzgt->flag = WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
