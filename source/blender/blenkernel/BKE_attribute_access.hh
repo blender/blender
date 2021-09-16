@@ -265,15 +265,7 @@ class OutputAttribute {
   {
   }
 
-  OutputAttribute(OutputAttribute &&other)
-      : varray_(std::move(other.varray_)),
-        domain_(other.domain_),
-        save_(other.save_),
-        optional_span_varray_(std::move(other.optional_span_varray_)),
-        ignore_old_values_(other.ignore_old_values_),
-        save_has_been_called_(other.save_has_been_called_)
-  {
-  }
+  OutputAttribute(OutputAttribute &&other) = default;
 
   ~OutputAttribute();
 
