@@ -247,7 +247,7 @@ class OutputAttribute {
   GVMutableArrayPtr varray_;
   AttributeDomain domain_;
   SaveFn save_;
-  std::optional<fn::GVMutableArray_GSpan> optional_span_varray_;
+  std::unique_ptr<fn::GVMutableArray_GSpan> optional_span_varray_;
   bool ignore_old_values_ = false;
   bool save_has_been_called_ = false;
 
@@ -265,7 +265,15 @@ class OutputAttribute {
   {
   }
 
-  OutputAttribute(OutputAttribute &&other) = default;
+  OutputAttribute(OutputAttribute &&other)
+      : varray_(std::move(other.varray_)),
+        domain_(other.domain_),
+        save_(other.save_),
+        optional_span_varray_(std::move(other.optional_span_varray_)),
+        ignore_old_values_(other.ignore_old_values_),
+        save_has_been_called_(other.save_has_been_called_)
+  {
+  }
 
   ~OutputAttribute();
 
@@ -306,9 +314,10 @@ class OutputAttribute {
 
   fn::GMutableSpan as_span()
   {
-    if (!optional_span_varray_.has_value()) {
+    if (!optional_span_varray_) {
       const bool materialize_old_values = !ignore_old_values_;
-      optional_span_varray_.emplace(*varray_, materialize_old_values);
+      optional_span_varray_ = std::make_unique<fn::GVMutableArray_GSpan>(*varray_,
+                                                                         materialize_old_values);
     }
     fn::GVMutableArray_GSpan &span_varray = *optional_span_varray_;
     return span_varray;

@@ -190,7 +190,7 @@ AttributeDomain attribute_domain_highest_priority(Span<AttributeDomain> domains)
 void OutputAttribute::save()
 {
   save_has_been_called_ = true;
-  if (optional_span_varray_.has_value()) {
+  if (optional_span_varray_) {
     optional_span_varray_->save();
   }
   if (save_) {
