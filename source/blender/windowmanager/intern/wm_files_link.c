@@ -688,21 +688,12 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
       continue;
     }
 
+    ID *local_appended_new_id = NULL;
     switch (item->append_action) {
       case WM_APPEND_ACT_COPY_LOCAL: {
         BKE_lib_id_make_local(
             bmain, id, LIB_ID_MAKELOCAL_FULL_LIBRARY | LIB_ID_MAKELOCAL_FORCE_COPY);
-        if (id->newid != NULL) {
-          if (GS(id->newid->name) == ID_OB) {
-            BKE_rigidbody_ensure_local_object(bmain, (Object *)id->newid);
-          }
-          if (set_fakeuser) {
-            if (!ELEM(GS(id->name), ID_OB, ID_GR)) {
-              /* Do not set fake user on objects nor collections (instancing). */
-              id_fake_user_set(id->newid);
-            }
-          }
-        }
+        local_appended_new_id = id->newid;
         break;
       }
       case WM_APPEND_ACT_MAKE_LOCAL:
@@ -711,15 +702,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
                               LIB_ID_MAKELOCAL_FULL_LIBRARY | LIB_ID_MAKELOCAL_FORCE_LOCAL |
                                   LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
         BLI_assert(id->newid == NULL);
-        if (GS(id->name) == ID_OB) {
-          BKE_rigidbody_ensure_local_object(bmain, (Object *)id);
-        }
-        if (set_fakeuser) {
-          if (!ELEM(GS(id->name), ID_OB, ID_GR)) {
-            /* Do not set fake user on objects nor collections (instancing). */
-            id_fake_user_set(id);
-          }
-        }
+        local_appended_new_id = id;
         break;
       case WM_APPEND_ACT_KEEP_LINKED:
         /* Nothing to do here. */
@@ -727,7 +710,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
       case WM_APPEND_ACT_REUSE_LOCAL:
         /* We only need to set `newid` to ID found in previous loop, for proper remapping. */
         ID_NEW_SET(id->newid, item->customdata);
-        /* Do not set again fake user in case we reuse existing local ID. */
+        /* This is not a 'new' local appended id, do not set `local_appended_new_id` here. */
         break;
       case WM_APPEND_ACT_UNSET:
         CLOG_ERROR(
@@ -735,6 +718,18 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
         break;
       default:
         BLI_assert(0);
+    }
+
+    if (local_appended_new_id != NULL) {
+      if (GS(local_appended_new_id->name) == ID_OB) {
+        BKE_rigidbody_ensure_local_object(bmain, (Object *)local_appended_new_id);
+      }
+      if (set_fakeuser) {
+        if (!ELEM(GS(local_appended_new_id->name), ID_OB, ID_GR)) {
+          /* Do not set fake user on objects nor collections (instancing). */
+          id_fake_user_set(local_appended_new_id);
+        }
+      }
     }
   }
 
