@@ -944,9 +944,8 @@ static bool wm_link_append_item_poll(ReportList *reports,
 
   idcode = BKE_idtype_idcode_from_name(group);
 
-  /* XXX For now, we do a nasty exception for workspace, forbid linking them.
-   *     Not nice, ultimately should be solved! */
-  if (!BKE_idtype_idcode_is_linkable(idcode) && (do_append || idcode != ID_WS)) {
+  if (!BKE_idtype_idcode_is_linkable(idcode) ||
+      (!do_append && BKE_idtype_idcode_is_only_appendable(idcode))) {
     if (reports) {
       if (do_append) {
         BKE_reportf(reports,

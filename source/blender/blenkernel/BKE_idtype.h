@@ -45,6 +45,10 @@ enum {
   IDTYPE_FLAGS_NO_COPY = 1 << 0,
   /** Indicates that the given IDType does not support linking/appending from a library file. */
   IDTYPE_FLAGS_NO_LIBLINKING = 1 << 1,
+  /** Indicates that the given IDType should not be directly linked from a library file, but may be
+   * appended.
+   * NOTE: Mutually exclusive with `IDTYPE_FLAGS_NO_LIBLINKING`. */
+  IDTYPE_FLAGS_ONLY_APPEND = 1 << 2,
   /** Indicates that the given IDType does not have animation data. */
   IDTYPE_FLAGS_NO_ANIMDATA = 1 << 3,
 };
@@ -285,6 +289,7 @@ const char *BKE_idtype_idcode_to_translation_context(const short idcode);
 bool BKE_idtype_idcode_is_valid(const short idcode);
 
 bool BKE_idtype_idcode_is_linkable(const short idcode);
+bool BKE_idtype_idcode_is_only_appendable(const short idcode);
 /* Macro currently, since any linkable IDtype should be localizable. */
 #define BKE_idtype_idcode_is_localizable BKE_idtype_idcode_is_linkable
 
