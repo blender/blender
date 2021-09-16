@@ -1261,5 +1261,18 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_FILE) {
+            SpaceFile *sfile = (SpaceFile *)sl;
+            if (sfile->asset_params) {
+              sfile->asset_params->base_params.recursion_level = FILE_SELECT_MAX_RECURSIONS;
+            }
+          }
+        }
+      }
+    }
   }
 }

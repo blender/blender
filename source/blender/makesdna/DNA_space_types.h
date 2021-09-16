@@ -913,6 +913,13 @@ enum eFileDetails {
 
 #define FILE_MAX_LIBEXTRA (FILE_MAX + MAX_ID_NAME)
 
+/**
+ * Maximum level of recursions accepted for #FileSelectParams.recursion_level. Rather than a
+ * completely arbitrary limit or none at all, make it just enough to support the most extreme case
+ * where the maximal path length is used with single letter directory/file names only.
+ */
+#define FILE_SELECT_MAX_RECURSIONS (FILE_MAX_LIBEXTRA / 2)
+
 /* filesel types */
 typedef enum eFileSelectType {
   FILE_LOADLIB = 1,
