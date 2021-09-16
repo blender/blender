@@ -239,6 +239,16 @@ static void do_versions_idproperty_bones_recursive(Bone *bone)
   }
 }
 
+static void do_versions_idproperty_seq_recursive(ListBase *seqbase)
+{
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    version_idproperty_ui_data(seq->prop);
+    if (seq->type == SEQ_TYPE_META) {
+      do_versions_idproperty_seq_recursive(&seq->seqbase);
+    }
+  }
+}
+
 /**
  * For every data block that supports them, initialize the new IDProperty UI data struct based on
  * the old more complicated storage. Assumes only the top level of IDProperties below the parent
@@ -299,9 +309,7 @@ static void do_versions_idproperty_ui_data(Main *bmain)
   /* Sequences. */
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->ed != NULL) {
-      LISTBASE_FOREACH (Sequence *, seq, &scene->ed->seqbase) {
-        version_idproperty_ui_data(seq->prop);
-      }
+      do_versions_idproperty_seq_recursive(&scene->ed->seqbase);
     }
   }
 }
