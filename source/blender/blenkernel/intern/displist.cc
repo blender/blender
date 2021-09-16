@@ -1504,7 +1504,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
   cow_curve.curve_eval = nullptr;
 
   ob->runtime.curve_cache = (CurveCache *)MEM_callocN(sizeof(CurveCache), __func__);
-  ListBase *dispbase = &(ob->runtime.curve_cache->disp);
+  ListBase *dispbase = &ob->runtime.curve_cache->disp;
 
   if (ob->type == OB_SURF) {
     Mesh *mesh_eval;

@@ -1111,7 +1111,7 @@ void BKE_mesh_eval_delete(struct Mesh *mesh_eval)
   MEM_freeN(mesh_eval);
 }
 
-Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference)
+Mesh *BKE_mesh_copy_for_eval(const Mesh *source, bool reference)
 {
   int flags = LIB_ID_COPY_LOCALIZE;
 
