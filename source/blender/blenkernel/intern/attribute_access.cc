@@ -817,6 +817,12 @@ bool GeometryComponent::attribute_is_builtin(const blender::StringRef attribute_
   return providers->builtin_attribute_providers().contains_as(attribute_name);
 }
 
+bool GeometryComponent::attribute_is_builtin(const AttributeIDRef &attribute_id) const
+{
+  /* Anonymous attributes cannot be built-in. */
+  return attribute_id.is_named() && this->attribute_is_builtin(attribute_id.name());
+}
+
 blender::bke::ReadAttributeLookup GeometryComponent::attribute_try_get_for_read(
     const AttributeIDRef &attribute_id) const
 {
@@ -1210,7 +1216,7 @@ static OutputAttribute create_output_attribute(GeometryComponent &component,
   BLI_assert(cpp_type != nullptr);
   const nodes::DataTypeConversions &conversions = nodes::get_implicit_type_conversions();
 
-  if (attribute_id.is_named() && component.attribute_is_builtin(attribute_id.name())) {
+  if (component.attribute_is_builtin(attribute_id)) {
     const StringRef attribute_name = attribute_id.name();
     WriteAttributeLookup attribute = component.attribute_try_get_for_write(attribute_name);
     if (!attribute) {
