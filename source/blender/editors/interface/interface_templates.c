@@ -1031,7 +1031,7 @@ static void template_ID(const bContext *C,
         UI_but_flag_enable(but, UI_BUT_DISABLED);
       }
       else {
-        const bool disabled = (!BKE_lib_id_make_local(CTX_data_main(C), id, true /* test */, 0) ||
+        const bool disabled = (!BKE_idtype_idcode_is_localizable(GS(id->name)) ||
                                (idfrom && idfrom->lib));
         but = uiDefIconBut(block,
                            UI_BTYPE_BUT,

@@ -281,8 +281,12 @@ const struct IDTypeInfo *BKE_idtype_get_info_from_id(const struct ID *id);
 const char *BKE_idtype_idcode_to_name(const short idcode);
 const char *BKE_idtype_idcode_to_name_plural(const short idcode);
 const char *BKE_idtype_idcode_to_translation_context(const short idcode);
-bool BKE_idtype_idcode_is_linkable(const short idcode);
+
 bool BKE_idtype_idcode_is_valid(const short idcode);
+
+bool BKE_idtype_idcode_is_linkable(const short idcode);
+/* Macro currently, since any linkable IDtype should be localizable. */
+#define BKE_idtype_idcode_is_localizable BKE_idtype_idcode_is_linkable
 
 short BKE_idtype_idcode_from_name(const char *idtype_name);
 
