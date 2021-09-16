@@ -1527,10 +1527,6 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **thu
     return BKE_main_thumbnail_to_imbuf(NULL, *thumb_pt);
   }
 
-  /* Redraw to remove menus that might be open. */
-  WM_redraw_windows(C);
-  WM_cursor_wait(true);
-
   /* The window to capture should be a main window (without parent). */
   wmWindow *win = CTX_wm_window(C);
   while (win && win->parent) {
@@ -1563,7 +1559,6 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **thu
     IMB_freeImBuf(thumb_ibuf);
     *thumb_pt = thumb;
   }
-  WM_cursor_wait(false);
 
   /* Must be freed by caller. */
   return ibuf;
@@ -1758,6 +1753,14 @@ static bool wm_file_write(bContext *C,
   /* Enforce full override check/generation on file save. */
   BKE_lib_override_library_main_operations_create(bmain, true);
 
+  if (!G.background) {
+    /* Redraw to remove menus that might be open. */
+    WM_redraw_windows(C);
+  }
+
+  /* don't forget not to return without! */
+  WM_cursor_wait(true);
+
   /* blend file thumbnail */
   /* Save before exit_editmode, otherwise derivedmeshes for shared data corrupt T27765. */
   /* Main now can store a '.blend' thumbnail, useful for background mode
@@ -1777,9 +1780,6 @@ static bool wm_file_write(bContext *C,
   if (G.fileflags & G_FILE_AUTOPACK) {
     BKE_packedfile_pack_all(bmain, reports, false);
   }
-
-  /* don't forget not to return without! */
-  WM_cursor_wait(true);
 
   ED_editors_flush_edits(bmain);
 
