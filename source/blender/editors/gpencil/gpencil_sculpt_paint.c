@@ -337,7 +337,7 @@ static bool gpencil_brush_smooth_apply(tGP_BrushEditData *gso,
 
   /* perform smoothing */
   if (gso->brush->gpencil_settings->sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_POSITION) {
-    BKE_gpencil_stroke_smooth(gps, pt_index, inf);
+    BKE_gpencil_stroke_smooth_point(gps, pt_index, inf);
   }
   if (gso->brush->gpencil_settings->sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_STRENGTH) {
     BKE_gpencil_stroke_smooth_strength(gps, pt_index, inf);

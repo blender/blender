@@ -944,9 +944,15 @@ static void ui_template_list_layout_draw(bContext *C,
       /* For scrollbar. */
       row = uiLayoutRow(glob, false);
 
+      const bool show_names = (flags & UI_TEMPLATE_LIST_NO_NAMES) == 0;
+
       /* TODO ED_fileselect_init_layout(). Share somehow? */
       float size_x = (96.0f / 20.0f) * UI_UNIT_X;
       float size_y = (96.0f / 20.0f) * UI_UNIT_Y;
+
+      if (!show_names) {
+        size_y -= UI_UNIT_Y;
+      }
 
       const int cols_per_row = MAX2((uiLayoutGetWidth(box) - V2D_SCROLL_WIDTH) / size_x, 1);
       uiLayout *grid = uiLayoutGridFlow(row, true, cols_per_row, true, true, true);
@@ -1033,7 +1039,8 @@ static void ui_template_list_layout_draw(bContext *C,
       break;
   }
 
-  if (glob) {
+  const bool add_filters_but = (flags & UI_TEMPLATE_LIST_NO_FILTER_OPTIONS) == 0;
+  if (glob && add_filters_but) {
     const bool add_grip_but = (flags & UI_TEMPLATE_LIST_NO_GRIP) == 0;
 
     /* About #UI_BTYPE_GRIP drag-resize:

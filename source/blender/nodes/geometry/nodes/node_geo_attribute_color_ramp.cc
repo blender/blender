@@ -125,8 +125,11 @@ void register_node_type_geo_attribute_color_ramp()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_ATTRIBUTE_COLOR_RAMP, "Attribute Color Ramp", NODE_CLASS_ATTRIBUTE, 0);
+  geo_node_type_base(&ntype,
+                     GEO_NODE_LEGACY_ATTRIBUTE_COLOR_RAMP,
+                     "Attribute Color Ramp",
+                     NODE_CLASS_ATTRIBUTE,
+                     0);
   node_type_storage(
       &ntype, "NodeAttributeColorRamp", node_free_standard_storage, node_copy_standard_storage);
   node_type_init(&ntype, blender::nodes::geo_node_attribute_color_ramp_init);

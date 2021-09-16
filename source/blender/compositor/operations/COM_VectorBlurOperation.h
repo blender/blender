@@ -26,6 +26,10 @@ namespace blender::compositor {
 
 class VectorBlurOperation : public NodeOperation, public QualityStepHelper {
  private:
+  static constexpr int IMAGE_INPUT_INDEX = 0;
+  static constexpr int Z_INPUT_INDEX = 1;
+  static constexpr int SPEED_INPUT_INDEX = 2;
+
   /**
    * \brief Cached reference to the inputProgram
    */
@@ -67,6 +71,13 @@ class VectorBlurOperation : public NodeOperation, public QualityStepHelper {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
+
+  void get_area_of_interest(const int input_idx,
+                            const rcti &output_area,
+                            rcti &r_input_area) override;
+  void update_memory_buffer(MemoryBuffer *output,
+                            const rcti &area,
+                            Span<MemoryBuffer *> inputs) override;
 
  protected:
   void generateVectorBlur(float *data,

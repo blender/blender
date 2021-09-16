@@ -218,6 +218,16 @@ void GeometrySet::ensure_owns_direct_data()
   }
 }
 
+bool GeometrySet::owns_direct_data() const
+{
+  for (const GeometryComponentPtr &component : components_.values()) {
+    if (!component->owns_direct_data()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /* Returns a read-only mesh or null. */
 const Mesh *GeometrySet::get_mesh_for_read() const
 {
@@ -376,9 +386,32 @@ void BKE_geometry_set_free(GeometrySet *geometry_set)
   delete geometry_set;
 }
 
-bool BKE_geometry_set_has_instances(const GeometrySet *geometry_set)
+bool BKE_object_has_geometry_set_instances(const Object *ob)
 {
-  return geometry_set->get_component_for_read<InstancesComponent>() != nullptr;
+  const GeometrySet *geometry_set = ob->runtime.geometry_set_eval;
+  if (geometry_set == nullptr) {
+    return false;
+  }
+  if (geometry_set->has_instances()) {
+    return true;
+  }
+  const bool has_mesh = geometry_set->has_mesh();
+  const bool has_pointcloud = geometry_set->has_pointcloud();
+  const bool has_volume = geometry_set->has_volume();
+  const bool has_curve = geometry_set->has_curve();
+  if (ob->type == OB_MESH) {
+    return has_pointcloud || has_volume || has_curve;
+  }
+  if (ob->type == OB_POINTCLOUD) {
+    return has_mesh || has_volume || has_curve;
+  }
+  if (ob->type == OB_VOLUME) {
+    return has_mesh || has_pointcloud || has_curve;
+  }
+  if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
+    return has_mesh || has_pointcloud || has_volume;
+  }
+  return false;
 }
 
 /** \} */

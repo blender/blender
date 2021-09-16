@@ -25,15 +25,15 @@
 
 #include "node_function_util.hh"
 
-static bNodeSocketTemplate fn_node_float_to_int_in[] = {
-    {SOCK_FLOAT, N_("Float"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
-    {-1, ""},
+namespace blender::nodes {
+
+static void fn_node_float_to_int_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Float");
+  b.add_output<decl::Int>("Integer");
 };
 
-static bNodeSocketTemplate fn_node_float_to_int_out[] = {
-    {SOCK_INT, N_("Integer")},
-    {-1, ""},
-};
+}  // namespace blender::nodes
 
 static void fn_node_float_to_int_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -88,7 +88,7 @@ void register_node_type_fn_float_to_int()
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_FLOAT_TO_INT, "Float to Integer", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, fn_node_float_to_int_in, fn_node_float_to_int_out);
+  ntype.declare = blender::nodes::fn_node_float_to_int_declare;
   node_type_label(&ntype, node_float_to_int_label);
   ntype.build_multi_function = fn_node_float_to_int_build_multi_function;
   ntype.draw_buttons = fn_node_float_to_int_layout;

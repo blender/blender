@@ -18,12 +18,15 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class DespeckleOperation : public NodeOperation {
+class DespeckleOperation : public MultiThreadedOperation {
  private:
+  constexpr static int IMAGE_INPUT_INDEX = 0;
+  constexpr static int FACTOR_INPUT_INDEX = 1;
+
   float m_threshold;
   float m_threshold_neighbor;
 
@@ -52,6 +55,11 @@ class DespeckleOperation : public NodeOperation {
 
   void initExecution() override;
   void deinitExecution() override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

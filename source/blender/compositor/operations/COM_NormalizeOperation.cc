@@ -27,6 +27,7 @@ NormalizeOperation::NormalizeOperation()
   this->m_imageReader = nullptr;
   this->m_cachedInstance = nullptr;
   this->flags.complex = true;
+  flags.can_be_constant = true;
 }
 void NormalizeOperation::initExecution()
 {
@@ -56,6 +57,7 @@ void NormalizeOperation::deinitExecution()
 {
   this->m_imageReader = nullptr;
   delete this->m_cachedInstance;
+  m_cachedInstance = nullptr;
   NodeOperation::deinitMutex();
 }
 
@@ -125,6 +127,62 @@ void *NormalizeOperation::initializeTileData(rcti *rect)
 void NormalizeOperation::deinitializeTileData(rcti * /*rect*/, void * /*data*/)
 {
   /* pass */
+}
+
+void NormalizeOperation::get_area_of_interest(const int UNUSED(input_idx),
+                                              const rcti &UNUSED(output_area),
+                                              rcti &r_input_area)
+{
+  NodeOperation *input = get_input_operation(0);
+  r_input_area.xmin = 0;
+  r_input_area.xmax = input->getWidth();
+  r_input_area.ymin = 0;
+  r_input_area.ymax = input->getHeight();
+}
+
+void NormalizeOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output),
+                                                      const rcti &UNUSED(area),
+                                                      Span<MemoryBuffer *> inputs)
+{
+  if (m_cachedInstance == nullptr) {
+    MemoryBuffer *input = inputs[0];
+
+    /* Using generic two floats struct to store `x: min`, `y: multiply`. */
+    NodeTwoFloats *minmult = new NodeTwoFloats();
+
+    float minv = 1.0f + BLENDER_ZMAX;
+    float maxv = -1.0f - BLENDER_ZMAX;
+    for (const float *elem : input->as_range()) {
+      const float value = *elem;
+      if ((value > maxv) && (value <= BLENDER_ZMAX)) {
+        maxv = value;
+      }
+      if ((value < minv) && (value >= -BLENDER_ZMAX)) {
+        minv = value;
+      }
+    }
+
+    minmult->x = minv;
+    /* The case of a flat buffer would cause a divide by 0. */
+    minmult->y = ((maxv != minv) ? 1.0f / (maxv - minv) : 0.0f);
+
+    m_cachedInstance = minmult;
+  }
+}
+
+void NormalizeOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                      const rcti &area,
+                                                      Span<MemoryBuffer *> inputs)
+{
+  NodeTwoFloats *minmult = m_cachedInstance;
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const float input_value = *it.in(0);
+
+    *it.out = (input_value - minmult->x) * minmult->y;
+
+    /* Clamp infinities. */
+    CLAMP(*it.out, 0.0f, 1.0f);
+  }
 }
 
 }  // namespace blender::compositor

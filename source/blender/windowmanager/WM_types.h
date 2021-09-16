@@ -925,7 +925,7 @@ typedef struct wmDragID {
 } wmDragID;
 
 typedef struct wmDragAsset {
-  /* Note: Can't store the AssetHandle here, since the FileDirEntry it wraps may be freed while
+  /* NOTE: Can't store the #AssetHandle here, since the #FileDirEntry it wraps may be freed while
    * dragging. So store necessary data here directly. */
 
   char name[64]; /* MAX_NAME */

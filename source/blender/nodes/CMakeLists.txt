@@ -104,6 +104,7 @@ set(SRC
   composite/nodes/node_composite_outputFile.c
   composite/nodes/node_composite_pixelate.c
   composite/nodes/node_composite_planetrackdeform.c
+  composite/nodes/node_composite_posterize.c
   composite/nodes/node_composite_premulkey.c
   composite/nodes/node_composite_rgb.c
   composite/nodes/node_composite_rotate.c
@@ -140,7 +141,11 @@ set(SRC
   function/nodes/node_fn_random_float.cc
   function/node_function_util.cc
 
+  geometry/nodes/legacy/node_geo_material_assign.cc
+  geometry/nodes/legacy/node_geo_select_by_material.cc
+
   geometry/nodes/node_geo_align_rotation_to_vector.cc
+  geometry/nodes/node_geo_attribute_capture.cc
   geometry/nodes/node_geo_attribute_clamp.cc
   geometry/nodes/node_geo_attribute_color_ramp.cc
   geometry/nodes/node_geo_attribute_combine_xyz.cc
@@ -186,10 +191,14 @@ set(SRC
   geometry/nodes/node_geo_delete_geometry.cc
   geometry/nodes/node_geo_edge_split.cc
   geometry/nodes/node_geo_input_material.cc
+  geometry/nodes/node_geo_input_normal.cc
+  geometry/nodes/node_geo_input_position.cc
+  geometry/nodes/node_geo_input_index.cc
   geometry/nodes/node_geo_is_viewport.cc
   geometry/nodes/node_geo_join_geometry.cc
   geometry/nodes/node_geo_material_assign.cc
   geometry/nodes/node_geo_material_replace.cc
+  geometry/nodes/node_geo_material_selection.cc
   geometry/nodes/node_geo_mesh_primitive_circle.cc
   geometry/nodes/node_geo_mesh_primitive_cone.cc
   geometry/nodes/node_geo_mesh_primitive_cube.cc
@@ -209,8 +218,8 @@ set(SRC
   geometry/nodes/node_geo_point_translate.cc
   geometry/nodes/node_geo_points_to_volume.cc
   geometry/nodes/node_geo_raycast.cc
-  geometry/nodes/node_geo_select_by_material.cc
   geometry/nodes/node_geo_separate_components.cc
+  geometry/nodes/node_geo_set_position.cc
   geometry/nodes/node_geo_subdivision_surface.cc
   geometry/nodes/node_geo_switch.cc
   geometry/nodes/node_geo_transform.cc
@@ -286,16 +295,16 @@ set(SRC
   shader/nodes/node_shader_tex_checker.c
   shader/nodes/node_shader_tex_coord.c
   shader/nodes/node_shader_tex_environment.c
-  shader/nodes/node_shader_tex_gradient.c
+  shader/nodes/node_shader_tex_gradient.cc
   shader/nodes/node_shader_tex_image.c
   shader/nodes/node_shader_tex_magic.c
-  shader/nodes/node_shader_tex_musgrave.c
-  shader/nodes/node_shader_tex_noise.c
+  shader/nodes/node_shader_tex_musgrave.cc
+  shader/nodes/node_shader_tex_noise.cc
   shader/nodes/node_shader_tex_pointdensity.c
   shader/nodes/node_shader_tex_sky.c
-  shader/nodes/node_shader_tex_voronoi.c
+  shader/nodes/node_shader_tex_voronoi.cc
   shader/nodes/node_shader_tex_wave.c
-  shader/nodes/node_shader_tex_white_noise.c
+  shader/nodes/node_shader_tex_white_noise.cc
   shader/nodes/node_shader_uvAlongStroke.c
   shader/nodes/node_shader_uvmap.c
   shader/nodes/node_shader_valToRgb.cc

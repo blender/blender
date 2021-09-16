@@ -218,18 +218,10 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     struct GPUBatch *geom = NULL;
     switch (ob->type) {
       case OB_CURVE:
-        if (!pd->wireframe_mode && !use_wire && ob->runtime.curve_cache &&
-            BKE_displist_has_faces(&ob->runtime.curve_cache->disp)) {
-          break;
-        }
         geom = DRW_cache_curve_edge_wire_get(ob);
         break;
       case OB_FONT:
-        if (!pd->wireframe_mode && !use_wire && ob->runtime.curve_cache &&
-            BKE_displist_has_faces(&ob->runtime.curve_cache->disp)) {
-          break;
-        }
-        geom = DRW_cache_text_loose_edges_get(ob);
+        geom = DRW_cache_text_edge_wire_get(ob);
         break;
       case OB_SURF:
         geom = DRW_cache_surf_edge_wire_get(ob);

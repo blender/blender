@@ -130,6 +130,10 @@ ScrEdge *screen_geom_find_active_scredge(const wmWindow *win,
                                          const int mx,
                                          const int my)
 {
+  if (U.app_flag & USER_APP_LOCK_EDGE_RESIZE) {
+    return NULL;
+  }
+
   /* Use layout size (screen excluding global areas) for screen-layout area edges */
   rcti screen_rect;
   WM_window_screen_rect_calc(win, &screen_rect);

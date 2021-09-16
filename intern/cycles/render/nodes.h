@@ -128,7 +128,7 @@ class ImageTextureNode : public ImageSlotTextureNode {
   NODE_SOCKET_API(float, projection_blend)
   NODE_SOCKET_API(bool, animated)
   NODE_SOCKET_API(float3, vector)
-  NODE_SOCKET_API(array<int>, tiles)
+  NODE_SOCKET_API_ARRAY(array<int>, tiles)
 
  protected:
   void cull_tiles(Scene *scene, ShaderGraph *graph);
@@ -1554,7 +1554,7 @@ class CurvesNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(array<float3>, curves)
+  NODE_SOCKET_API_ARRAY(array<float3>, curves)
   NODE_SOCKET_API(float, min_x)
   NODE_SOCKET_API(float, max_x)
   NODE_SOCKET_API(float, fac)
@@ -1588,8 +1588,8 @@ class RGBRampNode : public ShaderNode {
     return NODE_GROUP_LEVEL_1;
   }
 
-  NODE_SOCKET_API(array<float3>, ramp)
-  NODE_SOCKET_API(array<float>, ramp_alpha)
+  NODE_SOCKET_API_ARRAY(array<float3>, ramp)
+  NODE_SOCKET_API_ARRAY(array<float>, ramp_alpha)
   NODE_SOCKET_API(float, fac)
   NODE_SOCKET_API(bool, interpolate)
 };

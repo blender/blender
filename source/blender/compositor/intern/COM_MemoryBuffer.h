@@ -373,6 +373,12 @@ class MemoryBuffer {
     return this->m_buffer;
   }
 
+  float *release_ownership_buffer()
+  {
+    owns_data_ = false;
+    return this->m_buffer;
+  }
+
   MemoryBuffer *inflate() const;
 
   inline void wrap_pixel(int &x, int &y, MemoryBufferExtend extend_x, MemoryBufferExtend extend_y)

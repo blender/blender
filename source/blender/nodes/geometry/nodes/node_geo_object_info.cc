@@ -25,7 +25,7 @@ namespace blender::nodes {
 
 static void geo_node_object_info_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Object>("Object").hide_label(true);
+  b.add_input<decl::Object>("Object").hide_label();
   b.add_output<decl::Vector>("Location");
   b.add_output<decl::Vector>("Rotation");
   b.add_output<decl::Vector>("Scale");

@@ -644,6 +644,16 @@ template<typename T> class MutableSpan {
   }
 
   /**
+   * Reverse the data in the MutableSpan.
+   */
+  constexpr void reverse()
+  {
+    for (const int i : IndexRange(size_ / 2)) {
+      std::swap(data_[size_ - 1 - i], data_[i]);
+    }
+  }
+
+  /**
    * Returns an (immutable) Span that references the same array. This is usually not needed,
    * due to implicit conversions. However, sometimes automatic type deduction needs some help.
    */

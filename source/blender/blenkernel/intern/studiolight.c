@@ -439,17 +439,15 @@ static void studiolight_load_equirect_image(StudioLight *sl)
         if (ctx.diffuse_pass != NULL) {
           float *converted_pass = studiolight_multilayer_convert_pass(
               ibuf, ctx.diffuse_pass, ctx.num_diffuse_channels);
-          diffuse_ibuf = IMB_allocFromBuffer(
+          diffuse_ibuf = IMB_allocFromBufferOwn(
               NULL, converted_pass, ibuf->x, ibuf->y, ctx.num_diffuse_channels);
-          MEM_freeN(converted_pass);
         }
 
         if (ctx.specular_pass != NULL) {
           float *converted_pass = studiolight_multilayer_convert_pass(
               ibuf, ctx.specular_pass, ctx.num_specular_channels);
-          specular_ibuf = IMB_allocFromBuffer(
+          specular_ibuf = IMB_allocFromBufferOwn(
               NULL, converted_pass, ibuf->x, ibuf->y, ctx.num_specular_channels);
-          MEM_freeN(converted_pass);
         }
 
         IMB_exr_close(ibuf->userdata);
@@ -1148,12 +1146,11 @@ static void studiolight_calculate_irradiance_equirect_image(StudioLight *sl)
     }
     ITER_PIXELS_END;
 
-    sl->equirect_irradiance_buffer = IMB_allocFromBuffer(NULL,
-                                                         colbuf,
-                                                         STUDIOLIGHT_IRRADIANCE_EQUIRECT_WIDTH,
-                                                         STUDIOLIGHT_IRRADIANCE_EQUIRECT_HEIGHT,
-                                                         4);
-    MEM_freeN(colbuf);
+    sl->equirect_irradiance_buffer = IMB_allocFromBufferOwn(NULL,
+                                                            colbuf,
+                                                            STUDIOLIGHT_IRRADIANCE_EQUIRECT_WIDTH,
+                                                            STUDIOLIGHT_IRRADIANCE_EQUIRECT_HEIGHT,
+                                                            4);
   }
   sl->flag |= STUDIOLIGHT_EQUIRECT_IRRADIANCE_IMAGE_CALCULATED;
 }

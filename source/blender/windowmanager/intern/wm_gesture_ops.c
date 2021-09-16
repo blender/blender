@@ -954,8 +954,9 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
         break;
       }
       case GESTURE_MODAL_FLIP: {
-        /* Toggle snapping on/off. */
+        /* Toggle flipping on/off. */
         gesture->use_flip = !gesture->use_flip;
+        gesture_straightline_apply(C, op);
         break;
       }
       case GESTURE_MODAL_SELECT: {
@@ -993,6 +994,7 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 
         if (gesture->use_snap) {
           wm_gesture_straightline_do_angle_snap(rect);
+          gesture_straightline_apply(C, op);
         }
 
         wm_gesture_tag_redraw(win);

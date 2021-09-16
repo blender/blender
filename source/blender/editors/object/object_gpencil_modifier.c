@@ -28,6 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
@@ -35,6 +36,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string_utf8.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -54,6 +56,8 @@
 
 #include "ED_object.h"
 #include "ED_screen.h"
+
+#include "BLT_translation.h"
 
 #include "UI_interface.h"
 
@@ -938,4 +942,238 @@ void OBJECT_OT_gpencil_modifier_copy_to_selected(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
   gpencil_edit_modifier_properties(ot);
+}
+
+/************************* Dash Modifier *******************************/
+
+static bool dash_segment_poll(bContext *C)
+{
+  return gpencil_edit_modifier_poll_generic(C, &RNA_DashGpencilModifierData, 0, false);
+}
+
+static bool dash_segment_name_exists_fn(void *arg, const char *name)
+{
+  const DashGpencilModifierData *dmd = (const DashGpencilModifierData *)arg;
+  for (int i = 0; i < dmd->segments_len; i++) {
+    if (STREQ(dmd->segments[i].name, name)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static int dash_segment_add_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_active_context(C);
+  DashGpencilModifierData *dmd = (DashGpencilModifierData *)gpencil_edit_modifier_property_get(
+      op, ob, eGpencilModifierType_Dash);
+
+  const int new_active_index = dmd->segment_active_index + 1;
+  DashGpencilModifierSegment *new_segments = MEM_malloc_arrayN(
+      dmd->segments_len + 1, sizeof(DashGpencilModifierSegment), __func__);
+
+  if (dmd->segments_len != 0) {
+    /* Copy the segments before the new segment. */
+    memcpy(new_segments, dmd->segments, sizeof(DashGpencilModifierSegment) * new_active_index);
+    /* Copy the segments after the new segment. */
+    memcpy(new_segments + new_active_index + 1,
+           dmd->segments + new_active_index,
+           sizeof(DashGpencilModifierSegment) * (dmd->segments_len - new_active_index));
+  }
+
+  /* Create the new segment. */
+  DashGpencilModifierSegment *ds = &new_segments[new_active_index];
+  memcpy(
+      ds, DNA_struct_default_get(DashGpencilModifierSegment), sizeof(DashGpencilModifierSegment));
+  BLI_uniquename_cb(
+      dash_segment_name_exists_fn, dmd, DATA_("Segment"), '.', ds->name, sizeof(ds->name));
+  ds->dmd = dmd;
+
+  MEM_SAFE_FREE(dmd->segments);
+  dmd->segments = new_segments;
+  dmd->segments_len++;
+  dmd->segment_active_index++;
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+static int dash_segment_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  if (gpencil_edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+    return dash_segment_add_exec(C, op);
+  }
+  return OPERATOR_CANCELLED;
+}
+
+void GPENCIL_OT_segment_add(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add Segment";
+  ot->description = "Add a segment to the dash modifier";
+  ot->idname = "GPENCIL_OT_segment_add";
+
+  /* api callbacks */
+  ot->poll = dash_segment_poll;
+  ot->invoke = dash_segment_add_invoke;
+  ot->exec = dash_segment_add_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  edit_modifier_properties(ot);
+}
+
+static int dash_segment_remove_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_active_context(C);
+
+  DashGpencilModifierData *dmd = (DashGpencilModifierData *)gpencil_edit_modifier_property_get(
+      op, ob, eGpencilModifierType_Dash);
+
+  if (dmd->segment_active_index < 0 || dmd->segment_active_index >= dmd->segments_len) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (dmd->segments_len == 1) {
+    MEM_SAFE_FREE(dmd->segments);
+    dmd->segment_active_index = -1;
+  }
+  else {
+    DashGpencilModifierSegment *new_segments = MEM_malloc_arrayN(
+        dmd->segments_len, sizeof(DashGpencilModifierSegment), __func__);
+
+    /* Copy the segments before the deleted segment. */
+    memcpy(new_segments,
+           dmd->segments,
+           sizeof(DashGpencilModifierSegment) * dmd->segment_active_index);
+
+    /* Copy the segments after the deleted segment. */
+    memcpy(new_segments + dmd->segment_active_index,
+           dmd->segments + dmd->segment_active_index + 1,
+           sizeof(DashGpencilModifierSegment) *
+               (dmd->segments_len - dmd->segment_active_index - 1));
+
+    MEM_freeN(dmd->segments);
+    dmd->segments = new_segments;
+    dmd->segment_active_index = MAX2(dmd->segment_active_index - 1, 0);
+  }
+
+  dmd->segments_len--;
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+static int dash_segment_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  if (gpencil_edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+    return dash_segment_remove_exec(C, op);
+  }
+  return OPERATOR_CANCELLED;
+}
+
+void GPENCIL_OT_segment_remove(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Remove Dash Segment";
+  ot->description = "Remove the active segment from the dash modifier";
+  ot->idname = "GPENCIL_OT_segment_remove";
+
+  /* api callbacks */
+  ot->poll = dash_segment_poll;
+  ot->invoke = dash_segment_remove_invoke;
+  ot->exec = dash_segment_remove_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  edit_modifier_properties(ot);
+
+  RNA_def_int(
+      ot->srna, "index", 0, 0, INT_MAX, "Index", "Index of the segment to remove", 0, INT_MAX);
+}
+
+enum {
+  GP_SEGEMENT_MOVE_UP = -1,
+  GP_SEGEMENT_MOVE_DOWN = 1,
+};
+
+static int dash_segment_move_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_active_context(C);
+
+  DashGpencilModifierData *dmd = (DashGpencilModifierData *)gpencil_edit_modifier_property_get(
+      op, ob, eGpencilModifierType_Dash);
+
+  if (dmd->segments_len < 2) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const int direction = RNA_enum_get(op->ptr, "type");
+  if (direction == GP_SEGEMENT_MOVE_UP) {
+    if (dmd->segment_active_index == 0) {
+      return OPERATOR_CANCELLED;
+    }
+
+    SWAP(DashGpencilModifierSegment,
+         dmd->segments[dmd->segment_active_index],
+         dmd->segments[dmd->segment_active_index - 1]);
+
+    dmd->segment_active_index--;
+  }
+  else if (direction == GP_SEGEMENT_MOVE_DOWN) {
+    if (dmd->segment_active_index == dmd->segments_len - 1) {
+      return OPERATOR_CANCELLED;
+    }
+
+    SWAP(DashGpencilModifierSegment,
+         dmd->segments[dmd->segment_active_index],
+         dmd->segments[dmd->segment_active_index + 1]);
+
+    dmd->segment_active_index++;
+  }
+  else {
+    return OPERATOR_CANCELLED;
+  }
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+static int dash_segment_move_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  if (gpencil_edit_modifier_invoke_properties(C, op, NULL, NULL)) {
+    return dash_segment_move_exec(C, op);
+  }
+  return OPERATOR_CANCELLED;
+}
+
+void GPENCIL_OT_segment_move(wmOperatorType *ot)
+{
+  static const EnumPropertyItem segment_move[] = {
+      {GP_SEGEMENT_MOVE_UP, "UP", 0, "Up", ""},
+      {GP_SEGEMENT_MOVE_DOWN, "DOWN", 0, "Down", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  /* identifiers */
+  ot->name = "Move Dash Segment";
+  ot->description = "Move the active dash segment up or down";
+  ot->idname = "GPENCIL_OT_segment_move";
+
+  /* api callbacks */
+  ot->poll = dash_segment_poll;
+  ot->invoke = dash_segment_move_invoke;
+  ot->exec = dash_segment_move_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  edit_modifier_properties(ot);
+
+  ot->prop = RNA_def_enum(ot->srna, "type", segment_move, 0, "Type", "");
 }

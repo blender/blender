@@ -41,6 +41,7 @@
 #include "ED_keyframes_edit.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
+#include "ED_util.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -93,6 +94,8 @@ typedef struct tDecimateGraphOp {
 
   /** The original bezt curve data (used for restoring fcurves). */
   ListBase bezt_arr_list;
+
+  struct tSlider *slider;
 
   NumInput num;
 } tDecimateGraphOp;
@@ -161,6 +164,8 @@ static void decimate_exit(bContext *C, wmOperator *op)
   ScrArea *area = dgo->area;
   LinkData *link;
 
+  ED_slider_destroy(C, dgo->slider);
+
   for (link = dgo->bezt_arr_list.first; link != NULL; link = link->next) {
     tBeztCopyData *copy = link->data;
     MEM_freeN(copy->bezt);
@@ -178,11 +183,14 @@ static void decimate_exit(bContext *C, wmOperator *op)
   op->customdata = NULL;
 }
 
-/* Draw a percentage indicator in header. */
-static void decimate_draw_status_header(wmOperator *op, tDecimateGraphOp *dgo)
+/* Draw a percentage indicator in workspace footer. */
+static void decimate_draw_status(bContext *C, tDecimateGraphOp *dgo)
 {
   char status_str[UI_MAX_DRAW_STR];
   char mode_str[32];
+  char slider_string[UI_MAX_DRAW_STR];
+
+  ED_slider_status_string_get(dgo->slider, slider_string, UI_MAX_DRAW_STR);
 
   strcpy(mode_str, TIP_("Decimate Keyframes"));
 
@@ -194,23 +202,10 @@ static void decimate_draw_status_header(wmOperator *op, tDecimateGraphOp *dgo)
     BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_ofs);
   }
   else {
-    float percentage = RNA_property_float_get(op->ptr, dgo->percentage_prop);
-    BLI_snprintf(
-        status_str, sizeof(status_str), "%s: %d %%", mode_str, (int)(percentage * 100.0f));
+    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, slider_string);
   }
 
-  ED_area_status_text(dgo->area, status_str);
-}
-
-/* Calculate percentage based on position of mouse (we only use x-axis for now.
- * Since this is more convenient for users to do), and store new percentage value.
- */
-static void decimate_mouse_update_percentage(tDecimateGraphOp *dgo,
-                                             wmOperator *op,
-                                             const wmEvent *event)
-{
-  float percentage = (event->x - dgo->region->winrct.xmin) / ((float)dgo->region->winx);
-  RNA_property_float_set(op->ptr, dgo->percentage_prop, percentage);
+  ED_workspace_status_text(C, status_str);
 }
 
 static int graphkeys_decimate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -234,10 +229,11 @@ static int graphkeys_decimate_invoke(bContext *C, wmOperator *op, const wmEvent 
   dgo->area = CTX_wm_area(C);
   dgo->region = CTX_wm_region(C);
 
-  /* Initialize percentage so that it will have the correct value before the first mouse move. */
-  decimate_mouse_update_percentage(dgo, op, event);
+  dgo->slider = ED_slider_create(C);
+  ED_slider_init(dgo->slider, event);
+  ED_slider_allow_overshoot_set(dgo->slider, false);
 
-  decimate_draw_status_header(op, dgo);
+  decimate_draw_status(C, dgo);
 
   /* Construct a list with the original bezt arrays so we can restore them during modal operation.
    */
@@ -300,13 +296,14 @@ static void graphkeys_decimate_modal_update(bContext *C, wmOperator *op)
    * (e.g. pressing a key or moving the mouse). */
   tDecimateGraphOp *dgo = op->customdata;
 
-  decimate_draw_status_header(op, dgo);
+  decimate_draw_status(C, dgo);
 
   /* Reset keyframe data (so we get back to the original state). */
   decimate_reset_bezts(dgo);
 
   /* Apply... */
-  float remove_ratio = RNA_property_float_get(op->ptr, dgo->percentage_prop);
+  float remove_ratio = ED_slider_factor_get(dgo->slider);
+  RNA_property_float_set(op->ptr, dgo->percentage_prop, remove_ratio);
   /* We don't want to limit the decimation to a certain error margin. */
   const float error_sq_max = FLT_MAX;
   decimate_graph_keys(&dgo->ac, remove_ratio, error_sq_max);
@@ -322,6 +319,8 @@ static int graphkeys_decimate_modal(bContext *C, wmOperator *op, const wmEvent *
   tDecimateGraphOp *dgo = op->customdata;
 
   const bool has_numinput = hasNumInput(&dgo->num);
+
+  ED_slider_modal(dgo->slider, event);
 
   switch (event->type) {
     case LEFTMOUSE: /* Confirm */
@@ -353,9 +352,6 @@ static int graphkeys_decimate_modal(bContext *C, wmOperator *op, const wmEvent *
     case MOUSEMOVE: /* Calculate new position. */
     {
       if (has_numinput == false) {
-        /* Update percentage based on position of mouse. */
-        decimate_mouse_update_percentage(dgo, op, event);
-
         /* Update pose to reflect the new values. */
         graphkeys_decimate_modal_update(C, op);
       }

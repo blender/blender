@@ -158,8 +158,7 @@ typedef struct Object_Runtime {
   struct ID *data_orig;
   /**
    * Object data structure created during object evaluation. It has all modifiers applied.
-   * The type is determined by the type of the original object. For example, for mesh and curve
-   * objects, this is a mesh. For a volume object, this is a volume.
+   * The type is determined by the type of the original object.
    */
   struct ID *data_eval;
 

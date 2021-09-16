@@ -1796,6 +1796,16 @@ static const EnumPropertyItem *rna_SpaceImageEditor_pivot_itemf(bContext *UNUSED
   }
 }
 
+static void rna_SpaceUVEditor_tile_grid_shape_set(PointerRNA *ptr, const int *values)
+{
+  SpaceImage *data = (SpaceImage *)(ptr->data);
+
+  int clamp[2] = {10, 100};
+  for (int i = 0; i < 2; i++) {
+    data->tile_grid_shape[i] = CLAMPIS(values[i], 1, clamp[i]);
+  }
+}
+
 /* Space Text Editor */
 
 static void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, bool value)
@@ -3417,7 +3427,8 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "tile_grid_shape");
   RNA_def_property_array(prop, 2);
   RNA_def_property_int_default(prop, 1);
-  RNA_def_property_range(prop, 1, 10);
+  RNA_def_property_range(prop, 1, 100);
+  RNA_def_property_int_funcs(prop, NULL, "rna_SpaceUVEditor_tile_grid_shape_set", NULL);
   RNA_def_property_ui_text(
       prop, "Tile Grid Shape", "How many tiles will be shown in the background");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
@@ -4930,18 +4941,19 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_LOCK_ROTATION);
-  RNA_def_property_ui_text(prop, "Lock", "Lock view rotation in side views");
+  RNA_def_property_ui_text(
+      prop, "Lock Rotation", "Lock view rotation of side views to Top/Front/Right");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_RegionView3D_quadview_update");
 
   prop = RNA_def_property(srna, "show_sync_view", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_BOXVIEW);
-  RNA_def_property_ui_text(prop, "Box", "Sync view position between side views");
+  RNA_def_property_ui_text(prop, "Sync Zoom/Pan", "Sync view position between side views");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_RegionView3D_quadview_update");
 
   prop = RNA_def_property(srna, "use_box_clip", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_BOXCLIP);
   RNA_def_property_ui_text(
-      prop, "Clip", "Clip objects based on what's visible in other side views");
+      prop, "Clip Contents", "Clip view contents based on what is visible in other side views");
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_RegionView3D_quadview_clip_update");
 

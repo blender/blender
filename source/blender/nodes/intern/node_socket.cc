@@ -48,6 +48,7 @@
 #include "NOD_socket.h"
 
 #include "FN_cpp_type_make.hh"
+#include "FN_field.hh"
 
 using namespace blender;
 using blender::nodes::SocketDeclarationPtr;
@@ -268,11 +269,9 @@ void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)
     return;
   }
   if (ntype->declare != nullptr) {
-    blender::nodes::NodeDeclaration node_decl;
-    blender::nodes::NodeDeclarationBuilder builder{node_decl};
-    ntype->declare(builder);
-    if (!node_decl.matches(*node)) {
-      refresh_node(*ntree, *node, node_decl, do_id_user);
+    nodeDeclarationEnsure(ntree, node);
+    if (!node->declaration->matches(*node)) {
+      refresh_node(*ntree, *node, *node->declaration, do_id_user);
     }
     return;
   }
@@ -701,8 +700,14 @@ static bNodeSocketType *make_socket_type_bool()
   socktype->get_base_cpp_value = [](const bNodeSocket &socket, void *r_value) {
     *(bool *)r_value = ((bNodeSocketValueBoolean *)socket.default_value)->value;
   };
-  socktype->get_geometry_nodes_cpp_type = socktype->get_base_cpp_type;
-  socktype->get_geometry_nodes_cpp_value = socktype->get_base_cpp_value;
+  socktype->get_geometry_nodes_cpp_type = []() {
+    return &blender::fn::CPPType::get<blender::fn::Field<bool>>();
+  };
+  socktype->get_geometry_nodes_cpp_value = [](const bNodeSocket &socket, void *r_value) {
+    bool value;
+    socket.typeinfo->get_base_cpp_value(socket, &value);
+    new (r_value) blender::fn::Field<bool>(blender::fn::make_constant_field(value));
+  };
   return socktype;
 }
 
@@ -713,8 +718,14 @@ static bNodeSocketType *make_socket_type_float(PropertySubType subtype)
   socktype->get_base_cpp_value = [](const bNodeSocket &socket, void *r_value) {
     *(float *)r_value = ((bNodeSocketValueFloat *)socket.default_value)->value;
   };
-  socktype->get_geometry_nodes_cpp_type = socktype->get_base_cpp_type;
-  socktype->get_geometry_nodes_cpp_value = socktype->get_base_cpp_value;
+  socktype->get_geometry_nodes_cpp_type = []() {
+    return &blender::fn::CPPType::get<blender::fn::Field<float>>();
+  };
+  socktype->get_geometry_nodes_cpp_value = [](const bNodeSocket &socket, void *r_value) {
+    float value;
+    socket.typeinfo->get_base_cpp_value(socket, &value);
+    new (r_value) blender::fn::Field<float>(blender::fn::make_constant_field(value));
+  };
   return socktype;
 }
 
@@ -725,8 +736,14 @@ static bNodeSocketType *make_socket_type_int(PropertySubType subtype)
   socktype->get_base_cpp_value = [](const bNodeSocket &socket, void *r_value) {
     *(int *)r_value = ((bNodeSocketValueInt *)socket.default_value)->value;
   };
-  socktype->get_geometry_nodes_cpp_type = socktype->get_base_cpp_type;
-  socktype->get_geometry_nodes_cpp_value = socktype->get_base_cpp_value;
+  socktype->get_geometry_nodes_cpp_type = []() {
+    return &blender::fn::CPPType::get<blender::fn::Field<int>>();
+  };
+  socktype->get_geometry_nodes_cpp_value = [](const bNodeSocket &socket, void *r_value) {
+    int value;
+    socket.typeinfo->get_base_cpp_value(socket, &value);
+    new (r_value) blender::fn::Field<int>(blender::fn::make_constant_field(value));
+  };
   return socktype;
 }
 
@@ -737,8 +754,14 @@ static bNodeSocketType *make_socket_type_vector(PropertySubType subtype)
   socktype->get_base_cpp_value = [](const bNodeSocket &socket, void *r_value) {
     *(blender::float3 *)r_value = ((bNodeSocketValueVector *)socket.default_value)->value;
   };
-  socktype->get_geometry_nodes_cpp_type = socktype->get_base_cpp_type;
-  socktype->get_geometry_nodes_cpp_value = socktype->get_base_cpp_value;
+  socktype->get_geometry_nodes_cpp_type = []() {
+    return &blender::fn::CPPType::get<blender::fn::Field<blender::float3>>();
+  };
+  socktype->get_geometry_nodes_cpp_value = [](const bNodeSocket &socket, void *r_value) {
+    blender::float3 value;
+    socket.typeinfo->get_base_cpp_value(socket, &value);
+    new (r_value) blender::fn::Field<blender::float3>(blender::fn::make_constant_field(value));
+  };
   return socktype;
 }
 
@@ -751,8 +774,15 @@ static bNodeSocketType *make_socket_type_rgba()
   socktype->get_base_cpp_value = [](const bNodeSocket &socket, void *r_value) {
     *(blender::ColorGeometry4f *)r_value = ((bNodeSocketValueRGBA *)socket.default_value)->value;
   };
-  socktype->get_geometry_nodes_cpp_type = socktype->get_base_cpp_type;
-  socktype->get_geometry_nodes_cpp_value = socktype->get_base_cpp_value;
+  socktype->get_geometry_nodes_cpp_type = []() {
+    return &blender::fn::CPPType::get<blender::fn::Field<blender::ColorGeometry4f>>();
+  };
+  socktype->get_geometry_nodes_cpp_value = [](const bNodeSocket &socket, void *r_value) {
+    blender::ColorGeometry4f value;
+    socket.typeinfo->get_base_cpp_value(socket, &value);
+    new (r_value)
+        blender::fn::Field<blender::ColorGeometry4f>(blender::fn::make_constant_field(value));
+  };
   return socktype;
 }
 
@@ -763,8 +793,15 @@ static bNodeSocketType *make_socket_type_string()
   socktype->get_base_cpp_value = [](const bNodeSocket &socket, void *r_value) {
     new (r_value) std::string(((bNodeSocketValueString *)socket.default_value)->value);
   };
-  socktype->get_geometry_nodes_cpp_type = socktype->get_base_cpp_type;
-  socktype->get_geometry_nodes_cpp_value = socktype->get_base_cpp_value;
+  socktype->get_geometry_nodes_cpp_type = []() {
+    return &blender::fn::CPPType::get<blender::fn::Field<std::string>>();
+  };
+  socktype->get_geometry_nodes_cpp_value = [](const bNodeSocket &socket, void *r_value) {
+    std::string value;
+    value.~basic_string();
+    socket.typeinfo->get_base_cpp_value(socket, &value);
+    new (r_value) blender::fn::Field<std::string>(blender::fn::make_constant_field(value));
+  };
   return socktype;
 }
 

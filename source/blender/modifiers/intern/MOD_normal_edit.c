@@ -450,7 +450,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
 
   if (do_polynors_fix &&
       polygons_check_flip(mloop, nos, &mesh->ldata, mpoly, polynors, num_polys)) {
-    mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+    BKE_mesh_normals_tag_dirty(mesh);
   }
 
   BKE_mesh_normals_loop_custom_set(mvert,

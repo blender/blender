@@ -722,6 +722,7 @@ GPUShader *OVERLAY_shader_extra_point(void);
 GPUShader *OVERLAY_shader_facing(void);
 GPUShader *OVERLAY_shader_gpencil_canvas(void);
 GPUShader *OVERLAY_shader_grid(void);
+GPUShader *OVERLAY_shader_grid_background(void);
 GPUShader *OVERLAY_shader_grid_image(void);
 GPUShader *OVERLAY_shader_image(void);
 GPUShader *OVERLAY_shader_motion_path_line(void);

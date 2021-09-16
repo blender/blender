@@ -705,7 +705,7 @@ bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
   }
 
   if (failure) {
-    CLOG_ERROR(&LOG, "Failed to get buffer, %s\n", err_out);
+    CLOG_ERROR(&LOG, "Failed to get buffer, %s", err_out);
     return false;
   }
 

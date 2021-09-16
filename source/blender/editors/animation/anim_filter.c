@@ -1061,13 +1061,14 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 
   if (GS(owner_id->name) == ID_OB) {
     Object *ob = (Object *)owner_id;
-    char *bone_name;
+    bPoseChannel *pchan = NULL;
+    char bone_name[sizeof(pchan->name)];
 
     /* Only consider if F-Curve involves `pose.bones`. */
-    if (fcu->rna_path && (bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones["))) {
+    if (fcu->rna_path &&
+        BLI_str_quoted_substr(fcu->rna_path, "pose.bones[", bone_name, sizeof(bone_name))) {
       /* Get bone-name, and check if this bone is selected. */
-      bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
-      MEM_freeN(bone_name);
+      pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
 
       /* check whether to continue or skip */
       if (pchan && pchan->bone) {
@@ -1097,21 +1098,41 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
   }
   else if (GS(owner_id->name) == ID_SCE) {
     Scene *scene = (Scene *)owner_id;
-    char *seq_name;
+    Sequence *seq = NULL;
+    char seq_name[sizeof(seq->name)];
 
     /* Only consider if F-Curve involves `sequence_editor.sequences`. */
-    if (fcu->rna_path && (seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all["))) {
+    if (fcu->rna_path &&
+        BLI_str_quoted_substr(fcu->rna_path, "sequences_all[", seq_name, sizeof(seq_name))) {
       /* Get strip name, and check if this strip is selected. */
-      Sequence *seq = NULL;
       Editing *ed = SEQ_editing_get(scene);
       if (ed) {
         seq = SEQ_get_sequence_by_name(ed->seqbasep, seq_name, false);
       }
-      MEM_freeN(seq_name);
 
       /* Can only add this F-Curve if it is selected. */
       if (ads->filterflag & ADS_FILTER_ONLYSEL) {
-        if ((seq == NULL) || (seq->flag & SELECT) == 0) {
+
+        /* NOTE(@campbellbarton): The `seq == NULL` check doesn't look right
+         * (compared to other checks in this function which skip data that can't be found).
+         *
+         * This is done since the search for sequence strips doesn't use a global lookup:
+         * - Nested meta-strips are excluded.
+         * - When inside a meta-strip - strips outside the meta-strip excluded.
+         *
+         * Instead, only the strips directly visible to the user are considered for selection.
+         * The NULL check here means everything else is considered unselected and is not shown.
+         *
+         * There is a subtle difference between nodes, pose-bones ... etc
+         * since data-paths that point to missing strips are not shown.
+         * If this is an important difference, the NULL case could perform a global lookup,
+         * only returning `true` if the sequence strip exists elsewhere
+         * (ignoring it's selection state). */
+        if (seq == NULL) {
+          return true;
+        }
+
+        if ((seq->flag & SELECT) == 0) {
           return true;
         }
       }
@@ -1119,14 +1140,14 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
   }
   else if (GS(owner_id->name) == ID_NT) {
     bNodeTree *ntree = (bNodeTree *)owner_id;
-    char *node_name;
+    bNode *node = NULL;
+    char node_name[sizeof(node->name)];
 
     /* Check for selected nodes. */
-    if (fcu->rna_path && (node_name = BLI_str_quoted_substrN(fcu->rna_path, "nodes["))) {
-      bNode *node = NULL;
+    if (fcu->rna_path &&
+        (BLI_str_quoted_substr(fcu->rna_path, "nodes[", node_name, sizeof(node_name)))) {
       /* Get strip name, and check if this strip is selected. */
       node = nodeFindNodebyName(ntree, node_name);
-      MEM_freeN(node_name);
 
       /* Can only add this F-Curve if it is selected. */
       if (node) {

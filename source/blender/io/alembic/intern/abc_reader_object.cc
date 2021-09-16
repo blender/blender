@@ -167,6 +167,8 @@ Imath::M44d get_matrix(const IXformSchema &schema, const float time)
 struct Mesh *AbcObjectReader::read_mesh(struct Mesh *existing_mesh,
                                         const Alembic::Abc::ISampleSelector &UNUSED(sample_sel),
                                         int UNUSED(read_flag),
+                                        const char *UNUSED(velocity_name),
+                                        const float UNUSED(velocity_scale),
                                         const char **UNUSED(err_str))
 {
   return existing_mesh;

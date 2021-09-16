@@ -182,7 +182,7 @@ void register_node_type_geo_attribute_convert()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_ATTRIBUTE_CONVERT, "Attribute Convert", NODE_CLASS_ATTRIBUTE, 0);
+      &ntype, GEO_NODE_LEGACY_ATTRIBUTE_CONVERT, "Attribute Convert", NODE_CLASS_ATTRIBUTE, 0);
   ntype.declare = blender::nodes::geo_node_attribute_convert_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_convert_exec;
   ntype.draw_buttons = blender::nodes::geo_node_attribute_convert_layout;

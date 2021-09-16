@@ -5443,12 +5443,19 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
   rcti trect = *rect;
   const float text_size = UI_UNIT_Y;
   float font_dims[2] = {0.0f, 0.0f};
+  const bool has_text = name && name[0];
 
-  /* draw icon in rect above the space reserved for the label */
-  rect->ymin += text_size;
+  if (has_text) {
+    /* draw icon in rect above the space reserved for the label */
+    rect->ymin += text_size;
+  }
   GPU_blend(GPU_BLEND_ALPHA);
   widget_draw_preview(iconid, 1.0f, rect);
   GPU_blend(GPU_BLEND_NONE);
+
+  if (!has_text) {
+    return;
+  }
 
   BLF_width_and_height(
       fstyle->uifont_id, name, BLF_DRAW_STR_DUMMY_MAX, &font_dims[0], &font_dims[1]);

@@ -405,11 +405,8 @@ ImBuf *BKE_main_thumbnail_to_imbuf(Main *bmain, BlendThumbnail *data)
   }
 
   if (data) {
-    /* NOTE: we cannot use IMB_allocFromBuffer(), since it tries to dupalloc passed buffer,
-     *       which will fail here (we do not want to pass the first two ints!). */
-    img = IMB_allocImBuf(
-        (unsigned int)data->width, (unsigned int)data->height, 32, IB_rect | IB_metadata);
-    memcpy(img->rect, data->rect, BLEN_THUMB_MEMSIZE(data->width, data->height) - sizeof(*data));
+    img = IMB_allocFromBuffer(
+        (const uint *)data->rect, NULL, (uint)data->width, (uint)data->height, 4);
   }
 
   return img;

@@ -324,9 +324,17 @@ static void object_free_data(ID *id)
 
 static void object_make_local(Main *bmain, ID *id, const int flags)
 {
+  if (!ID_IS_LINKED(id)) {
+    return;
+  }
+
   Object *ob = (Object *)id;
   const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
   const bool clear_proxy = (flags & LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING) == 0;
+  bool force_local = (flags & LIB_ID_MAKELOCAL_FORCE_LOCAL) != 0;
+  bool force_copy = (flags & LIB_ID_MAKELOCAL_FORCE_COPY) != 0;
+  BLI_assert(force_copy == false || force_copy != force_local);
+
   bool is_local = false, is_lib = false;
 
   /* - only lib users: do nothing (unless force_local is set)
@@ -336,36 +344,40 @@ static void object_make_local(Main *bmain, ID *id, const int flags)
    * we always want to localize, and we skip remapping (done later).
    */
 
-  if (!ID_IS_LINKED(ob)) {
-    return;
-  }
-
-  BKE_library_ID_test_usages(bmain, ob, &is_local, &is_lib);
-
-  if (lib_local || is_local) {
-    if (!is_lib) {
-      BKE_lib_id_clear_library_data(bmain, &ob->id);
-      BKE_lib_id_expand_local(bmain, &ob->id);
-      if (clear_proxy) {
-        if (ob->proxy_from != NULL) {
-          ob->proxy_from->proxy = NULL;
-          ob->proxy_from->proxy_group = NULL;
-        }
-        ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
+  if (!force_local && !force_copy) {
+    BKE_library_ID_test_usages(bmain, ob, &is_local, &is_lib);
+    if (lib_local || is_local) {
+      if (!is_lib) {
+        force_local = true;
+      }
+      else {
+        force_copy = true;
       }
     }
-    else {
-      Object *ob_new = (Object *)BKE_id_copy(bmain, &ob->id);
-      id_us_min(&ob_new->id);
+  }
 
-      ob_new->proxy = ob_new->proxy_from = ob_new->proxy_group = NULL;
-
-      /* setting newid is mandatory for complex make_lib_local logic... */
-      ID_NEW_SET(ob, ob_new);
-
-      if (!lib_local) {
-        BKE_libblock_remap(bmain, ob, ob_new, ID_REMAP_SKIP_INDIRECT_USAGE);
+  if (force_local) {
+    BKE_lib_id_clear_library_data(bmain, &ob->id);
+    BKE_lib_id_expand_local(bmain, &ob->id);
+    if (clear_proxy) {
+      if (ob->proxy_from != NULL) {
+        ob->proxy_from->proxy = NULL;
+        ob->proxy_from->proxy_group = NULL;
       }
+      ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
+    }
+  }
+  else if (force_copy) {
+    Object *ob_new = (Object *)BKE_id_copy(bmain, &ob->id);
+    id_us_min(&ob_new->id);
+
+    ob_new->proxy = ob_new->proxy_from = ob_new->proxy_group = NULL;
+
+    /* setting newid is mandatory for complex make_lib_local logic... */
+    ID_NEW_SET(ob, ob_new);
+
+    if (!lib_local) {
+      BKE_libblock_remap(bmain, ob, ob_new, ID_REMAP_SKIP_INDIRECT_USAGE);
     }
   }
 }
@@ -1329,6 +1341,11 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(modifier_type);
 
+  /* Surface and lattice objects don't output geometry sets. */
+  if (mti->modifyGeometrySet != NULL && ELEM(ob->type, OB_SURF, OB_LATTICE)) {
+    return false;
+  }
+
   /* Only geometry objects should be able to get modifiers T25291. */
   if (ob->type == OB_HAIR) {
     return (mti->modifyHair != NULL) || (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly);
@@ -1979,8 +1996,7 @@ int BKE_object_visibility(const Object *ob, const int dag_eval_mode)
     visibility |= OB_VISIBLE_INSTANCES;
   }
 
-  if (ob->runtime.geometry_set_eval != NULL &&
-      BKE_geometry_set_has_instances(ob->runtime.geometry_set_eval)) {
+  if (BKE_object_has_geometry_set_instances(ob)) {
     visibility |= OB_VISIBLE_INSTANCES;
   }
 
@@ -3307,8 +3323,8 @@ static void ob_parbone(Object *ob, Object *par, float r_mat[4][4])
   /* Make sure the bone is still valid */
   bPoseChannel *pchan = BKE_pose_channel_find_name(par->pose, ob->parsubstr);
   if (!pchan || !pchan->bone) {
-    CLOG_ERROR(
-        &LOG, "Object %s with Bone parent: bone %s doesn't exist", ob->id.name + 2, ob->parsubstr);
+    CLOG_WARN(
+        &LOG, "Parent Bone: '%s' for Object: '%s' doesn't exist", ob->parsubstr, ob->id.name + 2);
     unit_m4(r_mat);
     return;
   }
@@ -5307,7 +5323,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
       unsigned int i;
 
       Mesh *me_eval = ob->runtime.mesh_deform_eval ? ob->runtime.mesh_deform_eval :
-                                                     ob->runtime.mesh_deform_eval;
+                                                     BKE_object_get_evaluated_mesh(ob);
       const int *index;
 
       if (me_eval && (index = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX))) {
@@ -5736,4 +5752,22 @@ void BKE_object_modifiers_lib_link_common(void *userData,
   if (*idpoin != NULL && (cb_flag & IDWALK_CB_USER) != 0) {
     id_us_plus_no_lib(*idpoin);
   }
+}
+
+void BKE_object_replace_data_on_shallow_copy(Object *ob, ID *new_data)
+{
+  ob->type = BKE_object_obdata_to_type(new_data);
+  ob->data = new_data;
+  ob->runtime.geometry_set_eval = NULL;
+  ob->runtime.data_eval = NULL;
+  if (ob->runtime.bb != NULL) {
+    ob->runtime.bb->flag |= BOUNDBOX_DIRTY;
+  }
+  ob->id.py_instance = NULL;
+}
+
+bool BKE_object_supports_material_slots(struct Object *ob)
+{
+  return ELEM(
+      ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_HAIR, OB_POINTCLOUD, OB_VOLUME);
 }

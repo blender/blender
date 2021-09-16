@@ -191,16 +191,6 @@ class SEQUENCER_PT_overlay(Panel):
         pass
 
 
-class SEQUENCER_PT_overlay(Panel):
-    bl_space_type = 'SEQUENCE_EDITOR'
-    bl_region_type = 'HEADER'
-    bl_label = "Overlays"
-    bl_ui_units_x = 7
-
-    def draw(self, _context):
-        pass
-
-
 class SEQUENCER_PT_preview_overlay(Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'HEADER'
@@ -1659,7 +1649,7 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = True
+        layout.use_property_split = False
 
         st = context.space_data
         strip = context.active_sequence_strip
@@ -1667,20 +1657,39 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
 
         layout.active = not strip.mute
 
-        col = layout.column()
-
-        col.prop(strip, "volume", text="Volume")
-        col.prop(strip, "pitch")
-
-        col = layout.column()
-        col.prop(strip, "pan")
-        col.enabled = sound is not None and sound.use_mono
-
         if sound is not None:
             col = layout.column()
+
+            split = col.split(factor=0.4)
+            split.label(text="")
+            split.prop(sound, "use_mono")
             if st.waveform_display_type == 'DEFAULT_WAVEFORMS':
-                col.prop(strip, "show_waveform")
-            col.prop(sound, "use_mono")
+                split = col.split(factor=0.4)
+                split.label(text="")
+                split.prop(strip, "show_waveform")
+
+            col = layout.column()
+
+            split = col.split(factor=0.4)
+            split.alignment = 'RIGHT'
+            split.label(text="Volume")
+            split.prop(strip, "volume", text="")
+
+            split = col.split(factor=0.4)
+            split.alignment = 'RIGHT'
+            split.label(text="Pitch")
+            split.prop(strip, "pitch", text="")
+
+            split = col.split(factor=0.4)
+            split.alignment = 'RIGHT'
+            split.label(text="Pan")
+            audio_channels = context.scene.render.ffmpeg.audio_channels
+            pan_text = ""
+            if audio_channels != 'MONO' and audio_channels != 'STEREO':
+                pan_text = "%.2f°" % (strip.pan * 90)
+            split.prop(strip, "pan", text=pan_text)
+            split.enabled = sound.use_mono and audio_channels != 'MONO'
+
 
 
 class SEQUENCER_PT_adjust_comp(SequencerButtonsPanel, Panel):

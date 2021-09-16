@@ -127,8 +127,11 @@ void register_node_type_geo_select_by_handle_type()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_CURVE_SELECT_HANDLES, "Select by Handle Type", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype,
+                     GEO_NODE_LEGACY_CURVE_SELECT_HANDLES,
+                     "Select by Handle Type",
+                     NODE_CLASS_GEOMETRY,
+                     0);
   ntype.declare = blender::nodes::geo_node_select_by_handle_type_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_select_by_handle_type_exec;
   node_type_init(&ntype, blender::nodes::geo_node_curve_select_by_handle_type_init);

@@ -19,10 +19,14 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-static bNodeSocketTemplate fn_node_input_string_out[] = {
-    {SOCK_STRING, N_("String")},
-    {-1, ""},
+namespace blender::nodes {
+
+static void fn_node_input_string_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::String>("String");
 };
+
+}  // namespace blender::nodes
 
 static void fn_node_input_string_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -75,7 +79,7 @@ void register_node_type_fn_input_string()
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_INPUT_STRING, "String", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, fn_node_input_string_out);
+  ntype.declare = blender::nodes::fn_node_input_string_declare;
   node_type_init(&ntype, fn_node_input_string_init);
   node_type_storage(&ntype, "NodeInputString", fn_node_input_string_free, fn_node_string_copy);
   ntype.build_multi_function = fn_node_input_string_build_multi_function;

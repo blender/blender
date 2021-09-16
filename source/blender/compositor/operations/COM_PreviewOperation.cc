@@ -171,4 +171,43 @@ eCompositorPriority PreviewOperation::getRenderPriority() const
   return eCompositorPriority::Low;
 }
 
+void PreviewOperation::get_area_of_interest(const int input_idx,
+                                            const rcti &output_area,
+                                            rcti &r_input_area)
+{
+  BLI_assert(input_idx == 0);
+  UNUSED_VARS_NDEBUG(input_idx);
+
+  r_input_area.xmin = output_area.xmin / m_divider;
+  r_input_area.xmax = output_area.xmax / m_divider;
+  r_input_area.ymin = output_area.ymin / m_divider;
+  r_input_area.ymax = output_area.ymax / m_divider;
+}
+
+void PreviewOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+                                                    const rcti &area,
+                                                    Span<MemoryBuffer *> inputs)
+{
+  MemoryBuffer *input = inputs[0];
+  struct ColormanageProcessor *cm_processor = IMB_colormanagement_display_processor_new(
+      m_viewSettings, m_displaySettings);
+
+  rcti buffer_area;
+  BLI_rcti_init(&buffer_area, 0, this->getWidth(), 0, this->getHeight());
+  BuffersIteratorBuilder<uchar> it_builder(
+      m_outputBuffer, buffer_area, area, COM_data_type_num_channels(DataType::Color));
+
+  for (BuffersIterator<uchar> it = it_builder.build(); !it.is_end(); ++it) {
+    const float rx = it.x / m_divider;
+    const float ry = it.y / m_divider;
+
+    float color[4];
+    input->read_elem_checked(rx, ry, color);
+    IMB_colormanagement_processor_apply_v4(cm_processor, color);
+    rgba_float_to_uchar(it.out, color);
+  }
+
+  IMB_colormanagement_processor_free(cm_processor);
+}
+
 }  // namespace blender::compositor

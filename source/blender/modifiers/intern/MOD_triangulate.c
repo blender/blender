@@ -108,7 +108,7 @@ Mesh *triangulate_mesh(Mesh *mesh,
     me->flag |= ME_EDGEDRAW | ME_EDGERENDER;
   }
 
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(result);
 
   return result;
 }

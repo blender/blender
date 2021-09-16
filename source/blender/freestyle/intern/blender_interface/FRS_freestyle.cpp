@@ -65,9 +65,6 @@ using namespace Freestyle;
 
 extern "C" {
 
-#define DEFAULT_SPHERE_RADIUS 1.0f
-#define DEFAULT_DKR_EPSILON 0.0f
-
 struct FreestyleGlobals g_freestyle;
 
 // Freestyle configuration
@@ -433,14 +430,8 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
   }
 
   // set parameters
-  if (config->flags & FREESTYLE_ADVANCED_OPTIONS_FLAG) {
-    controller->setSphereRadius(config->sphere_radius);
-    controller->setSuggestiveContourKrDerivativeEpsilon(config->dkr_epsilon);
-  }
-  else {
-    controller->setSphereRadius(DEFAULT_SPHERE_RADIUS);
-    controller->setSuggestiveContourKrDerivativeEpsilon(DEFAULT_DKR_EPSILON);
-  }
+  controller->setSphereRadius(config->sphere_radius);
+  controller->setSuggestiveContourKrDerivativeEpsilon(config->dkr_epsilon);
   controller->setFaceSmoothness((config->flags & FREESTYLE_FACE_SMOOTHNESS_FLAG) ? true : false);
   controller->setCreaseAngle(RAD2DEGF(config->crease_angle));
   controller->setVisibilityAlgo((config->flags & FREESTYLE_CULLING) ?

@@ -50,7 +50,6 @@
     .tex_flags = NULL, \
     .tex_range_field = NULL, \
     .guide_parent = NULL, \
-    .mesh_velocities = NULL, \
     .effector_weights = NULL, /* #BKE_effector_add_weights. */ \
     .p0 = {0.0f, 0.0f, 0.0f}, \
     .p1 = {0.0f, 0.0f, 0.0f}, \
@@ -122,7 +121,6 @@
     .mesh_smoothen_pos = 1, \
     .mesh_smoothen_neg = 1, \
     .mesh_scale = 2, \
-    .totvert = 0, \
     .mesh_generator = FLUID_DOMAIN_MESH_IMPROVED, \
     .particle_type = 0, \
     .particle_scale = 1, \

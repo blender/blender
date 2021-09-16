@@ -220,7 +220,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
 
   BKE_mesh_copy_parameters_for_eval(result, mesh);
   BKE_mesh_calc_edges(result, true, false);
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(result);
   return result;
 }
 

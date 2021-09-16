@@ -25,8 +25,8 @@ from bl_ui.utils import PresetPanel
 from bpy.app.translations import pgettext_tip as tip_
 
 
-class RENDER_PT_presets(PresetPanel, Panel):
-    bl_label = "Render Presets"
+class RENDER_PT_format_presets(PresetPanel, Panel):
+    bl_label = "Format Presets"
     preset_subdir = "render"
     preset_operator = "script.execute_preset"
     preset_add_operator = "render.preset_add"
@@ -56,21 +56,21 @@ class RenderOutputButtonsPanel:
         return (context.engine in cls.COMPAT_ENGINES)
 
 
-class RENDER_PT_dimensions(RenderOutputButtonsPanel, Panel):
-    bl_label = "Dimensions"
+class RENDER_PT_format(RenderOutputButtonsPanel, Panel):
+    bl_label = "Format"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     _frame_rate_args_prev = None
     _preset_class = None
 
     def draw_header_preset(self, _context):
-        RENDER_PT_presets.draw_panel_header(self.layout)
+        RENDER_PT_format_presets.draw_panel_header(self.layout)
 
     @staticmethod
     def _draw_framerate_label(*args):
         # avoids re-creating text string each draw
-        if RENDER_PT_dimensions._frame_rate_args_prev == args:
-            return RENDER_PT_dimensions._frame_rate_ret
+        if RENDER_PT_format._frame_rate_args_prev == args:
+            return RENDER_PT_format._frame_rate_ret
 
         fps, fps_base, preset_label = args
 
@@ -89,17 +89,17 @@ class RENDER_PT_dimensions(RenderOutputButtonsPanel, Panel):
             fps_label_text = tip_("%.4g fps") % fps_rate
             show_framerate = (preset_label == "Custom")
 
-        RENDER_PT_dimensions._frame_rate_args_prev = args
-        RENDER_PT_dimensions._frame_rate_ret = args = (fps_label_text, show_framerate)
+        RENDER_PT_format._frame_rate_args_prev = args
+        RENDER_PT_format._frame_rate_ret = args = (fps_label_text, show_framerate)
         return args
 
     @staticmethod
     def draw_framerate(layout, rd):
-        if RENDER_PT_dimensions._preset_class is None:
-            RENDER_PT_dimensions._preset_class = bpy.types.RENDER_MT_framerate_presets
+        if RENDER_PT_format._preset_class is None:
+            RENDER_PT_format._preset_class = bpy.types.RENDER_MT_framerate_presets
 
-        args = rd.fps, rd.fps_base, RENDER_PT_dimensions._preset_class.bl_label
-        fps_label_text, show_framerate = RENDER_PT_dimensions._draw_framerate_label(*args)
+        args = rd.fps, rd.fps_base, RENDER_PT_format._preset_class.bl_label
+        fps_label_text, show_framerate = RENDER_PT_format._draw_framerate_label(*args)
 
         layout.menu("RENDER_MT_framerate_presets", text=fps_label_text)
 
@@ -113,8 +113,7 @@ class RENDER_PT_dimensions(RenderOutputButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        scene = context.scene
-        rd = scene.render
+        rd = context.scene.render
 
         col = layout.column(align=True)
         col.prop(rd, "resolution_x", text="Resolution X")
@@ -131,18 +130,30 @@ class RENDER_PT_dimensions(RenderOutputButtonsPanel, Panel):
         sub.active = rd.use_border
         sub.prop(rd, "use_crop_to_border")
 
+        col = layout.column(heading="Frame Rate")
+        self.draw_framerate(col, rd)
+
+
+class RENDER_PT_frame_range(RenderOutputButtonsPanel, Panel):
+    bl_label = "Frame Range"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        scene = context.scene
+
         col = layout.column(align=True)
         col.prop(scene, "frame_start", text="Frame Start")
         col.prop(scene, "frame_end", text="End")
         col.prop(scene, "frame_step", text="Step")
 
-        col = layout.column(heading="Frame Rate")
-        self.draw_framerate(col, rd)
 
-
-class RENDER_PT_frame_remapping(RenderOutputButtonsPanel, Panel):
-    bl_label = "Time Remapping"
-    bl_parent_id = "RENDER_PT_dimensions"
+class RENDER_PT_time_stretching(RenderOutputButtonsPanel, Panel):
+    bl_label = "Time Stretching"
+    bl_parent_id = "RENDER_PT_frame_range"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
@@ -481,11 +492,12 @@ class RENDER_PT_stereoscopy(RenderOutputButtonsPanel, Panel):
 
 
 classes = (
-    RENDER_PT_presets,
+    RENDER_PT_format_presets,
     RENDER_PT_ffmpeg_presets,
     RENDER_MT_framerate_presets,
-    RENDER_PT_dimensions,
-    RENDER_PT_frame_remapping,
+    RENDER_PT_format,
+    RENDER_PT_frame_range,
+    RENDER_PT_time_stretching,
     RENDER_PT_stereoscopy,
     RENDER_PT_output,
     RENDER_PT_output_views,

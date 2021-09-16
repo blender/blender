@@ -150,6 +150,14 @@ bool IMB_initImBuf(
 
 /**
  * Create a copy of a pixel buffer and wrap it to a new ImBuf
+ * (transferring ownership to the in imbuf).
+ * \attention Defined in allocimbuf.c
+ */
+struct ImBuf *IMB_allocFromBufferOwn(
+    unsigned int *rect, float *rectf, unsigned int w, unsigned int h, unsigned int channels);
+
+/**
+ * Create a copy of a pixel buffer and wrap it to a new ImBuf
  * \attention Defined in allocimbuf.c
  */
 struct ImBuf *IMB_allocFromBuffer(const unsigned int *rect,

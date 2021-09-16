@@ -40,4 +40,28 @@ TEST(index_mask, RangeConstructor)
   EXPECT_EQ(indices[2], 5);
 }
 
+TEST(index_mask, SliceAndOffset)
+{
+  Vector<int64_t> indices;
+  {
+    IndexMask mask{IndexRange(10)};
+    IndexMask new_mask = mask.slice_and_offset(IndexRange(3, 5), indices);
+    EXPECT_TRUE(new_mask.is_range());
+    EXPECT_EQ(new_mask.size(), 5);
+    EXPECT_EQ(new_mask[0], 0);
+    EXPECT_EQ(new_mask[1], 1);
+  }
+  {
+    Vector<int64_t> original_indices = {2, 3, 5, 7, 8, 9, 10};
+    IndexMask mask{original_indices.as_span()};
+    IndexMask new_mask = mask.slice_and_offset(IndexRange(1, 4), indices);
+    EXPECT_FALSE(new_mask.is_range());
+    EXPECT_EQ(new_mask.size(), 4);
+    EXPECT_EQ(new_mask[0], 0);
+    EXPECT_EQ(new_mask[1], 2);
+    EXPECT_EQ(new_mask[2], 4);
+    EXPECT_EQ(new_mask[3], 5);
+  }
+}
+
 }  // namespace blender::tests

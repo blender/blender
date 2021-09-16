@@ -336,6 +336,7 @@ set(ICON_NAMES
   lightprobe_cubemap
   lightprobe_planar
   lightprobe_grid
+  mod_dash
   color_red
   color_green
   color_blue
@@ -390,6 +391,9 @@ set(ICON_NAMES
   small_caps
   modifier
   con_action
+  mod_length
+  mod_dash
+  mod_lineart
   holdout_off
   holdout_on
   indirect_only_off

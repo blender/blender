@@ -40,6 +40,10 @@ void ConvertBaseOperation::deinitExecution()
   this->m_inputOperation = nullptr;
 }
 
+void ConvertBaseOperation::hash_output_params()
+{
+}
+
 void ConvertBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                         const rcti &area,
                                                         Span<MemoryBuffer *> inputs)
@@ -269,6 +273,12 @@ void ConvertRGBToYCCOperation::executePixelSampled(float output[4],
   output[3] = inputColor[3];
 }
 
+void ConvertRGBToYCCOperation::hash_output_params()
+{
+  ConvertBaseOperation::hash_output_params();
+  hash_param(m_mode);
+}
+
 void ConvertRGBToYCCOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
 {
   for (; !it.is_end(); ++it) {
@@ -325,6 +335,12 @@ void ConvertYCCToRGBOperation::executePixelSampled(float output[4],
              &output[2],
              this->m_mode);
   output[3] = inputColor[3];
+}
+
+void ConvertYCCToRGBOperation::hash_output_params()
+{
+  ConvertBaseOperation::hash_output_params();
+  hash_param(m_mode);
 }
 
 void ConvertYCCToRGBOperation::update_memory_buffer_partial(BuffersIterator<float> &it)

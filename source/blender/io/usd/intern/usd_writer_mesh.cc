@@ -26,6 +26,7 @@
 #include "BLI_assert.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_attribute.h"
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
@@ -219,7 +220,7 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   if (usd_export_context_.export_params.export_normals) {
     write_normals(mesh, usd_mesh);
   }
-  write_surface_velocity(context.object, mesh, usd_mesh);
+  write_surface_velocity(mesh, usd_mesh);
 
   /* TODO(Sybren): figure out what happens when the face groups change. */
   if (frame_has_been_written_) {
@@ -409,42 +410,25 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
   usd_mesh.SetNormalsInterpolation(pxr::UsdGeomTokens->faceVarying);
 }
 
-void USDGenericMeshWriter::write_surface_velocity(Object *object,
-                                                  const Mesh *mesh,
-                                                  pxr::UsdGeomMesh usd_mesh)
+void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh)
 {
-  /* Only velocities from the fluid simulation are exported. This is the most important case,
-   * though, as the baked mesh changes topology all the time, and thus computing the velocities
-   * at import time in a post-processing step is hard. */
-  ModifierData *md = BKE_modifiers_findby_type(object, eModifierType_Fluidsim);
-  if (md == nullptr) {
+  /* Export velocity attribute output by fluid sim, sequence cache modifier
+   * and geometry nodes. */
+  CustomDataLayer *velocity_layer = BKE_id_attribute_find(
+      &mesh->id, "velocity", CD_PROP_FLOAT3, ATTR_DOMAIN_POINT);
+
+  if (velocity_layer == nullptr) {
     return;
   }
 
-  /* Check that the fluid sim modifier is enabled and has useful data. */
-  const bool use_render = (DEG_get_mode(usd_export_context_.depsgraph) == DAG_EVAL_RENDER);
-  const ModifierMode required_mode = use_render ? eModifierMode_Render : eModifierMode_Realtime;
-  const Scene *scene = DEG_get_evaluated_scene(usd_export_context_.depsgraph);
-  if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
-    return;
-  }
-  FluidsimModifierData *fsmd = reinterpret_cast<FluidsimModifierData *>(md);
-  if (!fsmd->fss || fsmd->fss->type != OB_FLUIDSIM_DOMAIN) {
-    return;
-  }
-  FluidsimSettings *fss = fsmd->fss;
-  if (!fss->meshVelocities) {
-    return;
-  }
+  const float(*velocities)[3] = reinterpret_cast<float(*)[3]>(velocity_layer->data);
 
   /* Export per-vertex velocity vectors. */
   pxr::VtVec3fArray usd_velocities;
   usd_velocities.reserve(mesh->totvert);
 
-  FluidVertexVelocity *mesh_velocities = fss->meshVelocities;
-  for (int vertex_idx = 0, totvert = mesh->totvert; vertex_idx < totvert;
-       ++vertex_idx, ++mesh_velocities) {
-    usd_velocities.push_back(pxr::GfVec3f(mesh_velocities->vel));
+  for (int vertex_idx = 0, totvert = mesh->totvert; vertex_idx < totvert; ++vertex_idx) {
+    usd_velocities.push_back(pxr::GfVec3f(velocities[vertex_idx]));
   }
 
   pxr::UsdTimeCode timecode = get_export_time_code();

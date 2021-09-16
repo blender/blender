@@ -32,6 +32,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_text_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -59,6 +60,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "ED_armature.h"
+#include "ED_fileselect.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
 
@@ -2625,9 +2627,17 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         case ID_NLA:
           data.icon = ICON_NLA;
           break;
-        case ID_TXT:
-          data.icon = ICON_SCRIPT;
+        case ID_TXT: {
+          Text *text = (Text *)tselem->id;
+          if (text->filepath == NULL || (text->flags & TXT_ISMEM)) {
+            data.icon = ICON_FILE_TEXT;
+          }
+          else {
+            /* Helps distinguish text-based formats like the file-browser does. */
+            data.icon = ED_file_extension_icon(text->filepath);
+          }
           break;
+        }
         case ID_GR:
           data.icon = ICON_OUTLINER_COLLECTION;
           break;

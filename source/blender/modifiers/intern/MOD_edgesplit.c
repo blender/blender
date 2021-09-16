@@ -116,7 +116,7 @@ Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd)
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
   BM_mesh_free(bm);
 
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(result);
   return result;
 }
 

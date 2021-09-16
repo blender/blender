@@ -93,17 +93,17 @@ static void copy_dynamic_attributes(const CustomDataAttributes &src,
                                     const IndexMask mask)
 {
   src.foreach_attribute(
-      [&](StringRefNull name, const AttributeMetaData &meta_data) {
-        std::optional<GSpan> src_attribute = src.get_for_read(name);
+      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+        std::optional<GSpan> src_attribute = src.get_for_read(attribute_id);
         BLI_assert(src_attribute);
 
-        if (!dst.create(name, meta_data.data_type)) {
+        if (!dst.create(attribute_id, meta_data.data_type)) {
           /* Since the source spline of the same type had the attribute, adding it should work.
            */
           BLI_assert_unreachable();
         }
 
-        std::optional<GMutableSpan> new_attribute = dst.get_for_write(name);
+        std::optional<GMutableSpan> new_attribute = dst.get_for_write(attribute_id);
         BLI_assert(new_attribute);
 
         attribute_math::convert_to_static_type(new_attribute->type(), [&](auto dummy) {
@@ -559,7 +559,7 @@ static Mesh *delete_mesh_selection(const Mesh &mesh_in,
       mesh_in, *result, vertex_map, edge_map, selected_poly_indices, new_loop_starts);
   BKE_mesh_calc_edges_loose(result);
   /* Tag to recalculate normals later. */
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(result);
 
   return result;
 }
@@ -668,7 +668,8 @@ void register_node_type_geo_delete_geometry()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_DELETE_GEOMETRY, "Delete Geometry", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_LEGACY_DELETE_GEOMETRY, "Delete Geometry", NODE_CLASS_GEOMETRY, 0);
 
   ntype.declare = blender::nodes::geo_node_delete_geometry_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_delete_geometry_exec;

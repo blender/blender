@@ -48,12 +48,22 @@ static bNodeSocketTemplate sh_node_tex_noise_out[] = {
 
 static void node_shader_init_tex_noise(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexNoise *tex = MEM_callocN(sizeof(NodeTexNoise), "NodeTexNoise");
+  NodeTexNoise *tex = (NodeTexNoise *)MEM_callocN(sizeof(NodeTexNoise), "NodeTexNoise");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->dimensions = 3;
 
   node->storage = tex;
+}
+
+static const char *gpu_shader_get_name(const int dimensions)
+{
+  BLI_assert(dimensions >= 1 && dimensions <= 4);
+  return std::array{"node_noise_texture_1d",
+                    "node_noise_texture_2d",
+                    "node_noise_texture_3d",
+                    "node_noise_texture_4d"}[dimensions - 1];
+  return nullptr;
 }
 
 static int node_shader_gpu_tex_noise(GPUMaterial *mat,
@@ -66,14 +76,8 @@ static int node_shader_gpu_tex_noise(GPUMaterial *mat,
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
   NodeTexNoise *tex = (NodeTexNoise *)node->storage;
-  static const char *names[] = {
-      "",
-      "node_noise_texture_1d",
-      "node_noise_texture_2d",
-      "node_noise_texture_3d",
-      "node_noise_texture_4d",
-  };
-  return GPU_stack_link(mat, node, names[tex->dimensions], in, out);
+  const char *name = gpu_shader_get_name(tex->dimensions);
+  return GPU_stack_link(mat, node, name, in, out);
 }
 
 static void node_shader_update_tex_noise(bNodeTree *UNUSED(ntree), bNode *node)

@@ -1786,7 +1786,8 @@ static bool constraint_copy_to_selected_poll(bContext *C)
 
   if (pchan) {
     bool found = false;
-    CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, chan, selected_pose_bones, Object *, UNUSED(ob)) {
+    CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, chan, selected_pose_bones, Object *, ob) {
+      UNUSED_VARS(ob);
       if (pchan != chan) {
         /** NOTE: Can not return here, because CTX_DATA_BEGIN_WITH_ID allocated
          * a list that needs to be freed by CTX_DATA_END. */
@@ -1862,6 +1863,7 @@ static int constraint_move_down_exec(bContext *C, wmOperator *op)
     BLI_remlink(conlist, con);
     BLI_insertlinkafter(conlist, nextCon, con);
 
+    ED_object_constraint_update(CTX_data_main(C), ob);
     WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
 
     return OPERATOR_FINISHED;
@@ -1917,6 +1919,7 @@ static int constraint_move_up_exec(bContext *C, wmOperator *op)
     BLI_remlink(conlist, con);
     BLI_insertlinkbefore(conlist, prevCon, con);
 
+    ED_object_constraint_update(CTX_data_main(C), ob);
     WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
 
     return OPERATOR_FINISHED;
@@ -1969,6 +1972,8 @@ static int constraint_move_to_index_exec(bContext *C, wmOperator *op)
 
   if (con) {
     ED_object_constraint_move_to_index(ob, con, new_index);
+
+    ED_object_constraint_update(CTX_data_main(C), ob);
 
     return OPERATOR_FINISHED;
   }

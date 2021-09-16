@@ -46,6 +46,7 @@ extern GpencilModifierTypeInfo modifierType_Gpencil_Multiply;
 extern GpencilModifierTypeInfo modifierType_Gpencil_Texture;
 extern GpencilModifierTypeInfo modifierType_Gpencil_Weight;
 extern GpencilModifierTypeInfo modifierType_Gpencil_Lineart;
+extern GpencilModifierTypeInfo modifierType_Gpencil_Dash;
 
 /* MOD_gpencil_util.c */
 void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[]);

@@ -753,7 +753,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
       CLOG_INFO(BPY_LOG_CONTEXT, 1, "'%s' not a valid type", member);
     }
     else {
-      CLOG_INFO(BPY_LOG_CONTEXT, 1, "'%s' not found\n", member);
+      CLOG_INFO(BPY_LOG_CONTEXT, 1, "'%s' not found", member);
     }
   }
   else {

@@ -622,6 +622,7 @@ static void rna_uiTemplateAssetView(uiLayout *layout,
                                     PointerRNA *active_dataptr,
                                     const char *active_propname,
                                     int filter_id_types,
+                                    int display_flags,
                                     const char *activate_opname,
                                     PointerRNA *r_activate_op_properties,
                                     const char *drag_opname,
@@ -630,6 +631,7 @@ static void rna_uiTemplateAssetView(uiLayout *layout,
   AssetFilterSettings filter_settings = {
       .id_types = filter_id_types ? filter_id_types : FILTER_ID_ALL,
   };
+
   uiTemplateAssetView(layout,
                       C,
                       list_id,
@@ -640,6 +642,7 @@ static void rna_uiTemplateAssetView(uiLayout *layout,
                       active_dataptr,
                       active_propname,
                       &filter_settings,
+                      display_flags,
                       activate_opname,
                       r_activate_op_properties,
                       drag_opname,
@@ -875,6 +878,25 @@ void RNA_api_ui_layout(StructRNA *srna)
   static const EnumPropertyItem id_template_filter_items[] = {
       {UI_TEMPLATE_ID_FILTER_ALL, "ALL", 0, "All", ""},
       {UI_TEMPLATE_ID_FILTER_AVAILABLE, "AVAILABLE", 0, "Available", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem asset_view_template_options[] = {
+      {UI_TEMPLATE_ASSET_DRAW_NO_NAMES,
+       "NO_NAMES",
+       0,
+       "",
+       "Do not display the name of each asset underneath preview images"},
+      {UI_TEMPLATE_ASSET_DRAW_NO_FILTER,
+       "NO_FILTER",
+       0,
+       "",
+       "Do not display buttons for filtering the available assets"},
+      {UI_TEMPLATE_ASSET_DRAW_NO_LIBRARY,
+       "NO_LIBRARY",
+       0,
+       "",
+       "Do not display buttons to choose or refresh an asset library"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1839,6 +1861,12 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_property_enum_items(parm, DummyRNA_NULL_items);
   RNA_def_property_enum_funcs(parm, NULL, NULL, "rna_uiTemplateAssetView_filter_id_types_itemf");
   RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+  RNA_def_enum_flag(func,
+                    "display_options",
+                    asset_view_template_options,
+                    0,
+                    "",
+                    "Displaying options for the asset view");
   RNA_def_string(func,
                  "activate_operator",
                  NULL,

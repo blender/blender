@@ -29,26 +29,13 @@
 
 using blender::fn::GVArray_For_GSpan;
 
-static bNodeSocketTemplate geo_node_join_geometry_in[] = {
-    {SOCK_GEOMETRY,
-     N_("Geometry"),
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     -1.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_MULTI_INPUT},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_join_geometry_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_join_geometry_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry").multi_input();
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static Mesh *join_mesh_topology_and_builtin_attributes(Span<const MeshComponent *> src_components)
 {
@@ -161,34 +148,35 @@ static Array<const GeometryComponent *> to_base_components(Span<const Component 
   return components;
 }
 
-static Map<std::string, AttributeMetaData> get_final_attribute_info(
+static Map<AttributeIDRef, AttributeMetaData> get_final_attribute_info(
     Span<const GeometryComponent *> components, Span<StringRef> ignored_attributes)
 {
-  Map<std::string, AttributeMetaData> info;
+  Map<AttributeIDRef, AttributeMetaData> info;
 
   for (const GeometryComponent *component : components) {
-    component->attribute_foreach([&](StringRefNull name, const AttributeMetaData &meta_data) {
-      if (ignored_attributes.contains(name)) {
-        return true;
-      }
-      info.add_or_modify(
-          name,
-          [&](AttributeMetaData *meta_data_final) { *meta_data_final = meta_data; },
-          [&](AttributeMetaData *meta_data_final) {
-            meta_data_final->data_type = blender::bke::attribute_data_type_highest_complexity(
-                {meta_data_final->data_type, meta_data.data_type});
-            meta_data_final->domain = blender::bke::attribute_domain_highest_priority(
-                {meta_data_final->domain, meta_data.domain});
-          });
-      return true;
-    });
+    component->attribute_foreach(
+        [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+          if (attribute_id.is_named() && ignored_attributes.contains(attribute_id.name())) {
+            return true;
+          }
+          info.add_or_modify(
+              attribute_id,
+              [&](AttributeMetaData *meta_data_final) { *meta_data_final = meta_data; },
+              [&](AttributeMetaData *meta_data_final) {
+                meta_data_final->data_type = blender::bke::attribute_data_type_highest_complexity(
+                    {meta_data_final->data_type, meta_data.data_type});
+                meta_data_final->domain = blender::bke::attribute_domain_highest_priority(
+                    {meta_data_final->domain, meta_data.domain});
+              });
+          return true;
+        });
   }
 
   return info;
 }
 
 static void fill_new_attribute(Span<const GeometryComponent *> src_components,
-                               StringRef attribute_name,
+                               const AttributeIDRef &attribute_id,
                                const CustomDataType data_type,
                                const AttributeDomain domain,
                                GMutableSpan dst_span)
@@ -203,7 +191,7 @@ static void fill_new_attribute(Span<const GeometryComponent *> src_components,
       continue;
     }
     GVArrayPtr read_attribute = component->attribute_get_for_read(
-        attribute_name, domain, data_type, nullptr);
+        attribute_id, domain, data_type, nullptr);
 
     GVArray_GSpan src_span{*read_attribute};
     const void *src_buffer = src_span.data();
@@ -218,20 +206,21 @@ static void join_attributes(Span<const GeometryComponent *> src_components,
                             GeometryComponent &result,
                             Span<StringRef> ignored_attributes = {})
 {
-  const Map<std::string, AttributeMetaData> info = get_final_attribute_info(src_components,
-                                                                            ignored_attributes);
+  const Map<AttributeIDRef, AttributeMetaData> info = get_final_attribute_info(src_components,
+                                                                               ignored_attributes);
 
-  for (const Map<std::string, AttributeMetaData>::Item &item : info.items()) {
-    const StringRef name = item.key;
+  for (const Map<AttributeIDRef, AttributeMetaData>::Item &item : info.items()) {
+    const AttributeIDRef attribute_id = item.key;
     const AttributeMetaData &meta_data = item.value;
 
     OutputAttribute write_attribute = result.attribute_try_get_for_output_only(
-        name, meta_data.domain, meta_data.data_type);
+        attribute_id, meta_data.domain, meta_data.data_type);
     if (!write_attribute) {
       continue;
     }
     GMutableSpan dst_span = write_attribute.as_span();
-    fill_new_attribute(src_components, name, meta_data.data_type, meta_data.domain, dst_span);
+    fill_new_attribute(
+        src_components, attribute_id, meta_data.data_type, meta_data.domain, dst_span);
     write_attribute.save();
   }
 }
@@ -306,7 +295,7 @@ static void join_components(Span<const VolumeComponent *> src_components, Geomet
  * \note This takes advantage of the fact that creating attributes on joined curves never
  * changes a point attribute into a spline attribute; it is always the other way around.
  */
-static void ensure_control_point_attribute(const StringRef name,
+static void ensure_control_point_attribute(const AttributeIDRef &attribute_id,
                                            const CustomDataType data_type,
                                            Span<CurveComponent *> src_components,
                                            CurveEval &result)
@@ -321,7 +310,7 @@ static void ensure_control_point_attribute(const StringRef name,
   const CurveEval *current_curve = src_components[src_component_index]->get_for_read();
 
   for (SplinePtr &spline : splines) {
-    std::optional<GSpan> attribute = spline->attributes.get_for_read(name);
+    std::optional<GSpan> attribute = spline->attributes.get_for_read(attribute_id);
 
     if (attribute) {
       if (attribute->type() != type) {
@@ -334,22 +323,22 @@ static void ensure_control_point_attribute(const StringRef name,
         conversions.try_convert(std::make_unique<GVArray_For_GSpan>(*attribute), type)
             ->materialize(converted_buffer);
 
-        spline->attributes.remove(name);
-        spline->attributes.create_by_move(name, data_type, converted_buffer);
+        spline->attributes.remove(attribute_id);
+        spline->attributes.create_by_move(attribute_id, data_type, converted_buffer);
       }
     }
     else {
-      spline->attributes.create(name, data_type);
+      spline->attributes.create(attribute_id, data_type);
 
-      if (current_curve->attributes.get_for_read(name)) {
+      if (current_curve->attributes.get_for_read(attribute_id)) {
         /* In this case the attribute did not exist, but there is a spline domain attribute
          * we can retrieve a value from, as a spline to point domain conversion. So fill the
          * new attribute with the value for this spline. */
         GVArrayPtr current_curve_attribute = current_curve->attributes.get_for_read(
-            name, data_type, nullptr);
+            attribute_id, data_type, nullptr);
 
-        BLI_assert(spline->attributes.get_for_read(name));
-        std::optional<GMutableSpan> new_attribute = spline->attributes.get_for_write(name);
+        BLI_assert(spline->attributes.get_for_read(attribute_id));
+        std::optional<GMutableSpan> new_attribute = spline->attributes.get_for_write(attribute_id);
 
         BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
         current_curve_attribute->get(spline_index_in_component, buffer);
@@ -371,15 +360,15 @@ static void ensure_control_point_attribute(const StringRef name,
 /**
  * Fill data for an attribute on the new curve based on all source curves.
  */
-static void ensure_spline_attribute(const StringRef name,
+static void ensure_spline_attribute(const AttributeIDRef &attribute_id,
                                     const CustomDataType data_type,
                                     Span<CurveComponent *> src_components,
                                     CurveEval &result)
 {
   const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
 
-  result.attributes.create(name, data_type);
-  GMutableSpan result_attribute = *result.attributes.get_for_write(name);
+  result.attributes.create(attribute_id, data_type);
+  GMutableSpan result_attribute = *result.attributes.get_for_write(attribute_id);
 
   int offset = 0;
   for (const CurveComponent *component : src_components) {
@@ -388,7 +377,7 @@ static void ensure_spline_attribute(const StringRef name,
     if (size == 0) {
       continue;
     }
-    GVArrayPtr read_attribute = curve.attributes.get_for_read(name, data_type, nullptr);
+    GVArrayPtr read_attribute = curve.attributes.get_for_read(attribute_id, data_type, nullptr);
     GVArray_GSpan src_span{*read_attribute};
 
     const void *src_buffer = src_span.data();
@@ -406,19 +395,19 @@ static void ensure_spline_attribute(const StringRef name,
  * \warning Splines have been moved out of the source components at this point, so it
  * is important to only read curve-level data (spline domain attributes) from them.
  */
-static void join_curve_attributes(const Map<std::string, AttributeMetaData> &info,
+static void join_curve_attributes(const Map<AttributeIDRef, AttributeMetaData> &info,
                                   Span<CurveComponent *> src_components,
                                   CurveEval &result)
 {
-  for (const Map<std::string, AttributeMetaData>::Item &item : info.items()) {
-    const StringRef name = item.key;
+  for (const Map<AttributeIDRef, AttributeMetaData>::Item &item : info.items()) {
+    const AttributeIDRef attribute_id = item.key;
     const AttributeMetaData meta_data = item.value;
 
     if (meta_data.domain == ATTR_DOMAIN_CURVE) {
-      ensure_spline_attribute(name, meta_data.data_type, src_components, result);
+      ensure_spline_attribute(attribute_id, meta_data.data_type, src_components, result);
     }
     else {
-      ensure_control_point_attribute(name, meta_data.data_type, src_components, result);
+      ensure_control_point_attribute(attribute_id, meta_data.data_type, src_components, result);
     }
   }
 }
@@ -446,7 +435,7 @@ static void join_curve_components(MutableSpan<GeometrySet> src_geometry_sets, Ge
   }
 
   /* Retrieve attribute info before moving the splines out of the input components. */
-  const Map<std::string, AttributeMetaData> info = get_final_attribute_info(
+  const Map<AttributeIDRef, AttributeMetaData> info = get_final_attribute_info(
       {(const GeometryComponent **)src_components.data(), src_components.size()},
       {"position", "radius", "tilt", "cyclic", "resolution"});
 
@@ -506,7 +495,7 @@ void register_node_type_geo_join_geometry()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_JOIN_GEOMETRY, "Join Geometry", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_join_geometry_in, geo_node_join_geometry_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_join_geometry_exec;
+  ntype.declare = blender::nodes::geo_node_join_geometry_declare;
   nodeRegisterType(&ntype);
 }

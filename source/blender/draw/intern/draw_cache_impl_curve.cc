@@ -112,43 +112,6 @@ static void curve_render_overlay_verts_edges_len_get(ListBase *lb,
   }
 }
 
-static void curve_render_wire_verts_edges_len_get(const CurveCache *ob_curve_cache,
-                                                  int *r_curve_len,
-                                                  int *r_vert_len,
-                                                  int *r_edge_len)
-{
-  BLI_assert(r_vert_len || r_edge_len);
-  int vert_len = 0;
-  int edge_len = 0;
-  int curve_len = 0;
-  LISTBASE_FOREACH (const BevList *, bl, &ob_curve_cache->bev) {
-    if (bl->nr > 0) {
-      const bool is_cyclic = bl->poly != -1;
-      edge_len += (is_cyclic) ? bl->nr : bl->nr - 1;
-      vert_len += bl->nr;
-      curve_len += 1;
-    }
-  }
-  LISTBASE_FOREACH (const DispList *, dl, &ob_curve_cache->disp) {
-    if (ELEM(dl->type, DL_SEGM, DL_POLY)) {
-      BLI_assert(dl->parts == 1);
-      const bool is_cyclic = dl->type == DL_POLY;
-      edge_len += (is_cyclic) ? dl->nr : dl->nr - 1;
-      vert_len += dl->nr;
-      curve_len += 1;
-    }
-  }
-  if (r_vert_len) {
-    *r_vert_len = vert_len;
-  }
-  if (r_edge_len) {
-    *r_edge_len = edge_len;
-  }
-  if (r_curve_len) {
-    *r_curve_len = curve_len;
-  }
-}
-
 static void curve_eval_render_wire_verts_edges_len_get(const CurveEval &curve_eval,
                                                        int *r_curve_len,
                                                        int *r_vert_len,
@@ -243,7 +206,7 @@ enum {
 };
 
 /*
- * ob_curve_cache can be NULL, only needed for CU_DATATYPE_WIRE
+ * ob_curve_cache can be NULL
  */
 static CurveRenderData *curve_render_data_create(Curve *cu,
                                                  CurveCache *ob_curve_cache,
@@ -266,12 +229,6 @@ static CurveRenderData *curve_render_data_create(Curve *cu,
                                                  &rdata->wire.curve_len,
                                                  &rdata->wire.vert_len,
                                                  &rdata->wire.edge_len);
-    }
-    else {
-      curve_render_wire_verts_edges_len_get(rdata->ob_curve_cache,
-                                            &rdata->wire.curve_len,
-                                            &rdata->wire.vert_len,
-                                            &rdata->wire.edge_len);
     }
   }
 
@@ -594,6 +551,10 @@ void DRW_curve_batch_cache_free(Curve *cu)
 /* GPUBatch cache usage. */
 static void curve_create_curves_pos(CurveRenderData *rdata, GPUVertBuf *vbo_curves_pos)
 {
+  if (rdata->curve_eval == nullptr) {
+    return;
+  }
+
   static GPUVertFormat format = {0};
   static struct {
     uint pos;
@@ -606,46 +567,26 @@ static void curve_create_curves_pos(CurveRenderData *rdata, GPUVertBuf *vbo_curv
   GPU_vertbuf_init_with_format(vbo_curves_pos, &format);
   GPU_vertbuf_data_alloc(vbo_curves_pos, vert_len);
 
-  if (rdata->curve_eval != nullptr) {
-    const CurveEval &curve_eval = *rdata->curve_eval;
-    Span<SplinePtr> splines = curve_eval.splines();
-    Array<int> offsets = curve_eval.evaluated_point_offsets();
-    BLI_assert(offsets.last() == vert_len);
+  const CurveEval &curve_eval = *rdata->curve_eval;
+  Span<SplinePtr> splines = curve_eval.splines();
+  Array<int> offsets = curve_eval.evaluated_point_offsets();
+  BLI_assert(offsets.last() == vert_len);
 
-    for (const int i_spline : splines.index_range()) {
-      Span<float3> positions = splines[i_spline]->evaluated_positions();
-      for (const int i_point : positions.index_range()) {
-        GPU_vertbuf_attr_set(
-            vbo_curves_pos, attr_id.pos, offsets[i_spline] + i_point, positions[i_point]);
-      }
+  for (const int i_spline : splines.index_range()) {
+    Span<float3> positions = splines[i_spline]->evaluated_positions();
+    for (const int i_point : positions.index_range()) {
+      GPU_vertbuf_attr_set(
+          vbo_curves_pos, attr_id.pos, offsets[i_spline] + i_point, positions[i_point]);
     }
-  }
-  else {
-    BLI_assert(rdata->ob_curve_cache != nullptr);
-
-    int v_idx = 0;
-    LISTBASE_FOREACH (const BevList *, bl, &rdata->ob_curve_cache->bev) {
-      if (bl->nr <= 0) {
-        continue;
-      }
-      const int i_end = v_idx + bl->nr;
-      for (const BevPoint *bevp = bl->bevpoints; v_idx < i_end; v_idx++, bevp++) {
-        GPU_vertbuf_attr_set(vbo_curves_pos, attr_id.pos, v_idx, bevp->vec);
-      }
-    }
-    LISTBASE_FOREACH (const DispList *, dl, &rdata->ob_curve_cache->disp) {
-      if (ELEM(dl->type, DL_SEGM, DL_POLY)) {
-        for (int i = 0; i < dl->nr; v_idx++, i++) {
-          GPU_vertbuf_attr_set(vbo_curves_pos, attr_id.pos, v_idx, &((float(*)[3])dl->verts)[i]);
-        }
-      }
-    }
-    BLI_assert(v_idx == vert_len);
   }
 }
 
 static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_curve_lines)
 {
+  if (rdata->curve_eval == nullptr) {
+    return;
+  }
+
   const int vert_len = curve_render_data_wire_verts_len_get(rdata);
   const int edge_len = curve_render_data_wire_edges_len_get(rdata);
   const int curve_len = curve_render_data_wire_curve_len_get(rdata);
@@ -655,54 +596,20 @@ static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_c
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len);
 
-  if (rdata->curve_eval != nullptr) {
-    const CurveEval &curve_eval = *rdata->curve_eval;
-    Span<SplinePtr> splines = curve_eval.splines();
-    Array<int> offsets = curve_eval.evaluated_point_offsets();
-    BLI_assert(offsets.last() == vert_len);
+  const CurveEval &curve_eval = *rdata->curve_eval;
+  Span<SplinePtr> splines = curve_eval.splines();
+  Array<int> offsets = curve_eval.evaluated_point_offsets();
+  BLI_assert(offsets.last() == vert_len);
 
-    for (const int i_spline : splines.index_range()) {
-      const int eval_size = splines[i_spline]->evaluated_points_size();
-      if (splines[i_spline]->is_cyclic() && splines[i_spline]->evaluated_edges_size() > 1) {
-        GPU_indexbuf_add_generic_vert(&elb, offsets[i_spline] + eval_size - 1);
-      }
-      for (const int i_point : IndexRange(eval_size)) {
-        GPU_indexbuf_add_generic_vert(&elb, offsets[i_spline] + i_point);
-      }
-      GPU_indexbuf_add_primitive_restart(&elb);
+  for (const int i_spline : splines.index_range()) {
+    const int eval_size = splines[i_spline]->evaluated_points_size();
+    if (splines[i_spline]->is_cyclic() && splines[i_spline]->evaluated_edges_size() > 1) {
+      GPU_indexbuf_add_generic_vert(&elb, offsets[i_spline] + eval_size - 1);
     }
-  }
-  else {
-    BLI_assert(rdata->ob_curve_cache != nullptr);
-
-    int v_idx = 0;
-    LISTBASE_FOREACH (const BevList *, bl, &rdata->ob_curve_cache->bev) {
-      if (bl->nr <= 0) {
-        continue;
-      }
-      const bool is_cyclic = bl->poly != -1;
-      if (is_cyclic) {
-        GPU_indexbuf_add_generic_vert(&elb, v_idx + (bl->nr - 1));
-      }
-      for (int i = 0; i < bl->nr; i++) {
-        GPU_indexbuf_add_generic_vert(&elb, v_idx + i);
-      }
-      GPU_indexbuf_add_primitive_restart(&elb);
-      v_idx += bl->nr;
+    for (const int i_point : IndexRange(eval_size)) {
+      GPU_indexbuf_add_generic_vert(&elb, offsets[i_spline] + i_point);
     }
-    LISTBASE_FOREACH (const DispList *, dl, &rdata->ob_curve_cache->disp) {
-      if (ELEM(dl->type, DL_SEGM, DL_POLY)) {
-        const bool is_cyclic = dl->type == DL_POLY;
-        if (is_cyclic) {
-          GPU_indexbuf_add_generic_vert(&elb, v_idx + (dl->nr - 1));
-        }
-        for (int i = 0; i < dl->nr; i++) {
-          GPU_indexbuf_add_generic_vert(&elb, v_idx + i);
-        }
-        GPU_indexbuf_add_primitive_restart(&elb);
-        v_idx += dl->nr;
-      }
-    }
+    GPU_indexbuf_add_primitive_restart(&elb);
   }
 
   GPU_indexbuf_build_in_place(&elb, ibo_curve_lines);

@@ -237,7 +237,7 @@ void register_node_type_geo_attribute_proximity()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_ATTRIBUTE_PROXIMITY, "Attribute Proximity", NODE_CLASS_ATTRIBUTE, 0);
+      &ntype, GEO_NODE_LEGACY_ATTRIBUTE_PROXIMITY, "Attribute Proximity", NODE_CLASS_ATTRIBUTE, 0);
   node_type_init(&ntype, blender::nodes::geo_attribute_proximity_init);
   node_type_storage(&ntype,
                     "NodeGeometryAttributeProximity",

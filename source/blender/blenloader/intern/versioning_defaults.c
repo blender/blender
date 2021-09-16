@@ -52,6 +52,7 @@
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_curveprofile.h"
+#include "BKE_customdata.h"
 #include "BKE_gpencil.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -551,6 +552,11 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       mesh->remesh_voxel_size = 0.035f;
       mesh->flag |= ME_REMESH_FIX_POLES | ME_REMESH_REPROJECT_VOLUME;
       BKE_mesh_smooth_flag_set(mesh, false);
+    }
+    else {
+      /* Remove sculpt-mask data in default mesh objects for all non-sculpt templates. */
+      CustomData_free_layers(&mesh->vdata, CD_PAINT_MASK, mesh->totvert);
+      CustomData_free_layers(&mesh->ldata, CD_GRID_PAINT_MASK, mesh->totloop);
     }
   }
 

@@ -230,12 +230,17 @@ void id_us_plus(struct ID *id);
 void id_us_min(struct ID *id);
 void id_fake_user_set(struct ID *id);
 void id_fake_user_clear(struct ID *id);
-void BKE_id_clear_newpoin(struct ID *id);
+void BKE_id_newptr_and_tag_clear(struct ID *id);
 
 /** Flags to control make local code behavior. */
 enum {
   /** Making that ID local is part of making local a whole library. */
   LIB_ID_MAKELOCAL_FULL_LIBRARY = 1 << 0,
+
+  /** In case caller code already knows this ID should be made local without copying. */
+  LIB_ID_MAKELOCAL_FORCE_LOCAL = 1 << 1,
+  /** In case caller code already knows this ID should be made local using copying. */
+  LIB_ID_MAKELOCAL_FORCE_COPY = 1 << 2,
 
   /* Special type-specific options. */
   /** For Objects, do not clear the proxy pointers while making the data-block local. */
@@ -243,7 +248,7 @@ enum {
 };
 
 void BKE_lib_id_make_local_generic(struct Main *bmain, struct ID *id, const int flags);
-bool BKE_lib_id_make_local(struct Main *bmain, struct ID *id, const bool test, const int flags);
+bool BKE_lib_id_make_local(struct Main *bmain, struct ID *id, const int flags);
 bool id_single_user(struct bContext *C,
                     struct ID *id,
                     struct PointerRNA *ptr,

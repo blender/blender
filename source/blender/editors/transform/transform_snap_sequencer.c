@@ -260,7 +260,7 @@ TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t)
   SeqCollection *snap_sources = SEQ_query_selected_strips(seqbase);
   SeqCollection *snap_targets = query_snap_targets(t, snap_sources);
 
-  if (SEQ_collection_len(snap_sources) == 0 || SEQ_collection_len(snap_targets) == 0) {
+  if (SEQ_collection_len(snap_sources) == 0) {
     SEQ_collection_free(snap_targets);
     SEQ_collection_free(snap_sources);
     MEM_freeN(snap_data);

@@ -20,13 +20,13 @@
 
 #include "BKE_global.h"
 #include "BLI_rect.h"
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "DNA_color_types.h"
 #include "DNA_image_types.h"
 
 namespace blender::compositor {
 
-class PreviewOperation : public NodeOperation {
+class PreviewOperation : public MultiThreadedOperation {
  protected:
   unsigned char *m_outputBuffer;
 
@@ -63,6 +63,11 @@ class PreviewOperation : public NodeOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

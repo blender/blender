@@ -521,6 +521,7 @@ static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_
     MaskLayer *masklay = BKE_mask_layer_active(mask);
     mask_to_keylist(&ads, masklay, keylist);
   }
+  ED_keylist_prepare_for_direct_access(keylist);
 
   /* TODO(jbakker): Keylists are ordered, no need to do any searching at all. */
   /* find matching keyframe in the right direction */

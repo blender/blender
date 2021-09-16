@@ -913,6 +913,13 @@ enum eFileDetails {
 
 #define FILE_MAX_LIBEXTRA (FILE_MAX + MAX_ID_NAME)
 
+/**
+ * Maximum level of recursions accepted for #FileSelectParams.recursion_level. Rather than a
+ * completely arbitrary limit or none at all, make it just enough to support the most extreme case
+ * where the maximal path length is used with single letter directory/file names only.
+ */
+#define FILE_SELECT_MAX_RECURSIONS (FILE_MAX_LIBEXTRA / 2)
+
 /* filesel types */
 typedef enum eFileSelectType {
   FILE_LOADLIB = 1,
@@ -936,13 +943,13 @@ typedef enum eFileSel_Action {
  * (WM and BLO code area, see #eBLOLibLinkFlags in BLO_readfile.h).
  */
 typedef enum eFileSel_Params_Flag {
-  FILE_PARAMS_FLAG_UNUSED_1 = (1 << 0), /* cleared */
+  FILE_APPEND_SET_FAKEUSER = (1 << 0),
   FILE_RELPATH = (1 << 1),
   FILE_LINK = (1 << 2),
   FILE_HIDE_DOT = (1 << 3),
   FILE_AUTOSELECT = (1 << 4),
   FILE_ACTIVE_COLLECTION = (1 << 5),
-  FILE_PARAMS_FLAG_UNUSED_6 = (1 << 6), /* cleared */
+  FILE_APPEND_RECURSIVE = (1 << 6),
   FILE_DIRSEL_ONLY = (1 << 7),
   FILE_FILTER = (1 << 8),
   FILE_OBDATA_INSTANCE = (1 << 9),

@@ -1382,11 +1382,23 @@ static void gpencil_primitive_interaction_end(bContext *C,
   if (ts->gpencil_flags & GP_TOOL_FLAG_AUTOMERGE_STROKE) {
     if (ELEM(tgpi->type, GP_STROKE_ARC, GP_STROKE_LINE, GP_STROKE_CURVE, GP_STROKE_POLYLINE)) {
       if (gps->prev != NULL) {
+        BKE_gpencil_stroke_boundingbox_calc(gps);
+        float diff_mat[4][4], ctrl1[2], ctrl2[2];
+        BKE_gpencil_layer_transform_matrix_get(tgpi->depsgraph, tgpi->ob, tgpi->gpl, diff_mat);
+        ED_gpencil_stroke_extremes_to2d(&tgpi->gsc, diff_mat, gps, ctrl1, ctrl2);
+
         int pt_index = 0;
         bool doit = true;
         while (doit && gps) {
-          bGPDstroke *gps_target = ED_gpencil_stroke_nearest_to_ends(
-              C, &tgpi->gsc, tgpi->gpl, gpf, gps, GPENCIL_MINIMUM_JOIN_DIST, &pt_index);
+          bGPDstroke *gps_target = ED_gpencil_stroke_nearest_to_ends(C,
+                                                                     &tgpi->gsc,
+                                                                     tgpi->gpl,
+                                                                     gpf,
+                                                                     gps,
+                                                                     ctrl1,
+                                                                     ctrl2,
+                                                                     GPENCIL_MINIMUM_JOIN_DIST,
+                                                                     &pt_index);
           if (gps_target != NULL) {
             gps = ED_gpencil_stroke_join_and_trim(tgpi->gpd, gpf, gps, gps_target, pt_index);
           }

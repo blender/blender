@@ -28,11 +28,13 @@ extern PyTypeObject PbVec3Type;
 extern PyTypeObject PbVec4Type;
 
 struct PbVec3 {
-  PyObject_HEAD float data[3];
+  PyObject_HEAD
+  float data[3];
 };
 
 struct PbVec4 {
-  PyObject_HEAD float data[4];
+  PyObject_HEAD
+  float data[4];
 };
 
 PyObject *getPyNone()

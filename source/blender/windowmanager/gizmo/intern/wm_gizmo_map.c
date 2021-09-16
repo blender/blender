@@ -381,29 +381,29 @@ static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
 
   wmGizmo *gz_modal = gzmap->gzmap_context.modal;
 
-  /* only active gizmo needs updating */
-  if (gz_modal) {
-    if ((gz_modal->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL) == 0) {
-      if ((gz_modal->parent_gzgroup->hide.any == 0) &&
-          wm_gizmogroup_is_visible_in_drawstep(gz_modal->parent_gzgroup, drawstep)) {
-        if (gizmo_prepare_drawing(gzmap, gz_modal, C, draw_gizmos, drawstep)) {
-          gzmap->update_flag[drawstep] &= ~GIZMOMAP_IS_PREPARE_DRAW;
-        }
-      }
-      /* don't draw any other gizmos */
-      return;
-    }
-  }
-
   /* Allow refresh functions to ask to be refreshed again, clear before the loop below. */
   const bool do_refresh = gzmap->update_flag[drawstep] & GIZMOMAP_IS_REFRESH_CALLBACK;
   gzmap->update_flag[drawstep] &= ~GIZMOMAP_IS_REFRESH_CALLBACK;
 
   LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
     /* check group visibility - drawstep first to avoid unnecessary call of group poll callback */
-    if (!wm_gizmogroup_is_visible_in_drawstep(gzgroup, drawstep) ||
-        !WM_gizmo_group_type_poll(C, gzgroup->type)) {
+    if (!wm_gizmogroup_is_visible_in_drawstep(gzgroup, drawstep)) {
       continue;
+    }
+
+    if (gz_modal && (gzgroup == gz_modal->parent_gzgroup)) {
+      if (gzgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE) {
+        continue;
+      }
+    }
+    else { /* Don't poll modal gizmo since some poll functions unlink. */
+      if (!WM_gizmo_group_type_poll(C, gzgroup->type)) {
+        continue;
+      }
+      /* When modal only show other gizmo groups tagged with #WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL. */
+      if (gz_modal && ((gzgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL) == 0)) {
+        continue;
+      }
     }
 
     /* Needs to be initialized on first draw. */

@@ -33,6 +33,7 @@
 extern "C" {
 #endif
 
+struct AnonymousAttributeID;
 struct BMesh;
 struct BlendDataReader;
 struct BlendWriter;
@@ -199,6 +200,12 @@ void *CustomData_add_layer_named(struct CustomData *data,
                                  void *layer,
                                  int totelem,
                                  const char *name);
+void *CustomData_add_layer_anonymous(struct CustomData *data,
+                                     int type,
+                                     eCDAllocType alloctype,
+                                     void *layer,
+                                     int totelem,
+                                     const struct AnonymousAttributeID *anonymous_id);
 
 /* frees the active or first data layer with the give type.
  * returns 1 on success, 0 if no layer with the given type is found
@@ -237,6 +244,11 @@ void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
                                                   const int type,
                                                   const char *name,
                                                   const int totelem);
+void *CustomData_duplicate_referenced_layer_anonymous(
+    CustomData *data,
+    const int type,
+    const struct AnonymousAttributeID *anonymous_id,
+    const int totelem);
 bool CustomData_is_referenced_layer(struct CustomData *data, int type);
 
 /* Duplicate all the layers with flag NOFREE, and remove the flag from duplicated layers. */

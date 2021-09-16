@@ -50,6 +50,10 @@ struct ImportSettings {
   /* From MeshSeqCacheModifierData.read_flag */
   int read_flag;
 
+  /* From CacheFile and MeshSeqCacheModifierData */
+  std::string velocity_name;
+  float velocity_scale;
+
   bool validate_meshes;
   bool always_add_cache_reader;
 
@@ -65,6 +69,8 @@ struct ImportSettings {
         sequence_len(1),
         sequence_offset(0),
         read_flag(0),
+        velocity_name(""),
+        velocity_scale(1.0f),
         validate_meshes(false),
         always_add_cache_reader(false),
         cache_file(NULL)
@@ -143,7 +149,9 @@ class AbcObjectReader {
 
   virtual struct Mesh *read_mesh(struct Mesh *mesh,
                                  const Alembic::Abc::ISampleSelector &sample_sel,
-                                 int read_flag,
+                                 const int read_flag,
+                                 const char *velocity_name,
+                                 const float velocity_scale,
                                  const char **err_str);
   virtual bool topology_changed(Mesh *existing_mesh,
                                 const Alembic::Abc::ISampleSelector &sample_sel);

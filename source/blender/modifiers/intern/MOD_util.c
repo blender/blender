@@ -216,7 +216,6 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
      * we really need vertexCos here. */
     else if (vertexCos) {
       BKE_mesh_vert_coords_apply(mesh, vertexCos);
-      mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
     }
 
     if (use_orco) {

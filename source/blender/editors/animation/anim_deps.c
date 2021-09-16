@@ -206,16 +206,17 @@ static void animchan_sync_fcurve_scene(bAnimListElem *ale)
   BLI_assert(GS(owner_id->name) == ID_SCE);
   Scene *scene = (Scene *)owner_id;
   FCurve *fcu = (FCurve *)ale->data;
+  Sequence *seq = NULL;
 
   /* Only affect if F-Curve involves sequence_editor.sequences. */
-  char *seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
-  if (seq_name == NULL) {
+  char seq_name[sizeof(seq->name)];
+  if (!BLI_str_quoted_substr(fcu->rna_path, "sequences_all[", seq_name, sizeof(seq_name))) {
     return;
   }
 
   /* Check if this strip is selected. */
   Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq = SEQ_get_sequence_by_name(ed->seqbasep, seq_name, false);
+  seq = SEQ_get_sequence_by_name(ed->seqbasep, seq_name, false);
   MEM_freeN(seq_name);
 
   if (seq == NULL) {

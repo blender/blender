@@ -171,4 +171,33 @@ class SumVectorFunction : public MultiFunction {
   }
 };
 
+class OptionalOutputsFunction : public MultiFunction {
+ public:
+  OptionalOutputsFunction()
+  {
+    static MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static MFSignature create_signature()
+  {
+    MFSignatureBuilder signature{"Optional Outputs"};
+    signature.single_output<int>("Out 1");
+    signature.single_output<std::string>("Out 2");
+    return signature.build();
+  }
+
+  void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
+  {
+    if (params.single_output_is_required(0, "Out 1")) {
+      MutableSpan<int> values = params.uninitialized_single_output<int>(0, "Out 1");
+      values.fill_indices(mask, 5);
+    }
+    MutableSpan<std::string> values = params.uninitialized_single_output<std::string>(1, "Out 2");
+    for (const int i : mask) {
+      new (&values[i]) std::string("hello, this is a long string");
+    }
+  }
+};
+
 }  // namespace blender::fn::tests

@@ -49,13 +49,49 @@ static bNodeSocketTemplate sh_node_tex_musgrave_out[] = {
 
 static void node_shader_init_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexMusgrave *tex = MEM_callocN(sizeof(NodeTexMusgrave), "NodeTexMusgrave");
+  NodeTexMusgrave *tex = (NodeTexMusgrave *)MEM_callocN(sizeof(NodeTexMusgrave),
+                                                        "NodeTexMusgrave");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->musgrave_type = SHD_MUSGRAVE_FBM;
   tex->dimensions = 3;
 
   node->storage = tex;
+}
+
+static const char *gpu_shader_name_get(const int type, const int dimensions)
+{
+  BLI_assert(type >= 0 && type < 5);
+  BLI_assert(dimensions > 0 && dimensions < 5);
+
+  switch (type) {
+    case SHD_MUSGRAVE_MULTIFRACTAL:
+      return std::array{"node_tex_musgrave_multi_fractal_1d",
+                        "node_tex_musgrave_multi_fractal_2d",
+                        "node_tex_musgrave_multi_fractal_3d",
+                        "node_tex_musgrave_multi_fractal_4d"}[dimensions - 1];
+    case SHD_MUSGRAVE_FBM:
+      return std::array{"node_tex_musgrave_fBm_1d",
+                        "node_tex_musgrave_fBm_2d",
+                        "node_tex_musgrave_fBm_3d",
+                        "node_tex_musgrave_fBm_4d"}[dimensions - 1];
+    case SHD_MUSGRAVE_HYBRID_MULTIFRACTAL:
+      return std::array{"node_tex_musgrave_hybrid_multi_fractal_1d",
+                        "node_tex_musgrave_hybrid_multi_fractal_2d",
+                        "node_tex_musgrave_hybrid_multi_fractal_3d",
+                        "node_tex_musgrave_hybrid_multi_fractal_4d"}[dimensions - 1];
+    case SHD_MUSGRAVE_RIDGED_MULTIFRACTAL:
+      return std::array{"node_tex_musgrave_ridged_multi_fractal_1d",
+                        "node_tex_musgrave_ridged_multi_fractal_2d",
+                        "node_tex_musgrave_ridged_multi_fractal_3d",
+                        "node_tex_musgrave_ridged_multi_fractal_4d"}[dimensions - 1];
+    case SHD_MUSGRAVE_HETERO_TERRAIN:
+      return std::array{"node_tex_musgrave_hetero_terrain_1d",
+                        "node_tex_musgrave_hetero_terrain_2d",
+                        "node_tex_musgrave_hetero_terrain_3d",
+                        "node_tex_musgrave_hetero_terrain_4d"}[dimensions - 1];
+  }
+  return nullptr;
 }
 
 static int node_shader_gpu_tex_musgrave(GPUMaterial *mat,
@@ -71,53 +107,9 @@ static int node_shader_gpu_tex_musgrave(GPUMaterial *mat,
   int dimensions = tex->dimensions;
   int type = tex->musgrave_type;
 
-  static const char *names[][5] = {
-      [SHD_MUSGRAVE_MULTIFRACTAL] =
-          {
-              "",
-              "node_tex_musgrave_multi_fractal_1d",
-              "node_tex_musgrave_multi_fractal_2d",
-              "node_tex_musgrave_multi_fractal_3d",
-              "node_tex_musgrave_multi_fractal_4d",
-          },
-      [SHD_MUSGRAVE_FBM] =
-          {
-              "",
-              "node_tex_musgrave_fBm_1d",
-              "node_tex_musgrave_fBm_2d",
-              "node_tex_musgrave_fBm_3d",
-              "node_tex_musgrave_fBm_4d",
-          },
-      [SHD_MUSGRAVE_HYBRID_MULTIFRACTAL] =
-          {
-              "",
-              "node_tex_musgrave_hybrid_multi_fractal_1d",
-              "node_tex_musgrave_hybrid_multi_fractal_2d",
-              "node_tex_musgrave_hybrid_multi_fractal_3d",
-              "node_tex_musgrave_hybrid_multi_fractal_4d",
-          },
-      [SHD_MUSGRAVE_RIDGED_MULTIFRACTAL] =
-          {
-              "",
-              "node_tex_musgrave_ridged_multi_fractal_1d",
-              "node_tex_musgrave_ridged_multi_fractal_2d",
-              "node_tex_musgrave_ridged_multi_fractal_3d",
-              "node_tex_musgrave_ridged_multi_fractal_4d",
-          },
-      [SHD_MUSGRAVE_HETERO_TERRAIN] =
-          {
-              "",
-              "node_tex_musgrave_hetero_terrain_1d",
-              "node_tex_musgrave_hetero_terrain_2d",
-              "node_tex_musgrave_hetero_terrain_3d",
-              "node_tex_musgrave_hetero_terrain_4d",
-          },
-  };
+  const char *name = gpu_shader_name_get(type, dimensions);
 
-  BLI_assert(type >= 0 && type < 5);
-  BLI_assert(dimensions > 0 && dimensions < 5);
-
-  return GPU_stack_link(mat, node, names[type][dimensions], in, out);
+  return GPU_stack_link(mat, node, name, in, out);
 }
 
 static void node_shader_update_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node)

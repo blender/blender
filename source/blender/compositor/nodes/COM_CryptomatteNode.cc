@@ -33,7 +33,8 @@
 
 namespace blender::compositor {
 
-/** \name Cryptomatte base
+/* -------------------------------------------------------------------- */
+/** \name Cryptomatte Base
  * \{ */
 
 void CryptomatteBaseNode::convertToOperations(NodeConverter &converter,
@@ -73,10 +74,12 @@ void CryptomatteBaseNode::convertToOperations(NodeConverter &converter,
   converter.mapOutputSocket(output_pick_socket, extract_pick_operation->getOutputSocket(0));
 }
 
-/* \} */
+/** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Cryptomatte V2
  * \{ */
+
 static std::string prefix_from_node(const CompositorContext &context, const bNode &node)
 {
   char prefix[MAX_NAME];
@@ -247,9 +250,10 @@ CryptomatteOperation *CryptomatteNode::create_cryptomatte_operation(
   return operation;
 }
 
-/* \} */
+/** \} */
 
-/** \name Cryptomatte legacy
+/* -------------------------------------------------------------------- */
+/** \name Cryptomatte Legacy
  * \{ */
 
 CryptomatteOperation *CryptomatteLegacyNode::create_cryptomatte_operation(
@@ -273,6 +277,6 @@ CryptomatteOperation *CryptomatteLegacyNode::create_cryptomatte_operation(
   return operation;
 }
 
-/* \} */
+/** \} */
 
 }  // namespace blender::compositor

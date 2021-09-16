@@ -94,7 +94,7 @@ void AbcCurveReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
 {
   Curve *cu = BKE_curve_add(bmain, m_data_name.c_str(), OB_CURVE);
 
-  cu->flag |= CU_DEFORM_FILL | CU_3D;
+  cu->flag |= CU_3D;
   cu->actvert = CU_ACT_NONE;
   cu->resolu = 1;
 
@@ -283,6 +283,8 @@ void AbcCurveReader::read_curve_sample(Curve *cu,
 Mesh *AbcCurveReader::read_mesh(Mesh *existing_mesh,
                                 const ISampleSelector &sample_sel,
                                 int /*read_flag*/,
+                                const char * /*velocity_name*/,
+                                const float /*velocity_scale*/,
                                 const char **err_str)
 {
   ICurvesSchema::Sample sample;

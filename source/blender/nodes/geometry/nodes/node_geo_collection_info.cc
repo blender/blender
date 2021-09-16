@@ -27,7 +27,7 @@ namespace blender::nodes {
 
 static void geo_node_collection_info_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Collection>("Collection").hide_label(true);
+  b.add_input<decl::Collection>("Collection").hide_label();
   b.add_output<decl::Geometry>("Geometry");
 }
 

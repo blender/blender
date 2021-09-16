@@ -647,7 +647,8 @@ typedef struct UserDef_Experimental {
   char use_extended_asset_browser;
   char use_override_templates;
   char use_sculpt_uvsmooth;
-  char _pad[4];
+  char use_geometry_nodes_fields;
+  char _pad[3];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -925,9 +926,10 @@ typedef struct UserDef {
   short sequencer_proxy_setup; /* eUserpref_SeqProxySetup */
 
   float collection_instance_empty_size;
-  char _pad10[3];
+  char _pad10[2];
 
-  char statusbar_flag; /* eUserpref_StatusBar_Flag */
+  char file_preview_type; /* eUserpref_File_Preview_Type */
+  char statusbar_flag;    /* eUserpref_StatusBar_Flag */
 
   struct WalkNavigation walk_navigation;
 
@@ -997,7 +999,7 @@ typedef enum eUserPref_Flag {
   USER_NONUMPAD = (1 << 13),
   USER_ADD_CURSORALIGNED = (1 << 14),
   USER_FILECOMPRESS = (1 << 15),
-  USER_SAVE_PREVIEWS = (1 << 16),
+  USER_FLAG_UNUSED_5 = (1 << 16), /* dirty */
   USER_CUSTOM_RANGE = (1 << 17),
   USER_ADD_EDITMODE = (1 << 18),
   USER_ADD_VIEWALIGNED = (1 << 19),
@@ -1010,6 +1012,13 @@ typedef enum eUserPref_Flag {
   USER_TOOLTIPS_PYTHON = (1 << 26),
   USER_FLAG_UNUSED_27 = (1 << 27), /* dirty */
 } eUserPref_Flag;
+
+/** #UserDef.file_preview_type */
+typedef enum eUserpref_File_Preview_Type {
+  USER_FILE_PREVIEW_NONE = 0,
+  USER_FILE_PREVIEW_SCREENSHOT,
+  USER_FILE_PREVIEW_CAMERA,
+} eUserpref_File_Preview_Type;
 
 typedef enum eUserPref_PrefFlag {
   USER_PREF_FLAG_SAVE = (1 << 0),
@@ -1127,7 +1136,9 @@ typedef enum eUserpref_TableAPI {
 
 /** #UserDef.app_flag */
 typedef enum eUserpref_APP_Flag {
-  USER_APP_LOCK_UI_LAYOUT = (1 << 0),
+  USER_APP_LOCK_CORNER_SPLIT = (1 << 0),
+  USER_APP_HIDE_REGION_TOGGLE = (1 << 1),
+  USER_APP_LOCK_EDGE_RESIZE = (1 << 2),
 } eUserpref_APP_Flag;
 
 /** #UserDef.statusbar_flag */

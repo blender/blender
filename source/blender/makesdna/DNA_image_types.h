@@ -94,11 +94,17 @@ typedef struct RenderSlot {
   struct RenderResult *render;
 } RenderSlot;
 
-typedef struct ImageTile_Runtime {
+typedef struct ImageTile_RuntimeTextureSlot {
   int tilearray_layer;
   int _pad;
   int tilearray_offset[2];
   int tilearray_size[2];
+} ImageTile_RuntimeTextureSlot;
+
+typedef struct ImageTile_Runtime {
+  /* Data per `eImageTextureResolution`.
+   * Should match `IMA_TEXTURE_RESOLUTION_LEN` */
+  ImageTile_RuntimeTextureSlot slots[2];
 } ImageTile_Runtime;
 
 typedef struct ImageTile {
@@ -132,6 +138,15 @@ typedef enum eGPUTextureTarget {
   TEXTARGET_COUNT,
 } eGPUTextureTarget;
 
+/* Resolution variations that can be cached for an image. */
+typedef enum eImageTextureResolution {
+  IMA_TEXTURE_RESOLUTION_FULL = 0,
+  IMA_TEXTURE_RESOLUTION_LIMITED,
+
+  /* Not an option, but holds the number of options defined for this struct. */
+  IMA_TEXTURE_RESOLUTION_LEN
+} eImageTextureResolution;
+
 typedef struct Image {
   ID id;
 
@@ -140,8 +155,8 @@ typedef struct Image {
 
   /** Not written in file. */
   struct MovieCache *cache;
-  /** Not written in file 3 = TEXTARGET_COUNT, 2 = stereo eyes. */
-  struct GPUTexture *gputexture[3][2];
+  /** Not written in file 3 = TEXTARGET_COUNT, 2 = stereo eyes, 2 = IMA_TEXTURE_RESOLUTION_LEN. */
+  struct GPUTexture *gputexture[3][2][2];
 
   /* sources from: */
   ListBase anims;
@@ -233,12 +248,15 @@ enum {
   IMA_GPU_PARTIAL_REFRESH = (1 << 1),
   /** All mipmap levels in OpenGL texture set? */
   IMA_GPU_MIPMAP_COMPLETE = (1 << 2),
-  /** Current texture resolution won't be limited by the GL Texture Limit user preference. */
-  IMA_GPU_MAX_RESOLUTION = (1 << 3),
+  /* Reuse the max resolution textures as they fit in the limited scale. */
+  IMA_GPU_REUSE_MAX_RESOLUTION = (1 << 3),
+  /* Has any limited scale textures been allocated.
+   * Adds additional checks to reuse max resolution images when they fit inside limited scale. */
+  IMA_GPU_HAS_LIMITED_SCALE_TEXTURES = (1 << 4),
 };
 
 /* Image.source, where the image comes from */
-enum {
+typedef enum eImageSource {
   /* IMA_SRC_CHECK = 0, */ /* UNUSED */
   IMA_SRC_FILE = 1,
   IMA_SRC_SEQUENCE = 2,
@@ -246,10 +264,10 @@ enum {
   IMA_SRC_GENERATED = 4,
   IMA_SRC_VIEWER = 5,
   IMA_SRC_TILED = 6,
-};
+} eImageSource;
 
 /* Image.type, how to handle or generate the image */
-enum {
+typedef enum eImageType {
   IMA_TYPE_IMAGE = 0,
   IMA_TYPE_MULTILAYER = 1,
   /* generated */
@@ -257,7 +275,7 @@ enum {
   /* viewers */
   IMA_TYPE_R_RESULT = 4,
   IMA_TYPE_COMPOSITE = 5,
-};
+} eImageType;
 
 /* Image.gen_type */
 enum {

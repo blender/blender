@@ -117,7 +117,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   result = mirrorModifier__doMirror(mmd, ctx->object, mesh);
 
   if (result != mesh) {
-    result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+    BKE_mesh_normals_tag_dirty(result);
   }
   return result;
 }

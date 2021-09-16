@@ -673,8 +673,8 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
           }
         }
         else {
-          if (BKE_lib_id_make_local(bmain, id, false, 0)) {
-            BKE_main_id_newptr_and_tag_clear(bmain);
+          if (BKE_lib_id_make_local(bmain, id, 0)) {
+            BKE_id_newptr_and_tag_clear(id);
 
             /* Reassign to get proper updates/notifiers. */
             idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
@@ -1031,7 +1031,7 @@ static void template_ID(const bContext *C,
         UI_but_flag_enable(but, UI_BUT_DISABLED);
       }
       else {
-        const bool disabled = (!BKE_lib_id_make_local(CTX_data_main(C), id, true /* test */, 0) ||
+        const bool disabled = (!BKE_idtype_idcode_is_localizable(GS(id->name)) ||
                                (idfrom && idfrom->lib));
         but = uiDefIconBut(block,
                            UI_BTYPE_BUT,

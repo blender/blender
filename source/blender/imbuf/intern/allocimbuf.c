@@ -430,6 +430,41 @@ bool imb_addrectImBuf(ImBuf *ibuf)
   return false;
 }
 
+/**
+ * \param take_ownership: When true, the buffers become owned by the resulting image.
+ */
+struct ImBuf *IMB_allocFromBufferOwn(
+    unsigned int *rect, float *rectf, unsigned int w, unsigned int h, unsigned int channels)
+{
+  ImBuf *ibuf = NULL;
+
+  if (!(rect || rectf)) {
+    return NULL;
+  }
+
+  ibuf = IMB_allocImBuf(w, h, 32, 0);
+
+  ibuf->channels = channels;
+
+  /* Avoid #MEM_dupallocN since the buffers might not be allocated using guarded-allocation. */
+  if (rectf) {
+    BLI_assert(MEM_allocN_len(rectf) == sizeof(float[4]) * w * h);
+    ibuf->rect_float = rectf;
+
+    ibuf->flags |= IB_rectfloat;
+    ibuf->mall |= IB_rectfloat;
+  }
+  if (rect) {
+    BLI_assert(MEM_allocN_len(rect) == sizeof(uchar[4]) * w * h);
+    ibuf->rect = rect;
+
+    ibuf->flags |= IB_rect;
+    ibuf->mall |= IB_rect;
+  }
+
+  return ibuf;
+}
+
 struct ImBuf *IMB_allocFromBuffer(const unsigned int *rect,
                                   const float *rectf,
                                   unsigned int w,
@@ -445,13 +480,21 @@ struct ImBuf *IMB_allocFromBuffer(const unsigned int *rect,
   ibuf = IMB_allocImBuf(w, h, 32, 0);
 
   ibuf->channels = channels;
+
+  /* Avoid #MEM_dupallocN since the buffers might not be allocated using guarded-allocation. */
   if (rectf) {
-    ibuf->rect_float = MEM_dupallocN(rectf);
+    const size_t size = sizeof(float[4]) * w * h;
+    ibuf->rect_float = MEM_mallocN(size, __func__);
+    memcpy(ibuf->rect_float, rectf, size);
+
     ibuf->flags |= IB_rectfloat;
     ibuf->mall |= IB_rectfloat;
   }
   if (rect) {
-    ibuf->rect = MEM_dupallocN(rect);
+    const size_t size = sizeof(uchar[4]) * w * h;
+    ibuf->rect = MEM_mallocN(size, __func__);
+    memcpy(ibuf->rect, rect, size);
+
     ibuf->flags |= IB_rect;
     ibuf->mall |= IB_rect;
   }

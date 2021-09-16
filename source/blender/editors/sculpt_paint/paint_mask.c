@@ -1327,6 +1327,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                                               sculpt_mesh);
     BM_mesh_free(bm);
     result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+    BKE_mesh_normals_tag_dirty(result);
     BKE_mesh_nomain_to_mesh(
         result, sgcontext->vc.obact->data, sgcontext->vc.obact, &CD_MASK_MESH, true);
   }

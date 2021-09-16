@@ -35,6 +35,8 @@
 
 #include "GHOST_C-api.h"
 
+#include "GPU_platform.h"
+
 #include "WM_api.h"
 
 #include "wm_surface.h"
@@ -91,6 +93,11 @@ bool wm_xr_init(wmWindowManager *wm)
     if (G.debug & G_DEBUG_XR_TIME) {
       create_info.context_flag |= GHOST_kXrContextDebugTime;
     }
+#ifdef WIN32
+    if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+      create_info.context_flag |= GHOST_kXrContextGpuNVIDIA;
+    }
+#endif
 
     if (!(context = GHOST_XrContextCreate(&create_info))) {
       return false;

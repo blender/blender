@@ -634,7 +634,7 @@ void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv)
 
   PreviewImage prv_copy = *prv;
   /* don't write out large previews if not requested */
-  if (!(U.flag & USER_SAVE_PREVIEWS)) {
+  if (U.file_preview_type == USER_FILE_PREVIEW_NONE) {
     prv_copy.w[1] = 0;
     prv_copy.h[1] = 0;
     prv_copy.rect[1] = nullptr;

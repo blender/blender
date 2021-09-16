@@ -127,4 +127,62 @@ bool ConvolutionFilterOperation::determineDependingAreaOfInterest(
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
+void ConvolutionFilterOperation::get_area_of_interest(const int input_idx,
+                                                      const rcti &output_area,
+                                                      rcti &r_input_area)
+{
+  switch (input_idx) {
+    case IMAGE_INPUT_INDEX: {
+      const int add_x = (m_filterWidth - 1) / 2 + 1;
+      const int add_y = (m_filterHeight - 1) / 2 + 1;
+      r_input_area.xmin = output_area.xmin - add_x;
+      r_input_area.xmax = output_area.xmax + add_x;
+      r_input_area.ymin = output_area.ymin - add_y;
+      r_input_area.ymax = output_area.ymax + add_y;
+      break;
+    }
+    case FACTOR_INPUT_INDEX: {
+      r_input_area = output_area;
+      break;
+    }
+  }
+}
+
+void ConvolutionFilterOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                              const rcti &area,
+                                                              Span<MemoryBuffer *> inputs)
+{
+  const MemoryBuffer *image = inputs[IMAGE_INPUT_INDEX];
+  const int last_x = getWidth() - 1;
+  const int last_y = getHeight() - 1;
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const int left_offset = (it.x == 0) ? 0 : -image->elem_stride;
+    const int right_offset = (it.x == last_x) ? 0 : image->elem_stride;
+    const int down_offset = (it.y == 0) ? 0 : -image->row_stride;
+    const int up_offset = (it.y == last_y) ? 0 : image->row_stride;
+
+    const float *center_color = it.in(IMAGE_INPUT_INDEX);
+    zero_v4(it.out);
+    madd_v4_v4fl(it.out, center_color + down_offset + left_offset, m_filter[0]);
+    madd_v4_v4fl(it.out, center_color + down_offset, m_filter[1]);
+    madd_v4_v4fl(it.out, center_color + down_offset + right_offset, m_filter[2]);
+    madd_v4_v4fl(it.out, center_color + left_offset, m_filter[3]);
+    madd_v4_v4fl(it.out, center_color, m_filter[4]);
+    madd_v4_v4fl(it.out, center_color + right_offset, m_filter[5]);
+    madd_v4_v4fl(it.out, center_color + up_offset + left_offset, m_filter[6]);
+    madd_v4_v4fl(it.out, center_color + up_offset, m_filter[7]);
+    madd_v4_v4fl(it.out, center_color + up_offset + right_offset, m_filter[8]);
+
+    const float factor = *it.in(FACTOR_INPUT_INDEX);
+    const float m_factor = 1.0f - factor;
+    it.out[0] = it.out[0] * factor + center_color[0] * m_factor;
+    it.out[1] = it.out[1] * factor + center_color[1] * m_factor;
+    it.out[2] = it.out[2] * factor + center_color[2] * m_factor;
+    it.out[3] = it.out[3] * factor + center_color[3] * m_factor;
+
+    /* Make sure we don't return negative color. */
+    CLAMP4_MIN(it.out, 0.0f);
+  }
+}
+
 }  // namespace blender::compositor

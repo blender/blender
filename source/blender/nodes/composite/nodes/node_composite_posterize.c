@@ -16,32 +16,31 @@
  * The Original Code is Copyright (C) 2021 Blender Foundation.
  * All rights reserved.
  */
-#pragma once
 
-#include "usd_reader_xform.h"
+/** \file
+ * \ingroup cmpnodes
+ */
 
-#include <pxr/usd/usdGeom/xform.h>
+#include "node_composite_util.h"
 
-struct Collection;
+/* **************** Posterize ******************** */
 
-namespace blender::io::usd {
-
-/* Wraps the UsdGeomXform schema. Creates a Blender Empty object. */
-
-class USDInstanceReader : public USDXformReader {
-
- public:
-  USDInstanceReader(const pxr::UsdPrim &prim,
-                    const USDImportParams &import_params,
-                    const ImportSettings &settings);
-
-  bool valid() const override;
-
-  void create_object(Main *bmain, double motionSampleTime) override;
-
-  void set_instance_collection(Collection *coll);
-
-  pxr::SdfPath proto_path() const;
+static bNodeSocketTemplate cmp_node_posterize_in[] = {
+    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {SOCK_FLOAT, N_("Steps"), 8.0f, 8.0f, 8.0f, 8.0f, 2.0f, 1024.0f, PROP_NONE},
+    {-1, ""},
+};
+static bNodeSocketTemplate cmp_node_posterize_out[] = {
+    {SOCK_RGBA, N_("Image")},
+    {-1, ""},
 };
 
-}  // namespace blender::io::usd
+void register_node_type_cmp_posterize(void)
+{
+  static bNodeType ntype;
+
+  cmp_node_type_base(&ntype, CMP_NODE_POSTERIZE, "Posterize", NODE_CLASS_OP_COLOR, 0);
+  node_type_socket_templates(&ntype, cmp_node_posterize_in, cmp_node_posterize_out);
+
+  nodeRegisterType(&ntype);
+}

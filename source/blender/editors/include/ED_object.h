@@ -287,6 +287,7 @@ float ED_object_new_primitive_matrix(struct bContext *C,
                                      struct Object *obedit,
                                      const float loc[3],
                                      const float rot[3],
+                                     const float scale[3],
                                      float primmat[4][4]);
 
 /* Avoid allowing too much insane values even by typing

@@ -45,7 +45,6 @@ class ABCGenericMeshWriter : public ABCAbstractWriter {
    * exported object. */
   bool is_subd_;
   ModifierData *subsurf_modifier_;
-  ModifierData *liquid_sim_modifier_;
 
   CDStreamConfig m_custom_data_config;
 
@@ -70,10 +69,8 @@ class ABCGenericMeshWriter : public ABCAbstractWriter {
   void write_subd(HierarchyContext &context, Mesh *mesh);
   template<typename Schema> void write_face_sets(Object *object, Mesh *mesh, Schema &schema);
 
-  ModifierData *get_liquid_sim_modifier(Scene *scene_eval, Object *ob_eval);
-
   void write_arb_geo_params(Mesh *me);
-  void get_velocities(Mesh *mesh, std::vector<Imath::V3f> &vels);
+  bool get_velocities(Mesh *mesh, std::vector<Imath::V3f> &vels);
   void get_geo_groups(Object *object,
                       Mesh *mesh,
                       std::map<std::string, std::vector<int32_t>> &geo_groups);

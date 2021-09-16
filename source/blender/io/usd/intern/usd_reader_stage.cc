@@ -20,7 +20,6 @@
 #include "usd_reader_stage.h"
 #include "usd_reader_camera.h"
 #include "usd_reader_curve.h"
-#include "usd_reader_instance.h"
 #include "usd_reader_light.h"
 #include "usd_reader_mesh.h"
 #include "usd_reader_nurbs.h"
@@ -34,6 +33,7 @@
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/nurbsCurves.h>
 #include <pxr/usd/usdGeom/scope.h>
+#include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdLux/light.h>
 
 #include <iostream>

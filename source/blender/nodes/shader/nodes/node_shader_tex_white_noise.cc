@@ -37,25 +37,23 @@ static void node_shader_init_tex_white_noise(bNodeTree *UNUSED(ntree), bNode *no
   node->custom1 = 3;
 }
 
+static const char *gpu_shader_get_name(const int dimensions)
+{
+  BLI_assert(dimensions >= 1 && dimensions <= 4);
+  return std::array{"node_white_noise_1d",
+                    "node_white_noise_2d",
+                    "node_white_noise_3d",
+                    "node_white_noise_4d"}[dimensions - 1];
+}
+
 static int gpu_shader_tex_white_noise(GPUMaterial *mat,
                                       bNode *node,
                                       bNodeExecData *UNUSED(execdata),
                                       GPUNodeStack *in,
                                       GPUNodeStack *out)
 {
-  static const char *names[] = {
-      "",
-      "node_white_noise_1d",
-      "node_white_noise_2d",
-      "node_white_noise_3d",
-      "node_white_noise_4d",
-  };
-
-  if (node->custom1 < ARRAY_SIZE(names) && names[node->custom1]) {
-    return GPU_stack_link(mat, node, names[node->custom1], in, out);
-  }
-
-  return 0;
+  const char *name = gpu_shader_get_name(node->custom1);
+  return GPU_stack_link(mat, node, name, in, out);
 }
 
 static void node_shader_update_tex_white_noise(bNodeTree *UNUSED(ntree), bNode *node)

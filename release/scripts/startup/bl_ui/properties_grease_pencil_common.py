@@ -85,9 +85,6 @@ class GreasePencilSculptOptionsPanel:
             layout.prop(gp_settings, "use_edit_strength", text="Affect Strength")
             layout.prop(gp_settings, "use_edit_thickness", text="Affect Thickness")
 
-            if tool == 'SMOOTH':
-                layout.prop(gp_settings, "use_edit_pressure")
-
             layout.prop(gp_settings, "use_edit_uv", text="Affect UV")
 
 

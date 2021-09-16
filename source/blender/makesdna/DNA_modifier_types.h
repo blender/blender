@@ -1940,6 +1940,7 @@ typedef struct MeshCacheModifierData {
 
   float factor;
   char deform_mode;
+  char defgrp_name[64];
   char _pad[7];
 
   /* play_mode == MOD_MESHCACHE_PLAY_CFEA */
@@ -1955,6 +1956,11 @@ typedef struct MeshCacheModifierData {
   /** FILE_MAX. */
   char filepath[1024];
 } MeshCacheModifierData;
+
+/* MeshCache modifier flags. */
+enum {
+  MOD_MESHCACHE_INVERT_VERTEX_GROUP = 1 << 0,
+};
 
 enum {
   MOD_MESHCACHE_TYPE_MDD = 1,
@@ -2136,10 +2142,6 @@ enum {
   MOD_NORMALEDIT_MIX_MUL = 3,
 };
 
-typedef struct MeshCacheVertexVelocity {
-  float vel[3];
-} MeshCacheVertexVelocity;
-
 typedef struct MeshSeqCacheModifierData {
   ModifierData modifier;
 
@@ -2155,25 +2157,6 @@ typedef struct MeshSeqCacheModifierData {
   /* Runtime. */
   struct CacheReader *reader;
   char reader_object_path[1024];
-
-  /* Vertex velocities read from the cache. The velocities are not automatically read during
-   * modifier execution, and therefore have to manually be read when needed. This is only used
-   * through the RNA for now. */
-  struct MeshCacheVertexVelocity *vertex_velocities;
-
-  /* The number of vertices of the Alembic mesh, set when the modifier is executed. */
-  int num_vertices;
-
-  /* Time (in frames or seconds) between two velocity samples. Automatically computed to
-   * scale the velocity vectors at render time for generating proper motion blur data. */
-  float velocity_delta;
-
-  /* Caches the scene time (in seconds) used to lookup data in the Alembic archive when the
-   * modifier was last executed. Used to access Alembic samples through the RNA. */
-  float last_lookup_time;
-
-  int _pad1;
-  void *_pad2;
 } MeshSeqCacheModifierData;
 
 /* MeshSeqCacheModifierData.read_flag */

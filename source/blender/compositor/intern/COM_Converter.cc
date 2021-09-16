@@ -90,6 +90,7 @@
 #include "COM_OutputFileNode.h"
 #include "COM_PixelateNode.h"
 #include "COM_PlaneTrackDeformNode.h"
+#include "COM_PosterizeNode.h"
 #include "COM_RenderLayersNode.h"
 #include "COM_RotateNode.h"
 #include "COM_ScaleNode.h"
@@ -423,6 +424,9 @@ Node *COM_convert_bnode(bNode *b_node)
       break;
     case CMP_NODE_ANTIALIASING:
       node = new AntiAliasingNode(b_node);
+      break;
+    case CMP_NODE_POSTERIZE:
+      node = new PosterizeNode(b_node);
       break;
   }
   return node;

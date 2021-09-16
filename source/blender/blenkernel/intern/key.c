@@ -212,7 +212,7 @@ IDTypeInfo IDType_ID_KE = {
     .name = "Key",
     .name_plural = "shape_keys",
     .translation_context = BLT_I18NCONTEXT_ID_SHAPEKEY,
-    .flags = IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_MAKELOCAL,
+    .flags = IDTYPE_FLAGS_NO_LIBLINKING,
 
     .init_data = NULL,
     .copy_data = shapekey_copy_data,

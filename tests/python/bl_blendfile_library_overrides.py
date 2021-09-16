@@ -208,7 +208,7 @@ def main():
     args = argparse_create().parse_args()
 
     # Don't write thumbnails into the home directory.
-    bpy.context.preferences.filepaths.use_save_preview_images = False
+    bpy.context.preferences.filepaths.file_preview_type = 'NONE'
     bpy.context.preferences.experimental.use_override_templates = True
 
     for Test in TESTS:

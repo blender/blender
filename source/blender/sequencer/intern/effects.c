@@ -3188,7 +3188,7 @@ float seq_speed_effect_target_frame_get(Scene *scene,
     case SEQ_SPEED_STRETCH: {
       /* Only right handle controls effect speed! */
       const float target_content_length = seq_effect_speed_get_strip_content_length(source) -
-                                  source->startofs;
+                                          source->startofs;
       const float speed_effetct_length = seq_speed->enddisp - seq_speed->startdisp;
       const float ratio = frame_index / speed_effetct_length;
       target_frame = target_content_length * ratio;

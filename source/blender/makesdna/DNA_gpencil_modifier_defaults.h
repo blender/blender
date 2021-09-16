@@ -304,7 +304,7 @@
     .opacity = 1.0f, \
     .flags = LRT_GPENCIL_MATCH_OUTPUT_VGROUP, \
     .crease_threshold = DEG2RAD(140.0f), \
-    .calculation_flags = LRT_ALLOW_DUPLI_OBJECTS | LRT_ALLOW_CLIPPING_BOUNDARIES, \
+    .calculation_flags = LRT_ALLOW_DUPLI_OBJECTS | LRT_ALLOW_CLIPPING_BOUNDARIES | LRT_USE_CREASE_ON_SHARP_EDGES, \
     .angle_splitting_threshold = DEG2RAD(60.0f), \
     .chaining_image_threshold = 0.001f, \
     .overscan = 0.1f,\
@@ -317,6 +317,24 @@
     .overshoot_fac = 0.01f,\
     .pass_index = 0,\
     .material = NULL,\
+  }
+
+#define _DNA_DEFAULT_DashGpencilModifierData \
+  { \
+    .dash_offset = 0, \
+    .segments = NULL, \
+    .segments_len = 1, \
+    .segment_active_index = 0, \
+  }
+
+#define _DNA_DEFAULT_DashGpencilModifierSegment \
+  { \
+    .name = "", \
+    .dash = 2, \
+    .gap = 1, \
+    .radius = 1.0f, \
+    .opacity = 1.0f, \
+    .mat_nr = -1, \
   }
 
 

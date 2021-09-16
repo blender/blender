@@ -3749,7 +3749,7 @@ wmKeyMap *WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
     const char *keymap_id = NULL;
 
     /* Support for the gizmo owning the tool keymap. */
-    if (tref_rt->gizmo_group[0] != '\0' && tref_rt->keymap_fallback[0] != '\n') {
+    if (tref_rt->gizmo_group[0] != '\0' && tref_rt->keymap_fallback[0] != '\0') {
       wmGizmoMap *gzmap = NULL;
       wmGizmoGroup *gzgroup = NULL;
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {

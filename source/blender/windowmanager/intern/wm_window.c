@@ -808,16 +808,17 @@ wmWindow *WM_window_open(bContext *C,
   /* changes rect to fit within desktop */
   wm_window_check_size(&rect);
 
-  /* Reuse temporary windows when they share the same title. */
+  /* Reuse temporary windows when they share the same single area. */
   wmWindow *win = NULL;
   if (temp) {
     LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
-      if (WM_window_is_temp_screen(win_iter)) {
-        char *wintitle = GHOST_GetTitle(win_iter->ghostwin);
-        if (STREQ(title, wintitle)) {
+      const bScreen *screen = WM_window_get_active_screen(win_iter);
+      if (screen && screen->temp && BLI_listbase_is_single(&screen->areabase)) {
+        ScrArea *area = screen->areabase.first;
+        if (space_type == (area->butspacetype ? area->butspacetype : area->spacetype)) {
           win = win_iter;
+          break;
         }
-        free(wintitle);
       }
     }
   }

@@ -31,7 +31,11 @@ static void geo_node_mix_attribute_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
   b.add_input<decl::String>("Factor");
-  b.add_input<decl::Float>("Factor").default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Factor", "Factor_001")
+      .default_value(0.5f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
   b.add_input<decl::String>("A");
   b.add_input<decl::Float>("A", "A_001");
   b.add_input<decl::Vector>("A", "A_002");
@@ -239,7 +243,8 @@ static void geo_node_attribute_mix_exec(GeoNodeExecParams params)
 void register_node_type_geo_attribute_mix()
 {
   static bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_ATTRIBUTE_MIX, "Attribute Mix", NODE_CLASS_ATTRIBUTE, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_LEGACY_ATTRIBUTE_MIX, "Attribute Mix", NODE_CLASS_ATTRIBUTE, 0);
   node_type_init(&ntype, blender::nodes::geo_node_attribute_mix_init);
   node_type_update(&ntype, blender::nodes::geo_node_attribute_mix_update);
   ntype.declare = blender::nodes::geo_node_mix_attribute_declare;

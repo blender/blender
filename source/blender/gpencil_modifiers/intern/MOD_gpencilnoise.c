@@ -324,7 +324,7 @@ static void random_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetActive(layout, RNA_boolean_get(ptr, "random"));
+  uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_random"));
 
   uiItemR(layout, ptr, "step", 0, NULL, ICON_NONE);
 }
