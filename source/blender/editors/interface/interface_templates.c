@@ -674,7 +674,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         }
         else {
           if (BKE_lib_id_make_local(bmain, id, 0)) {
-            BKE_main_id_newptr_and_tag_clear(bmain);
+            BKE_id_newptr_and_tag_clear(id);
 
             /* Reassign to get proper updates/notifiers. */
             idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
