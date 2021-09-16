@@ -1058,6 +1058,10 @@ static bool region_azone_edge_poll(const ARegion *region, const bool is_fullscre
     return false;
   }
 
+  if (is_hidden && (U.app_flag & USER_APP_HIDE_REGION_TOGGLE)) {
+    return false;
+  }
+
   return true;
 }
 

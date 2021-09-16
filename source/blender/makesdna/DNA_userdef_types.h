@@ -1136,6 +1136,7 @@ typedef enum eUserpref_TableAPI {
 /** #UserDef.app_flag */
 typedef enum eUserpref_APP_Flag {
   USER_APP_LOCK_CORNER_SPLIT = (1 << 0),
+  USER_APP_HIDE_REGION_TOGGLE = (1 << 1),
 } eUserpref_APP_Flag;
 
 /** #UserDef.statusbar_flag */
