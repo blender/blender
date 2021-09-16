@@ -520,6 +520,7 @@ static IDProperty *idp_from_PySequence_Fast(const char *name, PyObject *ob)
       for (i = 0; i < val.array.len; i++) {
         item = ob_seq_fast_items[i];
         if (((prop_data[i] = PyFloat_AsDouble(item)) == -1.0) && PyErr_Occurred()) {
+          IDP_FreeProperty(prop);
           return NULL;
         }
       }
@@ -532,6 +533,7 @@ static IDProperty *idp_from_PySequence_Fast(const char *name, PyObject *ob)
       for (i = 0; i < val.array.len; i++) {
         item = ob_seq_fast_items[i];
         if (((prop_data[i] = PyC_Long_AsI32(item)) == -1) && PyErr_Occurred()) {
+          IDP_FreeProperty(prop);
           return NULL;
         }
       }
@@ -542,6 +544,7 @@ static IDProperty *idp_from_PySequence_Fast(const char *name, PyObject *ob)
       for (i = 0; i < val.array.len; i++) {
         item = ob_seq_fast_items[i];
         if (BPy_IDProperty_Map_ValidateAndCreate(NULL, prop, item) == false) {
+          IDP_FreeProperty(prop);
           return NULL;
         }
       }
