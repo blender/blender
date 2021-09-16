@@ -98,7 +98,7 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
     .name = "LinkPlaceholder",
     .name_plural = "link_placeholders",
     .translation_context = BLT_I18NCONTEXT_ID_ID,
-    .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_MAKELOCAL,
+    .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING,
 
     .init_data = NULL,
     .copy_data = NULL,
@@ -496,7 +496,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
   const IDTypeInfo *idtype_info = BKE_idtype_get_info_from_id(id);
 
   if (idtype_info != NULL) {
-    if ((idtype_info->flags & IDTYPE_FLAGS_NO_MAKELOCAL) == 0) {
+    if ((idtype_info->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0) {
       if (!test) {
         if (idtype_info->make_local != NULL) {
           idtype_info->make_local(bmain, id, flags);
