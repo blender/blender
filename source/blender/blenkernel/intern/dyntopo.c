@@ -5774,6 +5774,8 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
       continue;
     }
 
+    int _i = 0;
+
     do {
       if (!l) {
         printf("error 1 %s\n", __func__);
@@ -5781,6 +5783,8 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
       }
 
       BMLoop *l2 = l->f->l_first;
+      int _j = 0;
+
       do {
         if (!l2->e) {
           printf("error2 %s\n", __func__);
@@ -5792,7 +5796,19 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
         MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l2->v);
         mv->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
+
+        if (_j > 10000) {
+          printf("infinite loop error 1\n");
+          fix_mesh(pbvh, pbvh->bm);
+          return;
+        }
       } while ((l2 = l2->next) != l->f->l_first);
+
+      if (_i++ > 1000) {
+        printf("infinite loop error 2\n");
+        fix_mesh(pbvh, pbvh->bm);
+        return;
+      }
 
       l->f->head.hflag &= ~SPLIT_TAG;
     } while ((l = l->radial_next) != e->l);

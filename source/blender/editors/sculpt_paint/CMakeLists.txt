@@ -84,6 +84,8 @@ set(SRC
   sculpt.cc
   sculpt.hh
 
+  sculpt_brush_machine.c
+
   paint_intern.h
   sculpt_intern.h
 )

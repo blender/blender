@@ -433,7 +433,7 @@ void SCULPT_neighbor_coords_average_interior_velocity(SculptSession *ss,
   }
 }
 
-static int closest_vec_to_perp(float dir[3], float r_dir2[3], float no[3], float *buckets, float w)
+int closest_vec_to_perp(float dir[3], float r_dir2[3], float no[3], float *buckets, float w)
 {
   int bits = 0;
 
@@ -461,7 +461,7 @@ static int closest_vec_to_perp(float dir[3], float r_dir2[3], float no[3], float
   return bits;
 }
 
-static void vec_transform(float r_dir2[3], float no[3], int bits)
+void vec_transform(float r_dir2[3], float no[3], int bits)
 {
   if (bits & 4) {
     float dir4[3];

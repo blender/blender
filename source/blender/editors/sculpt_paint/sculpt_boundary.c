@@ -1212,9 +1212,12 @@ static bool sculpt_walk_scalar_field(SculptSession *ss,
   return true;
 }
 
-static Object *get_vis_object(SculptSession *ss, char *name)
+Object *sculpt_get_vis_object(bContext *C, SculptSession *ss, char *name)
 {
-  bContext *C = ss->cache->C;
+  if (!C) {
+    C = ss->cache->C;
+  }
+
   Scene *scene = CTX_data_scene(C);
   ViewLayer *vlayer = CTX_data_view_layer(C);
   Main *bmain = CTX_data_main(C);
@@ -1254,9 +1257,12 @@ static Object *get_vis_object(SculptSession *ss, char *name)
   return ob;
 }
 
-static void end_vis_object(SculptSession *ss, Object *ob, BMesh *bm)
+void sculpt_end_vis_object(bContext *C, SculptSession *ss, Object *ob, BMesh *bm)
 {
-  bContext *C = ss->cache->C;
+  if (!C) {
+    C = ss->cache->C;
+  }
+
   Scene *scene = CTX_data_scene(C);
   ViewLayer *vlayer = CTX_data_view_layer(C);
   Main *bmain = CTX_data_main(C);

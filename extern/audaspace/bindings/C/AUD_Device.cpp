@@ -221,7 +221,7 @@ AUD_API void AUD_Device_setListenerVelocity(AUD_Device* device, const float valu
 AUD_API double AUD_Device_getRate(AUD_Device* device)
 {
 	auto dev = device ? *device : DeviceManager::getDevice();
-	return dev->getSpecs().rate;
+	return dev ? dev->getSpecs().rate : 0.0;
 }
 
 AUD_API float AUD_Device_getSpeedOfSound(AUD_Device* device)

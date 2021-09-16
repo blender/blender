@@ -1,8 +1,6 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#define WITH_OMP
-
 /* Workaround a bug in boost 1.68, until we upgrade to a newer version. */
 #if defined(__clang__) && defined(WIN32)
   #include <boost/type_traits/is_assignable.hpp>

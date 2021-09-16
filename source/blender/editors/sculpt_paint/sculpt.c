@@ -24,13 +24,18 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
 #include "BLI_hash.h"
+#include "BLI_link_utils.h"
+#include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 #include "atomic_ops.h"
@@ -41,6 +46,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
+#include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
@@ -11694,6 +11700,308 @@ int SCULPT_vertex_valence_get(const struct SculptSession *ss, SculptVertRef vert
   return tot;
 }
 
+typedef struct BMLinkItem {
+  struct BMLinkItem *next, *prev;
+  BMVert *item;
+  int depth;
+} BMLinkItem;
+
+ATTR_NO_OPT static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+
+  Object *sculpt_get_vis_object(bContext * C, SculptSession * ss, char *name);
+  void sculpt_end_vis_object(bContext * C, SculptSession * ss, Object * ob, BMesh * bm);
+
+  Object *visob = sculpt_get_vis_object(C, ss, "rakevis");
+  BMesh *visbm = BM_mesh_create(
+      &bm_mesh_allocsize_default,
+      &((struct BMeshCreateParams){.create_unique_ids = false, .use_toolflags = false}));
+
+  if (!ss) {
+    printf("mising sculpt session\n");
+    return OPERATOR_CANCELLED;
+  }
+  if (!ss->bm) {
+    printf("bmesh only!\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  BMesh *bm = ss->bm;
+  BMIter iter;
+  BMVert *v;
+
+  PBVHNode **nodes = NULL;
+  int totnode;
+
+  int idx = CustomData_get_named_layer_index(&bm->vdata, CD_PROP_COLOR, "_rake_temp");
+  if (idx < 0) {
+    printf("no rake temp\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  int cd_vcol = bm->vdata.layers[idx].offset;
+  int cd_vcol_vis = -1;
+
+  idx = CustomData_get_named_layer_index(&bm->vdata, CD_PROP_COLOR, "_rake_vis");
+  if (idx >= 0) {
+    cd_vcol_vis = bm->vdata.layers[idx].offset;
+  }
+
+  for (int step = 0; step < 33; step++) {
+    BLI_mempool *nodepool = BLI_mempool_create(sizeof(BMLinkItem), bm->totvert, 4196, 0);
+
+    BKE_pbvh_get_nodes(ss->pbvh, PBVH_Leaf, &nodes, &totnode);
+
+    SCULPT_undo_push_begin(ob, "Regularized Rake Directions");
+    for (int i = 0; i < totnode; i++) {
+      SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR, -1);
+      BKE_pbvh_node_mark_update_color(nodes[i]);
+    }
+    SCULPT_undo_push_end();
+
+    MEM_SAFE_FREE(nodes);
+
+    BMVert **stack = NULL;
+    BLI_array_declare(stack);
+
+    bm->elem_index_dirty |= BM_VERT;
+    BM_mesh_elem_index_ensure(bm, BM_VERT);
+
+    BLI_bitmap *visit = BLI_BITMAP_NEW(bm->totvert, "regularize rake visit bitmap");
+
+    BMVert **verts = MEM_malloc_arrayN(bm->totvert, sizeof(*verts), "verts");
+    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+      verts[v->head.index] = v;
+      v->head.hflag &= ~BM_ELEM_SELECT;
+    }
+
+    RNG *rng = BLI_rng_new((uint)BLI_thread_rand(0));
+    BLI_rng_shuffle_array(rng, verts, sizeof(void *), bm->totvert);
+
+    for (int i = 0; i < bm->totvert; i++) {
+      BMVert *v = verts[i];
+
+      MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+      if (mv->flag &
+          (DYNVERT_CORNER | DYNVERT_FSET_CORNER | DYNVERT_SHARP_CORNER | DYNVERT_SEAM_CORNER)) {
+        continue;
+      }
+
+      if (BLI_BITMAP_TEST(visit, v->head.index)) {
+        continue;
+      }
+
+      // v->head.hflag |= BM_ELEM_SELECT;
+
+      float *dir = BM_ELEM_CD_GET_VOID_P(v, cd_vcol);
+      normalize_v3(dir);
+
+      BMLinkItem *node = BLI_mempool_alloc(nodepool);
+      node->next = node->prev = NULL;
+      node->item = v;
+      node->depth = 0;
+
+      BLI_BITMAP_SET(visit, v->head.index, true);
+
+      ListBase queue = {node, node};
+      const int boundflag = DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY | DYNVERT_SEAM_BOUNDARY |
+                            DYNVERT_SHARP_BOUNDARY;
+      while (queue.first) {
+        BMLinkItem *node2 = BLI_poptail(&queue);
+        BMVert *v2 = node2->item;
+
+        float *dir2 = BM_ELEM_CD_GET_VOID_P(v2, cd_vcol);
+
+        if (cd_vcol_vis >= 0) {
+          float *color = BM_ELEM_CD_GET_VOID_P(v2, cd_vcol_vis);
+          color[0] = color[1] = color[2] = (float)(node2->depth % 5) / 5.0f;
+          color[3] = 1.0f;
+        }
+
+        if (step % 5 != 0 && node2->depth > 15) {
+          // break;
+        }
+        // dir2[0] = dir2[1] = dir2[2] = (float)(node2->depth % 5) / 5.0f;
+        // dir2[3] = 1.0f;
+
+        BMIter viter;
+        BMEdge *e;
+
+        int closest_vec_to_perp(
+            float dir[3], float r_dir2[3], float no[3], float *buckets, float w);
+
+        float buckets[8] = {0};
+        float tmp[3];
+        float dir32[3];
+        float avg[3] = {0.0f};
+        float tot = 0.0f;
+
+        // angle_on_axis_v3v3v3_v3
+        float tco[3];
+        zero_v3(tco);
+        add_v3_fl(tco, 1000.0f);
+        // madd_v3_v3fl(tco, v2->no, -dot_v3v3(v2->no, tco));
+
+        BMLoop *l;
+
+        float tanco[3];
+        add_v3_v3v3(tanco, v2->co, dir2);
+
+        SCULPT_dyntopo_check_disk_sort(ss, (SculptVertRef){.i = (intptr_t)v2});
+
+        float thlast, thfirst;
+        float lastdir3[3];
+        float firstdir3[3];
+        bool first = true;
+        float thsum = 0.0f;
+
+        // don't propegate across singularities
+
+        BM_ITER_ELEM (e, &viter, v2, BM_EDGES_OF_VERT) {
+          // e = l->e;
+          BMVert *v3 = BM_edge_other_vert(e, v2);
+          float *dir3 = BM_ELEM_CD_GET_VOID_P(v3, cd_vcol);
+          float dir32[3];
+
+          copy_v3_v3(dir32, dir3);
+
+          if (first) {
+            first = false;
+            copy_v3_v3(firstdir3, dir32);
+          }
+          else {
+            float th = saacos(dot_v3v3(dir32, lastdir3));
+            thsum += th;
+          }
+
+          copy_v3_v3(lastdir3, dir32);
+
+          add_v3_v3(avg, dir32);
+          tot += 1.0f;
+        }
+
+        thsum += saacos(dot_v3v3(lastdir3, firstdir3));
+        bool sing = thsum >= M_PI * 0.5f;
+
+        // still apply smoothing even with singularity?
+        if (tot > 0.0f && !(mv->flag & boundflag)) {
+          mul_v3_fl(avg, 1.0 / tot);
+          interp_v3_v3v3(dir2, dir2, avg, sing ? 0.15 : 0.25);
+          normalize_v3(dir2);
+        }
+
+        if (sing) {
+          v2->head.hflag |= BM_ELEM_SELECT;
+
+          if (node2->depth == 0) {
+            continue;
+          }
+        }
+
+        BM_ITER_ELEM (e, &viter, v2, BM_EDGES_OF_VERT) {
+          BMVert *v3 = BM_edge_other_vert(e, v2);
+          float *dir3 = BM_ELEM_CD_GET_VOID_P(v3, cd_vcol);
+
+          if (BLI_BITMAP_TEST(visit, v3->head.index)) {
+            continue;
+          }
+
+          copy_v3_v3(dir32, dir3);
+          madd_v3_v3fl(dir32, v2->no, -dot_v3v3(dir3, v2->no));
+          normalize_v3(dir32);
+
+          if (dot_v3v3(dir32, dir2) < 0) {
+            negate_v3(dir32);
+          }
+
+          cross_v3_v3v3(tmp, dir32, v2->no);
+          normalize_v3(tmp);
+
+          if (dot_v3v3(tmp, dir2) < 0) {
+            negate_v3(tmp);
+          }
+
+          float th1 = fabsf(saacos(dot_v3v3(dir2, dir32)));
+          float th2 = fabsf(saacos(dot_v3v3(dir2, tmp)));
+
+          if (th2 < th1) {
+            copy_v3_v3(dir32, tmp);
+          }
+
+          madd_v3_v3fl(dir32, v3->no, -dot_v3v3(dir32, v3->no));
+          normalize_v3(dir32);
+          copy_v3_v3(dir3, dir32);
+
+          // int bits = closest_vec_to_perp(dir2, dir32, v2->no, buckets, 1.0f);
+
+          MDynTopoVert *mv3 = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v3);
+          if (mv3->flag & boundflag) {
+            // continue;
+          }
+
+          BLI_BITMAP_SET(visit, v3->head.index, true);
+
+          BMLinkItem *node3 = BLI_mempool_alloc(nodepool);
+          node3->next = node3->prev = NULL;
+          node3->item = v3;
+          node3->depth = node2->depth + 1;
+
+          BLI_addhead(&queue, node3);
+        }
+
+        BLI_mempool_free(nodepool, node2);
+      }
+    }
+
+    MEM_SAFE_FREE(verts);
+    BLI_array_free(stack);
+    BLI_mempool_destroy(nodepool);
+    MEM_SAFE_FREE(visit);
+  }
+
+  BMVert *v3;
+  BM_ITER_MESH (v3, &iter, bm, BM_VERTS_OF_MESH) {
+    float visco[3];
+    float *dir3 = BM_ELEM_CD_GET_VOID_P(v3, cd_vcol);
+
+    madd_v3_v3v3fl(visco, v3->co, v3->no, 0.001);
+    BMVert *vis1 = BM_vert_create(visbm, visco, NULL, BM_CREATE_NOP);
+
+    madd_v3_v3v3fl(visco, visco, dir3, 0.003);
+    BMVert *vis2 = BM_vert_create(visbm, visco, NULL, BM_CREATE_NOP);
+    BM_edge_create(visbm, vis1, vis2, NULL, BM_CREATE_NOP);
+
+    float fisco2[3];
+    float tan[3];
+    cross_v3_v3v3(tan, dir3, v3->no);
+    madd_v3_v3fl(visco, tan, 0.001);
+
+    vis1 = BM_vert_create(visbm, visco, NULL, BM_CREATE_NOP);
+    BM_edge_create(visbm, vis1, vis2, NULL, BM_CREATE_NOP);
+  }
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+
+  sculpt_end_vis_object(C, ss, visob, visbm);
+
+  return OPERATOR_FINISHED;
+}
+
+void SCULPT_OT_regularize_rake_directions(wmOperatorType *ot)
+{
+  ot->name = "Regularize Rake Directions";
+  ot->idname = "SCULPT_OT_regularize_rake_directions";
+  ot->description = "Development operator";
+
+  /* API callbacks. */
+  ot->poll = SCULPT_mode_poll;
+  ot->exec = sculpt_regularize_rake_exec;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 void ED_operatortypes_sculpt(void)
 {
   WM_operatortype_append(SCULPT_OT_brush_stroke);
@@ -11731,4 +12039,5 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_mask_init);
   WM_operatortype_append(SCULPT_OT_spatial_sort_mesh);
   WM_operatortype_append(SCULPT_OT_expand);
+  WM_operatortype_append(SCULPT_OT_regularize_rake_directions);
 }

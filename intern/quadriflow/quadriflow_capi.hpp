@@ -23,9 +23,16 @@
 extern "C" {
 #endif
 
+enum { QFLOW_CONSTRAINED = 1 };
+
+typedef struct QuadriflowFace {
+  int v[3];
+  char eflag[3];
+} QuadriflowFace;
+
 typedef struct QuadriflowRemeshData {
   float *verts;
-  int *faces;
+  QuadriflowFace *faces;
   int totfaces;
   int totverts;
 
