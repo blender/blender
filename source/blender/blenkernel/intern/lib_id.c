@@ -347,6 +347,9 @@ void BKE_id_newptr_and_tag_clear(ID *id)
   id->newid = NULL;
 
   /* Deal with embedded data too. */
+  /* NOTE: even though ShapeKeys are not technically embedded data currently, they behave as such
+   * in most cases, so for sake of consistency treat them as such here. Also mirrors the behavior
+   * in `BKE_lib_id_make_local`. */
   Key *key = BKE_key_from_id(id);
   if (key != NULL) {
     BKE_id_newptr_and_tag_clear(&key->id);
