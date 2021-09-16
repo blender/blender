@@ -484,10 +484,20 @@ static void keymap_event_set(
     kmi->shift = kmi->ctrl = kmi->alt = kmi->oskey = KM_ANY;
   }
   else {
-    kmi->shift = (modifier & KM_SHIFT) ? KM_MOD_HELD : KM_NOTHING;
-    kmi->ctrl = (modifier & KM_CTRL) ? KM_MOD_HELD : KM_NOTHING;
-    kmi->alt = (modifier & KM_ALT) ? KM_MOD_HELD : KM_NOTHING;
-    kmi->oskey = (modifier & KM_OSKEY) ? KM_MOD_HELD : KM_NOTHING;
+    /* Only one of the flags should be set. */
+    BLI_assert(((modifier & (KM_SHIFT | KM_SHIFT_ANY)) != (KM_SHIFT | KM_SHIFT_ANY)) &&
+               ((modifier & (KM_CTRL | KM_CTRL_ANY)) != (KM_CTRL | KM_CTRL_ANY)) &&
+               ((modifier & (KM_ALT | KM_ALT_ANY)) != (KM_ALT | KM_ALT_ANY)) &&
+               ((modifier & (KM_OSKEY | KM_OSKEY_ANY)) != (KM_OSKEY | KM_OSKEY_ANY)));
+
+    kmi->shift = ((modifier & KM_SHIFT) ? KM_MOD_HELD :
+                                          ((modifier & KM_SHIFT_ANY) ? KM_ANY : KM_NOTHING));
+    kmi->ctrl = ((modifier & KM_CTRL) ? KM_MOD_HELD :
+                                        ((modifier & KM_CTRL_ANY) ? KM_ANY : KM_NOTHING));
+    kmi->alt = ((modifier & KM_ALT) ? KM_MOD_HELD :
+                                      ((modifier & KM_ALT_ANY) ? KM_ANY : KM_NOTHING));
+    kmi->oskey = ((modifier & KM_OSKEY) ? KM_MOD_HELD :
+                                          ((modifier & KM_OSKEY_ANY) ? KM_ANY : KM_NOTHING));
   }
 }
 

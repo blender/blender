@@ -240,6 +240,12 @@ typedef enum eOperatorPropTags {
 #define KM_ALT 4
 #define KM_OSKEY 8
 
+/* Used for key-map item creation function arguments (never stored in DNA). */
+#define KM_SHIFT_ANY 16
+#define KM_CTRL_ANY 32
+#define KM_ALT_ANY 64
+#define KM_OSKEY_ANY 128
+
 /* KM_MOD_ flags for `wmKeyMapItem` and `wmEvent.alt/shift/oskey/ctrl`. */
 /* note that KM_ANY and KM_NOTHING are used with these defines too */
 #define KM_MOD_HELD 1
