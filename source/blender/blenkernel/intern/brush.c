@@ -161,7 +161,7 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
 
   if (brush->clone.image) {
     /* Special case: ima always local immediately. Clone image should only have one user anyway. */
-    BKE_lib_id_make_local(bmain, &brush->clone.image->id, false, 0);
+    BKE_lib_id_make_local(bmain, &brush->clone.image->id, 0);
   }
 
   if (!force_local && !force_copy) {

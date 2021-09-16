@@ -248,7 +248,7 @@ enum {
 };
 
 void BKE_lib_id_make_local_generic(struct Main *bmain, struct ID *id, const int flags);
-bool BKE_lib_id_make_local(struct Main *bmain, struct ID *id, const bool test, const int flags);
+bool BKE_lib_id_make_local(struct Main *bmain, struct ID *id, const int flags);
 bool id_single_user(struct bContext *C,
                     struct ID *id,
                     struct PointerRNA *ptr,

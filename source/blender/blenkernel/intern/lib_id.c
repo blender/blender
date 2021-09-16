@@ -480,10 +480,9 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
  *
  * \param flags: Special flag used when making a whole library's content local,
  * it needs specific handling.
- *
- * \return true if the block can be made local.
+ * \return true is the ID has successfully been made local.
  */
-bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags)
+bool BKE_lib_id_make_local(Main *bmain, ID *id, const int flags)
 {
   const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
 
@@ -495,23 +494,21 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
 
   const IDTypeInfo *idtype_info = BKE_idtype_get_info_from_id(id);
 
-  if (idtype_info != NULL) {
-    if ((idtype_info->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0) {
-      if (!test) {
-        if (idtype_info->make_local != NULL) {
-          idtype_info->make_local(bmain, id, flags);
-        }
-        else {
-          BKE_lib_id_make_local_generic(bmain, id, flags);
-        }
-      }
-      return true;
-    }
+  if (idtype_info == NULL) {
+    BLI_assert_msg(0, "IDType Missing IDTypeInfo");
     return false;
   }
 
-  BLI_assert_msg(0, "IDType Missing IDTypeInfo");
-  return false;
+  BLI_assert((idtype_info->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0);
+
+  if (idtype_info->make_local != NULL) {
+    idtype_info->make_local(bmain, id, flags);
+  }
+  else {
+    BKE_lib_id_make_local_generic(bmain, id, flags);
+  }
+
+  return true;
 }
 
 struct IDCopyLibManagementData {
@@ -2034,11 +2031,8 @@ void BKE_library_make_local(Main *bmain,
        * Note that for objects, we don't want proxy pointers to be cleared yet. This will happen
        * down the road in this function.
        */
-      BKE_lib_id_make_local(bmain,
-                            id,
-                            false,
-                            LIB_ID_MAKELOCAL_FULL_LIBRARY |
-                                LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
+      BKE_lib_id_make_local(
+          bmain, id, LIB_ID_MAKELOCAL_FULL_LIBRARY | LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
 
       if (id->newid) {
         if (GS(id->newid->name) == ID_OB) {

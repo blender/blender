@@ -691,7 +691,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     switch (item->append_action) {
       case WM_APPEND_ACT_COPY_LOCAL: {
         BKE_lib_id_make_local(
-            bmain, id, false, LIB_ID_MAKELOCAL_FULL_LIBRARY | LIB_ID_MAKELOCAL_FORCE_COPY);
+            bmain, id, LIB_ID_MAKELOCAL_FULL_LIBRARY | LIB_ID_MAKELOCAL_FORCE_COPY);
         if (id->newid != NULL) {
           if (GS(id->newid->name) == ID_OB) {
             BKE_rigidbody_ensure_local_object(bmain, (Object *)id->newid);
@@ -708,7 +708,6 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
       case WM_APPEND_ACT_MAKE_LOCAL:
         BKE_lib_id_make_local(bmain,
                               id,
-                              false,
                               LIB_ID_MAKELOCAL_FULL_LIBRARY | LIB_ID_MAKELOCAL_FORCE_LOCAL |
                                   LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
         BLI_assert(id->newid == NULL);

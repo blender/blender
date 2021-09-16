@@ -673,7 +673,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
           }
         }
         else {
-          if (BKE_lib_id_make_local(bmain, id, false, 0)) {
+          if (BKE_lib_id_make_local(bmain, id, 0)) {
             BKE_main_id_newptr_and_tag_clear(bmain);
 
             /* Reassign to get proper updates/notifiers. */
