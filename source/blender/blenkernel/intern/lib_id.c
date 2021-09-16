@@ -338,10 +338,29 @@ void id_fake_user_clear(ID *id)
 
 void BKE_id_clear_newpoin(ID *id)
 {
-  if (id->newid) {
-    id->newid->tag &= ~LIB_TAG_NEW;
+  /* We assume that if this ID has no new ID, its embedded data has not either. */
+  if (id->newid == NULL) {
+    return;
   }
+
+  id->newid->tag &= ~LIB_TAG_NEW;
   id->newid = NULL;
+
+  /* Deal with embedded data too. */
+  Key *key = BKE_key_from_id(id);
+  if (key != NULL) {
+    BKE_id_clear_newpoin(&key->id);
+  }
+  bNodeTree *ntree = ntreeFromID(id);
+  if (ntree != NULL) {
+    BKE_id_clear_newpoin(&ntree->id);
+  }
+  if (GS(id->name) == ID_SCE) {
+    Collection *master_collection = ((Scene *)id)->master_collection;
+    if (master_collection != NULL) {
+      BKE_id_clear_newpoin(&master_collection->id);
+    }
+  }
 }
 
 static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
@@ -1763,8 +1782,7 @@ void BKE_main_id_newptr_and_tag_clear(Main *bmain)
   ID *id;
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    id->newid = NULL;
-    id->tag &= ~LIB_TAG_NEW;
+    BKE_id_clear_newpoin(id);
   }
   FOREACH_MAIN_ID_END;
 }
