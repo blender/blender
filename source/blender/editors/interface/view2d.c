@@ -866,6 +866,11 @@ void UI_view2d_curRect_changed(const bContext *C, View2D *v2d)
 
 /* ------------------ */
 
+bool UI_view2d_area_supports_sync(ScrArea *area)
+{
+  return ELEM(area->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_SEQ, SPACE_CLIP, SPACE_GRAPH);
+}
+
 /* Called by menus to activate it, or by view2d operators
  * to make sure 'related' views stay in synchrony */
 void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
@@ -903,6 +908,9 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
   /* check if doing whole screen syncing (i.e. time/horizontal) */
   if ((v2dcur->flag & V2D_VIEWSYNC_SCREEN_TIME) && (screen)) {
     LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
+      if (!UI_view2d_area_supports_sync(area_iter)) {
+        continue;
+      }
       LISTBASE_FOREACH (ARegion *, region, &area_iter->regionbase) {
         /* don't operate on self */
         if (v2dcur != &region->v2d) {
