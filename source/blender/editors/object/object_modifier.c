@@ -3242,3 +3242,54 @@ void OBJECT_OT_surfacedeform_bind(wmOperatorType *ot)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Toggle Value or Attribute Operator
+ *
+ * \note This operator basically only exists to provide a better tooltip for the toggle button,
+ * since it is stored as an IDProperty. It also stops the button from being highlighted when
+ * "use_attribute" is on, which isn't expected.
+ * \{ */
+
+static int geometry_nodes_input_attribute_toggle_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_active_context(C);
+
+  char modifier_name[MAX_NAME];
+  RNA_string_get(op->ptr, "modifier_name", modifier_name);
+  NodesModifierData *nmd = (NodesModifierData *)BKE_modifiers_findby_name(ob, modifier_name);
+  if (nmd == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+
+  char prop_path[MAX_NAME];
+  RNA_string_get(op->ptr, "prop_path", prop_path);
+
+  PointerRNA mod_ptr;
+  RNA_pointer_create(&ob->id, &RNA_Modifier, nmd, &mod_ptr);
+
+  const int old_value = RNA_int_get(&mod_ptr, prop_path);
+  const int new_value = !old_value;
+  RNA_int_set(&mod_ptr, prop_path, new_value);
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_geometry_nodes_input_attribute_toggle(wmOperatorType *ot)
+{
+  ot->name = "Input Attribute Toggle";
+  ot->description =
+      "Switch between an attribute and a single value to define the data for every element";
+  ot->idname = "OBJECT_OT_geometry_nodes_input_attribute_toggle";
+
+  ot->exec = geometry_nodes_input_attribute_toggle_exec;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  RNA_def_string(ot->srna, "prop_path", NULL, 0, "Prop Path", "");
+  RNA_def_string(ot->srna, "modifier_name", NULL, MAX_NAME, "Modifier Name", "");
+}
+
+/** \} */
