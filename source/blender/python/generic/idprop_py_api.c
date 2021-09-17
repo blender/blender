@@ -533,6 +533,7 @@ static IDProperty *idp_from_PySequence_Fast(const char *name, PyObject *ob)
       for (i = 0; i < val.array.len; i++) {
         item = ob_seq_fast_items[i];
         if (((prop_data[i] = PyFloat_AsDouble(item)) == -1.0) && PyErr_Occurred()) {
+          IDP_FreeProperty(prop);
           return NULL;
         }
       }
@@ -545,6 +546,7 @@ static IDProperty *idp_from_PySequence_Fast(const char *name, PyObject *ob)
       for (i = 0; i < val.array.len; i++) {
         item = ob_seq_fast_items[i];
         if (((prop_data[i] = PyC_Long_AsI32(item)) == -1) && PyErr_Occurred()) {
+          IDP_FreeProperty(prop);
           return NULL;
         }
       }
@@ -555,6 +557,7 @@ static IDProperty *idp_from_PySequence_Fast(const char *name, PyObject *ob)
       for (i = 0; i < val.array.len; i++) {
         item = ob_seq_fast_items[i];
         if (BPy_IDProperty_Map_ValidateAndCreate(NULL, prop, item) == false) {
+          IDP_FreeProperty(prop);
           return NULL;
         }
       }
@@ -714,8 +717,12 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
       prop->next = prop_exist->next;
       prop->flag = prop_exist->flag;
 
+      /* Don't free and reset the existing property's UI data, since this only assigns a value. */
+      IDPropertyUIData *ui_data = prop_exist->ui_data;
+      prop_exist->ui_data = NULL;
       IDP_FreePropertyContent(prop_exist);
       *prop_exist = *prop;
+      prop_exist->ui_data = ui_data;
       MEM_freeN(prop);
     }
     else {

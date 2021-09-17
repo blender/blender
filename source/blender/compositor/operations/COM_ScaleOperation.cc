@@ -213,12 +213,12 @@ void ScaleAbsoluteOperation::executePixelSampled(float output[4],
   this->m_inputXOperation->readSampled(scaleX, x, y, effective_sampler);
   this->m_inputYOperation->readSampled(scaleY, x, y, effective_sampler);
 
-  const float scx = scaleX[0];  // target absolute scale
-  const float scy = scaleY[0];  // target absolute scale
+  const float scx = scaleX[0]; /* Target absolute scale. */
+  const float scy = scaleY[0]; /* Target absolute scale. */
 
   const float width = this->getWidth();
   const float height = this->getHeight();
-  // div
+  /* Divide. */
   float relativeXScale = scx / width;
   float relativeYScale = scy / height;
 
@@ -244,7 +244,7 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input,
     const float scy = scaleY[0];
     const float width = this->getWidth();
     const float height = this->getHeight();
-    // div
+    /* Divide. */
     float relateveXScale = scx / width;
     float relateveYScale = scy / height;
 

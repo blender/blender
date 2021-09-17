@@ -328,7 +328,7 @@ Span<int64_t> spreadsheet_filter_rows(const SpaceSpreadsheet &sspreadsheet,
     geometry_data_source->apply_selection_filter(rows_included);
   }
 
-  Vector<int64_t> &indices = scope.construct<Vector<int64_t>>(__func__);
+  Vector<int64_t> &indices = scope.construct<Vector<int64_t>>();
   index_vector_from_bools(rows_included, indices);
 
   return indices;

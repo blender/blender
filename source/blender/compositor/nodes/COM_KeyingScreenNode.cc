@@ -38,7 +38,7 @@ void KeyingScreenNode::convertToOperations(NodeConverter &converter,
 
   NodeOutput *outputScreen = this->getOutputSocket(0);
 
-  // always connect the output image
+  /* Always connect the output image. */
   KeyingScreenOperation *operation = new KeyingScreenOperation();
   operation->setMovieClip(clip);
   operation->setTrackingObject(keyingscreen_data->tracking_object);

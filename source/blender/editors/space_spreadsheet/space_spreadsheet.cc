@@ -270,7 +270,7 @@ Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
     return nullptr;
   }
   Object *object_orig = (Object *)used_id;
-  if (!ELEM(object_orig->type, OB_MESH, OB_POINTCLOUD, OB_VOLUME)) {
+  if (!ELEM(object_orig->type, OB_MESH, OB_POINTCLOUD, OB_VOLUME, OB_CURVE, OB_FONT)) {
     return nullptr;
   }
 
@@ -370,7 +370,7 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
     std::unique_ptr<ColumnValues> values_ptr = data_source->get_column_values(*column->id);
     /* Should have been removed before if it does not exist anymore. */
     BLI_assert(values_ptr);
-    const ColumnValues *values = scope.add(std::move(values_ptr), __func__);
+    const ColumnValues *values = scope.add(std::move(values_ptr));
     const int width = get_column_width_in_pixels(*values);
     spreadsheet_layout.columns.append({values, width});
 

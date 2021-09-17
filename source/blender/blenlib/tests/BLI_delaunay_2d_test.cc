@@ -1842,7 +1842,7 @@ void text_test(
   std::copy(b_before_arcs_in.vert.begin(), b_before_arcs_in.vert.end(), b_vert.begin());
   std::copy(b_before_arcs_in.face.begin(), b_before_arcs_in.face.end(), b_face.begin());
   if (num_arc_points > 0) {
-    b_face[0].pop_last();  // We'll add center point back between arcs for outer face.
+    b_face[0].pop_last(); /* We'll add center point back between arcs for outer face. */
     for (int arc = 0; arc < narcs; ++arc) {
       int arc_origin_vert;
       int arc_terminal_vert;

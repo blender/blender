@@ -1515,14 +1515,68 @@ static void wm_history_file_update(void)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Save Main Blend-File (internal)
+/** \name Save Main Blend-File (internal) Screen-Shot
+ *
+ * Screen-shot the active window.
+ * \{ */
+
+static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **thumb_pt)
+{
+  if (*thumb_pt) {
+    /* We are given a valid thumbnail data, so just generate image from it. */
+    return BKE_main_thumbnail_to_imbuf(NULL, *thumb_pt);
+  }
+
+  /* The window to capture should be a main window (without parent). */
+  wmWindow *win = CTX_wm_window(C);
+  while (win && win->parent) {
+    win = win->parent;
+  }
+
+  int win_size[2];
+  uint *buffer = WM_window_pixels_read(CTX_wm_manager(C), win, win_size);
+  ImBuf *ibuf = IMB_allocFromBufferOwn(buffer, NULL, win_size[0], win_size[1], 24);
+
+  if (ibuf) {
+    int ex, ey;
+    if (ibuf->x > ibuf->y) {
+      ex = BLEN_THUMB_SIZE;
+      ey = max_ii(1, (int)(((float)ibuf->y / (float)ibuf->x) * BLEN_THUMB_SIZE));
+    }
+    else {
+      ex = max_ii(1, (int)(((float)ibuf->x / (float)ibuf->y) * BLEN_THUMB_SIZE));
+      ey = BLEN_THUMB_SIZE;
+    }
+
+    /* File-system thumbnail image can be 256x256. */
+    IMB_scaleImBuf(ibuf, ex * 2, ey * 2);
+
+    /* Thumbnail inside blend should be 128x128. */
+    ImBuf *thumb_ibuf = IMB_dupImBuf(ibuf);
+    IMB_scaleImBuf(thumb_ibuf, ex, ey);
+
+    BlendThumbnail *thumb = BKE_main_thumbnail_from_imbuf(NULL, thumb_ibuf);
+    IMB_freeImBuf(thumb_ibuf);
+    *thumb_pt = thumb;
+  }
+
+  /* Must be freed by caller. */
+  return ibuf;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Save Main Blend-File (internal) Camera View
+ *
+ * Render the current scene with the active camera.
  * \{ */
 
 /* screen can be NULL */
-static ImBuf *blend_file_thumb(const bContext *C,
-                               Scene *scene,
-                               bScreen *screen,
-                               BlendThumbnail **thumb_pt)
+static ImBuf *blend_file_thumb_from_camera(const bContext *C,
+                                           Scene *scene,
+                                           bScreen *screen,
+                                           BlendThumbnail **thumb_pt)
 {
   /* will be scaled down, but gives some nice oversampling */
   ImBuf *ibuf;
@@ -1548,10 +1602,9 @@ static ImBuf *blend_file_thumb(const bContext *C,
     return NULL;
   }
 
-  if ((scene->camera == NULL) && (screen != NULL)) {
+  if (screen != NULL) {
     area = BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0);
-    region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-    if (region) {
+    if (area) {
       v3d = area->spacedata.first;
     }
   }
@@ -1570,13 +1623,14 @@ static ImBuf *blend_file_thumb(const bContext *C,
   if (scene->camera) {
     ibuf = ED_view3d_draw_offscreen_imbuf_simple(depsgraph,
                                                  scene,
-                                                 NULL,
-                                                 OB_SOLID,
+                                                 (v3d) ? &v3d->shading : NULL,
+                                                 (v3d) ? v3d->shading.type : OB_SOLID,
                                                  scene->camera,
-                                                 BLEN_THUMB_SIZE * 2,
-                                                 BLEN_THUMB_SIZE * 2,
+                                                 PREVIEW_RENDER_LARGE_HEIGHT * 2,
+                                                 PREVIEW_RENDER_LARGE_HEIGHT * 2,
                                                  IB_rect,
-                                                 V3D_OFSDRAW_NONE,
+                                                 (v3d) ? V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS :
+                                                         V3D_OFSDRAW_NONE,
                                                  R_ALPHAPREMUL,
                                                  NULL,
                                                  NULL,
@@ -1588,8 +1642,8 @@ static ImBuf *blend_file_thumb(const bContext *C,
                                           OB_SOLID,
                                           v3d,
                                           region,
-                                          BLEN_THUMB_SIZE * 2,
-                                          BLEN_THUMB_SIZE * 2,
+                                          PREVIEW_RENDER_LARGE_HEIGHT * 2,
+                                          PREVIEW_RENDER_LARGE_HEIGHT * 2,
                                           IB_rect,
                                           R_ALPHAPREMUL,
                                           NULL,
@@ -1610,8 +1664,14 @@ static ImBuf *blend_file_thumb(const bContext *C,
 
   if (ibuf) {
     /* dirty oversampling */
-    IMB_scaleImBuf(ibuf, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE);
-    thumb = BKE_main_thumbnail_from_imbuf(NULL, ibuf);
+    ImBuf *thumb_ibuf;
+    thumb_ibuf = IMB_dupImBuf(ibuf);
+    /* BLEN_THUMB_SIZE is size of thumbnail inside blend file: 128x128. */
+    IMB_scaleImBuf(thumb_ibuf, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE);
+    thumb = BKE_main_thumbnail_from_imbuf(NULL, thumb_ibuf);
+    IMB_freeImBuf(thumb_ibuf);
+    /* Thumbnail saved to file-system should be 256x256. */
+    IMB_scaleImBuf(ibuf, PREVIEW_RENDER_LARGE_HEIGHT, PREVIEW_RENDER_LARGE_HEIGHT);
   }
   else {
     /* '*thumb_pt' needs to stay NULL to prevent a bad thumbnail from being handled */
@@ -1693,13 +1753,42 @@ static bool wm_file_write(bContext *C,
   /* Enforce full override check/generation on file save. */
   BKE_lib_override_library_main_operations_create(bmain, true);
 
+  if (!G.background) {
+    /* Redraw to remove menus that might be open. */
+    WM_redraw_windows(C);
+  }
+
+  /* don't forget not to return without! */
+  WM_cursor_wait(true);
+
   /* blend file thumbnail */
   /* Save before exit_editmode, otherwise derivedmeshes for shared data corrupt T27765. */
   /* Main now can store a '.blend' thumbnail, useful for background mode
    * or thumbnail customization. */
   main_thumb = thumb = bmain->blen_thumb;
-  if ((U.flag & USER_SAVE_PREVIEWS) && BLI_thread_is_main()) {
-    ibuf_thumb = blend_file_thumb(C, CTX_data_scene(C), CTX_wm_screen(C), &thumb);
+  if (BLI_thread_is_main() && U.file_preview_type != USER_FILE_PREVIEW_NONE) {
+
+    int file_preview_type = U.file_preview_type;
+
+    if (file_preview_type == USER_FILE_PREVIEW_AUTO) {
+      Scene *scene = CTX_data_scene(C);
+      bool do_render = (scene != NULL && scene->camera != NULL &&
+                        (BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0) != NULL));
+      file_preview_type = do_render ? USER_FILE_PREVIEW_CAMERA : USER_FILE_PREVIEW_SCREENSHOT;
+    }
+
+    switch (file_preview_type) {
+      case USER_FILE_PREVIEW_SCREENSHOT: {
+        ibuf_thumb = blend_file_thumb_from_screenshot(C, &thumb);
+        break;
+      }
+      case USER_FILE_PREVIEW_CAMERA: {
+        ibuf_thumb = blend_file_thumb_from_camera(C, CTX_data_scene(C), CTX_wm_screen(C), &thumb);
+        break;
+      }
+      default:
+        BLI_assert_unreachable();
+    }
   }
 
   /* operator now handles overwrite checks */
@@ -1707,9 +1796,6 @@ static bool wm_file_write(bContext *C,
   if (G.fileflags & G_FILE_AUTOPACK) {
     BKE_packedfile_pack_all(bmain, reports, false);
   }
-
-  /* don't forget not to return without! */
-  WM_cursor_wait(true);
 
   ED_editors_flush_edits(bmain);
 

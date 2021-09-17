@@ -699,6 +699,9 @@ static int id_relink_to_newid_looper(LibraryIDLinkCallbackData *cb_data)
  *
  * Very specific usage, not sure we'll keep it on the long run,
  * currently only used in Object/Collection duplication code...
+ *
+ * WARNING: This is a deprecated version of this function, should not be used by new code. See
+ * #BKE_libblock_relink_to_newid_new below.
  */
 void BKE_libblock_relink_to_newid(ID *id)
 {
@@ -707,4 +710,54 @@ void BKE_libblock_relink_to_newid(ID *id)
   }
 
   BKE_library_foreach_ID_link(NULL, id, id_relink_to_newid_looper, NULL, 0);
+}
+
+/* ************************
+ * FIXME: Port all usages of #BKE_libblock_relink_to_newid to this
+ *        #BKE_libblock_relink_to_newid_new new code and remove old one.
+ ************************** */
+static int id_relink_to_newid_looper_new(LibraryIDLinkCallbackData *cb_data)
+{
+  const int cb_flag = cb_data->cb_flag;
+  if (cb_flag & IDWALK_CB_EMBEDDED) {
+    return IDWALK_RET_NOP;
+  }
+
+  Main *bmain = cb_data->bmain;
+  ID *id_owner = cb_data->id_owner;
+  ID **id_pointer = cb_data->id_pointer;
+  ID *id = *id_pointer;
+  if (id) {
+    /* See: NEW_ID macro */
+    if (id->newid != NULL) {
+      BKE_libblock_relink_ex(bmain, id_owner, id, id->newid, ID_REMAP_SKIP_INDIRECT_USAGE);
+      id = id->newid;
+    }
+    if (id->tag & LIB_TAG_NEW) {
+      id->tag &= ~LIB_TAG_NEW;
+      BKE_libblock_relink_to_newid_new(bmain, id);
+    }
+  }
+  return IDWALK_RET_NOP;
+}
+
+/**
+ * Remaps ID usages of given ID to their `id->newid` pointer if not None, and proceeds recursively
+ * in the dependency tree of IDs for all data-blocks tagged with `LIB_TAG_NEW`.
+ *
+ * NOTE: `LIB_TAG_NEW` is cleared
+ *
+ * Very specific usage, not sure we'll keep it on the long run,
+ * currently only used in Object/Collection duplication code...
+ */
+void BKE_libblock_relink_to_newid_new(Main *bmain, ID *id)
+{
+  if (ID_IS_LINKED(id)) {
+    return;
+  }
+  /* We do not want to have those cached relationship data here. */
+  BLI_assert(bmain->relations == NULL);
+
+  id->tag &= ~LIB_TAG_NEW;
+  BKE_library_foreach_ID_link(bmain, id, id_relink_to_newid_looper_new, NULL, 0);
 }

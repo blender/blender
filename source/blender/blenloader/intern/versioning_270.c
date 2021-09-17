@@ -291,7 +291,7 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
   }
 
   /* Make sure new sockets are properly created. */
-  node_verify_socket_templates(ntree, node);
+  node_verify_sockets(ntree, node, false);
   /* Convert value from old storage to new sockets. */
   NodeHueSat *nhs = node->storage;
   bNodeSocket *hue = nodeFindSocket(node, SOCK_IN, "Hue"),
@@ -357,7 +357,7 @@ static void do_versions_compositor_render_passes(bNodeTree *ntree)
        */
       do_versions_compositor_render_passes_storage(node);
       /* Make sure new sockets are properly created. */
-      node_verify_socket_templates(ntree, node);
+      node_verify_sockets(ntree, node, false);
       /* Make sure all possibly created sockets have proper storage. */
       do_versions_compositor_render_passes_storage(node);
     }

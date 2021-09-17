@@ -39,6 +39,7 @@
 
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
+#include "BLI_vector.hh"
 
 namespace blender {
 
@@ -221,6 +222,8 @@ class IndexMask {
   {
     return indices_.is_empty();
   }
+
+  IndexMask slice_and_offset(IndexRange slice, Vector<int64_t> &r_new_indices) const;
 };
 
 }  // namespace blender

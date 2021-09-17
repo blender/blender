@@ -95,11 +95,11 @@ constexpr DataType COM_num_channels_data_type(const int num_channels)
   }
 }
 
-// configurable items
-
-// chunk size determination
-
-// chunk order
+/* Configurable items.
+ *
+ * Chunk size determination.
+ *
+ * Chunk order. */
 /**
  * \brief The order of chunks to be scheduled
  * \ingroup Execution

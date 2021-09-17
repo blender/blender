@@ -369,35 +369,27 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
   return vfd;
 }
 
-static int check_freetypefont(PackedFile *pf)
+static bool check_freetypefont(PackedFile *pf)
 {
-  FT_Face face;
-  FT_GlyphSlot glyph;
-  FT_UInt glyph_index;
-  int success = 0;
+  FT_Face face = NULL;
+  FT_UInt glyph_index = 0;
+  bool success = false;
 
   err = FT_New_Memory_Face(library, pf->data, pf->size, 0, &face);
   if (err) {
-    success = 0;
+    return false;
     // XXX error("This is not a valid font");
   }
-  else {
-    glyph_index = FT_Get_Char_Index(face, 'A');
+
+  FT_Get_First_Char(face, &glyph_index);
+  if (glyph_index) {
     err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
-    if (err) {
-      success = 0;
-    }
-    else {
-      glyph = face->glyph;
-      if (glyph->format == ft_glyph_format_outline) {
-        success = 1;
-      }
-      else {
-        // XXX error("Selected Font has no outline data");
-        success = 0;
-      }
+    if (!err) {
+      success = (face->glyph->format == ft_glyph_format_outline);
     }
   }
+
+  FT_Done_Face(face);
 
   return success;
 }
@@ -413,7 +405,6 @@ static int check_freetypefont(PackedFile *pf)
 VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 {
   VFontData *vfd = NULL;
-  int success = 0;
 
   /* init Freetype */
   err = FT_Init_FreeType(&library);
@@ -422,9 +413,7 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
     return NULL;
   }
 
-  success = check_freetypefont(pf);
-
-  if (success) {
+  if (check_freetypefont(pf)) {
     vfd = objfnt_to_ftvfontdata(pf);
   }
 

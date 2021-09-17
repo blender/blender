@@ -360,6 +360,27 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const si
   return len;
 }
 
+BLI_INLINE bool str_unescape_pair(char c_next, char *r_out)
+{
+#define CASE_PAIR(value_src, value_dst) \
+  case value_src: { \
+    *r_out = value_dst; \
+    return true; \
+  }
+  switch (c_next) {
+    CASE_PAIR('"', '"');   /* Quote. */
+    CASE_PAIR('\\', '\\'); /* Backslash. */
+    CASE_PAIR('t', '\t');  /* Tab. */
+    CASE_PAIR('n', '\n');  /* Newline. */
+    CASE_PAIR('r', '\r');  /* Carriage return. */
+    CASE_PAIR('a', '\a');  /* Bell. */
+    CASE_PAIR('b', '\b');  /* Backspace. */
+    CASE_PAIR('f', '\f');  /* Form-feed. */
+  }
+#undef CASE_PAIR
+  return false;
+}
+
 /**
  * This roughly matches C and Python's string escaping with double quotes - `"`.
  *
@@ -368,31 +389,53 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const si
  *
  * \param dst: The destination string, at least the size of `strlen(src) + 1`.
  * \param src: The escaped source string.
- * \param dst_maxncpy: The maximum number of bytes allowable to copy.
+ * \param src_maxncpy: The maximum number of bytes allowable to copy from `src`.
+ * \param dst_maxncpy: The maximum number of bytes allowable to copy into `dst`.
+ * \param r_is_complete: Set to true when
+ */
+size_t BLI_str_unescape_ex(char *__restrict dst,
+                           const char *__restrict src,
+                           const size_t src_maxncpy,
+                           /* Additional arguments to #BLI_str_unescape */
+                           const size_t dst_maxncpy,
+                           bool *r_is_complete)
+{
+  size_t len = 0;
+  bool is_complete = true;
+  for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
+    if (UNLIKELY(len == dst_maxncpy)) {
+      is_complete = false;
+      break;
+    }
+    char c = *src;
+    if (UNLIKELY(c == '\\') && (str_unescape_pair(*(src + 1), &c))) {
+      src++;
+    }
+    dst[len++] = c;
+  }
+  dst[len] = 0;
+  *r_is_complete = is_complete;
+  return len;
+}
+
+/**
+ * See #BLI_str_unescape_ex doc-string.
  *
- * \note This is used for parsing animation paths in blend files.
+ * This function makes the assumption that `dst` always has
+ * at least `src_maxncpy` bytes available.
+ *
+ * Use #BLI_str_unescape_ex if `dst` has a smaller fixed size.
+ *
+ * \note This is used for parsing animation paths in blend files (runs often).
  */
 size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const size_t src_maxncpy)
 {
   size_t len = 0;
-  for (size_t i = 0; i < src_maxncpy && (*src != '\0'); i++, src++) {
+  for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
     char c = *src;
-    if (c == '\\') {
-      char c_next = *(src + 1);
-      if (((c_next == '"') && ((void)(c = '"'), true)) ||   /* Quote. */
-          ((c_next == '\\') && ((void)(c = '\\'), true)) || /* Backslash. */
-          ((c_next == 't') && ((void)(c = '\t'), true)) ||  /* Tab. */
-          ((c_next == 'n') && ((void)(c = '\n'), true)) ||  /* Newline. */
-          ((c_next == 'r') && ((void)(c = '\r'), true)) ||  /* Carriage return. */
-          ((c_next == 'a') && ((void)(c = '\a'), true)) ||  /* Bell. */
-          ((c_next == 'b') && ((void)(c = '\b'), true)) ||  /* Backspace. */
-          ((c_next == 'f') && ((void)(c = '\f'), true)))    /* Form-feed. */
-      {
-        i++;
-        src++;
-      }
+    if (UNLIKELY(c == '\\') && (str_unescape_pair(*(src + 1), &c))) {
+      src++;
     }
-
     dst[len++] = c;
   }
   dst[len] = 0;
@@ -420,7 +463,58 @@ const char *BLI_str_escape_find_quote(const char *str)
 }
 
 /**
- * Makes a copy of the text within the "" that appear after some text `blahblah`.
+ * Return the range of the quoted string (excluding quotes) `str` after `prefix`.
+ *
+ * A version of #BLI_str_quoted_substrN that calculates the range
+ * instead of un-escaping and allocating the result.
+ *
+ * \param str: String potentially including `prefix`.
+ * \param prefix: Quoted string prefix.
+ * \param r_start: The start of the quoted string (after the first quote).
+ * \param r_end: The end of the quoted string (before the last quote).
+ * \return True when a quoted string range could be found after `prefix`.
+ */
+bool BLI_str_quoted_substr_range(const char *__restrict str,
+                                 const char *__restrict prefix,
+                                 int *__restrict r_start,
+                                 int *__restrict r_end)
+{
+  const char *str_start = strstr(str, prefix);
+  if (str_start == NULL) {
+    return false;
+  }
+  const size_t prefix_len = strlen(prefix);
+  if (UNLIKELY(prefix_len == 0)) {
+    BLI_assert_msg(0,
+                   "Zero length prefix passed in, "
+                   "caller must prevent this from happening!");
+    return false;
+  }
+  BLI_assert_msg(prefix[prefix_len - 1] != '"',
+                 "Prefix includes trailing quote, "
+                 "caller must prevent this from happening!");
+
+  str_start += prefix_len;
+  if (UNLIKELY(*str_start != '\"')) {
+    return false;
+  }
+  str_start += 1;
+  const char *str_end = BLI_str_escape_find_quote(str_start);
+  if (UNLIKELY(str_end == NULL)) {
+    return false;
+  }
+
+  *r_start = (int)(str_start - str);
+  *r_end = (int)(str_end - str);
+  return true;
+}
+
+/* NOTE(@campbellbarton): in principal it should be possible to access a quoted string
+ * with an arbitrary size, currently all callers for this functionality
+ * happened to use a fixed size buffer, so only #BLI_str_quoted_substr is needed. */
+#if 0
+/**
+ * Makes a copy of the text within the "" that appear after the contents of \a prefix.
  * i.e. for string `pose["apples"]` with prefix `pose[`, it will return `apples`.
  *
  * \param str: is the entire string to chop.
@@ -431,27 +525,49 @@ const char *BLI_str_escape_find_quote(const char *str)
  */
 char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict prefix)
 {
-  const char *start_match, *end_match;
-
-  /* get the starting point (i.e. where prefix starts, and add prefix_len+1
-   * to it to get be after the first " */
-  start_match = strstr(str, prefix);
-  if (start_match) {
-    const size_t prefix_len = strlen(prefix);
-    start_match += prefix_len + 1;
-    /* get the end point (i.e. where the next occurrence of " is after the starting point) */
-    end_match = BLI_str_escape_find_quote(start_match);
-    if (end_match) {
-      const size_t escaped_len = (size_t)(end_match - start_match);
-      char *result = MEM_mallocN(sizeof(char) * (escaped_len + 1), __func__);
-      const size_t unescaped_len = BLI_str_unescape(result, start_match, escaped_len);
-      if (unescaped_len != escaped_len) {
-        result = MEM_reallocN(result, sizeof(char) * (unescaped_len + 1));
-      }
-      return result;
-    }
+  int start_match_ofs, end_match_ofs;
+  if (!BLI_str_quoted_substr_range(str, prefix, &start_match_ofs, &end_match_ofs)) {
+    return NULL;
   }
-  return NULL;
+  const size_t escaped_len = (size_t)(end_match_ofs - start_match_ofs);
+  char *result = MEM_mallocN(sizeof(char) * (escaped_len + 1), __func__);
+  const size_t unescaped_len = BLI_str_unescape(result, str + start_match_ofs, escaped_len);
+  if (unescaped_len != escaped_len) {
+    result = MEM_reallocN(result, sizeof(char) * (unescaped_len + 1));
+  }
+  return result;
+}
+#endif
+
+/**
+ * Fills \a result with text within "" that appear after some the contents of \a prefix.
+ * i.e. for string `pose["apples"]` with prefix `pose[`, it will return `apples`.
+ *
+ * \param str: is the entire string to chop.
+ * \param prefix: is the part of the string to step over.
+ * \param result: The buffer to fill.
+ * \param result_maxlen: The maximum size of the buffer (including nil terminator).
+ * \return True if the prefix was found and the entire quoted string was copied into result.
+ *
+ * Assume that the strings returned must be freed afterwards,
+ * and that the inputs will contain data we want.
+ */
+bool BLI_str_quoted_substr(const char *__restrict str,
+                           const char *__restrict prefix,
+                           char *result,
+                           size_t result_maxlen)
+{
+  int start_match_ofs, end_match_ofs;
+  if (!BLI_str_quoted_substr_range(str, prefix, &start_match_ofs, &end_match_ofs)) {
+    return false;
+  }
+  const size_t escaped_len = (size_t)(end_match_ofs - start_match_ofs);
+  bool is_complete;
+  BLI_str_unescape_ex(result, str + start_match_ofs, escaped_len, result_maxlen, &is_complete);
+  if (is_complete == false) {
+    *result = '\0';
+  }
+  return is_complete;
 }
 
 /**

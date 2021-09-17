@@ -874,6 +874,136 @@ static const Vec3i nb[6] = {Vec3i(1, 0, 0),
                             Vec3i(0, 0, 1),
                             Vec3i(0, 0, -1)};
 
+struct knMarkSkipCells : public KernelBase {
+  knMarkSkipCells(Grid<Real> &phi, Grid<int> &tmp, bool inside)
+      : KernelBase(&phi, 1), phi(phi), tmp(tmp), inside(inside)
+  {
+    runMessage();
+    run();
+  }
+  inline void op(int i, int j, int k, Grid<Real> &phi, Grid<int> &tmp, bool inside) const
+  {
+    if (!inside && phi(i, j, k) < 0.) {
+      tmp(i, j, k) = 1;
+    }
+    if (inside && phi(i, j, k) > 0.) {
+      tmp(i, j, k) = 1;
+    }
+  }
+  inline Grid<Real> &getArg0()
+  {
+    return phi;
+  }
+  typedef Grid<Real> type0;
+  inline Grid<int> &getArg1()
+  {
+    return tmp;
+  }
+  typedef Grid<int> type1;
+  inline bool &getArg2()
+  {
+    return inside;
+  }
+  typedef bool type2;
+  void runMessage()
+  {
+    debMsg("Executing kernel knMarkSkipCells ", 3);
+    debMsg("Kernel range"
+               << " x " << maxX << " y " << maxY << " z " << minZ << " - " << maxZ << " ",
+           4);
+  };
+  void operator()(const tbb::blocked_range<IndexInt> &__r) const
+  {
+    const int _maxX = maxX;
+    const int _maxY = maxY;
+    if (maxZ > 1) {
+      for (int k = __r.begin(); k != (int)__r.end(); k++)
+        for (int j = 1; j < _maxY; j++)
+          for (int i = 1; i < _maxX; i++)
+            op(i, j, k, phi, tmp, inside);
+    }
+    else {
+      const int k = 0;
+      for (int j = __r.begin(); j != (int)__r.end(); j++)
+        for (int i = 1; i < _maxX; i++)
+          op(i, j, k, phi, tmp, inside);
+    }
+  }
+  void run()
+  {
+    if (maxZ > 1)
+      tbb::parallel_for(tbb::blocked_range<IndexInt>(minZ, maxZ), *this);
+    else
+      tbb::parallel_for(tbb::blocked_range<IndexInt>(1, maxY), *this);
+  }
+  Grid<Real> &phi;
+  Grid<int> &tmp;
+  bool inside;
+};
+
+struct knSetFirstLayer : public KernelBase {
+  knSetFirstLayer(Grid<int> &tmp, int dim) : KernelBase(&tmp, 1), tmp(tmp), dim(dim)
+  {
+    runMessage();
+    run();
+  }
+  inline void op(int i, int j, int k, Grid<int> &tmp, int dim) const
+  {
+    Vec3i p(i, j, k);
+    if (tmp(p))
+      return;
+    for (int n = 0; n < 2 * dim; ++n) {
+      if (tmp(p + nb[n]) == 1) {
+        tmp(i, j, k) = 2;
+        break;
+      }
+    }
+  }
+  inline Grid<int> &getArg0()
+  {
+    return tmp;
+  }
+  typedef Grid<int> type0;
+  inline int &getArg1()
+  {
+    return dim;
+  }
+  typedef int type1;
+  void runMessage()
+  {
+    debMsg("Executing kernel knSetFirstLayer ", 3);
+    debMsg("Kernel range"
+               << " x " << maxX << " y " << maxY << " z " << minZ << " - " << maxZ << " ",
+           4);
+  };
+  void operator()(const tbb::blocked_range<IndexInt> &__r) const
+  {
+    const int _maxX = maxX;
+    const int _maxY = maxY;
+    if (maxZ > 1) {
+      for (int k = __r.begin(); k != (int)__r.end(); k++)
+        for (int j = 1; j < _maxY; j++)
+          for (int i = 1; i < _maxX; i++)
+            op(i, j, k, tmp, dim);
+    }
+    else {
+      const int k = 0;
+      for (int j = __r.begin(); j != (int)__r.end(); j++)
+        for (int i = 1; i < _maxX; i++)
+          op(i, j, k, tmp, dim);
+    }
+  }
+  void run()
+  {
+    if (maxZ > 1)
+      tbb::parallel_for(tbb::blocked_range<IndexInt>(minZ, maxZ), *this);
+    else
+      tbb::parallel_for(tbb::blocked_range<IndexInt>(1, maxY), *this);
+  }
+  Grid<int> &tmp;
+  int dim;
+};
+
 template<class S> struct knExtrapolateLsSimple : public KernelBase {
   knExtrapolateLsSimple(Grid<S> &val, int distance, Grid<int> &tmp, const int d, S direction)
       : KernelBase(&val, 1), val(val), distance(distance), tmp(tmp), d(d), direction(direction)
@@ -1043,39 +1173,12 @@ void extrapolateLsSimple(Grid<Real> &phi, int distance = 4, bool inside = false)
   tmp.clear();
   const int dim = (phi.is3D() ? 3 : 2);
 
-  // by default, march outside
-  Real direction = 1.;
-  if (!inside) {
-    // mark all inside
-    FOR_IJK_BND(phi, 1)
-    {
-      if (phi(i, j, k) < 0.) {
-        tmp(i, j, k) = 1;
-      }
-    }
-  }
-  else {
-    direction = -1.;
-    FOR_IJK_BND(phi, 1)
-    {
-      if (phi(i, j, k) > 0.) {
-        tmp(i, j, k) = 1;
-      }
-    }
-  }
+  // by default, march outside (ie mark all inside to be skipped)
+  Real direction = (inside) ? -1. : 1.;
+  knMarkSkipCells(phi, tmp, inside);
+
   // + first layer around
-  FOR_IJK_BND(phi, 1)
-  {
-    Vec3i p(i, j, k);
-    if (tmp(p))
-      continue;
-    for (int n = 0; n < 2 * dim; ++n) {
-      if (tmp(p + nb[n]) == 1) {
-        tmp(i, j, k) = 2;
-        n = 2 * dim;
-      }
-    }
-  }
+  knSetFirstLayer(tmp, dim);
 
   // extrapolate for distance
   for (int d = 2; d < 1 + distance; ++d) {
@@ -1126,37 +1229,12 @@ void extrapolateVec3Simple(Grid<Vec3> &vel, Grid<Real> &phi, int distance = 4, b
   tmp.clear();
   const int dim = (vel.is3D() ? 3 : 2);
 
-  // mark initial cells, by default, march outside
-  if (!inside) {
-    // mark all inside
-    FOR_IJK_BND(phi, 1)
-    {
-      if (phi(i, j, k) < 0.) {
-        tmp(i, j, k) = 1;
-      }
-    }
-  }
-  else {
-    FOR_IJK_BND(phi, 1)
-    {
-      if (phi(i, j, k) > 0.) {
-        tmp(i, j, k) = 1;
-      }
-    }
-  }
+  // mark initial cells, by default, march outside (ie mark all inside to be skipped)
+  Real direction = (inside) ? -1. : 1.;
+  knMarkSkipCells(phi, tmp, inside);
+
   // + first layer next to initial cells
-  FOR_IJK_BND(vel, 1)
-  {
-    Vec3i p(i, j, k);
-    if (tmp(p))
-      continue;
-    for (int n = 0; n < 2 * dim; ++n) {
-      if (tmp(p + nb[n]) == 1) {
-        tmp(i, j, k) = 2;
-        n = 2 * dim;
-      }
-    }
-  }
+  knSetFirstLayer(tmp, dim);
 
   for (int d = 2; d < 1 + distance; ++d) {
     knExtrapolateLsSimple<Vec3>(vel, distance, tmp, d, Vec3(0.));

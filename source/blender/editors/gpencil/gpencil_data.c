@@ -1347,6 +1347,8 @@ static int gpencil_merge_layer_exec(bContext *C, wmOperator *op)
     bGPDframe *gpf_dst = BLI_ghash_lookup(gh_frames_dst, POINTER_FROM_INT(gpf_src->framenum));
     if (!gpf_dst) {
       gpf_dst = BKE_gpencil_layer_frame_get(gpl_dst, gpf_src->framenum, GP_GETFRAME_ADD_COPY);
+      /* Use same frame type. */
+      gpf_dst->key_type = gpf_src->key_type;
       BLI_ghash_insert(gh_frames_dst, POINTER_FROM_INT(gpf_src->framenum), gpf_dst);
     }
   }

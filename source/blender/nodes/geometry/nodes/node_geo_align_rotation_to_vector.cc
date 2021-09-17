@@ -22,19 +22,23 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_align_rotation_to_vector_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Factor")},
-    {SOCK_FLOAT, N_("Factor"), 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, PROP_FACTOR},
-    {SOCK_STRING, N_("Vector")},
-    {SOCK_VECTOR, N_("Vector"), 0.0, 0.0, 1.0, 0.0, -FLT_MAX, FLT_MAX, PROP_ANGLE},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_align_rotation_to_vector_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_align_rotation_to_vector_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Factor");
+  b.add_input<decl::Float>("Factor", "Factor_001")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::String>("Vector");
+  b.add_input<decl::Vector>("Vector", "Vector_001")
+      .default_value({0.0, 0.0, 1.0})
+      .subtype(PROP_ANGLE);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_align_rotation_to_vector_layout(uiLayout *layout,
                                                      bContext *UNUSED(C),
@@ -48,8 +52,6 @@ static void geo_node_align_rotation_to_vector_layout(uiLayout *layout,
   uiItemR(col, ptr, "input_type_factor", 0, IFACE_("Factor"), ICON_NONE);
   uiItemR(col, ptr, "input_type_vector", 0, IFACE_("Vector"), ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void geo_node_align_rotation_to_vector_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -224,19 +226,18 @@ void register_node_type_geo_align_rotation_to_vector()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype,
-                     GEO_NODE_ALIGN_ROTATION_TO_VECTOR,
+                     GEO_NODE_LEGACY_ALIGN_ROTATION_TO_VECTOR,
                      "Align Rotation to Vector",
                      NODE_CLASS_GEOMETRY,
                      0);
-  node_type_socket_templates(
-      &ntype, geo_node_align_rotation_to_vector_in, geo_node_align_rotation_to_vector_out);
   node_type_init(&ntype, blender::nodes::geo_node_align_rotation_to_vector_init);
   node_type_update(&ntype, blender::nodes::geo_node_align_rotation_to_vector_update);
   node_type_storage(&ntype,
                     "NodeGeometryAlignRotationToVector",
                     node_free_standard_storage,
                     node_copy_standard_storage);
+  ntype.declare = blender::nodes::geo_node_align_rotation_to_vector_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_align_rotation_to_vector_exec;
-  ntype.draw_buttons = geo_node_align_rotation_to_vector_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_align_rotation_to_vector_layout;
   nodeRegisterType(&ntype);
 }

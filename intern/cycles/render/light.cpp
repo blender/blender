@@ -410,38 +410,39 @@ void LightManager::device_update_distribution(Device *,
   }
 
   float trianglearea = totarea;
-
   /* point lights */
-  float lightarea = (totarea > 0.0f) ? totarea / num_lights : 1.0f;
   bool use_lamp_mis = false;
-
   int light_index = 0;
-  foreach (Light *light, scene->lights) {
-    if (!light->is_enabled)
-      continue;
 
-    distribution[offset].totarea = totarea;
-    distribution[offset].prim = ~light_index;
-    distribution[offset].lamp.pad = 1.0f;
-    distribution[offset].lamp.size = light->size;
-    totarea += lightarea;
+  if (num_lights > 0) {
+    float lightarea = (totarea > 0.0f) ? totarea / num_lights : 1.0f;
+    foreach (Light *light, scene->lights) {
+      if (!light->is_enabled)
+        continue;
 
-    if (light->light_type == LIGHT_DISTANT) {
-      use_lamp_mis |= (light->angle > 0.0f && light->use_mis);
-    }
-    else if (light->light_type == LIGHT_POINT || light->light_type == LIGHT_SPOT) {
-      use_lamp_mis |= (light->size > 0.0f && light->use_mis);
-    }
-    else if (light->light_type == LIGHT_AREA) {
-      use_lamp_mis |= light->use_mis;
-    }
-    else if (light->light_type == LIGHT_BACKGROUND) {
-      num_background_lights++;
-      background_mis |= light->use_mis;
-    }
+      distribution[offset].totarea = totarea;
+      distribution[offset].prim = ~light_index;
+      distribution[offset].lamp.pad = 1.0f;
+      distribution[offset].lamp.size = light->size;
+      totarea += lightarea;
 
-    light_index++;
-    offset++;
+      if (light->light_type == LIGHT_DISTANT) {
+        use_lamp_mis |= (light->angle > 0.0f && light->use_mis);
+      }
+      else if (light->light_type == LIGHT_POINT || light->light_type == LIGHT_SPOT) {
+        use_lamp_mis |= (light->size > 0.0f && light->use_mis);
+      }
+      else if (light->light_type == LIGHT_AREA) {
+        use_lamp_mis |= light->use_mis;
+      }
+      else if (light->light_type == LIGHT_BACKGROUND) {
+        num_background_lights++;
+        background_mis |= light->use_mis;
+      }
+
+      light_index++;
+      offset++;
+    }
   }
 
   /* normalize cumulative distribution functions */

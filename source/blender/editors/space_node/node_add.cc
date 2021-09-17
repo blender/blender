@@ -312,7 +312,7 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
   ot->poll = ED_operator_node_editable;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* properties */
   PropertyRNA *prop;
@@ -575,7 +575,7 @@ static int node_add_texture_exec(bContext *C, wmOperator *op)
 
   bNode *texture_node = node_add_node(C,
                                       nullptr,
-                                      GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE,
+                                      GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE,
                                       snode->runtime->cursor[0],
                                       snode->runtime->cursor[1]);
   if (!texture_node) {

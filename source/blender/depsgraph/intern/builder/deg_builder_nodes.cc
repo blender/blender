@@ -571,9 +571,10 @@ void DepsgraphNodeBuilder::build_id(ID *id)
       build_movieclip((MovieClip *)id);
       break;
     case ID_ME:
-    case ID_CU:
     case ID_MB:
+    case ID_CU:
     case ID_LT:
+    case ID_GD:
     case ID_HA:
     case ID_PT:
     case ID_VO:
@@ -603,9 +604,6 @@ void DepsgraphNodeBuilder::build_id(ID *id)
       break;
     case ID_PA:
       build_particle_settings((ParticleSettings *)id);
-      break;
-    case ID_GD:
-      build_gpencil((bGPdata *)id);
       break;
 
     case ID_LI:
@@ -1850,22 +1848,6 @@ void DepsgraphNodeBuilder::build_image(Image *image)
   build_idproperties(image->id.properties);
   add_operation_node(
       &image->id, NodeType::GENERIC_DATABLOCK, OperationCode::GENERIC_DATABLOCK_UPDATE);
-}
-
-void DepsgraphNodeBuilder::build_gpencil(bGPdata *gpd)
-{
-  if (built_map_.checkIsBuiltAndTag(gpd)) {
-    return;
-  }
-  ID *gpd_id = &gpd->id;
-
-  /* TODO(sergey): what about multiple users of same datablock? This should
-   * only get added once. */
-
-  /* The main reason Grease Pencil is included here is because the animation
-   * (and drivers) need to be hosted somewhere. */
-  build_animdata(gpd_id);
-  build_parameters(gpd_id);
 }
 
 void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)

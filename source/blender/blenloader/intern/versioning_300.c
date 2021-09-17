@@ -37,6 +37,8 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_genfile.h"
+#include "DNA_gpencil_modifier_types.h"
+#include "DNA_lineart_types.h"
 #include "DNA_listBase.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
@@ -126,7 +128,7 @@ static void version_idproperty_move_data_float(IDPropertyUIDataFloat *ui_data,
   }
   IDProperty *max = IDP_GetPropertyFromGroup(prop_ui_data, "max");
   if (max != NULL) {
-    ui_data->max = ui_data->soft_max = IDP_coerce_to_double_or_zero(min);
+    ui_data->max = ui_data->soft_max = IDP_coerce_to_double_or_zero(max);
   }
   IDProperty *soft_min = IDP_GetPropertyFromGroup(prop_ui_data, "soft_min");
   if (soft_min != NULL) {
@@ -237,6 +239,16 @@ static void do_versions_idproperty_bones_recursive(Bone *bone)
   }
 }
 
+static void do_versions_idproperty_seq_recursive(ListBase *seqbase)
+{
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    version_idproperty_ui_data(seq->prop);
+    if (seq->type == SEQ_TYPE_META) {
+      do_versions_idproperty_seq_recursive(&seq->seqbase);
+    }
+  }
+}
+
 /**
  * For every data block that supports them, initialize the new IDProperty UI data struct based on
  * the old more complicated storage. Assumes only the top level of IDProperties below the parent
@@ -276,13 +288,20 @@ static void do_versions_idproperty_ui_data(Main *bmain)
     }
   }
 
-  /* The UI data from exposed node modifier properties is just copied from the corresponding node
-   * group, but the copying only runs when necessary, so we still need to version UI data here. */
   LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    /* The UI data from exposed node modifier properties is just copied from the corresponding node
+     * group, but the copying only runs when necessary, so we still need to version data here. */
     LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = (NodesModifierData *)md;
         version_idproperty_ui_data(nmd->settings.properties);
+      }
+    }
+
+    /* Object post bones. */
+    if (ob->type == OB_ARMATURE && ob->pose != NULL) {
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+        version_idproperty_ui_data(pchan->prop);
       }
     }
   }
@@ -290,9 +309,7 @@ static void do_versions_idproperty_ui_data(Main *bmain)
   /* Sequences. */
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->ed != NULL) {
-      LISTBASE_FOREACH (Sequence *, seq, &scene->ed->seqbase) {
-        version_idproperty_ui_data(seq->prop);
-      }
+      do_versions_idproperty_seq_recursive(&scene->ed->seqbase);
     }
   }
 }
@@ -439,7 +456,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
         continue;
       }
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type != GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE) {
+        if (node->type != GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE) {
           continue;
         }
         if (node->id == NULL) {
@@ -517,33 +534,6 @@ static void version_switch_node_input_prefix(Main *bmain)
     }
   }
   FOREACH_NODETREE_END;
-}
-
-static void version_node_socket_name(bNodeTree *ntree,
-                                     const int node_type,
-                                     const char *old_name,
-                                     const char *new_name)
-{
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == node_type) {
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-        if (STREQ(socket->name, old_name)) {
-          strcpy(socket->name, new_name);
-        }
-        if (STREQ(socket->identifier, old_name)) {
-          strcpy(socket->identifier, new_name);
-        }
-      }
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-        if (STREQ(socket->name, old_name)) {
-          strcpy(socket->name, new_name);
-        }
-        if (STREQ(socket->identifier, old_name)) {
-          strcpy(socket->identifier, new_name);
-        }
-      }
-    }
-  }
 }
 
 static bool replace_bbone_len_scale_rnapath(char **p_old_path, int *p_index)
@@ -632,6 +622,155 @@ static void do_version_constraints_spline_ik_joint_bindings(ListBase *lb)
       if (data->points == NULL) {
         data->numpoints = 0;
       }
+    }
+  }
+}
+
+static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
+                                                              bNode *node,
+                                                              bNodeSocket *socket)
+{
+  const bNodeSocketValueFloat *socket_value = (const bNodeSocketValueFloat *)socket->default_value;
+  const float old_value = socket_value->value;
+  nodeRemoveSocket(ntree, node, socket);
+  bNodeSocket *new_socket = nodeAddSocket(
+      ntree, node, SOCK_IN, nodeStaticSocketType(SOCK_VECTOR, PROP_TRANSLATION), "Size", "Size");
+  bNodeSocketValueVector *value_vector = (bNodeSocketValueVector *)new_socket->default_value;
+  copy_v3_fl(value_vector->value, old_value);
+  return new_socket;
+}
+
+static bool geometry_node_is_293_legacy(const short node_type)
+{
+  switch (node_type) {
+    /* Not legacy: No attribute inputs or outputs. */
+    case GEO_NODE_TRIANGULATE:
+    case GEO_NODE_EDGE_SPLIT:
+    case GEO_NODE_TRANSFORM:
+    case GEO_NODE_BOOLEAN:
+    case GEO_NODE_SUBDIVISION_SURFACE:
+    case GEO_NODE_IS_VIEWPORT:
+    case GEO_NODE_MESH_SUBDIVIDE:
+    case GEO_NODE_MESH_PRIMITIVE_CUBE:
+    case GEO_NODE_MESH_PRIMITIVE_CIRCLE:
+    case GEO_NODE_MESH_PRIMITIVE_UV_SPHERE:
+    case GEO_NODE_MESH_PRIMITIVE_CYLINDER:
+    case GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE:
+    case GEO_NODE_MESH_PRIMITIVE_CONE:
+    case GEO_NODE_MESH_PRIMITIVE_LINE:
+    case GEO_NODE_MESH_PRIMITIVE_GRID:
+    case GEO_NODE_BOUNDING_BOX:
+    case GEO_NODE_CURVE_RESAMPLE:
+    case GEO_NODE_INPUT_MATERIAL:
+    case GEO_NODE_MATERIAL_REPLACE:
+    case GEO_NODE_CURVE_LENGTH:
+    case GEO_NODE_CONVEX_HULL:
+    case GEO_NODE_SEPARATE_COMPONENTS:
+    case GEO_NODE_CURVE_PRIMITIVE_STAR:
+    case GEO_NODE_CURVE_PRIMITIVE_SPIRAL:
+    case GEO_NODE_CURVE_PRIMITIVE_QUADRATIC_BEZIER:
+    case GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT:
+    case GEO_NODE_CURVE_PRIMITIVE_CIRCLE:
+    case GEO_NODE_VIEWER:
+    case GEO_NODE_CURVE_PRIMITIVE_LINE:
+    case GEO_NODE_CURVE_PRIMITIVE_QUADRILATERAL:
+    case GEO_NODE_CURVE_FILL:
+    case GEO_NODE_CURVE_TRIM:
+    case GEO_NODE_CURVE_TO_MESH:
+      return false;
+
+    /* Not legacy: Newly added with fields patch. */
+    case GEO_NODE_INPUT_POSITION:
+    case GEO_NODE_SET_POSITION:
+    case GEO_NODE_INPUT_INDEX:
+    case GEO_NODE_INPUT_NORMAL:
+    case GEO_NODE_ATTRIBUTE_CAPTURE:
+      return false;
+
+    /* Maybe legacy: Might need special attribute handling, depending on design. */
+    case GEO_NODE_SWITCH:
+    case GEO_NODE_JOIN_GEOMETRY:
+    case GEO_NODE_ATTRIBUTE_REMOVE:
+    case GEO_NODE_OBJECT_INFO:
+    case GEO_NODE_COLLECTION_INFO:
+      return false;
+
+    /* Maybe legacy: Transferred *all* attributes before, will not transfer all built-ins now. */
+    case GEO_NODE_CURVE_ENDPOINTS:
+    case GEO_NODE_CURVE_TO_POINTS:
+      return false;
+
+    /* Maybe legacy: Special case for grid names? Or finish patch from level set branch to generate
+     * a mesh for all grids in the volume. */
+    case GEO_NODE_VOLUME_TO_MESH:
+      return false;
+
+    /* Legacy: Attribute operation completely replaced by field nodes. */
+    case GEO_NODE_LEGACY_ATTRIBUTE_RANDOMIZE:
+    case GEO_NODE_LEGACY_ATTRIBUTE_MATH:
+    case GEO_NODE_LEGACY_ATTRIBUTE_FILL:
+    case GEO_NODE_LEGACY_ATTRIBUTE_MIX:
+    case GEO_NODE_LEGACY_ATTRIBUTE_COLOR_RAMP:
+    case GEO_NODE_LEGACY_ATTRIBUTE_COMPARE:
+    case GEO_NODE_LEGACY_POINT_ROTATE:
+    case GEO_NODE_LEGACY_ALIGN_ROTATION_TO_VECTOR:
+    case GEO_NODE_LEGACY_POINT_SCALE:
+    case GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE:
+    case GEO_NODE_ATTRIBUTE_VECTOR_ROTATE:
+    case GEO_NODE_LEGACY_ATTRIBUTE_CURVE_MAP:
+    case GEO_NODE_LEGACY_ATTRIBUTE_MAP_RANGE:
+    case GEO_NODE_LECAGY_ATTRIBUTE_CLAMP:
+    case GEO_NODE_LEGACY_ATTRIBUTE_VECTOR_MATH:
+    case GEO_NODE_LEGACY_ATTRIBUTE_COMBINE_XYZ:
+    case GEO_NODE_LEGACY_ATTRIBUTE_SEPARATE_XYZ:
+      return true;
+
+    /* Legacy: Replaced by field node depending on another geometry. */
+    case GEO_NODE_LEGACY_RAYCAST:
+    case GEO_NODE_LEGACY_ATTRIBUTE_TRANSFER:
+    case GEO_NODE_LEGACY_ATTRIBUTE_PROXIMITY:
+      return true;
+
+    /* Legacy: Simple selection attribute input. */
+    case GEO_NODE_LEGACY_MESH_TO_CURVE:
+    case GEO_NODE_LEGACY_POINT_SEPARATE:
+    case GEO_NODE_LEGACY_CURVE_SELECT_HANDLES:
+    case GEO_NODE_LEGACY_CURVE_SPLINE_TYPE:
+    case GEO_NODE_LEGACY_CURVE_REVERSE:
+    case GEO_NODE_LEGACY_MATERIAL_ASSIGN:
+    case GEO_NODE_LEGACY_CURVE_SET_HANDLES:
+      return true;
+
+    /* Legacy: More complex attribute inputs or outputs. */
+    case GEO_NODE_LEGACY_DELETE_GEOMETRY:    /* Needs field input, domain drop-down. */
+    case GEO_NODE_LEGACY_CURVE_SUBDIVIDE:    /* Needs field count input. */
+    case GEO_NODE_LEGACY_POINTS_TO_VOLUME:   /* Needs field radius input. */
+    case GEO_NODE_LEGACY_SELECT_BY_MATERIAL: /* Output anonymous attribute. */
+    case GEO_NODE_LEGACY_POINT_TRANSLATE:    /* Needs field inputs. */
+    case GEO_NODE_LEGACY_POINT_INSTANCE:     /* Needs field inputs. */
+    case GEO_NODE_LEGACY_POINT_DISTRIBUTE:   /* Needs field input, remove max for random mode. */
+    case GEO_NODE_LEGACY_ATTRIBUTE_CONVERT:  /* Attribute Capture, Store Attribute. */
+      return true;
+  }
+  return false;
+}
+
+static void version_geometry_nodes_change_legacy_names(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (geometry_node_is_293_legacy(node->type)) {
+      if (strstr(node->idname, "Legacy")) {
+        /* Make sure we haven't changed this idname already, better safe than sorry. */
+        continue;
+      }
+
+      char temp_idname[sizeof(node->idname)];
+      BLI_strncpy(temp_idname, node->idname, sizeof(node->idname));
+
+      BLI_snprintf(node->idname,
+                   sizeof(node->idname),
+                   "GeometryNodeLegacy%s",
+                   temp_idname + strlen("GeometryNode"));
     }
   }
 }
@@ -965,7 +1104,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Fix SplineIK constraint's inconsistency between binding points array and its stored size. */
+    /* Fix SplineIK constraint's inconsistency between binding points array and its stored size.
+     */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       /* NOTE: Objects should never have SplineIK constraint, so no need to apply this fix on
        * their constraints. */
@@ -1033,8 +1173,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
     FOREACH_NODETREE_END;
 
-    /* Disable Fade Inactive Overlay by default as it is redundant after introducing flash on mode
-     * transfer. */
+    /* Disable Fade Inactive Overlay by default as it is redundant after introducing flash on
+     * mode transfer. */
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -1052,6 +1192,64 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 20)) {
+    /* Use new vector Size socket in Cube Mesh Primitive node. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+
+      LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
+        if (link->tonode->type == GEO_NODE_MESH_PRIMITIVE_CUBE) {
+          bNode *node = link->tonode;
+          if (STREQ(link->tosock->identifier, "Size") && link->tosock->type == SOCK_FLOAT) {
+            bNode *link_fromnode = link->fromnode;
+            bNodeSocket *link_fromsock = link->fromsock;
+            bNodeSocket *socket = link->tosock;
+            BLI_assert(socket);
+
+            bNodeSocket *new_socket = do_version_replace_float_size_with_vector(
+                ntree, node, socket);
+            nodeAddLink(ntree, link_fromnode, link_fromsock, node, new_socket);
+          }
+        }
+      }
+
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != GEO_NODE_MESH_PRIMITIVE_CUBE) {
+          continue;
+        }
+        LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+          if (STREQ(socket->identifier, "Size") && (socket->type == SOCK_FLOAT)) {
+            do_version_replace_float_size_with_vector(ntree, node, socket);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 22)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_geometry_nodes_change_legacy_names(ntree);
+      }
+    }
+    if (!DNA_struct_elem_find(
+            fd->filesdna, "LineartGpencilModifierData", "bool", "use_crease_on_smooth")) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        if (ob->type == OB_GPENCIL) {
+          LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
+            if (md->type == eGpencilModifierType_Lineart) {
+              LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
+              lmd->calculation_flags |= LRT_USE_CREASE_ON_SMOOTH_SURFACES;
+            }
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1063,5 +1261,18 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_FILE) {
+            SpaceFile *sfile = (SpaceFile *)sl;
+            if (sfile->asset_params) {
+              sfile->asset_params->base_params.recursion_level = FILE_SELECT_MAX_RECURSIONS;
+            }
+          }
+        }
+      }
+    }
   }
 }

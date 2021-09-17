@@ -91,6 +91,7 @@ extern char datatoc_extra_wire_frag_glsl[];
 extern char datatoc_extra_wire_vert_glsl[];
 extern char datatoc_facing_frag_glsl[];
 extern char datatoc_facing_vert_glsl[];
+extern char datatoc_grid_background_frag_glsl[];
 extern char datatoc_grid_frag_glsl[];
 extern char datatoc_grid_vert_glsl[];
 extern char datatoc_image_frag_glsl[];
@@ -198,6 +199,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *facing;
   GPUShader *gpencil_canvas;
   GPUShader *grid;
+  GPUShader *grid_background;
   GPUShader *grid_image;
   GPUShader *image;
   GPUShader *motion_path_line;
@@ -1051,6 +1053,20 @@ GPUShader *OVERLAY_shader_grid(void)
     });
   }
   return sh_data->grid;
+}
+
+GPUShader *OVERLAY_shader_grid_background(void)
+{
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
+  if (!sh_data->grid_background) {
+    sh_data->grid_background = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){datatoc_common_view_lib_glsl,
+                                 datatoc_edit_uv_tiled_image_borders_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_grid_background_frag_glsl, NULL},
+    });
+  }
+  return sh_data->grid_background;
 }
 
 GPUShader *OVERLAY_shader_grid_image(void)

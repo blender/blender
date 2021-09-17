@@ -131,6 +131,11 @@ class Spline {
   virtual void transform(const blender::float4x4 &matrix);
 
   /**
+   * Change the direction of the spline (switch the start and end) without changing its shape.
+   */
+  void reverse();
+
+  /**
    * Mark all caches for re-computation. This must be called after any operation that would
    * change the generated positions, tangents, normals, mapping, etc. of the evaluated points.
    */
@@ -210,6 +215,7 @@ class Spline {
   virtual void correct_end_tangents() const = 0;
   virtual void copy_settings(Spline &dst) const = 0;
   virtual void copy_data(Spline &dst) const = 0;
+  virtual void reverse_impl() = 0;
 };
 
 /**
@@ -353,6 +359,9 @@ class BezierSpline final : public Spline {
   void correct_end_tangents() const final;
   void copy_settings(Spline &dst) const final;
   void copy_data(Spline &dst) const final;
+
+ protected:
+  void reverse_impl() override;
 };
 
 /**
@@ -469,6 +478,7 @@ class NURBSpline final : public Spline {
   void correct_end_tangents() const final;
   void copy_settings(Spline &dst) const final;
   void copy_data(Spline &dst) const final;
+  void reverse_impl() override;
 
   void calculate_knots() const;
   blender::Span<BasisCache> calculate_basis_cache() const;
@@ -519,6 +529,7 @@ class PolySpline final : public Spline {
   void correct_end_tangents() const final;
   void copy_settings(Spline &dst) const final;
   void copy_data(Spline &dst) const final;
+  void reverse_impl() override;
 };
 
 /**

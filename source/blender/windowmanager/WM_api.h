@@ -262,8 +262,9 @@ struct wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *han
                                                                    wmKeyMap *keymap,
                                                                    int priority);
 
-typedef struct wmKeyMap *(wmEventHandler_KeymapDynamicFn)(
-    wmWindowManager *wm, struct wmEventHandler_Keymap *handler)ATTR_WARN_UNUSED_RESULT;
+typedef struct wmKeyMap *(wmEventHandler_KeymapDynamicFn)(wmWindowManager *wm,
+                                                          struct wmEventHandler_Keymap *handler)
+    ATTR_WARN_UNUSED_RESULT;
 
 struct wmKeyMap *WM_event_get_keymap_from_toolsystem_fallback(
     struct wmWindowManager *wm, struct wmEventHandler_Keymap *handler);
@@ -471,6 +472,12 @@ int WM_operator_call_py(struct bContext *C,
                         struct ReportList *reports,
                         const bool is_undo);
 
+void WM_operator_name_call_ptr_with_depends_on_cursor(struct bContext *C,
+                                                      wmOperatorType *ot,
+                                                      short opcontext,
+                                                      PointerRNA *properties,
+                                                      const char *drawstr);
+
 /* Used for keymap and macro items. */
 void WM_operator_properties_alloc(struct PointerRNA **ptr,
                                   struct IDProperty **properties,
@@ -573,7 +580,11 @@ void WM_operator_py_idname(char *to, const char *from);
 bool WM_operator_py_idname_ok_or_report(struct ReportList *reports,
                                         const char *classname,
                                         const char *idname);
-const char *WM_context_member_from_ptr(struct bContext *C, const struct PointerRNA *ptr);
+char *WM_context_path_resolve_property_full(struct bContext *C,
+                                            const PointerRNA *ptr,
+                                            PropertyRNA *prop,
+                                            int index);
+char *WM_context_path_resolve_full(struct bContext *C, const PointerRNA *ptr);
 
 /* wm_operator_type.c */
 struct wmOperatorType *WM_operatortype_find(const char *idname, bool quiet);

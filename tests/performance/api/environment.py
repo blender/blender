@@ -98,15 +98,18 @@ class TestEnvironment:
         try:
             self.call([self.cmake_executable, '.'] + self.cmake_options, self.build_dir)
             self.call([self.cmake_executable, '--build', '.', '-j', jobs, '--target', 'install'], self.build_dir)
+        except KeyboardInterrupt as e:
+            raise e
         except:
             return False
 
         self._init_default_blender_executable()
         return True
 
-    def set_blender_executable(self, executable_path: pathlib.Path) -> None:
+    def set_blender_executable(self, executable_path: pathlib.Path, environment: Dict = {}) -> None:
         # Run all Blender commands with this executable.
         self.blender_executable = executable_path
+        self.blender_executable_environment = environment
 
     def _blender_executable_name(self) -> pathlib.Path:
         if platform.system() == "Windows":
@@ -150,6 +153,7 @@ class TestEnvironment:
 
     def set_default_blender_executable(self) -> None:
         self.blender_executable = self.default_blender_executable
+        self.blender_executable_environment = {}
 
     def set_log_file(self, filepath: pathlib.Path, clear=True) -> None:
         # Log all commands and output to this file.
@@ -161,7 +165,7 @@ class TestEnvironment:
     def unset_log_file(self) -> None:
         self.log_file = None
 
-    def call(self, args: List[str], cwd: pathlib.Path, silent=False) -> List[str]:
+    def call(self, args: List[str], cwd: pathlib.Path, silent: bool=False, environment: Dict={}) -> List[str]:
         # Execute command with arguments in specified directory,
         # and return combined stdout and stderr output.
 
@@ -173,7 +177,13 @@ class TestEnvironment:
             f = open(self.log_file, 'a')
             f.write('\n' + ' '.join([str(arg) for arg in args]) + '\n\n')
 
-        proc = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        env = os.environ
+        if len(environment):
+            env = env.copy()
+            for key, value in environment.items():
+                env[key] = value
+
+        proc = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
 
         # Read line by line
         lines = []
@@ -185,17 +195,13 @@ class TestEnvironment:
                     lines.append(line_str)
                     if f:
                         f.write(line_str)
-        except KeyboardInterrupt:
+        except KeyboardInterrupt as e:
             # Avoid processes that keep running when interrupting.
             proc.terminate()
+            raise e
 
-        if f:
-            f.close()
-
-        # Print command output on error
+        # Raise error on failure
         if proc.returncode != 0 and not silent:
-            for line in lines:
-                print(line.rstrip())
             raise Exception("Error executing command")
 
         return lines
@@ -208,7 +214,8 @@ class TestEnvironment:
         else:
             common_args += ['--background']
 
-        return self.call([self.blender_executable] + common_args + args, cwd=self.base_dir)
+        return self.call([self.blender_executable] + common_args + args, cwd=self.base_dir,
+                         environment=self.blender_executable_environment)
 
     def run_in_blender(self,
                        function: Callable[[Dict], Dict],

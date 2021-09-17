@@ -378,7 +378,9 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
                                    const size_t maxncpy)
 {
 #ifdef WIN32
-  return conv_utf_8_to_16(src_c, dst_w, maxncpy);
+  conv_utf_8_to_16(src_c, dst_w, maxncpy);
+  /* NOTE: it would be more efficient to calculate the length as part of #conv_utf_8_to_16. */
+  return wcslen(dst_w);
 #else
   return BLI_str_utf8_as_utf32((char32_t *)dst_w, src_c, maxncpy);
 #endif

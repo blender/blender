@@ -30,18 +30,28 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_to_mesh_in[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {SOCK_GEOMETRY, N_("Profile Curve")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_curve_to_mesh_out[] = {
-    {SOCK_GEOMETRY, N_("Mesh")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_curve_to_mesh_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Curve");
+  b.add_input<decl::Geometry>("Profile Curve");
+  b.add_output<decl::Geometry>("Mesh");
+}
+
+/** Information about the creation of one curve spline and profile spline combination. */
+struct ResultInfo {
+  const Spline &spline;
+  const Spline &profile;
+  int vert_offset;
+  int edge_offset;
+  int loop_offset;
+  int poly_offset;
+  int spline_vert_len;
+  int spline_edge_len;
+  int profile_vert_len;
+  int profile_edge_len;
+};
 
 static void vert_extrude_to_mesh_data(const Spline &spline,
                                       const float3 profile_vert,
@@ -79,44 +89,33 @@ static void mark_edges_sharp(MutableSpan<MEdge> edges)
   }
 }
 
-static void spline_extrude_to_mesh_data(const Spline &spline,
-                                        const Spline &profile_spline,
-                                        const int vert_offset,
-                                        const int edge_offset,
-                                        const int loop_offset,
-                                        const int poly_offset,
+static void spline_extrude_to_mesh_data(const ResultInfo &info,
                                         MutableSpan<MVert> r_verts,
                                         MutableSpan<MEdge> r_edges,
                                         MutableSpan<MLoop> r_loops,
                                         MutableSpan<MPoly> r_polys)
 {
-  const int spline_vert_len = spline.evaluated_points_size();
-  const int spline_edge_len = spline.evaluated_edges_size();
-  const int profile_vert_len = profile_spline.evaluated_points_size();
-  const int profile_edge_len = profile_spline.evaluated_edges_size();
-  if (spline_vert_len == 0) {
-    return;
-  }
-
-  if (profile_vert_len == 1) {
+  const Spline &spline = info.spline;
+  const Spline &profile = info.profile;
+  if (info.profile_vert_len == 1) {
     vert_extrude_to_mesh_data(spline,
-                              profile_spline.evaluated_positions()[0],
+                              profile.evaluated_positions()[0],
                               r_verts,
                               r_edges,
-                              vert_offset,
-                              edge_offset);
+                              info.vert_offset,
+                              info.edge_offset);
     return;
   }
 
   /* Add the edges running along the length of the curve, starting at each profile vertex. */
-  const int spline_edges_start = edge_offset;
-  for (const int i_profile : IndexRange(profile_vert_len)) {
-    const int profile_edge_offset = spline_edges_start + i_profile * spline_edge_len;
-    for (const int i_ring : IndexRange(spline_edge_len)) {
-      const int i_next_ring = (i_ring == spline_vert_len - 1) ? 0 : i_ring + 1;
+  const int spline_edges_start = info.edge_offset;
+  for (const int i_profile : IndexRange(info.profile_vert_len)) {
+    const int profile_edge_offset = spline_edges_start + i_profile * info.spline_edge_len;
+    for (const int i_ring : IndexRange(info.spline_edge_len)) {
+      const int i_next_ring = (i_ring == info.spline_vert_len - 1) ? 0 : i_ring + 1;
 
-      const int ring_vert_offset = vert_offset + profile_vert_len * i_ring;
-      const int next_ring_vert_offset = vert_offset + profile_vert_len * i_next_ring;
+      const int ring_vert_offset = info.vert_offset + info.profile_vert_len * i_ring;
+      const int next_ring_vert_offset = info.vert_offset + info.profile_vert_len * i_next_ring;
 
       MEdge &edge = r_edges[profile_edge_offset + i_ring];
       edge.v1 = ring_vert_offset + i_profile;
@@ -126,13 +125,14 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
   }
 
   /* Add the edges running along each profile ring. */
-  const int profile_edges_start = spline_edges_start + profile_vert_len * spline_edge_len;
-  for (const int i_ring : IndexRange(spline_vert_len)) {
-    const int ring_vert_offset = vert_offset + profile_vert_len * i_ring;
+  const int profile_edges_start = spline_edges_start +
+                                  info.profile_vert_len * info.spline_edge_len;
+  for (const int i_ring : IndexRange(info.spline_vert_len)) {
+    const int ring_vert_offset = info.vert_offset + info.profile_vert_len * i_ring;
 
-    const int ring_edge_offset = profile_edges_start + i_ring * profile_edge_len;
-    for (const int i_profile : IndexRange(profile_edge_len)) {
-      const int i_next_profile = (i_profile == profile_vert_len - 1) ? 0 : i_profile + 1;
+    const int ring_edge_offset = profile_edges_start + i_ring * info.profile_edge_len;
+    for (const int i_profile : IndexRange(info.profile_edge_len)) {
+      const int i_next_profile = (i_profile == info.profile_vert_len - 1) ? 0 : i_profile + 1;
 
       MEdge &edge = r_edges[ring_edge_offset + i_profile];
       edge.v1 = ring_vert_offset + i_profile;
@@ -142,24 +142,25 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
   }
 
   /* Calculate poly and corner indices. */
-  for (const int i_ring : IndexRange(spline_edge_len)) {
-    const int i_next_ring = (i_ring == spline_vert_len - 1) ? 0 : i_ring + 1;
+  for (const int i_ring : IndexRange(info.spline_edge_len)) {
+    const int i_next_ring = (i_ring == info.spline_vert_len - 1) ? 0 : i_ring + 1;
 
-    const int ring_vert_offset = vert_offset + profile_vert_len * i_ring;
-    const int next_ring_vert_offset = vert_offset + profile_vert_len * i_next_ring;
+    const int ring_vert_offset = info.vert_offset + info.profile_vert_len * i_ring;
+    const int next_ring_vert_offset = info.vert_offset + info.profile_vert_len * i_next_ring;
 
-    const int ring_edge_start = profile_edges_start + profile_edge_len * i_ring;
-    const int next_ring_edge_offset = profile_edges_start + profile_edge_len * i_next_ring;
+    const int ring_edge_start = profile_edges_start + info.profile_edge_len * i_ring;
+    const int next_ring_edge_offset = profile_edges_start + info.profile_edge_len * i_next_ring;
 
-    const int ring_poly_offset = poly_offset + i_ring * profile_edge_len;
-    const int ring_loop_offset = loop_offset + i_ring * profile_edge_len * 4;
+    const int ring_poly_offset = info.poly_offset + i_ring * info.profile_edge_len;
+    const int ring_loop_offset = info.loop_offset + i_ring * info.profile_edge_len * 4;
 
-    for (const int i_profile : IndexRange(profile_edge_len)) {
+    for (const int i_profile : IndexRange(info.profile_edge_len)) {
       const int ring_segment_loop_offset = ring_loop_offset + i_profile * 4;
-      const int i_next_profile = (i_profile == profile_vert_len - 1) ? 0 : i_profile + 1;
+      const int i_next_profile = (i_profile == info.profile_vert_len - 1) ? 0 : i_profile + 1;
 
-      const int spline_edge_start = spline_edges_start + spline_edge_len * i_profile;
-      const int next_spline_edge_start = spline_edges_start + spline_edge_len * i_next_profile;
+      const int spline_edge_start = spline_edges_start + info.spline_edge_len * i_profile;
+      const int next_spline_edge_start = spline_edges_start +
+                                         info.spline_edge_len * i_next_profile;
 
       MPoly &poly = r_polys[ring_poly_offset + i_profile];
       poly.loopstart = ring_segment_loop_offset;
@@ -168,16 +169,16 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
 
       MLoop &loop_a = r_loops[ring_segment_loop_offset];
       loop_a.v = ring_vert_offset + i_profile;
-      loop_a.e = spline_edge_start + i_ring;
+      loop_a.e = ring_edge_start + i_profile;
       MLoop &loop_b = r_loops[ring_segment_loop_offset + 1];
-      loop_b.v = next_ring_vert_offset + i_profile;
-      loop_b.e = next_ring_edge_offset + i_profile;
+      loop_b.v = ring_vert_offset + i_next_profile;
+      loop_b.e = next_spline_edge_start + i_ring;
       MLoop &loop_c = r_loops[ring_segment_loop_offset + 2];
       loop_c.v = next_ring_vert_offset + i_next_profile;
-      loop_c.e = next_spline_edge_start + i_ring;
+      loop_c.e = next_ring_edge_offset + i_profile;
       MLoop &loop_d = r_loops[ring_segment_loop_offset + 3];
-      loop_d.v = ring_vert_offset + i_next_profile;
-      loop_d.e = ring_edge_start + i_profile;
+      loop_d.v = next_ring_vert_offset + i_profile;
+      loop_d.e = spline_edge_start + i_ring;
     }
   }
 
@@ -185,29 +186,30 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
   Span<float3> positions = spline.evaluated_positions();
   Span<float3> tangents = spline.evaluated_tangents();
   Span<float3> normals = spline.evaluated_normals();
-  Span<float3> profile_positions = profile_spline.evaluated_positions();
+  Span<float3> profile_positions = profile.evaluated_positions();
 
   GVArray_Typed<float> radii = spline.interpolate_to_evaluated(spline.radii());
-  for (const int i_ring : IndexRange(spline_vert_len)) {
+  for (const int i_ring : IndexRange(info.spline_vert_len)) {
     float4x4 point_matrix = float4x4::from_normalized_axis_data(
         positions[i_ring], normals[i_ring], tangents[i_ring]);
     point_matrix.apply_scale(radii[i_ring]);
 
-    const int ring_vert_start = vert_offset + i_ring * profile_vert_len;
-    for (const int i_profile : IndexRange(profile_vert_len)) {
+    const int ring_vert_start = info.vert_offset + i_ring * info.profile_vert_len;
+    for (const int i_profile : IndexRange(info.profile_vert_len)) {
       MVert &vert = r_verts[ring_vert_start + i_profile];
       copy_v3_v3(vert.co, point_matrix * profile_positions[i_profile]);
     }
   }
 
   /* Mark edge loops from sharp vector control points sharp. */
-  if (profile_spline.type() == Spline::Type::Bezier) {
-    const BezierSpline &bezier_spline = static_cast<const BezierSpline &>(profile_spline);
+  if (profile.type() == Spline::Type::Bezier) {
+    const BezierSpline &bezier_spline = static_cast<const BezierSpline &>(profile);
     Span<int> control_point_offsets = bezier_spline.control_point_offsets();
     for (const int i : IndexRange(bezier_spline.size())) {
       if (bezier_spline.point_is_sharp(i)) {
-        mark_edges_sharp(r_edges.slice(
-            spline_edges_start + spline_edge_len * control_point_offsets[i], spline_edge_len));
+        mark_edges_sharp(
+            r_edges.slice(spline_edges_start + info.spline_edge_len * control_point_offsets[i],
+                          info.spline_edge_len));
       }
     }
   }
@@ -276,6 +278,372 @@ static ResultOffsets calculate_result_offsets(Span<SplinePtr> profiles, Span<Spl
   return {std::move(vert), std::move(edge), std::move(loop), std::move(poly)};
 }
 
+static AttributeDomain get_result_attribute_domain(const MeshComponent &component,
+                                                   const AttributeIDRef &attribute_id)
+{
+  /* Only use a different domain if it is builtin and must only exist on one domain. */
+  if (!component.attribute_is_builtin(attribute_id)) {
+    return ATTR_DOMAIN_POINT;
+  }
+
+  std::optional<AttributeMetaData> meta_data = component.attribute_get_meta_data(attribute_id);
+  if (!meta_data) {
+    /* This function has to return something in this case, but it shouldn't be used,
+     * so return an output that will assert later if the code attempts to handle it. */
+    return ATTR_DOMAIN_AUTO;
+  }
+
+  return meta_data->domain;
+}
+
+/**
+ * The data stored in the attribute and its domain from #OutputAttribute, to avoid calling
+ * `as_span()` for every single profile and curve spline combination, and for readability.
+ */
+struct ResultAttributeData {
+  GMutableSpan data;
+  AttributeDomain domain;
+};
+
+static std::optional<ResultAttributeData> create_attribute_and_get_span(
+    MeshComponent &component,
+    const AttributeIDRef &attribute_id,
+    AttributeMetaData meta_data,
+    Vector<OutputAttribute> &r_attributes)
+{
+  const AttributeDomain domain = get_result_attribute_domain(component, attribute_id);
+  OutputAttribute attribute = component.attribute_try_get_for_output_only(
+      attribute_id, domain, meta_data.data_type);
+  if (!attribute) {
+    return std::nullopt;
+  }
+
+  GMutableSpan span = attribute.as_span();
+  r_attributes.append(std::move(attribute));
+  return std::make_optional<ResultAttributeData>({span, domain});
+}
+
+/**
+ * Store the references to the attribute data from the curve and profile inputs. Here we rely on
+ * the invariants of the storage of curve attributes, that the order will be consistent between
+ * splines, and all splines will have the same attributes.
+ */
+struct ResultAttributes {
+  /**
+   * Result attributes on the mesh corresponding to each attribute on the curve input, in the same
+   * order. The data is optional only in case the attribute does not exist on the mesh for some
+   * reason, like "shade_smooth" when the result has no faces.
+   */
+  Vector<std::optional<ResultAttributeData>> curve_point_attributes;
+  Vector<std::optional<ResultAttributeData>> curve_spline_attributes;
+
+  /**
+   * Result attributes corresponding the attributes on the profile input, in the same order. The
+   * attributes are optional in case the attribute names correspond to a namse used by the curve
+   * input, in which case the curve input attributes take precedence.
+   */
+  Vector<std::optional<ResultAttributeData>> profile_point_attributes;
+  Vector<std::optional<ResultAttributeData>> profile_spline_attributes;
+
+  /**
+   * Because some builtin attributes are not stored contiguously, and the curve inputs might have
+   * attributes with those names, it's necessary to keep OutputAttributes around to give access to
+   * the result data in a contiguous array.
+   */
+  Vector<OutputAttribute> attributes;
+};
+static ResultAttributes create_result_attributes(const CurveEval &curve,
+                                                 const CurveEval &profile,
+                                                 Mesh &mesh)
+{
+  MeshComponent mesh_component;
+  mesh_component.replace(&mesh, GeometryOwnershipType::Editable);
+  Set<AttributeIDRef> curve_attributes;
+
+  /* In order to prefer attributes on the main curve input when there are name collisions, first
+   * check the attributes on the curve, then add attributes on the profile that are not also on the
+   * main curve input. */
+  ResultAttributes result;
+  curve.splines().first()->attributes.foreach_attribute(
+      [&](const AttributeIDRef &id, const AttributeMetaData &meta_data) {
+        curve_attributes.add_new(id);
+        result.curve_point_attributes.append(
+            create_attribute_and_get_span(mesh_component, id, meta_data, result.attributes));
+        return true;
+      },
+      ATTR_DOMAIN_POINT);
+  curve.attributes.foreach_attribute(
+      [&](const AttributeIDRef &id, const AttributeMetaData &meta_data) {
+        curve_attributes.add_new(id);
+        result.curve_spline_attributes.append(
+            create_attribute_and_get_span(mesh_component, id, meta_data, result.attributes));
+        return true;
+      },
+      ATTR_DOMAIN_CURVE);
+  profile.splines().first()->attributes.foreach_attribute(
+      [&](const AttributeIDRef &id, const AttributeMetaData &meta_data) {
+        if (curve_attributes.contains(id)) {
+          result.profile_point_attributes.append({});
+        }
+        else {
+          result.profile_point_attributes.append(
+              create_attribute_and_get_span(mesh_component, id, meta_data, result.attributes));
+        }
+        return true;
+      },
+      ATTR_DOMAIN_POINT);
+  profile.attributes.foreach_attribute(
+      [&](const AttributeIDRef &id, const AttributeMetaData &meta_data) {
+        if (curve_attributes.contains(id)) {
+          result.profile_spline_attributes.append({});
+        }
+        else {
+          result.profile_spline_attributes.append(
+              create_attribute_and_get_span(mesh_component, id, meta_data, result.attributes));
+        }
+        return true;
+      },
+      ATTR_DOMAIN_CURVE);
+
+  return result;
+}
+
+template<typename T>
+static void copy_curve_point_data_to_mesh_verts(const Span<T> src,
+                                                const ResultInfo &info,
+                                                MutableSpan<T> dst)
+{
+  for (const int i_ring : IndexRange(info.spline_vert_len)) {
+    const int ring_vert_start = info.vert_offset + i_ring * info.profile_vert_len;
+    dst.slice(ring_vert_start, info.profile_vert_len).fill(src[i_ring]);
+  }
+}
+
+template<typename T>
+static void copy_curve_point_data_to_mesh_edges(const Span<T> src,
+                                                const ResultInfo &info,
+                                                MutableSpan<T> dst)
+{
+  const int edges_start = info.edge_offset + info.profile_vert_len * info.spline_edge_len;
+  for (const int i_ring : IndexRange(info.spline_vert_len)) {
+    const int ring_edge_start = edges_start + info.profile_edge_len * i_ring;
+    dst.slice(ring_edge_start, info.profile_edge_len).fill(src[i_ring]);
+  }
+}
+
+template<typename T>
+static void copy_curve_point_data_to_mesh_faces(const Span<T> src,
+                                                const ResultInfo &info,
+                                                MutableSpan<T> dst)
+{
+  for (const int i_ring : IndexRange(info.spline_edge_len)) {
+    const int ring_face_start = info.poly_offset + info.profile_edge_len * i_ring;
+    dst.slice(ring_face_start, info.profile_edge_len).fill(src[i_ring]);
+  }
+}
+
+static void copy_curve_point_attribute_to_mesh(const GSpan src,
+                                               const ResultInfo &info,
+                                               ResultAttributeData &dst)
+{
+  GVArrayPtr interpolated_gvarray = info.spline.interpolate_to_evaluated(src);
+  GSpan interpolated = interpolated_gvarray->get_internal_span();
+
+  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    switch (dst.domain) {
+      case ATTR_DOMAIN_POINT:
+        copy_curve_point_data_to_mesh_verts(interpolated.typed<T>(), info, dst.data.typed<T>());
+        break;
+      case ATTR_DOMAIN_EDGE:
+        copy_curve_point_data_to_mesh_edges(interpolated.typed<T>(), info, dst.data.typed<T>());
+        break;
+      case ATTR_DOMAIN_FACE:
+        copy_curve_point_data_to_mesh_faces(interpolated.typed<T>(), info, dst.data.typed<T>());
+        break;
+      case ATTR_DOMAIN_CORNER:
+        /* Unsupported for now, since there are no builtin attributes to convert into. */
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+  });
+}
+
+template<typename T>
+static void copy_profile_point_data_to_mesh_verts(const Span<T> src,
+                                                  const ResultInfo &info,
+                                                  MutableSpan<T> dst)
+{
+  for (const int i_ring : IndexRange(info.spline_vert_len)) {
+    const int profile_vert_start = info.vert_offset + i_ring * info.profile_vert_len;
+    for (const int i_profile : IndexRange(info.profile_vert_len)) {
+      dst[profile_vert_start + i_profile] = src[i_profile];
+    }
+  }
+}
+
+template<typename T>
+static void copy_profile_point_data_to_mesh_edges(const Span<T> src,
+                                                  const ResultInfo &info,
+                                                  MutableSpan<T> dst)
+{
+  for (const int i_profile : IndexRange(info.profile_vert_len)) {
+    const int profile_edge_offset = info.edge_offset + i_profile * info.spline_edge_len;
+    dst.slice(profile_edge_offset, info.spline_edge_len).fill(src[i_profile]);
+  }
+}
+
+template<typename T>
+static void copy_profile_point_data_to_mesh_faces(const Span<T> src,
+                                                  const ResultInfo &info,
+                                                  MutableSpan<T> dst)
+{
+  for (const int i_ring : IndexRange(info.spline_edge_len)) {
+    const int profile_face_start = info.poly_offset + i_ring * info.profile_edge_len;
+    for (const int i_profile : IndexRange(info.profile_edge_len)) {
+      dst[profile_face_start + i_profile] = src[i_profile];
+    }
+  }
+}
+
+static void copy_profile_point_attribute_to_mesh(const GSpan src,
+                                                 const ResultInfo &info,
+                                                 ResultAttributeData &dst)
+{
+  GVArrayPtr interpolated_gvarray = info.profile.interpolate_to_evaluated(src);
+  GSpan interpolated = interpolated_gvarray->get_internal_span();
+
+  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    switch (dst.domain) {
+      case ATTR_DOMAIN_POINT:
+        copy_profile_point_data_to_mesh_verts(interpolated.typed<T>(), info, dst.data.typed<T>());
+        break;
+      case ATTR_DOMAIN_EDGE:
+        copy_profile_point_data_to_mesh_edges(interpolated.typed<T>(), info, dst.data.typed<T>());
+        break;
+      case ATTR_DOMAIN_FACE:
+        copy_profile_point_data_to_mesh_faces(interpolated.typed<T>(), info, dst.data.typed<T>());
+        break;
+      case ATTR_DOMAIN_CORNER:
+        /* Unsupported for now, since there are no builtin attributes to convert into. */
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+  });
+}
+
+static void copy_point_domain_attributes_to_mesh(const ResultInfo &info,
+                                                 ResultAttributes &attributes)
+{
+  if (!attributes.curve_point_attributes.is_empty()) {
+    int i = 0;
+    info.spline.attributes.foreach_attribute(
+        [&](const AttributeIDRef &id, const AttributeMetaData &UNUSED(meta_data)) {
+          if (attributes.curve_point_attributes[i]) {
+            copy_curve_point_attribute_to_mesh(*info.spline.attributes.get_for_read(id),
+                                               info,
+                                               *attributes.curve_point_attributes[i]);
+          }
+          i++;
+          return true;
+        },
+        ATTR_DOMAIN_POINT);
+  }
+  if (!attributes.profile_point_attributes.is_empty()) {
+    int i = 0;
+    info.profile.attributes.foreach_attribute(
+        [&](const AttributeIDRef &id, const AttributeMetaData &UNUSED(meta_data)) {
+          if (attributes.profile_point_attributes[i]) {
+            copy_profile_point_attribute_to_mesh(*info.profile.attributes.get_for_read(id),
+                                                 info,
+                                                 *attributes.profile_point_attributes[i]);
+          }
+          i++;
+          return true;
+        },
+        ATTR_DOMAIN_POINT);
+  }
+}
+
+template<typename T>
+static void copy_spline_data_to_mesh(Span<T> src, Span<int> offsets, MutableSpan<T> dst)
+{
+  for (const int i : IndexRange(src.size())) {
+    dst.slice(offsets[i], offsets[i + 1] - offsets[i]).fill(src[i]);
+  }
+}
+
+/**
+ * Since the offsets for each combination of curve and profile spline are stored for every mesh
+ * domain, and this just needs to fill the chunks corresponding to each combination, we can use
+ * the same function for all mesh domains.
+ */
+static void copy_spline_attribute_to_mesh(const GSpan src,
+                                          const ResultOffsets &offsets,
+                                          ResultAttributeData &dst_attribute)
+{
+  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    switch (dst_attribute.domain) {
+      case ATTR_DOMAIN_POINT:
+        copy_spline_data_to_mesh(src.typed<T>(), offsets.vert, dst_attribute.data.typed<T>());
+        break;
+      case ATTR_DOMAIN_EDGE:
+        copy_spline_data_to_mesh(src.typed<T>(), offsets.edge, dst_attribute.data.typed<T>());
+        break;
+      case ATTR_DOMAIN_FACE:
+        copy_spline_data_to_mesh(src.typed<T>(), offsets.poly, dst_attribute.data.typed<T>());
+        break;
+      case ATTR_DOMAIN_CORNER:
+        copy_spline_data_to_mesh(src.typed<T>(), offsets.loop, dst_attribute.data.typed<T>());
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+  });
+}
+
+static void copy_spline_domain_attributes_to_mesh(const CurveEval &curve,
+                                                  const CurveEval &profile,
+                                                  const ResultOffsets &offsets,
+                                                  ResultAttributes &attributes)
+{
+  if (!attributes.curve_spline_attributes.is_empty()) {
+    int i = 0;
+    curve.attributes.foreach_attribute(
+        [&](const AttributeIDRef &id, const AttributeMetaData &UNUSED(meta_data)) {
+          if (attributes.curve_spline_attributes[i]) {
+            copy_spline_attribute_to_mesh(*curve.attributes.get_for_read(id),
+                                          offsets,
+                                          *attributes.curve_spline_attributes[i]);
+          }
+          i++;
+          return true;
+        },
+        ATTR_DOMAIN_CURVE);
+  }
+  if (!attributes.profile_spline_attributes.is_empty()) {
+    int i = 0;
+    profile.attributes.foreach_attribute(
+        [&](const AttributeIDRef &id, const AttributeMetaData &UNUSED(meta_data)) {
+          if (attributes.profile_spline_attributes[i]) {
+            copy_spline_attribute_to_mesh(*profile.attributes.get_for_read(id),
+                                          offsets,
+                                          *attributes.profile_spline_attributes[i]);
+          }
+          i++;
+          return true;
+        },
+        ATTR_DOMAIN_CURVE);
+  }
+}
+
 /**
  * \note Normal calculation is by far the slowest part of calculations relating to the result mesh.
  * Although it would be a sensible decision to use the better topology information available while
@@ -298,29 +666,51 @@ static Mesh *curve_to_mesh_calculate(const CurveEval &curve, const CurveEval &pr
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
   mesh->flag |= ME_AUTOSMOOTH;
   mesh->smoothresh = DEG2RADF(180.0f);
-  mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-  mesh->runtime.cd_dirty_poly |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(mesh);
+
+  ResultAttributes attributes = create_result_attributes(curve, profile, *mesh);
 
   threading::parallel_for(curves.index_range(), 128, [&](IndexRange curves_range) {
     for (const int i_spline : curves_range) {
+      const Spline &spline = *curves[i_spline];
+      if (spline.evaluated_points_size() == 0) {
+        continue;
+      }
       const int spline_start_index = i_spline * profiles.size();
       threading::parallel_for(profiles.index_range(), 128, [&](IndexRange profiles_range) {
         for (const int i_profile : profiles_range) {
+          const Spline &profile = *profiles[i_profile];
           const int i_mesh = spline_start_index + i_profile;
-          spline_extrude_to_mesh_data(*curves[i_spline],
-                                      *profiles[i_profile],
-                                      offsets.vert[i_mesh],
-                                      offsets.edge[i_mesh],
-                                      offsets.loop[i_mesh],
-                                      offsets.poly[i_mesh],
+          ResultInfo info{
+              spline,
+              profile,
+              offsets.vert[i_mesh],
+              offsets.edge[i_mesh],
+              offsets.loop[i_mesh],
+              offsets.poly[i_mesh],
+              spline.evaluated_points_size(),
+              spline.evaluated_edges_size(),
+              profile.evaluated_points_size(),
+              profile.evaluated_edges_size(),
+          };
+
+          spline_extrude_to_mesh_data(info,
                                       {mesh->mvert, mesh->totvert},
                                       {mesh->medge, mesh->totedge},
                                       {mesh->mloop, mesh->totloop},
                                       {mesh->mpoly, mesh->totpoly});
+
+          copy_point_domain_attributes_to_mesh(info, attributes);
         }
       });
     }
   });
+
+  copy_spline_domain_attributes_to_mesh(curve, profile, offsets, attributes);
+
+  for (OutputAttribute &output_attribute : attributes.attributes) {
+    output_attribute.save();
+  }
 
   return mesh;
 }
@@ -374,7 +764,7 @@ void register_node_type_geo_curve_to_mesh()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_TO_MESH, "Curve to Mesh", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_curve_to_mesh_in, geo_node_curve_to_mesh_out);
+  ntype.declare = blender::nodes::geo_node_curve_to_mesh_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_to_mesh_exec;
   nodeRegisterType(&ntype);
 }

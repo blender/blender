@@ -42,7 +42,7 @@ class TestGraph:
 
             # Generate one graph for every device x category x result key combination.
             for category, category_entries in categories.items():
-                entries = sorted(category_entries, key=lambda entry: (entry.revision, entry.test))
+                entries = sorted(category_entries, key=lambda entry: (entry.date, entry.revision, entry.test))
 
                 outputs = set()
                 for entry in entries:
@@ -58,8 +58,6 @@ class TestGraph:
         self.json = json.dumps(data, indent=2)
 
     def chart(self, device_name: str, chart_name: str, entries: List, chart_type: str, output: str) -> Dict:
-        entries = sorted(entries, key=lambda entry: entry.date)
-
         # Gather used tests.
         tests = {}
         for entry in entries:

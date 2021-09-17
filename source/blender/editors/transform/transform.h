@@ -618,9 +618,6 @@ typedef struct TransInfo {
     O_SET,
   } orient_curr;
 
-  /** backup from view3d, to restore on end. */
-  short gizmo_flag;
-
   short prop_mode;
 
   /** Value taken as input, either through mouse coordinates or entered as a parameter. */

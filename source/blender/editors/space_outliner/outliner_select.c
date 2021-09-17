@@ -673,7 +673,7 @@ static void tree_element_sequence_activate(bContext *C,
                                            const eOLSetState set)
 {
   Sequence *seq = (Sequence *)te->directdata;
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (BLI_findindex(ed->seqbasep, seq) != -1) {
     if (set == OL_SETSEL_EXTEND) {
@@ -695,7 +695,7 @@ static void tree_element_sequence_activate(bContext *C,
 
 static void tree_element_sequence_dup_activate(Scene *scene, TreeElement *UNUSED(te))
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
 #if 0
   select_single_seq(seq, 1);

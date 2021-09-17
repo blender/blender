@@ -12,36 +12,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2021 Blender Foundation.
- * All rights reserved.
  */
+
+/** \file
+ * \ingroup DNA
+ */
+
 #pragma once
 
-#include "usd_reader_xform.h"
+#include "DNA_defs.h"
 
-#include <pxr/usd/usdGeom/xform.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct Collection;
+/**
+ * \brief Universally Unique Identifier according to RFC4122.
+ */
+typedef struct UUID {
+  uint32_t time_low;
+  uint16_t time_mid;
+  uint16_t time_hi_and_version;
+  uint8_t clock_seq_hi_and_reserved;
+  uint8_t clock_seq_low;
+  uint8_t node[6];
+} UUID;
 
-namespace blender::io::usd {
-
-/* Wraps the UsdGeomXform schema. Creates a Blender Empty object. */
-
-class USDInstanceReader : public USDXformReader {
-
- public:
-  USDInstanceReader(const pxr::UsdPrim &prim,
-                    const USDImportParams &import_params,
-                    const ImportSettings &settings);
-
-  bool valid() const override;
-
-  void create_object(Main *bmain, double motionSampleTime) override;
-
-  void set_instance_collection(Collection *coll);
-
-  pxr::SdfPath proto_path() const;
-};
-
-}  // namespace blender::io::usd
+#ifdef __cplusplus
+}
+#endif

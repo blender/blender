@@ -1085,7 +1085,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     EDBM_update(obedit->data,
                 &(const struct EDBMUpdate_Params){
                     .calc_looptri = true,
-                    .calc_normals = false,
+                    .calc_normals = true,
                     .is_destructive = true,
                 });
   }
@@ -1124,7 +1124,7 @@ void MESH_OT_rip(wmOperatorType *ot)
   ot->poll = EDBM_view3d_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* to give to transform */
   Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);

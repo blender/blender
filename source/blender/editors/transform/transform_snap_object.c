@@ -501,9 +501,7 @@ static void iter_snap_objects(SnapObjectContext *sctx,
     }
 
     Object *obj_eval = DEG_get_evaluated_object(depsgraph, base->object);
-    if (obj_eval->transflag & OB_DUPLI ||
-        (obj_eval->runtime.geometry_set_eval != NULL &&
-         BKE_geometry_set_has_instances(obj_eval->runtime.geometry_set_eval))) {
+    if (obj_eval->transflag & OB_DUPLI || BKE_object_has_geometry_set_instances(obj_eval)) {
       ListBase *lb = object_duplilist(depsgraph, sctx->scene, obj_eval);
       for (DupliObject *dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
         BLI_assert(DEG_is_evaluated_object(dupli_ob->ob));

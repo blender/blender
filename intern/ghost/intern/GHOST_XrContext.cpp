@@ -20,6 +20,7 @@
  * Abstraction for XR (VR, AR, MR, ..) access via OpenXR.
  */
 
+#include <algorithm>
 #include <cassert>
 #include <sstream>
 #include <string>
@@ -98,7 +99,7 @@ void GHOST_XrContext::initialize(const GHOST_XrContextCreateInfo *create_info)
   storeInstanceProperties();
 
   /* Multiple bindings may be enabled. Now that we know the runtime in use, settle for one. */
-  m_gpu_binding_type = determineGraphicsBindingTypeToUse(graphics_binding_types);
+  m_gpu_binding_type = determineGraphicsBindingTypeToUse(graphics_binding_types, create_info);
 
   printInstanceInfo();
   if (isDebugMode()) {
@@ -135,7 +136,8 @@ void GHOST_XrContext::storeInstanceProperties()
       {"Monado(XRT) by Collabora et al", OPENXR_RUNTIME_MONADO},
       {"Oculus", OPENXR_RUNTIME_OCULUS},
       {"SteamVR/OpenXR", OPENXR_RUNTIME_STEAMVR},
-      {"Windows Mixed Reality Runtime", OPENXR_RUNTIME_WMR}};
+      {"Windows Mixed Reality Runtime", OPENXR_RUNTIME_WMR},
+      {"Varjo OpenXR Runtime", OPENXR_RUNTIME_VARJO}};
   decltype(runtime_map)::const_iterator runtime_map_iter;
 
   m_oxr->instance_properties.type = XR_TYPE_INSTANCE_PROPERTIES;
@@ -415,6 +417,12 @@ void GHOST_XrContext::getExtensionsToEnable(
   try_ext.push_back(XR_HTC_VIVE_COSMOS_CONTROLLER_INTERACTION_EXTENSION_NAME);
   try_ext.push_back(XR_HUAWEI_CONTROLLER_INTERACTION_EXTENSION_NAME);
 
+  /* Varjo quad view extension. */
+  try_ext.push_back(XR_VARJO_QUAD_VIEWS_EXTENSION_NAME);
+
+  /* Varjo foveated extension. */
+  try_ext.push_back(XR_VARJO_FOVEATED_RENDERING_EXTENSION_NAME);
+
   r_ext_names.reserve(try_ext.size() + graphics_binding_types.size());
 
   /* Add graphics binding extensions (may be multiple ones, we'll settle for one to use later, once
@@ -465,16 +473,20 @@ std::vector<GHOST_TXrGraphicsBinding> GHOST_XrContext::determineGraphicsBindingT
 }
 
 GHOST_TXrGraphicsBinding GHOST_XrContext::determineGraphicsBindingTypeToUse(
-    const std::vector<GHOST_TXrGraphicsBinding> &enabled_types)
+    const std::vector<GHOST_TXrGraphicsBinding> &enabled_types,
+    const GHOST_XrContextCreateInfo *create_info)
 {
   /* Return the first working type. */
   for (GHOST_TXrGraphicsBinding type : enabled_types) {
 #ifdef WIN32
-    /* The SteamVR OpenGL backend fails currently. Disable it and allow falling back to the DirectX
-     * one. */
-    if ((m_runtime_id == OPENXR_RUNTIME_STEAMVR) && (type == GHOST_kXrGraphicsOpenGL)) {
+    /* The SteamVR OpenGL backend currently fails for NVIDIA GPU's. Disable it and allow falling
+     * back to the DirectX one. */
+    if ((m_runtime_id == OPENXR_RUNTIME_STEAMVR) && (type == GHOST_kXrGraphicsOpenGL) &&
+        ((create_info->context_flag & GHOST_kXrContextGpuNVIDIA) != 0)) {
       continue;
     }
+#else
+    ((void)create_info);
 #endif
 
     assert(type != GHOST_kXrGraphicsUnknown);
@@ -611,6 +623,13 @@ bool GHOST_XrContext::isDebugMode() const
 bool GHOST_XrContext::isDebugTimeMode() const
 {
   return m_debug_time;
+}
+
+bool GHOST_XrContext::isExtensionEnabled(const char *ext) const
+{
+  bool contains = std::find(m_enabled_extensions.begin(), m_enabled_extensions.end(), ext) !=
+                  m_enabled_extensions.end();
+  return contains;
 }
 
 /** \} */ /* Ghost Internal Accessors and Mutators */

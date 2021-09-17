@@ -40,6 +40,7 @@
 #include "CLG_log.h"
 
 #include "DNA_ID.h"
+#include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -55,8 +56,10 @@
 #include "BLI_dial_2d.h"
 #include "BLI_dynstr.h" /* For #WM_operator_pystring. */
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -347,7 +350,7 @@ bool WM_operator_pystring_abbreviate(char *str, int str_len_max)
 
 /* return NULL if no match is found */
 #if 0
-static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr)
+static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr, bool *r_is_id)
 {
   /* loop over all context items and do 2 checks
    *
@@ -362,6 +365,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 
   const char *member_found = NULL;
   const char *member_id = NULL;
+  bool member_found_is_id = false;
 
   for (link = lb.first; link; link = link->next) {
     const char *identifier = link->data;
@@ -373,14 +377,15 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
     }
 
     if (ptr->owner_id == ctx_item_ptr.owner_id) {
+      const bool is_id = RNA_struct_is_ID(ctx_item_ptr.type);
       if ((ptr->data == ctx_item_ptr.data) && (ptr->type == ctx_item_ptr.type)) {
         /* found! */
         member_found = identifier;
+        member_found_is_id = is_id;
         break;
       }
-      else if (RNA_struct_is_ID(ctx_item_ptr.type)) {
-        /* we found a reference to this ID,
-         * so fallback to it if there is no direct reference */
+      if (is_id) {
+        /* Found a reference to this ID, so fallback to it if there is no direct reference. */
         member_id = identifier;
       }
     }
@@ -388,9 +393,11 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
   BLI_freelistN(&lb);
 
   if (member_found) {
+    *r_is_id = member_found_is_id;
     return member_found;
   }
   else if (member_id) {
+    *r_is_id = true;
     return member_id;
   }
   else {
@@ -402,11 +409,24 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 
 /* use hard coded checks for now */
 
-static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr)
+/**
+ * \param: r_is_id:
+ * - When set to true, the returned member is an ID type.
+ *   This is a signal that #RNA_path_from_ID_to_struct needs to be used to calculate
+ *   the remainder of the RNA path.
+ * - When set to false, the returned member is not an ID type.
+ *   In this case the context path *must* resolve to `ptr`,
+ *   since there is no convenient way to calculate partial RNA paths.
+ *
+ * \note While the path to the ID is typically sufficient to calculate the remainder of the path,
+ * in practice this would cause #WM_context_path_resolve_property_full to crate a path such as:
+ * `object.data.bones["Bones"].use_deform` such paths are not useful for key-shortcuts,
+ * so this function supports returning data-paths directly to context members that aren't ID types.
+ */
+static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr, bool *r_is_id)
 {
   const char *member_id = NULL;
-
-  if (ptr->owner_id) {
+  bool is_id = false;
 
 #  define CTX_TEST_PTR_ID(C, member, idptr) \
     { \
@@ -414,6 +434,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
       PointerRNA ctx_item_ptr = CTX_data_pointer_get(C, ctx_member); \
       if (ctx_item_ptr.owner_id == idptr) { \
         member_id = ctx_member; \
+        is_id = true; \
         break; \
       } \
     } \
@@ -426,6 +447,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
       PointerRNA ctx_item_ptr = CTX_data_pointer_get(C, ctx_member); \
       if (ctx_item_ptr.owner_id && (ID *)cast(ctx_item_ptr.owner_id) == idptr) { \
         member_id = ctx_member_full; \
+        is_id = true; \
         break; \
       } \
     } \
@@ -441,17 +463,62 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
     } \
     (void)0
 
-    switch (GS(ptr->owner_id->name)) {
+  /* A version of #TEST_PTR_DATA_TYPE that calls `CTX_data_pointer_get_type(C, member)`. */
+#  define TEST_PTR_DATA_TYPE_FROM_CONTEXT(member, rna_type, rna_ptr) \
+    { \
+      const char *ctx_member = member; \
+      if (RNA_struct_is_a((rna_ptr)->type, &(rna_type)) && \
+          (rna_ptr)->data == (CTX_data_pointer_get_type(C, ctx_member, &(rna_type)).data)) { \
+        member_id = ctx_member; \
+        break; \
+      } \
+    } \
+    (void)0
+
+  /* General checks (multiple ID types). */
+  if (ptr->owner_id) {
+    const ID_Type ptr_id_type = GS(ptr->owner_id->name);
+
+    /* Support break in the macros for an early exit. */
+    do {
+      /* Animation Data. */
+      if (id_type_can_have_animdata(ptr_id_type)) {
+        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_nla_track", RNA_NlaTrack, ptr);
+        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_nla_strip", RNA_NlaStrip, ptr);
+      }
+    } while (0);
+  }
+
+  /* Specific ID type checks. */
+  if (ptr->owner_id && (member_id == NULL)) {
+
+    const ID_Type ptr_id_type = GS(ptr->owner_id->name);
+    switch (ptr_id_type) {
       case ID_SCE: {
+        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_sequence_strip", RNA_Sequence, ptr);
+
         CTX_TEST_PTR_ID(C, "scene", ptr->owner_id);
         break;
       }
       case ID_OB: {
+        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_pose_bone", RNA_PoseBone, ptr);
+
         CTX_TEST_PTR_ID(C, "object", ptr->owner_id);
         break;
       }
       /* from rna_Main_objects_new */
       case OB_DATA_SUPPORT_ID_CASE: {
+
+        if (ptr_id_type == ID_AR) {
+          const bArmature *arm = (bArmature *)ptr->owner_id;
+          if (arm->edbo != NULL) {
+            TEST_PTR_DATA_TYPE("active_bone", RNA_EditBone, ptr, arm->act_edbone);
+          }
+          else {
+            TEST_PTR_DATA_TYPE("active_bone", RNA_Bone, ptr, arm->act_bone);
+          }
+        }
+
 #  define ID_CAST_OBDATA(id_pt) (((Object *)(id_pt))->data)
         CTX_TEST_PTR_ID_CAST(C, "object", "object.data", ID_CAST_OBDATA, ptr->owner_id);
         break;
@@ -485,37 +552,38 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
             const View3D *v3d = (View3D *)space_data;
             const View3DShading *shading = &v3d->shading;
 
-            TEST_PTR_DATA_TYPE("space_data", RNA_View3DOverlay, ptr, v3d);
-            TEST_PTR_DATA_TYPE("space_data", RNA_View3DShading, ptr, shading);
+            TEST_PTR_DATA_TYPE("space_data.overlay", RNA_View3DOverlay, ptr, v3d);
+            TEST_PTR_DATA_TYPE("space_data.shading", RNA_View3DShading, ptr, shading);
             break;
           }
           case SPACE_GRAPH: {
             const SpaceGraph *sipo = (SpaceGraph *)space_data;
             const bDopeSheet *ads = sipo->ads;
-            TEST_PTR_DATA_TYPE("space_data", RNA_DopeSheet, ptr, ads);
+            TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
             break;
           }
           case SPACE_FILE: {
             const SpaceFile *sfile = (SpaceFile *)space_data;
             const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-            TEST_PTR_DATA_TYPE("space_data", RNA_FileSelectParams, ptr, params);
+            TEST_PTR_DATA_TYPE("space_data.params", RNA_FileSelectParams, ptr, params);
             break;
           }
           case SPACE_IMAGE: {
             const SpaceImage *sima = (SpaceImage *)space_data;
-            TEST_PTR_DATA_TYPE("space_data", RNA_SpaceUVEditor, ptr, sima);
+            TEST_PTR_DATA_TYPE("space_data.overlay", RNA_SpaceImageOverlay, ptr, sima);
+            TEST_PTR_DATA_TYPE("space_data.uv_editor", RNA_SpaceUVEditor, ptr, sima);
             break;
           }
           case SPACE_NLA: {
             const SpaceNla *snla = (SpaceNla *)space_data;
             const bDopeSheet *ads = snla->ads;
-            TEST_PTR_DATA_TYPE("space_data", RNA_DopeSheet, ptr, ads);
+            TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
             break;
           }
           case SPACE_ACTION: {
             const SpaceAction *sact = (SpaceAction *)space_data;
             const bDopeSheet *ads = &sact->ads;
-            TEST_PTR_DATA_TYPE("space_data", RNA_DopeSheet, ptr, ads);
+            TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
             break;
           }
         }
@@ -530,30 +598,69 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 #  undef TEST_PTR_DATA_TYPE
   }
 
+  *r_is_id = is_id;
+
   return member_id;
 }
 #endif
+
+/**
+ * Calculate the path to `ptr` from context `C`, or return NULL if it can't be calculated.
+ */
+char *WM_context_path_resolve_property_full(bContext *C,
+                                            const PointerRNA *ptr,
+                                            PropertyRNA *prop,
+                                            int index)
+{
+  bool is_id;
+  const char *member_id = wm_context_member_from_ptr(C, ptr, &is_id);
+  char *member_id_data_path = NULL;
+  if (member_id != NULL) {
+    if (is_id && !RNA_struct_is_ID(ptr->type)) {
+      char *data_path = RNA_path_from_ID_to_struct(ptr);
+      if (data_path != NULL) {
+        if (prop != NULL) {
+          char *prop_str = RNA_path_property_py(ptr, prop, index);
+          member_id_data_path = BLI_string_join_by_sep_charN('.', member_id, data_path, prop_str);
+          MEM_freeN(prop_str);
+        }
+        else {
+          member_id_data_path = BLI_string_join_by_sep_charN('.', member_id, data_path);
+        }
+        MEM_freeN(data_path);
+      }
+    }
+    else {
+      if (prop != NULL) {
+        char *prop_str = RNA_path_property_py(ptr, prop, index);
+        member_id_data_path = BLI_string_join_by_sep_charN('.', member_id, prop_str);
+        MEM_freeN(prop_str);
+      }
+      else {
+        member_id_data_path = BLI_strdup(member_id);
+      }
+    }
+  }
+  return member_id_data_path;
+}
+
+char *WM_context_path_resolve_full(bContext *C, const PointerRNA *ptr)
+{
+  return WM_context_path_resolve_property_full(C, ptr, NULL, -1);
+}
 
 static char *wm_prop_pystring_from_context(bContext *C,
                                            PointerRNA *ptr,
                                            PropertyRNA *prop,
                                            int index)
 {
-  const char *member_id = wm_context_member_from_ptr(C, ptr);
+  char *member_id_data_path = WM_context_path_resolve_property_full(C, ptr, prop, index);
   char *ret = NULL;
-  if (member_id != NULL) {
-    char *prop_str = RNA_path_struct_property_py(ptr, prop, index);
-    if (prop_str) {
-      ret = BLI_sprintfN("bpy.context.%s.%s", member_id, prop_str);
-      MEM_freeN(prop_str);
-    }
+  if (member_id_data_path != NULL) {
+    ret = BLI_sprintfN("bpy.context.%s", member_id_data_path);
+    MEM_freeN(member_id_data_path);
   }
   return ret;
-}
-
-const char *WM_context_member_from_ptr(bContext *C, const PointerRNA *ptr)
-{
-  return wm_context_member_from_ptr(C, ptr);
 }
 
 char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)

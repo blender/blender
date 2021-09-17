@@ -818,6 +818,8 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 
   ot->poll = WM_operator_winactive;
 
+  ot->flag = OPTYPE_DEPENDS_ON_CURSOR;
+
   prop = RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_runtime(ot->srna, prop, &RNA_OperatorMousePath);
 }
@@ -954,8 +956,9 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
         break;
       }
       case GESTURE_MODAL_FLIP: {
-        /* Toggle snapping on/off. */
+        /* Toggle flipping on/off. */
         gesture->use_flip = !gesture->use_flip;
+        gesture_straightline_apply(C, op);
         break;
       }
       case GESTURE_MODAL_SELECT: {
@@ -993,6 +996,7 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 
         if (gesture->use_snap) {
           wm_gesture_straightline_do_angle_snap(rect);
+          gesture_straightline_apply(C, op);
         }
 
         wm_gesture_tag_redraw(win);

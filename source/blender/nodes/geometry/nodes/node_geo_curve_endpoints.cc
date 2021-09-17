@@ -25,18 +25,14 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_endpoints_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_curve_endpoints_out[] = {
-    {SOCK_GEOMETRY, N_("Start Points")},
-    {SOCK_GEOMETRY, N_("End Points")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_curve_endpoints_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Start Points");
+  b.add_output<decl::Geometry>("End Points");
+}
 
 /**
  * Evaluate splines in parallel to speed up the rest of the node's execution.
@@ -60,25 +56,26 @@ static void copy_spline_domain_attributes(const CurveComponent &curve_component,
                                           Span<int> offsets,
                                           PointCloudComponent &points)
 {
-  curve_component.attribute_foreach([&](StringRefNull name, const AttributeMetaData &meta_data) {
-    if (meta_data.domain != ATTR_DOMAIN_CURVE) {
-      return true;
-    }
-    GVArrayPtr spline_attribute = curve_component.attribute_get_for_read(
-        name, ATTR_DOMAIN_CURVE, meta_data.data_type);
+  curve_component.attribute_foreach(
+      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+        if (meta_data.domain != ATTR_DOMAIN_CURVE) {
+          return true;
+        }
+        GVArrayPtr spline_attribute = curve_component.attribute_get_for_read(
+            attribute_id, ATTR_DOMAIN_CURVE, meta_data.data_type);
 
-    OutputAttribute result_attribute = points.attribute_try_get_for_output_only(
-        name, ATTR_DOMAIN_POINT, meta_data.data_type);
-    GMutableSpan result = result_attribute.as_span();
+        OutputAttribute result_attribute = points.attribute_try_get_for_output_only(
+            attribute_id, ATTR_DOMAIN_POINT, meta_data.data_type);
+        GMutableSpan result = result_attribute.as_span();
 
-    /* Only copy the attributes of splines in the offsets. */
-    for (const int i : offsets.index_range()) {
-      spline_attribute->get(offsets[i], result[i]);
-    }
+        /* Only copy the attributes of splines in the offsets. */
+        for (const int i : offsets.index_range()) {
+          spline_attribute->get(offsets[i], result[i]);
+        }
 
-    result_attribute.save();
-    return true;
-  });
+        result_attribute.save();
+        return true;
+      });
 }
 
 /**
@@ -128,20 +125,20 @@ static void copy_endpoint_attributes(Span<SplinePtr> splines,
 
       /* Copy the point attribute data over. */
       for (const auto &item : start_data.point_attributes.items()) {
-        const StringRef name = item.key;
+        const AttributeIDRef attribute_id = item.key;
         GMutableSpan point_span = item.value;
 
-        BLI_assert(spline.attributes.get_for_read(name));
-        GSpan spline_span = *spline.attributes.get_for_read(name);
+        BLI_assert(spline.attributes.get_for_read(attribute_id));
+        GSpan spline_span = *spline.attributes.get_for_read(attribute_id);
         blender::fn::GVArray_For_GSpan(spline_span).get(0, point_span[i]);
       }
 
       for (const auto &item : end_data.point_attributes.items()) {
-        const StringRef name = item.key;
+        const AttributeIDRef attribute_id = item.key;
         GMutableSpan point_span = item.value;
 
-        BLI_assert(spline.attributes.get_for_read(name));
-        GSpan spline_span = *spline.attributes.get_for_read(name);
+        BLI_assert(spline.attributes.get_for_read(attribute_id));
+        GSpan spline_span = *spline.attributes.get_for_read(attribute_id);
         blender::fn::GVArray_For_GSpan(spline_span).get(spline.size() - 1, point_span[i]);
       }
     }
@@ -216,7 +213,7 @@ void register_node_type_geo_curve_endpoints()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_ENDPOINTS, "Curve Endpoints", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_curve_endpoints_in, geo_node_curve_endpoints_out);
+  ntype.declare = blender::nodes::geo_node_curve_endpoints_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_endpoints_exec;
 
   nodeRegisterType(&ntype);

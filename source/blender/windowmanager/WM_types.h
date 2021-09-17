@@ -184,6 +184,17 @@ enum {
   OPTYPE_LOCK_BYPASS = (1 << 9),
   /** Special type of undo which doesn't store itself multiple times. */
   OPTYPE_UNDO_GROUPED = (1 << 10),
+
+  /**
+   * Depends on the cursor location, when activated from a menu wait for mouse press.
+   *
+   * In practice these operators often end up being accessed:
+   * - Directly from key bindings.
+   * - As tools in the toolbar.
+   *
+   * Even so, accessing from the menu should behave usefully.
+   */
+  OPTYPE_DEPENDS_ON_CURSOR = (1 << 11),
 };
 
 /** For #WM_cursor_grab_enable wrap axis. */
@@ -228,16 +239,16 @@ typedef enum eOperatorPropTags {
 #define KM_CTRL 2
 #define KM_ALT 4
 #define KM_OSKEY 8
-/* means modifier should be pressed 2nd */
-#define KM_SHIFT2 16
-#define KM_CTRL2 32
-#define KM_ALT2 64
-#define KM_OSKEY2 128
+
+/* Used for key-map item creation function arguments (never stored in DNA). */
+#define KM_SHIFT_ANY 16
+#define KM_CTRL_ANY 32
+#define KM_ALT_ANY 64
+#define KM_OSKEY_ANY 128
 
 /* KM_MOD_ flags for `wmKeyMapItem` and `wmEvent.alt/shift/oskey/ctrl`. */
 /* note that KM_ANY and KM_NOTHING are used with these defines too */
-#define KM_MOD_FIRST 1
-#define KM_MOD_SECOND 2
+#define KM_MOD_HELD 1
 
 /* type: defined in wm_event_types.c */
 #define KM_TEXTINPUT -2
@@ -925,7 +936,7 @@ typedef struct wmDragID {
 } wmDragID;
 
 typedef struct wmDragAsset {
-  /* Note: Can't store the AssetHandle here, since the FileDirEntry it wraps may be freed while
+  /* NOTE: Can't store the #AssetHandle here, since the #FileDirEntry it wraps may be freed while
    * dragging. So store necessary data here directly. */
 
   char name[64]; /* MAX_NAME */

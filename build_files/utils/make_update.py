@@ -31,6 +31,7 @@ def parse_arguments():
     parser.add_argument("--no-submodules", action="store_true")
     parser.add_argument("--use-tests", action="store_true")
     parser.add_argument("--svn-command", default="svn")
+    parser.add_argument("--svn-branch", default=None)
     parser.add_argument("--git-command", default="git")
     parser.add_argument("--use-centos-libraries", action="store_true")
     return parser.parse_args()
@@ -46,7 +47,7 @@ def svn_update(args, release_version):
     svn_non_interactive = [args.svn_command, '--non-interactive']
 
     lib_dirpath = os.path.join(get_blender_git_root(), '..', 'lib')
-    svn_url = make_utils.svn_libraries_base_url(release_version)
+    svn_url = make_utils.svn_libraries_base_url(release_version, args.svn_branch)
 
     # Checkout precompiled libraries
     if sys.platform == 'darwin':
@@ -170,26 +171,28 @@ def submodules_update(args, release_version, branch):
         sys.stderr.write("git not found, can't update code\n")
         sys.exit(1)
 
-    # Update submodules to latest master or appropriate release branch.
-    if not release_version:
-        branch = "master"
+    # Update submodules to appropriate given branch,
+    # falling back to master if none is given and/or found in a sub-repository.
+    branch_fallback = "master"
+    if not branch:
+        branch = branch_fallback
 
     submodules = [
-        ("release/scripts/addons", branch),
-        ("release/scripts/addons_contrib", branch),
-        ("release/datafiles/locale", branch),
-        ("source/tools", branch),
+        ("release/scripts/addons", branch, branch_fallback),
+        ("release/scripts/addons_contrib", branch, branch_fallback),
+        ("release/datafiles/locale", branch, branch_fallback),
+        ("source/tools", branch, branch_fallback),
     ]
 
     # Initialize submodules only if needed.
-    for submodule_path, submodule_branch in submodules:
+    for submodule_path, submodule_branch, submodule_branch_fallback in submodules:
         if not os.path.exists(os.path.join(submodule_path, ".git")):
             call([args.git_command, "submodule", "update", "--init", "--recursive"])
             break
 
     # Checkout appropriate branch and pull changes.
     skip_msg = ""
-    for submodule_path, submodule_branch in submodules:
+    for submodule_path, submodule_branch, submodule_branch_fallback in submodules:
         cwd = os.getcwd()
         try:
             os.chdir(submodule_path)
@@ -201,6 +204,11 @@ def submodules_update(args, release_version, branch):
                     call([args.git_command, "fetch", "origin"])
                     call([args.git_command, "checkout", submodule_branch])
                 call([args.git_command, "pull", "--rebase", "origin", submodule_branch])
+                # If we cannot find the specified branch for this submodule, fallback to default one (aka master).
+                if make_utils.git_branch(args.git_command) != submodule_branch:
+                    call([args.git_command, "fetch", "origin"])
+                    call([args.git_command, "checkout", submodule_branch_fallback])
+                    call([args.git_command, "pull", "--rebase", "origin", submodule_branch_fallback])
         finally:
             os.chdir(cwd)
 
@@ -214,6 +222,10 @@ if __name__ == "__main__":
 
     # Test if we are building a specific release version.
     branch = make_utils.git_branch(args.git_command)
+    if branch == 'HEAD':
+        sys.stderr.write('Blender git repository is in detached HEAD state, must be in a branch\n')
+        sys.exit(1)
+
     tag = make_utils.git_tag(args.git_command)
     release_version = make_utils.git_branch_release_version(branch, tag)
 

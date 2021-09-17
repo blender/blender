@@ -29,13 +29,15 @@
 
 CCL_NAMESPACE_BEGIN
 
-static Geometry::Type determine_geom_type(BL::Object &b_ob, bool use_particle_hair)
+static Geometry::Type determine_geom_type(BObjectInfo &b_ob_info, bool use_particle_hair)
 {
-  if (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) {
+  if (b_ob_info.object_data.is_a(&RNA_Hair) || use_particle_hair) {
     return Geometry::HAIR;
   }
 
-  if (b_ob.type() == BL::Object::type_VOLUME || object_fluid_gas_domain_find(b_ob)) {
+  if (b_ob_info.object_data.is_a(&RNA_Volume) ||
+      (b_ob_info.object_data == b_ob_info.real_object.data() &&
+       object_fluid_gas_domain_find(b_ob_info.real_object))) {
     return Geometry::VOLUME;
   }
 
@@ -71,20 +73,17 @@ array<Node *> BlenderSync::find_used_shaders(BL::Object &b_ob)
 }
 
 Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
-                                     BL::Object &b_ob,
-                                     BL::Object &b_ob_instance,
+                                     BObjectInfo &b_ob_info,
                                      bool object_updated,
                                      bool use_particle_hair,
                                      TaskPool *task_pool)
 {
   /* Test if we can instance or if the object is modified. */
-  BL::ID b_ob_data = b_ob.data();
-  BL::ID b_key_id = (BKE_object_is_modified(b_ob)) ? b_ob_instance : b_ob_data;
-  Geometry::Type geom_type = determine_geom_type(b_ob, use_particle_hair);
-  GeometryKey key(b_key_id.ptr.data, geom_type);
+  Geometry::Type geom_type = determine_geom_type(b_ob_info, use_particle_hair);
+  GeometryKey key(b_ob_info.object_data, geom_type);
 
   /* Find shader indices. */
-  array<Node *> used_shaders = find_used_shaders(b_ob);
+  array<Node *> used_shaders = find_used_shaders(b_ob_info.iter_object);
 
   /* Ensure we only sync instanced geometry once. */
   Geometry *geom = geometry_map.find(key);
@@ -111,7 +110,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   }
   else {
     /* Test if we need to update existing geometry. */
-    sync = geometry_map.update(geom, b_key_id);
+    sync = geometry_map.update(geom, b_ob_info.object_data);
   }
 
   if (!sync) {
@@ -144,7 +143,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 
   geometry_synced.insert(geom);
 
-  geom->name = ustring(b_ob_data.name().c_str());
+  geom->name = ustring(b_ob_info.object_data.name().c_str());
 
   /* Store the shaders immediately for the object attribute code. */
   geom->set_used_shaders(used_shaders);
@@ -153,19 +152,19 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
     if (progress.get_cancel())
       return;
 
-    progress.set_sync_status("Synchronizing object", b_ob.name());
+    progress.set_sync_status("Synchronizing object", b_ob_info.real_object.name());
 
     if (geom_type == Geometry::HAIR) {
       Hair *hair = static_cast<Hair *>(geom);
-      sync_hair(b_depsgraph, b_ob, hair);
+      sync_hair(b_depsgraph, b_ob_info, hair);
     }
     else if (geom_type == Geometry::VOLUME) {
       Volume *volume = static_cast<Volume *>(geom);
-      sync_volume(b_ob, volume);
+      sync_volume(b_ob_info, volume);
     }
     else {
       Mesh *mesh = static_cast<Mesh *>(geom);
-      sync_mesh(b_depsgraph, b_ob, mesh);
+      sync_mesh(b_depsgraph, b_ob_info, mesh);
     }
   };
 
@@ -181,7 +180,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 }
 
 void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
-                                       BL::Object &b_ob,
+                                       BObjectInfo &b_ob_info,
                                        Object *object,
                                        float motion_time,
                                        bool use_particle_hair,
@@ -190,8 +189,10 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
   /* Ensure we only sync instanced geometry once. */
   Geometry *geom = object->get_geometry();
 
-  if (geometry_motion_synced.find(geom) != geometry_motion_synced.end())
+  if (geometry_motion_synced.find(geom) != geometry_motion_synced.end() ||
+      geometry_motion_attribute_synced.find(geom) != geometry_motion_attribute_synced.end()) {
     return;
+  }
 
   geometry_motion_synced.insert(geom);
 
@@ -210,16 +211,17 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
     if (progress.get_cancel())
       return;
 
-    if (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) {
+    if (b_ob_info.object_data.is_a(&RNA_Hair) || use_particle_hair) {
       Hair *hair = static_cast<Hair *>(geom);
-      sync_hair_motion(b_depsgraph, b_ob, hair, motion_step);
+      sync_hair_motion(b_depsgraph, b_ob_info, hair, motion_step);
     }
-    else if (b_ob.type() == BL::Object::type_VOLUME || object_fluid_gas_domain_find(b_ob)) {
+    else if (b_ob_info.object_data.is_a(&RNA_Volume) ||
+             object_fluid_gas_domain_find(b_ob_info.real_object)) {
       /* No volume motion blur support yet. */
     }
     else {
       Mesh *mesh = static_cast<Mesh *>(geom);
-      sync_mesh_motion(b_depsgraph, b_ob, mesh, motion_step);
+      sync_mesh_motion(b_depsgraph, b_ob_info, mesh, motion_step);
     }
   };
 

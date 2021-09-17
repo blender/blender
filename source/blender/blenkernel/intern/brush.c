@@ -146,8 +146,16 @@ static void brush_free_data(ID *id)
 
 static void brush_make_local(Main *bmain, ID *id, const int flags)
 {
+  if (!ID_IS_LINKED(id)) {
+    return;
+  }
+
   Brush *brush = (Brush *)id;
   const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
+  bool force_local = (flags & LIB_ID_MAKELOCAL_FORCE_LOCAL) != 0;
+  bool force_copy = (flags & LIB_ID_MAKELOCAL_FORCE_COPY) != 0;
+  BLI_assert(force_copy == false || force_copy != force_local);
+
   bool is_local = false, is_lib = false;
 
   /* - only lib users: do nothing (unless force_local is set)
@@ -155,36 +163,46 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
    * - mixed: make copy
    */
 
-  if (!ID_IS_LINKED(brush)) {
-    return;
-  }
-
   if (brush->clone.image) {
     /* Special case: ima always local immediately. Clone image should only have one user anyway. */
-    BKE_lib_id_make_local(bmain, &brush->clone.image->id, false, 0);
+    /* FIXME: Recursive calls affecting other non-embedded IDs are really bad and should be avoided
+     * in IDType callbacks. Higher-level ID management code usually does not expect such things and
+     * does not deal properly with it. */
+    /* NOTE: assert below ensures that the comment above is valid, and that that exception is
+     * acceptable for the time being. */
+    BKE_lib_id_make_local(bmain, &brush->clone.image->id, 0);
+    BLI_assert(brush->clone.image->id.lib == NULL && brush->clone.image->id.newid == NULL);
   }
 
-  BKE_library_ID_test_usages(bmain, brush, &is_local, &is_lib);
-
-  if (lib_local || is_local) {
-    if (!is_lib) {
-      BKE_lib_id_clear_library_data(bmain, &brush->id);
-      BKE_lib_id_expand_local(bmain, &brush->id);
-
-      /* enable fake user by default */
-      id_fake_user_set(&brush->id);
-    }
-    else {
-      Brush *brush_new = (Brush *)BKE_id_copy(bmain, &brush->id); /* Ensures FAKE_USER is set */
-
-      brush_new->id.us = 0;
-
-      /* setting newid is mandatory for complex make_lib_local logic... */
-      ID_NEW_SET(brush, brush_new);
-
-      if (!lib_local) {
-        BKE_libblock_remap(bmain, brush, brush_new, ID_REMAP_SKIP_INDIRECT_USAGE);
+  if (!force_local && !force_copy) {
+    BKE_library_ID_test_usages(bmain, brush, &is_local, &is_lib);
+    if (lib_local || is_local) {
+      if (!is_lib) {
+        force_local = true;
       }
+      else {
+        force_copy = true;
+      }
+    }
+  }
+
+  if (force_local) {
+    BKE_lib_id_clear_library_data(bmain, &brush->id);
+    BKE_lib_id_expand_local(bmain, &brush->id);
+
+    /* enable fake user by default */
+    id_fake_user_set(&brush->id);
+  }
+  else if (force_copy) {
+    Brush *brush_new = (Brush *)BKE_id_copy(bmain, &brush->id); /* Ensures FAKE_USER is set */
+
+    brush_new->id.us = 0;
+
+    /* setting newid is mandatory for complex make_lib_local logic... */
+    ID_NEW_SET(brush, brush_new);
+
+    if (!lib_local) {
+      BKE_libblock_remap(bmain, brush, brush_new, ID_REMAP_SKIP_INDIRECT_USAGE);
     }
   }
 }
@@ -1181,7 +1199,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       brush->gpencil_settings->draw_strength = 0.3f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
-      brush->gpencil_settings->sculpt_flag = GP_SCULPT_FLAG_SMOOTH_PRESSURE;
+      brush->gpencil_settings->sculpt_flag = GP_SCULPT_FLAGMODE_APPLY_THICKNESS;
       brush->gpencil_settings->sculpt_mode_flag |= GP_SCULPT_FLAGMODE_APPLY_POSITION;
 
       break;
@@ -1195,7 +1213,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       brush->gpencil_settings->draw_strength = 0.3f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
-      brush->gpencil_settings->sculpt_flag = GP_SCULPT_FLAG_SMOOTH_PRESSURE;
       brush->gpencil_settings->sculpt_mode_flag |= GP_SCULPT_FLAGMODE_APPLY_POSITION;
 
       break;

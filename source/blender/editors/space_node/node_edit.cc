@@ -52,6 +52,7 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
+#include "ED_image.h"
 #include "ED_node.h" /* own include */
 #include "ED_render.h"
 #include "ED_screen.h"
@@ -719,17 +720,45 @@ void ED_node_set_active(
         ED_node_tag_update_nodetree(bmain, ntree, node);
       }
 
-      /* if active texture changed, free glsl materials */
       if ((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
+        /* If active texture changed, free glsl materials. */
         LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
           if (ma->nodetree && ma->use_nodes && ntreeHasTree(ma->nodetree, ntree)) {
             GPU_material_free(&ma->gpumaterial);
+
+            /* Sync to active texpaint slot, otherwise we can end up painting on a different slot
+             * than we are looking at. */
+            if (ma->texpaintslot) {
+              Image *image = (Image *)node->id;
+              for (int i = 0; i < ma->tot_slots; i++) {
+                if (ma->texpaintslot[i].ima == image) {
+                  ma->paint_active_slot = i;
+                }
+              }
+            }
           }
         }
 
         LISTBASE_FOREACH (World *, wo, &bmain->worlds) {
           if (wo->nodetree && wo->use_nodes && ntreeHasTree(wo->nodetree, ntree)) {
             GPU_material_free(&wo->gpumaterial);
+          }
+        }
+
+        /* Sync to Image Editor. */
+        Image *image = (Image *)node->id;
+        wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+        LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+          const bScreen *screen = WM_window_get_active_screen(win);
+          LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+            LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+              if (sl->spacetype == SPACE_IMAGE) {
+                SpaceImage *sima = (SpaceImage *)sl;
+                if (!sima->pin) {
+                  ED_space_image_set(bmain, sima, image, true);
+                }
+              }
+            }
           }
         }
 

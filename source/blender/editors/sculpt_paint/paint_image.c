@@ -1153,7 +1153,7 @@ void ED_object_texture_paint_mode_enter_ex(Main *bmain, Scene *scene, Object *ob
           SpaceImage *sima = (SpaceImage *)sl;
 
           if (!sima->pin) {
-            ED_space_image_set(bmain, sima, NULL, ima, true);
+            ED_space_image_set(bmain, sima, ima, true);
           }
         }
       }

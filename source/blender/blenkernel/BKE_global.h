@@ -124,7 +124,10 @@ enum {
 /** Don't overwrite these flags when reading a file. */
 #define G_FLAG_ALL_RUNTIME \
   (G_FLAG_SCRIPT_AUTOEXEC | G_FLAG_SCRIPT_OVERRIDE_PREF | G_FLAG_EVENT_SIMULATE | \
-   G_FLAG_USERPREF_NO_SAVE_ON_EXIT)
+   G_FLAG_USERPREF_NO_SAVE_ON_EXIT | \
+\
+   /* #BPY_python_reset is responsible for resetting these flags on file load. */ \
+   G_FLAG_SCRIPT_AUTOEXEC_FAIL | G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)
 
 /** Flags to read from blend file. */
 #define G_FLAG_ALL_READFILE 0

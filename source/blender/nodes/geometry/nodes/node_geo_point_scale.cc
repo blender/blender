@@ -21,18 +21,18 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_point_scale_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Factor")},
-    {SOCK_VECTOR, N_("Factor"), 1.0f, 1.0f, 1.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_XYZ},
-    {SOCK_FLOAT, N_("Factor"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_point_scale_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_point_scale_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Factor");
+  b.add_input<decl::Vector>("Factor", "Factor_001")
+      .default_value({1.0f, 1.0f, 1.0f})
+      .subtype(PROP_XYZ);
+  b.add_input<decl::Float>("Factor", "Factor_002").default_value(1.0f).min(0.0f);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_point_scale_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -40,8 +40,6 @@ static void geo_node_point_scale_layout(uiLayout *layout, bContext *UNUSED(C), P
   uiLayoutSetPropDecorate(layout, false);
   uiItemR(layout, ptr, "input_type", 0, IFACE_("Type"), ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void geo_node_point_scale_init(bNodeTree *UNUSED(tree), bNode *node)
 {
@@ -128,13 +126,14 @@ void register_node_type_geo_point_scale()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_POINT_SCALE, "Point Scale", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_point_scale_in, geo_node_point_scale_out);
+  geo_node_type_base(&ntype, GEO_NODE_LEGACY_POINT_SCALE, "Point Scale", NODE_CLASS_GEOMETRY, 0);
+
+  ntype.declare = blender::nodes::geo_node_point_scale_declare;
   node_type_init(&ntype, blender::nodes::geo_node_point_scale_init);
   node_type_update(&ntype, blender::nodes::geo_node_point_scale_update);
   node_type_storage(
       &ntype, "NodeGeometryPointScale", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_scale_exec;
-  ntype.draw_buttons = geo_node_point_scale_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_point_scale_layout;
   nodeRegisterType(&ntype);
 }

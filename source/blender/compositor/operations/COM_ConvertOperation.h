@@ -37,6 +37,7 @@ class ConvertBaseOperation : public MultiThreadedOperation {
                                     Span<MemoryBuffer *> inputs) final;
 
  protected:
+  virtual void hash_output_params() override;
   virtual void update_memory_buffer_partial(BuffersIterator<float> &it) = 0;
 };
 
@@ -124,6 +125,7 @@ class ConvertRGBToYCCOperation : public ConvertBaseOperation {
   void setMode(int mode);
 
  protected:
+  void hash_output_params() override;
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
@@ -141,6 +143,7 @@ class ConvertYCCToRGBOperation : public ConvertBaseOperation {
   void setMode(int mode);
 
  protected:
+  void hash_output_params() override;
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 

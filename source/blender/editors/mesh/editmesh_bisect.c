@@ -72,7 +72,6 @@ typedef struct {
     bool is_dirty;
   } * backup;
   int backup_len;
-  short gizmo_flag;
 } BisectData;
 
 static void mesh_bisect_interactive_calc(bContext *C,
@@ -88,6 +87,7 @@ static void mesh_bisect_interactive_calc(bContext *C,
   int y_start = RNA_int_get(op->ptr, "ystart");
   int x_end = RNA_int_get(op->ptr, "xend");
   int y_end = RNA_int_get(op->ptr, "yend");
+  const bool use_flip = RNA_boolean_get(op->ptr, "flip");
 
   /* reference location (some point in front of the view) for finding a point on a plane */
   const float *co_ref = rv3d->ofs;
@@ -105,6 +105,9 @@ static void mesh_bisect_interactive_calc(bContext *C,
   /* cross both to get a normal */
   cross_v3_v3v3(plane_no, co_a, co_b);
   normalize_v3(plane_no); /* not needed but nicer for user */
+  if (use_flip) {
+    negate_v3(plane_no);
+  }
 
   /* point on plane, can use either start or endpoint */
   ED_view3d_win_to_3d(v3d, region, co_ref, co_a_ss, plane_co);
@@ -116,7 +119,7 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   int valid_objects = 0;
 
   /* If the properties are set or there is no rv3d,
-   * skip model and exec immediately. */
+   * skip modal and exec immediately. */
   if ((CTX_wm_region_view3d(C) == NULL) || (RNA_struct_property_is_set(op->ptr, "plane_co") &&
                                             RNA_struct_property_is_set(op->ptr, "plane_no"))) {
     return mesh_bisect_exec(C, op);
@@ -140,10 +143,19 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  int ret = WM_gesture_straightline_invoke(C, op, event);
-  if (ret & OPERATOR_RUNNING_MODAL) {
-    View3D *v3d = CTX_wm_view3d(C);
+  /* Support flipping if side matters. */
+  int ret;
+  const bool clear_inner = RNA_boolean_get(op->ptr, "clear_inner");
+  const bool clear_outer = RNA_boolean_get(op->ptr, "clear_outer");
+  const bool use_fill = RNA_boolean_get(op->ptr, "use_fill");
+  if ((clear_inner != clear_outer) || use_fill) {
+    ret = WM_gesture_straightline_active_side_invoke(C, op, event);
+  }
+  else {
+    ret = WM_gesture_straightline_invoke(C, op, event);
+  }
 
+  if (ret & OPERATOR_RUNNING_MODAL) {
     wmGesture *gesture = op->customdata;
     BisectData *opdata;
 
@@ -166,8 +178,6 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     /* Misc other vars. */
     G.moving = G_TRANSFORM_EDIT;
-    opdata->gizmo_flag = v3d->gizmo_flag;
-    v3d->gizmo_flag = V3D_GIZMO_HIDE;
 
     /* Initialize modal callout. */
     ED_workspace_status_text(C, TIP_("LMB: Click and drag to draw cut line"));
@@ -176,10 +186,8 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return ret;
 }
 
-static void edbm_bisect_exit(bContext *C, BisectData *opdata)
+static void edbm_bisect_exit(BisectData *opdata)
 {
-  View3D *v3d = CTX_wm_view3d(C);
-  v3d->gizmo_flag = opdata->gizmo_flag;
   G.moving = 0;
 
   for (int ob_index = 0; ob_index < opdata->backup_len; ob_index++) {
@@ -210,7 +218,7 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (ret & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) {
-    edbm_bisect_exit(C, &opdata_back);
+    edbm_bisect_exit(&opdata_back);
 
 #ifdef USE_GIZMO
     /* Setup gizmos */
@@ -769,7 +777,7 @@ static void MESH_GGT_bisect(struct wmGizmoGroupType *gzgt)
   gzgt->name = "Mesh Bisect";
   gzgt->idname = "MESH_GGT_bisect";
 
-  gzgt->flag = WM_GIZMOGROUPTYPE_3D;
+  gzgt->flag = WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;

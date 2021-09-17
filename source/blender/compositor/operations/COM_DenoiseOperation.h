@@ -37,6 +37,8 @@ class DenoiseOperation : public SingleThreadedOperation {
    */
   NodeDenoise *m_settings;
 
+  bool output_rendered_;
+
  public:
   DenoiseOperation();
   /**
@@ -57,11 +59,16 @@ class DenoiseOperation : public SingleThreadedOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
 
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer(MemoryBuffer *output,
+                            const rcti &area,
+                            Span<MemoryBuffer *> inputs) override;
+
  protected:
-  void generateDenoise(float *data,
-                       MemoryBuffer *inputTileColor,
-                       MemoryBuffer *inputTileNormal,
-                       MemoryBuffer *inputTileAlbedo,
+  void generateDenoise(MemoryBuffer *output,
+                       MemoryBuffer *input_color,
+                       MemoryBuffer *input_normal,
+                       MemoryBuffer *input_albedo,
                        NodeDenoise *settings);
 
   MemoryBuffer *createMemoryBuffer(rcti *rect) override;

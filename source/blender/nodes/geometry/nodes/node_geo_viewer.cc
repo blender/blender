@@ -16,16 +16,18 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_viewer_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+namespace blender::nodes {
+static void geo_node_viewer_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+}
+}  // namespace blender::nodes
 
 void register_node_type_geo_viewer()
 {
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, 0);
-  node_type_socket_templates(&ntype, geo_node_viewer_in, nullptr);
+  ntype.declare = blender::nodes::geo_node_viewer_declare;
   nodeRegisterType(&ntype);
 }

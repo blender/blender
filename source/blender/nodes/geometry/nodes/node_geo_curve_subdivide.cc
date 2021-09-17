@@ -29,17 +29,15 @@ using blender::fn::GVArray_For_GSpan;
 using blender::fn::GVArray_For_Span;
 using blender::fn::GVArray_Typed;
 
-static bNodeSocketTemplate geo_node_curve_subdivide_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Cuts")},
-    {SOCK_INT, N_("Cuts"), 1, 0, 0, 0, 0, 1000},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_curve_subdivide_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_curve_subdivide_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Cuts");
+  b.add_input<decl::Int>("Cuts", "Cuts_001").default_value(1).min(0).max(1000);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_curve_subdivide_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -56,8 +54,6 @@ static void geo_node_curve_subdivide_init(bNodeTree *UNUSED(tree), bNode *node)
   data->cuts_type = GEO_NODE_ATTRIBUTE_INPUT_INTEGER;
   node->storage = data;
 }
-
-namespace blender::nodes {
 
 static void geo_node_curve_subdivide_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -287,16 +283,16 @@ static void subdivide_dynamic_attributes(const Spline &src_spline,
 {
   const bool is_cyclic = src_spline.is_cyclic();
   src_spline.attributes.foreach_attribute(
-      [&](StringRefNull name, const AttributeMetaData &meta_data) {
-        std::optional<GSpan> src = src_spline.attributes.get_for_read(name);
+      [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+        std::optional<GSpan> src = src_spline.attributes.get_for_read(attribute_id);
         BLI_assert(src);
 
-        if (!dst_spline.attributes.create(name, meta_data.data_type)) {
+        if (!dst_spline.attributes.create(attribute_id, meta_data.data_type)) {
           /* Since the source spline of the same type had the attribute, adding it should work. */
           BLI_assert_unreachable();
         }
 
-        std::optional<GMutableSpan> dst = dst_spline.attributes.get_for_write(name);
+        std::optional<GMutableSpan> dst = dst_spline.attributes.get_for_write(attribute_id);
         BLI_assert(dst);
 
         attribute_math::convert_to_static_type(dst->type(), [&](auto dummy) {
@@ -381,14 +377,15 @@ void register_node_type_geo_curve_subdivide()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_SUBDIVIDE, "Curve Subdivide", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_curve_subdivide_in, geo_node_curve_subdivide_out);
-  ntype.draw_buttons = geo_node_curve_subdivide_layout;
+  geo_node_type_base(
+      &ntype, GEO_NODE_LEGACY_CURVE_SUBDIVIDE, "Curve Subdivide", NODE_CLASS_GEOMETRY, 0);
+  ntype.declare = blender::nodes::geo_node_curve_subdivide_declare;
+  ntype.draw_buttons = blender::nodes::geo_node_curve_subdivide_layout;
   node_type_storage(&ntype,
                     "NodeGeometryCurveSubdivide",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  node_type_init(&ntype, geo_node_curve_subdivide_init);
+  node_type_init(&ntype, blender::nodes::geo_node_curve_subdivide_init);
   node_type_update(&ntype, blender::nodes::geo_node_curve_subdivide_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_subdivide_exec;
   nodeRegisterType(&ntype);

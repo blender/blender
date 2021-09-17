@@ -173,12 +173,6 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain,
         continue;
       }
 
-      Object *obedit = NULL;
-      {
-        ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-        obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
-      }
-
       ScrArea *area;
       for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
@@ -186,7 +180,7 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain,
           if (sl->spacetype == SPACE_IMAGE) {
             SpaceImage *sima = (SpaceImage *)sl;
             if (!sima->pin) {
-              ED_space_image_set(bmain, sima, obedit, image, true);
+              ED_space_image_set(bmain, sima, image, true);
             }
           }
         }

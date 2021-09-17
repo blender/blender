@@ -126,7 +126,7 @@ static PyObject *pygpu_state_blend_get(PyObject *UNUSED(self))
 PyDoc_STRVAR(pygpu_state_clip_distances_set_doc,
              ".. function:: clip_distances_set(distances_enabled)\n"
              "\n"
-             "   Sets number of `gl_ClipDistance`s that will be used for clip geometry.\n"
+             "   Sets the number of `gl_ClipDistance` planes used for clip geometry.\n"
              "\n"
              "   :param distances_enabled: Number of clip distances enabled.\n"
              "   :type distances_enabled: int\n");

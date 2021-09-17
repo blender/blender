@@ -21,10 +21,14 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-static bNodeSocketTemplate fn_node_input_vector_out[] = {
-    {SOCK_VECTOR, N_("Vector")},
-    {-1, ""},
+namespace blender::nodes {
+
+static void fn_node_input_vector_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Vector>("Vector");
 };
+
+}  // namespace blender::nodes
 
 static void fn_node_input_vector_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -52,7 +56,7 @@ void register_node_type_fn_input_vector()
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_INPUT_VECTOR, "Vector", 0, 0);
-  node_type_socket_templates(&ntype, nullptr, fn_node_input_vector_out);
+  ntype.declare = blender::nodes::fn_node_input_vector_declare;
   node_type_init(&ntype, fn_node_input_vector_init);
   node_type_storage(
       &ntype, "NodeInputVector", node_free_standard_storage, node_copy_standard_storage);

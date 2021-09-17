@@ -224,16 +224,34 @@ bool BKE_idtype_idcode_is_valid(const short idcode)
 }
 
 /**
- * Return non-zero when an ID type is linkable.
+ * Check if an ID type is linkable.
  *
- * \param idcode: The code to check.
- * \return Boolean, 0 when non linkable.
+ * \param idcode: The IDType code to check.
+ * \return Boolean, false when non linkable, true otherwise.
  */
 bool BKE_idtype_idcode_is_linkable(const short idcode)
 {
   const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(idcode);
   BLI_assert(id_type != NULL);
   return id_type != NULL ? (id_type->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0 : false;
+}
+
+/**
+ * Check if an ID type is only appendable.
+ *
+ * \param idcode: The IDType code to check.
+ * \return Boolean, false when also linkable, true when only appendable.
+ */
+bool BKE_idtype_idcode_is_only_appendable(const short idcode)
+{
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(idcode);
+  BLI_assert(id_type != NULL);
+  if (id_type != NULL && (id_type->flags & IDTYPE_FLAGS_ONLY_APPEND) != 0) {
+    /* Only appendable ID types should also always be linkable. */
+    BLI_assert((id_type->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0);
+    return true;
+  }
+  return false;
 }
 
 /**

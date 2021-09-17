@@ -544,12 +544,13 @@ void DepsgraphRelationBuilder::build_id(ID *id)
       build_movieclip((MovieClip *)id);
       break;
     case ID_ME:
-    case ID_CU:
     case ID_MB:
+    case ID_CU:
     case ID_LT:
     case ID_HA:
     case ID_PT:
     case ID_VO:
+    case ID_GD:
       build_object_data_geometry_datablock(id);
       break;
     case ID_SPK:
@@ -572,9 +573,6 @@ void DepsgraphRelationBuilder::build_id(ID *id)
       break;
     case ID_PA:
       build_particle_settings((ParticleSettings *)id);
-      break;
-    case ID_GD:
-      build_gpencil((bGPdata *)id);
       break;
 
     case ID_LI:
@@ -1008,11 +1006,13 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
 
     /* Bone Parent */
     case PARBONE: {
-      ComponentKey parent_bone_key(parent_id, NodeType::BONE, object->parsubstr);
-      OperationKey parent_transform_key(
-          parent_id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
-      add_relation(parent_bone_key, object_transform_key, "Bone Parent");
-      add_relation(parent_transform_key, object_transform_key, "Armature Parent");
+      if (object->parsubstr[0] != '\0') {
+        ComponentKey parent_bone_key(parent_id, NodeType::BONE, object->parsubstr);
+        OperationKey parent_transform_key(
+            parent_id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
+        add_relation(parent_bone_key, object_transform_key, "Bone Parent");
+        add_relation(parent_transform_key, object_transform_key, "Armature Parent");
+      }
       break;
     }
 
@@ -2607,18 +2607,6 @@ void DepsgraphRelationBuilder::build_image(Image *image)
   }
   build_idproperties(image->id.properties);
   build_parameters(&image->id);
-}
-
-void DepsgraphRelationBuilder::build_gpencil(bGPdata *gpd)
-{
-  if (built_map_.checkIsBuiltAndTag(gpd)) {
-    return;
-  }
-  /* animation */
-  build_animdata(&gpd->id);
-  build_parameters(&gpd->id);
-
-  // TODO: parent object (when that feature is implemented)
 }
 
 void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file)

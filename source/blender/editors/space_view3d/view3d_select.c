@@ -1438,7 +1438,7 @@ void VIEW3D_OT_select_lasso(wmOperatorType *ot)
   ot->cancel = WM_gesture_lasso_cancel;
 
   /* flags */
-  ot->flag = OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* properties */
   WM_operator_properties_gesture_lasso(ot);
@@ -1953,7 +1953,8 @@ static int mixed_bones_object_selectbuffer(ViewContext *vc,
                                            const int mval[2],
                                            eV3DSelectObjectFilter select_filter,
                                            bool do_nearest,
-                                           bool do_nearest_xray_if_supported)
+                                           bool do_nearest_xray_if_supported,
+                                           const bool do_material_slot_selection)
 {
   rcti rect;
   int hits15, hits9 = 0, hits5 = 0;
@@ -1972,7 +1973,8 @@ static int mixed_bones_object_selectbuffer(ViewContext *vc,
   view3d_opengl_select_cache_begin();
 
   BLI_rcti_init_pt_radius(&rect, mval, 14);
-  hits15 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode, select_filter);
+  hits15 = view3d_opengl_select_ex(
+      vc, buffer, MAXPICKBUF, &rect, select_mode, select_filter, do_material_slot_selection);
   if (hits15 == 1) {
     hits = selectbuffer_ret_hits_15(buffer, hits15);
     goto finally;
@@ -2071,7 +2073,8 @@ static int mixed_bones_object_selectbuffer_extended(ViewContext *vc,
 
   do_nearest = do_nearest && !enumerate;
 
-  int hits = mixed_bones_object_selectbuffer(vc, buffer, mval, select_filter, do_nearest, true);
+  int hits = mixed_bones_object_selectbuffer(
+      vc, buffer, mval, select_filter, do_nearest, true, false);
 
   return hits;
 }
@@ -2088,12 +2091,14 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
                                       int hits,
                                       Base *startbase,
                                       bool has_bones,
-                                      bool do_nearest)
+                                      bool do_nearest,
+                                      int *r_sub_selection)
 {
   ViewLayer *view_layer = vc->view_layer;
   View3D *v3d = vc->v3d;
   Base *base, *basact = NULL;
   int a;
+  int sub_selection_id = 0;
 
   if (do_nearest) {
     uint min = 0xFFFFFFFF;
@@ -2105,6 +2110,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
         if (min > buffer[4 * a + 1] && (buffer[4 * a + 3] & 0xFFFF0000)) {
           min = buffer[4 * a + 1];
           selcol = buffer[4 * a + 3] & 0xFFFF;
+          sub_selection_id = (buffer[4 * a + 3] & 0xFFFF0000) >> 16;
         }
       }
     }
@@ -2118,6 +2124,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
         if (min > buffer[4 * a + 1] && notcol != (buffer[4 * a + 3] & 0xFFFF)) {
           min = buffer[4 * a + 1];
           selcol = buffer[4 * a + 3] & 0xFFFF;
+          sub_selection_id = (buffer[4 * a + 3] & 0xFFFF0000) >> 16;
         }
       }
     }
@@ -2184,11 +2191,16 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
     }
   }
 
+  if (basact && r_sub_selection) {
+    *r_sub_selection = sub_selection_id;
+  }
+
   return basact;
 }
 
-/* mval comes from event->mval, only use within region handlers */
-Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
+static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
+                                                 const int mval[2],
+                                                 int *r_material_slot)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
@@ -2202,21 +2214,44 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   const bool do_nearest = !XRAY_ACTIVE(vc.v3d);
+  const bool do_material_slot_selection = r_material_slot != NULL;
   const int hits = mixed_bones_object_selectbuffer(
-      &vc, buffer, mval, VIEW3D_SELECT_FILTER_NOP, do_nearest, false);
+      &vc, buffer, mval, VIEW3D_SELECT_FILTER_NOP, do_nearest, false, do_material_slot_selection);
 
   if (hits > 0) {
-    const bool has_bones = selectbuffer_has_bones(buffer, hits);
-    basact = mouse_select_eval_buffer(
-        &vc, buffer, hits, vc.view_layer->object_bases.first, has_bones, do_nearest);
+    const bool has_bones = (r_material_slot == NULL) && selectbuffer_has_bones(buffer, hits);
+    basact = mouse_select_eval_buffer(&vc,
+                                      buffer,
+                                      hits,
+                                      vc.view_layer->object_bases.first,
+                                      has_bones,
+                                      do_nearest,
+                                      r_material_slot);
   }
 
   return basact;
 }
 
+/* mval comes from event->mval, only use within region handlers */
+Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
+{
+  return ed_view3d_give_base_under_cursor_ex(C, mval, NULL);
+}
+
 Object *ED_view3d_give_object_under_cursor(bContext *C, const int mval[2])
 {
   Base *base = ED_view3d_give_base_under_cursor(C, mval);
+  if (base) {
+    return base->object;
+  }
+  return NULL;
+}
+
+struct Object *ED_view3d_give_material_slot_under_cursor(struct bContext *C,
+                                                         const int mval[2],
+                                                         int *r_material_slot)
+{
+  Base *base = ed_view3d_give_base_under_cursor_ex(C, mval, r_material_slot);
   if (base) {
     return base->object;
   }
@@ -2374,7 +2409,8 @@ static bool ed_object_select_pick(bContext *C,
         }
       }
       else {
-        basact = mouse_select_eval_buffer(&vc, buffer, hits, startbase, has_bones, do_nearest);
+        basact = mouse_select_eval_buffer(
+            &vc, buffer, hits, startbase, has_bones, do_nearest, NULL);
       }
 
       if (has_bones && basact) {
@@ -2436,7 +2472,7 @@ static bool ed_object_select_pick(bContext *C,
             if (!changed) {
               /* fallback to regular object selection if no new bundles were selected,
                * allows to select object parented to reconstruction object */
-              basact = mouse_select_eval_buffer(&vc, buffer, hits, startbase, 0, do_nearest);
+              basact = mouse_select_eval_buffer(&vc, buffer, hits, startbase, 0, do_nearest, NULL);
             }
           }
         }
@@ -2677,7 +2713,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
 
         uint buffer[MAXPICKBUF];
         const int hits = mixed_bones_object_selectbuffer(
-            &vc, buffer, location, VIEW3D_SELECT_FILTER_NOP, false, true);
+            &vc, buffer, location, VIEW3D_SELECT_FILTER_NOP, false, true, false);
         retval = bone_mouse_select_menu(C, buffer, hits, true, extend, deselect, toggle);
       }
       if (!retval) {

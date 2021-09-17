@@ -56,6 +56,7 @@
 #include "ED_armature.h"
 #include "ED_gpencil.h"
 
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 
 #include "UI_interface.h"
@@ -91,10 +92,13 @@ const char *screen_context_dir[] = {
     "image_paint_object",
     "particle_edit_object",
     "pose_object",
+    "active_sequence_strip",
     "sequences",
     "selected_sequences",
     "selected_editable_sequences", /* sequencer */
-    "selected_nla_strips",         /* nla editor */
+    "active_nla_track",
+    "active_nla_strip",
+    "selected_nla_strips", /* nla editor */
     "gpencil_data",
     "gpencil_data_owner", /* grease pencil data */
     "annotation_data",
@@ -603,11 +607,23 @@ static eContextResult screen_ctx_pose_object(const bContext *C, bContextDataResu
   }
   return CTX_RESULT_OK;
 }
+static eContextResult screen_ctx_active_sequence_strip(const bContext *C,
+                                                       bContextDataResult *result)
+{
+  wmWindow *win = CTX_wm_window(C);
+  Scene *scene = WM_window_get_active_scene(win);
+  Sequence *seq = SEQ_select_active_get(scene);
+  if (seq) {
+    CTX_data_pointer_set(result, &scene->id, &RNA_Sequence, seq);
+    return CTX_RESULT_OK;
+  }
+  return CTX_RESULT_NO_DATA;
+}
 static eContextResult screen_ctx_sequences(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(win);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   if (ed) {
     LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
       CTX_data_list_add(result, &scene->id, &RNA_Sequence, seq);
@@ -621,7 +637,7 @@ static eContextResult screen_ctx_selected_sequences(const bContext *C, bContextD
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(win);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   if (ed) {
     LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
       if (seq->flag & SELECT) {
@@ -638,7 +654,7 @@ static eContextResult screen_ctx_selected_editable_sequences(const bContext *C,
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(win);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   if (ed) {
     LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
       if (seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
@@ -646,6 +662,24 @@ static eContextResult screen_ctx_selected_editable_sequences(const bContext *C,
       }
     }
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    return CTX_RESULT_OK;
+  }
+  return CTX_RESULT_NO_DATA;
+}
+static eContextResult screen_ctx_active_nla_track(const bContext *C, bContextDataResult *result)
+{
+  PointerRNA ptr;
+  if (ANIM_nla_context_track_ptr(C, &ptr)) {
+    CTX_data_pointer_set_ptr(result, &ptr);
+    return CTX_RESULT_OK;
+  }
+  return CTX_RESULT_NO_DATA;
+}
+static eContextResult screen_ctx_active_nla_strip(const bContext *C, bContextDataResult *result)
+{
+  PointerRNA ptr;
+  if (ANIM_nla_context_strip_ptr(C, &ptr)) {
+    CTX_data_pointer_set_ptr(result, &ptr);
     return CTX_RESULT_OK;
   }
   return CTX_RESULT_NO_DATA;
@@ -707,7 +741,7 @@ static eContextResult screen_ctx_gpencil_data_owner(const bContext *C, bContextD
   bGPdata **gpd_ptr = ED_gpencil_data_get_pointers_direct(area, obact, &ptr);
 
   if (gpd_ptr) {
-    CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
+    CTX_data_pointer_set_ptr(result, &ptr);
     return CTX_RESULT_OK;
   }
   return CTX_RESULT_NO_DATA;
@@ -739,7 +773,7 @@ static eContextResult screen_ctx_annotation_data_owner(const bContext *C,
   bGPdata **gpd_ptr = ED_annotation_data_get_pointers_direct((ID *)screen, area, scene, &ptr);
 
   if (gpd_ptr) {
-    CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
+    CTX_data_pointer_set_ptr(result, &ptr);
     return CTX_RESULT_OK;
   }
   return CTX_RESULT_NO_DATA;
@@ -1097,9 +1131,12 @@ static void ensure_ed_screen_context_functions(void)
   register_context_function("image_paint_object", screen_ctx_image_paint_object);
   register_context_function("particle_edit_object", screen_ctx_particle_edit_object);
   register_context_function("pose_object", screen_ctx_pose_object);
+  register_context_function("active_sequence_strip", screen_ctx_active_sequence_strip);
   register_context_function("sequences", screen_ctx_sequences);
   register_context_function("selected_sequences", screen_ctx_selected_sequences);
   register_context_function("selected_editable_sequences", screen_ctx_selected_editable_sequences);
+  register_context_function("active_nla_track", screen_ctx_active_nla_track);
+  register_context_function("active_nla_strip", screen_ctx_active_nla_strip);
   register_context_function("selected_nla_strips", screen_ctx_selected_nla_strips);
   register_context_function("gpencil_data", screen_ctx_gpencil_data);
   register_context_function("gpencil_data_owner", screen_ctx_gpencil_data_owner);

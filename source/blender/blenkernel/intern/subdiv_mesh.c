@@ -1232,7 +1232,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   // BKE_mesh_validate(result, true, true);
   BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
   if (!subdiv_context.can_evaluate_normals) {
-    result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+    BKE_mesh_normals_tag_dirty(result);
   }
   /* Free used memory. */
   subdiv_mesh_context_free(&subdiv_context);

@@ -87,6 +87,7 @@
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -94,7 +95,6 @@
 #include "BKE_speaker.h"
 #include "BKE_texture.h"
 #include "BKE_volume.h"
-#include "BKE_paint.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -2734,90 +2734,94 @@ char *ED_object_ot_drop_named_material_tooltip(bContext *C,
                                                PointerRNA *properties,
                                                const wmEvent *event)
 {
-  Object *ob = ED_view3d_give_object_under_cursor(C, event->mval);
+  int mat_slot = 0;
+  Object *ob = ED_view3d_give_material_slot_under_cursor(C, event->mval, &mat_slot);
   if (ob == NULL) {
     return BLI_strdup("");
   }
+  mat_slot = max_ii(mat_slot, 1);
 
   char name[MAX_ID_NAME - 2];
   RNA_string_get(properties, "name", name);
 
-  int active_mat_slot = max_ii(ob->actcol, 1);
-  Material *prev_mat = BKE_object_material_get(ob, active_mat_slot);
+  Material *prev_mat = BKE_object_material_get(ob, mat_slot);
 
   char *result;
   if (prev_mat) {
     const char *tooltip = TIP_("Drop %s on %s (slot %d, replacing %s)");
-    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, active_mat_slot, prev_mat->id.name + 2);
+    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, mat_slot, prev_mat->id.name + 2);
   }
   else {
     const char *tooltip = TIP_("Drop %s on %s (slot %d)");
-    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, active_mat_slot);
+    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, mat_slot);
   }
   return result;
 }
 
-static void drop_named_material_face_set_slots_update(bContext *C, Object *ob, const wmEvent *event) {
-    Main *bmain = CTX_data_main(C);
-    Mesh *mesh = BKE_mesh_from_object(ob);
+static void drop_named_material_face_set_slots_update(bContext *C,
+                                                      Object *ob,
+                                                      const wmEvent *event)
+{
+  Main *bmain = CTX_data_main(C);
+  Mesh *mesh = BKE_mesh_from_object(ob);
 
-    bScreen *screen = CTX_wm_screen(C);
-    ARegion *region = BKE_screen_find_main_region_at_xy(
-            screen, SPACE_VIEW3D, event->x, event->y);
+  bScreen *screen = CTX_wm_screen(C);
+  ARegion *region = BKE_screen_find_main_region_at_xy(screen, SPACE_VIEW3D, event->x, event->y);
 
-    const float mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
-    const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
+  const float mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
+  const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
 
-    int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
 
-    short face_set_nr = -1;
-    for (int i = 0; i < mesh->totpoly; i++) {
-      if (face_sets[i] != face_set_id) {
-        continue;
-      } 
-      face_set_nr = mesh->mpoly[i].mat_nr;
-      break;
+  short face_set_nr = -1;
+  for (int i = 0; i < mesh->totpoly; i++) {
+    if (face_sets[i] != face_set_id) {
+      continue;
     }
+    face_set_nr = mesh->mpoly[i].mat_nr;
+    break;
+  }
 
-    bool create_new_slot = false;
-    for (int i = 0; i < mesh->totpoly; i++) {
-      if (face_sets[i] == face_set_id) {
-        if (mesh->mpoly[i].mat_nr != face_set_nr) {
-          create_new_slot = true;
-          break;
-        }
-      } 
-      else {
-        if (mesh->mpoly[i].mat_nr == face_set_nr) {
-          create_new_slot = true;
-          break;
-        }
+  bool create_new_slot = false;
+  for (int i = 0; i < mesh->totpoly; i++) {
+    if (face_sets[i] == face_set_id) {
+      if (mesh->mpoly[i].mat_nr != face_set_nr) {
+        create_new_slot = true;
+        break;
       }
     }
-
-
-    if (create_new_slot) {
-      BKE_object_material_slot_add(bmain, ob);
-    }
     else {
-      ob->actcol = face_set_nr + 1;
+      if (mesh->mpoly[i].mat_nr == face_set_nr) {
+        create_new_slot = true;
+        break;
+      }
     }
+  }
 
-    const short active_mat_slot = ob->actcol;
-    const short material_nr = active_mat_slot - 1;
-    for (int i = 0; i < mesh->totpoly; i++) {
-      if (face_sets[i] != face_set_id) {
-        continue;
-      } 
-      mesh->mpoly[i].mat_nr = material_nr;
+  if (create_new_slot) {
+    BKE_object_material_slot_add(bmain, ob);
+  }
+  else {
+    ob->actcol = face_set_nr + 1;
+  }
+
+  const short active_mat_slot = ob->actcol;
+  const short material_nr = active_mat_slot - 1;
+  for (int i = 0; i < mesh->totpoly; i++) {
+    if (face_sets[i] != face_set_id) {
+      continue;
     }
-
+    mesh->mpoly[i].mat_nr = material_nr;
+  }
 }
 
 static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = ED_view3d_give_object_under_cursor(C, event->mval);
+  int mat_slot = 0;
+  Object *ob = ED_view3d_give_material_slot_under_cursor(C, event->mval, &mat_slot);
+  mat_slot = max_ii(mat_slot, 1);
+
   Material *ma;
   char name[MAX_ID_NAME - 2];
 
@@ -2831,10 +2835,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
     drop_named_material_face_set_slots_update(C, ob, event);
   }
 
-  const short active_mat_slot = ob->actcol;
-
-  BKE_object_material_assign(
-    CTX_data_main(C), ob, ma, active_mat_slot, BKE_MAT_ASSIGN_USERPREF);
+  BKE_object_material_assign(CTX_data_main(C), ob, ma, mat_slot, BKE_MAT_ASSIGN_USERPREF);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 

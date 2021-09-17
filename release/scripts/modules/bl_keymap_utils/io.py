@@ -63,16 +63,11 @@ def kmi_args_as_data(kmi):
     if kmi.any:
         s.append("\"any\": True")
     else:
-        if kmi.shift:
-            s.append("\"shift\": True")
-        if kmi.ctrl:
-            s.append("\"ctrl\": True")
-        if kmi.alt:
-            s.append("\"alt\": True")
-        if kmi.oskey:
-            s.append("\"oskey\": True")
-    if kmi.key_modifier and kmi.key_modifier != 'NONE':
-        s.append(f"\"key_modifier\": '{kmi.key_modifier}'")
+        for attr in ("shift", "ctrl", "alt", "oskey"):
+            if mod := getattr(kmi, attr):
+                s.append(f"\"{attr:s}\": " + ("-1" if mod == -1 else "True"))
+    if (mod := kmi.key_modifier) and (mod != 'NONE'):
+        s.append(f"\"key_modifier\": '{mod:s}'")
 
     if kmi.repeat:
         if (

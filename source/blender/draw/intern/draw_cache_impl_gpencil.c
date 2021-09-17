@@ -446,6 +446,8 @@ static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfr
     for (int i = 0; i < 2; i++) {
       iter.verts[iter.vert_len + i].mat = -1;
     }
+    /* Also mark first vert as invalid. */
+    iter.verts[0].mat = -1;
 
     /* Finish the IBO. */
     cache->ibo = GPU_indexbuf_build(&iter.ibo);

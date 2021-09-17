@@ -1134,13 +1134,21 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
         if ((ED_area_actionzone_find_xy(sad->sa1, &event->x) != sad->az) &&
             (screen_geom_area_map_find_active_scredge(
                  AREAMAP_FROM_SCREEN(screen), &screen_rect, event->x, event->y) == NULL)) {
-          /* Are we still in same area? */
-          if (BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->x, event->y) == sad->sa1) {
+
+          /* What area are we now in? */
+          ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->x, event->y);
+
+          if (area == sad->sa1) {
             /* Same area, so possible split. */
             WM_cursor_set(win,
                           SCREEN_DIR_IS_VERTICAL(sad->gesture_dir) ? WM_CURSOR_H_SPLIT :
                                                                      WM_CURSOR_V_SPLIT);
             is_gesture = (delta_max > split_threshold);
+          }
+          else if (!area || area->global) {
+            /* No area or Top bar or Status bar. */
+            WM_cursor_set(win, WM_CURSOR_STOP);
+            is_gesture = false;
           }
           else {
             /* Different area, so possible join. */
@@ -1161,7 +1169,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
         }
         else {
-          WM_cursor_set(CTX_wm_window(C), WM_CURSOR_CROSS);
+          WM_cursor_set(win, WM_CURSOR_CROSS);
           is_gesture = false;
         }
       }
@@ -1466,15 +1474,39 @@ static void SCREEN_OT_area_dupli(wmOperatorType *ot)
  * Close selected area, replace by expanding a neighbor
  * \{ */
 
-/* operator callback */
-static int area_close_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+/**
+ * \note This can be used interactively or from Python.
+ *
+ * \note Most of the window management operators don't support execution from Python.
+ * An exception is made for closing areas since it allows application templates
+ * to customize the layout.
+ */
+static int area_close_exec(bContext *C, wmOperator *op)
 {
+  bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
-  if ((area != NULL) && screen_area_close(C, CTX_wm_screen(C), area)) {
-    WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
-    return OPERATOR_FINISHED;
+
+  /* This operator is scriptable, so the area passed could be invalid. */
+  if (BLI_findindex(&screen->areabase, area) == -1) {
+    BKE_report(op->reports, RPT_ERROR, "Area not found in the active screen");
+    return OPERATOR_CANCELLED;
   }
-  return OPERATOR_CANCELLED;
+
+  if (!screen_area_close(C, screen, area)) {
+    BKE_report(op->reports, RPT_ERROR, "Unable to close area");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Ensure the event loop doesn't attempt to continue handling events.
+   *
+   * This causes execution from the Python console fail to return to the prompt as it should.
+   * This glitch could be solved in the event loop handling as other operators may also
+   * destructively manipulate windowing data. */
+  CTX_wm_window_set(C, NULL);
+
+  WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
+
+  return OPERATOR_FINISHED;
 }
 
 static bool area_close_poll(bContext *C)
@@ -1506,7 +1538,7 @@ static void SCREEN_OT_area_close(wmOperatorType *ot)
   ot->name = "Close Area";
   ot->description = "Close selected area";
   ot->idname = "SCREEN_OT_area_close";
-  ot->invoke = area_close_invoke;
+  ot->exec = area_close_exec;
   ot->poll = area_close_poll;
 }
 
@@ -3075,6 +3107,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
       mask_to_keylist(&ads, masklay, keylist);
     }
   }
+  ED_keylist_prepare_for_direct_access(keylist);
 
   /* find matching keyframe in the right direction */
   const ActKeyColumn *ak;
@@ -5657,6 +5690,7 @@ void ED_operatortypes_screen(void)
   WM_operatortype_append(SCREEN_OT_back_to_previous);
   WM_operatortype_append(SCREEN_OT_spacedata_cleanup);
   WM_operatortype_append(SCREEN_OT_screenshot);
+  WM_operatortype_append(SCREEN_OT_screenshot_area);
   WM_operatortype_append(SCREEN_OT_userpref_show);
   WM_operatortype_append(SCREEN_OT_drivers_editor_show);
   WM_operatortype_append(SCREEN_OT_info_log_show);

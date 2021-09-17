@@ -788,7 +788,7 @@ bool RNA_struct_override_matches(Main *bmain,
       continue;
     }
 
-    CLOG_INFO(&LOG, 5, "Override Checking %s\n", rna_path);
+    CLOG_INFO(&LOG, 5, "Override Checking %s", rna_path);
 
     IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(override, rna_path);
     if (ignore_overridden && op != NULL) {

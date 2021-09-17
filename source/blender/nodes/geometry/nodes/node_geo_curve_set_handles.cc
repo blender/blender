@@ -21,16 +21,14 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_set_handles_in[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {SOCK_STRING, N_("Selection")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_curve_set_handles_out[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {-1, ""},
-};
+static void geo_node_curve_set_handles_decalre(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Curve");
+  b.add_input<decl::String>("Selection");
+  b.add_output<decl::Geometry>("Curve");
+}
 
 static void geo_node_curve_set_handles_layout(uiLayout *layout,
                                               bContext *UNUSED(C),
@@ -39,8 +37,6 @@ static void geo_node_curve_set_handles_layout(uiLayout *layout,
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "handle_type", 0, "", ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void geo_node_curve_set_handles_init(bNodeTree *UNUSED(tree), bNode *node)
 {
@@ -134,16 +130,15 @@ void register_node_type_geo_curve_set_handles()
 {
   static bNodeType ntype;
   geo_node_type_base(
-      &ntype, GEO_NODE_CURVE_SET_HANDLES, "Set Handle Type", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_curve_set_handles_in, geo_node_curve_set_handles_out);
+      &ntype, GEO_NODE_LEGACY_CURVE_SET_HANDLES, "Set Handle Type", NODE_CLASS_GEOMETRY, 0);
+  ntype.declare = blender::nodes::geo_node_curve_set_handles_decalre;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_set_handles_exec;
   node_type_init(&ntype, blender::nodes::geo_node_curve_set_handles_init);
   node_type_storage(&ntype,
                     "NodeGeometryCurveSetHandles",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.draw_buttons = geo_node_curve_set_handles_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_curve_set_handles_layout;
 
   nodeRegisterType(&ntype);
 }

@@ -55,6 +55,12 @@ static bool paint_object_is_rendered_transparent(View3D *v3d, Object *ob)
       }
     }
   }
+
+  /* Check object display types. */
+  if (ob && ELEM(ob->dt, OB_WIRE, OB_BOUNDBOX)) {
+    return true;
+  }
+
   return false;
 }
 

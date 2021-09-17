@@ -137,7 +137,7 @@ static SeqCollection *seq_collection_extract_effects(SeqCollection *collection)
 
 static SeqCollection *query_snap_targets(const TransInfo *t, SeqCollection *snap_sources)
 {
-  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene, false));
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene));
   const short snap_flag = SEQ_tool_settings_snap_flag_get(t->scene);
   SeqCollection *snap_targets = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
@@ -255,12 +255,12 @@ static int seq_snap_threshold_get_frame_distance(const TransInfo *t)
 TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t)
 {
   TransSeqSnapData *snap_data = MEM_callocN(sizeof(TransSeqSnapData), __func__);
-  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene, false));
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene));
 
   SeqCollection *snap_sources = SEQ_query_selected_strips(seqbase);
   SeqCollection *snap_targets = query_snap_targets(t, snap_sources);
 
-  if (SEQ_collection_len(snap_sources) == 0 || SEQ_collection_len(snap_targets) == 0) {
+  if (SEQ_collection_len(snap_sources) == 0) {
     SEQ_collection_free(snap_targets);
     SEQ_collection_free(snap_sources);
     MEM_freeN(snap_data);

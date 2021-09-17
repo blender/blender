@@ -347,16 +347,57 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
   }
 }
 
-static void attr_create_generic(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, bool subdivision)
+static void attr_create_motion(Mesh *mesh, BL::Attribute &b_attribute, const float motion_scale)
+{
+  if (!(b_attribute.domain() == BL::Attribute::domain_POINT) &&
+      (b_attribute.data_type() == BL::Attribute::data_type_FLOAT_VECTOR)) {
+    return;
+  }
+
+  BL::FloatVectorAttribute b_vector_attribute(b_attribute);
+  const int numverts = mesh->get_verts().size();
+
+  /* Find or add attribute */
+  float3 *P = &mesh->get_verts()[0];
+  Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+  if (!attr_mP) {
+    attr_mP = mesh->attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
+  }
+
+  /* Only export previous and next frame, we don't have any in between data. */
+  float motion_times[2] = {-1.0f, 1.0f};
+  for (int step = 0; step < 2; step++) {
+    const float relative_time = motion_times[step] * 0.5f * motion_scale;
+    float3 *mP = attr_mP->data_float3() + step * numverts;
+
+    for (int i = 0; i < numverts; i++) {
+      mP[i] = P[i] + get_float3(b_vector_attribute.data[i].vector()) * relative_time;
+    }
+  }
+}
+
+static void attr_create_generic(Scene *scene,
+                                Mesh *mesh,
+                                BL::Mesh &b_mesh,
+                                const bool subdivision,
+                                const bool need_motion,
+                                const float motion_scale)
 {
   if (subdivision) {
     /* TODO: Handle subdivision correctly. */
     return;
   }
   AttributeSet &attributes = mesh->attributes;
+  static const ustring u_velocity("velocity");
 
   for (BL::Attribute &b_attribute : b_mesh.attributes) {
     const ustring name{b_attribute.name().c_str()};
+
+    if (need_motion && name == u_velocity) {
+      attr_create_motion(mesh, b_attribute, motion_scale);
+    }
+
     if (!mesh->need_attribute(scene, name)) {
       continue;
     }
@@ -859,8 +900,10 @@ static void create_mesh(Scene *scene,
                         Mesh *mesh,
                         BL::Mesh &b_mesh,
                         const array<Node *> &used_shaders,
-                        bool subdivision = false,
-                        bool subdivide_uvs = true)
+                        const bool need_motion,
+                        const float motion_scale,
+                        const bool subdivision = false,
+                        const bool subdivide_uvs = true)
 {
   /* count vertices and faces */
   int numverts = b_mesh.vertices.length();
@@ -974,7 +1017,7 @@ static void create_mesh(Scene *scene,
   attr_create_vertex_color(scene, mesh, b_mesh, subdivision);
   attr_create_sculpt_vertex_color(scene, mesh, b_mesh, subdivision);
   attr_create_random_per_island(scene, mesh, b_mesh, subdivision);
-  attr_create_generic(scene, mesh, b_mesh, subdivision);
+  attr_create_generic(scene, mesh, b_mesh, subdivision, need_motion, motion_scale);
 
   if (subdivision) {
     attr_create_subd_uv_map(scene, mesh, b_mesh, subdivide_uvs);
@@ -999,16 +1042,20 @@ static void create_mesh(Scene *scene,
 
 static void create_subd_mesh(Scene *scene,
                              Mesh *mesh,
-                             BL::Object &b_ob,
+                             BObjectInfo &b_ob_info,
                              BL::Mesh &b_mesh,
                              const array<Node *> &used_shaders,
+                             const bool need_motion,
+                             const float motion_scale,
                              float dicing_rate,
                              int max_subdivisions)
 {
+  BL::Object b_ob = b_ob_info.real_object;
+
   BL::SubsurfModifier subsurf_mod(b_ob.modifiers[b_ob.modifiers.length() - 1]);
   bool subdivide_uvs = subsurf_mod.uv_smooth() != BL::SubsurfModifier::uv_smooth_NONE;
 
-  create_mesh(scene, mesh, b_mesh, used_shaders, true, subdivide_uvs);
+  create_mesh(scene, mesh, b_mesh, used_shaders, need_motion, motion_scale, true, subdivide_uvs);
 
   /* export creases */
   size_t num_creases = 0;
@@ -1043,7 +1090,7 @@ static void create_subd_mesh(Scene *scene,
  *
  * NOTE: This code is run prior to object motion blur initialization. so can not access properties
  * set by `sync_object_motion_init()`. */
-static bool mesh_need_motion_attribute(BL::Object &b_ob, Scene *scene)
+static bool mesh_need_motion_attribute(BObjectInfo &b_ob_info, Scene *scene)
 {
   const Scene::MotionType need_motion = scene->need_motion();
   if (need_motion == Scene::MOTION_NONE) {
@@ -1060,7 +1107,7 @@ static bool mesh_need_motion_attribute(BL::Object &b_ob, Scene *scene)
      * - Motion attribute expects non-zero time steps.
      *
      * Avoid adding motion attributes if the motion blur will enforce 0 motion steps. */
-    PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
+    PointerRNA cobject = RNA_pointer_get(&b_ob_info.real_object.ptr, "cycles");
     const bool use_motion = get_boolean(cobject, "use_motion_blur");
     if (!use_motion) {
       return false;
@@ -1072,92 +1119,7 @@ static bool mesh_need_motion_attribute(BL::Object &b_ob, Scene *scene)
   return true;
 }
 
-static void sync_mesh_cached_velocities(BL::Object &b_ob, Scene *scene, Mesh *mesh)
-{
-  if (!mesh_need_motion_attribute(b_ob, scene)) {
-    return;
-  }
-
-  BL::MeshSequenceCacheModifier b_mesh_cache = object_mesh_cache_find(b_ob, true, nullptr);
-
-  if (!b_mesh_cache) {
-    return;
-  }
-
-  if (!MeshSequenceCacheModifier_read_velocity_get(&b_mesh_cache.ptr)) {
-    return;
-  }
-
-  const size_t numverts = mesh->get_verts().size();
-
-  if (b_mesh_cache.vertex_velocities.length() != numverts) {
-    return;
-  }
-
-  /* Find or add attribute */
-  float3 *P = &mesh->get_verts()[0];
-  Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-
-  if (!attr_mP) {
-    attr_mP = mesh->attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
-  }
-
-  /* Only export previous and next frame, we don't have any in between data. */
-  float motion_times[2] = {-1.0f, 1.0f};
-  for (int step = 0; step < 2; step++) {
-    const float relative_time = motion_times[step] * scene->motion_shutter_time() * 0.5f;
-    float3 *mP = attr_mP->data_float3() + step * numverts;
-
-    BL::MeshSequenceCacheModifier::vertex_velocities_iterator vvi;
-    int i = 0;
-
-    for (b_mesh_cache.vertex_velocities.begin(vvi); vvi != b_mesh_cache.vertex_velocities.end();
-         ++vvi, ++i) {
-      mP[i] = P[i] + get_float3(vvi->velocity()) * relative_time;
-    }
-  }
-}
-
-static void sync_mesh_fluid_motion(BL::Object &b_ob, Scene *scene, Mesh *mesh)
-{
-  if (!mesh_need_motion_attribute(b_ob, scene)) {
-    return;
-  }
-
-  BL::FluidDomainSettings b_fluid_domain = object_fluid_liquid_domain_find(b_ob);
-
-  if (!b_fluid_domain)
-    return;
-
-  /* If the mesh has modifiers following the fluid domain we can't export motion. */
-  if (b_fluid_domain.mesh_vertices.length() != mesh->get_verts().size())
-    return;
-
-  /* Find or add attribute */
-  float3 *P = &mesh->get_verts()[0];
-  Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-
-  if (!attr_mP) {
-    attr_mP = mesh->attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
-  }
-
-  /* Only export previous and next frame, we don't have any in between data. */
-  float motion_times[2] = {-1.0f, 1.0f};
-  for (int step = 0; step < 2; step++) {
-    float relative_time = motion_times[step] * scene->motion_shutter_time() * 0.5f;
-    float3 *mP = attr_mP->data_float3() + step * mesh->get_verts().size();
-
-    BL::FluidDomainSettings::mesh_vertices_iterator svi;
-    int i = 0;
-
-    for (b_fluid_domain.mesh_vertices.begin(svi); svi != b_fluid_domain.mesh_vertices.end();
-         ++svi, ++i) {
-      mP[i] = P[i] + get_float3(svi->velocity()) * relative_time;
-    }
-  }
-}
-
-void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *mesh)
+void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Mesh *mesh)
 {
   /* make a copy of the shaders as the caller in the main thread still need them for syncing the
    * attributes */
@@ -1170,36 +1132,46 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *me
     /* Adaptive subdivision setup. Not for baking since that requires
      * exact mapping to the Blender mesh. */
     if (!scene->bake_manager->get_baking()) {
-      new_mesh.set_subdivision_type(object_subdivision_type(b_ob, preview, experimental));
+      new_mesh.set_subdivision_type(
+          object_subdivision_type(b_ob_info.real_object, preview, experimental));
     }
 
     /* For some reason, meshes do not need this... */
     bool need_undeformed = new_mesh.need_attribute(scene, ATTR_STD_GENERATED);
     BL::Mesh b_mesh = object_to_mesh(
-        b_data, b_ob, b_depsgraph, need_undeformed, new_mesh.get_subdivision_type());
+        b_data, b_ob_info, b_depsgraph, need_undeformed, new_mesh.get_subdivision_type());
 
     if (b_mesh) {
+      /* Motion blur attribute is relative to seconds, we need it relative to frames. */
+      const bool need_motion = mesh_need_motion_attribute(b_ob_info, scene);
+      const float motion_scale = (need_motion) ?
+                                     scene->motion_shutter_time() /
+                                         (b_scene.render().fps() / b_scene.render().fps_base()) :
+                                     0.0f;
+
       /* Sync mesh itself. */
       if (new_mesh.get_subdivision_type() != Mesh::SUBDIVISION_NONE)
         create_subd_mesh(scene,
                          &new_mesh,
-                         b_ob,
+                         b_ob_info,
                          b_mesh,
                          new_mesh.get_used_shaders(),
+                         need_motion,
+                         motion_scale,
                          dicing_rate,
                          max_subdivisions);
       else
-        create_mesh(scene, &new_mesh, b_mesh, new_mesh.get_used_shaders(), false);
+        create_mesh(scene,
+                    &new_mesh,
+                    b_mesh,
+                    new_mesh.get_used_shaders(),
+                    need_motion,
+                    motion_scale,
+                    false);
 
-      free_object_to_mesh(b_data, b_ob, b_mesh);
+      free_object_to_mesh(b_data, b_ob_info, b_mesh);
     }
   }
-
-  /* cached velocities (e.g. from alembic archive) */
-  sync_mesh_cached_velocities(b_ob, scene, &new_mesh);
-
-  /* mesh fluid motion mantaflow */
-  sync_mesh_fluid_motion(b_ob, scene, &new_mesh);
 
   /* update original sockets */
 
@@ -1230,22 +1202,10 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *me
 }
 
 void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
-                                   BL::Object b_ob,
+                                   BObjectInfo &b_ob_info,
                                    Mesh *mesh,
                                    int motion_step)
 {
-  /* Fluid motion blur already exported. */
-  BL::FluidDomainSettings b_fluid_domain = object_fluid_liquid_domain_find(b_ob);
-  if (b_fluid_domain) {
-    return;
-  }
-
-  /* Cached motion blur already exported. */
-  BL::MeshSequenceCacheModifier mesh_cache = object_mesh_cache_find(b_ob, true, nullptr);
-  if (mesh_cache) {
-    return;
-  }
-
   /* Skip if no vertices were exported. */
   size_t numverts = mesh->get_verts().size();
   if (numverts == 0) {
@@ -1255,10 +1215,12 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
   /* Skip objects without deforming modifiers. this is not totally reliable,
    * would need a more extensive check to see which objects are animated. */
   BL::Mesh b_mesh(PointerRNA_NULL);
-  if (ccl::BKE_object_is_deform_modified(b_ob, b_scene, preview)) {
+  if (ccl::BKE_object_is_deform_modified(b_ob_info, b_scene, preview)) {
     /* get derived mesh */
-    b_mesh = object_to_mesh(b_data, b_ob, b_depsgraph, false, Mesh::SUBDIVISION_NONE);
+    b_mesh = object_to_mesh(b_data, b_ob_info, b_depsgraph, false, Mesh::SUBDIVISION_NONE);
   }
+
+  const std::string ob_name = b_ob_info.real_object.name();
 
   /* TODO(sergey): Perform preliminary check for number of vertices. */
   if (b_mesh) {
@@ -1295,17 +1257,17 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
           memcmp(mP, &mesh->get_verts()[0], sizeof(float3) * numverts) == 0) {
         /* no motion, remove attributes again */
         if (b_mesh.vertices.length() != numverts) {
-          VLOG(1) << "Topology differs, disabling motion blur for object " << b_ob.name();
+          VLOG(1) << "Topology differs, disabling motion blur for object " << ob_name;
         }
         else {
-          VLOG(1) << "No actual deformation motion for object " << b_ob.name();
+          VLOG(1) << "No actual deformation motion for object " << ob_name;
         }
         mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
         if (attr_mN)
           mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_NORMAL);
       }
       else if (motion_step > 0) {
-        VLOG(1) << "Filling deformation motion for object " << b_ob.name();
+        VLOG(1) << "Filling deformation motion for object " << ob_name;
         /* motion, fill up previous steps that we might have skipped because
          * they had no motion, but we need them anyway now */
         float3 *P = &mesh->get_verts()[0];
@@ -1319,8 +1281,8 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
     }
     else {
       if (b_mesh.vertices.length() != numverts) {
-        VLOG(1) << "Topology differs, discarding motion blur for object " << b_ob.name()
-                << " at time " << motion_step;
+        VLOG(1) << "Topology differs, discarding motion blur for object " << ob_name << " at time "
+                << motion_step;
         memcpy(mP, &mesh->get_verts()[0], sizeof(float3) * numverts);
         if (mN != NULL) {
           memcpy(mN, attr_N->data_float3(), sizeof(float3) * numverts);
@@ -1328,7 +1290,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
       }
     }
 
-    free_object_to_mesh(b_data, b_ob, b_mesh);
+    free_object_to_mesh(b_data, b_ob_info, b_mesh);
     return;
   }
 

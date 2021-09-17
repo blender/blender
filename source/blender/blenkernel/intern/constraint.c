@@ -3900,7 +3900,11 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 
     unit_m4(targetMatrix);
     INIT_MINMAX(curveMin, curveMax);
-    /* XXX(campbell): don't think this is good calling this here. */
+    /* XXX(@campbellbarton): don't think this is good calling this here because
+     * the other object's data is lazily initializing bounding-box information.
+     * This could cause issues when evaluating from a thread.
+     * If the depsgraph ensures the bound-box is always available, a code-path could
+     * be used that doesn't lazy initialize to avoid thread safety issues in the future. */
     BKE_object_minmax(ct->tar, curveMin, curveMax, true);
 
     /* get targetmatrix */

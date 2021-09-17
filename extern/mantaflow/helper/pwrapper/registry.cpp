@@ -76,7 +76,8 @@ struct ClassData {
 };
 
 struct PbObject {
-  PyObject_HEAD Manta::PbClass *instance;
+  PyObject_HEAD
+  Manta::PbClass *instance;
   ClassData *classdef;
 };
 

@@ -34,7 +34,7 @@ void ViewLevelsNode::convertToOperations(NodeConverter &converter,
 {
   NodeInput *input = this->getInputSocket(0);
   if (input->isLinked()) {
-    // add preview to inputSocket;
+    /* Add preview to input-socket. */
 
     /* calculate mean operation */
     {

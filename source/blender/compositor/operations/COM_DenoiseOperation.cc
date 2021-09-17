@@ -35,6 +35,8 @@ DenoiseOperation::DenoiseOperation()
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
   this->m_settings = nullptr;
+  flags.is_fullframe_operation = true;
+  output_rendered_ = false;
 }
 void DenoiseOperation::initExecution()
 {
@@ -63,8 +65,7 @@ MemoryBuffer *DenoiseOperation::createMemoryBuffer(rcti *rect2)
   rect.xmax = getWidth();
   rect.ymax = getHeight();
   MemoryBuffer *result = new MemoryBuffer(DataType::Color, rect);
-  float *data = result->getBuffer();
-  this->generateDenoise(data, tileColor, tileNormal, tileAlbedo, this->m_settings);
+  this->generateDenoise(result, tileColor, tileNormal, tileAlbedo, this->m_settings);
   return result;
 }
 
@@ -84,23 +85,33 @@ bool DenoiseOperation::determineDependingAreaOfInterest(rcti * /*input*/,
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-void DenoiseOperation::generateDenoise(float *data,
-                                       MemoryBuffer *inputTileColor,
-                                       MemoryBuffer *inputTileNormal,
-                                       MemoryBuffer *inputTileAlbedo,
+void DenoiseOperation::generateDenoise(MemoryBuffer *output,
+                                       MemoryBuffer *input_color,
+                                       MemoryBuffer *input_normal,
+                                       MemoryBuffer *input_albedo,
                                        NodeDenoise *settings)
 {
-  float *inputBufferColor = inputTileColor->getBuffer();
-  BLI_assert(inputBufferColor);
-  if (!inputBufferColor) {
+  BLI_assert(input_color->getBuffer());
+  if (!input_color->getBuffer()) {
     return;
   }
+
 #ifdef WITH_OPENIMAGEDENOISE
   /* Always supported through Accelerate framework BNNS on macOS. */
 #  ifndef __APPLE__
   if (BLI_cpu_support_sse41())
 #  endif
   {
+    /* OpenImageDenoise needs full buffers. */
+    MemoryBuffer *buf_color = input_color->is_a_single_elem() ? input_color->inflate() :
+                                                                input_color;
+    MemoryBuffer *buf_normal = input_normal && input_normal->is_a_single_elem() ?
+                                   input_normal->inflate() :
+                                   input_normal;
+    MemoryBuffer *buf_albedo = input_albedo && input_albedo->is_a_single_elem() ?
+                                   input_albedo->inflate() :
+                                   input_albedo;
+
     /* Since it's memory intensive, it's better to run only one instance of OIDN at a time.
      * OpenImageDenoise is multithreaded internally and should use all available cores nonetheless.
      */
@@ -111,35 +122,35 @@ void DenoiseOperation::generateDenoise(float *data,
 
     oidn::FilterRef filter = device.newFilter("RT");
     filter.setImage("color",
-                    inputBufferColor,
+                    buf_color->getBuffer(),
                     oidn::Format::Float3,
-                    inputTileColor->getWidth(),
-                    inputTileColor->getHeight(),
+                    buf_color->getWidth(),
+                    buf_color->getHeight(),
                     0,
                     sizeof(float[4]));
-    if (inputTileNormal && inputTileNormal->getBuffer()) {
+    if (buf_normal && buf_normal->getBuffer()) {
       filter.setImage("normal",
-                      inputTileNormal->getBuffer(),
+                      buf_normal->getBuffer(),
                       oidn::Format::Float3,
-                      inputTileNormal->getWidth(),
-                      inputTileNormal->getHeight(),
+                      buf_normal->getWidth(),
+                      buf_normal->getHeight(),
                       0,
                       sizeof(float[3]));
     }
-    if (inputTileAlbedo && inputTileAlbedo->getBuffer()) {
+    if (buf_albedo && buf_albedo->getBuffer()) {
       filter.setImage("albedo",
-                      inputTileAlbedo->getBuffer(),
+                      buf_albedo->getBuffer(),
                       oidn::Format::Float3,
-                      inputTileAlbedo->getWidth(),
-                      inputTileAlbedo->getHeight(),
+                      buf_albedo->getWidth(),
+                      buf_albedo->getHeight(),
                       0,
                       sizeof(float[4]));
     }
     filter.setImage("output",
-                    data,
+                    output->getBuffer(),
                     oidn::Format::Float3,
-                    inputTileColor->getWidth(),
-                    inputTileColor->getHeight(),
+                    buf_color->getWidth(),
+                    buf_color->getHeight(),
                     0,
                     sizeof(float[4]));
 
@@ -153,19 +164,46 @@ void DenoiseOperation::generateDenoise(float *data,
     filter.execute();
     BLI_mutex_unlock(&oidn_lock);
 
-    /* copy the alpha channel, OpenImageDenoise currently only supports RGB */
-    size_t numPixels = inputTileColor->getWidth() * inputTileColor->getHeight();
-    for (size_t i = 0; i < numPixels; i++) {
-      data[i * 4 + 3] = inputBufferColor[i * 4 + 3];
+    /* Copy the alpha channel, OpenImageDenoise currently only supports RGB. */
+    output->copy_from(input_color, input_color->get_rect(), 3, COM_DATA_TYPE_VALUE_CHANNELS, 3);
+
+    /* Delete inflated buffers. */
+    if (input_color->is_a_single_elem()) {
+      delete buf_color;
     }
+    if (input_normal && input_normal->is_a_single_elem()) {
+      delete buf_normal;
+    }
+    if (input_albedo && input_albedo->is_a_single_elem()) {
+      delete buf_albedo;
+    }
+
     return;
   }
 #endif
   /* If built without OIDN or running on an unsupported CPU, just pass through. */
-  UNUSED_VARS(inputTileAlbedo, inputTileNormal, settings);
-  ::memcpy(data,
-           inputBufferColor,
-           sizeof(float[4]) * inputTileColor->getWidth() * inputTileColor->getHeight());
+  UNUSED_VARS(input_albedo, input_normal, settings);
+  output->copy_from(input_color, input_color->get_rect());
+}
+
+void DenoiseOperation::get_area_of_interest(const int UNUSED(input_idx),
+                                            const rcti &UNUSED(output_area),
+                                            rcti &r_input_area)
+{
+  r_input_area.xmin = 0;
+  r_input_area.xmax = this->getWidth();
+  r_input_area.ymin = 0;
+  r_input_area.ymax = this->getHeight();
+}
+
+void DenoiseOperation::update_memory_buffer(MemoryBuffer *output,
+                                            const rcti &UNUSED(area),
+                                            Span<MemoryBuffer *> inputs)
+{
+  if (!output_rendered_) {
+    this->generateDenoise(output, inputs[0], inputs[1], inputs[2], m_settings);
+    output_rendered_ = true;
+  }
 }
 
 }  // namespace blender::compositor

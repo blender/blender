@@ -202,7 +202,7 @@ void select_surround_from_last(Scene *scene)
 
 void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool deselect_all)
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (deselect_all) {
     ED_sequencer_deselect_all(scene);
@@ -236,7 +236,7 @@ Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int se
 {
   /* sel: 0==unselected, 1==selected, -1==don't care. */
   Sequence *seq;
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (ed == NULL) {
     return NULL;
@@ -270,7 +270,7 @@ Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int se
 Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[2])
 {
   Sequence *seq;
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   float x, y;
   float pixelx;
   float handsize;
@@ -396,7 +396,7 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
   int action = RNA_enum_get(op->ptr, "action");
 
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   Sequence *seq;
 
   if (action == SEL_TOGGLE) {
@@ -463,7 +463,7 @@ void SEQUENCER_OT_select_all(struct wmOperatorType *ot)
 static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   Sequence *seq;
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
@@ -504,238 +504,245 @@ void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot)
 /** \name Select Operator
  * \{ */
 
+static void sequencer_select_set_active(Scene *scene, Sequence *seq)
+{
+  Editing *ed = SEQ_editing_get(scene);
+
+  SEQ_select_active_set(scene, seq);
+
+  if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
+    if (seq->strip) {
+      BLI_strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR);
+    }
+  }
+  else if (seq->type == SEQ_TYPE_SOUND_RAM) {
+    if (seq->strip) {
+      BLI_strncpy(ed->act_sounddir, seq->strip->dir, FILE_MAXDIR);
+    }
+  }
+  recurs_sel_seq(seq);
+}
+
+static void sequencer_select_do_updates(bContext *C, Scene *scene)
+{
+  ED_outliner_select_sync_from_sequence_tag(C);
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
+}
+
+static void sequencer_select_side_of_frame(const bContext *C,
+                                           const View2D *v2d,
+                                           const int mval[2],
+                                           Scene *scene)
+{
+  Editing *ed = SEQ_editing_get(scene);
+
+  const float x = UI_view2d_region_to_view_x(v2d, mval[0]);
+  LISTBASE_FOREACH (Sequence *, seq_iter, SEQ_active_seqbase_get(ed)) {
+    if (((x < CFRA) && (seq_iter->enddisp <= CFRA)) ||
+        ((x >= CFRA) && (seq_iter->startdisp >= CFRA))) {
+      /* Select left or right. */
+      seq_iter->flag |= SELECT;
+      recurs_sel_seq(seq_iter);
+    }
+  }
+
+  {
+    SpaceSeq *sseq = CTX_wm_space_seq(C);
+    if (sseq && sseq->flag & SEQ_MARKER_TRANS) {
+      TimeMarker *tmarker;
+
+      for (tmarker = scene->markers.first; tmarker; tmarker = tmarker->next) {
+        if (((x < CFRA) && (tmarker->frame <= CFRA)) ||
+            ((x >= CFRA) && (tmarker->frame >= CFRA))) {
+          tmarker->flag |= SELECT;
+        }
+        else {
+          tmarker->flag &= ~SELECT;
+        }
+      }
+    }
+  }
+}
+
+static void sequencer_select_linked_handle(const bContext *C,
+                                           Sequence *seq,
+                                           const int handle_clicked)
+{
+  Scene *scene = CTX_data_scene(C);
+  Editing *ed = SEQ_editing_get(scene);
+  if (!ELEM(handle_clicked, SEQ_SIDE_LEFT, SEQ_SIDE_RIGHT)) {
+    /* First click selects the strip and its adjacent handles (if valid).
+     * Second click selects the strip,
+     * both of its handles and its adjacent handles (if valid). */
+    const bool is_striponly_selected = ((seq->flag & SEQ_ALLSEL) == SELECT);
+    seq->flag &= ~SEQ_ALLSEL;
+    seq->flag |= is_striponly_selected ? SEQ_ALLSEL : SELECT;
+    select_surrounding_handles(scene, seq);
+  }
+  else {
+    /* Always select the strip under the cursor. */
+    seq->flag |= SELECT;
+
+    /* First click selects adjacent handles on that side.
+     * Second click selects all strips in that direction.
+     * If there are no adjacent strips, it just selects all in that direction.
+     */
+    int sel_side = handle_clicked;
+    Sequence *neighbor = find_neighboring_sequence(scene, seq, sel_side, -1);
+    if (neighbor) {
+      switch (sel_side) {
+        case SEQ_SIDE_LEFT:
+          if ((seq->flag & SEQ_LEFTSEL) && (neighbor->flag & SEQ_RIGHTSEL)) {
+            seq->flag |= SELECT;
+            select_active_side(ed->seqbasep, SEQ_SIDE_LEFT, seq->machine, seq->startdisp);
+          }
+          else {
+            seq->flag |= SELECT;
+            neighbor->flag |= SELECT;
+            recurs_sel_seq(neighbor);
+            neighbor->flag |= SEQ_RIGHTSEL;
+            seq->flag |= SEQ_LEFTSEL;
+          }
+          break;
+        case SEQ_SIDE_RIGHT:
+          if ((seq->flag & SEQ_RIGHTSEL) && (neighbor->flag & SEQ_LEFTSEL)) {
+            seq->flag |= SELECT;
+            select_active_side(ed->seqbasep, SEQ_SIDE_RIGHT, seq->machine, seq->startdisp);
+          }
+          else {
+            seq->flag |= SELECT;
+            neighbor->flag |= SELECT;
+            recurs_sel_seq(neighbor);
+            neighbor->flag |= SEQ_LEFTSEL;
+            seq->flag |= SEQ_RIGHTSEL;
+          }
+          break;
+      }
+    }
+    else {
+
+      select_active_side(ed->seqbasep, sel_side, seq->machine, seq->startdisp);
+    }
+  }
+}
+
+static bool element_already_selected(const Sequence *seq, const int handle_clicked)
+{
+  const bool handle_already_selected = ((handle_clicked == SEQ_SIDE_LEFT) &&
+                                        (seq->flag & SEQ_LEFTSEL)) ||
+                                       ((handle_clicked == SEQ_SIDE_RIGHT) &&
+                                        (seq->flag & SEQ_RIGHTSEL));
+  return ((seq->flag & SELECT) && handle_clicked == SEQ_SIDE_NONE) || handle_already_selected;
+}
+
+static void sequencer_select_strip_impl(const Editing *ed,
+                                        Sequence *seq,
+                                        const int handle_clicked,
+                                        const bool extend)
+{
+  /* Deselect strip. */
+  if (extend && (seq->flag & SELECT) && ed->act_seq == seq) {
+    switch (handle_clicked) {
+      case SEQ_SIDE_NONE:
+        seq->flag &= ~SEQ_ALLSEL;
+        break;
+      case SEQ_SIDE_LEFT:
+        seq->flag ^= SEQ_LEFTSEL;
+        break;
+      case SEQ_SIDE_RIGHT:
+        seq->flag ^= SEQ_RIGHTSEL;
+        break;
+    }
+  }
+  else { /* Select strip. */
+    seq->flag |= SELECT;
+    if (handle_clicked == SEQ_SIDE_LEFT) {
+      seq->flag |= SEQ_LEFTSEL;
+    }
+    if (handle_clicked == SEQ_SIDE_RIGHT) {
+      seq->flag |= SEQ_RIGHTSEL;
+    }
+  }
+}
+
 static int sequencer_select_exec(bContext *C, wmOperator *op)
 {
   View2D *v2d = UI_view2d_fromcontext(C);
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
-  const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
-  const bool linked_handle = RNA_boolean_get(op->ptr, "linked_handle");
-  const bool linked_time = RNA_boolean_get(op->ptr, "linked_time");
-  bool side_of_frame = RNA_boolean_get(op->ptr, "side_of_frame");
-  bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
-  int mval[2];
-  int ret_value = OPERATOR_CANCELLED;
-
-  mval[0] = RNA_int_get(op->ptr, "mouse_x");
-  mval[1] = RNA_int_get(op->ptr, "mouse_y");
-
-  Sequence *seq, *neighbor, *act_orig;
-  int hand, sel_side;
 
   if (ed == NULL) {
     return OPERATOR_CANCELLED;
   }
 
-  if (extend) {
-    wait_to_deselect_others = false;
-  }
+  int mval[2];
+  mval[0] = RNA_int_get(op->ptr, "mouse_x");
+  mval[1] = RNA_int_get(op->ptr, "mouse_y");
 
-  seq = find_nearest_seq(scene, v2d, &hand, mval);
+  int handle_clicked;
+  Sequence *seq = find_nearest_seq(scene, v2d, &handle_clicked, mval);
 
-  /* XXX: not nice, Ctrl+RMB needs to do side_of_frame only when not over a strip. */
-  if (seq && linked_time) {
-    side_of_frame = false;
+  /* NOTE: `side_of_frame` and `linked_time` functionality is designed to be shared on one keymap,
+   * therefore both properties can be true at the same time. */
+  if (seq && RNA_boolean_get(op->ptr, "linked_time")) {
+    if (!extend) {
+      ED_sequencer_deselect_all(scene);
+    }
+    sequencer_select_strip_impl(ed, seq, handle_clicked, extend);
+    select_linked_time(ed->seqbasep, seq);
+    sequencer_select_do_updates(C, scene);
+    sequencer_select_set_active(scene, seq);
+    return OPERATOR_FINISHED;
   }
 
   /* Select left, right or overlapping the current frame. */
-  if (side_of_frame) {
-    /* Use different logic for this. */
-    if (extend == false) {
+  if (RNA_boolean_get(op->ptr, "side_of_frame")) {
+    if (!extend) {
       ED_sequencer_deselect_all(scene);
     }
+    sequencer_select_side_of_frame(C, v2d, mval, scene);
+    sequencer_select_do_updates(C, scene);
+    return OPERATOR_FINISHED;
+  }
 
-    const float x = UI_view2d_region_to_view_x(v2d, mval[0]);
-
-    LISTBASE_FOREACH (Sequence *, seq_iter, SEQ_active_seqbase_get(ed)) {
-      if (((x < CFRA) && (seq_iter->enddisp <= CFRA)) ||
-          ((x >= CFRA) && (seq_iter->startdisp >= CFRA))) {
-        /* Select left or right. */
-        seq_iter->flag |= SELECT;
-        recurs_sel_seq(seq_iter);
-      }
+  /* On Alt selection, select the strip and bordering handles. */
+  if (seq && RNA_boolean_get(op->ptr, "linked_handle")) {
+    if (!extend) {
+      ED_sequencer_deselect_all(scene);
     }
+    sequencer_select_linked_handle(C, seq, handle_clicked);
+    sequencer_select_do_updates(C, scene);
+    sequencer_select_set_active(scene, seq);
+    return OPERATOR_FINISHED;
+  }
 
-    {
-      SpaceSeq *sseq = CTX_wm_space_seq(C);
-      if (sseq && sseq->flag & SEQ_MARKER_TRANS) {
-        TimeMarker *tmarker;
+  const bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
 
-        for (tmarker = scene->markers.first; tmarker; tmarker = tmarker->next) {
-          if (((x < CFRA) && (tmarker->frame <= CFRA)) ||
-              ((x >= CFRA) && (tmarker->frame >= CFRA))) {
-            tmarker->flag |= SELECT;
-          }
-          else {
-            tmarker->flag &= ~SELECT;
-          }
-        }
-      }
-    }
+  /* Clicking on already selected element falls on modal operation.
+   * All strips are deselected on mouse button release unless extend mode is used. */
+  if (seq && element_already_selected(seq, handle_clicked) && wait_to_deselect_others && !extend) {
+    return OPERATOR_RUNNING_MODAL;
+  }
 
+  int ret_value = OPERATOR_CANCELLED;
+
+  if (!extend) {
+    ED_sequencer_deselect_all(scene);
     ret_value = OPERATOR_FINISHED;
   }
-  else {
-    act_orig = ed->act_seq;
 
-    if (seq) {
-      /* Are we trying to select a handle that's already selected? */
-      const bool handle_selected = ((hand == SEQ_SIDE_LEFT) && (seq->flag & SEQ_LEFTSEL)) ||
-                                   ((hand == SEQ_SIDE_RIGHT) && (seq->flag & SEQ_RIGHTSEL));
-
-      if (wait_to_deselect_others && (seq->flag & SELECT) &&
-          (hand == SEQ_SIDE_NONE || handle_selected)) {
-        ret_value = OPERATOR_RUNNING_MODAL;
-      }
-      else if (!extend && !linked_handle) {
-        ED_sequencer_deselect_all(scene);
-        ret_value = OPERATOR_FINISHED;
-      }
-      else {
-        ret_value = OPERATOR_FINISHED;
-      }
-
-      SEQ_select_active_set(scene, seq);
-
-      if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
-        if (seq->strip) {
-          BLI_strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR);
-        }
-      }
-      else if (seq->type == SEQ_TYPE_SOUND_RAM) {
-        if (seq->strip) {
-          BLI_strncpy(ed->act_sounddir, seq->strip->dir, FILE_MAXDIR);
-        }
-      }
-
-      /* On Alt selection, select the strip and bordering handles. */
-      if (linked_handle) {
-        if (!ELEM(hand, SEQ_SIDE_LEFT, SEQ_SIDE_RIGHT)) {
-          /* First click selects the strip and its adjacent handles (if valid).
-           * Second click selects the strip,
-           * both of its handles and its adjacent handles (if valid). */
-          const bool is_striponly_selected = ((seq->flag & SEQ_ALLSEL) == SELECT);
-
-          if (!extend) {
-            ED_sequencer_deselect_all(scene);
-          }
-          seq->flag &= ~SEQ_ALLSEL;
-          seq->flag |= is_striponly_selected ? SEQ_ALLSEL : SELECT;
-          select_surrounding_handles(scene, seq);
-        }
-        else {
-          /* Always select the strip under the cursor. */
-          seq->flag |= SELECT;
-
-          /* First click selects adjacent handles on that side.
-           * Second click selects all strips in that direction.
-           * If there are no adjacent strips, it just selects all in that direction.
-           */
-          sel_side = hand;
-          neighbor = find_neighboring_sequence(scene, seq, sel_side, -1);
-          if (neighbor) {
-            switch (sel_side) {
-              case SEQ_SIDE_LEFT:
-                if ((seq->flag & SEQ_LEFTSEL) && (neighbor->flag & SEQ_RIGHTSEL)) {
-                  if (extend == 0) {
-                    ED_sequencer_deselect_all(scene);
-                  }
-                  seq->flag |= SELECT;
-
-                  select_active_side(ed->seqbasep, SEQ_SIDE_LEFT, seq->machine, seq->startdisp);
-                }
-                else {
-                  if (extend == 0) {
-                    ED_sequencer_deselect_all(scene);
-                  }
-                  seq->flag |= SELECT;
-
-                  neighbor->flag |= SELECT;
-                  recurs_sel_seq(neighbor);
-                  neighbor->flag |= SEQ_RIGHTSEL;
-                  seq->flag |= SEQ_LEFTSEL;
-                }
-                break;
-              case SEQ_SIDE_RIGHT:
-                if ((seq->flag & SEQ_RIGHTSEL) && (neighbor->flag & SEQ_LEFTSEL)) {
-                  if (extend == 0) {
-                    ED_sequencer_deselect_all(scene);
-                  }
-                  seq->flag |= SELECT;
-
-                  select_active_side(ed->seqbasep, SEQ_SIDE_RIGHT, seq->machine, seq->startdisp);
-                }
-                else {
-                  if (extend == 0) {
-                    ED_sequencer_deselect_all(scene);
-                  }
-                  seq->flag |= SELECT;
-
-                  neighbor->flag |= SELECT;
-                  recurs_sel_seq(neighbor);
-                  neighbor->flag |= SEQ_LEFTSEL;
-                  seq->flag |= SEQ_RIGHTSEL;
-                }
-                break;
-            }
-          }
-          else {
-            if (extend == 0) {
-              ED_sequencer_deselect_all(scene);
-            }
-            select_active_side(ed->seqbasep, sel_side, seq->machine, seq->startdisp);
-          }
-        }
-
-        ret_value = OPERATOR_FINISHED;
-      }
-      else {
-        if (extend && (seq->flag & SELECT) && ed->act_seq == act_orig) {
-          switch (hand) {
-            case SEQ_SIDE_NONE:
-              if (linked_handle == 0) {
-                seq->flag &= ~SEQ_ALLSEL;
-              }
-              break;
-            case SEQ_SIDE_LEFT:
-              seq->flag ^= SEQ_LEFTSEL;
-              break;
-            case SEQ_SIDE_RIGHT:
-              seq->flag ^= SEQ_RIGHTSEL;
-              break;
-          }
-          ret_value = OPERATOR_FINISHED;
-        }
-        else {
-          seq->flag |= SELECT;
-          if (hand == SEQ_SIDE_LEFT) {
-            seq->flag |= SEQ_LEFTSEL;
-          }
-          if (hand == SEQ_SIDE_RIGHT) {
-            seq->flag |= SEQ_RIGHTSEL;
-          }
-        }
-      }
-
-      recurs_sel_seq(seq);
-
-      if (linked_time) {
-        select_linked_time(ed->seqbasep, seq);
-      }
-
-      BLI_assert((ret_value & OPERATOR_CANCELLED) == 0);
-    }
-    else if (deselect_all) {
-      ED_sequencer_deselect_all(scene);
-      ret_value = OPERATOR_FINISHED;
-    }
+  /* Nothing to select, but strips could be deselected. */
+  if (!seq) {
+    sequencer_select_do_updates(C, scene);
+    return ret_value;
   }
 
-  ED_outliner_select_sync_from_sequence_tag(C);
-
-  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
-
+  /* Do actual selection. */
+  sequencer_select_strip_impl(ed, seq, handle_clicked, extend);
+  ret_value = OPERATOR_FINISHED;
+  sequencer_select_do_updates(C, scene);
+  sequencer_select_set_active(scene, seq);
   return ret_value;
 }
 
@@ -761,13 +768,6 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
   WM_operator_properties_generic_select(ot);
 
   prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
-  prop = RNA_def_boolean(ot->srna,
-                         "deselect_all",
-                         false,
-                         "Deselect On Nothing",
-                         "Deselect all when nothing under the cursor");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna,
@@ -799,7 +799,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 /* Run recursively to select linked. */
 static bool select_linked_internal(Scene *scene)
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (ed == NULL) {
     return false;
@@ -832,7 +832,7 @@ static bool select_linked_internal(Scene *scene)
 /* Select only one linked strip on each side. */
 static bool select_more_less_seq__internal(Scene *scene, bool select_more)
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (ed == NULL) {
     return false;
@@ -1070,7 +1070,7 @@ static const EnumPropertyItem prop_select_handles_side_types[] = {
 static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   Sequence *seq;
   int sel_side = RNA_enum_get(op->ptr, "side");
 
@@ -1169,7 +1169,7 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const int side = RNA_enum_get(op->ptr, "side");
 
@@ -1244,7 +1244,7 @@ void SEQUENCER_OT_select_side_of_frame(wmOperatorType *ot)
 static int sequencer_select_side_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   const int sel_side = RNA_enum_get(op->ptr, "side");
   const int frame_init = sel_side == SEQ_SIDE_LEFT ? INT_MIN : INT_MAX;
@@ -1315,7 +1315,7 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   View2D *v2d = UI_view2d_fromcontext(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (ed == NULL) {
     return OPERATOR_CANCELLED;
@@ -1679,7 +1679,7 @@ static bool select_grouped_effect_link(Editing *ed,
 static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   Sequence *actseq = SEQ_select_active_get(scene);
 
   if (actseq == NULL) {

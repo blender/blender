@@ -224,6 +224,12 @@ static EnumPropertyItem instance_items_empty[] = {
     INSTANCE_ITEM_COLLECTION,
     {0, NULL, 0, NULL, NULL},
 };
+
+static EnumPropertyItem instance_items_font[] = {
+    {0, "NONE", 0, "None", ""},
+    {OB_DUPLIVERTS, "VERTS", 0, "Vertices", "Use Object Font on characters"},
+    {0, NULL, 0, NULL, NULL},
+};
 #endif
 #undef INSTANCE_ITEMS_SHARED
 #undef INSTANCE_ITEM_COLLECTION
@@ -761,6 +767,9 @@ static const EnumPropertyItem *rna_Object_instance_type_itemf(bContext *UNUSED(C
   }
   else if (ob->type == OB_POINTCLOUD) {
     item = instance_items_pointcloud;
+  }
+  else if (ob->type == OB_FONT) {
+    item = instance_items_font;
   }
   else {
     item = instance_items_nogroup;

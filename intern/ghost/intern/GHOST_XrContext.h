@@ -51,6 +51,7 @@ enum GHOST_TXrOpenXRRuntimeID {
   OPENXR_RUNTIME_OCULUS,
   OPENXR_RUNTIME_STEAMVR,
   OPENXR_RUNTIME_WMR, /* Windows Mixed Reality */
+  OPENXR_RUNTIME_VARJO,
 
   OPENXR_RUNTIME_UNKNOWN
 };
@@ -94,6 +95,8 @@ class GHOST_XrContext : public GHOST_IXrContext {
   bool isDebugMode() const;
   bool isDebugTimeMode() const;
 
+  bool isExtensionEnabled(const char *ext) const;
+
  private:
   static GHOST_XrErrorHandlerFn s_error_handler;
   static void *s_error_handler_customdata;
@@ -136,5 +139,6 @@ class GHOST_XrContext : public GHOST_IXrContext {
   std::vector<GHOST_TXrGraphicsBinding> determineGraphicsBindingTypesToEnable(
       const GHOST_XrContextCreateInfo *create_info);
   GHOST_TXrGraphicsBinding determineGraphicsBindingTypeToUse(
-      const std::vector<GHOST_TXrGraphicsBinding> &enabled_types);
+      const std::vector<GHOST_TXrGraphicsBinding> &enabled_types,
+      const GHOST_XrContextCreateInfo *create_info);
 };

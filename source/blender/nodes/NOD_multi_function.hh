@@ -114,7 +114,7 @@ inline void NodeMultiFunctionBuilder::set_matching_fn(const MultiFunction &fn)
 template<typename T, typename... Args>
 inline void NodeMultiFunctionBuilder::construct_and_set_matching_fn(Args &&...args)
 {
-  const T &fn = resource_scope_.construct<T>(__func__, std::forward<Args>(args)...);
+  const T &fn = resource_scope_.construct<T>(std::forward<Args>(args)...);
   this->set_matching_fn(&fn);
 }
 

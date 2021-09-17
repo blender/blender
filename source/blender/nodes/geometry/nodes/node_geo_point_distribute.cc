@@ -39,19 +39,21 @@
 using blender::bke::AttributeKind;
 using blender::bke::GeometryInstanceGroup;
 
-static bNodeSocketTemplate geo_node_point_distribute_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_FLOAT, N_("Distance Min"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 100000.0f, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Density Max"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 100000.0f, PROP_NONE},
-    {SOCK_STRING, N_("Density Attribute")},
-    {SOCK_INT, N_("Seed"), 0, 0, 0, 0, -10000, 10000},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_point_distribute_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_point_distribute_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Float>("Distance Min").min(0.0f).max(100000.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Density Max")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(100000.0f)
+      .subtype(PROP_NONE);
+  b.add_input<decl::String>("Density Attribute");
+  b.add_input<decl::Int>("Seed").min(-10000).max(10000);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_point_distribute_layout(uiLayout *layout,
                                              bContext *UNUSED(C),
@@ -66,8 +68,6 @@ static void node_point_distribute_update(bNodeTree *UNUSED(ntree), bNode *node)
 
   nodeSetSocketAvailability(sock_min_dist, ELEM(node->custom1, GEO_NODE_POINT_DISTRIBUTE_POISSON));
 }
-
-namespace blender::nodes {
 
 /**
  * Use an arbitrary choice of axes for a usable rotation attribute directly out of this node.
@@ -277,17 +277,17 @@ BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
 BLI_NOINLINE static void interpolate_existing_attributes(
     Span<GeometryInstanceGroup> set_groups,
     Span<int> instance_start_offsets,
-    const Map<std::string, AttributeKind> &attributes,
+    const Map<AttributeIDRef, AttributeKind> &attributes,
     GeometryComponent &component,
     Span<Vector<float3>> bary_coords_array,
     Span<Vector<int>> looptri_indices_array)
 {
-  for (Map<std::string, AttributeKind>::Item entry : attributes.items()) {
-    StringRef attribute_name = entry.key;
+  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+    const AttributeIDRef attribute_id = entry.key;
     const CustomDataType output_data_type = entry.value.data_type;
     /* The output domain is always #ATTR_DOMAIN_POINT, since we are creating a point cloud. */
     OutputAttribute attribute_out = component.attribute_try_get_for_output_only(
-        attribute_name, ATTR_DOMAIN_POINT, output_data_type);
+        attribute_id, ATTR_DOMAIN_POINT, output_data_type);
     if (!attribute_out) {
       continue;
     }
@@ -301,7 +301,7 @@ BLI_NOINLINE static void interpolate_existing_attributes(
       const Mesh &mesh = *source_component.get_for_read();
 
       std::optional<AttributeMetaData> attribute_info = component.attribute_get_meta_data(
-          attribute_name);
+          attribute_id);
       if (!attribute_info) {
         i_instance += set_group.transforms.size();
         continue;
@@ -309,7 +309,7 @@ BLI_NOINLINE static void interpolate_existing_attributes(
 
       const AttributeDomain source_domain = attribute_info->domain;
       GVArrayPtr source_attribute = source_component.attribute_get_for_read(
-          attribute_name, source_domain, output_data_type, nullptr);
+          attribute_id, source_domain, output_data_type, nullptr);
       if (!source_attribute) {
         i_instance += set_group.transforms.size();
         continue;
@@ -406,7 +406,7 @@ BLI_NOINLINE static void compute_special_attributes(Span<GeometryInstanceGroup> 
 BLI_NOINLINE static void add_remaining_point_attributes(
     Span<GeometryInstanceGroup> set_groups,
     Span<int> instance_start_offsets,
-    const Map<std::string, AttributeKind> &attributes,
+    const Map<AttributeIDRef, AttributeKind> &attributes,
     GeometryComponent &component,
     Span<Vector<float3>> bary_coords_array,
     Span<Vector<int>> looptri_indices_array)
@@ -629,7 +629,7 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
   PointCloudComponent &point_component =
       geometry_set_out.get_component_for_write<PointCloudComponent>();
 
-  Map<std::string, AttributeKind> attributes;
+  Map<AttributeIDRef, AttributeKind> attributes;
   bke::geometry_set_gather_instances_attribute_info(
       set_groups, {GEO_COMPONENT_TYPE_MESH}, {"position", "normal", "id"}, attributes);
   add_remaining_point_attributes(set_groups,
@@ -649,10 +649,10 @@ void register_node_type_geo_point_distribute()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_POINT_DISTRIBUTE, "Point Distribute", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_point_distribute_in, geo_node_point_distribute_out);
-  node_type_update(&ntype, node_point_distribute_update);
+      &ntype, GEO_NODE_LEGACY_POINT_DISTRIBUTE, "Point Distribute", NODE_CLASS_GEOMETRY, 0);
+  node_type_update(&ntype, blender::nodes::node_point_distribute_update);
+  ntype.declare = blender::nodes::geo_node_point_distribute_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_point_distribute_exec;
-  ntype.draw_buttons = geo_node_point_distribute_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_point_distribute_layout;
   nodeRegisterType(&ntype);
 }

@@ -3063,13 +3063,12 @@ void BKE_gpencil_update_layer_transforms(const Depsgraph *depsgraph, Object *ob)
         Object *ob_parent = DEG_get_evaluated_object(depsgraph, gpl->parent);
         /* calculate new matrix */
         if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
-          copy_m4_m4(cur_mat, ob_parent->obmat);
+          mul_m4_m4m4(cur_mat, ob->imat, ob_parent->obmat);
         }
         else if (gpl->partype == PARBONE) {
           bPoseChannel *pchan = BKE_pose_channel_find_name(ob_parent->pose, gpl->parsubstr);
           if (pchan != NULL) {
-            copy_m4_m4(cur_mat, ob->imat);
-            mul_m4_m4m4(cur_mat, ob_parent->obmat, pchan->pose_mat);
+            mul_m4_series(cur_mat, ob->imat, ob_parent->obmat, pchan->pose_mat);
           }
           else {
             unit_m4(cur_mat);

@@ -362,8 +362,12 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
   float x = BLI_rctf_cent_x(rct) - (0.5f * width);
   float y = rct->ymax - label_height;
 
-  BLF_position(fontid, x, y, 0);
-  BLF_draw(fontid, label, BLF_DRAW_STR_DUMMY_MAX);
+  /* label */
+  const bool has_label = node->label[0] != '\0';
+  if (has_label) {
+    BLF_position(fontid, x, y, 0);
+    BLF_draw(fontid, label, BLF_DRAW_STR_DUMMY_MAX);
+  }
 
   /* draw text body */
   if (node->id) {
@@ -374,7 +378,8 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
 
     /* 'x' doesn't need aspect correction */
     x = rct->xmin + margin;
-    y = rct->ymax - (label_height + line_spacing);
+    y = rct->ymax - label_height - (has_label ? line_spacing : 0);
+
     /* early exit */
     int y_min = y + ((margin * 2) - (y - rct->ymin));
 
@@ -455,10 +460,8 @@ static void node_draw_frame(const bContext *C,
     UI_draw_roundbox_aa(rct, false, BASIS_RAD, color);
   }
 
-  /* label */
-  if (node->label[0] != '\0') {
-    node_draw_frame_label(ntree, node, snode->runtime->aspect);
-  }
+  /* label and text */
+  node_draw_frame_label(ntree, node, snode->runtime->aspect);
 
   UI_block_end(C, node->block);
   UI_block_draw(C, node->block);

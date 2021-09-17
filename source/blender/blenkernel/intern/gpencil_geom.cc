@@ -800,7 +800,7 @@ bool BKE_gpencil_stroke_shrink(bGPDstroke *gps, const float dist, const short mo
  * \param i: Point index
  * \param inf: Amount of smoothing to apply
  */
-bool BKE_gpencil_stroke_smooth(bGPDstroke *gps, int i, float inf)
+bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps, int i, float inf)
 {
   bGPDspoint *pt = &gps->points[i];
   float sco[3] = {0.0f};
@@ -3248,7 +3248,8 @@ static void gpencil_stroke_copy_point(bGPDstroke *gps,
 void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
                              bGPDstroke *gps_b,
                              const bool leave_gaps,
-                             const bool fit_thickness)
+                             const bool fit_thickness,
+                             const bool smooth)
 {
   bGPDspoint point;
   bGPDspoint *pt;
@@ -3326,15 +3327,50 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
     gpencil_stroke_copy_point(gps_a, nullptr, &point, delta, 0.0f, 0.0f, deltatime);
   }
 
+  /* Ratio to apply in the points to keep the same thickness in the joined stroke using the
+   * destination stroke thickness. */
   const float ratio = (fit_thickness && gps_a->thickness > 0.0f) ?
                           (float)gps_b->thickness / (float)gps_a->thickness :
                           1.0f;
 
   /* 3rd: add all points */
+  const int totpoints_a = gps_a->totpoints;
   for (i = 0, pt = gps_b->points; i < gps_b->totpoints && pt; i++, pt++) {
     MDeformVert *dvert = (gps_b->dvert) ? &gps_b->dvert[i] : nullptr;
     gpencil_stroke_copy_point(
         gps_a, dvert, pt, delta, pt->pressure * ratio, pt->strength, deltatime);
+  }
+  /* Smooth the join to avoid hard thickness changes. */
+  if (smooth) {
+    const int sample_points = 8;
+    /* Get the segment to smooth using n points on each side of the join. */
+    int start = MAX2(0, totpoints_a - sample_points);
+    int end = MIN2(gps_a->totpoints - 1, start + (sample_points * 2));
+    const int len = (end - start);
+    float step = 1.0f / ((len / 2) + 1);
+
+    /* Calc the average pressure. */
+    float avg_pressure = 0.0f;
+    for (i = start; i < end; i++) {
+      pt = &gps_a->points[i];
+      avg_pressure += pt->pressure;
+    }
+    avg_pressure = avg_pressure / len;
+
+    /* Smooth segment thickness and position. */
+    float ratio = step;
+    for (i = start; i < end; i++) {
+      pt = &gps_a->points[i];
+      pt->pressure += (avg_pressure - pt->pressure) * ratio;
+      BKE_gpencil_stroke_smooth_point(gps_a, i, ratio * 0.6f);
+
+      ratio += step;
+      /* In the center, reverse the ratio. */
+      if (ratio > 1.0f) {
+        ratio = ratio - step - step;
+        step *= -1.0f;
+      }
+    }
   }
 }
 

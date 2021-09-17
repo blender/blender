@@ -3186,10 +3186,12 @@ float seq_speed_effect_target_frame_get(Scene *scene,
   float target_frame = 0.0f;
   switch (s->speed_control_type) {
     case SEQ_SPEED_STRETCH: {
-      const float target_content_length = seq_effect_speed_get_strip_content_length(source);
-      const float target_strip_length = source->enddisp - source->startdisp;
-      const float ratio = target_content_length / target_strip_length;
-      target_frame = frame_index * ratio;
+      /* Only right handle controls effect speed! */
+      const float target_content_length = seq_effect_speed_get_strip_content_length(source) -
+                                          source->startofs;
+      const float speed_effetct_length = seq_speed->enddisp - seq_speed->startdisp;
+      const float ratio = frame_index / speed_effetct_length;
+      target_frame = target_content_length * ratio;
       break;
     }
     case SEQ_SPEED_MULTIPLY: {

@@ -32,20 +32,16 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_transform_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_VECTOR, N_("Translation"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
-    {SOCK_VECTOR, N_("Scale"), 1.0f, 1.0f, 1.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_XYZ},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_transform_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_transform_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Vector>("Translation").subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>("Rotation").subtype(PROP_EULER);
+  b.add_input<decl::Vector>("Scale").default_value({1, 1, 1}).subtype(PROP_XYZ);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static bool use_translate(const float3 rotation, const float3 scale)
 {
@@ -73,8 +69,7 @@ void transform_mesh(Mesh *mesh,
   else {
     const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
     BKE_mesh_transform(mesh, matrix.values, false);
-    mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-    mesh->runtime.cd_dirty_poly |= CD_MASK_NORMAL;
+    BKE_mesh_normals_tag_dirty(mesh);
   }
 }
 
@@ -206,7 +201,7 @@ void register_node_type_geo_transform()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_TRANSFORM, "Transform", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_transform_in, geo_node_transform_out);
+  ntype.declare = blender::nodes::geo_node_transform_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_transform_exec;
   nodeRegisterType(&ntype);
 }

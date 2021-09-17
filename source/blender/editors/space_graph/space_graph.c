@@ -556,8 +556,8 @@ static void graph_listener(const wmSpaceTypeListenerParams *params)
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
-      /* for selection changes of animation data, we can just redraw...
-       * otherwise autocolor might need to be done again */
+      /* For selection changes of animation data, we can just redraw...
+       * otherwise auto-color might need to be done again. */
       if (ELEM(wmn->data, ND_KEYFRAME, ND_ANIMCHAN) && (wmn->action == NA_SELECTED)) {
         ED_area_tag_redraw(area);
       }

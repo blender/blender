@@ -95,4 +95,81 @@ void ConvolutionEdgeFilterOperation::executePixel(float output[4], int x, int y,
   output[3] = MAX2(output[3], 0.0f);
 }
 
+void ConvolutionEdgeFilterOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                                  const rcti &area,
+                                                                  Span<MemoryBuffer *> inputs)
+{
+  const MemoryBuffer *image = inputs[IMAGE_INPUT_INDEX];
+  const int last_x = getWidth() - 1;
+  const int last_y = getHeight() - 1;
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const int left_offset = (it.x == 0) ? 0 : -image->elem_stride;
+    const int right_offset = (it.x == last_x) ? 0 : image->elem_stride;
+    const int down_offset = (it.y == 0) ? 0 : -image->row_stride;
+    const int up_offset = (it.y == last_y) ? 0 : image->row_stride;
+
+    const float *center_color = it.in(IMAGE_INPUT_INDEX);
+    float res1[4] = {0};
+    float res2[4] = {0};
+
+    const float *color = center_color + down_offset + left_offset;
+    madd_v3_v3fl(res1, color, m_filter[0]);
+    copy_v3_v3(res2, res1);
+
+    color = center_color + down_offset;
+    madd_v3_v3fl(res1, color, m_filter[1]);
+    madd_v3_v3fl(res2, color, m_filter[3]);
+
+    color = center_color + down_offset + right_offset;
+    madd_v3_v3fl(res1, color, m_filter[2]);
+    madd_v3_v3fl(res2, color, m_filter[6]);
+
+    color = center_color + left_offset;
+    madd_v3_v3fl(res1, color, m_filter[3]);
+    madd_v3_v3fl(res2, color, m_filter[1]);
+
+    {
+      float rgb_filtered[3];
+      mul_v3_v3fl(rgb_filtered, center_color, m_filter[4]);
+      add_v3_v3(res1, rgb_filtered);
+      add_v3_v3(res2, rgb_filtered);
+    }
+
+    color = center_color + right_offset;
+    madd_v3_v3fl(res1, color, m_filter[5]);
+    madd_v3_v3fl(res2, color, m_filter[7]);
+
+    color = center_color + up_offset + left_offset;
+    madd_v3_v3fl(res1, color, m_filter[6]);
+    madd_v3_v3fl(res2, color, m_filter[2]);
+
+    color = center_color + up_offset;
+    madd_v3_v3fl(res1, color, m_filter[7]);
+    madd_v3_v3fl(res2, color, m_filter[5]);
+
+    {
+      color = center_color + up_offset + right_offset;
+      float rgb_filtered[3];
+      mul_v3_v3fl(rgb_filtered, color, m_filter[8]);
+      add_v3_v3(res1, rgb_filtered);
+      add_v3_v3(res2, rgb_filtered);
+    }
+
+    it.out[0] = sqrt(res1[0] * res1[0] + res2[0] * res2[0]);
+    it.out[1] = sqrt(res1[1] * res1[1] + res2[1] * res2[1]);
+    it.out[2] = sqrt(res1[2] * res1[2] + res2[2] * res2[2]);
+
+    const float factor = *it.in(FACTOR_INPUT_INDEX);
+    const float m_factor = 1.0f - factor;
+    it.out[0] = it.out[0] * factor + center_color[0] * m_factor;
+    it.out[1] = it.out[1] * factor + center_color[1] * m_factor;
+    it.out[2] = it.out[2] * factor + center_color[2] * m_factor;
+
+    it.out[3] = center_color[3];
+
+    /* Make sure we don't return negative color. */
+    CLAMP4_MIN(it.out, 0.0f);
+  }
+}
+
 }  // namespace blender::compositor

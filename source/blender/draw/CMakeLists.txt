@@ -91,7 +91,7 @@ set(SRC
   intern/draw_cache_impl_particles.c
   intern/draw_cache_impl_pointcloud.c
   intern/draw_cache_impl_volume.c
-  intern/draw_color_management.c
+  intern/draw_color_management.cc
   intern/draw_common.c
   intern/draw_debug.c
   intern/draw_fluid.c
@@ -447,6 +447,7 @@ data_to_c_simple(engines/overlay/shaders/extra_wire_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/extra_wire_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/facing_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/facing_vert.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/grid_background_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/grid_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/grid_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/image_vert.glsl SRC)

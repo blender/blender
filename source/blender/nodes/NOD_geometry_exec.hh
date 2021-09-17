@@ -16,7 +16,8 @@
 
 #pragma once
 
-#include "FN_generic_value_map.hh"
+#include "FN_field.hh"
+#include "FN_multi_function_builder.hh"
 
 #include "BKE_attribute_access.hh"
 #include "BKE_geometry_set.hh"
@@ -32,17 +33,24 @@ struct ModifierData;
 
 namespace blender::nodes {
 
+using bke::AttributeIDRef;
 using bke::geometry_set_realize_instances;
+using bke::GeometryComponentFieldContext;
 using bke::OutputAttribute;
 using bke::OutputAttribute_Typed;
 using bke::ReadAttributeLookup;
+using bke::StrongAnonymousAttributeID;
+using bke::WeakAnonymousAttributeID;
 using bke::WriteAttributeLookup;
 using fn::CPPType;
+using fn::Field;
+using fn::FieldInput;
+using fn::FieldOperation;
+using fn::GField;
 using fn::GMutablePointer;
 using fn::GMutableSpan;
 using fn::GPointer;
 using fn::GSpan;
-using fn::GValueMap;
 using fn::GVArray;
 using fn::GVArray_GSpan;
 using fn::GVArray_Span;
@@ -121,6 +129,14 @@ class GeoNodeExecParams {
   {
   }
 
+  template<typename T>
+  static inline constexpr bool is_stored_as_field_v = std::is_same_v<T, float> ||
+                                                      std::is_same_v<T, int> ||
+                                                      std::is_same_v<T, bool> ||
+                                                      std::is_same_v<T, ColorGeometry4f> ||
+                                                      std::is_same_v<T, float3> ||
+                                                      std::is_same_v<T, std::string>;
+
   /**
    * Get the input value for the input socket with the given identifier.
    *
@@ -142,11 +158,17 @@ class GeoNodeExecParams {
    */
   template<typename T> T extract_input(StringRef identifier)
   {
+    if constexpr (is_stored_as_field_v<T>) {
+      Field<T> field = this->extract_input<Field<T>>(identifier);
+      return fn::evaluate_constant_field(field);
+    }
+    else {
 #ifdef DEBUG
-    this->check_input_access(identifier, &CPPType::get<T>());
+      this->check_input_access(identifier, &CPPType::get<T>());
 #endif
-    GMutablePointer gvalue = this->extract_input(identifier);
-    return gvalue.relocate_out<T>();
+      GMutablePointer gvalue = this->extract_input(identifier);
+      return gvalue.relocate_out<T>();
+    }
   }
 
   /**
@@ -159,7 +181,13 @@ class GeoNodeExecParams {
     Vector<GMutablePointer> gvalues = provider_->extract_multi_input(identifier);
     Vector<T> values;
     for (GMutablePointer gvalue : gvalues) {
-      values.append(gvalue.relocate_out<T>());
+      if constexpr (is_stored_as_field_v<T>) {
+        const Field<T> field = gvalue.relocate_out<Field<T>>();
+        values.append(fn::evaluate_constant_field(field));
+      }
+      else {
+        values.append(gvalue.relocate_out<T>());
+      }
     }
     return values;
   }
@@ -167,14 +195,20 @@ class GeoNodeExecParams {
   /**
    * Get the input value for the input socket with the given identifier.
    */
-  template<typename T> const T &get_input(StringRef identifier) const
+  template<typename T> const T get_input(StringRef identifier) const
   {
+    if constexpr (is_stored_as_field_v<T>) {
+      const Field<T> &field = this->get_input<Field<T>>(identifier);
+      return fn::evaluate_constant_field(field);
+    }
+    else {
 #ifdef DEBUG
-    this->check_input_access(identifier, &CPPType::get<T>());
+      this->check_input_access(identifier, &CPPType::get<T>());
 #endif
-    GPointer gvalue = provider_->get_input(identifier);
-    BLI_assert(gvalue.is_type<T>());
-    return *(const T *)gvalue.get();
+      GPointer gvalue = provider_->get_input(identifier);
+      BLI_assert(gvalue.is_type<T>());
+      return *(const T *)gvalue.get();
+    }
   }
 
   /**
@@ -183,13 +217,19 @@ class GeoNodeExecParams {
   template<typename T> void set_output(StringRef identifier, T &&value)
   {
     using StoredT = std::decay_t<T>;
-    const CPPType &type = CPPType::get<std::decay_t<T>>();
+    if constexpr (is_stored_as_field_v<StoredT>) {
+      this->set_output<Field<StoredT>>(identifier,
+                                       fn::make_constant_field<StoredT>(std::forward<T>(value)));
+    }
+    else {
+      const CPPType &type = CPPType::get<StoredT>();
 #ifdef DEBUG
-    this->check_output_access(identifier, type);
+      this->check_output_access(identifier, type);
 #endif
-    GMutablePointer gvalue = provider_->alloc_output_value(type);
-    new (gvalue.get()) StoredT(std::forward<T>(value));
-    provider_->set_output(identifier, gvalue);
+      GMutablePointer gvalue = provider_->alloc_output_value(type);
+      new (gvalue.get()) StoredT(std::forward<T>(value));
+      provider_->set_output(identifier, gvalue);
+    }
   }
 
   /**

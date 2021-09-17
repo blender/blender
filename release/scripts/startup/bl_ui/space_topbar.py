@@ -209,9 +209,9 @@ class TOPBAR_MT_editor_menus(Menu):
 
         # Allow calling this menu directly (this might not be a header area).
         if getattr(context.area, "show_menus", False):
-            layout.menu("TOPBAR_MT_app", text="", icon='BLENDER')
+            layout.menu("TOPBAR_MT_blender", text="", icon='BLENDER')
         else:
-            layout.menu("TOPBAR_MT_app", text="Blender")
+            layout.menu("TOPBAR_MT_blender", text="Blender")
 
         layout.menu("TOPBAR_MT_file")
         layout.menu("TOPBAR_MT_edit")
@@ -222,7 +222,7 @@ class TOPBAR_MT_editor_menus(Menu):
         layout.menu("TOPBAR_MT_help")
 
 
-class TOPBAR_MT_app(Menu):
+class TOPBAR_MT_blender(Menu):
     bl_label = "Blender"
 
     def draw(self, _context):
@@ -238,7 +238,7 @@ class TOPBAR_MT_app(Menu):
 
         layout.separator()
 
-        layout.menu("TOPBAR_MT_app_system")
+        layout.menu("TOPBAR_MT_blender_system")
 
 
 class TOPBAR_MT_file_cleanup(Menu):
@@ -430,7 +430,7 @@ class TOPBAR_MT_file_defaults(Menu):
 
 
 # Include technical operators here which would otherwise have no way for users to access.
-class TOPBAR_MT_app_system(Menu):
+class TOPBAR_MT_blender_system(Menu):
     bl_label = "System"
 
     def draw(self, _context):
@@ -655,6 +655,7 @@ class TOPBAR_MT_window(Menu):
         layout.separator()
 
         layout.operator("screen.screenshot")
+        layout.operator("screen.screenshot_area")
 
         if sys.platform[:3] == "win":
             layout.separator()
@@ -809,7 +810,7 @@ class TOPBAR_PT_name(Panel):
         found = False
         if space_type == 'SEQUENCE_EDITOR':
             layout.label(text="Sequence Strip Name")
-            item = getattr(scene.sequence_editor, "active_strip")
+            item = context.active_sequence_strip
             if item:
                 row = row_with_icon(layout, 'SEQUENCE')
                 row.prop(item, "name", text="")
@@ -854,8 +855,8 @@ classes = (
     TOPBAR_MT_file_context_menu,
     TOPBAR_MT_workspace_menu,
     TOPBAR_MT_editor_menus,
-    TOPBAR_MT_app,
-    TOPBAR_MT_app_system,
+    TOPBAR_MT_blender,
+    TOPBAR_MT_blender_system,
     TOPBAR_MT_file,
     TOPBAR_MT_file_new,
     TOPBAR_MT_file_recover,

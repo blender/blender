@@ -23,31 +23,18 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_collection_info_in[] = {
-    {SOCK_COLLECTION,
-     N_("Collection"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     PROP_NONE,
-     SOCK_HIDE_LABEL},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_collection_info_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_collection_info_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Collection>("Collection").hide_label();
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_collection_info_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void geo_node_collection_info_node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
@@ -98,13 +85,13 @@ void register_node_type_geo_collection_info()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_COLLECTION_INFO, "Collection Info", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, geo_node_collection_info_in, geo_node_collection_info_out);
+  ntype.declare = blender::nodes::geo_node_collection_info_declare;
   node_type_init(&ntype, blender::nodes::geo_node_collection_info_node_init);
   node_type_storage(&ntype,
                     "NodeGeometryCollectionInfo",
                     node_free_standard_storage,
                     node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_collection_info_exec;
-  ntype.draw_buttons = geo_node_collection_info_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_collection_info_layout;
   nodeRegisterType(&ntype);
 }

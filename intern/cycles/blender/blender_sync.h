@@ -23,6 +23,7 @@
 #include "RNA_types.h"
 
 #include "blender/blender_id_map.h"
+#include "blender/blender_util.h"
 #include "blender/blender_viewport.h"
 
 #include "render/scene.h"
@@ -158,18 +159,24 @@ class BlenderSync {
   bool sync_object_attributes(BL::DepsgraphObjectInstance &b_instance, Object *object);
 
   /* Volume */
-  void sync_volume(BL::Object &b_ob, Volume *volume);
+  void sync_volume(BObjectInfo &b_ob_info, Volume *volume);
 
   /* Mesh */
-  void sync_mesh(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *mesh);
-  void sync_mesh_motion(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *mesh, int motion_step);
+  void sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Mesh *mesh);
+  void sync_mesh_motion(BL::Depsgraph b_depsgraph,
+                        BObjectInfo &b_ob_info,
+                        Mesh *mesh,
+                        int motion_step);
 
   /* Hair */
-  void sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Hair *hair);
-  void sync_hair_motion(BL::Depsgraph b_depsgraph, BL::Object b_ob, Hair *hair, int motion_step);
-  void sync_hair(Hair *hair, BL::Object &b_ob, bool motion, int motion_step = 0);
+  void sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Hair *hair);
+  void sync_hair_motion(BL::Depsgraph b_depsgraph,
+                        BObjectInfo &b_ob_info,
+                        Hair *hair,
+                        int motion_step);
+  void sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, int motion_step = 0);
   void sync_particle_hair(
-      Hair *hair, BL::Mesh &b_mesh, BL::Object &b_ob, bool motion, int motion_step = 0);
+      Hair *hair, BL::Mesh &b_mesh, BObjectInfo &b_ob_info, bool motion, int motion_step = 0);
   bool object_has_particle_hair(BL::Object b_ob);
 
   /* Camera */
@@ -178,14 +185,13 @@ class BlenderSync {
 
   /* Geometry */
   Geometry *sync_geometry(BL::Depsgraph &b_depsgrpah,
-                          BL::Object &b_ob,
-                          BL::Object &b_ob_instance,
+                          BObjectInfo &b_ob_info,
                           bool object_updated,
                           bool use_particle_hair,
                           TaskPool *task_pool);
 
   void sync_geometry_motion(BL::Depsgraph &b_depsgraph,
-                            BL::Object &b_ob,
+                            BObjectInfo &b_ob_info,
                             Object *object,
                             float motion_time,
                             bool use_particle_hair,
@@ -194,8 +200,7 @@ class BlenderSync {
   /* Light */
   void sync_light(BL::Object &b_parent,
                   int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
-                  BL::Object &b_ob,
-                  BL::Object &b_ob_instance,
+                  BObjectInfo &b_ob_info,
                   int random_id,
                   Transform &tfm,
                   bool *use_portal);
@@ -231,6 +236,7 @@ class BlenderSync {
   id_map<ParticleSystemKey, ParticleSystem> particle_system_map;
   set<Geometry *> geometry_synced;
   set<Geometry *> geometry_motion_synced;
+  set<Geometry *> geometry_motion_attribute_synced;
   set<float> motion_times;
   void *world_map;
   bool world_recalc;

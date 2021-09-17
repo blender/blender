@@ -22,12 +22,88 @@
 #include "FN_generic_span.hh"
 #include "FN_generic_virtual_array.hh"
 
+#include "BKE_anonymous_attribute.hh"
 #include "BKE_attribute.h"
 
 #include "BLI_color.hh"
 #include "BLI_float2.hh"
 #include "BLI_float3.hh"
 #include "BLI_function_ref.hh"
+
+namespace blender::bke {
+
+/**
+ * Identifies an attribute that is either named or anonymous.
+ * It does not own the identifier, so it is just a reference.
+ */
+class AttributeIDRef {
+ private:
+  StringRef name_;
+  const AnonymousAttributeID *anonymous_id_ = nullptr;
+
+ public:
+  AttributeIDRef() = default;
+
+  AttributeIDRef(StringRef name) : name_(name)
+  {
+  }
+
+  AttributeIDRef(StringRefNull name) : name_(name)
+  {
+  }
+
+  AttributeIDRef(const char *name) : name_(name)
+  {
+  }
+
+  AttributeIDRef(const std::string &name) : name_(name)
+  {
+  }
+
+  /* The anonymous id is only borrowed, the caller has to keep a reference to it. */
+  AttributeIDRef(const AnonymousAttributeID *anonymous_id) : anonymous_id_(anonymous_id)
+  {
+  }
+
+  operator bool() const
+  {
+    return this->is_named() || this->is_anonymous();
+  }
+
+  friend bool operator==(const AttributeIDRef &a, const AttributeIDRef &b)
+  {
+    return a.anonymous_id_ == b.anonymous_id_ && a.name_ == b.name_;
+  }
+
+  uint64_t hash() const
+  {
+    return get_default_hash_2(name_, anonymous_id_);
+  }
+
+  bool is_named() const
+  {
+    return !name_.is_empty();
+  }
+
+  bool is_anonymous() const
+  {
+    return anonymous_id_ != nullptr;
+  }
+
+  StringRef name() const
+  {
+    BLI_assert(this->is_named());
+    return name_;
+  }
+
+  const AnonymousAttributeID &anonymous_id() const
+  {
+    BLI_assert(this->is_anonymous());
+    return *anonymous_id_;
+  }
+};
+
+}  // namespace blender::bke
 
 /**
  * Contains information about an attribute in a geometry component.
@@ -104,8 +180,8 @@ struct AttributeInitMove : public AttributeInit {
 };
 
 /* Returns false when the iteration should be stopped. */
-using AttributeForeachCallback = blender::FunctionRef<bool(blender::StringRefNull attribute_name,
-                                                           const AttributeMetaData &meta_data)>;
+using AttributeForeachCallback = blender::FunctionRef<bool(
+    const blender::bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data)>;
 
 namespace blender::bke {
 
@@ -171,7 +247,7 @@ class OutputAttribute {
   GVMutableArrayPtr varray_;
   AttributeDomain domain_;
   SaveFn save_;
-  std::optional<fn::GVMutableArray_GSpan> optional_span_varray_;
+  std::unique_ptr<fn::GVMutableArray_GSpan> optional_span_varray_;
   bool ignore_old_values_ = false;
   bool save_has_been_called_ = false;
 
@@ -230,9 +306,10 @@ class OutputAttribute {
 
   fn::GMutableSpan as_span()
   {
-    if (!optional_span_varray_.has_value()) {
+    if (!optional_span_varray_) {
       const bool materialize_old_values = !ignore_old_values_;
-      optional_span_varray_.emplace(*varray_, materialize_old_values);
+      optional_span_varray_ = std::make_unique<fn::GVMutableArray_GSpan>(*varray_,
+                                                                         materialize_old_values);
     }
     fn::GVMutableArray_GSpan &span_varray = *optional_span_varray_;
     return span_varray;
@@ -333,26 +410,28 @@ class CustomDataAttributes {
 
   void reallocate(const int size);
 
-  std::optional<blender::fn::GSpan> get_for_read(const blender::StringRef name) const;
+  std::optional<blender::fn::GSpan> get_for_read(const AttributeIDRef &attribute_id) const;
 
-  blender::fn::GVArrayPtr get_for_read(const StringRef name,
+  blender::fn::GVArrayPtr get_for_read(const AttributeIDRef &attribute_id,
                                        const CustomDataType data_type,
                                        const void *default_value) const;
 
   template<typename T>
-  blender::fn::GVArray_Typed<T> get_for_read(const blender::StringRef name,
+  blender::fn::GVArray_Typed<T> get_for_read(const AttributeIDRef &attribute_id,
                                              const T &default_value) const
   {
     const blender::fn::CPPType &cpp_type = blender::fn::CPPType::get<T>();
     const CustomDataType type = blender::bke::cpp_type_to_custom_data_type(cpp_type);
-    GVArrayPtr varray = this->get_for_read(name, type, &default_value);
+    GVArrayPtr varray = this->get_for_read(attribute_id, type, &default_value);
     return blender::fn::GVArray_Typed<T>(std::move(varray));
   }
 
-  std::optional<blender::fn::GMutableSpan> get_for_write(const blender::StringRef name);
-  bool create(const blender::StringRef name, const CustomDataType data_type);
-  bool create_by_move(const blender::StringRef name, const CustomDataType data_type, void *buffer);
-  bool remove(const blender::StringRef name);
+  std::optional<blender::fn::GMutableSpan> get_for_write(const AttributeIDRef &attribute_id);
+  bool create(const AttributeIDRef &attribute_id, const CustomDataType data_type);
+  bool create_by_move(const AttributeIDRef &attribute_id,
+                      const CustomDataType data_type,
+                      void *buffer);
+  bool remove(const AttributeIDRef &attribute_id);
 
   bool foreach_attribute(const AttributeForeachCallback callback,
                          const AttributeDomain domain) const;

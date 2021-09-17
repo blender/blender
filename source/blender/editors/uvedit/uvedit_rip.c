@@ -953,7 +953,7 @@ void UV_OT_rip(wmOperatorType *ot)
   ot->name = "UV Rip";
   ot->description = "Rip selected vertices or a selected region";
   ot->idname = "UV_OT_rip";
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* api callbacks */
   ot->exec = uv_rip_exec;

@@ -911,7 +911,8 @@ static void TRANSFORM_OT_bend(struct wmOperatorType *ot)
   ot->name = "Bend";
   ot->description = "Bend selected items between the 3D cursor and the mouse";
   ot->idname = OP_BEND;
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+  /* Depend on cursor location because the cursor location is used to define the region to bend. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* api callbacks */
   ot->invoke = transform_invoke;
@@ -1091,7 +1092,7 @@ static void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot)
   ot->name = "Edge Slide";
   ot->description = "Slide an edge loop along a mesh";
   ot->idname = OP_EDGE_SLIDE;
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* api callbacks */
   ot->invoke = transform_invoke;
@@ -1129,7 +1130,7 @@ static void TRANSFORM_OT_vert_slide(struct wmOperatorType *ot)
   ot->name = "Vertex Slide";
   ot->description = "Slide a vertex along a mesh";
   ot->idname = OP_VERT_SLIDE;
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* api callbacks */
   ot->invoke = transform_invoke;

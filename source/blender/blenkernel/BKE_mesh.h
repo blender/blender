@@ -123,7 +123,7 @@ void BKE_mesh_eval_delete(struct Mesh *mesh_eval);
 
 /* Performs copy for use during evaluation,
  * optional referencing original arrays to reduce memory. */
-struct Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference);
+struct Mesh *BKE_mesh_copy_for_eval(const struct Mesh *source, bool reference);
 
 /* These functions construct a new Mesh,
  * contrary to BKE_mesh_to_curve_nurblist which modifies ob itself. */

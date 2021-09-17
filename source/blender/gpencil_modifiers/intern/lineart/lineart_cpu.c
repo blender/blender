@@ -1453,7 +1453,7 @@ static uint16_t lineart_identify_feature_line(LineartRenderBuffer *rb,
                                               LineartTriangle *rt_array,
                                               LineartVert *rv_array,
                                               float crease_threshold,
-                                              bool no_crease,
+                                              bool use_auto_smooth,
                                               bool use_freestyle_edge,
                                               bool use_freestyle_face,
                                               BMesh *bm_if_freestyle)
@@ -1533,9 +1533,19 @@ static uint16_t lineart_identify_feature_line(LineartRenderBuffer *rb,
     edge_flag_result |= LRT_EDGE_FLAG_CONTOUR;
   }
 
-  if (rb->use_crease && (dot_v3v3_db(tri1->gn, tri2->gn) < crease_threshold)) {
-    if (!no_crease) {
+  if (rb->use_crease) {
+    if (rb->sharp_as_crease && !BM_elem_flag_test(e, BM_ELEM_SMOOTH)) {
       edge_flag_result |= LRT_EDGE_FLAG_CREASE;
+    }
+    else {
+      bool do_crease = true;
+      if (!rb->force_crease && !use_auto_smooth &&
+          (BM_elem_flag_test(ll->f, BM_ELEM_SMOOTH) && BM_elem_flag_test(lr->f, BM_ELEM_SMOOTH))) {
+        do_crease = false;
+      }
+      if (do_crease && (dot_v3v3_db(tri1->gn, tri2->gn) < crease_threshold)) {
+        edge_flag_result |= LRT_EDGE_FLAG_CREASE;
+      }
     }
   }
   if (rb->use_material && (ll->f->mat_nr != lr->f->mat_nr)) {
@@ -1746,8 +1756,13 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
   eln->object_ref = orig_ob;
   obi->v_eln = eln;
 
+  bool use_auto_smooth = false;
   if (orig_ob->lineart.flags & OBJECT_LRT_OWN_CREASE) {
     use_crease = cosf(M_PI - orig_ob->lineart.crease_threshold);
+  }
+  if (obi->original_me->flag & ME_AUTOSMOOTH) {
+    use_crease = cosf(obi->original_me->smoothresh);
+    use_auto_smooth = true;
   }
   else {
     use_crease = rb->crease_threshold;
@@ -1832,15 +1847,15 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
     e = BM_edge_at_index(bm, i);
 
     /* Because e->head.hflag is char, so line type flags should not exceed positive 7 bits. */
-    char eflag = lineart_identify_feature_line(rb,
-                                               e,
-                                               ort,
-                                               orv,
-                                               use_crease,
-                                               orig_ob->type == OB_FONT,
-                                               can_find_freestyle_edge,
-                                               can_find_freestyle_face,
-                                               bm);
+    uint16_t eflag = lineart_identify_feature_line(rb,
+                                                   e,
+                                                   ort,
+                                                   orv,
+                                                   use_crease,
+                                                   use_auto_smooth,
+                                                   can_find_freestyle_edge,
+                                                   can_find_freestyle_face,
+                                                   bm);
     if (eflag) {
       /* Only allocate for feature lines (instead of all lines) to save memory.
        * If allow duplicated edges, one edge gets added multiple times if it has multiple types. */
@@ -3056,6 +3071,9 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->allow_overlapping_edges = (lmd->calculation_flags & LRT_ALLOW_OVERLAPPING_EDGES) != 0;
 
   rb->allow_duplicated_types = (lmd->calculation_flags & LRT_ALLOW_OVERLAP_EDGE_TYPES) != 0;
+
+  rb->force_crease = (lmd->calculation_flags & LRT_USE_CREASE_ON_SMOOTH_SURFACES) != 0;
+  rb->sharp_as_crease = (lmd->calculation_flags & LRT_USE_CREASE_ON_SHARP_EDGES) != 0;
 
   int16_t edge_types = lmd->edge_types_override;
 

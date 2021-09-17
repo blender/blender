@@ -21,27 +21,26 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-static bNodeSocketTemplate geo_node_attribute_vector_rotate_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Vector")},
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_STRING, N_("Center")},
-    {SOCK_VECTOR, N_("Center"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_XYZ},
-    {SOCK_STRING, N_("Axis")},
-    {SOCK_VECTOR, N_("Axis"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_XYZ, PROP_NONE},
-    {SOCK_STRING, N_("Angle")},
-    {SOCK_FLOAT, N_("Angle"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_ANGLE, PROP_NONE},
-    {SOCK_STRING, N_("Rotation")},
-    {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
-    {SOCK_BOOLEAN, N_("Invert")},
-    {SOCK_STRING, N_("Result")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_attribute_vector_rotate_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_attribute_vector_rotate_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Vector");
+  b.add_input<decl::Vector>("Vector", "Vector_001").min(0.0f).max(1.0f).hide_value();
+  b.add_input<decl::String>("Center");
+  b.add_input<decl::Vector>("Center", "Center_001").subtype(PROP_XYZ);
+  b.add_input<decl::String>("Axis");
+  b.add_input<decl::Vector>("Axis", "Axis_001").min(-1.0f).max(1.0f).subtype(PROP_XYZ);
+  b.add_input<decl::String>("Angle");
+  b.add_input<decl::Float>("Angle", "Angle_001").subtype(PROP_ANGLE);
+  b.add_input<decl::String>("Rotation");
+  b.add_input<decl::Vector>("Rotation", "Rotation_001").subtype(PROP_EULER);
+  b.add_input<decl::Bool>("Invert");
+  b.add_input<decl::String>("Result");
+
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_attribute_vector_rotate_layout(uiLayout *layout,
                                                     bContext *UNUSED(C),
@@ -70,8 +69,6 @@ static void geo_node_attribute_vector_rotate_layout(uiLayout *layout,
     uiItemR(column, ptr, "input_type_rotation", 0, IFACE_("Rotation"), ICON_NONE);
   }
 }
-
-namespace blender::nodes {
 
 static void geo_node_attribute_vector_rotate_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -339,14 +336,13 @@ void register_node_type_geo_attribute_vector_rotate()
                      "Attribute Vector Rotate",
                      NODE_CLASS_ATTRIBUTE,
                      0);
-  node_type_socket_templates(
-      &ntype, geo_node_attribute_vector_rotate_in, geo_node_attribute_vector_rotate_out);
   node_type_update(&ntype, blender::nodes::geo_node_attribute_vector_rotate_update);
   node_type_init(&ntype, blender::nodes::geo_node_attribute_vector_rotate_init);
   node_type_size(&ntype, 165, 100, 600);
   node_type_storage(
       &ntype, "NodeAttributeVectorRotate", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_vector_rotate_exec;
-  ntype.draw_buttons = geo_node_attribute_vector_rotate_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_attribute_vector_rotate_layout;
+  ntype.declare = blender::nodes::geo_node_attribute_vector_rotate_declare;
   nodeRegisterType(&ntype);
 }

@@ -720,9 +720,9 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
  * Valid usages here are defined as ref-counting usages, which are not towards embedded or
  * loop-back data.
  *
- * \param r_num_tagged If non-NULL, must be a zero-initialized array of #INDEX_ID_MAX integers.
- *                     Number of tagged-as-unused IDs is then set for each type, and as total in
- *                     #INDEX_ID_NULL item.
+ * \param r_num_tagged: If non-NULL, must be a zero-initialized array of #INDEX_ID_MAX integers.
+ * Number of tagged-as-unused IDs is then set for each type, and as total in
+ * #INDEX_ID_NULL item.
  */
 void BKE_lib_query_unused_ids_tag(Main *bmain,
                                   const int tag,

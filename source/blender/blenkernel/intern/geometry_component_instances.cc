@@ -122,7 +122,7 @@ blender::Span<int> InstancesComponent::instance_ids() const
  * If the reference exists already, the handle of the existing reference is returned.
  * Otherwise a new handle is added.
  */
-int InstancesComponent::add_reference(InstanceReference reference)
+int InstancesComponent::add_reference(const InstanceReference &reference)
 {
   return references_.index_of_or_add_as(reference);
 }
@@ -144,14 +144,23 @@ bool InstancesComponent::is_empty() const
 
 bool InstancesComponent::owns_direct_data() const
 {
-  /* The object and collection instances are not direct data. Instance transforms are direct data
-   * and are always owned. Therefore, instance components always own all their direct data. */
+  for (const InstanceReference &reference : references_) {
+    if (!reference.owns_direct_data()) {
+      return false;
+    }
+  }
   return true;
 }
 
 void InstancesComponent::ensure_owns_direct_data()
 {
   BLI_assert(this->is_mutable());
+  for (const InstanceReference &const_reference : references_) {
+    /* Const cast is fine because we are not changing anything that would change the hash of the
+     * reference. */
+    InstanceReference &reference = const_cast<InstanceReference &>(const_reference);
+    reference.ensure_owns_direct_data();
+  }
 }
 
 static blender::Array<int> generate_unique_instance_ids(Span<int> original_ids)

@@ -139,14 +139,20 @@ typedef enum eKeyframeExtremeDrawOpts {
 
 struct AnimKeylist *ED_keylist_create(void);
 void ED_keylist_free(struct AnimKeylist *keylist);
-const struct ActKeyColumn *ED_keylist_find_exact(const struct AnimKeylist *keylist, float cfra);
-const struct ActKeyColumn *ED_keylist_find_next(const struct AnimKeylist *keylist, float cfra);
-const struct ActKeyColumn *ED_keylist_find_prev(const struct AnimKeylist *keylist, float cfra);
+void ED_keylist_prepare_for_direct_access(struct AnimKeylist *keylist);
+const struct ActKeyColumn *ED_keylist_find_exact(const struct AnimKeylist *keylist,
+                                                 const float cfra);
+const struct ActKeyColumn *ED_keylist_find_next(const struct AnimKeylist *keylist,
+                                                const float cfra);
+const struct ActKeyColumn *ED_keylist_find_prev(const struct AnimKeylist *keylist,
+                                                const float cfra);
 const struct ActKeyColumn *ED_keylist_find_any_between(const struct AnimKeylist *keylist,
                                                        const Range2f frame_range);
 bool ED_keylist_is_empty(const struct AnimKeylist *keylist);
 const struct ListBase /* ActKeyColumn */ *ED_keylist_listbase(const struct AnimKeylist *keylist);
 bool ED_keylist_frame_range(const struct AnimKeylist *keylist, Range2f *r_frame_range);
+const ActKeyColumn *ED_keylist_array(const struct AnimKeylist *keylist);
+int64_t ED_keylist_array_len(const struct AnimKeylist *keylist);
 
 /* Key-data Generation --------------- */
 
@@ -197,8 +203,6 @@ void mask_to_keylist(struct bDopeSheet *ads,
                      struct AnimKeylist *keylist);
 
 /* ActKeyColumn API ---------------- */
-/* Comparator callback used for ActKeyColumns and cframe float-value pointer */
-short compare_ak_cfraPtr(void *node, void *data);
 
 /* Checks if ActKeyColumn has any block data */
 bool actkeyblock_is_valid(const ActKeyColumn *ac);

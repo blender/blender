@@ -105,12 +105,13 @@ static PyObject *pygpu_shader__tp_new(PyTypeObject *UNUSED(type), PyObject *args
     const char *geocode;
     const char *libcode;
     const char *defines;
+    const char *name;
   } params = {0};
 
   static const char *_keywords[] = {
-      "vertexcode", "fragcode", "geocode", "libcode", "defines", NULL};
+      "vertexcode", "fragcode", "geocode", "libcode", "defines", "name", NULL};
 
-  static _PyArg_Parser _parser = {"ss|$sss:GPUShader.__new__", _keywords, 0};
+  static _PyArg_Parser _parser = {"ss|$ssss:GPUShader.__new__", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
                                         &_parser,
@@ -118,12 +119,17 @@ static PyObject *pygpu_shader__tp_new(PyTypeObject *UNUSED(type), PyObject *args
                                         &params.fragcode,
                                         &params.geocode,
                                         &params.libcode,
-                                        &params.defines)) {
+                                        &params.defines,
+                                        &params.name)) {
     return NULL;
   }
 
-  GPUShader *shader = GPU_shader_create_from_python(
-      params.vertexcode, params.fragcode, params.geocode, params.libcode, params.defines);
+  GPUShader *shader = GPU_shader_create_from_python(params.vertexcode,
+                                                    params.fragcode,
+                                                    params.geocode,
+                                                    params.libcode,
+                                                    params.defines,
+                                                    params.name);
 
   if (shader == NULL) {
     PyErr_SetString(PyExc_Exception, "Shader Compile Error, see console for more details");
@@ -639,6 +645,13 @@ static struct PyMethodDef pygpu_shader__tp_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
+PyDoc_STRVAR(pygpu_shader_name_doc,
+             "The name of the shader object for debugging purposes (read-only).\n\n:type: str");
+static PyObject *pygpu_shader_name(BPyGPUShader *self)
+{
+  return PyUnicode_FromString(GPU_shader_get_name(self->shader));
+}
+
 PyDoc_STRVAR(
     pygpu_shader_program_doc,
     "The name of the program object for use by the OpenGL API (read-only).\n\n:type: int");
@@ -649,6 +662,7 @@ static PyObject *pygpu_shader_program_get(BPyGPUShader *self, void *UNUSED(closu
 
 static PyGetSetDef pygpu_shader__tp_getseters[] = {
     {"program", (getter)pygpu_shader_program_get, (setter)NULL, pygpu_shader_program_doc, NULL},
+    {"name", (getter)pygpu_shader_name, (setter)NULL, pygpu_shader_name_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
@@ -662,10 +676,11 @@ static void pygpu_shader__tp_dealloc(BPyGPUShader *self)
 
 PyDoc_STRVAR(
     pygpu_shader__tp_doc,
-    ".. class:: GPUShader(vertexcode, fragcode, geocode=None, libcode=None, defines=None)\n"
+    ".. class:: GPUShader(vertexcode, fragcode, geocode=None, libcode=None, defines=None, "
+    "name='pyGPUShader')\n"
     "\n"
     "   GPUShader combines multiple GLSL shaders into a program used for drawing.\n"
-    "   It must contain a vertex and fragment shaders, with an optional geometry shader.\n"
+    "   It must contain at least a vertex and fragment shaders.\n"
     "\n"
     "   The GLSL ``#version`` directive is automatically included at the top of shaders,\n"
     "   and set to 330. Some preprocessor directives are automatically added according to\n"
@@ -688,6 +703,8 @@ PyDoc_STRVAR(
     "   :param libcode: Code with functions and presets to be shared between shaders.\n"
     "   :type value: str\n"
     "   :param defines: Preprocessor directives.\n"
+    "   :type value: str\n"
+    "   :param name: Name of shader code, for debugging purposes.\n"
     "   :type value: str\n");
 PyTypeObject BPyGPUShader_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUShader",
@@ -722,9 +739,10 @@ PyDoc_STRVAR(pygpu_shader_from_builtin_doc,
              "   Shaders that are embedded in the blender internal code.\n"
              "   They all read the uniform ``mat4 ModelViewProjectionMatrix``,\n"
              "   which can be edited by the :mod:`gpu.matrix` module.\n"
+             "\n"
              "   You can also choose a shader configuration that uses clip_planes by setting the "
              "``CLIPPED`` value to the config parameter. Note that in this case you also need to "
-             "manually set the value of ``ModelMatrix``.\n"
+             "manually set the value of ``mat4 ModelMatrix``.\n"
              "\n"
              "   For more details, you can check the shader code with the\n"
              "   :func:`gpu.shader.code_from_builtin` function.\n"
@@ -733,6 +751,7 @@ PyDoc_STRVAR(pygpu_shader_from_builtin_doc,
              "\n" PYDOC_BUILTIN_SHADER_LIST
              "   :type shader_name: str\n"
              "   :param config: One of these types of shader configuration:\n"
+             "\n"
              "      - ``DEFAULT``\n"
              "      - ``CLIPPED``\n"
              "   :type config: str\n"
@@ -766,7 +785,7 @@ static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg
 PyDoc_STRVAR(pygpu_shader_code_from_builtin_doc,
              ".. function:: code_from_builtin(pygpu_shader_name)\n"
              "\n"
-             "   Exposes the internal shader code for query.\n"
+             "   Exposes the internal shader code for consultation.\n"
              "\n"
              "   :param pygpu_shader_name: One of these builtin shader names:\n"
              "\n" PYDOC_BUILTIN_SHADER_LIST
@@ -828,27 +847,28 @@ PyDoc_STRVAR(pygpu_shader_module__tp_doc,
              ".. rubric:: Built-in shaders\n"
              "\n"
              "All built-in shaders have the ``mat4 ModelViewProjectionMatrix`` uniform.\n"
-             "The value of it can only be modified using the :class:`gpu.matrix` module.\n"
              "\n"
-             "2D_UNIFORM_COLOR\n"
+             "Its value must be modified using the :class:`gpu.matrix` module.\n"
+             "\n"
+             "``2D_UNIFORM_COLOR``\n"
              "   :Attributes: vec3 pos\n"
              "   :Uniforms: vec4 color\n"
-             "2D_FLAT_COLOR\n"
+             "``2D_FLAT_COLOR``\n"
              "   :Attributes: vec3 pos, vec4 color\n"
              "   :Uniforms: none\n"
-             "2D_SMOOTH_COLOR\n"
+             "``2D_SMOOTH_COLOR``\n"
              "   :Attributes: vec3 pos, vec4 color\n"
              "   :Uniforms: none\n"
-             "2D_IMAGE\n"
+             "``2D_IMAGE``\n"
              "   :Attributes: vec3 pos, vec2 texCoord\n"
              "   :Uniforms: sampler2D image\n"
-             "3D_UNIFORM_COLOR\n"
+             "``3D_UNIFORM_COLOR``\n"
              "   :Attributes: vec3 pos\n"
              "   :Uniforms: vec4 color\n"
-             "3D_FLAT_COLOR\n"
+             "``3D_FLAT_COLOR``\n"
              "   :Attributes: vec3 pos, vec4 color\n"
              "   :Uniforms: none\n"
-             "3D_SMOOTH_COLOR\n"
+             "``3D_SMOOTH_COLOR``\n"
              "   :Attributes: vec3 pos, vec4 color\n"
              "   :Uniforms: none\n");
 static PyModuleDef pygpu_shader_module_def = {

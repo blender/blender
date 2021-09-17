@@ -85,9 +85,6 @@ class GreasePencilSculptOptionsPanel:
             layout.prop(gp_settings, "use_edit_strength", text="Affect Strength")
             layout.prop(gp_settings, "use_edit_thickness", text="Affect Thickness")
 
-            if tool == 'SMOOTH':
-                layout.prop(gp_settings, "use_edit_pressure")
-
             layout.prop(gp_settings, "use_edit_uv", text="Affect UV")
 
 
@@ -454,7 +451,7 @@ class AnnotationDataPanel:
 
         tool_settings = context.tool_settings
         if gpd and gpl:
-            layout.prop(gpl, "opacity", text="Opacity", slider=True)
+            layout.prop(gpl, "annotation_opacity", text="Opacity", slider=True)
             layout.prop(gpl, "thickness")
         else:
             layout.prop(tool_settings, "annotation_thickness", text="Thickness")

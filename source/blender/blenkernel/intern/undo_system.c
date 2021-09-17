@@ -744,16 +744,15 @@ static UndoStep *undosys_step_iter_first(UndoStep *us_reference, const eUndoStep
 /**
  * Undo/Redo until the given `us_target` step becomes the active (currently loaded) one.
  *
- * \note Unless `us_target` is a 'skipped' one and `use_skip` is true, `us_target` will become the
- *       active step.
+ * \note Unless `us_target` is a 'skipped' one and `use_skip` is true, `us_target`
+ * will become the active step.
  *
- * \note In case `use_skip` is true, the final target will always be **beyond** the given one (if
- *       the given one has to be skipped).
+ * \note In case `use_skip` is true, the final target will always be **beyond** the given one
+ * (if the given one has to be skipped).
  *
- * \param us_reference If NULL, will be set to current active step in the undo stack. Otherwise, it
- *                     is assumed to match the current state, and will be used as basis for the
- *                     undo/redo process (i.e. all steps in-between `us_reference` and `us_target`
- *                     will be processed).
+ * \param us_reference: If NULL, will be set to current active step in the undo stack. Otherwise,
+ * it is assumed to match the current state, and will be used as basis for the undo/redo process
+ * (i.e. all steps in-between `us_reference` and `us_target` will be processed).
  */
 bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
                                    bContext *C,

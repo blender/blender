@@ -48,7 +48,7 @@
 static bool strip_modifier_active_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (ed) {
     Sequence *seq = SEQ_select_active_get(scene);

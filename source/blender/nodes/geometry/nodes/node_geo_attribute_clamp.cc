@@ -20,25 +20,23 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_clamp_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Attribute")},
-    {SOCK_STRING, N_("Result")},
-    {SOCK_VECTOR, N_("Min"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_VECTOR, N_("Max"), 1.0f, 1.0f, 1.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_FLOAT, N_("Min"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_FLOAT, N_("Max"), 1.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_INT, N_("Min"), 0.0f, 0.0f, 0.0f, 0.0f, -100000, 100000},
-    {SOCK_INT, N_("Max"), 100.0f, 0.0f, 0.0f, 0.0f, -100000, 100000},
-    {SOCK_RGBA, N_("Min"), 0.5, 0.5, 0.5, 1.0},
-    {SOCK_RGBA, N_("Max"), 0.5, 0.5, 0.5, 1.0},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_attribute_clamp_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_attribute_clamp_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Attribute");
+  b.add_input<decl::String>("Result");
+  b.add_input<decl::Vector>("Min");
+  b.add_input<decl::Vector>("Max").default_value({1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Min", "Min_001");
+  b.add_input<decl::Float>("Max", "Max_001").default_value(1.0f);
+  b.add_input<decl::Int>("Min", "Min_002").min(-100000).max(100000);
+  b.add_input<decl::Int>("Max", "Max_002").default_value(100).min(-100000).max(100000);
+  b.add_input<decl::Color>("Min", "Min_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_input<decl::Color>("Max", "Max_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_attribute_clamp_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -77,8 +75,6 @@ static void geo_node_attribute_clamp_update(bNodeTree *UNUSED(ntree), bNode *nod
   nodeSetSocketAvailability(sock_min_color, data_type == CD_PROP_COLOR);
   nodeSetSocketAvailability(sock_max_color, data_type == CD_PROP_COLOR);
 }
-
-namespace blender::nodes {
 
 template<typename T> T clamp_value(const T val, const T min, const T max);
 
@@ -272,12 +268,13 @@ void register_node_type_geo_attribute_clamp()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_ATTRIBUTE_CLAMP, "Attribute Clamp", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(&ntype, geo_node_attribute_clamp_in, geo_node_attribute_clamp_out);
-  node_type_init(&ntype, geo_node_attribute_clamp_init);
-  node_type_update(&ntype, geo_node_attribute_clamp_update);
+  geo_node_type_base(
+      &ntype, GEO_NODE_LECAGY_ATTRIBUTE_CLAMP, "Attribute Clamp", NODE_CLASS_ATTRIBUTE, 0);
+  node_type_init(&ntype, blender::nodes::geo_node_attribute_clamp_init);
+  node_type_update(&ntype, blender::nodes::geo_node_attribute_clamp_update);
+  ntype.declare = blender::nodes::geo_node_attribute_clamp_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_clamp_exec;
-  ntype.draw_buttons = geo_node_attribute_clamp_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_attribute_clamp_layout;
   node_type_storage(
       &ntype, "NodeAttributeClamp", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);

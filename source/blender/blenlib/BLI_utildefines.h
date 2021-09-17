@@ -685,10 +685,20 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 #  define UNUSED(x) UNUSED_##x
 #endif
 
+/**
+ * WARNING: this doesn't warn when returning pointer types (because of the placement of `*`).
+ * Use #UNUSED_FUNCTION_WITH_RETURN_TYPE instead in this case.
+ */
 #if defined(__GNUC__) || defined(__clang__)
 #  define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_##x
 #else
 #  define UNUSED_FUNCTION(x) UNUSED_##x
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+#  define UNUSED_FUNCTION_WITH_RETURN_TYPE(rtype, x) __attribute__((__unused__)) rtype UNUSED_##x
+#else
+#  define UNUSED_FUNCTION_WITH_RETURN_TYPE(rtype, x) rtype UNUSED_##x
 #endif
 
 /**

@@ -332,8 +332,12 @@ void ED_object_base_init_transform_on_add(Object *object, const float loc[3], co
 
 /* Uses context to figure out transform for primitive.
  * Returns standard diameter. */
-float ED_object_new_primitive_matrix(
-    bContext *C, Object *obedit, const float loc[3], const float rot[3], float r_primmat[4][4])
+float ED_object_new_primitive_matrix(bContext *C,
+                                     Object *obedit,
+                                     const float loc[3],
+                                     const float rot[3],
+                                     const float scale[3],
+                                     float r_primmat[4][4])
 {
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -355,6 +359,10 @@ float ED_object_new_primitive_matrix(
   sub_v3_v3v3(r_primmat[3], r_primmat[3], obedit->obmat[3]);
   invert_m3_m3(imat, mat);
   mul_m3_v3(imat, r_primmat[3]);
+
+  if (scale != NULL) {
+    rescale_m4(r_primmat, scale);
+  }
 
   {
     const float dia = v3d ? ED_view3d_grid_scale(scene, v3d, NULL) :
@@ -863,7 +871,7 @@ static int effector_add_exec(bContext *C, wmOperator *op)
     ED_object_editmode_enter_ex(bmain, scene, ob, 0);
 
     float mat[4][4];
-    ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
+    ED_object_new_primitive_matrix(C, ob, loc, rot, NULL, mat);
     mul_mat3_m4_fl(mat, dia);
     BLI_addtail(&cu->editnurb->nurbs,
                 ED_curve_add_nurbs_primitive(C, ob, mat, CU_NURBS | CU_PRIM_PATH, 1));
@@ -999,7 +1007,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
   }
 
   float mat[4][4];
-  ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
+  ED_object_new_primitive_matrix(C, obedit, loc, rot, NULL, mat);
   /* Halving here is done to account for constant values from #BKE_mball_element_add.
    * While the default radius of the resulting meta element is 2,
    * we want to pass in 1 so other values such as resolution are scaled by 1.0. */
@@ -1365,30 +1373,28 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
     case GP_EMPTY: {
       float mat[4][4];
 
-      ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
+      ED_object_new_primitive_matrix(C, ob, loc, rot, NULL, mat);
       ED_gpencil_create_blank(C, ob, mat);
       break;
     }
     case GP_STROKE: {
       float radius = RNA_float_get(op->ptr, "radius");
+      float scale[3];
+      copy_v3_fl(scale, radius);
       float mat[4][4];
 
-      ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
-      mul_v3_fl(mat[0], radius);
-      mul_v3_fl(mat[1], radius);
-      mul_v3_fl(mat[2], radius);
+      ED_object_new_primitive_matrix(C, ob, loc, rot, scale, mat);
 
       ED_gpencil_create_stroke(C, ob, mat);
       break;
     }
     case GP_MONKEY: {
       float radius = RNA_float_get(op->ptr, "radius");
+      float scale[3];
+      copy_v3_fl(scale, radius);
       float mat[4][4];
 
-      ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
-      mul_v3_fl(mat[0], radius);
-      mul_v3_fl(mat[1], radius);
-      mul_v3_fl(mat[2], radius);
+      ED_object_new_primitive_matrix(C, ob, loc, rot, scale, mat);
 
       ED_gpencil_create_monkey(C, ob, mat);
       break;
@@ -1397,12 +1403,11 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
     case GP_LRT_COLLECTION:
     case GP_LRT_OBJECT: {
       float radius = RNA_float_get(op->ptr, "radius");
+      float scale[3];
+      copy_v3_fl(scale, radius);
       float mat[4][4];
 
-      ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
-      mul_v3_fl(mat[0], radius);
-      mul_v3_fl(mat[1], radius);
-      mul_v3_fl(mat[2], radius);
+      ED_object_new_primitive_matrix(C, ob, loc, rot, scale, mat);
 
       ED_gpencil_create_lineart(C, ob);
 
@@ -2246,13 +2251,6 @@ static bool dupliobject_instancer_cmp(const void *a_, const void *b_)
   return false;
 }
 
-static bool object_has_geometry_set_instances(const Object *object_eval)
-{
-  struct GeometrySet *geometry_set = object_eval->runtime.geometry_set_eval;
-
-  return (geometry_set != NULL) && BKE_geometry_set_has_instances(geometry_set);
-}
-
 static void make_object_duplilist_real(bContext *C,
                                        Depsgraph *depsgraph,
                                        Scene *scene,
@@ -2266,7 +2264,8 @@ static void make_object_duplilist_real(bContext *C,
 
   Object *object_eval = DEG_get_evaluated_object(depsgraph, base->object);
 
-  if (!(base->object->transflag & OB_DUPLI) && !object_has_geometry_set_instances(object_eval)) {
+  if (!(base->object->transflag & OB_DUPLI) &&
+      !BKE_object_has_geometry_set_instances(object_eval)) {
     return;
   }
 

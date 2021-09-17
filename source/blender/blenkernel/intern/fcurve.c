@@ -346,30 +346,30 @@ int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, con
     return 0;
   }
 
+  const size_t quotedName_size = strlen(dataName) + 1;
+  char *quotedName = alloca(quotedName_size);
+
   /* Search each F-Curve one by one. */
   for (fcu = src->first; fcu; fcu = fcu->next) {
     /* Check if quoted string matches the path. */
-    if (fcu->rna_path == NULL || !strstr(fcu->rna_path, dataPrefix)) {
+    if (fcu->rna_path == NULL) {
       continue;
     }
-
-    char *quotedName = BLI_str_quoted_substrN(fcu->rna_path, dataPrefix);
-    if (quotedName == NULL) {
+    /* Skipping names longer than `quotedName_size` is OK since we're after an exact match. */
+    if (!BLI_str_quoted_substr(fcu->rna_path, dataPrefix, quotedName, quotedName_size)) {
+      continue;
+    }
+    if (!STREQ(quotedName, dataName)) {
       continue;
     }
 
     /* Check if the quoted name matches the required name. */
-    if (STREQ(quotedName, dataName)) {
-      LinkData *ld = MEM_callocN(sizeof(LinkData), __func__);
+    LinkData *ld = MEM_callocN(sizeof(LinkData), __func__);
 
-      ld->data = fcu;
-      BLI_addtail(dst, ld);
+    ld->data = fcu;
+    BLI_addtail(dst, ld);
 
-      matches++;
-    }
-
-    /* Always free the quoted string, since it needs freeing. */
-    MEM_freeN(quotedName);
+    matches++;
   }
   /* Return the number of matches. */
   return matches;

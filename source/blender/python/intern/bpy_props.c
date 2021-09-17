@@ -46,6 +46,7 @@
 
 #include "DNA_ID.h" /* MAX_IDPROP_NAME */
 
+#include "../generic/py_capi_rna.h"
 #include "../generic/py_capi_utils.h"
 
 /* -------------------------------------------------------------------- */

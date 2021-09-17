@@ -267,7 +267,6 @@ class USERPREF_PT_interface_editors(InterfacePanel, CenterAlignMixIn, Panel):
 
         col = layout.column()
         col.prop(system, "use_region_overlap")
-        col.prop(view, "show_layout_ui", text="Corner Splitting")
         col.prop(view, "show_navigate_ui")
         col.prop(view, "color_picker_type")
         col.row().prop(view, "header_align")
@@ -1414,7 +1413,7 @@ class USERPREF_PT_saveload_blend(SaveLoadPanel, CenterAlignMixIn, Panel):
 
         col = layout.column(heading="Save")
         col.prop(view, "use_save_prompt")
-        col.prop(paths, "use_save_preview_images")
+        col.prop(paths, "file_preview_type")
 
         col = layout.column(heading="Default To")
         col.prop(paths, "use_relative_paths")
@@ -1455,13 +1454,11 @@ class USERPREF_PT_saveload_file_browser(SaveLoadPanel, CenterAlignMixIn, Panel):
         prefs = context.preferences
         paths = prefs.filepaths
 
-        col = layout.column()
+        col = layout.column(heading="Defaults")
         col.prop(paths, "use_filter_files")
-
-        col = layout.column(heading="Hide")
-        col.prop(paths, "show_hidden_files_datablocks", text="Dot File & Data-Blocks")
-        col.prop(paths, "hide_recent_locations", text="Recent Locations")
-        col.prop(paths, "hide_system_bookmarks", text="System Bookmarks")
+        col.prop(paths, "show_hidden_files_datablocks")
+        col.prop(paths, "show_recent_locations")
+        col.prop(paths, "show_system_bookmarks")
 
 
 # -----------------------------------------------------------------------------
@@ -2254,6 +2251,7 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_sculpt_tools_tilt"}, "T82877"),
                 ({"property": "use_extended_asset_browser"}, ("project/view/130/", "Project Page")),
                 ({"property": "use_override_templates"}, ("T73318", "Milestone 4")),
+                ({"property": "use_geometry_nodes_fields"}, "T91274"),
             ),
         )
 

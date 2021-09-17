@@ -105,10 +105,6 @@ static void freeData(ModifierData *md)
     mcmd->reader_object_path[0] = '\0';
     BKE_cachefile_reader_free(mcmd->cache_file, &mcmd->reader);
   }
-
-  if (mcmd->vertex_velocities) {
-    MEM_freeN(mcmd->vertex_velocities);
-  }
 }
 
 static bool isDisabled(const struct Scene *UNUSED(scene),
@@ -233,11 +229,26 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   Mesh *result = NULL;
 
   switch (cache_file->type) {
-    case CACHEFILE_TYPE_ALEMBIC:
+    case CACHEFILE_TYPE_ALEMBIC: {
 #  ifdef WITH_ALEMBIC
-      result = ABC_read_mesh(mcmd->reader, ctx->object, mesh, time, &err_str, mcmd->read_flag);
+      /* Time (in frames or seconds) between two velocity samples. Automatically computed to
+       * scale the velocity vectors at render time for generating proper motion blur data. */
+      float velocity_scale = mcmd->velocity_scale;
+      if (mcmd->cache_file->velocity_unit == CACHEFILE_VELOCITY_UNIT_FRAME) {
+        velocity_scale *= FPS;
+      }
+
+      result = ABC_read_mesh(mcmd->reader,
+                             ctx->object,
+                             mesh,
+                             time,
+                             &err_str,
+                             mcmd->read_flag,
+                             mcmd->cache_file->velocity_name,
+                             velocity_scale);
 #  endif
       break;
+    }
     case CACHEFILE_TYPE_USD:
 #  ifdef WITH_USD
       result = USD_read_mesh(
@@ -246,17 +257,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       break;
     case CACHE_FILE_TYPE_INVALID:
       break;
-  }
-
-  mcmd->velocity_delta = 1.0f;
-  if (mcmd->cache_file->velocity_unit == CACHEFILE_VELOCITY_UNIT_SECOND) {
-    mcmd->velocity_delta /= FPS;
-  }
-
-  mcmd->last_lookup_time = time;
-
-  if (result != NULL) {
-    mcmd->num_vertices = result->totvert;
   }
 
   if (err_str) {

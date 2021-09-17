@@ -2005,6 +2005,14 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
       prop, "Custom Channel Color", "Custom color for animation channel in Dopesheet");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
+  /* Layer Opacity (Annotations). */
+  prop = RNA_def_property(srna, "annotation_opacity", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "opacity");
+  RNA_def_property_range(prop, 0.0, 1.0f);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Opacity", "Annotation Layer Opacity");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
   /* Stroke Drawing Color (Annotations) */
   prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);

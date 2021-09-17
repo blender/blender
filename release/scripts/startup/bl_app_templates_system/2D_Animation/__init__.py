@@ -46,6 +46,7 @@ def update_factory_startup_screens():
 def update_factory_startup_scenes():
     for scene in bpy.data.scenes:
         scene.tool_settings.use_keyframe_insert_auto = True
+        scene.tool_settings.gpencil_sculpt.use_scale_thickness = True
 
 
 def update_factory_startup_grease_pencils():

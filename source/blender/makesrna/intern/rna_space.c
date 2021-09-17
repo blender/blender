@@ -1622,14 +1622,7 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr,
 {
   BLI_assert(BKE_id_is_in_global_main(value.data));
   SpaceImage *sima = ptr->data;
-  bScreen *screen = (bScreen *)ptr->owner_id;
-  Object *obedit = NULL;
-  wmWindow *win = ED_screen_window_find(screen, G_MAIN->wm.first);
-  if (win != NULL) {
-    ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-    obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
-  }
-  ED_space_image_set(G_MAIN, sima, obedit, (Image *)value.data, false);
+  ED_space_image_set(G_MAIN, sima, (Image *)value.data, false);
 }
 
 static void rna_SpaceImageEditor_mask_set(PointerRNA *ptr,
@@ -1800,6 +1793,16 @@ static const EnumPropertyItem *rna_SpaceImageEditor_pivot_itemf(bContext *UNUSED
   }
   else {
     return pivot_items;
+  }
+}
+
+static void rna_SpaceUVEditor_tile_grid_shape_set(PointerRNA *ptr, const int *values)
+{
+  SpaceImage *data = (SpaceImage *)(ptr->data);
+
+  int clamp[2] = {10, 100};
+  for (int i = 0; i < 2; i++) {
+    data->tile_grid_shape[i] = CLAMPIS(values[i], 1, clamp[i]);
   }
 }
 
@@ -2281,7 +2284,7 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
 
   SpaceSeq *sseq = ptr->data;
   Scene *scene = CTX_data_scene(C);
-  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene, false));
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
 
   GSet *file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
   wmJob *wm_job = ED_seq_proxy_wm_job_get(C);
@@ -2613,6 +2616,18 @@ static int rna_FileBrowser_FileSelectEntry_name_length(PointerRNA *ptr)
 {
   const FileDirEntry *entry = ptr->data;
   return (int)strlen(entry->name);
+}
+
+static void rna_FileBrowser_FileSelectEntry_relative_path_get(PointerRNA *ptr, char *value)
+{
+  const FileDirEntry *entry = ptr->data;
+  strcpy(value, entry->relpath);
+}
+
+static int rna_FileBrowser_FileSelectEntry_relative_path_length(PointerRNA *ptr)
+{
+  const FileDirEntry *entry = ptr->data;
+  return (int)strlen(entry->relpath);
 }
 
 static const EnumPropertyItem *rna_FileBrowser_FileSelectEntry_id_type_itemf(
@@ -3412,7 +3427,8 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "tile_grid_shape");
   RNA_def_property_array(prop, 2);
   RNA_def_property_int_default(prop, 1);
-  RNA_def_property_range(prop, 1, 10);
+  RNA_def_property_range(prop, 1, 100);
+  RNA_def_property_int_funcs(prop, NULL, "rna_SpaceUVEditor_tile_grid_shape_set", NULL);
   RNA_def_property_ui_text(
       prop, "Tile Grid Shape", "How many tiles will be shown in the background");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
@@ -4925,18 +4941,19 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_LOCK_ROTATION);
-  RNA_def_property_ui_text(prop, "Lock", "Lock view rotation in side views");
+  RNA_def_property_ui_text(
+      prop, "Lock Rotation", "Lock view rotation of side views to Top/Front/Right");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_RegionView3D_quadview_update");
 
   prop = RNA_def_property(srna, "show_sync_view", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_BOXVIEW);
-  RNA_def_property_ui_text(prop, "Box", "Sync view position between side views");
+  RNA_def_property_ui_text(prop, "Sync Zoom/Pan", "Sync view position between side views");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_RegionView3D_quadview_update");
 
   prop = RNA_def_property(srna, "use_box_clip", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_BOXCLIP);
   RNA_def_property_ui_text(
-      prop, "Clip", "Clip objects based on what's visible in other side views");
+      prop, "Clip Contents", "Clip view contents based on what is visible in other side views");
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_RegionView3D_quadview_clip_update");
 
@@ -6190,6 +6207,17 @@ static void rna_def_fileselect_entry(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Name", "");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_struct_name_property(srna, prop);
+
+  prop = RNA_def_property(srna, "relative_path", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop,
+                                "rna_FileBrowser_FileSelectEntry_relative_path_get",
+                                "rna_FileBrowser_FileSelectEntry_relative_path_length",
+                                NULL);
+  RNA_def_property_ui_text(prop,
+                           "Relative Path",
+                           "Path relative to the directory currently displayed in the File "
+                           "Browser (includes the file name)");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_id_type_items);

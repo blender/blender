@@ -8,7 +8,7 @@
 
 # YOUR INSTALLATION PATHS GO HERE:
 MANTA_INSTALLATION=/Users/sebbas/Developer/Mantaflow/mantaflowDevelop
-BLENDER_INSTALLATION=/Users/sebbas/Developer/Blender/fluid-mantaflow
+BLENDER_INSTALLATION=/Users/sebbas/Developer/Blender
 
 # Try to check out Mantaflow repository before building?
 CLEAN_REPOSITORY=0

@@ -882,7 +882,7 @@ static void area_azone_init(wmWindow *win, const bScreen *screen, ScrArea *area)
     return;
   }
 
-  if (U.app_flag & USER_APP_LOCK_UI_LAYOUT) {
+  if (U.app_flag & USER_APP_LOCK_CORNER_SPLIT) {
     return;
   }
 
@@ -1055,6 +1055,14 @@ static bool region_azone_edge_poll(const ARegion *region, const bool is_fullscre
     return false;
   }
   if (!is_hidden && ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
+    return false;
+  }
+
+  if (is_hidden && (U.app_flag & USER_APP_HIDE_REGION_TOGGLE)) {
+    return false;
+  }
+
+  if (!is_hidden && (U.app_flag & USER_APP_LOCK_EDGE_RESIZE)) {
     return false;
   }
 

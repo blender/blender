@@ -18,11 +18,15 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class ConvolutionFilterOperation : public NodeOperation {
+class ConvolutionFilterOperation : public MultiThreadedOperation {
+ protected:
+  static constexpr int IMAGE_INPUT_INDEX = 0;
+  static constexpr int FACTOR_INPUT_INDEX = 1;
+
  private:
   int m_filterWidth;
   int m_filterHeight;
@@ -43,6 +47,11 @@ class ConvolutionFilterOperation : public NodeOperation {
 
   void initExecution() override;
   void deinitExecution() override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) final;
+  virtual void update_memory_buffer_partial(MemoryBuffer *output,
+                                            const rcti &area,
+                                            Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

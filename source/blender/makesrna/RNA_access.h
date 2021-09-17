@@ -177,6 +177,7 @@ extern StructRNA RNA_CompositorNodeMixRGB;
 extern StructRNA RNA_CompositorNodeNormal;
 extern StructRNA RNA_CompositorNodeNormalize;
 extern StructRNA RNA_CompositorNodeOutputFile;
+extern StructRNA RNA_CompositorNodePosterize;
 extern StructRNA RNA_CompositorNodePremulKey;
 extern StructRNA RNA_CompositorNodeRGB;
 extern StructRNA RNA_CompositorNodeRGBToBW;
@@ -221,6 +222,8 @@ extern StructRNA RNA_CurvePoint;
 extern StructRNA RNA_CurveProfile;
 extern StructRNA RNA_CurveProfilePoint;
 extern StructRNA RNA_DampedTrackConstraint;
+extern StructRNA RNA_DashGpencilModifierData;
+extern StructRNA RNA_DashGpencilModifierSegment;
 extern StructRNA RNA_DataTransferModifier;
 extern StructRNA RNA_DecimateModifier;
 extern StructRNA RNA_Depsgraph;
@@ -1117,12 +1120,16 @@ bool RNA_property_assign_default(PointerRNA *ptr, PropertyRNA *prop);
 
 char *RNA_path_append(
     const char *path, PointerRNA *ptr, PropertyRNA *prop, int intkey, const char *strkey);
+#if 0 /* UNUSED. */
 char *RNA_path_back(const char *path);
+#endif
 
 /* path_resolve() variants only ensure that a valid pointer (and optionally property) exist */
 bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop);
 
 bool RNA_path_resolve_full(
+    PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index);
+bool RNA_path_resolve_full_maybe_null(
     PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index);
 
 /* path_resolve_property() variants ensure that pointer + property both exist */
@@ -1162,7 +1169,7 @@ char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, struct IDProperty *nee
 
 struct ID *RNA_find_real_ID_and_path(struct Main *bmain, struct ID *id, const char **r_path);
 
-char *RNA_path_from_ID_to_struct(PointerRNA *ptr);
+char *RNA_path_from_ID_to_struct(const PointerRNA *ptr);
 
 char *RNA_path_from_real_ID_to_struct(struct Main *bmain, PointerRNA *ptr, struct ID **r_real);
 
@@ -1192,7 +1199,7 @@ char *RNA_path_full_property_py(struct Main *bmain,
                                 struct PropertyRNA *prop,
                                 int index);
 char *RNA_path_struct_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
-char *RNA_path_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
+char *RNA_path_property_py(const struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 
 /* Quick name based property access
  *

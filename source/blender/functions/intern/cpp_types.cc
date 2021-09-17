@@ -15,6 +15,7 @@
  */
 
 #include "FN_cpp_type_make.hh"
+#include "FN_field_cpp_type.hh"
 
 #include "BLI_color.hh"
 #include "BLI_float2.hh"
@@ -38,5 +39,13 @@ MAKE_CPP_TYPE(ColorGeometry4f, blender::ColorGeometry4f, CPPTypeFlags::BasicType
 MAKE_CPP_TYPE(ColorGeometry4b, blender::ColorGeometry4b, CPPTypeFlags::BasicType)
 
 MAKE_CPP_TYPE(string, std::string, CPPTypeFlags::BasicType)
+
+MAKE_FIELD_CPP_TYPE(FloatField, float);
+MAKE_FIELD_CPP_TYPE(Float2Field, float2);
+MAKE_FIELD_CPP_TYPE(Float3Field, float3);
+MAKE_FIELD_CPP_TYPE(ColorGeometry4fField, blender::ColorGeometry4f);
+MAKE_FIELD_CPP_TYPE(BoolField, bool);
+MAKE_FIELD_CPP_TYPE(Int32Field, int32_t);
+MAKE_FIELD_CPP_TYPE(StringField, std::string);
 
 }  // namespace blender::fn

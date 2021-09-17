@@ -24,16 +24,16 @@
 
 #include "node_function_util.hh"
 
-static bNodeSocketTemplate fn_node_boolean_math_in[] = {
-    {SOCK_BOOLEAN, N_("Boolean")},
-    {SOCK_BOOLEAN, N_("Boolean")},
-    {-1, ""},
+namespace blender::nodes {
+
+static void fn_node_boolean_math_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Bool>("Boolean", "Boolean");
+  b.add_input<decl::Bool>("Boolean", "Boolean_001");
+  b.add_output<decl::Bool>("Boolean");
 };
 
-static bNodeSocketTemplate fn_node_boolean_math_out[] = {
-    {SOCK_BOOLEAN, N_("Boolean")},
-    {-1, ""},
-};
+}  // namespace blender::nodes
 
 static void fn_node_boolean_math_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -91,7 +91,7 @@ void register_node_type_fn_boolean_math()
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_BOOLEAN_MATH, "Boolean Math", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, fn_node_boolean_math_in, fn_node_boolean_math_out);
+  ntype.declare = blender::nodes::fn_node_boolean_math_declare;
   node_type_label(&ntype, node_boolean_math_label);
   node_type_update(&ntype, node_boolean_math_update);
   ntype.build_multi_function = fn_node_boolean_math_build_multi_function;

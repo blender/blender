@@ -1342,7 +1342,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                                             }),
                                             sculpt_mesh);
   BM_mesh_free(bm);
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  BKE_mesh_normals_tag_dirty(result);
   BKE_mesh_nomain_to_mesh(
       result, sgcontext->vc.obact->data, sgcontext->vc.obact, &CD_MASK_MESH, true);
 }
@@ -1896,7 +1896,7 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 
   ot->poll = SCULPT_mode_poll_view3d;
 
-  ot->flag = OPTYPE_REGISTER;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
@@ -1959,6 +1959,8 @@ void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
 
   ot->poll = SCULPT_mode_poll_view3d;
 
+  ot->flag = OPTYPE_DEPENDS_ON_CURSOR;
+
   /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
   sculpt_gesture_operator_properties(ot);
@@ -1995,7 +1997,7 @@ void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot)
 
   ot->poll = SCULPT_mode_poll_view3d;
 
-  ot->flag = OPTYPE_REGISTER;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* Properties. */
   WM_operator_properties_gesture_lasso(ot);

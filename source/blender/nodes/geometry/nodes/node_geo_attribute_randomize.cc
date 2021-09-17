@@ -23,23 +23,21 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_randomize_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Attribute")},
-    {SOCK_VECTOR, N_("Min"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_VECTOR, N_("Max"), 1.0f, 1.0f, 1.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_FLOAT, N_("Min"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_FLOAT, N_("Max"), 1.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_INT, N_("Min"), 0.0f, 0.0f, 0.0f, 0.0f, -100000, 100000},
-    {SOCK_INT, N_("Max"), 100.0f, 0.0f, 0.0f, 0.0f, -100000, 100000},
-    {SOCK_INT, N_("Seed"), 0, 0, 0, 0, -10000, 10000},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_attribute_randomize_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_attribute_randomize_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Attribute");
+  b.add_input<decl::Vector>("Min");
+  b.add_input<decl::Vector>("Max").default_value({1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Min", "Min_001");
+  b.add_input<decl::Float>("Max", "Max_001").default_value(1.0f);
+  b.add_input<decl::Int>("Min", "Min_002").min(-100000).max(100000);
+  b.add_input<decl::Int>("Max", "Max_002").default_value(100).min(-100000).max(100000);
+  b.add_input<decl::Int>("Seed").min(-10000).max(10000);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_attribute_random_layout(uiLayout *layout,
                                              bContext *UNUSED(C),
@@ -77,8 +75,6 @@ static void geo_node_attribute_randomize_update(bNodeTree *UNUSED(ntree), bNode 
   nodeSetSocketAvailability(sock_min_int, data_type == CD_PROP_INT32);
   nodeSetSocketAvailability(sock_max_int, data_type == CD_PROP_INT32);
 }
-
-namespace blender::nodes {
 
 template<typename T>
 T random_value_in_range(const uint32_t id, const uint32_t seed, const T min, const T max);
@@ -335,13 +331,13 @@ void register_node_type_geo_attribute_randomize()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_ATTRIBUTE_RANDOMIZE, "Attribute Randomize", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_attribute_randomize_in, geo_node_attribute_randomize_out);
-  node_type_init(&ntype, geo_node_attribute_randomize_init);
-  node_type_update(&ntype, geo_node_attribute_randomize_update);
+      &ntype, GEO_NODE_LEGACY_ATTRIBUTE_RANDOMIZE, "Attribute Randomize", NODE_CLASS_ATTRIBUTE, 0);
+  node_type_init(&ntype, blender::nodes::geo_node_attribute_randomize_init);
+  node_type_update(&ntype, blender::nodes::geo_node_attribute_randomize_update);
+
+  ntype.declare = blender::nodes::geo_node_attribute_randomize_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_random_attribute_exec;
-  ntype.draw_buttons = geo_node_attribute_random_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_attribute_random_layout;
   node_type_storage(
       &ntype, "NodeAttributeRandomize", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);

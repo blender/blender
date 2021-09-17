@@ -719,7 +719,7 @@ static void gpencil_copy_activeframe_to_eval(
       bGPDframe *gpf_orig = gpl_orig->actframe;
 
       int remap_cfra = gpencil_remap_time_get(depsgraph, scene, ob, gpl_orig);
-      if (gpf_orig && gpf_orig->framenum != remap_cfra) {
+      if ((gpf_orig == NULL) || (gpf_orig && gpf_orig->framenum != remap_cfra)) {
         gpf_orig = BKE_gpencil_layer_frame_get(gpl_orig, remap_cfra, GP_GETFRAME_USE_PREV);
       }
 
@@ -938,6 +938,11 @@ void BKE_gpencil_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
         BKE_curvemapping_blend_write(writer, gpmd->curve_intensity);
       }
     }
+    else if (md->type == eGpencilModifierType_Dash) {
+      DashGpencilModifierData *gpmd = (DashGpencilModifierData *)md;
+      BLO_write_struct_array(
+          writer, DashGpencilModifierSegment, gpmd->segments_len, gpmd->segments);
+    }
   }
 }
 
@@ -1015,6 +1020,13 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
       if (gpmd->curve_intensity) {
         BKE_curvemapping_blend_read(reader, gpmd->curve_intensity);
         BKE_curvemapping_init(gpmd->curve_intensity);
+      }
+    }
+    else if (md->type == eGpencilModifierType_Dash) {
+      DashGpencilModifierData *gpmd = (DashGpencilModifierData *)md;
+      BLO_read_data_address(reader, &gpmd->segments);
+      for (int i = 0; i < gpmd->segments_len; i++) {
+        gpmd->segments[i].dmd = gpmd;
       }
     }
   }

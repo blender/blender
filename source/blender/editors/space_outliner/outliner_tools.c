@@ -737,13 +737,8 @@ static void id_local_fn(bContext *C,
 {
   if (ID_IS_LINKED(tselem->id) && (tselem->id->tag & LIB_TAG_EXTERN)) {
     Main *bmain = CTX_data_main(C);
-    /* if the ID type has no special local function,
-     * just clear the lib */
-    if (BKE_lib_id_make_local(bmain, tselem->id, false, 0) == false) {
-      BKE_lib_id_clear_library_data(bmain, tselem->id);
-    }
-    else {
-      BKE_main_id_newptr_and_tag_clear(bmain);
+    if (BKE_lib_id_make_local(bmain, tselem->id, 0)) {
+      BKE_id_newptr_and_tag_clear(tselem->id);
     }
   }
   else if (ID_IS_OVERRIDE_LIBRARY_REAL(tselem->id)) {
@@ -1286,7 +1281,7 @@ static void sequence_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem
 {
   Sequence *seq = (Sequence *)te->directdata;
   Scene *scene = (Scene *)scene_ptr;
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   if (BLI_findindex(ed->seqbasep, seq) != -1) {
     if (event == OL_DOP_SELECT) {
       ED_sequencer_select_sequence_single(scene, seq, true);

@@ -1106,20 +1106,18 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
     for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
       /* only items related to this object will be relevant */
       if ((ksp->id == &ob->id) && (ksp->rna_path != NULL)) {
-        if (strstr(ksp->rna_path, "bones")) {
-          char *boneName = BLI_str_quoted_substrN(ksp->rna_path, "bones[");
+        bPoseChannel *pchan = NULL;
+        char boneName[sizeof(pchan->name)];
+        if (!BLI_str_quoted_substr(ksp->rna_path, "bones[", boneName, sizeof(boneName))) {
+          continue;
+        }
+        pchan = BKE_pose_channel_find_name(pose, boneName);
 
-          if (boneName) {
-            bPoseChannel *pchan = BKE_pose_channel_find_name(pose, boneName);
-            MEM_freeN(boneName);
-
-            if (pchan) {
-              /* select if bone is visible and can be affected */
-              if (PBONE_SELECTABLE(arm, pchan->bone)) {
-                pchan->bone->flag |= BONE_SELECTED;
-                changed = true;
-              }
-            }
+        if (pchan) {
+          /* select if bone is visible and can be affected */
+          if (PBONE_SELECTABLE(arm, pchan->bone)) {
+            pchan->bone->flag |= BONE_SELECTED;
+            changed = true;
           }
         }
       }

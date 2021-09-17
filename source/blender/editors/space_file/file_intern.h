@@ -92,6 +92,9 @@ void file_sfile_to_operator(struct Main *bmain, struct wmOperator *op, struct Sp
 
 void file_operator_to_sfile(struct Main *bmain, struct SpaceFile *sfile, struct wmOperator *op);
 
+/* space_file.c */
+extern const char *file_context_dir[]; /* doc access */
+
 /* filesel.c */
 void fileselect_refresh_params(struct SpaceFile *sfile);
 void fileselect_file_set(SpaceFile *sfile, const int index);

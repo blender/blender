@@ -808,16 +808,17 @@ wmWindow *WM_window_open(bContext *C,
   /* changes rect to fit within desktop */
   wm_window_check_size(&rect);
 
-  /* Reuse temporary windows when they share the same title. */
+  /* Reuse temporary windows when they share the same single area. */
   wmWindow *win = NULL;
   if (temp) {
     LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
-      if (WM_window_is_temp_screen(win_iter)) {
-        char *wintitle = GHOST_GetTitle(win_iter->ghostwin);
-        if (STREQ(title, wintitle)) {
+      const bScreen *screen = WM_window_get_active_screen(win_iter);
+      if (screen && screen->temp && BLI_listbase_is_single(&screen->areabase)) {
+        ScrArea *area = screen->areabase.first;
+        if (space_type == (area->butspacetype ? area->butspacetype : area->spacetype)) {
           win = win_iter;
+          break;
         }
-        free(wintitle);
       }
     }
   }
@@ -1196,7 +1197,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 #ifdef USE_WIN_ACTIVATE
         else {
           if (keymodifier & KM_SHIFT) {
-            win->eventstate->shift = KM_MOD_FIRST;
+            win->eventstate->shift = KM_MOD_HELD;
           }
         }
 #endif
@@ -1209,7 +1210,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 #ifdef USE_WIN_ACTIVATE
         else {
           if (keymodifier & KM_CTRL) {
-            win->eventstate->ctrl = KM_MOD_FIRST;
+            win->eventstate->ctrl = KM_MOD_HELD;
           }
         }
 #endif
@@ -1222,7 +1223,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 #ifdef USE_WIN_ACTIVATE
         else {
           if (keymodifier & KM_ALT) {
-            win->eventstate->alt = KM_MOD_FIRST;
+            win->eventstate->alt = KM_MOD_HELD;
           }
         }
 #endif
@@ -1235,7 +1236,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 #ifdef USE_WIN_ACTIVATE
         else {
           if (keymodifier & KM_OSKEY) {
-            win->eventstate->oskey = KM_MOD_FIRST;
+            win->eventstate->oskey = KM_MOD_HELD;
           }
         }
 #endif
@@ -1945,7 +1946,7 @@ wmWindow *WM_window_find_under_cursor(const wmWindowManager *wm,
     int scr_pos[2];
     wm_window_screen_pos_get(win_iter, desk_pos, scr_pos);
 
-    if (scr_pos[0] >= 0 && win_iter->posy >= 0 && scr_pos[0] <= WM_window_pixels_x(win_iter) &&
+    if (scr_pos[0] >= 0 && scr_pos[1] >= 0 && scr_pos[0] <= WM_window_pixels_x(win_iter) &&
         scr_pos[1] <= WM_window_pixels_y(win_iter)) {
 
       copy_v2_v2_int(r_mval, scr_pos);

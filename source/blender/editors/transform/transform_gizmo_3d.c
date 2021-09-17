@@ -674,7 +674,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   if (ob) {
     float mat[3][3];
     ED_transform_calc_orientation_from_type_ex(
-        C, mat, scene, rv3d, ob, obedit, orient_index, pivot_point);
+        scene, view_layer, v3d, rv3d, ob, obedit, orient_index, pivot_point, mat);
     copy_m4_m3(rv3d->twmat, mat);
   }
 
@@ -1974,8 +1974,8 @@ void VIEW3D_GGT_xform_gizmo(wmGizmoGroupType *gzgt)
   gzgt->name = "3D View: Transform Gizmo";
   gzgt->idname = "VIEW3D_GGT_xform_gizmo";
 
-  gzgt->flag = WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
-               WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
+  gzgt->flag = WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE |
+               WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP | WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
@@ -2216,8 +2216,8 @@ void VIEW3D_GGT_xform_cage(wmGizmoGroupType *gzgt)
   gzgt->name = "Transform Cage";
   gzgt->idname = "VIEW3D_GGT_xform_cage";
 
-  gzgt->flag |= WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
-                WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
+  gzgt->flag |= WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE |
+                WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP | WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
@@ -2459,8 +2459,8 @@ void VIEW3D_GGT_xform_shear(wmGizmoGroupType *gzgt)
   gzgt->name = "Transform Shear";
   gzgt->idname = "VIEW3D_GGT_xform_shear";
 
-  gzgt->flag |= WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
-                WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
+  gzgt->flag |= WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE |
+                WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP | WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;

@@ -40,6 +40,28 @@ float *BKE_image_get_float_pixels_for_frame(void *image, int frame, int tile);
 
 CCL_NAMESPACE_BEGIN
 
+struct BObjectInfo {
+  /* Object directly provided by the depsgraph iterator. This object is only valid during one
+   * iteration and must not be accessed afterwards. Transforms and visibility should be checked on
+   * this object. */
+  BL::Object iter_object;
+
+  /* This object remains alive even after the object iterator is done. It corresponds to one
+   * original object. It is the object that owns the object data below. */
+  BL::Object real_object;
+
+  /* The object-data referenced by the iter object. This is still valid after the depsgraph
+   * iterator is done. It might have a different type compared to real_object.data(). */
+  BL::ID object_data;
+
+  /* True when the current geometry is the data of the referenced object. False when it is a
+   * geometry instance that does not have a 1-to-1 relationship with an object. */
+  bool is_real_object_data() const
+  {
+    return const_cast<BL::Object &>(real_object).data() == object_data;
+  }
+};
+
 typedef BL::ShaderNodeAttribute::attribute_type_enum BlenderAttributeType;
 BlenderAttributeType blender_attribute_name_split_type(ustring name, string *r_real_name);
 
@@ -47,7 +69,7 @@ void python_thread_state_save(void **python_thread_state);
 void python_thread_state_restore(void **python_thread_state);
 
 static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
-                                      BL::Object &object,
+                                      BObjectInfo &b_ob_info,
                                       BL::Depsgraph & /*depsgraph*/,
                                       bool /*calc_undeformed*/,
                                       Mesh::SubdivisionType subdivision_type)
@@ -69,9 +91,9 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
 #endif
 
   BL::Mesh mesh(PointerRNA_NULL);
-  if (object.type() == BL::Object::type_MESH) {
+  if (b_ob_info.object_data.is_a(&RNA_Mesh)) {
     /* TODO: calc_undeformed is not used. */
-    mesh = BL::Mesh(object.data());
+    mesh = BL::Mesh(b_ob_info.object_data);
 
     /* Make a copy to split faces if we use autosmooth, otherwise not needed.
      * Also in edit mode do we need to make a copy, to ensure data layers like
@@ -79,12 +101,15 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
     if (mesh.is_editmode() ||
         (mesh.use_auto_smooth() && subdivision_type == Mesh::SUBDIVISION_NONE)) {
       BL::Depsgraph depsgraph(PointerRNA_NULL);
-      mesh = object.to_mesh(false, depsgraph);
+      assert(b_ob_info.is_real_object_data());
+      mesh = b_ob_info.real_object.to_mesh(false, depsgraph);
     }
   }
   else {
     BL::Depsgraph depsgraph(PointerRNA_NULL);
-    mesh = object.to_mesh(false, depsgraph);
+    if (b_ob_info.is_real_object_data()) {
+      mesh = b_ob_info.real_object.to_mesh(false, depsgraph);
+    }
   }
 
 #if 0
@@ -108,10 +133,14 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
 }
 
 static inline void free_object_to_mesh(BL::BlendData & /*data*/,
-                                       BL::Object &object,
+                                       BObjectInfo &b_ob_info,
                                        BL::Mesh &mesh)
 {
+  if (!b_ob_info.is_real_object_data()) {
+    return;
+  }
   /* Free mesh if we didn't just use the existing one. */
+  BL::Object object = b_ob_info.real_object;
   if (object.data().ptr.data != mesh.ptr.data) {
     object.to_mesh_clear();
   }
@@ -219,9 +248,13 @@ static inline bool BKE_object_is_modified(BL::Object &self, BL::Scene &scene, bo
   return self.is_modified(scene, (preview) ? (1 << 0) : (1 << 1)) ? true : false;
 }
 
-static inline bool BKE_object_is_deform_modified(BL::Object &self, BL::Scene &scene, bool preview)
+static inline bool BKE_object_is_deform_modified(BObjectInfo &self, BL::Scene &scene, bool preview)
 {
-  return self.is_deform_modified(scene, (preview) ? (1 << 0) : (1 << 1)) ? true : false;
+  if (!self.is_real_object_data()) {
+    return false;
+  }
+  return self.real_object.is_deform_modified(scene, (preview) ? (1 << 0) : (1 << 1)) ? true :
+                                                                                       false;
 }
 
 static inline int render_resolution_x(BL::RenderSettings &b_render)
@@ -540,22 +573,6 @@ static inline bool object_use_deform_motion(BL::Object &b_parent, BL::Object &b_
   return use_deform_motion;
 }
 
-static inline BL::FluidDomainSettings object_fluid_liquid_domain_find(BL::Object &b_ob)
-{
-  for (BL::Modifier &b_mod : b_ob.modifiers) {
-    if (b_mod.is_a(&RNA_FluidModifier)) {
-      BL::FluidModifier b_mmd(b_mod);
-
-      if (b_mmd.fluid_type() == BL::FluidModifier::fluid_type_DOMAIN &&
-          b_mmd.domain_settings().domain_type() == BL::FluidDomainSettings::domain_type_LIQUID) {
-        return b_mmd.domain_settings();
-      }
-    }
-  }
-
-  return BL::FluidDomainSettings(PointerRNA_NULL);
-}
-
 static inline BL::FluidDomainSettings object_fluid_gas_domain_find(BL::Object &b_ob)
 {
   for (BL::Modifier &b_mod : b_ob.modifiers) {
@@ -573,7 +590,6 @@ static inline BL::FluidDomainSettings object_fluid_gas_domain_find(BL::Object &b
 }
 
 static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob,
-                                                                   bool check_velocity,
                                                                    bool *has_subdivision_modifier)
 {
   for (int i = b_ob.modifiers.length() - 1; i >= 0; --i) {
@@ -581,13 +597,6 @@ static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b
 
     if (b_mod.type() == BL::Modifier::type_MESH_SEQUENCE_CACHE) {
       BL::MeshSequenceCacheModifier mesh_cache = BL::MeshSequenceCacheModifier(b_mod);
-
-      if (check_velocity) {
-        if (!MeshSequenceCacheModifier_has_velocity_get(&mesh_cache.ptr)) {
-          return BL::MeshSequenceCacheModifier(PointerRNA_NULL);
-        }
-      }
-
       return mesh_cache;
     }
 
@@ -596,9 +605,7 @@ static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b
       continue;
     }
 
-    /* Only skip the subsurf modifier if we are not checking for the mesh sequence cache modifier
-     * for motion blur. */
-    if (b_mod.type() == BL::Modifier::type_SUBSURF && !check_velocity) {
+    if (b_mod.type() == BL::Modifier::type_SUBSURF) {
       if (has_subdivision_modifier) {
         *has_subdivision_modifier = true;
       }

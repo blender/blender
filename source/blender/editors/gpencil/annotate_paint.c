@@ -2423,7 +2423,7 @@ static void annotation_add_missing_events(bContext *C,
 static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   tGPsdata *p = op->customdata;
-  /* default exit state - pass through to support MMB view nav, etc. */
+  /* Default exit state - pass through to support MMB view navigation, etc. */
   int estate = OPERATOR_PASS_THROUGH;
 
   /* NOTE(mike erwin): Not quite what I was looking for, but a good start!

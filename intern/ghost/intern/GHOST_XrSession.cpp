@@ -41,10 +41,13 @@ struct OpenXRSessionData {
   XrSession session = XR_NULL_HANDLE;
   XrSessionState session_state = XR_SESSION_STATE_UNKNOWN;
 
-  /* Only stereo rendering supported now. */
-  const XrViewConfigurationType view_type = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+  /* Use stereo rendering by default. */
+  XrViewConfigurationType view_type = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+  bool foveation_supported = false;
+
   XrSpace reference_space;
   XrSpace view_space;
+  XrSpace combined_eye_space;
   std::vector<XrView> views;
   std::vector<GHOST_XrSwapchain> swapchains;
 
@@ -58,6 +61,9 @@ struct GHOST_XrDrawInfo {
   std::chrono::high_resolution_clock::time_point frame_begin_time;
   /* Time previous frames took for rendering (in ms). */
   std::list<double> last_frame_times;
+
+  /* Whether foveation is active for the frame. */
+  bool foveation_active;
 };
 
 /* -------------------------------------------------------------------- */
@@ -81,6 +87,9 @@ GHOST_XrSession::~GHOST_XrSession()
   }
   if (m_oxr->view_space != XR_NULL_HANDLE) {
     CHECK_XR_ASSERT(xrDestroySpace(m_oxr->view_space));
+  }
+  if (m_oxr->combined_eye_space != XR_NULL_HANDLE) {
+    CHECK_XR_ASSERT(xrDestroySpace(m_oxr->combined_eye_space));
   }
   if (m_oxr->session != XR_NULL_HANDLE) {
     CHECK_XR_ASSERT(xrDestroySession(m_oxr->session));
@@ -189,6 +198,13 @@ static void create_reference_spaces(OpenXRSessionData &oxr, const GHOST_XrPose &
   create_info.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
   CHECK_XR(xrCreateReferenceSpace(oxr.session, &create_info, &oxr.view_space),
            "Failed to create view reference space.");
+
+  /* Foveation reference spaces. */
+  if (oxr.foveation_supported) {
+    create_info.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_COMBINED_EYE_VARJO;
+    CHECK_XR(xrCreateReferenceSpace(oxr.session, &create_info, &oxr.combined_eye_space),
+             "Failed to create combined eye reference space.");
+  }
 }
 
 void GHOST_XrSession::start(const GHOST_XrSessionBeginInfo *begin_info)
@@ -292,8 +308,18 @@ GHOST_XrSession::LifeExpectancy GHOST_XrSession::handleStateChangeEvent(
 
 void GHOST_XrSession::prepareDrawing()
 {
+  assert(m_context->getInstance() != XR_NULL_HANDLE);
+
   std::vector<XrViewConfigurationView> view_configs;
   uint32_t view_count;
+
+  /* Attempt to use quad view if supported. */
+  if (m_context->isExtensionEnabled(XR_VARJO_QUAD_VIEWS_EXTENSION_NAME)) {
+    m_oxr->view_type = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_QUAD_VARJO;
+  }
+
+  m_oxr->foveation_supported = m_context->isExtensionEnabled(
+      XR_VARJO_FOVEATED_RENDERING_EXTENSION_NAME);
 
   CHECK_XR(
       xrEnumerateViewConfigurationViews(
@@ -306,7 +332,36 @@ void GHOST_XrSession::prepareDrawing()
                                              view_configs.size(),
                                              &view_count,
                                              view_configs.data()),
-           "Failed to get count of view configurations.");
+           "Failed to get view configurations.");
+
+  /* If foveated rendering is used, query the foveated views. */
+  if (m_oxr->foveation_supported) {
+    std::vector<XrFoveatedViewConfigurationViewVARJO> request_foveated_config{
+        view_count, {XR_TYPE_FOVEATED_VIEW_CONFIGURATION_VIEW_VARJO, nullptr, XR_TRUE}};
+
+    auto foveated_views = std::vector<XrViewConfigurationView>(view_count,
+                                                               {XR_TYPE_VIEW_CONFIGURATION_VIEW});
+
+    for (uint32_t i = 0; i < view_count; i++) {
+      foveated_views[i].next = &request_foveated_config[i];
+    }
+    CHECK_XR(xrEnumerateViewConfigurationViews(m_context->getInstance(),
+                                               m_oxr->system_id,
+                                               m_oxr->view_type,
+                                               view_configs.size(),
+                                               &view_count,
+                                               foveated_views.data()),
+             "Failed to get foveated view configurations.");
+
+    /* Ensure swapchains have correct size even when foveation is being used. */
+    for (uint32_t i = 0; i < view_count; i++) {
+      view_configs[i].recommendedImageRectWidth = std::max(
+          view_configs[i].recommendedImageRectWidth, foveated_views[i].recommendedImageRectWidth);
+      view_configs[i].recommendedImageRectHeight = std::max(
+          view_configs[i].recommendedImageRectHeight,
+          foveated_views[i].recommendedImageRectHeight);
+    }
+  }
 
   for (const XrViewConfigurationView &view_config : view_configs) {
     m_oxr->swapchains.emplace_back(*m_gpu_binding, m_oxr->session, view_config);
@@ -326,6 +381,20 @@ void GHOST_XrSession::beginFrameDrawing()
   /* TODO Blocking call. Drawing should run on a separate thread to avoid interferences. */
   CHECK_XR(xrWaitFrame(m_oxr->session, &wait_info, &frame_state),
            "Failed to synchronize frame rates between Blender and the device.");
+
+  /* Check if we have foveation available for the current frame. */
+  m_draw_info->foveation_active = false;
+  if (m_oxr->foveation_supported) {
+    XrSpaceLocation render_gaze_location{XR_TYPE_SPACE_LOCATION};
+    CHECK_XR(xrLocateSpace(m_oxr->combined_eye_space,
+                           m_oxr->view_space,
+                           frame_state.predictedDisplayTime,
+                           &render_gaze_location),
+             "Failed to locate combined eye space.");
+
+    m_draw_info->foveation_active = (render_gaze_location.locationFlags &
+                                     XR_SPACE_LOCATION_ORIENTATION_TRACKED_BIT) != 0;
+  }
 
   CHECK_XR(xrBeginFrame(m_oxr->session, &begin_info),
            "Failed to submit frame rendering start state.");
@@ -442,6 +511,8 @@ XrCompositionLayerProjection GHOST_XrSession::drawLayer(
     std::vector<XrCompositionLayerProjectionView> &r_proj_layer_views, void *draw_customdata)
 {
   XrViewLocateInfo viewloc_info = {XR_TYPE_VIEW_LOCATE_INFO};
+  XrViewLocateFoveatedRenderingVARJO foveated_info{
+      XR_TYPE_VIEW_LOCATE_FOVEATED_RENDERING_VARJO, nullptr, true};
   XrViewState view_state = {XR_TYPE_VIEW_STATE};
   XrCompositionLayerProjection layer = {XR_TYPE_COMPOSITION_LAYER_PROJECTION};
   XrSpaceLocation view_location{XR_TYPE_SPACE_LOCATION};
@@ -451,6 +522,10 @@ XrCompositionLayerProjection GHOST_XrSession::drawLayer(
   viewloc_info.displayTime = m_draw_info->frame_state.predictedDisplayTime;
   viewloc_info.space = m_oxr->reference_space;
 
+  if (m_draw_info->foveation_active) {
+    viewloc_info.next = &foveated_info;
+  }
+
   CHECK_XR(xrLocateViews(m_oxr->session,
                          &viewloc_info,
                          &view_state,
@@ -458,6 +533,7 @@ XrCompositionLayerProjection GHOST_XrSession::drawLayer(
                          &view_count,
                          m_oxr->views.data()),
            "Failed to query frame view and projection state.");
+
   assert(m_oxr->swapchains.size() == view_count);
 
   CHECK_XR(

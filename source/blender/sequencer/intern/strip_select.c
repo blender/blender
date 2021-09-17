@@ -34,7 +34,7 @@
 
 Sequence *SEQ_select_active_get(Scene *scene)
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (ed == NULL) {
     return NULL;
@@ -45,7 +45,7 @@ Sequence *SEQ_select_active_get(Scene *scene)
 
 void SEQ_select_active_set(Scene *scene, Sequence *seq)
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (ed == NULL) {
     return;
@@ -56,7 +56,7 @@ void SEQ_select_active_set(Scene *scene, Sequence *seq)
 
 int SEQ_select_active_get_pair(Scene *scene, Sequence **r_seq_act, Sequence **r_seq_other)
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   *r_seq_act = SEQ_select_active_get(scene);
 

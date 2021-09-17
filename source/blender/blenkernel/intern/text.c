@@ -342,9 +342,9 @@ int txt_extended_ascii_as_utf8(char **str)
   return added;
 }
 
-// this function removes any control characters from
-// a textline and fixes invalid utf-8 sequences
-
+/**
+ * Removes any control characters from a text-line and fixes invalid UTF8 sequences.
+ */
 static void cleanup_textline(TextLine *tl)
 {
   int i;

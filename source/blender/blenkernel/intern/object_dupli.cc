@@ -194,6 +194,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
   }
 
   dob->ob = ob;
+  dob->ob_data = (ID *)ob->data;
   mul_m4_m4m4(dob->mat, (float(*)[4])ctx->space_mat, mat);
   dob->type = ctx->gen->type;
 
@@ -834,12 +835,57 @@ static const DupliGenerator gen_dupli_verts_pointcloud = {
 /** \name Instances Geometry Component Implementation
  * \{ */
 
-static void make_duplis_instances_component(const DupliContext *ctx)
+static void make_duplis_geometry_set_impl(const DupliContext *ctx,
+                                          const GeometrySet &geometry_set,
+                                          const float parent_transform[4][4],
+                                          bool geometry_set_is_instance)
 {
-  const InstancesComponent *component =
-      ctx->object->runtime.geometry_set_eval->get_component_for_read<InstancesComponent>();
+  int component_index = 0;
+  if (ctx->object->type != OB_MESH || geometry_set_is_instance) {
+    const Mesh *mesh = geometry_set.get_mesh_for_read();
+    if (mesh != nullptr) {
+      DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
+      dupli->ob_data = (ID *)mesh;
+    }
+  }
+  if (ctx->object->type != OB_VOLUME || geometry_set_is_instance) {
+    const Volume *volume = geometry_set.get_volume_for_read();
+    if (volume != nullptr) {
+      DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
+      dupli->ob_data = (ID *)volume;
+    }
+  }
+  if (!ELEM(ctx->object->type, OB_CURVE, OB_FONT) || geometry_set_is_instance) {
+    const CurveComponent *curve_component = geometry_set.get_component_for_read<CurveComponent>();
+    if (curve_component != nullptr) {
+      const Curve *curve = curve_component->get_curve_for_render();
+      if (curve != nullptr) {
+        DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
+        dupli->ob_data = (ID *)curve;
+      }
+    }
+  }
+  if (ctx->object->type != OB_POINTCLOUD || geometry_set_is_instance) {
+    const PointCloud *pointcloud = geometry_set.get_pointcloud_for_read();
+    if (pointcloud != nullptr) {
+      DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
+      dupli->ob_data = (ID *)pointcloud;
+    }
+  }
+  const bool creates_duplis_for_components = component_index >= 1;
+
+  const InstancesComponent *component = geometry_set.get_component_for_read<InstancesComponent>();
   if (component == nullptr) {
     return;
+  }
+
+  const DupliContext *instances_ctx = ctx;
+  /* Create a sub-context if some duplis were created above. This is to avoid dupli id collisions
+   * between the instances component below and the other components above. */
+  DupliContext new_instances_ctx;
+  if (creates_duplis_for_components) {
+    copy_dupli_context(&new_instances_ctx, ctx, ctx->object, nullptr, component_index);
+    instances_ctx = &new_instances_ctx;
   }
 
   Span<float4x4> instance_offset_matrices = component->instance_transforms();
@@ -855,13 +901,13 @@ static void make_duplis_instances_component(const DupliContext *ctx)
       case InstanceReference::Type::Object: {
         Object &object = reference.object();
         float matrix[4][4];
-        mul_m4_m4m4(matrix, ctx->object->obmat, instance_offset_matrices[i].values);
-        make_dupli(ctx, &object, matrix, id);
+        mul_m4_m4m4(matrix, parent_transform, instance_offset_matrices[i].values);
+        make_dupli(instances_ctx, &object, matrix, id);
 
         float space_matrix[4][4];
         mul_m4_m4m4(space_matrix, instance_offset_matrices[i].values, object.imat);
-        mul_m4_m4_pre(space_matrix, ctx->object->obmat);
-        make_recursive_duplis(ctx, &object, space_matrix, id);
+        mul_m4_m4_pre(space_matrix, parent_transform);
+        make_recursive_duplis(instances_ctx, &object, space_matrix, id);
         break;
       }
       case InstanceReference::Type::Collection: {
@@ -870,21 +916,34 @@ static void make_duplis_instances_component(const DupliContext *ctx)
         unit_m4(collection_matrix);
         sub_v3_v3(collection_matrix[3], collection.instance_offset);
         mul_m4_m4_pre(collection_matrix, instance_offset_matrices[i].values);
-        mul_m4_m4_pre(collection_matrix, ctx->object->obmat);
+        mul_m4_m4_pre(collection_matrix, parent_transform);
 
-        eEvaluationMode mode = DEG_get_mode(ctx->depsgraph);
+        DupliContext sub_ctx;
+        copy_dupli_context(&sub_ctx, instances_ctx, instances_ctx->object, nullptr, id);
+
+        eEvaluationMode mode = DEG_get_mode(instances_ctx->depsgraph);
+        int object_id = 0;
         FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (&collection, object, mode) {
-          if (object == ctx->object) {
+          if (object == instances_ctx->object) {
             continue;
           }
 
           float instance_matrix[4][4];
           mul_m4_m4m4(instance_matrix, collection_matrix, object->obmat);
 
-          make_dupli(ctx, object, instance_matrix, id);
-          make_recursive_duplis(ctx, object, collection_matrix, id);
+          make_dupli(&sub_ctx, object, instance_matrix, object_id++);
+          make_recursive_duplis(&sub_ctx, object, collection_matrix, object_id++);
         }
         FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
+        break;
+      }
+      case InstanceReference::Type::GeometrySet: {
+        float new_transform[4][4];
+        mul_m4_m4m4(new_transform, parent_transform, instance_offset_matrices[i].values);
+
+        DupliContext sub_ctx;
+        copy_dupli_context(&sub_ctx, instances_ctx, instances_ctx->object, nullptr, id);
+        make_duplis_geometry_set_impl(&sub_ctx, reference.geometry_set(), new_transform, true);
         break;
       }
       case InstanceReference::Type::None: {
@@ -894,9 +953,15 @@ static void make_duplis_instances_component(const DupliContext *ctx)
   }
 }
 
-static const DupliGenerator gen_dupli_instances_component = {
+static void make_duplis_geometry_set(const DupliContext *ctx)
+{
+  const GeometrySet *geometry_set = ctx->object->runtime.geometry_set_eval;
+  make_duplis_geometry_set_impl(ctx, *geometry_set, ctx->object->obmat, false);
+}
+
+static const DupliGenerator gen_dupli_geometry_set = {
     0,
-    make_duplis_instances_component,
+    make_duplis_geometry_set,
 };
 
 /** \} */
@@ -1567,8 +1632,8 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
   }
 
   if (ctx->object->runtime.geometry_set_eval != nullptr) {
-    if (BKE_geometry_set_has_instances(ctx->object->runtime.geometry_set_eval)) {
-      return &gen_dupli_instances_component;
+    if (BKE_object_has_geometry_set_instances(ctx->object)) {
+      return &gen_dupli_geometry_set;
     }
   }
 

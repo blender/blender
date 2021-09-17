@@ -914,7 +914,7 @@ static void long_edge_queue_edge_add_recursive(
       for (int i = 0; i < ARRAY_SIZE(l_adjacent); i++) {
         float len_sq_other = BM_edge_calc_length_squared(l_adjacent[i]->e);
         if (len_sq_other > max_ff(len_sq_cmp, limit_len_sq)) {
-          //                  edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
+          // edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
           long_edge_queue_edge_add_recursive(
               eq_ctx, l_adjacent[i]->radial_next, l_adjacent[i], len_sq_other, limit_len);
         }

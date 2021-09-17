@@ -1041,6 +1041,7 @@ static void render_result_uncrop(Render *re)
       render_result_disprect_to_full_resolution(re);
 
       rres = render_result_new(re, &re->disprect, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
+      render_result_passes_allocated_ensure(rres);
       rres->stamp_data = BKE_stamp_data_copy(re->result->stamp_data);
 
       render_result_clone_passes(re, rres, NULL);
@@ -1870,6 +1871,21 @@ static void render_pipeline_free(Render *re)
   }
   /* Destroy the opengl context in the correct thread. */
   RE_gl_context_destroy(re);
+
+  /* In the case the engine did not mark tiles as finished (un-highlight, which could happen in the
+   * case of cancelled render) ensure the storage is empty. */
+  if (re->highlighted_tiles != NULL) {
+    BLI_mutex_lock(&re->highlighted_tiles_mutex);
+
+    /* Rendering is supposed to be finished here, so no new tiles are expected to be written.
+     * Only make it so possible read-only access to the highlighted tiles is thread-safe. */
+    BLI_assert(re->highlighted_tiles);
+
+    BLI_gset_free(re->highlighted_tiles, MEM_freeN);
+    re->highlighted_tiles = NULL;
+
+    BLI_mutex_unlock(&re->highlighted_tiles_mutex);
+  }
 }
 
 /* general Blender frame render call */

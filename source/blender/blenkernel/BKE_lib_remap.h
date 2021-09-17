@@ -112,6 +112,7 @@ void BKE_libblock_relink_ex(struct Main *bmain,
                             const short remap_flags) ATTR_NONNULL(1, 2);
 
 void BKE_libblock_relink_to_newid(struct ID *id) ATTR_NONNULL();
+void BKE_libblock_relink_to_newid_new(struct Main *bmain, struct ID *id) ATTR_NONNULL();
 
 typedef void (*BKE_library_free_notifier_reference_cb)(const void *);
 typedef void (*BKE_library_remap_editor_id_reference_cb)(struct ID *, struct ID *);

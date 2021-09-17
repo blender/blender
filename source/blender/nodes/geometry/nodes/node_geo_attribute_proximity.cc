@@ -26,18 +26,16 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_proximity_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_GEOMETRY, N_("Target")},
-    {SOCK_STRING, N_("Distance")},
-    {SOCK_STRING, N_("Position")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_attribute_proximity_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_attribute_proximity_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Target");
+  b.add_input<decl::String>("Distance");
+  b.add_input<decl::String>("Position");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_attribute_proximity_layout(uiLayout *layout,
                                                 bContext *UNUSED(C),
@@ -54,8 +52,6 @@ static void geo_attribute_proximity_init(bNodeTree *UNUSED(ntree), bNode *node)
   node_storage->target_geometry_element = GEO_NODE_PROXIMITY_TARGET_FACES;
   node->storage = node_storage;
 }
-
-namespace blender::nodes {
 
 static void calculate_mesh_proximity(const VArray<float3> &positions,
                                      const Mesh &mesh,
@@ -241,15 +237,15 @@ void register_node_type_geo_attribute_proximity()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_ATTRIBUTE_PROXIMITY, "Attribute Proximity", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_attribute_proximity_in, geo_node_attribute_proximity_out);
-  node_type_init(&ntype, geo_attribute_proximity_init);
+      &ntype, GEO_NODE_LEGACY_ATTRIBUTE_PROXIMITY, "Attribute Proximity", NODE_CLASS_ATTRIBUTE, 0);
+  node_type_init(&ntype, blender::nodes::geo_attribute_proximity_init);
   node_type_storage(&ntype,
                     "NodeGeometryAttributeProximity",
                     node_free_standard_storage,
                     node_copy_standard_storage);
+
+  ntype.declare = blender::nodes::geo_node_attribute_proximity_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_proximity_exec;
-  ntype.draw_buttons = geo_node_attribute_proximity_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_attribute_proximity_layout;
   nodeRegisterType(&ntype);
 }

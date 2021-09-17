@@ -154,7 +154,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   const bool is_instance = b_instance.is_instance();
   BL::Object b_ob = b_instance.object();
   BL::Object b_parent = is_instance ? b_instance.parent() : b_instance.object();
-  BL::Object b_ob_instance = is_instance ? b_instance.instance_object() : b_ob;
+  BObjectInfo b_ob_info{b_ob, is_instance ? b_instance.instance_object() : b_ob, b_ob.data()};
   const bool motion = motion_time != 0.0f;
   /*const*/ Transform tfm = get_transform(b_ob.matrix_world());
   int *persistent_id = NULL;
@@ -178,8 +178,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
     {
       sync_light(b_parent,
                  persistent_id,
-                 b_ob,
-                 b_ob_instance,
+                 b_ob_info,
                  is_instance ? b_instance.random_id() : 0,
                  tfm,
                  use_portal);
@@ -231,7 +230,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   TaskPool *object_geom_task_pool = (is_instance) ? NULL : geom_task_pool;
 
   /* key to lookup object */
-  ObjectKey key(b_parent, persistent_id, b_ob_instance, use_particle_hair);
+  ObjectKey key(b_parent, persistent_id, b_ob_info.real_object, use_particle_hair);
   Object *object;
 
   /* motion vector case */
@@ -249,12 +248,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
       /* mesh deformation */
       if (object->get_geometry())
-        sync_geometry_motion(b_depsgraph,
-                             b_ob_instance,
-                             object,
-                             motion_time,
-                             use_particle_hair,
-                             object_geom_task_pool);
+        sync_geometry_motion(
+            b_depsgraph, b_ob_info, object, motion_time, use_particle_hair, object_geom_task_pool);
     }
 
     return object;
@@ -265,15 +260,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
                         (tfm != object->get_tfm());
 
   /* mesh sync */
-  /* b_ob is owned by the iterator and will go out of scope at the end of the block.
-   * b_ob_instance is the original object and will remain valid for deferred geometry
-   * sync. */
-  Geometry *geometry = sync_geometry(b_depsgraph,
-                                     b_ob_instance,
-                                     b_ob_instance,
-                                     object_updated,
-                                     use_particle_hair,
-                                     object_geom_task_pool);
+  Geometry *geometry = sync_geometry(
+      b_depsgraph, b_ob_info, object_updated, use_particle_hair, object_geom_task_pool);
   object->set_geometry(geometry);
 
   /* special case not tracked by object update flags */
@@ -616,7 +604,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
        * only available in preview renders since currently do not have a good cache policy, the
        * data being loaded at once for all the frames. */
       if (experimental && b_v3d) {
-        b_mesh_cache = object_mesh_cache_find(b_ob, false, &has_subdivision_modifier);
+        b_mesh_cache = object_mesh_cache_find(b_ob, &has_subdivision_modifier);
         use_procedural = b_mesh_cache && b_mesh_cache.cache_file().use_render_procedural();
       }
 
@@ -731,6 +719,14 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
     }
   }
 
+  /* Check which geometry already has motion blur so it can be skipped. */
+  geometry_motion_attribute_synced.clear();
+  for (Geometry *geom : scene->geometry) {
+    if (geom->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
+      geometry_motion_attribute_synced.insert(geom);
+    }
+  }
+
   /* note iteration over motion_times set happens in sorted order */
   foreach (float relative_time, motion_times) {
     /* center time is already handled. */
@@ -760,6 +756,8 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
     /* sync object */
     sync_objects(b_depsgraph, b_v3d, relative_time);
   }
+
+  geometry_motion_attribute_synced.clear();
 
   /* we need to set the python thread state again because this
    * function assumes it is being executed from python and will

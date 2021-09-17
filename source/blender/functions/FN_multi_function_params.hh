@@ -38,6 +38,7 @@ class MFParamsBuilder {
  private:
   ResourceScope scope_;
   const MFSignature *signature_;
+  IndexMask mask_;
   int64_t min_array_size_;
   Vector<const GVArray *> virtual_arrays_;
   Vector<GMutableSpan> mutable_spans_;
@@ -46,35 +47,39 @@ class MFParamsBuilder {
 
   friend class MFParams;
 
- public:
-  MFParamsBuilder(const MFSignature &signature, int64_t min_array_size)
-      : signature_(&signature), min_array_size_(min_array_size)
+  MFParamsBuilder(const MFSignature &signature, const IndexMask mask)
+      : signature_(&signature), mask_(mask), min_array_size_(mask.min_array_size())
   {
   }
 
-  MFParamsBuilder(const class MultiFunction &fn, int64_t min_array_size);
+ public:
+  MFParamsBuilder(const class MultiFunction &fn, int64_t size);
+  /**
+   * The indices referenced by the #mask has to live longer than the params builder. This is
+   * because the it might have to destruct elements for all masked indices in the end.
+   */
+  MFParamsBuilder(const class MultiFunction &fn, const IndexMask *mask);
 
   template<typename T> void add_readonly_single_input_value(T value, StringRef expected_name = "")
   {
-    T *value_ptr = &scope_.add_value<T>(std::move(value), __func__);
+    T *value_ptr = &scope_.add_value<T>(std::move(value));
     this->add_readonly_single_input(value_ptr, expected_name);
   }
   template<typename T> void add_readonly_single_input(const T *value, StringRef expected_name = "")
   {
-    this->add_readonly_single_input(scope_.construct<GVArray_For_SingleValueRef>(
-                                        __func__, CPPType::get<T>(), min_array_size_, value),
-                                    expected_name);
+    this->add_readonly_single_input(
+        scope_.construct<GVArray_For_SingleValueRef>(CPPType::get<T>(), min_array_size_, value),
+        expected_name);
   }
   void add_readonly_single_input(const GSpan span, StringRef expected_name = "")
   {
-    this->add_readonly_single_input(scope_.construct<GVArray_For_GSpan>(__func__, span),
-                                    expected_name);
+    this->add_readonly_single_input(scope_.construct<GVArray_For_GSpan>(span), expected_name);
   }
   void add_readonly_single_input(GPointer value, StringRef expected_name = "")
   {
-    this->add_readonly_single_input(scope_.construct<GVArray_For_SingleValueRef>(
-                                        __func__, *value.type(), min_array_size_, value.get()),
-                                    expected_name);
+    this->add_readonly_single_input(
+        scope_.construct<GVArray_For_SingleValueRef>(*value.type(), min_array_size_, value.get()),
+        expected_name);
   }
   void add_readonly_single_input(const GVArray &ref, StringRef expected_name = "")
   {
@@ -85,13 +90,13 @@ class MFParamsBuilder {
 
   void add_readonly_vector_input(const GVectorArray &vector_array, StringRef expected_name = "")
   {
-    this->add_readonly_vector_input(
-        scope_.construct<GVVectorArray_For_GVectorArray>(__func__, vector_array), expected_name);
+    this->add_readonly_vector_input(scope_.construct<GVVectorArray_For_GVectorArray>(vector_array),
+                                    expected_name);
   }
   void add_readonly_vector_input(const GSpan single_vector, StringRef expected_name = "")
   {
     this->add_readonly_vector_input(
-        scope_.construct<GVVectorArray_For_SingleGSpan>(__func__, single_vector, min_array_size_),
+        scope_.construct<GVVectorArray_For_SingleGSpan>(single_vector, min_array_size_),
         expected_name);
   }
   void add_readonly_vector_input(const GVVectorArray &ref, StringRef expected_name = "")
@@ -111,6 +116,17 @@ class MFParamsBuilder {
     this->assert_current_param_type(MFParamType::ForSingleOutput(ref.type()), expected_name);
     BLI_assert(ref.size() >= min_array_size_);
     mutable_spans_.append(ref);
+  }
+  void add_ignored_single_output(StringRef expected_name = "")
+  {
+    this->assert_current_param_name(expected_name);
+    const int param_index = this->current_param_index();
+    const MFParamType &param_type = signature_->param_types[param_index];
+    BLI_assert(param_type.category() == MFParamType::SingleOutput);
+    const CPPType &type = param_type.data_type().single_type();
+    /* An empty span indicates that this is ignored. */
+    const GMutableSpan dummy_span{type};
+    mutable_spans_.append(dummy_span);
   }
 
   void add_vector_output(GVectorArray &vector_array, StringRef expected_name = "")
@@ -176,6 +192,19 @@ class MFParamsBuilder {
 #endif
   }
 
+  void assert_current_param_name(StringRef expected_name)
+  {
+    UNUSED_VARS_NDEBUG(expected_name);
+#ifdef DEBUG
+    if (expected_name.is_empty()) {
+      return;
+    }
+    const int param_index = this->current_param_index();
+    StringRef actual_name = signature_->param_names[param_index];
+    BLI_assert(actual_name == expected_name);
+#endif
+  }
+
   int current_param_index() const
   {
     return virtual_arrays_.size() + mutable_spans_.size() + virtual_vector_arrays_.size() +
@@ -195,13 +224,26 @@ class MFParams {
   template<typename T> const VArray<T> &readonly_single_input(int param_index, StringRef name = "")
   {
     const GVArray &array = this->readonly_single_input(param_index, name);
-    return builder_->scope_.construct<VArray_For_GVArray<T>>(__func__, array);
+    return builder_->scope_.construct<GVArray_Typed<T>>(array);
   }
   const GVArray &readonly_single_input(int param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, MFParamType::SingleInput);
     int data_index = builder_->signature_->data_index(param_index);
     return *builder_->virtual_arrays_[data_index];
+  }
+
+  /**
+   * \return True when the caller provided a buffer for this output parameter. This allows the
+   * called multi-function to skip some computation. It is still valid to call
+   * #uninitialized_single_output when this returns false. In this case a new temporary buffer is
+   * allocated.
+   */
+  bool single_output_is_required(int param_index, StringRef name = "")
+  {
+    this->assert_correct_param(param_index, name, MFParamType::SingleOutput);
+    int data_index = builder_->signature_->data_index(param_index);
+    return !builder_->mutable_spans_[data_index].is_empty();
   }
 
   template<typename T>
@@ -213,14 +255,28 @@ class MFParams {
   {
     this->assert_correct_param(param_index, name, MFParamType::SingleOutput);
     int data_index = builder_->signature_->data_index(param_index);
-    return builder_->mutable_spans_[data_index];
+    GMutableSpan span = builder_->mutable_spans_[data_index];
+    if (span.is_empty()) {
+      /* The output is ignored by the caller, but the multi-function does not handle this case. So
+       * create a temporary buffer that the multi-function can write to. */
+      const CPPType &type = span.type();
+      void *buffer = builder_->scope_.linear_allocator().allocate(
+          builder_->min_array_size_ * type.size(), type.alignment());
+      if (!type.is_trivially_destructible()) {
+        /* Make sure the temporary elements will be destructed in the end. */
+        builder_->scope_.add_destruct_call(
+            [&type, buffer, mask = builder_->mask_]() { type.destruct_indices(buffer, mask); });
+      }
+      span = GMutableSpan{type, buffer, builder_->min_array_size_};
+    }
+    return span;
   }
 
   template<typename T>
   const VVectorArray<T> &readonly_vector_input(int param_index, StringRef name = "")
   {
     const GVVectorArray &vector_array = this->readonly_vector_input(param_index, name);
-    return builder_->scope_.construct<VVectorArray_For_GVVectorArray<T>>(__func__, vector_array);
+    return builder_->scope_.construct<VVectorArray_For_GVVectorArray<T>>(vector_array);
   }
   const GVVectorArray &readonly_vector_input(int param_index, StringRef name = "")
   {

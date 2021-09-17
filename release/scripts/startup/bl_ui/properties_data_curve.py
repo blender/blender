@@ -120,7 +120,6 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
             sub = col.column()
             sub.active = (curve.dimensions == '2D' or (curve.bevel_mode != 'OBJECT' and curve.dimensions == '3D'))
             sub.prop(curve, "fill_mode")
-            col.prop(curve, "use_fill_deform")
 
         if is_curve:
             col = layout.column()

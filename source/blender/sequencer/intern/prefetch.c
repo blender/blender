@@ -491,7 +491,7 @@ static void *seq_prefetch_frames(void *job)
      */
     pfjob->scene_eval->ed->prefetch_job = pfjob;
 
-    ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(pfjob->scene, false));
+    ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(pfjob->scene));
     if (seq_prefetch_must_skip_frame(pfjob, seqbase)) {
       pfjob->num_frames_prefetched++;
       continue;

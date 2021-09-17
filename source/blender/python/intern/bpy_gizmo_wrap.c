@@ -41,6 +41,8 @@
 #include "bpy_intern_string.h"
 #include "bpy_rna.h"
 
+#include "../generic/py_capi_rna.h"
+
 /* we may want to add, but not now */
 
 /* -------------------------------------------------------------------- */

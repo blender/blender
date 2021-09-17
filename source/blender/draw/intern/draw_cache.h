@@ -22,6 +22,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct GPUBatch;
 struct GPUMaterial;
 struct ModifierData;
@@ -150,28 +154,14 @@ struct GPUBatch *DRW_cache_mesh_surface_mesh_analysis_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_face_wireframe_get(struct Object *ob);
 
 /* Curve */
-struct GPUBatch *DRW_cache_curve_surface_get(struct Object *ob);
-struct GPUBatch **DRW_cache_curve_surface_shaded_get(struct Object *ob,
-                                                     struct GPUMaterial **gpumat_array,
-                                                     uint gpumat_array_len);
-struct GPUBatch *DRW_cache_curve_loose_edges_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curve_edge_wire_get(struct Object *ob);
-struct GPUBatch *DRW_cache_curve_face_wireframe_get(struct Object *ob);
-struct GPUBatch *DRW_cache_curve_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 /* edit-mode */
 struct GPUBatch *DRW_cache_curve_edge_normal_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curve_edge_overlay_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curve_vert_overlay_get(struct Object *ob);
 
 /* Font */
-struct GPUBatch *DRW_cache_text_surface_get(struct Object *ob);
-struct GPUBatch *DRW_cache_text_edge_detection_get(struct Object *ob, bool *r_is_manifold);
-struct GPUBatch *DRW_cache_text_loose_edges_get(struct Object *ob);
 struct GPUBatch *DRW_cache_text_edge_wire_get(struct Object *ob);
-struct GPUBatch **DRW_cache_text_surface_shaded_get(struct Object *ob,
-                                                    struct GPUMaterial **gpumat_array,
-                                                    uint gpumat_array_len);
-struct GPUBatch *DRW_cache_text_face_wireframe_get(struct Object *ob);
 
 /* Surface */
 struct GPUBatch *DRW_cache_surf_surface_get(struct Object *ob);
@@ -263,3 +253,7 @@ struct GPUBatch *DRW_cache_gpencil_face_wireframe_get(struct Object *ob);
 
 struct bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(struct Object *ob);
 void DRW_cache_gpencil_sbuffer_clear(struct Object *ob);
+
+#ifdef __cplusplus
+}
+#endif

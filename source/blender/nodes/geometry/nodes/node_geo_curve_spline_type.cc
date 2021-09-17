@@ -23,16 +23,14 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_spline_type_in[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {SOCK_STRING, N_("Selection")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_curve_spline_type_out[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {-1, ""},
-};
+static void geo_node_curve_spline_type_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Curve");
+  b.add_input<decl::String>("Selection");
+  b.add_output<decl::Geometry>("Curve");
+}
 
 static void geo_node_curve_spline_type_layout(uiLayout *layout,
                                               bContext *UNUSED(C),
@@ -40,8 +38,6 @@ static void geo_node_curve_spline_type_layout(uiLayout *layout,
 {
   uiItemR(layout, ptr, "spline_type", 0, "", ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void geo_node_curve_spline_type_init(bNodeTree *UNUSED(tree), bNode *node)
 {
@@ -78,14 +74,14 @@ template<typename CopyFn>
 static void copy_attributes(const Spline &input_spline, Spline &output_spline, CopyFn copy_fn)
 {
   input_spline.attributes.foreach_attribute(
-      [&](StringRefNull name, const AttributeMetaData &meta_data) {
-        std::optional<GSpan> src = input_spline.attributes.get_for_read(name);
+      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+        std::optional<GSpan> src = input_spline.attributes.get_for_read(attribute_id);
         BLI_assert(src);
-        if (!output_spline.attributes.create(name, meta_data.data_type)) {
+        if (!output_spline.attributes.create(attribute_id, meta_data.data_type)) {
           BLI_assert_unreachable();
           return false;
         }
-        std::optional<GMutableSpan> dst = output_spline.attributes.get_for_write(name);
+        std::optional<GMutableSpan> dst = output_spline.attributes.get_for_write(attribute_id);
         if (!dst) {
           BLI_assert_unreachable();
           return false;
@@ -292,16 +288,15 @@ void register_node_type_geo_curve_spline_type()
 {
   static bNodeType ntype;
   geo_node_type_base(
-      &ntype, GEO_NODE_CURVE_SPLINE_TYPE, "Set Spline Type", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_curve_spline_type_in, geo_node_curve_spline_type_out);
+      &ntype, GEO_NODE_LEGACY_CURVE_SPLINE_TYPE, "Set Spline Type", NODE_CLASS_GEOMETRY, 0);
+  ntype.declare = blender::nodes::geo_node_curve_spline_type_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_spline_type_exec;
   node_type_init(&ntype, blender::nodes::geo_node_curve_spline_type_init);
   node_type_storage(&ntype,
                     "NodeGeometryCurveSplineType",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.draw_buttons = geo_node_curve_spline_type_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_curve_spline_type_layout;
 
   nodeRegisterType(&ntype);
 }
