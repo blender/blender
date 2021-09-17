@@ -5630,7 +5630,7 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
   ot->poll = ED_operator_editcurve;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* properties */
   RNA_def_float_vector_xyz(ot->srna,

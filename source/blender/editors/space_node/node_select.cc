@@ -923,7 +923,7 @@ void NODE_OT_select_lasso(wmOperatorType *ot)
   ot->cancel = WM_gesture_lasso_cancel;
 
   /* flags */
-  ot->flag = OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* properties */
   RNA_def_boolean(ot->srna,

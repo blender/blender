@@ -269,7 +269,7 @@ void ARMATURE_OT_click_extrude(wmOperatorType *ot)
   ot->poll = ED_operator_editarmature;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* props */
 }

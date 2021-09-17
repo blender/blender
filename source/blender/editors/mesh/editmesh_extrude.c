@@ -935,7 +935,7 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
   ot->poll = ED_operator_editmesh_region_view3d;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   RNA_def_boolean(ot->srna,
                   "rotate_source",
