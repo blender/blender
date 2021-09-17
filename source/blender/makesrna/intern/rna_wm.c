@@ -468,6 +468,13 @@ const EnumPropertyItem rna_enum_operator_type_flag_items[] = {
      "is enabled"},
     {OPTYPE_GRAB_CURSOR_X, "GRAB_CURSOR_X", 0, "Grab Pointer X", "Grab, only warping the X axis"},
     {OPTYPE_GRAB_CURSOR_Y, "GRAB_CURSOR_Y", 0, "Grab Pointer Y", "Grab, only warping the Y axis"},
+    {OPTYPE_DEPENDS_ON_CURSOR,
+     "DEPENDS_ON_CURSOR",
+     0,
+     "Depends on Cursor",
+     "The initial cursor location is used, "
+     "when running from a menus or buttons the user is prompted to place the cursor "
+     "before beginning the operation"},
     {OPTYPE_PRESET, "PRESET", 0, "Preset", "Display a preset button with the operators settings"},
     {OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", "Removes the operator from search results"},
     {0, NULL, 0, NULL, NULL},

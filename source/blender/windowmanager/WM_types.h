@@ -184,6 +184,17 @@ enum {
   OPTYPE_LOCK_BYPASS = (1 << 9),
   /** Special type of undo which doesn't store itself multiple times. */
   OPTYPE_UNDO_GROUPED = (1 << 10),
+
+  /**
+   * Depends on the cursor location, when activated from a menu wait for mouse press.
+   *
+   * In practice these operators often end up being accessed:
+   * - Directly from key bindings.
+   * - As tools in the toolbar.
+   *
+   * Even so, accessing from the menu should behave usefully.
+   */
+  OPTYPE_DEPENDS_ON_CURSOR = (1 << 11),
 };
 
 /** For #WM_cursor_grab_enable wrap axis. */

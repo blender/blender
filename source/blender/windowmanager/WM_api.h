@@ -472,6 +472,12 @@ int WM_operator_call_py(struct bContext *C,
                         struct ReportList *reports,
                         const bool is_undo);
 
+void WM_operator_name_call_ptr_with_depends_on_cursor(struct bContext *C,
+                                                      wmOperatorType *ot,
+                                                      short opcontext,
+                                                      PointerRNA *properties,
+                                                      const char *drawstr);
+
 /* Used for keymap and macro items. */
 void WM_operator_properties_alloc(struct PointerRNA **ptr,
                                   struct IDProperty **properties,

@@ -955,7 +955,8 @@ static void menu_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
   switch (item->type) {
     case MENU_SEARCH_TYPE_OP: {
       CTX_store_set(C, item->op.context);
-      WM_operator_name_call_ptr(C, item->op.type, item->op.opcontext, item->op.opptr);
+      WM_operator_name_call_ptr_with_depends_on_cursor(
+          C, item->op.type, item->op.opcontext, item->op.opptr, item->drawstr);
       CTX_store_set(C, NULL);
       break;
     }
