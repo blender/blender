@@ -289,7 +289,8 @@ set(SRC
   intern/workspace.c
   intern/world.c
   intern/writeavi.c
-  
+  intern/brush_engine.c
+
   BKE_DerivedMesh.h
   BKE_action.h
   BKE_action.hh
@@ -451,6 +452,7 @@ set(SRC
   BKE_workspace.h
   BKE_world.h
   BKE_writeavi.h
+  BKE_brush_engine.h
 
   nla_private.h
   particle_private.h

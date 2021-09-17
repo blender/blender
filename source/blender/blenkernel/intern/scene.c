@@ -69,6 +69,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
+#include "BKE_brush_engine.h"
 #include "BKE_cachefile.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
@@ -849,6 +850,11 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
   if (tos->sculpt) {
     BLO_write_struct(writer, Sculpt, tos->sculpt);
+
+    if (tos->sculpt->channels) {
+      BKE_brush_channelset_write(writer, tos->sculpt->channels);
+    }
+
     BKE_paint_blend_write(writer, &tos->sculpt->paint);
   }
   if (tos->uvsculpt) {
@@ -1049,6 +1055,11 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     sce->toolsettings->particle.scene = NULL;
     sce->toolsettings->particle.object = NULL;
     sce->toolsettings->gp_sculpt.paintcursor = NULL;
+
+    if (sce->toolsettings->sculpt && sce->toolsettings->sculpt->channels) {
+      BLO_read_data_address(reader, &sce->toolsettings->sculpt->channels);
+      BKE_brush_channelset_read(reader, sce->toolsettings->sculpt->channels);
+    }
 
     /* relink grease pencil interpolation curves */
     BLO_read_data_address(reader, &sce->toolsettings->gp_interpolate.custom_ipo);

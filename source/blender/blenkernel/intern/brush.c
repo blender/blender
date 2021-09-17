@@ -34,6 +34,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_brush.h"
+#include "BKE_brush_engine.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
@@ -262,11 +263,20 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (brush->gradient) {
     BLO_write_struct(writer, ColorBand, brush->gradient);
   }
+
+  if (brush->channels) {
+    BKE_brush_channelset_write(writer, brush->channels);
+  }
 }
 
 static void brush_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Brush *brush = (Brush *)id;
+
+  if (brush->channels) {
+    BLO_read_data_address(reader, &brush->channels);
+    BKE_brush_channelset_read(reader, brush->channels);
+  }
 
   if (brush->dyntopo.radius_scale == 0.0f) {
     brush->dyntopo.radius_scale = 1.0f;

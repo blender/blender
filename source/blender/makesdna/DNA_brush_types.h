@@ -36,6 +36,8 @@ struct CurveMapping;
 struct Image;
 struct MTex;
 struct Material;
+struct BrushChannelSet;
+struct BrushCommandList;
 
 typedef struct BrushClone {
   /** Image for clone tool. */
@@ -399,6 +401,12 @@ typedef struct Brush {
   struct BrushGpencilSettings *gpencil_settings;
 
   DynTopoSettings dyntopo, cached_dyntopo;
+
+  /* new brush engine stuff */
+
+  struct BrushChannelSet *channels;
+  struct BrushChannelSet *channels_final;
+  struct BrushCommandList *commandlist;
 } Brush;
 
 /* Struct to hold palette colors for sorting. */

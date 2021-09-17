@@ -971,6 +971,8 @@ typedef struct ParticleEditSettings {
 /* ------------------------------------------- */
 /* Sculpt */
 
+struct BrushChannelSet;
+
 /* Sculpt */
 typedef struct Sculpt {
   Paint paint;
@@ -1004,6 +1006,7 @@ typedef struct Sculpt {
   struct Object *gravity_object;
   float dyntopo_radius_scale;
   int _pad[1];
+  struct BrushChannelSet *channels;
 } Sculpt;
 
 typedef struct UvSculpt {
