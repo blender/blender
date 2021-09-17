@@ -240,8 +240,9 @@ void GPENCIL_cache_init(void *ved)
   }
   else {
     pd->do_onion = true;
-    pd->simplify_fill = false;
-    pd->simplify_fx = false;
+    Scene *scene = draw_ctx->scene;
+    pd->simplify_fill = GPENCIL_SIMPLIFY_FILL(scene, false);
+    pd->simplify_fx = GPENCIL_SIMPLIFY_FX(scene, false);
     pd->fade_layer_opacity = -1.0f;
     pd->playing = false;
   }
