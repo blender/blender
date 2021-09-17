@@ -655,6 +655,7 @@ class TOPBAR_MT_window(Menu):
         layout.separator()
 
         layout.operator("screen.screenshot")
+        layout.operator("screen.screenshot_area")
 
         if sys.platform[:3] == "win":
             layout.separator()

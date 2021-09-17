@@ -128,6 +128,7 @@ extern const char *screen_context_dir[]; /* doc access */
 
 /* screendump.c */
 void SCREEN_OT_screenshot(struct wmOperatorType *ot);
+void SCREEN_OT_screenshot_area(struct wmOperatorType *ot);
 
 /* workspace_layout_edit.c */
 bool workspace_layout_set_poll(const struct WorkSpaceLayout *layout);
