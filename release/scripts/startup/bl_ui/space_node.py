@@ -289,6 +289,7 @@ class NODE_MT_select(Menu):
 
         layout.operator("node.select_box").tweak = False
         layout.operator("node.select_circle")
+        layout.operator_menu_enum("node.select_lasso", "mode")
 
         layout.separator()
         layout.operator("node.select_all").action = 'TOGGLE'

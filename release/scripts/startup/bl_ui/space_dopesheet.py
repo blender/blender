@@ -394,6 +394,7 @@ class DOPESHEET_MT_select(Menu):
         layout.operator("action.select_box", text="Box Select (Axis Range)").axis_range = True
 
         layout.operator("action.select_circle")
+        layout.operator_menu_enum("action.select_lasso", "mode")
 
         layout.separator()
         layout.operator("action.select_column", text="Columns on Selected Keys").mode = 'KEYS'
