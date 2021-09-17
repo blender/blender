@@ -643,6 +643,7 @@ static void initialize_group_input(NodesModifierData &nmd,
   if (!socket_type_has_attribute_toggle(socket)) {
     init_socket_cpp_value_from_property(
         *property, static_cast<eNodeSocketDatatype>(socket.type), r_value);
+    return;
   }
 
   const IDProperty *property_use_attribute = IDP_GetPropertyFromGroup(
@@ -650,7 +651,8 @@ static void initialize_group_input(NodesModifierData &nmd,
   const IDProperty *property_attribute_name = IDP_GetPropertyFromGroup(
       nmd.settings.properties, (socket.identifier + attribute_name_suffix).c_str());
   if (property_use_attribute == nullptr || property_attribute_name == nullptr) {
-    socket.typeinfo->get_geometry_nodes_cpp_value(socket, r_value);
+    init_socket_cpp_value_from_property(
+        *property, static_cast<eNodeSocketDatatype>(socket.type), r_value);
     return;
   }
 
