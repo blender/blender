@@ -44,14 +44,12 @@ else()
 endif()
 
 if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
-  list(APPEND LIBRARIES ${GLUT_LIBRARIES})
+  add_definitions(${GL_DEFINITIONS})
+  list(APPEND INC_SYS ${GLEW_INCLUDE_DIR} ${SDL2_INCLUDE_DIRS})
+  list(APPEND LIBRARIES ${CYCLES_GL_LIBRARIES} ${SDL2_LIBRARIES})
 endif()
 
-list(APPEND LIBRARIES ${CYCLES_GL_LIBRARIES})
-
 # Common configuration.
-
-add_definitions(${GL_DEFINITIONS})
 
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
@@ -66,6 +64,18 @@ if(WITH_CYCLES_STANDALONE)
     oiio_output_driver.cpp
     oiio_output_driver.h
   )
+
+  if(WITH_CYCLES_STANDALONE_GUI)
+    list(APPEND SRC
+      opengl/display_driver.cpp
+      opengl/display_driver.h
+      opengl/shader.cpp
+      opengl/shader.h
+      opengl/window.cpp
+      opengl/window.h
+    )
+  endif()
+
   add_executable(cycles ${SRC} ${INC} ${INC_SYS})
   unset(SRC)
 
@@ -79,6 +89,10 @@ if(WITH_CYCLES_STANDALONE)
     if(WITH_OPENIMAGEDENOISE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
       # OpenImageDenoise uses BNNS from the Accelerate framework.
       set_property(TARGET cycles APPEND_STRING PROPERTY LINK_FLAGS " -framework Accelerate")
+    endif()
+    if(WITH_CYCLES_STANDALONE_GUI)
+      set_property(TARGET cycles APPEND_STRING PROPERTY LINK_FLAGS
+        " -framework Cocoa -framework CoreAudio -framework AudioUnit -framework AudioToolbox -framework ForceFeedback -framework CoreVideo")
     endif()
   endif()
 

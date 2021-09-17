@@ -40,10 +40,9 @@
 #include "app/oiio_output_driver.h"
 
 #ifdef WITH_CYCLES_STANDALONE_GUI
-#  include "util/view.h"
+#  include "opengl/display_driver.h"
+#  include "opengl/window.h"
 #endif
-
-#include "app/cycles_xml.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -130,7 +129,14 @@ static void session_init()
   options.output_pass = "combined";
   options.session = new Session(options.session_params, options.scene_params);
 
-  if (!options.output_filepath.empty()) {
+#ifdef WITH_CYCLES_STANDALONE_GUI
+  if (!options.session_params.background) {
+    options.session->set_display_driver(make_unique<OpenGLDisplayDriver>(
+        window_opengl_context_enable, window_opengl_context_disable));
+  }
+  else
+#endif
+      if (!options.output_filepath.empty()) {
     options.session->set_output_driver(make_unique<OIIOOutputDriver>(
         options.output_filepath, options.output_pass, session_print));
   }
@@ -139,7 +145,7 @@ static void session_init()
     options.session->progress.set_update_callback(function_bind(&session_print_status));
 #ifdef WITH_CYCLES_STANDALONE_GUI
   else
-    options.session->progress.set_update_callback(function_bind(&view_redraw));
+    options.session->progress.set_update_callback(function_bind(&window_redraw));
 #endif
 
   /* load scene */
@@ -204,10 +210,10 @@ static void display_info(Progress &progress)
       sample_time,
       interactive.c_str());
 
-  view_display_info(str.c_str());
+  window_display_info(str.c_str());
 
   if (options.show_help)
-    view_display_help();
+    window_display_help();
 }
 
 static void display()
@@ -538,15 +544,15 @@ int main(int argc, const char **argv)
     string title = "Cycles: " + path_filename(options.filepath);
 
     /* init/exit are callback so they run while GL is initialized */
-    view_main_loop(title.c_str(),
-                   options.width,
-                   options.height,
-                   session_init,
-                   session_exit,
-                   resize,
-                   display,
-                   keyboard,
-                   motion);
+    window_main_loop(title.c_str(),
+                     options.width,
+                     options.height,
+                     session_init,
+                     session_exit,
+                     resize,
+                     display,
+                     keyboard,
+                     motion);
   }
 #endif
 
