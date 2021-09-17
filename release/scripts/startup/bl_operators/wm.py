@@ -2054,7 +2054,7 @@ class BatchRenameAction(bpy.types.PropertyGroup):
 class WM_OT_batch_rename(Operator):
     bl_idname = "wm.batch_rename"
     bl_label = "Batch Rename"
-
+    bl_description = "rename multiple items at once"
     bl_options = {'UNDO'}
 
     data_type: EnumProperty(
