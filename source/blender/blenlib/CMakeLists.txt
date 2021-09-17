@@ -147,6 +147,7 @@ set(SRC
   intern/time.c
   intern/timecode.c
   intern/timeit.cc
+  intern/uuid.cc
   intern/uvproject.c
   intern/voronoi_2d.c
   intern/voxel.c
@@ -310,6 +311,7 @@ set(SRC
   BLI_utildefines_stack.h
   BLI_utildefines_variadic.h
   BLI_utility_mixins.hh
+  BLI_uuid.h
   BLI_uvproject.h
   BLI_vector.hh
   BLI_vector_adaptor.hh
@@ -455,6 +457,7 @@ if(WITH_GTESTS)
     tests/BLI_string_utf8_test.cc
     tests/BLI_task_graph_test.cc
     tests/BLI_task_test.cc
+    tests/BLI_uuid_test.cc
     tests/BLI_vector_set_test.cc
     tests/BLI_vector_test.cc
     tests/BLI_virtual_array_test.cc

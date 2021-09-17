@@ -141,6 +141,7 @@ static const char *includefiles[] = {
     "DNA_volume_types.h",
     "DNA_simulation_types.h",
     "DNA_pointcache_types.h",
+    "DNA_uuid_types.h",
     "DNA_asset_types.h",
 
     /* see comment above before editing! */
@@ -1678,6 +1679,7 @@ int main(int argc, char **argv)
 #include "DNA_texture_types.h"
 #include "DNA_tracking_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_uuid_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_view2d_types.h"
