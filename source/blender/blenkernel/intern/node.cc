@@ -992,7 +992,7 @@ IDTypeInfo IDType_ID_NT = {
     /* name */ "NodeTree",
     /* name_plural */ "node_groups",
     /* translation_context */ BLT_I18NCONTEXT_ID_NODETREE,
-    /* flags */ 0,
+    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     /* init_data */ ntree_init_data,
     /* copy_data */ ntree_copy_data,

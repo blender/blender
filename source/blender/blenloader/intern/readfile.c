@@ -2195,6 +2195,13 @@ static void direct_link_id_common(
   /* Initialize with provided tag. */
   id->tag = tag;
 
+  if (ID_IS_LINKED(id)) {
+    id->library_weak_reference = NULL;
+  }
+  else {
+    BLO_read_data_address(reader, &id->library_weak_reference);
+  }
+
   if (tag & LIB_TAG_ID_LINK_PLACEHOLDER) {
     /* For placeholder we only need to set the tag and properly initialize generic ID fields above,
      * no further data to read. */

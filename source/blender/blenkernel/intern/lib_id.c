@@ -1301,6 +1301,9 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
     new_id->properties = IDP_CopyProperty_ex(id->properties, copy_data_flag);
   }
 
+  /* This is never duplicated, only one existing ID should have a given weak ref to library/ID. */
+  new_id->library_weak_reference = NULL;
+
   if ((orig_flag & LIB_ID_COPY_NO_LIB_OVERRIDE) == 0) {
     if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
       /* We do not want to copy existing override rules here, as they would break the proper
@@ -2438,6 +2441,10 @@ void BKE_id_blend_write(BlendWriter *writer, ID *id)
 {
   if (id->asset_data) {
     BKE_asset_metadata_write(writer, id->asset_data);
+  }
+
+  if (id->library_weak_reference != NULL) {
+    BLO_write_struct(writer, LibraryWeakReference, id->library_weak_reference);
   }
 
   /* ID_WM's id->properties are considered runtime only, and never written in .blend file. */

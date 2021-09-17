@@ -315,7 +315,7 @@ IDTypeInfo IDType_ID_AR = {
     .name = "Armature",
     .name_plural = "armatures",
     .translation_context = BLT_I18NCONTEXT_ID_ARMATURE,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = armature_init_data,
     .copy_data = armature_copy_data,

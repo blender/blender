@@ -360,7 +360,7 @@ IDTypeInfo IDType_ID_ME = {
     .name = "Mesh",
     .name_plural = "meshes",
     .translation_context = BLT_I18NCONTEXT_ID_MESH,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = mesh_init_data,
     .copy_data = mesh_copy_data,

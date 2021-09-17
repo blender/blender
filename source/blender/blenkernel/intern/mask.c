@@ -254,7 +254,7 @@ IDTypeInfo IDType_ID_MSK = {
     .name = "Mask",
     .name_plural = "masks",
     .translation_context = BLT_I18NCONTEXT_ID_MASK,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = NULL,
     .copy_data = mask_copy_data,

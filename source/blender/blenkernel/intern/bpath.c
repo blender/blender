@@ -586,6 +586,11 @@ void BKE_bpath_traverse_id(
     return;
   }
 
+  if (id->library_weak_reference != NULL) {
+    rewrite_path_fixed(
+        id->library_weak_reference->library_filepath, visit_cb, absbase, bpath_user_data);
+  }
+
   switch (GS(id->name)) {
     case ID_IM: {
       Image *ima;

@@ -193,7 +193,7 @@ IDTypeInfo IDType_ID_LA = {
     .name = "Light",
     .name_plural = "lights",
     .translation_context = BLT_I18NCONTEXT_ID_LIGHT,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = light_init_data,
     .copy_data = light_copy_data,

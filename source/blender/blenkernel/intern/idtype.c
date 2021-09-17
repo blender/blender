@@ -255,6 +255,24 @@ bool BKE_idtype_idcode_is_only_appendable(const short idcode)
 }
 
 /**
+ * Check if an ID type can try to reuse and existing matching local one when being appended again.
+ *
+ * \param idcode: The IDType code to check.
+ * \return Boolean, false when it cannot be re-used, true otherwise.
+ */
+bool BKE_idtype_idcode_append_is_reusable(const short idcode)
+{
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(idcode);
+  BLI_assert(id_type != NULL);
+  if (id_type != NULL && (id_type->flags & IDTYPE_FLAGS_APPEND_IS_REUSABLE) != 0) {
+    /* All appendable ID types should also always be linkable. */
+    BLI_assert((id_type->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0);
+    return true;
+  }
+  return false;
+}
+
+/**
  * Convert an \a idcode into an \a idfilter (e.g. ID_OB -> FILTER_ID_OB).
  */
 uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)

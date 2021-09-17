@@ -241,7 +241,7 @@ IDTypeInfo IDType_ID_TXT = {
     .name = "Text",
     .name_plural = "texts",
     .translation_context = BLT_I18NCONTEXT_ID_TEXT,
-    .flags = IDTYPE_FLAGS_NO_ANIMDATA,
+    .flags = IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = text_init_data,
     .copy_data = text_copy_data,

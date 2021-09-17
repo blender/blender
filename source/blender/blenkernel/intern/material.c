@@ -259,7 +259,7 @@ IDTypeInfo IDType_ID_MA = {
     .name = "Material",
     .name_plural = "materials",
     .translation_context = BLT_I18NCONTEXT_ID_MATERIAL,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = material_init_data,
     .copy_data = material_copy_data,

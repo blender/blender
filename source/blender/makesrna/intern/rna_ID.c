@@ -1936,6 +1936,15 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop, "Library", "Library file the data-block is linked from");
 
+  prop = RNA_def_pointer(srna,
+                         "library_weak_reference",
+                         "LibraryWeakReference",
+                         "Library Weak Reference",
+                         "Weak reference to a data-block in another library .blend file (used to "
+                         "re-use already appended data instead of appending new copies)");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
+
   prop = RNA_def_property(srna, "asset_data", PROP_POINTER, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
@@ -2143,6 +2152,31 @@ static void rna_def_library(BlenderRNA *brna)
   RNA_def_function_ui_description(func, "Reload this library and all its linked data-blocks");
 }
 
+static void rna_def_library_weak_reference(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "LibraryWeakReference", NULL);
+  RNA_def_struct_ui_text(
+      srna,
+      "LibraryWeakReference",
+      "Read-only external reference to a linked data-block and its library file");
+
+  prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
+  RNA_def_property_string_sdna(prop, NULL, "library_filepath");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "File Path", "Path to the library .blend file");
+
+  prop = RNA_def_property(srna, "id_name", PROP_STRING, PROP_FILEPATH);
+  RNA_def_property_string_sdna(prop, NULL, "library_id_name");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "ID name",
+      "Full ID name in the library .blend file (including the two leading 'id type' chars)");
+}
+
 /**
  * \attention This is separate from the above. It allows for RNA functions to
  * return an IDProperty *. See MovieClip.metadata for a usage example.
@@ -2175,6 +2209,7 @@ void RNA_def_ID(BlenderRNA *brna)
   rna_def_ID_properties(brna);
   rna_def_ID_materials(brna);
   rna_def_library(brna);
+  rna_def_library_weak_reference(brna);
   rna_def_idproperty_wrap_ptr(brna);
 }
 

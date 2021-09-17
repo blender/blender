@@ -69,6 +69,10 @@ void BKE_libblock_free_data(ID *id, const bool do_id_user)
     BKE_asset_metadata_free(&id->asset_data);
   }
 
+  if (id->library_weak_reference != NULL) {
+    MEM_freeN(id->library_weak_reference);
+  }
+
   BKE_animdata_free(id, do_id_user);
 }
 

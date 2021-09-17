@@ -190,6 +190,9 @@ typedef struct WMLinkAppendData {
   /** Allows to easily find an existing items from an ID pointer. Used by append code. */
   GHash *new_id_to_item;
 
+  /** Runtime info used by append code to manage re-use of already appended matching IDs. */
+  GHash *library_weak_reference_mapping;
+
   /* Internal 'private' data */
   MemArena *memarena;
 } WMLinkAppendData;
@@ -229,6 +232,8 @@ static void wm_link_append_data_free(WMLinkAppendData *lapp_data)
   if (lapp_data->new_id_to_item != NULL) {
     BLI_ghash_free(lapp_data->new_id_to_item, NULL, NULL);
   }
+
+  BLI_assert(lapp_data->library_weak_reference_mapping == NULL);
 
   BLI_memarena_free(lapp_data->memarena);
 }
@@ -637,6 +642,9 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     BLI_ghash_insert(lapp_data->new_id_to_item, id, item);
   }
 
+  const bool do_reuse_existing_id = false;
+  lapp_data->library_weak_reference_mapping = BKE_main_library_weak_reference_create(bmain);
+
   /* NOTE: Since we append items for IDs not already listed (i.e. implicitly linked indirect
    * dependencies), this list will grow and we will process those IDs later, leading to a flatten
    * recursive processing of all the linked dependencies. */
@@ -650,7 +658,14 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
 
     /* Clear tag previously used to mark IDs needing post-processing (instantiation of loose
      * objects etc.). */
-    id->tag &= ~LIB_TAG_DOIT;
+    BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
+
+    ID *existing_local_id = BKE_idtype_idcode_append_is_reusable(GS(id->name)) ?
+                                BKE_main_library_weak_reference_search_item(
+                                    lapp_data->library_weak_reference_mapping,
+                                    id->lib->filepath,
+                                    id->name) :
+                                NULL;
 
     if (item->append_action != WM_APPEND_ACT_UNSET) {
       /* Already set, pass. */
@@ -658,6 +673,14 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     if (GS(id->name) == ID_OB && ((Object *)id)->proxy_from != NULL) {
       CLOG_INFO(&LOG, 3, "Appended ID '%s' is proxified, keeping it linked...", id->name);
       item->append_action = WM_APPEND_ACT_KEEP_LINKED;
+    }
+    /* Only re-use existing local ID for indirectly linked data, the ID explicitely selected by the
+     * user we always fully append. */
+    else if (do_reuse_existing_id && existing_local_id != NULL &&
+             (item->append_tag & WM_APPEND_TAG_INDIRECT) != 0) {
+      CLOG_INFO(&LOG, 3, "Appended ID '%s' as a matching local one, re-using it...", id->name);
+      item->append_action = WM_APPEND_ACT_REUSE_LOCAL;
+      item->customdata = existing_local_id;
     }
     else if (id->tag & LIB_TAG_PRE_EXISTING) {
       CLOG_INFO(&LOG, 3, "Appended ID '%s' was already linked, need to copy it...", id->name);
@@ -678,6 +701,16 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
       BKE_library_foreach_ID_link(
           bmain, id, foreach_libblock_append_callback, &cb_data, IDWALK_NOP);
     }
+
+    /* If we found a matching existing local id but are not re-using it, we need to properly clear
+     * its weak reference to linked data. */
+    if (existing_local_id != NULL &&
+        !ELEM(item->append_action, WM_APPEND_ACT_KEEP_LINKED, WM_APPEND_ACT_REUSE_LOCAL)) {
+      BKE_main_library_weak_reference_remove_item(lapp_data->library_weak_reference_mapping,
+                                                  id->lib->filepath,
+                                                  id->name,
+                                                  existing_local_id);
+    }
   }
 
   /* Effectively perform required operation on every linked ID. */
@@ -689,6 +722,11 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     }
 
     ID *local_appended_new_id = NULL;
+    char lib_filepath[FILE_MAX];
+    BLI_strncpy(lib_filepath, id->lib->filepath, sizeof(lib_filepath));
+    char lib_id_name[MAX_ID_NAME];
+    BLI_strncpy(lib_id_name, id->name, sizeof(lib_id_name));
+
     switch (item->append_action) {
       case WM_APPEND_ACT_COPY_LOCAL: {
         BKE_lib_id_make_local(
@@ -721,6 +759,13 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     }
 
     if (local_appended_new_id != NULL) {
+      if (BKE_idtype_idcode_append_is_reusable(GS(local_appended_new_id->name))) {
+        BKE_main_library_weak_reference_add_item(lapp_data->library_weak_reference_mapping,
+                                                 lib_filepath,
+                                                 lib_id_name,
+                                                 local_appended_new_id);
+      }
+
       if (GS(local_appended_new_id->name) == ID_OB) {
         BKE_rigidbody_ensure_local_object(bmain, (Object *)local_appended_new_id);
       }
@@ -732,6 +777,9 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
       }
     }
   }
+
+  BKE_main_library_weak_reference_destroy(lapp_data->library_weak_reference_mapping);
+  lapp_data->library_weak_reference_mapping = NULL;
 
   /* Remap IDs as needed. */
   for (itemlink = lapp_data->items.list; itemlink; itemlink = itemlink->next) {
@@ -745,7 +793,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     if (id == NULL) {
       continue;
     }
-    if (item->append_action == WM_APPEND_ACT_COPY_LOCAL) {
+    if (ELEM(item->append_action, WM_APPEND_ACT_COPY_LOCAL, WM_APPEND_ACT_REUSE_LOCAL)) {
       BLI_assert(ID_IS_LINKED(id));
       id = id->newid;
       if (id == NULL) {
