@@ -3615,6 +3615,12 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Gradient", "");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "channels", PROP_POINTER, 0);
+  RNA_def_property_pointer_sdna(prop, NULL, "channels");
+  RNA_def_property_struct_type(prop, "BrushChannelSet");
+  RNA_def_property_ui_text(prop, "Channels", "");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   /* gradient source */
   prop = RNA_def_property(srna, "gradient_stroke_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_gradient_items);

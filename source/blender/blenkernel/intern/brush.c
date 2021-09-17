@@ -269,13 +269,16 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
 }
 
-static void brush_blend_read_data(BlendDataReader *reader, ID *id)
+ATTR_NO_OPT static void brush_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Brush *brush = (Brush *)id;
 
   if (brush->channels) {
     BLO_read_data_address(reader, &brush->channels);
     BKE_brush_channelset_read(reader, brush->channels);
+  }
+  else {
+    BKE_brush_builtin_create(brush, brush->sculpt_tool);
   }
 
   if (brush->dyntopo.radius_scale == 0.0f) {
