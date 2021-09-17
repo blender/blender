@@ -887,7 +887,7 @@ void blo_do_versions_userdef(UserDef *userdef)
 
   if (!USER_VERSION_ATLEAST(300, 21)) {
     /* Deprecated userdef->flag USER_SAVE_PREVIEWS */
-    userdef->file_preview_type = (userdef->flag & USER_FLAG_UNUSED_5) ? USER_FILE_PREVIEW_CAMERA :
+    userdef->file_preview_type = (userdef->flag & USER_FLAG_UNUSED_5) ? USER_FILE_PREVIEW_AUTO :
                                                                         USER_FILE_PREVIEW_NONE;
     /* Clear for reuse. */
     userdef->flag &= ~USER_FLAG_UNUSED_5;

@@ -6060,6 +6060,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 
   static const EnumPropertyItem preview_type_items[] = {
       {USER_FILE_PREVIEW_NONE, "NONE", 0, "None", "Do not create blend previews"},
+      {USER_FILE_PREVIEW_AUTO, "AUTO", 0, "Auto", "Automatically select best preview type"},
       {USER_FILE_PREVIEW_SCREENSHOT, "SCREENSHOT", 0, "Screenshot", "Capture the entire window"},
       {USER_FILE_PREVIEW_CAMERA, "CAMERA", 0, "Camera View", "Workbench render of scene"},
       {0, NULL, 0, NULL, NULL},

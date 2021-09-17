@@ -1015,6 +1015,7 @@ typedef enum eUserPref_Flag {
 /** #UserDef.file_preview_type */
 typedef enum eUserpref_File_Preview_Type {
   USER_FILE_PREVIEW_NONE = 0,
+  USER_FILE_PREVIEW_AUTO,
   USER_FILE_PREVIEW_SCREENSHOT,
   USER_FILE_PREVIEW_CAMERA,
 } eUserpref_File_Preview_Type;
