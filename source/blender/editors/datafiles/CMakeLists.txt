@@ -742,6 +742,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.particle.puff
   brush.particle.smooth
   brush.particle.weight
+  brush.sculpt.array
   brush.sculpt.blob
   brush.sculpt.boundary
   brush.sculpt.clay
@@ -754,6 +755,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.sculpt.draw_face_sets
   brush.sculpt.draw_sharp
   brush.sculpt.elastic_deform
+  brush.sculpt.fairing
   brush.sculpt.fill
   brush.sculpt.flatten
   brush.sculpt.grab
@@ -766,6 +768,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.sculpt.pinch
   brush.sculpt.pose
   brush.sculpt.rotate
+  brush.sculpt.scene_project
   brush.sculpt.scrape
   brush.sculpt.simplify
   brush.sculpt.smear
