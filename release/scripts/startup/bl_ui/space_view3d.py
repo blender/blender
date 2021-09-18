@@ -1363,6 +1363,7 @@ class VIEW3D_MT_select_object(Menu):
 
         layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
+        layout.operator_menu_enum("view3d.select_lasso", "mode")
 
         layout.separator()
 
@@ -1423,6 +1424,7 @@ class VIEW3D_MT_select_pose(Menu):
 
         layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
+        layout.operator_menu_enum("view3d.select_lasso", "mode")
 
         layout.separator()
 
@@ -1457,6 +1459,7 @@ class VIEW3D_MT_select_particle(Menu):
 
         layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
+        layout.operator_menu_enum("view3d.select_lasso", "mode")
 
         layout.separator()
 
@@ -1563,6 +1566,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
+        layout.operator_menu_enum("view3d.select_lasso", "mode")
 
         layout.separator()
 
@@ -1616,6 +1620,7 @@ class VIEW3D_MT_select_edit_curve(Menu):
 
         layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
+        layout.operator_menu_enum("view3d.select_lasso", "mode")
 
         layout.separator()
 
@@ -1651,6 +1656,7 @@ class VIEW3D_MT_select_edit_surface(Menu):
 
         layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
+        layout.operator_menu_enum("view3d.select_lasso", "mode")
 
         layout.separator()
 
@@ -1712,6 +1718,7 @@ class VIEW3D_MT_select_edit_metaball(Menu):
 
         layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
+        layout.operator_menu_enum("view3d.select_lasso", "mode")
 
         layout.separator()
 
@@ -1753,6 +1760,7 @@ class VIEW3D_MT_select_edit_lattice(Menu):
 
         layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
+        layout.operator_menu_enum("view3d.select_lasso", "mode")
 
         layout.separator()
 
@@ -1783,6 +1791,7 @@ class VIEW3D_MT_select_edit_armature(Menu):
 
         layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
+        layout.operator_menu_enum("view3d.select_lasso", "mode")
 
         layout.separator()
 
@@ -1850,6 +1859,7 @@ class VIEW3D_MT_select_gpencil(Menu):
 
         layout.operator("gpencil.select_box")
         layout.operator("gpencil.select_circle")
+        layout.operator_menu_enum("gpencil.select_lasso", "mode")
 
         layout.separator()
 
@@ -1886,6 +1896,7 @@ class VIEW3D_MT_select_paint_mask(Menu):
 
         layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
+        layout.operator_menu_enum("view3d.select_lasso", "mode")
 
         layout.separator()
 
@@ -1906,6 +1917,7 @@ class VIEW3D_MT_select_paint_mask_vertex(Menu):
 
         layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
+        layout.operator_menu_enum("view3d.select_lasso", "mode")
 
         layout.separator()
 
@@ -3984,6 +3996,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.extrude_vertices_move", text="Extrude Vertices")
+        layout.operator("mesh.dupli_extrude_cursor").rotate_source = True
         layout.operator("mesh.bevel", text="Bevel Vertices").affect = 'VERTICES'
 
         layout.separator()
@@ -4415,6 +4428,7 @@ class VIEW3D_MT_edit_curve_ctrlpoints(Menu):
 
         if edit_object.type in {'CURVE', 'SURFACE'}:
             layout.operator("curve.extrude_move")
+            layout.operator("curve.vertex_add")
 
             layout.separator()
 
@@ -4743,6 +4757,7 @@ class VIEW3D_MT_edit_armature(Menu):
         layout.separator()
 
         layout.operator("armature.extrude_move")
+        layout.operator("armature.click_extrude")
 
         if arm.use_mirror_x:
             layout.operator("armature.extrude_forked")

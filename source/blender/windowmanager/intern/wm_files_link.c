@@ -709,7 +709,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
         break;
       case WM_APPEND_ACT_REUSE_LOCAL:
         /* We only need to set `newid` to ID found in previous loop, for proper remapping. */
-        ID_NEW_SET(id->newid, item->customdata);
+        ID_NEW_SET(id, item->customdata);
         /* This is not a 'new' local appended id, do not set `local_appended_new_id` here. */
         break;
       case WM_APPEND_ACT_UNSET:

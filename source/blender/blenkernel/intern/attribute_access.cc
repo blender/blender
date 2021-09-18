@@ -1321,7 +1321,9 @@ const GVArray *AttributeFieldInput::get_varray_for_context(const fn::FieldContex
     const AttributeDomain domain = geometry_context->domain();
     const CustomDataType data_type = cpp_type_to_custom_data_type(*type_);
     GVArrayPtr attribute = component.attribute_try_get_for_read(name_, domain, data_type);
-    return scope.add(std::move(attribute));
+    if (attribute) {
+      return scope.add(std::move(attribute));
+    }
   }
   return nullptr;
 }

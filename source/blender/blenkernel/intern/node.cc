@@ -3947,6 +3947,9 @@ void nodeDeclarationEnsure(bNodeTree *UNUSED(ntree), bNode *node)
   if (node->typeinfo->declare == nullptr) {
     return;
   }
+  if (node->declaration != nullptr) {
+    return;
+  }
 
   node->declaration = new blender::nodes::NodeDeclaration();
   blender::nodes::NodeDeclarationBuilder builder{*node->declaration};

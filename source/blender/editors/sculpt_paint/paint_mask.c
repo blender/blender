@@ -1683,7 +1683,7 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 
   ot->poll = SCULPT_mode_poll_view3d;
 
-  ot->flag = OPTYPE_REGISTER;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
@@ -1746,6 +1746,8 @@ void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
 
   ot->poll = SCULPT_mode_poll_view3d;
 
+  ot->flag = OPTYPE_DEPENDS_ON_CURSOR;
+
   /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
   sculpt_gesture_operator_properties(ot);
@@ -1782,7 +1784,7 @@ void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot)
 
   ot->poll = SCULPT_mode_poll_view3d;
 
-  ot->flag = OPTYPE_REGISTER;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* Properties. */
   WM_operator_properties_gesture_lasso(ot);

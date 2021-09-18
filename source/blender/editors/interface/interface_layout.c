@@ -921,10 +921,10 @@ static void ui_keymap_but_cb(bContext *UNUSED(C), void *but_v, void *UNUSED(key_
 {
   uiBut *but = but_v;
 
-  RNA_boolean_set(&but->rnapoin, "shift", (but->modifier_key & KM_SHIFT) != 0);
-  RNA_boolean_set(&but->rnapoin, "ctrl", (but->modifier_key & KM_CTRL) != 0);
-  RNA_boolean_set(&but->rnapoin, "alt", (but->modifier_key & KM_ALT) != 0);
-  RNA_boolean_set(&but->rnapoin, "oskey", (but->modifier_key & KM_OSKEY) != 0);
+  RNA_int_set(&but->rnapoin, "shift", (but->modifier_key & KM_SHIFT) ? KM_MOD_HELD : KM_NOTHING);
+  RNA_int_set(&but->rnapoin, "ctrl", (but->modifier_key & KM_CTRL) ? KM_MOD_HELD : KM_NOTHING);
+  RNA_int_set(&but->rnapoin, "alt", (but->modifier_key & KM_ALT) ? KM_MOD_HELD : KM_NOTHING);
+  RNA_int_set(&but->rnapoin, "oskey", (but->modifier_key & KM_OSKEY) ? KM_MOD_HELD : KM_NOTHING);
 }
 
 /**

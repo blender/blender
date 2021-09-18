@@ -74,6 +74,8 @@ typedef enum WMCursorType {
   WM_CURSOR_NONE,
   WM_CURSOR_MUTE,
 
+  WM_CURSOR_PICK_AREA,
+
   /* --- ALWAYS LAST ----- */
   WM_CURSOR_NUM,
 } WMCursorType;

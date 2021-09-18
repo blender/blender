@@ -92,6 +92,7 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_texture_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_tracking_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_userdef_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_uuid_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_vec_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_vfont_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_view2d_types.h

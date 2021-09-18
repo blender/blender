@@ -39,6 +39,8 @@
 #include "wm_cursors.h"
 #include "wm_event_types.h"
 
+#include "WM_types.h"
+
 #include "rna_internal.h" /* own include */
 
 /* confusing 2 enums mixed up here */
@@ -216,49 +218,70 @@ static int rna_Operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
   return WM_operator_props_popup(C, op, event);
 }
 
+static int keymap_item_modifier_flag_from_args(bool any, int shift, int ctrl, int alt, int oskey)
+{
+  int modifier = 0;
+  if (any) {
+    modifier = KM_ANY;
+  }
+  else {
+    if (shift == KM_MOD_HELD) {
+      modifier |= KM_SHIFT;
+    }
+    else if (shift == KM_ANY) {
+      modifier |= KM_SHIFT_ANY;
+    }
+
+    if (ctrl == KM_MOD_HELD) {
+      modifier |= KM_CTRL;
+    }
+    else if (ctrl == KM_ANY) {
+      modifier |= KM_CTRL_ANY;
+    }
+
+    if (alt == KM_MOD_HELD) {
+      modifier |= KM_ALT;
+    }
+    else if (alt == KM_ANY) {
+      modifier |= KM_ALT_ANY;
+    }
+
+    if (oskey == KM_MOD_HELD) {
+      modifier |= KM_OSKEY;
+    }
+    else if (oskey == KM_ANY) {
+      modifier |= KM_OSKEY_ANY;
+    }
+  }
+  return modifier;
+}
+
 static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km,
                                          ReportList *reports,
                                          const char *idname,
                                          int type,
                                          int value,
                                          bool any,
-                                         bool shift,
-                                         bool ctrl,
-                                         bool alt,
-                                         bool oskey,
+                                         int shift,
+                                         int ctrl,
+                                         int alt,
+                                         int oskey,
                                          int keymodifier,
                                          bool repeat,
                                          bool head)
 {
-  // wmWindowManager *wm = CTX_wm_manager(C);
-  wmKeyMapItem *kmi = NULL;
-  char idname_bl[OP_MAX_TYPENAME];
-  int modifier = 0;
-
   /* only on non-modal maps */
   if (km->flag & KEYMAP_MODAL) {
     BKE_report(reports, RPT_ERROR, "Not a non-modal keymap");
     return NULL;
   }
 
+  // wmWindowManager *wm = CTX_wm_manager(C);
+  wmKeyMapItem *kmi = NULL;
+  char idname_bl[OP_MAX_TYPENAME];
+  const int modifier = keymap_item_modifier_flag_from_args(any, shift, ctrl, alt, oskey);
+
   WM_operator_bl_idname(idname_bl, idname);
-
-  if (shift) {
-    modifier |= KM_SHIFT;
-  }
-  if (ctrl) {
-    modifier |= KM_CTRL;
-  }
-  if (alt) {
-    modifier |= KM_ALT;
-  }
-  if (oskey) {
-    modifier |= KM_OSKEY;
-  }
-
-  if (any) {
-    modifier = KM_ANY;
-  }
 
   /* create keymap item */
   kmi = WM_keymap_add_item(km, idname_bl, type, value, modifier, keymodifier);
@@ -305,39 +328,22 @@ static wmKeyMapItem *rna_KeyMap_item_new_modal(wmKeyMap *km,
                                                int type,
                                                int value,
                                                bool any,
-                                               bool shift,
-                                               bool ctrl,
-                                               bool alt,
-                                               bool oskey,
+                                               int shift,
+                                               int ctrl,
+                                               int alt,
+                                               int oskey,
                                                int keymodifier,
                                                bool repeat)
 {
-  wmKeyMapItem *kmi = NULL;
-  int modifier = 0;
-  int propvalue = 0;
-
   /* only modal maps */
   if ((km->flag & KEYMAP_MODAL) == 0) {
     BKE_report(reports, RPT_ERROR, "Not a modal keymap");
     return NULL;
   }
 
-  if (shift) {
-    modifier |= KM_SHIFT;
-  }
-  if (ctrl) {
-    modifier |= KM_CTRL;
-  }
-  if (alt) {
-    modifier |= KM_ALT;
-  }
-  if (oskey) {
-    modifier |= KM_OSKEY;
-  }
-
-  if (any) {
-    modifier = KM_ANY;
-  }
+  wmKeyMapItem *kmi = NULL;
+  const int modifier = keymap_item_modifier_flag_from_args(any, shift, ctrl, alt, oskey);
+  int propvalue = 0;
 
   /* not initialized yet, do delayed lookup */
   if (!km->modal_items) {
@@ -641,7 +647,7 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   e.is_repeat = false;
   e.x = x;
   e.y = y;
-  /* NOTE: KM_MOD_FIRST, KM_MOD_SECOND aren't used anywhere, set as bools. */
+
   e.shift = shift;
   e.ctrl = ctrl;
   e.alt = alt;
@@ -1131,10 +1137,10 @@ void RNA_api_keymapitems(StructRNA *srna)
   parm = RNA_def_enum(func, "value", rna_enum_event_value_all_items, 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_boolean(func, "any", 0, "Any", "");
-  RNA_def_boolean(func, "shift", 0, "Shift", "");
-  RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
-  RNA_def_boolean(func, "alt", 0, "Alt", "");
-  RNA_def_boolean(func, "oskey", 0, "OS Key", "");
+  RNA_def_int(func, "shift", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Shift", "", KM_ANY, KM_MOD_HELD);
+  RNA_def_int(func, "ctrl", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Ctrl", "", KM_ANY, KM_MOD_HELD);
+  RNA_def_int(func, "alt", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Alt", "", KM_ANY, KM_MOD_HELD);
+  RNA_def_int(func, "oskey", KM_NOTHING, KM_ANY, KM_MOD_HELD, "OS Key", "", KM_ANY, KM_MOD_HELD);
   RNA_def_enum(func, "key_modifier", rna_enum_event_type_items, 0, "Key Modifier", "");
   RNA_def_boolean(func, "repeat", false, "Repeat", "When set, accept key-repeat events");
   RNA_def_boolean(func,
@@ -1155,10 +1161,10 @@ void RNA_api_keymapitems(StructRNA *srna)
   parm = RNA_def_enum(func, "value", rna_enum_event_value_all_items, 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_boolean(func, "any", 0, "Any", "");
-  RNA_def_boolean(func, "shift", 0, "Shift", "");
-  RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
-  RNA_def_boolean(func, "alt", 0, "Alt", "");
-  RNA_def_boolean(func, "oskey", 0, "OS Key", "");
+  RNA_def_int(func, "shift", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Shift", "", KM_ANY, KM_MOD_HELD);
+  RNA_def_int(func, "ctrl", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Ctrl", "", KM_ANY, KM_MOD_HELD);
+  RNA_def_int(func, "alt", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Alt", "", KM_ANY, KM_MOD_HELD);
+  RNA_def_int(func, "oskey", KM_NOTHING, KM_ANY, KM_MOD_HELD, "OS Key", "", KM_ANY, KM_MOD_HELD);
   RNA_def_enum(func, "key_modifier", rna_enum_event_type_items, 0, "Key Modifier", "");
   RNA_def_boolean(func, "repeat", false, "Repeat", "When set, accept key-repeat events");
   parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item");

@@ -145,6 +145,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_skin_loose_mark_clear);
   WM_operatortype_append(OBJECT_OT_skin_radii_equalize);
   WM_operatortype_append(OBJECT_OT_skin_armature_create);
+  WM_operatortype_append(OBJECT_OT_geometry_nodes_input_attribute_toggle);
 
   /* grease pencil modifiers */
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_add);

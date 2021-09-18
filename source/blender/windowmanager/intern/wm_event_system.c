@@ -1673,6 +1673,172 @@ int WM_operator_call_py(bContext *C,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Operator Wait For Input
+ *
+ * Delay executing operators that depend on cursor location.
+ *
+ * See: #OPTYPE_DEPENDS_ON_CURSOR doc-string for more information.
+ * \{ */
+
+typedef struct uiOperatorWaitForInput {
+  ScrArea *area;
+  wmOperatorCallParams optype_params;
+  bContextStore *context;
+} uiOperatorWaitForInput;
+
+static void ui_handler_wait_for_input_remove(bContext *C, void *userdata)
+{
+  uiOperatorWaitForInput *opwait = userdata;
+  if (opwait->optype_params.opptr) {
+    if (opwait->optype_params.opptr->data) {
+      IDP_FreeProperty(opwait->optype_params.opptr->data);
+    }
+    MEM_freeN(opwait->optype_params.opptr);
+  }
+  if (opwait->context) {
+    CTX_store_free(opwait->context);
+  }
+
+  if (opwait->area != NULL) {
+    ED_area_status_text(opwait->area, NULL);
+  }
+  else {
+    ED_workspace_status_text(C, NULL);
+  }
+
+  MEM_freeN(opwait);
+}
+
+static int ui_handler_wait_for_input(bContext *C, const wmEvent *event, void *userdata)
+{
+  uiOperatorWaitForInput *opwait = userdata;
+  enum { CONTINUE = 0, EXECUTE, CANCEL } state = CONTINUE;
+  state = CONTINUE;
+
+  switch (event->type) {
+    case LEFTMOUSE: {
+      if (event->val == KM_PRESS) {
+        state = EXECUTE;
+      }
+      break;
+    }
+      /* Useful if the operator isn't convenient to access while the mouse button is held.
+       * If it takes numeric input for example. */
+    case EVT_SPACEKEY:
+    case EVT_RETKEY: {
+      if (event->val == KM_PRESS) {
+        state = EXECUTE;
+      }
+      break;
+    }
+    case RIGHTMOUSE: {
+      if (event->val == KM_PRESS) {
+        state = CANCEL;
+      }
+      break;
+    }
+    case EVT_ESCKEY: {
+      if (event->val == KM_PRESS) {
+        state = CANCEL;
+      }
+      break;
+    }
+  }
+
+  if (state != CONTINUE) {
+    wmWindow *win = CTX_wm_window(C);
+    WM_cursor_modal_restore(win);
+
+    if (state == EXECUTE) {
+      CTX_store_set(C, opwait->context);
+      WM_operator_name_call_ptr(C,
+                                opwait->optype_params.optype,
+                                opwait->optype_params.opcontext,
+                                opwait->optype_params.opptr);
+      CTX_store_set(C, NULL);
+    }
+
+    WM_event_remove_ui_handler(&win->modalhandlers,
+                               ui_handler_wait_for_input,
+                               ui_handler_wait_for_input_remove,
+                               opwait,
+                               false);
+
+    ui_handler_wait_for_input_remove(C, opwait);
+
+    return WM_UI_HANDLER_BREAK;
+  }
+
+  return WM_UI_HANDLER_CONTINUE;
+}
+
+void WM_operator_name_call_ptr_with_depends_on_cursor(
+    bContext *C, wmOperatorType *ot, short opcontext, PointerRNA *properties, const char *drawstr)
+{
+  int flag = ot->flag;
+
+  LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &ot->macro) {
+    wmOperatorType *otm = WM_operatortype_find(macro->idname, 0);
+    if (otm != NULL) {
+      flag |= otm->flag;
+    }
+  }
+
+  if ((flag & OPTYPE_DEPENDS_ON_CURSOR) == 0) {
+    WM_operator_name_call_ptr(C, ot, opcontext, properties);
+    return;
+  }
+
+  wmWindow *win = CTX_wm_window(C);
+  ScrArea *area = CTX_wm_area(C);
+
+  {
+    char header_text[UI_MAX_DRAW_STR];
+    SNPRINTF(header_text,
+             "%s %s",
+             IFACE_("Input pending "),
+             (drawstr && drawstr[0]) ? drawstr : CTX_IFACE_(ot->translation_context, ot->name));
+    if (area != NULL) {
+      ED_area_status_text(area, header_text);
+    }
+    else {
+      ED_workspace_status_text(C, header_text);
+    }
+  }
+
+  WM_cursor_modal_set(win, WM_CURSOR_PICK_AREA);
+
+  uiOperatorWaitForInput *opwait = MEM_callocN(sizeof(*opwait), __func__);
+  opwait->optype_params.optype = ot;
+  opwait->optype_params.opcontext = opcontext;
+  opwait->optype_params.opptr = properties;
+
+  opwait->area = area;
+
+  if (properties) {
+    opwait->optype_params.opptr = MEM_mallocN(sizeof(*opwait->optype_params.opptr), __func__);
+    *opwait->optype_params.opptr = *properties;
+    if (properties->data != NULL) {
+      opwait->optype_params.opptr->data = IDP_CopyProperty(properties->data);
+    }
+  }
+
+  bContextStore *store = CTX_store_get(C);
+  if (store) {
+    opwait->context = CTX_store_copy(store);
+  }
+
+  WM_event_add_ui_handler(C,
+                          &win->modalhandlers,
+                          ui_handler_wait_for_input,
+                          ui_handler_wait_for_input_remove,
+                          opwait,
+                          WM_HANDLER_BLOCKING);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Handler Types
  *
  * General API for different handler types.
@@ -4692,47 +4858,27 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         case EVT_LEFTSHIFTKEY:
         case EVT_RIGHTSHIFTKEY:
           if (event.val == KM_PRESS) {
-            if (event_state->ctrl || event_state->alt || event_state->oskey) {
-              keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
-            }
-            else {
-              keymodifier = KM_MOD_FIRST;
-            }
+            keymodifier = KM_MOD_HELD;
           }
           event.shift = event_state->shift = keymodifier;
           break;
         case EVT_LEFTCTRLKEY:
         case EVT_RIGHTCTRLKEY:
           if (event.val == KM_PRESS) {
-            if (event_state->shift || event_state->alt || event_state->oskey) {
-              keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
-            }
-            else {
-              keymodifier = KM_MOD_FIRST;
-            }
+            keymodifier = KM_MOD_HELD;
           }
           event.ctrl = event_state->ctrl = keymodifier;
           break;
         case EVT_LEFTALTKEY:
         case EVT_RIGHTALTKEY:
           if (event.val == KM_PRESS) {
-            if (event_state->ctrl || event_state->shift || event_state->oskey) {
-              keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
-            }
-            else {
-              keymodifier = KM_MOD_FIRST;
-            }
+            keymodifier = KM_MOD_HELD;
           }
           event.alt = event_state->alt = keymodifier;
           break;
         case EVT_OSKEY:
           if (event.val == KM_PRESS) {
-            if (event_state->ctrl || event_state->alt || event_state->shift) {
-              keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
-            }
-            else {
-              keymodifier = KM_MOD_FIRST;
-            }
+            keymodifier = KM_MOD_HELD;
           }
           event.oskey = event_state->oskey = keymodifier;
           break;

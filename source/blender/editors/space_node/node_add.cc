@@ -312,7 +312,7 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
   ot->poll = ED_operator_node_editable;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* properties */
   PropertyRNA *prop;

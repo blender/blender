@@ -1527,10 +1527,6 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **thu
     return BKE_main_thumbnail_to_imbuf(NULL, *thumb_pt);
   }
 
-  /* Redraw to remove menus that might be open. */
-  WM_redraw_windows(C);
-  WM_cursor_wait(true);
-
   /* The window to capture should be a main window (without parent). */
   wmWindow *win = CTX_wm_window(C);
   while (win && win->parent) {
@@ -1563,7 +1559,6 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **thu
     IMB_freeImBuf(thumb_ibuf);
     *thumb_pt = thumb;
   }
-  WM_cursor_wait(false);
 
   /* Must be freed by caller. */
   return ibuf;
@@ -1607,10 +1602,9 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
     return NULL;
   }
 
-  if ((scene->camera == NULL) && (screen != NULL)) {
+  if (screen != NULL) {
     area = BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0);
-    region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-    if (region) {
+    if (area) {
       v3d = area->spacedata.first;
     }
   }
@@ -1629,13 +1623,14 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
   if (scene->camera) {
     ibuf = ED_view3d_draw_offscreen_imbuf_simple(depsgraph,
                                                  scene,
-                                                 NULL,
-                                                 OB_SOLID,
+                                                 (v3d) ? &v3d->shading : NULL,
+                                                 (v3d) ? v3d->shading.type : OB_SOLID,
                                                  scene->camera,
                                                  PREVIEW_RENDER_LARGE_HEIGHT * 2,
                                                  PREVIEW_RENDER_LARGE_HEIGHT * 2,
                                                  IB_rect,
-                                                 V3D_OFSDRAW_NONE,
+                                                 (v3d) ? V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS :
+                                                         V3D_OFSDRAW_NONE,
                                                  R_ALPHAPREMUL,
                                                  NULL,
                                                  NULL,
@@ -1758,17 +1753,41 @@ static bool wm_file_write(bContext *C,
   /* Enforce full override check/generation on file save. */
   BKE_lib_override_library_main_operations_create(bmain, true);
 
+  if (!G.background) {
+    /* Redraw to remove menus that might be open. */
+    WM_redraw_windows(C);
+  }
+
+  /* don't forget not to return without! */
+  WM_cursor_wait(true);
+
   /* blend file thumbnail */
   /* Save before exit_editmode, otherwise derivedmeshes for shared data corrupt T27765. */
   /* Main now can store a '.blend' thumbnail, useful for background mode
    * or thumbnail customization. */
   main_thumb = thumb = bmain->blen_thumb;
-  if (BLI_thread_is_main()) {
-    if (U.file_preview_type == USER_FILE_PREVIEW_SCREENSHOT) {
-      ibuf_thumb = blend_file_thumb_from_screenshot(C, &thumb);
+  if (BLI_thread_is_main() && U.file_preview_type != USER_FILE_PREVIEW_NONE) {
+
+    int file_preview_type = U.file_preview_type;
+
+    if (file_preview_type == USER_FILE_PREVIEW_AUTO) {
+      Scene *scene = CTX_data_scene(C);
+      bool do_render = (scene != NULL && scene->camera != NULL &&
+                        (BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0) != NULL));
+      file_preview_type = do_render ? USER_FILE_PREVIEW_CAMERA : USER_FILE_PREVIEW_SCREENSHOT;
     }
-    else if (U.file_preview_type == USER_FILE_PREVIEW_CAMERA) {
-      ibuf_thumb = blend_file_thumb_from_camera(C, CTX_data_scene(C), CTX_wm_screen(C), &thumb);
+
+    switch (file_preview_type) {
+      case USER_FILE_PREVIEW_SCREENSHOT: {
+        ibuf_thumb = blend_file_thumb_from_screenshot(C, &thumb);
+        break;
+      }
+      case USER_FILE_PREVIEW_CAMERA: {
+        ibuf_thumb = blend_file_thumb_from_camera(C, CTX_data_scene(C), CTX_wm_screen(C), &thumb);
+        break;
+      }
+      default:
+        BLI_assert_unreachable();
     }
   }
 
@@ -1777,9 +1796,6 @@ static bool wm_file_write(bContext *C,
   if (G.fileflags & G_FILE_AUTOPACK) {
     BKE_packedfile_pack_all(bmain, reports, false);
   }
-
-  /* don't forget not to return without! */
-  WM_cursor_wait(true);
 
   ED_editors_flush_edits(bmain);
 

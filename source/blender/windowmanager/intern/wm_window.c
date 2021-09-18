@@ -1197,7 +1197,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 #ifdef USE_WIN_ACTIVATE
         else {
           if (keymodifier & KM_SHIFT) {
-            win->eventstate->shift = KM_MOD_FIRST;
+            win->eventstate->shift = KM_MOD_HELD;
           }
         }
 #endif
@@ -1210,7 +1210,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 #ifdef USE_WIN_ACTIVATE
         else {
           if (keymodifier & KM_CTRL) {
-            win->eventstate->ctrl = KM_MOD_FIRST;
+            win->eventstate->ctrl = KM_MOD_HELD;
           }
         }
 #endif
@@ -1223,7 +1223,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 #ifdef USE_WIN_ACTIVATE
         else {
           if (keymodifier & KM_ALT) {
-            win->eventstate->alt = KM_MOD_FIRST;
+            win->eventstate->alt = KM_MOD_HELD;
           }
         }
 #endif
@@ -1236,7 +1236,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 #ifdef USE_WIN_ACTIVATE
         else {
           if (keymodifier & KM_OSKEY) {
-            win->eventstate->oskey = KM_MOD_FIRST;
+            win->eventstate->oskey = KM_MOD_HELD;
           }
         }
 #endif

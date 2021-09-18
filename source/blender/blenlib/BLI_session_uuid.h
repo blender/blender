@@ -18,6 +18,13 @@
 
 /** \file
  * \ingroup bli
+ *
+ * Functions for generating and handling "Session UUIDs".
+ *
+ * Note that these are not true universally-unique identifiers, but only unique during the current
+ * Blender session.
+ *
+ * For true UUIDs, see `BLI_uuid.h`.
  */
 
 #ifdef __cplusplus

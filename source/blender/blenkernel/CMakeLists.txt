@@ -187,7 +187,7 @@ set(SRC
   intern/mball_tessellate.c
   intern/mesh.c
   intern/mesh_boolean_convert.cc
-  intern/mesh_convert.c
+  intern/mesh_convert.cc
   intern/mesh_evaluate.cc
   intern/mesh_fair.cc
   intern/mesh_iterators.c
