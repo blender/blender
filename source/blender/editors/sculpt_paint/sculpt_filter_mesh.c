@@ -324,7 +324,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   const eSculptMeshFilterType filter_type = data->filter_type;
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[i]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[i], SCULPT_UNDO_COORDS);
 
   /* When using the relax face sets meshes filter,
    * each 3 iterations, do a whole mesh relax to smooth the contents of the Face Set. */
@@ -334,12 +334,12 @@ static void mesh_filter_task_cb(void *__restrict userdata,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     float orig_co[3], val[3], avg[3], normal[3], disp[3], disp2[3], transform[3][3], final_pos[3];
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= data->filter_strength;
-    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.index);
+    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.vertex);
 
     if (fade == 0.0f && filter_type != MESH_FILTER_SURFACE_SMOOTH) {
       /* Surface Smooth can't skip the loop for this vertex as it needs to calculate its
@@ -357,7 +357,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     }
 
     if (filter_type == MESH_FILTER_RELAX_FACE_SETS) {
-      if (relax_face_sets == SCULPT_vertex_has_unique_face_set(ss, vd.index)) {
+      if (relax_face_sets == SCULPT_vertex_has_unique_face_set(ss, vd.vertex)) {
         continue;
       }
     }
@@ -365,7 +365,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     switch (filter_type) {
       case MESH_FILTER_SMOOTH:
         fade = clamp_f(fade, -1.0f, 1.0f);
-        SCULPT_neighbor_coords_average_interior(ss, avg, vd.index);
+        SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex, 0.0f, NULL, false);
         sub_v3_v3v3(val, avg, orig_co);
         madd_v3_v3v3fl(val, orig_co, val, fade);
         sub_v3_v3v3(disp, val, orig_co);
@@ -425,13 +425,22 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         break;
       }
       case MESH_FILTER_SURFACE_SMOOTH: {
+        SculptCustomLayer scl = {.cd_offset = -1,
+                                 .from_bmesh = ss->bm != NULL,
+                                 .elemsize = sizeof(float) * 3,
+                                 .data = ss->filter_cache->surface_smooth_laplacian_disp,
+                                 .is_cdlayer = false,
+                                 .layer = NULL};
+
         SCULPT_surface_smooth_laplacian_step(ss,
                                              disp,
                                              vd.co,
-                                             ss->filter_cache->surface_smooth_laplacian_disp,
-                                             vd.index,
+                                             &scl,
+                                             vd.vertex,
                                              orig_data.co,
-                                             ss->filter_cache->surface_smooth_shape_preservation);
+                                             ss->filter_cache->surface_smooth_shape_preservation,
+                                             0.0f,
+                                             false);
         break;
       }
       case MESH_FILTER_SHARPEN: {
@@ -443,10 +452,10 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         float disp_sharpen[3] = {0.0f, 0.0f, 0.0f};
 
         SculptVertexNeighborIter ni;
-        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
           float disp_n[3];
           sub_v3_v3v3(
-              disp_n, SCULPT_vertex_co_get(ss, ni.index), SCULPT_vertex_co_get(ss, vd.index));
+              disp_n, SCULPT_vertex_co_get(ss, ni.vertex), SCULPT_vertex_co_get(ss, vd.vertex));
           mul_v3_fl(disp_n, ss->filter_cache->sharpen_factor[ni.index]);
           add_v3_v3(disp_sharpen, disp_n);
         }
@@ -456,7 +465,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
 
         float disp_avg[3];
         float avg_co[3];
-        SCULPT_neighbor_coords_average(ss, avg_co, vd.index);
+        SCULPT_neighbor_coords_average(ss, avg_co, vd.vertex, 0.0f, false);
         sub_v3_v3v3(disp_avg, avg_co, vd.co);
         mul_v3_v3fl(
             disp_avg, disp_avg, smooth_ratio * pow2f(ss->filter_cache->sharpen_factor[vd.index]));
@@ -518,9 +527,11 @@ static void mesh_filter_enhance_details_init_directions(SculptSession *ss)
   filter_cache->detail_directions = MEM_malloc_arrayN(
       totvert, sizeof(float[3]), "detail directions");
   for (int i = 0; i < totvert; i++) {
+    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
     float avg[3];
-    SCULPT_neighbor_coords_average(ss, avg, i);
-    sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, i));
+    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, false);
+    sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
   }
 }
 
@@ -533,7 +544,9 @@ static void mesh_filter_sphere_center_calculate(
       const int totvert = SCULPT_vertex_count_get(ss);
       float center_accum[3] = {0.0f};
       for (int i = 0; i < totvert; i++) {
-        add_v3_v3(center_accum, SCULPT_vertex_co_get(ss, i));
+        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
+        add_v3_v3(center_accum, SCULPT_vertex_co_get(ss, vertex));
       }
       mul_v3_v3fl(filter_cache->sphere_center, center_accum, 1.0f / totvert);
     } break;
@@ -549,7 +562,9 @@ static void mesh_filter_sphere_radius_calculate(SculptSession *ss)
   FilterCache *filter_cache = ss->filter_cache;
   float accum = 0.0f;
   for (int i = 0; i < totvert; i++) {
-    accum += len_v3v3(filter_cache->sphere_center, SCULPT_vertex_co_get(ss, i));
+    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
+    accum += len_v3v3(filter_cache->sphere_center, SCULPT_vertex_co_get(ss, vertex));
   }
   filter_cache->sphere_radius = accum / totvert;
 }
@@ -574,8 +589,10 @@ static void mesh_filter_init_limit_surface_co(SculptSession *ss)
 
   filter_cache->limit_surface_co = MEM_malloc_arrayN(
       sizeof(float[3]), totvert, "limit surface co");
+
   for (int i = 0; i < totvert; i++) {
-    SCULPT_vertex_limit_surface_get(ss, i, filter_cache->limit_surface_co[i]);
+    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    SCULPT_vertex_limit_surface_get(ss, vertex, filter_cache->limit_surface_co[i]);
   }
 }
 
@@ -596,8 +613,10 @@ static void mesh_filter_sharpen_init(SculptSession *ss,
 
   for (int i = 0; i < totvert; i++) {
     float avg[3];
-    SCULPT_neighbor_coords_average(ss, avg, i);
-    sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, i));
+    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
+    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, false);
+    sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
     filter_cache->sharpen_factor[i] = len_v3(filter_cache->detail_directions[i]);
   }
 
@@ -620,11 +639,12 @@ static void mesh_filter_sharpen_init(SculptSession *ss,
        smooth_iterations++) {
     for (int i = 0; i < totvert; i++) {
       float direction_avg[3] = {0.0f, 0.0f, 0.0f};
+      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
       float sharpen_avg = 0;
       int total = 0;
 
       SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
         add_v3_v3(direction_avg, filter_cache->detail_directions[ni.index]);
         sharpen_avg += filter_cache->sharpen_factor[ni.index];
         total++;
@@ -651,15 +671,22 @@ static void mesh_filter_surface_smooth_displace_task_cb(
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= data->filter_strength;
-    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.index);
+    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.vertex);
     if (fade == 0.0f) {
       continue;
     }
 
+    SculptCustomLayer scl = {.cd_offset = -1,
+                             .from_bmesh = ss->bm != NULL,
+                             .elemsize = sizeof(float) * 3,
+                             .data = ss->filter_cache->surface_smooth_laplacian_disp,
+                             .is_cdlayer = false,
+                             .layer = NULL};
+
     SCULPT_surface_smooth_displace_step(ss,
                                         vd.co,
-                                        ss->filter_cache->surface_smooth_laplacian_disp,
-                                        vd.index,
+                                        &scl,
+                                        vd.vertex,
                                         ss->filter_cache->surface_smooth_current_vertex,
                                         clamp_f(fade, 0.0f, 1.0f));
   }

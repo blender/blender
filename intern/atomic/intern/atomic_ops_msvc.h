@@ -49,27 +49,27 @@
 /* Unsigned */
 ATOMIC_INLINE uint64_t atomic_add_and_fetch_uint64(uint64_t *p, uint64_t x)
 {
-  return InterlockedExchangeAdd64((int64_t *)p, (int64_t)x) + x;
+  return (uint64_t)(InterlockedExchangeAdd64((int64_t *)p, (int64_t)x) + (int64_t)x);
 }
 
 ATOMIC_INLINE uint64_t atomic_sub_and_fetch_uint64(uint64_t *p, uint64_t x)
 {
-  return InterlockedExchangeAdd64((int64_t *)p, -((int64_t)x)) - x;
+  return (uint64_t)(InterlockedExchangeAdd64((int64_t *)p, -((int64_t)x)) - (int64_t)x);
 }
 
 ATOMIC_INLINE uint64_t atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _new)
 {
-  return InterlockedCompareExchange64((int64_t *)v, _new, old);
+  return (uint64_t)(InterlockedCompareExchange64((int64_t *)v, _new, old));
 }
 
 ATOMIC_INLINE uint64_t atomic_fetch_and_add_uint64(uint64_t *p, uint64_t x)
 {
-  return InterlockedExchangeAdd64((int64_t *)p, (int64_t)x);
+  return (uint64_t)InterlockedExchangeAdd64((int64_t *)p, (int64_t)x);
 }
 
 ATOMIC_INLINE uint64_t atomic_fetch_and_sub_uint64(uint64_t *p, uint64_t x)
 {
-  return InterlockedExchangeAdd64((int64_t *)p, -((int64_t)x));
+  return (uint64_t)InterlockedExchangeAdd64((int64_t *)p, -((int64_t)x));
 }
 
 /* Signed */
@@ -103,32 +103,32 @@ ATOMIC_INLINE int64_t atomic_fetch_and_sub_int64(int64_t *p, int64_t x)
 /* Unsigned */
 ATOMIC_INLINE uint32_t atomic_add_and_fetch_uint32(uint32_t *p, uint32_t x)
 {
-  return InterlockedExchangeAdd(p, x) + x;
+  return (uint32_t)InterlockedExchangeAdd(p, x) + x;
 }
 
 ATOMIC_INLINE uint32_t atomic_sub_and_fetch_uint32(uint32_t *p, uint32_t x)
 {
-  return InterlockedExchangeAdd(p, -((int32_t)x)) - x;
+  return (uint32_t)InterlockedExchangeAdd(p, -((int32_t)x)) - x;
 }
 
 ATOMIC_INLINE uint32_t atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _new)
 {
-  return InterlockedCompareExchange((long *)v, _new, old);
+  return (uint32_t)InterlockedCompareExchange((long *)v, _new, old);
 }
 
 ATOMIC_INLINE uint32_t atomic_fetch_and_add_uint32(uint32_t *p, uint32_t x)
 {
-  return InterlockedExchangeAdd(p, x);
+  return (uint32_t)InterlockedExchangeAdd(p, x);
 }
 
 ATOMIC_INLINE uint32_t atomic_fetch_and_or_uint32(uint32_t *p, uint32_t x)
 {
-  return InterlockedOr((long *)p, x);
+  return (uint32_t)InterlockedOr((long *)p, x);
 }
 
 ATOMIC_INLINE uint32_t atomic_fetch_and_and_uint32(uint32_t *p, uint32_t x)
 {
-  return InterlockedAnd((long *)p, x);
+  return (uint32_t)InterlockedAnd((long *)p, x);
 }
 
 /* Signed */
@@ -205,9 +205,9 @@ ATOMIC_INLINE uint8_t atomic_fetch_and_or_uint8(uint8_t *p, uint8_t b)
 ATOMIC_INLINE int8_t atomic_fetch_and_and_int8(int8_t *p, int8_t b)
 {
 #if (LG_SIZEOF_PTR == 8 || LG_SIZEOF_INT == 8)
-  return InterlockedAnd8((char *)p, (char)b);
+  return (int8_t)InterlockedAnd8((char *)p, (char)b);
 #else
-  return _InterlockedAnd8((char *)p, (char)b);
+  return (int8_t)_InterlockedAnd8((char *)p, (char)b);
 #endif
 }
 
@@ -215,9 +215,9 @@ ATOMIC_INLINE int8_t atomic_fetch_and_and_int8(int8_t *p, int8_t b)
 ATOMIC_INLINE int8_t atomic_fetch_and_or_int8(int8_t *p, int8_t b)
 {
 #if (LG_SIZEOF_PTR == 8 || LG_SIZEOF_INT == 8)
-  return InterlockedOr8((char *)p, (char)b);
+  return (int8_t)InterlockedOr8((char *)p, (char)b);
 #else
-  return _InterlockedOr8((char *)p, (char)b);
+  return (int8_t)_InterlockedOr8((char *)p, (char)b);
 #endif
 }
 

@@ -22,6 +22,11 @@
 
 #include "bmesh_class.h"
 
+typedef enum {
+  MULTIRES_SPACE_TANGENT,  // convert absolute to tangent
+  MULTIRES_SPACE_ABSOLUTE  // convert tangent to absolute
+} MultiResSpace;
+
 struct BMAllocTemplate;
 struct BMLoopNorEditDataArray;
 struct BMPartialUpdate;
@@ -31,8 +36,19 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm);
 void BM_mesh_elem_toolflags_clear(BMesh *bm);
 
 struct BMeshCreateParams {
+  uint create_unique_ids : 1;
+  uint id_elem_mask : 4;  // which element types to make unique ids for
+  uint id_map : 1;        // maintain an id to element lookup table
   uint use_toolflags : 1;
+  uint no_reuse_ids : 1;  // do not reuse IDs; a GHash will be used internally instead of a lookup
+                          // array
+  uint temporary_ids : 1;
 };
+
+// used to temporary save/restore element IDs
+// when changing out customdata
+int bm_save_id(BMesh *bm, BMElem *elem);
+void bm_restore_id(BMesh *bm, BMElem *elem, int id);
 
 BMesh *BM_mesh_create(const struct BMAllocTemplate *allocsize,
                       const struct BMeshCreateParams *params);
@@ -91,7 +107,11 @@ BMFace *BM_face_at_index_find_or_table(BMesh *bm, const int index);
 
 int BM_mesh_elem_count(BMesh *bm, const char htype);
 
-void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const uint *face_idx);
+void BM_mesh_remap(BMesh *bm,
+                   const uint *vert_idx,
+                   const uint *edge_idx,
+                   const uint *face_idx,
+                   const uint *loop_idx);
 
 void BM_mesh_rebuild(BMesh *bm,
                      const struct BMeshCreateParams *params,
@@ -134,3 +154,8 @@ void BM_mesh_vert_coords_apply(BMesh *bm, const float (*vert_coords)[3]);
 void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
                                          const float (*vert_coords)[3],
                                          const float mat[4][4]);
+
+#define BM_ELEM_FROM_ID(bm, id) \
+  ((bm->idmap.flag & BM_NO_REUSE_IDS) ? \
+       BLI_ghash_lookup(bm->idmap.ghash, POINTER_FROM_UINT(id)) : \
+       bm->idmap.map[id])

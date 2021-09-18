@@ -1241,7 +1241,8 @@ void BKE_curvemapping_blend_write(BlendWriter *writer, const CurveMapping *cumap
   BKE_curvemapping_curves_blend_write(writer, cumap);
 }
 
-void BKE_curvemapping_curves_blend_write(BlendWriter *writer, const CurveMapping *cumap)
+ATTR_NO_OPT void BKE_curvemapping_curves_blend_write(BlendWriter *writer,
+                                                     const CurveMapping *cumap)
 {
   for (int a = 0; a < CM_TOT; a++) {
     BLO_write_struct_array(writer, CurveMapPoint, cumap->cm[a].totpoint, cumap->cm[a].curve);

@@ -8566,7 +8566,11 @@ static void button_activate_exit(
 #ifdef USE_ALLSELECT
     {
       /* only RNA from this button is used */
+
+      unpoison_ui_but(but);
       uiBut but_temp = *but;
+      poison_ui_but(but);
+
       uiSelectContextStore *selctx_data = &data->select_others;
       for (int i = 0; i < selctx_data->elems_len; i++) {
         uiSelectContextElem *other = &selctx_data->elems[i];

@@ -6328,6 +6328,10 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Override Templates", "Enable library override template in the python API");
 
+  prop = RNA_def_property(srna, "use_sculpt_uvsmooth", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_sculpt_uvsmooth", 1);
+  RNA_def_property_ui_text(prop, "Sculpt UV Smooth", "Enable UV smooth sculpt brush");
+
   prop = RNA_def_property(srna, "use_geometry_nodes_fields", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_geometry_nodes_fields", 1);
   RNA_def_property_ui_text(prop, "Geometry Nodes Fields", "Enable field nodes in geometry nodes");

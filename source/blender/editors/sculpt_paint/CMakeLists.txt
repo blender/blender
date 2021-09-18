@@ -56,7 +56,9 @@ set(SRC
   paint_vertex_weight_ops.c
   paint_vertex_weight_utils.c
   sculpt.c
+
   sculpt_array.c
+  sculpt_curvature.c
   sculpt_automasking.c
   sculpt_boundary.c
   sculpt_cloth.c
@@ -81,6 +83,14 @@ set(SRC
   sculpt_transform.c
   sculpt_undo.c
   sculpt_uv.c
+  sculpt_displacement.c
+  sculpt_displacement.h
+  sculpt_replay.c
+
+  sculpt.cc
+  sculpt.hh
+
+  sculpt_brush_machine.c
 
   paint_intern.h
   sculpt_intern.h

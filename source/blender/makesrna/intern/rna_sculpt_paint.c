@@ -368,6 +368,8 @@ static bool rna_Brush_mode_with_tool_poll(PointerRNA *ptr, PointerRNA value)
   return brush->ob_mode & mode;
 }
 
+void SCULPT_update_flat_vcol_shading(Object *ob, Scene *scene);
+
 static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
   Scene *scene = CTX_data_scene(C);
@@ -375,13 +377,16 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
   Object *ob = OBACT(view_layer);
 
   if (ob) {
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
-
     if (ob->sculpt) {
+      SCULPT_update_flat_vcol_shading(ob, scene);
+
       ob->sculpt->bm_smooth_shading = ((scene->toolsettings->sculpt->flags &
                                         SCULPT_DYNTOPO_SMOOTH_SHADING) != 0);
+      ob->sculpt->fast_draw = ((scene->toolsettings->sculpt->flags & SCULPT_FAST_DRAW) != 0);
     }
+
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | ND_DRAW, ob);
   }
 }
 
@@ -535,6 +540,58 @@ static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
 static bool rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
 {
   return imapaint->missing_data == 0;
+}
+
+void SCULPT_replay_log_free(struct SculptReplayLog *log);
+struct SculptReplayLog *SCULPT_replay_log_create();
+void SCULPT_replay_log_end();
+void SCULPT_replay_log_start();
+char *SCULPT_replay_serialize();
+void SCULPT_replay_log_append(struct Sculpt *sd, struct SculptSession *ss, struct Object *ob);
+void SCULPT_replay_test(void);
+void SCULPT_replay_parse(const char *buf);
+void SCULPT_replay(bContext *ctx);
+
+static void rna_SCULPT_replay_test(Sculpt *sculpt)
+{
+  SCULPT_replay_test();
+}
+
+static void rna_SCULPT_replay_start(Sculpt *sculpt)
+{
+  SCULPT_replay_log_start();
+}
+
+static const char *rna_SCULPT_replay_serialize(Sculpt *sculpt)
+{
+  return SCULPT_replay_serialize();
+}
+
+static void rna_SCULPT_replay_parse(Sculpt *sculpt, const char *buf)
+{
+  SCULPT_replay_parse(buf);
+}
+
+static void rna_SCULPT_replay_free(Sculpt *sculpt)
+{
+  SCULPT_replay_log_end();
+}
+
+static void rna_SCULPT_replay_replay(bContext *ctx)
+{
+  SCULPT_replay(ctx);
+}
+
+void SCULPT_replay_make_cube(struct bContext *C, int steps);
+static void rna_SCULPT_replay_make_cube(bContext *ctx, int steps)
+{
+  SCULPT_replay_make_cube(ctx, steps);
+}
+
+void SCULPT_substep_undo(bContext *ctx, int dir);
+static void rna_SCULPT_substep_undo(bContext *ctx, int dir)
+{
+  SCULPT_substep_undo(ctx, dir);
 }
 
 static char *rna_GPencilSculptSettings_path(PointerRNA *UNUSED(ptr))
@@ -817,6 +874,12 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_ShowMask_update");
 
+  prop = RNA_def_property(srna, "use_dyntopo", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_ENABLED);
+  RNA_def_property_ui_text(prop, "DynTopo", "Enable DynTopo remesher in dynamic topology mode.");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
+
   prop = RNA_def_property(srna, "detail_size", PROP_FLOAT, PROP_PIXEL);
   RNA_def_property_ui_range(prop, 0.5, 40.0, 0.1, 2);
   RNA_def_property_ui_scale_type(prop, PROP_SCALE_CUBIC);
@@ -830,6 +893,21 @@ static void rna_def_sculpt(BlenderRNA *brna)
       prop,
       "Detail Percentage",
       "Maximum edge length for dynamic topology sculpting (in brush percenage)");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "dyntopo_spacing", PROP_INT, PROP_PERCENTAGE);
+  RNA_def_property_int_sdna(prop, NULL, "dyntopo_spacing");
+  RNA_def_property_range(prop, 1, 1000);
+  RNA_def_property_ui_range(prop, 1, 500, 5, -1);
+  RNA_def_property_ui_text(
+      prop, "DynTopo Spacing", "Spacing between DynTopo daubs as a percentage of brush diameter");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "dyntopo_radius_scale", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "dyntopo_radius_scale");
+  RNA_def_property_range(prop, 0.0001f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.001f, 15.0f, 0.001f, 4.0f);
+  RNA_def_property_ui_text(prop, "Radius Scale", "Scale dyntopo brush radius");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   prop = RNA_def_property(srna, "constant_detail_resolution", PROP_FLOAT, PROP_NONE);
@@ -848,6 +926,31 @@ static void rna_def_sculpt(BlenderRNA *brna)
                            "Smooth Shading",
                            "Show faces in dynamic-topology mode with smooth "
                            "shading rather than flat shaded");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
+
+  prop = RNA_def_property(srna, "use_fast_draw", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_FAST_DRAW);
+  RNA_def_property_ui_text(prop,
+                           "Fast Draw Mode",
+                           "Forces smooth shading"
+                           "and disables drawing of masks and face sets"
+                           "to speed up drawing. Useful for posing"
+                           "high-poly meshes.");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
+
+  prop = RNA_def_property(srna, "use_dyntopo_cleanup", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_CLEANUP);
+  RNA_def_property_ui_text(prop, "Cleanup", "Removes verts surrounded by only 3 or 4 edges");
+
+  prop = RNA_def_property(srna, "use_flat_vcol_shading", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_FLAT_VCOL_SHADING);
+  RNA_def_property_ui_text(
+      prop,
+      "Draw Color Cells",
+      "Draw vertex colors in flat cells instead of smoothly interpolating."
+      "For debugging purposes only, does not effect rendering in eevee or cycles");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
@@ -929,6 +1032,41 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Orientation", "Object whose Z axis defines orientation of gravity");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  /* functions */
+  FunctionRNA *func;
+
+  func = RNA_def_function(srna, "test_replay", "rna_SCULPT_replay_test");
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
+
+  func = RNA_def_function(srna, "replay_start", "rna_SCULPT_replay_start");
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
+
+  func = RNA_def_function(srna, "replay_free", "rna_SCULPT_replay_free");
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
+
+  func = RNA_def_function(srna, "replay_replay", "rna_SCULPT_replay_replay");
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+
+  func = RNA_def_function(srna, "replay_make_cube", "rna_SCULPT_replay_make_cube");
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  RNA_def_int(func, "steps", 15, 1, 500, "steps", "steps", 1, 250);
+
+  func = RNA_def_function(srna, "debug_substep_undo", "rna_SCULPT_substep_undo");
+  RNA_def_function_ui_description(func, "Test function");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  RNA_def_int(func, "dir", -1, -1, 1, "dir", "dir", -1, 1);
+
+  func = RNA_def_function(srna, "replay_serialize", "rna_SCULPT_replay_serialize");
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
+  RNA_def_function_return(func, RNA_def_string(func, "ret", NULL, 1024 * 32, "return", "return"));
+
+  func = RNA_def_function(srna, "replay_parse", "rna_SCULPT_replay_parse");
+  RNA_def_string(func, "buf", NULL, 1024 * 32, "buf", "buf");
+
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
 }
 
 static void rna_def_uv_sculpt(BlenderRNA *brna)

@@ -939,6 +939,12 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
     /* converts from world space to local space */
     mul_transposed_mat3_m4_v3(mat, nor);
 
+    normalize_v3(nor);
+
+    if (dot_v3v3(nor, normal) < 0.0f) {
+      negate_v3(nor);
+    }
+
     invert_m3_m3(itsm, tsm);
     mul_m3_v3(itsm, nor);
     normalize_v3(nor);

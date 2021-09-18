@@ -79,6 +79,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
@@ -94,6 +95,23 @@
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h" /* For element checking. */
+#include "range_tree.h"
+
+static void bm_unmark_temp_cdlayers(BMesh *bm)
+{
+  CustomData_unmark_temporary_nocopy(&bm->vdata);
+  CustomData_unmark_temporary_nocopy(&bm->edata);
+  CustomData_unmark_temporary_nocopy(&bm->ldata);
+  CustomData_unmark_temporary_nocopy(&bm->pdata);
+}
+
+static void bm_mark_temp_cdlayers(BMesh *bm)
+{
+  CustomData_mark_temporary_nocopy(&bm->vdata);
+  CustomData_mark_temporary_nocopy(&bm->edata);
+  CustomData_mark_temporary_nocopy(&bm->ldata);
+  CustomData_mark_temporary_nocopy(&bm->pdata);
+}
 
 void BM_mesh_cd_flag_ensure(BMesh *bm, Mesh *mesh, const char cd_flag)
 {
@@ -157,6 +175,7 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
   if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
     cd_flag |= ME_CDFLAG_EDGE_CREASE;
   }
+
   return cd_flag;
 }
 
@@ -173,11 +192,35 @@ static BMFace *bm_face_create_from_mpoly(
     edges[j] = etable[ml->e];
   }
 
-  return BM_face_create(bm, verts, edges, mp->totloop, NULL, BM_CREATE_SKIP_CD);
+  return BM_face_create(
+      bm, verts, edges, mp->totloop, NULL, BM_CREATE_SKIP_CD | BM_CREATE_SKIP_ID);
 }
+
+void BM_enter_multires_space(Object *ob, BMesh *bm, int space)
+{
+  if (!bm->haveMultiResSettings && ob) {
+    MultiresModifierData *mmd = get_multires_modifier(NULL, ob, true);
+    if (mmd) {
+      bm->multires = *mmd;
+      bm->haveMultiResSettings = true;
+      bm->multiresSpace = MULTIRES_SPACE_TANGENT;
+    }
+  }
+
+  if (!bm->haveMultiResSettings || !CustomData_has_layer(&bm->ldata, CD_MDISPS) ||
+      space == bm->multiresSpace) {
+    return;
+  }
+
+  BKE_multires_bmesh_space_set(ob, bm, space);
+  bm->multiresSpace = space;
+}
+
+#include "BLI_compiler_attrs.h"
 
 /**
  * \brief Mesh -> BMesh
+ * \param ob: object that owns bm, may be NULL (which will disable multires space change)
  * \param bm: The mesh to write into, while this is typically a newly created BMesh,
  * merging into existing data is supported.
  * Note the custom-data layout isn't used.
@@ -185,8 +228,16 @@ static BMFace *bm_face_create_from_mpoly(
  * since this should be kept fast for edit-mode switching and storing undo steps.
  *
  * \warning This function doesn't calculate face normals.
+ *
+ * Mesh IDs will be imported unless requested.  If the bmesh was created
+ * with id map enabled then IDs will be checked for uniqueness, otherwise
+ * they are imported as is.
  */
-void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshParams *params)
+
+void BM_mesh_bm_from_me(Object *ob,
+                        BMesh *bm,
+                        const Mesh *me,
+                        const struct BMeshFromMeshParams *params)
 {
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
                                         bm->pdata.totlayer || bm->ldata.totlayer));
@@ -203,6 +254,57 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
   CustomData_MeshMasks mask = CD_MASK_BMESH;
   CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
 
+  MultiresModifierData *mmd = ob ? get_multires_modifier(NULL, ob, true) : NULL;
+  const CustomData *cdatas[] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
+  // const CustomData *bmdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+
+  bool check_id_unqiue = false;
+
+  if (!params->ignore_id_layers) {
+    for (int i = 0; i < 4; i++) {
+      int type = 1 << i;
+
+      if (CustomData_has_layer(cdatas[i], CD_MESH_ID)) {
+        bm->idmap.flag |= type | BM_HAS_IDS;
+      }
+    }
+
+    bm_init_idmap_cdlayers(bm);
+  }
+
+  // check_id_unqiue
+  if ((bm->idmap.flag & BM_HAS_IDS)) {
+#ifndef WITH_BM_ID_FREELIST
+    if (!bm->idmap.idtree) {
+      bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
+    }
+#endif
+
+    if (bm->idmap.flag & BM_HAS_ID_MAP) {
+      check_id_unqiue = true;
+    }
+  }
+
+  if (params->copy_temp_cdlayers) {
+    bm_unmark_temp_cdlayers(bm);
+  }
+
+  if (params->copy_temp_cdlayers) {
+    mask.vmask |= CD_MASK_MESH_ID;
+    mask.emask |= CD_MASK_MESH_ID;
+    mask.lmask |= CD_MASK_MESH_ID;
+    mask.pmask |= CD_MASK_MESH_ID;
+  }
+
+  if (mmd) {
+    bm->multires = *mmd;
+    bm->haveMultiResSettings = true;
+    bm->multiresSpace = MULTIRES_SPACE_TANGENT;
+  }
+  else {
+    bm->haveMultiResSettings = false;
+  }
+
   if (!me || !me->totvert) {
     if (me && is_new) { /* No verts? still copy custom-data layout. */
       CustomData_copy(&me->vdata, &bm->vdata, mask.vmask, CD_ASSIGN, 0);
@@ -215,6 +317,15 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
       CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
       CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
     }
+
+    if (params->copy_temp_cdlayers) {
+      bm_mark_temp_cdlayers(bm);
+    }
+
+    if (bm->idmap.flag & BM_HAS_IDS) {
+      bm_init_idmap_cdlayers(bm);
+    }
+
     return; /* Sanity check. */
   }
 
@@ -321,6 +432,28 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     BM_mesh_cd_flag_apply(bm, me->cd_flag);
   }
 
+  int *existing_id_layers[4] = {NULL, NULL, NULL, NULL};
+  int use_exist_ids = 0;
+  int has_ids = bm->idmap.flag & BM_HAS_IDS ?
+                    (bm->idmap.flag & (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)) :
+                    0;
+
+  if (bm->idmap.flag & BM_HAS_IDS) {
+    if (!params->ignore_id_layers) {
+      for (int i = 0; i < 4; i++) {
+        existing_id_layers[i] = (int *)CustomData_get_layer(cdatas[i], CD_MESH_ID);
+
+        if (existing_id_layers[i]) {
+          use_exist_ids |= 1 << i;
+        }
+      }
+    }
+
+    use_exist_ids &= bm->idmap.flag;
+
+    bm_init_idmap_cdlayers(bm);
+  }
+
   const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
   const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
   const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
@@ -333,7 +466,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
   vtable = MEM_mallocN(sizeof(BMVert **) * me->totvert, __func__);
 
   for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
-    v = vtable[i] = BM_vert_create(bm, keyco ? keyco[i] : mvert->co, NULL, BM_CREATE_SKIP_CD);
+    v = vtable[i] = BM_vert_create(
+        bm, keyco ? keyco[i] : mvert->co, NULL, BM_CREATE_SKIP_CD | BM_CREATE_SKIP_ID);
     BM_elem_index_set(v, i); /* set_ok */
 
     /* Transfer flag. */
@@ -348,6 +482,15 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
 
     /* Copy Custom Data */
     CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data, true);
+
+    if (has_ids & BM_VERT) {
+      if (use_exist_ids & BM_VERT) {
+        bm_assign_id(bm, (BMElem *)v, existing_id_layers[0][i], false);
+      }
+      else {
+        bm_alloc_id(bm, (BMElem *)v);
+      }
+    }
 
     if (cd_vert_bweight_offset != -1) {
       BM_ELEM_CD_SET_FLOAT(v, cd_vert_bweight_offset, (float)mvert->bweight / 255.0f);
@@ -388,6 +531,15 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
 
     /* Copy Custom Data */
     CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data, true);
+
+    if (has_ids & BM_EDGE) {
+      if (use_exist_ids & BM_EDGE) {
+        bm_assign_id(bm, (BMElem *)e, existing_id_layers[1][i], false);
+      }
+      else {
+        bm_alloc_id(bm, (BMElem *)e);
+      }
+    }
 
     if (cd_edge_bweight_offset != -1) {
       BM_ELEM_CD_SET_FLOAT(e, cd_edge_bweight_offset, (float)medge->bweight / 255.0f);
@@ -450,10 +602,28 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
 
       /* Save index of corresponding #MLoop. */
       CustomData_to_bmesh_block(&me->ldata, &bm->ldata, j++, &l_iter->head.data, true);
+
+      if (has_ids & BM_LOOP) {
+        if (use_exist_ids & BM_LOOP) {
+          bm_assign_id(bm, (BMElem *)l_iter, existing_id_layers[2][j - 1], false);
+        }
+        else {
+          bm_alloc_id(bm, (BMElem *)l_iter);
+        }
+      }
     } while ((l_iter = l_iter->next) != l_first);
 
     /* Copy Custom Data */
     CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data, true);
+
+    if (has_ids & BM_FACE) {
+      if (use_exist_ids & BM_FACE) {
+        bm_assign_id(bm, (BMElem *)f, existing_id_layers[3][i], false);
+      }
+      else {
+        bm_alloc_id(bm, (BMElem *)f);
+      }
+    }
 
     if (params->calc_face_normal) {
       BM_face_normal_update(f);
@@ -463,6 +633,99 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP); /* Added in order, clear dirty flag. */
   }
 
+  if (check_id_unqiue) {
+    // validate IDs
+
+    // first clear idmap, we want it to have the first elements
+    // in each id run, not the last
+    if (bm->idmap.map) {
+      memset(bm->idmap.map, 0, sizeof(void *) * bm->idmap.map_size);
+    }
+    else if (bm->idmap.ghash) {
+      BLI_ghash_free(bm->idmap.ghash, NULL, NULL);
+      bm->idmap.ghash = BLI_ghash_ptr_new("bm->idmap.ghash");
+    }
+
+    int iters[] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, -1, BM_FACES_OF_MESH};
+
+    // find first element in each id run and assign to map
+    for (int i = 0; i < 4; i++) {
+      int type = 1 << i;
+      int iter = iters[i];
+
+      if (!(bm->idmap.flag & type)) {
+        continue;
+      }
+
+      if (iter == -1) {
+        iter = BM_FACES_OF_MESH;
+      }
+
+      BMElem *elem;
+      BMIter iterstate;
+      BM_ITER_MESH (elem, &iterstate, bm, iter) {
+        if (i == 2) {  // loops
+          BMFace *f = (BMFace *)elem;
+          BMLoop *l = f->l_first;
+
+          do {
+            uint id = (uint)BM_ELEM_GET_ID(bm, (BMElem *)l);
+
+            if (!BM_ELEM_FROM_ID(bm, id)) {
+              bm_assign_id_intern(bm, (BMElem *)l, id);
+            }
+          } while ((l = l->next) != f->l_first);
+        }
+        else {
+          uint id = (uint)BM_ELEM_GET_ID(bm, elem);
+
+          if (!BM_ELEM_FROM_ID(bm, id)) {
+            bm_assign_id_intern(bm, elem, id);
+          }
+        }
+      }
+    }
+
+    // now assign new IDs where necessary
+
+    for (int i = 0; i < 4; i++) {
+      int type = 1 << i;
+      int iter = iters[i];
+
+      if (!(bm->idmap.flag & type)) {
+        continue;
+      }
+
+      if (iter == -1) {
+        iter = BM_FACES_OF_MESH;
+      }
+
+      BMElem *elem;
+      BMIter iterstate;
+
+      BM_ITER_MESH (elem, &iterstate, bm, iter) {
+        if (i == 2) {  // loops
+          BMFace *f = (BMFace *)elem;
+          BMLoop *l = f->l_first;
+
+          do {
+            uint id = (uint)BM_ELEM_GET_ID(bm, (BMElem *)l);
+
+            if (BM_ELEM_FROM_ID(bm, id) != (BMElem *)l) {
+              bm_alloc_id(bm, (BMElem *)l);
+            }
+          } while ((l = l->next) != f->l_first);
+        }
+        else {
+          uint id = (uint)BM_ELEM_GET_ID(bm, elem);
+
+          if (BM_ELEM_FROM_ID(bm, id) != elem) {
+            bm_alloc_id(bm, elem);
+          }
+        }
+      }
+    }
+  }
   /* -------------------------------------------------------------------- */
   /* MSelect clears the array elements (avoid adding multiple times).
    *
@@ -502,12 +765,29 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
   if (ftable) {
     MEM_freeN(ftable);
   }
+
+  if (params->copy_temp_cdlayers) {
+    bm_mark_temp_cdlayers(bm);
+  }
+
+  if (bm->idmap.flag & BM_HAS_IDS) {
+    CustomData *cdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+
+    for (int i = 0; i < 4; i++) {
+      int idx = CustomData_get_layer_index(cdatas[i], CD_MESH_ID);
+
+      if (idx >= 0) {
+        // set layer flags
+        cdatas[i]->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
+      }
+    }
+  }
 }
 
 /**
  * \brief BMesh -> Mesh
  */
-static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
+BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 {
   const int cd_shape_keyindex_offset = CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX);
   BMVert **vertMap = NULL;
@@ -549,7 +829,7 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
  * Returns custom-data shapekey index from a keyblock or -1
  * \note could split this out into a more generic function.
  */
-static int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
+int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
 {
   int i;
   int j = 0;
@@ -586,7 +866,9 @@ BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
  *
  * \param bmain: May be NULL in case \a calc_object_remap parameter option is not set.
  */
-void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
+
+void BM_mesh_bm_to_me(
+    Main *bmain, Object *ob, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
 {
   MEdge *med;
   BMVert *v, *eve;
@@ -594,6 +876,15 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   BMFace *f;
   BMIter iter;
   int i, j;
+
+  if (params->copy_temp_cdlayers) {
+    bm_unmark_temp_cdlayers(bm);
+  }
+
+  // ensure multires space is correct
+  if (bm->haveMultiResSettings && bm->multiresSpace != MULTIRES_SPACE_TANGENT) {
+    BM_enter_multires_space(ob, bm, MULTIRES_SPACE_TANGENT);
+  }
 
   const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
   const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
@@ -634,13 +925,30 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   me->totface = 0;
   me->act_face = -1;
 
+  CustomData *srcdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+  int id_flags[4] = {-1, -1, -1, -1};
+
   {
     CustomData_MeshMasks mask = CD_MASK_MESH;
     CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
-    CustomData_copy(&bm->vdata, &me->vdata, mask.vmask, CD_CALLOC, me->totvert);
-    CustomData_copy(&bm->edata, &me->edata, mask.emask, CD_CALLOC, me->totedge);
-    CustomData_copy(&bm->ldata, &me->ldata, mask.lmask, CD_CALLOC, me->totloop);
-    CustomData_copy(&bm->pdata, &me->pdata, mask.pmask, CD_CALLOC, me->totpoly);
+    CustomDataMask extra2 = !params->ignore_mesh_id_layers ? CD_MASK_MESH_ID : 0;
+
+    // copy id layers? temporarily clear cd_temporary and cd_flag_elem_nocopy flags
+    if (!params->ignore_mesh_id_layers) {
+      for (int i = 0; i < 4; i++) {
+        int idx = CustomData_get_layer_index(srcdatas[i], CD_MESH_ID);
+
+        if (idx >= 0) {
+          id_flags[i] = srcdatas[i]->layers[idx].flag;
+          srcdatas[i]->layers[idx].flag &= ~(CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY);
+        }
+      }
+    }
+
+    CustomData_copy(&bm->vdata, &me->vdata, mask.vmask | extra2, CD_CALLOC, me->totvert);
+    CustomData_copy(&bm->edata, &me->edata, mask.emask | extra2, CD_CALLOC, me->totedge);
+    CustomData_copy(&bm->ldata, &me->ldata, mask.lmask | extra2, CD_CALLOC, me->totloop);
+    CustomData_copy(&bm->pdata, &me->pdata, mask.pmask | extra2, CD_CALLOC, me->totpoly);
   }
 
   MVert *mvert = bm->totvert ? MEM_callocN(sizeof(MVert) * bm->totvert, "bm_to_me.vert") : NULL;
@@ -1003,6 +1311,20 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
 
   /* To be removed as soon as COW is enabled by default. */
   BKE_mesh_runtime_clear_geometry(me);
+
+  // restore original cd layer flags to bmesh id layers
+  if (!params->ignore_mesh_id_layers) {
+    for (int i = 0; i < 4; i++) {
+      int idx = CustomData_get_layer_index(srcdatas[i], CD_MESH_ID);
+      if (idx >= 0) {
+        srcdatas[i]->layers[idx].flag = id_flags[i];
+      }
+    }
+  }
+
+  if (params && params->copy_temp_cdlayers) {
+    bm_mark_temp_cdlayers(bm);
+  }
 }
 
 /**

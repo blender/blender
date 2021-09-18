@@ -40,6 +40,9 @@ struct GHash;
 struct GPUMaterial;
 struct GPUOffScreen;
 struct GPUViewport;
+struct GPUVertFormat;
+struct CustomData;
+struct CustomDataLayer;
 struct ID;
 struct Main;
 struct Object;
@@ -80,6 +83,10 @@ typedef bool (*DRW_ObjectFilterFn)(struct Object *ob, void *user_data);
 
 void DRW_draw_view(const struct bContext *C);
 void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height);
+void DRW_make_cdlayer_attr_aliases(struct GPUVertFormat *format,
+                                   char *base_name,
+                                   struct CustomData *data,
+                                   struct CustomDataLayer *cl);
 
 void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
                              struct RenderEngineType *engine_type,

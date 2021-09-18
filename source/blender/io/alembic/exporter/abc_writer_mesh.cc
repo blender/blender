@@ -168,7 +168,7 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
 
     struct BMeshCreateParams bmcp = {false};
     struct BMeshFromMeshParams bmfmp = {true, false, false, 0};
-    BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmcp, &bmfmp);
+    BMesh *bm = BKE_mesh_to_bmesh_ex(object, mesh, &bmcp, &bmfmp);
 
     BM_mesh_triangulate(bm, quad_method, ngon_method, 4, tag_only, nullptr, nullptr, nullptr);
 

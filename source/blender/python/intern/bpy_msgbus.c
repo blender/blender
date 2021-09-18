@@ -201,6 +201,16 @@ static void bpy_msgbus_subscribe_value_free_data(struct wmMsgSubscribeKey *UNUSE
 
 /** \} */
 
+extern void pbvh_bmesh_do_cache_test();
+
+PyDoc_STRVAR(exec_bmesh_cache_test_doc, "internal development function\n");
+static PyObject *exec_bmesh_cache_test(PyObject *self)
+{
+  pbvh_bmesh_do_cache_test();
+
+  Py_RETURN_NONE;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Public Message Bus API
  * \{ */
@@ -379,6 +389,10 @@ static struct PyMethodDef BPy_msgbus_methods[] = {
      (PyCFunction)bpy_msgbus_clear_by_owner,
      METH_O,
      bpy_msgbus_clear_by_owner_doc},
+    {"pbvh_bmesh_do_cache_test",
+     (PyCFunction)exec_bmesh_cache_test,
+     METH_NOARGS,
+     exec_bmesh_cache_test_doc},
     {NULL, NULL, 0, NULL},
 };
 

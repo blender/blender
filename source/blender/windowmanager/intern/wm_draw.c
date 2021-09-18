@@ -52,6 +52,7 @@
 #include "ED_view3d.h"
 
 #include "GPU_batch_presets.h"
+#include "GPU_buffers.h"
 #include "GPU_context.h"
 #include "GPU_debug.h"
 #include "GPU_framebuffer.h"
@@ -1050,6 +1051,43 @@ void wm_draw_update(bContext *C)
 
   GPU_context_main_lock();
   BKE_image_free_unused_gpu_textures();
+
+  /*We can save GPU bandwidth for PBVH drawing if we know for sure that no
+    viewport has EEVEE running in it.  As in no viewport in any windows.
+
+    This is because PBVH only supplies one set of drawing buffers
+    to the draw manager.  Creating more buffers for specific drawengines
+    is simply not feasible for performance reasons.
+    */
+
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    GHOST_TWindowState state = GHOST_GetWindowState(win->ghostwin);
+
+    if (state == GHOST_kWindowStateMinimized) {
+      continue;
+    }
+
+    CTX_wm_window_set(C, win);
+
+    GPU_pbvh_need_full_render_set(false);
+
+    if (wm_draw_update_test_window(bmain, C, win)) {
+      bScreen *screen = WM_window_get_active_screen(win);
+
+      /* Draw screen areas into own frame buffer. */
+      ED_screen_areas_iter (win, screen, area) {
+        if (area->spacetype != SPACE_VIEW3D) {
+          continue;
+        }
+
+        CTX_wm_area_set(C, area);
+        View3D *v3d = CTX_wm_view3d(C);
+        if (v3d->shading.type >= OB_MATERIAL) {
+          GPU_pbvh_need_full_render_set(true);
+        }
+      }
+    }
+  }
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
 #ifdef WIN32

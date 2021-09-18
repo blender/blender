@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "DNA_modifier_types.h"
+
 /** \file
  * \ingroup bmesh
  *
@@ -34,6 +36,7 @@ struct BMFace;
 struct BMLoop;
 struct BMVert;
 struct BMesh;
+struct GSet;
 
 struct MLoopNorSpaceArray;
 
@@ -295,6 +298,10 @@ typedef struct BMFlagLayer {
 
 // #pragma GCC diagnostic ignored "-Wpadded"
 
+struct RangeTreeUInt;
+
+//#define WITH_BM_ID_FREELIST
+
 typedef struct BMesh {
   int totvert, totedge, totloop, totface;
   int totvertsel, totedgesel, totfacesel;
@@ -378,7 +385,34 @@ typedef struct BMesh {
    * instead of crashing on invalid memory access.
    */
   void *py_handle;
+  MultiresModifierData multires;  // copy of multires settings
+  bool haveMultiResSettings;
+  int multiresSpace;
+
+  struct {
+    int flag;
+#ifdef WITH_BM_ID_FREELIST
+    uint *freelist;
+    int freelist_len, freelist_size;
+    struct GSet *free_ids;
+#else
+    struct RangeTreeUInt *idtree;
+#endif
+    uint maxid;
+    struct BMElem **map;  // used if BM_NO_REUSE_IDS is false
+    struct GHash *ghash;  // used if BM_NO_REUSE_IDS is true
+    int map_size;
+    int cd_id_off[15];
+  } idmap;
 } BMesh;
+
+enum {
+  // firsst four bits are reserved for BM_VERT/EDGE/LOOP/FACE
+  BM_HAS_IDS = 1 << 4,
+  BM_HAS_ID_MAP = 1 << 5,
+  BM_NO_REUSE_IDS = 1 << 6,
+  BM_PERMANENT_IDS = 1 << 7
+};
 
 /** #BMHeader.htype (char) */
 enum {
@@ -588,3 +622,7 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 #else
 #  define BM_OMP_LIMIT 10000
 #endif
+
+/* note does not check if ids are enabled for a given element type */
+#define BM_ELEM_GET_ID(bm, elem) \
+  BM_ELEM_CD_GET_INT(elem, bm->idmap.cd_id_off[(int)(elem)->head.htype])

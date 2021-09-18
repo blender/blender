@@ -87,14 +87,13 @@ static int mirrtopo_vert_sort(const void *v1, const void *v2)
 }
 
 void SCULPT_symmetrize_map_ensure(Object *ob)
-{ 
+{
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
-  
 
   if (ss->vertex_info.symmetrize_map) {
-      /* Nothing to do. */
-      return;
+    /* Nothing to do. */
+    return;
   }
 
   MEdge *medge = NULL, *med;
@@ -115,14 +114,14 @@ void SCULPT_symmetrize_map_ensure(Object *ob)
   topo_hash = MEM_callocN(totvert * sizeof(MirrTopoHash_t), "TopoMirr");
 
   /* Initialize the vert-edge-user counts used to detect unique topology */
-    totedge = me->totedge;
-    medge = me->medge;
+  totedge = me->totedge;
+  medge = me->medge;
 
-    for (a = 0, med = medge; a < totedge; a++, med++) {
-      const uint i1 = med->v1, i2 = med->v2;
-      topo_hash[i1]++;
-      topo_hash[i2]++;
-    }
+  for (a = 0, med = medge; a < totedge; a++, med++) {
+    const uint i1 = med->v1, i2 = med->v2;
+    topo_hash[i1]++;
+    topo_hash[i2]++;
+  }
 
   topo_hash_prev = MEM_dupallocN(topo_hash);
 
@@ -134,12 +133,12 @@ void SCULPT_symmetrize_map_ensure(Object *ob)
     tot_unique_edges = 0;
 
     /* This can make really big numbers, wrapping around here is fine */
-      for (a = 0, med = medge; a < totedge; a++, med++) {
-        const uint i1 = med->v1, i2 = med->v2;
-        topo_hash[i1] += topo_hash_prev[i2] * topo_pass;
-        topo_hash[i2] += topo_hash_prev[i1] * topo_pass;
-        tot_unique_edges += (topo_hash[i1] != topo_hash[i2]);
-      }
+    for (a = 0, med = medge; a < totedge; a++, med++) {
+      const uint i1 = med->v1, i2 = med->v2;
+      topo_hash[i1] += topo_hash_prev[i2] * topo_pass;
+      topo_hash[i2] += topo_hash_prev[i1] * topo_pass;
+      tot_unique_edges += (topo_hash[i1] != topo_hash[i2]);
+    }
     memcpy(topo_hash_prev, topo_hash, sizeof(MirrTopoHash_t) * totvert);
 
     /* sort so we can count unique values */
@@ -185,22 +184,22 @@ void SCULPT_symmetrize_map_ensure(Object *ob)
 
   /* Get the pairs out of the sorted hashes, note, totvert+1 means we can use the previous 2,
    * but you cant ever access the last 'a' index of MirrTopoPairs */
-    for (a = 1; a <= totvert; a++) {
-      if ((a == totvert) || (topo_pairs[a - 1].hash != topo_pairs[a].hash)) {
-        const int match_count = a - last;
-        if (match_count == 2) {
-          const int j = topo_pairs[a - 1].v_index, k = topo_pairs[a - 2].v_index;
-          index_lookup[j] = k;
-          index_lookup[k] = j;
-        }
-        else if (match_count == 1) {
-          /* Center vertex. */
-          const int j = topo_pairs[a - 1].v_index;
-          index_lookup[j] = j;
-        }
-        last = a;
+  for (a = 1; a <= totvert; a++) {
+    if ((a == totvert) || (topo_pairs[a - 1].hash != topo_pairs[a].hash)) {
+      const int match_count = a - last;
+      if (match_count == 2) {
+        const int j = topo_pairs[a - 1].v_index, k = topo_pairs[a - 2].v_index;
+        index_lookup[j] = k;
+        index_lookup[k] = j;
       }
+      else if (match_count == 1) {
+        /* Center vertex. */
+        const int j = topo_pairs[a - 1].v_index;
+        index_lookup[j] = j;
+      }
+      last = a;
     }
+  }
 
   MEM_freeN(topo_pairs);
   topo_pairs = NULL;
@@ -211,11 +210,9 @@ void SCULPT_symmetrize_map_ensure(Object *ob)
   ss->vertex_info.symmetrize_map = index_lookup;
 }
 
-
-
 static void do_shape_symmetrize_brush_task_cb(void *__restrict userdata,
-                                                   const int n,
-                                                   const TaskParallelTLS *__restrict tls)
+                                              const int n,
+                                              const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -234,13 +231,15 @@ static void do_shape_symmetrize_brush_task_cb(void *__restrict userdata,
     }
 
     const int symmetrical_index = ss->vertex_info.symmetrize_map[vd.index];
+    const SculptVertRef symmetrical_vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh,
+                                                                            symmetrical_index);
 
     if (symmetrical_index == -1) {
-        continue;
+      continue;
     }
 
     float symm_co[3];
-    copy_v3_v3(symm_co, SCULPT_vertex_co_get(ss, symmetrical_index));
+    copy_v3_v3(symm_co, SCULPT_vertex_co_get(ss, symmetrical_vertex));
 
     symm_co[0] *= -1;
     float new_co[3];
@@ -253,10 +252,8 @@ static void do_shape_symmetrize_brush_task_cb(void *__restrict userdata,
                                                     vd.no,
                                                     vd.fno,
                                                     vd.mask ? *vd.mask : 0.0f,
-                                                    vd.index,
+                                                    vd.vertex,
                                                     thread_id);
-
-
 
     float disp[3];
     sub_v3_v3v3(disp, new_co, vd.co);
@@ -278,13 +275,12 @@ void SCULPT_do_symmetrize_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-
   if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
-      return;
+    return;
   }
 
   if (!SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
-      return;
+    return;
   }
 
   SCULPT_symmetrize_map_ensure(ob);

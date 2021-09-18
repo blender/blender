@@ -140,6 +140,7 @@ static void calculate_polys(const CuboidConfig &config,
                             MutableSpan<MPoly> polys,
                             MutableSpan<MLoop> loops)
 {
+
   int loop_index = 0;
   int poly_index = 0;
 

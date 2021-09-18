@@ -165,6 +165,7 @@ set(SRC
   ../DNA_view3d_defaults.h
   ../DNA_volume_defaults.h
   ../DNA_world_defaults.h
+  ../DNA_sculpt_brush_types.h
 )
 
 set(LIB

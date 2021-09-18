@@ -29,6 +29,7 @@
 #include "BLI_string.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "BLF_api.h"
 
@@ -64,6 +65,7 @@
 #include "ED_space_api.h"
 #include "ED_view3d.h"
 
+#include "GPU_buffers.h"
 #include "GPU_capabilities.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"

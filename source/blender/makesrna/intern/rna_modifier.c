@@ -3247,6 +3247,13 @@ static void rna_def_modifier_correctivesmooth(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Lambda Factor", "Smooth factor effect");
   RNA_def_property_update(prop, 0, "rna_CorrectiveSmoothModifier_update");
 
+  prop = RNA_def_property(srna, "projection", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "projection");
+  RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 5, 3);
+  RNA_def_property_ui_text(prop, "Projection", "Volume preserving projection");
+  RNA_def_property_update(prop, 0, "rna_CorrectiveSmoothModifier_update");
+
   prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "repeat");
   RNA_def_property_ui_range(prop, 0, 200, 1, -1);
@@ -4948,6 +4955,13 @@ static void rna_def_modifier_uvwarp(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  prop = RNA_def_property(srna, "restrict_to_islands", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_UVWARP_RESTRICT_ISLANDS);
+  RNA_def_property_ui_text(prop,
+                           "Island Restrict",
+                           "Don't affect UVs in faces outside of the vertex group's influence");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
   prop = RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "uvlayer_name");
   RNA_def_property_ui_text(prop, "UV Layer", "UV Layer name");
@@ -6330,6 +6344,7 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
 #  if 0
     {DT_TYPE_SKIN, "SKIN", 0, "Skin Weight", "Transfer skin weights"},
 #  endif
+    {DT_TYPE_PROPCOL, "PROPCOL", 0, "Sculpt Colors", "Transfer sculpt colors"},
     {DT_TYPE_BWEIGHT_VERT, "BEVEL_WEIGHT_VERT", 0, "Bevel Weight", "Transfer bevel weights"},
     {0, NULL, 0, NULL, NULL},
   };
@@ -6574,6 +6589,17 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_enum(srna,
+                      "layers_propcol_select_src",
+                      rna_enum_dt_layers_select_src_items,
+                      DT_LAYERS_ALL_SRC,
+                      "Source Layers Selection",
+                      "Which layers to transfer, in case of multi-layers types");
+  RNA_def_property_enum_sdna(prop, NULL, "layers_select_src[DT_MULTILAYER_INDEX_PROPCOL]");
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_DataTransferModifier_layers_select_src_itemf");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_enum(srna,
                       "layers_uv_select_src",
                       rna_enum_dt_layers_select_src_items,
                       DT_LAYERS_ALL_SRC,
@@ -6615,6 +6641,17 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
                       "Destination Layers Matching",
                       "How to match source and destination layers");
   RNA_def_property_enum_sdna(prop, NULL, "layers_select_dst[DT_MULTILAYER_INDEX_VCOL]");
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_DataTransferModifier_layers_select_dst_itemf");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_enum(srna,
+                      "layers_propcol_select_dst",
+                      rna_enum_dt_layers_select_dst_items,
+                      DT_LAYERS_NAME_DST,
+                      "Destination Layers Matching",
+                      "How to match source and destination layers");
+  RNA_def_property_enum_sdna(prop, NULL, "layers_select_dst[DT_MULTILAYER_INDEX_PROPCOL]");
   RNA_def_property_enum_funcs(
       prop, NULL, NULL, "rna_DataTransferModifier_layers_select_dst_itemf");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");

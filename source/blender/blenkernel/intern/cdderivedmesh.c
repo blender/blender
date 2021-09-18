@@ -171,8 +171,16 @@ static const MeshElemMap *cdDM_getPolyMap(Object *ob, DerivedMesh *dm)
   if (!cddm->pmap && ob->type == OB_MESH) {
     Mesh *me = ob->data;
 
-    BKE_mesh_vert_poly_map_create(
-        &cddm->pmap, &cddm->pmap_mem, me->mpoly, me->mloop, me->totvert, me->totpoly, me->totloop);
+    BKE_mesh_vert_poly_map_create(&cddm->pmap,
+                                  &cddm->pmap_mem,
+                                  me->mvert,
+                                  me->medge,
+                                  me->mpoly,
+                                  me->mloop,
+                                  me->totvert,
+                                  me->totpoly,
+                                  me->totloop,
+                                  false);
   }
 
   return cddm->pmap;

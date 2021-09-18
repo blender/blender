@@ -409,7 +409,7 @@ static void print_memhead_backtrace(MemHead *memh)
   (void)memh; /* Ignored. */
 }
 #  endif /* defined(__linux__) || defined(__APPLE__) */
-#endif   /* DEBUG_BACKTRACE */
+#endif /* DEBUG_BACKTRACE */
 
 static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 {

@@ -33,22 +33,31 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
+#include "BLI_edgehash.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_collection.h"
+#include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_global.h"
+#include "BKE_layer.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_scene.h"
+#include "BKE_subdiv.h"
 #include "BKE_subdiv_ccg.h"
+#include "BKE_subdiv_eval.h"
 #include "BKE_subsurf.h"
 
 #include "BKE_object.h"
@@ -57,6 +66,8 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "bmesh.h"
+#include "multires_inline.h"
 #include "multires_reshape.h"
 
 #include <math.h>
@@ -846,16 +857,460 @@ static void grid_tangent_matrix(float mat[3][3], const CCGKey *key, int x, int y
 
 typedef struct MultiresThreadedData {
   DispOp op;
+  MultiResSpace bmop;
+  BMesh *bm;
+  int lvl;
   CCGElem **gridData, **subGridData;
   CCGKey *key;
   CCGKey *sub_key;
+  Subdiv *sd;
   MPoly *mpoly;
   MDisps *mdisps;
   GridPaintMask *grid_paint_mask;
   int *gridOffset;
+  int cd_mdisps_off, cd_mask_off;
   int gridSize, dGridSize, dSkip;
   float (*smat)[3];
+  bool has_grid_mask;
 } MultiresThreadedData;
+
+Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm)
+{
+  if (!CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+    printf("multires_dump_grids_bmesh: error: no multires grids\n");
+    return NULL;
+  }
+
+  bool spaceset = false;
+
+  if (bm->multiresSpace != MULTIRES_SPACE_ABSOLUTE) {
+    BKE_multires_bmesh_space_set(bmob, bm, MULTIRES_SPACE_ABSOLUTE);
+    spaceset = true;
+  }
+
+  Main *bmain = G.main;
+  char *name = "multires_dump";
+
+  bContext *ctx = CTX_create();
+  CTX_data_main_set(ctx, bmain);
+  CTX_wm_manager_set(ctx, G.main->wm.first);
+  CTX_data_scene_set(ctx, G.main->scenes.first);
+
+  ViewLayer *view_layer = CTX_data_view_layer(ctx);
+  Object *ob = BKE_object_add_only_object(bmain, OB_MESH, name);
+  LayerCollection *layer_collection;
+
+  ob->data = BKE_object_obdata_add_from_type(bmain, OB_MESH, name);
+  DEG_id_tag_update_ex(
+      bmain, &ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+  // DEG_id_tag_update_ex(
+  //    bmain, &ob->data, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+
+  layer_collection = BKE_layer_collection_get_active(view_layer);
+  BKE_collection_object_add(bmain, layer_collection->collection, ob);
+
+  DEG_id_type_tag(bmain, ID_OB);
+  DEG_relations_tag_update(bmain);
+  if (ob->data != NULL) {
+    DEG_id_tag_update_ex(bmain, (ID *)ob->data, ID_RECALC_EDITORS);
+  }
+
+  ob->modifiers.first = ob->modifiers.last = NULL;
+  zero_v3(ob->loc);
+
+  printf("users: %d\n", ob->id.us);
+
+  Mesh *me = ob->data;
+
+  BMIter iter;
+  BMFace *f;
+
+  int cd_mdisp_off = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+  int dimen = 0;
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    BMLoop *l = f->l_first;
+    MDisps *md = BM_ELEM_CD_GET_VOID_P(l, cd_mdisp_off);
+    dimen = (int)floor(sqrt(md->totdisp) + 0.00001);
+    break;
+  }
+
+  if (!dimen) {
+    printf("multires_dump_grids_bmesh: error: corrupted multires data\n");
+    return NULL;
+  }
+
+  int totvert = bm->totloop * dimen * dimen;
+  int totface = bm->totloop * (dimen - 1) * (dimen - 1);
+  int totloop = totface * 4;
+
+  CustomData_free(&me->vdata, me->totvert);
+  CustomData_free(&me->edata, me->totedge);
+  CustomData_free(&me->fdata, me->totface);
+  CustomData_free(&me->ldata, me->totloop);
+  CustomData_free(&me->pdata, me->totpoly);
+
+  me->totvert = totvert;
+  me->totpoly = totface;
+  me->totloop = totloop;
+  me->totedge = totvert + totface;
+  me->totface = 0;
+  me->act_face = -1;
+
+  EdgeHash *eh = BLI_edgehash_new_ex("multires_dump_bmesh", me->totedge);
+
+  MVert *mvert = me->totvert ?
+                     MEM_callocN(sizeof(MVert) * me->totvert, "multires_dump_grids_bmesh.vert") :
+                     NULL;
+  MEdge *medge = me->totedge ?
+                     MEM_callocN(sizeof(MEdge) * me->totedge, "multires_dump_grids_bmesh.edge") :
+                     NULL;
+  MLoop *mloop = me->totloop ?
+                     MEM_callocN(sizeof(MLoop) * me->totloop, "multires_dump_grids_bmesh.loop") :
+                     NULL;
+  MPoly *mpoly = me->totpoly ?
+                     MEM_callocN(sizeof(MPoly) * me->totpoly, "multires_dump_grids_bmesh.poly") :
+                     NULL;
+
+  me->cd_flag = 0;
+
+  CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, mvert, me->totvert);
+  CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, me->totedge);
+  CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
+  CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
+
+  BKE_mesh_update_customdata_pointers(me, 0);
+
+  int loopi = 0;
+  int outli = 0;
+  int medi = 0;
+
+#define VINDEX(i, j) (loopi * dimen * dimen + ((j)*dimen + (i)))
+
+  // CustomData_daata_
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    BMLoop *l = f->l_first;
+    do {
+      MDisps *md = BM_ELEM_CD_GET_VOID_P(l, cd_mdisp_off);
+
+      for (int i = 0; i < dimen; i++) {
+        for (int j = 0; j < dimen; j++) {
+          int vidx = loopi * dimen * dimen + (j * dimen + i);
+          int idx = j * dimen + i;
+          float *co = md->disps[idx];
+
+          MVert *mv = mvert + vidx;
+          copy_v3_v3(mv->co, co);
+        }
+      }
+
+      for (int i = 0; i < dimen - 1; i++) {
+        for (int j = 0; j < dimen - 1; j++) {
+          // do face
+          int fidx = loopi * (dimen - 1) * (dimen - 1) + (j * (dimen - 1) + i);
+          MPoly *mp = mpoly + fidx;
+
+          mp->totloop = 4;
+          mp->loopstart = outli;
+
+          MLoop *ml = mloop + outli;
+
+          ml[0].v = VINDEX(i, j);
+          ml[1].v = VINDEX(i, j + 1);
+          ml[2].v = VINDEX(i + 1, j + 1);
+          ml[3].v = VINDEX(i + 1, j);
+
+          for (int i2 = 0; i2 < 4; i2++) {
+            int a = ml[i2].v, b = ml[(i2 + 1) % 4].v;
+            int e;
+
+            if (!BLI_edgehash_haskey(eh, a, b)) {
+              BLI_edgehash_insert(eh, a, b, (void *)medi);
+              e = medi;
+
+              MEdge *med = medge + medi;
+
+              med->v1 = a;
+              med->v2 = b;
+
+              medi++;
+            }
+            else {
+              e = (int)BLI_edgehash_lookup(eh, a, b);
+            }
+
+            ml[i2].e = e;
+          }
+
+          outli += 4;
+        }
+      }
+
+      loopi++;
+      l = l->next;
+    } while (l != f->l_first);
+  }
+
+  for (int i = 0; i < me->totpoly; i++) {
+    if (!mpoly[i].totloop) {
+      printf("error 1! %d %d\n", i, me->totpoly);
+    }
+    if (mpoly[i].loopstart >= me->totloop) {
+      printf(
+          "error 2! %d %d l: %d totl: %d\n", i, me->totpoly, mpoly[i].loopstart, mpoly[i].totloop);
+    }
+  }
+
+  if (spaceset) {
+    BKE_multires_bmesh_space_set(bmob, bm, MULTIRES_SPACE_TANGENT);
+  }
+
+  BKE_mesh_calc_normals(me);
+  BKE_mesh_tessface_calc(me);
+
+  return ob;
+}
+
+//#define LIMIT_MAX_DISPLACEMENT
+
+static void multires_bmesh_space_set_cb(void *__restrict userdata,
+                                        const int pidx,
+                                        const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  MultiresThreadedData *tdata = userdata;
+
+  int cd_mdisps_off = tdata->cd_mdisps_off;
+  BMesh *bm = tdata->bm;
+  MultiResSpace op = tdata->bmop;
+  BMFace *f = bm->ftable[pidx];
+  int gridSize = tdata->gridSize;
+
+  int S, x, y;
+
+  BMLoop *l;
+
+#ifdef LIMIT_MAX_DISPLACEMENT
+  l = f->l_first;
+  float cent[3];
+  int tot = 0;
+
+  // get face center to calculate maximum allowable displacement length
+  zero_v3(cent);
+  do {
+    add_v3_v3(cent, l->v->co);
+    tot++;
+    l = l->next;
+  } while (l != f->l_first);
+
+  mul_v3_fl(cent, 1.0f / (float)tot);
+#endif
+
+  l = f->l_first;
+  S = 0;
+  do {
+    MDisps *mdisp = BM_ELEM_CD_GET_VOID_P(l, cd_mdisps_off);
+    float(*dispgrid)[3] = NULL;
+
+    dispgrid = mdisp->disps;
+
+#ifdef LIMIT_MAX_DISPLACEMENT
+    /*try to limit numerical instability by clamping max displacement*/
+
+    float maxlen = len_v3v3(l->v->co, cent) * 15.0f;
+    maxlen = MAX2(maxlen, 0.00001f);
+#endif
+
+    for (y = 0; y < gridSize; y++) {
+      for (x = 0; x < gridSize; x++) {
+        float sco[8], udv[3], vdv[3];
+        float *data = dispgrid[gridSize * y + x];
+        float mat[3][3], disp[3];
+
+        float grid_u = (float)x / (float)(gridSize - 1);
+        float grid_v = (float)y / (float)(gridSize - 1);
+        float u, v;
+
+        int corner = S;
+        if (f->len == 4) {
+          BKE_subdiv_rotate_grid_to_quad(corner, grid_u, grid_v, &u, &v);
+        }
+        else {
+          u = 1.0 - grid_v;
+          v = 1.0 - grid_u;
+        }
+
+        BKE_subdiv_eval_limit_point_and_derivatives(tdata->sd, l->head.index, u, v, sco, udv, vdv);
+        BKE_multires_construct_tangent_matrix(mat, udv, vdv, f->len == 4 ? corner : 0);
+
+        copy_v3_v3(disp, data);
+
+        switch (op) {
+          case MULTIRES_SPACE_ABSOLUTE:
+            /* Convert displacement to object space
+             * and add to grid points */
+            mul_v3_m3v3(disp, mat, data);
+            add_v3_v3v3(data, disp, sco);
+            break;
+          case MULTIRES_SPACE_TANGENT:
+            /* Calculate displacement between new and old
+             * grid points and convert to tangent space */
+            invert_m3(mat);
+
+            sub_v3_v3v3(disp, data, sco);
+            mul_v3_m3v3(data, mat, disp);
+
+            // try to prevent errors
+            float len = len_v3(data);
+#ifdef LIMIT_MAX_DISPLACEMENT
+            if (len > maxlen) {
+              mul_v3_fl(data, maxlen / len);
+            }
+            else if (isnan(len)) {
+              zero_v3(data);
+            }
+#else
+            if (isnan(len)) {
+              zero_v3(data);
+            }
+#endif
+            break;
+        }
+      }
+    }
+
+    S++;
+    l = l->next;
+  } while (l != f->l_first);
+}
+
+/* The original version of this function was broken (and subsequently removed)
+   because it didn't properly set the subdivision level; it also used the old
+   multires system.  The new subdiv API is now used instead.
+   */
+void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
+{
+  if (!bm->totface || !CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+    return;
+  }
+
+  // get multires settings
+  MultiresModifierData *mmd = bm->haveMultiResSettings ? &bm->multires : NULL;
+
+  if (!mmd && ob) {
+    mmd = get_multires_modifier(NULL, ob, true);
+  }
+
+  if (!mmd || !CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+    return;
+  }
+
+  // cache multires settings in bmesh
+  bm->multiresSpace = mode;
+
+  // create temporary mesh structure
+  Mesh _me, *me = &_me;
+  memset(me, 0, sizeof(Mesh));
+  CustomData_reset(&me->vdata);
+  CustomData_reset(&me->edata);
+  CustomData_reset(&me->ldata);
+  CustomData_reset(&me->fdata);
+  CustomData_reset(&me->pdata);
+
+  CustomData_MeshMasks extra = CD_MASK_DERIVEDMESH;
+  extra.lmask |= CD_MASK_MDISPS;
+
+  BM_mesh_bm_to_me_for_eval(bm, me, &extra);
+  SubdivSettings settings2;
+
+  // copy the settings and then set subdivision level to max
+  MultiresModifierData mmdcpy = *mmd;
+  mmdcpy.lvl = mmdcpy.sculptlvl = mmdcpy.renderlvl = mmdcpy.totlvl;
+
+  // set up subdivision surface
+  BKE_multires_subdiv_settings_init(&settings2, &mmdcpy);
+  Subdiv *sd = BKE_subdiv_new_from_mesh(&settings2, me);
+  BKE_subdiv_eval_begin_from_mesh(sd, me, NULL);
+
+  // create a fake object with .sculpt set to NULL
+  Object fakeob;
+  if (ob) {
+    fakeob = *ob;
+    fakeob.sculpt = NULL;
+  }
+  else {
+    memset(&fakeob, 0, sizeof(fakeob));
+    fakeob.data = me;
+    BLI_addtail(&fakeob.modifiers, &mmdcpy);
+  }
+
+  int i, gridSize;
+  int totpoly = bm->totface;
+
+  // force paranoia recalc of indices and lookup tables
+  bm->elem_index_dirty |= BM_FACE;
+  bm->elem_table_dirty |= BM_FACE;
+
+  BM_mesh_elem_index_ensure(bm, BM_FACE);
+  BM_mesh_elem_table_ensure(bm, BM_FACE);
+
+  gridSize = multires_side_tot[mmd->totlvl];
+
+  int cd_disp_off = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+
+  BMFace *f;
+  BMIter iter;
+  i = 0;
+
+  /*check that all grids are allocated and also set some indices*/
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    BMIter iter2;
+    BMLoop *l;
+
+    f->head.index = i;
+
+    BM_ITER_ELEM (l, &iter2, f, BM_LOOPS_OF_FACE) {
+      MDisps *mdisp = BM_ELEM_CD_GET_VOID_P(l, cd_disp_off);
+
+      /* allocate new disps, this can happen with newly created faces */
+      if (!mdisp->disps) {
+        multires_reallocate_mdisps(1, mdisp, mmd->totlvl);
+      }
+
+      l->head.index = i;
+
+      if (f->len != 4) {
+        i++;
+      }
+    }
+
+    if (f->len == 4) {
+      i++;
+    }
+  }
+
+  // do the space conversion
+
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.min_iter_per_thread = CCG_TASK_LIMIT;
+
+  MultiresThreadedData data = {
+      .bmop = mode,
+      .sd = sd,
+      .lvl = mmd->totlvl,
+      .bm = bm,
+      .cd_mdisps_off = cd_disp_off,
+      .gridSize = gridSize,
+  };
+
+  BLI_task_parallel_range(0, totpoly, &data, multires_bmesh_space_set_cb, &settings);
+
+  BKE_mesh_free_data_for_undo(me);
+  BKE_subdiv_free(sd);
+
+  bm->elem_index_dirty |= BM_FACE | BM_LOOP;
+  bm->elem_table_dirty |= BM_FACE | BM_LOOP;
+}
 
 static void multires_disp_run_cb(void *__restrict userdata,
                                  const int pidx,
@@ -1218,7 +1673,7 @@ void multires_stitch_grids(Object *ob)
   int num_faces;
   BKE_pbvh_get_grid_updates(pbvh, false, (void ***)&faces, &num_faces);
   if (num_faces) {
-    BKE_subdiv_ccg_average_stitch_faces(subdiv_ccg, faces, num_faces);
+    // XXX BKE_subdiv_ccg_average_stitch_faces(subdiv_ccg, faces, num_faces);
     MEM_freeN(faces);
   }
 }
@@ -1334,7 +1789,7 @@ void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u,
 
   urat = u - x;
   vrat = v - y;
-  uopp = 1 - urat;
+  uopp = 1.0f - urat;
 
   mul_v3_v3fl(d[0], disps[y * st + x], uopp);
   mul_v3_v3fl(d[1], disps[y * st + x2], urat);
@@ -1343,7 +1798,7 @@ void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u,
 
   add_v3_v3v3(d2[0], d[0], d[1]);
   add_v3_v3v3(d2[1], d[2], d[3]);
-  mul_v3_fl(d2[0], 1 - vrat);
+  mul_v3_fl(d2[0], 1.0f - vrat);
   mul_v3_fl(d2[1], vrat);
 
   add_v3_v3v3(out, d2[0], d2[1]);

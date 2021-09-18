@@ -64,6 +64,7 @@ typedef struct {
   float edge_length;
 
   struct IsectRayPrecalc isect_precalc;
+  SculptSession *ss;
 } SculptDetailRaycastData;
 
 static bool sculpt_and_constant_or_manual_detail_poll(bContext *C)
@@ -110,17 +111,83 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* Update topology size. */
   float object_space_constant_detail = 1.0f / (sd->constant_detail * mat4_to_scale(ob->obmat));
-  BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail);
+  BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail, sd->detail_range);
 
   SCULPT_undo_push_begin(ob, "Dynamic topology flood fill");
   SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_COORDS);
 
-  while (BKE_pbvh_bmesh_update_topology(
-      ss->pbvh, PBVH_Collapse | PBVH_Subdivide, center, NULL, size, false, false)) {
-    for (int i = 0; i < totnodes; i++) {
-      BKE_pbvh_node_mark_topology_update(nodes[i]);
+  DyntopoMaskCB mask_cb;
+  void *mask_cb_data;
+
+  SCULPT_dyntopo_automasking_init(ss, sd, NULL, ob, &mask_cb, &mask_cb_data);
+
+  const int max_steps = 10;
+  const int max_dyntopo_steps_coll = 1 << 13;
+  const int max_dyntopo_steps_subd = 1 << 15;
+
+  int i = 0;
+  bool modified = true;
+
+  while (modified) {
+    modified = BKE_pbvh_bmesh_update_topology(ss->pbvh,
+                                              PBVH_Collapse,
+                                              center,
+                                              NULL,
+                                              size,
+                                              false,
+                                              false,
+                                              -1,
+                                              false,
+                                              mask_cb,
+                                              mask_cb_data,
+                                              max_dyntopo_steps_coll);
+
+    for (int j = 0; j < totnodes; j++) {
+      BKE_pbvh_node_mark_topology_update(nodes[j]);
+    }
+
+    modified |= BKE_pbvh_bmesh_update_topology(ss->pbvh,
+                                               PBVH_Subdivide,
+                                               center,
+                                               NULL,
+                                               size,
+                                               false,
+                                               false,
+                                               -1,
+                                               false,
+                                               mask_cb,
+                                               mask_cb_data,
+                                               max_dyntopo_steps_subd);
+    for (int j = 0; j < totnodes; j++) {
+      BKE_pbvh_node_mark_topology_update(nodes[j]);
+    }
+
+    if (i++ > max_steps) {
+      break;
     }
   }
+
+  /* one more time, but with cleanup valence 3/4 verts enabled */
+  for (i = 0; i < 2; i++) {
+    for (int j = 0; j < totnodes; j++) {
+      BKE_pbvh_node_mark_topology_update(nodes[j]);
+    }
+
+    BKE_pbvh_bmesh_update_topology(ss->pbvh,
+                                   PBVH_Cleanup,
+                                   center,
+                                   NULL,
+                                   size,
+                                   false,
+                                   false,
+                                   -1,
+                                   false,
+                                   mask_cb,
+                                   mask_cb_data,
+                                   max_dyntopo_steps_coll);
+  }
+
+  SCULPT_dyntopo_automasking_end(mask_cb_data);
 
   MEM_SAFE_FREE(nodes);
   SCULPT_undo_push_end();
@@ -174,13 +241,13 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, int mx, int my)
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
   /* Average the edge length of the connected edges to the active vertex. */
-  int active_vertex = SCULPT_active_vertex_get(ss);
+  SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
   const float *active_vertex_co = SCULPT_active_vertex_co_get(ss);
   float edge_length = 0.0f;
   int tot = 0;
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, active_vertex, ni) {
-    edge_length += len_v3v3(active_vertex_co, SCULPT_vertex_co_get(ss, ni.index));
+    edge_length += len_v3v3(active_vertex_co, SCULPT_vertex_co_get(ss, ni.vertex));
     tot += 1;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -193,8 +260,13 @@ static void sculpt_raycast_detail_cb(PBVHNode *node, void *data_v, float *tmin)
 {
   if (BKE_pbvh_node_get_tmin(node) < *tmin) {
     SculptDetailRaycastData *srd = data_v;
-    if (BKE_pbvh_bmesh_node_raycast_detail(
-            node, srd->ray_start, &srd->isect_precalc, &srd->depth, &srd->edge_length)) {
+
+    if (BKE_pbvh_bmesh_node_raycast_detail(srd->ss->pbvh,
+                                           node,
+                                           srd->ray_start,
+                                           &srd->isect_precalc,
+                                           &srd->depth,
+                                           &srd->edge_length)) {
       srd->hit = true;
       *tmin = srd->depth;
     }
@@ -215,12 +287,20 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, ARegion *region,
 
   SculptDetailRaycastData srd;
   srd.hit = 0;
+  srd.ss = ob->sculpt;
+
   srd.ray_start = ray_start;
   srd.depth = depth;
   srd.edge_length = 0.0f;
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
 
-  BKE_pbvh_raycast(ob->sculpt->pbvh, sculpt_raycast_detail_cb, &srd, ray_start, ray_normal, false);
+  BKE_pbvh_raycast(ob->sculpt->pbvh,
+                   sculpt_raycast_detail_cb,
+                   &srd,
+                   ray_start,
+                   ray_normal,
+                   false,
+                   srd.ss->stroke_id);
 
   if (srd.hit && srd.edge_length > 0.0f) {
     /* Convert edge length to world space detail resolution. */
@@ -569,14 +649,14 @@ static void dyntopo_detail_size_sample_from_surface(Object *ob,
                                                     DyntopoDetailSizeEditCustomData *cd)
 {
   SculptSession *ss = ob->sculpt;
-  const int active_vertex = SCULPT_active_vertex_get(ss);
+  const SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
 
   float len_accum = 0;
   int num_neighbors = 0;
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, active_vertex, ni) {
     len_accum += len_v3v3(SCULPT_vertex_co_get(ss, active_vertex),
-                          SCULPT_vertex_co_get(ss, ni.index));
+                          SCULPT_vertex_co_get(ss, ni.vertex));
     num_neighbors++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);

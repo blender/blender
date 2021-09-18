@@ -26,12 +26,16 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_vec_types.h"
 
+#include "BLI_alloca.h"
 #include "BLI_bitmap.h"
 #include "BLI_buffer.h"
 #include "BLI_math.h"
+#include "BLI_sort.h"
+#include "BLI_sort_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BLI_memarena.h"
 
@@ -194,6 +198,270 @@ void BKE_mesh_uv_vert_map_free(UvVertMap *vmap)
   }
 }
 
+typedef struct DiskCycleSortData {
+  float th;
+  int i, elem;
+  const float *co;
+} DiskCycleSortData;
+
+/**
+ * Calculate a normal from a vertex cloud.
+ *
+ * \note We could make a higher quality version that takes all vertices into account.
+ * Currently it finds 4 outer most points returning its normal.
+ */
+static void calc_cloud_normal(DiskCycleSortData *varr,
+                              int varr_len,
+                              float r_normal[3],
+                              float r_center[3],
+                              int *r_index_tangent)
+{
+  const float varr_len_inv = 1.0f / (float)varr_len;
+
+  /* Get the center point and collect vector array since we loop over these a lot. */
+  float center[3] = {0.0f, 0.0f, 0.0f};
+  for (int i = 0; i < varr_len; i++) {
+    madd_v3_v3fl(center, varr[i].co, varr_len_inv);
+  }
+
+  /* Find the 'co_a' point from center. */
+  int co_a_index = 0;
+  const float *co_a = NULL;
+  {
+    float dist_sq_max = -1.0f;
+    for (int i = 0; i < varr_len; i++) {
+      const float dist_sq_test = len_squared_v3v3(varr[i].co, center);
+      if (!(dist_sq_test <= dist_sq_max)) {
+        co_a = varr[i].co;
+        co_a_index = i;
+        dist_sq_max = dist_sq_test;
+      }
+    }
+  }
+
+  float dir_a[3];
+  sub_v3_v3v3(dir_a, co_a, center);
+  normalize_v3(dir_a);
+
+  const float *co_b = NULL;
+  float dir_b[3] = {0.0f, 0.0f, 0.0f};
+  {
+    float dist_sq_max = -1.0f;
+    for (int i = 0; i < varr_len; i++) {
+      if (varr[i].co == co_a) {
+        continue;
+      }
+      float dir_test[3];
+      sub_v3_v3v3(dir_test, varr[i].co, center);
+      project_plane_normalized_v3_v3v3(dir_test, dir_test, dir_a);
+      const float dist_sq_test = len_squared_v3(dir_test);
+      if (!(dist_sq_test <= dist_sq_max)) {
+        co_b = varr[i].co;
+        dist_sq_max = dist_sq_test;
+        copy_v3_v3(dir_b, dir_test);
+      }
+    }
+  }
+
+  if (varr_len <= 3) {
+    normal_tri_v3(r_normal, center, co_a, co_b);
+    goto finally;
+  }
+
+  normalize_v3(dir_b);
+
+  const float *co_a_opposite = NULL;
+  const float *co_b_opposite = NULL;
+
+  {
+    float dot_a_min = FLT_MAX;
+    float dot_b_min = FLT_MAX;
+    for (int i = 0; i < varr_len; i++) {
+      const float *co_test = varr[i].co;
+      float dot_test;
+
+      if (co_test != co_a) {
+        dot_test = dot_v3v3(dir_a, co_test);
+        if (dot_test < dot_a_min) {
+          dot_a_min = dot_test;
+          co_a_opposite = co_test;
+        }
+      }
+
+      if (co_test != co_b) {
+        dot_test = dot_v3v3(dir_b, co_test);
+        if (dot_test < dot_b_min) {
+          dot_b_min = dot_test;
+          co_b_opposite = co_test;
+        }
+      }
+    }
+  }
+
+  normal_quad_v3(r_normal, co_a, co_b, co_a_opposite, co_b_opposite);
+
+finally:
+  if (r_center != NULL) {
+    copy_v3_v3(r_center, center);
+  }
+  if (r_index_tangent != NULL) {
+    *r_index_tangent = co_a_index;
+  }
+}
+
+static bool build_disk_cycle_face(const MPoly *mpoly,
+                                  const MLoop *mloop,
+                                  const MEdge *medge,
+                                  const MVert *mvert,
+                                  int vertex_i,
+                                  MeshElemMap *elem,
+                                  int *doneset,
+                                  int *donelen,
+                                  DiskCycleSortData *sortdata)
+{
+  *donelen = 0;
+
+  for (int i = 0; i < elem->count; i++) {
+    const MPoly *mp = mpoly + elem->indices[i];
+    unsigned int loops[2];
+
+    if (poly_get_adj_loops_from_vert(mp, mloop, (unsigned int)vertex_i, loops)) {
+      for (int j = 0; j < 2; j++) {
+        if (loops[j] != (unsigned int)vertex_i) {
+          bool ok = true;
+
+          for (int k = 0; k < *donelen; k++) {
+            if ((unsigned int)doneset[k] == loops[j]) {
+              ok = false;
+            }
+          }
+
+          if (ok) {
+            doneset[*donelen] = (int)loops[j];
+            sortdata[*donelen].elem = elem->indices[i];
+            sortdata[*donelen].co = mvert[loops[j]].co;
+            (*donelen)++;
+
+            break;
+          }
+        }
+      }
+    }
+    else {
+      printf("sort error in sort_disk_cycle_face\n");
+      continue;
+    }
+  }
+
+  return *donelen == elem->count;
+}
+
+static bool build_disk_cycle_loop(const MPoly *mpoly,
+                                  const MLoop *mloop,
+                                  const MEdge *medge,
+                                  const MVert *mvert,
+                                  int vertex_i,
+                                  MeshElemMap *elem,
+                                  int *doneset,
+                                  int *donelen,
+                                  DiskCycleSortData *sortdata)
+{
+  *donelen = 0;
+
+  for (int i = 0; i < elem->count; i++) {
+    int l1 = elem->indices[i];
+    const MLoop *ml = mloop + l1;
+    const MEdge *me = medge + ml->e;
+
+    unsigned int v = me->v1 != (unsigned int)vertex_i ? me->v1 : me->v2;
+
+    sortdata[i].co = mvert[v].co;
+    sortdata[i].elem = l1;
+    sortdata[i].i = i;
+
+    (*donelen)++;
+  }
+
+  return *donelen == elem->count;
+}
+
+static bool build_disk_cycle_edge(const MPoly *mpoly,
+                                  const MLoop *mloop,
+                                  const MEdge *medge,
+                                  const MVert *mvert,
+                                  int vertex_i,
+                                  MeshElemMap *elem,
+                                  int *doneset,
+                                  int *donelen,
+                                  DiskCycleSortData *sortdata)
+{
+  *donelen = 0;
+
+  for (int i = 0; i < elem->count; i++) {
+    const MEdge *me = medge + elem->indices[i];
+
+    unsigned int v = me->v1 != (unsigned int)vertex_i ? me->v1 : me->v2;
+
+    sortdata[i].co = mvert[v].co;
+    sortdata[i].elem = elem->indices[i];
+    sortdata[i].i = i;
+
+    (*donelen)++;
+  }
+
+  return *donelen == elem->count;
+}
+
+static bool sort_disk_cycle(const MPoly *mpoly,
+                            const MLoop *mloop,
+                            const MEdge *medge,
+                            const MVert *mvert,
+                            int vertex_i,
+                            MeshElemMap *elem,
+                            bool is_loops,
+                            bool is_edges)
+{
+  DiskCycleSortData *sortdata = BLI_array_alloca(sortdata, (unsigned int)elem->count);
+  int *doneset = BLI_array_alloca(doneset, (unsigned int)elem->count);
+  int donelen = 0;
+
+  if (is_loops) {
+    if (!build_disk_cycle_face(
+            mpoly, mloop, medge, mvert, vertex_i, elem, doneset, &donelen, sortdata)) {
+      return false;
+    }
+  }
+  else if (is_edges) {
+    if (!build_disk_cycle_edge(
+            mpoly, mloop, medge, mvert, vertex_i, elem, doneset, &donelen, sortdata)) {
+      return false;
+    }
+  }
+  else {
+    if (!build_disk_cycle_loop(
+            mpoly, mloop, medge, mvert, vertex_i, elem, doneset, &donelen, sortdata)) {
+      return false;
+    }
+  }
+
+  float no[3], cent[3];
+  int vadj;
+
+  calc_cloud_normal(sortdata, donelen, no, cent, &vadj);
+
+  for (int i = 0; i < donelen; i++) {
+    sortdata[i].th = angle_signed_on_axis_v3v3v3_v3(sortdata[vadj].co, cent, sortdata[i].co, no);
+  }
+
+  qsort((void *)sortdata, (size_t)donelen, sizeof(DiskCycleSortData), BLI_sortutil_cmp_float);
+
+  for (int i = 0; i < donelen; i++) {
+    elem->indices[i] = sortdata[i].elem;
+  }
+
+  return true;
+}
+
 /**
  * Generates a map where the key is the vertex and the value is a list
  * of polys or loops that use that vertex as a corner. The lists are allocated
@@ -203,12 +471,15 @@ void BKE_mesh_uv_vert_map_free(UvVertMap *vmap)
  */
 static void mesh_vert_poly_or_loop_map_create(MeshElemMap **r_map,
                                               int **r_mem,
+                                              const MVert *mvert,
+                                              const MEdge *medge,
                                               const MPoly *mpoly,
                                               const MLoop *mloop,
                                               int totvert,
                                               int totpoly,
                                               int totloop,
-                                              const bool do_loops)
+                                              const bool do_loops,
+                                              const bool sort_disk_cycles)
 {
   MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * (size_t)totvert, __func__);
   int *indices, *index_iter;
@@ -246,6 +517,12 @@ static void mesh_vert_poly_or_loop_map_create(MeshElemMap **r_map,
     }
   }
 
+  if (sort_disk_cycles) {
+    for (i = 0; i < totvert; i++) {
+      sort_disk_cycle(mpoly, mloop, medge, mvert, i, map + i, do_loops, false);
+    }
+  }
+
   *r_map = map;
   *r_mem = indices;
 }
@@ -257,13 +534,26 @@ static void mesh_vert_poly_or_loop_map_create(MeshElemMap **r_map,
  */
 void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map,
                                    int **r_mem,
+                                   const MVert *mvert,
+                                   const MEdge *medge,
                                    const MPoly *mpoly,
                                    const MLoop *mloop,
                                    int totvert,
                                    int totpoly,
-                                   int totloop)
+                                   int totloop,
+                                   const bool sort_disk_cycles)
 {
-  mesh_vert_poly_or_loop_map_create(r_map, r_mem, mpoly, mloop, totvert, totpoly, totloop, false);
+  mesh_vert_poly_or_loop_map_create(r_map,
+                                    r_mem,
+                                    mvert,
+                                    medge,
+                                    mpoly,
+                                    mloop,
+                                    totvert,
+                                    totpoly,
+                                    totloop,
+                                    false,
+                                    sort_disk_cycles);
 }
 
 /**
@@ -273,13 +563,17 @@ void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map,
  */
 void BKE_mesh_vert_loop_map_create(MeshElemMap **r_map,
                                    int **r_mem,
+                                   const MVert *mvert,
+                                   const MEdge *medge,
                                    const MPoly *mpoly,
                                    const MLoop *mloop,
                                    int totvert,
                                    int totpoly,
-                                   int totloop)
+                                   int totloop,
+                                   const bool sort_disk_cycles)
 {
-  mesh_vert_poly_or_loop_map_create(r_map, r_mem, mpoly, mloop, totvert, totpoly, totloop, true);
+  mesh_vert_poly_or_loop_map_create(
+      r_map, r_mem, mvert, medge, mpoly, mloop, totvert, totpoly, totloop, true, sort_disk_cycles);
 }
 
 /**
@@ -336,8 +630,13 @@ void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
  * is a list of edges that use that vertex as an endpoint.
  * The lists are allocated from one memory pool.
  */
-void BKE_mesh_vert_edge_map_create(
-    MeshElemMap **r_map, int **r_mem, const MEdge *medge, int totvert, int totedge)
+void BKE_mesh_vert_edge_map_create(MeshElemMap **r_map,
+                                   int **r_mem,
+                                   const MVert *mvert,
+                                   const MEdge *medge,
+                                   int totvert,
+                                   int totedge,
+                                   bool sort_disk_cycles)
 {
   MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * (size_t)totvert, "vert-edge map");
   int *indices = MEM_mallocN(sizeof(int[2]) * (size_t)totedge, "vert-edge map mem");
@@ -369,6 +668,12 @@ void BKE_mesh_vert_edge_map_create(
 
     map[v[0]].count++;
     map[v[1]].count++;
+  }
+
+  if (sort_disk_cycles) {
+    for (i = 0; i < totvert; i++) {
+      sort_disk_cycle(NULL, NULL, medge, mvert, i, map + i, false, true);
+    }
   }
 
   *r_map = map;

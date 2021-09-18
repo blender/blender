@@ -39,7 +39,8 @@ void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
   Mesh *me = BMO_slot_ptr_get(op->slots_in, "mesh");
   bool set_key = BMO_slot_bool_get(op->slots_in, "use_shapekey");
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      me,
                      (&(struct BMeshFromMeshParams){
                          .use_shapekey = set_key,
@@ -66,6 +67,7 @@ void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
   /* Object *ob = BMO_slot_ptr_get(op, "object"); */
 
   BM_mesh_bm_to_me(G.main,
+                   NULL,
                    bm,
                    me,
                    (&(struct BMeshToMeshParams){

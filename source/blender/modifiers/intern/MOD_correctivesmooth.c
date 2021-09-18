@@ -193,7 +193,10 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
   uint i;
 
   const uint numEdges = (uint)mesh->totedge;
+  const float projection = csmd->projection;
+
   const MEdge *edges = mesh->medge;
+  const MVert *verts = mesh->mvert;
   float *vertex_edge_count_div;
 
   struct SmoothingData_Simple {
@@ -239,8 +242,24 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
       sd_v1 = &smooth_data[edges[i].v1];
       sd_v2 = &smooth_data[edges[i].v2];
 
-      add_v3_v3(sd_v1->delta, edge_dir);
-      sub_v3_v3(sd_v2->delta, edge_dir);
+      if (projection > 0.0f) {
+        float edge_dir2[3];
+        float no[3];
+
+        normal_short_to_float_v3(no, verts[edges[i].v1].no);
+        madd_v3_v3v3fl(edge_dir2, edge_dir, no, -dot_v3v3(edge_dir, no) * projection);
+        add_v3_v3(sd_v1->delta, edge_dir2);
+
+        negate_v3(edge_dir);
+
+        normal_short_to_float_v3(no, verts[edges[i].v2].no);
+        madd_v3_v3v3fl(edge_dir2, edge_dir, no, -dot_v3v3(edge_dir, no) * projection);
+        add_v3_v3(sd_v2->delta, edge_dir2);
+      }
+      else {
+        add_v3_v3(sd_v1->delta, edge_dir);
+        sub_v3_v3(sd_v2->delta, edge_dir);
+      }
     }
 
     for (i = 0; i < numVerts; i++) {
@@ -270,7 +289,9 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
   /* NOTE: the way this smoothing method works, its approx half as strong as the simple-smooth,
    * and 2.0 rarely spikes, double the value for consistent behavior. */
   const float lambda = csmd->lambda * 2.0f;
+  const float projection = csmd->projection;
   const MEdge *edges = mesh->medge;
+  const MVert *verts = mesh->mvert;
   float *vertex_edge_count;
   uint i;
 
@@ -305,8 +326,24 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
       sd_v1 = &smooth_data[edges[i].v1];
       sd_v2 = &smooth_data[edges[i].v2];
 
-      add_v3_v3(sd_v1->delta, edge_dir);
-      sub_v3_v3(sd_v2->delta, edge_dir);
+      if (projection > 0.0f) {
+        float edge_dir2[3];
+        float no[3];
+
+        normal_short_to_float_v3(no, verts[edges[i].v1].no);
+        madd_v3_v3v3fl(edge_dir2, edge_dir, no, -dot_v3v3(edge_dir, no) * projection);
+        add_v3_v3(sd_v1->delta, edge_dir2);
+
+        negate_v3(edge_dir);
+
+        normal_short_to_float_v3(no, verts[edges[i].v2].no);
+        madd_v3_v3v3fl(edge_dir2, edge_dir, no, -dot_v3v3(edge_dir, no) * projection);
+        add_v3_v3(sd_v2->delta, edge_dir2);
+      }
+      else {
+        add_v3_v3(sd_v1->delta, edge_dir);
+        sub_v3_v3(sd_v2->delta, edge_dir);
+      }
 
       sd_v1->edge_length_sum += edge_dist;
       sd_v2->edge_length_sum += edge_dist;
@@ -787,6 +824,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiItemR(layout, ptr, "factor", 0, IFACE_("Factor"), ICON_NONE);
+  uiItemR(layout, ptr, "projection", 0, IFACE_("Projection"), ICON_NONE);
   uiItemR(layout, ptr, "iterations", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "scale", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "smooth_type", 0, NULL, ICON_NONE);
@@ -819,6 +857,13 @@ static void blendWrite(BlendWriter *writer, const ModifierData *md)
   if (csmd->bind_coords) {
     BLO_write_float3_array(writer, csmd->bind_coords_num, (float *)csmd->bind_coords);
   }
+}
+
+bool dependsOnNormals(ModifierData *md)
+{
+  CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
+
+  return csmd->projection > 0.0f;
 }
 
 static void blendRead(BlendDataReader *reader, ModifierData *md)
@@ -859,7 +904,7 @@ ModifierTypeInfo modifierType_CorrectiveSmooth = {
     /* isDisabled */ NULL,
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
+    /* dependsOnNormals */ dependsOnNormals,
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,

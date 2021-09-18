@@ -23,15 +23,19 @@
  * \ingroup bke
  */
 
+#include "BKE_pbvh.h"
 #include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
 #include "DNA_brush_enums.h"
+#include "DNA_customdata_types.h"
 #include "DNA_object_enums.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct SculptCustomLayer;
+struct MDynTopoVert;
 struct BMFace;
 struct BMesh;
 struct BlendDataReader;
@@ -348,6 +352,11 @@ typedef struct SculptClothSimulation {
   /** #PBVHNode pointer as a key, index in #SculptClothSimulation.node_state as value. */
   struct GHash *node_state_index;
   eSculptClothNodeSimState *node_state;
+
+  // persistent base customdata layer offsets
+  int cd_pers_co;
+  int cd_pers_no;
+  int cd_pers_disp;
 } SculptClothSimulation;
 
 typedef struct SculptPersistentBase {
@@ -369,7 +378,8 @@ typedef struct SculptVertexInfo {
 
 typedef struct SculptBoundaryEditInfo {
   /* Vertex index from where the topology propagation reached this vertex. */
-  int original_vertex;
+  SculptVertRef original_vertex;
+  int original_vertex_i;
 
   /* How many steps were needed to reach this vertex from the boundary. */
   int num_propagation_steps;
@@ -380,13 +390,23 @@ typedef struct SculptBoundaryEditInfo {
 
 /* Edge for drawing the boundary preview in the cursor. */
 typedef struct SculptBoundaryPreviewEdge {
-  int v1;
-  int v2;
+  SculptVertRef v1;
+  SculptVertRef v2;
 } SculptBoundaryPreviewEdge;
+
+#define MAX_STORED_COTANGENTW_EDGES 7
+
+typedef struct StoredCotangentW {
+  float static_weights[MAX_STORED_COTANGENTW_EDGES];
+  float *weights;
+  int length;
+} StoredCotangentW;
 
 typedef struct SculptBoundary {
   /* Vertex indices of the active boundary. */
-  int *vertices;
+  SculptVertRef *vertices;
+  int *vertex_indices;
+
   int vertices_capacity;
   int num_vertices;
 
@@ -394,6 +414,14 @@ typedef struct SculptBoundary {
    * account the length of all edges between them. Any vertex that is not in the boundary will have
    * a distance of 0. */
   float *distance;
+
+  float (*smoothco)[3];
+  float *boundary_dist;  // distances from verts to boundary
+  float (*boundary_tangents)[3];
+
+  StoredCotangentW *boundary_cotangents;
+  SculptVertRef *boundary_closest;
+  int sculpt_totvert;
 
   /* Data for drawing the preview. */
   SculptBoundaryPreviewEdge *edges;
@@ -404,12 +432,12 @@ typedef struct SculptBoundary {
   bool forms_loop;
 
   /* Initial vertex in the boundary which is closest to the current sculpt active vertex. */
-  int initial_vertex;
+  SculptVertRef initial_vertex;
 
   /* Vertex that at max_propagation_steps from the boundary and closest to the original active
    * vertex that was used to initialize the boundary. This is used as a reference to check how much
    * the deformation will go into the mesh and to calculate the strength of the brushes. */
-  int pivot_vertex;
+  SculptVertRef pivot_vertex;
 
   /* Stores the initial positions of the pivot and boundary initial vertex as they may be deformed
    * during the brush action. This allows to use them as a reference positions and vectors for some
@@ -427,7 +455,7 @@ typedef struct SculptBoundary {
   /* Bend Deform type. */
   struct {
     float (*pivot_rotation_axis)[3];
-    float (*pivot_positions)[3];
+    float (*pivot_positions)[4];
   } bend;
 
   /* Slide Deform type. */
@@ -469,14 +497,13 @@ typedef struct SculptArray {
   SculptArrayCopy *copies[PAINT_SYMM_AREAS];
   int num_copies;
 
-
   struct {
-    ScultpArrayPathPoint * points;
+    ScultpArrayPathPoint *points;
     int tot_points;
     int capacity;
     float total_length;
   } path;
-  
+
   int mode;
   float normal[3];
   float direction[3];
@@ -503,7 +530,7 @@ typedef struct SculptFakeNeighbors {
   float current_max_distance;
 
   /* Indexed by vertex, stores the vertex index of its fake neighbor if available. */
-  int *fake_neighbor_index;
+  SculptVertRef *fake_neighbor_index;
 
 } SculptFakeNeighbors;
 
@@ -522,8 +549,15 @@ typedef struct SculptSession {
 
   /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
   struct MVert *mvert;
-  struct MPoly *mpoly;
+  struct MEdge *medge;
   struct MLoop *mloop;
+  struct MPoly *mpoly;
+
+  // only assigned in PBVH_FACES and PBVH_GRIDS
+  CustomData *vdata, *edata, *ldata, *pdata;
+
+  // for grids
+  CustomData temp_vdata, temp_pdata;
 
   /* These contain the vertex and poly counts of the final mesh. */
   int totvert, totpoly;
@@ -558,8 +592,13 @@ typedef struct SculptSession {
 
   /* BMesh for dynamic topology sculpting */
   struct BMesh *bm;
+  int cd_dyn_vert;
   int cd_vert_node_offset;
   int cd_face_node_offset;
+  int cd_vcol_offset;
+  int cd_faceset_offset;
+  int cd_face_areas;
+
   bool bm_smooth_shading;
   /* Undo/redo log for dynamic topology sculpting */
   struct BMLog *bm_log;
@@ -573,7 +612,7 @@ typedef struct SculptSession {
   bool show_face_sets;
 
   /* Setting this to true allows a PBVH rebuild when evaluating the object even if the stroke or
-  * filter caches are active. */
+   * filter caches are active. */
   bool needs_pbvh_rebuild;
 
   /* Painting on deformed mesh */
@@ -591,9 +630,9 @@ typedef struct SculptSession {
   struct ExpandCache *expand_cache;
 
   /* Cursor data and active vertex for tools */
-  int active_vertex_index;
+  SculptVertRef active_vertex_index;
+  SculptFaceRef active_face_index;
 
-  int active_face_index;
   int active_grid_index;
 
   /* When active, the cursor draws with faded colors, indicating that there is an action enabled.
@@ -616,14 +655,17 @@ typedef struct SculptSession {
   struct RegionView3D *rv3d;
   struct View3D *v3d;
   struct Scene *scene;
+  int cd_origvcol_offset;
+  int cd_origco_offset;
+  int cd_origno_offset;
 
   /* Face Sets by topology. */
   int face_set_last_created;
-  int face_set_last_poly;
-  int face_set_last_edge;
+  SculptFaceRef face_set_last_poly;
+  SculptEdgeRef face_set_last_edge;
 
   /* Dynamic mesh preview */
-  int *preview_vert_index_list;
+  SculptVertRef *preview_vert_index_list;
   int preview_vert_index_count;
 
   /* Pose Brush Preview */
@@ -637,8 +679,8 @@ typedef struct SculptSession {
   /* This is freed with the PBVH, so it is always in sync with the mesh. */
   SculptPersistentBase *persistent_base;
 
-
-  float (*limit_surface)[3];
+  // float (*limit_surface)[3];
+  struct SculptCustomLayer *limit_surface;
 
   SculptVertexInfo vertex_info;
   SculptFakeNeighbors fake_neighbors;
@@ -691,6 +733,13 @@ typedef struct SculptSession {
    */
   char needs_flush_to_id;
 
+  // id of current stroke, used to detect
+  // if vertex original data needs to be updated
+  int stroke_id, boundary_symmetry;
+
+  bool fast_draw;  // hides facesets/masks and forces smooth to save GPU bandwidth
+  struct MDynTopoVert *mdyntopo_verts;  // for non-bmesh
+  int mdyntopo_verts_size;
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);
@@ -698,6 +747,7 @@ void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
 void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
+bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, int totvert);
 
 /* Create new color layer on object if it doesn't have one and if experimental feature set has
  * sculpt vertex color enabled. Returns truth if new layer has been added, false otherwise. */
@@ -733,6 +783,8 @@ void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(struct Mesh *mesh);
 void BKE_sculpt_ensure_orig_mesh_data(struct Scene *scene, struct Object *object);
 
 bool BKE_sculptsession_use_pbvh_draw(const struct Object *ob, const struct View3D *v3d);
+
+char BKE_get_fset_boundary_symflag(struct Object *object);
 
 enum {
   SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),

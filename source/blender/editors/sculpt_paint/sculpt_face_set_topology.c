@@ -133,14 +133,15 @@ static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const
   SCULPT_undo_push_begin(ob, "face set edit");
   SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
 
-  const int initial_poly = ss->active_face_index;
-  const int initial_edge = sculpt_poly_loop_initial_edge_from_cursor(ob);
+  const int initial_poly_i = BKE_pbvh_face_index_to_table(ss->pbvh, ss->active_face_index);
+  const SculptFaceRef initial_poly = ss->active_face_index;
+  const SculptEdgeRef initial_edge = sculpt_poly_loop_initial_edge_from_cursor(ob);
 
   Mesh *mesh = BKE_object_get_original_mesh(ob);
   int new_face_set = SCULPT_FACE_SET_NONE;
 
   if (repeat_previous && ss->face_set_last_created != SCULPT_FACE_SET_NONE &&
-      initial_poly != ss->face_set_last_poly && initial_edge != ss->face_set_last_edge) {
+      initial_poly.i != ss->face_set_last_poly.i && initial_edge.i != ss->face_set_last_edge.i) {
     new_face_set = ss->face_set_last_created;
   }
   else {

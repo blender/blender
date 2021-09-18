@@ -255,7 +255,7 @@ static void deformVertsEM(ModifierData *md,
   const bool do_temp_mesh = (mesh == NULL);
   if (do_temp_mesh) {
     mesh = BKE_id_new_nomain(ID_ME, ((ID *)ob->data)->name);
-    BM_mesh_bm_to_me(NULL, editData->bm, mesh, &((BMeshToMeshParams){0}));
+    BM_mesh_bm_to_me(NULL, NULL, editData->bm, mesh, &((BMeshToMeshParams){0}));
   }
 
   deformVerts(md, ob, mesh, vertexCos, numVerts);

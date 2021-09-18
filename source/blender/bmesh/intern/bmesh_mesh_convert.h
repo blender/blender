@@ -42,9 +42,15 @@ struct BMeshFromMeshParams {
   /* define the active shape key (index + 1) */
   int active_shapekey;
   struct CustomData_MeshMasks cd_mask_extra;
+  uint copy_temp_cdlayers : 1;
+  uint ignore_id_layers : 1;
 };
-void BM_mesh_bm_from_me(BMesh *bm, const struct Mesh *me, const struct BMeshFromMeshParams *params)
-    ATTR_NONNULL(1, 3);
+
+struct Object;
+void BM_mesh_bm_from_me(struct Object *ob,
+                        BMesh *bm,
+                        const struct Mesh *me,
+                        const struct BMeshFromMeshParams *params) ATTR_NONNULL(2, 4);
 
 struct BMeshToMeshParams {
   /** Update object hook indices & vertex parents. */
@@ -60,11 +66,17 @@ struct BMeshToMeshParams {
    */
   uint update_shapekey_indices : 1;
   struct CustomData_MeshMasks cd_mask_extra;
+  uint copy_temp_cdlayers : 1;
+  uint ignore_mesh_id_layers : 1;
 };
+
+void BM_enter_multires_space(struct Object *ob, struct BMesh *bm, int space);
+
 void BM_mesh_bm_to_me(struct Main *bmain,
+                      struct Object *ob,
                       BMesh *bm,
                       struct Mesh *me,
-                      const struct BMeshToMeshParams *params) ATTR_NONNULL(2, 3, 4);
+                      const struct BMeshToMeshParams *params) ATTR_NONNULL(3, 4, 5);
 
 void BM_mesh_bm_to_me_for_eval(BMesh *bm,
                                struct Mesh *me,

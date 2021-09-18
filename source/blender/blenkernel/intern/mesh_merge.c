@@ -379,8 +379,16 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
 
     /* Can we optimize by reusing an old `pmap`? How do we know an old `pmap` is stale? */
     /* When called by `MOD_array.c` the `cddm` has just been created, so it has no valid `pmap`. */
-    BKE_mesh_vert_poly_map_create(
-        &poly_map, &poly_map_mem, mesh->mpoly, mesh->mloop, totvert, totpoly, totloop);
+    BKE_mesh_vert_poly_map_create(&poly_map,
+                                  &poly_map_mem,
+                                  mesh->mvert,
+                                  mesh->medge,
+                                  mesh->mpoly,
+                                  mesh->mloop,
+                                  totvert,
+                                  totpoly,
+                                  totloop,
+                                  false);
   } /* done preparing for fast poly compare */
 
   mp = mesh->mpoly;

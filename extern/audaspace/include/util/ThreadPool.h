@@ -87,11 +87,17 @@ public:
 	* \param args The arguments of the task.
 	* \return A future of the same type as the return type of the task.
 	*/
+#if __cplusplus > 201703L
+	template<class T, class... Args>
+	std::future<typename std::invoke_result<T, Args...>::type> enqueue(T&& t, Args&&... args)
+	{
+		using pkgdTask = std::packaged_task<typename std::invoke_result<T, Args...>::type()>;
+#else
 	template<class T, class... Args>
 	std::future<typename std::result_of<T(Args...)>::type> enqueue(T&& t, Args&&... args)
 	{
 		using pkgdTask = std::packaged_task<typename std::result_of<T(Args...)>::type()>;
-
+#endif
 		std::shared_ptr<pkgdTask> task = std::make_shared<pkgdTask>(std::bind(std::forward<T>(t), std::forward<Args>(args)...));
 		auto result = task->get_future();
 

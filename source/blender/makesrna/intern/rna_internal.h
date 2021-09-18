@@ -156,6 +156,7 @@ void RNA_def_attribute(struct BlenderRNA *brna);
 void RNA_def_asset(struct BlenderRNA *brna);
 void RNA_def_boid(struct BlenderRNA *brna);
 void RNA_def_brush(struct BlenderRNA *brna);
+void RNA_def_brush_engine(struct BlenderRNA *brna);
 void RNA_def_cachefile(struct BlenderRNA *brna);
 void RNA_def_camera(struct BlenderRNA *brna);
 void RNA_def_cloth(struct BlenderRNA *brna);

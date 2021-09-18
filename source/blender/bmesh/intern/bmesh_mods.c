@@ -563,10 +563,15 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm,
 /**
  * Collapse and edge into a single vertex.
  */
-BMVert *BM_edge_collapse(
-    BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool do_del, const bool kill_degenerate_faces)
+BMVert *BM_edge_collapse(BMesh *bm,
+                         BMEdge *e_kill,
+                         BMVert *v_kill,
+                         const bool do_del,
+                         const bool kill_degenerate_faces,
+                         const bool combine_flags)
 {
-  return bmesh_kernel_join_vert_kill_edge(bm, e_kill, v_kill, do_del, true, kill_degenerate_faces);
+  return bmesh_kernel_join_vert_kill_edge(
+      bm, e_kill, v_kill, do_del, true, kill_degenerate_faces, combine_flags);
 }
 
 /**

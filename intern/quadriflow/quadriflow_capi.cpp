@@ -70,15 +70,21 @@ static int check_if_canceled(float progress,
   return cancel;
 }
 
-void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
-                             void (*update_cb)(void *, float progress, int *cancel),
-                             void *update_cb_data)
+ATTR_NO_OPT void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
+                                         void (*update_cb)(void *, float progress, int *cancel),
+                                         void *update_cb_data)
 {
   Parametrizer field;
   VertexMap vertexMap;
 
   /* Get remeshing parameters. */
   int faces = qrd->target_faces;
+
+  field.flag_adaptive_scale = 1;
+  field.flag_minimum_cost_flow = 1;
+  field.flag_preserve_boundary = 1;
+  field.flag_preserve_sharp = 1;
+  // field.flag_aggresive_sat = 1;
 
   if (qrd->preserve_sharp) {
     field.flag_preserve_sharp = 1;
@@ -106,6 +112,7 @@ void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
   /* Copy mesh to quadriflow data structures. */
   std::vector<Vector3d> positions;
   std::vector<uint32_t> indices;
+  std::vector<uint32_t> eflags;
   std::vector<ObjVertex> vertices;
 
   for (int i = 0; i < qrd->totverts; i++) {
@@ -114,16 +121,18 @@ void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
   }
 
   for (int q = 0; q < qrd->totfaces; q++) {
-    Vector3i f(qrd->faces[q * 3], qrd->faces[q * 3 + 1], qrd->faces[q * 3 + 2]);
+    Vector3i f(qrd->faces[q].v[0], qrd->faces[q].v[1], qrd->faces[q].v[2]);
 
     ObjVertex tri[6];
-    int nVertices = 3;
+    const int nVertices = 3;
 
     tri[0] = ObjVertex(f[0]);
     tri[1] = ObjVertex(f[1]);
     tri[2] = ObjVertex(f[2]);
 
     for (int i = 0; i < nVertices; ++i) {
+      eflags.push_back(qrd->faces[q].eflag[i]);
+
       const ObjVertex &v = tri[i];
       VertexMap::const_iterator it = vertexMap.find(v);
       if (it == vertexMap.end()) {
@@ -138,7 +147,10 @@ void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
   }
 
   field.F.resize(3, indices.size() / 3);
+  // field.FF.resize(3, indices.size() / 3);
+
   memcpy(field.F.data(), indices.data(), sizeof(uint32_t) * indices.size());
+  // memcpy(field.FF.data(), eflags.data(), sizeof(uint32_t) * eflags.size());
 
   field.V.resize(3, vertices.size());
   for (uint32_t i = 0; i < vertices.size(); ++i) {
@@ -157,12 +169,17 @@ void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
     return;
   }
 
+  const int steps = 2;
+
   /* Setup mesh boundary constraints if needed */
-  if (field.flag_preserve_boundary) {
+#if 0
+  if (true) {  // field.flag_preserve_boundary) {
     Hierarchy &mRes = field.hierarchy;
     mRes.clearConstraints();
+
     for (uint32_t i = 0; i < 3 * mRes.mF.cols(); ++i) {
-      if (mRes.mE2E[i] == -1) {
+      if (mRes.mFF((i) % 3, i / 3) & QFLOW_CONSTRAINED) {
+        // if (mRes.mE2E[i] == -1) {
         uint32_t i0 = mRes.mF(i % 3, i / 3);
         uint32_t i1 = mRes.mF((i + 1) % 3, i / 3);
         Vector3d p0 = mRes.mV[0].col(i0), p1 = mRes.mV[0].col(i1);
@@ -172,15 +189,20 @@ void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
           mRes.mCO[0].col(i0) = p0;
           mRes.mCO[0].col(i1) = p1;
           mRes.mCQ[0].col(i0) = mRes.mCQ[0].col(i1) = edge;
-          mRes.mCQw[0][i0] = mRes.mCQw[0][i1] = mRes.mCOw[0][i0] = mRes.mCOw[0][i1] = 1.0;
+          mRes.mCQw[0][i0] = mRes.mCQw[0][i1] = mRes.mCOw[0][i0] = mRes.mCOw[0][i1] = 0.1;
         }
       }
     }
-    mRes.propagateConstraints();
+    for (int j = 0; j < 10; j++) {
+      mRes.propagateConstraints();
+    }
   }
+#endif
 
   /* Optimize the mesh field orientations (tangental field etc) */
-  Optimizer::optimize_orientations(field.hierarchy);
+  for (int i = 0; i < steps; i++) {
+    Optimizer::optimize_orientations(field.hierarchy);
+  }
   field.ComputeOrientationSingularities();
 
   if (check_if_canceled(0.3f, update_cb, update_cb_data)) {
@@ -195,11 +217,13 @@ void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
     return;
   }
 
-  Optimizer::optimize_scale(field.hierarchy, field.rho, field.flag_adaptive_scale);
-  field.flag_adaptive_scale = 1;
+  for (int i = 0; i < steps; i++) {
+    Optimizer::optimize_scale(field.hierarchy, field.rho, field.flag_adaptive_scale);
+  }
 
-  Optimizer::optimize_positions(field.hierarchy, field.flag_adaptive_scale);
-
+  for (int i = 0; i < steps; i++) {
+    Optimizer::optimize_positions(field.hierarchy, field.flag_adaptive_scale);
+  }
   field.ComputePositionSingularities();
 
   if (check_if_canceled(0.5f, update_cb, update_cb_data)) {

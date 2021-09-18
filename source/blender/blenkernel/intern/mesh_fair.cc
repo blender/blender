@@ -216,11 +216,14 @@ class MeshFairingContext : public FairingContext {
     mloop_ = mesh->mloop;
     BKE_mesh_vert_loop_map_create(&vlmap_,
                                   &vlmap_mem_,
+                                  mesh->mvert,
+                                  mesh->medge,
                                   mesh->mpoly,
                                   mesh->mloop,
                                   mesh->totvert,
                                   mesh->totpoly,
-                                  mesh->totloop);
+                                  mesh->totloop,
+                                  false);
 
     BKE_mesh_edge_loop_map_create(&elmap_,
                                   &elmap_mem_,

@@ -107,18 +107,18 @@ static void color_filter_task_cb(void *__restrict userdata,
   const int mode = data->filter_type;
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     float orig_color[3], final_color[4], hsv_color[3];
     int hue;
     float brightness, contrast, gain, delta, offset;
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= data->filter_strength;
-    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.index);
+    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.vertex);
     if (fade == 0.0f) {
       continue;
     }
@@ -196,7 +196,7 @@ static void color_filter_task_cb(void *__restrict userdata,
       case COLOR_FILTER_SMOOTH: {
         fade = clamp_f(fade, -1.0f, 1.0f);
         float smooth_color[4];
-        SCULPT_neighbor_color_average(ss, smooth_color, vd.index);
+        SCULPT_neighbor_color_average(ss, smooth_color, vd.vertex);
         blend_color_interpolate_float(final_color, vd.col, smooth_color, fade);
         break;
       }
@@ -281,7 +281,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   if (!ss->pbvh) {
     return OPERATOR_CANCELLED;
   }
-  if (BKE_pbvh_type(pbvh) != PBVH_FACES) {
+  if (BKE_pbvh_type(pbvh) == PBVH_GRIDS) {
     return OPERATOR_CANCELLED;
   }
 

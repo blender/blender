@@ -41,7 +41,8 @@
 
 #include "MOD_modifiertypes.h"
 
-Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mmd,
+Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(Object *ob,
+                                                          MirrorModifierData *mmd,
                                                           const Mesh *mesh,
                                                           int axis,
                                                           const float plane_co[3],
@@ -58,7 +59,8 @@ Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mm
   BMIter viter;
   BMVert *v, *v_next;
 
-  bm = BKE_mesh_to_bmesh_ex(mesh,
+  bm = BKE_mesh_to_bmesh_ex(ob,
+                            mesh,
                             &(struct BMeshCreateParams){0},
                             &(struct BMeshFromMeshParams){
                                 .calc_face_normal = true,
@@ -102,7 +104,8 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
                                           const int axis,
                                           const float dist)
 {
-  BMesh *bm = BKE_mesh_to_bmesh_ex(mesh,
+  BMesh *bm = BKE_mesh_to_bmesh_ex(NULL,
+                                   mesh,
                                    &(struct BMeshCreateParams){
                                        .use_toolflags = 1,
                                    },
@@ -121,6 +124,7 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
                true);
 
   BM_mesh_bm_to_me(bmain,
+                   NULL,
                    bm,
                    mesh,
                    (&(struct BMeshToMeshParams){
@@ -207,7 +211,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   Mesh *mesh_bisect = NULL;
   if (do_bisect) {
     mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(
-        mmd, mesh, axis, plane_co, plane_no);
+        ob, mmd, mesh, axis, plane_co, plane_no);
     mesh = mesh_bisect;
   }
 

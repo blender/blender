@@ -28,10 +28,12 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_task.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
 #include "BKE_multires.h"
@@ -39,8 +41,34 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
+int bm_save_id(BMesh *bm, BMElem *elem)
+{
+  if (!elem->head.data) {
+    return -1;
+  }
+
+  if (bm->idmap.flag & elem->head.htype) {
+    return BM_ELEM_GET_ID(bm, elem);
+  }
+  else {
+    return -1;
+  }
+}
+
+void bm_restore_id(BMesh *bm, BMElem *elem, int id)
+{
+  if (!elem->head.data || id == -1) {
+    return;
+  }
+
+  if (bm->idmap.flag & elem->head.htype) {
+    BM_ELEM_CD_SET_INT(elem, bm->idmap.cd_id_off[elem->head.htype], id);
+  }
+}
+
 /* edge and vertex share, currently there's no need to have different logic */
-static void bm_data_interp_from_elem(CustomData *data_layer,
+static void bm_data_interp_from_elem(BMesh *bm,
+                                     CustomData *data_layer,
                                      const BMElem *ele_src_1,
                                      const BMElem *ele_src_2,
                                      BMElem *ele_dst,
@@ -53,9 +81,13 @@ static void bm_data_interp_from_elem(CustomData *data_layer,
         /* do nothing */
       }
       else {
+        int id = bm_save_id(bm, ele_dst);
+
         CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
         CustomData_bmesh_copy_data(
             data_layer, data_layer, ele_src_1->head.data, &ele_dst->head.data);
+
+        bm_restore_id(bm, ele_dst, id);
       }
     }
     else if (fac >= 1.0f) {
@@ -63,9 +95,13 @@ static void bm_data_interp_from_elem(CustomData *data_layer,
         /* do nothing */
       }
       else {
+        int id = bm_save_id(bm, ele_dst);
+
         CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
         CustomData_bmesh_copy_data(
             data_layer, data_layer, ele_src_2->head.data, &ele_dst->head.data);
+
+        bm_restore_id(bm, ele_dst, id);
       }
     }
     else {
@@ -92,7 +128,7 @@ void BM_data_interp_from_verts(
     BMesh *bm, const BMVert *v_src_1, const BMVert *v_src_2, BMVert *v_dst, const float fac)
 {
   bm_data_interp_from_elem(
-      &bm->vdata, (const BMElem *)v_src_1, (const BMElem *)v_src_2, (BMElem *)v_dst, fac);
+      bm, &bm->vdata, (const BMElem *)v_src_1, (const BMElem *)v_src_2, (BMElem *)v_dst, fac);
 }
 
 /**
@@ -106,7 +142,7 @@ void BM_data_interp_from_edges(
     BMesh *bm, const BMEdge *e_src_1, const BMEdge *e_src_2, BMEdge *e_dst, const float fac)
 {
   bm_data_interp_from_elem(
-      &bm->edata, (const BMElem *)e_src_1, (const BMElem *)e_src_2, (BMElem *)e_dst, fac);
+      bm, &bm->edata, (const BMElem *)e_src_1, (const BMElem *)e_src_2, (BMElem *)e_dst, fac);
 }
 
 /**
@@ -314,16 +350,51 @@ static bool quad_co(const float v1[3],
   /* rotate */
   poly_rotate_plane(n, projverts, 5);
 
+  float projverts2[4][3];
+
   /* subtract origin */
   for (i = 0; i < 4; i++) {
     sub_v2_v2(projverts[i], projverts[4]);
+
+    copy_v3_v3(projverts2[i], projverts[i]);
   }
 
-  if (!isect_point_quad_v2(origin, projverts[0], projverts[1], projverts[2], projverts[3])) {
+  // expand quad a bit
+#if 0
+  float eps = FLT_EPSILON * 40000;
+  float c[3];
+
+  mid_v3_v3v3v3v3(c, projverts[0], projverts[1], projverts[2], projverts[3]);
+
+  sub_v3_v3(projverts2[0], c);
+  sub_v3_v3(projverts2[1], c);
+  sub_v3_v3(projverts2[2], c);
+  sub_v3_v3(projverts2[3], c);
+  mul_v3_fl(projverts2[0], 1.0f + eps);
+  mul_v3_fl(projverts2[1], 1.0f + eps);
+  mul_v3_fl(projverts2[2], 1.0f + eps);
+  mul_v3_fl(projverts2[3], 1.0f + eps);
+  add_v3_v3(projverts2[0], c);
+  add_v3_v3(projverts2[1], c);
+  add_v3_v3(projverts2[2], c);
+  add_v3_v3(projverts2[3], c);
+#endif
+
+  if (!isect_point_quad_v2(origin, projverts2[0], projverts2[1], projverts2[2], projverts2[3])) {
     return false;
   }
 
   resolve_quad_uv_v2(r_uv, origin, projverts[0], projverts[3], projverts[2], projverts[1]);
+
+#if 0
+  float eps2 = FLT_EPSILON * 4000;
+  if (r_uv[0] < -eps2 || r_uv[1] < -eps2 || r_uv[0] > 1.0 + eps2 || r_uv[1] > 1.0 + eps2) {
+    return false;
+  }
+#endif
+
+  CLAMP(r_uv[0], 0.0f, 0.99999f);
+  CLAMP(r_uv[1], 0.0f, 0.99999f);
 
   return true;
 }
@@ -357,8 +428,7 @@ static bool mdisp_in_mdispquad(BMLoop *l_src,
                                float r_axis_y[3],
                                float r_uv[2])
 {
-  float v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
-  float eps = FLT_EPSILON * 4000;
+  float v1[3], v2[3], v3[3], v4[3], e1[3], e2[3];
 
   if (is_zero_v3(l_src->v->no)) {
     BM_vert_normal_update_all(l_src->v);
@@ -370,6 +440,8 @@ static bool mdisp_in_mdispquad(BMLoop *l_src,
   compute_mdisp_quad(l_dst, l_dst_f_center, v1, v2, v3, v4, e1, e2);
 
   /* expand quad a bit */
+  float c[3];
+  float eps = FLT_EPSILON * 400;
   mid_v3_v3v3v3v3(c, v1, v2, v3, v4);
 
   sub_v3_v3(v1, c);
@@ -451,8 +523,10 @@ typedef struct BMLoopInterpMultiresData {
   BMLoop *l_src_first;
   int cd_loop_mdisp_offset;
 
+  int space;
   MDisps *md_dst;
   const float *f_src_center;
+  const float *f_dst_center;
 
   float *axis_x, *axis_y;
   float *v1, *v4;
@@ -471,6 +545,7 @@ static void loop_interp_multires_cb(void *__restrict userdata,
   BMLoop *l_first = data->l_src_first;
   BMLoop *l_dst = data->l_dst;
   const int cd_loop_mdisp_offset = data->cd_loop_mdisp_offset;
+  int space = data->space;
 
   MDisps *md_dst = data->md_dst;
   const float *f_src_center = data->f_src_center;
@@ -485,6 +560,19 @@ static void loop_interp_multires_cb(void *__restrict userdata,
 
   const int res = data->res;
   const float d = data->d;
+  float quad[4][3];
+
+  float n1[3], n2[3];
+  normal_tri_v3(n1, l_dst->v->co, l_dst->next->v->co, data->f_dst_center);
+
+  if (space == MULTIRES_SPACE_ABSOLUTE) {
+    BMLoop *l = l_dst;
+
+    copy_v3_v3(quad[0], data->f_dst_center);
+    interp_v3_v3v3(quad[1], l->v->co, l->next->v->co, 0.5);
+    copy_v3_v3(quad[2], l->v->co);
+    interp_v3_v3v3(quad[3], l->v->co, l->prev->v->co, 0.5);
+  }
 
   float x = d * ix, y;
   int iy;
@@ -496,24 +584,71 @@ static void loop_interp_multires_cb(void *__restrict userdata,
     madd_v3_v3v3fl(co2, v4, e2, y);
     interp_v3_v3v3(co, co1, co2, x);
 
+    float sum[3];
+    int tot = 0;
+    zero_v3(sum);
+    float mindis = 1e17;
+
+    float baseco[3];
+    if (space == MULTIRES_SPACE_ABSOLUTE) {
+      interp_bilinear_quad_v3(quad, x, y, baseco);
+    }
+
     do {
       MDisps *md_src;
       float src_axis_x[3], src_axis_y[3];
       float uv[2];
 
+      normal_tri_v3(n2, l_iter->v->co, l_iter->next->v->co, data->f_src_center);
+      float th = dot_v3v3(n1, n2);
+      if (th < 0.0f) {
+        negate_v3(n2);
+      }
+
+      th = acos(dot_v3v3(n1, n2) * 0.999999f);
+      if (th > M_PI * 0.1) {
+        continue;
+      }
+
       md_src = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_mdisp_offset);
 
       if (mdisp_in_mdispquad(l_dst, l_iter, f_src_center, co, res, src_axis_x, src_axis_y, uv)) {
-        old_mdisps_bilinear(md_dst->disps[iy * res + ix], md_src->disps, res, uv[0], uv[1]);
-        bm_loop_flip_disp(src_axis_x, src_axis_y, axis_x, axis_y, md_dst->disps[iy * res + ix]);
+        float disp[3];
+        copy_v3_v3(disp, md_dst->disps[iy * res + ix]);
 
-        break;
+        old_mdisps_bilinear(disp, md_src->disps, res, uv[0], uv[1]);
+
+        if (space == MULTIRES_SPACE_TANGENT) {
+          bm_loop_flip_disp(src_axis_x, src_axis_y, axis_x, axis_y, disp);
+        }
+
+        float l = len_v3v3(disp, baseco);
+        if (l < mindis) {
+          mindis = l;
+          // tot++;
+          // copy_v3_v3(sum, disp);
+        }
+        add_v3_v3(sum, disp);
+        tot++;
+        // break;
       }
     } while ((l_iter = l_iter->next) != l_first);
+
+    if (tot) {
+      mul_v3_fl(sum, 1.0 / (float)tot);
+      copy_v3_v3(md_dst->disps[iy * res + ix], sum);
+    }
+    else {
+      // printf("failed to set disp: %f %f\n", x, y);
+      if (space == MULTIRES_SPACE_ABSOLUTE) {
+        // copy_v3_v3(md_dst->disps[iy * res + ix], baseco);
+        // copy_v3_v3(md_dst->disps[iy * res + ix], baseco);
+      }
+    }
   }
 }
 
-void BM_loop_interp_multires_ex(BMesh *UNUSED(bm),
+void BM_loop_interp_multires_ex(BMesh *bm,
                                 BMLoop *l_dst,
                                 const BMFace *f_src,
                                 const float f_dst_center[3],
@@ -555,7 +690,9 @@ void BM_loop_interp_multires_ex(BMesh *UNUSED(bm),
       .cd_loop_mdisp_offset = cd_loop_mdisp_offset,
       .md_dst = md_dst,
       .f_src_center = f_src_center,
+      .f_dst_center = f_dst_center,
       .axis_x = axis_x,
+      .space = bm->multiresSpace,
       .axis_y = axis_y,
       .v1 = v1,
       .v4 = v4,
@@ -601,6 +738,8 @@ void BM_face_interp_multires_ex(BMesh *bm,
     BM_loop_interp_multires_ex(
         bm, l_iter, f_src, f_dst_center, f_src_center, cd_loop_mdisp_offset);
   } while ((l_iter = l_iter->next) != l_first);
+
+  BM_face_multires_bounds_smooth(bm, f_dst);
 }
 
 void BM_face_interp_multires(BMesh *bm, BMFace *f_dst, const BMFace *f_src)
@@ -618,58 +757,277 @@ void BM_face_interp_multires(BMesh *bm, BMFace *f_dst, const BMFace *f_src)
   }
 }
 
+// smooth with weight falloff towards center of grids
+static void bm_multires_smooth(BMesh *bm, BMFace *f, bool no_boundary)
+{
+  const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+  float(*orig)[3] = NULL;
+  BLI_array_staticdeclare(orig, 256 * 256);
+
+  if (cd_loop_mdisp_offset < 0) {
+    return;
+  }
+
+  float cent[3];
+  zero_v3(cent);
+
+  int ctot = 0;
+  BMLoop *cl = f->l_first;
+  do {
+    add_v3_v3(cent, cl->v->co);
+    cl = cl->next;
+    ctot++;
+  } while (cl != f->l_first);
+  mul_v3_fl(cent, 1.0f / (float)ctot);
+
+  const int offs[][2] = {
+      {0, 0},
+      //    {-1, -1},
+      {-1, 0},
+      //    {-1, 1},
+      {0, 1},
+      // {1, 1},
+      {1, 0},
+      //    {1, -1},
+      {0, -1},
+  };
+
+  int totoff = sizeof(offs) / sizeof(*offs);
+
+#ifndef ABS
+#  define ABS(a) ((a) < 0 ? -(a) : (a))
+#endif
+
+  // int space = bm->multiresSpace;
+  BMLoop *l = f->l_first;
+  do {
+    MDisps *md = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
+    if (!md->disps)
+      continue;
+
+    int res = (int)floor(sqrt((double)md->totdisp) + 0.000001);
+
+    int start = no_boundary ? 1 : 0;
+    int end = no_boundary ? res - 1 : res;
+    float df = 1.0f / (float)(res - 1);
+    float u = 0.0;
+
+    BLI_array_clear(orig);
+    BLI_array_reserve(orig, md->totdisp * 3);
+    memcpy(orig, md->disps, sizeof(float) * 3 * md->totdisp);
+
+    for (int x = start; x < end; x++, u += df) {
+      float v = 0.0;
+
+      for (int y = start; y < end; y++, v += df) {
+        float co[3];
+        float tot = 0.0f;
+
+        zero_v3(co);
+
+        int idx1 = y * res + x;
+
+        for (int oi = 0; oi < totoff; oi++) {
+          int ox = x + offs[oi][0];
+          int oy = y + offs[oi][1];
+          MDisps *md2 = md;
+
+          if (1 && (ox < 0 || oy < 0 || ox >= res || oy >= res)) {
+            BMLoop *l2 = NULL;
+            BMLoop *ls = l;
+
+            if (ox < 0 && oy < 0) {
+              l2 = ls->next->next;
+              ox = ABS(ox);
+              oy = ABS(oy);
+            }
+            else if (ox < 0 && oy >= 0 && oy < res) {
+              l2 = ls->prev;
+              int t = oy;
+
+              oy = -ox;
+              ox = t;
+            }
+            else if (oy < 0 && ox >= 0 && ox < res) {
+              l2 = ls->next;
+              int t = oy;
+
+              oy = ox;
+              ox = -t;
+            }
+            else if (ox >= res && oy >= 0 && oy < res) {
+              l2 = ls->radial_next->next;
+
+              if (ls->v == l2->v) {
+                int t = oy;
+
+                oy = 2 * res - ox - 1;
+                ox = t;
+              }
+              else {
+                l2 = l2->prev;
+                ox = res - ox;
+              }
+
+              // XXX disables this branch
+              // ox = oy = -1;
+            }
+            else if (oy >= res && ox >= 0 && ox < res) {
+              l2 = ls->prev->radial_next;
+              if (l2->v == ls->v) {
+                int t = ox;
+
+                ox = 2 * res - oy - 1;
+                oy = t;
+              }
+              else {
+                l2 = l2->next;
+                oy = 2 * res - oy - 1;
+              }
+              // XXX disables this branch
+              // ox = oy = -1;
+            }
+            else {
+              printf("ignoring non-4-valence multires corner %d %d %d %d : %d %d %d\t",
+                     ox,
+                     oy,
+                     offs[oi][0],
+                     offs[oi][1],
+                     x,
+                     y,
+                     res);
+              l2 = NULL;
+            }
+
+            if (l2) {
+              // ox = res - ox - 1;
+              // oy = res - oy - 1;
+              md2 = BM_ELEM_CD_GET_VOID_P(l2, cd_loop_mdisp_offset);
+            }
+          }
+
+          if (!md2->disps || oy < 0 || oy >= res || ox < 0 || ox >= res) {
+            continue;
+          }
+
+          int idx2 = oy * res + ox;
+          float *oco2 = md == md2 ? orig[idx2] : md2->disps[idx2];
+          float co2[3];
+
+          copy_v3_v3(co2, oco2);
+
+          float dx = (float)offs[oi][0];
+          float dy = (float)offs[oi][1];
+
+          float w = 2.0f - dx * dx + dy * dy;
+
+          if (no_boundary && (ox == 0 || oy == 0 || ox == res - 1 || oy == res - 1)) {
+            //  w = 2.0;
+          }
+          else if (ox == x && oy == y) {
+            // blend less away from edges
+            float au = fabs(u - 0.5) * 2.0, av = fabs(v - 0.5) * 2.0;
+            float w2 = au * au + av * av;
+
+            w = 4.0 * w2;
+          }
+          w = 1.0;
+
+          mul_v3_fl(co2, w);
+
+          tot += w;
+          add_v3_v3(co, co2);
+        }
+
+        /*
+        float vec[3];
+        copy_v3_v3(vec, f->no);
+        mul_v3_fl(vec, 0.4);
+
+        add_v3_v3(md->disps[idx1], vec);
+        sub_v3_v3(md->disps[idx1], cent);
+        mul_v3_fl(md->disps[idx1], 1.2);
+        add_v3_v3(md->disps[idx1], cent);
+
+        continue;
+        //*/
+
+        if (tot > 0.0f) {
+          mul_v3_fl(co, 1.0f / tot);
+          copy_v3_v3(md->disps[idx1], co);
+        }
+      }
+    }
+
+    l = l->next;
+  } while (l != f->l_first);
+
+  BLI_array_free(orig);
+}
+
+struct Object *multires_dump_grids_bmesh(struct Object *bmob, BMesh *bm);
+
+void bmo_test_mres_smooth_exec(BMesh *bm, BMOperator *op)
+{
+  BMIter iter;
+  BMFace *f;
+
+  if (!CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+    return;
+  }
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    bool ok = !!BM_elem_flag_test(f, BM_ELEM_SELECT);
+    ok = ok && !BM_elem_flag_test(f, BM_ELEM_HIDDEN);
+
+    if (!ok) {
+      continue;
+    }
+
+    // bm_multires_smooth(bm, f, true);
+    // BM_multires_smooth(bm, f, false);
+    // BM_multires_smooth(bm, f, false);
+    // for (int i=0; i<5; i++) {
+    BM_face_multires_bounds_smooth(bm, f);
+    // }
+  }
+
+  multires_dump_grids_bmesh(NULL, bm);
+}
+
+void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
+{
+  return;
+  if (bm->multiresSpace == MULTIRES_SPACE_ABSOLUTE) {
+    BM_face_multires_stitch(bm, f);
+
+    // for (int i=0; i<5; i++) {
+    // bm_multires_smooth(bm, f, true);
+    //}
+  }
+}
+
 /**
  * smooths boundaries between multires grids,
  * including some borders in adjacent faces
  */
-void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
+void BM_face_multires_stitch(BMesh *bm, BMFace *f)
 {
-  const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
   BMLoop *l;
   BMIter liter;
+  float co[3];
+  const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+  int sides = 0;
 
   if (cd_loop_mdisp_offset == -1) {
     return;
   }
 
   BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-    MDisps *mdp = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_mdisp_offset);
-    MDisps *mdl = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
-    MDisps *mdn = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_mdisp_offset);
-    float co1[3];
-    int sides;
-    int y;
-
-    /**
-     * mdisps is a grid of displacements, ordered thus:
-     * <pre>
-     *                    v4/next
-     *                      |
-     *  |      v1/cent-----mid2 ---> x
-     *  |         |         |
-     *  |         |         |
-     * v2/prev---mid1-----v3/cur
-     *            |
-     *            V
-     *            y
-     * </pre>
-     */
-
-    sides = (int)sqrt(mdp->totdisp);
-    for (y = 0; y < sides; y++) {
-      mid_v3_v3v3(co1, mdn->disps[y * sides], mdl->disps[y]);
-
-      copy_v3_v3(mdn->disps[y * sides], co1);
-      copy_v3_v3(mdl->disps[y], co1);
-    }
-  }
-
-  BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
     MDisps *mdl1 = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
     MDisps *mdl2;
-    float co1[3], co2[3], co[3];
-    int sides;
-    int y;
+    float co1[3], co2[3];
+    int x, y;
 
     /**
      * mdisps is a grid of displacements, ordered thus:
@@ -697,7 +1055,7 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
       mdl2 = BM_ELEM_CD_GET_VOID_P(l->radial_next->next, cd_loop_mdisp_offset);
     }
 
-    sides = (int)sqrt(mdl1->totdisp);
+    sides = (int)floor(sqrt(mdl1->totdisp) + FLT_EPSILON);
     for (y = 0; y < sides; y++) {
       int a1, a2, o1, o2;
 
@@ -709,24 +1067,128 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
         o2 = (sides - 1) * sides + y;
       }
       else {
-        a1 = sides * y + sides - 2;
-        a2 = sides * y + sides - 2;
         o1 = sides * y + sides - 1;
         o2 = sides * y + sides - 1;
       }
 
-      /* magic blending numbers, hardcoded! */
-      add_v3_v3v3(co1, mdl1->disps[a1], mdl2->disps[a2]);
-      mul_v3_fl(co1, 0.18);
-
-      add_v3_v3v3(co2, mdl1->disps[o1], mdl2->disps[o2]);
-      mul_v3_fl(co2, 0.32);
-
-      add_v3_v3v3(co, co1, co2);
+      mid_v3_v3v3(co, mdl1->disps[o1], mdl2->disps[o2]);
 
       copy_v3_v3(mdl1->disps[o1], co);
       copy_v3_v3(mdl2->disps[o2], co);
     }
+
+    BMLoop *l2 = l->prev->radial_next;
+    bool reverse = false;
+
+    if (l2->v != l->v) {
+      reverse = true;
+      l2 = l2->next;
+    }
+
+    mdl2 = BM_ELEM_CD_GET_VOID_P(l2, cd_loop_mdisp_offset);
+    y = sides - 1;
+
+    if (!mdl2->disps) {
+      continue;
+    }
+
+    for (x = 0; x < sides; x++) {
+      int x2, y2, o1, o2;
+
+      if (!reverse) {
+        x2 = sides - 1;
+        y2 = x;
+      }
+      else {
+        x2 = x;
+        y2 = y;
+      }
+
+      o1 = y * sides + x;
+      o2 = y2 * sides + x2;
+
+      mid_v3_v3v3(co, mdl1->disps[o1], mdl2->disps[o2]);
+      copy_v3_v3(mdl1->disps[o1], co);
+      copy_v3_v3(mdl2->disps[o2], co);
+    }
+  }
+
+  // do exterior corners
+  BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+    MDisps *md1 = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
+    BMIter l2iter;
+    BMLoop *l2;
+    int x = sides - 1, y = sides - 1;
+    int idx = y * sides + x;
+    int tot = 1;
+
+    zero_v3(co);
+
+    if (!md1->disps) {
+      continue;
+    }
+
+    add_v3_v3(co, md1->disps[idx]);
+
+    BM_ITER_ELEM (l2, &l2iter, l->v, BM_LOOPS_OF_VERT) {
+      if (l2->v != l->v) {  // winding is flipped
+        l2 = l2->next;
+      }
+
+      MDisps *md2 = BM_ELEM_CD_GET_VOID_P(l2, cd_loop_mdisp_offset);
+
+      if (l == l2 || !md2->disps) {
+        continue;
+      }
+
+      add_v3_v3(co, md2->disps[idx]);
+      tot++;
+    }
+
+    mul_v3_fl(co, 1.0f / (float)tot);
+
+    BM_ITER_ELEM (l2, &l2iter, l->v, BM_LOOPS_OF_VERT) {
+      if (l2->v != l->v) {  // winding is flipped
+        l2 = l2->next;
+      }
+
+      MDisps *md2 = BM_ELEM_CD_GET_VOID_P(l2, cd_loop_mdisp_offset);
+
+      if (l == l2 || !md2->disps) {
+        continue;
+      }
+
+      copy_v3_v3(md2->disps[idx], co);
+    }
+  }
+
+  // do interior corners
+  int tot = 0;
+  zero_v3(co);
+
+  BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+    MDisps *md1 = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
+
+    if (!md1->disps) {
+      continue;
+    }
+
+    add_v3_v3(co, md1->disps[0]);
+    tot++;
+  }
+
+  if (tot) {
+    mul_v3_fl(co, 1.0f / (float)tot);
+  }
+
+  BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+    MDisps *md1 = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
+
+    if (!md1->disps) {
+      continue;
+    }
+
+    copy_v3_v3(md1->disps[0], co);
   }
 }
 
@@ -823,6 +1285,17 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   BLI_mempool *oldpool = olddata->pool;
   void *block;
 
+  CustomDataLayer **nocopy_layers = NULL;
+  BLI_array_staticdeclare(nocopy_layers, 1024);
+
+  // temporarily clear CD_FLAG_ELEM_NOCOPY flags
+  for (int i = 0; i < data->totlayer; i++) {
+    if (data->layers[i].flag & CD_FLAG_ELEM_NOCOPY) {
+      data->layers[i].flag &= ~CD_FLAG_ELEM_NOCOPY;
+      BLI_array_append(nocopy_layers, data->layers + i);
+    }
+  }
+
   if (data == &bm->vdata) {
     BMVert *eve;
 
@@ -883,12 +1356,111 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
     BLI_assert(0);
   }
 
+  for (int i = 0; i < BLI_array_len(nocopy_layers); i++) {
+    nocopy_layers[i]->flag |= CD_FLAG_ELEM_NOCOPY;
+  }
+
+  BLI_array_free(nocopy_layers);
+
   if (oldpool) {
     /* this should never happen but can when dissolve fails - T28960. */
     BLI_assert(data->pool != oldpool);
 
     BLI_mempool_destroy(oldpool);
   }
+}
+
+void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers, int totlayer)
+{
+  bool modified = false;
+  CustomData old = *data;
+  CustomData temp;
+  CustomDataMask mask = 0;
+
+  if (old.layers) {
+    old.layers = MEM_dupallocN(old.layers);
+  }
+
+  memset(&temp, 0, sizeof(temp));
+  CustomData_reset(&temp);
+
+  for (int i = 0; i < totlayer; i++) {
+    BMCustomLayerReq *req = layers + i;
+    int idx;
+
+    mask |= 1ULL << (CustomDataMask)req->type;
+
+    if (req->name) {
+      idx = CustomData_get_named_layer_index(data, req->type, req->name);
+    }
+    else {
+      idx = CustomData_get_layer_index(data, req->type);
+    }
+
+    if (idx < 0) {
+      modified = true;
+
+      if (req->name) {
+        CustomData_add_layer_named(&temp, req->type, CD_ASSIGN, NULL, 0, req->name);
+      }
+      else {
+        CustomData_add_layer(&temp, req->type, CD_ASSIGN, NULL, 0);
+      }
+    }
+  }
+
+  int htype;
+  if (data == &bm->vdata) {
+    htype = BM_VERT;
+  }
+  else if (data == &bm->edata) {
+    htype = BM_EDGE;
+  }
+  else if (data == &bm->ldata) {
+    htype = BM_LOOP;
+  }
+  else if (data == &bm->pdata) {
+    htype = BM_FACE;
+  }
+  else {
+    printf("error in %s!\n", __func__);
+    CustomData_free(&temp, 0);
+    return;
+  }
+
+  if (modified) {
+    CustomData_merge(&temp, data, mask, CD_ASSIGN, 0);
+  }
+
+  for (int i = 0; i < totlayer; i++) {
+    BMCustomLayerReq *req = layers + i;
+    int idx;
+
+    mask |= 1LL << req->type;
+
+    if (req->name) {
+      idx = CustomData_get_named_layer_index(data, req->type, req->name);
+    }
+    else {
+      idx = CustomData_get_layer_index(data, req->type);
+    }
+
+    data->layers[idx].flag |= req->flag;
+  }
+
+  if (modified) {
+    /* the pool is now owned by olddata and must not be shared */
+    data->pool = NULL;
+
+    update_data_blocks(bm, &old, data);
+    bm_update_idmap_cdlayers(bm);
+  }
+
+  if (old.layers) {
+    MEM_freeN(old.layers);
+  }
+
+  CustomData_free(&temp, 0);
 }
 
 void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
@@ -907,6 +1479,8 @@ void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
   if (olddata.layers) {
     MEM_freeN(olddata.layers);
   }
+
+  bm_update_idmap_cdlayers(bm);
 }
 
 void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name)
@@ -925,6 +1499,8 @@ void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *
   if (olddata.layers) {
     MEM_freeN(olddata.layers);
   }
+
+  bm_update_idmap_cdlayers(bm);
 }
 
 void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
@@ -947,6 +1523,8 @@ void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
   if (olddata.layers) {
     MEM_freeN(olddata.layers);
   }
+
+  bm_update_idmap_cdlayers(bm);
 }
 
 void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
@@ -969,6 +1547,8 @@ void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
   if (olddata.layers) {
     MEM_freeN(olddata.layers);
   }
+
+  bm_update_idmap_cdlayers(bm);
 }
 
 void BM_data_layer_copy(BMesh *bm, CustomData *data, int type, int src_n, int dst_n)

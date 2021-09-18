@@ -107,7 +107,7 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
                                                     vd.no,
                                                     vd.fno,
                                                     vd.mask ? *vd.mask : 0.0f,
-                                                    vd.index,
+                                                    vd.vertex,
                                                     thread_id);
 
     /* Sample the normal and area of the +X and -X axis individually. */
@@ -166,7 +166,6 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -215,7 +214,7 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
                                                                 vd.no,
                                                                 vd.fno,
                                                                 vd.mask ? *vd.mask : 0.0f,
-                                                                vd.index,
+                                                                vd.vertex,
                                                                 thread_id);
 
     mul_v3_v3fl(proxy[vd.i], val, fade);

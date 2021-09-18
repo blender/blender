@@ -36,6 +36,8 @@ struct Main;
 struct Scene;
 struct ToolSettings;
 struct UnifiedPaintSettings;
+struct DynTopoSettings;
+struct Sculpt;
 
 // enum eCurveMappingPreset;
 
@@ -152,6 +154,13 @@ void BKE_brush_default_input_curves_set(struct Brush *brush);
 
 /* debugging only */
 void BKE_brush_debug_print_state(struct Brush *br);
+
+void BKE_brush_get_dyntopo(struct Brush *brush, struct Sculpt *sd, struct DynTopoSettings *out);
+
+bool BKE_brush_hard_edge_mode_get(const struct Scene *scene, const struct Brush *brush);
+void BKE_brush_hard_edge_mode_set(struct Scene *scene, struct Brush *brush, bool val);
+
+float BKE_brush_fset_slide_get(const struct Scene *scene, const struct Brush *brush);
 
 #ifdef __cplusplus
 }

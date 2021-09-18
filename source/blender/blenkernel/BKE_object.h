@@ -25,6 +25,8 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_object_enums.h"
+#include "DNA_userdef_types.h"
+#include "BKE_lib_id.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -154,8 +156,8 @@ bool BKE_object_obdata_is_libdata(const struct Object *ob);
 
 struct Object *BKE_object_duplicate(struct Main *bmain,
                                     struct Object *ob,
-                                    uint dupflag,
-                                    const uint duplicate_options);
+                                    eDupli_ID_Flags dupflag,
+                                    const eLibIDDuplicateFlags duplicate_options);
 
 void BKE_object_obdata_size_init(struct Object *ob, const float size);
 

@@ -1140,7 +1140,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
         unsupported = true;
       }
 
-      if (scene->toolsettings->sculpt->flags & SCULPT_ONLY_DEFORM) {
+      if (scene->toolsettings->sculpt && scene->toolsettings->sculpt->flags & SCULPT_ONLY_DEFORM) {
         unsupported |= (mti->type != eModifierTypeType_OnlyDeform);
       }
 

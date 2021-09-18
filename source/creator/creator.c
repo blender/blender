@@ -308,7 +308,7 @@ int main(int argc,
     LocalFree(argv_16);
 
     /* free on early-exit */
-    app_init_data.argv = argv;
+    app_init_data.argv = (const char**) argv;
     app_init_data.argv_num = argv_num;
   }
 #endif /* WIN32 */

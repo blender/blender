@@ -68,6 +68,7 @@ void OVERLAY_lattice_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   struct GPUBatch *geom = DRW_cache_lattice_wire_get(ob, false);
   OVERLAY_extra_wire(cb, geom, ob->obmat, color);
+
 }
 
 void OVERLAY_edit_lattice_draw(OVERLAY_Data *vedata)

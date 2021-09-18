@@ -31,13 +31,13 @@
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
 #include "DNA_customdata_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_mesh_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -1224,7 +1224,7 @@ typedef struct PaintCursorContext {
   /* Sculpt related data. */
   Sculpt *sd;
   SculptSession *ss;
-  int prev_active_vertex_index;
+  SculptVertRef prev_active_vertex_index;
   bool is_stroke_active;
   bool is_cursor_over_mesh;
   bool is_multires;
@@ -1465,7 +1465,8 @@ static void paint_draw_3D_view_inactive_brush_cursor(PaintCursorContext *pcontex
                           80);
 }
 
-static void sculpt_cursor_draw_active_face_set_color_set(PaintCursorContext *pcontext) {
+static void sculpt_cursor_draw_active_face_set_color_set(PaintCursorContext *pcontext)
+{
 
   SculptSession *ss = pcontext->ss;
 
@@ -1485,7 +1486,6 @@ static void sculpt_cursor_draw_active_face_set_color_set(PaintCursorContext *pco
     color[3] /= 2;
   }
 
-
   immUniformColor4ubv(color);
 }
 
@@ -1501,7 +1501,9 @@ static void sculpt_cursor_draw_3D_face_set_preview(PaintCursorContext *pcontext)
   GPU_line_width(1.0f);
   sculpt_cursor_draw_active_face_set_color_set(pcontext);
 
-  MPoly *poly = &ss->mpoly[ss->active_face_index];
+  int fi = BKE_pbvh_face_index_to_table(ss->pbvh, ss->active_face_index);
+
+  MPoly *poly = &ss->mpoly[fi];
   MLoop *loops = ss->mloop;
   const int totpoints = poly->totloop;
 
@@ -1515,7 +1517,6 @@ static void sculpt_cursor_draw_3D_face_set_preview(PaintCursorContext *pcontext)
   immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, loops[poly->loopstart].v));
   immEnd();
   */
-
 
   /*
   int v_in_poly = 0;
@@ -1550,13 +1551,10 @@ static void sculpt_cursor_draw_3D_face_set_preview(PaintCursorContext *pcontext)
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-
-
-
   immBegin(GPU_PRIM_LINES, total * 2);
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ss->active_vertex_index, ni) {
     immVertex3fv(pcontext->pos, SCULPT_active_vertex_co_get(ss));
-    immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, ni.index));
+    immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, ni.vertex));
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   immEnd();
@@ -1687,8 +1685,8 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
   paint_cursor_update_object_space_radius(pcontext);
 
-  const bool update_previews = pcontext->prev_active_vertex_index !=
-                               SCULPT_active_vertex_get(pcontext->ss);
+  const bool update_previews = pcontext->prev_active_vertex_index.i !=
+                               SCULPT_active_vertex_get(pcontext->ss).i;
 
   /* Setup drawing. */
   wmViewport(&pcontext->region->winrct);
@@ -1752,7 +1750,6 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
         pcontext->vc.obact->obmat,
         2);
   }
-
 
   /* Transform Pivot. */
   if (pcontext->paint && pcontext->paint->flags & PAINT_SCULPT_SHOW_PIVOT) {

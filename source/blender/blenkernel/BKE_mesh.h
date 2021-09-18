@@ -69,7 +69,8 @@ extern "C" {
 
 /* *** mesh.c *** */
 
-struct BMesh *BKE_mesh_to_bmesh_ex(const struct Mesh *me,
+struct BMesh *BKE_mesh_to_bmesh_ex(const struct Object *ob,
+                                   const struct Mesh *me,
                                    const struct BMeshCreateParams *create_params,
                                    const struct BMeshFromMeshParams *convert_params);
 struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me,
@@ -636,7 +637,7 @@ void BKE_mesh_calc_edges_tessface(struct Mesh *mesh);
 
 /* In DerivedMesh.cc */
 void BKE_mesh_wrapper_deferred_finalize(struct Mesh *me_eval,
-                                        const CustomData_MeshMasks *cd_mask_finalize);
+                                        const struct CustomData_MeshMasks *cd_mask_finalize);
 
 /* **** Depsgraph evaluation **** */
 

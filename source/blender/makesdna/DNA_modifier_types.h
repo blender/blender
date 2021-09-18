@@ -1862,10 +1862,10 @@ typedef struct CorrectiveSmoothModifierData {
   /* NOTE: -1 is used to bind. */
   unsigned int bind_coords_num;
 
-  float lambda, scale;
+  float lambda, scale, projection;
   short repeat, flag;
   char smooth_type, rest_source;
-  char _pad[6];
+  char _pad[2];
 
   /** MAX_VGROUP_NAME. */
   char defgrp_name[64];
@@ -1919,9 +1919,7 @@ typedef struct UVWarpModifierData {
 } UVWarpModifierData;
 
 /* UVWarp modifier flags */
-enum {
-  MOD_UVWARP_INVERT_VGROUP = 1 << 0,
-};
+enum { MOD_UVWARP_INVERT_VGROUP = 1 << 0, MOD_UVWARP_RESTRICT_ISLANDS = 1 << 1 };
 
 /* cache modifier */
 typedef struct MeshCacheModifierData {
@@ -2078,9 +2076,9 @@ typedef struct DataTransferModifierData {
   char _pad1[4];
 
   /** DT_MULTILAYER_INDEX_MAX; See DT_FROMLAYERS_ enum in ED_object.h. */
-  int layers_select_src[4];
+  int layers_select_src[5];
   /** DT_MULTILAYER_INDEX_MAX; See DT_TOLAYERS_ enum in ED_object.h. */
-  int layers_select_dst[4];
+  int layers_select_dst[5];
 
   /** See CDT_MIX_ enum in BKE_customdata.h. */
   int mix_mode;

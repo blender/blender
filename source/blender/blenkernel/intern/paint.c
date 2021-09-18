@@ -51,6 +51,7 @@
 #include "BKE_context.h"
 #include "BKE_crazyspace.h"
 #include "BKE_deform.h"
+#include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
@@ -67,6 +68,7 @@
 #include "BKE_pbvh.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
+#include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -76,6 +78,15 @@
 #include "BLO_read_write.h"
 
 #include "bmesh.h"
+
+// XXX todo: figure out bad cross module refs
+void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me);
+void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
+void SCULPT_dyntopo_node_layers_add(SculptSession *ss);
+BMesh *SCULPT_dyntopo_empty_bmesh();
+void SCULPT_undo_ensure_bmlog(Object *ob);
+
+static void init_mdyntopo_layer(SculptSession *ss, int totvert);
 
 static void palette_init_data(ID *id)
 {
@@ -1075,7 +1086,8 @@ bool BKE_paint_ensure(ToolSettings *ts, struct Paint **r_paint)
     paint->symmetry_flags |= PAINT_SYMM_X;
 
     /* Make sure at least dyntopo subdivision is enabled */
-    data->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE;
+    data->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE | SCULPT_DYNTOPO_CLEANUP |
+                   SCULPT_DYNTOPO_ENABLED;
   }
   else if ((GpPaint **)r_paint == &ts->gp_paint) {
     GpPaint *data = MEM_callocN(sizeof(*data), __func__);
@@ -1375,20 +1387,23 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
 
   if (ss->bm) {
     if (ob->data) {
-      BMIter iter;
-      BMFace *efa;
-      BM_ITER_MESH (efa, &iter, ss->bm, BM_FACES_OF_MESH) {
-        BM_elem_flag_set(efa, BM_ELEM_SMOOTH, ss->bm_smooth_shading);
-      }
-      if (reorder) {
-        BM_log_mesh_elems_reorder(ss->bm, ss->bm_log);
-      }
-      BM_mesh_bm_to_me(NULL,
-                       ss->bm,
-                       ob->data,
-                       (&(struct BMeshToMeshParams){
-                           .calc_object_remap = false,
-                       }));
+      Mesh *me = BKE_object_get_original_mesh(ob);
+
+      BM_mesh_bm_to_me(
+          NULL,
+          NULL,
+          ss->bm,
+          ob->data,
+          (&(struct BMeshToMeshParams){.calc_object_remap = false,
+                                       /*
+                                        for memfile undo steps we need to
+                                        save id and temporary layers
+                                       */
+                                       .copy_temp_cdlayers = true,
+                                       .ignore_mesh_id_layers = false,
+                                       .cd_mask_extra = CD_MASK_MESH_ID | CD_MASK_DYNTOPO_VERT
+
+          }));
     }
   }
 }
@@ -1468,7 +1483,19 @@ void BKE_sculptsession_free(Object *ob)
   if (ob && ob->sculpt) {
     SculptSession *ss = ob->sculpt;
 
+    if (ss->mdyntopo_verts) {
+      MEM_freeN(ss->mdyntopo_verts);
+      ss->mdyntopo_verts = NULL;
+    }
+
+    if (ss->bm_log && BM_log_free(ss->bm_log, true)) {
+      ss->bm_log = NULL;
+    }
+
+    /*try to save current mesh*/
     if (ss->bm) {
+      SCULPT_on_sculptsession_bmesh_free(ss);
+
       BKE_sculptsession_bm_to_me(ob, true);
       BM_mesh_free(ss->bm);
     }
@@ -1483,10 +1510,6 @@ void BKE_sculptsession_free(Object *ob)
 
     MEM_SAFE_FREE(ss->vemap);
     MEM_SAFE_FREE(ss->vemap_mem);
-
-    if (ss->bm_log) {
-      BM_log_free(ss->bm_log);
-    }
 
     MEM_SAFE_FREE(ss->texcache);
 
@@ -1612,6 +1635,12 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
   return false;
 }
 
+char BKE_get_fset_boundary_symflag(Object *object)
+{
+  const Mesh *mesh = BKE_mesh_from_object(object);
+  return mesh->flag & ME_SCULPT_MIRROR_FSET_BOUNDARIES ? mesh->symmetry : 0;
+}
+
 /**
  * \param need_mask: So that the evaluated mesh that is returned has mask data.
  */
@@ -1625,7 +1654,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   Scene *scene = DEG_get_input_scene(depsgraph);
   Sculpt *sd = scene->toolsettings->sculpt;
   SculptSession *ss = ob->sculpt;
-  const Mesh *me = BKE_object_get_original_mesh(ob);
+  Mesh *me = BKE_object_get_original_mesh(ob);
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
   const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
 
@@ -1649,6 +1678,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   }
 
   ss->shapekey_active = (mmd == NULL) ? BKE_keyblock_from_object(ob) : NULL;
+  ss->boundary_symmetry = (int)BKE_get_fset_boundary_symflag(ob);
 
   /* NOTE: Weight pPaint require mesh info for loop lookup, but it never uses multires code path,
    * so no extra checks is needed here. */
@@ -1663,14 +1693,16 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
      * and tools use the Face Sets data from the base mesh when Multires is active. */
     ss->mvert = me->mvert;
-    ss->mpoly = me->mpoly;
+    ss->medge = me->medge;
     ss->mloop = me->mloop;
+    ss->mpoly = me->mpoly;
   }
   else {
     ss->totvert = me->totvert;
     ss->totpoly = me->totpoly;
     ss->totfaces = me->totpoly;
     ss->mvert = me->mvert;
+    ss->medge = me->medge;
     ss->mpoly = me->mpoly;
     ss->mloop = me->mloop;
     ss->multires.active = false;
@@ -1678,6 +1710,11 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->multires.level = 0;
     ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
     ss->vcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+
+    ss->vdata = &me->vdata;
+    ss->edata = &me->edata;
+    ss->ldata = &me->ldata;
+    ss->pdata = &me->pdata;
   }
 
   /* Sculpt Face Sets. */
@@ -1690,8 +1727,10 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   }
 
   ss->subdiv_ccg = me_eval->runtime.subdiv_ccg;
+  ss->fast_draw = (scene->toolsettings->sculpt->flags & SCULPT_FAST_DRAW) != 0;
 
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
+
   BLI_assert(pbvh == ss->pbvh);
   UNUSED_VARS_NDEBUG(pbvh);
 
@@ -1701,8 +1740,16 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   BKE_pbvh_face_sets_color_set(ss->pbvh, me->face_sets_color_seed, me->face_sets_color_default);
 
   if (need_pmap && ob->type == OB_MESH && !ss->pmap) {
-    BKE_mesh_vert_poly_map_create(
-        &ss->pmap, &ss->pmap_mem, me->mpoly, me->mloop, me->totvert, me->totpoly, me->totloop);
+    BKE_mesh_vert_poly_map_create(&ss->pmap,
+                                  &ss->pmap_mem,
+                                  me->mvert,
+                                  me->medge,
+                                  me->mpoly,
+                                  me->mloop,
+                                  me->totvert,
+                                  me->totpoly,
+                                  me->totloop,
+                                  false);
   }
 
   pbvh_show_mask_set(ss->pbvh, ss->show_mask);
@@ -1797,6 +1844,7 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
 
   BLI_assert(me_eval != NULL);
   sculpt_update_object(depsgraph, ob_orig, me_eval, false, false, false);
+  SCULPT_dynamic_topology_sync_layers(ob_orig, me_eval);
 }
 
 void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
@@ -1813,17 +1861,19 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
   CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
   BKE_mesh_update_customdata_pointers(orig_me, true);
   DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
+  SCULPT_dynamic_topology_sync_layers(object, orig_me);
 }
 
-/** \warning Expects a fully evaluated depsgraph. */
 void BKE_sculpt_update_object_for_edit(
     Depsgraph *depsgraph, Object *ob_orig, bool need_pmap, bool need_mask, bool need_colors)
 {
-  BLI_assert(ob_orig == DEG_get_original_object(ob_orig));
-
+  /* Update from sculpt operators and undo, to update sculpt session
+   * and PBVH after edits. */
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_orig);
-  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  BLI_assert(me_eval != NULL);
+  Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
+
+  BLI_assert(ob_orig == DEG_get_original_object(ob_orig));
 
   sculpt_update_object(depsgraph, ob_orig, me_eval, true, need_mask, need_colors);
 }
@@ -1900,11 +1950,30 @@ void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene)
 
   Sculpt *sd = scene->toolsettings->sculpt;
   if (!sd->detail_size) {
-    sd->detail_size = 12;
+    sd->detail_size = 8.0f;
   }
+
+  if (!sd->dyntopo_radius_scale) {
+    sd->dyntopo_radius_scale = 1.0f;
+  }
+
+  // we check these flags here in case versioning code fails
+  if (!sd->detail_range || !sd->dyntopo_spacing) {
+    sd->flags |= SCULPT_DYNTOPO_CLEANUP | SCULPT_DYNTOPO_ENABLED;
+  }
+
+  if (!sd->detail_range) {
+    sd->detail_range = 0.4f;
+  }
+
   if (!sd->detail_percent) {
     sd->detail_percent = 25;
   }
+
+  if (!sd->dyntopo_spacing) {
+    sd->dyntopo_spacing = 35;
+  }
+
   if (sd->constant_detail == 0.0f) {
     sd->constant_detail = 3.0f;
   }
@@ -2098,14 +2167,21 @@ void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object)
 static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
 {
   PBVH *pbvh = BKE_pbvh_new();
+
+  BKE_pbvh_set_symmetry(pbvh, 0, (int)BKE_get_fset_boundary_symflag(ob));
+
   BKE_pbvh_build_bmesh(pbvh,
                        ob->sculpt->bm,
                        ob->sculpt->bm_smooth_shading,
                        ob->sculpt->bm_log,
                        ob->sculpt->cd_vert_node_offset,
-                       ob->sculpt->cd_face_node_offset);
+                       ob->sculpt->cd_face_node_offset,
+                       ob->sculpt->cd_dyn_vert,
+                       ob->sculpt->cd_face_areas,
+                       ob->sculpt->fast_draw);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, false);
+
   return pbvh;
 }
 
@@ -2122,17 +2198,21 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
   BKE_sculpt_sync_face_set_visibility(me, NULL);
 
+  BKE_sculptsession_check_mdyntopo(ob->sculpt, me->totvert);
+
   BKE_pbvh_build_mesh(pbvh,
                       me,
                       me->mpoly,
                       me->mloop,
                       me->mvert,
+                      ob->sculpt->mdyntopo_verts,
                       me->totvert,
                       &me->vdata,
                       &me->ldata,
                       &me->pdata,
                       looptri,
-                      looptris_num);
+                      looptris_num,
+                      ob->sculpt->fast_draw);
 
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
@@ -2164,17 +2244,49 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
                        &key,
                        (void **)subdiv_ccg->grid_faces,
                        subdiv_ccg->grid_flag_mats,
-                       subdiv_ccg->grid_hidden);
+                       subdiv_ccg->grid_hidden,
+                       ob->sculpt->fast_draw);
+
+  BKE_sculptsession_check_mdyntopo(ob->sculpt, BKE_pbvh_get_grid_num_vertices(pbvh));
+
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
   return pbvh;
 }
 
+bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, int totvert)
+{
+  if (!ss->bm && (!ss->mdyntopo_verts || totvert != ss->mdyntopo_verts_size)) {
+    init_mdyntopo_layer(ss, totvert);
+    return true;
+  }
+
+  return false;
+}
+
+static void init_mdyntopo_layer(SculptSession *ss, int totvert)
+{
+  if (ss->mdyntopo_verts) {
+    MEM_freeN(ss->mdyntopo_verts);
+  }
+
+  ss->mdyntopo_verts = MEM_calloc_arrayN(totvert, sizeof(*ss->mdyntopo_verts), "mdyntopo_verts");
+  ss->mdyntopo_verts_size = totvert;
+
+  MDynTopoVert *mv = ss->mdyntopo_verts;
+
+  for (int i = 0; i < totvert; i++, mv++) {
+    mv->flag = DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT;
+    mv->stroke_id = -1;
+  }
+}
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 {
   if (ob == NULL || ob->sculpt == NULL) {
     return NULL;
   }
+
+  Scene *scene = DEG_get_input_scene(depsgraph);
 
   bool respect_hide = true;
   if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
@@ -2185,6 +2297,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
   PBVH *pbvh = ob->sculpt->pbvh;
   if (pbvh != NULL) {
+    SCULPT_update_flat_vcol_shading(ob, scene);
+
     /* NOTE: It is possible that grids were re-allocated due to modifier
      * stack. Need to update those pointers. */
     if (BKE_pbvh_type(pbvh) == PBVH_GRIDS) {
@@ -2195,14 +2309,59 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
         BKE_sculpt_bvh_update_from_ccg(pbvh, subdiv_ccg);
       }
     }
+    else if (BKE_pbvh_type(pbvh) == PBVH_BMESH) {
+      Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+
+      SCULPT_dynamic_topology_sync_layers(ob, BKE_object_get_original_mesh(ob));
+    }
     return pbvh;
   }
 
   if (ob->sculpt->bm != NULL) {
     /* Sculpting on a BMesh (dynamic-topology) gets a special PBVH. */
     pbvh = build_pbvh_for_dynamic_topology(ob);
+
+    ob->sculpt->pbvh = pbvh;
   }
   else {
+#if 1  // def WHEN_GLOBAL_UNDO_WORKS
+    /*detect if we are loading from an undo memfile step*/
+    Mesh *mesh_orig = BKE_object_get_original_mesh(ob);
+    bool is_dyntopo = (mesh_orig->flag & ME_SCULPT_DYNAMIC_TOPOLOGY);
+
+    if (is_dyntopo) {
+      BMesh *bm = SCULPT_dyntopo_empty_bmesh();
+
+      ob->sculpt->bm = bm;
+
+      BM_mesh_bm_from_me(NULL,
+                         bm,
+                         mesh_orig,
+                         (&(struct BMeshFromMeshParams){.calc_face_normal = true,
+                                                        .use_shapekey = true,
+                                                        .active_shapekey = ob->shapenr,
+                                                        .ignore_id_layers = false,
+                                                        .copy_temp_cdlayers = true,
+                                                        .cd_mask_extra = CD_MASK_DYNTOPO_VERT}));
+
+      SCULPT_dyntopo_node_layers_add(ob->sculpt);
+
+      SCULPT_undo_ensure_bmlog(ob);
+
+      pbvh = build_pbvh_for_dynamic_topology(ob);
+    }
+    else {
+      Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+      Mesh *mesh_eval = object_eval->data;
+      if (mesh_eval->runtime.subdiv_ccg != NULL) {
+        pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime.subdiv_ccg, respect_hide);
+      }
+      else if (ob->type == OB_MESH) {
+        Mesh *me_eval_deform = object_eval->runtime.mesh_deform_eval;
+        pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform, respect_hide);
+      }
+    }
+#else
     Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
     Mesh *mesh_eval = object_eval->data;
     if (mesh_eval->runtime.subdiv_ccg != NULL) {
@@ -2210,11 +2369,20 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     }
     else if (ob->type == OB_MESH) {
       Mesh *me_eval_deform = object_eval->runtime.mesh_deform_eval;
+
+      BKE_sculptsession_check_mdyntopo(ob->sculpt, me_eval_deform->totvert);
+
       pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform, respect_hide);
     }
+#endif
   }
 
   ob->sculpt->pbvh = pbvh;
+
+  if (pbvh) {
+    SCULPT_update_flat_vcol_shading(ob, scene);
+  }
+
   return pbvh;
 }
 
@@ -2235,6 +2403,12 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *v3d)
   if (ss == NULL || ss->pbvh == NULL || ss->mode_type != OB_MODE_SCULPT) {
     return false;
   }
+
+#if 0
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    return !(v3d && (v3d->shading.type > OB_SOLID));
+  }
+#endif
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
     /* Regular mesh only draws from PBVH without modifiers and shape keys. */

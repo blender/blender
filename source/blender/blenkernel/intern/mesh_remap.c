@@ -773,9 +773,11 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
 
       BKE_mesh_vert_edge_map_create(&vert_to_edge_src_map,
                                     &vert_to_edge_src_map_mem,
+                                    NULL,
                                     edges_src,
                                     num_verts_src,
-                                    num_edges_src);
+                                    num_edges_src,
+                                    false);
 
       BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_VERTS, 2);
       nearest.index = -1;
@@ -1431,19 +1433,25 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     if (use_from_vert) {
       BKE_mesh_vert_loop_map_create(&vert_to_loop_map_src,
                                     &vert_to_loop_map_src_buff,
+                                    verts_src,
+                                    edges_src,
                                     polys_src,
                                     loops_src,
                                     num_verts_src,
                                     num_polys_src,
-                                    num_loops_src);
+                                    num_loops_src,
+                                    false);
       if (mode & MREMAP_USE_POLY) {
         BKE_mesh_vert_poly_map_create(&vert_to_poly_map_src,
                                       &vert_to_poly_map_src_buff,
+                                      verts_src,
+                                      edges_src,
                                       polys_src,
                                       loops_src,
                                       num_verts_src,
                                       num_polys_src,
-                                      num_loops_src);
+                                      num_loops_src,
+                                      false);
       }
     }
 

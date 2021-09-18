@@ -674,7 +674,7 @@ ID *BKE_id_copy(Main *bmain, const ID *id)
  * Invokes the appropriate copy method for the block and returns the result in
  * newid, unless test. Returns true if the block can be copied.
  */
-ID *BKE_id_copy_for_duplicate(Main *bmain, ID *id, const eDupli_ID_Flags duplicate_flags)
+ID *BKE_id_copy_for_duplicate(Main *bmain, ID *id, const uint duplicate_flags)
 {
   if (id == NULL) {
     return id;

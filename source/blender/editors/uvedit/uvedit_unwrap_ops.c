@@ -2897,7 +2897,8 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
 
   ED_mesh_uv_texture_ensure(me, NULL);
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      me,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -2908,7 +2909,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
   /* Set the margin really quickly before the packing operation. */
   scene->toolsettings->uvcalc_margin = 0.001f;
   uvedit_pack_islands(scene, ob, bm);
-  BM_mesh_bm_to_me(bmain, bm, me, (&(struct BMeshToMeshParams){0}));
+  BM_mesh_bm_to_me(bmain, NULL, bm, me, (&(struct BMeshToMeshParams){0}));
   BM_mesh_free(bm);
 
   if (sync_selection) {

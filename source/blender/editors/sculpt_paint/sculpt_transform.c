@@ -184,13 +184,13 @@ static void sculpt_transform_task_cb(void *__restrict userdata,
   PBVHNode *node = data->nodes[i];
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[i]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[i], SCULPT_UNDO_COORDS);
 
   PBVHVertexIter vd;
 
   SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_COORDS);
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     float transformed_co[3], orig_co[3], disp[3];
     float *start_co;
     float fade = vd.mask ? *vd.mask : 0.0f;
@@ -263,7 +263,7 @@ static void sculpt_elastic_transform_task_cb(void *__restrict userdata,
   float(*proxy)[3] = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[i])->co;
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[i]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[i], SCULPT_UNDO_COORDS);
 
   KelvinletParams params;
   /* TODO(pablodp606): These parameters can be exposed if needed as transform strength and volume
@@ -279,7 +279,7 @@ static void sculpt_elastic_transform_task_cb(void *__restrict userdata,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     float transformed_co[3], orig_co[3], disp[3];
     const float fade = vd.mask ? *vd.mask : 0.0f;
     copy_v3_v3(orig_co, orig_data.co);

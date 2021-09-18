@@ -34,6 +34,7 @@ struct CCGElem;
 struct CCGKey;
 struct DMFlagMat;
 struct GSet;
+struct TableGSet;
 struct MLoop;
 struct MLoopCol;
 struct MLoopTri;
@@ -43,6 +44,7 @@ struct MVert;
 struct Mesh;
 struct PBVH;
 struct SubdivCCG;
+struct CustomData;
 
 /* Buffers for drawing from PBVH grids. */
 typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
@@ -85,12 +87,24 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const struct MPropCol *vtcol,
                                   const int update_flags);
 
+void GPU_pbvh_update_attribute_names(
+    struct CustomData *vdata,
+    struct CustomData *ldata,
+    bool need_full_render,
+    bool fast_mode);  // fast mode renders without vcol, uv, facesets, even mask, etc
+
 void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    struct BMesh *bm,
-                                   struct GSet *bm_faces,
-                                   struct GSet *bm_unique_verts,
-                                   struct GSet *bm_other_verts,
-                                   const int update_flags);
+                                   struct TableGSet *bm_faces,
+                                   struct TableGSet *bm_unique_verts,
+                                   struct TableGSet *bm_other_verts,
+                                   struct PBVHTriBuf *tribuf,
+                                   const int update_flags,
+                                   const int cd_vert_node_offset,
+                                   int face_sets_color_seed,
+                                   int face_sets_color_default,
+                                   bool flat_vcol,
+                                   short mat_nr);
 
 void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
                                   struct SubdivCCG *subdiv_ccg,
@@ -114,8 +128,14 @@ void GPU_pbvh_buffers_free(GPU_PBVH_Buffers *buffers);
 struct GPUBatch *GPU_pbvh_buffers_batch_get(GPU_PBVH_Buffers *buffers, bool fast, bool wires);
 
 short GPU_pbvh_buffers_material_index_get(GPU_PBVH_Buffers *buffers);
-
 bool GPU_pbvh_buffers_has_overlays(GPU_PBVH_Buffers *buffers);
+float *GPU_pbvh_get_extra_matrix(GPU_PBVH_Buffers *buffers);
+
+/** if need_full_render is false, only the active (not render!) vcol layer will
+    be uploaded to GPU*/
+
+void GPU_pbvh_need_full_render_set(bool state);
+bool GPU_pbvh_need_full_render_get(void);
 
 #ifdef __cplusplus
 }

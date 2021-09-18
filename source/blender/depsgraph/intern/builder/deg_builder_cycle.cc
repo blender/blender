@@ -140,7 +140,7 @@ bool schedule_non_checked_node(CyclesSolverState *state)
   return false;
 }
 
-bool check_relation_can_murder(Relation *relation)
+bool check_relation_can_murder(Relation *relation)  
 {
   if (relation->flag & RELATION_FLAG_GODMODE) {
     return false;

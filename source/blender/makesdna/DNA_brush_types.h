@@ -36,6 +36,8 @@ struct CurveMapping;
 struct Image;
 struct MTex;
 struct Material;
+struct BrushChannelSet;
+struct BrushCommandList;
 
 typedef struct BrushClone {
   /** Image for clone tool. */
@@ -153,6 +155,17 @@ typedef struct BrushGpencilSettings {
   struct Material *material;
 } BrushGpencilSettings;
 
+typedef struct DynTopoSettings {
+  float detail_range;
+  float detail_percent;
+  float detail_size;
+  float constant_detail;
+  short flag, mode;
+  int inherit;
+  int spacing;
+  float radius_scale;
+} DynTopoSettings;
+
 typedef struct Brush {
   ID id;
 
@@ -250,7 +263,7 @@ typedef struct Brush {
   /** Source for fill tool color gradient application. */
   char gradient_fill_mode;
 
-  char _pad0[5];
+  char _pad0[1];
 
   /** Projection shape (sphere, circle). */
   char falloff_shape;
@@ -279,10 +292,21 @@ typedef struct Brush {
   char _pad1[2];
 
   float autosmooth_factor;
+  float autosmooth_radius_factor;
+  float autosmooth_projection;
+  int autosmooth_spacing;  // spacing for BRUSH_CUSTOM_AUTOSMOOTH_SPACING
+  float boundary_smooth_factor;
+  float autosmooth_fset_slide;
 
   float tilt_strength_factor;
 
   float topology_rake_factor;
+  float topology_rake_radius_factor;
+  float topology_rake_projection;
+  int topology_rake_spacing;  // spacing for BRUSH_CUSTOM_TOPOLOGY_RAKE_SPACING
+
+  float vcol_boundary_factor;
+  float vcol_boundary_exponent;
 
   float crease_pinch_factor;
 
@@ -384,8 +408,16 @@ typedef struct Brush {
   float mask_stencil_pos[2];
   float mask_stencil_dimension[2];
 
+  float concave_mask_factor;
   struct BrushGpencilSettings *gpencil_settings;
 
+  DynTopoSettings dyntopo, cached_dyntopo;
+
+  /* new brush engine stuff */
+
+  struct BrushChannelSet *channels;
+  struct BrushChannelSet *channels_final;
+  struct BrushCommandList *commandlist;
 } Brush;
 
 /* Struct to hold palette colors for sorting. */

@@ -21,6 +21,7 @@
 set(INC
   .
   ../atomic
+  ../../source/blender/blenlib
 )
 
 set(INC_SYS

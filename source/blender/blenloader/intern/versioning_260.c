@@ -2420,7 +2420,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
       /* this can now be turned off */
       ToolSettings *ts = scene->toolsettings;
       if (ts->sculpt) {
-        ts->sculpt->flags |= SCULPT_DYNTOPO_SUBDIVIDE;
+        ts->sculpt->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_CLEANUP;
       }
 
       /* 'Increment' mode disabled for nodes, use true grid snapping instead */

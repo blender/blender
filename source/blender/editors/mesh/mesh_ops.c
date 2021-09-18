@@ -207,6 +207,9 @@ void ED_operatortypes_mesh(void)
   WM_operatortype_append(MESH_OT_average_normals);
   WM_operatortype_append(MESH_OT_smooth_normals);
   WM_operatortype_append(MESH_OT_mod_weighted_strength);
+  WM_operatortype_append(MESH_OT_mres_test);
+  WM_operatortype_append(MESH_OT_dump_mres_grids);
+
 }
 
 #if 0 /* UNUSED, remove? */

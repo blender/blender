@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-from bpy.types import Menu, Panel, UIList
+from bpy.types import Menu, Panel, UIList, WindowManager
 from bl_ui.properties_grease_pencil_common import (
     GreasePencilSculptOptionsPanel,
     GreasePencilDisplayPanel,
@@ -755,9 +755,77 @@ class VIEW3D_PT_tools_brush_falloff_normal(View3DPaintPanel, Panel):
 
 
 # TODO, move to space_view3d.py
+class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
+    bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
+    bl_label = "Dyntopo (Advanced)"
+    #bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 12
+
+    @classmethod
+    def poll(cls, context):
+        paint_settings = cls.paint_settings(context)
+        return (context.sculpt_object and context.tool_settings.sculpt and paint_settings)
+
+    def draw_header(self, context):
+        pass
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        tool_settings = context.tool_settings
+        sculpt = tool_settings.sculpt
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
+        col = layout.column()
+        col.label(text="Local Brush Settings")
+
+        row = col.row()
+        row.prop(brush.dyntopo, "disabled", text="Disable Dyntopo locally for this brush")
+
+        col.label(text="Overrides")
+        inherit_all = "ALL" in brush.dyntopo.inherit
+
+        col.prop_enum(brush.dyntopo, "inherit", value="ALL", text="Use All Defaults", icon="LOCKED" if inherit_all else "UNLOCKED")
+
+        def do_prop(key):
+            row = col.row()
+            if key.upper() in brush.dyntopo.inherit:
+                icon = "UNLOCKED"
+            else:
+                icon = "LOCKED"
+
+            row.prop_enum(brush.dyntopo, "inherit", value=key.upper(), icon=icon, text="")
+
+            row2 = row.row()
+            row2.prop(brush.dyntopo, key)
+
+            if icon == "UNLOCKED":
+                row2.enabled = False
+
+            if inherit_all:
+                row.enabled = False
+
+        col = layout.column()
+        do_prop("subdivide")
+        do_prop("collapse")
+        do_prop("cleanup")
+        do_prop("spacing")
+        do_prop("local_subdivide")
+        do_prop("local_collapse")
+        do_prop("detail_size")
+        do_prop("detail_range")
+        do_prop("detail_percent")
+        do_prop("constant_detail")
+        do_prop("mode")
+        do_prop("radius_scale")
+
+# TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
-    bl_label = "Dyntopo"
+    bl_label = "Dynamic Mode"
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 12
 
@@ -789,6 +857,8 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         col = layout.column()
         col.active = context.sculpt_object.use_dynamic_topology_sculpting
 
+        col.prop(sculpt, "use_dyntopo");
+
         sub = col.column()
         sub.active = (brush and brush.sculpt_tool != 'MASK')
         if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
@@ -806,7 +876,12 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
             col.operator("sculpt.detail_flood_fill")
 
+        col.prop(sculpt, "use_dyntopo_cleanup")
         col.prop(sculpt, "use_smooth_shading")
+        col.prop(sculpt, "use_flat_vcol_shading")
+
+        col.prop(sculpt, "dyntopo_spacing")
+        col.prop(sculpt, "dyntopo_radius_scale");
 
 
 class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
@@ -866,6 +941,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col = layout.column(heading="Display", align=True)
         col.prop(sculpt, "show_low_resolution")
         col.prop(sculpt, "use_sculpt_delay_updates")
+        col.prop(sculpt, "use_fast_draw")
         col.prop(sculpt, "use_deform_only")
         col.prop(sculpt, "show_sculpt_pivot")
         col.prop(sculpt, "smooth_strength_factor")
@@ -944,6 +1020,7 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
         row.prop(sculpt, "tile_z", text="Z", toggle=True)
 
         layout.prop(sculpt, "use_symmetry_feather", text="Feather")
+        layout.prop(mesh, "use_fset_boundary_mirror")
         layout.prop(sculpt, "radial_symmetry", text="Radial")
         layout.prop(sculpt, "tile_offset", text="Tile Offset")
 
@@ -951,6 +1028,7 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
 
         layout.prop(sculpt, "symmetrize_direction")
         layout.operator("sculpt.symmetrize")
+        layout.prop(WindowManager.operator_properties_last("sculpt.symmetrize"), "merge_tolerance")
 
 
 class VIEW3D_PT_sculpt_symmetry_for_topbar(Panel):
@@ -2284,6 +2362,7 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_brush_vertex_color,
     VIEW3D_PT_tools_grease_pencil_brush_vertex_palette,
     VIEW3D_PT_tools_grease_pencil_brush_vertex_falloff,
+    VIEW3D_PT_sculpt_dyntopo_advanced
 )
 
 if __name__ == "__main__":  # only for live edit.

@@ -37,6 +37,7 @@
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
+#include "range_tree.h"
 
 /* use so valgrinds memcheck alerts us when undefined index is used.
  * TESTING ONLY! */
@@ -122,6 +123,10 @@ BMVert *BM_vert_create(BMesh *bm,
       CustomData_bmesh_set_default(&bm->vdata, &v->head.data);
       zero_v3(v->no);
     }
+
+    if (!(create_flag & BM_CREATE_SKIP_ID)) {
+      bm_alloc_id(bm, (BMElem *)v);
+    }
   }
   else {
     if (v_example) {
@@ -202,6 +207,10 @@ BMEdge *BM_edge_create(
     else {
       CustomData_bmesh_set_default(&bm->edata, &e->head.data);
     }
+
+    if (!(create_flag & BM_CREATE_SKIP_ID)) {
+      bm_alloc_id(bm, (BMElem *)e);
+    }
   }
 
   BM_CHECK_ELEMENT(e);
@@ -274,6 +283,10 @@ static BMLoop *bm_loop_create(BMesh *bm,
     }
     else {
       CustomData_bmesh_set_default(&bm->ldata, &l->head.data);
+    }
+
+    if (!(create_flag & BM_CREATE_SKIP_ID)) {
+      bm_alloc_id(bm, (BMElem *)l);
     }
   }
 
@@ -348,14 +361,18 @@ BMFace *BM_face_copy(
     i++;
   } while ((l_iter = l_iter->next) != l_first);
 
-  f_copy = BM_face_create(bm_dst, verts, edges, f->len, NULL, BM_CREATE_SKIP_CD);
+  f_copy = BM_face_create(
+      bm_dst, verts, edges, f->len, NULL, BM_CREATE_SKIP_CD | BM_CREATE_SKIP_ID);
 
   BM_elem_attrs_copy(bm_src, bm_dst, f, f_copy);
+  bm_alloc_id(bm_dst, (BMElem *)f_copy);
 
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   l_copy = BM_FACE_FIRST_LOOP(f_copy);
   do {
     BM_elem_attrs_copy(bm_src, bm_dst, l_iter, l_copy);
+    bm_alloc_id(bm_dst, (BMElem *)l_copy);
+
     l_copy = l_copy->next;
   } while ((l_iter = l_iter->next) != l_first);
 
@@ -478,6 +495,10 @@ BMFace *BM_face_create(BMesh *bm,
     else {
       CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
       zero_v3(f->no);
+    }
+
+    if (!(create_flag & BM_CREATE_SKIP_ID)) {
+      bm_alloc_id(bm, (BMElem *)f);
     }
   }
   else {
@@ -754,6 +775,8 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
   bm->elem_table_dirty |= BM_VERT;
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
 
+  bm_free_id(bm, (BMElem *)v);
+
   BM_select_history_remove(bm, v);
 
   if (v->head.data) {
@@ -766,16 +789,94 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
   BLI_mempool_free(bm->vpool, v);
 }
 
+#ifdef WITH_BM_ID_FREELIST
+void bm_id_freelist_push(BMesh *bm, uint id);
+#endif
+
+// does not modify actual element ids
+void BM_clear_ids(BMesh *bm)
+{
+  if (!(bm->idmap.flag & BM_HAS_IDS)) {
+    return;
+  }
+
+  if (bm->idmap.map) {
+    memset(bm->idmap.map, 0, sizeof(void *) * bm->idmap.map_size);
+  }
+  else if (bm->idmap.ghash) {
+    BLI_ghash_clear(bm->idmap.ghash, NULL, NULL);
+  }
+
+#ifndef WITH_BM_ID_FREELIST
+  if (bm->idmap.idtree) {
+    range_tree_uint_free(bm->idmap.idtree);
+  }
+
+  bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
+#else
+  if (bm->idmap.freelist) {
+    MEM_freeN(bm->idmap.freelist);
+    bm->idmap.freelist = NULL;
+  }
+
+  if (bm->idmap.free_ids) {
+    BLI_gset_free(bm->idmap.free_ids, NULL);
+    bm->idmap.free_ids = NULL;
+  }
+
+  bm->idmap.freelist_len = 0;
+  bm->idmap.freelist_size = 0;
+#endif
+}
+
+void BM_reassign_ids(BMesh *bm)
+{
+  BM_clear_ids(bm);
+
+  int iters[] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH, BM_FACES_OF_MESH};
+
+  for (int i = 0; i < 4; i++) {
+    int htype = 1 << i;
+
+    if (!(bm->idmap.flag & htype)) {
+      continue;
+    }
+
+    BMElem *elem;
+    BMIter iter;
+
+    if (htype == BM_LOOP) {
+      BMFace *f;
+      BM_ITER_MESH (f, &iter, bm, iters[i]) {
+
+        BMLoop *l = f->l_first;
+        do {
+          l = l->next;
+        } while (l != f->l_first);
+
+        bm_alloc_id(bm, (BMElem *)l);
+      }
+    }
+    else {
+      BM_ITER_MESH (elem, &iter, bm, iters[i]) {
+        bm_alloc_id(bm, elem);
+      }
+    }
+  }
+}
+
 /**
  * low level function, only frees the edge,
  * doesn't change or adjust surrounding geometry
  */
-static void bm_kill_only_edge(BMesh *bm, BMEdge *e)
+void bm_kill_only_edge(BMesh *bm, BMEdge *e)
 {
   bm->totedge--;
   bm->elem_index_dirty |= BM_EDGE;
   bm->elem_table_dirty |= BM_EDGE;
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
+
+  bm_free_id(bm, (BMElem *)e);
 
   BM_select_history_remove(bm, (BMElem *)e);
 
@@ -793,7 +894,7 @@ static void bm_kill_only_edge(BMesh *bm, BMEdge *e)
  * low level function, only frees the face,
  * doesn't change or adjust surrounding geometry
  */
-static void bm_kill_only_face(BMesh *bm, BMFace *f)
+void bm_kill_only_face(BMesh *bm, BMFace *f)
 {
   if (bm->act_face == f) {
     bm->act_face = NULL;
@@ -803,6 +904,8 @@ static void bm_kill_only_face(BMesh *bm, BMFace *f)
   bm->elem_index_dirty |= BM_FACE;
   bm->elem_table_dirty |= BM_FACE;
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
+
+  bm_free_id(bm, (BMElem *)f);
 
   BM_select_history_remove(bm, (BMElem *)f);
 
@@ -820,11 +923,13 @@ static void bm_kill_only_face(BMesh *bm, BMFace *f)
  * low level function, only frees the loop,
  * doesn't change or adjust surrounding geometry
  */
-static void bm_kill_only_loop(BMesh *bm, BMLoop *l)
+void bm_kill_only_loop(BMesh *bm, BMLoop *l)
 {
   bm->totloop--;
   bm->elem_index_dirty |= BM_LOOP;
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
+
+  bm_free_id(bm, (BMElem *)l);
 
   if (l->head.data) {
     CustomData_bmesh_free_block(&bm->ldata, &l->head.data);
@@ -1418,6 +1523,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *f_example)
 #endif
 
   BM_elem_attrs_copy(bm, bm, f_example, f);
+  bm_alloc_id(bm, (BMElem *)f);
 
   return f;
 }
@@ -1938,7 +2044,7 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
     if (check_edge_exists) {
       if (e_splice) {
         /* removes e_splice */
-        BM_edge_splice(bm, e_old, e_splice);
+        BM_edge_splice(bm, e_old, e_splice, false);
       }
     }
 
@@ -1990,7 +2096,8 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
                                          BMVert *v_kill,
                                          const bool do_del,
                                          const bool check_edge_exists,
-                                         const bool kill_degenerate_faces)
+                                         const bool kill_degenerate_faces,
+                                         const bool combine_flags)
 {
   BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
   BMVert *v_target = BM_edge_other_vert(e_kill, v_kill);
@@ -2047,7 +2154,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
 
       if (check_edge_exists) {
         if (e_target) {
-          BM_edge_splice(bm, e_target, e);
+          BM_edge_splice(bm, e_target, e, combine_flags);
         }
       }
     }
@@ -2467,7 +2574,8 @@ static void bmesh_kernel_vert_separate__cleanup(BMesh *bm, LinkNode *edges_separ
       do {
         BMEdge *e = n_step->link;
         BLI_assert(e != e_orig);
-        if ((e->v1 == e_orig->v1) && (e->v2 == e_orig->v2) && BM_edge_splice(bm, e_orig, e)) {
+        if ((e->v1 == e_orig->v1) && (e->v2 == e_orig->v2) &&
+            BM_edge_splice(bm, e_orig, e, false)) {
           /* don't visit again */
           n_prev->next = n_step->next;
         }
@@ -2594,7 +2702,7 @@ void BM_vert_separate_tested_edges(BMesh *UNUSED(bm),
  *
  * \note Edges must already have the same vertices.
  */
-bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src)
+bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src, bool combine_flags)
 {
   BMLoop *l;
 
@@ -2620,6 +2728,18 @@ bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src)
 
   BM_CHECK_ELEMENT(e_src);
   BM_CHECK_ELEMENT(e_dst);
+
+  if (combine_flags) {
+    /* sharp flag is inverted to BM_ELEM_SMOOTH,  which we
+       must take into account*/
+
+    if (!(e_dst->head.hflag & BM_ELEM_SMOOTH) || !(e_src->head.hflag & BM_ELEM_SMOOTH)) {
+      e_dst->head.hflag = (e_dst->head.hflag | e_src->head.hflag) & ~BM_ELEM_SMOOTH;
+    }
+    else {
+      e_dst->head.hflag |= e_src->head.hflag;
+    }
+  }
 
   /* removes from disks too */
   BM_edge_kill(bm, e_src);
@@ -2727,7 +2847,7 @@ BMVert *bmesh_kernel_unglue_region_make_vert(BMesh *bm, BMLoop *l_sep)
   edges[0] = l_sep->e;
   edges[1] = l_sep->prev->e;
 
-  for (i = 0; i < ARRAY_SIZE(edges); i++) {
+  for (i = 0; i < (int)ARRAY_SIZE(edges); i++) {
     BMEdge *e = edges[i];
     bmesh_edge_vert_swap(e, v_new, v_sep);
   }
@@ -2780,7 +2900,7 @@ BMVert *bmesh_kernel_unglue_region_make_vert_multi(BMesh *bm, BMLoop **larr, int
     BM_ELEM_API_FLAG_ENABLE(l_sep->prev, LOOP_VISIT);
 
     BMLoop *loop_pair[2] = {l_sep, l_sep->prev};
-    for (int j = 0; j < ARRAY_SIZE(loop_pair); j++) {
+    for (int j = 0; j < (int)ARRAY_SIZE(loop_pair); j++) {
       BMEdge *e = loop_pair[j]->e;
       if (!BM_ELEM_API_FLAG_TEST(e, EDGE_VISIT)) {
         BM_ELEM_API_FLAG_ENABLE(e, EDGE_VISIT);
@@ -2837,7 +2957,7 @@ BMVert *bmesh_kernel_unglue_region_make_vert_multi(BMesh *bm, BMLoop **larr, int
   else {
     v_new = BM_vert_create(bm, v_sep->co, v_sep, BM_CREATE_NOP);
 
-    for (i = 0; i < STACK_SIZE(edges); i++) {
+    for (i = 0; i < (int)STACK_SIZE(edges); i++) {
       BMEdge *e = edges[i];
       BMLoop *l_iter, *l_first, *l_next;
       BMEdge *e_new;

@@ -78,8 +78,12 @@ typedef struct FModifierTypeInfo {
   short size;
   /** #eFMI_Action_Types. */
   short acttype;
+#ifdef __cplusplus
+  short requires_;
+#else
   /** #eFMI_Requirement_Flags. */
   short requires;
+#endif
   /** name of modifier in interface. */
   char name[64];
   /** name of struct for SDNA. */

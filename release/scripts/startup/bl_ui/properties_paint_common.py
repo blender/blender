@@ -549,15 +549,27 @@ def brush_settings(layout, context, brush, popover=False):
         if context.preferences.experimental.use_sculpt_tools_tilt and capabilities.has_tilt:
             layout.prop(brush, "tilt_strength_factor", slider=True)
 
+        UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "hard_edge_mode",
+                slider=True,
+                unified_name="use_unified_hard_edge_mode",
+         )
+
         row = layout.row(align=True)
+
         row.prop(brush, "hardness", slider=True)
         row.prop(brush, "invert_hardness_pressure", text="")
         row.prop(brush, "use_hardness_pressure", text="")
 
         # auto_smooth_factor and use_inverse_smooth_pressure
         if capabilities.has_auto_smooth:
+            box = layout.box().column() #.column() is a bit more compact
+
             UnifiedPaintPanel.prop_unified(
-                layout,
+                box,
                 context,
                 brush,
                 "auto_smooth_factor",
@@ -565,13 +577,70 @@ def brush_settings(layout, context, brush, popover=False):
                 slider=True,
             )
 
-        # topology_rake_factor
+            box.prop(brush, "boundary_smooth_factor")
+            box.prop(brush, "use_weighted_smooth")
+            box.prop(brush, "preserve_faceset_boundary")
+
+            if brush.preserve_faceset_boundary:
+                box.prop(brush, "autosmooth_fset_slide")
+
+            box.prop(brush, "use_custom_auto_smooth_spacing", text="Custom Spacing")
+            if brush.use_custom_auto_smooth_spacing:
+               UnifiedPaintPanel.prop_unified(
+                    box,
+                    context,
+                    brush,
+                    "auto_smooth_spacing",
+                    slider=True,
+                    text="Spacing"
+                )                
+            UnifiedPaintPanel.prop_unified(
+                box,
+                context,
+                brush,
+                "auto_smooth_projection",
+                slider=True
+            )
+            UnifiedPaintPanel.prop_unified(
+                box,
+                context,
+                brush,
+                "auto_smooth_radius_factor",
+                slider=True
+            )
+        elif brush.sculpt_tool == "SMOOTH":
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "auto_smooth_projection",
+                slider=True
+            )
+        
+
+        if capabilities.has_vcol_boundary_smooth:
+            layout.prop(brush, "vcol_boundary_factor", slider=True)
+
         if (
                 capabilities.has_topology_rake and
                 context.sculpt_object.use_dynamic_topology_sculpting
         ):
-            layout.prop(brush, "topology_rake_factor", slider=True)
+            box = layout.box().column() #.column() is a bit more compact
+            
+            box.prop(brush, "topology_rake_factor", slider=True)
+            box.prop(brush, "use_custom_topology_rake_spacing", text="Custom Spacing")
 
+            if brush.use_custom_topology_rake_spacing:
+                box.prop(brush, "topology_rake_spacing", text="Spacing")
+            box.prop(brush, "topology_rake_projection")
+
+            box.prop(brush, "topology_rake_radius_factor", slider=True)
+            box.prop(brush, "use_curvature_rake")
+            box.prop(brush, "ignore_falloff_for_topology_rake")
+
+        if context.sculpt_object.use_dynamic_topology_sculpting:
+            layout.prop(brush.dyntopo, "disabled", text="Disable Dyntopo")
+            
         # normal_weight
         if capabilities.has_normal_weight:
             layout.prop(brush, "normal_weight", slider=True)
@@ -629,6 +698,10 @@ def brush_settings(layout, context, brush, popover=False):
             layout.prop(brush, "blend", text="Blend Mode")
 
         # Per sculpt tool options.
+
+        if sculpt_tool == "VCOL_BOUNDARY":
+            row = layout.row()
+            row.prop(brush, "vcol_boundary_exponent")
 
         if sculpt_tool == 'CLAY_STRIPS':
             row = layout.row()
@@ -769,7 +842,15 @@ def brush_settings(layout, context, brush, popover=False):
 
         elif sculpt_tool == 'SMOOTH':
             col = layout.column()
+            col.prop(brush, "boundary_smooth_factor")
+
+            col.prop(brush, "use_weighted_smooth")
+            col.prop(brush, "preserve_faceset_boundary")
+            if brush.preserve_faceset_boundary:
+                col.prop(brush, "autosmooth_fset_slide")
+
             col.prop(brush, "smooth_deform_type")
+
             if brush.smooth_deform_type == 'SURFACE':
                 col.prop(brush, "surface_smooth_shape_preservation")
                 col.prop(brush, "surface_smooth_current_vertex")
@@ -932,6 +1013,14 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
         # topology automasking
         col.prop(brush, "use_automasking_topology", text="Topology")
+
+        col.prop(brush, "use_automasking_concave")
+
+        col2 = col.column()
+        col2.enabled = brush.use_automasking_concave
+
+        col2.prop(brush, "concave_mask_factor", text="Cavity Factor")
+        col2.prop(brush, "invert_automasking_concavity", text="Invert Cavity Mask")
 
         # face masks automasking
         col.prop(brush, "use_automasking_face_sets", text="Face Sets")

@@ -772,7 +772,7 @@ static void quadriflow_update_job(void *customdata, float progress, int *cancel)
   *(qj->progress) = progress;
 }
 
-static Mesh *remesh_symmetry_bisect(Mesh *mesh, eSymmetryAxes symmetry_axes)
+static Mesh *remesh_symmetry_bisect(Object *ob, Mesh *mesh, eSymmetryAxes symmetry_axes)
 {
   MirrorModifierData mmd = {{nullptr}};
   mmd.tolerance = QUADRIFLOW_MIRROR_BISECT_TOLERANCE;
@@ -793,8 +793,10 @@ static Mesh *remesh_symmetry_bisect(Mesh *mesh, eSymmetryAxes symmetry_axes)
       zero_v3(plane_no);
       plane_no[axis] = -1.0f;
       mesh_bisect_temp = mesh_bisect;
-      mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(
+
+      mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(ob, 
           &mmd, mesh_bisect, axis, plane_co, plane_no);
+
       if (mesh_bisect_temp != mesh_bisect) {
         BKE_id_free(nullptr, mesh_bisect_temp);
       }
@@ -862,7 +864,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   bisect_mesh = BKE_mesh_copy_for_eval(mesh, false);
 
   /* Bisect the input mesh using the paint symmetry settings */
-  bisect_mesh = remesh_symmetry_bisect(bisect_mesh, qj->symmetry_axes);
+  bisect_mesh = remesh_symmetry_bisect(ob, bisect_mesh, qj->symmetry_axes);
 
   new_mesh = BKE_mesh_remesh_quadriflow(bisect_mesh,
                                         qj->target_faces,

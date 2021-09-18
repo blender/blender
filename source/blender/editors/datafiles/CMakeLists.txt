@@ -750,7 +750,6 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.sculpt.cloth
   brush.sculpt.crease
   brush.sculpt.displacement_eraser
-  brush.sculpt.displacement_smear
   brush.sculpt.draw
   brush.sculpt.draw_face_sets
   brush.sculpt.draw_sharp
@@ -763,15 +762,18 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.sculpt.mask
   brush.sculpt.multiplane_scrape
   brush.sculpt.nudge
+  brush.sculpt.paint
   brush.sculpt.pinch
   brush.sculpt.pose
   brush.sculpt.rotate
   brush.sculpt.scrape
   brush.sculpt.simplify
+  brush.sculpt.smear
   brush.sculpt.smooth
   brush.sculpt.snake_hook
   brush.sculpt.thumb
   brush.sculpt.topology
+  brush.sculpt.vcol_boundary
   brush.uv_sculpt.grab
   brush.uv_sculpt.pinch
   brush.uv_sculpt.relax

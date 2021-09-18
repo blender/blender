@@ -35,6 +35,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_customdata.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 
@@ -242,7 +243,7 @@ static void UNUSED_FUNCTION(add_fancy_edge)(GPUVertBuf *vbo,
   GPU_vertbuf_attr_set(vbo, pos_id, (*v_idx)++, co2);
 }
 
-#if 0  /* UNUSED */
+#if 0 /* UNUSED */
 static void add_lat_lon_vert(GPUVertBuf *vbo,
                              uint pos_id,
                              uint nor_id,
@@ -482,6 +483,43 @@ static void sphere_lat_lon_vert(GPUVertBuf *vbo, int *v_ofs, float lat, float lo
   float z = sinf(lat) * sinf(lon);
   GPU_vertbuf_vert_set(vbo, *v_ofs, &(VertShaded){{x, y, z}, VCLASS_EMPTY_SCALED, {x, y, z}});
   (*v_ofs)++;
+}
+
+void DRW_make_cdlayer_attr_aliases(GPUVertFormat *format,
+                                   char *base_name,
+                                   CustomData *data,
+                                   CustomDataLayer *cl)
+{
+  char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
+  const char *layer_name = cl->name;
+
+  int i = (int)(cl - data->typemap[cl->type]);
+
+  GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+
+  /* Attribute layer name. */
+  BLI_snprintf(attr_name, sizeof(attr_name), "%s%s", base_name, attr_safe_name);
+  GPU_vertformat_alias_add(format, attr_name);
+
+  /* Auto layer name. */
+  BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
+  GPU_vertformat_alias_add(format, attr_name);
+
+  /* Active render layer name. */
+  if (i == CustomData_get_render_layer(data, cl->type)) {
+    GPU_vertformat_alias_add(format, base_name);
+  }
+  /* Active display layer name. */
+  if (i == CustomData_get_active_layer(data, cl->type)) {
+    BLI_snprintf(attr_name, sizeof(attr_name), "a%s", base_name);
+    GPU_vertformat_alias_add(format, attr_name);
+  }
+
+  /* Stencil mask layer name. */
+  if (i == CustomData_get_stencil_layer(data, cl->type)) {
+    BLI_snprintf(attr_name, sizeof(attr_name), "m%s", base_name);
+    GPU_vertformat_alias_add(format, attr_name);
+  }
 }
 
 GPUBatch *DRW_cache_sphere_get(const eDRWLevelOfDetail level_of_detail)

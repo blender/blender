@@ -16,9 +16,17 @@
 
 #pragma once
 
+#include "BLI_compiler_compat.h"
+#include "BLI_ghash.h"
+#include "DNA_customdata_types.h"
+#include "DNA_material_types.h"
+
+#include "bmesh.h"
+
 /** \file
  * \ingroup bli
  */
+struct MDynTopoVert;
 
 /* Axis-aligned bounding box */
 typedef struct {
@@ -35,6 +43,10 @@ typedef struct {
 struct PBVHNode {
   /* Opaque handle for drawing code */
   struct GPU_PBVH_Buffers *draw_buffers;
+  struct GPU_PBVH_Buffers **mat_draw_buffers;  // currently only used by pbvh_bmesh
+  int tot_mat_draw_buffers;
+
+  int id;
 
   /* Voxel bounds */
   BB vb;
@@ -43,6 +55,7 @@ struct PBVHNode {
   /* For internal nodes, the offset of the children in the PBVH
    * 'nodes' array. */
   int children_offset;
+  int subtree_tottri;
 
   /* Pointer into the PBVH prim_indices array and the number of
    * primitives used by this leaf node.
@@ -86,7 +99,7 @@ struct PBVHNode {
 
   /* Indicates whether this node is a leaf or not; also used for
    * marking various updates that need to be applied. */
-  PBVHNodeFlags flag : 16;
+  PBVHNodeFlags flag : 32;
 
   /* Used for raycasting: how close bb is to the ray point. */
   float tmin;
@@ -98,26 +111,38 @@ struct PBVHNode {
   PBVHProxyNode *proxies;
 
   /* Dyntopo */
-  GSet *bm_faces;
-  GSet *bm_unique_verts;
-  GSet *bm_other_verts;
-  float (*bm_orco)[3];
-  int (*bm_ortri)[3];
-  int bm_tot_ortri;
+  TableGSet *bm_faces;
+  TableGSet *bm_unique_verts;
+  TableGSet *bm_other_verts;
+
+  PBVHTriBuf *tribuf;       // all triangles
+  PBVHTriBuf *tri_buffers;  // tribuffers, one per material used
+  int tot_tri_buffers;
+
+  int updategen;
 
   /* Used to store the brush color during a stroke and composite it over the original color */
   PBVHColorBufferNode color_buffer;
+#ifdef PROXY_ADVANCED
+  ProxyVertArray proxyverts;
+#endif
 };
 
 typedef enum {
   PBVH_DYNTOPO_SMOOTH_SHADING = 1,
+  PBVH_FAST_DRAW = 2  // hides facesets/masks and forces smooth to save GPU bandwidth
 } PBVHFlags;
 
 typedef struct PBVHBMeshLog PBVHBMeshLog;
+struct DMFlagMat;
 
 struct PBVH {
   PBVHType type;
   PBVHFlags flags;
+
+  int idgen;
+
+  bool dyntopo_stop;
 
   PBVHNode *nodes;
   int node_mem_count, totnode;
@@ -127,6 +152,7 @@ struct PBVH {
   int totvert;
 
   int leaf_limit;
+  int depth_limit;
 
   /* Mesh data */
   const struct Mesh *mesh;
@@ -146,7 +172,7 @@ struct PBVH {
   CCGKey gridkey;
   CCGElem **grids;
   void **gridfaces;
-  const DMFlagMat *grid_flag_mats;
+  const struct DMFlagMat *grid_flag_mats;
   int totgrid;
   BLI_bitmap **grid_hidden;
 
@@ -168,14 +194,31 @@ struct PBVH {
   BMesh *bm;
   float bm_max_edge_len;
   float bm_min_edge_len;
+  float bm_detail_range;
+
+  int cd_dyn_vert;
   int cd_vert_node_offset;
   int cd_face_node_offset;
+  int cd_vert_mask_offset;
+  int cd_vcol_offset;
+  int cd_faceset_offset;
+  int cd_face_area;
 
   float planes[6][4];
   int num_planes;
 
+  int symmetry;
+  int boundary_symmetry;
+
   struct BMLog *bm_log;
   struct SubdivCCG *subdiv_ccg;
+
+  bool flat_vcol_shading;
+  bool need_full_render;  // used by pbvh drawing for PBVH_BMESH
+
+  int balance_counter;
+  int stroke_id;  // used to keep origdata up to date in PBVH_BMESH
+  struct MDynTopoVert *mdyntopo_verts;
 };
 
 /* pbvh.c */
@@ -184,6 +227,9 @@ void BB_expand(BB *bb, const float co[3]);
 void BB_expand_with_bb(BB *bb, BB *bb2);
 void BBC_update_centroid(BBC *bbc);
 int BB_widest_axis(const BB *bb);
+void BB_intersect(BB *r_out, BB *a, BB *b);
+float BB_volume(const BB *bb);
+
 void pbvh_grow_nodes(PBVH *bvh, int totnode);
 bool ray_face_intersection_quad(const float ray_start[3],
                                 struct IsectRayPrecalc *isect_precalc,
@@ -217,20 +263,97 @@ bool ray_face_nearest_tri(const float ray_start[3],
 
 void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
 
+bool ray_face_intersection_depth_tri(const float ray_start[3],
+                                     struct IsectRayPrecalc *isect_precalc,
+                                     const float t0[3],
+                                     const float t1[3],
+                                     const float t2[3],
+                                     float *r_depth,
+                                     float *r_back_depth,
+                                     int *hit_count);
+
 /* pbvh_bmesh.c */
-bool pbvh_bmesh_node_raycast(PBVHNode *node,
+bool pbvh_bmesh_node_raycast(PBVH *pbvh,
+                             PBVHNode *node,
                              const float ray_start[3],
                              const float ray_normal[3],
                              struct IsectRayPrecalc *isect_precalc,
-                             float *dist,
+                             int *hit_count,
+                             float *depth,
+                             float *back_depth,
                              bool use_original,
-                             int *r_active_vertex_index,
-                             float *r_face_normal);
-bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
+                             SculptVertRef *r_active_vertex_index,
+                             SculptFaceRef *r_active_face_index,
+                             float *r_face_normal,
+                             int stroke_id);
+
+bool pbvh_bmesh_node_nearest_to_ray(PBVH *pbvh,
+                                    PBVHNode *node,
                                     const float ray_start[3],
                                     const float ray_normal[3],
                                     float *depth,
                                     float *dist_sq,
-                                    bool use_original);
+                                    bool use_original,
+                                    int stroke_id);
 
 void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode);
+
+void pbvh_free_all_draw_buffers(PBVHNode *node);
+void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node);
+
+BLI_INLINE int pbvh_bmesh_node_index_from_vert(PBVH *pbvh, const BMVert *key)
+{
+  const int node_index = BM_ELEM_CD_GET_INT((const BMElem *)key, pbvh->cd_vert_node_offset);
+  BLI_assert(node_index != DYNTOPO_NODE_NONE);
+  BLI_assert(node_index < pbvh->totnode);
+  return node_index;
+}
+
+BLI_INLINE int pbvh_bmesh_node_index_from_face(PBVH *pbvh, const BMFace *key)
+{
+  const int node_index = BM_ELEM_CD_GET_INT((const BMElem *)key, pbvh->cd_face_node_offset);
+  BLI_assert(node_index != DYNTOPO_NODE_NONE);
+  BLI_assert(node_index < pbvh->totnode);
+  return node_index;
+}
+
+BLI_INLINE PBVHNode *pbvh_bmesh_node_from_vert(PBVH *pbvh, const BMVert *key)
+{
+  int ni = pbvh_bmesh_node_index_from_vert(pbvh, key);
+
+  return ni >= 0 ? pbvh->nodes + ni : NULL;
+  // return &pbvh->nodes[pbvh_bmesh_node_index_from_vert(pbvh, key)];
+}
+
+BLI_INLINE PBVHNode *pbvh_bmesh_node_from_face(PBVH *pbvh, const BMFace *key)
+{
+  int ni = pbvh_bmesh_node_index_from_face(pbvh, key);
+
+  return ni >= 0 ? pbvh->nodes + ni : NULL;
+  // return &pbvh->nodes[pbvh_bmesh_node_index_from_face(pbvh, key)];
+}
+bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index);
+void pbvh_bmesh_check_nodes(PBVH *pbvh);
+void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni);
+void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f);
+void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
+                                   int cd_faceset_offset,
+                                   BMVert *v,
+                                   int bound_symmetry);
+
+BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
+{
+  MDynTopoVert *mv = (MDynTopoVert *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_dyn_vert);
+
+  if (mv->flag & DYNVERT_NEED_BOUNDARY) {
+    bke_pbvh_update_vert_boundary(
+        pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v, pbvh->boundary_symmetry);
+    return true;
+  }
+
+  return false;
+}
+
+void pbvh_bmesh_check_other_verts(PBVHNode *node);
+
+//#define DEFRAGMENT_MEMORY

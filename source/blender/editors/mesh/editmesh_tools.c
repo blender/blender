@@ -4396,7 +4396,8 @@ static Base *mesh_separate_tagged(
 
   BM_mesh_normals_update(bm_new);
 
-  BM_mesh_bm_to_me(bmain, bm_new, base_new->object->data, (&(struct BMeshToMeshParams){0}));
+  BM_mesh_bm_to_me(
+      bmain, base_new->object, bm_new, base_new->object->data, (&(struct BMeshToMeshParams){0}));
 
   BM_mesh_free(bm_new);
   ((Mesh *)base_new->object->data)->edit_mesh = NULL;
@@ -4462,7 +4463,8 @@ static Base *mesh_separate_arrays(Main *bmain,
     BM_vert_kill(bm_old, verts[i]);
   }
 
-  BM_mesh_bm_to_me(bmain, bm_new, base_new->object->data, (&(struct BMeshToMeshParams){0}));
+  BM_mesh_bm_to_me(
+      bmain, base_new->object, bm_new, base_new->object->data, (&(struct BMeshToMeshParams){0}));
 
   BM_mesh_free(bm_new);
   ((Mesh *)base_new->object->data)->edit_mesh = NULL;
@@ -4645,6 +4647,7 @@ static bool mesh_separate_loose(
 
   if (clear_object_data) {
     BM_mesh_bm_to_me(NULL,
+                     base_old->object,
                      bm_old,
                      me_old,
                      (&(struct BMeshToMeshParams){
@@ -4738,7 +4741,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
                                       .use_toolflags = true,
                                   }));
 
-          BM_mesh_bm_from_me(bm_old, me, (&(struct BMeshFromMeshParams){0}));
+          BM_mesh_bm_from_me(NULL, bm_old, me, (&(struct BMeshFromMeshParams){0}));
 
           switch (type) {
             case MESH_SEPARATE_MATERIAL:
@@ -4754,6 +4757,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
           if (changed) {
             BM_mesh_bm_to_me(bmain,
+                             ob,
                              bm_old,
                              me,
                              (&(struct BMeshToMeshParams){
@@ -5943,6 +5947,116 @@ static void edbm_dissolve_prop__use_boundary_tear(wmOperatorType *ot)
                   "Split off face corners instead of merging faces");
 }
 
+static int edbm_mres_test_exec(bContext *C, wmOperator *op)
+{
+  const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
+  const bool use_boundary_tear = RNA_boolean_get(op->ptr, "use_boundary_tear");
+
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      view_layer, CTX_wm_view3d(C), &objects_len);
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    if (em->bm->totvertsel == 0) {
+      continue;
+    }
+
+    BM_custom_loop_normals_to_vector_layer(em->bm);
+
+    if (!EDBM_op_callf(em, op, "test_mres_smooth")) {
+      continue;
+    }
+
+    BM_custom_loop_normals_from_vector_layer(em->bm, false);
+
+    EDBM_update(obedit->data,
+                &(const struct EDBMUpdate_Params){
+                    .calc_looptri = true,
+                    .calc_normals = false,
+                    .is_destructive = true,
+                });
+    // EDBM_update_generic(obedit->data, true, true);
+  }
+
+  MEM_freeN(objects);
+  return OPERATOR_FINISHED;
+}
+
+extern Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm);
+
+static int edbm_dump_mres_grids_exec(bContext *C, wmOperator *op)
+{
+  const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
+  const bool use_boundary_tear = RNA_boolean_get(op->ptr, "use_boundary_tear");
+
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      view_layer, CTX_wm_view3d(C), &objects_len);
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    multires_dump_grids_bmesh(obedit, em->bm);
+  }
+
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, CTX_data_scene(C));
+
+  MEM_freeN(objects);
+  return OPERATOR_FINISHED;
+}
+
+static bool mres_test_poll(bContext *C)
+{
+  Object *obedit = CTX_data_edit_object(C);
+  if (obedit && obedit->type == OB_MESH) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    if (!em || !CustomData_has_layer(&em->bm->ldata, CD_MDISPS)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+void MESH_OT_dump_mres_grids(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Dump Multires Grids";
+  ot->description = "Dump Multires Grids";
+  ot->idname = "MESH_OT_dump_mres_grids";
+
+  /* api callbacks */
+  ot->exec = edbm_dump_mres_grids_exec;
+  ot->poll = mres_test_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+void MESH_OT_mres_test(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Test Multires Boundary Smooth";
+  ot->description = "Test multires boundary smooth";
+  ot->idname = "MESH_OT_mres_test";
+
+  /* api callbacks */
+  ot->exec = edbm_mres_test_exec;
+  ot->poll = mres_test_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 static int edbm_dissolve_verts_exec(bContext *C, wmOperator *op)
 {
   const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
@@ -7019,7 +7133,7 @@ static void sort_bmelem_flag(bContext *C,
     }
   }
 
-  BM_mesh_remap(em->bm, map[0], map[1], map[2]);
+  BM_mesh_remap(em->bm, map[0], map[1], map[2], NULL);
   DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 

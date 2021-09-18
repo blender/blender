@@ -44,6 +44,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remesh_voxel.h" /* own include */
 #include "BKE_mesh_runtime.h"
 #include "BKE_paint.h"
@@ -67,17 +68,28 @@ using blender::MutableSpan;
 using blender::Span;
 
 #ifdef WITH_QUADRIFLOW
-static Mesh *remesh_quadriflow(const Mesh *input_mesh,
-                               int target_faces,
-                               int seed,
-                               bool preserve_sharp,
-                               bool preserve_boundary,
-                               bool adaptive_scale,
-                               void (*update_cb)(void *, float progress, int *cancel),
-                               void *update_cb_data)
+ATTR_NO_OPT static Mesh *remesh_quadriflow(const Mesh *input_mesh,
+                                           int target_faces,
+                                           int seed,
+                                           bool preserve_sharp,
+                                           bool preserve_boundary,
+                                           bool adaptive_scale,
+                                           void (*update_cb)(void *, float progress, int *cancel),
+                                           void *update_cb_data)
 {
   /* Ensure that the triangulated mesh data is up to data */
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(input_mesh);
+  MeshElemMap *epmap = nullptr;
+  int *epmem = nullptr;
+
+  BKE_mesh_edge_poly_map_create(&epmap,
+                                &epmem,
+                                input_mesh->medge,
+                                input_mesh->totedge,
+                                input_mesh->mpoly,
+                                input_mesh->totpoly,
+                                input_mesh->mloop,
+                                input_mesh->totloop);
 
   /* Gather the required data for export to the internal quadriflow mesh format. */
   MVertTri *verttri = (MVertTri *)MEM_callocN(
@@ -88,17 +100,63 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   const int totfaces = BKE_mesh_runtime_looptri_len(input_mesh);
   const int totverts = input_mesh->totvert;
   Array<float3> verts(totverts);
-  Array<int> faces(totfaces * 3);
+  Array<QuadriflowFace> faces(totfaces);
 
   for (const int i : IndexRange(totverts)) {
     verts[i] = input_mesh->mvert[i].co;
   }
 
+  int *fsets = (int *)CustomData_get_layer(&input_mesh->pdata, CD_SCULPT_FACE_SETS);
+
   for (const int i : IndexRange(totfaces)) {
     MVertTri &vt = verttri[i];
-    faces[i * 3] = vt.tri[0];
-    faces[i * 3 + 1] = vt.tri[1];
-    faces[i * 3 + 2] = vt.tri[2];
+    faces[i].eflag[0] = faces[i].eflag[1] = faces[i].eflag[2] = 0;
+
+    faces[i].v[0] = vt.tri[0];
+    faces[i].v[1] = vt.tri[1];
+    faces[i].v[2] = vt.tri[2];
+
+    for (const int j : IndexRange(3)) {
+      MLoop *l = input_mesh->mloop + looptri[i].tri[j];
+      MEdge *e = input_mesh->medge + l->e;
+
+      if (e->flag & ME_SHARP) {
+        faces[i].eflag[j] |= QFLOW_CONSTRAINED;
+        continue;
+      }
+
+      MeshElemMap *melem = epmap + looptri[i].poly;
+
+      if (melem->count == 1) {
+        faces[i].eflag[j] |= QFLOW_CONSTRAINED;
+        continue;
+      }
+
+      int fset = 0;
+      int mat_nr = 0;
+
+      for (int k : IndexRange(melem->count)) {
+        MPoly *p = input_mesh->mpoly + melem->indices[k];
+
+        if (k > 0 && p->mat_nr != mat_nr) {
+          faces[i].eflag[j] |= QFLOW_CONSTRAINED;
+          continue;
+        }
+
+        mat_nr = (int)p->mat_nr;
+
+        if (fsets) {
+          int fset2 = fsets[melem->indices[k]];
+
+          if (k > 0 && abs(fset) != abs(fset2)) {
+            faces[i].eflag[j] |= QFLOW_CONSTRAINED;
+            break;
+          }
+
+          fset = fset2;
+        }
+      }
+    }
   }
 
   /* Fill out the required input data */
@@ -159,6 +217,14 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
 
   MEM_freeN(qrd.out_faces);
   MEM_freeN(qrd.out_verts);
+
+  if (epmap) {
+    MEM_freeN((void *)epmap);
+  }
+
+  if (epmem) {
+    MEM_freeN((void *)epmem);
+  }
 
   return mesh;
 }
@@ -516,7 +582,7 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
 
   BMeshFromMeshParams bmesh_from_mesh_params{};
   bmesh_from_mesh_params.calc_face_normal = true;
-  BM_mesh_bm_from_me(bm, mesh, &bmesh_from_mesh_params);
+  BM_mesh_bm_from_me(NULL, bm, mesh, &bmesh_from_mesh_params);
 
   BMVert *v;
   BMEdge *ed, *ed_next;
@@ -550,7 +616,7 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
     if (BM_elem_flag_test(ed, BM_ELEM_TAG)) {
       float co[3];
       mid_v3_v3v3(co, ed->v1->co, ed->v2->co);
-      BMVert *vc = BM_edge_collapse(bm, ed, ed->v1, true, true);
+      BMVert *vc = BM_edge_collapse(bm, ed, ed->v1, true, true, false);
       copy_v3_v3(vc->co, co);
     }
   }

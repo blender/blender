@@ -484,7 +484,7 @@ typedef struct ImageFormatData {
 #define R_IMF_IMTYPE_INVALID 255
 
 /** #ImageFormatData.flag */
-#define R_IMF_FLAG_ZBUF (1 << 0)        /* was R_OPENEXR_ZBUF */
+#define R_IMF_FLAG_ZBUF (1 << 0) /* was R_OPENEXR_ZBUF */
 #define R_IMF_FLAG_PREVIEW_JPG (1 << 1) /* was R_PREVIEW_JPG */
 
 /* Return values from #BKE_imtype_valid_depths, note this is depths per channel. */
@@ -526,8 +526,8 @@ typedef enum eImageFormatDepth {
 
 /** #ImageFormatData.jp2_flag */
 #define R_IMF_JP2_FLAG_YCC (1 << 0) /* when disabled use RGB */ /* was R_JPEG2K_YCC */
-#define R_IMF_JP2_FLAG_CINE_PRESET (1 << 1)                     /* was R_JPEG2K_CINE_PRESET */
-#define R_IMF_JP2_FLAG_CINE_48 (1 << 2)                         /* was R_JPEG2K_CINE_48FPS */
+#define R_IMF_JP2_FLAG_CINE_PRESET (1 << 1) /* was R_JPEG2K_CINE_PRESET */
+#define R_IMF_JP2_FLAG_CINE_48 (1 << 2) /* was R_JPEG2K_CINE_48FPS */
 
 /** #ImageFormatData.jp2_codec */
 #define R_IMF_JP2_CODEC_JP2 0
@@ -971,6 +971,8 @@ typedef struct ParticleEditSettings {
 /* ------------------------------------------- */
 /* Sculpt */
 
+struct BrushChannelSet;
+
 /* Sculpt */
 typedef struct Sculpt {
   Paint paint;
@@ -995,6 +997,7 @@ typedef struct Sculpt {
 
   /* Maximum edge length for dynamic topology sculpting (in pixels) */
   float detail_size;
+  float detail_range;
 
   /* Direction used for SCULPT_OT_symmetrize operator */
   int symmetrize_direction;
@@ -1006,8 +1009,12 @@ typedef struct Sculpt {
   /** Constant detail resolution (Blender unit / constant_detail). */
   float constant_detail;
   float detail_percent;
+  int dyntopo_spacing;
 
   struct Object *gravity_object;
+  float dyntopo_radius_scale;
+  int _pad[1];
+  struct BrushChannelSet *channels;
 } Sculpt;
 
 typedef struct UvSculpt {
@@ -1248,7 +1255,8 @@ typedef struct UnifiedPaintSettings {
   float pixel_radius;
   float initial_pixel_radius;
 
-  char _pad[4];
+  char _pad[3];
+  char hard_edge_mode;
 
   /* drawing pressure */
   float size_pressure_value;
@@ -1272,7 +1280,7 @@ typedef enum {
 
   /* only used if unified size is enabled, mirrors the brush flag BRUSH_LOCK_SIZE */
   UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1 << 2),
-  UNIFIED_PAINT_FLAG_UNUSED_0 = (1 << 3),
+  UNIFIED_PAINT_FLAG_HARD_EDGE_MODE = (1 << 3),
 
   UNIFIED_PAINT_FLAG_UNUSED_1 = (1 << 4),
 } eUnifiedPaintSettingsFlags;
@@ -1855,12 +1863,12 @@ typedef struct Scene {
 
 #define R_MODE_UNUSED_20 (1 << 20) /* cleared */
 #define R_MODE_UNUSED_21 (1 << 21) /* cleared */
-#define R_NO_OVERWRITE (1 << 22)   /* skip existing files */
-#define R_TOUCH (1 << 23)          /* touch files before rendering */
+#define R_NO_OVERWRITE (1 << 22) /* skip existing files */
+#define R_TOUCH (1 << 23) /* touch files before rendering */
 #define R_SIMPLIFY (1 << 24)
-#define R_EDGE_FRS (1 << 25)        /* R_EDGE reserved for Freestyle */
+#define R_EDGE_FRS (1 << 25) /* R_EDGE reserved for Freestyle */
 #define R_PERSISTENT_DATA (1 << 26) /* keep data around for re-render */
-#define R_MODE_UNUSED_27 (1 << 27)  /* cleared */
+#define R_MODE_UNUSED_27 (1 << 27) /* cleared */
 
 /** #RenderData.seq_flag */
 enum {
@@ -2251,6 +2259,14 @@ typedef enum eSculptFlags {
 
   /* Don't display face sets in viewport. */
   SCULPT_HIDE_FACE_SETS = (1 << 17),
+  SCULPT_DYNTOPO_FLAT_VCOL_SHADING = (1 << 18),
+  SCULPT_DYNTOPO_CLEANUP = (1 << 19),
+
+  // hides facesets/masks and forces indexed mode to save GPU bandwidth
+  SCULPT_FAST_DRAW = (1 << 20),
+  SCULPT_DYNTOPO_LOCAL_SUBDIVIDE = (1 << 21),
+  SCULPT_DYNTOPO_LOCAL_COLLAPSE = (1 << 22),
+  SCULPT_DYNTOPO_ENABLED = (1 << 23),
 } eSculptFlags;
 
 /** #Sculpt.transform_mode */

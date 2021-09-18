@@ -292,6 +292,12 @@ void multiresModifier_base_apply(struct Depsgraph *depsgraph,
   multires_reshape_apply_base_update_mesh_coords(&reshape_context);
   multires_reshape_apply_base_refit_base_mesh(&reshape_context);
 
+  /**
+   * Tag update so deform modifiers (e.g. smooth corrective)
+   * get updated original coordinates
+   */
+  DEG_id_tag_update((ID *)object, ID_RECALC_GEOMETRY);
+
   /* Reshape to the stored final state.
    * Not that the base changed, so the subdiv is to be refined to the new positions. Unfortunately,
    * this can not be done foe entirely cheap: if there were deformation modifiers prior to the

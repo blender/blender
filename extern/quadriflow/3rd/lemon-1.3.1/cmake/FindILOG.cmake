@@ -4,7 +4,7 @@ FIND_PATH(ILOG_ROOT_DIR
   PATHS /opt/ibm/ILOG /usr/local/ibm/ILOG /usr/local/ILOG /usr/local/ilog
   PATHS "$ENV{HOME}/ILOG" "$ENV{HOME}/.local/ILOG"
   PATHS "$ENV{HOME}/ibm/ILOG" "$ENV{HOME}/.local/ibm/ILOG"
-  PATHS "C:/Program Files/IBM/ILOG"
+  PATHS "C:/Program Files/IBM/ILOG" 
   PATH_SUFFIXES "CPLEX_Studio126" "CPLEX_Studio125"
   "CPLEX_Studio124" "CPLEX_Studio123" "CPLEX_Studio122"
   NO_DEFAULT_PATH

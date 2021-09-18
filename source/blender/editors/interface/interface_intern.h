@@ -239,6 +239,7 @@ struct uiBut {
   short modifier_key;
   short iconadd;
 
+  char poison1[512];
   /** #UI_BTYPE_BLOCK data */
   uiBlockCreateFunc block_create_func;
 
@@ -253,6 +254,7 @@ struct uiBut {
   int rnaindex;
 
   /* Operator data */
+  char poison2[512];
   struct wmOperatorType *optype;
   struct PointerRNA *opptr;
   short opcontext;
@@ -262,12 +264,16 @@ struct uiBut {
 
   ListBase extra_op_icons; /** #uiButExtraOpIcon */
 
+  char poison3[512];
+
   /* Drag-able data, type is WM_DRAG_... */
   char dragtype;
   short dragflag;
   void *dragpoin;
   struct ImBuf *imb;
   float imb_scale;
+
+  char poison4[512];
 
   /** Active button data (set when the user is hovering or interacting with a button). */
   struct uiHandleButtonData *active;
@@ -278,6 +284,8 @@ struct uiBut {
   char *editstr;
   double *editval;
   float *editvec;
+
+  char poison5[512];
 
   uiButPushedStateFunc pushed_state_func;
   const void *pushed_state_arg;
@@ -1273,6 +1281,8 @@ bool ui_jump_to_target_button_poll(struct bContext *C);
 
 /* interface_queries.c */
 void ui_interface_tag_script_reload_queries(void);
+void poison_ui_but(struct uiBut *but);
+void unpoison_ui_but(struct uiBut *but);
 
 #ifdef __cplusplus
 }

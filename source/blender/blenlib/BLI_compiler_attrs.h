@@ -33,6 +33,12 @@
 /* hint to mark function arguments expected to be non-null
  * if no arguments are given to the macro, all of pointer
  * arguments would be expected to be non-null
+ *
+ * ONE-INDEXED!
+ *
+ * Example:
+ *
+ * void func(void *a, void *b, void *b) ATTR_NONNULL(1, 2, 3)
  */
 #ifdef __GNUC__
 #  define ATTR_NONNULL(args...) __attribute__((nonnull(args)))
@@ -97,6 +103,17 @@
 #  define ATTR_ALIGN(x) __declspec(align(x))
 #else
 #  define ATTR_ALIGN(x) __attribute__((aligned(x)))
+#endif
+
+/* Disable optimization for a function (for debugging use only!)*/
+#ifdef __clang__
+#  define ATTR_NO_OPT __attribute__((optnone))
+#elif defined(_MSC_VER)
+#  define ATTR_NO_OPT __pragma(optimize("", off))
+#elif defined(__GNUC__)
+#  define ATTR_NO_OPT __attribute__((optimize("O0")))
+#else
+#  define ATTR_NO_OPT
 #endif
 
 /* Alignment directive */

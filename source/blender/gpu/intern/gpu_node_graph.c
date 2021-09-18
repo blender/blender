@@ -662,6 +662,8 @@ bool GPU_link(GPUMaterial *mat, const char *name, ...)
   return true;
 }
 
+#include "BLI_compiler_attrs.h"
+
 bool GPU_stack_link(GPUMaterial *material,
                     bNode *bnode,
                     const char *name,

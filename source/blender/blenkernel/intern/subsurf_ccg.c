@@ -1866,11 +1866,14 @@ static const MeshElemMap *ccgDM_getPolyMap(Object *ob, DerivedMesh *dm)
 
     BKE_mesh_vert_poly_map_create(&ccgdm->pmap,
                                   &ccgdm->pmap_mem,
+                                  me->mvert,
+                                  me->medge,
                                   me->mpoly,
                                   me->mloop,
                                   me->totvert,
                                   me->totpoly,
-                                  me->totloop);
+                                  me->totloop,
+                                  false);
   }
 
   return ccgdm->pmap;

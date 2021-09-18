@@ -89,7 +89,7 @@ static void sculpt_poly_loop_topology_data_ensure(Object *ob)
   }
   if (!ss->vemap) {
     BKE_mesh_vert_edge_map_create(
-        &ss->vemap, &ss->vemap_mem, mesh->medge, mesh->totvert, mesh->totedge);
+        &ss->vemap, &ss->vemap_mem, mesh->mvert, mesh->medge, mesh->totvert, mesh->totedge, false);
   }
 }
 
@@ -138,7 +138,7 @@ static int sculpt_poly_loop_opposite_edge_in_quad(SculptSession *ss,
   return ss->mloop[ss->mpoly[poly].loopstart + next_edge_index_in_poly].e;
 }
 
-int sculpt_poly_loop_initial_edge_from_cursor(Object *ob)
+SculptEdgeRef sculpt_poly_loop_initial_edge_from_cursor(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
@@ -148,10 +148,10 @@ int sculpt_poly_loop_initial_edge_from_cursor(Object *ob)
   float *location = ss->cursor_location;
 
   MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
-  MPoly *initial_poly = &mesh->mpoly[ss->active_face_index];
+  MPoly *initial_poly = &mesh->mpoly[ss->active_face_index.i];
 
   if (initial_poly->totloop != 4) {
-    return 0;
+    return (SculptEdgeRef){.i = SCULPT_REF_NONE};
   }
 
   int closest_vert = mesh->mloop[initial_poly->loopstart].v;
@@ -178,7 +178,7 @@ int sculpt_poly_loop_initial_edge_from_cursor(Object *ob)
       closest_vert_on_initial_edge = other_vert;
     }
   }
-  return initial_edge;
+  return (SculptEdgeRef){.i = initial_edge};
 }
 
 static void sculpt_poly_loop_iterate_and_fill(SculptSession *ss,
@@ -211,8 +211,13 @@ static void sculpt_poly_loop_iterate_and_fill(SculptSession *ss,
   }
 }
 
-
-static void sculpt_poly_loop_symm_poly_find(Object *ob, const int poly_index, const int edge_index, const char symm_it, int *r_poly_index, int *r_edge_index) {
+static void sculpt_poly_loop_symm_poly_find(Object *ob,
+                                            const int poly_index,
+                                            const int edge_index,
+                                            const char symm_it,
+                                            int *r_poly_index,
+                                            int *r_edge_index)
+{
   if (symm_it == 0) {
     *r_poly_index = poly_index;
     *r_edge_index = edge_index;
@@ -225,14 +230,14 @@ static void sculpt_poly_loop_symm_poly_find(Object *ob, const int poly_index, co
 
   MPoly *original_poly = &mesh->mpoly[poly_index];
   float original_poly_center[3];
-  BKE_mesh_calc_poly_center(original_poly, &mesh->mloop[original_poly->loopstart], mvert, original_poly_center);
+  BKE_mesh_calc_poly_center(
+      original_poly, &mesh->mloop[original_poly->loopstart], mvert, original_poly_center);
 
   float symm_poly_center[3];
   flip_v3_v3(symm_poly_center, original_poly_center, symm_it);
-  
+
   float min_poly_dist = FLT_MAX;
   int search_poly_index = poly_index;
-
 
   for (int i = 0; i < mesh->totpoly; i++) {
     MPoly *poly = &mesh->mpoly[i];
@@ -244,10 +249,9 @@ static void sculpt_poly_loop_symm_poly_find(Object *ob, const int poly_index, co
       search_poly_index = i;
     }
   }
-  
+
   *r_poly_index = search_poly_index;
   MPoly *search_poly = &mesh->mpoly[search_poly_index];
-
 
   float original_edge_center[3];
   MEdge *original_edge = &mesh->medge[edge_index];
@@ -272,9 +276,6 @@ static void sculpt_poly_loop_symm_poly_find(Object *ob, const int poly_index, co
 
     *r_edge_index = search_edge_index;
   }
-
-
-
 }
 
 BLI_bitmap *sculpt_poly_loop_from_cursor(Object *ob)
@@ -284,25 +285,28 @@ BLI_bitmap *sculpt_poly_loop_from_cursor(Object *ob)
   BLI_bitmap *poly_loop = BLI_BITMAP_NEW(mesh->totpoly, "poly loop");
 
   sculpt_poly_loop_topology_data_ensure(ob);
-  const int initial_edge = sculpt_poly_loop_initial_edge_from_cursor(ob);
-  const int initial_poly = ss->active_face_index;
+  const SculptEdgeRef initial_edge = sculpt_poly_loop_initial_edge_from_cursor(ob);
+  const SculptFaceRef initial_poly = ss->active_face_index;
+
+  const int initial_edge_i = BKE_pbvh_edge_index_to_table(ss->pbvh, initial_edge);
+  const int initial_poly_i = BKE_pbvh_face_index_to_table(ss->pbvh, initial_poly);
 
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   for (char symm_it = 0; symm_it <= symm; symm_it++) {
     if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
-    
-   int initial_poly_symm;
-   int initial_edge_symm;
-   sculpt_poly_loop_symm_poly_find(ob, initial_poly, initial_edge, symm_it, &initial_poly_symm, &initial_edge_symm);
+
+    int initial_poly_symm;
+    int initial_edge_symm;
+    sculpt_poly_loop_symm_poly_find(
+        ob, initial_poly_i, initial_edge_i, symm_it, &initial_poly_symm, &initial_edge_symm);
 
     const int initial_edge_opposite = sculpt_poly_loop_opposite_edge_in_quad(
-      ss, initial_poly_symm, initial_edge_symm);
+        ss, initial_poly_symm, initial_edge_symm);
 
     sculpt_poly_loop_iterate_and_fill(ss, initial_poly_symm, initial_edge_symm, poly_loop);
     sculpt_poly_loop_iterate_and_fill(ss, initial_poly_symm, initial_edge_opposite, poly_loop);
-
   }
 
   return poly_loop;

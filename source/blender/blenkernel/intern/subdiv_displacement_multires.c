@@ -360,6 +360,7 @@ static void eval_displacement(SubdivDisplacement *displacement,
   BKE_multires_construct_tangent_matrix(tangent_matrix, dPdu, dPdv, corner_of_quad);
   mul_v3_m3v3(r_D, tangent_matrix, tangent_D);
   /* For the boundary points of grid average two (or all) neighbor grids. */
+
   const int corner = displacement_get_face_corner(data, ptex_face_index, u, v);
   average_displacement(displacement, average_with, ptex_face_index, corner, grid_u, grid_v, r_D);
 }

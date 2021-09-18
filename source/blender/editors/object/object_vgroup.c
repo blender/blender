@@ -1963,7 +1963,8 @@ static void vgroup_smooth_subset(Object *ob,
     emap_mem = NULL;
   }
   else {
-    BKE_mesh_vert_edge_map_create(&emap, &emap_mem, me->medge, me->totvert, me->totedge);
+    BKE_mesh_vert_edge_map_create(
+        &emap, &emap_mem, me->mvert, me->medge, me->totvert, me->totedge, false);
   }
 
   weight_accum_prev = MEM_mallocN(sizeof(*weight_accum_prev) * dvert_tot, __func__);

@@ -112,6 +112,8 @@ void GPU_vertformat_from_shader(GPUVertFormat *format, const struct GPUShader *s
 uint GPU_vertformat_attr_add(
     GPUVertFormat *, const char *name, GPUVertCompType, uint comp_len, GPUVertFetchMode);
 void GPU_vertformat_alias_add(GPUVertFormat *, const char *alias);
+void GPU_vertformat_alias_clear(GPUVertFormat *format, int attr_id);
+void GPU_vertformat_alias_add_n(GPUVertFormat *format, int attr_id, const char *alias);
 
 void GPU_vertformat_multiload_enable(GPUVertFormat *format, int load_count);
 

@@ -105,6 +105,8 @@ bool CustomData_has_math(const struct CustomData *data);
 bool CustomData_has_interp(const struct CustomData *data);
 bool CustomData_bmesh_has_free(const struct CustomData *data);
 
+bool CustomData_layout_is_same(const struct CustomData *_a, const struct CustomData *_b);
+
 /**
  * Checks if any of the customdata layers is referenced.
  */
@@ -140,6 +142,10 @@ void CustomData_copy(const struct CustomData *source,
 
 /* BMESH_TODO, not really a public function but readfile.c needs it */
 void CustomData_update_typemap(struct CustomData *data);
+
+/* copies all customdata layers without allocating data,
+ * and without respect to type masks or NO_COPY/etc flags*/
+void CustomData_copy_all_layout(const struct CustomData *source, struct CustomData *dest);
 
 /* same as the above, except that this will preserve existing layers, and only
  * add the layers that were not there yet */
@@ -277,6 +283,16 @@ void CustomData_copy_data_named(const struct CustomData *source,
                                 int dest_index,
                                 int count);
 void CustomData_copy_elements(int type, void *src_data_ofs, void *dst_data_ofs, int count);
+
+// ignores CD_MESH_ID layer if it exists
+void CustomData_bmesh_swap_data(struct CustomData *source,
+                                struct CustomData *dest,
+                                void *src_block,
+                                void **dest_block);
+
+// simple pointer swap; will unswaps ids if a CD_MESH_ID layer exists
+void CustomData_bmesh_swap_data_simple(CustomData *data, void **block1, void **block2);
+
 void CustomData_bmesh_copy_data(const struct CustomData *source,
                                 struct CustomData *dest,
                                 void *src_block,
@@ -604,6 +620,11 @@ void CustomData_blend_write(struct BlendWriter *writer,
                             CustomDataMask cddata_mask,
                             struct ID *id);
 void CustomData_blend_read(struct BlendDataReader *reader, struct CustomData *data, int count);
+
+void CustomData_unmark_temporary_nocopy(struct CustomData *data);
+void CustomData_mark_temporary_nocopy(struct CustomData *data);
+
+int CustomData_get_elem_size(CustomDataLayer *layer);
 
 #ifdef __cplusplus
 }

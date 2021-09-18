@@ -1936,7 +1936,7 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
   totvert = origmesh->totvert;
   totedge = origmesh->totedge;
 
-  BKE_mesh_vert_edge_map_create(&emap, &emapmem, medge, totvert, totedge);
+  BKE_mesh_vert_edge_map_create(&emap, &emapmem, mvert, medge, totvert, totedge, false);
 
   emat = build_edge_mats(nodes, mvert, totvert, medge, emap, totedge, &has_valid_root);
   skin_nodes = build_frames(mvert, totvert, nodes, emap, emat);

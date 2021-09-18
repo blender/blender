@@ -73,9 +73,7 @@ AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss)
   return NULL;
 }
 
-bool SCULPT_is_automasking_mode_enabled(const Sculpt *sd,
-                                        const Brush *br,
-                                        const eAutomasking_flag mode)
+bool SCULPT_is_automasking_mode_enabled(Sculpt *sd, const Brush *br, const eAutomasking_flag mode)
 {
   if (br) {
     return br->automasking_flags & mode || sd->automasking_flags & mode;
@@ -83,11 +81,13 @@ bool SCULPT_is_automasking_mode_enabled(const Sculpt *sd,
   return sd->automasking_flags & mode;
 }
 
-bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br)
+bool SCULPT_is_automasking_enabled(Sculpt *sd, const SculptSession *ss, const Brush *br)
 {
+  /*
   if (br && SCULPT_stroke_is_dynamic_topology(ss, br)) {
     return false;
-  }
+  }*/
+
   if (SCULPT_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_TOPOLOGY)) {
     return true;
   }
@@ -100,10 +100,17 @@ bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, co
   if (SCULPT_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
     return true;
   }
+  if (SCULPT_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_CONCAVITY)) {
+    if (br && br->concave_mask_factor == 0.0f) {
+      return false;
+    }
+    return true;
+  }
+
   return false;
 }
 
-static int sculpt_automasking_mode_effective_bits(const Sculpt *sculpt, const Brush *brush)
+static int sculpt_automasking_mode_effective_bits(Sculpt *sculpt, const Brush *brush)
 {
   if (brush) {
     return sculpt->automasking_flags | brush->automasking_flags;
@@ -111,7 +118,19 @@ static int sculpt_automasking_mode_effective_bits(const Sculpt *sculpt, const Br
   return sculpt->automasking_flags;
 }
 
-static bool SCULPT_automasking_needs_factors_cache(const Sculpt *sd, const Brush *brush)
+static float sculpt_concavity_factor(AutomaskingCache *automasking, float fac)
+{
+  if (automasking->settings.flags & BRUSH_AUTOMASKING_INVERT_CONCAVITY) {
+    fac = 1.0 - fac;
+  }
+
+  fac = pow(fac * 1.5f, (0.5f + automasking->settings.concave_factor) * 8.0);
+  CLAMP(fac, 0.0f, 1.0f);
+
+  return fac;
+}
+
+static bool SCULPT_automasking_needs_factors_cache(Sculpt *sd, const Brush *brush)
 {
 
   const int automasking_flags = sculpt_automasking_mode_effective_bits(sd, brush);
@@ -127,16 +146,37 @@ static bool SCULPT_automasking_needs_factors_cache(const Sculpt *sd, const Brush
   return false;
 }
 
-float SCULPT_automasking_factor_get(AutomaskingCache *automasking, SculptSession *ss, int vert)
+float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
+                                    SculptSession *ss,
+                                    SculptVertRef vert)
 {
+  float mask = 1.0f;
+  bool do_concave;
+
   if (!automasking) {
-    return 1.0f;
+    return mask;
   }
+
+  do_concave = ss->cache && ss->cache->brush && ss->cache->brush->concave_mask_factor > 0.0f &&
+               (automasking->settings.flags & BRUSH_AUTOMASKING_CONCAVITY);
+
   /* If the cache is initialized with valid info, use the cache. This is used when the
    * automasking information can't be computed in real time per vertex and needs to be
    * initialized for the whole mesh when the stroke starts. */
-  if (automasking->factor) {
-    return automasking->factor[vert];
+  if (automasking->factorlayer) {
+    mask = *(float *)SCULPT_temp_cdata_get(vert, automasking->factorlayer);
+  }
+
+  // don't used cached automasking factors for facesets or concave in
+  // dyntopo
+  if (automasking->factorlayer && !ss->bm) {
+    return mask;
+  }
+
+  if (do_concave) {
+    float fac = SCULPT_calc_concavity(ss, vert);
+
+    mask *= sculpt_concavity_factor(automasking, fac);
   }
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
@@ -146,7 +186,7 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking, SculptSession
   }
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
-    if (SCULPT_vertex_is_boundary(ss, vert)) {
+    if (SCULPT_vertex_is_boundary(ss, vert, SCULPT_BOUNDARY_MESH)) {
       return 0.0f;
     }
   }
@@ -157,7 +197,7 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking, SculptSession
     }
   }
 
-  return 1.0f;
+  return mask;
 }
 
 void SCULPT_automasking_cache_free(AutomaskingCache *automasking)
@@ -166,11 +206,14 @@ void SCULPT_automasking_cache_free(AutomaskingCache *automasking)
     return;
   }
 
-  MEM_SAFE_FREE(automasking->factor);
+  if (automasking->factorlayer) {
+    MEM_SAFE_FREE(automasking->factorlayer);
+  }
+
   MEM_SAFE_FREE(automasking);
 }
 
-static bool sculpt_automasking_is_constrained_by_radius(Brush *br)
+static bool sculpt_automasking_is_constrained_by_radius(const Brush *br)
 {
   /* 2D falloff is not constrained by radius. */
   if (br->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
@@ -184,38 +227,47 @@ static bool sculpt_automasking_is_constrained_by_radius(Brush *br)
 }
 
 typedef struct AutomaskFloodFillData {
-  float *automask_factor;
+  SculptCustomLayer *factorlayer;
   float radius;
   bool use_radius;
   float location[3];
   char symm;
 } AutomaskFloodFillData;
 
-static bool automask_floodfill_cb(
-    SculptSession *ss, int from_v, int to_v, bool UNUSED(is_duplicate), void *userdata)
+static bool automask_floodfill_cb(SculptSession *ss,
+                                  SculptVertRef from_vref,
+                                  SculptVertRef to_vref,
+                                  bool UNUSED(is_duplicate),
+                                  void *userdata)
 {
   AutomaskFloodFillData *data = userdata;
 
-  data->automask_factor[to_v] = 1.0f;
-  data->automask_factor[from_v] = 1.0f;
+  *(float *)SCULPT_temp_cdata_get(to_vref, data->factorlayer) = 1.0f;
+  *(float *)SCULPT_temp_cdata_get(from_vref, data->factorlayer) = 1.0f;
+
   return (!data->use_radius ||
           SCULPT_is_vertex_inside_brush_radius_symm(
-              SCULPT_vertex_co_get(ss, to_v), data->location, data->radius, data->symm));
+              SCULPT_vertex_co_get(ss, to_vref), data->location, data->radius, data->symm));
 }
 
-static float *SCULPT_topology_automasking_init(Sculpt *sd, Object *ob, float *automask_factor)
+static void SCULPT_topology_automasking_init(Sculpt *sd,
+                                             Object *ob,
+                                             SculptCustomLayer *factorlayer)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  const Brush *brush = BKE_paint_brush(&sd->paint);
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
     BLI_assert_msg(0, "Topology masking: pmap missing");
-    return NULL;
+    return;
   }
 
   const int totvert = SCULPT_vertex_count_get(ss);
   for (int i = 0; i < totvert; i++) {
-    automask_factor[i] = 0.0f;
+    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
+    float *fac = SCULPT_temp_cdata_get(vertex, factorlayer);
+    *fac = 0.0f;
   }
 
   /* Flood fill automask to connected vertices. Limited to vertices inside
@@ -234,7 +286,7 @@ static float *SCULPT_topology_automasking_init(Sculpt *sd, Object *ob, float *au
   }
 
   AutomaskFloodFillData fdata = {
-      .automask_factor = automask_factor,
+      .factorlayer = factorlayer,
       .radius = radius,
       .use_radius = ss->cache && sculpt_automasking_is_constrained_by_radius(brush),
       .symm = symm,
@@ -242,62 +294,66 @@ static float *SCULPT_topology_automasking_init(Sculpt *sd, Object *ob, float *au
   copy_v3_v3(fdata.location, SCULPT_active_vertex_co_get(ss));
   SCULPT_floodfill_execute(ss, &flood, automask_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
-
-  return automask_factor;
 }
 
-static float *sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob, float *automask_factor)
+static void sculpt_face_sets_automasking_init(Sculpt *sd,
+                                              Object *ob,
+                                              SculptCustomLayer *factorlayer)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   if (!SCULPT_is_automasking_enabled(sd, ss, brush)) {
-    return NULL;
+    return;
   }
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
     BLI_assert_msg(0, "Face Sets automasking: pmap missing");
-    return NULL;
+    return;
   }
 
   int tot_vert = SCULPT_vertex_count_get(ss);
   int active_face_set = SCULPT_active_face_set_get(ss);
   for (int i = 0; i < tot_vert; i++) {
-    if (!SCULPT_vertex_has_face_set(ss, i, active_face_set)) {
-      automask_factor[i] *= 0.0f;
+    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
+    if (!SCULPT_vertex_has_face_set(ss, vertex, active_face_set)) {
+      *(float *)SCULPT_temp_cdata_get(vertex, factorlayer) = 0.0f;
     }
   }
 
-  return automask_factor;
+  return;
 }
 
 #define EDGE_DISTANCE_INF -1
 
-float *SCULPT_boundary_automasking_init(Object *ob,
-                                        eBoundaryAutomaskMode mode,
-                                        int propagation_steps,
-                                        float *automask_factor)
+void SCULPT_boundary_automasking_init(Object *ob,
+                                      eBoundaryAutomaskMode mode,
+                                      int propagation_steps,
+                                      SculptCustomLayer *factorlayer)
 {
   SculptSession *ss = ob->sculpt;
 
   if (!ss->pmap) {
     BLI_assert_msg(0, "Boundary Edges masking: pmap missing");
-    return NULL;
+    return;
   }
 
   const int totvert = SCULPT_vertex_count_get(ss);
   int *edge_distance = MEM_callocN(sizeof(int) * totvert, "automask_factor");
 
   for (int i = 0; i < totvert; i++) {
+    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
     edge_distance[i] = EDGE_DISTANCE_INF;
     switch (mode) {
       case AUTOMASK_INIT_BOUNDARY_EDGES:
-        if (SCULPT_vertex_is_boundary(ss, i)) {
+        if (SCULPT_vertex_is_boundary(ss, vertex, SCULPT_BOUNDARY_MESH)) {
           edge_distance[i] = 0;
         }
         break;
       case AUTOMASK_INIT_BOUNDARY_FACE_SETS:
-        if (!SCULPT_vertex_has_unique_face_set(ss, i)) {
+        if (!SCULPT_vertex_has_unique_face_set(ss, vertex)) {
           edge_distance[i] = 0;
         }
         break;
@@ -306,11 +362,13 @@ float *SCULPT_boundary_automasking_init(Object *ob,
 
   for (int propagation_it = 0; propagation_it < propagation_steps; propagation_it++) {
     for (int i = 0; i < totvert; i++) {
+      SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
       if (edge_distance[i] != EDGE_DISTANCE_INF) {
         continue;
       }
       SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vref, ni) {
         if (edge_distance[ni.index] == propagation_it) {
           edge_distance[i] = propagation_it + 1;
         }
@@ -320,28 +378,88 @@ float *SCULPT_boundary_automasking_init(Object *ob,
   }
 
   for (int i = 0; i < totvert; i++) {
+    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
     if (edge_distance[i] == EDGE_DISTANCE_INF) {
       continue;
     }
     const float p = 1.0f - ((float)edge_distance[i] / (float)propagation_steps);
     const float edge_boundary_automask = pow2f(p);
-    automask_factor[i] *= (1.0f - edge_boundary_automask);
+
+    *(float *)SCULPT_temp_cdata_get(vertex, factorlayer) *= (1.0f - edge_boundary_automask);
   }
 
   MEM_SAFE_FREE(edge_distance);
-  return automask_factor;
 }
 
 static void SCULPT_automasking_cache_settings_update(AutomaskingCache *automasking,
                                                      SculptSession *ss,
                                                      Sculpt *sd,
-                                                     Brush *brush)
+                                                     const Brush *brush)
 {
   automasking->settings.flags = sculpt_automasking_mode_effective_bits(sd, brush);
+
   automasking->settings.initial_face_set = SCULPT_active_face_set_get(ss);
+  automasking->settings.concave_factor = brush ? brush->concave_mask_factor : 0.0f;
 }
 
-AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object *ob)
+float SCULPT_calc_concavity(SculptSession *ss, SculptVertRef vref)
+{
+  SculptVertexNeighborIter ni;
+  float co[3], tot = 0.0, elen = 0.0;
+  const float *vco = SCULPT_vertex_co_get(ss, vref);
+
+  zero_v3(co);
+
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vref, ni) {
+    const float *vco2 = SCULPT_vertex_co_get(ss, ni.vertex);
+
+    elen += len_v3v3(vco, vco2);
+    add_v3_v3(co, vco2);
+    tot += 1.0f;
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  if (!tot) {
+    return 0.5f;
+  }
+
+  elen /= tot;
+  mul_v3_fl(co, 1.0 / tot);
+  sub_v3_v3(co, vco);
+  mul_v3_fl(co, -1.0 / elen);
+
+  float no[3];
+  SCULPT_vertex_normal_get(ss, vref, no);
+
+  float f = dot_v3v3(co, no) * 0.5 + 0.5;
+  return 1.0 - f;
+}
+
+static void SCULPT_concavity_automasking_init(Object *ob,
+                                              const Brush *brush,
+                                              AutomaskingCache *automasking,
+                                              SculptCustomLayer *factorlayer)
+{
+  SculptSession *ss = ob->sculpt;
+
+  if (!ss) {
+    return;
+  }
+
+  const int totvert = SCULPT_vertex_count_get(ss);
+
+  for (int i = 0; i < totvert; i++) {
+    SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    float f = SCULPT_calc_concavity(ss, vref);
+    f = sculpt_concavity_factor(automasking, f);
+
+    *(float *)SCULPT_temp_cdata_get(vref, factorlayer) *= f;
+  }
+  // BKE_pbvh_vertex_iter_begin
+}
+
+AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
@@ -358,9 +476,30 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
     return automasking;
   }
 
-  automasking->factor = MEM_malloc_arrayN(totvert, sizeof(float), "automask_factor");
+  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_face_random_access_ensure(ss);
+
+  automasking->factorlayer = MEM_callocN(sizeof(*automasking->factorlayer),
+                                         "automasking->factorlayer");
+
+  if (!SCULPT_temp_customlayer_get(ss,
+                                   ATTR_DOMAIN_POINT,
+                                   CD_PROP_FLOAT,
+                                   "__sculpt_mask_factor",
+                                   automasking->factorlayer,
+                                   false)) {
+    // failed
+    MEM_freeN(automasking->factorlayer);
+    return automasking;
+  }
+
+  // automasking->factorlayer = SCULPT_temp_customlayer_ensure()
+  // automasking->factor = MEM_malloc_arrayN(totvert, sizeof(float), "automask_factor");
   for (int i = 0; i < totvert; i++) {
-    automasking->factor[i] = 1.0f;
+    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    float *f = SCULPT_temp_cdata_get(vertex, automasking->factorlayer);
+
+    *f = 1.0f;
   }
 
   const int boundary_propagation_steps = brush ?
@@ -369,22 +508,35 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
 
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_TOPOLOGY)) {
     SCULPT_vertex_random_access_ensure(ss);
-    SCULPT_topology_automasking_init(sd, ob, automasking->factor);
+    SCULPT_topology_automasking_init(sd, ob, automasking->factorlayer);
   }
+
+  if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
+    SCULPT_vertex_random_access_ensure(ss);
+    SCULPT_boundary_automasking_init(ob,
+                                     AUTOMASK_INIT_BOUNDARY_FACE_SETS,
+                                     boundary_propagation_steps,
+                                     automasking->factorlayer);
+  }
+
+  // for dyntopo, only topology and fset boundary area initialized here
+  if (ss->bm) {
+    return automasking;
+  }
+
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_FACE_SETS)) {
     SCULPT_vertex_random_access_ensure(ss);
-    sculpt_face_sets_automasking_init(sd, ob, automasking->factor);
+    sculpt_face_sets_automasking_init(sd, ob, automasking->factorlayer);
   }
 
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
     SCULPT_vertex_random_access_ensure(ss);
     SCULPT_boundary_automasking_init(
-        ob, AUTOMASK_INIT_BOUNDARY_EDGES, boundary_propagation_steps, automasking->factor);
+        ob, AUTOMASK_INIT_BOUNDARY_EDGES, boundary_propagation_steps, automasking->factorlayer);
   }
-  if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
+  if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_CONCAVITY)) {
     SCULPT_vertex_random_access_ensure(ss);
-    SCULPT_boundary_automasking_init(
-        ob, AUTOMASK_INIT_BOUNDARY_FACE_SETS, boundary_propagation_steps, automasking->factor);
+    SCULPT_concavity_automasking_init(ob, brush, automasking, automasking->factorlayer);
   }
 
   return automasking;

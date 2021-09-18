@@ -461,10 +461,10 @@ static void wm_init_userdef(Main *bmain)
 }
 
 /* return codes */
-#define BKE_READ_EXOTIC_FAIL_PATH -3   /* file format is not supported */
+#define BKE_READ_EXOTIC_FAIL_PATH -3 /* file format is not supported */
 #define BKE_READ_EXOTIC_FAIL_FORMAT -2 /* file format is not supported */
-#define BKE_READ_EXOTIC_FAIL_OPEN -1   /* Can't open the file */
-#define BKE_READ_EXOTIC_OK_BLEND 0     /* .blend file */
+#define BKE_READ_EXOTIC_FAIL_OPEN -1 /* Can't open the file */
+#define BKE_READ_EXOTIC_OK_BLEND 0 /* .blend file */
 #if 0
 #  define BKE_READ_EXOTIC_OK_OTHER 1 /* other supported formats */
 #endif
