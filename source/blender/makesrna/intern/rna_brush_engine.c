@@ -66,7 +66,47 @@ int rna_BrushChannelSet_channels_assignint(struct PointerRNA *ptr,
   return 1;
 }
 
+float rna_BrushChannel_get_value(PointerRNA *rna)
+{
+  BrushChannel *ch = rna->data;
+
+  return ch->fvalue;
+}
+void rna_BrushChannel_set_value(PointerRNA *rna, float value)
+{
+  BrushChannel *ch = rna->data;
+
+  ch->fvalue = value;
+}
+
+void rna_BrushChannel_value_range(
+    PointerRNA *rna, float *min, float *max, float *soft_min, float *soft_max)
+{
+  BrushChannel *ch = rna->data;
+
+  if (ch->def) {
+    *min = ch->def->min;
+    *max = ch->def->max;
+    *soft_min = ch->def->soft_min;
+    *soft_max = ch->def->soft_max;
+  }
+  else {
+    *min = 0.0f;
+    *max = 1.0f;
+    *soft_min = 0.0f;
+    *soft_max = 1.0f;
+  }
+}
 #endif
+
+extern BrushChannelType *brush_builtin_channels;
+extern const int builtin_channel_len;
+
+EnumPropertyItem channel_types[] = {{BRUSH_CHANNEL_FLOAT, "FLOAT", ICON_NONE, "Float"},
+                                    {BRUSH_CHANNEL_INT, "INT", ICON_NONE, "Int"},
+                                    {BRUSH_CHANNEL_ENUM, "ENUM", ICON_NONE, "Enum"},
+                                    {BRUSH_CHANNEL_BITMASK, "BITMASK", ICON_NONE, "Bitmask"},
+                                    {-1, NULL, -1, NULL}};
 
 void RNA_def_brush_channel(BlenderRNA *brna)
 {
@@ -82,6 +122,36 @@ void RNA_def_brush_channel(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
 
   RNA_def_struct_name_property(srna, prop);
+
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, "BrushChannel", "name");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Name", "Channel name");
+
+  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, "BrushChannel", "type");
+  RNA_def_property_enum_items(prop, channel_types);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Type", "Value Type");
+
+  prop = RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, "BrushChannel", "fvalue");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Value", "Current value");
+  RNA_def_property_float_funcs(prop,
+                               "rna_BrushChannel_get_value",
+                               "rna_BrushChannel_set_value",
+                               "rna_BrushChannel_value_range");
+
+  prop = RNA_def_property(srna, "inherit", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_INHERIT);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Inherit", "Inherit from scene defaults");
+
+  prop = RNA_def_property(srna, "inherit_if_unset", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_INHERIT_IF_UNSET);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Inherit If Unset", "Combine with default settings");
 }
 
 void RNA_def_brush_channelset(BlenderRNA *brna)

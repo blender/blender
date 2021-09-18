@@ -13,6 +13,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
 #include "DNA_curveprofile_types.h"
+#include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_sculpt_brush_types.h"
 
@@ -326,18 +327,48 @@ bool BKE_brush_channelset_has(BrushChannelSet *chset, const char *idname)
   return BKE_brush_channelset_lookup(chset, idname) != NULL;
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_add_builtin(BrushChannelSet *chset, const char *idname)
+BrushChannelType brush_default_channel_type = {
+    .name = "Channel",
+    .idname = "CHANNEL",
+    .min = 0.0f,
+    .max = 1.0f,
+    .soft_min = 0.0f,
+    .soft_max = 1.0f,
+    .type = BRUSH_CHANNEL_FLOAT,
+    .flag = 0,
+    .ivalue = 0,
+    .fvalue = 0.0f,
+    .mappings = {.pressure = {.curve = CURVE_PRESET_LINE,
+                              .enabled = false,
+                              .inv = false,
+                              .blendmode = MA_RAMP_BLEND}}};
+
+BrushChannelType *BKE_brush_default_channel_def()
 {
-  BrushChannelType *def = NULL;
+  return &brush_default_channel_type;
+}
 
+void BKE_brush_channel_def_copy(BrushChannelType *dst, BrushChannelType *src)
+{
+  *dst = *src;
+}
+
+ATTR_NO_OPT BrushChannelType *BKE_brush_builtin_channel_def_find(const char *name)
+{
   for (int i = 0; i < builtin_channel_len; i++) {
-    BrushChannelType *def2 = brush_builtin_channels + i;
+    BrushChannelType *def = brush_builtin_channels + i;
 
-    if (STREQ(def2->idname, idname)) {
-      def = def2;
-      break;
+    if (STREQ(def->idname, name)) {
+      return def;
     }
   }
+
+  return NULL;
+}
+
+ATTR_NO_OPT void BKE_brush_channelset_add_builtin(BrushChannelSet *chset, const char *idname)
+{
+  BrushChannelType *def = BKE_brush_builtin_channel_def_find(idname);
 
   if (!def) {
     printf("%s: Could not find brush %s\n", __func__, idname);
@@ -624,6 +655,13 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *cset)
 
     for (int j = 0; j < BRUSH_MAPPING_MAX; j++) {
       BKE_curvemapping_blend_read(reader, &ch->mappings[j].curve);
+    }
+
+    ch->def = BKE_brush_builtin_channel_def_find(ch->idname);
+
+    if (!ch->def) {
+      printf("failed to find brush definition");
+      ch->def = BKE_brush_default_channel_def();
     }
   }
 }

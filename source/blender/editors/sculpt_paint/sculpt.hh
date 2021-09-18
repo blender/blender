@@ -4,6 +4,7 @@
 /*
 
 This is a proof of concept of how a C++ sculpt system could work.
+It's a design study, not even a proposal.
 
 We can't really use virtual-based polymorphism for performance reasons,
 so the idea is to use templates and C++20's concepts instead.
