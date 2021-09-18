@@ -468,11 +468,13 @@ static std::string get_operations_export_dir()
 
 void DebugInfo::export_operation(const NodeOperation *op, MemoryBuffer *render)
 {
-  ImBuf *ibuf = IMB_allocFromBuffer(nullptr,
-                                    render->getBuffer(),
-                                    render->getWidth(),
-                                    render->getHeight(),
-                                    render->get_num_channels());
+  const int width = render->getWidth();
+  const int height = render->getHeight();
+  const int num_channels = render->get_num_channels();
+
+  ImBuf *ibuf = IMB_allocImBuf(width, height, 8 * num_channels, IB_rectfloat);
+  MemoryBuffer mem_ibuf(ibuf->rect_float, 4, width, height);
+  mem_ibuf.copy_from(render, render->get_rect(), 0, num_channels, 0);
 
   const std::string file_name = operation_class_name(op) + "_" + std::to_string(op->get_id()) +
                                 ".png";

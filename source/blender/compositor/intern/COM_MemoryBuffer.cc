@@ -32,7 +32,7 @@
   BLI_assert((buf)->get_rect().ymax >= (y) + BLI_rcti_size_y(&(area)))
 
 #define ASSERT_VALID_ELEM_SIZE(buf, channel_offset, elem_size) \
-  BLI_assert((buf)->get_num_channels() <= (channel_offset) + (elem_size))
+  BLI_assert((buf)->get_num_channels() >= (channel_offset) + (elem_size))
 
 namespace blender::compositor {
 
