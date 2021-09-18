@@ -22,7 +22,9 @@
 
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <random>
+#include <string>
 
 /* Ensure the UUID struct doesn't have any padding, to be compatible with memcmp(). */
 static_assert(sizeof(UUID) == 16, "expect UUIDs to be 128 bit exactly");
