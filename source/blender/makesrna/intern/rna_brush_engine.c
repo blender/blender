@@ -29,6 +29,7 @@
 #include "DNA_workspace_types.h"
 
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -38,6 +39,7 @@
 #include "IMB_imbuf.h"
 
 #include "BKE_brush_engine.h"
+#include "BKE_colortools.h"
 #include "DNA_sculpt_brush_types.h"
 #include "WM_types.h"
 
@@ -61,7 +63,7 @@ int rna_BrushChannelSet_channels_assignint(struct PointerRNA *ptr,
   BrushChannel *ch = chset->channels + key;
   BrushChannel *src = assign_ptr->data;
 
-  BKE_brush_channel_copy(ch, src);
+  BKE_brush_channel_copy_data(ch, src);
 
   return 1;
 }
@@ -97,7 +99,101 @@ void rna_BrushChannel_value_range(
     *soft_max = 1.0f;
   }
 }
+
+PointerRNA rna_BrushMapping_curve_get(PointerRNA *ptr)
+{
+  BrushMapping *mapping = (BrushMapping *)ptr->data;
+
+  return rna_pointer_inherit_refine(ptr, &RNA_CurveMapping, &mapping->curve);
+}
+
+int rna_BrushChannel_mappings_begin(CollectionPropertyIterator *iter, struct PointerRNA *ptr)
+{
+  BrushChannel *ch = ptr->data;
+
+  rna_iterator_array_begin(
+      iter, ch->mappings, sizeof(BrushMapping), BRUSH_MAPPING_MAX, false, NULL);
+
+  return 1;
+}
+
+int rna_BrushChannel_mappings_assignint(struct PointerRNA *ptr,
+                                        int key,
+                                        const struct PointerRNA *assign_ptr)
+{
+  BrushChannel *ch = ptr->data;
+  BrushMapping *dst = ch->mappings + key;
+  BrushMapping *src = assign_ptr->data;
+
+  BKE_brush_mapping_copy_data(dst, src);
+
+  return 1;
+}
+
+int rna_BrushChannel_mappings_lookupstring(PointerRNA *rna, const char *key, PointerRNA *r_ptr)
+{
+  BrushChannel *ch = (BrushChannel *)rna->data;
+
+  for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+    if (STREQ(key, BKE_brush_mapping_type_to_typename(i))) {
+      if (r_ptr) {
+        *r_ptr = rna_pointer_inherit_refine(rna, &RNA_BrushMapping, ch->mappings + i);
+      }
+
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+int rna_BrushChannel_mappings_length(PointerRNA *ptr)
+{
+  return BRUSH_MAPPING_MAX;
+}
+
 #endif
+
+static EnumPropertyItem mapping_type_items[] = {
+    {BRUSH_MAPPING_PRESSURE, "PRESSURE", ICON_NONE, "Pressure"},
+    {BRUSH_MAPPING_XTILT, "XTILT", ICON_NONE, "X Tilt"},
+    {BRUSH_MAPPING_YTILT, "YTILT", ICON_NONE, "Y Tilt"},
+    {BRUSH_MAPPING_ANGLE, "ANGLE", ICON_NONE, "Angle"},
+    {BRUSH_MAPPING_SPEED, "SPEED", ICON_NONE, "Speed"},
+    {-1, NULL, -1, -1},
+};
+
+void RNA_def_brush_mapping(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "BrushMapping", NULL);
+  RNA_def_struct_sdna(srna, "BrushMapping");
+  RNA_def_struct_ui_text(srna, "Brush Mapping", "Brush Mapping");
+
+  prop = RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "CurveMapping");
+  RNA_def_property_ui_text(prop, "Curve Sensitivity", "Curve used for the sensitivity");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_pointer_funcs(prop, "rna_BrushMapping_curve_get", NULL, NULL, NULL);
+
+  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, "BrushMapping", "type");
+  RNA_def_property_enum_items(prop, mapping_type_items);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Type", "Channel Type");
+
+  prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, "BrushMapping", "flag", BRUSH_MAPPING_ENABLED);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Enabled", "Input Mapping Is Enabled");
+
+  prop = RNA_def_property(srna, "ui_expanded", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, "BrushMapping", "flag", BRUSH_MAPPING_UI_EXPANDED);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Expanded", "View advanced properties");
+}
 
 extern BrushChannelType *brush_builtin_channels;
 extern const int builtin_channel_len;
@@ -148,20 +244,45 @@ void RNA_def_brush_channel(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Inherit", "Inherit from scene defaults");
 
+  prop = RNA_def_property(srna, "ui_expanded", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_UI_EXPANDED);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Expanded", "View advanced properties");
+
   prop = RNA_def_property(srna, "inherit_if_unset", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_INHERIT_IF_UNSET);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Inherit If Unset", "Combine with default settings");
+
+  prop = RNA_def_property(srna, "mappings", PROP_COLLECTION, PROP_NONE);
+  // RNA_def_property_collection_sdna(prop, "BrushChannel", "mappings", NULL);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_BrushChannel_mappings_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_BrushChannel_mappings_length",
+                                    NULL,
+                                    "rna_BrushChannel_mappings_lookupstring",
+                                    "rna_BrushChannel_mappings_assignint");
+  RNA_def_property_struct_type(prop, "BrushMapping");
 }
 
 void RNA_def_brush_channelset(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
+  FunctionRNA *func;
+  PropertyRNA *parm;
 
   srna = RNA_def_struct(brna, "BrushChannelSet", NULL);
   RNA_def_struct_sdna(srna, "BrushChannelSet");
   RNA_def_struct_ui_text(srna, "Channel Set", "Brush Channel Collection");
+
+  func = RNA_def_function(srna, "ensure", "BKE_brush_channelset_ensure_existing");
+  parm = RNA_def_pointer(
+      func, "channel", "BrushChannel", "", "Ensure a copy of channel exists in this channel set");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
   prop = RNA_def_property(srna, "channels", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "channels", "totchannel");
@@ -181,6 +302,7 @@ void RNA_def_brush_channelset(BlenderRNA *brna)
 
 void RNA_def_brush_engine(BlenderRNA *brna)
 {
+  RNA_def_brush_mapping(brna);
   RNA_def_brush_channel(brna);
   RNA_def_brush_channelset(brna);
 }

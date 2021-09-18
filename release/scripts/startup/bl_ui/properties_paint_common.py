@@ -19,7 +19,6 @@
 # <pep8 compliant>
 from bpy.types import Menu
 
-
 class UnifiedPaintPanel:
     # subclass must set
     # bl_space_type = 'IMAGE_EDITOR'
@@ -96,6 +95,68 @@ class UnifiedPaintPanel:
         elif mode == 'VERTEX_GPENCIL':
             return tool_settings.gpencil_vertex_paint
         return None
+
+    @staticmethod
+    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None, slider=False, header=False):
+        """ Generalized way of adding brush options to the UI,
+            along with their pen pressure setting and global toggle, if they exist. """
+        ch = brush.channels.channels[prop_name]
+        finalch = ch
+
+        l1 = layout
+
+        if ch.ui_expanded:
+            layout = layout.box().column() #.column() is a bit more compact
+
+        row = layout.row(align=True)
+            
+        if text is None:
+            s = prop_name.lower().replace("_", " ").split(" ");
+            text = ''
+            for k in s:
+                text += k[0].upper() + k[1:] + " "
+            text = text.strip()
+
+        if ch.inherit:
+            sd = context.tool_settings.sculpt
+            #ensure channel exists in tool settings channel set
+            sd.channels.ensure(ch)
+
+            finalch = sd.channels.channels[prop_name]
+
+        row.prop(finalch, "value", icon=icon, text=text, slider=slider)
+
+        if pressure:
+            row.prop(finalch.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
+        #if pressure_name:
+        #    row.prop(brush, pressure_name, text="")
+
+        #if unified_name and not header:
+        #    # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
+        #    row.prop(ups, unified_name, text="", icon='BRUSHES_ALL')
+        if not header:
+            row.prop(ch, "inherit", text="", icon='BRUSHES_ALL')
+            row.prop(ch, "ui_expanded", text="", icon="TRIA_DOWN" if ch.ui_expanded else "TRIA_RIGHT")
+
+            if ch.ui_expanded:
+                for mp in finalch.mappings:
+                    row2 = layout.row()
+                    name = mp.type.lower()
+
+                    if len(name) > 0:
+                        name = name[0].upper() + name[1:]
+                    else:
+                        name = "name error"
+
+                    row2.label(text=name)
+                    row2.prop(mp, "enabled", text="", icon="STYLUS_PRESSURE")
+                    row2.prop(mp, "ui_expanded", text="", icon="TRIA_DOWN" if mp.ui_expanded else "TRIA_RIGHT")
+
+                    if mp.ui_expanded:
+                        layout.template_curve_mapping(mp, "curve", brush=True)
+                    #row2.prop(mp, "curve")
+
+        return row
 
     @staticmethod
     def prop_unified(
@@ -972,11 +1033,16 @@ def brush_shared_settings(layout, context, brush, popover=False):
             layout.row().prop(size_owner, "use_locked_size", expand=True)
             layout.separator()
 
-    #if strength and mode == "SCULPT":
-    #    layout.prop(brush.channels.channels["STRENGTH"], "value", text="Strength")
-    #    pass
-    #elif strength:
-    if strength:    
+    if 0 and strength:    
+        UnifiedPaintPanel.channel_unified(
+            layout,
+            context,
+            brush,
+            "STRENGTH",
+            slider=True
+        )
+        layout.separator()
+    elif strength:
         pressure_name = "use_pressure_strength" if strength_pressure else None
         UnifiedPaintPanel.prop_unified(
             layout,
@@ -988,7 +1054,6 @@ def brush_shared_settings(layout, context, brush, popover=False):
             slider=True,
         )
         layout.separator()
-
     if direction:
         layout.row().prop(brush, "direction", expand=True)
 

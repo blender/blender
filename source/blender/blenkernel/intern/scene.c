@@ -1060,6 +1060,9 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       BLO_read_data_address(reader, &sce->toolsettings->sculpt->channels);
       BKE_brush_channelset_read(reader, sce->toolsettings->sculpt->channels);
     }
+    else {
+      sce->toolsettings->sculpt->channels = BKE_brush_channelset_create();
+    }
 
     /* relink grease pencil interpolation curves */
     BLO_read_data_address(reader, &sce->toolsettings->gp_interpolate.custom_ipo);
@@ -1608,6 +1611,14 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
   }
   if (ts->sculpt) {
     ts->sculpt = MEM_dupallocN(ts->sculpt);
+
+    if (ts->sculpt->channels) {
+      ts->sculpt->channels = BKE_brush_channelset_copy(ts->sculpt->channels);
+    }
+    else {
+      ts->sculpt->channels = BKE_brush_channelset_create();
+    }
+
     BKE_paint_copy(&ts->sculpt->paint, &ts->sculpt->paint, flag);
   }
   if (ts->uvsculpt) {
@@ -1663,6 +1674,11 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
   }
   if (toolsettings->sculpt) {
     BKE_paint_free(&toolsettings->sculpt->paint);
+
+    if (toolsettings->sculpt->channels) {
+      BKE_brush_channelset_free(toolsettings->sculpt->channels);
+    }
+
     MEM_freeN(toolsettings->sculpt);
   }
   if (toolsettings->uvsculpt) {

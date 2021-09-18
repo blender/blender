@@ -92,12 +92,18 @@ typedef struct BrushCommandList {
 } BrushCommandList;
 
 void BKE_brush_channel_free(BrushChannel *ch);
-void BKE_brush_channel_copy(BrushChannel *dst, BrushChannel *src);
+void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src);
 void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def);
-BrushChannelSet *BKE_brush_channelset_create();
 
+BrushChannelSet *BKE_brush_channelset_create();
+BrushChannelSet *BKE_brush_channelset_copy(BrushChannelSet *src);
 void BKE_brush_channelset_free(BrushChannelSet *chset);
+
+// makes a copy of ch
 void BKE_brush_channelset_add(BrushChannelSet *chset, BrushChannel *ch);
+
+// checks is a channel with existing->idname exists; if not a copy of existing is made and inserted
+void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset, BrushChannel *existing);
 
 BrushChannel *BKE_brush_channelset_lookup(BrushChannelSet *chset, const char *idname);
 
@@ -123,6 +129,9 @@ BrushCommand *BKE_brush_command_init(BrushCommand *command, int tool);
 void BKE_builtin_commandlist_create(BrushChannelSet *chset, BrushCommandList *cl, int tool);
 void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *cset);
 void BKE_brush_channelset_write(BlendWriter *writer, BrushChannelSet *cset);
+void BKE_brush_mapping_copy_data(BrushMapping *dst, BrushMapping *src);
+const char *BKE_brush_mapping_type_to_str(BrushMappingType mapping);
+const char *BKE_brush_mapping_type_to_typename(BrushMappingType mapping);
 
 #ifdef __cplusplus
 }

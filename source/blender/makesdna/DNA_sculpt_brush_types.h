@@ -30,7 +30,7 @@ typedef struct BrushMapping {
   float factor;
   short blendmode;
   short input_channel;
-  int flag, _pad[1];
+  int flag, type;
 } BrushMapping;
 
 typedef struct BrushChannel {
@@ -52,17 +52,21 @@ typedef struct BrushChannelSet {
 } BrushChannelSet;
 
 // mapping flags
-enum { BRUSH_MAPPING_ENABLED = 1 << 0, BRUSH_MAPPING_INVERT = 1 << 1 };
+enum {
+  BRUSH_MAPPING_ENABLED = 1 << 0,
+  BRUSH_MAPPING_INVERT = 1 << 1,
+  BRUSH_MAPPING_UI_EXPANDED = 1 << 2
+};
 
 // mapping types
-enum {
+typedef enum {
   BRUSH_MAPPING_PRESSURE = 0,
   BRUSH_MAPPING_XTILT = 1,
   BRUSH_MAPPING_YTILT = 2,
   BRUSH_MAPPING_ANGLE = 3,
   BRUSH_MAPPING_SPEED = 4,
   BRUSH_MAPPING_MAX = 5  // see BrushChannel.mappings
-};
+} BrushMappingType;
 
 static_assert(offsetof(BrushChannel, type) - offsetof(BrushChannel, mappings) ==
                   sizeof(BrushMapping) * BRUSH_MAPPING_MAX,
@@ -72,7 +76,8 @@ static_assert(offsetof(BrushChannel, type) - offsetof(BrushChannel, mappings) ==
 enum {
   BRUSH_CHANNEL_INHERIT = 1 << 0,
   BRUSH_CHANNEL_INHERIT_IF_UNSET = 1 << 1,
-  BRUSH_CHANNEL_NO_MAPPINGS = 1 << 2
+  BRUSH_CHANNEL_NO_MAPPINGS = 1 << 2,
+  BRUSH_CHANNEL_UI_EXPANDED = 1 << 3
 };
 
 // BrushChannelType->type

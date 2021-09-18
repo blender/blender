@@ -8,6 +8,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
+#include "BLI_rect.h"
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
@@ -31,6 +32,31 @@
 
 #define ICON_NONE -1
 
+static bool check_corrupted_curve(BrushMapping *dst)
+{
+
+  const float clip_size_x = BLI_rctf_size_x(&dst->curve.curr);
+  const float clip_size_y = BLI_rctf_size_y(&dst->curve.curr);
+
+  // fix corrupted curve
+  if (clip_size_x == 0.0f || clip_size_y == 0.0f) {
+    for (int i = 0; i < 4; i++) {
+      BKE_curvemapping_free_data(&dst->curve);
+      BKE_curvemapping_set_defaults(&dst->curve, 1, 0.0, 0.0, 1.0, 1.0);
+
+      BKE_curvemap_reset(&dst->curve.cm[i],
+                         &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
+                         CURVE_PRESET_LINE,
+                         dst->flag & BRUSH_MAPPING_INVERT);
+      BKE_curvemapping_init(&dst->curve);
+    }
+
+    return false;
+  }
+
+  return true;
+}
+
 /*
 Brush command lists.
 
@@ -50,6 +76,7 @@ BrushChannelType brush_builtin_channels[] = {
     .min = 0.001f,
     .type = BRUSH_CHANNEL_FLOAT,
     .max = 2048.0f,
+    .fvalue = 50.0f,
     .soft_min = 0.1f,
     .soft_max = 1024.0f,
     .mappings = {
@@ -62,6 +89,7 @@ BrushChannelType brush_builtin_channels[] = {
     .min = -1.0f,
     .type = BRUSH_CHANNEL_FLOAT,
     .max = 4.0f,
+    .fvalue = 0.5f,
     .soft_min = 0.0f,
     .soft_max = 1.0f,
     .mappings = {
@@ -74,6 +102,7 @@ BrushChannelType brush_builtin_channels[] = {
     .min = 0.001f,
     .type = BRUSH_CHANNEL_FLOAT,
     .max = 4.0f,
+    .fvalue = 0.1f,
     .soft_min = 0.005f,
     .soft_max = 2.0f,
     .mappings = {
@@ -110,6 +139,7 @@ BrushChannelType brush_builtin_channels[] = {
     .type = BRUSH_CHANNEL_FLOAT,
     .min = 0.0001f,
     .max = 25.0f,
+    .fvalue = 1.0f,
     .soft_min = 0.1f,
     .soft_max = 4.0f,
     .mappings = {
@@ -122,6 +152,7 @@ BrushChannelType brush_builtin_channels[] = {
     .type = BRUSH_CHANNEL_FLOAT,
     .min = 0.0001f,
     .max = 25.0f,
+    .fvalue = 1.0f,
     .soft_min = 0.1f,
     .soft_max = 4.0f,
     .mappings = {
@@ -134,6 +165,7 @@ BrushChannelType brush_builtin_channels[] = {
     .type = BRUSH_CHANNEL_FLOAT,
     .min = 0.0001f,
     .max = 1.0f,
+    .fvalue = 1.0f,
     .soft_min = 0.1f,
     .soft_max = 1.0f,
     .mappings = {
@@ -215,12 +247,13 @@ void BKE_brush_channel_free(BrushChannel *ch)
   }
 }
 
-ATTR_NO_OPT void BKE_brush_channel_copy(BrushChannel *dst, BrushChannel *src)
+ATTR_NO_OPT void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src)
 {
   *dst = *src;
 
   for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
-    BKE_curvemapping_copy_data(&dst->mappings[i].curve, &src->mappings[i].curve);
+    BKE_brush_mapping_copy_data(dst->mappings + i, src->mappings + i);
+    dst->mappings[i].type = i;
   }
 }
 
@@ -240,6 +273,8 @@ ATTR_NO_OPT void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
   for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
     BrushMapping *map = ch->mappings + i;
     CurveMapping *curve = &map->curve;
+
+    map->type = i;
 
     memset(curve, 0, sizeof(*curve));
 
@@ -262,9 +297,11 @@ ATTR_NO_OPT void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
 
     int slope = CURVEMAP_SLOPE_POSITIVE;
 
+    BKE_curvemapping_set_defaults(curve, 1, 0, min, 1, max);
+
     for (int i = 0; i < 4; i++) {
       BKE_curvemap_reset(&curve->cm[i],
-                         &(struct rctf){.xmax = 0, .ymax = min, .xmax = 1, .ymax = max},
+                         &(struct rctf){.xmin = 0, .ymin = min, .xmax = 1, .ymax = max},
                          mdef->curve,
                          slope);
     }
@@ -308,7 +345,7 @@ void BKE_brush_channelset_add(BrushChannelSet *chset, BrushChannel *ch)
     chset->channels = MEM_recallocN(chset->channels, sizeof(BrushChannel) * chset->totchannel);
   }
 
-  memcpy(chset->channels + chset->totchannel - 1, ch, sizeof(BrushChannel));
+  BKE_brush_channel_copy_data(chset->channels + chset->totchannel - 1, ch);
 }
 
 ATTR_NO_OPT BrushChannel *BKE_brush_channelset_lookup(BrushChannelSet *chset, const char *idname)
@@ -391,6 +428,14 @@ bool BKE_brush_channelset_ensure_builtin(BrushChannelSet *chset, const char *idn
   return false;
 }
 
+void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset, BrushChannel *existing)
+{
+  if (BKE_brush_channelset_has(chset, existing->idname)) {
+    return;
+  }
+
+  BKE_brush_channelset_add(chset, existing);
+}
 #define ADDCH(name) BKE_brush_channelset_ensure_builtin(chset, name)
 #define GETCH(name) BKE_brush_channelset_lookup(chset, name)
 
@@ -411,7 +456,7 @@ void BKE_brush_channelset_merge(BrushChannelSet *dst,
       }
 
       BrushChannel ch2;
-      BKE_brush_channel_copy(&ch2, ch);
+      BKE_brush_channel_copy_data(&ch2, ch);
       BKE_brush_channelset_add(chset, &ch2);
     }
   }
@@ -425,7 +470,7 @@ void BKE_brush_channelset_merge(BrushChannelSet *dst,
 
     if (ch->flag & BRUSH_CHANNEL_INHERIT) {
       BKE_brush_channel_free(mch);
-      BKE_brush_channel_copy(mch, pch);
+      BKE_brush_channel_copy_data(mch, pch);
       continue;
     }
 
@@ -433,6 +478,28 @@ void BKE_brush_channelset_merge(BrushChannelSet *dst,
       mch->ivalue = ch->ivalue | pch->ivalue;
     }
   }
+}
+
+BrushChannelSet *BKE_brush_channelset_copy(BrushChannelSet *src)
+{
+  BrushChannelSet *chset = BKE_brush_channelset_create();
+
+  *chset = *src;
+
+  if (!chset->totchannel) {
+    return chset;
+  }
+
+  chset->channels = MEM_calloc_arrayN(
+      src->totchannel, sizeof(BrushChannel), "chset->channels copied");
+
+  for (int i = 0; i < chset->totchannel; i++) {
+    BrushChannel *ch = chset->channels + i;
+
+    BKE_brush_channel_copy_data(ch, src->channels + i);
+  }
+
+  return chset;
 }
 
 void BKE_brush_resolve_channels(Brush *brush, Sculpt *sd)
@@ -655,6 +722,12 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *cset)
 
     for (int j = 0; j < BRUSH_MAPPING_MAX; j++) {
       BKE_curvemapping_blend_read(reader, &ch->mappings[j].curve);
+      BKE_curvemapping_init(&ch->mappings[j].curve);
+
+      check_corrupted_curve(ch->mappings + j);
+
+      // paranoia check to make sure BrushMapping.type is correct
+      ch->mappings[j].type = j;
     }
 
     ch->def = BKE_brush_builtin_channel_def_find(ch->idname);
@@ -678,6 +751,59 @@ void BKE_brush_channelset_write(BlendWriter *writer, BrushChannelSet *cset)
       BKE_curvemapping_blend_write(writer, &ch->mappings[j].curve);
     }
   }
+}
+
+const char *BKE_brush_mapping_type_to_str(BrushMappingType mapping)
+{
+  switch (mapping) {
+    case BRUSH_MAPPING_PRESSURE:
+      return "Pressure";
+    case BRUSH_MAPPING_ANGLE:
+      return "Angle";
+    case BRUSH_MAPPING_SPEED:
+      return "Speed";
+    case BRUSH_MAPPING_XTILT:
+      return "X Tilt";
+    case BRUSH_MAPPING_YTILT:
+      return "Y Tilt";
+    case BRUSH_MAPPING_MAX:
+      return "Error";
+  }
+
+  return "Error";
+}
+
+const char *BKE_brush_mapping_type_to_typename(BrushMappingType mapping)
+{
+  switch (mapping) {
+    case BRUSH_MAPPING_PRESSURE:
+      return "PRESSURE";
+    case BRUSH_MAPPING_ANGLE:
+      return "ANGLE";
+    case BRUSH_MAPPING_SPEED:
+      return "SPEED";
+    case BRUSH_MAPPING_XTILT:
+      return "XTILT";
+    case BRUSH_MAPPING_YTILT:
+      return "YTILT";
+    case BRUSH_MAPPING_MAX:
+      return "Error";
+  }
+
+  return "Error";
+}
+
+void BKE_brush_mapping_copy_data(BrushMapping *dst, BrushMapping *src)
+{
+  // do not copy .type
+  int type = dst->type;
+  *dst = *src;
+  dst->type = type;
+
+  BKE_curvemapping_copy_data(&dst->curve, &src->curve);
+  BKE_curvemapping_init(&dst->curve);
+
+  check_corrupted_curve(dst);
 }
 
 /* clang-format on */

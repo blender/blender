@@ -830,6 +830,12 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_Sculpt_path");
   RNA_def_struct_ui_text(srna, "Sculpt", "");
 
+  prop = RNA_def_property(srna, "channels", PROP_POINTER, 0);
+  RNA_def_property_pointer_sdna(prop, NULL, "channels");
+  RNA_def_property_struct_type(prop, "BrushChannelSet");
+  RNA_def_property_ui_text(prop, "Channels", "");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
   prop = RNA_def_property(srna, "radial_symmetry", PROP_INT, PROP_XYZ);
   RNA_def_property_int_sdna(prop, NULL, "radial_symm");
   RNA_def_property_int_default(prop, 1);
