@@ -253,10 +253,10 @@ static SnapObjectData *snap_object_data_lookup(SnapObjectContext *sctx, Object *
   return sod;
 }
 
-static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx,
-                                                 Object *ob_eval,
-                                                 const Mesh *me_eval,
-                                                 bool use_hide)
+ATTR_NO_OPT static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx,
+                                                             Object *ob_eval,
+                                                             const Mesh *me_eval,
+                                                             bool use_hide)
 {
   SnapObjectData *sod;
   void **sod_p;

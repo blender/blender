@@ -5214,7 +5214,7 @@ static void do_scene_project_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, false, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_scene_project_brush_task_cb_ex, &settings);
 }
 
