@@ -1676,8 +1676,9 @@ static void SCULPT_do_uniform_weigths_smooth_task_cb_ex(void *__restrict userdat
     float co_accum[3] = {0.0f};
 
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
-      const float neighbor_co[3];
-      const float neighbor_disp[3];
+      float neighbor_co[3];
+      float neighbor_disp[3];
+
       sub_v3_v3v3(
           neighbor_disp, SCULPT_vertex_co_get(ss, ni.vertex), SCULPT_vertex_co_get(ss, vd.vertex));
       normalize_v3(neighbor_disp);

@@ -976,7 +976,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
     #    layout.prop(brush.channels.channels["STRENGTH"], "value", text="Strength")
     #    pass
     #elif strength:
-    if strength:
+    if strength:    
         pressure_name = "use_pressure_strength" if strength_pressure else None
         UnifiedPaintPanel.prop_unified(
             layout,
