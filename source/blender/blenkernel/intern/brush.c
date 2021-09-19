@@ -2469,11 +2469,11 @@ void BKE_brush_size_set(Scene *scene, Brush *brush, int size, bool use_brush_cha
   if (use_brush_channels) {
     if (scene->toolsettings->sculpt && scene->toolsettings->sculpt->channels) {
       BKE_brush_channelset_set_final_float(
-          brush->channels, scene->toolsettings->sculpt->channels, "RADIUS", (float)size);
+          brush->channels, scene->toolsettings->sculpt->channels, "radius", (float)size);
       return;
     }
     else {
-      BKE_brush_channelset_set_float(brush->channels, "RADIUS", (float)size);
+      BKE_brush_channelset_set_float(brush->channels, "radius", (float)size);
     }
   }
 
@@ -2495,10 +2495,10 @@ int BKE_brush_size_get(const Scene *scene, const Brush *brush, bool use_brush_ch
   if (use_brush_channel) {
     if (scene->toolsettings->sculpt) {
       return (int)BKE_brush_channelset_get_final_float(
-          brush->channels, scene->toolsettings->sculpt->channels, "RADIUS", NULL);
+          brush->channels, scene->toolsettings->sculpt->channels, "radius", NULL);
     }
     else {
-      return (int)BKE_brush_channelset_get_float(brush->channels, "RADIUS", NULL);
+      return (int)BKE_brush_channelset_get_float(brush->channels, "radius", NULL);
     }
   }
 

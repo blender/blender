@@ -20,14 +20,14 @@
 from bpy.types import Menu
 
 channel_name_map = {
-    "size" : "RADIUS",
-    "autosmooth_fset_slide":"FSET_SLIDE",
-    "auto_smooth_factor": "AUTOSMOOTH",
-    "auto_smooth_projection": "SMOOTH_PROJECTION",
-    "auto_smooth_radius_factor": "AUTOSMOOTH_RADIUS_SCALE",
-    "boundary_smooth_factor": "BOUNDARY_SMOOTH",
-    "autosmooth_fset_slide": "FSET_SLIDE",
-    "topology_rake_factor": "TOPOLOGY_RAKE"
+    "size" : "radius",
+    "autosmooth_fset_slide":"fset_slide",
+    "auto_smooth_factor": "autosmooth",
+    "auto_smooth_projection": "smooth_projection",
+    "auto_smooth_radius_factor": "autosmooth_radius_scale",
+    "boundary_smooth_factor": "boundary_smooth",
+    "autosmooth_fset_slide": "fset_slide",
+    "topology_rake_factor": "topology_rake"
 };
 
 class UnifiedPaintPanel:
@@ -204,8 +204,6 @@ class UnifiedPaintPanel:
 
         if prop_name in channel_name_map:
             prop_name = channel_name_map[prop_name]
-        else:
-            prop_name = prop_name.upper()
 
         if prop_name in brush.channels.channels:
             #    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None, slider=False, header=False):

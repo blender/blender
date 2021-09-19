@@ -45,7 +45,7 @@
 #include "DNA_sculpt_brush_types.h"
 #include "WM_types.h"
 
-static EnumPropertyItem null_enum[2] = {{0, "null", 0, 0}, {-1, NULL, -1, NULL, NULL}};
+static EnumPropertyItem null_enum[2] = {{0, "null", 0, 0}, {0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -205,6 +205,25 @@ int rna_BrushChannel_enum_value_set(PointerRNA *ptr, int val)
   return 1;
 }
 
+extern EnumPropertyItem *rna_enum_icon_items;
+
+int lookup_icon_id(const char *icon)
+{
+  EnumPropertyItem *item = rna_enum_icon_items;
+  int i = 0;
+
+  while (item->identifier) {
+    if (STREQ(item->identifier, icon)) {
+      return i;
+    }
+
+    item++;
+    i++;
+  }
+
+  return ICON_NONE;
+}
+
 ATTR_NO_OPT const EnumPropertyItem *rna_BrushChannel_enum_value_get_items(struct bContext *C,
                                                                           PointerRNA *ptr,
                                                                           PropertyRNA *prop,
@@ -216,7 +235,7 @@ ATTR_NO_OPT const EnumPropertyItem *rna_BrushChannel_enum_value_get_items(struct
     return null_enum;
   }
 
-  BKE_brush_channeltype_rna_check(ch->def);
+  BKE_brush_channeltype_rna_check(ch->def, lookup_icon_id);
 
   return ch->def->rna_enumdef;
 }
@@ -229,7 +248,7 @@ static EnumPropertyItem mapping_type_items[] = {
     {BRUSH_MAPPING_YTILT, "YTILT", ICON_NONE, "Y Tilt"},
     {BRUSH_MAPPING_ANGLE, "ANGLE", ICON_NONE, "Angle"},
     {BRUSH_MAPPING_SPEED, "SPEED", ICON_NONE, "Speed"},
-    {-1, NULL, -1, -1},
+    {0, NULL, 0, NULL, NULL},
 };
 
 void RNA_def_brush_mapping(BlenderRNA *brna)
@@ -274,7 +293,7 @@ EnumPropertyItem channel_types[] = {{BRUSH_CHANNEL_FLOAT, "FLOAT", ICON_NONE, "F
                                     {BRUSH_CHANNEL_BOOL, "BOOL", ICON_NONE, "Boolean"},
                                     {BRUSH_CHANNEL_VEC3, "VEC3", ICON_NONE, "Color3"},
                                     {BRUSH_CHANNEL_VEC4, "VEC4", ICON_NONE, "Color4"},
-                                    {-1, NULL, -1, NULL}};
+                                    {0, NULL, 0, NULL, NULL}};
 
 void RNA_def_brush_channel(BlenderRNA *brna)
 {

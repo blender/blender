@@ -1066,7 +1066,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 
     if (sce->toolsettings->sculpt) {
       // make sure radius exists in the toolsettings brush channel set
-      BKE_brush_channelset_ensure_builtin(sce->toolsettings->sculpt->channels, "RADIUS");
+      BKE_brush_channelset_ensure_builtin(sce->toolsettings->sculpt->channels, "radius");
+      BKE_brush_channelset_ensure_builtin(sce->toolsettings->sculpt->channels, "strength");
     }
 
     /* relink grease pencil interpolation curves */

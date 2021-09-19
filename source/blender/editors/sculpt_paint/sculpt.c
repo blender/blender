@@ -8846,7 +8846,7 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
     /* With these options enabled not all required nodes are inside the original brush radius, so
      * the brush can produce artifacts in some situations. */
     if (cmd->tool == SCULPT_TOOL_DRAW &&
-        BKE_brush_channelset_get_int(cmd->params_final, "ORIGINAL_NORMAL")) {
+        BKE_brush_channelset_get_int(cmd->params_final, "original_normal")) {
       radius_scale = MAX2(radius_scale, 2.0f);
     }
 
@@ -8862,13 +8862,13 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
     }
 
     float radius = BKE_brush_channelset_get_float(
-        ss->cache->channels_final, "RADIUS", &ss->cache->input_mapping);
+        ss->cache->channels_final, "radius", &ss->cache->input_mapping);
 
     radius_max = max_ff(radius_max, radius);
   }
 
   float ratio = radius_max / BKE_brush_channelset_get_float(
-                                 ss->cache->channels_final, "RADIUS", &ss->cache->input_mapping);
+                                 ss->cache->channels_final, "radius", &ss->cache->input_mapping);
 
   ss->cache->radius = start_radius * ratio;
   ss->cache->radius_squared = start_radius * start_radius * ratio * ratio;
@@ -9011,7 +9011,7 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
 
     ss->cache->brush = brush2;
     ss->cache->bstrength = BKE_brush_channelset_get_float(
-        cmd->params_final, "STRENGTH", &ss->cache->input_mapping);
+        cmd->params_final, "strength", &ss->cache->input_mapping);
 
     // Load parameters into brush2 for compatibility with old code
     BKE_brush_channelset_compat_load(cmd->params_final, brush2, false);
@@ -11238,6 +11238,16 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
   // load settings into brush and unified paint settings
   BKE_brush_channelset_compat_load(ss->cache->channels_final, brush, false);
   BKE_brush_channelset_to_unified_settings(ss->cache->channels_final, ups);
+
+  ss->cache->bstrength = BKE_brush_channelset_get_float(
+      ss->cache->channels_final, "strength", &ss->cache->input_mapping);
+
+  if (ss->cache->invert) {
+    brush->alpha = -brush->alpha;
+    ss->cache->bstrength = -ss->cache->bstrength;
+
+    BKE_brush_channelset_set_float(ss->cache->channels_final, "strength", ss->cache->bstrength);
+  }
 
   ss->cache->stroke_distance = stroke->stroke_distance;
   ss->cache->stroke_distance_t = stroke->stroke_distance_t;

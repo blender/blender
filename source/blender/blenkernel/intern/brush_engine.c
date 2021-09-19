@@ -105,7 +105,8 @@ generated from the node group inputs.
 extern BrushChannelType brush_builtin_channels[];
 extern const int brush_builtin_channel_len;
 
-ATTR_NO_OPT void BKE_brush_channeltype_rna_check(BrushChannelType *def)
+ATTR_NO_OPT void BKE_brush_channeltype_rna_check(BrushChannelType *def,
+                                                 int (*getIconFromName)(const char *name))
 {
   if (def->rna_enumdef) {
     return;
@@ -124,7 +125,7 @@ ATTR_NO_OPT void BKE_brush_channeltype_rna_check(BrushChannelType *def)
   for (int i = 0; i < ARRAY_SIZE(def->enumdef); i++) {
     def->rna_enumdef[i].value = def->enumdef[i].value;
     def->rna_enumdef[i].identifier = def->enumdef[i].identifier;
-    def->rna_enumdef[i].icon = def->enumdef[i].icon;
+    def->rna_enumdef[i].icon = getIconFromName ? getIconFromName(def->enumdef[i].icon) : -1;
     def->rna_enumdef[i].name = def->enumdef[i].name;
     def->rna_enumdef[i].description = def->enumdef[i].description;
   }
@@ -798,27 +799,27 @@ BrushCommand *BKE_brush_command_init(BrushCommand *command, int tool)
 
   command->tool = tool;
 
-  ADDCH("SPACING");
+  ADDCH("spacing");
 
   switch (tool) {
     case SCULPT_TOOL_DRAW:
-      ADDCH("RADIUS");
-      ADDCH("STRENGTH");
+      ADDCH("radius");
+      ADDCH("strength");
       break;
     case SCULPT_TOOL_SMOOTH:
-      ADDCH("RADIUS");
-      ADDCH("STRENGTH");
-      ADDCH("FSET_SLIDE");
-      ADDCH("BOUNDARY_SMOOTH");
-      ADDCH("AUTOSMOOTH_PROJECTION");
+      ADDCH("radius");
+      ADDCH("strength");
+      ADDCH("fset_slide");
+      ADDCH("boundary_smooth");
+      ADDCH("autosmooth_projection");
       break;
     case SCULPT_TOOL_TOPOLOGY_RAKE:
-      ADDCH("RADIUS");
-      ADDCH("STRENGTH");
-      // ADDCH("FSET_SLIDE");
-      // ADDCH("BOUNDARY_SMOOTH");
-      ADDCH("AUTOSMOOTH_PROJECTION");
-      ADDCH("TOPOLOGY_RAKE_MODE");
+      ADDCH("radius");
+      ADDCH("strength");
+      // ADDCH("fset_slide");
+      // ADDCH("boundary_smooth");
+      ADDCH("autosmooth_projection");
+      ADDCH("topology_rake_mode");
       break;
     case SCULPT_TOOL_DYNTOPO:
       break;
@@ -855,64 +856,64 @@ ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
   cmd = BKE_brush_commandlist_add(cl, chset, true);
   BKE_brush_command_init(cmd, tool);
 
-  float radius = BKE_brush_channelset_get_float(chset, "RADIUS", NULL);
+  float radius = BKE_brush_channelset_get_float(chset, "radius", NULL);
 
   bool no_autosmooth = ELEM(
       brush->sculpt_tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK);
 
   /* build autosmooth command */
-  float autosmooth_scale = BKE_brush_channelset_get_float(chset, "AUTOSMOOTH_RADIUS_SCALE", NULL);
+  float autosmooth_scale = BKE_brush_channelset_get_float(chset, "autosmooth_radius_scale", NULL);
   float autosmooth_projection = BKE_brush_channelset_get_float(
-      chset, "TOPOLOGY_RAKE_PROJECTION", NULL);
+      chset, "topology_rake_projection", NULL);
 
   float autosmooth_spacing;
 
-  if (BKE_brush_channelset_get_int(chset, "AUTOSMOOTH_USE_SPACING")) {
-    autosmooth_spacing = BKE_brush_channelset_get_float(chset, "AUTOSMOOTH_SPACING", NULL);
+  if (BKE_brush_channelset_get_int(chset, "autosmooth_use_spacing")) {
+    autosmooth_spacing = BKE_brush_channelset_get_float(chset, "autosmooth_spacing", NULL);
   }
   else {
-    autosmooth_spacing = BKE_brush_channelset_get_float(chset, "SPACING", NULL);
+    autosmooth_spacing = BKE_brush_channelset_get_float(chset, "spacing", NULL);
   }
 
-  float autosmooth = BKE_brush_channelset_get_float(chset, "AUTOSMOOTH", NULL);
+  float autosmooth = BKE_brush_channelset_get_float(chset, "autosmooth", NULL);
   if (!no_autosmooth && autosmooth > 0.0f) {
     cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, brush->channels, true),
                                  SCULPT_TOOL_SMOOTH);
-    float_set_uninherit(cmd->params, "STRENGTH", autosmooth);
-    float_set_uninherit(cmd->params, "RADIUS", radius * autosmooth_scale);
-    float_set_uninherit(cmd->params, "PROJECTION", autosmooth_projection);
-    float_set_uninherit(cmd->params, "SPACING", autosmooth_spacing);
+    float_set_uninherit(cmd->params, "strength", autosmooth);
+    float_set_uninherit(cmd->params, "radius", radius * autosmooth_scale);
+    float_set_uninherit(cmd->params, "projection", autosmooth_projection);
+    float_set_uninherit(cmd->params, "spacing", autosmooth_spacing);
   }
 
   float topology_rake_scale = BKE_brush_channelset_get_float(
-      chset, "TOPOLOGY_RAKE_RADIUS_SCALE", NULL);
+      chset, "topology_rake_radius_scale", NULL);
   float topology_rake_projection = BKE_brush_channelset_get_float(
-      chset, "TOPOLOGY_RAKE_PROJECTION", NULL);
+      chset, "topology_rake_projection", NULL);
 
   /* build topology rake command*/
-  float topology_rake = BKE_brush_channelset_get_float(chset, "TOPOLOGY_RAKE", NULL);
+  float topology_rake = BKE_brush_channelset_get_float(chset, "topology_rake", NULL);
   float topology_rake_spacing;
 
-  if (BKE_brush_channelset_get_int(chset, "TOPOLOGY_RAKE_USE_SPACING")) {
-    topology_rake_spacing = BKE_brush_channelset_get_float(chset, "TOPOLOGY_RAKE_SPACING", NULL);
+  if (BKE_brush_channelset_get_int(chset, "topology_rake_use_spacing")) {
+    topology_rake_spacing = BKE_brush_channelset_get_float(chset, "topology_rake_spacing", NULL);
   }
   else {
-    topology_rake_spacing = BKE_brush_channelset_get_float(chset, "SPACING", NULL);
+    topology_rake_spacing = BKE_brush_channelset_get_float(chset, "spacing", NULL);
   }
 
   if (topology_rake > 0.0f) {
     cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, brush->channels, true),
                                  SCULPT_TOOL_SMOOTH);
 
-    float_set_uninherit(cmd->params, "STRENGTH", topology_rake);
-    float_set_uninherit(cmd->params, "RADIUS", radius * topology_rake_scale);
-    float_set_uninherit(cmd->params, "PROJECTION", topology_rake_projection);
-    float_set_uninherit(cmd->params, "SPACING", topology_rake_spacing);
+    float_set_uninherit(cmd->params, "strength", topology_rake);
+    float_set_uninherit(cmd->params, "radius", radius * topology_rake_scale);
+    float_set_uninherit(cmd->params, "projection", topology_rake_projection);
+    float_set_uninherit(cmd->params, "spacing", topology_rake_spacing);
   }
 
   /* build dyntopo command */
 
-  if (!BKE_brush_channelset_get_int(chset, "DYNTOPO_DISABLED")) {
+  if (!BKE_brush_channelset_get_int(chset, "dyntopo_disabled")) {
     cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, brush->channels, true),
                                  SCULPT_TOOL_DYNTOPO);
   }
@@ -1033,15 +1034,15 @@ void BKE_brush_channelset_to_unified_settings(BrushChannelSet *chset, UnifiedPai
 {
   BrushChannel *ch;
 
-  if (ch = BKE_brush_channelset_lookup(chset, "RADIUS")) {
+  if (ch = BKE_brush_channelset_lookup(chset, "radius")) {
     ups->size = ch->fvalue;
   }
 
-  if (ch = BKE_brush_channelset_lookup(chset, "STRENGTH")) {
+  if (ch = BKE_brush_channelset_lookup(chset, "strength")) {
     ups->alpha = ch->fvalue;
   }
 
-  if (ch = BKE_brush_channelset_lookup(chset, "WEIGHT")) {
+  if (ch = BKE_brush_channelset_lookup(chset, "weight")) {
     ups->weight = ch->fvalue;
   }
 }

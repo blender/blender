@@ -75,7 +75,7 @@ typedef struct BrushMappingData {
 typedef struct BrushEnumDef {
   int value;
   const char identifier[64];
-  int icon;
+  char icon[32];
   const char name[64];
   const char description[512];
 } BrushEnumDef;
@@ -210,7 +210,8 @@ void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
 
 // merge in channels the ui requested
 void BKE_brush_apply_queued_channels(BrushChannelSet *chset, bool do_override);
-void BKE_brush_channeltype_rna_check(BrushChannelType *def);
+void BKE_brush_channeltype_rna_check(BrushChannelType *def,
+                                     int (*getIconFromName)(const char *name));
 
 #ifdef __cplusplus
 }
