@@ -2046,7 +2046,7 @@ typedef enum GeometryNodeCurveResampleMode {
 
 typedef enum GeometryNodeCurveSampleMode {
   GEO_NODE_CURVE_SAMPLE_FACTOR = 0,
-  GEO_NODE_CURVE_RESAMPLE_LENGTH = 1,
+  GEO_NODE_CURVE_SAMPLE_LENGTH = 1,
 } GeometryNodeCurveSampleMode;
 
 typedef enum GeometryNodeAttributeTransferMapMode {

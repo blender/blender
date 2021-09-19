@@ -62,8 +62,8 @@ static void geo_node_curve_trim_update(bNodeTree *UNUSED(ntree), bNode *node)
 
   nodeSetSocketAvailability(start_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
   nodeSetSocketAvailability(end_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
-  nodeSetSocketAvailability(start_len, mode == GEO_NODE_CURVE_RESAMPLE_LENGTH);
-  nodeSetSocketAvailability(end_len, mode == GEO_NODE_CURVE_RESAMPLE_LENGTH);
+  nodeSetSocketAvailability(start_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+  nodeSetSocketAvailability(end_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
 }
 
 struct TrimLocation {
@@ -359,11 +359,11 @@ static void geo_node_curve_trim_exec(GeoNodeExecParams params)
       }
 
       const Spline::LookupResult start_lookup =
-          (mode == GEO_NODE_CURVE_RESAMPLE_LENGTH) ?
+          (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) ?
               spline.lookup_evaluated_length(std::clamp(start, 0.0f, spline.length())) :
               spline.lookup_evaluated_factor(std::clamp(start, 0.0f, 1.0f));
       const Spline::LookupResult end_lookup =
-          (mode == GEO_NODE_CURVE_RESAMPLE_LENGTH) ?
+          (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) ?
               spline.lookup_evaluated_length(std::clamp(end, 0.0f, spline.length())) :
               spline.lookup_evaluated_factor(std::clamp(end, 0.0f, 1.0f));
 
