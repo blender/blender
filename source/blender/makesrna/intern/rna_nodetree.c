@@ -8890,11 +8890,36 @@ static void def_cmp_denoise(StructRNA *srna)
 {
   PropertyRNA *prop;
 
+  static const EnumPropertyItem prefilter_items[] = {
+      {CMP_NODE_DENOISE_PREFILTER_NONE,
+       "NONE",
+       0,
+       "None",
+       "No prefiltering, use when guiding passes are noise-free"},
+      {CMP_NODE_DENOISE_PREFILTER_FAST,
+       "FAST",
+       0,
+       "Fast",
+       "Denoise image and guiding passes together. Improves quality when guiding passes are noisy "
+       "using least amount of extra processing time"},
+      {CMP_NODE_DENOISE_PREFILTER_ACCURATE,
+       "ACCURATE",
+       0,
+       "Accurate",
+       "Prefilter noisy guiding passes before denoising image. Improves quality when guiding "
+       "passes are noisy using extra processing time"},
+      {0, NULL, 0, NULL, NULL}};
+
   RNA_def_struct_sdna_from(srna, "NodeDenoise", "storage");
 
   prop = RNA_def_property(srna, "use_hdr", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "hdr", 0);
   RNA_def_property_ui_text(prop, "HDR", "Process HDR images");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "prefilter", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, prefilter_items);
+  RNA_def_property_ui_text(prop, "", "Denoising prefilter");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

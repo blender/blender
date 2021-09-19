@@ -36,6 +36,7 @@ static void node_composit_init_denonise(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeDenoise *ndg = MEM_callocN(sizeof(NodeDenoise), "node denoise data");
   ndg->hdr = true;
+  ndg->prefilter = CMP_NODE_DENOISE_PREFILTER_ACCURATE;
   node->storage = ndg;
 }
 
