@@ -53,7 +53,7 @@ static void geo_node_curve_to_points_init(bNodeTree *UNUSED(tree), bNode *node)
 static void geo_node_curve_to_points_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeGeometryCurveToPoints &node_storage = *(NodeGeometryCurveToPoints *)node->storage;
-  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
+  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
 
   bNodeSocket *count_socket = ((bNodeSocket *)node->inputs.first)->next;
   bNodeSocket *length_socket = count_socket->next;
@@ -77,7 +77,7 @@ static void evaluate_splines(Span<SplinePtr> splines)
 }
 
 static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
-                                                 const GeometryNodeCurveSampleMode mode,
+                                                 const GeometryNodeCurveResampleMode mode,
                                                  const CurveEval &curve,
                                                  const Span<SplinePtr> splines)
 {
@@ -301,7 +301,7 @@ void curve_create_default_rotation_attribute(Span<float3> tangents,
 static void geo_node_curve_to_points_exec(GeoNodeExecParams params)
 {
   NodeGeometryCurveToPoints &node_storage = *(NodeGeometryCurveToPoints *)params.node().storage;
-  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
+  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
   geometry_set = bke::geometry_set_realize_instances(geometry_set);

@@ -53,8 +53,7 @@ static void geo_node_curve_trim_init(bNodeTree *UNUSED(tree), bNode *node)
 static void geo_node_curve_trim_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   const NodeGeometryCurveTrim &node_storage = *(NodeGeometryCurveTrim *)node->storage;
-  const GeometryNodeCurveInterpolateMode mode = (GeometryNodeCurveInterpolateMode)
-                                                    node_storage.mode;
+  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
 
   bNodeSocket *start_fac = ((bNodeSocket *)node->inputs.first)->next;
   bNodeSocket *end_fac = start_fac->next;
@@ -324,8 +323,7 @@ static void trim_bezier_spline(Spline &spline,
 static void geo_node_curve_trim_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurveTrim &node_storage = *(NodeGeometryCurveTrim *)params.node().storage;
-  const GeometryNodeCurveInterpolateMode mode = (GeometryNodeCurveInterpolateMode)
-                                                    node_storage.mode;
+  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   geometry_set = bke::geometry_set_realize_instances(geometry_set);

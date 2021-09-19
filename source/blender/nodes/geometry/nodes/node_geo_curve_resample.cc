@@ -57,7 +57,7 @@ static void geo_node_curve_resample_init(bNodeTree *UNUSED(tree), bNode *node)
 static void geo_node_curve_resample_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeGeometryCurveResample &node_storage = *(NodeGeometryCurveResample *)node->storage;
-  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
+  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
 
   bNodeSocket *count_socket = ((bNodeSocket *)node->inputs.first)->next;
   bNodeSocket *length_socket = count_socket->next;
@@ -67,7 +67,7 @@ static void geo_node_curve_resample_update(bNodeTree *UNUSED(ntree), bNode *node
 }
 
 struct SampleModeParam {
-  GeometryNodeCurveSampleMode mode;
+  GeometryNodeCurveResampleMode mode;
   std::optional<float> length;
   std::optional<int> count;
 };
@@ -215,7 +215,7 @@ static void geo_node_resample_exec(GeoNodeExecParams params)
 
   const CurveEval &input_curve = *geometry_set.get_curve_for_read();
   NodeGeometryCurveResample &node_storage = *(NodeGeometryCurveResample *)params.node().storage;
-  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
+  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
   SampleModeParam mode_param;
   mode_param.mode = mode;
   if (mode == GEO_NODE_CURVE_SAMPLE_COUNT) {
