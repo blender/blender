@@ -143,6 +143,10 @@ static void brush_free_data(ID *id)
   MEM_SAFE_FREE(brush->gradient);
 
   BKE_previewimg_free(&(brush->preview));
+
+  if (brush->channels) {
+    BKE_brush_channelset_free(brush->channels);
+  }
 }
 
 static void brush_make_local(Main *bmain, ID *id, const int flags)
@@ -312,6 +316,7 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
   if (brush->channels) {
     BLO_read_data_address(reader, &brush->channels);
     BKE_brush_channelset_read(reader, brush->channels);
+    BKE_brush_builtin_patch(brush, brush->sculpt_tool);
   }
   else {
     BKE_brush_builtin_create(brush, brush->sculpt_tool);
@@ -1792,6 +1797,16 @@ void BKE_brush_sculpt_reset(Brush *br)
    * settings used by a brush: */
   // BKE_brush_debug_print_state(br);
 
+  BKE_brush_builtin_create(br, br->sculpt_tool);
+
+  for (int i = 0; i < br->channels->totchannel; i++) {
+    BrushChannel *ch = br->channels->channels + i;
+    BrushChannelType *def = ch->def;
+
+    BKE_brush_channel_free(ch);
+    BKE_brush_channel_init(ch, def);
+  }
+
   brush_defaults(br);
   BKE_brush_curve_preset(br, CURVE_PRESET_SMOOTH);
   BKE_brush_default_input_curves_set(br);
@@ -1805,7 +1820,7 @@ void BKE_brush_sculpt_reset(Brush *br)
 
   bool disable_dyntopo = false;
 
-  // basic face set setup for all organic brushes
+  // XXX basic face set setup for all organic brushes
   br->autosmooth_fset_slide = 1.0f;
   br->flag2 |= BRUSH_SMOOTH_PRESERVE_FACE_SETS | BRUSH_SMOOTH_USE_AREA_WEIGHT;
 
@@ -2245,7 +2260,7 @@ float BKE_brush_sample_tex_3d(const Scene *scene,
       /* leave the coordinates relative to the screen */
 
       /* use unadjusted size for tiled mode */
-      invradius = 1.0f / BKE_brush_size_get(scene, br);
+      invradius = 1.0f / BKE_brush_size_get(scene, br, false);
 
       x = point_2d[0];
       y = point_2d[1];
@@ -2358,7 +2373,7 @@ float BKE_brush_sample_masktex(
       /* leave the coordinates relative to the screen */
 
       /* use unadjusted size for tiled mode */
-      invradius = 1.0f / BKE_brush_size_get(scene, br);
+      invradius = 1.0f / BKE_brush_size_get(scene, br, false);
 
       x = point_2d[0];
       y = point_2d[1];
@@ -2448,8 +2463,19 @@ void BKE_brush_color_set(struct Scene *scene, struct Brush *brush, const float c
   }
 }
 
-void BKE_brush_size_set(Scene *scene, Brush *brush, int size)
+void BKE_brush_size_set(Scene *scene, Brush *brush, int size, bool use_brush_channels)
 {
+  if (use_brush_channels) {
+    if (scene->toolsettings->sculpt && scene->toolsettings->sculpt->channels) {
+      BKE_brush_channelset_set_final_float(
+          brush->channels, scene->toolsettings->sculpt->channels, "RADIUS", (float)size);
+      return;
+    }
+    else {
+      BKE_brush_channelset_set_float(brush->channels, "RADIUS", (float)size);
+    }
+  }
+
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 
   /* make sure range is sane */
@@ -2463,8 +2489,18 @@ void BKE_brush_size_set(Scene *scene, Brush *brush, int size)
   }
 }
 
-int BKE_brush_size_get(const Scene *scene, const Brush *brush)
+int BKE_brush_size_get(const Scene *scene, const Brush *brush, bool use_brush_channel)
 {
+  if (use_brush_channel) {
+    if (scene->toolsettings->sculpt) {
+      return (int)BKE_brush_channelset_get_final_float(
+          brush->channels, scene->toolsettings->sculpt->channels, "RADIUS", NULL);
+    }
+    else {
+      return (int)BKE_brush_channelset_get_float(brush->channels, "RADIUS", NULL);
+    }
+  }
+
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
   int size = (ups->flag & UNIFIED_PAINT_SIZE) ? ups->size : brush->size;
 
@@ -2607,7 +2643,7 @@ void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], 
     spread = 1.0;
   }
   else {
-    diameter = 2 * BKE_brush_size_get(scene, brush);
+    diameter = 2 * BKE_brush_size_get(scene, brush, false);
     spread = brush->jitter;
   }
   /* find random position within a circle of diameter 1 */

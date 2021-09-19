@@ -37,6 +37,7 @@
 #include "ED_view3d.h"
 
 #include "BKE_attribute.h"
+#include "BKE_brush_engine.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
@@ -47,6 +48,7 @@ struct KeyBlock;
 struct Object;
 struct SculptUndoNode;
 struct bContext;
+struct BrushChannelSet;
 
 enum ePaintSymmetryFlags;
 
@@ -1082,12 +1084,16 @@ typedef struct AutomaskingCache {
 } AutomaskingCache;
 
 typedef struct StrokeCache {
+  BrushMappingData input_mapping;
+
   /* Invariants */
   float initial_radius;
   float scale[3];
   int flag;
   float clip_tolerance[3];
   float initial_mouse[2];
+
+  struct BrushChannelSet *channels_final;
 
   /* Variants */
   float radius;
@@ -1135,7 +1141,7 @@ typedef struct StrokeCache {
 
   /* Clean this up! */
   struct ViewContext *vc;
-  const struct Brush *brush;
+  struct Brush *brush;
 
   float special_rotation;
   float grab_delta[3], grab_delta_symmetry[3];

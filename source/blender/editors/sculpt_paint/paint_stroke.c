@@ -301,8 +301,8 @@ static bool paint_brush_update(bContext *C,
   ups->stroke_active = true;
   ups->size_pressure_value = stroke->cached_size_pressure;
 
-  ups->pixel_radius = BKE_brush_size_get(scene, brush);
-  ups->initial_pixel_radius = BKE_brush_size_get(scene, brush);
+  ups->pixel_radius = BKE_brush_size_get(scene, brush, mode == PAINT_MODE_SCULPT);
+  ups->initial_pixel_radius = BKE_brush_size_get(scene, brush, mode == PAINT_MODE_SCULPT);
 
   if (BKE_brush_use_size_pressure(brush) && paint_supports_dynamic_size(brush, mode)) {
     ups->pixel_radius *= stroke->cached_size_pressure;
@@ -637,7 +637,8 @@ static float paint_space_stroke_spacing(bContext *C,
     BKE_curvemapping_init(brush->pressure_size_curve);
     final_size_pressure = BKE_curvemapping_evaluateF(brush->pressure_size_curve, 0, size_pressure);
   }
-  float size = BKE_brush_size_get(scene, stroke->brush) * final_size_pressure;
+  float size = BKE_brush_size_get(scene, stroke->brush, mode == PAINT_MODE_SCULPT) *
+               final_size_pressure;
   if (paint_stroke_use_scene_spacing(brush, mode)) {
     if (!BKE_brush_use_locked_size(scene, brush)) {
       float last_object_space_position[3];
@@ -729,7 +730,7 @@ static float paint_space_get_final_size_intern(
     bContext *C, const Scene *scene, PaintStroke *stroke, float pressure, float dpressure)
 {
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
-  float size = BKE_brush_size_get(scene, stroke->brush) * pressure;
+  float size = BKE_brush_size_get(scene, stroke->brush, mode == PAINT_MODE_SCULPT) * pressure;
 
   if (paint_stroke_use_scene_spacing(stroke->brush, mode)) {
     if (!BKE_brush_use_locked_size(scene, stroke->brush)) {
@@ -1059,7 +1060,7 @@ static bool sculpt_is_grab_tool(Brush *br)
               SCULPT_TOOL_POSE,
               SCULPT_TOOL_BOUNDARY,
               SCULPT_TOOL_THUMB,
-              SCULPT_TOOL_ARRAY, 
+              SCULPT_TOOL_ARRAY,
               SCULPT_TOOL_ROTATE,
               SCULPT_TOOL_SNAKE_HOOK);
 }

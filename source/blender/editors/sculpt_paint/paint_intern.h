@@ -170,13 +170,13 @@ void paint_cursor_start(struct Paint *p, bool (*poll)(struct bContext *C));
 void paint_cursor_delete_textures(void);
 
 /**
-* used by various actions that have their own spacing that
-* is coarser then the brush spacing. e.g. sculpt dyntopo.
-*
-* \param state: pointer to a float used for internal state, should be initialized to zero at start of stroke
-* \return false if the action should be skipped.
-*
-*/
+ * used by various actions that have their own spacing that
+ * is coarser then the brush spacing. e.g. sculpt dyntopo.
+ *
+ * \param state: pointer to a float used for internal state, should be initialized to zero at start
+ * of stroke \return false if the action should be skipped.
+ *
+ */
 bool paint_stroke_apply_subspacing(struct PaintStroke *stroke,
                                    const float spacing,
                                    const enum ePaintMode mode,
@@ -454,6 +454,8 @@ enum eBlurKernelType;
 /* can be extended to other blur kernels later */
 BlurKernel *paint_new_blur_kernel(struct Brush *br, bool proj);
 void paint_delete_blur_kernel(BlurKernel *);
+
+#define paint_use_channels(C) (BKE_paintmode_get_active_from_context(C) == PAINT_MODE_SCULPT)
 
 /* paint curve defines */
 #define PAINT_CURVE_NUM_SEGMENTS 40

@@ -23,7 +23,9 @@
  * \ingroup bke
  */
 
+#include "BKE_brush_engine.h"
 #include "BKE_pbvh.h"
+
 #include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
 #include "DNA_brush_enums.h"

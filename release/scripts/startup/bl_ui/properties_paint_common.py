@@ -19,6 +19,15 @@
 # <pep8 compliant>
 from bpy.types import Menu
 
+channel_name_map = {
+    "size" : "RADIUS",
+    "autosmooth_fset_slide":"FSET_SLIDE",
+    "auto_smooth_factor": "AUTOSMOOTH",
+    "auto_smooth_projection": "SMOOTH_PROJECTION",
+    "auto_smooth_radius_factor": "AUTOSMOOTH_RADIUS_SCALE",
+    "boundary_smooth_factor": "BOUNDARY_SMOOTH",
+};
+
 class UnifiedPaintPanel:
     # subclass must set
     # bl_space_type = 'IMAGE_EDITOR'
@@ -105,11 +114,15 @@ class UnifiedPaintPanel:
 
         l1 = layout
 
-        if ch.ui_expanded:
-            layout = layout.box().column() #.column() is a bit more compact
+        #if ch.ui_expanded:
+        #    layout = layout.box().column() #.column() is a bit more compact
 
         row = layout.row(align=True)
-            
+
+        typeprop = "float_value"
+        if ch.type == "INT":
+            typeprop = "int_value"
+
         if text is None:
             s = prop_name.lower().replace("_", " ").split(" ");
             text = ''
@@ -124,7 +137,7 @@ class UnifiedPaintPanel:
 
             finalch = sd.channels.channels[prop_name]
 
-        row.prop(finalch, "value", icon=icon, text=text, slider=slider)
+        row.prop(finalch, typeprop, icon=icon, text=text, slider=slider)
 
         if pressure:
             row.prop(finalch.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
@@ -154,6 +167,15 @@ class UnifiedPaintPanel:
 
                     if mp.ui_expanded:
                         layout.template_curve_mapping(mp, "curve", brush=True)
+
+                        col = layout.column(align=True)
+                        row = col.row(align=True)
+                        row.operator("brush.curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
+                        row.operator("brush.curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
+                        row.operator("brush.curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
+                        row.operator("brush.curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
+                        row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
+                        row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
                     #row2.prop(mp, "curve")
 
         return row
@@ -173,6 +195,16 @@ class UnifiedPaintPanel:
     ):
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle, if they exist. """
+
+        if prop_name in channel_name_map:
+            prop_name = channel_name_map[prop_name]
+        else:
+            prop_name = prop_name.upper()
+
+        if prop_name in brush.channels.channels:
+            #    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None, slider=False, header=False):
+            return UnifiedPaintPanel.channel_unified(layout, context, brush, prop_name, icon=icon, text=text, slider=slider, header=header)
+
         row = layout.row(align=True)
         ups = context.tool_settings.unified_paint_settings
         prop_owner = brush
@@ -1017,7 +1049,21 @@ def brush_shared_settings(layout, context, brush, popover=False):
     size_prop = "size"
     if size_mode and (size_owner.use_locked_size == 'SCENE'):
         size_prop = "unprojected_radius"
+
     if size or size_mode:
+        if size:
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "RADIUS" if size_prop == "size" else size_prop.upper(),
+                text="Radius",
+                slider=True,
+            )
+        if size_mode:
+            layout.row().prop(size_owner, "use_locked_size", expand=True)
+            layout.separator()
+    elif size or size_mode:
         if size:
             UnifiedPaintPanel.prop_unified(
                 layout,
@@ -1033,7 +1079,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             layout.row().prop(size_owner, "use_locked_size", expand=True)
             layout.separator()
 
-    if 0 and strength:    
+    if strength:    
         UnifiedPaintPanel.channel_unified(
             layout,
             context,

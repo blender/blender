@@ -49,6 +49,7 @@
 #include "BKE_animsys.h"
 #include "BKE_asset.h"
 #include "BKE_brush.h"
+#include "BKE_brush_engine.h"
 #include "BKE_collection.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
@@ -1239,6 +1240,9 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (br->autosmooth_fset_slide == 0.0f) {
         Brush defbrush = *br;
 
+        // don't free data inside of pointers copied from br
+        defbrush.channels = NULL;
+        defbrush.curve = NULL;
         defbrush.pressure_size_curve = defbrush.pressure_strength_curve = NULL;
 
         BKE_brush_sculpt_reset(&defbrush);
@@ -1257,6 +1261,10 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
         if (br->autosmooth_projection == 0.0f) {
           br->autosmooth_projection = defbrush.autosmooth_projection;
+        }
+
+        if (defbrush.channels) {
+          BKE_brush_channelset_free(defbrush.channels);
         }
       }
 

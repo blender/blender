@@ -290,6 +290,7 @@ set(SRC
   intern/world.c
   intern/writeavi.c
   intern/brush_engine.c
+  intern/brush_engine_presets.c
 
   BKE_DerivedMesh.h
   BKE_action.h

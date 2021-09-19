@@ -56,6 +56,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_brush.h"
+#include "BKE_brush_engine.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -123,6 +124,15 @@
 
 static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss,
                                                       const SculptVertRef index);
+typedef void (*BrushActionFunc)(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups);
+
+void sculpt_combine_proxies(Sculpt *sd, Object *ob);
+static void SCULPT_run_command_list(
+    Sculpt *sd, Object *ob, Brush *brush, BrushCommandList *list, UnifiedPaintSettings *ups);
+static void do_symmetrical_brush_actions(Sculpt *sd,
+                                         Object *ob,
+                                         BrushActionFunc action,
+                                         UnifiedPaintSettings *ups);
 
 /* Sculpt PBVH abstraction API
  *
@@ -3567,6 +3577,7 @@ static float brush_strength(const Sculpt *sd,
   }
 
   float pressure = BKE_brush_use_alpha_pressure(brush) ? cache->pressure : 1.0f;
+
   if (brush->pressure_strength_curve) {
   }
   BKE_curvemapping_init(brush->pressure_strength_curve);
@@ -8375,6 +8386,26 @@ static void do_brush_action_task_cb(void *__restrict userdata,
 void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups)
 {
   SculptSession *ss = ob->sculpt;
+
+  if (ELEM(brush->sculpt_tool,
+           SCULPT_TOOL_DRAW,
+           SCULPT_TOOL_DRAW_SHARP,
+           SCULPT_TOOL_CLAY_STRIPS,
+           SCULPT_TOOL_CLAY,
+           SCULPT_TOOL_CREASE,
+           SCULPT_TOOL_CLOTH)) {
+    // SCULPT_run_command_list
+    BrushCommandList *list = BKE_brush_commandlist_create();
+    BKE_builtin_commandlist_create(
+        brush, ss->cache->channels_final, list, brush->sculpt_tool, &ss->cache->input_mapping);
+
+    SCULPT_run_command_list(sd, ob, brush, list, ups);
+
+    BKE_brush_commandlist_free(list);
+
+    return;
+  }
+
   int totnode;
   PBVHNode **nodes;
 
@@ -8779,6 +8810,460 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
   ups->last_stroke_valid = true;
 }
 
+void BKE_brush_commandlist_start(BrushCommandList *list,
+                                 Brush *brush,
+                                 BrushChannelSet *chset_final);
+
+ATTR_NO_OPT static void SCULPT_run_command_list(
+    Sculpt *sd, Object *ob, Brush *brush, BrushCommandList *list, UnifiedPaintSettings *ups)
+{
+  SculptSession *ss = ob->sculpt;
+  int totnode;
+  PBVHNode **nodes;
+
+  float start_radius = ss->cache->radius;
+
+  float radius_scale = 1.0f;
+  float radius_max = 0.0f;
+
+  BKE_brush_commandlist_start(list, brush, ss->cache->channels_final);
+
+  // this does a more high-level check then SCULPT_TOOL_HAS_DYNTOPO;
+  bool has_dyntopo = SCULPT_stroke_is_dynamic_topology(ss, brush);
+  bool all_nodes_undo = false;
+  bool cloth_nodes_undo = false;
+
+  // get maximum radius
+  for (int i = 0; i < list->totcommand; i++) {
+    BrushCommand *cmd = list->commands + i;
+
+    Brush brush2 = *brush;
+    brush2.sculpt_tool = cmd->tool;
+
+    // Load parameters into brush2 for compatibility with old code
+    BKE_brush_channelset_compat_load(cmd->params_final, &brush2, false);
+
+    /* With these options enabled not all required nodes are inside the original brush radius, so
+     * the brush can produce artifacts in some situations. */
+    if (cmd->tool == SCULPT_TOOL_DRAW &&
+        BKE_brush_channelset_get_int(cmd->params_final, "ORIGINAL_NORMAL")) {
+      radius_scale = MAX2(radius_scale, 2.0f);
+    }
+
+    if (SCULPT_tool_needs_all_pbvh_nodes(&brush2)) {
+      all_nodes_undo = true;
+    }
+    else if (cmd->tool == SCULPT_TOOL_CLOTH) {
+      cloth_nodes_undo = true;
+    }
+
+    if (!SCULPT_TOOL_HAS_DYNTOPO(cmd->tool)) {
+      has_dyntopo = false;
+    }
+
+    float radius = BKE_brush_channelset_get_float(
+        ss->cache->channels_final, "RADIUS", &ss->cache->input_mapping);
+
+    radius_max = max_ff(radius_max, radius);
+  }
+
+  float ratio = radius_max / BKE_brush_channelset_get_float(
+                                 ss->cache->channels_final, "RADIUS", &ss->cache->input_mapping);
+
+  ss->cache->radius = start_radius * ratio;
+  ss->cache->radius_squared = start_radius * start_radius * ratio * ratio;
+
+  /* Check for unsupported features. */
+  PBVHType type = BKE_pbvh_type(ss->pbvh);
+  if (ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR) &&
+      !ELEM(type, PBVH_BMESH, PBVH_FACES)) {
+    return;
+  }
+
+  if (brush->sculpt_tool == SCULPT_TOOL_ARRAY && type != PBVH_FACES) {
+    return;
+  }
+
+  /* Build a list of all nodes that are potentially within the brush's area of influence */
+  const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
+                                                                             ss->cache->original;
+
+  if (all_nodes_undo) {
+    /* These brushes need to update all nodes as they are not constrained by the brush radius */
+    BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  }
+  else if (cloth_nodes_undo) {
+    //
+    float initial_radius = ss->cache->initial_radius;
+    float old_radius = ss->cache->radius;
+
+    float radius = ss->cache->initial_radius;
+
+    radius = max_ff(radius, ss->cache->radius);
+    radius *= radius_scale;
+
+    ss->cache->initial_radius = radius;
+    ss->cache->radius = radius;
+    ss->cache->radius_squared = radius * radius;
+
+    nodes = SCULPT_cloth_brush_affected_nodes_gather(ss, brush, &totnode);
+
+    ss->cache->initial_radius = initial_radius;
+    ss->cache->radius = old_radius;
+    ss->cache->radius_squared = old_radius * old_radius;
+  }
+  else {
+    nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
+  }
+
+  /* Draw Face Sets in draw mode makes a single undo push, in alt-smooth mode deforms the
+   * vertices and uses regular coords undo. */
+  /* It also assigns the paint_face_set here as it needs to be done regardless of the stroke type
+   * and the number of nodes under the brush influence. */
+  if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS &&
+      SCULPT_stroke_is_first_brush_step(ss->cache) && !ss->cache->alt_smooth) {
+
+    // faceset undo node is created below for pbvh_bmesh
+    if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+      SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_FACE_SETS);
+    }
+
+    if (ss->cache->invert) {
+      /* When inverting the brush, pick the paint face mask ID from the mesh. */
+      ss->cache->paint_face_set = SCULPT_active_face_set_get(ss);
+    }
+    else {
+      /* By default create a new Face Sets. */
+      ss->cache->paint_face_set = SCULPT_face_set_next_available_get(ss);
+    }
+  }
+
+  /* Initialize automasking cache. For anchored brushes with spherical falloff, we start off with
+   * zero radius, thus we have no pbvh nodes on the first brush step. */
+  if (totnode ||
+      ((brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) && (brush->flag & BRUSH_ANCHORED))) {
+    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+      if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
+        ss->cache->automasking = SCULPT_automasking_cache_init(sd, brush, ob);
+      }
+    }
+  }
+
+  /* Only act if some verts are inside the brush area. */
+  if (totnode == 0) {
+    ss->cache->radius = start_radius;
+    ss->cache->radius_squared = start_radius * start_radius;
+
+    return;
+  }
+  float location[3];
+
+  // dyntopo can't push undo nodes inside a thread
+  if (ss->bm) {
+    if (ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
+      for (int i = 0; i < totnode; i++) {
+        int other = brush->vcol_boundary_factor > 0.0f ? SCULPT_UNDO_COORDS : -1;
+
+        SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR, other);
+        BKE_pbvh_node_mark_update_color(nodes[i]);
+      }
+    }
+    else if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
+      for (int i = 0; i < totnode; i++) {
+        if (ss->cache->alt_smooth) {
+          SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_FACE_SETS, SCULPT_UNDO_COORDS);
+        }
+        else {
+          SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_FACE_SETS, -1);
+        }
+
+        BKE_pbvh_node_mark_update(nodes[i]);
+      }
+    }
+    else {
+      for (int i = 0; i < totnode; i++) {
+        SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COORDS, -1);
+
+        BKE_pbvh_node_mark_update(nodes[i]);
+      }
+    }
+  }
+  else {
+    SculptThreadedTaskData task_data = {
+        .sd = sd,
+        .ob = ob,
+        .brush = brush,
+        .nodes = nodes,
+    };
+
+    TaskParallelSettings settings;
+    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+    BLI_task_parallel_range(0, totnode, &task_data, do_brush_action_task_cb, &settings);
+  }
+
+  Brush *oldbrush = ss->cache->brush;
+  Brush _dummy = *brush, *brush2 = &_dummy;
+
+  for (int step = 0; step < list->totcommand; step++) {
+    BrushCommand *cmd = list->commands + step;
+
+    *brush2 = *brush;
+
+    ss->cache->brush = brush2;
+
+    // Load parameters into brush2 for compatibility with old code
+    BKE_brush_channelset_compat_load(cmd->params_final, brush2, false);
+
+    brush2->sculpt_tool = cmd->tool;
+
+    /*Search PBVH*/
+    if (step > 0) {
+      MEM_SAFE_FREE(nodes);
+
+      if (SCULPT_tool_needs_all_pbvh_nodes(brush)) {
+        /* These brushes need to update all nodes as they are not constrained by the brush radius
+         */
+        BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+      }
+      else if (brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
+        nodes = SCULPT_cloth_brush_affected_nodes_gather(ss, brush, &totnode);
+      }
+      else {
+        /* With these options enabled not all required nodes are inside the original brush radius,
+         * so the brush can produce artifacts in some situations. */
+        if (brush->sculpt_tool == SCULPT_TOOL_DRAW && brush->flag & BRUSH_ORIGINAL_NORMAL) {
+          radius_scale = MAX2(radius_scale, 2.0f);
+        }
+        nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
+      }
+    }
+
+    if (sculpt_brush_needs_normal(ss, brush2)) {
+      update_sculpt_normal(sd, ob, nodes, totnode);
+    }
+
+    if (brush2->mtex.brush_map_mode == MTEX_MAP_MODE_AREA) {
+      update_brush_local_mat(sd, ob);
+    }
+
+    if (brush2->sculpt_tool == SCULPT_TOOL_POSE && SCULPT_stroke_is_first_brush_step(ss->cache)) {
+      SCULPT_pose_brush_init(sd, ob, ss, brush2);
+    }
+
+    if (brush2->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
+      if (!ss->cache->cloth_sim) {
+        ss->cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
+            ss, 1.0f, 1.0f, 0.0f, false, true);
+        SCULPT_cloth_brush_simulation_init(ss, ss->cache->cloth_sim);
+      }
+      SCULPT_cloth_brush_store_simulation_state(ss, ss->cache->cloth_sim);
+      SCULPT_cloth_brush_ensure_nodes_constraints(
+          sd, ob, nodes, totnode, ss->cache->cloth_sim, ss->cache->location, FLT_MAX);
+    }
+
+    bool invert = ss->cache->pen_flip || ss->cache->invert || brush2->flag & BRUSH_DIR_IN;
+
+    SCULPT_replay_log_append(sd, ss, ob);
+
+    /* Apply one type of brush action. */
+    switch (brush2->sculpt_tool) {
+      case SCULPT_TOOL_DRAW:
+        do_draw_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_SMOOTH:
+        if (brush2->smooth_deform_type == BRUSH_SMOOTH_DEFORM_LAPLACIAN) {
+          SCULPT_do_smooth_brush(sd, ob, nodes, totnode, brush2->autosmooth_projection);
+        }
+        else if (brush2->smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE) {
+          SCULPT_do_surface_smooth_brush(sd, ob, nodes, totnode);
+        }
+        else if (brush2->smooth_deform_type == BRUSH_SMOOTH_DEFORM_DIRECTIONAL) {
+          SCULPT_do_directional_smooth_brush(sd, ob, nodes, totnode);
+        }
+        else if (brush2->smooth_deform_type == BRUSH_SMOOTH_DEFORM_UNIFORM_WEIGHTS) {
+          SCULPT_do_uniform_weights_smooth_brush(sd, ob, nodes, totnode);
+        }
+        break;
+      case SCULPT_TOOL_CREASE:
+        do_crease_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_BLOB:
+        do_crease_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_PINCH:
+        do_pinch_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_INFLATE:
+        do_inflate_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_GRAB:
+        do_grab_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_ROTATE:
+        do_rotate_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_SNAKE_HOOK:
+        do_snake_hook_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_NUDGE:
+        do_nudge_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_THUMB:
+        do_thumb_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_LAYER:
+        do_layer_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_FLATTEN:
+        do_flatten_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_CLAY:
+        do_clay_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_CLAY_STRIPS:
+        do_clay_strips_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_TWIST:
+        do_twist_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_MULTIPLANE_SCRAPE:
+        SCULPT_do_multiplane_scrape_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_CLAY_THUMB:
+        do_clay_thumb_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_FILL:
+        if (invert && brush2->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
+          do_scrape_brush(sd, ob, nodes, totnode);
+        }
+        else {
+          do_fill_brush(sd, ob, nodes, totnode);
+        }
+        break;
+      case SCULPT_TOOL_SCRAPE:
+        if (invert && brush2->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
+          do_fill_brush(sd, ob, nodes, totnode);
+        }
+        else {
+          do_scrape_brush(sd, ob, nodes, totnode);
+        }
+        break;
+      case SCULPT_TOOL_MASK:
+        do_mask_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_POSE:
+        SCULPT_do_pose_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_DRAW_SHARP:
+        do_draw_sharp_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_ELASTIC_DEFORM:
+        do_elastic_deform_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_SLIDE_RELAX:
+        do_slide_relax_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_BOUNDARY:
+        SCULPT_do_boundary_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_CLOTH:
+        SCULPT_do_cloth_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_DRAW_FACE_SETS:
+        SCULPT_do_draw_face_sets_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_DISPLACEMENT_ERASER:
+        do_displacement_eraser_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_DISPLACEMENT_SMEAR:
+        do_displacement_smear_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_PAINT:
+        SCULPT_do_paint_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_SMEAR:
+        SCULPT_do_smear_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_FAIRING:
+        do_fairing_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_SCENE_PROJECT:
+        do_scene_project_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_SYMMETRIZE:
+        SCULPT_do_symmetrize_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_ARRAY:
+        SCULPT_do_array_brush(sd, ob, nodes, totnode);
+      case SCULPT_TOOL_VCOL_BOUNDARY:
+        SCULPT_smooth_vcol_boundary(sd, ob, nodes, totnode, ss->cache->bstrength);
+        break;
+      case SCULPT_TOOL_UV_SMOOTH:
+        SCULPT_uv_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_TOPOLOGY_RAKE:
+        bmesh_topology_rake(sd, ob, nodes, totnode, brush2->alpha);
+        break;
+      case SCULPT_TOOL_DYNTOPO:
+        if (has_dyntopo) {
+          do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups);
+        }
+        break;
+    }
+
+    if (ss->needs_pbvh_rebuild) {
+      bContext *C = ss->cache->vc->C;
+
+      /* The mesh was modified, rebuild the PBVH. */
+      BKE_particlesystem_reset_all(ob);
+      BKE_ptcache_object_reset(CTX_data_scene(C), ob, PTCACHE_RESET_OUTDATED);
+
+      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+      BKE_scene_graph_update_tagged(CTX_data_ensure_evaluated_depsgraph(C), CTX_data_main(C));
+      SCULPT_pbvh_clear(ob);
+      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+      BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+
+      if (brush->sculpt_tool == SCULPT_TOOL_ARRAY) {
+        SCULPT_tag_update_overlays(C);
+      }
+      ss->needs_pbvh_rebuild = false;
+    }
+
+    sculpt_combine_proxies(sd, ob);
+  }
+
+  /*
+                           paint_stroke_apply_subspacing(
+                               ss->cache->stroke,
+                               spacing,
+                               PAINT_MODE_SCULPT,
+                               &ss->cache->last_smooth_t[SCULPT_get_symmetry_pass(ss)]);
+
+    */
+
+  /* The cloth brush adds the gravity as a regular force and it is processed in the solver. */
+  if (ss->cache->supports_gravity && !ELEM(brush->sculpt_tool,
+                                           SCULPT_TOOL_CLOTH,
+                                           SCULPT_TOOL_DRAW_FACE_SETS,
+                                           SCULPT_TOOL_BOUNDARY)) {
+    do_gravity(sd, ob, nodes, totnode, sd->gravity_factor);
+  }
+
+  if (brush->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
+    if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
+      SCULPT_cloth_sim_activate_nodes(ss->cache->cloth_sim, nodes, totnode);
+      SCULPT_cloth_brush_do_simulation_step(sd, ob, ss->cache->cloth_sim, nodes, totnode);
+    }
+  }
+
+  ss->cache->brush = oldbrush;
+  ss->cache->radius = start_radius;
+  ss->cache->radius_squared = start_radius * start_radius;
+
+  MEM_SAFE_FREE(nodes);
+}
+
 /* Flush displacement from deformed PBVH vertex to original mesh. */
 static void sculpt_flush_pbvhvert_deform(Object *ob, PBVHVertexIter *vd)
 {
@@ -9082,8 +9567,6 @@ void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
   }
 }
 
-typedef void (*BrushActionFunc)(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups);
-
 static void do_tiled(
     Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups, BrushActionFunc action)
 {
@@ -9214,7 +9697,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd,
 static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
-  const int radius = BKE_brush_size_get(scene, brush);
+  const int radius = BKE_brush_size_get(scene, brush, true);
 
   MEM_SAFE_FREE(ss->texcache);
 
@@ -9390,6 +9873,10 @@ void SCULPT_cache_free(SculptSession *ss, StrokeCache *cache)
         ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, ss->cache->prefairing_co);
   }
 
+  if (ss->cache->channels_final) {
+    BKE_brush_channelset_free(ss->cache->channels_final);
+  }
+
   MEM_SAFE_FREE(ss->cache->fairing_mask);
   MEM_SAFE_FREE(ss->cache->fairing_fade);
   MEM_SAFE_FREE(ss->cache->prefairing_co);
@@ -9542,7 +10029,7 @@ static void sculpt_update_cache_invariants(
     else {
       Paint *p = &sd->paint;
       Brush *br;
-      int size = BKE_brush_size_get(scene, brush);
+      int size = BKE_brush_size_get(scene, brush, true);
 
       BLI_strncpy(cache->saved_active_brush_name,
                   brush->id.name + 2,
@@ -9552,8 +10039,8 @@ static void sculpt_update_cache_invariants(
       if (br) {
         BKE_paint_brush_set(p, br);
         brush = br;
-        cache->saved_smooth_size = BKE_brush_size_get(scene, brush);
-        BKE_brush_size_set(scene, brush, size);
+        cache->saved_smooth_size = BKE_brush_size_get(scene, brush, true);
+        BKE_brush_size_set(scene, brush, size, paint_use_channels(C));
         BKE_curvemapping_init(brush->curve);
       }
     }
@@ -9921,16 +10408,41 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
    * events. We should avoid this after events system re-design. */
   if (paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT) || cache->first_time) {
     cache->pressure = RNA_float_get(ptr, "pressure");
+    cache->input_mapping.pressure = cache->pressure;
   }
 
   cache->x_tilt = RNA_float_get(ptr, "x_tilt");
   cache->y_tilt = RNA_float_get(ptr, "y_tilt");
+  cache->input_mapping.xtilt = cache->x_tilt;
+  cache->input_mapping.ytilt = cache->y_tilt;
+
+  {
+    float direction[4];
+    copy_v3_v3(direction, ss->cache->grab_delta_symmetry);
+
+    float tmp[3];
+    mul_v3_v3fl(
+        tmp, ss->cache->sculpt_normal_symm, dot_v3v3(ss->cache->sculpt_normal_symm, direction));
+    sub_v3_v3(direction, tmp);
+    normalize_v3(direction);
+
+    /* If the active area is being applied for symmetry, flip it
+     * across the symmetry axis and rotate it back to the original
+     * position in order to project it. This insures that the
+     * brush texture will be oriented correctly. */
+    direction[3] = 0.0f;
+    mul_v4_m4v4(direction, cache->projection_mat, direction);
+
+    cache->input_mapping.angle = atan2(direction[1], direction[0]);
+
+    // cache->vc
+  }
 
   /* Truly temporary data that isn't stored in properties. */
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
     if (!BKE_brush_use_locked_size(scene, brush)) {
       cache->initial_radius = paint_calc_object_space_radius(
-          cache->vc, cache->true_location, BKE_brush_size_get(scene, brush));
+          cache->vc, cache->true_location, BKE_brush_size_get(scene, brush, true));
       BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius);
     }
     else {
@@ -10280,7 +10792,8 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   ss->v3d = vc.v3d;
 
   if (!BKE_brush_use_locked_size(scene, brush)) {
-    radius = paint_calc_object_space_radius(&vc, out->location, BKE_brush_size_get(scene, brush));
+    radius = paint_calc_object_space_radius(
+        &vc, out->location, BKE_brush_size_get(scene, brush, true));
   }
   else {
     radius = BKE_brush_unprojected_radius_get(scene, brush);
@@ -10699,11 +11212,30 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
 
 void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
+
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
+
+  extern void BKE_brush_channelset_to_unified_settings(BrushChannelSet * chset,
+                                                       UnifiedPaintSettings * ups);
+  if (ss->cache->channels_final) {
+    BKE_brush_channelset_free(ss->cache->channels_final);
+  }
+
+  if (brush->channels && sd->channels) {
+    ss->cache->channels_final = BKE_brush_channelset_create();
+    BKE_brush_channelset_merge(ss->cache->channels_final, brush->channels, sd->channels);
+  }
+  else if (brush->channels) {
+    ss->cache->channels_final = BKE_brush_channelset_copy(brush->channels);
+  }
+
+  // load settings into brush and unified paint settings
+  BKE_brush_channelset_compat_load(ss->cache->channels_final, brush, false);
+  BKE_brush_channelset_to_unified_settings(ss->cache->channels_final, ups);
 
   ss->cache->stroke_distance = stroke->stroke_distance;
   ss->cache->stroke_distance_t = stroke->stroke_distance_t;
@@ -10873,7 +11405,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
       /* Do nothing. */
     }
     else {
-      BKE_brush_size_set(scene, brush, ss->cache->saved_smooth_size);
+      BKE_brush_size_set(scene, brush, ss->cache->saved_smooth_size, true);
       brush = (Brush *)BKE_libblock_find_name(bmain, ID_BR, ss->cache->saved_active_brush_name);
       if (brush) {
         BKE_paint_brush_set(&sd->paint, brush);

@@ -44,10 +44,13 @@ is controller via BrushChannel->flag.
 
 This should completely replace UnifiedPaintSettings.
 */
-struct BrushChannel;
 
-#include "BLO_read_write.h"
 #include "DNA_sculpt_brush_types.h"
+
+struct BrushChannel;
+struct BlendWriter;
+struct BlendDataReader;
+struct Brush;
 
 typedef struct BrushMappingDef {
   int curve;
@@ -55,12 +58,17 @@ typedef struct BrushMappingDef {
   bool inv;
   float min, max;
   int blendmode;
+  float factor;  // if 0, will default to 1.0
 } BrushMappingDef;
 
 typedef struct BrushMappingPreset {
   // must match order of BRUSH_MAPPING_XXX enums
   struct BrushMappingDef pressure, xtilt, ytilt, angle, speed;
 } BrushMappingPreset;
+
+typedef struct BrushMappingData {
+  float pressure, xtilt, ytilt, angle, speed;
+} BrushMappingData;
 
 #define MAX_BRUSH_ENUM_DEF 32
 
@@ -69,7 +77,7 @@ typedef struct BrushEnumDef {
 } BrushEnumDef;
 
 typedef struct BrushChannelType {
-  char name[32], idname[32];
+  char name[32], idname[32], tooltip[512];
   float min, max, soft_min, soft_max;
   BrushMappingPreset mappings;
 
@@ -83,7 +91,6 @@ typedef struct BrushCommand {
   int tool;
   struct BrushChannelSet *params;
   struct BrushChannelSet *params_final;
-  int totparam;
 } BrushCommand;
 
 typedef struct BrushCommandList {
@@ -117,21 +124,69 @@ void BKE_brush_channelset_merge(BrushChannelSet *dst,
                                 BrushChannelSet *parent);
 
 void BKE_brush_resolve_channels(struct Brush *brush, struct Sculpt *sd);
-int BKE_brush_channel_get_int(BrushChannelSet *chset, char *idname);
-float BKE_brush_channel_get_float(BrushChannelSet *chset, char *idname);
-float BKE_brush_channel_set_float(BrushChannelSet *chset, char *idname, float val);
+int BKE_brush_channelset_get_int(BrushChannelSet *chset, char *idname);
+
+// mapdata is optional, can be NULL
+
+float BKE_brush_channel_get_final_float(BrushChannelSet *brushset,
+                                        BrushChannelSet *toolset,
+                                        char *idname,
+                                        BrushMappingData *mapdata);
+void BKE_brush_channel_set_final_float(BrushChannelSet *brushset,
+                                       BrushChannelSet *toolset,
+                                       char *idname,
+                                       float value);
+
+/* mapdata may be NULL */
+float BKE_brush_channel_get_float(BrushChannel *ch, BrushMappingData *mapdata);
+void BKE_brush_channel_set_float(BrushChannel *ch, float val);
+
+/* mapdata may be NULL */
+float BKE_brush_channelset_get_float(BrushChannelSet *chset,
+                                     char *idname,
+                                     BrushMappingData *mapdata);
+bool BKE_brush_channelset_set_float(BrushChannelSet *chset, char *idname, float val);
+
+float BKE_brush_channelset_get_final_float(BrushChannelSet *child,
+                                           BrushChannelSet *parent,
+                                           char *idname,
+                                           BrushMappingData *mapdata);
+
+void BKE_brush_channelset_set_final_float(BrushChannelSet *child,
+                                          BrushChannelSet *parent,
+                                          char *idname,
+                                          float value);
+
 void BKE_brush_init_toolsettings(struct Sculpt *sd);
 void BKE_brush_builtin_create(struct Brush *brush, int tool);
 BrushCommandList *BKE_brush_commandlist_create();
 void BKE_brush_commandlist_free(BrushCommandList *cl);
-BrushCommand *BKE_brush_commandlist_add(BrushCommandList *cl);
+BrushCommand *BKE_brush_commandlist_add(BrushCommandList *cl,
+                                        BrushChannelSet *chset_template,
+                                        bool auto_inherit);
 BrushCommand *BKE_brush_command_init(BrushCommand *command, int tool);
-void BKE_builtin_commandlist_create(BrushChannelSet *chset, BrushCommandList *cl, int tool);
-void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *cset);
-void BKE_brush_channelset_write(BlendWriter *writer, BrushChannelSet *cset);
+void BKE_builtin_commandlist_create(struct Brush *brush,
+                                    BrushChannelSet *chset,
+                                    BrushCommandList *cl,
+                                    int tool,
+                                    BrushMappingData *map_data);  // map_data may be NULL
+void BKE_brush_channelset_read(struct BlendDataReader *reader, BrushChannelSet *cset);
+void BKE_brush_channelset_write(struct BlendWriter *writer, BrushChannelSet *cset);
 void BKE_brush_mapping_copy_data(BrushMapping *dst, BrushMapping *src);
 const char *BKE_brush_mapping_type_to_str(BrushMappingType mapping);
 const char *BKE_brush_mapping_type_to_typename(BrushMappingType mapping);
+
+void BKE_brush_channelset_flag_clear(BrushChannelSet *chset, const char *channel, int flag);
+void BKE_brush_channelset_flag_set(BrushChannelSet *chset, const char *channel, int flag);
+
+/* adds missing channels to exising .channels in brush.
+ * if channels do not exist use BKE_brush_builtin_create.
+ */
+void BKE_brush_builtin_patch(struct Brush *brush, int tool);
+
+void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
+                                      struct Brush *brush,
+                                      bool to_channels);
 
 #ifdef __cplusplus
 }

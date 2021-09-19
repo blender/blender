@@ -1060,8 +1060,13 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       BLO_read_data_address(reader, &sce->toolsettings->sculpt->channels);
       BKE_brush_channelset_read(reader, sce->toolsettings->sculpt->channels);
     }
-    else {
+    else if (sce->toolsettings->sculpt) {
       sce->toolsettings->sculpt->channels = BKE_brush_channelset_create();
+    }
+
+    if (sce->toolsettings->sculpt) {
+      // make sure radius exists in the toolsettings brush channel set
+      BKE_brush_channelset_ensure_builtin(sce->toolsettings->sculpt->channels, "RADIUS");
     }
 
     /* relink grease pencil interpolation curves */

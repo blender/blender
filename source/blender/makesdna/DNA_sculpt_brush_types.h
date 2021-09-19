@@ -24,6 +24,8 @@
  */
 #pragma once
 
+#include "DNA_color_types.h"
+
 typedef struct BrushMapping {
   char name[64];
   CurveMapping curve;
@@ -86,4 +88,7 @@ enum {
   BRUSH_CHANNEL_INT = 1 << 1,
   BRUSH_CHANNEL_ENUM = 1 << 2,
   BRUSH_CHANNEL_BITMASK = 1 << 3,
+  BRUSH_CHANNEL_BOOL = 1 << 4,
+  BRUSH_CHANNEL_VEC3 = 1 << 5,
+  BRUSH_CHANNEL_VEC4 = 1 << 6
 };

@@ -485,16 +485,6 @@ void vec_transform(float r_dir2[3], float no[3], int bits)
   }
 }
 
-volatile int blehrand = 0;
-static int blehrand_get()
-{
-  int i = blehrand;
-  i = (i * 124325 + 231423322) & 524287;
-
-  blehrand = i;
-  return i;
-}
-
 /* For bmesh: Average surrounding verts based on an orthogonality measure.
  * Naturally converges to a quad-like structure. */
 void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,

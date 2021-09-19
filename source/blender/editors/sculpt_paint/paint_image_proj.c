@@ -4461,7 +4461,10 @@ static void project_paint_begin(const bContext *C,
   /* At the moment this is just ps->arena_mt[0], but use this to show were not multi-threading. */
   MemArena *arena;
 
-  const int diameter = 2 * BKE_brush_size_get(ps->scene, ps->brush);
+  Object *ob = CTX_data_active_object(C);
+  bool use_brush_channels = paint_use_channels(C);
+
+  const int diameter = 2 * BKE_brush_size_get(ps->scene, ps->brush, use_brush_channels);
 
   bool reset_threads = false;
 
@@ -5908,7 +5911,10 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
   ProjStrokeHandle *ps_handle;
   Scene *scene = CTX_data_scene(C);
   ToolSettings *settings = scene->toolsettings;
+  ePaintMode paintmode = BKE_paintmode_get_active_from_context(C);
   char symmetry_flag_views[ARRAY_SIZE(ps_handle->ps_views)] = {0};
+
+  bool use_brush_channels = paint_use_channels(C);
 
   ps_handle = MEM_callocN(sizeof(ProjStrokeHandle), "ProjStrokeHandle");
   ps_handle->scene = scene;
@@ -5921,7 +5927,7 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
     return ps_handle;
   }
 
-  ps_handle->orig_brush_size = BKE_brush_size_get(scene, ps_handle->brush);
+  ps_handle->orig_brush_size = BKE_brush_size_get(scene, ps_handle->brush, use_brush_channels);
 
   Mesh *mesh = BKE_mesh_from_object(ob);
   ps_handle->symmetry_flags = mesh->symmetry;
@@ -5963,8 +5969,8 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
   }
 
   /* Don't allow brush size below 2 */
-  if (BKE_brush_size_get(scene, ps_handle->brush) < 2) {
-    BKE_brush_size_set(scene, ps_handle->brush, 2 * U.pixelsize);
+  if (BKE_brush_size_get(scene, ps_handle->brush, use_brush_channels) < 2) {
+    BKE_brush_size_set(scene, ps_handle->brush, 2 * U.pixelsize, paintmode == PAINT_MODE_SCULPT);
   }
 
   /* allocate and initialize spatial data structures */
@@ -6036,7 +6042,7 @@ void paint_proj_stroke_done(void *ps_handle_p)
     PROJ_PAINT_STATE_SHARED_CLEAR(ps_handle->ps_views[i]);
   }
 
-  BKE_brush_size_set(scene, ps_handle->brush, ps_handle->orig_brush_size);
+  BKE_brush_size_set(scene, ps_handle->brush, ps_handle->orig_brush_size, false);
 
   paint_brush_exit_tex(ps_handle->brush);
 
@@ -6067,6 +6073,8 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No active mesh object");
     return OPERATOR_CANCELLED;
   }
+
+  bool use_brush_channels = paint_use_channels(C);
 
   if (!ED_paint_proj_mesh_data_check(scene, ob, &uvs, &mat, &tex, NULL)) {
     ED_paint_data_warning(op->reports, uvs, mat, tex, true);
@@ -6119,9 +6127,9 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
   ps.is_texbrush = false;
   ps.is_maskbrush = false;
   ps.do_masking = false;
-  orig_brush_size = BKE_brush_size_get(scene, ps.brush);
+  orig_brush_size = BKE_brush_size_get(scene, ps.brush, use_brush_channels);
   /* cover the whole image */
-  BKE_brush_size_set(scene, ps.brush, 32 * U.pixelsize);
+  BKE_brush_size_set(scene, ps.brush, 32 * U.pixelsize, use_brush_channels);
 
   /* so pixels are initialized with minimal info */
   ps.tool = PAINT_TOOL_DRAW;
@@ -6132,7 +6140,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
   project_paint_begin(C, &ps, false, 0);
 
   if (ps.me_eval == NULL) {
-    BKE_brush_size_set(scene, ps.brush, orig_brush_size);
+    BKE_brush_size_set(scene, ps.brush, orig_brush_size, use_brush_channels);
     BKE_report(op->reports, RPT_ERROR, "Could not get valid evaluated mesh");
     return OPERATOR_CANCELLED;
   }
@@ -6157,7 +6165,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
   ED_image_undo_push_end();
 
   scene->toolsettings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
-  BKE_brush_size_set(scene, ps.brush, orig_brush_size);
+  BKE_brush_size_set(scene, ps.brush, orig_brush_size, false);
 
   return OPERATOR_FINISHED;
 }

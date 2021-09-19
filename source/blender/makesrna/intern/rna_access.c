@@ -3457,7 +3457,7 @@ int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop)
   return eprop->defaultvalue;
 }
 
-void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
+ATTR_NO_OPT void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 {
   EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
   IDProperty *idprop;

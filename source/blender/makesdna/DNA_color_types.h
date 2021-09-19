@@ -117,6 +117,9 @@ typedef enum eCurveMappingPreset {
   CURVE_PRESET_ROOT = 6,
   CURVE_PRESET_GAUSS = 7,
   CURVE_PRESET_BELL = 8,
+  CURVE_PRESET_POW2 = 9,
+  CURVE_PRESET_POW3 = 10,
+  CURVE_PRESET_POW15 = 11
 } eCurveMappingPreset;
 
 /** #CurveMapping.tone */

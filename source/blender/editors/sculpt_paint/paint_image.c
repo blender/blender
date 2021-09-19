@@ -598,6 +598,9 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
   ToolSettings *toolsettings = scene->toolsettings;
   PaintOperation *pop = paint_stroke_mode_data(stroke);
   Brush *brush = BKE_paint_brush(&toolsettings->imapaint.paint);
+  Object *ob = CTX_data_active_object(C);
+
+  bool is_sculpt = ob && ob->mode == OB_MODE_SCULPT;
 
   toolsettings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
 
@@ -614,7 +617,7 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
                           paint_stroke_flipped(stroke),
                           1.0,
                           0.0,
-                          BKE_brush_size_get(scene, brush));
+                          BKE_brush_size_get(scene, brush, is_sculpt));
         /* two redraws, one for GPU update, one for notification */
         paint_proj_redraw(C, pop->custom_paint, false);
         paint_proj_redraw(C, pop->custom_paint, true);
@@ -639,7 +642,7 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
                           paint_stroke_flipped(stroke),
                           1.0,
                           0.0,
-                          BKE_brush_size_get(scene, brush));
+                          BKE_brush_size_get(scene, brush, is_sculpt));
         /* two redraws, one for GPU update, one for notification */
         paint_proj_redraw(C, pop->custom_paint, false);
         paint_proj_redraw(C, pop->custom_paint, true);

@@ -1486,7 +1486,7 @@ static void vwpaint_update_cache_invariants(
   StrokeCache *cache;
   Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
-  const Brush *brush = vp->paint.brush;
+  Brush *brush = vp->paint.brush;
   ViewContext *vc = paint_stroke_view_context(op->customdata);
   Object *ob = CTX_data_active_object(C);
   float mat[3][3];
@@ -1571,7 +1571,7 @@ static void vwpaint_update_cache_variants(bContext *C, VPaint *vp, Object *ob, P
   /* Truly temporary data that isn't stored in properties */
   if (cache->first_time) {
     cache->initial_radius = paint_calc_object_space_radius(
-        cache->vc, cache->true_location, BKE_brush_size_get(scene, brush));
+        cache->vc, cache->true_location, BKE_brush_size_get(scene, brush, true));
     BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius);
   }
 
@@ -1758,7 +1758,7 @@ static void get_brush_alpha_data(const Scene *scene,
                                  float *r_brush_alpha_value,
                                  float *r_brush_alpha_pressure)
 {
-  *r_brush_size_pressure = BKE_brush_size_get(scene, brush) *
+  *r_brush_size_pressure = BKE_brush_size_get(scene, brush, true) *
                            (BKE_brush_use_size_pressure(brush) ? ss->cache->pressure : 1.0f);
   *r_brush_alpha_value = BKE_brush_alpha_get(scene, brush);
   *r_brush_alpha_pressure = (BKE_brush_use_alpha_pressure(brush) ? ss->cache->pressure : 1.0f);

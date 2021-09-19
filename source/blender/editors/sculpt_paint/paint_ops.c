@@ -143,10 +143,14 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
   // Object *ob = CTX_data_active_object(C);
   float scalar = RNA_float_get(op->ptr, "scalar");
 
+  bool use_brush_channels = paint_use_channels(C);
+  Object *ob = CTX_data_active_object(C);
+
   if (brush) {
     /* pixel radius */
     {
-      const int old_size = (!is_gpencil) ? BKE_brush_size_get(scene, brush) : brush->size;
+      const int old_size = (!is_gpencil) ? BKE_brush_size_get(scene, brush, use_brush_channels) :
+                                           brush->size;
       int size = (int)(scalar * old_size);
 
       if (abs(old_size - size) < U.pixelsize) {
@@ -164,7 +168,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
         return OPERATOR_FINISHED;
       }
 
-      BKE_brush_size_set(scene, brush, size);
+      BKE_brush_size_set(scene, brush, size, use_brush_channels);
     }
 
     /* unprojected radius */
