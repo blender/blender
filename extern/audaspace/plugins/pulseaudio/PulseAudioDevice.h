@@ -26,7 +26,11 @@
  * The PulseAudioDevice class.
  */
 
-#include "devices/ThreadedDevice.h"
+#include "devices/SoftwareDevice.h"
+#include "util/RingBuffer.h"
+
+#include <condition_variable>
+#include <thread>
 
 #include <pulse/pulseaudio.h>
 
@@ -35,16 +39,64 @@ AUD_NAMESPACE_BEGIN
 /**
  * This device plays back through PulseAudio, the simple direct media layer.
  */
-class AUD_PLUGIN_API PulseAudioDevice : public ThreadedDevice
+class AUD_PLUGIN_API PulseAudioDevice : public SoftwareDevice
 {
 private:
-	pa_mainloop* m_mainloop;
+	class PulseAudioSynchronizer : public DefaultSynchronizer
+	{
+		PulseAudioDevice* m_device;
+
+	public:
+		PulseAudioSynchronizer(PulseAudioDevice* device);
+
+		virtual double getPosition(std::shared_ptr<IHandle> handle);
+	};
+
+	/// Synchronizer.
+	PulseAudioSynchronizer m_synchronizer;
+
+	/**
+	 * Whether there is currently playback.
+	 */
+	volatile bool m_playback;
+
+	pa_threaded_mainloop* m_mainloop;
 	pa_context* m_context;
 	pa_stream* m_stream;
 	pa_context_state_t m_state;
 
+	/**
+	 * The mixing ring buffer.
+	 */
+	RingBuffer m_ring_buffer;
+
+	/**
+	 * Whether the device is valid.
+	 */
+	bool m_valid;
+
 	int m_buffersize;
 	uint32_t m_underflows;
+
+	/**
+	 * The mixing thread.
+	 */
+	std::thread m_mixingThread;
+
+	/**
+	 * Mutex for mixing.
+	 */
+	std::mutex m_mixingLock;
+
+	/**
+	 * Condition for mixing.
+	 */
+	std::condition_variable m_mixingCondition;
+
+	/**
+	 * Updates the ring buffer.
+	 */
+	AUD_LOCAL void updateRingBuffer();
 
 	/**
 	 * Reports the state of the PulseAudio server connection.
@@ -61,22 +113,12 @@ private:
 	 */
 	AUD_LOCAL static void PulseAudio_request(pa_stream* stream, size_t total_bytes, void* data);
 
-	/**
-	 * Reports an underflow from the PulseAudio server.
-	 * Automatically adjusts the latency if this happens too often.
-	 * @param stream The PulseAudio stream.
-	 * \param data The PulseAudio device.
-	 */
-	AUD_LOCAL static void PulseAudio_underflow(pa_stream* stream, void* data);
-
-	/**
-	 * Streaming thread main function.
-	 */
-	AUD_LOCAL void runMixingThread();
-
 	// delete copy constructor and operator=
 	PulseAudioDevice(const PulseAudioDevice&) = delete;
 	PulseAudioDevice& operator=(const PulseAudioDevice&) = delete;
+
+protected:
+	virtual void playing(bool playing);
 
 public:
 	/**
@@ -92,6 +134,8 @@ public:
 	 * Closes the PulseAudio audio device.
 	 */
 	virtual ~PulseAudioDevice();
+
+	virtual ISynchronizer* getSynchronizer();
 
 	/**
 	 * Registers this plugin.

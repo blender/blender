@@ -129,6 +129,7 @@ set(SRC
 	src/util/Barrier.cpp
 	src/util/Buffer.cpp
 	src/util/BufferReader.cpp
+	src/util/RingBuffer.cpp
 	src/util/StreamBuffer.cpp
 	src/util/ThreadPool.cpp
 )
@@ -244,6 +245,7 @@ set(PUBLIC_HDR
 	include/util/BufferReader.h
 	include/util/ILockable.h
 	include/util/Math3D.h
+	include/util/RingBuffer.h
 	include/util/StreamBuffer.h
 	include/util/ThreadPool.h
 )
