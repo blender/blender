@@ -493,7 +493,10 @@ typedef struct LengthGpencilModifierData {
   float overshoot_fac;
   /** Modifier mode. */
   int mode;
-  char _pad[4];
+  /* Curvature paramters. */
+  float point_density;
+  float edge_point_tradeoff;
+  float max_angle;
 } LengthGpencilModifierData;
 
 typedef enum eLengthGpencil_Flag {
@@ -501,6 +504,8 @@ typedef enum eLengthGpencil_Flag {
   GP_LENGTH_INVERT_PASS = (1 << 1),
   GP_LENGTH_INVERT_LAYERPASS = (1 << 2),
   GP_LENGTH_INVERT_MATERIAL = (1 << 3),
+  GP_LENGTH_USE_CURVATURE = (1 << 4),
+  GP_LENGTH_INVERT_CURVATURE = (1 << 5),
 } eLengthGpencil_Flag;
 
 typedef enum eLengthGpencil_Type {
