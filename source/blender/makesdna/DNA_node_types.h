@@ -2039,14 +2039,14 @@ typedef enum GeometryNodeCurvePrimitiveBezierSegmentMode {
 } GeometryNodeCurvePrimitiveBezierSegmentMode;
 
 typedef enum GeometryNodeCurveResampleMode {
-  GEO_NODE_CURVE_SAMPLE_COUNT = 0,
-  GEO_NODE_CURVE_SAMPLE_LENGTH = 1,
-  GEO_NODE_CURVE_SAMPLE_EVALUATED = 2,
+  GEO_NODE_CURVE_RESAMPLE_COUNT = 0,
+  GEO_NODE_CURVE_RESAMPLE_LENGTH = 1,
+  GEO_NODE_CURVE_RESAMPLE_EVALUATED = 2,
 } GeometryNodeCurveResampleMode;
 
 typedef enum GeometryNodeCurveSampleMode {
-  GEO_NODE_CURVE_INTERPOLATE_FACTOR = 0,
-  GEO_NODE_CURVE_INTERPOLATE_LENGTH = 1,
+  GEO_NODE_CURVE_SAMPLE_FACTOR = 0,
+  GEO_NODE_CURVE_RESAMPLE_LENGTH = 1,
 } GeometryNodeCurveSampleMode;
 
 typedef enum GeometryNodeAttributeTransferMapMode {

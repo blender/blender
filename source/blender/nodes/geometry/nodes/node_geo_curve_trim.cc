@@ -46,7 +46,7 @@ static void geo_node_curve_trim_init(bNodeTree *UNUSED(tree), bNode *node)
   NodeGeometryCurveTrim *data = (NodeGeometryCurveTrim *)MEM_callocN(sizeof(NodeGeometryCurveTrim),
                                                                      __func__);
 
-  data->mode = GEO_NODE_CURVE_INTERPOLATE_FACTOR;
+  data->mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
   node->storage = data;
 }
 
@@ -60,10 +60,10 @@ static void geo_node_curve_trim_update(bNodeTree *UNUSED(ntree), bNode *node)
   bNodeSocket *start_len = end_fac->next;
   bNodeSocket *end_len = start_len->next;
 
-  nodeSetSocketAvailability(start_fac, mode == GEO_NODE_CURVE_INTERPOLATE_FACTOR);
-  nodeSetSocketAvailability(end_fac, mode == GEO_NODE_CURVE_INTERPOLATE_FACTOR);
-  nodeSetSocketAvailability(start_len, mode == GEO_NODE_CURVE_INTERPOLATE_LENGTH);
-  nodeSetSocketAvailability(end_len, mode == GEO_NODE_CURVE_INTERPOLATE_LENGTH);
+  nodeSetSocketAvailability(start_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+  nodeSetSocketAvailability(end_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+  nodeSetSocketAvailability(start_len, mode == GEO_NODE_CURVE_RESAMPLE_LENGTH);
+  nodeSetSocketAvailability(end_len, mode == GEO_NODE_CURVE_RESAMPLE_LENGTH);
 }
 
 struct TrimLocation {
@@ -336,12 +336,11 @@ static void geo_node_curve_trim_exec(GeoNodeExecParams params)
   CurveEval &curve = *curve_component.get_for_write();
   MutableSpan<SplinePtr> splines = curve.splines();
 
-  const float start = mode == GEO_NODE_CURVE_INTERPOLATE_FACTOR ?
+  const float start = mode == GEO_NODE_CURVE_SAMPLE_FACTOR ?
                           params.extract_input<float>("Start") :
                           params.extract_input<float>("Start_001");
-  const float end = mode == GEO_NODE_CURVE_INTERPOLATE_FACTOR ?
-                        params.extract_input<float>("End") :
-                        params.extract_input<float>("End_001");
+  const float end = mode == GEO_NODE_CURVE_SAMPLE_FACTOR ? params.extract_input<float>("End") :
+                                                           params.extract_input<float>("End_001");
 
   threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
     for (const int i : range) {
@@ -360,11 +359,11 @@ static void geo_node_curve_trim_exec(GeoNodeExecParams params)
       }
 
       const Spline::LookupResult start_lookup =
-          (mode == GEO_NODE_CURVE_INTERPOLATE_LENGTH) ?
+          (mode == GEO_NODE_CURVE_RESAMPLE_LENGTH) ?
               spline.lookup_evaluated_length(std::clamp(start, 0.0f, spline.length())) :
               spline.lookup_evaluated_factor(std::clamp(start, 0.0f, 1.0f));
       const Spline::LookupResult end_lookup =
-          (mode == GEO_NODE_CURVE_INTERPOLATE_LENGTH) ?
+          (mode == GEO_NODE_CURVE_RESAMPLE_LENGTH) ?
               spline.lookup_evaluated_length(std::clamp(end, 0.0f, spline.length())) :
               spline.lookup_evaluated_factor(std::clamp(end, 0.0f, 1.0f));
 

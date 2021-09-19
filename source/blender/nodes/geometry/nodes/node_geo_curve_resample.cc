@@ -50,7 +50,7 @@ static void geo_node_curve_resample_init(bNodeTree *UNUSED(tree), bNode *node)
   NodeGeometryCurveResample *data = (NodeGeometryCurveResample *)MEM_callocN(
       sizeof(NodeGeometryCurveResample), __func__);
 
-  data->mode = GEO_NODE_CURVE_SAMPLE_COUNT;
+  data->mode = GEO_NODE_CURVE_RESAMPLE_COUNT;
   node->storage = data;
 }
 
@@ -62,8 +62,8 @@ static void geo_node_curve_resample_update(bNodeTree *UNUSED(ntree), bNode *node
   bNodeSocket *count_socket = ((bNodeSocket *)node->inputs.first)->next;
   bNodeSocket *length_socket = count_socket->next;
 
-  nodeSetSocketAvailability(count_socket, mode == GEO_NODE_CURVE_SAMPLE_COUNT);
-  nodeSetSocketAvailability(length_socket, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+  nodeSetSocketAvailability(count_socket, mode == GEO_NODE_CURVE_RESAMPLE_COUNT);
+  nodeSetSocketAvailability(length_socket, mode == GEO_NODE_CURVE_RESAMPLE_LENGTH);
 }
 
 struct SampleModeParam {
@@ -172,7 +172,7 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveEval &input_curve,
   output_curve->resize(input_splines.size());
   MutableSpan<SplinePtr> output_splines = output_curve->splines();
 
-  if (mode_param.mode == GEO_NODE_CURVE_SAMPLE_COUNT) {
+  if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_COUNT) {
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
         BLI_assert(mode_param.count);
@@ -180,7 +180,7 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveEval &input_curve,
       }
     });
   }
-  else if (mode_param.mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
+  else if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_LENGTH) {
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
         const float length = input_splines[i]->length();
@@ -189,7 +189,7 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveEval &input_curve,
       }
     });
   }
-  else if (mode_param.mode == GEO_NODE_CURVE_SAMPLE_EVALUATED) {
+  else if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_EVALUATED) {
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
         output_splines[i] = resample_spline_evaluated(*input_splines[i]);
@@ -218,7 +218,7 @@ static void geo_node_resample_exec(GeoNodeExecParams params)
   const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
   SampleModeParam mode_param;
   mode_param.mode = mode;
-  if (mode == GEO_NODE_CURVE_SAMPLE_COUNT) {
+  if (mode == GEO_NODE_CURVE_RESAMPLE_COUNT) {
     const int count = params.extract_input<int>("Count");
     if (count < 1) {
       params.set_output("Geometry", GeometrySet());
@@ -226,7 +226,7 @@ static void geo_node_resample_exec(GeoNodeExecParams params)
     }
     mode_param.count.emplace(count);
   }
-  else if (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
+  else if (mode == GEO_NODE_CURVE_RESAMPLE_LENGTH) {
     /* Don't allow asymptotic count increase for low resolution values. */
     const float resolution = std::max(params.extract_input<float>("Length"), 0.0001f);
     mode_param.length.emplace(resolution);

@@ -190,7 +190,7 @@ static void accumulate_lengths(Span<float3> positions,
  * Return non-owning access to the cache of accumulated lengths along the spline. Each item is the
  * length of the subsequent segment, i.e. the first value is the length of the first segment rather
  * than 0. This calculation is rather trivial, and only depends on the evaluated positions.
- * However, the results are used often, so it makes sense to cache it.
+ * However, the results are used often, and it is necessarily single threaded, so it is cached.
  */
 Span<float> Spline::evaluated_lengths() const
 {

@@ -46,7 +46,7 @@ static void geo_node_curve_to_points_init(bNodeTree *UNUSED(tree), bNode *node)
   NodeGeometryCurveToPoints *data = (NodeGeometryCurveToPoints *)MEM_callocN(
       sizeof(NodeGeometryCurveToPoints), __func__);
 
-  data->mode = GEO_NODE_CURVE_SAMPLE_COUNT;
+  data->mode = GEO_NODE_CURVE_RESAMPLE_COUNT;
   node->storage = data;
 }
 
@@ -58,8 +58,8 @@ static void geo_node_curve_to_points_update(bNodeTree *UNUSED(ntree), bNode *nod
   bNodeSocket *count_socket = ((bNodeSocket *)node->inputs.first)->next;
   bNodeSocket *length_socket = count_socket->next;
 
-  nodeSetSocketAvailability(count_socket, mode == GEO_NODE_CURVE_SAMPLE_COUNT);
-  nodeSetSocketAvailability(length_socket, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+  nodeSetSocketAvailability(count_socket, mode == GEO_NODE_CURVE_RESAMPLE_COUNT);
+  nodeSetSocketAvailability(length_socket, mode == GEO_NODE_CURVE_RESAMPLE_LENGTH);
 }
 
 /**
@@ -83,7 +83,7 @@ static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
 {
   const int size = curve.splines().size();
   switch (mode) {
-    case GEO_NODE_CURVE_SAMPLE_COUNT: {
+    case GEO_NODE_CURVE_RESAMPLE_COUNT: {
       const int count = params.extract_input<int>("Count");
       if (count < 1) {
         return {0};
@@ -94,7 +94,7 @@ static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
       }
       return offsets;
     }
-    case GEO_NODE_CURVE_SAMPLE_LENGTH: {
+    case GEO_NODE_CURVE_RESAMPLE_LENGTH: {
       /* Don't allow asymptotic count increase for low resolution values. */
       const float resolution = std::max(params.extract_input<float>("Length"), 0.0001f);
       Array<int> offsets(size + 1);
@@ -106,7 +106,7 @@ static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
       offsets.last() = offset;
       return offsets;
     }
-    case GEO_NODE_CURVE_SAMPLE_EVALUATED: {
+    case GEO_NODE_CURVE_RESAMPLE_EVALUATED: {
       return curve.evaluated_point_offsets();
     }
   }
@@ -331,11 +331,11 @@ static void geo_node_curve_to_points_exec(GeoNodeExecParams params)
   CurveToPointsResults new_attributes = curve_to_points_create_result_attributes(point_component,
                                                                                  curve);
   switch (mode) {
-    case GEO_NODE_CURVE_SAMPLE_COUNT:
-    case GEO_NODE_CURVE_SAMPLE_LENGTH:
+    case GEO_NODE_CURVE_RESAMPLE_COUNT:
+    case GEO_NODE_CURVE_RESAMPLE_LENGTH:
       copy_uniform_sample_point_attributes(splines, offsets, new_attributes);
       break;
-    case GEO_NODE_CURVE_SAMPLE_EVALUATED:
+    case GEO_NODE_CURVE_RESAMPLE_EVALUATED:
       copy_evaluated_point_attributes(splines, offsets, new_attributes);
       break;
   }

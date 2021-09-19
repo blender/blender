@@ -66,8 +66,8 @@ static void geo_node_attribute_capture_update(bNodeTree *UNUSED(ntree), bNode *n
                                                      node->storage;
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
 
-  bNodeSocket *socket_value_attribute_name = (bNodeSocket *)node->inputs.first;
-  bNodeSocket *socket_value_vector = socket_value_attribute_name->next;
+  bNodeSocket *socket_value_geometry = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *socket_value_vector = socket_value_geometry->next;
   bNodeSocket *socket_value_float = socket_value_vector->next;
   bNodeSocket *socket_value_color4f = socket_value_float->next;
   bNodeSocket *socket_value_boolean = socket_value_color4f->next;
@@ -79,8 +79,8 @@ static void geo_node_attribute_capture_update(bNodeTree *UNUSED(ntree), bNode *n
   nodeSetSocketAvailability(socket_value_boolean, data_type == CD_PROP_BOOL);
   nodeSetSocketAvailability(socket_value_int32, data_type == CD_PROP_INT32);
 
-  bNodeSocket *out_socket_value_attribute_name = (bNodeSocket *)node->outputs.first;
-  bNodeSocket *out_socket_value_vector = out_socket_value_attribute_name->next;
+  bNodeSocket *out_socket_value_geometry = (bNodeSocket *)node->outputs.first;
+  bNodeSocket *out_socket_value_vector = out_socket_value_geometry->next;
   bNodeSocket *out_socket_value_float = out_socket_value_vector->next;
   bNodeSocket *out_socket_value_color4f = out_socket_value_float->next;
   bNodeSocket *out_socket_value_boolean = out_socket_value_color4f->next;

@@ -110,7 +110,7 @@ void CurveEval::bounds_min_max(float3 &min, float3 &max, const bool use_evaluate
 }
 
 /**
- * Return the start indices for each of the curve spline's evaluated points, as if they were part
+ * Return the start indices for each of the curve spline's control points, if they were part
  * of a flattened array. This can be used to facilitate parallelism by avoiding the need to
  * accumulate an offset while doing more complex calculations.
  *
