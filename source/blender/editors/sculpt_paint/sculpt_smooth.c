@@ -1061,9 +1061,9 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
 #else
 
-static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
-                                       const int n,
-                                       const TaskParallelTLS *__restrict tls)
+ATTR_NO_OPT static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
+                                                   const int n,
+                                                   const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;

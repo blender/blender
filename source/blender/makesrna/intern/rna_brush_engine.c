@@ -406,6 +406,10 @@ void RNA_def_brush_channelset(BlenderRNA *brna)
       func, "channel", "BrushChannel", "", "Ensure a copy of channel exists in this channel set");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
+  parm = RNA_def_boolean(
+      func, "queue", true, "queue", "Add channel to an internal queue to avoid corrupting the UI");
+  // RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
   prop = RNA_def_property(srna, "channels", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "channels", "totchannel");
   RNA_def_property_collection_funcs(prop,

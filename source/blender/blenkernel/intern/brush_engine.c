@@ -200,15 +200,53 @@ BrushChannelSet *BKE_brush_channelset_create()
   return (BrushChannelSet *)MEM_callocN(sizeof(BrushChannelSet), "BrushChannelSet");
 }
 
+void BKE_brush_apply_queued_channels(BrushChannelSet *chset, bool do_override)
+{
+  if (!chset->tot_queued_channel) {
+    return;
+  }
+
+  for (int i = 0; i < chset->tot_queued_channel; i++) {
+    BrushChannel *ch = chset->queued_channels;
+
+    BrushChannel *exist = BKE_brush_channelset_lookup(chset, ch->idname);
+
+    if (exist) {
+      if (!do_override) {
+        continue;
+      }
+
+      BKE_brush_channel_free(exist);
+      *exist = *ch;
+
+      continue;
+    }
+    else {
+      BKE_brush_channelset_add(chset, ch);
+      BKE_brush_channel_free(ch);
+    }
+  }
+
+  MEM_SAFE_FREE(chset->queued_channels);
+  chset->queued_channels = NULL;
+  chset->tot_queued_channel = NULL;
+}
+
 void BKE_brush_channelset_free(BrushChannelSet *chset)
 {
-  if (chset->channels) {
-    for (int i = 0; i < chset->totchannel; i++) {
-      BKE_brush_channel_free(chset->channels + i);
-    }
+  for (int step = 0; step < 2; step++) {
+    BrushChannel *channels = step ? chset->queued_channels : chset->channels;
+    int totchannel = step ? chset->tot_queued_channel : chset->totchannel;
 
-    MEM_freeN(chset->channels);
+    if (channels) {
+      for (int i = 0; i < totchannel; i++) {
+        BKE_brush_channel_free(channels + i);
+      }
+
+      MEM_freeN(channels);
+    }
   }
+
   MEM_freeN(chset);
 }
 
@@ -226,6 +264,26 @@ void BKE_brush_channelset_add(BrushChannelSet *chset, BrushChannel *ch)
 
   namestack_push(__func__);
   BKE_brush_channel_copy_data(chset->channels + chset->totchannel - 1, ch);
+  namestack_pop();
+}
+
+// used to avoid messing up pointers in ui
+void BKE_brush_channelset_queue(BrushChannelSet *chset, BrushChannel *ch)
+{
+  chset->tot_queued_channel++;
+
+  if (!chset->queued_channels) {
+    chset->queued_channels = MEM_callocN(sizeof(BrushChannel) * chset->tot_queued_channel,
+                                         "chset->channels");
+  }
+  else {
+    chset->queued_channels = MEM_recallocN_id(chset->queued_channels,
+                                              sizeof(BrushChannel) * chset->tot_queued_channel,
+                                              "chset->queued_channels");
+  }
+
+  namestack_push(__func__);
+  BKE_brush_channel_copy_data(chset->queued_channels + chset->tot_queued_channel - 1, ch);
   namestack_pop();
 }
 
@@ -318,14 +376,22 @@ bool BKE_brush_channelset_ensure_builtin(BrushChannelSet *chset, const char *idn
   return false;
 }
 
-void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset, BrushChannel *existing)
+void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset,
+                                          BrushChannel *existing,
+                                          bool queue)
 {
   if (BKE_brush_channelset_has(chset, existing->idname)) {
     return;
   }
 
   namestack_push(__func__);
-  BKE_brush_channelset_add(chset, existing);
+  if (!queue) {
+    BKE_brush_channelset_add(chset, existing);
+  }
+  else {
+    BKE_brush_channelset_queue(chset, existing);
+  }
+
   namestack_pop();
 }
 #define ADDCH(name) BKE_brush_channelset_ensure_builtin(chset, name)
@@ -667,6 +733,14 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH("ORIGINAL_PLANE");
   ADDCH("JITTER");
   ADDCH("JITTER_ABSOLUTE");
+  ADDCH("USE_WEIGHTED_SMOOTH");
+  ADDCH("PRESERVE_FACESET_BOUNDARY");
+  ADDCH("HARD_EDGE_MODE");
+  ADDCH("GRAB_SILHOUETTE");
+
+  ADDCH("PROJECTION");
+  ADDCH("BOUNDARY_SMOOTH");
+  ADDCH("FSET_SLIDE");
 
   switch (tool) {
     case SCULPT_TOOL_DRAW: {
@@ -678,6 +752,15 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   }
 
   namestack_pop();
+}
+
+void BKE_brush_init_scene_defaults(Sculpt *sd)
+{
+  if (!sd->channels) {
+    sd->channels = BKE_brush_channelset_create();
+  }
+
+  BrushChannelSet *chset = sd->channels;
 }
 
 void BKE_brush_builtin_create(Brush *brush, int tool)
@@ -801,6 +884,10 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(topology_rake_projection, TOPOLOGY_RAKE_PROJECTION, FLOAT, FLOAT)
   DEF(topology_rake_radius_factor, TOPOLOGY_RAKE_RADIUS_SCALE, FLOAT, FLOAT)
   DEF(topology_rake_spacing, TOPOLOGY_RAKE_SPACING, INT, FLOAT)
+  DEF(topology_rake_factor, TOPOLOGY_RAKE, FLOAT, FLOAT)
+  DEF(autosmooth_fset_slide, FSET_SLIDE, FLOAT, FLOAT)
+  DEF(boundary_smooth_factor, BOUNDARY_SMOOTH, FLOAT, FLOAT)
+  DEF(autosmooth_radius_factor, AUTOSMOOTH_RADIUS_SCALE, FLOAT, FLOAT)
   DEF(normal_weight, NORMAL_WEIGHT, FLOAT, FLOAT)
   DEF(rake_factor, RAKE_FACTOR, FLOAT, FLOAT)
   DEF(weight, WEIGHT, FLOAT, FLOAT)
@@ -814,9 +901,6 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(wet_persistence, WET_PERSISTENCE, FLOAT, FLOAT)
   DEF(density, DENSITY, FLOAT, FLOAT)
   DEF(tip_scale_x, TIP_SCALE_X, FLOAT, FLOAT)
-  DEF(autosmooth_fset_slide, FSET_SLIDE, FLOAT, FLOAT)
-  DEF(boundary_smooth_factor, BOUNDARY_SMOOTH, FLOAT, FLOAT)
-  DEF(autosmooth_radius_factor, AUTOSMOOTH_RADIUS_SCALE, FLOAT, FLOAT)
 };
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
 
@@ -838,6 +922,10 @@ BrushFlagMap brush_flags_map[] =  {
   DEF(flag, ORIGINAL_NORMAL, BRUSH_ORIGINAL_NORMAL)
   DEF(flag, ORIGINAL_PLANE, BRUSH_ORIGINAL_PLANE)
   DEF(flag, ACCUMULATE, BRUSH_ACCUMULATE)
+  DEF(flag2, USE_WEIGHTED_SMOOTH, BRUSH_SMOOTH_USE_AREA_WEIGHT)
+  DEF(flag2, PRESERVE_FACESET_BOUNDARY, BRUSH_SMOOTH_PRESERVE_FACE_SETS)
+  DEF(flag2, HARD_EDGE_MODE, BRUSH_HARD_EDGE_MODE)
+  DEF(flag2, GRAB_SILHOUETTE, BRUSH_GRAB_SILHOUETTE)
 };
 int brush_flags_map_len = ARRAY_SIZE(brush_flags_map);
 
@@ -1175,6 +1263,10 @@ ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
 void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *cset)
 {
   BLO_read_data_address(reader, &cset->channels);
+
+  // drop any queued channels, we don't save them.
+  cset->queued_channels = NULL;
+  cset->tot_queued_channel = 0;
 
   for (int i = 0; i < cset->totchannel; i++) {
     BrushChannel *ch = cset->channels + i;

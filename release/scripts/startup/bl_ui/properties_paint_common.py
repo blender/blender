@@ -26,6 +26,8 @@ channel_name_map = {
     "auto_smooth_projection": "SMOOTH_PROJECTION",
     "auto_smooth_radius_factor": "AUTOSMOOTH_RADIUS_SCALE",
     "boundary_smooth_factor": "BOUNDARY_SMOOTH",
+    "autosmooth_fset_slide": "FSET_SLIDE",
+    "topology_rake_factor": "TOPOLOGY_RAKE"
 };
 
 class UnifiedPaintPanel:
@@ -122,6 +124,8 @@ class UnifiedPaintPanel:
         typeprop = "float_value"
         if ch.type == "INT":
             typeprop = "int_value"
+        elif ch.type == "BOOL":
+            typeprop = "bool_value"
 
         if text is None:
             s = prop_name.lower().replace("_", " ").split(" ");
@@ -133,12 +137,14 @@ class UnifiedPaintPanel:
         if ch.inherit:
             sd = context.tool_settings.sculpt
             #ensure channel exists in tool settings channel set
-            sd.channels.ensure(ch)
+            sd.channels.ensure(ch, queue=True)
 
             finalch = sd.channels.channels[prop_name]
 
         row.prop(finalch, typeprop, icon=icon, text=text, slider=slider)
 
+        pressure = pressure and ch.type != "BOOL"
+            
         if pressure:
             row.prop(finalch.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
         #if pressure_name:
@@ -147,7 +153,7 @@ class UnifiedPaintPanel:
         #if unified_name and not header:
         #    # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
         #    row.prop(ups, unified_name, text="", icon='BRUSHES_ALL')
-        if not header:
+        if not header and ch.type != "BOOL":
             row.prop(ch, "inherit", text="", icon='BRUSHES_ALL')
             row.prop(ch, "ui_expanded", text="", icon="TRIA_DOWN" if ch.ui_expanded else "TRIA_RIGHT")
 
@@ -670,12 +676,17 @@ def brush_settings(layout, context, brush, popover=False):
                 slider=True,
             )
 
-            box.prop(brush, "boundary_smooth_factor")
-            box.prop(brush, "use_weighted_smooth")
-            box.prop(brush, "preserve_faceset_boundary")
+            #box.prop(brush, "boundary_smooth_factor")
+            #box.prop(brush, "use_weighted_smooth")
+            #box.prop(brush, "preserve_faceset_boundary")
 
-            if brush.preserve_faceset_boundary:
-                box.prop(brush, "autosmooth_fset_slide")
+            UnifiedPaintPanel.prop_unified(box, context, brush, "boundary_smooth_factor", slider=True)
+            UnifiedPaintPanel.prop_unified(box, context, brush, "use_weighted_smooth")
+            UnifiedPaintPanel.prop_unified(box, context, brush, "preserve_faceset_boundary")
+
+            if 1: #brush.preserve_faceset_boundary:
+                UnifiedPaintPanel.prop_unified(box, context, brush, "autosmooth_fset_slide", slider=True)
+                #box.prop(brush, "autosmooth_fset_slide")
 
             box.prop(brush, "use_custom_auto_smooth_spacing", text="Custom Spacing")
             if brush.use_custom_auto_smooth_spacing:
@@ -720,7 +731,15 @@ def brush_settings(layout, context, brush, popover=False):
         ):
             box = layout.box().column() #.column() is a bit more compact
             
-            box.prop(brush, "topology_rake_factor", slider=True)
+            #box.prop(brush, "topology_rake_factor", slider=True)
+            UnifiedPaintPanel.prop_unified(
+                    box,
+                    context,
+                    brush,
+                    "topology_rake_factor",
+                    slider=True,
+                    text="Topology Rake"
+                ) 
             box.prop(brush, "use_custom_topology_rake_spacing", text="Custom Spacing")
 
             if brush.use_custom_topology_rake_spacing:

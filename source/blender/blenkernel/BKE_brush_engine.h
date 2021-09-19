@@ -108,9 +108,12 @@ void BKE_brush_channelset_free(BrushChannelSet *chset);
 
 // makes a copy of ch
 void BKE_brush_channelset_add(BrushChannelSet *chset, BrushChannel *ch);
+void BKE_brush_channelset_queue(BrushChannelSet *chset, BrushChannel *ch);
 
 // checks is a channel with existing->idname exists; if not a copy of existing is made and inserted
-void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset, BrushChannel *existing);
+void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset,
+                                          BrushChannel *existing,
+                                          bool queue);
 
 BrushChannel *BKE_brush_channelset_lookup(BrushChannelSet *chset, const char *idname);
 
@@ -187,6 +190,9 @@ void BKE_brush_builtin_patch(struct Brush *brush, int tool);
 void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
                                       struct Brush *brush,
                                       bool to_channels);
+
+// merge in channels the ui requested
+void BKE_brush_apply_queued_channels(BrushChannelSet *chset, bool do_override);
 
 #ifdef __cplusplus
 }

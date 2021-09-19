@@ -1361,6 +1361,28 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 24)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      // load old brush settings into channels
+      if (brush->channels) {
+        BKE_brush_channelset_free(brush->channels);
+        brush->channels = NULL;
+      }
+
+      BKE_brush_builtin_create(brush, brush->sculpt_tool);
+      BKE_brush_channelset_compat_load(brush->channels, brush, true);
+    }
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->toolsettings->sculpt) {
+        printf("scene channels: %p\n", scene->toolsettings->sculpt->channels);
+        if (scene->toolsettings->sculpt->channels) {
+          BKE_brush_channelset_free(scene->toolsettings->sculpt->channels);
+          scene->toolsettings->sculpt->channels = BKE_brush_channelset_create();
+        }
+      }
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *

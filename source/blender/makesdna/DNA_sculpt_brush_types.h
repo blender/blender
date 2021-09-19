@@ -50,7 +50,10 @@ typedef struct BrushChannel {
 
 typedef struct BrushChannelSet {
   BrushChannel *channels;
-  int totchannel, _pad[1];
+  /*cannot add channels within the UI loop.  Since it's
+    hard to avoid it they're put here.*/
+  BrushChannel *queued_channels;
+  int totchannel, tot_queued_channel;
 } BrushChannelSet;
 
 // mapping flags

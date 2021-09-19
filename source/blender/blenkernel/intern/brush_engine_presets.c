@@ -416,7 +416,11 @@ BrushChannelType brush_builtin_channels[] = {
     MAKE_FLOAT("DASH_RATIO", "Dash Ratio", "Ratio of samples in a cycle that the brush is enabled", 0.0f, 0.0f, 1.0f),
     MAKE_FLOAT_EX("PLANE_OFFSET", "Plane Offset", "Adjust plane on which the brush acts towards or away from the object surface", 0.0f, -2.0f, 2.0f, -0.5f, 0.5f),
     MAKE_BOOL("ORIGINAL_NORMAL", "Original Normal", "When locked keep using normal of surface where stroke was initiated", false),
-    MAKE_BOOL("ORIGINAL_PLANE", "Original Plane", "When locked keep using the plane origin of surface where stroke was initiated", false)
+    MAKE_BOOL("ORIGINAL_PLANE", "Original Plane", "When locked keep using the plane origin of surface where stroke was initiated", false),
+    MAKE_BOOL("USE_WEIGHTED_SMOOTH", "Weight By Area", "Weight by face area to get a smoother result", true),
+    MAKE_BOOL("PRESERVE_FACESET_BOUNDARY", "Keep FSet Boundary", "Preserve face set boundaries", true),
+    MAKE_BOOL("HARD_EDGE_MODE", "Hard Edge Mode", "Forces all brushes into hard edge face set mode (sets face set slide to 0)", false),
+    MAKE_BOOL("GRAB_SILHOUETTE", "Grab Silhouette", "Grabs trying to automask the silhouette of the object", false),
 };
 
 /* clang-format on */

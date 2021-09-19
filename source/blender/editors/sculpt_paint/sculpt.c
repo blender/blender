@@ -9010,6 +9010,8 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
     *brush2 = *brush;
 
     ss->cache->brush = brush2;
+    ss->cache->bstrength = BKE_brush_channelset_get_float(
+        cmd->params_final, "STRENGTH", &ss->cache->input_mapping);
 
     // Load parameters into brush2 for compatibility with old code
     BKE_brush_channelset_compat_load(cmd->params_final, brush2, false);
