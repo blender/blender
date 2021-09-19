@@ -85,7 +85,7 @@ void BKE_curvemapping_set_defaults(
   cumap->changed_timestamp = 0;
 }
 
-CurveMapping *BKE_curvemapping_add(int tot, float minx, float miny, float maxx, float maxy)
+ATTR_NO_OPT CurveMapping *BKE_curvemapping_add(int tot, float minx, float miny, float maxx, float maxy)
 {
   CurveMapping *cumap;
 
@@ -96,7 +96,7 @@ CurveMapping *BKE_curvemapping_add(int tot, float minx, float miny, float maxx, 
   return cumap;
 }
 
-void BKE_curvemapping_free_data(CurveMapping *cumap)
+ATTR_NO_OPT void BKE_curvemapping_free_data(CurveMapping *cumap)
 {
   int a;
 

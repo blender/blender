@@ -137,7 +137,7 @@ class UnifiedPaintPanel:
         if ch.inherit:
             sd = context.tool_settings.sculpt
             #ensure channel exists in tool settings channel set
-            sd.channels.ensure(ch, queue=True)
+            sd.channels.ensure(ch)
 
             finalch = sd.channels.channels[prop_name]
 

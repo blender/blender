@@ -315,6 +315,7 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
 
   if (brush->channels) {
     BLO_read_data_address(reader, &brush->channels);
+
     BKE_brush_channelset_read(reader, brush->channels);
     BKE_brush_builtin_patch(brush, brush->sculpt_tool);
   }
@@ -1798,12 +1799,12 @@ void BKE_brush_sculpt_reset(Brush *br)
   // BKE_brush_debug_print_state(br);
 
   BKE_brush_builtin_create(br, br->sculpt_tool);
+  BrushChannel *ch;
 
-  for (int i = 0; i < br->channels->totchannel; i++) {
-    BrushChannel *ch = br->channels->channels + i;
+  for (ch = (BrushChannel *)br->channels->channels.first; ch; ch = ch->next) {
     BrushChannelType *def = ch->def;
 
-    BKE_brush_channel_free(ch);
+    BKE_brush_channel_free_data(ch);
     BKE_brush_channel_init(ch, def);
   }
 

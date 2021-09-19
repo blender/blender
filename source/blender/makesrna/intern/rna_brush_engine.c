@@ -22,12 +22,14 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_listBase.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -43,7 +45,7 @@
 #include "DNA_sculpt_brush_types.h"
 #include "WM_types.h"
 
-static EnumPropertyItem null_enum[1] = {{0, "null", 0, 0}, {-1, NULL, -1, -1}};
+static EnumPropertyItem null_enum[2] = {{0, "null", 0, 0}, {-1, NULL, -1, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -51,8 +53,7 @@ int rna_BrushChannelSet_channels_begin(CollectionPropertyIterator *iter, struct 
 {
   BrushChannelSet *chset = ptr->data;
 
-  rna_iterator_array_begin(
-      iter, chset->channels, sizeof(BrushChannel), chset->totchannel, false, NULL);
+  rna_iterator_listbase_begin(iter, &chset->channels, NULL);
 
   return 1;
 }
@@ -62,10 +63,12 @@ int rna_BrushChannelSet_channels_assignint(struct PointerRNA *ptr,
                                            const struct PointerRNA *assign_ptr)
 {
   BrushChannelSet *chset = ptr->data;
-  BrushChannel *ch = chset->channels + key;
   BrushChannel *src = assign_ptr->data;
+  BrushChannel *ch = BLI_findlink(&chset->channels, key);
 
-  BKE_brush_channel_copy_data(ch, src);
+  if (ch) {
+    BKE_brush_channel_copy_data(ch, src);
+  }
 
   return 1;
 }
@@ -213,7 +216,9 @@ ATTR_NO_OPT const EnumPropertyItem *rna_BrushChannel_enum_value_get_items(struct
     return null_enum;
   }
 
-  return ch->def->enumdef.items;
+  BKE_brush_channeltype_rna_check(ch->def);
+
+  return ch->def->rna_enumdef;
 }
 
 #endif
@@ -406,17 +411,15 @@ void RNA_def_brush_channelset(BlenderRNA *brna)
       func, "channel", "BrushChannel", "", "Ensure a copy of channel exists in this channel set");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
-  parm = RNA_def_boolean(
-      func, "queue", true, "queue", "Add channel to an internal queue to avoid corrupting the UI");
   // RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
   prop = RNA_def_property(srna, "channels", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "channels", "totchannel");
   RNA_def_property_collection_funcs(prop,
                                     "rna_BrushChannelSet_channels_begin",
-                                    "rna_iterator_array_next",
-                                    "rna_iterator_array_end",
-                                    "rna_iterator_array_get",
+                                    "rna_iterator_listbase_next",
+                                    "rna_iterator_listbase_end",
+                                    "rna_iterator_listbase_get",
                                     NULL,
                                     NULL,
                                     NULL,

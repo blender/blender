@@ -10,8 +10,12 @@
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
+#include "BLI_rand.h"
 #include "BLI_rect.h"
 #include "BLI_smallhash.h"
+#include "BLI_string.h"
+#include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
@@ -38,7 +42,7 @@ static struct {
 } namestack[256] = {0};
 int namestack_i = 1;
 
-ATTR_NO_OPT void namestack_push(const char *name)
+void namestack_push(const char *name)
 {
   namestack_i++;
 
@@ -50,6 +54,7 @@ void namestack_pop()
 {
   namestack_i--;
 }
+
 #define namestack_head_name strdup(namestack[namestack_i].tag)
 
 void BKE_curvemapping_copy_data_tag_ex(CurveMapping *target,
@@ -59,7 +64,7 @@ void BKE_curvemapping_copy_data_tag_ex(CurveMapping *target,
 #define BKE_curvemapping_copy_data(dst, src) \
   BKE_curvemapping_copy_data_tag_ex(dst, src, namestack_head_name)
 
-static bool check_corrupted_curve(BrushMapping *dst)
+ATTR_NO_OPT static bool check_corrupted_curve(BrushMapping *dst)
 {
 
   const float clip_size_x = BLI_rctf_size_x(&dst->curve.curr);
@@ -100,11 +105,42 @@ generated from the node group inputs.
 extern BrushChannelType brush_builtin_channels[];
 extern const int brush_builtin_channel_len;
 
-void BKE_brush_channel_free(BrushChannel *ch)
+ATTR_NO_OPT void BKE_brush_channeltype_rna_check(BrushChannelType *def)
+{
+  if (def->rna_enumdef) {
+    return;
+  }
+
+  if (!def->user_defined) {
+    // builtin channel types are never freed, don't use guardedalloc
+    def->rna_enumdef = malloc(sizeof(EnumPropertyItem) * ARRAY_SIZE(def->enumdef));
+  }
+
+  else {
+    def->rna_enumdef = MEM_calloc_arrayN(
+        ARRAY_SIZE(def->enumdef), sizeof(EnumPropertyItem), "def->rna_enumdef");
+  }
+
+  for (int i = 0; i < ARRAY_SIZE(def->enumdef); i++) {
+    def->rna_enumdef[i].value = def->enumdef[i].value;
+    def->rna_enumdef[i].identifier = def->enumdef[i].identifier;
+    def->rna_enumdef[i].icon = def->enumdef[i].icon;
+    def->rna_enumdef[i].name = def->enumdef[i].name;
+    def->rna_enumdef[i].description = def->enumdef[i].description;
+  }
+}
+
+ATTR_NO_OPT void BKE_brush_channel_free_data(BrushChannel *ch)
 {
   for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
     BKE_curvemapping_free_data(&ch->mappings[i].curve);
   }
+}
+
+ATTR_NO_OPT void BKE_brush_channel_free(BrushChannel *ch)
+{
+  BKE_brush_channel_free_data(ch);
+  MEM_freeN(ch);
 }
 
 ATTR_NO_OPT void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src)
@@ -116,7 +152,13 @@ ATTR_NO_OPT void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *sr
     BKE_curvemapping_free_data(&dst->mappings[i].curve);
   }
 
+  // preserve linked list pointers
+  void *next = dst->next, *prev = dst->prev;
+
   *dst = *src;
+
+  dst->next = next;
+  dst->prev = prev;
 
   // clear curves in dst, see comment above
   for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
@@ -135,7 +177,12 @@ ATTR_NO_OPT void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *sr
 
 ATTR_NO_OPT void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
 {
+  // preserve linked list pointers
+  BrushChannel *next = ch->next, *prev = ch->prev;
+
   memset(ch, 0, sizeof(*ch));
+  ch->next = next;
+  ch->prev = prev;
 
   strcpy(ch->name, def->name);
   strcpy(ch->idname, def->idname);
@@ -197,108 +244,137 @@ ATTR_NO_OPT void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
 
 BrushChannelSet *BKE_brush_channelset_create()
 {
-  return (BrushChannelSet *)MEM_callocN(sizeof(BrushChannelSet), "BrushChannelSet");
+  BrushChannelSet *chset = (BrushChannelSet *)MEM_callocN(sizeof(BrushChannelSet),
+                                                          "BrushChannelSet");
+
+  chset->namemap = BLI_ghash_str_new("BrushChannelSet");
+
+  return chset;
 }
 
-void BKE_brush_apply_queued_channels(BrushChannelSet *chset, bool do_override)
+ATTR_NO_OPT void BKE_brush_channelset_free(BrushChannelSet *chset)
 {
-  if (!chset->tot_queued_channel) {
-    return;
-  }
+  BrushChannel *ch, *next;
 
-  for (int i = 0; i < chset->tot_queued_channel; i++) {
-    BrushChannel *ch = chset->queued_channels;
+  BLI_ghash_free(chset->namemap, NULL, NULL);
 
-    BrushChannel *exist = BKE_brush_channelset_lookup(chset, ch->idname);
+  for (ch = chset->channels.first; ch; ch = next) {
+    next = ch->next;
 
-    if (exist) {
-      if (!do_override) {
-        continue;
-      }
-
-      BKE_brush_channel_free(exist);
-      *exist = *ch;
-
-      continue;
-    }
-    else {
-      BKE_brush_channelset_add(chset, ch);
-      BKE_brush_channel_free(ch);
-    }
-  }
-
-  MEM_SAFE_FREE(chset->queued_channels);
-  chset->queued_channels = NULL;
-  chset->tot_queued_channel = NULL;
-}
-
-void BKE_brush_channelset_free(BrushChannelSet *chset)
-{
-  for (int step = 0; step < 2; step++) {
-    BrushChannel *channels = step ? chset->queued_channels : chset->channels;
-    int totchannel = step ? chset->tot_queued_channel : chset->totchannel;
-
-    if (channels) {
-      for (int i = 0; i < totchannel; i++) {
-        BKE_brush_channel_free(channels + i);
-      }
-
-      MEM_freeN(channels);
-    }
+    BKE_brush_channel_free(ch);
   }
 
   MEM_freeN(chset);
 }
 
-void BKE_brush_channelset_add(BrushChannelSet *chset, BrushChannel *ch)
+static int _rng_seed = 0;
+
+ATTR_NO_OPT void BKE_brush_channel_ensure_unque_name(BrushChannelSet *chset, BrushChannel *ch)
 {
-  chset->totchannel++;
+  BrushChannel *ch2;
+  int i = 1;
+  char idname[512];
 
-  if (!chset->channels) {
-    chset->channels = MEM_callocN(sizeof(BrushChannel) * chset->totchannel, "chset->channels");
-  }
-  else {
-    chset->channels = MEM_recallocN_id(
-        chset->channels, sizeof(BrushChannel) * chset->totchannel, "chset->channels");
+  strcpy(idname, ch->idname);
+  bool bad = true;
+
+  RNG *rng = BLI_rng_new(_rng_seed++);
+
+  while (bad) {
+    bad = false;
+
+    for (ch2 = chset->channels.first; ch2; ch2 = ch2->next) {
+      if (ch2 != ch && STREQ(ch2->idname, ch->idname)) {
+        bad = true;
+        sprintf(idname, "%s %d", ch->idname, i);
+
+        printf("%s: name collision: %s\n", __func__, idname);
+
+        if (strlen(idname) > sizeof(ch->idname) - 1) {
+          // we've hit the limit of idname;
+          // start randomizing characters
+          printf(
+              "Cannot build unique name for brush channel; will have to randomize a few "
+              "characters\n");
+          printf("  requested idname: %s, ran out of buffer space at: %s\n", ch->idname, idname);
+
+          int j = BLI_rng_get_int(rng) % strlen(ch->idname);
+          int chr = (BLI_rng_get_int(rng) % ('a' - 'A')) + 'A';
+
+          i = 0;
+          ch->idname[j] = chr;
+          strcpy(idname, ch->idname);
+        }
+
+        i++;
+        break;
+      }
+    }
   }
 
-  namestack_push(__func__);
-  BKE_brush_channel_copy_data(chset->channels + chset->totchannel - 1, ch);
-  namestack_pop();
+  BLI_strncpy(ch->idname, idname, sizeof(ch->idname));
+
+  // BLI_strncpy
+  BLI_rng_free(rng);
 }
 
-// used to avoid messing up pointers in ui
-void BKE_brush_channelset_queue(BrushChannelSet *chset, BrushChannel *ch)
+void BKE_brush_channelset_add(BrushChannelSet *chset, BrushChannel *ch)
 {
-  chset->tot_queued_channel++;
+  BKE_brush_channel_ensure_unque_name(chset, ch);
 
-  if (!chset->queued_channels) {
-    chset->queued_channels = MEM_callocN(sizeof(BrushChannel) * chset->tot_queued_channel,
-                                         "chset->channels");
+  BLI_addtail(&chset->channels, ch);
+  BLI_ghash_insert(chset->namemap, ch->idname, ch);
+
+  chset->totchannel++;
+}
+
+ATTR_NO_OPT void BKE_brush_channel_rename(BrushChannelSet *chset,
+                                          BrushChannel *ch,
+                                          const char *newname)
+{
+  BLI_ghash_remove(chset->namemap, ch->idname, NULL, NULL);
+  BLI_strncpy(ch->idname, newname, sizeof(ch->idname));
+  BKE_brush_channel_ensure_unque_name(chset, ch);
+  BLI_ghash_insert(chset->namemap, ch->idname, ch);
+}
+
+ATTR_NO_OPT void BKE_brush_channelset_remove(BrushChannelSet *chset, BrushChannel *ch)
+{
+  BLI_ghash_remove(chset->namemap, ch->idname, NULL, NULL);
+  BLI_remlink(&chset->channels, ch);
+
+  chset->totchannel--;
+}
+
+ATTR_NO_OPT bool BKE_brush_channelset_remove_named(BrushChannelSet *chset, const char *idname)
+{
+  BrushChannel *ch = BKE_brush_channelset_lookup(chset, idname);
+  if (ch) {
+    BKE_brush_channelset_remove(chset, ch);
+    return true;
   }
-  else {
-    chset->queued_channels = MEM_recallocN_id(chset->queued_channels,
-                                              sizeof(BrushChannel) * chset->tot_queued_channel,
-                                              "chset->queued_channels");
-  }
+
+  return false;
+}
+
+ATTR_NO_OPT void BKE_brush_channelset_add_duplicate(BrushChannelSet *chset, BrushChannel *ch)
+{
+  BrushChannel *chnew = MEM_callocN(sizeof(*chnew), "brush channel copy");
 
   namestack_push(__func__);
-  BKE_brush_channel_copy_data(chset->queued_channels + chset->tot_queued_channel - 1, ch);
+
+  BKE_brush_channel_copy_data(chnew, ch);
+  BKE_brush_channelset_add(chset, chnew);
+
   namestack_pop();
 }
 
 ATTR_NO_OPT BrushChannel *BKE_brush_channelset_lookup(BrushChannelSet *chset, const char *idname)
 {
-  for (int i = 0; i < chset->totchannel; i++) {
-    if (STREQ(chset->channels[i].idname, idname)) {
-      return chset->channels + i;
-    }
-  }
-
-  return NULL;
+  return BLI_ghash_lookup(chset->namemap, idname);
 }
 
-bool BKE_brush_channelset_has(BrushChannelSet *chset, const char *idname)
+ATTR_NO_OPT bool BKE_brush_channelset_has(BrushChannelSet *chset, const char *idname)
 {
   return BKE_brush_channelset_lookup(chset, idname) != NULL;
 }
@@ -324,7 +400,7 @@ BrushChannelType *BKE_brush_default_channel_def()
   return &brush_default_channel_type;
 }
 
-void BKE_brush_channel_def_copy(BrushChannelType *dst, BrushChannelType *src)
+ATTR_NO_OPT void BKE_brush_channel_def_copy(BrushChannelType *dst, BrushChannelType *src)
 {
   *dst = *src;
 }
@@ -351,13 +427,12 @@ ATTR_NO_OPT void BKE_brush_channelset_add_builtin(BrushChannelSet *chset, const 
     return;
   }
 
-  BrushChannel ch = {0};
-
   namestack_push(__func__);
 
-  BKE_brush_channel_init(&ch, def);
-  BKE_brush_channelset_add(chset, &ch);
-  BKE_brush_channel_free(&ch);
+  BrushChannel *ch = MEM_callocN(sizeof(*ch), "BrushChannel");
+
+  BKE_brush_channel_init(ch, def);
+  BKE_brush_channelset_add(chset, ch);
 
   namestack_pop();
 }
@@ -376,26 +451,17 @@ bool BKE_brush_channelset_ensure_builtin(BrushChannelSet *chset, const char *idn
   return false;
 }
 
-void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset,
-                                          BrushChannel *existing,
-                                          bool queue)
+ATTR_NO_OPT void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset,
+                                                      BrushChannel *existing)
 {
   if (BKE_brush_channelset_has(chset, existing->idname)) {
     return;
   }
 
   namestack_push(__func__);
-  if (!queue) {
-    BKE_brush_channelset_add(chset, existing);
-  }
-  else {
-    BKE_brush_channelset_queue(chset, existing);
-  }
-
+  BKE_brush_channelset_add_duplicate(chset, existing);
   namestack_pop();
 }
-#define ADDCH(name) BKE_brush_channelset_ensure_builtin(chset, name)
-#define GETCH(name) BKE_brush_channelset_lookup(chset, name)
 
 ATTR_NO_OPT void BKE_brush_channelset_merge(BrushChannelSet *dst,
                                             BrushChannelSet *child,
@@ -406,9 +472,9 @@ ATTR_NO_OPT void BKE_brush_channelset_merge(BrushChannelSet *dst,
 
   for (int step = 0; step < 2; step++) {
     BrushChannelSet *chset = step ? parent : child;
+    BrushChannel *ch;
 
-    for (int i = 0; i < chset->totchannel; i++) {
-      BrushChannel *ch = chset->channels + i;
+    for (ch = chset->channels.first; ch; ch = ch->next) {
       BrushChannel *ch2 = BKE_brush_channelset_lookup(dst, ch->idname);
 
       if (ch2 && step > 0) {
@@ -416,12 +482,7 @@ ATTR_NO_OPT void BKE_brush_channelset_merge(BrushChannelSet *dst,
       }
 
       if (!ch2) {
-        BrushChannel ch3 = {0};
-
-        BKE_brush_channel_copy_data(&ch3, ch);
-        BKE_brush_channelset_add(dst, &ch3);
-
-        BKE_brush_channel_free(&ch3);
+        BKE_brush_channelset_add_duplicate(dst, ch);
       }
       else {
         BKE_brush_channel_copy_data(ch2, ch);
@@ -429,8 +490,9 @@ ATTR_NO_OPT void BKE_brush_channelset_merge(BrushChannelSet *dst,
     }
   }
 
-  for (int i = 0; i < parent->totchannel; i++) {
-    BrushChannel *pch = parent->channels + i;
+  BrushChannel *pch;
+
+  for (pch = parent->channels.first; pch; pch = pch->next) {
     BrushChannel *mch = BKE_brush_channelset_lookup(dst, pch->idname);
     BrushChannel *ch = BKE_brush_channelset_lookup(child, pch->idname);
 
@@ -451,25 +513,19 @@ ATTR_NO_OPT void BKE_brush_channelset_merge(BrushChannelSet *dst,
   namestack_pop();
 }
 
-BrushChannelSet *BKE_brush_channelset_copy(BrushChannelSet *src)
+ATTR_NO_OPT BrushChannelSet *BKE_brush_channelset_copy(BrushChannelSet *src)
 {
   BrushChannelSet *chset = BKE_brush_channelset_create();
 
-  *chset = *src;
-
-  if (!chset->totchannel) {
+  if (!src->totchannel) {
     return chset;
   }
 
   namestack_push(__func__);
 
-  chset->channels = MEM_calloc_arrayN(
-      src->totchannel, sizeof(BrushChannel), "chset->channels copied");
-
-  for (int i = 0; i < chset->totchannel; i++) {
-    BrushChannel *ch = chset->channels + i;
-
-    BKE_brush_channel_copy_data(ch, src->channels + i);
+  BrushChannel *ch;
+  for (ch = src->channels.first; ch; ch = ch->next) {
+    BKE_brush_channelset_add_duplicate(chset, ch);
   }
 
   namestack_pop();
@@ -646,26 +702,6 @@ bool BKE_brush_channelset_set_float(BrushChannelSet *chset, char *idname, float 
   return true;
 }
 
-void BKE_brush_init_toolsettings(Sculpt *sd)
-{
-  namestack_push(__func__);
-
-  if (sd->channels) {
-    BKE_brush_channelset_free(sd->channels);
-  }
-
-  BrushChannelSet *chset = sd->channels = BKE_brush_channelset_create();
-
-  ADDCH("RADIUS");
-  ADDCH("STRENGTH");
-  ADDCH("AUTOMASKING");
-  ADDCH("TOPOLOGY_RAKE_MODE");
-  ADDCH("DYNTOPO_DISABLED");
-  ADDCH("DYNTOPO_DETAIL_RANGE");
-
-  namestack_pop();
-}
-
 void BKE_brush_channelset_flag_clear(BrushChannelSet *chset, const char *channel, int flag)
 {
   BrushChannel *ch = BKE_brush_channelset_lookup(chset, channel);
@@ -688,391 +724,6 @@ void BKE_brush_channelset_flag_set(BrushChannelSet *chset, const char *channel, 
   }
 
   ch->flag |= flag;
-}
-
-// adds any missing channels to brushes
-void BKE_brush_builtin_patch(Brush *brush, int tool)
-{
-  namestack_push(__func__);
-
-  if (!brush->channels) {
-    brush->channels = BKE_brush_channelset_create();
-  }
-
-  BrushChannelSet *chset = brush->channels;
-
-  ADDCH("RADIUS");
-  ADDCH("SPACING");
-  ADDCH("STRENGTH");
-
-  ADDCH("AUTOSMOOTH");
-  ADDCH("AUTOSMOOTH_RADIUS_SCALE");
-  ADDCH("AUTOSMOOTH_SPACING");
-  ADDCH("AUTOSMOOTH_USE_SPACING");
-  ADDCH("AUTOSMOOTH_PROJECTION");
-
-  ADDCH("TOPOLOGY_RAKE");
-  ADDCH("TOPOLOGY_RAKE_MODE");
-  ADDCH("TOPOLOGY_RAKE_RADIUS_SCALE");
-  ADDCH("TOPOLOGY_RAKE_USE_SPACING");
-  ADDCH("TOPOLOGY_RAKE_SPACING");
-  ADDCH("TOPOLOGY_RAKE_PROJECTION");
-
-  ADDCH("HARDNESS");
-  ADDCH("TIP_ROUNDNESS");
-  ADDCH("NORMAL_RADIUS_FACTOR");
-
-  ADDCH("AUTOMASKING");
-
-  ADDCH("DYNTOPO_DISABLED");
-  ADDCH("DYNTOPO_DETAIL_RANGE");
-  ADDCH("DYNTOPO_OPS");
-
-  ADDCH("ACCUMULATE");
-  ADDCH("ORIGINAL_NORMAL");
-  ADDCH("ORIGINAL_PLANE");
-  ADDCH("JITTER");
-  ADDCH("JITTER_ABSOLUTE");
-  ADDCH("USE_WEIGHTED_SMOOTH");
-  ADDCH("PRESERVE_FACESET_BOUNDARY");
-  ADDCH("HARD_EDGE_MODE");
-  ADDCH("GRAB_SILHOUETTE");
-
-  ADDCH("PROJECTION");
-  ADDCH("BOUNDARY_SMOOTH");
-  ADDCH("FSET_SLIDE");
-
-  switch (tool) {
-    case SCULPT_TOOL_DRAW: {
-      break;
-    }
-    case SCULPT_TOOL_SLIDE_RELAX:
-      ADDCH("SLIDE_DEFORM_TYPE");
-      break;
-  }
-
-  namestack_pop();
-}
-
-void BKE_brush_init_scene_defaults(Sculpt *sd)
-{
-  if (!sd->channels) {
-    sd->channels = BKE_brush_channelset_create();
-  }
-
-  BrushChannelSet *chset = sd->channels;
-}
-
-void BKE_brush_builtin_create(Brush *brush, int tool)
-{
-  namestack_push(__func__);
-
-  if (!brush->channels) {
-    brush->channels = BKE_brush_channelset_create();
-  }
-
-  BrushChannelSet *chset = brush->channels;
-
-  BKE_brush_builtin_patch(brush, tool);
-
-  GETCH("STRENGTH")->flag |= BRUSH_CHANNEL_INHERIT;
-  GETCH("RADIUS")->flag |= BRUSH_CHANNEL_INHERIT;
-
-  switch (tool) {
-    case SCULPT_TOOL_DRAW: {
-      break;
-    }
-    case SCULPT_TOOL_DRAW_SHARP:
-      GETCH("SPACING")->ivalue = 5;
-      GETCH("RADIUS")->mappings[BRUSH_MAPPING_PRESSURE].blendmode = true;
-      break;
-    case SCULPT_TOOL_DISPLACEMENT_ERASER:
-    case SCULPT_TOOL_FAIRING:
-    case SCULPT_TOOL_SCENE_PROJECT:
-      GETCH("SPACING")->ivalue = 10;
-      GETCH("STRENGTH")->fvalue = 1.0f;
-      GETCH("DYNTOPO_DISABLED")->ivalue = 1;
-      break;
-    case SCULPT_TOOL_SLIDE_RELAX:
-      GETCH("SPACING")->ivalue = 10;
-      GETCH("STRENGTH")->fvalue = 1.0f;
-      GETCH("DYNTOPO_DISABLED")->ivalue = 1;
-      GETCH("SLIDE_DEFORM_TYPE")->ivalue = BRUSH_SLIDE_DEFORM_DRAG;
-      break;
-    case SCULPT_TOOL_CLAY:
-      GETCH("RADIUS")->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
-      GETCH("SPACING")->ivalue = 3;
-      GETCH("AUTOSMOOTH")->fvalue = 0.25f;
-      GETCH("NORMAL_RADIUS_FACTOR")->fvalue = 0.75f;
-      GETCH("HARDNESS")->fvalue = 0.65;
-      break;
-    case SCULPT_TOOL_TWIST:
-      GETCH("STRENGTH")->fvalue = 0.5f;
-      GETCH("NORMAL_RADIUS_FACTOR")->fvalue = 1.0f;
-      GETCH("SPACING")->ivalue = 6;
-      GETCH("HARDNESS")->fvalue = 0.5;
-      break;
-    case SCULPT_TOOL_CLAY_STRIPS: {
-      GETCH("RADIUS")->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
-      GETCH("TIP_ROUNDNESS")->fvalue = 0.18f;
-      GETCH("NORMAL_RADIUS_FACTOR")->fvalue = 1.35f;
-      GETCH("STRENGTH")->fvalue = 0.8f;
-      GETCH("ACCUMULATE")->ivalue = 1;
-
-      CurveMapping *curve = &GETCH("RADIUS")->mappings[BRUSH_MAPPING_PRESSURE].curve;
-      CurveMap *cuma = curve->cm;
-
-      cuma->curve[0].x = 0.0f;
-      cuma->curve[0].y = 0.55f;
-      BKE_curvemap_insert(cuma, 0.5f, 0.7f);
-      cuma->curve[2].x = 1.0f;
-      cuma->curve[2].y = 1.0f;
-      BKE_curvemapping_changed(curve, true);
-
-      cuma = curve->cm;
-      BKE_curvemap_insert(cuma, 0.6f, 0.25f);
-      BKE_curvemapping_changed(curve, true);
-
-      break;
-    }
-    default: {
-      // implement me!
-      // BKE_brush_channelset_free(chset);
-      // brush->channels = NULL;
-      break;
-    }
-  }
-
-  namestack_pop();
-}
-
-#ifdef FLOAT
-#  undef FLOAT
-#endif
-#ifdef INT
-#  undef INT
-#endif
-#ifdef BOOL
-#  undef BOOL
-#endif
-
-#define FLOAT BRUSH_CHANNEL_FLOAT
-#define INT BRUSH_CHANNEL_INT
-#define BOOL BRUSH_CHANNEL_BOOL
-#define FLOAT3 BRUSH_CHANNEL_VEC3
-#define FLOAT4 BRUSH_CHANNEL_VEC4
-
-/* clang-format off */
-#define DEF(brush_member, channel_name, btype, ctype) \
-  {offsetof(Brush, brush_member), #channel_name, btype, ctype, sizeof(((Brush){0}).brush_member)},
-/* clang-format on */
-
-typedef struct BrushSettingsMap {
-  int brush_offset;
-  const char *channel_name;
-  int brush_type;
-  int channel_type;
-  int member_size;
-} BrushSettingsMap;
-
-/* clang-format off */
-static BrushSettingsMap brush_settings_map[] = {
-  DEF(size, RADIUS, INT, FLOAT)
-  DEF(alpha, STRENGTH, FLOAT, FLOAT)
-  DEF(autosmooth_factor, AUTOSMOOTH, FLOAT, FLOAT)
-  DEF(autosmooth_projection, SMOOTH_PROJECTION, FLOAT, FLOAT)
-  DEF(topology_rake_projection, TOPOLOGY_RAKE_PROJECTION, FLOAT, FLOAT)
-  DEF(topology_rake_radius_factor, TOPOLOGY_RAKE_RADIUS_SCALE, FLOAT, FLOAT)
-  DEF(topology_rake_spacing, TOPOLOGY_RAKE_SPACING, INT, FLOAT)
-  DEF(topology_rake_factor, TOPOLOGY_RAKE, FLOAT, FLOAT)
-  DEF(autosmooth_fset_slide, FSET_SLIDE, FLOAT, FLOAT)
-  DEF(boundary_smooth_factor, BOUNDARY_SMOOTH, FLOAT, FLOAT)
-  DEF(autosmooth_radius_factor, AUTOSMOOTH_RADIUS_SCALE, FLOAT, FLOAT)
-  DEF(normal_weight, NORMAL_WEIGHT, FLOAT, FLOAT)
-  DEF(rake_factor, RAKE_FACTOR, FLOAT, FLOAT)
-  DEF(weight, WEIGHT, FLOAT, FLOAT)
-  DEF(jitter, JITTER, FLOAT, FLOAT)
-  DEF(jitter_absolute, JITTER_ABSOLITE, INT, INT)
-  DEF(smooth_stroke_radius, SMOOTH_STROKE_RADIUS, INT, FLOAT)
-  DEF(smooth_stroke_factor, SMOOTH_STROKE_FACTOR, FLOAT, FLOAT)
-  DEF(rate, RATE, FLOAT, FLOAT)
-  DEF(flow, FLOW, FLOAT, FLOAT)
-  DEF(wet_mix, WET_MIX, FLOAT, FLOAT)
-  DEF(wet_persistence, WET_PERSISTENCE, FLOAT, FLOAT)
-  DEF(density, DENSITY, FLOAT, FLOAT)
-  DEF(tip_scale_x, TIP_SCALE_X, FLOAT, FLOAT)
-};
-static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
-
-/* clang-format on */
-#undef DEF
-
-typedef struct BrushFlagMap {
-  int member_offset;
-  char *channel_name;
-  int flag;
-  int member_size;
-} BrushFlagMap;
-
-/* clang-format off */
-#define DEF(member, channel, flag)\
-  {offsetof(Brush, member), #channel, flag, sizeof(((Brush){0}).member)},
-
-BrushFlagMap brush_flags_map[] =  {
-  DEF(flag, ORIGINAL_NORMAL, BRUSH_ORIGINAL_NORMAL)
-  DEF(flag, ORIGINAL_PLANE, BRUSH_ORIGINAL_PLANE)
-  DEF(flag, ACCUMULATE, BRUSH_ACCUMULATE)
-  DEF(flag2, USE_WEIGHTED_SMOOTH, BRUSH_SMOOTH_USE_AREA_WEIGHT)
-  DEF(flag2, PRESERVE_FACESET_BOUNDARY, BRUSH_SMOOTH_PRESERVE_FACE_SETS)
-  DEF(flag2, HARD_EDGE_MODE, BRUSH_HARD_EDGE_MODE)
-  DEF(flag2, GRAB_SILHOUETTE, BRUSH_GRAB_SILHOUETTE)
-};
-int brush_flags_map_len = ARRAY_SIZE(brush_flags_map);
-
-/* clang-format on */
-
-static ATTR_NO_OPT void do_coerce(
-    int type1, void *ptr1, int size1, int type2, void *ptr2, int size2)
-{
-  double val = 0;
-
-  switch (type1) {
-    case BRUSH_CHANNEL_FLOAT:
-      val = *(float *)ptr1;
-      break;
-    case BRUSH_CHANNEL_INT:
-    case BRUSH_CHANNEL_ENUM:
-    case BRUSH_CHANNEL_BITMASK:
-    case BRUSH_CHANNEL_BOOL:
-      switch (size1) {
-        case 1:
-          val = (double)*(char *)ptr1;
-          break;
-        case 2:
-          val = (double)*(unsigned short *)ptr1;
-          break;
-        case 4:
-          val = (double)*(int *)ptr1;
-          break;
-        case 8:
-          val = (double)*(int64_t *)ptr1;
-          break;
-      }
-      break;
-  }
-
-  switch (type2) {
-    case BRUSH_CHANNEL_FLOAT:
-      *(float *)ptr2 = (float)val;
-      break;
-    case BRUSH_CHANNEL_INT:
-    case BRUSH_CHANNEL_ENUM:
-    case BRUSH_CHANNEL_BITMASK:
-    case BRUSH_CHANNEL_BOOL: {
-      switch (size2) {
-        case 1:
-          *(char *)ptr2 = (char)val;
-          break;
-        case 2:
-          *(unsigned short *)ptr2 = (unsigned short)val;
-          break;
-        case 4:
-          *(int *)ptr2 = (int)val;
-          break;
-        case 8:
-          *(int64_t *)ptr2 = (int64_t)val;
-          break;
-      }
-      break;
-    }
-  }
-}
-
-void *get_channel_value_pointer(BrushChannel *ch, int *r_data_size)
-{
-  *r_data_size = 4;
-
-  switch (ch->type) {
-    case BRUSH_CHANNEL_FLOAT:
-      return &ch->fvalue;
-    case BRUSH_CHANNEL_INT:
-    case BRUSH_CHANNEL_ENUM:
-    case BRUSH_CHANNEL_BITMASK:
-    case BRUSH_CHANNEL_BOOL:
-      return &ch->ivalue;
-    case BRUSH_CHANNEL_VEC3:
-      *r_data_size = sizeof(float) * 3;
-      printf("implement me!\n");
-      return NULL;
-    case BRUSH_CHANNEL_VEC4:
-      *r_data_size = sizeof(float) * 4;
-      printf("implement me!\n");
-      return NULL;
-  }
-
-  return NULL;
-}
-
-ATTR_NO_OPT void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
-                                                  Brush *brush,
-                                                  bool brush_to_channels)
-{
-  for (int i = 0; i < brush_flags_map_len; i++) {
-    BrushFlagMap *mf = brush_flags_map + i;
-    BrushChannel *ch = BKE_brush_channelset_lookup(chset, mf->channel_name);
-
-    if (!ch) {
-      continue;
-    }
-
-    char *ptr = (char *)brush;
-    ptr += mf->member_offset;
-
-    switch (mf->member_size) {
-      case 1: {
-        char *f = (char *)ptr;
-        ch->ivalue = (*f & mf->flag) ? 1 : 0;
-        break;
-      }
-      case 2: {
-        ushort *f = (ushort *)ptr;
-        ch->ivalue = (*f & mf->flag) ? 1 : 0;
-        break;
-      }
-      case 4: {
-        uint *f = (uint *)ptr;
-        ch->ivalue = (*f & mf->flag) ? 1 : 0;
-        break;
-      }
-      case 8: {
-        uint64_t *f = (uint64_t *)ptr;
-        ch->ivalue = (*f & mf->flag) ? 1 : 0;
-        break;
-      }
-    }
-  }
-
-  for (int i = 0; i < brush_settings_map_len; i++) {
-    BrushSettingsMap *mp = brush_settings_map + i;
-    BrushChannel *ch = BKE_brush_channelset_lookup(chset, mp->channel_name);
-
-    if (!ch) {
-      continue;
-    }
-
-    char *bptr = (char *)brush;
-    bptr += mp->brush_offset;
-
-    int csize;
-    void *cptr = get_channel_value_pointer(ch, &csize);
-
-    if (brush_to_channels) {
-      do_coerce(mp->brush_type, bptr, mp->member_size, ch->type, cptr, csize);
-    }
-    else {
-      do_coerce(ch->type, cptr, csize, mp->brush_type, bptr, mp->member_size);
-    }
-  }
 }
 
 BrushCommandList *BKE_brush_commandlist_create()
@@ -1116,10 +767,12 @@ BrushCommand *BKE_brush_commandlist_add(BrushCommandList *cl,
   if (chset_template) {
     cmd->params = BKE_brush_channelset_copy(chset_template);
 
-    for (int i = 0; auto_inherit && i < cmd->params->totchannel; i++) {
-      BrushChannel *ch = cmd->params->channels + i;
+    if (auto_inherit) {
+      BrushChannel *ch;
 
-      ch->flag |= BRUSH_CHANNEL_INHERIT;
+      for (ch = cmd->params->channels.first; ch; ch = ch->next) {
+        ch->flag |= BRUSH_CHANNEL_INHERIT;
+      }
     }
   }
   else {
@@ -1130,6 +783,12 @@ BrushCommand *BKE_brush_commandlist_add(BrushCommandList *cl,
 
   return cmd;
 }
+
+#ifdef ADDCH
+#  undef ADDCH
+#endif
+
+#define ADDCH(name) BKE_brush_channelset_ensure_builtin(chset, name)
 
 BrushCommand *BKE_brush_command_init(BrushCommand *command, int tool)
 {
@@ -1260,25 +919,29 @@ ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
   // if (!BKE_brush_channelset_get_int)
 }
 
-void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *cset)
+void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
 {
-  BLO_read_data_address(reader, &cset->channels);
+  BLO_read_list(reader, &chset->channels);
 
-  // drop any queued channels, we don't save them.
-  cset->queued_channels = NULL;
-  cset->tot_queued_channel = 0;
+  chset->namemap = BLI_ghash_str_new("BrushChannelSet");
 
-  for (int i = 0; i < cset->totchannel; i++) {
-    BrushChannel *ch = cset->channels + i;
+  BrushChannel *ch;
+  // regenerate chset->totchannel just to be safe
+  chset->totchannel = 0;
 
-    for (int j = 0; j < BRUSH_MAPPING_MAX; j++) {
-      BKE_curvemapping_blend_read(reader, &ch->mappings[j].curve);
-      BKE_curvemapping_init(&ch->mappings[j].curve);
+  for (ch = chset->channels.first; ch; ch = ch->next) {
+    chset->totchannel++;
 
-      check_corrupted_curve(ch->mappings + j);
+    BLI_ghash_insert(chset->namemap, ch->idname, ch);
+
+    for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+      BKE_curvemapping_blend_read(reader, &ch->mappings[i].curve);
+      BKE_curvemapping_init(&ch->mappings[i].curve);
+
+      check_corrupted_curve(ch->mappings + i);
 
       // paranoia check to make sure BrushMapping.type is correct
-      ch->mappings[j].type = j;
+      ch->mappings[i].type = i;
     }
 
     ch->def = BKE_brush_builtin_channel_def_find(ch->idname);
@@ -1294,16 +957,15 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *cset)
   }
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_write(BlendWriter *writer, BrushChannelSet *cset)
+ATTR_NO_OPT void BKE_brush_channelset_write(BlendWriter *writer, BrushChannelSet *chset)
 {
-  BLO_write_struct(writer, BrushChannelSet, cset);
-  BLO_write_struct_array_by_name(writer, "BrushChannel", cset->totchannel, cset->channels);
+  BLO_write_struct(writer, BrushChannelSet, chset);
+  BLO_write_struct_list(writer, BrushChannel, &chset->channels);
 
-  for (int i = 0; i < cset->totchannel; i++) {
-    BrushChannel *ch = cset->channels + i;
-
-    for (int j = 0; j < BRUSH_MAPPING_MAX; j++) {
-      BKE_curvemapping_blend_write(writer, &ch->mappings[j].curve);
+  BrushChannel *ch;
+  for (ch = chset->channels.first; ch; ch = ch->next) {
+    for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+      BKE_curvemapping_blend_write(writer, &ch->mappings[i].curve);
     }
   }
 }

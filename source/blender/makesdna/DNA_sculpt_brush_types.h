@@ -25,6 +25,9 @@
 #pragma once
 
 #include "DNA_color_types.h"
+#include "DNA_listBase.h"
+
+struct GHash;
 
 typedef struct BrushMapping {
   char name[64];
@@ -36,6 +39,8 @@ typedef struct BrushMapping {
 } BrushMapping;
 
 typedef struct BrushChannel {
+  struct BrushChannel *next, *prev;
+
   char idname[64];
   char name[64];
 
@@ -49,12 +54,12 @@ typedef struct BrushChannel {
 } BrushChannel;
 
 typedef struct BrushChannelSet {
-  BrushChannel *channels;
-  /*cannot add channels within the UI loop.  Since it's
-    hard to avoid it they're put here.*/
-  BrushChannel *queued_channels;
-  int totchannel, tot_queued_channel;
+  ListBase channels;
+  int totchannel, _pad[1];
+  struct GHash *namemap;
 } BrushChannelSet;
+
+#define BRUSH_CHANNEL_MAX_IDNAME sizeof(((BrushChannel){0}).idname)
 
 // mapping flags
 enum {

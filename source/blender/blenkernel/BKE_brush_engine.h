@@ -73,18 +73,26 @@ typedef struct BrushMappingData {
 #define MAX_BRUSH_ENUM_DEF 32
 
 typedef struct BrushEnumDef {
-  EnumPropertyItem items[MAX_BRUSH_ENUM_DEF];
+  int value;
+  const char identifier[64];
+  int icon;
+  const char name[64];
+  const char description[512];
 } BrushEnumDef;
 
 typedef struct BrushChannelType {
-  char name[32], idname[32], tooltip[512];
+  char name[64], idname[64], tooltip[512];
   float min, max, soft_min, soft_max;
   BrushMappingPreset mappings;
 
   int type, flag;
   int ivalue;
   float fvalue;
-  BrushEnumDef enumdef;  // if an enum type
+
+  BrushEnumDef enumdef[MAX_BRUSH_ENUM_DEF];  // for enum/bitmask types
+  EnumPropertyItem *rna_enumdef;
+
+  bool user_defined;
 } BrushChannelType;
 
 typedef struct BrushCommand {
@@ -98,6 +106,7 @@ typedef struct BrushCommandList {
   int totcommand;
 } BrushCommandList;
 
+void BKE_brush_channel_free_data(BrushChannel *ch);
 void BKE_brush_channel_free(BrushChannel *ch);
 void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src);
 void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def);
@@ -106,14 +115,22 @@ BrushChannelSet *BKE_brush_channelset_create();
 BrushChannelSet *BKE_brush_channelset_copy(BrushChannelSet *src);
 void BKE_brush_channelset_free(BrushChannelSet *chset);
 
-// makes a copy of ch
 void BKE_brush_channelset_add(BrushChannelSet *chset, BrushChannel *ch);
-void BKE_brush_channelset_queue(BrushChannelSet *chset, BrushChannel *ch);
+
+// makes a copy of ch
+void BKE_brush_channelset_add_duplicate(BrushChannelSet *chset, BrushChannel *ch);
+
+// does not add to namemap ghash
+void BKE_brush_channel_ensure_unque_name(BrushChannelSet *chset, BrushChannel *ch);
+
+// does not free ch or its data
+void BKE_brush_channelset_remove(BrushChannelSet *chset, BrushChannel *ch);
+
+// does not free ch or its data
+bool BKE_brush_channelset_remove_named(BrushChannelSet *chset, const char *idname);
 
 // checks is a channel with existing->idname exists; if not a copy of existing is made and inserted
-void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset,
-                                          BrushChannel *existing,
-                                          bool queue);
+void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset, BrushChannel *existing);
 
 BrushChannel *BKE_brush_channelset_lookup(BrushChannelSet *chset, const char *idname);
 
@@ -193,6 +210,7 @@ void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
 
 // merge in channels the ui requested
 void BKE_brush_apply_queued_channels(BrushChannelSet *chset, bool do_override);
+void BKE_brush_channeltype_rna_check(BrushChannelType *def);
 
 #ifdef __cplusplus
 }
