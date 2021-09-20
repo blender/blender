@@ -37,6 +37,14 @@ extern "C" {
  * This function is not thread-safe. */
 UUID BLI_uuid_generate_random(void);
 
+/**
+ * Return the UUID nil value, consisting of all-zero fields.
+ */
+UUID BLI_uuid_nil(void);
+
+/** Return true iff this is the nil UUID. */
+bool BLI_uuid_is_nil(UUID uuid);
+
 /** Compare two UUIDs, return true if they are equal. */
 bool BLI_uuid_equal(UUID uuid1, UUID uuid2);
 

@@ -78,6 +78,17 @@ UUID BLI_uuid_generate_random()
   return uuid;
 }
 
+UUID BLI_uuid_nil(void)
+{
+  const UUID nil = {0, 0, 0, 0, 0, 0};
+  return nil;
+}
+
+bool BLI_uuid_is_nil(UUID uuid)
+{
+  return BLI_uuid_equal(BLI_uuid_nil(), uuid);
+}
+
 bool BLI_uuid_equal(const UUID uuid1, const UUID uuid2)
 {
   return std::memcmp(&uuid1, &uuid2, sizeof(uuid1)) == 0;

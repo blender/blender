@@ -48,6 +48,19 @@ TEST(BLI_uuid, generate_many_random)
   }
 }
 
+TEST(BLI_uuid, nil_value)
+{
+  const UUID nil_uuid = BLI_uuid_nil();
+  const UUID zeroes_uuid = {0, 0, 0, 0, 0, 0};
+
+  EXPECT_TRUE(BLI_uuid_equal(nil_uuid, zeroes_uuid));
+  EXPECT_TRUE(BLI_uuid_is_nil(nil_uuid));
+
+  std::string buffer(36, '\0');
+  BLI_uuid_format(buffer.data(), nil_uuid);
+  EXPECT_EQ("00000000-0000-0000-0000-000000000000", buffer);
+}
+
 TEST(BLI_uuid, equality)
 {
   const UUID uuid1 = BLI_uuid_generate_random();
