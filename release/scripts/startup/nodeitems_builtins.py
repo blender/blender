@@ -546,6 +546,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeJoinGeometry"),
         NodeItem("GeometryNodeSeparateComponents"),
         NodeItem("GeometryNodeSetPosition", poll=geometry_nodes_fields_poll),
+        NodeItem("GeometryNodeRealizeInstances", poll=geometry_nodes_fields_poll),
     ]),
     GeometryNodeCategory("GEO_INPUT", "Input", items=[
         NodeItem("GeometryNodeObjectInfo"),

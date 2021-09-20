@@ -345,6 +345,7 @@ DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_LINE, def_geo_mesh_line, "MESH_PRI
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, 0, "MESH_PRIMITIVE_UV_SPHERE", MeshUVSphere, "UV Sphere", "")
 DefNode(GeometryNode, GEO_NODE_MESH_SUBDIVIDE, 0, "MESH_SUBDIVIDE", MeshSubdivide, "Mesh Subdivide", "")
 DefNode(GeometryNode, GEO_NODE_OBJECT_INFO, def_geo_object_info, "OBJECT_INFO", ObjectInfo, "Object Info", "")
+DefNode(GeometryNode, GEO_NODE_REALIZE_INSTANCES, 0, "REALIZE_INSTANCES", RealizeInstances, "Realize Instances", "")
 DefNode(GeometryNode, GEO_NODE_SEPARATE_COMPONENTS, 0, "SEPARATE_COMPONENTS", SeparateComponents, "Separate Components", "")
 DefNode(GeometryNode, GEO_NODE_SET_POSITION, 0, "SET_POSITION", SetPosition, "Set Position", "")
 DefNode(GeometryNode, GEO_NODE_SUBDIVISION_SURFACE, def_geo_subdivision_surface, "SUBDIVISION_SURFACE", SubdivisionSurface, "Subdivision Surface", "")

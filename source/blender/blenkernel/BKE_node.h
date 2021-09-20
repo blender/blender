@@ -1493,6 +1493,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_ATTRIBUTE_CAPTURE 1080
 #define GEO_NODE_MATERIAL_SELECTION 1081
 #define GEO_NODE_MATERIAL_ASSIGN 1082
+#define GEO_NODE_REALIZE_INSTANCES 1083
 
 /** \} */
 
