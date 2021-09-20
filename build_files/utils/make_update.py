@@ -200,13 +200,14 @@ def submodules_update(args, release_version, branch):
             if msg:
                 skip_msg += submodule_path + " skipped: " + msg + "\n"
             else:
+                # We are using `exit_on_error=False` here because sub-modules are allowed to not have requested branch,
+                # in which case falling back to default back-up branch is fine.
                 if make_utils.git_branch(args.git_command) != submodule_branch:
                     call([args.git_command, "fetch", "origin"])
-                    call([args.git_command, "checkout", submodule_branch])
-                call([args.git_command, "pull", "--rebase", "origin", submodule_branch])
+                    call([args.git_command, "checkout", submodule_branch], exit_on_error=False)
+                call([args.git_command, "pull", "--rebase", "origin", submodule_branch], exit_on_error=False)
                 # If we cannot find the specified branch for this submodule, fallback to default one (aka master).
                 if make_utils.git_branch(args.git_command) != submodule_branch:
-                    call([args.git_command, "fetch", "origin"])
                     call([args.git_command, "checkout", submodule_branch_fallback])
                     call([args.git_command, "pull", "--rebase", "origin", submodule_branch_fallback])
         finally:
