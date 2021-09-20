@@ -300,7 +300,7 @@ class FILEBROWSER_PT_bookmarks_favorites(FileBrowserPanel, Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
     bl_category = "Bookmarks"
-    bl_label = "Favorites"
+    bl_label = "Bookmarks"
 
     @classmethod
     def poll(cls, context):
