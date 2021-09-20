@@ -339,7 +339,7 @@ struct ResultAttributes {
 
   /**
    * Result attributes corresponding the attributes on the profile input, in the same order. The
-   * attributes are optional in case the attribute names correspond to a namse used by the curve
+   * attributes are optional in case the attribute names correspond to a names used by the curve
    * input, in which case the curve input attributes take precedence.
    */
   Vector<std::optional<ResultAttributeData>> profile_point_attributes;

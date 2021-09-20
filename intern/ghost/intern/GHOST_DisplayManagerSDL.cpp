@@ -106,7 +106,7 @@ GHOST_TSuccess GHOST_DisplayManagerSDL::setCurrentDisplaySetting(
    * ftp://ftp.idsoftware.com/idstuff/source/q2source-3.21.zip
    * See linux/gl_glx.c:GLimp_SetMode
    * http://wiki.bzflag.org/BZFlag_Source
-   * See src/platform/SDLDisplay.cxx:SDLDisplay and createWindow
+   * See: `src/platform/SDLDisplay.cxx:SDLDisplay` and `createWindow`.
    */
   SDL_DisplayMode mode;
   const int num_modes = SDL_GetNumDisplayModes(display);
