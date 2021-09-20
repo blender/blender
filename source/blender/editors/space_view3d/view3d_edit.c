@@ -38,6 +38,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_dial_2d.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -210,6 +211,9 @@ typedef struct ViewOpsData {
      * If we want the value before running the operator, add a separate member.
      */
     char persp;
+
+    /** Used for roll */
+    Dial *dial;
   } init;
 
   /** Previous state (previous modal event handled). */
@@ -575,6 +579,10 @@ static void viewops_data_free(bContext *C, wmOperator *op)
 
     if (vod->timer) {
       WM_event_remove_timer(CTX_wm_manager(C), vod->timer->win, vod->timer);
+    }
+
+    if (vod->init.dial) {
+      MEM_SAFE_FREE(vod->init.dial);
     }
 
     MEM_freeN(vod);
@@ -4352,18 +4360,9 @@ static void view_roll_angle(
   rv3d->view = RV3D_VIEW_USER;
 }
 
-static void viewroll_apply(ViewOpsData *vod, int x, int UNUSED(y))
+static void viewroll_apply(ViewOpsData *vod, int x, int y)
 {
-  float angle = 0.0;
-
-  {
-    float len1, len2, tot;
-
-    tot = vod->region->winrct.xmax - vod->region->winrct.xmin;
-    len1 = (vod->region->winrct.xmax - x) / tot;
-    len2 = (vod->region->winrct.xmax - vod->init.event_xy[0]) / tot;
-    angle = (len1 - len2) * (float)M_PI * 4.0f;
-  }
+  float angle = BLI_dial_angle(vod->init.dial, (const float[2]){x, y});
 
   if (angle != 0.0f) {
     view_roll_angle(vod->region, vod->rv3d->viewquat, vod->init.quat, vod->init.mousevec, angle);
@@ -4517,6 +4516,10 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     viewops_data_alloc(C, op);
     viewops_data_create(C, op, event, viewops_flag_from_prefs());
     vod = op->customdata;
+    vod->init.dial = BLI_dial_init(
+        (const float[2]){(vod->region->winrct.xmax - vod->region->winrct.xmin) / 2,
+                         (vod->region->winrct.ymax - vod->region->winrct.ymin) / 2},
+        FLT_EPSILON);
 
     ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
