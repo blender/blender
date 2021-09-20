@@ -40,7 +40,10 @@ UUID BLI_uuid_generate_random()
 
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
-    rng.seed(ts.tv_nsec);
+    /* XOR the nanosecond and second fields, just in case the clock only has seconds resolution. */
+    uint64_t seed = ts.tv_nsec;
+    seed ^= ts.tv_sec;
+    rng.seed(seed);
 
     return rng;
   }();
