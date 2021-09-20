@@ -307,6 +307,7 @@ DefNode(GeometryNode, GEO_NODE_LEGACY_SELECT_BY_MATERIAL, 0, "LEGACY_SELECT_BY_M
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_CAPTURE, def_geo_attribute_capture, "ATTRIBUTE_CAPTURE", AttributeCapture, "Attribute Capture", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_REMOVE, 0, "ATTRIBUTE_REMOVE", AttributeRemove, "Attribute Remove", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_VECTOR_ROTATE, def_geo_attribute_vector_rotate, "LEGACY_ATTRIBUTE_VECTOR_ROTATE", LegacyAttributeVectorRotate, "Attribute Vector Rotate", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_STATISTIC, def_geo_attribute_statistic, "ATTRIBUTE_STATISTIC", AttributeStatistic, "Attribute Statistic", "")
 DefNode(GeometryNode, GEO_NODE_BOOLEAN, def_geo_boolean, "BOOLEAN", Boolean, "Boolean", "")
 DefNode(GeometryNode, GEO_NODE_BOUNDING_BOX, 0, "BOUNDING_BOX", BoundBox, "Bounding Box", "")
 DefNode(GeometryNode, GEO_NODE_COLLECTION_INFO, def_geo_collection_info, "COLLECTION_INFO", CollectionInfo, "Collection Info", "")

@@ -48,6 +48,7 @@ void register_node_type_geo_attribute_proximity(void);
 void register_node_type_geo_attribute_randomize(void);
 void register_node_type_geo_attribute_remove(void);
 void register_node_type_geo_attribute_separate_xyz(void);
+void register_node_type_geo_attribute_statistic(void);
 void register_node_type_geo_attribute_transfer(void);
 void register_node_type_geo_attribute_vector_math(void);
 void register_node_type_geo_attribute_vector_rotate(void);

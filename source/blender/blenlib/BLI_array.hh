@@ -277,6 +277,21 @@ class Array {
   }
 
   /**
+   * Return a reference to the first element in the array.
+   * This invokes undefined behavior when the array is empty.
+   */
+  const T &first() const
+  {
+    BLI_assert(size_ > 0);
+    return *data_;
+  }
+  T &first()
+  {
+    BLI_assert(size_ > 0);
+    return *data_;
+  }
+
+  /**
    * Return a reference to the last element in the array.
    * This invokes undefined behavior when the array is empty.
    */

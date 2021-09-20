@@ -161,6 +161,7 @@ set(SRC
   geometry/nodes/node_geo_attribute_remove.cc
   geometry/nodes/node_geo_attribute_sample_texture.cc
   geometry/nodes/node_geo_attribute_separate_xyz.cc
+  geometry/nodes/node_geo_attribute_statistic.cc
   geometry/nodes/node_geo_attribute_transfer.cc
   geometry/nodes/node_geo_attribute_vector_math.cc
   geometry/nodes/node_geo_attribute_vector_rotate.cc
