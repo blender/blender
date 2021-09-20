@@ -142,7 +142,8 @@ void Spline::reverse()
 int Spline::evaluated_edges_size() const
 {
   const int eval_size = this->evaluated_points_size();
-  if (eval_size == 1) {
+  if (eval_size < 2) {
+    /* Two points are required for an edge. */
     return 0;
   }
 
@@ -205,9 +206,10 @@ Span<float> Spline::evaluated_lengths() const
 
   const int total = evaluated_edges_size();
   evaluated_lengths_cache_.resize(total);
-
-  Span<float3> positions = this->evaluated_positions();
-  accumulate_lengths(positions, is_cyclic_, evaluated_lengths_cache_);
+  if (total != 0) {
+    Span<float3> positions = this->evaluated_positions();
+    accumulate_lengths(positions, is_cyclic_, evaluated_lengths_cache_);
+  }
 
   length_cache_dirty_ = false;
   return evaluated_lengths_cache_;
