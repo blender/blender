@@ -8,14 +8,19 @@ import subprocess
 import sys
 
 
-def call(cmd, exit_on_error=True):
-    print(" ".join(cmd))
+def call(cmd, exit_on_error=True, silent=False):
+    if not silent:
+        print(" ".join(cmd))
 
     # Flush to ensure correct order output on Windows.
     sys.stdout.flush()
     sys.stderr.flush()
 
-    retcode = subprocess.call(cmd)
+    if silent:
+        retcode = subprocess.call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        retcode = subprocess.call(cmd)
+
     if exit_on_error and retcode != 0:
         sys.exit(retcode)
     return retcode
@@ -36,6 +41,11 @@ def check_output(cmd, exit_on_error=True):
         output = ""
 
     return output.strip()
+
+
+def git_branch_exists(git_command, branch):
+    return call([git_command, "rev-parse", "--verify", branch], exit_on_error=False, silent=True) == 0 or \
+           call([git_command, "rev-parse", "--verify", "remotes/origin/" + branch], exit_on_error=False, silent=True) == 0
 
 
 def git_branch(git_command):
