@@ -42,10 +42,10 @@ UUID BLI_uuid_generate_random(void);
  */
 UUID BLI_uuid_nil(void);
 
-/** Return true iff this is the nil UUID. */
+/** Return true only if this is the nil UUID. */
 bool BLI_uuid_is_nil(UUID uuid);
 
-/** Compare two UUIDs, return true if they are equal. */
+/** Compare two UUIDs, return true only if they are equal. */
 bool BLI_uuid_equal(UUID uuid1, UUID uuid2);
 
 /**
