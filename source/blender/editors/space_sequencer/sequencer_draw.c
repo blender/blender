@@ -327,7 +327,8 @@ static void draw_seq_waveform_overlay(View2D *v2d,
                                       float y2,
                                       float frames_per_pixel)
 {
-  if (seq->sound && ((sseq->flag & SEQ_ALL_WAVEFORMS) || (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM))) {
+  if (seq->sound &&
+      ((sseq->flag & SEQ_TIMELINE_ALL_WAVEFORMS) || (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM))) {
     /* Make sure that the start drawing position is aligned to the pixels on the screen to avoid
      * flickering when moving around the strip.
      * To do this we figure out the fractional offset in pixel space by checking where the
@@ -876,12 +877,12 @@ static size_t draw_seq_text_get_overlay_string(SpaceSeq *sseq,
   const char *text_array[5];
   int i = 0;
 
-  if (sseq->flag & SEQ_SHOW_STRIP_NAME) {
+  if (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_NAME) {
     text_array[i++] = draw_seq_text_get_name(seq);
   }
 
   char source[FILE_MAX];
-  if (sseq->flag & SEQ_SHOW_STRIP_SOURCE) {
+  if (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_SOURCE) {
     draw_seq_text_get_source(seq, source, sizeof(source));
     if (source[0] != '\0') {
       if (i != 0) {
@@ -892,7 +893,7 @@ static size_t draw_seq_text_get_overlay_string(SpaceSeq *sseq,
   }
 
   char strip_duration_text[16];
-  if (sseq->flag & SEQ_SHOW_STRIP_DURATION) {
+  if (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION) {
     const int strip_duration = seq->enddisp - seq->startdisp;
     SNPRINTF(strip_duration_text, "%d", strip_duration);
     if (i != 0) {
@@ -1310,8 +1311,9 @@ static void draw_seq_strip(const bContext *C,
 
   float text_margin_y;
   bool y_threshold;
-  if ((sseq->flag & SEQ_SHOW_STRIP_NAME) || (sseq->flag & SEQ_SHOW_STRIP_SOURCE) ||
-      (sseq->flag & SEQ_SHOW_STRIP_DURATION)) {
+  if ((sseq->flag & SEQ_TIMELINE_SHOW_STRIP_NAME) ||
+      (sseq->flag & SEQ_TIMELINE_SHOW_STRIP_SOURCE) ||
+      (sseq->flag & SEQ_TIMELINE_SHOW_STRIP_DURATION)) {
 
     /* Calculate height needed for drawing text on strip. */
     text_margin_y = y2 - min_ff(0.40f, 20 * U.dpi_fac * pixely);
@@ -1335,9 +1337,10 @@ static void draw_seq_strip(const bContext *C,
   }
 
   /* Draw strip offsets when flag is enabled or during "solo preview". */
-  if (sseq->flag & SEQ_SHOW_STRIP_OVERLAY) {
+  if (sseq->flag & SEQ_SHOW_OVERLAY) {
     if (!is_single_image && (seq->startofs || seq->endofs) && pixely > 0) {
-      if ((sseq->draw_flag & SEQ_DRAW_OFFSET_EXT) || (seq == special_seq_update)) {
+      if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_OFFSETS) ||
+          (seq == special_seq_update)) {
         draw_sequence_extensions_overlay(scene, seq, pos, pixely);
       }
     }
@@ -1352,13 +1355,14 @@ static void draw_seq_strip(const bContext *C,
     drawmeta_contents(scene, seq, x1, y1, x2, y2);
   }
 
-  if ((sseq->flag & SEQ_SHOW_STRIP_OVERLAY) && (sseq->flag & SEQ_SHOW_FCURVES)) {
+  if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
+      (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_FCURVES)) {
     draw_seq_fcurve_overlay(scene, v2d, seq, x1, y1, x2, y2, pixelx);
   }
 
   /* Draw sound strip waveform. */
-  if ((seq->type == SEQ_TYPE_SOUND_RAM) && ((sseq->flag & SEQ_SHOW_STRIP_OVERLAY)) &&
-      (sseq->flag & SEQ_NO_WAVEFORMS) == 0) {
+  if ((seq->type == SEQ_TYPE_SOUND_RAM) && ((sseq->flag & SEQ_SHOW_OVERLAY)) &&
+      (sseq->timeline_overlay.flag & SEQ_TIMELINE_NO_WAVEFORMS) == 0) {
     draw_seq_waveform_overlay(v2d,
                               C,
                               sseq,
@@ -1398,13 +1402,14 @@ static void draw_seq_strip(const bContext *C,
 
   /* If a waveform is drawn, avoid drawing text when there is not enough vertical space. */
   if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    if (!y_threshold && (sseq->flag & SEQ_NO_WAVEFORMS) == 0 &&
-        ((sseq->flag & SEQ_ALL_WAVEFORMS) || (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM))) {
+    if (!y_threshold && (sseq->timeline_overlay.flag & SEQ_TIMELINE_NO_WAVEFORMS) == 0 &&
+        ((sseq->timeline_overlay.flag & SEQ_TIMELINE_ALL_WAVEFORMS) ||
+         (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM))) {
       return;
     }
   }
 
-  if (sseq->flag & SEQ_SHOW_STRIP_OVERLAY) {
+  if (sseq->flag & SEQ_SHOW_OVERLAY) {
     /* Don't draw strip if there is not enough vertical or horizontal space. */
     if (((x2 - x1) > 32 * pixelx * U.dpi_fac) && ((y2 - y1) > 8 * pixely * U.dpi_fac)) {
       /* Depending on the vertical space, draw text on top or in the center of strip. */
@@ -1647,7 +1652,7 @@ static void sequencer_draw_borders_overlay(const SpaceSeq *sseq,
   imm_draw_box_wire_2d(shdr_pos, x1 - 0.5f, y1 - 0.5f, x2 + 0.5f, y2 + 0.5f);
 
   /* Draw safety border. */
-  if (sseq->flag & SEQ_SHOW_SAFE_MARGINS) {
+  if (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_SAFE_MARGINS) {
     immUniformThemeColorBlend(TH_VIEW_OVERLAY, TH_BACK, 0.25f);
 
     UI_draw_safe_areas(shdr_pos,
@@ -1660,7 +1665,7 @@ static void sequencer_draw_borders_overlay(const SpaceSeq *sseq,
                        scene->safe_areas.title,
                        scene->safe_areas.action);
 
-    if (sseq->flag & SEQ_SHOW_SAFE_CENTER) {
+    if (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_SAFE_CENTER) {
       UI_draw_safe_areas(shdr_pos,
                          &(const rctf){
                              .xmin = x1,
@@ -2067,7 +2072,7 @@ void sequencer_draw_preview(const bContext *C,
   struct ImBuf *scope = NULL;
   float viewrect[2];
   const bool show_imbuf = ED_space_sequencer_check_show_imbuf(sseq);
-  const bool draw_gpencil = ((sseq->flag & SEQ_SHOW_GPENCIL) && sseq->gpd);
+  const bool draw_gpencil = ((sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_GPENCIL) && sseq->gpd);
   const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 
   sequencer_stop_running_jobs(C, scene);
@@ -2118,16 +2123,16 @@ void sequencer_draw_preview(const bContext *C,
         C, scene, region, sseq, ibuf, scope, draw_overlay, draw_backdrop);
 
     /* Draw over image. */
-    if (sseq->flag & SEQ_SHOW_METADATA && sseq->flag & SEQ_SHOW_STRIP_OVERLAY) {
+    if (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_METADATA && sseq->flag & SEQ_SHOW_OVERLAY) {
       ED_region_image_metadata_draw(0.0, 0.0, ibuf, &v2d->tot, 1.0, 1.0);
     }
   }
 
-  if (show_imbuf && (sseq->flag & SEQ_SHOW_STRIP_OVERLAY)) {
+  if (show_imbuf && (sseq->flag & SEQ_SHOW_OVERLAY)) {
     sequencer_draw_borders_overlay(sseq, v2d, scene);
   }
 
-  if (draw_gpencil && show_imbuf && (sseq->flag & SEQ_SHOW_STRIP_OVERLAY)) {
+  if (draw_gpencil && show_imbuf && (sseq->flag & SEQ_SHOW_OVERLAY)) {
     sequencer_draw_gpencil_overlay(C);
   }
 #if 0
@@ -2615,7 +2620,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   /* Get timeline bound-box, needed for the scroll-bars. */
   SEQ_timeline_boundbox(scene, SEQ_active_seqbase_get(ed), &v2d->tot);
   draw_seq_backdrop(v2d);
-  if ((sseq->flag & SEQ_SHOW_STRIP_OVERLAY) && (sseq->flag & SEQ_SHOW_GRID)) {
+  if ((sseq->flag & SEQ_SHOW_OVERLAY) && (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_GRID)) {
     U.v2d_min_gridsize *= 3;
     UI_view2d_draw_lines_x__discrete_frames_or_seconds(
         v2d, scene, (sseq->flag & SEQ_DRAWFRAMES) == 0, false);

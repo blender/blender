@@ -98,9 +98,10 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   sseq->chanshown = 0;
   sseq->view = SEQ_VIEW_SEQUENCE;
   sseq->mainb = SEQ_DRAW_IMG_IMBUF;
-  sseq->flag = SEQ_SHOW_GPENCIL | SEQ_USE_ALPHA | SEQ_SHOW_MARKERS | SEQ_SHOW_FCURVES |
-               SEQ_ZOOM_TO_FIT | SEQ_SHOW_STRIP_OVERLAY | SEQ_SHOW_STRIP_NAME |
-               SEQ_SHOW_STRIP_SOURCE | SEQ_SHOW_STRIP_DURATION | SEQ_SHOW_GRID;
+  sseq->flag = SEQ_PREVIEW_SHOW_GPENCIL | SEQ_USE_ALPHA | SEQ_SHOW_MARKERS |
+               SEQ_TIMELINE_SHOW_FCURVES | SEQ_ZOOM_TO_FIT | SEQ_SHOW_OVERLAY |
+               SEQ_TIMELINE_SHOW_STRIP_NAME | SEQ_TIMELINE_SHOW_STRIP_SOURCE |
+               SEQ_TIMELINE_SHOW_STRIP_DURATION | SEQ_TIMELINE_SHOW_GRID;
 
   /* Tool header. */
   region = MEM_callocN(sizeof(ARegion), "tool header for sequencer");
@@ -699,7 +700,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   const bool draw_overlay = (scene->ed && (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) &&
-                             (sseq->flag & SEQ_SHOW_STRIP_OVERLAY));
+                             (sseq->flag & SEQ_SHOW_OVERLAY));
 
   /* XXX temp fix for wrong setting in sseq->mainb */
   if (sseq->mainb == SEQ_DRAW_SEQUENCE) {

@@ -576,6 +576,36 @@ typedef enum eSpaceNla_Flag {
 /** \name Sequence Editor
  * \{ */
 
+typedef struct SequencerPreviewOverlay {
+  int flag;
+  char _pad0[4];
+} SequencerPreviewOverlay;
+
+/* SequencerPreviewOverlay.flag */
+typedef enum eSpaceSeq_SequencerPreviewOverlay_Flag {
+  SEQ_PREVIEW_SHOW_SAFE_MARGINS = (1 << 3),
+  SEQ_PREVIEW_SHOW_GPENCIL = (1 << 4),
+  SEQ_PREVIEW_SHOW_SAFE_CENTER = (1 << 9),
+  SEQ_PREVIEW_SHOW_METADATA = (1 << 10),
+} eSpaceSeq_SequencerPreviewOverlay_Flag;
+
+typedef struct SequencerTimelineOverlay {
+  int flag;
+  char _pad0[4];
+} SequencerTimelineOverlay;
+
+/* SequencerTimelineOverlay.flag */
+typedef enum eSpaceSeq_SequencerTimelineOverlay_Flag {
+  SEQ_TIMELINE_SHOW_STRIP_OFFSETS = (1 << 1),
+  SEQ_TIMELINE_SHOW_FCURVES = (1 << 5),
+  SEQ_TIMELINE_ALL_WAVEFORMS = (1 << 7), /* draw all waveforms */
+  SEQ_TIMELINE_NO_WAVEFORMS = (1 << 8),  /* draw no waveforms */
+  SEQ_TIMELINE_SHOW_STRIP_NAME = (1 << 14),
+  SEQ_TIMELINE_SHOW_STRIP_SOURCE = (1 << 15),
+  SEQ_TIMELINE_SHOW_STRIP_DURATION = (1 << 16),
+  SEQ_TIMELINE_SHOW_GRID = (1 << 18),
+} eSpaceSeq_SequencerTimelineOverlay_Flag;
+
 /* Sequencer */
 typedef struct SpaceSeq {
   SpaceLink *next, *prev;
@@ -612,10 +642,13 @@ typedef struct SpaceSeq {
 
   /** Different scoped displayed in space. */
   struct SequencerScopes scopes;
+  struct SequencerPreviewOverlay preview_overlay;
+  struct SequencerTimelineOverlay timeline_overlay;
 
   /** Multiview current eye - for internal use. */
   char multiview_eye;
   char _pad2[7];
+
 } SpaceSeq;
 
 /* SpaceSeq.mainb */
@@ -630,7 +663,7 @@ typedef enum eSpaceSeq_RegionType {
 /* SpaceSeq.draw_flag */
 typedef enum eSpaceSeq_DrawFlag {
   SEQ_DRAW_BACKDROP = (1 << 0),
-  SEQ_DRAW_OFFSET_EXT = (1 << 1),
+  SEQ_DRAW_UNUSED_1 = (1 << 1),
   SEQ_DRAW_TRANSFORM_PREVIEW = (1 << 2),
 } eSpaceSeq_DrawFlag;
 
@@ -639,22 +672,19 @@ typedef enum eSpaceSeq_Flag {
   SEQ_DRAWFRAMES = (1 << 0),
   SEQ_MARKER_TRANS = (1 << 1),
   SEQ_DRAW_COLOR_SEPARATED = (1 << 2),
-  SEQ_SHOW_SAFE_MARGINS = (1 << 3),
-  SEQ_SHOW_GPENCIL = (1 << 4),
-  SEQ_SHOW_FCURVES = (1 << 5),
-  SEQ_USE_ALPHA = (1 << 6),     /* use RGBA display mode for preview */
-  SEQ_ALL_WAVEFORMS = (1 << 7), /* draw all waveforms */
-  SEQ_NO_WAVEFORMS = (1 << 8),  /* draw no waveforms */
-  SEQ_SHOW_SAFE_CENTER = (1 << 9),
-  SEQ_SHOW_METADATA = (1 << 10),
+  SPACE_SEQ_FLAG_UNUSED_3 = (1 << 3),
+  SPACE_SEQ_FLAG_UNUSED_4 = (1 << 4),
+  SPACE_SEQ_FLAG_UNUSED_5 = (1 << 5),
+  SEQ_USE_ALPHA = (1 << 6), /* use RGBA display mode for preview */
+  SPACE_SEQ_FLAG_UNUSED_9 = (1 << 9),
+  SPACE_SEQ_FLAG_UNUSED_10 = (1 << 10),
   SEQ_SHOW_MARKERS = (1 << 11), /* show markers region */
   SEQ_ZOOM_TO_FIT = (1 << 12),
-  SEQ_SHOW_STRIP_OVERLAY = (1 << 13),
-  SEQ_SHOW_STRIP_NAME = (1 << 14),
-  SEQ_SHOW_STRIP_SOURCE = (1 << 15),
-  SEQ_SHOW_STRIP_DURATION = (1 << 16),
+  SEQ_SHOW_OVERLAY = (1 << 13),
+  SPACE_SEQ_FLAG_UNUSED_14 = (1 << 14),
+  SPACE_SEQ_FLAG_UNUSED_15 = (1 << 15),
+  SPACE_SEQ_FLAG_UNUSED_16 = (1 << 16),
   SEQ_USE_PROXIES = (1 << 17),
-  SEQ_SHOW_GRID = (1 << 18),
 } eSpaceSeq_Flag;
 
 /* SpaceSeq.view */
