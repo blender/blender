@@ -37,10 +37,10 @@
 /* Kernel includes are necessary so that the filter function for Embree can access the packed BVH.
  */
 #  include "kernel/bvh/bvh_embree.h"
-#  include "kernel/kernel_compat_cpu.h"
-#  include "kernel/kernel_globals.h"
+#  include "kernel/bvh/bvh_util.h"
+#  include "kernel/device/cpu/compat.h"
+#  include "kernel/device/cpu/globals.h"
 #  include "kernel/kernel_random.h"
-#  include "kernel/split/kernel_split_data_types.h"
 
 #  include "render/hair.h"
 #  include "render/mesh.h"
@@ -73,46 +73,69 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
   const RTCRay *ray = (RTCRay *)args->ray;
   RTCHit *hit = (RTCHit *)args->hit;
   CCLIntersectContext *ctx = ((IntersectContext *)args->context)->userRayExt;
-  KernelGlobals *kg = ctx->kg;
+  const KernelGlobals *kg = ctx->kg;
 
   switch (ctx->type) {
     case CCLIntersectContext::RAY_SHADOW_ALL: {
-      /* Append the intersection to the end of the array. */
-      if (ctx->num_hits < ctx->max_hits) {
-        Intersection current_isect;
-        kernel_embree_convert_hit(kg, ray, hit, &current_isect);
-        for (size_t i = 0; i < ctx->max_hits; ++i) {
+      Intersection current_isect;
+      kernel_embree_convert_hit(kg, ray, hit, &current_isect);
+
+      /* If no transparent shadows, all light is blocked. */
+      const int flags = intersection_get_shader_flags(kg, &current_isect);
+      if (!(flags & (SD_HAS_TRANSPARENT_SHADOW)) || ctx->max_hits == 0) {
+        ctx->opaque_hit = true;
+        return;
+      }
+
+      /* Test if we need to record this transparent intersection. */
+      if (ctx->num_hits < ctx->max_hits || ray->tfar < ctx->max_t) {
+        /* Skip already recorded intersections. */
+        int num_recorded_hits = min(ctx->num_hits, ctx->max_hits);
+
+        for (int i = 0; i < num_recorded_hits; ++i) {
           if (current_isect.object == ctx->isect_s[i].object &&
               current_isect.prim == ctx->isect_s[i].prim && current_isect.t == ctx->isect_s[i].t) {
             /* This intersection was already recorded, skip it. */
             *args->valid = 0;
-            break;
+            return;
           }
         }
-        Intersection *isect = &ctx->isect_s[ctx->num_hits];
-        ++ctx->num_hits;
-        *isect = current_isect;
-        int prim = kernel_tex_fetch(__prim_index, isect->prim);
-        int shader = 0;
-        if (kernel_tex_fetch(__prim_type, isect->prim) & PRIMITIVE_ALL_TRIANGLE) {
-          shader = kernel_tex_fetch(__tri_shader, prim);
+
+        /* If maximum number of hits was reached, replace the intersection with the
+         * highest distance. We want to find the N closest intersections. */
+        int isect_index = num_recorded_hits;
+        if (num_recorded_hits + 1 >= ctx->max_hits) {
+          float max_t = ctx->isect_s[0].t;
+          int max_recorded_hit = 0;
+
+          for (int i = 1; i < num_recorded_hits; ++i) {
+            if (ctx->isect_s[i].t > max_t) {
+              max_recorded_hit = i;
+              max_t = ctx->isect_s[i].t;
+            }
+          }
+
+          if (num_recorded_hits >= ctx->max_hits) {
+            isect_index = max_recorded_hit;
+          }
+
+          /* Limit the ray distance and stop counting hits beyond this.
+           * TODO: is there some way we can tell Embree to stop intersecting beyond
+           * this distance when max number of hits is reached?. Or maybe it will
+           * become irrelevant if we make max_hits a very high number on the CPU. */
+          ctx->max_t = max(current_isect.t, max_t);
         }
-        else {
-          float4 str = kernel_tex_fetch(__curves, prim);
-          shader = __float_as_int(str.z);
-        }
-        int flag = kernel_tex_fetch(__shaders, shader & SHADER_MASK).flags;
-        /* If no transparent shadows, all light is blocked. */
-        if (flag & (SD_HAS_TRANSPARENT_SHADOW)) {
-          /* This tells Embree to continue tracing. */
-          *args->valid = 0;
-        }
+
+        ctx->isect_s[isect_index] = current_isect;
       }
-      else {
-        /* Increase the number of hits beyond ray.max_hits
-         * so that the caller can detect this as opaque. */
-        ++ctx->num_hits;
-      }
+
+      /* Always increase the number of hits, even beyond ray.max_hits so that
+       * the caller can detect this as and consider it opaque, or trace another
+       * ray. */
+      ++ctx->num_hits;
+
+      /* This tells Embree to continue tracing. */
+      *args->valid = 0;
       break;
     }
     case CCLIntersectContext::RAY_LOCAL:
@@ -329,7 +352,7 @@ void BVHEmbree::build(Progress &progress, Stats *stats, RTCDevice rtc_device_)
     scene = NULL;
   }
 
-  const bool dynamic = params.bvh_type == SceneParams::BVH_DYNAMIC;
+  const bool dynamic = params.bvh_type == BVH_TYPE_DYNAMIC;
 
   scene = rtcNewScene(rtc_device);
   const RTCSceneFlags scene_flags = (dynamic ? RTC_SCENE_FLAG_DYNAMIC : RTC_SCENE_FLAG_NONE) |

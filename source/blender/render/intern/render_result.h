@@ -25,9 +25,6 @@
 
 #define PASS_VECTOR_MAX 10000.0f
 
-#define RR_USE_MEM 0
-#define RR_USE_EXR 1
-
 #define RR_ALL_LAYERS NULL
 #define RR_ALL_VIEWS NULL
 
@@ -51,7 +48,6 @@ extern "C" {
 
 struct RenderResult *render_result_new(struct Render *re,
                                        struct rcti *partrct,
-                                       int savebuffers,
                                        const char *layername,
                                        const char *viewname);
 
@@ -81,12 +77,6 @@ void render_result_free_list(struct ListBase *lb, struct RenderResult *rr);
 void render_result_single_layer_begin(struct Render *re);
 void render_result_single_layer_end(struct Render *re);
 
-/* EXR Tile File Render */
-
-void render_result_save_empty_result_tiles(struct Render *re);
-void render_result_exr_file_begin(struct Render *re, struct RenderEngine *engine);
-void render_result_exr_file_end(struct Render *re, struct RenderEngine *engine);
-
 /* render pass wrapper for gpencil */
 struct RenderPass *render_layer_add_pass(struct RenderResult *rr,
                                          struct RenderLayer *rl,
@@ -95,14 +85,6 @@ struct RenderPass *render_layer_add_pass(struct RenderResult *rr,
                                          const char *viewname,
                                          const char *chan_id);
 
-void render_result_exr_file_merge(struct RenderResult *rr,
-                                  struct RenderResult *rrpart,
-                                  const char *viewname);
-
-void render_result_exr_file_path(struct Scene *scene,
-                                 const char *layname,
-                                 int sample,
-                                 char *filepath);
 int render_result_exr_file_read_path(struct RenderResult *rr,
                                      struct RenderLayer *rl_single,
                                      const char *filepath);

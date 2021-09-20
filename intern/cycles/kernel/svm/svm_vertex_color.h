@@ -16,12 +16,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void svm_node_vertex_color(KernelGlobals *kg,
-                                      ShaderData *sd,
-                                      float *stack,
-                                      uint layer_id,
-                                      uint color_offset,
-                                      uint alpha_offset)
+ccl_device_noinline void svm_node_vertex_color(const KernelGlobals *kg,
+                                               ShaderData *sd,
+                                               float *stack,
+                                               uint layer_id,
+                                               uint color_offset,
+                                               uint alpha_offset)
 {
   AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
   if (descriptor.offset != ATTR_STD_NOT_FOUND) {
@@ -35,18 +35,12 @@ ccl_device void svm_node_vertex_color(KernelGlobals *kg,
   }
 }
 
-#ifndef __KERNEL_CUDA__
-ccl_device
-#else
-ccl_device_noinline
-#endif
-    void
-    svm_node_vertex_color_bump_dx(KernelGlobals *kg,
-                                  ShaderData *sd,
-                                  float *stack,
-                                  uint layer_id,
-                                  uint color_offset,
-                                  uint alpha_offset)
+ccl_device_noinline void svm_node_vertex_color_bump_dx(const KernelGlobals *kg,
+                                                       ShaderData *sd,
+                                                       float *stack,
+                                                       uint layer_id,
+                                                       uint color_offset,
+                                                       uint alpha_offset)
 {
   AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
   if (descriptor.offset != ATTR_STD_NOT_FOUND) {
@@ -62,18 +56,12 @@ ccl_device_noinline
   }
 }
 
-#ifndef __KERNEL_CUDA__
-ccl_device
-#else
-ccl_device_noinline
-#endif
-    void
-    svm_node_vertex_color_bump_dy(KernelGlobals *kg,
-                                  ShaderData *sd,
-                                  float *stack,
-                                  uint layer_id,
-                                  uint color_offset,
-                                  uint alpha_offset)
+ccl_device_noinline void svm_node_vertex_color_bump_dy(const KernelGlobals *kg,
+                                                       ShaderData *sd,
+                                                       float *stack,
+                                                       uint layer_id,
+                                                       uint color_offset,
+                                                       uint alpha_offset)
 {
   AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
   if (descriptor.offset != ATTR_STD_NOT_FOUND) {

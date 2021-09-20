@@ -21,8 +21,12 @@ CCL_NAMESPACE_BEGIN
 
 /* NOTE: svm_ramp.h, svm_ramp_util.h and node_ramp_util.h must stay consistent */
 
-ccl_device_inline float4 rgb_ramp_lookup(
-    KernelGlobals *kg, int offset, float f, bool interpolate, bool extrapolate, int table_size)
+ccl_device_inline float4 rgb_ramp_lookup(const KernelGlobals *kg,
+                                         int offset,
+                                         float f,
+                                         bool interpolate,
+                                         bool extrapolate,
+                                         int table_size)
 {
   if ((f < 0.0f || f > 1.0f) && extrapolate) {
     float4 t0, dy;
@@ -53,34 +57,35 @@ ccl_device_inline float4 rgb_ramp_lookup(
   return a;
 }
 
-ccl_device void svm_node_rgb_ramp(
-    KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device_noinline int svm_node_rgb_ramp(
+    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int offset)
 {
   uint fac_offset, color_offset, alpha_offset;
   uint interpolate = node.z;
 
   svm_unpack_node_uchar3(node.y, &fac_offset, &color_offset, &alpha_offset);
 
-  uint table_size = read_node(kg, offset).x;
+  uint table_size = read_node(kg, &offset).x;
 
   float fac = stack_load_float(stack, fac_offset);
-  float4 color = rgb_ramp_lookup(kg, *offset, fac, interpolate, false, table_size);
+  float4 color = rgb_ramp_lookup(kg, offset, fac, interpolate, false, table_size);
 
   if (stack_valid(color_offset))
     stack_store_float3(stack, color_offset, float4_to_float3(color));
   if (stack_valid(alpha_offset))
     stack_store_float(stack, alpha_offset, color.w);
 
-  *offset += table_size;
+  offset += table_size;
+  return offset;
 }
 
-ccl_device void svm_node_curves(
-    KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device_noinline int svm_node_curves(
+    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int offset)
 {
   uint fac_offset, color_offset, out_offset;
   svm_unpack_node_uchar3(node.y, &fac_offset, &color_offset, &out_offset);
 
-  uint table_size = read_node(kg, offset).x;
+  uint table_size = read_node(kg, &offset).x;
 
   float fac = stack_load_float(stack, fac_offset);
   float3 color = stack_load_float3(stack, color_offset);
@@ -89,14 +94,15 @@ ccl_device void svm_node_curves(
   const float range_x = max_x - min_x;
   const float3 relpos = (color - make_float3(min_x, min_x, min_x)) / range_x;
 
-  float r = rgb_ramp_lookup(kg, *offset, relpos.x, true, true, table_size).x;
-  float g = rgb_ramp_lookup(kg, *offset, relpos.y, true, true, table_size).y;
-  float b = rgb_ramp_lookup(kg, *offset, relpos.z, true, true, table_size).z;
+  float r = rgb_ramp_lookup(kg, offset, relpos.x, true, true, table_size).x;
+  float g = rgb_ramp_lookup(kg, offset, relpos.y, true, true, table_size).y;
+  float b = rgb_ramp_lookup(kg, offset, relpos.z, true, true, table_size).z;
 
   color = (1.0f - fac) * color + fac * make_float3(r, g, b);
   stack_store_float3(stack, out_offset, color);
 
-  *offset += table_size;
+  offset += table_size;
+  return offset;
 }
 
 CCL_NAMESPACE_END

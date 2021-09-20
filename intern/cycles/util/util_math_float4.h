@@ -27,7 +27,6 @@ CCL_NAMESPACE_BEGIN
  * Declaration.
  */
 
-#ifndef __KERNEL_OPENCL__
 ccl_device_inline float4 operator-(const float4 &a);
 ccl_device_inline float4 operator*(const float4 &a, const float4 &b);
 ccl_device_inline float4 operator*(const float4 &a, float f);
@@ -66,7 +65,6 @@ ccl_device_inline float4 clamp(const float4 &a, const float4 &mn, const float4 &
 ccl_device_inline float4 fabs(const float4 &a);
 ccl_device_inline float4 floor(const float4 &a);
 ccl_device_inline float4 mix(const float4 &a, const float4 &b, float t);
-#endif /* !__KERNEL_OPENCL__*/
 
 ccl_device_inline float4 safe_divide_float4_float(const float4 a, const float b);
 
@@ -112,33 +110,32 @@ ccl_device_inline float4 one_float4()
   return make_float4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
-#ifndef __KERNEL_OPENCL__
 ccl_device_inline float4 operator-(const float4 &a)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   __m128 mask = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
   return float4(_mm_xor_ps(a.m128, mask));
-#  else
+#else
   return make_float4(-a.x, -a.y, -a.z, -a.w);
-#  endif
+#endif
 }
 
 ccl_device_inline float4 operator*(const float4 &a, const float4 &b)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return float4(_mm_mul_ps(a.m128, b.m128));
-#  else
+#else
   return make_float4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
-#  endif
+#endif
 }
 
 ccl_device_inline float4 operator*(const float4 &a, float f)
 {
-#  if defined(__KERNEL_SSE__)
+#if defined(__KERNEL_SSE__)
   return a * make_float4(f);
-#  else
+#else
   return make_float4(a.x * f, a.y * f, a.z * f, a.w * f);
-#  endif
+#endif
 }
 
 ccl_device_inline float4 operator*(float f, const float4 &a)
@@ -153,11 +150,11 @@ ccl_device_inline float4 operator/(const float4 &a, float f)
 
 ccl_device_inline float4 operator/(const float4 &a, const float4 &b)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return float4(_mm_div_ps(a.m128, b.m128));
-#  else
+#else
   return make_float4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w);
-#  endif
+#endif
 }
 
 ccl_device_inline float4 operator+(const float4 &a, const float f)
@@ -167,11 +164,11 @@ ccl_device_inline float4 operator+(const float4 &a, const float f)
 
 ccl_device_inline float4 operator+(const float4 &a, const float4 &b)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return float4(_mm_add_ps(a.m128, b.m128));
-#  else
+#else
   return make_float4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
-#  endif
+#endif
 }
 
 ccl_device_inline float4 operator-(const float4 &a, const float f)
@@ -181,11 +178,11 @@ ccl_device_inline float4 operator-(const float4 &a, const float f)
 
 ccl_device_inline float4 operator-(const float4 &a, const float4 &b)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return float4(_mm_sub_ps(a.m128, b.m128));
-#  else
+#else
   return make_float4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
-#  endif
+#endif
 }
 
 ccl_device_inline float4 operator+=(float4 &a, const float4 &b)
@@ -215,38 +212,38 @@ ccl_device_inline float4 operator/=(float4 &a, float f)
 
 ccl_device_inline int4 operator<(const float4 &a, const float4 &b)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return int4(_mm_castps_si128(_mm_cmplt_ps(a.m128, b.m128)));
-#  else
+#else
   return make_int4(a.x < b.x, a.y < b.y, a.z < b.z, a.w < b.w);
-#  endif
+#endif
 }
 
 ccl_device_inline int4 operator>=(const float4 &a, const float4 &b)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return int4(_mm_castps_si128(_mm_cmpge_ps(a.m128, b.m128)));
-#  else
+#else
   return make_int4(a.x >= b.x, a.y >= b.y, a.z >= b.z, a.w >= b.w);
-#  endif
+#endif
 }
 
 ccl_device_inline int4 operator<=(const float4 &a, const float4 &b)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return int4(_mm_castps_si128(_mm_cmple_ps(a.m128, b.m128)));
-#  else
+#else
   return make_int4(a.x <= b.x, a.y <= b.y, a.z <= b.z, a.w <= b.w);
-#  endif
+#endif
 }
 
 ccl_device_inline bool operator==(const float4 &a, const float4 &b)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return (_mm_movemask_ps(_mm_cmpeq_ps(a.m128, b.m128)) & 15) == 15;
-#  else
+#else
   return (a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w);
-#  endif
+#endif
 }
 
 ccl_device_inline float distance(const float4 &a, const float4 &b)
@@ -256,16 +253,16 @@ ccl_device_inline float distance(const float4 &a, const float4 &b)
 
 ccl_device_inline float dot(const float4 &a, const float4 &b)
 {
-#  if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
-#    if defined(__KERNEL_NEON__)
+#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
+#  if defined(__KERNEL_NEON__)
   __m128 t = vmulq_f32(a, b);
   return vaddvq_f32(t);
-#    else
-  return _mm_cvtss_f32(_mm_dp_ps(a, b, 0xFF));
-#    endif
 #  else
-  return (a.x * b.x + a.y * b.y) + (a.z * b.z + a.w * b.w);
+  return _mm_cvtss_f32(_mm_dp_ps(a, b, 0xFF));
 #  endif
+#else
+  return (a.x * b.x + a.y * b.y) + (a.z * b.z + a.w * b.w);
+#endif
 }
 
 ccl_device_inline float len_squared(const float4 &a)
@@ -275,21 +272,21 @@ ccl_device_inline float len_squared(const float4 &a)
 
 ccl_device_inline float4 rcp(const float4 &a)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   /* Don't use _mm_rcp_ps due to poor precision. */
   return float4(_mm_div_ps(_mm_set_ps1(1.0f), a.m128));
-#  else
+#else
   return make_float4(1.0f / a.x, 1.0f / a.y, 1.0f / a.z, 1.0f / a.w);
-#  endif
+#endif
 }
 
 ccl_device_inline float4 sqrt(const float4 &a)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return float4(_mm_sqrt_ps(a.m128));
-#  else
+#else
   return make_float4(sqrtf(a.x), sqrtf(a.y), sqrtf(a.z), sqrtf(a.w));
-#  endif
+#endif
 }
 
 ccl_device_inline float4 sqr(const float4 &a)
@@ -299,39 +296,39 @@ ccl_device_inline float4 sqr(const float4 &a)
 
 ccl_device_inline float4 cross(const float4 &a, const float4 &b)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return (shuffle<1, 2, 0, 0>(a) * shuffle<2, 0, 1, 0>(b)) -
          (shuffle<2, 0, 1, 0>(a) * shuffle<1, 2, 0, 0>(b));
-#  else
+#else
   return make_float4(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x, 0.0f);
-#  endif
+#endif
 }
 
 ccl_device_inline bool is_zero(const float4 &a)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return a == make_float4(0.0f);
-#  else
+#else
   return (a.x == 0.0f && a.y == 0.0f && a.z == 0.0f && a.w == 0.0f);
-#  endif
+#endif
 }
 
 ccl_device_inline float4 reduce_add(const float4 &a)
 {
-#  if defined(__KERNEL_SSE__)
-#    if defined(__KERNEL_NEON__)
+#if defined(__KERNEL_SSE__)
+#  if defined(__KERNEL_NEON__)
   return float4(vdupq_n_f32(vaddvq_f32(a)));
-#    elif defined(__KERNEL_SSE3__)
+#  elif defined(__KERNEL_SSE3__)
   float4 h(_mm_hadd_ps(a.m128, a.m128));
   return float4(_mm_hadd_ps(h.m128, h.m128));
-#    else
+#  else
   float4 h(shuffle<1, 0, 3, 2>(a) + a);
   return shuffle<2, 3, 0, 1>(h) + h;
-#    endif
-#  else
+#  endif
+#else
   float sum = (a.x + a.y) + (a.z + a.w);
   return make_float4(sum, sum, sum, sum);
-#  endif
+#endif
 }
 
 ccl_device_inline float average(const float4 &a)
@@ -357,20 +354,20 @@ ccl_device_inline float4 safe_normalize(const float4 &a)
 
 ccl_device_inline float4 min(const float4 &a, const float4 &b)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return float4(_mm_min_ps(a.m128, b.m128));
-#  else
+#else
   return make_float4(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z), min(a.w, b.w));
-#  endif
+#endif
 }
 
 ccl_device_inline float4 max(const float4 &a, const float4 &b)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return float4(_mm_max_ps(a.m128, b.m128));
-#  else
+#else
   return make_float4(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z), max(a.w, b.w));
-#  endif
+#endif
 }
 
 ccl_device_inline float4 clamp(const float4 &a, const float4 &mn, const float4 &mx)
@@ -380,32 +377,30 @@ ccl_device_inline float4 clamp(const float4 &a, const float4 &mn, const float4 &
 
 ccl_device_inline float4 fabs(const float4 &a)
 {
-#  if defined(__KERNEL_SSE__)
-#    if defined(__KERNEL_NEON__)
+#if defined(__KERNEL_SSE__)
+#  if defined(__KERNEL_NEON__)
   return float4(vabsq_f32(a));
-#    else
-  return float4(_mm_and_ps(a.m128, _mm_castsi128_ps(_mm_set1_epi32(0x7fffffff))));
-#    endif
 #  else
-  return make_float4(fabsf(a.x), fabsf(a.y), fabsf(a.z), fabsf(a.w));
+  return float4(_mm_and_ps(a.m128, _mm_castsi128_ps(_mm_set1_epi32(0x7fffffff))));
 #  endif
+#else
+  return make_float4(fabsf(a.x), fabsf(a.y), fabsf(a.z), fabsf(a.w));
+#endif
 }
 
 ccl_device_inline float4 floor(const float4 &a)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return float4(_mm_floor_ps(a));
-#  else
+#else
   return make_float4(floorf(a.x), floorf(a.y), floorf(a.z), floorf(a.w));
-#  endif
+#endif
 }
 
 ccl_device_inline float4 mix(const float4 &a, const float4 &b, float t)
 {
   return a + t * (b - a);
 }
-
-#endif /* !__KERNEL_OPENCL__*/
 
 #ifdef __KERNEL_SSE__
 template<size_t index_0, size_t index_1, size_t index_2, size_t index_3>

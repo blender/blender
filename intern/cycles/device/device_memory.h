@@ -38,7 +38,6 @@ enum MemoryType {
   MEM_DEVICE_ONLY,
   MEM_GLOBAL,
   MEM_TEXTURE,
-  MEM_PIXELS
 };
 
 /* Supported Data Types */
@@ -54,7 +53,7 @@ enum DataType {
   TYPE_UINT64,
 };
 
-static inline size_t datatype_size(DataType datatype)
+static constexpr size_t datatype_size(DataType datatype)
 {
   switch (datatype) {
     case TYPE_UNKNOWN:
@@ -82,112 +81,155 @@ static inline size_t datatype_size(DataType datatype)
 
 template<typename T> struct device_type_traits {
   static const DataType data_type = TYPE_UNKNOWN;
-  static const int num_elements = sizeof(T);
+  static const int num_elements_cpu = sizeof(T);
+  static const int num_elements_gpu = sizeof(T);
 };
 
 template<> struct device_type_traits<uchar> {
   static const DataType data_type = TYPE_UCHAR;
-  static const int num_elements = 1;
+  static const int num_elements_cpu = 1;
+  static const int num_elements_gpu = 1;
+  static_assert(sizeof(uchar) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<uchar2> {
   static const DataType data_type = TYPE_UCHAR;
-  static const int num_elements = 2;
+  static const int num_elements_cpu = 2;
+  static const int num_elements_gpu = 2;
+  static_assert(sizeof(uchar2) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<uchar3> {
   static const DataType data_type = TYPE_UCHAR;
-  static const int num_elements = 3;
+  static const int num_elements_cpu = 3;
+  static const int num_elements_gpu = 3;
+  static_assert(sizeof(uchar3) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<uchar4> {
   static const DataType data_type = TYPE_UCHAR;
-  static const int num_elements = 4;
+  static const int num_elements_cpu = 4;
+  static const int num_elements_gpu = 4;
+  static_assert(sizeof(uchar4) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<uint> {
   static const DataType data_type = TYPE_UINT;
-  static const int num_elements = 1;
+  static const int num_elements_cpu = 1;
+  static const int num_elements_gpu = 1;
+  static_assert(sizeof(uint) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<uint2> {
   static const DataType data_type = TYPE_UINT;
-  static const int num_elements = 2;
+  static const int num_elements_cpu = 2;
+  static const int num_elements_gpu = 2;
+  static_assert(sizeof(uint2) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<uint3> {
   static const DataType data_type = TYPE_UINT;
-  static const int num_elements = 3;
+  static const int num_elements_cpu = 3;
+  static const int num_elements_gpu = 3;
+  static_assert(sizeof(uint3) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<uint4> {
   static const DataType data_type = TYPE_UINT;
-  static const int num_elements = 4;
+  static const int num_elements_cpu = 4;
+  static const int num_elements_gpu = 4;
+  static_assert(sizeof(uint4) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<int> {
   static const DataType data_type = TYPE_INT;
-  static const int num_elements = 1;
+  static const int num_elements_cpu = 1;
+  static const int num_elements_gpu = 1;
+  static_assert(sizeof(int) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<int2> {
   static const DataType data_type = TYPE_INT;
-  static const int num_elements = 2;
+  static const int num_elements_cpu = 2;
+  static const int num_elements_gpu = 2;
+  static_assert(sizeof(int2) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<int3> {
   static const DataType data_type = TYPE_INT;
-  static const int num_elements = 3;
+  static const int num_elements_cpu = 4;
+  static const int num_elements_gpu = 3;
+  static_assert(sizeof(int3) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<int4> {
   static const DataType data_type = TYPE_INT;
-  static const int num_elements = 4;
+  static const int num_elements_cpu = 4;
+  static const int num_elements_gpu = 4;
+  static_assert(sizeof(int4) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<float> {
   static const DataType data_type = TYPE_FLOAT;
-  static const int num_elements = 1;
+  static const int num_elements_cpu = 1;
+  static const int num_elements_gpu = 1;
+  static_assert(sizeof(float) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<float2> {
   static const DataType data_type = TYPE_FLOAT;
-  static const int num_elements = 2;
+  static const int num_elements_cpu = 2;
+  static const int num_elements_gpu = 2;
+  static_assert(sizeof(float2) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<float3> {
   static const DataType data_type = TYPE_FLOAT;
-  static const int num_elements = 4;
+  static const int num_elements_cpu = 4;
+  static const int num_elements_gpu = 3;
+  static_assert(sizeof(float3) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<float4> {
   static const DataType data_type = TYPE_FLOAT;
-  static const int num_elements = 4;
+  static const int num_elements_cpu = 4;
+  static const int num_elements_gpu = 4;
+  static_assert(sizeof(float4) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<half> {
   static const DataType data_type = TYPE_HALF;
-  static const int num_elements = 1;
+  static const int num_elements_cpu = 1;
+  static const int num_elements_gpu = 1;
+  static_assert(sizeof(half) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<ushort4> {
   static const DataType data_type = TYPE_UINT16;
-  static const int num_elements = 4;
+  static const int num_elements_cpu = 4;
+  static const int num_elements_gpu = 4;
+  static_assert(sizeof(ushort4) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<uint16_t> {
   static const DataType data_type = TYPE_UINT16;
-  static const int num_elements = 1;
+  static const int num_elements_cpu = 1;
+  static const int num_elements_gpu = 1;
+  static_assert(sizeof(uint16_t) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<half4> {
   static const DataType data_type = TYPE_HALF;
-  static const int num_elements = 4;
+  static const int num_elements_cpu = 4;
+  static const int num_elements_gpu = 4;
+  static_assert(sizeof(half4) == num_elements_cpu * datatype_size(data_type));
 };
 
 template<> struct device_type_traits<uint64_t> {
   static const DataType data_type = TYPE_UINT64;
-  static const int num_elements = 1;
+  static const int num_elements_cpu = 1;
+  static const int num_elements_gpu = 1;
+  static_assert(sizeof(uint64_t) == num_elements_cpu * datatype_size(data_type));
 };
 
 /* Device Memory
@@ -257,6 +299,8 @@ class device_memory {
   void device_copy_from(int y, int w, int h, int elem);
   void device_zero();
 
+  bool device_is_cpu();
+
   device_ptr original_device_ptr;
   size_t original_device_size;
   Device *original_device;
@@ -275,7 +319,9 @@ template<typename T> class device_only_memory : public device_memory {
       : device_memory(device, name, allow_host_memory_fallback ? MEM_READ_WRITE : MEM_DEVICE_ONLY)
   {
     data_type = device_type_traits<T>::data_type;
-    data_elements = max(device_type_traits<T>::num_elements, 1);
+    data_elements = max(device_is_cpu() ? device_type_traits<T>::num_elements_cpu :
+                                          device_type_traits<T>::num_elements_gpu,
+                        1);
   }
 
   device_only_memory(device_only_memory &&other) noexcept : device_memory(std::move(other))
@@ -331,11 +377,15 @@ template<typename T> class device_only_memory : public device_memory {
 
 template<typename T> class device_vector : public device_memory {
  public:
+  /* Can only use this for types that have the same size on CPU and GPU. */
+  static_assert(device_type_traits<T>::num_elements_cpu ==
+                device_type_traits<T>::num_elements_gpu);
+
   device_vector(Device *device, const char *name, MemoryType type)
       : device_memory(device, name, type)
   {
     data_type = device_type_traits<T>::data_type;
-    data_elements = device_type_traits<T>::num_elements;
+    data_elements = device_type_traits<T>::num_elements_cpu;
     modified = true;
     need_realloc_ = true;
 
@@ -477,6 +527,11 @@ template<typename T> class device_vector : public device_memory {
     return (T *)host_pointer;
   }
 
+  const T *data() const
+  {
+    return (T *)host_pointer;
+  }
+
   T &operator[](size_t i)
   {
     assert(i < data_size);
@@ -507,7 +562,7 @@ template<typename T> class device_vector : public device_memory {
 
   void copy_from_device()
   {
-    device_copy_from(0, data_width, data_height, sizeof(T));
+    device_copy_from(0, data_width, (data_height == 0) ? 1 : data_height, sizeof(T));
   }
 
   void copy_from_device(int y, int w, int h)
@@ -532,33 +587,6 @@ template<typename T> class device_vector : public device_memory {
   size_t size(size_t width, size_t height, size_t depth)
   {
     return width * ((height == 0) ? 1 : height) * ((depth == 0) ? 1 : depth);
-  }
-};
-
-/* Pixel Memory
- *
- * Device memory to efficiently draw as pixels to the screen in interactive
- * rendering. Only copying pixels from the device is supported, not copying to. */
-
-template<typename T> class device_pixels : public device_vector<T> {
- public:
-  device_pixels(Device *device, const char *name) : device_vector<T>(device, name, MEM_PIXELS)
-  {
-  }
-
-  void alloc_to_device(size_t width, size_t height, size_t depth = 0)
-  {
-    device_vector<T>::alloc(width, height, depth);
-
-    if (!device_memory::device_pointer) {
-      device_memory::device_alloc();
-    }
-  }
-
-  T *copy_from_device(int y, int w, int h)
-  {
-    device_memory::device_copy_from(y, w, h, sizeof(T));
-    return device_vector<T>::data();
   }
 };
 

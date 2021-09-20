@@ -33,8 +33,6 @@ class BlenderSync;
 class ImageMetaData;
 class Scene;
 class Session;
-class RenderBuffers;
-class RenderTile;
 
 class BlenderSession {
  public:
@@ -62,6 +60,8 @@ class BlenderSession {
   /* offline render */
   void render(BL::Depsgraph &b_depsgraph);
 
+  void render_frame_finish();
+
   void bake(BL::Depsgraph &b_depsgrah,
             BL::Object &b_object,
             const string &pass_type,
@@ -69,24 +69,29 @@ class BlenderSession {
             const int bake_width,
             const int bake_height);
 
-  void write_render_result(BL::RenderLayer &b_rlay, RenderTile &rtile);
-  void write_render_tile(RenderTile &rtile);
-  void read_render_tile(RenderTile &rtile);
+  void write_render_result(BL::RenderLayer &b_rlay);
+  void write_render_tile();
+
+  void update_render_tile();
+
+  void full_buffer_written(string_view filename);
 
   /* update functions are used to update display buffer only after sample was rendered
    * only needed for better visual feedback */
-  void update_render_result(BL::RenderLayer &b_rlay, RenderTile &rtile);
-  void update_render_tile(RenderTile &rtile, bool highlight);
+  void update_render_result(BL::RenderLayer &b_rlay);
+
+  /* read functions for baking input */
+  void read_render_tile();
 
   /* interactive updates */
   void synchronize(BL::Depsgraph &b_depsgraph);
 
   /* drawing */
-  bool draw(int w, int h);
+  void draw(BL::SpaceImageEditor &space_image);
+  void view_draw(int w, int h);
   void tag_redraw();
   void tag_update();
   void get_status(string &status, string &substatus);
-  void get_kernel_status(string &kernel_status);
   void get_progress(float &progress, double &total_time, double &render_time);
   void test_cancel();
   void update_status_progress();
@@ -123,6 +128,8 @@ class BlenderSession {
 
   void *python_thread_state;
 
+  bool use_developer_ui;
+
   /* Global state which is common for all render sessions created from Blender.
    * Usually denotes command line arguments.
    */
@@ -134,41 +141,25 @@ class BlenderSession {
    */
   static bool headless;
 
-  /* ** Resumable render ** */
-
-  /* Overall number of chunks in which the sample range is to be divided. */
-  static int num_resumable_chunks;
-
-  /* Current resumable chunk index to render. */
-  static int current_resumable_chunk;
-
-  /* Alternative to single-chunk rendering to render a range of chunks. */
-  static int start_resumable_chunk;
-  static int end_resumable_chunk;
-
   static bool print_render_stats;
 
  protected:
   void stamp_view_layer_metadata(Scene *scene, const string &view_layer_name);
 
-  void do_write_update_render_result(BL::RenderLayer &b_rlay,
-                                     RenderTile &rtile,
-                                     bool do_update_only);
-  void do_write_update_render_tile(RenderTile &rtile,
-                                   bool do_update_only,
-                                   bool do_read_only,
-                                   bool highlight);
-
   void builtin_images_load();
-
-  /* Update tile manager to reflect resumable render settings. */
-  void update_resumable_tile_manager(int num_samples);
 
   /* Is used after each render layer synchronization is done with the goal
    * of freeing render engine data which is held from Blender side (for
    * example, dependency graph).
    */
   void free_blender_memory_if_possible();
+
+  struct {
+    thread_mutex mutex;
+    int last_pass_index = -1;
+  } draw_state_;
+
+  vector<string> full_buffer_files_;
 };
 
 CCL_NAMESPACE_END

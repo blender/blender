@@ -25,6 +25,8 @@
  * and ATTR_STD_MOTION_VERTEX_NORMAL mesh attributes.
  */
 
+#pragma once
+
 CCL_NAMESPACE_BEGIN
 
 /* Refine triangle intersection to more precise hit point. For rays that travel
@@ -32,23 +34,21 @@ CCL_NAMESPACE_BEGIN
  * a closer distance.
  */
 
-ccl_device_inline float3 motion_triangle_refine(
-    KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray, float3 verts[3])
+ccl_device_inline float3 motion_triangle_refine(const KernelGlobals *kg,
+                                                ShaderData *sd,
+                                                float3 P,
+                                                float3 D,
+                                                float t,
+                                                const int isect_object,
+                                                const int isect_prim,
+                                                float3 verts[3])
 {
-  float3 P = ray->P;
-  float3 D = ray->D;
-  float t = isect->t;
-
 #ifdef __INTERSECTION_REFINE__
-  if (isect->object != OBJECT_NONE) {
+  if (isect_object != OBJECT_NONE) {
     if (UNLIKELY(t == 0.0f)) {
       return P;
     }
-#  ifdef __OBJECT_MOTION__
-    Transform tfm = sd->ob_itfm;
-#  else
-    Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_INVERSE_TRANSFORM);
-#  endif
+    const Transform tfm = object_get_inverse_transform(kg, sd);
 
     P = transform_point(&tfm, P);
     D = transform_direction(&tfm, D * t);
@@ -70,13 +70,8 @@ ccl_device_inline float3 motion_triangle_refine(
   /* Compute refined position. */
   P = P + D * rt;
 
-  if (isect->object != OBJECT_NONE) {
-#  ifdef __OBJECT_MOTION__
-    Transform tfm = sd->ob_tfm;
-#  else
-    Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_TRANSFORM);
-#  endif
-
+  if (isect_object != OBJECT_NONE) {
+    const Transform tfm = object_get_transform(kg, sd);
     P = transform_point(&tfm, P);
   }
 
@@ -86,7 +81,7 @@ ccl_device_inline float3 motion_triangle_refine(
 #endif
 }
 
-/* Same as above, except that isect->t is assumed to be in object space
+/* Same as above, except that t is assumed to be in object space
  * for instancing.
  */
 
@@ -97,27 +92,22 @@ ccl_device_noinline
 ccl_device_inline
 #  endif
     float3
-    motion_triangle_refine_local(KernelGlobals *kg,
+    motion_triangle_refine_local(const KernelGlobals *kg,
                                  ShaderData *sd,
-                                 const Intersection *isect,
-                                 const Ray *ray,
+                                 float3 P,
+                                 float3 D,
+                                 float t,
+                                 const int isect_object,
+                                 const int isect_prim,
                                  float3 verts[3])
 {
 #  ifdef __KERNEL_OPTIX__
-  /* isect->t is always in world space with OptiX. */
-  return motion_triangle_refine(kg, sd, isect, ray, verts);
+  /* t is always in world space with OptiX. */
+  return motion_triangle_refine(kg, sd, P, D, t, isect_object, isect_prim, verts);
 #  else
-  float3 P = ray->P;
-  float3 D = ray->D;
-  float t = isect->t;
-
 #    ifdef __INTERSECTION_REFINE__
-  if (isect->object != OBJECT_NONE) {
-#      ifdef __OBJECT_MOTION__
-    Transform tfm = sd->ob_itfm;
-#      else
-    Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_INVERSE_TRANSFORM);
-#      endif
+  if (isect_object != OBJECT_NONE) {
+    const Transform tfm = object_get_inverse_transform(kg, sd);
 
     P = transform_point(&tfm, P);
     D = transform_direction(&tfm, D);
@@ -138,13 +128,8 @@ ccl_device_inline
 
   P = P + D * rt;
 
-  if (isect->object != OBJECT_NONE) {
-#      ifdef __OBJECT_MOTION__
-    Transform tfm = sd->ob_tfm;
-#      else
-    Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_TRANSFORM);
-#      endif
-
+  if (isect_object != OBJECT_NONE) {
+    const Transform tfm = object_get_transform(kg, sd);
     P = transform_point(&tfm, P);
   }
 
@@ -160,10 +145,11 @@ ccl_device_inline
  * time and do a ray intersection with the resulting triangle.
  */
 
-ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg,
+ccl_device_inline bool motion_triangle_intersect(const KernelGlobals *kg,
                                                  Intersection *isect,
                                                  float3 P,
                                                  float3 dir,
+                                                 float tmax,
                                                  float time,
                                                  uint visibility,
                                                  int object,
@@ -179,7 +165,7 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg,
   float t, u, v;
   if (ray_triangle_intersect(P,
                              dir,
-                             isect->t,
+                             tmax,
 #if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
                              (ssef *)verts,
 #else
@@ -215,7 +201,7 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg,
  * Returns whether traversal should be stopped.
  */
 #ifdef __BVH_LOCAL__
-ccl_device_inline bool motion_triangle_intersect_local(KernelGlobals *kg,
+ccl_device_inline bool motion_triangle_intersect_local(const KernelGlobals *kg,
                                                        LocalIntersection *local_isect,
                                                        float3 P,
                                                        float3 dir,

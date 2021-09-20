@@ -18,11 +18,13 @@
 #include "stdcycles.h"
 
 shader node_principled_bsdf(string distribution = "Multiscatter GGX",
-                            string subsurface_method = "burley",
+                            string subsurface_method = "random_walk",
                             color BaseColor = color(0.8, 0.8, 0.8),
                             float Subsurface = 0.0,
                             vector SubsurfaceRadius = vector(1.0, 1.0, 1.0),
                             color SubsurfaceColor = color(0.7, 0.1, 0.1),
+                            float SubsurfaceIOR = 1.4,
+                            float SubsurfaceAnisotropy = 0.0,
                             float Metallic = 0.0,
                             float Specular = 0.5,
                             float SpecularTint = 0.0,
@@ -59,22 +61,17 @@ shader node_principled_bsdf(string distribution = "Multiscatter GGX",
   if (diffuse_weight > 1e-5) {
     if (Subsurface > 1e-5) {
       color mixed_ss_base_color = SubsurfaceColor * Subsurface + BaseColor * (1.0 - Subsurface);
-      if (subsurface_method == "burley") {
-        BSDF = mixed_ss_base_color * bssrdf("principled",
-                                            Normal,
-                                            Subsurface * SubsurfaceRadius,
-                                            SubsurfaceColor,
-                                            "roughness",
-                                            Roughness);
-      }
-      else {
-        BSDF = mixed_ss_base_color * bssrdf("principled_random_walk",
-                                            Normal,
-                                            Subsurface * SubsurfaceRadius,
-                                            mixed_ss_base_color,
-                                            "roughness",
-                                            Roughness);
-      }
+
+      BSDF = mixed_ss_base_color * bssrdf(subsurface_method,
+                                          Normal,
+                                          Subsurface * SubsurfaceRadius,
+                                          mixed_ss_base_color,
+                                          "roughness",
+                                          Roughness,
+                                          "ior",
+                                          SubsurfaceIOR,
+                                          "anisotropy",
+                                          SubsurfaceAnisotropy);
     }
     else {
       BSDF = BaseColor * principled_diffuse(Normal, Roughness);

@@ -703,7 +703,7 @@ void xml_read_file(Scene *scene, const char *filepath)
 
   xml_read_include(state, path_filename(filepath));
 
-  scene->params.bvh_type = SceneParams::BVH_STATIC;
+  scene->params.bvh_type = BVH_TYPE_STATIC;
 }
 
 CCL_NAMESPACE_END

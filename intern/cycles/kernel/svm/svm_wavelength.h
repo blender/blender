@@ -69,8 +69,8 @@ ccl_static_constant float cie_colour_match[81][3] = {
     {0.0002f, 0.0001f, 0.0000f}, {0.0002f, 0.0001f, 0.0000f}, {0.0001f, 0.0000f, 0.0000f},
     {0.0001f, 0.0000f, 0.0000f}, {0.0001f, 0.0000f, 0.0000f}, {0.0000f, 0.0000f, 0.0000f}};
 
-ccl_device void svm_node_wavelength(
-    KernelGlobals *kg, ShaderData *sd, float *stack, uint wavelength, uint color_out)
+ccl_device_noinline void svm_node_wavelength(
+    const KernelGlobals *kg, ShaderData *sd, float *stack, uint wavelength, uint color_out)
 {
   float lambda_nm = stack_load_float(stack, wavelength);
   float ii = (lambda_nm - 380.0f) * (1.0f / 5.0f);  // scaled 0..80

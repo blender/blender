@@ -17,6 +17,7 @@
 #include "render/background.h"
 #include "render/colorspace.h"
 #include "render/graph.h"
+#include "render/integrator.h"
 #include "render/light.h"
 #include "render/nodes.h"
 #include "render/osl.h"
@@ -475,17 +476,11 @@ static ShaderNode *add_node(Scene *scene,
     SubsurfaceScatteringNode *subsurface = graph->create_node<SubsurfaceScatteringNode>();
 
     switch (b_subsurface_node.falloff()) {
-      case BL::ShaderNodeSubsurfaceScattering::falloff_CUBIC:
-        subsurface->set_falloff(CLOSURE_BSSRDF_CUBIC_ID);
-        break;
-      case BL::ShaderNodeSubsurfaceScattering::falloff_GAUSSIAN:
-        subsurface->set_falloff(CLOSURE_BSSRDF_GAUSSIAN_ID);
-        break;
-      case BL::ShaderNodeSubsurfaceScattering::falloff_BURLEY:
-        subsurface->set_falloff(CLOSURE_BSSRDF_BURLEY_ID);
+      case BL::ShaderNodeSubsurfaceScattering::falloff_RANDOM_WALK_FIXED_RADIUS:
+        subsurface->set_method(CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
         break;
       case BL::ShaderNodeSubsurfaceScattering::falloff_RANDOM_WALK:
-        subsurface->set_falloff(CLOSURE_BSSRDF_RANDOM_WALK_ID);
+        subsurface->set_method(CLOSURE_BSSRDF_RANDOM_WALK_ID);
         break;
     }
 
@@ -597,11 +592,11 @@ static ShaderNode *add_node(Scene *scene,
         break;
     }
     switch (b_principled_node.subsurface_method()) {
-      case BL::ShaderNodeBsdfPrincipled::subsurface_method_BURLEY:
-        principled->set_subsurface_method(CLOSURE_BSSRDF_PRINCIPLED_ID);
+      case BL::ShaderNodeBsdfPrincipled::subsurface_method_RANDOM_WALK_FIXED_RADIUS:
+        principled->set_subsurface_method(CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
         break;
       case BL::ShaderNodeBsdfPrincipled::subsurface_method_RANDOM_WALK:
-        principled->set_subsurface_method(CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID);
+        principled->set_subsurface_method(CLOSURE_BSSRDF_RANDOM_WALK_ID);
         break;
     }
     node = principled;
@@ -1360,10 +1355,11 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
 void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, bool update_all)
 {
   Background *background = scene->background;
+  Integrator *integrator = scene->integrator;
 
   BL::World b_world = b_scene.world();
 
-  BlenderViewportParameters new_viewport_parameters(b_v3d);
+  BlenderViewportParameters new_viewport_parameters(b_v3d, use_developer_ui);
 
   if (world_recalc || update_all || b_world.ptr.data != world_map ||
       viewport_parameters.shader_modified(new_viewport_parameters)) {
@@ -1455,9 +1451,8 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
       /* AO */
       BL::WorldLighting b_light = b_world.light_settings();
 
-      background->set_use_ao(b_light.use_ambient_occlusion());
-      background->set_ao_factor(b_light.ao_factor());
-      background->set_ao_distance(b_light.distance());
+      integrator->set_ao_factor(b_light.ao_factor());
+      integrator->set_ao_distance(b_light.distance());
 
       /* visibility */
       PointerRNA cvisibility = RNA_pointer_get(&b_world.ptr, "cycles_visibility");
@@ -1472,9 +1467,8 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
       background->set_visibility(visibility);
     }
     else {
-      background->set_use_ao(false);
-      background->set_ao_factor(0.0f);
-      background->set_ao_distance(FLT_MAX);
+      integrator->set_ao_factor(1.0f);
+      integrator->set_ao_distance(10.0f);
     }
 
     shader->set_graph(graph);
@@ -1496,7 +1490,6 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
 
   background->set_use_shader(view_layer.use_background_shader ||
                              viewport_parameters.use_custom_shader());
-  background->set_use_ao(background->get_use_ao() && view_layer.use_background_ao);
 
   background->tag_update(scene);
 }

@@ -176,6 +176,9 @@ void DRW_deferred_shader_remove(struct GPUMaterial *mat);
 struct DrawDataList *DRW_drawdatalist_from_id(struct ID *id);
 void DRW_drawdata_free(struct ID *id);
 
+bool DRW_opengl_context_release(void);
+void DRW_opengl_context_activate(bool test);
+
 #ifdef __cplusplus
 }
 #endif

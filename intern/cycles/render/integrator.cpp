@@ -53,6 +53,8 @@ NODE_DEFINE(Integrator)
   SOCKET_INT(transparent_max_bounce, "Transparent Max Bounce", 7);
 
   SOCKET_INT(ao_bounces, "AO Bounces", 0);
+  SOCKET_FLOAT(ao_factor, "AO Factor", 0.0f);
+  SOCKET_FLOAT(ao_distance, "AO Distance", FLT_MAX);
 
   SOCKET_INT(volume_max_steps, "Volume Max Steps", 1024);
   SOCKET_FLOAT(volume_step_rate, "Volume Step Rate", 1.0f);
@@ -66,32 +68,38 @@ NODE_DEFINE(Integrator)
   SOCKET_BOOLEAN(motion_blur, "Motion Blur", false);
 
   SOCKET_INT(aa_samples, "AA Samples", 0);
-  SOCKET_INT(diffuse_samples, "Diffuse Samples", 1);
-  SOCKET_INT(glossy_samples, "Glossy Samples", 1);
-  SOCKET_INT(transmission_samples, "Transmission Samples", 1);
-  SOCKET_INT(ao_samples, "AO Samples", 1);
-  SOCKET_INT(mesh_light_samples, "Mesh Light Samples", 1);
-  SOCKET_INT(subsurface_samples, "Subsurface Samples", 1);
-  SOCKET_INT(volume_samples, "Volume Samples", 1);
   SOCKET_INT(start_sample, "Start Sample", 0);
 
+  SOCKET_BOOLEAN(use_adaptive_sampling, "Use Adaptive Sampling", false);
   SOCKET_FLOAT(adaptive_threshold, "Adaptive Threshold", 0.0f);
   SOCKET_INT(adaptive_min_samples, "Adaptive Min Samples", 0);
 
-  SOCKET_BOOLEAN(sample_all_lights_direct, "Sample All Lights Direct", true);
-  SOCKET_BOOLEAN(sample_all_lights_indirect, "Sample All Lights Indirect", true);
   SOCKET_FLOAT(light_sampling_threshold, "Light Sampling Threshold", 0.05f);
-
-  static NodeEnum method_enum;
-  method_enum.insert("path", PATH);
-  method_enum.insert("branched_path", BRANCHED_PATH);
-  SOCKET_ENUM(method, "Method", method_enum, PATH);
 
   static NodeEnum sampling_pattern_enum;
   sampling_pattern_enum.insert("sobol", SAMPLING_PATTERN_SOBOL);
-  sampling_pattern_enum.insert("cmj", SAMPLING_PATTERN_CMJ);
   sampling_pattern_enum.insert("pmj", SAMPLING_PATTERN_PMJ);
   SOCKET_ENUM(sampling_pattern, "Sampling Pattern", sampling_pattern_enum, SAMPLING_PATTERN_SOBOL);
+
+  static NodeEnum denoiser_type_enum;
+  denoiser_type_enum.insert("optix", DENOISER_OPTIX);
+  denoiser_type_enum.insert("openimagedenoise", DENOISER_OPENIMAGEDENOISE);
+
+  static NodeEnum denoiser_prefilter_enum;
+  denoiser_prefilter_enum.insert("none", DENOISER_PREFILTER_NONE);
+  denoiser_prefilter_enum.insert("fast", DENOISER_PREFILTER_FAST);
+  denoiser_prefilter_enum.insert("accurate", DENOISER_PREFILTER_ACCURATE);
+
+  /* Default to accurate denoising with OpenImageDenoise. For interactive viewport
+   * it's best use OptiX and disable the normal pass since it does not always have
+   * the desired effect for that denoiser. */
+  SOCKET_BOOLEAN(use_denoise, "Use Denoiser", false);
+  SOCKET_ENUM(denoiser_type, "Denoiser Type", denoiser_type_enum, DENOISER_OPENIMAGEDENOISE);
+  SOCKET_INT(denoise_start_sample, "Start Sample to Denoise", 0);
+  SOCKET_BOOLEAN(use_denoise_pass_albedo, "Use Albedo Pass for Denoiser", true);
+  SOCKET_BOOLEAN(use_denoise_pass_normal, "Use Normal Pass for Denoiser", true);
+  SOCKET_ENUM(
+      denoiser_prefilter, "Denoiser Type", denoiser_prefilter_enum, DENOISER_PREFILTER_ACCURATE);
 
   return type;
 }
@@ -115,21 +123,26 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
     }
   });
 
-  const bool need_update_lut = ao_samples_is_modified() || diffuse_samples_is_modified() ||
-                               glossy_samples_is_modified() || max_bounce_is_modified() ||
-                               max_transmission_bounce_is_modified() ||
-                               mesh_light_samples_is_modified() || method_is_modified() ||
-                               sampling_pattern_is_modified() ||
-                               subsurface_samples_is_modified() ||
-                               transmission_samples_is_modified() || volume_samples_is_modified();
+  KernelIntegrator *kintegrator = &dscene->data.integrator;
+
+  /* Adaptive sampling requires PMJ samples.
+   *
+   * This also makes detection of sampling pattern a bit more involved: can not rely on the changed
+   * state of socket, since its value might be different from the effective value used here. So
+   * instead compare with previous value in the KernelIntegrator. Only do it if the device was
+   * updated once (in which case the `sample_pattern_lut` will be allocated to a non-zero size). */
+  const SamplingPattern new_sampling_pattern = (use_adaptive_sampling) ? SAMPLING_PATTERN_PMJ :
+                                                                         sampling_pattern;
+
+  const bool need_update_lut = max_bounce_is_modified() || max_transmission_bounce_is_modified() ||
+                               dscene->sample_pattern_lut.size() == 0 ||
+                               kintegrator->sampling_pattern != new_sampling_pattern;
 
   if (need_update_lut) {
     dscene->sample_pattern_lut.tag_realloc();
   }
 
   device_free(device, dscene);
-
-  KernelIntegrator *kintegrator = &dscene->data.integrator;
 
   /* integrator parameters */
   kintegrator->min_bounce = min_bounce + 1;
@@ -143,12 +156,9 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   kintegrator->transparent_min_bounce = transparent_min_bounce + 1;
   kintegrator->transparent_max_bounce = transparent_max_bounce + 1;
 
-  if (ao_bounces == 0) {
-    kintegrator->ao_bounces = INT_MAX;
-  }
-  else {
-    kintegrator->ao_bounces = ao_bounces - 1;
-  }
+  kintegrator->ao_bounces = ao_bounces;
+  kintegrator->ao_bounces_distance = ao_distance;
+  kintegrator->ao_bounces_factor = ao_factor;
 
   /* Transparent Shadows
    * We only need to enable transparent shadows, if we actually have
@@ -171,10 +181,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   kintegrator->caustics_refractive = caustics_refractive;
   kintegrator->filter_glossy = (filter_glossy == 0.0f) ? FLT_MAX : 1.0f / filter_glossy;
 
-  kintegrator->seed = hash_uint2(seed, 0);
-
-  kintegrator->use_ambient_occlusion = ((Pass::contains(scene->passes, PASS_AO)) ||
-                                        dscene->data.background.ao_factor != 0.0f);
+  kintegrator->seed = seed;
 
   kintegrator->sample_clamp_direct = (sample_clamp_direct == 0.0f) ? FLT_MAX :
                                                                      sample_clamp_direct * 3.0f;
@@ -182,51 +189,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
                                            FLT_MAX :
                                            sample_clamp_indirect * 3.0f;
 
-  kintegrator->branched = (method == BRANCHED_PATH) && device->info.has_branched_path;
-  kintegrator->volume_decoupled = device->info.has_volume_decoupled;
-  kintegrator->diffuse_samples = diffuse_samples;
-  kintegrator->glossy_samples = glossy_samples;
-  kintegrator->transmission_samples = transmission_samples;
-  kintegrator->ao_samples = ao_samples;
-  kintegrator->mesh_light_samples = mesh_light_samples;
-  kintegrator->subsurface_samples = subsurface_samples;
-  kintegrator->volume_samples = volume_samples;
-  kintegrator->start_sample = start_sample;
-
-  if (kintegrator->branched) {
-    kintegrator->sample_all_lights_direct = sample_all_lights_direct;
-    kintegrator->sample_all_lights_indirect = sample_all_lights_indirect;
-  }
-  else {
-    kintegrator->sample_all_lights_direct = false;
-    kintegrator->sample_all_lights_indirect = false;
-  }
-
-  kintegrator->sampling_pattern = sampling_pattern;
-  kintegrator->aa_samples = aa_samples;
-  if (aa_samples > 0 && adaptive_min_samples == 0) {
-    kintegrator->adaptive_min_samples = max(4, (int)sqrtf(aa_samples));
-    VLOG(1) << "Cycles adaptive sampling: automatic min samples = "
-            << kintegrator->adaptive_min_samples;
-  }
-  else {
-    kintegrator->adaptive_min_samples = max(4, adaptive_min_samples);
-  }
-
-  kintegrator->adaptive_step = 4;
-  kintegrator->adaptive_stop_per_sample = device->info.has_adaptive_stop_per_sample;
-
-  /* Adaptive step must be a power of two for bitwise operations to work. */
-  assert((kintegrator->adaptive_step & (kintegrator->adaptive_step - 1)) == 0);
-
-  if (aa_samples > 0 && adaptive_threshold == 0.0f) {
-    kintegrator->adaptive_threshold = max(0.001f, 1.0f / (float)aa_samples);
-    VLOG(1) << "Cycles adaptive sampling: automatic threshold = "
-            << kintegrator->adaptive_threshold;
-  }
-  else {
-    kintegrator->adaptive_threshold = adaptive_threshold;
-  }
+  kintegrator->sampling_pattern = new_sampling_pattern;
 
   if (light_sampling_threshold > 0.0f) {
     kintegrator->light_inv_rr_threshold = 1.0f / light_sampling_threshold;
@@ -236,29 +199,15 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   }
 
   /* sobol directions table */
-  int max_samples = 1;
-
-  if (kintegrator->branched) {
-    foreach (Light *light, scene->lights)
-      max_samples = max(max_samples, light->get_samples());
-
-    max_samples = max(max_samples,
-                      max(diffuse_samples, max(glossy_samples, transmission_samples)));
-    max_samples = max(max_samples, max(ao_samples, max(mesh_light_samples, subsurface_samples)));
-    max_samples = max(max_samples, volume_samples);
-  }
-
-  uint total_bounces = max_bounce + transparent_max_bounce + 3 + VOLUME_BOUNDS_MAX +
-                       max(BSSRDF_MAX_HITS, BSSRDF_MAX_BOUNCES);
-
-  max_samples *= total_bounces;
+  int max_samples = max_bounce + transparent_max_bounce + 3 + VOLUME_BOUNDS_MAX +
+                    max(BSSRDF_MAX_HITS, BSSRDF_MAX_BOUNCES);
 
   int dimensions = PRNG_BASE_NUM + max_samples * PRNG_BOUNCE_NUM;
   dimensions = min(dimensions, SOBOL_MAX_DIMENSIONS);
 
   if (need_update_lut) {
-    if (sampling_pattern == SAMPLING_PATTERN_SOBOL) {
-      uint *directions = dscene->sample_pattern_lut.alloc(SOBOL_BITS * dimensions);
+    if (kintegrator->sampling_pattern == SAMPLING_PATTERN_SOBOL) {
+      uint *directions = (uint *)dscene->sample_pattern_lut.alloc(SOBOL_BITS * dimensions);
 
       sobol_generate_direction_vectors((uint(*)[SOBOL_BITS])directions, dimensions);
 
@@ -276,9 +225,12 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
             function_bind(&progressive_multi_jitter_02_generate_2D, sequence, sequence_size, j));
       }
       pool.wait_work();
+
       dscene->sample_pattern_lut.copy_to_device();
     }
   }
+
+  kintegrator->has_shadow_catcher = scene->has_shadow_catcher();
 
   dscene->sample_pattern_lut.clear_modified();
   clear_modified();
@@ -295,15 +247,10 @@ void Integrator::tag_update(Scene *scene, uint32_t flag)
     tag_modified();
   }
 
-  if (flag & (AO_PASS_MODIFIED | BACKGROUND_AO_MODIFIED)) {
+  if (flag & AO_PASS_MODIFIED) {
     /* tag only the ao_bounces socket as modified so we avoid updating sample_pattern_lut
      * unnecessarily */
     tag_ao_bounces_modified();
-  }
-
-  if ((flag & LIGHT_SAMPLES_MODIFIED) && (method == BRANCHED_PATH)) {
-    /* the number of light samples may affect the size of the sample_pattern_lut */
-    tag_sampling_pattern_modified();
   }
 
   if (filter_glossy_is_modified()) {
@@ -319,6 +266,67 @@ void Integrator::tag_update(Scene *scene, uint32_t flag)
     scene->object_manager->tag_update(scene, ObjectManager::MOTION_BLUR_MODIFIED);
     scene->camera->tag_modified();
   }
+}
+
+AdaptiveSampling Integrator::get_adaptive_sampling() const
+{
+  AdaptiveSampling adaptive_sampling;
+
+  adaptive_sampling.use = use_adaptive_sampling;
+
+  if (!adaptive_sampling.use) {
+    return adaptive_sampling;
+  }
+
+  if (aa_samples > 0 && adaptive_threshold == 0.0f) {
+    adaptive_sampling.threshold = max(0.001f, 1.0f / (float)aa_samples);
+    VLOG(1) << "Cycles adaptive sampling: automatic threshold = " << adaptive_sampling.threshold;
+  }
+  else {
+    adaptive_sampling.threshold = adaptive_threshold;
+  }
+
+  if (adaptive_sampling.threshold > 0 && adaptive_min_samples == 0) {
+    /* Threshold 0.1 -> 32, 0.01 -> 64, 0.001 -> 128.
+     * This is highly scene dependent, we make a guess that seemed to work well
+     * in various test scenes. */
+    const int min_samples = (int)ceilf(16.0f / powf(adaptive_sampling.threshold, 0.3f));
+    adaptive_sampling.min_samples = max(4, min_samples);
+    VLOG(1) << "Cycles adaptive sampling: automatic min samples = "
+            << adaptive_sampling.min_samples;
+  }
+  else {
+    adaptive_sampling.min_samples = max(4, adaptive_min_samples);
+  }
+
+  /* Arbitrary factor that makes the threshold more similar to what is was before,
+   * and gives arguably more intuitive values. */
+  adaptive_sampling.threshold *= 5.0f;
+
+  adaptive_sampling.adaptive_step = 16;
+
+  DCHECK(is_power_of_two(adaptive_sampling.adaptive_step))
+      << "Adaptive step must be a power of two for bitwise operations to work";
+
+  return adaptive_sampling;
+}
+
+DenoiseParams Integrator::get_denoise_params() const
+{
+  DenoiseParams denoise_params;
+
+  denoise_params.use = use_denoise;
+
+  denoise_params.type = denoiser_type;
+
+  denoise_params.start_sample = denoise_start_sample;
+
+  denoise_params.use_pass_albedo = use_denoise_pass_albedo;
+  denoise_params.use_pass_normal = use_denoise_pass_normal;
+
+  denoise_params.prefilter = denoiser_prefilter;
+
+  return denoise_params;
 }
 
 CCL_NAMESPACE_END

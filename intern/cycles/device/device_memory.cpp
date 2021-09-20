@@ -23,7 +23,7 @@ CCL_NAMESPACE_BEGIN
 
 device_memory::device_memory(Device *device, const char *name, MemoryType type)
     : data_type(device_type_traits<uchar>::data_type),
-      data_elements(device_type_traits<uchar>::num_elements),
+      data_elements(device_type_traits<uchar>::num_elements_cpu),
       data_size(0),
       device_size(0),
       data_width(0),
@@ -147,6 +147,11 @@ void device_memory::device_zero()
   if (data_size) {
     device->mem_zero(*this);
   }
+}
+
+bool device_memory::device_is_cpu()
+{
+  return (device->info.type == DEVICE_CPU);
 }
 
 void device_memory::swap_device(Device *new_device,

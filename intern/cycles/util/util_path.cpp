@@ -66,6 +66,7 @@ typedef struct stat path_stat_t;
 
 static string cached_path = "";
 static string cached_user_path = "";
+static string cached_temp_path = "";
 static string cached_xdg_cache_path = "";
 
 namespace {
@@ -335,10 +336,11 @@ static string path_xdg_cache_get()
 }
 #endif
 
-void path_init(const string &path, const string &user_path)
+void path_init(const string &path, const string &user_path, const string &temp_path)
 {
   cached_path = path;
   cached_user_path = user_path;
+  cached_temp_path = temp_path;
 
 #ifdef _MSC_VER
   // workaround for https://svn.boost.org/trac/boost/ticket/6320
@@ -380,6 +382,15 @@ string path_cache_get(const string &sub)
   /* TODO(sergey): What that should be on Windows? */
   return path_user_get(path_join("cache", sub));
 #endif
+}
+
+string path_temp_get(const string &sub)
+{
+  if (cached_temp_path == "") {
+    cached_temp_path = Filesystem::temp_directory_path();
+  }
+
+  return path_join(cached_temp_path, sub);
 }
 
 #if defined(__linux__) || defined(__APPLE__)
@@ -737,177 +748,6 @@ uint64_t path_modified_time(const string &path)
 bool path_remove(const string &path)
 {
   return remove(path.c_str()) == 0;
-}
-
-struct SourceReplaceState {
-  typedef map<string, string> ProcessedMapping;
-  /* Base director for all relative include headers. */
-  string base;
-  /* Result of processed files. */
-  ProcessedMapping processed_files;
-  /* Set of files which are considered "precompiled" and which are replaced
-   * with and empty string on a subsequent occurrence in include statement.
-   */
-  set<string> precompiled_headers;
-};
-
-static string path_source_replace_includes_recursive(const string &source,
-                                                     const string &source_filepath,
-                                                     SourceReplaceState *state);
-
-static string line_directive(const SourceReplaceState &state, const string &path, const int line)
-{
-  string unescaped_path = path;
-  /* First we make path relative. */
-  if (string_startswith(unescaped_path, state.base.c_str())) {
-    const string base_file = path_filename(state.base);
-    const size_t base_len = state.base.length();
-    unescaped_path = base_file +
-                     unescaped_path.substr(base_len, unescaped_path.length() - base_len);
-  }
-  /* Second, we replace all unsafe characters. */
-  const size_t length = unescaped_path.length();
-  string escaped_path = "";
-  for (size_t i = 0; i < length; ++i) {
-    const char ch = unescaped_path[i];
-    if (strchr("\"\'\?\\", ch) != NULL) {
-      escaped_path += "\\";
-    }
-    escaped_path += ch;
-  }
-  /* TODO(sergey): Check whether using std::to_string combined with several
-   * concatenation operations is any faster.
-   */
-  return string_printf("#line %d \"%s\"", line, escaped_path.c_str());
-}
-
-static string path_source_handle_preprocessor(const string &preprocessor_line,
-                                              const string &source_filepath,
-                                              const size_t line_number,
-                                              SourceReplaceState *state)
-{
-  string result = preprocessor_line;
-  string token = string_strip(preprocessor_line.substr(1, preprocessor_line.size() - 1));
-  if (string_startswith(token, "include")) {
-    token = string_strip(token.substr(7, token.size() - 7));
-    if (token[0] == '"') {
-      const size_t n_start = 1;
-      const size_t n_end = token.find("\"", n_start);
-      const string filename = token.substr(n_start, n_end - n_start);
-      const bool is_precompiled = string_endswith(token, "// PRECOMPILED");
-      string filepath = path_join(state->base, filename);
-      if (!path_exists(filepath)) {
-        filepath = path_join(path_dirname(source_filepath), filename);
-      }
-      if (is_precompiled) {
-        state->precompiled_headers.insert(filepath);
-      }
-      string text;
-      if (path_read_text(filepath, text)) {
-        text = path_source_replace_includes_recursive(text, filepath, state);
-        /* Use line directives for better error messages. */
-        result = line_directive(*state, filepath, 1) + "\n" + text + "\n" +
-                 line_directive(*state, source_filepath, line_number + 1);
-      }
-    }
-  }
-  return result;
-}
-
-/* Our own little c preprocessor that replaces #includes with the file
- * contents, to work around issue of OpenCL drivers not supporting
- * include paths with spaces in them.
- */
-static string path_source_replace_includes_recursive(const string &source,
-                                                     const string &source_filepath,
-                                                     SourceReplaceState *state)
-{
-  /* Try to re-use processed file without spending time on replacing all
-   * include directives again.
-   */
-  SourceReplaceState::ProcessedMapping::iterator replaced_file = state->processed_files.find(
-      source_filepath);
-  if (replaced_file != state->processed_files.end()) {
-    if (state->precompiled_headers.find(source_filepath) != state->precompiled_headers.end()) {
-      return "";
-    }
-    return replaced_file->second;
-  }
-  /* Perform full file processing. */
-  string result = "";
-  const size_t source_length = source.length();
-  size_t index = 0;
-  /* Information about where we are in the source. */
-  size_t line_number = 0, column_number = 1;
-  /* Currently gathered non-preprocessor token.
-   * Store as start/length rather than token itself to avoid overhead of
-   * memory re-allocations on each character concatenation.
-   */
-  size_t token_start = 0, token_length = 0;
-  /* Denotes whether we're inside of preprocessor line, together with
-   * preprocessor line itself.
-   *
-   * TODO(sergey): Investigate whether using token start/end position
-   * gives measurable speedup.
-   */
-  bool inside_preprocessor = false;
-  string preprocessor_line = "";
-  /* Actual loop over the whole source. */
-  while (index < source_length) {
-    const char ch = source[index];
-    if (ch == '\n') {
-      if (inside_preprocessor) {
-        result += path_source_handle_preprocessor(
-            preprocessor_line, source_filepath, line_number, state);
-        /* Start gathering net part of the token. */
-        token_start = index;
-        token_length = 0;
-      }
-      inside_preprocessor = false;
-      preprocessor_line = "";
-      column_number = 0;
-      ++line_number;
-    }
-    else if (ch == '#' && column_number == 1 && !inside_preprocessor) {
-      /* Append all possible non-preprocessor token to the result. */
-      if (token_length != 0) {
-        result.append(source, token_start, token_length);
-        token_start = index;
-        token_length = 0;
-      }
-      inside_preprocessor = true;
-    }
-    if (inside_preprocessor) {
-      preprocessor_line += ch;
-    }
-    else {
-      ++token_length;
-    }
-    ++index;
-    ++column_number;
-  }
-  /* Append possible tokens which happened before special events handled
-   * above.
-   */
-  if (token_length != 0) {
-    result.append(source, token_start, token_length);
-  }
-  if (inside_preprocessor) {
-    result += path_source_handle_preprocessor(
-        preprocessor_line, source_filepath, line_number, state);
-  }
-  /* Store result for further reuse. */
-  state->processed_files[source_filepath] = result;
-  return result;
-}
-
-string path_source_replace_includes(const string &source,
-                                    const string &path,
-                                    const string &source_filename)
-{
-  SourceReplaceState state;
-  state.base = path;
-  return path_source_replace_includes_recursive(source, path_join(path, source_filename), &state);
 }
 
 FILE *path_fopen(const string &path, const string &mode)

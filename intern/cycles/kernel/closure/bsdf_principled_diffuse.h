@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef __BSDF_PRINCIPLED_DIFFUSE_H__
-#define __BSDF_PRINCIPLED_DIFFUSE_H__
+#pragma once
 
 /* DISNEY PRINCIPLED DIFFUSE BRDF
  *
  * Shading model by Brent Burley (Disney): "Physically Based Shading at Disney" (2012)
  */
+
+#include "kernel/closure/bsdf_util.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -59,14 +60,6 @@ ccl_device int bsdf_principled_diffuse_setup(PrincipledDiffuseBsdf *bsdf)
 {
   bsdf->type = CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
-}
-
-ccl_device bool bsdf_principled_diffuse_merge(const ShaderClosure *a, const ShaderClosure *b)
-{
-  const PrincipledDiffuseBsdf *bsdf_a = (const PrincipledDiffuseBsdf *)a;
-  const PrincipledDiffuseBsdf *bsdf_b = (const PrincipledDiffuseBsdf *)b;
-
-  return (isequal_float3(bsdf_a->N, bsdf_b->N) && bsdf_a->roughness == bsdf_b->roughness);
 }
 
 ccl_device float3 bsdf_principled_diffuse_eval_reflect(const ShaderClosure *sc,
@@ -136,5 +129,3 @@ ccl_device int bsdf_principled_diffuse_sample(const ShaderClosure *sc,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __BSDF_PRINCIPLED_DIFFUSE_H__ */

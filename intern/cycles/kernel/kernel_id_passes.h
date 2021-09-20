@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
+#pragma once
+
 CCL_NAMESPACE_BEGIN
+
+/* Element of ID pass stored in the render buffers.
+ * It is `float2` semantically, but it must be unaligned since the offset of ID passes in the
+ * render buffers might not meet expected by compiler alignment. */
+typedef struct IDPassBufferElement {
+  float x;
+  float y;
+} IDPassBufferElement;
 
 ccl_device_inline void kernel_write_id_slots(ccl_global float *buffer,
                                              int num_slots,
@@ -27,7 +37,7 @@ ccl_device_inline void kernel_write_id_slots(ccl_global float *buffer,
   }
 
   for (int slot = 0; slot < num_slots; slot++) {
-    ccl_global float2 *id_buffer = (ccl_global float2 *)buffer;
+    ccl_global IDPassBufferElement *id_buffer = (ccl_global IDPassBufferElement *)buffer;
 #ifdef __ATOMIC_PASS_WRITE__
     /* If the loop reaches an empty slot, the ID isn't in any slot yet - so add it! */
     if (id_buffer[slot].x == ID_NONE) {
@@ -65,7 +75,7 @@ ccl_device_inline void kernel_write_id_slots(ccl_global float *buffer,
 
 ccl_device_inline void kernel_sort_id_slots(ccl_global float *buffer, int num_slots)
 {
-  ccl_global float2 *id_buffer = (ccl_global float2 *)buffer;
+  ccl_global IDPassBufferElement *id_buffer = (ccl_global IDPassBufferElement *)buffer;
   for (int slot = 1; slot < num_slots; ++slot) {
     if (id_buffer[slot].x == ID_NONE) {
       return;
@@ -73,7 +83,7 @@ ccl_device_inline void kernel_sort_id_slots(ccl_global float *buffer, int num_sl
     /* Since we're dealing with a tiny number of elements, insertion sort should be fine. */
     int i = slot;
     while (i > 0 && id_buffer[i].y > id_buffer[i - 1].y) {
-      float2 swap = id_buffer[i];
+      const IDPassBufferElement swap = id_buffer[i];
       id_buffer[i] = id_buffer[i - 1];
       id_buffer[i - 1] = swap;
       --i;
@@ -81,19 +91,16 @@ ccl_device_inline void kernel_sort_id_slots(ccl_global float *buffer, int num_sl
   }
 }
 
-#ifdef __KERNEL_GPU__
 /* post-sorting for Cryptomatte */
-ccl_device void kernel_cryptomatte_post(
-    KernelGlobals *kg, ccl_global float *buffer, uint sample, int x, int y, int offset, int stride)
+ccl_device_inline void kernel_cryptomatte_post(const KernelGlobals *kg,
+                                               ccl_global float *render_buffer,
+                                               int pixel_index)
 {
-  if (sample - 1 == kernel_data.integrator.aa_samples) {
-    int index = offset + x + y * stride;
-    int pass_stride = kernel_data.film.pass_stride;
-    ccl_global float *cryptomatte_buffer = buffer + index * pass_stride +
-                                           kernel_data.film.pass_cryptomatte;
-    kernel_sort_id_slots(cryptomatte_buffer, 2 * kernel_data.film.cryptomatte_depth);
-  }
+  const int pass_stride = kernel_data.film.pass_stride;
+  const uint64_t render_buffer_offset = (uint64_t)pixel_index * pass_stride;
+  ccl_global float *cryptomatte_buffer = render_buffer + render_buffer_offset +
+                                         kernel_data.film.pass_cryptomatte;
+  kernel_sort_id_slots(cryptomatte_buffer, 2 * kernel_data.film.cryptomatte_depth);
 }
-#endif
 
 CCL_NAMESPACE_END

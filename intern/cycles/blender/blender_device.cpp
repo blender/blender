@@ -25,7 +25,6 @@ CCL_NAMESPACE_BEGIN
 enum ComputeDevice {
   COMPUTE_DEVICE_CPU = 0,
   COMPUTE_DEVICE_CUDA = 1,
-  COMPUTE_DEVICE_OPENCL = 2,
   COMPUTE_DEVICE_OPTIX = 3,
 
   COMPUTE_DEVICE_NUM
@@ -68,13 +67,6 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
       device = Device::get_multi_device(devices, threads, background);
     }
   }
-  else if (get_enum(cscene, "device") == 2) {
-    /* Find network device. */
-    vector<DeviceInfo> devices = Device::available_devices(DEVICE_MASK_NETWORK);
-    if (!devices.empty()) {
-      device = devices.front();
-    }
-  }
   else if (get_enum(cscene, "device") == 1) {
     /* Test if we are using GPU devices. */
     ComputeDevice compute_device = (ComputeDevice)get_enum(
@@ -88,9 +80,6 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
       }
       else if (compute_device == COMPUTE_DEVICE_OPTIX) {
         mask |= DEVICE_MASK_OPTIX;
-      }
-      else if (compute_device == COMPUTE_DEVICE_OPENCL) {
-        mask |= DEVICE_MASK_OPENCL;
       }
       vector<DeviceInfo> devices = Device::available_devices(mask);
 

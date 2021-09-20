@@ -30,37 +30,6 @@ CCL_NAMESPACE_BEGIN
 
 /* Nodes */
 
-/* Known frequencies of used nodes, used for selective nodes compilation
- * in the kernel. Currently only affects split OpenCL kernel.
- *
- * Keep as defines so it's easy to check which nodes are to be compiled
- * from preprocessor.
- *
- * Lower the number of group more often the node is used.
- */
-#define NODE_GROUP_LEVEL_0 0
-#define NODE_GROUP_LEVEL_1 1
-#define NODE_GROUP_LEVEL_2 2
-#define NODE_GROUP_LEVEL_3 3
-#define NODE_GROUP_LEVEL_4 4
-#define NODE_GROUP_LEVEL_MAX NODE_GROUP_LEVEL_4
-
-#define NODE_FEATURE_VOLUME (1 << 0)
-#define NODE_FEATURE_HAIR (1 << 1)
-#define NODE_FEATURE_BUMP (1 << 2)
-#define NODE_FEATURE_BUMP_STATE (1 << 3)
-#define NODE_FEATURE_VORONOI_EXTRA (1 << 4)
-/* TODO(sergey): Consider using something like ((uint)(-1)).
- * Need to check carefully operand types around usage of this
- * define first.
- */
-#define NODE_FEATURE_ALL \
-  (NODE_FEATURE_VOLUME | NODE_FEATURE_HAIR | NODE_FEATURE_BUMP | NODE_FEATURE_BUMP_STATE | \
-   NODE_FEATURE_VORONOI_EXTRA)
-
-#define NODES_GROUP(group) ((group) <= __NODES_MAX_GROUP__)
-#define NODES_FEATURE(feature) ((__NODES_FEATURES__ & (feature)) != 0)
-
 typedef enum ShaderNodeType {
   NODE_END = 0,
   NODE_SHADER_JUMP,
@@ -572,12 +541,8 @@ typedef enum ClosureType {
   CLOSURE_BSDF_TRANSPARENT_ID,
 
   /* BSSRDF */
-  CLOSURE_BSSRDF_CUBIC_ID,
-  CLOSURE_BSSRDF_GAUSSIAN_ID,
-  CLOSURE_BSSRDF_PRINCIPLED_ID,
-  CLOSURE_BSSRDF_BURLEY_ID,
   CLOSURE_BSSRDF_RANDOM_WALK_ID,
-  CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID,
+  CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID,
 
   /* Other */
   CLOSURE_HOLDOUT_ID,
@@ -620,11 +585,9 @@ typedef enum ClosureType {
    type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID || \
    type == CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID || \
    type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID)
-#define CLOSURE_IS_BSDF_OR_BSSRDF(type) (type <= CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID)
+#define CLOSURE_IS_BSDF_OR_BSSRDF(type) (type <= CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID)
 #define CLOSURE_IS_BSSRDF(type) \
-  (type >= CLOSURE_BSSRDF_CUBIC_ID && type <= CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID)
-#define CLOSURE_IS_DISK_BSSRDF(type) \
-  (type >= CLOSURE_BSSRDF_CUBIC_ID && type <= CLOSURE_BSSRDF_BURLEY_ID)
+  (type >= CLOSURE_BSSRDF_RANDOM_WALK_ID && type <= CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID)
 #define CLOSURE_IS_VOLUME(type) \
   (type >= CLOSURE_VOLUME_ID && type <= CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID)
 #define CLOSURE_IS_VOLUME_SCATTER(type) (type == CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID)

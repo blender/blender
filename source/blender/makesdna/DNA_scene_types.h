@@ -261,7 +261,7 @@ typedef enum eScenePassType {
   SCE_PASS_UNUSED_3 = (1 << 4), /* SPEC */
   SCE_PASS_SHADOW = (1 << 5),
   SCE_PASS_AO = (1 << 6),
-  SCE_PASS_UNUSED_4 = (1 << 7), /* REFLECT */
+  SCE_PASS_POSITION = (1 << 7),
   SCE_PASS_NORMAL = (1 << 8),
   SCE_PASS_VECTOR = (1 << 9),
   SCE_PASS_UNUSED_5 = (1 << 10), /* REFRACT */
@@ -293,6 +293,7 @@ typedef enum eScenePassType {
 #define RE_PASSNAME_COMBINED "Combined"
 #define RE_PASSNAME_Z "Depth"
 #define RE_PASSNAME_VECTOR "Vector"
+#define RE_PASSNAME_POSITION "Position"
 #define RE_PASSNAME_NORMAL "Normal"
 #define RE_PASSNAME_UV "UV"
 #define RE_PASSNAME_EMIT "Emit"
@@ -592,7 +593,7 @@ typedef enum eBakeSaveMode {
 /** #BakeData.pass_filter */
 typedef enum eBakePassFilter {
   R_BAKE_PASS_FILTER_NONE = 0,
-  R_BAKE_PASS_FILTER_AO = (1 << 0),
+  R_BAKE_PASS_FILTER_UNUSED = (1 << 0),
   R_BAKE_PASS_FILTER_EMIT = (1 << 1),
   R_BAKE_PASS_FILTER_DIFFUSE = (1 << 2),
   R_BAKE_PASS_FILTER_GLOSSY = (1 << 3),
@@ -653,7 +654,8 @@ typedef struct RenderData {
   /**
    * render tile dimensions
    */
-  int tilex, tiley;
+  int tilex DNA_DEPRECATED;
+  int tiley DNA_DEPRECATED;
 
   short planes DNA_DEPRECATED;
   short imtype DNA_DEPRECATED;
@@ -764,13 +766,10 @@ typedef struct RenderData {
   /* Cycles baking */
   struct BakeData bake;
 
-  int preview_start_resolution;
+  int _pad8;
   short preview_pixel_size;
 
-  /* Type of the debug pass to use.
-   * Only used when built with debug passes support.
-   */
-  short debug_pass_type;
+  short _pad4;
 
   /* MultiView */
   /** SceneRenderView. */
@@ -1887,12 +1886,12 @@ enum {
 #define R_COMP_CROP (1 << 7)
 #define R_SCEMODE_UNUSED_8 (1 << 8) /* cleared */
 #define R_SINGLE_LAYER (1 << 9)
-#define R_EXR_TILE_FILE (1 << 10)
+#define R_SCEMODE_UNUSED_10 (1 << 10) /* cleared */
 #define R_SCEMODE_UNUSED_11 (1 << 11) /* cleared */
 #define R_NO_IMAGE_LOAD (1 << 12)
 #define R_SCEMODE_UNUSED_13 (1 << 13) /* cleared */
 #define R_NO_FRAME_UPDATE (1 << 14)
-#define R_FULL_SAMPLE (1 << 15)
+#define R_SCEMODE_UNUSED_15 (1 << 15) /* cleared */
 #define R_SCEMODE_UNUSED_16 (1 << 16) /* cleared */
 #define R_SCEMODE_UNUSED_17 (1 << 17) /* cleared */
 #define R_TEXNODE_PREVIEW (1 << 18)

@@ -498,36 +498,12 @@ Transform transform_from_viewplane(BoundBox2D &viewplane);
 
 #endif
 
-/* TODO(sergey): This is only for until we've got OpenCL 2.0
- * on all devices we consider supported. It'll be replaced with
- * generic address space.
- */
+/* TODO: This can be removed when we know if no devices will require explicit
+ * address space qualifiers for this case. */
 
-#ifdef __KERNEL_OPENCL__
-
-#  define OPENCL_TRANSFORM_ADDRSPACE_GLUE(a, b) a##b
-#  define OPENCL_TRANSFORM_ADDRSPACE_DECLARE(function) \
-    ccl_device_inline float3 OPENCL_TRANSFORM_ADDRSPACE_GLUE(function, _addrspace)( \
-        ccl_addr_space const Transform *t, const float3 a) \
-    { \
-      Transform private_tfm = *t; \
-      return function(&private_tfm, a); \
-    }
-
-OPENCL_TRANSFORM_ADDRSPACE_DECLARE(transform_point)
-OPENCL_TRANSFORM_ADDRSPACE_DECLARE(transform_direction)
-OPENCL_TRANSFORM_ADDRSPACE_DECLARE(transform_direction_transposed)
-
-#  undef OPENCL_TRANSFORM_ADDRSPACE_DECLARE
-#  undef OPENCL_TRANSFORM_ADDRSPACE_GLUE
-#  define transform_point_auto transform_point_addrspace
-#  define transform_direction_auto transform_direction_addrspace
-#  define transform_direction_transposed_auto transform_direction_transposed_addrspace
-#else
-#  define transform_point_auto transform_point
-#  define transform_direction_auto transform_direction
-#  define transform_direction_transposed_auto transform_direction_transposed
-#endif
+#define transform_point_auto transform_point
+#define transform_direction_auto transform_direction
+#define transform_direction_transposed_auto transform_direction_transposed
 
 CCL_NAMESPACE_END
 

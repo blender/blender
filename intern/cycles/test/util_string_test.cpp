@@ -281,4 +281,40 @@ TEST(util_string_remove_trademark, r_space_middle)
   EXPECT_EQ(str, "foo bar baz");
 }
 
+/* ******** Tests for string_startswith() ******** */
+
+TEST(string_startswith, basic)
+{
+  EXPECT_TRUE(string_startswith("", ""));
+
+  EXPECT_FALSE(string_startswith("", "World"));
+  EXPECT_TRUE(string_startswith("Hello", ""));
+
+  EXPECT_FALSE(string_startswith("Hello", "World"));
+
+  EXPECT_TRUE(string_startswith("Hello", "Hello"));
+  EXPECT_TRUE(string_startswith("Hello", "He"));
+  EXPECT_TRUE(string_startswith("Hello", "H"));
+
+  EXPECT_FALSE(string_startswith("Hello", "e"));
+  EXPECT_FALSE(string_startswith("Hello", "HelloWorld"));
+}
+
+TEST(string_endswith, basic)
+{
+  EXPECT_TRUE(string_endswith("", ""));
+
+  EXPECT_FALSE(string_endswith("", "World"));
+  EXPECT_TRUE(string_endswith("Hello", ""));
+
+  EXPECT_FALSE(string_endswith("Hello", "World"));
+
+  EXPECT_TRUE(string_endswith("Hello", "Hello"));
+  EXPECT_TRUE(string_endswith("Hello", "lo"));
+  EXPECT_TRUE(string_endswith("Hello", "o"));
+
+  EXPECT_FALSE(string_endswith("Hello", "e"));
+  EXPECT_FALSE(string_endswith("Hello", "WorldHello"));
+}
+
 CCL_NAMESPACE_END

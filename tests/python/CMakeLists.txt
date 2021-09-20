@@ -637,7 +637,6 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
     set(render_tests
       bsdf
       denoise
-      denoise_animation
       displacement
       hair
       image_colorspace

@@ -18,6 +18,7 @@
 #define __SESSION_H__
 
 #include "device/device.h"
+#include "integrator/render_scheduler.h"
 #include "render/buffers.h"
 #include "render/shader.h"
 #include "render/stats.h"
@@ -26,6 +27,7 @@
 #include "util/util_progress.h"
 #include "util/util_stats.h"
 #include "util/util_thread.h"
+#include "util/util_unique_ptr.h"
 #include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -33,41 +35,35 @@ CCL_NAMESPACE_BEGIN
 class BufferParams;
 class Device;
 class DeviceScene;
-class DeviceRequestedFeatures;
-class DisplayBuffer;
+class PathTrace;
 class Progress;
+class GPUDisplay;
 class RenderBuffers;
 class Scene;
+class SceneParams;
 
 /* Session Parameters */
 
 class SessionParams {
  public:
   DeviceInfo device;
-  bool background;
-  bool progressive_refine;
 
-  bool progressive;
+  bool headless;
+  bool background;
+
   bool experimental;
   int samples;
-  int2 tile_size;
-  TileOrder tile_order;
-  int start_resolution;
-  int denoising_start_sample;
   int pixel_size;
   int threads;
-  bool adaptive_sampling;
+
+  /* Limit in seconds for how long path tracing is allowed to happen.
+   * Zero means no limit is applied. */
+  double time_limit;
 
   bool use_profiling;
 
-  bool display_buffer_linear;
-
-  DenoiseParams denoising;
-
-  double cancel_timeout;
-  double reset_timeout;
-  double text_timeout;
-  double progressive_update_timeout;
+  bool use_auto_tile;
+  int tile_size;
 
   ShadingSystem shadingsystem;
 
@@ -75,50 +71,32 @@ class SessionParams {
 
   SessionParams()
   {
+    headless = false;
     background = false;
-    progressive_refine = false;
 
-    progressive = false;
     experimental = false;
     samples = 1024;
-    tile_size = make_int2(64, 64);
-    start_resolution = INT_MAX;
-    denoising_start_sample = 0;
     pixel_size = 1;
     threads = 0;
-    adaptive_sampling = false;
+    time_limit = 0.0;
 
     use_profiling = false;
 
-    display_buffer_linear = false;
-
-    cancel_timeout = 0.1;
-    reset_timeout = 0.1;
-    text_timeout = 1.0;
-    progressive_update_timeout = 1.0;
+    use_auto_tile = true;
+    tile_size = 2048;
 
     shadingsystem = SHADINGSYSTEM_SVM;
-    tile_order = TILE_CENTER;
   }
 
-  bool modified(const SessionParams &params)
+  bool modified(const SessionParams &params) const
   {
     /* Modified means we have to recreate the session, any parameter changes
      * that can be handled by an existing Session are omitted. */
-    return !(device == params.device && background == params.background &&
-             progressive_refine == params.progressive_refine &&
-             progressive == params.progressive && experimental == params.experimental &&
-             tile_size == params.tile_size && start_resolution == params.start_resolution &&
+    return !(device == params.device && headless == params.headless &&
+             background == params.background && experimental == params.experimental &&
              pixel_size == params.pixel_size && threads == params.threads &&
-             adaptive_sampling == params.adaptive_sampling &&
-             use_profiling == params.use_profiling &&
-             display_buffer_linear == params.display_buffer_linear &&
-             cancel_timeout == params.cancel_timeout && reset_timeout == params.reset_timeout &&
-             text_timeout == params.text_timeout &&
-             progressive_update_timeout == params.progressive_update_timeout &&
-             tile_order == params.tile_order && shadingsystem == params.shadingsystem &&
-             denoising.type == params.denoising.type &&
-             (denoising.use == params.denoising.use || (device.denoisers & denoising.type)));
+             use_profiling == params.use_profiling && shadingsystem == params.shadingsystem &&
+             use_auto_tile == params.use_auto_tile && tile_size == params.tile_size);
   }
 };
 
@@ -131,34 +109,41 @@ class Session {
  public:
   Device *device;
   Scene *scene;
-  RenderBuffers *buffers;
-  DisplayBuffer *display;
   Progress progress;
   SessionParams params;
-  TileManager tile_manager;
   Stats stats;
   Profiler profiler;
 
-  function<void(RenderTile &)> write_render_tile_cb;
-  function<void(RenderTile &, bool)> update_render_tile_cb;
-  function<void(RenderTile &)> read_bake_tile_cb;
+  function<void(void)> write_render_tile_cb;
+  function<void(void)> update_render_tile_cb;
+  function<void(void)> read_render_tile_cb;
 
-  explicit Session(const SessionParams &params);
+  /* Callback is invoked by tile manager whenever on-dist tiles storage file is closed after
+   * writing. Allows an engine integration to keep track of those files without worry about
+   * transfering the information when it needs to re-create session during rendering. */
+  function<void(string_view)> full_buffer_written_cb;
+
+  explicit Session(const SessionParams &params, const SceneParams &scene_params);
   ~Session();
 
   void start();
-  void cancel();
-  bool draw(BufferParams &params, DeviceDrawParams &draw_params);
+
+  /* When quick cancel is requested path tracing is cancelles as soon as possible, without waiting
+   * for the buffer to be uniformly sampled. */
+  void cancel(bool quick = false);
+
+  void draw();
   void wait();
 
   bool ready_to_reset();
-  void reset(BufferParams &params, int samples);
-  void set_pause(bool pause);
-  void set_samples(int samples);
-  void set_denoising(const DenoiseParams &denoising);
-  void set_denoising_start_sample(int sample);
+  void reset(const SessionParams &session_params, const BufferParams &buffer_params);
 
-  bool update_scene();
+  void set_pause(bool pause);
+
+  void set_samples(int samples);
+  void set_time_limit(double time_limit);
+
+  void set_gpu_display(unique_ptr<GPUDisplay> gpu_display);
 
   void device_free();
 
@@ -168,83 +153,95 @@ class Session {
 
   void collect_statistics(RenderStats *stats);
 
+  /* --------------------------------------------------------------------
+   * Tile and tile pixels aceess.
+   */
+
+  bool has_multiple_render_tiles() const;
+
+  /* Get size and offset (relative to the buffer's full x/y) of the currently rendering tile. */
+  int2 get_render_tile_size() const;
+  int2 get_render_tile_offset() const;
+
+  string_view get_render_tile_layer() const;
+  string_view get_render_tile_view() const;
+
+  bool copy_render_tile_from_device();
+
+  bool get_render_tile_pixels(const string &pass_name, int num_components, float *pixels);
+  bool set_render_tile_pixels(const string &pass_name, int num_components, const float *pixels);
+
+  /* --------------------------------------------------------------------
+   * Full-frame on-disk storage.
+   */
+
+  /* Read given full-frame file from disk, perform needed processing and write it to the software
+   * via the write callback. */
+  void process_full_buffer_from_disk(string_view filename);
+
  protected:
   struct DelayedReset {
     thread_mutex mutex;
     bool do_reset;
-    BufferParams params;
-    int samples;
+    SessionParams session_params;
+    BufferParams buffer_params;
   } delayed_reset_;
 
   void run();
 
-  bool run_update_for_next_iteration();
-  bool run_wait_for_work(bool no_tiles);
+  /* Update for the new iteration of the main loop in run implementation (run_cpu and run_gpu).
+   *
+   * Will take care of the following things:
+   *  - Delayed reset
+   *  - Scene update
+   *  - Tile manager advance
+   *  - Render scheduler work request
+   *
+   * The updates are done in a proper order with proper locking around them, which guarantees
+   * that the device side of scene and render buffers are always in a consistent state.
+   *
+   * Returns render work which is to be rendered next. */
+  RenderWork run_update_for_next_iteration();
+
+  /* Wait for rendering to be unpaused, or for new tiles for render to arrive.
+   * Returns true if new main render loop iteration is required after this function call.
+   *
+   * The `render_work` is the work which was scheduled by the render scheduler right before
+   * checking the pause. */
+  bool run_wait_for_work(const RenderWork &render_work);
+
+  void run_main_render_loop();
+
+  bool update_scene(int width, int height);
 
   void update_status_time(bool show_pause = false, bool show_done = false);
 
-  void render(bool use_denoise);
-  void copy_to_display_buffer(int sample);
+  void do_delayed_reset();
 
-  void reset_(BufferParams &params, int samples);
-
-  void run_cpu();
-  bool draw_cpu(BufferParams &params, DeviceDrawParams &draw_params);
-  void reset_cpu(BufferParams &params, int samples);
-
-  void run_gpu();
-  bool draw_gpu(BufferParams &params, DeviceDrawParams &draw_params);
-  void reset_gpu(BufferParams &params, int samples);
-
-  bool render_need_denoise(bool &delayed);
-
-  bool steal_tile(RenderTile &tile, Device *tile_device, thread_scoped_lock &tile_lock);
-  bool get_tile_stolen();
-  bool acquire_tile(RenderTile &tile, Device *tile_device, uint tile_types);
-  void update_tile_sample(RenderTile &tile);
-  void release_tile(RenderTile &tile, const bool need_denoise);
-
-  void map_neighbor_tiles(RenderTileNeighbors &neighbors, Device *tile_device);
-  void unmap_neighbor_tiles(RenderTileNeighbors &neighbors, Device *tile_device);
-
-  bool device_use_gl_;
+  int2 get_effective_tile_size() const;
 
   thread *session_thread_;
 
-  volatile bool display_outdated_;
-
-  volatile bool gpu_draw_ready_;
-  volatile bool gpu_need_display_buffer_update_;
-  thread_condition_variable gpu_need_display_buffer_update_cond_;
-
-  bool pause_;
-  bool cancel_;
-  bool new_work_added_;
+  bool pause_ = false;
+  bool cancel_ = false;
+  bool new_work_added_ = false;
 
   thread_condition_variable pause_cond_;
   thread_mutex pause_mutex_;
   thread_mutex tile_mutex_;
   thread_mutex buffers_mutex_;
-  thread_mutex display_mutex_;
-  thread_condition_variable denoising_cond_;
-  thread_condition_variable tile_steal_cond_;
 
-  double reset_time_;
-  double last_update_time_;
-  double last_display_time_;
+  TileManager tile_manager_;
+  BufferParams buffer_params_;
 
-  RenderTile stolen_tile_;
-  typedef enum {
-    NOT_STEALING,     /* There currently is no tile stealing in progress. */
-    WAITING_FOR_TILE, /* A device is waiting for another device to release a tile. */
-    RELEASING_TILE,   /* A device has releasing a stealable tile. */
-    GOT_TILE /* A device has released a stealable tile, which is now stored in stolen_tile. */
-  } TileStealingState;
-  std::atomic<TileStealingState> tile_stealing_state_;
-  int stealable_tiles_;
+  /* Render scheduler is used to get work to be rendered with the current big tile. */
+  RenderScheduler render_scheduler_;
 
-  /* progressive refine */
-  bool update_progressive_refine(bool cancel);
+  /* Path tracer object.
+   *
+   * Is a single full-frame path tracer for interactive viewport rendering.
+   * A path tracer for the current big-tile for an offline rendering. */
+  unique_ptr<PathTrace> path_trace_;
 };
 
 CCL_NAMESPACE_END

@@ -16,12 +16,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void svm_node_camera(KernelGlobals *kg,
-                                ShaderData *sd,
-                                float *stack,
-                                uint out_vector,
-                                uint out_zdepth,
-                                uint out_distance)
+ccl_device_noinline void svm_node_camera(const KernelGlobals *kg,
+                                         ShaderData *sd,
+                                         float *stack,
+                                         uint out_vector,
+                                         uint out_zdepth,
+                                         uint out_distance)
 {
   float distance;
   float zdepth;

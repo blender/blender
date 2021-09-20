@@ -28,7 +28,7 @@ IDMaskNode::IDMaskNode(bNode *editorNode) : Node(editorNode)
   /* pass */
 }
 void IDMaskNode::convertToOperations(NodeConverter &converter,
-                                     const CompositorContext &context) const
+                                     const CompositorContext & /*context*/) const
 {
   bNode *bnode = this->getbNode();
 
@@ -38,7 +38,7 @@ void IDMaskNode::convertToOperations(NodeConverter &converter,
   converter.addOperation(operation);
 
   converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-  if (bnode->custom2 == 0 || context.getRenderData()->scemode & R_FULL_SAMPLE) {
+  if (bnode->custom2 == 0) {
     converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
   }
   else {

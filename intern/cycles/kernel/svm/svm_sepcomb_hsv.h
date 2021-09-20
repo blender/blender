@@ -16,15 +16,15 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void svm_node_combine_hsv(KernelGlobals *kg,
-                                     ShaderData *sd,
-                                     float *stack,
-                                     uint hue_in,
-                                     uint saturation_in,
-                                     uint value_in,
-                                     int *offset)
+ccl_device_noinline int svm_node_combine_hsv(const KernelGlobals *kg,
+                                             ShaderData *sd,
+                                             float *stack,
+                                             uint hue_in,
+                                             uint saturation_in,
+                                             uint value_in,
+                                             int offset)
 {
-  uint4 node1 = read_node(kg, offset);
+  uint4 node1 = read_node(kg, &offset);
   uint color_out = node1.y;
 
   float hue = stack_load_float(stack, hue_in);
@@ -36,17 +36,18 @@ ccl_device void svm_node_combine_hsv(KernelGlobals *kg,
 
   if (stack_valid(color_out))
     stack_store_float3(stack, color_out, color);
+  return offset;
 }
 
-ccl_device void svm_node_separate_hsv(KernelGlobals *kg,
-                                      ShaderData *sd,
-                                      float *stack,
-                                      uint color_in,
-                                      uint hue_out,
-                                      uint saturation_out,
-                                      int *offset)
+ccl_device_noinline int svm_node_separate_hsv(const KernelGlobals *kg,
+                                              ShaderData *sd,
+                                              float *stack,
+                                              uint color_in,
+                                              uint hue_out,
+                                              uint saturation_out,
+                                              int offset)
 {
-  uint4 node1 = read_node(kg, offset);
+  uint4 node1 = read_node(kg, &offset);
   uint value_out = node1.y;
 
   float3 color = stack_load_float3(stack, color_in);
@@ -60,6 +61,7 @@ ccl_device void svm_node_separate_hsv(KernelGlobals *kg,
     stack_store_float(stack, saturation_out, color.y);
   if (stack_valid(value_out))
     stack_store_float(stack, value_out, color.z);
+  return offset;
 }
 
 CCL_NAMESPACE_END

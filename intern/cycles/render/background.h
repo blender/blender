@@ -32,11 +32,7 @@ class Background : public Node {
  public:
   NODE_DECLARE
 
-  NODE_SOCKET_API(float, ao_factor)
-  NODE_SOCKET_API(float, ao_distance)
-
   NODE_SOCKET_API(bool, use_shader)
-  NODE_SOCKET_API(bool, use_ao)
 
   NODE_SOCKET_API(uint, visibility)
   NODE_SOCKET_API(Shader *, shader)

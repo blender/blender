@@ -30,8 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __KERNEL_MONTECARLO_CL__
-#define __KERNEL_MONTECARLO_CL__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
@@ -300,5 +299,3 @@ ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __KERNEL_MONTECARLO_CL__ */

@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
+#include "kernel/kernel_montecarlo.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Bump Node */
 
-ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device_noinline void svm_node_set_bump(const KernelGlobals *kg,
+                                           ShaderData *sd,
+                                           float *stack,
+                                           uint4 node)
 {
 #ifdef __RAY_DIFFERENTIALS__
   /* get normal input */
@@ -83,7 +88,7 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 
 /* Displacement Node */
 
-ccl_device void svm_node_set_displacement(KernelGlobals *kg,
+ccl_device void svm_node_set_displacement(const KernelGlobals *kg,
                                           ShaderData *sd,
                                           float *stack,
                                           uint fac_offset)
@@ -92,7 +97,10 @@ ccl_device void svm_node_set_displacement(KernelGlobals *kg,
   sd->P += dP;
 }
 
-ccl_device void svm_node_displacement(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device_noinline void svm_node_displacement(const KernelGlobals *kg,
+                                               ShaderData *sd,
+                                               float *stack,
+                                               uint4 node)
 {
   uint height_offset, midlevel_offset, scale_offset, normal_offset;
   svm_unpack_node_uchar4(node.y, &height_offset, &midlevel_offset, &scale_offset, &normal_offset);
@@ -119,10 +127,10 @@ ccl_device void svm_node_displacement(KernelGlobals *kg, ShaderData *sd, float *
   stack_store_float3(stack, node.z, dP);
 }
 
-ccl_device void svm_node_vector_displacement(
-    KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device_noinline int svm_node_vector_displacement(
+    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int offset)
 {
-  uint4 data_node = read_node(kg, offset);
+  uint4 data_node = read_node(kg, &offset);
   uint space = data_node.x;
 
   uint vector_offset, midlevel_offset, scale_offset, displacement_offset;
@@ -164,6 +172,7 @@ ccl_device void svm_node_vector_displacement(
   }
 
   stack_store_float3(stack, displacement_offset, dP);
+  return offset;
 }
 
 CCL_NAMESPACE_END

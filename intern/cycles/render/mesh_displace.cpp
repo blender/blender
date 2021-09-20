@@ -16,6 +16,8 @@
 
 #include "device/device.h"
 
+#include "integrator/shader_eval.h"
+
 #include "render/mesh.h"
 #include "render/object.h"
 #include "render/scene.h"
@@ -43,40 +45,28 @@ static float3 compute_face_normal(const Mesh::Triangle &t, float3 *verts)
   return norm / normlen;
 }
 
-bool GeometryManager::displace(
-    Device *device, DeviceScene *dscene, Scene *scene, Mesh *mesh, Progress &progress)
+/* Fill in coordinates for mesh displacement shader evaluation on device. */
+static int fill_shader_input(const Scene *scene,
+                             const Mesh *mesh,
+                             const int object_index,
+                             device_vector<KernelShaderEvalInput> &d_input)
 {
-  /* verify if we have a displacement shader */
-  if (!mesh->has_true_displacement()) {
-    return false;
-  }
+  int d_input_size = 0;
+  KernelShaderEvalInput *d_input_data = d_input.data();
 
-  string msg = string_printf("Computing Displacement %s", mesh->name.c_str());
-  progress.set_status("Updating Mesh", msg);
+  const array<int> &mesh_shaders = mesh->get_shader();
+  const array<Node *> &mesh_used_shaders = mesh->get_used_shaders();
+  const array<float3> &mesh_verts = mesh->get_verts();
 
-  /* find object index. todo: is arbitrary */
-  size_t object_index = OBJECT_NONE;
-
-  for (size_t i = 0; i < scene->objects.size(); i++) {
-    if (scene->objects[i]->get_geometry() == mesh) {
-      object_index = i;
-      break;
-    }
-  }
-
-  /* setup input for device task */
-  const size_t num_verts = mesh->verts.size();
+  const int num_verts = mesh_verts.size();
   vector<bool> done(num_verts, false);
-  device_vector<uint4> d_input(device, "displace_input", MEM_READ_ONLY);
-  uint4 *d_input_data = d_input.alloc(num_verts);
-  size_t d_input_size = 0;
 
-  size_t num_triangles = mesh->num_triangles();
-  for (size_t i = 0; i < num_triangles; i++) {
+  int num_triangles = mesh->num_triangles();
+  for (int i = 0; i < num_triangles; i++) {
     Mesh::Triangle t = mesh->get_triangle(i);
-    int shader_index = mesh->shader[i];
-    Shader *shader = (shader_index < mesh->used_shaders.size()) ?
-                         static_cast<Shader *>(mesh->used_shaders[shader_index]) :
+    int shader_index = mesh_shaders[i];
+    Shader *shader = (shader_index < mesh_used_shaders.size()) ?
+                         static_cast<Shader *>(mesh_used_shaders[shader_index]) :
                          scene->default_surface;
 
     if (!shader->has_displacement || shader->get_displacement_method() == DISPLACE_BUMP) {
@@ -110,57 +100,41 @@ bool GeometryManager::displace(
       }
 
       /* back */
-      uint4 in = make_uint4(object, prim, __float_as_int(u), __float_as_int(v));
+      KernelShaderEvalInput in;
+      in.object = object;
+      in.prim = prim;
+      in.u = u;
+      in.v = v;
       d_input_data[d_input_size++] = in;
     }
   }
 
-  if (d_input_size == 0)
-    return false;
+  return d_input_size;
+}
 
-  /* run device task */
-  device_vector<float4> d_output(device, "displace_output", MEM_READ_WRITE);
-  d_output.alloc(d_input_size);
-  d_output.zero_to_device();
-  d_input.copy_to_device();
+/* Read back mesh displacement shader output. */
+static void read_shader_output(const Scene *scene,
+                               Mesh *mesh,
+                               const device_vector<float4> &d_output)
+{
+  const array<int> &mesh_shaders = mesh->get_shader();
+  const array<Node *> &mesh_used_shaders = mesh->get_used_shaders();
+  array<float3> &mesh_verts = mesh->get_verts();
 
-  /* needs to be up to data for attribute access */
-  device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
+  const int num_verts = mesh_verts.size();
+  const int num_motion_steps = mesh->get_motion_steps();
+  vector<bool> done(num_verts, false);
 
-  DeviceTask task(DeviceTask::SHADER);
-  task.shader_input = d_input.device_pointer;
-  task.shader_output = d_output.device_pointer;
-  task.shader_eval_type = SHADER_EVAL_DISPLACE;
-  task.shader_x = 0;
-  task.shader_w = d_output.size();
-  task.num_samples = 1;
-  task.get_cancel = function_bind(&Progress::get_cancel, &progress);
-
-  device->task_add(task);
-  device->task_wait();
-
-  if (progress.get_cancel()) {
-    d_input.free();
-    d_output.free();
-    return false;
-  }
-
-  d_output.copy_from_device(0, 1, d_output.size());
-  d_input.free();
-
-  /* read result */
-  done.clear();
-  done.resize(num_verts, false);
-  int k = 0;
-
-  float4 *offset = d_output.data();
+  const float4 *d_output_data = d_output.data();
+  int d_output_index = 0;
 
   Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-  for (size_t i = 0; i < num_triangles; i++) {
+  int num_triangles = mesh->num_triangles();
+  for (int i = 0; i < num_triangles; i++) {
     Mesh::Triangle t = mesh->get_triangle(i);
-    int shader_index = mesh->shader[i];
-    Shader *shader = (shader_index < mesh->used_shaders.size()) ?
-                         static_cast<Shader *>(mesh->used_shaders[shader_index]) :
+    int shader_index = mesh_shaders[i];
+    Shader *shader = (shader_index < mesh_used_shaders.size()) ?
+                         static_cast<Shader *>(mesh_used_shaders[shader_index]) :
                          scene->default_surface;
 
     if (!shader->has_displacement || shader->get_displacement_method() == DISPLACE_BUMP) {
@@ -170,12 +144,12 @@ bool GeometryManager::displace(
     for (int j = 0; j < 3; j++) {
       if (!done[t.v[j]]) {
         done[t.v[j]] = true;
-        float3 off = float4_to_float3(offset[k++]);
+        float3 off = float4_to_float3(d_output_data[d_output_index++]);
         /* Avoid illegal vertex coordinates. */
         off = ensure_finite3(off);
-        mesh->verts[t.v[j]] += off;
+        mesh_verts[t.v[j]] += off;
         if (attr_mP != NULL) {
-          for (int step = 0; step < mesh->motion_steps - 1; step++) {
+          for (int step = 0; step < num_motion_steps - 1; step++) {
             float3 *mP = attr_mP->data_float3() + step * num_verts;
             mP[t.v[j]] += off;
           }
@@ -183,8 +157,47 @@ bool GeometryManager::displace(
       }
     }
   }
+}
 
-  d_output.free();
+bool GeometryManager::displace(
+    Device *device, DeviceScene *dscene, Scene *scene, Mesh *mesh, Progress &progress)
+{
+  /* verify if we have a displacement shader */
+  if (!mesh->has_true_displacement()) {
+    return false;
+  }
+
+  const size_t num_verts = mesh->verts.size();
+  const size_t num_triangles = mesh->num_triangles();
+
+  if (num_triangles == 0) {
+    return false;
+  }
+
+  string msg = string_printf("Computing Displacement %s", mesh->name.c_str());
+  progress.set_status("Updating Mesh", msg);
+
+  /* find object index. todo: is arbitrary */
+  size_t object_index = OBJECT_NONE;
+
+  for (size_t i = 0; i < scene->objects.size(); i++) {
+    if (scene->objects[i]->get_geometry() == mesh) {
+      object_index = i;
+      break;
+    }
+  }
+
+  /* Needs to be up to data for attribute access. */
+  device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
+
+  /* Evaluate shader on device. */
+  ShaderEval shader_eval(device, progress);
+  if (!shader_eval.eval(SHADER_EVAL_DISPLACE,
+                        num_verts,
+                        function_bind(&fill_shader_input, scene, mesh, object_index, _1),
+                        function_bind(&read_shader_output, scene, mesh, _1))) {
+    return false;
+  }
 
   /* stitch */
   unordered_set<int> stitch_keys;
@@ -297,8 +310,7 @@ bool GeometryManager::displace(
     }
 
     /* normalize vertex normals */
-    done.clear();
-    done.resize(num_verts, false);
+    vector<bool> done(num_verts, false);
 
     for (size_t i = 0; i < num_triangles; i++) {
       if (tri_has_true_disp[i]) {
@@ -368,8 +380,7 @@ bool GeometryManager::displace(
         }
 
         /* normalize vertex normals */
-        done.clear();
-        done.resize(num_verts, false);
+        vector<bool> done(num_verts, false);
 
         for (size_t i = 0; i < num_triangles; i++) {
           if (tri_has_true_disp[i]) {

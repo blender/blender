@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
+#pragma once
+
 #include <embree3/rtcore_ray.h>
 #include <embree3/rtcore_scene.h>
 
-// clang-format off
-#include "kernel/kernel_compat_cpu.h"
-#include "kernel/split/kernel_split_data_types.h"
-#include "kernel/kernel_globals.h"
-// clang-format on
+#include "kernel/device/cpu/compat.h"
+#include "kernel/device/cpu/globals.h"
 
 #include "util/util_vector.h"
 
@@ -36,25 +35,29 @@ struct CCLIntersectContext {
     RAY_VOLUME_ALL = 4,
   } RayType;
 
-  KernelGlobals *kg;
+  const KernelGlobals *kg;
   RayType type;
 
   /* for shadow rays */
   Intersection *isect_s;
   int max_hits;
   int num_hits;
+  float max_t;
+  bool opaque_hit;
 
   /* for SSS Rays: */
   LocalIntersection *local_isect;
   int local_object_id;
   uint *lcg_state;
 
-  CCLIntersectContext(KernelGlobals *kg_, RayType type_)
+  CCLIntersectContext(const KernelGlobals *kg_, RayType type_)
   {
     kg = kg_;
     type = type_;
     max_hits = 1;
     num_hits = 0;
+    max_t = FLT_MAX;
+    opaque_hit = false;
     isect_s = NULL;
     local_isect = NULL;
     local_object_id = -1;
@@ -98,7 +101,7 @@ ccl_device_inline void kernel_embree_setup_rayhit(const Ray &ray,
   rayhit.hit.primID = RTC_INVALID_GEOMETRY_ID;
 }
 
-ccl_device_inline void kernel_embree_convert_hit(KernelGlobals *kg,
+ccl_device_inline void kernel_embree_convert_hit(const KernelGlobals *kg,
                                                  const RTCRay *ray,
                                                  const RTCHit *hit,
                                                  Intersection *isect)
@@ -123,7 +126,7 @@ ccl_device_inline void kernel_embree_convert_hit(KernelGlobals *kg,
   isect->type = kernel_tex_fetch(__prim_type, isect->prim);
 }
 
-ccl_device_inline void kernel_embree_convert_sss_hit(KernelGlobals *kg,
+ccl_device_inline void kernel_embree_convert_sss_hit(const KernelGlobals *kg,
                                                      const RTCRay *ray,
                                                      const RTCHit *hit,
                                                      Intersection *isect,

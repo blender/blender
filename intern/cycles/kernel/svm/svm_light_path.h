@@ -18,12 +18,12 @@ CCL_NAMESPACE_BEGIN
 
 /* Light Path Node */
 
-ccl_device void svm_node_light_path(ShaderData *sd,
-                                    ccl_addr_space PathState *state,
-                                    float *stack,
-                                    uint type,
-                                    uint out_offset,
-                                    int path_flag)
+ccl_device_noinline void svm_node_light_path(INTEGRATOR_STATE_CONST_ARGS,
+                                             const ShaderData *sd,
+                                             float *stack,
+                                             uint type,
+                                             uint out_offset,
+                                             int path_flag)
 {
   float info = 0.0f;
 
@@ -58,21 +58,47 @@ ccl_device void svm_node_light_path(ShaderData *sd,
     case NODE_LP_ray_length:
       info = sd->ray_length;
       break;
-    case NODE_LP_ray_depth:
-      info = (float)state->bounce;
+    case NODE_LP_ray_depth: {
+      /* Read bounce from difference location depending if this is a shadow
+       * path. It's a bit dubious to have integrate state details leak into
+       * this function but hard to avoid currently. */
+      int bounce = (INTEGRATOR_STATE_IS_NULL)    ? 0 :
+                   (path_flag & PATH_RAY_SHADOW) ? INTEGRATOR_STATE(shadow_path, bounce) :
+                                                   INTEGRATOR_STATE(path, bounce);
+
+      /* For background, light emission and shadow evaluation we from a
+       * surface or volume we are effective one bounce further. */
+      if (path_flag & (PATH_RAY_SHADOW | PATH_RAY_EMISSION)) {
+        bounce++;
+      }
+
+      info = (float)bounce;
       break;
+    }
+      /* TODO */
+    case NODE_LP_ray_transparent: {
+      const int bounce = (INTEGRATOR_STATE_IS_NULL) ?
+                             0 :
+                         (path_flag & PATH_RAY_SHADOW) ?
+                             INTEGRATOR_STATE(shadow_path, transparent_bounce) :
+                             INTEGRATOR_STATE(path, transparent_bounce);
+
+      info = (float)bounce;
+      break;
+    }
+#if 0
     case NODE_LP_ray_diffuse:
       info = (float)state->diffuse_bounce;
       break;
     case NODE_LP_ray_glossy:
       info = (float)state->glossy_bounce;
       break;
-    case NODE_LP_ray_transparent:
-      info = (float)state->transparent_bounce;
-      break;
+#endif
+#if 0
     case NODE_LP_ray_transmission:
       info = (float)state->transmission_bounce;
       break;
+#endif
   }
 
   stack_store_float(stack, out_offset, info);
@@ -80,7 +106,7 @@ ccl_device void svm_node_light_path(ShaderData *sd,
 
 /* Light Falloff Node */
 
-ccl_device void svm_node_light_falloff(ShaderData *sd, float *stack, uint4 node)
+ccl_device_noinline void svm_node_light_falloff(ShaderData *sd, float *stack, uint4 node)
 {
   uint strength_offset, out_offset, smooth_offset;
 

@@ -1,0 +1,165 @@
+/*
+ * Copyright 2011-2021 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include "kernel/integrator/integrator_state.h"
+
+#include "device/device_graphics_interop.h"
+#include "device/device_memory.h"
+#include "device/device_queue.h"
+
+#include "integrator/path_trace_work.h"
+#include "integrator/work_tile_scheduler.h"
+
+#include "util/util_vector.h"
+
+CCL_NAMESPACE_BEGIN
+
+struct KernelWorkTile;
+
+/* Implementation of PathTraceWork which schedules work to the device in tiles which are sized
+ * to match device queue's number of path states.
+ * This implementation suits best devices which have a lot of integrator states, such as GPU. */
+class PathTraceWorkGPU : public PathTraceWork {
+ public:
+  PathTraceWorkGPU(Device *device,
+                   Film *film,
+                   DeviceScene *device_scene,
+                   bool *cancel_requested_flag);
+
+  virtual void alloc_work_memory() override;
+  virtual void init_execution() override;
+
+  virtual void render_samples(RenderStatistics &statistics,
+                              int start_sample,
+                              int samples_num) override;
+
+  virtual void copy_to_gpu_display(GPUDisplay *gpu_display,
+                                   PassMode pass_mode,
+                                   int num_samples) override;
+  virtual void destroy_gpu_resources(GPUDisplay *gpu_display) override;
+
+  virtual bool copy_render_buffers_from_device() override;
+  virtual bool copy_render_buffers_to_device() override;
+  virtual bool zero_render_buffers() override;
+
+  virtual int adaptive_sampling_converge_filter_count_active(float threshold, bool reset) override;
+  virtual void cryptomatte_postproces() override;
+
+ protected:
+  void alloc_integrator_soa();
+  void alloc_integrator_queue();
+  void alloc_integrator_sorting();
+  void alloc_integrator_path_split();
+
+  /* Returns DEVICE_KERNEL_NUM if there are no scheduled kernels. */
+  DeviceKernel get_most_queued_kernel() const;
+
+  void enqueue_reset();
+
+  bool enqueue_work_tiles(bool &finished);
+  void enqueue_work_tiles(DeviceKernel kernel,
+                          const KernelWorkTile work_tiles[],
+                          const int num_work_tiles,
+                          const int num_active_paths,
+                          const int num_predicted_splits);
+
+  bool enqueue_path_iteration();
+  void enqueue_path_iteration(DeviceKernel kernel);
+
+  void compute_queued_paths(DeviceKernel kernel, DeviceKernel queued_kernel);
+  void compute_sorted_queued_paths(DeviceKernel kernel, DeviceKernel queued_kernel);
+
+  void compact_states(const int num_active_paths);
+
+  int get_num_active_paths();
+
+  /* Check whether graphics interop can be used for the GPUDisplay update. */
+  bool should_use_graphics_interop();
+
+  /* Naive implementation of the `copy_to_gpu_display()` which performs film conversion on the
+   * device, then copies pixels to the host and pushes them to the `gpu_display`. */
+  void copy_to_gpu_display_naive(GPUDisplay *gpu_display, PassMode pass_mode, int num_samples);
+
+  /* Implementation of `copy_to_gpu_display()` which uses driver's OpenGL/GPU interoperability
+   * functionality, avoiding copy of pixels to the host. */
+  bool copy_to_gpu_display_interop(GPUDisplay *gpu_display, PassMode pass_mode, int num_samples);
+
+  /* Synchronously run film conversion kernel and store display result in the given destination. */
+  void get_render_tile_film_pixels(const PassAccessor::Destination &destination,
+                                   PassMode pass_mode,
+                                   int num_samples);
+
+  int adaptive_sampling_convergence_check_count_active(float threshold, bool reset);
+  void enqueue_adaptive_sampling_filter_x();
+  void enqueue_adaptive_sampling_filter_y();
+
+  bool has_shadow_catcher() const;
+
+  /* Count how many currently scheduled paths can still split. */
+  int shadow_catcher_count_possible_splits();
+
+  /* Integrator queue. */
+  unique_ptr<DeviceQueue> queue_;
+
+  /* Scheduler which gives work to path tracing threads. */
+  WorkTileScheduler work_tile_scheduler_;
+
+  /* Integrate state for paths. */
+  IntegratorStateGPU integrator_state_gpu_;
+  /* SoA arrays for integrator state. */
+  vector<unique_ptr<device_memory>> integrator_state_soa_;
+  uint integrator_state_soa_kernel_features_;
+  /* Keep track of number of queued kernels. */
+  device_vector<IntegratorQueueCounter> integrator_queue_counter_;
+  /* Shader sorting. */
+  device_vector<int> integrator_shader_sort_counter_;
+  device_vector<int> integrator_shader_raytrace_sort_counter_;
+  /* Path split. */
+  device_vector<int> integrator_next_shadow_catcher_path_index_;
+
+  /* Temporary buffer to get an array of queued path for a particular kernel. */
+  device_vector<int> queued_paths_;
+  device_vector<int> num_queued_paths_;
+
+  /* Temporary buffer for passing work tiles to kernel. */
+  device_vector<KernelWorkTile> work_tiles_;
+
+  /* Temporary buffer used by the copy_to_gpu_display() whenever graphics interoperability is not
+   * available. Is allocated on-demand. */
+  device_vector<half4> gpu_display_rgba_half_;
+
+  unique_ptr<DeviceGraphicsInterop> device_graphics_interop_;
+
+  /* Cached result of device->should_use_graphics_interop(). */
+  bool interop_use_checked_ = false;
+  bool interop_use_ = false;
+
+  /* Maximum number of concurrent integrator states. */
+  int max_num_paths_;
+
+  /* Minimum number of paths which keeps the device bust. If the actual number of paths falls below
+   * this value more work will be scheduled. */
+  int min_num_active_paths_;
+
+  /* Maximum path index, effective number of paths used may be smaller than
+   * the size of the integrator_state_ buffer so can avoid iterating over the
+   * full buffer. */
+  int max_active_path_index_;
+};
+
+CCL_NAMESPACE_END

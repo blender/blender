@@ -30,8 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BSDF_UTIL_H__
-#define __BSDF_UTIL_H__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
@@ -150,5 +149,3 @@ interpolate_fresnel_color(float3 L, float3 H, float ior, float F0, float3 cspec0
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __BSDF_UTIL_H__ */

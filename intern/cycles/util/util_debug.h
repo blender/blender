@@ -79,9 +79,6 @@ class DebugFlags {
      * CPUs and GPUs can be selected here instead.
      */
     BVHLayout bvh_layout;
-
-    /* Whether split kernel is used */
-    bool split_kernel;
   };
 
   /* Descriptor of CUDA feature-set to be used. */
@@ -94,9 +91,6 @@ class DebugFlags {
     /* Whether adaptive feature based runtime compile is enabled or not.
      * Requires the CUDA Toolkit and only works on Linux atm. */
     bool adaptive_compile;
-
-    /* Whether split kernel is used */
-    bool split_kernel;
   };
 
   /* Descriptor of OptiX feature-set to be used. */
@@ -106,61 +100,9 @@ class DebugFlags {
     /* Reset flags to their defaults. */
     void reset();
 
-    /* Number of CUDA streams to launch kernels concurrently from. */
-    int cuda_streams;
-
-    /* Use OptiX curves API for hair instead of custom implementation. */
-    bool curves_api;
-  };
-
-  /* Descriptor of OpenCL feature-set to be used. */
-  struct OpenCL {
-    OpenCL();
-
-    /* Reset flags to their defaults. */
-    void reset();
-
-    /* Available device types.
-     * Only gives a hint which devices to let user to choose from, does not
-     * try to use any sort of optimal device or so.
-     */
-    enum DeviceType {
-      /* None of OpenCL devices will be used. */
-      DEVICE_NONE,
-      /* All OpenCL devices will be used. */
-      DEVICE_ALL,
-      /* Default system OpenCL device will be used. */
-      DEVICE_DEFAULT,
-      /* Host processor will be used. */
-      DEVICE_CPU,
-      /* GPU devices will be used. */
-      DEVICE_GPU,
-      /* Dedicated OpenCL accelerator device will be used. */
-      DEVICE_ACCELERATOR,
-    };
-
-    /* Available kernel types. */
-    enum KernelType {
-      /* Do automated guess which kernel to use, based on the officially
-       * supported GPUs and such.
-       */
-      KERNEL_DEFAULT,
-      /* Force mega kernel to be used. */
-      KERNEL_MEGA,
-      /* Force split kernel to be used. */
-      KERNEL_SPLIT,
-    };
-
-    /* Requested device type. */
-    DeviceType device_type;
-
-    /* Use debug version of the kernel. */
-    bool debug;
-
-    /* TODO(mai): Currently this is only for OpenCL, but we should have it implemented for all
-     * devices. */
-    /* Artificial memory limit in bytes (0 if disabled). */
-    size_t mem_limit;
+    /* Load OptiX module with debug capabilities. Will lower logging verbosity level, enable
+     * validations, and lower optimization level. */
+    bool use_debug;
   };
 
   /* Get instance of debug flags registry. */
@@ -181,9 +123,6 @@ class DebugFlags {
 
   /* Requested OptiX flags. */
   OptiX optix;
-
-  /* Requested OpenCL flags. */
-  OpenCL opencl;
 
  private:
   DebugFlags();

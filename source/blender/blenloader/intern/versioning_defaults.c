@@ -54,6 +54,7 @@
 #include "BKE_curveprofile.h"
 #include "BKE_customdata.h"
 #include "BKE_gpencil.h"
+#include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -356,6 +357,12 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   if (ts->custom_bevel_profile_preset == NULL) {
     ts->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);
   }
+
+  /* Clear ID properties so Cycles gets defaults. */
+  IDProperty *idprop = IDP_GetProperties(&scene->id, false);
+  if (idprop) {
+    IDP_ClearProperty(idprop);
+  }
 }
 
 /**
@@ -582,6 +589,10 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
           bNodeSocket *roughness_socket = nodeFindSocket(node, SOCK_IN, "Roughness");
           bNodeSocketValueFloat *roughness_data = roughness_socket->default_value;
           roughness_data->value = 0.4f;
+          node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
+        }
+        else if (node->type == SH_NODE_SUBSURFACE_SCATTERING) {
+          node->custom1 = SHD_SUBSURFACE_RANDOM_WALK;
         }
       }
     }

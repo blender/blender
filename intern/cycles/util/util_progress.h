@@ -46,7 +46,6 @@ class Progress {
     substatus = "";
     sync_status = "";
     sync_substatus = "";
-    kernel_status = "";
     update_cb = function_null;
     cancel = false;
     cancel_message = "";
@@ -87,7 +86,6 @@ class Progress {
     substatus = "";
     sync_status = "";
     sync_substatus = "";
-    kernel_status = "";
     cancel = false;
     cancel_message = "";
     error = false;
@@ -316,24 +314,6 @@ class Progress {
     }
   }
 
-  /* kernel status */
-
-  void set_kernel_status(const string &kernel_status_)
-  {
-    {
-      thread_scoped_lock lock(progress_mutex);
-      kernel_status = kernel_status_;
-    }
-
-    set_update();
-  }
-
-  void get_kernel_status(string &kernel_status_)
-  {
-    thread_scoped_lock lock(progress_mutex);
-    kernel_status_ = kernel_status;
-  }
-
   /* callback */
 
   void set_update()
@@ -377,8 +357,6 @@ class Progress {
 
   string sync_status;
   string sync_substatus;
-
-  string kernel_status;
 
   volatile bool cancel;
   string cancel_message;

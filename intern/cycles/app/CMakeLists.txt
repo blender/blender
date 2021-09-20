@@ -91,24 +91,6 @@ if(WITH_CYCLES_STANDALONE)
 endif()
 
 #####################################################################
-# Cycles network server executable
-#####################################################################
-
-if(WITH_CYCLES_NETWORK)
-  set(SRC
-    cycles_server.cpp
-  )
-  add_executable(cycles_server ${SRC})
-  target_link_libraries(cycles_server ${LIBRARIES})
-  cycles_target_link_libraries(cycles_server)
-
-  if(UNIX AND NOT APPLE)
-    set_target_properties(cycles_server PROPERTIES INSTALL_RPATH $ORIGIN/lib)
-  endif()
-  unset(SRC)
-endif()
-
-#####################################################################
 # Cycles cubin compiler executable
 #####################################################################
 

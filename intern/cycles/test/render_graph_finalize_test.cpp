@@ -181,7 +181,7 @@ class RenderGraph : public testing::Test {
     util_logging_start();
     util_logging_verbosity_set(1);
 
-    device_cpu = Device::create(device_info, stats, profiler, true);
+    device_cpu = Device::create(device_info, stats, profiler);
     scene = new Scene(scene_params, device_cpu);
   }
 

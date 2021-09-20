@@ -17,6 +17,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include <algorithm>
+#include <cctype>
+
 #include "util/util_foreach.h"
 #include "util/util_string.h"
 #include "util/util_windows.h"
@@ -107,24 +110,26 @@ void string_split(vector<string> &tokens,
   }
 }
 
-bool string_startswith(const string &s, const char *start)
+bool string_startswith(const string_view s, const string_view start)
 {
-  size_t len = strlen(start);
+  const size_t len = start.size();
 
-  if (len > s.size())
-    return 0;
-  else
-    return strncmp(s.c_str(), start, len) == 0;
+  if (len > s.size()) {
+    return false;
+  }
+
+  return strncmp(s.c_str(), start.data(), len) == 0;
 }
 
-bool string_endswith(const string &s, const string &end)
+bool string_endswith(const string_view s, const string_view end)
 {
-  size_t len = end.length();
+  const size_t len = end.size();
 
-  if (len > s.size())
-    return 0;
-  else
-    return s.compare(s.length() - len, len, end) == 0;
+  if (len > s.size()) {
+    return false;
+  }
+
+  return strncmp(s.c_str() + s.size() - len, end.data(), len) == 0;
 }
 
 string string_strip(const string &s)
@@ -170,6 +175,13 @@ string string_from_bool(bool var)
 string to_string(const char *str)
 {
   return string(str);
+}
+
+string string_to_lower(const string &s)
+{
+  string r = s;
+  std::transform(r.begin(), r.end(), r.begin(), [](char c) { return std::tolower(c); });
+  return r;
 }
 
 /* Wide char strings helpers for Windows. */

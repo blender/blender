@@ -651,6 +651,8 @@ RenderEngineType DRW_engine_viewport_workbench_type = {
     NULL,
     NULL,
     NULL,
+    NULL,
+    NULL,
     &workbench_render_update_passes,
     &draw_engine_workbench,
     {NULL, NULL, NULL},

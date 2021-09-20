@@ -24,13 +24,13 @@ ccl_device_inline float smootherstep(float edge0, float edge1, float x)
   return x * x * x * (x * (x * 6.0f - 15.0f) + 10.0f);
 }
 
-ccl_device void svm_node_map_range(KernelGlobals *kg,
-                                   ShaderData *sd,
-                                   float *stack,
-                                   uint value_stack_offset,
-                                   uint parameters_stack_offsets,
-                                   uint results_stack_offsets,
-                                   int *offset)
+ccl_device_noinline int svm_node_map_range(const KernelGlobals *kg,
+                                           ShaderData *sd,
+                                           float *stack,
+                                           uint value_stack_offset,
+                                           uint parameters_stack_offsets,
+                                           uint results_stack_offsets,
+                                           int offset)
 {
   uint from_min_stack_offset, from_max_stack_offset, to_min_stack_offset, to_max_stack_offset;
   uint type_stack_offset, steps_stack_offset, result_stack_offset;
@@ -42,8 +42,8 @@ ccl_device void svm_node_map_range(KernelGlobals *kg,
   svm_unpack_node_uchar3(
       results_stack_offsets, &type_stack_offset, &steps_stack_offset, &result_stack_offset);
 
-  uint4 defaults = read_node(kg, offset);
-  uint4 defaults2 = read_node(kg, offset);
+  uint4 defaults = read_node(kg, &offset);
+  uint4 defaults2 = read_node(kg, &offset);
 
   float value = stack_load_float(stack, value_stack_offset);
   float from_min = stack_load_float_default(stack, from_min_stack_offset, defaults.x);
@@ -83,6 +83,7 @@ ccl_device void svm_node_map_range(KernelGlobals *kg,
     result = 0.0f;
   }
   stack_store_float(stack, result_stack_offset, result);
+  return offset;
 }
 
 CCL_NAMESPACE_END

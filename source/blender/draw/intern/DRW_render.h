@@ -623,6 +623,7 @@ const DRWView *DRW_view_default_get(void);
 void DRW_view_default_set(DRWView *view);
 void DRW_view_reset(void);
 void DRW_view_set_active(DRWView *view);
+const DRWView *DRW_view_get_active(void);
 
 void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len);
 void DRW_view_camtexco_set(DRWView *view, float texco[4]);

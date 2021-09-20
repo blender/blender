@@ -140,13 +140,13 @@ ccl_device void noise_texture_4d(float4 co,
   }
 }
 
-ccl_device void svm_node_tex_noise(KernelGlobals *kg,
-                                   ShaderData *sd,
-                                   float *stack,
-                                   uint dimensions,
-                                   uint offsets1,
-                                   uint offsets2,
-                                   int *offset)
+ccl_device_noinline int svm_node_tex_noise(const KernelGlobals *kg,
+                                           ShaderData *sd,
+                                           float *stack,
+                                           uint dimensions,
+                                           uint offsets1,
+                                           uint offsets2,
+                                           int offset)
 {
   uint vector_stack_offset, w_stack_offset, scale_stack_offset;
   uint detail_stack_offset, roughness_stack_offset, distortion_stack_offset;
@@ -160,8 +160,8 @@ ccl_device void svm_node_tex_noise(KernelGlobals *kg,
                          &value_stack_offset,
                          &color_stack_offset);
 
-  uint4 defaults1 = read_node(kg, offset);
-  uint4 defaults2 = read_node(kg, offset);
+  uint4 defaults1 = read_node(kg, &offset);
+  uint4 defaults2 = read_node(kg, &offset);
 
   float3 vector = stack_load_float3(stack, vector_stack_offset);
   float w = stack_load_float_default(stack, w_stack_offset, defaults1.x);
@@ -212,6 +212,7 @@ ccl_device void svm_node_tex_noise(KernelGlobals *kg,
   if (stack_valid(color_stack_offset)) {
     stack_store_float3(stack, color_stack_offset, color);
   }
+  return offset;
 }
 
 CCL_NAMESPACE_END

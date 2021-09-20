@@ -2736,18 +2736,21 @@ NODE_DEFINE(PrincipledBsdfNode)
       distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
 
   static NodeEnum subsurface_method_enum;
-  subsurface_method_enum.insert("burley", CLOSURE_BSSRDF_PRINCIPLED_ID);
-  subsurface_method_enum.insert("random_walk", CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID);
+  subsurface_method_enum.insert("random_walk_fixed_radius",
+                                CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
+  subsurface_method_enum.insert("random_walk", CLOSURE_BSSRDF_RANDOM_WALK_ID);
   SOCKET_ENUM(subsurface_method,
               "Subsurface Method",
               subsurface_method_enum,
-              CLOSURE_BSSRDF_PRINCIPLED_ID);
+              CLOSURE_BSSRDF_RANDOM_WALK_ID);
 
   SOCKET_IN_COLOR(base_color, "Base Color", make_float3(0.8f, 0.8f, 0.8f));
   SOCKET_IN_COLOR(subsurface_color, "Subsurface Color", make_float3(0.8f, 0.8f, 0.8f));
   SOCKET_IN_FLOAT(metallic, "Metallic", 0.0f);
   SOCKET_IN_FLOAT(subsurface, "Subsurface", 0.0f);
   SOCKET_IN_VECTOR(subsurface_radius, "Subsurface Radius", make_float3(0.1f, 0.1f, 0.1f));
+  SOCKET_IN_FLOAT(subsurface_ior, "Subsurface IOR", 1.4f);
+  SOCKET_IN_FLOAT(subsurface_anisotropy, "Subsurface Anisotropy", 0.0f);
   SOCKET_IN_FLOAT(specular, "Specular", 0.0f);
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.5f);
   SOCKET_IN_FLOAT(specular_tint, "Specular Tint", 0.0f);
@@ -2857,6 +2860,8 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler,
                                  ShaderInput *p_metallic,
                                  ShaderInput *p_subsurface,
                                  ShaderInput *p_subsurface_radius,
+                                 ShaderInput *p_subsurface_ior,
+                                 ShaderInput *p_subsurface_anisotropy,
                                  ShaderInput *p_specular,
                                  ShaderInput *p_roughness,
                                  ShaderInput *p_specular_tint,
@@ -2896,6 +2901,8 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler,
   int transmission_roughness_offset = compiler.stack_assign(p_transmission_roughness);
   int anisotropic_rotation_offset = compiler.stack_assign(p_anisotropic_rotation);
   int subsurface_radius_offset = compiler.stack_assign(p_subsurface_radius);
+  int subsurface_ior_offset = compiler.stack_assign(p_subsurface_ior);
+  int subsurface_anisotropy_offset = compiler.stack_assign(p_subsurface_anisotropy);
 
   compiler.add_node(NODE_CLOSURE_BSDF,
                     compiler.encode_uchar4(closure,
@@ -2929,8 +2936,10 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler,
       __float_as_int(bc_default.y),
       __float_as_int(bc_default.z));
 
-  compiler.add_node(
-      clearcoat_normal_offset, subsurface_radius_offset, SVM_STACK_INVALID, SVM_STACK_INVALID);
+  compiler.add_node(clearcoat_normal_offset,
+                    subsurface_radius_offset,
+                    subsurface_ior_offset,
+                    subsurface_anisotropy_offset);
 
   float3 ss_default = get_float3(subsurface_color_in->socket_type);
 
@@ -2953,6 +2962,8 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
           input("Metallic"),
           input("Subsurface"),
           input("Subsurface Radius"),
+          input("Subsurface IOR"),
+          input("Subsurface Anisotropy"),
           input("Specular"),
           input("Roughness"),
           input("Specular Tint"),
@@ -3048,16 +3059,16 @@ NODE_DEFINE(SubsurfaceScatteringNode)
   SOCKET_IN_NORMAL(normal, "Normal", zero_float3(), SocketType::LINK_NORMAL);
   SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
-  static NodeEnum falloff_enum;
-  falloff_enum.insert("cubic", CLOSURE_BSSRDF_CUBIC_ID);
-  falloff_enum.insert("gaussian", CLOSURE_BSSRDF_GAUSSIAN_ID);
-  falloff_enum.insert("burley", CLOSURE_BSSRDF_BURLEY_ID);
-  falloff_enum.insert("random_walk", CLOSURE_BSSRDF_RANDOM_WALK_ID);
-  SOCKET_ENUM(falloff, "Falloff", falloff_enum, CLOSURE_BSSRDF_BURLEY_ID);
+  static NodeEnum method_enum;
+  method_enum.insert("random_walk_fixed_radius", CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
+  method_enum.insert("random_walk", CLOSURE_BSSRDF_RANDOM_WALK_ID);
+  SOCKET_ENUM(method, "Method", method_enum, CLOSURE_BSSRDF_RANDOM_WALK_ID);
+
   SOCKET_IN_FLOAT(scale, "Scale", 0.01f);
   SOCKET_IN_VECTOR(radius, "Radius", make_float3(0.1f, 0.1f, 0.1f));
-  SOCKET_IN_FLOAT(sharpness, "Sharpness", 0.0f);
-  SOCKET_IN_FLOAT(texture_blur, "Texture Blur", 1.0f);
+
+  SOCKET_IN_FLOAT(subsurface_ior, "IOR", 1.4f);
+  SOCKET_IN_FLOAT(subsurface_anisotropy, "Anisotropy", 0.0f);
 
   SOCKET_OUT_CLOSURE(BSSRDF, "BSSRDF");
 
@@ -3066,20 +3077,19 @@ NODE_DEFINE(SubsurfaceScatteringNode)
 
 SubsurfaceScatteringNode::SubsurfaceScatteringNode() : BsdfNode(get_node_type())
 {
-  closure = falloff;
+  closure = method;
 }
 
 void SubsurfaceScatteringNode::compile(SVMCompiler &compiler)
 {
-  closure = falloff;
-  BsdfNode::compile(
-      compiler, input("Scale"), input("Texture Blur"), input("Radius"), input("Sharpness"));
+  closure = method;
+  BsdfNode::compile(compiler, input("Scale"), input("IOR"), input("Radius"), input("Anisotropy"));
 }
 
 void SubsurfaceScatteringNode::compile(OSLCompiler &compiler)
 {
-  closure = falloff;
-  compiler.parameter(this, "falloff");
+  closure = method;
+  compiler.parameter(this, "method");
   compiler.add(this, "node_subsurface_scattering");
 }
 
@@ -3784,20 +3794,6 @@ void GeometryNode::compile(OSLCompiler &compiler)
     compiler.parameter("bump_offset", "center");
 
   compiler.add(this, "node_geometry");
-}
-
-int GeometryNode::get_group()
-{
-  ShaderOutput *out;
-  int result = ShaderNode::get_group();
-
-  /* Backfacing uses NODE_LIGHT_PATH */
-  out = output("Backfacing");
-  if (!out->links.empty()) {
-    result = max(result, NODE_GROUP_LEVEL_1);
-  }
-
-  return result;
 }
 
 /* TextureCoordinate */
@@ -5926,33 +5922,33 @@ NODE_DEFINE(OutputAOVNode)
 OutputAOVNode::OutputAOVNode() : ShaderNode(get_node_type())
 {
   special_type = SHADER_SPECIAL_TYPE_OUTPUT_AOV;
-  slot = -1;
+  offset = -1;
 }
 
 void OutputAOVNode::simplify_settings(Scene *scene)
 {
-  slot = scene->film->get_aov_offset(scene, name.string(), is_color);
-  if (slot == -1) {
-    slot = scene->film->get_aov_offset(scene, name.string(), is_color);
+  offset = scene->film->get_aov_offset(scene, name.string(), is_color);
+  if (offset == -1) {
+    offset = scene->film->get_aov_offset(scene, name.string(), is_color);
   }
 
-  if (slot == -1 || is_color) {
+  if (offset == -1 || is_color) {
     input("Value")->disconnect();
   }
-  if (slot == -1 || !is_color) {
+  if (offset == -1 || !is_color) {
     input("Color")->disconnect();
   }
 }
 
 void OutputAOVNode::compile(SVMCompiler &compiler)
 {
-  assert(slot >= 0);
+  assert(offset >= 0);
 
   if (is_color) {
-    compiler.add_node(NODE_AOV_COLOR, compiler.stack_assign(input("Color")), slot);
+    compiler.add_node(NODE_AOV_COLOR, compiler.stack_assign(input("Color")), offset);
   }
   else {
-    compiler.add_node(NODE_AOV_VALUE, compiler.stack_assign(input("Value")), slot);
+    compiler.add_node(NODE_AOV_VALUE, compiler.stack_assign(input("Value")), offset);
   }
 }
 

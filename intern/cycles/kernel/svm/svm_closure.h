@@ -57,13 +57,9 @@ ccl_device void svm_node_glass_setup(
   }
 }
 
-ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
-                                      ShaderData *sd,
-                                      float *stack,
-                                      uint4 node,
-                                      ShaderType shader_type,
-                                      int path_flag,
-                                      int *offset)
+template<uint node_feature_mask, ShaderType shader_type>
+ccl_device_noinline int svm_node_closure_bsdf(
+    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int path_flag, int offset)
 {
   uint type, param1_offset, param2_offset;
 
@@ -73,19 +69,19 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
                                                        1.0f);
 
   /* note we read this extra node before weight check, so offset is added */
-  uint4 data_node = read_node(kg, offset);
+  uint4 data_node = read_node(kg, &offset);
 
   /* Only compute BSDF for surfaces, transparent variable is shared with volume extinction. */
-  if (mix_weight == 0.0f || shader_type != SHADER_TYPE_SURFACE) {
+  if ((!KERNEL_NODES_FEATURE(BSDF) || shader_type != SHADER_TYPE_SURFACE) || mix_weight == 0.0f) {
     if (type == CLOSURE_BSDF_PRINCIPLED_ID) {
       /* Read all principled BSDF extra data to get the right offset. */
-      read_node(kg, offset);
-      read_node(kg, offset);
-      read_node(kg, offset);
-      read_node(kg, offset);
+      read_node(kg, &offset);
+      read_node(kg, &offset);
+      read_node(kg, &offset);
+      read_node(kg, &offset);
     }
 
-    return;
+    return offset;
   }
 
   float3 N = stack_valid(data_node.x) ? stack_load_float3(stack, data_node.x) : sd->N;
@@ -102,7 +98,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
           sheen_offset, sheen_tint_offset, clearcoat_offset, clearcoat_roughness_offset,
           eta_offset, transmission_offset, anisotropic_rotation_offset,
           transmission_roughness_offset;
-      uint4 data_node2 = read_node(kg, offset);
+      uint4 data_node2 = read_node(kg, &offset);
 
       float3 T = stack_load_float3(stack, data_node.y);
       svm_unpack_node_uchar4(data_node.z,
@@ -158,7 +154,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
       float specular_weight = (1.0f - final_transmission);
 
       // get the base color
-      uint4 data_base_color = read_node(kg, offset);
+      uint4 data_base_color = read_node(kg, &offset);
       float3 base_color = stack_valid(data_base_color.x) ?
                               stack_load_float3(stack, data_base_color.x) :
                               make_float3(__uint_as_float(data_base_color.y),
@@ -166,16 +162,21 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
                                           __uint_as_float(data_base_color.w));
 
       // get the additional clearcoat normal and subsurface scattering radius
-      uint4 data_cn_ssr = read_node(kg, offset);
+      uint4 data_cn_ssr = read_node(kg, &offset);
       float3 clearcoat_normal = stack_valid(data_cn_ssr.x) ?
                                     stack_load_float3(stack, data_cn_ssr.x) :
                                     sd->N;
       float3 subsurface_radius = stack_valid(data_cn_ssr.y) ?
                                      stack_load_float3(stack, data_cn_ssr.y) :
                                      make_float3(1.0f, 1.0f, 1.0f);
+      float subsurface_ior = stack_valid(data_cn_ssr.z) ? stack_load_float(stack, data_cn_ssr.z) :
+                                                          1.4f;
+      float subsurface_anisotropy = stack_valid(data_cn_ssr.w) ?
+                                        stack_load_float(stack, data_cn_ssr.w) :
+                                        0.0f;
 
       // get the subsurface color
-      uint4 data_subsurface_color = read_node(kg, offset);
+      uint4 data_subsurface_color = read_node(kg, &offset);
       float3 subsurface_color = stack_valid(data_subsurface_color.x) ?
                                     stack_load_float3(stack, data_subsurface_color.x) :
                                     make_float3(__uint_as_float(data_subsurface_color.y),
@@ -222,16 +223,16 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
 
           if (bssrdf) {
             bssrdf->radius = subsurface_radius * subsurface;
-            bssrdf->albedo = (subsurface_method == CLOSURE_BSSRDF_PRINCIPLED_ID) ?
-                                 subsurface_color :
-                                 mixed_ss_base_color;
-            bssrdf->texture_blur = 0.0f;
-            bssrdf->sharpness = 0.0f;
+            bssrdf->albedo = mixed_ss_base_color;
             bssrdf->N = N;
             bssrdf->roughness = roughness;
 
+            /* Clamps protecting against bad/extreme and non physical values. */
+            subsurface_ior = clamp(subsurface_ior, 1.01f, 3.8f);
+            bssrdf->anisotropy = clamp(subsurface_anisotropy, 0.0f, 0.9f);
+
             /* setup bsdf */
-            sd->flag |= bssrdf_setup(sd, bssrdf, subsurface_method);
+            sd->flag |= bssrdf_setup(sd, bssrdf, subsurface_method, subsurface_ior);
           }
         }
       }
@@ -733,9 +734,9 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
     }
 #ifdef __HAIR__
     case CLOSURE_BSDF_HAIR_PRINCIPLED_ID: {
-      uint4 data_node2 = read_node(kg, offset);
-      uint4 data_node3 = read_node(kg, offset);
-      uint4 data_node4 = read_node(kg, offset);
+      uint4 data_node2 = read_node(kg, &offset);
+      uint4 data_node3 = read_node(kg, &offset);
+      uint4 data_node4 = read_node(kg, &offset);
 
       float3 weight = sd->svm_closure_weight * mix_weight;
 
@@ -878,10 +879,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
 #endif /* __HAIR__ */
 
 #ifdef __SUBSURFACE__
-    case CLOSURE_BSSRDF_CUBIC_ID:
-    case CLOSURE_BSSRDF_GAUSSIAN_ID:
-    case CLOSURE_BSSRDF_BURLEY_ID:
-    case CLOSURE_BSSRDF_RANDOM_WALK_ID: {
+    case CLOSURE_BSSRDF_RANDOM_WALK_ID:
+    case CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID: {
       float3 weight = sd->svm_closure_weight * mix_weight;
       Bssrdf *bssrdf = bssrdf_alloc(sd, weight);
 
@@ -894,11 +893,14 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
 
         bssrdf->radius = stack_load_float3(stack, data_node.z) * param1;
         bssrdf->albedo = sd->svm_closure_weight;
-        bssrdf->texture_blur = param2;
-        bssrdf->sharpness = stack_load_float(stack, data_node.w);
         bssrdf->N = N;
-        bssrdf->roughness = 0.0f;
-        sd->flag |= bssrdf_setup(sd, bssrdf, (ClosureType)type);
+        bssrdf->roughness = FLT_MAX;
+
+        const float subsurface_ior = clamp(param2, 1.01f, 3.8f);
+        const float subsurface_anisotropy = stack_load_float(stack, data_node.w);
+        bssrdf->anisotropy = clamp(subsurface_anisotropy, 0.0f, 0.9f);
+
+        sd->flag |= bssrdf_setup(sd, bssrdf, (ClosureType)type, subsurface_ior);
       }
 
       break;
@@ -907,10 +909,15 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
     default:
       break;
   }
+
+  return offset;
 }
 
-ccl_device void svm_node_closure_volume(
-    KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, ShaderType shader_type)
+template<ShaderType shader_type>
+ccl_device_noinline void svm_node_closure_volume(const KernelGlobals *kg,
+                                                 ShaderData *sd,
+                                                 float *stack,
+                                                 uint4 node)
 {
 #ifdef __VOLUME__
   /* Only sum extinction for volumes, variable is shared with surface transparency. */
@@ -961,21 +968,17 @@ ccl_device void svm_node_closure_volume(
 #endif
 }
 
-ccl_device void svm_node_principled_volume(KernelGlobals *kg,
-                                           ShaderData *sd,
-                                           float *stack,
-                                           uint4 node,
-                                           ShaderType shader_type,
-                                           int path_flag,
-                                           int *offset)
+template<ShaderType shader_type>
+ccl_device_noinline int svm_node_principled_volume(
+    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int path_flag, int offset)
 {
 #ifdef __VOLUME__
-  uint4 value_node = read_node(kg, offset);
-  uint4 attr_node = read_node(kg, offset);
+  uint4 value_node = read_node(kg, &offset);
+  uint4 attr_node = read_node(kg, &offset);
 
   /* Only sum extinction for volumes, variable is shared with surface transparency. */
   if (shader_type != SHADER_TYPE_VOLUME) {
-    return;
+    return offset;
   }
 
   uint density_offset, anisotropy_offset, absorption_color_offset, mix_weight_offset;
@@ -985,7 +988,7 @@ ccl_device void svm_node_principled_volume(KernelGlobals *kg,
                                                        1.0f);
 
   if (mix_weight == 0.0f) {
-    return;
+    return offset;
   }
 
   /* Compute density. */
@@ -1034,7 +1037,7 @@ ccl_device void svm_node_principled_volume(KernelGlobals *kg,
   /* Compute emission. */
   if (path_flag & PATH_RAY_SHADOW) {
     /* Don't need emission for shadows. */
-    return;
+    return offset;
   }
 
   uint emission_offset, emission_color_offset, blackbody_offset, temperature_offset;
@@ -1074,9 +1077,10 @@ ccl_device void svm_node_principled_volume(KernelGlobals *kg,
     }
   }
 #endif
+  return offset;
 }
 
-ccl_device void svm_node_closure_emission(ShaderData *sd, float *stack, uint4 node)
+ccl_device_noinline void svm_node_closure_emission(ShaderData *sd, float *stack, uint4 node)
 {
   uint mix_weight_offset = node.y;
   float3 weight = sd->svm_closure_weight;
@@ -1093,7 +1097,7 @@ ccl_device void svm_node_closure_emission(ShaderData *sd, float *stack, uint4 no
   emission_setup(sd, weight);
 }
 
-ccl_device void svm_node_closure_background(ShaderData *sd, float *stack, uint4 node)
+ccl_device_noinline void svm_node_closure_background(ShaderData *sd, float *stack, uint4 node)
 {
   uint mix_weight_offset = node.y;
   float3 weight = sd->svm_closure_weight;
@@ -1110,7 +1114,7 @@ ccl_device void svm_node_closure_background(ShaderData *sd, float *stack, uint4 
   background_setup(sd, weight);
 }
 
-ccl_device void svm_node_closure_holdout(ShaderData *sd, float *stack, uint4 node)
+ccl_device_noinline void svm_node_closure_holdout(ShaderData *sd, float *stack, uint4 node)
 {
   uint mix_weight_offset = node.y;
 
@@ -1145,14 +1149,13 @@ ccl_device void svm_node_closure_set_weight(ShaderData *sd, uint r, uint g, uint
 ccl_device void svm_node_closure_weight(ShaderData *sd, float *stack, uint weight_offset)
 {
   float3 weight = stack_load_float3(stack, weight_offset);
-
   svm_node_closure_store_weight(sd, weight);
 }
 
-ccl_device void svm_node_emission_weight(KernelGlobals *kg,
-                                         ShaderData *sd,
-                                         float *stack,
-                                         uint4 node)
+ccl_device_noinline void svm_node_emission_weight(const KernelGlobals *kg,
+                                                  ShaderData *sd,
+                                                  float *stack,
+                                                  uint4 node)
 {
   uint color_offset = node.y;
   uint strength_offset = node.z;
@@ -1163,7 +1166,7 @@ ccl_device void svm_node_emission_weight(KernelGlobals *kg,
   svm_node_closure_store_weight(sd, weight);
 }
 
-ccl_device void svm_node_mix_closure(ShaderData *sd, float *stack, uint4 node)
+ccl_device_noinline void svm_node_mix_closure(ShaderData *sd, float *stack, uint4 node)
 {
   /* fetch weight from blend input, previous mix closures,
    * and write to stack to be used by closure nodes later */
@@ -1186,7 +1189,7 @@ ccl_device void svm_node_mix_closure(ShaderData *sd, float *stack, uint4 node)
 /* (Bump) normal */
 
 ccl_device void svm_node_set_normal(
-    KernelGlobals *kg, ShaderData *sd, float *stack, uint in_direction, uint out_normal)
+    const KernelGlobals *kg, ShaderData *sd, float *stack, uint in_direction, uint out_normal)
 {
   float3 normal = stack_load_float3(stack, in_direction);
   sd->N = normal;

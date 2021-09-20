@@ -19,27 +19,12 @@
 shader node_subsurface_scattering(color Color = 0.8,
                                   float Scale = 1.0,
                                   vector Radius = vector(0.1, 0.1, 0.1),
-                                  float TextureBlur = 0.0,
-                                  float Sharpness = 0.0,
-                                  string falloff = "cubic",
+                                  float IOR = 1.4,
+                                  float Anisotropy = 0.0,
+                                  string method = "random_walk",
                                   normal Normal = N,
                                   output closure color BSSRDF = 0)
 {
-  if (falloff == "gaussian")
-    BSSRDF = Color *
-             bssrdf("gaussian", Normal, Scale * Radius, Color, "texture_blur", TextureBlur);
-  else if (falloff == "cubic")
-    BSSRDF = Color * bssrdf("cubic",
-                            Normal,
-                            Scale * Radius,
-                            Color,
-                            "texture_blur",
-                            TextureBlur,
-                            "sharpness",
-                            Sharpness);
-  else if (falloff == "burley")
-    BSSRDF = Color * bssrdf("burley", Normal, Scale * Radius, Color, "texture_blur", TextureBlur);
-  else
-    BSSRDF = Color *
-             bssrdf("random_walk", Normal, Scale * Radius, Color, "texture_blur", TextureBlur);
+  BSSRDF = Color *
+           bssrdf(method, Normal, Scale * Radius, Color, "ior", IOR, "anisotropy", Anisotropy);
 }

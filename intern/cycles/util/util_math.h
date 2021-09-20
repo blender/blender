@@ -26,11 +26,9 @@
 #  include <cmath>
 #endif
 
-#ifndef __KERNEL_OPENCL__
-#  include <float.h>
-#  include <math.h>
-#  include <stdio.h>
-#endif /* __KERNEL_OPENCL__ */
+#include <float.h>
+#include <math.h>
+#include <stdio.h>
 
 #include "util/util_types.h"
 
@@ -86,7 +84,6 @@ CCL_NAMESPACE_BEGIN
 /* Scalar */
 
 #ifdef _WIN32
-#  ifndef __KERNEL_OPENCL__
 ccl_device_inline float fmaxf(float a, float b)
 {
   return (a > b) ? a : b;
@@ -96,8 +93,7 @@ ccl_device_inline float fminf(float a, float b)
 {
   return (a < b) ? a : b;
 }
-#  endif /* !__KERNEL_OPENCL__ */
-#endif   /* _WIN32 */
+#endif /* _WIN32 */
 
 #ifndef __KERNEL_GPU__
 using std::isfinite;
@@ -115,6 +111,11 @@ ccl_device_inline int max(int a, int b)
 }
 
 ccl_device_inline int min(int a, int b)
+{
+  return (a < b) ? a : b;
+}
+
+ccl_device_inline uint min(uint a, uint b)
 {
   return (a < b) ? a : b;
 }
@@ -166,7 +167,6 @@ ccl_device_inline float max4(float a, float b, float c, float d)
   return max(max(a, b), max(c, d));
 }
 
-#ifndef __KERNEL_OPENCL__
 /* Int/Float conversion */
 
 ccl_device_inline int as_int(uint i)
@@ -241,24 +241,23 @@ ccl_device_inline float __uint_as_float(uint i)
 
 ccl_device_inline int4 __float4_as_int4(float4 f)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return int4(_mm_castps_si128(f.m128));
-#  else
+#else
   return make_int4(
       __float_as_int(f.x), __float_as_int(f.y), __float_as_int(f.z), __float_as_int(f.w));
-#  endif
+#endif
 }
 
 ccl_device_inline float4 __int4_as_float4(int4 i)
 {
-#  ifdef __KERNEL_SSE__
+#ifdef __KERNEL_SSE__
   return float4(_mm_castsi128_ps(i.m128));
-#  else
+#else
   return make_float4(
       __int_as_float(i.x), __int_as_float(i.y), __int_as_float(i.z), __int_as_float(i.w));
-#  endif
+#endif
 }
-#endif /* __KERNEL_OPENCL__ */
 
 /* Versions of functions which are safe for fast math. */
 ccl_device_inline bool isnan_safe(float f)
@@ -279,7 +278,6 @@ ccl_device_inline float ensure_finite(float v)
   return isfinite_safe(v) ? v : 0.0f;
 }
 
-#ifndef __KERNEL_OPENCL__
 ccl_device_inline int clamp(int a, int mn, int mx)
 {
   return min(max(a, mn), mx);
@@ -308,8 +306,6 @@ ccl_device_inline float smoothstep(float edge0, float edge1, float x)
   }
   return result;
 }
-
-#endif /* __KERNEL_OPENCL__ */
 
 #ifndef __KERNEL_CUDA__
 ccl_device_inline float saturate(float a)
@@ -451,7 +447,6 @@ CCL_NAMESPACE_END
 
 CCL_NAMESPACE_BEGIN
 
-#ifndef __KERNEL_OPENCL__
 /* Interpolation */
 
 template<class A, class B> A lerp(const A &a, const A &b, const B &t)
@@ -459,15 +454,9 @@ template<class A, class B> A lerp(const A &a, const A &b, const B &t)
   return (A)(a * ((B)1 - t) + b * t);
 }
 
-#endif /* __KERNEL_OPENCL__ */
-
 /* Triangle */
 
-#ifndef __KERNEL_OPENCL__
 ccl_device_inline float triangle_area(const float3 &v1, const float3 &v2, const float3 &v3)
-#else
-ccl_device_inline float triangle_area(const float3 v1, const float3 v2, const float3 v3)
-#endif
 {
   return len(cross(v3 - v2, v1 - v2)) * 0.5f;
 }
@@ -665,11 +654,7 @@ ccl_device_inline float pow22(float a)
 
 ccl_device_inline float beta(float x, float y)
 {
-#ifndef __KERNEL_OPENCL__
   return expf(lgammaf(x) + lgammaf(y) - lgammaf(x + y));
-#else
-  return expf(lgamma(x) + lgamma(y) - lgamma(x + y));
-#endif
 }
 
 ccl_device_inline float xor_signmask(float x, int y)
@@ -686,8 +671,6 @@ ccl_device_inline uint count_leading_zeros(uint x)
 {
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__)
   return __clz(x);
-#elif defined(__KERNEL_OPENCL__)
-  return clz(x);
 #else
   assert(x != 0);
 #  ifdef _MSC_VER
@@ -704,8 +687,6 @@ ccl_device_inline uint count_trailing_zeros(uint x)
 {
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__)
   return (__ffs(x) - 1);
-#elif defined(__KERNEL_OPENCL__)
-  return (31 - count_leading_zeros(x & -x));
 #else
   assert(x != 0);
 #  ifdef _MSC_VER
@@ -722,8 +703,6 @@ ccl_device_inline uint find_first_set(uint x)
 {
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__)
   return __ffs(x);
-#elif defined(__KERNEL_OPENCL__)
-  return (x != 0) ? (32 - count_leading_zeros(x & (-x))) : 0;
 #else
 #  ifdef _MSC_VER
   return (x != 0) ? (32 - count_leading_zeros(x & (-x))) : 0;
@@ -795,6 +774,52 @@ ccl_device_inline float compare_floats(float a, float b, float abs_diff, int ulp
 ccl_device_inline float precise_angle(float3 a, float3 b)
 {
   return 2.0f * atan2f(len(a - b), len(a + b));
+}
+
+/* Return value which is greater than the given one and is a power of two. */
+ccl_device_inline uint next_power_of_two(uint x)
+{
+  return x == 0 ? 1 : 1 << (32 - count_leading_zeros(x));
+}
+
+/* Return value which is lower than the given one and is a power of two. */
+ccl_device_inline uint prev_power_of_two(uint x)
+{
+  return x < 2 ? x : 1 << (31 - count_leading_zeros(x - 1));
+}
+
+#ifndef __has_builtin
+#  define __has_builtin(v) 0
+#endif
+
+/* Reverses the bits of a 32 bit integer. */
+ccl_device_inline uint32_t reverse_integer_bits(uint32_t x)
+{
+  /* Use a native instruction if it exists. */
+#if defined(__arm__) || defined(__aarch64__)
+  __asm__("rbit %w0, %w1" : "=r"(x) : "r"(x));
+  return x;
+#elif defined(__KERNEL_CUDA__)
+  return __brev(x);
+#elif __has_builtin(__builtin_bitreverse32)
+  return __builtin_bitreverse32(x);
+#else
+  /* Flip pairwise. */
+  x = ((x & 0x55555555) << 1) | ((x & 0xAAAAAAAA) >> 1);
+  /* Flip pairs. */
+  x = ((x & 0x33333333) << 2) | ((x & 0xCCCCCCCC) >> 2);
+  /* Flip nibbles. */
+  x = ((x & 0x0F0F0F0F) << 4) | ((x & 0xF0F0F0F0) >> 4);
+  /* Flip bytes. CPUs have an instruction for that, pretty fast one. */
+#  ifdef _MSC_VER
+  return _byteswap_ulong(x);
+#  elif defined(__INTEL_COMPILER)
+  return (uint32_t)_bswap((int)x);
+#  else
+  /* Assuming gcc or clang. */
+  return __builtin_bswap32(x);
+#  endif
+#endif
 }
 
 CCL_NAMESPACE_END

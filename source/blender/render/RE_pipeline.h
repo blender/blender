@@ -141,9 +141,6 @@ typedef struct RenderResult {
   volatile rcti renrect;
   volatile RenderLayer *renlay;
 
-  /* optional saved endresult on disk */
-  int do_exr_tile;
-
   /* for render results in Image, verify validity for sequences */
   int framenr;
 

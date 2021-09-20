@@ -61,14 +61,14 @@ static struct TrueTy {
   {
     return true;
   }
-} True ccl_maybe_unused;
+} True ccl_attr_maybe_unused;
 
 static struct FalseTy {
   __forceinline operator bool() const
   {
     return false;
   }
-} False ccl_maybe_unused;
+} False ccl_attr_maybe_unused;
 
 static struct ZeroTy {
   __forceinline operator float() const
@@ -79,7 +79,7 @@ static struct ZeroTy {
   {
     return 0;
   }
-} zero ccl_maybe_unused;
+} zero ccl_attr_maybe_unused;
 
 static struct OneTy {
   __forceinline operator float() const
@@ -90,7 +90,7 @@ static struct OneTy {
   {
     return 1;
   }
-} one ccl_maybe_unused;
+} one ccl_attr_maybe_unused;
 
 static struct NegInfTy {
   __forceinline operator float() const
@@ -101,7 +101,7 @@ static struct NegInfTy {
   {
     return std::numeric_limits<int>::min();
   }
-} neg_inf ccl_maybe_unused;
+} neg_inf ccl_attr_maybe_unused;
 
 static struct PosInfTy {
   __forceinline operator float() const
@@ -112,10 +112,10 @@ static struct PosInfTy {
   {
     return std::numeric_limits<int>::max();
   }
-} inf ccl_maybe_unused, pos_inf ccl_maybe_unused;
+} inf ccl_attr_maybe_unused, pos_inf ccl_attr_maybe_unused;
 
 static struct StepTy {
-} step ccl_maybe_unused;
+} step ccl_attr_maybe_unused;
 
 #endif
 

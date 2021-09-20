@@ -22,68 +22,22 @@ set(INC_SYS
 
 )
 
-set(SRC_CPU_KERNELS
-  kernels/cpu/kernel.cpp
-  kernels/cpu/kernel_sse2.cpp
-  kernels/cpu/kernel_sse3.cpp
-  kernels/cpu/kernel_sse41.cpp
-  kernels/cpu/kernel_avx.cpp
-  kernels/cpu/kernel_avx2.cpp
-  kernels/cpu/kernel_split.cpp
-  kernels/cpu/kernel_split_sse2.cpp
-  kernels/cpu/kernel_split_sse3.cpp
-  kernels/cpu/kernel_split_sse41.cpp
-  kernels/cpu/kernel_split_avx.cpp
-  kernels/cpu/kernel_split_avx2.cpp
-  kernels/cpu/filter.cpp
-  kernels/cpu/filter_sse2.cpp
-  kernels/cpu/filter_sse3.cpp
-  kernels/cpu/filter_sse41.cpp
-  kernels/cpu/filter_avx.cpp
-  kernels/cpu/filter_avx2.cpp
+set(SRC_DEVICE_CPU
+  device/cpu/kernel.cpp
+  device/cpu/kernel_sse2.cpp
+  device/cpu/kernel_sse3.cpp
+  device/cpu/kernel_sse41.cpp
+  device/cpu/kernel_avx.cpp
+  device/cpu/kernel_avx2.cpp
 )
 
-set(SRC_CUDA_KERNELS
-  kernels/cuda/kernel.cu
-  kernels/cuda/kernel_split.cu
-  kernels/cuda/filter.cu
+set(SRC_DEVICE_CUDA
+  device/cuda/kernel.cu
 )
 
-set(SRC_OPENCL_KERNELS
-  kernels/opencl/kernel_adaptive_stopping.cl
-  kernels/opencl/kernel_adaptive_filter_x.cl
-  kernels/opencl/kernel_adaptive_filter_y.cl
-  kernels/opencl/kernel_adaptive_adjust_samples.cl
-  kernels/opencl/kernel_bake.cl
-  kernels/opencl/kernel_base.cl
-  kernels/opencl/kernel_displace.cl
-  kernels/opencl/kernel_background.cl
-  kernels/opencl/kernel_state_buffer_size.cl
-  kernels/opencl/kernel_split_bundle.cl
-  kernels/opencl/kernel_data_init.cl
-  kernels/opencl/kernel_path_init.cl
-  kernels/opencl/kernel_queue_enqueue.cl
-  kernels/opencl/kernel_scene_intersect.cl
-  kernels/opencl/kernel_lamp_emission.cl
-  kernels/opencl/kernel_do_volume.cl
-  kernels/opencl/kernel_indirect_background.cl
-  kernels/opencl/kernel_shader_setup.cl
-  kernels/opencl/kernel_shader_sort.cl
-  kernels/opencl/kernel_shader_eval.cl
-  kernels/opencl/kernel_holdout_emission_blurring_pathtermination_ao.cl
-  kernels/opencl/kernel_subsurface_scatter.cl
-  kernels/opencl/kernel_direct_lighting.cl
-  kernels/opencl/kernel_shadow_blocked_ao.cl
-  kernels/opencl/kernel_shadow_blocked_dl.cl
-  kernels/opencl/kernel_enqueue_inactive.cl
-  kernels/opencl/kernel_next_iteration_setup.cl
-  kernels/opencl/kernel_indirect_subsurface.cl
-  kernels/opencl/kernel_buffer_update.cl
-  kernels/opencl/filter.cl
-)
-
-set(SRC_OPTIX_KERNELS
-  kernels/optix/kernel_optix.cu
+set(SRC_DEVICE_OPTIX
+  device/optix/kernel.cu
+  device/optix/kernel_shader_raytrace.cu
 )
 
 set(SRC_BVH_HEADERS
@@ -105,63 +59,56 @@ set(SRC_HEADERS
   kernel_bake.h
   kernel_camera.h
   kernel_color.h
-  kernel_compat_cpu.h
-  kernel_compat_cuda.h
-  kernel_compat_optix.h
-  kernel_compat_opencl.h
   kernel_differential.h
   kernel_emission.h
   kernel_film.h
-  kernel_globals.h
   kernel_id_passes.h
   kernel_jitter.h
   kernel_light.h
   kernel_light_background.h
   kernel_light_common.h
+  kernel_lookup_table.h
   kernel_math.h
   kernel_montecarlo.h
   kernel_passes.h
-  kernel_path.h
-  kernel_path_branched.h
-  kernel_path_common.h
   kernel_path_state.h
-  kernel_path_surface.h
-  kernel_path_subsurface.h
-  kernel_path_volume.h
   kernel_profiling.h
   kernel_projection.h
-  kernel_queues.h
   kernel_random.h
   kernel_shader.h
-  kernel_shadow.h
-  kernel_subsurface.h
+  kernel_shadow_catcher.h
   kernel_textures.h
   kernel_types.h
-  kernel_volume.h
   kernel_work_stealing.h
   kernel_write_passes.h
 )
 
-set(SRC_KERNELS_CPU_HEADERS
-  kernel.h
-  kernels/cpu/kernel_cpu.h
-  kernels/cpu/kernel_cpu_impl.h
-  kernels/cpu/kernel_cpu_image.h
-  kernels/cpu/filter_cpu.h
-  kernels/cpu/filter_cpu_impl.h
+set(SRC_DEVICE_CPU_HEADERS
+  device/cpu/compat.h
+  device/cpu/image.h
+  device/cpu/globals.h
+  device/cpu/kernel.h
+  device/cpu/kernel_arch.h
+  device/cpu/kernel_arch_impl.h
+)
+set(SRC_DEVICE_GPU_HEADERS
+  device/gpu/image.h
+  device/gpu/kernel.h
+  device/gpu/parallel_active_index.h
+  device/gpu/parallel_prefix_sum.h
+  device/gpu/parallel_reduce.h
+  device/gpu/parallel_sorted_index.h
 )
 
-set(SRC_KERNELS_CUDA_HEADERS
-  kernels/cuda/kernel_config.h
-  kernels/cuda/kernel_cuda_image.h
+set(SRC_DEVICE_CUDA_HEADERS
+  device/cuda/compat.h
+  device/cuda/config.h
+  device/cuda/globals.h
 )
 
-set(SRC_KERNELS_OPTIX_HEADERS
-)
-
-set(SRC_KERNELS_OPENCL_HEADERS
-  kernels/opencl/kernel_split_function.h
-  kernels/opencl/kernel_opencl_image.h
+set(SRC_DEVICE_OPTIX_HEADERS
+  device/optix/compat.h
+  device/optix/globals.h
 )
 
 set(SRC_CLOSURE_HEADERS
@@ -259,25 +206,32 @@ set(SRC_GEOM_HEADERS
   geom/geom_object.h
   geom/geom_patch.h
   geom/geom_primitive.h
+  geom/geom_shader_data.h
   geom/geom_subd_triangle.h
   geom/geom_triangle.h
   geom/geom_triangle_intersect.h
   geom/geom_volume.h
 )
 
-set(SRC_FILTER_HEADERS
-  filter/filter.h
-  filter/filter_defines.h
-  filter/filter_features.h
-  filter/filter_features_sse.h
-  filter/filter_kernel.h
-  filter/filter_nlm_cpu.h
-  filter/filter_nlm_gpu.h
-  filter/filter_prefilter.h
-  filter/filter_reconstruction.h
-  filter/filter_transform.h
-  filter/filter_transform_gpu.h
-  filter/filter_transform_sse.h
+set(SRC_INTEGRATOR_HEADERS
+  integrator/integrator_init_from_bake.h
+  integrator/integrator_init_from_camera.h
+  integrator/integrator_intersect_closest.h
+  integrator/integrator_intersect_shadow.h
+  integrator/integrator_intersect_subsurface.h
+  integrator/integrator_intersect_volume_stack.h
+  integrator/integrator_megakernel.h
+  integrator/integrator_shade_background.h
+  integrator/integrator_shade_light.h
+  integrator/integrator_shade_shadow.h
+  integrator/integrator_shade_surface.h
+  integrator/integrator_shade_volume.h
+  integrator/integrator_state.h
+  integrator/integrator_state_flow.h
+  integrator/integrator_state_template.h
+  integrator/integrator_state_util.h
+  integrator/integrator_subsurface.h
+  integrator/integrator_volume_stack.h
 )
 
 set(SRC_UTIL_HEADERS
@@ -333,36 +287,6 @@ set(SRC_UTIL_HEADERS
   ../util/util_types_vector3_impl.h
 )
 
-set(SRC_SPLIT_HEADERS
-  split/kernel_adaptive_adjust_samples.h
-  split/kernel_adaptive_filter_x.h
-  split/kernel_adaptive_filter_y.h
-  split/kernel_adaptive_stopping.h
-  split/kernel_branched.h
-  split/kernel_buffer_update.h
-  split/kernel_data_init.h
-  split/kernel_direct_lighting.h
-  split/kernel_do_volume.h
-  split/kernel_enqueue_inactive.h
-  split/kernel_holdout_emission_blurring_pathtermination_ao.h
-  split/kernel_indirect_background.h
-  split/kernel_indirect_subsurface.h
-  split/kernel_lamp_emission.h
-  split/kernel_next_iteration_setup.h
-  split/kernel_path_init.h
-  split/kernel_queue_enqueue.h
-  split/kernel_scene_intersect.h
-  split/kernel_shader_setup.h
-  split/kernel_shader_sort.h
-  split/kernel_shader_eval.h
-  split/kernel_shadow_blocked_ao.h
-  split/kernel_shadow_blocked_dl.h
-  split/kernel_split_common.h
-  split/kernel_split_data.h
-  split/kernel_split_data_types.h
-  split/kernel_subsurface_scatter.h
-)
-
 set(LIB
 
 )
@@ -393,19 +317,15 @@ if(WITH_CYCLES_CUDA_BINARIES)
   endif()
 
   # build for each arch
-  set(cuda_sources kernels/cuda/kernel.cu kernels/cuda/kernel_split.cu
+  set(cuda_sources device/cuda/kernel.cu
     ${SRC_HEADERS}
-    ${SRC_KERNELS_CUDA_HEADERS}
+    ${SRC_DEVICE_GPU_HEADERS}
+    ${SRC_DEVICE_CUDA_HEADERS}
     ${SRC_BVH_HEADERS}
     ${SRC_SVM_HEADERS}
     ${SRC_GEOM_HEADERS}
+    ${SRC_INTEGRATOR_HEADERS}
     ${SRC_CLOSURE_HEADERS}
-    ${SRC_UTIL_HEADERS}
-  )
-  set(cuda_filter_sources kernels/cuda/filter.cu
-    ${SRC_HEADERS}
-    ${SRC_KERNELS_CUDA_HEADERS}
-    ${SRC_FILTER_HEADERS}
     ${SRC_UTIL_HEADERS}
   )
   set(cuda_cubins)
@@ -427,7 +347,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
       endif()
     endif()
 
-    set(cuda_kernel_src "/kernels/cuda/${name}.cu")
+    set(cuda_kernel_src "/device/cuda/${name}.cu")
 
     set(cuda_flags ${flags}
       -D CCL_NAMESPACE_BEGIN=
@@ -435,7 +355,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
       -D NVCC
       -m ${CUDA_BITS}
       -I ${CMAKE_CURRENT_SOURCE_DIR}/..
-      -I ${CMAKE_CURRENT_SOURCE_DIR}/kernels/cuda
+      -I ${CMAKE_CURRENT_SOURCE_DIR}/device/cuda
       --use_fast_math
       -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_file})
 
@@ -523,13 +443,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
     endif()
     if(DEFINED cuda_nvcc_executable AND DEFINED cuda_toolkit_root_dir)
       # Compile regular kernel
-      CYCLES_CUDA_KERNEL_ADD(${arch} ${prev_arch} filter "" "${cuda_filter_sources}" FALSE)
       CYCLES_CUDA_KERNEL_ADD(${arch} ${prev_arch} kernel "" "${cuda_sources}" FALSE)
-
-      if(WITH_CYCLES_CUDA_SPLIT_KERNEL_BINARIES)
-        # Compile split kernel
-        CYCLES_CUDA_KERNEL_ADD(${arch} ${prev_arch} kernel_split "-D __SPLIT__" "${cuda_sources}" FALSE)
-      endif()
 
       if(WITH_CYCLES_CUDA_BUILD_SERIAL)
         set(prev_arch ${arch})
@@ -547,15 +461,15 @@ endif()
 # OptiX PTX modules
 
 if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
-  macro(CYCLES_OPTIX_KERNEL_ADD name flags)
-    set(input "kernels/optix/kernel_optix.cu")
+  macro(CYCLES_OPTIX_KERNEL_ADD name input flags)
     set(output "${CMAKE_CURRENT_BINARY_DIR}/${name}.ptx")
 
     set(cuda_flags ${flags}
       -I "${OPTIX_INCLUDE_DIR}"
       -I "${CMAKE_CURRENT_SOURCE_DIR}/.."
-      -I "${CMAKE_CURRENT_SOURCE_DIR}/kernels/cuda"
+      -I "${CMAKE_CURRENT_SOURCE_DIR}/device/cuda"
       --use_fast_math
+      -Wno-deprecated-gpu-targets
       -o ${output})
 
     if(WITH_NANOVDB)
@@ -580,11 +494,13 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
         DEPENDS
           ${input}
           ${SRC_HEADERS}
-          ${SRC_KERNELS_CUDA_HEADERS}
-          ${SRC_KERNELS_OPTIX_HEADERS}
+          ${SRC_DEVICE_GPU_HEADERS}
+          ${SRC_DEVICE_CUDA_HEADERS}
+          ${SRC_DEVICE_OPTIX_HEADERS}
           ${SRC_BVH_HEADERS}
           ${SRC_SVM_HEADERS}
           ${SRC_GEOM_HEADERS}
+          ${SRC_INTEGRATOR_HEADERS}
           ${SRC_CLOSURE_HEADERS}
           ${SRC_UTIL_HEADERS}
         COMMAND ${CUBIN_CC_ENV}
@@ -603,11 +519,13 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
         DEPENDS
           ${input}
           ${SRC_HEADERS}
-          ${SRC_KERNELS_CUDA_HEADERS}
-          ${SRC_KERNELS_OPTIX_HEADERS}
+          ${SRC_DEVICE_GPU_HEADERS}
+          ${SRC_DEVICE_CUDA_HEADERS}
+          ${SRC_DEVICE_OPTIX_HEADERS}
           ${SRC_BVH_HEADERS}
           ${SRC_SVM_HEADERS}
           ${SRC_GEOM_HEADERS}
+          ${SRC_INTEGRATOR_HEADERS}
           ${SRC_CLOSURE_HEADERS}
           ${SRC_UTIL_HEADERS}
         COMMAND
@@ -624,8 +542,14 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${output}" ${CYCLES_INSTALL_PATH}/lib)
   endmacro()
 
-  CYCLES_OPTIX_KERNEL_ADD(kernel_optix "-D __NO_SHADER_RAYTRACE__")
-  CYCLES_OPTIX_KERNEL_ADD(kernel_optix_shader_raytrace "--keep-device-functions")
+  CYCLES_OPTIX_KERNEL_ADD(
+    kernel_optix
+    "device/optix/kernel.cu"
+    "")
+  CYCLES_OPTIX_KERNEL_ADD(
+    kernel_optix_shader_raytrace
+    "device/optix/kernel_shader_raytrace.cu"
+    "--keep-device-functions")
 
   add_custom_target(cycles_kernel_optix ALL DEPENDS ${optix_ptx})
   cycles_set_solution_folder(cycles_kernel_optix)
@@ -659,62 +583,47 @@ if(WITH_COMPILER_ASAN)
   endif()
 endif()
 
-set_source_files_properties(kernels/cpu/kernel.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
-set_source_files_properties(kernels/cpu/kernel_split.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
-set_source_files_properties(kernels/cpu/filter.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
+set_source_files_properties(device/cpu/kernel.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
 
 if(CXX_HAS_SSE)
-  set_source_files_properties(kernels/cpu/kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
-  set_source_files_properties(kernels/cpu/kernel_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
-  set_source_files_properties(kernels/cpu/kernel_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
-  set_source_files_properties(kernels/cpu/kernel_split_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
-  set_source_files_properties(kernels/cpu/kernel_split_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
-  set_source_files_properties(kernels/cpu/kernel_split_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
-  set_source_files_properties(kernels/cpu/filter_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
-  set_source_files_properties(kernels/cpu/filter_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
-  set_source_files_properties(kernels/cpu/filter_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
+  set_source_files_properties(device/cpu/kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
+  set_source_files_properties(device/cpu/kernel_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
+  set_source_files_properties(device/cpu/kernel_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
 endif()
 
 if(CXX_HAS_AVX)
-  set_source_files_properties(kernels/cpu/kernel_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
-  set_source_files_properties(kernels/cpu/kernel_split_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
-  set_source_files_properties(kernels/cpu/filter_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
+  set_source_files_properties(device/cpu/kernel_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
 endif()
 
 if(CXX_HAS_AVX2)
-  set_source_files_properties(kernels/cpu/kernel_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
-  set_source_files_properties(kernels/cpu/kernel_split_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
-  set_source_files_properties(kernels/cpu/filter_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
+  set_source_files_properties(device/cpu/kernel_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
 endif()
 
 cycles_add_library(cycles_kernel "${LIB}"
-  ${SRC_CPU_KERNELS}
-  ${SRC_CUDA_KERNELS}
-  ${SRC_OPTIX_KERNELS}
-  ${SRC_OPENCL_KERNELS}
+  ${SRC_DEVICE_CPU}
+  ${SRC_DEVICE_CUDA}
+  ${SRC_DEVICE_OPTIX}
   ${SRC_HEADERS}
-  ${SRC_KERNELS_CPU_HEADERS}
-  ${SRC_KERNELS_CUDA_HEADERS}
-  ${SRC_KERNELS_OPTIX_HEADERS}
-  ${SRC_KERNELS_OPENCL_HEADERS}
+  ${SRC_DEVICE_CPU_HEADERS}
+  ${SRC_DEVICE_GPU_HEADERS}
+  ${SRC_DEVICE_CUDA_HEADERS}
+  ${SRC_DEVICE_OPTIX_HEADERS}
   ${SRC_BVH_HEADERS}
   ${SRC_CLOSURE_HEADERS}
-  ${SRC_FILTER_HEADERS}
   ${SRC_SVM_HEADERS}
   ${SRC_GEOM_HEADERS}
-  ${SRC_SPLIT_HEADERS}
+  ${SRC_INTEGRATOR_HEADERS}
 )
 
 source_group("bvh" FILES ${SRC_BVH_HEADERS})
 source_group("closure" FILES ${SRC_CLOSURE_HEADERS})
-source_group("filter" FILES ${SRC_FILTER_HEADERS})
 source_group("geom" FILES ${SRC_GEOM_HEADERS})
+source_group("integrator" FILES ${SRC_INTEGRATOR_HEADERS})
 source_group("kernel" FILES ${SRC_HEADERS})
-source_group("kernel\\split" FILES ${SRC_SPLIT_HEADERS})
-source_group("kernels\\cpu" FILES ${SRC_CPU_KERNELS} ${SRC_KERNELS_CPU_HEADERS})
-source_group("kernels\\cuda" FILES ${SRC_CUDA_KERNELS} ${SRC_KERNELS_CUDA_HEADERS})
-source_group("kernels\\opencl" FILES ${SRC_OPENCL_KERNELS} ${SRC_KERNELS_OPENCL_HEADERS})
-source_group("kernels\\optix" FILES ${SRC_OPTIX_KERNELS} ${SRC_KERNELS_OPTIX_HEADERS})
+source_group("device\\cpu" FILES ${SRC_DEVICE_CPU} ${SRC_DEVICE_CPU_HEADERS})
+source_group("device\\gpu" FILES ${SRC_DEVICE_GPU_HEADERS})
+source_group("device\\cuda" FILES ${SRC_DEVICE_CUDA} ${SRC_DEVICE_CUDA_HEADERS})
+source_group("device\\optix" FILES ${SRC_DEVICE_OPTIX} ${SRC_DEVICE_OPTIX_HEADERS})
 source_group("svm" FILES ${SRC_SVM_HEADERS})
 
 if(WITH_CYCLES_CUDA)
@@ -724,31 +633,20 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
   add_dependencies(cycles_kernel cycles_kernel_optix)
 endif()
 
-# OpenCL kernel
+# Install kernel source for runtime compilation
 
-# set(KERNEL_PREPROCESSED ${CMAKE_CURRENT_BINARY_DIR}/kernel_preprocessed.cl)
-# add_custom_command(
-#    OUTPUT ${KERNEL_PREPROCESSED}
-#    COMMAND gcc -x c++ -E ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cl -I ${CMAKE_CURRENT_SOURCE_DIR}/../util/ -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -o ${KERNEL_PREPROCESSED}
-#    DEPENDS ${SRC_KERNEL} ${SRC_UTIL_HEADERS})
-# add_custom_target(cycles_kernel_preprocess ALL DEPENDS ${KERNEL_PREPROCESSED})
-# delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${KERNEL_PREPROCESSED}" ${CYCLES_INSTALL_PATH}/kernel)
-
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_OPENCL_KERNELS}" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_CUDA_KERNELS}" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/cuda)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_OPTIX_KERNELS}" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/optix)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_CUDA}" ${CYCLES_INSTALL_PATH}/source/kernel/device/cuda)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_OPTIX}" ${CYCLES_INSTALL_PATH}/source/kernel/device/optix)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNELS_OPENCL_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/opencl)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNELS_CUDA_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/cuda)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNELS_OPTIX_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/kernels/optix)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_GPU_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/gpu)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_CUDA_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/cuda)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_OPTIX_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/optix)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_BVH_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/bvh)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_CLOSURE_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/closure)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_FILTER_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/filter)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/svm)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_GEOM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/geom)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_INTEGRATOR_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/integrator)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_UTIL_HEADERS}" ${CYCLES_INSTALL_PATH}/source/util)
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SPLIT_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/split)
-
 
 if(WITH_NANOVDB)
   set(SRC_NANOVDB_HEADERS

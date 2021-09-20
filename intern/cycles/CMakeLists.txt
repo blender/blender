@@ -247,7 +247,7 @@ if(WITH_CYCLES_OSL)
 endif()
 
 if(WITH_CYCLES_DEVICE_OPTIX)
-  find_package(OptiX)
+  find_package(OptiX 7.3.0)
 
   if(OPTIX_FOUND)
     add_definitions(-DWITH_OPTIX)
@@ -286,11 +286,17 @@ if(WITH_OPENSUBDIV)
   )
 endif()
 
+if(WITH_OPENIMAGEDENOISE)
+  add_definitions(-DWITH_OPENIMAGEDENOISE)
+  add_definitions(-DOIDN_STATIC_LIB)
+  include_directories(
+    SYSTEM
+    ${OPENIMAGEDENOISE_INCLUDE_DIRS}
+  )
+endif()
+
 if(WITH_CYCLES_STANDALONE)
-  set(WITH_CYCLES_DEVICE_OPENCL TRUE)
   set(WITH_CYCLES_DEVICE_CUDA TRUE)
-  # Experimental and unfinished.
-  set(WITH_CYCLES_NETWORK FALSE)
 endif()
 # TODO(sergey): Consider removing it, only causes confusion in interface.
 set(WITH_CYCLES_DEVICE_MULTI TRUE)
@@ -386,18 +392,12 @@ if(WITH_CYCLES_BLENDER)
   add_subdirectory(blender)
 endif()
 
-if(WITH_CYCLES_NETWORK)
-  add_definitions(-DWITH_NETWORK)
-endif()
-
-if(WITH_CYCLES_STANDALONE OR WITH_CYCLES_NETWORK OR WITH_CYCLES_CUBIN_COMPILER)
-  add_subdirectory(app)
-endif()
-
+add_subdirectory(app)
 add_subdirectory(bvh)
 add_subdirectory(device)
 add_subdirectory(doc)
 add_subdirectory(graph)
+add_subdirectory(integrator)
 add_subdirectory(kernel)
 add_subdirectory(render)
 add_subdirectory(subd)

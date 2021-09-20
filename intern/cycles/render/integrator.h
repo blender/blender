@@ -19,7 +19,9 @@
 
 #include "kernel/kernel_types.h"
 
+#include "device/device_denoise.h" /* For the paramaters and type enum. */
 #include "graph/node.h"
+#include "integrator/adaptive_sampling.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -43,6 +45,8 @@ class Integrator : public Node {
   NODE_SOCKET_API(int, transparent_max_bounce)
 
   NODE_SOCKET_API(int, ao_bounces)
+  NODE_SOCKET_API(float, ao_factor)
+  NODE_SOCKET_API(float, ao_distance)
 
   NODE_SOCKET_API(int, volume_max_steps)
   NODE_SOCKET_API(float, volume_step_rate)
@@ -62,37 +66,26 @@ class Integrator : public Node {
   static const int MAX_SAMPLES = (1 << 24);
 
   NODE_SOCKET_API(int, aa_samples)
-  NODE_SOCKET_API(int, diffuse_samples)
-  NODE_SOCKET_API(int, glossy_samples)
-  NODE_SOCKET_API(int, transmission_samples)
-  NODE_SOCKET_API(int, ao_samples)
-  NODE_SOCKET_API(int, mesh_light_samples)
-  NODE_SOCKET_API(int, subsurface_samples)
-  NODE_SOCKET_API(int, volume_samples)
   NODE_SOCKET_API(int, start_sample)
 
-  NODE_SOCKET_API(bool, sample_all_lights_direct)
-  NODE_SOCKET_API(bool, sample_all_lights_indirect)
   NODE_SOCKET_API(float, light_sampling_threshold)
 
+  NODE_SOCKET_API(bool, use_adaptive_sampling)
   NODE_SOCKET_API(int, adaptive_min_samples)
   NODE_SOCKET_API(float, adaptive_threshold)
 
-  enum Method {
-    BRANCHED_PATH = 0,
-    PATH = 1,
-
-    NUM_METHODS,
-  };
-
-  NODE_SOCKET_API(Method, method)
-
   NODE_SOCKET_API(SamplingPattern, sampling_pattern)
+
+  NODE_SOCKET_API(bool, use_denoise);
+  NODE_SOCKET_API(DenoiserType, denoiser_type);
+  NODE_SOCKET_API(int, denoise_start_sample);
+  NODE_SOCKET_API(bool, use_denoise_pass_albedo);
+  NODE_SOCKET_API(bool, use_denoise_pass_normal);
+  NODE_SOCKET_API(DenoiserPrefilter, denoiser_prefilter);
 
   enum : uint32_t {
     AO_PASS_MODIFIED = (1 << 0),
-    BACKGROUND_AO_MODIFIED = (1 << 1),
-    LIGHT_SAMPLES_MODIFIED = (1 << 2),
+    OBJECT_MANAGER = (1 << 1),
 
     /* tag everything in the manager for an update */
     UPDATE_ALL = ~0u,
@@ -107,6 +100,9 @@ class Integrator : public Node {
   void device_free(Device *device, DeviceScene *dscene, bool force_free = false);
 
   void tag_update(Scene *scene, uint32_t flag);
+
+  AdaptiveSampling get_adaptive_sampling() const;
+  DenoiseParams get_denoise_params() const;
 };
 
 CCL_NAMESPACE_END

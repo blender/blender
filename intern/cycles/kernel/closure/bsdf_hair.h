@@ -30,8 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BSDF_HAIR_H__
-#define __BSDF_HAIR_H__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
@@ -60,15 +59,6 @@ ccl_device int bsdf_hair_transmission_setup(HairBsdf *bsdf)
   bsdf->roughness1 = clamp(bsdf->roughness1, 0.001f, 1.0f);
   bsdf->roughness2 = clamp(bsdf->roughness2, 0.001f, 1.0f);
   return SD_BSDF | SD_BSDF_HAS_EVAL;
-}
-
-ccl_device bool bsdf_hair_merge(const ShaderClosure *a, const ShaderClosure *b)
-{
-  const HairBsdf *bsdf_a = (const HairBsdf *)a;
-  const HairBsdf *bsdf_b = (const HairBsdf *)b;
-
-  return (isequal_float3(bsdf_a->T, bsdf_b->T)) && (bsdf_a->roughness1 == bsdf_b->roughness1) &&
-         (bsdf_a->roughness2 == bsdf_b->roughness2) && (bsdf_a->offset == bsdf_b->offset);
 }
 
 ccl_device float3 bsdf_hair_reflection_eval_reflect(const ShaderClosure *sc,
@@ -309,5 +299,3 @@ ccl_device int bsdf_hair_transmission_sample(const ShaderClosure *sc,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __BSDF_HAIR_H__ */

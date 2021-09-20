@@ -19,8 +19,8 @@ CCL_NAMESPACE_BEGIN
 /* TODO(sergey): Think of making it more generic volume-type attribute
  * sampler.
  */
-ccl_device void svm_node_tex_voxel(
-    KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device_noinline int svm_node_tex_voxel(
+    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int offset)
 {
   uint co_offset, density_out_offset, color_out_offset, space;
   svm_unpack_node_uchar4(node.z, &co_offset, &density_out_offset, &color_out_offset, &space);
@@ -33,9 +33,9 @@ ccl_device void svm_node_tex_voxel(
   else {
     kernel_assert(space == NODE_TEX_VOXEL_SPACE_WORLD);
     Transform tfm;
-    tfm.x = read_node_float(kg, offset);
-    tfm.y = read_node_float(kg, offset);
-    tfm.z = read_node_float(kg, offset);
+    tfm.x = read_node_float(kg, &offset);
+    tfm.y = read_node_float(kg, &offset);
+    tfm.z = read_node_float(kg, &offset);
     co = transform_point(&tfm, co);
   }
 
@@ -47,6 +47,7 @@ ccl_device void svm_node_tex_voxel(
     stack_store_float(stack, density_out_offset, r.w);
   if (stack_valid(color_out_offset))
     stack_store_float3(stack, color_out_offset, make_float3(r.x, r.y, r.z));
+  return offset;
 }
 
 CCL_NAMESPACE_END

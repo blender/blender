@@ -45,10 +45,6 @@
 #  include <OSL/oslquery.h>
 #endif
 
-#ifdef WITH_OPENCL
-#  include "device/device_intern.h"
-#endif
-
 CCL_NAMESPACE_BEGIN
 
 namespace {
@@ -72,12 +68,10 @@ PyObject *pyunicode_from_string(const char *str)
 /* Synchronize debug flags from a given Blender scene.
  * Return truth when device list needs invalidation.
  */
-bool debug_flags_sync_from_scene(BL::Scene b_scene)
+static void debug_flags_sync_from_scene(BL::Scene b_scene)
 {
   DebugFlagsRef flags = DebugFlags();
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
-  /* Backup some settings for comparison. */
-  DebugFlags::OpenCL::DeviceType opencl_device_type = flags.opencl.device_type;
   /* Synchronize shared flags. */
   flags.viewport_static_bvh = get_enum(cscene, "debug_bvh_type");
   /* Synchronize CPU flags. */
@@ -87,50 +81,19 @@ bool debug_flags_sync_from_scene(BL::Scene b_scene)
   flags.cpu.sse3 = get_boolean(cscene, "debug_use_cpu_sse3");
   flags.cpu.sse2 = get_boolean(cscene, "debug_use_cpu_sse2");
   flags.cpu.bvh_layout = (BVHLayout)get_enum(cscene, "debug_bvh_layout");
-  flags.cpu.split_kernel = get_boolean(cscene, "debug_use_cpu_split_kernel");
   /* Synchronize CUDA flags. */
   flags.cuda.adaptive_compile = get_boolean(cscene, "debug_use_cuda_adaptive_compile");
-  flags.cuda.split_kernel = get_boolean(cscene, "debug_use_cuda_split_kernel");
   /* Synchronize OptiX flags. */
-  flags.optix.cuda_streams = get_int(cscene, "debug_optix_cuda_streams");
-  flags.optix.curves_api = get_boolean(cscene, "debug_optix_curves_api");
-  /* Synchronize OpenCL device type. */
-  switch (get_enum(cscene, "debug_opencl_device_type")) {
-    case 0:
-      flags.opencl.device_type = DebugFlags::OpenCL::DEVICE_NONE;
-      break;
-    case 1:
-      flags.opencl.device_type = DebugFlags::OpenCL::DEVICE_ALL;
-      break;
-    case 2:
-      flags.opencl.device_type = DebugFlags::OpenCL::DEVICE_DEFAULT;
-      break;
-    case 3:
-      flags.opencl.device_type = DebugFlags::OpenCL::DEVICE_CPU;
-      break;
-    case 4:
-      flags.opencl.device_type = DebugFlags::OpenCL::DEVICE_GPU;
-      break;
-    case 5:
-      flags.opencl.device_type = DebugFlags::OpenCL::DEVICE_ACCELERATOR;
-      break;
-  }
-  /* Synchronize other OpenCL flags. */
-  flags.opencl.debug = get_boolean(cscene, "debug_use_opencl_debug");
-  flags.opencl.mem_limit = ((size_t)get_int(cscene, "debug_opencl_mem_limit")) * 1024 * 1024;
-  return flags.opencl.device_type != opencl_device_type;
+  flags.optix.use_debug = get_boolean(cscene, "debug_use_optix_debug");
 }
 
 /* Reset debug flags to default values.
  * Return truth when device list needs invalidation.
  */
-bool debug_flags_reset()
+static void debug_flags_reset()
 {
   DebugFlagsRef flags = DebugFlags();
-  /* Backup some settings for comparison. */
-  DebugFlags::OpenCL::DeviceType opencl_device_type = flags.opencl.device_type;
   flags.reset();
-  return flags.opencl.device_type != opencl_device_type;
 }
 
 } /* namespace */
@@ -175,18 +138,20 @@ static const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 
 static PyObject *init_func(PyObject * /*self*/, PyObject *args)
 {
-  PyObject *path, *user_path;
+  PyObject *path, *user_path, *temp_path;
   int headless;
 
-  if (!PyArg_ParseTuple(args, "OOi", &path, &user_path, &headless)) {
-    return NULL;
+  if (!PyArg_ParseTuple(args, "OOOi", &path, &user_path, &temp_path, &headless)) {
+    return nullptr;
   }
 
-  PyObject *path_coerce = NULL, *user_path_coerce = NULL;
+  PyObject *path_coerce = nullptr, *user_path_coerce = nullptr, *temp_path_coerce = nullptr;
   path_init(PyC_UnicodeAsByte(path, &path_coerce),
-            PyC_UnicodeAsByte(user_path, &user_path_coerce));
+            PyC_UnicodeAsByte(user_path, &user_path_coerce),
+            PyC_UnicodeAsByte(temp_path, &temp_path_coerce));
   Py_XDECREF(path_coerce);
   Py_XDECREF(user_path_coerce);
+  Py_XDECREF(temp_path_coerce);
 
   BlenderSession::headless = headless;
 
@@ -299,6 +264,50 @@ static PyObject *render_func(PyObject * /*self*/, PyObject *args)
   Py_RETURN_NONE;
 }
 
+static PyObject *render_frame_finish_func(PyObject * /*self*/, PyObject *args)
+{
+  PyObject *pysession;
+
+  if (!PyArg_ParseTuple(args, "O", &pysession)) {
+    return nullptr;
+  }
+
+  BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
+
+  /* Allow Blender to execute other Python scripts. */
+  python_thread_state_save(&session->python_thread_state);
+
+  session->render_frame_finish();
+
+  python_thread_state_restore(&session->python_thread_state);
+
+  Py_RETURN_NONE;
+}
+
+static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
+{
+  PyObject *py_session, *py_graph, *py_screen, *py_space_image;
+
+  if (!PyArg_ParseTuple(args, "OOOO", &py_session, &py_graph, &py_screen, &py_space_image)) {
+    return nullptr;
+  }
+
+  BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(py_session);
+
+  ID *b_screen = (ID *)PyLong_AsVoidPtr(py_screen);
+
+  PointerRNA b_space_image_ptr;
+  RNA_pointer_create(b_screen,
+                     &RNA_SpaceImageEditor,
+                     pylong_as_voidptr_typesafe(py_space_image),
+                     &b_space_image_ptr);
+  BL::SpaceImageEditor b_space_image(b_space_image_ptr);
+
+  session->draw(b_space_image);
+
+  Py_RETURN_NONE;
+}
+
 /* pixel_array and result passed as pointers */
 static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
 {
@@ -336,7 +345,7 @@ static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
   Py_RETURN_NONE;
 }
 
-static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
+static PyObject *view_draw_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pysession, *pygraph, *pyv3d, *pyrv3d;
 
@@ -350,7 +359,7 @@ static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
     int viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
 
-    session->draw(viewport[2], viewport[3]);
+    session->view_draw(viewport[2], viewport[3]);
   }
 
   Py_RETURN_NONE;
@@ -697,40 +706,6 @@ static PyObject *system_info_func(PyObject * /*self*/, PyObject * /*value*/)
   return pyunicode_from_string(system_info.c_str());
 }
 
-#ifdef WITH_OPENCL
-static PyObject *opencl_disable_func(PyObject * /*self*/, PyObject * /*value*/)
-{
-  VLOG(2) << "Disabling OpenCL platform.";
-  DebugFlags().opencl.device_type = DebugFlags::OpenCL::DEVICE_NONE;
-  Py_RETURN_NONE;
-}
-
-static PyObject *opencl_compile_func(PyObject * /*self*/, PyObject *args)
-{
-  PyObject *sequence = PySequence_Fast(args, "Arguments must be a sequence");
-  if (sequence == NULL) {
-    Py_RETURN_FALSE;
-  }
-
-  vector<string> parameters;
-  for (Py_ssize_t i = 0; i < PySequence_Fast_GET_SIZE(sequence); i++) {
-    PyObject *item = PySequence_Fast_GET_ITEM(sequence, i);
-    PyObject *item_as_string = PyObject_Str(item);
-    const char *parameter_string = PyUnicode_AsUTF8(item_as_string);
-    parameters.push_back(parameter_string);
-    Py_DECREF(item_as_string);
-  }
-  Py_DECREF(sequence);
-
-  if (device_opencl_compile_kernel(parameters)) {
-    Py_RETURN_TRUE;
-  }
-  else {
-    Py_RETURN_FALSE;
-  }
-}
-#endif
-
 static bool image_parse_filepaths(PyObject *pyfilepaths, vector<string> &filepaths)
 {
   if (PyUnicode_Check(pyfilepaths)) {
@@ -762,6 +737,10 @@ static bool image_parse_filepaths(PyObject *pyfilepaths, vector<string> &filepat
 
 static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *keywords)
 {
+#if 1
+  (void)args;
+  (void)keywords;
+#else
   static const char *keyword_list[] = {
       "preferences", "scene", "view_layer", "input", "output", "tile_size", "samples", NULL};
   PyObject *pypreferences, *pyscene, *pyviewlayer;
@@ -835,7 +814,7 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
   }
 
   /* Create denoiser. */
-  Denoiser denoiser(device);
+  DenoiserPipeline denoiser(device);
   denoiser.params = params;
   denoiser.input = input;
   denoiser.output = output;
@@ -852,6 +831,7 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
     PyErr_SetString(PyExc_ValueError, denoiser.error.c_str());
     return NULL;
   }
+#endif
 
   Py_RETURN_NONE;
 }
@@ -903,10 +883,7 @@ static PyObject *debug_flags_update_func(PyObject * /*self*/, PyObject *args)
   RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyscene), &sceneptr);
   BL::Scene b_scene(sceneptr);
 
-  if (debug_flags_sync_from_scene(b_scene)) {
-    VLOG(2) << "Tagging device list for update.";
-    Device::tag_update();
-  }
+  debug_flags_sync_from_scene(b_scene);
 
   VLOG(2) << "Debug flags set to:\n" << DebugFlags();
 
@@ -917,92 +894,11 @@ static PyObject *debug_flags_update_func(PyObject * /*self*/, PyObject *args)
 
 static PyObject *debug_flags_reset_func(PyObject * /*self*/, PyObject * /*args*/)
 {
-  if (debug_flags_reset()) {
-    VLOG(2) << "Tagging device list for update.";
-    Device::tag_update();
-  }
+  debug_flags_reset();
   if (debug_flags_set) {
     VLOG(2) << "Debug flags reset to:\n" << DebugFlags();
     debug_flags_set = false;
   }
-  Py_RETURN_NONE;
-}
-
-static PyObject *set_resumable_chunk_func(PyObject * /*self*/, PyObject *args)
-{
-  int num_resumable_chunks, current_resumable_chunk;
-  if (!PyArg_ParseTuple(args, "ii", &num_resumable_chunks, &current_resumable_chunk)) {
-    Py_RETURN_NONE;
-  }
-
-  if (num_resumable_chunks <= 0) {
-    fprintf(stderr, "Cycles: Bad value for number of resumable chunks.\n");
-    abort();
-    Py_RETURN_NONE;
-  }
-  if (current_resumable_chunk < 1 || current_resumable_chunk > num_resumable_chunks) {
-    fprintf(stderr, "Cycles: Bad value for current resumable chunk number.\n");
-    abort();
-    Py_RETURN_NONE;
-  }
-
-  VLOG(1) << "Initialized resumable render: "
-          << "num_resumable_chunks=" << num_resumable_chunks << ", "
-          << "current_resumable_chunk=" << current_resumable_chunk;
-  BlenderSession::num_resumable_chunks = num_resumable_chunks;
-  BlenderSession::current_resumable_chunk = current_resumable_chunk;
-
-  printf("Cycles: Will render chunk %d of %d\n", current_resumable_chunk, num_resumable_chunks);
-
-  Py_RETURN_NONE;
-}
-
-static PyObject *set_resumable_chunk_range_func(PyObject * /*self*/, PyObject *args)
-{
-  int num_chunks, start_chunk, end_chunk;
-  if (!PyArg_ParseTuple(args, "iii", &num_chunks, &start_chunk, &end_chunk)) {
-    Py_RETURN_NONE;
-  }
-
-  if (num_chunks <= 0) {
-    fprintf(stderr, "Cycles: Bad value for number of resumable chunks.\n");
-    abort();
-    Py_RETURN_NONE;
-  }
-  if (start_chunk < 1 || start_chunk > num_chunks) {
-    fprintf(stderr, "Cycles: Bad value for start chunk number.\n");
-    abort();
-    Py_RETURN_NONE;
-  }
-  if (end_chunk < 1 || end_chunk > num_chunks) {
-    fprintf(stderr, "Cycles: Bad value for start chunk number.\n");
-    abort();
-    Py_RETURN_NONE;
-  }
-  if (start_chunk > end_chunk) {
-    fprintf(stderr, "Cycles: End chunk should be higher than start one.\n");
-    abort();
-    Py_RETURN_NONE;
-  }
-
-  VLOG(1) << "Initialized resumable render: "
-          << "num_resumable_chunks=" << num_chunks << ", "
-          << "start_resumable_chunk=" << start_chunk << "end_resumable_chunk=" << end_chunk;
-  BlenderSession::num_resumable_chunks = num_chunks;
-  BlenderSession::start_resumable_chunk = start_chunk;
-  BlenderSession::end_resumable_chunk = end_chunk;
-
-  printf("Cycles: Will render chunks %d to %d of %d\n", start_chunk, end_chunk, num_chunks);
-
-  Py_RETURN_NONE;
-}
-
-static PyObject *clear_resumable_chunk_func(PyObject * /*self*/, PyObject * /*value*/)
-{
-  VLOG(1) << "Clear resumable render";
-  BlenderSession::num_resumable_chunks = 0;
-  BlenderSession::current_resumable_chunk = 0;
-
   Py_RETURN_NONE;
 }
 
@@ -1015,16 +911,14 @@ static PyObject *enable_print_stats_func(PyObject * /*self*/, PyObject * /*args*
 static PyObject *get_device_types_func(PyObject * /*self*/, PyObject * /*args*/)
 {
   vector<DeviceType> device_types = Device::available_types();
-  bool has_cuda = false, has_optix = false, has_opencl = false;
+  bool has_cuda = false, has_optix = false;
   foreach (DeviceType device_type, device_types) {
     has_cuda |= (device_type == DEVICE_CUDA);
     has_optix |= (device_type == DEVICE_OPTIX);
-    has_opencl |= (device_type == DEVICE_OPENCL);
   }
-  PyObject *list = PyTuple_New(3);
+  PyObject *list = PyTuple_New(2);
   PyTuple_SET_ITEM(list, 0, PyBool_FromLong(has_cuda));
   PyTuple_SET_ITEM(list, 1, PyBool_FromLong(has_optix));
-  PyTuple_SET_ITEM(list, 2, PyBool_FromLong(has_opencl));
   return list;
 }
 
@@ -1043,9 +937,6 @@ static PyObject *set_device_override_func(PyObject * /*self*/, PyObject *arg)
 
   if (override == "CPU") {
     BlenderSession::device_override = DEVICE_MASK_CPU;
-  }
-  else if (override == "OPENCL") {
-    BlenderSession::device_override = DEVICE_MASK_OPENCL;
   }
   else if (override == "CUDA") {
     BlenderSession::device_override = DEVICE_MASK_CUDA;
@@ -1072,8 +963,10 @@ static PyMethodDef methods[] = {
     {"create", create_func, METH_VARARGS, ""},
     {"free", free_func, METH_O, ""},
     {"render", render_func, METH_VARARGS, ""},
-    {"bake", bake_func, METH_VARARGS, ""},
+    {"render_frame_finish", render_frame_finish_func, METH_VARARGS, ""},
     {"draw", draw_func, METH_VARARGS, ""},
+    {"bake", bake_func, METH_VARARGS, ""},
+    {"view_draw", view_draw_func, METH_VARARGS, ""},
     {"sync", sync_func, METH_VARARGS, ""},
     {"reset", reset_func, METH_VARARGS, ""},
 #ifdef WITH_OSL
@@ -1082,10 +975,6 @@ static PyMethodDef methods[] = {
 #endif
     {"available_devices", available_devices_func, METH_VARARGS, ""},
     {"system_info", system_info_func, METH_NOARGS, ""},
-#ifdef WITH_OPENCL
-    {"opencl_disable", opencl_disable_func, METH_NOARGS, ""},
-    {"opencl_compile", opencl_compile_func, METH_VARARGS, ""},
-#endif
 
     /* Standalone denoising */
     {"denoise", (PyCFunction)denoise_func, METH_VARARGS | METH_KEYWORDS, ""},
@@ -1097,11 +986,6 @@ static PyMethodDef methods[] = {
 
     /* Statistics. */
     {"enable_print_stats", enable_print_stats_func, METH_NOARGS, ""},
-
-    /* Resumable render */
-    {"set_resumable_chunk", set_resumable_chunk_func, METH_VARARGS, ""},
-    {"set_resumable_chunk_range", set_resumable_chunk_range_func, METH_VARARGS, ""},
-    {"clear_resumable_chunk", clear_resumable_chunk_func, METH_NOARGS, ""},
 
     /* Compute Device selection */
     {"get_device_types", get_device_types_func, METH_VARARGS, ""},
@@ -1152,14 +1036,6 @@ void *CCL_python_module_init()
   PyModule_AddStringConstant(mod, "osl_version", "unknown");
   PyModule_AddStringConstant(mod, "osl_version_string", "unknown");
 #endif
-
-#ifdef WITH_NETWORK
-  PyModule_AddObject(mod, "with_network", Py_True);
-  Py_INCREF(Py_True);
-#else  /* WITH_NETWORK */
-  PyModule_AddObject(mod, "with_network", Py_False);
-  Py_INCREF(Py_False);
-#endif /* WITH_NETWORK */
 
 #ifdef WITH_EMBREE
   PyModule_AddObject(mod, "with_embree", Py_True);

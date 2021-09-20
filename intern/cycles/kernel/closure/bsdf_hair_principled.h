@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
+#pragma once
+
 #ifdef __KERNEL_CPU__
 #  include <fenv.h>
 #endif
 
 #include "kernel/kernel_color.h"
-
-#ifndef __BSDF_HAIR_PRINCIPLED_H__
-#  define __BSDF_HAIR_PRINCIPLED_H__
 
 CCL_NAMESPACE_BEGIN
 
@@ -181,12 +180,12 @@ ccl_device_inline float longitudinal_scattering(
 }
 
 /* Combine the three values using their luminances. */
-ccl_device_inline float4 combine_with_energy(KernelGlobals *kg, float3 c)
+ccl_device_inline float4 combine_with_energy(const KernelGlobals *kg, float3 c)
 {
   return make_float4(c.x, c.y, c.z, linear_rgb_to_gray(kg, c));
 }
 
-#  ifdef __HAIR__
+#ifdef __HAIR__
 /* Set up the hair closure. */
 ccl_device int bsdf_principled_hair_setup(ShaderData *sd, PrincipledHairBSDF *bsdf)
 {
@@ -226,10 +225,10 @@ ccl_device int bsdf_principled_hair_setup(ShaderData *sd, PrincipledHairBSDF *bs
   return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_NEEDS_LCG;
 }
 
-#  endif /* __HAIR__ */
+#endif /* __HAIR__ */
 
 /* Given the Fresnel term and transmittance, generate the attenuation terms for each bounce. */
-ccl_device_inline void hair_attenuation(KernelGlobals *kg, float f, float3 T, float4 *Ap)
+ccl_device_inline void hair_attenuation(const KernelGlobals *kg, float f, float3 T, float4 *Ap)
 {
   /* Primary specular (R). */
   Ap[0] = make_float4(f, f, f, f);
@@ -278,7 +277,7 @@ ccl_device_inline void hair_alpha_angles(float sin_theta_i,
 }
 
 /* Evaluation function for our shader. */
-ccl_device float3 bsdf_principled_hair_eval(KernelGlobals *kg,
+ccl_device float3 bsdf_principled_hair_eval(const KernelGlobals *kg,
                                             const ShaderData *sd,
                                             const ShaderClosure *sc,
                                             const float3 omega_in,
@@ -356,7 +355,7 @@ ccl_device float3 bsdf_principled_hair_eval(KernelGlobals *kg,
 }
 
 /* Sampling function for the hair shader. */
-ccl_device int bsdf_principled_hair_sample(KernelGlobals *kg,
+ccl_device int bsdf_principled_hair_sample(const KernelGlobals *kg,
                                            const ShaderClosure *sc,
                                            ShaderData *sd,
                                            float randu,
@@ -473,11 +472,11 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals *kg,
 
   *omega_in = X * sin_theta_i + Y * cos_theta_i * cosf(phi_i) + Z * cos_theta_i * sinf(phi_i);
 
-#  ifdef __RAY_DIFFERENTIALS__
+#ifdef __RAY_DIFFERENTIALS__
   float3 N = safe_normalize(sd->I + *omega_in);
   *domega_in_dx = (2 * dot(N, sd->dI.dx)) * N - sd->dI.dx;
   *domega_in_dy = (2 * dot(N, sd->dI.dy)) * N - sd->dI.dy;
-#  endif
+#endif
 
   return LABEL_GLOSSY | ((p == 0) ? LABEL_REFLECT : LABEL_TRANSMIT);
 }
@@ -501,7 +500,7 @@ ccl_device_inline float bsdf_principled_hair_albedo_roughness_scale(
   return (((((0.245f * x) + 5.574f) * x - 10.73f) * x + 2.532f) * x - 0.215f) * x + 5.969f;
 }
 
-ccl_device float3 bsdf_principled_hair_albedo(ShaderClosure *sc)
+ccl_device float3 bsdf_principled_hair_albedo(const ShaderClosure *sc)
 {
   PrincipledHairBSDF *bsdf = (PrincipledHairBSDF *)sc;
   return exp3(-sqrt(bsdf->sigma) * bsdf_principled_hair_albedo_roughness_scale(bsdf->v));
@@ -523,5 +522,3 @@ ccl_device_inline float3 bsdf_principled_hair_sigma_from_concentration(const flo
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __BSDF_HAIR_PRINCIPLED_H__ */

@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-#ifndef __BSDF_ASHIKHMIN_SHIRLEY_H__
-#define __BSDF_ASHIKHMIN_SHIRLEY_H__
-
 /*
-ASHIKHMIN SHIRLEY BSDF
+ * ASHIKHMIN SHIRLEY BSDF
+ *
+ * Implementation of
+ * Michael Ashikhmin and Peter Shirley: "An Anisotropic Phong BRDF Model" (2000)
+ *
+ * The Fresnel factor is missing to get a separable bsdf (intensity*color), as is
+ * the case with all other microfacet-based BSDF implementations in Cycles.
+ *
+ * Other than that, the implementation directly follows the paper.
+ */
 
-Implementation of
-Michael Ashikhmin and Peter Shirley: "An Anisotropic Phong BRDF Model" (2000)
-
-The Fresnel factor is missing to get a separable bsdf (intensity*color), as is
-the case with all other microfacet-based BSDF implementations in Cycles.
-
-Other than that, the implementation directly follows the paper.
-*/
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
@@ -240,5 +239,3 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __BSDF_ASHIKHMIN_SHIRLEY_H__ */

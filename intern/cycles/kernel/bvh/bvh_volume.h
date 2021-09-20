@@ -35,7 +35,7 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-    bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
+    bool BVH_FUNCTION_FULL_NAME(BVH)(const KernelGlobals *kg,
                                      const Ray *ray,
                                      Intersection *isect,
                                      const uint visibility)
@@ -147,7 +147,7 @@ ccl_device_inline
                 if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
                   continue;
                 }
-                triangle_intersect(kg, isect, P, dir, visibility, object, prim_addr);
+                triangle_intersect(kg, isect, P, dir, isect->t, visibility, object, prim_addr);
               }
               break;
             }
@@ -165,7 +165,7 @@ ccl_device_inline
                   continue;
                 }
                 motion_triangle_intersect(
-                    kg, isect, P, dir, ray->time, visibility, object, prim_addr);
+                    kg, isect, P, dir, isect->t, ray->time, visibility, object, prim_addr);
               }
               break;
             }
@@ -181,10 +181,9 @@ ccl_device_inline
           int object_flag = kernel_tex_fetch(__object_flag, object);
           if (object_flag & SD_OBJECT_HAS_VOLUME) {
 #if BVH_FEATURE(BVH_MOTION)
-            isect->t = bvh_instance_motion_push(
-                kg, object, ray, &P, &dir, &idir, isect->t, &ob_itfm);
+            isect->t *= bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &ob_itfm);
 #else
-            isect->t = bvh_instance_push(kg, object, ray, &P, &dir, &idir, isect->t);
+            isect->t *= bvh_instance_push(kg, object, ray, &P, &dir, &idir);
 #endif
 
             ++stack_ptr;
@@ -222,7 +221,7 @@ ccl_device_inline
   return (isect->prim != PRIM_NONE);
 }
 
-ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
+ccl_device_inline bool BVH_FUNCTION_NAME(const KernelGlobals *kg,
                                          const Ray *ray,
                                          Intersection *isect,
                                          const uint visibility)

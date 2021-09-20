@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#pragma once
+
 CCL_NAMESPACE_BEGIN
 
 /* Curve primitive intersection functions.
@@ -167,6 +169,7 @@ ccl_device_inline float2 half_plane_intersect(const float3 P, const float3 N, co
 }
 
 ccl_device bool curve_intersect_iterative(const float3 ray_dir,
+                                          float *ray_tfar,
                                           const float dt,
                                           const float4 curve[4],
                                           float u,
@@ -230,7 +233,7 @@ ccl_device bool curve_intersect_iterative(const float3 ray_dir,
 
     if (fabsf(f) < f_err && fabsf(g) < g_err) {
       t += dt;
-      if (!(0.0f <= t && t <= isect->t)) {
+      if (!(0.0f <= t && t <= *ray_tfar)) {
         return false; /* Rejects NaNs */
       }
       if (!(u >= 0.0f && u <= 1.0f)) {
@@ -247,6 +250,7 @@ ccl_device bool curve_intersect_iterative(const float3 ray_dir,
       }
 
       /* Record intersection. */
+      *ray_tfar = t;
       isect->t = t;
       isect->u = u;
       isect->v = 0.0f;
@@ -259,6 +263,7 @@ ccl_device bool curve_intersect_iterative(const float3 ray_dir,
 
 ccl_device bool curve_intersect_recursive(const float3 ray_orig,
                                           const float3 ray_dir,
+                                          float ray_tfar,
                                           float4 curve[4],
                                           Intersection *isect)
 {
@@ -339,7 +344,7 @@ ccl_device bool curve_intersect_recursive(const float3 ray_orig,
       }
 
       /* Intersect with cap-planes. */
-      float2 tp = make_float2(-dt, isect->t - dt);
+      float2 tp = make_float2(-dt, ray_tfar - dt);
       tp = make_float2(max(tp.x, tc_outer.x), min(tp.y, tc_outer.y));
       const float2 h0 = half_plane_intersect(
           float4_to_float3(P0), float4_to_float3(dP0du), ray_dir);
@@ -402,19 +407,19 @@ ccl_device bool curve_intersect_recursive(const float3 ray_orig,
                                           CURVE_NUM_BEZIER_SUBDIVISIONS;
         if (depth >= termDepth) {
           found |= curve_intersect_iterative(
-              ray_dir, dt, curve, u_outer0, tp0.x, use_backfacing, isect);
+              ray_dir, &ray_tfar, dt, curve, u_outer0, tp0.x, use_backfacing, isect);
         }
         else {
           recurse = true;
         }
       }
 
-      if (valid1 && (tp1.x + dt <= isect->t)) {
+      if (valid1 && (tp1.x + dt <= ray_tfar)) {
         const int termDepth = unstable1 ? CURVE_NUM_BEZIER_SUBDIVISIONS_UNSTABLE :
                                           CURVE_NUM_BEZIER_SUBDIVISIONS;
         if (depth >= termDepth) {
           found |= curve_intersect_iterative(
-              ray_dir, dt, curve, u_outer1, tp1.y, use_backfacing, isect);
+              ray_dir, &ray_tfar, dt, curve, u_outer1, tp1.y, use_backfacing, isect);
         }
         else {
           recurse = true;
@@ -542,7 +547,7 @@ ccl_device_inline float4 ribbon_to_ray_space(const float3 ray_space[3],
 
 ccl_device_inline bool ribbon_intersect(const float3 ray_org,
                                         const float3 ray_dir,
-                                        const float ray_tfar,
+                                        float ray_tfar,
                                         const int N,
                                         float4 curve[4],
                                         Intersection *isect)
@@ -590,7 +595,7 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
 
       /* Intersect quad. */
       float vu, vv, vt;
-      bool valid0 = ribbon_intersect_quad(isect->t, lp0, lp1, up1, up0, &vu, &vv, &vt);
+      bool valid0 = ribbon_intersect_quad(ray_tfar, lp0, lp1, up1, up0, &vu, &vv, &vt);
 
       if (valid0) {
         /* ignore self intersections */
@@ -604,6 +609,7 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
           vv = 2.0f * vv - 1.0f;
 
           /* Record intersection. */
+          ray_tfar = vt;
           isect->t = vt;
           isect->u = u + vu * step_size;
           isect->v = vv;
@@ -619,10 +625,11 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
   return false;
 }
 
-ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
+ccl_device_forceinline bool curve_intersect(const KernelGlobals *kg,
                                             Intersection *isect,
                                             const float3 P,
                                             const float3 dir,
+                                            const float tmax,
                                             uint visibility,
                                             int object,
                                             int curveAddr,
@@ -672,7 +679,7 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
   if (type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
     /* todo: adaptive number of subdivisions could help performance here. */
     const int subdivisions = kernel_data.bvh.curve_subdivisions;
-    if (ribbon_intersect(P, dir, isect->t, subdivisions, curve, isect)) {
+    if (ribbon_intersect(P, dir, tmax, subdivisions, curve, isect)) {
       isect->prim = curveAddr;
       isect->object = object;
       isect->type = type;
@@ -682,7 +689,7 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
     return false;
   }
   else {
-    if (curve_intersect_recursive(P, dir, curve, isect)) {
+    if (curve_intersect_recursive(P, dir, tmax, curve, isect)) {
       isect->prim = curveAddr;
       isect->object = object;
       isect->type = type;
@@ -693,28 +700,23 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
   }
 }
 
-ccl_device_inline void curve_shader_setup(KernelGlobals *kg,
+ccl_device_inline void curve_shader_setup(const KernelGlobals *kg,
                                           ShaderData *sd,
-                                          const Intersection *isect,
-                                          const Ray *ray)
+                                          float3 P,
+                                          float3 D,
+                                          float t,
+                                          const int isect_object,
+                                          const int isect_prim)
 {
-  float t = isect->t;
-  float3 P = ray->P;
-  float3 D = ray->D;
-
-  if (isect->object != OBJECT_NONE) {
-#  ifdef __OBJECT_MOTION__
-    Transform tfm = sd->ob_itfm;
-#  else
-    Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_INVERSE_TRANSFORM);
-#  endif
+  if (isect_object != OBJECT_NONE) {
+    const Transform tfm = object_get_inverse_transform(kg, sd);
 
     P = transform_point(&tfm, P);
     D = transform_direction(&tfm, D * t);
     D = normalize_len(D, &t);
   }
 
-  int prim = kernel_tex_fetch(__prim_index, isect->prim);
+  int prim = kernel_tex_fetch(__prim_index, isect_prim);
   float4 v00 = kernel_tex_fetch(__curves, prim);
 
   int k0 = __float_as_int(v00.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
@@ -735,23 +737,20 @@ ccl_device_inline void curve_shader_setup(KernelGlobals *kg,
     motion_curve_keys(kg, sd->object, sd->prim, sd->time, ka, k0, k1, kb, P_curve);
   }
 
-  sd->u = isect->u;
-
   P = P + D * t;
 
-  const float4 dPdu4 = catmull_rom_basis_derivative(P_curve, isect->u);
+  const float4 dPdu4 = catmull_rom_basis_derivative(P_curve, sd->u);
   const float3 dPdu = float4_to_float3(dPdu4);
 
   if (sd->type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
     /* Rounded smooth normals for ribbons, to approximate thick curve shape. */
     const float3 tangent = normalize(dPdu);
     const float3 bitangent = normalize(cross(tangent, -D));
-    const float sine = isect->v;
+    const float sine = sd->v;
     const float cosine = safe_sqrtf(1.0f - sine * sine);
 
     sd->N = normalize(sine * bitangent - cosine * normalize(cross(tangent, bitangent)));
     sd->Ng = -D;
-    sd->v = isect->v;
 
 #  if 0
     /* This approximates the position and geometric normal of a thick curve too,
@@ -765,7 +764,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals *kg,
     /* Thick curves, compute normal using direction from inside the curve.
      * This could be optimized by recording the normal in the intersection,
      * however for Optix this would go beyond the size of the payload. */
-    const float3 P_inside = float4_to_float3(catmull_rom_basis_eval(P_curve, isect->u));
+    const float3 P_inside = float4_to_float3(catmull_rom_basis_eval(P_curve, sd->u));
     const float3 Ng = normalize(P - P_inside);
 
     sd->N = Ng;
@@ -779,13 +778,8 @@ ccl_device_inline void curve_shader_setup(KernelGlobals *kg,
   sd->dPdv = cross(dPdu, sd->Ng);
 #  endif
 
-  if (isect->object != OBJECT_NONE) {
-#  ifdef __OBJECT_MOTION__
-    Transform tfm = sd->ob_tfm;
-#  else
-    Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_TRANSFORM);
-#  endif
-
+  if (isect_object != OBJECT_NONE) {
+    const Transform tfm = object_get_transform(kg, sd);
     P = transform_point(&tfm, P);
   }
 

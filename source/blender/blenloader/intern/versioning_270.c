@@ -651,13 +651,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
         mat->line_col[3] = mat->alpha;
       }
     }
-
-    if (!DNA_struct_elem_find(fd->filesdna, "RenderData", "int", "preview_start_resolution")) {
-      Scene *scene;
-      for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
-        scene->r.preview_start_resolution = 64;
-      }
-    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 271, 3)) {
@@ -694,15 +687,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
             pmd->psys->clmd->sim_parms->vel_damping = 1.0f;
           }
         }
-      }
-    }
-  }
-
-  if (!MAIN_VERSION_ATLEAST(bmain, 272, 0)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "RenderData", "int", "preview_start_resolution")) {
-      Scene *scene;
-      for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
-        scene->r.preview_start_resolution = 64;
       }
     }
   }

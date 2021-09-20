@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
+#include "kernel/geom/geom.h"
+#include "kernel/kernel_camera.h"
+#include "kernel/kernel_montecarlo.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Texture Coordinate Node */
 
-ccl_device void svm_node_tex_coord(
-    KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint4 node, int *offset)
+ccl_device_noinline int svm_node_tex_coord(
+    const KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint4 node, int offset)
 {
   float3 data;
   uint type = node.y;
@@ -35,9 +39,9 @@ ccl_device void svm_node_tex_coord(
       }
       else {
         Transform tfm;
-        tfm.x = read_node_float(kg, offset);
-        tfm.y = read_node_float(kg, offset);
-        tfm.z = read_node_float(kg, offset);
+        tfm.x = read_node_float(kg, &offset);
+        tfm.y = read_node_float(kg, &offset);
+        tfm.z = read_node_float(kg, &offset);
         data = transform_point(&tfm, data);
       }
       break;
@@ -92,10 +96,11 @@ ccl_device void svm_node_tex_coord(
   }
 
   stack_store_float3(stack, out_offset, data);
+  return offset;
 }
 
-ccl_device void svm_node_tex_coord_bump_dx(
-    KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint4 node, int *offset)
+ccl_device_noinline int svm_node_tex_coord_bump_dx(
+    const KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint4 node, int offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
   float3 data;
@@ -112,9 +117,9 @@ ccl_device void svm_node_tex_coord_bump_dx(
       }
       else {
         Transform tfm;
-        tfm.x = read_node_float(kg, offset);
-        tfm.y = read_node_float(kg, offset);
-        tfm.z = read_node_float(kg, offset);
+        tfm.x = read_node_float(kg, &offset);
+        tfm.y = read_node_float(kg, &offset);
+        tfm.z = read_node_float(kg, &offset);
         data = transform_point(&tfm, data);
       }
       break;
@@ -136,7 +141,7 @@ ccl_device void svm_node_tex_coord_bump_dx(
     case NODE_TEXCO_WINDOW: {
       if ((path_flag & PATH_RAY_CAMERA) && sd->object == OBJECT_NONE &&
           kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
-        data = camera_world_to_ndc(kg, sd, sd->ray_P + sd->ray_dP.dx);
+        data = camera_world_to_ndc(kg, sd, sd->ray_P + make_float3(sd->ray_dP, 0.0f, 0.0f));
       else
         data = camera_world_to_ndc(kg, sd, sd->P + sd->dP.dx);
       data.z = 0.0f;
@@ -169,13 +174,14 @@ ccl_device void svm_node_tex_coord_bump_dx(
   }
 
   stack_store_float3(stack, out_offset, data);
+  return offset;
 #else
-  svm_node_tex_coord(kg, sd, path_flag, stack, node, offset);
+  return svm_node_tex_coord(kg, sd, path_flag, stack, node, offset);
 #endif
 }
 
-ccl_device void svm_node_tex_coord_bump_dy(
-    KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint4 node, int *offset)
+ccl_device_noinline int svm_node_tex_coord_bump_dy(
+    const KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint4 node, int offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
   float3 data;
@@ -192,9 +198,9 @@ ccl_device void svm_node_tex_coord_bump_dy(
       }
       else {
         Transform tfm;
-        tfm.x = read_node_float(kg, offset);
-        tfm.y = read_node_float(kg, offset);
-        tfm.z = read_node_float(kg, offset);
+        tfm.x = read_node_float(kg, &offset);
+        tfm.y = read_node_float(kg, &offset);
+        tfm.z = read_node_float(kg, &offset);
         data = transform_point(&tfm, data);
       }
       break;
@@ -216,7 +222,7 @@ ccl_device void svm_node_tex_coord_bump_dy(
     case NODE_TEXCO_WINDOW: {
       if ((path_flag & PATH_RAY_CAMERA) && sd->object == OBJECT_NONE &&
           kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
-        data = camera_world_to_ndc(kg, sd, sd->ray_P + sd->ray_dP.dy);
+        data = camera_world_to_ndc(kg, sd, sd->ray_P + make_float3(0.0f, sd->ray_dP, 0.0f));
       else
         data = camera_world_to_ndc(kg, sd, sd->P + sd->dP.dy);
       data.z = 0.0f;
@@ -249,12 +255,16 @@ ccl_device void svm_node_tex_coord_bump_dy(
   }
 
   stack_store_float3(stack, out_offset, data);
+  return offset;
 #else
-  svm_node_tex_coord(kg, sd, path_flag, stack, node, offset);
+  return svm_node_tex_coord(kg, sd, path_flag, stack, node, offset);
 #endif
 }
 
-ccl_device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device_noinline void svm_node_normal_map(const KernelGlobals *kg,
+                                             ShaderData *sd,
+                                             float *stack,
+                                             uint4 node)
 {
   uint color_offset, strength_offset, normal_offset, space;
   svm_unpack_node_uchar4(node.y, &color_offset, &strength_offset, &normal_offset, &space);
@@ -346,7 +356,10 @@ ccl_device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *st
   stack_store_float3(stack, normal_offset, N);
 }
 
-ccl_device void svm_node_tangent(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device_noinline void svm_node_tangent(const KernelGlobals *kg,
+                                          ShaderData *sd,
+                                          float *stack,
+                                          uint4 node)
 {
   uint tangent_offset, direction_type, axis;
   svm_unpack_node_uchar3(node.y, &tangent_offset, &direction_type, &axis);

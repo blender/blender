@@ -62,7 +62,6 @@
 
 #include "DRW_engine.h"
 
-#include "initrender.h"
 #include "pipeline.h"
 #include "render_result.h"
 #include "render_types.h"
@@ -283,14 +282,6 @@ static void render_result_to_bake(RenderEngine *engine, RenderResult *rr)
 
 /* Render Results */
 
-static RenderPart *get_part_from_result(Render *re, RenderResult *result)
-{
-  rcti key = result->tilerect;
-  BLI_rcti_translate(&key, re->disprect.xmin, re->disprect.ymin);
-
-  return BLI_ghash_lookup(re->parts, &key);
-}
-
 static HighlightedTile highlighted_tile_from_result_get(Render *re, RenderResult *result)
 {
   HighlightedTile tile;
@@ -298,6 +289,37 @@ static HighlightedTile highlighted_tile_from_result_get(Render *re, RenderResult
   BLI_rcti_translate(&tile.rect, re->disprect.xmin, re->disprect.ymin);
 
   return tile;
+}
+
+static void engine_tile_highlight_set(RenderEngine *engine,
+                                      const HighlightedTile *tile,
+                                      bool highlight)
+{
+  if ((engine->flag & RE_ENGINE_HIGHLIGHT_TILES) == 0) {
+    return;
+  }
+
+  Render *re = engine->re;
+
+  BLI_mutex_lock(&re->highlighted_tiles_mutex);
+
+  if (re->highlighted_tiles == NULL) {
+    re->highlighted_tiles = BLI_gset_new(
+        BLI_ghashutil_inthash_v4_p, BLI_ghashutil_inthash_v4_cmp, "highlighted tiles");
+  }
+
+  if (highlight) {
+    HighlightedTile **tile_in_set;
+    if (!BLI_gset_ensure_p_ex(re->highlighted_tiles, tile, (void ***)&tile_in_set)) {
+      *tile_in_set = MEM_mallocN(sizeof(HighlightedTile), __func__);
+      **tile_in_set = *tile;
+    }
+  }
+  else {
+    BLI_gset_remove(re->highlighted_tiles, tile, MEM_freeN);
+  }
+
+  BLI_mutex_unlock(&re->highlighted_tiles_mutex);
 }
 
 RenderResult *RE_engine_begin_result(
@@ -332,7 +354,7 @@ RenderResult *RE_engine_begin_result(
   disprect.ymin = y;
   disprect.ymax = y + h;
 
-  result = render_result_new(re, &disprect, RR_USE_MEM, layername, viewname);
+  result = render_result_new(re, &disprect, layername, viewname);
 
   /* TODO: make this thread safe. */
 
@@ -341,25 +363,12 @@ RenderResult *RE_engine_begin_result(
     render_result_clone_passes(re, result, viewname);
     render_result_passes_allocated_ensure(result);
 
-    RenderPart *pa;
-
-    /* Copy EXR tile settings, so pipeline knows whether this is a result
-     * for Save Buffers enabled rendering.
-     */
-    result->do_exr_tile = re->result->do_exr_tile;
-
     BLI_addtail(&engine->fullresult, result);
 
     result->tilerect.xmin += re->disprect.xmin;
     result->tilerect.xmax += re->disprect.xmin;
     result->tilerect.ymin += re->disprect.ymin;
     result->tilerect.ymax += re->disprect.ymin;
-
-    pa = get_part_from_result(re, result);
-
-    if (pa) {
-      pa->status = PART_STATUS_IN_PROGRESS;
-    }
   }
 
   return result;
@@ -426,53 +435,14 @@ void RE_engine_end_result(
 
   re_ensure_passes_allocated_thread_safe(re);
 
-  /* merge. on break, don't merge in result for preview renders, looks nicer */
-  if (!highlight) {
-    /* for exr tile render, detect tiles that are done */
-    RenderPart *pa = get_part_from_result(re, result);
-
-    if (pa) {
-      pa->status = (!cancel && merge_results) ? PART_STATUS_MERGED : PART_STATUS_RENDERED;
-    }
-    else if (re->result->do_exr_tile) {
-      /* If written result does not match any tile and we are using save
-       * buffers, we are going to get OpenEXR save errors. */
-      fprintf(stderr, "RenderEngine.end_result: dimensions do not match any OpenEXR tile.\n");
-    }
-  }
-
   if (re->engine && (re->engine->flag & RE_ENGINE_HIGHLIGHT_TILES)) {
-    BLI_mutex_lock(&re->highlighted_tiles_mutex);
+    const HighlightedTile tile = highlighted_tile_from_result_get(re, result);
 
-    if (re->highlighted_tiles == NULL) {
-      re->highlighted_tiles = BLI_gset_new(
-          BLI_ghashutil_inthash_v4_p, BLI_ghashutil_inthash_v4_cmp, "highlighted tiles");
-    }
-
-    HighlightedTile tile = highlighted_tile_from_result_get(re, result);
-    if (highlight) {
-      void **tile_in_set;
-      if (!BLI_gset_ensure_p_ex(re->highlighted_tiles, &tile, &tile_in_set)) {
-        *tile_in_set = MEM_mallocN(sizeof(HighlightedTile), __func__);
-        memcpy(*tile_in_set, &tile, sizeof(tile));
-      }
-      BLI_gset_add(re->highlighted_tiles, &tile);
-    }
-    else {
-      BLI_gset_remove(re->highlighted_tiles, &tile, MEM_freeN);
-    }
-
-    BLI_mutex_unlock(&re->highlighted_tiles_mutex);
+    engine_tile_highlight_set(engine, &tile, highlight);
   }
 
   if (!cancel || merge_results) {
-    if (re->result->do_exr_tile) {
-      if (!cancel && merge_results) {
-        render_result_exr_file_merge(re->result, result, re->viewname);
-        render_result_merge(re->result, result);
-      }
-    }
-    else if (!(re->test_break(re->tbh) && (re->r.scemode & R_BUTS_PREVIEW))) {
+    if (!(re->test_break(re->tbh) && (re->r.scemode & R_BUTS_PREVIEW))) {
       render_result_merge(re->result, result);
     }
 
@@ -580,6 +550,27 @@ void RE_engine_set_error_message(RenderEngine *engine, const char *msg)
     }
     RE_ReleaseResult(re);
   }
+}
+
+RenderPass *RE_engine_pass_by_index_get(RenderEngine *engine, const char *layer_name, int index)
+{
+  Render *re = engine->re;
+  if (re == NULL) {
+    return NULL;
+  }
+
+  RenderPass *pass = NULL;
+
+  RenderResult *rr = RE_AcquireResultRead(re);
+  if (rr != NULL) {
+    const RenderLayer *layer = RE_GetRenderLayer(rr, layer_name);
+    if (layer != NULL) {
+      pass = BLI_findlink(&layer->passes, index);
+    }
+  }
+  RE_ReleaseResult(re);
+
+  return pass;
 }
 
 const char *RE_engine_active_view_get(RenderEngine *engine)
@@ -837,12 +828,6 @@ bool RE_bake_engine(Render *re,
   engine->resolution_x = re->winx;
   engine->resolution_y = re->winy;
 
-  BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
-  RE_parts_init(re);
-  engine->tile_x = re->r.tilex;
-  engine->tile_y = re->r.tiley;
-  BLI_rw_mutex_unlock(&re->partsmutex);
-
   if (type->bake) {
     engine->depsgraph = depsgraph;
 
@@ -870,20 +855,12 @@ bool RE_bake_engine(Render *re,
     engine->depsgraph = NULL;
   }
 
-  engine->tile_x = 0;
-  engine->tile_y = 0;
   engine->flag &= ~RE_ENGINE_RENDERING;
 
-  /* Free depsgraph outside of parts mutex lock, since this locks OpenGL context
-   * while the UI drawing might also lock the OpenGL context and parts mutex. */
   engine_depsgraph_free(engine);
-  BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
 
   RE_engine_free(engine);
   re->engine = NULL;
-
-  RE_parts_free(re);
-  BLI_rw_mutex_unlock(&re->partsmutex);
 
   if (BKE_reports_contain(re->reports, RPT_ERROR)) {
     G.is_break = true;
@@ -928,7 +905,15 @@ static void engine_render_view_layer(Render *re,
       DRW_render_context_enable(engine->re);
     }
 
+    BLI_mutex_lock(&engine->re->engine_draw_mutex);
+    re->engine->flag |= RE_ENGINE_CAN_DRAW;
+    BLI_mutex_unlock(&engine->re->engine_draw_mutex);
+
     engine->type->render(engine, engine->depsgraph);
+
+    BLI_mutex_lock(&engine->re->engine_draw_mutex);
+    re->engine->flag &= ~RE_ENGINE_CAN_DRAW;
+    BLI_mutex_unlock(&engine->re->engine_draw_mutex);
 
     if (use_gpu_context) {
       DRW_render_context_disable(engine->re);
@@ -936,7 +921,7 @@ static void engine_render_view_layer(Render *re,
   }
 
   /* Optionally composite grease pencil over render result. */
-  if (engine->has_grease_pencil && use_grease_pencil && !re->result->do_exr_tile) {
+  if (engine->has_grease_pencil && use_grease_pencil) {
     /* NOTE: External engine might have been requested to free its
      * dependency graph, which is only allowed if there is no grease
      * pencil (pipeline is taking care of that). */
@@ -981,16 +966,11 @@ bool RE_engine_render(Render *re, bool do_all)
   /* create render result */
   BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
   if (re->result == NULL || !(re->r.scemode & R_BUTS_PREVIEW)) {
-    int savebuffers = RR_USE_MEM;
-
     if (re->result) {
       render_result_free(re->result);
     }
 
-    if ((type->flag & RE_USE_SAVE_BUFFERS) && (re->r.scemode & R_EXR_TILE_FILE)) {
-      savebuffers = RR_USE_EXR;
-    }
-    re->result = render_result_new(re, &re->disprect, savebuffers, RR_ALL_LAYERS, RR_ALL_VIEWS);
+    re->result = render_result_new(re, &re->disprect, RR_ALL_LAYERS, RR_ALL_VIEWS);
   }
   BLI_rw_mutex_unlock(&re->resultmutex);
 
@@ -1035,32 +1015,15 @@ bool RE_engine_render(Render *re, bool do_all)
   engine->resolution_x = re->winx;
   engine->resolution_y = re->winy;
 
-  BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
-  RE_parts_init(re);
-  engine->tile_x = re->partx;
-  engine->tile_y = re->party;
-  BLI_rw_mutex_unlock(&re->partsmutex);
-
-  if (re->result->do_exr_tile) {
-    render_result_exr_file_begin(re, engine);
-  }
-
   /* Clear UI drawing locks. */
   if (re->draw_lock) {
     re->draw_lock(re->dlh, false);
   }
 
-  /* Render view layers. */
-  bool delay_grease_pencil = false;
-
   if (type->render) {
     FOREACH_VIEW_LAYER_TO_RENDER_BEGIN (re, view_layer_iter) {
       engine_render_view_layer(re, engine, view_layer_iter, true, true);
 
-      /* With save buffers there is no render buffer in memory for compositing, delay
-       * grease pencil in that case. */
-      delay_grease_pencil = engine->has_grease_pencil && re->result->do_exr_tile;
-
       if (RE_engine_test_break(engine)) {
         break;
       }
@@ -1068,42 +1031,18 @@ bool RE_engine_render(Render *re, bool do_all)
     FOREACH_VIEW_LAYER_TO_RENDER_END;
   }
 
+  if (type->render_frame_finish) {
+    type->render_frame_finish(engine);
+  }
+
   /* Clear tile data */
-  engine->tile_x = 0;
-  engine->tile_y = 0;
   engine->flag &= ~RE_ENGINE_RENDERING;
 
   render_result_free_list(&engine->fullresult, engine->fullresult.first);
 
-  BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
-
-  /* For save buffers, read back from disk. */
-  if (re->result->do_exr_tile) {
-    render_result_exr_file_end(re, engine);
-  }
-
-  /* Perform delayed grease pencil rendering. */
-  if (delay_grease_pencil) {
-    BLI_rw_mutex_unlock(&re->partsmutex);
-
-    FOREACH_VIEW_LAYER_TO_RENDER_BEGIN (re, view_layer_iter) {
-      engine_render_view_layer(re, engine, view_layer_iter, false, true);
-      if (RE_engine_test_break(engine)) {
-        break;
-      }
-    }
-    FOREACH_VIEW_LAYER_TO_RENDER_END;
-
-    BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
-  }
-
   /* re->engine becomes zero if user changed active render engine during render */
   if (!engine_keep_depsgraph(engine) || !re->engine) {
-    /* Free depsgraph outside of parts mutex lock, since this locks OpenGL context
-     * while the UI drawing might also lock the OpenGL context and parts mutex. */
-    BLI_rw_mutex_unlock(&re->partsmutex);
     engine_depsgraph_free(engine);
-    BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
 
     RE_engine_free(engine);
     re->engine = NULL;
@@ -1114,9 +1053,6 @@ bool RE_engine_render(Render *re, bool do_all)
     render_result_exr_file_cache_write(re);
     BLI_rw_mutex_unlock(&re->resultmutex);
   }
-
-  RE_parts_free(re);
-  BLI_rw_mutex_unlock(&re->partsmutex);
 
   if (BKE_reports_contain(re->reports, RPT_ERROR)) {
     G.is_break = true;
@@ -1179,3 +1115,81 @@ void RE_engine_free_blender_memory(RenderEngine *engine)
   }
   engine_depsgraph_free(engine);
 }
+
+struct RenderEngine *RE_engine_get(const Render *re)
+{
+  return re->engine;
+}
+
+bool RE_engine_draw_acquire(Render *re)
+{
+  BLI_mutex_lock(&re->engine_draw_mutex);
+
+  RenderEngine *engine = re->engine;
+
+  if (engine == NULL || engine->type->draw == NULL || (engine->flag & RE_ENGINE_CAN_DRAW) == 0) {
+    BLI_mutex_unlock(&re->engine_draw_mutex);
+    return false;
+  }
+
+  return true;
+}
+
+void RE_engine_draw_release(Render *re)
+{
+  BLI_mutex_unlock(&re->engine_draw_mutex);
+}
+
+void RE_engine_tile_highlight_set(
+    RenderEngine *engine, int x, int y, int width, int height, bool highlight)
+{
+  HighlightedTile tile;
+  BLI_rcti_init(&tile.rect, x, x + width, y, y + height);
+
+  engine_tile_highlight_set(engine, &tile, highlight);
+}
+
+void RE_engine_tile_highlight_clear_all(RenderEngine *engine)
+{
+  if ((engine->flag & RE_ENGINE_HIGHLIGHT_TILES) == 0) {
+    return;
+  }
+
+  Render *re = engine->re;
+
+  BLI_mutex_lock(&re->highlighted_tiles_mutex);
+
+  if (re->highlighted_tiles != NULL) {
+    BLI_gset_clear(re->highlighted_tiles, MEM_freeN);
+  }
+
+  BLI_mutex_unlock(&re->highlighted_tiles_mutex);
+}
+
+/* -------------------------------------------------------------------- */
+/** \name OpenGL context manipulation.
+ *
+ * NOTE: Only used for Cycles's BLenderGPUDisplay integration with the draw manager. A subject
+ * for re-consideration. Do not use this functionality.
+ * \{ */
+
+bool RE_engine_has_render_context(RenderEngine *engine)
+{
+  if (engine->re == NULL) {
+    return false;
+  }
+
+  return RE_gl_context_get(engine->re) != NULL;
+}
+
+void RE_engine_render_context_enable(RenderEngine *engine)
+{
+  DRW_render_context_enable(engine->re);
+}
+
+void RE_engine_render_context_disable(RenderEngine *engine)
+{
+  DRW_render_context_disable(engine->re);
+}
+
+/** \} */

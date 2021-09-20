@@ -45,7 +45,7 @@ static bNodeSocketTemplate cmp_node_rlayers_out[] = {
     {SOCK_VECTOR, N_(RE_PASSNAME_NORMAL), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_VECTOR, N_(RE_PASSNAME_UV), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_VECTOR, N_(RE_PASSNAME_VECTOR), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_DEPRECATED), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_VECTOR, N_(RE_PASSNAME_POSITION), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_RGBA, N_(RE_PASSNAME_DEPRECATED), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_RGBA, N_(RE_PASSNAME_DEPRECATED), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_RGBA, N_(RE_PASSNAME_SHADOW), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
@@ -72,7 +72,7 @@ static bNodeSocketTemplate cmp_node_rlayers_out[] = {
     {SOCK_RGBA, N_(RE_PASSNAME_SUBSURFACE_COLOR), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
 };
-#define MAX_LEGACY_SOCKET_INDEX 30
+#define NUM_LEGACY_SOCKETS (ARRAY_SIZE(cmp_node_rlayers_out) - 1)
 
 static void cmp_node_image_add_pass_output(bNodeTree *ntree,
                                            bNode *node,
@@ -382,7 +382,7 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
           break;
         }
       }
-      if (!link && (!rlayer || sock_index > MAX_LEGACY_SOCKET_INDEX)) {
+      if (!link && (!rlayer || sock_index >= NUM_LEGACY_SOCKETS)) {
         MEM_freeN(sock->storage);
         nodeRemoveSocket(ntree, node, sock);
       }
@@ -468,43 +468,12 @@ void node_cmp_rlayers_outputs(bNodeTree *ntree, bNode *node)
 
 const char *node_cmp_rlayers_sock_to_pass(int sock_index)
 {
-  const char *sock_to_passname[] = {
-      RE_PASSNAME_COMBINED,
-      RE_PASSNAME_COMBINED,
-      RE_PASSNAME_Z,
-      RE_PASSNAME_NORMAL,
-      RE_PASSNAME_UV,
-      RE_PASSNAME_VECTOR,
-      RE_PASSNAME_DEPRECATED,
-      RE_PASSNAME_DEPRECATED,
-      RE_PASSNAME_DEPRECATED,
-      RE_PASSNAME_SHADOW,
-      RE_PASSNAME_AO,
-      RE_PASSNAME_DEPRECATED,
-      RE_PASSNAME_DEPRECATED,
-      RE_PASSNAME_DEPRECATED,
-      RE_PASSNAME_INDEXOB,
-      RE_PASSNAME_INDEXMA,
-      RE_PASSNAME_MIST,
-      RE_PASSNAME_EMIT,
-      RE_PASSNAME_ENVIRONMENT,
-      RE_PASSNAME_DIFFUSE_DIRECT,
-      RE_PASSNAME_DIFFUSE_INDIRECT,
-      RE_PASSNAME_DIFFUSE_COLOR,
-      RE_PASSNAME_GLOSSY_DIRECT,
-      RE_PASSNAME_GLOSSY_INDIRECT,
-      RE_PASSNAME_GLOSSY_COLOR,
-      RE_PASSNAME_TRANSM_DIRECT,
-      RE_PASSNAME_TRANSM_INDIRECT,
-      RE_PASSNAME_TRANSM_COLOR,
-      RE_PASSNAME_SUBSURFACE_DIRECT,
-      RE_PASSNAME_SUBSURFACE_INDIRECT,
-      RE_PASSNAME_SUBSURFACE_COLOR,
-  };
-  if (sock_index > MAX_LEGACY_SOCKET_INDEX) {
+  if (sock_index >= NUM_LEGACY_SOCKETS) {
     return NULL;
   }
-  return sock_to_passname[sock_index];
+  const char *name = cmp_node_rlayers_out[sock_index].name;
+  /* Exception for alpha, which is derived from Combined. */
+  return (STREQ(name, "Alpha")) ? RE_PASSNAME_COMBINED : name;
 }
 
 static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)

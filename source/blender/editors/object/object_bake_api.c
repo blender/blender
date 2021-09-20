@@ -412,6 +412,7 @@ static bool is_noncolor_pass(eScenePassType pass_type)
 {
   return ELEM(pass_type,
               SCE_PASS_Z,
+              SCE_PASS_POSITION,
               SCE_PASS_NORMAL,
               SCE_PASS_VECTOR,
               SCE_PASS_INDEXOB,
@@ -554,19 +555,10 @@ static bool bake_pass_filter_check(eScenePassType pass_type,
           return true;
         }
 
-        if ((pass_filter & R_BAKE_PASS_FILTER_AO) != 0) {
-          BKE_report(
-              reports,
-              RPT_ERROR,
-              "Combined bake pass Ambient Occlusion contribution requires an enabled light pass "
-              "(bake the Ambient Occlusion pass type instead)");
-        }
-        else {
-          BKE_report(reports,
-                     RPT_ERROR,
-                     "Combined bake pass requires Emit, or a light pass with "
-                     "Direct or Indirect contributions enabled");
-        }
+        BKE_report(reports,
+                   RPT_ERROR,
+                   "Combined bake pass requires Emit, or a light pass with "
+                   "Direct or Indirect contributions enabled");
 
         return false;
       }

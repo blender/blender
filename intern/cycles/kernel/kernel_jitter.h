@@ -14,93 +14,27 @@
  * limitations under the License.
  */
 
-/* TODO(sergey): Consider moving portable ctz/clz stuff to util. */
-
+#pragma once
 CCL_NAMESPACE_BEGIN
 
-/* "Correlated Multi-Jittered Sampling"
- * Andrew Kensler, Pixar Technical Memo 13-01, 2013 */
-
-/* TODO: find good value, suggested 64 gives pattern on cornell box ceiling. */
-#define CMJ_RANDOM_OFFSET_LIMIT 4096
-
-ccl_device_inline bool cmj_is_pow2(int i)
+ccl_device_inline uint32_t laine_karras_permutation(uint32_t x, uint32_t seed)
 {
-  return (i > 1) && ((i & (i - 1)) == 0);
+  x += seed;
+  x ^= (x * 0x6c50b47cu);
+  x ^= x * 0xb82f1e52u;
+  x ^= x * 0xc7afe638u;
+  x ^= x * 0x8d22f6e6u;
+
+  return x;
 }
 
-ccl_device_inline int cmj_fast_mod_pow2(int a, int b)
+ccl_device_inline uint32_t nested_uniform_scramble(uint32_t x, uint32_t seed)
 {
-  return (a & (b - 1));
-}
+  x = reverse_integer_bits(x);
+  x = laine_karras_permutation(x, seed);
+  x = reverse_integer_bits(x);
 
-/* b must be > 1 */
-ccl_device_inline int cmj_fast_div_pow2(int a, int b)
-{
-  kernel_assert(b > 1);
-  return a >> count_trailing_zeros(b);
-}
-
-ccl_device_inline uint cmj_w_mask(uint w)
-{
-  kernel_assert(w > 1);
-  return ((1 << (32 - count_leading_zeros(w))) - 1);
-}
-
-ccl_device_inline uint cmj_permute(uint i, uint l, uint p)
-{
-  uint w = l - 1;
-
-  if ((l & w) == 0) {
-    /* l is a power of two (fast) */
-    i ^= p;
-    i *= 0xe170893d;
-    i ^= p >> 16;
-    i ^= (i & w) >> 4;
-    i ^= p >> 8;
-    i *= 0x0929eb3f;
-    i ^= p >> 23;
-    i ^= (i & w) >> 1;
-    i *= 1 | p >> 27;
-    i *= 0x6935fa69;
-    i ^= (i & w) >> 11;
-    i *= 0x74dcb303;
-    i ^= (i & w) >> 2;
-    i *= 0x9e501cc3;
-    i ^= (i & w) >> 2;
-    i *= 0xc860a3df;
-    i &= w;
-    i ^= i >> 5;
-
-    return (i + p) & w;
-  }
-  else {
-    /* l is not a power of two (slow) */
-    w = cmj_w_mask(w);
-
-    do {
-      i ^= p;
-      i *= 0xe170893d;
-      i ^= p >> 16;
-      i ^= (i & w) >> 4;
-      i ^= p >> 8;
-      i *= 0x0929eb3f;
-      i ^= p >> 23;
-      i ^= (i & w) >> 1;
-      i *= 1 | p >> 27;
-      i *= 0x6935fa69;
-      i ^= (i & w) >> 11;
-      i *= 0x74dcb303;
-      i ^= (i & w) >> 2;
-      i *= 0x9e501cc3;
-      i ^= (i & w) >> 2;
-      i *= 0xc860a3df;
-      i &= w;
-      i ^= i >> 5;
-    } while (i >= l);
-
-    return (i + p) % l;
-  }
+  return x;
 }
 
 ccl_device_inline uint cmj_hash(uint i, uint p)
@@ -133,99 +67,101 @@ ccl_device_inline float cmj_randfloat(uint i, uint p)
   return cmj_hash(i, p) * (1.0f / 4294967808.0f);
 }
 
-#ifdef __CMJ__
-ccl_device float cmj_sample_1D(int s, int N, int p)
+ccl_device_inline float cmj_randfloat_simple(uint i, uint p)
 {
-  kernel_assert(s < N);
-
-  uint x = cmj_permute(s, N, p * 0x68bc21eb);
-  float jx = cmj_randfloat(s, p * 0x967a889b);
-
-  float invN = 1.0f / N;
-  return (x + jx) * invN;
+  return cmj_hash_simple(i, p) * (1.0f / (float)0xFFFFFFFF);
 }
 
-/* TODO(sergey): Do some extra tests and consider moving to util_math.h. */
-ccl_device_inline int cmj_isqrt(int value)
+ccl_device float pmj_sample_1D(const KernelGlobals *kg, uint sample, uint rng_hash, uint dimension)
 {
-#  if defined(__KERNEL_CUDA__)
-  return float_to_int(__fsqrt_ru(value));
-#  elif defined(__KERNEL_GPU__)
-  return float_to_int(sqrtf(value));
-#  else
-  /* This is a work around for fast-math on CPU which might replace sqrtf()
-   * with am approximated version.
-   */
-  return float_to_int(sqrtf(value) + 1e-6f);
-#  endif
-}
+  /* The PMJ sample sets contain a sample with (x,y) with NUM_PMJ_SAMPLES so for 1D
+   *  the x part is used as the sample (TODO(@leesonw): Add using both x and y parts
+   * independently). */
 
-ccl_device void cmj_sample_2D(int s, int N, int p, float *fx, float *fy)
-{
-  kernel_assert(s < N);
-
-  int m = cmj_isqrt(N);
-  int n = (N - 1) / m + 1;
-  float invN = 1.0f / N;
-  float invm = 1.0f / m;
-  float invn = 1.0f / n;
-
-  s = cmj_permute(s, N, p * 0x51633e2d);
-
-  int sdivm, smodm;
-
-  if (cmj_is_pow2(m)) {
-    sdivm = cmj_fast_div_pow2(s, m);
-    smodm = cmj_fast_mod_pow2(s, m);
-  }
-  else {
-    /* Doing `s * inmv` gives precision issues here. */
-    sdivm = s / m;
-    smodm = s - sdivm * m;
-  }
-
-  uint sx = cmj_permute(smodm, m, p * 0x68bc21eb);
-  uint sy = cmj_permute(sdivm, n, p * 0x02e5be93);
-
-  float jx = cmj_randfloat(s, p * 0x967a889b);
-  float jy = cmj_randfloat(s, p * 0x368cc8b7);
-
-  *fx = (sx + (sy + jx) * invn) * invm;
-  *fy = (s + jy) * invN;
-}
+  /* Perform Owen shuffle of the sample number to reorder the samples. */
+#ifdef _SIMPLE_HASH_
+  const uint rv = cmj_hash_simple(dimension, rng_hash);
+#else /* Use a _REGULAR_HASH_. */
+  const uint rv = cmj_hash(dimension, rng_hash);
+#endif
+#ifdef _XOR_SHUFFLE_
+#  warning "Using XOR shuffle."
+  const uint s = sample ^ rv;
+#else /* Use _OWEN_SHUFFLE_ for reordering. */
+  const uint s = nested_uniform_scramble(sample, rv);
 #endif
 
-ccl_device float pmj_sample_1D(KernelGlobals *kg, int sample, int rng_hash, int dimension)
-{
-  /* Fallback to random */
-  if (sample >= NUM_PMJ_SAMPLES) {
-    const int p = rng_hash + dimension;
-    return cmj_randfloat(sample, p);
-  }
-  else {
-    const uint mask = cmj_hash_simple(dimension, rng_hash) & 0x007fffff;
-    const int index = ((dimension % NUM_PMJ_PATTERNS) * NUM_PMJ_SAMPLES + sample) * 2;
-    return __uint_as_float(kernel_tex_fetch(__sample_pattern_lut, index) ^ mask) - 1.0f;
-  }
+  /* Based on the sample number a sample pattern is selected and offset by the dimension. */
+  const uint sample_set = s / NUM_PMJ_SAMPLES;
+  const uint d = (dimension + sample_set);
+  const uint dim = d % NUM_PMJ_PATTERNS;
+  int index = 2 * (dim * NUM_PMJ_SAMPLES + (s % NUM_PMJ_SAMPLES));
+
+  float fx = kernel_tex_fetch(__sample_pattern_lut, index);
+
+#ifndef _NO_CRANLEY_PATTERSON_ROTATION_
+  /* Use Cranley-Patterson rotation to displace the sample pattern. */
+#  ifdef _SIMPLE_HASH_
+  float dx = cmj_randfloat_simple(d, rng_hash);
+#  else
+  /* Only jitter within the grid interval. */
+  float dx = cmj_randfloat(d, rng_hash);
+#  endif
+  fx = fx + dx * (1.0f / NUM_PMJ_SAMPLES);
+  fx = fx - floorf(fx);
+
+#else
+#  warning "Not using Cranley-Patterson Rotation."
+#endif
+
+  return fx;
 }
 
-ccl_device float2 pmj_sample_2D(KernelGlobals *kg, int sample, int rng_hash, int dimension)
+ccl_device void pmj_sample_2D(
+    const KernelGlobals *kg, uint sample, uint rng_hash, uint dimension, float *x, float *y)
 {
-  if (sample >= NUM_PMJ_SAMPLES) {
-    const int p = rng_hash + dimension;
-    const float fx = cmj_randfloat(sample, p);
-    const float fy = cmj_randfloat(sample, p + 1);
-    return make_float2(fx, fy);
-  }
-  else {
-    const int index = ((dimension % NUM_PMJ_PATTERNS) * NUM_PMJ_SAMPLES + sample) * 2;
-    const uint maskx = cmj_hash_simple(dimension, rng_hash) & 0x007fffff;
-    const uint masky = cmj_hash_simple(dimension + 1, rng_hash) & 0x007fffff;
-    const float fx = __uint_as_float(kernel_tex_fetch(__sample_pattern_lut, index) ^ maskx) - 1.0f;
-    const float fy = __uint_as_float(kernel_tex_fetch(__sample_pattern_lut, index + 1) ^ masky) -
-                     1.0f;
-    return make_float2(fx, fy);
-  }
+  /* Perform a shuffle on the sample number to reorder the samples. */
+#ifdef _SIMPLE_HASH_
+  const uint rv = cmj_hash_simple(dimension, rng_hash);
+#else /* Use a _REGULAR_HASH_. */
+  const uint rv = cmj_hash(dimension, rng_hash);
+#endif
+#ifdef _XOR_SHUFFLE_
+#  warning "Using XOR shuffle."
+  const uint s = sample ^ rv;
+#else /* Use _OWEN_SHUFFLE_ for reordering. */
+  const uint s = nested_uniform_scramble(sample, rv);
+#endif
+
+  /* Based on the sample number a sample pattern is selected and offset by the dimension. */
+  const uint sample_set = s / NUM_PMJ_SAMPLES;
+  const uint d = (dimension + sample_set);
+  const uint dim = d % NUM_PMJ_PATTERNS;
+  int index = 2 * (dim * NUM_PMJ_SAMPLES + (s % NUM_PMJ_SAMPLES));
+
+  float fx = kernel_tex_fetch(__sample_pattern_lut, index);
+  float fy = kernel_tex_fetch(__sample_pattern_lut, index + 1);
+
+#ifndef _NO_CRANLEY_PATTERSON_ROTATION_
+  /* Use Cranley-Patterson rotation to displace the sample pattern. */
+#  ifdef _SIMPLE_HASH_
+  float dx = cmj_randfloat_simple(d, rng_hash);
+  float dy = cmj_randfloat_simple(d + 1, rng_hash);
+#  else
+  float dx = cmj_randfloat(d, rng_hash);
+  float dy = cmj_randfloat(d + 1, rng_hash);
+#  endif
+  /* Only jitter within the grid cells. */
+  fx = fx + dx * (1.0f / NUM_PMJ_DIVISIONS);
+  fy = fy + dy * (1.0f / NUM_PMJ_DIVISIONS);
+  fx = fx - floorf(fx);
+  fy = fy - floorf(fy);
+#else
+#  warning "Not using Cranley Patterson Rotation."
+#endif
+
+  (*x) = fx;
+  (*y) = fy;
 }
 
 CCL_NAMESPACE_END

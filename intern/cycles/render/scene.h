@@ -128,7 +128,7 @@ class DeviceScene {
   device_vector<float> lookup_table;
 
   /* integrator */
-  device_vector<uint> sample_pattern_lut;
+  device_vector<float> sample_pattern_lut;
 
   /* ies lights */
   device_vector<float> ies_lights;
@@ -142,27 +142,6 @@ class DeviceScene {
 
 class SceneParams {
  public:
-  /* Type of BVH, in terms whether it is supported dynamic updates of meshes
-   * or whether modifying geometry requires full BVH rebuild.
-   */
-  enum BVHType {
-    /* BVH supports dynamic updates of geometry.
-     *
-     * Faster for updating BVH tree when doing modifications in viewport,
-     * but slower for rendering.
-     */
-    BVH_DYNAMIC = 0,
-    /* BVH tree is calculated for specific scene, updates in geometry
-     * requires full tree rebuild.
-     *
-     * Slower to update BVH tree when modifying objects in viewport, also
-     * slower to build final BVH tree but gives best possible render speed.
-     */
-    BVH_STATIC = 1,
-
-    BVH_NUM_TYPES,
-  };
-
   ShadingSystem shadingsystem;
 
   /* Requested BVH layout.
@@ -186,7 +165,7 @@ class SceneParams {
   {
     shadingsystem = SHADINGSYSTEM_SVM;
     bvh_layout = BVH_LAYOUT_BVH2;
-    bvh_type = BVH_DYNAMIC;
+    bvh_type = BVH_TYPE_DYNAMIC;
     use_bvh_spatial_split = false;
     use_bvh_unaligned_nodes = true;
     num_bvh_time_steps = 0;
@@ -196,7 +175,7 @@ class SceneParams {
     background = true;
   }
 
-  bool modified(const SceneParams &params)
+  bool modified(const SceneParams &params) const
   {
     return !(shadingsystem == params.shadingsystem && bvh_layout == params.bvh_layout &&
              bvh_type == params.bvh_type &&
@@ -236,7 +215,7 @@ class Scene : public NodeOwner {
   vector<Shader *> shaders;
   vector<Light *> lights;
   vector<ParticleSystem *> particle_systems;
-  vector<Pass> passes;
+  vector<Pass *> passes;
   vector<Procedural *> procedurals;
 
   /* data managers */
@@ -291,7 +270,11 @@ class Scene : public NodeOwner {
 
   void enable_update_stats();
 
-  bool update(Progress &progress, bool &kernel_switch_needed);
+  void update_kernel_features();
+  bool update(Progress &progress);
+
+  bool has_shadow_catcher();
+  void tag_shadow_catcher_modified();
 
   /* This function is used to create a node of a specified type instead of
    * calling 'new', and sets the scene as the owner of the node.
@@ -348,13 +331,12 @@ class Scene : public NodeOwner {
   void free_memory(bool final);
 
   bool kernels_loaded;
-  DeviceRequestedFeatures loaded_kernel_features;
+  uint loaded_kernel_features;
 
   bool load_kernels(Progress &progress, bool lock_scene = true);
 
-  /* ** Split kernel routines ** */
-
-  DeviceRequestedFeatures get_requested_device_features();
+  bool has_shadow_catcher_ = false;
+  bool shadow_catcher_modified_ = true;
 
   /* Maximum number of closure during session lifetime. */
   int max_closure_global;
@@ -384,6 +366,8 @@ template<> Shader *Scene::create_node<Shader>();
 
 template<> AlembicProcedural *Scene::create_node<AlembicProcedural>();
 
+template<> Pass *Scene::create_node<Pass>();
+
 template<> void Scene::delete_node_impl(Light *node);
 
 template<> void Scene::delete_node_impl(Mesh *node);
@@ -404,6 +388,8 @@ template<> void Scene::delete_node_impl(Procedural *node);
 
 template<> void Scene::delete_node_impl(AlembicProcedural *node);
 
+template<> void Scene::delete_node_impl(Pass *node);
+
 template<> void Scene::delete_nodes(const set<Light *> &nodes, const NodeOwner *owner);
 
 template<> void Scene::delete_nodes(const set<Geometry *> &nodes, const NodeOwner *owner);
@@ -415,6 +401,8 @@ template<> void Scene::delete_nodes(const set<ParticleSystem *> &nodes, const No
 template<> void Scene::delete_nodes(const set<Shader *> &nodes, const NodeOwner *owner);
 
 template<> void Scene::delete_nodes(const set<Procedural *> &nodes, const NodeOwner *owner);
+
+template<> void Scene::delete_nodes(const set<Pass *> &nodes, const NodeOwner *owner);
 
 CCL_NAMESPACE_END
 

@@ -126,7 +126,7 @@ static BufferParams &session_buffer_params()
 
 static void scene_init()
 {
-  options.scene = new Scene(options.scene_params, options.session->device);
+  options.scene = options.session->scene;
 
   /* Read XML */
   xml_read_file(options.scene, options.filepath.c_str());
@@ -148,7 +148,7 @@ static void scene_init()
 static void session_init()
 {
   options.session_params.write_render_cb = write_render;
-  options.session = new Session(options.session_params);
+  options.session = new Session(options.session_params, options.scene_params);
 
   if (options.session_params.background && !options.quiet)
     options.session->progress.set_update_callback(function_bind(&session_print_status));
@@ -159,7 +159,6 @@ static void session_init()
 
   /* load scene */
   scene_init();
-  options.session->scene = options.scene;
 
   options.session->reset(session_buffer_params(), options.session_params.samples);
   options.session->start();
@@ -527,9 +526,6 @@ static void options_parse(int argc, const char **argv)
     fprintf(stderr, "No file path specified\n");
     exit(EXIT_FAILURE);
   }
-
-  /* For smoother Viewport */
-  options.session_params.start_resolution = 64;
 }
 
 CCL_NAMESPACE_END

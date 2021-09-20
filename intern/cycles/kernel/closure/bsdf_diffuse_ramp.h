@@ -30,8 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BSDF_DIFFUSE_RAMP_H__
-#define __BSDF_DIFFUSE_RAMP_H__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
@@ -125,5 +124,3 @@ ccl_device int bsdf_diffuse_ramp_sample(const ShaderClosure *sc,
 #endif /* __OSL__ */
 
 CCL_NAMESPACE_END
-
-#endif /* __BSDF_DIFFUSE_RAMP_H__ */

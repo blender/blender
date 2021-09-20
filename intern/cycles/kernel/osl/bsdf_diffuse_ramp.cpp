@@ -34,7 +34,7 @@
 
 #include <OSL/genclosure.h>
 
-#include "kernel/kernel_compat_cpu.h"
+#include "kernel/device/cpu/compat.h"
 #include "kernel/osl/osl_closures.h"
 
 // clang-format off

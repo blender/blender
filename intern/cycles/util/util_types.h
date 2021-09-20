@@ -17,9 +17,7 @@
 #ifndef __UTIL_TYPES_H__
 #define __UTIL_TYPES_H__
 
-#ifndef __KERNEL_OPENCL__
-#  include <stdlib.h>
-#endif
+#include <stdlib.h>
 
 /* Standard Integer Types */
 
@@ -44,17 +42,11 @@ CCL_NAMESPACE_BEGIN
 
 /* Shorter Unsigned Names */
 
-#ifndef __KERNEL_OPENCL__
 typedef unsigned char uchar;
 typedef unsigned int uint;
 typedef unsigned short ushort;
-#endif
 
 /* Fixed Bits Types */
-
-#ifdef __KERNEL_OPENCL__
-typedef unsigned long uint64_t;
-#endif
 
 #ifndef __KERNEL_GPU__
 /* Generic Memory Pointer */

@@ -82,11 +82,11 @@ ccl_device_noinline_cpu float svm_wave(NodeWaveType type,
   }
 }
 
-ccl_device void svm_node_tex_wave(
-    KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device_noinline int svm_node_tex_wave(
+    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int offset)
 {
-  uint4 node2 = read_node(kg, offset);
-  uint4 node3 = read_node(kg, offset);
+  uint4 node2 = read_node(kg, &offset);
+  uint4 node3 = read_node(kg, &offset);
 
   /* RNA properties */
   uint type_offset, bands_dir_offset, rings_dir_offset, profile_offset;
@@ -125,6 +125,7 @@ ccl_device void svm_node_tex_wave(
     stack_store_float(stack, fac_offset, f);
   if (stack_valid(color_offset))
     stack_store_float3(stack, color_offset, make_float3(f, f, f));
+  return offset;
 }
 
 CCL_NAMESPACE_END

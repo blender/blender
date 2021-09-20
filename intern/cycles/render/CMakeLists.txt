@@ -32,10 +32,10 @@ set(SRC
   camera.cpp
   colorspace.cpp
   constant_fold.cpp
-  coverage.cpp
   denoising.cpp
   film.cpp
   geometry.cpp
+  gpu_display.cpp
   graph.cpp
   hair.cpp
   image.cpp
@@ -54,6 +54,7 @@ set(SRC
   object.cpp
   osl.cpp
   particles.cpp
+  pass.cpp
   curves.cpp
   scene.cpp
   session.cpp
@@ -76,10 +77,10 @@ set(SRC_HEADERS
   camera.h
   colorspace.h
   constant_fold.h
-  coverage.h
   denoising.h
   film.h
   geometry.h
+  gpu_display.h
   graph.h
   hair.h
   image.h
@@ -95,6 +96,7 @@ set(SRC_HEADERS
   object.h
   osl.h
   particles.h
+  pass.h
   procedural.h
   curves.h
   scene.h
@@ -111,6 +113,7 @@ set(SRC_HEADERS
 set(LIB
   cycles_bvh
   cycles_device
+  cycles_integrator
   cycles_subd
   cycles_util
 )

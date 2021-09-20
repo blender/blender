@@ -59,7 +59,6 @@ set(SRC
   RE_pipeline.h
   RE_texture.h
 
-  intern/initrender.h
   intern/pipeline.h
   intern/render_result.h
   intern/render_types.h

@@ -35,6 +35,8 @@ static bNodeSocketTemplate sh_node_bsdf_principled_in[] = {
      PROP_NONE,
      SOCK_COMPACT},
     {SOCK_RGBA, N_("Subsurface Color"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Subsurface IOR"), 1.4f, 0.0f, 0.0f, 0.0f, 1.01f, 3.8f, PROP_FACTOR},
+    {SOCK_FLOAT, N_("Subsurface Anisotropy"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
     {SOCK_FLOAT, N_("Metallic"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
     {SOCK_FLOAT, N_("Specular"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
     {SOCK_FLOAT, N_("Specular Tint"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
@@ -74,7 +76,7 @@ static bNodeSocketTemplate sh_node_bsdf_principled_out[] = {
 static void node_shader_init_principled(bNodeTree *UNUSED(ntree), bNode *node)
 {
   node->custom1 = SHD_GLOSSY_GGX;
-  node->custom2 = SHD_SUBSURFACE_BURLEY;
+  node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
 }
 
 #define socket_not_zero(sock) (in[sock].link || (clamp_f(in[sock].vec[0], 0.0f, 1.0f) > 1e-5f))
@@ -90,41 +92,40 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   GPUNodeLink *sss_scale;
 
   /* Normals */
-  if (!in[20].link) {
-    GPU_link(mat, "world_normals_get", &in[20].link);
+  if (!in[22].link) {
+    GPU_link(mat, "world_normals_get", &in[22].link);
   }
 
   /* Clearcoat Normals */
-  if (!in[21].link) {
-    GPU_link(mat, "world_normals_get", &in[21].link);
+  if (!in[23].link) {
+    GPU_link(mat, "world_normals_get", &in[23].link);
   }
 
 #if 0 /* Not used at the moment. */
   /* Tangents */
-  if (!in[22].link) {
+  if (!in[24].link) {
     GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
-    GPU_link(mat, "tangent_orco_z", orco, &in[22].link);
+    GPU_link(mat, "tangent_orco_z", orco, &in[24].link);
     GPU_link(mat,
              "node_tangent",
              GPU_builtin(GPU_WORLD_NORMAL),
-             in[22].link,
+             in[24].link,
              GPU_builtin(GPU_OBJECT_MATRIX),
-             &in[22].link);
+             &in[24].link);
   }
 #endif
 
-  bool use_diffuse = socket_not_one(4) && socket_not_one(15);
+  bool use_diffuse = socket_not_one(6) && socket_not_one(17);
   bool use_subsurf = socket_not_zero(1) && use_diffuse && node->sss_id > 0;
-  bool use_refract = socket_not_one(4) && socket_not_zero(15);
-  bool use_clear = socket_not_zero(12);
+  bool use_refract = socket_not_one(6) && socket_not_zero(17);
+  bool use_clear = socket_not_zero(14);
 
   /* SSS Profile */
   if (use_subsurf) {
-    static short profile = SHD_SUBSURFACE_BURLEY;
     bNodeSocket *socket = BLI_findlink(&node->original->inputs, 2);
     bNodeSocketValueRGBA *socket_data = socket->default_value;
     /* For some reason it seems that the socket value is in ARGB format. */
-    GPU_material_sss_profile_create(mat, &socket_data->value[1], &profile, NULL);
+    GPU_material_sss_profile_create(mat, &socket_data->value[1]);
   }
 
   if (in[2].link) {

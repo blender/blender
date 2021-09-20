@@ -32,7 +32,7 @@
 
 #include <OSL/genclosure.h>
 
-#include "kernel/kernel_compat_cpu.h"
+#include "kernel/device/cpu/compat.h"
 #include "kernel/osl/osl_closures.h"
 
 // clang-format off
@@ -50,44 +50,29 @@ CCL_NAMESPACE_BEGIN
 
 using namespace OSL;
 
-static ustring u_cubic("cubic");
-static ustring u_gaussian("gaussian");
-static ustring u_burley("burley");
-static ustring u_principled("principled");
+static ustring u_random_walk_fixed_radius("random_walk_fixed_radius");
 static ustring u_random_walk("random_walk");
-static ustring u_principled_random_walk("principled_random_walk");
 
 class CBSSRDFClosure : public CClosurePrimitive {
  public:
   Bssrdf params;
+  float ior;
   ustring method;
 
   CBSSRDFClosure()
   {
-    params.texture_blur = 0.0f;
-    params.sharpness = 0.0f;
-    params.roughness = 0.0f;
+    params.roughness = FLT_MAX;
+    params.anisotropy = 1.0f;
+    ior = 1.4f;
   }
 
   void setup(ShaderData *sd, int path_flag, float3 weight)
   {
-    if (method == u_cubic) {
-      alloc(sd, path_flag, weight, CLOSURE_BSSRDF_CUBIC_ID);
-    }
-    else if (method == u_gaussian) {
-      alloc(sd, path_flag, weight, CLOSURE_BSSRDF_GAUSSIAN_ID);
-    }
-    else if (method == u_burley) {
-      alloc(sd, path_flag, weight, CLOSURE_BSSRDF_BURLEY_ID);
-    }
-    else if (method == u_principled) {
-      alloc(sd, path_flag, weight, CLOSURE_BSSRDF_PRINCIPLED_ID);
+    if (method == u_random_walk_fixed_radius) {
+      alloc(sd, path_flag, weight, CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
     }
     else if (method == u_random_walk) {
       alloc(sd, path_flag, weight, CLOSURE_BSSRDF_RANDOM_WALK_ID);
-    }
-    else if (method == u_principled_random_walk) {
-      alloc(sd, path_flag, weight, CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID);
     }
   }
 
@@ -106,11 +91,10 @@ class CBSSRDFClosure : public CClosurePrimitive {
       /* create one closure per color channel */
       bssrdf->radius = params.radius;
       bssrdf->albedo = params.albedo;
-      bssrdf->texture_blur = params.texture_blur;
-      bssrdf->sharpness = params.sharpness;
       bssrdf->N = params.N;
       bssrdf->roughness = params.roughness;
-      sd->flag |= bssrdf_setup(sd, bssrdf, (ClosureType)type);
+      bssrdf->anisotropy = clamp(params.anisotropy, 0.0f, 0.9f);
+      sd->flag |= bssrdf_setup(sd, bssrdf, (ClosureType)type, clamp(ior, 1.01f, 3.8f));
     }
   }
 };
@@ -122,9 +106,9 @@ ClosureParam *closure_bssrdf_params()
       CLOSURE_FLOAT3_PARAM(CBSSRDFClosure, params.N),
       CLOSURE_FLOAT3_PARAM(CBSSRDFClosure, params.radius),
       CLOSURE_FLOAT3_PARAM(CBSSRDFClosure, params.albedo),
-      CLOSURE_FLOAT_KEYPARAM(CBSSRDFClosure, params.texture_blur, "texture_blur"),
-      CLOSURE_FLOAT_KEYPARAM(CBSSRDFClosure, params.sharpness, "sharpness"),
       CLOSURE_FLOAT_KEYPARAM(CBSSRDFClosure, params.roughness, "roughness"),
+      CLOSURE_FLOAT_KEYPARAM(CBSSRDFClosure, ior, "ior"),
+      CLOSURE_FLOAT_KEYPARAM(CBSSRDFClosure, params.anisotropy, "anisotropy"),
       CLOSURE_STRING_KEYPARAM(CBSSRDFClosure, label, "label"),
       CLOSURE_FINISH_PARAM(CBSSRDFClosure)};
   return params;

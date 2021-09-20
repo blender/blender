@@ -33,6 +33,7 @@ set(SRC
   blender_device.cpp
   blender_image.cpp
   blender_geometry.cpp
+  blender_gpu_display.cpp
   blender_light.cpp
   blender_mesh.cpp
   blender_object.cpp
@@ -50,6 +51,7 @@ set(SRC
 
   CCL_api.h
   blender_device.h
+  blender_gpu_display.h
   blender_id_map.h
   blender_image.h
   blender_object_cull.h
@@ -92,14 +94,6 @@ set(ADDON_FILES
 )
 
 add_definitions(${GL_DEFINITIONS})
-
-if(WITH_CYCLES_DEVICE_OPENCL)
-  add_definitions(-DWITH_OPENCL)
-endif()
-
-if(WITH_CYCLES_NETWORK)
-  add_definitions(-DWITH_NETWORK)
-endif()
 
 if(WITH_MOD_FLUID)
   add_definitions(-DWITH_FLUID)

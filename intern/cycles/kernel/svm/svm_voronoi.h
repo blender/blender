@@ -902,16 +902,17 @@ ccl_device void voronoi_n_sphere_radius_4d(float4 coord, float randomness, float
   *outRadius = distance(closestPointToClosestPoint, closestPoint) / 2.0f;
 }
 
-ccl_device void svm_node_tex_voronoi(KernelGlobals *kg,
-                                     ShaderData *sd,
-                                     float *stack,
-                                     uint dimensions,
-                                     uint feature,
-                                     uint metric,
-                                     int *offset)
+template<uint node_feature_mask>
+ccl_device_noinline int svm_node_tex_voronoi(const KernelGlobals *kg,
+                                             ShaderData *sd,
+                                             float *stack,
+                                             uint dimensions,
+                                             uint feature,
+                                             uint metric,
+                                             int offset)
 {
-  uint4 stack_offsets = read_node(kg, offset);
-  uint4 defaults = read_node(kg, offset);
+  uint4 stack_offsets = read_node(kg, &offset);
+  uint4 defaults = read_node(kg, &offset);
 
   uint coord_stack_offset, w_stack_offset, scale_stack_offset, smoothness_stack_offset;
   uint exponent_stack_offset, randomness_stack_offset, distance_out_stack_offset,
@@ -997,18 +998,18 @@ ccl_device void svm_node_tex_voronoi(KernelGlobals *kg,
                         &color_out,
                         &position_out_2d);
           break;
-#if NODES_FEATURE(NODE_FEATURE_VORONOI_EXTRA)
         case NODE_VORONOI_SMOOTH_F1:
-          voronoi_smooth_f1_2d(coord_2d,
-                               smoothness,
-                               exponent,
-                               randomness,
-                               voronoi_metric,
-                               &distance_out,
-                               &color_out,
-                               &position_out_2d);
+          if (KERNEL_NODES_FEATURE(VORONOI_EXTRA)) {
+            voronoi_smooth_f1_2d(coord_2d,
+                                 smoothness,
+                                 exponent,
+                                 randomness,
+                                 voronoi_metric,
+                                 &distance_out,
+                                 &color_out,
+                                 &position_out_2d);
+          }
           break;
-#endif
         case NODE_VORONOI_F2:
           voronoi_f2_2d(coord_2d,
                         exponent,
@@ -1042,18 +1043,18 @@ ccl_device void svm_node_tex_voronoi(KernelGlobals *kg,
                         &color_out,
                         &position_out);
           break;
-#if NODES_FEATURE(NODE_FEATURE_VORONOI_EXTRA)
         case NODE_VORONOI_SMOOTH_F1:
-          voronoi_smooth_f1_3d(coord,
-                               smoothness,
-                               exponent,
-                               randomness,
-                               voronoi_metric,
-                               &distance_out,
-                               &color_out,
-                               &position_out);
+          if (KERNEL_NODES_FEATURE(VORONOI_EXTRA)) {
+            voronoi_smooth_f1_3d(coord,
+                                 smoothness,
+                                 exponent,
+                                 randomness,
+                                 voronoi_metric,
+                                 &distance_out,
+                                 &color_out,
+                                 &position_out);
+          }
           break;
-#endif
         case NODE_VORONOI_F2:
           voronoi_f2_3d(coord,
                         exponent,
@@ -1076,54 +1077,54 @@ ccl_device void svm_node_tex_voronoi(KernelGlobals *kg,
       break;
     }
 
-#if NODES_FEATURE(NODE_FEATURE_VORONOI_EXTRA)
     case 4: {
-      float4 coord_4d = make_float4(coord.x, coord.y, coord.z, w);
-      float4 position_out_4d;
-      switch (voronoi_feature) {
-        case NODE_VORONOI_F1:
-          voronoi_f1_4d(coord_4d,
-                        exponent,
-                        randomness,
-                        voronoi_metric,
-                        &distance_out,
-                        &color_out,
-                        &position_out_4d);
-          break;
-        case NODE_VORONOI_SMOOTH_F1:
-          voronoi_smooth_f1_4d(coord_4d,
-                               smoothness,
-                               exponent,
-                               randomness,
-                               voronoi_metric,
-                               &distance_out,
-                               &color_out,
-                               &position_out_4d);
-          break;
-        case NODE_VORONOI_F2:
-          voronoi_f2_4d(coord_4d,
-                        exponent,
-                        randomness,
-                        voronoi_metric,
-                        &distance_out,
-                        &color_out,
-                        &position_out_4d);
-          break;
-        case NODE_VORONOI_DISTANCE_TO_EDGE:
-          voronoi_distance_to_edge_4d(coord_4d, randomness, &distance_out);
-          break;
-        case NODE_VORONOI_N_SPHERE_RADIUS:
-          voronoi_n_sphere_radius_4d(coord_4d, randomness, &radius_out);
-          break;
-        default:
-          kernel_assert(0);
+      if (KERNEL_NODES_FEATURE(VORONOI_EXTRA)) {
+        float4 coord_4d = make_float4(coord.x, coord.y, coord.z, w);
+        float4 position_out_4d;
+        switch (voronoi_feature) {
+          case NODE_VORONOI_F1:
+            voronoi_f1_4d(coord_4d,
+                          exponent,
+                          randomness,
+                          voronoi_metric,
+                          &distance_out,
+                          &color_out,
+                          &position_out_4d);
+            break;
+          case NODE_VORONOI_SMOOTH_F1:
+            voronoi_smooth_f1_4d(coord_4d,
+                                 smoothness,
+                                 exponent,
+                                 randomness,
+                                 voronoi_metric,
+                                 &distance_out,
+                                 &color_out,
+                                 &position_out_4d);
+            break;
+          case NODE_VORONOI_F2:
+            voronoi_f2_4d(coord_4d,
+                          exponent,
+                          randomness,
+                          voronoi_metric,
+                          &distance_out,
+                          &color_out,
+                          &position_out_4d);
+            break;
+          case NODE_VORONOI_DISTANCE_TO_EDGE:
+            voronoi_distance_to_edge_4d(coord_4d, randomness, &distance_out);
+            break;
+          case NODE_VORONOI_N_SPHERE_RADIUS:
+            voronoi_n_sphere_radius_4d(coord_4d, randomness, &radius_out);
+            break;
+          default:
+            kernel_assert(0);
+        }
+        position_out_4d = safe_divide_float4_float(position_out_4d, scale);
+        position_out = make_float3(position_out_4d.x, position_out_4d.y, position_out_4d.z);
+        w_out = position_out_4d.w;
       }
-      position_out_4d = safe_divide_float4_float(position_out_4d, scale);
-      position_out = make_float3(position_out_4d.x, position_out_4d.y, position_out_4d.z);
-      w_out = position_out_4d.w;
       break;
     }
-#endif
     default:
       kernel_assert(0);
   }
@@ -1138,6 +1139,7 @@ ccl_device void svm_node_tex_voronoi(KernelGlobals *kg,
     stack_store_float(stack, w_out_stack_offset, w_out);
   if (stack_valid(radius_out_stack_offset))
     stack_store_float(stack, radius_out_stack_offset, radius_out);
+  return offset;
 }
 
 CCL_NAMESPACE_END
