@@ -150,16 +150,18 @@ void BKE_brush_resolve_channels(struct Brush *brush, struct Sculpt *sd);
 
 void BKE_brush_channelset_set_final_int(BrushChannelSet *brushset,
                                         BrushChannelSet *toolset,
-                                        char *idname,
+                                        const char *idname,
                                         int value);
 
 int BKE_brush_channelset_get_final_int(BrushChannelSet *brushset,
                                        BrushChannelSet *toolset,
-                                       char *idname,
+                                       const char *idname,
                                        BrushMappingData *mapdata);
 
-int BKE_brush_channelset_get_int(BrushChannelSet *chset, char *idname, BrushMappingData *mapdata);
-bool BKE_brush_channelset_set_int(BrushChannelSet *chset, char *idname, int val);
+int BKE_brush_channelset_get_int(BrushChannelSet *chset,
+                                 const char *idname,
+                                 BrushMappingData *mapdata);
+bool BKE_brush_channelset_set_int(BrushChannelSet *chset, const char *idname, int val);
 
 void BKE_brush_channel_set_int(BrushChannel *ch, int val);
 float BKE_brush_channel_get_int(BrushChannel *ch, BrushMappingData *mapdata);
@@ -172,18 +174,18 @@ void BKE_brush_channel_set_float(BrushChannel *ch, float val);
 
 /* mapdata may be NULL */
 float BKE_brush_channelset_get_float(BrushChannelSet *chset,
-                                     char *idname,
+                                     const char *idname,
                                      BrushMappingData *mapdata);
-bool BKE_brush_channelset_set_float(BrushChannelSet *chset, char *idname, float val);
+bool BKE_brush_channelset_set_float(BrushChannelSet *chset, const char *idname, float val);
 
 float BKE_brush_channelset_get_final_float(BrushChannelSet *child,
                                            BrushChannelSet *parent,
-                                           char *idname,
+                                           const char *idname,
                                            BrushMappingData *mapdata);
 
 void BKE_brush_channelset_set_final_float(BrushChannelSet *child,
                                           BrushChannelSet *parent,
-                                          char *idname,
+                                          const char *idname,
                                           float value);
 
 void BKE_brush_init_toolsettings(struct Sculpt *sd);

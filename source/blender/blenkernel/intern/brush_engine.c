@@ -641,7 +641,9 @@ void BKE_brush_resolve_channels(Brush *brush, Sculpt *sd)
   BKE_brush_channelset_merge(brush->channels_final, brush->channels, sd->channels);
 }
 
-int BKE_brush_channelset_get_int(BrushChannelSet *chset, char *idname, BrushMappingData *mapdata)
+int BKE_brush_channelset_get_int(BrushChannelSet *chset,
+                                 const char *idname,
+                                 BrushMappingData *mapdata)
 {
   BrushChannel *ch = BKE_brush_channelset_lookup(chset, idname);
 
@@ -709,7 +711,7 @@ void BKE_brush_channel_set_int(BrushChannel *ch, int val)
 
 int BKE_brush_channelset_get_final_int(BrushChannelSet *brushset,
                                        BrushChannelSet *toolset,
-                                       char *idname,
+                                       const char *idname,
                                        BrushMappingData *mapdata)
 {
   BrushChannel *ch = BKE_brush_channelset_lookup(brushset, idname);
@@ -733,7 +735,7 @@ int BKE_brush_channelset_get_final_int(BrushChannelSet *brushset,
 
 void BKE_brush_channelset_set_final_int(BrushChannelSet *brushset,
                                         BrushChannelSet *toolset,
-                                        char *idname,
+                                        const char *idname,
                                         int value)
 {
   BrushChannel *ch = BKE_brush_channelset_lookup(brushset, idname);
@@ -757,7 +759,7 @@ void BKE_brush_channelset_set_final_int(BrushChannelSet *brushset,
 
 float BKE_brush_channelset_get_final_float(BrushChannelSet *brushset,
                                            BrushChannelSet *toolset,
-                                           char *idname,
+                                           const char *idname,
                                            BrushMappingData *mapdata)
 {
   BrushChannel *ch = BKE_brush_channelset_lookup(brushset, idname);
@@ -781,7 +783,7 @@ float BKE_brush_channelset_get_final_float(BrushChannelSet *brushset,
 
 void BKE_brush_channelset_set_final_float(BrushChannelSet *brushset,
                                           BrushChannelSet *toolset,
-                                          char *idname,
+                                          const char *idname,
                                           float value)
 {
   BrushChannel *ch = BKE_brush_channelset_lookup(brushset, idname);
@@ -804,7 +806,7 @@ void BKE_brush_channelset_set_final_float(BrushChannelSet *brushset,
 }
 
 float BKE_brush_channelset_get_float(BrushChannelSet *chset,
-                                     char *idname,
+                                     const char *idname,
                                      BrushMappingData *mapdata)
 {
   BrushChannel *ch = BKE_brush_channelset_lookup(chset, idname);
@@ -875,7 +877,7 @@ void BKE_brush_channel_set_float(BrushChannel *ch, float val)
   ch->fvalue = val;
 }
 
-bool BKE_brush_channelset_set_float(BrushChannelSet *chset, char *idname, float val)
+bool BKE_brush_channelset_set_float(BrushChannelSet *chset, const char *idname, float val)
 {
   BrushChannel *ch = BKE_brush_channelset_lookup(chset, idname);
 
@@ -889,7 +891,7 @@ bool BKE_brush_channelset_set_float(BrushChannelSet *chset, char *idname, float 
   return true;
 }
 
-ATTR_NO_OPT bool BKE_brush_channelset_set_int(BrushChannelSet *chset, char *idname, int val)
+ATTR_NO_OPT bool BKE_brush_channelset_set_int(BrushChannelSet *chset, const char *idname, int val)
 {
   BrushChannel *ch = BKE_brush_channelset_lookup(chset, idname);
 

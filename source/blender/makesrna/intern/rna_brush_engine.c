@@ -45,7 +45,7 @@
 #include "DNA_sculpt_brush_types.h"
 #include "WM_types.h"
 
-static EnumPropertyItem null_enum[2] = {{0, "null", 0, 0}, {0, NULL, 0, NULL, NULL}};
+static EnumPropertyItem null_enum[2] = {{0, "null", ICON_NONE, "null"}, {0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -241,6 +241,50 @@ ATTR_NO_OPT const EnumPropertyItem *rna_BrushChannel_enum_value_get_items(struct
   return ch->def->rna_enumdef;
 }
 
+static int rna_enum_check_separator(CollectionPropertyIterator *UNUSED(iter), void *data)
+{
+  EnumPropertyItem *item = (EnumPropertyItem *)data;
+
+  return (item->identifier[0] == 0);
+}
+
+static void rna_BrushChannel_enum_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  /* EnumPropertyRNA *eprop; */ /* UNUSED */
+  const EnumPropertyItem *item = NULL;
+  int totitem;
+  bool free;
+
+  BrushChannel *ch = (BrushChannel *)ptr->data;
+
+  if (!ch->def || !ELEM(ch->type, BRUSH_CHANNEL_ENUM, BRUSH_CHANNEL_BITMASK)) {
+    if (!ch->def) {
+      printf("%s: channel '%s' had no definition\n", __func__, ch->idname);
+    }
+    else {
+      printf("%s: channel '%s' is not an enum/bitmask\n", __func__, ch->idname);
+    }
+
+    item = null_enum;
+
+    rna_iterator_array_begin(
+        iter, (void *)item, sizeof(EnumPropertyItem), 0, free, rna_enum_check_separator);
+    return;
+  }
+
+  BKE_brush_channeltype_rna_check(ch->def, lookup_icon_id);
+
+  totitem = 0;
+  while (ch->def->rna_enumdef[totitem].name) {
+    totitem++;
+  }
+
+  item = ch->def->rna_enumdef;
+
+  rna_iterator_array_begin(
+      iter, (void *)item, sizeof(EnumPropertyItem), totitem, free, rna_enum_check_separator);
+}
+
 #endif
 
 static EnumPropertyItem mapping_type_items[] = {
@@ -400,6 +444,20 @@ void RNA_def_brush_channel(BlenderRNA *brna)
                               "rna_BrushChannel_enum_value_get",
                               "rna_BrushChannel_enum_value_set",
                               "rna_BrushChannel_enum_value_get_items");
+
+  prop = RNA_def_property(srna, "enum_items", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
+  RNA_def_property_struct_type(prop, "EnumPropertyItem");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_BrushChannel_enum_items_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL);
+  RNA_def_property_ui_text(prop, "Items", "Possible values for the property");
 
   prop = RNA_def_property(srna, "flags_value", PROP_ENUM, PROP_UNIT_NONE);
   RNA_def_property_ui_text(prop, "Flags Value", "Flags values");

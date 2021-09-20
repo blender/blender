@@ -951,11 +951,26 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
 
         col.separator()
 
+        brush = sculpt.brush
+        UnifiedPaintPanel.channel_unified(
+                layout.column(),
+                context,
+                brush,
+                "automasking", toolsettings_only=True)
+        UnifiedPaintPanel.channel_unified(
+                layout.column(),
+                context,
+                brush,
+                "automasking_boundary_edges_propagation_steps",
+                toolsettings_only=True)
+
+        """
         col = layout.column(heading="Auto-Masking", align=True)
         col.prop(sculpt, "use_automasking_topology", text="Topology")
         col.prop(sculpt, "use_automasking_face_sets", text="Face Sets")
         col.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
         col.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
+        """
 
         col.separator()
         col.operator("sculpt.set_limit_surface")

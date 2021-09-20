@@ -320,7 +320,7 @@ BrushChannelType brush_builtin_channels[] = {
    {
      .name = "Automasking",
      .idname = "automasking",
-     .flag = BRUSH_CHANNEL_INHERIT_IF_UNSET | BRUSH_CHANNEL_INHERIT,
+     .flag = BRUSH_CHANNEL_INHERIT_IF_UNSET,
      .type = BRUSH_CHANNEL_BITMASK,
      .enumdef = {
          {BRUSH_AUTOMASKING_BOUNDARY_EDGES, "BOUNDARY_EDGE", ICON_NONE, "Boundary Edges", ""},
@@ -444,7 +444,12 @@ BrushChannelType brush_builtin_channels[] = {
     MAKE_FLOAT_EX("dyntopo_detail_size", "Detail Size", "Detail Size", 8.0f, 0.1f, 100.0f, 0.001f, 500.0f),
     MAKE_FLOAT_EX("dyntopo_constant_detail", "Constaint Detail", "", 3.0f, 0.001f, 1000.0f, 0.0001, FLT_MAX),
     MAKE_FLOAT_EX("dyntopo_spacing", "Spacing", "Dyntopo Spacing", 35.0f, 0.01f, 300.0f, 0.001f, 50000.0f),
-    MAKE_FLOAT_EX("dyntopo_radius_scale", "Radius Scale", "Scale brush radius for dyntopo radius", 1.0f, 0.001f, 3.0f, 0.0001f, 100.0f)
+    MAKE_FLOAT_EX("dyntopo_radius_scale", "Radius Scale", "Scale brush radius for dyntopo radius", 1.0f, 0.001f, 3.0f, 0.0001f, 100.0f),
+    MAKE_FLOAT("concave_mask_factor", "Cavity Factor", "", 0.35f, 0.0f, 1.0f),
+    MAKE_INT_EX("automasking_boundary_edges_propagation_steps", "Propagation Steps",
+      "Distance where boundary edge automasking is going to protect vertices "
+                           "from the fully masked edge", 1, 1, 20, 1, 3),
+
 };
 
 /* clang-format on */
@@ -536,6 +541,8 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(wet_persistence, wet_persistence, FLOAT, FLOAT)
   DEF(density, density, FLOAT, FLOAT)
   DEF(tip_scale_x, tip_scale_x, FLOAT, FLOAT)
+  DEF(concave_mask_factor, concave_mask_factor, FLOAT, FLOAT)
+  DEF(automasking_boundary_edges_propagation_steps, automasking_boundary_edges_propagation_steps, INT, INT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -881,7 +888,8 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH("normal_radius_factor");
 
   ADDCH("automasking");
-
+  ADDCH("automasking_boundary_edges_propagation_steps");
+  ADDCH("concave_mask_factor");
   ADDCH("dyntopo_disabled");
   ADDCH("dyntopo_mode")->flag |= BRUSH_CHANNEL_INHERIT;
   ADDCH("dyntopo_detail_range")->flag |= BRUSH_CHANNEL_INHERIT;
@@ -1026,6 +1034,8 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
 
   ADDCH("radius");
   ADDCH("strength");
+  ADDCH("automasking_boundary_edges_propagation_steps");
+  ADDCH("concave_mask_factor");
   ADDCH("automasking");
   ADDCH("topology_rake_mode");
 

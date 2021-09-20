@@ -253,6 +253,18 @@ typedef enum SculptCornerType {
   SCULPT_CORNER_SHARP = 1 << 3
 } SculptCornerType;
 
+/* Sculpt API to get brush channel data
+  If ss->cache exists then ss->cache->channels_final
+  will be used, otherwise brush and tool settings channels
+  will be used (taking inheritence into account).
+*/
+
+float SCULPT_get_float(const SculptSession *ss,
+                       const char *idname,
+                       const Sculpt *sd,
+                       const Brush *br);
+int SCULPT_get_int(const SculptSession *ss, const char *idname, const Sculpt *sd, const Brush *br);
+
 SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                          const SculptVertRef index,
                                          SculptCornerType cornertype);
@@ -450,7 +462,10 @@ struct AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss);
 struct AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, Object *ob);
 void SCULPT_automasking_cache_free(struct AutomaskingCache *automasking);
 
-bool SCULPT_is_automasking_mode_enabled(Sculpt *sd, const Brush *br, const eAutomasking_flag mode);
+bool SCULPT_is_automasking_mode_enabled(const SculptSession *ss,
+                                        const Sculpt *sd,
+                                        const Brush *br,
+                                        const eAutomasking_flag mode);
 bool SCULPT_is_automasking_enabled(Sculpt *sd, const SculptSession *ss, const Brush *br);
 
 typedef enum eBoundaryAutomaskMode {
@@ -1081,6 +1096,7 @@ typedef struct AutomaskingCache {
    * initialized in #SCULPT_automasking_cache_init when needed. */
   // float *factor;
   SculptCustomLayer *factorlayer;
+  float concave_mask_factor;
 } AutomaskingCache;
 
 typedef struct StrokeCache {

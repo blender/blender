@@ -134,6 +134,40 @@ static void do_symmetrical_brush_actions(Sculpt *sd,
                                          BrushActionFunc action,
                                          UnifiedPaintSettings *ups);
 
+/* Sculpt API to get brush channel data
+  If ss->cache exists then ss->cache->channels_final
+  will be used, otherwise brush and tool settings channels
+  will be used (taking inheritence into account).
+*/
+
+ATTR_NO_OPT float SCULPT_get_float(const SculptSession *ss,
+                                   const char *idname,
+                                   const Sculpt *sd,
+                                   const Brush *br)
+{
+  if (ss->cache && ss->cache->channels_final) {
+    return BKE_brush_channelset_get_float(
+        ss->cache->channels_final, idname, &ss->cache->input_mapping);
+  }
+  else {
+    return BKE_brush_channelset_get_final_float(br->channels, sd->channels, idname, NULL);
+  }
+}
+
+ATTR_NO_OPT int SCULPT_get_int(const SculptSession *ss,
+                               const char *idname,
+                               const Sculpt *sd,
+                               const Brush *br)
+{
+  if (ss->cache && ss->cache->channels_final) {
+    return BKE_brush_channelset_get_int(
+        ss->cache->channels_final, idname, &ss->cache->input_mapping);
+  }
+  else {
+    return BKE_brush_channelset_get_final_int(br->channels, sd->channels, idname, NULL);
+  }
+}
+
 /* Sculpt PBVH abstraction API
  *
  * This is read-only, for writing use PBVH vertex iterators. There vd.index matches
@@ -8835,7 +8869,7 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
   BKE_brush_commandlist_start(list, brush, ss->cache->channels_final);
 
   // this does a more high-level check then SCULPT_TOOL_HAS_DYNTOPO;
-  bool has_dyntopo = SCULPT_stroke_is_dynamic_topology(ss, brush);
+  bool has_dyntopo = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
   bool all_nodes_undo = false;
   bool cloth_nodes_undo = false;
 
@@ -9239,7 +9273,9 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
         SCULPT_uv_brush(sd, ob, nodes, totnode);
         break;
       case SCULPT_TOOL_TOPOLOGY_RAKE:
-        bmesh_topology_rake(sd, ob, nodes, totnode, brush2->alpha);
+        if (ss->bm) {
+          bmesh_topology_rake(sd, ob, nodes, totnode, brush2->alpha);
+        }
         break;
       case SCULPT_TOOL_DYNTOPO:
         if (has_dyntopo) {

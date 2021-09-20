@@ -108,7 +108,8 @@ class UnifiedPaintPanel:
         return None
 
     @staticmethod
-    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None, slider=False, header=False, expand=None):
+    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None,
+                        slider=False, header=False, expand=None, toolsettings_only=False):
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle, if they exist. """
         ch = brush.channels.channels[prop_name]
@@ -118,6 +119,9 @@ class UnifiedPaintPanel:
 
         #if ch.ui_expanded:
         #    layout = layout.box().column() #.column() is a bit more compact
+
+        if ch.type == "BITMASK":
+            layout = layout.box()
 
         row = layout.row(align=True)
 
@@ -139,18 +143,35 @@ class UnifiedPaintPanel:
             text = text.strip()
 
         path = ""
+        is_toolset = False
 
-        if ch.inherit:
+        if ch.inherit or toolsettings_only:
             sd = context.tool_settings.sculpt
             #ensure channel exists in tool settings channel set
             sd.channels.ensure(ch)
 
             finalch = sd.channels.channels[prop_name]
+            is_toolset = True
             path = "tool_settings.sculpt.channels.channels[\"%s\"]" % ch.idname
         else:
             path = "tool_settings.sculpt.brush.channels.channels[\"%s\"]" % ch.idname
 
-        if expand is not None:
+        if ch.type == "BITMASK":
+            row.label(text=text)
+
+            if header:
+                row.prop_menu_enum(finalch, typeprop)
+            else:
+                col = layout.column()
+                col.emboss = "NONE"
+                for item in finalch.enum_items:
+                    if item.identifier in finalch.flags_value:
+                        itemicon = "CHECKBOX_HLT"
+                    else:
+                        itemicon = "CHECKBOX_DEHLT"
+                    col.prop_enum(finalch, typeprop, item.identifier, icon=itemicon)
+
+        elif expand is not None:
             row.prop(finalch, typeprop, icon=icon, text=text, slider=slider, expand=expand)
         else:
             row.prop(finalch, typeprop, icon=icon, text=text, slider=slider)
@@ -166,7 +187,15 @@ class UnifiedPaintPanel:
         #    # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
         #    row.prop(ups, unified_name, text="", icon='BRUSHES_ALL')
         if not header and ch.type != "BOOL":
-            row.prop(ch, "inherit", text="", icon='BRUSHES_ALL')
+            if ch.type == "BITMASK" and not toolsettings_only and ch == finalch:
+                row.prop(ch, "inherit_if_unset", text="Combine With Defaults")
+
+            if not toolsettings_only:
+                row.prop(ch, "inherit", text="", icon='BRUSHES_ALL')
+
+            if ch.type == "BITMASK":
+                return
+
             row.prop(ch, "ui_expanded", text="", icon="TRIA_DOWN" if ch.ui_expanded else "TRIA_RIGHT")
 
             if ch.ui_expanded:
@@ -1163,6 +1192,18 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         use_accumulate = capabilities.has_accumulate
         use_frontface = True
 
+        UnifiedPaintPanel.channel_unified(
+                layout.column(),
+                context,
+                brush,
+                "automasking", expand=False)
+        UnifiedPaintPanel.channel_unified(
+                layout.column(),
+                context,
+                brush,
+                "automasking_boundary_edges_propagation_steps")
+
+        """
         col = layout.column(heading="Auto-Masking", align=True)
 
         # topology automasking
@@ -1183,6 +1224,7 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         col.prop(brush, "use_automasking_boundary_edges", text="Mesh Boundary")
         col.prop(brush, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
         col.prop(brush, "automasking_boundary_edges_propagation_steps")
+        """
 
         layout.separator()
 
