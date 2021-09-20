@@ -604,6 +604,9 @@ geometry_node_categories = [
         NodeItem("FunctionNodeFloatToInt"),
         NodeItem("GeometryNodeSwitch"),
     ]),
+    GeometryNodeCategory("GEO_TEXTURE", "Texture", items=[
+        NodeItem("ShaderNodeTexNoise", poll=geometry_nodes_fields_poll),
+    ]),
     GeometryNodeCategory("GEO_VECTOR", "Vector", items=[
         NodeItem("ShaderNodeVectorCurve"),
         NodeItem("ShaderNodeSeparateXYZ"),
