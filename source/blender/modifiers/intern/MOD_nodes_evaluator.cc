@@ -321,6 +321,17 @@ static const CPPType *get_socket_cpp_type(const DSocket socket)
 
 static void get_socket_value(const SocketRef &socket, void *r_value)
 {
+  const bNodeSocket &bsocket = *socket.bsocket();
+  /* This is not supposed to be a long term solution. Eventually we want that nodes can specify
+   * more complex defaults (other than just single values) in their socket declarations. */
+  if (bsocket.flag & SOCK_HIDE_VALUE) {
+    const bNode &bnode = *socket.bnode();
+    if (bsocket.type == SOCK_VECTOR && bnode.type == GEO_NODE_SET_POSITION) {
+      new (r_value) Field<float3>(
+          std::make_shared<bke::AttributeFieldInput>("position", CPPType::get<float3>()));
+      return;
+    }
+  }
   const bNodeSocketType *typeinfo = socket.typeinfo();
   typeinfo->get_geometry_nodes_cpp_value(*socket.bsocket(), r_value);
 }
