@@ -270,9 +270,10 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 
 void SCREEN_OT_screenshot_area(wmOperatorType *ot)
 {
-  ot->name = "Save Screenshot (Area)";
+  /* NOTE: the term "area" is a Blender internal name, "Editor" makes more sense for the UI. */
+  ot->name = "Save Screenshot (Editor)";
   ot->idname = "SCREEN_OT_screenshot_area";
-  ot->description = "Capture a picture of the active area";
+  ot->description = "Capture a picture of an editor";
 
   screen_screenshot_impl(ot);
 
