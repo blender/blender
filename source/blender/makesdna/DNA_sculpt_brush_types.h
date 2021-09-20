@@ -31,7 +31,9 @@ struct GHash;
 
 typedef struct BrushMapping {
   char name[64];
-  CurveMapping curve;
+
+  /*reference to a cached curve, see BKE_curvemapping_cache*/
+  CurveMapping *curve;
   float factor;
   short blendmode;
   short input_channel;

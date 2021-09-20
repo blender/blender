@@ -835,6 +835,31 @@ void **BLI_ghash_lookup_p(GHash *gh, const void *key)
 }
 
 /**
+ * Lookup a pointer to the value of \a key in \a gh.
+ *
+ * \param key: The key to lookup.
+ * \returns true if the value was found
+ *
+ * \note This has 2 main benefits over #BLI_ghash_lookup.
+ * - The value can be modified in-place without further function calls (faster).
+ * - The key as stored in the ghash in returned
+ */
+bool BLI_ghash_lookup_p_ex(GHash *gh, const void *key, void **r_key, void ***r_val)
+{
+  GHashEntry *e = (GHashEntry *)ghash_lookup_entry(gh, key);
+  BLI_assert(!(gh->flag & GHASH_FLAG_IS_GSET));
+
+  if (e) {
+    *r_key = e->e.key;
+    *r_val = &e->val;
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+/**
  * Ensure \a key is exists in \a gh.
  *
  * This handles the common situation where the caller needs ensure a key is added to \a gh,

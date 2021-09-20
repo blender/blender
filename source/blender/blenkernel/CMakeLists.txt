@@ -291,6 +291,7 @@ set(SRC
   intern/writeavi.c
   intern/brush_engine.c
   intern/brush_engine_presets.c
+  intern/curvemapping_cache.c
 
   BKE_DerivedMesh.h
   BKE_action.h
@@ -339,6 +340,7 @@ set(SRC
   BKE_curveprofile.h
   BKE_customdata.h
   BKE_customdata_file.h
+  BKE_curvemapping_cache.h
   BKE_data_transfer.h
   BKE_deform.h
   BKE_displist.h

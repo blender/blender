@@ -24,6 +24,8 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -41,6 +43,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_image.h"
@@ -655,6 +658,130 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 
   prop = RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
+}
+
+/**
+ * Attempt to retrieve the rna pointer/property from an rna path.
+ *
+ * \return 0 for failure, 1 for success, and also 1 if property is not set.
+ */
+static int curvemapping_preset_get_path(
+    PointerRNA *ctx_ptr, wmOperator *op, const char *name, PointerRNA *r_ptr, PropertyRNA **r_prop)
+{
+  PropertyRNA *unused_prop;
+
+  /* get an rna string path from the operator's properties */
+  char *str;
+  if (!(str = RNA_string_get_alloc(op->ptr, name, NULL, 0, NULL))) {
+    return 1;
+  }
+
+  if (str[0] == '\0') {
+    if (r_prop) {
+      *r_prop = NULL;
+    }
+    MEM_freeN(str);
+    return 1;
+  }
+
+  if (!r_prop) {
+    r_prop = &unused_prop;
+  }
+
+  /* get rna from path */
+  if (!RNA_path_resolve(ctx_ptr, str, r_ptr, r_prop)) {
+    MEM_freeN(str);
+
+    BKE_reportf(op->reports, RPT_ERROR, "Could not resolve path '%s'", name);
+    return 0;
+  }
+
+  if (*r_prop) {
+    PropertyType prop_type = RNA_property_type(*r_prop);
+    if (!*r_prop || prop_type != PROP_POINTER) {
+      MEM_freeN(str);
+      BKE_reportf(op->reports, RPT_ERROR, "Property from path '%s' is not a curve", name);
+      return 0;
+    }
+
+    if (RNA_property_pointer_type(r_ptr, *r_prop) != &RNA_CurveMapping) {
+      MEM_freeN(str);
+      BKE_reportf(op->reports, RPT_ERROR, "Property from path '%s' is not a curve", name);
+      return 0;
+    }
+  }
+  else if (r_ptr->type != &RNA_CurveMapping) {
+    MEM_freeN(str);
+    BKE_reportf(op->reports, RPT_ERROR, "Property from path '%s' is not a curve", name);
+    return 0;
+  }
+
+  /* success */
+  MEM_freeN(str);
+  return 1;
+}
+
+ATTR_NO_OPT static int curvemapping_preset_exec(bContext *C, wmOperator *op)
+{
+  Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
+
+  PointerRNA ctx_ptr;
+  RNA_pointer_create(NULL, &RNA_Context, C, &ctx_ptr);
+
+  PointerRNA ptr;
+  PropertyRNA *prop;
+
+  if (!curvemapping_preset_get_path(&ctx_ptr, op, "path", &ptr, &prop)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  CurveMapping *cumap = prop ? RNA_property_pointer_get(&ptr, prop).data : ptr.data;
+  int preset = RNA_enum_get(op->ptr, "shape");
+
+  cumap->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+  cumap->preset = preset;
+
+  CurveMap *cuma = cumap->cm;
+
+  int slope = RNA_boolean_get(op->ptr, "invert") ? CURVEMAP_SLOPE_NEGATIVE :
+                                                   CURVEMAP_SLOPE_POSITIVE;
+
+  BKE_curvemap_reset(cuma, &cumap->clipr, cumap->preset, slope);
+  BKE_curvemapping_changed(cumap, false);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool curvemapping_preset_poll(bContext *C)
+{
+  return true;
+}
+
+void BRUSH_OT_curve_preset_load(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+  static const EnumPropertyItem prop_shape_items[] = {
+      {CURVE_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
+      {CURVE_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+      {CURVE_PRESET_MAX, "MAX", 0, "Max", ""},
+      {CURVE_PRESET_LINE, "LINE", 0, "Line", ""},
+      {CURVE_PRESET_ROUND, "ROUND", 0, "Round", ""},
+      {CURVE_PRESET_ROOT, "ROOT", 0, "Root", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  ot->name = "Preset";
+  ot->description = "Load Curve Preset";
+  ot->idname = "BRUSH_OT_curve_preset_load";
+
+  ot->exec = curvemapping_preset_exec;
+  ot->poll = curvemapping_preset_poll;
+
+  prop = RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
+
+  prop = RNA_def_string(ot->srna, "path", NULL, 256, "rna path", "RNA path to curve mapping");
+  prop = RNA_def_boolean(ot->srna, "invert", false, "invert", "Invert curve");
 }
 
 /* face-select ops */

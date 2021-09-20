@@ -141,7 +141,10 @@ PointerRNA rna_BrushMapping_curve_get(PointerRNA *ptr)
 {
   BrushMapping *mapping = (BrushMapping *)ptr->data;
 
-  return rna_pointer_inherit_refine(ptr, &RNA_CurveMapping, &mapping->curve);
+  // make sure we can write to curve
+  BKE_brush_mapping_ensure_write(mapping);
+
+  return rna_pointer_inherit_refine(ptr, &RNA_CurveMapping, mapping->curve);
 }
 
 int rna_BrushChannel_mappings_begin(CollectionPropertyIterator *iter, struct PointerRNA *ptr)
@@ -205,11 +208,9 @@ int rna_BrushChannel_enum_value_set(PointerRNA *ptr, int val)
   return 1;
 }
 
-extern EnumPropertyItem *rna_enum_icon_items;
-
 int lookup_icon_id(const char *icon)
 {
-  EnumPropertyItem *item = rna_enum_icon_items;
+  const EnumPropertyItem *item = rna_enum_icon_items;
   int i = 0;
 
   while (item->identifier) {

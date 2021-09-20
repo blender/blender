@@ -880,8 +880,11 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_smooth_shading")
         col.prop(sculpt, "use_flat_vcol_shading")
 
-        col.prop(sculpt, "dyntopo_spacing")
-        col.prop(sculpt, "dyntopo_radius_scale");
+        UnifiedPaintPanel.channel_unified(layout, context, brush, "dyntopo_spacing", slider=True)
+        UnifiedPaintPanel.channel_unified(layout, context, brush, "dyntopo_radius_scale", slider=True)
+        
+        #col.prop(sculpt, "dyntopo_spacing")
+        #col.prop(sculpt, "dyntopo_radius_scale");
 
 
 class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):

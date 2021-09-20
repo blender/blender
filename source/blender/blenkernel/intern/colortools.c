@@ -85,7 +85,8 @@ void BKE_curvemapping_set_defaults(
   cumap->changed_timestamp = 0;
 }
 
-ATTR_NO_OPT CurveMapping *BKE_curvemapping_add(int tot, float minx, float miny, float maxx, float maxy)
+ATTR_NO_OPT CurveMapping *BKE_curvemapping_add(
+    int tot, float minx, float miny, float maxx, float maxy)
 {
   CurveMapping *cumap;
 
@@ -140,7 +141,15 @@ void BKE_curvemapping_copy_data_tag_ex(CurveMapping *target,
 {
   int a;
 
+  bool not_cache = !(target->flag & CUMA_PART_OF_CACHE);
+
   *target = *cumap;
+
+  if (not_cache) {
+    target->flag &= ~CUMA_PART_OF_CACHE;
+  }
+
+  target->cache_users = 0;
 
   for (a = 0; a < CM_TOT; a++) {
     if (cumap->cm[a].curve) {
@@ -159,7 +168,13 @@ void BKE_curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
 {
   int a;
 
+  bool not_cache = !(target->flag & CUMA_PART_OF_CACHE);
+
   *target = *cumap;
+
+  if (not_cache) {
+    target->flag &= ~CUMA_PART_OF_CACHE;
+  }
 
   for (a = 0; a < CM_TOT; a++) {
     if (cumap->cm[a].curve) {
@@ -174,11 +189,12 @@ void BKE_curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
   }
 }
 
-CurveMapping *BKE_curvemapping_copy(const CurveMapping *cumap)
+ATTR_NO_OPT CurveMapping *BKE_curvemapping_copy(const CurveMapping *cumap)
 {
   if (cumap) {
     CurveMapping *cumapn = MEM_dupallocN(cumap);
     BKE_curvemapping_copy_data(cumapn, cumap);
+    cumapn->flag &= ~CUMA_PART_OF_CACHE;
     return cumapn;
   }
   return NULL;
@@ -1345,7 +1361,7 @@ ATTR_NO_OPT void BKE_curvemapping_curves_blend_write(BlendWriter *writer,
 void BKE_curvemapping_blend_read(BlendDataReader *reader, CurveMapping *cumap)
 {
   /* flag seems to be able to hang? Maybe old files... not bad to clear anyway */
-  cumap->flag &= ~CUMA_PREMULLED;
+  cumap->flag &= ~(CUMA_PREMULLED | CUMA_PART_OF_CACHE);
 
   for (int a = 0; a < CM_TOT; a++) {
     BLO_read_data_address(reader, &cumap->cm[a].curve);

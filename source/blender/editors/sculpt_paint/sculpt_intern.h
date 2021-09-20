@@ -1275,6 +1275,8 @@ typedef struct StrokeCache {
 
   struct PaintStroke *stroke;
   struct bContext *C;
+
+  struct BrushCommandList *commandlist;
 } StrokeCache;
 
 /* Sculpt Filters */

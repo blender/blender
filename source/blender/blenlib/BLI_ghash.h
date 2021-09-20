@@ -101,6 +101,22 @@ void *BLI_ghash_lookup_default(const GHash *gh,
                                const void *key,
                                void *val_default) ATTR_WARN_UNUSED_RESULT;
 void **BLI_ghash_lookup_p(GHash *gh, const void *key) ATTR_WARN_UNUSED_RESULT;
+/**
+ * Lookup a pointer to the value of \a key in \a gh.
+ *
+ * \param key: The key to lookup.
+ * \param r_key: Pointer to variable to store the key as stored in the ghash
+ * \param r_val: Similar to BLI_ghash_ensure_p, pointer to the ghash pointer
+ * that stores the value
+ *
+ * \returns true if the value was found
+ *
+ * \note This has 2 main benefits over #BLI_ghash_lookup.
+ * - The value can be modified in-place without further function calls (faster).
+ * - The key as stored in the ghash is returned in r_key
+ */
+bool BLI_ghash_lookup_p_ex(GHash *gh, const void *key, void **r_key, void ***r_val);
+
 bool BLI_ghash_ensure_p(GHash *gh, void *key, void ***r_val) ATTR_WARN_UNUSED_RESULT;
 bool BLI_ghash_ensure_p_ex(GHash *gh, const void *key, void ***r_key, void ***r_val)
     ATTR_WARN_UNUSED_RESULT;

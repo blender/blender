@@ -56,6 +56,7 @@
 #include "BKE_blendfile.h"
 #include "BKE_callbacks.h"
 #include "BKE_context.h"
+#include "BKE_curvemapping_cache.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -635,6 +636,8 @@ void WM_exit_ex(bContext *C, const bool do_python)
   RNA_exit(); /* should be after BPY_python_end so struct python slots are cleared */
 
   GPU_backend_exit();
+
+  BKE_curvemapping_cache_exit();
 
   wm_ghost_exit();
 

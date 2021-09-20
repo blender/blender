@@ -1306,6 +1306,7 @@ void ED_operatortypes_paint(void)
   WM_operatortype_append(BRUSH_OT_add_gpencil);
   WM_operatortype_append(BRUSH_OT_scale_size);
   WM_operatortype_append(BRUSH_OT_curve_preset);
+  WM_operatortype_append(BRUSH_OT_curve_preset_load);
   WM_operatortype_append(BRUSH_OT_reset);
   WM_operatortype_append(BRUSH_OT_stencil_control);
   WM_operatortype_append(BRUSH_OT_stencil_fit_image_aspect);

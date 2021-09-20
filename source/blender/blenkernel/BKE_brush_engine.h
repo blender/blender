@@ -51,6 +51,7 @@ struct BrushChannel;
 struct BlendWriter;
 struct BlendDataReader;
 struct Brush;
+struct Sculpt;
 
 typedef struct BrushMappingDef {
   int curve;
@@ -97,8 +98,10 @@ typedef struct BrushChannelType {
 
 typedef struct BrushCommand {
   int tool;
+  float last_spacing_t[512];  // for different symmetry passes
   struct BrushChannelSet *params;
   struct BrushChannelSet *params_final;
+  struct BrushChannelSet *params_mapped;
 } BrushCommand;
 
 typedef struct BrushCommandList {
@@ -144,18 +147,24 @@ void BKE_brush_channelset_merge(BrushChannelSet *dst,
                                 BrushChannelSet *parent);
 
 void BKE_brush_resolve_channels(struct Brush *brush, struct Sculpt *sd);
-int BKE_brush_channelset_get_int(BrushChannelSet *chset, char *idname);
 
-// mapdata is optional, can be NULL
-
-float BKE_brush_channel_get_final_float(BrushChannelSet *brushset,
+void BKE_brush_channelset_set_final_int(BrushChannelSet *brushset,
                                         BrushChannelSet *toolset,
                                         char *idname,
-                                        BrushMappingData *mapdata);
-void BKE_brush_channel_set_final_float(BrushChannelSet *brushset,
+                                        int value);
+
+int BKE_brush_channelset_get_final_int(BrushChannelSet *brushset,
                                        BrushChannelSet *toolset,
                                        char *idname,
-                                       float value);
+                                       BrushMappingData *mapdata);
+
+int BKE_brush_channelset_get_int(BrushChannelSet *chset, char *idname, BrushMappingData *mapdata);
+bool BKE_brush_channelset_set_int(BrushChannelSet *chset, char *idname, int val);
+
+void BKE_brush_channel_set_int(BrushChannel *ch, int val);
+float BKE_brush_channel_get_int(BrushChannel *ch, BrushMappingData *mapdata);
+
+// mapdata is optional, can be NULL
 
 /* mapdata may be NULL */
 float BKE_brush_channel_get_float(BrushChannel *ch, BrushMappingData *mapdata);
@@ -212,6 +221,10 @@ void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
 void BKE_brush_apply_queued_channels(BrushChannelSet *chset, bool do_override);
 void BKE_brush_channeltype_rna_check(BrushChannelType *def,
                                      int (*getIconFromName)(const char *name));
+bool BKE_brush_mapping_ensure_write(BrushMapping *mp);
+
+void BKE_brush_channelset_apply_mapping(BrushChannelSet *chset, BrushMappingData *mapdata);
+void BKE_brush_check_toolsettings(struct Sculpt *sd);
 
 #ifdef __cplusplus
 }

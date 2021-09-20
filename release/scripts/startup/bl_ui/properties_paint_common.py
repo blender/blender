@@ -23,7 +23,7 @@ channel_name_map = {
     "size" : "radius",
     "autosmooth_fset_slide":"fset_slide",
     "auto_smooth_factor": "autosmooth",
-    "auto_smooth_projection": "smooth_projection",
+    "auto_smooth_projection": "autosmooth_projection",
     "auto_smooth_radius_factor": "autosmooth_radius_scale",
     "boundary_smooth_factor": "boundary_smooth",
     "autosmooth_fset_slide": "fset_slide",
@@ -108,7 +108,7 @@ class UnifiedPaintPanel:
         return None
 
     @staticmethod
-    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None, slider=False, header=False):
+    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None, slider=False, header=False, expand=None):
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle, if they exist. """
         ch = brush.channels.channels[prop_name]
@@ -126,6 +126,10 @@ class UnifiedPaintPanel:
             typeprop = "int_value"
         elif ch.type == "BOOL":
             typeprop = "bool_value"
+        elif ch.type == "ENUM":
+            typeprop = "enum_value"
+        elif ch.type == "BITMASK":
+            typeprop = "flags_value"
 
         if text is None:
             s = prop_name.lower().replace("_", " ").split(" ");
@@ -134,16 +138,24 @@ class UnifiedPaintPanel:
                 text += k[0].upper() + k[1:] + " "
             text = text.strip()
 
+        path = ""
+
         if ch.inherit:
             sd = context.tool_settings.sculpt
             #ensure channel exists in tool settings channel set
             sd.channels.ensure(ch)
 
             finalch = sd.channels.channels[prop_name]
+            path = "tool_settings.sculpt.channels.channels[\"%s\"]" % ch.idname
+        else:
+            path = "tool_settings.sculpt.brush.channels.channels[\"%s\"]" % ch.idname
 
-        row.prop(finalch, typeprop, icon=icon, text=text, slider=slider)
+        if expand is not None:
+            row.prop(finalch, typeprop, icon=icon, text=text, slider=slider, expand=expand)
+        else:
+            row.prop(finalch, typeprop, icon=icon, text=text, slider=slider)
 
-        pressure = pressure and ch.type != "BOOL"
+        pressure = pressure and ch.type not in ["BOOL", "ENUM", "BITMASK"]
             
         if pressure:
             row.prop(finalch.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
@@ -176,12 +188,17 @@ class UnifiedPaintPanel:
 
                         col = layout.column(align=True)
                         row = col.row(align=True)
-                        row.operator("brush.curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
-                        row.operator("brush.curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
-                        row.operator("brush.curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
-                        row.operator("brush.curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
-                        row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
-                        row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
+
+                        path2 = path + ".mappings[\"%s\"].curve" % (mp.type)
+
+                        shapes = ['SMOOTH', 'ROUND', 'ROOT', 'SHARP', 'LINE', 'MAX']
+                        icons = ['SMOOTHCURVE', 'SPHERECURVE', 'ROOTCURVE', 'SHARPCURVE', 'LINCURVE', 'NOCURVE']
+
+                        for i, shape in enumerate(shapes):
+                            props = row.operator("brush.curve_preset_load", icon=icons[i], text="")
+                            props.shape = shape
+                            props.path = path2
+                        
                     #row2.prop(mp, "curve")
 
         return row
@@ -1073,7 +1090,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
                 layout,
                 context,
                 brush,
-                "RADIUS" if size_prop == "size" else size_prop.upper(),
+                "radius" if size_prop == "size" else size_prop.upper(),
                 text="Radius",
                 slider=True,
             )
@@ -1101,7 +1118,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             layout,
             context,
             brush,
-            "STRENGTH",
+            "strength",
             slider=True
         )
         layout.separator()
@@ -1118,7 +1135,12 @@ def brush_shared_settings(layout, context, brush, popover=False):
         )
         layout.separator()
     if direction:
-        layout.row().prop(brush, "direction", expand=True)
+        UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "direction", expand=True)
+        #layout.row().prop(brush, "direction", expand=True)
 
 
 def brush_settings_advanced(layout, context, brush, popover=False):

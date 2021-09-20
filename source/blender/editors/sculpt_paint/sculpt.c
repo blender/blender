@@ -3553,10 +3553,10 @@ static void calc_area_normal_and_center(
  * values pull vertices, negative values push. Uses tablet pressure and a
  * special multiplier found experimentally to scale the strength factor.
  */
-static float brush_strength(const Sculpt *sd,
-                            const StrokeCache *cache,
-                            const float feather,
-                            const UnifiedPaintSettings *ups)
+ATTR_NO_OPT static float brush_strength(const Sculpt *sd,
+                                        const StrokeCache *cache,
+                                        const float feather,
+                                        const UnifiedPaintSettings *ups)
 {
   const Scene *scene = cache->vc->scene;
   const Brush *brush = BKE_paint_brush((Paint *)&sd->paint);
@@ -8393,15 +8393,21 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
            SCULPT_TOOL_CLAY_STRIPS,
            SCULPT_TOOL_CLAY,
            SCULPT_TOOL_CREASE,
-           SCULPT_TOOL_CLOTH)) {
-    // SCULPT_run_command_list
-    BrushCommandList *list = BKE_brush_commandlist_create();
-    BKE_builtin_commandlist_create(
-        brush, ss->cache->channels_final, list, brush->sculpt_tool, &ss->cache->input_mapping);
+           SCULPT_TOOL_CLOTH,
+           SCULPT_TOOL_SIMPLIFY)) {
 
-    SCULPT_run_command_list(sd, ob, brush, list, ups);
+    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+      if (ss->cache->commandlist) {
+        BKE_brush_commandlist_free(ss->cache->commandlist);
+      }
 
-    BKE_brush_commandlist_free(list);
+      BrushCommandList *list = ss->cache->commandlist = BKE_brush_commandlist_create();
+
+      BKE_builtin_commandlist_create(
+          brush, ss->cache->channels_final, list, brush->sculpt_tool, &ss->cache->input_mapping);
+    }
+
+    SCULPT_run_command_list(sd, ob, brush, ss->cache->commandlist, ups);
 
     return;
   }
@@ -8843,10 +8849,16 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
     // Load parameters into brush2 for compatibility with old code
     BKE_brush_channelset_compat_load(cmd->params_final, &brush2, false);
 
+    ss->cache->brush = &brush2;
+
+    ss->cache->bstrength = brush_strength(
+        sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
+
     /* With these options enabled not all required nodes are inside the original brush radius, so
      * the brush can produce artifacts in some situations. */
-    if (cmd->tool == SCULPT_TOOL_DRAW &&
-        BKE_brush_channelset_get_int(cmd->params_final, "original_normal")) {
+    if (cmd->tool == SCULPT_TOOL_DRAW && BKE_brush_channelset_get_int(cmd->params_final,
+                                                                      "original_normal",
+                                                                      &ss->cache->input_mapping)) {
       radius_scale = MAX2(radius_scale, 2.0f);
     }
 
@@ -8865,6 +8877,7 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
         ss->cache->channels_final, "radius", &ss->cache->input_mapping);
 
     radius_max = max_ff(radius_max, radius);
+    ss->cache->brush = brush;
   }
 
   float ratio = radius_max / BKE_brush_channelset_get_float(
@@ -9007,16 +9020,38 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
   for (int step = 0; step < list->totcommand; step++) {
     BrushCommand *cmd = list->commands + step;
 
+    BKE_brush_channelset_free(cmd->params_mapped);
+    cmd->params_mapped = BKE_brush_channelset_copy(cmd->params_final);
+    BKE_brush_channelset_apply_mapping(cmd->params_mapped, &ss->cache->input_mapping);
+
+    float spacing = BKE_brush_channelset_get_float(cmd->params_mapped, "spacing", NULL) / 100.0f;
+
+    printf("p %f s %f\n",
+           ss->cache->input_mapping.pressure,
+           spacing);  //// cmd->last_spacing_t[SCULPT_get_symmetry_pass(ss)]);
+
+    bool noskip = paint_stroke_apply_subspacing(
+        ss->cache->stroke,
+        spacing,
+        PAINT_MODE_SCULPT,
+        &cmd->last_spacing_t[SCULPT_get_symmetry_pass(ss)]);
+
+    if (!noskip) {
+      continue;
+    }
+
     *brush2 = *brush;
 
-    ss->cache->brush = brush2;
-    ss->cache->bstrength = BKE_brush_channelset_get_float(
-        cmd->params_final, "strength", &ss->cache->input_mapping);
-
     // Load parameters into brush2 for compatibility with old code
-    BKE_brush_channelset_compat_load(cmd->params_final, brush2, false);
+    // Make sure to remove all pen pressure/tilt old code
+    BKE_brush_channelset_compat_load(cmd->params_mapped, brush2, false);
 
     brush2->sculpt_tool = cmd->tool;
+
+    ss->cache->brush = brush2;
+
+    ss->cache->bstrength = brush_strength(
+        sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
 
     /*Search PBVH*/
     if (step > 0) {
@@ -9862,6 +9897,10 @@ void SCULPT_cache_free(SculptSession *ss, StrokeCache *cache)
   MEM_SAFE_FREE(cache->prev_colors);
   MEM_SAFE_FREE(cache->detail_directions);
 
+  if (ss->cache->commandlist) {
+    BKE_brush_commandlist_free(ss->cache->commandlist);
+  }
+
   if (ss->cache->fairing_mask) {
     SCULPT_temp_customlayer_release(ss, ATTR_DOMAIN_POINT, CD_PROP_BOOL, ss->cache->fairing_mask);
   }
@@ -10411,6 +10450,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
   if (paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT) || cache->first_time) {
     cache->pressure = RNA_float_get(ptr, "pressure");
     cache->input_mapping.pressure = cache->pressure;
+    printf("pressure: %f\n", cache->pressure);
   }
 
   cache->x_tilt = RNA_float_get(ptr, "x_tilt");
@@ -11239,8 +11279,7 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
   BKE_brush_channelset_compat_load(ss->cache->channels_final, brush, false);
   BKE_brush_channelset_to_unified_settings(ss->cache->channels_final, ups);
 
-  ss->cache->bstrength = BKE_brush_channelset_get_float(
-      ss->cache->channels_final, "strength", &ss->cache->input_mapping);
+  ss->cache->bstrength = brush_strength(sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
 
   if (ss->cache->invert) {
     brush->alpha = -brush->alpha;
@@ -11300,7 +11339,7 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
                                    brush->cached_dyntopo.detail_range);
   }
 
-  if (SCULPT_stroke_is_dynamic_topology(ss, brush)) {
+  if (0 && !ss->cache->commandlist && SCULPT_stroke_is_dynamic_topology(ss, brush)) {
     float spacing = (float)brush->cached_dyntopo.spacing / 100.0f;
 
     if (paint_stroke_apply_subspacing(

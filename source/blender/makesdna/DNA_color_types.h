@@ -92,7 +92,8 @@ typedef struct CurveMapping {
   float sample[3];
 
   short tone;
-  char _pad[6];
+  char _pad[2];
+  int cache_users;
 } CurveMapping;
 
 /** #CurveMapping.flag */
@@ -104,6 +105,7 @@ typedef enum eCurveMappingFlags {
 
   /** The curve is extended by extrapolation. When not set the curve is extended horizontally. */
   CUMA_EXTEND_EXTRAPOLATE = (1 << 4),
+  CUMA_PART_OF_CACHE = (1 << 5)
 } eCurveMappingFlags;
 
 /** #CurveMapping.preset */

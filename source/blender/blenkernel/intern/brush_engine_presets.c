@@ -31,6 +31,15 @@
 
 static bool check_builtin_init();
 
+#if 1
+#  define namestack_push(name)
+#  define namestack_pop()
+#else
+void namestack_push(const char *name);
+void namestack_pop();
+#  define namestack_head_name strdup(namestack[namestack_i].tag)
+#endif
+
 /*
 Instructions to add a built-in channel:
 
@@ -305,7 +314,7 @@ BrushChannelType brush_builtin_channels[] = {
     .enumdef = {
       {0, "BRUSH_DIRECTION", ICON_NONE, "Stroke", "Stroke Direction"},
       {1, "CURVATURE", ICON_NONE, "Curvature", "Follow mesh curvature"},
-      {-1, 0}
+      {-1}
     }
   },
    {
@@ -319,7 +328,8 @@ BrushChannelType brush_builtin_channels[] = {
          {BRUSH_AUTOMASKING_CONCAVITY, "CONCAVITY", ICON_NONE, "Concave", ""},
          {BRUSH_AUTOMASKING_INVERT_CONCAVITY, "INVERT_CONCAVITY", ICON_NONE, "Invert Concave", "Invert Concave Map"},
          {BRUSH_AUTOMASKING_FACE_SETS, "FACE_SETS", ICON_NONE, "Face Sets", ""},
-         {BRUSH_AUTOMASKING_TOPOLOGY, "TOPOLOGY", ICON_NONE, "Topology", ""}
+         {BRUSH_AUTOMASKING_TOPOLOGY, "TOPOLOGY", ICON_NONE, "Topology", ""},
+         {-1}
       }
    },
    {
@@ -329,18 +339,9 @@ BrushChannelType brush_builtin_channels[] = {
      .flag = BRUSH_CHANNEL_NO_MAPPINGS,
      .ivalue = 0
    },
-   {
-     .name = "Detail Range",
-     .idname = "dyntopo_detail_range",
-     .type = BRUSH_CHANNEL_FLOAT,
-     .min = 0.001,
-     .max = 0.99,
-     .flag = BRUSH_CHANNEL_INHERIT,
-     .ivalue = 0
-   },
     {
       .name = "Operations",
-      .idname = "dyntopo_ops",
+      .idname = "dyntopo_mode",
       .type = BRUSH_CHANNEL_BITMASK,
       .flag = BRUSH_CHANNEL_INHERIT,
       .ivalue = DYNTOPO_COLLAPSE | DYNTOPO_CLEANUP | DYNTOPO_SUBDIVIDE,
@@ -350,7 +351,7 @@ BrushChannelType brush_builtin_channels[] = {
         {DYNTOPO_CLEANUP, "CLEANUP", ICON_NONE, "Cleanup", ""},
         {DYNTOPO_LOCAL_COLLAPSE, "LOCAL_COLLAPSE", ICON_NONE, "Local Collapse", ""},
         {DYNTOPO_LOCAL_SUBDIVIDE, "LOCAL_SUBDIVIDE", ICON_NONE, "Local Subdivide", ""},
-        {-1, NULL, -1, NULL, NULL}
+        {-1}
       }
     },
    {
@@ -362,7 +363,7 @@ BrushChannelType brush_builtin_channels[] = {
        {BRUSH_SLIDE_DEFORM_DRAG, "DRAG", ICON_NONE, "Drag", ""},
        {BRUSH_SLIDE_DEFORM_PINCH, "PINCH", ICON_NONE, "Pinch", ""},
        {BRUSH_SLIDE_DEFORM_EXPAND, "EXPAND", ICON_NONE, "Expand", ""},
-       {-1, NULL, -1, NULL}
+       {-1}
       }
    },
    {
@@ -404,14 +405,17 @@ BrushChannelType brush_builtin_channels[] = {
       .type = BRUSH_CHANNEL_BOOL,
       .ivalue = 0
    },
-   {
+   { /*this one is weird, it's an enum pretending to be a bool,
+     that was how it was in in original rna too*/
+
      .name = "Direction",
      .idname = "direction",
      .ivalue = 0,
+     .type = BRUSH_CHANNEL_ENUM,
      .enumdef = {
         {0, "ADD", "ADD", "Add", "Add effect of brush"},
-        {BRUSH_DIR_IN, "SUBTRACT", "REMOVE", "Subtract", "Subtract effect of brush"},
-        {0, NULL, 0, NULL, NULL},
+        {1, "SUBTRACT", "REMOVE", "Subtract", "Subtract effect of brush"},
+        {-1}
      }
    },
     MAKE_FLOAT("normal_weight", "Normal Weight", "", 0.0f, 0.0f, 1.0f),
@@ -435,6 +439,12 @@ BrushChannelType brush_builtin_channels[] = {
     MAKE_BOOL("preserve_faceset_boundary", "Keep FSet Boundary", "Preserve face set boundaries", true),
     MAKE_BOOL("hard_edge_mode", "Hard Edge Mode", "Forces all brushes into hard edge face set mode (sets face set slide to 0)", false),
     MAKE_BOOL("grab_silhouette", "Grab Silhouette", "Grabs trying to automask the silhouette of the object", false),
+    MAKE_FLOAT("dyntopo_detail_percent", "Detail Percent", "Detail Percent", 25.0f, 0.0f, 1000.0f),
+    MAKE_FLOAT("dyntopo_detail_range", "Detail Range", "Detail Range", 0.45f, 0.01f, 0.99f),
+    MAKE_FLOAT_EX("dyntopo_detail_size", "Detail Size", "Detail Size", 8.0f, 0.1f, 100.0f, 0.001f, 500.0f),
+    MAKE_FLOAT_EX("dyntopo_constant_detail", "Constaint Detail", "", 3.0f, 0.001f, 1000.0f, 0.0001, FLT_MAX),
+    MAKE_FLOAT_EX("dyntopo_spacing", "Spacing", "Dyntopo Spacing", 35.0f, 0.01f, 300.0f, 0.001f, 50000.0f),
+    MAKE_FLOAT_EX("dyntopo_radius_scale", "Radius Scale", "Scale brush radius for dyntopo radius", 1.0f, 0.001f, 3.0f, 0.0001f, 100.0f)
 };
 
 /* clang-format on */
@@ -456,10 +466,6 @@ ATTR_NO_OPT static bool check_builtin_init()
 
   return true;
 }
-
-void namestack_push(const char *name);
-void namestack_pop();
-#define namestack_head_name strdup(namestack[namestack_i].tag)
 
 #ifdef FLOAT
 #  undef FLOAT
@@ -484,7 +490,8 @@ void namestack_pop();
 #  undef GETCH
 #endif
 
-#define ADDCH(name) BKE_brush_channelset_ensure_builtin(chset, name)
+#define ADDCH(name) \
+  (BKE_brush_channelset_ensure_builtin(chset, name), BKE_brush_channelset_lookup(chset, name))
 #define GETCH(name) BKE_brush_channelset_lookup(chset, name)
 
 /* clang-format off */
@@ -530,10 +537,28 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(density, density, FLOAT, FLOAT)
   DEF(tip_scale_x, tip_scale_x, FLOAT, FLOAT)
 };
+
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
 
-/* clang-format on */
 #undef DEF
+#define DEF(brush_member, channel_name, btype, ctype) \
+  {offsetof(DynTopoSettings, brush_member), \
+   #channel_name, \
+   btype, \
+   ctype, \
+   sizeof(((DynTopoSettings){0}).brush_member)},
+
+static BrushSettingsMap dyntopo_settings_map[] = {
+  DEF(detail_range, dyntopo_detail_range, FLOAT, FLOAT)
+  DEF(detail_percent, dyntopo_detail_percent, FLOAT, FLOAT)
+  DEF(detail_size, dyntopo_detail_size, FLOAT, FLOAT)
+  DEF(constant_detail, dyntopo_constant_detail, FLOAT, FLOAT)
+  DEF(spacing, dyntopo_spacing, INT, FLOAT)
+  DEF(radius_scale, dyntopo_radius_scale, FLOAT, FLOAT)
+};
+static const int dyntopo_settings_map_len = ARRAY_SIZE(dyntopo_settings_map);
+
+/* clang-format on */
 
 typedef struct BrushFlagMap {
   int member_offset;
@@ -549,6 +574,7 @@ typedef struct BrushFlagMap {
 /* This lookup table is like brush_settings_map except it converts
    individual bitflags instead of whole struct members.*/
 BrushFlagMap brush_flags_map[] =  {
+  DEF(flag, direction, BRUSH_DIR_IN)
   DEF(flag, original_normal, BRUSH_ORIGINAL_NORMAL)
   DEF(flag, original_plane, BRUSH_ORIGINAL_PLANE)
   DEF(flag, accumulate, BRUSH_ACCUMULATE)
@@ -556,7 +582,6 @@ BrushFlagMap brush_flags_map[] =  {
   DEF(flag2, preserve_faceset_boundary, BRUSH_SMOOTH_PRESERVE_FACE_SETS)
   DEF(flag2, hard_edge_mode, BRUSH_HARD_EDGE_MODE)
   DEF(flag2, grab_silhouette, BRUSH_GRAB_SILHOUETTE)
-  DEF(flag, direction, BRUSH_DIR_IN)
 };
 int brush_flags_map_len = ARRAY_SIZE(brush_flags_map);
 
@@ -644,9 +669,65 @@ void *get_channel_value_pointer(BrushChannel *ch, int *r_data_size)
   return NULL;
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
-                                                  Brush *brush,
-                                                  bool brush_to_channels)
+ATTR_NO_OPT static void brush_flags_from_channels(BrushChannelSet *chset, Brush *brush)
+{
+  for (int i = 0; i < brush_flags_map_len; i++) {
+    BrushFlagMap *mf = brush_flags_map + i;
+    BrushChannel *ch = BKE_brush_channelset_lookup(chset, mf->channel_name);
+
+    if (!ch) {
+      continue;
+    }
+
+    char *ptr = (char *)brush;
+    ptr += mf->member_offset;
+
+    switch (mf->member_size) {
+      case 1: {
+        char *f = (char *)ptr;
+        if (ch->ivalue) {
+          *f |= mf->flag;
+        }
+        else {
+          *f &= ~mf->flag;
+        }
+        break;
+      }
+      case 2: {
+        ushort *f = (ushort *)ptr;
+        if (ch->ivalue) {
+          *f |= mf->flag;
+        }
+        else {
+          *f &= ~mf->flag;
+        }
+        break;
+      }
+      case 4: {
+        uint *f = (uint *)ptr;
+        if (ch->ivalue) {
+          *f |= mf->flag;
+        }
+        else {
+          *f &= ~mf->flag;
+        }
+        break;
+      }
+      case 8: {
+        uint64_t *f = (uint64_t *)ptr;
+        if (ch->ivalue) {
+          *f |= mf->flag;
+        }
+        else {
+          *f &= ~mf->flag;
+        }
+        break;
+      }
+    }
+  }
+}
+
+ATTR_NO_OPT static void brush_flags_to_channels(BrushChannelSet *chset, Brush *brush)
 {
   for (int i = 0; i < brush_flags_map_len; i++) {
     BrushFlagMap *mf = brush_flags_map + i;
@@ -682,16 +763,24 @@ ATTR_NO_OPT void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
       }
     }
   }
+}
 
-  for (int i = 0; i < brush_settings_map_len; i++) {
-    BrushSettingsMap *mp = brush_settings_map + i;
+ATTR_NO_OPT void BKE_brush_channelset_compat_load_intern(BrushChannelSet *chset,
+                                                         void *data,
+                                                         bool brush_to_channels,
+                                                         BrushSettingsMap *settings_map,
+                                                         int settings_map_len)
+{
+
+  for (int i = 0; i < settings_map_len; i++) {
+    BrushSettingsMap *mp = settings_map + i;
     BrushChannel *ch = BKE_brush_channelset_lookup(chset, mp->channel_name);
 
     if (!ch) {
       continue;
     }
 
-    char *bptr = (char *)brush;
+    char *bptr = (char *)data;
     bptr += mp->brush_offset;
 
     int csize;
@@ -705,6 +794,57 @@ ATTR_NO_OPT void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
     }
   }
 }
+
+ATTR_NO_OPT void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
+                                                  Brush *brush,
+                                                  bool brush_to_channels)
+{
+  if (brush_to_channels) {
+    brush_flags_to_channels(chset, brush);
+  }
+  else {
+    brush_flags_from_channels(chset, brush);
+  }
+
+  BKE_brush_channelset_compat_load_intern(
+      chset, (void *)brush, brush_to_channels, brush_settings_map, brush_settings_map_len);
+  BKE_brush_channelset_compat_load_intern(chset,
+                                          (void *)&brush->dyntopo,
+                                          brush_to_channels,
+                                          dyntopo_settings_map,
+                                          dyntopo_settings_map_len);
+
+  // now handle dyntopo mode
+  if (!brush_to_channels) {
+    int flag = BKE_brush_channelset_get_int(chset, "dyntopo_mode", NULL);
+
+    if (BKE_brush_channelset_get_int(chset, "dyntopo_disabled", NULL)) {
+      flag |= DYNTOPO_DISABLED;
+    }
+
+    brush->dyntopo.flag = flag;
+  }
+  else {
+    const int mask = DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE | DYNTOPO_CLEANUP |
+                     DYNTOPO_LOCAL_COLLAPSE | DYNTOPO_LOCAL_SUBDIVIDE;
+
+#ifdef SETCH
+#  undef SETCH
+#endif
+
+    BKE_brush_channelset_set_int(chset, "dyntopo_mode", brush->dyntopo.flag & mask);
+    BKE_brush_channelset_set_int(
+        chset, "dyntopo_mode", brush->dyntopo.flag & DYNTOPO_DISABLED ? 1 : 0);
+
+#define SETCH(key, val) BKE_brush_channelset_set_int(chset, #key, val)
+    SETCH(dyntopo_detail_range, brush->dyntopo.detail_range);
+    SETCH(dyntopo_detail_percent, brush->dyntopo.detail_percent);
+    SETCH(dyntopo_detail_size, brush->dyntopo.detail_size);
+    SETCH(dyntopo_constant_detail, brush->dyntopo.constant_detail);
+    SETCH(dyntopo_spacing, brush->dyntopo.spacing);
+  }
+}
+#undef SETCH
 
 // adds any missing channels to brushes
 void BKE_brush_builtin_patch(Brush *brush, int tool)
@@ -743,8 +883,13 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH("automasking");
 
   ADDCH("dyntopo_disabled");
-  ADDCH("dyntopo_detail_range");
-  ADDCH("dyntopo_ops");
+  ADDCH("dyntopo_mode")->flag |= BRUSH_CHANNEL_INHERIT;
+  ADDCH("dyntopo_detail_range")->flag |= BRUSH_CHANNEL_INHERIT;
+  ADDCH("dyntopo_detail_percent")->flag |= BRUSH_CHANNEL_INHERIT;
+  ADDCH("dyntopo_detail_size")->flag |= BRUSH_CHANNEL_INHERIT;
+  ADDCH("dyntopo_constant_detail")->flag |= BRUSH_CHANNEL_INHERIT;
+  ADDCH("dyntopo_spacing")->flag |= BRUSH_CHANNEL_INHERIT;
+  ADDCH("dyntopo_radius_scale")->flag |= BRUSH_CHANNEL_INHERIT;
 
   ADDCH("accumulate");
   ADDCH("original_normal");
@@ -774,16 +919,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   namestack_pop();
 }
 
-void BKE_brush_init_scene_defaults(Sculpt *sd)
-{
-  if (!sd->channels) {
-    sd->channels = BKE_brush_channelset_create();
-  }
-
-  BrushChannelSet *chset = sd->channels;
-}
-
-void BKE_brush_builtin_create(Brush *brush, int tool)
+ATTR_NO_OPT void BKE_brush_builtin_create(Brush *brush, int tool)
 {
   namestack_push(__func__);
 
@@ -839,7 +975,10 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       GETCH("strength")->fvalue = 0.8f;
       GETCH("accumulate")->ivalue = 1;
 
-      CurveMapping *curve = &GETCH("radius")->mappings[BRUSH_MAPPING_PRESSURE].curve;
+      BKE_brush_mapping_ensure_write(&GETCH("radius")->mappings[BRUSH_MAPPING_PRESSURE]);
+
+      CurveMapping *curve = GETCH("radius")->mappings[BRUSH_MAPPING_PRESSURE].curve;
+
       CurveMap *cuma = curve->cm;
 
       cuma->curve[0].x = 0.0f;
@@ -874,14 +1013,32 @@ void BKE_brush_init_toolsettings(Sculpt *sd)
     BKE_brush_channelset_free(sd->channels);
   }
 
+  BKE_brush_check_toolsettings(sd);
+}
+
+void BKE_brush_check_toolsettings(Sculpt *sd)
+{
+  namestack_push(__func__);
+
+  if (sd->channels) {
+    BKE_brush_channelset_free(sd->channels);
+  }
+
   BrushChannelSet *chset = sd->channels = BKE_brush_channelset_create();
 
   ADDCH("radius");
   ADDCH("strength");
   ADDCH("automasking");
   ADDCH("topology_rake_mode");
+
   ADDCH("dyntopo_disabled");
+  ADDCH("dyntopo_mode");
   ADDCH("dyntopo_detail_range");
+  ADDCH("dyntopo_detail_percent");
+  ADDCH("dyntopo_detail_size");
+  ADDCH("dyntopo_constant_detail");
+  ADDCH("dyntopo_spacing");
+  ADDCH("dyntopo_radius_scale");
 
   namestack_pop();
 }
