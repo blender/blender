@@ -1014,17 +1014,15 @@ void BKE_brush_init_toolsettings(Sculpt *sd)
   }
 
   BKE_brush_check_toolsettings(sd);
+
+  namestack_pop();
 }
 
 void BKE_brush_check_toolsettings(Sculpt *sd)
 {
   namestack_push(__func__);
 
-  if (sd->channels) {
-    BKE_brush_channelset_free(sd->channels);
-  }
-
-  BrushChannelSet *chset = sd->channels = BKE_brush_channelset_create();
+  BrushChannelSet *chset = sd->channels;
 
   ADDCH("radius");
   ADDCH("strength");
