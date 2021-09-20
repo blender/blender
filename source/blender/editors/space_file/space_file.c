@@ -738,8 +738,18 @@ static void file_tools_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void file_tools_region_listener(const wmRegionListenerParams *UNUSED(listener_params))
+static void file_tools_region_listener(const wmRegionListenerParams *listener_params)
 {
+  const wmNotifier *wmn = listener_params->notifier;
+  ARegion *region = listener_params->region;
+
+  switch (wmn->category) {
+    case NC_SCENE:
+      if (ELEM(wmn->data, ND_MODE)) {
+        ED_region_tag_redraw(region);
+      }
+      break;
+  }
 }
 
 static void file_tool_props_region_listener(const wmRegionListenerParams *listener_params)
@@ -751,6 +761,11 @@ static void file_tool_props_region_listener(const wmRegionListenerParams *listen
     case NC_ID:
       if (ELEM(wmn->action, NA_RENAME)) {
         /* In case the filelist shows ID names. */
+        ED_region_tag_redraw(region);
+      }
+      break;
+    case NC_SCENE:
+      if (ELEM(wmn->data, ND_MODE)) {
         ED_region_tag_redraw(region);
       }
       break;
