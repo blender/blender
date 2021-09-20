@@ -1069,7 +1069,7 @@ ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
   float autosmooth_scale = BKE_brush_channelset_get_float(
       chset, "autosmooth_radius_scale", mapdata);
   float autosmooth_projection = BKE_brush_channelset_get_float(
-      chset, "topology_rake_projection", NULL);
+      chset, "autosmooth_projection", NULL);
 
   float autosmooth_spacing;
 
@@ -1109,7 +1109,7 @@ ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
 
   if (topology_rake > 0.0f) {
     cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, brush->channels, true),
-                                 SCULPT_TOOL_SMOOTH);
+                                 SCULPT_TOOL_TOPOLOGY_RAKE);
 
     float_set_uninherit(cmd->params, "strength", topology_rake);
     float_set_uninherit(cmd->params, "radius", radius * topology_rake_scale);

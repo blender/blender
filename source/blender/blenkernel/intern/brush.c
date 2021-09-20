@@ -2492,6 +2492,10 @@ void BKE_brush_size_set(Scene *scene, Brush *brush, int size, bool use_brush_cha
 
 int BKE_brush_size_get(const Scene *scene, const Brush *brush, bool use_brush_channel)
 {
+  if (!scene->toolsettings->sculpt || !scene->toolsettings->sculpt->channels || !brush->channels) {
+    use_brush_channel = false;
+  }
+
   if (use_brush_channel) {
     if (scene->toolsettings->sculpt) {
       return (int)BKE_brush_channelset_get_final_float(

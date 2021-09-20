@@ -11267,6 +11267,15 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
     BKE_brush_channelset_free(ss->cache->channels_final);
   }
 
+  if (!brush->channels) {
+    // eek!
+    printf("had to create brush->channels for brush '%s'!", brush->id.name + 2);
+
+    brush->channels = BKE_brush_channelset_create();
+    BKE_brush_builtin_patch(brush, brush->sculpt_tool);
+    BKE_brush_channelset_compat_load(brush->channels, brush, true);
+  }
+
   if (brush->channels && sd->channels) {
     ss->cache->channels_final = BKE_brush_channelset_create();
     BKE_brush_channelset_merge(ss->cache->channels_final, brush->channels, sd->channels);
