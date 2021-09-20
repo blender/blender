@@ -40,8 +40,10 @@ struct CCLIntersectContext {
 
   /* for shadow rays */
   Intersection *isect_s;
-  int max_hits;
-  int num_hits;
+  uint max_hits;
+  uint num_hits;
+  uint num_recorded_hits;
+  float throughput;
   float max_t;
   bool opaque_hit;
 
@@ -56,6 +58,8 @@ struct CCLIntersectContext {
     type = type_;
     max_hits = 1;
     num_hits = 0;
+    num_recorded_hits = 0;
+    throughput = 1.0f;
     max_t = FLT_MAX;
     opaque_hit = false;
     isect_s = NULL;

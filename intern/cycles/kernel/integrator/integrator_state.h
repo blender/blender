@@ -48,19 +48,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Constants
- *
- * TODO: these could be made dynamic depending on the features used in the scene. */
-
-#define INTEGRATOR_SHADOW_ISECT_SIZE_CPU 1024
-#define INTEGRATOR_SHADOW_ISECT_SIZE_GPU 4
-
-#ifdef __KERNEL_CPU__
-#  define INTEGRATOR_SHADOW_ISECT_SIZE INTEGRATOR_SHADOW_ISECT_SIZE_CPU
-#else
-#  define INTEGRATOR_SHADOW_ISECT_SIZE INTEGRATOR_SHADOW_ISECT_SIZE_GPU
-#endif
-
 /* Data structures */
 
 /* Integrator State

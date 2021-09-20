@@ -210,29 +210,50 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
   optixSetPayload_5(true);
   return optixTerminateRay();
 #  else
-  const int max_hits = optixGetPayload_3();
+  const uint max_hits = optixGetPayload_3();
+  const uint num_hits_packed = optixGetPayload_2();
+  const uint num_recorded_hits = uint16_unpack_from_uint_0(num_hits_packed);
+  const uint num_hits = uint16_unpack_from_uint_1(num_hits_packed);
 
   /* If no transparent shadows, all light is blocked and we can stop immediately. */
-  if (max_hits == 0 ||
+  if (num_hits >= max_hits ||
       !(intersection_get_shader_flags(NULL, prim, type) & SD_HAS_TRANSPARENT_SHADOW)) {
     optixSetPayload_5(true);
     return optixTerminateRay();
   }
 
-  /* Record transparent intersection. */
-  const int num_hits = optixGetPayload_2();
-  int record_index = num_hits;
+  /* Always use baked shadow transparency for curves. */
+  if (type & PRIMITIVE_ALL_CURVE) {
+    float throughput = __uint_as_float(optixGetPayload_1());
+    throughput *= intersection_curve_shadow_transparency(nullptr, object, prim, u);
+    optixSetPayload_1(__float_as_uint(throughput));
+    optixSetPayload_2(uint16_pack_to_uint(num_recorded_hits, num_hits + 1));
 
-  optixSetPayload_2(num_hits + 1);
+    if (throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
+      optixSetPayload_4(true);
+      return optixTerminateRay();
+    }
+    else {
+      /* Continue tracing. */
+      optixIgnoreIntersection();
+      return;
+    }
+  }
+
+  /* Record transparent intersection. */
+  optixSetPayload_2(uint16_pack_to_uint(num_recorded_hits + 1, num_hits + 1));
+
+  uint record_index = num_recorded_hits;
 
   const IntegratorShadowState state = optixGetPayload_0();
 
-  if (record_index >= max_hits) {
+  const uint max_record_hits = min(max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
+  if (record_index >= max_record_hits) {
     /* If maximum number of hits reached, find a hit to replace. */
     float max_recorded_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
-    int max_recorded_hit = 0;
+    uint max_recorded_hit = 0;
 
-    for (int i = 1; i < max_hits; i++) {
+    for (int i = 1; i < max_record_hits; i++) {
       const float isect_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, i, t);
       if (isect_t > max_recorded_t) {
         max_recorded_t = isect_t;
@@ -256,6 +277,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, object) = object;
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, type) = type;
 
+  /* Continue tracing. */
   optixIgnoreIntersection();
 #  endif /* __TRANSPARENT_SHADOWS__ */
 #endif   /* __SHADOW_RECORD_ALL__ */

@@ -195,4 +195,32 @@ ccl_device_inline int intersection_find_attribute(KernelGlobals kg,
   return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
 }
 
+/* Transparent Shadows */
+
+/* Cut-off value to stop transparent shadow tracing when practically opaque. */
+#define CURVE_SHADOW_TRANSPARENCY_CUTOFF 0.001f
+
+ccl_device_inline float intersection_curve_shadow_transparency(KernelGlobals kg,
+                                                               const int object,
+                                                               const int prim,
+                                                               const float u)
+{
+  /* Find attribute. */
+  const int offset = intersection_find_attribute(kg, object, ATTR_STD_SHADOW_TRANSPARENCY);
+  if (offset == ATTR_STD_NOT_FOUND) {
+    /* If no shadow transparency attribute, assume opaque. */
+    return 0.0f;
+  }
+
+  /* Interpolate transparency between curve keys. */
+  const KernelCurve kcurve = kernel_tex_fetch(__curves, prim);
+  const int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(kcurve.type);
+  const int k1 = k0 + 1;
+
+  const float f0 = kernel_tex_fetch(__attributes_float, offset + k0);
+  const float f1 = kernel_tex_fetch(__attributes_float, offset + k1);
+
+  return (1.0f - u) * f0 + u * f1;
+}
+
 CCL_NAMESPACE_END

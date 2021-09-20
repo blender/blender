@@ -41,7 +41,8 @@ ccl_device_inline
                                      IntegratorShadowState state,
                                      const uint visibility,
                                      const uint max_hits,
-                                     ccl_private uint *num_hits)
+                                     ccl_private uint *num_recorded_hits,
+                                     ccl_private float *throughput)
 {
   /* todo:
    * - likely and unlikely for if() statements
@@ -61,6 +62,7 @@ ccl_device_inline
   float3 dir = bvh_clamp_direction(ray->D);
   float3 idir = bvh_inverse_direction(dir);
   int object = OBJECT_NONE;
+  uint num_hits = 0;
 
 #if BVH_FEATURE(BVH_MOTION)
   Transform ob_itfm;
@@ -77,7 +79,8 @@ ccl_device_inline
    * otherwise. */
   float t_world_to_instance = 1.0f;
 
-  *num_hits = 0;
+  *num_recorded_hits = 0;
+  *throughput = 1.0f;
 
   /* traversal loop */
   do {
@@ -212,42 +215,62 @@ ccl_device_inline
                * the primitive has a transparent shadow shader? */
               const int flags = intersection_get_shader_flags(kg, isect.prim, isect.type);
 
-              if (!(flags & SD_HAS_TRANSPARENT_SHADOW) || max_hits == 0) {
+              if (!(flags & SD_HAS_TRANSPARENT_SHADOW) || num_hits >= max_hits) {
                 /* If no transparent shadows, all light is blocked and we can
                  * stop immediately. */
                 return true;
               }
 
-              /* Increase the number of hits, possibly beyond max_hits, we will
-               * simply not record those and only keep the max_hits closest. */
-              uint record_index = (*num_hits)++;
+              num_hits++;
 
-              if (record_index >= max_hits - 1) {
-                /* If maximum number of hits reached, find the intersection with
-                 * the largest distance to potentially replace when another hit
-                 * is found. */
-                const int num_recorded_hits = min(max_hits, record_index);
-                float max_recorded_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
-                int max_recorded_hit = 0;
+              bool record_intersection = true;
 
-                for (int i = 1; i < num_recorded_hits; i++) {
-                  const float isect_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, i, t);
-                  if (isect_t > max_recorded_t) {
-                    max_recorded_t = isect_t;
-                    max_recorded_hit = i;
-                  }
+              /* Always use baked shadow transparency for curves. */
+              if (isect.type & PRIMITIVE_ALL_CURVE) {
+                *throughput *= intersection_curve_shadow_transparency(
+                    kg, isect.object, isect.prim, isect.u);
+
+                if (*throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
+                  return true;
                 }
-
-                if (record_index >= max_hits) {
-                  record_index = max_recorded_hit;
+                else {
+                  record_intersection = false;
                 }
-
-                /* Limit the ray distance and stop counting hits beyond this. */
-                t_max_world = max(max_recorded_t, isect.t);
-                t_max_current = t_max_world * t_world_to_instance;
               }
 
-              integrator_state_write_shadow_isect(state, &isect, record_index);
+              if (record_intersection) {
+                /* Increase the number of hits, possibly beyond max_hits, we will
+                 * simply not record those and only keep the max_hits closest. */
+                uint record_index = (*num_recorded_hits)++;
+
+                const uint max_record_hits = min(max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
+                if (record_index >= max_record_hits - 1) {
+                  /* If maximum number of hits reached, find the intersection with
+                   * the largest distance to potentially replace when another hit
+                   * is found. */
+                  const int num_recorded_hits = min(max_record_hits, record_index);
+                  float max_recorded_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
+                  int max_recorded_hit = 0;
+
+                  for (int i = 1; i < num_recorded_hits; i++) {
+                    const float isect_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, i, t);
+                    if (isect_t > max_recorded_t) {
+                      max_recorded_t = isect_t;
+                      max_recorded_hit = i;
+                    }
+                  }
+
+                  if (record_index >= max_record_hits) {
+                    record_index = max_recorded_hit;
+                  }
+
+                  /* Limit the ray distance and stop counting hits beyond this. */
+                  t_max_world = max(max_recorded_t, isect.t);
+                  t_max_current = t_max_world * t_world_to_instance;
+                }
+
+                integrator_state_write_shadow_isect(state, &isect, record_index);
+              }
             }
 
             prim_addr++;
@@ -304,9 +327,11 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals kg,
                                          IntegratorShadowState state,
                                          const uint visibility,
                                          const uint max_hits,
-                                         ccl_private uint *num_hits)
+                                         ccl_private uint *num_recorded_hits,
+                                         ccl_private float *throughput)
 {
-  return BVH_FUNCTION_FULL_NAME(BVH)(kg, ray, state, visibility, max_hits, num_hits);
+  return BVH_FUNCTION_FULL_NAME(BVH)(
+      kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
 }
 
 #undef BVH_FUNCTION_NAME

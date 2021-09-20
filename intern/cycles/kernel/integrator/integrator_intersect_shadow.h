@@ -115,18 +115,25 @@ ccl_device bool integrate_intersect_shadow_transparent(KernelGlobals kg,
 {
   /* Limit the number hits to the max transparent bounces allowed and the size that we
    * have available in the integrator state. */
-  const uint max_transparent_hits = integrate_shadow_max_transparent_hits(kg, state);
-  const uint max_hits = min(max_transparent_hits, (uint)INTEGRATOR_SHADOW_ISECT_SIZE);
+  const uint max_hits = integrate_shadow_max_transparent_hits(kg, state);
   uint num_hits = 0;
-  bool opaque_hit = scene_intersect_shadow_all(kg, state, ray, visibility, max_hits, &num_hits);
+  float throughput = 1.0f;
+  bool opaque_hit = scene_intersect_shadow_all(
+      kg, state, ray, visibility, max_hits, &num_hits, &throughput);
+
+  /* Computed throughput from baked shadow transparency, where we can bypass recording
+   * intersections and shader evaluation. */
+  if (throughput != 1.0f) {
+    INTEGRATOR_STATE_WRITE(state, shadow_path, throughput) *= throughput;
+  }
 
   /* If number of hits exceed the transparent bounces limit, make opaque. */
-  if (num_hits > max_transparent_hits) {
+  if (num_hits > max_hits) {
     opaque_hit = true;
   }
 
   if (!opaque_hit) {
-    uint num_recorded_hits = min(num_hits, max_hits);
+    const uint num_recorded_hits = min(num_hits, min(max_hits, INTEGRATOR_SHADOW_ISECT_SIZE));
 
     if (num_recorded_hits > 0) {
       sort_shadow_intersections(state, num_recorded_hits);

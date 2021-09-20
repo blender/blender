@@ -734,6 +734,10 @@ void GeometryManager::device_update_attributes(Device *device,
       Shader *shader = static_cast<Shader *>(node);
       geom_attributes[i].add(shader->attributes);
     }
+
+    if (geom->is_hair() && static_cast<Hair *>(geom)->need_shadow_transparency()) {
+      geom_attributes[i].add(ATTR_STD_SHADOW_TRANSPARENCY);
+    }
   }
 
   /* convert object attributes to use the same data structures as geometry ones */
@@ -1659,6 +1663,7 @@ void GeometryManager::device_update(Device *device,
   VLOG(1) << "Total " << scene->geometry.size() << " meshes.";
 
   bool true_displacement_used = false;
+  bool curve_shadow_transparency_used = false;
   size_t total_tess_needed = 0;
 
   {
@@ -1669,26 +1674,33 @@ void GeometryManager::device_update(Device *device,
     });
 
     foreach (Geometry *geom, scene->geometry) {
-      if (geom->is_modified() &&
-          (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME)) {
-        Mesh *mesh = static_cast<Mesh *>(geom);
+      if (geom->is_modified()) {
+        if ((geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME)) {
+          Mesh *mesh = static_cast<Mesh *>(geom);
 
-        /* Update normals. */
-        mesh->add_face_normals();
-        mesh->add_vertex_normals();
+          /* Update normals. */
+          mesh->add_face_normals();
+          mesh->add_vertex_normals();
 
-        if (mesh->need_attribute(scene, ATTR_STD_POSITION_UNDISPLACED)) {
-          mesh->add_undisplaced();
+          if (mesh->need_attribute(scene, ATTR_STD_POSITION_UNDISPLACED)) {
+            mesh->add_undisplaced();
+          }
+
+          /* Test if we need tessellation. */
+          if (mesh->need_tesselation()) {
+            total_tess_needed++;
+          }
+
+          /* Test if we need displacement. */
+          if (mesh->has_true_displacement()) {
+            true_displacement_used = true;
+          }
         }
-
-        /* Test if we need tessellation. */
-        if (mesh->need_tesselation()) {
-          total_tess_needed++;
-        }
-
-        /* Test if we need displacement. */
-        if (mesh->has_true_displacement()) {
-          true_displacement_used = true;
+        else if (geom->geometry_type == Geometry::HAIR) {
+          Hair *hair = static_cast<Hair *>(geom);
+          if (hair->need_shadow_transparency()) {
+            curve_shadow_transparency_used = true;
+          }
         }
 
         if (progress.get_cancel()) {
@@ -1752,7 +1764,7 @@ void GeometryManager::device_update(Device *device,
 
   /* Update images needed for true displacement. */
   bool old_need_object_flags_update = false;
-  if (true_displacement_used) {
+  if (true_displacement_used || curve_shadow_transparency_used) {
     scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry(
@@ -1770,7 +1782,7 @@ void GeometryManager::device_update(Device *device,
   const BVHLayout bvh_layout = BVHParams::best_bvh_layout(scene->params.bvh_layout,
                                                           device->get_bvh_layout_mask());
   mesh_calc_offset(scene, bvh_layout);
-  if (true_displacement_used) {
+  if (true_displacement_used || curve_shadow_transparency_used) {
     scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry(
@@ -1795,8 +1807,9 @@ void GeometryManager::device_update(Device *device,
     }
   }
 
-  /* Update displacement. */
+  /* Update displacement and hair shadow transparency. */
   bool displacement_done = false;
+  bool curve_shadow_transparency_done = false;
   size_t num_bvh = 0;
 
   {
@@ -1815,6 +1828,12 @@ void GeometryManager::device_update(Device *device,
           Mesh *mesh = static_cast<Mesh *>(geom);
           if (displace(device, scene, mesh, progress)) {
             displacement_done = true;
+          }
+        }
+        else if (geom->geometry_type == Geometry::HAIR) {
+          Hair *hair = static_cast<Hair *>(geom);
+          if (hair->update_shadow_transparency(device, scene, progress)) {
+            curve_shadow_transparency_done = true;
           }
         }
       }
@@ -1836,7 +1855,7 @@ void GeometryManager::device_update(Device *device,
   }
 
   /* Device re-update after displacement. */
-  if (displacement_done) {
+  if (displacement_done || curve_shadow_transparency_done) {
     scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry(

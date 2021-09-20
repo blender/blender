@@ -366,6 +366,8 @@ const char *Attribute::standard_name(AttributeStandard std)
       return "pointiness";
     case ATTR_STD_RANDOM_PER_ISLAND:
       return "random_per_island";
+    case ATTR_STD_SHADOW_TRANSPARENCY:
+      return "shadow_transparency";
     case ATTR_STD_NOT_FOUND:
     case ATTR_STD_NONE:
     case ATTR_STD_NUM:
@@ -602,6 +604,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         break;
       case ATTR_STD_RANDOM_PER_ISLAND:
         attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_FACE);
+        break;
+      case ATTR_STD_SHADOW_TRANSPARENCY:
+        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE_KEY);
         break;
       default:
         assert(0);

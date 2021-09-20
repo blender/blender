@@ -621,7 +621,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   }
 }
 
-/* Background Shader Evaluation */
+/* Background */
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     kernel_gpu_shader_eval_background(KernelShaderEvalInput *input,
@@ -632,6 +632,20 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   int i = ccl_gpu_global_id_x();
   if (i < work_size) {
     kernel_background_evaluate(NULL, input, output, offset + i);
+  }
+}
+
+/* Curve Shadow Transparency */
+
+ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
+    kernel_gpu_shader_eval_curve_shadow_transparency(KernelShaderEvalInput *input,
+                                                     float *output,
+                                                     const int offset,
+                                                     const int work_size)
+{
+  int i = ccl_gpu_global_id_x();
+  if (i < work_size) {
+    kernel_curve_shadow_transparency_evaluate(NULL, input, output, offset + i);
   }
 }
 

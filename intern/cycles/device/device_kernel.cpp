@@ -74,6 +74,8 @@ const char *device_kernel_as_string(DeviceKernel kernel)
       return "shader_eval_displace";
     case DEVICE_KERNEL_SHADER_EVAL_BACKGROUND:
       return "shader_eval_background";
+    case DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY:
+      return "shader_eval_curve_shadow_transparency";
 
       /* Film. */
 

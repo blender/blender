@@ -279,6 +279,81 @@ ccl_device void shader_setup_from_displace(KernelGlobals kg,
       LAMP_NONE);
 }
 
+/* ShaderData setup for point on curve. */
+
+ccl_device void shader_setup_from_curve(KernelGlobals kg,
+                                        ccl_private ShaderData *ccl_restrict sd,
+                                        int object,
+                                        int prim,
+                                        int segment,
+                                        float u)
+{
+  /* Primitive */
+  sd->type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_CURVE_THICK, segment);
+  sd->lamp = LAMP_NONE;
+  sd->prim = prim;
+  sd->u = u;
+  sd->v = 0.0f;
+  sd->time = 0.5f;
+  sd->ray_length = 0.0f;
+
+  /* Shader */
+  sd->shader = kernel_tex_fetch(__curves, prim).shader_id;
+  sd->flag = kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
+
+  /* Object */
+  sd->object = object;
+  sd->object_flag = kernel_tex_fetch(__object_flag, sd->object);
+#ifdef __OBJECT_MOTION__
+  shader_setup_object_transforms(kg, sd, sd->time);
+#endif
+
+  /* Get control points. */
+  KernelCurve kcurve = kernel_tex_fetch(__curves, prim);
+
+  int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+  int k1 = k0 + 1;
+  int ka = max(k0 - 1, kcurve.first_key);
+  int kb = min(k1 + 1, kcurve.first_key + kcurve.num_keys - 1);
+
+  float4 P_curve[4];
+
+  P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
+  P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
+  P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
+  P_curve[3] = kernel_tex_fetch(__curve_keys, kb);
+
+  /* Interpolate position and tangent. */
+  sd->P = float4_to_float3(catmull_rom_basis_derivative(P_curve, sd->u));
+#ifdef __DPDU__
+  sd->dPdu = float4_to_float3(catmull_rom_basis_derivative(P_curve, sd->u));
+#endif
+
+  /* Transform into world space */
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+    object_position_transform_auto(kg, sd, &sd->P);
+#ifdef __DPDU__
+    object_dir_transform_auto(kg, sd, &sd->dPdu);
+#endif
+  }
+
+  /* No view direction, normals or bitangent. */
+  sd->I = zero_float3();
+  sd->N = zero_float3();
+  sd->Ng = zero_float3();
+#ifdef __DPDU__
+  sd->dPdv = zero_float3();
+#endif
+
+  /* No ray differentials currently. */
+#ifdef __RAY_DIFFERENTIALS__
+  sd->dP = differential3_zero();
+  sd->dI = differential3_zero();
+  sd->du = differential_zero();
+  sd->dv = differential_zero();
+#endif
+}
+
 /* ShaderData setup from ray into background */
 
 ccl_device_inline void shader_setup_from_background(KernelGlobals kg,

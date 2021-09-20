@@ -153,6 +153,10 @@ class Hair : public Geometry {
                    KernelCurveSegment *curve_segments);
 
   PrimitiveType primitive_type() const override;
+
+  /* Attributes */
+  bool need_shadow_transparency();
+  bool update_shadow_transparency(Device *device, Scene *scene, Progress &progress);
 };
 
 CCL_NAMESPACE_END

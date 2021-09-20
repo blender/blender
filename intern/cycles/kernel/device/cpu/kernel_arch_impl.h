@@ -150,6 +150,19 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_background)(const KernelGlobalsCPU *k
 #endif
 }
 
+void KERNEL_FUNCTION_FULL_NAME(shader_eval_curve_shadow_transparency)(
+    const KernelGlobalsCPU *kg,
+    const KernelShaderEvalInput *input,
+    float *output,
+    const int offset)
+{
+#ifdef KERNEL_STUB
+  STUB_ASSERT(KERNEL_ARCH, shader_eval_curve_shadow_transparency);
+#else
+  kernel_curve_shadow_transparency_evaluate(kg, input, output, offset);
+#endif
+}
+
 /* --------------------------------------------------------------------
  * Adaptive sampling.
  */

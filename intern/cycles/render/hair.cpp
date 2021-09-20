@@ -18,7 +18,12 @@
 
 #include "render/curves.h"
 #include "render/hair.h"
+#include "render/object.h"
 #include "render/scene.h"
+
+#include "integrator/shader_eval.h"
+
+#include "util/util_progress.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -512,6 +517,116 @@ PrimitiveType Hair::primitive_type() const
              ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_MOTION_CURVE_RIBBON :
                                               PRIMITIVE_MOTION_CURVE_THICK) :
              ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_CURVE_RIBBON : PRIMITIVE_CURVE_THICK);
+}
+
+/* Fill in coordinates for curve transparency shader evaluation on device. */
+static int fill_shader_input(const Hair *hair,
+                             const int object_index,
+                             device_vector<KernelShaderEvalInput> &d_input)
+{
+  int d_input_size = 0;
+  KernelShaderEvalInput *d_input_data = d_input.data();
+
+  const int num_curves = hair->num_curves();
+  for (int i = 0; i < num_curves; i++) {
+    const Hair::Curve curve = hair->get_curve(i);
+    const int num_segments = curve.num_segments();
+
+    for (int j = 0; j < num_segments + 1; j++) {
+      KernelShaderEvalInput in;
+      in.object = object_index;
+      in.prim = hair->prim_offset + i;
+      in.u = (j < num_segments) ? 0.0f : 1.0f;
+      in.v = (j < num_segments) ? __int_as_float(j) : __int_as_float(j - 1);
+      d_input_data[d_input_size++] = in;
+    }
+  }
+
+  return d_input_size;
+}
+
+/* Read back curve transparency shader output. */
+static void read_shader_output(float *shadow_transparency,
+                               bool &is_fully_opaque,
+                               const device_vector<float> &d_output)
+{
+  const int num_keys = d_output.size();
+  const float *output_data = d_output.data();
+  bool is_opaque = true;
+
+  for (int i = 0; i < num_keys; i++) {
+    shadow_transparency[i] = output_data[i];
+    if (shadow_transparency[i] > 0.0f) {
+      is_opaque = false;
+    }
+  }
+
+  is_fully_opaque = is_opaque;
+}
+
+bool Hair::need_shadow_transparency()
+{
+  for (const Node *node : used_shaders) {
+    const Shader *shader = static_cast<const Shader *>(node);
+    if (shader->has_surface_transparent && shader->get_use_transparent_shadow()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool Hair::update_shadow_transparency(Device *device, Scene *scene, Progress &progress)
+{
+  if (!need_shadow_transparency()) {
+    /* If no shaders with shadow transparency, remove attribute. */
+    Attribute *attr = attributes.find(ATTR_STD_SHADOW_TRANSPARENCY);
+    if (attr) {
+      attributes.remove(attr);
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  string msg = string_printf("Computing Shadow Transparency %s", name.c_str());
+  progress.set_status("Updating Hair", msg);
+
+  /* Create shadow transparency attribute. */
+  Attribute *attr = attributes.find(ATTR_STD_SHADOW_TRANSPARENCY);
+  const bool attribute_exists = (attr != nullptr);
+  if (!attribute_exists) {
+    attr = attributes.add(ATTR_STD_SHADOW_TRANSPARENCY);
+  }
+
+  float *attr_data = attr->data_float();
+
+  /* Find object index. */
+  size_t object_index = OBJECT_NONE;
+
+  for (size_t i = 0; i < scene->objects.size(); i++) {
+    if (scene->objects[i]->get_geometry() == this) {
+      object_index = i;
+      break;
+    }
+  }
+
+  /* Evaluate shader on device. */
+  ShaderEval shader_eval(device, progress);
+  bool is_fully_opaque = false;
+  shader_eval.eval(SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY,
+                   num_keys(),
+                   1,
+                   function_bind(&fill_shader_input, this, object_index, _1),
+                   function_bind(&read_shader_output, attr_data, is_fully_opaque, _1));
+
+  if (is_fully_opaque) {
+    attributes.remove(attr);
+    return attribute_exists;
+  }
+
+  return true;
 }
 
 CCL_NAMESPACE_END

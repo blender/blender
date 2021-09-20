@@ -96,4 +96,25 @@ ccl_device void kernel_background_evaluate(KernelGlobals kg,
   output[offset * 3 + 2] += color.z;
 }
 
+ccl_device void kernel_curve_shadow_transparency_evaluate(
+    KernelGlobals kg,
+    ccl_global const KernelShaderEvalInput *input,
+    ccl_global float *output,
+    const int offset)
+{
+  /* Setup shader data. */
+  const KernelShaderEvalInput in = input[offset];
+
+  ShaderData sd;
+  shader_setup_from_curve(kg, &sd, in.object, in.prim, __float_as_int(in.v), in.u);
+
+  /* Evaluate transparency. */
+  shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW &
+                      ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
+      kg, INTEGRATOR_STATE_NULL, &sd, NULL, PATH_RAY_SHADOW);
+
+  /* Write output. */
+  output[offset] = clamp(average(shader_bsdf_transparency(kg, &sd)), 0.0f, 1.0f);
+}
+
 CCL_NAMESPACE_END
