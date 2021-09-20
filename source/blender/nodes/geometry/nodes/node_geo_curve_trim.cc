@@ -30,9 +30,9 @@ static void geo_node_curve_trim_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Curve");
   b.add_input<decl::Float>("Start").min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("End").min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("End").min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
   b.add_input<decl::Float>("Start", "Start_001").min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("End", "End_001").min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("End", "End_001").min(0.0f).default_value(1.0f).subtype(PROP_DISTANCE);
   b.add_output<decl::Geometry>("Curve");
 }
 
