@@ -314,9 +314,13 @@
   { \
     .start_fac = 0.1f,\
     .end_fac = 0.1f,\
-    .overshoot_fac = 0.01f,\
+    .overshoot_fac = 0.1f,\
     .pass_index = 0,\
     .material = NULL,\
+    .flag = GP_LENGTH_USE_CURVATURE,\
+    .point_density = 30.0f,\
+    .segment_influence = 0.0f,\
+    .max_angle = DEG2RAD(170.0f),\
   }
 
 #define _DNA_DEFAULT_DashGpencilModifierData \

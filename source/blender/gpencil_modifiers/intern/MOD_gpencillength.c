@@ -72,9 +72,14 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 }
 
 static bool gpencil_modify_stroke(bGPDstroke *gps,
-                                  float length,
+                                  const float length,
                                   const float overshoot_fac,
-                                  const short len_mode)
+                                  const short len_mode,
+                                  const bool use_curvature,
+                                  const int extra_point_count,
+                                  const float segment_influence,
+                                  const float max_angle,
+                                  const bool invert_curvature)
 {
   bool changed = false;
   if (length == 0.0f) {
@@ -82,10 +87,18 @@ static bool gpencil_modify_stroke(bGPDstroke *gps,
   }
 
   if (length > 0.0f) {
-    BKE_gpencil_stroke_stretch(gps, length, overshoot_fac, len_mode);
+    changed = BKE_gpencil_stroke_stretch(gps,
+                                         length,
+                                         overshoot_fac,
+                                         len_mode,
+                                         use_curvature,
+                                         extra_point_count,
+                                         segment_influence,
+                                         max_angle,
+                                         invert_curvature);
   }
   else {
-    changed |= BKE_gpencil_stroke_shrink(gps, fabs(length), len_mode);
+    changed = BKE_gpencil_stroke_shrink(gps, fabs(length), len_mode);
   }
 
   return changed;
@@ -96,12 +109,51 @@ static void applyLength(LengthGpencilModifierData *lmd, bGPdata *gpd, bGPDstroke
   bool changed = false;
   const float len = (lmd->mode == GP_LENGTH_ABSOLUTE) ? 1.0f :
                                                         BKE_gpencil_stroke_length(gps, true);
+  const int totpoints = gps->totpoints;
   if (len < FLT_EPSILON) {
     return;
   }
 
-  changed |= gpencil_modify_stroke(gps, len * lmd->start_fac, lmd->overshoot_fac, 1);
-  changed |= gpencil_modify_stroke(gps, len * lmd->end_fac, lmd->overshoot_fac, 2);
+  /* Always do the stretching first since it might depend on points which could be deleted by the
+   * shrink. */
+  float first_fac = lmd->start_fac;
+  int first_mode = 1;
+  float second_fac = lmd->end_fac;
+  int second_mode = 2;
+  if (first_fac < 0) {
+    SWAP(float, first_fac, second_fac);
+    SWAP(int, first_mode, second_mode);
+  }
+
+  const int first_extra_point_count = ceil(first_fac * lmd->point_density);
+  const int second_extra_point_count = ceil(second_fac * lmd->point_density);
+
+  changed |= gpencil_modify_stroke(gps,
+                                   len * first_fac,
+                                   lmd->overshoot_fac,
+                                   first_mode,
+                                   lmd->flag & GP_LENGTH_USE_CURVATURE,
+                                   first_extra_point_count,
+                                   lmd->segment_influence,
+                                   lmd->max_angle,
+                                   lmd->flag & GP_LENGTH_INVERT_CURVATURE);
+  /* HACK: The second #overshoot_fac needs to be adjusted because it is not
+   * done in the same stretch call, because it can have a different length.
+   * The adjustment needs to be stable when
+   * ceil(overshoot_fac*(gps->totpoints - 2)) is used in stretch and never
+   * produce a result highter than totpoints - 2. */
+  const float second_overshoot_fac = lmd->overshoot_fac * (totpoints - 2) /
+                                     ((float)gps->totpoints - 2) *
+                                     (1.0f - 0.1f / (totpoints - 1.0f));
+  changed |= gpencil_modify_stroke(gps,
+                                   len * second_fac,
+                                   second_overshoot_fac,
+                                   second_mode,
+                                   lmd->flag & GP_LENGTH_USE_CURVATURE,
+                                   second_extra_point_count,
+                                   lmd->segment_influence,
+                                   lmd->max_angle,
+                                   lmd->flag & GP_LENGTH_INVERT_CURVATURE);
 
   if (changed) {
     BKE_gpencil_stroke_geometry_update(gpd, gps);
@@ -117,20 +169,25 @@ static void deformStroke(GpencilModifierData *md,
 {
   bGPdata *gpd = ob->data;
   LengthGpencilModifierData *lmd = (LengthGpencilModifierData *)md;
-  if (is_stroke_affected_by_modifier(ob,
-                                     lmd->layername,
-                                     lmd->material,
-                                     lmd->pass_index,
-                                     lmd->layer_pass,
-                                     1,
-                                     gpl,
-                                     gps,
-                                     lmd->flag & GP_LENGTH_INVERT_LAYER,
-                                     lmd->flag & GP_LENGTH_INVERT_PASS,
-                                     lmd->flag & GP_LENGTH_INVERT_LAYERPASS,
-                                     lmd->flag & GP_LENGTH_INVERT_MATERIAL)) {
-    applyLength(lmd, gpd, gps);
+  if (!is_stroke_affected_by_modifier(ob,
+                                      lmd->layername,
+                                      lmd->material,
+                                      lmd->pass_index,
+                                      lmd->layer_pass,
+                                      1,
+                                      gpl,
+                                      gps,
+                                      lmd->flag & GP_LENGTH_INVERT_LAYER,
+                                      lmd->flag & GP_LENGTH_INVERT_PASS,
+                                      lmd->flag & GP_LENGTH_INVERT_LAYERPASS,
+                                      lmd->flag & GP_LENGTH_INVERT_MATERIAL)) {
+    return;
   }
+  if ((gps->flag & GP_STROKE_CYCLIC) != 0) {
+    /* Don't affect cyclic strokes as they have no start/end. */
+    return;
+  }
+  applyLength(lmd, gpd, gps);
 }
 
 static void bakeModifier(Main *UNUSED(bmain),
@@ -168,10 +225,16 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayout *col = uiLayoutColumn(layout, true);
 
-  uiItemR(col, ptr, "start_factor", 0, IFACE_("Start"), ICON_NONE);
-  uiItemR(col, ptr, "end_factor", 0, IFACE_("End"), ICON_NONE);
+  if (RNA_enum_get(ptr, "mode") == GP_LENGTH_RELATIVE) {
+    uiItemR(col, ptr, "start_factor", 0, IFACE_("Start"), ICON_NONE);
+    uiItemR(col, ptr, "end_factor", 0, IFACE_("End"), ICON_NONE);
+  }
+  else {
+    uiItemR(col, ptr, "start_length", 0, IFACE_("Start"), ICON_NONE);
+    uiItemR(col, ptr, "end_length", 0, IFACE_("End"), ICON_NONE);
+  }
 
-  uiItemR(layout, ptr, "overshoot_factor", UI_ITEM_R_SLIDER, IFACE_("Overshoot"), ICON_NONE);
+  uiItemR(layout, ptr, "overshoot_factor", UI_ITEM_R_SLIDER, IFACE_("Used Length"), ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }
@@ -181,10 +244,39 @@ static void mask_panel_draw(const bContext *UNUSED(C), Panel *panel)
   gpencil_modifier_masking_panel_draw(panel, true, false);
 }
 
+static void curvature_header_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
+
+  uiItemR(layout, ptr, "use_curvature", 0, IFACE_("Curvature"), ICON_NONE);
+}
+
+static void curvature_panel_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiLayout *col = uiLayoutColumn(layout, false);
+
+  uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_curvature"));
+
+  uiItemR(col, ptr, "point_density", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "segment_influence", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "max_angle", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "invert_curvature", 0, IFACE_("Invert"), ICON_NONE);
+}
+
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
       region_type, eGpencilModifierType_Length, panel_draw);
+  gpencil_modifier_subpanel_register(
+      region_type, "curvature", "", curvature_header_draw, curvature_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(
       region_type, "mask", "Influence", NULL, mask_panel_draw, panel_type);
 }
