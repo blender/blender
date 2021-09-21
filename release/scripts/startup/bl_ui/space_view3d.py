@@ -2234,8 +2234,6 @@ class VIEW3D_MT_object_relations(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("object.proxy_make", text="Make Proxy...")
-
         layout.operator("object.make_override_library", text="Make Library Override...")
 
         layout.operator("object.convert_proxy_to_override")

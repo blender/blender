@@ -1944,7 +1944,6 @@ url_manual_mapping = (
 	("bpy.ops.object.origin_set*", "scene_layout/object/origin.html#bpy-ops-object-origin-set"),
 	("bpy.ops.object.parent_set*", "scene_layout/object/editing/parent.html#bpy-ops-object-parent-set"),
 	("bpy.ops.object.pointcloud*", "modeling/point_cloud.html#bpy-ops-object-pointcloud"),
-	("bpy.ops.object.proxy_make*", "files/linked_libraries/library_proxies.html#bpy-ops-object-proxy-make"),
 	("bpy.ops.object.select_all*", "scene_layout/object/selecting.html#bpy-ops-object-select-all"),
 	("bpy.ops.object.shade_flat*", "scene_layout/object/editing/shading.html#bpy-ops-object-shade-flat"),
 	("bpy.ops.pose.group_assign*", "animation/armatures/properties/bone_groups.html#bpy-ops-pose-group-assign"),

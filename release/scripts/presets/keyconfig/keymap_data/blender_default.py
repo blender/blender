@@ -4396,7 +4396,6 @@ def km_object_mode(params):
             ("object.duplicates_make_real", {"type": 'A', "value": 'PRESS', "shift": True, "ctrl": True}, None),
             op_menu("VIEW3D_MT_make_single_user", {"type": 'U', "value": 'PRESS'}),
             ("object.convert", {"type": 'C', "value": 'PRESS', "alt": True}, None),
-            ("object.proxy_make", {"type": 'P', "value": 'PRESS', "ctrl": True, "alt": True}, None),
             ("object.make_local", {"type": 'L', "value": 'PRESS'}, None),
             ("object.data_transfer", {"type": 'T', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ])
