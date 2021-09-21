@@ -26,6 +26,8 @@
 #include "FN_generic_value_map.hh"
 #include "FN_multi_function.hh"
 
+#include "BLT_translation.h"
+
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_stack.hh"
 #include "BLI_task.h"
@@ -868,6 +870,12 @@ class GeometryNodesEvaluator {
 
     NodeParamsProvider params_provider{*this, node, node_state};
     GeoNodeExecParams params{params_provider};
+    if (USER_EXPERIMENTAL_TEST(&U, use_geometry_nodes_fields)) {
+      if (node->idname().find("Legacy") != StringRef::not_found) {
+        params.error_message_add(geo_log::NodeWarningType::Legacy,
+                                 TIP_("Legacy node will be removed before Blender 4.0"));
+      }
+    }
     bnode.typeinfo->geometry_node_execute(params);
   }
 

@@ -175,6 +175,7 @@ int space_node_view_flag(struct bContext *C,
 
 void NODE_OT_view_all(struct wmOperatorType *ot);
 void NODE_OT_view_selected(struct wmOperatorType *ot);
+void NODE_OT_geometry_node_view_legacy(struct wmOperatorType *ot);
 
 void NODE_OT_backimage_move(struct wmOperatorType *ot);
 void NODE_OT_backimage_zoom(struct wmOperatorType *ot);
