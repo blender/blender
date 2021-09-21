@@ -24,6 +24,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_math_color.h"
+
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
@@ -107,8 +109,13 @@ static void eyedropper_draw_cursor_text_ex(const int x, const int y, const char 
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
-  const float col_fg[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-  const float col_bg[4] = {0.0f, 0.0f, 0.0f, 0.2f};
+  /* Use the theme settings from tooltips. */
+  const bTheme *btheme = UI_GetTheme();
+  const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
+
+  float col_fg[4], col_bg[4];
+  rgba_uchar_to_float(col_fg, wcol->text);
+  rgba_uchar_to_float(col_bg, wcol->inner);
 
   UI_fontstyle_draw_simple_backdrop(fstyle, x, y + U.widget_unit, name, col_fg, col_bg);
 }
