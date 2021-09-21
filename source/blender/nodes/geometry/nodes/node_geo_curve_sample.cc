@@ -106,12 +106,6 @@ class SampleCurveFunction : public fn::MultiFunction {
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    // MutableSpan<float3> sampled_positions = params.uninitialized_single_output<float3>(1,
-    //                                                                                    "Position");
-    // MutableSpan<float3> sampled_tangents = params.uninitialized_single_output<float3>(2,
-    //                                                                                   "Tangent");
-    // MutableSpan<float3> sampled_normals = params.uninitialized_single_output<float3>(3,
-    // "Normal");
     MutableSpan<float3> sampled_positions = params.uninitialized_single_output_if_required<float3>(
         1, "Position");
     MutableSpan<float3> sampled_tangents = params.uninitialized_single_output_if_required<float3>(
@@ -161,6 +155,7 @@ class SampleCurveFunction : public fn::MultiFunction {
       spline_indices[i] = std::max(index, 0);
     }
 
+    /* Storing lookups in an array is unecessary but will simplify custom attribute transfer. */
     Array<Spline::LookupResult> lookups(mask.min_array_size());
     for (const int i : mask) {
       const float length_in_spline = lengths[i] - spline_lengths_[spline_indices[i]];
@@ -207,7 +202,7 @@ static Field<float> get_length_input_field(const GeoNodeExecParams &params,
   const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
 
   if (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
-    return params.get_input<Field<float>>("Length");
+    /* Just make sure the length is in bounds of the curve. */
     Field<float> length_field = params.get_input<Field<float>>("Length");
     auto clamp_fn = std::make_unique<fn::CustomMF_SI_SO<float, float>>(
         __func__, [curve_total_length](float length) {
@@ -219,6 +214,7 @@ static Field<float> get_length_input_field(const GeoNodeExecParams &params,
     return Field<float>(std::move(clamp_op), 0);
   }
 
+  /* Convert the factor to a length and clamp it to the bounds of the curve. */
   Field<float> factor_field = params.get_input<Field<float>>("Factor");
   auto clamp_fn = std::make_unique<fn::CustomMF_SI_SO<float, float>>(
       __func__, [curve_total_length](float factor) {
