@@ -84,6 +84,8 @@ bool BKE_lib_override_library_proxy_convert(struct Main *bmain,
                                             struct Scene *scene,
                                             struct ViewLayer *view_layer,
                                             struct Object *ob_proxy);
+void BKE_lib_override_library_main_proxy_convert(struct Main *bmain,
+                                                 struct BlendFileReadReport *reports);
 bool BKE_lib_override_library_resync(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ViewLayer *view_layer,

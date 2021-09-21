@@ -1003,6 +1003,77 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
   return BKE_lib_override_library_create(bmain, scene, view_layer, id_root, id_reference, NULL);
 }
 
+static void lib_override_library_proxy_convert_do(Main *bmain,
+                                                  Scene *scene,
+                                                  Object *ob_proxy,
+                                                  BlendFileReadReport *reports)
+{
+  Object *ob_proxy_group = ob_proxy->proxy_group;
+  const bool is_override_instancing_object = ob_proxy_group != NULL;
+
+  const bool success = BKE_lib_override_library_proxy_convert(bmain, scene, NULL, ob_proxy);
+
+  if (success) {
+    CLOG_INFO(&LOG,
+              4,
+              "Proxy object '&s' successfuly converted to library overrides",
+              ob_proxy->id.name);
+    /* Remove the instance empty from this scene, the items now have an overridden collection
+     * instead. */
+    if (is_override_instancing_object) {
+      BKE_scene_collections_object_remove(bmain, scene, ob_proxy_group, true);
+    }
+    reports->count.proxies_to_lib_overrides_success++;
+  }
+}
+
+/**
+ * Convert all proxy objects into library overrides.
+ *
+ * \note Only affects local proxies, linked ones are not affected.
+ *
+ * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
+ *                    which case \a scene's master collection children hierarchy is used instead).
+ */
+void BKE_lib_override_library_main_proxy_convert(Main *bmain, BlendFileReadReport *reports)
+{
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    FOREACH_SCENE_OBJECT_BEGIN (scene, object) {
+      if (object->proxy_group == NULL) {
+        continue;
+      }
+
+      lib_override_library_proxy_convert_do(bmain, scene, object, reports);
+    }
+    FOREACH_SCENE_OBJECT_END;
+
+    FOREACH_SCENE_OBJECT_BEGIN (scene, object) {
+      if (object->proxy == NULL) {
+        continue;
+      }
+
+      lib_override_library_proxy_convert_do(bmain, scene, object, reports);
+    }
+    FOREACH_SCENE_OBJECT_END;
+  }
+
+  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+    if (ID_IS_LINKED(object)) {
+      if (object->proxy != NULL) {
+        CLOG_WARN(&LOG, "Did not try to convert linked proxy object '%s'", object->id.name);
+        reports->count.linked_proxies++;
+      }
+      continue;
+    }
+
+    if (object->proxy_group != NULL || object->proxy != NULL) {
+      CLOG_WARN(
+          &LOG, "Proxy object '%s' failed to be converted to library override", object->id.name);
+      reports->count.proxies_to_lib_overrides_failures++;
+    }
+  }
+}
+
 /**
  * Advanced 'smart' function to resync, re-create fully functional overrides up-to-date with linked
  * data, from an existing override hierarchy.
