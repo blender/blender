@@ -635,6 +635,7 @@ typedef struct UserDef_Experimental {
   /* Debug options, always available. */
   char use_undo_legacy;
   char no_override_auto_resync;
+  char no_proxy_to_override_conversion;
   char use_cycles_debug;
   char SANITIZE_AFTER_HERE;
   /* The following options are automatically sanitized (set to 0)
@@ -647,7 +648,7 @@ typedef struct UserDef_Experimental {
   char use_extended_asset_browser;
   char use_override_templates;
   char use_geometry_nodes_fields;
-  char _pad[4];
+  char _pad[3];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

@@ -111,8 +111,16 @@ typedef struct BlendFileReadReport {
     /* Some sub-categories of the above `missing_linked_id` counter. */
     int missing_obdata;
     int missing_obproxies;
+
     /* Number of root override IDs that were resynced. */
     int resynced_lib_overrides;
+
+    /* Number of (non-converted) linked proxies. */
+    int linked_proxies;
+    /* Number of proxies converted to library overrides. */
+    int proxies_to_lib_overrides_success;
+    /* Number of proxies that failed to convert to library overrides. */
+    int proxies_to_lib_overrides_failures;
   } count;
 
   /* Number of libraries which had overrides that needed to be resynced, and a single linked list

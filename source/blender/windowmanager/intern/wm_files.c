@@ -857,6 +857,20 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
                 duration_lib_override_recursive_resync_seconds);
   }
 
+  if (bf_reports->count.linked_proxies != 0 ||
+      bf_reports->count.proxies_to_lib_overrides_success != 0 ||
+      bf_reports->count.proxies_to_lib_overrides_failures != 0) {
+    BKE_reportf(bf_reports->reports,
+                RPT_WARNING,
+                "Proxies are deprecated (%d proxies were automatically converted to library "
+                "overrides, %d proxies could not be converted and %d linked proxies were kept "
+                "untouched). If you need to keep proxies for the time being, please disable the "
+                "`Proxy to Override Auto Conversion` in Experimental user preferences",
+                bf_reports->count.proxies_to_lib_overrides_success,
+                bf_reports->count.proxies_to_lib_overrides_failures,
+                bf_reports->count.linked_proxies);
+  }
+
   BLI_linklist_free(bf_reports->resynced_lib_overrides_libraries, NULL);
   bf_reports->resynced_lib_overrides_libraries = NULL;
 }

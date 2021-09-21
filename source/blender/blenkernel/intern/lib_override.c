@@ -1016,7 +1016,7 @@ static void lib_override_library_proxy_convert_do(Main *bmain,
   if (success) {
     CLOG_INFO(&LOG,
               4,
-              "Proxy object '&s' successfuly converted to library overrides",
+              "Proxy object '%s' successfuly converted to library overrides",
               ob_proxy->id.name);
     /* Remove the instance empty from this scene, the items now have an overridden collection
      * instead. */
