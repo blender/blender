@@ -28,15 +28,17 @@ extern "C" {
 
 /**
  * \brief Universally Unique Identifier according to RFC4122.
+ *
+ * Cannot be named simply `UUID`, because Windows already defines that type.
  */
-typedef struct UUID {
+typedef struct bUUID {
   uint32_t time_low;
   uint16_t time_mid;
   uint16_t time_hi_and_version;
   uint8_t clock_seq_hi_and_reserved;
   uint8_t clock_seq_low;
   uint8_t node[6];
-} UUID;
+} bUUID;
 
 #ifdef __cplusplus
 }
