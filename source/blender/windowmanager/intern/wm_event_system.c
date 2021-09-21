@@ -2989,9 +2989,18 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
       /* Handle all types here. */
       if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
         wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
-        wmKeyMap *keymap = WM_event_get_keymap_from_handler(wm, handler);
-        action |= wm_handlers_do_keymap_with_keymap_handler(
-            C, event, handlers, handler, keymap, do_debug_handler);
+        wmEventHandler_KeymapResult km_result;
+        WM_event_get_keymaps_from_handler(wm, handler, &km_result);
+        int action_iter = WM_HANDLER_CONTINUE;
+        for (int km_index = 0; km_index < km_result.keymaps_len; km_index++) {
+          wmKeyMap *keymap = km_result.keymaps[km_index];
+          action_iter |= wm_handlers_do_keymap_with_keymap_handler(
+              C, event, handlers, handler, keymap, do_debug_handler);
+          if (action_iter & WM_HANDLER_BREAK) {
+            break;
+          }
+        }
+        action |= action_iter;
 
         /* Clear the tool-tip whenever a key binding is handled, without this tool-tips
          * are kept when a modal operators starts (annoying but otherwise harmless). */
@@ -3905,17 +3914,34 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap 
  *
  * Follow #wmEventHandler_KeymapDynamicFn signature.
  */
-wmKeyMap *WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
-                                                       wmEventHandler_Keymap *handler)
+void WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
+                                                  wmEventHandler_Keymap *handler,
+                                                  wmEventHandler_KeymapResult *km_result)
 {
+  memset(km_result, 0x0, sizeof(*km_result));
+
+  const char *keymap_id_list[ARRAY_SIZE(km_result->keymaps)];
+  int keymap_id_list_len = 0;
+
   ScrArea *area = handler->dynamic.user_data;
   handler->keymap_tool = NULL;
   bToolRef_Runtime *tref_rt = area->runtime.tool ? area->runtime.tool->runtime : NULL;
-  if (tref_rt && tref_rt->keymap_fallback[0]) {
-    const char *keymap_id = NULL;
 
+  if (tref_rt && tref_rt->keymap[0]) {
+    keymap_id_list[keymap_id_list_len++] = tref_rt->keymap;
+  }
+
+  bool is_gizmo_visible = false;
+  bool is_gizmo_highlight = false;
+
+  if (tref_rt && tref_rt->keymap_fallback[0]) {
+    bool add_keymap = false;
     /* Support for the gizmo owning the tool keymap. */
-    if (tref_rt->gizmo_group[0] != '\0' && tref_rt->keymap_fallback[0] != '\0') {
+
+    if (tref_rt->flag & TOOLREF_FLAG_FALLBACK_KEYMAP) {
+      add_keymap = true;
+    }
+    if (tref_rt->gizmo_group[0] != '\0') {
       wmGizmoMap *gzmap = NULL;
       wmGizmoGroup *gzgroup = NULL;
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
@@ -3931,32 +3957,49 @@ wmKeyMap *WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
         if (gzgroup->type->flag & WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP) {
           /* If all are hidden, don't override. */
           if (gzgroup->use_fallback_keymap) {
+            is_gizmo_visible = true;
             wmGizmo *highlight = wm_gizmomap_highlight_get(gzmap);
-            if (highlight == NULL) {
-              keymap_id = tref_rt->keymap_fallback;
+            if (highlight) {
+              is_gizmo_highlight = true;
             }
+            add_keymap = true;
           }
         }
       }
     }
-
-    if (keymap_id && keymap_id[0]) {
-      wmKeyMap *km = WM_keymap_list_find_spaceid_or_empty(
-          &wm->userconf->keymaps, keymap_id, area->spacetype, RGN_TYPE_WINDOW);
-      /* We shouldn't use keymaps from unrelated spaces. */
-      if (km != NULL) {
-        handler->keymap_tool = area->runtime.tool;
-        return km;
-      }
-      printf(
-          "Keymap: '%s' not found for tool '%s'\n", tref_rt->keymap, area->runtime.tool->idname);
+    if (add_keymap) {
+      keymap_id_list[keymap_id_list_len++] = tref_rt->keymap_fallback;
     }
   }
-  return NULL;
+
+  if (is_gizmo_visible && !is_gizmo_highlight) {
+    if (keymap_id_list_len == 2) {
+      SWAP(const char *, keymap_id_list[0], keymap_id_list[1]);
+    }
+  }
+
+  for (int i = 0; i < keymap_id_list_len; i++) {
+    const char *keymap_id = keymap_id_list[i];
+    BLI_assert(keymap_id && keymap_id[0]);
+
+    wmKeyMap *km = WM_keymap_list_find_spaceid_or_empty(
+        &wm->userconf->keymaps, keymap_id, area->spacetype, RGN_TYPE_WINDOW);
+    /* We shouldn't use keymaps from unrelated spaces. */
+    if (km == NULL) {
+      printf("Keymap: '%s' not found for tool '%s'\n", keymap_id, area->runtime.tool->idname);
+      continue;
+    }
+    handler->keymap_tool = area->runtime.tool;
+    km_result->keymaps[km_result->keymaps_len++] = km;
+  }
 }
 
-wmKeyMap *WM_event_get_keymap_from_toolsystem(wmWindowManager *wm, wmEventHandler_Keymap *handler)
+void WM_event_get_keymap_from_toolsystem(wmWindowManager *wm,
+                                         wmEventHandler_Keymap *handler,
+                                         wmEventHandler_KeymapResult *km_result)
 {
+  memset(km_result, 0x0, sizeof(*km_result));
+
   ScrArea *area = handler->dynamic.user_data;
   handler->keymap_tool = NULL;
   bToolRef_Runtime *tref_rt = area->runtime.tool ? area->runtime.tool->runtime : NULL;
@@ -3968,13 +4011,14 @@ wmKeyMap *WM_event_get_keymap_from_toolsystem(wmWindowManager *wm, wmEventHandle
       /* We shouldn't use keymaps from unrelated spaces. */
       if (km != NULL) {
         handler->keymap_tool = area->runtime.tool;
-        return km;
+        km_result->keymaps[km_result->keymaps_len++] = km;
       }
-      printf(
-          "Keymap: '%s' not found for tool '%s'\n", tref_rt->keymap, area->runtime.tool->idname);
+      else {
+        printf(
+            "Keymap: '%s' not found for tool '%s'\n", tref_rt->keymap, area->runtime.tool->idname);
+      }
     }
   }
-  return NULL;
 }
 
 struct wmEventHandler_Keymap *WM_event_add_keymap_handler_dynamic(
@@ -5088,18 +5132,22 @@ void WM_set_locked_interface(wmWindowManager *wm, bool lock)
 /** \name Event / Keymap Matching API
  * \{ */
 
-wmKeyMap *WM_event_get_keymap_from_handler(wmWindowManager *wm, wmEventHandler_Keymap *handler)
+void WM_event_get_keymaps_from_handler(wmWindowManager *wm,
+                                       wmEventHandler_Keymap *handler,
+                                       wmEventHandler_KeymapResult *km_result)
 {
-  wmKeyMap *keymap;
   if (handler->dynamic.keymap_fn != NULL) {
-    keymap = handler->dynamic.keymap_fn(wm, handler);
+    handler->dynamic.keymap_fn(wm, handler, km_result);
     BLI_assert(handler->keymap == NULL);
   }
   else {
-    keymap = WM_keymap_active(wm, handler->keymap);
+    memset(km_result, 0x0, sizeof(*km_result));
+    wmKeyMap *keymap = WM_keymap_active(wm, handler->keymap);
     BLI_assert(keymap != NULL);
+    if (keymap != NULL) {
+      km_result->keymaps[km_result->keymaps_len++] = keymap;
+    }
   }
-  return keymap;
 }
 
 wmKeyMapItem *WM_event_match_keymap_item(bContext *C, wmKeyMap *keymap, const wmEvent *event)
@@ -5128,11 +5176,15 @@ wmKeyMapItem *WM_event_match_keymap_item_from_handlers(bContext *C,
     else if (handler_base->poll == NULL || handler_base->poll(CTX_wm_region(C), event)) {
       if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
         wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
-        wmKeyMap *keymap = WM_event_get_keymap_from_handler(wm, handler);
-        if (keymap && WM_keymap_poll(C, keymap)) {
-          wmKeyMapItem *kmi = WM_event_match_keymap_item(C, keymap, event);
-          if (kmi != NULL) {
-            return kmi;
+        wmEventHandler_KeymapResult km_result;
+        WM_event_get_keymaps_from_handler(wm, handler, &km_result);
+        for (int km_index = 0; km_index < km_result.keymaps_len; km_index++) {
+          wmKeyMap *keymap = km_result.keymaps[km_index];
+          if (WM_keymap_poll(C, keymap)) {
+            wmKeyMapItem *kmi = WM_event_match_keymap_item(C, keymap, event);
+            if (kmi != NULL) {
+              return kmi;
+            }
           }
         }
       }

@@ -262,14 +262,21 @@ struct wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *han
                                                                    wmKeyMap *keymap,
                                                                    int priority);
 
-typedef struct wmKeyMap *(wmEventHandler_KeymapDynamicFn)(wmWindowManager *wm,
-                                                          struct wmEventHandler_Keymap *handler)
-    ATTR_WARN_UNUSED_RESULT;
+typedef struct wmEventHandler_KeymapResult {
+  wmKeyMap *keymaps[3];
+  int keymaps_len;
+} wmEventHandler_KeymapResult;
 
-struct wmKeyMap *WM_event_get_keymap_from_toolsystem_fallback(
-    struct wmWindowManager *wm, struct wmEventHandler_Keymap *handler);
-struct wmKeyMap *WM_event_get_keymap_from_toolsystem(struct wmWindowManager *wm,
-                                                     struct wmEventHandler_Keymap *handler);
+typedef void(wmEventHandler_KeymapDynamicFn)(wmWindowManager *wm,
+                                             struct wmEventHandler_Keymap *handler,
+                                             struct wmEventHandler_KeymapResult *km_result);
+
+void WM_event_get_keymap_from_toolsystem_fallback(struct wmWindowManager *wm,
+                                                  struct wmEventHandler_Keymap *handler,
+                                                  wmEventHandler_KeymapResult *km_result);
+void WM_event_get_keymap_from_toolsystem(struct wmWindowManager *wm,
+                                         struct wmEventHandler_Keymap *handler,
+                                         wmEventHandler_KeymapResult *km_result);
 
 struct wmEventHandler_Keymap *WM_event_add_keymap_handler_dynamic(
     ListBase *handlers, wmEventHandler_KeymapDynamicFn *keymap_fn, void *user_data);
@@ -281,8 +288,9 @@ void WM_event_set_keymap_handler_post_callback(struct wmEventHandler_Keymap *han
                                                                 wmKeyMapItem *kmi,
                                                                 void *user_data),
                                                void *user_data);
-wmKeyMap *WM_event_get_keymap_from_handler(wmWindowManager *wm,
-                                           struct wmEventHandler_Keymap *handler);
+void WM_event_get_keymaps_from_handler(wmWindowManager *wm,
+                                       struct wmEventHandler_Keymap *handler,
+                                       struct wmEventHandler_KeymapResult *km_result);
 
 wmKeyMapItem *WM_event_match_keymap_item(struct bContext *C,
                                          wmKeyMap *keymap,

@@ -461,7 +461,7 @@ void MESH_GGT_spin(struct wmGizmoGroupType *gzgt)
   gzgt->name = "Mesh Spin Init";
   gzgt->idname = "MESH_GGT_spin";
 
-  gzgt->flag = WM_GIZMOGROUPTYPE_3D;
+  gzgt->flag = WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP | WM_GIZMOGROUPTYPE_3D;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
@@ -1063,7 +1063,7 @@ void MESH_GGT_spin_redo(struct wmGizmoGroupType *gzgt)
   gzgt->name = "Mesh Spin Redo";
   gzgt->idname = "MESH_GGT_spin_redo";
 
-  gzgt->flag = WM_GIZMOGROUPTYPE_3D;
+  gzgt->flag = WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP | WM_GIZMOGROUPTYPE_3D;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;

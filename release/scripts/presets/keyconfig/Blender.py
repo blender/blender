@@ -54,6 +54,19 @@ class Prefs(bpy.types.KeyConfigPreferences):
         default='PLAY',
         update=update_fn,
     )
+    rmb_action: EnumProperty(
+        name="Right Mouse Select Action",
+        items=(
+            ('TWEAK', "Select & Tweak",
+             "Right mouse always tweaks"),
+            ('FALLBACK_TOOL', "Selection Tool",
+             "Right mouse uses the selection tool"),
+        ),
+        description=(
+            "Default action for the right mouse button"
+        ),
+        update=update_fn,
+    )
     use_alt_click_leader: BoolProperty(
         name="Alt Click Tool Prompt",
         description=(
@@ -179,6 +192,8 @@ class Prefs(bpy.types.KeyConfigPreferences):
 
         if is_select_left:
             col.row().prop(self, "gizmo_action", text="Activate Gizmo Event", expand=True)
+        else:
+            col.row().prop(self, "rmb_action", text="Right Mouse Select Action", expand=True)
 
         # Checkboxes sub-layout.
         col = layout.column()
@@ -232,6 +247,7 @@ def load():
                 kc_prefs.select_mouse == 'LEFT' and
                 kc_prefs.gizmo_action == 'DRAG'
             ),
+            use_fallback_tool=(True if (kc_prefs.select_mouse == 'LEFT') else (kc_prefs.rmb_action == 'FALLBACK_TOOL')),
             use_alt_click_leader=kc_prefs.use_alt_click_leader,
             use_pie_click_drag=kc_prefs.use_pie_click_drag,
         ),

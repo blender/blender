@@ -1735,10 +1735,14 @@ static void ed_default_handlers(
     WM_event_add_keymap_handler(handlers, keymap);
   }
   if (flag & ED_KEYMAP_TOOL) {
-    WM_event_add_keymap_handler_dynamic(
-        &region->handlers, WM_event_get_keymap_from_toolsystem_fallback, area);
-    WM_event_add_keymap_handler_dynamic(
-        &region->handlers, WM_event_get_keymap_from_toolsystem, area);
+    if (flag & ED_KEYMAP_GIZMO) {
+      WM_event_add_keymap_handler_dynamic(
+          &region->handlers, WM_event_get_keymap_from_toolsystem_fallback, area);
+    }
+    else {
+      WM_event_add_keymap_handler_dynamic(
+          &region->handlers, WM_event_get_keymap_from_toolsystem, area);
+    }
   }
   if (flag & ED_KEYMAP_FRAMES) {
     /* frame changing/jumping (for all spaces) */
