@@ -14,6 +14,10 @@ uniform int depthLayer;
 uniform sampler2D depthBuffer;
 #endif
 
+#ifndef COPY_DEPTH
+uniform vec2 texelSize;
+#endif
+
 #ifdef LAYERED
 #  define sampleLowerMip(t) texture(depthBuffer, vec3(t, depthLayer)).r
 #  define gatherLowerMip(t) textureGather(depthBuffer, vec3(t, depthLayer))
@@ -41,23 +45,24 @@ out vec4 fragColor;
 void main()
 {
   vec2 texel = gl_FragCoord.xy;
-  vec2 texel_size = 1.0 / vec2(textureSize(depthBuffer, 0).xy);
 
 #ifdef COPY_DEPTH
-  vec2 uv = texel * texel_size;
+  vec2 uv = texel / vec2(textureSize(depthBuffer, 0).xy);
 
   float val = sampleLowerMip(uv);
 #else
-  vec2 uv = texel * 2.0 * texel_size;
+  /* NOTE(@fclem): textureSize() does not work the same on all implementations
+   * when changing the min and max texture levels. Use uniform instead (see T87801). */
+  vec2 uv = texel * 2.0 * texelSize;
 
   vec4 samp;
 #  ifdef GPU_ARB_texture_gather
   samp = gatherLowerMip(uv);
 #  else
-  samp.x = sampleLowerMip(uv + vec2(-0.5, -0.5) * texel_size);
-  samp.y = sampleLowerMip(uv + vec2(-0.5, 0.5) * texel_size);
-  samp.z = sampleLowerMip(uv + vec2(0.5, -0.5) * texel_size);
-  samp.w = sampleLowerMip(uv + vec2(0.5, 0.5) * texel_size);
+  samp.x = sampleLowerMip(uv + vec2(-0.5, -0.5) * texelSize);
+  samp.y = sampleLowerMip(uv + vec2(-0.5, 0.5) * texelSize);
+  samp.z = sampleLowerMip(uv + vec2(0.5, -0.5) * texelSize);
+  samp.w = sampleLowerMip(uv + vec2(0.5, 0.5) * texelSize);
 #  endif
 
   float val = minmax4(samp.x, samp.y, samp.z, samp.w);
