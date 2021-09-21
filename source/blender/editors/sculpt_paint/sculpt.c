@@ -149,8 +149,19 @@ ATTR_NO_OPT float SCULPT_get_float(const SculptSession *ss,
     return BKE_brush_channelset_get_float(
         ss->cache->channels_final, idname, &ss->cache->input_mapping);
   }
+  else if (br && sd && br->channels && sd->channels) {
+    return BKE_brush_channelset_get_final_float(
+        br->channels, sd->channels, idname, &ss->cache->input_mapping);
+  }
+  else if (br && br->channels) {
+    return BKE_brush_channelset_get_float(br->channels, idname, &ss->cache->input_mapping);
+  }
+  else if (sd && sd->channels) {
+    return BKE_brush_channelset_get_float(sd->channels, idname, &ss->cache->input_mapping);
+  }
   else {
-    return BKE_brush_channelset_get_final_float(br->channels, sd->channels, idname, NULL);
+    // eek!
+    return 0.0f;
   }
 }
 
@@ -163,8 +174,19 @@ ATTR_NO_OPT int SCULPT_get_int(const SculptSession *ss,
     return BKE_brush_channelset_get_int(
         ss->cache->channels_final, idname, &ss->cache->input_mapping);
   }
+  else if (br && br->channels && sd && sd->channels) {
+    return BKE_brush_channelset_get_final_int(
+        br->channels, sd->channels, idname, &ss->cache->input_mapping);
+  }
+  else if (br && br->channels) {
+    return BKE_brush_channelset_get_int(br->channels, idname, &ss->cache->input_mapping);
+  }
+  else if (sd && sd->channels) {
+    return BKE_brush_channelset_get_int(sd->channels, idname, &ss->cache->input_mapping);
+  }
   else {
-    return BKE_brush_channelset_get_final_int(br->channels, sd->channels, idname, NULL);
+    // eek!
+    return 0;
   }
 }
 

@@ -8,7 +8,8 @@
 
 using namespace std;
 
-ATTR_NO_OPT extern "C" const char *sculpt_keymap_fix(const char *str)
+extern "C" {
+const char *sculpt_keymap_fix(const char *str)
 {
   basic_string repl = regex_replace(str, regex("unified_"), "");
   repl = regex_replace(repl, regex("size"), "radius");
@@ -69,4 +70,5 @@ ATTR_NO_OPT extern "C" const char *sculpt_keymap_fix(const char *str)
   BLI_strncpy(ret, out, len + 1);
 
   return ret;
+}
 }
