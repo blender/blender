@@ -137,6 +137,7 @@ set(SRC
   intern/string_search.cc
   intern/string_utf8.c
   intern/string_utils.c
+  #intern/string_regex.cc
   intern/system.c
   intern/task_graph.cc
   intern/task_iterator.c
@@ -298,6 +299,7 @@ set(SRC
   BLI_string_search.h
   BLI_string_utf8.h
   BLI_string_utils.h
+  #BLI_string_regex.h
   BLI_sys_types.h
   BLI_system.h
   BLI_task.h

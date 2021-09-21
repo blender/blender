@@ -50,6 +50,7 @@ typedef struct BrushChannel {
 
   float fvalue;
   int ivalue;
+  float vector[4];
   BrushMapping mappings[5];  // should always be BRUSH_MAPPING_MAX
 
   int type, flag;
@@ -89,7 +90,9 @@ enum {
   BRUSH_CHANNEL_INHERIT = 1 << 0,
   BRUSH_CHANNEL_INHERIT_IF_UNSET = 1 << 1,
   BRUSH_CHANNEL_NO_MAPPINGS = 1 << 2,
-  BRUSH_CHANNEL_UI_EXPANDED = 1 << 3
+  BRUSH_CHANNEL_UI_EXPANDED = 1 << 3,
+  BRUSH_CHANNEL_APPLY_MAPPING_TO_ALPHA = 1 << 4,
+  BRUSH_CHANNEL_COLOR = 1 << 5
 };
 
 // BrushChannelType->type

@@ -126,6 +126,7 @@ class UnifiedPaintPanel:
         row = layout.row(align=True)
 
         typeprop = "float_value"
+
         if ch.type == "INT":
             typeprop = "int_value"
         elif ch.type == "BOOL":
@@ -134,6 +135,10 @@ class UnifiedPaintPanel:
             typeprop = "enum_value"
         elif ch.type == "BITMASK":
             typeprop = "flags_value"
+        elif ch.type == "VEC3":
+            typeprop = "color3_value"
+        elif ch.type == "VEC4":
+            typeprop = "color4_value"
 
         if text is None:
             s = prop_name.lower().replace("_", " ").split(" ");
@@ -274,6 +279,12 @@ class UnifiedPaintPanel:
 
     @staticmethod
     def prop_unified_color(parent, context, brush, prop_name, *, text=None):
+        if context.mode == 'SCULPT':
+#    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None,
+ #                       slider=False, header=False, expand=None, toolsettings_only=False):
+            return UnifiedPaintPanel.channel_unified(parent, context, brush, prop_name, text=text)
+
+
         ups = context.tool_settings.unified_paint_settings
         prop_owner = ups if ups.use_unified_color else brush
         parent.prop(prop_owner, prop_name, text=text)

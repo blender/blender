@@ -414,6 +414,11 @@ void RNA_def_brush_channel(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Inherit", "Inherit from scene defaults");
 
+  prop = RNA_def_property(srna, "is_color", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_COLOR);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Is Color", "Is this channel a color");
+
   prop = RNA_def_property(srna, "ui_expanded", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_UI_EXPANDED);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
@@ -436,6 +441,30 @@ void RNA_def_brush_channel(BlenderRNA *brna)
                                     "rna_BrushChannel_mappings_lookupstring",
                                     "rna_BrushChannel_mappings_assignint");
   RNA_def_property_struct_type(prop, "BrushMapping");
+
+  prop = RNA_def_property(srna, "color3_value", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_float_sdna(prop, "BrushChannel", "vector");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "Color", "");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+
+  prop = RNA_def_property(srna, "color4_value", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_float_sdna(prop, "BrushChannel", "vector");
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(prop, "Color", "");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+
+  prop = RNA_def_property(srna, "vector3_value", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, "BrushChannel", "vector");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "Vector", "");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+
+  prop = RNA_def_property(srna, "vector4_value", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, "BrushChannel", "vector");
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(prop, "Vector", "");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "enum_value", PROP_ENUM, PROP_UNIT_NONE);
   RNA_def_property_ui_text(prop, "Enum Value", "Enum values (for enums");

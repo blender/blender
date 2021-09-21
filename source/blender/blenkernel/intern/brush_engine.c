@@ -871,6 +871,175 @@ ATTR_NO_OPT float BKE_brush_channel_get_float(BrushChannel *ch, BrushMappingData
 
   return f;
 }
+ATTR_NO_OPT void BKE_brush_channel_set_vector(BrushChannel *ch, float vec[4])
+{
+  if (ch->type == BRUSH_CHANNEL_VEC4) {
+    copy_v4_v4(ch->vector, vec);
+  }
+  else {
+    copy_v3_v3(ch->vector, vec);
+  }
+}
+
+ATTR_NO_OPT int BKE_brush_channel_get_vector_size(BrushChannel *ch)
+{
+  switch (ch->type) {
+    case BRUSH_CHANNEL_VEC3:
+      return 3;
+    case BRUSH_CHANNEL_VEC4:
+      return 4;
+    default:
+      return 1;
+  }
+}
+
+ATTR_NO_OPT int BKE_brush_channel_get_vector(BrushChannel *ch,
+                                             float out[4],
+                                             BrushMappingData *mapdata)
+{
+  int size = 3;
+  if (ch->type == BRUSH_CHANNEL_VEC4) {
+    size = 4;
+  }
+
+  if (mapdata) {
+    float factor = 1.0f;
+
+    for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+      BrushMapping *mp = ch->mappings + i;
+
+      if (!(mp->flag & BRUSH_MAPPING_ENABLED)) {
+        continue;
+      }
+
+      float inputf = ((float *)mapdata)[i];
+
+      float f2 = BKE_curvemapping_evaluateF(mp->curve, 0, inputf);
+
+      switch (mp->blendmode) {
+        case MA_RAMP_BLEND:
+          break;
+        case MA_RAMP_MULT:
+          f2 *= inputf * f2;
+          break;
+        case MA_RAMP_DIV:
+          f2 = inputf / (0.00001f + inputf);
+          break;
+        case MA_RAMP_ADD:
+          f2 += inputf;
+          break;
+        case MA_RAMP_SUB:
+          f2 = inputf - f2;
+          break;
+        case MA_RAMP_DIFF:
+          f2 = fabsf(inputf - f2);
+          break;
+        default:
+          printf("Unsupported brush mapping blend mode for %s (%s); will mix instead\n",
+                 ch->name,
+                 ch->idname);
+          break;
+      }
+
+      factor += (f2 - factor) * mp->factor;
+    }
+
+    if (size == 3) {
+      copy_v3_v3(out, ch->vector);
+      mul_v3_fl(out, factor);
+    }
+    else {
+      copy_v4_v4(out, ch->vector);
+
+      if (ch->flag & BRUSH_CHANNEL_APPLY_MAPPING_TO_ALPHA) {
+        mul_v4_fl(out, factor);
+      }
+      else {
+        mul_v3_fl(out, factor);
+      }
+    }
+  }
+
+  return size;
+}
+
+float BKE_brush_channelset_get_final_vector(BrushChannelSet *brushset,
+                                            BrushChannelSet *toolset,
+                                            const char *idname,
+                                            float r_vec[4],
+                                            BrushMappingData *mapdata)
+{
+  BrushChannel *ch = BKE_brush_channelset_lookup(brushset, idname);
+
+  if (!ch || (ch->flag & BRUSH_CHANNEL_INHERIT)) {
+    BrushChannel *pch = BKE_brush_channelset_lookup(toolset, idname);
+
+    if (pch) {
+      return BKE_brush_channel_get_vector(pch, r_vec, mapdata);
+    }
+  }
+
+  if (ch) {
+    return BKE_brush_channel_get_vector(ch, r_vec, mapdata);
+  }
+
+  printf("%s: failed to find brush channel %s\n", __func__, idname);
+
+  return 0.0f;
+}
+
+void BKE_brush_channelset_set_final_vector(BrushChannelSet *brushset,
+                                           BrushChannelSet *toolset,
+                                           const char *idname,
+                                           float vec[4])
+{
+  BrushChannel *ch = BKE_brush_channelset_lookup(brushset, idname);
+
+  if (!ch || (ch->flag & BRUSH_CHANNEL_INHERIT)) {
+    BrushChannel *pch = BKE_brush_channelset_lookup(toolset, idname);
+
+    if (pch) {
+      BKE_brush_channel_set_vector(pch, vec);
+      return;
+    }
+  }
+
+  if (!ch) {
+    printf("%s: failed to find brush channel %s\n", __func__, idname);
+    return;
+  }
+
+  BKE_brush_channel_set_vector(ch, vec);
+}
+
+int BKE_brush_channelset_get_vector(BrushChannelSet *chset,
+                                    const char *idname,
+                                    float r_vec[4],
+                                    BrushMappingData *mapdata)
+{
+  BrushChannel *ch = BKE_brush_channelset_lookup(chset, idname);
+
+  if (!ch) {
+    printf("%s, unknown channel %s", __func__, idname);
+    return 0.0f;
+  }
+
+  return BKE_brush_channel_get_vector(ch, r_vec, mapdata);
+}
+
+bool BKE_brush_channelset_set_vector(BrushChannelSet *chset, const char *idname, float vec[4])
+{
+  BrushChannel *ch = BKE_brush_channelset_lookup(chset, idname);
+
+  if (!ch) {
+    printf("%s, unknown channel %s", __func__, idname);
+    return false;
+  }
+
+  BKE_brush_channel_set_vector(ch, vec);
+
+  return true;
+}
 
 void BKE_brush_channel_set_float(BrushChannel *ch, float val)
 {

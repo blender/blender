@@ -4299,6 +4299,28 @@ def km_curve(params):
 
 # Radial control setup helpers, this operator has a lot of properties.
 
+def radial_control_properties_channels(paint, prop, secondary_prop, secondary_rotation=False, color=False, zoom=False, type="float"):
+    brush_path = 'tool_settings.' + paint + '.brush'
+    channels_path = brush_path + ".channels.channels"
+    unified  = "tool_settings." + paint + ".channels.channels"
+
+    rotation = 'mask_texture_slot_angle' if secondary_rotation else 'texture_slot_angle'
+    return {
+        "properties": [
+            ("data_path_primary", '%s["%s"].%s_value' % (channels_path, prop, type)),
+            ("data_path_secondary", '%s["%s"].%s_value' % (unified, prop, type) if secondary_prop else ''),
+            ("use_secondary", '%s["%s"].inherit' % (channels_path, prop) if secondary_prop else ''),
+            #("rotation_path", '%s["%s"].float_value' % (channels_path, rotation)),
+            #("color_path", brush_path + '.cursor_color_add'),
+            #("fill_color_path", brush_path + '.color' if color else ''),
+            #("fill_color_override_path", unified_path + '.color' if color else ''),
+            #("fill_color_override_test_path", unified_path + '.use_unified_color' if color else ''),
+            #("zoom_path", 'space_data.zoom' if zoom else ''),
+            #("image_id", brush_path + ''),
+            #("secondary_tex", secondary_rotation),
+        ],
+    }
+
 
 def radial_control_properties(paint, prop, secondary_prop, secondary_rotation=False, color=False, zoom=False):
     brush_path = 'tool_settings.' + paint + '.brush'
@@ -4347,6 +4369,32 @@ def _template_paint_radial_control(paint, rotation=False, secondary_rotation=Fal
 
     return items
 
+
+def _template_paint_radial_control_channels(paint, rotation=False, secondary_rotation=False, color=False, zoom=False):
+    items = []
+
+    items.extend([
+        ("wm.radial_control", {"type": 'F', "value": 'PRESS'},
+         radial_control_properties_channels(paint, 'radius', 'use_unified_size', type="float", secondary_rotation=secondary_rotation, color=color, zoom=zoom)),
+        ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
+         radial_control_properties_channels(paint, 'strength', 'use_unified_strength', type="factor", secondary_rotation=secondary_rotation, color=color)),
+    ])
+
+    """
+    if rotation:
+        items.extend([
+            ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
+             radial_control_properties_channels(paint, 'texture_slot_angle', None, color=color)),
+        ])
+
+    if secondary_rotation:
+        items.extend([
+            ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True, "alt": True},
+             radial_control_properties_channels(paint, 'mask_texture_slot_angle', None, secondary_rotation=secondary_rotation, color=color)),
+        ])
+    """
+
+    return items
 
 def km_image_paint(params):
     items = []
@@ -4567,7 +4615,8 @@ def km_sculpt(params):
          {"properties": [("scalar", 0.9)]}),
         ("brush.scale_size", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "repeat": True},
          {"properties": [("scalar", 1.0 / 0.9)]}),
-        *_template_paint_radial_control("sculpt", rotation=True),
+        *_template_paint_radial_control_channels("sculpt", rotation=True),
+        #*_template_paint_radial_control("sculpt", rotation=True),
         # Stencil
         ("brush.stencil_control", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
          {"properties": [("mode", 'TRANSLATION')]}),

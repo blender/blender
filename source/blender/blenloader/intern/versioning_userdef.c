@@ -341,6 +341,58 @@ static void do_version_select_mouse(UserDef *userdef, wmKeyMapItem *kmi)
   }
 }
 
+/* clang-format off */
+static const char *sculpt_replacements[][4] = {
+ {"tool_settings.sculpt.brush.", "tool_settings.sculpt.brush.channels.channels[\"PROP\"].float_value"},
+ {"tool_settings.unified_paint_settings.", "tool_settings.sculpt.channels.channels[\"PROP\"].float_value"},
+ {"tool_settings.unified_paint_settings.use_unified_size", "tool_settings.sculpt.brush.channels.channels[\"PROP\"].inherit"},
+};
+static const char *sculpt_prop_map[][2] = {
+  {"size", "radius"},
+  {"use_unified_size", "radius"},
+  {"use_unified_strength", "strength"}
+};
+/* clang-format on */
+
+static int tot_sculpt_prop_map = ARRAY_SIZE(sculpt_prop_map);
+static int tot_sculpt_replacements = ARRAY_SIZE(sculpt_replacements);
+
+extern char *sculpt_keymap_fix(const char *str);
+
+static void fix_radial_control_path(IDProperty *prop, void *userdata)
+{
+  if (prop->type != IDP_STRING) {
+    return;
+  }
+
+  wmKeyMapItem *kmi = (wmKeyMapItem *)userdata;
+  const char *string = (const char *)prop->data.pointer;
+  const char *newstring = sculpt_keymap_fix(string);
+
+  IDP_AssignString(prop, newstring, strlen(newstring) + 1);
+}
+
+ATTR_NO_OPT static bool keymap_radial_control_sculpt_fix(wmKeyMapItem *kmi)
+{
+  IDProperty *idprop = NULL;
+  char *string = NULL;
+
+  if (STRPREFIX(kmi->idname, "WM_OT_radial_control") && kmi->properties) {
+    idprop = IDP_GetPropertyFromGroup(kmi->properties, "data_path_primary");
+    bool bad = false;
+
+    if (idprop) {
+      string = (char *)idprop->data.pointer;
+      bad = !string || !strstr(string, "sculpt");
+    }
+
+    if (!bad) {
+      IDP_foreach_property(kmi->properties, IDP_STRING, fix_radial_control_path, kmi);
+    }
+  }
+  return false;
+}
+
 static bool keymap_item_has_invalid_wm_context_data_path(wmKeyMapItem *kmi,
                                                          void *UNUSED(user_data))
 {
@@ -893,6 +945,24 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->flag &= ~USER_FLAG_UNUSED_5;
   }
 
+  /* Fix keymaps for sculpt */
+  if (!USER_VERSION_ATLEAST(300, 25)) {
+    LISTBASE_FOREACH (wmKeyMap *, keymap, &userdef->user_keymaps) {
+      LISTBASE_FOREACH (wmKeyMapDiffItem *, kmdi, &keymap->diff_items) {
+        if (kmdi->add_item) {
+          keymap_radial_control_sculpt_fix(kmdi->add_item);
+        }
+
+        if (kmdi->remove_item) {
+          keymap_radial_control_sculpt_fix(kmdi->remove_item);
+        }
+      }
+
+      LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
+        keymap_radial_control_sculpt_fix(kmi);
+      }
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *

@@ -69,6 +69,29 @@ To enable converting to/from old data:
 
 #define MAKE_FLOAT(idname, name, tooltip, value, min, max) MAKE_FLOAT_EX(idname, name, tooltip, value, min, max, min, max)
 
+#define MAKE_COLOR3(idname1, name1, tooltip1, r, g, b){\
+  .idname = idname1, \
+  .name = name1, \
+  .tooltip = tooltip1, \
+  .type = BRUSH_CHANNEL_VEC3,\
+  .vector = {r, g, b, 1.0f},\
+  .min = 0.0f, .max = 5.0f,\
+  .min = 0.0f, .max = 1.0f,\
+  .flag = BRUSH_CHANNEL_COLOR,\
+}
+
+#define MAKE_COLOR4(idname1, name1, tooltip1, r, g, b, a){\
+  .idname = idname1, \
+  .name = name1, \
+  .tooltip = tooltip1, \
+  .type = BRUSH_CHANNEL_VEC4,\
+  .vector = {r, g, b, a},\
+  .min = 0.0f, .max = 5.0f,\
+  .min = 0.0f, .max = 1.0f,\
+  .flag = BRUSH_CHANNEL_COLOR,\
+}
+
+
 #define MAKE_INT_EX_OPEN(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1) \
   {.name = name1, \
    .idname = idname1, \
@@ -449,7 +472,10 @@ BrushChannelType brush_builtin_channels[] = {
     MAKE_INT_EX("automasking_boundary_edges_propagation_steps", "Propagation Steps",
       "Distance where boundary edge automasking is going to protect vertices "
                            "from the fully masked edge", 1, 1, 20, 1, 3),
-
+    MAKE_COLOR4("cursor_color_add", "Add Color", "Color of cursor when adding", 1.0f, 0.39f, 0.39f, 1.0f),
+    MAKE_COLOR4("cursor_color_sub", "Subtract Color", "Color of cursor when subtracting", 0.39f, 0.39f, 1.0f, 1.0f),
+    MAKE_COLOR3("color", "Color", "", 1.0f, 1.0f, 1.0f),
+    MAKE_COLOR3("secondary_color", "Secondary Color", "", 0.0f, 0.0f, 0.0f)
 };
 
 /* clang-format on */
@@ -543,6 +569,10 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(tip_scale_x, tip_scale_x, FLOAT, FLOAT)
   DEF(concave_mask_factor, concave_mask_factor, FLOAT, FLOAT)
   DEF(automasking_boundary_edges_propagation_steps, automasking_boundary_edges_propagation_steps, INT, INT)
+  DEF(add_col, cursor_color_add, FLOAT4, FLOAT4)
+  DEF(sub_col, cursor_color_sub, FLOAT4, FLOAT4)
+  DEF(rgb, color, FLOAT3, FLOAT3)
+  DEF(secondary_rgb, secondary_color, FLOAT3, FLOAT3)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -575,6 +605,10 @@ typedef struct BrushFlagMap {
 } BrushFlagMap;
 
 /* clang-format off */
+#ifdef DEF
+#undef DEF
+#endif
+
 #define DEF(member, channel, flag)\
   {offsetof(Brush, member), #channel, flag, sizeof(((Brush){0}).member)},
 
@@ -598,6 +632,7 @@ static ATTR_NO_OPT void do_coerce(
     int type1, void *ptr1, int size1, int type2, void *ptr2, int size2)
 {
   double val = 0;
+  float vec[4];
 
   switch (type1) {
     case BRUSH_CHANNEL_FLOAT:
@@ -621,6 +656,12 @@ static ATTR_NO_OPT void do_coerce(
           val = (double)*(int64_t *)ptr1;
           break;
       }
+      break;
+    case BRUSH_CHANNEL_VEC3:
+      copy_v3_v3(vec, (float *)ptr1);
+      break;
+    case BRUSH_CHANNEL_VEC4:
+      copy_v4_v4(vec, (float *)ptr1);
       break;
   }
 
@@ -648,6 +689,12 @@ static ATTR_NO_OPT void do_coerce(
       }
       break;
     }
+    case BRUSH_CHANNEL_VEC3:
+      copy_v3_v3((float *)ptr2, vec);
+      break;
+    case BRUSH_CHANNEL_VEC4:
+      copy_v4_v4((float *)ptr2, vec);
+      break;
   }
 }
 
@@ -665,12 +712,10 @@ void *get_channel_value_pointer(BrushChannel *ch, int *r_data_size)
       return &ch->ivalue;
     case BRUSH_CHANNEL_VEC3:
       *r_data_size = sizeof(float) * 3;
-      printf("implement me!\n");
-      return NULL;
+      return ch->vector;
     case BRUSH_CHANNEL_VEC4:
       *r_data_size = sizeof(float) * 4;
-      printf("implement me!\n");
-      return NULL;
+      return ch->vector;
   }
 
   return NULL;
@@ -843,7 +888,7 @@ ATTR_NO_OPT void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
     BKE_brush_channelset_set_int(
         chset, "dyntopo_mode", brush->dyntopo.flag & DYNTOPO_DISABLED ? 1 : 0);
 
-#define SETCH(key, val) BKE_brush_channelset_set_int(chset, #key, val)
+#define SETCH(key, val) BKE_brush_channelset_set_float(chset, #key, val)
     SETCH(dyntopo_detail_range, brush->dyntopo.detail_range);
     SETCH(dyntopo_detail_percent, brush->dyntopo.detail_percent);
     SETCH(dyntopo_detail_size, brush->dyntopo.detail_size);
@@ -917,6 +962,12 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
 
   switch (tool) {
     case SCULPT_TOOL_DRAW: {
+      break;
+    }
+
+    case SCULPT_TOOL_PAINT: {
+      ADDCH("color");
+      ADDCH("secondary_color");
       break;
     }
     case SCULPT_TOOL_SLIDE_RELAX:
@@ -1038,6 +1089,9 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH("concave_mask_factor");
   ADDCH("automasking");
   ADDCH("topology_rake_mode");
+
+  ADDCH("color");
+  ADDCH("secondary_color");
 
   ADDCH("dyntopo_disabled");
   ADDCH("dyntopo_mode");

@@ -89,6 +89,7 @@ typedef struct BrushChannelType {
   int type, flag;
   int ivalue;
   float fvalue;
+  float vector[4];
 
   BrushEnumDef enumdef[MAX_BRUSH_ENUM_DEF];  // for enum/bitmask types
   EnumPropertyItem *rna_enumdef;
@@ -187,6 +188,27 @@ void BKE_brush_channelset_set_final_float(BrushChannelSet *child,
                                           BrushChannelSet *parent,
                                           const char *idname,
                                           float value);
+
+void BKE_brush_channel_set_vector(BrushChannel *ch, float vec[4]);
+int BKE_brush_channel_get_vector_size(BrushChannel *ch);
+
+/* returns size of vector */
+int BKE_brush_channel_get_vector(BrushChannel *ch, float out[4], BrushMappingData *mapdata);
+
+float BKE_brush_channelset_get_final_vector(BrushChannelSet *brushset,
+                                            BrushChannelSet *toolset,
+                                            const char *idname,
+                                            float r_vec[4],
+                                            BrushMappingData *mapdata);
+void BKE_brush_channelset_set_final_vector(BrushChannelSet *brushset,
+                                           BrushChannelSet *toolset,
+                                           const char *idname,
+                                           float vec[4]);
+int BKE_brush_channelset_get_vector(BrushChannelSet *chset,
+                                    const char *idname,
+                                    float r_vec[4],
+                                    BrushMappingData *mapdata);
+bool BKE_brush_channelset_set_vector(BrushChannelSet *chset, const char *idname, float vec[4]);
 
 void BKE_brush_init_toolsettings(struct Sculpt *sd);
 void BKE_brush_builtin_create(struct Brush *brush, int tool);
