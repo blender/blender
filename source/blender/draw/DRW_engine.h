@@ -177,7 +177,7 @@ struct DrawDataList *DRW_drawdatalist_from_id(struct ID *id);
 void DRW_drawdata_free(struct ID *id);
 
 bool DRW_opengl_context_release(void);
-void DRW_opengl_context_activate(bool test);
+void DRW_opengl_context_activate(bool drw_state);
 
 #ifdef __cplusplus
 }
