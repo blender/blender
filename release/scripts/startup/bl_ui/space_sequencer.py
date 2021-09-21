@@ -141,9 +141,14 @@ class SEQUENCER_HT_header(Header):
 
         layout.separator_spacer()
 
+        tool_settings = context.tool_settings
+        sequencer_tool_settings = tool_settings.sequencer_tool_settings
+
+        if st.view_type == 'PREVIEW':
+            layout.prop(sequencer_tool_settings, "pivot_point", text="", icon_only=True)
+            layout.separator_spacer()
+
         if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
-            tool_settings = context.tool_settings
-            sequencer_tool_settings = tool_settings.sequencer_tool_settings
             row = layout.row(align=True)
             row.prop(sequencer_tool_settings, "overlap_mode", text="")
             row = layout.row(align=True)
@@ -209,6 +214,7 @@ class SEQUENCER_PT_preview_overlay(Panel):
         layout = self.layout
 
         layout.active = st.show_strip_overlay
+        layout.prop(overlay_settings, "show_image_outline")
         layout.prop(ed, "show_overlay", text="Frame Overlay")
         layout.prop(overlay_settings, "show_safe_areas", text="Safe Areas")
         layout.prop(overlay_settings, "show_metadata", text="Metadata")
@@ -1755,6 +1761,9 @@ class SEQUENCER_PT_adjust_transform(SequencerButtonsPanel, Panel):
 
         col = layout.column(align=True)
         col.prop(strip.transform, "rotation", text="Rotation")
+
+        col = layout.column(align=True)
+        col.prop(strip.transform, "origin")
 
         row = layout.row(heading="Mirror")
         sub = row.row(align=True)

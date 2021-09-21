@@ -2454,6 +2454,39 @@ class _defs_sequencer_generic:
             keymap="Sequencer Tool: Sample",
         )
 
+    @ToolDef.from_fn
+    def translate():
+        return dict(
+            idname="builtin.move",
+            label="Move",
+            icon="ops.transform.translate",
+            widget="SEQUENCER_GGT_gizmo2d_translate",
+            operator="transform.translate",
+            keymap="Sequencer Tool: Move",
+        )
+
+    @ToolDef.from_fn
+    def rotate():
+        return dict(
+            idname="builtin.rotate",
+            label="Rotate",
+            icon="ops.transform.rotate",
+            widget="SEQUENCER_GGT_gizmo2d_rotate",
+            operator="transform.rotate",
+            keymap="Sequencer Tool: Rotate",
+        )
+
+    @ToolDef.from_fn
+    def scale():
+        return dict(
+            idname="builtin.scale",
+            label="Scale",
+            icon="ops.transform.resize",
+            widget="SEQUENCER_GGT_gizmo2d_resize",
+            operator="transform.resize",
+            keymap="Sequencer Tool: Scale",
+        )
+
 
 class _defs_sequencer_select:
     @ToolDef.from_fn
@@ -3045,6 +3078,10 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         None: [
         ],
         'PREVIEW': [
+            *_tools_select,
+            _defs_sequencer_generic.translate,
+            _defs_sequencer_generic.rotate,
+            _defs_sequencer_generic.scale,
             _defs_sequencer_generic.sample,
             *_tools_annotate,
         ],
@@ -3054,6 +3091,9 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'SEQUENCER_PREVIEW': [
             *_tools_select,
+            _defs_sequencer_generic.translate,
+            _defs_sequencer_generic.rotate,
+            _defs_sequencer_generic.scale,
             _defs_sequencer_generic.blade,
             _defs_sequencer_generic.sample,
             *_tools_annotate,

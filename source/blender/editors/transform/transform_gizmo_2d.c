@@ -49,6 +49,11 @@
 #include "ED_screen.h"
 #include "ED_uvedit.h"
 
+#include "SEQ_iterator.h"
+#include "SEQ_sequencer.h"
+#include "SEQ_time.h"
+#include "SEQ_transform.h"
+
 #include "transform.h" /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -234,16 +239,65 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
   return changed;
 }
 
+static float gizmo2d_calc_rotation(const bContext *C)
+{
+  ScrArea *area = CTX_wm_area(C);
+  if (area->spacetype != SPACE_SEQ) {
+    return 0.0f;
+  }
+
+  Scene *scene = CTX_data_scene(C);
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *seqbase = SEQ_active_seqbase_get(ed);
+  SeqCollection *strips = SEQ_query_rendered_strips(seqbase, scene->r.cfra, 0);
+  SEQ_filter_selected_strips(strips);
+
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, strips) {
+    if (seq == ed->act_seq) {
+      StripTransform *transform = seq->strip->transform;
+      float mirror[2];
+      SEQ_image_transform_mirror_factor_get(seq, mirror);
+      SEQ_collection_free(strips);
+      return transform->rotation * mirror[0] * mirror[1];
+    }
+  }
+
+  SEQ_collection_free(strips);
+  return 0.0f;
+}
+
 static bool gizmo2d_calc_center(const bContext *C, float r_center[2])
 {
   ScrArea *area = CTX_wm_area(C);
+  Scene *scene = CTX_data_scene(C);
   bool has_select = false;
   zero_v2(r_center);
   if (area->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = area->spacedata.first;
-    Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     ED_uvedit_center_from_pivot_ex(sima, scene, view_layer, r_center, sima->around, &has_select);
+  }
+  else if (area->spacetype == SPACE_SEQ) {
+    ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+    SeqCollection *strips = SEQ_query_rendered_strips(seqbase, scene->r.cfra, 0);
+    SEQ_filter_selected_strips(strips);
+
+    if (SEQ_collection_len(strips) <= 0) {
+      SEQ_collection_free(strips);
+      return false;
+    }
+
+    has_select = true;
+    Sequence *seq;
+    SEQ_ITERATOR_FOREACH (seq, strips) {
+      float origin[2];
+      SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, origin);
+      add_v2_v2(r_center, origin);
+    }
+    mul_v2_fl(r_center, 1.0f / SEQ_collection_len(strips));
+
+    SEQ_collection_free(strips);
   }
   return has_select;
 }
@@ -338,7 +392,7 @@ static void gizmo2d_xform_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup
       }
     }
 
-    RNA_boolean_set(ptr, "release_confirm", 1);
+    RNA_boolean_set(ptr, "release_confirm", true);
   }
 
   {
@@ -539,6 +593,7 @@ void ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set(wmGizmoGroupType *gzgt)
 typedef struct GizmoGroup_Resize2D {
   wmGizmo *gizmo_xy[3];
   float origin[2];
+  float rotation;
 } GizmoGroup_Resize2D;
 
 static GizmoGroup_Resize2D *gizmogroup2d_resize_init(wmGizmoGroup *gzgroup)
@@ -571,6 +626,7 @@ static void gizmo2d_resize_refresh(const bContext *C, wmGizmoGroup *gzgroup)
       ggd->gizmo_xy[i]->flag &= ~WM_GIZMO_HIDDEN;
     }
     copy_v2_v2(ggd->origin, origin);
+    ggd->rotation = gizmo2d_calc_rotation(C);
   }
 }
 
@@ -595,6 +651,13 @@ static void gizmo2d_resize_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup
   for (int i = 0; i < ARRAY_SIZE(ggd->gizmo_xy); i++) {
     wmGizmo *gz = ggd->gizmo_xy[i];
     WM_gizmo_set_matrix_location(gz, origin);
+
+    if (i < 2) {
+      float axis[3] = {0.0f}, rotated_axis[3];
+      axis[i] = 1.0f;
+      rotate_v3_v3v3fl(rotated_axis, axis, (float[3]){0, 0, 1}, ggd->rotation);
+      WM_gizmo_set_matrix_rotation_from_z_axis(gz, rotated_axis);
+    }
   }
 }
 
@@ -617,10 +680,6 @@ static void gizmo2d_resize_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgrou
 
       /* set up widget data */
       RNA_float_set(gz->ptr, "length", 1.0f);
-      float axis[3] = {0.0f};
-      axis[i] = 1.0f;
-      WM_gizmo_set_matrix_rotation_from_z_axis(gz, axis);
-
       RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_BOX);
 
       WM_gizmo_set_line_width(gz, GIZMO_AXIS_LINE_WIDTH);

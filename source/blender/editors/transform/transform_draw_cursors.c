@@ -95,7 +95,7 @@ static void drawArrow(const uint pos_id, const enum eArrowDirection dir)
 bool transform_draw_cursor_poll(bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
-  return (region && region->regiontype == RGN_TYPE_WINDOW) ? 1 : 0;
+  return (region && ELEM(region->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_PREVIEW)) ? 1 : 0;
 }
 
 /**

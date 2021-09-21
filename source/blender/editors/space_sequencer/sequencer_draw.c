@@ -71,6 +71,7 @@
 #include "BIF_glutil.h"
 
 #include "SEQ_effects.h"
+#include "SEQ_iterator.h"
 #include "SEQ_prefetch.h"
 #include "SEQ_proxy.h"
 #include "SEQ_relations.h"
@@ -2056,6 +2057,64 @@ static int sequencer_draw_get_transform_preview_frame(Scene *scene)
   return preview_frame;
 }
 
+static void seq_draw_image_origin_and_outline(const bContext *C, Sequence *seq)
+{
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  if ((seq->flag & SELECT) == 0) {
+    return;
+  }
+  if (ED_screen_animation_no_scrub(CTX_wm_manager(C))) {
+    return;
+  }
+  if ((sseq->flag & SEQ_SHOW_OVERLAY) == 0 ||
+      (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_OUTLINE_SELECTED) == 0) {
+    return;
+  }
+  if (ELEM(sseq->mainb, SEQ_DRAW_IMG_WAVEFORM, SEQ_DRAW_IMG_VECTORSCOPE, SEQ_DRAW_IMG_HISTOGRAM)) {
+    return;
+  }
+
+  float origin[2];
+  SEQ_image_transform_origin_offset_pixelspace_get(CTX_data_scene(C), seq, origin);
+
+  /* Origin. */
+  GPUVertFormat *format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
+  immUniform1f("outlineWidth", 1.5f);
+  immUniformColor3f(1.0f, 1.0f, 1.0f);
+  immUniform4f("outlineColor", 0.0f, 0.0f, 0.0f, 1.0f);
+  immUniform1f("size", 15.0f * U.pixelsize);
+  immBegin(GPU_PRIM_POINTS, 1);
+  immVertex2f(pos, origin[0], origin[1]);
+  immEnd();
+  immUnbindProgram();
+
+  /* Outline. */
+  float seq_image_quad[4][2];
+  SEQ_image_transform_final_quad_get(CTX_data_scene(C), seq, seq_image_quad);
+
+  GPU_line_smooth(true);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_line_width(2);
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+  float col[3];
+  UI_GetThemeColor3fv(TH_SEQ_SELECTED, col);
+  immUniformColor3fv(col);
+  immUniform1f("lineWidth", U.pixelsize);
+  immBegin(GPU_PRIM_LINE_LOOP, 4);
+  immVertex2f(pos, seq_image_quad[0][0], seq_image_quad[0][1]);
+  immVertex2f(pos, seq_image_quad[1][0], seq_image_quad[1][1]);
+  immVertex2f(pos, seq_image_quad[2][0], seq_image_quad[2][1]);
+  immVertex2f(pos, seq_image_quad[3][0], seq_image_quad[3][1]);
+  immEnd();
+  immUnbindProgram();
+  GPU_line_width(1);
+  GPU_blend(GPU_BLEND_NONE);
+  GPU_line_smooth(false);
+}
+
 void sequencer_draw_preview(const bContext *C,
                             Scene *scene,
                             ARegion *region,
@@ -2132,9 +2191,17 @@ void sequencer_draw_preview(const bContext *C,
     sequencer_draw_borders_overlay(sseq, v2d, scene);
   }
 
+  SeqCollection *collection = SEQ_query_rendered_strips(&scene->ed->seqbase, timeline_frame, 0);
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    seq_draw_image_origin_and_outline(C, seq);
+  }
+  SEQ_collection_free(collection);
+
   if (draw_gpencil && show_imbuf && (sseq->flag & SEQ_SHOW_OVERLAY)) {
     sequencer_draw_gpencil_overlay(C);
   }
+
 #if 0
   sequencer_draw_maskedit(C, scene, region, sseq);
 #endif

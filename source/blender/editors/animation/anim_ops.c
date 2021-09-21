@@ -241,6 +241,11 @@ static bool use_sequencer_snapping(bContext *C)
 /* Modal Operator init */
 static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  ARegion *region = CTX_wm_region(C);
+  if (CTX_wm_space_seq(C) != NULL && region->regiontype == RGN_TYPE_PREVIEW) {
+    return OPERATOR_CANCELLED;
+  }
+
   /* Change to frame that mouse is over before adding modal handler,
    * as user could click on a single frame (jump to frame) as well as
    * click-dragging over a range (modal scrubbing).

@@ -1344,6 +1344,7 @@ typedef struct SequencerToolSettings {
   /** When there are many snap points, 0-1 range corresponds to resolution from boundbox to all
    * possible snap points. */
   int snap_distance;
+  int pivot_point;
 } SequencerToolSettings;
 
 typedef enum eSeqOverlapMode {

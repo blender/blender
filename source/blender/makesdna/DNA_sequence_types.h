@@ -74,6 +74,8 @@ typedef struct StripTransform {
   float scale_x;
   float scale_y;
   float rotation;
+  /** 0-1 range, use SEQ_image_transform_origin_offset_pixelspace_get to convert to pixel space. */
+  float origin[2];
 } StripTransform;
 
 typedef struct StripColorBalance {

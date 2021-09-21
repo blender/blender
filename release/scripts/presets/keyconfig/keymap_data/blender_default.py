@@ -2588,6 +2588,9 @@ def km_sequencercommon(params):
         ("wm.context_toggle_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.view_type'), ("value_1", 'SEQUENCER'), ("value_2", 'PREVIEW')]}),
         ("sequencer.refresh_all", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),
+        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'}, None),
+        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "shift": True},
+         {"properties": [("extend", True)]}),
     ])
 
     if params.select_mouse == 'LEFTMOUSE' and not params.legacy:
@@ -2670,9 +2673,6 @@ def km_sequencer(params):
              for i in range(10)
              )
         ),
-        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'}, None),
-        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "shift": True},
-         {"properties": [("extend", True)]}),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "alt": True},
          {"properties": [("linked_handle", True)]}),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "shift": True, "alt": True},
@@ -2749,6 +2749,15 @@ def km_sequencerpreview(params):
         ("sequencer.view_zoom_ratio", {"type": 'NUMPAD_8', "value": 'PRESS'},
          {"properties": [("ratio", 0.125)]}),
         ("sequencer.sample", {"type": params.action_mouse, "value": 'PRESS'}, None),
+        ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
+        ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
+        ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
+        ("sequencer.strip_transform_clear", {"type": 'G', "alt": True, "value": 'PRESS'},
+         {"properties": [("property", 'POSITION')]}),
+        ("sequencer.strip_transform_clear", {"type": 'S', "alt": True, "value": 'PRESS'},
+         {"properties": [("property", 'SCALE')]}),
+        ("sequencer.strip_transform_clear", {"type": 'R', "alt": True, "value": 'PRESS'},
+         {"properties": [("property", 'ROTATION')]}),
     ])
 
     return keymap
@@ -7316,6 +7325,39 @@ def km_sequencer_editor_tool_blade(_params):
     )
 
 
+def km_sequencer_editor_tool_move(params):
+    return (
+        "Sequencer Tool: Move",
+        {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            ("transform.translate", {"type": params.tool_tweak, "value": 'ANY'},
+             {"properties": [("release_confirm", True)]}),
+        ]},
+    )
+
+
+def km_sequencer_editor_tool_rotate(params):
+    return (
+        "Sequencer Tool: Rotate",
+        {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            ("transform.rotate", {"type": params.tool_tweak, "value": 'ANY'},
+             {"properties": [("release_confirm", True)]}),
+        ]},
+    )
+
+
+def km_sequencer_editor_tool_scale(params):
+    return (
+        "Sequencer Tool: Scale",
+        {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            ("transform.resize", {"type": params.tool_tweak, "value": 'ANY'},
+             {"properties": [("release_confirm", True)]}),
+        ]},
+    )
+
+
 # ------------------------------------------------------------------------------
 # Full Configuration
 
@@ -7569,6 +7611,9 @@ def generate_keymaps(params=None):
         km_sequencer_editor_tool_select_box(params),
         km_sequencer_editor_tool_blade(params),
         km_sequencer_editor_tool_generic_sample(params),
+        km_sequencer_editor_tool_scale(params),
+        km_sequencer_editor_tool_rotate(params),
+        km_sequencer_editor_tool_move(params),
     ]
 
 # ------------------------------------------------------------------------------

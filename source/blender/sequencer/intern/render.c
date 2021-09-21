@@ -72,6 +72,7 @@
 #include "SEQ_render.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
+#include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
 #include "effects.h"
@@ -262,94 +263,6 @@ StripElem *SEQ_render_give_stripelem(Sequence *seq, int timeline_frame)
   return se;
 }
 
-static bool seq_is_effect_of(const Sequence *seq_effect, const Sequence *possibly_input)
-{
-  if (seq_effect->seq1 == possibly_input || seq_effect->seq2 == possibly_input ||
-      seq_effect->seq3 == possibly_input) {
-    return true;
-  }
-  return false;
-}
-
-/* Check if seq must be rendered. This depends on whole stack in some cases, not only seq itself.
- * Order of applying these conditions is important. */
-static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_timeline_frame)
-{
-  bool seq_have_effect_in_stack = false;
-  Sequence *seq_iter;
-  SEQ_ITERATOR_FOREACH (seq_iter, strips_at_timeline_frame) {
-    /* Strips is below another strip with replace blending are not rendered. */
-    if (seq_iter->blend_mode == SEQ_BLEND_REPLACE && seq->machine < seq_iter->machine) {
-      return false;
-    }
-
-    if ((seq_iter->type & SEQ_TYPE_EFFECT) != 0 && seq_is_effect_of(seq_iter, seq)) {
-      /* Strips in same channel or higher than its effect are rendered. */
-      if (seq->machine >= seq_iter->machine) {
-        return true;
-      }
-      /* Mark that this strip has effect in stack, that is above the strip. */
-      seq_have_effect_in_stack = true;
-    }
-  }
-
-  /* All effects are rendered (with respect to conditions above). */
-  if ((seq->type & SEQ_TYPE_EFFECT) != 0) {
-    return true;
-  }
-
-  /* If strip has effects in stack, and all effects are above this strip, it is not rendered. */
-  if (seq_have_effect_in_stack) {
-    return false;
-  }
-
-  return true;
-}
-
-static SeqCollection *query_strips_at_frame(ListBase *seqbase, const int timeline_frame)
-{
-  SeqCollection *collection = SEQ_collection_create(__func__);
-
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (SEQ_time_strip_intersects_frame(seq, timeline_frame)) {
-      SEQ_collection_append_strip(seq, collection);
-    }
-  }
-  return collection;
-}
-
-static void collection_filter_channel_up_to_incl(SeqCollection *collection, const int channel)
-{
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, collection) {
-    if (seq->machine <= channel) {
-      continue;
-    }
-    SEQ_collection_remove_strip(seq, collection);
-  }
-}
-
-/* Remove strips we don't want to render from collection. */
-static void collection_filter_rendered_strips(SeqCollection *collection)
-{
-  Sequence *seq;
-
-  /* Remove sound strips and muted strips from collection, because these are not rendered.
-   * Function #must_render_strip() don't have to check for these strips anymore. */
-  SEQ_ITERATOR_FOREACH (seq, collection) {
-    if (seq->type == SEQ_TYPE_SOUND_RAM || (seq->flag & SEQ_MUTE) != 0) {
-      SEQ_collection_remove_strip(seq, collection);
-    }
-  }
-
-  SEQ_ITERATOR_FOREACH (seq, collection) {
-    if (must_render_strip(seq, collection)) {
-      continue;
-    }
-    SEQ_collection_remove_strip(seq, collection);
-  }
-}
-
 static int seq_channel_cmp_fn(const void *a, const void *b)
 {
   return (*(Sequence **)a)->machine - (*(Sequence **)b)->machine;
@@ -360,13 +273,7 @@ int seq_get_shown_sequences(ListBase *seqbase,
                             const int chanshown,
                             Sequence **r_seq_arr)
 {
-  SeqCollection *collection = query_strips_at_frame(seqbase, timeline_frame);
-
-  if (chanshown != 0) {
-    collection_filter_channel_up_to_incl(collection, chanshown);
-  }
-  collection_filter_rendered_strips(collection);
-
+  SeqCollection *collection = SEQ_query_rendered_strips(seqbase, timeline_frame, chanshown);
   const int strip_count = BLI_gset_len(collection->set);
 
   if (strip_count > MAXSEQ) {
@@ -504,7 +411,7 @@ static void sequencer_image_crop_transform_matrix(const Sequence *seq,
   const float image_center_offs_y = (out->y - in->y) / 2;
   const float translate_x = transform->xofs * preview_scale_factor + image_center_offs_x;
   const float translate_y = transform->yofs * preview_scale_factor + image_center_offs_y;
-  const float pivot[2] = {in->x / 2, in->y / 2};
+  const float pivot[2] = {in->x * transform->origin[0], in->y * transform->origin[1]};
   loc_rot_size_to_mat3(r_transform_matrix,
                        (const float[]){translate_x, translate_y},
                        transform->rotation,

@@ -421,3 +421,101 @@ void SEQ_transform_offset_after_frame(Scene *scene,
     }
   }
 }
+
+void SEQ_image_transform_mirror_factor_get(const Sequence *seq, float r_mirror[2])
+{
+  r_mirror[0] = 1.0f;
+  r_mirror[1] = 1.0f;
+
+  if ((seq->flag & SEQ_FLIPX) != 0) {
+    r_mirror[0] = -1.0f;
+  }
+  if ((seq->flag & SEQ_FLIPY) != 0) {
+    r_mirror[1] = -1.0f;
+  }
+}
+
+/**
+ * Get strip transform origin offset from image center
+ * Note: This function does not apply axis mirror.
+ *
+ * \param scene: Scene in which strips are located
+ * \param seq: Sequence to calculate image transform origin
+ * \param r_origin: return value
+ */
+void SEQ_image_transform_origin_offset_pixelspace_get(const Scene *scene,
+                                                      const Sequence *seq,
+                                                      float r_origin[2])
+{
+  float image_size[2];
+  StripElem *strip_elem = seq->strip->stripdata;
+  if (strip_elem == NULL) {
+    image_size[0] = scene->r.xsch;
+    image_size[1] = scene->r.ysch;
+  }
+  else {
+    image_size[0] = strip_elem->orig_width;
+    image_size[1] = strip_elem->orig_height;
+  }
+
+  const StripTransform *transform = seq->strip->transform;
+  r_origin[0] = (image_size[0] * transform->origin[0]) - (image_size[0] * 0.5f) + transform->xofs;
+  r_origin[1] = (image_size[1] * transform->origin[1]) - (image_size[1] * 0.5f) + transform->yofs;
+
+  float mirror[2];
+  SEQ_image_transform_mirror_factor_get(seq, mirror);
+  mul_v2_v2(r_origin, mirror);
+}
+
+/**
+ * Get strip transform origin offset from image center
+ *
+ * \param scene: Scene in which strips are located
+ * \param seq: Sequence to calculate image transform origin
+ * \param r_origin: return value
+ */
+
+void SEQ_image_transform_final_quad_get(const Scene *scene,
+                                        const Sequence *seq,
+                                        float r_quad[4][2])
+{
+  StripTransform *transform = seq->strip->transform;
+  StripCrop *crop = seq->strip->crop;
+
+  int imgage_size[2] = {scene->r.xsch, scene->r.ysch};
+  if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
+    imgage_size[0] = seq->strip->stripdata->orig_width;
+    imgage_size[1] = seq->strip->stripdata->orig_height;
+  }
+
+  float transform_matrix[3][3];
+  loc_rot_size_to_mat3(transform_matrix,
+                       (const float[]){transform->xofs, transform->yofs},
+                       transform->rotation,
+                       (const float[]){transform->scale_x, transform->scale_y});
+  const float origin[2] = {imgage_size[0] * transform->origin[0],
+                           imgage_size[1] * transform->origin[1]};
+  const float pivot[2] = {origin[0] - (imgage_size[0] / 2), origin[1] - (imgage_size[1] / 2)};
+  transform_pivot_set_m3(transform_matrix, pivot);
+
+  r_quad[0][0] = (imgage_size[0] / 2) - crop->right;
+  r_quad[0][1] = (imgage_size[1] / 2) - crop->top;
+  r_quad[1][0] = (imgage_size[0] / 2) - crop->right;
+  r_quad[1][1] = (-imgage_size[1] / 2) + crop->bottom;
+  r_quad[2][0] = (-imgage_size[0] / 2) + crop->left;
+  r_quad[2][1] = (-imgage_size[1] / 2) + crop->bottom;
+  r_quad[3][0] = (-imgage_size[0] / 2) + crop->left;
+  r_quad[3][1] = (imgage_size[1] / 2) - crop->top;
+
+  mul_m3_v2(transform_matrix, r_quad[0]);
+  mul_m3_v2(transform_matrix, r_quad[1]);
+  mul_m3_v2(transform_matrix, r_quad[2]);
+  mul_m3_v2(transform_matrix, r_quad[3]);
+
+  float mirror[2];
+  SEQ_image_transform_mirror_factor_get(seq, mirror);
+  mul_v2_v2(r_quad[0], mirror);
+  mul_v2_v2(r_quad[1], mirror);
+  mul_v2_v2(r_quad[2], mirror);
+  mul_v2_v2(r_quad[3], mirror);
+}

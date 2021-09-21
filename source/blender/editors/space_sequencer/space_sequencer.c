@@ -42,6 +42,7 @@
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_transform.h"
 #include "ED_view3d.h"
 #include "ED_view3d_offscreen.h" /* Only for sequencer view3d drawing callback. */
 
@@ -98,10 +99,11 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   sseq->chanshown = 0;
   sseq->view = SEQ_VIEW_SEQUENCE;
   sseq->mainb = SEQ_DRAW_IMG_IMBUF;
-  sseq->flag = SEQ_PREVIEW_SHOW_GPENCIL | SEQ_USE_ALPHA | SEQ_SHOW_MARKERS |
-               SEQ_TIMELINE_SHOW_FCURVES | SEQ_ZOOM_TO_FIT | SEQ_SHOW_OVERLAY |
-               SEQ_TIMELINE_SHOW_STRIP_NAME | SEQ_TIMELINE_SHOW_STRIP_SOURCE |
-               SEQ_TIMELINE_SHOW_STRIP_DURATION | SEQ_TIMELINE_SHOW_GRID;
+  sseq->flag = SEQ_USE_ALPHA | SEQ_SHOW_MARKERS | SEQ_ZOOM_TO_FIT | SEQ_SHOW_OVERLAY;
+  sseq->preview_overlay.flag = SEQ_PREVIEW_SHOW_GPENCIL | SEQ_PREVIEW_SHOW_OUTLINE_SELECTED;
+  sseq->timeline_overlay.flag = SEQ_TIMELINE_SHOW_STRIP_NAME | SEQ_TIMELINE_SHOW_STRIP_SOURCE |
+                                SEQ_TIMELINE_SHOW_STRIP_DURATION | SEQ_TIMELINE_SHOW_GRID |
+                                SEQ_TIMELINE_SHOW_FCURVES;
 
   /* Tool header. */
   region = MEM_callocN(sizeof(ARegion), "tool header for sequencer");
@@ -481,10 +483,71 @@ static void SEQUENCER_GGT_navigate(wmGizmoGroupType *gzgt)
   VIEW2D_GGT_navigate_impl(gzgt, "SEQUENCER_GGT_navigate");
 }
 
+static void SEQUENCER_GGT_gizmo2d(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "Sequencer Transform Gizmo";
+  gzgt->idname = "SEQUENCER_GGT_gizmo2d";
+
+  gzgt->flag |= (WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                 WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK);
+
+  gzgt->gzmap_params.spaceid = SPACE_SEQ;
+  gzgt->gzmap_params.regionid = RGN_TYPE_PREVIEW;
+
+  ED_widgetgroup_gizmo2d_xform_callbacks_set(gzgt);
+}
+
+static void SEQUENCER_GGT_gizmo2d_translate(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "Sequencer Translate Gizmo";
+  gzgt->idname = "SEQUENCER_GGT_gizmo2d_translate";
+
+  gzgt->flag |= (WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                 WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK);
+
+  gzgt->gzmap_params.spaceid = SPACE_SEQ;
+  gzgt->gzmap_params.regionid = RGN_TYPE_PREVIEW;
+
+  ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set(gzgt);
+}
+
+static void SEQUENCER_GGT_gizmo2d_resize(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "Sequencer Transform Gizmo Resize";
+  gzgt->idname = "SEQUENCER_GGT_gizmo2d_resize";
+
+  gzgt->flag |= (WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                 WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK);
+
+  gzgt->gzmap_params.spaceid = SPACE_SEQ;
+  gzgt->gzmap_params.regionid = RGN_TYPE_PREVIEW;
+
+  ED_widgetgroup_gizmo2d_resize_callbacks_set(gzgt);
+}
+
+static void SEQUENCER_GGT_gizmo2d_rotate(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "Sequencer Transform Gizmo Resize";
+  gzgt->idname = "SEQUENCER_GGT_gizmo2d_rotate";
+
+  gzgt->flag |= (WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                 WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK);
+
+  gzgt->gzmap_params.spaceid = SPACE_SEQ;
+  gzgt->gzmap_params.regionid = RGN_TYPE_PREVIEW;
+
+  ED_widgetgroup_gizmo2d_rotate_callbacks_set(gzgt);
+}
+
 static void sequencer_gizmos(void)
 {
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(
       &(const struct wmGizmoMapType_Params){SPACE_SEQ, RGN_TYPE_PREVIEW});
+
+  WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d);
+  WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_translate);
+  WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_resize);
+  WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_rotate);
 
   WM_gizmogrouptype_append_and_link(gzmap_type, SEQUENCER_GGT_navigate);
 }
@@ -741,6 +804,8 @@ static void sequencer_preview_region_listener(const wmRegionListenerParams *para
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
+
+  WM_gizmomap_tag_refresh(region->gizmo_map);
 
   /* Context changes. */
   switch (wmn->category) {
