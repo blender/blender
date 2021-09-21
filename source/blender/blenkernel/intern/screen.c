@@ -1679,6 +1679,8 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       sseq->scopes.sep_waveform_ibuf = NULL;
       sseq->scopes.vector_ibuf = NULL;
       sseq->scopes.histogram_ibuf = NULL;
+      memset(&sseq->runtime, 0x0, sizeof(sseq->runtime));
+
     }
     else if (sl->spacetype == SPACE_PROPERTIES) {
       SpaceProperties *sbuts = (SpaceProperties *)sl;

@@ -797,6 +797,7 @@ enum {
   WM_JOB_TYPE_QUADRIFLOW_REMESH,
   WM_JOB_TYPE_TRACE_IMAGE,
   WM_JOB_TYPE_LINEART,
+  WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL,
   /* add as needed, bake, seq proxy build
    * if having hard coded values is a problem */
 };

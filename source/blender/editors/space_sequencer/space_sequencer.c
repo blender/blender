@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -105,6 +106,9 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
                                 SEQ_TIMELINE_SHOW_STRIP_DURATION | SEQ_TIMELINE_SHOW_GRID |
                                 SEQ_TIMELINE_SHOW_FCURVES;
 
+  BLI_rctf_init(&sseq->runtime.last_thumbnail_area, 0.0f, 0.0f, 0.0f, 0.0f);
+  sseq->runtime.last_displayed_thumbnails = NULL;
+
   /* Tool header. */
   region = MEM_callocN(sizeof(ARegion), "tool header for sequencer");
 
@@ -174,7 +178,7 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   region->v2d.cur = region->v2d.tot;
 
   region->v2d.min[0] = 10.0f;
-  region->v2d.min[1] = 0.5f;
+  region->v2d.min[1] = 4.0f;
 
   region->v2d.max[0] = MAXFRAMEF;
   region->v2d.max[1] = MAXSEQ;
@@ -187,6 +191,8 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   region->v2d.keepzoom = 0;
   region->v2d.keeptot = 0;
   region->v2d.align = V2D_ALIGN_NO_NEG_Y;
+
+  sseq->runtime.last_displayed_thumbnails = NULL;
 
   return (SpaceLink *)sseq;
 }
@@ -217,6 +223,12 @@ static void sequencer_free(SpaceLink *sl)
 
   if (scopes->histogram_ibuf) {
     IMB_freeImBuf(scopes->histogram_ibuf);
+  }
+
+  if (sseq->runtime.last_displayed_thumbnails) {
+    BLI_ghash_free(
+        sseq->runtime.last_displayed_thumbnails, NULL, last_displayed_thumbnails_list_free);
+    sseq->runtime.last_displayed_thumbnails = NULL;
   }
 }
 

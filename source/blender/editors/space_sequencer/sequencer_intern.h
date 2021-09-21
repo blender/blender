@@ -67,6 +67,7 @@ struct ImBuf *sequencer_ibuf_get(struct Main *bmain,
                                  int timeline_frame,
                                  int frame_ofs,
                                  const char *viewname);
+void last_displayed_thumbnails_list_free(void *val);
 
 /* sequencer_edit.c */
 struct View2D;

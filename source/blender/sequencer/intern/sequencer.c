@@ -957,6 +957,8 @@ static bool seq_read_lib_cb(Sequence *seq, void *user_data)
   BLI_listbase_clear(&seq->anims);
 
   SEQ_modifier_blend_read_lib(reader, sce, &seq->modifiers);
+
+  seq->flag &= ~SEQ_FLAG_SKIP_THUMBNAILS;
   return true;
 }
 

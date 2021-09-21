@@ -579,7 +579,6 @@ static int sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 static bool sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
 {
   /* Only data types supported for now. */
-  Editing *ed = SEQ_editing_get(scene);
   bool changed = false;
 
   /* Iterate in reverse so meta-strips are iterated after their children. */
@@ -633,7 +632,10 @@ static bool sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
     }
   }
   if (changed) {
-    SEQ_relations_free_imbuf(scene, &ed->seqbase, false);
+    for (int i = data->num_seq - 1; i >= 0; i--) {
+      Sequence *seq = data->seq_array[i];
+      SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+    }
   }
   return changed;
 }
