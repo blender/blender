@@ -808,6 +808,47 @@ static void do_version_subsurface_methods(bNode *node)
   }
 }
 
+static void version_geometry_nodes_add_attribute_input_settings(NodesModifierData *nmd)
+{
+  /* Before versioning the properties, make sure it hasn't been done already. */
+  LISTBASE_FOREACH (const IDProperty *, property, &nmd->settings.properties->data.group) {
+    if (strstr(property->name, "_use_attribute") || strstr(property->name, "_attribute_name")) {
+      return;
+    }
+  }
+
+  LISTBASE_FOREACH_MUTABLE (IDProperty *, property, &nmd->settings.properties->data.group) {
+    if (!ELEM(property->type, IDP_FLOAT, IDP_INT, IDP_ARRAY)) {
+      continue;
+    }
+
+    if (strstr(property->name, "_use_attribute") || strstr(property->name, "_attribute_name")) {
+      continue;
+    }
+
+    char use_attribute_prop_name[MAX_IDPROP_NAME];
+    BLI_snprintf(use_attribute_prop_name,
+                 sizeof(use_attribute_prop_name),
+                 "%s%s",
+                 property->name,
+                 "_use_attribute");
+
+    IDPropertyTemplate idprop = {0};
+    IDProperty *use_attribute_prop = IDP_New(IDP_INT, &idprop, use_attribute_prop_name);
+    IDP_AddToGroup(nmd->settings.properties, use_attribute_prop);
+
+    char attribute_name_prop_name[MAX_IDPROP_NAME];
+    BLI_snprintf(attribute_name_prop_name,
+                 sizeof(attribute_name_prop_name),
+                 "%s%s",
+                 property->name,
+                 "_attribute_name");
+
+    IDProperty *attribute_prop = IDP_New(IDP_STRING, &idprop, attribute_name_prop_name);
+    IDP_AddToGroup(nmd->settings.properties, attribute_prop);
+  }
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -1390,5 +1431,12 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Nodes) {
+          version_geometry_nodes_add_attribute_input_settings((NodesModifierData *)md);
+        }
+      }
+    }
   }
 }
