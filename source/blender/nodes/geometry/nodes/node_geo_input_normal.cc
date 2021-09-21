@@ -14,10 +14,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BLI_task.hh"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_mesh.h"
+#include "BKE_spline.hh"
 
 #include "node_geometry_util.hh"
 
@@ -147,6 +150,95 @@ static const GVArray *construct_mesh_normals_gvarray(const MeshComponent &mesh_c
   }
 }
 
+static void calculate_bezier_normals(const BezierSpline &spline, MutableSpan<float3> normals)
+{
+  Span<int> offsets = spline.control_point_offsets();
+  Span<float3> evaluated_normals = spline.evaluated_normals();
+  for (const int i : IndexRange(spline.size())) {
+    normals[i] = evaluated_normals[offsets[i]];
+  }
+}
+
+static void calculate_poly_normals(const PolySpline &spline, MutableSpan<float3> normals)
+{
+  normals.copy_from(spline.evaluated_normals());
+}
+
+/**
+ * Because NURBS control points are not necessarily on the path, the normal at the control points
+ * is not well defined, so create a temporary poly spline to find the normals. This requires extra
+ * copying currently, but may be more efficient in the future if attributes have some form of CoW.
+ */
+static void calculate_nurbs_normals(const NURBSpline &spline, MutableSpan<float3> normals)
+{
+  PolySpline poly_spline;
+  poly_spline.resize(spline.size());
+  poly_spline.positions().copy_from(spline.positions());
+  normals.copy_from(poly_spline.evaluated_normals());
+}
+
+static Array<float3> curve_normal_point_domain(const CurveEval &curve)
+{
+  Span<SplinePtr> splines = curve.splines();
+  Array<int> offsets = curve.control_point_offsets();
+  const int total_size = offsets.last();
+  Array<float3> normals(total_size);
+
+  threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
+    for (const int i : range) {
+      const Spline &spline = *splines[i];
+      MutableSpan spline_normals{normals.as_mutable_span().slice(offsets[i], spline.size())};
+      switch (splines[i]->type()) {
+        case Spline::Type::Bezier:
+          calculate_bezier_normals(static_cast<const BezierSpline &>(spline), spline_normals);
+          break;
+        case Spline::Type::Poly:
+          calculate_poly_normals(static_cast<const PolySpline &>(spline), spline_normals);
+          break;
+        case Spline::Type::NURBS:
+          calculate_nurbs_normals(static_cast<const NURBSpline &>(spline), spline_normals);
+          break;
+      }
+    }
+  });
+  return normals;
+}
+
+static const GVArray *construct_curve_normal_gvarray(const CurveComponent &component,
+                                                     const AttributeDomain domain,
+                                                     ResourceScope &scope)
+{
+  const CurveEval *curve = component.get_for_read();
+  if (curve == nullptr) {
+    return nullptr;
+  }
+
+  if (domain == ATTR_DOMAIN_POINT) {
+    const Span<SplinePtr> splines = curve->splines();
+
+    /* Use a reference to evaluated normals if possible to avoid an allocation and a copy.
+     * This is only possible when there is only one poly spline. */
+    if (splines.size() == 1 && splines.first()->type() == Spline::Type::Poly) {
+      const PolySpline &spline = static_cast<PolySpline &>(*splines.first());
+      return &scope.construct<fn::GVArray_For_Span<float3>>(spline.evaluated_normals());
+    }
+
+    Array<float3> normals = curve_normal_point_domain(*curve);
+    return &scope.construct<fn::GVArray_For_ArrayContainer<Array<float3>>>(std::move(normals));
+  }
+
+  if (domain == ATTR_DOMAIN_CURVE) {
+    Array<float3> point_normals = curve_normal_point_domain(*curve);
+    GVArrayPtr gvarray = std::make_unique<fn::GVArray_For_ArrayContainer<Array<float3>>>(
+        std::move(point_normals));
+    GVArrayPtr spline_normals = component.attribute_try_adapt_domain(
+        std::move(gvarray), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
+    return scope.add_value(std::move(spline_normals)).get();
+  }
+
+  return nullptr;
+}
+
 class NormalFieldInput final : public fn::FieldInput {
  public:
   NormalFieldInput() : fn::FieldInput(CPPType::get<float3>(), "Normal")
@@ -173,8 +265,8 @@ class NormalFieldInput final : public fn::FieldInput {
         return construct_mesh_normals_gvarray(mesh_component, *mesh, mask, domain, scope);
       }
       if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-        /* TODO: Add curve normals support. */
-        return nullptr;
+        const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+        return construct_curve_normal_gvarray(curve_component, domain, scope);
       }
     }
     return nullptr;
