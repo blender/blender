@@ -51,6 +51,7 @@ bool BLI_uuid_equal(UUID uuid1, UUID uuid2);
 /**
  * Format UUID as string.
  * The buffer must be at least 37 bytes (36 bytes for the UUID + terminating 0).
+ * Use `UUID_STRING_LEN` from DNA_uuid_types.h if you want to use a constant for this.
  */
 void BLI_uuid_format(char *buffer, UUID uuid) ATTR_NONNULL();
 
