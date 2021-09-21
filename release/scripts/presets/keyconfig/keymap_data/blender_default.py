@@ -56,6 +56,8 @@ class Params:
         "use_v3d_mmb_pan",
         # Alt click to access tools.
         "use_alt_click_leader",
+        # Transform keys G/S/R activate tools instead of immediately transforming.
+        "use_key_activate_tools",
         # Optionally use a modifier to access tools.
         "tool_modifier",
         # Experimental option.
@@ -83,6 +85,7 @@ class Params:
 
             # User preferences.
             spacebar_action='TOOL',
+            use_key_activate_tools=False,
             use_select_all_toggle=False,
             use_gizmo_drag=True,
             use_fallback_tool=False,
@@ -149,6 +152,7 @@ class Params:
 
         # User preferences
         self.spacebar_action = spacebar_action
+        self.use_key_activate_tools = use_key_activate_tools
 
         self.use_gizmo_drag = use_gizmo_drag
         self.use_select_all_toggle = use_select_all_toggle
@@ -206,6 +210,16 @@ def op_tool(tool, kmi_args):
 
 def op_tool_cycle(tool, kmi_args):
     return ("wm.tool_set_by_id", kmi_args, {"properties": [("name", tool), ("cycle", True)]})
+
+
+# Utility to select between an operator and a tool,
+# without having to duplicate key map item arguments.
+def op_tool_optional(op_args, tool_pair, params):
+    if params.use_key_activate_tools:
+        kmi_args = op_args[1]
+        op_tool_fn, tool_id = tool_pair
+        return op_tool_fn(tool_id, kmi_args)
+    return op_args
 
 
 # ------------------------------------------------------------------------------
@@ -982,10 +996,16 @@ def km_uv_editor(params):
         op_menu("IMAGE_MT_uvs_select_mode", {"type": 'TAB', "value": 'PRESS', "ctrl": True}),
         *_template_items_proportional_editing(
             params, connected=False, toggle_data_path='tool_settings.use_proportional_edit'),
-        ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
         ("transform.translate", {"type": params.select_tweak, "value": 'ANY'}, None),
-        ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
-        ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.move"), params),
+        op_tool_optional(
+            ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.rotate"), params),
+        op_tool_optional(
+            ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.scale"), params),
         ("transform.shear", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
         ("transform.mirror", {"type": 'M', "value": 'PRESS', "ctrl": True}, None),
         ("wm.context_toggle", {"type": 'TAB', "value": 'PRESS', "shift": True},
@@ -1262,13 +1282,23 @@ def km_view3d(params):
         ("view3d.copybuffer", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("view3d.pastebuffer", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
         # Transform.
-        ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
         ("transform.translate", {"type": params.select_tweak, "value": 'ANY'}, None),
-        ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
-        ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.move"), params),
+        op_tool_optional(
+            ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.rotate"), params),
+        op_tool_optional(
+            ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.scale"), params),
+        op_tool_optional(
+            ("transform.tosphere", {"type": 'S', "value": 'PRESS', "shift": True, "alt": True}, None),
+            (op_tool_cycle, "builtin.to_sphere"), params),
+        op_tool_optional(
+            ("transform.shear", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
+            (op_tool_cycle, "builtin.shear"), params),
         ("transform.bend", {"type": 'W', "value": 'PRESS', "shift": True}, None),
-        ("transform.tosphere", {"type": 'S', "value": 'PRESS', "shift": True, "alt": True}, None),
-        ("transform.shear", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
         ("transform.mirror", {"type": 'M', "value": 'PRESS', "ctrl": True}, None),
         ("object.transform_axis_target", {"type": 'T', "value": 'PRESS', "shift": True}, None),
         ("transform.skin_resize", {"type": 'A', "value": 'PRESS', "ctrl": True}, None),
@@ -3297,14 +3327,18 @@ def km_grease_pencil_stroke_edit_mode(params):
 
     items.extend([
         # Interpolation
-        ("gpencil.interpolate", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
+        op_tool_optional(
+            ("gpencil.interpolate", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
+            (op_tool_cycle, "builtin.interpolate"), params),
         ("gpencil.interpolate_sequence", {"type": 'E', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         # Selection
         *_grease_pencil_selection(params),
         # Duplicate and move selected points
         ("gpencil.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         # Extrude and move selected points
-        ("gpencil.extrude_move", {"type": 'E', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("gpencil.extrude_move", {"type": 'E', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.extrude"), params),
         # Delete
         op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'X', "value": 'PRESS'}),
         op_menu("VIEW3D_MT_edit_gpencil_delete", {"type": 'DEL', "value": 'PRESS'}),
@@ -3349,16 +3383,30 @@ def km_grease_pencil_stroke_edit_mode(params):
         # Merge Layer
         ("gpencil.layer_merge", {"type": 'M', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         # Transform tools
-        ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
         ("transform.translate", {"type": params.select_tweak, "value": 'ANY'}, None),
-        ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
-        ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.move"), params),
+        op_tool_optional(
+            ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.rotate"), params),
+        op_tool_optional(
+            ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.scale"), params),
+        op_tool_optional(
+            ("transform.tosphere", {"type": 'S', "value": 'PRESS', "shift": True, "alt": True}, None),
+            (op_tool_cycle, "builtin.to_sphere"), params),
+        op_tool_optional(
+            ("transform.shear", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
+            (op_tool_cycle, "builtin.shear"), params),
         ("transform.mirror", {"type": 'M', "value": 'PRESS', "ctrl": True}, None),
-        ("transform.bend", {"type": 'W', "value": 'PRESS', "shift": True}, None),
-        ("transform.tosphere", {"type": 'S', "value": 'PRESS', "shift": True, "alt": True}, None),
-        ("transform.shear", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
-        ("transform.transform", {"type": 'S', "value": 'PRESS', "alt": True},
-         {"properties": [("mode", 'GPENCIL_SHRINKFATTEN')]}),
+        op_tool_optional(
+            ("transform.bend", {"type": 'W', "value": 'PRESS', "shift": True}, None),
+            (op_tool_cycle, "builtin.bend"), params),
+        op_tool_optional(
+            ("transform.transform", {"type": 'S', "value": 'PRESS', "alt": True},
+             {"properties": [("mode", 'GPENCIL_SHRINKFATTEN')]}),
+            (op_tool_cycle, "builtin.radius"), params),
         ("transform.transform", {"type": 'F', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'GPENCIL_OPACITY')]}),
         # Proportional editing.
@@ -3436,7 +3484,9 @@ def km_grease_pencil_stroke_paint_mode(params):
         ("gpencil.active_frames_delete_all", {"type": 'X', "value": 'PRESS', "shift": True}, None),
         ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Interpolation
-        ("gpencil.interpolate", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
+        op_tool_optional(
+            ("gpencil.interpolate", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
+            (op_tool_cycle, "builtin.interpolate"), params),
         ("gpencil.interpolate_sequence", {"type": 'E', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         # Show/hide
         ("gpencil.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
@@ -4301,7 +4351,9 @@ def km_curve(params):
          {"type": params.select_mouse, "value": params.select_mouse_value_fallback, "ctrl": True}, None),
         ("curve.separate", {"type": 'P', "value": 'PRESS'}, None),
         ("curve.split", {"type": 'Y', "value": 'PRESS'}, None),
-        ("curve.extrude_move", {"type": 'E', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("curve.extrude_move", {"type": 'E', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.extrude"), params),
         ("curve.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         ("curve.make_segment", {"type": 'F', "value": 'PRESS'}, None),
         ("curve.cyclic_toggle", {"type": 'C', "value": 'PRESS', "alt": True}, None),
@@ -4310,7 +4362,9 @@ def km_curve(params):
         ("curve.dissolve_verts", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
         ("curve.dissolve_verts", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
         ("curve.tilt_clear", {"type": 'T', "value": 'PRESS', "alt": True}, None),
-        ("transform.tilt", {"type": 'T', "value": 'PRESS', "ctrl": True}, None),
+        op_tool_optional(
+            ("transform.tilt", {"type": 'T', "value": 'PRESS', "ctrl": True}, None),
+            (op_tool_cycle, "builtin.tilt"), params),
         ("transform.transform", {"type": 'S', "value": 'PRESS', "alt": True},
          {"properties": [("mode", 'CURVE_SHRINKFATTEN')]}),
         ("curve.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
@@ -4737,13 +4791,21 @@ def km_mesh(params):
 
     items.extend([
         # Tools.
-        ("mesh.loopcut_slide", {"type": 'R', "value": 'PRESS', "ctrl": True},
-         {"properties": [("TRANSFORM_OT_edge_slide", [("release_confirm", False)],)]}),
-        ("mesh.offset_edge_loops_slide", {"type": 'R', "value": 'PRESS', "shift": True, "ctrl": True},
-         {"properties": [("TRANSFORM_OT_edge_slide", [("release_confirm", False)],)]}),
-        ("mesh.inset", {"type": 'I', "value": 'PRESS'}, None),
-        ("mesh.bevel", {"type": 'B', "value": 'PRESS', "ctrl": True},
-         {"properties": [("affect", 'EDGES')]}),
+        op_tool_optional(
+            ("mesh.loopcut_slide", {"type": 'R', "value": 'PRESS', "ctrl": True},
+             {"properties": [("TRANSFORM_OT_edge_slide", [("release_confirm", False)],)]}),
+            (op_tool_cycle, "builtin.loop_cut"), params),
+        op_tool_optional(
+            ("mesh.offset_edge_loops_slide", {"type": 'R', "value": 'PRESS', "shift": True, "ctrl": True},
+             {"properties": [("TRANSFORM_OT_edge_slide", [("release_confirm", False)],)]}),
+            (op_tool_cycle, "builtin.offset_edge_loop_cut"), params),
+        op_tool_optional(
+            ("mesh.inset", {"type": 'I', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.inset_faces"), params),
+        op_tool_optional(
+            ("mesh.bevel", {"type": 'B', "value": 'PRESS', "ctrl": True},
+             {"properties": [("affect", 'EDGES')]}),
+            (op_tool_cycle, "builtin.bevel"), params),
         ("mesh.bevel", {"type": 'B', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("affect", 'VERTICES')]}),
         # Selection modes.
@@ -4785,7 +4847,9 @@ def km_mesh(params):
          {"properties": [("inside", False)]}),
         ("mesh.normals_make_consistent", {"type": 'N', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("inside", True)]}),
-        ("view3d.edit_mesh_extrude_move_normal", {"type": 'E', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("view3d.edit_mesh_extrude_move_normal", {"type": 'E', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.extrude_region"), params),
         op_menu("VIEW3D_MT_edit_mesh_extrude", {"type": 'E', "value": 'PRESS', "alt": True}),
         ("transform.edge_crease", {"type": 'E', "value": 'PRESS', "shift": True}, None),
         ("mesh.fill", {"type": 'F', "value": 'PRESS', "alt": True}, None),
@@ -4794,8 +4858,11 @@ def km_mesh(params):
         ("mesh.quads_convert_to_tris", {"type": 'T', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("quad_method", 'FIXED'), ("ngon_method", 'CLIP')]}),
         ("mesh.tris_convert_to_quads", {"type": 'J', "value": 'PRESS', "alt": True}, None),
-        ("mesh.rip_move", {"type": 'V', "value": 'PRESS'},
-         {"properties": [("MESH_OT_rip", [("use_fill", False)],)]}),
+        op_tool_optional(
+            ("mesh.rip_move", {"type": 'V', "value": 'PRESS'},
+             {"properties": [("MESH_OT_rip", [("use_fill", False)],)]}),
+            (op_tool_cycle, "builtin.rip_region"), params),
+        # No tool is available for this.
         ("mesh.rip_move", {"type": 'V', "value": 'PRESS', "alt": True},
          {"properties": [("MESH_OT_rip", [("use_fill", True)],)]}),
         ("mesh.rip_edge_move", {"type": 'D', "value": 'PRESS', "alt": True}, None),
@@ -4809,7 +4876,9 @@ def km_mesh(params):
         ("mesh.split", {"type": 'Y', "value": 'PRESS'}, None),
         ("mesh.vert_connect_path", {"type": 'J', "value": 'PRESS'}, None),
         ("mesh.point_normals", {"type": 'L', "value": 'PRESS', "alt": True}, None),
-        ("transform.vert_slide", {"type": 'V', "value": 'PRESS', "shift": True}, None),
+        op_tool_optional(
+            ("transform.vert_slide", {"type": 'V', "value": 'PRESS', "shift": True}, None),
+            (op_tool_cycle, "builtin.vertex_slide"), params),
         ("mesh.dupli_extrude_cursor", {"type": params.action_mouse, "value": 'CLICK', "ctrl": True},
          {"properties": [("rotate_source", True)]}),
         ("mesh.dupli_extrude_cursor", {"type": params.action_mouse, "value": 'CLICK', "shift": True, "ctrl": True},
@@ -4818,8 +4887,10 @@ def km_mesh(params):
         op_menu("VIEW3D_MT_edit_mesh_delete", {"type": 'DEL', "value": 'PRESS'}),
         ("mesh.dissolve_mode", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
         ("mesh.dissolve_mode", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
-        ("mesh.knife_tool", {"type": 'K', "value": 'PRESS'},
-         {"properties": [("use_occlude_geometry", True), ("only_selected", False)]}),
+        op_tool_optional(
+            ("mesh.knife_tool", {"type": 'K', "value": 'PRESS'},
+             {"properties": [("use_occlude_geometry", True), ("only_selected", False)]}),
+            (op_tool_cycle, "builtin.knife"), params),
         ("mesh.knife_tool", {"type": 'K', "value": 'PRESS', "shift": True},
          {"properties": [("use_occlude_geometry", False), ("only_selected", True)]}),
         ("object.vertex_parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
@@ -4916,7 +4987,9 @@ def km_armature(params):
         ("armature.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         ("armature.dissolve", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
         ("armature.dissolve", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
-        ("armature.extrude_move", {"type": 'E', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("armature.extrude_move", {"type": 'E', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.extrude"), params),
         ("armature.extrude_forked", {"type": 'E', "value": 'PRESS', "shift": True}, None),
         ("armature.click_extrude", {"type": params.action_mouse, "value": 'CLICK', "ctrl": True}, None),
         ("armature.fill", {"type": 'F', "value": 'PRESS'}, None),
@@ -4931,11 +5004,17 @@ def km_armature(params):
         ("armature.armature_layers", {"type": 'M', "value": 'PRESS', "shift": True}, None),
         ("armature.bone_layers", {"type": 'M', "value": 'PRESS'}, None),
         # Special transforms.
-        ("transform.bbone_resize", {"type": 'S', "value": 'PRESS', "ctrl": True, "alt": True}, None),
-        ("transform.transform", {"type": 'S', "value": 'PRESS', "alt": True},
-         {"properties": [("mode", 'BONE_ENVELOPE')]}),
-        ("transform.transform", {"type": 'R', "value": 'PRESS', "ctrl": True},
-         {"properties": [("mode", 'BONE_ROLL')]}),
+        op_tool_optional(
+            ("transform.bbone_resize", {"type": 'S', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+            (op_tool_cycle, "builtin.bone_size"), params),
+        op_tool_optional(
+            ("transform.transform", {"type": 'S', "value": 'PRESS', "alt": True},
+             {"properties": [("mode", 'BONE_ENVELOPE')]}),
+            (op_tool_cycle, "builtin.bone_envelope"), params),
+        op_tool_optional(
+            ("transform.transform", {"type": 'R', "value": 'PRESS', "ctrl": True},
+             {"properties": [("mode", 'BONE_ROLL')]}),
+            (op_tool_cycle, "builtin.roll"), params),
         # Menus.
         *_template_items_context_menu("VIEW3D_MT_armature_context_menu", params.context_menu_event),
     ])

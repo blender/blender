@@ -54,6 +54,15 @@ class Prefs(bpy.types.KeyConfigPreferences):
         default='PLAY',
         update=update_fn,
     )
+    use_key_activate_tools: BoolProperty(
+        name="Keys Activate Tools",
+        description=(
+            "Key shortcuts such as G, R, and S activate the tool instead of running it immediately"
+        ),
+        default=False,
+        update=update_fn,
+    )
+
     rmb_action: EnumProperty(
         name="Right Mouse Select Action",
         items=(
@@ -212,6 +221,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
             row.prop(self, "use_alt_tool")
         row = sub.row()
         row.prop(self, "use_select_all_toggle")
+        row.prop(self, "use_key_activate_tools", text="Key Activates Tools")
 
         # 3DView settings.
         col = layout.column()
@@ -248,6 +258,7 @@ def load():
                 prefs.inputs.mouse_emulate_3_button_modifier == 'ALT'
             ),
             spacebar_action=kc_prefs.spacebar_action,
+            use_key_activate_tools=kc_prefs.use_key_activate_tools,
             v3d_tilde_action=kc_prefs.v3d_tilde_action,
             use_v3d_mmb_pan=(kc_prefs.v3d_mmb_action == 'PAN'),
             v3d_alt_mmb_drag_action=kc_prefs.v3d_alt_mmb_drag_action,
