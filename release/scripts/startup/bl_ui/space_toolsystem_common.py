@@ -539,7 +539,9 @@ class ToolSelectPanelHelper:
                     visited.add(km_name)
 
                     yield (km_name, cls.bl_space_type, 'WINDOW', [])
-                    yield (km_name + " (fallback)", cls.bl_space_type, 'WINDOW', [])
+                    # Callable types don't use fall-backs.
+                    if isinstance(km_name, str):
+                        yield (km_name + " (fallback)", cls.bl_space_type, 'WINDOW', [])
 
     # -------------------------------------------------------------------------
     # Layout Generators
