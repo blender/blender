@@ -461,7 +461,7 @@ BrushChannelType *BKE_brush_default_channel_def()
 
 ATTR_NO_OPT void BKE_brush_channel_def_copy(BrushChannelType *dst, BrushChannelType *src)
 {
-  *dst = *src;
+  memcpy(dst, src, sizeof(*dst));
 }
 
 ATTR_NO_OPT BrushChannelType *BKE_brush_builtin_channel_def_find(const char *name)
