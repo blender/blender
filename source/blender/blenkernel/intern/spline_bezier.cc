@@ -214,6 +214,11 @@ void BezierSpline::ensure_auto_handles() const
     return;
   }
 
+  if (this->size() == 1) {
+    auto_handles_dirty_ = false;
+    return;
+  }
+
   for (const int i : IndexRange(this->size())) {
     if (ELEM(HandleType::Auto, handle_types_left_[i], handle_types_right_[i])) {
       const float3 prev_diff = positions_[i] - previous_position(positions_, is_cyclic_, i);
