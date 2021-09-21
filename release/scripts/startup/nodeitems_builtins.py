@@ -598,6 +598,12 @@ geometry_node_categories = [
         NodeItem("GeometryNodeLegacyRotatePoints", poll=geometry_nodes_fields_legacy_poll),
         NodeItem("GeometryNodeLegacyAlignRotationToVector", poll=geometry_nodes_fields_legacy_poll),
     ]),
+    GeometryNodeCategory("GEO_TEXT", "Text", items=[
+        NodeItem("FunctionNodeStringLength"),
+        NodeItem("FunctionNodeStringSubstring"),
+        NodeItem("FunctionNodeValueToString"),
+        NodeItem("GeometryNodeStringJoin"),
+    ]),
     GeometryNodeCategory("GEO_UTILITIES", "Utilities", items=[
         NodeItem("ShaderNodeMapRange"),
         NodeItem("ShaderNodeClamp"),

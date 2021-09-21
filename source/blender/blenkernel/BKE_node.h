@@ -1497,6 +1497,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_ATTRIBUTE_STATISTIC 1084
 #define GEO_NODE_CURVE_SAMPLE 1085
 #define GEO_NODE_INPUT_TANGENT 1086
+#define GEO_NODE_STRING_JOIN 1087
 
 /** \} */
 
@@ -1510,6 +1511,9 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define FN_NODE_INPUT_VECTOR 1207
 #define FN_NODE_INPUT_STRING 1208
 #define FN_NODE_FLOAT_TO_INT 1209
+#define FN_NODE_VALUE_TO_STRING 1210
+#define FN_NODE_STRING_LENGTH 1211
+#define FN_NODE_STRING_SUBSTRING 1212
 
 /** \} */
 
