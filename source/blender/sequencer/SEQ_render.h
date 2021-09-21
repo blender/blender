@@ -75,7 +75,7 @@ void SEQ_render_thumbnails(const struct SeqRenderData *context,
                            float start_frame,
                            float frame_step,
                            rctf *view_area,
-                           short *stop);
+                           const short *stop);
 struct ImBuf *SEQ_get_thumbnail(const struct SeqRenderData *context,
                                 struct Sequence *seq,
                                 float timeline_frame,
@@ -86,7 +86,7 @@ void SEQ_render_thumbnails_base_set(const struct SeqRenderData *context,
                                     struct Sequence *seq,
                                     struct Sequence *seq_orig,
                                     rctf *view_area,
-                                    short *stop);
+                                    const short *stop);
 
 void SEQ_render_init_colorspace(struct Sequence *seq);
 void SEQ_render_new_render_data(struct Main *bmain,

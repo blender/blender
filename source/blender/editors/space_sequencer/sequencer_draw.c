@@ -1393,7 +1393,7 @@ static float seq_thumbnail_get_start_frame(Sequence *seq, float frame_step, rctf
   return ((no_invisible_thumbs - 1) * frame_step) + seq->start;
 }
 
-static void thumbnail_start_job(void *data, short *stop, short *do_update, float *progress)
+static void thumbnail_start_job(void *data, const short *stop, const short *do_update, const float *progress)
 {
   ThumbnailDrawJob *tj = data;
   float start_frame, frame_step;
@@ -1627,24 +1627,28 @@ static ImBuf *sequencer_thumbnail_closest_from_memory(const SeqRenderData *conte
   int frame_guaranteed = sequencer_thumbnail_closest_guaranteed_frame_get(seq, timeline_frame);
   ImBuf *ibuf_guaranteed = SEQ_get_thumbnail(context, seq, frame_guaranteed, crop, clipped);
 
-  if (ibuf_previous && ibuf_guaranteed &&
-      abs(frame_previous - timeline_frame) < abs(frame_guaranteed - timeline_frame)) {
+  ImBuf *closest_in_memory = NULL;
 
-    IMB_freeImBuf(ibuf_guaranteed);
-    return ibuf_previous;
-  }
-  else {
-    IMB_freeImBuf(ibuf_previous);
-    return ibuf_guaranteed;
+  if (ibuf_previous && ibuf_guaranteed) {
+    if (abs(frame_previous - timeline_frame) < abs(frame_guaranteed - timeline_frame)) {
+      IMB_freeImBuf(ibuf_guaranteed);
+      closest_in_memory = ibuf_previous;
+    }
+    else {
+      IMB_freeImBuf(ibuf_previous);
+      closest_in_memory = ibuf_guaranteed;
+    }
   }
 
   if (ibuf_previous == NULL) {
-    return ibuf_guaranteed;
+    closest_in_memory = ibuf_guaranteed;
   }
 
   if (ibuf_guaranteed == NULL) {
-    return ibuf_previous;
+    closest_in_memory = ibuf_previous;
   }
+
+  return closest_in_memory;
 }
 
 static void draw_seq_strip_thumbnail(View2D *v2d,
