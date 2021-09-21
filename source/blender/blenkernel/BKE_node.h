@@ -1495,6 +1495,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_MATERIAL_ASSIGN 1082
 #define GEO_NODE_REALIZE_INSTANCES 1083
 #define GEO_NODE_ATTRIBUTE_STATISTIC 1084
+#define GEO_NODE_CURVE_SAMPLE 1085
 
 /** \} */
 

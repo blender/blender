@@ -1452,6 +1452,11 @@ typedef struct NodeGeometryCurveToPoints {
   uint8_t mode;
 } NodeGeometryCurveToPoints;
 
+typedef struct NodeGeometryCurveSample {
+  /* GeometryNodeCurveSampleMode. */
+  uint8_t mode;
+} NodeGeometryCurveSample;
+
 typedef struct NodeGeometryAttributeTransfer {
   /* AttributeDomain. */
   int8_t domain;
