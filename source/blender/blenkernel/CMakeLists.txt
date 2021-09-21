@@ -116,6 +116,7 @@ set(SRC
   intern/curve_decimate.c
   intern/curve_deform.c
   intern/curve_eval.cc
+  intern/curve_to_mesh_convert.cc
   intern/curveprofile.c
   intern/customdata.c
   intern/customdata_file.c
@@ -332,6 +333,7 @@ set(SRC
   BKE_cryptomatte.h
   BKE_cryptomatte.hh
   BKE_curve.h
+  BKE_curve_to_mesh.hh
   BKE_curveprofile.h
   BKE_customdata.h
   BKE_customdata_file.h
