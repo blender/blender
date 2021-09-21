@@ -317,6 +317,9 @@ static void gpencil_stroke_pair_table(bContext *C,
     if (ELEM(NULL, gps_from, gps_to)) {
       continue;
     }
+    if ((gps_from->totpoints == 0) || (gps_to->totpoints == 0)) {
+      continue;
+    }
     /* Insert the pair entry in the hash table and the list of strokes to keep order. */
     BLI_addtail(&tgpil->selected_strokes, BLI_genericNodeN(gps_from));
     BLI_ghash_insert(tgpil->pair_strokes, gps_from, gps_to);
@@ -1332,6 +1335,9 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
       }
 
       if (ELEM(NULL, gps_from, gps_to)) {
+        continue;
+      }
+      if ((gps_from->totpoints == 0) || (gps_to->totpoints == 0)) {
         continue;
       }
 
