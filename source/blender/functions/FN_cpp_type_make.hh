@@ -195,6 +195,7 @@ CPPType::CPPType(CPPTypeParam<T, Flags> /* unused */, StringRef debug_name)
   debug_name_ = debug_name;
   size_ = (int64_t)sizeof(T);
   alignment_ = (int64_t)alignof(T);
+  is_trivial_ = std::is_trivial_v<T>;
   is_trivially_destructible_ = std::is_trivially_destructible_v<T>;
   if constexpr (std::is_default_constructible_v<T>) {
     default_construct_ = default_construct_cb<T>;
