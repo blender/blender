@@ -20,7 +20,7 @@ const char *sculpt_keymap_fix(const char *str)
 
   basic_string propname = "";
   basic_string tmp = regex_replace(repl, regex("use_"), "");
-  bool inherit = regex_search(repl, regex("use_[a-zA-Z_]+", regex::flag_type::ECMAScript));
+  bool inherit = regex_search(repl, regex("use_[a-zA-Z_]+", regex::flag_type::extended));
 
   std::cmatch match;
   if (regex_search(tmp.c_str(), match, pat1)) {
