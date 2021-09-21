@@ -768,7 +768,13 @@ void OptiXDevice::denoise_color_read(DenoiseContext &context, const DenoisePass 
   destination.num_components = 3;
   destination.pixel_stride = context.buffer_params.pass_stride;
 
-  pass_accessor.get_render_tile_pixels(context.render_buffers, context.buffer_params, destination);
+  BufferParams buffer_params = context.buffer_params;
+  buffer_params.window_x = 0;
+  buffer_params.window_y = 0;
+  buffer_params.window_width = buffer_params.width;
+  buffer_params.window_height = buffer_params.height;
+
+  pass_accessor.get_render_tile_pixels(context.render_buffers, buffer_params, destination);
 }
 
 bool OptiXDevice::denoise_filter_color_preprocess(DenoiseContext &context, const DenoisePass &pass)

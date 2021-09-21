@@ -286,12 +286,20 @@ RenderWork Session::run_update_for_next_iteration()
       BufferParams tile_params = buffer_params_;
 
       const Tile &tile = tile_manager_.get_current_tile();
+
       tile_params.width = tile.width;
       tile_params.height = tile.height;
+
+      tile_params.window_x = tile.window_x;
+      tile_params.window_y = tile.window_y;
+      tile_params.window_width = tile.window_width;
+      tile_params.window_height = tile.window_height;
+
       tile_params.full_x = tile.x + buffer_params_.full_x;
       tile_params.full_y = tile.y + buffer_params_.full_y;
       tile_params.full_width = buffer_params_.full_width;
       tile_params.full_height = buffer_params_.full_height;
+
       tile_params.update_offset_stride();
 
       path_trace_->reset(buffer_params_, tile_params);

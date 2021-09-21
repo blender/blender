@@ -289,7 +289,13 @@ class OIDNDenoiseContext {
      * pixels. */
     const PassAccessorCPU pass_accessor(pass_access_info, 1.0f, num_samples_);
 
-    pass_accessor.get_render_tile_pixels(render_buffers_, buffer_params_, destination);
+    BufferParams buffer_params = buffer_params_;
+    buffer_params.window_x = 0;
+    buffer_params.window_y = 0;
+    buffer_params.window_width = buffer_params.width;
+    buffer_params.window_height = buffer_params.height;
+
+    pass_accessor.get_render_tile_pixels(render_buffers_, buffer_params, destination);
   }
 
   /* Read pass pixels using PassAccessor into a temporary buffer which is owned by the pass.. */

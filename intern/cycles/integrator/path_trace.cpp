@@ -282,6 +282,12 @@ static BufferParams scale_buffer_params(const BufferParams &params, int resoluti
 
   scaled_params.width = max(1, params.width / resolution_divider);
   scaled_params.height = max(1, params.height / resolution_divider);
+
+  scaled_params.window_x = params.window_x / resolution_divider;
+  scaled_params.window_y = params.window_y / resolution_divider;
+  scaled_params.window_width = params.window_width / resolution_divider;
+  scaled_params.window_height = params.window_height / resolution_divider;
+
   scaled_params.full_x = params.full_x / resolution_divider;
   scaled_params.full_y = params.full_y / resolution_divider;
   scaled_params.full_width = params.full_width / resolution_divider;
@@ -1005,12 +1011,12 @@ bool PathTrace::set_render_tile_pixels(PassAccessor &pass_accessor,
 int2 PathTrace::get_render_tile_size() const
 {
   if (full_frame_state_.render_buffers) {
-    return make_int2(full_frame_state_.render_buffers->params.width,
-                     full_frame_state_.render_buffers->params.height);
+    return make_int2(full_frame_state_.render_buffers->params.window_width,
+                     full_frame_state_.render_buffers->params.window_height);
   }
 
   const Tile &tile = tile_manager_.get_current_tile();
-  return make_int2(tile.width, tile.height);
+  return make_int2(tile.window_width, tile.window_height);
 }
 
 int2 PathTrace::get_render_tile_offset() const
@@ -1020,7 +1026,7 @@ int2 PathTrace::get_render_tile_offset() const
   }
 
   const Tile &tile = tile_manager_.get_current_tile();
-  return make_int2(tile.x, tile.y);
+  return make_int2(tile.x + tile.window_x, tile.y + tile.window_y);
 }
 
 int2 PathTrace::get_render_size() const

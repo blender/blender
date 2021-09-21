@@ -191,8 +191,10 @@ PassAccessor::Destination PathTraceWork::get_display_destination_template(
   PassAccessor::Destination destination(film_->get_display_pass());
 
   const int2 display_texture_size = display->get_texture_size();
-  const int texture_x = effective_buffer_params_.full_x - effective_full_params_.full_x;
-  const int texture_y = effective_buffer_params_.full_y - effective_full_params_.full_y;
+  const int texture_x = effective_buffer_params_.full_x - effective_full_params_.full_x +
+                        effective_buffer_params_.window_x;
+  const int texture_y = effective_buffer_params_.full_y - effective_full_params_.full_y +
+                        effective_buffer_params_.window_y;
 
   destination.offset = texture_y * display_texture_size.x + texture_x;
   destination.stride = display_texture_size.x;
