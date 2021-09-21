@@ -236,7 +236,7 @@ BrushChannelType brush_builtin_channels[] = {
     .min = 0.0001f,
     .max = 1.0f,
     .fvalue = 1.0f,
-    .soft_min = 0.1f,
+    .soft_min = 0.0f,
     .soft_max = 1.0f,
     .mappings = {
         .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0, .min = 0.0f, .max = 1.0f, .enabled = false},

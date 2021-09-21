@@ -14,9 +14,9 @@ const char *sculpt_keymap_fix(const char *str)
   basic_string repl = regex_replace(str, regex("unified_"), "");
   repl = regex_replace(repl, regex("size"), "radius");
 
-  regex pat1(R"'(tool_settings.sculpt.brush.([a-zA-Z0-9_]+)$)'", regex::flag_type::ECMAScript);
-  regex pat2(R"'(tool_settings.paint_settings.([a-zA-Z0-9_]+)$)'", regex::flag_type::ECMAScript);
-  regex pat3(R"'(tool_settings.paint_settings.use_([a-zA-Z_]+)$)'", regex::flag_type::ECMAScript);
+  regex pat1(R"'(tool_settings.sculpt.brush.([a-zA-Z0-9_]+)$)'", regex::flag_type::extended);
+  regex pat2(R"'(tool_settings.paint_settings.([a-zA-Z0-9_]+)$)'", regex::flag_type::extended);
+  regex pat3(R"'(tool_settings.paint_settings.use_([a-zA-Z_]+)$)'", regex::flag_type::extended);
 
   basic_string propname = "";
   basic_string tmp = regex_replace(repl, regex("use_"), "");
