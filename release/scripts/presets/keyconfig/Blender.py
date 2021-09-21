@@ -76,6 +76,14 @@ class Prefs(bpy.types.KeyConfigPreferences):
         default=False,
         update=update_fn,
     )
+    use_alt_tool: BoolProperty(
+        name="Alt Tool Access",
+        description=(
+            "Hold Alt to use the active tool when the gizmo would normally be required"
+        ),
+        default=False,
+        update=update_fn,
+    )
     use_select_all_toggle: BoolProperty(
         name="Select All Toggles",
         description=(
@@ -199,8 +207,11 @@ class Prefs(bpy.types.KeyConfigPreferences):
         col = layout.column()
         sub = col.column(align=True)
         row = sub.row()
-        row.prop(self, "use_select_all_toggle")
         row.prop(self, "use_alt_click_leader")
+        if is_select_left:
+            row.prop(self, "use_alt_tool")
+        row = sub.row()
+        row.prop(self, "use_select_all_toggle")
 
         # 3DView settings.
         col = layout.column()
@@ -248,6 +259,7 @@ def load():
                 kc_prefs.gizmo_action == 'DRAG'
             ),
             use_fallback_tool=(True if (kc_prefs.select_mouse == 'LEFT') else (kc_prefs.rmb_action == 'FALLBACK_TOOL')),
+            use_alt_tool=(kc_prefs.use_alt_tool and kc_prefs.select_mouse == 'LEFT'),
             use_alt_click_leader=kc_prefs.use_alt_click_leader,
             use_pie_click_drag=kc_prefs.use_pie_click_drag,
         ),
