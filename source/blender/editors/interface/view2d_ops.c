@@ -309,7 +309,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void view_pan_cancel(bContext *C, wmOperator *op)
+static void view_pan_cancel(bContext *UNUSED(C), wmOperator *op)
 {
   view_pan_exit(op);
 }
