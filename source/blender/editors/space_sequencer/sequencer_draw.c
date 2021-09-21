@@ -1328,13 +1328,13 @@ static bool check_seq_need_thumbnails(Sequence *seq, rctf *view_area)
   if (min_ii(seq->startdisp, seq->start) > view_area->xmax) {
     return false;
   }
-  else if (max_ii(seq->enddisp, seq->start + seq->len) < view_area->xmin) {
+  if (max_ii(seq->enddisp, seq->start + seq->len) < view_area->xmin) {
     return false;
   }
-  else if (seq->machine + 1.0f < view_area->ymin) {
+  if (seq->machine + 1.0f < view_area->ymin) {
     return false;
   }
-  else if (seq->machine > view_area->ymax) {
+  if (seq->machine > view_area->ymax) {
     return false;
   }
 
