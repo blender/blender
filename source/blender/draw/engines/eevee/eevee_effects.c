@@ -38,7 +38,8 @@ static struct {
   struct GPUTexture *color_src;
 
   int depth_src_layer;
-  float cube_texel_size;
+  /* Size can be vec3. But we only use 2 components in the shader. */
+  float texel_size[2];
 } e_data = {NULL}; /* Engine data */
 
 #define SETUP_BUFFER(tex, fb, fb_color) \
@@ -259,6 +260,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_PASS_CREATE(psl->color_downsample_ps, DRW_STATE_WRITE_COLOR);
     grp = DRW_shgroup_create(EEVEE_shaders_effect_downsample_sh_get(), psl->color_downsample_ps);
     DRW_shgroup_uniform_texture_ex(grp, "source", txl->filtered_radiance, GPU_SAMPLER_FILTER);
+    DRW_shgroup_uniform_vec2(grp, "texelSize", e_data.texel_size, 1);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
 
@@ -267,7 +269,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     grp = DRW_shgroup_create(EEVEE_shaders_effect_downsample_cube_sh_get(),
                              psl->color_downsample_cube_ps);
     DRW_shgroup_uniform_texture_ref(grp, "source", &e_data.color_src);
-    DRW_shgroup_uniform_float(grp, "texelSize", &e_data.cube_texel_size, 1);
+    DRW_shgroup_uniform_float(grp, "texelSize", e_data.texel_size, 1);
     DRW_shgroup_uniform_int_copy(grp, "Layer", 0);
     DRW_shgroup_call_instances(grp, NULL, quad, 6);
   }
@@ -277,6 +279,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_PASS_CREATE(psl->maxz_downlevel_ps, downsample_write);
     grp = DRW_shgroup_create(EEVEE_shaders_effect_maxz_downlevel_sh_get(), psl->maxz_downlevel_ps);
     DRW_shgroup_uniform_texture_ref_ex(grp, "depthBuffer", &txl->maxzbuffer, GPU_SAMPLER_DEFAULT);
+    DRW_shgroup_uniform_vec2(grp, "texelSize", e_data.texel_size, 1);
     DRW_shgroup_call(grp, quad, NULL);
 
     /* Copy depth buffer to top level of HiZ */
@@ -345,16 +348,22 @@ static void min_downsample_cb(void *vedata, int UNUSED(level))
 }
 #endif
 
-static void max_downsample_cb(void *vedata, int UNUSED(level))
+static void max_downsample_cb(void *vedata, int level)
 {
   EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
+  EEVEE_TextureList *txl = ((EEVEE_Data *)vedata)->txl;
+  int texture_size[3];
+  GPU_texture_get_mipmap_size(txl->maxzbuffer, level - 1, texture_size);
+  e_data.texel_size[0] = 1.0f / texture_size[0];
+  e_data.texel_size[1] = 1.0f / texture_size[1];
   DRW_draw_pass(psl->maxz_downlevel_ps);
 }
 
 static void simple_downsample_cube_cb(void *vedata, int level)
 {
   EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
-  e_data.cube_texel_size = (float)(1 << level) / (float)GPU_texture_width(e_data.color_src);
+  e_data.texel_size[0] = (float)(1 << level) / (float)GPU_texture_width(e_data.color_src);
+  e_data.texel_size[1] = e_data.texel_size[0];
   DRW_draw_pass(psl->color_downsample_cube_ps);
 }
 
@@ -390,9 +399,14 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src, int l
   }
 }
 
-static void downsample_radiance_cb(void *vedata, int UNUSED(level))
+static void downsample_radiance_cb(void *vedata, int level)
 {
   EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
+  EEVEE_TextureList *txl = ((EEVEE_Data *)vedata)->txl;
+  int texture_size[3];
+  GPU_texture_get_mipmap_size(txl->filtered_radiance, level - 1, texture_size);
+  e_data.texel_size[0] = 1.0f / texture_size[0];
+  e_data.texel_size[1] = 1.0f / texture_size[1];
   DRW_draw_pass(psl->color_downsample_ps);
 }
 
