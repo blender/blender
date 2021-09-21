@@ -2813,7 +2813,9 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, const wmEvent *even
 {
   RNA_int_set_array(op->ptr, "location", event->mval);
 
-  return view3d_select_exec(C, op);
+  const int retval = view3d_select_exec(C, op);
+
+  return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
 
 void VIEW3D_OT_select(wmOperatorType *ot)

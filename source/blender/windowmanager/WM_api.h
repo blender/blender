@@ -707,6 +707,8 @@ void WM_event_fileselect_event(struct wmWindowManager *wm, void *ophandle, int e
 
 void WM_operator_region_active_win_set(struct bContext *C);
 
+int WM_operator_flag_only_pass_through_on_press(int retval, const struct wmEvent *event);
+
 /* drag and drop */
 struct wmDrag *WM_event_start_drag(
     struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags);
