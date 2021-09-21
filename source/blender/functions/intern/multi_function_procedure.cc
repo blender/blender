@@ -419,6 +419,10 @@ bool MFProcedure::validate_initialization() const
     const MultiFunction &fn = *instruction->fn_;
     for (const int param_index : fn.param_indices()) {
       const MFParamType param_type = fn.param_type(param_index);
+      /* If the parameter was an unneeded output, it could be null. */
+      if (!instruction->params_[param_index]) {
+        continue;
+      }
       const MFVariable &variable = *instruction->params_[param_index];
       const InitState state = this->find_initialization_state_before_instruction(*instruction,
                                                                                  variable);
