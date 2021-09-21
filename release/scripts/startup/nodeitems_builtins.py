@@ -527,6 +527,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeCurveFill"),
         NodeItem("GeometryNodeCurveTrim"),
         NodeItem("GeometryNodeCurveLength"),
+        NodeItem("GeometryNodeCurveParameter", poll=geometry_nodes_fields_poll),
         NodeItem("GeometryNodeInputTangent", poll=geometry_nodes_fields_poll),
         NodeItem("GeometryNodeCurveSample", poll=geometry_nodes_fields_poll),
     ]),
