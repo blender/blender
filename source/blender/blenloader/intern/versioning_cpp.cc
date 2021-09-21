@@ -16,13 +16,13 @@ ATTR_NO_OPT const char *sculpt_keymap_fix_intern(const char *str)
   basic_string repl = regex_replace(str, regex("unified_"), "");
   repl = regex_replace(repl, regex("size"), "radius");
 
-  regex pat1(R"'(tool_settings.sculpt.brush.([a-zA-Z0-9_]+)$)'", regex::flag_type::extended);
-  regex pat2(R"'(tool_settings.paint_settings.([a-zA-Z0-9_]+)$)'", regex::flag_type::extended);
-  regex pat3(R"'(tool_settings.paint_settings.use_([a-zA-Z_]+)$)'", regex::flag_type::extended);
+  regex pat1(R"'(tool_settings.sculpt.brush.([a-zA-Z0-9_]+)$)'");
+  regex pat2(R"'(tool_settings.paint_settings.([a-zA-Z0-9_]+)$)'");
+  regex pat3(R"'(tool_settings.paint_settings.use_([a-zA-Z_]+)$)'");
 
   basic_string propname = "";
   basic_string tmp = regex_replace(repl, regex("use_"), "");
-  bool inherit = regex_search(repl, regex("use_[a-zA-Z_]+", regex::flag_type::extended));
+  bool inherit = regex_search(repl, regex("use_[a-zA-Z_]+"));
 
   std::cmatch match;
   if (regex_search(tmp.c_str(), match, pat1)) {
@@ -99,7 +99,7 @@ ATTR_NO_OPT static void test_regexp()
 
 const char *sculpt_keymap_fix(const char *str)
 {
-  // test_regexp();
+  test_regexp();
 
   return sculpt_keymap_fix_intern(str);
 }

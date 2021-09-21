@@ -484,8 +484,17 @@ BrushChannelType brush_builtin_channels[] = {
       "Scale brush radius for vcol boundary hardening",
       1.0f, 0.0001f, 100.0f, 0.001f, 3.0f),
     MAKE_FLOAT_EX("vcol_boundary_spacing", "Spacing", "Spacing for vcol boundary hardening", 15, 0.25, 5000, 0.5, 300),
+     MAKE_BOOL("invert_to_scrape_fill","Invert to Scrape or Fill",
+                           "Use Scrape or Fill tool when inverting this brush instead of "
+                           "inverting its displacement direction", true),
+     MAKE_FLOAT("area_radius_factor", "Area Radius", "Ratio between the brush radius and the radius that is going to be "
+                           "used to sample the area center", 0.5f, 0.0f, 2.0f),
+    MAKE_BOOL("use_multiplane_scrape_dynamic", "Dynamic Mode",  "The angle between the planes changes during the stroke to fit the "
+                           "surface under the cursor", true),
+    MAKE_BOOL("show_multiplane_scrape_planes_preview", "Show Cursor Preview", "Preview the scrape planes in the cursor during the stroke", true),
+    MAKE_FLOAT("multiplane_scrape_angle", "Plane Angle", "Angle between the planes of the crease", 60.0f, 0.0f, 160.0f),
 };
-
+//BRUSH_INVERT_TO_SCRAPE_FILL
 /* clang-format on */
 const int brush_builtin_channel_len = ARRAY_SIZE(brush_builtin_channels);
 
@@ -554,6 +563,7 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(size, radius, INT, FLOAT)
   DEF(alpha, strength, FLOAT, FLOAT)
   DEF(autosmooth_factor, autosmooth, FLOAT, FLOAT)
+  DEF(area_radius_factor, area_radius_factor, FLOAT, FLOAT)
   DEF(autosmooth_projection, SMOOTH_PROJECTION, FLOAT, FLOAT)
   DEF(topology_rake_projection, topology_rake_projection, FLOAT, FLOAT)
   DEF(topology_rake_radius_factor, topology_rake_radius_scale, FLOAT, FLOAT)
@@ -565,6 +575,7 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(normal_weight, normal_weight, FLOAT, FLOAT)
   DEF(rake_factor, rake_factor, FLOAT, FLOAT)
   DEF(weight, weight, FLOAT, FLOAT)
+  DEF(multiplane_scrape_angle, multiplane_scrape_angle, FLOAT, FLOAT)
   DEF(jitter, jitter, FLOAT, FLOAT)
   DEF(jitter_absolute, JITTER_ABSOLITE, INT, INT)
   DEF(smooth_stroke_radius, smooth_stroke_radius, INT, FLOAT)
@@ -633,7 +644,11 @@ BrushFlagMap brush_flags_map[] =  {
   DEF(flag2, preserve_faceset_boundary, BRUSH_SMOOTH_PRESERVE_FACE_SETS)
   DEF(flag2, hard_edge_mode, BRUSH_HARD_EDGE_MODE)
   DEF(flag2, grab_silhouette, BRUSH_GRAB_SILHOUETTE)
+  DEF(flag, invert_to_scrape_fill, BRUSH_INVERT_TO_SCRAPE_FILL)
+  DEF(flag2, use_multiplane_scrape_dynamic, BRUSH_MULTIPLANE_SCRAPE_DYNAMIC)
+  DEF(flag2, show_multiplane_scrape_planes_preview, BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW)
 };
+
 int brush_flags_map_len = ARRAY_SIZE(brush_flags_map);
 
 /* clang-format on */
@@ -1008,13 +1023,24 @@ ATTR_NO_OPT void BKE_brush_builtin_create(Brush *brush, int tool)
   GETCH("strength")->flag |= BRUSH_CHANNEL_INHERIT;
   GETCH("radius")->flag |= BRUSH_CHANNEL_INHERIT;
 
+  ADDCH("area_radius_factor");
+
   switch (tool) {
     case SCULPT_TOOL_DRAW: {
       break;
     }
+    case SCULPT_TOOL_SIMPLIFY:
+      GETCH("strength")->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      GETCH("radius")->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      GETCH("strength")->fvalue = 0.5;
+      GETCH("autosmooth")->fvalue = 0.05;
+      GETCH("topology_rake_mode")->ivalue = 1;  // curvature mode
+      GETCH("topology_rake")->fvalue = 0.35;
+      break;
     case SCULPT_TOOL_DRAW_SHARP:
       GETCH("spacing")->ivalue = 5;
-      GETCH("radius")->mappings[BRUSH_MAPPING_PRESSURE].blendmode = true;
+      GETCH("radius")->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
+      GETCH("strength")->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
       break;
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
     case SCULPT_TOOL_FAIRING:
@@ -1068,6 +1094,31 @@ ATTR_NO_OPT void BKE_brush_builtin_create(Brush *brush, int tool)
 
       break;
     }
+    case SCULPT_TOOL_MULTIPLANE_SCRAPE:
+      ADDCH("use_multiplane_scrape_dynamic");
+      ADDCH("show_multiplane_scrape_planes_preview");
+      GETCH("strength")->fvalue = 0.7f;
+      GETCH("normal_radius_factor")->fvalue = 0.7f;
+      ADDCH("multiplane_scrape_angle");
+      GETCH("spacing")->fvalue = 5.0f;
+      break;
+    case SCULPT_TOOL_CREASE:
+      GETCH("direction")->ivalue = true;
+      GETCH("strength")->fvalue = 0.25;
+      break;
+    case SCULPT_TOOL_SCRAPE:
+    case SCULPT_TOOL_FILL:
+      GETCH("strength")->fvalue = 0.7f;
+      GETCH("area_radius_factor")->fvalue = 0.5f;
+      GETCH("spacing")->fvalue = 7;
+      ADDCH("invert_to_scrape_fill");
+      GETCH("invert_to_scrape_fill")->ivalue = true;
+      GETCH("accumulate")->ivalue = true;
+      break;
+    case SCULPT_TOOL_ROTATE:
+      GETCH("strength")->fvalue = 1.0;
+      GETCH("dyntopo_disabled")->ivalue = true;
+      break;
     default: {
       // implement me!
       // BKE_brush_channelset_free(chset);
@@ -1109,6 +1160,8 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH("vcol_boundary_factor");
   ADDCH("vcol_boundary_radius_scale");
   ADDCH("vcol_boundary_spacing");
+
+  ADDCH("area_radius_factor");
 
   ADDCH("color");
   ADDCH("secondary_color");

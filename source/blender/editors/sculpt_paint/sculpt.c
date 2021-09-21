@@ -3634,7 +3634,8 @@ ATTR_NO_OPT static float brush_strength(const Sculpt *sd,
     flip = 1.0f;
   }
 
-  float pressure = BKE_brush_use_alpha_pressure(brush) ? cache->pressure : 1.0f;
+  // float pressure = BKE_brush_use_alpha_pressure(brush) ? cache->pressure : 1.0f;
+  float pressure = 1.0f;
 
   /* Pressure final value after being tweaked depending on the brush. */
   float final_pressure = pressure;
