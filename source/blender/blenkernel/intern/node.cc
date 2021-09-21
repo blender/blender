@@ -5208,6 +5208,7 @@ static void registerGeometryNodes()
   register_node_type_geo_input_material();
   register_node_type_geo_input_normal();
   register_node_type_geo_input_position();
+  register_node_type_geo_input_tangent();
   register_node_type_geo_is_viewport();
   register_node_type_geo_join_geometry();
   register_node_type_geo_material_assign();
