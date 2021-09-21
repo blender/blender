@@ -982,6 +982,7 @@ typedef struct SculptThreadedTaskData {
   float rake_projection;
   SculptCustomLayer *scl, *scl2;
   bool do_origco;
+  float *brush_color;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/

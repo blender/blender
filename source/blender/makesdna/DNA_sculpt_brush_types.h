@@ -68,7 +68,8 @@ typedef struct BrushChannelSet {
 enum {
   BRUSH_MAPPING_ENABLED = 1 << 0,
   BRUSH_MAPPING_INVERT = 1 << 1,
-  BRUSH_MAPPING_UI_EXPANDED = 1 << 2
+  BRUSH_MAPPING_UI_EXPANDED = 1 << 2,
+  BRUSH_MAPPING_INHERIT = 1 << 3,  // inherit mapping even if channel overall is not inherited
 };
 
 // mapping types

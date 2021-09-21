@@ -53,6 +53,12 @@ struct BlendDataReader;
 struct Brush;
 struct Sculpt;
 
+//#define DEBUG_CURVE_MAPPING_ALLOC
+#ifdef DEBUG_CURVE_MAPPING_ALLOC
+void namestack_push(const char *name);
+void *namestack_pop(void *passthru);
+#endif
+
 typedef struct BrushMappingDef {
   int curve;
   bool enabled;
@@ -116,7 +122,13 @@ void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src);
 void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def);
 
 BrushChannelSet *BKE_brush_channelset_create();
+#ifdef DEBUG_CURVE_MAPPING_ALLOC
+BrushChannelSet *_BKE_brush_channelset_copy(BrushChannelSet *src);
+#  define BKE_brush_channelset_copy(src) \
+    (namestack_push(__func__), (BrushChannelSet *)namestack_pop(_BKE_brush_channelset_copy(src)))
+#else
 BrushChannelSet *BKE_brush_channelset_copy(BrushChannelSet *src);
+#endif
 void BKE_brush_channelset_free(BrushChannelSet *chset);
 
 void BKE_brush_channelset_add(BrushChannelSet *chset, BrushChannel *ch);

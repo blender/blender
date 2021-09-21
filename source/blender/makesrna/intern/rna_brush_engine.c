@@ -305,6 +305,14 @@ void RNA_def_brush_mapping(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "BrushMapping");
   RNA_def_struct_ui_text(srna, "Brush Mapping", "Brush Mapping");
 
+  prop = RNA_def_property(srna, "inherit", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, "BrushMapping", "flag", BRUSH_MAPPING_INHERIT);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(
+      prop,
+      "Inherit",
+      "Inherit from parent channel even if owning channel is set not to inherit.");
+
   prop = RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "CurveMapping");
   RNA_def_property_ui_text(prop, "Curve Sensitivity", "Curve used for the sensitivity");

@@ -65,7 +65,7 @@ ATTR_NO_OPT extern "C" const char *sculpt_keymap_fix(const char *str)
   const char *out = repl.c_str();
   size_t len = (size_t)strlen(out);
 
-  char *ret = (char *)MEM_mallocN(len + 1, "sculpt_keymap_fix return");
+  char *ret = (char *)malloc(len + 1);
   BLI_strncpy(ret, out, len + 1);
 
   return ret;

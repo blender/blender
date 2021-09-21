@@ -2779,7 +2779,7 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
     else if (orig_data.unode->type == SCULPT_UNDO_MASK) {
       *vd.mask = orig_data.mask;
     }
-    else if (orig_data.unode->type == SCULPT_UNDO_COLOR) {
+    else if (orig_data.unode->type == SCULPT_UNDO_COLOR && vd.col && orig_data.col) {
       copy_v4_v4(vd.col, orig_data.col);
     }
 
@@ -2795,7 +2795,7 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
 static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
 
   PBVHNode **nodes;
   int totnode;
@@ -3426,8 +3426,8 @@ static void calc_area_normal_and_center_reduce(const void *__restrict UNUSED(use
 static void calc_area_center(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_co[3])
 {
-  const Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
+  const Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
   const bool has_bm_orco = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
   int n;
 
@@ -3475,7 +3475,9 @@ static void calc_area_center(
 void SCULPT_calc_area_normal(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3])
 {
-  const Brush *brush = BKE_paint_brush(&sd->paint);
+  SculptSession *ss = ob->sculpt;
+
+  const Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
   SCULPT_pbvh_calc_area_normal(brush, ob, nodes, totnode, true, r_area_no);
 }
 
@@ -3526,8 +3528,8 @@ bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
 static void calc_area_normal_and_center(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3], float r_area_co[3])
 {
-  const Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
+  const Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
   const bool has_bm_orco = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
   int n;
 
@@ -3593,7 +3595,7 @@ ATTR_NO_OPT static float brush_strength(const Sculpt *sd,
                                         const UnifiedPaintSettings *ups)
 {
   const Scene *scene = cache->vc->scene;
-  const Brush *brush = BKE_paint_brush((Paint *)&sd->paint);
+  const Brush *brush = cache->brush;  // BKE_paint_brush((Paint *)&sd->paint);
 
   /* Primary strength input; square it to make lower values more sensitive. */
   const float root_alpha = BKE_brush_alpha_get(scene, brush);
@@ -3612,14 +3614,8 @@ ATTR_NO_OPT static float brush_strength(const Sculpt *sd,
 
   float pressure = BKE_brush_use_alpha_pressure(brush) ? cache->pressure : 1.0f;
 
-  if (brush->pressure_strength_curve) {
-  }
-  BKE_curvemapping_init(brush->pressure_strength_curve);
-  pressure = BKE_brush_use_alpha_pressure(brush) && brush->pressure_strength_curve ?
-                 BKE_curvemapping_evaluateF(brush->pressure_strength_curve, 0, cache->pressure) :
-                 pressure;
   /* Pressure final value after being tweaked depending on the brush. */
-  float final_pressure;
+  float final_pressure = pressure;
 
   switch (brush->sculpt_tool) {
     case SCULPT_TOOL_CLAY:
@@ -3660,7 +3656,7 @@ ATTR_NO_OPT static float brush_strength(const Sculpt *sd,
       return alpha * pressure * overlap * feather * 2.0f;
     case SCULPT_TOOL_PAINT:
       final_pressure = pressure * pressure;
-      return final_pressure * overlap * feather;
+      return alpha * final_pressure * overlap * feather;
     case SCULPT_TOOL_SMEAR:
     case SCULPT_TOOL_DISPLACEMENT_SMEAR:
       return alpha * pressure * overlap * feather;
@@ -3757,22 +3753,24 @@ ATTR_NO_OPT static float brush_strength(const Sculpt *sd,
     case SCULPT_TOOL_POSE:
     case SCULPT_TOOL_BOUNDARY:
       return root_alpha * feather;
-
+    case SCULPT_TOOL_TOPOLOGY_RAKE:
+      return root_alpha;
     default:
-      return 0.0f;
+      return alpha * flip * overlap * feather;
+      ;
   }
 }
 
 /* Return a multiplier for brush strength on a particular vertex. */
-float SCULPT_brush_strength_factor(SculptSession *ss,
-                                   const Brush *br,
-                                   const float brush_point[3],
-                                   const float len,
-                                   const short vno[3],
-                                   const float fno[3],
-                                   const float mask,
-                                   const SculptVertRef vertex_index,
-                                   const int thread_id)
+ATTR_NO_OPT float SCULPT_brush_strength_factor(SculptSession *ss,
+                                               const Brush *br,
+                                               const float brush_point[3],
+                                               const float len,
+                                               const short vno[3],
+                                               const float fno[3],
+                                               const float mask,
+                                               const SculptVertRef vertex_index,
+                                               const int thread_id)
 {
   StrokeCache *cache = ss->cache;
   const Scene *scene = cache->vc->scene;
@@ -4021,8 +4019,8 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
 static void calc_sculpt_normal(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3])
 {
-  const Brush *brush = BKE_paint_brush(&sd->paint);
   const SculptSession *ss = ob->sculpt;
+  const Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
 
   switch (brush->sculpt_plane) {
     case SCULPT_DISP_DIR_VIEW:
@@ -4052,8 +4050,8 @@ static void calc_sculpt_normal(
 
 static void update_sculpt_normal(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
-  const Brush *brush = BKE_paint_brush(&sd->paint);
   StrokeCache *cache = ob->sculpt->cache;
+  const Brush *brush = cache->brush;  // BKE_paint_brush(&sd->paint);
   /* Grab brush does not update the sculpt normal during a stroke. */
   const bool update_normal =
       !(brush->flag & BRUSH_ORIGINAL_NORMAL) && !(brush->sculpt_tool == SCULPT_TOOL_GRAB) &&
@@ -4164,7 +4162,7 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
   StrokeCache *cache = ob->sculpt->cache;
 
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0) {
-    calc_brush_local_mat(BKE_paint_brush(&sd->paint), ob, cache->brush_local_mat);
+    calc_brush_local_mat(cache->brush, ob, cache->brush_local_mat);
   }
 }
 
@@ -4202,9 +4200,9 @@ typedef struct {
   bool original;
 } SculptFindNearestToRayData;
 
-static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
-                                              const int n,
-                                              const TaskParallelTLS *__restrict tls)
+ATTR_NO_OPT static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
+                                                          const int n,
+                                                          const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -4272,8 +4270,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     const float fade =
         bstrength *
         SCULPT_brush_strength_factor(
-            ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, *vd.mask, vd.vertex, thread_id) *
-        ss->cache->pressure;
+            ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, *vd.mask, vd.vertex, thread_id);
 
     float avg[3], val[3];
 
@@ -4331,7 +4328,7 @@ static void bmesh_topology_rake(
     Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, float bstrength)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
   const float strength = clamp_f(bstrength, 0.0f, 1.0f);
 
   Brush local_brush;
@@ -8882,6 +8879,9 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
     Brush brush2 = *brush;
     brush2.sculpt_tool = cmd->tool;
 
+    float alpha1 = BKE_brush_channelset_get_float(cmd->params_final, "strength", NULL);
+    float alpha2 = BKE_brush_channelset_get_float(ss->cache->channels_final, "strength", NULL);
+
     // Load parameters into brush2 for compatibility with old code
     BKE_brush_channelset_compat_load(cmd->params_final, &brush2, false);
 
@@ -8889,6 +8889,8 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
 
     ss->cache->bstrength = brush_strength(
         sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
+
+    brush2.alpha = fabs(ss->cache->bstrength);
 
     /* With these options enabled not all required nodes are inside the original brush radius, so
      * the brush can produce artifacts in some situations. */
@@ -9062,9 +9064,11 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
 
     float spacing = BKE_brush_channelset_get_float(cmd->params_mapped, "spacing", NULL) / 100.0f;
 
+#if 0
     printf("p %f s %f\n",
            ss->cache->input_mapping.pressure,
            spacing);  //// cmd->last_spacing_t[SCULPT_get_symmetry_pass(ss)]);
+#endif
 
     bool noskip = paint_stroke_apply_subspacing(
         ss->cache->stroke,
@@ -9082,12 +9086,25 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
     // Make sure to remove all pen pressure/tilt old code
     BKE_brush_channelset_compat_load(cmd->params_mapped, brush2, false);
 
+    brush2->flag &= ~(BRUSH_ALPHA_PRESSURE | BRUSH_SIZE_PRESSURE | BRUSH_SPACING_PRESSURE |
+                      BRUSH_JITTER_PRESSURE | BRUSH_OFFSET_PRESSURE |
+                      BRUSH_INVERSE_SMOOTH_PRESSURE);
+    brush2->flag2 &= ~BRUSH_AREA_RADIUS_PRESSURE;
+
     brush2->sculpt_tool = cmd->tool;
+    BrushChannelSet *channels_final = ss->cache->channels_final;
+
+    ss->cache->channels_final = cmd->params_mapped;
 
     ss->cache->brush = brush2;
+    ups->alpha = BKE_brush_channelset_get_float(cmd->params_mapped, "strength", NULL);
 
     ss->cache->bstrength = brush_strength(
         sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
+    brush2->alpha = fabs(ss->cache->bstrength);
+
+    // printf("brush2->alpha: %f\n", brush2->alpha);
+    // printf("ss->cache->bstrength: %f\n", ss->cache->bstrength);
 
     /*Search PBVH*/
     if (step > 0) {
@@ -9276,7 +9293,7 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
         break;
       case SCULPT_TOOL_TOPOLOGY_RAKE:
         if (ss->bm) {
-          bmesh_topology_rake(sd, ob, nodes, totnode, brush2->alpha);
+          bmesh_topology_rake(sd, ob, nodes, totnode, ss->cache->bstrength);
         }
         break;
       case SCULPT_TOOL_DYNTOPO:
@@ -9306,6 +9323,8 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
     }
 
     sculpt_combine_proxies(sd, ob);
+
+    ss->cache->channels_final = channels_final;
   }
 
   /*
@@ -10488,7 +10507,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
   if (paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT) || cache->first_time) {
     cache->pressure = RNA_float_get(ptr, "pressure");
     cache->input_mapping.pressure = cache->pressure;
-    printf("pressure: %f\n", cache->pressure);
+    // printf("pressure: %f\n", cache->pressure);
   }
 
   cache->x_tilt = RNA_float_get(ptr, "x_tilt");
@@ -11329,10 +11348,10 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
   ss->cache->bstrength = brush_strength(sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
 
   if (ss->cache->invert) {
-    brush->alpha = -brush->alpha;
-    ss->cache->bstrength = -ss->cache->bstrength;
+    brush->alpha = fabs(brush->alpha);
+    ss->cache->bstrength = -fabs(ss->cache->bstrength);
 
-    BKE_brush_channelset_set_float(ss->cache->channels_final, "strength", ss->cache->bstrength);
+    // BKE_brush_channelset_set_float(ss->cache->channels_final, "strength", ss->cache->bstrength);
   }
 
   ss->cache->stroke_distance = stroke->stroke_distance;

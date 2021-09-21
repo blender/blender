@@ -2671,7 +2671,7 @@ void BKE_brush_randomize_texture_coords(UnifiedPaintSettings *ups, bool mask)
 }
 
 /* Uses the brush curve control to find a strength value */
-float BKE_brush_curve_strength(const Brush *br, float p, const float len)
+ATTR_NO_OPT float BKE_brush_curve_strength(const Brush *br, float p, const float len)
 {
   float strength = 1.0f;
 

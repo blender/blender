@@ -370,6 +370,7 @@ static void fix_radial_control_path(IDProperty *prop, void *userdata)
   const char *newstring = sculpt_keymap_fix(string);
 
   IDP_AssignString(prop, newstring, strlen(newstring) + 1);
+  free((void *)newstring);
 }
 
 ATTR_NO_OPT static bool keymap_radial_control_sculpt_fix(wmKeyMapItem *kmi)

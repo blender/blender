@@ -133,11 +133,14 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  float brush_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-  copy_v3_v3(brush_color,
-             ss->cache->invert ? BKE_brush_secondary_color_get(ss->scene, brush) :
-                                 BKE_brush_color_get(ss->scene, brush));
+  float brush_color[4];
+  copy_v4_v4(brush_color, data->brush_color);
+
   IMB_colormanagement_srgb_to_scene_linear_v3(brush_color);
+
+  // get un-pressure-mapped alpha
+  float alpha = BKE_brush_channelset_get_final_float(
+      BKE_paint_brush(&data->sd->paint)->channels, data->sd->channels, "strength", NULL);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
@@ -192,7 +195,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     blend_color_mix_float(color_buffer->color[vd.i], color_buffer->color[vd.i], paint_color);
 
     /* Final mix over the original color using brush alpha. */
-    mul_v4_v4fl(buffer_color, color_buffer->color[vd.i], brush->alpha);
+    mul_v4_v4fl(buffer_color, color_buffer->color[vd.i], alpha);
 
     IMB_blend_color_float(vd.col, orig_data.col, buffer_color, brush->blend);
 
@@ -250,8 +253,8 @@ static void sample_wet_paint_reduce(const void *__restrict UNUSED(userdata),
 
 void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
-  Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
+  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
 
   if (!ss->vcol) {
     return;
@@ -295,6 +298,13 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     }
   }
 
+  float brush_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+
+  BKE_brush_channelset_get_vector(ss->cache->channels_final,
+                                  ss->cache->invert ? "secondary_color" : "color",
+                                  brush_color,
+                                  &ss->cache->input_mapping);
+
   /* Smooth colors mode. */
   if (ss->cache->alt_smooth) {
     SculptThreadedTaskData data = {
@@ -303,6 +313,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
         .brush = brush,
         .nodes = nodes,
         .mat = mat,
+        .brush_color = brush_color,
     };
 
     TaskParallelSettings settings;
@@ -321,6 +332,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
         .ob = ob,
         .nodes = nodes,
         .brush = brush,
+        .brush_color = brush_color,
     };
 
     SampleWetPaintTLSData swptd;
@@ -359,6 +371,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
       .nodes = nodes,
       .wet_mix_sampled_color = wet_color,
       .mat = mat,
+      .brush_color = brush_color,
   };
 
   TaskParallelSettings settings;
@@ -366,7 +379,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   BLI_task_parallel_range(0, totnode, &data, do_paint_brush_task_cb_ex, &settings);
 
   if (brush->vcol_boundary_factor > 0.0f) {
-    SCULPT_smooth_vcol_boundary(sd, ob, nodes, totnode, brush->vcol_boundary_factor);
+    // SCULPT_smooth_vcol_boundary(sd, ob, nodes, totnode, brush->vcol_boundary_factor);
   }
 }
 
@@ -463,8 +476,8 @@ static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
 
 void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
-  Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
+  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
 
   if (!ss->vcol) {
     return;

@@ -50,7 +50,6 @@
       NULL
 #define CURVE_ADDREF(curve) BKE_curvemapping_cache_aquire(BKE_curvemapping_cache_global(), curve)
 
-//#define DEBUG_CURVE_MAPPING_ALLOC
 #ifdef DEBUG_CURVE_MAPPING_ALLOC
 static struct {
   char tag[4192];
@@ -65,9 +64,11 @@ void namestack_push(const char *name)
   strcat(namestack[namestack_i].tag, ".");
   strcat(namestack[namestack_i].tag, name);
 }
-void namestack_pop()
+
+void *namestack_pop(void *passthru)
 {
   namestack_i--;
+  return passthru;
 }
 
 #  define namestack_head_name strdup(namestack[namestack_i].tag)
@@ -80,7 +81,7 @@ void BKE_curvemapping_copy_data_tag_ex(CurveMapping *target,
     BKE_curvemapping_copy_data_tag_ex(dst, src, namestack_head_name)
 #else
 #  define namestack_push(name)
-#  define namestack_pop()
+#  define namestack_pop(passthru)
 #endif
 
 // returns true if curve was duplicated
@@ -222,7 +223,7 @@ ATTR_NO_OPT void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *sr
     dst->mappings[i].type = i;
   }
 
-  namestack_pop();
+  namestack_pop(NULL);
 }
 
 ATTR_NO_OPT void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
@@ -413,14 +414,18 @@ ATTR_NO_OPT bool BKE_brush_channelset_remove_named(BrushChannelSet *chset, const
 
 ATTR_NO_OPT void BKE_brush_channelset_add_duplicate(BrushChannelSet *chset, BrushChannel *ch)
 {
-  BrushChannel *chnew = MEM_callocN(sizeof(*chnew), "brush channel copy");
-
   namestack_push(__func__);
+
+#ifdef DEBUG_CURVE_MAPPING_ALLOC
+  BrushChannel *chnew = MEM_callocN(sizeof(*chnew), namestack_head_name);
+#else
+  BrushChannel *chnew = MEM_callocN(sizeof(*chnew), "brush channel copy");
+#endif
 
   BKE_brush_channel_copy_data(chnew, ch);
   BKE_brush_channelset_add(chset, chnew);
 
-  namestack_pop();
+  namestack_pop(NULL);
 }
 
 ATTR_NO_OPT BrushChannel *BKE_brush_channelset_lookup(BrushChannelSet *chset, const char *idname)
@@ -488,7 +493,7 @@ ATTR_NO_OPT void BKE_brush_channelset_add_builtin(BrushChannelSet *chset, const 
   BKE_brush_channel_init(ch, def);
   BKE_brush_channelset_add(chset, ch);
 
-  namestack_pop();
+  namestack_pop(NULL);
 }
 
 bool BKE_brush_channelset_ensure_builtin(BrushChannelSet *chset, const char *idname)
@@ -497,11 +502,11 @@ bool BKE_brush_channelset_ensure_builtin(BrushChannelSet *chset, const char *idn
 
   if (!BKE_brush_channelset_has(chset, idname)) {
     BKE_brush_channelset_add_builtin(chset, idname);
-    namestack_pop();
+    namestack_pop(NULL);
     return true;
   }
 
-  namestack_pop();
+  namestack_pop(NULL);
   return false;
 }
 
@@ -514,7 +519,7 @@ ATTR_NO_OPT void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset,
 
   namestack_push(__func__);
   BKE_brush_channelset_add_duplicate(chset, existing);
-  namestack_pop();
+  namestack_pop(NULL);
 }
 
 ATTR_NO_OPT void BKE_brush_channelset_merge(BrushChannelSet *dst,
@@ -559,15 +564,29 @@ ATTR_NO_OPT void BKE_brush_channelset_merge(BrushChannelSet *dst,
       continue;
     }
 
+    /*apply mapping inheritance flags, which are respected
+      for non inherited channels.  note that absense
+      of BRUSH_MAPPING_FLAG doen't prevent mapping inheritance
+      if BRUSH_CHANNEL_INHERIT in ch->flag *is* set.*/
+    for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+      if (ch->mappings[i].flag & BRUSH_MAPPING_INHERIT) {
+        BKE_brush_mapping_copy_data(mch->mappings + i, pch->mappings + i);
+      }
+    }
+
     if (ch->type == BRUSH_CHANNEL_BITMASK && (ch->flag & BRUSH_CHANNEL_INHERIT_IF_UNSET)) {
       mch->ivalue = ch->ivalue | pch->ivalue;
     }
   }
 
-  namestack_pop();
+  namestack_pop(NULL);
 }
 
+#ifdef DEBUG_CURVE_MAPPING_ALLOC
+ATTR_NO_OPT BrushChannelSet *_BKE_brush_channelset_copy(BrushChannelSet *src)
+#else
 ATTR_NO_OPT BrushChannelSet *BKE_brush_channelset_copy(BrushChannelSet *src)
+#endif
 {
   BrushChannelSet *chset = BKE_brush_channelset_create();
 
@@ -582,7 +601,7 @@ ATTR_NO_OPT BrushChannelSet *BKE_brush_channelset_copy(BrushChannelSet *src)
     BKE_brush_channelset_add_duplicate(chset, ch);
   }
 
-  namestack_pop();
+  namestack_pop(NULL);
 
   return chset;
 }
@@ -626,6 +645,10 @@ void BKE_brush_commandlist_start(BrushCommandList *list,
 
     BKE_brush_channelset_merge(cmd->params_final, cmd->params, chset_final);
 
+    if (cmd->params_mapped) {
+      BKE_brush_channelset_free(cmd->params_mapped);
+    }
+
     cmd->params_mapped = BKE_brush_channelset_copy(cmd->params_final);
   }
 }
@@ -661,7 +684,7 @@ float BKE_brush_channel_get_int(BrushChannel *ch, BrushMappingData *mapdata)
   float f = (float)ch->ivalue;
 
   if (mapdata) {
-    float map = f;
+    float factor = 1.0f;
 
     for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
       BrushMapping *mp = ch->mappings + i;
@@ -676,19 +699,19 @@ float BKE_brush_channel_get_int(BrushChannel *ch, BrushMappingData *mapdata)
         case MA_RAMP_BLEND:
           break;
         case MA_RAMP_MULT:
-          f2 *= f;
+          f2 *= factor;
           break;
         case MA_RAMP_DIV:
-          f2 = f / (0.00001f + f);
+          f2 = factor / (0.00001f + f2);
           break;
         case MA_RAMP_ADD:
-          f2 += f;
+          f2 += factor;
           break;
         case MA_RAMP_SUB:
-          f2 = f - f2;
+          f2 = factor - f2;
           break;
         case MA_RAMP_DIFF:
-          f2 = fabsf(f - f2);
+          f2 = fabsf(factor - f2);
           break;
         default:
           printf("Unsupported brush mapping blend mode for %s (%s); will mix instead\n",
@@ -697,8 +720,10 @@ float BKE_brush_channel_get_int(BrushChannel *ch, BrushMappingData *mapdata)
           break;
       }
 
-      f += (f2 - f) * mp->factor;
+      factor += (f2 - factor) * mp->factor;
     }
+
+    f *= factor;
   }
 
   return (int)f;
@@ -842,19 +867,19 @@ ATTR_NO_OPT float BKE_brush_channel_get_float(BrushChannel *ch, BrushMappingData
         case MA_RAMP_BLEND:
           break;
         case MA_RAMP_MULT:
-          f2 *= f * f2;
+          f2 *= factor;
           break;
         case MA_RAMP_DIV:
-          f2 = f / (0.00001f + f);
+          f2 = factor / (0.00001f + f2);
           break;
         case MA_RAMP_ADD:
-          f2 += f;
+          f2 += factor;
           break;
         case MA_RAMP_SUB:
-          f2 = f - f2;
+          f2 = factor - f2;
           break;
         case MA_RAMP_DIFF:
-          f2 = fabsf(f - f2);
+          f2 = fabsf(factor - f2);
           break;
         default:
           printf("Unsupported brush mapping blend mode for %s (%s); will mix instead\n",
@@ -1200,7 +1225,7 @@ BrushCommand *BKE_brush_command_init(BrushCommand *command, int tool)
       break;
   }
 
-  namestack_pop();
+  namestack_pop(NULL);
 
   return command;
 }
@@ -1216,6 +1241,18 @@ static void float_set_uninherit(BrushChannelSet *chset, const char *channel, flo
 
   ch->fvalue = val;
   ch->flag &= ~BRUSH_CHANNEL_INHERIT;
+}
+
+/*flag all mappings to use inherited curves even if owning channel
+  is not set to inherit.*/
+ATTR_NO_OPT void BKE_brush_commandset_inherit_all_mappings(BrushChannelSet *chset)
+{
+  BrushChannel *ch;
+  for (ch = chset->channels.first; ch; ch = ch->next) {
+    for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+      ch->mappings[i].flag |= BRUSH_MAPPING_INHERIT;
+    }
+  }
 }
 
 ATTR_NO_OPT static void bke_builtin_commandlist_create_paint(Brush *brush,
@@ -1267,6 +1304,8 @@ ATTR_NO_OPT static void bke_builtin_commandlist_create_paint(Brush *brush,
   }
 
 #undef GETF
+
+  BKE_brush_commandset_inherit_all_mappings(cmd->params);
   // float
 }
 
@@ -1356,7 +1395,8 @@ ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
     float_set_uninherit(cmd->params, "spacing", spacing);
     float_set_uninherit(cmd->params, "radius", radius2);
   }
-  // if (!BKE_brush_channelset_get_int)
+
+  BKE_brush_commandset_inherit_all_mappings(cmd->params);
 }
 
 ATTR_NO_OPT void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
