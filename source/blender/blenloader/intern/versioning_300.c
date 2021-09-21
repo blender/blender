@@ -110,7 +110,8 @@ static void version_idproperty_move_data_int(IDPropertyUIDataInt *ui_data,
   if (default_value != NULL) {
     if (default_value->type == IDP_ARRAY) {
       if (default_value->subtype == IDP_INT) {
-        ui_data->default_array = MEM_dupallocN(IDP_Array(default_value));
+        ui_data->default_array = MEM_malloc_arrayN(default_value->len, sizeof(int), __func__);
+        memcpy(ui_data->default_array, IDP_Array(default_value), sizeof(int) * default_value->len);
         ui_data->default_array_len = default_value->len;
       }
     }
@@ -152,9 +153,18 @@ static void version_idproperty_move_data_float(IDPropertyUIDataFloat *ui_data,
   IDProperty *default_value = IDP_GetPropertyFromGroup(prop_ui_data, "default");
   if (default_value != NULL) {
     if (default_value->type == IDP_ARRAY) {
-      if (ELEM(default_value->subtype, IDP_FLOAT, IDP_DOUBLE)) {
-        ui_data->default_array = MEM_dupallocN(IDP_Array(default_value));
-        ui_data->default_array_len = default_value->len;
+      const int size = default_value->len;
+      ui_data->default_array_len = size;
+      if (default_value->subtype == IDP_FLOAT) {
+        ui_data->default_array = MEM_malloc_arrayN(size, sizeof(double), __func__);
+        const float *old_default_array = IDP_Array(default_value);
+        for (int i = 0; i < ui_data->default_array_len; i++) {
+          ui_data->default_array[i] = (double)old_default_array[i];
+        }
+      }
+      else if (default_value->subtype == IDP_DOUBLE) {
+        ui_data->default_array = MEM_malloc_arrayN(size, sizeof(double), __func__);
+        memcpy(ui_data->default_array, IDP_Array(default_value), sizeof(double) * size);
       }
     }
     else if (ELEM(default_value->type, IDP_DOUBLE, IDP_FLOAT)) {
