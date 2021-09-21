@@ -1628,6 +1628,7 @@ typedef struct EdgeQueueThreadData {
   int totedge;
   int size;
   bool is_collapse;
+  int seed;
 } EdgeQueueThreadData;
 
 static void edge_thread_data_insert(EdgeQueueThreadData *tdata, BMEdge *e)
@@ -1962,6 +1963,16 @@ static void long_edge_queue_edge_add_recursive_2(EdgeQueueThreadData *tdata,
 
 static int _long_edge_queue_task_cb_seed = 0;
 
+BLI_INLINE int dyntopo_thread_rand(int seed)
+{
+  // glibc
+  const uint32_t multiplier = 1103515245;
+  const uint32_t addend = 12345;
+  const uint32_t mask = (1 << 31) - 1;
+
+  return (seed * multiplier + addend) & mask;
+}
+
 static void long_edge_queue_task_cb(void *__restrict userdata,
                                     const int n,
                                     const TaskParallelTLS *__restrict tls)
@@ -1973,18 +1984,43 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
   BMVert **val34 = NULL;
   BLI_array_declare(val34);
 
-  BMFace *f;
+  int seed = tdata->seed + n;
+
+  BMFace *f, **faces = NULL;
+  BLI_array_declare(faces);
   const int cd_dyn_vert = tdata->pbvh->cd_dyn_vert;
 
+#if 1
+#  if 0
+  // try to be nice to branch predictor
+  int off = (seed = dyntopo_thread_rand(seed));
+  int stepi = off & 65535;
+#  endif
+  /*
+  we care more about convergence to accurate results
+  then accuracy in any individual runs.  profiling
+  has shown this loop overwhelms the L3 cache,
+  so randomly skip bits of it.
+  */
   TGSET_ITER (f, node->bm_faces) {
     BMLoop *l = f->l_first;
 
+#  if 0
+    if ((stepi++) & 3) {
+      continue;
+    }
+#  else
+    if ((seed = dyntopo_thread_rand(seed)) & 3) {
+      continue;
+    }
+#  endif
     do {
       l->e->head.hflag &= ~BM_ELEM_TAG;
       l = l->next;
     } while (l != f->l_first);
   }
   TGSET_ITER_END
+#endif
 
   TGSET_ITER (f, node->bm_faces) {
 #ifdef USE_EDGEQUEUE_FRONTFACE
@@ -2014,7 +2050,9 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
 
         // try to improve convergence by applying a small amount of smoothing to topology,
         // but tangentially to surface.
-        if (BLI_rng_get_float(rng) > 0.5) {
+        int randval = (seed = dyntopo_thread_rand(seed)) & 255;
+
+        if (randval > 127) {
           surface_smooth_v_safe(tdata->pbvh, l_iter->v, eq_ctx->surface_smooth_fac);
         }
 
@@ -2040,6 +2078,7 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
   TGSET_ITER_END
 
   BLI_rng_free(rng);
+  BLI_array_free(faces);
 
   tdata->val34_verts = val34;
   tdata->val34_verts_tot = BLI_array_len(val34);
@@ -2055,15 +2094,23 @@ static void short_edge_queue_task_cb(void *__restrict userdata,
 
   BMFace *f;
 
+  int seed = tdata->seed + n;
+
+  // see comment in similar loop in long_edge_queue_task_cb
   TGSET_ITER (f, node->bm_faces) {
+#if 0
+    if ((stepi++) & 3) {
+      continue;
+    }
+#else
+    if ((seed = dyntopo_thread_rand(seed)) & 3) {
+      continue;
+    }
+#endif
+
     BMLoop *l = f->l_first;
 
     do {
-      if (!l->e) {
-        printf("bmesh error! %s\n", __func__);
-        continue;
-      }
-
       l->e->head.hflag &= ~BM_ELEM_TAG;
       l = l->next;
     } while (l != f->l_first);
@@ -2562,30 +2609,41 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
   EdgeQueueThreadData *tdata = NULL;
   BLI_array_declare(tdata);
 
+  int totleaf = 0;
+
   for (int n = 0; n < pbvh->totnode; n++) {
     PBVHNode *node = &pbvh->nodes[n];
 
-    /* Check leaf nodes marked for topology update */
-    if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology) &&
-        !(node->flag & PBVH_FullyHidden)) {
-      EdgeQueueThreadData td;
-
-      memset(&td, 0, sizeof(td));
-
-      td.pbvh = pbvh;
-      td.node = node;
-      td.eq_ctx = eq_ctx;
-
-      BLI_array_append(tdata, td);
-      /* Check each face */
-      /*
-      BMFace *f;
-      TGSET_ITER (f, node->bm_faces) {
-        long_edge_queue_face_add(eq_ctx, f);
-      }
-      TGSET_ITER_END
-      */
+    if (node->flag & PBVH_Leaf) {
+      totleaf++;
     }
+
+    /* Check leaf nodes marked for topology update */
+    bool ok = ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology) &&
+               !(node->flag & PBVH_FullyHidden));
+
+    if (!ok) {
+      continue;
+    }
+
+    EdgeQueueThreadData td;
+
+    memset(&td, 0, sizeof(td));
+
+    td.seed = BLI_thread_rand(0);
+    td.pbvh = pbvh;
+    td.node = node;
+    td.eq_ctx = eq_ctx;
+
+    BLI_array_append(tdata, td);
+    /* Check each face */
+    /*
+    BMFace *f;
+    TGSET_ITER (f, node->bm_faces) {
+      long_edge_queue_face_add(eq_ctx, f);
+    }
+    TGSET_ITER_END
+    */
   }
 
   int count = BLI_array_len(tdata);
@@ -2953,9 +3011,11 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
     if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology) &&
         !(node->flag & PBVH_FullyHidden)) {
       memset(&td, 0, sizeof(td));
+
       td.pbvh = pbvh;
       td.node = node;
       td.eq_ctx = eq_ctx;
+      td.seed = BLI_thread_rand(0);
 
       BLI_array_append(tdata, td);
     }

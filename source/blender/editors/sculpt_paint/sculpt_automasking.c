@@ -193,7 +193,7 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
   }
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
-    if (!SCULPT_vertex_has_unique_face_set(ss, vert)) {
+    if (SCULPT_vertex_is_boundary(ss, vert, SCULPT_BOUNDARY_FACE_SET)) {
       return 0.0f;
     }
   }

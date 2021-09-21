@@ -125,8 +125,9 @@ class UnifiedPaintPanel:
 
         row = layout.row(align=True)
 
-        typeprop = "float_value"
 
+        if ch.type == "FLOAT":
+            typeprop = "float_value" if "spacing" in ch.idname else "factor_value"
         if ch.type == "INT":
             typeprop = "int_value"
         elif ch.type == "BOOL":
@@ -139,7 +140,7 @@ class UnifiedPaintPanel:
             typeprop = "color3_value"
         elif ch.type == "VEC4":
             typeprop = "color4_value"
-
+            
         if text is None:
             s = prop_name.lower().replace("_", " ").split(" ");
             text = ''
@@ -191,14 +192,14 @@ class UnifiedPaintPanel:
         #if unified_name and not header:
         #    # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
         #    row.prop(ups, unified_name, text="", icon='BRUSHES_ALL')
-        if not header and ch.type != "BOOL":
+        if not header: # and ch.type != "BOOL":
             if ch.type == "BITMASK" and not toolsettings_only and ch == finalch:
                 row.prop(ch, "inherit_if_unset", text="Combine With Defaults")
 
             if not toolsettings_only:
                 row.prop(ch, "inherit", text="", icon='BRUSHES_ALL')
 
-            if ch.type == "BITMASK":
+            if ch.type == "BITMASK" or ch.type == "BOOL":
                 return
 
             row.prop(ch, "ui_expanded", text="", icon="TRIA_DOWN" if ch.ui_expanded else "TRIA_RIGHT")
@@ -806,7 +807,16 @@ def brush_settings(layout, context, brush, popover=False):
             box.prop(brush, "ignore_falloff_for_topology_rake")
 
         if context.sculpt_object.use_dynamic_topology_sculpting:
-            layout.prop(brush.dyntopo, "disabled", text="Disable Dyntopo")
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "dyntopo_disabled",
+                #text="Weight By Face Area",
+                slider=True,
+                header=True
+            )
+            #layout.prop(brush.dyntopo, "disabled", text="Disable Dyntopo")
             
         # normal_weight
         if capabilities.has_normal_weight:
@@ -1018,7 +1028,16 @@ def brush_settings(layout, context, brush, popover=False):
             col = layout.column()
             col.prop(brush, "boundary_smooth_factor")
 
-            col.prop(brush, "use_weighted_smooth")
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "use_weighted_smooth",
+                #text="Weight By Face Area",
+                slider=True,
+            )
+
+            #col.prop(brush, "use_weighted_smooth")
             col.prop(brush, "preserve_faceset_boundary")
             if brush.preserve_faceset_boundary:
                 col.prop(brush, "autosmooth_fset_slide")

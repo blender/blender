@@ -1158,21 +1158,34 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, SculptVertRef index, int face
       return false;
     }
     case PBVH_BMESH: {
-      BMIter iter;
-      BMLoop *l;
+      BMEdge *e;
       BMVert *v = (BMVert *)index.i;
 
       if (ss->cd_faceset_offset == -1) {
         return false;
       }
 
-      BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-        BMFace *f = l->f;
+      e = v->e;
 
-        if (abs(BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset)) == abs(face_set)) {
-          return true;
-        }
+      if (UNLIKELY(!e)) {
+        return false;
       }
+
+      do {
+        BMLoop *l = e->l;
+
+        if (UNLIKELY(!l)) {
+          continue;
+        }
+
+        do {
+          BMFace *f = l->f;
+
+          if (abs(BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset)) == abs(face_set)) {
+            return true;
+          }
+        } while ((l = l->radial_next) != e->l);
+      } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 
       return false;
     }
@@ -9321,7 +9334,8 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
         break;
       case SCULPT_TOOL_DYNTOPO:
         if (has_dyntopo) {
-          do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups);
+          sculpt_topology_update(sd, ob, brush, ups);
+          // do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups);
         }
         break;
     }
