@@ -81,9 +81,11 @@ typedef enum {
   BRUSH_MAPPING_MAX = 5  // see BrushChannel.mappings
 } BrushMappingType;
 
+#ifndef __GNUC__
 static_assert(offsetof(BrushChannel, type) - offsetof(BrushChannel, mappings) ==
                   sizeof(BrushMapping) * BRUSH_MAPPING_MAX,
               "BrushChannel.mappings must == BRUSH_MAPPING_MAX");
+#endif
 
 // BrushChannel->flag
 enum {

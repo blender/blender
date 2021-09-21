@@ -8428,7 +8428,9 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
            SCULPT_TOOL_CLAY,
            SCULPT_TOOL_CREASE,
            SCULPT_TOOL_CLOTH,
-           SCULPT_TOOL_SIMPLIFY)) {
+           SCULPT_TOOL_SIMPLIFY,
+           SCULPT_TOOL_PAINT,
+           SCULPT_TOOL_SMEAR)) {
 
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
       if (ss->cache->commandlist) {

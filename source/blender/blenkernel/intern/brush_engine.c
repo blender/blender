@@ -1218,6 +1218,58 @@ static void float_set_uninherit(BrushChannelSet *chset, const char *channel, flo
   ch->flag &= ~BRUSH_CHANNEL_INHERIT;
 }
 
+ATTR_NO_OPT static void bke_builtin_commandlist_create_paint(Brush *brush,
+                                                             BrushChannelSet *chset,
+                                                             BrushCommandList *cl,
+                                                             int tool,
+                                                             BrushMappingData *mapdata)
+{
+  BrushCommand *cmd;
+
+  cmd = BKE_brush_commandlist_add(cl, chset, true);
+  BKE_brush_command_init(cmd, tool);
+
+  float radius = BKE_brush_channelset_get_float(chset, "radius", mapdata);
+
+  /* build autosmooth command */
+  float autosmooth_scale = BKE_brush_channelset_get_float(
+      chset, "autosmooth_radius_scale", mapdata);
+  float autosmooth_projection = BKE_brush_channelset_get_float(
+      chset, "autosmooth_projection", NULL);
+
+  float autosmooth_spacing;
+
+  if (BKE_brush_channelset_get_int(chset, "autosmooth_use_spacing", mapdata)) {
+    autosmooth_spacing = BKE_brush_channelset_get_float(chset, "autosmooth_spacing", mapdata);
+  }
+  else {
+    autosmooth_spacing = BKE_brush_channelset_get_float(chset, "spacing", mapdata);
+  }
+
+  float autosmooth = BKE_brush_channelset_get_float(chset, "autosmooth", mapdata);
+  if (autosmooth > 0.0f) {
+    cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true), SCULPT_TOOL_SMOOTH);
+    float_set_uninherit(cmd->params, "strength", autosmooth);
+    float_set_uninherit(cmd->params, "radius", radius * autosmooth_scale);
+    float_set_uninherit(cmd->params, "projection", autosmooth_projection);
+    float_set_uninherit(cmd->params, "spacing", autosmooth_spacing);
+  }
+
+  float vcol_boundary = BKE_brush_channelset_get_float(chset, "vcol_boundary_factor", mapdata);
+#define GETF(key) BKE_brush_channelset_get_float(chset, key, mapdata)
+
+  if (vcol_boundary > 0.0f) {
+    cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true),
+                                 SCULPT_TOOL_VCOL_BOUNDARY);
+    float_set_uninherit(cmd->params, "radius", radius * GETF("vcol_boundary_radius_scale"));
+    float_set_uninherit(cmd->params, "spacing", GETF("vcol_boundary_spacing"));
+    float_set_uninherit(cmd->params, "strength", vcol_boundary);
+  }
+
+#undef GETF
+  // float
+}
+
 ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
                                                 BrushChannelSet *chset,
                                                 BrushCommandList *cl,
@@ -1227,6 +1279,10 @@ ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
   BrushCommand *cmd;
 
   /* add main tool */
+  if (ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
+    bke_builtin_commandlist_create_paint(brush, chset, cl, tool, mapdata);
+    return;
+  }
 
   cmd = BKE_brush_commandlist_add(cl, chset, true);
   BKE_brush_command_init(cmd, tool);
@@ -1253,8 +1309,7 @@ ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
 
   float autosmooth = BKE_brush_channelset_get_float(chset, "autosmooth", mapdata);
   if (!no_autosmooth && autosmooth > 0.0f) {
-    cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, brush->channels, true),
-                                 SCULPT_TOOL_SMOOTH);
+    cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true), SCULPT_TOOL_SMOOTH);
     float_set_uninherit(cmd->params, "strength", autosmooth);
     float_set_uninherit(cmd->params, "radius", radius * autosmooth_scale);
     float_set_uninherit(cmd->params, "projection", autosmooth_projection);
@@ -1279,7 +1334,7 @@ ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
   }
 
   if (topology_rake > 0.0f) {
-    cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, brush->channels, true),
+    cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true),
                                  SCULPT_TOOL_TOPOLOGY_RAKE);
 
     float_set_uninherit(cmd->params, "strength", topology_rake);
@@ -1291,8 +1346,7 @@ ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
   /* build dyntopo command */
 
   if (!BKE_brush_channelset_get_int(chset, "dyntopo_disabled", NULL)) {
-    cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, brush->channels, true),
-                                 SCULPT_TOOL_DYNTOPO);
+    cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true), SCULPT_TOOL_DYNTOPO);
 
     float spacing = BKE_brush_channelset_get_float(chset, "dyntopo_spacing", mapdata);
     float radius2 = BKE_brush_channelset_get_float(chset, "dyntopo_radius_scale", mapdata);

@@ -76,7 +76,7 @@ To enable converting to/from old data:
   .type = BRUSH_CHANNEL_VEC3,\
   .vector = {r, g, b, 1.0f},\
   .min = 0.0f, .max = 5.0f,\
-  .min = 0.0f, .max = 1.0f,\
+  .soft_min = 0.0f, .soft_max = 1.0f,\
   .flag = BRUSH_CHANNEL_COLOR,\
 }
 
@@ -87,7 +87,7 @@ To enable converting to/from old data:
   .type = BRUSH_CHANNEL_VEC4,\
   .vector = {r, g, b, a},\
   .min = 0.0f, .max = 5.0f,\
-  .min = 0.0f, .max = 1.0f,\
+  .soft_min = 0.0f, .soft_max = 1.0f,\
   .flag = BRUSH_CHANNEL_COLOR,\
 }
 
@@ -475,7 +475,15 @@ BrushChannelType brush_builtin_channels[] = {
     MAKE_COLOR4("cursor_color_add", "Add Color", "Color of cursor when adding", 1.0f, 0.39f, 0.39f, 1.0f),
     MAKE_COLOR4("cursor_color_sub", "Subtract Color", "Color of cursor when subtracting", 0.39f, 0.39f, 1.0f, 1.0f),
     MAKE_COLOR3("color", "Color", "", 1.0f, 1.0f, 1.0f),
-    MAKE_COLOR3("secondary_color", "Secondary Color", "", 0.0f, 0.0f, 0.0f)
+    MAKE_COLOR3("secondary_color", "Secondary Color", "", 0.0f, 0.0f, 0.0f),
+    MAKE_FLOAT("vcol_boundary_factor", "Boundary Hardening", "Automatically align edges on color boundaries"
+                           "to generate sharper features. ", 0.0f, 0.0f, 1.0f),
+    MAKE_FLOAT_EX("vcol_boundary_exponent", "Exponent", "Hardening exponent (smaller values make smoother edges)",
+                   1.0, 0.001f, 6.0f, 0.001, 3.0f),
+    MAKE_FLOAT_EX("vcol_boundary_radius_scale", "Radius Scale",
+      "Scale brush radius for vcol boundary hardening",
+      1.0f, 0.0001f, 100.0f, 0.001f, 3.0f),
+    MAKE_FLOAT_EX("vcol_boundary_spacing", "Spacing", "Spacing for vcol boundary hardening", 15, 0.25, 5000, 0.5, 300),
 };
 
 /* clang-format on */
@@ -573,6 +581,8 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(sub_col, cursor_color_sub, FLOAT4, FLOAT4)
   DEF(rgb, color, FLOAT3, FLOAT3)
   DEF(secondary_rgb, secondary_color, FLOAT3, FLOAT3)
+  DEF(vcol_boundary_factor, vcol_boundary_factor, FLOAT, FLOAT)
+  DEF(vcol_boundary_exponent, vcol_boundary_exponent, FLOAT, FLOAT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -921,6 +931,11 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH("autosmooth_use_spacing");
   ADDCH("autosmooth_projection");
 
+  ADDCH("vcol_boundary_exponent");
+  ADDCH("vcol_boundary_factor");
+  ADDCH("vcol_boundary_radius_scale");
+  ADDCH("vcol_boundary_spacing");
+
   ADDCH("topology_rake");
   ADDCH("topology_rake_mode");
   ADDCH("topology_rake_radius_scale");
@@ -1089,6 +1104,11 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH("concave_mask_factor");
   ADDCH("automasking");
   ADDCH("topology_rake_mode");
+
+  ADDCH("vcol_boundary_exponent");
+  ADDCH("vcol_boundary_factor");
+  ADDCH("vcol_boundary_radius_scale");
+  ADDCH("vcol_boundary_spacing");
 
   ADDCH("color");
   ADDCH("secondary_color");
