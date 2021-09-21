@@ -124,37 +124,55 @@ static Mesh *cdt_to_mesh(const blender::meshintersect::CDT_result<double> &resul
   return mesh;
 }
 
-static Mesh *curve_fill_calculate(GeoNodeExecParams &params, const CurveComponent &component)
+static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCurveFillMode mode)
 {
-  const CurveEval &curve = *component.get_for_read();
-  if (curve.splines().size() == 0) {
-    return nullptr;
+  if (!geometry_set.has_curve()) {
+    return;
   }
 
-  const NodeGeometryCurveFill &storage = *(const NodeGeometryCurveFill *)params.node().storage;
-  const GeometryNodeCurveFillMode mode = (GeometryNodeCurveFillMode)storage.mode;
+  const CurveEval &curve = *geometry_set.get_curve_for_read();
+  if (curve.splines().is_empty()) {
+    geometry_set.replace_curve(nullptr);
+    return;
+  }
 
   const CDT_output_type output_type = (mode == GEO_NODE_CURVE_FILL_MODE_NGONS) ?
                                           CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES :
                                           CDT_INSIDE_WITH_HOLES;
 
   const blender::meshintersect::CDT_result<double> results = do_cdt(curve, output_type);
-  return cdt_to_mesh(results);
+  Mesh *mesh = cdt_to_mesh(results);
+
+  geometry_set.replace_mesh(mesh);
+  geometry_set.replace_curve(nullptr);
 }
 
 static void geo_node_curve_fill_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-  geometry_set = bke::geometry_set_realize_instances(geometry_set);
 
-  if (!geometry_set.has_curve()) {
-    params.set_output("Mesh", GeometrySet());
+  const NodeGeometryCurveFill &storage = *(const NodeGeometryCurveFill *)params.node().storage;
+  const GeometryNodeCurveFillMode mode = (GeometryNodeCurveFillMode)storage.mode;
+
+  if (geometry_set.has_instances()) {
+    InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
+    instances.ensure_geometry_instances();
+
+    threading::parallel_for(IndexRange(instances.references_amount()), 16, [&](IndexRange range) {
+      for (int i : range) {
+        GeometrySet &geometry_set = instances.geometry_set_from_reference(i);
+        geometry_set = bke::geometry_set_realize_instances(geometry_set);
+        curve_fill_calculate(geometry_set, mode);
+      }
+    });
+
+    params.set_output("Mesh", std::move(geometry_set));
     return;
   }
 
-  Mesh *mesh = curve_fill_calculate(params,
-                                    *geometry_set.get_component_for_read<CurveComponent>());
-  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+  curve_fill_calculate(geometry_set, mode);
+
+  params.set_output("Mesh", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes

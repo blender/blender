@@ -580,6 +580,9 @@ class InstancesComponent : public GeometryComponent {
 
   blender::Span<InstanceReference> references() const;
 
+  void ensure_geometry_instances();
+  GeometrySet &geometry_set_from_reference(const int reference_index);
+
   blender::Span<int> instance_reference_handles() const;
   blender::MutableSpan<int> instance_reference_handles();
   blender::MutableSpan<blender::float4x4> instance_transforms();
@@ -588,6 +591,7 @@ class InstancesComponent : public GeometryComponent {
   blender::Span<int> instance_ids() const;
 
   int instances_amount() const;
+  int references_amount() const;
 
   blender::Span<int> almost_unique_ids() const;
 
