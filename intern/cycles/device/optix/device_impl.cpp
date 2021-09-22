@@ -315,6 +315,11 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   group_descs[PG_HITS].kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
   group_descs[PG_HITS].hitgroup.moduleAH = optix_module;
   group_descs[PG_HITS].hitgroup.entryFunctionNameAH = "__anyhit__kernel_optix_shadow_all_hit";
+  group_descs[PG_HITV].kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
+  group_descs[PG_HITV].hitgroup.moduleCH = optix_module;
+  group_descs[PG_HITV].hitgroup.entryFunctionNameCH = "__closesthit__kernel_optix_hit";
+  group_descs[PG_HITV].hitgroup.moduleAH = optix_module;
+  group_descs[PG_HITV].hitgroup.entryFunctionNameAH = "__anyhit__kernel_optix_volume_test";
 
   if (kernel_features & KERNEL_FEATURE_HAIR) {
     if (kernel_features & KERNEL_FEATURE_HAIR_THICK) {
@@ -397,6 +402,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   trace_css = std::max(trace_css, stack_size[PG_HITD].cssIS + stack_size[PG_HITD].cssAH);
   trace_css = std::max(trace_css, stack_size[PG_HITS].cssIS + stack_size[PG_HITS].cssAH);
   trace_css = std::max(trace_css, stack_size[PG_HITL].cssIS + stack_size[PG_HITL].cssAH);
+  trace_css = std::max(trace_css, stack_size[PG_HITV].cssIS + stack_size[PG_HITV].cssAH);
   trace_css = std::max(trace_css,
                        stack_size[PG_HITD_MOTION].cssIS + stack_size[PG_HITD_MOTION].cssAH);
   trace_css = std::max(trace_css,
@@ -421,6 +427,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     pipeline_groups.push_back(groups[PG_HITD]);
     pipeline_groups.push_back(groups[PG_HITS]);
     pipeline_groups.push_back(groups[PG_HITL]);
+    pipeline_groups.push_back(groups[PG_HITV]);
     if (motion_blur) {
       pipeline_groups.push_back(groups[PG_HITD_MOTION]);
       pipeline_groups.push_back(groups[PG_HITS_MOTION]);
@@ -459,6 +466,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     pipeline_groups.push_back(groups[PG_HITD]);
     pipeline_groups.push_back(groups[PG_HITS]);
     pipeline_groups.push_back(groups[PG_HITL]);
+    pipeline_groups.push_back(groups[PG_HITV]);
     if (motion_blur) {
       pipeline_groups.push_back(groups[PG_HITD_MOTION]);
       pipeline_groups.push_back(groups[PG_HITS_MOTION]);
@@ -1390,24 +1398,32 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       /* Set user instance ID to object index (but leave low bit blank). */
       instance.instanceId = ob->get_device_index() << 1;
 
-      /* Have to have at least one bit in the mask, or else instance would always be culled. */
-      instance.visibilityMask = 1;
+      /* Add some of the object visibility bits to the mask.
+       * __prim_visibility contains the combined visibility bits of all instances, so is not
+       * reliable if they differ between instances. But the OptiX visibility mask can only contain
+       * 8 bits, so have to trade-off here and select just a few important ones.
+       */
+      instance.visibilityMask = ob->visibility_for_tracing() & 0xFF;
 
-      if (ob->get_geometry()->has_volume) {
-        /* Volumes have a special bit set in the visibility mask so a trace can mask only volumes.
-         */
-        instance.visibilityMask |= 2;
+      /* Have to have at least one bit in the mask, or else instance would always be culled. */
+      if (0 == instance.visibilityMask) {
+        instance.visibilityMask = 0xFF;
       }
 
-      if (ob->get_geometry()->geometry_type == Geometry::HAIR) {
-        /* Same applies to curves (so they can be skipped in local trace calls). */
-        instance.visibilityMask |= 4;
-
-        if (motion_blur && ob->get_geometry()->has_motion_blur() &&
-            static_cast<const Hair *>(ob->get_geometry())->curve_shape == CURVE_THICK) {
+      if (ob->get_geometry()->geometry_type == Geometry::HAIR &&
+          static_cast<const Hair *>(ob->get_geometry())->curve_shape == CURVE_THICK) {
+        if (motion_blur && ob->get_geometry()->has_motion_blur()) {
           /* Select between motion blur and non-motion blur built-in intersection module. */
           instance.sbtOffset = PG_HITD_MOTION - PG_HITD;
         }
+      }
+      else {
+        /* Can disable __anyhit__kernel_optix_visibility_test by default (except for thick curves,
+         * since it needs to filter out endcaps there).
+         * It is enabled where necessary (visibility mask exceeds 8 bits or the other any-hit
+         * programs like __anyhit__kernel_optix_shadow_all_hit) via OPTIX_RAY_FLAG_ENFORCE_ANYHIT.
+         */
+        instance.flags = OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT;
       }
 
       /* Insert motion traversable if object has motion. */
@@ -1474,7 +1490,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         delete[] reinterpret_cast<uint8_t *>(&motion_transform);
 
         /* Disable instance transform if object uses motion transform already. */
-        instance.flags = OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM;
+        instance.flags |= OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM;
 
         /* Get traversable handle to motion transform. */
         optixConvertPointerToTraversableHandle(context,
@@ -1491,7 +1507,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         }
         else {
           /* Disable instance transform if geometry already has it applied to vertex data. */
-          instance.flags = OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM;
+          instance.flags |= OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM;
           /* Non-instanced objects read ID from 'prim_object', so distinguish
            * them from instanced objects with the low bit set. */
           instance.instanceId |= 1;
