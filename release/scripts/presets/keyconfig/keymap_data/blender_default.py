@@ -3258,7 +3258,7 @@ def km_animation_channels(params):
 # Modes
 
 
-def km_grease_pencil(_params):
+def km_grease_pencil(params):
     items = []
     keymap = (
         "Grease Pencil",
@@ -3266,22 +3266,27 @@ def km_grease_pencil(_params):
         {"items": items},
     )
 
-    items.extend([
-        # Draw
-        ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "key_modifier": 'D'},
-         {"properties": [("mode", 'DRAW'), ("wait_for_input", False)]}),
-        ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "key_modifier": 'D', "shift": True},
-         {"properties": [("mode", 'DRAW'), ("wait_for_input", False)]}),
-        # Draw - straight lines
-        ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True, "key_modifier": 'D'},
-         {"properties": [("mode", 'DRAW_STRAIGHT'), ("wait_for_input", False)]}),
-        # Draw - poly lines
-        ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True, "key_modifier": 'D'},
-         {"properties": [("mode", 'DRAW_POLY'), ("wait_for_input", False)]}),
-        # Erase
-        ("gpencil.annotate", {"type": 'RIGHTMOUSE', "value": 'PRESS', "key_modifier": 'D'},
-         {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
-    ])
+    if params.use_key_activate_tools:
+        items.extend([
+            op_tool_cycle("builtin.annotate", {"type": 'D', "value": 'PRESS'}),
+        ])
+    else:
+        items.extend([
+            # Draw
+            ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "key_modifier": 'D'},
+             {"properties": [("mode", 'DRAW'), ("wait_for_input", False)]}),
+            ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "key_modifier": 'D', "shift": True},
+             {"properties": [("mode", 'DRAW'), ("wait_for_input", False)]}),
+            # Draw - straight lines
+            ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True, "key_modifier": 'D'},
+             {"properties": [("mode", 'DRAW_STRAIGHT'), ("wait_for_input", False)]}),
+            # Draw - poly lines
+            ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True, "key_modifier": 'D'},
+             {"properties": [("mode", 'DRAW_POLY'), ("wait_for_input", False)]}),
+            # Erase
+            ("gpencil.annotate", {"type": 'RIGHTMOUSE', "value": 'PRESS', "key_modifier": 'D'},
+             {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
+        ])
 
     return keymap
 
