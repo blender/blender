@@ -726,6 +726,10 @@ ccl_device_forceinline void integrate_volume_direct_light(INTEGRATOR_STATE_ARGS,
     }
   }
 
+  if (ls->shader & SHADER_EXCLUDE_SCATTER) {
+    return;
+  }
+
   /* Evaluate light shader.
    *
    * TODO: can we reuse sd memory? In theory we can move this after
