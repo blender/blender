@@ -379,7 +379,7 @@ float specular_occlusion(
   /* Visibility to cone angle (eq. 18). */
   float vis_angle = fast_acos(sqrt(1 - visibility));
   /* Roughness to cone angle (eq. 26). */
-  float spec_angle = max(0.001, fast_acos(cone_cosine(roughness)));
+  float spec_angle = max(0.00990998744964599609375, fast_acos(cone_cosine(roughness)));
   /* Angle between cone axes. */
   float cone_cone_dist = fast_acos(saturate(dot(visibility_dir, specular_dir)));
   float cone_nor_dist = fast_acos(saturate(dot(N, specular_dir)));
