@@ -933,10 +933,7 @@ void PathTrace::process_full_buffer_from_disk(string_view filename)
 int PathTrace::get_num_render_tile_samples() const
 {
   if (full_frame_state_.render_buffers) {
-    /* If the full-frame buffer is read from disk the number of samples is not used as there is a
-     * sample count pass for that in the buffer. Just avoid access to badly defined state of the
-     * path state. */
-    return 0;
+    return full_frame_state_.render_buffers->params.samples;
   }
 
   return render_scheduler_.get_num_rendered_samples();

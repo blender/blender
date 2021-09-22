@@ -98,6 +98,7 @@ class BufferParams : public Node {
   vector<BufferPass> passes;
   ustring layer;
   ustring view;
+  int samples = 0;
   float exposure = 1.0f;
   bool use_approximate_shadow_catcher = false;
   bool use_transparent_background = false;

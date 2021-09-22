@@ -105,6 +105,7 @@ NODE_DEFINE(BufferParams)
 
   SOCKET_STRING(layer, "Layer", ustring());
   SOCKET_STRING(view, "View", ustring());
+  SOCKET_INT(samples, "Samples", 0);
   SOCKET_FLOAT(exposure, "Exposure", 1.0f);
   SOCKET_BOOLEAN(use_approximate_shadow_catcher, "Use Approximate Shadow Catcher", false);
   SOCKET_BOOLEAN(use_transparent_background, "Transparent Background", false);
