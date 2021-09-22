@@ -7277,9 +7277,10 @@ def km_3d_view_tool_sculpt_gpencil_select_lasso(params):
     )
 
 
-def km_sequencer_editor_tool_select(params):
+def km_sequencer_editor_tool_select(params, *, fallback):
     return (
-        "Sequencer Tool: Select",
+        # TODO, fall-back tool support.
+        _fallback_id("Sequencer Tool: Select", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'}, None),
@@ -7288,9 +7289,10 @@ def km_sequencer_editor_tool_select(params):
     )
 
 
-def km_sequencer_editor_tool_select_box(params):
+def km_sequencer_editor_tool_select_box(params, *, fallback):
     return (
-        "Sequencer Tool: Select Box",
+        # TODO, fall-back tool support.
+        _fallback_id("Sequencer Tool: Select Box", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             *_template_items_tool_select_actions_simple(
@@ -7607,8 +7609,8 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_gpencil_select_box(params),
         km_3d_view_tool_sculpt_gpencil_select_circle(params),
         km_3d_view_tool_sculpt_gpencil_select_lasso(params),
-        km_sequencer_editor_tool_select(params),
-        km_sequencer_editor_tool_select_box(params),
+        *(km_sequencer_editor_tool_select(params, fallback=fallback) for fallback in (False, True)),
+        *(km_sequencer_editor_tool_select_box(params, fallback=fallback) for fallback in (False, True)),
         km_sequencer_editor_tool_blade(params),
         km_sequencer_editor_tool_generic_sample(params),
         km_sequencer_editor_tool_scale(params),
