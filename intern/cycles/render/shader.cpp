@@ -729,7 +729,7 @@ uint ShaderManager::get_kernel_features(Scene *scene)
     }
     /* On top of volume nodes, also check if we need volume sampling because
      * e.g. an Emission node would slip through the KERNEL_FEATURE_NODE_VOLUME check */
-    if (shader->has_volume) {
+    if (shader->has_volume_connected) {
       kernel_features |= KERNEL_FEATURE_VOLUME;
     }
   }
