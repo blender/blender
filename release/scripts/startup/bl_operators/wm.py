@@ -1556,11 +1556,18 @@ class WM_OT_properties_edit(Operator):
                 self.max != self.soft_max
             )
             self.default = str(rna_data["default"])
-        if prop_type == str and not is_array and not value_failed: # String arrays do not support UI data.
+            self.description = rna_data.get("description", "")
+        elif prop_type == str and not is_array and not value_failed: # String arrays do not support UI data.
             ui_data = item.id_properties_ui(prop)
             rna_data = ui_data.as_dict()
             self.subtype =  rna_data["subtype"]
             self.default = str(rna_data["default"])
+            self.description = rna_data.get("description", "")
+        else:
+            self.min = self.soft_min = 0
+            self.max = self.soft_max = 1
+            self.use_soft_limits = False
+            self.description = ""
 
         self._init_subtype(prop_type, is_array, self.subtype)
 
@@ -1611,7 +1618,7 @@ class WM_OT_properties_edit(Operator):
         layout.prop(self, "property")
         layout.prop(self, "value")
 
-        value = self.get_value_eval()
+        value, value_failed = self.get_value_eval()
         proptype, is_array = rna_idprop_value_item_type(value)
 
         row = layout.row()
