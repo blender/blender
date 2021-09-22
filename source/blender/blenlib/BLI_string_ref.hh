@@ -134,7 +134,9 @@ class StringRefBase {
    */
   void unsafe_copy(char *dst) const
   {
-    memcpy(dst, data_, static_cast<size_t>(size_));
+    if (size_ > 0) {
+      memcpy(dst, data_, static_cast<size_t>(size_));
+    }
     dst[size_] = '\0';
   }
 
