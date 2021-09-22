@@ -1393,7 +1393,10 @@ static float seq_thumbnail_get_start_frame(Sequence *seq, float frame_step, rctf
   return ((no_invisible_thumbs - 1) * frame_step) + seq->start;
 }
 
-static void thumbnail_start_job(void *data, const short *stop, const short *do_update, const float *progress)
+static void thumbnail_start_job(void *data,
+                                short *stop,
+                                short *UNUSED(do_update),
+                                float *UNUSED(progress))
 {
   ThumbnailDrawJob *tj = data;
   float start_frame, frame_step;
@@ -1414,7 +1417,6 @@ static void thumbnail_start_job(void *data, const short *stop, const short *do_u
     }
     BLI_ghashIterator_step(&gh_iter);
   }
-  UNUSED_VARS(do_update, progress);
 }
 
 static SeqRenderData sequencer_thumbnail_context_init(const bContext *C)
