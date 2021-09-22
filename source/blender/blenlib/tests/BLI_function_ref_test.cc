@@ -124,4 +124,10 @@ TEST(function_ref, CallSafeVoid)
   EXPECT_EQ(value, 1);
 }
 
+TEST(function_ref, InitializeWithNull)
+{
+  FunctionRef<int(int, int)> f{nullptr};
+  EXPECT_FALSE(f);
+}
+
 }  // namespace blender::tests
