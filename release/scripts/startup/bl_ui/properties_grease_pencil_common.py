@@ -525,7 +525,7 @@ class GreasePencilMaterialsPanel:
         is_view3d = (self.bl_space_type == 'VIEW_3D')
         tool_settings = context.scene.tool_settings
         gpencil_paint = tool_settings.gpencil_paint
-        brush = gpencil_paint.brush
+        brush = gpencil_paint.brush if gpencil_paint else None
 
         ob = context.object
         row = layout.row()
@@ -587,6 +587,9 @@ class GreasePencilMaterialsPanel:
                         ma = ob.material_slots[ob.active_material_index].material
                 else:
                     ma = gp_settings.material
+            else:
+                if len(ob.material_slots) > 0 and ob.active_material_index >= 0:
+                    ma = ob.material_slots[ob.active_material_index].material
 
             if ma is not None and ma.grease_pencil is not None:
                 gpcolor = ma.grease_pencil
