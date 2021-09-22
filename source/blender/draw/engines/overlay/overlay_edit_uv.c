@@ -340,34 +340,42 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
   if (pd->edit_uv.do_stencil_overlay) {
     const Brush *brush = BKE_paint_brush(&ts->imapaint.paint);
-
-    DRW_PASS_CREATE(psl->edit_uv_stencil_ps,
-                    DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_ALWAYS | DRW_STATE_BLEND_ALPHA_PREMUL);
-    GPUShader *sh = OVERLAY_shader_edit_uv_stencil_image();
-    GPUBatch *geom = DRW_cache_quad_get();
-    DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->edit_uv_stencil_ps);
     Image *stencil_image = brush->clone.image;
     ImBuf *stencil_ibuf = BKE_image_acquire_ibuf(stencil_image, NULL, &pd->edit_uv.stencil_lock);
-    pd->edit_uv.stencil_ibuf = stencil_ibuf;
-    pd->edit_uv.stencil_image = stencil_image;
-    GPUTexture *stencil_texture = BKE_image_get_gpu_texture(stencil_image, NULL, stencil_ibuf);
-    DRW_shgroup_uniform_texture(grp, "imgTexture", stencil_texture);
-    DRW_shgroup_uniform_bool_copy(grp, "imgPremultiplied", true);
-    DRW_shgroup_uniform_bool_copy(grp, "imgAlphaBlend", true);
-    DRW_shgroup_uniform_vec4_copy(grp, "color", (float[4]){1.0f, 1.0f, 1.0f, brush->clone.alpha});
 
-    float size_image[2];
-    BKE_image_get_size_fl(image, NULL, size_image);
-    float size_stencil_image[2] = {stencil_ibuf->x, stencil_ibuf->y};
+    if (stencil_ibuf == NULL) {
+      pd->edit_uv.stencil_ibuf = NULL;
+      pd->edit_uv.stencil_image = NULL;
+    }
+    else {
+      DRW_PASS_CREATE(psl->edit_uv_stencil_ps,
+                      DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_ALWAYS |
+                          DRW_STATE_BLEND_ALPHA_PREMUL);
+      GPUShader *sh = OVERLAY_shader_edit_uv_stencil_image();
+      GPUBatch *geom = DRW_cache_quad_get();
+      DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->edit_uv_stencil_ps);
+      pd->edit_uv.stencil_ibuf = stencil_ibuf;
+      pd->edit_uv.stencil_image = stencil_image;
+      GPUTexture *stencil_texture = BKE_image_get_gpu_texture(stencil_image, NULL, stencil_ibuf);
+      DRW_shgroup_uniform_texture(grp, "imgTexture", stencil_texture);
+      DRW_shgroup_uniform_bool_copy(grp, "imgPremultiplied", true);
+      DRW_shgroup_uniform_bool_copy(grp, "imgAlphaBlend", true);
+      DRW_shgroup_uniform_vec4_copy(
+          grp, "color", (float[4]){1.0f, 1.0f, 1.0f, brush->clone.alpha});
 
-    float obmat[4][4];
-    unit_m4(obmat);
-    obmat[3][1] = brush->clone.offset[1];
-    obmat[3][0] = brush->clone.offset[0];
-    obmat[0][0] = size_stencil_image[0] / size_image[0];
-    obmat[1][1] = size_stencil_image[1] / size_image[1];
+      float size_image[2];
+      BKE_image_get_size_fl(image, NULL, size_image);
+      float size_stencil_image[2] = {stencil_ibuf->x, stencil_ibuf->y};
 
-    DRW_shgroup_call_obmat(grp, geom, obmat);
+      float obmat[4][4];
+      unit_m4(obmat);
+      obmat[3][1] = brush->clone.offset[1];
+      obmat[3][0] = brush->clone.offset[0];
+      obmat[0][0] = size_stencil_image[0] / size_image[0];
+      obmat[1][1] = size_stencil_image[1] / size_image[1];
+
+      DRW_shgroup_call_obmat(grp, geom, obmat);
+    }
   }
   else {
     pd->edit_uv.stencil_ibuf = NULL;

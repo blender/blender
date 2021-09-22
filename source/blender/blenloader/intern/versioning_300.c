@@ -518,6 +518,28 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
   {
     /* Keep this block, even when empty. */
     do_versions_idproperty_ui_data(bmain);
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *tool_settings = scene->toolsettings;
+      ImagePaintSettings *imapaint = &tool_settings->imapaint;
+      if (imapaint->canvas != NULL &&
+          ELEM(imapaint->canvas->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+        imapaint->canvas = NULL;
+      }
+      if (imapaint->stencil != NULL &&
+          ELEM(imapaint->stencil->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+        imapaint->stencil = NULL;
+      }
+      if (imapaint->clone != NULL &&
+          ELEM(imapaint->clone->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+        imapaint->clone = NULL;
+      }
+    }
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->clone.image != NULL && ELEM(brush->clone.image->type, IMA_TYPE_R_RESULT,
+                                             IMA_TYPE_COMPOSITE)) { brush->clone.image = NULL;
+      }
+    }
   }
 }
 
