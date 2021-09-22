@@ -530,6 +530,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeCurveParameter", poll=geometry_nodes_fields_poll),
         NodeItem("GeometryNodeInputTangent", poll=geometry_nodes_fields_poll),
         NodeItem("GeometryNodeCurveSample", poll=geometry_nodes_fields_poll),
+        NodeItem("GeometryNodeCurveFillet", poll=geometry_nodes_fields_poll),
     ]),
     GeometryNodeCategory("GEO_PRIMITIVES_CURVE", "Curve Primitives", items=[
         NodeItem("GeometryNodeCurvePrimitiveLine"),

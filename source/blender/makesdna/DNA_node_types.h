@@ -1447,6 +1447,11 @@ typedef struct NodeGeometryCurveSubdivide {
   uint8_t cuts_type;
 } NodeGeometryCurveSubdivide;
 
+typedef struct NodeGeometryCurveFillet {
+  /* GeometryNodeCurveFilletMode. */
+  uint8_t mode;
+} NodeGeometryCurveFillet;
+
 typedef struct NodeGeometryCurveTrim {
   /* GeometryNodeCurveSampleMode. */
   uint8_t mode;
@@ -2059,6 +2064,11 @@ typedef enum GeometryNodeCurveSampleMode {
   GEO_NODE_CURVE_SAMPLE_FACTOR = 0,
   GEO_NODE_CURVE_SAMPLE_LENGTH = 1,
 } GeometryNodeCurveSampleMode;
+
+typedef enum GeometryNodeCurveFilletMode {
+  GEO_NODE_CURVE_FILLET_BEZIER = 0,
+  GEO_NODE_CURVE_FILLET_POLY = 1,
+} GeometryNodeCurveFilletMode;
 
 typedef enum GeometryNodeAttributeTransferMapMode {
   GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,
