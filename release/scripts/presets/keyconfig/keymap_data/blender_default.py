@@ -955,11 +955,15 @@ def km_uv_editor(params):
          {"type": params.select_mouse, "value": params.select_mouse_value_fallback, "ctrl": True, "shift": True},
          {"properties": [("use_fill", True)]}),
         ("uv.select_split", {"type": 'Y', "value": 'PRESS'}, None),
-        ("uv.select_box", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("pinned", False)]}),
+        op_tool_optional(
+            ("uv.select_box", {"type": 'B', "value": 'PRESS'},
+             {"properties": [("pinned", False)]}),
+            (op_tool, "builtin.select_box"), params),
         ("uv.select_box", {"type": 'B', "value": 'PRESS', "ctrl": True},
          {"properties": [("pinned", True)]}),
-        ("uv.select_circle", {"type": 'C', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("uv.select_circle", {"type": 'C', "value": 'PRESS'}, None),
+            (op_tool, "builtin.select_circle"), params),
         ("uv.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True},
          {"properties": [("mode", 'ADD')]}),
         ("uv.select_lasso", {"type": params.action_tweak, "value": 'ANY', "shift": True, "ctrl": True},
@@ -1264,12 +1268,16 @@ def km_view3d(params):
             value=params.select_mouse_value_fallback,
             legacy=params.legacy,
         ),
-        ("view3d.select_box", {"type": 'B', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("view3d.select_box", {"type": 'B', "value": 'PRESS'}, None),
+            (op_tool, "builtin.select_box"), params),
         ("view3d.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True},
          {"properties": [("mode", 'ADD')]}),
         ("view3d.select_lasso", {"type": params.action_tweak, "value": 'ANY', "shift": True, "ctrl": True},
          {"properties": [("mode", 'SUB')]}),
-        ("view3d.select_circle", {"type": 'C', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("view3d.select_circle", {"type": 'C', "value": 'PRESS'}, None),
+            (op_tool, "builtin.select_circle"), params),
         # Borders.
         ("view3d.clip_border", {"type": 'B', "value": 'PRESS', "alt": True}, None),
         ("view3d.zoom_border", {"type": 'B', "value": 'PRESS', "shift": True}, None),
@@ -1896,7 +1904,13 @@ def km_node_editor(params):
          {"properties": [("mode", 'ADD')]}),
         ("node.select_lasso", {"type": 'EVT_TWEAK_L', "value": 'ANY', "shift": True, "ctrl": True, "alt": True},
          {"properties": [("mode", 'SUB')]}),
-        ("node.select_circle", {"type": 'C', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("node.select_box", {"type": 'B', "value": 'PRESS'},
+             {"properties": [("tweak", False)]}),
+            (op_tool, "builtin.select_box"), params),
+        op_tool_optional(
+            ("node.select_circle", {"type": 'C', "value": 'PRESS'}, None),
+            (op_tool, "builtin.select_circle"), params),
         ("node.link", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
          {"properties": [("detach", False)]}),
         ("node.link", {"type": 'EVT_TWEAK_L', "value": 'ANY', "ctrl": True},
@@ -1930,8 +1944,6 @@ def km_node_editor(params):
         ("node.view_all", {"type": 'HOME', "value": 'PRESS'}, None),
         ("node.view_all", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("node.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
-        ("node.select_box", {"type": 'B', "value": 'PRESS'},
-         {"properties": [("tweak", False)]}),
         ("node.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("node.delete", {"type": 'DEL', "value": 'PRESS'}, None),
         ("node.delete_reconnect", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
@@ -2749,9 +2761,15 @@ def km_sequencerpreview(params):
         ("sequencer.view_zoom_ratio", {"type": 'NUMPAD_8', "value": 'PRESS'},
          {"properties": [("ratio", 0.125)]}),
         ("sequencer.sample", {"type": params.action_mouse, "value": 'PRESS'}, None),
-        ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
-        ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
-        ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.move"), params),
+        op_tool_optional(
+            ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.rotate"), params),
+        op_tool_optional(
+            ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
+            (op_tool_cycle, "builtin.scale"), params),
         ("sequencer.strip_transform_clear", {"type": 'G', "alt": True, "value": 'PRESS'},
          {"properties": [("property", 'POSITION')]}),
         ("sequencer.strip_transform_clear", {"type": 'S', "alt": True, "value": 'PRESS'},
@@ -3281,9 +3299,13 @@ def _grease_pencil_selection(params, use_select_mouse=True):
         # Select all
         *_template_items_select_actions(params, "gpencil.select_all"),
         # Circle select
-        ("gpencil.select_circle", {"type": 'C', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("gpencil.select_circle", {"type": 'C', "value": 'PRESS'}, None),
+            (op_tool, "builtin.select_circle"), params),
         # Box select
-        ("gpencil.select_box", {"type": 'B', "value": 'PRESS'}, None),
+        op_tool_optional(
+            ("gpencil.select_box", {"type": 'B', "value": 'PRESS'}, None),
+            (op_tool, "builtin.select_box"), params),
         # Lasso select
         ("gpencil.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True},
          {"properties": [("mode", 'ADD')]}),
