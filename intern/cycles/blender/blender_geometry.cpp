@@ -80,7 +80,9 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 {
   /* Test if we can instance or if the object is modified. */
   Geometry::Type geom_type = determine_geom_type(b_ob_info, use_particle_hair);
-  GeometryKey key(b_ob_info.object_data, geom_type);
+  BL::ID b_key_id = (BKE_object_is_modified(b_ob_info.real_object)) ? b_ob_info.real_object :
+                                                                      b_ob_info.object_data;
+  GeometryKey key(b_key_id.ptr.data, geom_type);
 
   /* Find shader indices. */
   array<Node *> used_shaders = find_used_shaders(b_ob_info.iter_object);
@@ -110,7 +112,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   }
   else {
     /* Test if we need to update existing geometry. */
-    sync = geometry_map.update(geom, b_ob_info.object_data);
+    sync = geometry_map.update(geom, b_key_id);
   }
 
   if (!sync) {
