@@ -746,7 +746,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Tile Size",
         default=2048,
         description="",
-        min=0, max=16384,
+        min=8, max=16384,
     )
 
     # Various fine-tuning debug flags
