@@ -6749,8 +6749,6 @@ void NormalMapNode::attributes(Shader *shader, AttributeRequestSet *attributes)
       attributes->add(ustring((string(attribute.c_str()) + ".tangent").c_str()));
       attributes->add(ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
     }
-
-    attributes->add(ATTR_STD_VERTEX_NORMAL);
   }
 
   ShaderNode::attributes(shader, attributes);
@@ -7026,8 +7024,6 @@ void VectorDisplacementNode::attributes(Shader *shader, AttributeRequestSet *att
       attributes->add(ustring((string(attribute.c_str()) + ".tangent").c_str()));
       attributes->add(ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
     }
-
-    attributes->add(ATTR_STD_VERTEX_NORMAL);
   }
 
   ShaderNode::attributes(shader, attributes);
