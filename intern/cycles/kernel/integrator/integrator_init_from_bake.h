@@ -112,8 +112,6 @@ ccl_device bool integrator_init_from_bake(INTEGRATOR_STATE_ARGS,
   float3 P, Ng;
   int shader;
   triangle_point_normal(kg, kernel_data.bake.object_index, prim, u, v, &P, &Ng, &shader);
-  shader &= SHADER_MASK;
-
   if (kernel_data.film.pass_background != PASS_UNUSED) {
     /* Environment baking. */
 
@@ -132,11 +130,13 @@ ccl_device bool integrator_init_from_bake(INTEGRATOR_STATE_ARGS,
   }
   else {
     /* Surface baking. */
+    const float3 N = (shader & SHADER_SMOOTH_NORMAL) ? triangle_smooth_normal(kg, Ng, prim, u, v) :
+                                                       Ng;
 
     /* Setup ray. */
     Ray ray ccl_optional_struct_init;
-    ray.P = P + Ng;
-    ray.D = -Ng;
+    ray.P = P + N;
+    ray.D = -N;
     ray.t = FLT_MAX;
     ray.time = 0.5f;
 
@@ -166,12 +166,13 @@ ccl_device bool integrator_init_from_bake(INTEGRATOR_STATE_ARGS,
     integrator_state_write_isect(INTEGRATOR_STATE_PASS, &isect);
 
     /* Setup next kernel to execute. */
-    const int shader_flags = kernel_tex_fetch(__shaders, shader).flags;
+    const int shader_index = shader & SHADER_MASK;
+    const int shader_flags = kernel_tex_fetch(__shaders, shader_index).flags;
     if ((shader_flags & SD_HAS_RAYTRACE) || (kernel_data.film.pass_ao != PASS_UNUSED)) {
-      INTEGRATOR_PATH_INIT_SORTED(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE, shader);
+      INTEGRATOR_PATH_INIT_SORTED(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE, shader_index);
     }
     else {
-      INTEGRATOR_PATH_INIT_SORTED(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE, shader);
+      INTEGRATOR_PATH_INIT_SORTED(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE, shader_index);
     }
   }
 
