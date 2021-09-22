@@ -27,7 +27,7 @@ namespace blender::nodes {
 
 static void sh_node_value_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>("Vector");
+  b.add_output<decl::Float>("Value");
 };
 
 }  // namespace blender::nodes
