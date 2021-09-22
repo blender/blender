@@ -19,53 +19,32 @@
 
 #include "../node_shader_util.h"
 
-/* **************** VORONOI ******************** */
+namespace blender::nodes {
 
-static bNodeSocketTemplate sh_node_tex_voronoi_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_FLOAT, N_("W"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Scale"), 5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Smoothness"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Exponent"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 32.0f},
-    {SOCK_FLOAT, N_("Randomness"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {-1, ""},
+static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>("Vector").hide_value();
+  b.add_input<decl::Float>("W").min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f);
+  b.add_input<decl::Float>("Smoothness")
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Exponent").min(0.0f).max(32.0f).default_value(0.5f);
+  b.add_input<decl::Float>("Randomness")
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_output<decl::Float>("Distance").no_muted_links();
+  b.add_output<decl::Color>("Color").no_muted_links();
+  b.add_output<decl::Vector>("Position").no_muted_links();
+  b.add_output<decl::Float>("W").no_muted_links();
+  b.add_output<decl::Float>("Radius").no_muted_links();
 };
 
-static bNodeSocketTemplate sh_node_tex_voronoi_out[] = {
-    {SOCK_FLOAT,
-     N_("Distance"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
-    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
-    {SOCK_VECTOR,
-     N_("Position"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
-    {SOCK_FLOAT, N_("W"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
-    {SOCK_FLOAT,
-     N_("Radius"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
-    {-1, ""},
-};
+}  // namespace blender::nodes
 
 static void node_shader_init_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -183,7 +162,7 @@ void register_node_type_sh_tex_voronoi(void)
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_VORONOI, "Voronoi Texture", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_voronoi_in, sh_node_tex_voronoi_out);
+  ntype.declare = blender::nodes::sh_node_tex_voronoi_declare;
   node_type_init(&ntype, node_shader_init_tex_voronoi);
   node_type_storage(
       &ntype, "NodeTexVoronoi", node_free_standard_storage, node_copy_standard_storage);

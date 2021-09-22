@@ -37,6 +37,7 @@ class SocketDeclaration {
   bool hide_label_ = false;
   bool hide_value_ = false;
   bool is_multi_input_ = false;
+  bool no_mute_links_ = false;
 
   friend NodeDeclarationBuilder;
   template<typename SocketDecl> friend class SocketDeclarationBuilder;
@@ -91,6 +92,12 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   Self &multi_input(bool value = true)
   {
     decl_->is_multi_input_ = value;
+    return *(Self *)this;
+  }
+
+  Self &no_muted_links(bool value = true)
+  {
+    decl_->no_mute_links_ = value;
     return *(Self *)this;
   }
 };

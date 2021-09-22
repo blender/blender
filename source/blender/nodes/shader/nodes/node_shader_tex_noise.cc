@@ -21,32 +21,25 @@
 
 #include "BLI_noise.hh"
 
-/* **************** NOISE ******************** */
+namespace blender::nodes {
 
-static bNodeSocketTemplate sh_node_tex_noise_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_FLOAT, N_("W"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Scale"), 5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Detail"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 16.0f},
-    {SOCK_FLOAT, N_("Roughness"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Distortion"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {-1, ""},
+static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>("Vector").hide_value();
+  b.add_input<decl::Float>("W").min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f);
+  b.add_input<decl::Float>("Detail").min(0.0f).max(16.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Roughness")
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(0.5f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Distortion").min(-1000.0f).max(1000.0f).default_value(0.0f);
+  b.add_output<decl::Float>("Fac").no_muted_links();
+  b.add_output<decl::Color>("Color").no_muted_links();
 };
 
-static bNodeSocketTemplate sh_node_tex_noise_out[] = {
-    {SOCK_FLOAT,
-     N_("Fac"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_FACTOR,
-     SOCK_NO_INTERNAL_LINK},
-    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
-    {-1, ""},
-};
+}  // namespace blender::nodes
 
 static void node_shader_init_tex_noise(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -252,7 +245,7 @@ void register_node_type_sh_tex_noise(void)
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_NOISE, "Noise Texture", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_noise_in, sh_node_tex_noise_out);
+  ntype.declare = blender::nodes::sh_node_tex_noise_declare;
   node_type_init(&ntype, node_shader_init_tex_noise);
   node_type_storage(
       &ntype, "NodeTexNoise", node_free_standard_storage, node_copy_standard_storage);

@@ -19,33 +19,22 @@
 
 #include "../node_shader_util.h"
 
-/* **************** MUSGRAVE ******************** */
+namespace blender::nodes {
 
-static bNodeSocketTemplate sh_node_tex_musgrave_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_FLOAT, N_("W"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Scale"), 5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Detail"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 16.0f},
-    {SOCK_FLOAT, N_("Dimension"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Lacunarity"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Offset"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Gain"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {-1, ""},
+static void sh_node_tex_musgrave_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>("Vector").hide_value();
+  b.add_input<decl::Float>("W").min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f);
+  b.add_input<decl::Float>("Detail").min(0.0f).max(16.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Dimension").min(0.0f).max(1000.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Lacunarity").min(0.0f).max(1000.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Offset").min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>("Gain").min(0.0f).max(1000.0f).default_value(1.0f);
+  b.add_output<decl::Float>("Fac").no_muted_links();
 };
 
-static bNodeSocketTemplate sh_node_tex_musgrave_out[] = {
-    {SOCK_FLOAT,
-     N_("Fac"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_FACTOR,
-     SOCK_NO_INTERNAL_LINK},
-    {-1, ""},
-};
+}  // namespace blender::nodes
 
 static void node_shader_init_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -139,7 +128,7 @@ void register_node_type_sh_tex_musgrave(void)
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_MUSGRAVE, "Musgrave Texture", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_musgrave_in, sh_node_tex_musgrave_out);
+  ntype.declare = blender::nodes::sh_node_tex_musgrave_declare;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, node_shader_init_tex_musgrave);
   node_type_storage(
