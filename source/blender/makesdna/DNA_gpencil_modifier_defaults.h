@@ -283,7 +283,20 @@
     .colorband = NULL, \
   }
 
-#define _DNA_DEFAULT_WeightGpencilModifierData \
+#define _DNA_DEFAULT_WeightProxGpencilModifierData \
+  { \
+    .target_vgname = "", \
+    .material = NULL, \
+    .layername = "", \
+    .vgname = "", \
+    .pass_index = 0, \
+    .flag = 0, \
+    .layer_pass = 0, \
+    .dist_start = 0.0f, \
+    .dist_end = 20.0f, \
+  }
+
+#define _DNA_DEFAULT_WeightAngleGpencilModifierData \
   { \
     .target_vgname = "", \
     .material = NULL, \
@@ -293,8 +306,6 @@
     .flag = 0, \
     .axis = 1, \
     .layer_pass = 0, \
-    .dist_start = 0.0f, \
-    .dist_end = 20.0f, \
   }
 
 #define _DNA_DEFAULT_LineartGpencilModifierData \

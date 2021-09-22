@@ -58,11 +58,11 @@
 
 static void initData(GpencilModifierData *md)
 {
-  WeightGpencilModifierData *gpmd = (WeightGpencilModifierData *)md;
+  WeightProxGpencilModifierData *gpmd = (WeightProxGpencilModifierData *)md;
 
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
 
-  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(WeightGpencilModifierData), modifier);
+  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(WeightProxGpencilModifierData), modifier);
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
@@ -72,7 +72,7 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 
 /* Calc distance between point and target object. */
 static float calc_point_weight_by_distance(Object *ob,
-                                           WeightGpencilModifierData *mmd,
+                                           WeightProxGpencilModifierData *mmd,
                                            const float dist_max,
                                            const float dist_min,
                                            bGPDspoint *pt)
@@ -103,9 +103,8 @@ static void deformStroke(GpencilModifierData *md,
                          bGPDframe *UNUSED(gpf),
                          bGPDstroke *gps)
 {
-  WeightGpencilModifierData *mmd = (WeightGpencilModifierData *)md;
+  WeightProxGpencilModifierData *mmd = (WeightProxGpencilModifierData *)md;
   const int def_nr = BKE_object_defgroup_name_index(ob, mmd->vgname);
-  const eWeightGpencilModifierMode mode = mmd->mode;
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
@@ -130,20 +129,6 @@ static void deformStroke(GpencilModifierData *md,
     return;
   }
 
-  /* Use default Z up. */
-  float vec_axis[3] = {0.0f, 0.0f, 1.0f};
-  float axis[3] = {0.0f, 0.0f, 0.0f};
-  axis[mmd->axis] = 1.0f;
-  float vec_ref[3];
-  /* Apply modifier rotation (sub 90 degrees for Y axis due Z-Up vector). */
-  float rot_angle = mmd->angle - ((mmd->axis == 1) ? M_PI_2 : 0.0f);
-  rotate_normalized_v3_v3v3fl(vec_ref, vec_axis, axis, rot_angle);
-
-  /* Apply the rotation of the object. */
-  if (mmd->space == GP_SPACE_LOCAL) {
-    mul_mat3_m4_v3(ob->obmat, vec_ref);
-  }
-
   /* Ensure there is a vertex group. */
   BKE_gpencil_dvert_ensure(gps);
 
@@ -157,36 +142,9 @@ static void deformStroke(GpencilModifierData *md,
       continue;
     }
 
-    switch (mode) {
-      case GP_WEIGHT_MODE_DISTANCE: {
-        if (mmd->object) {
-          bGPDspoint *pt = &gps->points[i];
-          weight_pt = calc_point_weight_by_distance(ob, mmd, dist_max, dist_min, pt);
-        }
-        break;
-      }
-      case GP_WEIGHT_MODE_ANGLE: {
-        /* Special case for single points. */
-        if (gps->totpoints == 1) {
-          weight_pt = 1.0f;
-          break;
-        }
-
-        bGPDspoint *pt1 = (i > 0) ? &gps->points[i] : &gps->points[i + 1];
-        bGPDspoint *pt2 = (i > 0) ? &gps->points[i - 1] : &gps->points[i];
-        float fpt1[3], fpt2[3];
-        mul_v3_m4v3(fpt1, ob->obmat, &pt1->x);
-        mul_v3_m4v3(fpt2, ob->obmat, &pt2->x);
-
-        float vec[3];
-        sub_v3_v3v3(vec, fpt1, fpt2);
-        float angle = angle_on_axis_v3v3_v3(vec_ref, vec, axis);
-        /* Use sin to get a value between 0 and 1. */
-        weight_pt = 1.0f - sin(angle);
-        break;
-      }
-      default:
-        break;
+    if (mmd->object) {
+      bGPDspoint *pt = &gps->points[i];
+      weight_pt = calc_point_weight_by_distance(ob, mmd, dist_max, dist_min, pt);
     }
 
     /* Invert weight if required. */
@@ -198,7 +156,7 @@ static void deformStroke(GpencilModifierData *md,
     if (dvert != NULL) {
       MDeformWeight *dw = BKE_defvert_ensure_index(dvert, target_def_nr);
       if (dw) {
-        dw->weight = (mmd->flag & GP_WEIGHT_BLEND_DATA) ? dw->weight * weight_pt : weight_pt;
+        dw->weight = (mmd->flag & GP_WEIGHT_MULTIPLY_DATA) ? dw->weight * weight_pt : weight_pt;
         CLAMP(dw->weight, mmd->min_weight, 1.0f);
       }
     }
@@ -223,7 +181,7 @@ static void bakeModifier(struct Main *UNUSED(bmain),
 
 static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
-  WeightGpencilModifierData *mmd = (WeightGpencilModifierData *)md;
+  WeightProxGpencilModifierData *mmd = (WeightProxGpencilModifierData *)md;
 
   walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
   walk(userData, ob, (ID **)&mmd->object, IDWALK_CB_NOP);
@@ -233,7 +191,7 @@ static void updateDepsgraph(GpencilModifierData *md,
                             const ModifierUpdateDepsgraphContext *ctx,
                             const int UNUSED(mode))
 {
-  WeightGpencilModifierData *mmd = (WeightGpencilModifierData *)md;
+  WeightProxGpencilModifierData *mmd = (WeightProxGpencilModifierData *)md;
   if (mmd->object != NULL) {
     DEG_add_object_relation(
         ctx->node, mmd->object, DEG_OB_COMP_TRANSFORM, "GPencil Weight Modifier");
@@ -244,54 +202,36 @@ static void updateDepsgraph(GpencilModifierData *md,
 
 static bool isDisabled(GpencilModifierData *md, int UNUSED(userRenderParams))
 {
-  WeightGpencilModifierData *mmd = (WeightGpencilModifierData *)md;
+  WeightProxGpencilModifierData *mmd = (WeightProxGpencilModifierData *)md;
 
-  return (mmd->target_vgname[0] == '\0');
+  return ((mmd->target_vgname[0] == '\0') || (mmd->object == NULL));
 }
 
-static void distance_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
-  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
-
-  uiLayout *layout = panel->layout;
-  uiLayoutSetPropSep(layout, true);
-
-  uiItemR(layout, ptr, "object", 0, NULL, ICON_CUBE);
-  uiLayout *sub = uiLayoutColumn(layout, true);
-  uiItemR(sub, ptr, "distance_start", 0, NULL, ICON_NONE);
-  uiItemR(sub, ptr, "distance_end", 0, "End", ICON_NONE);
-}
-
-static void panel_draw(const bContext *C, Panel *panel)
-{
+  uiLayout *row, *sub;
   uiLayout *layout = panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   uiLayoutSetPropSep(layout, true);
-  uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
+  row = uiLayoutRow(layout, true);
+  uiItemPointerR(row, ptr, "target_vertex_group", &ob_ptr, "vertex_groups", NULL, ICON_NONE);
+  sub = uiLayoutRow(row, true);
+  bool has_output = RNA_string_length(ptr, "target_vertex_group") != 0;
+  uiLayoutSetPropDecorate(sub, false);
+  uiLayoutSetActive(sub, has_output);
+  uiItemR(sub, ptr, "use_invert_output", 0, "", ICON_ARROW_LEFTRIGHT);
 
-  const eWeightGpencilModifierMode mode = RNA_enum_get(ptr, "mode");
+  uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
 
-  uiItemPointerR(layout, ptr, "target_vertex_group", &ob_ptr, "vertex_groups", NULL, ICON_NONE);
+  sub = uiLayoutColumn(layout, true);
+  uiItemR(sub, ptr, "distance_start", 0, NULL, ICON_NONE);
+  uiItemR(sub, ptr, "distance_end", 0, NULL, ICON_NONE);
 
   uiItemR(layout, ptr, "minimum_weight", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "use_invert_output", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "use_blend", 0, NULL, ICON_NONE);
-
-  switch (mode) {
-    case GP_WEIGHT_MODE_DISTANCE:
-      distance_panel_draw(C, panel);
-      break;
-    case GP_WEIGHT_MODE_ANGLE:
-      uiItemR(layout, ptr, "angle", 0, NULL, ICON_NONE);
-      uiItemR(layout, ptr, "axis", 0, NULL, ICON_NONE);
-      uiItemR(layout, ptr, "space", 0, NULL, ICON_NONE);
-      break;
-    default:
-      break;
-  }
+  uiItemR(layout, ptr, "use_multiply", 0, NULL, ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }
@@ -304,16 +244,16 @@ static void mask_panel_draw(const bContext *UNUSED(C), Panel *panel)
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
-      region_type, eGpencilModifierType_Weight, panel_draw);
+      region_type, eGpencilModifierType_WeightProximity, panel_draw);
 
   gpencil_modifier_subpanel_register(
       region_type, "mask", "Influence", NULL, mask_panel_draw, panel_type);
 }
 
-GpencilModifierTypeInfo modifierType_Gpencil_Weight = {
-    /* name */ "Vertex Weight",
-    /* structName */ "WeightGpencilModifierData",
-    /* structSize */ sizeof(WeightGpencilModifierData),
+GpencilModifierTypeInfo modifierType_Gpencil_WeightProximity = {
+    /* name */ "Vertex Weight Proximity",
+    /* structName */ "WeightProxGpencilModifierData",
+    /* structSize */ sizeof(WeightProxGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,
     /* flags */ 0,
 
