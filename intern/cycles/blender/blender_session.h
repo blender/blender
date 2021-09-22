@@ -29,6 +29,7 @@
 
 CCL_NAMESPACE_BEGIN
 
+class BlenderGPUDisplay;
 class BlenderSync;
 class ImageMetaData;
 class Scene;
@@ -158,6 +159,9 @@ class BlenderSession {
     thread_mutex mutex;
     int last_pass_index = -1;
   } draw_state_;
+
+  /* NOTE: The BlenderSession references the GPU display. */
+  BlenderGPUDisplay *gpu_display_ = nullptr;
 
   vector<string> full_buffer_files_;
 };

@@ -158,7 +158,9 @@ void BlenderSession::create_session()
 
   /* Create GPU display. */
   if (!b_engine.is_preview() && !headless) {
-    session->set_gpu_display(make_unique<BlenderGPUDisplay>(b_engine, b_scene));
+    unique_ptr<BlenderGPUDisplay> gpu_display = make_unique<BlenderGPUDisplay>(b_engine, b_scene);
+    gpu_display_ = gpu_display.get();
+    session->set_gpu_display(move(gpu_display));
   }
 
   /* Viewport and preview (as in, material preview) does not do tiled rendering, so can inform
@@ -877,6 +879,9 @@ void BlenderSession::draw(BL::SpaceImageEditor &space_image)
 
     draw_state_.last_pass_index = pass_index;
   }
+
+  BL::Array<float, 2> zoom = space_image.zoom();
+  gpu_display_->set_zoom(zoom[0], zoom[1]);
 
   session->draw();
 }

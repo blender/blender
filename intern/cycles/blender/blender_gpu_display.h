@@ -107,6 +107,8 @@ class BlenderGPUDisplay : public GPUDisplay {
 
   virtual void clear() override;
 
+  void set_zoom(float zoom_x, float zoom_y);
+
  protected:
   virtual bool do_update_begin(const GPUDisplayParams &params,
                                int texture_width,
@@ -206,6 +208,8 @@ class BlenderGPUDisplay : public GPUDisplay {
 
   void *gl_render_sync_ = nullptr;
   void *gl_upload_sync_ = nullptr;
+
+  float2 zoom_ = make_float2(1.0f, 1.0f);
 };
 
 CCL_NAMESPACE_END

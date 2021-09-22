@@ -475,6 +475,11 @@ void BlenderGPUDisplay::clear()
   texture_.need_clear = true;
 }
 
+void BlenderGPUDisplay::set_zoom(float zoom_x, float zoom_y)
+{
+  zoom_ = make_float2(zoom_x, zoom_y);
+}
+
 void BlenderGPUDisplay::do_draw(const GPUDisplayParams &params)
 {
   /* See do_update_begin() for why no locking is required here. */
@@ -507,6 +512,27 @@ void BlenderGPUDisplay::do_draw(const GPUDisplayParams &params)
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture_.gl_id);
+
+  /* Trick to keep sharp rendering without jagged edges on all GPUs.
+   *
+   * The idea here is to enforce driver to use linear interpolation when the image is not zoomed
+   * in.
+   * For the render result with a resolution divider in effect we always use nearest interpolation.
+   *
+   * Use explicit MIN assignment to make sure the driver does not have an undefined behavior at
+   * the zoom level 1. The MAG filter is always NEAREST. */
+  const float zoomed_width = params.size.x * zoom_.x;
+  const float zoomed_height = params.size.y * zoom_.y;
+  if (texture_.width != params.size.x || texture_.height != params.size.y) {
+    /* Resolution divider is different from 1, force enarest interpolation. */
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  }
+  else if (zoomed_width - params.size.x > 0.5f || zoomed_height - params.size.y > 0.5f) {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  }
+  else {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  }
 
   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
 
