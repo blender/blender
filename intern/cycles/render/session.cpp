@@ -430,7 +430,8 @@ void Session::do_delayed_reset()
 
   /* Progress. */
   progress.reset_sample();
-  progress.set_total_pixel_samples(buffer_params_.width * buffer_params_.height * params.samples);
+  progress.set_total_pixel_samples(static_cast<uint64_t>(buffer_params_.width) *
+                                   buffer_params_.height * params.samples);
 
   if (!params.background) {
     progress.set_start_time();
