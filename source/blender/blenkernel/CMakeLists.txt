@@ -96,6 +96,9 @@ set(SRC
   intern/boids.c
   intern/bpath.c
   intern/brush.c
+  intern/brush_channel_define.h
+  intern/brush_engine.c
+  intern/brush_engine_presets.c
   intern/bvhutils.cc
   intern/cachefile.c
   intern/callbacks.c
@@ -116,6 +119,7 @@ set(SRC
   intern/curve_decimate.c
   intern/curve_deform.c
   intern/curve_eval.cc
+  intern/curvemapping_cache.c
   intern/curveprofile.c
   intern/customdata.c
   intern/customdata_file.c
@@ -289,9 +293,6 @@ set(SRC
   intern/workspace.c
   intern/world.c
   intern/writeavi.c
-  intern/brush_engine.c
-  intern/brush_engine_presets.c
-  intern/curvemapping_cache.c
 
   BKE_DerivedMesh.h
   BKE_action.h

@@ -159,8 +159,12 @@ ATTR_NO_OPT void BKE_brush_channeltype_rna_check(BrushChannelType *def,
   }
 
   for (int i = 0; i < ARRAY_SIZE(def->enumdef); i++) {
-    if (def->enumdef[i].value == -1) {
-      memset(def->rna_enumdef + i, 0, sizeof(*def->rna_enumdef));
+    if (def->enumdef[i].value == -1 || i == ARRAY_SIZE(def->enumdef) - 1) {
+      def->rna_enumdef[i].value = 0;
+      def->rna_enumdef[i].identifier = NULL;
+      def->rna_enumdef[i].icon = 0;
+      def->rna_enumdef[i].name = NULL;
+      def->rna_enumdef[i].value = 0;
       break;
     }
 
@@ -1266,24 +1270,22 @@ ATTR_NO_OPT static void bke_builtin_commandlist_create_paint(Brush *brush,
   cmd = BKE_brush_commandlist_add(cl, chset, true);
   BKE_brush_command_init(cmd, tool);
 
-  float radius = BKE_brush_channelset_get_float(chset, "radius", mapdata);
+  float radius = BRUSHSET_GET_FLOAT(chset, radius, mapdata);
 
   /* build autosmooth command */
-  float autosmooth_scale = BKE_brush_channelset_get_float(
-      chset, "autosmooth_radius_scale", mapdata);
-  float autosmooth_projection = BKE_brush_channelset_get_float(
-      chset, "autosmooth_projection", NULL);
+  float autosmooth_scale = BRUSHSET_GET_FLOAT(chset, autosmooth_radius_scale, mapdata);
+  float autosmooth_projection = BRUSHSET_GET_FLOAT(chset, autosmooth_projection, NULL);
 
   float autosmooth_spacing;
 
-  if (BKE_brush_channelset_get_int(chset, "autosmooth_use_spacing", mapdata)) {
-    autosmooth_spacing = BKE_brush_channelset_get_float(chset, "autosmooth_spacing", mapdata);
+  if (BRUSHSET_GET_INT(chset, autosmooth_use_spacing, mapdata)) {
+    autosmooth_spacing = BRUSHSET_GET_FLOAT(chset, autosmooth_spacing, mapdata);
   }
   else {
-    autosmooth_spacing = BKE_brush_channelset_get_float(chset, "spacing", mapdata);
+    autosmooth_spacing = BRUSHSET_GET_FLOAT(chset, spacing, mapdata);
   }
 
-  float autosmooth = BKE_brush_channelset_get_float(chset, "autosmooth", mapdata);
+  float autosmooth = BRUSHSET_GET_FLOAT(chset, autosmooth, mapdata);
   if (autosmooth > 0.0f) {
     cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true), SCULPT_TOOL_SMOOTH);
     float_set_uninherit(cmd->params, "strength", autosmooth);

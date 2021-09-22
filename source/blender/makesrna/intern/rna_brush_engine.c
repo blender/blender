@@ -253,7 +253,6 @@ static void rna_BrushChannel_enum_items_begin(CollectionPropertyIterator *iter, 
   /* EnumPropertyRNA *eprop; */ /* UNUSED */
   const EnumPropertyItem *item = NULL;
   int totitem;
-  bool free;
 
   BrushChannel *ch = (BrushChannel *)ptr->data;
 
@@ -268,7 +267,7 @@ static void rna_BrushChannel_enum_items_begin(CollectionPropertyIterator *iter, 
     item = null_enum;
 
     rna_iterator_array_begin(
-        iter, (void *)item, sizeof(EnumPropertyItem), 0, free, rna_enum_check_separator);
+        iter, (void *)item, sizeof(EnumPropertyItem), 0, false, rna_enum_check_separator);
     return;
   }
 
@@ -282,7 +281,7 @@ static void rna_BrushChannel_enum_items_begin(CollectionPropertyIterator *iter, 
   item = ch->def->rna_enumdef;
 
   rna_iterator_array_begin(
-      iter, (void *)item, sizeof(EnumPropertyItem), totitem, free, rna_enum_check_separator);
+      iter, (void *)item, sizeof(EnumPropertyItem), totitem, false, rna_enum_check_separator);
 }
 
 #endif

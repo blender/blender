@@ -1,3 +1,7 @@
+#pragma once
+
+#define BRUSH_CHANNEL_INTERN
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
@@ -53,24 +57,29 @@ To enable converting to/from old data:
 #define ICON_NONE "NONE"
 
 /* clang-format off */
-#define MAKE_FLOAT_EX_OPEN(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1) \
+#define MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled, pressure_inv) \
   {.name = name1, \
-   .idname = idname1, \
+   .idname = #idname1, \
    .fvalue = value1,\
    .tooltip = tooltip1, \
    .min = min1,\
    .max = max1,\
    .soft_min = smin1,\
    .soft_max = smax1,\
-   .type = BRUSH_CHANNEL_FLOAT
+   .type = BRUSH_CHANNEL_FLOAT,\
+   .mappings = {\
+        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0f, .min = 0.0f, .max = 1.0f, .enabled = pressure_enabled, .inv = pressure_inv},\
+    }\
+},
+#define MAKE_FLOAT_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled)\
+MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled, false)
+#define MAKE_FLOAT_EX_INV(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled)\
+MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled, true)
 
-#define MAKE_FLOAT_EX(idname, name, tooltip, value, min, max, smin, smax) \
-  MAKE_FLOAT_EX_OPEN(idname, name, tooltip, value, min, max, smin, smax) }
-
-#define MAKE_FLOAT(idname, name, tooltip, value, min, max) MAKE_FLOAT_EX(idname, name, tooltip, value, min, max, min, max)
+#define MAKE_FLOAT(idname, name, tooltip, value, min, max) MAKE_FLOAT_EX(idname, name, tooltip, value, min, max, min, max, false)
 
 #define MAKE_COLOR3(idname1, name1, tooltip1, r, g, b){\
-  .idname = idname1, \
+  .idname = #idname1, \
   .name = name1, \
   .tooltip = tooltip1, \
   .type = BRUSH_CHANNEL_VEC3,\
@@ -78,10 +87,10 @@ To enable converting to/from old data:
   .min = 0.0f, .max = 5.0f,\
   .soft_min = 0.0f, .soft_max = 1.0f,\
   .flag = BRUSH_CHANNEL_COLOR,\
-}
+},
 
 #define MAKE_COLOR4(idname1, name1, tooltip1, r, g, b, a){\
-  .idname = idname1, \
+  .idname = #idname1, \
   .name = name1, \
   .tooltip = tooltip1, \
   .type = BRUSH_CHANNEL_VEC4,\
@@ -89,12 +98,11 @@ To enable converting to/from old data:
   .min = 0.0f, .max = 5.0f,\
   .soft_min = 0.0f, .soft_max = 1.0f,\
   .flag = BRUSH_CHANNEL_COLOR,\
-}
-
+},
 
 #define MAKE_INT_EX_OPEN(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1) \
   {.name = name1, \
-   .idname = idname1, \
+   .idname = #idname1, \
    .tooltip = tooltip1, \
    .min = min1,\
    .max = max1,\
@@ -104,20 +112,44 @@ To enable converting to/from old data:
    .type = BRUSH_CHANNEL_INT
 
 #define MAKE_INT_EX(idname, name, tooltip, value, min, max, smin, smax) \
-  MAKE_INT_EX_OPEN(idname, name, tooltip, value, min, max, smin, smax) }
+  MAKE_INT_EX_OPEN(idname, name, tooltip, value, min, max, smin, smax) },
 
 #define MAKE_INT(idname, name, tooltip, value, min, max) MAKE_INT_EX(idname, name, tooltip, value, min, max, min, max)
 
-#define MAKE_BOOL_EX_OPEN(idname1, name1, tooltip1, value1)\
+#define MAKE_BOOL_EX(idname1, name1, tooltip1, value1, flag1)\
   {.name = name1, \
-   .idname = idname1, \
+   .idname = #idname1, \
    .tooltip = tooltip1, \
    .ivalue = value1,\
-   .type = BRUSH_CHANNEL_BOOL
+   .flag = flag1,\
+   .type = BRUSH_CHANNEL_BOOL\
+  },
 
 #define MAKE_BOOL(idname, name, tooltip, value)\
-  MAKE_BOOL_EX_OPEN(idname, name, tooltip, value) }
+  MAKE_BOOL_EX(idname, name, tooltip, value, 0)
 
+#define MAKE_ENUM_EX(idname1, name1, tooltip1, value1, enumdef1, flag1)\
+{.name = name1,\
+ .idname = #idname1,\
+ .tooltip = tooltip1,\
+ .ivalue = value1,\
+ .flag = flag1,\
+ .type = BRUSH_CHANNEL_ENUM,\
+ .rna_enumdef = NULL,\
+ .enumdef = enumdef1\
+},
+#define MAKE_FLAGS_EX(idname1, name1, tooltip1, value1, enumdef1, flag1)\
+{.name = name1,\
+ .idname = #idname1,\
+ .tooltip = tooltip1,\
+ .ivalue = value1,\
+ .flag = flag1,\
+ .type = BRUSH_CHANNEL_BITMASK,\
+ .rna_enumdef = NULL,\
+ .enumdef = enumdef1\
+},
+#define MAKE_FLAGS(idname1, name1, tooltip1, value1, enumdef1) MAKE_FLAGS_EX(idname1, name1, tooltip1, value1, enumdef1, 0) 
+#define MAKE_ENUM(idname1, name1, tooltip1, value1, enumdef1) MAKE_ENUM_EX(idname1, name1, tooltip1, value1, enumdef1, 0) 
 
 /*
 This is where all the builtin brush channels are defined.
@@ -125,375 +157,11 @@ That includes per-brush enums and bitflags!
 */
 
 /* clang-format off */
-BrushChannelType brush_builtin_channels[] = {
-  {
-    .name = "Radius",
-    .idname = "radius",
-    .min = 0.001f,
-    .type = BRUSH_CHANNEL_FLOAT,
-    .max = 2048.0f,
-    .fvalue = 50.0f,
-    .soft_min = 0.1f,
-    .soft_max = 1024.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0f, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-  },
 
-    {
-    .name = "Strength",
-    .idname = "strength",
-    .min = -1.0f,
-    .type = BRUSH_CHANNEL_FLOAT,
-    .max = 4.0f,
-    .fvalue = 0.5f,
-    .soft_min = 0.0f,
-    .soft_max = 1.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0f, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-  },
-   {
-    .name = "Alpha",
-    .idname = "alpha",
-    .type = BRUSH_CHANNEL_FLOAT,
-    .min = 0.0f,
-    .max = 1.0f,
-    .fvalue = 1.0f,
-    .soft_min = 0.0f,
-    .soft_max = 1.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0f, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-   },
-   {
-    .name = "Spacing",
-    .idname = "spacing",
-    .min = 1.0f,
-    .type = BRUSH_CHANNEL_INT,
-    .max = 500.0f,
-    .fvalue = 10.0f,
-    .soft_min = 1.0f,
-    .soft_max = 500.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-  },
-    {
-    .name = "Autosmooth",
-    .idname = "autosmooth",
-    .type = BRUSH_CHANNEL_FLOAT,
-    .min = -1.0f,
-    .max = 4.0f,
-    .soft_min = 0.0f,
-    .soft_max = 1.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0, .min = 0.0f, .max = 1.0f, .enabled = false, .inv = true},
-    }
-  },
-    {
-    .name = "Topology Rake",
-    .idname = "topology_rake",
-    .type = BRUSH_CHANNEL_FLOAT,
-    .min = -1.0f,
-    .max = 4.0f,
-    .soft_min = 0.0f,
-    .soft_max = 1.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-  },
-  {
-    .name = "Autosmooth Radius Scale",
-    .idname = "autosmooth_radius_scale",
-    .type = BRUSH_CHANNEL_FLOAT,
-    .min = 0.0001f,
-    .max = 25.0f,
-    .fvalue = 1.0f,
-    .soft_min = 0.1f,
-    .soft_max = 4.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-  },
-  {
-    .name = "Rake Radius Scale",
-    .idname = "topology_rake_radius_scale",
-    .type = BRUSH_CHANNEL_FLOAT,
-    .min = 0.0001f,
-    .max = 25.0f,
-    .fvalue = 1.0f,
-    .soft_min = 0.1f,
-    .soft_max = 4.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-  },
-  {
-    .name = "Face Set Slide",
-    .idname = "fset_slide",
-    .type = BRUSH_CHANNEL_FLOAT,
-    .min = 0.0001f,
-    .max = 1.0f,
-    .fvalue = 1.0f,
-    .soft_min = 0.0f,
-    .soft_max = 1.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-  },
-  {
-    .name = "Boundary Smooth",
-    .idname = "boundary_smooth",
-    .type = BRUSH_CHANNEL_FLOAT,
-    .min = 0.0001f,
-    .max = 1.0f,
-    .soft_min = 0.1f,
-    .soft_max = 1.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-  },
-   {
-    .name = "Projection",
-    .idname = "projection",
-    .type = BRUSH_CHANNEL_FLOAT,
-    .min = 0.0001f,
-    .max = 1.0f,
-    .soft_min = 0.1f,
-    .soft_max = 1.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-  },
-   {
-     .name = "Use Spacing",
-     .idname = "topology_rake_use_spacing",
-     .type = BRUSH_CHANNEL_BOOL,
-     .ivalue = 0
-   },
-   {
-     .name = "Use Spacing",
-     .idname = "autosmooth_use_spacing",
-     .type = BRUSH_CHANNEL_BOOL,
-     .ivalue = 0
-   },
-   {
-    .name = "Projection",
-    .idname = "autosmooth_projection",
-    .type = BRUSH_CHANNEL_FLOAT,
-    .min = 0.0001f,
-    .max = 1.0f,
-    .soft_min = 0.1f,
-    .soft_max = 1.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-  },
-  {
-    .name = "Projection",
-    .idname = "topology_rake_projection",
-    .type = BRUSH_CHANNEL_FLOAT,
-    .min = 0.0001f,
-    .max = 1.0f,
-    .fvalue = 0.975f,
-    .soft_min = 0.1f,
-    .soft_max = 1.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-  },
-    {
-    .name = "Spacing",
-    .idname = "topology_rake_spacing",
-    .type = BRUSH_CHANNEL_FLOAT,
-    .min = 0.0001f,
-    .max = 1.0f,
-    .fvalue = 13.0f,
-    .soft_min = 0.1f,
-    .soft_max = 100.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-  },
-    {
-    .name = "Spacing",
-    .idname = "autosmooth_spacing",
-    .type = BRUSH_CHANNEL_FLOAT,
-    .min = 0.0001f,
-    .max = 1.0f,
-    .fvalue = 13.0f,
-    .soft_min = 0.1f,
-    .soft_max = 100.0f,
-    .mappings = {
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0, .min = 0.0f, .max = 1.0f, .enabled = false},
-    }
-  },
-  
-  {
-    .name = "Topology Rake Mode",
-    .idname = "topology_rake_mode",
-    .type = BRUSH_CHANNEL_ENUM,
-    .enumdef = {
-      {0, "BRUSH_DIRECTION", ICON_NONE, "Stroke", "Stroke Direction"},
-      {1, "CURVATURE", ICON_NONE, "Curvature", "Follow mesh curvature"},
-      {-1}
-    }
-  },
-   {
-     .name = "Automasking",
-     .idname = "automasking",
-     .flag = BRUSH_CHANNEL_INHERIT_IF_UNSET,
-     .type = BRUSH_CHANNEL_BITMASK,
-     .enumdef = {
-         {BRUSH_AUTOMASKING_BOUNDARY_EDGES, "BOUNDARY_EDGE", ICON_NONE, "Boundary Edges", ""},
-         {BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS, "BOUNDARY_FACE_SETS", ICON_NONE, "Boundary Face Sets", ""},
-         {BRUSH_AUTOMASKING_CONCAVITY, "CONCAVITY", ICON_NONE, "Concave", ""},
-         {BRUSH_AUTOMASKING_INVERT_CONCAVITY, "INVERT_CONCAVITY", ICON_NONE, "Invert Concave", "Invert Concave Map"},
-         {BRUSH_AUTOMASKING_FACE_SETS, "FACE_SETS", ICON_NONE, "Face Sets", ""},
-         {BRUSH_AUTOMASKING_TOPOLOGY, "TOPOLOGY", ICON_NONE, "Topology", ""},
-         {-1}
-      }
-   },
-   {
-     .name = "Disable Dyntopo",
-     .idname = "dyntopo_disabled",
-     .type = BRUSH_CHANNEL_BOOL,
-     .flag = BRUSH_CHANNEL_NO_MAPPINGS,
-     .ivalue = 0
-   },
-    {
-      .name = "Operations",
-      .idname = "dyntopo_mode",
-      .type = BRUSH_CHANNEL_BITMASK,
-      .flag = BRUSH_CHANNEL_INHERIT,
-      .ivalue = DYNTOPO_COLLAPSE | DYNTOPO_CLEANUP | DYNTOPO_SUBDIVIDE,
-      .enumdef = {
-        {DYNTOPO_COLLAPSE, "COLLAPSE", ICON_NONE, "Collapse", ""},
-        {DYNTOPO_SUBDIVIDE, "SUBDIVIDE", ICON_NONE, "Subdivide", ""},
-        {DYNTOPO_CLEANUP, "CLEANUP", ICON_NONE, "Cleanup", ""},
-        {DYNTOPO_LOCAL_COLLAPSE, "LOCAL_COLLAPSE", ICON_NONE, "Local Collapse", ""},
-        {DYNTOPO_LOCAL_SUBDIVIDE, "LOCAL_SUBDIVIDE", ICON_NONE, "Local Subdivide", ""},
-        {-1}
-      }
-    },
-   {
-     .name = "Slide Deform Type",
-     .idname = "slide_deform_type",
-     .ivalue = BRUSH_SLIDE_DEFORM_DRAG,
-     .type = BRUSH_CHANNEL_ENUM,
-     .enumdef = {
-       {BRUSH_SLIDE_DEFORM_DRAG, "DRAG", ICON_NONE, "Drag", ""},
-       {BRUSH_SLIDE_DEFORM_PINCH, "PINCH", ICON_NONE, "Pinch", ""},
-       {BRUSH_SLIDE_DEFORM_EXPAND, "EXPAND", ICON_NONE, "Expand", ""},
-       {-1}
-      }
-   },
-   {
-      .name = "Normal Radius",
-      .idname = "normal_radius_factor",
-      .tooltip = "Ratio between the brush radius and the radius that is going to be "
-                            "used to sample the normal",
-      .type = BRUSH_CHANNEL_FLOAT,
-      .min = 0.0f,
-      .max = 2.0f,
-      .soft_min = 0.0f,
-      .soft_max = 2.0f,
-   },
-   {
-      .name = "Hardness",
-      .idname = "hardness",
-      .tooltip = "Brush hardness",
-      .type = BRUSH_CHANNEL_FLOAT,
-      .fvalue = 0.0f,
-      .min = 0.0f,
-      .max = 1.0f,
-      .soft_min = 0.0f,
-      .soft_max = 1.0f
-   },
-      {
-      .name = "Tip Roundness",
-      .idname = "tip_roundness",
-      .tooltip = "",
-      .type = BRUSH_CHANNEL_FLOAT,
-      .fvalue = 0.0f,
-      .min = 0.0f,
-      .max = 1.0f,
-      .soft_min = 0.0f,
-      .soft_max = 1.0f
-   },
-   {
-      .name = "Accumulate",
-      .idname = "accumulate",
-      .type = BRUSH_CHANNEL_BOOL,
-      .ivalue = 0
-   },
-   { /*this one is weird, it's an enum pretending to be a bool,
-     that was how it was in in original rna too*/
-
-     .name = "Direction",
-     .idname = "direction",
-     .ivalue = 0,
-     .type = BRUSH_CHANNEL_ENUM,
-     .enumdef = {
-        {0, "ADD", "ADD", "Add", "Add effect of brush"},
-        {1, "SUBTRACT", "REMOVE", "Subtract", "Subtract effect of brush"},
-        {-1}
-     }
-   },
-    MAKE_FLOAT("normal_weight", "Normal Weight", "", 0.0f, 0.0f, 1.0f),
-    MAKE_FLOAT("rake_factor", "Rake Factor",  "How much grab will follow cursor rotation", 0.0f, 0.0f, 10.0f),
-    MAKE_FLOAT("weight", "Weight", "", 0.5f, 0.0f, 1.0f),
-    MAKE_FLOAT("jitter", "Jitter",  "Jitter the position of the brush while painting", 0.0f, 0.0f, 1.0f),
-    MAKE_INT("jitter_absolute", "Absolute Jitter", "", 0, 0.0f, 1000.0f),
-    MAKE_FLOAT("smooth_stroke_radius", "Smooth Stroke Radius", "Minimum distance from last point before stroke continues", 10.0f, 10.0f, 200.0f),
-    MAKE_FLOAT("smooth_stroke_factor", "Smooth Stroke Factor", "", 0.5f, 0.5f, 0.99f),
-    MAKE_FLOAT_EX("rate", "Rate", "", 0.5, 0.0001f, 10000.0f, 0.01f, 1.0f),
-    MAKE_FLOAT("flow", "Flow", "Amount of paint that is applied per stroke sample", 0.0f, 0.0f, 1.0f),
-    MAKE_FLOAT("wet_mix", "Wet Mix", "Amount of paint that is picked from the surface into the brush color", 0.0f, 0.0f, 1.0f),
-    MAKE_FLOAT("wet_persistence", "Wet Persistence", "Amount of wet paint that stays in the brush after applying paint to the surface", 0.0f, 0.0f, 1.0f),
-    MAKE_FLOAT("density", "Density", "Amount of random elements that are going to be affected by the brush", 0.0f, 0.0f, 1.0f),
-    MAKE_FLOAT("tip_scale_x", "Tip Scale X", "Scale of the brush tip in the X axis", 0.0f, 0.0f, 1.0f),
-    MAKE_FLOAT("dash_ratio", "Dash Ratio", "Ratio of samples in a cycle that the brush is enabled", 0.0f, 0.0f, 1.0f),
-    MAKE_FLOAT_EX("plane_offset", "Plane Offset", "Adjust plane on which the brush acts towards or away from the object surface", 0.0f, -2.0f, 2.0f, -0.5f, 0.5f),
-    MAKE_BOOL("original_normal", "Original Normal", "When locked keep using normal of surface where stroke was initiated", false),
-    MAKE_BOOL("original_plane", "Original Plane", "When locked keep using the plane origin of surface where stroke was initiated", false),
-    MAKE_BOOL("use_weighted_smooth", "Weight By Area", "Weight by face area to get a smoother result", true),
-    MAKE_BOOL("preserve_faceset_boundary", "Keep FSet Boundary", "Preserve face set boundaries", true),
-    MAKE_BOOL("hard_edge_mode", "Hard Edge Mode", "Forces all brushes into hard edge face set mode (sets face set slide to 0)", false),
-    MAKE_BOOL("grab_silhouette", "Grab Silhouette", "Grabs trying to automask the silhouette of the object", false),
-    MAKE_FLOAT("dyntopo_detail_percent", "Detail Percent", "Detail Percent", 25.0f, 0.0f, 1000.0f),
-    MAKE_FLOAT("dyntopo_detail_range", "Detail Range", "Detail Range", 0.45f, 0.01f, 0.99f),
-    MAKE_FLOAT_EX("dyntopo_detail_size", "Detail Size", "Detail Size", 8.0f, 0.1f, 100.0f, 0.001f, 500.0f),
-    MAKE_FLOAT_EX("dyntopo_constant_detail", "Constaint Detail", "", 3.0f, 0.001f, 1000.0f, 0.0001, FLT_MAX),
-    MAKE_FLOAT_EX("dyntopo_spacing", "Spacing", "Dyntopo Spacing", 35.0f, 0.01f, 300.0f, 0.001f, 50000.0f),
-    MAKE_FLOAT_EX("dyntopo_radius_scale", "Radius Scale", "Scale brush radius for dyntopo radius", 1.0f, 0.001f, 3.0f, 0.0001f, 100.0f),
-    MAKE_FLOAT("concave_mask_factor", "Cavity Factor", "", 0.35f, 0.0f, 1.0f),
-    MAKE_INT_EX("automasking_boundary_edges_propagation_steps", "Propagation Steps",
-      "Distance where boundary edge automasking is going to protect vertices "
-                           "from the fully masked edge", 1, 1, 20, 1, 3),
-    MAKE_COLOR4("cursor_color_add", "Add Color", "Color of cursor when adding", 1.0f, 0.39f, 0.39f, 1.0f),
-    MAKE_COLOR4("cursor_color_sub", "Subtract Color", "Color of cursor when subtracting", 0.39f, 0.39f, 1.0f, 1.0f),
-    MAKE_COLOR3("color", "Color", "", 1.0f, 1.0f, 1.0f),
-    MAKE_COLOR3("secondary_color", "Secondary Color", "", 0.0f, 0.0f, 0.0f),
-    MAKE_FLOAT("vcol_boundary_factor", "Boundary Hardening", "Automatically align edges on color boundaries"
-                           "to generate sharper features. ", 0.0f, 0.0f, 1.0f),
-    MAKE_FLOAT_EX("vcol_boundary_exponent", "Exponent", "Hardening exponent (smaller values make smoother edges)",
-                   1.0, 0.001f, 6.0f, 0.001, 3.0f),
-    MAKE_FLOAT_EX("vcol_boundary_radius_scale", "Radius Scale",
-      "Scale brush radius for vcol boundary hardening",
-      1.0f, 0.0001f, 100.0f, 0.001f, 3.0f),
-    MAKE_FLOAT_EX("vcol_boundary_spacing", "Spacing", "Spacing for vcol boundary hardening", 15, 0.25, 5000, 0.5, 300),
-     MAKE_BOOL("invert_to_scrape_fill","Invert to Scrape or Fill",
-                           "Use Scrape or Fill tool when inverting this brush instead of "
-                           "inverting its displacement direction", true),
-     MAKE_FLOAT("area_radius_factor", "Area Radius", "Ratio between the brush radius and the radius that is going to be "
-                           "used to sample the area center", 0.5f, 0.0f, 2.0f),
-    MAKE_BOOL("use_multiplane_scrape_dynamic", "Dynamic Mode",  "The angle between the planes changes during the stroke to fit the "
-                           "surface under the cursor", true),
-    MAKE_BOOL("show_multiplane_scrape_planes_preview", "Show Cursor Preview", "Preview the scrape planes in the cursor during the stroke", true),
-    MAKE_FLOAT("multiplane_scrape_angle", "Plane Angle", "Angle between the planes of the crease", 60.0f, 0.0f, 160.0f),
+BrushChannelType brush_builtin_channels[] = {    
+#include "brush_channel_define.h"
 };
+
 //BRUSH_INVERT_TO_SCRAPE_FILL
 /* clang-format on */
 const int brush_builtin_channel_len = ARRAY_SIZE(brush_builtin_channels);
@@ -539,8 +207,9 @@ ATTR_NO_OPT static bool check_builtin_init()
 #endif
 
 #define ADDCH(name) \
-  (BKE_brush_channelset_ensure_builtin(chset, name), BKE_brush_channelset_lookup(chset, name))
-#define GETCH(name) BKE_brush_channelset_lookup(chset, name)
+  (BKE_brush_channelset_ensure_builtin(chset, BRUSH_BUILTIN_##name), \
+   BKE_brush_channelset_lookup(chset, BRUSH_BUILTIN_##name))
+#define GETCH(name) BKE_brush_channelset_lookup(chset, BRUSH_BUILTIN_##name)
 
 /* clang-format off */
 #define DEF(brush_member, channel_name, btype, ctype) \
@@ -848,7 +517,6 @@ ATTR_NO_OPT void BKE_brush_channelset_compat_load_intern(BrushChannelSet *chset,
                                                          BrushSettingsMap *settings_map,
                                                          int settings_map_len)
 {
-
   for (int i = 0; i < settings_map_len; i++) {
     BrushSettingsMap *mp = settings_map + i;
     BrushChannel *ch = BKE_brush_channelset_lookup(chset, mp->channel_name);
@@ -936,59 +604,59 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
 
   BrushChannelSet *chset = brush->channels;
 
-  ADDCH("radius");
-  ADDCH("spacing");
-  ADDCH("strength");
+  ADDCH(radius);
+  ADDCH(spacing);
+  ADDCH(strength);
 
-  ADDCH("autosmooth");
-  ADDCH("autosmooth_radius_scale");
-  ADDCH("autosmooth_spacing");
-  ADDCH("autosmooth_use_spacing");
-  ADDCH("autosmooth_projection");
+  ADDCH(autosmooth);
+  ADDCH(autosmooth_radius_scale);
+  ADDCH(autosmooth_spacing);
+  ADDCH(autosmooth_use_spacing);
+  ADDCH(autosmooth_projection);
 
-  ADDCH("vcol_boundary_exponent");
-  ADDCH("vcol_boundary_factor");
-  ADDCH("vcol_boundary_radius_scale");
-  ADDCH("vcol_boundary_spacing");
+  ADDCH(vcol_boundary_exponent);
+  ADDCH(vcol_boundary_factor);
+  ADDCH(vcol_boundary_radius_scale);
+  ADDCH(vcol_boundary_spacing);
 
-  ADDCH("topology_rake");
-  ADDCH("topology_rake_mode");
-  ADDCH("topology_rake_radius_scale");
-  ADDCH("topology_rake_use_spacing");
-  ADDCH("topology_rake_spacing");
-  ADDCH("topology_rake_projection");
+  ADDCH(topology_rake);
+  ADDCH(topology_rake_mode);
+  ADDCH(topology_rake_radius_scale);
+  ADDCH(topology_rake_use_spacing);
+  ADDCH(topology_rake_spacing);
+  ADDCH(topology_rake_projection);
 
-  ADDCH("hardness");
-  ADDCH("tip_roundness");
-  ADDCH("normal_radius_factor");
+  ADDCH(hardness);
+  ADDCH(tip_roundness);
+  ADDCH(normal_radius_factor);
 
-  ADDCH("automasking");
-  ADDCH("automasking_boundary_edges_propagation_steps");
-  ADDCH("concave_mask_factor");
-  ADDCH("dyntopo_disabled");
-  ADDCH("dyntopo_mode")->flag |= BRUSH_CHANNEL_INHERIT;
-  ADDCH("dyntopo_detail_range")->flag |= BRUSH_CHANNEL_INHERIT;
-  ADDCH("dyntopo_detail_percent")->flag |= BRUSH_CHANNEL_INHERIT;
-  ADDCH("dyntopo_detail_size")->flag |= BRUSH_CHANNEL_INHERIT;
-  ADDCH("dyntopo_constant_detail")->flag |= BRUSH_CHANNEL_INHERIT;
-  ADDCH("dyntopo_spacing")->flag |= BRUSH_CHANNEL_INHERIT;
-  ADDCH("dyntopo_radius_scale")->flag |= BRUSH_CHANNEL_INHERIT;
+  ADDCH(automasking);
+  ADDCH(automasking_boundary_edges_propagation_steps);
+  ADDCH(concave_mask_factor);
+  ADDCH(dyntopo_disabled);
+  ADDCH(dyntopo_mode)->flag |= BRUSH_CHANNEL_INHERIT;
+  ADDCH(dyntopo_detail_range)->flag |= BRUSH_CHANNEL_INHERIT;
+  ADDCH(dyntopo_detail_percent)->flag |= BRUSH_CHANNEL_INHERIT;
+  ADDCH(dyntopo_detail_size)->flag |= BRUSH_CHANNEL_INHERIT;
+  ADDCH(dyntopo_constant_detail)->flag |= BRUSH_CHANNEL_INHERIT;
+  ADDCH(dyntopo_spacing)->flag |= BRUSH_CHANNEL_INHERIT;
+  ADDCH(dyntopo_radius_scale)->flag |= BRUSH_CHANNEL_INHERIT;
 
-  ADDCH("accumulate");
-  ADDCH("original_normal");
-  ADDCH("original_plane");
-  ADDCH("jitter");
-  ADDCH("jitter_absolute");
-  ADDCH("use_weighted_smooth");
-  ADDCH("preserve_faceset_boundary");
-  ADDCH("hard_edge_mode");
-  ADDCH("grab_silhouette");
+  ADDCH(accumulate);
+  ADDCH(original_normal);
+  ADDCH(original_plane);
+  ADDCH(jitter);
+  ADDCH(jitter_absolute);
+  ADDCH(use_weighted_smooth);
+  ADDCH(preserve_faceset_boundary);
+  ADDCH(hard_edge_mode);
+  ADDCH(grab_silhouette);
 
-  ADDCH("projection");
-  ADDCH("boundary_smooth");
-  ADDCH("fset_slide");
+  ADDCH(projection);
+  ADDCH(boundary_smooth);
+  ADDCH(fset_slide);
 
-  ADDCH("direction");
+  ADDCH(direction);
 
   switch (tool) {
     case SCULPT_TOOL_DRAW: {
@@ -996,12 +664,12 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
     }
 
     case SCULPT_TOOL_PAINT: {
-      ADDCH("color");
-      ADDCH("secondary_color");
+      ADDCH(color);
+      ADDCH(secondary_color);
       break;
     }
     case SCULPT_TOOL_SLIDE_RELAX:
-      ADDCH("slide_deform_type");
+      ADDCH(slide_deform_type);
       break;
   }
 
@@ -1020,64 +688,64 @@ ATTR_NO_OPT void BKE_brush_builtin_create(Brush *brush, int tool)
 
   BKE_brush_builtin_patch(brush, tool);
 
-  GETCH("strength")->flag |= BRUSH_CHANNEL_INHERIT;
-  GETCH("radius")->flag |= BRUSH_CHANNEL_INHERIT;
+  GETCH(strength)->flag |= BRUSH_CHANNEL_INHERIT;
+  GETCH(radius)->flag |= BRUSH_CHANNEL_INHERIT;
 
-  ADDCH("area_radius_factor");
+  ADDCH(area_radius_factor);
 
   switch (tool) {
     case SCULPT_TOOL_DRAW: {
       break;
     }
     case SCULPT_TOOL_SIMPLIFY:
-      GETCH("strength")->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
-      GETCH("radius")->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
-      GETCH("strength")->fvalue = 0.5;
-      GETCH("autosmooth")->fvalue = 0.05;
-      GETCH("topology_rake_mode")->ivalue = 1;  // curvature mode
-      GETCH("topology_rake")->fvalue = 0.35;
+      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      GETCH(strength)->fvalue = 0.5;
+      GETCH(autosmooth)->fvalue = 0.05;
+      GETCH(topology_rake_mode)->ivalue = 1;  // curvature mode
+      GETCH(topology_rake)->fvalue = 0.35;
       break;
     case SCULPT_TOOL_DRAW_SHARP:
-      GETCH("spacing")->ivalue = 5;
-      GETCH("radius")->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
-      GETCH("strength")->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      GETCH(spacing)->ivalue = 5;
+      GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
+      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
       break;
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
     case SCULPT_TOOL_FAIRING:
     case SCULPT_TOOL_SCENE_PROJECT:
-      GETCH("spacing")->ivalue = 10;
-      GETCH("strength")->fvalue = 1.0f;
-      GETCH("dyntopo_disabled")->ivalue = 1;
+      GETCH(spacing)->ivalue = 10;
+      GETCH(strength)->fvalue = 1.0f;
+      GETCH(dyntopo_disabled)->ivalue = 1;
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
-      GETCH("spacing")->ivalue = 10;
-      GETCH("strength")->fvalue = 1.0f;
-      GETCH("dyntopo_disabled")->ivalue = 1;
-      GETCH("slide_deform_type")->ivalue = BRUSH_SLIDE_DEFORM_DRAG;
+      GETCH(spacing)->ivalue = 10;
+      GETCH(strength)->fvalue = 1.0f;
+      GETCH(dyntopo_disabled)->ivalue = 1;
+      GETCH(slide_deform_type)->ivalue = BRUSH_SLIDE_DEFORM_DRAG;
       break;
     case SCULPT_TOOL_CLAY:
-      GETCH("radius")->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
-      GETCH("spacing")->ivalue = 3;
-      GETCH("autosmooth")->fvalue = 0.25f;
-      GETCH("normal_radius_factor")->fvalue = 0.75f;
-      GETCH("hardness")->fvalue = 0.65;
+      GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
+      GETCH(spacing)->ivalue = 3;
+      GETCH(autosmooth)->fvalue = 0.25f;
+      GETCH(normal_radius_factor)->fvalue = 0.75f;
+      GETCH(hardness)->fvalue = 0.65;
       break;
     case SCULPT_TOOL_TWIST:
-      GETCH("strength")->fvalue = 0.5f;
-      GETCH("normal_radius_factor")->fvalue = 1.0f;
-      GETCH("spacing")->ivalue = 6;
-      GETCH("hardness")->fvalue = 0.5;
+      GETCH(strength)->fvalue = 0.5f;
+      GETCH(normal_radius_factor)->fvalue = 1.0f;
+      GETCH(spacing)->ivalue = 6;
+      GETCH(hardness)->fvalue = 0.5;
       break;
     case SCULPT_TOOL_CLAY_STRIPS: {
-      GETCH("radius")->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
-      GETCH("tip_roundness")->fvalue = 0.18f;
-      GETCH("normal_radius_factor")->fvalue = 1.35f;
-      GETCH("strength")->fvalue = 0.8f;
-      GETCH("accumulate")->ivalue = 1;
+      GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
+      GETCH(tip_roundness)->fvalue = 0.18f;
+      GETCH(normal_radius_factor)->fvalue = 1.35f;
+      GETCH(strength)->fvalue = 0.8f;
+      GETCH(accumulate)->ivalue = 1;
 
-      BKE_brush_mapping_ensure_write(&GETCH("radius")->mappings[BRUSH_MAPPING_PRESSURE]);
+      BKE_brush_mapping_ensure_write(&GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE]);
 
-      CurveMapping *curve = GETCH("radius")->mappings[BRUSH_MAPPING_PRESSURE].curve;
+      CurveMapping *curve = GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].curve;
 
       CurveMap *cuma = curve->cm;
 
@@ -1095,29 +763,29 @@ ATTR_NO_OPT void BKE_brush_builtin_create(Brush *brush, int tool)
       break;
     }
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
-      ADDCH("use_multiplane_scrape_dynamic");
-      ADDCH("show_multiplane_scrape_planes_preview");
-      GETCH("strength")->fvalue = 0.7f;
-      GETCH("normal_radius_factor")->fvalue = 0.7f;
-      ADDCH("multiplane_scrape_angle");
-      GETCH("spacing")->fvalue = 5.0f;
+      ADDCH(use_multiplane_scrape_dynamic);
+      ADDCH(show_multiplane_scrape_planes_preview);
+      GETCH(strength)->fvalue = 0.7f;
+      GETCH(normal_radius_factor)->fvalue = 0.7f;
+      ADDCH(multiplane_scrape_angle);
+      GETCH(spacing)->fvalue = 5.0f;
       break;
     case SCULPT_TOOL_CREASE:
-      GETCH("direction")->ivalue = true;
-      GETCH("strength")->fvalue = 0.25;
+      GETCH(direction)->ivalue = true;
+      GETCH(strength)->fvalue = 0.25;
       break;
     case SCULPT_TOOL_SCRAPE:
     case SCULPT_TOOL_FILL:
-      GETCH("strength")->fvalue = 0.7f;
-      GETCH("area_radius_factor")->fvalue = 0.5f;
-      GETCH("spacing")->fvalue = 7;
-      ADDCH("invert_to_scrape_fill");
-      GETCH("invert_to_scrape_fill")->ivalue = true;
-      GETCH("accumulate")->ivalue = true;
+      GETCH(strength)->fvalue = 0.7f;
+      GETCH(area_radius_factor)->fvalue = 0.5f;
+      GETCH(spacing)->fvalue = 7;
+      ADDCH(invert_to_scrape_fill);
+      GETCH(invert_to_scrape_fill)->ivalue = true;
+      GETCH(accumulate)->ivalue = true;
       break;
     case SCULPT_TOOL_ROTATE:
-      GETCH("strength")->fvalue = 1.0;
-      GETCH("dyntopo_disabled")->ivalue = true;
+      GETCH(strength)->fvalue = 1.0;
+      GETCH(dyntopo_disabled)->ivalue = true;
       break;
     default: {
       // implement me!
@@ -1149,31 +817,34 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
 
   BrushChannelSet *chset = sd->channels;
 
-  ADDCH("radius");
-  ADDCH("strength");
-  ADDCH("automasking_boundary_edges_propagation_steps");
-  ADDCH("concave_mask_factor");
-  ADDCH("automasking");
-  ADDCH("topology_rake_mode");
+  ADDCH(radius);
+  ADDCH(strength);
+  ADDCH(automasking_boundary_edges_propagation_steps);
+  ADDCH(concave_mask_factor);
+  ADDCH(automasking);
+  ADDCH(topology_rake_mode);
 
-  ADDCH("vcol_boundary_exponent");
-  ADDCH("vcol_boundary_factor");
-  ADDCH("vcol_boundary_radius_scale");
-  ADDCH("vcol_boundary_spacing");
+  ADDCH(vcol_boundary_exponent);
+  ADDCH(vcol_boundary_factor);
+  ADDCH(vcol_boundary_radius_scale);
+  ADDCH(vcol_boundary_spacing);
 
-  ADDCH("area_radius_factor");
+  ADDCH(area_radius_factor);
 
-  ADDCH("color");
-  ADDCH("secondary_color");
+  ADDCH(color);
+  ADDCH(secondary_color);
 
-  ADDCH("dyntopo_disabled");
-  ADDCH("dyntopo_mode");
-  ADDCH("dyntopo_detail_range");
-  ADDCH("dyntopo_detail_percent");
-  ADDCH("dyntopo_detail_size");
-  ADDCH("dyntopo_constant_detail");
-  ADDCH("dyntopo_spacing");
-  ADDCH("dyntopo_radius_scale");
+  ADDCH(dyntopo_disabled);
+  ADDCH(dyntopo_mode);
+  ADDCH(dyntopo_detail_range);
+  ADDCH(dyntopo_detail_percent);
+  ADDCH(dyntopo_detail_size);
+  ADDCH(dyntopo_constant_detail);
+  ADDCH(dyntopo_spacing);
+  ADDCH(dyntopo_radius_scale);
 
   namestack_pop();
 }
+
+#define BRUSH_CHANNEL_DEFINE_TYPES
+#include "brush_channel_define.h"

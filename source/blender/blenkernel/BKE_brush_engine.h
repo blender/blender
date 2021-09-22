@@ -53,6 +53,19 @@ struct BlendDataReader;
 struct Brush;
 struct Sculpt;
 
+#define MAKE_BUILTIN_CH_NAME(idname) BRUSH_BUILTIN_##idname
+
+/*these macros check channel names at compile time*/
+
+#define BRUSHSET_LOOKUP(chset, channel) \
+  BKE_brush_channelset_lookup(chset, MAKE_BUILTIN_CH_NAME(channel))
+#define BRUSHSET_HAS(chset, channel, mapdata) \
+  BKE_brush_channelset_lookup(chset, MAKE_BUILTIN_CH_NAME(channel))
+#define BRUSHSET_GET_FLOAT(chset, channel, mapdata) \
+  BKE_brush_channelset_get_float(chset, MAKE_BUILTIN_CH_NAME(channel), mapdata)
+#define BRUSHSET_GET_INT(chset, channel, mapdata) \
+  BKE_brush_channelset_get_int(chset, MAKE_BUILTIN_CH_NAME(channel), mapdata)
+
 //#define DEBUG_CURVE_MAPPING_ALLOC
 #ifdef DEBUG_CURVE_MAPPING_ALLOC
 void namestack_push(const char *name);
@@ -133,13 +146,13 @@ void BKE_brush_channelset_free(BrushChannelSet *chset);
 
 void BKE_brush_channelset_add(BrushChannelSet *chset, BrushChannel *ch);
 
-// makes a copy of ch
+/* makes a copy of ch and adds it to the channel set */
 void BKE_brush_channelset_add_duplicate(BrushChannelSet *chset, BrushChannel *ch);
 
-// does not add to namemap ghash
+/* finds a unique name for ch, does not add it to chset->namemap */
 void BKE_brush_channel_ensure_unque_name(BrushChannelSet *chset, BrushChannel *ch);
 
-// does not free ch or its data
+/* does not free ch or its data */
 void BKE_brush_channelset_remove(BrushChannelSet *chset, BrushChannel *ch);
 
 // does not free ch or its data
@@ -261,6 +274,13 @@ bool BKE_brush_mapping_ensure_write(BrushMapping *mp);
 
 void BKE_brush_channelset_apply_mapping(BrushChannelSet *chset, BrushMappingData *mapdata);
 void BKE_brush_check_toolsettings(struct Sculpt *sd);
+
+/*
+set up static type checker for BRUSHSET_XXX macros
+*/
+#define BRUSH_CHANNEL_DEFINE_EXTERNAL
+#include "intern/brush_channel_define.h"
+#undef BRUSH_CHANNEL_DEFINE_EXTERNAL
 
 #ifdef __cplusplus
 }

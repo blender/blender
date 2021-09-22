@@ -140,10 +140,10 @@ static void do_symmetrical_brush_actions(Sculpt *sd,
   will be used (taking inheritence into account).
 */
 
-ATTR_NO_OPT float SCULPT_get_float(const SculptSession *ss,
-                                   const char *idname,
-                                   const Sculpt *sd,
-                                   const Brush *br)
+ATTR_NO_OPT float SCULPT_get_float_intern(const SculptSession *ss,
+                                          const char *idname,
+                                          const Sculpt *sd,
+                                          const Brush *br)
 {
   if (ss->cache && ss->cache->channels_final) {
     return BKE_brush_channelset_get_float(
@@ -165,10 +165,10 @@ ATTR_NO_OPT float SCULPT_get_float(const SculptSession *ss,
   }
 }
 
-ATTR_NO_OPT int SCULPT_get_int(const SculptSession *ss,
-                               const char *idname,
-                               const Sculpt *sd,
-                               const Brush *br)
+ATTR_NO_OPT int SCULPT_get_int_intern(const SculptSession *ss,
+                                      const char *idname,
+                                      const Sculpt *sd,
+                                      const Brush *br)
 {
   if (ss->cache && ss->cache->channels_final) {
     return BKE_brush_channelset_get_int(
@@ -8915,8 +8915,8 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
     Brush brush2 = *brush;
     brush2.sculpt_tool = cmd->tool;
 
-    float alpha1 = BKE_brush_channelset_get_float(cmd->params_final, "strength", NULL);
-    float alpha2 = BKE_brush_channelset_get_float(ss->cache->channels_final, "strength", NULL);
+    float alpha1 = BRUSHSET_GET_FLOAT(cmd->params_final, strength, NULL);
+    float alpha2 = BRUSHSET_GET_FLOAT(ss->cache->channels_final, strength, NULL);
 
     // Load parameters into brush2 for compatibility with old code
     BKE_brush_channelset_compat_load(cmd->params_final, &brush2, false);
@@ -8947,15 +8947,15 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
       has_dyntopo = false;
     }
 
-    float radius = BKE_brush_channelset_get_float(
-        ss->cache->channels_final, "radius", &ss->cache->input_mapping);
+    float radius = BRUSHSET_GET_FLOAT(
+        ss->cache->channels_final, radius, &ss->cache->input_mapping);
 
     radius_max = max_ff(radius_max, radius);
     ss->cache->brush = brush;
   }
 
-  float ratio = radius_max / BKE_brush_channelset_get_float(
-                                 ss->cache->channels_final, "radius", &ss->cache->input_mapping);
+  float ratio = radius_max /
+                BRUSHSET_GET_FLOAT(ss->cache->channels_final, radius, &ss->cache->input_mapping);
 
   ss->cache->radius = start_radius * ratio;
   ss->cache->radius_squared = start_radius * start_radius * ratio * ratio;
@@ -9098,7 +9098,7 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
     cmd->params_mapped = BKE_brush_channelset_copy(cmd->params_final);
     BKE_brush_channelset_apply_mapping(cmd->params_mapped, &ss->cache->input_mapping);
 
-    float spacing = BKE_brush_channelset_get_float(cmd->params_mapped, "spacing", NULL) / 100.0f;
+    float spacing = BRUSHSET_GET_FLOAT(cmd->params_mapped, spacing, NULL) / 100.0f;
 
 #if 0
     printf("p %f s %f\n",
@@ -9133,7 +9133,7 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
     ss->cache->channels_final = cmd->params_mapped;
 
     ss->cache->brush = brush2;
-    ups->alpha = BKE_brush_channelset_get_float(cmd->params_mapped, "strength", NULL);
+    ups->alpha = BRUSHSET_GET_FLOAT(cmd->params_mapped, strength, NULL);
 
     ss->cache->bstrength = brush_strength(
         sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);

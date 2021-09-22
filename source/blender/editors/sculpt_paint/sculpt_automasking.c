@@ -91,10 +91,10 @@ bool SCULPT_is_automasking_enabled(Sculpt *sd, const SculptSession *ss, const Br
     return false;
   }*/
 
-  int flag = SCULPT_get_int(ss, "automasking", sd, br);
+  int flag = SCULPT_get_int(ss, automasking, sd, br);
 
   if (flag == BRUSH_AUTOMASKING_CONCAVITY) {
-    return SCULPT_get_float(ss, "concave_mask_factor", sd, br) > 0.0f;
+    return SCULPT_get_float(ss, concave_mask_factor, sd, br) > 0.0f;
   }
 
   return flag != 0;
@@ -104,7 +104,7 @@ static int sculpt_automasking_mode_effective_bits(SculptSession *ss,
                                                   Sculpt *sculpt,
                                                   const Brush *brush)
 {
-  return SCULPT_get_int(ss, "automasking", sculpt, brush);
+  return SCULPT_get_int(ss, automasking, sculpt, brush);
 }
 
 static float sculpt_concavity_factor(AutomaskingCache *automasking, float fac)

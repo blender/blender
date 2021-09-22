@@ -259,11 +259,19 @@ typedef enum SculptCornerType {
   will be used (taking inheritence into account).
 */
 
-float SCULPT_get_float(const SculptSession *ss,
-                       const char *idname,
-                       const Sculpt *sd,
-                       const Brush *br);
-int SCULPT_get_int(const SculptSession *ss, const char *idname, const Sculpt *sd, const Brush *br);
+float SCULPT_get_float_intern(const SculptSession *ss,
+                              const char *idname,
+                              const Sculpt *sd,
+                              const Brush *br);
+#define SCULPT_get_float(ss, idname, sd, br) \
+  SCULPT_get_float_intern(ss, BRUSH_BUILTIN_##idname, sd, br)
+
+int SCULPT_get_int_intern(const SculptSession *ss,
+                          const char *idname,
+                          const Sculpt *sd,
+                          const Brush *br);
+#define SCULPT_get_int(ss, idname, sd, br) \
+  SCULPT_get_int_intern(ss, BRUSH_BUILTIN_##idname, sd, br)
 
 SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                          const SculptVertRef index,
