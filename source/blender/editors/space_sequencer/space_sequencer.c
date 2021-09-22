@@ -344,6 +344,7 @@ static SpaceLink *sequencer_duplicate(SpaceLink *sl)
   /* XXX  sseq->gpd = gpencil_data_duplicate(sseq->gpd, false); */
 
   memset(&sseqn->scopes, 0, sizeof(sseqn->scopes));
+  memset(&sseqn->runtime, 0, sizeof(sseqn->runtime));
 
   return (SpaceLink *)sseqn;
 }
