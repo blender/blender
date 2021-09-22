@@ -217,7 +217,6 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "minimum_weight", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "use_multiply", 0, NULL, ICON_NONE);
 
-
   gpencil_modifier_panel_end(layout, ptr);
 }
 

@@ -1230,7 +1230,10 @@ bool BKE_sound_info_get(struct Main *main, struct bSound *sound, SoundInfo *soun
   return result;
 }
 
-bool BKE_sound_stream_info_get(struct Main *main, const char *filepath, int stream, SoundStreamInfo *sound_info)
+bool BKE_sound_stream_info_get(struct Main *main,
+                               const char *filepath,
+                               int stream,
+                               SoundStreamInfo *sound_info)
 {
   const char *path;
   char str[FILE_MAX];

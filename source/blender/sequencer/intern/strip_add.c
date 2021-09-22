@@ -486,11 +486,8 @@ Sequence *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Sequence *SEQ_add_movie_strip(Main *bmain,
-                              Scene *scene,
-                              ListBase *seqbase,
-                              SeqLoadData *load_data,
-                              double *r_start_offset)
+Sequence *SEQ_add_movie_strip(
+    Main *bmain, Scene *scene, ListBase *seqbase, SeqLoadData *load_data, double *r_start_offset)
 {
   char path[sizeof(load_data->path)];
   BLI_strncpy(path, load_data->path, sizeof(path));

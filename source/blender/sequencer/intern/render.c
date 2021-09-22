@@ -2043,8 +2043,11 @@ int SEQ_render_thumbnails_guaranteed_set_frame_step_get(const Sequence *seq)
 }
 
 /* Render set of evenly spaced thumbnails that are drawn when zooming. */
-void SEQ_render_thumbnails_base_set(
-    const SeqRenderData *context, Sequence *seq, Sequence *seq_orig, rctf *view_area, const short *stop)
+void SEQ_render_thumbnails_base_set(const SeqRenderData *context,
+                                    Sequence *seq,
+                                    Sequence *seq_orig,
+                                    rctf *view_area,
+                                    const short *stop)
 {
   SeqRenderState state;
   seq_render_state_init(&state);
