@@ -26,13 +26,18 @@
 #include "NOD_math_functions.hh"
 
 /* **************** SCALAR MATH ******************** */
-static bNodeSocketTemplate sh_node_math_in[] = {
-    {SOCK_FLOAT, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Value"), 0.0f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {-1, ""}};
 
-static bNodeSocketTemplate sh_node_math_out[] = {{SOCK_FLOAT, N_("Value")}, {-1, ""}};
+namespace blender::nodes {
+
+static void sh_node_math_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Value").default_value(0.5f).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("Value", "Value_001").default_value(0.5f).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("Value", "Value_002").default_value(0.5f).min(-10000.0f).max(10000.0f);
+  b.add_output<decl::Float>("Value");
+};
+
+}  // namespace blender::nodes
 
 static const char *gpu_shader_get_name(int mode)
 {
@@ -153,7 +158,7 @@ void register_node_type_sh_math(void)
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_MATH, "Math", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, sh_node_math_in, sh_node_math_out);
+  ntype.declare = blender::nodes::sh_node_math_declare;
   node_type_label(&ntype, node_math_label);
   node_type_gpu(&ntype, gpu_shader_math);
   node_type_update(&ntype, node_math_update);

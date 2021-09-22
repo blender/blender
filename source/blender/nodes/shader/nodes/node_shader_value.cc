@@ -23,11 +23,14 @@
 
 #include "node_shader_util.h"
 
-/* **************** VALUE ******************** */
-static bNodeSocketTemplate sh_node_value_out[] = {
-    {SOCK_FLOAT, N_("Value"), 0.5f, 0, 0, 0, -FLT_MAX, FLT_MAX, PROP_NONE},
-    {-1, ""},
+namespace blender::nodes {
+
+static void sh_node_value_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Float>("Vector");
 };
+
+}  // namespace blender::nodes
 
 static int gpu_shader_value(GPUMaterial *mat,
                             bNode *node,
@@ -51,7 +54,7 @@ void register_node_type_sh_value(void)
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_VALUE, "Value", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, sh_node_value_out);
+  ntype.declare = blender::nodes::sh_node_value_declare;
   node_type_gpu(&ntype, gpu_shader_value);
   ntype.build_multi_function = sh_node_value_build_multi_function;
 

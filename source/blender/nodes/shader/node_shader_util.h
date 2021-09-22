@@ -73,6 +73,7 @@
 #  include "FN_multi_function_builder.hh"
 
 #  include "NOD_multi_function.hh"
+#  include "NOD_socket_declarations.hh"
 
 #  include "BLI_color.hh"
 #  include "BLI_float3.hh"

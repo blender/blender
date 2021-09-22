@@ -23,17 +23,17 @@
 
 #include "node_shader_util.h"
 
-/* **************** MIX RGB ******************** */
-static bNodeSocketTemplate sh_node_mix_rgb_in[] = {
-    {SOCK_FLOAT, N_("Fac"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, N_("Color1"), 0.5f, 0.5f, 0.5f, 1.0f},
-    {SOCK_RGBA, N_("Color2"), 0.5f, 0.5f, 0.5f, 1.0f},
-    {-1, ""},
+namespace blender::nodes {
+
+static void sh_node_mix_rgb_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Fac").default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Color>("Color1").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_input<decl::Color>("Color2").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_output<decl::Color>("Color");
 };
-static bNodeSocketTemplate sh_node_mix_rgb_out[] = {
-    {SOCK_RGBA, N_("Color")},
-    {-1, ""},
-};
+
+}  // namespace blender::nodes
 
 static void node_shader_exec_mix_rgb(void *UNUSED(data),
                                      int UNUSED(thread),
@@ -187,7 +187,7 @@ void register_node_type_sh_mix_rgb(void)
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR, 0);
-  node_type_socket_templates(&ntype, sh_node_mix_rgb_in, sh_node_mix_rgb_out);
+  ntype.declare = blender::nodes::sh_node_mix_rgb_declare;
   node_type_label(&ntype, node_blend_label);
   node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_mix_rgb);
   node_type_gpu(&ntype, gpu_shader_mix_rgb);

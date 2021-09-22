@@ -29,16 +29,16 @@
 
 #include "node_shader_util.h"
 
-/* **************** VALTORGB ******************** */
-static bNodeSocketTemplate sh_node_valtorgb_in[] = {
-    {SOCK_FLOAT, N_("Fac"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {-1, ""},
+namespace blender::nodes {
+
+static void sh_node_valtorgb_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Fac").default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_output<decl::Color>("Color");
+  b.add_output<decl::Float>("Alpha");
 };
-static bNodeSocketTemplate sh_node_valtorgb_out[] = {
-    {SOCK_RGBA, N_("Color")},
-    {SOCK_FLOAT, N_("Alpha")},
-    {-1, ""},
-};
+
+}  // namespace blender::nodes
 
 static void node_shader_exec_valtorgb(void *UNUSED(data),
                                       int UNUSED(thread),
@@ -176,7 +176,7 @@ void register_node_type_sh_valtorgb(void)
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, sh_node_valtorgb_in, sh_node_valtorgb_out);
+  ntype.declare = blender::nodes::sh_node_valtorgb_declare;
   node_type_init(&ntype, node_shader_init_valtorgb);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
@@ -187,11 +187,15 @@ void register_node_type_sh_valtorgb(void)
   nodeRegisterType(&ntype);
 }
 
-/* **************** RGBTOBW ******************** */
-static bNodeSocketTemplate sh_node_rgbtobw_in[] = {
-    {SOCK_RGBA, N_("Color"), 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f}, {-1, ""}};
-static bNodeSocketTemplate sh_node_rgbtobw_out[] = {
-    {SOCK_FLOAT, N_("Val"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}, {-1, ""}};
+namespace blender::nodes {
+
+static void sh_node_rgbtobw_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>("Color").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_output<decl::Float>("Val");
+};
+
+}  // namespace blender::nodes
 
 static void node_shader_exec_rgbtobw(void *UNUSED(data),
                                      int UNUSED(thread),
@@ -222,7 +226,7 @@ void register_node_type_sh_rgbtobw(void)
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, sh_node_rgbtobw_in, sh_node_rgbtobw_out);
+  ntype.declare = blender::nodes::sh_node_rgbtobw_declare;
   node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_rgbtobw);
   node_type_gpu(&ntype, gpu_shader_rgbtobw);
 

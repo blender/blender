@@ -23,19 +23,19 @@
 
 #include "../node_shader_util.h"
 
-/* **************** Vector Rotate ******************** */
-static bNodeSocketTemplate sh_node_vector_rotate_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_VECTOR, N_("Center"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_NONE},
-    {SOCK_VECTOR, N_("Axis"), 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 1.0f, PROP_NONE, PROP_NONE},
-    {SOCK_FLOAT, N_("Angle"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_ANGLE, PROP_NONE},
-    {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
-    {-1, ""}};
+namespace blender::nodes {
 
-static bNodeSocketTemplate sh_node_vector_rotate_out[] = {
-    {SOCK_VECTOR, N_("Vector")},
-    {-1, ""},
+static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>("Vector").min(0.0f).max(1.0f).hide_value();
+  b.add_input<decl::Vector>("Vector");
+  b.add_input<decl::Vector>("Axis").min(-1.0f).max(1.0f).default_value({0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Float>("Angle").subtype(PROP_ANGLE);
+  b.add_input<decl::Vector>("Rotation").subtype(PROP_EULER);
+  b.add_output<decl::Vector>("Value");
 };
+
+}  // namespace blender::nodes
 
 static const char *gpu_shader_get_name(int mode)
 {
@@ -207,7 +207,7 @@ void register_node_type_sh_vector_rotate(void)
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_VECTOR_ROTATE, "Vector Rotate", NODE_CLASS_OP_VECTOR, 0);
-  node_type_socket_templates(&ntype, sh_node_vector_rotate_in, sh_node_vector_rotate_out);
+  ntype.declare = blender::nodes::sh_node_vector_rotate_declare;
   node_type_gpu(&ntype, gpu_shader_vector_rotate);
   node_type_update(&ntype, node_shader_update_vector_rotate);
   ntype.build_multi_function = sh_node_vector_rotate_build_multi_function;
