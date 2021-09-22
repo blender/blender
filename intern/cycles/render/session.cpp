@@ -261,6 +261,7 @@ RenderWork Session::run_update_for_next_iteration()
   bool have_tiles = true;
   bool switched_to_new_tile = false;
 
+  const bool did_reset = delayed_reset_.do_reset;
   if (delayed_reset_.do_reset) {
     thread_scoped_lock buffers_lock(buffers_mutex_);
     do_delayed_reset();
@@ -272,8 +273,12 @@ RenderWork Session::run_update_for_next_iteration()
 
   /* Update number of samples in the integrator.
    * Ideally this would need to happen once in `Session::set_samples()`, but the issue there is
-   * the initial configuration when Session is created where the `set_samples()` is not used. */
-  scene->integrator->set_aa_samples(params.samples);
+   * the initial configuration when Session is created where the `set_samples()` is not used.
+   *
+   * NOTE: Unless reset was requested only allow increasing number of samples. */
+  if (did_reset || scene->integrator->get_aa_samples() < params.samples) {
+    scene->integrator->set_aa_samples(params.samples);
+  }
 
   /* Update denoiser settings. */
   {
