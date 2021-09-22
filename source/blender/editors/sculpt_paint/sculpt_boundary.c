@@ -1978,7 +1978,7 @@ static void SCULPT_boundary_autosmooth(SculptSession *ss, SculptBoundary *bounda
 
   const int max_iterations = 4;
   const float fract = 1.0f / max_iterations;
-  float bstrength = ss->cache->brush->autosmooth_factor;
+  float bstrength = SCULPT_get_float(ss, autosmooth, NULL, ss->cache->brush);
 
   CLAMP(bstrength, 0.0f, 1.0f);
 
@@ -1986,11 +1986,16 @@ static void SCULPT_boundary_autosmooth(SculptSession *ss, SculptBoundary *bounda
   const float last = max_iterations * (bstrength - count * fract);
 
   const float boundary_radius = ss->cache->radius * (1.0f + ss->cache->brush->boundary_offset) *
-                                ss->cache->brush->autosmooth_radius_factor;
+                                SCULPT_get_float(
+                                    ss, autosmooth_radius_scale, NULL, ss->cache->brush);
 
   BKE_curvemapping_init(ss->cache->brush->curve);
 
   BKE_pbvh_get_nodes(ss->pbvh, PBVH_Leaf, &nodes, &totnode);
+
+  float bound_smooth = SCULPT_get_float(ss, boundary_smooth, NULL, ss->cache->brush);
+  float projection = SCULPT_get_float(ss, autosmooth_projection, NULL, ss->cache->brush);
+  float slide_fset = SCULPT_get_float(ss, fset_slide, NULL, ss->cache->brush);
 
   for (int iteration = 0; iteration <= count; iteration++) {
     for (int i = 0; i < totnode; i++) {
@@ -2019,7 +2024,7 @@ static void SCULPT_boundary_autosmooth(SculptSession *ss, SculptBoundary *bounda
         float sco[3];
 
         SCULPT_neighbor_coords_average_interior(
-            ss, sco, vd.vertex, ss->cache->brush->autosmooth_projection, NULL, false);
+            ss, sco, vd.vertex, projection, slide_fset, bound_smooth, NULL, false);
 
         float *co = SCULPT_brush_deform_target_vertex_co_get(
             ss, ss->cache->brush->deform_target, &vd);
@@ -2042,7 +2047,9 @@ static void SCULPT_boundary_build_smoothco(SculptSession *ss, SculptBoundary *bo
 
   boundary->smoothco = MEM_calloc_arrayN(totvert, sizeof(float) * 3, "boundary->smoothco");
 
-  const float projection = 0.5f;
+  float bound_smooth = SCULPT_get_float(ss, boundary_smooth, NULL, ss->cache->brush);
+  float projection = SCULPT_get_float(ss, autosmooth_projection, NULL, ss->cache->brush);
+  float slide_fset = SCULPT_get_float(ss, fset_slide, NULL, ss->cache->brush);
 
   BKE_pbvh_get_nodes(ss->pbvh, PBVH_Leaf, &nodes, &totnode);
 
@@ -2058,7 +2065,8 @@ static void SCULPT_boundary_build_smoothco(SculptSession *ss, SculptBoundary *bo
 
         float sco[3];
 
-        SCULPT_neighbor_coords_average_interior(ss, sco, vd.vertex, projection, NULL, false);
+        SCULPT_neighbor_coords_average_interior(
+            ss, sco, vd.vertex, projection, slide_fset, bound_smooth, NULL, false);
 
         float *co = SCULPT_brush_deform_target_vertex_co_get(
             ss, ss->cache->brush->deform_target, &vd);

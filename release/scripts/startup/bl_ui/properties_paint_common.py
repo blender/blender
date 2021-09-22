@@ -1026,21 +1026,39 @@ def brush_settings(layout, context, brush, popover=False):
 
         elif sculpt_tool == 'SMOOTH':
             col = layout.column()
-            col.prop(brush, "boundary_smooth_factor")
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "boundary_smooth",
+                slider = True
+                #text="Weight By Face Area",
+            )
 
             UnifiedPaintPanel.channel_unified(
                 layout,
                 context,
                 brush,
-                "use_weighted_smooth",
+                "use_weighted_smooth"
                 #text="Weight By Face Area",
-                slider=True,
+            )
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "preserve_faceset_boundary"
             )
 
             #col.prop(brush, "use_weighted_smooth")
-            col.prop(brush, "preserve_faceset_boundary")
-            if brush.preserve_faceset_boundary:
-                col.prop(brush, "autosmooth_fset_slide")
+            #col.prop(brush, "preserve_faceset_boundary")
+
+            if brush.channels.channels["preserve_faceset_boundary"].bool_value:
+                UnifiedPaintPanel.channel_unified(
+                    layout,
+                    context,
+                    brush,
+                    "fset_slide"
+                )
 
             col.prop(brush, "smooth_deform_type")
 

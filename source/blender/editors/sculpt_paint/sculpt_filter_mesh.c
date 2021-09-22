@@ -363,13 +363,17 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     }
 
     switch (filter_type) {
-      case MESH_FILTER_SMOOTH:
+      case MESH_FILTER_SMOOTH: {
+        // float bound_smooth = SCULPT_get_float(ss, boundary_smooth, ss->, ss->cache->brush);
+        // float projection = SCULPT_get_float(ss, autosmooth_projection, NULL, ss->cache->brush);
+        // float slide_fset = SCULPT_get_float(ss, fset_slide, NULL, ss->cache->brush);
+
         fade = clamp_f(fade, -1.0f, 1.0f);
-        SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex, 0.0f, NULL, false);
+        SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex, 0.0f, 1.0f, 0.0f, NULL, false);
         sub_v3_v3v3(val, avg, orig_co);
         madd_v3_v3v3fl(val, orig_co, val, fade);
         sub_v3_v3v3(disp, val, orig_co);
-        break;
+      } break;
       case MESH_FILTER_INFLATE:
         normal_short_to_float_v3(normal, orig_data.no);
         mul_v3_v3fl(disp, normal, fade);

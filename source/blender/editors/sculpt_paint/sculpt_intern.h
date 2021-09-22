@@ -701,8 +701,10 @@ void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVer
 /* Mask the mesh boundaries smoothing only the mesh surface without using automasking. */
 void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float result[3],
-                                             SculptVertRef index,
+                                             SculptVertRef vertex,
                                              float projection,
+                                             float slide_fset,
+                                             float bound_smooth,
                                              SculptCustomLayer *bound_scl,
                                              bool do_origco);
 
@@ -991,6 +993,8 @@ typedef struct SculptThreadedTaskData {
   SculptCustomLayer *scl, *scl2;
   bool do_origco;
   float *brush_color;
+
+  float fset_slide, bound_smooth;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/

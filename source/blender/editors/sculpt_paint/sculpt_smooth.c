@@ -74,12 +74,14 @@
 #include <math.h>
 #include <stdlib.h>
 
-void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
-                                             float result[3],
-                                             SculptVertRef vertex,
-                                             float projection,
-                                             SculptCustomLayer *bound_scl,
-                                             bool do_origco)
+ATTR_NO_OPT void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                                         float result[3],
+                                                         SculptVertRef vertex,
+                                                         float projection,
+                                                         float slide_fset,
+                                                         float bound_smooth,
+                                                         SculptCustomLayer *bound_scl,
+                                                         bool do_origco)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
 
@@ -94,8 +96,6 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
 
   int bflag = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
-  float bound_smooth = powf(ss->cache->brush->boundary_smooth_factor, BOUNDARY_SMOOTH_EXP);
-  float slide_fset = BKE_brush_fset_slide_get(ss->scene, ss->cache->brush);
 
   slide_fset = MAX2(slide_fset, bound_smooth);
 
@@ -271,7 +271,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       color[3] = 1.0f;
 #endif
 
-      float fac = ss->cache->brush->boundary_smooth_factor;
+      float fac = bound_smooth;
       fac = MIN2(fac * 4.0f, 1.0f);
       fac = powf(fac, 0.2);
       th *= fac;
@@ -1068,6 +1068,8 @@ ATTR_NO_OPT static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
   Sculpt *sd = data->sd;
+  const float bound_smooth = data->bound_smooth;
+  const float fset_slide = data->fset_slide;
   const Brush *brush = data->brush;
   const bool smooth_mask = data->smooth_mask;
   float bstrength = data->strength;
@@ -1132,7 +1134,8 @@ ATTR_NO_OPT static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
       for (int step = 0; step < steps; step++) {
         float *co = step ? (float *)SCULPT_vertex_origco_get(ss, vd.vertex) : vd.co;
 
-        SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex, projection, bound_scl, step);
+        SCULPT_neighbor_coords_average_interior(
+            ss, avg, vd.vertex, projection, fset_slide, bound_smooth, bound_scl, step);
 
         sub_v3_v3v3(val, avg, co);
         madd_v3_v3v3fl(val, co, val, fade);
@@ -1175,6 +1178,9 @@ static void do_smooth_brush_task_cb_ex_scl(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
+
+  // const float fset_slide = SCULPT_get_float(ss, fset_slide, NULL, NULL);
+  // const float bound_smooth = SCULPT_get_float(ss, boundary_smooth, NULL, NULL);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -1220,7 +1226,7 @@ void SCULPT_smooth(Sculpt *sd,
                    bool do_origco)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  Brush *brush = ss->cache && ss->cache->brush ? ss->cache->brush : BKE_paint_brush(&sd->paint);
 
   const int max_iterations = 4;
   const float fract = 1.0f / max_iterations;
@@ -1261,9 +1267,12 @@ void SCULPT_smooth(Sculpt *sd,
 
   SculptCustomLayer _scl, *bound_scl = NULL;
 
+  float bound_smooth = SCULPT_get_float(ss, boundary_smooth, sd, brush);
+  float fset_slide = SCULPT_get_float(ss, fset_slide, sd, brush);
+
   /* create temp layer for psuedo-geodesic field */
-  if (ss->cache->brush->boundary_smooth_factor > 0.0f) {
-    float bound_smooth = powf(ss->cache->brush->boundary_smooth_factor, BOUNDARY_SMOOTH_EXP);
+  if (bound_smooth > 0.0f) {
+    bound_smooth = powf(ss->cache->brush->boundary_smooth_factor, BOUNDARY_SMOOTH_EXP);
 
     bound_scl = &_scl;
     SCULPT_temp_customlayer_ensure(ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "__smooth_bdist", false);
@@ -1288,6 +1297,8 @@ void SCULPT_smooth(Sculpt *sd,
         .smooth_mask = smooth_mask,
         .strength = strength,
         .smooth_projection = projection,
+        .fset_slide = fset_slide,
+        .bound_smooth = bound_smooth,
         .scl = have_scl ? &scl : NULL,
         .scl2 = bound_scl,
         .do_origco = SCULPT_stroke_needs_original(ss->cache->brush),
@@ -1346,7 +1357,7 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
   float weigthed_o[3], weigthed_q[3], d[3];
   SCULPT_neighbor_coords_average(ss, laplacian_smooth_co, v_index, projection, check_fsets);
 
-  int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, v_index);
+  // int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, v_index);
 
   mul_v3_v3fl(weigthed_o, origco, alpha);
   mul_v3_v3fl(weigthed_q, co, 1.0f - alpha);
@@ -1366,7 +1377,7 @@ void SCULPT_surface_smooth_displace_step(SculptSession *ss,
   float b_avg[3] = {0.0f, 0.0f, 0.0f};
   float b_current_vertex[3];
   int total = 0;
-  int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, v_index);
+  // int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, v_index);
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v_index, ni) {
