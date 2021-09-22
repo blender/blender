@@ -213,7 +213,7 @@ class Device {
    * The interoperability comes here by the meaning that the device is capable of computing result
    * directly into an OpenGL (or other graphics library) buffer. */
 
-  /* Check display si to be updated using graphics interoperability.
+  /* Check display is to be updated using graphics interoperability.
    * The interoperability can not be used is it is not supported by the device. But the device
    * might also force disable the interoperability if it detects that it will be slower than
    * copying pixels from the render buffer. */

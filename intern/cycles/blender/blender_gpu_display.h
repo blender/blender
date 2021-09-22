@@ -134,7 +134,7 @@ class BlenderGPUDisplay : public GPUDisplay {
   /* Make sure texture is allocated and its initial configuration is performed. */
   bool gl_texture_resources_ensure();
 
-  /* Ensure all runtime GPU resources needefd for drawing are allocated.
+  /* Ensure all runtime GPU resources needed for drawing are allocated.
    * Returns true if all resources needed for drawing are available. */
   bool gl_draw_resources_ensure();
 
@@ -146,7 +146,7 @@ class BlenderGPUDisplay : public GPUDisplay {
    * NOTE: The texture needs to be bound. */
   void texture_update_if_needed();
 
-  /* Update vetrex buffer with new coordinates of vertex positions and texture coordinates.
+  /* Update vertex buffer with new coordinates of vertex positions and texture coordinates.
    * This buffer is used to render texture in the viewport.
    *
    * NOTE: The buffer needs to be bound. */
@@ -200,7 +200,7 @@ class BlenderGPUDisplay : public GPUDisplay {
   bool gl_draw_resource_creation_attempted_ = false;
   bool gl_draw_resources_created_ = false;
 
-  /* Vertex buffer which hold vertrices of a triangle fan which is textures with the texture
+  /* Vertex buffer which hold vertices of a triangle fan which is textures with the texture
    * holding the render result. */
   uint vertex_buffer_ = 0;
 

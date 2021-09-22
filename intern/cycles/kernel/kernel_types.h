@@ -380,7 +380,7 @@ typedef enum PassType {
    * pass contains number of samples which contributed to the color components of the pass.
    *
    * PASS_SHADOW_CATCHER_SAMPLE_COUNT contains number of samples for which the path split
-   * happenned.
+   * happened.
    *
    * PASS_SHADOW_CATCHER_MATTE contains pass which contains non-catcher objects. This pass is to be
    * alpha-overed onto the backdrop (after multiplication). */

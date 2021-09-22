@@ -39,8 +39,8 @@ class PathTraceWork {
 
   /* Create path trace work which fits best the device.
    *
-   * The cancel request flag is used for a cheap check whether cancel is to berformed as soon as
-   * possible. This could be, for rexample, request to cancel rendering on camera navigation in
+   * The cancel request flag is used for a cheap check whether cancel is to be performed as soon as
+   * possible. This could be, for example, request to cancel rendering on camera navigation in
    * viewport. */
   static unique_ptr<PathTraceWork> create(Device *device,
                                           Film *film,
@@ -107,7 +107,7 @@ class PathTraceWork {
   /* Special version of the `copy_from_render_buffers()` which only copies denosied passes from the
    * given render buffers, leaving rest of the passes.
    *
-   * Same notes about device copying aplies to this call as well. */
+   * Same notes about device copying applies to this call as well. */
   void copy_from_denoised_render_buffers(const RenderBuffers *render_buffers);
 
   /* Copy render buffers to/from device using an appropriate device queue when needed so that
@@ -119,7 +119,7 @@ class PathTraceWork {
    * things are executed in order with the `render_samples()`. */
   virtual bool zero_render_buffers() = 0;
 
-  /* Access pixels rendered by this work and copy them to the coresponding location in the
+  /* Access pixels rendered by this work and copy them to the corresponding location in the
    * destination.
    *
    * NOTE: Does not perform copy of buffers from the device. Use `copy_render_tile_from_device()`
@@ -182,7 +182,7 @@ class PathTraceWork {
   unique_ptr<RenderBuffers> buffers_;
 
   /* Effective parameters of the full, big tile, and current work render buffer.
-   * The latter might be different from buffers_->params when there is a resolution divider
+   * The latter might be different from `buffers_->params` when there is a resolution divider
    * involved. */
   BufferParams effective_full_params_;
   BufferParams effective_big_tile_params_;

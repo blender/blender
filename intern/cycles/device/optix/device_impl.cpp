@@ -571,7 +571,7 @@ class OptiXDevice::DenoiseContext {
     int pass_stride = -1;
   } guiding_params;
 
-  /* Number of input passes. Including the color and extra auxillary passes. */
+  /* Number of input passes. Including the color and extra auxiliary passes. */
   int num_input_passes = 0;
   bool use_pass_albedo = false;
   bool use_pass_normal = false;
@@ -956,7 +956,7 @@ bool OptiXDevice::denoise_run(DenoiseContext &context, const DenoisePass &pass)
   /* Denoise in-place of the noisy input in the render buffers. */
   output_layer = color_layer;
 
-  /* Finally run denonising. */
+  /* Finally run denoising. */
   OptixDenoiserParams params = {}; /* All parameters are disabled/zero. */
   OptixDenoiserLayer image_layers = {};
   image_layers.input = color_layer;

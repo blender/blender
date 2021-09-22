@@ -68,7 +68,7 @@ class DenoiseParams : public Node {
   /* Viewport start sample. */
   int start_sample = 0;
 
-  /* Auxiliry passes. */
+  /* Auxiliary passes. */
   bool use_pass_albedo = true;
   bool use_pass_normal = true;
 

@@ -1757,7 +1757,7 @@ static void draw_seq_strip_thumbnail(View2D *v2d,
     }
     /* Store recently rendered frames, so they can be reused when zooming. */
     else if (!sequencer_thumbnail_v2d_is_navigating(C)) {
-      /* Clear images in frame range occupied bynew thumbnail. */
+      /* Clear images in frame range occupied by new thumbnail. */
       last_displayed_thumbnails_list_cleanup(
           last_displayed_thumbnails, thumb_x_start, thumb_x_end);
       /* Insert new thumbnail frame to list. */

@@ -76,7 +76,7 @@ ccl_device void bssrdf_setup_radius(Bssrdf *bssrdf, const ClosureType type, cons
     const float inv_eta = 1.0f / eta;
     const float F_dr = inv_eta * (-1.440f * inv_eta + 0.710f) + 0.668f + 0.0636f * eta;
     const float fourthirdA = (4.0f / 3.0f) * (1.0f + F_dr) /
-                             (1.0f - F_dr); /* From Jensen's Fdr ratio formula. */
+                             (1.0f - F_dr); /* From Jensen's `Fdr` ratio formula. */
 
     const float3 alpha_prime = make_float3(
         bssrdf_dipole_compute_alpha_prime(bssrdf->albedo.x, fourthirdA),

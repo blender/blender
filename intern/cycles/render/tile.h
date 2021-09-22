@@ -94,7 +94,7 @@ class TileManager {
    * The file will be considered final, all handles to it will be closed. */
   void finish_write_tiles();
 
-  /* Check whether any tile ahs been written to disk. */
+  /* Check whether any tile has been written to disk. */
   inline bool has_written_tiles() const
   {
     return write_state_.num_tiles_written != 0;

@@ -177,7 +177,7 @@ void PathTrace::render(const RenderWork &render_work)
 
 void PathTrace::render_pipeline(RenderWork render_work)
 {
-  /* NOTE: Only check for "instant" cancel here. Ther user-requested cancel via progress is
+  /* NOTE: Only check for "instant" cancel here. The user-requested cancel via progress is
    * checked in Session and the work in the event of cancel is to be finished here. */
 
   render_scheduler_.set_need_schedule_cryptomatte(device_scene_->data.film.cryptomatte_passes !=
@@ -680,7 +680,7 @@ void PathTrace::write_tile_buffer(const RenderWork &render_work)
    *
    * Tiles are written to a file during rendering, and written to the software at the end
    * of rendering (wither when all tiles are finished, or when rendering was requested to be
-   * cancelled).
+   * canceled).
    *
    * Important thing is: tile should be written to the software via callback only once. */
   if (!has_multiple_tiles) {
@@ -913,7 +913,7 @@ void PathTrace::process_full_buffer_from_disk(string_view filename)
      *    ensure proper denoiser is used. */
     set_denoiser_params(denoise_params);
 
-    /* Number of samples doesn't matter too much, since the sampels count pass will be used. */
+    /* Number of samples doesn't matter too much, since the samples count pass will be used. */
     denoiser_->denoise_buffer(full_frame_buffers.params, &full_frame_buffers, 0, false);
 
     render_state_.has_denoised_result = true;

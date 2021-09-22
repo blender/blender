@@ -338,9 +338,9 @@ bool BlenderGPUDisplay::do_update_begin(const GPUDisplayParams &params,
    * NOTE: Allocate the PBO for the the size which will fit the final render resolution (as in,
    * at a resolution divider 1. This was we don't need to recreate graphics interoperability
    * objects which are costly and which are tied to the specific underlying buffer size.
-   * The downside of this approach is that when graphics interopeability is not used we are sending
-   * too much data to GPU when resolution divider is not 1. */
-  /* TODO(sergey): Investigate whether keeping the PBO exact size of the texute makes non-interop
+   * The downside of this approach is that when graphics interoperability is not used we are
+   * sending too much data to GPU when resolution divider is not 1. */
+  /* TODO(sergey): Investigate whether keeping the PBO exact size of the texture makes non-interop
    * mode faster. */
   const int buffer_width = params.full_size.x;
   const int buffer_height = params.full_size.y;

@@ -44,7 +44,7 @@
  * INTEGRATOR_STATE_PASS_NULL: use to pass empty state to other functions.
  *
  * NOTE: if we end up with a device that passes no arguments, the leading comma will be a problem.
- * Can solve it with more macros if we encouter it, but rather ugly so postpone for now.
+ * Can solve it with more macros if we encounter it, but rather ugly so postpone for now.
  */
 
 #include "kernel/kernel_types.h"
@@ -129,7 +129,7 @@ typedef struct IntegratorStateGPU {
  *
  * Note that there is a special access function for the shadow catcher state. This access is to
  * happen from a kernel which operates on a "main" path. Attempt to use shadow catcher accessors
- * from a kernel which operates on a shadow catcher state will cause bad memory acces. */
+ * from a kernel which operates on a shadow catcher state will cause bad memory access. */
 
 #ifdef __KERNEL_CPU__
 

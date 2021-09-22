@@ -154,8 +154,8 @@ void InstancesComponent::ensure_geometry_instances()
 
 /**
  * With write access to the instances component, the data in the instanced geometry sets can be
- * changed. This is a function on the component rather than each reference to ensure const
- * correct-ness for that reason.
+ * changed. This is a function on the component rather than each reference to ensure `const`
+ * correctness for that reason.
  */
 GeometrySet &InstancesComponent::geometry_set_from_reference(const int reference_index)
 {

@@ -64,7 +64,7 @@ class WorkTileScheduler {
   /* dimensions of the currently rendering image in pixels. */
   int2 image_size_px_ = make_int2(0, 0);
 
-  /* Offset and stride of the buffer within which scheduing is happenning.
+  /* Offset and stride of the buffer within which scheduling is happening.
    * Will be passed over to the KernelWorkTile. */
   int offset_, stride_;
 
@@ -87,7 +87,7 @@ class WorkTileScheduler {
    * in the `get_work()`? */
   int total_tiles_num_ = 0;
 
-  /* In the case when the number of sam[les in the `tile_size_` is lower than samples_num_ denotes
+  /* In the case when the number of samples in the `tile_size_` is lower than samples_num_ denotes
    * how many tiles are to be "stacked" to cover the entire requested range of samples. */
   int num_tiles_per_sample_range_ = 0;
 

@@ -32,7 +32,7 @@ struct WorkBalanceInfo {
   double weight = 1.0;
 };
 
-/* Balance work for an initial render interation, before any statistics is known. */
+/* Balance work for an initial render integration, before any statistics is known. */
 void work_balance_do_initial(vector<WorkBalanceInfo> &work_balance_infos);
 
 /* Rebalance work after statistics has been accumulated.

@@ -498,7 +498,7 @@ void PathTraceWorkGPU::compact_states(const int num_active_paths)
 bool PathTraceWorkGPU::enqueue_work_tiles(bool &finished)
 {
   /* If there are existing paths wait them to go to intersect closest kernel, which will align the
-   * wavefront of the existing and newely added paths. */
+   * wavefront of the existing and newly added paths. */
   /* TODO: Check whether counting new intersection kernels here will have positive affect on the
    * performance. */
   const DeviceKernel kernel = get_most_queued_kernel();
@@ -508,7 +508,7 @@ bool PathTraceWorkGPU::enqueue_work_tiles(bool &finished)
 
   int num_active_paths = get_num_active_paths();
 
-  /* Don't schedule more work if cancelling. */
+  /* Don't schedule more work if canceling. */
   if (is_cancel_requested()) {
     if (num_active_paths == 0) {
       finished = true;
@@ -729,7 +729,7 @@ void PathTraceWorkGPU::copy_to_gpu_display_naive(GPUDisplay *gpu_display,
       gpu_display_rgba_half_.data_height != final_height) {
     gpu_display_rgba_half_.alloc(final_width, final_height);
     /* TODO(sergey): There should be a way to make sure device-side memory is allocated without
-     * transfering zeroes to the device. */
+     * transferring zeroes to the device. */
     queue_->zero_to_device(gpu_display_rgba_half_);
   }
 

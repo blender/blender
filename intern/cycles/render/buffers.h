@@ -116,7 +116,7 @@ class BufferParams : public Node {
    *
    * When the scene passes are given, the buffer passes will be created from them and stored in
    * this params, and then params are updated for those passes.
-   * The `update_passes()` without parameters updates offsets and stries which are stored outside
+   * The `update_passes()` without parameters updates offsets and strides which are stored outside
    * of the passes. */
   void update_passes();
   void update_passes(const vector<Pass *> &scene_passes);
@@ -140,7 +140,7 @@ class BufferParams : public Node {
  protected:
   void reset_pass_offset();
 
-  /* Multipled by 2 to be able to store noisy and denoised pass types. */
+  /* Multiplied by 2 to be able to store noisy and denoised pass types. */
   static constexpr int kNumPassOffsets = PASS_NUM * 2;
 
   /* Indexed by an index derived from pass type and mode, indicates offset of the corresponding
@@ -171,7 +171,7 @@ class RenderBuffers {
 
 /* Copy denoised passes form source to destination.
  *
- * Buffer parameters are provided explicitly, allowing to copy pixelks between render buffers which
+ * Buffer parameters are provided explicitly, allowing to copy pixels between render buffers which
  * content corresponds to a render result at a non-unit resolution divider.
  *
  * `src_offset` allows to offset source pixel index which is used when a fraction of the source

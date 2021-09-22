@@ -233,7 +233,7 @@ void RenderScheduler::render_work_reschedule_on_cancel(RenderWork &render_work)
 
   const bool has_rendered_samples = get_num_rendered_samples() != 0;
 
-  /* Reset all fields of the previous work, canelling things like adaptive sampling filtering and
+  /* Reset all fields of the previous work, canceling things like adaptive sampling filtering and
    * denoising.
    * However, need to preserve write requests, since those will not be possible to recover and
    * writes are only to happen once. */
@@ -246,7 +246,7 @@ void RenderScheduler::render_work_reschedule_on_cancel(RenderWork &render_work)
   render_work.full.write = full_write;
 
   /* Do not write tile if it has zero samples it it, treat it similarly to all other tiles which
-   * got cancelled. */
+   * got canceled. */
   if (!state_.tile_result_was_written && has_rendered_samples) {
     render_work.tile.write = true;
   }
@@ -817,7 +817,7 @@ int RenderScheduler::get_num_samples_to_path_trace() const
 
   int num_samples_to_render = min(num_samples_pot, max_num_samples_to_render);
 
-  /* When enough statistics is available and doing an offlien rendering prefer to keep device
+  /* When enough statistics is available and doing an offline rendering prefer to keep device
    * occupied. */
   if (state_.occupancy_num_samples && (background_ || headless_)) {
     /* Keep occupancy at about 0.5 (this is more of an empirical figure which seems to match scenes
@@ -874,7 +874,7 @@ int RenderScheduler::get_num_samples_during_navigation(int resolution_divider) c
 
   /* Always render 4 samples, even if scene is configured for less.
    * The idea here is to have enough information on the screen. Resolution divider of 2 allows us
-   * to have 4 time extra samples, so verall worst case timing is the same as the final resolution
+   * to have 4 time extra samples, so overall worst case timing is the same as the final resolution
    * at one sample. */
   return 4;
 }

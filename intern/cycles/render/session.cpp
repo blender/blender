@@ -116,7 +116,7 @@ Session::~Session()
   }
 #endif
 
-  /* Make sure path tracer is destroyed before the deviec. This is needed because destruction might
+  /* Make sure path tracer is destroyed before the device. This is needed because destruction might
    * need to access device for device memory free. */
   /* TODO(sergey): Convert device to be unique_ptr, and rely on C++ to destruct objects in the
    * pre-defined order. */
@@ -612,7 +612,7 @@ void Session::collect_statistics(RenderStats *render_stats)
 }
 
 /* --------------------------------------------------------------------
- * Tile and tile pixels aceess.
+ * Tile and tile pixels access.
  */
 
 bool Session::has_multiple_render_tiles() const
@@ -650,7 +650,7 @@ bool Session::copy_render_tile_from_device()
 bool Session::get_render_tile_pixels(const string &pass_name, int num_components, float *pixels)
 {
   /* NOTE: The code relies on a fact that session is fully update and no scene/buffer modification
-   * is happenning while this function runs. */
+   * is happening while this function runs. */
 
   const BufferParams &buffer_params = path_trace_->get_render_tile_params();
 
@@ -689,7 +689,7 @@ bool Session::set_render_tile_pixels(const string &pass_name,
                                      const float *pixels)
 {
   /* NOTE: The code relies on a fact that session is fully update and no scene/buffer modification
-   * is happenning while this function runs. */
+   * is happening while this function runs. */
 
   const BufferPass *pass = buffer_params_.find_pass(pass_name);
   if (!pass) {

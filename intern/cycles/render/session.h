@@ -120,7 +120,7 @@ class Session {
 
   /* Callback is invoked by tile manager whenever on-dist tiles storage file is closed after
    * writing. Allows an engine integration to keep track of those files without worry about
-   * transfering the information when it needs to re-create session during rendering. */
+   * transferring the information when it needs to re-create session during rendering. */
   function<void(string_view)> full_buffer_written_cb;
 
   explicit Session(const SessionParams &params, const SceneParams &scene_params);
@@ -128,7 +128,7 @@ class Session {
 
   void start();
 
-  /* When quick cancel is requested path tracing is cancelles as soon as possible, without waiting
+  /* When quick cancel is requested path tracing is cancels as soon as possible, without waiting
    * for the buffer to be uniformly sampled. */
   void cancel(bool quick = false);
 
@@ -154,7 +154,7 @@ class Session {
   void collect_statistics(RenderStats *stats);
 
   /* --------------------------------------------------------------------
-   * Tile and tile pixels aceess.
+   * Tile and tile pixels access.
    */
 
   bool has_multiple_render_tiles() const;

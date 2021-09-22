@@ -300,7 +300,7 @@ void render_buffers_host_copy_denoised(RenderBuffers *dst,
   DCHECK_EQ(dst_params.width, src_params.width);
   /* TODO(sergey): More sanity checks to avoid buffer overrun. */
 
-  /* Create a map of pass ofsets to be copied.
+  /* Create a map of pass offsets to be copied.
    * Assume offsets are different to allow copying passes between buffers with different set of
    * passes. */
 

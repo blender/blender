@@ -155,7 +155,7 @@ class SampleCurveFunction : public fn::MultiFunction {
       spline_indices[i] = std::max(index, 0);
     }
 
-    /* Storing lookups in an array is unecessary but will simplify custom attribute transfer. */
+    /* Storing lookups in an array is unnecessary but will simplify custom attribute transfer. */
     Array<Spline::LookupResult> lookups(mask.min_array_size());
     for (const int i : mask) {
       const float length_in_spline = lengths[i] - spline_lengths_[spline_indices[i]];

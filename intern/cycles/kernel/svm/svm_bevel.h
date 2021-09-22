@@ -255,7 +255,7 @@ ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
 
       /* Multiple importance sample between 3 axes, power heuristic
        * found to be slightly better than balance heuristic. pdf_N
-       * in the MIS weight and denominator cancelled out. */
+       * in the MIS weight and denominator canceled out. */
       float w = pdf_N / (sqr(pdf_N) + sqr(pdf_T) + sqr(pdf_B));
       if (isect.num_hits > LOCAL_MAX_HITS) {
         w *= isect.num_hits / (float)LOCAL_MAX_HITS;

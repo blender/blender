@@ -71,7 +71,7 @@ bool ShaderEval::eval(const ShaderEvalType type,
     success = (device->info.type == DEVICE_CPU) ? eval_cpu(device, type, input, output) :
                                                   eval_gpu(device, type, input, output);
 
-    /* Copy data back from device if not cancelled. */
+    /* Copy data back from device if not canceled. */
     if (success) {
       output.copy_from_device(0, 1, output.size());
       read_output(output);

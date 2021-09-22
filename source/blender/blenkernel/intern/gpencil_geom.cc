@@ -600,7 +600,7 @@ static bool BKE_gpencil_stroke_extra_points(bGPDstroke *gps,
  * \param dist: Length of the added section.
  * \param overshoot_fac: Relative length of the curve which is used to determine the extension.
  * \param mode: Affect to Start, End or Both extremes (0->Both, 1->Start, 2->End)
- * \param follow_curvature: True for appproximating curvature of given overshoot.
+ * \param follow_curvature: True for approximating curvature of given overshoot.
  * \param extra_point_count: When follow_curvature is true, use this amount of extra points
  */
 bool BKE_gpencil_stroke_stretch(bGPDstroke *gps,

@@ -111,7 +111,7 @@ ccl_device_forceinline void path_rng_2D(
 }
 
 /**
- * 1D hash recomended from "Hash Functions for GPU Rendering" JCGT Vol. 9, No. 3, 2020
+ * 1D hash recommended from "Hash Functions for GPU Rendering" JCGT Vol. 9, No. 3, 2020
  * See https://www.shadertoy.com/view/4tXyWN and https://www.shadertoy.com/view/XlGcRh
  * http://www.jcgt.org/published/0009/03/02/paper.pdf
  */
@@ -124,7 +124,7 @@ ccl_device_inline uint hash_iqint1(uint n)
 }
 
 /**
- * 2D hash recomended from "Hash Functions for GPU Rendering" JCGT Vol. 9, No. 3, 2020
+ * 2D hash recommended from "Hash Functions for GPU Rendering" JCGT Vol. 9, No. 3, 2020
  * See https://www.shadertoy.com/view/4tXyWN and https://www.shadertoy.com/view/XlGcRh
  * http://www.jcgt.org/published/0009/03/02/paper.pdf
  */

@@ -33,7 +33,7 @@ class Progress;
 
 /* Implementation of a specific denoising algorithm.
  *
- * This class takes care of breaking down denosiing algorithm into a series of device calls or to
+ * This class takes care of breaking down denoising algorithm into a series of device calls or to
  * calls of an external API to denoise given input.
  *
  * TODO(sergey): Are we better with device or a queue here? */
@@ -53,7 +53,7 @@ class Denoiser {
   const DenoiseParams &get_params() const;
 
   /* Create devices and load kernels needed for denoising.
-   * The progress is used to communicate state when kenrels actually needs to be loaded.
+   * The progress is used to communicate state when kernels actually needs to be loaded.
    *
    * NOTE: The `progress` is an optional argument, can be nullptr. */
   virtual bool load_kernels(Progress *progress);
@@ -64,7 +64,7 @@ class Denoiser {
    * a lower resolution render into a bigger allocated buffer, which is used in viewport during
    * navigation and non-unit pixel size. Use that instead of render_buffers->params.
    *
-   * The buffer might be copming from a "foreign" device from what this denoise is created for.
+   * The buffer might be coming from a "foreign" device from what this denoise is created for.
    * This means that in general case the denoiser will make sure the input data is available on
    * the denoiser device, perform denoising, and put data back to the device where the buffer
    * came from.
@@ -95,8 +95,8 @@ class Denoiser {
    *   using OptiX denoiser and rendering on CPU.
    *
    * - No threading safety is ensured in this call. This means, that it is up to caller to ensure
-   *   that there is no threadingconflict between denoising task lazily initializing the device and
-   *   access to this device happen. */
+   *   that there is no threading-conflict between denoising task lazily initializing the device
+   *   and access to this device happen. */
   Device *get_denoiser_device() const;
 
   function<bool(void)> is_cancelled_cb;

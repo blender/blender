@@ -1118,7 +1118,7 @@ static Mesh *mesh_new_from_mball_object(Object *object)
    * balls and all evaluated child meta balls (since polygonization is only stored in the mother
    * ball).
    *
-   * We create empty mesh so scripters don't run into None objects. */
+   * Create empty mesh so script-authors don't run into None objects. */
   if (!DEG_is_evaluated_object(object) || object->runtime.curve_cache == nullptr ||
       BLI_listbase_is_empty(&object->runtime.curve_cache->disp)) {
     return (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);

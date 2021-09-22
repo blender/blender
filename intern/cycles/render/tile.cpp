@@ -282,7 +282,7 @@ static bool buffer_params_from_image_spec_atttributes(BufferParams *buffer_param
 
 /* Configure image specification for the given buffer parameters and passes.
  *
- * Image channels will ber strictly ordered to match content of corresponding buffer, and the
+ * Image channels will be strictly ordered to match content of corresponding buffer, and the
  * metadata will be set so that the render buffers and passes can be reconstructed from it.
  *
  * If the tile size different from (0, 0) the image specification will be configured to use the
@@ -358,7 +358,7 @@ void TileManager::update(const BufferParams &params, const Scene *scene)
 
   buffer_params_ = params;
 
-  /* TODO(sergey): Proper Error handling, so that if configuration has failed we dont' attempt to
+  /* TODO(sergey): Proper Error handling, so that if configuration has failed we don't attempt to
    * write to a partially configured file. */
   configure_image_spec_from_buffer(&write_state_.image_spec, buffer_params_, tile_size_);
 

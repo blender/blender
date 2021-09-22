@@ -93,7 +93,7 @@ class OIDNPass {
    * Is required for albedo and normal passes. The color pass OIDN will perform auto-exposure, so
    * scaling is not needed for the color pass unless adaptive sampling is used.
    *
-   * NOTE: Do not scale the outout pass, as that requires to be a pointer in the original buffer.
+   * NOTE: Do not scale the output pass, as that requires to be a pointer in the original buffer.
    * All the scaling on the output needed for integration with adaptive sampling will happen
    * outside of generic pass handling. */
   bool need_scale = false;
@@ -479,7 +479,7 @@ class OIDNDenoiseContext {
     }
 
     if (num_samples_ == 1) {
-      /* If the avoid scaling if there is only one sample, to save up time (so we dont divide
+      /* If the avoid scaling if there is only one sample, to save up time (so we don't divide
        * buffer by 1). */
       return false;
     }

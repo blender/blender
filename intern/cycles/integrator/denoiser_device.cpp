@@ -77,7 +77,7 @@ bool DeviceDenoiser::denoise_buffer(const BufferParams &buffer_params,
     local_render_buffers.reset(buffer_params);
 
     /* NOTE: The local buffer is allocated for an exact size of the effective render size, while
-     * the input render buffer is allcoated for the lowest resolution divider possible. So it is
+     * the input render buffer is allocated for the lowest resolution divider possible. So it is
      * important to only copy actually needed part of the input buffer. */
     memcpy(local_render_buffers.buffer.data(),
            render_buffers->buffer.data(),

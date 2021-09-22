@@ -146,7 +146,7 @@ class OptiXDevice : public CUDADevice {
   /* Read guiding passes from the render buffers, preprocess them in a way which is expected by
    * OptiX and store in the guiding passes memory within the given context.
    *
-   * Pre=-processing of the guiding passes is to only hapopen once per context lifetime. DO not
+   * Pre=-processing of the guiding passes is to only happen once per context lifetime. DO not
    * preprocess them for every pass which is being denoised. */
   bool denoise_filter_guiding_preprocess(DenoiseContext &context);
 

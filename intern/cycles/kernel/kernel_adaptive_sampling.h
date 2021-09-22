@@ -60,7 +60,7 @@ ccl_device bool kernel_adaptive_sampling_convergence_check(const KernelGlobals *
 
   const float4 A = kernel_read_pass_float4(buffer + kernel_data.film.pass_adaptive_aux_buffer);
   if (!reset && A.w != 0.0f) {
-    /* If the pixel was considered converged, its state will not change in this kernmel. Early
+    /* If the pixel was considered converged, its state will not change in this kernel. Early
      * output before doing any math.
      *
      * TODO(sergey): On a GPU it might be better to keep thread alive for better coherency? */

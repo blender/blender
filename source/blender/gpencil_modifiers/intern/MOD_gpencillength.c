@@ -140,8 +140,8 @@ static void applyLength(LengthGpencilModifierData *lmd, bGPdata *gpd, bGPDstroke
   /* HACK: The second #overshoot_fac needs to be adjusted because it is not
    * done in the same stretch call, because it can have a different length.
    * The adjustment needs to be stable when
-   * ceil(overshoot_fac*(gps->totpoints - 2)) is used in stretch and never
-   * produce a result highter than totpoints - 2. */
+   * `ceil(overshoot_fac*(gps->totpoints - 2))` is used in stretch and never
+   * produce a result higher than `totpoints - 2`. */
   const float second_overshoot_fac = lmd->overshoot_fac * (totpoints - 2) /
                                      ((float)gps->totpoints - 2) *
                                      (1.0f - 0.1f / (totpoints - 1.0f));

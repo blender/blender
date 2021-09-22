@@ -393,7 +393,7 @@ film_calculate_shadow_catcher(const KernelFilmConvert *ccl_restrict kfilm_conver
   ccl_global const float *in_catcher = buffer + kfilm_convert->pass_shadow_catcher;
 
   /* NOTE: It is possible that the Shadow Catcher pass is requested as an output without actual
-   * shadow catcher objects in the scene. In this case there will be no auxillary passes required
+   * shadow catcher objects in the scene. In this case there will be no auxiliary passes required
    * for the devision (to save up memory). So delay the asserts to this point so that the number of
    * samples check handles such configuration. */
   kernel_assert(kfilm_convert->pass_offset != PASS_UNUSED);
@@ -404,14 +404,14 @@ film_calculate_shadow_catcher(const KernelFilmConvert *ccl_restrict kfilm_conver
   ccl_global const float *in_matte = buffer + kfilm_convert->pass_shadow_catcher_matte;
 
   /* No scaling needed. The integration works in way that number of samples in the combined and
-   * shadow catcher passes are the same, and exposure is cancelled during the division. */
+   * shadow catcher passes are the same, and exposure is canceled during the division. */
   const float3 color_catcher = make_float3(in_catcher[0], in_catcher[1], in_catcher[2]);
   const float3 color_combined = make_float3(in_combined[0], in_combined[1], in_combined[2]);
   const float3 color_matte = make_float3(in_matte[0], in_matte[1], in_matte[2]);
 
   /* Need to ignore contribution of the matte object when doing division (otherwise there will be
    * artifacts caused by anti-aliasing). Since combined pass is used for adaptive sampling and need
-   * to contain matte objects, we subtrack matte objects contribution here. This is the same as if
+   * to contain matte objects, we subtract matte objects contribution here. This is the same as if
    * the matte objects were not accumulated to the combined pass. */
   const float3 combined_no_matte = color_combined - color_matte;
 
@@ -422,8 +422,8 @@ film_calculate_shadow_catcher(const KernelFilmConvert *ccl_restrict kfilm_conver
   const float alpha = film_transparency_to_alpha(transparency);
 
   /* Alpha-over on white using transparency of the combined pass. This allows to eliminate
-   * artifacts which are happenning on an edge of a shadow catcher when using transparent film.
-   * Note that we treat shadow catcher as straight alpha here because alpha got cancelled out
+   * artifacts which are happening on an edge of a shadow catcher when using transparent film.
+   * Note that we treat shadow catcher as straight alpha here because alpha got canceled out
    * during the division. */
   const float3 pixel = (1.0f - alpha) * one_float3() + alpha * shadow_catcher;
 

@@ -83,7 +83,7 @@ class PathTrace {
   void set_progress(Progress *progress);
 
   /* NOTE: This is a blocking call. Meaning, it will not return until given number of samples are
-   * rendered (or until rendering is requested to be cancelled). */
+   * rendered (or until rendering is requested to be canceled). */
   void render(const RenderWork &render_work);
 
   /* TODO(sergey): Decide whether denoiser is really a part of path tracer. Currently it is
@@ -110,7 +110,7 @@ class PathTrace {
   /* Cancel rendering process as soon as possible, without waiting for full tile to be sampled.
    * Used in cases like reset of render session.
    *
-   * This is a blockign call, which returns as soon as there is no running `render_samples()` call.
+   * This is a blocking call, which returns as soon as there is no running `render_samples()` call.
    */
   void cancel();
 
@@ -120,11 +120,11 @@ class PathTrace {
    * the data will be copied to the device of the given render buffers. */
   void copy_to_render_buffers(RenderBuffers *render_buffers);
 
-  /* Copy happens via CPU side buffer: data will be copied from the device of the given rendetr
+  /* Copy happens via CPU side buffer: data will be copied from the device of the given render
    * buffers and will be copied to all devices of the path trace. */
   void copy_from_render_buffers(RenderBuffers *render_buffers);
 
-  /* Copy render buffers of the big tile from the device to hsot.
+  /* Copy render buffers of the big tile from the device to host.
    * Return true if all copies are successful. */
   bool copy_render_tile_from_device();
 
@@ -172,10 +172,10 @@ class PathTrace {
    * Is called during path tracing to communicate work-in-progress state of the final buffer. */
   function<void(void)> tile_buffer_update_cb;
 
-  /* Callback which communicates final rendered buffer. Is called after pathtracing is done. */
+  /* Callback which communicates final rendered buffer. Is called after path-tracing is done. */
   function<void(void)> tile_buffer_write_cb;
 
-  /* Callback which initializes rendered buffer. Is called before pathtracing starts.
+  /* Callback which initializes rendered buffer. Is called before path-tracing starts.
    *
    * This is used for baking. */
   function<bool(void)> tile_buffer_read_cb;
@@ -189,7 +189,7 @@ class PathTrace {
 
  protected:
   /* Actual implementation of the rendering pipeline.
-   * Calls steps in order, checking for the cancel to be requested inbetween.
+   * Calls steps in order, checking for the cancel to be requested in between.
    *
    * Is separate from `render()` to simplify dealing with the early outputs and keeping
    * `render_cancel_` in the consistent state. */
@@ -283,7 +283,7 @@ class PathTrace {
      * affects both resolution and stride as visible by the integrator kernels. */
     int resolution_divider = 0;
 
-    /* Paramaters of the big tile with the current resolution divider applied. */
+    /* Parameters of the big tile with the current resolution divider applied. */
     BufferParams effective_big_tile_params;
 
     /* Denosier was run and there are denoised versions of the passes in the render buffers. */

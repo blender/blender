@@ -117,7 +117,7 @@ class GPUDisplay {
    *
    * NOTE: The GPUDisplay should be marked for an update being in process with `update_begin()`.
    *
-   * NOTE: Texture buffer can not be mapped while graphics interopeability is active. This means
+   * NOTE: Texture buffer can not be mapped while graphics interoperability is active. This means
    * that `map_texture_buffer()` is not allowed between `graphics_interop_begin()` and
    * `graphics_interop_end()` calls.
    */
@@ -125,7 +125,7 @@ class GPUDisplay {
   /* Map pixels memory form texture to a buffer available for write from CPU. Width and height will
    * define a requested size of the texture to write to.
    * Upon success a non-null pointer is returned and the texture buffer is to be unmapped.
-   * If an error happens during mapping, or if mapoping is not supported by this GPU display a
+   * If an error happens during mapping, or if mapping is not supported by this GPU display a
    * null pointer is returned and the buffer is NOT to be unmapped.
    *
    * NOTE: Usually the implementation will rely on a GPU context of some sort, and the GPU context
@@ -149,7 +149,7 @@ class GPUDisplay {
    * device API. */
   DeviceGraphicsInteropDestination graphics_interop_get();
 
-  /* (De)activate GPU display for graphics interoperability outside of regular display udpate
+  /* (De)activate GPU display for graphics interoperability outside of regular display update
    * routines. */
   virtual void graphics_interop_activate();
   virtual void graphics_interop_deactivate();
@@ -206,8 +206,8 @@ class GPUDisplay {
   GPUDisplayParams params_;
 
   /* Mark texture as its content has been updated.
-   * Used from places which knows that the texture content has been brough up-to-date, so that the
-   * drawing knows whether it can be performed, and whether drawing happenned with an up-to-date
+   * Used from places which knows that the texture content has been brought up-to-date, so that the
+   * drawing knows whether it can be performed, and whether drawing happened with an up-to-date
    * texture state. */
   void mark_texture_updated();
 

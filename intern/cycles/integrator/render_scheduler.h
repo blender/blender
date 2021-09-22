@@ -83,7 +83,7 @@ class RenderWork {
   } display;
 
   /* Re-balance multi-device scheduling after rendering this work.
-   * Note that the scheduler does not know anything abouce devices, so if there is only a single
+   * Note that the scheduler does not know anything about devices, so if there is only a single
    * device used, then it is up for the PathTracer to ignore the balancing. */
   bool rebalance = false;
 
@@ -203,7 +203,7 @@ class RenderScheduler {
    * extra work needs to be scheduled to denoise and write final result. */
   bool done() const;
 
-  /* Update scheduling state for a newely scheduled work.
+  /* Update scheduling state for a newly scheduled work.
    * Takes care of things like checking whether work was ever denoised, tile was written and states
    * like that. */
   void update_state_for_render_work(const RenderWork &render_work);
@@ -235,7 +235,7 @@ class RenderScheduler {
   double guess_display_update_interval_in_seconds_for_num_samples_no_limit(
       int num_rendered_samples) const;
 
-  /* Calculate number of samples which can be rendered within current desred update interval which
+  /* Calculate number of samples which can be rendered within current desired update interval which
    * is calculated by `guess_update_interval_in_seconds()`. */
   int calculate_num_samples_per_update() const;
 
@@ -250,11 +250,11 @@ class RenderScheduler {
   /* Whether adaptive sampling convergence check and filter is to happen. */
   bool work_need_adaptive_filter() const;
 
-  /* Calculate thretshold for adaptive sampling. */
+  /* Calculate threshold for adaptive sampling. */
   float work_adaptive_threshold() const;
 
   /* Check whether current work needs denoising.
-   * Denoising is not needed if the denoiser is not configured, or when denosiing is happening too
+   * Denoising is not needed if the denoiser is not configured, or when denoising is happening too
    * often.
    *
    * The delayed will be true when the denoiser is configured for use, but it was delayed for a
