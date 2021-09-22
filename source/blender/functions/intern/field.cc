@@ -468,7 +468,8 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
       /* Still have to copy over the data in the destination provided by the caller. */
       if (output_varray->is_span()) {
         /* Materialize into a span. */
-        computed_varray->materialize_to_uninitialized(output_varray->get_internal_span().data());
+        computed_varray->materialize_to_uninitialized(mask,
+                                                      output_varray->get_internal_span().data());
       }
       else {
         /* Slower materialize into a different structure. */
