@@ -282,6 +282,14 @@ def _template_items_select_actions(params, operator):
         ]
 
 
+def _template_items_hide_reveal_actions(op_hide, op_reveal):
+    return [
+        (op_reveal, {"type": 'H', "value": 'PRESS', "alt": True}, None),
+        (op_hide, {"type": 'H', "value": 'PRESS'}, {"properties": [("unselected", False)]}),
+        (op_hide, {"type": 'H', "value": 'PRESS', "shift": True}, {"properties": [("unselected", True)]}),
+    ]
+
+
 def _template_items_object_subdivision_set():
     return [
         ("object.subdivision_set",
@@ -976,6 +984,7 @@ def km_uv_editor(params):
         ("uv.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("uv.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         *_template_items_select_actions(params, "uv.select_all"),
+        *_template_items_hide_reveal_actions("uv.hide", "uv.reveal"),
         ("uv.select_pinned", {"type": 'P', "value": 'PRESS', "shift": True}, None),
         op_menu("IMAGE_MT_uvs_merge", {"type": 'M', "value": 'PRESS'}),
         op_menu("IMAGE_MT_uvs_split", {"type": 'M', "value": 'PRESS', "alt": True}),
@@ -987,11 +996,6 @@ def km_uv_editor(params):
         ("uv.pin", {"type": 'P', "value": 'PRESS', "alt": True},
          {"properties": [("clear", True)]}),
         op_menu("IMAGE_MT_uvs_unwrap", {"type": 'U', "value": 'PRESS'}),
-        ("uv.hide", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("uv.hide", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
-        ("uv.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
         (
             op_menu_pie("IMAGE_MT_uvs_snap_pie", {"type": 'S', "value": 'PRESS', "shift": True})
             if not params.legacy else
@@ -1452,11 +1456,7 @@ def km_mask_editing(params):
          {"properties": [("mode", 'SUB')]}),
         ("mask.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("mask.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
-        ("mask.hide_view_clear", {"type": 'H', "value": 'PRESS', "alt": True}, None),
-        ("mask.hide_view_set", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("mask.hide_view_set", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
+        *_template_items_hide_reveal_actions("mask.hide_view_set", "mask.hide_view_clear"),
         ("clip.select", {"type": params.select_mouse, "value": 'PRESS', "ctrl": True}, None),
         ("mask.cyclic_toggle", {"type": 'C', "value": 'PRESS', "alt": True}, None),
         ("mask.slide_point", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
@@ -1573,11 +1573,7 @@ def km_graph_editor_generic(_params):
         ),
         ("graph.extrapolation_type", {"type": 'E', "value": 'PRESS', "shift": True}, None),
         ("anim.channels_find", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
-        ("graph.hide", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("graph.hide", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
-        ("graph.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
+        *_template_items_hide_reveal_actions("graph.hide", "graph.reveal"),
         ("wm.context_set_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'area.type'), ("value", 'DOPESHEET_EDITOR')]}),
     ])
@@ -2958,11 +2954,7 @@ def km_clip_editor(params):
          {"properties": [("action", 'LOCK')]}),
         ("clip.lock_tracks", {"type": 'L', "value": 'PRESS', "alt": True},
          {"properties": [("action", 'UNLOCK')]}),
-        ("clip.hide_tracks", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("clip.hide_tracks", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
-        ("clip.hide_tracks_clear", {"type": 'H', "value": 'PRESS', "alt": True}, None),
+        *_template_items_hide_reveal_actions("clip.hide_tracks", "clip.hide_tracks_clear"),
         ("clip.slide_plane_marker", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("clip.keyframe_insert", {"type": 'I', "value": 'PRESS'}, None),
         ("clip.keyframe_delete", {"type": 'I', "value": 'PRESS', "alt": True}, None),
@@ -3399,11 +3391,7 @@ def km_grease_pencil_stroke_edit_mode(params):
             op_menu("GPENCIL_MT_snap", {"type": 'S', "value": 'PRESS', "shift": True})
         ),
         # Show/hide
-        ("gpencil.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
-        ("gpencil.hide", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("gpencil.hide", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
+        *_template_items_hide_reveal_actions("gpencil.hide", "gpencil.reveal"),
         ("gpencil.selection_opacity_toggle", {"type": 'H', "value": 'PRESS', "ctrl": True}, None),
         # Display
         *_grease_pencil_display(),
@@ -3520,11 +3508,7 @@ def km_grease_pencil_stroke_paint_mode(params):
             (op_tool_cycle, "builtin.interpolate"), params),
         ("gpencil.interpolate_sequence", {"type": 'E', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         # Show/hide
-        ("gpencil.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
-        ("gpencil.hide", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("gpencil.hide", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
+        *_template_items_hide_reveal_actions("gpencil.hide", "gpencil.reveal"),
         # Active layer
         op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
         # Merge Layer
@@ -4116,11 +4100,7 @@ def km_face_mask(params):
 
     items.extend([
         *_template_items_select_actions(params, "paint.face_select_all"),
-        ("paint.face_select_hide", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("paint.face_select_hide", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
-        ("paint.face_select_reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
+        *_template_items_hide_reveal_actions("paint.face_select_hide", "paint.face_select_reveal"),
         ("paint.face_select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("paint.face_select_linked_pick", {"type": 'L', "value": 'PRESS'},
          {"properties": [("deselect", False)]}),
@@ -4162,11 +4142,7 @@ def km_pose(params):
 
     items.extend([
         ("object.parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
-        ("pose.hide", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("pose.hide", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
-        ("pose.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
+        *_template_items_hide_reveal_actions("pose.hide", "pose.reveal"),
         op_menu("VIEW3D_MT_pose_apply", {"type": 'A', "value": 'PRESS', "ctrl": True}),
         ("pose.rot_clear", {"type": 'R', "value": 'PRESS', "alt": True}, None),
         ("pose.loc_clear", {"type": 'G', "value": 'PRESS', "alt": True}, None),
@@ -4287,11 +4263,7 @@ def km_object_mode(params):
         *_template_items_object_subdivision_set(),
         ("object.move_to_collection", {"type": 'M', "value": 'PRESS'}, None),
         ("object.link_to_collection", {"type": 'M', "value": 'PRESS', "shift": True}, None),
-        ("object.hide_view_clear", {"type": 'H', "value": 'PRESS', "alt": True}, None),
-        ("object.hide_view_set", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("object.hide_view_set", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
+        *_template_items_hide_reveal_actions("object.hide_view_set", "object.hide_view_clear"),
         ("object.hide_collection", {"type": 'H', "value": 'PRESS', "ctrl": True}, None),
         *(
             (("object.hide_collection",
@@ -4398,11 +4370,7 @@ def km_curve(params):
             (op_tool_cycle, "builtin.tilt"), params),
         ("transform.transform", {"type": 'S', "value": 'PRESS', "alt": True},
          {"properties": [("mode", 'CURVE_SHRINKFATTEN')]}),
-        ("curve.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
-        ("curve.hide", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("curve.hide", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
+        *_template_items_hide_reveal_actions("curve.hide", "curve.reveal"),
         ("curve.normals_make_consistent", {"type": 'N', "value": 'PRESS', "ctrl" if params.legacy else "shift": True}, None),
         ("object.vertex_parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
         op_menu("VIEW3D_MT_hook", {"type": 'H', "value": 'PRESS', "ctrl": True}),
@@ -4715,12 +4683,14 @@ def km_sculpt(params):
         ("sculpt.expand", {"type": 'W', "value": 'PRESS', "shift": True, "alt": True},
          {"properties": [("target", "FACE_SETS"), ("falloff_type", "BOUNDARY_FACE_SET"),("invert", False), ("use_modify_active", True)]}),
         # Partial Visibility Show/hide
+        # Match keys from: `_template_items_hide_reveal_actions`, cannot use because arguments aren't compatible.
         ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS'},
          {"properties": [("mode", 'TOGGLE')]}),
         ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'HIDE_ACTIVE')]}),
         ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS', "alt": True},
          {"properties": [("mode", 'SHOW_ALL')]}),
+
         ("sculpt.face_set_edit", {"type": 'W', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 'GROW')]}),
         ("sculpt.face_set_edit", {"type": 'W', "value": 'PRESS', "ctrl": True, "alt": True},
@@ -4868,11 +4838,7 @@ def km_mesh(params):
         ("mesh.select_mirror", {"type": 'M', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         op_menu("VIEW3D_MT_edit_mesh_select_similar", {"type": 'G', "value": 'PRESS', "shift": True}),
         # Hide/reveal.
-        ("mesh.hide", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("mesh.hide", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
-        ("mesh.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
+        *_template_items_hide_reveal_actions("mesh.hide", "mesh.reveal"),
         # Tools.
         ("mesh.normals_make_consistent", {"type": 'N', "value": 'PRESS', "ctrl" if params.legacy else "shift": True},
          {"properties": [("inside", False)]}),
@@ -4975,11 +4941,7 @@ def km_armature(params):
 
     items.extend([
         # Hide/reveal.
-        ("armature.hide", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("armature.hide", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
-        ("armature.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
+        *_template_items_hide_reveal_actions("armature.hide", "armature.reveal"),
         # Align & roll.
         ("armature.align", {"type": 'A', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         ("armature.calculate_roll", {"type": 'N', "value": 'PRESS', "ctrl" if params.legacy else "shift": True}, None),
@@ -5064,11 +5026,7 @@ def km_metaball(params):
 
     items.extend([
         ("object.metaball_add", {"type": 'A', "value": 'PRESS', "shift": True}, None),
-        ("mball.reveal_metaelems", {"type": 'H', "value": 'PRESS', "alt": True}, None),
-        ("mball.hide_metaelems", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("mball.hide_metaelems", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
+        *_template_items_hide_reveal_actions("mball.hide_metaelems", "mball.reveal_metaelems"),
         ("mball.delete_metaelems", {"type": 'X', "value": 'PRESS'}, None),
         ("mball.delete_metaelems", {"type": 'DEL', "value": 'PRESS'}, None),
         ("mball.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
@@ -5126,11 +5084,7 @@ def km_particle(params):
         ("particle.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("particle.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("particle.delete", {"type": 'DEL', "value": 'PRESS'}, None),
-        ("particle.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
-        ("particle.hide", {"type": 'H', "value": 'PRESS'},
-         {"properties": [("unselected", False)]}),
-        ("particle.hide", {"type": 'H', "value": 'PRESS', "shift": True},
-         {"properties": [("unselected", True)]}),
+        *_template_items_hide_reveal_actions("particle.hide", "particle.reveal"),
         ("particle.brush_edit", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("particle.brush_edit", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True}, None),
         ("wm.radial_control", {"type": 'F', "value": 'PRESS'},
