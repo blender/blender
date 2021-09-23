@@ -49,6 +49,7 @@ set(SRC
 )
 
 set(LIB
+  bf_blenkernel
 )
 
 if(WITH_HEADLESS)

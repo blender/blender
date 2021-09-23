@@ -15,37 +15,27 @@
  */
 
 /** \file
- * \ingroup DNA
+ * \ingroup bke
  */
 
 #pragma once
 
-#include "DNA_defs.h"
-
-#ifdef __cplusplus
-extern "C" {
+#ifndef __cplusplus
+#  error This is a C++-only header file. Use BKE_asset_library.h instead.
 #endif
 
-/**
- * \brief Universally Unique Identifier according to RFC4122.
- *
- * Cannot be named simply `UUID`, because Windows already defines that type.
- */
-typedef struct bUUID {
-  uint32_t time_low;
-  uint16_t time_mid;
-  uint16_t time_hi_and_version;
-  uint8_t clock_seq_hi_and_reserved;
-  uint8_t clock_seq_low;
-  uint8_t node[6];
-} bUUID;
+#include "BKE_asset_library.h"
 
-/**
- * Memory required for a string representation of a UUID according to RFC4122.
- * This is 36 characters for the string + a trailing zero byte.
- */
-#define UUID_STRING_LEN 37
+#include "BKE_asset_catalog.hh"
 
-#ifdef __cplusplus
-}
-#endif
+#include <memory>
+
+namespace blender::bke {
+
+struct AssetLibrary {
+  std::unique_ptr<AssetCatalogService> catalog_service;
+
+  void load(StringRefNull library_root_directory);
+};
+
+}  // namespace blender::bke

@@ -32,11 +32,15 @@
 #ifdef RNA_RUNTIME
 
 #  include "BKE_asset.h"
+#  include "BKE_asset_library.h"
+#  include "BKE_context.h"
 #  include "BKE_idprop.h"
 
 #  include "BLI_listbase.h"
+#  include "BLI_uuid.h"
 
 #  include "ED_asset.h"
+#  include "ED_fileselect.h"
 
 #  include "RNA_access.h"
 
@@ -176,6 +180,40 @@ static void rna_AssetMetaData_active_tag_range(
   *max = *softmax = MAX2(asset_data->tot_tags - 1, 0);
 }
 
+static void rna_AssetMetaData_catalog_id_get(PointerRNA *ptr, char *value)
+{
+  const AssetMetaData *asset_data = ptr->data;
+  BLI_uuid_format(value, asset_data->catalog_id);
+}
+
+static int rna_AssetMetaData_catalog_id_length(PointerRNA *UNUSED(ptr))
+{
+  return UUID_STRING_LEN - 1;
+}
+
+static void rna_AssetMetaData_catalog_id_set(PointerRNA *ptr, const char *value)
+{
+  AssetMetaData *asset_data = ptr->data;
+  bUUID new_uuid;
+
+  if (value[0] == '\0') {
+    BKE_asset_metadata_catalog_id_clear(asset_data);
+    return;
+  }
+
+  if (!BLI_uuid_parse_string(&new_uuid, value)) {
+    // TODO(Sybren): raise ValueError exception once that's possible from an RNA setter.
+    printf("UUID %s not formatted correctly, ignoring new value\n", value);
+    return;
+  }
+
+  /* This just sets the new UUID and clears the catalog simple name. The actual
+   * catalog simple name will be updated by some update function, as it
+   * needs the asset library from the context. */
+  /* TODO(Sybren): write that update function. */
+  BKE_asset_metadata_catalog_id_set(asset_data, new_uuid, "");
+}
+
 static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)
 {
   AssetHandle *asset_handle = ptr->data;
@@ -310,6 +348,24 @@ static void rna_def_asset_data(BlenderRNA *brna)
   prop = RNA_def_property(srna, "active_tag", PROP_INT, PROP_NONE);
   RNA_def_property_int_funcs(prop, NULL, NULL, "rna_AssetMetaData_active_tag_range");
   RNA_def_property_ui_text(prop, "Active Tag", "Index of the tag set for editing");
+
+  prop = RNA_def_property(srna, "catalog_id", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop,
+                                "rna_AssetMetaData_catalog_id_get",
+                                "rna_AssetMetaData_catalog_id_length",
+                                "rna_AssetMetaData_catalog_id_set");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_ui_text(prop,
+                           "Catalog UUID",
+                           "Identifier for the asset's catalog, used by Blender to look up the "
+                           "asset's catalog path. Must be a UUID according to RFC4122");
+
+  prop = RNA_def_property(srna, "catalog_simple_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop,
+                           "Catalog Simple Name",
+                           "Simple name of the asset's catalog, for debugging and "
+                           "data recovery purposes");
 }
 
 static void rna_def_asset_handle_api(StructRNA *srna)

@@ -24,6 +24,7 @@
 #include <cstring>
 #include <ctime>
 #include <random>
+#include <sstream>
 #include <string>
 
 /* Ensure the UUID struct doesn't have any padding, to be compatible with memcmp(). */
@@ -137,3 +138,34 @@ std::ostream &operator<<(std::ostream &stream, bUUID uuid)
   stream << buffer;
   return stream;
 }
+
+namespace blender::bke {
+
+bUUID::bUUID(const std::string &string_formatted_uuid)
+{
+  const bool parsed_ok = BLI_uuid_parse_string(this, string_formatted_uuid.c_str());
+  if (!parsed_ok) {
+    std::stringstream ss;
+    ss << "invalid UUID string " << string_formatted_uuid;
+    throw std::runtime_error(ss.str());
+  }
+}
+
+bUUID::bUUID(const ::bUUID &struct_uuid)
+{
+  *(static_cast<::bUUID *>(this)) = struct_uuid;
+}
+
+uint64_t bUUID::hash() const
+{
+  /* Convert the struct into two 64-bit numbers, and XOR them to get the hash. */
+  const uint64_t *uuid_as_int64 = reinterpret_cast<const uint64_t *>(this);
+  return uuid_as_int64[0] ^ uuid_as_int64[1];
+}
+
+bool operator==(bUUID uuid1, bUUID uuid2)
+{
+  return BLI_uuid_equal(uuid1, uuid2);
+}
+
+}  // namespace blender::bke

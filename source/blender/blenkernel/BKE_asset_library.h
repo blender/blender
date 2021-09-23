@@ -15,36 +15,21 @@
  */
 
 /** \file
- * \ingroup DNA
+ * \ingroup bke
  */
 
 #pragma once
-
-#include "DNA_defs.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * \brief Universally Unique Identifier according to RFC4122.
- *
- * Cannot be named simply `UUID`, because Windows already defines that type.
- */
-typedef struct bUUID {
-  uint32_t time_low;
-  uint16_t time_mid;
-  uint16_t time_hi_and_version;
-  uint8_t clock_seq_hi_and_reserved;
-  uint8_t clock_seq_low;
-  uint8_t node[6];
-} bUUID;
+/** Forward declaration, defined in intern/asset_library.hh */
+typedef struct AssetLibrary AssetLibrary;
 
-/**
- * Memory required for a string representation of a UUID according to RFC4122.
- * This is 36 characters for the string + a trailing zero byte.
- */
-#define UUID_STRING_LEN 37
+/** TODO(@sybren): properly have a think/discussion about the API for this. */
+struct AssetLibrary *BKE_asset_library_load(const char *library_path);
+void BKE_asset_library_free(struct AssetLibrary *asset_library);
 
 #ifdef __cplusplus
 }
