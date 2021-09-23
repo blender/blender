@@ -18,6 +18,7 @@
  * \ingroup bli
  */
 
+#include "BLI_assert.h"
 #include "BLI_uuid.h"
 
 #include <cstdio>
@@ -139,7 +140,22 @@ std::ostream &operator<<(std::ostream &stream, bUUID uuid)
   return stream;
 }
 
-namespace blender::bke {
+namespace blender {
+
+bUUID::bUUID(const std::initializer_list<uint> field_values)
+{
+  BLI_assert_msg(field_values.size() == 11, "bUUID requires 5 regular fields + 6 `node` values");
+
+  auto field_iter = field_values.begin();
+
+  this->time_low = static_cast<uint32_t>(*field_iter++);
+  this->time_mid = static_cast<uint16_t>(*field_iter++);
+  this->time_hi_and_version = static_cast<uint16_t>(*field_iter++);
+  this->clock_seq_hi_and_reserved = static_cast<uint8_t>(*field_iter++);
+  this->clock_seq_low = static_cast<uint8_t>(*field_iter++);
+
+  std::copy(field_iter, field_values.end(), this->node);
+}
 
 bUUID::bUUID(const std::string &string_formatted_uuid)
 {
@@ -163,9 +179,9 @@ uint64_t bUUID::hash() const
   return uuid_as_int64[0] ^ uuid_as_int64[1];
 }
 
-bool operator==(bUUID uuid1, bUUID uuid2)
+bool operator==(const bUUID uuid1, const bUUID uuid2)
 {
   return BLI_uuid_equal(uuid1, uuid2);
 }
 
-}  // namespace blender::bke
+}  // namespace blender

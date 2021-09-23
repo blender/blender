@@ -126,7 +126,7 @@ void BKE_asset_metadata_catalog_id_clear(struct AssetMetaData *asset_data)
 }
 
 void BKE_asset_metadata_catalog_id_set(struct AssetMetaData *asset_data,
-                                       const bUUID catalog_id,
+                                       const ::bUUID catalog_id,
                                        const char *catalog_simple_name)
 {
   asset_data->catalog_id = catalog_id;
