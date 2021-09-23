@@ -1331,14 +1331,14 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
                                             const char *filepath,
                                             const short id_code,
                                             const char *id_name,
-                                            const bool do_append)
+                                            const int flag)
 {
+  const bool do_append = (flag & FILE_LINK) == 0;
   /* Tag everything so we can make local only the new datablock. */
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
   /* Define working data, with just the one item we want to link. */
-  WMLinkAppendData *lapp_data = wm_link_append_data_new(do_append ? BLO_LIBLINK_APPEND_RECURSIVE :
-                                                                    0);
+  WMLinkAppendData *lapp_data = wm_link_append_data_new(flag);
 
   wm_link_append_data_library_add(lapp_data, filepath);
   WMLinkAppendDataItem *item = wm_link_append_data_item_add(lapp_data, id_name, id_code, NULL);
@@ -1371,10 +1371,12 @@ ID *WM_file_link_datablock(Main *bmain,
                            View3D *v3d,
                            const char *filepath,
                            const short id_code,
-                           const char *id_name)
+                           const char *id_name,
+                           int flag)
 {
+  flag |= FILE_LINK;
   return wm_file_link_append_datablock_ex(
-      bmain, scene, view_layer, v3d, filepath, id_code, id_name, false);
+      bmain, scene, view_layer, v3d, filepath, id_code, id_name, flag);
 }
 
 /*
@@ -1387,10 +1389,12 @@ ID *WM_file_append_datablock(Main *bmain,
                              View3D *v3d,
                              const char *filepath,
                              const short id_code,
-                             const char *id_name)
+                             const char *id_name,
+                             int flag)
 {
+  BLI_assert((flag & FILE_LINK) == 0);
   ID *id = wm_file_link_append_datablock_ex(
-      bmain, scene, view_layer, v3d, filepath, id_code, id_name, true);
+      bmain, scene, view_layer, v3d, filepath, id_code, id_name, flag);
 
   return id;
 }

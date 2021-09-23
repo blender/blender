@@ -212,14 +212,16 @@ struct ID *WM_file_link_datablock(struct Main *bmain,
                                   struct View3D *v3d,
                                   const char *filepath,
                                   const short id_code,
-                                  const char *id_name);
+                                  const char *id_name,
+                                  int flag);
 struct ID *WM_file_append_datablock(struct Main *bmain,
                                     struct Scene *scene,
                                     struct ViewLayer *view_layer,
                                     struct View3D *v3d,
                                     const char *filepath,
                                     const short id_code,
-                                    const char *id_name);
+                                    const char *id_name,
+                                    int flag);
 void WM_lib_reload(struct Library *lib, struct bContext *C, struct ReportList *reports);
 
 /* mouse cursors */
