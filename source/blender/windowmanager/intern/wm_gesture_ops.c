@@ -179,7 +179,8 @@ int WM_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_region(C);
-  const bool wait_for_input = !ISTWEAK(event->type) && RNA_boolean_get(op->ptr, "wait_for_input");
+  const bool wait_for_input = !WM_event_is_mouse_drag_or_press(event) &&
+                              RNA_boolean_get(op->ptr, "wait_for_input");
 
   if (wait_for_input) {
     op->customdata = WM_gesture_new(win, region, event, WM_GESTURE_CROSS_RECT);
@@ -300,7 +301,8 @@ static void gesture_circle_apply(bContext *C, wmOperator *op);
 int WM_gesture_circle_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
-  const bool wait_for_input = !ISTWEAK(event->type) && RNA_boolean_get(op->ptr, "wait_for_input");
+  const bool wait_for_input = !WM_event_is_mouse_drag_or_press(event) &&
+                              RNA_boolean_get(op->ptr, "wait_for_input");
 
   op->customdata = WM_gesture_new(win, CTX_wm_region(C), event, WM_GESTURE_CIRCLE);
   wmGesture *gesture = op->customdata;
@@ -871,7 +873,7 @@ int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
   op->customdata = WM_gesture_new(win, CTX_wm_region(C), event, WM_GESTURE_STRAIGHTLINE);
 
-  if (ISTWEAK(event->type)) {
+  if (WM_event_is_mouse_drag_or_press(event)) {
     wmGesture *gesture = op->customdata;
     gesture->is_active = true;
   }
