@@ -44,10 +44,10 @@ void IMB_exr_add_channel(void * /*handle*/,
 }
 
 bool IMB_exr_begin_read(void * /*handle*/,
-                       const char * /*filename*/,
-                       int * /*width*/,
-                       int * /*height*/,
-                       const bool /*add_channels*/))
+                        const char * /*filename*/,
+                        int * /*width*/,
+                        int * /*height*/,
+                        const bool /*add_channels*/)
 {
   return 0;
 }
