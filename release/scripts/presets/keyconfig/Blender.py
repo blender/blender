@@ -250,6 +250,8 @@ def load():
     kc = context.window_manager.keyconfigs.new(IDNAME)
     kc_prefs = kc.preferences
 
+    is_select_left = (kc_prefs.select_mouse == 'LEFT')
+
     keyconfig_data = blender_default.generate_keymaps(
         blender_default.Params(
             select_mouse=kc_prefs.select_mouse,
@@ -265,12 +267,9 @@ def load():
             use_select_all_toggle=kc_prefs.use_select_all_toggle,
             use_v3d_tab_menu=kc_prefs.use_v3d_tab_menu,
             use_v3d_shade_ex_pie=kc_prefs.use_v3d_shade_ex_pie,
-            use_gizmo_drag=(
-                kc_prefs.select_mouse == 'LEFT' and
-                kc_prefs.gizmo_action == 'DRAG'
-            ),
-            use_fallback_tool=(True if (kc_prefs.select_mouse == 'LEFT') else (kc_prefs.rmb_action == 'FALLBACK_TOOL')),
-            use_alt_tool=(kc_prefs.use_alt_tool and kc_prefs.select_mouse == 'LEFT'),
+            use_gizmo_drag=(is_select_left and kc_prefs.gizmo_action == 'DRAG'),
+            use_fallback_tool=(True if is_select_left else (kc_prefs.rmb_action == 'FALLBACK_TOOL')),
+            use_alt_tool=(kc_prefs.use_alt_tool and is_select_left),
             use_alt_click_leader=kc_prefs.use_alt_click_leader,
             use_pie_click_drag=kc_prefs.use_pie_click_drag,
         ),
