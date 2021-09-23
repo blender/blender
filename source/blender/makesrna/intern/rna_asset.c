@@ -76,6 +76,7 @@ static int rna_AssetTag_editable(PointerRNA *ptr, const char **r_info)
   if (owner_id && owner_id->asset_data) {
     BLI_assert_msg(BLI_findindex(&owner_id->asset_data->tags, asset_tag) != -1,
                    "The owner of the asset tag pointer is not the asset ID containing the tag");
+    UNUSED_VARS_NDEBUG(asset_tag);
   }
 
   return rna_AssetMetaData_editable_from_owner_id(ptr->owner_id, owner_id->asset_data, r_info) ?
