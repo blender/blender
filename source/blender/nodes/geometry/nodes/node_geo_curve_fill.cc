@@ -165,9 +165,6 @@ static void geo_node_curve_fill_exec(GeoNodeExecParams params)
         curve_fill_calculate(geometry_set, mode);
       }
     });
-
-    params.set_output("Mesh", std::move(geometry_set));
-    return;
   }
 
   curve_fill_calculate(geometry_set, mode);
