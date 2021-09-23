@@ -86,8 +86,8 @@ void *OutputOpenExrSingleLayerMultiViewOperation::get_handle(const char *filenam
 
     /* prepare the file with all the channels */
 
-    if (IMB_exr_begin_write(
-            exrhandle, filename, width, height, this->m_format->exr_codec, nullptr) == 0) {
+    if (!IMB_exr_begin_write(
+            exrhandle, filename, width, height, this->m_format->exr_codec, nullptr)) {
       printf("Error Writing Singlelayer Multiview Openexr\n");
       IMB_exr_close(exrhandle);
     }
@@ -200,8 +200,7 @@ void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename
 
     /* prepare the file with all the channels for the header */
     StampData *stamp_data = createStampData();
-    if (IMB_exr_begin_write(exrhandle, filename, width, height, this->m_exr_codec, stamp_data) ==
-        0) {
+    if (!IMB_exr_begin_write(exrhandle, filename, width, height, this->m_exr_codec, stamp_data)) {
       printf("Error Writing Multilayer Multiview Openexr\n");
       IMB_exr_close(exrhandle);
       BKE_stamp_data_free(stamp_data);

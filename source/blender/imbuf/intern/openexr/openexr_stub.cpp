@@ -43,21 +43,22 @@ void IMB_exr_add_channel(void * /*handle*/,
 {
 }
 
-int IMB_exr_begin_read(void * /*handle*/,
+bool IMB_exr_begin_read(void * /*handle*/,
                        const char * /*filename*/,
                        int * /*width*/,
-                       int * /*height*/)
+                       int * /*height*/,
+                       const bool /*add_channels*/))
 {
   return 0;
 }
-int IMB_exr_begin_write(void * /*handle*/,
-                        const char * /*filename*/,
-                        int /*width*/,
-                        int /*height*/,
-                        int /*compress*/,
-                        const struct StampData * /*stamp*/)
+bool IMB_exr_begin_write(void * /*handle*/,
+                         const char * /*filename*/,
+                         int /*width*/,
+                         int /*height*/,
+                         int /*compress*/,
+                         const struct StampData * /*stamp*/)
 {
-  return 0;
+  return false;
 }
 void IMB_exrtile_begin_write(void * /*handle*/,
                              const char * /*filename*/,

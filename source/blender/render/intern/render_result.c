@@ -1083,7 +1083,7 @@ int render_result_exr_file_read_path(RenderResult *rr,
   void *exrhandle = IMB_exr_get_handle();
   int rectx, recty;
 
-  if (IMB_exr_begin_read(exrhandle, filepath, &rectx, &recty) == 0) {
+  if (!IMB_exr_begin_read(exrhandle, filepath, &rectx, &recty, false)) {
     printf("failed being read %s\n", filepath);
     IMB_exr_close(exrhandle);
     return 0;
@@ -1175,21 +1175,32 @@ void render_result_exr_file_cache_write(Render *re)
 /* For cache, makes exact copy of render result */
 bool render_result_exr_file_cache_read(Render *re)
 {
-  char str[FILE_MAXFILE + MAX_ID_NAME + MAX_ID_NAME + 100] = "";
+  /* File path to cache. */
+  char filepath[FILE_MAXFILE + MAX_ID_NAME + MAX_ID_NAME + 100] = "";
   char *root = U.render_cachedir;
+  render_result_exr_file_cache_path(re->scene, root, filepath);
 
-  RE_FreeRenderResult(re->result);
-  re->result = render_result_new(re, &re->disprect, RR_ALL_LAYERS, RR_ALL_VIEWS);
-  render_result_passes_allocated_ensure(re->result);
+  printf("read exr cache file: %s\n", filepath);
 
-  /* First try cache. */
-  render_result_exr_file_cache_path(re->scene, root, str);
+  /* Try opening the file. */
+  void *exrhandle = IMB_exr_get_handle();
+  int rectx, recty;
 
-  printf("read exr cache file: %s\n", str);
-  if (!render_result_exr_file_read_path(re->result, NULL, str)) {
-    printf("cannot read: %s\n", str);
+  if (!IMB_exr_begin_read(exrhandle, filepath, &rectx, &recty, true)) {
+    printf("cannot read: %s\n", filepath);
+    IMB_exr_close(exrhandle);
     return false;
   }
+
+  /* Read file contents into render result. */
+  const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
+  RE_FreeRenderResult(re->result);
+
+  IMB_exr_read_channels(exrhandle);
+  re->result = render_result_new_from_exr(exrhandle, colorspace, false, rectx, recty);
+
+  IMB_exr_close(exrhandle);
+
   return true;
 }
 
