@@ -101,6 +101,8 @@ class AttributeIDRef {
     BLI_assert(this->is_anonymous());
     return *anonymous_id_;
   }
+
+  friend std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_id);
 };
 
 }  // namespace blender::bke
