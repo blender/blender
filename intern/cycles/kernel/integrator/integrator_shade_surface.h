@@ -365,19 +365,16 @@ ccl_device bool integrate_surface(INTEGRATOR_STATE_ARGS,
 #ifdef __VOLUME__
   if (!(sd.flag & SD_HAS_ONLY_VOLUME)) {
 #endif
+    const int path_flag = INTEGRATOR_STATE(path, flag);
 
-    {
-      const int path_flag = INTEGRATOR_STATE(path, flag);
 #ifdef __SUBSURFACE__
-      /* Can skip shader evaluation for BSSRDF exit point without bump mapping. */
-      if (!(path_flag & PATH_RAY_SUBSURFACE) || ((sd.flag & SD_HAS_BSSRDF_BUMP)))
+    /* Can skip shader evaluation for BSSRDF exit point without bump mapping. */
+    if (!(path_flag & PATH_RAY_SUBSURFACE) || ((sd.flag & SD_HAS_BSSRDF_BUMP)))
 #endif
-      {
-        /* Evaluate shader. */
-        PROFILING_EVENT(PROFILING_SHADE_SURFACE_EVAL);
-        shader_eval_surface<node_feature_mask>(
-            INTEGRATOR_STATE_PASS, &sd, render_buffer, path_flag);
-      }
+    {
+      /* Evaluate shader. */
+      PROFILING_EVENT(PROFILING_SHADE_SURFACE_EVAL);
+      shader_eval_surface<node_feature_mask>(INTEGRATOR_STATE_PASS, &sd, render_buffer, path_flag);
     }
 
 #ifdef __SUBSURFACE__
@@ -417,17 +414,20 @@ ccl_device bool integrate_surface(INTEGRATOR_STATE_ARGS,
 
     /* Perform path termination. Most paths have already been terminated in
      * the intersect_closest kernel, this is just for emission and for dividing
-     * throughput by the probability at the right moment. */
-    const int path_flag = INTEGRATOR_STATE(path, flag);
-    const float probability = (path_flag & PATH_RAY_TERMINATE_ON_NEXT_SURFACE) ?
-                                  0.0f :
-                                  path_state_continuation_probability(INTEGRATOR_STATE_PASS,
-                                                                      path_flag);
-    if (probability == 0.0f) {
-      return false;
-    }
-    else if (probability != 1.0f) {
-      INTEGRATOR_STATE_WRITE(path, throughput) /= probability;
+     * throughput by the probability at the right moment.
+     *
+     * Also ensure we don't do it twice for SSS at both the entry and exit point. */
+    if (!(path_flag & PATH_RAY_SUBSURFACE)) {
+      const float probability = (path_flag & PATH_RAY_TERMINATE_ON_NEXT_SURFACE) ?
+                                    0.0f :
+                                    path_state_continuation_probability(INTEGRATOR_STATE_PASS,
+                                                                        path_flag);
+      if (probability == 0.0f) {
+        return false;
+      }
+      else if (probability != 1.0f) {
+        INTEGRATOR_STATE_WRITE(path, throughput) /= probability;
+      }
     }
 
 #ifdef __DENOISING_FEATURES__
