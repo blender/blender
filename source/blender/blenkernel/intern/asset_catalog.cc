@@ -271,7 +271,7 @@ std::unique_ptr<AssetCatalogTree> AssetCatalogService::read_into_tree()
     AssetCatalogTreeItem::ChildMap *insert_to_map = &tree->children_;
 
     BLI_assert_msg(!ELEM(catalog->path[0], '/', '\\'),
-                   "Malformed catalog path: Path should be formatted like a relative path");
+                   "Malformed catalog path; should not start with a separator");
 
     const char *next_slash_ptr;
     /* Looks more complicated than it is, this just iterates over path components. E.g.
