@@ -750,7 +750,7 @@ ccl_device int shader_phase_sample_closure(const KernelGlobals *kg,
 
 /* Volume Evaluation */
 
-template<typename StackReadOp>
+template<const bool shadow, typename StackReadOp>
 ccl_device_inline void shader_eval_volume(INTEGRATOR_STATE_CONST_ARGS,
                                           ShaderData *ccl_restrict sd,
                                           const int path_flag,
@@ -815,8 +815,11 @@ ccl_device_inline void shader_eval_volume(INTEGRATOR_STATE_CONST_ARGS,
 #  endif
 
     /* Merge closures to avoid exceeding number of closures limit. */
-    if (i > 0)
-      shader_merge_volume_closures(sd);
+    if (!shadow) {
+      if (i > 0) {
+        shader_merge_volume_closures(sd);
+      }
+    }
   }
 }
 

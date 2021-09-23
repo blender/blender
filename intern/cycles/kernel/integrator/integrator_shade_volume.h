@@ -74,7 +74,7 @@ ccl_device_inline bool shadow_volume_shader_sample(INTEGRATOR_STATE_ARGS,
                                                    ShaderData *ccl_restrict sd,
                                                    float3 *ccl_restrict extinction)
 {
-  shader_eval_volume(INTEGRATOR_STATE_PASS, sd, PATH_RAY_SHADOW, [=](const int i) {
+  shader_eval_volume<true>(INTEGRATOR_STATE_PASS, sd, PATH_RAY_SHADOW, [=](const int i) {
     return integrator_state_read_shadow_volume_stack(INTEGRATOR_STATE_PASS, i);
   });
 
@@ -93,7 +93,7 @@ ccl_device_inline bool volume_shader_sample(INTEGRATOR_STATE_ARGS,
                                             VolumeShaderCoefficients *coeff)
 {
   const int path_flag = INTEGRATOR_STATE(path, flag);
-  shader_eval_volume(INTEGRATOR_STATE_PASS, sd, path_flag, [=](const int i) {
+  shader_eval_volume<false>(INTEGRATOR_STATE_PASS, sd, path_flag, [=](const int i) {
     return integrator_state_read_volume_stack(INTEGRATOR_STATE_PASS, i);
   });
 
