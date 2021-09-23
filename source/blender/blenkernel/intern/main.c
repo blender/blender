@@ -485,6 +485,7 @@ void BKE_main_library_weak_reference_add_item(GHash *library_weak_reference_mapp
   const bool already_exist_in_mapping = BLI_ghash_ensure_p(
       library_weak_reference_mapping, key, &id_p);
   BLI_assert(!already_exist_in_mapping);
+  UNUSED_VARS_NDEBUG(already_exist_in_mapping);
 
   BLI_strncpy(new_id->library_weak_reference->library_filepath,
               library_filepath,
