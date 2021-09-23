@@ -40,7 +40,7 @@ TEST(BLI_uuid, generate_many_random)
   /* Generate lots of UUIDs to get some indication that the randomness is okay. */
   for (int i = 0; i < 1000000; ++i) {
     const bUUID uuid = BLI_uuid_generate_random();
-    EXPECT_FALSE(BLI_uuid_equal(first_uuid, uuid));
+    EXPECT_NE(first_uuid, uuid);
 
     // Check that the non-random bits are set according to RFC4122.
     const uint16_t version = uuid.time_hi_and_version >> 12;
@@ -55,7 +55,7 @@ TEST(BLI_uuid, nil_value)
   const bUUID nil_uuid = BLI_uuid_nil();
   const bUUID zeroes_uuid{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-  EXPECT_TRUE(BLI_uuid_equal(nil_uuid, zeroes_uuid));
+  EXPECT_EQ(nil_uuid, zeroes_uuid);
   EXPECT_TRUE(BLI_uuid_is_nil(nil_uuid));
 
   std::string buffer(36, '\0');
@@ -68,8 +68,8 @@ TEST(BLI_uuid, equality)
   const bUUID uuid1 = BLI_uuid_generate_random();
   const bUUID uuid2 = BLI_uuid_generate_random();
 
-  EXPECT_TRUE(BLI_uuid_equal(uuid1, uuid1));
-  EXPECT_FALSE(BLI_uuid_equal(uuid1, uuid2));
+  EXPECT_EQ(uuid1, uuid1);
+  EXPECT_NE(uuid1, uuid2);
 }
 
 TEST(BLI_uuid, string_formatting)

@@ -93,6 +93,7 @@ class bUUID : public ::bUUID {
 };
 
 bool operator==(bUUID uuid1, bUUID uuid2);
+bool operator!=(bUUID uuid1, bUUID uuid2);
 
 }  // namespace blender
 

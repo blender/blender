@@ -184,4 +184,9 @@ bool operator==(const bUUID uuid1, const bUUID uuid2)
   return BLI_uuid_equal(uuid1, uuid2);
 }
 
+bool operator!=(const bUUID uuid1, const bUUID uuid2)
+{
+  return !(uuid1 == uuid2);
+}
+
 }  // namespace blender
