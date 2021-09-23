@@ -822,11 +822,31 @@ def brush_settings(layout, context, brush, popover=False):
                 ) 
             box.prop(brush, "use_custom_topology_rake_spacing", text="Custom Spacing")
 
-            if brush.use_custom_topology_rake_spacing:
-                box.prop(brush, "topology_rake_spacing", text="Spacing")
-            box.prop(brush, "topology_rake_projection")
+            if brush.channels.channels["topology_rake_use_spacing"].bool_value:
+                UnifiedPaintPanel.prop_unified(
+                    box,
+                    context,
+                    brush,
+                    "topology_rake_spacing",
+                    slider=True,
+                    text="Spacing"
+                )
 
-            box.prop(brush, "topology_rake_radius_factor", slider=True)
+            UnifiedPaintPanel.prop_unified(
+                box,
+                context,
+                brush,
+                "topology_rake_projection",
+                slider=True
+            )
+            UnifiedPaintPanel.prop_unified(
+                box,
+                context,
+                brush,
+                "topology_rake_radius_scale",
+                slider=True
+            )
+
             box.prop(brush, "use_curvature_rake")
             box.prop(brush, "ignore_falloff_for_topology_rake")
 

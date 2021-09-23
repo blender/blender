@@ -8462,6 +8462,7 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
            SCULPT_TOOL_CREASE,
            SCULPT_TOOL_CLOTH,
            SCULPT_TOOL_SIMPLIFY,
+           SCULPT_TOOL_SNAKE_HOOK,
            SCULPT_TOOL_PAINT,
            SCULPT_TOOL_SMEAR)) {
 

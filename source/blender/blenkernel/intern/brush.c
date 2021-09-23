@@ -1799,17 +1799,18 @@ void BKE_brush_sculpt_reset(Brush *br)
    * settings used by a brush: */
   // BKE_brush_debug_print_state(br);
 
-  BKE_brush_builtin_create(br, br->sculpt_tool);
+  if (br->channels) {
+    BrushChannel *ch;
 
-  BrushChannel *ch;
+    for (ch = (BrushChannel *)br->channels->channels.first; ch; ch = ch->next) {
+      BrushChannelType *def = ch->def;
 
-  for (ch = (BrushChannel *)br->channels->channels.first; ch; ch = ch->next) {
-    BrushChannelType *def = ch->def;
-
-    BKE_brush_channel_free_data(ch);
-    BKE_brush_channel_init(ch, def);
+      BKE_brush_channel_free_data(ch);
+      BKE_brush_channel_init(ch, def);
+    }
   }
 
+  BKE_brush_builtin_create(br, br->sculpt_tool);
   BKE_brush_channelset_ui_init(br, br->sculpt_tool);
 
   brush_defaults(br);

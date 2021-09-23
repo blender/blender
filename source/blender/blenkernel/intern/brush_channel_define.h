@@ -113,7 +113,7 @@ places in rna_engine_codebase are relevent:
                            "used for DynTopo", 1.0f, 0.001f, 5.0f, 0.01f, 2.0f, false)
   MAKE_FLOAT_EX(projection, "Projection", "Amount of volume preserving projection", 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, false)
   MAKE_FLOAT_EX(autosmooth_projection, "Projection", "Amount of volume preserving projection", 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, false)
-  MAKE_FLOAT_EX(topology_rake_projection, "Projection", "Amount of volume preserving projection", 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, false)
+  MAKE_FLOAT_EX(topology_rake_projection, "Projection", "Amount of volume preserving projection", 0.975f, 0.0f, 1.0f, 0.0f, 1.0f, false)
   MAKE_FLOAT(fset_slide, "Face Set Projection", "Stick face set boundaries to surface of mesh", 1.0f, 0.0f, 1.0f)
   MAKE_FLOAT(boundary_smooth, "Boundary Smooth", "Smooth hard boundaries", 0.0f, 0.0f, 1.0f)
   MAKE_BOOL(topology_rake_use_spacing, "Use Spacing", "Use custom spacing for topology rake", false)
