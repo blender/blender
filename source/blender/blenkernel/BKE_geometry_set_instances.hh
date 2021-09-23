@@ -39,10 +39,6 @@ struct GeometryInstanceGroup {
   Vector<float4x4> transforms;
 };
 
-void geometry_set_instances_attribute_foreach(const GeometrySet &geometry_set,
-                                              const AttributeForeachCallback callback,
-                                              const int limit);
-
 void geometry_set_gather_instances(const GeometrySet &geometry_set,
                                    Vector<GeometryInstanceGroup> &r_instance_groups);
 
