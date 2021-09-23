@@ -23,6 +23,7 @@ import bpy
 from bpy.types import (
     Menu,
     Operator,
+    bpy_prop_array,
 )
 from bpy.props import (
     BoolProperty,
@@ -31,6 +32,8 @@ from bpy.props import (
     FloatProperty,
     IntProperty,
     StringProperty,
+    IntVectorProperty,
+    FloatVectorProperty,
 )
 from bpy.app.translations import pgettext_iface as iface_
 
@@ -1266,48 +1269,20 @@ rna_path = StringProperty(
     options={'HIDDEN'},
 )
 
-rna_value = StringProperty(
-    name="Property Value",
-    description="Property value edit",
-    maxlen=1024,
-)
-
-rna_default = StringProperty(
-    name="Default Value",
-    description="Default value of the property. Important for NLA mixing",
-    maxlen=1024,
-)
-
-rna_custom_property = StringProperty(
+rna_custom_property_name = StringProperty(
     name="Property Name",
     description="Property name edit",
     # Match `MAX_IDPROP_NAME - 1` in Blender's source.
     maxlen=63,
 )
 
-rna_min = FloatProperty(
-    name="Min",
-    description="Minimum value of the property",
-    default=-10000.0,
-    precision=3,
-)
-
-rna_max = FloatProperty(
-    name="Max",
-    description="Maximum value of the property",
-    default=10000.0,
-    precision=3,
-)
-
-rna_use_soft_limits = BoolProperty(
-    name="Use Soft Limits",
-    description="Limits the Property Value slider to a range, values outside the range must be inputted numerically",
-)
-
-rna_is_overridable_library = BoolProperty(
-    name="Is Library Overridable",
-    description="Allow the property to be overridden when the data-block is linked",
-    default=False,
+rna_custom_property_type_items = (
+    ('FLOAT', "Float", "A single floating-point value"),
+    ('FLOAT_ARRAY', "Float Array", "An array of floating-point values"),
+    ('INT', "Integer", "A single integer"),
+    ('INT_ARRAY', "Integer Array", "An array of integers"),
+    ('STRING', "String", "A string value"),
+    ('PYTHON', "Python", "Edit a python value directly, for unsupported property types"),
 )
 
 # Most useful entries of rna_enum_property_subtype_items for number arrays:
@@ -1319,35 +1294,190 @@ rna_vector_subtype_items = (
     ('QUATERNION', "Quaternion Rotation", "Quaternion rotation (affects NLA blending)"),
 )
 
-
 class WM_OT_properties_edit(Operator):
-    """Edit the attributes of the property"""
+    """Change a custom property's type, or adjust how it is displayed in the interface"""
     bl_idname = "wm.properties_edit"
     bl_label = "Edit Property"
     # register only because invoke_props_popup requires.
     bl_options = {'REGISTER', 'INTERNAL'}
 
+    # Common settings used for all property types. Generally, separate properties are used for each
+    # type to improve the experience when choosing UI data values.
+
     data_path: rna_path
-    property: rna_custom_property
-    value: rna_value
-    default: rna_default
-    min: rna_min
-    max: rna_max
-    use_soft_limits: rna_use_soft_limits
-    is_overridable_library: rna_is_overridable_library
-    soft_min: rna_min
-    soft_max: rna_max
+    property_name: rna_custom_property_name
+    property_type: EnumProperty(
+        name="Type",
+        items=lambda self, _context: WM_OT_properties_edit.type_items,
+    )
+    is_overridable_library: BoolProperty(
+        name="Is Library Overridable",
+        description="Allow the property to be overridden when the data-block is linked",
+        default=False,
+    )
     description: StringProperty(
-        name="Tooltip",
+        name="Description",
+    )
+
+    # Shared for integer and string properties.
+
+    use_soft_limits: BoolProperty(
+        name="Use Soft Limits",
+        description="Limits the Property Value slider to a range, values outside the range must be inputted numerically",
+    )
+    array_length: IntProperty(
+        name="Array Length",
+        default=3,
+        min=1,
+        max=32, # 32 is the maximum size for RNA array properties.
+    )
+
+    # Integer properties.
+
+    # This property stores values for both array and non-array properties.
+    default_int: IntVectorProperty(
+        name="Default Value",
+        size=32,
+    )
+    min_int: IntProperty(
+        name="Min",
+        default=-10000,
+    )
+    max_int: IntProperty(
+        name="Max",
+        default=10000,
+    )
+    soft_min_int: IntProperty(
+        name="Soft Min",
+        default=-10000,
+    )
+    soft_max_int: IntProperty(
+        name="Soft Max",
+        default=10000,
+    )
+    step_int: IntProperty(
+        name="Step",
+        min=1,
+        default=1,
+    )
+
+    # Float properties.
+
+    # This property stores values for both array and non-array properties.
+    default_float: FloatVectorProperty(
+        name="Default Value",
+        size=32,
+    )
+    min_float: FloatProperty(
+        name="Min",
+        default=-10000.0,
+    )
+    max_float: FloatProperty(
+        name="Max",
+        default=-10000.0,
+    )
+    soft_min_float: FloatProperty(
+        name="Soft Min",
+        default=-10000.0,
+    )
+    soft_max_float: FloatProperty(
+        name="Soft Max",
+        default=-10000.0,
+    )
+    precision: IntProperty(
+        name="Precision",
+        default=3,
+        min=0,
+        max=8,
+    )
+    step_float: FloatProperty(
+        name="Step",
+        default=0.1,
+        min=0.001,
     )
     subtype: EnumProperty(
         name="Subtype",
         items=lambda self, _context: WM_OT_properties_edit.subtype_items,
     )
 
+    # String properties.
+
+    default_string: StringProperty(
+        name="Default Value",
+        maxlen=1024,
+    )
+
+    # Store the value converted to a string as a fallback for otherwise unsupported types.
+    eval_string: StringProperty(
+        name="Value",
+        description="Python value for unsupported custom property types"
+    )
+
+    type_items = rna_custom_property_type_items
     subtype_items = rna_vector_subtype_items
 
-    def _init_subtype(self, prop_type, is_array, subtype):
+    # Helper method to avoid repetative code to retrieve a single value from sequences and non-sequences.
+    @staticmethod
+    def _convert_new_value_single(old_value, new_type):
+        if hasattr(old_value, "__len__"):
+            return new_type(old_value[0])
+        return new_type(old_value)
+
+    # Helper method to create a list of a given value and type, using a sequence or non-sequence old value.
+    @staticmethod
+    def _convert_new_value_array(old_value, new_type, new_len):
+        if hasattr(old_value, "__len__"):
+            new_array = [new_type()] * new_len
+            for i in range(min(len(old_value), new_len)):
+                new_array[i] = new_type(old_value[i])
+            return new_array
+        return [new_type(old_value)] * new_len
+
+    # Convert an old property for a string, avoiding unhelpful string representations for custom list types.
+    @staticmethod
+    def _convert_old_property_to_string(item, name):
+        # The IDProperty group view API currently doesn't have a "lookup" method.
+        for key, value in item.items():
+            if key == name:
+                old_value = value
+                break
+
+        # In order to get a better string conversion, convert the property to a builtin sequence type first.
+        to_dict = getattr(old_value, "to_dict", None)
+        to_list = getattr(old_value, "to_list", None)
+        if to_dict:
+            old_value = to_dict()
+        elif to_list:
+            old_value = to_list()
+
+        return str(old_value)
+
+    # Retrieve the current type of the custom property on the RNA struct. Some properties like group properties
+    # can be created in the UI, but editing their meta-data isn't supported. In that case, return 'PYTHON'.
+    def _get_property_type(self, item, property_name):
+        from rna_prop_ui import (
+            rna_idprop_value_item_type,
+        )
+
+        prop_value = item[property_name]
+
+        prop_type, is_array = rna_idprop_value_item_type(prop_value)
+        if prop_type == int:
+            if is_array:
+                return 'INT_ARRAY'
+            return 'INT'
+        elif prop_type == float:
+            if is_array:
+                return 'FLOAT_ARRAY'
+            return 'FLOAT'
+        elif prop_type == str:
+            if is_array:
+                return 'PYTHON'
+            return 'STRING'
+
+        return 'PYTHON'
+
+    def _init_subtype(self, subtype):
         subtype = subtype or 'NONE'
         subtype_items = rna_vector_subtype_items
 
@@ -1358,121 +1488,139 @@ class WM_OT_properties_edit(Operator):
         WM_OT_properties_edit.subtype_items = subtype_items
         self.subtype = subtype
 
-    def _cmp_props_get(self):
-        # Changing these properties will refresh the UI
-        return {
-            "use_soft_limits": self.use_soft_limits,
-            "soft_range": (self.soft_min, self.soft_max),
-            "hard_range": (self.min, self.max),
-        }
+    # Fill the operator's properties with the UI data properties from the existing custom property.
+    # Note that if the UI data doesn't exist yet, the access will create it and use those default values.
+    def _fill_old_ui_data(self, item, name):
+        ui_data = item.id_properties_ui(name)
+        rna_data = ui_data.as_dict()
 
-    def get_value_eval(self):
-        failed = False
-        try:
-            value_eval = eval(self.value)
-            # assert else None -> None, not "None", see T33431.
-            assert(type(value_eval) in {str, float, int, bool, tuple, list})
-        except:
-            failed = True
-            value_eval = self.value
+        if self.property_type in {'FLOAT', 'FLOAT_ARRAY'}:
+            self.min_float = rna_data["min"]
+            self.max_float = rna_data["max"]
+            self.soft_min_float = rna_data["soft_min"]
+            self.soft_max_float = rna_data["soft_max"]
+            self.precision = rna_data["precision"]
+            self.step_float = rna_data["step"]
+            self.subtype = rna_data["subtype"]
+            self.use_soft_limits = (
+                self.min_float != self.soft_min_float or
+                self.max_float != self.soft_max_float
+            )
+            default = self._convert_new_value_array(rna_data["default"], float, 32)
+            self.default_float = default if isinstance(default, list) else [default] * 32
+        elif self.property_type in {'INT', 'INT_ARRAY'}:
+            self.min_int = rna_data["min"]
+            self.max_int = rna_data["max"]
+            self.soft_min_int = rna_data["soft_min"]
+            self.soft_max_int = rna_data["soft_max"]
+            self.step_int = rna_data["step"]
+            self.use_soft_limits = (
+                self.min_int != self.soft_min_int or
+                self.max_int != self.soft_max_int
+            )
+            self.default_int = self._convert_new_value_array(rna_data["default"], int, 32)
+        elif self.property_type == 'STRING':
+            self.default_string = rna_data["default"]
 
-        return value_eval, failed
+        if self.property_type in { 'FLOAT_ARRAY', 'INT_ARRAY'}:
+            self.array_length = len(item[name])
 
-    def get_default_eval(self):
-        failed = False
-        try:
-            default_eval = eval(self.default)
-            # assert else None -> None, not "None", see T33431.
-            assert(type(default_eval) in {str, float, int, bool, tuple, list})
-        except:
-            failed = True
-            default_eval = self.default
+        # The dictionary does not contain the description if it was empty.
+        self.description = rna_data.get("description", "")
 
-        return default_eval, failed
+        self._init_subtype(self.subtype)
+        escaped_name = bpy.utils.escape_identifier(name)
+        self.is_overridable_library = bool(item.is_property_overridable_library('["%s"]' % escaped_name))
 
-    def execute(self, context):
+    # When the operator chooses a different type than the original property,
+    # attempt to convert the old value to the new type for continuity and speed.
+    def _get_converted_value(self, item, name_old, prop_type_new):
+        if prop_type_new == 'INT':
+            return self._convert_new_value_single(item[name_old], int)
+
+        if prop_type_new == 'FLOAT':
+            return self._convert_new_value_single(item[name_old], float)
+
+        if prop_type_new == 'INT_ARRAY':
+            prop_type_old = self._get_property_type(item, name_old)
+            if prop_type_old in {'INT', 'FLOAT', 'INT_ARRAY', 'FLOAT_ARRAY'}:
+                return self._convert_new_value_array(item[name_old], int, self.array_length)
+
+        if prop_type_new == 'FLOAT_ARRAY':
+            prop_type_old = self._get_property_type(item, name_old)
+            if prop_type_old in {'INT', 'FLOAT', 'FLOAT_ARRAY', 'INT_ARRAY'}:
+                return self._convert_new_value_array(item[name_old], float, self.array_length)
+
+        if prop_type_new == 'STRING':
+            return self._convert_old_property_to_string(item, name_old)
+
+        # If all else fails, create an empty string property. That should avoid errors later on anyway.
+        return ""
+
+    # Any time the target type is changed in the dialog, it's helpful to convert the UI data values
+    # to the new type as well, when possible, currently this only applies for floats and ints.
+    def _convert_old_ui_data_to_new_type(self, prop_type_old, prop_type_new):
+        if prop_type_new in {'INT', 'INT_ARRAY'} and prop_type_old in {'FLOAT', 'FLOAT_ARRAY'}:
+            self.min_int = int(self.min_float)
+            self.max_int = int(self.max_float)
+            self.soft_min_int = int(self.soft_min_float)
+            self.soft_max_int = int(self.soft_max_float)
+            self.default_int = self._convert_new_value_array(self.default_float, int, 32)
+        elif prop_type_new in {'FLOAT', 'FLOAT_ARRAY'} and prop_type_old in {'INT', 'INT_ARRAY'}:
+            self.min_float = float(self.min_int)
+            self.max_float = float(self.max_int)
+            self.soft_min_float = float(self.soft_min_int)
+            self.soft_max_float = float(self.soft_max_int)
+            self.default_float = self._convert_new_value_array(self.default_int, float, 32)
+        # Don't convert between string and float/int defaults here, it's not expected like the other conversions.
+
+    # Fill the property's UI data with the values chosen in the operator.
+    def _create_ui_data_for_new_prop(self, item, name, prop_type_new):
+        if prop_type_new in {'INT', 'INT_ARRAY'}:
+            ui_data = item.id_properties_ui(name)
+            ui_data.update(
+                min=self.min_int,
+                max=self.max_int,
+                soft_min=self.soft_min_int if self.use_soft_limits else self.min_int,
+                soft_max=self.soft_max_int if self.use_soft_limits else self.min_int,
+                step=self.step_int,
+                default=self.default_int[0] if prop_type_new == 'INT' else self.default_int[:self.array_length],
+                description=self.description,
+            )
+        elif prop_type_new in {'FLOAT', 'FLOAT_ARRAY'}:
+            ui_data = item.id_properties_ui(name)
+            ui_data.update(
+                min=self.min_float,
+                max=self.max_float,
+                soft_min=self.soft_min_float if self.use_soft_limits else self.min_float,
+                soft_max=self.soft_max_float if self.use_soft_limits else self.max_float,
+                step=self.step_float,
+                precision=self.precision,
+                default=self.default_float[0] if prop_type_new == 'FLOAT' else self.default_float[:self.array_length],
+                description=self.description,
+                subtype=self.subtype,
+            )
+        elif prop_type_new == 'STRING':
+            ui_data = item.id_properties_ui(name)
+            ui_data.update(
+                default=self.default_string,
+                description=self.description,
+            )
+
+        escaped_name = bpy.utils.escape_identifier(name)
+        item.property_overridable_library_set('["%s"]' % escaped_name, self.is_overridable_library)
+
+    def _update_blender_for_prop_change(self, context, item, name, prop_type_old, prop_type_new):
         from rna_prop_ui import (
             rna_idprop_ui_prop_update,
-            rna_idprop_value_item_type,
         )
 
-        data_path = self.data_path
-        prop = self.property
-        prop_escape = bpy.utils.escape_identifier(prop)
-
-        prop_old = getattr(self, "_last_prop", [None])[0]
-
-        if prop_old is None:
-            self.report({'ERROR'}, "Direct execution not supported")
-            return {'CANCELLED'}
-
-        value_eval, value_failed = self.get_value_eval()
-        default_eval, default_failed = self.get_default_eval()
-
-        # First remove
-        item = eval("context.%s" % data_path)
-
-        if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
-            self.report({'ERROR'}, "Cannot edit properties from override data")
-            return {'CANCELLED'}
-
-        prop_type_old = type(item[prop_old])
-
-        # Deleting the property will also remove the UI data.
-        del item[prop_old]
-
-        # Reassign
-        item[prop] = value_eval
-        item.property_overridable_library_set('["%s"]' % prop_escape, self.is_overridable_library)
-        rna_idprop_ui_prop_update(item, prop)
-
-        self._last_prop[:] = [prop]
-
-        prop_value = item[prop]
-        prop_type_new = type(prop_value)
-        prop_type, is_array = rna_idprop_value_item_type(prop_value)
-
-        if prop_type == int:
-            ui_data = item.id_properties_ui(prop)
-            if type(default_eval) == str:
-                self.report({'WARNING'}, "Could not evaluate number from default value")
-                default_eval = None
-            elif hasattr(default_eval, "__len__"):
-                default_eval = [int(round(value)) for value in default_eval]
-            ui_data.update(
-                min=int(round(self.min)),
-                max=int(round(self.max)),
-                soft_min=int(round(self.soft_min)),
-                soft_max=int(round(self.soft_max)),
-                default=default_eval,
-                subtype=self.subtype,
-                description=self.description
-            )
-        elif prop_type == float:
-            ui_data = item.id_properties_ui(prop)
-            if type(default_eval) == str:
-                self.report({'WARNING'}, "Could not evaluate number from default value")
-                default_eval = None
-            ui_data.update(
-                min=self.min,
-                max=self.max,
-                soft_min=self.soft_min,
-                soft_max=self.soft_max,
-                default=default_eval,
-                subtype=self.subtype,
-                description=self.description
-            )
-        elif prop_type == str and not is_array and not default_failed: # String arrays do not support UI data.
-            ui_data = item.id_properties_ui(prop)
-            ui_data.update(
-                default=self.default,
-                subtype=self.subtype,
-                description=self.description
-            )
+        rna_idprop_ui_prop_update(item, name)
 
         # If we have changed the type of the property, update its potential anim curves!
         if prop_type_old != prop_type_new:
-            data_path = '["%s"]' % prop_escape
+            escaped_name = bpy.utils.escape_identifier(name)
+            data_path = '["%s"]' % escaped_name
             done = set()
 
             def _update(fcurves):
@@ -1498,149 +1646,196 @@ class WM_OT_properties_edit(Operator):
                     for nt in adt.nla_tracks:
                         _update_strips(nt.strips)
 
-        # Otherwise existing buttons which reference freed
-        # memory may crash Blender T26510.
-        # context.area.tag_redraw()
+        # Otherwise existing buttons which reference freed memory may crash Blender (T26510).
         for win in context.window_manager.windows:
             for area in win.screen.areas:
                 area.tag_redraw()
 
-        return {'FINISHED'}
-
-    def invoke(self, context, _event):
-        from rna_prop_ui import (
-            rna_idprop_value_to_python,
-            rna_idprop_value_item_type
-        )
-
-        prop = self.property
-        prop_escape = bpy.utils.escape_identifier(prop)
-
-        data_path = self.data_path
-
-        if not data_path:
-            self.report({'ERROR'}, "Data path not set")
+    def execute(self, context):
+        name_old = getattr(self, "_old_prop_name", [None])[0]
+        if name_old is None:
+            self.report({'ERROR'}, "Direct execution not supported")
             return {'CANCELLED'}
 
-        self._last_prop = [prop]
+        data_path = self.data_path
+        name = self.property_name
 
         item = eval("context.%s" % data_path)
-
         if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
             self.report({'ERROR'}, "Cannot edit properties from override data")
             return {'CANCELLED'}
 
-        # retrieve overridable static
-        is_overridable = item.is_property_overridable_library('["%s"]' % prop_escape)
-        self.is_overridable_library = bool(is_overridable)
+        prop_type_old = self._get_property_type(item, name_old)
+        prop_type_new = self.property_type
+        self._old_prop_name[:] = [name]
 
-        # default default value
-        value, value_failed = self.get_value_eval()
-        prop_type, is_array = rna_idprop_value_item_type(value)
-        if prop_type in {int, float}:
-            self.default = str(prop_type(0))
+        if prop_type_new == 'PYTHON':
+            try:
+                new_value = eval(self.eval_string)
+            except Exception as ex:
+                self.report({'WARNING'}, "Python evaluation failed: " + str(ex))
+                return {'CANCELLED'}
+            try:
+                item[name] = new_value
+            except Exception as ex:
+                self.report({'ERROR'}, "Failed to assign value: " + str(ex))
+                return {'CANCELLED'}
+            if name_old != name:
+                del item[name_old]
         else:
-            self.default = ""
+            new_value = self._get_converted_value(item, name_old, prop_type_new)
+            del item[name_old]
+            item[name] = new_value
 
-        # setup defaults
-        if prop_type in {int, float}:
-            ui_data = item.id_properties_ui(prop)
-            rna_data = ui_data.as_dict()
-            self.subtype =  rna_data["subtype"]
-            self.min = rna_data["min"]
-            self.max = rna_data["max"]
-            self.soft_min = rna_data["soft_min"]
-            self.soft_max = rna_data["soft_max"]
-            self.use_soft_limits = (
-                self.min != self.soft_min or
-                self.max != self.soft_max
-            )
-            self.default = str(rna_data["default"])
-            self.description = rna_data.get("description", "")
-        elif prop_type == str and not is_array and not value_failed: # String arrays do not support UI data.
-            ui_data = item.id_properties_ui(prop)
-            rna_data = ui_data.as_dict()
-            self.subtype =  rna_data["subtype"]
-            self.default = str(rna_data["default"])
-            self.description = rna_data.get("description", "")
-        else:
-            self.min = self.soft_min = 0
-            self.max = self.soft_max = 1
-            self.use_soft_limits = False
-            self.description = ""
+            self._create_ui_data_for_new_prop(item, name, prop_type_new)
 
-        self._init_subtype(prop_type, is_array, self.subtype)
+        self._update_blender_for_prop_change(context, item, name, prop_type_old, prop_type_new)
 
-        # store for comparison
-        self._cmp_props = self._cmp_props_get()
+        return {'FINISHED'}
+
+    def invoke(self, context, _event):
+        data_path = self.data_path
+        if not data_path:
+            self.report({'ERROR'}, "Data path not set")
+            return {'CANCELLED'}
+
+        name = self.property_name
+
+        self._old_prop_name = [name]
+        self.last_property_type = self.property_type
+
+        item = eval("context.%s" % data_path)
+        if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
+            self.report({'ERROR'}, "Properties from override data can not be edited")
+            return {'CANCELLED'}
+
+        # Set operator's property type with the type of the existing property, to display the right settings.
+        old_type = self._get_property_type(item, name)
+        self.property_type = old_type
+
+        # So that the operator can do something for unsupported properties, change the property into
+        # a string, just for editing in the dialog. When the operator executes, it will be converted back
+        # into a python value. Always do this conversion, in case the Python property edit type is selected.
+        self.eval_string = self._convert_old_property_to_string(item, name)
+
+        if old_type != 'PYTHON':
+            self._fill_old_ui_data(item, name)
 
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
-    def check(self, _context):
-        cmp_props = self._cmp_props_get()
+    def check(self, context):
         changed = False
-        if self._cmp_props != cmp_props:
-            if cmp_props["use_soft_limits"]:
-                if cmp_props["soft_range"] != self._cmp_props["soft_range"]:
-                    self.min = min(self.min, self.soft_min)
-                    self.max = max(self.max, self.soft_max)
+
+        # In order to convert UI data between types for type changes before the operator has actually executed,
+        # compare against the type the last time the check method was called (the last time a value was edited).
+        if self.property_type != self.last_property_type:
+            self._convert_old_ui_data_to_new_type(self.last_property_type, self.property_type)
+            changed = True
+
+        # Make sure that min is less than max, soft range is inside hard range, etc.
+        if self.property_type in {'FLOAT', 'FLOAT_ARRAY'}:
+            if self.min_float > self.max_float:
+                self.min_float, self.max_float = self.max_float, self.min_float
+                changed = True
+            if self.soft_min_float > self.soft_max_float:
+                self.soft_min_float, self.soft_max_float = self.soft_max_float, self.soft_min_float
+                changed = True
+            if self.use_soft_limits:
+                if self.soft_max_float > self.max_float:
+                    self.soft_max_float = self.max_float
                     changed = True
-                if cmp_props["hard_range"] != self._cmp_props["hard_range"]:
-                    self.soft_min = max(self.min, self.soft_min)
-                    self.soft_max = min(self.max, self.soft_max)
+                if self.soft_min_float < self.min_float:
+                    self.soft_min_float = self.min_float
                     changed = True
-            else:
-                if cmp_props["soft_range"] != cmp_props["hard_range"]:
-                    self.soft_min = self.min
-                    self.soft_max = self.max
+        elif self.property_type in {'INT', 'INT_ARRAY'}:
+            if self.min_int > self.max_int:
+                self.min_int, self.max_int = self.max_int, self.min_int
+                changed = True
+            if self.soft_min_int > self.soft_max_int:
+                self.soft_min_int, self.soft_max_int = self.soft_max_int, self.soft_min_int
+                changed = True
+            if self.use_soft_limits:
+                if self.soft_max_int > self.max_int:
+                    self.soft_max_int = self.max_int
+                    changed = True
+                if self.soft_min_int < self.min_int:
+                    self.soft_min_int = self.min_int
                     changed = True
 
-            changed |= (cmp_props["use_soft_limits"] != self._cmp_props["use_soft_limits"])
-
-            if changed:
-                cmp_props = self._cmp_props_get()
-
-            self._cmp_props = cmp_props
+        self.last_property_type = self.property_type
 
         return changed
 
     def draw(self, _context):
-        from rna_prop_ui import (
-            rna_idprop_value_item_type,
-        )
-
         layout = self.layout
 
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        layout.prop(self, "property")
-        layout.prop(self, "value")
+        layout.prop(self, "property_type")
+        layout.prop(self, "property_name")
 
-        value, value_failed = self.get_value_eval()
-        proptype, is_array = rna_idprop_value_item_type(value)
+        if self.property_type in {'FLOAT', 'FLOAT_ARRAY'}:
+            if self.property_type == 'FLOAT_ARRAY':
+                layout.prop(self, "array_length")
+                col = layout.column(align=True)
+                col.prop(self, "default_float", index=0, text="Default")
+                for i in range(1, self.array_length):
+                    col.prop(self, "default_float", index=i, text=" ")
+            else:
+                layout.prop(self, "default_float", index=0)
 
-        row = layout.row()
-        row.enabled = proptype in {int, float, str}
-        row.prop(self, "default")
+            col = layout.column(align=True)
+            col.prop(self, "min_float")
+            col.prop(self, "max_float")
 
-        col = layout.column(align=True)
-        col.prop(self, "min")
-        col.prop(self, "max")
+            col = layout.column()
+            col.prop(self, "is_overridable_library")
+            col.prop(self, "use_soft_limits")
 
-        col = layout.column()
-        col.prop(self, "is_overridable_library")
-        col.prop(self, "use_soft_limits")
+            col = layout.column(align=True)
+            col.enabled = self.use_soft_limits
+            col.prop(self, "soft_min_float", text="Soft Min")
+            col.prop(self, "soft_max_float", text="Max")
 
-        col = layout.column(align=True)
-        col.enabled = self.use_soft_limits
-        col.prop(self, "soft_min", text="Soft Min")
-        col.prop(self, "soft_max", text="Max")
-        layout.prop(self, "description")
+            layout.prop(self, "step_float")
+            layout.prop(self, "precision")
 
-        if is_array and proptype == float:
-            layout.prop(self, "subtype")
+            # Subtype is only supported for float properties currently.
+            if self.property_type != 'FLOAT':
+                layout.prop(self, "subtype")
+        elif self.property_type in {'INT', 'INT_ARRAY'}:
+            if self.property_type == 'INT_ARRAY':
+                layout.prop(self, "array_length")
+                col = layout.column(align=True)
+                col.prop(self, "default_int", index=0, text="Default")
+                for i in range(1, self.array_length):
+                    col.prop(self, "default_int", index=i, text=" ")
+            else:
+                layout.prop(self, "default_int", index=0)
+
+            col = layout.column(align=True)
+            col.prop(self, "min_int")
+            col.prop(self, "max_int")
+
+            col = layout.column()
+            col.prop(self, "is_overridable_library")
+            col.prop(self, "use_soft_limits")
+
+            col = layout.column(align=True)
+            col.enabled = self.use_soft_limits
+            col.prop(self, "soft_min_int", text="Soft Min")
+            col.prop(self, "soft_max_int", text="Max")
+
+            layout.prop(self, "step_int")
+        elif self.property_type == 'STRING':
+            layout.prop(self, "default_string")
+
+        if self.property_type == 'PYTHON':
+            layout.prop(self, "eval_string")
+        else:
+            layout.prop(self, "description")
 
 
 class WM_OT_properties_add(Operator):
@@ -1706,7 +1901,7 @@ class WM_OT_properties_remove(Operator):
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path: rna_path
-    property: rna_custom_property
+    property_name: rna_custom_property_name
 
     def execute(self, context):
         from rna_prop_ui import (
@@ -1719,9 +1914,9 @@ class WM_OT_properties_remove(Operator):
             self.report({'ERROR'}, "Cannot remove properties from override data")
             return {'CANCELLED'}
 
-        prop = self.property
-        rna_idprop_ui_prop_update(item, prop)
-        del item[prop]
+        name = self.property_name
+        rna_idprop_ui_prop_update(item, name)
+        del item[name]
 
         return {'FINISHED'}
 
