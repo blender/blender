@@ -801,7 +801,7 @@ void PathTrace::tile_buffer_write_to_disk()
   }
 
   if (!tile_manager_.write_tile(*buffers)) {
-    LOG(ERROR) << "Error writing tile to file.";
+    device_->set_error("Error writing tile to file");
   }
 }
 
@@ -894,7 +894,14 @@ void PathTrace::process_full_buffer_from_disk(string_view filename)
 
   DenoiseParams denoise_params;
   if (!tile_manager_.read_full_buffer_from_disk(filename, &full_frame_buffers, &denoise_params)) {
-    LOG(ERROR) << "Error reading tiles from file.";
+    const string error_message = "Error reading tiles from file";
+    if (progress_) {
+      progress_->set_error(error_message);
+      progress_->set_cancel(error_message);
+    }
+    else {
+      LOG(ERROR) << error_message;
+    }
     return;
   }
 

@@ -589,6 +589,12 @@ void BlenderSession::render_frame_finish()
 
   for (string_view filename : full_buffer_files_) {
     session->process_full_buffer_from_disk(filename);
+    if (check_and_report_session_error()) {
+      break;
+    }
+  }
+
+  for (string_view filename : full_buffer_files_) {
     path_remove(filename);
   }
 
@@ -1036,20 +1042,27 @@ void BlenderSession::update_status_progress()
     last_progress = progress;
   }
 
-  if (session->progress.get_error()) {
-    string error = session->progress.get_error_message();
-    if (error != last_error) {
-      /* TODO(sergey): Currently C++ RNA API doesn't let us to
-       * use mnemonic name for the variable. Would be nice to
-       * have this figured out.
-       *
-       * For until then, 1 << 5 means RPT_ERROR.
-       */
-      b_engine.report(1 << 5, error.c_str());
-      b_engine.error_set(error.c_str());
-      last_error = error;
-    }
+  check_and_report_session_error();
+}
+
+bool BlenderSession::check_and_report_session_error()
+{
+  if (!session->progress.get_error()) {
+    return false;
   }
+
+  const string error = session->progress.get_error_message();
+  if (error != last_error) {
+    /* TODO(sergey): Currently C++ RNA API doesn't let us to use mnemonic name for the variable.
+     * Would be nice to have this figured out.
+     *
+     * For until then, 1 << 5 means RPT_ERROR. */
+    b_engine.report(1 << 5, error.c_str());
+    b_engine.error_set(error.c_str());
+    last_error = error;
+  }
+
+  return true;
 }
 
 void BlenderSession::tag_update()

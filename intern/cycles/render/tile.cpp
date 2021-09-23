@@ -436,7 +436,12 @@ bool TileManager::open_tile_output()
     return false;
   }
 
-  write_state_.tile_out->open(write_state_.filename, write_state_.image_spec);
+  if (!write_state_.tile_out->open(write_state_.filename, write_state_.image_spec)) {
+    LOG(ERROR) << "Error opening tile file: " << write_state_.tile_out->geterror();
+    write_state_.tile_out = nullptr;
+    return false;
+  }
+
   write_state_.num_tiles_written = 0;
 
   VLOG(3) << "Opened tile file " << write_state_.filename;
@@ -497,6 +502,7 @@ bool TileManager::write_tile(const RenderBuffers &tile_buffers)
                                           TypeDesc::FLOAT,
                                           pixels)) {
     LOG(ERROR) << "Error writing tile " << write_state_.tile_out->geterror();
+    return false;
   }
 
   ++write_state_.num_tiles_written;

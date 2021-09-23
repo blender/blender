@@ -147,6 +147,11 @@ class BlenderSession {
  protected:
   void stamp_view_layer_metadata(Scene *scene, const string &view_layer_name);
 
+  /* Check whether session error happenned.
+   * If so, it is reported to the render engine and true is returned.
+   * Otherwise false is returned. */
+  bool check_and_report_session_error();
+
   void builtin_images_load();
 
   /* Is used after each render layer synchronization is done with the goal
