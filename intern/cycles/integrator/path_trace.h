@@ -286,7 +286,7 @@ class PathTrace {
     /* Parameters of the big tile with the current resolution divider applied. */
     BufferParams effective_big_tile_params;
 
-    /* Denosier was run and there are denoised versions of the passes in the render buffers. */
+    /* Denoiser was run and there are denoised versions of the passes in the render buffers. */
     bool has_denoised_result = false;
 
     /* Current tile has been written (to either disk or callback.

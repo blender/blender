@@ -19,7 +19,7 @@
 
 #include "kernel/kernel_types.h"
 
-#include "device/device_denoise.h" /* For the paramaters and type enum. */
+#include "device/device_denoise.h" /* For the parameters and type enum. */
 #include "graph/node.h"
 #include "integrator/adaptive_sampling.h"
 

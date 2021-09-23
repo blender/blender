@@ -394,7 +394,7 @@ film_calculate_shadow_catcher(const KernelFilmConvert *ccl_restrict kfilm_conver
 
   /* NOTE: It is possible that the Shadow Catcher pass is requested as an output without actual
    * shadow catcher objects in the scene. In this case there will be no auxiliary passes required
-   * for the devision (to save up memory). So delay the asserts to this point so that the number of
+   * for the decision (to save up memory). So delay the asserts to this point so that the number of
    * samples check handles such configuration. */
   kernel_assert(kfilm_convert->pass_offset != PASS_UNUSED);
   kernel_assert(kfilm_convert->pass_combined != PASS_UNUSED);

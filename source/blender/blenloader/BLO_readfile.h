@@ -211,7 +211,7 @@ typedef enum eBLOLibLinkFlags {
   BLO_LIBLINK_NEEDS_ID_TAG_DOIT = 1 << 18,
   /** Set fake user on appended IDs. */
   BLO_LIBLINK_APPEND_SET_FAKEUSER = 1 << 19,
-  /** Append (make local) also indirect dependencies of appendeds IDs. */
+  /** Append (make local) also indirect dependencies of appended IDs. */
   BLO_LIBLINK_APPEND_RECURSIVE = 1 << 20,
   /** Try to re-use previously appended matching ID on new append. */
   BLO_LIBLINK_APPEND_LOCAL_ID_REUSE = 1 << 21,

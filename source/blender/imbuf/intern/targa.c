@@ -192,7 +192,7 @@ static bool makebody_tga(ImBuf *ibuf, FILE *file, int (*out)(unsigned int, FILE 
       else {
         while (*rect++ == this) { /* seek for first different byte */
           if (--bytes == 0) {
-            break; /* oor end of line */
+            break; /* Or end of line. */
           }
         }
         rect--;
@@ -470,7 +470,7 @@ static void decodetarga(struct ImBuf *ibuf, const unsigned char *mem, size_t mem
 
       if (psize & 2) {
         if (psize & 1) {
-          /* order = bgra */
+          /* Order = BGRA. */
           cp[0] = mem[3];
           cp[1] = mem[0];
           cp[2] = mem[1];
@@ -512,7 +512,7 @@ static void decodetarga(struct ImBuf *ibuf, const unsigned char *mem, size_t mem
         while (count > 0) {
           if (psize & 2) {
             if (psize & 1) {
-              /* order = bgra */
+              /* Order = BGRA. */
               cp[0] = mem[3];
               cp[1] = mem[0];
               cp[2] = mem[1];
@@ -589,7 +589,7 @@ static void ldtarga(struct ImBuf *ibuf, const unsigned char *mem, size_t mem_siz
 
     if (psize & 2) {
       if (psize & 1) {
-        /* order = bgra */
+        /* Order = BGRA. */
         cp[0] = mem[3];
         cp[1] = mem[0];
         cp[2] = mem[1];
