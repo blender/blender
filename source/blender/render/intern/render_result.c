@@ -1180,6 +1180,7 @@ bool render_result_exr_file_cache_read(Render *re)
 
   RE_FreeRenderResult(re->result);
   re->result = render_result_new(re, &re->disprect, RR_ALL_LAYERS, RR_ALL_VIEWS);
+  render_result_passes_allocated_ensure(re->result);
 
   /* First try cache. */
   render_result_exr_file_cache_path(re->scene, root, str);
