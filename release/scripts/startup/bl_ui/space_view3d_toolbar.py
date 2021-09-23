@@ -688,6 +688,39 @@ class VIEW3D_PT_tools_brush_stroke_smooth_stroke(Panel, View3DPaintPanel, Smooth
     bl_options = {'DEFAULT_CLOSED'}
 
 
+class VIEW3D_PT_tools_weight_gradient(Panel, View3DPaintPanel):
+    bl_context = ".weightpaint" # dot on purpose (access from topbar)
+    bl_label = "Falloff"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        settings = context.tool_settings.weight_paint
+        brush = settings.brush
+        return brush is not None
+
+    def draw(self, context):
+        layout = self.layout
+        settings = context.tool_settings.weight_paint
+        brush = settings.brush
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(brush, "curve_preset", text="")
+
+        if brush.curve_preset == 'CUSTOM':
+            layout.template_curve_mapping(brush, "curve", brush=True)
+
+            col = layout.column(align=True)
+            row = col.row(align=True)
+            row.operator("brush.curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
+            row.operator("brush.curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
+            row.operator("brush.curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
+            row.operator("brush.curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
+            row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
+            row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
+
+
 # TODO, move to space_view3d.py
 class VIEW3D_PT_tools_brush_falloff(Panel, View3DPaintPanel, FalloffPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
@@ -2219,6 +2252,7 @@ classes = (
     VIEW3D_PT_tools_brush_falloff_frontface,
     VIEW3D_PT_tools_brush_falloff_normal,
     VIEW3D_PT_tools_brush_display,
+    VIEW3D_PT_tools_weight_gradient,
 
     VIEW3D_PT_sculpt_dyntopo,
     VIEW3D_PT_sculpt_voxel_remesh,

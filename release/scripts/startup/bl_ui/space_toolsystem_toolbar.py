@@ -1691,6 +1691,7 @@ class _defs_weight_paint:
 
             props = tool.operator_properties("paint.weight_gradient")
             layout.prop(props, "type", expand=True)
+            layout.popover("VIEW3D_PT_tools_weight_gradient")
 
         return dict(
             idname="builtin.gradient",
