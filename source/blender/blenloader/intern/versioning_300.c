@@ -1438,5 +1438,24 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          switch (sl->spacetype) {
+            case SPACE_FILE: {
+              SpaceFile *sfile = (SpaceFile *)sl;
+              if (sfile->params) {
+                sfile->params->flag &= ~(FILE_PARAMS_FLAG_UNUSED_1 | FILE_PARAMS_FLAG_UNUSED_2 |
+                                         FILE_PARAMS_FLAG_UNUSED_3 | FILE_PARAMS_FLAG_UNUSED_4);
+              }
+              break;
+            }
+            default:
+              break;
+          }
+        }
+      }
+    }
   }
 }

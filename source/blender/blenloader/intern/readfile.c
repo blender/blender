@@ -4496,7 +4496,7 @@ static void add_loose_objects_to_scene(Main *mainvar,
                                        ViewLayer *view_layer,
                                        const View3D *v3d,
                                        Library *lib,
-                                       const short flag)
+                                       const int flag)
 {
   Collection *active_collection = NULL;
   const bool do_append = (flag & FILE_LINK) == 0;
@@ -4556,9 +4556,9 @@ static void add_loose_object_data_to_scene(Main *mainvar,
                                            Scene *scene,
                                            ViewLayer *view_layer,
                                            const View3D *v3d,
-                                           const short flag)
+                                           const int flag)
 {
-  if ((flag & FILE_OBDATA_INSTANCE) == 0) {
+  if ((flag & BLO_LIBLINK_OBDATA_INSTANCE) == 0) {
     return;
   }
 
@@ -4617,7 +4617,7 @@ static void add_collections_to_scene(Main *mainvar,
                                      ViewLayer *view_layer,
                                      const View3D *v3d,
                                      Library *lib,
-                                     const short flag)
+                                     const int flag)
 {
   Collection *active_collection = scene->master_collection;
   if (flag & FILE_ACTIVE_COLLECTION) {
@@ -4627,7 +4627,7 @@ static void add_collections_to_scene(Main *mainvar,
 
   /* Give all objects which are tagged a base. */
   LISTBASE_FOREACH (Collection *, collection, &mainvar->collections) {
-    if ((flag & FILE_COLLECTION_INSTANCE) && (collection->id.tag & LIB_TAG_DOIT)) {
+    if ((flag & BLO_LIBLINK_COLLECTION_INSTANCE) && (collection->id.tag & LIB_TAG_DOIT)) {
       /* Any indirect collection should not have been tagged. */
       BLI_assert((collection->id.tag & LIB_TAG_INDIRECT) == 0);
 
@@ -4830,7 +4830,7 @@ static bool library_link_idcode_needs_tag_check(const short idcode, const int fl
     if (ELEM(idcode, ID_OB, ID_GR)) {
       return true;
     }
-    if (flag & FILE_OBDATA_INSTANCE) {
+    if (flag & BLO_LIBLINK_OBDATA_INSTANCE) {
       if (OB_DATA_SUPPORT_ID(idcode)) {
         return true;
       }

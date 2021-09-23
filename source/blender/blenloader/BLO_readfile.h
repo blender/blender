@@ -209,6 +209,14 @@ typedef enum eBLOLibLinkFlags {
    * don't need to remember to set this flag.
    */
   BLO_LIBLINK_NEEDS_ID_TAG_DOIT = 1 << 18,
+  /** Set fake user on appended IDs. */
+  BLO_LIBLINK_APPEND_SET_FAKEUSER = 1 << 19,
+  /** Append (make local) also indirect dependencies of appendeds IDs. */
+  BLO_LIBLINK_APPEND_RECURSIVE = 1 << 20,
+  /** Instantiate object data IDs (i.e. create objects for them if needed). */
+  BLO_LIBLINK_OBDATA_INSTANCE = 1 << 21,
+  /** Instantiate collections as empties, instead of linking them into current view layer. */
+  BLO_LIBLINK_COLLECTION_INSTANCE = 1 << 22,
 } eBLOLibLinkFlags;
 
 /**

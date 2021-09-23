@@ -127,10 +127,10 @@ static int wm_link_append_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
   return OPERATOR_RUNNING_MODAL;
 }
 
-static short wm_link_append_flag(wmOperator *op)
+static int wm_link_append_flag(wmOperator *op)
 {
   PropertyRNA *prop;
-  short flag = 0;
+  int flag = 0;
 
   if (RNA_boolean_get(op->ptr, "autoselect")) {
     flag |= FILE_AUTOSELECT;
@@ -147,17 +147,17 @@ static short wm_link_append_flag(wmOperator *op)
   }
   else {
     if (RNA_boolean_get(op->ptr, "use_recursive")) {
-      flag |= FILE_APPEND_RECURSIVE;
+      flag |= BLO_LIBLINK_APPEND_RECURSIVE;
     }
     if (RNA_boolean_get(op->ptr, "set_fake")) {
-      flag |= FILE_APPEND_SET_FAKEUSER;
+      flag |= BLO_LIBLINK_APPEND_SET_FAKEUSER;
     }
   }
   if (RNA_boolean_get(op->ptr, "instance_collections")) {
-    flag |= FILE_COLLECTION_INSTANCE;
+    flag |= BLO_LIBLINK_COLLECTION_INSTANCE;
   }
   if (RNA_boolean_get(op->ptr, "instance_object_data")) {
-    flag |= FILE_OBDATA_INSTANCE;
+    flag |= BLO_LIBLINK_OBDATA_INSTANCE;
   }
 
   return flag;
@@ -396,7 +396,7 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
 
   LinkNode *itemlink;
   Collection *active_collection = NULL;
-  const bool do_obdata = (lapp_data->flag & FILE_OBDATA_INSTANCE) != 0;
+  const bool do_obdata = (lapp_data->flag & BLO_LIBLINK_OBDATA_INSTANCE) != 0;
 
   const bool object_set_selected = (lapp_data->flag & FILE_AUTOSELECT) != 0;
   /* Do NOT make base active here! screws up GUI stuff,
@@ -472,7 +472,7 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
 
       /* In case user requested instantiation of collections as empties, we do so for the one they
        * explicitly selected (originally directly linked IDs). */
-      if ((lapp_data->flag & FILE_COLLECTION_INSTANCE) != 0 &&
+      if ((lapp_data->flag & BLO_LIBLINK_COLLECTION_INSTANCE) != 0 &&
           (item->append_tag & WM_APPEND_TAG_INDIRECT) == 0) {
         /* BKE_object_add(...) messes with the selection. */
         Object *ob = BKE_object_add_only_object(bmain, OB_EMPTY, collection->id.name + 2);
@@ -626,8 +626,8 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
 {
   BLI_assert((lapp_data->flag & FILE_LINK) == 0);
 
-  const bool do_recursive = (lapp_data->flag & FILE_APPEND_RECURSIVE) != 0;
-  const bool set_fakeuser = (lapp_data->flag & FILE_APPEND_SET_FAKEUSER) != 0;
+  const bool do_recursive = (lapp_data->flag & BLO_LIBLINK_APPEND_RECURSIVE) != 0;
+  const bool set_fakeuser = (lapp_data->flag & BLO_LIBLINK_APPEND_SET_FAKEUSER) != 0;
 
   LinkNode *itemlink;
 
@@ -1057,7 +1057,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  short flag = wm_link_append_flag(op);
+  int flag = wm_link_append_flag(op);
   const bool do_append = (flag & FILE_LINK) == 0;
 
   /* sanity checks for flag */
@@ -1066,11 +1066,9 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
                 RPT_WARNING,
                 "Scene '%s' is linked, instantiation of objects is disabled",
                 scene->id.name + 2);
-    flag &= ~(FILE_COLLECTION_INSTANCE | FILE_OBDATA_INSTANCE);
+    flag &= ~(BLO_LIBLINK_COLLECTION_INSTANCE | BLO_LIBLINK_OBDATA_INSTANCE);
     scene = NULL;
   }
-
-  /* We need to add nothing from #eBLOLibLinkFlags to flag here. */
 
   /* from here down, no error returns */
 
@@ -1305,7 +1303,8 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
   /* Define working data, with just the one item we want to link. */
-  WMLinkAppendData *lapp_data = wm_link_append_data_new(do_append ? FILE_APPEND_RECURSIVE : 0);
+  WMLinkAppendData *lapp_data = wm_link_append_data_new(do_append ? BLO_LIBLINK_APPEND_RECURSIVE :
+                                                                    0);
 
   wm_link_append_data_library_add(lapp_data, filepath);
   WMLinkAppendDataItem *item = wm_link_append_data_item_add(lapp_data, id_name, id_code, NULL);

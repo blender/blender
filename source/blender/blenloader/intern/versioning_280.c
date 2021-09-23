@@ -3416,8 +3416,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             case SPACE_FILE: {
               SpaceFile *sfile = (SpaceFile *)sl;
               if (sfile->params) {
-                sfile->params->flag &= ~(FILE_APPEND_SET_FAKEUSER | FILE_APPEND_RECURSIVE |
-                                         FILE_OBDATA_INSTANCE);
+                sfile->params->flag &= ~(FILE_PARAMS_FLAG_UNUSED_1 | FILE_PARAMS_FLAG_UNUSED_2 |
+                                         FILE_PARAMS_FLAG_UNUSED_3);
               }
               break;
             }
