@@ -106,6 +106,7 @@ void BKE_brush_channel_curve_assign(BrushChannel *ch, BrushCurve *curve)
     }
     else {
       ch->curve.curve = BKE_curvemapping_copy(curve->curve);
+      BKE_curvemapping_init(curve->curve);
     }
   }
   else {
