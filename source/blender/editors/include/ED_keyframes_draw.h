@@ -41,7 +41,7 @@ struct bDopeSheet;
 struct bGPDlayer;
 
 /* draw simple diamond-shape keyframe */
-/* caller should set up vertex format, bind GPU_SHADER_KEYFRAME_DIAMOND,
+/* caller should set up vertex format, bind GPU_SHADER_KEYFRAME_SHAPE,
  * immBegin(GPU_PRIM_POINTS, n), then call this n times */
 typedef struct KeyframeShaderBindings {
   uint pos_id;

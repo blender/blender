@@ -1,4 +1,16 @@
 
+/* Values in GPU_shader.h. */
+#define GPU_KEYFRAME_SHAPE_DIAMOND (1 << 0)
+#define GPU_KEYFRAME_SHAPE_CIRCLE (1 << 1)
+#define GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL (1 << 2)
+#define GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL (1 << 3)
+#define GPU_KEYFRAME_SHAPE_INNER_DOT (1 << 4)
+#define GPU_KEYFRAME_SHAPE_ARROW_END_MAX (1 << 8)
+#define GPU_KEYFRAME_SHAPE_ARROW_END_MIN (1 << 9)
+#define GPU_KEYFRAME_SHAPE_ARROW_END_MIXED (1 << 10)
+#define GPU_KEYFRAME_SHAPE_SQUARE \
+  (GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL | GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL)
+
 uniform mat4 ModelViewProjectionMatrix;
 uniform vec2 ViewportSize = vec2(-1, -1);
 uniform float outline_scale = 1.0;
@@ -49,8 +61,9 @@ void main()
   finalOutlineColor = outlineColor;
   finalFlags = flags;
 
-  if (!test(0xF)) {
-    finalFlags |= 1;
+  if (!test(GPU_KEYFRAME_SHAPE_DIAMOND | GPU_KEYFRAME_SHAPE_CIRCLE |
+            GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL | GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL)) {
+    finalFlags |= GPU_KEYFRAME_SHAPE_DIAMOND;
   }
 
   /* Size-dependent line thickness. */

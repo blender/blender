@@ -1,3 +1,16 @@
+
+/* Values in GPU_shader.h. */
+#define GPU_KEYFRAME_SHAPE_DIAMOND (1 << 0)
+#define GPU_KEYFRAME_SHAPE_CIRCLE (1 << 1)
+#define GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL (1 << 2)
+#define GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL (1 << 3)
+#define GPU_KEYFRAME_SHAPE_INNER_DOT (1 << 4)
+#define GPU_KEYFRAME_SHAPE_ARROW_END_MAX (1 << 8)
+#define GPU_KEYFRAME_SHAPE_ARROW_END_MIN (1 << 9)
+#define GPU_KEYFRAME_SHAPE_ARROW_END_MIXED (1 << 10)
+#define GPU_KEYFRAME_SHAPE_SQUARE \
+  (GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL | GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL)
+
 flat in vec4 radii;
 flat in vec4 thresholds;
 
@@ -27,24 +40,24 @@ void main()
   float outline_dist = -1.0;
 
   /* Diamond outline */
-  if (test(0x1)) {
+  if (test(GPU_KEYFRAME_SHAPE_DIAMOND)) {
     outline_dist = max(outline_dist, radius - radii[0]);
   }
 
   /* Circle outline */
-  if (test(0x2)) {
+  if (test(GPU_KEYFRAME_SHAPE_CIRCLE)) {
     radius = length(absPos);
 
     outline_dist = max(outline_dist, radius - radii[1]);
   }
 
   /* Top & Bottom clamp */
-  if (test(0x4)) {
+  if (test(GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL)) {
     outline_dist = max(outline_dist, absPos.y - radii[2]);
   }
 
   /* Left & Right clamp */
-  if (test(0x8)) {
+  if (test(GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL)) {
     outline_dist = max(outline_dist, absPos.x - radii[2]);
   }
 
@@ -53,20 +66,20 @@ void main()
   /* Inside the outline. */
   if (outline_dist < 0) {
     /* Middle dot */
-    if (test(0x10)) {
+    if (test(GPU_KEYFRAME_SHAPE_INNER_DOT)) {
       alpha = max(alpha, 1 - smoothstep(thresholds[2], thresholds[3], radius));
     }
 
     /* Up and down arrow-like shading. */
-    if (test(0x300)) {
+    if (test(GPU_KEYFRAME_SHAPE_ARROW_END_MAX | GPU_KEYFRAME_SHAPE_ARROW_END_MIN)) {
       float ypos = -1.0;
 
       /* Up arrow (maximum) */
-      if (test(0x100)) {
+      if (test(GPU_KEYFRAME_SHAPE_ARROW_END_MAX)) {
         ypos = max(ypos, pos.y);
       }
       /* Down arrow (minimum) */
-      if (test(0x200)) {
+      if (test(GPU_KEYFRAME_SHAPE_ARROW_END_MIN)) {
         ypos = max(ypos, -pos.y);
       }
 
@@ -75,7 +88,7 @@ void main()
       float minmax_step = smoothstep(thresholds[0], thresholds[1], minmax_dist * minmax_scale);
 
       /* Reduced alpha for uncertain extremes. */
-      float minmax_alpha = test(0x400) ? 0.55 : 0.85;
+      float minmax_alpha = test(GPU_KEYFRAME_SHAPE_ARROW_END_MIXED) ? 0.55 : 0.85;
 
       alpha = max(alpha, minmax_step * minmax_alpha);
     }

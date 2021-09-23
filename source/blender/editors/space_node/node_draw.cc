@@ -733,12 +733,6 @@ static void node_draw_mute_line(const View2D *v2d, const SpaceNode *snode, const
   GPU_blend(GPU_BLEND_NONE);
 }
 
-/* Flags used in gpu_shader_keyframe_diamond_frag.glsl. */
-#define MARKER_SHAPE_DIAMOND 0x1
-#define MARKER_SHAPE_SQUARE 0xC
-#define MARKER_SHAPE_CIRCLE 0x2
-#define MARKER_SHAPE_INNER_DOT 0x10
-
 static void node_socket_draw(const bNodeSocket *sock,
                              const float color[4],
                              const float color_outline[4],
@@ -757,16 +751,16 @@ static void node_socket_draw(const bNodeSocket *sock,
   switch (sock->display_shape) {
     case SOCK_DISPLAY_SHAPE_DIAMOND:
     case SOCK_DISPLAY_SHAPE_DIAMOND_DOT:
-      flags = MARKER_SHAPE_DIAMOND;
+      flags = GPU_KEYFRAME_SHAPE_DIAMOND;
       break;
     case SOCK_DISPLAY_SHAPE_SQUARE:
     case SOCK_DISPLAY_SHAPE_SQUARE_DOT:
-      flags = MARKER_SHAPE_SQUARE;
+      flags = GPU_KEYFRAME_SHAPE_SQUARE;
       break;
     default:
     case SOCK_DISPLAY_SHAPE_CIRCLE:
     case SOCK_DISPLAY_SHAPE_CIRCLE_DOT:
-      flags = MARKER_SHAPE_CIRCLE;
+      flags = GPU_KEYFRAME_SHAPE_CIRCLE;
       break;
   }
 
@@ -774,7 +768,7 @@ static void node_socket_draw(const bNodeSocket *sock,
            SOCK_DISPLAY_SHAPE_DIAMOND_DOT,
            SOCK_DISPLAY_SHAPE_SQUARE_DOT,
            SOCK_DISPLAY_SHAPE_CIRCLE_DOT)) {
-    flags |= MARKER_SHAPE_INNER_DOT;
+    flags |= GPU_KEYFRAME_SHAPE_INNER_DOT;
   }
 
   immAttr4fv(col_id, color);
@@ -1132,7 +1126,7 @@ void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_program_point_size(true);
 
-  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
   immUniform1f("outline_scale", 0.7f);
   immUniform2f("ViewportSize", -1.0f, -1.0f);
 
@@ -1277,7 +1271,7 @@ void node_draw_sockets(const View2D *v2d,
 
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_program_point_size(true);
-  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
   immUniform1f("outline_scale", 0.7f);
   immUniform2f("ViewportSize", -1.0f, -1.0f);
 
