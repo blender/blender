@@ -645,7 +645,7 @@ float SCULPT_vertex_mask_get(SculptSession *ss, SculptVertRef index)
       return ss->vmask[index.i];
     case PBVH_BMESH:
       v = (BMVert *)index.i;
-      mask = BM_ELEM_CD_GET_VOID_P(v, CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK));
+      mask = BM_ELEM_CD_GET_VOID_P(v, ss->cd_vert_mask_offset);
       return *mask;
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);

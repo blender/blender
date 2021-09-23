@@ -622,7 +622,7 @@ static float *sculpt_expand_spherical_falloff_create(Object *ob, const SculptVer
  * boundary to a falloff value of 0. Then, it propagates that falloff to the rest of the mesh so it
  * stays parallel to the boundary, increasing the falloff value by 1 on each step.
  */
-static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const SculptVertRef v)
+static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd, Object *ob, const SculptVertRef v)
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
@@ -640,7 +640,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const S
     const SculptVertRef symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(
         ob, symm_it, v);
 
-    SculptBoundary *boundary = SCULPT_boundary_data_init(ob, NULL, symm_vertex, FLT_MAX);
+    SculptBoundary *boundary = SCULPT_boundary_data_init(sd, ob, NULL, symm_vertex, FLT_MAX);
     if (!boundary) {
       continue;
     }
@@ -1206,7 +1206,7 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
       expand_cache->vert_falloff = sculpt_expand_spherical_falloff_create(ob, v);
       break;
     case SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY:
-      expand_cache->vert_falloff = sculpt_expand_boundary_topology_falloff_create(ob, v);
+      expand_cache->vert_falloff = sculpt_expand_boundary_topology_falloff_create(sd, ob, v);
       break;
     case SCULPT_EXPAND_FALLOFF_BOUNDARY_FACE_SET:
       sculpt_expand_initialize_from_face_set_boundary(

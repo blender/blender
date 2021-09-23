@@ -319,9 +319,15 @@ typedef struct SculptClothLengthConstraint {
   /* Index in #SculptClothSimulation.node_state of the node from where this constraint was created.
    * This constraints will only be used by the solver if the state is active. */
   int node;
+  int thread_nr;
 
   eSculptClothConstraintType type;
 } SculptClothLengthConstraint;
+
+typedef struct SculptClothTaskData {
+  SculptClothLengthConstraint **length_constraints;
+  int tot_length_constraints;
+} SculptClothTaskData;
 
 typedef struct SculptClothSimulation {
   SculptClothLengthConstraint *length_constraints;
@@ -329,6 +335,13 @@ typedef struct SculptClothSimulation {
   struct EdgeSet *created_length_constraints;
   int capacity_length_constraints;
   float *length_constraint_tweak;
+
+  SculptClothTaskData *constraint_tasks;
+
+  /* final task always run in main thread, after all the others
+   * have completed
+   */
+  int tot_constraint_tasks;
 
   /* Position anchors for deformation brushes. These positions are modified by the brush and the
    * final positions of the simulated vertices are updated with constraints that use these points
@@ -606,6 +619,7 @@ typedef struct SculptSession {
   int cd_vert_node_offset;
   int cd_face_node_offset;
   int cd_vcol_offset;
+  int cd_vert_mask_offset;
   int cd_faceset_offset;
   int cd_face_areas;
 

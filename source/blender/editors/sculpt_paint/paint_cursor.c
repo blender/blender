@@ -1676,7 +1676,7 @@ static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pconte
     SCULPT_boundary_data_free(ss->boundary_preview);
   }
 
-  ss->boundary_preview = SCULPT_boundary_data_init(
+  ss->boundary_preview = SCULPT_boundary_data_init(pcontext->sd,
       pcontext->vc.obact, pcontext->brush, ss->active_vertex_index, pcontext->radius);
 }
 

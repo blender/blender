@@ -594,6 +594,8 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 
   BM_data_layers_ensure(ss->bm, &ss->bm->vdata, vlayers, 3);
 
+  ss->cd_vert_mask_offset = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
+
   BMCustomLayerReq flayers[] = {
       {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY},
       {CD_PROP_FLOAT, dyntopop_faces_areas_layer_id, CD_FLAG_TEMPORARY},
@@ -1126,22 +1128,6 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
 
   BLI_assert(ss->bm == NULL);
   UNUSED_VARS_NDEBUG(ss);
-
-#ifndef DYNTOPO_CD_INTERP
-  for (int i = 0; i < CD_NUMTYPES; i++) {
-    if (!ELEM(i, CD_MVERT, CD_MEDGE, CD_MFACE, CD_MLOOP, CD_MPOLY, CD_PAINT_MASK, CD_ORIGINDEX)) {
-      if (CustomData_has_layer(&me->vdata, i)) {
-        flag |= DYNTOPO_WARN_VDATA;
-      }
-      if (CustomData_has_layer(&me->edata, i)) {
-        flag |= DYNTOPO_WARN_EDATA;
-      }
-      if (CustomData_has_layer(&me->ldata, i)) {
-        flag |= DYNTOPO_WARN_LDATA;
-      }
-    }
-  }
-#endif
 
   {
     VirtualModifierData virtualModifierData;
