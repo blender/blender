@@ -38,6 +38,7 @@ struct ToolSettings;
 struct UnifiedPaintSettings;
 struct DynTopoSettings;
 struct Sculpt;
+struct CurveMapping;
 
 // enum eCurveMappingPreset;
 
@@ -166,6 +167,10 @@ bool BKE_brush_hard_edge_mode_get(const struct Scene *scene, const struct Brush 
 void BKE_brush_hard_edge_mode_set(struct Scene *scene, struct Brush *brush, bool val);
 
 float BKE_brush_fset_slide_get(const struct Scene *scene, const struct Brush *brush);
+float BKE_brush_curve_strength_ex(int curve_preset,
+                                  const struct CurveMapping *curve,
+                                  float p,
+                                  const float len);
 
 #ifdef __cplusplus
 }

@@ -147,6 +147,16 @@ PointerRNA rna_BrushMapping_curve_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_CurveMapping, mapping->curve);
 }
 
+PointerRNA rna_BrushCurve_curve_get(PointerRNA *ptr)
+{
+  BrushCurve *curve = (BrushCurve *)ptr->data;
+
+  // make sure we can write to curve
+  BKE_brush_channel_curve_ensure_write(curve);
+
+  return rna_pointer_inherit_refine(ptr, &RNA_CurveMapping, curve->curve);
+}
+
 int rna_BrushChannel_mappings_begin(CollectionPropertyIterator *iter, struct PointerRNA *ptr)
 {
   BrushChannel *ch = ptr->data;
@@ -345,7 +355,46 @@ EnumPropertyItem channel_types[] = {{BRUSH_CHANNEL_FLOAT, "FLOAT", ICON_NONE, "F
                                     {BRUSH_CHANNEL_BOOL, "BOOL", ICON_NONE, "Boolean"},
                                     {BRUSH_CHANNEL_VEC3, "VEC3", ICON_NONE, "Color3"},
                                     {BRUSH_CHANNEL_VEC4, "VEC4", ICON_NONE, "Color4"},
+                                    {BRUSH_CHANNEL_CURVE, "CURVE", ICON_NONE, "Curve"},
                                     {0, NULL, 0, NULL, NULL}};
+
+// getting weird link errors here
+// extern const EnumPropertyItem brush_curve_preset_items[];
+
+static const EnumPropertyItem brush_curve_preset_items[] = {
+    {BRUSH_CURVE_CUSTOM, "CUSTOM", ICON_RNDCURVE, "Custom", ""},
+    {BRUSH_CURVE_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
+    {BRUSH_CURVE_SMOOTHER, "SMOOTHER", ICON_SMOOTHCURVE, "Smoother", ""},
+    {BRUSH_CURVE_SPHERE, "SPHERE", ICON_SPHERECURVE, "Sphere", ""},
+    {BRUSH_CURVE_ROOT, "ROOT", ICON_ROOTCURVE, "Root", ""},
+    {BRUSH_CURVE_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
+    {BRUSH_CURVE_LIN, "LIN", ICON_LINCURVE, "Linear", ""},
+    {BRUSH_CURVE_POW4, "POW4", ICON_SHARPCURVE, "Sharper", ""},
+    {BRUSH_CURVE_INVSQUARE, "INVSQUARE", ICON_INVERSESQUARECURVE, "Inverse Square", ""},
+    {BRUSH_CURVE_CONSTANT, "CONSTANT", ICON_NOCURVE, "Constant", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+void RNA_def_brush_curve(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "BrushCurve", NULL);
+  RNA_def_struct_sdna(srna, "BrushCurve");
+  RNA_def_struct_ui_text(srna, "Brush Curve", "Brush Curve");
+
+  prop = RNA_def_property(srna, "curve_preset", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, "BrushCurve", "preset");
+  RNA_def_property_enum_items(prop, brush_curve_preset_items);
+  RNA_def_property_ui_text(prop, "Curve Preset", "");
+
+  prop = RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "CurveMapping");
+  RNA_def_property_ui_text(prop, "Curve Sensitivity", "Curve used for the sensitivity");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_pointer_funcs(prop, "rna_BrushCurve_curve_get", NULL, NULL, NULL);
+}
 
 void RNA_def_brush_channel(BlenderRNA *brna)
 {
@@ -521,6 +570,10 @@ void RNA_def_brush_channel(BlenderRNA *brna)
                               "rna_BrushChannel_enum_value_get_items");
   RNA_def_property_flag(prop, PROP_ENUM_FLAG);
 
+  prop = RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "BrushCurve");
+  RNA_def_property_ui_text(prop, "Curve", "Curve");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   // PROP_ENUM_FLAG
 }
 
@@ -560,6 +613,7 @@ void RNA_def_brush_channelset(BlenderRNA *brna)
 
 void RNA_def_brush_engine(BlenderRNA *brna)
 {
+  RNA_def_brush_curve(brna);
   RNA_def_brush_mapping(brna);
   RNA_def_brush_channel(brna);
   RNA_def_brush_channelset(brna);

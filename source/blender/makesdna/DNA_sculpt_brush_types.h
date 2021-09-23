@@ -40,6 +40,11 @@ typedef struct BrushMapping {
   int flag, type;
 } BrushMapping;
 
+typedef struct BrushCurve {
+  CurveMapping *curve;
+  int preset, _pad[1];  // see eBrushCurvePreset, this differs from the one in BrushMappingDef
+} BrushCurve;
+
 typedef struct BrushChannel {
   struct BrushChannel *next, *prev;
 
@@ -51,6 +56,8 @@ typedef struct BrushChannel {
   float fvalue;
   int ivalue;
   float vector[4];
+  BrushCurve curve;
+
   BrushMapping mappings[5];  // should always be BRUSH_MAPPING_MAX
 
   short type, ui_order;
@@ -109,5 +116,6 @@ enum {
   BRUSH_CHANNEL_BITMASK = 1 << 3,
   BRUSH_CHANNEL_BOOL = 1 << 4,
   BRUSH_CHANNEL_VEC3 = 1 << 5,
-  BRUSH_CHANNEL_VEC4 = 1 << 6
+  BRUSH_CHANNEL_VEC4 = 1 << 6,
+  BRUSH_CHANNEL_CURVE = 1 << 7
 };

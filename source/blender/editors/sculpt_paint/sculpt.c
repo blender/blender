@@ -9096,6 +9096,13 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
   for (int step = 0; step < list->totcommand; step++) {
     BrushCommand *cmd = list->commands + step;
 
+    float radius = BRUSHSET_GET_FLOAT(cmd->params_final, radius, NULL);
+    radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->true_location, radius);
+
+    ss->cache->radius = radius;
+    ss->cache->radius_squared = radius * radius;
+    radius_scale = 1.0f;
+
     BKE_brush_channelset_free(cmd->params_mapped);
     cmd->params_mapped = BKE_brush_channelset_copy(cmd->params_final);
     BKE_brush_channelset_apply_mapping(cmd->params_mapped, &ss->cache->input_mapping);
@@ -9119,6 +9126,12 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
     }
 
     *brush2 = *brush;
+
+    BrushChannel *ch = BRUSHSET_LOOKUP(cmd->params_final, falloff_curve);
+    if (ch) {
+      brush2->curve_preset = ch->curve.preset;
+      brush2->curve = ch->curve.curve;
+    }
 
     // Load parameters into brush2 for compatibility with old code
     // Make sure to remove all pen pressure/tilt old code

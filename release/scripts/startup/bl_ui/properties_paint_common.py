@@ -31,6 +31,22 @@ channel_name_map = {
 };
 expand_channels = {"direction"}
 
+def template_curve(layout, base, propname, full_path):
+    layout.template_curve_mapping(base, propname, brush=True)
+
+    path = full_path
+
+    col = layout.column(align=True)
+    row = col.row(align=True)
+
+    shapes = ['SMOOTH', 'ROUND', 'ROOT', 'SHARP', 'LINE', 'MAX']
+    icons = ['SMOOTHCURVE', 'SPHERECURVE', 'ROOTCURVE', 'SHARPCURVE', 'LINCURVE', 'NOCURVE']
+
+    for i, shape in enumerate(shapes):
+        props = row.operator("brush.curve_preset_load", icon=icons[i], text="")
+        props.shape = shape
+        props.path = path
+
 class UnifiedPaintPanel:
     # subclass must set
     # bl_space_type = 'IMAGE_EDITOR'
@@ -144,7 +160,7 @@ class UnifiedPaintPanel:
             typeprop = "color3_value"
         elif ch.type == "VEC4":
             typeprop = "color4_value"
-            
+        
         if text is None:
             s = prop_name.lower().replace("_", " ").split(" ");
             text = ''
@@ -181,7 +197,13 @@ class UnifiedPaintPanel:
             row.prop(ch, "show_in_workspace", text="", icon="HIDE_OFF")
             #row.prop(ch, "ui_order", text="")
 
-        if ch.type == "BITMASK":
+        if ch.type == "CURVE":
+            row.prop(finalch.curve, "curve_preset")
+            if finalch.curve.curve_preset == "CUSTOM":            
+                path2 = path + ".curve.curve"
+                template_curve(layout, finalch.curve, "curve", path2)
+
+        elif ch.type == "BITMASK":
             row.label(text=text)
 
             if header:
@@ -201,7 +223,7 @@ class UnifiedPaintPanel:
         else:
             row.prop(finalch, typeprop, icon=icon, text=text, slider=slider)
 
-        pressure = pressure and ch.type not in ["BOOL", "ENUM", "BITMASK"]
+        pressure = pressure and ch.type not in ["BOOL", "ENUM", "BITMASK", "CURVE"]
             
         if pressure:
             row.prop(finalch.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
@@ -213,14 +235,14 @@ class UnifiedPaintPanel:
         #if unified_name and not header:
         #    # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
         #    row.prop(ups, unified_name, text="", icon='BRUSHES_ALL')
-        if not header: # and ch.type != "BOOL":
+        if not header:
             if ch.type == "BITMASK" and not toolsettings_only and ch == finalch:
                 row.prop(ch, "inherit_if_unset", text="Combine With Defaults")
 
             if not toolsettings_only:
                 row.prop(ch, "inherit", text="", icon='BRUSHES_ALL')
 
-            if ch.type == "BITMASK" or ch.type == "BOOL":
+            if ch.type in ["BITMASK", "BOOL", "CURVE"]:
                 return
 
             if not ui_editing and not show_reorder:
@@ -792,12 +814,18 @@ def brush_settings(layout, context, brush, popover=False):
                 "auto_smooth_radius_factor",
                 slider=True
             )
+            UnifiedPaintPanel.channel_unified(
+                box,
+                context,
+                brush,
+                "autosmooth_falloff_curve"
+            )
         elif brush.sculpt_tool == "SMOOTH":
             UnifiedPaintPanel.prop_unified(
                 layout,
                 context,
                 brush,
-                "auto_smooth_projection",
+                "projection",
                 slider=True
             )
         
@@ -847,7 +875,21 @@ def brush_settings(layout, context, brush, popover=False):
                 slider=True
             )
 
-            box.prop(brush, "use_curvature_rake")
+            UnifiedPaintPanel.channel_unified(
+                box,
+                context,
+                brush,
+                "topology_rake_mode",
+                expand=True
+            )
+            UnifiedPaintPanel.channel_unified(
+                box,
+                context,
+                brush,
+                "topology_rake_falloff_curve"
+            )
+            
+            #box.prop(brush, "use_curvature_rake")
             box.prop(brush, "ignore_falloff_for_topology_rake")
 
         if context.sculpt_object.use_dynamic_topology_sculpting:

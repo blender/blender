@@ -58,6 +58,9 @@ places in rna_engine_codebase are relevent:
 #  ifdef MAKE_FLAGS_EX
 #    undef MAKE_FLAGS_EX
 #  endif
+#  ifdef MAKE_CURVE
+#    undef MAKE_CURVE
+#  endif
 
 #  ifdef MAKE_BUILTIN_CH_DEF
 #    undef MAKE_BUILTIN_CH_DEF
@@ -90,7 +93,7 @@ places in rna_engine_codebase are relevent:
 #  define MAKE_FLAGS(idname1, name1, tooltip1, value1, enumdef1) MAKE_BUILTIN_CH_DEF(idname1);
 #  define MAKE_FLAGS_EX(idname1, name1, tooltip1, value1, enumdef1, flag1) \
     MAKE_BUILTIN_CH_DEF(idname1);
-
+#  define MAKE_CURVE(idname1, name1, tooltip1, preset1) MAKE_BUILTIN_CH_DEF(idname1);
 #else
 #endif
 
@@ -317,6 +320,10 @@ MAKE_ENUM(deform_target, "Deformation Target", "How the deformation of the brush
     {-1}
 }))
 
+MAKE_CURVE(autosmooth_falloff_curve, "Falloff", "Custom curve for autosmooth", BRUSH_CURVE_SMOOTH)
+MAKE_CURVE(topology_rake_falloff_curve, "Falloff", "Custom curve for topolgoy rake", BRUSH_CURVE_SMOOTH)
+MAKE_CURVE(falloff_curve, "Falloff", "Falloff curve", BRUSH_CURVE_SMOOTH)
+
 /* clang-format on */
 #if defined(BRUSH_CHANNEL_DEFINE_TYPES) || defined(BRUSH_CHANNEL_DEFINE_EXTERNAL)
 #  ifdef MAKE_FLOAT
@@ -365,5 +372,9 @@ MAKE_ENUM(deform_target, "Deformation Target", "How the deformation of the brush
 
 #  ifdef MAKE_BUILTIN_CH_DEF
 #    undef MAKE_BUILTIN_CH_DEF
+#  endif
+
+#  ifdef MAKE_CURVE
+#    undef MAKE_CURVE
 #  endif
 #endif

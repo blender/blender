@@ -65,6 +65,8 @@ struct Sculpt;
   BKE_brush_channelset_get_float(chset, MAKE_BUILTIN_CH_NAME(channel), mapdata)
 #define BRUSHSET_GET_INT(chset, channel, mapdata) \
   BKE_brush_channelset_get_int(chset, MAKE_BUILTIN_CH_NAME(channel), mapdata)
+#define BRUSHSET_ENSURE_BUILTIN(chset, channel) \
+  BKE_brush_channelset_ensure_builtin(chset, MAKE_BUILTIN_CH_NAME(channel))
 
 //#define DEBUG_CURVE_MAPPING_ALLOC
 #ifdef DEBUG_CURVE_MAPPING_ALLOC
@@ -109,6 +111,7 @@ typedef struct BrushChannelType {
   int ivalue;
   float fvalue;
   float vector[4];
+  int curve_preset;
 
   BrushEnumDef enumdef[MAX_BRUSH_ENUM_DEF];  // for enum/bitmask types
   EnumPropertyItem *rna_enumdef;
@@ -165,8 +168,8 @@ BrushChannel *BKE_brush_channelset_lookup(BrushChannelSet *chset, const char *id
 
 bool BKE_brush_channelset_has(BrushChannelSet *chset, const char *idname);
 
-void BKE_brush_channelset_add_builtin(BrushChannelSet *chset, const char *idname);
-bool BKE_brush_channelset_ensure_builtin(BrushChannelSet *chset, const char *idname);
+BrushChannel *BKE_brush_channelset_add_builtin(BrushChannelSet *chset, const char *idname);
+BrushChannel *BKE_brush_channelset_ensure_builtin(BrushChannelSet *chset, const char *idname);
 
 void BKE_brush_channelset_merge(BrushChannelSet *dst,
                                 BrushChannelSet *child,
@@ -216,6 +219,11 @@ void BKE_brush_channelset_set_final_float(BrushChannelSet *child,
 
 void BKE_brush_channel_set_vector(BrushChannel *ch, float vec[4]);
 int BKE_brush_channel_get_vector_size(BrushChannel *ch);
+
+float BKE_brush_channel_curve_evaluate(BrushChannel *ch, float val, const float maxval);
+CurveMapping *BKE_brush_channel_curvemapping_get(BrushCurve *curve, bool force_create);
+bool BKE_brush_channel_curve_ensure_write(BrushCurve *curve);
+void BKE_brush_channel_curve_assign(BrushChannel *ch, BrushCurve *curve);
 
 /* returns size of vector */
 int BKE_brush_channel_get_vector(BrushChannel *ch, float out[4], BrushMappingData *mapdata);

@@ -151,6 +151,15 @@ MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pre
 #define MAKE_FLAGS(idname1, name1, tooltip1, value1, enumdef1) MAKE_FLAGS_EX(idname1, name1, tooltip1, value1, enumdef1, 0) 
 #define MAKE_ENUM(idname1, name1, tooltip1, value1, enumdef1) MAKE_ENUM_EX(idname1, name1, tooltip1, value1, enumdef1, 0) 
 
+#define MAKE_CURVE(idname1, name1, tooltip1, preset1)\
+{\
+  .idname = #idname1,\
+  .name = name1,\
+  .tooltip = tooltip1,\
+  .type = BRUSH_CHANNEL_CURVE,\
+  .curve_preset = preset1,\
+},
+
 /*
 This is where all the builtin brush channels are defined.
 That includes per-brush enums and bitflags!
@@ -632,6 +641,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(autosmooth_spacing);
   ADDCH(autosmooth_use_spacing);
   ADDCH(autosmooth_projection);
+  ADDCH(autosmooth_falloff_curve);
 
   ADDCH(vcol_boundary_exponent);
   ADDCH(vcol_boundary_factor);
@@ -644,6 +654,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(topology_rake_use_spacing);
   ADDCH(topology_rake_spacing);
   ADDCH(topology_rake_projection);
+  ADDCH(topology_rake_falloff_curve);
 
   ADDCH(hardness);
   ADDCH(tip_roundness);
@@ -974,6 +985,19 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH(concave_mask_factor);
   ADDCH(automasking);
   ADDCH(topology_rake_mode);
+
+  ADDCH(autosmooth);
+  ADDCH(autosmooth_projection);
+  ADDCH(autosmooth_radius_scale);
+  ADDCH(autosmooth_spacing);
+  ADDCH(autosmooth_falloff_curve);
+
+  ADDCH(topology_rake_radius_scale);
+  ADDCH(topology_rake_projection);
+  ADDCH(topology_rake_use_spacing);
+  ADDCH(topology_rake_spacing);
+  ADDCH(topology_rake);
+  ADDCH(topology_rake_falloff_curve);
 
   ADDCH(vcol_boundary_exponent);
   ADDCH(vcol_boundary_factor);

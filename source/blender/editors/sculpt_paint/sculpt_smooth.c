@@ -1150,8 +1150,12 @@ ATTR_NO_OPT static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   }
   BKE_pbvh_vertex_iter_end;
 
-  if (modified && weighted) {
-    BKE_pbvh_node_mark_update_tri_area(data->nodes[n]);
+  if (modified) {
+    if (weighted) {
+      BKE_pbvh_node_mark_update_tri_area(data->nodes[n]);
+    }
+
+    BKE_pbvh_node_mark_update(data->nodes[n]);
   }
 }
 #endif
