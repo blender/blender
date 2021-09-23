@@ -40,11 +40,54 @@
 
 #  include "RNA_access.h"
 
-static AssetTag *rna_AssetMetaData_tag_new(AssetMetaData *asset_data,
-                                           ReportList *reports,
-                                           const char *name,
-                                           bool skip_if_exists)
+static bool rna_AssetMetaData_editable_from_owner_id(const ID *owner_id,
+                                                     const AssetMetaData *asset_data,
+                                                     const char **r_info)
 {
+  if (owner_id && asset_data && (owner_id->asset_data == asset_data)) {
+    return true;
+  }
+
+  if (r_info) {
+    *r_info =
+        "Asset metadata from external asset libraries can't be edited, only assets stored in the "
+        "current file can";
+  }
+  return false;
+}
+
+int rna_AssetMetaData_editable(PointerRNA *ptr, const char **r_info)
+{
+  AssetMetaData *asset_data = ptr->data;
+
+  return rna_AssetMetaData_editable_from_owner_id(ptr->owner_id, asset_data, r_info) ?
+             PROP_EDITABLE :
+             0;
+}
+
+static int rna_AssetTag_editable(PointerRNA *ptr, const char **r_info)
+{
+  AssetTag *asset_tag = ptr->data;
+  ID *owner_id = ptr->owner_id;
+  if (owner_id && owner_id->asset_data) {
+    BLI_assert_msg(BLI_findindex(&owner_id->asset_data->tags, asset_tag) != -1,
+                   "The owner of the asset tag pointer is not the asset ID containing the tag");
+  }
+
+  return rna_AssetMetaData_editable_from_owner_id(ptr->owner_id, owner_id->asset_data, r_info) ?
+             PROP_EDITABLE :
+             0;
+}
+
+static AssetTag *rna_AssetMetaData_tag_new(
+    ID *id, AssetMetaData *asset_data, ReportList *reports, const char *name, bool skip_if_exists)
+{
+  const char *disabled_info = NULL;
+  if (!rna_AssetMetaData_editable_from_owner_id(id, asset_data, &disabled_info)) {
+    BKE_report(reports, RPT_WARNING, disabled_info);
+    return NULL;
+  }
+
   AssetTag *tag = NULL;
 
   if (skip_if_exists) {
@@ -64,10 +107,17 @@ static AssetTag *rna_AssetMetaData_tag_new(AssetMetaData *asset_data,
   return tag;
 }
 
-static void rna_AssetMetaData_tag_remove(AssetMetaData *asset_data,
+static void rna_AssetMetaData_tag_remove(ID *id,
+                                         AssetMetaData *asset_data,
                                          ReportList *reports,
                                          PointerRNA *tag_ptr)
 {
+  const char *disabled_info = NULL;
+  if (!rna_AssetMetaData_editable_from_owner_id(id, asset_data, &disabled_info)) {
+    BKE_report(reports, RPT_WARNING, disabled_info);
+    return;
+  }
+
   AssetTag *tag = tag_ptr->data;
   if (BLI_findindex(&asset_data->tags, tag) == -1) {
     BKE_reportf(reports, RPT_ERROR, "Tag '%s' not found in given asset", tag->name);
@@ -185,6 +235,7 @@ static void rna_def_asset_tag(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Asset Tag", "User defined tag (name token)");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_editable_func(prop, "rna_AssetTag_editable");
   RNA_def_property_string_maxlength(prop, MAX_NAME);
   RNA_def_property_ui_text(prop, "Name", "The identifier that makes up this tag");
   RNA_def_struct_name_property(srna, prop);
@@ -205,7 +256,7 @@ static void rna_def_asset_tags_api(BlenderRNA *brna, PropertyRNA *cprop)
   /* Tag collection */
   func = RNA_def_function(srna, "new", "rna_AssetMetaData_tag_new");
   RNA_def_function_ui_description(func, "Add a new tag to this asset");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
   parm = RNA_def_string(func, "name", NULL, MAX_NAME, "Name", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_boolean(func,
@@ -219,7 +270,7 @@ static void rna_def_asset_tags_api(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "remove", "rna_AssetMetaData_tag_remove");
   RNA_def_function_ui_description(func, "Remove an existing tag from this asset");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
   /* tag to remove */
   parm = RNA_def_pointer(func, "tag", "AssetTag", "", "Removed tag");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
@@ -239,6 +290,7 @@ static void rna_def_asset_data(BlenderRNA *brna)
   RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES); /* Mandatory! */
 
   prop = RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
+  RNA_def_property_editable_func(prop, "rna_AssetMetaData_editable");
   RNA_def_property_string_funcs(prop,
                                 "rna_AssetMetaData_description_get",
                                 "rna_AssetMetaData_description_length",
@@ -248,7 +300,7 @@ static void rna_def_asset_data(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "tags", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "AssetTag");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_editable_func(prop, "rna_AssetMetaData_editable");
   RNA_def_property_ui_text(prop,
                            "Tags",
                            "Custom tags (name tokens) for the asset, used for filtering and "

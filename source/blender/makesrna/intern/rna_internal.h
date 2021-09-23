@@ -267,6 +267,7 @@ void rna_def_mtex_common(struct BlenderRNA *brna,
 void rna_def_texpaint_slots(struct BlenderRNA *brna, struct StructRNA *srna);
 void rna_def_view_layer_common(struct BlenderRNA *brna, struct StructRNA *srna, const bool scene);
 
+int rna_AssetMetaData_editable(struct PointerRNA *ptr, const char **r_info);
 PropertyRNA *rna_def_asset_library_reference_common(struct StructRNA *srna,
                                                     const char *get,
                                                     const char *set);
