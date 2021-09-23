@@ -24,7 +24,7 @@ namespace blender::nodes {
 
 static void geo_node_input_tangent_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>("Tangent");
+  b.add_output<decl::Vector>("Tangent").field_source();
 }
 
 static void calculate_bezier_tangents(const BezierSpline &spline, MutableSpan<float3> tangents)

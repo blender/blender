@@ -33,6 +33,7 @@ namespace blender::nodes {
 
 static void sh_node_valtorgb_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Float>("Fac").default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_output<decl::Color>("Color");
   b.add_output<decl::Float>("Alpha");

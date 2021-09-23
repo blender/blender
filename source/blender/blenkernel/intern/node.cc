@@ -52,9 +52,12 @@
 #include "BLI_map.hh"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
+#include "BLI_set.hh"
+#include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector_set.hh"
 
 #include "BLT_translation.h"
 
@@ -80,6 +83,7 @@
 #include "NOD_function.h"
 #include "NOD_geometry.h"
 #include "NOD_node_declaration.hh"
+#include "NOD_node_tree_ref.hh"
 #include "NOD_shader.h"
 #include "NOD_socket.h"
 #include "NOD_texture.h"
@@ -92,6 +96,20 @@
 #include "MOD_nodes.h"
 
 #define NODE_DEFAULT_MAX_WIDTH 700
+
+using blender::Array;
+using blender::MutableSpan;
+using blender::Set;
+using blender::Span;
+using blender::Stack;
+using blender::Vector;
+using blender::VectorSet;
+using blender::nodes::InputSocketFieldType;
+using blender::nodes::NodeDeclaration;
+using blender::nodes::OutputFieldDependency;
+using blender::nodes::OutputSocketFieldType;
+using blender::nodes::SocketDeclaration;
+using namespace blender::nodes::node_tree_ref_types;
 
 /* Fallback types for undefined tree, nodes, sockets */
 static bNodeTreeType NodeTreeTypeUndefined;
@@ -110,6 +128,10 @@ static void node_socket_interface_free(bNodeTree *UNUSED(ntree),
 static void nodeMuteRerouteOutputLinks(struct bNodeTree *ntree,
                                        struct bNode *node,
                                        const bool mute);
+static FieldInferencingInterface *node_field_inferencing_interface_copy(
+    const FieldInferencingInterface &field_inferencing_interface);
+static void node_field_inferencing_interface_free(
+    const FieldInferencingInterface *field_inferencing_interface);
 
 static void ntree_init_data(ID *id)
 {
@@ -220,6 +242,11 @@ static void ntree_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
 
   /* node tree will generate its own interface type */
   ntree_dst->interface_type = nullptr;
+
+  if (ntree_src->field_inferencing_interface) {
+    ntree_dst->field_inferencing_interface = node_field_inferencing_interface_copy(
+        *ntree_src->field_inferencing_interface);
+  }
 }
 
 static void ntree_free_data(ID *id)
@@ -264,6 +291,8 @@ static void ntree_free_data(ID *id)
     node_socket_interface_free(ntree, sock, false);
     MEM_freeN(sock);
   }
+
+  node_field_inferencing_interface_free(ntree->field_inferencing_interface);
 
   /* free preview hash */
   if (ntree->previews) {
@@ -646,6 +675,8 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
 
   ntree->progress = nullptr;
   ntree->execdata = nullptr;
+
+  ntree->field_inferencing_interface = nullptr;
 
   BLO_read_data_address(reader, &ntree->adt);
   BKE_animdata_blend_read_data(reader, ntree->adt);
@@ -4425,7 +4456,518 @@ void ntreeUpdateAllNew(Main *main)
   FOREACH_NODETREE_END;
 }
 
-void ntreeUpdateAllUsers(Main *main, ID *id)
+/**
+ * Information about how a node interacts with fields.
+ */
+struct FieldInferencingInterface {
+  Vector<InputSocketFieldType> inputs;
+  Vector<OutputFieldDependency> outputs;
+
+  friend bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
+  {
+    return a.inputs == b.inputs && a.outputs == b.outputs;
+  }
+
+  friend bool operator!=(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
+  {
+    return !(a == b);
+  }
+};
+
+static FieldInferencingInterface *node_field_inferencing_interface_copy(
+    const FieldInferencingInterface &field_inferencing_interface)
+{
+  return new FieldInferencingInterface(field_inferencing_interface);
+}
+
+static void node_field_inferencing_interface_free(
+    const FieldInferencingInterface *field_inferencing_interface)
+{
+  delete field_inferencing_interface;
+}
+
+namespace blender::bke::node_field_inferencing {
+
+static bool is_field_socket_type(eNodeSocketDatatype type)
+{
+  return ELEM(type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA);
+}
+
+static bool is_field_socket_type(const SocketRef &socket)
+{
+  return is_field_socket_type((eNodeSocketDatatype)socket.typeinfo()->type);
+}
+
+static bool update_field_inferencing(bNodeTree &btree);
+
+static InputSocketFieldType get_interface_input_field_type(const NodeRef &node,
+                                                           const InputSocketRef &socket)
+{
+  if (!is_field_socket_type(socket)) {
+    return InputSocketFieldType::None;
+  }
+  if (node.is_reroute_node()) {
+    return InputSocketFieldType::IsSupported;
+  }
+  if (node.is_group_output_node()) {
+    /* Outputs always support fields when the data type is correct. */
+    return InputSocketFieldType::IsSupported;
+  }
+
+  const NodeDeclaration *node_decl = node.declaration();
+
+  /* Node declarations should be implemented for nodes involved here. */
+  BLI_assert(node_decl != nullptr);
+
+  if (node_decl->is_function_node()) {
+    /* In a function node, every socket supports fields. */
+    return InputSocketFieldType::IsSupported;
+  }
+  /* Get the field type from the declaration. */
+  const SocketDeclaration &socket_decl = *node_decl->inputs()[socket.index()];
+  return socket_decl.input_field_type();
+}
+
+static OutputFieldDependency get_interface_output_field_dependency(const NodeRef &node,
+                                                                   const OutputSocketRef &socket)
+{
+  if (!is_field_socket_type(socket)) {
+    /* Non-field sockets always output data. */
+    return OutputFieldDependency::ForDataSource();
+  }
+  if (node.is_reroute_node()) {
+    /* The reroute just forwards what is passed in. */
+    return OutputFieldDependency::ForDependentField();
+  }
+  if (node.is_group_input_node()) {
+    /* Input nodes get special treatment in #determine_group_input_states. */
+    return OutputFieldDependency::ForDependentField();
+  }
+
+  const NodeDeclaration *node_decl = node.declaration();
+
+  /* Node declarations should be implemented for nodes involved here. */
+  BLI_assert(node_decl != nullptr);
+
+  if (node_decl->is_function_node()) {
+    /* In a generic function node, all outputs depend on all inputs. */
+    return OutputFieldDependency::ForDependentField();
+  }
+
+  /* Use the socket declaration. */
+  const SocketDeclaration &socket_decl = *node_decl->outputs()[socket.index()];
+  return socket_decl.output_field_dependency();
+}
+
+/**
+ * Retrieves information about how the node interacts with fields.
+ * In the future, this information can be stored in the node declaration. This would allow this
+ * function to return a reference, making it more efficient.
+ */
+static FieldInferencingInterface get_node_field_inferencing_interface(const NodeRef &node)
+{
+  /* Node groups already reference all required information, so just return that. */
+  if (node.is_group_node()) {
+    bNodeTree *group = (bNodeTree *)node.bnode()->id;
+    if (group == nullptr) {
+      return FieldInferencingInterface();
+    }
+    if (group->field_inferencing_interface == nullptr) {
+      /* Update group recursively. */
+      update_field_inferencing(*group);
+    }
+    return *group->field_inferencing_interface;
+  }
+
+  FieldInferencingInterface inferencing_interface;
+  for (const InputSocketRef *input_socket : node.inputs()) {
+    inferencing_interface.inputs.append(get_interface_input_field_type(node, *input_socket));
+  }
+
+  for (const OutputSocketRef *output_socket : node.outputs()) {
+    inferencing_interface.outputs.append(
+        get_interface_output_field_dependency(node, *output_socket));
+  }
+  return inferencing_interface;
+}
+
+/**
+ * This struct contains information for every socket. The values are propagated through the
+ * network.
+ */
+struct SocketFieldState {
+  /* This socket is currently a single value. It could become a field though. */
+  bool is_single = true;
+  /* This socket is required to be a single value. It must not be a field. */
+  bool requires_single = false;
+  /* This socket starts a new field. */
+  bool is_field_source = false;
+};
+
+static Vector<const InputSocketRef *> gather_input_socket_dependencies(
+    const OutputFieldDependency &field_dependency, const NodeRef &node)
+{
+  const OutputSocketFieldType type = field_dependency.field_type();
+  Vector<const InputSocketRef *> input_sockets;
+  switch (type) {
+    case OutputSocketFieldType::FieldSource:
+    case OutputSocketFieldType::None: {
+      break;
+    }
+    case OutputSocketFieldType::DependentField: {
+      /* This output depends on all inputs. */
+      input_sockets.extend(node.inputs());
+      break;
+    }
+    case OutputSocketFieldType::PartiallyDependent: {
+      /* This output depends only on a few inputs. */
+      for (const int i : field_dependency.linked_input_indices()) {
+        input_sockets.append(&node.input(i));
+      }
+      break;
+    }
+  }
+  return input_sockets;
+}
+
+/**
+ * Check what the group output socket depends on. Potentially traverses the node tree
+ * to figure out if it is always a field or if it depends on any group inputs.
+ */
+static OutputFieldDependency find_group_output_dependencies(
+    const InputSocketRef &group_output_socket,
+    const Span<SocketFieldState> field_state_by_socket_id)
+{
+  if (!is_field_socket_type(group_output_socket)) {
+    return OutputFieldDependency::ForDataSource();
+  }
+
+  /* Use a Set here instead of an array indexed by socket id, because we my only need to look at
+   * very few sockets. */
+  Set<const InputSocketRef *> handled_sockets;
+  Stack<const InputSocketRef *> sockets_to_check;
+
+  handled_sockets.add(&group_output_socket);
+  sockets_to_check.push(&group_output_socket);
+
+  /* Keeps track of group input indices that are (indirectly) connected to the output. */
+  Vector<int> linked_input_indices;
+
+  while (!sockets_to_check.is_empty()) {
+    const InputSocketRef *input_socket = sockets_to_check.pop();
+
+    for (const OutputSocketRef *origin_socket : input_socket->logically_linked_sockets()) {
+      const NodeRef &origin_node = origin_socket->node();
+      const SocketFieldState &origin_state = field_state_by_socket_id[origin_socket->id()];
+
+      if (origin_state.is_field_source) {
+        if (origin_node.is_group_input_node()) {
+          /* Found a group input that the group output depends on. */
+          linked_input_indices.append_non_duplicates(origin_socket->index());
+        }
+        else {
+          /* Found a field source that is not the group input. So the output is always a field. */
+          return OutputFieldDependency::ForFieldSource();
+        }
+      }
+      else if (!origin_state.is_single) {
+        const FieldInferencingInterface inferencing_interface =
+            get_node_field_inferencing_interface(origin_node);
+        const OutputFieldDependency &field_dependency =
+            inferencing_interface.outputs[origin_socket->index()];
+
+        /* Propagate search further to the left. */
+        for (const InputSocketRef *origin_input_socket :
+             gather_input_socket_dependencies(field_dependency, origin_node)) {
+          if (!field_state_by_socket_id[origin_input_socket->id()].is_single) {
+            if (handled_sockets.add(origin_input_socket)) {
+              sockets_to_check.push(origin_input_socket);
+            }
+          }
+        }
+      }
+    }
+  }
+  return OutputFieldDependency::ForPartiallyDependentField(std::move(linked_input_indices));
+}
+
+static void propagate_data_requirements_from_right_to_left(
+    const NodeTreeRef &tree, const MutableSpan<SocketFieldState> field_state_by_socket_id)
+{
+  const Vector<const NodeRef *> sorted_nodes = tree.toposort(
+      NodeTreeRef::ToposortDirection::RightToLeft);
+
+  for (const NodeRef *node : sorted_nodes) {
+    const FieldInferencingInterface inferencing_interface = get_node_field_inferencing_interface(
+        *node);
+
+    for (const OutputSocketRef *output_socket : node->outputs()) {
+      SocketFieldState &state = field_state_by_socket_id[output_socket->id()];
+
+      const OutputFieldDependency &field_dependency =
+          inferencing_interface.outputs[output_socket->index()];
+
+      if (field_dependency.field_type() == OutputSocketFieldType::FieldSource) {
+        continue;
+      }
+      if (field_dependency.field_type() == OutputSocketFieldType::None) {
+        state.requires_single = true;
+        continue;
+      }
+
+      /* The output is required to be a single value when it is connected to any input that does
+       * not support fields. */
+      for (const InputSocketRef *target_socket : output_socket->directly_linked_sockets()) {
+        state.requires_single |= field_state_by_socket_id[target_socket->id()].requires_single;
+      }
+
+      if (state.requires_single) {
+        bool any_input_is_field_implicitly = false;
+        const Vector<const InputSocketRef *> connected_inputs = gather_input_socket_dependencies(
+            field_dependency, *node);
+        for (const InputSocketRef *input_socket : connected_inputs) {
+          if (inferencing_interface.inputs[input_socket->index()] ==
+              InputSocketFieldType::Implicit) {
+            if (!input_socket->is_logically_linked()) {
+              any_input_is_field_implicitly = true;
+              break;
+            }
+          }
+        }
+        if (any_input_is_field_implicitly) {
+          /* This output isn't a single value actually. */
+          state.requires_single = false;
+        }
+        else {
+          /* If the output is required to be a single value, the connected inputs in the same node
+           * must not be fields as well. */
+          for (const InputSocketRef *input_socket : connected_inputs) {
+            field_state_by_socket_id[input_socket->id()].requires_single = true;
+          }
+        }
+      }
+    }
+
+    /* Some inputs do not require fields independent of what the outputs are connected to. */
+    for (const InputSocketRef *input_socket : node->inputs()) {
+      SocketFieldState &state = field_state_by_socket_id[input_socket->id()];
+      if (inferencing_interface.inputs[input_socket->index()] == InputSocketFieldType::None) {
+        state.requires_single = true;
+      }
+    }
+  }
+}
+
+static void determine_group_input_states(
+    const NodeTreeRef &tree,
+    FieldInferencingInterface &new_inferencing_interface,
+    const MutableSpan<SocketFieldState> field_state_by_socket_id)
+{
+  {
+    /* Non-field inputs never support fields. */
+    int index;
+    LISTBASE_FOREACH_INDEX (bNodeSocket *, group_input, &tree.btree()->inputs, index) {
+      if (!is_field_socket_type((eNodeSocketDatatype)group_input->type)) {
+        new_inferencing_interface.inputs[index] = InputSocketFieldType::None;
+      }
+    }
+  }
+  /* Check if group inputs are required to be single values, because they are (indirectly)
+   * connected to some socket that does not support fields. */
+  for (const NodeRef *node : tree.nodes_by_type("NodeGroupInput")) {
+    for (const OutputSocketRef *output_socket : node->outputs().drop_back(1)) {
+      SocketFieldState &state = field_state_by_socket_id[output_socket->id()];
+      if (state.requires_single) {
+        new_inferencing_interface.inputs[output_socket->index()] = InputSocketFieldType::None;
+      }
+    }
+  }
+  /* If an input does not support fields, this should be reflected in all Group Input nodes. */
+  for (const NodeRef *node : tree.nodes_by_type("NodeGroupInput")) {
+    for (const OutputSocketRef *output_socket : node->outputs().drop_back(1)) {
+      SocketFieldState &state = field_state_by_socket_id[output_socket->id()];
+      const bool supports_field = new_inferencing_interface.inputs[output_socket->index()] !=
+                                  InputSocketFieldType::None;
+      if (supports_field) {
+        state.is_single = false;
+        state.is_field_source = true;
+      }
+      else {
+        state.requires_single = true;
+      }
+    }
+    SocketFieldState &dummy_socket_state = field_state_by_socket_id[node->outputs().last()->id()];
+    dummy_socket_state.requires_single = true;
+  }
+}
+
+static void propagate_field_status_from_left_to_right(
+    const NodeTreeRef &tree, const MutableSpan<SocketFieldState> field_state_by_socket_id)
+{
+  Vector<const NodeRef *> sorted_nodes = tree.toposort(
+      NodeTreeRef::ToposortDirection::LeftToRight);
+
+  for (const NodeRef *node : sorted_nodes) {
+    if (node->is_group_input_node()) {
+      continue;
+    }
+
+    const FieldInferencingInterface inferencing_interface = get_node_field_inferencing_interface(
+        *node);
+
+    /* Update field state of input sockets, also taking into account linked origin sockets. */
+    for (const InputSocketRef *input_socket : node->inputs()) {
+      SocketFieldState &state = field_state_by_socket_id[input_socket->id()];
+      if (state.requires_single) {
+        state.is_single = true;
+        continue;
+      }
+      state.is_single = true;
+      if (input_socket->logically_linked_sockets().is_empty()) {
+        if (inferencing_interface.inputs[input_socket->index()] ==
+            InputSocketFieldType::Implicit) {
+          state.is_single = false;
+        }
+      }
+      else {
+        for (const OutputSocketRef *origin_socket : input_socket->logically_linked_sockets()) {
+          if (!field_state_by_socket_id[origin_socket->id()].is_single) {
+            state.is_single = false;
+            break;
+          }
+        }
+      }
+    }
+
+    /* Update field state of output sockets, also taking into account input sockets. */
+    for (const OutputSocketRef *output_socket : node->outputs()) {
+      SocketFieldState &state = field_state_by_socket_id[output_socket->id()];
+      const OutputFieldDependency &field_dependency =
+          inferencing_interface.outputs[output_socket->index()];
+
+      switch (field_dependency.field_type()) {
+        case OutputSocketFieldType::None: {
+          state.is_single = true;
+          break;
+        }
+        case OutputSocketFieldType::FieldSource: {
+          state.is_single = false;
+          state.is_field_source = true;
+          break;
+        }
+        case OutputSocketFieldType::PartiallyDependent:
+        case OutputSocketFieldType::DependentField: {
+          for (const InputSocketRef *input_socket :
+               gather_input_socket_dependencies(field_dependency, *node)) {
+            if (!field_state_by_socket_id[input_socket->id()].is_single) {
+              state.is_single = false;
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+  }
+}
+
+static void determine_group_output_states(const NodeTreeRef &tree,
+                                          FieldInferencingInterface &new_inferencing_interface,
+                                          const Span<SocketFieldState> field_state_by_socket_id)
+{
+  for (const NodeRef *group_output_node : tree.nodes_by_type("NodeGroupOutput")) {
+    /* Ignore inactive group output nodes. */
+    if (!(group_output_node->bnode()->flag & NODE_DO_OUTPUT)) {
+      continue;
+    }
+    /* Determine dependencies of all group outputs. */
+    for (const InputSocketRef *group_output_socket : group_output_node->inputs().drop_back(1)) {
+      OutputFieldDependency field_dependency = find_group_output_dependencies(
+          *group_output_socket, field_state_by_socket_id);
+      new_inferencing_interface.outputs[group_output_socket->index()] = std::move(
+          field_dependency);
+    }
+    break;
+  }
+}
+
+static void update_socket_shapes(const NodeTreeRef &tree,
+                                 const Span<SocketFieldState> field_state_by_socket_id)
+{
+  const eNodeSocketDisplayShape requires_data_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+  const eNodeSocketDisplayShape data_but_can_be_field_shape = SOCK_DISPLAY_SHAPE_DIAMOND_DOT;
+  const eNodeSocketDisplayShape is_field_shape = SOCK_DISPLAY_SHAPE_DIAMOND;
+
+  for (const InputSocketRef *socket : tree.input_sockets()) {
+    bNodeSocket *bsocket = socket->bsocket();
+    const SocketFieldState &state = field_state_by_socket_id[socket->id()];
+    if (state.requires_single) {
+      bsocket->display_shape = requires_data_shape;
+    }
+    else if (state.is_single) {
+      bsocket->display_shape = data_but_can_be_field_shape;
+    }
+    else {
+      bsocket->display_shape = is_field_shape;
+    }
+  }
+  for (const OutputSocketRef *socket : tree.output_sockets()) {
+    bNodeSocket *bsocket = socket->bsocket();
+    const SocketFieldState &state = field_state_by_socket_id[socket->id()];
+    if (state.requires_single) {
+      bsocket->display_shape = requires_data_shape;
+    }
+    else if (state.is_single) {
+      bsocket->display_shape = data_but_can_be_field_shape;
+    }
+    else {
+      bsocket->display_shape = is_field_shape;
+    }
+  }
+}
+
+static bool update_field_inferencing(bNodeTree &btree)
+{
+  using namespace blender::nodes;
+  if (btree.type != NTREE_GEOMETRY) {
+    return false;
+  }
+
+  /* Create new inferencing interface for this node group. */
+  FieldInferencingInterface *new_inferencing_interface = new FieldInferencingInterface();
+  new_inferencing_interface->inputs.resize(BLI_listbase_count(&btree.inputs),
+                                           InputSocketFieldType::IsSupported);
+  new_inferencing_interface->outputs.resize(BLI_listbase_count(&btree.outputs),
+                                            OutputFieldDependency::ForDataSource());
+
+  /* Create #NodeTreeRef to accelerate various queries on the node tree (e.g. linked sockets). */
+  const NodeTreeRef tree{&btree};
+
+  /* Keep track of the state of all sockets. The index into this array is #SocketRef::id(). */
+  Array<SocketFieldState> field_state_by_socket_id(tree.sockets().size());
+
+  propagate_data_requirements_from_right_to_left(tree, field_state_by_socket_id);
+  determine_group_input_states(tree, *new_inferencing_interface, field_state_by_socket_id);
+  propagate_field_status_from_left_to_right(tree, field_state_by_socket_id);
+  determine_group_output_states(tree, *new_inferencing_interface, field_state_by_socket_id);
+  update_socket_shapes(tree, field_state_by_socket_id);
+
+  /* Update the previous group interface. */
+  const bool group_interface_changed = btree.field_inferencing_interface == nullptr ||
+                                       *btree.field_inferencing_interface !=
+                                           *new_inferencing_interface;
+  delete btree.field_inferencing_interface;
+  btree.field_inferencing_interface = new_inferencing_interface;
+
+  return group_interface_changed;
+}
+
+}  // namespace blender::bke::node_field_inferencing
+
+/**
+ * \param tree_update_flag: #eNodeTreeUpdate enum.
+ */
+void ntreeUpdateAllUsers(Main *main, ID *id, const int tree_update_flag)
 {
   if (id == nullptr) {
     return;
@@ -4446,7 +4988,8 @@ void ntreeUpdateAllUsers(Main *main, ID *id)
     }
 
     if (need_update) {
-      ntreeUpdateTree(nullptr, ntree);
+      ntree->update |= tree_update_flag;
+      ntreeUpdateTree(tree_update_flag ? main : nullptr, ntree);
     }
   }
   FOREACH_NODETREE_END;
@@ -4508,8 +5051,18 @@ void ntreeUpdateTree(Main *bmain, bNodeTree *ntree)
     ntreeInterfaceTypeUpdate(ntree);
   }
 
+  int tree_user_update_flag = 0;
+
+  if (ntree->update & NTREE_UPDATE) {
+    /* If the field interface of this node tree has changed, all node trees using
+     * this group will need to recalculate their interface as well. */
+    if (blender::bke::node_field_inferencing::update_field_inferencing(*ntree)) {
+      tree_user_update_flag |= NTREE_UPDATE_FIELD_INFERENCING;
+    }
+  }
+
   if (bmain) {
-    ntreeUpdateAllUsers(bmain, &ntree->id);
+    ntreeUpdateAllUsers(bmain, &ntree->id, tree_user_update_flag);
   }
 
   if (ntree->update & (NTREE_UPDATE_LINKS | NTREE_UPDATE_NODES)) {

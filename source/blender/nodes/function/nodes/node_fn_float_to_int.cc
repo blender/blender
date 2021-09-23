@@ -29,6 +29,7 @@ namespace blender::nodes {
 
 static void fn_node_float_to_int_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Float>("Float");
   b.add_output<decl::Int>("Integer");
 };

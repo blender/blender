@@ -29,6 +29,7 @@ namespace blender::nodes {
 
 static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Float>("Value").min(-10000.0f).max(10000.0f).default_value(1.0f);
   b.add_input<decl::Float>("From Min").min(-10000.0f).max(10000.0f);
   b.add_input<decl::Float>("From Max").min(-10000.0f).max(10000.0f).default_value(1.0f);

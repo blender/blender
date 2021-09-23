@@ -29,8 +29,8 @@ namespace blender::nodes {
 static void geo_node_attribute_statistic_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Float>("Attribute").hide_value();
-  b.add_input<decl::Vector>("Attribute", "Attribute_001").hide_value();
+  b.add_input<decl::Float>("Attribute").hide_value().supports_field();
+  b.add_input<decl::Vector>("Attribute", "Attribute_001").hide_value().supports_field();
 
   b.add_output<decl::Float>("Mean");
   b.add_output<decl::Float>("Median");

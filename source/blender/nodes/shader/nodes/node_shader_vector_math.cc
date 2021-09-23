@@ -29,6 +29,7 @@ namespace blender::nodes {
 
 static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f);
   b.add_input<decl::Vector>("Vector", "Vector_001").min(-10000.0f).max(10000.0f);
   b.add_input<decl::Vector>("Vector", "Vector_002").min(-10000.0f).max(10000.0f);

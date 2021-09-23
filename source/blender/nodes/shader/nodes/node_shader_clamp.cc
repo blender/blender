@@ -27,6 +27,7 @@ namespace blender::nodes {
 
 static void sh_node_clamp_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Float>("Value").min(0.0f).max(1.0f).default_value(1.0f);
   b.add_input<decl::Float>("Min").default_value(0.0f).min(-10000.0f).max(10000.0f);
   b.add_input<decl::Float>("Max").default_value(1.0f).min(-10000.0f).max(10000.0f);

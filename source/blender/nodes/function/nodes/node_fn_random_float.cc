@@ -22,6 +22,7 @@ namespace blender::nodes {
 
 static void fn_node_random_float_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Float>("Min").min(-10000.0f).max(10000.0f);
   b.add_input<decl::Float>("Max").default_value(1.0f).min(-10000.0f).max(10000.0f);
   b.add_input<decl::Int>("Seed").min(-10000).max(10000);

@@ -27,6 +27,7 @@ namespace blender::nodes {
 
 static void sh_node_curve_vec_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Float>("Fac").min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
   b.add_input<decl::Vector>("Vector").min(-1.0f).max(1.0f);
   b.add_output<decl::Vector>("Vector");

@@ -27,6 +27,7 @@ namespace blender::nodes {
 
 static void sh_node_seprgb_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Color>("Image").default_value({0.8f, 0.8f, 0.8f, 1.0f});
   b.add_output<decl::Float>("R");
   b.add_output<decl::Float>("G");

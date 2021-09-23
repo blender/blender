@@ -27,6 +27,7 @@ namespace blender::nodes {
 
 static void sh_node_sepxyz_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f);
   b.add_output<decl::Float>("X");
   b.add_output<decl::Float>("Y");

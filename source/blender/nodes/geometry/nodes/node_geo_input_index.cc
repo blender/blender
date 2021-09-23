@@ -20,7 +20,7 @@ namespace blender::nodes {
 
 static void geo_node_input_index_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Int>("Index");
+  b.add_output<decl::Int>("Index").field_source();
 }
 
 class IndexFieldInput final : public fn::FieldInput {

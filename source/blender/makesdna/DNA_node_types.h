@@ -445,6 +445,7 @@ typedef struct bNodeLink {
 #define NODE_LINK_TEST (1 << 2)           /* free test flag, undefined */
 #define NODE_LINK_TEMP_HIGHLIGHT (1 << 3) /* Link is highlighted for picking. */
 #define NODE_LINK_MUTED (1 << 4)          /* Link is muted. */
+#define NODE_LINK_DRAGGED (1 << 5)        /* Node link is being dragged by the user. */
 
 /* tree->edit_quality/tree->render_quality */
 #define NTREE_QUALITY_HIGH 0
@@ -458,6 +459,8 @@ typedef struct bNodeLink {
 #define NTREE_CHUNKSIZE_256 256
 #define NTREE_CHUNKSIZE_512 512
 #define NTREE_CHUNKSIZE_1024 1024
+
+struct FieldInferencingInterface;
 
 /* the basis for a Node tree, all links and nodes reside internal here */
 /* only re-usable node trees are in the library though,
@@ -481,6 +484,8 @@ typedef struct bNodeTree {
   float view_center[2];
 
   ListBase nodes, links;
+  /** Information about how inputs and outputs of the node group interact with fields. */
+  struct FieldInferencingInterface *field_inferencing_interface;
 
   /** Set init on fileread. */
   int type, init;
@@ -575,6 +580,9 @@ typedef enum eNodeTreeUpdate {
   NTREE_UPDATE_NODES = (1 << 1),     /* nodes or sockets have been added or removed */
   NTREE_UPDATE_GROUP_IN = (1 << 4),  /* group inputs have changed */
   NTREE_UPDATE_GROUP_OUT = (1 << 5), /* group outputs have changed */
+  /* The field interface has changed. So e.g. an output that was always a field before is not
+   * anymore. This implies that the field type inferencing has to be done again. */
+  NTREE_UPDATE_FIELD_INFERENCING = (1 << 6),
   /* group has changed (generic flag including all other group flags) */
   NTREE_UPDATE_GROUP = (NTREE_UPDATE_GROUP_IN | NTREE_UPDATE_GROUP_OUT),
 } eNodeTreeUpdate;
