@@ -85,6 +85,8 @@ class Prefs(bpy.types.KeyConfigPreferences):
         default=False,
         update=update_fn,
     )
+    # NOTE: expose `use_alt_tool` and `use_alt_cursor` as two options in the UI
+    # as the tool-tips and titles are different enough depending on RMB/LMB select.
     use_alt_tool: BoolProperty(
         name="Alt Tool Access",
         description=(
@@ -93,6 +95,16 @@ class Prefs(bpy.types.KeyConfigPreferences):
         default=False,
         update=update_fn,
     )
+    use_alt_cursor: BoolProperty(
+        name="Alt Cursor Access",
+        description=(
+            "Hold Alt-LMB to place the Cursor (instead of LMB), allows tools to activate on press instead of drag"
+        ),
+        default=False,
+        update=update_fn,
+    )
+    # end note.
+
     use_select_all_toggle: BoolProperty(
         name="Select All Toggles",
         description=(
@@ -219,6 +231,8 @@ class Prefs(bpy.types.KeyConfigPreferences):
         row.prop(self, "use_alt_click_leader")
         if is_select_left:
             row.prop(self, "use_alt_tool")
+        else:
+            row.prop(self, "use_alt_cursor")
         row = sub.row()
         row.prop(self, "use_select_all_toggle")
         row.prop(self, "use_key_activate_tools", text="Key Activates Tools")
@@ -269,7 +283,7 @@ def load():
             use_v3d_shade_ex_pie=kc_prefs.use_v3d_shade_ex_pie,
             use_gizmo_drag=(is_select_left and kc_prefs.gizmo_action == 'DRAG'),
             use_fallback_tool=(True if is_select_left else (kc_prefs.rmb_action == 'FALLBACK_TOOL')),
-            use_alt_tool=(kc_prefs.use_alt_tool and is_select_left),
+            use_alt_tool_or_cursor=kc_prefs.use_alt_tool if is_select_left else kc_prefs.use_alt_cursor,
             use_alt_click_leader=kc_prefs.use_alt_click_leader,
             use_pie_click_drag=kc_prefs.use_pie_click_drag,
         ),
