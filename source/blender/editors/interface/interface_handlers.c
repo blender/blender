@@ -384,6 +384,8 @@ typedef struct uiHandleButtonData {
   /* booleans (could be made into flags) */
   bool cancel, escapecancel;
   bool applied, applied_interactive;
+  /* Button is being applied through an extra icon. */
+  bool apply_through_extra_icon;
   bool changed_cursor;
   wmTimer *flashtimer;
 
@@ -1162,6 +1164,16 @@ static void ui_apply_but_ROW(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 
   data->retval = but->retval;
   data->applied = true;
+}
+
+static void ui_apply_but_TREEROW(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data)
+{
+  if (data->apply_through_extra_icon) {
+    /* Don't apply this, it would cause unintended tree-row toggling when clicking on extra icons.
+     */
+    return;
+  }
+  ui_apply_but_ROW(C, block, but, data);
 }
 
 /**
@@ -2306,6 +2318,9 @@ static void ui_apply_but(
       break;
     case UI_BTYPE_ROW:
       ui_apply_but_ROW(C, block, but, data);
+      break;
+    case UI_BTYPE_TREEROW:
+      ui_apply_but_TREEROW(C, block, but, data);
       break;
     case UI_BTYPE_LISTROW:
       ui_apply_but_LISTROW(C, block, but, data);
@@ -4194,6 +4209,8 @@ static void ui_numedit_apply(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 
 static void ui_but_extra_operator_icon_apply(bContext *C, uiBut *but, uiButExtraOpIcon *op_icon)
 {
+  but->active->apply_through_extra_icon = true;
+
   if (but->active->interactive) {
     ui_apply_but(C, but->block, but, but->active, true);
   }
@@ -4737,7 +4754,7 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
         /* Behave like other menu items. */
         do_activate = (event->val == KM_RELEASE);
       }
-      else {
+      else if (!ui_do_but_extra_operator_icon(C, but, data, event)) {
         /* Also use double-clicks to prevent fast clicks to leak to other handlers (T76481). */
         do_activate = ELEM(event->val, KM_PRESS, KM_DBL_CLICK);
       }
@@ -7966,6 +7983,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
     case UI_BTYPE_CHECKBOX:
     case UI_BTYPE_CHECKBOX_N:
     case UI_BTYPE_ROW:
+    case UI_BTYPE_TREEROW:
     case UI_BTYPE_DATASETROW:
       retval = ui_do_but_TOG(C, but, data, event);
       break;

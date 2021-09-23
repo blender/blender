@@ -856,10 +856,21 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
     oldbut->hardmax = but->hardmax;
   }
 
-  if (oldbut->type == UI_BTYPE_PROGRESS_BAR) {
-    uiButProgressbar *progress_oldbut = (uiButProgressbar *)oldbut;
-    uiButProgressbar *progress_but = (uiButProgressbar *)but;
-    progress_oldbut->progress = progress_but->progress;
+  switch (oldbut->type) {
+    case UI_BTYPE_PROGRESS_BAR: {
+      uiButProgressbar *progress_oldbut = (uiButProgressbar *)oldbut;
+      uiButProgressbar *progress_but = (uiButProgressbar *)but;
+      progress_oldbut->progress = progress_but->progress;
+      break;
+    }
+    case UI_BTYPE_TREEROW: {
+      uiButTreeRow *treerow_oldbut = (uiButTreeRow *)oldbut;
+      uiButTreeRow *treerow_newbut = (uiButTreeRow *)but;
+      SWAP(uiTreeViewItemHandle *, treerow_newbut->tree_item, treerow_oldbut->tree_item);
+      break;
+    }
+    default:
+      break;
   }
 
   /* move/copy string from the new button to the old */
@@ -2203,6 +2214,15 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
           }
         }
         break;
+      case UI_BTYPE_TREEROW: {
+        uiButTreeRow *tree_row_but = (uiButTreeRow *)but;
+
+        is_push = -1;
+        if (tree_row_but->tree_item) {
+          is_push = UI_tree_view_item_is_active(tree_row_but->tree_item);
+        }
+        break;
+      }
       default:
         is_push = -1;
         break;
@@ -3447,6 +3467,7 @@ void UI_block_free(const bContext *C, uiBlock *block)
   BLI_freelistN(&block->color_pickers.list);
 
   ui_block_free_button_groups(block);
+  ui_block_free_views(block);
 
   MEM_freeN(block);
 }
@@ -3942,6 +3963,10 @@ static void ui_but_alloc_info(const eButType type,
       alloc_size = sizeof(uiButDatasetRow);
       alloc_str = "uiButDatasetRow";
       break;
+    case UI_BTYPE_TREEROW:
+      alloc_size = sizeof(uiButTreeRow);
+      alloc_str = "uiButTreeRow";
+      break;
     default:
       alloc_size = sizeof(uiBut);
       alloc_str = "uiBut";
@@ -4141,6 +4166,7 @@ static uiBut *ui_def_but(uiBlock *block,
                 UI_BTYPE_BUT_MENU,
                 UI_BTYPE_SEARCH_MENU,
                 UI_BTYPE_DATASETROW,
+                UI_BTYPE_TREEROW,
                 UI_BTYPE_POPOVER)) {
     but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
   }
@@ -6875,6 +6901,15 @@ void UI_but_datasetrow_indentation_set(uiBut *but, int indentation)
   BLI_assert(but->type == UI_BTYPE_DATASETROW);
 
   but_dataset->indentation = indentation;
+  BLI_assert(indentation >= 0);
+}
+
+void UI_but_treerow_indentation_set(uiBut *but, int indentation)
+{
+  uiButTreeRow *but_row = (uiButTreeRow *)but;
+  BLI_assert(but->type == UI_BTYPE_TREEROW);
+
+  but_row->indentation = indentation;
   BLI_assert(indentation >= 0);
 }
 

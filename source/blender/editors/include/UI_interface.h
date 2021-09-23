@@ -84,6 +84,10 @@ typedef struct uiBlock uiBlock;
 typedef struct uiBut uiBut;
 typedef struct uiLayout uiLayout;
 typedef struct uiPopupBlockHandle uiPopupBlockHandle;
+/* C handle for C++ #ui::AbstractTreeView type. */
+typedef struct uiTreeViewHandle uiTreeViewHandle;
+/* C handle for C++ #ui::AbstractTreeViewItem type. */
+typedef struct uiTreeViewItemHandle uiTreeViewItemHandle;
 
 /* Defines */
 
@@ -389,6 +393,8 @@ typedef enum {
   UI_BTYPE_GRIP = 57 << 9,
   UI_BTYPE_DECORATOR = 58 << 9,
   UI_BTYPE_DATASETROW = 59 << 9,
+  /* An item in a tree view. Parent items may be collapsible. */
+  UI_BTYPE_TREEROW = 60 << 9,
 } eButType;
 
 #define BUTTYPE (63 << 9)
@@ -1672,6 +1678,7 @@ void UI_but_datasetrow_component_set(uiBut *but, uint8_t geometry_component_type
 void UI_but_datasetrow_domain_set(uiBut *but, uint8_t attribute_domain);
 uint8_t UI_but_datasetrow_component_get(uiBut *but);
 uint8_t UI_but_datasetrow_domain_get(uiBut *but);
+void UI_but_treerow_indentation_set(uiBut *but, int indentation);
 
 void UI_but_node_link_set(uiBut *but, struct bNodeSocket *socket, const float draw_color[4]);
 
@@ -2753,6 +2760,8 @@ void UI_interface_tag_script_reload(void);
 
 /* Support click-drag motion which presses the button and closes a popover (like a menu). */
 #define USE_UI_POPOVER_ONCE
+
+bool UI_tree_view_item_is_active(uiTreeViewItemHandle *item_);
 
 #ifdef __cplusplus
 }
