@@ -29,6 +29,7 @@ channel_name_map = {
     "autosmooth_fset_slide": "fset_slide",
     "topology_rake_factor": "topology_rake"
 };
+expand_channels = {"direction"}
 
 class UnifiedPaintPanel:
     # subclass must set
@@ -109,11 +110,14 @@ class UnifiedPaintPanel:
 
     @staticmethod
     def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None,
-                        slider=False, header=False, expand=None, toolsettings_only=False):
+                        slider=False, header=False, show_reorder=False, expand=None, toolsettings_only=False, ui_editing=True):
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle, if they exist. """
         ch = brush.channels.channels[prop_name]
         finalch = ch
+
+        if prop_name in expand_channels:
+            expand = True
 
         l1 = layout
 
@@ -161,6 +165,21 @@ class UnifiedPaintPanel:
             path = "tool_settings.sculpt.channels.channels[\"%s\"]" % ch.idname
         else:
             path = "tool_settings.sculpt.brush.channels.channels[\"%s\"]" % ch.idname
+        
+        if show_reorder:
+            props = row.operator("brush.change_channel_order", text="", icon="TRIA_UP")
+            props.channel = ch.idname
+            props.filterkey = "show_in_workspace"
+            props.direction = -1
+
+            props = row.operator("brush.change_channel_order", text="", icon="TRIA_DOWN")
+            props.filterkey = "show_in_workspace"
+            props.channel = ch.idname
+            props.direction = 1
+        
+        if ui_editing:
+            row.prop(ch, "show_in_workspace", text="", icon="HIDE_OFF")
+            #row.prop(ch, "ui_order", text="")
 
         if ch.type == "BITMASK":
             row.label(text=text)
@@ -186,6 +205,8 @@ class UnifiedPaintPanel:
             
         if pressure:
             row.prop(finalch.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
+
+
         #if pressure_name:
         #    row.prop(brush, pressure_name, text="")
 
@@ -200,6 +221,9 @@ class UnifiedPaintPanel:
                 row.prop(ch, "inherit", text="", icon='BRUSHES_ALL')
 
             if ch.type == "BITMASK" or ch.type == "BOOL":
+                return
+
+            if not ui_editing and not show_reorder:
                 return
 
             row.prop(ch, "ui_expanded", text="", icon="TRIA_DOWN" if ch.ui_expanded else "TRIA_RIGHT")
@@ -1075,9 +1099,6 @@ def brush_settings(layout, context, brush, popover=False):
             layout.row().prop(brush, "mask_tool", expand=True)
 
 
-        layout.template_curve_mapping(brush, "pressure_size_curve")
-        layout.template_curve_mapping(brush, "pressure_strength_curve", brush=True)
-
         # End sculpt_tool interface.
 
     # 3D and 2D Texture Paint Mode.
@@ -1225,6 +1246,91 @@ def brush_shared_settings(layout, context, brush, popover=False):
                 brush,
                 "direction", expand=True)
         #layout.row().prop(brush, "direction", expand=True)
+
+from bpy.types import Operator
+from bpy.props import IntProperty, StringProperty
+
+def get_ui_channels(channels, filterkeys=["show_in_workspace"]):
+    ret = []
+    for ch in channels:
+        ok = len(filterkeys) == 0
+        for key in filterkeys:
+            if getattr(ch, key):
+                ok = True
+                break
+        if ok:
+            ret.append(ch)
+    
+    ret.sort(key = lambda x: x.ui_order)
+    
+    return ret
+
+class ReorderBrushChannel(Operator):
+    """Tooltip"""
+    bl_idname = "brush.change_channel_order"
+    bl_label = "Change Channel Order"
+    bl_options = {"UNDO"}
+
+    direction   : IntProperty()
+    channel     : StringProperty()
+    filterkey   : StringProperty()
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == "SCULPT" and context.tool_settings.sculpt.brush
+
+    def execute(self, context):
+        ts = context.tool_settings
+        
+        brush = ts.sculpt.brush
+        
+        channels = brush.channels.channels
+        if self.channel not in channels:
+            print("bad channel ", self.channel)
+            return {'CANCELLED'}
+
+        uinames = get_ui_channels(channels, [self.filterkey])
+        uinames = set(map(lambda x: x.idname, uinames))
+
+        channel = channels[self.channel]
+        
+        channels = list(channels)
+        channels.sort(key = lambda x: x.ui_order)
+        
+        i = channels.index(channel)
+        i2 = i + self.direction
+
+        print("ORDERING", i, i2, self.direction, i2 < 0 or i2 >= len(channels))
+
+        if i2 < 0 or i2 >= len(channels):
+            return {'CANCELLED'}
+
+        while i2 >= 0 and i2 < len(channels) and channels[i2].idname not in uinames:
+            i2 += self.direction
+
+        i2 = min(max(i2, 0), len(channels)-1)
+
+        tmp = channels[i2]
+        channels[i2] = channels[i]
+        channels[i] = tmp
+        
+        #ensure ui_order is 1-to-1
+        for i, ch in enumerate(channels):
+            ch.ui_order = i
+            print(ch.idname, i)
+
+        
+        return {'FINISHED'}
+
+def brush_settings_channels(layout, context, brush, ui_editing=False, popover=False, filterkey="show_in_workspace"):
+    channels = get_ui_channels(brush.channels.channels, [filterkey])
+    
+    for ch in channels:
+        UnifiedPaintPanel.channel_unified(
+                layout.column(),
+                context,
+                brush,
+                ch.idname, show_reorder = ui_editing, expand=False, ui_editing=False)
 
 
 def brush_settings_advanced(layout, context, brush, popover=False):
@@ -1709,6 +1815,7 @@ def brush_basic_gpencil_vertex_settings(layout, _context, brush, *, compact=Fals
 
 classes = (
     VIEW3D_MT_tools_projectpaint_clone,
+    ReorderBrushChannel
 )
 
 if __name__ == "__main__":  # only for live edit.

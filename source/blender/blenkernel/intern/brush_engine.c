@@ -243,6 +243,7 @@ ATTR_NO_OPT void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
   strcpy(ch->idname, def->idname);
 
   ch->flag = def->flag;
+
   ch->fvalue = def->fvalue;
   ch->ivalue = def->ivalue;
 

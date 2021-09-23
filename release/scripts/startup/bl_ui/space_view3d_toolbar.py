@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-from bpy.types import Menu, Panel, UIList, WindowManager
+from bpy.types import Menu, Panel, UIList, WindowManager, SpaceProperties
 from bl_ui.properties_grease_pencil_common import (
     GreasePencilSculptOptionsPanel,
     GreasePencilDisplayPanel,
@@ -37,6 +37,7 @@ from bl_ui.properties_paint_common import (
     brush_mask_texture_settings,
     brush_settings,
     brush_settings_advanced,
+    brush_settings_channels,
     draw_color_settings,
 )
 from bl_ui.utils import PresetPanel
@@ -378,7 +379,9 @@ class VIEW3D_PT_tools_brush_select(Panel, View3DPaintBrushPanel, BrushSelectPane
     bl_label = "Brushes"
 
 
-# TODO, move to space_view3d.py
+def is_brush_editor(context):
+    return type(context.space_data) == SpaceProperties and context.space_data.context == "BRUSH_EDITOR"
+
 class VIEW3D_PT_tools_brush_settings(Panel, View3DPaintBrushPanel):
     bl_context = ".paint_common"
     bl_label = "Brush Settings"
@@ -386,7 +389,11 @@ class VIEW3D_PT_tools_brush_settings(Panel, View3DPaintBrushPanel):
     @classmethod
     def poll(cls, context):
         settings = cls.paint_settings(context)
-        return settings and settings.brush is not None
+
+        ok = settings and settings.brush is not None
+        ok = ok and not (context.mode == "SCULPT" and not is_brush_editor(context))
+
+        return ok
 
     def draw(self, context):
         layout = self.layout
@@ -399,6 +406,54 @@ class VIEW3D_PT_tools_brush_settings(Panel, View3DPaintBrushPanel):
 
         brush_settings(layout.column(), context, brush, popover=self.is_popover)
 
+class VIEW3D_PT_tools_brush_settings_channels(Panel, View3DPaintBrushPanel):
+    bl_context = ".paint_common"
+    bl_label = "Brush Settings"
+
+    @classmethod
+    def poll(cls, context):
+        settings = cls.paint_settings(context)
+
+        ok = settings and settings.brush is not None
+        ok = ok and context.mode == "SCULPT" and not is_brush_editor(context)
+
+        return ok
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
+        brush_settings_channels(layout.column(), context, brush, popover=self.is_popover)
+
+class VIEW3D_PT_tools_brush_settings_channels_preview(Panel, View3DPaintBrushPanel):
+    bl_context = ".paint_common"
+    bl_parent_id = "VIEW3D_PT_tools_brush_settings"
+    bl_label = "Settings Preview"
+
+    @classmethod
+    def poll(cls, context):
+        settings = cls.paint_settings(context)
+
+        ok = settings and settings.brush is not None
+        ok = ok and context.mode == "SCULPT" and is_brush_editor(context)
+
+        return ok
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
+        brush_settings_channels(layout.column(), context, brush, ui_editing=True, popover=self.is_popover)
 
 class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
     bl_context = ".paint_common"
@@ -756,7 +811,7 @@ class VIEW3D_PT_tools_brush_falloff_normal(View3DPaintPanel, Panel):
 
 # TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
-    bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
+    bl_context = ".brush_editor"
     bl_label = "Dyntopo (Advanced)"
     #bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 12
@@ -764,7 +819,11 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
     @classmethod
     def poll(cls, context):
         paint_settings = cls.paint_settings(context)
-        return (context.sculpt_object and context.tool_settings.sculpt and paint_settings)
+
+        ok = is_brush_editor(context)
+        ok = ok and (context.sculpt_object and context.tool_settings.sculpt and paint_settings)
+
+        return ok
 
     def draw_header(self, context):
         pass
@@ -2307,6 +2366,8 @@ classes = (
     VIEW3D_PT_slots_projectpaint,
     VIEW3D_PT_tools_brush_select,
     VIEW3D_PT_tools_brush_settings,
+    VIEW3D_PT_tools_brush_settings_channels,
+    VIEW3D_PT_tools_brush_settings_channels_preview,
     VIEW3D_PT_tools_brush_color,
     VIEW3D_PT_tools_brush_swatches,
     VIEW3D_PT_tools_brush_settings_advanced,

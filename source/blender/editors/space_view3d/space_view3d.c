@@ -1351,9 +1351,16 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
     case CTX_MODE_POSE:
       ARRAY_SET_ITEMS(contexts, ".posemode");
       break;
-    case CTX_MODE_SCULPT:
-      ARRAY_SET_ITEMS(contexts, ".paint_common", ".sculpt_mode");
+    case CTX_MODE_SCULPT: {
+      SpaceProperties *sbuts = CTX_wm_space_properties(C);
+      if (sbuts && sbuts->mainb == BCONTEXT_BRUSH_EDITOR) {
+        ARRAY_SET_ITEMS(contexts, ".paint_common", ".brush_editor");
+      }
+      else {
+        ARRAY_SET_ITEMS(contexts, ".paint_common", ".sculpt_mode");
+      }
       break;
+    }
     case CTX_MODE_PAINT_WEIGHT:
       ARRAY_SET_ITEMS(contexts, ".paint_common", ".weightpaint");
       break;

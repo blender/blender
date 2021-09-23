@@ -458,6 +458,7 @@ const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
  * but helps for context-less access (e.g. doc, i18n...). */
 static const EnumPropertyItem buttons_context_items[] = {
     {BCONTEXT_TOOL, "TOOL", ICON_TOOL_SETTINGS, "Tool", "Active Tool and Workspace settings"},
+    {BCONTEXT_BRUSH_EDITOR, "BRUSH_EDITOR", ICON_BRUSH_DATA, "Brush", "Brush Settings"},
     {BCONTEXT_SCENE, "SCENE", ICON_SCENE_DATA, "Scene", "Scene Properties"},
     {BCONTEXT_RENDER, "RENDER", ICON_SCENE, "Render", "Render Properties"},
     {BCONTEXT_OUTPUT, "OUTPUT", ICON_OUTPUT, "Output", "Output Properties"},

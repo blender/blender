@@ -162,7 +162,6 @@ BrushChannelType brush_builtin_channels[] = {
 #include "brush_channel_define.h"
 };
 
-//BRUSH_INVERT_TO_SCRAPE_FILL
 /* clang-format on */
 const int brush_builtin_channel_len = ARRAY_SIZE(brush_builtin_channels);
 
@@ -263,6 +262,14 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(secondary_rgb, secondary_color, FLOAT3, FLOAT3)
   DEF(vcol_boundary_factor, vcol_boundary_factor, FLOAT, FLOAT)
   DEF(vcol_boundary_exponent, vcol_boundary_exponent, FLOAT, FLOAT)
+  DEF(cloth_deform_type, cloth_deform_type, INT, INT)
+  DEF(cloth_simulation_area_type, cloth_simulation_area_type, INT, INT)
+  DEF(cloth_force_falloff_type, cloth_force_falloff_type, INT, INT)
+  DEF(cloth_mass, cloth_mass, FLOAT, FLOAT)
+  DEF(cloth_damping, cloth_damping, FLOAT, FLOAT)
+  DEF(cloth_sim_limit, cloth_sim_limit, FLOAT, FLOAT)
+  DEF(cloth_sim_falloff, cloth_sim_falloff, FLOAT, FLOAT)
+  DEF(cloth_constraint_softbody_strength, cloth_constraint_softbody_strength, FLOAT, FLOAT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -316,6 +323,8 @@ BrushFlagMap brush_flags_map[] =  {
   DEF(flag, invert_to_scrape_fill, BRUSH_INVERT_TO_SCRAPE_FILL)
   DEF(flag2, use_multiplane_scrape_dynamic, BRUSH_MULTIPLANE_SCRAPE_DYNAMIC)
   DEF(flag2, show_multiplane_scrape_planes_preview, BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW)
+  DEF(flag, use_persistent, BRUSH_PERSISTENT)
+  DEF(flag, use_frontface, BRUSH_FRONTFACE)
 };
 
 int brush_flags_map_len = ARRAY_SIZE(brush_flags_map);
@@ -598,8 +607,11 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
 
   namestack_push(__func__);
 
+  bool setup_ui = false;
+
   if (!brush->channels) {
     brush->channels = BKE_brush_channelset_create();
+    setup_ui = true;
   }
 
   BrushChannelSet *chset = brush->channels;
@@ -671,11 +683,104 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
     case SCULPT_TOOL_SLIDE_RELAX:
       ADDCH(slide_deform_type);
       break;
+    case SCULPT_TOOL_CLOTH:
+      ADDCH(cloth_mass);
+      ADDCH(cloth_damping);
+      ADDCH(cloth_sim_limit);
+      ADDCH(cloth_sim_falloff);
+      ADDCH(cloth_deform_type);
+      ADDCH(cloth_force_falloff_type);
+      ADDCH(cloth_simulation_area_type);
+      ADDCH(cloth_deform_type);
+
+      break;
   }
 
+  if (setup_ui) {
+    BKE_brush_channelset_ui_init(brush, tool);
+  }
   namestack_pop();
 }
 
+ATTR_NO_OPT void BKE_brush_channelset_ui_init(Brush *brush, int tool)
+{
+  namestack_push(__func__);
+
+  BrushChannelSet *chset = brush->channels;
+
+#ifdef SHOWHDR
+#  undef SHOWHDR
+#endif
+#ifdef SHOWWRK
+#  undef SHOWPROPS
+#endif
+#ifdef SHOWALL
+#  undef SHOWALL
+#endif
+
+#ifdef SETFLAG_SAFE
+#  undef SETFLAG_SAFE
+#endif
+
+  BrushChannel *ch;
+
+#define SETFLAG_SAFE(idname, flag1) \
+  if (ch = BRUSHSET_LOOKUP(chset, idname)) \
+  ch->flag |= (flag1)
+
+#define SHOWHDR(idname) SETFLAG_SAFE(idname, BRUSH_CHANNEL_SHOW_IN_HEADER)
+#define SHOWWRK(idname) SETFLAG_SAFE(idname, BRUSH_CHANNEL_SHOW_IN_WORKSPACE)
+#define SHOWALL(idname) \
+  SETFLAG_SAFE(idname, BRUSH_CHANNEL_SHOW_IN_WORKSPACE | BRUSH_CHANNEL_SHOW_IN_HEADER)
+
+  SHOWALL(radius);
+  SHOWALL(strength);
+  SHOWALL(color);
+  SHOWALL(secondary_color);
+  SHOWALL(accumulate);
+
+  SHOWWRK(use_frontface);
+
+  SHOWWRK(autosmooth);
+  SHOWWRK(topology_rake);
+  SHOWWRK(normal_radius_factor);
+  SHOWWRK(hardness);
+
+  switch (tool) {
+    case SCULPT_TOOL_SCRAPE:
+    case SCULPT_TOOL_FILL:
+      SHOWWRK(plane_offset);
+      SHOWWRK(invert_to_scrape_fill);
+      SHOWWRK(area_radius_factor);
+      break;
+    case SCULPT_TOOL_CLAY:
+    case SCULPT_TOOL_CLAY_STRIPS:
+    case SCULPT_TOOL_CLAY_THUMB:
+    case SCULPT_TOOL_FLATTEN:
+      SHOWWRK(plane_offset);
+      break;
+    case SCULPT_TOOL_MULTIPLANE_SCRAPE:
+      SHOWWRK(plane_offset);
+      SHOWWRK(use_multiplane_scrape_dynamic);
+      SHOWWRK(multiplane_scrape_angle);
+
+      break;
+    case SCULPT_TOOL_LAYER:
+      SHOWWRK(use_persistent);
+      break;
+    case SCULPT_TOOL_CLOTH:
+      SHOWWRK(cloth_deform_type);
+      SHOWWRK(cloth_force_falloff_type);
+      SHOWWRK(cloth_simulation_area_type);
+
+      break;
+  }
+
+#undef SHOWALL
+#undef SHOWHDR
+#undef SHOWPROPS
+  namestack_pop();
+}
 ATTR_NO_OPT void BKE_brush_builtin_create(Brush *brush, int tool)
 {
   namestack_push(__func__);
@@ -787,6 +892,10 @@ ATTR_NO_OPT void BKE_brush_builtin_create(Brush *brush, int tool)
       GETCH(strength)->fvalue = 1.0;
       GETCH(dyntopo_disabled)->ivalue = true;
       break;
+    case SCULPT_TOOL_CLOTH:
+      GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      break;
     default: {
       // implement me!
       // BKE_brush_channelset_free(chset);
@@ -796,6 +905,8 @@ ATTR_NO_OPT void BKE_brush_builtin_create(Brush *brush, int tool)
   }
 
   namestack_pop();
+
+  BKE_brush_channelset_ui_init(brush, tool);
 }
 
 void BKE_brush_init_toolsettings(Sculpt *sd)

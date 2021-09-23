@@ -1,4 +1,19 @@
-// static name checking stuff
+/* Builtin brush channels are defined in this file.
+
+When adding a new channel, the following other
+places in rna_engine_codebase are relevent:
+
+- brush_settings_map: use to convert to/from settings structures in Brush
+- dyntopo_settings_map: same as above but for DynTopoSettings
+- brush_flags_map: used to convert bitflags
+- BKE_brush_builtin_patch(): adds missing channels to channelsets
+- BKE_brush_builtin_create(): adds channels to brushes based on brush type (Brush->sculpt_tool)
+- BKE_brush_check_toolsettings: adds missing channels to tool settings
+- BKE_brush_channelset_ui_init: Configures UI visibility for channels based on brush type
+
+*/
+
+/* static name checking stuff */
 #if defined(BRUSH_CHANNEL_DEFINE_TYPES) || defined(BRUSH_CHANNEL_DEFINE_EXTERNAL)
 #  ifdef MAKE_FLOAT
 #    undef MAKE_FLOAT
@@ -198,6 +213,56 @@ MAKE_BOOL(use_multiplane_scrape_dynamic, "Dynamic Mode",  "The angle between the
                         "surface under the cursor", true)
 MAKE_BOOL(show_multiplane_scrape_planes_preview, "Show Cursor Preview", "Preview the scrape planes in the cursor during the stroke", true)
 MAKE_FLOAT(multiplane_scrape_angle, "Plane Angle", "Angle between the planes of the crease", 60.0f, 0.0f, 160.0f)
+
+MAKE_BOOL(use_persistent, "Persistent", "Sculpt on a persistent layer of the mesh", false)
+MAKE_ENUM(cloth_deform_type, "Deformation", "Deformation type that is used in the brush", BRUSH_CLOTH_DEFORM_DRAG, _({
+      {BRUSH_CLOTH_DEFORM_DRAG, "DRAG", 0, "Drag", ""},
+      {BRUSH_CLOTH_DEFORM_PUSH, "PUSH", 0, "Push", ""},
+      {BRUSH_CLOTH_DEFORM_PINCH_POINT, "PINCH_POINT", 0, "Pinch Point", ""},
+      {BRUSH_CLOTH_DEFORM_PINCH_PERPENDICULAR,
+       "PINCH_PERPENDICULAR",
+       0,
+       "Pinch Perpendicular",
+       ""},
+      {BRUSH_CLOTH_DEFORM_INFLATE, "INFLATE", 0, "Inflate", ""},
+      {BRUSH_CLOTH_DEFORM_GRAB, "GRAB", 0, "Grab", ""},
+      {BRUSH_CLOTH_DEFORM_EXPAND, "EXPAND", 0, "Expand", ""},
+      {BRUSH_CLOTH_DEFORM_SNAKE_HOOK, "SNAKE_HOOK", 0, "Snake Hook", ""},
+      {BRUSH_CLOTH_DEFORM_ELASTIC_DRAG, "ELASTIC", 0, "Elastic Drag", ""},
+      {-1}
+}))
+
+MAKE_ENUM(cloth_simulation_area_type, "Simulation Area", "Part of the mesh that is going to be simulated when the stroke is active", BRUSH_CLOTH_SIMULATION_AREA_LOCAL, _({
+  {BRUSH_CLOTH_SIMULATION_AREA_LOCAL,
+    "LOCAL",
+    0,
+    "Local",
+    "Simulates only a specific area around the brush limited by a fixed radius"},
+  {BRUSH_CLOTH_SIMULATION_AREA_GLOBAL, "GLOBAL", 0, "Global", "Simulates the entire mesh"},
+  {BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC,
+    "DYNAMIC",
+    0,
+    "Dynamic",
+    "The active simulation area moves with the brush"},
+  {-1}
+}))
+
+MAKE_ENUM(cloth_force_falloff_type, "Force Falloff", "Shape used in the brush to apply force to the cloth",
+  BRUSH_CLOTH_FORCE_FALLOFF_RADIAL, _({
+      {BRUSH_CLOTH_FORCE_FALLOFF_RADIAL, "RADIAL", 0, "Radial", ""},
+      {BRUSH_CLOTH_FORCE_FALLOFF_PLANE, "PLANE", 0, "Plane", ""},
+      {-1}
+}))
+
+MAKE_FLOAT(cloth_mass, "Cloth Mass", "Mass of each simulation particle", 1.0f, 0.0f, 2.0f)
+MAKE_FLOAT(cloth_damping, "Cloth Damping", "How much the applied forces are propagated through the cloth", 0.01f, 0.01f, 1.0f)
+MAKE_FLOAT(cloth_sim_limit, "Simulation Limit",
+      "Factor added relative to the size of the radius to limit the cloth simulation effects", 2.5f, 0.1f, 10.0f)
+MAKE_FLOAT(cloth_sim_falloff, "Simulation Falloff",
+                           "Area to apply deformation falloff to the effects of the simulation", 0.75f, 0.0f, 1.0f)
+MAKE_FLOAT(cloth_constraint_softbody_strength,  "Soft Body Plasticity",
+      "How much the cloth preserves the original shape, acting as a soft body", 0.0f, 0.0f, 1.0f)
+MAKE_BOOL(use_frontface, "Use Front-Face", "Brush only affects vertexes that face the viewer", false)
 
 /* clang-format on */
 #if defined(BRUSH_CHANNEL_DEFINE_TYPES) || defined(BRUSH_CHANNEL_DEFINE_EXTERNAL)

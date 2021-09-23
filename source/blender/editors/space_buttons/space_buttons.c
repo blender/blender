@@ -178,6 +178,10 @@ int ED_buttons_tabs_list(SpaceProperties *sbuts, short *context_tabs_array)
     context_tabs_array[length] = BCONTEXT_TOOL;
     length++;
   }
+  if (sbuts->pathflag & (1 << BCONTEXT_BRUSH_EDITOR)) {
+    context_tabs_array[length] = BCONTEXT_BRUSH_EDITOR;
+    length++;
+  }
   if (length != 0) {
     context_tabs_array[length] = -1;
     length++;
@@ -305,6 +309,8 @@ static const char *buttons_main_region_context_string(const short mainb)
       return "bone_constraint";
     case BCONTEXT_TOOL:
       return "tool";
+    case BCONTEXT_BRUSH_EDITOR:
+      return "brush_editor";
   }
 
   /* All the cases should be handled. */
@@ -359,7 +365,7 @@ static bool property_search_for_context(const bContext *C, ARegion *region, Spac
 {
   const char *contexts[2] = {buttons_main_region_context_string(sbuts->mainb), NULL};
 
-  if (sbuts->mainb == BCONTEXT_TOOL) {
+  if (sbuts->mainb == BCONTEXT_TOOL || sbuts->mainb == BCONTEXT_BRUSH_EDITOR) {
     return false;
   }
 
@@ -372,7 +378,7 @@ static void property_search_move_to_next_tab_with_results(SpaceProperties *sbuts
                                                           const int tabs_len)
 {
   /* As long as all-tab search in the tool is disabled in the tool context, don't move from it. */
-  if (sbuts->mainb == BCONTEXT_TOOL) {
+  if (sbuts->mainb == BCONTEXT_TOOL || sbuts->mainb == BCONTEXT_BRUSH_EDITOR) {
     return;
   }
 
@@ -513,6 +519,9 @@ static void buttons_main_region_layout(const bContext *C, ARegion *region)
   if (sbuts->mainb == BCONTEXT_TOOL) {
     ED_view3d_buttons_region_layout_ex(C, region, "Tool");
   }
+  else if (sbuts->mainb == BCONTEXT_BRUSH_EDITOR) {
+    ED_view3d_buttons_region_layout_ex(C, region, "Tool");
+  }
   else {
     buttons_main_region_layout_properties(C, sbuts, region);
   }
@@ -597,7 +606,7 @@ static void buttons_header_region_message_subscribe(const wmRegionMessageSubscri
     WM_msg_subscribe_rna_anon_prop(mbus, ViewLayer, name, &msg_sub_value_region_tag_redraw);
   }
 
-  if (sbuts->mainb == BCONTEXT_TOOL) {
+  if (ELEM(sbuts->mainb, BCONTEXT_TOOL, BCONTEXT_BRUSH_EDITOR)) {
     WM_msg_subscribe_rna_anon_prop(mbus, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
   }
 }
@@ -786,6 +795,7 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
     case NC_BRUSH:
       buttons_area_redraw(area, BCONTEXT_TEXTURE);
       buttons_area_redraw(area, BCONTEXT_TOOL);
+      buttons_area_redraw(area, BCONTEXT_BRUSH_EDITOR);
       sbuts->preview = 1;
       break;
     case NC_TEXTURE:

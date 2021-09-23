@@ -378,6 +378,11 @@ void RNA_def_brush_channel(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Value", "Current value");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
+  prop = RNA_def_property(srna, "ui_order", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, "BrushChannel", "ui_order");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Ordering", "Order of brush channel in panels and the header");
+
   prop = RNA_def_property(srna, "int_value", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, "BrushChannel", "ivalue");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
@@ -420,6 +425,16 @@ void RNA_def_brush_channel(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_INHERIT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Inherit", "Inherit from scene defaults");
+
+  prop = RNA_def_property(srna, "show_in_header", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_SHOW_IN_HEADER);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "In Header", "Show in header");
+
+  prop = RNA_def_property(srna, "show_in_workspace", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_SHOW_IN_WORKSPACE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "In Workspace", "Show in workspace");
 
   prop = RNA_def_property(srna, "is_color", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_COLOR);

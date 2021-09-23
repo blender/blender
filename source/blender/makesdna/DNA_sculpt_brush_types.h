@@ -53,7 +53,8 @@ typedef struct BrushChannel {
   float vector[4];
   BrushMapping mappings[5];  // should always be BRUSH_MAPPING_MAX
 
-  int type, flag;
+  short type, ui_order;
+  int flag;
 } BrushChannel;
 
 typedef struct BrushChannelSet {
@@ -95,7 +96,9 @@ enum {
   BRUSH_CHANNEL_NO_MAPPINGS = 1 << 2,
   BRUSH_CHANNEL_UI_EXPANDED = 1 << 3,
   BRUSH_CHANNEL_APPLY_MAPPING_TO_ALPHA = 1 << 4,
-  BRUSH_CHANNEL_COLOR = 1 << 5
+  BRUSH_CHANNEL_COLOR = 1 << 5,
+  BRUSH_CHANNEL_SHOW_IN_WORKSPACE = 1 << 6,
+  BRUSH_CHANNEL_SHOW_IN_HEADER = 1 << 7
 };
 
 // BrushChannelType->type

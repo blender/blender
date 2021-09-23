@@ -321,6 +321,7 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
   }
   else {
     BKE_brush_builtin_create(brush, brush->sculpt_tool);
+    BKE_brush_channelset_ui_init(brush, brush->sculpt_tool);
   }
 
   if (brush->dyntopo.radius_scale == 0.0f) {
@@ -1799,6 +1800,7 @@ void BKE_brush_sculpt_reset(Brush *br)
   // BKE_brush_debug_print_state(br);
 
   BKE_brush_builtin_create(br, br->sculpt_tool);
+
   BrushChannel *ch;
 
   for (ch = (BrushChannel *)br->channels->channels.first; ch; ch = ch->next) {
@@ -1807,6 +1809,8 @@ void BKE_brush_sculpt_reset(Brush *br)
     BKE_brush_channel_free_data(ch);
     BKE_brush_channel_init(ch, def);
   }
+
+  BKE_brush_channelset_ui_init(br, br->sculpt_tool);
 
   brush_defaults(br);
   BKE_brush_curve_preset(br, CURVE_PRESET_SMOOTH);

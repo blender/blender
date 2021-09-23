@@ -101,7 +101,7 @@ typedef struct BrushEnumDef {
 } BrushEnumDef;
 
 typedef struct BrushChannelType {
-  char name[64], idname[64], tooltip[512];
+  char name[128], idname[64], tooltip[512];
   float min, max, soft_min, soft_max;
   BrushMappingPreset mappings;
 
@@ -274,6 +274,7 @@ bool BKE_brush_mapping_ensure_write(BrushMapping *mp);
 
 void BKE_brush_channelset_apply_mapping(BrushChannelSet *chset, BrushMappingData *mapdata);
 void BKE_brush_check_toolsettings(struct Sculpt *sd);
+void BKE_brush_channelset_ui_init(struct Brush *brush, int tool);
 
 /*
 set up static type checker for BRUSHSET_XXX macros
