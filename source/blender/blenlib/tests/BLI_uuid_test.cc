@@ -54,9 +54,12 @@ TEST(BLI_uuid, nil_value)
 {
   const bUUID nil_uuid = BLI_uuid_nil();
   const bUUID zeroes_uuid{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  const bUUID default_constructed{};
 
   EXPECT_EQ(nil_uuid, zeroes_uuid);
   EXPECT_TRUE(BLI_uuid_is_nil(nil_uuid));
+  EXPECT_TRUE(BLI_uuid_is_nil(default_constructed))
+      << "Default constructor should produce the nil value.";
 
   std::string buffer(36, '\0');
   BLI_uuid_format(buffer.data(), nil_uuid);

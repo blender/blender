@@ -78,6 +78,9 @@ namespace blender {
 
 class bUUID : public ::bUUID {
  public:
+  /**
+   * Default constructor, used with `bUUID value{};`, will initialise to the nil UUID.
+   */
   bUUID() = default;
 
   /** Initialise from the bUUID DNA struct. */
