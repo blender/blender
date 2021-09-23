@@ -152,6 +152,9 @@ static int wm_link_append_flag(wmOperator *op)
     if (RNA_boolean_get(op->ptr, "set_fake")) {
       flag |= BLO_LIBLINK_APPEND_SET_FAKEUSER;
     }
+    if (RNA_boolean_get(op->ptr, "do_reuse_local_id")) {
+      flag |= BLO_LIBLINK_APPEND_LOCAL_ID_REUSE;
+    }
   }
   if (RNA_boolean_get(op->ptr, "instance_collections")) {
     flag |= BLO_LIBLINK_COLLECTION_INSTANCE;
@@ -630,6 +633,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
 
   const bool do_recursive = (lapp_data->flag & BLO_LIBLINK_APPEND_RECURSIVE) != 0;
   const bool set_fakeuser = (lapp_data->flag & BLO_LIBLINK_APPEND_SET_FAKEUSER) != 0;
+  const bool do_reuse_local_id = (lapp_data->flag & BLO_LIBLINK_APPEND_LOCAL_ID_REUSE) != 0;
 
   LinkNode *itemlink;
 
@@ -644,7 +648,6 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     BLI_ghash_insert(lapp_data->new_id_to_item, id, item);
   }
 
-  const bool do_reuse_existing_id = false;
   lapp_data->library_weak_reference_mapping = BKE_main_library_weak_reference_create(bmain);
 
   /* NOTE: Since we append items for IDs not already listed (i.e. implicitly linked indirect
@@ -676,7 +679,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
       CLOG_INFO(&LOG, 3, "Appended ID '%s' is proxified, keeping it linked...", id->name);
       item->append_action = WM_APPEND_ACT_KEEP_LINKED;
     }
-    else if (do_reuse_existing_id && existing_local_id != NULL) {
+    else if (do_reuse_local_id && existing_local_id != NULL) {
       CLOG_INFO(&LOG, 3, "Appended ID '%s' as a matching local one, re-using it...", id->name);
       item->append_action = WM_APPEND_ACT_REUSE_LOCAL;
       item->customdata = existing_local_id;
@@ -1219,14 +1222,25 @@ static void wm_link_append_properties_common(wmOperatorType *ot, bool is_link)
   prop = RNA_def_boolean(
       ot->srna, "link", is_link, "Link", "Link the objects or data-blocks rather than appending");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+
+  prop = RNA_def_boolean(
+      ot->srna,
+      "do_reuse_local_id",
+      false,
+      "Re-Use Local Data",
+      "Try to re-use previously matching appended data-blocks instead of appending a new copy");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+
   prop = RNA_def_boolean(ot->srna, "autoselect", true, "Select", "Select new objects");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
   prop = RNA_def_boolean(ot->srna,
                          "active_collection",
                          true,
                          "Active Collection",
                          "Put new objects on the active collection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
   prop = RNA_def_boolean(
       ot->srna,
       "instance_collections",
