@@ -85,7 +85,7 @@ const EnumPropertyItem rna_enum_usd_import_shaders_mode_items[] = {
      "USD MDL",
      0,
      "MDL",
-     "Convert USD Preview Surface shaders to Blender Principled BSDF"},
+     "Convert MDL shaders to Blender materials"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -261,6 +261,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   root_prim_path = usd_ensure_prim_path(root_prim_path);
 
   char *material_prim_path = RNA_string_get_alloc(op->ptr, "material_prim_path", NULL, 0, NULL);
+
+  material_prim_path = usd_ensure_prim_path(material_prim_path);
 
   int global_forward = RNA_enum_get(op->ptr, "export_global_forward_selection");
   int global_up = RNA_enum_get(op->ptr, "export_global_up_selection");
@@ -626,19 +628,19 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
 
   RNA_def_string(ot->srna,
                  "default_prim_path",
-                 NULL,
+                 "/root",
                  1024,
                  "Default Prim Path",
                  "If set, this will set the default prim path in the usd document");
   RNA_def_string(ot->srna,
                  "root_prim_path",
-                 NULL,
+                 "/root",
                  1024,
                  "Root Prim Path",
                  "If set, all primitives will live under this path");
   RNA_def_string(ot->srna,
                  "material_prim_path",
-                 "/materials",
+                 "/root/materials",
                  1024,
                  "Material Prim Path",
                  "This specifies where all generated USD Shade Materials and Shaders get placed");

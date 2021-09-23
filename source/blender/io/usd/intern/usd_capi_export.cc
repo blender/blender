@@ -76,6 +76,33 @@ struct ExportJobData {
   bool export_ok;
 };
 
+/* Perform validation of export parameter settings. Returns
+ * true if the paramters are valid.  Returns false otherwise. */
+static bool validate_params(const USDExportParams &params)
+{
+  bool valid = true;
+
+  if (params.export_materials && !pxr::SdfPath::IsValidPathString(params.material_prim_path)) {
+    WM_reportf(RPT_ERROR,
+      "USD Export: invalid material prim path parameter '%s'", params.material_prim_path);
+    valid = false;
+  }
+
+  if (strlen(params.root_prim_path) != 0 && !pxr::SdfPath::IsValidPathString(params.root_prim_path)) {
+    WM_reportf(RPT_ERROR,
+      "USD Export: invalid root prim path parameter '%s'", params.root_prim_path);
+    valid = false;
+  }
+
+  if (strlen(params.default_prim_path) != 0 && !pxr::SdfPath::IsValidPathString(params.default_prim_path)) {
+    WM_reportf(RPT_ERROR,
+      "USD Export: invalid default prim path parameter '%s'", params.default_prim_path);
+    valid = false;
+  }
+
+  return valid;
+}
+
 /* Create root prim if defined. */
 static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &params)
 {
@@ -138,6 +165,11 @@ static void export_startjob(void *customdata,
   WM_set_locked_interface(data->wm, true);
   G.is_break = false;
 
+  if (!validate_params(data->params)) {
+    data->export_ok = false;
+    return;
+  }
+
   /* Construct the depsgraph for exporting. */
   Scene *scene = DEG_get_input_scene(data->depsgraph);
   if (data->params.visible_objects_only) {
@@ -182,10 +214,13 @@ static void export_startjob(void *customdata,
     world_material_to_dome_light(data->params, scene, usd_stage);
   }
 
-  // Define material prim path as a scope
-  if (data->params.export_materials)
+  /* Define the material prim path as a scope. */
+  if (data->params.export_materials) {
+    pxr::SdfPath mtl_prim_path(data->params.material_prim_path);
+
     blender::io::usd::usd_define_or_over<pxr::UsdGeomScope>(
-        usd_stage, pxr::SdfPath(data->params.material_prim_path), data->params.export_as_overs);
+      usd_stage, mtl_prim_path, data->params.export_as_overs);
+  }
 
   pxr::VtValue upAxis = pxr::VtValue(pxr::UsdGeomTokens->z);
   if (data->params.convert_orientation) {
