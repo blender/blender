@@ -36,7 +36,6 @@
 
 #include "node_geometry_util.hh"
 
-using blender::bke::AttributeKind;
 using blender::bke::GeometryInstanceGroup;
 
 namespace blender::nodes {

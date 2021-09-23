@@ -14,6 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BKE_collection.h"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -23,6 +24,7 @@
 #include "BKE_spline.hh"
 
 #include "DNA_collection_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -745,3 +747,36 @@ GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set)
 }
 
 }  // namespace blender::bke
+
+void InstancesComponent::foreach_referenced_geometry(
+    blender::FunctionRef<void(const GeometrySet &geometry_set)> callback) const
+{
+  using namespace blender::bke;
+  for (const InstanceReference &reference : references_) {
+    switch (reference.type()) {
+      case InstanceReference::Type::Object: {
+        const Object &object = reference.object();
+        const GeometrySet object_geometry_set = object_get_geometry_set_for_read(object);
+        callback(object_geometry_set);
+        break;
+      }
+      case InstanceReference::Type::Collection: {
+        Collection &collection = reference.collection();
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
+          const GeometrySet object_geometry_set = object_get_geometry_set_for_read(*object);
+          callback(object_geometry_set);
+        }
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+        break;
+      }
+      case InstanceReference::Type::GeometrySet: {
+        const GeometrySet &instance_geometry_set = reference.geometry_set();
+        callback(instance_geometry_set);
+        break;
+      }
+      case InstanceReference::Type::None: {
+        break;
+      }
+    }
+  }
+}

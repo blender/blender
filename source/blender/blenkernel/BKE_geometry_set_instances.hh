@@ -49,11 +49,6 @@ void geometry_set_gather_instances(const GeometrySet &geometry_set,
 GeometrySet geometry_set_realize_mesh_for_modifier(const GeometrySet &geometry_set);
 GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set);
 
-struct AttributeKind {
-  CustomDataType data_type;
-  AttributeDomain domain;
-};
-
 /**
  * Add information about all the attributes on every component of the type. The resulting info
  * will contain the highest complexity data type and the highest priority domain among every

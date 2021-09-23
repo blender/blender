@@ -375,6 +375,76 @@ CurveEval *GeometrySet::get_curve_for_write()
   return component.get_for_write();
 }
 
+void GeometrySet::attribute_foreach(const Span<GeometryComponentType> component_types,
+                                    const bool include_instances,
+                                    const AttributeForeachCallback callback) const
+{
+  using namespace blender;
+  using namespace blender::bke;
+  for (const GeometryComponentType component_type : component_types) {
+    if (!this->has(component_type)) {
+      continue;
+    }
+    const GeometryComponent &component = *this->get_component_for_read(component_type);
+    component.attribute_foreach(
+        [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+          callback(attribute_id, meta_data, component);
+          return true;
+        });
+  }
+  if (include_instances && this->has_instances()) {
+    const InstancesComponent &instances = *this->get_component_for_read<InstancesComponent>();
+    instances.foreach_referenced_geometry([&](const GeometrySet &instance_geometry_set) {
+      instance_geometry_set.attribute_foreach(component_types, include_instances, callback);
+    });
+  }
+}
+
+void GeometrySet::gather_attributes_for_propagation(
+    const Span<GeometryComponentType> component_types,
+    const GeometryComponentType dst_component_type,
+    bool include_instances,
+    blender::Map<blender::bke::AttributeIDRef, AttributeKind> &r_attributes) const
+{
+  using namespace blender;
+  using namespace blender::bke;
+  /* Only needed right now to check if an attribute is built-in on this component type.
+   * TODO: Get rid of the dummy component. */
+  const GeometryComponent *dummy_component = GeometryComponent::create(dst_component_type);
+  this->attribute_foreach(
+      component_types,
+      include_instances,
+      [&](const AttributeIDRef &attribute_id,
+          const AttributeMetaData &meta_data,
+          const GeometryComponent &component) {
+        if (component.attribute_is_builtin(attribute_id)) {
+          if (!dummy_component->attribute_is_builtin(attribute_id)) {
+            /* Don't propagate built-in attributes that are not built-in on the destination
+             * component. */
+            return;
+          }
+        }
+        if (attribute_id.is_anonymous()) {
+          if (!BKE_anonymous_attribute_id_has_strong_references(&attribute_id.anonymous_id())) {
+            /* Don't propagate anonymous attributes that are not used anymore. */
+            return;
+          }
+        }
+        auto add_info = [&](AttributeKind *attribute_kind) {
+          attribute_kind->domain = meta_data.domain;
+          attribute_kind->data_type = meta_data.data_type;
+        };
+        auto modify_info = [&](AttributeKind *attribute_kind) {
+          attribute_kind->domain = bke::attribute_domain_highest_priority(
+              {attribute_kind->domain, meta_data.domain});
+          attribute_kind->data_type = bke::attribute_data_type_highest_complexity(
+              {attribute_kind->data_type, meta_data.data_type});
+        };
+        r_attributes.add_or_modify(attribute_id, add_info, modify_info);
+      });
+  delete dummy_component;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

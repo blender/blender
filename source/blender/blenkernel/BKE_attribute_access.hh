@@ -122,6 +122,11 @@ struct AttributeMetaData {
   }
 };
 
+struct AttributeKind {
+  AttributeDomain domain;
+  CustomDataType data_type;
+};
+
 /**
  * Base class for the attribute initializer types described below.
  */
