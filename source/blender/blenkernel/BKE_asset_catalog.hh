@@ -172,6 +172,11 @@ class AssetCatalogTree {
  * class is shorter than that of the #`AssetCatalog`s themselves. */
 class AssetCatalogDefinitionFile {
  public:
+  /* For now this is the only version of the catalog definition files that is supported.
+   * Later versioning code may be added to handle older files. */
+  const static int SUPPORTED_VERSION;
+  const static std::string VERSION_MARKER;
+
   CatalogFilePath file_path;
 
   AssetCatalogDefinitionFile() = default;
@@ -203,6 +208,7 @@ class AssetCatalogDefinitionFile {
    * catalog is already known, without having to find the corresponding `AssetCatalog*`. */
   Map<CatalogID, AssetCatalog *> catalogs_;
 
+  bool parse_version_line(StringRef line);
   std::unique_ptr<AssetCatalog> parse_catalog_line(StringRef line);
 
   /**

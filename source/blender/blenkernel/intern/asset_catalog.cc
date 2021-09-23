@@ -36,6 +36,14 @@ namespace blender::bke {
 const char AssetCatalogService::PATH_SEPARATOR = '/';
 const CatalogFilePath AssetCatalogService::DEFAULT_CATALOG_FILENAME = "blender_assets.cats.txt";
 
+/* For now this is the only version of the catalog definition files that is supported.
+ * Later versioning code may be added to handle older files. */
+const int AssetCatalogDefinitionFile::SUPPORTED_VERSION = 1;
+/* String that's matched in the catalog definition file to know that the line is the version
+ * declaration. It has to start with a space to ensure it won't match any hypothetical future field
+ * that starts with "VERSION". */
+const std::string AssetCatalogDefinitionFile::VERSION_MARKER = "VERSION ";
+
 AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_root)
     : asset_library_root_(asset_library_root)
 {
@@ -359,10 +367,24 @@ void AssetCatalogDefinitionFile::parse_catalog_file(
     AssetCatalogParsedFn catalog_loaded_callback)
 {
   std::fstream infile(catalog_definition_file_path);
+
+  bool seen_version_number = false;
   std::string line;
   while (std::getline(infile, line)) {
     const StringRef trimmed_line = StringRef(line).trim();
     if (trimmed_line.is_empty() || trimmed_line[0] == '#') {
+      continue;
+    }
+
+    if (!seen_version_number) {
+      /* The very first non-ignored line should be the version declaration. */
+      const bool is_valid_version = this->parse_version_line(trimmed_line);
+      if (!is_valid_version) {
+        std::cerr << catalog_definition_file_path
+                  << ": first line should be version declaration; ignoring file." << std::endl;
+        break;
+      }
+      seen_version_number = true;
       continue;
     }
 
@@ -390,12 +412,25 @@ void AssetCatalogDefinitionFile::parse_catalog_file(
   }
 }
 
+bool AssetCatalogDefinitionFile::parse_version_line(const StringRef line)
+{
+  if (!line.startswith(VERSION_MARKER)) {
+    return false;
+  }
+
+  const std::string version_string = line.substr(VERSION_MARKER.length());
+  const int file_version = std::atoi(version_string.c_str());
+
+  /* No versioning, just a blunt check whether it's the right one. */
+  return file_version == SUPPORTED_VERSION;
+}
+
 std::unique_ptr<AssetCatalog> AssetCatalogDefinitionFile::parse_catalog_line(const StringRef line)
 {
   const char delim = ':';
   const int64_t first_delim = line.find_first_of(delim);
   if (first_delim == StringRef::not_found) {
-    std::cerr << "Invalid line in " << this->file_path << ": " << line << std::endl;
+    std::cerr << "Invalid catalog line in " << this->file_path << ": " << line << std::endl;
     return std::unique_ptr<AssetCatalog>(nullptr);
   }
 
@@ -481,8 +516,11 @@ bool AssetCatalogDefinitionFile::write_to_disk_unsafe(const CatalogFilePath &des
   output << "# This is an Asset Catalog Definition file for Blender." << std::endl;
   output << "#" << std::endl;
   output << "# Empty lines and lines starting with `#` will be ignored." << std::endl;
+  output << "# The first non-ignored line should be the version indicator." << std::endl;
   output << "# Other lines are of the format \"UUID:catalog/path/for/assets:simple catalog name\""
          << std::endl;
+  output << "" << std::endl;
+  output << VERSION_MARKER << SUPPORTED_VERSION << std::endl;
   output << "" << std::endl;
 
   // Write the catalogs.
