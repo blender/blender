@@ -214,9 +214,9 @@ typedef enum eBLOLibLinkFlags {
   /** Append (make local) also indirect dependencies of appendeds IDs. */
   BLO_LIBLINK_APPEND_RECURSIVE = 1 << 20,
   /** Instantiate object data IDs (i.e. create objects for them if needed). */
-  BLO_LIBLINK_OBDATA_INSTANCE = 1 << 21,
+  BLO_LIBLINK_OBDATA_INSTANCE = 1 << 24,
   /** Instantiate collections as empties, instead of linking them into current view layer. */
-  BLO_LIBLINK_COLLECTION_INSTANCE = 1 << 22,
+  BLO_LIBLINK_COLLECTION_INSTANCE = 1 << 25,
 } eBLOLibLinkFlags;
 
 /**
