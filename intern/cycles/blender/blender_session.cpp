@@ -557,6 +557,11 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
   /* free result without merging */
   b_engine.end_result(b_rr, true, false, false);
 
+  /* When tiled rendering is used there will be no "write" done for the tile. Forcefully clear
+   * highlighted tiles now, so that the highlight will be removed while processing full frame from
+   * file. */
+  b_engine.tile_highlight_clear_all();
+
   double total_time, render_time;
   session->progress.get_time(total_time, render_time);
   VLOG(1) << "Total render time: " << total_time;
