@@ -834,10 +834,8 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
 /* This functions assigns a falloff factor to each one of the SculptBoundaryEditInfo structs based
  * on the brush curve and its propagation steps. The falloff goes from the boundary into the mesh.
  */
-static void sculpt_boundary_falloff_factor_init(SculptSession *ss,
-                                                SculptBoundary *boundary,
-                                                Brush *brush,
-                                                const float radius)
+static void sculpt_boundary_falloff_factor_init(
+    SculptSession *ss, Sculpt *sd, SculptBoundary *boundary, Brush *brush, const float radius)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
   BKE_curvemapping_init(brush->curve);
@@ -865,7 +863,7 @@ static void sculpt_boundary_falloff_factor_init(SculptSession *ss,
     float falloff_distance = 0.0f;
     float direction = 1.0f;
 
-    switch (brush->boundary_falloff_type) {
+    switch (SCULPT_get_int(ss, boundary_falloff_type, sd, brush)) {
       case BRUSH_BOUNDARY_FALLOFF_RADIUS:
         falloff_distance = boundary_distance;
         break;
@@ -895,7 +893,8 @@ static void sculpt_boundary_falloff_factor_init(SculptSession *ss,
 
 /* Main function to get SculptBoundary data both for brush deformation and viewport preview. Can
  * return NULL if there is no boundary from the given vertex using the given radius. */
-SculptBoundary *SCULPT_boundary_data_init(Object *object,
+SculptBoundary *SCULPT_boundary_data_init(Sculpt *sd,
+                                          Object *object,
                                           Brush *brush,
                                           const SculptVertRef initial_vertex,
                                           const float radius)
@@ -929,11 +928,17 @@ SculptBoundary *SCULPT_boundary_data_init(Object *object,
 
   SculptBoundary *boundary = MEM_callocN(sizeof(SculptBoundary) * TSTN, "Boundary edit data");
 
-  const bool init_boundary_distances = brush ? brush->boundary_falloff_type !=
-                                                   BRUSH_BOUNDARY_FALLOFF_CONSTANT :
-                                               false;
+  boundary->deform_target = SCULPT_get_int(ss, deform_target, sd, brush);
 
-  const float boundary_radius = brush ? radius * (1.0f + brush->boundary_offset) : radius;
+  const bool init_boundary_distances = brush ?
+                                           SCULPT_get_int(ss, boundary_falloff_type, sd, brush) !=
+                                               BRUSH_BOUNDARY_FALLOFF_CONSTANT :
+                                           false;
+
+  const float boundary_radius = brush ?
+                                    radius *
+                                        (1.0f + SCULPT_get_float(ss, boundary_offset, sd, brush)) :
+                                    radius;
 
   sculpt_boundary_indices_init(
       object, ss, boundary, init_boundary_distances, boundary_initial_vertex, boundary_radius);
@@ -1650,7 +1655,7 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
     const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
     const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
     float t_orig_co[3];
-    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
+    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
 
     sub_v3_v3v3(t_orig_co, orig_data.co, boundary->bend.pivot_positions[vd.index]);
     rotate_v3_v3v3fl(target_co,
@@ -1698,7 +1703,7 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
 
     const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
     const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
-    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
+    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
     madd_v3_v3v3fl(target_co,
                    orig_data.co,
                    boundary->slide.directions[vd.index],
@@ -1746,7 +1751,7 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
     const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
     float normal[3];
     normal_short_to_float_v3(normal, orig_data.no);
-    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
+    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
     madd_v3_v3v3fl(target_co,
                    orig_data.co,
                    normal,
@@ -1790,7 +1795,7 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
 
     const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
     const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
-    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
+    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
     madd_v3_v3v3fl(target_co,
                    orig_data.co,
                    ss->cache->grab_delta_symmetry,
@@ -1842,7 +1847,7 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
     const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
     const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
     float t_orig_co[3];
-    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
+    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
     sub_v3_v3v3(t_orig_co, orig_data.co, boundary->twist.pivot_position);
     rotate_v3_v3v3fl(target_co,
                      t_orig_co,
@@ -1905,7 +1910,7 @@ static void do_boundary_brush_smooth_task_cb_ex(void *__restrict userdata,
     const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
     mul_v3_v3fl(avg, coord_accum, 1.0f / total_neighbors);
     sub_v3_v3v3(disp, avg, vd.co);
-    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
+    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
     madd_v3_v3v3fl(
         target_co, vd.co, disp, boundary->edit_info[vd.index].strength_factor * mask * strength);
 
@@ -1955,7 +1960,7 @@ static void do_boundary_brush_circle_task_cb_ex(void *__restrict userdata,
 
     float disp[3];
     sub_v3_v3v3(disp, target_circle_co, vd.co);
-    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
+    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
     const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
     const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
     madd_v3_v3v3fl(target_co,
@@ -2026,8 +2031,7 @@ static void SCULPT_boundary_autosmooth(SculptSession *ss, SculptBoundary *bounda
         SCULPT_neighbor_coords_average_interior(
             ss, sco, vd.vertex, projection, slide_fset, bound_smooth, NULL, false);
 
-        float *co = SCULPT_brush_deform_target_vertex_co_get(
-            ss, ss->cache->brush->deform_target, &vd);
+        float *co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
 
         interp_v3_v3v3(co, co, sco, strength * fac);
         BKE_pbvh_node_mark_update(node);
@@ -2068,8 +2072,7 @@ static void SCULPT_boundary_build_smoothco(SculptSession *ss, SculptBoundary *bo
         SCULPT_neighbor_coords_average_interior(
             ss, sco, vd.vertex, projection, slide_fset, bound_smooth, NULL, false);
 
-        float *co = SCULPT_brush_deform_target_vertex_co_get(
-            ss, ss->cache->brush->deform_target, &vd);
+        float *co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
 
         interp_v3_v3v3(sco, sco, co, 0.25);
         BKE_pbvh_node_mark_update(node);
@@ -2092,7 +2095,10 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
   SCULPT_cotangents_begin(ob, ss);
 
   const float radius = ss->cache->radius;
-  const float boundary_radius = brush ? radius * (1.0f + brush->boundary_offset) : radius;
+  const float boundary_radius = brush ?
+                                    radius *
+                                        (1.0f + SCULPT_get_float(ss, boundary_offset, sd, brush)) :
+                                    radius;
 
   const int symm_area = ss->cache->mirror_symmetry_pass;
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
@@ -2110,10 +2116,10 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
     }
 
     ss->cache->boundaries[symm_area] = SCULPT_boundary_data_init(
-        ob, brush, initial_vertex, ss->cache->initial_radius);
+        sd, ob, brush, initial_vertex, ss->cache->initial_radius);
 
     if (ss->cache->boundaries[symm_area]) {
-      switch (brush->boundary_deform_type) {
+      switch (SCULPT_get_int(ss, boundary_deform_type, sd, brush)) {
         case BRUSH_BOUNDARY_DEFORM_BEND:
           sculpt_boundary_bend_data_init(ss, ss->cache->boundaries[symm_area], boundary_radius);
           break;
@@ -2133,7 +2139,7 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
       }
 
       sculpt_boundary_falloff_factor_init(
-          ss, ss->cache->boundaries[symm_area], brush, ss->cache->initial_radius);
+          ss, sd, ss->cache->boundaries[symm_area], brush, ss->cache->initial_radius);
     }
 
     if (ss->bm && ss->cache->boundaries[symm_area] &&
@@ -2179,7 +2185,7 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
 
-  switch (brush->boundary_deform_type) {
+  switch (SCULPT_get_int(ss, boundary_deform_type, sd, brush)) {
     case BRUSH_BOUNDARY_DEFORM_BEND:
       BLI_task_parallel_range(0, totnode, &data, do_boundary_brush_bend_task_cb_ex, &settings);
       break;
@@ -2203,7 +2209,7 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
       break;
   }
 
-  if (brush->autosmooth_factor > 0.0f) {
+  if (SCULPT_get_float(ss, autosmooth, sd, brush) > 0.0f) {
     BKE_pbvh_update_normals(ss->pbvh, ss->subdiv_ccg);
 
     SCULPT_boundary_autosmooth(ss, ss->cache->boundaries[symm_area]);

@@ -272,6 +272,7 @@ int SCULPT_get_int_intern(const SculptSession *ss,
                           const Brush *br);
 #define SCULPT_get_int(ss, idname, sd, br) \
   SCULPT_get_int_intern(ss, BRUSH_BUILTIN_##idname, sd, br)
+#define SCULPT_get_bool(ss, idname, sd, br) SCULPT_get_int(ss, idname, sd, br)
 
 SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                          const SculptVertRef index,
@@ -553,7 +554,9 @@ void SCULPT_cloth_brush_ensure_nodes_constraints(struct Sculpt *sd,
                                                  float initial_location[3],
                                                  const float radius);
 
-void SCULPT_cloth_simulation_limits_draw(const uint gpuattr,
+void SCULPT_cloth_simulation_limits_draw(const SculptSession *ss,
+                                         const Sculpt *sd,
+                                         const uint gpuattr,
                                          const struct Brush *brush,
                                          const float location[3],
                                          const float normal[3],

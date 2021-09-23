@@ -216,32 +216,28 @@ MAKE_FLOAT(multiplane_scrape_angle, "Plane Angle", "Angle between the planes of 
 
 MAKE_BOOL(use_persistent, "Persistent", "Sculpt on a persistent layer of the mesh", false)
 MAKE_ENUM(cloth_deform_type, "Deformation", "Deformation type that is used in the brush", BRUSH_CLOTH_DEFORM_DRAG, _({
-      {BRUSH_CLOTH_DEFORM_DRAG, "DRAG", 0, "Drag", ""},
-      {BRUSH_CLOTH_DEFORM_PUSH, "PUSH", 0, "Push", ""},
-      {BRUSH_CLOTH_DEFORM_PINCH_POINT, "PINCH_POINT", 0, "Pinch Point", ""},
-      {BRUSH_CLOTH_DEFORM_PINCH_PERPENDICULAR,
-       "PINCH_PERPENDICULAR",
-       0,
-       "Pinch Perpendicular",
-       ""},
-      {BRUSH_CLOTH_DEFORM_INFLATE, "INFLATE", 0, "Inflate", ""},
-      {BRUSH_CLOTH_DEFORM_GRAB, "GRAB", 0, "Grab", ""},
-      {BRUSH_CLOTH_DEFORM_EXPAND, "EXPAND", 0, "Expand", ""},
-      {BRUSH_CLOTH_DEFORM_SNAKE_HOOK, "SNAKE_HOOK", 0, "Snake Hook", ""},
-      {BRUSH_CLOTH_DEFORM_ELASTIC_DRAG, "ELASTIC", 0, "Elastic Drag", ""},
+      {BRUSH_CLOTH_DEFORM_DRAG, "DRAG", "NONE", "Drag", ""},
+      {BRUSH_CLOTH_DEFORM_PUSH, "PUSH", "NONE", "Push", ""},
+      {BRUSH_CLOTH_DEFORM_PINCH_POINT, "PINCH_POINT", "NONE", "Pinch Point", ""},
+      {BRUSH_CLOTH_DEFORM_PINCH_PERPENDICULAR, "PINCH_PERPENDICULAR", "NONE", "Pinch Perpendicular", ""},
+      {BRUSH_CLOTH_DEFORM_INFLATE, "INFLATE", "NONE", "Inflate", ""},
+      {BRUSH_CLOTH_DEFORM_GRAB, "GRAB", "NONE", "Grab", ""},
+      {BRUSH_CLOTH_DEFORM_EXPAND, "EXPAND", "NONE", "Expand", ""},
+      {BRUSH_CLOTH_DEFORM_SNAKE_HOOK, "SNAKE_HOOK", "NONE", "Snake Hook", ""},
+      {BRUSH_CLOTH_DEFORM_ELASTIC_DRAG, "ELASTIC", "NONE", "Elastic Drag", ""},
       {-1}
 }))
 
 MAKE_ENUM(cloth_simulation_area_type, "Simulation Area", "Part of the mesh that is going to be simulated when the stroke is active", BRUSH_CLOTH_SIMULATION_AREA_LOCAL, _({
   {BRUSH_CLOTH_SIMULATION_AREA_LOCAL,
     "LOCAL",
-    0,
+    "NONE",
     "Local",
     "Simulates only a specific area around the brush limited by a fixed radius"},
-  {BRUSH_CLOTH_SIMULATION_AREA_GLOBAL, "GLOBAL", 0, "Global", "Simulates the entire mesh"},
+  {BRUSH_CLOTH_SIMULATION_AREA_GLOBAL, "GLOBAL", "NONE", "Global", "Simulates the entire mesh"},
   {BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC,
     "DYNAMIC",
-    0,
+    "NONE",
     "Dynamic",
     "The active simulation area moves with the brush"},
   {-1}
@@ -249,8 +245,8 @@ MAKE_ENUM(cloth_simulation_area_type, "Simulation Area", "Part of the mesh that 
 
 MAKE_ENUM(cloth_force_falloff_type, "Force Falloff", "Shape used in the brush to apply force to the cloth",
   BRUSH_CLOTH_FORCE_FALLOFF_RADIAL, _({
-      {BRUSH_CLOTH_FORCE_FALLOFF_RADIAL, "RADIAL", 0, "Radial", ""},
-      {BRUSH_CLOTH_FORCE_FALLOFF_PLANE, "PLANE", 0, "Plane", ""},
+      {BRUSH_CLOTH_FORCE_FALLOFF_RADIAL, "RADIAL", "NONE", "Radial", ""},
+      {BRUSH_CLOTH_FORCE_FALLOFF_PLANE, "PLANE", "NONE", "Plane", ""},
       {-1}
 }))
 
@@ -262,7 +258,64 @@ MAKE_FLOAT(cloth_sim_falloff, "Simulation Falloff",
                            "Area to apply deformation falloff to the effects of the simulation", 0.75f, 0.0f, 1.0f)
 MAKE_FLOAT(cloth_constraint_softbody_strength,  "Soft Body Plasticity",
       "How much the cloth preserves the original shape, acting as a soft body", 0.0f, 0.0f, 1.0f)
+MAKE_BOOL(cloth_use_collision,  "Enable Collision", "Collide with objects during the simulation", false)
+
 MAKE_BOOL(use_frontface, "Use Front-Face", "Brush only affects vertexes that face the viewer", false)
+MAKE_BOOL(cloth_pin_simulation_boundary, "Pin Simulation Boundary",
+      "Lock the position of the vertices in the simulation falloff area to avoid artifacts and "
+      "create a softer transition with unaffected areas", false)
+
+MAKE_FLOAT(boundary_offset, "Boundary Origin Offset",
+                           "Offset of the boundary origin in relation to the brush radius", 0.05f, 0.0f, 1.0f)
+MAKE_ENUM(boundary_deform_type, "Deformation", "Deformation type that is used in the brush", BRUSH_BOUNDARY_DEFORM_BEND, _({
+      {BRUSH_BOUNDARY_DEFORM_BEND, "BEND", "NONE", "Bend", ""},
+      {BRUSH_BOUNDARY_DEFORM_EXPAND, "EXPAND", "NONE", "Expand", ""},
+      {BRUSH_BOUNDARY_DEFORM_INFLATE, "INFLATE", "NONE", "Inflate", ""},
+      {BRUSH_BOUNDARY_DEFORM_GRAB, "GRAB", "NONE", "Grab", ""},
+      {BRUSH_BOUNDARY_DEFORM_TWIST, "TWIST", "NONE", "Twist", ""},
+      {BRUSH_BOUNDARY_DEFORM_SMOOTH, "SMOOTH", "NONE", "Smooth", ""},
+      {BRUSH_BOUNDARY_DEFORM_CIRCLE, "CIRCLE", "NONE", "Circle", ""},
+      {-1}
+}))
+
+MAKE_ENUM(boundary_falloff_type, "Boundary Falloff", "How the brush falloff is applied across the boundary", BRUSH_BOUNDARY_FALLOFF_CONSTANT, _({
+      {BRUSH_BOUNDARY_FALLOFF_CONSTANT,
+       "CONSTANT",
+       "NONE",
+       "Constant",
+       "Applies the same deformation in the entire boundary"},
+      {BRUSH_BOUNDARY_FALLOFF_RADIUS,
+       "RADIUS",
+       "NONE",
+       "Brush Radius",
+       "Applies the deformation in a localized area limited by the brush radius"},
+      {BRUSH_BOUNDARY_FALLOFF_LOOP,
+       "LOOP",
+       "NONE",
+       "Loop",
+       "Applies the brush falloff in a loop pattern"},
+      {BRUSH_BOUNDARY_FALLOFF_LOOP_INVERT,
+       "LOOP_INVERT",
+       "NONE",
+       "Loop and Invert",
+       "Applies the falloff radius in a loop pattern, inverting the displacement direction in "
+       "each pattern repetition"},
+      {-1}
+}))
+
+MAKE_ENUM(deform_target, "Deformation Target", "How the deformation of the brush will affect the object", BRUSH_DEFORM_TARGET_GEOMETRY, _({
+{BRUSH_DEFORM_TARGET_GEOMETRY,
+    "GEOMETRY",
+    "NONE",
+    "Geometry",
+    "Brush deformation displaces the vertices of the mesh"},
+    {BRUSH_DEFORM_TARGET_CLOTH_SIM,
+    "CLOTH_SIM",
+    "NONE",
+    "Cloth Simulation",
+    "Brush deforms the mesh by deforming the constraints of a cloth simulation"},
+    {-1}
+}))
 
 /* clang-format on */
 #if defined(BRUSH_CHANNEL_DEFINE_TYPES) || defined(BRUSH_CHANNEL_DEFINE_EXTERNAL)

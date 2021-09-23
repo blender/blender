@@ -1833,8 +1833,16 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
     /* This functions sets its own drawing space in order to draw the simulation limits when the
      * cursor is active. When used here, this cursor overlay is already in cursor space, so its
      * position and normal should be set to 0. */
-    SCULPT_cloth_simulation_limits_draw(
-        pcontext->pos, brush, zero_v, zero_v, pcontext->radius, 1.0f, white, 0.25f);
+    SCULPT_cloth_simulation_limits_draw(pcontext->ss,
+                                        pcontext->sd,
+                                        pcontext->pos,
+                                        brush,
+                                        zero_v,
+                                        zero_v,
+                                        pcontext->radius,
+                                        1.0f,
+                                        white,
+                                        0.25f);
   }
 
   /* Layer brush height. */
@@ -1918,7 +1926,9 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
       if (len_v3v3(ss->cache->true_location, ss->cache->true_initial_location) >
           ss->cache->radius * (1.0f + brush->cloth_sim_limit)) {
         const float red[3] = {1.0f, 0.2f, 0.2f};
-        SCULPT_cloth_simulation_limits_draw(pcontext->pos,
+        SCULPT_cloth_simulation_limits_draw(pcontext->ss,
+                                            pcontext->sd,
+                                            pcontext->pos,
                                             brush,
                                             ss->cache->true_initial_location,
                                             ss->cache->true_initial_normal,

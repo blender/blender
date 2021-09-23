@@ -2902,7 +2902,7 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
 
       // printf("volume: %.4f overlap: %.4f ratio: %.3f\n", volume, overlap, overlap / volume);
 
-      if (overlap > volume * 0.25) {
+      if (overlap > volume * 0.1) {
         modified = true;
         // printf("  DELETE!\n");
 
@@ -3186,7 +3186,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
   MEM_freeN(map);
 }
 
-void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh)
+void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh, bool force_balance)
 {
   int totnode = pbvh->totnode;
 
@@ -3198,7 +3198,7 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh)
 
   BKE_pbvh_update_bounds(pbvh, (PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw));
 
-  if (pbvh->balance_counter++ == 10) {
+  if (force_balance || pbvh->balance_counter++ == 10) {
     pbvh_bmesh_balance_tree(pbvh);
     pbvh_bmesh_check_nodes(pbvh);
     pbvh->balance_counter = 0;

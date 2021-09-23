@@ -160,6 +160,7 @@ That includes per-brush enums and bitflags!
 
 BrushChannelType brush_builtin_channels[] = {    
 #include "brush_channel_define.h"
+
 };
 
 /* clang-format on */
@@ -270,6 +271,10 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(cloth_sim_limit, cloth_sim_limit, FLOAT, FLOAT)
   DEF(cloth_sim_falloff, cloth_sim_falloff, FLOAT, FLOAT)
   DEF(cloth_constraint_softbody_strength, cloth_constraint_softbody_strength, FLOAT, FLOAT)
+  DEF(boundary_offset, boundary_offset, FLOAT, FLOAT)
+  DEF(boundary_deform_type, boundary_deform_type, INT, INT)
+  DEF(boundary_falloff_type, boundary_falloff_type, INT, INT)
+  DEF(deform_target, deform_target, INT, INT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -325,6 +330,8 @@ BrushFlagMap brush_flags_map[] =  {
   DEF(flag2, show_multiplane_scrape_planes_preview, BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW)
   DEF(flag, use_persistent, BRUSH_PERSISTENT)
   DEF(flag, use_frontface, BRUSH_FRONTFACE)
+  DEF(flag2, cloth_use_collision, BRUSH_CLOTH_USE_COLLISION)
+  DEF(flag2, cloth_pin_simulation_boundary, BRUSH_CLOTH_PIN_SIMULATION_BOUNDARY)
 };
 
 int brush_flags_map_len = ARRAY_SIZE(brush_flags_map);
@@ -669,15 +676,23 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(fset_slide);
 
   ADDCH(direction);
+  ADDCH(dash_ratio);
+  ADDCH(smooth_stroke_factor);
+  ADDCH(smooth_stroke_radius);
 
   switch (tool) {
-    case SCULPT_TOOL_DRAW: {
+    case SCULPT_TOOL_DRAW:
       break;
-    }
-
     case SCULPT_TOOL_PAINT: {
       ADDCH(color);
       ADDCH(secondary_color);
+      ADDCH(wet_mix);
+      ADDCH(wet_persistence);
+      ADDCH(density);
+      ADDCH(tip_scale_x);
+      ADDCH(flow);
+      ADDCH(rate);
+
       break;
     }
     case SCULPT_TOOL_SLIDE_RELAX:
@@ -692,7 +707,18 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       ADDCH(cloth_force_falloff_type);
       ADDCH(cloth_simulation_area_type);
       ADDCH(cloth_deform_type);
+      ADDCH(cloth_use_collision);
+      ADDCH(cloth_pin_simulation_boundary);
 
+      break;
+    case SCULPT_TOOL_BOUNDARY:
+      ADDCH(boundary_offset);
+      ADDCH(boundary_deform_type);
+      ADDCH(boundary_falloff_type);
+      ADDCH(deform_target);
+      break;
+    case SCULPT_TOOL_POSE:
+      ADDCH(deform_target);
       break;
   }
 
@@ -772,6 +798,20 @@ ATTR_NO_OPT void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(cloth_deform_type);
       SHOWWRK(cloth_force_falloff_type);
       SHOWWRK(cloth_simulation_area_type);
+      SHOWWRK(cloth_mass);
+      SHOWWRK(cloth_damping);
+      SHOWWRK(cloth_constraint_softbody_strength);
+      SHOWWRK(cloth_sim_limit);
+      SHOWWRK(cloth_sim_falloff);
+      SHOWWRK(cloth_constraint_softbody_strength);
+      SHOWWRK(cloth_use_collision);
+      SHOWWRK(cloth_pin_simulation_boundary);
+
+      break;
+    case SCULPT_TOOL_BOUNDARY:
+      SHOWWRK(boundary_offset);
+      SHOWWRK(boundary_deform_type);
+      SHOWWRK(boundary_falloff_type);
 
       break;
   }

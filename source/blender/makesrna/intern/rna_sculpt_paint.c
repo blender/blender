@@ -884,7 +884,6 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_ENABLED);
   RNA_def_property_ui_text(prop, "DynTopo", "Enable DynTopo remesher in dynamic topology mode.");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
   prop = RNA_def_property(srna, "detail_size", PROP_FLOAT, PROP_PIXEL);
   RNA_def_property_ui_range(prop, 0.5, 40.0, 0.1, 2);

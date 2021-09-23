@@ -340,6 +340,12 @@ typedef struct SculptClothSimulation {
   float damping;
   float softbody_strength;
 
+  // cache some values here to avoid
+  // brush channel lookups inside of inner loops
+  float sim_limit;
+  int simulation_area_type;
+  float sim_falloff;
+
   float (*acceleration)[3];
   float (*pos)[3];
   float (*init_pos)[3];
@@ -476,6 +482,8 @@ typedef struct SculptBoundary {
     float (*origin)[3];
     float *radius;
   } circle;
+
+  int deform_target;
 } SculptBoundary;
 
 /* Array Brush. */

@@ -95,7 +95,7 @@ typedef struct BrushMappingData {
 typedef struct BrushEnumDef {
   int value;
   const char identifier[64];
-  char icon[32];
+  char icon[32];  // don't forget when writing literals that icon here is a string, not an int!
   const char name[64];
   const char description[512];
 } BrushEnumDef;

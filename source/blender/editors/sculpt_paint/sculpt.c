@@ -8463,6 +8463,7 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
            SCULPT_TOOL_CLOTH,
            SCULPT_TOOL_SIMPLIFY,
            SCULPT_TOOL_SNAKE_HOOK,
+           SCULPT_TOOL_INFLATE,
            SCULPT_TOOL_PAINT,
            SCULPT_TOOL_SMEAR)) {
 
@@ -11259,7 +11260,7 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
   }
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    BKE_pbvh_bmesh_after_stroke(ss->pbvh);
+    BKE_pbvh_bmesh_after_stroke(ss->pbvh, false);
 #if 0
     if (update_flags & SCULPT_UPDATE_COLOR) {
       PBVHNode **nodes;

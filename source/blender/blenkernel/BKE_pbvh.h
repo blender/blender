@@ -538,7 +538,7 @@ void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh);
 void BKE_pbvh_bmesh_mark_node_regen(PBVH *pbvh, PBVHNode *node);
 
 // now generated PBVHTris
-void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh);
+void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh, bool force_balance);
 
 /* Update Bounding Box/Redraw and clear flags */
 

@@ -116,7 +116,8 @@ static void cloth_brush_simulation_location_get(SculptSession *ss,
     return;
   }
 
-  if (brush->cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_LOCAL) {
+  if (SCULPT_get_int(ss, cloth_simulation_area_type, NULL, brush) ==
+      BRUSH_CLOTH_SIMULATION_AREA_LOCAL) {
     copy_v3_v3(r_location, ss->cache->initial_location);
     return;
   }
@@ -128,14 +129,15 @@ PBVHNode **SCULPT_cloth_brush_affected_nodes_gather(SculptSession *ss,
                                                     int *r_totnode)
 {
   BLI_assert(ss->cache);
-  BLI_assert(brush->sculpt_tool == SCULPT_TOOL_CLOTH);
+  // BLI_assert(brush->sculpt_tool == SCULPT_TOOL_CLOTH);
   PBVHNode **nodes = NULL;
 
-  switch (brush->cloth_simulation_area_type) {
+  switch (SCULPT_get_int(ss, cloth_simulation_area_type, NULL, brush)) {
     case BRUSH_CLOTH_SIMULATION_AREA_LOCAL: {
       SculptSearchSphereData data = {
           .ss = ss,
-          .radius_squared = square_f(ss->cache->initial_radius * (1.0 + brush->cloth_sim_limit)),
+          .radius_squared = square_f(ss->cache->initial_radius *
+                                     (1.0 + SCULPT_get_float(ss, cloth_sim_limit, NULL, brush))),
           .original = false,
           .ignore_fully_ineffective = false,
           .center = ss->cache->initial_location,
@@ -148,7 +150,8 @@ PBVHNode **SCULPT_cloth_brush_affected_nodes_gather(SculptSession *ss,
     case BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC: {
       SculptSearchSphereData data = {
           .ss = ss,
-          .radius_squared = square_f(ss->cache->radius * (1.0 + brush->cloth_sim_limit)),
+          .radius_squared = square_f(ss->cache->radius *
+                                     (1.0 + SCULPT_get_float(ss, cloth_sim_limit, NULL, brush))),
           .original = false,
           .ignore_fully_ineffective = false,
           .center = ss->cache->location,
@@ -160,24 +163,27 @@ PBVHNode **SCULPT_cloth_brush_affected_nodes_gather(SculptSession *ss,
   return nodes;
 }
 
-static float cloth_brush_simulation_falloff_get(const Brush *brush,
+static float cloth_brush_simulation_falloff_get(const SculptClothSimulation *cloth_sim,
+                                                const Brush *brush,
                                                 const float radius,
                                                 const float location[3],
                                                 const float co[3])
 {
   if (brush->sculpt_tool != SCULPT_TOOL_CLOTH) {
-    /* All brushes that are not the cloth brush do not use simulation areas. */
+    /* All brushes that are not the cloth brush do not use simulation areas.
+       TODO: new command list situation may change this, investigate
+    */
     return 1.0f;
   }
 
   /* Global simulation does not have any falloff as the entire mesh is being simulated. */
-  if (brush->cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_GLOBAL) {
+  if (cloth_sim->simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_GLOBAL) {
     return 1.0f;
   }
 
   const float distance = len_v3v3(location, co);
-  const float limit = radius + (radius * brush->cloth_sim_limit);
-  const float falloff = radius + (radius * brush->cloth_sim_limit * brush->cloth_sim_falloff);
+  const float limit = radius + (radius * cloth_sim->sim_limit);
+  const float falloff = radius + (radius * cloth_sim->sim_limit * cloth_sim->sim_falloff);
 
   if (distance > limit) {
     /* Outside the limits. */
@@ -462,7 +468,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
 
     if (pin_simulation_boundary) {
       const float sim_falloff = cloth_brush_simulation_falloff_get(
-          brush, ss->cache->initial_radius, ss->cache->location, vd.co);
+          data->cloth_sim, brush, ss->cache->initial_radius, ss->cache->location, vd.co);
       /* Vertex is inside the area of the simulation without any falloff applied. */
       if (sim_falloff < 1.0f) {
         /* Create constraints with more strength the closer the vertex is to the simulation
@@ -554,7 +560,7 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
     float sim_location[3];
     cloth_brush_simulation_location_get(ss, brush, sim_location);
     const float sim_factor = cloth_brush_simulation_falloff_get(
-        brush, ss->cache->radius, sim_location, cloth_sim->init_pos[vd.index]);
+        cloth_sim, brush, ss->cache->radius, sim_location, cloth_sim->init_pos[vd.index]);
 
     float current_vertex_location[3];
     if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
@@ -848,9 +854,10 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
     float sim_location[3];
     cloth_brush_simulation_location_get(ss, brush, sim_location);
     const float sim_factor =
-        ss->cache ? cloth_brush_simulation_falloff_get(
-                        brush, ss->cache->radius, sim_location, cloth_sim->init_pos[vd.index]) :
-                    1.0f;
+        ss->cache ?
+            cloth_brush_simulation_falloff_get(
+                cloth_sim, brush, ss->cache->radius, sim_location, cloth_sim->init_pos[vd.index]) :
+            1.0f;
     if (sim_factor <= 0.0f) {
       continue;
     }
@@ -956,13 +963,15 @@ static void cloth_brush_satisfy_constraints(SculptSession *ss,
       cloth_brush_simulation_location_get(ss, brush, sim_location);
 
       const float sim_factor_v1 = ss->cache ?
-                                      cloth_brush_simulation_falloff_get(brush,
+                                      cloth_brush_simulation_falloff_get(cloth_sim,
+                                                                         brush,
                                                                          ss->cache->radius,
                                                                          sim_location,
                                                                          cloth_sim->init_pos[v1]) :
                                       1.0f;
       const float sim_factor_v2 = ss->cache ?
-                                      cloth_brush_simulation_falloff_get(brush,
+                                      cloth_brush_simulation_falloff_get(cloth_sim,
+                                                                         brush,
                                                                          ss->cache->radius,
                                                                          sim_location,
                                                                          cloth_sim->init_pos[v2]) :
@@ -1145,6 +1154,10 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
 
   cloth_sim = MEM_callocN(sizeof(SculptClothSimulation), "cloth constraints");
 
+  cloth_sim->simulation_area_type = SCULPT_get_int(ss, cloth_simulation_area_type, NULL, NULL);
+  cloth_sim->sim_falloff = SCULPT_get_float(ss, cloth_sim_falloff, NULL, NULL);
+  cloth_sim->sim_limit = SCULPT_get_float(ss, cloth_sim_limit, NULL, NULL);
+
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     cloth_sim->cd_pers_co = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
     cloth_sim->cd_pers_no = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
@@ -1291,7 +1304,7 @@ static void sculpt_cloth_ensure_constraints_in_simulation_area(Sculpt *sd,
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
   const float radius = ss->cache->initial_radius;
-  const float limit = radius + (radius * brush->cloth_sim_limit);
+  const float limit = radius + (radius * SCULPT_get_float(ss, cloth_sim_limit, sd, brush));
   float sim_location[3];
   cloth_brush_simulation_location_get(ss, brush, sim_location);
   SCULPT_cloth_brush_ensure_nodes_constraints(
@@ -1313,15 +1326,16 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     if (SCULPT_stroke_is_first_brush_step(ss->cache) || !ss->cache->cloth_sim) {
       ss->cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
           ss,
-          brush->cloth_mass,
-          brush->cloth_damping,
-          brush->cloth_constraint_softbody_strength,
-          (brush->flag2 & BRUSH_CLOTH_USE_COLLISION),
+          SCULPT_get_float(ss, cloth_mass, sd, brush),
+          SCULPT_get_float(ss, cloth_damping, sd, brush),
+          SCULPT_get_float(ss, cloth_constraint_softbody_strength, sd, brush),
+          SCULPT_get_bool(ss, cloth_use_collision, sd, brush),
           SCULPT_is_cloth_deform_brush(brush));
       SCULPT_cloth_brush_simulation_init(ss, ss->cache->cloth_sim);
     }
 
-    if (brush->cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_LOCAL) {
+    if (SCULPT_get_int(ss, cloth_simulation_area_type, sd, brush) ==
+        BRUSH_CLOTH_SIMULATION_AREA_LOCAL) {
       /* When using simulation a fixed local simulation area, constraints are created only using
        * the initial stroke position and initial radius (per symmetry pass) instead of per node.
        * This allows to skip unnecessary constraints that will never be simulated, making the
@@ -1376,7 +1390,9 @@ void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim)
 }
 
 /* Cursor drawing function. */
-void SCULPT_cloth_simulation_limits_draw(const uint gpuattr,
+void SCULPT_cloth_simulation_limits_draw(const SculptSession *ss,
+                                         const Sculpt *sd,
+                                         const uint gpuattr,
                                          const Brush *brush,
                                          const float location[3],
                                          const float normal[3],
@@ -1398,10 +1414,15 @@ void SCULPT_cloth_simulation_limits_draw(const uint gpuattr,
 
   GPU_line_width(line_width);
   immUniformColor3fvAlpha(outline_col, alpha * 0.5f);
-  imm_draw_circle_dashed_3d(
-      gpuattr, 0, 0, rds + (rds * brush->cloth_sim_limit * brush->cloth_sim_falloff), 320);
+  imm_draw_circle_dashed_3d(gpuattr,
+                            0,
+                            0,
+                            rds + (rds * SCULPT_get_float(ss, cloth_sim_limit, sd, brush) *
+                                   SCULPT_get_float(ss, cloth_sim_falloff, sd, brush)),
+                            320);
   immUniformColor3fvAlpha(outline_col, alpha * 0.7f);
-  imm_draw_circle_wire_3d(gpuattr, 0, 0, rds + rds * brush->cloth_sim_limit, 80);
+  imm_draw_circle_wire_3d(
+      gpuattr, 0, 0, rds + rds * SCULPT_get_float(ss, cloth_sim_limit, sd, brush), 80);
   GPU_matrix_pop();
 }
 
@@ -1413,7 +1434,7 @@ void SCULPT_cloth_plane_falloff_preview_draw(const uint gpuattr,
   float local_mat[4][4];
   copy_m4_m4(local_mat, ss->cache->stroke_local_mat);
 
-  if (ss->cache->brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
+  if (SCULPT_get_int(ss, cloth_deform_type, NULL, ss->cache->brush) == BRUSH_CLOTH_DEFORM_GRAB) {
     add_v3_v3v3(local_mat[3], ss->cache->true_location, ss->cache->grab_delta);
   }
 
