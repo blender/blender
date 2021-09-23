@@ -72,10 +72,13 @@ class CPUDevice : public Device {
 
   virtual void mem_alloc(device_memory &mem) override;
   virtual void mem_copy_to(device_memory &mem) override;
-  virtual void mem_copy_from(device_memory &mem, int y, int w, int h, int elem) override;
+  virtual void mem_copy_from(
+      device_memory &mem, size_t y, size_t w, size_t h, size_t elem) override;
   virtual void mem_zero(device_memory &mem) override;
   virtual void mem_free(device_memory &mem) override;
-  virtual device_ptr mem_alloc_sub_ptr(device_memory &mem, int offset, int /*size*/) override;
+  virtual device_ptr mem_alloc_sub_ptr(device_memory &mem,
+                                       size_t offset,
+                                       size_t /*size*/) override;
 
   virtual void const_copy_to(const char *name, void *host, size_t size) override;
 

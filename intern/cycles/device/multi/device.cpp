@@ -315,14 +315,14 @@ class MultiDevice : public Device {
     stats.mem_alloc(mem.device_size - existing_size);
   }
 
-  void mem_copy_from(device_memory &mem, int y, int w, int h, int elem) override
+  void mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem) override
   {
     device_ptr key = mem.device_pointer;
-    int i = 0, sub_h = h / devices.size();
+    size_t i = 0, sub_h = h / devices.size();
 
     foreach (SubDevice &sub, devices) {
-      int sy = y + i * sub_h;
-      int sh = (i == (int)devices.size() - 1) ? h - sub_h * i : sub_h;
+      size_t sy = y + i * sub_h;
+      size_t sh = (i == (size_t)devices.size() - 1) ? h - sub_h * i : sub_h;
 
       SubDevice *owner_sub = find_matching_mem_device(key, sub);
       mem.device = owner_sub->device;

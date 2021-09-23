@@ -170,7 +170,7 @@ void CPUDevice::mem_copy_to(device_memory &mem)
 }
 
 void CPUDevice::mem_copy_from(
-    device_memory & /*mem*/, int /*y*/, int /*w*/, int /*h*/, int /*elem*/)
+    device_memory & /*mem*/, size_t /*y*/, size_t /*w*/, size_t /*h*/, size_t /*elem*/)
 {
   /* no-op */
 }
@@ -204,7 +204,7 @@ void CPUDevice::mem_free(device_memory &mem)
   }
 }
 
-device_ptr CPUDevice::mem_alloc_sub_ptr(device_memory &mem, int offset, int /*size*/)
+device_ptr CPUDevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/)
 {
   return (device_ptr)(((char *)mem.device_pointer) + mem.memory_elements_size(offset));
 }

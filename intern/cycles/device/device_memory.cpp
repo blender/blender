@@ -136,7 +136,7 @@ void device_memory::device_copy_to()
   }
 }
 
-void device_memory::device_copy_from(int y, int w, int h, int elem)
+void device_memory::device_copy_from(size_t y, size_t w, size_t h, size_t elem)
 {
   assert(type != MEM_TEXTURE && type != MEM_READ_ONLY && type != MEM_GLOBAL);
   device->mem_copy_from(*this, y, w, h, elem);
@@ -181,7 +181,7 @@ bool device_memory::is_resident(Device *sub_device) const
 
 /* Device Sub Ptr */
 
-device_sub_ptr::device_sub_ptr(device_memory &mem, int offset, int size) : device(mem.device)
+device_sub_ptr::device_sub_ptr(device_memory &mem, size_t offset, size_t size) : device(mem.device)
 {
   ptr = device->mem_alloc_sub_ptr(mem, offset, size);
 }
