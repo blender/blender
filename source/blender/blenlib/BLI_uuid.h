@@ -84,13 +84,13 @@ class bUUID : public ::bUUID {
   bUUID(const ::bUUID &struct_uuid);
 
   /** Initialise from 11 integers, 5 for the regular fields and 6 for the `node` array. */
-  bUUID(std::initializer_list<uint> field_values);
+  bUUID(std::initializer_list<uint32_t> field_values);
 
   /** Initialise by parsing the string; undefined behaviour when the string is invalid. */
   explicit bUUID(const std::string &string_formatted_uuid);
 
   uint64_t hash() const;
-};
+};  // namespace blender
 
 bool operator==(bUUID uuid1, bUUID uuid2);
 bool operator!=(bUUID uuid1, bUUID uuid2);

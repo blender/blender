@@ -142,13 +142,13 @@ std::ostream &operator<<(std::ostream &stream, bUUID uuid)
 
 namespace blender {
 
-bUUID::bUUID(const std::initializer_list<uint> field_values)
+bUUID::bUUID(const std::initializer_list<uint32_t> field_values)
 {
   BLI_assert_msg(field_values.size() == 11, "bUUID requires 5 regular fields + 6 `node` values");
 
-  auto field_iter = field_values.begin();
+  const auto *field_iter = field_values.begin();
 
-  this->time_low = static_cast<uint32_t>(*field_iter++);
+  this->time_low = *field_iter++;
   this->time_mid = static_cast<uint16_t>(*field_iter++);
   this->time_hi_and_version = static_cast<uint16_t>(*field_iter++);
   this->clock_seq_hi_and_reserved = static_cast<uint8_t>(*field_iter++);
