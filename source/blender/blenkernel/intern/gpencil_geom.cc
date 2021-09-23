@@ -738,8 +738,8 @@ bool BKE_gpencil_stroke_stretch(bGPDstroke *gps,
 
     sub_v3_v3v3(vec1, &gps->points[start_i].x, &gps->points[start_i + dir_i].x);
     /* In general curvature = 1/radius. For the case without the
-     * weights introduced by #segment_influence, the calculation is
-     * curvature = delta angle/delta arclength = len_v3(total_angle) / overshoot_length */
+     * weights introduced by #segment_influence, the calculation is:
+     * `curvature = delta angle/delta arclength = len_v3(total_angle) / overshoot_length` */
     float curvature = normalize_v3(total_angle) / overshoot_length;
     /* Compensate for the weights powf(added_len, segment_influence). */
     curvature /= powf(overshoot_length / fminf(overshoot_parameter, (float)j), segment_influence);

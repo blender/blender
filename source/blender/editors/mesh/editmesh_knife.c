@@ -113,7 +113,7 @@ typedef struct KnifeColors {
   uchar axis_extra[3];
 } KnifeColors;
 
-/* Knifetool Operator. */
+/* Knife-tool Operator. */
 typedef struct KnifeVert {
   Object *ob;
   uint base_index;
@@ -445,7 +445,7 @@ static void knifetool_draw_orientation_locking(const KnifeTool_OpData *kcd)
   if (!compare_v3v3(kcd->prev.cage, kcd->curr.cage, KNIFE_FLT_EPSBIG)) {
     float v1[3], v2[3];
 
-    /* This is causing buggyness when prev.cage and curr.cage are too close together. */
+    /* This is causing buggy behavior when `prev.cage` and `curr.cage` are too close together. */
     knifetool_raycast_planes(kcd, v1, v2);
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
@@ -4100,7 +4100,7 @@ static void knifetool_init(bContext *C,
   kcd->axis_string[0] = ' ';
   kcd->axis_string[1] = '\0';
 
-  /* Initialise num input handling for angle snapping. */
+  /* Initialize number input handling for angle snapping. */
   initNumInput(&kcd->num);
   kcd->num.idx_max = 0;
   kcd->num.val_flag[0] |= NUM_NO_NEGATIVE;
@@ -4151,7 +4151,7 @@ static void knifetool_exit_ex(KnifeTool_OpData *kcd)
   MEM_freeN(kcd->cagecos);
   knife_bvh_free(kcd);
 
-  /* Linehits cleanup. */
+  /* Line-hits cleanup. */
   if (kcd->linehits) {
     MEM_freeN(kcd->linehits);
   }

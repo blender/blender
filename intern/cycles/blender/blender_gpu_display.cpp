@@ -524,7 +524,7 @@ void BlenderGPUDisplay::do_draw(const GPUDisplayParams &params)
   const float zoomed_width = params.size.x * zoom_.x;
   const float zoomed_height = params.size.y * zoom_.y;
   if (texture_.width != params.size.x || texture_.height != params.size.y) {
-    /* Resolution divider is different from 1, force enarest interpolation. */
+    /* Resolution divider is different from 1, force nearest interpolation. */
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   }
   else if (zoomed_width - params.size.x > 0.5f || zoomed_height - params.size.y > 0.5f) {

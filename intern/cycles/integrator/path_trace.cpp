@@ -244,7 +244,7 @@ static void foreach_sliced_buffer_params(const vector<unique_ptr<PathTraceWork>>
     const int slice_height = max(lround(height * weight), 1);
 
     /* Disallow negative values to deal with situations when there are more compute devices than
-     * scanlines. */
+     * scan-lines. */
     const int remaining_height = max(0, height - current_y);
 
     BufferParams slide_params = buffer_params;

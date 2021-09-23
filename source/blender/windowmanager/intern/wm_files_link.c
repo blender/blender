@@ -674,7 +674,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
       CLOG_INFO(&LOG, 3, "Appended ID '%s' is proxified, keeping it linked...", id->name);
       item->append_action = WM_APPEND_ACT_KEEP_LINKED;
     }
-    /* Only re-use existing local ID for indirectly linked data, the ID explicitely selected by the
+    /* Only re-use existing local ID for indirectly linked data, the ID explicitly selected by the
      * user we always fully append. */
     else if (do_reuse_existing_id && existing_local_id != NULL &&
              (item->append_tag & WM_APPEND_TAG_INDIRECT) != 0) {

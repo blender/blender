@@ -46,7 +46,7 @@ class GPUDisplayParams {
    * NOTE: Is not affected by the resolution divider. */
   int2 full_size = make_int2(0, 0);
 
-  /* Effective vieport size.
+  /* Effective viewport size.
    * In the case of border render, size of the border rectangle.
    *
    * NOTE: Is not affected by the resolution divider. */
