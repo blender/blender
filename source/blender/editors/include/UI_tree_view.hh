@@ -188,7 +188,7 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   /** Copy persistent state (e.g. is-collapsed flag, selection, etc.) from a matching item of the
    * last redraw to this item. If sub-classes introduce more advanced state they should override
    * this and make it update their state accordingly. */
-  virtual void update_from_old(AbstractTreeViewItem &old);
+  virtual void update_from_old(const AbstractTreeViewItem &old);
 
   const AbstractTreeView &get_tree_view() const;
   int count_parents() const;

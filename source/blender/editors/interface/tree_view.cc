@@ -139,7 +139,7 @@ void AbstractTreeViewItem::on_activate()
   /* Do nothing by default. */
 }
 
-void AbstractTreeViewItem::update_from_old(AbstractTreeViewItem &old)
+void AbstractTreeViewItem::update_from_old(const AbstractTreeViewItem &old)
 {
   is_open_ = old.is_open_;
   is_active_ = old.is_active_;
