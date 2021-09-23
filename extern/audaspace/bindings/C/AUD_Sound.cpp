@@ -102,26 +102,30 @@ AUD_API int AUD_Sound_getFileStreams(AUD_Sound* sound, AUD_StreamInfo **stream_i
 
 	if(file)
 	{
-		auto streams = file->queryStreams();
-
-		size_t size = sizeof(AUD_StreamInfo) * streams.size();
-
-		if(!size)
+		try
 		{
-			*stream_infos = nullptr;
-			return 0;
+			auto streams = file->queryStreams();
+
+			size_t size = sizeof(AUD_StreamInfo) * streams.size();
+
+			if(!size)
+			{
+				*stream_infos = nullptr;
+				return 0;
+			}
+
+			*stream_infos = reinterpret_cast<AUD_StreamInfo*>(std::malloc(size));
+			std::memcpy(*stream_infos, streams.data(), size);
+
+			return streams.size();
 		}
-
-		*stream_infos = reinterpret_cast<AUD_StreamInfo*>(std::malloc(size));
-		std::memcpy(*stream_infos, streams.data(), size);
-
-		return streams.size();
+		catch(Exception&)
+		{
+		}
 	}
-	else
-	{
-		*stream_infos = nullptr;
-		return 0;
-	}
+
+	*stream_infos = nullptr;
+	return 0;
 }
 
 AUD_API sample_t* AUD_Sound_data(AUD_Sound* sound, int* length, AUD_Specs* specs)
