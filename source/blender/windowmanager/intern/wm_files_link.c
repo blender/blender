@@ -573,6 +573,8 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
         ob, object_set_selected, object_set_active, view_layer, v3d);
 
     copy_v3_v3(ob->loc, scene->cursor.location);
+
+    id->tag &= ~LIB_TAG_DOIT;
   }
 }
 
@@ -656,8 +658,8 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     }
     BLI_assert(item->customdata == NULL);
 
-    /* Clear tag previously used to mark IDs needing post-processing (instantiation of loose
-     * objects etc.). */
+    /* In Append case linked IDs should never be marked as needing post-processing (instantiation
+     * of loose objects etc.). */
     BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
 
     ID *existing_local_id = BKE_idtype_idcode_append_is_reusable(GS(id->name)) ?
