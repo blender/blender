@@ -1087,11 +1087,29 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def knife():
-        def draw_settings(_context, layout, tool):
+        def draw_settings(_context, layout, tool, *, extra=False):
+            show_extra = False
             props = tool.operator_properties("mesh.knife_tool")
-            layout.prop(props, "use_occlude_geometry")
-            layout.prop(props, "only_selected")
-
+            if not extra:
+                row = layout.row()
+                layout.prop(props, "use_occlude_geometry")
+                row = layout.row()
+                layout.prop(props, "only_selected")
+                row = layout.row()
+                layout.prop(props, "xray")
+                region_is_header = bpy.context.region.type == 'TOOL_HEADER'
+                if region_is_header:
+                    show_extra = True
+                else:
+                    extra = True
+            if extra:
+                layout.use_property_split = True
+                layout.prop(props, "visible_measurements")
+                layout.prop(props, "angle_snapping")
+                layout.label(text="Angle Snapping Increment")
+                layout.row().prop(props, "angle_snapping_increment", text="", expand=True)
+            if show_extra:
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
         return dict(
             idname="builtin.knife",
             label="Knife",
