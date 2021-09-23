@@ -78,7 +78,10 @@ namespace blender::bke {
 class bUUID : public ::bUUID {
  public:
   bUUID() = default;
+  /** Initialise from the bUUID DNA struct. */
   bUUID(const ::bUUID &struct_uuid);
+
+  /** Initialise by parsing the string; undefined behaviour when the string is invalid. */
   explicit bUUID(const std::string &string_formatted_uuid);
 
   uint64_t hash() const;
