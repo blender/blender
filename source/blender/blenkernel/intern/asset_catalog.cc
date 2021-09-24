@@ -30,6 +30,7 @@
 #endif
 
 #include <fstream>
+#include <set>
 
 namespace blender::bke {
 
@@ -525,10 +526,16 @@ bool AssetCatalogDefinitionFile::write_to_disk_unsafe(const CatalogFilePath &des
 
   // Write the catalogs.
   // TODO(@sybren): order them by Catalog ID or Catalog Path.
-  for (const auto &catalog : catalogs_.values()) {
+
+  AssetCatalogOrderedSet catalogs_by_path;
+  for (const AssetCatalog *catalog : catalogs_.values()) {
     if (catalog->flags.is_deleted) {
       continue;
     }
+    catalogs_by_path.insert(catalog);
+  }
+
+  for (const AssetCatalog *catalog : catalogs_by_path) {
     output << catalog->catalog_id << ":" << catalog->path << ":" << catalog->simple_name
            << std::endl;
   }

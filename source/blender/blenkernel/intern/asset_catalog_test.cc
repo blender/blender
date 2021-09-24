@@ -442,4 +442,42 @@ TEST_F(AssetCatalogTest, backups)
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_RUZENA_FACE));
 }
 
+TEST_F(AssetCatalogTest, order_by_path)
+{
+  const bUUID cat2_uuid("22222222-b847-44d9-bdca-ff04db1c24f5");
+  const bUUID cat4_uuid("11111111-b847-44d9-bdca-ff04db1c24f5");  // Sorts earlier than above.
+  const AssetCatalog cat1(BLI_uuid_generate_random(), "simple/path/child", "");
+  const AssetCatalog cat2(cat2_uuid, "simple/path", "");
+  const AssetCatalog cat3(BLI_uuid_generate_random(), "complex/path/...or/is/it?", "");
+  const AssetCatalog cat4(cat4_uuid, "simple/path", "different ID, same path");  // should be kept
+  const AssetCatalog cat5(cat4_uuid, "simple/path", "same ID, same path");       // disappears
+
+  AssetCatalogOrderedSet by_path;
+  by_path.insert(&cat1);
+  by_path.insert(&cat2);
+  by_path.insert(&cat3);
+  by_path.insert(&cat4);
+  by_path.insert(&cat5);
+
+  AssetCatalogOrderedSet::const_iterator set_iter = by_path.begin();
+
+  EXPECT_EQ(1, by_path.count(&cat1));
+  EXPECT_EQ(1, by_path.count(&cat2));
+  EXPECT_EQ(1, by_path.count(&cat3));
+  EXPECT_EQ(1, by_path.count(&cat4));
+  ASSERT_EQ(4, by_path.size()) << "Expecting cat5 to not be stored in the set, as it duplicates "
+                                  "an already-existing path + UUID";
+
+  EXPECT_EQ(cat3.catalog_id, (*(set_iter++))->catalog_id);  // complex/path
+  EXPECT_EQ(cat4.catalog_id, (*(set_iter++))->catalog_id);  // simple/path with 111.. ID
+  EXPECT_EQ(cat2.catalog_id, (*(set_iter++))->catalog_id);  // simple/path with 222.. ID
+  EXPECT_EQ(cat1.catalog_id, (*(set_iter++))->catalog_id);  // simple/path/child
+
+  if (set_iter != by_path.end()) {
+    const AssetCatalog *next_cat = *set_iter;
+    FAIL() << "Did not expect more items in the set, had at least " << next_cat->catalog_id << ":"
+           << next_cat->path;
+  }
+}
+
 }  // namespace blender::bke::tests
