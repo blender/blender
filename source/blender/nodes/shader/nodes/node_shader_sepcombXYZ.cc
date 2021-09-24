@@ -104,6 +104,7 @@ namespace blender::nodes {
 
 static void sh_node_combxyz_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Float>("X").min(-10000.0f).max(10000.0f);
   b.add_input<decl::Float>("Y").min(-10000.0f).max(10000.0f);
   b.add_input<decl::Float>("Z").min(-10000.0f).max(10000.0f);
