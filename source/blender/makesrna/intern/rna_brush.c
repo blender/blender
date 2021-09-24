@@ -810,6 +810,20 @@ static void rna_Brush_set_size(PointerRNA *ptr, int value)
 
   /* scale unprojected radius so it stays consistent with brush size */
   BKE_brush_scale_unprojected_radius(&brush->unprojected_radius, value, brush->size);
+
+  if (brush->channels) {
+    BrushChannel *ch = BRUSHSET_LOOKUP(brush->channels, unprojected_radius);
+    BrushChannel *rch = BRUSHSET_LOOKUP(brush->channels, radius);
+
+    if (ch) {
+      BKE_brush_scale_unprojected_radius(&ch->fvalue, value, rch ? (int)rch->fvalue : brush->size);
+    }
+
+    if (rch) {
+      rch->fvalue = (float)value;
+    }
+  }
+
   brush->size = value;
 }
 

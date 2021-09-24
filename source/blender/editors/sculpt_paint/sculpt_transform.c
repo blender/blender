@@ -354,7 +354,7 @@ void ED_sculpt_update_modal_transform(struct bContext *C, Object *ob)
     case SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC: {
       Brush *brush = BKE_paint_brush(&sd->paint);
       Scene *scene = CTX_data_scene(C);
-      const float transform_radius = BKE_brush_unprojected_radius_get(scene, brush);
+      const float transform_radius = BKE_brush_unprojected_radius_get(scene, brush, true);
       sculpt_transform_radius_elastic(sd, ob, transform_radius);
       break;
     }

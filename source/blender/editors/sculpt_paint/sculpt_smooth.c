@@ -74,14 +74,14 @@
 #include <math.h>
 #include <stdlib.h>
 
-ATTR_NO_OPT void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
-                                                         float result[3],
-                                                         SculptVertRef vertex,
-                                                         float projection,
-                                                         float slide_fset,
-                                                         float bound_smooth,
-                                                         SculptCustomLayer *bound_scl,
-                                                         bool do_origco)
+void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                             float result[3],
+                                             SculptVertRef vertex,
+                                             float projection,
+                                             float slide_fset,
+                                             float bound_smooth,
+                                             SculptCustomLayer *bound_scl,
+                                             bool do_origco)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
 
@@ -1061,9 +1061,9 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
 #else
 
-ATTR_NO_OPT static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
-                                                   const int n,
-                                                   const TaskParallelTLS *__restrict tls)
+static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
+                                       const int n,
+                                       const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;

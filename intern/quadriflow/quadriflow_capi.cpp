@@ -70,9 +70,9 @@ static int check_if_canceled(float progress,
   return cancel;
 }
 
-ATTR_NO_OPT void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
-                                         void (*update_cb)(void *, float progress, int *cancel),
-                                         void *update_cb_data)
+void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
+                             void (*update_cb)(void *, float progress, int *cancel),
+                             void *update_cb_data)
 {
   Parametrizer field;
   VertexMap vertexMap;

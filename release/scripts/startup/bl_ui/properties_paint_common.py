@@ -27,9 +27,10 @@ channel_name_map = {
     "auto_smooth_radius_factor": "autosmooth_radius_scale",
     "boundary_smooth_factor": "boundary_smooth",
     "autosmooth_fset_slide": "fset_slide",
-    "topology_rake_factor": "topology_rake"
+    "topology_rake_factor": "topology_rake",
+    "use_locked_size" : "radius_unit"
 };
-expand_channels = {"direction"}
+expand_channels = {"direction", "radius_unit", "automasking"}
 
 def template_curve(layout, base, propname, full_path):
     layout.template_curve_mapping(base, propname, brush=True)
@@ -125,11 +126,64 @@ class UnifiedPaintPanel:
         return None
 
     @staticmethod
+
+    def get_channel(context, brush, prop_name, toolsettings_only=False):
+        ch = brush.channels.channels[prop_name]
+
+        if ch.inherit or toolsettings_only:
+            sd = context.tool_settings.sculpt
+            #ensure channel exists in tool settings channel set
+            sd.channels.ensure(ch)
+            ch = sd.channels.channels[prop_name]
+
+        return ch
+
+    def get_channel_value(context, brush, prop_name, toolsettings_only=False):
+        ch = brush.channels.channels[prop_name]
+
+        if ch.inherit or toolsettings_only:
+            sd = context.tool_settings.sculpt
+            #ensure channel exists in tool settings channel set
+            sd.channels.ensure(ch)
+            ch = sd.channels.channels[prop_name]
+
+        if ch.type == "FLOAT":
+            return ch.float_value
+        elif ch.type == "INT":
+            return ch.int_value
+        elif ch.type == "ENUM":
+            return ch.enum_value
+        elif ch.type == "BITMASK":
+            return ch.flags_value
+        elif ch.type == "VEC3":
+            return ch.color3_value
+        elif ch.type == "VEC4":
+            return ch.color4_value
+        elif ch.type == "CURVE":
+            return ch.curve
+
     def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None,
                         slider=False, header=False, show_reorder=False, expand=None, toolsettings_only=False, ui_editing=True):
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle, if they exist. """
+
+        if context.mode != "SCULPT":
+            return self.prop_unified(layout, context, brush, prop_name, icon=icon, text=text, slider=slider, header=header, expand=expand)
+
+        if prop_name == "size":
+            prop_name = "radius"
+        elif prop_name == "use_locked_size":
+            prop_name = "radius_unit"
+
         ch = brush.channels.channels[prop_name]
+
+        #dynamically switch to unprojected radius if necassary
+        if prop_name == "radius":
+            size_mode = brush.channels.channels["radius_unit"].enum_value == "SCENE"
+            if size_mode:
+                prop_name = "unprojected_radius"
+                ch = brush.channels.channels[prop_name]
+
         finalch = ch
 
         if prop_name in expand_channels:
@@ -141,7 +195,7 @@ class UnifiedPaintPanel:
         #    layout = layout.box().column() #.column() is a bit more compact
 
         if ch.type == "BITMASK":
-            layout = layout.box()
+            layout = layout.column(align=True)
 
         row = layout.row(align=True)
 
@@ -160,8 +214,11 @@ class UnifiedPaintPanel:
             typeprop = "color3_value"
         elif ch.type == "VEC4":
             typeprop = "color4_value"
-        
+
         if text is None:
+            text = ch.name
+
+        if len(text) == 0: #auto-generate from idname
             s = prop_name.lower().replace("_", " ").split(" ");
             text = ''
             for k in s:
@@ -209,19 +266,34 @@ class UnifiedPaintPanel:
                 template_curve(layout, finalch.curve, "curve", path2)
 
         elif ch.type == "BITMASK":
-            row.label(text=text)
-
-            if header:
-                row.prop_menu_enum(finalch, typeprop)
+            if header or not expand:
+                row.label(text=text)
+                row.prop_menu_enum(finalch, typeprop, text=text)
             else:
-                col = layout.column()
-                col.emboss = "NONE"
-                for item in finalch.enum_items:
+                #why is it so hard to make bitflag checkboxes?
+
+                row.label(text=text)
+                col = layout.row(align=True)
+                #col.emboss = "NONE"
+                row1 = col.column(align=True)
+                row2 = col.column(align=True)
+
+                row1.emboss = "NONE"
+                row2.emboss = "NONE"
+
+                row1.use_property_split = False
+                row2.use_property_split = False
+                row1.use_property_decorate = False
+                row2.use_property_decorate = False
+
+                for j, item in enumerate(finalch.enum_items):
+                    row3 = row1 if j % 2 == 0  else row2
+
                     if item.identifier in finalch.flags_value:
                         itemicon = "CHECKBOX_HLT"
                     else:
                         itemicon = "CHECKBOX_DEHLT"
-                    col.prop_enum(finalch, typeprop, item.identifier, icon=itemicon)
+                    row3.prop_enum(finalch, typeprop, item.identifier, icon=itemicon)
 
         elif expand is not None:
             row.prop(finalch, typeprop, icon=icon, text=text, slider=slider, expand=expand)
@@ -274,7 +346,7 @@ class UnifiedPaintPanel:
                     row2.prop(mp, "enabled", text="", icon="STYLUS_PRESSURE")
                     row2.prop(mp0, "ui_expanded", text="", icon="TRIA_DOWN" if mp.ui_expanded else "TRIA_RIGHT")
 
-                    if mp.ui_expanded:
+                    if mp0.ui_expanded:
                         layout.template_curve_mapping(mp, "curve", brush=True)
 
                         col = layout.column(align=True)
@@ -306,16 +378,18 @@ class UnifiedPaintPanel:
             text=None,
             slider=False,
             header=False,
+            expand=None
     ):
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle, if they exist. """
 
-        if prop_name in channel_name_map:
-            prop_name = channel_name_map[prop_name]
+        if context.mode == "SCULPT":
+            if prop_name in channel_name_map:
+                prop_name = channel_name_map[prop_name]
 
-        if prop_name in brush.channels.channels:
-            #    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None, slider=False, header=False):
-            return UnifiedPaintPanel.channel_unified(layout, context, brush, prop_name, icon=icon, text=text, slider=slider, header=header)
+            if prop_name in brush.channels.channels:
+                #    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None, slider=False, header=False):
+                return UnifiedPaintPanel.channel_unified(layout, context, brush, prop_name, icon=icon, text=text, slider=slider, header=header)
 
         row = layout.row(align=True)
         ups = context.tool_settings.unified_paint_settings
@@ -323,7 +397,10 @@ class UnifiedPaintPanel:
         if unified_name and getattr(ups, unified_name):
             prop_owner = ups
 
-        row.prop(prop_owner, prop_name, icon=icon, text=text, slider=slider)
+        if expand is not None:
+            row.prop(prop_owner, prop_name, icon=icon, text=text, slider=slider, expand=expand)
+        else:
+            row.prop(prop_owner, prop_name, icon=icon, text=text, slider=slider)
 
         if pressure_name:
             row.prop(brush, pressure_name, text="")
@@ -1267,27 +1344,19 @@ def brush_shared_settings(layout, context, brush, popover=False):
                 layout,
                 context,
                 brush,
-                "radius" if size_prop == "size" else size_prop.upper(),
+                size_prop,
                 text="Radius",
                 slider=True,
             )
         if size_mode:
-            layout.row().prop(size_owner, "use_locked_size", expand=True)
-            layout.separator()
-    elif size or size_mode:
-        if size:
-            UnifiedPaintPanel.prop_unified(
-                layout,
+            #layout.row().prop(size_owner, "use_locked_size", expand=True)
+            UnifiedPaintPanel.channel_unified(
+                layout.row(),
                 context,
                 brush,
-                size_prop,
-                unified_name="use_unified_size",
-                pressure_name="use_pressure_size",
-                text="Radius",
-                slider=True,
+                "use_locked_size",
+                expand=True
             )
-        if size_mode:
-            layout.row().prop(size_owner, "use_locked_size", expand=True)
             layout.separator()
 
     if strength:    
@@ -1429,7 +1498,7 @@ def brush_settings_advanced(layout, context, brush, popover=False):
                 layout.column(),
                 context,
                 brush,
-                "automasking", expand=False)
+                "automasking", expand=True)
         UnifiedPaintPanel.channel_unified(
                 layout.column(),
                 context,

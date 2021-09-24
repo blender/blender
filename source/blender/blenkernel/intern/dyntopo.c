@@ -2651,6 +2651,7 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
   TaskParallelSettings settings;
 
   BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = false;
   BLI_task_parallel_range(0, count, tdata, long_edge_queue_task_cb, &settings);
   const int cd_dyn_vert = pbvh->cd_dyn_vert;
 

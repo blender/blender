@@ -631,8 +631,10 @@ static float paint_space_stroke_spacing(bContext *C,
   Paint *paint = BKE_paint_get_active_from_context(C);
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
+
   float size_clamp = 0.0f;
   float final_size_pressure = size_pressure;
+
   if (brush->pressure_size_curve) {
     BKE_curvemapping_init(brush->pressure_size_curve);
     final_size_pressure = BKE_curvemapping_evaluateF(brush->pressure_size_curve, 0, size_pressure);
@@ -640,14 +642,15 @@ static float paint_space_stroke_spacing(bContext *C,
   float size = BKE_brush_size_get(scene, stroke->brush, mode == PAINT_MODE_SCULPT) *
                final_size_pressure;
   if (paint_stroke_use_scene_spacing(brush, mode)) {
-    if (!BKE_brush_use_locked_size(scene, brush)) {
+    if (!BKE_brush_use_locked_size(scene, brush, mode == PAINT_MODE_SCULPT)) {
       float last_object_space_position[3];
       mul_v3_m4v3(
           last_object_space_position, stroke->vc.obact->imat, stroke->last_world_space_position);
       size_clamp = paint_calc_object_space_radius(&stroke->vc, last_object_space_position, size);
     }
     else {
-      size_clamp = BKE_brush_unprojected_radius_get(scene, brush) * final_size_pressure;
+      size_clamp = BKE_brush_unprojected_radius_get(scene, brush, mode == PAINT_MODE_SCULPT) *
+                   final_size_pressure;
     }
   }
   else {
@@ -733,14 +736,15 @@ static float paint_space_get_final_size_intern(
   float size = BKE_brush_size_get(scene, stroke->brush, mode == PAINT_MODE_SCULPT) * pressure;
 
   if (paint_stroke_use_scene_spacing(stroke->brush, mode)) {
-    if (!BKE_brush_use_locked_size(scene, stroke->brush)) {
+    if (!BKE_brush_use_locked_size(scene, stroke->brush, mode == PAINT_MODE_SCULPT)) {
       float last_object_space_position[3];
       mul_v3_m4v3(
           last_object_space_position, stroke->vc.obact->imat, stroke->last_world_space_position);
       size = paint_calc_object_space_radius(&stroke->vc, last_object_space_position, size);
     }
     else {
-      size = BKE_brush_unprojected_radius_get(scene, stroke->brush) * pressure;
+      size = BKE_brush_unprojected_radius_get(scene, stroke->brush, mode == PAINT_MODE_SCULPT) *
+             pressure;
     }
   }
 

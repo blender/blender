@@ -830,6 +830,47 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
 
     def draw(self, context):
         layout = self.layout
+
+        brush = context.tool_settings.sculpt.brush
+
+        ch = brush.channels.channels["dyntopo_mode"]
+
+        if ch.inherit:
+            row = layout.row()
+            row.prop(ch, "show_in_workspace", text="", icon="HIDE_OFF")
+            row.label(text="Remesher Options")
+            row.prop(ch, "inherit", text="", icon="BRUSHES_ALL")
+        else:
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "dyntopo_mode",
+                text="Remesher Options",
+                expand=True
+            )
+
+        UnifiedPaintPanel.channel_unified(
+            layout,
+            context,
+            brush,
+            "dyntopo_detail_mode",
+            text="Detail Mode",
+            expand=False
+        )
+
+        keys = ["dyntopo_spacing", "dyntopo_detail_size", "dyntopo_detail_range", "dyntopo_detail_percent",
+                 "dyntopo_constant_detail", "dyntopo_radius_scale"]
+        for k in keys:
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                k,
+                slider=True
+            )
+
+        return
         layout.use_property_split = True
         layout.use_property_decorate = False
 
@@ -881,7 +922,60 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
         do_prop("mode")
         do_prop("radius_scale")
 
-# TODO, move to space_view3d.py
+
+from bpy.types import Operator
+from bpy.props import EnumProperty
+
+class SCULPT_OT_set_dyntopo_mode (Operator):
+    """Set refine mode"""
+
+    bl_label = "Set Detail Mode"
+    bl_idname = "sculpt.set_dyntopo_mode"
+    
+    mode: EnumProperty(items=[
+        ("SC", "Subdivide Collapse", "", 1),
+        ("S", "Subdivide Edges", "", 2),
+        ("C", "Collapse Edges", "", 3)
+    ])
+    
+    def execute(self, context):
+        brush = context.tool_settings.sculpt.brush
+        ch = UnifiedPaintPanel.get_channel(context, brush, "dyntopo_mode")
+        
+        oldf = set()
+        for f in ch.flags_value:
+            if f not in ["SUBDIVIDE", "COLLAPSE"]:
+                oldf.add(f)
+                
+        if self.mode == "SC":
+            ch.flags_value = oldf.union({"SUBDIVIDE", "COLLAPSE"})
+        elif self.mode == "S":
+            ch.flags_value = oldf.union({"SUBDIVIDE"})
+        elif self.mode == "C":
+            ch.flags_value = oldf.union({"COLLAPSE"})
+            
+        return {'FINISHED'}
+
+def set_dyntopo_mode_button(layout, context):
+    brush = context.tool_settings.sculpt.brush
+
+    ch = brush.channels.channels["dyntopo_mode"]
+    finalch = UnifiedPaintPanel.get_channel(context, brush, "dyntopo_mode")
+
+    if "SUBDIVIDE" in finalch.flags_value and "COLLAPSE" in finalch.flags_value:
+        text = "Subdivide Collapse"
+    elif "SUBDIVIDE" in finalch.flags_value:
+        text = "Subdivide Edges"
+    elif "COLLAPSE" in finalch.flags_value:
+        text = "Collapse Edges"
+    else:
+        text = ""
+
+    row = layout.row(heading="Refine Method")
+    row.use_property_split = False
+    row.operator_menu_enum("sculpt.set_dyntopo_mode", "mode", text=text)
+    row.prop(ch, "inherit", text="", icon="BRUSHES_ALL")
+
 class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Dynamic Mode"
@@ -912,7 +1006,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         sculpt = tool_settings.sculpt
         settings = self.paint_settings(context)
         brush = settings.brush
-
+            
         col = layout.column()
         col.active = context.sculpt_object.use_dynamic_topology_sculpting
 
@@ -920,27 +1014,87 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
 
         sub = col.column()
         sub.active = (brush and brush.sculpt_tool != 'MASK')
-        if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
+
+        detail_mode = UnifiedPaintPanel.get_channel_value(context, brush, "dyntopo_detail_mode")
+
+        if detail_mode in {'CONSTANT', 'MANUAL'}:
             row = sub.row(align=True)
-            row.prop(sculpt, "constant_detail_resolution")
+            #row.prop(sculpt, "constant_detail_resolution")
+            UnifiedPaintPanel.channel_unified(
+                row,
+                context,
+                brush,
+                "dyntopo_constant_detail",
+                text="Constant Resolution",
+                #slider=True,
+                ui_editing=False,
+                pressure=False
+            )
             props = row.operator("sculpt.sample_detail_size", text="", icon='EYEDROPPER')
             props.mode = 'DYNTOPO'
-        elif (sculpt.detail_type_method == 'BRUSH'):
-            sub.prop(sculpt, "detail_percent")
+        elif detail_mode == 'BRUSH':
+            UnifiedPaintPanel.channel_unified(
+                sub,
+                context,
+                brush,
+                "dyntopo_detail_percent",
+                text="Detail Percent",
+                #slider=True,
+                ui_editing=False,
+                pressure=False
+            )
         else:
-            sub.prop(sculpt, "detail_size")
-        sub.prop(sculpt, "detail_refine_method", text="Refine Method")
-        sub.prop(sculpt, "detail_type_method", text="Detailing")
+            UnifiedPaintPanel.channel_unified(
+            sub,
+            context,
+            brush,
+            "dyntopo_detail_size",
+            text="Detail Size",
+            #slider=True,
+            ui_editing=False,
+            pressure=False
+            )
 
-        if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
+        #"""
+        UnifiedPaintPanel.channel_unified(
+            sub,
+            context,
+            brush,
+            "dyntopo_detail_mode",
+            text="Detailing",
+            expand=False,
+            ui_editing=False
+        )
+
+        set_dyntopo_mode_button(sub, context)
+
+        col2 = col.row() #sub.column()
+        ch = UnifiedPaintPanel.get_channel(context, brush, "dyntopo_mode")
+
+        col2.use_property_split = False
+        col2.prop_enum(ch, "flags_value", "CLEANUP", icon = "CHECKBOX_HLT" if "CLEANUP" in ch.flags_value else "CHECKBOX_DEHLT")
+
+        """
+        UnifiedPaintPanel.channel_unified(
+            sub,
+            context,
+            brush,
+            "dyntopo_mode",
+            text="Refine Method",
+            expand=True,
+            ui_editing=False
+        )
+        #"""
+
+        if detail_mode in {'CONSTANT', 'MANUAL'}:
             col.operator("sculpt.detail_flood_fill")
 
-        col.prop(sculpt, "use_dyntopo_cleanup")
+        #col.prop(sculpt, "use_dyntopo_cleanup")
         col.prop(sculpt, "use_smooth_shading")
         col.prop(sculpt, "use_flat_vcol_shading")
 
-        UnifiedPaintPanel.channel_unified(layout, context, brush, "dyntopo_spacing", slider=True)
-        UnifiedPaintPanel.channel_unified(layout, context, brush, "dyntopo_radius_scale", slider=True)
+        UnifiedPaintPanel.channel_unified(layout, context, brush, "dyntopo_spacing", slider=True, ui_editing=False)
+        UnifiedPaintPanel.channel_unified(layout, context, brush, "dyntopo_radius_scale", slider=True, ui_editing=False)
         
         #col.prop(sculpt, "dyntopo_spacing")
         #col.prop(sculpt, "dyntopo_radius_scale");
@@ -1015,13 +1169,19 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
                 layout.column(),
                 context,
                 brush,
-                "automasking", toolsettings_only=True)
+                "automasking", toolsettings_only=True, expand=True, ui_editing=False)
         UnifiedPaintPanel.channel_unified(
                 layout.column(),
                 context,
                 brush,
                 "automasking_boundary_edges_propagation_steps",
-                toolsettings_only=True)
+                toolsettings_only=True, ui_editing=False)
+        UnifiedPaintPanel.channel_unified(
+                layout.column(),
+                context,
+                brush,
+                "concave_mask_factor",
+                toolsettings_only=True, ui_editing=False, slider=True)
 
         """
         col = layout.column(heading="Auto-Masking", align=True)
@@ -2441,7 +2601,8 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_brush_vertex_color,
     VIEW3D_PT_tools_grease_pencil_brush_vertex_palette,
     VIEW3D_PT_tools_grease_pencil_brush_vertex_falloff,
-    VIEW3D_PT_sculpt_dyntopo_advanced
+    VIEW3D_PT_sculpt_dyntopo_advanced,
+    SCULPT_OT_set_dyntopo_mode
 )
 
 if __name__ == "__main__":  # only for live edit.

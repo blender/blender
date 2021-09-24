@@ -304,7 +304,15 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, ARegion *region,
 
   if (srd.hit && srd.edge_length > 0.0f) {
     /* Convert edge length to world space detail resolution. */
-    sd->constant_detail = 1 / (srd.edge_length * mat4_to_scale(ob->obmat));
+    float constant_detail = 1 / (srd.edge_length * mat4_to_scale(ob->obmat));
+
+    BrushChannel *ch = BRUSHSET_LOOKUP(brush->channels, dyntopo_constant_detail);
+    if (ch->flag & BRUSH_CHANNEL_INHERIT) {
+      BKE_brush_channelset_ensure_builtin(sd->channels, "dyntopo_constant_detail");
+      ch = BRUSHSET_LOOKUP(sd->channels, dyntopo_constant_detail);
+    }
+
+    ch->fvalue = constant_detail;
   }
 }
 

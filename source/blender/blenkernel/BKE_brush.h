@@ -119,17 +119,22 @@ void BKE_brush_size_set(struct Scene *scene,
                         int size,
                         bool use_brush_channel);
 
-float BKE_brush_unprojected_radius_get(const struct Scene *scene, const struct Brush *brush);
+float BKE_brush_unprojected_radius_get(const struct Scene *scene,
+                                       const struct Brush *brush,
+                                       bool use_channels);
 void BKE_brush_unprojected_radius_set(struct Scene *scene,
                                       struct Brush *brush,
-                                      float unprojected_radius);
+                                      float unprojected_radius,
+                                      bool use_channels);
 
 float BKE_brush_alpha_get(const struct Scene *scene, const struct Brush *brush);
 void BKE_brush_alpha_set(struct Scene *scene, struct Brush *brush, float alpha);
 float BKE_brush_weight_get(const struct Scene *scene, const struct Brush *brush);
 void BKE_brush_weight_set(const struct Scene *scene, struct Brush *brush, float value);
 
-bool BKE_brush_use_locked_size(const struct Scene *scene, const struct Brush *brush);
+bool BKE_brush_use_locked_size(const struct Scene *scene,
+                               const struct Brush *brush,
+                               bool use_channels);
 bool BKE_brush_use_alpha_pressure(const struct Brush *brush);
 bool BKE_brush_use_size_pressure(const struct Brush *brush);
 

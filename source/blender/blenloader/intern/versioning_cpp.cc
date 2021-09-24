@@ -11,7 +11,7 @@
 using namespace std;
 
 extern "C" {
-ATTR_NO_OPT const char *sculpt_keymap_fix_intern(const char *str)
+const char *sculpt_keymap_fix_intern(const char *str)
 {
   basic_string repl = regex_replace(str, regex("unified_"), "");
   repl = regex_replace(repl, regex("size"), "radius");
@@ -74,7 +74,7 @@ ATTR_NO_OPT const char *sculpt_keymap_fix_intern(const char *str)
   return ret;
 }
 
-ATTR_NO_OPT static void test_regexp()
+static void test_regexp()
 {
   // TODO: figure out blender's testing framework
 

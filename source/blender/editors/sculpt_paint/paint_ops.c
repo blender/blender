@@ -173,13 +173,14 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 
     /* unprojected radius */
     {
-      float unprojected_radius = scalar * BKE_brush_unprojected_radius_get(scene, brush);
+      float unprojected_radius = scalar * BKE_brush_unprojected_radius_get(
+                                              scene, brush, use_brush_channels);
 
       if (unprojected_radius < 0.001f) { /* XXX magic number */
         unprojected_radius = 0.001f;
       }
 
-      BKE_brush_unprojected_radius_set(scene, brush, unprojected_radius);
+      BKE_brush_unprojected_radius_set(scene, brush, unprojected_radius, true);
     }
 
     WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);

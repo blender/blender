@@ -129,7 +129,7 @@ bool BKE_brush_channel_curve_ensure_write(BrushCurve *curve)
   return false;
 }
 
-ATTR_NO_OPT static bool check_corrupted_curve(BrushMapping *dst)
+static bool check_corrupted_curve(BrushMapping *dst)
 {
   CurveMapping *curve = dst->curve;
 
@@ -175,8 +175,8 @@ generated from the node group inputs.
 extern BrushChannelType brush_builtin_channels[];
 extern const int brush_builtin_channel_len;
 
-ATTR_NO_OPT void BKE_brush_channeltype_rna_check(BrushChannelType *def,
-                                                 int (*getIconFromName)(const char *name))
+void BKE_brush_channeltype_rna_check(BrushChannelType *def,
+                                     int (*getIconFromName)(const char *name))
 {
   if (def->rna_enumdef) {
     return;
@@ -210,7 +210,7 @@ ATTR_NO_OPT void BKE_brush_channeltype_rna_check(BrushChannelType *def,
   }
 }
 
-ATTR_NO_OPT void BKE_brush_channel_free_data(BrushChannel *ch)
+void BKE_brush_channel_free_data(BrushChannel *ch)
 {
   if (ch->curve.curve) {
     RELEASE_OR_FREE_CURVE(ch->curve.curve);
@@ -223,13 +223,13 @@ ATTR_NO_OPT void BKE_brush_channel_free_data(BrushChannel *ch)
   }
 }
 
-ATTR_NO_OPT void BKE_brush_channel_free(BrushChannel *ch)
+void BKE_brush_channel_free(BrushChannel *ch)
 {
   BKE_brush_channel_free_data(ch);
   MEM_freeN(ch);
 }
 
-ATTR_NO_OPT static void copy_channel_data_keep_mappings(BrushChannel *dst, BrushChannel *src)
+static void copy_channel_data_keep_mappings(BrushChannel *dst, BrushChannel *src)
 {
   BLI_strncpy(dst->name, src->name, sizeof(dst->name));
   BLI_strncpy(dst->idname, src->idname, sizeof(dst->idname));
@@ -277,9 +277,7 @@ ATTR_NO_OPT static void copy_channel_data_keep_mappings(BrushChannel *dst, Brush
   }
 }
 
-ATTR_NO_OPT void BKE_brush_channel_copy_data(BrushChannel *dst,
-                                             BrushChannel *src,
-                                             bool keep_mapping)
+void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src, bool keep_mapping)
 {
   if (keep_mapping) {
     copy_channel_data_keep_mappings(dst, src);
@@ -345,7 +343,7 @@ ATTR_NO_OPT void BKE_brush_channel_copy_data(BrushChannel *dst,
   namestack_pop(NULL);
 }
 
-ATTR_NO_OPT void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
+void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
 {
   // preserve linked list pointers
   BrushChannel *next = ch->next, *prev = ch->prev;
@@ -453,7 +451,7 @@ BrushChannelSet *BKE_brush_channelset_create()
   return chset;
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_free(BrushChannelSet *chset)
+void BKE_brush_channelset_free(BrushChannelSet *chset)
 {
   BrushChannel *ch, *next;
 
@@ -470,7 +468,7 @@ ATTR_NO_OPT void BKE_brush_channelset_free(BrushChannelSet *chset)
 
 static int _rng_seed = 0;
 
-ATTR_NO_OPT void BKE_brush_channel_ensure_unque_name(BrushChannelSet *chset, BrushChannel *ch)
+void BKE_brush_channel_ensure_unque_name(BrushChannelSet *chset, BrushChannel *ch)
 {
   BrushChannel *ch2;
   int i = 1;
@@ -529,9 +527,7 @@ void BKE_brush_channelset_add(BrushChannelSet *chset, BrushChannel *ch)
   chset->totchannel++;
 }
 
-ATTR_NO_OPT void BKE_brush_channel_rename(BrushChannelSet *chset,
-                                          BrushChannel *ch,
-                                          const char *newname)
+void BKE_brush_channel_rename(BrushChannelSet *chset, BrushChannel *ch, const char *newname)
 {
   BLI_ghash_remove(chset->namemap, ch->idname, NULL, NULL);
   BLI_strncpy(ch->idname, newname, sizeof(ch->idname));
@@ -539,7 +535,7 @@ ATTR_NO_OPT void BKE_brush_channel_rename(BrushChannelSet *chset,
   BLI_ghash_insert(chset->namemap, ch->idname, ch);
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_remove(BrushChannelSet *chset, BrushChannel *ch)
+void BKE_brush_channelset_remove(BrushChannelSet *chset, BrushChannel *ch)
 {
   BLI_ghash_remove(chset->namemap, ch->idname, NULL, NULL);
   BLI_remlink(&chset->channels, ch);
@@ -547,7 +543,7 @@ ATTR_NO_OPT void BKE_brush_channelset_remove(BrushChannelSet *chset, BrushChanne
   chset->totchannel--;
 }
 
-ATTR_NO_OPT bool BKE_brush_channelset_remove_named(BrushChannelSet *chset, const char *idname)
+bool BKE_brush_channelset_remove_named(BrushChannelSet *chset, const char *idname)
 {
   BrushChannel *ch = BKE_brush_channelset_lookup(chset, idname);
   if (ch) {
@@ -558,7 +554,7 @@ ATTR_NO_OPT bool BKE_brush_channelset_remove_named(BrushChannelSet *chset, const
   return false;
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_add_duplicate(BrushChannelSet *chset, BrushChannel *ch)
+void BKE_brush_channelset_add_duplicate(BrushChannelSet *chset, BrushChannel *ch)
 {
   namestack_push(__func__);
 
@@ -574,12 +570,12 @@ ATTR_NO_OPT void BKE_brush_channelset_add_duplicate(BrushChannelSet *chset, Brus
   namestack_pop(NULL);
 }
 
-ATTR_NO_OPT BrushChannel *BKE_brush_channelset_lookup(BrushChannelSet *chset, const char *idname)
+BrushChannel *BKE_brush_channelset_lookup(BrushChannelSet *chset, const char *idname)
 {
   return BLI_ghash_lookup(chset->namemap, idname);
 }
 
-ATTR_NO_OPT bool BKE_brush_channelset_has(BrushChannelSet *chset, const char *idname)
+bool BKE_brush_channelset_has(BrushChannelSet *chset, const char *idname)
 {
   return BKE_brush_channelset_lookup(chset, idname) != NULL;
 }
@@ -605,12 +601,12 @@ BrushChannelType *BKE_brush_default_channel_def()
   return &brush_default_channel_type;
 }
 
-ATTR_NO_OPT void BKE_brush_channel_def_copy(BrushChannelType *dst, BrushChannelType *src)
+void BKE_brush_channel_def_copy(BrushChannelType *dst, BrushChannelType *src)
 {
   memcpy(dst, src, sizeof(*dst));
 }
 
-ATTR_NO_OPT BrushChannelType *BKE_brush_builtin_channel_def_find(const char *name)
+BrushChannelType *BKE_brush_builtin_channel_def_find(const char *name)
 {
   for (int i = 0; i < brush_builtin_channel_len; i++) {
     BrushChannelType *def = brush_builtin_channels + i;
@@ -623,8 +619,7 @@ ATTR_NO_OPT BrushChannelType *BKE_brush_builtin_channel_def_find(const char *nam
   return NULL;
 }
 
-ATTR_NO_OPT BrushChannel *BKE_brush_channelset_add_builtin(BrushChannelSet *chset,
-                                                           const char *idname)
+BrushChannel *BKE_brush_channelset_add_builtin(BrushChannelSet *chset, const char *idname)
 {
   BrushChannelType *def = BKE_brush_builtin_channel_def_find(idname);
 
@@ -662,8 +657,7 @@ BrushChannel *BKE_brush_channelset_ensure_builtin(BrushChannelSet *chset, const 
   return ch;
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset,
-                                                      BrushChannel *existing)
+void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset, BrushChannel *existing)
 {
   if (BKE_brush_channelset_has(chset, existing->idname)) {
     return;
@@ -674,9 +668,9 @@ ATTR_NO_OPT void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset,
   namestack_pop(NULL);
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_merge(BrushChannelSet *dst,
-                                            BrushChannelSet *child,
-                                            BrushChannelSet *parent)
+void BKE_brush_channelset_merge(BrushChannelSet *dst,
+                                BrushChannelSet *child,
+                                BrushChannelSet *parent)
 {
   // first add missing channels
   namestack_push(__func__);
@@ -738,9 +732,9 @@ ATTR_NO_OPT void BKE_brush_channelset_merge(BrushChannelSet *dst,
 }
 
 #ifdef DEBUG_CURVE_MAPPING_ALLOC
-ATTR_NO_OPT BrushChannelSet *_BKE_brush_channelset_copy(BrushChannelSet *src)
+BrushChannelSet *_BKE_brush_channelset_copy(BrushChannelSet *src)
 #else
-ATTR_NO_OPT BrushChannelSet *BKE_brush_channelset_copy(BrushChannelSet *src)
+BrushChannelSet *BKE_brush_channelset_copy(BrushChannelSet *src)
 #endif
 {
   BrushChannelSet *chset = BKE_brush_channelset_create();
@@ -999,7 +993,7 @@ float BKE_brush_channelset_get_float(BrushChannelSet *chset,
   return BKE_brush_channel_get_float(ch, mapdata);
 }
 
-ATTR_NO_OPT float BKE_brush_channel_get_float(BrushChannel *ch, BrushMappingData *mapdata)
+float BKE_brush_channel_get_float(BrushChannel *ch, BrushMappingData *mapdata)
 {
 
   float f = ch->fvalue;
@@ -1051,7 +1045,7 @@ ATTR_NO_OPT float BKE_brush_channel_get_float(BrushChannel *ch, BrushMappingData
 
   return f;
 }
-ATTR_NO_OPT void BKE_brush_channel_set_vector(BrushChannel *ch, float vec[4])
+void BKE_brush_channel_set_vector(BrushChannel *ch, float vec[4])
 {
   if (ch->type == BRUSH_CHANNEL_VEC4) {
     copy_v4_v4(ch->vector, vec);
@@ -1061,7 +1055,7 @@ ATTR_NO_OPT void BKE_brush_channel_set_vector(BrushChannel *ch, float vec[4])
   }
 }
 
-ATTR_NO_OPT int BKE_brush_channel_get_vector_size(BrushChannel *ch)
+int BKE_brush_channel_get_vector_size(BrushChannel *ch)
 {
   switch (ch->type) {
     case BRUSH_CHANNEL_VEC3:
@@ -1073,9 +1067,7 @@ ATTR_NO_OPT int BKE_brush_channel_get_vector_size(BrushChannel *ch)
   }
 }
 
-ATTR_NO_OPT int BKE_brush_channel_get_vector(BrushChannel *ch,
-                                             float out[4],
-                                             BrushMappingData *mapdata)
+int BKE_brush_channel_get_vector(BrushChannel *ch, float out[4], BrushMappingData *mapdata)
 {
   int size = 3;
   if (ch->type == BRUSH_CHANNEL_VEC4) {
@@ -1240,7 +1232,7 @@ bool BKE_brush_channelset_set_float(BrushChannelSet *chset, const char *idname, 
   return true;
 }
 
-ATTR_NO_OPT bool BKE_brush_channelset_set_int(BrushChannelSet *chset, const char *idname, int val)
+bool BKE_brush_channelset_set_int(BrushChannelSet *chset, const char *idname, int val)
 {
   BrushChannel *ch = BKE_brush_channelset_lookup(chset, idname);
 
@@ -1403,7 +1395,7 @@ static void _float_set_uninherit(BrushChannelSet *chset, const char *channel, fl
 
 /*flag all mappings to use inherited curves even if owning channel
   is not set to inherit.*/
-ATTR_NO_OPT void BKE_brush_commandset_inherit_all_mappings(BrushChannelSet *chset)
+void BKE_brush_commandset_inherit_all_mappings(BrushChannelSet *chset)
 {
   BrushChannel *ch;
   for (ch = chset->channels.first; ch; ch = ch->next) {
@@ -1413,11 +1405,11 @@ ATTR_NO_OPT void BKE_brush_commandset_inherit_all_mappings(BrushChannelSet *chse
   }
 }
 
-ATTR_NO_OPT static void bke_builtin_commandlist_create_paint(Brush *brush,
-                                                             BrushChannelSet *chset,
-                                                             BrushCommandList *cl,
-                                                             int tool,
-                                                             BrushMappingData *mapdata)
+static void bke_builtin_commandlist_create_paint(Brush *brush,
+                                                 BrushChannelSet *chset,
+                                                 BrushCommandList *cl,
+                                                 int tool,
+                                                 BrushMappingData *mapdata)
 {
   BrushCommand *cmd;
 
@@ -1478,11 +1470,11 @@ ATTR_NO_OPT static void bke_builtin_commandlist_create_paint(Brush *brush,
   // float
 }
 
-ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
-                                                BrushChannelSet *chset,
-                                                BrushCommandList *cl,
-                                                int tool,
-                                                BrushMappingData *mapdata)
+void BKE_builtin_commandlist_create(Brush *brush,
+                                    BrushChannelSet *chset,
+                                    BrushCommandList *cl,
+                                    int tool,
+                                    BrushMappingData *mapdata)
 {
   BrushCommand *cmd;
   BrushChannel *ch;
@@ -1604,7 +1596,7 @@ ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
   BKE_brush_commandset_inherit_all_mappings(cmd->params);
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
+void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
 {
   BLO_read_list(reader, &chset->channels);
 
@@ -1668,7 +1660,7 @@ ATTR_NO_OPT void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannel
   }
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_write(BlendWriter *writer, BrushChannelSet *chset)
+void BKE_brush_channelset_write(BlendWriter *writer, BrushChannelSet *chset)
 {
   BLO_write_struct(writer, BrushChannelSet, chset);
   BLO_write_struct_list(writer, BrushChannel, &chset->channels);

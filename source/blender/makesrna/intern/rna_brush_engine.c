@@ -40,9 +40,11 @@
 
 #include "IMB_imbuf.h"
 
+#include "BKE_brush.h"
 #include "BKE_brush_engine.h"
 #include "BKE_colortools.h"
 #include "DNA_sculpt_brush_types.h"
+
 #include "WM_types.h"
 
 static EnumPropertyItem null_enum[2] = {{0, "null", ICON_NONE, "null"}, {0, NULL, 0, NULL, NULL}};
@@ -75,13 +77,85 @@ int rna_BrushChannelSet_channels_assignint(struct PointerRNA *ptr,
 
 float rna_BrushChannel_get_value(PointerRNA *rna)
 {
-  BrushChannel *ch = rna->data;
+  BrushChannel *ch = (BrushChannel *)rna->data;
 
   return ch->fvalue;
 }
+
+static BrushChannel *get_paired_radius_channel(PointerRNA *rna)
+{
+  BrushChannel *ch = rna->data;
+
+  bool is_radius = STREQ(ch->idname, "radius");
+  bool is_unproj = STREQ(ch->idname, "unprojected_radius");
+
+  /*
+  the way the old brush system split view and scene
+  radii but presented them as the same to the user,
+  and also to parts of the API is proving difficult
+  to disentangle. . . - joeedh
+  */
+  if ((is_radius || is_unproj) && rna->owner_id) {
+    BrushChannelSet *chset = NULL;
+
+    if (GS(rna->owner_id->name) == ID_SCE) {
+      Scene *scene = ((Scene *)rna->owner_id);
+
+      if (scene->toolsettings && scene->toolsettings->sculpt) {
+        chset = scene->toolsettings->sculpt->channels;
+      }
+    }
+    else if (GS(rna->owner_id->name) == ID_BR) {
+      chset = ((Brush *)rna->owner_id)->channels;
+    }
+
+    if (!chset) {
+      return NULL;
+    }
+
+    return is_radius ? BRUSHSET_LOOKUP(chset, unprojected_radius) : BRUSHSET_LOOKUP(chset, radius);
+  }
+
+  return NULL;
+}
+
+void rna_BrushChannel_inherit_set(PointerRNA *rna, bool value)
+{
+  BrushChannel *ch = (BrushChannel *)rna->data;
+  BrushChannel *ch2 = get_paired_radius_channel(rna);
+
+  if (value) {
+    ch->flag |= BRUSH_CHANNEL_INHERIT;
+
+    if (ch2) {
+      ch2->flag |= BRUSH_CHANNEL_INHERIT;
+    }
+  }
+  else {
+    ch->flag &= ~BRUSH_CHANNEL_INHERIT;
+
+    if (ch2) {
+      ch2->flag &= ~BRUSH_CHANNEL_INHERIT;
+    }
+  }
+}
+
+bool rna_BrushChannel_inherit_get(PointerRNA *rna)
+{
+  BrushChannel *ch = (BrushChannel *)rna->data;
+
+  return ch->flag & BRUSH_CHANNEL_INHERIT;
+}
+
 void rna_BrushChannel_set_value(PointerRNA *rna, float value)
 {
   BrushChannel *ch = rna->data;
+  BrushChannel *ch2 = get_paired_radius_channel(rna);
+
+  if (ch2 && value != 0.0f && ch->fvalue != 0.0f) {
+    float ratio = value / ch->fvalue;
+    ch2->fvalue *= ratio;
+  }
 
   ch->fvalue = value;
 }
@@ -235,10 +309,10 @@ int lookup_icon_id(const char *icon)
   return ICON_NONE;
 }
 
-ATTR_NO_OPT const EnumPropertyItem *rna_BrushChannel_enum_value_get_items(struct bContext *C,
-                                                                          PointerRNA *ptr,
-                                                                          PropertyRNA *prop,
-                                                                          bool *r_free)
+const EnumPropertyItem *rna_BrushChannel_enum_value_get_items(struct bContext *C,
+                                                              PointerRNA *ptr,
+                                                              PropertyRNA *prop,
+                                                              bool *r_free)
 {
   BrushChannel *ch = (BrushChannel *)ptr->data;
 
@@ -471,7 +545,9 @@ void RNA_def_brush_channel(BlenderRNA *brna)
                                "rna_BrushChannel_value_range");
 
   prop = RNA_def_property(srna, "inherit", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_INHERIT);
+  // RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_INHERIT);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_BrushChannel_inherit_get", "rna_BrushChannel_inherit_set");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Inherit", "Inherit from scene defaults");
 

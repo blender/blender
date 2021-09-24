@@ -1013,7 +1013,7 @@ static void paint_cursor_update_unprojected_radius(UnifiedPaintSettings *ups,
   bool use_brush_channels = paint_use_channels(vc->C);
 
   /* Update the brush's cached 3D radius. */
-  if (!BKE_brush_use_locked_size(vc->scene, brush)) {
+  if (!BKE_brush_use_locked_size(vc->scene, brush, use_brush_channels)) {
     /* Get 2D brush radius. */
     if (ups->draw_anchored) {
       projected_radius = ups->anchored_size;
@@ -1036,7 +1036,7 @@ static void paint_cursor_update_unprojected_radius(UnifiedPaintSettings *ups,
     }
 
     /* Set cached value in either Brush or UnifiedPaintSettings. */
-    BKE_brush_unprojected_radius_set(vc->scene, brush, unprojected_radius);
+    BKE_brush_unprojected_radius_set(vc->scene, brush, unprojected_radius, use_brush_channels);
   }
 }
 
@@ -1357,7 +1357,7 @@ static void paint_cursor_update_pixel_radius(PaintCursorContext *pcontext)
     Brush *brush = BKE_paint_brush(pcontext->paint);
     pcontext->pixel_radius = project_brush_radius(
         &pcontext->vc,
-        BKE_brush_unprojected_radius_get(pcontext->scene, brush),
+        BKE_brush_unprojected_radius_get(pcontext->scene, brush, use_brush_channels),
         pcontext->location);
 
     if (pcontext->pixel_radius == 0) {
@@ -1393,6 +1393,8 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
       pcontext->y - pcontext->region->winrct.ymin,
   };
 
+  bool use_brush_channels = paint_use_channels(vc->C);
+
   /* This updates the active vertex, which is needed for most of the Sculpt/Vertex Colors tools to
    * work correctly */
   pcontext->prev_active_vertex_index = ss->active_vertex_index;
@@ -1409,8 +1411,8 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
 
   paint_cursor_update_pixel_radius(pcontext);
 
-  if (BKE_brush_use_locked_size(scene, brush)) {
-    BKE_brush_size_set(scene, brush, pcontext->pixel_radius, !!ss);
+  if (BKE_brush_use_locked_size(scene, brush, use_brush_channels)) {
+    BKE_brush_size_set(scene, brush, pcontext->pixel_radius, true);
   }
 
   if (pcontext->is_cursor_over_mesh) {
@@ -1578,14 +1580,15 @@ static void paint_cursor_update_object_space_radius(PaintCursorContext *pcontext
 {
   bool use_brush_channels = paint_use_channels(pcontext->C);
 
-  if (!BKE_brush_use_locked_size(pcontext->scene, pcontext->brush)) {
+  if (!BKE_brush_use_locked_size(pcontext->scene, pcontext->brush, use_brush_channels)) {
     pcontext->radius = paint_calc_object_space_radius(
         &pcontext->vc,
         pcontext->location,
         BKE_brush_size_get(pcontext->scene, pcontext->brush, use_brush_channels));
   }
   else {
-    pcontext->radius = BKE_brush_unprojected_radius_get(pcontext->scene, pcontext->brush);
+    pcontext->radius = BKE_brush_unprojected_radius_get(
+        pcontext->scene, pcontext->brush, use_brush_channels);
   }
 }
 
@@ -1677,7 +1680,10 @@ static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pconte
   }
 
   ss->boundary_preview = SCULPT_boundary_data_init(pcontext->sd,
-      pcontext->vc.obact, pcontext->brush, ss->active_vertex_index, pcontext->radius);
+                                                   pcontext->vc.obact,
+                                                   pcontext->brush,
+                                                   ss->active_vertex_index,
+                                                   pcontext->radius);
 }
 
 static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *pcontext)

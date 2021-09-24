@@ -35,9 +35,9 @@
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
 
-#include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_bvhutils.h"
 #include "BKE_customdata.h"
@@ -68,14 +68,14 @@ using blender::MutableSpan;
 using blender::Span;
 
 #ifdef WITH_QUADRIFLOW
-ATTR_NO_OPT static Mesh *remesh_quadriflow(const Mesh *input_mesh,
-                                           int target_faces,
-                                           int seed,
-                                           bool preserve_sharp,
-                                           bool preserve_boundary,
-                                           bool adaptive_scale,
-                                           void (*update_cb)(void *, float progress, int *cancel),
-                                           void *update_cb_data)
+static Mesh *remesh_quadriflow(const Mesh *input_mesh,
+                               int target_faces,
+                               int seed,
+                               bool preserve_sharp,
+                               bool preserve_boundary,
+                               bool adaptive_scale,
+                               void (*update_cb)(void *, float progress, int *cancel),
+                               void *update_cb_data)
 {
   /* Ensure that the triangulated mesh data is up to data */
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(input_mesh);
@@ -417,16 +417,19 @@ void BKE_mesh_remesh_sculpt_array_update(Object *ob, Mesh *target, Mesh *source)
 
   const int target_totvert = target->totvert;
 
-  int *target_copy_index = (int *)MEM_malloc_arrayN(sizeof(int), target_totvert, "target_copy_index");
-  int *target_symmertry = (int *)MEM_malloc_arrayN(sizeof(int), target_totvert, "target_copy_index");
-  float (*target_orco)[3] = (float (*)[3])MEM_malloc_arrayN(target->totvert, sizeof(float) * 3, "array orco");
+  int *target_copy_index = (int *)MEM_malloc_arrayN(
+      sizeof(int), target_totvert, "target_copy_index");
+  int *target_symmertry = (int *)MEM_malloc_arrayN(
+      sizeof(int), target_totvert, "target_copy_index");
+  float(*target_orco)[3] = (float(*)[3])MEM_malloc_arrayN(
+      target->totvert, sizeof(float) * 3, "array orco");
 
   for (int i = 0; i < target_totvert; i++) {
     target_copy_index[i] = -1;
     target_symmertry[i] = 0;
     copy_v3_v3(target_orco[i], target->mvert[i].co);
   }
-  
+
   for (int i = 0; i < target->totvert; i++) {
     float from_co[3];
     BVHTreeNearest nearest;
@@ -449,23 +452,23 @@ void BKE_mesh_remesh_sculpt_array_update(Object *ob, Mesh *target, Mesh *source)
   array->symmetry_pass = target_symmertry;
   array->orco = target_orco;
 
-    for (int i = 0; i < target->totvert; i++) {
-        int array_index = target_copy_index[i];
-        int array_symm_pass = target_symmertry[i];
-        if (array_index == -1) {
-          continue;
-        }
-       SculptArrayCopy *copy = &array->copies[array_symm_pass][array_index];
-       float co[3];
-       float source_origin_symm[3];
-       copy_v3_v3(co, target->mvert[i].co);
-       /* TODO: MAke symmetry work here. */
-       //flip_v3_v3(source_origin_symm, array->source_origin, array_symm_pass);
-       mul_v3_m4v3(co, array->source_imat, co); 
-       mul_v3_m4v3(co, copy->imat, co);
-       sub_v3_v3v3(co, co, source_origin_symm);
-       copy_v3_v3(array->orco[i], co);
-      }
+  for (int i = 0; i < target->totvert; i++) {
+    int array_index = target_copy_index[i];
+    int array_symm_pass = target_symmertry[i];
+    if (array_index == -1) {
+      continue;
+    }
+    SculptArrayCopy *copy = &array->copies[array_symm_pass][array_index];
+    float co[3];
+    float source_origin_symm[3];
+    copy_v3_v3(co, target->mvert[i].co);
+    /* TODO: MAke symmetry work here. */
+    // flip_v3_v3(source_origin_symm, array->source_origin, array_symm_pass);
+    mul_v3_m4v3(co, array->source_imat, co);
+    mul_v3_m4v3(co, copy->imat, co);
+    sub_v3_v3v3(co, co, source_origin_symm);
+    copy_v3_v3(array->orco[i], co);
+  }
 }
 
 void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)

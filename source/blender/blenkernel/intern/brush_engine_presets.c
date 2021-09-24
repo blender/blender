@@ -180,7 +180,7 @@ BrushChannelType brush_builtin_channels[] = {
 const int brush_builtin_channel_len = ARRAY_SIZE(brush_builtin_channels);
 
 static bool do_builtin_init = true;
-ATTR_NO_OPT static bool check_builtin_init()
+static bool check_builtin_init()
 {
   if (!do_builtin_init || !BLI_thread_is_main()) {
     return false;
@@ -219,10 +219,13 @@ ATTR_NO_OPT static bool check_builtin_init()
 #  undef GETCH
 #endif
 
+/* TODO: replace these two macros with equivalent BRUSHSET_XXX ones */
 #define ADDCH(name) \
   (BKE_brush_channelset_ensure_builtin(chset, BRUSH_BUILTIN_##name), \
    BKE_brush_channelset_lookup(chset, BRUSH_BUILTIN_##name))
 #define GETCH(name) BKE_brush_channelset_lookup(chset, BRUSH_BUILTIN_##name)
+
+/* create pointer map between brush channels and old brush settings */
 
 /* clang-format off */
 #define DEF(brush_member, channel_name, btype, ctype) \
@@ -307,7 +310,9 @@ static BrushSettingsMap dyntopo_settings_map[] = {
   DEF(constant_detail, dyntopo_constant_detail, FLOAT, FLOAT)
   DEF(spacing, dyntopo_spacing, INT, FLOAT)
   DEF(radius_scale, dyntopo_radius_scale, FLOAT, FLOAT)
+  DEF(mode, dyntopo_detail_mode, INT, INT)
 };
+
 static const int dyntopo_settings_map_len = ARRAY_SIZE(dyntopo_settings_map);
 
 /* clang-format on */
@@ -345,14 +350,14 @@ BrushFlagMap brush_flags_map[] =  {
   DEF(flag, use_frontface, BRUSH_FRONTFACE)
   DEF(flag2, cloth_use_collision, BRUSH_CLOTH_USE_COLLISION)
   DEF(flag2, cloth_pin_simulation_boundary, BRUSH_CLOTH_PIN_SIMULATION_BOUNDARY)
+  DEF(flag,  radius_unit, BRUSH_LOCK_SIZE)
 };
 
 int brush_flags_map_len = ARRAY_SIZE(brush_flags_map);
 
 /* clang-format on */
 
-static ATTR_NO_OPT void do_coerce(
-    int type1, void *ptr1, int size1, int type2, void *ptr2, int size2)
+static void do_coerce(int type1, void *ptr1, int size1, int type2, void *ptr2, int size2)
 {
   double val = 0;
   float vec[4];
@@ -444,7 +449,7 @@ void *get_channel_value_pointer(BrushChannel *ch, int *r_data_size)
   return NULL;
 }
 
-ATTR_NO_OPT static void brush_flags_from_channels(BrushChannelSet *chset, Brush *brush)
+static void brush_flags_from_channels(BrushChannelSet *chset, Brush *brush)
 {
   for (int i = 0; i < brush_flags_map_len; i++) {
     BrushFlagMap *mf = brush_flags_map + i;
@@ -502,7 +507,7 @@ ATTR_NO_OPT static void brush_flags_from_channels(BrushChannelSet *chset, Brush 
   }
 }
 
-ATTR_NO_OPT static void brush_flags_to_channels(BrushChannelSet *chset, Brush *brush)
+static void brush_flags_to_channels(BrushChannelSet *chset, Brush *brush)
 {
   for (int i = 0; i < brush_flags_map_len; i++) {
     BrushFlagMap *mf = brush_flags_map + i;
@@ -540,11 +545,11 @@ ATTR_NO_OPT static void brush_flags_to_channels(BrushChannelSet *chset, Brush *b
   }
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_compat_load_intern(BrushChannelSet *chset,
-                                                         void *data,
-                                                         bool brush_to_channels,
-                                                         BrushSettingsMap *settings_map,
-                                                         int settings_map_len)
+void BKE_brush_channelset_compat_load_intern(BrushChannelSet *chset,
+                                             void *data,
+                                             bool brush_to_channels,
+                                             BrushSettingsMap *settings_map,
+                                             int settings_map_len)
 {
   for (int i = 0; i < settings_map_len; i++) {
     BrushSettingsMap *mp = settings_map + i;
@@ -569,9 +574,7 @@ ATTR_NO_OPT void BKE_brush_channelset_compat_load_intern(BrushChannelSet *chset,
   }
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
-                                                  Brush *brush,
-                                                  bool brush_to_channels)
+void BKE_brush_channelset_compat_load(BrushChannelSet *chset, Brush *brush, bool brush_to_channels)
 {
   if (brush_to_channels) {
     brush_flags_to_channels(chset, brush);
@@ -609,12 +612,6 @@ ATTR_NO_OPT void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
     BKE_brush_channelset_set_int(chset, "dyntopo_mode", brush->dyntopo.flag & mask);
     BKE_brush_channelset_set_int(
         chset, "dyntopo_disabled", brush->dyntopo.flag & DYNTOPO_DISABLED ? 1 : 0);
-
-    BRUSHSET_SET_FLOAT(chset, dyntopo_detail_range, brush->dyntopo.detail_range);
-    BRUSHSET_SET_FLOAT(chset, dyntopo_detail_percent, brush->dyntopo.detail_percent);
-    BRUSHSET_SET_FLOAT(chset, dyntopo_detail_size, brush->dyntopo.detail_size);
-    BRUSHSET_SET_FLOAT(chset, dyntopo_constant_detail, brush->dyntopo.constant_detail);
-    BRUSHSET_SET_FLOAT(chset, dyntopo_spacing, brush->dyntopo.spacing);
   }
 
   /* pen pressure flags */
@@ -723,6 +720,8 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(radius);
   ADDCH(spacing);
   ADDCH(strength);
+  ADDCH(radius_unit);
+  ADDCH(unprojected_radius);
 
   ADDCH(autosmooth);
   ADDCH(autosmooth_radius_scale);
@@ -751,7 +750,9 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(automasking);
   ADDCH(automasking_boundary_edges_propagation_steps);
   ADDCH(concave_mask_factor);
+
   ADDCH(dyntopo_disabled);
+  ADDCH(dyntopo_detail_mode)->flag |= BRUSH_CHANNEL_INHERIT;
   ADDCH(dyntopo_mode)->flag |= BRUSH_CHANNEL_INHERIT;
   ADDCH(dyntopo_detail_range)->flag |= BRUSH_CHANNEL_INHERIT;
   ADDCH(dyntopo_detail_percent)->flag |= BRUSH_CHANNEL_INHERIT;
@@ -827,7 +828,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   namestack_pop();
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_ui_init(Brush *brush, int tool)
+void BKE_brush_channelset_ui_init(Brush *brush, int tool)
 {
   namestack_push(__func__);
 
@@ -864,6 +865,7 @@ ATTR_NO_OPT void BKE_brush_channelset_ui_init(Brush *brush, int tool)
   SHOWALL(secondary_color);
   SHOWALL(accumulate);
 
+  SHOWWRK(radius_unit);
   SHOWWRK(use_frontface);
 
   SHOWWRK(autosmooth);
@@ -920,7 +922,7 @@ ATTR_NO_OPT void BKE_brush_channelset_ui_init(Brush *brush, int tool)
 #undef SHOWPROPS
   namestack_pop();
 }
-ATTR_NO_OPT void BKE_brush_builtin_create(Brush *brush, int tool)
+void BKE_brush_builtin_create(Brush *brush, int tool)
 {
   namestack_push(__func__);
 
@@ -938,17 +940,25 @@ ATTR_NO_OPT void BKE_brush_builtin_create(Brush *brush, int tool)
   ADDCH(area_radius_factor);
 
   switch (tool) {
-    case SCULPT_TOOL_DRAW: {
+    case SCULPT_TOOL_DRAW:
+      break;
+    case SCULPT_TOOL_SIMPLIFY: {
+      BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, radius)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
+
+      BRUSHSET_SET_FLOAT(chset, strength, 0.5);
+      BRUSHSET_SET_FLOAT(chset, autosmooth, 0.05);
+      BRUSHSET_SET_INT(chset, topology_rake_mode, 1);  // curvature mode
+      BRUSHSET_SET_FLOAT(chset, topology_rake, 0.35);
+
+      BrushChannel *ch = BRUSHSET_LOOKUP(chset, dyntopo_mode);
+      ch->flag &= ~BRUSH_CHANNEL_INHERIT;
+      ch->flag |= BRUSH_CHANNEL_INHERIT_IF_UNSET;
+
       break;
     }
-    case SCULPT_TOOL_SIMPLIFY:
-      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
-      GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
-      GETCH(strength)->fvalue = 0.5;
-      GETCH(autosmooth)->fvalue = 0.05;
-      GETCH(topology_rake_mode)->ivalue = 1;  // curvature mode
-      GETCH(topology_rake)->fvalue = 0.35;
-      break;
     case SCULPT_TOOL_DRAW_SHARP:
       GETCH(spacing)->ivalue = 5;
       GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
@@ -1048,6 +1058,7 @@ ATTR_NO_OPT void BKE_brush_builtin_create(Brush *brush, int tool)
   namestack_pop();
 
   BKE_brush_channelset_ui_init(brush, tool);
+  BKE_brush_channelset_check_radius(chset);
 }
 
 void BKE_brush_init_toolsettings(Sculpt *sd)
@@ -1059,8 +1070,40 @@ void BKE_brush_init_toolsettings(Sculpt *sd)
   }
 
   BKE_brush_check_toolsettings(sd);
+  BKE_brush_channelset_check_radius(sd->channels);
 
   namestack_pop();
+}
+
+// syncs radius and unprojected_radius's flags
+void BKE_brush_channelset_check_radius(BrushChannelSet *chset)
+{
+  BrushChannel *ch1 = BRUSHSET_LOOKUP(chset, radius);
+  BrushChannel *ch2 = BRUSHSET_LOOKUP(chset, unprojected_radius);
+
+  if (!ch2) {
+    return;
+  }
+
+  int mask = BRUSH_CHANNEL_INHERIT | BRUSH_CHANNEL_INHERIT_IF_UNSET |
+             BRUSH_CHANNEL_SHOW_IN_HEADER | BRUSH_CHANNEL_SHOW_IN_WORKSPACE |
+             BRUSH_CHANNEL_UI_EXPANDED;
+
+  if (ch2) {
+    ch2->flag &= ~mask;
+    ch2->flag |= mask & ch1->flag;
+  }
+
+  mask = BRUSH_MAPPING_ENABLED | BRUSH_MAPPING_INHERIT | BRUSH_MAPPING_INVERT |
+         BRUSH_MAPPING_UI_EXPANDED;
+
+  for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+    BrushMapping *mp1 = ch1->mappings + i;
+    BrushMapping *mp2 = ch2->mappings + i;
+
+    mp2->flag &= ~mask;
+    mp2->flag |= mp1->flag & mask;
+  }
 }
 
 void BKE_brush_check_toolsettings(Sculpt *sd)
@@ -1071,6 +1114,9 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
 
   ADDCH(radius);
   ADDCH(strength);
+  ADDCH(radius_unit);
+  ADDCH(unprojected_radius);
+
   ADDCH(automasking_boundary_edges_propagation_steps);
   ADDCH(concave_mask_factor);
   ADDCH(automasking);
@@ -1099,6 +1145,7 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH(color);
   ADDCH(secondary_color);
 
+  ADDCH(dyntopo_detail_mode);
   ADDCH(dyntopo_disabled);
   ADDCH(dyntopo_mode);
   ADDCH(dyntopo_detail_range);

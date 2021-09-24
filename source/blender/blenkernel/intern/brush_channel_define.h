@@ -136,8 +136,8 @@ places in rna_engine_codebase are relevent:
   MAKE_FLAGS_EX(automasking, "Automasking", "", 0, _({
          {BRUSH_AUTOMASKING_BOUNDARY_EDGES, "BOUNDARY_EDGE", ICON_NONE, "Boundary Edges", ""},
          {BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS, "BOUNDARY_FACE_SETS", ICON_NONE, "Boundary Face Sets", ""},
-         {BRUSH_AUTOMASKING_CONCAVITY, "CONCAVITY", ICON_NONE, "Concave", ""},
-         {BRUSH_AUTOMASKING_INVERT_CONCAVITY, "INVERT_CONCAVITY", ICON_NONE, "Invert Concave", "Invert Concave Map"},
+         {BRUSH_AUTOMASKING_CONCAVITY, "CONCAVITY", ICON_NONE, "Cavity", ""},
+         {BRUSH_AUTOMASKING_INVERT_CONCAVITY, "INVERT_CONCAVITY", ICON_NONE, "Invert Cavity", "Invert Cavity Map"},
          {BRUSH_AUTOMASKING_FACE_SETS, "FACE_SETS", ICON_NONE, "Face Sets", ""},
          {BRUSH_AUTOMASKING_TOPOLOGY, "TOPOLOGY", ICON_NONE, "Topology", ""},
          {-1},
@@ -195,6 +195,14 @@ MAKE_FLOAT_EX_FLAG(dyntopo_detail_range, "Detail Range", "Detail Range", 0.45f, 
 MAKE_FLOAT_EX_FLAG(dyntopo_detail_size, "Detail Size", "Detail Size", 8.0f, 0.1f, 100.0f, 0.001f, 500.0f, false, BRUSH_CHANNEL_INHERIT)
 MAKE_FLOAT_EX_FLAG(dyntopo_constant_detail, "Constaint Detail", "", 3.0f, 0.001f, 1000.0f, 0.0001, FLT_MAX, false, BRUSH_CHANNEL_INHERIT)
 MAKE_FLOAT_EX_FLAG(dyntopo_spacing, "Spacing", "Dyntopo Spacing", 35.0f, 0.01f, 300.0f, 0.001f, 50000.0f, false, BRUSH_CHANNEL_INHERIT)
+MAKE_ENUM_EX(dyntopo_detail_mode, "Detail Mode", "", DYNTOPO_DETAIL_RELATIVE, _({
+    {DYNTOPO_DETAIL_RELATIVE, "RELATIVE", "NONE", "Relative", ""},
+    {DYNTOPO_DETAIL_CONSTANT, "CONSTANT", "NONE", "Constant", ""},
+    {DYNTOPO_DETAIL_MANUAL, "MANUAL", "NONE", "Manual", ""},
+    {DYNTOPO_DETAIL_BRUSH, "BRUSH", "NONE", "Brush", ""},
+    {-1}
+}), BRUSH_CHANNEL_INHERIT)
+
 MAKE_FLOAT(concave_mask_factor, "Cavity Factor", "", 0.35f, 0.0f, 1.0f)
 MAKE_INT_EX(automasking_boundary_edges_propagation_steps, "Propagation Steps",
   "Distance where boundary edge automasking is going to protect vertices "
@@ -327,6 +335,12 @@ MAKE_ENUM(deform_target, "Deformation Target", "How the deformation of the brush
 MAKE_CURVE(autosmooth_falloff_curve, "Falloff", "Custom curve for autosmooth", BRUSH_CURVE_SMOOTH)
 MAKE_CURVE(topology_rake_falloff_curve, "Falloff", "Custom curve for topolgoy rake", BRUSH_CURVE_SMOOTH)
 MAKE_CURVE(falloff_curve, "Falloff", "Falloff curve", BRUSH_CURVE_SMOOTH)
+MAKE_FLOAT_EX(unprojected_radius, "Unprojected Radius", "Radius of brush in Blender units", 0.1f, 0.001, FLT_MAX, 0.001, 1.0f, false)
+MAKE_ENUM_EX(radius_unit,  "Radius Unit", "Measure brush size relative to the view or the scene", 0, _({
+  {0, "VIEW", "NONE", "View", "Measure brush size relative to the view"},
+  {BRUSH_LOCK_SIZE, "SCENE", "NONE", "Scene", "Measure brush size relative to the scene"},
+  {-1}
+}), BRUSH_CHANNEL_SHOW_IN_WORKSPACE)
 
 /* clang-format on */
 #if defined(BRUSH_CHANNEL_DEFINE_TYPES) || defined(BRUSH_CHANNEL_DEFINE_EXTERNAL)
@@ -373,7 +387,9 @@ MAKE_CURVE(falloff_curve, "Falloff", "Falloff curve", BRUSH_CURVE_SMOOTH)
 #  ifdef MAKE_FLAGS_EX
 #    undef MAKE_FLAGS_EX
 #  endif
-
+#  ifdef MAKE_FLOAT_EX_FLAG
+#    undef MAKE_FLOAT_EX_FLAG
+#  endif
 #  ifdef MAKE_BUILTIN_CH_DEF
 #    undef MAKE_BUILTIN_CH_DEF
 #  endif

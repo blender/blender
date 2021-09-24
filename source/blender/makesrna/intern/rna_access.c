@@ -1500,13 +1500,13 @@ bool RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *v
   return 0;
 }
 
-ATTR_NO_OPT void RNA_property_enum_items_ex(bContext *C,
-                                            PointerRNA *ptr,
-                                            PropertyRNA *prop,
-                                            const bool use_static,
-                                            const EnumPropertyItem **r_item,
-                                            int *r_totitem,
-                                            bool *r_free)
+void RNA_property_enum_items_ex(bContext *C,
+                                PointerRNA *ptr,
+                                PropertyRNA *prop,
+                                const bool use_static,
+                                const EnumPropertyItem **r_item,
+                                int *r_totitem,
+                                bool *r_free)
 {
   EnumPropertyRNA *eprop = (EnumPropertyRNA *)rna_ensure_property(prop);
 
@@ -3457,7 +3457,7 @@ int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop)
   return eprop->defaultvalue;
 }
 
-ATTR_NO_OPT void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
+void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 {
   EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
   IDProperty *idprop;

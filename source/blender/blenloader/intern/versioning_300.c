@@ -778,7 +778,7 @@ static void version_geometry_nodes_change_legacy_names(bNodeTree *ntree)
 }
 
 /* NOLINTNEXTLINE: readability-function-size */
-ATTR_NO_OPT void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
+void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
     /* Set default value for the new bisect_threshold parameter in the mirror modifier. */

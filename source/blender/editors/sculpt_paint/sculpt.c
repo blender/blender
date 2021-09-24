@@ -140,10 +140,10 @@ static void do_symmetrical_brush_actions(Sculpt *sd,
   will be used (taking inheritence into account).
 */
 
-ATTR_NO_OPT float SCULPT_get_float_intern(const SculptSession *ss,
-                                          const char *idname,
-                                          const Sculpt *sd,
-                                          const Brush *br)
+float SCULPT_get_float_intern(const SculptSession *ss,
+                              const char *idname,
+                              const Sculpt *sd,
+                              const Brush *br)
 {
   if (ss->cache && ss->cache->channels_final) {
     return BKE_brush_channelset_get_float(
@@ -165,10 +165,10 @@ ATTR_NO_OPT float SCULPT_get_float_intern(const SculptSession *ss,
   }
 }
 
-ATTR_NO_OPT int SCULPT_get_int_intern(const SculptSession *ss,
-                                      const char *idname,
-                                      const Sculpt *sd,
-                                      const Brush *br)
+int SCULPT_get_int_intern(const SculptSession *ss,
+                          const char *idname,
+                          const Sculpt *sd,
+                          const Brush *br)
 {
   if (ss->cache && ss->cache->channels_final) {
     return BKE_brush_channelset_get_int(
@@ -3624,10 +3624,10 @@ static void calc_area_normal_and_center(
  * values pull vertices, negative values push. Uses tablet pressure and a
  * special multiplier found experimentally to scale the strength factor.
  */
-ATTR_NO_OPT static float brush_strength(const Sculpt *sd,
-                                        const StrokeCache *cache,
-                                        const float feather,
-                                        const UnifiedPaintSettings *ups)
+static float brush_strength(const Sculpt *sd,
+                            const StrokeCache *cache,
+                            const float feather,
+                            const UnifiedPaintSettings *ups)
 {
   const Scene *scene = cache->vc->scene;
   const Brush *brush = cache->brush;  // BKE_paint_brush((Paint *)&sd->paint);
@@ -3798,15 +3798,15 @@ ATTR_NO_OPT static float brush_strength(const Sculpt *sd,
 }
 
 /* Return a multiplier for brush strength on a particular vertex. */
-ATTR_NO_OPT float SCULPT_brush_strength_factor(SculptSession *ss,
-                                               const Brush *br,
-                                               const float brush_point[3],
-                                               const float len,
-                                               const short vno[3],
-                                               const float fno[3],
-                                               const float mask,
-                                               const SculptVertRef vertex_index,
-                                               const int thread_id)
+float SCULPT_brush_strength_factor(SculptSession *ss,
+                                   const Brush *br,
+                                   const float brush_point[3],
+                                   const float len,
+                                   const short vno[3],
+                                   const float fno[3],
+                                   const float mask,
+                                   const SculptVertRef vertex_index,
+                                   const int thread_id)
 {
   StrokeCache *cache = ss->cache;
   const Scene *scene = cache->vc->scene;
@@ -4236,9 +4236,9 @@ typedef struct {
   bool original;
 } SculptFindNearestToRayData;
 
-ATTR_NO_OPT static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
-                                                          const int n,
-                                                          const TaskParallelTLS *__restrict tls)
+static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
+                                              const int n,
+                                              const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -8317,19 +8317,6 @@ static void sculpt_topology_update(Sculpt *sd,
   /* build brush radius scale */
   float radius_scale = 1.0f;
 
-  if (brush->autosmooth_factor > 0.0f) {
-    radius_scale = MAX2(radius_scale, brush->autosmooth_radius_factor);
-  }
-
-  if (brush->topology_rake_factor > 0.0f) {
-    radius_scale = MAX2(radius_scale, brush->topology_rake_factor);
-  }
-
-  /* multiply with primary radius scale instead of max */
-  if (brush->cached_dyntopo.radius_scale > 0.0f) {
-    radius_scale *= brush->cached_dyntopo.radius_scale;
-  }
-
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
   const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
                                                                              ss->cache->original;
@@ -8343,23 +8330,26 @@ static void sculpt_topology_update(Sculpt *sd,
   PBVHTopologyUpdateMode mode = 0;
   float location[3];
 
-  if (brush->cached_dyntopo.mode != DYNTOPO_DETAIL_MANUAL) {
-    if (brush->cached_dyntopo.flag & DYNTOPO_SUBDIVIDE) {
+  int dyntopo_mode = SCULPT_get_int(ss, dyntopo_mode, sd, brush);
+  int dyntopo_detail_mode = SCULPT_get_int(ss, dyntopo_detail_mode, sd, brush);
+
+  if (dyntopo_detail_mode != DYNTOPO_DETAIL_MANUAL) {
+    if (dyntopo_mode & DYNTOPO_SUBDIVIDE) {
       mode |= PBVH_Subdivide;
     }
-    else if (brush->cached_dyntopo.flag & DYNTOPO_LOCAL_SUBDIVIDE) {
+    else if (dyntopo_mode & DYNTOPO_LOCAL_SUBDIVIDE) {
       mode |= PBVH_LocalSubdivide | PBVH_Subdivide;
     }
 
-    if (brush->cached_dyntopo.flag & DYNTOPO_COLLAPSE) {
+    if (dyntopo_mode & DYNTOPO_COLLAPSE) {
       mode |= PBVH_Collapse;
     }
-    else if (brush->cached_dyntopo.flag & DYNTOPO_LOCAL_COLLAPSE) {
+    else if (dyntopo_mode & DYNTOPO_LOCAL_COLLAPSE) {
       mode |= PBVH_LocalCollapse | PBVH_Collapse;
     }
   }
 
-  if (brush->cached_dyntopo.flag & DYNTOPO_CLEANUP) {
+  if (dyntopo_mode & DYNTOPO_CLEANUP) {
     mode |= PBVH_Cleanup;
   }
 
@@ -8893,7 +8883,7 @@ void BKE_brush_commandlist_start(BrushCommandList *list,
                                  Brush *brush,
                                  BrushChannelSet *chset_final);
 
-ATTR_NO_OPT static void SCULPT_run_command_list(
+static void SCULPT_run_command_list(
     Sculpt *sd, Object *ob, Brush *brush, BrushCommandList *list, UnifiedPaintSettings *ups)
 {
   SculptSession *ss = ob->sculpt;
@@ -10593,13 +10583,13 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 
   /* Truly temporary data that isn't stored in properties. */
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
-    if (!BKE_brush_use_locked_size(scene, brush)) {
+    if (!BKE_brush_use_locked_size(scene, brush, true)) {
       cache->initial_radius = paint_calc_object_space_radius(
           cache->vc, cache->true_location, BKE_brush_size_get(scene, brush, true));
-      BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius);
+      BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius, true);
     }
     else {
-      cache->initial_radius = BKE_brush_unprojected_radius_get(scene, brush);
+      cache->initial_radius = BKE_brush_unprojected_radius_get(scene, brush, true);
     }
   }
 
@@ -10944,12 +10934,12 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   ss->rv3d = vc.rv3d;
   ss->v3d = vc.v3d;
 
-  if (!BKE_brush_use_locked_size(scene, brush)) {
+  if (!BKE_brush_use_locked_size(scene, brush, true)) {
     radius = paint_calc_object_space_radius(
         &vc, out->location, BKE_brush_size_get(scene, brush, true));
   }
   else {
-    radius = BKE_brush_unprojected_radius_get(scene, brush);
+    radius = BKE_brush_unprojected_radius_get(scene, brush, true);
   }
   ss->cursor_radius = radius;
 
@@ -11439,24 +11429,32 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
     BKE_pbvh_set_symmetry(ss->pbvh, SCULPT_mesh_symmetry_xyz_get(ob), boundsym);
   }
 
-  if (brush->cached_dyntopo.mode == DYNTOPO_DETAIL_CONSTANT ||
-      brush->cached_dyntopo.mode == DYNTOPO_DETAIL_MANUAL) {
-    float object_space_constant_detail = 1.0f / (brush->cached_dyntopo.constant_detail *
-                                                 mat4_to_scale(ob->obmat));
-    BKE_pbvh_bmesh_detail_size_set(
-        ss->pbvh, object_space_constant_detail, brush->cached_dyntopo.detail_range);
+  int detail_mode = SCULPT_get_int(ss, dyntopo_detail_mode, sd, brush);
+  int dyntopo_mode = SCULPT_get_int(ss, dyntopo_mode, sd, brush);
+
+  float detail_size = SCULPT_get_float(ss, dyntopo_detail_size, sd, brush);
+  float detail_percent = SCULPT_get_float(ss, dyntopo_detail_percent, sd, brush);
+  float detail_range = SCULPT_get_float(ss, dyntopo_detail_range, sd, brush);
+  float constant_detail = SCULPT_get_float(ss, dyntopo_constant_detail, sd, brush);
+
+  float dyntopo_pixel_radius = ss->cache->radius;
+  float dyntopo_radius = paint_calc_object_space_radius(
+      ss->cache->vc, ss->cache->true_location, dyntopo_pixel_radius);
+
+  if (detail_mode == DYNTOPO_DETAIL_CONSTANT || detail_mode == DYNTOPO_DETAIL_MANUAL) {
+    float object_space_constant_detail = 1.0f / (constant_detail * mat4_to_scale(ob->obmat));
+
+    BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail, detail_range);
   }
-  else if (brush->cached_dyntopo.mode == DYNTOPO_DETAIL_BRUSH) {
-    BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
-                                   ss->cache->radius * brush->cached_dyntopo.detail_percent /
-                                       100.0f,
-                                   brush->cached_dyntopo.detail_range);
+  else if (detail_mode == DYNTOPO_DETAIL_BRUSH) {
+    BKE_pbvh_bmesh_detail_size_set(
+        ss->pbvh, ss->cache->radius * detail_percent / 100.0f, detail_range);
   }
   else {
     BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
-                                   (ss->cache->radius / ss->cache->dyntopo_pixel_radius) *
-                                       (brush->cached_dyntopo.detail_size * U.pixelsize) / 0.4f,
-                                   brush->cached_dyntopo.detail_range);
+                                   (dyntopo_radius / dyntopo_pixel_radius) *
+                                       (detail_size * U.pixelsize) / 0.4f,
+                                   detail_range);
   }
 
   if (0 && !ss->cache->commandlist && SCULPT_stroke_is_dynamic_topology(ss, brush)) {
@@ -13749,7 +13747,7 @@ typedef struct BMLinkItem {
   int depth;
 } BMLinkItem;
 
-ATTR_NO_OPT static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
+static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;

@@ -63,6 +63,8 @@ struct Sculpt;
   BKE_brush_channelset_lookup(chset, MAKE_BUILTIN_CH_NAME(channel))
 #define BRUSHSET_GET_FLOAT(chset, channel, mapdata) \
   BKE_brush_channelset_get_float(chset, MAKE_BUILTIN_CH_NAME(channel), mapdata)
+#define BRUSHSET_GET_FINAL_FLOAT(childset, parentset, channel, mapdata) \
+  BKE_brush_channelset_get_final_float(childset, parentset, MAKE_BUILTIN_CH_NAME(channel), mapdata)
 #define BRUSHSET_GET_INT(chset, channel, mapdata) \
   BKE_brush_channelset_get_int(chset, MAKE_BUILTIN_CH_NAME(channel), mapdata)
 #define BRUSHSET_ENSURE_BUILTIN(chset, channel) \
@@ -287,6 +289,7 @@ bool BKE_brush_mapping_ensure_write(BrushMapping *mp);
 void BKE_brush_channelset_apply_mapping(BrushChannelSet *chset, BrushMappingData *mapdata);
 void BKE_brush_check_toolsettings(struct Sculpt *sd);
 void BKE_brush_channelset_ui_init(struct Brush *brush, int tool);
+void BKE_brush_channelset_check_radius(BrushChannelSet *chset);
 
 /*
 set up static type checker for BRUSHSET_XXX macros

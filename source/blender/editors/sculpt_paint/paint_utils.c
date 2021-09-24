@@ -721,7 +721,7 @@ static int curvemapping_preset_get_path(
   return 1;
 }
 
-ATTR_NO_OPT static int curvemapping_preset_exec(bContext *C, wmOperator *op)
+static int curvemapping_preset_exec(bContext *C, wmOperator *op)
 {
   Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 

@@ -353,7 +353,7 @@ void pyrna_write_set(bool val)
 {
   rna_disallow_writes = !val;
 }
-#else /* USE_PEDANTIC_WRITE */
+#else  /* USE_PEDANTIC_WRITE */
 bool pyrna_write_check(void)
 {
   return true;
@@ -775,7 +775,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
       ret = pyrna_prop_CreatePyObject(ptr, prop); /* Owned by the mathutils PyObject. */
     }
   }
-#else /* USE_MATHUTILS */
+#else  /* USE_MATHUTILS */
   (void)ptr;
   (void)prop;
 #endif /* USE_MATHUTILS */
@@ -1297,7 +1297,7 @@ static int pyrna_prop_to_enum_bitfield(
   return ret;
 }
 
-ATTR_NO_OPT static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
+static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 {
   PyObject *item, *ret = NULL;
 
@@ -1372,7 +1372,7 @@ ATTR_NO_OPT static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop
   return ret;
 }
 
-ATTR_NO_OPT PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
+PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 {
   PyObject *ret;
   const int type = RNA_property_type(prop);
@@ -1410,7 +1410,7 @@ ATTR_NO_OPT PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
       else {
         ret = PyUnicode_FromStringAndSize(buf, buf_len);
       }
-#else /* USE_STRING_COERCE */
+#else  /* USE_STRING_COERCE */
       if (subtype == PROP_BYTESTRING) {
         ret = PyBytes_FromStringAndSize(buf, buf_len);
       }
@@ -1537,7 +1537,7 @@ static PyObject *pyrna_func_to_py(const PointerRNA *ptr, FunctionRNA *func)
   return (PyObject *)pyfunc;
 }
 
-ATTR_NO_OPT static int pyrna_py_to_prop(
+static int pyrna_py_to_prop(
     PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *value, const char *error_prefix)
 {
   /* XXX hard limits should be checked here. */
@@ -1723,7 +1723,7 @@ ATTR_NO_OPT static int pyrna_py_to_prop(
           else {
             param = PyUnicode_AsUTF8(value);
           }
-#else /* USE_STRING_COERCE */
+#else  /* USE_STRING_COERCE */
           param = PyUnicode_AsUTF8(value);
 #endif /* USE_STRING_COERCE */
 
@@ -6507,7 +6507,7 @@ PyTypeObject pyrna_struct_Type = {
     /* delete references to contained objects */
     (inquiry)pyrna_struct_clear, /* inquiry tp_clear; */
 #else
-    NULL, /* traverseproc tp_traverse; */
+    NULL,         /* traverseproc tp_traverse; */
 
     /* delete references to contained objects */
     NULL, /* inquiry tp_clear; */

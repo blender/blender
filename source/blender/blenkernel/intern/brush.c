@@ -226,7 +226,7 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_texture_mtex_foreach_id(data, &brush->mask_mtex);
 }
 
-ATTR_NO_OPT static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Brush *brush = (Brush *)id;
 
@@ -2517,12 +2517,24 @@ int BKE_brush_size_get(const Scene *scene, const Brush *brush, bool use_brush_ch
   return size;
 }
 
-bool BKE_brush_use_locked_size(const Scene *scene, const Brush *brush)
+bool BKE_brush_use_locked_size(const Scene *scene, const Brush *brush, bool use_brush_channels)
 {
-  const short us_flag = scene->toolsettings->unified_paint_settings.flag;
+  if (use_brush_channels) {
+    Sculpt *sd = scene->toolsettings->sculpt;
+    if (sd) {
+      return BKE_brush_channelset_get_final_int(
+          brush->channels, sd->channels, "radius_unit", NULL);
+    }
+    else {
+      return BKE_brush_channelset_get_int(brush->channels, "radius_unit", NULL);
+    }
+  }
+  else {
+    const short us_flag = scene->toolsettings->unified_paint_settings.flag;
 
-  return (us_flag & UNIFIED_PAINT_SIZE) ? (us_flag & UNIFIED_PAINT_BRUSH_LOCK_SIZE) :
-                                          (brush->flag & BRUSH_LOCK_SIZE);
+    return (us_flag & UNIFIED_PAINT_SIZE) ? (us_flag & UNIFIED_PAINT_BRUSH_LOCK_SIZE) :
+                                            (brush->flag & BRUSH_LOCK_SIZE);
+  }
 }
 
 bool BKE_brush_use_size_pressure(const Brush *brush)
@@ -2554,9 +2566,39 @@ bool BKE_brush_sculpt_has_secondary_color(const Brush *brush)
               SCULPT_TOOL_MASK);
 }
 
-void BKE_brush_unprojected_radius_set(Scene *scene, Brush *brush, float unprojected_radius)
+void BKE_brush_unprojected_radius_set(Scene *scene,
+                                      Brush *brush,
+                                      float unprojected_radius,
+                                      bool use_channels)
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+
+  if (use_channels) {
+    BrushChannel *ch1 = BRUSHSET_LOOKUP(brush->channels, unprojected_radius);
+    BrushChannel *ch2 = NULL;
+
+    if (scene->toolsettings && scene->toolsettings->sculpt &&
+        scene->toolsettings->sculpt->channels) {
+      ch2 = BRUSHSET_LOOKUP(scene->toolsettings->sculpt->channels, unprojected_radius);
+    }
+
+    if (ch1 && ch2) {
+      if (ch1->flag & BRUSH_CHANNEL_INHERIT) {
+        ch2->fvalue = unprojected_radius;
+      }
+      else {
+        ch1->fvalue = unprojected_radius;
+      }
+    }
+    else if (ch1) {
+      ch1->fvalue = unprojected_radius;
+    }
+    else if (ch2) {
+      ch2->fvalue = unprojected_radius;
+    }
+
+    return;
+  }
 
   if (ups->flag & UNIFIED_PAINT_SIZE) {
     ups->unprojected_radius = unprojected_radius;
@@ -2566,8 +2608,23 @@ void BKE_brush_unprojected_radius_set(Scene *scene, Brush *brush, float unprojec
   }
 }
 
-float BKE_brush_unprojected_radius_get(const Scene *scene, const Brush *brush)
+float BKE_brush_unprojected_radius_get(const Scene *scene, const Brush *brush, bool use_channels)
 {
+  if (use_channels) {
+    BrushChannelSet *chset = NULL;
+
+    if (scene->toolsettings && scene->toolsettings->sculpt) {
+      chset = scene->toolsettings->sculpt->channels;
+    }
+
+    if (chset) {
+      return BRUSHSET_GET_FINAL_FLOAT(brush->channels, chset, unprojected_radius, NULL);
+    }
+    else {
+      return BRUSHSET_GET_FLOAT(brush->channels, unprojected_radius, NULL);
+    }
+  }
+
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 
   return (ups->flag & UNIFIED_PAINT_SIZE) ? ups->unprojected_radius : brush->unprojected_radius;
@@ -2675,10 +2732,10 @@ void BKE_brush_randomize_texture_coords(UnifiedPaintSettings *ups, bool mask)
   }
 }
 
-ATTR_NO_OPT float BKE_brush_curve_strength_ex(int curve_preset,
-                                              const CurveMapping *curve,
-                                              float p,
-                                              const float len)
+float BKE_brush_curve_strength_ex(int curve_preset,
+                                  const CurveMapping *curve,
+                                  float p,
+                                  const float len)
 {
   float strength = 1.0f;
 
@@ -2726,7 +2783,7 @@ ATTR_NO_OPT float BKE_brush_curve_strength_ex(int curve_preset,
 }
 
 /* Uses the brush curve control to find a strength value */
-ATTR_NO_OPT float BKE_brush_curve_strength(const Brush *br, float p, const float len)
+float BKE_brush_curve_strength(const Brush *br, float p, const float len)
 {
   return BKE_brush_curve_strength_ex(br->curve_preset, br->curve, p, len);
 }

@@ -7193,7 +7193,7 @@ static bool ui_numedit_but_CURVE(uiBlock *block,
   return changed;
 }
 
-ATTR_NO_OPT static int ui_do_but_CURVE(
+static int ui_do_but_CURVE(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
   bool changed = false;

@@ -62,7 +62,7 @@ static int curvmapping_curve_count(const CurveMapping *cumap)
   return count;
 }
 
-ATTR_NO_OPT bool BKE_curvemapping_equals(const CurveMapping *a, const CurveMapping *b)
+bool BKE_curvemapping_equals(const CurveMapping *a, const CurveMapping *b)
 {
   int count = curvmapping_curve_count(a);
 
@@ -112,7 +112,7 @@ ATTR_NO_OPT bool BKE_curvemapping_equals(const CurveMapping *a, const CurveMappi
 /*truncate float to avoid rounding errors
   messing up the hash*/
 #define FRACT_TRUNCATE_STEPS 8192.0f
-ATTR_NO_OPT BLI_INLINE unsigned int get_float_hash(float f)
+BLI_INLINE unsigned int get_float_hash(float f)
 {
   float f_floor = floor(f);
   float fract = f - f_floor;
@@ -126,7 +126,7 @@ ATTR_NO_OPT BLI_INLINE unsigned int get_float_hash(float f)
 #define HASHFLOAT(f) h = get_float_hash(f), hash ^= BLI_hash_int(h + hi++)
 #define HASHINT(f) h = get_float_hash(f), hash ^= BLI_hash_int(f + hi++)
 
-ATTR_NO_OPT uint BKE_curvemapping_calc_hash(const CurveMapping *cumap)
+uint BKE_curvemapping_calc_hash(const CurveMapping *cumap)
 {
   uint hash = 0;
   uint h = 0;
@@ -184,7 +184,7 @@ void BKE_curvemapping_cache_aquire(CurveMappingCache *cache, CurveMapping *curve
   curve->cache_users++;
 }
 
-ATTR_NO_OPT void BKE_curvemapping_cache_release(CurveMappingCache *cache, CurveMapping *curve)
+void BKE_curvemapping_cache_release(CurveMappingCache *cache, CurveMapping *curve)
 {
   curve->cache_users--;
 
@@ -202,9 +202,9 @@ bool BKE_curvemapping_in_cache(CurveMapping *curve)
   return curve->flag & CUMA_PART_OF_CACHE;
 }
 
-ATTR_NO_OPT CurveMapping *BKE_curvemapping_cache_get(CurveMappingCache *cache,
-                                                     CurveMapping *curve,
-                                                     bool free_input)
+CurveMapping *BKE_curvemapping_cache_get(CurveMappingCache *cache,
+                                         CurveMapping *curve,
+                                         bool free_input)
 {
   void **key, **val;
 
@@ -284,8 +284,7 @@ CurveMappingCache *BKE_curvemapping_cache_global()
 }
 
 // releases a curve if it's in the cache, otherwise frees it
-ATTR_NO_OPT void BKE_curvemapping_cache_release_or_free(CurveMappingCache *cache,
-                                                        CurveMapping *curve)
+void BKE_curvemapping_cache_release_or_free(CurveMappingCache *cache, CurveMapping *curve)
 {
   if (curve->flag & CUMA_PART_OF_CACHE) {
     BKE_curvemapping_cache_release(cache, curve);

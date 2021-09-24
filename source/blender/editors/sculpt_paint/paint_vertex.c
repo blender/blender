@@ -1572,7 +1572,7 @@ static void vwpaint_update_cache_variants(bContext *C, VPaint *vp, Object *ob, P
   if (cache->first_time) {
     cache->initial_radius = paint_calc_object_space_radius(
         cache->vc, cache->true_location, BKE_brush_size_get(scene, brush, true));
-    BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius);
+    BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius, true);
   }
 
   if (BKE_brush_use_size_pressure(brush) &&

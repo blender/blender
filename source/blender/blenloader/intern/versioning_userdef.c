@@ -373,7 +373,7 @@ static void fix_radial_control_path(IDProperty *prop, void *userdata)
   free((void *)newstring);
 }
 
-ATTR_NO_OPT static bool keymap_radial_control_sculpt_fix(wmKeyMapItem *kmi)
+static bool keymap_radial_control_sculpt_fix(wmKeyMapItem *kmi)
 {
   IDProperty *idprop = NULL;
   char *string = NULL;

@@ -85,8 +85,7 @@ void BKE_curvemapping_set_defaults(
   cumap->changed_timestamp = 0;
 }
 
-ATTR_NO_OPT CurveMapping *BKE_curvemapping_add(
-    int tot, float minx, float miny, float maxx, float maxy)
+CurveMapping *BKE_curvemapping_add(int tot, float minx, float miny, float maxx, float maxy)
 {
   CurveMapping *cumap;
 
@@ -97,7 +96,7 @@ ATTR_NO_OPT CurveMapping *BKE_curvemapping_add(
   return cumap;
 }
 
-ATTR_NO_OPT void BKE_curvemapping_free_data(CurveMapping *cumap)
+void BKE_curvemapping_free_data(CurveMapping *cumap)
 {
   int a;
 
@@ -189,7 +188,7 @@ void BKE_curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
   }
 }
 
-ATTR_NO_OPT CurveMapping *BKE_curvemapping_copy(const CurveMapping *cumap)
+CurveMapping *BKE_curvemapping_copy(const CurveMapping *cumap)
 {
   if (cumap) {
     CurveMapping *cumapn = MEM_dupallocN(cumap);
@@ -1349,8 +1348,7 @@ void BKE_curvemapping_blend_write(BlendWriter *writer, const CurveMapping *cumap
   BKE_curvemapping_curves_blend_write(writer, cumap);
 }
 
-ATTR_NO_OPT void BKE_curvemapping_curves_blend_write(BlendWriter *writer,
-                                                     const CurveMapping *cumap)
+void BKE_curvemapping_curves_blend_write(BlendWriter *writer, const CurveMapping *cumap)
 {
   for (int a = 0; a < CM_TOT; a++) {
     BLO_write_struct_array(writer, CurveMapPoint, cumap->cm[a].totpoint, cumap->cm[a].curve);
