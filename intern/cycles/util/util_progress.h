@@ -100,7 +100,7 @@ class Progress {
     cancel = true;
   }
 
-  bool get_cancel()
+  bool get_cancel() const
   {
     if (!cancel && cancel_cb)
       cancel_cb();
@@ -108,7 +108,7 @@ class Progress {
     return cancel;
   }
 
-  string get_cancel_message()
+  string get_cancel_message() const
   {
     thread_scoped_lock lock(progress_mutex);
     return cancel_message;
@@ -130,12 +130,12 @@ class Progress {
     cancel = true;
   }
 
-  bool get_error()
+  bool get_error() const
   {
     return error;
   }
 
-  string get_error_message()
+  string get_error_message() const
   {
     thread_scoped_lock lock(progress_mutex);
     return error_message;
@@ -168,7 +168,7 @@ class Progress {
     }
   }
 
-  void get_time(double &total_time_, double &render_time_)
+  void get_time(double &total_time_, double &render_time_) const
   {
     thread_scoped_lock lock(progress_mutex);
 
@@ -200,7 +200,7 @@ class Progress {
     total_pixel_samples = total_pixel_samples_;
   }
 
-  float get_progress()
+  float get_progress() const
   {
     thread_scoped_lock lock(progress_mutex);
 
@@ -236,7 +236,7 @@ class Progress {
     }
   }
 
-  int get_current_sample()
+  int get_current_sample() const
   {
     thread_scoped_lock lock(progress_mutex);
     /* Note that the value here always belongs to the last tile that updated,
@@ -244,13 +244,13 @@ class Progress {
     return current_tile_sample;
   }
 
-  int get_rendered_tiles()
+  int get_rendered_tiles() const
   {
     thread_scoped_lock lock(progress_mutex);
     return rendered_tiles;
   }
 
-  int get_denoised_tiles()
+  int get_denoised_tiles() const
   {
     thread_scoped_lock lock(progress_mutex);
     return denoised_tiles;
@@ -300,7 +300,7 @@ class Progress {
     set_update();
   }
 
-  void get_status(string &status_, string &substatus_)
+  void get_status(string &status_, string &substatus_) const
   {
     thread_scoped_lock lock(progress_mutex);
 
@@ -330,8 +330,8 @@ class Progress {
   }
 
  protected:
-  thread_mutex progress_mutex;
-  thread_mutex update_mutex;
+  mutable thread_mutex progress_mutex;
+  mutable thread_mutex update_mutex;
   function<void()> update_cb;
   function<void()> cancel_cb;
 

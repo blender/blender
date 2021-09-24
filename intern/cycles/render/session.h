@@ -145,6 +145,8 @@ class Session {
 
   void set_gpu_display(unique_ptr<GPUDisplay> gpu_display);
 
+  double get_estimated_remaining_time() const;
+
   void device_free();
 
   /* Returns the rendering progress or 0 if no progress can be determined

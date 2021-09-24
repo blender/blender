@@ -993,8 +993,9 @@ void BlenderSession::update_status_progress()
   get_status(status, substatus);
   get_progress(progress, total_time, render_time);
 
-  if (progress > 0)
-    remaining_time = (1.0 - (double)progress) * (render_time / (double)progress);
+  if (progress > 0) {
+    remaining_time = session->get_estimated_remaining_time();
+  }
 
   if (background) {
     if (scene)
