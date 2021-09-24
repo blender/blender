@@ -126,7 +126,6 @@ class UnifiedPaintPanel:
         return None
 
     @staticmethod
-
     def get_channel(context, brush, prop_name, toolsettings_only=False):
         ch = brush.channels.channels[prop_name]
 
@@ -138,6 +137,7 @@ class UnifiedPaintPanel:
 
         return ch
 
+    @staticmethod
     def get_channel_value(context, brush, prop_name, toolsettings_only=False):
         ch = brush.channels.channels[prop_name]
 
@@ -162,13 +162,14 @@ class UnifiedPaintPanel:
         elif ch.type == "CURVE":
             return ch.curve
 
+    @staticmethod
     def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None,
                         slider=False, header=False, show_reorder=False, expand=None, toolsettings_only=False, ui_editing=True):
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle, if they exist. """
 
         if context.mode != "SCULPT":
-            return self.prop_unified(layout, context, brush, prop_name, icon=icon, text=text, slider=slider, header=header, expand=expand)
+            return UnifiedPaintPanel.prop_unified(layout, context, brush, prop_name, icon=icon, text=text, slider=slider, header=header, expand=expand)
 
         if prop_name == "size":
             prop_name = "radius"
