@@ -8,6 +8,7 @@ from bpy.props import (
 DIRNAME, FILENAME = os.path.split(__file__)
 IDNAME = os.path.splitext(FILENAME)[0]
 
+
 def update_fn(_self, _context):
     load()
 
@@ -54,12 +55,18 @@ class Prefs(bpy.types.KeyConfigPreferences):
         default='PLAY',
         update=update_fn,
     )
-    use_key_activate_tools: BoolProperty(
-        name="Keys Activate Tools",
+    tool_key_mode: EnumProperty(
+        name="Tool Keys:",
         description=(
-            "Key shortcuts such as G, R, and S activate the tool instead of running it immediately"
+            "The method of keys to activate tools such as move, rotate & scale (G, R, S)"
         ),
-        default=False,
+        items=(
+            ('IMMEDIATE', "Immediate",
+             "Activate actions immediately"),
+            ('TOOL', "Active Tool",
+             "Activate the tool for editors that support tools"),
+        ),
+        default='IMMEDIATE',
         update=update_fn,
     )
 
@@ -90,7 +97,8 @@ class Prefs(bpy.types.KeyConfigPreferences):
     use_alt_tool: BoolProperty(
         name="Alt Tool Access",
         description=(
-            "Hold Alt to use the active tool when the gizmo would normally be required"
+            "Hold Alt to use the active tool when the gizmo would normally be required\n"
+            "Incompatible with the input preference \"Emulate 3 Button Mouse\" when the \"Alt\" key is used"
         ),
         default=False,
         update=update_fn,
@@ -98,7 +106,8 @@ class Prefs(bpy.types.KeyConfigPreferences):
     use_alt_cursor: BoolProperty(
         name="Alt Cursor Access",
         description=(
-            "Hold Alt-LMB to place the Cursor (instead of LMB), allows tools to activate on press instead of drag"
+            "Hold Alt-LMB to place the Cursor (instead of LMB), allows tools to activate on press instead of drag.\n"
+            "Incompatible with the input preference \"Emulate 3 Button Mouse\" when the \"Alt\" key is used"
         ),
         default=False,
         update=update_fn,
@@ -209,40 +218,53 @@ class Prefs(bpy.types.KeyConfigPreferences):
     )
 
     def draw(self, layout):
+        from bpy import context
+
         layout.use_property_split = True
         layout.use_property_decorate = False
 
+        prefs = context.preferences
+
         is_select_left = (self.select_mouse == 'LEFT')
+        use_mouse_emulate_3_button = (
+            prefs.inputs.use_mouse_emulate_3_button and
+            prefs.inputs.mouse_emulate_3_button_modifier == 'ALT'
+        )
 
         # General settings.
         col = layout.column()
-        col.row().prop(self, "select_mouse", text="Select with Mouse Button", expand=True)
-        col.row().prop(self, "spacebar_action", text="Spacebar Action", expand=True)
+        col.row().prop(self, "select_mouse", text="Select with Mouse Button:", expand=True)
+        col.row().prop(self, "spacebar_action", text="Spacebar Action:", expand=True)
 
         if is_select_left:
-            col.row().prop(self, "gizmo_action", text="Activate Gizmo Event", expand=True)
+            col.row().prop(self, "gizmo_action", text="Activate Gizmo Event:", expand=True)
         else:
-            col.row().prop(self, "rmb_action", text="Right Mouse Select Action", expand=True)
+            col.row().prop(self, "rmb_action", text="Right Mouse Select Action:", expand=True)
 
-        # Checkboxes sub-layout.
+        col.row().prop(self, "tool_key_mode", expand=True)
+
+        # Check-box sub-layout.
         col = layout.column()
         sub = col.column(align=True)
         row = sub.row()
         row.prop(self, "use_alt_click_leader")
+
+        rowsub = row.row()
         if is_select_left:
-            row.prop(self, "use_alt_tool")
+            rowsub.prop(self, "use_alt_tool")
         else:
-            row.prop(self, "use_alt_cursor")
+            rowsub.prop(self, "use_alt_cursor")
+        rowsub.active = not use_mouse_emulate_3_button
+
         row = sub.row()
         row.prop(self, "use_select_all_toggle")
-        row.prop(self, "use_key_activate_tools", text="Key Activates Tools")
 
         # 3DView settings.
         col = layout.column()
         col.label(text="3D View")
-        col.row().prop(self, "v3d_tilde_action", text="Grave Accent / Tilde Action", expand=True)
-        col.row().prop(self, "v3d_mmb_action", text="Middle Mouse Action", expand=True)
-        col.row().prop(self, "v3d_alt_mmb_drag_action", text="Alt Middle Mouse Drag Action", expand=True)
+        col.row().prop(self, "v3d_tilde_action", text="Grave Accent / Tilde Action:", expand=True)
+        col.row().prop(self, "v3d_mmb_action", text="Middle Mouse Action:", expand=True)
+        col.row().prop(self, "v3d_alt_mmb_drag_action", text="Alt Middle Mouse Drag Action:", expand=True)
 
         # Checkboxes sub-layout.
         col = layout.column()
@@ -265,16 +287,17 @@ def load():
     kc_prefs = kc.preferences
 
     is_select_left = (kc_prefs.select_mouse == 'LEFT')
+    use_mouse_emulate_3_button = (
+        prefs.inputs.use_mouse_emulate_3_button and
+        prefs.inputs.mouse_emulate_3_button_modifier == 'ALT'
+    )
 
     keyconfig_data = blender_default.generate_keymaps(
         blender_default.Params(
             select_mouse=kc_prefs.select_mouse,
-            use_mouse_emulate_3_button=(
-                prefs.inputs.use_mouse_emulate_3_button and
-                prefs.inputs.mouse_emulate_3_button_modifier == 'ALT'
-            ),
+            use_mouse_emulate_3_button=use_mouse_emulate_3_button,
             spacebar_action=kc_prefs.spacebar_action,
-            use_key_activate_tools=kc_prefs.use_key_activate_tools,
+            use_key_activate_tools=(kc_prefs.tool_key_mode == 'TOOL'),
             v3d_tilde_action=kc_prefs.v3d_tilde_action,
             use_v3d_mmb_pan=(kc_prefs.v3d_mmb_action == 'PAN'),
             v3d_alt_mmb_drag_action=kc_prefs.v3d_alt_mmb_drag_action,
@@ -283,7 +306,10 @@ def load():
             use_v3d_shade_ex_pie=kc_prefs.use_v3d_shade_ex_pie,
             use_gizmo_drag=(is_select_left and kc_prefs.gizmo_action == 'DRAG'),
             use_fallback_tool=(True if is_select_left else (kc_prefs.rmb_action == 'FALLBACK_TOOL')),
-            use_alt_tool_or_cursor=kc_prefs.use_alt_tool if is_select_left else kc_prefs.use_alt_cursor,
+            use_alt_tool_or_cursor=(
+                (not use_mouse_emulate_3_button) and
+                (kc_prefs.use_alt_tool if is_select_left else kc_prefs.use_alt_cursor)
+            ),
             use_alt_click_leader=kc_prefs.use_alt_click_leader,
             use_pie_click_drag=kc_prefs.use_pie_click_drag,
         ),
