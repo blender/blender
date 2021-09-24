@@ -37,10 +37,8 @@ class Params:
         "cursor_set_event",
         "cursor_tweak_event",
         "use_mouse_emulate_3_button",
-        # Experimental option.
-        "pie_value",
 
-        # User preferences.
+        # User preferences:
         #
         # Swap 'Space/Shift-Space'.
         "spacebar_action",
@@ -72,11 +70,13 @@ class Params:
         # (derived from other settings).
         #
         # This case needs to be checked often,
-        # convenience for: `params.use_fallback_tool if params.select_mouse == 'RIGHT' else False`.
+        # Shorthand for: `(params.use_fallback_tool if params.select_mouse == 'RIGHT' else False)`.
         "use_fallback_tool_rmb",
-        # Convenience for: `'CLICK' if params.use_fallback_tool_rmb else params.select_mouse_value`.
+        # Shorthand for: `('CLICK' if params.use_fallback_tool_rmb else params.select_mouse_value)`.
         "select_mouse_value_fallback",
-        # Convenience for: `{"type": params.tool_maybe_tweak, "value": params.tool_maybe_tweak_value}`.
+        # Shorthand for: `('CLICK_DRAG' if params.use_pie_click_drag else 'PRESS')`
+        "pie_value",
+        # Shorthand for: `{"type": params.tool_maybe_tweak, "value": params.tool_maybe_tweak_value}`.
         "tool_maybe_tweak_event",
     )
 
@@ -106,6 +106,9 @@ class Params:
         self.apple = (platform == 'darwin')
         self.legacy = legacy
 
+        if use_mouse_emulate_3_button:
+            assert(use_alt_tool_or_cursor is False)
+
         if select_mouse == 'RIGHT':
             # Right mouse select.
             self.select_mouse = 'RIGHTMOUSE'
@@ -132,8 +135,6 @@ class Params:
 
             self.cursor_tweak_event = None
             self.use_fallback_tool = use_fallback_tool
-            self.use_fallback_tool_rmb = use_fallback_tool
-            self.select_mouse_value_fallback = 'CLICK' if self.use_fallback_tool_rmb else self.select_mouse_value
             self.tool_modifier = {}
         else:
             # Left mouse select uses Click event for selection. This is a little
@@ -157,8 +158,6 @@ class Params:
             self.cursor_set_event = {"type": 'RIGHTMOUSE', "value": 'PRESS', "shift": True}
             self.cursor_tweak_event = {"type": 'EVT_TWEAK_R', "value": 'ANY', "shift": True}
             self.use_fallback_tool = True
-            self.use_fallback_tool_rmb = False
-            self.select_mouse_value_fallback = self.select_mouse_value
 
             # Use the "tool" functionality for LMB select.
             if use_alt_tool_or_cursor:
@@ -169,7 +168,7 @@ class Params:
 
         self.use_mouse_emulate_3_button = use_mouse_emulate_3_button
 
-        # User preferences
+        # User preferences:
         self.spacebar_action = spacebar_action
         self.use_key_activate_tools = use_key_activate_tools
 
@@ -183,12 +182,11 @@ class Params:
 
         self.use_alt_click_leader = use_alt_click_leader
         self.use_pie_click_drag = use_pie_click_drag
-        if not use_pie_click_drag:
-            self.pie_value = 'PRESS'
-        else:
-            self.pie_value = 'CLICK_DRAG'
 
-        # Convenience variables.
+        # Convenience variables:
+        self.use_fallback_tool_rmb = self.use_fallback_tool if self.select_mouse == 'RIGHT' else False
+        self.select_mouse_value_fallback = 'CLICK' if self.use_fallback_tool_rmb else self.select_mouse_value
+        self.pie_value = 'CLICK_DRAG' if use_pie_click_drag else 'PRESS'
         self.tool_maybe_tweak_event = {"type": self.tool_maybe_tweak, "value": self.tool_maybe_tweak_value}
 
 
