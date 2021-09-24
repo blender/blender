@@ -74,10 +74,6 @@ ccl_device_inline float cmj_randfloat_simple(uint i, uint p)
 
 ccl_device float pmj_sample_1D(const KernelGlobals *kg, uint sample, uint rng_hash, uint dimension)
 {
-  /* The PMJ sample sets contain a sample with (x,y) with NUM_PMJ_SAMPLES so for 1D
-   *  the x part is used as the sample (TODO(@leesonw): Add using both x and y parts
-   * independently). */
-
   /* Perform Owen shuffle of the sample number to reorder the samples. */
 #ifdef _SIMPLE_HASH_
   const uint rv = cmj_hash_simple(dimension, rng_hash);
@@ -95,7 +91,10 @@ ccl_device float pmj_sample_1D(const KernelGlobals *kg, uint sample, uint rng_ha
   const uint sample_set = s / NUM_PMJ_SAMPLES;
   const uint d = (dimension + sample_set);
   const uint dim = d % NUM_PMJ_PATTERNS;
-  int index = 2 * (dim * NUM_PMJ_SAMPLES + (s % NUM_PMJ_SAMPLES));
+  
+  /* The PMJ sample sets contain a sample with (x,y) with NUM_PMJ_SAMPLES so for 1D
+   *  the x part is used for even dims and the y for odd. */
+  int index = 2 * ((dim >> 1) * NUM_PMJ_SAMPLES + (s % NUM_PMJ_SAMPLES)) + (dim & 1);
 
   float fx = kernel_tex_fetch(__sample_pattern_lut, index);
 
@@ -104,12 +103,11 @@ ccl_device float pmj_sample_1D(const KernelGlobals *kg, uint sample, uint rng_ha
 #  ifdef _SIMPLE_HASH_
   float dx = cmj_randfloat_simple(d, rng_hash);
 #  else
-  /* Only jitter within the grid interval. */
   float dx = cmj_randfloat(d, rng_hash);
 #  endif
-  fx = fx + dx * (1.0f / NUM_PMJ_SAMPLES);
+  /* Jitter sample locations and map back into [0 1]. */
+  fx = fx + dx;
   fx = fx - floorf(fx);
-
 #else
 #  warning "Not using Cranley-Patterson Rotation."
 #endif
@@ -136,12 +134,12 @@ ccl_device void pmj_sample_2D(
   /* Based on the sample number a sample pattern is selected and offset by the dimension. */
   const uint sample_set = s / NUM_PMJ_SAMPLES;
   const uint d = (dimension + sample_set);
-  const uint dim = d % NUM_PMJ_PATTERNS;
+  uint dim = d % NUM_PMJ_PATTERNS;
   int index = 2 * (dim * NUM_PMJ_SAMPLES + (s % NUM_PMJ_SAMPLES));
 
   float fx = kernel_tex_fetch(__sample_pattern_lut, index);
   float fy = kernel_tex_fetch(__sample_pattern_lut, index + 1);
-
+  
 #ifndef _NO_CRANLEY_PATTERSON_ROTATION_
   /* Use Cranley-Patterson rotation to displace the sample pattern. */
 #  ifdef _SIMPLE_HASH_
@@ -151,17 +149,17 @@ ccl_device void pmj_sample_2D(
   float dx = cmj_randfloat(d, rng_hash);
   float dy = cmj_randfloat(d + 1, rng_hash);
 #  endif
-  /* Only jitter within the grid cells. */
-  fx = fx + dx * (1.0f / NUM_PMJ_DIVISIONS);
-  fy = fy + dy * (1.0f / NUM_PMJ_DIVISIONS);
-  fx = fx - floorf(fx);
-  fy = fy - floorf(fy);
+  /* Jitter sample locations and map back to the unit square [0 1]x[0 1]. */
+  float sx = fx + dx;
+  float sy = fy + dy;
+  sx = sx - floorf(sx);
+  sy = sy - floorf(sy);
 #else
 #  warning "Not using Cranley Patterson Rotation."
 #endif
 
-  (*x) = fx;
-  (*y) = fy;
+  (*x) = sx;
+  (*y) = sy;
 }
 
 CCL_NAMESPACE_END
