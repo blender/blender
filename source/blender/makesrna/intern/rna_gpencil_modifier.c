@@ -59,6 +59,12 @@
 
 const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
     {0, "", 0, N_("Modify"), ""},
+    {eGpencilModifierType_Texture,
+     "GP_TEXTURE",
+     ICON_MOD_UVPROJECT,
+     "Texture Mapping",
+     "Change stroke uv texture values"},
+    {eGpencilModifierType_Time, "GP_TIME", ICON_MOD_TIME, "Time Offset", "Offset keyframes"},
     {eGpencilModifierType_WeightAngle,
      "GP_WEIGHT_ANGLE",
      ICON_MOD_VERTEX_WEIGHT,
@@ -143,7 +149,6 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      ICON_MOD_THICKNESS,
      "Thickness",
      "Change stroke thickness"},
-    {eGpencilModifierType_Time, "GP_TIME", ICON_MOD_TIME, "Time Offset", "Offset keyframes"},
     {0, "", 0, N_("Color"), ""},
     {eGpencilModifierType_Color,
      "GP_COLOR",
@@ -155,11 +160,6 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      ICON_MOD_OPACITY,
      "Opacity",
      "Opacity of the strokes"},
-    {eGpencilModifierType_Texture,
-     "GP_TEXTURE",
-     ICON_TEXTURE,
-     "Texture Mapping",
-     "Change stroke uv texture values"},
     {eGpencilModifierType_Tint, "GP_TINT", ICON_MOD_TINT, "Tint", "Tint strokes with new color"},
     {0, NULL, 0, NULL, NULL},
 };
@@ -2685,7 +2685,7 @@ static void rna_def_modifier_gpenciltexture(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Texture Modifier", "Transform stroke texture coordinates Modifier");
   RNA_def_struct_sdna(srna, "TextureGpencilModifierData");
-  RNA_def_struct_ui_icon(srna, ICON_TEXTURE);
+  RNA_def_struct_ui_icon(srna, ICON_MOD_UVPROJECT);
 
   RNA_define_lib_overridable(true);
 
