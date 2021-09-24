@@ -390,7 +390,7 @@ std::optional<eFileSelectType> AssetListStorage::asset_library_reference_to_file
 {
   switch (library_reference.type) {
     case ASSET_LIBRARY_CUSTOM:
-      return FILE_LOADLIB;
+      return FILE_ASSET_LIBRARY;
     case ASSET_LIBRARY_LOCAL:
       return FILE_MAIN_ASSET;
   }

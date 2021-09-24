@@ -965,7 +965,10 @@ enum eFileDetails {
 typedef enum eFileSelectType {
   FILE_LOADLIB = 1,
   FILE_MAIN = 2,
+  /** Load assets from #Main. */
   FILE_MAIN_ASSET = 3,
+  /** Load assets of an asset library containing external files. */
+  FILE_ASSET_LIBRARY = 4,
 
   FILE_UNIX = 8,
   FILE_BLENDER = 8, /* don't display relative paths */

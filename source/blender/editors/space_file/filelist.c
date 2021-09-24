@@ -473,6 +473,10 @@ static void filelist_readjob_dir(struct FileListReadJob *job_params,
                                  short *stop,
                                  short *do_update,
                                  float *progress);
+static void filelist_readjob_asset_library(struct FileListReadJob *job_params,
+                                           short *stop,
+                                           short *do_update,
+                                           float *progress);
 static void filelist_readjob_main_assets(struct FileListReadJob *job_params,
                                          short *stop,
                                          short *do_update,
@@ -1725,6 +1729,11 @@ void filelist_settype(FileList *filelist, short type)
       filelist->read_job_fn = filelist_readjob_lib;
       filelist->filter_fn = is_filtered_lib;
       break;
+    case FILE_ASSET_LIBRARY:
+      filelist->check_dir_fn = filelist_checkdir_lib;
+      filelist->read_job_fn = filelist_readjob_asset_library;
+      filelist->filter_fn = is_filtered_lib;
+      break;
     case FILE_MAIN_ASSET:
       filelist->check_dir_fn = filelist_checkdir_main_assets;
       filelist->read_job_fn = filelist_readjob_main_assets;
@@ -1741,7 +1750,10 @@ void filelist_settype(FileList *filelist, short type)
   filelist->flags |= FL_FORCE_RESET;
 }
 
-void filelist_clear_ex(struct FileList *filelist, const bool do_cache, const bool do_selection)
+void filelist_clear_ex(struct FileList *filelist,
+                       const bool do_asset_library,
+                       const bool do_cache,
+                       const bool do_selection)
 {
   if (!filelist) {
     return;
@@ -1761,7 +1773,7 @@ void filelist_clear_ex(struct FileList *filelist, const bool do_cache, const boo
     BLI_ghash_clear(filelist->selection_state, NULL, NULL);
   }
 
-  if (filelist->asset_library != NULL) {
+  if (do_asset_library && (filelist->asset_library != NULL)) {
     /* There is no way to refresh the catalogs stored by the AssetLibrary struct, so instead of
      * "clearing" it, the entire struct is freed. It will be reallocated when needed. */
     BKE_asset_library_free(filelist->asset_library);
@@ -1771,7 +1783,7 @@ void filelist_clear_ex(struct FileList *filelist, const bool do_cache, const boo
 
 void filelist_clear(struct FileList *filelist)
 {
-  filelist_clear_ex(filelist, true, true);
+  filelist_clear_ex(filelist, true, true, true);
 }
 
 void filelist_free(struct FileList *filelist)
@@ -1782,7 +1794,7 @@ void filelist_free(struct FileList *filelist)
   }
 
   /* No need to clear cache & selection_state, we free them anyway. */
-  filelist_clear_ex(filelist, false, false);
+  filelist_clear_ex(filelist, true, false, false);
   filelist_cache_free(&filelist->filelist_cache);
 
   if (filelist->selection_state) {
@@ -3368,13 +3380,6 @@ static void filelist_readjob_do(const bool do_lib,
     BLI_stack_discard(todo_dirs);
   }
   BLI_stack_free(todo_dirs);
-
-  /* Check whether assets catalogs need to be loaded. */
-  if (job_params->filelist->asset_library_ref != NULL) {
-    /* Load asset catalogs, into the temp filelist for thread-safety.
-     * #filelist_readjob_endjob() will move it into the real filelist. */
-    job_params->tmp_filelist->asset_library = BKE_asset_library_load(filelist->filelist.root);
-  }
 }
 
 static void filelist_readjob_dir(FileListReadJob *job_params,
@@ -3391,6 +3396,28 @@ static void filelist_readjob_lib(FileListReadJob *job_params,
                                  float *progress)
 {
   filelist_readjob_do(true, job_params, stop, do_update, progress);
+}
+
+static void filelist_readjob_load_asset_library_data(FileListReadJob *job_params, short *do_update)
+{
+  FileList *tmp_filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+
+  /* Check whether assets catalogs need to be loaded. */
+  if (job_params->filelist->asset_library_ref != NULL) {
+    /* Load asset catalogs, into the temp filelist for thread-safety.
+     * #filelist_readjob_endjob() will move it into the real filelist. */
+    tmp_filelist->asset_library = BKE_asset_library_load(tmp_filelist->filelist.root);
+    *do_update = true;
+  }
+}
+
+static void filelist_readjob_asset_library(FileListReadJob *job_params,
+                                           short *stop,
+                                           short *do_update,
+                                           float *progress)
+{
+  filelist_readjob_load_asset_library_data(job_params, do_update);
+  filelist_readjob_lib(job_params, stop, do_update, progress);
 }
 
 static void filelist_readjob_main(FileListReadJob *job_params,
@@ -3413,6 +3440,8 @@ static void filelist_readjob_main_assets(FileListReadJob *job_params,
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
   BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
              (filelist->filelist.nbr_entries == FILEDIR_NBR_ENTRIES_UNSET));
+
+  filelist_readjob_load_asset_library_data(job_params, do_update);
 
   /* A valid, but empty directory from now. */
   filelist->filelist.nbr_entries = 0;
@@ -3505,11 +3534,17 @@ static void filelist_readjob_update(void *flrjv)
     flrj->tmp_filelist->filelist.nbr_entries = 0;
   }
 
+  if (flrj->tmp_filelist->asset_library) {
+    flrj->filelist->asset_library = flrj->tmp_filelist->asset_library;
+    flrj->tmp_filelist->asset_library = NULL; /* MUST be NULL to avoid double-free. */
+  }
+
   BLI_mutex_unlock(&flrj->lock);
 
   if (new_nbr_entries) {
-    /* Do not clear selection cache, we can assume already 'selected' UIDs are still valid! */
-    filelist_clear_ex(flrj->filelist, true, false);
+    /* Do not clear selection cache, we can assume already 'selected' UIDs are still valid! Keep
+     * the asset library data we just read. */
+    filelist_clear_ex(flrj->filelist, false, true, false);
 
     flrj->filelist->flags |= (FL_NEED_SORTING | FL_NEED_FILTERING);
   }
@@ -3525,12 +3560,6 @@ static void filelist_readjob_endjob(void *flrjv)
 
   /* In case there would be some dangling update... */
   filelist_readjob_update(flrjv);
-
-  /* Move ownership of the asset library from the temporary list to the true filelist. */
-  BLI_assert_msg(flrj->filelist->asset_library == NULL,
-                 "asset library should not already have been allocated");
-  flrj->filelist->asset_library = flrj->tmp_filelist->asset_library;
-  flrj->tmp_filelist->asset_library = NULL; /* MUST be NULL to avoid double-free. */
 
   flrj->filelist->flags &= ~FL_IS_PENDING;
   flrj->filelist->flags |= FL_IS_READY;

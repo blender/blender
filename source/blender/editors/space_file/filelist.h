@@ -86,7 +86,10 @@ int filelist_geticon(struct FileList *filelist, const int index, const bool is_m
 struct FileList *filelist_new(short type);
 void filelist_settype(struct FileList *filelist, short type);
 void filelist_clear(struct FileList *filelist);
-void filelist_clear_ex(struct FileList *filelist, const bool do_cache, const bool do_selection);
+void filelist_clear_ex(struct FileList *filelist,
+                       const bool do_asset_library,
+                       const bool do_cache,
+                       const bool do_selection);
 void filelist_free(struct FileList *filelist);
 
 const char *filelist_dir(struct FileList *filelist);

@@ -440,7 +440,8 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
       BLI_strncpy(base_params->dir, user_library->path, sizeof(base_params->dir));
       break;
   }
-  base_params->type = (library->type == ASSET_LIBRARY_LOCAL) ? FILE_MAIN_ASSET : FILE_LOADLIB;
+  base_params->type = (library->type == ASSET_LIBRARY_LOCAL) ? FILE_MAIN_ASSET :
+                                                               FILE_ASSET_LIBRARY;
 }
 
 void fileselect_refresh_params(SpaceFile *sfile)
