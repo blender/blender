@@ -107,6 +107,7 @@ ustring OSLRenderServices::u_geom_undisplaced("geom:undisplaced");
 ustring OSLRenderServices::u_is_smooth("geom:is_smooth");
 ustring OSLRenderServices::u_is_curve("geom:is_curve");
 ustring OSLRenderServices::u_curve_thickness("geom:curve_thickness");
+ustring OSLRenderServices::u_curve_length("geom:curve_length");
 ustring OSLRenderServices::u_curve_tangent_normal("geom:curve_tangent_normal");
 ustring OSLRenderServices::u_curve_random("geom:curve_random");
 ustring OSLRenderServices::u_path_ray_length("path:ray_length");

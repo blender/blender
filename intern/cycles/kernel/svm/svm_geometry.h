@@ -213,6 +213,8 @@ ccl_device_noinline void svm_node_hair_info(
     }
     case NODE_INFO_CURVE_INTERCEPT:
       break; /* handled as attribute */
+    case NODE_INFO_CURVE_LENGTH:
+      break; /* handled as attribute */
     case NODE_INFO_CURVE_RANDOM:
       break; /* handled as attribute */
     case NODE_INFO_CURVE_THICKNESS: {

@@ -656,6 +656,8 @@ static const char *attr_prefix_get(CustomDataType type)
       return "c";
     case CD_AUTO_FROM_NAME:
       return "a";
+    case CD_HAIRLENGTH:
+      return "hl";
     default:
       BLI_assert_msg(0, "GPUVertAttr Prefix type not found : This should not happen!");
       return "";
@@ -675,7 +677,12 @@ static char *code_generate_interface(GPUNodeGraph *graph, int builtins)
   BLI_dynstr_append(ds, "\n");
 
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph->attributes) {
-    BLI_dynstr_appendf(ds, "%s var%d;\n", gpu_data_type_to_string(attr->gputype), attr->id);
+    if (attr->type == CD_HAIRLENGTH) {
+      BLI_dynstr_appendf(ds, "float var%d;\n", attr->id);
+    }
+    else {
+      BLI_dynstr_appendf(ds, "%s var%d;\n", gpu_data_type_to_string(attr->gputype), attr->id);
+    }
   }
   if (builtins & GPU_BARYCENTRIC_TEXCO) {
     BLI_dynstr_append(ds, "vec2 barycentricTexCo;\n");
@@ -710,6 +717,11 @@ static char *code_generate_vertex(GPUNodeGraph *graph,
       /* OPTI : orco is computed from local positions, but only if no modifier is present. */
       BLI_dynstr_append(ds, datatoc_gpu_shader_common_obinfos_lib_glsl);
       BLI_dynstr_append(ds, "DEFINE_ATTR(vec4, orco);\n");
+    }
+    if (attr->type == CD_HAIRLENGTH)
+    {
+      BLI_dynstr_append(ds, datatoc_gpu_shader_common_obinfos_lib_glsl);
+      BLI_dynstr_append(ds, "DEFINE_ATTR(float, hairLen);\n");
     }
     else if (attr->name[0] == '\0') {
       BLI_dynstr_appendf(ds, "DEFINE_ATTR(%s, %s);\n", type_str, prefix);
@@ -754,6 +766,10 @@ static char *code_generate_vertex(GPUNodeGraph *graph,
     else if (attr->type == CD_ORCO) {
       BLI_dynstr_appendf(
           ds, "  var%d = orco_get(position, modelmatinv, OrcoTexCoFactors, orco);\n", attr->id);
+    }
+    else if (attr->type == CD_HAIRLENGTH) {
+      BLI_dynstr_appendf(
+          ds, "  var%d = hair_len_get(hair_get_strand_id(), hairLen);\n", attr->id);
     }
     else {
       const char *type_str = gpu_data_type_to_string(attr->gputype);

@@ -342,6 +342,9 @@ static void curve_cd_calc_used_gpu_layers(CustomDataMask *cd_layers,
         case CD_ORCO:
           *cd_layers |= CD_MASK_ORCO;
           break;
+        case CD_HAIRLENGTH:
+          *cd_layers |= CD_MASK_HAIRLENGTH;
+          break;
       }
     }
   }

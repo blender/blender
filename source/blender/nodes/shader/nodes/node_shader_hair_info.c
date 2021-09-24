@@ -22,6 +22,7 @@
 static bNodeSocketTemplate outputs[] = {
     {SOCK_FLOAT, N_("Is Strand"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_FLOAT, N_("Intercept"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, N_("Length"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_FLOAT, N_("Thickness"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_VECTOR, N_("Tangent Normal"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     // { SOCK_FLOAT,  0, N_("Fade"),             0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
@@ -35,7 +36,11 @@ static int node_shader_gpu_hair_info(GPUMaterial *mat,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
-  return GPU_stack_link(mat, node, "node_hair_info", in, out);
+  /* Length: don't request length if not needed. */
+  const static float zero = 0;
+  GPUNodeLink *length_link = (!out[2].hasoutput) ? GPU_constant(&zero) :
+                                                   GPU_attribute(mat, CD_HAIRLENGTH, "");
+  return GPU_stack_link(mat, node, "node_hair_info", in, out, length_link);
 }
 
 /* node type definition */

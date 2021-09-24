@@ -238,7 +238,7 @@ static void workbench_cache_hair_populate(WORKBENCH_PrivateData *wpd,
                              workbench_image_hair_setup(wpd, ob, matnr, ima, NULL, state) :
                              workbench_material_hair_setup(wpd, ob, matnr, color_type);
 
-  DRW_shgroup_hair_create_sub(ob, psys, md, grp);
+  DRW_shgroup_hair_create_sub(ob, psys, md, grp, NULL);
 }
 
 /**

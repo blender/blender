@@ -269,7 +269,7 @@ void EEVEE_motion_blur_hair_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
       GPUTexture *tex_prev = mb_hair->psys[psys_id].hair_pos_tx[MB_PREV];
       GPUTexture *tex_next = mb_hair->psys[psys_id].hair_pos_tx[MB_NEXT];
 
-      grp = DRW_shgroup_hair_create_sub(ob, psys, md, effects->motion_blur.hair_grp);
+      grp = DRW_shgroup_hair_create_sub(ob, psys, md, effects->motion_blur.hair_grp, NULL);
       DRW_shgroup_uniform_mat4(grp, "prevModelMatrix", mb_data->obmat[MB_PREV]);
       DRW_shgroup_uniform_mat4(grp, "currModelMatrix", mb_data->obmat[MB_CURR]);
       DRW_shgroup_uniform_mat4(grp, "nextModelMatrix", mb_data->obmat[MB_NEXT]);

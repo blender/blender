@@ -255,7 +255,7 @@ static void eevee_cryptomatte_hair_cache_populate(EEVEE_Data *vedata,
 {
   DRWShadingGroup *grp = eevee_cryptomatte_shading_group_create(
       vedata, sldata, ob, material, true);
-  DRW_shgroup_hair_create_sub(ob, psys, md, grp);
+  DRW_shgroup_hair_create_sub(ob, psys, md, grp, NULL);
 }
 
 void EEVEE_cryptomatte_object_hair_cache_populate(EEVEE_Data *vedata,

@@ -4368,6 +4368,7 @@ NODE_DEFINE(HairInfoNode)
 
   SOCKET_OUT_FLOAT(is_strand, "Is Strand");
   SOCKET_OUT_FLOAT(intercept, "Intercept");
+  SOCKET_OUT_FLOAT(size, "Length");
   SOCKET_OUT_FLOAT(thickness, "Thickness");
   SOCKET_OUT_NORMAL(tangent_normal, "Tangent Normal");
 #if 0 /* Output for minimum hair width transparency - deactivated. */
@@ -4390,6 +4391,9 @@ void HairInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
     if (!intercept_out->links.empty())
       attributes->add(ATTR_STD_CURVE_INTERCEPT);
 
+  	if (!output("Length")->links.empty())
+      attributes->add(ATTR_STD_CURVE_LENGTH);
+
     if (!output("Random")->links.empty())
       attributes->add(ATTR_STD_CURVE_RANDOM);
   }
@@ -4409,6 +4413,12 @@ void HairInfoNode::compile(SVMCompiler &compiler)
   out = output("Intercept");
   if (!out->links.empty()) {
     int attr = compiler.attribute(ATTR_STD_CURVE_INTERCEPT);
+    compiler.add_node(NODE_ATTR, attr, compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT);
+  }
+
+  out = output("Length");
+  if (!out->links.empty()) {
+    int attr = compiler.attribute(ATTR_STD_CURVE_LENGTH);
     compiler.add_node(NODE_ATTR, attr, compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT);
   }
 

@@ -1856,6 +1856,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      NULL,
      NULL,
      NULL},
+    /* 51: CD_HAIRLENGTH */
+    {sizeof(float), "float", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -1912,6 +1914,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     "CDPropFloat3",
     "CDPropFloat2",
     "CDPropBoolean",
+    "CDHairLength",
 };
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
