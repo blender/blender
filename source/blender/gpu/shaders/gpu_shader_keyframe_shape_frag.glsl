@@ -67,7 +67,7 @@ void main()
   if (outline_dist < 0) {
     /* Middle dot */
     if (test(GPU_KEYFRAME_SHAPE_INNER_DOT)) {
-      alpha = max(alpha, 1 - smoothstep(thresholds[2], thresholds[3], radius));
+      alpha = max(alpha, 1 - smoothstep(thresholds[2], thresholds[3], length(absPos)));
     }
 
     /* Up and down arrow-like shading. */
