@@ -2864,9 +2864,10 @@ static void rna_def_modifier_gpencilweight_proximity(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
-  prop = RNA_def_property(srna, "distance_start", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "distance_start", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "dist_start");
-  RNA_def_property_ui_range(prop, 0, 1000.0, 1.0, 2);
+  RNA_def_property_range(prop, 0.0, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 1000.0, 1.0, 2);
   RNA_def_property_ui_text(prop, "Lowest", "Distance mapping to 0.0 weight");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -2875,9 +2876,10 @@ static void rna_def_modifier_gpencilweight_proximity(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Minimum", "Minimum value for vertex weight");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "distance_end", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "distance_end", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "dist_end");
-  RNA_def_property_ui_range(prop, 0, 1000.0, 1.0, 2);
+  RNA_def_property_range(prop, 0.0, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 1000.0, 1.0, 2);
   RNA_def_property_ui_text(prop, "Highest", "Distance mapping to 1.0 weight");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
