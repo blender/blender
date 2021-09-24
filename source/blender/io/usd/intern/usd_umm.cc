@@ -29,6 +29,8 @@
 #  include <iostream>
 #  include <vector>
 
+#  include "WM_api.h"
+
 // The following is additional example code for invoking Python and
 // a Blender Python operator from C++:
 
@@ -92,6 +94,78 @@ static void print_obj(PyObject *obj)
     Py_DECREF(str);
   }
 }
+
+static bool report_notification(PyObject *dict)
+{
+  if (!dict) {
+    return false;
+  }
+
+  if (!PyDict_Check(dict)) {
+    return false;
+  }
+
+  PyObject *notification_item = PyDict_GetItemString(dict, "umm_notification");
+
+  if (!notification_item) {
+    return false;
+  }
+
+  PyObject *message_item = PyDict_GetItemString(dict, "message");
+
+  if (!message_item) {
+    return false;
+  }
+
+  if (!PyUnicode_Check(notification_item)) {
+    std::cerr << "WARNING: 'umm_notification' value is not a string" << std::endl;
+    return false;
+  }
+
+  const char *notification_str = PyUnicode_AsUTF8(notification_item);
+
+  if (!notification_str) {
+    std::cerr << "WARNING: couldn't get 'umm_notification' string value" << std::endl;
+    return false;
+  }
+
+  if (strcmp(notification_str, "success") == 0) {
+    /* We don't report success, do nothing. */
+    return true;
+  }
+
+  if (!PyUnicode_Check(message_item)) {
+    std::cerr << "WARNING: 'message' value is not a string" << std::endl;
+    return false;
+  }
+
+  const char *message_str = PyUnicode_AsUTF8(message_item);
+
+  if (!message_str) {
+    std::cerr << "WARNING: couldn't get 'message' string value" << std::endl;
+    return false;
+  }
+
+  if (strlen(message_str) == 0) {
+    std::cerr << "WARNING: empty 'message' string value" << std::endl;
+    return false;
+  }
+
+  if (strcmp(notification_str, "incomplete_process") == 0) {
+    WM_reportf(RPT_WARNING, message_str);
+    return true;
+  }
+
+  if (strcmp(notification_str, "unexpected_error") == 0) {
+    WM_reportf(RPT_ERROR, message_str);
+    return true;
+  }
+
+  std::cout << "WARNING: unknown notification type: " << notification_str << std::endl;
+
+  return false;
+}
+
 
 static bool is_none_value(PyObject *tup)
 {
@@ -497,6 +571,7 @@ static bool import_material(Material *mtl,
   if (ret) {
     std::cout << "result:\n";
     print_obj(ret);
+    report_notification(ret);
     Py_DECREF(ret);
   }
 
@@ -731,7 +806,16 @@ bool umm_export_material(const USDExporterContext &usd_export_context,
   if (ret) {
     std::cout << "result:\n";
     print_obj(ret);
-    set_shader_properties(usd_export_context, usd_shader, ret);
+
+    if (report_notification(ret)) {
+      /* The function returned a notification object,
+       * indicating a failure. */
+      success = false;
+    }
+    else {
+      set_shader_properties(usd_export_context, usd_shader, ret);
+    }
+
     Py_DECREF(ret);
   }
 
