@@ -396,8 +396,8 @@ int2 Session::get_effective_tile_size() const
 
   /* TODO(sergey): Take available memory into account, and if there is enough memory do not tile
    * and prefer optimal performance. */
-
-  return make_int2(params.tile_size, params.tile_size);
+  const int tile_size = tile_manager_.compute_render_tile_size(params.tile_size);
+  return make_int2(tile_size, tile_size);
 }
 
 void Session::do_delayed_reset()

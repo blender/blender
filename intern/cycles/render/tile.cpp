@@ -307,8 +307,8 @@ static bool configure_image_spec_from_buffer(ImageSpec *image_spec,
     DCHECK_GT(tile_size.x, 0);
     DCHECK_GT(tile_size.y, 0);
 
-    image_spec->tile_width = tile_size.x;
-    image_spec->tile_height = tile_size.y;
+    image_spec->tile_width = min(TileManager::IMAGE_TILE_SIZE, tile_size.x);
+    image_spec->tile_height = min(TileManager::IMAGE_TILE_SIZE, tile_size.y);
   }
 
   return true;
@@ -333,6 +333,15 @@ TileManager::TileManager()
 
 TileManager::~TileManager()
 {
+}
+
+int TileManager::compute_render_tile_size(const int suggested_tile_size) const
+{
+  /* Must be a multiple of IMAGE_TILE_SIZE so that we can write render tiles into the image file
+   * aligned on image tile boundaries. We can't set IMAGE_TILE_SIZE equal to the render tile size
+   * because too big tile size leads to integer overflow inside OpenEXR. */
+  return (suggested_tile_size <= IMAGE_TILE_SIZE) ? suggested_tile_size :
+                                                    align_up(suggested_tile_size, IMAGE_TILE_SIZE);
 }
 
 void TileManager::reset_scheduling(const BufferParams &params, int2 tile_size)
@@ -466,32 +475,27 @@ bool TileManager::write_tile(const RenderBuffers &tile_buffers)
 
   const BufferParams &tile_params = tile_buffers.params;
 
-  vector<float> pixel_storage;
   const float *pixels = tile_buffers.buffer.data();
-
-  /* Tiled writing expects pixels to contain data for an entire tile. Pad the render buffers with
-   * empty pixels for tiles which are on the image boundary. */
-  if (tile_params.width != tile_size_.x || tile_params.height != tile_size_.y) {
-    const int64_t pass_stride = tile_params.pass_stride;
-    const int64_t src_row_stride = tile_params.width * pass_stride;
-
-    const int64_t dst_row_stride = tile_size_.x * pass_stride;
-    pixel_storage.resize(dst_row_stride * tile_size_.y);
-
-    const float *src = tile_buffers.buffer.data();
-    float *dst = pixel_storage.data();
-    pixels = dst;
-
-    for (int y = 0; y < tile_params.height; ++y, src += src_row_stride, dst += dst_row_stride) {
-      memcpy(dst, src, src_row_stride * sizeof(float));
-    }
-  }
-
   const int tile_x = tile_params.full_x - buffer_params_.full_x;
   const int tile_y = tile_params.full_y - buffer_params_.full_y;
 
   VLOG(3) << "Write tile at " << tile_x << ", " << tile_y;
-  if (!write_state_.tile_out->write_tile(tile_x, tile_y, 0, TypeDesc::FLOAT, pixels)) {
+
+  /* The image tile sizes in the OpenEXR file are different from the size of our big tiles. The
+   * write_tiles() method expects a contiguous image region that will be split into tiles
+   * internally. OpenEXR expects the size of this region to be a multiple of the tile size,
+   * however OpenImageIO automatically adds the required padding.
+   *
+   * The only thing we have to ensure is that the tile_x and tile_y are a multiple of the
+   * image tile size, which happens in compute_render_tile_size. */
+  if (!write_state_.tile_out->write_tiles(tile_x,
+                                          tile_x + tile_params.width,
+                                          tile_y,
+                                          tile_y + tile_params.height,
+                                          0,
+                                          1,
+                                          TypeDesc::FLOAT,
+                                          pixels)) {
     LOG(ERROR) << "Error writing tile " << write_state_.tile_out->geterror();
   }
 
@@ -518,7 +522,14 @@ void TileManager::finish_write_tiles()
 
       VLOG(3) << "Write dummy tile at " << tile.x << ", " << tile.y;
 
-      write_state_.tile_out->write_tile(tile.x, tile.y, 0, TypeDesc::FLOAT, pixel_storage.data());
+      write_state_.tile_out->write_tiles(tile.x,
+                                         tile.x + tile.width,
+                                         tile.y,
+                                         tile.y + tile.height,
+                                         0,
+                                         1,
+                                         TypeDesc::FLOAT,
+                                         pixel_storage.data());
     }
   }
 
