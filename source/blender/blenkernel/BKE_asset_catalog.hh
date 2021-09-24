@@ -256,6 +256,7 @@ class AssetCatalog {
   static std::string sensible_simple_name_for_path(const CatalogPath &path);
 };
 
+/** Comparator for asset catalogs, ordering by (path, UUID). */
 struct AssetCatalogPathCmp {
   bool operator()(const AssetCatalog *lhs, const AssetCatalog *rhs) const
   {
@@ -266,6 +267,9 @@ struct AssetCatalogPathCmp {
   }
 };
 
+/**
+ * Set that stores catalogs ordered by (path, UUID).
+ * Being a set, duplicates are removed. The catalog's simple name is ignored in this. */
 using AssetCatalogOrderedSet = std::set<const AssetCatalog *, AssetCatalogPathCmp>;
 
 }  // namespace blender::bke
