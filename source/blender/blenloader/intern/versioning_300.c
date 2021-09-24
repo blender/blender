@@ -808,6 +808,7 @@ static void version_geometry_nodes_change_legacy_names(bNodeTree *ntree)
     }
   }
 }
+
 static bool seq_transform_origin_set(Sequence *seq, void *UNUSED(user_data))
 {
   StripTransform *transform = seq->strip->transform;
@@ -1478,6 +1479,30 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
               break;
           }
         }
+      }
+    }
+
+    /* Deprecate the random float node in favor of the random float node. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != FN_NODE_LEGACY_RANDOM_FLOAT) {
+          continue;
+        }
+        if (strstr(node->idname, "Legacy")) {
+          /* Make sure we haven't changed this idname already. */
+          continue;
+        }
+
+        char temp_idname[sizeof(node->idname)];
+        BLI_strncpy(temp_idname, node->idname, sizeof(node->idname));
+
+        BLI_snprintf(node->idname,
+                     sizeof(node->idname),
+                     "FunctionNodeLegacy%s",
+                     temp_idname + strlen("FunctionNode"));
       }
     }
   }
