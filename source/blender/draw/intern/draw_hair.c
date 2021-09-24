@@ -316,8 +316,9 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   }
 
   DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", hair_cache->final[subdiv].proc_tex);
-  if (hair_cache->length_tex)
+  if (hair_cache->length_tex) {
     DRW_shgroup_uniform_texture(shgrp, "hairLen", hair_cache->length_tex);
+  }
   DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &hair_cache->final[subdiv].strands_res, 1);
   DRW_shgroup_uniform_int_copy(shgrp, "hairThicknessRes", thickness_res);
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadShape", hair_rad_shape);
