@@ -202,6 +202,7 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   /** The input supports a field and is a field by default when nothing is connected. */
   Self &implicit_field()
   {
+    this->hide_value();
     decl_->input_field_type_ = InputSocketFieldType::Implicit;
     return *(Self *)this;
   }
