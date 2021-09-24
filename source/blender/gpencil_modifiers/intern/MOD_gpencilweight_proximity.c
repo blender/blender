@@ -83,13 +83,13 @@ static float calc_point_weight_by_distance(Object *ob,
   float dist = len_v3v3(mmd->object->obmat[3], gvert);
 
   if (dist > dist_max) {
-    weight = 0.0f;
+    weight = 1.0f;
   }
   else if (dist <= dist_max && dist > dist_min) {
-    weight = (dist_max - dist) / max_ff((dist_max - dist_min), 0.0001f);
+    weight = 1.0f - ((dist_max - dist) / max_ff((dist_max - dist_min), 0.0001f));
   }
   else {
-    weight = 1.0f;
+    weight = 0.0f;
   }
 
   return weight;
