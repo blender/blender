@@ -2656,8 +2656,6 @@ Object *BKE_object_duplicate(Main *bmain,
     return obn;
   }
 
-  BKE_animdata_duplicate_id_action(bmain, &obn->id, dupflag);
-
   if (dupflag & USER_DUP_MAT) {
     for (int i = 0; i < obn->totcol; i++) {
       BKE_id_copy_for_duplicate(bmain, (ID *)obn->mat[i], dupflag);
