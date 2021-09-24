@@ -33,7 +33,7 @@ static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>("Axis").min(-1.0f).max(1.0f).default_value({0.0f, 0.0f, 1.0f});
   b.add_input<decl::Float>("Angle").subtype(PROP_ANGLE);
   b.add_input<decl::Vector>("Rotation").subtype(PROP_EULER);
-  b.add_output<decl::Vector>("Value");
+  b.add_output<decl::Vector>("Vector");
 };
 
 }  // namespace blender::nodes
