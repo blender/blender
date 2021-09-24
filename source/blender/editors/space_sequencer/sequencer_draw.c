@@ -2719,12 +2719,14 @@ void sequencer_draw_preview(const bContext *C,
     sequencer_draw_borders_overlay(sseq, v2d, scene);
   }
 
-  SeqCollection *collection = SEQ_query_rendered_strips(&scene->ed->seqbase, timeline_frame, 0);
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, collection) {
-    seq_draw_image_origin_and_outline(C, seq);
+  if (!draw_backdrop) {
+    SeqCollection *collection = SEQ_query_rendered_strips(&scene->ed->seqbase, timeline_frame, 0);
+    Sequence *seq;
+    SEQ_ITERATOR_FOREACH (seq, collection) {
+      seq_draw_image_origin_and_outline(C, seq);
+    }
+    SEQ_collection_free(collection);
   }
-  SEQ_collection_free(collection);
 
   if (draw_gpencil && show_imbuf && (sseq->flag & SEQ_SHOW_OVERLAY)) {
     sequencer_draw_gpencil_overlay(C);
