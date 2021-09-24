@@ -873,8 +873,8 @@ static Object *object_for_curve_to_mesh_create(const Object *object)
 {
   const Curve *curve = (const Curve *)object->data;
 
-  /* reate a temporary object which can be evaluated and modified by generic
-   * curve evaluation (hence the LIB_ID_COPY_SET_COPIED_ON_WRITE flag). */
+  /* Create a temporary object which can be evaluated and modified by generic
+   * curve evaluation (hence the #LIB_ID_COPY_SET_COPIED_ON_WRITE flag). */
   Object *temp_object = (Object *)BKE_id_copy_ex(
       nullptr, &object->id, nullptr, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_SET_COPIED_ON_WRITE);
 
@@ -882,7 +882,7 @@ static Object *object_for_curve_to_mesh_create(const Object *object)
   BKE_object_free_modifiers(temp_object, LIB_ID_CREATE_NO_USER_REFCOUNT);
 
   /* Need to create copy of curve itself as well, since it will be changed by the curve evaluation
-   * process. NOTE: Copies the data, but not the shapekeys. */
+   * process. NOTE: Copies the data, but not the shape-keys. */
   temp_object->data = BKE_id_copy_ex(nullptr,
                                      (const ID *)object->data,
                                      nullptr,
@@ -893,7 +893,7 @@ static Object *object_for_curve_to_mesh_create(const Object *object)
    * result. */
   BKE_curve_texspace_calc(temp_curve);
 
-  /* Temporarily set edit so we get updates from edit mode, but also because for text datablocks
+  /* Temporarily set edit so we get updates from edit mode, but also because for text data-blocks
    * copying it while in edit mode gives invalid data structures. */
   temp_curve->editfont = curve->editfont;
   temp_curve->editnurb = curve->editnurb;
@@ -1189,7 +1189,7 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
     return mesh_in_bmain;
   }
 
-  /* Make sure mesh only points original datablocks, also increase users of materials and other
+  /* Make sure mesh only points original data-blocks, also increase users of materials and other
    * possibly referenced data-blocks.
    *
    * Going to original data-blocks is required to have bmain in a consistent state, where

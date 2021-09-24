@@ -79,17 +79,17 @@ namespace blender {
 class bUUID : public ::bUUID {
  public:
   /**
-   * Default constructor, used with `bUUID value{};`, will initialise to the nil UUID.
+   * Default constructor, used with `bUUID value{};`, will initialize to the nil UUID.
    */
   bUUID() = default;
 
-  /** Initialise from the bUUID DNA struct. */
+  /** Initialize from the bUUID DNA struct. */
   bUUID(const ::bUUID &struct_uuid);
 
-  /** Initialise from 11 integers, 5 for the regular fields and 6 for the `node` array. */
+  /** Initialize from 11 integers, 5 for the regular fields and 6 for the `node` array. */
   bUUID(std::initializer_list<uint32_t> field_values);
 
-  /** Initialise by parsing the string; undefined behaviour when the string is invalid. */
+  /** Initialize by parsing the string; undefined behavior when the string is invalid. */
   explicit bUUID(const std::string &string_formatted_uuid);
 
   uint64_t hash() const;

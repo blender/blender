@@ -548,7 +548,7 @@ Vector<const NodeRef *> NodeTreeRef::toposort(const ToposortDirection direction)
         const SocketRef &socket = *sockets[item.socket_index];
         const Span<const SocketRef *> linked_sockets = socket.directly_linked_sockets();
         if (item.link_index == linked_sockets.size()) {
-          /* All linkes connected to this socket have already been visited. */
+          /* All links connected to this socket have already been visited. */
           item.socket_index++;
           item.link_index = 0;
           continue;

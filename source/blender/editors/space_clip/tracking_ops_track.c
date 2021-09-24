@@ -196,8 +196,8 @@ static bool track_markers_initjob(bContext *C, TrackMarkersJob *tmj, bool backwa
   /* XXX: silly to store this, but this data is needed to update scene and
    *      movie-clip numbers when tracking is finished. This introduces
    *      better feedback for artists.
-   *      Maybe there's another way to solve this problem, but can't think
-   *      better way atm.
+   *      Maybe there's another way to solve this problem,
+   *      but can't think better way at the moment.
    *      Anyway, this way isn't more unstable as animation rendering
    *      animation which uses the same approach (except storing screen).
    */

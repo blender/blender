@@ -1056,8 +1056,8 @@ static void rna_def_ptcache_point_caches(BlenderRNA *brna, PropertyRNA *cprop)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  /* FunctionRNA *func; */
-  /* PropertyRNA *parm; */
+  // FunctionRNA *func;
+  // PropertyRNA *parm;
 
   RNA_def_property_srna(cprop, "PointCaches");
   srna = RNA_def_struct(brna, "PointCaches", NULL);

@@ -848,7 +848,7 @@ typedef struct CollisionModifierData {
   struct MVert *x;
   /** Position at the end of the frame. */
   struct MVert *xnew;
-  /** Unused atm, but was discussed during sprint. */
+  /** Unused at the moment, but was discussed during sprint. */
   struct MVert *xold;
   /** New position at the actual inter-frame step. */
   struct MVert *current_xnew;

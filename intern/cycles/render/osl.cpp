@@ -727,8 +727,8 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
     }
   }
 
-  /* create shader of the appropriate type. OSL only distinguishes between "surface"
-   * and "displacement" atm */
+  /* Create shader of the appropriate type. OSL only distinguishes between "surface"
+   * and "displacement" at the moment. */
   if (current_type == SHADER_TYPE_SURFACE)
     ss->Shader("surface", name, id(node).c_str());
   else if (current_type == SHADER_TYPE_VOLUME)

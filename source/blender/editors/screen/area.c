@@ -3000,7 +3000,7 @@ void ED_region_panels_layout_ex(const bContext *C,
 
   /* before setting the view */
   if (region_layout_based) {
-    /* XXX, only single panel support atm.
+    /* XXX, only single panel support at the moment.
      * Can't use x/y values calculated above because they're not using the real height of panels,
      * instead they calculate offsets for the next panel to start drawing. */
     Panel *panel = region->panels.last;

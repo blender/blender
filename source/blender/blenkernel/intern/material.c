@@ -473,7 +473,7 @@ bool BKE_object_material_slot_used(ID *id, short actcol)
     case ID_CU:
       return BKE_curve_material_index_used((Curve *)id, actcol - 1);
     case ID_MB:
-      /* meta-elems don't have materials atm */
+      /* Meta-elements don't support materials at the moment. */
       return false;
     case ID_GD:
       return BKE_gpencil_material_index_used((bGPdata *)id, actcol - 1);

@@ -163,7 +163,7 @@ class GPUDisplay {
    * This call might happen in parallel with draw, but can never happen in parallel with the
    * update.
    *
-   * The actual zero-ing can be deferred to a later moment. What is important is that after clear
+   * The actual zeroing can be deferred to a later moment. What is important is that after clear
    * and before pixels update the drawing texture will be fully empty, and that partial update
    * after clear will write new pixel values for an updating area, leaving everything else zeroed.
    *

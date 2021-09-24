@@ -42,7 +42,7 @@ extern "C" {
  */
 
 typedef struct ClothSimSettings {
-  /** UNUSED atm. */
+  /** UNUSED. */
   struct LinkNode *cache;
   /** See SB. */
   float mingoal;

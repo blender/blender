@@ -1123,7 +1123,7 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
     RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
 
     /* XXX Warning: context can be nullptr in case nodes are added in do_versions.
-     * Delayed init is not supported for nodes with context-based initfunc_api atm.
+     * Delayed init is not supported for nodes with context-based `initfunc_api` at the moment.
      */
     BLI_assert(C != nullptr);
     ntype->initfunc_api(C, &ptr);

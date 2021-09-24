@@ -2104,7 +2104,7 @@ static void annotation_draw_apply_event(
         p->flags |= GP_PAINTFLAG_USE_STABILIZER_TEMP;
       }
     }
-    /* We are using the temporal stabilizer flag atm,
+    /* We are using the temporal stabilizer flag at the moment,
      * but shift is not pressed as well as the permanent flag is not used,
      * so we don't need the cursor anymore. */
     else if (p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) {

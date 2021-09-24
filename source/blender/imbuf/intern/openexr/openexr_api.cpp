@@ -555,7 +555,7 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flag
     int xstride = sizeof(float) * channels;
     int ystride = -xstride * width;
 
-    /* last scanline, stride negative */
+    /* Last scan-line, stride negative. */
     float *rect[4] = {nullptr, nullptr, nullptr, nullptr};
     rect[0] = ibuf->rect_float + channels * (height - 1) * width;
     rect[1] = (channels >= 2) ? rect[0] + 1 : rect[0];
@@ -654,7 +654,7 @@ struct ExrChannel {
 
   char name[EXR_TOT_MAXNAME + 1]; /* full name with everything */
   struct MultiViewChannelName *m; /* struct to store all multipart channel info */
-  int xstride, ystride;           /* step to next pixel, to next scanline */
+  int xstride, ystride;           /* step to next pixel, to next scan-line. */
   float *rect;                    /* first pointer to write in */
   char chan_id;                   /* quick lookup of channel char */
   int view_id;                    /* quick lookup of channel view */
@@ -1127,7 +1127,7 @@ void IMB_exr_write_channels(void *handle)
     }
 
     for (echan = (ExrChannel *)data->channels.first; echan; echan = echan->next) {
-      /* Writing starts from last scanline, stride negative. */
+      /* Writing starts from last scan-line, stride negative. */
       if (echan->use_half_float) {
         float *rect = echan->rect;
         half *cur = current_rect_half;
@@ -1269,7 +1269,7 @@ void IMB_exr_read_channels(void *handle)
         if (!flip) {
           /* Inverse correct first pixel for data-window coordinates. */
           rect -= echan->xstride * (dw.min.x - dw.min.y * data->width);
-          /* move to last scanline to flip to Blender convention */
+          /* Move to last scan-line to flip to Blender convention. */
           rect += echan->xstride * (data->height - 1) * data->width;
           ystride = -ystride;
         }
@@ -2009,7 +2009,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
           /* Inverse correct first pixel for data-window
            * coordinates (- dw.min.y because of y flip). */
           first = ibuf->rect_float - 4 * (dw.min.x - dw.min.y * width);
-          /* but, since we read y-flipped (negative y stride) we move to last scanline */
+          /* But, since we read y-flipped (negative y stride) we move to last scan-line. */
           first += 4 * (height - 1) * width;
 
           if (num_rgb_channels > 0) {

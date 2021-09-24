@@ -42,7 +42,7 @@ TEST(AssetMetadataTest, set_catalog_id)
   EXPECT_TRUE(BLI_uuid_equal(uuid, meta.catalog_id));
   EXPECT_STREQ("simple", meta.catalog_simple_name);
 
-  /* Test whitespace trimming. */
+  /* Test white-space trimming. */
   BKE_asset_metadata_catalog_id_set(&meta, uuid, " Govoriš angleško?    ");
   EXPECT_STREQ("Govoriš angleško?", meta.catalog_simple_name);
 
@@ -52,7 +52,7 @@ TEST(AssetMetadataTest, set_catalog_id)
   BKE_asset_metadata_catalog_id_set(&meta, uuid, len66);
   EXPECT_STREQ(len63, meta.catalog_simple_name);
 
-  /* Test length trimming happens after whitespace trimming. */
+  /* Test length trimming happens after white-space trimming. */
   constexpr char len68[] =
       "     \
       000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20 ";

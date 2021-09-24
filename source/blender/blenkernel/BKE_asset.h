@@ -48,7 +48,7 @@ struct AssetTagEnsureResult BKE_asset_metadata_tag_ensure(struct AssetMetaData *
                                                           const char *name);
 void BKE_asset_metadata_tag_remove(struct AssetMetaData *asset_data, struct AssetTag *tag);
 
-/** Clean up the catalog ID (whitespaces removed, length reduced, etc.) and assign it. */
+/** Clean up the catalog ID (white-spaces removed, length reduced, etc.) and assign it. */
 void BKE_asset_metadata_catalog_id_clear(struct AssetMetaData *asset_data);
 void BKE_asset_metadata_catalog_id_set(struct AssetMetaData *asset_data,
                                        bUUID catalog_id,

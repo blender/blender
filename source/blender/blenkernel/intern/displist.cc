@@ -261,7 +261,7 @@ bool BKE_displist_surfindex_get(
   return true;
 }
 
-/* ****************** make displists ********************* */
+/* ****************** Make #DispList ********************* */
 #ifdef __INTEL_COMPILER
 /* ICC with the optimization -02 causes crashes. */
 #  pragma intel optimization_level 1

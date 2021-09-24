@@ -89,7 +89,7 @@ class DebugFlags {
     void reset();
 
     /* Whether adaptive feature based runtime compile is enabled or not.
-     * Requires the CUDA Toolkit and only works on Linux atm. */
+     * Requires the CUDA Toolkit and only works on Linux at the moment. */
     bool adaptive_compile;
   };
 
