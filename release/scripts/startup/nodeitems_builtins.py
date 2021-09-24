@@ -607,6 +607,7 @@ geometry_node_categories = [
         NodeItem("FunctionNodeValueToString"),
         NodeItem("GeometryNodeStringJoin"),
         NodeItem("FunctionNodeInputSpecialCharacters"),
+        NodeItem("GeometryNodeStringToCurves"),
     ]),
     GeometryNodeCategory("GEO_UTILITIES", "Utilities", items=[
         NodeItem("ShaderNodeMapRange"),

@@ -10425,6 +10425,120 @@ static void def_geo_attribute_capture(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_geo_string_to_curves(StructRNA *srna)
+{
+  static const EnumPropertyItem rna_node_geometry_string_to_curves_overflow_items[] = {
+      {GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW,
+       "OVERFLOW",
+       ICON_NONE,
+       "Overflow",
+       "Let the text use more space than the specified height"},
+      {GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT,
+       "SCALE_TO_FIT",
+       ICON_NONE,
+       "Scale To Fit",
+       "Scale the text size to fit inside the width and height"},
+      {GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE,
+       "TRUNCATE",
+       ICON_NONE,
+       "Truncate",
+       "Only output curves that fit within the width and height. Output the remainder to the "
+       "\"Remainder\" output"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem rna_node_geometry_string_to_curves_align_x_items[] = {
+      {GEO_NODE_STRING_TO_CURVES_ALIGN_X_LEFT,
+       "LEFT",
+       ICON_ALIGN_LEFT,
+       "Left",
+       "Align text to the left"},
+      {GEO_NODE_STRING_TO_CURVES_ALIGN_X_CENTER,
+       "CENTER",
+       ICON_ALIGN_CENTER,
+       "Center",
+       "Align text to the center"},
+      {GEO_NODE_STRING_TO_CURVES_ALIGN_X_RIGHT,
+       "RIGHT",
+       ICON_ALIGN_RIGHT,
+       "Right",
+       "Align text to the right"},
+      {GEO_NODE_STRING_TO_CURVES_ALIGN_X_JUSTIFY,
+       "JUSTIFY",
+       ICON_ALIGN_JUSTIFY,
+       "Justify",
+       "Align text to the left and the right"},
+      {GEO_NODE_STRING_TO_CURVES_ALIGN_X_FLUSH,
+       "FLUSH",
+       ICON_ALIGN_FLUSH,
+       "Flush",
+       "Align text to the left and the right, with equal character spacing"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem rna_node_geometry_string_to_curves_align_y_items[] = {
+      {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE,
+       "TOP_BASELINE",
+       ICON_ALIGN_TOP,
+       "Top Baseline",
+       "Align text to the top baseline"},
+      {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP,
+       "TOP",
+       ICON_ALIGN_TOP,
+       "Top",
+       "Align text to the top"},
+      {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_MIDDLE,
+       "MIDDLE",
+       ICON_ALIGN_MIDDLE,
+       "Middle",
+       "Align text to the middle"},
+      {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_BOTTOM_BASELINE,
+       "BOTTOM_BASELINE",
+       ICON_ALIGN_BOTTOM,
+       "Bottom Baseline",
+       "Align text to the bottom baseline"},
+      {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_BOTTOM,
+       "BOTTOM",
+       ICON_ALIGN_BOTTOM,
+       "Bottom",
+       "Align text to the bottom"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "font", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "id");
+  RNA_def_property_struct_type(prop, "VectorFont");
+  RNA_def_property_ui_text(prop, "Font", "Font of the text. Falls back to the UI font by default");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryStringToCurves", "storage");
+
+  prop = RNA_def_property(srna, "overflow", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "overflow");
+  RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_overflow_items);
+  RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
+  RNA_def_property_ui_text(prop, "Overflow", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "align_x", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "align_x");
+  RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_align_x_items);
+  RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_ALIGN_X_LEFT);
+  RNA_def_property_ui_text(prop, "Align X", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "align_y", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "align_y");
+  RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_align_y_items);
+  RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE);
+  RNA_def_property_ui_text(prop, "Align Y", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 /* -------------------------------------------------------------------------- */
 
 static void rna_def_shader_node(BlenderRNA *brna)

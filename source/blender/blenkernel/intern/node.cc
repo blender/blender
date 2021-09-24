@@ -5799,6 +5799,7 @@ static void registerGeometryNodes()
   register_node_type_geo_material_selection();
   register_node_type_geo_separate_components();
   register_node_type_geo_set_position();
+  register_node_type_geo_string_to_curves();
   register_node_type_geo_subdivision_surface();
   register_node_type_geo_switch();
   register_node_type_geo_transform();
