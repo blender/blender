@@ -715,6 +715,14 @@ class AnonymousAttributeFieldInput : public fn::FieldInput {
   {
   }
 
+  template<typename T> static fn::Field<T> Create(StrongAnonymousAttributeID anonymous_id)
+  {
+    const CPPType &type = CPPType::get<T>();
+    auto field_input = std::make_shared<AnonymousAttributeFieldInput>(std::move(anonymous_id),
+                                                                      type);
+    return fn::Field<T>{field_input};
+  }
+
   const GVArray *get_varray_for_context(const fn::FieldContext &context,
                                         IndexMask mask,
                                         ResourceScope &scope) const override;

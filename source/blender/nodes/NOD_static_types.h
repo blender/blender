@@ -332,6 +332,7 @@ DefNode(GeometryNode, GEO_NODE_CURVE_FILLET, def_geo_curve_fillet, "CURVE_FILLET
 DefNode(GeometryNode, GEO_NODE_CURVE_TO_MESH, 0, "CURVE_TO_MESH", CurveToMesh, "Curve to Mesh", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_TO_POINTS, def_geo_curve_to_points, "CURVE_TO_POINTS", CurveToPoints, "Curve to Points", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_TRIM, def_geo_curve_trim, "CURVE_TRIM", CurveTrim, "Curve Trim", "")
+DefNode(GeometryNode, GEO_NODE_DISTRIBUTE_POINTS_ON_FACES, def_geo_distribute_points_on_faces, "DISTRIBUTE_POINTS_ON_FACES", DistributePointsOnFaces, "Distribute Points on Faces", "")
 DefNode(GeometryNode, GEO_NODE_EDGE_SPLIT, 0, "EDGE_SPLIT", EdgeSplit, "Edge Split", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_INDEX, 0, "INDEX", InputIndex, "Index", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_MATERIAL, def_geo_input_material, "INPUT_MATERIAL", InputMaterial, "Material", "")

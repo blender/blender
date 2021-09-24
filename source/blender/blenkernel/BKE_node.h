@@ -1500,6 +1500,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_STRING_JOIN 1087
 #define GEO_NODE_CURVE_PARAMETER 1088
 #define GEO_NODE_CURVE_FILLET 1089
+#define GEO_NODE_DISTRIBUTE_POINTS_ON_FACES 1090
 
 /** \} */
 

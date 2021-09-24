@@ -1980,6 +1980,11 @@ typedef enum GeometryNodePointDistributeMode {
   GEO_NODE_POINT_DISTRIBUTE_POISSON = 1,
 } GeometryNodePointDistributeMode;
 
+typedef enum GeometryNodeDistributePointsOnFacesMode {
+  GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM = 0,
+  GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON = 1,
+} GeometryNodeDistributePointsOnFacesMode;
+
 typedef enum GeometryNodeRotatePointsType {
   GEO_NODE_POINT_ROTATE_TYPE_EULER = 0,
   GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE = 1,

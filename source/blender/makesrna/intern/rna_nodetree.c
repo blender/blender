@@ -9479,6 +9479,33 @@ static void def_geo_point_distribute(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_geo_distribute_points_on_faces(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem rna_node_geometry_distribute_points_on_faces_mode_items[] = {
+      {GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM,
+       "RANDOM",
+       0,
+       "Random",
+       "Distribute points randomly on the surface"},
+      {GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON,
+       "POISSON",
+       0,
+       "Poisson Disk",
+       "Distribute the points randomly on the surface while taking a minimum distance between "
+       "points into account"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  prop = RNA_def_property(srna, "distribute_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_node_geometry_distribute_points_on_faces_mode_items);
+  RNA_def_property_enum_default(prop, GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM);
+  RNA_def_property_ui_text(prop, "Distribution Method", "Method to use for scattering points");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
 static void def_geo_attribute_color_ramp(StructRNA *srna)
 {
   PropertyRNA *prop;
