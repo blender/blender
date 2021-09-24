@@ -75,6 +75,29 @@ TEST(BLI_uuid, equality)
   EXPECT_NE(uuid1, uuid2);
 }
 
+TEST(BLI_uuid, comparison_trivial)
+{
+  const bUUID uuid0{};
+  const bUUID uuid1("11111111-1111-1111-1111-111111111111");
+  const bUUID uuid2("22222222-2222-2222-2222-222222222222");
+
+  EXPECT_LT(uuid0, uuid1);
+  EXPECT_LT(uuid0, uuid2);
+  EXPECT_LT(uuid1, uuid2);
+}
+
+TEST(BLI_uuid, comparison_byte_order_check)
+{
+  const bUUID uuid0{};
+  /* Chosen to test byte ordering is taken into account correctly when comparing. */
+  const bUUID uuid12("12222222-2222-2222-2222-222222222222");
+  const bUUID uuid21("21111111-1111-1111-1111-111111111111");
+
+  EXPECT_LT(uuid0, uuid12);
+  EXPECT_LT(uuid0, uuid21);
+  EXPECT_LT(uuid12, uuid21);
+}
+
 TEST(BLI_uuid, string_formatting)
 {
   bUUID uuid;

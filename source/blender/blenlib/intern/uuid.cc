@@ -27,6 +27,7 @@
 #include <random>
 #include <sstream>
 #include <string>
+#include <tuple>
 
 /* Ensure the UUID struct doesn't have any padding, to be compatible with memcmp(). */
 static_assert(sizeof(bUUID) == 16, "expect UUIDs to be 128 bit exactly");
@@ -187,6 +188,24 @@ bool operator==(const bUUID uuid1, const bUUID uuid2)
 bool operator!=(const bUUID uuid1, const bUUID uuid2)
 {
   return !(uuid1 == uuid2);
+}
+
+bool operator<(const bUUID uuid1, const bUUID uuid2)
+{
+  auto simple_fields1 = std::tie(uuid1.time_low,
+                                 uuid1.time_mid,
+                                 uuid1.time_hi_and_version,
+                                 uuid1.clock_seq_hi_and_reserved,
+                                 uuid1.clock_seq_low);
+  auto simple_fields2 = std::tie(uuid2.time_low,
+                                 uuid2.time_mid,
+                                 uuid2.time_hi_and_version,
+                                 uuid2.clock_seq_hi_and_reserved,
+                                 uuid2.clock_seq_low);
+  if (simple_fields1 == simple_fields2) {
+    return std::memcmp(uuid1.node, uuid2.node, sizeof(uuid1.node)) < 0;
+  }
+  return simple_fields1 < simple_fields2;
 }
 
 }  // namespace blender

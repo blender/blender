@@ -98,6 +98,11 @@ class bUUID : public ::bUUID {
 bool operator==(bUUID uuid1, bUUID uuid2);
 bool operator!=(bUUID uuid1, bUUID uuid2);
 
+/**
+ * Lexicographic comparison of the UUIDs.
+ * Equivalent to string comparison on the formatted UUIDs. */
+bool operator<(bUUID uuid1, bUUID uuid2);
+
 }  // namespace blender
 
 #endif
