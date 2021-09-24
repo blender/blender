@@ -119,6 +119,7 @@ class SocketDeclaration {
  protected:
   std::string name_;
   std::string identifier_;
+  std::string description_;
   bool hide_label_ = false;
   bool hide_value_ = false;
   bool is_multi_input_ = false;
@@ -138,6 +139,7 @@ class SocketDeclaration {
   virtual bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const;
 
   StringRefNull name() const;
+  StringRefNull description() const;
   StringRefNull identifier() const;
 
   InputSocketFieldType input_field_type() const;
@@ -186,6 +188,11 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
     return *(Self *)this;
   }
 
+  Self &description(std::string value = "")
+  {
+    decl_->description_ = std::move(value);
+    return *(Self *)this;
+  }
   Self &no_muted_links(bool value = true)
   {
     decl_->no_mute_links_ = value;
@@ -297,6 +304,10 @@ inline StringRefNull SocketDeclaration::identifier() const
   return identifier_;
 }
 
+inline StringRefNull SocketDeclaration::description() const
+{
+  return description_;
+}
 inline InputSocketFieldType SocketDeclaration::input_field_type() const
 {
   return input_field_type_;

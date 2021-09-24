@@ -29,9 +29,21 @@ namespace blender::nodes {
 
 static void geo_node_mesh_primitive_cylinder_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>("Vertices").default_value(32).min(3).max(4096);
-  b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Depth").default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Int>("Vertices")
+      .default_value(32)
+      .min(3)
+      .max(4096)
+      .description("The number of vertices around the circumference");
+  b.add_input<decl::Float>("Radius")
+      .default_value(1.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description("The radius of the cylinder");
+  b.add_input<decl::Float>("Depth")
+      .default_value(2.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description("The height of the cylinder on the Z axis");
   b.add_output<decl::Geometry>("Geometry");
 }
 

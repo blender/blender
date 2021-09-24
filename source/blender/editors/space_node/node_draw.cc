@@ -79,6 +79,7 @@
 #include "RNA_access.h"
 
 #include "NOD_geometry_nodes_eval_log.hh"
+#include "NOD_node_declaration.hh"
 
 #include "FN_field_cpp_type.hh"
 
@@ -1085,12 +1086,37 @@ static void node_socket_draw_nested(const bContext *C,
       but,
       [](bContext *C, void *argN, const char *UNUSED(tip)) {
         SocketTooltipData *data = (SocketTooltipData *)argN;
-        std::optional<std::string> str = create_socket_inspection_string(
+        std::optional<std::string> socket_inspection_str = create_socket_inspection_string(
             C, *data->ntree, *data->node, *data->socket);
-        if (str.has_value()) {
-          return BLI_strdup(str->c_str());
+
+        std::stringstream output;
+        if (data->node->declaration != nullptr) {
+          ListBase *list;
+          Span<blender::nodes::SocketDeclarationPtr> decl_list;
+
+          if (data->socket->in_out == SOCK_IN) {
+            list = &data->node->inputs;
+            decl_list = data->node->declaration->inputs();
+          }
+          else {
+            list = &data->node->outputs;
+            decl_list = data->node->declaration->outputs();
+          }
+
+          const int socket_index = BLI_findindex(list, data->socket);
+          const blender::nodes::SocketDeclaration &socket_decl = *decl_list[socket_index];
+          blender::StringRef description = socket_decl.description();
+          if (!description.is_empty()) {
+            output << TIP_(description.data()) << ".\n\n";
+          }
+
+          if (socket_inspection_str.has_value()) {
+            output << *socket_inspection_str;
+            return BLI_strdup(output.str().c_str());
+          }
         }
-        return BLI_strdup(TIP_("The socket value has not been computed yet"));
+        output << TIP_("The socket value has not been computed yet");
+        return BLI_strdup(output.str().c_str());
       },
       data,
       MEM_freeN);
