@@ -418,7 +418,10 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
     build_multi_function_procedure_for_fields(
         procedure, scope, field_tree_info, constant_fields_to_evaluate);
     MFProcedureExecutor procedure_executor{"Procedure", procedure};
-    MFParamsBuilder mf_params{procedure_executor, 1};
+    /* Run the code below even when the mask is empty, so that outputs are properly prepared.
+     * Higher level code can detect this as well and just skip evaluating the field. */
+    const int mask_size = mask.is_empty() ? 0 : 1;
+    MFParamsBuilder mf_params{procedure_executor, mask_size};
     MFContextBuilder mf_context;
 
     /* Provide inputs to the procedure executor. */
@@ -435,11 +438,11 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
       /* Use this to make sure that the value is destructed in the end. */
       PartiallyInitializedArray &destruct_helper = scope.construct<PartiallyInitializedArray>();
       destruct_helper.buffer = buffer;
-      destruct_helper.mask = IndexRange(1);
+      destruct_helper.mask = IndexRange(mask_size);
       destruct_helper.type = &type;
 
       /* Pass output buffer to the procedure executor. */
-      mf_params.add_uninitialized_single_output({type, buffer, 1});
+      mf_params.add_uninitialized_single_output({type, buffer, mask_size});
 
       /* Create virtual array that can be used after the procedure has been executed below. */
       const int out_index = constant_field_indices[i];
