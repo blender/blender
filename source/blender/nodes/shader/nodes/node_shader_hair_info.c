@@ -37,7 +37,7 @@ static int node_shader_gpu_hair_info(GPUMaterial *mat,
                                      GPUNodeStack *out)
 {
   /* Length: don't request length if not needed. */
-  const static float zero = 0;
+  static const float zero = 0;
   GPUNodeLink *length_link = (!out[2].hasoutput) ? GPU_constant(&zero) :
                                                    GPU_attribute(mat, CD_HAIRLENGTH, "");
   return GPU_stack_link(mat, node, "node_hair_info", in, out, length_link);
