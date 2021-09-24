@@ -311,6 +311,8 @@ void BlenderSession::read_render_tile()
   for (BL::RenderPass &b_pass : b_rlay.passes) {
     session->set_render_tile_pixels(b_pass.name(), b_pass.channels(), (float *)b_pass.rect());
   }
+
+  b_engine.end_result(b_rr, false, false, false);
 }
 
 void BlenderSession::write_render_tile()
