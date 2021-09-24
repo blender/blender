@@ -161,30 +161,6 @@ uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
   return c;
 }
 
-/* Hashing a number of uint32_t into a float in the range [0, 1]. */
-
-BLI_INLINE float hash_to_float(uint32_t kx)
-{
-  return static_cast<float>(hash(kx)) / static_cast<float>(0xFFFFFFFFu);
-}
-
-BLI_INLINE float hash_to_float(uint32_t kx, uint32_t ky)
-{
-  return static_cast<float>(hash(kx, ky)) / static_cast<float>(0xFFFFFFFFu);
-}
-
-BLI_INLINE float hash_to_float(uint32_t kx, uint32_t ky, uint32_t kz)
-{
-  return static_cast<float>(hash(kx, ky, kz)) / static_cast<float>(0xFFFFFFFFu);
-}
-
-BLI_INLINE float hash_to_float(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
-{
-  return static_cast<float>(hash(kx, ky, kz, kw)) / static_cast<float>(0xFFFFFFFFu);
-}
-
-/* Hashing a number of floats into a float in the range [0, 1]. */
-
 BLI_INLINE uint32_t float_as_uint(float f)
 {
   union {
@@ -195,25 +171,73 @@ BLI_INLINE uint32_t float_as_uint(float f)
   return u.i;
 }
 
-BLI_INLINE float hash_to_float(float k)
+uint32_t hash_float(float kx)
 {
-  return hash_to_float(float_as_uint(k));
+  return hash(float_as_uint(kx));
 }
 
-BLI_INLINE float hash_to_float(float2 k)
+uint32_t hash_float(float2 k)
 {
-  return hash_to_float(float_as_uint(k.x), float_as_uint(k.y));
+  return hash(float_as_uint(k.x), float_as_uint(k.y));
 }
 
-BLI_INLINE float hash_to_float(float3 k)
+uint32_t hash_float(float3 k)
 {
-  return hash_to_float(float_as_uint(k.x), float_as_uint(k.y), float_as_uint(k.z));
+  return hash(float_as_uint(k.x), float_as_uint(k.y), float_as_uint(k.z));
 }
 
-BLI_INLINE float hash_to_float(float4 k)
+uint32_t hash_float(float4 k)
 {
-  return hash_to_float(
-      float_as_uint(k.x), float_as_uint(k.y), float_as_uint(k.z), float_as_uint(k.w));
+  return hash(float_as_uint(k.x), float_as_uint(k.y), float_as_uint(k.z), float_as_uint(k.w));
+}
+
+/* Hashing a number of uint32_t into a float in the range [0, 1]. */
+
+BLI_INLINE float uint_to_float_01(uint32_t k)
+{
+  return static_cast<float>(k) / static_cast<float>(0xFFFFFFFFu);
+}
+
+float hash_to_float(uint32_t kx)
+{
+  return uint_to_float_01(hash(kx));
+}
+
+float hash_to_float(uint32_t kx, uint32_t ky)
+{
+  return uint_to_float_01(hash(kx, ky));
+}
+
+float hash_to_float(uint32_t kx, uint32_t ky, uint32_t kz)
+{
+  return uint_to_float_01(hash(kx, ky, kz));
+}
+
+float hash_to_float(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
+{
+  return uint_to_float_01(hash(kx, ky, kz, kw));
+}
+
+/* Hashing a number of floats into a float in the range [0, 1]. */
+
+float hash_float_to_float(float k)
+{
+  return hash_to_float(hash_float(k));
+}
+
+float hash_float_to_float(float2 k)
+{
+  return hash_to_float(hash_float(k));
+}
+
+float hash_float_to_float(float3 k)
+{
+  return hash_to_float(hash_float(k));
+}
+
+float hash_float_to_float(float4 k)
+{
+  return hash_to_float(hash_float(k));
 }
 
 /* ------------
@@ -565,28 +589,28 @@ float perlin_fractal(float4 position, float octaves, float roughness)
 
 BLI_INLINE float random_float_offset(float seed)
 {
-  return 100.0f + hash_to_float(seed) * 100.0f;
+  return 100.0f + hash_float_to_float(seed) * 100.0f;
 }
 
 BLI_INLINE float2 random_float2_offset(float seed)
 {
-  return float2(100.0f + hash_to_float(float2(seed, 0.0f)) * 100.0f,
-                100.0f + hash_to_float(float2(seed, 1.0f)) * 100.0f);
+  return float2(100.0f + hash_float_to_float(float2(seed, 0.0f)) * 100.0f,
+                100.0f + hash_float_to_float(float2(seed, 1.0f)) * 100.0f);
 }
 
 BLI_INLINE float3 random_float3_offset(float seed)
 {
-  return float3(100.0f + hash_to_float(float2(seed, 0.0f)) * 100.0f,
-                100.0f + hash_to_float(float2(seed, 1.0f)) * 100.0f,
-                100.0f + hash_to_float(float2(seed, 2.0f)) * 100.0f);
+  return float3(100.0f + hash_float_to_float(float2(seed, 0.0f)) * 100.0f,
+                100.0f + hash_float_to_float(float2(seed, 1.0f)) * 100.0f,
+                100.0f + hash_float_to_float(float2(seed, 2.0f)) * 100.0f);
 }
 
 BLI_INLINE float4 random_float4_offset(float seed)
 {
-  return float4(100.0f + hash_to_float(float2(seed, 0.0f)) * 100.0f,
-                100.0f + hash_to_float(float2(seed, 1.0f)) * 100.0f,
-                100.0f + hash_to_float(float2(seed, 2.0f)) * 100.0f,
-                100.0f + hash_to_float(float2(seed, 3.0f)) * 100.0f);
+  return float4(100.0f + hash_float_to_float(float2(seed, 0.0f)) * 100.0f,
+                100.0f + hash_float_to_float(float2(seed, 1.0f)) * 100.0f,
+                100.0f + hash_float_to_float(float2(seed, 2.0f)) * 100.0f,
+                100.0f + hash_float_to_float(float2(seed, 3.0f)) * 100.0f);
 }
 
 /* Perlin noises to be added to the position to distort other noises. */
