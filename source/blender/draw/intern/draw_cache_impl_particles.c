@@ -1697,9 +1697,11 @@ bool particles_ensure_procedural_data(Object *object,
   (*r_hair_cache)->final[subdiv].strands_res = 1 << (part->draw_step + subdiv);
 
   /* Refreshed on combing and simulation. */
-  if ((*r_hair_cache)->proc_point_buf == NULL || (gpu_material && (*r_hair_cache)->length_tex == NULL)) {
+  if ((*r_hair_cache)->proc_point_buf == NULL ||
+      (gpu_material && (*r_hair_cache)->length_tex == NULL)) {
     ensure_seg_pt_count(source.edit, source.psys, &cache->hair);
-    particle_batch_cache_ensure_procedural_pos(source.edit, source.psys, &cache->hair, gpu_material);
+    particle_batch_cache_ensure_procedural_pos(
+        source.edit, source.psys, &cache->hair, gpu_material);
     need_ft_update = true;
   }
 

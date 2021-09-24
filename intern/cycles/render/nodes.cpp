@@ -4391,7 +4391,7 @@ void HairInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
     if (!intercept_out->links.empty())
       attributes->add(ATTR_STD_CURVE_INTERCEPT);
 
-  	if (!output("Length")->links.empty())
+    if (!output("Length")->links.empty())
       attributes->add(ATTR_STD_CURVE_LENGTH);
 
     if (!output("Random")->links.empty())

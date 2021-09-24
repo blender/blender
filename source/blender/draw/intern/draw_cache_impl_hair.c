@@ -27,10 +27,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
-#include "BLI_listbase.h"
 
 #include "DNA_hair_types.h"
 #include "DNA_object_types.h"
@@ -38,8 +38,8 @@
 #include "BKE_hair.h"
 
 #include "GPU_batch.h"
-#include "GPU_texture.h"
 #include "GPU_material.h"
+#include "GPU_texture.h"
 
 #include "draw_cache_impl.h"   /* own include */
 #include "draw_hair_private.h" /* own include */
@@ -143,7 +143,9 @@ static void ensure_seg_pt_count(Hair *hair, ParticleHairCache *hair_cache)
   }
 }
 
-static void hair_batch_cache_fill_segments_proc_pos(Hair *hair, GPUVertBufRaw *attr_step, GPUVertBufRaw *length_step)
+static void hair_batch_cache_fill_segments_proc_pos(Hair *hair,
+                                                    GPUVertBufRaw *attr_step,
+                                                    GPUVertBufRaw *length_step)
 {
   /* TODO: use hair radius layer if available. */
   HairCurve *curve = hair->curves;
@@ -165,7 +167,7 @@ static void hair_batch_cache_fill_segments_proc_pos(Hair *hair, GPUVertBufRaw *a
       co_prev = curve_co[j];
     }
     /* Assign length value*/
-    *(float *)GPU_vertbuf_raw_step(length_step) = total_len; 
+    *(float *)GPU_vertbuf_raw_step(length_step) = total_len;
     if (total_len > 0.0f) {
       /* Divide by total length to have a [0-1] number. */
       for (int j = 0; j < curve->numpoints; j++, seg_data_first += 4) {

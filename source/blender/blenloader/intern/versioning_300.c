@@ -536,8 +536,9 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
       }
     }
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->clone.image != NULL && ELEM(brush->clone.image->type, IMA_TYPE_R_RESULT,
-                                             IMA_TYPE_COMPOSITE)) { brush->clone.image = NULL;
+      if (brush->clone.image != NULL &&
+          ELEM(brush->clone.image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+        brush->clone.image = NULL;
       }
     }
   }

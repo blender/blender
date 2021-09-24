@@ -773,7 +773,8 @@ static void eevee_hair_cache_populate(EEVEE_Data *vedata,
     DRW_shgroup_add_material_resources(*matcache.depth_grp_p, matcache.shading_gpumat);
   }
   if (matcache.shading_grp) {
-    *matcache.shading_grp_p = DRW_shgroup_hair_create_sub(ob, psys, md, matcache.shading_grp, matcache.shading_gpumat);
+    *matcache.shading_grp_p = DRW_shgroup_hair_create_sub(
+        ob, psys, md, matcache.shading_grp, matcache.shading_gpumat);
     DRW_shgroup_add_material_resources(*matcache.shading_grp_p, matcache.shading_gpumat);
   }
   if (matcache.shadow_grp) {

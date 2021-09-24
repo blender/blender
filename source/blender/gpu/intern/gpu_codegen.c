@@ -718,8 +718,7 @@ static char *code_generate_vertex(GPUNodeGraph *graph,
       BLI_dynstr_append(ds, datatoc_gpu_shader_common_obinfos_lib_glsl);
       BLI_dynstr_append(ds, "DEFINE_ATTR(vec4, orco);\n");
     }
-    if (attr->type == CD_HAIRLENGTH)
-    {
+    if (attr->type == CD_HAIRLENGTH) {
       BLI_dynstr_append(ds, datatoc_gpu_shader_common_obinfos_lib_glsl);
       BLI_dynstr_append(ds, "DEFINE_ATTR(float, hairLen);\n");
     }
@@ -768,8 +767,7 @@ static char *code_generate_vertex(GPUNodeGraph *graph,
           ds, "  var%d = orco_get(position, modelmatinv, OrcoTexCoFactors, orco);\n", attr->id);
     }
     else if (attr->type == CD_HAIRLENGTH) {
-      BLI_dynstr_appendf(
-          ds, "  var%d = hair_len_get(hair_get_strand_id(), hairLen);\n", attr->id);
+      BLI_dynstr_appendf(ds, "  var%d = hair_len_get(hair_get_strand_id(), hairLen);\n", attr->id);
     }
     else {
       const char *type_str = gpu_data_type_to_string(attr->gputype);

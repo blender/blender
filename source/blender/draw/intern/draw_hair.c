@@ -38,10 +38,10 @@
 #include "GPU_batch.h"
 #include "GPU_capabilities.h"
 #include "GPU_compute.h"
+#include "GPU_material.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"
-#include "GPU_material.h"
 
 #include "draw_hair_private.h"
 #include "draw_shader.h"
@@ -173,14 +173,19 @@ static void drw_hair_particle_cache_update_transform_feedback(ParticleHairCache 
   }
 }
 
-static ParticleHairCache *drw_hair_particle_cache_get(
-    Object *object, ParticleSystem *psys, ModifierData *md, GPUMaterial* gpu_material, int subdiv, int thickness_res)
+static ParticleHairCache *drw_hair_particle_cache_get(Object *object,
+                                                      ParticleSystem *psys,
+                                                      ModifierData *md,
+                                                      GPUMaterial *gpu_material,
+                                                      int subdiv,
+                                                      int thickness_res)
 {
   bool update;
   ParticleHairCache *cache;
   if (psys) {
     /* Old particle hair. */
-    update = particles_ensure_procedural_data(object, psys, md, &cache, gpu_material, subdiv, thickness_res);
+    update = particles_ensure_procedural_data(
+        object, psys, md, &cache, gpu_material, subdiv, thickness_res);
   }
   else {
     /* New hair object. */
@@ -207,7 +212,8 @@ GPUVertBuf *DRW_hair_pos_buffer_get(Object *object, ParticleSystem *psys, Modifi
   int subdiv = scene->r.hair_subdiv;
   int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
 
-  ParticleHairCache *cache = drw_hair_particle_cache_get(object, psys, md, NULL, subdiv, thickness_res);
+  ParticleHairCache *cache = drw_hair_particle_cache_get(
+      object, psys, md, NULL, subdiv, thickness_res);
 
   return cache->final[subdiv].proc_buf;
 }
@@ -250,7 +256,7 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
                                              ParticleSystem *psys,
                                              ModifierData *md,
                                              DRWShadingGroup *shgrp_parent,
-                                             GPUMaterial* gpu_material)
+                                             GPUMaterial *gpu_material)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Scene *scene = draw_ctx->scene;
