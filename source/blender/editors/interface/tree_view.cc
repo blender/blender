@@ -57,7 +57,7 @@ AbstractTreeViewItem &TreeViewItemContainer::add_tree_item(
 
 void TreeViewItemContainer::foreach_item_recursive(ItemIterFn iter_fn, IterOptions options) const
 {
-  for (auto &child : children_) {
+  for (const auto &child : children_) {
     iter_fn(*child);
     if (bool(options & IterOptions::SkipCollapsed) && child->is_collapsed()) {
       continue;
