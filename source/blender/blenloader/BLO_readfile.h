@@ -168,9 +168,8 @@ struct LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
 
                                                      const bool use_assets_only,
                                                      int *r_tot_names);
-struct LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
-                                                    int ofblocktype,
-                                                    int *r_tot_info_items);
+struct LinkNode * /*BLODataBlockInfo */ BLO_blendhandle_get_datablock_info(
+    BlendHandle *bh, int ofblocktype, const bool use_assets_only, int *r_tot_info_items);
 struct LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_tot_prev);
 struct PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
                                                         int ofblocktype,
