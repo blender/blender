@@ -22,7 +22,6 @@
 #include "util/util_foreach.h"
 #include "util/util_hash.h"
 #include "util/util_math.h"
-#include "util/util_opengl.h"
 #include "util/util_time.h"
 #include "util/util_types.h"
 

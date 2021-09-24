@@ -26,7 +26,6 @@
 #  ifdef WITH_CUDA_DYNLOAD
 #    include "cuew.h"
 #  else
-#    include "util/util_opengl.h"
 #    include <cuda.h>
 #    include <cudaGL.h>
 #  endif
