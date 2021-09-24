@@ -289,7 +289,7 @@ TEST_F(AssetCatalogTest, create_catalog_after_loading_file)
       << "expecting newly added catalog to not yet be saved to " << temp_lib_root;
 
   /* Write and reload the catalog file. */
-  service.write_to_disk(temp_lib_root.c_str());
+  service.write_to_disk(temp_lib_root);
   AssetCatalogService reloaded_service(temp_lib_root);
   reloaded_service.load_from_disk();
   EXPECT_NE(nullptr, reloaded_service.find_catalog(UUID_POSES_ELLIE))
