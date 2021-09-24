@@ -29,6 +29,7 @@ void register_node_tree_type_geo(void);
 void register_node_type_geo_group(void);
 void register_node_type_geo_custom_group(bNodeType *ntype);
 
+void register_node_type_geo_legacy_attribute_randomize(void);
 void register_node_type_geo_legacy_material_assign(void);
 void register_node_type_geo_legacy_select_by_material(void);
 
@@ -45,7 +46,6 @@ void register_node_type_geo_attribute_map_range(void);
 void register_node_type_geo_attribute_math(void);
 void register_node_type_geo_attribute_mix(void);
 void register_node_type_geo_attribute_proximity(void);
-void register_node_type_geo_attribute_randomize(void);
 void register_node_type_geo_attribute_remove(void);
 void register_node_type_geo_attribute_separate_xyz(void);
 void register_node_type_geo_attribute_statistic(void);

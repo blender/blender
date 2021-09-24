@@ -20,7 +20,7 @@
 
 namespace blender::nodes {
 
-static void fn_node_random_float_declare(NodeDeclarationBuilder &b)
+static void fn_node_legacy_random_float_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Float>("Min").min(-10000.0f).max(10000.0f);
@@ -68,19 +68,19 @@ class RandomFloatFunction : public blender::fn::MultiFunction {
   }
 };
 
-static void fn_node_random_float_build_multi_function(
+static void fn_node_legacy_random_float_build_multi_function(
     blender::nodes::NodeMultiFunctionBuilder &builder)
 {
   static RandomFloatFunction fn;
   builder.set_matching_fn(fn);
 }
 
-void register_node_type_fn_random_float()
+void register_node_type_fn_legacy_random_float()
 {
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_RANDOM_FLOAT, "Random Float", 0, 0);
-  ntype.declare = blender::nodes::fn_node_random_float_declare;
-  ntype.build_multi_function = fn_node_random_float_build_multi_function;
+  fn_node_type_base(&ntype, FN_NODE_LEGACY_RANDOM_FLOAT, "Random Float", 0, 0);
+  ntype.declare = blender::nodes::fn_node_legacy_random_float_declare;
+  ntype.build_multi_function = fn_node_legacy_random_float_build_multi_function;
   nodeRegisterType(&ntype);
 }

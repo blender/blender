@@ -1230,6 +1230,11 @@ typedef struct NodeAttributeMix {
   uint8_t input_type_b;
 } NodeAttributeMix;
 
+typedef struct NodeRandomValue {
+  /* CustomDataType. */
+  uint8_t data_type;
+} NodeRandomValue;
+
 typedef struct NodeAttributeRandomize {
   /* CustomDataType. */
   uint8_t data_type;

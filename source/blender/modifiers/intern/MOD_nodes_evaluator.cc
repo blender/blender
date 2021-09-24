@@ -334,6 +334,10 @@ static void get_socket_value(const SocketRef &socket, void *r_value)
           std::make_shared<bke::AttributeFieldInput>("position", CPPType::get<float3>()));
       return;
     }
+    if (bsocket.type == SOCK_INT && bnode.type == FN_NODE_RANDOM_VALUE) {
+      new (r_value) Field<int>(std::make_shared<fn::IndexFieldInput>());
+      return;
+    }
   }
   const bNodeSocketType *typeinfo = socket.typeinfo();
   typeinfo->get_geometry_nodes_cpp_value(*socket.bsocket(), r_value);

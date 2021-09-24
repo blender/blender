@@ -262,13 +262,15 @@ DefNode(TextureNode,    TEX_NODE_PROC+TEX_NOISE, 0,                      "TEX_NO
 DefNode(TextureNode,    TEX_NODE_PROC+TEX_STUCCI, 0,                     "TEX_STUCCI",     TexStucci,        "Stucci",            ""              )
 DefNode(TextureNode,    TEX_NODE_PROC+TEX_DISTNOISE, 0,                  "TEX_DISTNOISE",  TexDistNoise,     "Distorted Noise",   ""              )
 
+DefNode(FunctionNode, FN_NODE_LEGACY_RANDOM_FLOAT, 0, "LEGACY_RANDOM_FLOAT", LegacyRandomFloat, "Random Float", "")
+
 DefNode(FunctionNode, FN_NODE_BOOLEAN_MATH,  def_boolean_math,  "BOOLEAN_MATH",  BooleanMath,  "Boolean Math", "")
 DefNode(FunctionNode, FN_NODE_FLOAT_COMPARE, def_float_compare, "FLOAT_COMPARE", FloatCompare, "Float Compare", "")
 DefNode(FunctionNode, FN_NODE_FLOAT_TO_INT, def_float_to_int, "FLOAT_TO_INT", FloatToInt, "Float to Integer", "")
 DefNode(FunctionNode, FN_NODE_INPUT_SPECIAL_CHARACTERS, 0, "INPUT_SPECIAL_CHARACTERS", InputSpecialCharacters, "Special Characters", "")
 DefNode(FunctionNode, FN_NODE_INPUT_STRING, def_fn_input_string, "INPUT_STRING", InputString, "String", "")
 DefNode(FunctionNode, FN_NODE_INPUT_VECTOR, def_fn_input_vector, "INPUT_VECTOR", InputVector, "Vector", "")
-DefNode(FunctionNode, FN_NODE_RANDOM_FLOAT, 0, "RANDOM_FLOAT", RandomFloat, "Random Float", "")
+DefNode(FunctionNode, FN_NODE_RANDOM_VALUE, def_fn_random_value, "RANDOM_VALUE", RandomValue, "Random Value", "")
 DefNode(FunctionNode, FN_NODE_VALUE_TO_STRING, 0, "VALUE_TO_STRING", ValueToString, "Value to String", "")
 DefNode(FunctionNode, FN_NODE_STRING_LENGTH, 0, "STRING_LENGTH", StringLength, "String Length", "")
 DefNode(FunctionNode, FN_NODE_STRING_SUBSTRING, 0, "STRING_SUBSTRING", StringSubstring, "String Substring", "")

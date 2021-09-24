@@ -133,18 +133,21 @@ set(SRC
   composite/node_composite_tree.c
   composite/node_composite_util.c
 
+  function/nodes/legacy/node_fn_random_float.cc
+
   function/nodes/node_fn_boolean_math.cc
   function/nodes/node_fn_float_compare.cc
   function/nodes/node_fn_float_to_int.cc
   function/nodes/node_fn_input_special_characters.cc
   function/nodes/node_fn_input_string.cc
   function/nodes/node_fn_input_vector.cc
-  function/nodes/node_fn_random_float.cc
+  function/nodes/node_fn_random_value.cc
   function/nodes/node_fn_string_length.cc
   function/nodes/node_fn_string_substring.cc
   function/nodes/node_fn_value_to_string.cc
   function/node_function_util.cc
 
+  geometry/nodes/legacy/node_geo_attribute_randomize.cc
   geometry/nodes/legacy/node_geo_material_assign.cc
   geometry/nodes/legacy/node_geo_select_by_material.cc
   geometry/nodes/legacy/node_geo_point_distribute.cc
@@ -162,7 +165,6 @@ set(SRC
   geometry/nodes/node_geo_attribute_math.cc
   geometry/nodes/node_geo_attribute_mix.cc
   geometry/nodes/node_geo_attribute_proximity.cc
-  geometry/nodes/node_geo_attribute_randomize.cc
   geometry/nodes/node_geo_attribute_remove.cc
   geometry/nodes/node_geo_attribute_sample_texture.cc
   geometry/nodes/node_geo_attribute_separate_xyz.cc
