@@ -109,7 +109,7 @@ BLI_INLINE void hash_bit_final(uint32_t &a, uint32_t &b, uint32_t &c)
   c -= hash_bit_rotate(b, 24);
 }
 
-BLI_INLINE uint32_t hash(uint32_t kx)
+uint32_t hash(uint32_t kx)
 {
   uint32_t a, b, c;
   a = b = c = 0xdeadbeef + (1 << 2) + 13;
@@ -120,7 +120,7 @@ BLI_INLINE uint32_t hash(uint32_t kx)
   return c;
 }
 
-BLI_INLINE uint32_t hash(uint32_t kx, uint32_t ky)
+uint32_t hash(uint32_t kx, uint32_t ky)
 {
   uint32_t a, b, c;
   a = b = c = 0xdeadbeef + (2 << 2) + 13;
@@ -132,7 +132,7 @@ BLI_INLINE uint32_t hash(uint32_t kx, uint32_t ky)
   return c;
 }
 
-BLI_INLINE uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz)
+uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz)
 {
   uint32_t a, b, c;
   a = b = c = 0xdeadbeef + (3 << 2) + 13;
@@ -145,7 +145,7 @@ BLI_INLINE uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz)
   return c;
 }
 
-BLI_INLINE uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
+uint32_t hash(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
 {
   uint32_t a, b, c;
   a = b = c = 0xdeadbeef + (4 << 2) + 13;
