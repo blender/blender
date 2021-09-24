@@ -484,4 +484,13 @@ template<typename T> Field<T> make_constant_field(T value)
 
 GField make_field_constant_if_possible(GField field);
 
+class IndexFieldInput final : public FieldInput {
+ public:
+  IndexFieldInput();
+
+  const GVArray *get_varray_for_context(const FieldContext &context,
+                                        IndexMask mask,
+                                        ResourceScope &scope) const final;
+};
+
 }  // namespace blender::fn
