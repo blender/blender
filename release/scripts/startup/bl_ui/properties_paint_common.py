@@ -171,12 +171,17 @@ class UnifiedPaintPanel:
         path = ""
         is_toolset = False
 
+        pressurech = ch
+
         if ch.inherit or toolsettings_only:
             sd = context.tool_settings.sculpt
             #ensure channel exists in tool settings channel set
             sd.channels.ensure(ch)
 
             finalch = sd.channels.channels[prop_name]
+            if ch.mappings["PRESSURE"].inherit:
+                pressurech = finalch
+
             is_toolset = True
             path = "tool_settings.sculpt.channels.channels[\"%s\"]" % ch.idname
         else:
@@ -193,7 +198,7 @@ class UnifiedPaintPanel:
             props.channel = ch.idname
             props.direction = 1
         
-        if ui_editing:
+        if ui_editing and not header:
             row.prop(ch, "show_in_workspace", text="", icon="HIDE_OFF")
             #row.prop(ch, "ui_order", text="")
 
@@ -226,7 +231,7 @@ class UnifiedPaintPanel:
         pressure = pressure and ch.type not in ["BOOL", "ENUM", "BITMASK", "CURVE"]
             
         if pressure:
-            row.prop(finalch.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
+            row.prop(pressurech.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
 
 
         #if pressure_name:
@@ -251,7 +256,11 @@ class UnifiedPaintPanel:
             row.prop(ch, "ui_expanded", text="", icon="TRIA_DOWN" if ch.ui_expanded else "TRIA_RIGHT")
 
             if ch.ui_expanded:
-                for mp in finalch.mappings:
+                for i, mp in enumerate(ch.mappings):
+                    mp0 = mp
+                    if mp.inherit:
+                        mp = finalch.mappings[i]
+
                     row2 = layout.row()
                     name = mp.type.lower()
 
@@ -261,8 +270,9 @@ class UnifiedPaintPanel:
                         name = "name error"
 
                     row2.label(text=name)
+                    row2.prop(mp0, "inherit", text="", icon="BRUSHES_ALL")
                     row2.prop(mp, "enabled", text="", icon="STYLUS_PRESSURE")
-                    row2.prop(mp, "ui_expanded", text="", icon="TRIA_DOWN" if mp.ui_expanded else "TRIA_RIGHT")
+                    row2.prop(mp0, "ui_expanded", text="", icon="TRIA_DOWN" if mp.ui_expanded else "TRIA_RIGHT")
 
                     if mp.ui_expanded:
                         layout.template_curve_mapping(mp, "curve", brush=True)

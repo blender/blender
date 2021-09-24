@@ -7346,6 +7346,8 @@ static void do_clay_strips_brush_task_cb_ex(void *__restrict userdata,
     }
   }
   BKE_pbvh_vertex_iter_end;
+
+  BKE_pbvh_node_mark_update(data->nodes[n]);
 }
 
 static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
@@ -8951,16 +8953,14 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
 
     float radius = BRUSHSET_GET_FLOAT(
         ss->cache->channels_final, radius, &ss->cache->input_mapping);
+    radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->true_location, radius);
 
     radius_max = max_ff(radius_max, radius);
     ss->cache->brush = brush;
   }
 
-  float ratio = radius_max /
-                BRUSHSET_GET_FLOAT(ss->cache->channels_final, radius, &ss->cache->input_mapping);
-
-  ss->cache->radius = start_radius * ratio;
-  ss->cache->radius_squared = start_radius * start_radius * ratio * ratio;
+  ss->cache->radius = radius_max;
+  ss->cache->radius_squared = radius_max * radius_max;
 
   /* Check for unsupported features. */
   PBVHType type = BKE_pbvh_type(ss->pbvh);
@@ -9096,16 +9096,18 @@ ATTR_NO_OPT static void SCULPT_run_command_list(
   for (int step = 0; step < list->totcommand; step++) {
     BrushCommand *cmd = list->commands + step;
 
-    float radius = BRUSHSET_GET_FLOAT(cmd->params_final, radius, NULL);
+    BKE_brush_channelset_free(cmd->params_mapped);
+    cmd->params_mapped = BKE_brush_channelset_copy(cmd->params_final);
+    BKE_brush_channelset_apply_mapping(cmd->params_mapped, &ss->cache->input_mapping);
+
+    float radius = BRUSHSET_GET_FLOAT(cmd->params_mapped, radius, NULL);
     radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->true_location, radius);
 
     ss->cache->radius = radius;
     ss->cache->radius_squared = radius * radius;
-    radius_scale = 1.0f;
+    ss->cache->initial_radius = radius;
 
-    BKE_brush_channelset_free(cmd->params_mapped);
-    cmd->params_mapped = BKE_brush_channelset_copy(cmd->params_final);
-    BKE_brush_channelset_apply_mapping(cmd->params_mapped, &ss->cache->input_mapping);
+    radius_scale = 1.0f;
 
     float spacing = BRUSHSET_GET_FLOAT(cmd->params_mapped, spacing, NULL) / 100.0f;
 

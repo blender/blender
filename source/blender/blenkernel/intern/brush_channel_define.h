@@ -74,10 +74,14 @@ places in rna_engine_codebase are relevent:
 
 #  define MAKE_FLOAT_EX(idname, name, tooltip, val, min, max, smin, smax, pressure_enabled) \
     MAKE_BUILTIN_CH_DEF(idname)
+#  define MAKE_FLOAT_EX_FLAG( \
+      idname, name, tooltip, val, min, max, smin, smax, pressure_enabled, flag) \
+    MAKE_BUILTIN_CH_DEF(idname)
+
 #  define MAKE_FLOAT_EX_INV(idname, name, tooltip, val, min, max, smin, smax, pressure_enabled) \
     MAKE_BUILTIN_CH_DEF(idname)
 #  define MAKE_FLOAT_EX_EX( \
-      idname, name, tooltip, val, min, max, smin, smax, pressure_enabled, inv) \
+      idname, name, tooltip, val, min, max, smin, smax, pressure_enabled, inv, flag) \
     MAKE_BUILTIN_CH_DEF(idname)
 #  define MAKE_FLOAT(idname, name, tooltip, val, min, max) MAKE_BUILTIN_CH_DEF(idname);
 #  define MAKE_INT_EX(idname, name, tooltip, val, min, max, smin, smax) \
@@ -112,8 +116,8 @@ places in rna_engine_codebase are relevent:
                            "used for smoothing", 1.0f, 0.001f, 5.0f, 0.01f, 2.0f, false)
   MAKE_FLOAT_EX(topology_rake_radius_scale, "Radius Scale", "Ratio between the brush radius and the radius that is going to be "
                            "used for topology rake", 1.0f, 0.001f, 5.0f, 0.01f, 2.0f, false)
-  MAKE_FLOAT_EX(dyntopo_radius_scale, "Radius Scale", "Ratio between the brush radius and the radius that is going to be "
-                           "used for DynTopo", 1.0f, 0.001f, 5.0f, 0.01f, 2.0f, false)
+  MAKE_FLOAT_EX_FLAG(dyntopo_radius_scale, "Radius Scale", "Ratio between the brush radius and the radius that is going to be "
+                           "used for DynTopo", 1.0f, 0.001f, 5.0f, 0.01f, 2.0f, false, BRUSH_CHANNEL_INHERIT)
   MAKE_FLOAT_EX(projection, "Projection", "Amount of volume preserving projection", 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, false)
   MAKE_FLOAT_EX(autosmooth_projection, "Projection", "Amount of volume preserving projection", 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, false)
   MAKE_FLOAT_EX(topology_rake_projection, "Projection", "Amount of volume preserving projection", 0.975f, 0.0f, 1.0f, 0.0f, 1.0f, false)
@@ -140,7 +144,7 @@ places in rna_engine_codebase are relevent:
     }), BRUSH_CHANNEL_INHERIT_IF_UNSET)
 
   MAKE_BOOL_EX(dyntopo_disabled, "Disable Dyntopo", "", false, BRUSH_CHANNEL_NO_MAPPINGS)
-  MAKE_FLAGS_EX(dyntopo_mode, "Dyntopo Operators", "s", DYNTOPO_COLLAPSE|DYNTOPO_CLEANUP|DYNTOPO_SUBDIVIDE, _({\
+  MAKE_FLAGS_EX(dyntopo_mode, "Dyntopo Operators", "", DYNTOPO_COLLAPSE|DYNTOPO_CLEANUP|DYNTOPO_SUBDIVIDE, _({
         {DYNTOPO_COLLAPSE, "COLLAPSE", ICON_NONE, "Collapse", ""},
         {DYNTOPO_SUBDIVIDE, "SUBDIVIDE", ICON_NONE, "Subdivide", ""},
         {DYNTOPO_CLEANUP, "CLEANUP", ICON_NONE, "Cleanup", ""},
@@ -148,7 +152,7 @@ places in rna_engine_codebase are relevent:
         {DYNTOPO_LOCAL_SUBDIVIDE, "LOCAL_SUBDIVIDE", ICON_NONE, "Local Subdivide", ""},
         {-1}
       }), BRUSH_CHANNEL_INHERIT)
-  MAKE_ENUM(slide_deform_type, "Slide Deform Type", "", BRUSH_SLIDE_DEFORM_DRAG, _({\
+  MAKE_ENUM(slide_deform_type, "Slide Deform Type", "", BRUSH_SLIDE_DEFORM_DRAG, _({
        {BRUSH_SLIDE_DEFORM_DRAG, "DRAG", ICON_NONE, "Drag", ""},
        {BRUSH_SLIDE_DEFORM_PINCH, "PINCH", ICON_NONE, "Pinch", ""},
        {BRUSH_SLIDE_DEFORM_EXPAND, "EXPAND", ICON_NONE, "Expand", ""},
@@ -159,7 +163,7 @@ places in rna_engine_codebase are relevent:
   MAKE_FLOAT(hardness, "Hardness", "Brush falloff hardness", 0.0f, 0.0f, 1.0f)
   MAKE_FLOAT(tip_roundness, "Tip Roundness", "", 0.0f, 0.0f, 1.0f)
   MAKE_BOOL(accumulate, "Accumulate", "", false)
-  MAKE_ENUM(direction, "Direction", "", 0, _({\
+  MAKE_ENUM(direction, "Direction", "", 0, _({
         {0, "ADD", "ADD", "Add", "Add effect of brush"},
         {1, "SUBTRACT", "REMOVE", "Subtract", "Subtract effect of brush"},
         {-1}
@@ -186,11 +190,11 @@ MAKE_BOOL(use_weighted_smooth, "Weight By Area", "Weight by face area to get a s
 MAKE_BOOL(preserve_faceset_boundary, "Preserve Faceset Boundary", "Preserve face set boundaries", true)
 MAKE_BOOL(hard_edge_mode, "Hard Edge Mode", "Forces all brushes into hard edge face set mode (sets face set slide to 0)", false)
 MAKE_BOOL(grab_silhouette, "Grab Silhouette", "Grabs trying to automask the silhouette of the object", false)
-MAKE_FLOAT(dyntopo_detail_percent, "Detail Percent", "Detail Percent", 25.0f, 0.0f, 1000.0f)
-MAKE_FLOAT(dyntopo_detail_range, "Detail Range", "Detail Range", 0.45f, 0.01f, 0.99f)
-MAKE_FLOAT_EX(dyntopo_detail_size, "Detail Size", "Detail Size", 8.0f, 0.1f, 100.0f, 0.001f, 500.0f, false)
-MAKE_FLOAT_EX(dyntopo_constant_detail, "Constaint Detail", "", 3.0f, 0.001f, 1000.0f, 0.0001, FLT_MAX, false)
-MAKE_FLOAT_EX(dyntopo_spacing, "Spacing", "Dyntopo Spacing", 35.0f, 0.01f, 300.0f, 0.001f, 50000.0f, false)
+MAKE_FLOAT_EX_FLAG(dyntopo_detail_percent, "Detail Percent", "Detail Percent", 25.0f, 0.0f, 1000.0f, 0.0f, 1000.0f, false, BRUSH_CHANNEL_INHERIT)
+MAKE_FLOAT_EX_FLAG(dyntopo_detail_range, "Detail Range", "Detail Range", 0.45f, 0.01f, 0.99f, 0.01f, 0.99f, false, BRUSH_CHANNEL_INHERIT)
+MAKE_FLOAT_EX_FLAG(dyntopo_detail_size, "Detail Size", "Detail Size", 8.0f, 0.1f, 100.0f, 0.001f, 500.0f, false, BRUSH_CHANNEL_INHERIT)
+MAKE_FLOAT_EX_FLAG(dyntopo_constant_detail, "Constaint Detail", "", 3.0f, 0.001f, 1000.0f, 0.0001, FLT_MAX, false, BRUSH_CHANNEL_INHERIT)
+MAKE_FLOAT_EX_FLAG(dyntopo_spacing, "Spacing", "Dyntopo Spacing", 35.0f, 0.01f, 300.0f, 0.001f, 50000.0f, false, BRUSH_CHANNEL_INHERIT)
 MAKE_FLOAT(concave_mask_factor, "Cavity Factor", "", 0.35f, 0.0f, 1.0f)
 MAKE_INT_EX(automasking_boundary_edges_propagation_steps, "Propagation Steps",
   "Distance where boundary edge automasking is going to protect vertices "

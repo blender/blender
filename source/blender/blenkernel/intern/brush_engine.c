@@ -229,8 +229,63 @@ ATTR_NO_OPT void BKE_brush_channel_free(BrushChannel *ch)
   MEM_freeN(ch);
 }
 
-ATTR_NO_OPT void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src)
+ATTR_NO_OPT static void copy_channel_data_keep_mappings(BrushChannel *dst, BrushChannel *src)
 {
+  BLI_strncpy(dst->name, src->name, sizeof(dst->name));
+  BLI_strncpy(dst->idname, src->idname, sizeof(dst->idname));
+
+  dst->def = src->def;
+  dst->flag = src->flag;
+  dst->type = src->type;
+  dst->ui_order = src->ui_order;
+
+  switch (src->type) {
+    case BRUSH_CHANNEL_CURVE:
+      dst->curve.preset = src->curve.preset;
+
+      if (dst->curve.curve && IS_CACHE_CURVE(dst->curve.curve)) {
+        RELEASE_CACHE_CURVE(dst->curve.curve);
+      }
+      else if (dst->curve.curve) {
+        BKE_curvemapping_free(dst->curve.curve);
+      }
+
+      if (src->curve.curve && !IS_CACHE_CURVE(src->curve.curve)) {
+        dst->curve.curve = BKE_curvemapping_cache_get(
+            BKE_curvemapping_cache_global(), src->curve.curve, false);
+      }
+      else {
+        dst->curve.curve = src->curve.curve;
+        if (dst->curve.curve) {
+          CURVE_ADDREF(dst->curve.curve);
+        }
+      }
+      break;
+    case BRUSH_CHANNEL_FLOAT:
+      dst->fvalue = src->fvalue;
+      break;
+    case BRUSH_CHANNEL_BOOL:
+    case BRUSH_CHANNEL_ENUM:
+    case BRUSH_CHANNEL_BITMASK:
+    case BRUSH_CHANNEL_INT:
+      dst->ivalue = src->ivalue;
+      break;
+    case BRUSH_CHANNEL_VEC3:
+    case BRUSH_CHANNEL_VEC4:
+      copy_v4_v4(dst->vector, src->vector);
+      break;
+  }
+}
+
+ATTR_NO_OPT void BKE_brush_channel_copy_data(BrushChannel *dst,
+                                             BrushChannel *src,
+                                             bool keep_mapping)
+{
+  if (keep_mapping) {
+    copy_channel_data_keep_mappings(dst, src);
+    return;
+  }
+
   if (src->type == BRUSH_CHANNEL_CURVE) {
     if (dst->curve.curve && IS_CACHE_CURVE(dst->curve.curve)) {
       RELEASE_CACHE_CURVE(dst->curve.curve);
@@ -513,7 +568,7 @@ ATTR_NO_OPT void BKE_brush_channelset_add_duplicate(BrushChannelSet *chset, Brus
   BrushChannel *chnew = MEM_callocN(sizeof(*chnew), "brush channel copy");
 #endif
 
-  BKE_brush_channel_copy_data(chnew, ch);
+  BKE_brush_channel_copy_data(chnew, ch, false);
   BKE_brush_channelset_add(chset, chnew);
 
   namestack_pop(NULL);
@@ -641,7 +696,7 @@ ATTR_NO_OPT void BKE_brush_channelset_merge(BrushChannelSet *dst,
         BKE_brush_channelset_add_duplicate(dst, ch);
       }
       else {
-        BKE_brush_channel_copy_data(ch2, ch);
+        BKE_brush_channel_copy_data(ch2, ch, false);
       }
     }
   }
@@ -657,8 +712,7 @@ ATTR_NO_OPT void BKE_brush_channelset_merge(BrushChannelSet *dst,
     }
 
     if (ch->flag & BRUSH_CHANNEL_INHERIT) {
-      BKE_brush_channel_copy_data(mch, pch);
-      continue;
+      BKE_brush_channel_copy_data(mch, pch, true);
     }
 
     /*apply mapping inheritance flags, which are respected
@@ -669,6 +723,10 @@ ATTR_NO_OPT void BKE_brush_channelset_merge(BrushChannelSet *dst,
       if (ch->mappings[i].flag & BRUSH_MAPPING_INHERIT) {
         BKE_brush_mapping_copy_data(mch->mappings + i, pch->mappings + i);
       }
+    }
+
+    if (ch->flag & BRUSH_CHANNEL_INHERIT) {
+      continue;
     }
 
     if (ch->type == BRUSH_CHANNEL_BITMASK && (ch->flag & BRUSH_CHANNEL_INHERIT_IF_UNSET)) {

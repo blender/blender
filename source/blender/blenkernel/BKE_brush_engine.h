@@ -55,7 +55,7 @@ struct Sculpt;
 
 #define MAKE_BUILTIN_CH_NAME(idname) BRUSH_BUILTIN_##idname
 
-/*these macros check channel names at compile time*/
+/* these macros check channel names at compile time */
 
 #define BRUSHSET_LOOKUP(chset, channel) \
   BKE_brush_channelset_lookup(chset, MAKE_BUILTIN_CH_NAME(channel))
@@ -67,6 +67,10 @@ struct Sculpt;
   BKE_brush_channelset_get_int(chset, MAKE_BUILTIN_CH_NAME(channel), mapdata)
 #define BRUSHSET_ENSURE_BUILTIN(chset, channel) \
   BKE_brush_channelset_ensure_builtin(chset, MAKE_BUILTIN_CH_NAME(channel))
+#define BRUSHSET_SET_FLOAT(chset, channel, val) \
+  BKE_brush_channelset_set_float(chset, MAKE_BUILTIN_CH_NAME(channel), val)
+#define BRUSHSET_SET_INT(chset, channel, val) \
+  BKE_brush_channelset_set_int(chset, MAKE_BUILTIN_CH_NAME(channel), val)
 
 //#define DEBUG_CURVE_MAPPING_ALLOC
 #ifdef DEBUG_CURVE_MAPPING_ALLOC
@@ -134,7 +138,7 @@ typedef struct BrushCommandList {
 
 void BKE_brush_channel_free_data(BrushChannel *ch);
 void BKE_brush_channel_free(BrushChannel *ch);
-void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src);
+void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src, bool keep_mappings);
 void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def);
 
 BrushChannelSet *BKE_brush_channelset_create();

@@ -57,7 +57,7 @@ To enable converting to/from old data:
 #define ICON_NONE "NONE"
 
 /* clang-format off */
-#define MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled, pressure_inv) \
+#define MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled, pressure_inv, flag1) \
   {.name = name1, \
    .idname = #idname1, \
    .fvalue = value1,\
@@ -65,6 +65,7 @@ To enable converting to/from old data:
    .min = min1,\
    .max = max1,\
    .soft_min = smin1,\
+   .flag = flag1,\
    .soft_max = smax1,\
    .type = BRUSH_CHANNEL_FLOAT,\
    .mappings = {\
@@ -72,9 +73,12 @@ To enable converting to/from old data:
     }\
 },
 #define MAKE_FLOAT_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled)\
-MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled, false)
+MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled, false, 0)
 #define MAKE_FLOAT_EX_INV(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled)\
-MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled, true)
+MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled, true, 0)
+
+#define  MAKE_FLOAT_EX_FLAG( \
+      idname, name, tooltip, val, min, max, smin, smax, pressure_enabled, flag) MAKE_FLOAT_EX_EX(idname, name, tooltip, val, min, max, smin, smax, pressure_enabled, false, flag)
 
 #define MAKE_FLOAT(idname, name, tooltip, value, min, max) MAKE_FLOAT_EX(idname, name, tooltip, value, min, max, min, max, false)
 
@@ -604,17 +608,101 @@ ATTR_NO_OPT void BKE_brush_channelset_compat_load(BrushChannelSet *chset,
 
     BKE_brush_channelset_set_int(chset, "dyntopo_mode", brush->dyntopo.flag & mask);
     BKE_brush_channelset_set_int(
-        chset, "dyntopo_mode", brush->dyntopo.flag & DYNTOPO_DISABLED ? 1 : 0);
+        chset, "dyntopo_disabled", brush->dyntopo.flag & DYNTOPO_DISABLED ? 1 : 0);
 
-#define SETCH(key, val) BKE_brush_channelset_set_float(chset, #key, val)
-    SETCH(dyntopo_detail_range, brush->dyntopo.detail_range);
-    SETCH(dyntopo_detail_percent, brush->dyntopo.detail_percent);
-    SETCH(dyntopo_detail_size, brush->dyntopo.detail_size);
-    SETCH(dyntopo_constant_detail, brush->dyntopo.constant_detail);
-    SETCH(dyntopo_spacing, brush->dyntopo.spacing);
+    BRUSHSET_SET_FLOAT(chset, dyntopo_detail_range, brush->dyntopo.detail_range);
+    BRUSHSET_SET_FLOAT(chset, dyntopo_detail_percent, brush->dyntopo.detail_percent);
+    BRUSHSET_SET_FLOAT(chset, dyntopo_detail_size, brush->dyntopo.detail_size);
+    BRUSHSET_SET_FLOAT(chset, dyntopo_constant_detail, brush->dyntopo.constant_detail);
+    BRUSHSET_SET_FLOAT(chset, dyntopo_spacing, brush->dyntopo.spacing);
+  }
+
+  /* pen pressure flags */
+  if (brush_to_channels) {
+    if (brush->flag & BRUSH_SIZE_PRESSURE) {
+      BRUSHSET_LOOKUP(chset, radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
+          BRUSH_MAPPING_ENABLED;
+    }
+    else {
+      BRUSHSET_LOOKUP(chset, autosmooth)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
+    }
+
+    if (brush->flag & BRUSH_ALPHA_PRESSURE) {
+      BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
+          BRUSH_MAPPING_ENABLED;
+    }
+    else {
+      BRUSHSET_LOOKUP(chset, autosmooth)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
+    }
+
+    if (brush->flag & BRUSH_JITTER_PRESSURE) {
+      BRUSHSET_LOOKUP(chset, jitter)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
+          BRUSH_MAPPING_ENABLED;
+    }
+    else {
+      BRUSHSET_LOOKUP(chset, autosmooth)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
+    }
+
+    if (brush->flag & BRUSH_SPACING_PRESSURE) {
+      BRUSHSET_LOOKUP(chset, spacing)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
+          BRUSH_MAPPING_ENABLED;
+    }
+    else {
+      BRUSHSET_LOOKUP(chset, autosmooth)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
+    }
+
+    if (brush->flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
+      BRUSHSET_LOOKUP(chset, autosmooth)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
+          BRUSH_MAPPING_INVERT;
+    }
+    else {
+      BRUSHSET_LOOKUP(chset, autosmooth)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_INVERT;
+    }
+  }
+  else {
+    if (BRUSHSET_LOOKUP(chset, radius)->mappings[BRUSH_MAPPING_PRESSURE].flag &
+        BRUSH_MAPPING_ENABLED) {
+      brush->flag |= BRUSH_SIZE_PRESSURE;
+    }
+    else {
+      brush->flag &= ~BRUSH_SIZE_PRESSURE;
+    }
+    if (BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &
+        BRUSH_MAPPING_ENABLED) {
+      brush->flag |= BRUSH_ALPHA_PRESSURE;
+    }
+    else {
+      brush->flag &= ~BRUSH_ALPHA_PRESSURE;
+    }
+    if (BRUSHSET_LOOKUP(chset, jitter)->mappings[BRUSH_MAPPING_PRESSURE].flag &
+        BRUSH_MAPPING_ENABLED) {
+      brush->flag |= BRUSH_JITTER_PRESSURE;
+    }
+    else {
+      brush->flag &= ~BRUSH_JITTER_PRESSURE;
+    }
+    if (BRUSHSET_LOOKUP(chset, spacing)->mappings[BRUSH_MAPPING_PRESSURE].flag &
+        BRUSH_MAPPING_ENABLED) {
+      brush->flag |= BRUSH_SPACING_PRESSURE;
+    }
+    else {
+      brush->flag &= ~BRUSH_SPACING_PRESSURE;
+    }
+
+    if (BRUSHSET_LOOKUP(chset, autosmooth)->mappings[BRUSH_MAPPING_PRESSURE].flag &
+        BRUSH_MAPPING_INVERT) {
+      brush->flag |= BRUSH_INVERSE_SMOOTH_PRESSURE;
+    }
+    else {
+      brush->flag &= ~BRUSH_INVERSE_SMOOTH_PRESSURE;
+    }
   }
 }
-#undef SETCH
 
 // adds any missing channels to brushes
 void BKE_brush_builtin_patch(Brush *brush, int tool)
@@ -894,6 +982,8 @@ ATTR_NO_OPT void BKE_brush_builtin_create(Brush *brush, int tool)
       break;
     case SCULPT_TOOL_CLAY_STRIPS: {
       GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
+      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
+
       GETCH(tip_roundness)->fvalue = 0.18f;
       GETCH(normal_radius_factor)->fvalue = 1.35f;
       GETCH(strength)->fvalue = 0.8f;
