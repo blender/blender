@@ -1517,6 +1517,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define FN_NODE_VALUE_TO_STRING 1210
 #define FN_NODE_STRING_LENGTH 1211
 #define FN_NODE_STRING_SUBSTRING 1212
+#define FN_NODE_INPUT_SPECIAL_CHARACTERS 1213
 
 /** \} */
 
