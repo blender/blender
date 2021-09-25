@@ -998,6 +998,7 @@ typedef struct SculptThreadedTaskData {
   float *brush_color;
 
   float fset_slide, bound_smooth;
+  float crease_pinch_factor;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/

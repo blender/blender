@@ -170,7 +170,6 @@ places in rna_engine_codebase are relevent:
      }))
 
 MAKE_FLOAT(normal_weight, "Normal Weight", "", 0.0f, 0.0f, 1.0f)
-MAKE_FLOAT(rake_factor, "Rake Factor",  "How much grab will follow cursor rotation", 0.0f, 0.0f, 10.0f)
 MAKE_FLOAT(weight, "Weight", "", 0.5f, 0.0f, 1.0f)
 MAKE_FLOAT(jitter, "Jitter",  "Jitter the position of the brush while painting", 0.0f, 0.0f, 1.0f)
 MAKE_INT(jitter_absolute, "Absolute Jitter", "", 0, 0.0f, 1000.0f)
@@ -342,6 +341,67 @@ MAKE_ENUM_EX(radius_unit,  "Radius Unit", "Measure brush size relative to the vi
   {-1}
 }), BRUSH_CHANNEL_SHOW_IN_WORKSPACE)
 MAKE_FLOAT(tilt_strength_factor, "Tilt Strength", "How much the tilt of the pen will affect the brush", 0.0f, 0.0f, 1.0f)
+
+MAKE_FLOAT_EX(rake_factor, "Rake", "How much grab will follow cursor rotation", 0.5f, 0.0f, 10.0f, 0.0f, 1.0f, false)
+MAKE_FLOAT(pose_offset, "Pose Origin Offset", "Offset of the pose origin in relation to the brush radius", 0.0f, 0.0f, 2.0f)
+MAKE_FLOAT(disconnected_distance_max, "Max Element Distance",
+                           "Maximum distance to search for disconnected loose parts in the mesh", 0.1f, 0.0f, 10.0f)
+MAKE_INT(pose_smooth_iterations,  "Smooth Iterations",
+      "Smooth iterations applied after calculating the pose factor of each vertex", 4.0f, 0.0f, 100.0f)
+MAKE_INT(pose_ik_segments, "Pose IK Segments",
+      "Number of segments of the inverse kinematics chain that will deform the mesh", 1, 1, 20)
+MAKE_FLOAT(surface_smooth_shape_preservation, "Shape Preservation", "How much of the original shape is preserved when smoothing", 0.5f, 0.0f, 1.0f)
+MAKE_FLOAT(surface_smooth_current_vertex, "Per Vertex Displacement",
+      "How much the position of each individual vertex influences the final result", 0.5f, 0.0f, 1.0f)
+MAKE_INT(surface_smooth_iterations, "Iterations", "Number of smoothing iterations per brush step", 4, 1, 10)
+MAKE_BOOL(use_connected_only,  "Connected Only", "Affect only topologically connected elements", true)
+MAKE_BOOL(use_pose_ik_anchored,  "Keep Anchor Point", "Keep the position of the last segment in the IK chain fixed", true)
+MAKE_BOOL(use_pose_lock_rotation,  "Lock Rotation When Scaling",
+                           "Do not rotate the segment when using the scale deform mode", false)
+MAKE_ENUM(pose_deform_type, "Deformation", "Deformation type that is used in the brush", 0, _({
+  {BRUSH_POSE_DEFORM_ROTATE_TWIST, "ROTATE_TWIST", "NONE", "Rotate/Twist", ""},
+  {BRUSH_POSE_DEFORM_SCALE_TRASLATE, "SCALE_TRANSLATE", "NONE", "Scale/Translate", ""},
+  {BRUSH_POSE_DEFORM_SQUASH_STRETCH, "SQUASH_STRETCH", "NONE", "Squash & Stretch", ""},
+  {BRUSH_POSE_DEFORM_BEND, "BEND", "NONE", "Bend", ""},
+  {-1}
+}))
+MAKE_ENUM(pose_origin_type, "Rotation Origins",
+                           "Method to set the rotation origins for the segments of the brush", 0, _({
+
+  {BRUSH_POSE_ORIGIN_TOPOLOGY,
+    "TOPOLOGY",
+    "NONE",
+    "Topology",
+    "Sets the rotation origin automatically using the topology and shape of the mesh as a "
+    "guide"},
+  {BRUSH_POSE_ORIGIN_FACE_SETS,
+    "FACE_SETS",
+    "NONE",
+    "Face Sets",
+    "Creates a pose segment per face sets, starting from the active face set"},
+  {BRUSH_POSE_ORIGIN_FACE_SETS_FK,
+    "FACE_SETS_FK",
+    "NONE",
+    "Face Sets FK",
+    "Simulates an FK deformation using the Face Set under the cursor as control"},
+  {-1}
+}))
+
+MAKE_FLOAT(crease_pinch_factor, "Crease Brush Pinch Factor", "How much the crease brush pinches", 0.0f, 0.0f, 1.0f)
+
+MAKE_ENUM(snake_hook_deform_type, "Deformation", "Deformation type that is used in the brush", BRUSH_SNAKE_HOOK_DEFORM_FALLOFF, _({
+  {BRUSH_SNAKE_HOOK_DEFORM_FALLOFF,
+    "FALLOFF",
+    "NONE",
+    "Radius Falloff",
+    "Applies the brush falloff in the tip of the brush"},
+  {BRUSH_SNAKE_HOOK_DEFORM_ELASTIC,
+    "ELASTIC",
+    "NONE",
+    "Elastic",
+    "Modifies the entire mesh using elastic deform"},
+  {-1}
+}))
 
 /* clang-format on */
 #if defined(BRUSH_CHANNEL_DEFINE_TYPES) || defined(BRUSH_CHANNEL_DEFINE_EXTERNAL)

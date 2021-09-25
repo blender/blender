@@ -292,6 +292,18 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(boundary_falloff_type, boundary_falloff_type, INT, INT)
   DEF(deform_target, deform_target, INT, INT)
   DEF(tilt_strength_factor, tilt_strength_factor, FLOAT, FLOAT)
+  DEF(crease_pinch_factor, crease_pinch_factor, FLOAT, FLOAT)
+  DEF(pose_offset, pose_offset, FLOAT, FLOAT)
+  DEF(disconnected_distance_max, disconnected_distance_max, FLOAT, FLOAT)
+  DEF(surface_smooth_shape_preservation, surface_smooth_shape_preservation, FLOAT, FLOAT)
+  DEF(pose_smooth_iterations, pose_smooth_iterations, INT, INT)
+  DEF(pose_ik_segments, pose_ik_segments, INT, INT)
+  DEF(surface_smooth_shape_preservation, surface_smooth_shape_preservation, FLOAT, FLOAT)
+  DEF(surface_smooth_current_vertex, surface_smooth_current_vertex, FLOAT, FLOAT)
+  DEF(surface_smooth_iterations, surface_smooth_iterations, INT, INT)
+  DEF(pose_deform_type, pose_deform_type, INT, INT)
+  DEF(pose_origin_type, pose_origin_type, INT, INT)
+  DEF(snake_hook_deform_type, snake_hook_deform_type, INT, INT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -352,6 +364,9 @@ BrushFlagMap brush_flags_map[] =  {
   DEF(flag2, cloth_use_collision, BRUSH_CLOTH_USE_COLLISION)
   DEF(flag2, cloth_pin_simulation_boundary, BRUSH_CLOTH_PIN_SIMULATION_BOUNDARY)
   DEF(flag,  radius_unit, BRUSH_LOCK_SIZE)
+  DEF(flag2, use_pose_ik_anchored, BRUSH_POSE_IK_ANCHORED)
+  DEF(flag2, use_connected_only, BRUSH_USE_CONNECTED_ONLY)
+  DEF(flag2, use_pose_lock_rotation, BRUSH_POSE_USE_LOCK_ROTATION)
 };
 
 int brush_flags_map_len = ARRAY_SIZE(brush_flags_map);
@@ -733,6 +748,10 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(autosmooth_projection);
   ADDCH(autosmooth_falloff_curve);
 
+  ADDCH(surface_smooth_shape_preservation);
+  ADDCH(surface_smooth_current_vertex);
+  ADDCH(surface_smooth_iterations);
+
   ADDCH(vcol_boundary_exponent);
   ADDCH(vcol_boundary_factor);
   ADDCH(vcol_boundary_radius_scale);
@@ -814,14 +833,32 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       ADDCH(cloth_pin_simulation_boundary);
 
       break;
+    case SCULPT_TOOL_SNAKE_HOOK:
+      ADDCH(crease_pinch_factor);
+      ADDCH(rake_factor);
+      ADDCH(snake_hook_deform_type);
+      break;
     case SCULPT_TOOL_BOUNDARY:
       ADDCH(boundary_offset);
       ADDCH(boundary_deform_type);
       ADDCH(boundary_falloff_type);
       ADDCH(deform_target);
       break;
+    case SCULPT_TOOL_CREASE:
+      ADDCH(crease_pinch_factor);
+      break;
     case SCULPT_TOOL_POSE:
       ADDCH(deform_target);
+      ADDCH(disconnected_distance_max);
+      ADDCH(surface_smooth_shape_preservation);
+      ADDCH(pose_smooth_iterations);
+      ADDCH(pose_ik_segments);
+      ADDCH(use_pose_ik_anchored);
+      ADDCH(use_connected_only);
+      ADDCH(use_pose_lock_rotation);
+      ADDCH(pose_deform_type);
+      ADDCH(pose_origin_type);
+
       break;
   }
 
@@ -866,7 +903,25 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
   SHOWALL(strength);
   SHOWALL(color);
   SHOWALL(secondary_color);
-  SHOWALL(accumulate);
+
+  if (!ELEM(tool,
+            SCULPT_TOOL_SNAKE_HOOK,
+            SCULPT_TOOL_ARRAY,
+            SCULPT_TOOL_BOUNDARY,
+            SCULPT_TOOL_POSE,
+            SCULPT_TOOL_ROTATE,
+            SCULPT_TOOL_SCENE_PROJECT,
+            SCULPT_TOOL_SLIDE_RELAX,
+            SCULPT_TOOL_CLOTH,
+            SCULPT_TOOL_ELASTIC_DEFORM,
+            SCULPT_TOOL_FAIRING,
+            SCULPT_TOOL_DRAW_FACE_SETS,
+            SCULPT_TOOL_SMOOTH,
+            SCULPT_TOOL_SIMPLIFY)) {
+
+    SHOWALL(accumulate);
+  }
+  SHOWWRK(direction);
 
   SHOWWRK(radius_unit);
   SHOWWRK(use_frontface);
@@ -877,6 +932,11 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
   SHOWWRK(hardness);
 
   switch (tool) {
+    case SCULPT_TOOL_SMOOTH:
+      SHOWWRK(surface_smooth_shape_preservation);
+      SHOWWRK(surface_smooth_current_vertex);
+      SHOWWRK(surface_smooth_iterations);
+      break;
     case SCULPT_TOOL_SCRAPE:
     case SCULPT_TOOL_FILL:
       SHOWWRK(plane_offset);
@@ -916,6 +976,26 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(boundary_offset);
       SHOWWRK(boundary_deform_type);
       SHOWWRK(boundary_falloff_type);
+
+      break;
+    case SCULPT_TOOL_CREASE:
+      SHOWWRK(crease_pinch_factor);
+      break;
+    case SCULPT_TOOL_SNAKE_HOOK:
+      SHOWWRK(crease_pinch_factor);
+      SHOWWRK(rake_factor);
+      SHOWWRK(snake_hook_deform_type);
+      break;
+    case SCULPT_TOOL_POSE:
+      SHOWWRK(pose_ik_segments);
+      SHOWWRK(pose_smooth_iterations);
+      SHOWWRK(disconnected_distance_max);
+      SHOWWRK(pose_offset);
+      SHOWWRK(use_connected_only);
+      SHOWWRK(use_pose_ik_anchored);
+      SHOWWRK(use_pose_lock_rotation);
+      SHOWWRK(pose_deform_type);
+      SHOWWRK(pose_origin_type);
 
       break;
   }
@@ -963,9 +1043,12 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       break;
     }
     case SCULPT_TOOL_DRAW_SHARP:
-      GETCH(spacing)->ivalue = 5;
-      GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
-      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, spacing)->ivalue = 5;
+      BRUSHSET_SET_INT(chset, direction, 1);
+      BRUSHSET_LOOKUP(chset, radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
+          BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
       break;
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
     case SCULPT_TOOL_FAIRING:
@@ -1050,6 +1133,12 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
       GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
       break;
+    case SCULPT_TOOL_SNAKE_HOOK:
+      GETCH(dyntopo_mode)->ivalue = DYNTOPO_LOCAL_COLLAPSE | DYNTOPO_SUBDIVIDE;
+      GETCH(dyntopo_mode)->flag = BRUSH_CHANNEL_INHERIT_IF_UNSET;
+      GETCH(strength)->fvalue = 1.0f;
+
+      break;
     default: {
       // implement me!
       // BKE_brush_channelset_free(chset);
@@ -1089,7 +1178,7 @@ void BKE_brush_channelset_check_radius(BrushChannelSet *chset)
   }
 
   int mask = BRUSH_CHANNEL_INHERIT | BRUSH_CHANNEL_INHERIT_IF_UNSET |
-             BRUSH_CHANNEL_SHOW_IN_HEADER | BRUSH_CHANNEL_SHOW_IN_WORKSPACE |
+             /*BRUSH_CHANNEL_SHOW_IN_HEADER | BRUSH_CHANNEL_SHOW_IN_WORKSPACE |*/
              BRUSH_CHANNEL_UI_EXPANDED;
 
   if (ch2) {

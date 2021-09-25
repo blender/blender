@@ -5717,8 +5717,10 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 
   /* We divide out the squared alpha and multiply by the squared crease
    * to give us the pinch strength. */
-  crease_correction = brush->crease_pinch_factor * brush->crease_pinch_factor * 2.0;
-  brush_alpha = BKE_brush_alpha_get(scene, brush);
+  crease_correction = SCULPT_get_float(ss, crease_pinch_factor, sd, brush);
+  crease_correction = crease_correction * crease_correction * 2.0f;
+
+  brush_alpha = SCULPT_get_float(ss, strength, sd, brush);  // BKE_brush_alpha_get(scene, brush);
   if (brush_alpha > 0.0f) {
     crease_correction /= brush_alpha * brush_alpha;
   }
@@ -5743,6 +5745,7 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
       .nodes = nodes,
       .spvc = &spvc,
       .offset = offset,
+      .crease_pinch_factor = SCULPT_get_float(ss, crease_pinch_factor, sd, brush),
       .flippedbstrength = flippedbstrength,
   };
 
@@ -6338,8 +6341,8 @@ static void do_snake_hook_brush_task_cb_ex(void *__restrict userdata,
   float(*proxy)[3];
   const float bstrength = ss->cache->bstrength;
   const bool do_rake_rotation = ss->cache->is_rake_rotation_valid;
-  const bool do_pinch = (brush->crease_pinch_factor != 0.5f);
-  const float pinch = do_pinch ? (2.0f * (0.5f - brush->crease_pinch_factor) *
+  const bool do_pinch = (data->crease_pinch_factor != 0.5f);
+  const float pinch = do_pinch ? (2.0f * (0.5f - data->crease_pinch_factor) *
                                   (len_v3(grab_delta) / ss->cache->radius)) :
                                  0.0f;
 
@@ -6450,19 +6453,20 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
     sculpt_project_v3_normal_align(ss, ss->cache->normal_weight, grab_delta);
   }
 
+  float crease_pinch_factor = SCULPT_get_float(ss, crease_pinch_factor, sd, brush);
+
   /* Optionally pinch while painting. */
-  if (brush->crease_pinch_factor != 0.5f) {
+  if (crease_pinch_factor != 0.5f) {
     sculpt_project_v3_cache_init(&spvc, grab_delta);
   }
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .spvc = &spvc,
-      .grab_delta = grab_delta,
-  };
+  SculptThreadedTaskData data = {.sd = sd,
+                                 .ob = ob,
+                                 .brush = brush,
+                                 .nodes = nodes,
+                                 .spvc = &spvc,
+                                 .grab_delta = grab_delta,
+                                 .crease_pinch_factor = crease_pinch_factor};
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);

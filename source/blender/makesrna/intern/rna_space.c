@@ -3184,8 +3184,9 @@ static struct IDFilterEnumPropertyItem rna_enum_space_file_id_filter_categories[
      ICON_WORLD_DATA,
      "Environment",
      "Show worlds, lights, cameras and speakers"},
-    {FILTER_ID_BR | FILTER_ID_GD | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT |
-         FILTER_ID_VF | FILTER_ID_CF | FILTER_ID_WS,
+    {FILTER_ID_BR, "category_brush", ICON_GREASEPENCIL, "Brushes", "Show brushes"},
+    {FILTER_ID_GD | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT | FILTER_ID_VF |
+         FILTER_ID_CF | FILTER_ID_WS,
      "category_misc",
      ICON_GREASEPENCIL,
      "Miscellaneous",
@@ -6510,8 +6511,9 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
        ICON_WORLD_DATA,
        "Environment",
        "Show worlds, lights, cameras and speakers"},
-      {FILTER_ID_BR | FILTER_ID_GD | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT |
-           FILTER_ID_VF | FILTER_ID_CF | FILTER_ID_WS,
+      {FILTER_ID_BR, "BRUSHES", ICON_GREASEPENCIL, "Brushes", "Show brushes"},
+      {FILTER_ID_GD | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT | FILTER_ID_VF |
+           FILTER_ID_CF | FILTER_ID_WS,
        "MISC",
        ICON_GREASEPENCIL,
        "Miscellaneous",

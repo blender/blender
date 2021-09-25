@@ -712,10 +712,6 @@ ATTR_NO_OPT bool RNA_struct_override_matches(Main *bmain,
     rna_property_rna_or_id_get(rawprop, ptr_local, &prop_local);
     rna_property_rna_or_id_get(rawprop, ptr_reference, &prop_reference);
 
-    if (STREQ(prop_local.identifier, "channels")) {
-      printf("break\n");
-    }
-
     BLI_assert(prop_local.rnaprop != NULL);
     BLI_assert(prop_local.rnaprop == prop_reference.rnaprop);
     BLI_assert(prop_local.is_idprop == prop_reference.is_idprop);
@@ -791,10 +787,6 @@ ATTR_NO_OPT bool RNA_struct_override_matches(Main *bmain,
     }
     if (rna_path == NULL) {
       continue;
-    }
-
-    if (STRPREFIX(rna_path, "channels[\"autosmooth\"].factor_value")) {
-      printf("break\n");
     }
 
     CLOG_INFO(&LOG, 5, "Override Checking %s", rna_path);
