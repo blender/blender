@@ -291,7 +291,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
     scale_m4_fl(scale, ss->cache->radius);
     mul_m4_m4m4(tmat, mat, scale);
-    mul_v3_fl(tmat[1], brush->tip_scale_x);
+    mul_v3_fl(tmat[1], SCULPT_get_float(ss, tip_scale_x, sd, brush));
     invert_m4_m4(mat, tmat);
     if (is_zero_m4(mat)) {
       return;
@@ -300,10 +300,12 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   float brush_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
-  BKE_brush_channelset_get_vector(ss->cache->channels_final,
-                                  ss->cache->invert ? "secondary_color" : "color",
-                                  brush_color,
-                                  &ss->cache->input_mapping);
+  if (ss->cache->invert) {
+    SCULPT_get_vector(ss, secondary_color, brush_color, sd, brush);
+  }
+  else {
+    SCULPT_get_vector(ss, color, brush_color, sd, brush);
+  }
 
   /* Smooth colors mode. */
   if (ss->cache->alt_smooth) {

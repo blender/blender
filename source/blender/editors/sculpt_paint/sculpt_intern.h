@@ -274,6 +274,11 @@ int SCULPT_get_int_intern(const SculptSession *ss,
   SCULPT_get_int_intern(ss, BRUSH_BUILTIN_##idname, sd, br)
 #define SCULPT_get_bool(ss, idname, sd, br) SCULPT_get_int(ss, idname, sd, br)
 
+int SCULPT_get_vector_intern(
+    const SculptSession *ss, const char *idname, float out[4], const Sculpt *sd, const Brush *br);
+#define SCULPT_get_vector(ss, idname, out, sd, br) \
+  SCULPT_get_vector_intern(ss, BRUSH_BUILTIN_##idname, out, sd, br)
+
 SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                          const SculptVertRef index,
                                          SculptCornerType cornertype);
@@ -647,7 +652,8 @@ struct SculptPoseIKChain *SCULPT_pose_ik_chain_init(struct Sculpt *sd,
 void SCULPT_pose_ik_chain_free(struct SculptPoseIKChain *ik_chain);
 
 /* Boundary Brush. */
-struct SculptBoundary *SCULPT_boundary_data_init(struct Sculpt *sd, Object *object,
+struct SculptBoundary *SCULPT_boundary_data_init(struct Sculpt *sd,
+                                                 Object *object,
                                                  Brush *brush,
                                                  const SculptVertRef initial_vertex,
                                                  const float radius);

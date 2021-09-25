@@ -317,6 +317,8 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(pose_deform_type, pose_deform_type, INT, INT)
   DEF(pose_origin_type, pose_origin_type, INT, INT)
   DEF(snake_hook_deform_type, snake_hook_deform_type, INT, INT)
+  DEF(tip_roundness, tip_roundness, FLOAT, FLOAT)
+  DEF(tip_scale_x, tip_scale_x, FLOAT, FLOAT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -1123,6 +1125,7 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       BRUSHSET_SET_FLOAT(chset, hardness, 0.4f);
       BRUSHSET_SET_FLOAT(chset, spacing, 10.0f);
       BRUSHSET_SET_FLOAT(chset, strength, 0.6f);
+      BRUSHSET_LOOKUP(chset, strength)->flag &= ~BRUSH_MAPPING_INHERIT;
       break;
     case SCULPT_TOOL_CLAY:
       GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;

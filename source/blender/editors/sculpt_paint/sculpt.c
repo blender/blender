@@ -145,19 +145,19 @@ float SCULPT_get_float_intern(const SculptSession *ss,
                               const Sculpt *sd,
                               const Brush *br)
 {
+  BrushMappingData *mapdata = ss->cache ? &ss->cache->input_mapping : NULL;
+
   if (ss->cache && ss->cache->channels_final) {
-    return BKE_brush_channelset_get_float(
-        ss->cache->channels_final, idname, &ss->cache->input_mapping);
+    return BKE_brush_channelset_get_float(ss->cache->channels_final, idname, mapdata);
   }
   else if (br && sd && br->channels && sd->channels) {
-    return BKE_brush_channelset_get_final_float(
-        br->channels, sd->channels, idname, &ss->cache->input_mapping);
+    return BKE_brush_channelset_get_final_float(br->channels, sd->channels, idname, mapdata);
   }
   else if (br && br->channels) {
-    return BKE_brush_channelset_get_float(br->channels, idname, &ss->cache->input_mapping);
+    return BKE_brush_channelset_get_float(br->channels, idname, mapdata);
   }
   else if (sd && sd->channels) {
-    return BKE_brush_channelset_get_float(sd->channels, idname, &ss->cache->input_mapping);
+    return BKE_brush_channelset_get_float(sd->channels, idname, mapdata);
   }
   else {
     // eek!
@@ -170,19 +170,43 @@ int SCULPT_get_int_intern(const SculptSession *ss,
                           const Sculpt *sd,
                           const Brush *br)
 {
+  BrushMappingData *mapdata = ss->cache ? &ss->cache->input_mapping : NULL;
+
   if (ss->cache && ss->cache->channels_final) {
-    return BKE_brush_channelset_get_int(
-        ss->cache->channels_final, idname, &ss->cache->input_mapping);
+    return BKE_brush_channelset_get_int(ss->cache->channels_final, idname, mapdata);
   }
   else if (br && br->channels && sd && sd->channels) {
-    return BKE_brush_channelset_get_final_int(
-        br->channels, sd->channels, idname, &ss->cache->input_mapping);
+    return BKE_brush_channelset_get_final_int(br->channels, sd->channels, idname, mapdata);
   }
   else if (br && br->channels) {
-    return BKE_brush_channelset_get_int(br->channels, idname, &ss->cache->input_mapping);
+    return BKE_brush_channelset_get_int(br->channels, idname, mapdata);
   }
   else if (sd && sd->channels) {
-    return BKE_brush_channelset_get_int(sd->channels, idname, &ss->cache->input_mapping);
+    return BKE_brush_channelset_get_int(sd->channels, idname, mapdata);
+  }
+  else {
+    // eek!
+    return 0;
+  }
+}
+
+int SCULPT_get_vector_intern(
+    const SculptSession *ss, const char *idname, float out[4], const Sculpt *sd, const Brush *br)
+{
+  BrushMappingData *mapdata = ss->cache ? &ss->cache->input_mapping : NULL;
+
+  if (ss->cache && ss->cache->channels_final) {
+
+    BKE_brush_channelset_get_vector(ss->cache->channels_final, idname, out, mapdata);
+  }
+  else if (br && br->channels && sd && sd->channels) {
+    return BKE_brush_channelset_get_final_vector(br->channels, sd->channels, idname, out, mapdata);
+  }
+  else if (br && br->channels) {
+    return BKE_brush_channelset_get_vector(br->channels, idname, out, mapdata);
+  }
+  else if (sd && sd->channels) {
+    return BKE_brush_channelset_get_vector(sd->channels, idname, out, mapdata);
   }
   else {
     // eek!

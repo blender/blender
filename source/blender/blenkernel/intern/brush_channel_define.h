@@ -172,7 +172,7 @@ places in rna_engine_codebase are relevent:
   MAKE_FLOAT(normal_radius_factor, "Normal Radius", "Ratio between the brush radius and the radius that is going to be "
                             "used to sample the normal", 0.5f, 0.0f, 1.0f)
   MAKE_FLOAT(hardness, "Hardness", "Brush falloff hardness", 0.0f, 0.0f, 1.0f)
-  MAKE_FLOAT(tip_roundness, "Tip Roundness", "", 0.0f, 0.0f, 1.0f)
+  MAKE_FLOAT(tip_roundness, "Tip Roundness", "", 1.0f, 0.0f, 1.0f)
   MAKE_BOOL(accumulate, "Accumulate", "", false)
   MAKE_ENUM(direction, "Direction", "", 0, _({
         {0, "ADD", "ADD", "Add", "Add effect of brush"},
