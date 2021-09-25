@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-// Keep this a bitmask os it's possible to pass available
+// Keep this a bitmask so it's possible to pass available
 // evaluators to Blender.
 typedef enum eOpenSubdivEvaluator {
   OPENSUBDIV_EVALUATOR_CPU = (1 << 0),

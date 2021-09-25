@@ -79,8 +79,8 @@ struct CDStreamConfig {
    * UV map is kept alive by the Alembic mesh sample itself. */
   std::map<std::string, Alembic::AbcGeom::OV2fGeomParam> abc_uv_maps;
 
-  /* OCRO coordinates, aka Generated Coordinates. */
-  Alembic::AbcGeom::OV3fGeomParam abc_ocro;
+  /* ORCO coordinates, aka Generated Coordinates. */
+  Alembic::AbcGeom::OV3fGeomParam abc_orco;
 
   CDStreamConfig()
       : mloop(NULL),

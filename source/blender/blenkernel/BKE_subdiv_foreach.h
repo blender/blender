@@ -127,7 +127,7 @@ typedef struct SubdivForeachContext {
   SubdivForeachVertexFromEdgeCb vertex_edge;
   /* Called exactly once, always corresponds to a single ptex face. */
   SubdivForeachVertexInnerCb vertex_inner;
-  /* Called once for each loose vertex. One loose coarse vertexcorresponds
+  /* Called once for each loose vertex. One loose coarse vertex corresponds
    * to a single subdivision vertex.
    */
   SubdivForeachLooseCb vertex_loose;
@@ -144,7 +144,7 @@ typedef struct SubdivForeachContext {
   SubdivForeachPolygonCb poly;
 
   /* User-defined pointer, to allow callbacks know something about context the
-   * traversal is happening for,
+   * traversal is happening for.
    */
   void *user_data;
 
@@ -163,7 +163,7 @@ typedef struct SubdivForeachContext {
  * indices (for vertices, edges, loops, polygons) in the same way as subdivision
  * modifier will do for a dense mesh.
  *
- * Returns truth if the whole topology was traversed, without any early exits.
+ * Returns true if the whole topology was traversed, without any early exits.
  *
  * TODO(sergey): Need to either get rid of subdiv or of coarse_mesh.
  * The main point here is to be able to get base level topology, which can be
