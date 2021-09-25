@@ -235,7 +235,7 @@ MAKE_BOOL(invert_to_scrape_fill,"Invert to Scrape or Fill",
 MAKE_FLOAT(area_radius_factor, "Area Radius", "Ratio between the brush radius and the radius that is going to be "
                         "used to sample the area center", 0.5f, 0.0f, 2.0f)
 MAKE_BOOL(use_multiplane_scrape_dynamic, "Dynamic Mode",  "The angle between the planes changes during the stroke to fit the "
-                        "surface under the cursor", true)
+                        "surface under the cursor", true) 
 MAKE_BOOL(show_multiplane_scrape_planes_preview, "Show Cursor Preview", "Preview the scrape planes in the cursor during the stroke", true)
 MAKE_FLOAT(multiplane_scrape_angle, "Plane Angle", "Angle between the planes of the crease", 60.0f, 0.0f, 160.0f)
 

@@ -507,6 +507,12 @@ class VIEW3D_PT_tools_brush_swatches(Panel, View3DPaintPanel, ColorPalettePanel)
     bl_label = "Color Palette"
     bl_options = {'DEFAULT_CLOSED'}
 
+class VIEW3D_PT_tools_brush_swatches_channels(Panel, View3DPaintPanel, ColorPalettePanel):
+    bl_context = ".paint_common"
+    bl_parent_id = "VIEW3D_PT_tools_brush_settings_channels"
+    bl_label = "Color Palette"
+    bl_options = {'DEFAULT_CLOSED'}
+
 
 class VIEW3D_PT_tools_brush_clone(Panel, View3DPaintPanel, ClonePanel):
     bl_context = ".paint_common"
@@ -2601,6 +2607,7 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_brush_vertex_color,
     VIEW3D_PT_tools_grease_pencil_brush_vertex_palette,
     VIEW3D_PT_tools_grease_pencil_brush_vertex_falloff,
+    VIEW3D_PT_tools_brush_swatches_channels,
     VIEW3D_PT_sculpt_dyntopo_advanced,
     SCULPT_OT_set_dyntopo_mode
 )
