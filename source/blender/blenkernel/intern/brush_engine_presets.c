@@ -825,6 +825,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       ADDCH(wet_persistence);
       ADDCH(density);
       ADDCH(tip_scale_x);
+      ADDCH(tip_roundness);
       ADDCH(flow);
       ADDCH(rate);
 
@@ -1006,6 +1007,20 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(rake_factor);
       SHOWWRK(snake_hook_deform_type);
       break;
+    case SCULPT_TOOL_PAINT:
+      SHOWWRK(color);
+      SHOWWRK(secondary_color);
+      SHOWWRK(wet_mix);
+      SHOWWRK(wet_persistence);
+      SHOWWRK(density);
+      SHOWWRK(tip_scale_x);
+      SHOWWRK(hardness);
+      SHOWWRK(wet_mix);
+      SHOWWRK(tip_roundness);
+      SHOWWRK(flow);
+      SHOWWRK(rate);
+
+      break;
     case SCULPT_TOOL_POSE:
       SHOWWRK(pose_ik_segments);
       SHOWWRK(pose_smooth_iterations);
@@ -1063,7 +1078,7 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       break;
     }
     case SCULPT_TOOL_DRAW_SHARP:
-      BRUSHSET_LOOKUP(chset, spacing)->ivalue = 5;
+      BRUSHSET_LOOKUP(chset, spacing)->fvalue = 5;
       BRUSHSET_SET_INT(chset, direction, 1);
       BRUSHSET_LOOKUP(chset, radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
           BRUSH_MAPPING_ENABLED;
@@ -1073,19 +1088,24 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
     case SCULPT_TOOL_FAIRING:
     case SCULPT_TOOL_SCENE_PROJECT:
-      GETCH(spacing)->ivalue = 10;
+      GETCH(spacing)->fvalue = 10;
       GETCH(strength)->fvalue = 1.0f;
       GETCH(dyntopo_disabled)->ivalue = 1;
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
-      GETCH(spacing)->ivalue = 10;
+      GETCH(spacing)->fvalue = 10;
       GETCH(strength)->fvalue = 1.0f;
       GETCH(dyntopo_disabled)->ivalue = 1;
       GETCH(slide_deform_type)->ivalue = BRUSH_SLIDE_DEFORM_DRAG;
       break;
+    case SCULPT_TOOL_PAINT:
+      BRUSHSET_SET_FLOAT(chset, hardness, 0.4f);
+      BRUSHSET_SET_FLOAT(chset, spacing, 10.0f);
+      BRUSHSET_SET_FLOAT(chset, strength, 0.6f);
+      break;
     case SCULPT_TOOL_CLAY:
       GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
-      GETCH(spacing)->ivalue = 3;
+      GETCH(spacing)->fvalue = 3;
       GETCH(autosmooth)->fvalue = 0.25f;
       GETCH(normal_radius_factor)->fvalue = 0.75f;
       GETCH(hardness)->fvalue = 0.65;
@@ -1093,7 +1113,7 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
     case SCULPT_TOOL_TWIST:
       GETCH(strength)->fvalue = 0.5f;
       GETCH(normal_radius_factor)->fvalue = 1.0f;
-      GETCH(spacing)->ivalue = 6;
+      GETCH(spacing)->fvalue = 6;
       GETCH(hardness)->fvalue = 0.5;
       break;
     case SCULPT_TOOL_CLAY_STRIPS: {

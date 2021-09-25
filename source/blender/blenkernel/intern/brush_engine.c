@@ -363,6 +363,7 @@ void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
   ch->curve.preset = def->curve_preset;
   ch->fvalue = def->fvalue;
   ch->ivalue = def->ivalue;
+  copy_v4_v4(ch->vector, def->vector);
 
   ch->type = def->type;
   ch->def = def;
