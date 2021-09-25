@@ -27,26 +27,26 @@
 
 namespace blender::io::alembic {
 
-class AbcPointsReader : public AbcObjectReader {
+class AbcPointsReader final : public AbcObjectReader {
   Alembic::AbcGeom::IPointsSchema m_schema;
   Alembic::AbcGeom::IPointsSchema::Sample m_sample;
 
  public:
   AbcPointsReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
-  bool valid() const;
+  bool valid() const override;
   bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
                            const Object *const ob,
-                           const char **err_str) const;
+                           const char **err_str) const override;
 
-  void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel);
+  void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) override;
 
   struct Mesh *read_mesh(struct Mesh *existing_mesh,
                          const Alembic::Abc::ISampleSelector &sample_sel,
                          int read_flag,
                          const char *velocity_name,
                          const float velocity_scale,
-                         const char **err_str);
+                         const char **err_str) override;
 };
 
 void read_points_sample(const Alembic::AbcGeom::IPointsSchema &schema,
