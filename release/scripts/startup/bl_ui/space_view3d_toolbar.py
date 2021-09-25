@@ -833,7 +833,7 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
 
         brush = context.tool_settings.sculpt.brush
 
-        ch = brush.channels.channels["dyntopo_mode"]
+        ch = brush.channels["dyntopo_mode"]
 
         if ch.inherit:
             row = layout.row()
@@ -959,7 +959,7 @@ class SCULPT_OT_set_dyntopo_mode (Operator):
 def set_dyntopo_mode_button(layout, context):
     brush = context.tool_settings.sculpt.brush
 
-    ch = brush.channels.channels["dyntopo_mode"]
+    ch = brush.channels["dyntopo_mode"]
     finalch = UnifiedPaintPanel.get_channel(context, brush, "dyntopo_mode")
 
     if "SUBDIVIDE" in finalch.flags_value and "COLLAPSE" in finalch.flags_value:

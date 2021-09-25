@@ -341,22 +341,6 @@ static void do_version_select_mouse(UserDef *userdef, wmKeyMapItem *kmi)
   }
 }
 
-/* clang-format off */
-static const char *sculpt_replacements[][4] = {
- {"tool_settings.sculpt.brush.", "tool_settings.sculpt.brush.channels.channels[\"PROP\"].float_value"},
- {"tool_settings.unified_paint_settings.", "tool_settings.sculpt.channels.channels[\"PROP\"].float_value"},
- {"tool_settings.unified_paint_settings.use_unified_size", "tool_settings.sculpt.brush.channels.channels[\"PROP\"].inherit"},
-};
-static const char *sculpt_prop_map[][2] = {
-  {"size", "radius"},
-  {"use_unified_size", "radius"},
-  {"use_unified_strength", "strength"}
-};
-/* clang-format on */
-
-static int tot_sculpt_prop_map = ARRAY_SIZE(sculpt_prop_map);
-static int tot_sculpt_replacements = ARRAY_SIZE(sculpt_replacements);
-
 extern char *sculpt_keymap_fix(const char *str);
 
 static void fix_radial_control_path(IDProperty *prop, void *userdata)

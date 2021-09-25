@@ -341,6 +341,7 @@ MAKE_ENUM_EX(radius_unit,  "Radius Unit", "Measure brush size relative to the vi
   {BRUSH_LOCK_SIZE, "SCENE", "NONE", "Scene", "Measure brush size relative to the scene"},
   {-1}
 }), BRUSH_CHANNEL_SHOW_IN_WORKSPACE)
+MAKE_FLOAT(tilt_strength_factor, "Tilt Strength", "How much the tilt of the pen will affect the brush", 0.0f, 0.0f, 1.0f)
 
 /* clang-format on */
 #if defined(BRUSH_CHANNEL_DEFINE_TYPES) || defined(BRUSH_CHANNEL_DEFINE_EXTERNAL)

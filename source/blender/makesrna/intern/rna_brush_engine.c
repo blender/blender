@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 
+#include "DNA_ID_enums.h"
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_listBase.h"
@@ -51,9 +52,40 @@ static EnumPropertyItem null_enum[2] = {{0, "null", ICON_NONE, "null"}, {0, NULL
 
 #ifdef RNA_RUNTIME
 
-int rna_BrushChannelSet_channels_begin(CollectionPropertyIterator *iter, struct PointerRNA *ptr)
+#  include "RNA_access.h"
+
+BrushChannelSet *rna_BrushChannelSet_get_set(struct PointerRNA *ptr)
 {
-  BrushChannelSet *chset = ptr->data;
+  BrushChannelSet *chset = NULL;
+  ID *id = ptr->owner_id;
+
+  switch (GS(id->name)) {
+    case ID_BR:
+      chset = ((Brush *)id)->channels;
+      break;
+    case ID_SCE: {
+      Scene *scene = (Scene *)id;
+
+      if (!scene->toolsettings || !scene->toolsettings->sculpt) {
+        return NULL;
+      }
+
+      chset = scene->toolsettings->sculpt->channels;
+      break;
+    }
+  }
+
+  return chset;
+}
+
+ATTR_NO_OPT int rna_BrushChannelSet_channels_begin(CollectionPropertyIterator *iter,
+                                                   struct PointerRNA *ptr)
+{
+  BrushChannelSet *chset = rna_BrushChannelSet_get_set(ptr);
+
+  if (!chset) {
+    return 0;
+  }
 
   rna_iterator_listbase_begin(iter, &chset->channels, NULL);
 
@@ -64,7 +96,8 @@ int rna_BrushChannelSet_channels_assignint(struct PointerRNA *ptr,
                                            int key,
                                            const struct PointerRNA *assign_ptr)
 {
-  BrushChannelSet *chset = ptr->data;
+  BrushChannelSet *chset = rna_BrushChannelSet_get_set(ptr);
+
   BrushChannel *src = assign_ptr->data;
   BrushChannel *ch = BLI_findlink(&chset->channels, key);
 
@@ -345,7 +378,7 @@ static void rna_BrushChannel_enum_items_begin(CollectionPropertyIterator *iter, 
       printf("%s: channel '%s' had no definition\n", __func__, ch->idname);
     }
     else {
-      printf("%s: channel '%s' is not an enum/bitmask\n", __func__, ch->idname);
+      // printf("%s: channel '%s' is not an enum/bitmask\n", __func__, ch->idname);
     }
 
     item = null_enum;
@@ -366,6 +399,48 @@ static void rna_BrushChannel_enum_items_begin(CollectionPropertyIterator *iter, 
 
   rna_iterator_array_begin(
       iter, (void *)item, sizeof(EnumPropertyItem), totitem, false, rna_enum_check_separator);
+}
+
+char *rna_BrushChannel_rnapath(PointerRNA *ptr)
+{
+  BrushChannel *ch = (BrushChannel *)ptr->data;
+  char buf[512];
+
+  if (!ptr->owner_id) {
+    return NULL;
+  }
+
+  if (GS(ptr->owner_id->name) == ID_BR) {
+    return BLI_sprintfN("channels[\"%s\"]", ch->idname);
+  }
+  else if (GS(ptr->owner_id->name) == ID_SCE) {
+    return BLI_sprintfN("tool_settings.sculpt.channels[\"%s\"]", ch->idname);
+  }
+  else {
+    return NULL;
+  }
+}
+
+ATTR_NO_OPT void rna_BrushChannelSet_ensure(ID *id, BrushChannel *channel)
+{
+  PointerRNA ptr;
+
+  ptr.owner_id = id;
+  ptr.data = NULL;
+  ptr.type = NULL;
+
+  BrushChannelSet *chset = rna_BrushChannelSet_get_set(&ptr);
+  if (chset) {
+    BKE_brush_channelset_ensure_existing(chset, channel);
+  }
+}
+
+ATTR_NO_OPT int rna_BrushChannelSet_length(PointerRNA *ptr)
+{
+  BrushChannelSet *chset = rna_BrushChannelSet_get_set(ptr);
+  // BrushChannelSet *chset = (BrushChannelSet *)ptr->data;
+
+  return chset->totchannel;
 }
 
 #endif
@@ -478,6 +553,7 @@ void RNA_def_brush_channel(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "BrushChannel", NULL);
   RNA_def_struct_sdna(srna, "BrushChannel");
   RNA_def_struct_ui_text(srna, "Brush Channel", "Brush Channel");
+  RNA_def_struct_path_func(srna, "rna_BrushChannel_rnapath");
 
   prop = RNA_def_property(srna, "idname", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, "BrushChannel", "idname");
@@ -517,64 +593,64 @@ void RNA_def_brush_channel(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "float_value", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, "BrushChannel", "fvalue");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Value", "Current value");
   RNA_def_property_float_funcs(prop,
                                "rna_BrushChannel_get_value",
                                "rna_BrushChannel_set_value",
                                "rna_BrushChannel_value_range");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   // XXX hack warning: these next two are duplicates of above
   // to get different subtypes
   prop = RNA_def_property(srna, "factor_value", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, "BrushChannel", "fvalue");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Value", "Current value");
   RNA_def_property_float_funcs(prop,
                                "rna_BrushChannel_get_value",
                                "rna_BrushChannel_set_value",
                                "rna_BrushChannel_value_range");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "percent_value", PROP_FLOAT, PROP_PERCENTAGE);
   RNA_def_property_float_sdna(prop, "BrushChannel", "fvalue");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Value", "Current value");
   RNA_def_property_float_funcs(prop,
                                "rna_BrushChannel_get_value",
                                "rna_BrushChannel_set_value",
                                "rna_BrushChannel_value_range");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "inherit", PROP_BOOLEAN, PROP_NONE);
   // RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_INHERIT);
+  RNA_def_property_ui_text(prop, "Inherit", "Inherit from scene defaults");
   RNA_def_property_boolean_funcs(
       prop, "rna_BrushChannel_inherit_get", "rna_BrushChannel_inherit_set");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_ui_text(prop, "Inherit", "Inherit from scene defaults");
 
   prop = RNA_def_property(srna, "show_in_header", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_SHOW_IN_HEADER);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "In Header", "Show in header");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "show_in_workspace", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_SHOW_IN_WORKSPACE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "In Workspace", "Show in workspace");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "is_color", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_COLOR);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Is Color", "Is this channel a color");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "ui_expanded", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_UI_EXPANDED);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Expanded", "View advanced properties");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "inherit_if_unset", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_INHERIT_IF_UNSET);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Combine", "Combine with default settings");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "mappings", PROP_COLLECTION, PROP_NONE);
   // RNA_def_property_collection_sdna(prop, "BrushChannel", "mappings", NULL);
@@ -620,6 +696,7 @@ void RNA_def_brush_channel(BlenderRNA *brna)
                               "rna_BrushChannel_enum_value_get",
                               "rna_BrushChannel_enum_value_set",
                               "rna_BrushChannel_enum_value_get_items");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "enum_items", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
@@ -645,44 +722,63 @@ void RNA_def_brush_channel(BlenderRNA *brna)
                               "rna_BrushChannel_enum_value_set",
                               "rna_BrushChannel_enum_value_get_items");
   RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "BrushCurve");
   RNA_def_property_ui_text(prop, "Curve", "Curve");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   // PROP_ENUM_FLAG
 }
 
-void RNA_def_brush_channelset(BlenderRNA *brna)
+void RNA_def_brush_channelset(BlenderRNA *brna, PropertyRNA *cprop, const char *type_prefix)
 {
   StructRNA *srna;
   PropertyRNA *prop;
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  srna = RNA_def_struct(brna, "BrushChannelSet", NULL);
-  RNA_def_struct_sdna(srna, "BrushChannelSet");
-  RNA_def_struct_ui_text(srna, "Channel Set", "Brush Channel Collection");
+  char buf[256], *name;
+  sprintf(buf, "%sBrushChannels", type_prefix);
+  name = strdup(buf);
 
-  func = RNA_def_function(srna, "ensure", "BKE_brush_channelset_ensure_existing");
+  RNA_def_property_srna(cprop, name);
+
+  srna = RNA_def_struct(brna, name, NULL);
+  RNA_def_struct_sdna(srna, "BrushChannelSet");
+  RNA_def_struct_ui_text(srna, "Brush Channels", "Collection of brush channels");
+
+  // srna = RNA_def_struct(brna, "BrushChannelSet", NULL);
+  // RNA_def_struct_sdna(srna, "BrushChannelSet");
+  // RNA_def_struct_ui_text(srna, "Channel Set", "Brush Channel Collection");
+
+  func = RNA_def_function(srna, "ensure", "rna_BrushChannelSet_ensure");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF);
+
   parm = RNA_def_pointer(
       func, "channel", "BrushChannel", "", "Ensure a copy of channel exists in this channel set");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
   // RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
-  prop = RNA_def_property(srna, "channels", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "channels", "totchannel");
+  // prop = RNA_def_property(srna, "channels", PROP_COLLECTION, PROP_NONE);
+  prop = cprop;
+
+  RNA_def_property_collection_sdna(prop, NULL, "channels", NULL);
   RNA_def_property_collection_funcs(prop,
                                     "rna_BrushChannelSet_channels_begin",
                                     "rna_iterator_listbase_next",
                                     "rna_iterator_listbase_end",
                                     "rna_iterator_listbase_get",
-                                    NULL,
+                                    "rna_BrushChannelSet_length",
                                     NULL,
                                     NULL,
                                     "rna_BrushChannelSet_channels_assignint");
   RNA_def_property_struct_type(prop, "BrushChannel");
+
+  RNA_def_property_clear_flag(prop, PROP_PTR_NO_OWNERSHIP);
+  RNA_def_property_flag(prop, PROP_THICK_WRAP | PROP_DYNAMIC);
   RNA_def_property_override_flag(
       prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY | PROPOVERRIDE_LIBRARY_INSERTION);
 }
@@ -692,5 +788,4 @@ void RNA_def_brush_engine(BlenderRNA *brna)
   RNA_def_brush_curve(brna);
   RNA_def_brush_mapping(brna);
   RNA_def_brush_channel(brna);
-  RNA_def_brush_channelset(brna);
 }

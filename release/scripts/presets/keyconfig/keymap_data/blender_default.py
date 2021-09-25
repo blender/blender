@@ -4301,8 +4301,8 @@ def km_curve(params):
 
 def radial_control_properties_channels(paint, prop, secondary_prop, secondary_rotation=False, color=False, zoom=False, type="float"):
     brush_path = 'tool_settings.' + paint + '.brush'
-    channels_path = brush_path + ".channels.channels"
-    unified  = "tool_settings." + paint + ".channels.channels"
+    channels_path = brush_path + ".channels"
+    unified  = "tool_settings." + paint + ".channels"
 
     rotation = 'mask_texture_slot_angle' if secondary_rotation else 'texture_slot_angle'
     return {

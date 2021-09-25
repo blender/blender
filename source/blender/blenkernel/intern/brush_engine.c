@@ -32,6 +32,9 @@
 #include "BKE_context.h"
 #include "BKE_curvemapping_cache.h"
 #include "BKE_curveprofile.h"
+#include "BKE_lib_override.h"
+#include "BKE_lib_query.h"
+#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
 
@@ -1594,6 +1597,18 @@ void BKE_builtin_commandlist_create(Brush *brush,
   }
 
   BKE_brush_commandset_inherit_all_mappings(cmd->params);
+}
+
+void BKE_brush_channelset_read_lib(BlendLibReader *reader, ID *id, BrushChannelSet *chset)
+{
+}
+
+void BKE_brush_channelset_expand(BlendExpander *expander, ID *id, BrushChannelSet *chset)
+{
+}
+
+void BKE_brush_channelset_foreach_id(LibraryForeachIDData *data, BrushChannelSet *chset)
+{
 }
 
 void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)

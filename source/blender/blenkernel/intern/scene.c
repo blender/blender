@@ -645,7 +645,12 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
                                             reader,
                                             toolsett_old->sculpt->gravity_object,
                                             IDWALK_CB_NOP);
+
+    if (toolsett->sculpt->channels) {
+      BKE_brush_channelset_foreach_id(data, toolsett->sculpt->channels);
+    }
   }
+
   if (toolsett->uvsculpt) {
     scene_foreach_paint(
         data, &toolsett->uvsculpt->paint, do_undo_restore, reader, &toolsett_old->uvsculpt->paint);
@@ -1296,6 +1301,10 @@ static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
   BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->imapaint.paint);
   if (sce->toolsettings->sculpt) {
     BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->sculpt->paint);
+
+    if (sce->toolsettings->sculpt->channels) {
+      BKE_brush_channelset_read_lib(reader, id, sce->toolsettings->sculpt->channels);
+    }
   }
   if (sce->toolsettings->vpaint) {
     BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->vpaint->paint);
@@ -1422,6 +1431,10 @@ static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
 static void scene_blend_read_expand(BlendExpander *expander, ID *id)
 {
   Scene *sce = (Scene *)id;
+
+  if (sce->toolsettings && sce->toolsettings->sculpt && sce->toolsettings->sculpt->channels) {
+    BKE_brush_channelset_expand(expander, id, sce->toolsettings->sculpt->channels);
+  }
 
   LISTBASE_FOREACH (Base *, base_legacy, &sce->base) {
     BLO_expand(expander, base_legacy->object);

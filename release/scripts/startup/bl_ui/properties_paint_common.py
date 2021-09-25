@@ -127,25 +127,25 @@ class UnifiedPaintPanel:
 
     @staticmethod
     def get_channel(context, brush, prop_name, toolsettings_only=False):
-        ch = brush.channels.channels[prop_name]
+        ch = brush.channels[prop_name]
 
         if ch.inherit or toolsettings_only:
             sd = context.tool_settings.sculpt
             #ensure channel exists in tool settings channel set
             sd.channels.ensure(ch)
-            ch = sd.channels.channels[prop_name]
+            ch = sd.channels[prop_name]
 
         return ch
 
     @staticmethod
     def get_channel_value(context, brush, prop_name, toolsettings_only=False):
-        ch = brush.channels.channels[prop_name]
+        ch = brush.channels[prop_name]
 
         if ch.inherit or toolsettings_only:
             sd = context.tool_settings.sculpt
             #ensure channel exists in tool settings channel set
             sd.channels.ensure(ch)
-            ch = sd.channels.channels[prop_name]
+            ch = sd.channels[prop_name]
 
         if ch.type == "FLOAT":
             return ch.float_value
@@ -176,14 +176,14 @@ class UnifiedPaintPanel:
         elif prop_name == "use_locked_size":
             prop_name = "radius_unit"
 
-        ch = brush.channels.channels[prop_name]
+        ch = brush.channels[prop_name]
 
         #dynamically switch to unprojected radius if necassary
         if prop_name == "radius":
-            size_mode = brush.channels.channels["radius_unit"].enum_value == "SCENE"
+            size_mode = brush.channels["radius_unit"].enum_value == "SCENE"
             if size_mode:
                 prop_name = "unprojected_radius"
-                ch = brush.channels.channels[prop_name]
+                ch = brush.channels[prop_name]
 
         finalch = ch
 
@@ -236,14 +236,14 @@ class UnifiedPaintPanel:
             #ensure channel exists in tool settings channel set
             sd.channels.ensure(ch)
 
-            finalch = sd.channels.channels[prop_name]
+            finalch = sd.channels[prop_name]
             if ch.mappings["PRESSURE"].inherit:
                 pressurech = finalch
 
             is_toolset = True
-            path = "tool_settings.sculpt.channels.channels[\"%s\"]" % ch.idname
+            path = "tool_settings.sculpt.channels[\"%s\"]" % ch.idname
         else:
-            path = "tool_settings.sculpt.brush.channels.channels[\"%s\"]" % ch.idname
+            path = "tool_settings.sculpt.brush.channels[\"%s\"]" % ch.idname
         
         if show_reorder:
             props = row.operator("brush.change_channel_order", text="", icon="TRIA_UP")
@@ -388,7 +388,7 @@ class UnifiedPaintPanel:
             if prop_name in channel_name_map:
                 prop_name = channel_name_map[prop_name]
 
-            if prop_name in brush.channels.channels:
+            if prop_name in brush.channels:
                 #    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None, slider=False, header=False):
                 return UnifiedPaintPanel.channel_unified(layout, context, brush, prop_name, icon=icon, text=text, slider=slider, header=header)
 
@@ -833,10 +833,22 @@ def brush_settings(layout, context, brush, popover=False):
         sculpt_tool = brush.sculpt_tool
 
         # normal_radius_factor
-        layout.prop(brush, "normal_radius_factor", slider=True)
+        UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "normal_radius_factor",
+                slider=True,
+         )
 
         if context.preferences.experimental.use_sculpt_tools_tilt and capabilities.has_tilt:
-            layout.prop(brush, "tilt_strength_factor", slider=True)
+            UnifiedPaintPanel.prop_unified(
+                    layout,
+                    context,
+                    brush,
+                    "tilt_strength_factor",
+                    slider=True,
+             )
 
         UnifiedPaintPanel.prop_unified(
                 layout,
@@ -855,7 +867,7 @@ def brush_settings(layout, context, brush, popover=False):
 
         # auto_smooth_factor and use_inverse_smooth_pressure
         if capabilities.has_auto_smooth:
-            box = layout.box().column() #.column() is a bit more compact
+            box = layout.column() #.column() is a bit more compact
 
             UnifiedPaintPanel.prop_unified(
                 box,
@@ -925,7 +937,7 @@ def brush_settings(layout, context, brush, popover=False):
                 capabilities.has_topology_rake and
                 context.sculpt_object.use_dynamic_topology_sculpting
         ):
-            box = layout.box().column() #.column() is a bit more compact
+            box = layout.column() #.column() is a bit more compact
             
             #box.prop(brush, "topology_rake_factor", slider=True)
             UnifiedPaintPanel.prop_unified(
@@ -938,7 +950,7 @@ def brush_settings(layout, context, brush, popover=False):
                 ) 
             box.prop(brush, "use_custom_topology_rake_spacing", text="Custom Spacing")
 
-            if brush.channels.channels["topology_rake_use_spacing"].bool_value:
+            if brush.channels["topology_rake_use_spacing"].bool_value:
                 UnifiedPaintPanel.prop_unified(
                     box,
                     context,
@@ -1226,7 +1238,7 @@ def brush_settings(layout, context, brush, popover=False):
             #col.prop(brush, "use_weighted_smooth")
             #col.prop(brush, "preserve_faceset_boundary")
 
-            if brush.channels.channels["preserve_faceset_boundary"].bool_value:
+            if brush.channels["preserve_faceset_boundary"].bool_value:
                 UnifiedPaintPanel.channel_unified(
                     layout,
                     context,
@@ -1426,7 +1438,7 @@ class ReorderBrushChannel(Operator):
         
         brush = ts.sculpt.brush
         
-        channels = brush.channels.channels
+        channels = brush.channels
         if self.channel not in channels:
             print("bad channel ", self.channel)
             return {'CANCELLED'}
@@ -1465,7 +1477,7 @@ class ReorderBrushChannel(Operator):
         return {'FINISHED'}
 
 def brush_settings_channels(layout, context, brush, ui_editing=False, popover=False, filterkey="show_in_workspace"):
-    channels = get_ui_channels(brush.channels.channels, [filterkey])
+    channels = get_ui_channels(brush.channels, [filterkey])
     
     for ch in channels:
         UnifiedPaintPanel.channel_unified(

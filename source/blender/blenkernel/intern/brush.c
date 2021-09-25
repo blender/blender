@@ -78,6 +78,10 @@ static void brush_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
     brush_dst->icon_imbuf = IMB_dupImBuf(brush_src->icon_imbuf);
   }
 
+  if (brush_src->channels) {
+    brush_dst->channels = BKE_brush_channelset_copy(brush_src->channels);
+  }
+
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
     BKE_previewimg_id_copy(&brush_dst->id, &brush_src->id);
   }
@@ -224,6 +228,10 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
   }
   BKE_texture_mtex_foreach_id(data, &brush->mtex);
   BKE_texture_mtex_foreach_id(data, &brush->mask_mtex);
+
+  if (brush->channels) {
+    BKE_brush_channelset_foreach_id(data, brush->channels);
+  }
 }
 
 static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -456,6 +464,10 @@ static void brush_blend_read_lib(BlendLibReader *reader, ID *id)
       brush->gpencil_settings->material = NULL;
     }
   }
+
+  if (brush->channels) {
+    BKE_brush_channelset_read_lib(reader, id, brush->channels);
+  }
 }
 
 static void brush_blend_read_expand(BlendExpander *expander, ID *id)
@@ -467,6 +479,10 @@ static void brush_blend_read_expand(BlendExpander *expander, ID *id)
   BLO_expand(expander, brush->paint_curve);
   if (brush->gpencil_settings != NULL) {
     BLO_expand(expander, brush->gpencil_settings->material);
+  }
+
+  if (brush->channels) {
+    BKE_brush_channelset_expand(expander, id, brush->channels);
   }
 }
 

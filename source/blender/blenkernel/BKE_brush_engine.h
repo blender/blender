@@ -50,6 +50,9 @@ This should completely replace UnifiedPaintSettings.
 struct BrushChannel;
 struct BlendWriter;
 struct BlendDataReader;
+struct BlendLibReader;
+struct ID;
+struct BlendExpander;
 struct Brush;
 struct Sculpt;
 
@@ -264,6 +267,14 @@ void BKE_builtin_commandlist_create(struct Brush *brush,
                                     BrushMappingData *map_data);  // map_data may be NULL
 void BKE_brush_channelset_read(struct BlendDataReader *reader, BrushChannelSet *cset);
 void BKE_brush_channelset_write(struct BlendWriter *writer, BrushChannelSet *cset);
+void BKE_brush_channelset_read_lib(struct BlendLibReader *reader,
+                                   struct ID *id,
+                                   BrushChannelSet *chset);
+void BKE_brush_channelset_expand(struct BlendExpander *expander,
+                                 struct ID *id,
+                                 BrushChannelSet *chset);
+void BKE_brush_channelset_foreach_id(struct LibraryForeachIDData *data, BrushChannelSet *chset);
+
 void BKE_brush_mapping_copy_data(BrushMapping *dst, BrushMapping *src);
 const char *BKE_brush_mapping_type_to_str(BrushMappingType mapping);
 const char *BKE_brush_mapping_type_to_typename(BrushMappingType mapping);

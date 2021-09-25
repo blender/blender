@@ -291,6 +291,7 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(boundary_deform_type, boundary_deform_type, INT, INT)
   DEF(boundary_falloff_type, boundary_falloff_type, INT, INT)
   DEF(deform_target, deform_target, INT, INT)
+  DEF(tilt_strength_factor, tilt_strength_factor, FLOAT, FLOAT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -723,6 +724,8 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(radius_unit);
   ADDCH(unprojected_radius);
 
+  ADDCH(tilt_strength_factor);
+
   ADDCH(autosmooth);
   ADDCH(autosmooth_radius_scale);
   ADDCH(autosmooth_spacing);
@@ -1117,6 +1120,7 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH(radius_unit);
   ADDCH(unprojected_radius);
 
+  ADDCH(tilt_strength_factor);
   ADDCH(automasking_boundary_edges_propagation_steps);
   ADDCH(concave_mask_factor);
   ADDCH(automasking);

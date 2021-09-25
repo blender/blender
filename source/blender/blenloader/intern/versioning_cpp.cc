@@ -47,11 +47,11 @@ const char *sculpt_keymap_fix_intern(const char *str)
     type = "inherit";
   }
 
-  // tool_settings.sculpt.channels.channels["strength"].factor_value
+  // tool_settings.sculpt.channels["strength"].factor_value
 
-  basic_string sub1 = R"'(tool_settings.sculpt.brush.channels.channels["$1"].)'" + type;
-  basic_string sub2 = R"'(tool_settings.sculpt.channels.channels["$1"].)'" + type;
-  basic_string sub3 = R"'(tool_settings.sculpt.brush.channels.channels["$1"].)'" + type;
+  basic_string sub1 = R"'(tool_settings.sculpt.brush.channels["$1"].)'" + type;
+  basic_string sub2 = R"'(tool_settings.sculpt.channels["$1"].)'" + type;
+  basic_string sub3 = R"'(tool_settings.sculpt.brush.channels["$1"].)'" + type;
 
   // sub += type;
 
@@ -64,6 +64,8 @@ const char *sculpt_keymap_fix_intern(const char *str)
     repl = std::regex_replace(repl, pat1, sub1);
     repl = std::regex_replace(repl, pat2, sub2);
   }
+
+  repl = regex_replace(repl, regex(R"'(\.channels\.channels)'"), ".channels");
 
   const char *out = repl.c_str();
   size_t len = (size_t)strlen(out);
@@ -99,7 +101,7 @@ static void test_regexp()
 
 const char *sculpt_keymap_fix(const char *str)
 {
-  test_regexp();
+  // test_regexp();
 
   return sculpt_keymap_fix_intern(str);
 }
