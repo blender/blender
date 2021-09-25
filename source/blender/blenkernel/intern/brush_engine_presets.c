@@ -93,6 +93,20 @@ MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pre
   .flag = BRUSH_CHANNEL_COLOR,\
 },
 
+#define MAKE_FLOAT3_EX(idname1, name1, tooltip1, x1, y1, z1, min1, max1, smin, smax, flag1){\
+  .idname = #idname1, \
+  .name = name1, \
+  .tooltip = tooltip1, \
+  .type = BRUSH_CHANNEL_VEC3,\
+  .vector = {x1, y1, z1, 1.0f},\
+  .min = min1, .max = max1,\
+  .soft_min = smin, .soft_max = smax,\
+  .flag = flag1,\
+},
+
+#define MAKE_FLOAT3(idname, name, tooltip, x, y, z, min, max)\
+  MAKE_FLOAT3_EX(idname, name, tooltip, x, y, z, min, max, min, max, 0)
+
 #define MAKE_COLOR4(idname1, name1, tooltip1, r, g, b, a){\
   .idname = #idname1, \
   .name = name1, \
@@ -173,7 +187,6 @@ That includes per-brush enums and bitflags!
 
 BrushChannelType brush_builtin_channels[] = {    
 #include "brush_channel_define.h"
-
 };
 
 /* clang-format on */
@@ -921,7 +934,14 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
 
     SHOWALL(accumulate);
   }
-  SHOWWRK(direction);
+
+  if (!ELEM(tool,
+            SCULPT_TOOL_ARRAY,
+            SCULPT_TOOL_POSE,
+            SCULPT_TOOL_GRAB,
+            SCULPT_TOOL_ELASTIC_DEFORM)) {
+    SHOWWRK(direction);
+  }
 
   SHOWWRK(radius_unit);
   SHOWWRK(use_frontface);
@@ -1249,6 +1269,68 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH(dyntopo_radius_scale);
 
   namestack_pop();
+}
+
+void BKE_brush_tex_start(BrushTex *btex, BrushChannelSet *chset, BrushMappingData *mapdata)
+{
+  MTex *mtex = &btex->__mtex;
+
+  // preserve ID pointers
+  Object *ob = mtex->object;  // do I need to preserve this?
+  Tex *tex = mtex->tex;
+
+  // memset
+  memset(mtex, 0, sizeof(*mtex));
+
+  mtex->object = ob;
+  mtex->tex = tex;
+
+  float *color = &mtex->r;
+  copy_v3_v3(color, BRUSHSET_LOOKUP(chset, mtex_color)->vector);
+  copy_v3_v3(mtex->ofs, BRUSHSET_LOOKUP(chset, mtex_offset)->vector);
+  copy_v3_v3(mtex->size, BRUSHSET_LOOKUP(chset, mtex_scale)->vector);
+
+  mtex->brush_map_mode = BRUSHSET_GET_INT(chset, mtex_map_mode, mapdata);
+  mtex->rot = BRUSHSET_GET_FLOAT(chset, mtex_angle, mapdata);
+
+  if (BRUSHSET_GET_INT(chset, mtex_use_rake, mapdata)) {
+    mtex->brush_angle_mode |= MTEX_ANGLE_RAKE;
+  }
+
+  if (BRUSHSET_GET_INT(chset, mtex_use_random, mapdata)) {
+    mtex->brush_angle_mode |= MTEX_ANGLE_RANDOM;
+  }
+}
+
+void BKE_brush_tex_from_mtex(BrushTex *btex, MTex *mtex)
+{
+  float *color = &mtex->r;
+  BrushChannelSet *chset = btex->channels;
+
+  copy_v3_v3(BRUSHSET_LOOKUP(chset, mtex_color)->vector, color);
+  copy_v3_v3(BRUSHSET_LOOKUP(chset, mtex_offset)->vector, mtex->ofs);
+  copy_v3_v3(BRUSHSET_LOOKUP(chset, mtex_scale)->vector, mtex->size);
+
+  int map_mode = mtex->brush_map_mode & ~(MTEX_ANGLE_RAKE | MTEX_ANGLE_RANDOM);
+
+  BRUSHSET_SET_INT(chset, mtex_map_mode, map_mode);
+  BRUSHSET_SET_BOOL(chset, mtex_use_rake, mtex->brush_angle_mode & MTEX_ANGLE_RAKE);
+  BRUSHSET_SET_BOOL(chset, mtex_use_random, mtex->brush_angle_mode & MTEX_ANGLE_RAKE);
+
+  BRUSHSET_SET_FLOAT(chset, mtex_angle, mtex->rot);
+}
+void BKE_brush_tex_patch_channels(BrushTex *btex)
+{
+  BrushChannelSet *chset = btex->channels;
+
+  ADDCH(mtex_offset);
+  ADDCH(mtex_scale);
+  ADDCH(mtex_color);
+  ADDCH(mtex_map_mode);
+  ADDCH(mtex_use_rake);
+  ADDCH(mtex_use_random);
+  ADDCH(mtex_random_angle);
+  ADDCH(mtex_angle);
 }
 
 #define BRUSH_CHANNEL_DEFINE_TYPES

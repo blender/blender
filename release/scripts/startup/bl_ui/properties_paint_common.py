@@ -1353,31 +1353,38 @@ def brush_shared_settings(layout, context, brush, popover=False):
 
     if size or size_mode:
         if size:
-            UnifiedPaintPanel.channel_unified(
+            UnifiedPaintPanel.prop_unified(
                 layout,
                 context,
                 brush,
                 size_prop,
+                unified_name="use_unified_size",
+                pressure_name="use_pressure_size",
                 text="Radius",
                 slider=True,
             )
         if size_mode:
             #layout.row().prop(size_owner, "use_locked_size", expand=True)
-            UnifiedPaintPanel.channel_unified(
+            UnifiedPaintPanel.prop_unified(
                 layout.row(),
                 context,
                 brush,
                 "use_locked_size",
-                expand=True
+                unified_name="use_unified_size",
+                pressure_name="use_pressure_size",
+                expand=True,
+                slider=True
             )
             layout.separator()
 
     if strength:    
-        UnifiedPaintPanel.channel_unified(
+        UnifiedPaintPanel.prop_unified(
             layout,
             context,
             brush,
             "strength",
+            unified_name="use_unified_strength",
+            pressure_name="use_pressure_strength",
             slider=True
         )
         layout.separator()

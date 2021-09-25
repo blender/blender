@@ -1772,32 +1772,48 @@ void BKE_brush_channelset_to_unified_settings(BrushChannelSet *chset, UnifiedPai
     ups->weight = ch->fvalue;
   }
 }
+
+BrushTex *BKE_brush_tex_create()
+{
+  BrushTex *bt = MEM_callocN(sizeof(BrushTex), "BrushTex");
+
+  bt->channels = BKE_brush_channelset_create();
+
+  return bt;
+}
+
+void BKE_brush_tex_free(BrushTex *btex)
+{
+  BKE_brush_channelset_free(btex->channels);
+  MEM_freeN(btex);
+}
+
 /* idea for building built-in preset node graphs:
 from brush_builder import Builder;
 
 def build(input, output):
-  input.add("Strength", "float", "strength").range(0.0, 3.0)
-  input.add("Radius", "float", "radius").range(0.01, 1024.0)
-  input.add("Autosmooth", "float", "autosmooth").range(0.0, 4.0)
-  input.add("Topology Rake", "float", "topology rake").range(0.0, 4.0)
-  input.add("Smooth Radius Scale", "float", "autosmooth_radius_scale").range(0.01, 5.0)
-  input.add("Rake Radius Scale", "float", "toporake_radius_scale").range(0.01, 5.0)
+input.add("Strength", "float", "strength").range(0.0, 3.0)
+input.add("Radius", "float", "radius").range(0.01, 1024.0)
+input.add("Autosmooth", "float", "autosmooth").range(0.0, 4.0)
+input.add("Topology Rake", "float", "topology rake").range(0.0, 4.0)
+input.add("Smooth Radius Scale", "float", "autosmooth_radius_scale").range(0.01, 5.0)
+input.add("Rake Radius Scale", "float", "toporake_radius_scale").range(0.01, 5.0)
 
-  draw = input.make.tool("DRAW")
-  draw.radius = input.radius
-  draw.strength = input.strength
+draw = input.make.tool("DRAW")
+draw.radius = input.radius
+draw.strength = input.strength
 
-  smooth = input.make.tool("SMOOTH")
-  smooth.radius = input.radius * input.autosmooth_radius_scale
-  smooth.strength = input.autosmooth;
-  smooth.flow = draw.outflow
+smooth = input.make.tool("SMOOTH")
+smooth.radius = input.radius * input.autosmooth_radius_scale
+smooth.strength = input.autosmooth;
+smooth.flow = draw.outflow
 
-  rake = input.make.tool("TOPORAKE")
-  rake.radius = input.radius * input.toporake_radius_scale
-  rake.strength = input.topology;
-  rake.flow = smooth.outflow
+rake = input.make.tool("TOPORAKE")
+rake.radius = input.radius * input.toporake_radius_scale
+rake.strength = input.topology;
+rake.flow = smooth.outflow
 
-  output.out = rake.outflow
+output.out = rake.outflow
 
 preset = Builder(build)
 

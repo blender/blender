@@ -46,6 +46,7 @@ This should completely replace UnifiedPaintSettings.
 */
 
 #include "DNA_sculpt_brush_types.h"
+#include "DNA_texture_types.h"
 
 struct BrushChannel;
 struct BlendWriter;
@@ -76,6 +77,7 @@ struct Sculpt;
   BKE_brush_channelset_set_float(chset, MAKE_BUILTIN_CH_NAME(channel), val)
 #define BRUSHSET_SET_INT(chset, channel, val) \
   BKE_brush_channelset_set_int(chset, MAKE_BUILTIN_CH_NAME(channel), val)
+#define BRUSHSET_SET_BOOL(chset, channel, val) BRUSHSET_SET_INT(chset, channel, (val) ? 1 : 0)
 
 //#define DEBUG_CURVE_MAPPING_ALLOC
 #ifdef DEBUG_CURVE_MAPPING_ALLOC
@@ -128,12 +130,40 @@ typedef struct BrushChannelType {
   bool user_defined;
 } BrushChannelType;
 
+/* since MTex is going away lets'
+   keep the texture abstraction
+   and simple.  From the brush engine's
+   point of view it's just a bunch of
+   BrushChannels.
+
+   This will eventually end up in DNA.*/
+
+typedef struct BrushTex {
+  struct BrushTex *next, *prev;
+  char idname[64], name[64];
+
+  BrushChannelSet *channels;
+  MTex *__mtex;  // do not access directly. except for the actual evaluation code.
+} BrushTex;
+
+BrushTex *BKE_brush_tex_create();
+void BKE_brush_tex_free(BrushTex *btex);
+void BKE_brush_tex_patch_channels(BrushTex *btex);
+void BKE_brush_tex_from_mtex(BrushTex *btex, MTex *mtex);
+
+// initializes the internal mtex struct
+void BKE_brush_tex_start(BrushTex *btex, BrushChannelSet *chset);
+
+#define MAKE_BRUSHTEX_SLOTS 5
+
 typedef struct BrushCommand {
   int tool;
-  float last_spacing_t[512];  // for different symmetry passes
+  float last_spacing_t[512];  // this is an array for different symmetry passes
   struct BrushChannelSet *params;
-  struct BrushChannelSet *params_final;
-  struct BrushChannelSet *params_mapped;
+  struct BrushChannelSet *params_final;   // with inheritence applied
+  struct BrushChannelSet *params_mapped;  // with pressure etc applied
+
+  BrushTex *texture_slots[MAKE_BRUSHTEX_SLOTS];
 } BrushCommand;
 
 typedef struct BrushCommandList {

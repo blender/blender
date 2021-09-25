@@ -8450,19 +8450,33 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
 {
   SculptSession *ss = ob->sculpt;
 
-  if (ELEM(brush->sculpt_tool,
-           SCULPT_TOOL_DRAW,
-           SCULPT_TOOL_DRAW_SHARP,
-           SCULPT_TOOL_CLAY_STRIPS,
-           SCULPT_TOOL_CLAY,
-           SCULPT_TOOL_CREASE,
-           SCULPT_TOOL_CLOTH,
-           SCULPT_TOOL_SIMPLIFY,
-           SCULPT_TOOL_SNAKE_HOOK,
-           SCULPT_TOOL_INFLATE,
-           SCULPT_TOOL_PAINT,
-           SCULPT_TOOL_SMEAR)) {
+  // poor ELEM macro. . .
+  bool ok = false;
 
+  switch (brush->sculpt_tool) {
+    case SCULPT_TOOL_DRAW:
+    case SCULPT_TOOL_DRAW_SHARP:
+    case SCULPT_TOOL_CLAY_STRIPS:
+    case SCULPT_TOOL_CLAY:
+    case SCULPT_TOOL_CREASE:
+    case SCULPT_TOOL_ROTATE:
+    case SCULPT_TOOL_ELASTIC_DEFORM:
+    case SCULPT_TOOL_FAIRING:
+    case SCULPT_TOOL_FILL:
+    case SCULPT_TOOL_FLATTEN:
+    case SCULPT_TOOL_GRAB:
+    case SCULPT_TOOL_DRAW_FACE_SETS:
+    case SCULPT_TOOL_CLOTH:
+    case SCULPT_TOOL_SIMPLIFY:
+    case SCULPT_TOOL_SNAKE_HOOK:
+    case SCULPT_TOOL_INFLATE:
+    case SCULPT_TOOL_PAINT:
+    case SCULPT_TOOL_SMEAR:
+      ok = true;
+      break;
+  }
+
+  if (ok) {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
       if (ss->cache->commandlist) {
         BKE_brush_commandlist_free(ss->cache->commandlist);

@@ -27,7 +27,12 @@ places in rna_engine_codebase are relevent:
 #  ifdef MAKE_FLOAT_EX_INV
 #    undef MAKE_FLOAT_EX_INV
 #  endif
-
+#  ifdef MAKE_FLOAT3
+#    undef MAKE_FLOAT3
+#  endif
+#  ifdef MAKE_FLOAT3_EX
+#    undef MAKE_FLOAT3_EX
+#  endif
 #  ifdef MAKE_INT
 #    undef MAKE_INT
 #  endif
@@ -65,6 +70,9 @@ places in rna_engine_codebase are relevent:
 #  ifdef MAKE_BUILTIN_CH_DEF
 #    undef MAKE_BUILTIN_CH_DEF
 #  endif
+#  ifdef MAKE_FLOAT_EX_FLAG
+#    undef MAKE_FLOAT_EX_FLAG
+#  endif
 
 #  ifdef BRUSH_CHANNEL_DEFINE_TYPES
 #    define MAKE_BUILTIN_CH_DEF(idname) const char *BRUSH_BUILTIN_##idname = #    idname;
@@ -91,6 +99,9 @@ places in rna_engine_codebase are relevent:
 #  define MAKE_BOOL_EX(idname, name, tooltip, val, flag) MAKE_BUILTIN_CH_DEF(idname);
 #  define MAKE_COLOR3(idname, name, tooltip, r, g, b) MAKE_BUILTIN_CH_DEF(idname);
 #  define MAKE_COLOR4(idname, name, tooltip, r, g, b, a) MAKE_BUILTIN_CH_DEF(idname);
+#  define MAKE_FLOAT3(idname, name, tooltip, x, y, z, min, max) MAKE_BUILTIN_CH_DEF(idname);
+#  define MAKE_FLOAT3_EX(idname, name, tooltip, x, y, z, min, max, smin, smax, flag) \
+    MAKE_BUILTIN_CH_DEF(idname);
 #  define MAKE_ENUM(idname1, name1, tooltip1, value1, enumdef1) MAKE_BUILTIN_CH_DEF(idname1);
 #  define MAKE_ENUM_EX(idname1, name1, tooltip1, value1, enumdef1, flag) \
     MAKE_BUILTIN_CH_DEF(idname1);
@@ -243,7 +254,7 @@ MAKE_ENUM(cloth_deform_type, "Deformation", "Deformation type that is used in th
 }))
 
 MAKE_ENUM(cloth_simulation_area_type, "Simulation Area", "Part of the mesh that is going to be simulated when the stroke is active", BRUSH_CLOTH_SIMULATION_AREA_LOCAL, _({
-  {BRUSH_CLOTH_SIMULATION_AREA_LOCAL,
+  {BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC,
     "LOCAL",
     "NONE",
     "Local",
@@ -403,6 +414,25 @@ MAKE_ENUM(snake_hook_deform_type, "Deformation", "Deformation type that is used 
   {-1}
 }))
 
+/*   MTex paramters (not stored directly inside of brushes)  */
+MAKE_FLOAT3(mtex_offset, "Offset", "Fine tune of the texture mapping X, Y and Z locations", 0.0f, 0.0f, 0.0f, -10.0f, 10.0f)
+MAKE_FLOAT3(mtex_scale, "Size", "Set scaling for the texture's X, Y and Z sizes", 1.0f, 1.0f, 1.0f, -100.0f, 100.0f)
+MAKE_FLOAT3_EX(mtex_color,  "Color", "Default color for textures that don't return RGB or when RGB to intensity is enabled", 1, 1, 1, 0, 1, -5, 5, BRUSH_CHANNEL_COLOR)
+MAKE_ENUM(mtex_map_mode, "Mode", "", MTEX_MAP_MODE_TILED, _({
+    {MTEX_MAP_MODE_VIEW, "VIEW_PLANE", "NONE", "View Plane", ""},
+    {MTEX_MAP_MODE_AREA, "AREA_PLANE", "NONE", "Area Plane", ""},
+    {MTEX_MAP_MODE_TILED, "TILED", "NONE", "Tiled", ""},
+    {MTEX_MAP_MODE_3D, "3D", "NONE", "3D", ""},
+    {MTEX_MAP_MODE_RANDOM, "RANDOM", "NONE", "Random", ""},
+    {MTEX_MAP_MODE_STENCIL, "STENCIL", "NONE", "Stencil", ""},
+    {-1}
+}))
+MAKE_BOOL(mtex_use_rake, "Rake", "", false)
+MAKE_BOOL(mtex_use_random, "Random", "", false)
+MAKE_FLOAT(mtex_random_angle, "Random Angle", "Brush texture random angle", 0.0f, 0.0f, M_PI*2.0f)
+MAKE_FLOAT(mtex_angle, "Angle", "", 0.0f, 0.0f, M_PI*2.0f)
+
+//MAKE_FLOAT3_EX
 /* clang-format on */
 #if defined(BRUSH_CHANNEL_DEFINE_TYPES) || defined(BRUSH_CHANNEL_DEFINE_EXTERNAL)
 #  ifdef MAKE_FLOAT
@@ -429,6 +459,12 @@ MAKE_ENUM(snake_hook_deform_type, "Deformation", "Deformation type that is used 
 #  endif
 #  ifdef MAKE_COLOR4
 #    undef MAKE_COLOR4
+#  endif
+#  ifdef MAKE_FLOAT3
+#    undef MAKE_FLOAT3
+#  endif
+#  ifdef MAKE_FLOAT3_EX
+#    undef MAKE_FLOAT3_EX
 #  endif
 #  ifdef MAKE_BOOL
 #    undef MAKE_BOOL
