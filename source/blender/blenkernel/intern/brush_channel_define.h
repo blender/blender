@@ -253,8 +253,8 @@ MAKE_ENUM(cloth_deform_type, "Deformation", "Deformation type that is used in th
       {-1}
 }))
 
-MAKE_ENUM(cloth_simulation_area_type, "Simulation Area", "Part of the mesh that is going to be simulated when the stroke is active", BRUSH_CLOTH_SIMULATION_AREA_LOCAL, _({
-  {BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC,
+MAKE_ENUM(cloth_simulation_area_type, "Simulation Area", "Part of the mesh that is going to be simulated when the stroke is active", BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC, _({
+  {BRUSH_CLOTH_SIMULATION_AREA_LOCAL,
     "LOCAL",
     "NONE",
     "Local",
