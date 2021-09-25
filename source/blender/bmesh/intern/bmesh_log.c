@@ -57,6 +57,34 @@
 
 #define CUSTOMDATA
 
+#ifdef DEBUG_LOG_REFCOUNTNG
+static struct {
+  char tag[4192];
+} namestack[256] = {0};
+int namestack_i = 1;
+
+void _namestack_push(const char *name)
+{
+  namestack_i++;
+
+  strcpy(namestack[namestack_i].tag, namestack[namestack_i - 1].tag);
+  strcat(namestack[namestack_i].tag, ".");
+  strcat(namestack[namestack_i].tag, name);
+}
+
+#  define namestack_push() _namestack_push(__func__)
+
+void namestack_pop()
+{
+  namestack_i--;
+}
+
+#  define namestack_head_name namestack[namestack_i].tag
+#else
+#  define namestack_push()
+#  define namestack_pop()
+#  define namestack_head_name ""
+#endif
 //#define DO_LOG_PRINT
 
 #ifdef DO_LOG_PRINT
@@ -187,6 +215,30 @@ struct BMLog {
   bool dead;
 };
 
+//#define PRINT_LOG_REF_COUNTING
+
+static void _bm_log_addref(BMLog *log, const char *func)
+{
+  log->refcount++;
+
+#ifdef PRINT_LOG_REF_COUNTING
+  printf("%d %s: bm_log_addref: %p\n", log->refcount, namestack_head_name, log);
+  fflush(stdout);
+#endif
+}
+
+static void _bm_log_decref(BMLog *log, const char *func)
+{
+  log->refcount--;
+#ifdef PRINT_LOG_REF_COUNTING
+  printf("%d %s: bm_log_decref: %p\n", log->refcount, namestack_head_name, log);
+  fflush(stdout);
+#endif
+}
+
+#define bm_log_addref(log) _bm_log_addref(log, __func__)
+#define bm_log_decref(log) _bm_log_decref(log, __func__)
+
 typedef struct BMLogVert {
 #ifdef DO_LOG_PRINT
   char msg[64];
@@ -246,7 +298,7 @@ static void full_copy_load(BMesh *bm, BMLog *log, BMLogEntry *entry);
 
 BMLogEntry *bm_log_entry_add_ex(
     BMesh *bm, BMLog *log, bool combine_with_last, BMLogEntryType type, BMLogEntry *last_entry);
-static void bm_log_entry_free(BMLogEntry *entry);
+static bool bm_log_entry_free(BMLogEntry *entry);
 static bool bm_log_free_direct(BMLog *log, bool safe_mode);
 
 static void *log_ghash_lookup(BMLog *log, GHash *gh, const void *key)
@@ -1172,13 +1224,15 @@ static void bm_log_entry_free_direct(BMLogEntry *entry)
 /* Free the data in a log entry
  * and handles bmlog ref counting
  * NOTE: does not free the log entry itself. */
-static void bm_log_entry_free(BMLogEntry *entry)
+static bool bm_log_entry_free(BMLogEntry *entry)
 {
   BMLog *log = entry->log;
   bool kill_log = false;
 
   if (log) {
-    log->refcount--;
+    namestack_push();
+    bm_log_decref(log);
+    namestack_pop();
 
     if (log->refcount < 0) {
       fprintf(stderr, "BMLog refcount error\n");
@@ -1193,6 +1247,8 @@ static void bm_log_entry_free(BMLogEntry *entry)
   if (kill_log) {
     bm_log_free_direct(log, true);
   }
+
+  return kill_log;
 }
 
 static int uint_compare(const void *a_v, const void *b_v)
@@ -1268,6 +1324,8 @@ BMLog *bm_log_from_existing_entries_create(BMesh *bm, BMLog *log, BMLogEntry *en
     log->entries.last = entry;
   }
 
+  namestack_push();
+
   for (entry = log->entries.first; entry; entry = entry->next) {
     BMLogEntry *entry2 = entry->combined_prev;
 
@@ -1275,12 +1333,14 @@ BMLog *bm_log_from_existing_entries_create(BMesh *bm, BMLog *log, BMLogEntry *en
       entry2->log = log;
       entry2 = entry2->combined_prev;
 
-      log->refcount++;
+      bm_log_addref(log);
     }
 
     entry->log = log;
-    log->refcount++;
+    bm_log_addref(log);
   }
+
+  namestack_pop();
 
   return log;
 }
@@ -1365,6 +1425,12 @@ static bool bm_log_free_direct(BMLog *log, bool safe_mode)
   }
 
   return true;
+}
+
+// if true, make sure to call BM_log_free on the log
+bool BM_log_is_dead(BMLog *log)
+{
+  return log->dead;
 }
 
 bool BM_log_free(BMLog *log, bool safe_mode)
@@ -1570,7 +1636,11 @@ BMLogEntry *bm_log_entry_add_ex(
 
   entry->log = log;
 
-  log->refcount++;
+  namestack_push();
+
+  bm_log_addref(log);
+
+  namestack_pop();
 
   if (combine_with_last) {
     if (!last_entry || last_entry == log->current_entry) {
@@ -1618,9 +1688,11 @@ BMLogEntry *BM_log_entry_add_ex(BMesh *bm, BMLog *log, bool combine_with_last)
  * This operation is only valid on the first and last entries in the
  * log. Deleting from the middle will assert.
  */
-void BM_log_entry_drop(BMLogEntry *entry)
+bool BM_log_entry_drop(BMLogEntry *entry)
 {
   BMLog *log = entry->log;
+
+  namestack_push();
 
   // go to head of entry subgroup
   while (entry->combined_next) {
@@ -1647,9 +1719,11 @@ void BM_log_entry_drop(BMLogEntry *entry)
       entry2 = prev;
     }
 
+    namestack_pop();
     bm_log_entry_free(entry);
     MEM_freeN(entry);
-    return;
+
+    return false;
   }
 
   if (log && log->current_entry == entry) {
@@ -1670,8 +1744,12 @@ void BM_log_entry_drop(BMLogEntry *entry)
     entry2 = prev;
   }
 
-  bm_log_entry_free(entry);
+  bool ret = bm_log_entry_free(entry);
+
   MEM_freeN(entry);
+  namestack_pop();
+
+  return ret;
 }
 
 static void full_copy_load(BMesh *bm, BMLog *log, BMLogEntry *entry)

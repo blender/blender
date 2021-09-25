@@ -143,7 +143,7 @@ typedef struct BrushTex {
   char idname[64], name[64];
 
   BrushChannelSet *channels;
-  MTex *__mtex;  // do not access directly. except for the actual evaluation code.
+  MTex __mtex;  // do not access directly. except for the actual evaluation code.
 } BrushTex;
 
 BrushTex *BKE_brush_tex_create();

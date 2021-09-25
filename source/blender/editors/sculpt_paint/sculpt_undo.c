@@ -1728,9 +1728,15 @@ static SculptUndoNode *sculpt_undo_face_sets_push(Object *ob, SculptUndoType typ
 
 void SCULPT_undo_ensure_bmlog(Object *ob)
 {
-  if (!ob->sculpt) {
+  SculptSession *ss = ob->sculpt;
+  Mesh *me = BKE_object_get_original_mesh(ob);
+
+  /*log exists or not in sculpt mode? good then*/
+  if (ss->bm_log || !ob->sculpt) {
     return;
   }
+
+  /*try to find log from entries in the undo stack*/
 
   UndoStack *ustack = ED_undo_stack_get();
 
@@ -1754,9 +1760,6 @@ void SCULPT_undo_ensure_bmlog(Object *ob)
 
   UndoSculpt *usculpt = sculpt_undosys_step_get_nodes(us);
 
-  SculptSession *ss = ob->sculpt;
-  Mesh *me = BKE_object_get_original_mesh(ob);
-
   if (!ss->bm && !(me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY)) {
     return;
   }
@@ -1768,8 +1771,8 @@ void SCULPT_undo_ensure_bmlog(Object *ob)
 
   SculptUndoNode *unode = usculpt->nodes.first;
 
-  // this can happen in certain cases when going to/from other undo types
-  // I think.
+  /*when transition between undo step types the log might simply
+  have been freed, look for entries to rebuild it with*/
   if (!ss->bm_log) {
     if (unode && unode->bm_entry) {
       ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
@@ -2105,9 +2108,9 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
 
 void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_first_entry_check)
 {
-  SCULPT_undo_ensure_bmlog(ob);
-
   UndoStack *ustack = ED_undo_stack_get();
+
+  SCULPT_undo_ensure_bmlog(ob);
 
   if (ob != NULL) {
     if (!no_first_entry_check && ob->sculpt && ob->sculpt->bm) {
@@ -2124,6 +2127,23 @@ void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_first_entry
   bContext *C = NULL;
 
   BKE_undosys_step_push_init_with_type(ustack, C, name, BKE_UNDOSYS_TYPE_SCULPT);
+
+  SculptSession *ss = ob->sculpt;
+
+  /*when pusing an undo node after
+    undoing to the start of the stack
+    the log ref count hits zero, we have to check it,
+    do cleanup and recreate it*/
+
+  if (ss && ss->bm && ss->bm_log && BM_log_is_dead(ss->bm_log)) {
+    // forcibly destroy all entries? the 'true' parameter
+    BM_log_free(ss->bm_log, true);
+    ss->bm_log = BM_log_create(ss->bm, ss->cd_dyn_vert);
+
+    if (ss->pbvh) {
+      BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
+    }
+  }
 }
 
 void SCULPT_undo_push_begin(Object *ob, const char *name)

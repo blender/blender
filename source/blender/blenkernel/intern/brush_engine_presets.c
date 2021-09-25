@@ -947,8 +947,21 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
   SHOWWRK(radius_unit);
   SHOWWRK(use_frontface);
 
-  SHOWWRK(autosmooth);
-  SHOWWRK(topology_rake);
+  if (!ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
+    SHOWWRK(autosmooth);
+    SHOWWRK(topology_rake);
+  }
+
+  if (ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
+    SHOWWRK(vcol_boundary_factor);
+    SHOWWRK(vcol_boundary_exponent);
+    SHOWWRK(vcol_boundary_radius_scale);
+    SHOWWRK(vcol_boundary_spacing);
+  }
+  else if (tool == SCULPT_TOOL_VCOL_BOUNDARY) {
+    SHOWWRK(vcol_boundary_exponent);
+  }
+
   SHOWWRK(normal_radius_factor);
   SHOWWRK(hardness);
 
@@ -1092,6 +1105,14 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       GETCH(strength)->fvalue = 1.0f;
       GETCH(dyntopo_disabled)->ivalue = 1;
       break;
+    case SCULPT_TOOL_SMEAR:
+      BRUSHSET_SET_FLOAT(chset, spacing, 5.0f);
+      BRUSHSET_SET_FLOAT(chset, strength, 1.0f);
+      BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
+      BRUSHSET_SET_BOOL(chset, dyntopo_disabled, true);
+      break;
+
     case SCULPT_TOOL_SLIDE_RELAX:
       GETCH(spacing)->fvalue = 10;
       GETCH(strength)->fvalue = 1.0f;

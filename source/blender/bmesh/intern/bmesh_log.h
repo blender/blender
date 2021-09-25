@@ -76,8 +76,11 @@ BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log);
 /* Mark all used ids as unused for this node */
 void BM_log_cleanup_entry(BMLogEntry *entry);
 
-/* Remove an entry from the log */
-void BM_log_entry_drop(BMLogEntry *entry);
+/* Remove an entry from the log.
+   returns true if the log's refcount
+   reached zero and was freed*/
+bool BM_log_entry_drop(BMLogEntry *entry);
+bool BM_log_is_dead(BMLog *log);
 
 /* Undo one BMLogEntry.  node_layer_id is necassary to preserve node idxs with customdata, whose
  * layout might have changed */
