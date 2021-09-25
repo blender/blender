@@ -44,6 +44,8 @@ class AbcPointsReader : public AbcObjectReader {
   struct Mesh *read_mesh(struct Mesh *existing_mesh,
                          const Alembic::Abc::ISampleSelector &sample_sel,
                          int read_flag,
+                         const char *velocity_name,
+                         const float velocity_scale,
                          const char **err_str);
 };
 
