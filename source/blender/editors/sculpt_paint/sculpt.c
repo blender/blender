@@ -12612,11 +12612,14 @@ static int sculpt_sample_color_modal(bContext *C, wmOperator *op, const wmEvent 
 
   SampleColorCustomData *sccd = (SampleColorCustomData *)op->customdata;
 
+  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  bool use_channels = mode == PAINT_MODE_SCULPT;
+
   /* Finish operation on release. */
   if (event->val == KM_RELEASE) {
     float color_srgb[3];
     copy_v3_v3(color_srgb, sccd->sampled_color);
-    BKE_brush_color_set(scene, brush, sccd->sampled_color);
+    BKE_brush_color_set(scene, brush, sccd->sampled_color, use_channels);
     WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
     ED_region_draw_cb_exit(region->type, sccd->draw_handle);
     ED_region_tag_redraw(region);

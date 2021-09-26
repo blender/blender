@@ -79,6 +79,13 @@ struct Sculpt;
   BKE_brush_channelset_set_int(chset, MAKE_BUILTIN_CH_NAME(channel), val)
 #define BRUSHSET_SET_BOOL(chset, channel, val) BRUSHSET_SET_INT(chset, channel, (val) ? 1 : 0)
 
+#define BRUSHSET_GET_VECTOR(chset, channel, out, mapdata) \
+  BKE_brush_channelset_get_vector(chset, MAKE_BUILTIN_CH_NAME(channel), out, mapdata)
+#define BRUSHSET_SET_VECTOR(chset, channel, out, mapdata) \
+  BKE_brush_channelset_set_vector(chset, MAKE_BUILTIN_CH_NAME(channel), out)
+#define BRUSHSET_GET_FINAL_VECTOR(child, parent, channel, out, mapdata) \
+  BKE_brush_channelset_get_final_vector(child, parent, MAKE_BUILTIN_CH_NAME(channel), out, mapdata)
+
 //#define DEBUG_CURVE_MAPPING_ALLOC
 #ifdef DEBUG_CURVE_MAPPING_ALLOC
 void namestack_push(const char *name);

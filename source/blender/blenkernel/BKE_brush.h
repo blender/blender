@@ -109,7 +109,10 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(struct Brush *br,
 
 const float *BKE_brush_color_get(const struct Scene *scene, const struct Brush *brush);
 const float *BKE_brush_secondary_color_get(const struct Scene *scene, const struct Brush *brush);
-void BKE_brush_color_set(struct Scene *scene, struct Brush *brush, const float color[3]);
+void BKE_brush_color_set(struct Scene *scene,
+                         struct Brush *brush,
+                         const float color[3],
+                         const bool use_brush_channels);
 
 int BKE_brush_size_get(const struct Scene *scene,
                        const struct Brush *brush,

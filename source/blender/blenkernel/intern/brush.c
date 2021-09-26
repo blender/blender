@@ -2473,9 +2473,31 @@ const float *BKE_brush_secondary_color_get(const struct Scene *scene, const stru
   return (ups->flag & UNIFIED_PAINT_COLOR) ? ups->secondary_rgb : brush->secondary_rgb;
 }
 
-void BKE_brush_color_set(struct Scene *scene, struct Brush *brush, const float color[3])
+void BKE_brush_color_set(struct Scene *scene,
+                         struct Brush *brush,
+                         const float color[3],
+                         const bool use_brush_channels)
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+
+  if (use_brush_channels) {
+    BrushChannel *ch;
+
+    ch = BRUSHSET_LOOKUP(brush->channels, color);
+
+    if ((ch->flag & BRUSH_CHANNEL_INHERIT) && scene->toolsettings->sculpt &&
+        scene->toolsettings->sculpt->channels) {
+      BrushChannel *pch = BRUSHSET_LOOKUP(scene->toolsettings->sculpt->channels, color);
+
+      if (pch) {
+        ch = pch;
+      }
+    }
+
+    if (ch) {
+      copy_v3_v3(ch->vector, color);
+    }
+  }
 
   if (ups->flag & UNIFIED_PAINT_COLOR) {
     copy_v3_v3(ups->rgb, color);

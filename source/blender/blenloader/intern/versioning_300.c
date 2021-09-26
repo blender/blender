@@ -1371,29 +1371,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
       BKE_brush_builtin_create(brush, brush->sculpt_tool);
       BKE_brush_channelset_compat_load(brush->channels, brush, true);
-
-      // check that dyntopo settings are ok
-      // some helper macros. . .
-
-#ifdef GETCH
-#  undef GETCH
-#endif
-
-#define GETCH(n) BKE_brush_channelset_lookup(brush->channels, #n)
-
-      /*
-              float detail_range;
-              float detail_percent;
-              float detail_size;
-              float constant_detail;
-              short flag, mode;
-              int inherit;
-              int spacing;
-              float radius_scale;
-
-            */
-
-#undef GETCH
     }
   }
   /**

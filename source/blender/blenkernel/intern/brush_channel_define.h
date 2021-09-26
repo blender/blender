@@ -291,7 +291,7 @@ MAKE_BOOL(cloth_pin_simulation_boundary, "Pin Simulation Boundary",
       "create a softer transition with unaffected areas", false)
 
 MAKE_FLOAT(boundary_offset, "Boundary Origin Offset",
-                           "Offset of the boundary origin in relation to the brush radius", 0.05f, 0.0f, 1.0f)
+                           "Offset of the boundary origin in relation to the brush radius", 0.05f, 0.0f, 10.0f)
 MAKE_ENUM(boundary_deform_type, "Deformation", "Deformation type that is used in the brush", BRUSH_BOUNDARY_DEFORM_BEND, _({
       {BRUSH_BOUNDARY_DEFORM_BEND, "BEND", "NONE", "Bend", ""},
       {BRUSH_BOUNDARY_DEFORM_EXPAND, "EXPAND", "NONE", "Expand", ""},
@@ -431,6 +431,17 @@ MAKE_BOOL(mtex_use_rake, "Rake", "", false)
 MAKE_BOOL(mtex_use_random, "Random", "", false)
 MAKE_FLOAT(mtex_random_angle, "Random Angle", "Brush texture random angle", 0.0f, 0.0f, M_PI*2.0f)
 MAKE_FLOAT(mtex_angle, "Angle", "", 0.0f, 0.0f, M_PI*2.0f)
+MAKE_FLOAT_EX(height, "Brush Height", "Affectable height of brush (layer height for layer tool, i.e.)", 0.05f, 0.0f, 1.0f, 0.0f, 0.2f, false)
+MAKE_BOOL(use_space_attenuation, "Adjust Strength for Spacing",
+      "Automatically adjust strength to give consistent results for different spacings", true)
+MAKE_ENUM(elastic_deform_type, "Deformation", "Deformation type that is used in the brush", BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE, _({
+  {BRUSH_ELASTIC_DEFORM_GRAB, "GRAB", "NONE", "Grab", ""},
+  {BRUSH_ELASTIC_DEFORM_GRAB_BISCALE, "GRAB_BISCALE", "NONE", "Bi-Scale Grab", ""},
+  {BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE, "GRAB_TRISCALE", "NONE", "Tri-Scale Grab", ""},
+  {BRUSH_ELASTIC_DEFORM_SCALE, "SCALE", "NONE", "Scale", ""},
+  {BRUSH_ELASTIC_DEFORM_TWIST, "TWIST", "NONE", "Twist", ""},
+  {-1}
+}))
 
 //MAKE_FLOAT3_EX
 /* clang-format on */

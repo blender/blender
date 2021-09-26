@@ -1135,6 +1135,9 @@ int BKE_brush_channel_get_vector(BrushChannel *ch, float out[4], BrushMappingDat
       }
     }
   }
+  else {
+    copy_v4_v4(out, ch->vector);
+  }
 
   return size;
 }

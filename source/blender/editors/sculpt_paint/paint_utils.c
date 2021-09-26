@@ -479,6 +479,9 @@ void paint_sample_color(
   SpaceImage *sima = CTX_wm_space_image(C);
   const View3D *v3d = CTX_wm_view3d(C);
 
+  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  bool use_channels = mode == PAINT_MODE_SCULPT;
+
   if (v3d && texpaint_proj) {
     /* first try getting a color directly from the mesh faces if possible */
     ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -555,7 +558,7 @@ void paint_sample_color(
                 }
                 else {
                   linearrgb_to_srgb_v3_v3(rgba_f, rgba_f);
-                  BKE_brush_color_set(scene, br, rgba_f);
+                  BKE_brush_color_set(scene, br, rgba_f, use_channels);
                 }
               }
               else {
@@ -567,7 +570,7 @@ void paint_sample_color(
                 else {
                   float rgba_f[3];
                   rgb_uchar_to_float(rgba_f, rgba);
-                  BKE_brush_color_set(scene, br, rgba_f);
+                  BKE_brush_color_set(scene, br, rgba_f, use_channels);
                 }
               }
               BKE_image_release_ibuf(image, ibuf, NULL);
@@ -594,7 +597,7 @@ void paint_sample_color(
         copy_v3_v3(color->rgb, rgba_f);
       }
       else {
-        BKE_brush_color_set(scene, br, rgba_f);
+        BKE_brush_color_set(scene, br, rgba_f, use_channels);
       }
       return;
     }
@@ -610,7 +613,7 @@ void paint_sample_color(
       copy_v3_v3(color->rgb, rgba_f);
     }
     else {
-      BKE_brush_color_set(scene, br, rgba_f);
+      BKE_brush_color_set(scene, br, rgba_f, use_channels);
     }
   }
 }

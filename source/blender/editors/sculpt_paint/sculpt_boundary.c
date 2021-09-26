@@ -840,6 +840,8 @@ static void sculpt_boundary_falloff_factor_init(
   const int totvert = SCULPT_vertex_count_get(ss);
   BKE_curvemapping_init(brush->curve);
 
+  int boundary_type = SCULPT_get_int(ss, boundary_falloff_type, sd, brush);
+
   for (int i = 0; i < totvert; i++) {
     if (boundary->edit_info[i].num_propagation_steps != -1) {
       boundary->edit_info[i].strength_factor = BKE_brush_curve_strength(
@@ -863,7 +865,7 @@ static void sculpt_boundary_falloff_factor_init(
     float falloff_distance = 0.0f;
     float direction = 1.0f;
 
-    switch (SCULPT_get_int(ss, boundary_falloff_type, sd, brush)) {
+    switch (boundary_type) {
       case BRUSH_BOUNDARY_FALLOFF_RADIUS:
         falloff_distance = boundary_distance;
         break;

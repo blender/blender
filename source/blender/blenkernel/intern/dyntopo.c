@@ -2312,6 +2312,7 @@ static bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
   BMLoop *l = e_root->l;
   BMLoop **ls = NULL;
   BMFace **fs = NULL;
+  BLI_array_staticdeclare(fs, 32);
   BLI_array_staticdeclare(ls, 5);
   int minfs = INT_MAX;
 
@@ -2370,9 +2371,14 @@ static bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     }
 
     if (!bad && BLI_array_len(fs2) < minfs) {
+      BLI_array_clear(fs);
+      BLI_array_reserve(fs, BLI_array_len(fs2));
+
+      if (BLI_array_len(fs2) > 0) {
+        memcpy(fs, fs2, sizeof(*fs) * BLI_array_len(fs2));
+      }
+
       minfs = BLI_array_len(fs2);
-      fs = BLI_array_alloca(fs, BLI_array_len(fs2));
-      memcpy(fs, fs2, sizeof(*fs) * BLI_array_len(fs2));
     }
 
     BLI_array_free(fs2);
@@ -2384,6 +2390,7 @@ static bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
   nupdateflag = nupdateflag | PBVH_UpdateNormals | PBVH_UpdateTris | PBVH_RebuildDrawBuffers;
 
   if (!fs) {
+    BLI_array_free(stack);
     return false;
   }
 
@@ -2465,6 +2472,9 @@ static bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     BLI_array_free(vs);
     BLI_array_free(es);
   }
+
+  BLI_array_free(fs);
+  BLI_array_free(stack);
 
   return true;
 }

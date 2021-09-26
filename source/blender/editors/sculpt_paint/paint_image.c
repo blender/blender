@@ -1043,13 +1043,16 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
 
+  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  bool use_channels = mode == PAINT_MODE_SCULPT;
+
   if ((event->type == data->launch_event) && (event->val == KM_RELEASE)) {
     if (data->show_cursor) {
       paint->flags |= PAINT_SHOW_BRUSH;
     }
 
     if (data->sample_palette) {
-      BKE_brush_color_set(scene, brush, data->initcolor);
+      BKE_brush_color_set(scene, brush, data->initcolor, use_channels);
       RNA_boolean_set(op->ptr, "palette", true);
     }
     WM_cursor_modal_restore(CTX_wm_window(C));
@@ -1059,7 +1062,6 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_FINISHED;
   }
 
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
   const bool use_sample_texture = (mode == PAINT_MODE_TEXTURE_3D) &&
                                   !RNA_boolean_get(op->ptr, "merged");
 
