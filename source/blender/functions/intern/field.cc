@@ -261,20 +261,6 @@ static void build_multi_function_procedure_for_fields(MFProcedure &procedure,
 }
 
 /**
- * Utility class that destructs elements from a partially initialized array.
- */
-struct PartiallyInitializedArray : NonCopyable, NonMovable {
-  void *buffer;
-  IndexMask mask;
-  const CPPType *type;
-
-  ~PartiallyInitializedArray()
-  {
-    this->type->destruct_indices(this->buffer, this->mask);
-  }
-};
-
-/**
  * Evaluate fields in the given context. If possible, multiple fields should be evaluated together,
  * because that can be more efficient when they share common sub-fields.
  *
@@ -387,11 +373,11 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
         /* Allocate a new buffer for the computed result. */
         buffer = scope.linear_allocator().allocate(type.size() * array_size, type.alignment());
 
-        /* Make sure that elements in the buffer will be destructed. */
-        PartiallyInitializedArray &destruct_helper = scope.construct<PartiallyInitializedArray>();
-        destruct_helper.buffer = buffer;
-        destruct_helper.mask = mask;
-        destruct_helper.type = &type;
+        if (!type.is_trivially_destructible()) {
+          /* Destruct values in the end. */
+          scope.add_destruct_call(
+              [buffer, mask, &type]() { type.destruct_indices(buffer, mask); });
+        }
 
         r_varrays[out_index] = &scope.construct<GVArray_For_GSpan>(
             GSpan{type, buffer, array_size});
@@ -435,11 +421,11 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
       /* Allocate memory where the computed value will be stored in. */
       void *buffer = scope.linear_allocator().allocate(type.size(), type.alignment());
 
-      /* Use this to make sure that the value is destructed in the end. */
-      PartiallyInitializedArray &destruct_helper = scope.construct<PartiallyInitializedArray>();
-      destruct_helper.buffer = buffer;
-      destruct_helper.mask = IndexRange(mask_size);
-      destruct_helper.type = &type;
+      if (!type.is_trivially_destructible() && mask_size > 0) {
+        BLI_assert(mask_size == 1);
+        /* Destruct value in the end. */
+        scope.add_destruct_call([buffer, &type]() { type.destruct(buffer); });
+      }
 
       /* Pass output buffer to the procedure executor. */
       mf_params.add_uninitialized_single_output({type, buffer, mask_size});
