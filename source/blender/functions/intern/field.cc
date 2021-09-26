@@ -450,7 +450,7 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
           type, array_size, buffer);
     }
 
-    procedure_executor.call(IndexRange(1), mf_params, mf_context);
+    procedure_executor.call(IndexRange(mask_size), mf_params, mf_context);
   }
 
   /* Copy data to supplied destination arrays if necessary. In some cases the evaluation above has
