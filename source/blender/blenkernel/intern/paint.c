@@ -1520,8 +1520,10 @@ void BKE_sculptsession_free(Object *ob)
 
     if (ss->layers_to_free) {
       for (int i = 0; i < ss->tot_layers_to_free; i++) {
-        SCULPT_temp_customlayer_release(ss, ss->layers_to_free[i]);
-        MEM_freeN(ss->layers_to_free[i]);
+        if (ss->layers_to_free[i]) {
+          SCULPT_temp_customlayer_release(ss, ss->layers_to_free[i]);
+          // SCULPT_temp_customlayer_release frees layers_to_free[i] itself
+        }
       }
 
       MEM_freeN(ss->layers_to_free);

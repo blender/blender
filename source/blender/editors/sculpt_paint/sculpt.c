@@ -525,7 +525,7 @@ ATTR_NO_OPT static bool sculpt_temp_customlayer_get(SculptSession *ss,
         switch (domain) {
           case ATTR_DOMAIN_POINT:
             cdata = ss->vdata;
-            totelem = ss->totvert;
+            totelem = SCULPT_vertex_count_get(ss);
             break;
           case ATTR_DOMAIN_FACE:
             cdata = ss->pdata;
@@ -553,11 +553,6 @@ ATTR_NO_OPT static bool sculpt_temp_customlayer_get(SculptSession *ss,
       }
     }
 
-    if (!cdata) {
-      printf("error in %s\n", __func__);
-      return false;
-    }
-
     CustomData dummy = {0};
     CustomData_reset(&dummy);
     CustomData_add_layer(&dummy, proptype, CD_ASSIGN, NULL, 0);
@@ -573,6 +568,7 @@ ATTR_NO_OPT static bool sculpt_temp_customlayer_get(SculptSession *ss,
     out->layer = NULL;
     out->domain = domain;
     out->proptype = proptype;
+    out->elemsize = elemsize;
 
     /*grids cannot store normal customdata layers, and thus
       we cannot rely on the customdata api to keep track of
@@ -748,7 +744,7 @@ ATTR_NO_OPT void SCULPT_update_customdata_refs(SculptSession *ss)
     for (int j = 0; j < SCULPT_SCL_LAYER_MAX; j++) {
       SculptCustomLayer *scl = ss->custom_layers[j];
 
-      if (scl && !scl->released) {
+      if (scl && !scl->released && !scl->params.simple_array) {
         sculpt_temp_customlayer_get(
             ss, scl->domain, scl->proptype, scl->name, scl, true, &scl->params);
       }
@@ -796,6 +792,14 @@ bool SCULPT_temp_customlayer_release(SculptSession *ss, SculptCustomLayer *scl)
 
   if (scl->released) {
     return false;
+  }
+
+  // remove from layers_to_free list if necassary
+  for (int i = 0; scl->data && i < ss->tot_layers_to_free; i++) {
+    if (ss->layers_to_free[i] && ss->layers_to_free[i]->data == scl->data) {
+      MEM_freeN(ss->layers_to_free[i]);
+      ss->layers_to_free[i] = NULL;
+    }
   }
 
   scl->released = true;
