@@ -26,6 +26,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
@@ -3123,6 +3124,14 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   /* Don't allow value very close to PI, or we get a lot of small segments. */
   RNA_def_property_ui_range(prop, 0.0f, DEG2RAD(179.5f), 0.01f, 1);
   RNA_def_property_range(prop, 0.0f, DEG2RAD(180.0f));
+  RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "smooth_tolerance", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "chain_smooth_tolerance");
+  RNA_def_property_ui_text(
+      prop, "Smooth Tolerance", "Strength of smoothing applied on jagged chains");
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.05f, 4);
+  RNA_def_property_range(prop, 0.0f, 30.0f);
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_remove_doubles", PROP_BOOLEAN, PROP_NONE);

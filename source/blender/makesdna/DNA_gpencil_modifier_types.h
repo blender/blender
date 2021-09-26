@@ -1040,7 +1040,11 @@ typedef struct LineartGpencilModifierData {
   /** `0..PI` angle, for splitting strokes at sharp points. */
   float angle_splitting_threshold;
 
-  /* Doubles as geometry threshold when geometry space chaining is enabled */
+  /** Strength for smoothing jagged chains. */
+  float chain_smooth_tolerance;
+  int _pad1;
+
+  /* CPU mode */
   float chaining_image_threshold;
 
   /* Ported from SceneLineArt flags. */

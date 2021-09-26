@@ -317,6 +317,8 @@ typedef struct LineartRenderBuffer {
   float chaining_image_threshold;
   float angle_splitting_threshold;
 
+  float chain_smooth_tolerance;
+
   /* FIXME(Yiming): Temporary solution for speeding up calculation by not including lines that
    * are not in the selected source. This will not be needed after we have a proper scene-wise
    * cache running because multiple modifiers can then select results from that without further
@@ -592,6 +594,7 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb);
 void MOD_lineart_chain_connect(LineartRenderBuffer *rb);
 void MOD_lineart_chain_discard_short(LineartRenderBuffer *rb, const float threshold);
 void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad);
+void MOD_lineart_smooth_chains(LineartRenderBuffer *rb, float tolerance);
 
 int MOD_lineart_chain_count(const LineartEdgeChain *ec);
 void MOD_lineart_chain_clear_picked_flag(LineartCache *lc);

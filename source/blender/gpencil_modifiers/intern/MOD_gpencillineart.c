@@ -587,6 +587,7 @@ static void chaining_panel_draw(const bContext *UNUSED(C), Panel *panel)
           is_geom ? IFACE_("Geometry Threshold") : NULL,
           ICON_NONE);
 
+  uiItemR(layout, ptr, "smooth_tolerance", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
   uiItemR(layout, ptr, "split_angle", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
 

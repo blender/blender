@@ -1127,6 +1127,15 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
           }
         }
+        if (ob->type == OB_GPENCIL) {
+          LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
+            if (md->type == eGpencilModifierType_Lineart) {
+              LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
+              lmd->flags |= LRT_GPENCIL_USE_CACHE;
+              lmd->chain_smooth_tolerance = 0.2f;
+            }
+          }
+        }
       }
     }
 
