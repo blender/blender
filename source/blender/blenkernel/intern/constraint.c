@@ -3499,7 +3499,7 @@ static void stretchto_new_data(void *cdata)
   bStretchToConstraint *data = (bStretchToConstraint *)cdata;
 
   data->volmode = 0;
-  data->plane = 0;
+  data->plane = SWING_Y;
   data->orglength = 0.0;
   data->bulge = 1.0;
   data->bulge_max = 1.0f;
