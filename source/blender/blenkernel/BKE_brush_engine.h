@@ -56,6 +56,7 @@ struct ID;
 struct BlendExpander;
 struct Brush;
 struct Sculpt;
+struct LibraryForeachIDData;
 
 #define MAKE_BUILTIN_CH_NAME(idname) BRUSH_BUILTIN_##idname
 

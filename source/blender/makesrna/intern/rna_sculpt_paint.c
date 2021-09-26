@@ -604,6 +604,24 @@ static char *rna_GPencilSculptGuide_path(PointerRNA *UNUSED(ptr))
   return BLI_strdup("tool_settings.gpencil_sculpt.guide");
 }
 
+bool SCULPT_has_persistent_base(SculptSession *ss);
+
+ATTR_NO_OPT bool rna_Sculpt_has_persistent_base(bContext *C)
+{
+  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+
+  if (mode != PAINT_MODE_SCULPT) {
+    return false;
+  }
+
+  Object *ob = CTX_data_active_object(C);
+  if (!ob || ob->type != OB_MESH || !ob->sculpt) {
+    return false;
+  }
+
+  return SCULPT_has_persistent_base(ob->sculpt);
+}
+
 #else
 
 static void rna_def_paint_curve(BlenderRNA *brna)
@@ -1051,6 +1069,11 @@ static void rna_def_sculpt(BlenderRNA *brna)
 
   /* functions */
   FunctionRNA *func;
+
+  func = RNA_def_function(srna, "has_persistent_base", "rna_Sculpt_has_persistent_base");
+  RNA_def_function_ui_description(func, "Test if sculpt has persistent base (sculpt mode only)");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_NO_SELF);
+  RNA_def_function_return(func, RNA_def_boolean(func, "has", 1, "Has persistent Base", ""));
 
   func = RNA_def_function(srna, "test_replay", "rna_SCULPT_replay_test");
   RNA_def_function_ui_description(func, "Test sculpt replay serialization");

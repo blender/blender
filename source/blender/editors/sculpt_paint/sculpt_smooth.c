@@ -944,11 +944,12 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   SculptCustomLayer scl;
+  SculptLayerParams params = {.permanent = false, .simple_array = false};
 
   SCULPT_temp_customlayer_ensure(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", false);
+      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &params);
   SCULPT_temp_customlayer_get(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &scl, false);
+      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &scl, &params);
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
       (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
@@ -1279,9 +1280,12 @@ void SCULPT_smooth(Sculpt *sd,
     bound_smooth = powf(ss->cache->brush->boundary_smooth_factor, BOUNDARY_SMOOTH_EXP);
 
     bound_scl = &_scl;
-    SCULPT_temp_customlayer_ensure(ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "__smooth_bdist", false);
+    SculptLayerParams params = {.permanent = false, .simple_array = false};
+
+    SCULPT_temp_customlayer_ensure(
+        ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "__smooth_bdist", &params);
     SCULPT_temp_customlayer_get(
-        ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "__smooth_bdist", bound_scl, false);
+        ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "__smooth_bdist", bound_scl, &params);
   }
 
 #ifdef PROXY_ADVANCED
@@ -1507,10 +1511,12 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
 
   SculptCustomLayer scl;
 
+  SculptLayerParams params = {.permanent = false, .simple_array = false};
+
   SCULPT_temp_customlayer_ensure(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_lapsmooth", false);
+      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_lapsmooth", &params);
   SCULPT_temp_customlayer_get(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_lapsmooth", &scl, false);
+      ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_lapsmooth", &scl, &params);
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
       (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {

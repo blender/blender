@@ -252,9 +252,8 @@ static void cloth_brush_add_length_constraint(SculptSession *ss,
   length_constraint->type = SCULPT_CLOTH_CONSTRAINT_STRUCTURAL;
 
   if (use_persistent) {
-    length_constraint->length = len_v3v3(
-        SCULPT_vertex_persistent_co_get(ss, v1, cloth_sim->cd_pers_co),
-        SCULPT_vertex_persistent_co_get(ss, v2, cloth_sim->cd_pers_no));
+    length_constraint->length = len_v3v3(SCULPT_vertex_persistent_co_get(ss, v1),
+                                         SCULPT_vertex_persistent_co_get(ss, v2));
   }
   else {
     length_constraint->length = len_v3v3(SCULPT_vertex_co_get(ss, v1),
@@ -1299,10 +1298,16 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
   cloth_sim->sim_limit = SCULPT_get_float(ss, cloth_sim_limit, NULL, NULL);
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    cloth_sim->cd_pers_co = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
-    cloth_sim->cd_pers_no = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
-    cloth_sim->cd_pers_disp = SCULPT_dyntopo_get_templayer(
-        ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
+    if (SCULPT_has_persistent_base(ss)) {
+      SCULPT_ensure_persistent_layers(ss);
+
+      cloth_sim->cd_pers_co = ss->custom_layers[SCULPT_SCL_PERS_CO]->cd_offset;
+      cloth_sim->cd_pers_no = ss->custom_layers[SCULPT_SCL_PERS_NO]->cd_offset;
+      cloth_sim->cd_pers_disp = ss->custom_layers[SCULPT_SCL_PERS_DISP]->cd_offset;
+    }
+    else {
+      cloth_sim->cd_pers_co = cloth_sim->cd_pers_no = cloth_sim->cd_pers_disp = -1;
+    }
   }
 
   // cloth_sim->cd_pers_co = SCULPT_dyntopo_get_templayer

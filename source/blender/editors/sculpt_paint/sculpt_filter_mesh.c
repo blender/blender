@@ -187,7 +187,7 @@ void SCULPT_filter_cache_free(SculptSession *ss)
     SCULPT_cloth_simulation_free(ss->filter_cache->cloth_sim);
   }
   if (ss->filter_cache->automasking) {
-    SCULPT_automasking_cache_free(ss->filter_cache->automasking);
+    SCULPT_automasking_cache_free(ss, ss->filter_cache->automasking);
   }
   if (ss->filter_cache->mask_delta_step) {
     BLI_ghash_free(ss->filter_cache->mask_delta_step, NULL, mask_filter_delta_step_free);

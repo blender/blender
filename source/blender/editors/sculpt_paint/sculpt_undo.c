@@ -658,7 +658,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
                               NULL,
                               (void *)&data};
 
-  SCULPT_dyntopo_node_layers_update_offsets(ss);
+  SCULPT_update_customdata_refs(ss);
 
   pbvh_bmesh_check_nodes(ss->pbvh);
 
@@ -713,6 +713,8 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
   Mesh *me = ob->data;
 
   SCULPT_pbvh_clear(ob);
+  SCULPT_clear_scl_pointers(ss);
+
   ss->active_face_index.i = ss->active_vertex_index.i = 0;
 
   /* Create empty BMesh and enable logging. */
@@ -737,7 +739,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
                      }));
 
   SCULPT_dyntopo_node_layers_add(ss);
-  SCULPT_dyntopo_node_layers_update_offsets(ss);
+  SCULPT_update_customdata_refs(ss);
 
   if (ss->pbvh && ss->bm) {
     SCULT_dyntopo_flag_all_disk_sort(ss);
@@ -954,7 +956,7 @@ static int sculpt_undo_bmesh_restore(
 
   if (ss->bm_log && ss->bm &&
       !ELEM(unode->type, SCULPT_UNDO_DYNTOPO_BEGIN, SCULPT_UNDO_DYNTOPO_END)) {
-    SCULPT_dyntopo_node_layers_update_offsets(ss);
+    SCULPT_update_customdata_refs(ss);
     BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
 
 #if 0

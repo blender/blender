@@ -52,7 +52,18 @@ struct BrushChannelSet;
 
 enum ePaintSymmetryFlags;
 
+typedef struct SculptLayerParams {
+  int simple_array : 1;  // cannot be combined with permanent
+  int permanent : 1;     // cannot be combined with simple_array
+} SculptLayerParams;
+
 typedef struct SculptCustomLayer {
+  AttributeDomain domain;
+  int proptype;
+  SculptLayerParams params;
+
+  char name[512];
+
   bool is_cdlayer;  // false for multires data
   void *data;       // only valid for multires and face
   int elemsize;
@@ -60,7 +71,10 @@ typedef struct SculptCustomLayer {
   CustomDataLayer *layer;  // not for multires
   bool from_bmesh;  // note that layers can be fixed arrays but still from a bmesh, e.g. filter
                     // laplacian smooth
+  bool released;
 } SculptCustomLayer;
+
+void SCULPT_clear_scl_pointers(SculptSession *ss);
 
 /*
 maximum symmetry passes returned by SCULPT_get_symmetry_pass.
@@ -135,13 +149,10 @@ void SCULPT_vertex_normal_get(SculptSession *ss, SculptVertRef index, float no[3
 float SCULPT_vertex_mask_get(struct SculptSession *ss, SculptVertRef index);
 const float *SCULPT_vertex_color_get(SculptSession *ss, SculptVertRef index);
 
-const float *SCULPT_vertex_persistent_co_get(SculptSession *ss,
-                                             SculptVertRef index,
-                                             int cd_pers_co);
-void SCULPT_vertex_persistent_normal_get(SculptSession *ss,
-                                         SculptVertRef index,
-                                         float no[3],
-                                         int cd_pers_no);
+const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, SculptVertRef index);
+void SCULPT_vertex_persistent_normal_get(SculptSession *ss, SculptVertRef index, float no[3]);
+
+bool SCULPT_has_persistent_base(SculptSession *ss);
 
 /* Coordinates used for manipulating the base mesh when Grab Active Vertex is enabled. */
 const float *SCULPT_vertex_co_for_grab_active_get(SculptSession *ss, SculptVertRef index);
@@ -441,6 +452,8 @@ enum eDynTopoWarnFlag {
 
 struct Mesh;
 
+void SCULPT_update_customdata_refs(SculptSession *ss);
+
 void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss);
 void SCULPT_dynamic_topology_sync_layers(Object *ob, struct Mesh *me);
 
@@ -474,7 +487,7 @@ float SCULPT_automasking_factor_get(struct AutomaskingCache *automasking,
 struct AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss);
 
 struct AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, Object *ob);
-void SCULPT_automasking_cache_free(struct AutomaskingCache *automasking);
+void SCULPT_automasking_cache_free(SculptSession *ss, struct AutomaskingCache *automasking);
 
 bool SCULPT_is_automasking_mode_enabled(const SculptSession *ss,
                                         const Sculpt *sd,
@@ -994,8 +1007,7 @@ typedef struct SculptThreadedTaskData {
   ThreadMutex mutex;
 
   // Layer brush
-  int cd_pers_co, cd_pers_no, cd_pers_disp;
-  int cd_layer_disp, cd_temp, cd_dyn_vert;
+  int cd_temp, cd_dyn_vert;
 
   float smooth_projection;
   float rake_projection;
@@ -1229,9 +1241,6 @@ typedef struct StrokeCache {
   float anchored_location[3];
 
   /* Fairing. */
-  SculptCustomLayer *fairing_mask;
-  SculptCustomLayer *fairing_fade;
-  SculptCustomLayer *prefairing_co;
 
   /* Paint Brush. */
   struct {
@@ -1271,6 +1280,7 @@ typedef struct StrokeCache {
 
   /* Layer brush */
   float *layer_displacement_factor;
+  int *layer_stroke_id;
 
   float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
   struct Dial *dial;
@@ -1744,7 +1754,10 @@ which works with all three PBVH types
 Ensure a named temporary layer exists, creating it if necassary.
 The layer will be marked with CD_FLAG_TEMPORARY.
 */
-void SCULPT_dyntopo_ensure_templayer(SculptSession *ss, int type, const char *name);
+void SCULPT_dyntopo_ensure_templayer(SculptSession *ss,
+                                     int type,
+                                     const char *name,
+                                     bool not_temporary);
 
 bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name);
 
@@ -1752,15 +1765,16 @@ bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name)
   -1 is returned.*/
 int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name);
 
-void SCULPT_dyntopo_save_persistent_base(SculptSession *ss);
+void SCULPT_ensure_persistent_layers(SculptSession *ss);
 
-#define SCULPT_LAYER_PERS_CO "__dyntopo_layer_pers_co"
-#define SCULPT_LAYER_PERS_NO "__dyntopo_layer_pers_no"
-#define SCULPT_LAYER_PERS_DISP "__dyntopo_layer_pers_disp"
-#define SCULPT_LAYER_DISP "__dyntopo_layer_disp"
+#define SCULPT_LAYER_PERS_CO "Persistent Base Co"
+#define SCULPT_LAYER_PERS_NO "Persistent Base No"
+#define SCULPT_LAYER_PERS_DISP "Persistent Base Height"
+#define SCULPT_LAYER_DISP "__temp_layer_disp"
+#define SCULPT_LAYER_STROKE_ID "__temp_layer_strokeid"
 
 // these tools don't support dynamic pbvh splitting during the stroke
-#define DYNTOPO_HAS_DYNAMIC_SPLIT(tool) (ELEM(tool, SCULPT_TOOL_LAYER) == 0)
+#define DYNTOPO_HAS_DYNAMIC_SPLIT(tool) true
 
 /*get current symmetry pass index inclusive of both
   mirror and radial symmetry*/
@@ -1796,24 +1810,25 @@ create a custom vertex or face attribute.
 always create all of your attributes together with SCULPT_temp_customlayer_ensure,
 
 then initialize their SculptCustomLayer's with SCULPT_temp_customlayer_get
-afterwards.  Otherwise customdata offsets will be wrong (for PBVH_BMESH).
+afterwards.  Otherwise customdata offsets might be wrong (for PBVH_BMESH).
 
 return true on success.  if false, layer was not created.
 
 Access per element data with SCULPT_temp_cdata_get.
 */
-bool SCULPT_temp_customlayer_ensure(
-    SculptSession *ss, AttributeDomain domain, int proptype, char *name, bool simple_array);
+
+bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
+                                    AttributeDomain domain,
+                                    int proptype,
+                                    char *name,
+                                    SculptLayerParams *params);
 bool SCULPT_temp_customlayer_get(SculptSession *ss,
                                  AttributeDomain domain,
                                  int proptype,
                                  char *name,
                                  SculptCustomLayer *scl,
-                                 bool use_simple_array);
-bool SCULPT_temp_customlayer_release(SculptSession *ss,
-                                     AttributeDomain domain,
-                                     int proptype,
-                                     SculptCustomLayer *scl);
+                                 SculptLayerParams *params);
+bool SCULPT_temp_customlayer_release(SculptSession *ss, SculptCustomLayer *scl);
 
 bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
                                      Sculpt *sd,

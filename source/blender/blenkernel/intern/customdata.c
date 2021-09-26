@@ -1504,8 +1504,6 @@ static bool layerValidate_propfloat2(void *data, const uint totitems, const bool
 
 static void layerDynTopoVert_copy(const void *source, void *dest, int count)
 {
-  const MDynTopoVert *mv = (MDynTopoVert *)dest;
-
   memcpy(dest, source, count * sizeof(MDynTopoVert));
 }
 
@@ -2252,11 +2250,11 @@ void CustomData_copy_all_layout(const struct CustomData *source, struct CustomDa
   }
 }
 
-bool CustomData_merge(const struct CustomData *source,
-                      struct CustomData *dest,
-                      CustomDataMask mask,
-                      eCDAllocType alloctype,
-                      int totelem)
+ATTR_NO_OPT bool CustomData_merge(const struct CustomData *source,
+                                  struct CustomData *dest,
+                                  CustomDataMask mask,
+                                  eCDAllocType alloctype,
+                                  int totelem)
 {
   // const LayerTypeInfo *typeInfo;
   CustomDataLayer *layer, *newlayer;
@@ -2357,11 +2355,11 @@ void CustomData_realloc(CustomData *data, int totelem)
   }
 }
 
-void CustomData_copy(const struct CustomData *source,
-                     struct CustomData *dest,
-                     CustomDataMask mask,
-                     eCDAllocType alloctype,
-                     int totelem)
+ATTR_NO_OPT void CustomData_copy(const struct CustomData *source,
+                                 struct CustomData *dest,
+                                 CustomDataMask mask,
+                                 eCDAllocType alloctype,
+                                 int totelem)
 {
   CustomData_reset(dest);
 
@@ -3076,7 +3074,7 @@ bool CustomData_is_referenced_layer(struct CustomData *data, int type)
   return (layer->flag & CD_FLAG_NOFREE) != 0;
 }
 
-void CustomData_unmark_temporary_nocopy(CustomData *data)
+ATTR_NO_OPT void CustomData_unmark_temporary_nocopy(CustomData *data)
 {
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].flag & CD_FLAG_TEMPORARY) {
@@ -3085,7 +3083,7 @@ void CustomData_unmark_temporary_nocopy(CustomData *data)
   }
 }
 
-void CustomData_mark_temporary_nocopy(CustomData *data)
+ATTR_NO_OPT void CustomData_mark_temporary_nocopy(CustomData *data)
 {
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].flag & CD_FLAG_TEMPORARY) {
@@ -3094,7 +3092,7 @@ void CustomData_mark_temporary_nocopy(CustomData *data)
   }
 }
 
-void CustomData_free_temporary(CustomData *data, int totelem)
+ATTR_NO_OPT void CustomData_free_temporary(CustomData *data, int totelem)
 {
   int i, j;
   bool changed = false;
@@ -3986,12 +3984,13 @@ void CustomData_bmesh_swap_data_simple(CustomData *data, void **block1, void **b
 
   // unswap ids if they exist
   if (cd_id != -1 && *block1 && *block2) {
+    int itmp;
     int *id1 = (int *)(((char *)*block1) + cd_id);
     int *id2 = (int *)(((char *)*block2) + cd_id);
 
-    tmp = *id1;
+    itmp = *id1;
     *id1 = *id2;
-    *id2 = tmp;
+    *id2 = itmp;
   }
 }
 

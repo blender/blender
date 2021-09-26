@@ -1499,6 +1499,7 @@ void BKE_builtin_commandlist_create(Brush *brush,
 
   bool no_autosmooth = ELEM(
       brush->sculpt_tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK);
+  bool no_rake = no_autosmooth;
 
   /* build autosmooth command */
   float autosmooth_scale = BKE_brush_channelset_get_float(
@@ -1565,7 +1566,7 @@ void BKE_builtin_commandlist_create(Brush *brush,
     topology_rake_spacing = BKE_brush_channelset_get_float(chset, "spacing", mapdata);
   }
 
-  if (topology_rake > 0.0f) {
+  if (!no_rake && topology_rake > 0.0f) {
     cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true),
                                  SCULPT_TOOL_TOPOLOGY_RAKE);
 
@@ -1651,7 +1652,6 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
         curve = mp->curve = MEM_callocN(sizeof(CurveMapping), "CurveMapping");
 
         BKE_curvemapping_set_defaults(curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
-
         BKE_curvemap_reset(curve->cm,
                            &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
                            CURVE_PRESET_LINE,
@@ -1669,7 +1669,7 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
     ch->def = BKE_brush_builtin_channel_def_find(ch->idname);
 
     if (!ch->def) {
-      printf("failed to find brush definition");
+      printf("failed to find brush definition for %s\n", ch->idname);
       ch->def = BKE_brush_default_channel_def();
     }
     else {

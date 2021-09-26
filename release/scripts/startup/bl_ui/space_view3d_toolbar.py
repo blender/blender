@@ -500,16 +500,56 @@ class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
 
         draw_color_settings(context, layout, brush, color_type=not context.vertex_paint_object)
 
-
-class VIEW3D_PT_tools_brush_swatches(Panel, View3DPaintPanel, ColorPalettePanel):
+class VIEW3D_PT_tools_persistent_base_channels(Panel, View3DPaintPanel):
     bl_context = ".paint_common"
-    bl_parent_id = "VIEW3D_PT_tools_brush_settings"
-    bl_label = "Color Palette"
+    bl_parent_id = "VIEW3D_PT_tools_brush_settings_channels"
+    bl_label = "Persistent Base"
     bl_options = {'DEFAULT_CLOSED'}
+    
+    @classmethod
+    def poll(cls, context):
+        settings = cls.paint_settings(context)
+        brush = settings.brush
+
+        ch = UnifiedPaintPanel.get_channel(context, brush, "use_persistent")
+
+        ok = context.mode == "SCULPT"
+        ok = ok and ch and ch.show_in_workspace
+        ok = ok or capabilities.has_persistence
+
+        return ok
+
+    def draw(self, context):
+        layout = self.layout
+        settings = self.paint_settings(context)
+        brush = settings.brush
+        sculpt = context.tool_settings.sculpt
+
+        UnifiedPaintPanel.channel_unified(
+            layout,
+            context,
+            brush,
+            "use_persistent",
+            #text="Weight By Face Area",
+            ui_editing=False
+        )
+
+        layout.operator("sculpt.set_persistent_base")
+
+        if sculpt.has_persistent_base():
+            layout.label(text="Persistent base exists")
+        else:
+            layout.label(text="No persisent base data")
 
 class VIEW3D_PT_tools_brush_swatches_channels(Panel, View3DPaintPanel, ColorPalettePanel):
     bl_context = ".paint_common"
     bl_parent_id = "VIEW3D_PT_tools_brush_settings_channels"
+    bl_label = "Color Palette"
+    bl_options = {'DEFAULT_CLOSED'}
+
+class VIEW3D_PT_tools_brush_swatches(Panel, View3DPaintPanel, ColorPalettePanel):
+    bl_context = ".brush_editor"
+    bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Color Palette"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -866,7 +906,7 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
         )
 
         keys = ["dyntopo_spacing", "dyntopo_detail_size", "dyntopo_detail_range", "dyntopo_detail_percent",
-                 "dyntopo_constant_detail", "dyntopo_radius_scale"]
+                 "dyntopo_constant_detail", "dyntopo_radius_scale", "dyntopo_disabled"]
         for k in keys:
             UnifiedPaintPanel.channel_unified(
                 layout,
@@ -2608,6 +2648,7 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_brush_vertex_palette,
     VIEW3D_PT_tools_grease_pencil_brush_vertex_falloff,
     VIEW3D_PT_tools_brush_swatches_channels,
+    VIEW3D_PT_tools_persistent_base_channels,
     VIEW3D_PT_sculpt_dyntopo_advanced,
     SCULPT_OT_set_dyntopo_mode
 )

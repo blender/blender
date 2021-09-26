@@ -68,6 +68,7 @@ struct Scene;
 struct StrokeCache;
 struct SubdivCCG;
 struct Tex;
+struct SculptCustomLayer;
 struct ToolSettings;
 struct UnifiedPaintSettings;
 struct View3D;
@@ -380,12 +381,6 @@ typedef struct SculptClothSimulation {
   int cd_pers_disp;
 } SculptClothSimulation;
 
-typedef struct SculptPersistentBase {
-  float co[3];
-  float no[3];
-  float disp;
-} SculptPersistentBase;
-
 typedef struct SculptVertexInfo {
   /* Indexed by vertex, stores and ID of its topologically connected component. */
   int *connected_component;
@@ -559,6 +554,22 @@ typedef struct SculptFakeNeighbors {
 
 /* Session data (mode-specific) */
 
+/* These custom attributes have references
+  (SculptCustomLayer pointers) inside of ss->custom_layers
+  that are kept up to date with SCULPT_update_customdata_refs.
+  */
+enum {
+  SCULPT_SCL_FAIRING_MASK,
+  SCULPT_SCL_FAIRING_FADE,
+  SCULPT_SCL_PREFAIRING_CO,
+  SCULPT_SCL_PERS_CO,
+  SCULPT_SCL_PERS_NO,
+  SCULPT_SCL_PERS_DISP,
+  SCULPT_SCL_LAYER_DISP,
+  SCULPT_SCL_LAYER_STROKE_ID,
+  SCULPT_SCL_LAYER_MAX
+};
+
 typedef struct SculptSession {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
   struct { /* Special handling for multires meshes */
@@ -699,10 +710,6 @@ typedef struct SculptSession {
   /* Boundary Brush Preview */
   SculptBoundary *boundary_preview;
 
-  /* Mesh State Persistence */
-  /* This is freed with the PBVH, so it is always in sync with the mesh. */
-  SculptPersistentBase *persistent_base;
-
   // float (*limit_surface)[3];
   struct SculptCustomLayer *limit_surface;
 
@@ -764,6 +771,18 @@ typedef struct SculptSession {
   bool fast_draw;  // hides facesets/masks and forces smooth to save GPU bandwidth
   struct MDynTopoVert *mdyntopo_verts;  // for non-bmesh
   int mdyntopo_verts_size;
+
+  /*list of up to date custom layer references,
+    note that entries can be NULL if layer doesn't
+    exist.  See SCULPT_SCL_XXX enum above.*/
+  struct SculptCustomLayer *custom_layers[SCULPT_SCL_LAYER_MAX];
+
+  /*
+  PBVH_GRIDS cannot store customdata layers in real CustomDataLayers,
+  so we queue the memory allocated for them to free later
+  */
+  struct SculptCustomLayer **layers_to_free;
+  int tot_layers_to_free;
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);

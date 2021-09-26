@@ -28,6 +28,7 @@
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_curvemapping_cache.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
 
@@ -735,6 +736,56 @@ void BKE_brush_channelset_compat_load(BrushChannelSet *chset, Brush *brush, bool
   }
 }
 
+ATTR_NO_OPT static void reset_clay_mappings(BrushChannelSet *chset, bool strips)
+{
+  BrushMapping *mp = BRUSHSET_LOOKUP(chset, radius)->mappings + BRUSH_MAPPING_PRESSURE;
+  BKE_brush_mapping_ensure_write(mp);
+  CurveMapping *curve = mp->curve;
+
+  BKE_curvemapping_set_defaults(curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
+  BKE_curvemap_reset(curve->cm,
+                     &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
+                     CURVE_PRESET_LINE,
+                     1);
+  BKE_curvemapping_init(curve);
+
+  CurveMap *cuma = curve->cm;
+
+  if (!strips) {  //[[0,0.200], [0.354,0.200], [0.595,0.210], [0.806,0.523], [1,1.000]
+    cuma->curve[0].x = 0.0f;
+    cuma->curve[0].y = 0.2f;
+
+    BKE_curvemap_insert(cuma, 0.35f, 0.2f);
+    BKE_curvemap_insert(cuma, 0.6f, 0.210f);
+    BKE_curvemap_insert(cuma, 0.8f, 0.525f);
+
+    BKE_curvemapping_changed(curve, true);
+  }
+  else {
+    //[[0,0], [0.250,0.050], [0.500,0.125], [0.750,0.422], [1,1]
+    cuma->curve[0].x = 0.0f;
+    cuma->curve[0].y = 0.55f;
+    BKE_curvemap_insert(cuma, 0.5f, 0.7f);
+    cuma->curve[2].x = 1.0f;
+    cuma->curve[2].y = 1.0f;
+    BKE_curvemapping_changed(curve, true);
+  }
+
+  mp = BRUSHSET_LOOKUP(chset, strength)->mappings + BRUSH_MAPPING_PRESSURE;
+  BKE_brush_mapping_ensure_write(mp);
+  curve = mp->curve;
+
+  BKE_curvemapping_set_defaults(curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
+  BKE_curvemap_reset(curve->cm,
+                     &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
+                     CURVE_PRESET_LINE,
+                     1);
+  BKE_curvemapping_init(curve);
+
+  cuma = curve->cm;
+  BKE_curvemap_insert(cuma, 0.6f, 0.25f);
+  BKE_curvemapping_changed(curve, true);
+}
 // adds any missing channels to brushes
 void BKE_brush_builtin_patch(Brush *brush, int tool)
 {
@@ -750,6 +801,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   }
 
   BrushChannelSet *chset = brush->channels;
+  bool set_mappings = BRUSHSET_LOOKUP(chset, radius) == NULL;
 
   ADDCH(radius);
   ADDCH(spacing);
@@ -826,6 +878,16 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(smooth_stroke_radius);
 
   switch (tool) {
+    case SCULPT_TOOL_CLAY:
+      if (set_mappings) {
+        reset_clay_mappings(chset, false);
+      }
+      break;
+    case SCULPT_TOOL_CLAY_STRIPS:
+      if (set_mappings) {
+        reset_clay_mappings(chset, true);
+      }
+      break;
     case SCULPT_TOOL_DRAW:
       break;
     case SCULPT_TOOL_PAINT: {
@@ -988,8 +1050,8 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(invert_to_scrape_fill);
       SHOWWRK(area_radius_factor);
       break;
-    case SCULPT_TOOL_CLAY:
     case SCULPT_TOOL_CLAY_STRIPS:
+    case SCULPT_TOOL_CLAY:
     case SCULPT_TOOL_CLAY_THUMB:
     case SCULPT_TOOL_FLATTEN:
       SHOWWRK(plane_offset);
@@ -1163,6 +1225,7 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       GETCH(autosmooth)->fvalue = 0.25f;
       GETCH(normal_radius_factor)->fvalue = 0.75f;
       GETCH(hardness)->fvalue = 0.65;
+      reset_clay_mappings(chset, false);
       break;
     case SCULPT_TOOL_TWIST:
       GETCH(strength)->fvalue = 0.5f;
@@ -1192,20 +1255,7 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
 
       BKE_brush_mapping_ensure_write(&GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE]);
 
-      CurveMapping *curve = GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].curve;
-
-      CurveMap *cuma = curve->cm;
-
-      cuma->curve[0].x = 0.0f;
-      cuma->curve[0].y = 0.55f;
-      BKE_curvemap_insert(cuma, 0.5f, 0.7f);
-      cuma->curve[2].x = 1.0f;
-      cuma->curve[2].y = 1.0f;
-      BKE_curvemapping_changed(curve, true);
-
-      cuma = curve->cm;
-      BKE_curvemap_insert(cuma, 0.6f, 0.25f);
-      BKE_curvemapping_changed(curve, true);
+      reset_clay_mappings(chset, true);
 
       break;
     }

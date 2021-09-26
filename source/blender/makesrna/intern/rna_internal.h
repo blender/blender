@@ -41,6 +41,7 @@ struct Object;
 struct ReportList;
 struct SDNA;
 struct ViewLayer;
+struct BrushChannel;
 
 /* Data structures used during define */
 

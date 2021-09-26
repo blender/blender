@@ -1399,7 +1399,7 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
                                         for memfile undo steps we need to
                                         save id and temporary layers
                                        */
-                                       .copy_temp_cdlayers = true,
+                                       .copy_temp_cdlayers = false,
                                        .ignore_mesh_id_layers = false,
                                        .cd_mask_extra = CD_MASK_MESH_ID | CD_MASK_DYNTOPO_VERT
 
@@ -1441,7 +1441,6 @@ static void sculptsession_free_pbvh(Object *object)
   MEM_SAFE_FREE(ss->vemap);
   MEM_SAFE_FREE(ss->vemap_mem);
 
-  MEM_SAFE_FREE(ss->persistent_base);
   MEM_SAFE_FREE(ss->limit_surface);
 
   MEM_SAFE_FREE(ss->preview_vert_index_list);
@@ -1502,6 +1501,10 @@ void BKE_sculptsession_free(Object *ob)
 
     sculptsession_free_pbvh(ob);
 
+    for (int i = 0; i < SCULPT_SCL_LAYER_MAX; i++) {
+      MEM_SAFE_FREE(ss->custom_layers[i]);
+    }
+
     MEM_SAFE_FREE(ss->pmap);
     MEM_SAFE_FREE(ss->pmap_mem);
 
@@ -1512,6 +1515,17 @@ void BKE_sculptsession_free(Object *ob)
     MEM_SAFE_FREE(ss->vemap_mem);
 
     MEM_SAFE_FREE(ss->texcache);
+
+    bool SCULPT_temp_customlayer_release(SculptSession * ss, struct SculptCustomLayer * scl);
+
+    if (ss->layers_to_free) {
+      for (int i = 0; i < ss->tot_layers_to_free; i++) {
+        SCULPT_temp_customlayer_release(ss, ss->layers_to_free[i]);
+        MEM_freeN(ss->layers_to_free[i]);
+      }
+
+      MEM_freeN(ss->layers_to_free);
+    }
 
     if (ss->tex_pool) {
       BKE_image_pool_free(ss->tex_pool);
