@@ -90,26 +90,27 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
   }
 #endif
 
-  BL::Mesh mesh(PointerRNA_NULL);
-  if (b_ob_info.object_data.is_a(&RNA_Mesh)) {
-    /* TODO: calc_undeformed is not used. */
-    mesh = BL::Mesh(b_ob_info.object_data);
+  BL::Mesh mesh = (b_ob_info.object_data.is_a(&RNA_Mesh)) ? BL::Mesh(b_ob_info.object_data) :
+                                                            BL::Mesh(PointerRNA_NULL);
 
-    /* Make a copy to split faces if we use autosmooth, otherwise not needed.
-     * Also in edit mode do we need to make a copy, to ensure data layers like
-     * UV are not empty. */
-    if (mesh.is_editmode() ||
-        (mesh.use_auto_smooth() && subdivision_type == Mesh::SUBDIVISION_NONE)) {
+  if (b_ob_info.is_real_object_data()) {
+    if (mesh) {
+      /* Make a copy to split faces if we use autosmooth, otherwise not needed.
+       * Also in edit mode do we need to make a copy, to ensure data layers like
+       * UV are not empty. */
+      if (mesh.is_editmode() ||
+          (mesh.use_auto_smooth() && subdivision_type == Mesh::SUBDIVISION_NONE)) {
+        BL::Depsgraph depsgraph(PointerRNA_NULL);
+        mesh = b_ob_info.real_object.to_mesh(false, depsgraph);
+      }
+    }
+    else {
       BL::Depsgraph depsgraph(PointerRNA_NULL);
-      assert(b_ob_info.is_real_object_data());
       mesh = b_ob_info.real_object.to_mesh(false, depsgraph);
     }
   }
   else {
-    BL::Depsgraph depsgraph(PointerRNA_NULL);
-    if (b_ob_info.is_real_object_data()) {
-      mesh = b_ob_info.real_object.to_mesh(false, depsgraph);
-    }
+    /* TODO: what to do about non-mesh geometry instances? */
   }
 
 #if 0

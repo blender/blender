@@ -80,8 +80,10 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 {
   /* Test if we can instance or if the object is modified. */
   Geometry::Type geom_type = determine_geom_type(b_ob_info, use_particle_hair);
-  BL::ID b_key_id = (BKE_object_is_modified(b_ob_info.real_object)) ? b_ob_info.real_object :
-                                                                      b_ob_info.object_data;
+  BL::ID b_key_id = (b_ob_info.is_real_object_data() &&
+                     BKE_object_is_modified(b_ob_info.real_object)) ?
+                        b_ob_info.real_object :
+                        b_ob_info.object_data;
   GeometryKey key(b_key_id.ptr.data, geom_type);
 
   /* Find shader indices. */
