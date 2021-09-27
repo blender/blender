@@ -4408,6 +4408,13 @@ static int viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
         break;
     }
   }
+  else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
+    /* Note this does not remove autokeys on locked cameras. */
+    copy_qt_qt(vod->rv3d->viewquat, vod->init.quat);
+    ED_view3d_camera_lock_sync(vod->depsgraph, vod->v3d, vod->rv3d);
+    viewops_data_free(C, op);
+    return OPERATOR_CANCELLED;
+  }
   else if (event->type == vod->init.event_type && event->val == KM_RELEASE) {
     event_code = VIEW_CONFIRM;
   }
