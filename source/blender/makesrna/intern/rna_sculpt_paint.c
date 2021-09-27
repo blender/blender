@@ -130,7 +130,9 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 static void rna_GPencil_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
   /* mark all grease pencil datablocks of the scene */
-  ED_gpencil_tag_scene_gpencil(scene);
+  if (scene != NULL) {
+    ED_gpencil_tag_scene_gpencil(scene);
+  }
 }
 
 const EnumPropertyItem rna_enum_particle_edit_disconnected_hair_brush_items[] = {

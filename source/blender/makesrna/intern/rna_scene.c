@@ -676,7 +676,9 @@ static void rna_ToolSettings_snap_mode_set(struct PointerRNA *ptr, int value)
 /* Grease Pencil update cache */
 static void rna_GPencil_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
-  ED_gpencil_tag_scene_gpencil(scene);
+  if (scene != NULL) {
+    ED_gpencil_tag_scene_gpencil(scene);
+  }
 }
 
 static void rna_Gpencil_extend_selection(bContext *C, PointerRNA *UNUSED(ptr))

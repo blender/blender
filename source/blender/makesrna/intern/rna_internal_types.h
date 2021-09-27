@@ -44,11 +44,20 @@ typedef struct IDProperty IDProperty;
 
 /* Function Callbacks */
 
-typedef void (*UpdateFunc)(struct Main *main, struct Scene *scene, struct PointerRNA *ptr);
+/** Update callback for an RNA property.
+ *
+ *  \note This is NOT called automatically when writing into the property, it needs to be called
+ * manually (through #RNA_property_update or #RNA_property_update_main) when needed.
+ *
+ *  \param bmain: the Main data-base to which `ptr` data belongs.
+ *  \param active_scene: The current active scene (may be NULL in some cases).
+ *  \param ptr: The RNA pointer data to update. */
+typedef void (*UpdateFunc)(struct Main *bmain, struct Scene *active_scene, struct PointerRNA *ptr);
 typedef void (*ContextPropUpdateFunc)(struct bContext *C,
                                       struct PointerRNA *ptr,
                                       struct PropertyRNA *prop);
 typedef void (*ContextUpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
+
 typedef int (*EditableFunc)(struct PointerRNA *ptr, const char **r_info);
 typedef int (*ItemEditableFunc)(struct PointerRNA *ptr, int index);
 typedef struct IDProperty **(*IDPropertiesFunc)(struct PointerRNA *ptr);
