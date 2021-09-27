@@ -1132,7 +1132,7 @@ static void particle_batch_cache_ensure_procedural_pos(PTCacheEdit *edit,
     cache->point_tex = GPU_texture_create_from_vertbuf("part_point", cache->proc_point_buf);
   }
 
-  /* Checking hair length seperatly, only allocating gpu memory when needed */
+  /* Checking hair length separately, only allocating gpu memory when needed. */
   if (gpu_material && cache->proc_length_buf != NULL && cache->length_tex == NULL) {
     ListBase gpu_attrs = GPU_material_attributes(gpu_material);
     LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &gpu_attrs) {

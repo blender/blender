@@ -728,7 +728,7 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
-  /* patch to set Dupli Lightprobes and Grease Pencil */
+  /* Patch to set dupli light-probes and grease-pencil. */
   if (!USER_VERSION_ATLEAST(280, 58)) {
     userdef->dupflag |= USER_DUP_LIGHTPROBE;
     userdef->dupflag |= USER_DUP_GPENCIL;

@@ -4409,7 +4409,7 @@ static int viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
   else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
-    /* Note this does not remove autokeys on locked cameras. */
+    /* Note this does not remove auto-keys on locked cameras. */
     copy_qt_qt(vod->rv3d->viewquat, vod->init.quat);
     ED_view3d_camera_lock_sync(vod->depsgraph, vod->v3d, vod->rv3d);
     viewops_data_free(C, op);
