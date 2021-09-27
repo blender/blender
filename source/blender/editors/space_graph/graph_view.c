@@ -213,7 +213,7 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
   scene = ac.scene;
 
   /* Set the range directly. */
-  get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL, false, false);
+  get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL, true, false);
   scene->r.flag |= SCER_PRV_RANGE;
   scene->r.psfra = round_fl_to_int(min);
   scene->r.pefra = round_fl_to_int(max);
@@ -228,9 +228,9 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_previewrange_set(wmOperatorType *ot)
 {
   /* Identifiers */
-  ot->name = "Auto-Set Preview Range";
+  ot->name = "Set Preview Range to Selected";
   ot->idname = "GRAPH_OT_previewrange_set";
-  ot->description = "Automatically set Preview Range based on range of keyframes";
+  ot->description = "Set Preview Range based on range of selected keyframes";
 
   /* API callbacks */
   ot->exec = graphkeys_previewrange_exec;
