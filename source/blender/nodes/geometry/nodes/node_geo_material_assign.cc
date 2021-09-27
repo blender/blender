@@ -64,23 +64,22 @@ static void geo_node_material_assign_exec(GeoNodeExecParams params)
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
-  geometry_set = geometry_set_realize_instances(geometry_set);
+  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    if (geometry_set.has<MeshComponent>()) {
+      MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
+      Mesh *mesh = mesh_component.get_for_write();
+      if (mesh != nullptr) {
+        GeometryComponentFieldContext field_context{mesh_component, ATTR_DOMAIN_FACE};
 
-  if (geometry_set.has<MeshComponent>()) {
-    MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-    Mesh *mesh = mesh_component.get_for_write();
-    if (mesh != nullptr) {
+        fn::FieldEvaluator selection_evaluator{field_context, mesh->totpoly};
+        selection_evaluator.add(selection_field);
+        selection_evaluator.evaluate();
+        const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
 
-      GeometryComponentFieldContext field_context{mesh_component, ATTR_DOMAIN_FACE};
-
-      fn::FieldEvaluator selection_evaluator{field_context, mesh->totpoly};
-      selection_evaluator.add(selection_field);
-      selection_evaluator.evaluate();
-      const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
-
-      assign_material_to_faces(*mesh, selection, material);
+        assign_material_to_faces(*mesh, selection, material);
+      }
     }
-  }
+  });
 
   params.set_output("Geometry", std::move(geometry_set));
 }
