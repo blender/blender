@@ -85,7 +85,7 @@ void AssetLibrary::on_save_post(struct Main *main,
                                 struct PointerRNA ** /*pointers*/,
                                 const int /*num_pointers*/)
 {
-  if (this->catalog_service) {
+  if (this->catalog_service == nullptr) {
     return;
   }
 
