@@ -69,7 +69,7 @@ AssetCatalog *AssetCatalogService::find_catalog(CatalogID catalog_id)
 
 AssetCatalog *AssetCatalogService::find_catalog_by_path(const CatalogPath &path) const
 {
-  for (auto &catalog : catalogs_.values()) {
+  for (const auto &catalog : catalogs_.values()) {
     if (catalog->path == path) {
       return catalog.get();
     }
