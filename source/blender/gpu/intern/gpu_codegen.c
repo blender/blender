@@ -718,7 +718,7 @@ static char *code_generate_vertex(GPUNodeGraph *graph,
       BLI_dynstr_append(ds, datatoc_gpu_shader_common_obinfos_lib_glsl);
       BLI_dynstr_append(ds, "DEFINE_ATTR(vec4, orco);\n");
     }
-    if (attr->type == CD_HAIRLENGTH) {
+    else if (attr->type == CD_HAIRLENGTH) {
       BLI_dynstr_append(ds, datatoc_gpu_shader_common_obinfos_lib_glsl);
       BLI_dynstr_append(ds, "DEFINE_ATTR(float, hairLen);\n");
     }
