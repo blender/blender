@@ -848,8 +848,9 @@ static void rna_Scene_camera_update(Main *bmain, Scene *UNUSED(scene_unused), Po
   DEG_relations_tag_update(bmain);
 }
 
-static void rna_Scene_fps_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Scene_fps_update(Main *bmain, Scene *UNUSED(active_scene), PointerRNA *ptr)
 {
+  Scene *scene = (Scene *)ptr->owner_id;
   DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_FPS | ID_RECALC_SEQUENCER_STRIPS);
   /* NOTE: Tag via dependency graph will take care of all the updates ion the evaluated domain,
    * however, changes in FPS actually modifies an original skip length,
@@ -857,9 +858,9 @@ static void rna_Scene_fps_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(p
   SEQ_sound_update_length(bmain, scene);
 }
 
-static void rna_Scene_listener_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Scene_listener_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_LISTENER);
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_AUDIO_LISTENER);
 }
 
 static void rna_Scene_volume_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -885,8 +886,11 @@ static const char *rna_Scene_statistics_string_get(Scene *scene,
   return ED_info_statistics_string(bmain, scene, view_layer);
 }
 
-static void rna_Scene_framelen_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Scene_framelen_update(Main *UNUSED(bmain),
+                                      Scene *UNUSED(active_scene),
+                                      PointerRNA *ptr)
 {
+  Scene *scene = (Scene *)ptr->owner_id;
   scene->r.framelen = (float)scene->r.framapto / (float)scene->r.images;
 }
 
@@ -1940,9 +1944,9 @@ static void rna_Scene_use_audio_set(PointerRNA *ptr, bool value)
   }
 }
 
-static void rna_Scene_use_audio_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Scene_use_audio_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_MUTE);
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_AUDIO_MUTE);
 }
 
 static int rna_Scene_sync_mode_get(PointerRNA *ptr)
@@ -2199,9 +2203,9 @@ static void rna_SceneCamera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
   }
 }
 
-static void rna_SceneSequencer_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_SceneSequencer_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  SEQ_cache_cleanup(scene);
+  SEQ_cache_cleanup((Scene *)ptr->owner_id);
 }
 
 static char *rna_ToolSettings_path(PointerRNA *UNUSED(ptr))

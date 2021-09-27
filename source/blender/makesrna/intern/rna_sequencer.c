@@ -840,9 +840,9 @@ static int rna_Sequence_proxy_filepath_length(PointerRNA *ptr)
   return strlen(path);
 }
 
-static void rna_Sequence_audio_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Sequence_audio_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_SEQUENCER_STRIPS);
 }
 
 static void rna_Sequence_pan_range(
@@ -940,8 +940,9 @@ static void rna_Sequence_filepath_update(Main *bmain, Scene *UNUSED(scene), Poin
   rna_Sequence_invalidate_raw_update(bmain, scene, ptr);
 }
 
-static void rna_Sequence_sound_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Sequence_sound_update(Main *bmain, Scene *UNUSED(active_scene), PointerRNA *ptr)
 {
+  Scene *scene = (Scene *)ptr->owner_id;
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
   DEG_relations_tag_update(bmain);
 }
