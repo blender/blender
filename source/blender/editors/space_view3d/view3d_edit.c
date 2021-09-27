@@ -582,7 +582,7 @@ static void viewops_data_free(bContext *C, wmOperator *op)
     }
 
     if (vod->init.dial) {
-      MEM_SAFE_FREE(vod->init.dial);
+      MEM_freeN(vod->init.dial);
     }
 
     MEM_freeN(vod);
