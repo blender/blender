@@ -55,6 +55,10 @@ bool BLI_path_name_at_index(const char *__restrict path,
                             int *__restrict r_offset,
                             int *__restrict r_len) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
+/** Return true only if #containee_path is contained in #container_path. */
+bool BLI_path_contains(const char *container_path,
+                       const char *containee_path) ATTR_WARN_UNUSED_RESULT;
+
 const char *BLI_path_slash_rfind(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 int BLI_path_slash_ensure(char *string) ATTR_NONNULL();
 void BLI_path_slash_rstrip(char *string) ATTR_NONNULL();

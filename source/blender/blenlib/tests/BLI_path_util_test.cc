@@ -655,3 +655,26 @@ TEST(path_util, PathRelPath)
 #  undef PATH_REL
 
 #endif
+
+/* BLI_path_contains */
+TEST(path_util, PathContains)
+{
+  EXPECT_TRUE(BLI_path_contains("/some/path", "/some/path")) << "A path contains itself";
+  EXPECT_TRUE(BLI_path_contains("/some/path", "/some/path/inside"))
+      << "A path contains its subdirectory";
+  EXPECT_TRUE(BLI_path_contains("/some/path", "/some/path/../path/inside"))
+      << "Paths should be normalised";
+  EXPECT_TRUE(BLI_path_contains("C:\\some\\path", "C:\\some\\path\\inside"))
+      << "Windows paths should be supported as well";
+
+  EXPECT_FALSE(BLI_path_contains("C:\\some\\path", "C:\\some\\other\\path"))
+      << "Windows paths should be supported as well";
+  EXPECT_FALSE(BLI_path_contains("/some/path", "/"))
+      << "Root directory not be contained in a subdirectory";
+  EXPECT_FALSE(BLI_path_contains("/some/path", "/some/path/../outside"))
+      << "Paths should be normalised";
+  EXPECT_FALSE(BLI_path_contains("/some/path", "/some/path_library"))
+      << "Just sharing a suffix is not enough, path semantics should be followed";
+  EXPECT_FALSE(BLI_path_contains("/some/path", "./contents"))
+      << "Relative paths are not supported";
+}
