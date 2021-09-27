@@ -536,7 +536,7 @@ static rcti file_select_mval_to_select_rect(const int mval[2])
   return rect;
 }
 
-static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int file_select_exec(bContext *C, wmOperator *op)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
@@ -549,16 +549,26 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   const bool only_activate_if_selected = RNA_boolean_get(op->ptr, "only_activate_if_selected");
   /* Used so right mouse clicks can do both, activate and spawn the context menu. */
   const bool pass_through = RNA_boolean_get(op->ptr, "pass_through");
+  bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
 
   if (region->regiontype != RGN_TYPE_WINDOW) {
     return OPERATOR_CANCELLED;
   }
 
-  rect = file_select_mval_to_select_rect(event->mval);
+  int mval[2];
+  mval[0] = RNA_int_get(op->ptr, "mouse_x");
+  mval[1] = RNA_int_get(op->ptr, "mouse_y");
+  rect = file_select_mval_to_select_rect(mval);
 
   if (!ED_fileselect_layout_is_inside_pt(sfile->layout, &region->v2d, rect.xmin, rect.ymin)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
+
+  if (extend || fill) {
+    wait_to_deselect_others = false;
+  }
+
+  int ret_val = OPERATOR_FINISHED;
 
   const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   if (sfile && params) {
@@ -570,6 +580,9 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                                FILE_SEL_SELECTED;
       if (only_activate_if_selected && is_selected) {
         /* Don't deselect other items. */
+      }
+      else if (wait_to_deselect_others && is_selected) {
+        ret_val = OPERATOR_RUNNING_MODAL;
       }
       /* single select, deselect all selected first */
       else if (!extend) {
@@ -601,7 +614,10 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   WM_event_add_mousemove(CTX_wm_window(C)); /* for directory changes */
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
-  return pass_through ? (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH) : OPERATOR_FINISHED;
+  if ((ret_val == OPERATOR_FINISHED) && pass_through) {
+    ret_val |= OPERATOR_PASS_THROUGH;
+  }
+  return ret_val;
 }
 
 void FILE_OT_select(wmOperatorType *ot)
@@ -614,11 +630,14 @@ void FILE_OT_select(wmOperatorType *ot)
   ot->description = "Handle mouse clicks to select and activate items";
 
   /* api callbacks */
-  ot->invoke = file_select_invoke;
+  ot->invoke = WM_generic_select_invoke;
+  ot->exec = file_select_exec;
+  ot->modal = WM_generic_select_modal;
   /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 
   /* properties */
+  WM_operator_properties_generic_select(ot);
   prop = RNA_def_boolean(ot->srna,
                          "extend",
                          false,
