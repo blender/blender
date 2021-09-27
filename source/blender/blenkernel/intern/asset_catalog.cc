@@ -19,10 +19,13 @@
  */
 
 #include "BKE_asset_catalog.hh"
+#include "BKE_preferences.h"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string_ref.hh"
+
+#include "DNA_userdef_types.h"
 
 /* For S_ISREG() and S_ISDIR() on Windows. */
 #ifdef WIN32
@@ -264,6 +267,65 @@ bool AssetCatalogService::write_to_disk(const CatalogFilePath &directory_for_new
 
   merge_from_disk_before_writing();
   return catalog_definition_file_->write_to_disk();
+}
+
+bool AssetCatalogService::write_to_disk_on_blendfile_save(const char *blend_file_path)
+{
+  /* TODO(Sybren): deduplicate this and write_to_disk(...); maybe the latter function isn't even
+   * necessary any more. */
+
+  /* - Already loaded a CDF from disk? -> Always write to that file. */
+  if (this->catalog_definition_file_) {
+    merge_from_disk_before_writing();
+    return catalog_definition_file_->write_to_disk();
+  }
+
+  if (catalogs_.is_empty() && deleted_catalogs_.is_empty()) {
+    /* Avoid saving anything, when there is nothing to save. */
+    return true; /* Writing nothing when there is nothing to write is still a success. */
+  }
+
+  const CatalogFilePath cdf_path_to_write = find_suitable_cdf_path_for_writing(blend_file_path);
+  this->catalog_definition_file_ = construct_cdf_in_memory(cdf_path_to_write);
+  merge_from_disk_before_writing();
+  return catalog_definition_file_->write_to_disk();
+}
+
+CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
+    const CatalogFilePath &blend_file_path)
+{
+  /* Determine the default CDF path in the same directory of the blend file. */
+  char blend_dir_path[PATH_MAX];
+  BLI_split_dir_part(blend_file_path.c_str(), blend_dir_path, sizeof(blend_dir_path));
+  const CatalogFilePath cdf_path_next_to_blend = asset_definition_default_file_path_from_dir(
+      blend_dir_path);
+
+  if (BLI_exists(cdf_path_next_to_blend.c_str())) {
+    /* - The directory containing the blend file has a blender_assets.cats.txt file?
+     *    -> Merge with & write to that file. */
+    return cdf_path_next_to_blend;
+  }
+
+  const bUserAssetLibrary *asset_lib_pref = BKE_preferences_asset_library_containing_path(
+      &U, blend_file_path.c_str());
+  if (asset_lib_pref) {
+    /* - The directory containing the blend file is part of an asset library, as per
+     *   the user's preferences?
+     *    -> Merge with & write to ${ASSET_LIBRARY_ROOT}/blender_assets.cats.txt  */
+
+    char asset_lib_cdf_path[PATH_MAX];
+    BLI_path_join(asset_lib_cdf_path,
+                  sizeof(asset_lib_cdf_path),
+                  asset_lib_pref->path,
+                  DEFAULT_CATALOG_FILENAME.c_str(),
+                  NULL);
+
+    return asset_lib_cdf_path;
+  }
+
+  /* - Otherwise
+   *    -> Create a new file blender_assets.cats.txt next to the blend file. */
+  return cdf_path_next_to_blend;
 }
 
 std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::construct_cdf_in_memory(

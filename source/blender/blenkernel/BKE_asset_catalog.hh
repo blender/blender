@@ -74,6 +74,25 @@ class AssetCatalogService {
   bool write_to_disk(const CatalogFilePath &directory_for_new_files);
 
   /**
+   * Write the catalog definitions to disk in response to the blend file being saved.
+   *
+   * The location where the catalogs are saved is variable, and depends on the location of the
+   * blend file. The first matching rule wins:
+   *
+   * - Already loaded a CDF from disk?
+   *    -> Always write to that file.
+   * - The directory containing the blend file has a blender_assets.cats.txt file?
+   *    -> Merge with & write to that file.
+   * - The directory containing the blend file is part of an asset library, as per
+   *   the user's preferences?
+   *    -> Merge with & write to ${ASSET_LIBRARY_ROOT}/blender_assets.cats.txt
+   * - Create a new file blender_assets.cats.txt next to the blend file.
+   *
+   * Return true on success, which either means there were no in-memory categories to save,
+   * or the save was successful. */
+  bool write_to_disk_on_blendfile_save(const char *blend_file_path);
+
+  /**
    * Merge on-disk changes into the in-memory asset catalogs.
    * This should be called before writing the asset catalogs to disk.
    *
@@ -123,6 +142,15 @@ class AssetCatalogService {
    * This object can then be processed further before saving to disk. */
   std::unique_ptr<AssetCatalogDefinitionFile> construct_cdf_in_memory(
       const CatalogFilePath &file_path);
+
+  /**
+   * Find a suitable path to write a CDF to.
+   *
+   * This depends on the location of the blend file, and on whether a CDF already exists next to it
+   * or whether the blend file is saved inside an asset library.
+   */
+  static CatalogFilePath find_suitable_cdf_path_for_writing(
+      const CatalogFilePath &blend_file_path);
 
   std::unique_ptr<AssetCatalogTree> read_into_tree();
   void rebuild_tree();

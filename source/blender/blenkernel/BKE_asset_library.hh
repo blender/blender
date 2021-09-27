@@ -27,6 +27,7 @@
 #include "BKE_asset_library.h"
 
 #include "BKE_asset_catalog.hh"
+#include "BKE_callbacks.h"
 
 #include <memory>
 
@@ -36,6 +37,14 @@ struct AssetLibrary {
   std::unique_ptr<AssetCatalogService> catalog_service;
 
   void load(StringRefNull library_root_directory);
+
+  void on_save_handler_register();
+  void on_save_handler_unregister();
+
+  void on_save_post(struct Main *, struct PointerRNA **pointers, const int num_pointers);
+
+ private:
+  bCallbackFuncStore on_save_callback_store_;
 };
 
 }  // namespace blender::bke

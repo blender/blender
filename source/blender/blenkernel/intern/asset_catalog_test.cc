@@ -19,9 +19,12 @@
 
 #include "BKE_appdir.h"
 #include "BKE_asset_catalog.hh"
+#include "BKE_preferences.h"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
+
+#include "DNA_userdef_types.h"
 
 #include "testing/testing.h"
 
@@ -43,6 +46,8 @@ const bUUID UUID_AGENT_47("c5744ba5-43f5-4f73-8e52-010ad4a61b34");
 /* Subclass that adds accessors such that protected fields can be used in tests. */
 class TestableAssetCatalogService : public AssetCatalogService {
  public:
+  TestableAssetCatalogService() = default;
+
   explicit TestableAssetCatalogService(const CatalogFilePath &asset_library_root)
       : AssetCatalogService(asset_library_root)
   {
@@ -405,6 +410,152 @@ TEST_F(AssetCatalogTest, no_writing_empty_files)
   EXPECT_FALSE(BLI_exists(default_cdf_path.c_str()));
 }
 
+/* Already loaded a CDF, saving to some unrelated directory. */
+TEST_F(AssetCatalogTest, on_blendfile_save__with_existing_cdf)
+{
+  const CatalogFilePath top_level_dir = create_temp_path();  // Has trailing slash.
+
+  /* Create a copy of the CDF in SVN, so we can safely write to it. */
+  const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
+  const CatalogFilePath cdf_dirname = top_level_dir + "other_dir/";
+  const CatalogFilePath cdf_filename = cdf_dirname + AssetCatalogService::DEFAULT_CATALOG_FILENAME;
+  ASSERT_TRUE(BLI_dir_create_recursive(cdf_dirname.c_str()));
+  ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), cdf_filename.c_str()))
+      << "Unable to copy " << original_cdf_file << " to " << cdf_filename;
+
+  /* Load the CDF, add a catalog, and trigger a write. This should write to the loaded CDF. */
+  TestableAssetCatalogService service(cdf_filename);
+  service.load_from_disk();
+  const AssetCatalog *cat = service.create_catalog("some/catalog/path");
+
+  const CatalogFilePath blendfilename = top_level_dir + "subdir/some_file.blend";
+  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename.c_str()));
+  EXPECT_EQ(cdf_filename, service.get_catalog_definition_file()->file_path);
+
+  /* Test that the CDF was created in the expected location. */
+  const CatalogFilePath backup_filename = cdf_filename + "~";
+  EXPECT_TRUE(BLI_exists(cdf_filename.c_str()));
+  EXPECT_TRUE(BLI_exists(backup_filename.c_str()))
+      << "Overwritten CDF should have been backed up.";
+
+  /* Test that the on-disk CDF contains the expected catalogs. */
+  AssetCatalogService loaded_service(cdf_filename);
+  loaded_service.load_from_disk();
+  EXPECT_NE(nullptr, loaded_service.find_catalog(cat->catalog_id))
+      << "Expected to see the newly-created catalog.";
+  EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE))
+      << "Expected to see the already-existing catalog.";
+}
+
+/* Create some catalogs in memory, save to directory that doesn't contain anything else. */
+TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_empty_directory)
+{
+  const CatalogFilePath target_dir = create_temp_path();  // Has trailing slash.
+
+  TestableAssetCatalogService service;
+  const AssetCatalog *cat = service.create_catalog("some/catalog/path");
+
+  const CatalogFilePath blendfilename = target_dir + "some_file.blend";
+  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename.c_str()));
+
+  /* Test that the CDF was created in the expected location. */
+  const CatalogFilePath expected_cdf_path = target_dir +
+                                            AssetCatalogService::DEFAULT_CATALOG_FILENAME;
+  EXPECT_TRUE(BLI_exists(expected_cdf_path.c_str()));
+
+  /* Test that the in-memory CDF has been created, and contains the expected catalog. */
+  AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
+  ASSERT_NE(nullptr, cdf);
+  EXPECT_TRUE(cdf->contains(cat->catalog_id));
+
+  /* Test that the on-disk CDF contains the expected catalog. */
+  AssetCatalogService loaded_service(expected_cdf_path);
+  loaded_service.load_from_disk();
+  EXPECT_NE(nullptr, loaded_service.find_catalog(cat->catalog_id));
+}
+
+/* Create some catalogs in memory, save to directory that contains a default CDF. */
+TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_cdf_and_merge)
+{
+  const CatalogFilePath target_dir = create_temp_path();  // Has trailing slash.
+  const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
+  const CatalogFilePath writable_cdf_file = target_dir +
+                                            AssetCatalogService::DEFAULT_CATALOG_FILENAME;
+  ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str()));
+
+  /* Create the catalog service without loading the already-existing CDF. */
+  TestableAssetCatalogService service;
+  const AssetCatalog *cat = service.create_catalog("some/catalog/path");
+
+  /* Mock that the blend file is written to a subdirectory of the asset library. */
+  const CatalogFilePath blendfilename = target_dir + "some_file.blend";
+  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename.c_str()));
+
+  /* Test that the CDF still exists in the expected location. */
+  const CatalogFilePath backup_filename = writable_cdf_file + "~";
+  EXPECT_TRUE(BLI_exists(writable_cdf_file.c_str()));
+  EXPECT_TRUE(BLI_exists(backup_filename.c_str()))
+      << "Overwritten CDF should have been backed up.";
+
+  /* Test that the in-memory CDF has the expected file path. */
+  AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
+  ASSERT_NE(nullptr, cdf);
+  EXPECT_EQ(writable_cdf_file, cdf->file_path);
+
+  /* Test that the in-memory catalogs have been merged with the on-disk one. */
+  AssetCatalogService loaded_service(writable_cdf_file);
+  loaded_service.load_from_disk();
+  EXPECT_NE(nullptr, loaded_service.find_catalog(cat->catalog_id));
+  EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE));
+}
+
+/* Create some catalogs in memory, save to subdirectory of a registered asset library. */
+TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_asset_lib)
+{
+  const CatalogFilePath target_dir = create_temp_path();  // Has trailing slash.
+  const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
+  const CatalogFilePath registered_asset_lib = target_dir + "my_asset_library/";
+  CatalogFilePath writable_cdf_file = registered_asset_lib +
+                                      AssetCatalogService::DEFAULT_CATALOG_FILENAME;
+  BLI_path_slash_native(writable_cdf_file.data());
+
+  /* Set up a temporary asset library for testing. */
+  bUserAssetLibrary *asset_lib_pref = BKE_preferences_asset_library_add(
+      &U, "Test", registered_asset_lib.c_str());
+  ASSERT_NE(nullptr, asset_lib_pref);
+  ASSERT_TRUE(BLI_dir_create_recursive(registered_asset_lib.c_str()));
+  ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str()));
+
+  /* Create the catalog service without loading the already-existing CDF. */
+  TestableAssetCatalogService service;
+  const CatalogFilePath blenddirname = registered_asset_lib + "subdirectory/";
+  const CatalogFilePath blendfilename = blenddirname + "some_file.blend";
+  ASSERT_TRUE(BLI_dir_create_recursive(blenddirname.c_str()));
+  const AssetCatalog *cat = service.create_catalog("some/catalog/path");
+
+  /* Mock that the blend file is written to the directory already containing a CDF. */
+  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename.c_str()));
+
+  /* Test that the CDF still exists in the expected location. */
+  EXPECT_TRUE(BLI_exists(writable_cdf_file.c_str()));
+  const CatalogFilePath backup_filename = writable_cdf_file + "~";
+  EXPECT_TRUE(BLI_exists(backup_filename.c_str()))
+      << "Overwritten CDF should have been backed up.";
+
+  /* Test that the in-memory CDF has the expected file path. */
+  AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
+  BLI_path_slash_native(cdf->file_path.data());
+  EXPECT_EQ(writable_cdf_file, cdf->file_path);
+
+  /* Test that the in-memory catalogs have been merged with the on-disk one. */
+  AssetCatalogService loaded_service(writable_cdf_file);
+  loaded_service.load_from_disk();
+  EXPECT_NE(nullptr, loaded_service.find_catalog(cat->catalog_id));
+  EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE));
+
+  BKE_preferences_asset_library_remove(&U, asset_lib_pref);
+}
+
 TEST_F(AssetCatalogTest, create_first_catalog_from_scratch)
 {
   /* Even from scratch a root directory should be known. */
@@ -450,7 +601,7 @@ TEST_F(AssetCatalogTest, create_catalog_after_loading_file)
                                                AssetCatalogService::DEFAULT_CATALOG_FILENAME;
   const CatalogFilePath writable_catalog_path = temp_lib_root +
                                                 AssetCatalogService::DEFAULT_CATALOG_FILENAME;
-  BLI_copy(default_catalog_path.c_str(), writable_catalog_path.c_str());
+  ASSERT_EQ(0, BLI_copy(default_catalog_path.c_str(), writable_catalog_path.c_str()));
   EXPECT_TRUE(BLI_is_dir(temp_lib_root.c_str()));
   EXPECT_TRUE(BLI_is_file(writable_catalog_path.c_str()));
 
@@ -485,8 +636,7 @@ TEST_F(AssetCatalogTest, create_catalog_after_loading_file)
 
 TEST_F(AssetCatalogTest, create_catalog_path_cleanup)
 {
-  const CatalogFilePath temp_lib_root = use_temp_path();
-  AssetCatalogService service(temp_lib_root);
+  AssetCatalogService service;
   AssetCatalog *cat = service.create_catalog(" /some/path  /  ");
 
   EXPECT_FALSE(BLI_uuid_is_nil(cat->catalog_id));
@@ -496,8 +646,7 @@ TEST_F(AssetCatalogTest, create_catalog_path_cleanup)
 
 TEST_F(AssetCatalogTest, create_catalog_simple_name)
 {
-  const CatalogFilePath temp_lib_root = use_temp_path();
-  AssetCatalogService service(temp_lib_root);
+  AssetCatalogService service;
   AssetCatalog *cat = service.create_catalog(
       "production/Spite Fright/Characters/Victora/Pose Library/Approved/Body Parts/Hands");
 
@@ -568,14 +717,14 @@ TEST_F(AssetCatalogTest, merge_catalog_files)
   const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
   const CatalogFilePath modified_cdf_file = asset_library_root_ + "/modified_assets.cats.txt";
   const CatalogFilePath temp_cdf_file = cdf_dir + "blender_assets.cats.txt";
-  BLI_copy(original_cdf_file.c_str(), temp_cdf_file.c_str());
+  ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), temp_cdf_file.c_str()));
 
   // Load the unmodified, original CDF.
   TestableAssetCatalogService service(asset_library_root_);
   service.load_from_disk(cdf_dir);
 
   // Copy a modified file, to mimick a situation where someone changed the CDF after we loaded it.
-  BLI_copy(modified_cdf_file.c_str(), temp_cdf_file.c_str());
+  ASSERT_EQ(0, BLI_copy(modified_cdf_file.c_str(), temp_cdf_file.c_str()));
 
   // Overwrite the modified file. This should merge the on-disk file with our catalogs.
   service.write_to_disk(cdf_dir);
@@ -602,7 +751,7 @@ TEST_F(AssetCatalogTest, backups)
   const CatalogFilePath cdf_dir = create_temp_path();
   const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
   const CatalogFilePath writable_cdf_file = cdf_dir + "/blender_assets.cats.txt";
-  BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str());
+  ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str()));
 
   /* Read a CDF, modify, and write it. */
   AssetCatalogService service(cdf_dir);
