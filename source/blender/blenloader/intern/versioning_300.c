@@ -1484,7 +1484,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Deprecate the random float node in favor of the random float node. */
+    /* Deprecate the random float node in favor of the random value node. */
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       if (ntree->type != NTREE_GEOMETRY) {
         continue;

@@ -877,8 +877,6 @@ static void store_output_value_in_geometry(GeometrySet &geometry_set,
 
 /**
  * Evaluate a node group to compute the output geometry.
- * Currently, this uses a fairly basic and inefficient algorithm that might compute things more
- * often than necessary. It's going to be replaced soon.
  */
 static GeometrySet compute_geometry(const DerivedNodeTree &tree,
                                     Span<const NodeRef *> group_input_nodes,
