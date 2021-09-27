@@ -809,6 +809,7 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
   }
 
   /* Remove linked IDs when a local existing data has been reused instead. */
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
   for (itemlink = lapp_data->items.list; itemlink; itemlink = itemlink->next) {
     WMLinkAppendDataItem *item = itemlink->link;
 
@@ -822,7 +823,6 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
     }
     BLI_assert(ID_IS_LINKED(id));
     BLI_assert(id->newid != NULL);
-    BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
 
     id->tag |= LIB_TAG_DOIT;
     item->new_id = id->newid;
@@ -1347,12 +1347,12 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
   /* Link datablock. */
   wm_link_do(lapp_data, NULL, bmain, scene, view_layer, v3d);
 
-  /* Get linked datablock and free working data. */
-  ID *id = item->new_id;
-
   if (do_append) {
     wm_append_do(lapp_data, NULL, bmain, scene, view_layer, v3d);
   }
+
+  /* Get linked datablock and free working data. */
+  ID *id = item->new_id;
 
   wm_link_append_data_free(lapp_data);
 
