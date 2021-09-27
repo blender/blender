@@ -71,7 +71,8 @@ BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
       width(0),
       height(0),
       preview_osl(preview_osl),
-      python_thread_state(NULL)
+      python_thread_state(NULL),
+      use_developer_ui(false)
 {
   /* offline render */
   background = true;
