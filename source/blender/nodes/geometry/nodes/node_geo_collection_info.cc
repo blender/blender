@@ -21,6 +21,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "BKE_collection.h"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes {
@@ -28,6 +30,12 @@ namespace blender::nodes {
 static void geo_node_collection_info_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Collection>("Collection").hide_label();
+  b.add_input<decl::Bool>("Separate Children")
+      .description("Output each child of the collection as a separate instance");
+  b.add_input<decl::Bool>("Reset Children")
+      .description(
+          "Reset the transforms of every child instance in the output. Only used when Separate "
+          "Children is enabled");
   b.add_output<decl::Geometry>("Geometry");
 }
 
@@ -57,23 +65,66 @@ static void geo_node_collection_info_exec(GeoNodeExecParams params)
 
   const bNode &bnode = params.node();
   NodeGeometryCollectionInfo *node_storage = (NodeGeometryCollectionInfo *)bnode.storage;
-  const bool transform_space_relative = (node_storage->transform_space ==
-                                         GEO_NODE_TRANSFORM_SPACE_RELATIVE);
+  const bool use_relative_transform = (node_storage->transform_space ==
+                                       GEO_NODE_TRANSFORM_SPACE_RELATIVE);
 
   InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
 
-  float transform_mat[4][4];
-  unit_m4(transform_mat);
   const Object *self_object = params.self_object();
 
-  if (transform_space_relative) {
-    copy_v3_v3(transform_mat[3], collection->instance_offset);
+  const bool separate_children = params.get_input<bool>("Separate Children");
+  if (separate_children) {
+    const bool reset_children = params.get_input<bool>("Reset Children");
+    Vector<Collection *> children_collections;
+    LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
+      children_collections.append(collection_child->collection);
+    }
+    Vector<Object *> children_objects;
+    LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
+      children_objects.append(collection_object->ob);
+    }
 
-    mul_m4_m4_pre(transform_mat, self_object->imat);
+    instances.reserve(children_collections.size() + children_objects.size());
+
+    for (Collection *child_collection : children_collections) {
+      float4x4 transform = float4x4::identity();
+      if (!reset_children) {
+        add_v3_v3(transform.values[3], child_collection->instance_offset);
+        if (use_relative_transform) {
+          mul_m4_m4_pre(transform.values, self_object->imat);
+        }
+        else {
+          sub_v3_v3(transform.values[3], collection->instance_offset);
+        }
+      }
+      const int handle = instances.add_reference(*child_collection);
+      instances.add_instance(handle, transform);
+    }
+    for (Object *child_object : children_objects) {
+      const int handle = instances.add_reference(*child_object);
+      float4x4 transform = float4x4::identity();
+      if (!reset_children) {
+        if (use_relative_transform) {
+          transform = self_object->imat;
+        }
+        else {
+          sub_v3_v3(transform.values[3], collection->instance_offset);
+        }
+        mul_m4_m4_post(transform.values, child_object->obmat);
+      }
+      instances.add_instance(handle, transform);
+    }
   }
+  else {
+    float4x4 transform = float4x4::identity();
+    if (use_relative_transform) {
+      copy_v3_v3(transform.values[3], collection->instance_offset);
+      mul_m4_m4_pre(transform.values, self_object->imat);
+    }
 
-  const int handle = instances.add_reference(*collection);
-  instances.add_instance(handle, transform_mat, -1);
+    const int handle = instances.add_reference(*collection);
+    instances.add_instance(handle, transform);
+  }
 
   params.set_output("Geometry", geometry_set_out);
 }
