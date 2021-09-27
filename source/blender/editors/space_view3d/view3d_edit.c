@@ -4523,10 +4523,9 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     viewops_data_alloc(C, op);
     viewops_data_create(C, op, event, viewops_flag_from_prefs());
     vod = op->customdata;
-    vod->init.dial = BLI_dial_init(
-        (const float[2]){(vod->region->winrct.xmax - vod->region->winrct.xmin) / 2,
-                         (vod->region->winrct.ymax - vod->region->winrct.ymin) / 2},
-        FLT_EPSILON);
+    vod->init.dial = BLI_dial_init((const float[2]){BLI_rcti_cent_x(&vod->region->winrct),
+                                                    BLI_rcti_cent_y(&vod->region->winrct)},
+                                   FLT_EPSILON);
 
     ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
