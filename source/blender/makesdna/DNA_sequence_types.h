@@ -486,7 +486,7 @@ typedef struct SequencerScopes {
   struct ImBuf *histogram_ibuf;
 } SequencerScopes;
 
-#define MAXSEQ 32
+#define MAXSEQ 128
 
 #define SELECT 1
 
