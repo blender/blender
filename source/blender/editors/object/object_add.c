@@ -2828,8 +2828,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       /* Remove unused materials. */
       int actcol = ob_gpencil->actcol;
       for (int slot = 1; slot <= ob_gpencil->totcol; slot++) {
-        while (slot <= ob_gpencil->totcol &&
-               !BKE_object_material_slot_used(ob_gpencil->data, slot)) {
+        while (slot <= ob_gpencil->totcol && !BKE_object_material_slot_used(ob_gpencil, slot)) {
           ob_gpencil->actcol = slot;
           BKE_object_material_slot_remove(CTX_data_main(C), ob_gpencil);
 

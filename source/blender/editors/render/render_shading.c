@@ -690,7 +690,7 @@ static int material_slot_remove_unused_exec(bContext *C, wmOperator *op)
     Object *ob = objects[ob_index];
     int actcol = ob->actcol;
     for (int slot = 1; slot <= ob->totcol; slot++) {
-      while (slot <= ob->totcol && !BKE_object_material_slot_used(ob->data, slot)) {
+      while (slot <= ob->totcol && !BKE_object_material_slot_used(ob, slot)) {
         ob->actcol = slot;
         BKE_object_material_slot_remove(bmain, ob);
 

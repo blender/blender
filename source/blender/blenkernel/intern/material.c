@@ -46,6 +46,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
@@ -73,6 +74,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
@@ -462,21 +464,33 @@ static void material_data_index_remove_id(ID *id, short index)
   }
 }
 
-bool BKE_object_material_slot_used(ID *id, short actcol)
+bool BKE_object_material_slot_used(Object *object, short actcol)
 {
-  /* ensure we don't try get materials from non-obdata */
-  BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
+  if (!BKE_object_supports_material_slots(object)) {
+    return false;
+  }
 
-  switch (GS(id->name)) {
+  LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
+    if (psys->part->omat == actcol) {
+      return true;
+    }
+  }
+
+  ID *ob_data = object->data;
+  if (ob_data == NULL || !OB_DATA_SUPPORT_ID(GS(ob_data->name))) {
+    return false;
+  }
+
+  switch (GS(ob_data->name)) {
     case ID_ME:
-      return BKE_mesh_material_index_used((Mesh *)id, actcol - 1);
+      return BKE_mesh_material_index_used((Mesh *)ob_data, actcol - 1);
     case ID_CU:
-      return BKE_curve_material_index_used((Curve *)id, actcol - 1);
+      return BKE_curve_material_index_used((Curve *)ob_data, actcol - 1);
     case ID_MB:
       /* Meta-elements don't support materials at the moment. */
       return false;
     case ID_GD:
-      return BKE_gpencil_material_index_used((bGPdata *)id, actcol - 1);
+      return BKE_gpencil_material_index_used((bGPdata *)ob_data, actcol - 1);
     default:
       return false;
   }

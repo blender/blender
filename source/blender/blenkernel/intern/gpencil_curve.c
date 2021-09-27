@@ -543,7 +543,7 @@ void BKE_gpencil_convert_curve(Main *bmain,
   int actcol = ob_gp->actcol;
 
   for (int slot = 1; slot <= ob_gp->totcol; slot++) {
-    while (slot <= ob_gp->totcol && !BKE_object_material_slot_used(ob_gp->data, slot)) {
+    while (slot <= ob_gp->totcol && !BKE_object_material_slot_used(ob_gp, slot)) {
       ob_gp->actcol = slot;
       BKE_object_material_slot_remove(bmain, ob_gp);
 
