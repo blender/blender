@@ -377,9 +377,9 @@ class SEQUENCER_MT_view(Menu):
                 layout.operator("view2d.zoom_border", text="Zoom")
                 layout.menu("SEQUENCER_MT_preview_zoom")
 
-            if st.display_mode == 'IMAGE':
-                layout.prop(st, "use_zoom_to_fit")
-            elif st.display_mode == 'WAVEFORM':
+            layout.prop(st, "use_zoom_to_fit")
+
+            if st.display_mode == 'WAVEFORM':
                 layout.separator()
                 layout.prop(st, "show_separate_color", text="Show Separate Color Channels")
 
