@@ -871,6 +871,14 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
                 bf_reports->count.linked_proxies);
   }
 
+  if (bf_reports->count.vse_strips_skipped != 0) {
+    BKE_reportf(bf_reports->reports,
+                RPT_ERROR,
+                "%d sequence strips were not read because they were in a channel larger than %d",
+                bf_reports->count.vse_strips_skipped,
+                MAXSEQ);
+  }
+
   BLI_linklist_free(bf_reports->resynced_lib_overrides_libraries, NULL);
   bf_reports->resynced_lib_overrides_libraries = NULL;
 }

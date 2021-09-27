@@ -63,6 +63,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BLO_readfile.h"
+
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
@@ -993,8 +995,13 @@ static void link_recurs_seq(BlendDataReader *reader, ListBase *lb)
 {
   BLO_read_list(reader, lb);
 
-  LISTBASE_FOREACH (Sequence *, seq, lb) {
-    if (seq->seqbase.first) {
+  LISTBASE_FOREACH_MUTABLE (Sequence *, seq, lb) {
+    /* Sanity check. */
+    if ((seq->machine < 1) || (seq->machine > MAXSEQ)) {
+      BLI_freelinkN(lb, seq);
+      BLO_read_data_reports(reader)->count.vse_strips_skipped++;
+    }
+    else if (seq->seqbase.first) {
       link_recurs_seq(reader, &seq->seqbase);
     }
   }
