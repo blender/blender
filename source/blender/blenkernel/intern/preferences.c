@@ -94,6 +94,17 @@ bUserAssetLibrary *BKE_preferences_asset_library_find_from_name(const UserDef *u
   return BLI_findstring(&userdef->asset_libraries, name, offsetof(bUserAssetLibrary, name));
 }
 
+bUserAssetLibrary *BKE_preferences_asset_library_containing_path(const UserDef *userdef,
+                                                                 const char *path)
+{
+  LISTBASE_FOREACH (bUserAssetLibrary *, asset_lib_pref, &userdef->asset_libraries) {
+    if (BLI_path_contains(asset_lib_pref->path, path)) {
+      return asset_lib_pref;
+    }
+  }
+  return NULL;
+}
+
 int BKE_preferences_asset_library_get_index(const UserDef *userdef,
                                             const bUserAssetLibrary *library)
 {
