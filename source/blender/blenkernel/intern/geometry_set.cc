@@ -458,6 +458,28 @@ void GeometrySet::gather_attributes_for_propagation(
   delete dummy_component;
 }
 
+/**
+ * Modify every (recursive) instance separately. This is often more efficient than realizing all
+ * instances just to change the same thing on all of them.
+ */
+void GeometrySet::modify_geometry_sets(ForeachSubGeometryCallback callback)
+{
+  callback(*this);
+  if (!this->has_instances()) {
+    return;
+  }
+  /* In the future this can be improved by deduplicating instance references across different
+   * instances. */
+  InstancesComponent &instances_component = this->get_component_for_write<InstancesComponent>();
+  instances_component.ensure_geometry_instances();
+  for (const int handle : instances_component.references().index_range()) {
+    if (instances_component.references()[handle].type() == InstanceReference::Type::GeometrySet) {
+      GeometrySet &instance_geometry = instances_component.geometry_set_from_reference(handle);
+      instance_geometry.modify_geometry_sets(callback);
+    }
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

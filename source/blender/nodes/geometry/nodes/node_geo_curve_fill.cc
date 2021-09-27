@@ -154,20 +154,8 @@ static void geo_node_curve_fill_exec(GeoNodeExecParams params)
   const NodeGeometryCurveFill &storage = *(const NodeGeometryCurveFill *)params.node().storage;
   const GeometryNodeCurveFillMode mode = (GeometryNodeCurveFillMode)storage.mode;
 
-  if (geometry_set.has_instances()) {
-    InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
-    instances.ensure_geometry_instances();
-
-    threading::parallel_for(IndexRange(instances.references_amount()), 16, [&](IndexRange range) {
-      for (int i : range) {
-        GeometrySet &geometry_set = instances.geometry_set_from_reference(i);
-        geometry_set = bke::geometry_set_realize_instances(geometry_set);
-        curve_fill_calculate(geometry_set, mode);
-      }
-    });
-  }
-
-  curve_fill_calculate(geometry_set, mode);
+  geometry_set.modify_geometry_sets(
+      [&](GeometrySet &geometry_set) { curve_fill_calculate(geometry_set, mode); });
 
   params.set_output("Mesh", std::move(geometry_set));
 }

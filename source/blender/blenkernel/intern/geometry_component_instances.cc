@@ -125,44 +125,14 @@ blender::Span<int> InstancesComponent::instance_ids() const
 }
 
 /**
- * If references have a collection or object type, convert them into geometry instances. This
- * will join geometry components from nested instances if necessary. After that, the geometry
- * sets can be edited.
- */
-void InstancesComponent::ensure_geometry_instances()
-{
-  VectorSet<InstanceReference> new_references;
-  new_references.reserve(references_.size());
-  for (const InstanceReference &reference : references_) {
-    if (reference.type() == InstanceReference::Type::Object) {
-      GeometrySet geometry_set;
-      InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
-      const int handle = instances.add_reference(reference.object());
-      instances.add_instance(handle, float4x4::identity());
-      new_references.add_new(geometry_set);
-    }
-    else if (reference.type() == InstanceReference::Type::Collection) {
-      GeometrySet geometry_set;
-      InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
-      const int handle = instances.add_reference(reference.collection());
-      instances.add_instance(handle, float4x4::identity());
-      new_references.add_new(geometry_set);
-    }
-    else {
-      new_references.add_new(reference);
-    }
-  }
-  references_ = std::move(new_references);
-}
-
-/**
  * With write access to the instances component, the data in the instanced geometry sets can be
  * changed. This is a function on the component rather than each reference to ensure `const`
  * correctness for that reason.
  */
 GeometrySet &InstancesComponent::geometry_set_from_reference(const int reference_index)
 {
-  /* If this assert fails, it means #ensure_geometry_instances must be called first. */
+  /* If this assert fails, it means #ensure_geometry_instances must be called first or that the
+   * reference can't be converted to a geometry set. */
   BLI_assert(references_[reference_index].type() == InstanceReference::Type::GeometrySet);
 
   /* The const cast is okay because the instance's hash in the set

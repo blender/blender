@@ -309,6 +309,10 @@ struct GeometrySet {
       bool include_instances,
       blender::Map<blender::bke::AttributeIDRef, AttributeKind> &r_attributes) const;
 
+  using ForeachSubGeometryCallback = blender::FunctionRef<void(GeometrySet &geometry_set)>;
+
+  void modify_geometry_sets(ForeachSubGeometryCallback callback);
+
   /* Utility methods for creation. */
   static GeometrySet create_with_mesh(
       Mesh *mesh, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
@@ -479,7 +483,7 @@ class InstanceReference {
   Type type_ = Type::None;
   /** Depending on the type this is either null, an Object or Collection pointer. */
   void *data_ = nullptr;
-  std::shared_ptr<GeometrySet> geometry_set_;
+  std::unique_ptr<GeometrySet> geometry_set_;
 
  public:
   InstanceReference() = default;
@@ -494,8 +498,25 @@ class InstanceReference {
 
   InstanceReference(GeometrySet geometry_set)
       : type_(Type::GeometrySet),
-        geometry_set_(std::make_shared<GeometrySet>(std::move(geometry_set)))
+        geometry_set_(std::make_unique<GeometrySet>(std::move(geometry_set)))
   {
+  }
+
+  InstanceReference(const InstanceReference &other) : type_(other.type_), data_(other.data_)
+  {
+    if (other.geometry_set_) {
+      geometry_set_ = std::make_unique<GeometrySet>(*other.geometry_set_);
+    }
+  }
+
+  InstanceReference &operator=(const InstanceReference &other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+    this->~InstanceReference();
+    new (this) InstanceReference(other);
+    return *this;
   }
 
   Type type() const

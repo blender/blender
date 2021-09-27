@@ -652,3 +652,58 @@ void InstancesComponent::foreach_referenced_geometry(
     }
   }
 }
+
+/**
+ * If references have a collection or object type, convert them into geometry instances
+ * recursively. After that, the geometry sets can be edited. There may still be instances of other
+ * types of they can't be converted to geometry sets.
+ */
+void InstancesComponent::ensure_geometry_instances()
+{
+  using namespace blender;
+  using namespace blender::bke;
+  VectorSet<InstanceReference> new_references;
+  new_references.reserve(references_.size());
+  for (const InstanceReference &reference : references_) {
+    switch (reference.type()) {
+      case InstanceReference::Type::None:
+      case InstanceReference::Type::GeometrySet: {
+        /* Those references can stay as their were. */
+        new_references.add_new(reference);
+        break;
+      }
+      case InstanceReference::Type::Object: {
+        /* Create a new reference that contains the geometry set of the object. We may want to
+         * treat e.g. lamps and similar object types separately here. */
+        const Object &object = reference.object();
+        GeometrySet object_geometry_set = object_get_geometry_set_for_read(object);
+        if (object_geometry_set.has_instances()) {
+          InstancesComponent &component =
+              object_geometry_set.get_component_for_write<InstancesComponent>();
+          component.ensure_geometry_instances();
+        }
+        new_references.add_new(std::move(object_geometry_set));
+        break;
+      }
+      case InstanceReference::Type::Collection: {
+        /* Create a new reference that contains a geometry set that contains all objects from the
+         * collection as instances. */
+        GeometrySet collection_geometry_set;
+        InstancesComponent &component =
+            collection_geometry_set.get_component_for_write<InstancesComponent>();
+        Collection &collection = reference.collection();
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
+          const int handle = component.add_reference(*object);
+          component.add_instance(handle, object->obmat);
+          float4x4 &transform = component.instance_transforms().last();
+          sub_v3_v3(transform.values[3], collection.instance_offset);
+        }
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+        component.ensure_geometry_instances();
+        new_references.add_new(std::move(collection_geometry_set));
+        break;
+      }
+    }
+  }
+  references_ = std::move(new_references);
+}
