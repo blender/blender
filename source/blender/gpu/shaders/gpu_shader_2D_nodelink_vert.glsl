@@ -19,6 +19,7 @@ in vec2 P3;
 in ivec4 colid_doarrow;
 in ivec2 domuted;
 in float dim_factor;
+in float thickness;
 
 uniform vec4 colors[6];
 
@@ -41,6 +42,7 @@ uniform vec4 colors[3];
 uniform bool doArrow;
 uniform bool doMuted;
 uniform float dim_factor;
+uniform float thickness;
 
 #  define colShadow colors[0]
 #  define colStart colors[1]
@@ -103,7 +105,7 @@ void main(void)
   finalColor[3] *= dim_factor;
 
   /* Expand into a line */
-  gl_Position.xy += exp_axis * expandSize * expand_dist;
+  gl_Position.xy += exp_axis * expandSize * expand_dist * thickness;
 
   /* If the link is not muted or is not a reroute arrow the points are squashed to the center of
    * the line. Magic numbers are defined in drawnode.c */

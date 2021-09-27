@@ -3933,9 +3933,11 @@ static struct {
   uint p0_id, p1_id, p2_id, p3_id;
   uint colid_id, muted_id;
   uint dim_factor_id;
+  uint thickness_id;
   GPUVertBufRaw p0_step, p1_step, p2_step, p3_step;
   GPUVertBufRaw colid_step, muted_step;
   GPUVertBufRaw dim_factor_step;
+  GPUVertBufRaw thickness_step;
   uint count;
   bool enabled;
 } g_batch_link;
@@ -3952,6 +3954,8 @@ static void nodelink_batch_reset()
       g_batch_link.inst_vbo, g_batch_link.muted_id, &g_batch_link.muted_step);
   GPU_vertbuf_attr_get_raw_data(
       g_batch_link.inst_vbo, g_batch_link.dim_factor_id, &g_batch_link.dim_factor_step);
+  GPU_vertbuf_attr_get_raw_data(
+      g_batch_link.inst_vbo, g_batch_link.thickness_id, &g_batch_link.thickness_step);
   g_batch_link.count = 0;
 }
 
@@ -4071,6 +4075,8 @@ static void nodelink_batch_init()
       &format_inst, "domuted", GPU_COMP_U8, 2, GPU_FETCH_INT);
   g_batch_link.dim_factor_id = GPU_vertformat_attr_add(
       &format_inst, "dim_factor", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  g_batch_link.thickness_id = GPU_vertformat_attr_add(
+      &format_inst, "thickness", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   g_batch_link.inst_vbo = GPU_vertbuf_create_with_format_ex(&format_inst, GPU_USAGE_STREAM);
   /* Alloc max count but only draw the range we need. */
   GPU_vertbuf_data_alloc(g_batch_link.inst_vbo, NODELINK_GROUP_SIZE);
@@ -4147,7 +4153,8 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
                                     int th_col3,
                                     bool drawarrow,
                                     bool drawmuted,
-                                    float dim_factor)
+                                    float dim_factor,
+                                    float thickness)
 {
   /* Only allow these colors. If more is needed, you need to modify the shader accordingly. */
   BLI_assert(ELEM(th_col1, TH_WIRE_INNER, TH_WIRE, TH_ACTIVE, TH_EDGE_SELECT, TH_REDALERT));
@@ -4167,6 +4174,7 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
   char *muted = (char *)GPU_vertbuf_raw_step(&g_batch_link.muted_step);
   muted[0] = drawmuted;
   *(float *)GPU_vertbuf_raw_step(&g_batch_link.dim_factor_step) = dim_factor;
+  *(float *)GPU_vertbuf_raw_step(&g_batch_link.thickness_step) = thickness;
 
   if (g_batch_link.count == NODELINK_GROUP_SIZE) {
     nodelink_batch_draw(snode);
@@ -4182,6 +4190,13 @@ void node_draw_link_bezier(const View2D *v2d,
                            int th_col3)
 {
   const float dim_factor = node_link_dim_factor(v2d, link);
+  float thickness = 1.5f;
+  if (snode->edittree->type == NTREE_GEOMETRY) {
+    if (link->fromsock && link->fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) {
+      /* Make field links a bit thinner. */
+      thickness = 1.0f;
+    }
+  }
 
   float vec[4][2];
   const bool highlighted = link->flag & NODE_LINK_TEMP_HIGHLIGHT;
@@ -4205,7 +4220,8 @@ void node_draw_link_bezier(const View2D *v2d,
                               th_col3,
                               drawarrow,
                               drawmuted,
-                              dim_factor);
+                              dim_factor,
+                              thickness);
     }
     else {
       /* Draw single link. */
@@ -4231,6 +4247,7 @@ void node_draw_link_bezier(const View2D *v2d,
       GPU_batch_uniform_1i(batch, "doArrow", drawarrow);
       GPU_batch_uniform_1i(batch, "doMuted", drawmuted);
       GPU_batch_uniform_1f(batch, "dim_factor", dim_factor);
+      GPU_batch_uniform_1f(batch, "thickness", thickness);
       GPU_batch_draw(batch);
     }
   }
