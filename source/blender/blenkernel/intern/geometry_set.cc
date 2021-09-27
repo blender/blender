@@ -291,6 +291,19 @@ bool GeometrySet::has_curve() const
   return component != nullptr && component->has_curve();
 }
 
+/* Returns true when the geometry set has any data that is not an instance. */
+bool GeometrySet::has_realized_data() const
+{
+  if (components_.is_empty()) {
+    return false;
+  }
+  if (components_.size() > 1) {
+    return true;
+  }
+  /* Check if the only component is an #InstancesComponent. */
+  return this->get_component_for_read<InstancesComponent>() == nullptr;
+}
+
 /* Create a new geometry set that only contains the given mesh. */
 GeometrySet GeometrySet::create_with_mesh(Mesh *mesh, GeometryOwnershipType ownership)
 {

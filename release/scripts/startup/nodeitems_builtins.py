@@ -593,6 +593,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeMeshUVSphere"),
     ]),
     GeometryNodeCategory("GEO_POINT", "Point", items=[
+        NodeItem("GeometryNodeInstanceOnPoints", poll=geometry_nodes_fields_poll),
         NodeItem("GeometryNodeDistributePointsOnFaces", poll=geometry_nodes_fields_poll),
         NodeItem("GeometryNodeLegacyPointDistribute", poll=geometry_nodes_fields_legacy_poll),
         NodeItem("GeometryNodeLegacyPointInstance", poll=geometry_nodes_fields_legacy_poll),

@@ -5764,6 +5764,7 @@ static void registerGeometryNodes()
   register_node_type_geo_delete_geometry();
   register_node_type_geo_distribute_points_on_faces();
   register_node_type_geo_edge_split();
+  register_node_type_geo_instance_on_points();
   register_node_type_geo_input_index();
   register_node_type_geo_input_material();
   register_node_type_geo_input_normal();

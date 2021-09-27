@@ -323,6 +323,7 @@ struct GeometrySet {
   bool has_instances() const;
   bool has_volume() const;
   bool has_curve() const;
+  bool has_realized_data() const;
 
   const Mesh *get_mesh_for_read() const;
   const PointCloud *get_pointcloud_for_read() const;
@@ -478,7 +479,7 @@ class InstanceReference {
   Type type_ = Type::None;
   /** Depending on the type this is either null, an Object or Collection pointer. */
   void *data_ = nullptr;
-  std::unique_ptr<GeometrySet> geometry_set_;
+  std::shared_ptr<GeometrySet> geometry_set_;
 
  public:
   InstanceReference() = default;
@@ -493,15 +494,8 @@ class InstanceReference {
 
   InstanceReference(GeometrySet geometry_set)
       : type_(Type::GeometrySet),
-        geometry_set_(std::make_unique<GeometrySet>(std::move(geometry_set)))
+        geometry_set_(std::make_shared<GeometrySet>(std::move(geometry_set)))
   {
-  }
-
-  InstanceReference(const InstanceReference &src) : type_(src.type_), data_(src.data_)
-  {
-    if (src.type_ == Type::GeometrySet) {
-      geometry_set_ = std::make_unique<GeometrySet>(*src.geometry_set_);
-    }
   }
 
   Type type() const
@@ -595,6 +589,7 @@ class InstancesComponent : public GeometryComponent {
   void add_instance(int instance_handle, const blender::float4x4 &transform, const int id = -1);
 
   blender::Span<InstanceReference> references() const;
+  void remove_unused_references();
 
   void ensure_geometry_instances();
   GeometrySet &geometry_set_from_reference(const int reference_index);

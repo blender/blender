@@ -328,17 +328,21 @@ static void get_socket_value(const SocketRef &socket, void *r_value)
    * more complex defaults (other than just single values) in their socket declarations. */
   if (bsocket.flag & SOCK_HIDE_VALUE) {
     const bNode &bnode = *socket.bnode();
-    if (bsocket.type == SOCK_VECTOR &&
-        ELEM(bnode.type, GEO_NODE_SET_POSITION, SH_NODE_TEX_NOISE)) {
-      new (r_value) Field<float3>(
-          std::make_shared<bke::AttributeFieldInput>("position", CPPType::get<float3>()));
-      return;
+    if (bsocket.type == SOCK_VECTOR) {
+      if (ELEM(bnode.type, GEO_NODE_SET_POSITION, SH_NODE_TEX_NOISE)) {
+        new (r_value) Field<float3>(
+            std::make_shared<bke::AttributeFieldInput>("position", CPPType::get<float3>()));
+        return;
+      }
     }
-    if (bsocket.type == SOCK_INT && bnode.type == FN_NODE_RANDOM_VALUE) {
-      new (r_value) Field<int>(std::make_shared<fn::IndexFieldInput>());
-      return;
+    else if (bsocket.type == SOCK_INT) {
+      if (ELEM(bnode.type, FN_NODE_RANDOM_VALUE, GEO_NODE_INSTANCE_ON_POINTS)) {
+        new (r_value) Field<int>(std::make_shared<fn::IndexFieldInput>());
+        return;
+      }
     }
   }
+
   const bNodeSocketType *typeinfo = socket.typeinfo();
   typeinfo->get_geometry_nodes_cpp_value(*socket.bsocket(), r_value);
 }

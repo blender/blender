@@ -14,11 +14,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <mutex>
+
 #include "BLI_float4x4.hh"
 #include "BLI_map.hh"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
+#include "BLI_task.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_collection_types.h"
@@ -180,6 +183,86 @@ int InstancesComponent::add_reference(const InstanceReference &reference)
 blender::Span<InstanceReference> InstancesComponent::references() const
 {
   return references_;
+}
+
+void InstancesComponent::remove_unused_references()
+{
+  using namespace blender;
+  using namespace blender::bke;
+
+  const int tot_instances = this->instances_amount();
+  const int tot_references_before = references_.size();
+
+  if (tot_instances == 0) {
+    /* If there are no instances, no reference is needed. */
+    references_.clear();
+    return;
+  }
+  if (tot_references_before == 1) {
+    /* There is only one reference and at least one instance. So the only existing reference is
+     * used. Nothing to do here. */
+    return;
+  }
+
+  Array<bool> usage_by_handle(tot_references_before, false);
+  std::mutex mutex;
+
+  /* Loop over all instances to see which references are used. */
+  threading::parallel_for(IndexRange(tot_instances), 1000, [&](IndexRange range) {
+    /* Use local counter to avoid lock contention. */
+    Array<bool> local_usage_by_handle(tot_references_before, false);
+
+    for (const int i : range) {
+      const int handle = instance_reference_handles_[i];
+      BLI_assert(handle >= 0 && handle < tot_references_before);
+      local_usage_by_handle[handle] = true;
+    }
+
+    std::lock_guard lock{mutex};
+    for (const int i : IndexRange(tot_references_before)) {
+      usage_by_handle[i] |= local_usage_by_handle[i];
+    }
+  });
+
+  if (!usage_by_handle.as_span().contains(false)) {
+    /* All references are used. */
+    return;
+  }
+
+  /* Create new references and a mapping for the handles. */
+  Vector<int> handle_mapping;
+  VectorSet<InstanceReference> new_references;
+  int next_new_handle = 0;
+  bool handles_have_to_be_updated = false;
+  for (const int old_handle : IndexRange(tot_references_before)) {
+    if (!usage_by_handle[old_handle]) {
+      /* Add some dummy value. It won't be read again. */
+      handle_mapping.append(-1);
+    }
+    else {
+      const InstanceReference &reference = references_[old_handle];
+      handle_mapping.append(next_new_handle);
+      new_references.add_new(reference);
+      if (old_handle != next_new_handle) {
+        handles_have_to_be_updated = true;
+      }
+      next_new_handle++;
+    }
+  }
+  references_ = new_references;
+
+  if (!handles_have_to_be_updated) {
+    /* All remaining handles are the same as before, so they don't have to be updated. This happens
+     * when unused handles are only at the end. */
+    return;
+  }
+
+  /* Update handles of instances. */
+  threading::parallel_for(IndexRange(tot_instances), 1000, [&](IndexRange range) {
+    for (const int i : range) {
+      instance_reference_handles_[i] = handle_mapping[instance_reference_handles_[i]];
+    }
+  });
 }
 
 int InstancesComponent::instances_amount() const

@@ -80,6 +80,7 @@ void register_node_type_geo_curve_trim(void);
 void register_node_type_geo_delete_geometry(void);
 void register_node_type_geo_distribute_points_on_faces(void);
 void register_node_type_geo_edge_split(void);
+void register_node_type_geo_instance_on_points(void);
 void register_node_type_geo_input_index(void);
 void register_node_type_geo_input_material(void);
 void register_node_type_geo_input_normal(void);

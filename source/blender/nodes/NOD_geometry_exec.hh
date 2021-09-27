@@ -46,6 +46,8 @@ using bke::WeakAnonymousAttributeID;
 using bke::WriteAttributeLookup;
 using fn::CPPType;
 using fn::Field;
+using fn::FieldContext;
+using fn::FieldEvaluator;
 using fn::FieldInput;
 using fn::FieldOperation;
 using fn::GField;
