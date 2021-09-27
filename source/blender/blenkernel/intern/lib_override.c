@@ -1000,6 +1000,18 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
 
   DEG_id_tag_update(&ob_proxy->id, ID_RECALC_COPY_ON_WRITE);
 
+  /* In case of proxy conversion, remap all local ID usages to linked IDs to their newly created
+   * overrides.
+   * While this might not be 100% the desired behavior, it is likely to be the case most of the
+   * time. Ref: T91711. */
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (!ID_IS_LINKED(id_iter)) {
+      id_iter->tag |= LIB_TAG_DOIT;
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
   return BKE_lib_override_library_create(bmain, scene, view_layer, id_root, id_reference, NULL);
 }
 
