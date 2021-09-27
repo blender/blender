@@ -116,18 +116,18 @@ bool CUDADeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *ar
   }
 
   /* Launch kernel. */
-  cuda_device_assert(cuda_device_,
-                     cuLaunchKernel(cuda_kernel.function,
-                                    num_blocks,
-                                    1,
-                                    1,
-                                    num_threads_per_block,
-                                    1,
-                                    1,
-                                    shared_mem_bytes,
-                                    cuda_stream_,
-                                    args,
-                                    0));
+  assert_success(cuLaunchKernel(cuda_kernel.function,
+                                num_blocks,
+                                1,
+                                1,
+                                num_threads_per_block,
+                                1,
+                                1,
+                                shared_mem_bytes,
+                                cuda_stream_,
+                                args,
+                                0),
+                 "enqueue");
 
   return !(cuda_device_->have_error());
 }
@@ -139,7 +139,8 @@ bool CUDADeviceQueue::synchronize()
   }
 
   const CUDAContextScope scope(cuda_device_);
-  cuda_device_assert(cuda_device_, cuStreamSynchronize(cuda_stream_));
+  assert_success(cuStreamSynchronize(cuda_stream_), "synchronize");
+
   debug_synchronize();
 
   return !(cuda_device_->have_error());
@@ -162,9 +163,9 @@ void CUDADeviceQueue::zero_to_device(device_memory &mem)
   assert(mem.device_pointer != 0);
 
   const CUDAContextScope scope(cuda_device_);
-  cuda_device_assert(
-      cuda_device_,
-      cuMemsetD8Async((CUdeviceptr)mem.device_pointer, 0, mem.memory_size(), cuda_stream_));
+  assert_success(
+      cuMemsetD8Async((CUdeviceptr)mem.device_pointer, 0, mem.memory_size(), cuda_stream_),
+      "zero_to_device");
 }
 
 void CUDADeviceQueue::copy_to_device(device_memory &mem)
@@ -185,10 +186,10 @@ void CUDADeviceQueue::copy_to_device(device_memory &mem)
 
   /* Copy memory to device. */
   const CUDAContextScope scope(cuda_device_);
-  cuda_device_assert(
-      cuda_device_,
+  assert_success(
       cuMemcpyHtoDAsync(
-          (CUdeviceptr)mem.device_pointer, mem.host_pointer, mem.memory_size(), cuda_stream_));
+          (CUdeviceptr)mem.device_pointer, mem.host_pointer, mem.memory_size(), cuda_stream_),
+      "copy_to_device");
 }
 
 void CUDADeviceQueue::copy_from_device(device_memory &mem)
@@ -204,10 +205,19 @@ void CUDADeviceQueue::copy_from_device(device_memory &mem)
 
   /* Copy memory from device. */
   const CUDAContextScope scope(cuda_device_);
-  cuda_device_assert(
-      cuda_device_,
+  assert_success(
       cuMemcpyDtoHAsync(
-          mem.host_pointer, (CUdeviceptr)mem.device_pointer, mem.memory_size(), cuda_stream_));
+          mem.host_pointer, (CUdeviceptr)mem.device_pointer, mem.memory_size(), cuda_stream_),
+      "copy_from_device");
+}
+
+void CUDADeviceQueue::assert_success(CUresult result, const char *operation)
+{
+  if (result != CUDA_SUCCESS) {
+    const char *name = cuewErrorString(result);
+    cuda_device_->set_error(string_printf(
+        "%s in CUDA queue %s (%s)", name, operation, debug_active_kernels().c_str()));
+  }
 }
 
 unique_ptr<DeviceGraphicsInterop> CUDADeviceQueue::graphics_interop_create()

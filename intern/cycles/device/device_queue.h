@@ -21,6 +21,7 @@
 #include "device/device_graphics_interop.h"
 #include "util/util_logging.h"
 #include "util/util_map.h"
+#include "util/util_string.h"
 #include "util/util_unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
@@ -101,6 +102,7 @@ class DeviceQueue {
   void debug_init_execution();
   void debug_enqueue(DeviceKernel kernel, const int work_size);
   void debug_synchronize();
+  string debug_active_kernels();
 
   /* Combination of kernels enqueued together sync last synchronize. */
   DeviceKernelMask last_kernels_enqueued_;

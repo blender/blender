@@ -60,6 +60,8 @@ class CUDADeviceQueue : public DeviceQueue {
  protected:
   CUDADevice *cuda_device_;
   CUstream cuda_stream_;
+
+  void assert_success(CUresult result, const char *operation);
 };
 
 CCL_NAMESPACE_END

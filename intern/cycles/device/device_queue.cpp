@@ -57,8 +57,9 @@ void DeviceQueue::debug_init_execution()
 {
   if (VLOG_IS_ON(3)) {
     last_sync_time_ = time_dt();
-    last_kernels_enqueued_ = 0;
   }
+
+  last_kernels_enqueued_ = 0;
 }
 
 void DeviceQueue::debug_enqueue(DeviceKernel kernel, const int work_size)
@@ -66,8 +67,9 @@ void DeviceQueue::debug_enqueue(DeviceKernel kernel, const int work_size)
   if (VLOG_IS_ON(3)) {
     VLOG(4) << "GPU queue launch " << device_kernel_as_string(kernel) << ", work_size "
             << work_size;
-    last_kernels_enqueued_ |= (uint64_t(1) << (uint64_t)kernel);
   }
+
+  last_kernels_enqueued_ |= (uint64_t(1) << (uint64_t)kernel);
 }
 
 void DeviceQueue::debug_synchronize()
@@ -80,8 +82,14 @@ void DeviceQueue::debug_synchronize()
     stats_kernel_time_[last_kernels_enqueued_] += elapsed_time;
 
     last_sync_time_ = new_time;
-    last_kernels_enqueued_ = 0;
   }
+
+  last_kernels_enqueued_ = 0;
+}
+
+string DeviceQueue::debug_active_kernels()
+{
+  return device_kernel_mask_as_string(last_kernels_enqueued_);
 }
 
 CCL_NAMESPACE_END
