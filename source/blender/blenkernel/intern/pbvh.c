@@ -2993,7 +2993,7 @@ void BKE_pbvh_update_normals(PBVH *pbvh, struct SubdivCCG *subdiv_ccg)
 
   if (totnode > 0) {
     if (pbvh->type == PBVH_BMESH) {
-      pbvh_bmesh_normals_update(pbvh->bm, nodes, totnode);
+      pbvh_bmesh_normals_update(pbvh, nodes, totnode);
     }
     else if (pbvh->type == PBVH_FACES) {
       pbvh_faces_update_normals(pbvh, nodes, totnode);

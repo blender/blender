@@ -296,7 +296,7 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVH *pbvh,
                                     bool use_original,
                                     int stroke_id);
 
-void pbvh_bmesh_normals_update(struct BMesh *bm, PBVHNode **nodes, int totnode);
+void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode);
 
 void pbvh_free_all_draw_buffers(PBVHNode *node);
 void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node);

@@ -1066,6 +1066,8 @@ typedef struct UpdateNormalsTaskData {
   BMVert **border_verts;
   int tot_border_verts;
   int cd_dyn_vert;
+  int cd_vert_node_offset;
+  int node_nr;
 } UpdateNormalsTaskData;
 
 static void pbvh_update_normals_task_cb(void *__restrict userdata,
@@ -1076,6 +1078,7 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
   BMFace *f;
   UpdateNormalsTaskData *data = ((UpdateNormalsTaskData *)userdata) + n;
   PBVHNode *node = data->node;
+  int node_nr = data->node_nr;
 
   BMVert **bordervs = NULL;
   BLI_array_declare(bordervs);
@@ -1084,8 +1087,10 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
 
   TGSET_ITER (v, node->bm_unique_verts) {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(data->cd_dyn_vert, v);
+    int ni2 = BM_ELEM_CD_GET_INT(v, data->cd_vert_node_offset);
+    bool bad = ni2 != node_nr || (mv->flag & DYNVERT_PBVH_BOUNDARY);
 
-    if (mv->flag & DYNVERT_PBVH_BOUNDARY) {
+    if (bad) {
       BLI_array_append(bordervs, v);
     }
     else {
@@ -1099,8 +1104,10 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
     BMLoop *l = f->l_first;
     do {
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(data->cd_dyn_vert, l->v);
+      int ni2 = BM_ELEM_CD_GET_INT(l->v, data->cd_vert_node_offset);
+      bool bad = ni2 != node_nr || (mv->flag & DYNVERT_PBVH_BOUNDARY);
 
-      if (!(mv->flag & DYNVERT_PBVH_BOUNDARY)) {
+      if (!bad) {
         add_v3_v3(l->v->no, f->no);
       }
     } while ((l = l->next) != f->l_first);
@@ -1109,43 +1116,12 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
 
   TGSET_ITER (v, node->bm_unique_verts) {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(data->cd_dyn_vert, v);
+    int ni2 = BM_ELEM_CD_GET_INT(v, data->cd_vert_node_offset);
+    bool bad = ni2 != node_nr || (mv->flag & DYNVERT_PBVH_BOUNDARY);
 
-    if (!(mv->flag & DYNVERT_PBVH_BOUNDARY)) {
-      // BLI_array_append(bordervs, v);
+    if (!bad) {
       normalize_v3(v->no);
     }
-#if 0
-    // BM_vert_normal_update(v);
-    // optimized loop
-    BMEdge *e = v->e;
-
-    zero_v3(v->no);
-
-    if (!e) {
-      continue;
-    }
-
-    do {
-      BMLoop *l = e->l;
-
-      if (!l) {
-        e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
-        continue;
-      }
-
-      // no need to loop over radial list here,
-      // it's unneeded for manifold meshes and non-manifold
-      // won't give correct normals anyway by definition
-
-      v->no[0] += l->f->no[0];
-      v->no[1] += l->f->no[1];
-      v->no[2] += l->f->no[2];
-
-      e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
-    } while (e != v->e);
-
-    normalize_v3(v->no);
-#endif
   }
   TGSET_ITER_END
 
@@ -1155,13 +1131,17 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
   node->flag &= ~PBVH_UpdateNormals;
 }
 
-void pbvh_bmesh_normals_update(BMesh *bm, PBVHNode **nodes, int totnode)
+void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode)
 {
   TaskParallelSettings settings;
   UpdateNormalsTaskData *datas = MEM_calloc_arrayN(totnode, sizeof(*datas), "bmesh normal update");
+  BMesh *bm = pbvh->bm;
 
   for (int i = 0; i < totnode; i++) {
     datas[i].node = nodes[i];
+    datas[i].cd_dyn_vert = pbvh->cd_dyn_vert;
+    datas[i].cd_vert_node_offset = pbvh->cd_vert_node_offset;
+    datas[i].node_nr = nodes[i] - pbvh->nodes;
   }
 
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1214,17 +1194,6 @@ void pbvh_bmesh_normals_update(BMesh *bm, PBVHNode **nodes, int totnode)
 
   MEM_SAFE_FREE(visit);
   MEM_SAFE_FREE(datas);
-
-#if 0  // in theory we shouldn't need to update normals in bm_other_verts.
-  for (int i=0; i<totnode; i++) {
-    PBVHNode *node = nodes[i];
-
-    TGSET_ITER (v, node->bm_other_verts) {
-      BM_vert_normal_update(v);
-    }
-    TGSET_ITER_END
-  }
-#endif
 }
 
 static void pbvh_bmesh_normals_update_old(PBVHNode **nodes, int totnode)
