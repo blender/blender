@@ -817,7 +817,7 @@ const bTheme U_theme_default = {
     },
     .shade2 = RGBA(0x7f707064),
     .grid = RGBA(0x23232300),
-    .wire = RGBA(0x808080ff),
+    .wire = RGBA(0x232323ff),
     .select = RGBA(0xed5700ff),
     .active = RGBA(0xffffffff),
     .edge_select = RGBA(0xffffffff),
