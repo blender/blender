@@ -2719,7 +2719,7 @@ void sequencer_draw_preview(const bContext *C,
     sequencer_draw_borders_overlay(sseq, v2d, scene);
   }
 
-  if (!draw_backdrop) {
+  if (!draw_backdrop && scene->ed != NULL) {
     SeqCollection *collection = SEQ_query_rendered_strips(&scene->ed->seqbase, timeline_frame, 0);
     Sequence *seq;
     SEQ_ITERATOR_FOREACH (seq, collection) {
