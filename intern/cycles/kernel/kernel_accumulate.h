@@ -386,7 +386,7 @@ ccl_device_inline void kernel_accum_light(INTEGRATOR_STATE_CONST_ARGS,
 {
   /* The throughput for shadow paths already contains the light shader evaluation. */
   float3 contribution = INTEGRATOR_STATE(shadow_path, throughput);
-  kernel_accum_clamp(kg, &contribution, INTEGRATOR_STATE(shadow_path, bounce) - 1);
+  kernel_accum_clamp(kg, &contribution, INTEGRATOR_STATE(shadow_path, bounce));
 
   ccl_global float *buffer = kernel_accum_pixel_render_buffer(INTEGRATOR_STATE_PASS,
                                                               render_buffer);
