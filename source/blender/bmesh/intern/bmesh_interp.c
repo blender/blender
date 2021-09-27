@@ -1299,7 +1299,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   if (data == &bm->vdata) {
     BMVert *eve;
 
-    CustomData_bmesh_init_pool(data, bm->totvert, BM_VERT);
+    CustomData_bmesh_init_pool_ex(data, bm->totvert, BM_VERT, __func__);
 
     BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
       block = NULL;
@@ -1312,7 +1312,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   else if (data == &bm->edata) {
     BMEdge *eed;
 
-    CustomData_bmesh_init_pool(data, bm->totedge, BM_EDGE);
+    CustomData_bmesh_init_pool_ex(data, bm->totedge, BM_EDGE, __func__);
 
     BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
       block = NULL;
@@ -1327,7 +1327,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
     BMFace *efa;
     BMLoop *l;
 
-    CustomData_bmesh_init_pool(data, bm->totloop, BM_LOOP);
+    CustomData_bmesh_init_pool_ex(data, bm->totloop, BM_LOOP, __func__);
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         block = NULL;
@@ -1341,7 +1341,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   else if (data == &bm->pdata) {
     BMFace *efa;
 
-    CustomData_bmesh_init_pool(data, bm->totface, BM_FACE);
+    CustomData_bmesh_init_pool_ex(data, bm->totface, BM_FACE, __func__);
 
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       block = NULL;

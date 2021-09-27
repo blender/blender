@@ -794,6 +794,7 @@ void range_tree_uint_take(RangeTreeUInt *rt, const uint value)
 	range_tree_uint_take_impl(rt, value, node);
 }
 
+#pragma optimize("", off)
 bool range_tree_uint_retake(RangeTreeUInt *rt, const uint value)
 {
 	Node *node = rt_find_node_from_value(rt, value);

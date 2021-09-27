@@ -29,13 +29,15 @@
  *   (optionally when using the #BLI_MEMPOOL_ALLOW_ITER flag).
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "atomic_ops.h"
 
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
-
+#
 #include "BLI_asan.h"
 #include "BLI_mempool.h"         /* own include */
 #include "BLI_mempool_private.h" /* own include */
@@ -149,6 +151,9 @@ struct BLI_mempool {
   /** Number of elements allocated in total. */
   uint totalloc;
 #endif
+
+  char *memtag;
+  char *memtag_chunk;
 };
 
 #define MEMPOOL_ELEM_SIZE_MIN (sizeof(void *) * 2)
@@ -222,7 +227,7 @@ BLI_INLINE uint mempool_maxchunks(const uint totelem, const uint pchunk)
 
 static BLI_mempool_chunk *mempool_chunk_alloc(BLI_mempool *pool)
 {
-  return MEM_mallocN(sizeof(BLI_mempool_chunk) + (size_t)pool->csize, "BLI_Mempool Chunk");
+  return MEM_mallocN(sizeof(BLI_mempool_chunk) + (size_t)pool->csize, pool->memtag);
 }
 
 /**
@@ -450,14 +455,39 @@ static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk, BLI_mempool *pool
   }
 }
 
+#ifdef BLI_mempool_create
+#  undef BLI_mempool_create
+#endif
+
 BLI_mempool *BLI_mempool_create(uint esize, uint totelem, uint pchunk, uint flag)
+{
+  return BLI_mempool_create_ex(esize, totelem, pchunk, flag, "");
+}
+
+BLI_mempool *BLI_mempool_create_ex(
+    uint esize, uint totelem, uint pchunk, uint flag, const char *tag)
 {
   BLI_mempool *pool;
   BLI_freenode *last_tail = NULL;
   uint i, maxchunks;
 
+  char buf[512];
+  if (tag) {
+    sprintf(buf, "Mempool:%s", tag);
+  }
+  else {
+    sprintf(buf, "memory pool");
+  }
+
+  char *memtag = strdup(buf);
+
   /* allocate the pool structure */
-  pool = MEM_mallocN(sizeof(BLI_mempool), "memory pool");
+  pool = MEM_mallocN(sizeof(BLI_mempool), memtag);
+
+  strcat(buf, " chunk");
+
+  pool->memtag = memtag;
+  pool->memtag_chunk = strdup(buf);
 
   pool->totchunk = 0;
   pool->chunktable = NULL;
@@ -1097,6 +1127,13 @@ void BLI_mempool_clear(BLI_mempool *pool)
 void BLI_mempool_destroy(BLI_mempool *pool)
 {
   mempool_chunk_free_all(pool->chunks, pool);
+
+  if (pool->memtag) {
+    free(pool->memtag);
+  }
+  if (pool->memtag_chunk) {
+    free(pool->memtag_chunk);
+  }
 
   MEM_SAFE_FREE(pool->chunktable);
 

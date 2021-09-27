@@ -820,7 +820,7 @@ void BM_clear_ids(BMesh *bm)
   }
 
   if (bm->idmap.free_ids) {
-    BLI_gset_free(bm->idmap.free_ids, NULL);
+    MEM_SAFE_FREE(bm->idmap.free_ids);
     bm->idmap.free_ids = NULL;
   }
 

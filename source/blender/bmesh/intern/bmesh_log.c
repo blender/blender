@@ -57,6 +57,9 @@
 
 #define CUSTOMDATA
 
+//#define DEBUG_LOG_REFCOUNTNG
+#define PRINT_LOG_REF_COUNTING
+
 #ifdef DEBUG_LOG_REFCOUNTNG
 static struct {
   char tag[4192];
@@ -214,8 +217,6 @@ struct BMLog {
   int cd_dyn_vert;
   bool dead;
 };
-
-//#define PRINT_LOG_REF_COUNTING
 
 static void _bm_log_addref(BMLog *log, const char *func)
 {
@@ -1200,6 +1201,28 @@ static void bm_log_entry_free_direct(BMLogEntry *entry)
       BLI_mempool_destroy(entry->pool_faces);
       BLI_memarena_free(entry->arena);
 
+      /* check for the weird case that a user has dynamic
+         topology on with multires data */
+
+      if (CustomData_has_layer(&entry->ldata, CD_MDISPS)) {
+        int cd_mdisps = CustomData_get_offset(&entry->ldata, CD_MDISPS);
+
+        /* iterate over cdata blocks directly */
+        BLI_mempool_iter iter;
+        BLI_mempool_iternew(entry->ldata.pool, &iter);
+        void *block = BLI_mempool_iterstep(&iter);
+
+        for (; block; block = BLI_mempool_iterstep(&iter)) {
+          BMElem elem;
+          elem.head.data = block;
+
+          MDisps *mdisp = BM_ELEM_CD_GET_VOID_P(&elem, cd_mdisps);
+          if (mdisp->disps) {
+            MEM_freeN(mdisp->disps);
+          }
+        }
+      }
+
       if (entry->vdata.pool) {
         BLI_mempool_destroy(entry->vdata.pool);
       }
@@ -1245,6 +1268,10 @@ static bool bm_log_entry_free(BMLogEntry *entry)
   bm_log_entry_free_direct(entry);
 
   if (kill_log) {
+#ifdef PRINT_LOG_REF_COUNTING
+    printf("killing log! %p\n", log);
+#endif
+
     bm_log_free_direct(log, true);
   }
 
@@ -1327,7 +1354,12 @@ BMLog *bm_log_from_existing_entries_create(BMesh *bm, BMLog *log, BMLogEntry *en
   namestack_push();
 
   for (entry = log->entries.first; entry; entry = entry->next) {
-    BMLogEntry *entry2 = entry->combined_prev;
+    BMLogEntry *entry2 = entry;
+
+    /* go to head of subgroup */
+    while (entry2->combined_next) {
+      entry2 = entry2->combined_next;
+    }
 
     while (entry2) {
       entry2->log = log;
@@ -1335,9 +1367,6 @@ BMLog *bm_log_from_existing_entries_create(BMesh *bm, BMLog *log, BMLogEntry *en
 
       bm_log_addref(log);
     }
-
-    entry->log = log;
-    bm_log_addref(log);
   }
 
   namestack_pop();
@@ -1396,7 +1425,7 @@ BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry)
 /* Free all the data in a BMLog including the log itself
  * safe_mode means log->refcount will be checked, and if nonzero log will not be freed
  */
-static bool bm_log_free_direct(BMLog *log, bool safe_mode)
+ATTR_NO_OPT static bool bm_log_free_direct(BMLog *log, bool safe_mode)
 {
   BMLogEntry *entry;
 
@@ -1663,10 +1692,10 @@ BMLogEntry *bm_log_entry_add_ex(
     CustomData_copy_all_layout(&bm->ldata, &entry->ldata);
     CustomData_copy_all_layout(&bm->pdata, &entry->pdata);
 
-    CustomData_bmesh_init_pool(&entry->vdata, 0, BM_VERT);
-    CustomData_bmesh_init_pool(&entry->edata, 0, BM_EDGE);
-    CustomData_bmesh_init_pool(&entry->ldata, 0, BM_LOOP);
-    CustomData_bmesh_init_pool(&entry->pdata, 0, BM_FACE);
+    CustomData_bmesh_init_pool_ex(&entry->vdata, 0, BM_VERT, __func__);
+    CustomData_bmesh_init_pool_ex(&entry->edata, 0, BM_EDGE, __func__);
+    CustomData_bmesh_init_pool_ex(&entry->ldata, 0, BM_LOOP, __func__);
+    CustomData_bmesh_init_pool_ex(&entry->pdata, 0, BM_FACE, __func__);
   }
 
   log->current_entry = entry;
@@ -2529,10 +2558,16 @@ BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, fl
   uint nid = (uint)BM_ELEM_GET_ID(bm, (*newe));
 
   // get a new id
+#  ifndef WITH_BM_ID_FREELIST
   uint id = range_tree_uint_take_any(log->bm->idmap.idtree);
-
   bm_free_id(log->bm, (BMElem *)e);
   bm_assign_id(log->bm, (BMElem *)e, id, false);
+#  else
+  bm_free_id(log->bm, (BMElem *)e);
+  bm_alloc_id(log->bm, (BMElem *)e);
+
+  uint id = BM_ELEM_GET_ID(bm, e);
+#  endif
 
   bm_log_message(" esplit: add new vert %d", id3);
   BM_log_vert_added(log, newv, -1);

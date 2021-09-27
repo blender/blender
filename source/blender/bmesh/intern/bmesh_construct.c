@@ -27,6 +27,7 @@
 
 #include "BLI_alloca.h"
 #include "BLI_array.h"
+#include "BLI_bitmap.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_sort_utils.h"
@@ -52,11 +53,32 @@ static uint bm_id_freelist_pop(BMesh *bm)
   return 0;
 }
 
+void bm_free_ids_check(BMesh *bm, uint id)
+{
+  if (id >> 2UL >= (uint)bm->idmap.free_ids_size) {
+    size_t size = (size_t)(id >> 2) + 2ULL;
+    size += size >> 1ULL;
+
+    if (!bm->idmap.free_ids) {
+      bm->idmap.free_ids = MEM_callocN(sizeof(int) * size, "free_ids");
+    }
+    else {
+      bm->idmap.free_ids = MEM_recallocN(bm->idmap.free_ids, sizeof(int) * size);
+    }
+
+    bm->idmap.free_ids_size = (uint)size;
+  }
+}
+
 static void bm_id_freelist_take(BMesh *bm, uint id)
 {
-  if (!bm->idmap.free_ids || !BLI_gset_haskey(bm->idmap.free_ids, POINTER_FROM_UINT(id))) {
+  bm_free_ids_check(bm, id);
+
+  if (!bm->idmap.free_ids || !BLI_BITMAP_TEST(bm->idmap.free_ids, id)) {
     return;
   }
+
+  BLI_BITMAP_ENABLE(bm->idmap.free_ids, id);
 
   for (int i = 0; i < bm->idmap.freelist_len; i++) {
     if (bm->idmap.freelist[i] == id) {
@@ -73,16 +95,14 @@ static bool bm_id_freelist_has(BMesh *bm, uint id)
     return false;
   }
 
-  return BLI_gset_haskey(bm->idmap.free_ids, POINTER_FROM_UINT(id));
+  return id < bm->idmap.free_ids_size && BLI_BITMAP_TEST(bm->idmap.free_ids, id);
 }
 
 void bm_id_freelist_push(BMesh *bm, uint id)
 {
-  bm->idmap.freelist_len++;
+  bm_free_ids_check(bm, id);
 
-  if (!bm->idmap.free_ids) {
-    bm->idmap.free_ids = BLI_gset_ptr_new("free_ids");
-  }
+  bm->idmap.freelist_len++;
 
   if (bm->idmap.freelist_len >= bm->idmap.freelist_size) {
     int size = 2 + bm->idmap.freelist_size + (bm->idmap.freelist_size >> 1);
@@ -102,13 +122,13 @@ void bm_id_freelist_push(BMesh *bm, uint id)
   }
 
   bm->idmap.freelist[bm->idmap.freelist_len - 1] = id;
-  BLI_gset_add(bm->idmap.free_ids, POINTER_FROM_UINT(id));
+  BLI_BITMAP_ENABLE(bm->idmap.free_ids, id);
 }
 #endif
 
 // static const int _typemap[] = {0, 0, 1, 0, 2, 0, 0, 0, 3};
 
-void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
+ATTR_NO_OPT void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
 {
   // CustomData *cdata = &bm->vdata + _typemap[elem->head.htype];
   // int cd_id_off = cdata->layers[cdata->typemap[CD_MESH_ID]].offset;
@@ -143,7 +163,7 @@ void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
   }
 }
 
-void bm_assign_id(BMesh *bm, BMElem *elem, uint id, bool check_unqiue)
+ATTR_NO_OPT void bm_assign_id(BMesh *bm, BMElem *elem, uint id, bool check_unqiue)
 {
   if (check_unqiue && (bm->idmap.flag & BM_HAS_ID_MAP)) {
     if (BM_ELEM_FROM_ID(bm, id)) {

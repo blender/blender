@@ -296,7 +296,7 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVH *pbvh,
                                     bool use_original,
                                     int stroke_id);
 
-void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode);
+void pbvh_bmesh_normals_update(struct BMesh *bm, PBVHNode **nodes, int totnode);
 
 void pbvh_free_all_draw_buffers(PBVHNode *node);
 void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node);
@@ -338,6 +338,8 @@ void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni);
 void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f);
 void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
                                    int cd_faceset_offset,
+                                   int cd_vert_node_offset,
+                                   int cd_face_node_offset,
                                    BMVert *v,
                                    int bound_symmetry);
 
@@ -346,8 +348,12 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
   MDynTopoVert *mv = (MDynTopoVert *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_dyn_vert);
 
   if (mv->flag & DYNVERT_NEED_BOUNDARY) {
-    bke_pbvh_update_vert_boundary(
-        pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v, pbvh->boundary_symmetry);
+    bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert,
+                                  pbvh->cd_faceset_offset,
+                                  pbvh->cd_vert_node_offset,
+                                  pbvh->cd_face_node_offset,
+                                  v,
+                                  pbvh->boundary_symmetry);
     return true;
   }
 

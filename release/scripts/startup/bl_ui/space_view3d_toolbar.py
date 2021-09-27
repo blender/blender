@@ -513,6 +513,8 @@ class VIEW3D_PT_tools_persistent_base_channels(Panel, View3DPaintPanel):
 
         ch = UnifiedPaintPanel.get_channel(context, brush, "use_persistent")
 
+        capabilities = sculpt.brush.sculpt_capabilities
+
         ok = context.mode == "SCULPT"
         ok = ok and ch and ch.show_in_workspace
         ok = ok or capabilities.has_persistence

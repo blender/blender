@@ -1625,8 +1625,12 @@ bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, SculptVertRef in
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
 
       if (mv->flag & DYNVERT_NEED_BOUNDARY) {
-        BKE_pbvh_update_vert_boundary(
-            ss->cd_dyn_vert, ss->cd_faceset_offset, v, ss->boundary_symmetry);
+        BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert,
+                                      ss->cd_faceset_offset,
+                                      ss->cd_vert_node_offset,
+                                      ss->cd_face_node_offset,
+                                      v,
+                                      ss->boundary_symmetry);
       }
 
       return !(mv->flag & DYNVERT_FSET_BOUNDARY);
@@ -2138,8 +2142,12 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
 
       if (mv->flag & DYNVERT_NEED_BOUNDARY) {
-        BKE_pbvh_update_vert_boundary(
-            ss->cd_dyn_vert, ss->cd_faceset_offset, (BMVert *)vertex.i, ss->boundary_symmetry);
+        BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert,
+                                      ss->cd_faceset_offset,
+                                      ss->cd_vert_node_offset,
+                                      ss->cd_face_node_offset,
+                                      (BMVert *)vertex.i,
+                                      ss->boundary_symmetry);
       }
 
       ret = 0;
@@ -2210,8 +2218,12 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, ((BMVert *)(vertex.i)));
 
       if (mv->flag & DYNVERT_NEED_BOUNDARY) {
-        BKE_pbvh_update_vert_boundary(
-            ss->cd_dyn_vert, ss->cd_faceset_offset, (BMVert *)vertex.i, ss->boundary_symmetry);
+        BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert,
+                                      ss->cd_faceset_offset,
+                                      ss->cd_vert_node_offset,
+                                      ss->cd_face_node_offset,
+                                      (BMVert *)vertex.i,
+                                      ss->boundary_symmetry);
       }
 
       int flag = 0;
@@ -5110,6 +5122,15 @@ static void do_draw_brush_task_cb_ex(void *__restrict userdata,
 
 static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
+#if 0
+  if (BKE_pbvh_type(ob->sculpt->pbvh) == PBVH_BMESH) {
+    void cxx_do_draw_brush(Sculpt * sd, Object * ob, PBVHNode * *nodes, int totnode);
+
+    cxx_do_draw_brush(sd, ob, nodes, totnode);
+    return;
+  }
+#endif
+
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
   float offset[3];

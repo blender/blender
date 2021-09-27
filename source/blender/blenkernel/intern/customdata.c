@@ -3737,6 +3737,14 @@ void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata, Custom
 
 void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
 {
+  return CustomData_bmesh_init_pool_ex(data, totelem, htype, __func__);
+}
+
+void CustomData_bmesh_init_pool_ex(CustomData *data,
+                                   int totelem,
+                                   const char htype,
+                                   const char *memtag)
+{
   int chunksize;
 
   /* Dispose old pools before calling here to avoid leaks */
@@ -3763,7 +3771,7 @@ void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
 
   /* If there are no layers, no pool is needed just yet */
   if (data->totlayer) {
-    data->pool = BLI_mempool_create(data->totsize, totelem, chunksize, BLI_MEMPOOL_NOP);
+    data->pool = BLI_mempool_create_ex(data->totsize, totelem, chunksize, BLI_MEMPOOL_NOP, memtag);
   }
 }
 

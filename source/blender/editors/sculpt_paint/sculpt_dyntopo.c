@@ -771,10 +771,34 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   SculptSession *ss = ob->sculpt;
   Mesh *me = ob->data;
 
+  if (ss->bm) {
+    bool ok = ss->bm->totvert == me->totvert && ss->bm->totedge == me->totedge &&
+              ss->bm->totloop == me->totloop && ss->bm->totface == me->totpoly;
+
+    if (!ok) {
+      BM_mesh_free(ss->bm);
+      ss->bm = NULL;
+    }
+  }
+
+  if (!ss->bm || !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+    SCULPT_pbvh_clear(ob);
+  }
+  else {
+    /*sculpt session was set up by paint.c. just call SCULPT_update_customdata_refs to be safe*/
+    SCULPT_update_customdata_refs(ss);
+
+    /* also check bm_log */
+    if (!ss->bm_log) {
+      ss->bm_log = BM_log_create(ss->bm, ss->cd_dyn_vert);
+    }
+
+    return;
+  }
+
   const BMAllocTemplate allocsize = {
       .totvert = 2048 * 16, .totface = 2048 * 16, .totloop = 4196 * 16, .totedge = 2048 * 16};
 
-  SCULPT_pbvh_clear(ob);
   SCULPT_clear_scl_pointers(ss);
 
   if (ss->mdyntopo_verts) {
@@ -789,22 +813,26 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   BKE_mesh_mselect_clear(me);
 
 #if 1
-  ss->bm = BM_mesh_create(&allocsize,
-                          &((struct BMeshCreateParams){.use_toolflags = false,
-                                                       .create_unique_ids = true,
-                                                       .id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
-                                                       .id_map = true,
-                                                       .temporary_ids = false,
-                                                       .no_reuse_ids = false}));
 
-  BM_mesh_bm_from_me(NULL,
-                     ss->bm,
-                     me,
-                     (&(struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
-                         .use_shapekey = true,
-                         .active_shapekey = ob->shapenr,
-                     }));
+  if (!ss->bm) {
+    ss->bm = BM_mesh_create(
+        &allocsize,
+        &((struct BMeshCreateParams){.use_toolflags = false,
+                                     .create_unique_ids = true,
+                                     .id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
+                                     .id_map = true,
+                                     .temporary_ids = false,
+                                     .no_reuse_ids = false}));
+
+    BM_mesh_bm_from_me(NULL,
+                       ss->bm,
+                       me,
+                       (&(struct BMeshFromMeshParams){
+                           .calc_face_normal = true,
+                           .use_shapekey = true,
+                           .active_shapekey = ob->shapenr,
+                       }));
+  }
 #else
   ss->bm = BM_mesh_bm_from_me_threaded(NULL,
                                        NULL,
@@ -846,8 +874,12 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
     mv->flag |= DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE;
 
-    BKE_pbvh_update_vert_boundary(
-        ss->cd_dyn_vert, ss->cd_faceset_offset, v, ss->boundary_symmetry);
+    BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert,
+                                  ss->cd_faceset_offset,
+                                  ss->cd_vert_node_offset,
+                                  ss->cd_face_node_offset,
+                                  v,
+                                  ss->boundary_symmetry);
     BKE_pbvh_bmesh_update_valence(ss->cd_dyn_vert, (SculptVertRef){.i = (intptr_t)v});
 
     copy_v3_v3(mv->origco, v->co);

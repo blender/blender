@@ -229,16 +229,16 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
     bm_init_idmap_cdlayers(bm);
 
     if (bm->vdata.totlayer) {
-      CustomData_bmesh_init_pool(&bm->vdata, 0, BM_VERT);
+      CustomData_bmesh_init_pool_ex(&bm->vdata, 0, BM_VERT, __func__);
     }
     if (bm->edata.totlayer) {
-      CustomData_bmesh_init_pool(&bm->edata, 0, BM_EDGE);
+      CustomData_bmesh_init_pool_ex(&bm->edata, 0, BM_EDGE, __func__);
     }
     if (bm->ldata.totlayer) {
-      CustomData_bmesh_init_pool(&bm->ldata, 0, BM_LOOP);
+      CustomData_bmesh_init_pool_ex(&bm->ldata, 0, BM_LOOP, __func__);
     }
     if (bm->pdata.totlayer) {
-      CustomData_bmesh_init_pool(&bm->pdata, 0, BM_FACE);
+      CustomData_bmesh_init_pool_ex(&bm->pdata, 0, BM_FACE, __func__);
     }
   }
 
@@ -267,11 +267,10 @@ void BM_mesh_data_free(BMesh *bm)
     range_tree_uint_free(bm->idmap.idtree);
   }
 #else
-  if (bm->idmap.free_ids) {
-    BLI_gset_free(bm->idmap.free_ids, NULL);
-  }
-
   MEM_SAFE_FREE(bm->idmap.free_ids);
+  MEM_SAFE_FREE(bm->idmap.freelist);
+  bm->idmap.freelist = NULL;
+  bm->idmap.free_ids = NULL;
 #endif
 
   MEM_SAFE_FREE(bm->idmap.map);
@@ -397,12 +396,10 @@ void BM_mesh_clear(BMesh *bm)
 #ifndef WITH_BM_ID_FREELIST
     bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
 #else
-    if (bm->idmap.free_ids) {
-      BLI_gset_free(bm->idmap.free_ids, NULL);
-    }
+    MEM_SAFE_FREE(bm->idmap.free_ids);
     MEM_SAFE_FREE(bm->idmap.freelist);
 
-    bm->idmap.freelist_len = bm->idmap.freelist_size = NULL;
+    bm->idmap.freelist_len = bm->idmap.freelist_size = 0;
     bm->idmap.free_ids = NULL;
     bm->idmap.freelist = NULL;
 #endif

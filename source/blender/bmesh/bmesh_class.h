@@ -394,7 +394,7 @@ typedef struct BMesh {
 #ifdef WITH_BM_ID_FREELIST
     uint *freelist;
     int freelist_len, freelist_size;
-    struct GSet *free_ids;
+    uint *free_ids, free_ids_size;
 #else
     struct RangeTreeUInt *idtree;
 #endif

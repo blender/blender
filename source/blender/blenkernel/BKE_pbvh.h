@@ -807,6 +807,8 @@ PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i);
 struct BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh);
 void BKE_pbvh_update_vert_boundary(int cd_dyn_vert,
                                    int cd_faceset_offset,
+                                   int cd_vert_node_offset,
+                                   int cd_face_node_offset,
                                    struct BMVert *v,
                                    int symmetry);
 

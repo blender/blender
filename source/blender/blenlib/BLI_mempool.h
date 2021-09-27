@@ -35,11 +35,34 @@ struct BLI_mempool_chunk;
 
 typedef struct BLI_mempool BLI_mempool;
 
+BLI_mempool *BLI_mempool_create_ex(unsigned int esize,
+                                   unsigned int totelem,
+                                   unsigned int pchunk,
+                                   unsigned int flag,
+                                   const char *tag)
+    ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+;
+
+//#define DEBUG_MEMPOOL_LEAKS
+
+BLI_mempool *BLI_mempool_create(unsigned int esize,
+                                unsigned int totelem,
+                                unsigned int pchunk,
+                                unsigned int flag);
+
+#ifdef DEBUG_MEMPOOL_LEAKS
+ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+
+#  define BLI_mempool_create(esize, totelem, pchunk, flag) \
+    BLI_mempool_create_ex(esize, totelem, pchunk, flag, __func__)
+#else
 BLI_mempool *BLI_mempool_create(unsigned int esize,
                                 unsigned int totelem,
                                 unsigned int pchunk,
                                 unsigned int flag)
     ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+#endif
+
 void *BLI_mempool_alloc(BLI_mempool *pool) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL
     ATTR_NONNULL(1);
 void *BLI_mempool_calloc(BLI_mempool *pool)

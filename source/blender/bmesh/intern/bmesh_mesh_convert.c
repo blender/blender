@@ -97,6 +97,25 @@
 #include "intern/bmesh_private.h" /* For element checking. */
 #include "range_tree.h"
 
+static void bm_free_cd_pools(BMesh *bm)
+{
+  if (bm->vdata.pool) {
+    BLI_mempool_destroy(bm->vdata.pool);
+  }
+  if (bm->edata.pool) {
+    BLI_mempool_destroy(bm->edata.pool);
+  }
+  if (bm->ldata.pool) {
+    BLI_mempool_destroy(bm->ldata.pool);
+  }
+  if (bm->pdata.pool) {
+    BLI_mempool_destroy(bm->pdata.pool);
+  }
+}
+
+//#define bm_assign_id(a, b, c, d)
+//#define bm_alloc_id(a, b)
+
 static void bm_unmark_temp_cdlayers(BMesh *bm)
 {
   CustomData_unmark_temporary_nocopy(&bm->vdata);
@@ -112,6 +131,32 @@ static void bm_mark_temp_cdlayers(BMesh *bm)
   CustomData_mark_temporary_nocopy(&bm->ldata);
   CustomData_mark_temporary_nocopy(&bm->pdata);
 }
+
+#if 0
+#  define CustomData_to_bmesh_block(srcdata, destdata, i, block, set_default) \
+    { \
+      CustomDataLayer *cl = (srcdata)->layers, *cl2 = (destdata)->layers; \
+      int size = 0; \
+      if (!*block) { \
+        *block = BLI_mempool_alloc((destdata)->pool); \
+      } \
+      for (int j = 0; j < (srcdata)->totlayer; j++, cl++) { \
+        if ((destdata)->typemap[cl->type] < 0) { \
+          continue; \
+        } \
+        while (cl2->type != cl->type) { \
+          cl2++; \
+        } \
+        char *ptr = (char *)cl->data; \
+        size = cl2 != (destdata)->layers ? cl2->offset - (cl2 - 1)->offset : cl2->offset; \
+        ptr += size * i; \
+        char *ptr2 = (char *)*block; \
+        ptr2 += cl2->offset; \
+        memcpy(ptr2, ptr, size); \
+        cl2++; \
+      } \
+    }
+#endif
 
 void BM_mesh_cd_flag_ensure(BMesh *bm, Mesh *mesh, const char cd_flag)
 {
@@ -307,15 +352,17 @@ void BM_mesh_bm_from_me(Object *ob,
 
   if (!me || !me->totvert) {
     if (me && is_new) { /* No verts? still copy custom-data layout. */
+      bm_free_cd_pools(bm);
+
       CustomData_copy(&me->vdata, &bm->vdata, mask.vmask, CD_ASSIGN, 0);
       CustomData_copy(&me->edata, &bm->edata, mask.emask, CD_ASSIGN, 0);
       CustomData_copy(&me->ldata, &bm->ldata, mask.lmask, CD_ASSIGN, 0);
       CustomData_copy(&me->pdata, &bm->pdata, mask.pmask, CD_ASSIGN, 0);
 
-      CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
-      CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
-      CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
-      CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
+      CustomData_bmesh_init_pool_ex(&bm->vdata, me->totvert, BM_VERT, __func__);
+      CustomData_bmesh_init_pool_ex(&bm->edata, me->totedge, BM_EDGE, __func__);
+      CustomData_bmesh_init_pool_ex(&bm->ldata, me->totloop, BM_LOOP, __func__);
+      CustomData_bmesh_init_pool_ex(&bm->pdata, me->totpoly, BM_FACE, __func__);
     }
 
     if (params->copy_temp_cdlayers) {
@@ -330,6 +377,8 @@ void BM_mesh_bm_from_me(Object *ob,
   }
 
   if (is_new) {
+    bm_free_cd_pools(bm);
+
     CustomData_copy(&me->vdata, &bm->vdata, mask.vmask, CD_CALLOC, 0);
     CustomData_copy(&me->edata, &bm->edata, mask.emask, CD_CALLOC, 0);
     CustomData_copy(&me->ldata, &bm->ldata, mask.lmask, CD_CALLOC, 0);
@@ -424,10 +473,10 @@ void BM_mesh_bm_from_me(Object *ob,
   }
 
   if (is_new) {
-    CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
-    CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
-    CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
-    CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
+    CustomData_bmesh_init_pool_ex(&bm->vdata, me->totvert, BM_VERT, __func__);
+    CustomData_bmesh_init_pool_ex(&bm->edata, me->totedge, BM_EDGE, __func__);
+    CustomData_bmesh_init_pool_ex(&bm->ldata, me->totloop, BM_LOOP, __func__);
+    CustomData_bmesh_init_pool_ex(&bm->pdata, me->totpoly, BM_FACE, __func__);
 
     BM_mesh_cd_flag_apply(bm, me->cd_flag);
   }

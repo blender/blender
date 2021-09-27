@@ -493,7 +493,7 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
   BMLoop *l = f->l_first;
   do {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(data->cd_dyn_vert, l->v);
-    mv->flag |= DYNVERT_NEED_DISK_SORT;
+    mv->flag |= DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_BOUNDARY;
 
     int ni_l = BM_ELEM_CD_GET_INT(l->v, data->cd_vert_node_offset);
 

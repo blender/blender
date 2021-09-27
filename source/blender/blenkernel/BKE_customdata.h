@@ -480,6 +480,12 @@ void CustomData_from_bmeshpoly(struct CustomData *fdata, struct CustomData *ldat
 void CustomData_bmesh_update_active_layers(struct CustomData *fdata, struct CustomData *ldata);
 void CustomData_bmesh_do_versions_update_active_layers(struct CustomData *fdata,
                                                        struct CustomData *ldata);
+
+void CustomData_bmesh_init_pool_ex(CustomData *data,
+                                   int totelem,
+                                   const char htype,
+                                   const char *memtag);
+
 void CustomData_bmesh_init_pool(struct CustomData *data, int totelem, const char htype);
 
 #ifndef NDEBUG
