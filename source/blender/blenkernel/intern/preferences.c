@@ -61,6 +61,15 @@ bUserAssetLibrary *BKE_preferences_asset_library_add(UserDef *userdef,
   return library;
 }
 
+/**
+ * Unlink and free a library preference member.
+ * \note Free's \a library itself.
+ */
+void BKE_preferences_asset_library_remove(UserDef *userdef, bUserAssetLibrary *library)
+{
+  BLI_freelinkN(&userdef->asset_libraries, library);
+}
+
 void BKE_preferences_asset_library_name_set(UserDef *userdef,
                                             bUserAssetLibrary *library,
                                             const char *name)
@@ -72,15 +81,6 @@ void BKE_preferences_asset_library_name_set(UserDef *userdef,
                  '.',
                  offsetof(bUserAssetLibrary, name),
                  sizeof(library->name));
-}
-
-/**
- * Unlink and free a library preference member.
- * \note Free's \a library itself.
- */
-void BKE_preferences_asset_library_remove(UserDef *userdef, bUserAssetLibrary *library)
-{
-  BLI_freelinkN(&userdef->asset_libraries, library);
 }
 
 bUserAssetLibrary *BKE_preferences_asset_library_find_from_index(const UserDef *userdef, int index)
