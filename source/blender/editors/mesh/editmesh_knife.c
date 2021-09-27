@@ -4672,6 +4672,8 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
       kcd->axis_constrained = (kcd->constrain_axis != KNF_CONSTRAIN_AXIS_NONE);
       knifetool_disable_angle_snapping(kcd);
       knife_update_header(C, op, kcd);
+      ED_region_tag_redraw(kcd->region);
+      do_refresh = true;
     }
   }
 
