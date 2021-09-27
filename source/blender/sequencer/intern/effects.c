@@ -3154,6 +3154,7 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
   float target_frame = 0;
   for (int frame_index = 1; frame_index < effect_strip_length; frame_index++) {
     target_frame += evaluate_fcurve(fcu, seq->startdisp + frame_index);
+    CLAMP(target_frame, 0, seq->seq1->len);
     v->frameMap[frame_index] = target_frame;
   }
 }
