@@ -29,8 +29,6 @@ extern "C" {
 struct UserDef;
 struct bUserAssetLibrary;
 
-void BKE_preferences_asset_library_free(struct bUserAssetLibrary *library) ATTR_NONNULL();
-
 struct bUserAssetLibrary *BKE_preferences_asset_library_add(struct UserDef *userdef,
                                                             const char *name,
                                                             const char *path) ATTR_NONNULL(1);
