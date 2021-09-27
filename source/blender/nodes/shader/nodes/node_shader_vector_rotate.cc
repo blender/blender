@@ -29,7 +29,7 @@ static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Vector>("Vector").min(0.0f).max(1.0f).hide_value();
-  b.add_input<decl::Vector>("Vector");
+  b.add_input<decl::Vector>("Center");
   b.add_input<decl::Vector>("Axis").min(-1.0f).max(1.0f).default_value({0.0f, 0.0f, 1.0f});
   b.add_input<decl::Float>("Angle").subtype(PROP_ANGLE);
   b.add_input<decl::Vector>("Rotation").subtype(PROP_EULER);
