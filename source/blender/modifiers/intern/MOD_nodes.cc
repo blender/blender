@@ -103,6 +103,8 @@ using blender::Span;
 using blender::StringRef;
 using blender::StringRefNull;
 using blender::Vector;
+using blender::bke::OutputAttribute;
+using blender::fn::GField;
 using blender::fn::GMutablePointer;
 using blender::fn::GPointer;
 using blender::nodes::GeoNodeExecParams;
@@ -589,6 +591,35 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
     }
   }
 
+  LISTBASE_FOREACH (bNodeSocket *, socket, &nmd->node_group->outputs) {
+    if (!socket_type_has_attribute_toggle(*socket)) {
+      continue;
+    }
+
+    const std::string idprop_name = socket->identifier + attribute_name_suffix;
+    IDProperty *new_prop = IDP_NewString("", idprop_name.c_str(), MAX_NAME);
+    if (socket->description[0] != '\0') {
+      IDPropertyUIData *ui_data = IDP_ui_data_ensure(new_prop);
+      ui_data->description = BLI_strdup(socket->description);
+    }
+    IDP_AddToGroup(nmd->settings.properties, new_prop);
+
+    if (old_properties != nullptr) {
+      IDProperty *old_prop = IDP_GetPropertyFromGroup(old_properties, idprop_name.c_str());
+      if (old_prop != nullptr) {
+        /* #IDP_CopyPropertyContent replaces the UI data as well, which we don't (we only
+         * want to replace the values). So release it temporarily and replace it after. */
+        IDPropertyUIData *ui_data = new_prop->ui_data;
+        new_prop->ui_data = nullptr;
+        IDP_CopyPropertyContent(new_prop, old_prop);
+        if (new_prop->ui_data != nullptr) {
+          IDP_ui_data_free(new_prop);
+        }
+        new_prop->ui_data = ui_data;
+      }
+    }
+  }
+
   if (old_properties != nullptr) {
     IDP_FreeProperty(old_properties);
   }
@@ -778,6 +809,72 @@ static void clear_runtime_data(NodesModifierData *nmd)
   }
 }
 
+static void store_field_on_geometry_component(GeometryComponent &component,
+                                              const StringRef attribute_name,
+                                              AttributeDomain domain,
+                                              const GField &field)
+{
+  /* If the attribute name corresponds to a built-in attribute, use the domain of the built-in
+   * attribute instead. */
+  if (component.attribute_is_builtin(attribute_name)) {
+    component.attribute_try_create_builtin(attribute_name, AttributeInitDefault());
+    std::optional<AttributeMetaData> meta_data = component.attribute_get_meta_data(attribute_name);
+    if (meta_data.has_value()) {
+      domain = meta_data->domain;
+    }
+    else {
+      return;
+    }
+  }
+  const CustomDataType data_type = blender::bke::cpp_type_to_custom_data_type(field.cpp_type());
+  OutputAttribute attribute = component.attribute_try_get_for_output_only(
+      attribute_name, domain, data_type);
+  if (attribute) {
+    /* In the future we could also evaluate all output fields at once. */
+    const int domain_size = component.attribute_domain_size(domain);
+    blender::bke::GeometryComponentFieldContext field_context{component, domain};
+    blender::fn::FieldEvaluator field_evaluator{field_context, domain_size};
+    field_evaluator.add_with_destination(field, attribute.varray());
+    field_evaluator.evaluate();
+    attribute.save();
+  }
+}
+
+static void store_output_value_in_geometry(GeometrySet &geometry_set,
+                                           NodesModifierData *nmd,
+                                           const InputSocketRef &socket,
+                                           const GPointer value)
+{
+  if (!socket_type_has_attribute_toggle(*socket.bsocket())) {
+    return;
+  }
+  const std::string prop_name = socket.identifier() + attribute_name_suffix;
+  const IDProperty *prop = IDP_GetPropertyFromGroup(nmd->settings.properties, prop_name.c_str());
+  if (prop == nullptr) {
+    return;
+  }
+  const StringRefNull attribute_name = IDP_String(prop);
+  if (attribute_name.is_empty()) {
+    return;
+  }
+  const GField &field = *(const GField *)value.get();
+  const bNodeSocket *interface_socket = (bNodeSocket *)BLI_findlink(&nmd->node_group->outputs,
+                                                                    socket.index());
+  const AttributeDomain domain = (AttributeDomain)interface_socket->attribute_domain;
+  if (geometry_set.has_mesh()) {
+    MeshComponent &component = geometry_set.get_component_for_write<MeshComponent>();
+    store_field_on_geometry_component(component, attribute_name, domain, field);
+  }
+  if (geometry_set.has_pointcloud()) {
+    PointCloudComponent &component = geometry_set.get_component_for_write<PointCloudComponent>();
+    store_field_on_geometry_component(component, attribute_name, domain, field);
+  }
+  if (geometry_set.has_curve()) {
+    CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
+    store_field_on_geometry_component(component, attribute_name, domain, field);
+  }
+}
+
 /**
  * Evaluate a node group to compute the output geometry.
  * Currently, this uses a fairly basic and inefficient algorithm that might compute things more
@@ -785,7 +882,7 @@ static void clear_runtime_data(NodesModifierData *nmd)
  */
 static GeometrySet compute_geometry(const DerivedNodeTree &tree,
                                     Span<const NodeRef *> group_input_nodes,
-                                    const InputSocketRef &socket_to_compute,
+                                    const NodeRef &output_node,
                                     GeometrySet input_geometry_set,
                                     NodesModifierData *nmd,
                                     const ModifierEvalContext *ctx)
@@ -828,7 +925,9 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
   input_geometry_set.clear();
 
   Vector<DInputSocket> group_outputs;
-  group_outputs.append({root_context, &socket_to_compute});
+  for (const InputSocketRef *socket_ref : output_node.inputs().drop_back(1)) {
+    group_outputs.append({root_context, socket_ref});
+  }
 
   std::optional<geo_log::GeoLogger> geo_logger;
 
@@ -856,9 +955,15 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
     nmd_orig->runtime_eval_log = new geo_log::ModifierLog(*geo_logger);
   }
 
-  BLI_assert(eval_params.r_output_values.size() == 1);
-  GMutablePointer result = eval_params.r_output_values[0];
-  return result.relocate_out<GeometrySet>();
+  GeometrySet output_geometry_set = eval_params.r_output_values[0].relocate_out<GeometrySet>();
+
+  for (const InputSocketRef *socket : output_node.inputs().drop_front(1).drop_back(1)) {
+    GMutablePointer socket_value = eval_params.r_output_values[socket->index()];
+    store_output_value_in_geometry(output_geometry_set, nmd, *socket, socket_value);
+    socket_value.destruct();
+  }
+
+  return output_geometry_set;
 }
 
 /**
@@ -928,24 +1033,23 @@ static void modifyGeometry(ModifierData *md,
   const NodeTreeRef &root_tree_ref = tree.root_context().tree();
   Span<const NodeRef *> input_nodes = root_tree_ref.nodes_by_type("NodeGroupInput");
   Span<const NodeRef *> output_nodes = root_tree_ref.nodes_by_type("NodeGroupOutput");
-
   if (output_nodes.size() != 1) {
     return;
   }
 
-  Span<const InputSocketRef *> group_outputs = output_nodes[0]->inputs().drop_back(1);
-
-  if (group_outputs.size() == 0) {
+  const NodeRef &output_node = *output_nodes[0];
+  Span<const InputSocketRef *> group_outputs = output_node.inputs().drop_back(1);
+  if (group_outputs.is_empty()) {
     return;
   }
 
-  const InputSocketRef *group_output = group_outputs[0];
-  if (group_output->idname() != "NodeSocketGeometry") {
+  const InputSocketRef *first_output_socket = group_outputs[0];
+  if (first_output_socket->idname() != "NodeSocketGeometry") {
     return;
   }
 
   geometry_set = compute_geometry(
-      tree, input_nodes, *group_outputs[0], std::move(geometry_set), nmd, ctx);
+      tree, input_nodes, output_node, std::move(geometry_set), nmd, ctx);
 }
 
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
@@ -977,11 +1081,11 @@ static void modifyGeometrySet(ModifierData *md,
 /* Drawing the properties manually with #uiItemR instead of #uiDefAutoButsRNA allows using
  * the node socket identifier for the property names, since they are unique, but also having
  * the correct label displayed in the UI. */
-static void draw_property_for_socket(uiLayout *layout,
-                                     NodesModifierData *nmd,
-                                     PointerRNA *bmain_ptr,
-                                     PointerRNA *md_ptr,
-                                     const bNodeSocket &socket)
+static void draw_property_for_input_socket(uiLayout *layout,
+                                           NodesModifierData *nmd,
+                                           PointerRNA *bmain_ptr,
+                                           PointerRNA *md_ptr,
+                                           const bNodeSocket &socket)
 {
   /* The property should be created in #MOD_nodes_update_interface with the correct type. */
   IDProperty *property = IDP_GetPropertyFromGroup(nmd->settings.properties, socket.identifier);
@@ -1060,6 +1164,18 @@ static void draw_property_for_socket(uiLayout *layout,
   }
 }
 
+static void draw_property_for_output_socket(uiLayout *layout,
+                                            PointerRNA *md_ptr,
+                                            const bNodeSocket &socket)
+{
+  char socket_id_esc[sizeof(socket.identifier) * 2];
+  BLI_str_escape(socket_id_esc, socket.identifier, sizeof(socket_id_esc));
+  const std::string rna_path_attribute_name = "[\"" + StringRef(socket_id_esc) +
+                                              attribute_name_suffix + "\"]";
+
+  uiItemR(layout, md_ptr, rna_path_attribute_name.c_str(), 0, socket.name, ICON_NONE);
+}
+
 static void panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
@@ -1087,7 +1203,12 @@ static void panel_draw(const bContext *C, Panel *panel)
     RNA_main_pointer_create(bmain, &bmain_ptr);
 
     LISTBASE_FOREACH (bNodeSocket *, socket, &nmd->node_group->inputs) {
-      draw_property_for_socket(layout, nmd, &bmain_ptr, ptr, *socket);
+      draw_property_for_input_socket(layout, nmd, &bmain_ptr, ptr, *socket);
+    }
+    LISTBASE_FOREACH (bNodeSocket *, socket, &nmd->node_group->outputs) {
+      if (socket_type_has_attribute_toggle(*socket)) {
+        draw_property_for_output_socket(layout, ptr, *socket);
+      }
     }
   }
 

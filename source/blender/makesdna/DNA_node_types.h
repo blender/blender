@@ -120,7 +120,10 @@ typedef struct bNodeSocket {
   /* XXX deprecated, kept for forward compatibility */
   short stack_type DNA_DEPRECATED;
   char display_shape;
-  char _pad[1];
+
+  /* #AttributeDomain used when the geometry nodes modifier creates an attribute for a group
+   * output. */
+  char attribute_domain;
   /* Runtime-only cache of the number of input links, for multi-input sockets. */
   short total_inputs;
 
