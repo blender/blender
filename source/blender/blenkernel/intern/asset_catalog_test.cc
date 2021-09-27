@@ -92,6 +92,22 @@ class AssetCatalogTest : public testing::Test {
     int parent_count;
   };
 
+  void assert_expected_item(const CatalogPathInfo &expected_path,
+                            const AssetCatalogTreeItem &actual_item)
+  {
+    char expected_filename[FILE_MAXFILE];
+    /* Is the catalog name as expected? "character", "Ellie", ... */
+    BLI_split_file_part(expected_path.name.data(), expected_filename, sizeof(expected_filename));
+    EXPECT_EQ(expected_filename, actual_item.get_name());
+    /* Does the computed number of parents match? */
+    EXPECT_EQ(expected_path.parent_count, actual_item.count_parents());
+    EXPECT_EQ(expected_path.name, actual_item.catalog_path());
+  }
+
+  /**
+   * Recursively iterate over all tree items using #AssetCatalogTree::foreach_item() and check if
+   * the items map exactly to \a expected_paths.
+   */
   void assert_expected_tree_items(AssetCatalogTree *tree,
                                   const std::vector<CatalogPathInfo> &expected_paths)
   {
@@ -99,16 +115,43 @@ class AssetCatalogTest : public testing::Test {
     tree->foreach_item([&](const AssetCatalogTreeItem &actual_item) {
       ASSERT_LT(i, expected_paths.size())
           << "More catalogs in tree than expected; did not expect " << actual_item.catalog_path();
+      assert_expected_item(expected_paths[i], actual_item);
+      i++;
+    });
+  }
 
-      char expected_filename[FILE_MAXFILE];
-      /* Is the catalog name as expected? "character", "Ellie", ... */
-      BLI_split_file_part(
-          expected_paths[i].name.data(), expected_filename, sizeof(expected_filename));
-      EXPECT_EQ(expected_filename, actual_item.get_name());
-      /* Does the computed number of parents match? */
-      EXPECT_EQ(expected_paths[i].parent_count, actual_item.count_parents());
-      EXPECT_EQ(expected_paths[i].name, actual_item.catalog_path());
+  /**
+   * Iterate over the root items of \a tree and check if the items map exactly to \a
+   * expected_paths. Similar to #assert_expected_tree_items() but calls
+   * #AssetCatalogTree::foreach_root_item() instead of #AssetCatalogTree::foreach_item().
+   */
+  void assert_expected_tree_root_items(AssetCatalogTree *tree,
+                                       const std::vector<CatalogPathInfo> &expected_paths)
+  {
+    int i = 0;
+    tree->foreach_root_item([&](const AssetCatalogTreeItem &actual_item) {
+      ASSERT_LT(i, expected_paths.size())
+          << "More catalogs in tree root than expected; did not expect "
+          << actual_item.catalog_path();
+      assert_expected_item(expected_paths[i], actual_item);
+      i++;
+    });
+  }
 
+  /**
+   * Iterate over the child items of \a parent_item and check if the items map exactly to \a
+   * expected_paths. Similar to #assert_expected_tree_items() but calls
+   * #AssetCatalogTreeItem::foreach_child() instead of #AssetCatalogTree::foreach_item().
+   */
+  void assert_expected_tree_item_child_items(AssetCatalogTreeItem *parent_item,
+                                             const std::vector<CatalogPathInfo> &expected_paths)
+  {
+    int i = 0;
+    parent_item->foreach_child([&](const AssetCatalogTreeItem &actual_item) {
+      ASSERT_LT(i, expected_paths.size())
+          << "More catalogs in tree item than expected; did not expect "
+          << actual_item.catalog_path();
+      assert_expected_item(expected_paths[i], actual_item);
       i++;
     });
   }
@@ -156,6 +199,87 @@ TEST_F(AssetCatalogTest, load_single_file)
   EXPECT_EQ("POSES_RUŽENA", poses_ruzena->simple_name);
 }
 
+TEST_F(AssetCatalogTest, insert_item_into_tree)
+{
+  {
+    AssetCatalogTree tree;
+    std::unique_ptr<AssetCatalog> catalog_empty_path = AssetCatalog::from_path("");
+    tree.insert_item(*catalog_empty_path);
+
+    assert_expected_tree_items(&tree, {});
+  }
+
+  {
+    AssetCatalogTree tree;
+
+    std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path("item");
+    tree.insert_item(*catalog);
+    assert_expected_tree_items(&tree, {{"item", 0}});
+
+    /* Insert child after parent already exists. */
+    std::unique_ptr<AssetCatalog> child_catalog = AssetCatalog::from_path("item/child");
+    tree.insert_item(*catalog);
+    assert_expected_tree_items(&tree, {{"item", 0}, {"item/child", 1}});
+
+    std::vector<CatalogPathInfo> expected_paths;
+
+    /* Test inserting multi-component sub-path. */
+    std::unique_ptr<AssetCatalog> grandgrandchild_catalog = AssetCatalog::from_path(
+        "item/child/grandchild/grandgrandchild");
+    tree.insert_item(*catalog);
+    expected_paths = {{"item", 0},
+                      {"item/child", 1},
+                      {"item/child/grandchild", 2},
+                      {"item/child/grandchild/grandgrandchild", 3}};
+    assert_expected_tree_items(&tree, expected_paths);
+
+    std::unique_ptr<AssetCatalog> root_level_catalog = AssetCatalog::from_path("root level");
+    tree.insert_item(*catalog);
+    expected_paths = {{"item", 0},
+                      {"item/child", 1},
+                      {"item/child/grandchild", 2},
+                      {"item/child/grandchild/grandgrandchild", 3},
+                      {"root level", 0}};
+    assert_expected_tree_items(&tree, expected_paths);
+  }
+
+  {
+    AssetCatalogTree tree;
+
+    std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path("item/child");
+    tree.insert_item(*catalog);
+    assert_expected_tree_items(&tree, {{"item", 0}, {"item/child", 1}});
+  }
+
+  {
+    AssetCatalogTree tree;
+
+    std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path("white space");
+    tree.insert_item(*catalog);
+    assert_expected_tree_items(&tree, {{"white space", 0}});
+  }
+
+  {
+    AssetCatalogTree tree;
+
+    std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path("/item/white space");
+    tree.insert_item(*catalog);
+    assert_expected_tree_items(&tree, {{"item", 0}, {"item/white space", 1}});
+  }
+
+  {
+    AssetCatalogTree tree;
+
+    std::unique_ptr<AssetCatalog> catalog_unicode_path = AssetCatalog::from_path("Ružena");
+    tree.insert_item(*catalog_unicode_path);
+    assert_expected_tree_items(&tree, {{"Ružena", 0}});
+
+    catalog_unicode_path = AssetCatalog::from_path("Ružena/Ružena");
+    tree.insert_item(*catalog_unicode_path);
+    assert_expected_tree_items(&tree, {{"Ružena", 0}, {"Ružena/Ružena", 1}});
+  }
+}
+
 TEST_F(AssetCatalogTest, load_single_file_into_tree)
 {
   AssetCatalogService service(asset_library_root_);
@@ -180,6 +304,66 @@ TEST_F(AssetCatalogTest, load_single_file_into_tree)
 
   AssetCatalogTree *tree = service.get_catalog_tree();
   assert_expected_tree_items(tree, expected_paths);
+}
+
+TEST_F(AssetCatalogTest, foreach_in_tree)
+{
+  {
+    AssetCatalogTree tree{};
+    const std::vector<CatalogPathInfo> no_catalogs{};
+
+    assert_expected_tree_items(&tree, no_catalogs);
+    assert_expected_tree_root_items(&tree, no_catalogs);
+    /* Need a root item to check child items. */
+    std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path("something");
+    tree.insert_item(*catalog);
+    tree.foreach_root_item([&no_catalogs, this](AssetCatalogTreeItem &item) {
+      assert_expected_tree_item_child_items(&item, no_catalogs);
+    });
+  }
+
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+
+  std::vector<CatalogPathInfo> expected_root_items{{"character", 0}, {"path", 0}};
+  AssetCatalogTree *tree = service.get_catalog_tree();
+  assert_expected_tree_root_items(tree, expected_root_items);
+
+  /* Test if the direct children of the root item are what's expected. */
+  std::vector<std::vector<CatalogPathInfo>> expected_root_child_items = {
+      /* Children of the "character" root item. */
+      {{"character/Ellie", 1}, {"character/Ružena", 1}},
+      /* Children of the "path" root item. */
+      {{"path/without", 1}},
+  };
+  int i = 0;
+  tree->foreach_root_item([&expected_root_child_items, &i, this](AssetCatalogTreeItem &item) {
+    assert_expected_tree_item_child_items(&item, expected_root_child_items[i]);
+    i++;
+  });
+}
+
+TEST_F(AssetCatalogTest, find_catalog_by_path)
+{
+  TestableAssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" +
+                         AssetCatalogService::DEFAULT_CATALOG_FILENAME);
+
+  AssetCatalog *catalog;
+
+  EXPECT_EQ(nullptr, service.find_catalog_by_path(""));
+  catalog = service.find_catalog_by_path("character/Ellie/poselib/white space");
+  EXPECT_NE(nullptr, catalog);
+  EXPECT_EQ(UUID_POSES_ELLIE_WHITESPACE, catalog->catalog_id);
+  catalog = service.find_catalog_by_path("character/Ružena/poselib");
+  EXPECT_NE(nullptr, catalog);
+  EXPECT_EQ(UUID_POSES_RUZENA, catalog->catalog_id);
+
+  /* "character/Ellie/poselib" is used by two catalogs. Check if it's using the first one. */
+  catalog = service.find_catalog_by_path("character/Ellie/poselib");
+  EXPECT_NE(nullptr, catalog);
+  EXPECT_EQ(UUID_POSES_ELLIE, catalog->catalog_id);
+  EXPECT_NE(UUID_POSES_ELLIE_TRAILING_SLASH, catalog->catalog_id);
 }
 
 TEST_F(AssetCatalogTest, write_single_file)
