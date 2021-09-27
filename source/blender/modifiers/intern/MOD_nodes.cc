@@ -1205,11 +1205,6 @@ static void panel_draw(const bContext *C, Panel *panel)
     LISTBASE_FOREACH (bNodeSocket *, socket, &nmd->node_group->inputs) {
       draw_property_for_input_socket(layout, nmd, &bmain_ptr, ptr, *socket);
     }
-    LISTBASE_FOREACH (bNodeSocket *, socket, &nmd->node_group->outputs) {
-      if (socket_type_has_attribute_toggle(*socket)) {
-        draw_property_for_output_socket(layout, ptr, *socket);
-      }
-    }
   }
 
   /* Draw node warnings. */
@@ -1239,9 +1234,34 @@ static void panel_draw(const bContext *C, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
+static void output_attribute_panel_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
+  NodesModifierData *nmd = static_cast<NodesModifierData *>(ptr->data);
+
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, true);
+
+  if (nmd->node_group != nullptr && nmd->settings.properties != nullptr) {
+    LISTBASE_FOREACH (bNodeSocket *, socket, &nmd->node_group->outputs) {
+      if (socket_type_has_attribute_toggle(*socket)) {
+        draw_property_for_output_socket(layout, ptr, *socket);
+      }
+    }
+  }
+}
+
 static void panelRegister(ARegionType *region_type)
 {
-  modifier_panel_register(region_type, eModifierType_Nodes, panel_draw);
+  PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Nodes, panel_draw);
+  modifier_subpanel_register(region_type,
+                             "output_attributes",
+                             N_("Output Attributes"),
+                             nullptr,
+                             output_attribute_panel_draw,
+                             panel_type);
 }
 
 static void blendWrite(BlendWriter *writer, const ModifierData *md)
