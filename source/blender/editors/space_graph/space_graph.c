@@ -316,7 +316,6 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
   }
 
   const Scene *scene = CTX_data_scene(C);
-  const bool draw_vert_line = sipo->mode != SIPO_MODE_DRIVERS;
   View2D *v2d = &region->v2d;
 
   /* scrubbing region */
