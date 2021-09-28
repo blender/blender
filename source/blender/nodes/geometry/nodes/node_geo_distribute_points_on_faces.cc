@@ -523,8 +523,6 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
 
   compute_attribute_outputs(
       mesh_component, point_component, bary_coords, looptri_indices, attribute_outputs);
-
-  geometry_set.replace_mesh(nullptr);
 }
 
 static void geo_node_point_distribute_points_on_faces_exec(GeoNodeExecParams params)
@@ -551,6 +549,9 @@ static void geo_node_point_distribute_points_on_faces_exec(GeoNodeExecParams par
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     point_distribution_calculate(
         geometry_set, selection_field, method, seed, attribute_outputs, params);
+    /* Keep instances because the original geometry set may contain instances that are processed as
+     * well. */
+    geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_INSTANCES});
   });
 
   params.set_output("Points", std::move(geometry_set));

@@ -152,6 +152,19 @@ void GeometrySet::remove(const GeometryComponentType component_type)
   components_.remove(component_type);
 }
 
+/**
+ * Remove all geometry components with types that are not in the provided list.
+ */
+void GeometrySet::keep_only(const blender::Span<GeometryComponentType> component_types)
+{
+  for (auto it = components_.keys().begin(); it != components_.keys().end(); ++it) {
+    const GeometryComponentType type = *it;
+    if (!component_types.contains(type)) {
+      components_.remove(it);
+    }
+  }
+}
+
 void GeometrySet::add(const GeometryComponent &component)
 {
   BLI_assert(!components_.contains(component.type()));

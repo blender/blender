@@ -281,6 +281,8 @@ struct GeometrySet {
     return this->remove(Component::static_type);
   }
 
+  void keep_only(const blender::Span<GeometryComponentType> component_types);
+
   void add(const GeometryComponent &component);
 
   blender::Vector<const GeometryComponent *> get_components_for_read() const;
