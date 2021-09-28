@@ -175,28 +175,28 @@ TEST_F(AssetCatalogTest, load_single_file)
   AssetCatalogService service(asset_library_root_);
   service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
 
-  // Test getting a non-existent catalog ID.
+  /* Test getting a non-existent catalog ID. */
   EXPECT_EQ(nullptr, service.find_catalog(BLI_uuid_generate_random()));
 
-  // Test getting an invalid catalog (without path definition).
+  /* Test getting an invalid catalog (without path definition). */
   AssetCatalog *cat_without_path = service.find_catalog(UUID_ID_WITHOUT_PATH);
   ASSERT_EQ(nullptr, cat_without_path);
 
-  // Test getting a regular catalog.
+  /* Test getting a regular catalog. */
   AssetCatalog *poses_ellie = service.find_catalog(UUID_POSES_ELLIE);
   ASSERT_NE(nullptr, poses_ellie);
   EXPECT_EQ(UUID_POSES_ELLIE, poses_ellie->catalog_id);
   EXPECT_EQ("character/Ellie/poselib", poses_ellie->path);
   EXPECT_EQ("POSES_ELLIE", poses_ellie->simple_name);
 
-  // Test whitespace stripping and support in the path.
+  /* Test white-space stripping and support in the path. */
   AssetCatalog *poses_whitespace = service.find_catalog(UUID_POSES_ELLIE_WHITESPACE);
   ASSERT_NE(nullptr, poses_whitespace);
   EXPECT_EQ(UUID_POSES_ELLIE_WHITESPACE, poses_whitespace->catalog_id);
   EXPECT_EQ("character/Ellie/poselib/white space", poses_whitespace->path);
   EXPECT_EQ("POSES_ELLIE WHITESPACE", poses_whitespace->simple_name);
 
-  // Test getting a UTF-8 catalog ID.
+  /* Test getting a UTF-8 catalog ID. */
   AssetCatalog *poses_ruzena = service.find_catalog(UUID_POSES_RUZENA);
   ASSERT_NE(nullptr, poses_ruzena);
   EXPECT_EQ(UUID_POSES_RUZENA, poses_ruzena->catalog_id);
@@ -302,9 +302,9 @@ TEST_F(AssetCatalogTest, load_single_file_into_tree)
       {"character/Ružena/poselib", 2},
       {"character/Ružena/poselib/face", 3},
       {"character/Ružena/poselib/hand", 3},
-      {"path", 0},                     // Implicit.
-      {"path/without", 1},             // Implicit.
-      {"path/without/simplename", 2},  // From CDF.
+      {"path", 0},                    /* Implicit. */
+      {"path/without", 1},            /* Implicit. */
+      {"path/without/simplename", 2}, /* From CDF. */
   };
 
   AssetCatalogTree *tree = service.get_catalog_tree();
@@ -385,7 +385,7 @@ TEST_F(AssetCatalogTest, write_single_file)
   AssetCatalogService loaded_service(save_to_path);
   loaded_service.load_from_disk();
 
-  // Test that the expected catalogs are there.
+  /* Test that the expected catalogs are there. */
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE_WHITESPACE));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE_TRAILING_SLASH));
@@ -393,10 +393,10 @@ TEST_F(AssetCatalogTest, write_single_file)
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_RUZENA_HAND));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_RUZENA_FACE));
 
-  // Test that the invalid catalog definition wasn't copied.
+  /* Test that the invalid catalog definition wasn't copied. */
   EXPECT_EQ(nullptr, loaded_service.find_catalog(UUID_ID_WITHOUT_PATH));
 
-  // TODO(@sybren): test ordering of catalogs in the file.
+  /* TODO(@sybren): test ordering of catalogs in the file. */
 }
 
 TEST_F(AssetCatalogTest, no_writing_empty_files)
@@ -413,7 +413,7 @@ TEST_F(AssetCatalogTest, no_writing_empty_files)
 /* Already loaded a CDF, saving to some unrelated directory. */
 TEST_F(AssetCatalogTest, on_blendfile_save__with_existing_cdf)
 {
-  const CatalogFilePath top_level_dir = create_temp_path();  // Has trailing slash.
+  const CatalogFilePath top_level_dir = create_temp_path(); /* Has trailing slash. */
 
   /* Create a copy of the CDF in SVN, so we can safely write to it. */
   const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
@@ -450,7 +450,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__with_existing_cdf)
 /* Create some catalogs in memory, save to directory that doesn't contain anything else. */
 TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_empty_directory)
 {
-  const CatalogFilePath target_dir = create_temp_path();  // Has trailing slash.
+  const CatalogFilePath target_dir = create_temp_path(); /* Has trailing slash. */
 
   TestableAssetCatalogService service;
   const AssetCatalog *cat = service.create_catalog("some/catalog/path");
@@ -477,7 +477,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_empty_directory)
 /* Create some catalogs in memory, save to directory that contains a default CDF. */
 TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_cdf_and_merge)
 {
-  const CatalogFilePath target_dir = create_temp_path();  // Has trailing slash.
+  const CatalogFilePath target_dir = create_temp_path(); /* Has trailing slash. */
   const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
   const CatalogFilePath writable_cdf_file = target_dir +
                                             AssetCatalogService::DEFAULT_CATALOG_FILENAME;
@@ -512,7 +512,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_cdf_and_me
 /* Create some catalogs in memory, save to subdirectory of a registered asset library. */
 TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_asset_lib)
 {
-  const CatalogFilePath target_dir = create_temp_path();  // Has trailing slash.
+  const CatalogFilePath target_dir = create_temp_path(); /* Has trailing slash. */
   const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
   const CatalogFilePath registered_asset_lib = target_dir + "my_asset_library/";
   CatalogFilePath writable_cdf_file = registered_asset_lib +
@@ -584,7 +584,7 @@ TEST_F(AssetCatalogTest, create_first_catalog_from_scratch)
   AssetCatalogService loaded_service(temp_lib_root);
   loaded_service.load_from_disk();
 
-  // Test that the expected catalog is there.
+  /* Test that the expected catalog is there. */
   AssetCatalog *written_cat = loaded_service.find_catalog(cat->catalog_id);
   ASSERT_NE(nullptr, written_cat);
   EXPECT_EQ(written_cat->catalog_id, cat->catalog_id);
@@ -677,7 +677,7 @@ TEST_F(AssetCatalogTest, delete_catalog_leaf)
       {"character/Ružena", 1},
       {"character/Ružena/poselib", 2},
       {"character/Ružena/poselib/face", 3},
-      // {"character/Ružena/poselib/hand", 3}, // This is the deleted one.
+      // {"character/Ružena/poselib/hand", 3}, /* This is the deleted one. */
       {"path", 0},
       {"path/without", 1},
       {"path/without/simplename", 2},
@@ -702,7 +702,7 @@ TEST_F(AssetCatalogTest, delete_catalog_write_to_disk)
   AssetCatalogService loaded_service(save_to_path);
   loaded_service.load_from_disk();
 
-  // Test that the expected catalogs are there, except the deleted one.
+  /* Test that the expected catalogs are there, except the deleted one. */
   EXPECT_EQ(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE_WHITESPACE));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE_TRAILING_SLASH));
@@ -750,29 +750,30 @@ TEST_F(AssetCatalogTest, merge_catalog_files)
   const CatalogFilePath temp_cdf_file = cdf_dir + "blender_assets.cats.txt";
   ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), temp_cdf_file.c_str()));
 
-  // Load the unmodified, original CDF.
+  /* Load the unmodified, original CDF. */
   TestableAssetCatalogService service(asset_library_root_);
   service.load_from_disk(cdf_dir);
 
-  // Copy a modified file, to mimic a situation where someone changed the CDF after we loaded it.
+  /* Copy a modified file, to mimic a situation where someone changed the
+   * CDF after we loaded it. */
   ASSERT_EQ(0, BLI_copy(modified_cdf_file.c_str(), temp_cdf_file.c_str()));
 
-  // Overwrite the modified file. This should merge the on-disk file with our catalogs.
+  /* Overwrite the modified file. This should merge the on-disk file with our catalogs. */
   service.write_to_disk_on_blendfile_save(cdf_dir + "phony.blend");
 
   AssetCatalogService loaded_service(cdf_dir);
   loaded_service.load_from_disk();
 
-  // Test that the expected catalogs are there.
+  /* Test that the expected catalogs are there. */
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE_WHITESPACE));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE_TRAILING_SLASH));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_RUZENA));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_RUZENA_HAND));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_RUZENA_FACE));
-  EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_AGENT_47));  // New in the modified file.
+  EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_AGENT_47)); /* New in the modified file. */
 
-  // When there are overlaps, the in-memory (i.e. last-saved) paths should win.
+  /* When there are overlaps, the in-memory (i.e. last-saved) paths should win. */
   const AssetCatalog *ruzena_face = loaded_service.find_catalog(UUID_POSES_RUZENA_FACE);
   EXPECT_EQ("character/Ružena/poselib/face", ruzena_face->path);
 }
@@ -796,8 +797,8 @@ TEST_F(AssetCatalogTest, backups)
   AssetCatalogService loaded_service;
   loaded_service.load_from_disk(backup_path);
 
-  // Test that the expected catalogs are there, including the deleted one.
-  // This is the backup, after all.
+  /* Test that the expected catalogs are there, including the deleted one.
+   * This is the backup, after all. */
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE_WHITESPACE));
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE_TRAILING_SLASH));
@@ -809,12 +810,13 @@ TEST_F(AssetCatalogTest, backups)
 TEST_F(AssetCatalogTest, order_by_path)
 {
   const bUUID cat2_uuid("22222222-b847-44d9-bdca-ff04db1c24f5");
-  const bUUID cat4_uuid("11111111-b847-44d9-bdca-ff04db1c24f5");  // Sorts earlier than above.
+  const bUUID cat4_uuid("11111111-b847-44d9-bdca-ff04db1c24f5"); /* Sorts earlier than above. */
   const AssetCatalog cat1(BLI_uuid_generate_random(), "simple/path/child", "");
   const AssetCatalog cat2(cat2_uuid, "simple/path", "");
   const AssetCatalog cat3(BLI_uuid_generate_random(), "complex/path/...or/is/it?", "");
-  const AssetCatalog cat4(cat4_uuid, "simple/path", "different ID, same path");  // should be kept
-  const AssetCatalog cat5(cat4_uuid, "simple/path", "same ID, same path");       // disappears
+  const AssetCatalog cat4(
+      cat4_uuid, "simple/path", "different ID, same path");                /* should be kept */
+  const AssetCatalog cat5(cat4_uuid, "simple/path", "same ID, same path"); /* disappears */
 
   AssetCatalogOrderedSet by_path;
   by_path.insert(&cat1);
@@ -832,10 +834,10 @@ TEST_F(AssetCatalogTest, order_by_path)
   ASSERT_EQ(4, by_path.size()) << "Expecting cat5 to not be stored in the set, as it duplicates "
                                   "an already-existing path + UUID";
 
-  EXPECT_EQ(cat3.catalog_id, (*(set_iter++))->catalog_id);  // complex/path
-  EXPECT_EQ(cat4.catalog_id, (*(set_iter++))->catalog_id);  // simple/path with 111.. ID
-  EXPECT_EQ(cat2.catalog_id, (*(set_iter++))->catalog_id);  // simple/path with 222.. ID
-  EXPECT_EQ(cat1.catalog_id, (*(set_iter++))->catalog_id);  // simple/path/child
+  EXPECT_EQ(cat3.catalog_id, (*(set_iter++))->catalog_id); /* complex/path */
+  EXPECT_EQ(cat4.catalog_id, (*(set_iter++))->catalog_id); /* simple/path with 111.. ID */
+  EXPECT_EQ(cat2.catalog_id, (*(set_iter++))->catalog_id); /* simple/path with 222.. ID */
+  EXPECT_EQ(cat1.catalog_id, (*(set_iter++))->catalog_id); /* simple/path/child */
 
   if (set_iter != by_path.end()) {
     const AssetCatalog *next_cat = *set_iter;

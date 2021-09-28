@@ -1467,7 +1467,7 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 }
 
 /* ObData Geometry Evaluation */
-// XXX: what happens if the datablock is shared!
+/* XXX: what happens if the datablock is shared! */
 void DepsgraphNodeBuilder::build_object_data_geometry(Object *object, bool is_object_visible)
 {
   OperationNode *op_node;
@@ -1784,7 +1784,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
     build_idproperties(socket->prop);
   }
 
-  // TODO: link from nodetree to owner_component?
+  /* TODO: link from nodetree to owner_component? */
 }
 
 /* Recursively build graph for material */
