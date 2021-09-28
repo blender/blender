@@ -664,9 +664,7 @@ bool AssetCatalogDefinitionFile::write_to_disk_unsafe(const CatalogFilePath &des
   output << VERSION_MARKER << SUPPORTED_VERSION << std::endl;
   output << "" << std::endl;
 
-  // Write the catalogs.
-  // TODO(@sybren): order them by Catalog ID or Catalog Path.
-
+  // Write the catalogs, ordered by path (primary) and UUID (secondary).
   AssetCatalogOrderedSet catalogs_by_path;
   for (const AssetCatalog *catalog : catalogs_.values()) {
     if (catalog->flags.is_deleted) {
