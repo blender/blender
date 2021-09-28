@@ -165,8 +165,6 @@ static void geo_node_instance_on_points_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
   GeometrySet geometry_set_out;
 
-  geometry_set = geometry_set_realize_instances(geometry_set);
-
   InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
 
   if (geometry_set.has<MeshComponent>()) {
