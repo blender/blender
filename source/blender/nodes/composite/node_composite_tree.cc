@@ -315,7 +315,7 @@ void ntreeCompositTagRender(Scene *scene)
         if (node->id == (ID *)scene || node->type == CMP_NODE_COMPOSITE) {
           nodeUpdate(sce_iter->nodetree, node);
         }
-        else if (node->type == CMP_NODE_TEXTURE) /* uses scene sizex/sizey */ {
+        else if (node->type == CMP_NODE_TEXTURE) /* uses scene size_x/size_y */ {
           nodeUpdate(sce_iter->nodetree, node);
         }
       }

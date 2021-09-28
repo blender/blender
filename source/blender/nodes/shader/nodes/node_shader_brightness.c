@@ -19,7 +19,7 @@
 
 #include "node_shader_util.h"
 
-/* **************** Brigh and contrsast  ******************** */
+/* **************** Bright and contrast  ******************** */
 
 static bNodeSocketTemplate sh_node_brightcontrast_in[] = {
     {SOCK_RGBA, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f},

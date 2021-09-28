@@ -302,7 +302,7 @@ class AssetCatalog {
    * When this catalog's path is equal to the given path, return true as well.
    *
    * Note that non-normalized paths (so for example starting or ending with a slash) are not
-   * supported, and result in undefined behaviour.
+   * supported, and result in undefined behavior.
    */
   bool is_contained_in(const CatalogPath &other_path) const;
 

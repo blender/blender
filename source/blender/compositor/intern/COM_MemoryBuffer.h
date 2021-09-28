@@ -695,8 +695,9 @@ class MemoryBuffer {
     return y >= m_rect.ymin && y < m_rect.ymax;
   }
 
-  /* Fast floor functions. The caller should check result is within buffer bounds. It ceils in near
-   * cases and when given coordinate is negative and less than buffer rect `min - 1`. */
+  /* Fast `floor(..)` functions. The caller should check result is within buffer bounds.
+   * It `ceil(..)` in near cases and when given coordinate
+   * is negative and less than buffer rect `min - 1`. */
   int floor_x(float x) const
   {
     return (int)(x + to_positive_x_stride_) - to_positive_x_stride_;

@@ -110,8 +110,7 @@ class BlenderSession {
   BL::RenderSettings b_render;
   BL::Depsgraph b_depsgraph;
   /* NOTE: Blender's scene might become invalid after call
-   * free_blender_memory_if_possible().
-   */
+   * #free_blender_memory_if_possible(). */
   BL::Scene b_scene;
   BL::SpaceView3D b_v3d;
   BL::RegionView3D b_rv3d;
@@ -147,7 +146,7 @@ class BlenderSession {
  protected:
   void stamp_view_layer_metadata(Scene *scene, const string &view_layer_name);
 
-  /* Check whether session error happenned.
+  /* Check whether session error happened.
    * If so, it is reported to the render engine and true is returned.
    * Otherwise false is returned. */
   bool check_and_report_session_error();

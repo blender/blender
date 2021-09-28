@@ -228,7 +228,7 @@ void BlurBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_are
     }
     case eExecutionModel::FullFrame: {
       /* Setting a modifier ensures all non main inputs have extended bounds as preferred
-       * canvas, avoiding unnecessary canvas convertions that would hide constant
+       * canvas, avoiding unnecessary canvas conversions that would hide constant
        * operations. */
       set_determined_canvas_modifier([=](rcti &canvas) {
         /* Rounding to even prevents jiggling in backdrop while switching size values. */

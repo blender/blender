@@ -175,7 +175,7 @@ TEST_F(AssetCatalogTest, load_single_file)
   AssetCatalogService service(asset_library_root_);
   service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
 
-  // Test getting a non-existant catalog ID.
+  // Test getting a non-existent catalog ID.
   EXPECT_EQ(nullptr, service.find_catalog(BLI_uuid_generate_random()));
 
   // Test getting an invalid catalog (without path definition).
@@ -677,7 +677,7 @@ TEST_F(AssetCatalogTest, delete_catalog_leaf)
       {"character/Ružena", 1},
       {"character/Ružena/poselib", 2},
       {"character/Ružena/poselib/face", 3},
-      // {"character/Ružena/poselib/hand", 3}, // this is the deleted one
+      // {"character/Ružena/poselib/hand", 3}, // This is the deleted one.
       {"path", 0},
       {"path/without", 1},
       {"path/without/simplename", 2},
@@ -754,7 +754,7 @@ TEST_F(AssetCatalogTest, merge_catalog_files)
   TestableAssetCatalogService service(asset_library_root_);
   service.load_from_disk(cdf_dir);
 
-  // Copy a modified file, to mimick a situation where someone changed the CDF after we loaded it.
+  // Copy a modified file, to mimic a situation where someone changed the CDF after we loaded it.
   ASSERT_EQ(0, BLI_copy(modified_cdf_file.c_str(), temp_cdf_file.c_str()));
 
   // Overwrite the modified file. This should merge the on-disk file with our catalogs.

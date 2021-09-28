@@ -1958,13 +1958,11 @@ int imagewraposa(Tex *tex,
   }
 
   if (texres->nor && (tex->imaflag & TEX_NORMALMAP)) {
-    /* qdn: normal from color
-     * The invert of the red channel is to make
-     * the normal map compliant with the outside world.
-     * It needs to be done because in Blender
-     * the normal used in the renderer points inward. It is generated
-     * this way in calc_vertexnormals(). Should this ever change
-     * this negate must be removed. */
+    /* Normal from color:
+     * The invert of the red channel is to make the normal map compliant with the outside world.
+     * It needs to be done because in Blender the normal used in the renderer points inward.
+     * It is generated this way in #calc_vertexnormals().
+     * Should this ever change this negate must be removed. */
     texres->nor[0] = -2.0f * (texres->tr - 0.5f);
     texres->nor[1] = 2.0f * (texres->tg - 0.5f);
     texres->nor[2] = 2.0f * (texres->tb - 0.5f);

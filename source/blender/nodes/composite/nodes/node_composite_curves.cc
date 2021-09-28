@@ -25,7 +25,7 @@
 
 /* **************** CURVE Time  ******************** */
 
-/* custom1 = sfra, custom2 = efra */
+/* custom1 = start_frame, custom2 = end_frame */
 static bNodeSocketTemplate cmp_node_time_out[] = {
     {SOCK_FLOAT, N_("Fac")},
     {-1, ""},

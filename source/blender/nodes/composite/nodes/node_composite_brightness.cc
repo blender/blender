@@ -23,7 +23,7 @@
 
 #include "node_composite_util.hh"
 
-/* **************** Brigh and contrsast  ******************** */
+/* **************** Bright and Contrast  ******************** */
 
 static bNodeSocketTemplate cmp_node_brightcontrast_in[] = {
     {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},

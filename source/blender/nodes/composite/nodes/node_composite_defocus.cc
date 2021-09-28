@@ -25,7 +25,7 @@
 
 #include <climits>
 
-/* ************ qdn: Defocus node ****************** */
+/* ************ Defocus Node ****************** */
 static bNodeSocketTemplate cmp_node_defocus_in[] = {
     {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
     {SOCK_FLOAT, N_("Z"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
@@ -38,7 +38,7 @@ static bNodeSocketTemplate cmp_node_defocus_out[] = {
 
 static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  /* qdn: defocus node */
+  /* defocus node */
   NodeDefocus *nbd = (NodeDefocus *)MEM_callocN(sizeof(NodeDefocus), "node defocus data");
   nbd->bktype = 0;
   nbd->rotation = 0.0f;

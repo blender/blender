@@ -404,7 +404,7 @@ static void transfer_attribute_nearest(const GeometrySet &src_geometry,
                                                                                         data_type);
     for (const int i : IndexRange(tot_samples)) {
       if (pointcloud_distances_sq[i] < mesh_distances_sq[i]) {
-        /* Pointcloud point is closer. */
+        /* Point-cloud point is closer. */
         const int index = pointcloud_indices[i];
         pointcloud_src_attribute.varray->get(index, buffer);
         dst_attribute->set_by_relocate(i, buffer);

@@ -1563,7 +1563,7 @@ static void node_composit_buts_antialiasing(uiLayout *layout, bContext *UNUSED(C
   uiItemR(col, ptr, "corner_rounding", 0, nullptr, ICON_NONE);
 }
 
-/* qdn: glare node */
+/* glare node */
 static void node_composit_buts_glare(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "glare_type", DEFAULT_FLAGS, "", ICON_NONE);
