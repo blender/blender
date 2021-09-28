@@ -509,6 +509,13 @@ class InstanceReference {
     }
   }
 
+  InstanceReference(InstanceReference &&other)
+      : type_(other.type_), data_(other.data_), geometry_set_(std::move(other.geometry_set_))
+  {
+    other.type_ = Type::None;
+    other.data_ = nullptr;
+  }
+
   InstanceReference &operator=(const InstanceReference &other)
   {
     if (this == &other) {
@@ -516,6 +523,16 @@ class InstanceReference {
     }
     this->~InstanceReference();
     new (this) InstanceReference(other);
+    return *this;
+  }
+
+  InstanceReference &operator=(InstanceReference &&other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+    this->~InstanceReference();
+    new (this) InstanceReference(std::move(other));
     return *this;
   }
 
