@@ -65,8 +65,8 @@ NodeOperation *COM_convert_data_type(const NodeOperationOutput &from,
  * \note Conversion logic is implemented in this function.
  * \see InputSocketResizeMode for the possible conversions.
  */
-void COM_convert_resolution(NodeOperationBuilder &builder,
-                            NodeOperationOutput *fromSocket,
-                            NodeOperationInput *toSocket);
+void COM_convert_canvas(NodeOperationBuilder &builder,
+                        NodeOperationOutput *fromSocket,
+                        NodeOperationInput *toSocket);
 
 }  // namespace blender::compositor

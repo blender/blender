@@ -51,13 +51,13 @@ void AlphaOverNode::convertToOperations(NodeConverter &converter,
 
   convertProg->setUseValueAlphaMultiply(false);
   if (color1Socket->isLinked()) {
-    convertProg->setResolutionInputSocketIndex(1);
+    convertProg->set_canvas_input_index(1);
   }
   else if (color2Socket->isLinked()) {
-    convertProg->setResolutionInputSocketIndex(2);
+    convertProg->set_canvas_input_index(2);
   }
   else {
-    convertProg->setResolutionInputSocketIndex(0);
+    convertProg->set_canvas_input_index(0);
   }
 
   converter.addOperation(convertProg);

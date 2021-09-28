@@ -31,7 +31,7 @@ namespace blender::compositor {
  */
 class ConstantOperation : public NodeOperation {
  protected:
-  bool needs_resolution_to_get_constant_;
+  bool needs_canvas_to_get_constant_;
 
  public:
   ConstantOperation();

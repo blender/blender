@@ -138,10 +138,7 @@ void DisplaceSimpleOperation::get_area_of_interest(const int input_idx,
 {
   switch (input_idx) {
     case 0: {
-      r_input_area.xmin = 0;
-      r_input_area.ymin = 0;
-      r_input_area.xmax = getInputOperation(input_idx)->getWidth();
-      r_input_area.ymax = getInputOperation(input_idx)->getHeight();
+      r_input_area = get_input_operation(input_idx)->get_canvas();
       break;
     }
     default: {

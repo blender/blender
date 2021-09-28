@@ -58,8 +58,7 @@ class GlareThresholdOperation : public NodeOperation {
     this->m_settings = settings;
   }
 
-  void determineResolution(unsigned int resolution[2],
-                           unsigned int preferredResolution[2]) override;
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 };
 
 }  // namespace blender::compositor

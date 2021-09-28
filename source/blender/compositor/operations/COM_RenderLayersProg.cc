@@ -196,15 +196,13 @@ void RenderLayersProg::deinitExecution()
   }
 }
 
-void RenderLayersProg::determineResolution(unsigned int resolution[2],
-                                           unsigned int /*preferredResolution*/[2])
+void RenderLayersProg::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
 {
   Scene *sce = this->getScene();
   Render *re = (sce) ? RE_GetSceneRender(sce) : nullptr;
   RenderResult *rr = nullptr;
 
-  resolution[0] = 0;
-  resolution[1] = 0;
+  r_area = COM_AREA_NONE;
 
   if (re) {
     rr = RE_AcquireResultRead(re);
@@ -215,8 +213,7 @@ void RenderLayersProg::determineResolution(unsigned int resolution[2],
     if (view_layer) {
       RenderLayer *rl = RE_GetRenderLayer(rr, view_layer->name);
       if (rl) {
-        resolution[0] = rl->rectx;
-        resolution[1] = rl->recty;
+        BLI_rcti_init(&r_area, 0, rl->rectx, 0, rl->recty);
       }
     }
   }

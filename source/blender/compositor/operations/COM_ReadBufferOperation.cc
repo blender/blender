@@ -36,16 +36,17 @@ void *ReadBufferOperation::initializeTileData(rcti * /*rect*/)
   return m_buffer;
 }
 
-void ReadBufferOperation::determineResolution(unsigned int resolution[2],
-                                              unsigned int preferredResolution[2])
+void ReadBufferOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   if (this->m_memoryProxy != nullptr) {
     WriteBufferOperation *operation = this->m_memoryProxy->getWriteBufferOperation();
-    operation->determineResolution(resolution, preferredResolution);
-    operation->setResolution(resolution);
+    operation->determine_canvas(preferred_area, r_area);
+    operation->set_canvas(r_area);
 
     /** \todo may not occur! But does with blur node. */
     if (this->m_memoryProxy->getExecutor()) {
+      uint resolution[2] = {static_cast<uint>(BLI_rcti_size_x(&r_area)),
+                            static_cast<uint>(BLI_rcti_size_y(&r_area))};
       this->m_memoryProxy->getExecutor()->setResolution(resolution);
     }
 

@@ -460,9 +460,9 @@ NodeOperation *COM_convert_data_type(const NodeOperationOutput &from, const Node
   return nullptr;
 }
 
-void COM_convert_resolution(NodeOperationBuilder &builder,
-                            NodeOperationOutput *fromSocket,
-                            NodeOperationInput *toSocket)
+void COM_convert_canvas(NodeOperationBuilder &builder,
+                        NodeOperationOutput *fromSocket,
+                        NodeOperationInput *toSocket)
 {
   /* Data type conversions are executed before resolutions to ensure convert operations have
    * resolution. This method have to ensure same datatypes are linked for new operations. */
@@ -535,10 +535,10 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
       builder.addOperation(sxop);
       builder.addOperation(syop);
 
-      unsigned int resolution[2] = {fromOperation->getWidth(), fromOperation->getHeight()};
-      scaleOperation->setResolution(resolution);
-      sxop->setResolution(resolution);
-      syop->setResolution(resolution);
+      const rcti &scale_canvas = fromOperation->get_canvas();
+      scaleOperation->set_canvas(scale_canvas);
+      sxop->set_canvas(scale_canvas);
+      syop->set_canvas(scale_canvas);
       builder.addOperation(scaleOperation);
     }
 
@@ -557,10 +557,10 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
     builder.addOperation(xop);
     builder.addOperation(yop);
 
-    unsigned int resolution[2] = {toOperation->getWidth(), toOperation->getHeight()};
-    translateOperation->setResolution(resolution);
-    xop->setResolution(resolution);
-    yop->setResolution(resolution);
+    const rcti &translate_canvas = toOperation->get_canvas();
+    translateOperation->set_canvas(translate_canvas);
+    xop->set_canvas(translate_canvas);
+    yop->set_canvas(translate_canvas);
     builder.addOperation(translateOperation);
 
     if (doScale) {

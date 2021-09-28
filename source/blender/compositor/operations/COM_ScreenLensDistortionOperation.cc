@@ -388,7 +388,7 @@ void ScreenLensDistortionOperation::get_area_of_interest(const int input_idx,
 {
   if (input_idx != 0) {
     /* Dispersion and distortion inputs are used as constants only. */
-    r_input_area = COM_SINGLE_ELEM_AREA;
+    r_input_area = COM_CONSTANT_INPUT_AREA_OF_INTEREST;
   }
 
   /* XXX the original method of estimating the area-of-interest does not work
@@ -398,10 +398,7 @@ void ScreenLensDistortionOperation::get_area_of_interest(const int input_idx,
    */
 #if 1
   NodeOperation *image = getInputOperation(0);
-  r_input_area.xmax = image->getWidth();
-  r_input_area.xmin = 0;
-  r_input_area.ymax = image->getHeight();
-  r_input_area.ymin = 0;
+  r_input_area = image->get_canvas();
 
 #else /* Original method in tiled implementation. */
   rcti newInput;

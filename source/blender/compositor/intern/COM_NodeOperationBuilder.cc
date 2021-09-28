@@ -106,7 +106,7 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
     folder.fold_operations();
   }
 
-  determineResolutions();
+  determine_canvases();
 
   save_graphviz("compositor_prior_merging");
   merge_equal_operations();
@@ -423,28 +423,27 @@ void NodeOperationBuilder::resolve_proxies()
   }
 }
 
-void NodeOperationBuilder::determineResolutions()
+void NodeOperationBuilder::determine_canvases()
 {
-  /* determine all resolutions of the operations (Width/Height) */
+  /* Determine all canvas areas of the operations. */
+  const rcti &preferred_area = COM_AREA_NONE;
   for (NodeOperation *op : m_operations) {
     if (op->isOutputOperation(m_context->isRendering()) && !op->get_flags().is_preview_operation) {
-      unsigned int resolution[2] = {0, 0};
-      unsigned int preferredResolution[2] = {0, 0};
-      op->determineResolution(resolution, preferredResolution);
-      op->setResolution(resolution);
+      rcti canvas = COM_AREA_NONE;
+      op->determine_canvas(preferred_area, canvas);
+      op->set_canvas(canvas);
     }
   }
 
   for (NodeOperation *op : m_operations) {
     if (op->isOutputOperation(m_context->isRendering()) && op->get_flags().is_preview_operation) {
-      unsigned int resolution[2] = {0, 0};
-      unsigned int preferredResolution[2] = {0, 0};
-      op->determineResolution(resolution, preferredResolution);
-      op->setResolution(resolution);
+      rcti canvas = COM_AREA_NONE;
+      op->determine_canvas(preferred_area, canvas);
+      op->set_canvas(canvas);
     }
   }
 
-  /* add convert resolution operations when needed */
+  /* Convert operation canvases when needed. */
   {
     Vector<Link> convert_links;
     for (const Link &link : m_links) {
@@ -457,7 +456,7 @@ void NodeOperationBuilder::determineResolutions()
       }
     }
     for (const Link &link : convert_links) {
-      COM_convert_resolution(*this, link.from(), link.to());
+      COM_convert_canvas(*this, link.from(), link.to());
     }
   }
 }

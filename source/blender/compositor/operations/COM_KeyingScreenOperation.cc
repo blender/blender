@@ -303,11 +303,9 @@ void KeyingScreenOperation::deinitializeTileData(rcti * /*rect*/, void *data)
   MEM_freeN(tile_data);
 }
 
-void KeyingScreenOperation::determineResolution(unsigned int resolution[2],
-                                                unsigned int /*preferredResolution*/[2])
+void KeyingScreenOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  resolution[0] = 0;
-  resolution[1] = 0;
+  r_area = COM_AREA_NONE;
 
   if (this->m_movieClip) {
     MovieClipUser user = {0};
@@ -317,9 +315,9 @@ void KeyingScreenOperation::determineResolution(unsigned int resolution[2],
 
     BKE_movieclip_user_set_frame(&user, clip_frame);
     BKE_movieclip_get_size(this->m_movieClip, &user, &width, &height);
-
-    resolution[0] = width;
-    resolution[1] = height;
+    r_area = preferred_area;
+    r_area.xmax = r_area.xmin + width;
+    r_area.ymax = r_area.ymin + height;
   }
 }
 

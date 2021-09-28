@@ -130,14 +130,14 @@ bool PreviewOperation::determineDependingAreaOfInterest(rcti *input,
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
-void PreviewOperation::determineResolution(unsigned int resolution[2],
-                                           unsigned int /*preferredResolution*/[2])
+void PreviewOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
 {
   /* Use default preview resolution as preferred ensuring it has size so that
    * generated inputs (which don't have resolution on their own) are displayed */
   BLI_assert(this->m_defaultWidth > 0 && this->m_defaultHeight > 0);
-  unsigned int previewPreferredRes[2] = {this->m_defaultWidth, this->m_defaultHeight};
-  NodeOperation::determineResolution(resolution, previewPreferredRes);
+  rcti local_preferred;
+  BLI_rcti_init(&local_preferred, 0, m_defaultWidth, 0, m_defaultHeight);
+  NodeOperation::determine_canvas(local_preferred, r_area);
 
   /* If resolution is 0 there are two possible scenarios:
    * - Either node is not connected at all
@@ -148,8 +148,8 @@ void PreviewOperation::determineResolution(unsigned int resolution[2],
    * The latter case would only happen if an input doesn't set any resolution ignoring output
    * preferred resolution. In such case preview size will be 0 too.
    */
-  int width = resolution[0];
-  int height = resolution[1];
+  int width = BLI_rcti_size_x(&r_area);
+  int height = BLI_rcti_size_y(&r_area);
   this->m_divider = 0.0f;
   if (width > 0 && height > 0) {
     if (width > height) {
@@ -162,8 +162,7 @@ void PreviewOperation::determineResolution(unsigned int resolution[2],
   width = width * this->m_divider;
   height = height * this->m_divider;
 
-  resolution[0] = width;
-  resolution[1] = height;
+  BLI_rcti_init(&r_area, 0, width, 0, height);
 }
 
 eCompositorPriority PreviewOperation::getRenderPriority() const

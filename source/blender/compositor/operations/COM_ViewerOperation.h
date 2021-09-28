@@ -55,8 +55,7 @@ class ViewerOperation : public MultiThreadedOperation {
   void initExecution() override;
   void deinitExecution() override;
   void executeRegion(rcti *rect, unsigned int tileNumber) override;
-  void determineResolution(unsigned int resolution[2],
-                           unsigned int preferredResolution[2]) override;
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
   bool isOutputOperation(bool /*rendering*/) const override
   {
     if (G.background) {

@@ -87,12 +87,9 @@ Vector<MemoryBuffer *> FullFrameExecutionModel::get_input_buffers(NodeOperation 
 
 MemoryBuffer *FullFrameExecutionModel::create_operation_buffer(NodeOperation *op)
 {
-  rcti op_rect;
-  BLI_rcti_init(&op_rect, 0, op->getWidth(), 0, op->getHeight());
-
   const DataType data_type = op->getOutputSocket(0)->getDataType();
   const bool is_a_single_elem = op->get_flags().is_constant_operation;
-  return new MemoryBuffer(data_type, op_rect, is_a_single_elem);
+  return new MemoryBuffer(data_type, op->get_canvas(), is_a_single_elem);
 }
 
 void FullFrameExecutionModel::render_operation(NodeOperation *op)
@@ -199,12 +196,11 @@ void FullFrameExecutionModel::determine_areas_to_render(NodeOperation *output_op
     const int num_inputs = operation->getNumberOfInputSockets();
     for (int i = 0; i < num_inputs; i++) {
       NodeOperation *input_op = operation->get_input_operation(i);
-      rcti input_op_rect, input_area;
-      BLI_rcti_init(&input_op_rect, 0, input_op->getWidth(), 0, input_op->getHeight());
+      rcti input_area;
       operation->get_area_of_interest(input_op, render_area, input_area);
 
       /* Ensure area of interest is within operation bounds, cropping areas outside. */
-      BLI_rcti_isect(&input_area, &input_op_rect, &input_area);
+      BLI_rcti_isect(&input_area, &input_op->get_canvas(), &input_area);
 
       stack.append({input_op, input_area});
     }

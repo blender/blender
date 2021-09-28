@@ -162,8 +162,10 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
 
   len += snprintf(str + len,
                   maxlen > len ? maxlen - len : 0,
-                  "#%d (%u,%u)",
+                  "#%d (%i,%i) (%u,%u)",
                   operation->get_id(),
+                  operation->get_canvas().xmin,
+                  operation->get_canvas().ymin,
                   operation->getWidth(),
                   operation->getHeight());
 

@@ -122,15 +122,15 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
   updateImage(rect);
 }
 
-void ViewerOperation::determineResolution(unsigned int resolution[2],
-                                          unsigned int /*preferredResolution*/[2])
+void ViewerOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   const int sceneRenderWidth = this->m_rd->xsch * this->m_rd->size / 100;
   const int sceneRenderHeight = this->m_rd->ysch * this->m_rd->size / 100;
 
-  unsigned int localPrefRes[2] = {static_cast<unsigned int>(sceneRenderWidth),
-                                  static_cast<unsigned int>(sceneRenderHeight)};
-  NodeOperation::determineResolution(resolution, localPrefRes);
+  rcti local_preferred = preferred_area;
+  local_preferred.xmax = local_preferred.xmin + sceneRenderWidth;
+  local_preferred.ymax = local_preferred.ymin + sceneRenderHeight;
+  NodeOperation::determine_canvas(local_preferred, r_area);
 }
 
 void ViewerOperation::initImage()

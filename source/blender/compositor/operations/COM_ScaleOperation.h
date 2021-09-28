@@ -141,8 +141,7 @@ class ScaleFixedSizeOperation : public BaseScaleOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
-  void determineResolution(unsigned int resolution[2],
-                           unsigned int preferredResolution[2]) override;
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void init_data() override;

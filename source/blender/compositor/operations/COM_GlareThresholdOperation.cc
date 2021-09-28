@@ -30,12 +30,13 @@ GlareThresholdOperation::GlareThresholdOperation()
   this->m_inputProgram = nullptr;
 }
 
-void GlareThresholdOperation::determineResolution(unsigned int resolution[2],
-                                                  unsigned int preferredResolution[2])
+void GlareThresholdOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  NodeOperation::determineResolution(resolution, preferredResolution);
-  resolution[0] = resolution[0] / (1 << this->m_settings->quality);
-  resolution[1] = resolution[1] / (1 << this->m_settings->quality);
+  NodeOperation::determine_canvas(preferred_area, r_area);
+  const int width = BLI_rcti_size_x(&r_area) / (1 << this->m_settings->quality);
+  const int height = BLI_rcti_size_y(&r_area) / (1 << this->m_settings->quality);
+  r_area.xmax = r_area.xmin + width;
+  r_area.ymax = r_area.ymin + height;
 }
 
 void GlareThresholdOperation::initExecution()

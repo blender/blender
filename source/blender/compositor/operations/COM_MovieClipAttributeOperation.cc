@@ -29,7 +29,7 @@ MovieClipAttributeOperation::MovieClipAttributeOperation()
   this->m_framenumber = 0;
   this->m_attribute = MCA_X;
   this->m_invert = false;
-  needs_resolution_to_get_constant_ = true;
+  needs_canvas_to_get_constant_ = true;
   is_value_calculated_ = false;
 }
 
@@ -42,7 +42,7 @@ void MovieClipAttributeOperation::initExecution()
 
 void MovieClipAttributeOperation::calc_value()
 {
-  BLI_assert(this->get_flags().is_resolution_set);
+  BLI_assert(this->get_flags().is_canvas_set);
   is_value_calculated_ = true;
   if (this->m_clip == nullptr) {
     return;
@@ -87,11 +87,9 @@ void MovieClipAttributeOperation::executePixelSampled(float output[4],
   output[0] = this->m_value;
 }
 
-void MovieClipAttributeOperation::determineResolution(unsigned int resolution[2],
-                                                      unsigned int preferredResolution[2])
+void MovieClipAttributeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  resolution[0] = preferredResolution[0];
-  resolution[1] = preferredResolution[1];
+  r_area = preferred_area;
 }
 
 const float *MovieClipAttributeOperation::get_constant_elem()

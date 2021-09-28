@@ -115,8 +115,7 @@ class CompositorOperation : public MultiThreadedOperation {
   {
     return eCompositorPriority::Medium;
   }
-  void determineResolution(unsigned int resolution[2],
-                           unsigned int preferredResolution[2]) override;
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
   void setUseAlphaInput(bool value)
   {
     this->m_useAlphaInput = value;

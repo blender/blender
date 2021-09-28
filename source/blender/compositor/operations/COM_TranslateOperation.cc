@@ -29,7 +29,7 @@ TranslateOperation::TranslateOperation(DataType data_type)
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(data_type);
-  this->setResolutionInputSocketIndex(0);
+  this->set_canvas_input_index(0);
   this->m_inputOperation = nullptr;
   this->m_inputXOperation = nullptr;
   this->m_inputYOperation = nullptr;

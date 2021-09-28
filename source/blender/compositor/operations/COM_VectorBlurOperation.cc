@@ -126,10 +126,7 @@ void VectorBlurOperation::get_area_of_interest(const int UNUSED(input_idx),
                                                const rcti &UNUSED(output_area),
                                                rcti &r_input_area)
 {
-  r_input_area.xmin = 0;
-  r_input_area.xmax = this->getWidth();
-  r_input_area.ymin = 0;
-  r_input_area.ymax = this->getHeight();
+  r_input_area = this->get_canvas();
 }
 
 void VectorBlurOperation::update_memory_buffer(MemoryBuffer *output,

@@ -25,7 +25,7 @@ DotproductOperation::DotproductOperation()
   this->addInputSocket(DataType::Vector);
   this->addInputSocket(DataType::Vector);
   this->addOutputSocket(DataType::Value);
-  this->setResolutionInputSocketIndex(0);
+  this->set_canvas_input_index(0);
   this->m_input1Operation = nullptr;
   this->m_input2Operation = nullptr;
   flags.can_be_constant = true;

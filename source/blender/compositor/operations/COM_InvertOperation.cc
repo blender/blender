@@ -29,7 +29,7 @@ InvertOperation::InvertOperation()
   this->m_inputColorProgram = nullptr;
   this->m_color = true;
   this->m_alpha = false;
-  setResolutionInputSocketIndex(1);
+  set_canvas_input_index(1);
   this->flags.can_be_constant = true;
 }
 void InvertOperation::initExecution()

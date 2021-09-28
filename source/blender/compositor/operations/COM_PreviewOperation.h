@@ -58,8 +58,7 @@ class PreviewOperation : public MultiThreadedOperation {
   eCompositorPriority getRenderPriority() const override;
 
   void executeRegion(rcti *rect, unsigned int tileNumber) override;
-  void determineResolution(unsigned int resolution[2],
-                           unsigned int preferredResolution[2]) override;
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;

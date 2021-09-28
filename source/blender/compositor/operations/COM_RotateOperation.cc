@@ -28,7 +28,7 @@ RotateOperation::RotateOperation()
   this->addInputSocket(DataType::Color);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
-  this->setResolutionInputSocketIndex(0);
+  this->set_canvas_input_index(0);
   this->m_imageSocket = nullptr;
   this->m_degreeSocket = nullptr;
   this->m_doDegree2RadConversion = false;
@@ -164,8 +164,7 @@ void RotateOperation::get_area_of_interest(const int input_idx,
                                            rcti &r_input_area)
 {
   if (input_idx == DEGREE_INPUT_INDEX) {
-    /* Degrees input is always used as constant. */
-    r_input_area = COM_SINGLE_ELEM_AREA;
+    r_input_area = COM_CONSTANT_INPUT_AREA_OF_INTEREST;
     return;
   }
 

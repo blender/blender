@@ -121,7 +121,8 @@ constexpr float COM_PREVIEW_SIZE = 140.f;
 constexpr float COM_RULE_OF_THIRDS_DIVIDER = 100.0f;
 constexpr float COM_BLUR_BOKEH_PIXELS = 512;
 
-constexpr rcti COM_SINGLE_ELEM_AREA = {0, 1, 0, 1};
+constexpr rcti COM_AREA_NONE = {0, 0, 0, 0};
+constexpr rcti COM_CONSTANT_INPUT_AREA_OF_INTEREST = COM_AREA_NONE;
 
 constexpr IndexRange XRange(const rcti &area)
 {

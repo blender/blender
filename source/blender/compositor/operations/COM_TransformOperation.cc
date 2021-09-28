@@ -99,7 +99,7 @@ void TransformOperation::get_area_of_interest(const int input_idx,
     case X_INPUT_INDEX:
     case Y_INPUT_INDEX:
     case DEGREE_INPUT_INDEX: {
-      r_input_area = COM_SINGLE_ELEM_AREA;
+      r_input_area = COM_CONSTANT_INPUT_AREA_OF_INTEREST;
       break;
     }
     case SCALE_INPUT_INDEX: {

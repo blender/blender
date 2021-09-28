@@ -160,11 +160,7 @@ void TonemapOperation::get_area_of_interest(const int input_idx,
                                             rcti &r_input_area)
 {
   BLI_assert(input_idx == 0);
-  NodeOperation *operation = getInputOperation(input_idx);
-  r_input_area.xmin = 0;
-  r_input_area.ymin = 0;
-  r_input_area.xmax = operation->getWidth();
-  r_input_area.ymax = operation->getHeight();
+  r_input_area = get_input_operation(input_idx)->get_canvas();
 }
 
 struct Luminance {

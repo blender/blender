@@ -37,7 +37,7 @@ ColorCurveOperation::ColorCurveOperation()
   this->m_inputBlackProgram = nullptr;
   this->m_inputWhiteProgram = nullptr;
 
-  this->setResolutionInputSocketIndex(1);
+  this->set_canvas_input_index(1);
 }
 void ColorCurveOperation::initExecution()
 {
@@ -139,7 +139,7 @@ ConstantLevelColorCurveOperation::ConstantLevelColorCurveOperation()
   this->m_inputFacProgram = nullptr;
   this->m_inputImageProgram = nullptr;
 
-  this->setResolutionInputSocketIndex(1);
+  this->set_canvas_input_index(1);
 }
 void ConstantLevelColorCurveOperation::initExecution()
 {

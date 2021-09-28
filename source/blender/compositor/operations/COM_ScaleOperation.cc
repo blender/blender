@@ -48,7 +48,7 @@ ScaleOperation::ScaleOperation(DataType data_type) : BaseScaleOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(data_type);
-  this->setResolutionInputSocketIndex(0);
+  this->set_canvas_input_index(0);
   this->m_inputOperation = nullptr;
   this->m_inputXOperation = nullptr;
   this->m_inputYOperation = nullptr;
@@ -267,7 +267,7 @@ ScaleFixedSizeOperation::ScaleFixedSizeOperation() : BaseScaleOperation()
 {
   this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addOutputSocket(DataType::Color);
-  this->setResolutionInputSocketIndex(0);
+  this->set_canvas_input_index(0);
   this->m_inputOperation = nullptr;
   this->m_is_offset = false;
 }
@@ -366,15 +366,14 @@ bool ScaleFixedSizeOperation::determineDependingAreaOfInterest(rcti *input,
   return BaseScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[2],
-                                                  unsigned int /*preferredResolution*/[2])
+void ScaleFixedSizeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  unsigned int nr[2];
-  nr[0] = this->m_newWidth;
-  nr[1] = this->m_newHeight;
-  BaseScaleOperation::determineResolution(resolution, nr);
-  resolution[0] = this->m_newWidth;
-  resolution[1] = this->m_newHeight;
+  rcti local_preferred = preferred_area;
+  local_preferred.xmax = local_preferred.xmin + m_newWidth;
+  local_preferred.ymax = local_preferred.ymin + m_newHeight;
+  BaseScaleOperation::determine_canvas(local_preferred, r_area);
+  r_area.xmax = r_area.xmin + m_newWidth;
+  r_area.ymax = r_area.ymin + m_newHeight;
 }
 
 void ScaleFixedSizeOperation::get_area_of_interest(const int input_idx,

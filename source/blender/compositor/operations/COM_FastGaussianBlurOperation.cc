@@ -271,10 +271,7 @@ void FastGaussianBlurOperation::get_area_of_interest(const int input_idx,
 {
   switch (input_idx) {
     case IMAGE_INPUT_INDEX:
-      r_input_area.xmin = 0;
-      r_input_area.xmax = getWidth();
-      r_input_area.ymin = 0;
-      r_input_area.ymax = getHeight();
+      r_input_area = this->get_canvas();
       break;
     default:
       BlurBaseOperation::get_area_of_interest(input_idx, output_area, r_input_area);
@@ -411,10 +408,7 @@ void FastGaussianBlurValueOperation::get_area_of_interest(const int UNUSED(input
                                                           const rcti &UNUSED(output_area),
                                                           rcti &r_input_area)
 {
-  r_input_area.xmin = 0;
-  r_input_area.xmax = getWidth();
-  r_input_area.ymin = 0;
-  r_input_area.ymax = getHeight();
+  r_input_area = this->get_canvas();
 }
 
 void FastGaussianBlurValueOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output),

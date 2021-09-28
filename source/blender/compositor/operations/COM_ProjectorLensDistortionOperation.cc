@@ -137,7 +137,7 @@ void ProjectorLensDistortionOperation::get_area_of_interest(const int input_idx,
 {
   if (input_idx == 1) {
     /* Dispersion input is used as constant only. */
-    r_input_area = COM_SINGLE_ELEM_AREA;
+    r_input_area = COM_CONSTANT_INPUT_AREA_OF_INTEREST;
     return;
   }
 

@@ -37,11 +37,9 @@ void SetVectorOperation::executePixelSampled(float output[4],
   output[2] = vector_.z;
 }
 
-void SetVectorOperation::determineResolution(unsigned int resolution[2],
-                                             unsigned int preferredResolution[2])
+void SetVectorOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  resolution[0] = preferredResolution[0];
-  resolution[1] = preferredResolution[1];
+  r_area = preferred_area;
 }
 
 }  // namespace blender::compositor

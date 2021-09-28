@@ -60,10 +60,10 @@ void ViewerNode::convertToOperations(NodeConverter &converter,
   viewerOperation->setViewSettings(context.getViewSettings());
   viewerOperation->setDisplaySettings(context.getDisplaySettings());
 
-  viewerOperation->setResolutionInputSocketIndex(0);
+  viewerOperation->set_canvas_input_index(0);
   if (!imageSocket->isLinked()) {
     if (alphaSocket->isLinked()) {
-      viewerOperation->setResolutionInputSocketIndex(1);
+      viewerOperation->set_canvas_input_index(1);
     }
   }
 

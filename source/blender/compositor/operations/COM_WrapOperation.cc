@@ -33,7 +33,7 @@ inline float WrapOperation::getWrappedOriginalXPos(float x)
     return 0;
   }
   while (x < 0) {
-    x += this->m_width;
+    x += this->getWidth();
   }
   return fmodf(x, this->getWidth());
 }
@@ -44,7 +44,7 @@ inline float WrapOperation::getWrappedOriginalYPos(float y)
     return 0;
   }
   while (y < 0) {
-    y += this->m_height;
+    y += this->getHeight();
   }
   return fmodf(y, this->getHeight());
 }

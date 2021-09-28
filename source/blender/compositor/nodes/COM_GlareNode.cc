@@ -66,7 +66,7 @@ void GlareNode::convertToOperations(NodeConverter &converter,
   mixvalueoperation->setValue(glare->mix);
 
   MixGlareOperation *mixoperation = new MixGlareOperation();
-  mixoperation->setResolutionInputSocketIndex(1);
+  mixoperation->set_canvas_input_index(1);
   mixoperation->getInputSocket(2)->setResizeMode(ResizeMode::FitAny);
 
   converter.addOperation(glareoperation);

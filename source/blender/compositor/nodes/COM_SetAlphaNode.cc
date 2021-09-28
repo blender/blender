@@ -39,7 +39,7 @@ void SetAlphaNode::convertToOperations(NodeConverter &converter,
   }
 
   if (!this->getInputSocket(0)->isLinked() && this->getInputSocket(1)->isLinked()) {
-    operation->setResolutionInputSocketIndex(1);
+    operation->set_canvas_input_index(1);
   }
 
   converter.addOperation(operation);

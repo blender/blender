@@ -25,7 +25,7 @@ SunBeamsOperation::SunBeamsOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->setResolutionInputSocketIndex(0);
+  this->set_canvas_input_index(0);
 
   this->flags.complex = true;
 }

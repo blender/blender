@@ -83,19 +83,17 @@ void PlaneTrackCommon::readCornersFromTrack(float corners[4][2], float frame)
   }
 }
 
-void PlaneTrackCommon::determineResolution(unsigned int resolution[2],
-                                           unsigned int /*preferredResolution*/[2])
+void PlaneTrackCommon::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  resolution[0] = 0;
-  resolution[1] = 0;
-
+  r_area = COM_AREA_NONE;
   if (this->m_movieClip) {
     int width, height;
     MovieClipUser user = {0};
     BKE_movieclip_user_set_frame(&user, this->m_framenumber);
     BKE_movieclip_get_size(this->m_movieClip, &user, &width, &height);
-    resolution[0] = width;
-    resolution[1] = height;
+    r_area = preferred_area;
+    r_area.xmax = r_area.xmin + width;
+    r_area.ymax = r_area.ymin + height;
   }
 }
 

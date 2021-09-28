@@ -339,7 +339,7 @@ OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(const Scene *
   this->m_exr_codec = exr_codec;
   this->m_exr_half_float = exr_half_float;
   this->m_viewName = viewName;
-  this->setResolutionInputSocketIndex(RESOLUTION_INPUT_ANY);
+  this->set_canvas_input_index(RESOLUTION_INPUT_ANY);
 }
 
 void OutputOpenExrMultiLayerOperation::add_layer(const char *name,
