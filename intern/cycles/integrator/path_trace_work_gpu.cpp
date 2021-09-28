@@ -738,7 +738,8 @@ void PathTraceWorkGPU::copy_to_gpu_display_naive(GPUDisplay *gpu_display,
 
   get_render_tile_film_pixels(destination, pass_mode, num_samples);
 
-  gpu_display_rgba_half_.copy_from_device();
+  queue_->copy_from_device(gpu_display_rgba_half_);
+  queue_->synchronize();
 
   gpu_display->copy_pixels_to_texture(
       gpu_display_rgba_half_.data(), texture_x, texture_y, width, height);
