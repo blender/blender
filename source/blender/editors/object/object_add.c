@@ -75,6 +75,7 @@
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_override.h"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_light.h"
@@ -2011,6 +2012,15 @@ static int object_delete_exec(bContext *C, wmOperator *op)
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "Cannot delete indirectly linked object '%s'",
+                  ob->id.name + 2);
+      continue;
+    }
+
+    if (!BKE_lib_override_library_id_is_user_deletable(bmain, &ob->id)) {
+      /* Can this case ever happen? */
+      BKE_reportf(op->reports,
+                  RPT_WARNING,
+                  "Cannot delete object '%s' as it used by override collections",
                   ob->id.name + 2);
       continue;
     }
