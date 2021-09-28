@@ -288,8 +288,48 @@ static bool ui_layout_variable_size(uiLayout *layout)
   return ui_layout_vary_direction(layout) == UI_ITEM_VARY_X || layout->variable_size;
 }
 
-/* estimated size of text + icon */
-static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, bool compact)
+/**
+ * Factors to apply to #UI_UNIT_X when calculating button width.
+ * This is used when the layout is a varying size, see #ui_layout_variable_size.
+ */
+struct uiTextIconPadFactor {
+  float text;
+  float icon;
+};
+
+/**
+ * This adds over an icons width of padding even when no icon is used,
+ * this is done because most buttons need additional space (drop-down chevron for example).
+ * menus and labels use much smaller `text` values compared to this default.
+ *
+ * \note It may seem odd that the icon only adds 0.25
+ * but taking margins into account its fine,
+ * except for #ui_text_pad_compact where a bit more margin is required.
+ */
+static const struct uiTextIconPadFactor ui_text_pad_default = {
+    .text = 1.50f,
+    .icon = 0.25f,
+};
+
+/** #ui_text_pad_default scaled down. */
+static const struct uiTextIconPadFactor ui_text_pad_compact = {
+    .text = 1.25f,
+    .icon = 0.35,
+};
+
+/** Least amount of padding not to clip the text or icon. */
+static const struct uiTextIconPadFactor ui_text_pad_none = {
+    .text = 0.25,
+    .icon = 1.50f,
+};
+
+/**
+ * Estimated size of text + icon.
+ */
+static int ui_text_icon_width_ex(uiLayout *layout,
+                                 const char *name,
+                                 int icon,
+                                 const struct uiTextIconPadFactor *pad_factor)
 {
   const int unit_x = UI_UNIT_X * (layout->scale[0] ? layout->scale[0] : 1.0f);
 
@@ -305,16 +345,19 @@ static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, bool
       layout->item.flag |= UI_ITEM_FIXED_SIZE;
     }
     const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-    float margin = compact ? 1.25 : 1.50;
+    float margin = pad_factor->text;
     if (icon) {
-      /* It may seem odd that the icon only adds (unit_x / 4)
-       * but taking margins into account its fine, except
-       * in compact mode a bit more margin is required. */
-      margin += compact ? 0.35 : 0.25;
+      margin += pad_factor->icon;
     }
     return UI_fontstyle_string_width(fstyle, name) + (unit_x * margin);
   }
   return unit_x * 10;
+}
+
+static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, bool compact)
+{
+  return ui_text_icon_width_ex(
+      layout, name, icon, compact ? &ui_text_pad_compact : &ui_text_pad_default);
 }
 
 static void ui_item_size(uiItem *item, int *r_w, int *r_h)
@@ -2857,22 +2900,23 @@ static uiBut *ui_item_menu(uiLayout *layout,
     icon = ICON_BLANK1;
   }
 
-  int w = ui_text_icon_width(layout, name, icon, 1);
-  const int h = UI_UNIT_Y;
-
+  struct uiTextIconPadFactor pad_factor = ui_text_pad_compact;
   if (layout->root->type == UI_LAYOUT_HEADER) { /* Ugly! */
     if (icon == ICON_NONE && force_menu) {
       /* pass */
     }
     else if (force_menu) {
-      w += 0.6f * UI_UNIT_X;
+      pad_factor.text = 1.85;
     }
     else {
       if (name[0]) {
-        w -= UI_UNIT_X / 2;
+        pad_factor.text = 0.75;
       }
     }
   }
+
+  const int w = ui_text_icon_width_ex(layout, name, icon, &pad_factor);
+  const int h = UI_UNIT_Y;
 
   if (heading_layout) {
     ui_layout_heading_label_add(layout, heading_layout, true, true);
@@ -3133,8 +3177,7 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
     icon = ICON_BLANK1;
   }
 
-  const int w = ui_text_icon_width(layout, name, icon, 0);
-
+  const int w = ui_text_icon_width_ex(layout, name, icon, &ui_text_pad_none);
   uiBut *but;
   if (icon && name[0]) {
     but = uiDefIconTextBut(
