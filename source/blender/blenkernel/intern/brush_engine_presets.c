@@ -1,5 +1,3 @@
-#pragma once
-
 #define BRUSH_CHANNEL_INTERN
 
 #include "MEM_guardedalloc.h"
@@ -147,7 +145,7 @@ MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pre
 #define MAKE_BOOL(idname, name, tooltip, value)\
   MAKE_BOOL_EX(idname, name, tooltip, value, 0)
 
-#define MAKE_ENUM_EX(idname1, name1, tooltip1, value1, enumdef1, flag1)\
+#define MAKE_ENUM_EX(idname1, name1, tooltip1, value1, flag1, enumdef1, ...)\
 {.name = name1,\
  .idname = #idname1,\
  .tooltip = tooltip1,\
@@ -156,8 +154,9 @@ MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pre
  .type = BRUSH_CHANNEL_ENUM,\
  .rna_enumdef = NULL,\
  .enumdef = enumdef1\
+ , __VA_ARGS__\
 },
-#define MAKE_FLAGS_EX(idname1, name1, tooltip1, value1, enumdef1, flag1)\
+#define MAKE_FLAGS_EX(idname1, name1, tooltip1, value1, flag1, enumdef1, ...)\
 {.name = name1,\
  .idname = #idname1,\
  .tooltip = tooltip1,\
@@ -165,10 +164,10 @@ MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pre
  .flag = flag1,\
  .type = BRUSH_CHANNEL_BITMASK,\
  .rna_enumdef = NULL,\
- .enumdef = enumdef1\
+ .enumdef = enumdef1 , __VA_ARGS__\
 },
-#define MAKE_FLAGS(idname1, name1, tooltip1, value1, enumdef1) MAKE_FLAGS_EX(idname1, name1, tooltip1, value1, enumdef1, 0) 
-#define MAKE_ENUM(idname1, name1, tooltip1, value1, enumdef1) MAKE_ENUM_EX(idname1, name1, tooltip1, value1, enumdef1, 0) 
+#define MAKE_FLAGS(idname1, name1, tooltip1, value1, enumdef1, ...) MAKE_FLAGS_EX(idname1, name1, tooltip1, value1, 0, enumdef1) 
+#define MAKE_ENUM(idname1, name1, tooltip1, value1, enumdef1, ...) MAKE_ENUM_EX(idname1, name1, tooltip1, value1, 0, enumdef1, __VA_ARGS__) 
 
 #define MAKE_CURVE(idname1, name1, tooltip1, preset1)\
 {\
@@ -978,7 +977,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
   BrushChannel *ch;
 
 #define SETFLAG_SAFE(idname, flag1) \
-  if (ch = BRUSHSET_LOOKUP(chset, idname)) \
+  if ((ch = BRUSHSET_LOOKUP(chset, idname))) \
   ch->flag |= (flag1)
 
 #define SHOWHDR(idname) SETFLAG_SAFE(idname, BRUSH_CHANNEL_SHOW_IN_HEADER)

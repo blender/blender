@@ -162,7 +162,7 @@ void BKE_brush_tex_patch_channels(BrushTex *btex);
 void BKE_brush_tex_from_mtex(BrushTex *btex, MTex *mtex);
 
 // initializes the internal mtex struct
-void BKE_brush_tex_start(BrushTex *btex, BrushChannelSet *chset);
+void BKE_brush_tex_start(BrushTex *btex, BrushChannelSet *chset, BrushMappingData *mapdata);
 
 #define MAKE_BRUSHTEX_SLOTS 5
 
