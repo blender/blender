@@ -275,7 +275,7 @@ DefNode(FunctionNode, FN_NODE_VALUE_TO_STRING, 0, "VALUE_TO_STRING", ValueToStri
 DefNode(FunctionNode, FN_NODE_STRING_LENGTH, 0, "STRING_LENGTH", StringLength, "String Length", "")
 DefNode(FunctionNode, FN_NODE_STRING_SUBSTRING, 0, "STRING_SUBSTRING", StringSubstring, "String Substring", "")
 
-DefNode(GeometryNode, GEO_NODE_LECAGY_ATTRIBUTE_CLAMP, def_geo_attribute_clamp, "LEGACY_ATTRIBUTE_CLAMP", LegacyAttributeClamp, "Attribute Clamp", "")
+DefNode(GeometryNode, GEO_NODE_LEGACY_ATTRIBUTE_CLAMP, def_geo_attribute_clamp, "LEGACY_ATTRIBUTE_CLAMP", LegacyAttributeClamp, "Attribute Clamp", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_ALIGN_ROTATION_TO_VECTOR, def_geo_align_rotation_to_vector, "LEGACY_ALIGN_ROTATION_TO_VECTOR", LegacyAlignRotationToVector, "Align Rotation to Vector", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_ATTRIBUTE_COLOR_RAMP, def_geo_attribute_color_ramp, "LEGACY_ATTRIBUTE_COLOR_RAMP", LegacyAttributeColorRamp, "Attribute Color Ramp", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_ATTRIBUTE_COMBINE_XYZ, def_geo_attribute_combine_xyz, "LEGACY_ATTRIBUTE_COMBINE_XYZ", LegacyAttributeCombineXYZ, "Attribute Combine XYZ", "")
@@ -292,6 +292,7 @@ DefNode(GeometryNode, GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE, 0, "LEGACY_ATTRI
 DefNode(GeometryNode, GEO_NODE_LEGACY_ATTRIBUTE_SEPARATE_XYZ, def_geo_attribute_separate_xyz, "LEGACY_ATTRIBUTE_SEPARATE_XYZ", LegacyAttributeSeparateXYZ, "Attribute Separate XYZ", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_ATTRIBUTE_TRANSFER, def_geo_attribute_transfer, "LEGACY_ATTRIBUTE_TRANSFER", LegacyAttributeTransfer, "Attribute Transfer", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_ATTRIBUTE_VECTOR_MATH, def_geo_attribute_vector_math, "LEGACY_ATTRIBUTE_VECTOR_MATH", LegacyAttributeVectorMath, "Attribute Vector Math", "")
+DefNode(GeometryNode, GEO_NODE_LEGACY_ATTRIBUTE_VECTOR_ROTATE, def_geo_attribute_vector_rotate, "LEGACY_ATTRIBUTE_VECTOR_ROTATE", LegacyAttributeVectorRotate, "Attribute Vector Rotate", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_CURVE_REVERSE, 0, "LEGACY_CURVE_REVERSE", LegacyCurveReverse, "Curve Reverse", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_CURVE_SELECT_HANDLES, def_geo_curve_select_handles, "LEGACY_CURVE_SELECT_HANDLES", LegacyCurveSelectHandles, "Select by Handle Type", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_CURVE_SET_HANDLES, def_geo_curve_set_handles, "LEGACY_CURVE_SET_HANDLES", LegacyCurveSetHandles, "Set Handle Type", "")
@@ -312,7 +313,6 @@ DefNode(GeometryNode, GEO_NODE_LEGACY_SELECT_BY_MATERIAL, 0, "LEGACY_SELECT_BY_M
 
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_CAPTURE, def_geo_attribute_capture, "ATTRIBUTE_CAPTURE", AttributeCapture, "Attribute Capture", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_REMOVE, 0, "ATTRIBUTE_REMOVE", AttributeRemove, "Attribute Remove", "")
-DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_VECTOR_ROTATE, def_geo_attribute_vector_rotate, "LEGACY_ATTRIBUTE_VECTOR_ROTATE", LegacyAttributeVectorRotate, "Attribute Vector Rotate", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_STATISTIC, def_geo_attribute_statistic, "ATTRIBUTE_STATISTIC", AttributeStatistic, "Attribute Statistic", "")
 DefNode(GeometryNode, GEO_NODE_BOOLEAN, def_geo_boolean, "BOOLEAN", Boolean, "Boolean", "")
 DefNode(GeometryNode, GEO_NODE_BOUNDING_BOX, 0, "BOUNDING_BOX", BoundBox, "Bounding Box", "")

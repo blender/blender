@@ -332,7 +332,7 @@ void register_node_type_geo_attribute_vector_rotate()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype,
-                     GEO_NODE_ATTRIBUTE_VECTOR_ROTATE,
+                     GEO_NODE_LEGACY_ATTRIBUTE_VECTOR_ROTATE,
                      "Attribute Vector Rotate",
                      NODE_CLASS_ATTRIBUTE,
                      0);

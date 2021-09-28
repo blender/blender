@@ -269,7 +269,7 @@ void register_node_type_geo_attribute_clamp()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_LECAGY_ATTRIBUTE_CLAMP, "Attribute Clamp", NODE_CLASS_ATTRIBUTE, 0);
+      &ntype, GEO_NODE_LEGACY_ATTRIBUTE_CLAMP, "Attribute Clamp", NODE_CLASS_ATTRIBUTE, 0);
   node_type_init(&ntype, blender::nodes::geo_node_attribute_clamp_init);
   node_type_update(&ntype, blender::nodes::geo_node_attribute_clamp_update);
   ntype.declare = blender::nodes::geo_node_attribute_clamp_declare;
