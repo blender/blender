@@ -74,34 +74,61 @@ void FullFrameExecutionModel::determine_areas_to_render_and_reads()
   }
 }
 
-Vector<MemoryBuffer *> FullFrameExecutionModel::get_input_buffers(NodeOperation *op)
+/**
+ * Returns input buffers with an offset relative to given output coordinates. Returned memory
+ * buffers must be deleted.
+ */
+Vector<MemoryBuffer *> FullFrameExecutionModel::get_input_buffers(NodeOperation *op,
+                                                                  const int output_x,
+                                                                  const int output_y)
 {
   const int num_inputs = op->getNumberOfInputSockets();
   Vector<MemoryBuffer *> inputs_buffers(num_inputs);
   for (int i = 0; i < num_inputs; i++) {
-    NodeOperation *input_op = op->get_input_operation(i);
-    inputs_buffers[i] = active_buffers_.get_rendered_buffer(input_op);
+    NodeOperation *input = op->get_input_operation(i);
+    const int offset_x = (input->get_canvas().xmin - op->get_canvas().xmin) + output_x;
+    const int offset_y = (input->get_canvas().ymin - op->get_canvas().ymin) + output_y;
+    MemoryBuffer *buf = active_buffers_.get_rendered_buffer(input);
+
+    rcti rect = buf->get_rect();
+    BLI_rcti_translate(&rect, offset_x, offset_y);
+    inputs_buffers[i] = new MemoryBuffer(
+        buf->getBuffer(), buf->get_num_channels(), rect, buf->is_a_single_elem());
   }
   return inputs_buffers;
 }
 
-MemoryBuffer *FullFrameExecutionModel::create_operation_buffer(NodeOperation *op)
+MemoryBuffer *FullFrameExecutionModel::create_operation_buffer(NodeOperation *op,
+                                                               const int output_x,
+                                                               const int output_y)
 {
+  rcti rect;
+  BLI_rcti_init(&rect, output_x, output_x + op->getWidth(), output_y, output_y + op->getHeight());
+
   const DataType data_type = op->getOutputSocket(0)->getDataType();
   const bool is_a_single_elem = op->get_flags().is_constant_operation;
-  return new MemoryBuffer(data_type, op->get_canvas(), is_a_single_elem);
+  return new MemoryBuffer(data_type, rect, is_a_single_elem);
 }
 
 void FullFrameExecutionModel::render_operation(NodeOperation *op)
 {
-  Vector<MemoryBuffer *> input_bufs = get_input_buffers(op);
+  /* Output has no offset for easier image algorithms implementation on operations. */
+  constexpr int output_x = 0;
+  constexpr int output_y = 0;
 
   const bool has_outputs = op->getNumberOfOutputSockets() > 0;
-  MemoryBuffer *op_buf = has_outputs ? create_operation_buffer(op) : nullptr;
+  MemoryBuffer *op_buf = has_outputs ? create_operation_buffer(op, output_x, output_y) : nullptr;
   if (op->getWidth() > 0 && op->getHeight() > 0) {
-    Span<rcti> areas = active_buffers_.get_areas_to_render(op);
+    Vector<MemoryBuffer *> input_bufs = get_input_buffers(op, output_x, output_y);
+    const int op_offset_x = output_x - op->get_canvas().xmin;
+    const int op_offset_y = output_y - op->get_canvas().ymin;
+    Span<rcti> areas = active_buffers_.get_areas_to_render(op, op_offset_x, op_offset_y);
     op->render(op_buf, areas, input_bufs);
     DebugInfo::operation_rendered(op, op_buf);
+
+    for (MemoryBuffer *buf : input_bufs) {
+      delete buf;
+    }
   }
   /* Even if operation has no resolution set the empty buffer. It will be clipped with a
    * TranslateOperation from convert resolutions if linked to an operation with resolution. */
@@ -187,7 +214,8 @@ void FullFrameExecutionModel::determine_areas_to_render(NodeOperation *output_op
     std::pair<NodeOperation *, rcti> pair = stack.pop_last();
     NodeOperation *operation = pair.first;
     const rcti &render_area = pair.second;
-    if (active_buffers_.is_area_registered(operation, render_area)) {
+    if (BLI_rcti_is_empty(&render_area) ||
+        active_buffers_.is_area_registered(operation, render_area)) {
       continue;
     }
 
@@ -239,9 +267,8 @@ void FullFrameExecutionModel::get_output_render_area(NodeOperation *output_op, r
   BLI_assert(output_op->isOutputOperation(context_.isRendering()));
 
   /* By default return operation bounds (no border). */
-  const int op_width = output_op->getWidth();
-  const int op_height = output_op->getHeight();
-  BLI_rcti_init(&r_area, 0, op_width, 0, op_height);
+  rcti canvas = output_op->get_canvas();
+  r_area = canvas;
 
   const bool has_viewer_border = border_.use_viewer_border &&
                                  (output_op->get_flags().is_viewer_operation ||
@@ -251,12 +278,13 @@ void FullFrameExecutionModel::get_output_render_area(NodeOperation *output_op, r
     /* Get border with normalized coordinates. */
     const rctf *norm_border = has_viewer_border ? border_.viewer_border : border_.render_border;
 
-    /* Return de-normalized border. */
-    BLI_rcti_init(&r_area,
-                  norm_border->xmin * op_width,
-                  norm_border->xmax * op_width,
-                  norm_border->ymin * op_height,
-                  norm_border->ymax * op_height);
+    /* Return de-normalized border within canvas. */
+    const int w = output_op->getWidth();
+    const int h = output_op->getHeight();
+    r_area.xmin = canvas.xmin + norm_border->xmin * w;
+    r_area.xmax = canvas.xmin + norm_border->xmax * w;
+    r_area.ymin = canvas.ymin + norm_border->ymin * h;
+    r_area.ymax = canvas.ymin + norm_border->ymax * h;
   }
 }
 

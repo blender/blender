@@ -40,6 +40,24 @@ NodeOperation::NodeOperation()
   this->m_btree = nullptr;
 }
 
+/** Get constant value when operation is constant, otherwise return default_value. */
+float NodeOperation::get_constant_value_default(float default_value)
+{
+  BLI_assert(m_outputs.size() > 0 && getOutputSocket()->getDataType() == DataType::Value);
+  return *get_constant_elem_default(&default_value);
+}
+
+/** Get constant elem when operation is constant, otherwise return default_elem. */
+const float *NodeOperation::get_constant_elem_default(const float *default_elem)
+{
+  BLI_assert(m_outputs.size() > 0);
+  if (get_flags().is_constant_operation) {
+    return static_cast<ConstantOperation *>(this)->get_constant_elem();
+  }
+
+  return default_elem;
+}
+
 /**
  * Generate a hash that identifies the operation result in the current execution.
  * Requires `hash_output_params` to be implemented, otherwise `std::nullopt` is returned.
@@ -186,6 +204,28 @@ void NodeOperation::deinitExecution()
 {
   /* pass */
 }
+
+void NodeOperation::set_canvas(const rcti &canvas_area)
+{
+  canvas_ = canvas_area;
+  flags.is_canvas_set = true;
+}
+
+const rcti &NodeOperation::get_canvas() const
+{
+  return canvas_;
+}
+
+/**
+ * Mainly used for re-determining canvas of constant operations in cases where preferred canvas
+ * depends on the constant element.
+ */
+void NodeOperation::unset_canvas()
+{
+  BLI_assert(m_inputs.size() == 0);
+  flags.is_canvas_set = false;
+}
+
 SocketReader *NodeOperation::getInputSocketReader(unsigned int inputSocketIndex)
 {
   return this->getInputSocket(inputSocketIndex)->getReader();

@@ -18,10 +18,13 @@
 
 #pragma once
 
+#include "BLI_float2.hh"
 #include "BLI_index_range.hh"
 #include "BLI_rect.h"
 
 namespace blender::compositor {
+
+using Size2f = float2;
 
 enum class eExecutionModel {
   /**

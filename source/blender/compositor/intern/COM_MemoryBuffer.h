@@ -114,6 +114,12 @@ class MemoryBuffer {
    */
   bool owns_data_;
 
+  /** Stride to make any x coordinate within buffer positive (non-zero). */
+  int to_positive_x_stride_;
+
+  /** Stride to make any y coordinate within buffer positive (non-zero). */
+  int to_positive_y_stride_;
+
  public:
   /**
    * \brief construct new temporarily MemoryBuffer for an area
@@ -166,9 +172,9 @@ class MemoryBuffer {
   /**
    * Get offset needed to jump from buffer start to given coordinates.
    */
-  int get_coords_offset(int x, int y) const
+  intptr_t get_coords_offset(int x, int y) const
   {
-    return (y - m_rect.ymin) * row_stride + (x - m_rect.xmin) * elem_stride;
+    return ((intptr_t)y - m_rect.ymin) * row_stride + ((intptr_t)x - m_rect.xmin) * elem_stride;
   }
 
   /**
@@ -176,7 +182,7 @@ class MemoryBuffer {
    */
   float *get_elem(int x, int y)
   {
-    BLI_assert(x >= m_rect.xmin && x < m_rect.xmax && y >= m_rect.ymin && y < m_rect.ymax);
+    BLI_assert(has_coords(x, y));
     return m_buffer + get_coords_offset(x, y);
   }
 
@@ -185,7 +191,7 @@ class MemoryBuffer {
    */
   const float *get_elem(int x, int y) const
   {
-    BLI_assert(x >= m_rect.xmin && x < m_rect.xmax && y >= m_rect.ymin && y < m_rect.ymax);
+    BLI_assert(has_coords(x, y));
     return m_buffer + get_coords_offset(x, y);
   }
 
@@ -196,7 +202,7 @@ class MemoryBuffer {
 
   void read_elem_checked(int x, int y, float *out) const
   {
-    if (x < m_rect.xmin || x >= m_rect.xmax || y < m_rect.ymin || y >= m_rect.ymax) {
+    if (!has_coords(x, y)) {
       clear_elem(out);
     }
     else {
@@ -206,12 +212,7 @@ class MemoryBuffer {
 
   void read_elem_checked(float x, float y, float *out) const
   {
-    if (x < m_rect.xmin || x >= m_rect.xmax || y < m_rect.ymin || y >= m_rect.ymax) {
-      clear_elem(out);
-    }
-    else {
-      read_elem(x, y, out);
-    }
+    read_elem_checked(floor_x(x), floor_y(y), out);
   }
 
   void read_elem_bilinear(float x, float y, float *out) const
@@ -286,8 +287,7 @@ class MemoryBuffer {
    */
   float &get_value(int x, int y, int channel)
   {
-    BLI_assert(x >= m_rect.xmin && x < m_rect.xmax && y >= m_rect.ymin && y < m_rect.ymax &&
-               channel >= 0 && channel < m_num_channels);
+    BLI_assert(has_coords(x, y) && channel >= 0 && channel < m_num_channels);
     return m_buffer[get_coords_offset(x, y) + channel];
   }
 
@@ -296,8 +296,7 @@ class MemoryBuffer {
    */
   const float &get_value(int x, int y, int channel) const
   {
-    BLI_assert(x >= m_rect.xmin && x < m_rect.xmax && y >= m_rect.ymin && y < m_rect.ymax &&
-               channel >= 0 && channel < m_num_channels);
+    BLI_assert(has_coords(x, y) && channel >= 0 && channel < m_num_channels);
     return m_buffer[get_coords_offset(x, y) + channel];
   }
 
@@ -306,7 +305,7 @@ class MemoryBuffer {
    */
   const float *get_row_end(int y) const
   {
-    BLI_assert(y >= 0 && y < getHeight());
+    BLI_assert(has_y(y));
     return m_buffer + (is_a_single_elem() ? m_num_channels : get_coords_offset(getWidth(), y));
   }
 
@@ -679,6 +678,33 @@ class MemoryBuffer {
   template<typename T> T get_relative_y(T y) const
   {
     return y - m_rect.ymin;
+  }
+
+  template<typename T> bool has_coords(T x, T y) const
+  {
+    return has_x(x) && has_y(y);
+  }
+
+  template<typename T> bool has_x(T x) const
+  {
+    return x >= m_rect.xmin && x < m_rect.xmax;
+  }
+
+  template<typename T> bool has_y(T y) const
+  {
+    return y >= m_rect.ymin && y < m_rect.ymax;
+  }
+
+  /* Fast floor functions. The caller should check result is within buffer bounds. It ceils in near
+   * cases and when given coordinate is negative and less than buffer rect `min - 1`. */
+  int floor_x(float x) const
+  {
+    return (int)(x + to_positive_x_stride_) - to_positive_x_stride_;
+  }
+
+  int floor_y(float y) const
+  {
+    return (int)(y + to_positive_y_stride_) - to_positive_y_stride_;
   }
 
   void copy_single_elem_from(const MemoryBuffer *src,

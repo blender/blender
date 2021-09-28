@@ -42,6 +42,7 @@ class MovieClipAttributeOperation : public ConstantOperation {
   bool m_invert;
   MovieClipAttribute m_attribute;
   bool is_value_calculated_;
+  NodeOperationInput *stabilization_resolution_socket_;
 
  public:
   /**
@@ -74,6 +75,14 @@ class MovieClipAttributeOperation : public ConstantOperation {
   void setInvert(bool invert)
   {
     this->m_invert = invert;
+  }
+
+  /**
+   * Set an operation socket which input will be used to get the resolution for stabilization.
+   */
+  void set_socket_input_resolution_for_stabilization(NodeOperationInput *input_socket)
+  {
+    stabilization_resolution_socket_ = input_socket;
   }
 
  private:

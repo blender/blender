@@ -50,6 +50,9 @@ class ViewerOperation : public MultiThreadedOperation {
   SocketReader *m_alphaInput;
   SocketReader *m_depthInput;
 
+  int display_width_;
+  int display_height_;
+
  public:
   ViewerOperation();
   void initExecution() override;

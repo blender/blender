@@ -73,7 +73,7 @@ BLI_INLINE void warpCoord(float x, float y, float matrix[3][3], float uv[2], flo
 
 PlaneDistortWarpImageOperation::PlaneDistortWarpImageOperation() : PlaneDistortBaseOperation()
 {
-  this->addInputSocket(DataType::Color, ResizeMode::None);
+  this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addOutputSocket(DataType::Color);
   this->m_pixelReader = nullptr;
   this->flags.complex = true;

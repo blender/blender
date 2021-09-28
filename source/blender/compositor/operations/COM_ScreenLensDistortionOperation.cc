@@ -382,6 +382,23 @@ void ScreenLensDistortionOperation::updateVariables(float distortion, float disp
   mul_v3_v3fl(m_k4, m_k, 4.0f);
 }
 
+void ScreenLensDistortionOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
+{
+  switch (execution_model_) {
+    case eExecutionModel::FullFrame: {
+      set_determined_canvas_modifier([=](rcti &canvas) {
+        /* Ensure screen space. */
+        BLI_rcti_translate(&canvas, -canvas.xmin, -canvas.ymin);
+      });
+      break;
+    }
+    default:
+      break;
+  }
+
+  NodeOperation::determine_canvas(preferred_area, r_area);
+}
+
 void ScreenLensDistortionOperation::get_area_of_interest(const int input_idx,
                                                          const rcti &UNUSED(output_area),
                                                          rcti &r_input_area)

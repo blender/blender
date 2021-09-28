@@ -27,7 +27,7 @@ namespace blender::compositor {
 
 CalculateMeanOperation::CalculateMeanOperation()
 {
-  this->addInputSocket(DataType::Color, ResizeMode::None);
+  this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addOutputSocket(DataType::Value);
   this->m_imageReader = nullptr;
   this->m_iscalculated = false;

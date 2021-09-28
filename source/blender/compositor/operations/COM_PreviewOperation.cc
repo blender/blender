@@ -41,7 +41,7 @@ PreviewOperation::PreviewOperation(const ColorManagedViewSettings *viewSettings,
                                    const unsigned int defaultHeight)
 
 {
-  this->addInputSocket(DataType::Color, ResizeMode::None);
+  this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->m_preview = nullptr;
   this->m_outputBuffer = nullptr;
   this->m_input = nullptr;
@@ -162,7 +162,7 @@ void PreviewOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti
   width = width * this->m_divider;
   height = height * this->m_divider;
 
-  BLI_rcti_init(&r_area, 0, width, 0, height);
+  BLI_rcti_init(&r_area, r_area.xmin, r_area.xmin + width, r_area.ymin, r_area.ymin + height);
 }
 
 eCompositorPriority PreviewOperation::getRenderPriority() const

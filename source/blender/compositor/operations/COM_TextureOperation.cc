@@ -74,26 +74,18 @@ void TextureBaseOperation::deinitExecution()
 
 void TextureBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  switch (execution_model_) {
-    case eExecutionModel::Tiled: {
-      r_area = preferred_area;
-      if (BLI_rcti_is_empty(&preferred_area)) {
-        int width = this->m_rd->xsch * this->m_rd->size / 100;
-        int height = this->m_rd->ysch * this->m_rd->size / 100;
-        r_area.xmax = preferred_area.xmin + width;
-        r_area.ymax = preferred_area.ymin + height;
-      }
-      break;
-    }
-    case eExecutionModel::FullFrame: {
-      /* Determine inputs. */
-      rcti temp;
-      NodeOperation::determine_canvas(preferred_area, temp);
+  r_area = preferred_area;
+  if (BLI_rcti_is_empty(&preferred_area)) {
+    int width = this->m_rd->xsch * this->m_rd->size / 100;
+    int height = this->m_rd->ysch * this->m_rd->size / 100;
+    r_area.xmax = preferred_area.xmin + width;
+    r_area.ymax = preferred_area.ymin + height;
+  }
 
-      /* Don't use input areas, they are only used as parameters. */
-      r_area = preferred_area;
-      break;
-    }
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    /* Determine inputs. */
+    rcti temp;
+    NodeOperation::determine_canvas(r_area, temp);
   }
 }
 

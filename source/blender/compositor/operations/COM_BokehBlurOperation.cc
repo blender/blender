@@ -34,7 +34,7 @@ constexpr int SIZE_INPUT_INDEX = 3;
 BokehBlurOperation::BokehBlurOperation()
 {
   this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Color, ResizeMode::None);
+  this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);

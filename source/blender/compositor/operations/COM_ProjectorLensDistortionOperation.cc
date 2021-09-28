@@ -131,6 +131,23 @@ void ProjectorLensDistortionOperation::updateDispersion()
   this->unlockMutex();
 }
 
+void ProjectorLensDistortionOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
+{
+  switch (execution_model_) {
+    case eExecutionModel::FullFrame: {
+      set_determined_canvas_modifier([=](rcti &canvas) {
+        /* Ensure screen space. */
+        BLI_rcti_translate(&canvas, -canvas.xmin, -canvas.ymin);
+      });
+      break;
+    }
+    default:
+      break;
+  }
+
+  NodeOperation::determine_canvas(preferred_area, r_area);
+}
+
 void ProjectorLensDistortionOperation::get_area_of_interest(const int input_idx,
                                                             const rcti &output_area,
                                                             rcti &r_input_area)

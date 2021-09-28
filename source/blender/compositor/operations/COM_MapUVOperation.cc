@@ -23,7 +23,7 @@ namespace blender::compositor {
 
 MapUVOperation::MapUVOperation()
 {
-  this->addInputSocket(DataType::Color, ResizeMode::None);
+  this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addInputSocket(DataType::Vector);
   this->addOutputSocket(DataType::Color);
   this->m_alpha = 0.0f;

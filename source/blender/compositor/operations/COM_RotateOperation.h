@@ -29,8 +29,10 @@ class RotateOperation : public MultiThreadedOperation {
 
   SocketReader *m_imageSocket;
   SocketReader *m_degreeSocket;
+  /* TODO(manzanilla): to be removed with tiled implementation. */
   float m_centerX;
   float m_centerY;
+
   float m_cosine;
   float m_sine;
   bool m_doDegree2RadConversion;
@@ -49,12 +51,33 @@ class RotateOperation : public MultiThreadedOperation {
     y = center_y + (-sine * dx + cosine * dy);
   }
 
+  static void get_rotation_center(const rcti &area, float &r_x, float &r_y);
+  static void get_rotation_offset(const rcti &input_canvas,
+                                  const rcti &rotate_canvas,
+                                  float &r_offset_x,
+                                  float &r_offset_y);
   static void get_area_rotation_bounds(const rcti &area,
                                        const float center_x,
                                        const float center_y,
                                        const float sine,
                                        const float cosine,
                                        rcti &r_bounds);
+  static void get_area_rotation_bounds_inverted(const rcti &area,
+                                                const float center_x,
+                                                const float center_y,
+                                                const float sine,
+                                                const float cosine,
+                                                rcti &r_bounds);
+  static void get_rotation_area_of_interest(const rcti &input_canvas,
+                                            const rcti &rotate_canvas,
+                                            const float sine,
+                                            const float cosine,
+                                            const rcti &output_area,
+                                            rcti &r_input_area);
+  static void get_rotation_canvas(const rcti &input_canvas,
+                                  const float sine,
+                                  const float cosine,
+                                  rcti &r_canvas);
 
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
@@ -80,6 +103,8 @@ class RotateOperation : public MultiThreadedOperation {
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;
+
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 };
 
 }  // namespace blender::compositor

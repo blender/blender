@@ -41,7 +41,9 @@ void TranslateNode::convertToOperations(NodeConverter &converter,
   NodeInput *inputYSocket = this->getInputSocket(2);
   NodeOutput *outputSocket = this->getOutputSocket(0);
 
-  TranslateOperation *operation = new TranslateOperation();
+  TranslateOperation *operation = context.get_execution_model() == eExecutionModel::Tiled ?
+                                      new TranslateOperation() :
+                                      new TranslateCanvasOperation();
   operation->set_wrapping(data->wrap_axis);
   if (data->relative) {
     const RenderData *rd = context.getRenderData();

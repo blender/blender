@@ -28,8 +28,8 @@ namespace blender::compositor {
 VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
 {
   this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Color, ResizeMode::None); /* Do not resize the bokeh image. */
-  this->addInputSocket(DataType::Value);                   /* Radius. */
+  this->addInputSocket(DataType::Color, ResizeMode::Align); /* Do not resize the bokeh image. */
+  this->addInputSocket(DataType::Value);                    /* Radius. */
 #ifdef COM_DEFOCUS_SEARCH
   /* Inverse search radius optimization structure. */
   this->addInputSocket(DataType::Color, ResizeMode::None);
@@ -440,7 +440,7 @@ void VariableSizeBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *
 /* #InverseSearchRadiusOperation. */
 InverseSearchRadiusOperation::InverseSearchRadiusOperation()
 {
-  this->addInputSocket(DataType::Value, ResizeMode::None); /* Radius. */
+  this->addInputSocket(DataType::Value, ResizeMode::Align); /* Radius. */
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
   this->m_inputRadius = nullptr;

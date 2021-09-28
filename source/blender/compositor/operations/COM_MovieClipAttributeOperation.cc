@@ -31,6 +31,7 @@ MovieClipAttributeOperation::MovieClipAttributeOperation()
   this->m_invert = false;
   needs_canvas_to_get_constant_ = true;
   is_value_calculated_ = false;
+  stabilization_resolution_socket_ = nullptr;
 }
 
 void MovieClipAttributeOperation::initExecution()
@@ -53,8 +54,17 @@ void MovieClipAttributeOperation::calc_value()
   scale = 1.0f;
   angle = 0.0f;
   int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(this->m_clip, this->m_framenumber);
-  BKE_tracking_stabilization_data_get(
-      this->m_clip, clip_framenr, getWidth(), getHeight(), loc, &scale, &angle);
+  NodeOperation &stabilization_operation =
+      stabilization_resolution_socket_ ?
+          stabilization_resolution_socket_->getLink()->getOperation() :
+          *this;
+  BKE_tracking_stabilization_data_get(this->m_clip,
+                                      clip_framenr,
+                                      stabilization_operation.getWidth(),
+                                      stabilization_operation.getHeight(),
+                                      loc,
+                                      &scale,
+                                      &angle);
   switch (this->m_attribute) {
     case MCA_SCALE:
       this->m_value = scale;

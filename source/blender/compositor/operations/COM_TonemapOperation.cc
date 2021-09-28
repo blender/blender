@@ -28,7 +28,7 @@ namespace blender::compositor {
 
 TonemapOperation::TonemapOperation()
 {
-  this->addInputSocket(DataType::Color, ResizeMode::None);
+  this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addOutputSocket(DataType::Color);
   this->m_imageReader = nullptr;
   this->m_data = nullptr;

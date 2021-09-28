@@ -23,7 +23,7 @@ namespace blender::compositor {
 
 CropBaseOperation::CropBaseOperation()
 {
-  this->addInputSocket(DataType::Color, ResizeMode::None);
+  this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addOutputSocket(DataType::Color);
   this->m_inputOperation = nullptr;
   this->m_settings = nullptr;
