@@ -434,7 +434,8 @@ void Film::update_passes(Scene *scene, bool add_sample_count_pass)
   const ObjectManager *object_manager = scene->object_manager;
   Integrator *integrator = scene->integrator;
 
-  if (!is_modified() && !object_manager->need_update() && !integrator->is_modified()) {
+  if (!is_modified() && !object_manager->need_update() && !integrator->is_modified() &&
+      !background->is_modified()) {
     return;
   }
 
