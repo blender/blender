@@ -1231,7 +1231,7 @@ void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd,
     /* copy existing surfaces */
     for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
       DynamicPaintSurface *t_surface = dynamicPaint_createNewSurface(tpmd->canvas, NULL);
-      if (flag & LIB_ID_CREATE_NO_MAIN) {
+      if (flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) {
         /* TODO(sergey): Consider passing some tips to the surface
          * creation to avoid this allocate-and-free cache behavior. */
         BKE_ptcache_free_list(&t_surface->ptcaches);
