@@ -34,7 +34,7 @@
 
 #else /* __KERNEL_GPU__ */
 
-#  ifdef __KERNEL_CUDA__
+#  if defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
 
 #    define atomic_add_and_fetch_float(p, x) (atomicAdd((float *)(p), (float)(x)) + (float)(x))
 

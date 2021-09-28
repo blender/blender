@@ -99,6 +99,11 @@ def use_cuda(context):
     return (get_device_type(context) == 'CUDA' and cscene.device == 'GPU')
 
 
+def use_hip(context):
+    cscene = context.scene.cycles
+
+    return (get_device_type(context) == 'HIP' and cscene.device == 'GPU')
+
 def use_optix(context):
     cscene = context.scene.cycles
 

@@ -34,6 +34,13 @@ else()
   add_definitions(-DCYCLES_CUDA_NVCC_EXECUTABLE="${CUDA_NVCC_EXECUTABLE}")
 endif()
 
+if(WITH_HIP_DYNLOAD)
+  list(APPEND INC
+    ../../../extern/hipew/include
+  )
+  add_definitions(-DWITH_HIP_DYNLOAD)
+endif()
+
 set(SRC
   device.cpp
   device_denoise.cpp
@@ -68,6 +75,21 @@ set(SRC_CUDA
   cuda/queue.h
   cuda/util.cpp
   cuda/util.h
+)
+
+set(SRC_HIP
+  hip/device.cpp
+  hip/device.h
+  hip/device_impl.cpp
+  hip/device_impl.h
+  hip/graphics_interop.cpp
+  hip/graphics_interop.h
+  hip/kernel.cpp
+  hip/kernel.h
+  hip/queue.cpp
+  hip/queue.h
+  hip/util.cpp
+  hip/util.h
 )
 
 set(SRC_DUMMY
@@ -115,10 +137,19 @@ else()
   )
 endif()
 
+if(WITH_HIP_DYNLOAD)
+  list(APPEND LIB
+    extern_hipew
+  )
+endif()
+
 add_definitions(${GL_DEFINITIONS})
 
 if(WITH_CYCLES_DEVICE_CUDA)
   add_definitions(-DWITH_CUDA)
+endif()
+if(WITH_CYCLES_DEVICE_HIP)
+  add_definitions(-DWITH_HIP)
 endif()
 if(WITH_CYCLES_DEVICE_OPTIX)
   add_definitions(-DWITH_OPTIX)
@@ -140,6 +171,7 @@ cycles_add_library(cycles_device "${LIB}"
   ${SRC}
   ${SRC_CPU}
   ${SRC_CUDA}
+  ${SRC_HIP}
   ${SRC_DUMMY}
   ${SRC_MULTI}
   ${SRC_OPTIX}

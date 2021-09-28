@@ -26,6 +26,7 @@ enum ComputeDevice {
   COMPUTE_DEVICE_CPU = 0,
   COMPUTE_DEVICE_CUDA = 1,
   COMPUTE_DEVICE_OPTIX = 3,
+  COMPUTE_DEVICE_HIP = 4,
 
   COMPUTE_DEVICE_NUM
 };
@@ -80,6 +81,9 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
       }
       else if (compute_device == COMPUTE_DEVICE_OPTIX) {
         mask |= DEVICE_MASK_OPTIX;
+      }
+      else if (compute_device == COMPUTE_DEVICE_HIP) {
+        mask |= DEVICE_MASK_HIP;
       }
       vector<DeviceInfo> devices = Device::available_devices(mask);
 

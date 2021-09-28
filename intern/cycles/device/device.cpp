@@ -25,6 +25,7 @@
 #include "device/cpu/device.h"
 #include "device/cuda/device.h"
 #include "device/dummy/device.h"
+#include "device/hip/device.h"
 #include "device/multi/device.h"
 #include "device/optix/device.h"
 
@@ -46,6 +47,7 @@ thread_mutex Device::device_mutex;
 vector<DeviceInfo> Device::cuda_devices;
 vector<DeviceInfo> Device::optix_devices;
 vector<DeviceInfo> Device::cpu_devices;
+vector<DeviceInfo> Device::hip_devices;
 uint Device::devices_initialized_mask = 0;
 
 /* Device */
@@ -96,6 +98,14 @@ Device *Device::create(const DeviceInfo &info, Stats &stats, Profiler &profiler)
         device = device_optix_create(info, stats, profiler);
       break;
 #endif
+
+#ifdef WITH_HIP
+    case DEVICE_HIP:
+      if (device_hip_init())
+        device = device_hip_create(info, stats, profiler);
+      break;
+#endif
+
     default:
       break;
   }
@@ -117,6 +127,8 @@ DeviceType Device::type_from_string(const char *name)
     return DEVICE_OPTIX;
   else if (strcmp(name, "MULTI") == 0)
     return DEVICE_MULTI;
+  else if (strcmp(name, "HIP") == 0)
+    return DEVICE_HIP;
 
   return DEVICE_NONE;
 }
@@ -131,6 +143,8 @@ string Device::string_from_type(DeviceType type)
     return "OPTIX";
   else if (type == DEVICE_MULTI)
     return "MULTI";
+  else if (type == DEVICE_HIP)
+    return "HIP";
 
   return "";
 }
@@ -145,6 +159,10 @@ vector<DeviceType> Device::available_types()
 #ifdef WITH_OPTIX
   types.push_back(DEVICE_OPTIX);
 #endif
+#ifdef WITH_HIP
+  types.push_back(DEVICE_HIP);
+#endif
+
   return types;
 }
 
@@ -186,6 +204,20 @@ vector<DeviceInfo> Device::available_devices(uint mask)
   }
 #endif
 
+#ifdef WITH_HIP
+  if (mask & DEVICE_MASK_HIP) {
+    if (!(devices_initialized_mask & DEVICE_MASK_HIP)) {
+      if (device_hip_init()) {
+        device_hip_info(hip_devices);
+      }
+      devices_initialized_mask |= DEVICE_MASK_HIP;
+    }
+    foreach (DeviceInfo &info, hip_devices) {
+      devices.push_back(info);
+    }
+  }
+#endif
+
   if (mask & DEVICE_MASK_CPU) {
     if (!(devices_initialized_mask & DEVICE_MASK_CPU)) {
       device_cpu_info(cpu_devices);
@@ -222,6 +254,15 @@ string Device::device_capabilities(uint mask)
     if (device_cuda_init()) {
       capabilities += "\nCUDA device capabilities:\n";
       capabilities += device_cuda_capabilities();
+    }
+  }
+#endif
+
+#ifdef WITH_HIP
+  if (mask & DEVICE_MASK_HIP) {
+    if (device_hip_init()) {
+      capabilities += "\nHIP device capabilities:\n";
+      capabilities += device_hip_capabilities();
     }
   }
 #endif
@@ -314,6 +355,7 @@ void Device::free_memory()
   devices_initialized_mask = 0;
   cuda_devices.free_memory();
   optix_devices.free_memory();
+  hip_devices.free_memory();
   cpu_devices.free_memory();
 }
 

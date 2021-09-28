@@ -111,6 +111,7 @@ enum_device_type = (
     ('CPU', "CPU", "CPU", 0),
     ('CUDA', "CUDA", "CUDA", 1),
     ('OPTIX', "OptiX", "OptiX", 3),
+    ("HIP", "HIP", "HIP", 4)
 )
 
 enum_texture_limit = (
@@ -1266,12 +1267,16 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def get_device_types(self, context):
         import _cycles
-        has_cuda, has_optix = _cycles.get_device_types()
+        has_cuda, has_optix, has_hip = _cycles.get_device_types()
+
         list = [('NONE', "None", "Don't use compute device", 0)]
         if has_cuda:
             list.append(('CUDA', "CUDA", "Use CUDA for GPU acceleration", 1))
         if has_optix:
             list.append(('OPTIX', "OptiX", "Use OptiX for GPU acceleration", 3))
+        if has_hip:
+            list.append(('HIP', "HIP", "Use HIP for GPU acceleration", 4))
+
         return list
 
     compute_device_type: EnumProperty(
@@ -1296,7 +1301,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def update_device_entries(self, device_list):
         for device in device_list:
-            if not device[1] in {'CUDA', 'OPTIX', 'CPU'}:
+            if not device[1] in {'CUDA', 'OPTIX', 'CPU', 'HIP'}:
                 continue
             # Try to find existing Device entry
             entry = self.find_existing_device_entry(device)
@@ -1330,7 +1335,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif entry.type == 'CPU':
                 cpu_devices.append(entry)
         # Extend all GPU devices with CPU.
-        if compute_device_type != 'CPU':
+        if compute_device_type != 'CPU' and compute_device_type != 'HIP':
             devices.extend(cpu_devices)
         return devices
 
@@ -1340,7 +1345,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         import _cycles
         # Ensure `self.devices` is not re-allocated when the second call to
         # get_devices_for_type is made, freeing items from the first list.
-        for device_type in ('CUDA', 'OPTIX', 'OPENCL'):
+        for device_type in ('CUDA', 'OPTIX', 'HIP'):
             self.update_device_entries(_cycles.available_devices(device_type))
 
     # Deprecated: use refresh_devices instead.

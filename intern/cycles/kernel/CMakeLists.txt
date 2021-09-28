@@ -35,6 +35,10 @@ set(SRC_DEVICE_CUDA
   device/cuda/kernel.cu
 )
 
+set(SRC_DEVICE_HIP
+  device/hip/kernel.cpp
+)
+
 set(SRC_DEVICE_OPTIX
   device/optix/kernel.cu
   device/optix/kernel_shader_raytrace.cu
@@ -104,6 +108,12 @@ set(SRC_DEVICE_CUDA_HEADERS
   device/cuda/compat.h
   device/cuda/config.h
   device/cuda/globals.h
+)
+
+set(SRC_DEVICE_HIP_HEADERS
+  device/hip/compat.h
+  device/hip/config.h
+  device/hip/globals.h
 )
 
 set(SRC_DEVICE_OPTIX_HEADERS
@@ -458,6 +468,104 @@ if(WITH_CYCLES_CUDA_BINARIES)
   cycles_set_solution_folder(cycles_kernel_cuda)
 endif()
 
+####################################################### START
+
+# HIP module
+
+if(WITH_CYCLES_HIP_BINARIES)
+  # 64 bit only
+  set(HIP_BITS 64)
+
+  # HIP version
+  execute_process(COMMAND ${HIP_HIPCC_EXECUTABLE} "--version" OUTPUT_VARIABLE HIPCC_OUT)
+  string(REGEX REPLACE ".*release ([0-9]+)\\.([0-9]+).*" "\\1" HIP_VERSION_MAJOR "${HIPCC_OUT}")
+  string(REGEX REPLACE ".*release ([0-9]+)\\.([0-9]+).*" "\\2" HIP_VERSION_MINOR "${HIPCC_OUT}")
+  set(HIP_VERSION "${HIP_VERSION_MAJOR}${HIP_VERSION_MINOR}")
+
+
+  message(WARNING
+    "HIP version ${HIP_VERSION_MAJOR}.${HIP_VERSION_MINOR} detected")
+
+  # build for each arch
+  set(hip_sources device/hip/kernel.cpp
+    ${SRC_HEADERS}
+    ${SRC_DEVICE_HIP_HEADERS}
+    ${SRC_BVH_HEADERS}
+    ${SRC_SVM_HEADERS}
+    ${SRC_GEOM_HEADERS}
+    ${SRC_INTEGRATOR_HEADERS}
+    ${SRC_CLOSURE_HEADERS}
+    ${SRC_UTIL_HEADERS}
+  )
+  set(hip_fatbins)
+
+  macro(CYCLES_HIP_KERNEL_ADD arch prev_arch name flags sources experimental)
+    if(${arch} MATCHES "compute_.*")
+      set(format "ptx")
+    else()
+      set(format "fatbin")
+    endif()
+    set(hip_file ${name}_${arch}.${format})
+
+    set(kernel_sources ${sources})
+    if(NOT ${prev_arch} STREQUAL "none")
+      if(${prev_arch} MATCHES "compute_.*")
+        set(kernel_sources ${kernel_sources} ${name}_${prev_arch}.ptx)
+      else()
+        set(kernel_sources ${kernel_sources} ${name}_${prev_arch}.fatbin)
+      endif()
+    endif()
+
+    set(hip_kernel_src "/device/hip/${name}.cpp")
+
+    set(hip_flags ${flags}
+      -D CCL_NAMESPACE_BEGIN=
+      -D CCL_NAMESPACE_END=
+      -D HIPCC
+      -m ${HIP_BITS}
+      -I ${CMAKE_CURRENT_SOURCE_DIR}/..
+      -I ${CMAKE_CURRENT_SOURCE_DIR}/device/hip
+      --use_fast_math
+      -o ${CMAKE_CURRENT_BINARY_DIR}/${hip_file})
+
+    if(${experimental})
+      set(hip_flags ${hip_flags} -D __KERNEL_EXPERIMENTAL__)
+      set(name ${name}_experimental)
+    endif()
+
+    if(WITH_CYCLES_DEBUG)
+      set(hip_flags ${hip_flags} -D __KERNEL_DEBUG__)
+    endif()
+
+    if(WITH_NANOVDB)
+      set(hip_flags ${hip_flags}
+        -D WITH_NANOVDB
+        -I "${NANOVDB_INCLUDE_DIR}")
+    endif()
+
+
+  set(prev_arch "none")
+  foreach(arch ${CYCLES_HIP_BINARIES_ARCH})
+      set(hip_hipcc_executable ${HIP_HIPCC_EXECUTABLE})
+      set(hip_toolkit_root_dir ${HIP_TOOLKIT_ROOT_DIR})
+    if(DEFINED hip_hipcc_executable AND DEFINED hip_toolkit_root_dir)
+      # Compile regular kernel
+      CYCLES_HIP_KERNEL_ADD(${arch} ${prev_arch} kernel "" "${hip_sources}" FALSE)
+
+      if(WITH_CYCLES_HIP_BUILD_SERIAL)
+        set(prev_arch ${arch})
+      endif()
+
+      unset(hip_hipcc_executable)
+      unset(hip_toolkit_root_dir)
+    endif()
+  endforeach()
+
+  add_custom_target(cycles_kernel_hip ALL DEPENDS ${hip_fatbins})
+  cycles_set_solution_folder(cycles_kernel_hip)
+endif()
+
+####################################################### END
 # OptiX PTX modules
 
 if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
@@ -602,11 +710,13 @@ endif()
 cycles_add_library(cycles_kernel "${LIB}"
   ${SRC_DEVICE_CPU}
   ${SRC_DEVICE_CUDA}
+  ${SRC_DEVICE_HIP}
   ${SRC_DEVICE_OPTIX}
   ${SRC_HEADERS}
   ${SRC_DEVICE_CPU_HEADERS}
   ${SRC_DEVICE_GPU_HEADERS}
   ${SRC_DEVICE_CUDA_HEADERS}
+  ${SRC_DEVICE_HIP_HEADERS}
   ${SRC_DEVICE_OPTIX_HEADERS}
   ${SRC_BVH_HEADERS}
   ${SRC_CLOSURE_HEADERS}
@@ -621,6 +731,7 @@ source_group("geom" FILES ${SRC_GEOM_HEADERS})
 source_group("integrator" FILES ${SRC_INTEGRATOR_HEADERS})
 source_group("kernel" FILES ${SRC_HEADERS})
 source_group("device\\cpu" FILES ${SRC_DEVICE_CPU} ${SRC_DEVICE_CPU_HEADERS})
+source_group("device\\hip" FILES ${SRC_DEVICE_HIP} ${SRC_DEVICE_HIP_HEADERS})
 source_group("device\\gpu" FILES ${SRC_DEVICE_GPU_HEADERS})
 source_group("device\\cuda" FILES ${SRC_DEVICE_CUDA} ${SRC_DEVICE_CUDA_HEADERS})
 source_group("device\\optix" FILES ${SRC_DEVICE_OPTIX} ${SRC_DEVICE_OPTIX_HEADERS})
@@ -632,14 +743,19 @@ endif()
 if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
   add_dependencies(cycles_kernel cycles_kernel_optix)
 endif()
+if(WITH_CYCLES_HIP)
+  add_dependencies(cycles_kernel cycles_kernel_hip)
+endif()
 
 # Install kernel source for runtime compilation
 
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_CUDA}" ${CYCLES_INSTALL_PATH}/source/kernel/device/cuda)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_HIP}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hip)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_OPTIX}" ${CYCLES_INSTALL_PATH}/source/kernel/device/optix)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_GPU_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/gpu)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_CUDA_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/cuda)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_HIP_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hip)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_DEVICE_OPTIX_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/optix)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_BVH_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/bvh)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_CLOSURE_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/closure)

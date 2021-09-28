@@ -25,7 +25,11 @@ CCL_NAMESPACE_BEGIN
 
 #include "util/util_atomic.h"
 
-#define GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE 512
+#ifdef __HIP__
+#  define GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE 1024
+#else
+#  define GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE 512
+#endif
 
 template<uint blocksize, typename IsActiveOp>
 __device__ void gpu_parallel_active_index_array(const uint num_states,

@@ -26,7 +26,11 @@ CCL_NAMESPACE_BEGIN
  * the overall cost of the algorithm while keeping the work complexity O(n) and
  * the step complexity O(log n). (Brent's Theorem optimization) */
 
-#define GPU_PARALLEL_SUM_DEFAULT_BLOCK_SIZE 512
+#ifdef __HIP__
+#  define GPU_PARALLEL_SUM_DEFAULT_BLOCK_SIZE 1024
+#else
+#  define GPU_PARALLEL_SUM_DEFAULT_BLOCK_SIZE 512
+#endif
 
 template<uint blocksize, typename InputT, typename OutputT, typename ConvertOp>
 __device__ void gpu_parallel_sum(

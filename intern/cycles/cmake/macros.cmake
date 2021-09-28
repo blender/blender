@@ -162,6 +162,10 @@ macro(cycles_target_link_libraries target)
     target_link_libraries(${target} ${CUDA_CUDA_LIBRARY})
   endif()
 
+  if(WITH_HIP_DYNLOAD)
+    target_link_libraries(${target} extern_hipew)
+  endif()
+
   if(CYCLES_STANDALONE_REPOSITORY)
     target_link_libraries(${target} extern_numaapi)
   else()

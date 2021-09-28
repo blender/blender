@@ -26,6 +26,10 @@
 #  include <cmath>
 #endif
 
+#ifdef __HIP__
+#  include <hip/hip_vector_types.h>
+#endif
+
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
@@ -83,7 +87,8 @@ CCL_NAMESPACE_BEGIN
 
 /* Scalar */
 
-#ifdef _WIN32
+#ifndef __HIP__
+#  ifdef _WIN32
 ccl_device_inline float fmaxf(float a, float b)
 {
   return (a > b) ? a : b;
@@ -93,7 +98,9 @@ ccl_device_inline float fminf(float a, float b)
 {
   return (a < b) ? a : b;
 }
-#endif /* _WIN32 */
+
+#  endif /* _WIN32 */
+#endif   /* __HIP__ */
 
 #ifndef __KERNEL_GPU__
 using std::isfinite;
@@ -199,6 +206,7 @@ ccl_device_inline uint as_uint(float f)
   return u.i;
 }
 
+#ifndef __HIP__
 ccl_device_inline int __float_as_int(float f)
 {
   union {
@@ -238,6 +246,7 @@ ccl_device_inline float __uint_as_float(uint i)
   u.i = i;
   return u.f;
 }
+#endif
 
 ccl_device_inline int4 __float4_as_int4(float4 f)
 {
@@ -669,7 +678,7 @@ ccl_device float bits_to_01(uint bits)
 
 ccl_device_inline uint count_leading_zeros(uint x)
 {
-#if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__)
+#if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return __clz(x);
 #else
   assert(x != 0);
@@ -685,7 +694,7 @@ ccl_device_inline uint count_leading_zeros(uint x)
 
 ccl_device_inline uint count_trailing_zeros(uint x)
 {
-#if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__)
+#if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return (__ffs(x) - 1);
 #else
   assert(x != 0);
@@ -701,7 +710,7 @@ ccl_device_inline uint count_trailing_zeros(uint x)
 
 ccl_device_inline uint find_first_set(uint x)
 {
-#if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__)
+#if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return __ffs(x);
 #else
 #  ifdef _MSC_VER

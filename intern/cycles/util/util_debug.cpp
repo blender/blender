@@ -59,9 +59,20 @@ DebugFlags::CUDA::CUDA() : adaptive_compile(false)
   reset();
 }
 
+DebugFlags::HIP::HIP() : adaptive_compile(false)
+{
+  reset();
+}
+
 void DebugFlags::CUDA::reset()
 {
   if (getenv("CYCLES_CUDA_ADAPTIVE_COMPILE") != NULL)
+    adaptive_compile = true;
+}
+
+void DebugFlags::HIP::reset()
+{
+  if (getenv("CYCLES_HIP_ADAPTIVE_COMPILE") != NULL)
     adaptive_compile = true;
 }
 
@@ -103,6 +114,10 @@ std::ostream &operator<<(std::ostream &os, DebugFlagsConstRef debug_flags)
 
   os << "OptiX flags:\n"
      << "  Debug : " << string_from_bool(debug_flags.optix.use_debug) << "\n";
+
+  os << "HIP flags:\n"
+     << "  HIP streams : " << string_from_bool(debug_flags.hip.adaptive_compile) << "\n";
+
   return os;
 }
 

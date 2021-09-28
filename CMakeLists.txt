@@ -419,6 +419,8 @@ mark_as_advanced(WITH_CYCLES_NATIVE_ONLY)
 
 option(WITH_CYCLES_DEVICE_CUDA              "Enable Cycles CUDA compute support" ON)
 option(WITH_CYCLES_DEVICE_OPTIX             "Enable Cycles OptiX support" ON)
+option(WITH_CYCLES_DEVICE_HIP               "Enable Cycles HIP support" OFF)
+mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
 mark_as_advanced(WITH_CYCLES_DEVICE_CUDA)
 
 option(WITH_CUDA_DYNLOAD "Dynamically load CUDA libraries at runtime" ON)
@@ -819,6 +821,11 @@ if(NOT WITH_CUDA_DYNLOAD)
     message(STATUS "CUDA toolkit not found, using dynamic runtime loading of libraries (WITH_CUDA_DYNLOAD) instead")
     set(WITH_CUDA_DYNLOAD ON)
   endif()
+endif()
+
+if(WITH_CYCLES_DEVICE_HIP)
+  # Currently HIP must be dynamically loaded, this may change in future toolkits
+  set(WITH_HIP_DYNLOAD ON)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -1849,6 +1856,9 @@ elseif(WITH_CYCLES_STANDALONE)
   endif()
   if(WITH_CUDA_DYNLOAD)
     add_subdirectory(extern/cuew)
+  endif()
+  if(WITH_HIP_DYNLOAD)
+    add_subdirectory(extern/hipew)
   endif()
   if(NOT WITH_SYSTEM_GLEW)
     add_subdirectory(extern/glew)

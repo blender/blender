@@ -277,6 +277,7 @@ class device_memory {
  protected:
   friend class CUDADevice;
   friend class OptiXDevice;
+  friend class HIPDevice;
 
   /* Only create through subclasses. */
   device_memory(Device *device, const char *name, MemoryType type);

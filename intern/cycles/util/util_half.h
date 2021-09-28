@@ -29,7 +29,7 @@ CCL_NAMESPACE_BEGIN
 /* Half Floats */
 
 /* CUDA has its own half data type, no need to define then */
-#ifndef __KERNEL_CUDA__
+#if !defined(__KERNEL_CUDA__) && !defined(__KERNEL_HIP__)
 /* Implementing this as a class rather than a typedef so that the compiler can tell it apart from
  * unsigned shorts. */
 class half {
@@ -59,7 +59,7 @@ struct half4 {
   half x, y, z, w;
 };
 
-#ifdef __KERNEL_CUDA__
+#if defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
 
 ccl_device_inline void float4_store_half(half *h, float4 f)
 {
@@ -73,6 +73,7 @@ ccl_device_inline void float4_store_half(half *h, float4 f)
 
 ccl_device_inline void float4_store_half(half *h, float4 f)
 {
+
 #  ifndef __KERNEL_SSE2__
   for (int i = 0; i < 4; i++) {
     /* optimized float to half for pixels:
@@ -109,6 +110,8 @@ ccl_device_inline void float4_store_half(half *h, float4 f)
 #  endif
 }
 
+#  ifndef __KERNEL_HIP__
+
 ccl_device_inline float half_to_float(half h)
 {
   float f;
@@ -117,6 +120,23 @@ ccl_device_inline float half_to_float(half h)
 
   return f;
 }
+#  else
+
+ccl_device_inline float half_to_float(std::uint32_t a) noexcept
+{
+
+  std::uint32_t u = ((a << 13) + 0x70000000U) & 0x8fffe000U;
+
+  std::uint32_t v = __float_as_uint(__uint_as_float(u) *
+                                    __uint_as_float(0x77800000U) /*0x1.0p+112f*/) +
+                    0x38000000U;
+
+  u = (a & 0x7fff) != 0 ? v : u;
+
+  return __uint_as_float(u) * __uint_as_float(0x07800000U) /*0x1.0p-112f*/;
+}
+
+#  endif /* __KERNEL_HIP__ */
 
 ccl_device_inline float4 half4_to_float4(half4 h)
 {
