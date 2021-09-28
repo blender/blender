@@ -1146,8 +1146,7 @@ static void draw_property_for_socket(uiLayout *layout,
       break;
     }
     default: {
-      if (input_has_attribute_toggle(*nmd->node_group, socket_index) &&
-          USER_EXPERIMENTAL_TEST(&U, use_geometry_nodes_fields)) {
+      if (input_has_attribute_toggle(*nmd->node_group, socket_index)) {
         const std::string rna_path_use_attribute = "[\"" + std::string(socket_id_esc) +
                                                    use_attribute_suffix + "\"]";
         const std::string rna_path_attribute_name = "[\"" + std::string(socket_id_esc) +
@@ -1240,7 +1239,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     });
   }
 
-  if (USER_EXPERIMENTAL_TEST(&U, use_geometry_nodes_fields) && has_legacy_node) {
+  if (has_legacy_node) {
     uiLayout *row = uiLayoutRow(layout, false);
     uiItemL(row, IFACE_("Node tree has legacy node"), ICON_ERROR);
     uiLayout *sub = uiLayoutRow(row, false);

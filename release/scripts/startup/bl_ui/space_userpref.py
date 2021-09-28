@@ -2251,7 +2251,6 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_sculpt_tools_tilt"}, "T82877"),
                 ({"property": "use_extended_asset_browser"}, ("project/view/130/", "Project Page")),
                 ({"property": "use_override_templates"}, ("T73318", "Milestone 4")),
-                ({"property": "use_geometry_nodes_fields"}, "T91274"),
             ),
         )
 
@@ -2285,6 +2284,7 @@ class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
                 ({"property": "override_auto_resync"}, "T83811"),
                 ({"property": "proxy_to_override_auto_conversion"}, "T91671"),
                 ({"property": "use_cycles_debug"}, None),
+                ({"property": "use_geometry_nodes_legacy"}, "T91274"),
             ),
         )
 

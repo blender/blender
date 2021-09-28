@@ -878,11 +878,9 @@ class GeometryNodesEvaluator {
 
     NodeParamsProvider params_provider{*this, node, node_state};
     GeoNodeExecParams params{params_provider};
-    if (USER_EXPERIMENTAL_TEST(&U, use_geometry_nodes_fields)) {
-      if (node->idname().find("Legacy") != StringRef::not_found) {
-        params.error_message_add(geo_log::NodeWarningType::Legacy,
-                                 TIP_("Legacy node will be removed before Blender 4.0"));
-      }
+    if (node->idname().find("Legacy") != StringRef::not_found) {
+      params.error_message_add(geo_log::NodeWarningType::Legacy,
+                               TIP_("Legacy node will be removed before Blender 4.0"));
     }
     bnode.typeinfo->geometry_node_execute(params);
   }
@@ -891,14 +889,12 @@ class GeometryNodesEvaluator {
                                    const MultiFunction &fn,
                                    NodeState &node_state)
   {
-    if (USER_EXPERIMENTAL_TEST(&U, use_geometry_nodes_fields)) {
-      if (node->idname().find("Legacy") != StringRef::not_found) {
-        /* Create geometry nodes params just for creating an error message. */
-        NodeParamsProvider params_provider{*this, node, node_state};
-        GeoNodeExecParams params{params_provider};
-        params.error_message_add(geo_log::NodeWarningType::Legacy,
-                                 TIP_("Legacy node will be removed before Blender 4.0"));
-      }
+    if (node->idname().find("Legacy") != StringRef::not_found) {
+      /* Create geometry nodes params just for creating an error message. */
+      NodeParamsProvider params_provider{*this, node, node_state};
+      GeoNodeExecParams params{params_provider};
+      params.error_message_add(geo_log::NodeWarningType::Legacy,
+                               TIP_("Legacy node will be removed before Blender 4.0"));
     }
 
     LinearAllocator<> &allocator = local_allocators_.local();
