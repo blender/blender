@@ -231,6 +231,7 @@ class AssetCatalogDefinitionFile {
    * Later versioning code may be added to handle older files. */
   const static int SUPPORTED_VERSION;
   const static std::string VERSION_MARKER;
+  const static std::string HEADER;
 
   CatalogFilePath file_path;
 

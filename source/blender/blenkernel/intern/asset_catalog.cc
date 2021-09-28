@@ -48,6 +48,13 @@ const int AssetCatalogDefinitionFile::SUPPORTED_VERSION = 1;
  * that starts with "VERSION". */
 const std::string AssetCatalogDefinitionFile::VERSION_MARKER = "VERSION ";
 
+const std::string AssetCatalogDefinitionFile::HEADER =
+    "# This is an Asset Catalog Definition file for Blender.\n"
+    "#\n"
+    "# Empty lines and lines starting with `#` will be ignored.\n"
+    "# The first non-ignored line should be the version indicator.\n"
+    "# Other lines are of the format \"UUID:catalog/path/for/assets:simple catalog name\"\n";
+
 AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_root)
     : asset_library_root_(asset_library_root)
 {
@@ -652,13 +659,7 @@ bool AssetCatalogDefinitionFile::write_to_disk_unsafe(const CatalogFilePath &des
   // the file again.
 
   // Write the header.
-  // TODO(@sybren): move the header definition to some other place.
-  output << "# This is an Asset Catalog Definition file for Blender." << std::endl;
-  output << "#" << std::endl;
-  output << "# Empty lines and lines starting with `#` will be ignored." << std::endl;
-  output << "# The first non-ignored line should be the version indicator." << std::endl;
-  output << "# Other lines are of the format \"UUID:catalog/path/for/assets:simple catalog name\""
-         << std::endl;
+  output << HEADER;
   output << "" << std::endl;
   output << VERSION_MARKER << SUPPORTED_VERSION << std::endl;
   output << "" << std::endl;
