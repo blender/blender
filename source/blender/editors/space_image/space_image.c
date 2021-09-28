@@ -128,6 +128,13 @@ static SpaceLink *image_create(const ScrArea *UNUSED(area), const Scene *UNUSED(
 
   simage->custom_grid_subdiv = 10;
 
+  /* header */
+  region = MEM_callocN(sizeof(ARegion), "header for image");
+
+  BLI_addtail(&simage->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+
   /* tool header */
   region = MEM_callocN(sizeof(ARegion), "tool header for image");
 
@@ -135,13 +142,6 @@ static SpaceLink *image_create(const ScrArea *UNUSED(area), const Scene *UNUSED(
   region->regiontype = RGN_TYPE_TOOL_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
   region->flag = RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
-
-  /* header */
-  region = MEM_callocN(sizeof(ARegion), "header for image");
-
-  BLI_addtail(&simage->regionbase, region);
-  region->regiontype = RGN_TYPE_HEADER;
-  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* buttons/list view */
   region = MEM_callocN(sizeof(ARegion), "buttons for image");

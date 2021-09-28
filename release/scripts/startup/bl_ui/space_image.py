@@ -598,13 +598,7 @@ class IMAGE_HT_tool_header(Header):
     def draw(self, context):
         layout = self.layout
 
-        layout.template_header()
-
         self.draw_tool_settings(context)
-
-        layout.separator_spacer()
-
-        IMAGE_HT_header.draw_xform_template(layout, context)
 
         layout.separator_spacer()
 
@@ -762,8 +756,7 @@ class IMAGE_HT_header(Header):
         show_uvedit = sima.show_uvedit
         show_maskedit = sima.show_maskedit
 
-        if not show_region_tool_header:
-            layout.template_header()
+        layout.template_header()
 
         if sima.mode != 'UV':
             layout.prop(sima, "ui_mode", text="")
@@ -784,8 +777,7 @@ class IMAGE_HT_header(Header):
 
         layout.separator_spacer()
 
-        if not show_region_tool_header:
-            IMAGE_HT_header.draw_xform_template(layout, context)
+        IMAGE_HT_header.draw_xform_template(layout, context)
 
         layout.template_ID(sima, "image", new="image.new", open="image.open")
 

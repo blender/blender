@@ -190,7 +190,7 @@ class ToolActivePanelHelper:
         ToolSelectPanelHelper.draw_active_tool_header(
             context,
             layout.column(),
-            show_tool_name=True,
+            show_tool_icon=True,
             tool_key=ToolSelectPanelHelper._tool_key_from_context(context, space_type=self.bl_space_type),
         )
 
@@ -766,7 +766,7 @@ class ToolSelectPanelHelper:
     def draw_active_tool_header(
             context, layout,
             *,
-            show_tool_name=False,
+            show_tool_icon=False,
             tool_key=None,
     ):
         if tool_key is None:
@@ -783,9 +783,12 @@ class ToolSelectPanelHelper:
             return None
         # Note: we could show 'item.text' here but it makes the layout jitter when switching tools.
         # Add some spacing since the icon is currently assuming regular small icon size.
-        layout.label(text="    " + item.label if show_tool_name else " ", icon_value=icon_value)
-        if show_tool_name:
+        if show_tool_icon:
+            layout.label(text="    " + item.label, icon_value=icon_value)
             layout.separator()
+        else:
+            layout.label(text=item.label)
+
         draw_settings = item.draw_settings
         if draw_settings is not None:
             draw_settings(context, layout, tool)

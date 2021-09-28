@@ -109,6 +109,13 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   BLI_rctf_init(&sseq->runtime.last_thumbnail_area, 0.0f, 0.0f, 0.0f, 0.0f);
   sseq->runtime.last_displayed_thumbnails = NULL;
 
+  /* Header. */
+  region = MEM_callocN(sizeof(ARegion), "header for sequencer");
+
+  BLI_addtail(&sseq->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+
   /* Tool header. */
   region = MEM_callocN(sizeof(ARegion), "tool header for sequencer");
 
@@ -116,13 +123,6 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   region->regiontype = RGN_TYPE_TOOL_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
   region->flag = RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
-
-  /* Header. */
-  region = MEM_callocN(sizeof(ARegion), "header for sequencer");
-
-  BLI_addtail(&sseq->regionbase, region);
-  region->regiontype = RGN_TYPE_HEADER;
-  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* Buttons/list view. */
   region = MEM_callocN(sizeof(ARegion), "buttons for sequencer");

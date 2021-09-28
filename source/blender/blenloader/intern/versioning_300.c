@@ -1625,5 +1625,30 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Swap header with the tool header so the regular header is always on the edge. */
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
+          ARegion *region_tool = NULL, *region_head = NULL;
+          int region_tool_index = -1, region_head_index = -1, i;
+          LISTBASE_FOREACH_INDEX (ARegion *, region, regionbase, i) {
+            if (region->regiontype == RGN_TYPE_TOOL_HEADER) {
+              region_tool = region;
+              region_tool_index = i;
+            }
+            else if (region->regiontype == RGN_TYPE_HEADER) {
+              region_head = region;
+              region_head_index = i;
+            }
+          }
+          if ((region_tool && region_head) && (region_head_index > region_tool_index)) {
+            BLI_listbase_swaplinks(regionbase, region_tool, region_head);
+          }
+        }
+      }
+    }
   }
 }

@@ -1284,8 +1284,8 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
                RGN_TYPE_TOOLS,
                RGN_TYPE_UI,
                RGN_TYPE_TOOL_PROPS,
-               RGN_TYPE_HEADER,
-               RGN_TYPE_FOOTER)) {
+               RGN_TYPE_FOOTER,
+               RGN_TYPE_TOOL_HEADER)) {
         return true;
       }
     }

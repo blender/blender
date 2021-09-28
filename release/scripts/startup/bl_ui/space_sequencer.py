@@ -99,8 +99,6 @@ class SEQUENCER_HT_tool_header(Header):
     def draw(self, context):
         layout = self.layout
 
-        layout.template_header()
-
         self.draw_tool_settings(context)
 
         # TODO: options popover.
@@ -132,8 +130,7 @@ class SEQUENCER_HT_header(Header):
 
         show_region_tool_header = st.show_region_tool_header
 
-        if not show_region_tool_header:
-            layout.template_header()
+        layout.template_header()
 
         layout.prop(st, "view_type", text="")
 

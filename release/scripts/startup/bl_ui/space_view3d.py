@@ -46,13 +46,7 @@ class VIEW3D_HT_tool_header(Header):
     def draw(self, context):
         layout = self.layout
 
-        layout.row(align=True).template_header()
-
         self.draw_tool_settings(context)
-
-        layout.separator_spacer()
-
-        VIEW3D_HT_header.draw_xform_template(layout, context)
 
         layout.separator_spacer()
 
@@ -604,10 +598,8 @@ class VIEW3D_HT_header(Header):
         tool_settings = context.tool_settings
         view = context.space_data
         shading = view.shading
-        show_region_tool_header = view.show_region_tool_header
 
-        if not show_region_tool_header:
-            layout.row(align=True).template_header()
+        layout.row(align=True).template_header()
 
         row = layout.row(align=True)
         obj = context.active_object
@@ -754,7 +746,7 @@ class VIEW3D_HT_header(Header):
                     )
 
             layout.separator_spacer()
-        elif not show_region_tool_header:
+        else:
             # Transform settings depending on tool header visibility
             VIEW3D_HT_header.draw_xform_template(layout, context)
 

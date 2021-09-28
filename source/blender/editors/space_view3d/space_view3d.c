@@ -276,6 +276,13 @@ static SpaceLink *view3d_create(const ScrArea *UNUSED(area), const Scene *scene)
     v3d->camera = scene->camera;
   }
 
+  /* header */
+  region = MEM_callocN(sizeof(ARegion), "header for view3d");
+
+  BLI_addtail(&v3d->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+
   /* tool header */
   region = MEM_callocN(sizeof(ARegion), "tool header for view3d");
 
@@ -283,13 +290,6 @@ static SpaceLink *view3d_create(const ScrArea *UNUSED(area), const Scene *scene)
   region->regiontype = RGN_TYPE_TOOL_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
   region->flag = RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
-
-  /* header */
-  region = MEM_callocN(sizeof(ARegion), "header for view3d");
-
-  BLI_addtail(&v3d->regionbase, region);
-  region->regiontype = RGN_TYPE_HEADER;
-  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* tool shelf */
   region = MEM_callocN(sizeof(ARegion), "toolshelf for view3d");
