@@ -66,6 +66,7 @@ class Params:
         # Alt-MMB axis switching 'RELATIVE' or 'ABSOLUTE' axis switching.
         "v3d_alt_mmb_drag_action",
 
+        "use_file_single_click",
         # Convenience variables:
         # (derived from other settings).
         #
@@ -106,6 +107,7 @@ class Params:
             use_alt_tool_or_cursor=False,
             use_alt_click_leader=False,
             use_pie_click_drag=False,
+            use_file_single_click=False,
             v3d_tilde_action='VIEW',
             v3d_alt_mmb_drag_action='RELATIVE',
     ):
@@ -189,6 +191,8 @@ class Params:
 
         self.use_alt_click_leader = use_alt_click_leader
         self.use_pie_click_drag = use_pie_click_drag
+
+        self.use_file_single_click = use_file_single_click
 
         # Convenience variables:
         self.use_fallback_tool_rmb = self.use_fallback_tool if self.select_mouse == 'RIGHT' else False
@@ -2151,16 +2155,20 @@ def km_file_browser_main(params):
         {"items": items},
     )
 
+    if not params.use_file_single_click:
+        items.extend([
+            ("file.select", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'},
+            {"properties": [("open", True), ("deselect_all", not params.legacy)]}),
+        ])
+
     items.extend([
         ("file.mouse_execute", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
         # Both .execute and .select are needed here. The former only works if
         # there's a file operator (i.e. not in regular editor mode) but is
         # needed to load files. The latter makes selection work if there's no
         # operator (i.e. in regular editor mode).
-        ("file.select", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'},
-         {"properties": [("open", True), ("deselect_all", not params.legacy)]}),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'PRESS'},
-         {"properties": [("open", False), ("deselect_all", not params.legacy)]}),
+         {"properties": [("open", params.use_file_single_click), ("deselect_all", not params.legacy)]}),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "ctrl": True},
          {"properties": [("extend", True), ("open", False)]}),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True},

@@ -217,6 +217,15 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
+    use_file_single_click: BoolProperty(
+        name="Open Folders on Single Click",
+        description=(
+            "Navigate into folders by clicking on them once instead of twice"
+        ),
+        default=False,
+        update=update_fn,
+    )
+
     def draw(self, layout):
         from bpy import context
 
@@ -273,6 +282,10 @@ class Prefs(bpy.types.KeyConfigPreferences):
         sub.prop(self, "use_pie_click_drag")
         sub.prop(self, "use_v3d_shade_ex_pie")
 
+        # File Browser settings.
+        col = layout.column()
+        col.label(text="File Browser")
+        col.row().prop(self, "use_file_single_click")
 
 blender_default = bpy.utils.execfile(os.path.join(DIRNAME, "keymap_data", "blender_default.py"))
 
@@ -312,6 +325,7 @@ def load():
             ),
             use_alt_click_leader=kc_prefs.use_alt_click_leader,
             use_pie_click_drag=kc_prefs.use_pie_click_drag,
+            use_file_single_click=kc_prefs.use_file_single_click,
         ),
     )
 
