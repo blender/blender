@@ -124,7 +124,7 @@ enum_texture_limit = (
     ('4096', "4096", "Limit texture size to 4096 pixels", 6),
     ('8192', "8192", "Limit texture size to 8192 pixels", 7),
 )
- 
+
 # NOTE: Identifiers are expected to be an upper case version of identifiers from  `Pass::get_type_enum()`
 enum_view3d_shading_render_pass = (
     ('', "General", ""),

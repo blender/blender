@@ -10,7 +10,7 @@ from bl_blendfile_utils import TestHelper
 
 
 class TestBlendLibLinkHelper(TestHelper):
-    
+
     def __init__(self, args):
         self.args = args
 
