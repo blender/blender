@@ -235,6 +235,7 @@ set(SRC
   geometry/nodes/node_geo_mesh_to_points.cc
   geometry/nodes/node_geo_object_info.cc
   geometry/nodes/node_geo_points_to_vertices.cc
+  geometry/nodes/node_geo_proximity.cc
   geometry/nodes/node_geo_realize_instances.cc
   geometry/nodes/node_geo_separate_components.cc
   geometry/nodes/node_geo_set_position.cc

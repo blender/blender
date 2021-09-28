@@ -1362,6 +1362,11 @@ typedef struct NodeGeometryAttributeProximity {
   uint8_t target_geometry_element;
 } NodeGeometryAttributeProximity;
 
+typedef struct NodeGeometryProximity {
+  /* GeometryNodeProximityTargetType. */
+  uint8_t target_element;
+} NodeGeometryProximity;
+
 typedef struct NodeGeometryVolumeToMesh {
   /* VolumeToMeshResolutionMode */
   uint8_t resolution_mode;
@@ -1945,6 +1950,12 @@ typedef enum GeometryNodeAttributeProximityTargetType {
   GEO_NODE_PROXIMITY_TARGET_EDGES = 1,
   GEO_NODE_PROXIMITY_TARGET_FACES = 2,
 } GeometryNodeAttributeProximityTargetType;
+
+typedef enum GeometryNodeProximityTargetType {
+  GEO_NODE_PROX_TARGET_POINTS = 0,
+  GEO_NODE_PROX_TARGET_EDGES = 1,
+  GEO_NODE_PROX_TARGET_FACES = 2,
+} GeometryNodeProximityTargetType;
 
 typedef enum GeometryNodeBooleanOperation {
   GEO_NODE_BOOLEAN_INTERSECT = 0,

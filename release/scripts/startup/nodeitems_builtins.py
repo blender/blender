@@ -543,6 +543,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeLegacyDeleteGeometry", poll=geometry_nodes_legacy_poll),
         NodeItem("GeometryNodeLegacyRaycast", poll=geometry_nodes_legacy_poll),
 
+        NodeItem("GeometryNodeProximity"),
         NodeItem("GeometryNodeBoundBox"),
         NodeItem("GeometryNodeConvexHull"),
         NodeItem("GeometryNodeTransform"),

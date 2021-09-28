@@ -329,7 +329,11 @@ static void get_socket_value(const SocketRef &socket, void *r_value)
   if (bsocket.flag & SOCK_HIDE_VALUE) {
     const bNode &bnode = *socket.bnode();
     if (bsocket.type == SOCK_VECTOR) {
-      if (ELEM(bnode.type, GEO_NODE_SET_POSITION, SH_NODE_TEX_NOISE, GEO_NODE_MESH_TO_POINTS)) {
+      if (ELEM(bnode.type,
+               GEO_NODE_SET_POSITION,
+               SH_NODE_TEX_NOISE,
+               GEO_NODE_MESH_TO_POINTS,
+               GEO_NODE_PROXIMITY)) {
         new (r_value) Field<float3>(
             std::make_shared<bke::AttributeFieldInput>("position", CPPType::get<float3>()));
         return;

@@ -232,7 +232,7 @@ static void geo_node_attribute_proximity_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_attribute_proximity()
+void register_node_type_geo_legacy_attribute_proximity()
 {
   static bNodeType ntype;
 

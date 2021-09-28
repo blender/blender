@@ -1506,6 +1506,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_MESH_TO_POINTS 1093
 #define GEO_NODE_POINTS_TO_VERTICES 1094
 #define GEO_NODE_CURVE_REVERSE 1095
+#define GEO_NODE_PROXIMITY 1096
 
 /** \} */
 
