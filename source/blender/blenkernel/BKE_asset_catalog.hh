@@ -65,15 +65,6 @@ class AssetCatalogService {
   void load_from_disk(const CatalogFilePath &file_or_directory_path);
 
   /**
-   * Write the catalog definitions to disk.
-   * The provided directory path is only used when there is no CDF loaded from disk yet but assets
-   * still have to be saved.
-   *
-   * Return true on success, which either means there were no in-memory categories to save, or the
-   * save was successful. */
-  bool write_to_disk(const CatalogFilePath &directory_for_new_files);
-
-  /**
    * Write the catalog definitions to disk in response to the blend file being saved.
    *
    * The location where the catalogs are saved is variable, and depends on the location of the
@@ -90,7 +81,7 @@ class AssetCatalogService {
    *
    * Return true on success, which either means there were no in-memory categories to save,
    * or the save was successful. */
-  bool write_to_disk_on_blendfile_save(const char *blend_file_path);
+  bool write_to_disk_on_blendfile_save(const CatalogFilePath &blend_file_path);
 
   /**
    * Merge on-disk changes into the in-memory asset catalogs.

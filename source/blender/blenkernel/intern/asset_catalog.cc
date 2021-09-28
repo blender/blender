@@ -268,30 +268,9 @@ void AssetCatalogService::merge_from_disk_before_writing()
                                                catalog_parsed_callback);
 }
 
-bool AssetCatalogService::write_to_disk(const CatalogFilePath &directory_for_new_files)
+bool AssetCatalogService::write_to_disk_on_blendfile_save(const CatalogFilePath &blend_file_path)
 {
   /* TODO(Sybren): expand to support multiple CDFs. */
-
-  if (!catalog_definition_file_) {
-    if (catalogs_.is_empty() && deleted_catalogs_.is_empty()) {
-      /* Avoid saving anything, when there is nothing to save. */
-      return true; /* Writing nothing when there is nothing to write is still a success. */
-    }
-
-    /* A CDF has to be created to contain all current in-memory catalogs. */
-    const CatalogFilePath cdf_path = asset_definition_default_file_path_from_dir(
-        directory_for_new_files);
-    catalog_definition_file_ = construct_cdf_in_memory(cdf_path);
-  }
-
-  merge_from_disk_before_writing();
-  return catalog_definition_file_->write_to_disk();
-}
-
-bool AssetCatalogService::write_to_disk_on_blendfile_save(const char *blend_file_path)
-{
-  /* TODO(Sybren): deduplicate this and write_to_disk(...); maybe the latter function isn't even
-   * necessary any more. */
 
   /* - Already loaded a CDF from disk? -> Always write to that file. */
   if (this->catalog_definition_file_) {
