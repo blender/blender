@@ -18,12 +18,12 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "DNA_light_types.h"
 
 namespace blender::compositor {
 
-class GlareThresholdOperation : public NodeOperation {
+class GlareThresholdOperation : public MultiThreadedOperation {
  private:
   /**
    * \brief Cached reference to the inputProgram
@@ -59,6 +59,9 @@ class GlareThresholdOperation : public NodeOperation {
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

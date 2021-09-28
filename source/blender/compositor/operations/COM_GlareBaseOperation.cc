@@ -26,6 +26,8 @@ GlareBaseOperation::GlareBaseOperation()
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
   this->m_settings = nullptr;
+  flags.is_fullframe_operation = true;
+  is_output_rendered_ = false;
 }
 void GlareBaseOperation::initExecution()
 {
@@ -67,6 +69,38 @@ bool GlareBaseOperation::determineDependingAreaOfInterest(rcti * /*input*/,
   newInput.ymax = this->getHeight();
   newInput.ymin = 0;
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+}
+
+void GlareBaseOperation::get_area_of_interest(const int input_idx,
+                                              const rcti &UNUSED(output_area),
+                                              rcti &r_input_area)
+{
+  BLI_assert(input_idx == 0);
+  UNUSED_VARS_NDEBUG(input_idx);
+  r_input_area.xmin = 0;
+  r_input_area.xmax = this->getWidth();
+  r_input_area.ymin = 0;
+  r_input_area.ymax = this->getHeight();
+}
+
+void GlareBaseOperation::update_memory_buffer(MemoryBuffer *output,
+                                              const rcti &UNUSED(area),
+                                              Span<MemoryBuffer *> inputs)
+{
+  if (!is_output_rendered_) {
+    MemoryBuffer *input = inputs[0];
+    const bool is_input_inflated = input->is_a_single_elem();
+    if (is_input_inflated) {
+      input = input->inflate();
+    }
+
+    this->generateGlare(output->getBuffer(), input, m_settings);
+    is_output_rendered_ = true;
+
+    if (is_input_inflated) {
+      delete input;
+    }
+  }
 }
 
 }  // namespace blender::compositor

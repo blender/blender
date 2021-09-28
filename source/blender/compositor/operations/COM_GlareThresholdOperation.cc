@@ -71,4 +71,24 @@ void GlareThresholdOperation::deinitExecution()
   this->m_inputProgram = nullptr;
 }
 
+void GlareThresholdOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                           const rcti &area,
+                                                           Span<MemoryBuffer *> inputs)
+{
+  const float threshold = this->m_settings->threshold;
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const float *color = it.in(0);
+    if (IMB_colormanagement_get_luminance(color) >= threshold) {
+      it.out[0] = color[0] - threshold;
+      it.out[1] = color[1] - threshold;
+      it.out[2] = color[2] - threshold;
+
+      CLAMP3_MIN(it.out, 0.0f);
+    }
+    else {
+      zero_v3(it.out);
+    }
+  }
+}
+
 }  // namespace blender::compositor
