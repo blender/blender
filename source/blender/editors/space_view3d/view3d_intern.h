@@ -80,6 +80,7 @@ void VIEW3D_OT_view_persportho(struct wmOperatorType *ot);
 void VIEW3D_OT_navigate(struct wmOperatorType *ot);
 void VIEW3D_OT_background_image_add(struct wmOperatorType *ot);
 void VIEW3D_OT_background_image_remove(struct wmOperatorType *ot);
+void VIEW3D_OT_drop_world(struct wmOperatorType *ot);
 void VIEW3D_OT_view_orbit(struct wmOperatorType *ot);
 void VIEW3D_OT_view_roll(struct wmOperatorType *ot);
 void VIEW3D_OT_clip_border(struct wmOperatorType *ot);

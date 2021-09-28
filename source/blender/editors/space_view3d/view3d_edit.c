@@ -34,6 +34,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -4869,6 +4870,59 @@ void VIEW3D_OT_background_image_remove(wmOperatorType *ot)
   /* properties */
   RNA_def_int(
       ot->srna, "index", 0, 0, INT_MAX, "Index", "Background image index to remove", 0, INT_MAX);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Drop World Operator
+ * \{ */
+
+static int drop_world_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+
+  char name[MAX_ID_NAME - 2];
+
+  RNA_string_get(op->ptr, "name", name);
+  World *world = (World *)BKE_libblock_find_name(bmain, ID_WO, name);
+  if (world == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+
+  id_us_plus(&world->id);
+  scene->world = world;
+
+  DEG_id_tag_update(&scene->id, 0);
+  DEG_relations_tag_update(bmain);
+
+  WM_event_add_notifier(C, NC_SCENE | ND_WORLD, scene);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool drop_world_poll(bContext *C)
+{
+  return ED_operator_scene_editable(C);
+}
+
+void VIEW3D_OT_drop_world(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Drop World";
+  ot->description = "Drop a world into the scene";
+  ot->idname = "VIEW3D_OT_drop_world";
+
+  /* api callbacks */
+  ot->exec = drop_world_exec;
+  ot->poll = drop_world_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  /* properties */
+  RNA_def_string(ot->srna, "name", "World", MAX_ID_NAME - 2, "Name", "World to assign");
 }
 
 /** \} */

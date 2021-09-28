@@ -539,6 +539,11 @@ static char *view3d_mat_drop_tooltip(bContext *C,
   return ED_object_ot_drop_named_material_tooltip(C, drop->ptr, event);
 }
 
+static bool view3d_world_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+{
+  return view3d_drop_id_in_main_region_poll(C, drag, event, ID_WO);
+}
+
 static bool view3d_object_data_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   ID_Type id_type = view3d_drop_id_in_main_region_poll_get_id_type(C, drag, event);
@@ -732,6 +737,12 @@ static void view3d_dropboxes(void)
                  view3d_id_drop_copy_with_type,
                  WM_drag_free_imported_drag_ID,
                  view3d_object_data_drop_tooltip);
+  WM_dropbox_add(lb,
+                 "VIEW3D_OT_drop_world",
+                 view3d_world_drop_poll,
+                 view3d_id_drop_copy,
+                 WM_drag_free_imported_drag_ID,
+                 NULL);
 }
 
 static void view3d_widgets(void)
@@ -1555,11 +1566,16 @@ static void space_view3d_listener(const wmSpaceTypeListenerParams *params)
   switch (wmn->category) {
     case NC_SCENE:
       switch (wmn->data) {
-        case ND_WORLD:
-          if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
+        case ND_WORLD: {
+          const bool use_scene_world = ((v3d->shading.type == OB_MATERIAL) &&
+                                        (v3d->shading.flag & V3D_SHADING_SCENE_WORLD)) ||
+                                       ((v3d->shading.type == OB_RENDER) &&
+                                        (v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER));
+          if (v3d->flag2 & V3D_HIDE_OVERLAYS || use_scene_world) {
             ED_area_tag_redraw_regiontype(area, RGN_TYPE_WINDOW);
           }
           break;
+        }
       }
       break;
     case NC_WORLD:
