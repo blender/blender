@@ -678,3 +678,11 @@ TEST(path_util, PathContains)
   EXPECT_FALSE(BLI_path_contains("/some/path", "./contents"))
       << "Relative paths are not supported";
 }
+
+#ifdef WIN32
+TEST(path_util, PathContains_Windows_case_insensitive)
+{
+  EXPECT_TRUE(BLI_path_contains("C:\\some\\path", "c:\\SOME\\path\\inside"))
+      << "On Windows path comparison should ignore case";
+}
+#endif
