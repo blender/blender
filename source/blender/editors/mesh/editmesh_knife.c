@@ -369,7 +369,6 @@ enum {
 /** \name Drawing
  * \{ */
 
-#if 1
 static void knifetool_raycast_planes(const KnifeTool_OpData *kcd, float r_v1[3], float r_v2[3])
 {
   float planes[4][4];
@@ -383,10 +382,6 @@ static void knifetool_raycast_planes(const KnifeTool_OpData *kcd, float r_v1[3],
     float lambda_best[2] = {-FLT_MAX, FLT_MAX};
     int i;
 
-    /* We (sometimes) need the lines to be at the same depth before projecting. */
-#  if 0
-    sub_v3_v3v3(ray_dir, kcd->curr.cage, kcd->prev.cage);
-#  else
     {
       float curr_cage_adjust[3];
       float co_depth[3];
@@ -396,7 +391,6 @@ static void knifetool_raycast_planes(const KnifeTool_OpData *kcd, float r_v1[3],
 
       sub_v3_v3v3(ray_dir, curr_cage_adjust, kcd->prev.cage);
     }
-#  endif
 
     for (i = 0; i < 4; i++) {
       float ray_hit[3];
@@ -483,7 +477,6 @@ static void knifetool_draw_orientation_locking(const KnifeTool_OpData *kcd)
     immUnbindProgram();
   }
 }
-#endif
 
 static void knifetool_draw_visible_distances(const KnifeTool_OpData *kcd)
 {
