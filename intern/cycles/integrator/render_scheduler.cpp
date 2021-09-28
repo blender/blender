@@ -384,7 +384,7 @@ bool RenderScheduler::set_postprocess_render_work(RenderWork *render_work)
   }
 
   if (denoiser_params_.use && !state_.last_work_tile_was_denoised) {
-    render_work->tile.denoise = true;
+    render_work->tile.denoise = !tile_manager_.has_multiple_tiles();
     any_scheduled = true;
   }
 
@@ -900,6 +900,12 @@ bool RenderScheduler::work_need_denoise(bool &delayed, bool &ready_to_display)
 
   if (!denoiser_params_.use) {
     /* Denoising is disabled, no need to scheduler work for it. */
+    return false;
+  }
+
+  /* When multiple tiles are used the full frame will be denoised.
+   * Avoid per-tile denoising to save up render time. */
+  if (tile_manager_.has_multiple_tiles()) {
     return false;
   }
 
