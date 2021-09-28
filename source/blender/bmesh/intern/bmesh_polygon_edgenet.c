@@ -1149,7 +1149,7 @@ static BMVert *bm_face_split_edgenet_partial_connect(BMesh *bm, BMVert *v_delimi
           if (BM_elem_flag_test(v_step, VERT_NOT_IN_STACK)) {
             BM_elem_flag_disable(v_step, VERT_NOT_IN_STACK);
             BLI_SMALLSTACK_PUSH(search, v_step);
-            BLI_linklist_prepend_alloca(&vert_stack, v_other);
+            BLI_linklist_prepend_alloca(&vert_stack, v_step);
           }
         }
       } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v_other)) != v_other->e);
