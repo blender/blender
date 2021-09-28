@@ -682,10 +682,8 @@ static bool geometry_node_is_293_legacy(const short node_type)
   switch (node_type) {
     /* Not legacy: No attribute inputs or outputs. */
     case GEO_NODE_TRIANGULATE:
-    case GEO_NODE_EDGE_SPLIT:
     case GEO_NODE_TRANSFORM:
     case GEO_NODE_BOOLEAN:
-    case GEO_NODE_SUBDIVISION_SURFACE:
     case GEO_NODE_IS_VIEWPORT:
     case GEO_NODE_MESH_SUBDIVIDE:
     case GEO_NODE_MESH_PRIMITIVE_CUBE:
@@ -732,15 +730,15 @@ static bool geometry_node_is_293_legacy(const short node_type)
     case GEO_NODE_COLLECTION_INFO:
       return false;
 
-    /* Maybe legacy: Transferred *all* attributes before, will not transfer all built-ins now. */
-    case GEO_NODE_CURVE_ENDPOINTS:
-    case GEO_NODE_CURVE_TO_POINTS:
-      return false;
-
-    /* Maybe legacy: Special case for grid names? Or finish patch from level set branch to generate
-     * a mesh for all grids in the volume. */
+    /* Maybe legacy: Special case for grid names? Or finish patch from level set branch to
+     * generate a mesh for all grids in the volume. */
     case GEO_NODE_VOLUME_TO_MESH:
       return false;
+
+    /* Legacy: Transferred *all* attributes before, will not transfer all built-ins now. */
+    case GEO_NODE_LEGACY_CURVE_ENDPOINTS:
+    case GEO_NODE_LEGACY_CURVE_TO_POINTS:
+      return true;
 
     /* Legacy: Attribute operation completely replaced by field nodes. */
     case GEO_NODE_LEGACY_ATTRIBUTE_RANDOMIZE:
@@ -778,15 +776,17 @@ static bool geometry_node_is_293_legacy(const short node_type)
     case GEO_NODE_LEGACY_CURVE_SET_HANDLES:
       return true;
 
-    /* Legacy: More complex attribute inputs or outputs. */
-    case GEO_NODE_LEGACY_DELETE_GEOMETRY:    /* Needs field input, domain drop-down. */
-    case GEO_NODE_LEGACY_CURVE_SUBDIVIDE:    /* Needs field count input. */
-    case GEO_NODE_LEGACY_POINTS_TO_VOLUME:   /* Needs field radius input. */
-    case GEO_NODE_LEGACY_SELECT_BY_MATERIAL: /* Output anonymous attribute. */
-    case GEO_NODE_LEGACY_POINT_TRANSLATE:    /* Needs field inputs. */
-    case GEO_NODE_LEGACY_POINT_INSTANCE:     /* Needs field inputs. */
-    case GEO_NODE_LEGACY_POINT_DISTRIBUTE:   /* Needs field input, remove max for random mode. */
-    case GEO_NODE_LEGACY_ATTRIBUTE_CONVERT:  /* Attribute Capture, Store Attribute. */
+      /* Legacy: More complex attribute inputs or outputs. */
+    case GEO_NODE_LEGACY_SUBDIVISION_SURFACE: /* Used "crease" attribute. */
+    case GEO_NODE_LEGACY_EDGE_SPLIT:          /* Needs selection input version. */
+    case GEO_NODE_LEGACY_DELETE_GEOMETRY:     /* Needs field input, domain drop-down. */
+    case GEO_NODE_LEGACY_CURVE_SUBDIVIDE:     /* Needs field count input. */
+    case GEO_NODE_LEGACY_POINTS_TO_VOLUME:    /* Needs field radius input. */
+    case GEO_NODE_LEGACY_SELECT_BY_MATERIAL:  /* Output anonymous attribute. */
+    case GEO_NODE_LEGACY_POINT_TRANSLATE:     /* Needs field inputs. */
+    case GEO_NODE_LEGACY_POINT_INSTANCE:      /* Needs field inputs. */
+    case GEO_NODE_LEGACY_POINT_DISTRIBUTE:    /* Needs field input, remove max for random mode. */
+    case GEO_NODE_LEGACY_ATTRIBUTE_CONVERT:   /* Attribute Capture, Store Attribute. */
       return true;
   }
   return false;
@@ -1269,7 +1269,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_SUBDIVISION_SURFACE) {
+          if (node->type == GEO_NODE_LEGACY_SUBDIVISION_SURFACE) {
             if (node->storage == NULL) {
               NodeGeometrySubdivisionSurface *data = MEM_callocN(
                   sizeof(NodeGeometrySubdivisionSurface), __func__);
@@ -1340,11 +1340,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 22)) {
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        version_geometry_nodes_change_legacy_names(ntree);
-      }
-    }
     if (!DNA_struct_elem_find(
             fd->filesdna, "LineartGpencilModifierData", "bool", "use_crease_on_smooth")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
@@ -1534,6 +1529,12 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
           }
         }
+      }
+    }
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_geometry_nodes_change_legacy_names(ntree);
       }
     }
   }

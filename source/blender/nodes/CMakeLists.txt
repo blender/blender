@@ -165,12 +165,15 @@ set(SRC
   geometry/nodes/legacy/node_geo_attribute_transfer.cc
   geometry/nodes/legacy/node_geo_attribute_vector_math.cc
   geometry/nodes/legacy/node_geo_attribute_vector_rotate.cc
+  geometry/nodes/legacy/node_geo_curve_endpoints.cc
   geometry/nodes/legacy/node_geo_curve_reverse.cc
   geometry/nodes/legacy/node_geo_curve_select_by_handle_type.cc
   geometry/nodes/legacy/node_geo_curve_set_handles.cc
   geometry/nodes/legacy/node_geo_curve_spline_type.cc
   geometry/nodes/legacy/node_geo_curve_subdivide.cc
+  geometry/nodes/legacy/node_geo_curve_to_points.cc
   geometry/nodes/legacy/node_geo_delete_geometry.cc
+  geometry/nodes/legacy/node_geo_edge_split.cc
   geometry/nodes/legacy/node_geo_material_assign.cc
   geometry/nodes/legacy/node_geo_mesh_to_curve.cc
   geometry/nodes/legacy/node_geo_point_distribute.cc
@@ -182,6 +185,7 @@ set(SRC
   geometry/nodes/legacy/node_geo_points_to_volume.cc
   geometry/nodes/legacy/node_geo_raycast.cc
   geometry/nodes/legacy/node_geo_select_by_material.cc
+  geometry/nodes/legacy/node_geo_subdivision_surface.cc
 
   geometry/nodes/node_geo_attribute_capture.cc
   geometry/nodes/node_geo_attribute_remove.cc
@@ -192,7 +196,6 @@ set(SRC
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_convex_hull.cc
   geometry/nodes/node_geo_curve_sample.cc
-  geometry/nodes/node_geo_curve_endpoints.cc
   geometry/nodes/node_geo_curve_fill.cc
   geometry/nodes/node_geo_curve_length.cc
   geometry/nodes/node_geo_curve_parameter.cc
@@ -206,10 +209,8 @@ set(SRC
   geometry/nodes/node_geo_curve_resample.cc
   geometry/nodes/node_geo_curve_fillet.cc
   geometry/nodes/node_geo_curve_to_mesh.cc
-  geometry/nodes/node_geo_curve_to_points.cc
   geometry/nodes/node_geo_curve_trim.cc
   geometry/nodes/node_geo_distribute_points_on_faces.cc
-  geometry/nodes/node_geo_edge_split.cc
   geometry/nodes/node_geo_instance_on_points.cc
   geometry/nodes/node_geo_input_material.cc
   geometry/nodes/node_geo_input_normal.cc
@@ -236,7 +237,6 @@ set(SRC
   geometry/nodes/node_geo_set_position.cc
   geometry/nodes/node_geo_string_join.cc
   geometry/nodes/node_geo_string_to_curves.cc
-  geometry/nodes/node_geo_subdivision_surface.cc
   geometry/nodes/node_geo_switch.cc
   geometry/nodes/node_geo_transform.cc
   geometry/nodes/node_geo_triangulate.cc

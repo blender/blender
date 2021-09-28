@@ -212,7 +212,8 @@ void register_node_type_geo_curve_endpoints()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_ENDPOINTS, "Curve Endpoints", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_LEGACY_CURVE_ENDPOINTS, "Curve Endpoints", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_curve_endpoints_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_endpoints_exec;
 

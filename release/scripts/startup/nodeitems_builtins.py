@@ -519,11 +519,11 @@ geometry_node_categories = [
         NodeItem("GeometryNodeLegacyCurveSetHandles", poll=geometry_nodes_fields_legacy_poll),
         NodeItem("GeometryNodeLegacyCurveSelectHandles", poll=geometry_nodes_fields_legacy_poll),
         NodeItem("GeometryNodeLegacyMeshToCurve", poll=geometry_nodes_fields_legacy_poll),
+        NodeItem("GeometryNodeLegacyCurveToPoints", poll=geometry_nodes_fields_legacy_poll),
+        NodeItem("GeometryNodeLegacyCurveEndpoints", poll=geometry_nodes_fields_legacy_poll),
 
         NodeItem("GeometryNodeCurveToMesh"),
         NodeItem("GeometryNodeCurveResample"),
-        NodeItem("GeometryNodeCurveToPoints"),
-        NodeItem("GeometryNodeCurveEndpoints"),
         NodeItem("GeometryNodeCurveFill"),
         NodeItem("GeometryNodeCurveTrim"),
         NodeItem("GeometryNodeCurveLength"),
@@ -576,10 +576,11 @@ geometry_node_categories = [
         NodeItem("GeometryNodeMaterialReplace"),
     ]),
     GeometryNodeCategory("GEO_MESH", "Mesh", items=[
+        NodeItem("GeometryNodeLegacyEdgeSplit", poll=geometry_nodes_fields_legacy_poll),
+        NodeItem("GeometryNodeLegacySubdivisionSurface", poll=geometry_nodes_fields_legacy_poll),
+
         NodeItem("GeometryNodeBoolean"),
         NodeItem("GeometryNodeTriangulate"),
-        NodeItem("GeometryNodeEdgeSplit"),
-        NodeItem("GeometryNodeSubdivisionSurface"),
         NodeItem("GeometryNodeMeshSubdivide"),
     ]),
     GeometryNodeCategory("GEO_PRIMITIVES_MESH", "Mesh Primitives", items=[

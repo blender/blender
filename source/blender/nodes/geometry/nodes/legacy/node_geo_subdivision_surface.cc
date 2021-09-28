@@ -133,7 +133,7 @@ void register_node_type_geo_subdivision_surface()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_SUBDIVISION_SURFACE, "Subdivision Surface", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_LEGACY_SUBDIVISION_SURFACE, "Subdivision Surface", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_subdivision_surface_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_subdivision_surface_exec;
   ntype.draw_buttons = blender::nodes::geo_node_subdivision_surface_layout;
