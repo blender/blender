@@ -195,8 +195,8 @@ set(SRC
   geometry/nodes/node_geo_collection_info.cc
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_convex_hull.cc
-  geometry/nodes/node_geo_curve_sample.cc
   geometry/nodes/node_geo_curve_fill.cc
+  geometry/nodes/node_geo_curve_fillet.cc
   geometry/nodes/node_geo_curve_length.cc
   geometry/nodes/node_geo_curve_parameter.cc
   geometry/nodes/node_geo_curve_primitive_bezier_segment.cc
@@ -208,16 +208,16 @@ set(SRC
   geometry/nodes/node_geo_curve_primitive_star.cc
   geometry/nodes/node_geo_curve_resample.cc
   geometry/nodes/node_geo_curve_reverse.cc
-  geometry/nodes/node_geo_curve_fillet.cc
+  geometry/nodes/node_geo_curve_sample.cc
   geometry/nodes/node_geo_curve_to_mesh.cc
   geometry/nodes/node_geo_curve_trim.cc
   geometry/nodes/node_geo_distribute_points_on_faces.cc
-  geometry/nodes/node_geo_instance_on_points.cc
+  geometry/nodes/node_geo_input_index.cc
   geometry/nodes/node_geo_input_material.cc
   geometry/nodes/node_geo_input_normal.cc
   geometry/nodes/node_geo_input_position.cc
   geometry/nodes/node_geo_input_tangent.cc
-  geometry/nodes/node_geo_input_index.cc
+  geometry/nodes/node_geo_instance_on_points.cc
   geometry/nodes/node_geo_is_viewport.cc
   geometry/nodes/node_geo_join_geometry.cc
   geometry/nodes/node_geo_material_assign.cc
@@ -245,6 +245,7 @@ set(SRC
   geometry/nodes/node_geo_triangulate.cc
   geometry/nodes/node_geo_viewer.cc
   geometry/nodes/node_geo_volume_to_mesh.cc
+
   geometry/node_geometry_exec.cc
   geometry/node_geometry_tree.cc
   geometry/node_geometry_util.cc
