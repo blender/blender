@@ -3899,71 +3899,69 @@ static void knifetool_undo(KnifeTool_OpData *kcd)
   KnifeUndoFrame *undo;
   BLI_mempool_iter iterkfe;
 
-  if (!BLI_stack_is_empty(kcd->undostack)) {
-    undo = BLI_stack_peek(kcd->undostack);
+  undo = BLI_stack_peek(kcd->undostack);
 
-    /* Undo edge splitting. */
-    for (int i = 0; i < undo->splits; i++) {
-      BLI_stack_pop(kcd->splitstack, &newkfe);
-      BLI_stack_pop(kcd->splitstack, &kfe);
-      knife_join_edge(newkfe, kfe);
-    }
-
-    for (int i = 0; i < undo->cuts; i++) {
-
-      BLI_mempool_iternew(kcd->kedges, &iterkfe);
-      for (kfe = BLI_mempool_iterstep(&iterkfe); kfe; kfe = BLI_mempool_iterstep(&iterkfe)) {
-        if (!kfe->is_cut || kfe->is_invalid || kfe->splits) {
-          continue;
-        }
-        lastkfe = kfe;
-      }
-
-      if (lastkfe) {
-        lastkfe->is_invalid = true;
-
-        /* TODO: Are they always guaranteed to be in this order? */
-        v1 = lastkfe->v1;
-        v2 = lastkfe->v2;
-
-        /* Only remove first vertex if it is the start segment of the cut. */
-        if (!v1->is_invalid && !v1->is_splitting) {
-          v1->is_invalid = true;
-          /* If the first vertex is touching any other cut edges don't remove it. */
-          for (ref = v1->edges.first; ref; ref = ref->next) {
-            kfe = ref->ref;
-            if (kfe->is_cut && !kfe->is_invalid) {
-              v1->is_invalid = false;
-              break;
-            }
-          }
-        }
-
-        /* Only remove second vertex if it is the end segment of the cut. */
-        if (!v2->is_invalid && !v2->is_splitting) {
-          v2->is_invalid = true;
-          /* If the second vertex is touching any other cut edges don't remove it. */
-          for (ref = v2->edges.first; ref; ref = ref->next) {
-            kfe = ref->ref;
-            if (kfe->is_cut && !kfe->is_invalid) {
-              v2->is_invalid = false;
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    if (kcd->mode == MODE_DRAGGING) {
-      /* Restore kcd->prev. */
-      kcd->prev = undo->pos;
-    }
-
-    /* Restore data for distance and angle measurements. */
-    kcd->mdata = undo->mdata;
-
-    BLI_stack_discard(kcd->undostack);
+  /* Undo edge splitting. */
+  for (int i = 0; i < undo->splits; i++) {
+    BLI_stack_pop(kcd->splitstack, &newkfe);
+    BLI_stack_pop(kcd->splitstack, &kfe);
+    knife_join_edge(newkfe, kfe);
   }
+
+  for (int i = 0; i < undo->cuts; i++) {
+
+    BLI_mempool_iternew(kcd->kedges, &iterkfe);
+    for (kfe = BLI_mempool_iterstep(&iterkfe); kfe; kfe = BLI_mempool_iterstep(&iterkfe)) {
+      if (!kfe->is_cut || kfe->is_invalid || kfe->splits) {
+        continue;
+      }
+      lastkfe = kfe;
+    }
+
+    if (lastkfe) {
+      lastkfe->is_invalid = true;
+
+      /* TODO: Are they always guaranteed to be in this order? */
+      v1 = lastkfe->v1;
+      v2 = lastkfe->v2;
+
+      /* Only remove first vertex if it is the start segment of the cut. */
+      if (!v1->is_invalid && !v1->is_splitting) {
+        v1->is_invalid = true;
+        /* If the first vertex is touching any other cut edges don't remove it. */
+        for (ref = v1->edges.first; ref; ref = ref->next) {
+          kfe = ref->ref;
+          if (kfe->is_cut && !kfe->is_invalid) {
+            v1->is_invalid = false;
+            break;
+          }
+        }
+      }
+
+      /* Only remove second vertex if it is the end segment of the cut. */
+      if (!v2->is_invalid && !v2->is_splitting) {
+        v2->is_invalid = true;
+        /* If the second vertex is touching any other cut edges don't remove it. */
+        for (ref = v2->edges.first; ref; ref = ref->next) {
+          kfe = ref->ref;
+          if (kfe->is_cut && !kfe->is_invalid) {
+            v2->is_invalid = false;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  if (kcd->mode == MODE_DRAGGING) {
+    /* Restore kcd->prev. */
+    kcd->prev = undo->pos;
+  }
+
+  /* Restore data for distance and angle measurements. */
+  kcd->mdata = undo->mdata;
+
+  BLI_stack_discard(kcd->undostack);
 }
 
 /** \} */
@@ -4406,6 +4404,12 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         return OPERATOR_FINISHED;
       case KNF_MODAL_UNDO:
+        if (BLI_stack_is_empty(kcd->undostack)) {
+          ED_region_tag_redraw(kcd->region);
+          knifetool_exit(op);
+          ED_workspace_status_text(C, NULL);
+          return OPERATOR_CANCELLED;
+        }
         knifetool_undo(kcd);
         knife_update_active(C, kcd);
         ED_region_tag_redraw(kcd->region);
