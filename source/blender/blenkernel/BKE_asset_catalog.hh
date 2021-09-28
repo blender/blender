@@ -118,6 +118,11 @@ class AssetCatalogService {
    * written. */
   void delete_catalog(CatalogID catalog_id);
 
+  /**
+   * Update the catalog path, also updating the catalog path of all sub-catalogs.
+   */
+  void update_catalog_path(CatalogID catalog_id, const CatalogPath &new_catalog_path);
+
   AssetCatalogTree *get_catalog_tree();
 
   /** Return true only if there are no catalogs known. */
@@ -299,6 +304,15 @@ class AssetCatalog {
      * merging of on-disk changes with in-memory changes. */
     bool is_deleted = false;
   } flags;
+
+  /**
+   * \return true only if this catalog's path is contained within the given path.
+   * When this catalog's path is equal to the given path, return true as well.
+   *
+   * Note that non-normalized paths (so for example starting or ending with a slash) are not
+   * supported, and result in undefined behaviour.
+   */
+  bool is_contained_in(const CatalogPath &other_path) const;
 
   /**
    * Create a new Catalog with the given path, auto-generating a sensible catalog simple-name.

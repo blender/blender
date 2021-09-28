@@ -99,6 +99,25 @@ void AssetCatalogService::delete_catalog(CatalogID catalog_id)
   this->rebuild_tree();
 }
 
+void AssetCatalogService::update_catalog_path(CatalogID catalog_id,
+                                              const CatalogPath &new_catalog_path)
+{
+  AssetCatalog *renamed_cat = this->find_catalog(catalog_id);
+  const CatalogPath old_cat_path = renamed_cat->path;
+
+  for (auto &catalog_uptr : catalogs_.values()) {
+    AssetCatalog *cat = catalog_uptr.get();
+    if (!cat->is_contained_in(old_cat_path)) {
+      continue;
+    }
+
+    const CatalogPath path_suffix = cat->path.substr(old_cat_path.length());
+    cat->path = new_catalog_path + path_suffix;
+  }
+
+  this->rebuild_tree();
+}
+
 AssetCatalog *AssetCatalogService::create_catalog(const CatalogPath &catalog_path)
 {
   std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path(catalog_path);
@@ -754,6 +773,28 @@ CatalogPath AssetCatalog::cleanup_path(const CatalogPath &path)
   /* TODO(@sybren): maybe go over each element of the path, and trim those? */
   CatalogPath clean_path = StringRef(path).trim().trim(AssetCatalogService::PATH_SEPARATOR).trim();
   return clean_path;
+}
+
+bool AssetCatalog::is_contained_in(const CatalogPath &other_path) const
+{
+  if (other_path.empty()) {
+    return true;
+  }
+
+  if (this->path == other_path) {
+    return true;
+  }
+
+  /* To be a child path of 'other_path', our path must be at least a separator and another
+   * character longer. */
+  if (this->path.length() < other_path.length() + 2) {
+    return false;
+  }
+
+  const StringRef this_path(this->path);
+  const bool prefix_ok = this_path.startswith(other_path);
+  const char next_char = this_path[other_path.length()];
+  return prefix_ok && next_char == AssetCatalogService::PATH_SEPARATOR;
 }
 
 }  // namespace blender::bke

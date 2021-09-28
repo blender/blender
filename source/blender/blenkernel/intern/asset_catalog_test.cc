@@ -711,6 +711,37 @@ TEST_F(AssetCatalogTest, delete_catalog_write_to_disk)
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_RUZENA_FACE));
 }
 
+TEST_F(AssetCatalogTest, update_catalog_path)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" +
+                         AssetCatalogService::DEFAULT_CATALOG_FILENAME);
+
+  const AssetCatalog *orig_cat = service.find_catalog(UUID_POSES_RUZENA);
+  const CatalogPath orig_path = orig_cat->path;
+
+  service.update_catalog_path(UUID_POSES_RUZENA, "charlib/Ružena");
+
+  EXPECT_EQ(nullptr, service.find_catalog_by_path(orig_path))
+      << "The original (pre-rename) path should not be associated with a catalog any more.";
+
+  const AssetCatalog *renamed_cat = service.find_catalog(UUID_POSES_RUZENA);
+  ASSERT_NE(nullptr, renamed_cat);
+  ASSERT_EQ(orig_cat, renamed_cat) << "Changing the path should not reallocate the catalog.";
+  EXPECT_EQ(orig_cat->simple_name, renamed_cat->simple_name)
+      << "Changing the path should not change the simple name.";
+  EXPECT_EQ(orig_cat->catalog_id, renamed_cat->catalog_id)
+      << "Changing the path should not change the catalog ID.";
+
+  EXPECT_EQ("charlib/Ružena", renamed_cat->path)
+      << "Changing the path should change the path. Surprise.";
+
+  EXPECT_EQ("charlib/Ružena/hand", service.find_catalog(UUID_POSES_RUZENA_HAND)->path)
+      << "Changing the path should update children.";
+  EXPECT_EQ("charlib/Ružena/face", service.find_catalog(UUID_POSES_RUZENA_FACE)->path)
+      << "Changing the path should update children.";
+}
+
 TEST_F(AssetCatalogTest, merge_catalog_files)
 {
   const CatalogFilePath cdf_dir = create_temp_path();
@@ -811,6 +842,23 @@ TEST_F(AssetCatalogTest, order_by_path)
     FAIL() << "Did not expect more items in the set, had at least " << next_cat->catalog_id << ":"
            << next_cat->path;
   }
+}
+
+TEST_F(AssetCatalogTest, is_contained_in)
+{
+  const AssetCatalog cat(BLI_uuid_generate_random(), "simple/path/child", "");
+
+  EXPECT_FALSE(cat.is_contained_in("unrelated"));
+  EXPECT_FALSE(cat.is_contained_in("sim"));
+  EXPECT_FALSE(cat.is_contained_in("simple/pathx"));
+  EXPECT_FALSE(cat.is_contained_in("simple/path/c"));
+  EXPECT_FALSE(cat.is_contained_in("simple/path/child/grandchild"));
+  EXPECT_FALSE(cat.is_contained_in("simple/path/"))
+      << "Non-normalized paths are not expected to work.";
+
+  EXPECT_TRUE(cat.is_contained_in(""));
+  EXPECT_TRUE(cat.is_contained_in("simple"));
+  EXPECT_TRUE(cat.is_contained_in("simple/path"));
 }
 
 }  // namespace blender::bke::tests
