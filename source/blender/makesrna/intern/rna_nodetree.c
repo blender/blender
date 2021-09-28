@@ -10306,6 +10306,42 @@ static void def_geo_curve_to_points(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_geo_mesh_to_points(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_MESH_TO_POINTS_VERTICES,
+       "VERTICES",
+       0,
+       "Vertices",
+       "Create a point in the point cloud for each selected vertex"},
+      {GEO_NODE_MESH_TO_POINTS_EDGES,
+       "EDGES",
+       0,
+       "Edges",
+       "Create a point in the point cloud for each selected edge"},
+      {GEO_NODE_MESH_TO_POINTS_FACES,
+       "FACES",
+       0,
+       "Faces",
+       "Create a point in the point cloud for each selected face"},
+      {GEO_NODE_MESH_TO_POINTS_CORNERS,
+       "CORNERS",
+       0,
+       "Corners",
+       "Create a point in the point cloud for each selected face corner"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryMeshToPoints", "storage");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_geo_curve_trim(StructRNA *srna)
 {
   PropertyRNA *prop;

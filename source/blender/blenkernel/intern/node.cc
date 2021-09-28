@@ -5778,6 +5778,7 @@ static void registerGeometryNodes()
   register_node_type_geo_mesh_primitive_uv_sphere();
   register_node_type_geo_mesh_subdivide();
   register_node_type_geo_mesh_to_curve();
+  register_node_type_geo_mesh_to_points();
   register_node_type_geo_object_info();
   register_node_type_geo_point_distribute();
   register_node_type_geo_point_instance();
@@ -5785,6 +5786,7 @@ static void registerGeometryNodes()
   register_node_type_geo_point_scale();
   register_node_type_geo_point_separate();
   register_node_type_geo_point_translate();
+  register_node_type_geo_points_to_vertices();
   register_node_type_geo_points_to_volume();
   register_node_type_geo_raycast();
   register_node_type_geo_realize_instances();

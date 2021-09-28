@@ -582,6 +582,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeBoolean"),
         NodeItem("GeometryNodeTriangulate"),
         NodeItem("GeometryNodeMeshSubdivide"),
+        NodeItem("GeometryNodePointsToVertices", poll=geometry_nodes_fields_poll),
     ]),
     GeometryNodeCategory("GEO_PRIMITIVES_MESH", "Mesh Primitives", items=[
         NodeItem("GeometryNodeMeshCircle"),
@@ -594,6 +595,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeMeshUVSphere"),
     ]),
     GeometryNodeCategory("GEO_POINT", "Point", items=[
+        NodeItem("GeometryNodeMeshToPoints", poll=geometry_nodes_fields_poll),
         NodeItem("GeometryNodeInstanceOnPoints", poll=geometry_nodes_fields_poll),
         NodeItem("GeometryNodeDistributePointsOnFaces", poll=geometry_nodes_fields_poll),
         NodeItem("GeometryNodeLegacyPointDistribute", poll=geometry_nodes_fields_legacy_poll),
