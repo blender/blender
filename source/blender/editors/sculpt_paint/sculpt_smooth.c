@@ -395,7 +395,12 @@ void SCULPT_smooth(Sculpt *sd,
 void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
-  if (ss->cache->bstrength <= 0.0f) {
+
+  /* NOTE: The enhance brush needs to initialize its state on the first brush step. The stroke
+   * strength can become 0 during the stroke, but it can not change sign (the sign is determined
+   * in the beginning of the stroke. So here it is important to not switch to enhance brush in the
+   * middle of the stroke. */
+  if (ss->cache->bstrength < 0.0f) {
     /* Invert mode, intensify details. */
     SCULPT_enhance_details_brush(sd, ob, nodes, totnode);
   }
