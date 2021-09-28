@@ -109,7 +109,7 @@ void MixBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
   p.value_stride = input_value->elem_stride;
   p.color1_stride = input_color1->elem_stride;
   p.color2_stride = input_color2->elem_stride;
-  for (const int y : YRange(area)) {
+  for (int y = area.ymin; y < area.ymax; y++) {
     p.out = output->get_elem(area.xmin, y);
     p.row_end = p.out + width * output->elem_stride;
     p.value = input_value->get_elem(area.xmin, y);

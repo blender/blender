@@ -162,13 +162,13 @@ void EllipseMaskOperation::apply_mask(MemoryBuffer *output,
   const float half_h = this->m_data->height / 2.0f;
   const float tx = half_w * half_w;
   const float ty = half_h * half_h;
-  for (const int y : YRange(area)) {
+  for (int y = area.ymin; y < area.ymax; y++) {
     const float op_ry = y / op_h;
     const float dy = (op_ry - this->m_data->y) / m_aspectRatio;
     float *out = output->get_elem(area.xmin, y);
     const float *mask = input_mask->get_elem(area.xmin, y);
     const float *value = input_value->get_elem(area.xmin, y);
-    for (const int x : XRange(area)) {
+    for (int x = area.xmin; x < area.xmax; x++) {
       const float op_rx = x / op_w;
       const float dx = op_rx - this->m_data->x;
       const float rx = this->m_data->x + (m_cosine * dx + m_sine * dy);

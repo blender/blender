@@ -127,24 +127,4 @@ constexpr float COM_BLUR_BOKEH_PIXELS = 512;
 constexpr rcti COM_AREA_NONE = {0, 0, 0, 0};
 constexpr rcti COM_CONSTANT_INPUT_AREA_OF_INTEREST = COM_AREA_NONE;
 
-constexpr IndexRange XRange(const rcti &area)
-{
-  return IndexRange(area.xmin, area.xmax - area.xmin);
-}
-
-constexpr IndexRange YRange(const rcti &area)
-{
-  return IndexRange(area.ymin, area.ymax - area.ymin);
-}
-
-constexpr IndexRange XRange(const rcti *area)
-{
-  return XRange(*area);
-}
-
-constexpr IndexRange YRange(const rcti *area)
-{
-  return YRange(*area);
-}
-
 }  // namespace blender::compositor
