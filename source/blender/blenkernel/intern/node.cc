@@ -4513,6 +4513,9 @@ static InputSocketFieldType get_interface_input_field_type(const NodeRef &node,
     /* Outputs always support fields when the data type is correct. */
     return InputSocketFieldType::IsSupported;
   }
+  if (node.is_undefined()) {
+    return InputSocketFieldType::None;
+  }
 
   const NodeDeclaration *node_decl = node.declaration();
 
@@ -4546,6 +4549,9 @@ static OutputFieldDependency get_interface_output_field_dependency(const NodeRef
   if (node.is_group_input_node()) {
     /* Input nodes get special treatment in #determine_group_input_states. */
     return OutputFieldDependency::ForDependentField();
+  }
+  if (node.is_undefined()) {
+    return OutputFieldDependency::ForDataSource();
   }
 
   const NodeDeclaration *node_decl = node.declaration();
