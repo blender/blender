@@ -26,15 +26,22 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 
-static bNodeSocketTemplate cmp_node_movieclip_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {SOCK_FLOAT, N_("Alpha")},
-    {SOCK_FLOAT, N_("Offset X")},
-    {SOCK_FLOAT, N_("Offset Y")},
-    {SOCK_FLOAT, N_("Scale")},
-    {SOCK_FLOAT, N_("Angle")},
-    {-1, ""},
-};
+
+namespace blender::nodes {
+
+static void cmp_node_movieclip_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Float>("Alpha");
+  b.add_output<decl::Float>("Offset X");
+  b.add_output<decl::Float>("Offset Y");
+  b.add_output<decl::Float>("Scale");
+  b.add_output<decl::Float>("Angle");
+
+
+}
+
+}  // namespace blender::nodes
 
 static void init(const bContext *C, PointerRNA *ptr)
 {
@@ -54,7 +61,7 @@ void register_node_type_cmp_movieclip(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MOVIECLIP, "Movie Clip", NODE_CLASS_INPUT, NODE_PREVIEW);
-  node_type_socket_templates(&ntype, nullptr, cmp_node_movieclip_out);
+  ntype.declare = blender::nodes::cmp_node_movieclip_declare;
   ntype.initfunc_api = init;
   node_type_storage(
       &ntype, "MovieClipUser", node_free_standard_storage, node_copy_standard_storage);

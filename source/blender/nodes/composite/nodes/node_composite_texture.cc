@@ -24,23 +24,27 @@
 #include "node_composite_util.hh"
 
 /* **************** TEXTURE ******************** */
-static bNodeSocketTemplate cmp_node_texture_in[] = {
-    {SOCK_VECTOR, N_("Offset"), 0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Scale"), 1.0f, 1.0f, 1.0f, 1.0f, -10.0f, 10.0f, PROP_XYZ},
-    {-1, ""},
-};
-static bNodeSocketTemplate cmp_node_texture_out[] = {
-    {SOCK_FLOAT, N_("Value")},
-    {SOCK_RGBA, N_("Color")},
-    {-1, ""},
-};
+
+namespace blender::nodes {
+
+static void cmp_node_texture_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>("Offset").min(-2.0f).max(2.0f).subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>("Scale").default_value({1.0f, 1.0f, 1.0f}).min(-10.0f).max(10.0f).subtype(PROP_XYZ);
+  b.add_output<decl::Float>("Value");
+  b.add_output<decl::Color>("Color");
+
+
+}
+
+}  // namespace blender::nodes
 
 void register_node_type_cmp_texture(void)
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_PREVIEW);
-  node_type_socket_templates(&ntype, cmp_node_texture_in, cmp_node_texture_out);
+  ntype.declare = blender::nodes::cmp_node_texture_declare;
 
   nodeRegisterType(&ntype);
 }

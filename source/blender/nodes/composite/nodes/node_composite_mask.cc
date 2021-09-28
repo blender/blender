@@ -25,9 +25,16 @@
 
 #include "node_composite_util.hh"
 
-/* **************** Translate  ******************** */
+/* **************** Mask  ******************** */
 
-static bNodeSocketTemplate cmp_node_mask_out[] = {{SOCK_FLOAT, "Mask"}, {-1, ""}};
+namespace blender::nodes {
+
+static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Float>("Mask");
+}
+
+}  // namespace blender::nodes
 
 static void node_composit_init_mask(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -54,7 +61,7 @@ void register_node_type_cmp_mask(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MASK, "Mask", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, cmp_node_mask_out);
+   ntype.declare = blender::nodes::cmp_node_mask_declare;
   node_type_init(&ntype, node_composit_init_mask);
   node_type_label(&ntype, node_mask_label);
 

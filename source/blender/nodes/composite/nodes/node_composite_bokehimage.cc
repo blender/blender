@@ -25,10 +25,14 @@
 
 /* **************** Bokeh image Tools  ******************** */
 
-static bNodeSocketTemplate cmp_node_bokehimage_out[] = {
-    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_bokehimage_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Color>("Image");
+}
+
+}  // namespace blender::nodes
 
 static void node_composit_init_bokehimage(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -46,7 +50,7 @@ void register_node_type_cmp_bokehimage(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_BOKEHIMAGE, "Bokeh Image", NODE_CLASS_INPUT, NODE_PREVIEW);
-  node_type_socket_templates(&ntype, nullptr, cmp_node_bokehimage_out);
+  ntype.declare = blender::nodes::cmp_node_bokehimage_declare;
   node_type_init(&ntype, node_composit_init_bokehimage);
   node_type_storage(
       &ntype, "NodeBokehImage", node_free_standard_storage, node_copy_standard_storage);

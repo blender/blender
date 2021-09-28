@@ -23,12 +23,17 @@
 
 #include "node_composite_util.hh"
 
-static bNodeSocketTemplate cmp_node_trackpos_out[] = {
-    {SOCK_FLOAT, N_("X")},
-    {SOCK_FLOAT, N_("Y")},
-    {SOCK_VECTOR, N_("Speed"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_VELOCITY},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_trackpos_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Float>("X");
+  b.add_output<decl::Float>("Y");
+  b.add_output<decl::Vector>("Speed").subtype(PROP_VELOCITY);
+
+}
+
+}  // namespace blender::nodes
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -43,7 +48,7 @@ void register_node_type_cmp_trackpos(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TRACKPOS, "Track Position", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, cmp_node_trackpos_out);
+  ntype.declare = blender::nodes::cmp_node_trackpos_declare;
   node_type_init(&ntype, init);
   node_type_storage(
       &ntype, "NodeTrackPosData", node_free_standard_storage, node_copy_standard_storage);

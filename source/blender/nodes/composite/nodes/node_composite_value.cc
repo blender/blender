@@ -24,17 +24,22 @@
 #include "node_composite_util.hh"
 
 /* **************** VALUE ******************** */
-static bNodeSocketTemplate cmp_node_value_out[] = {
-    {SOCK_FLOAT, N_("Value"), 0.5f, 0, 0, 0, -FLT_MAX, FLT_MAX, PROP_NONE},
-    {-1, ""},
-};
+
+namespace blender::nodes {
+
+static void cmp_node_value_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Float>("Value").default_value(0.5f);
+}
+
+}  // namespace blender::nodes
 
 void register_node_type_cmp_value(void)
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_VALUE, "Value", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, cmp_node_value_out);
+  ntype.declare = blender::nodes::cmp_node_value_declare;
   node_type_size_preset(&ntype, NODE_SIZE_SMALL);
 
   nodeRegisterType(&ntype);

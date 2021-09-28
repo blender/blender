@@ -25,12 +25,16 @@
 
 /* **************** CURVE Time  ******************** */
 
-/* custom1 = start_frame, custom2 = end_frame */
-static bNodeSocketTemplate cmp_node_time_out[] = {
-    {SOCK_FLOAT, N_("Fac")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
+static void cmp_node_time_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Float>("Fac");
+}
+
+}  // namespace blender::nodes
+
+/* custom1 = start_frame, custom2 = end_frame */
 static void node_composit_init_curves_time(bNodeTree *UNUSED(ntree), bNode *node)
 {
   node->custom1 = 1;
@@ -43,7 +47,7 @@ void register_node_type_cmp_curve_time(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TIME, "Time", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, cmp_node_time_out);
+  ntype.declare = blender::nodes::cmp_node_time_declare;
   node_type_size(&ntype, 140, 100, 320);
   node_type_init(&ntype, node_composit_init_curves_time);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
