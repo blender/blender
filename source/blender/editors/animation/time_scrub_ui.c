@@ -105,8 +105,7 @@ static void draw_current_frame(const Scene *scene,
   float bg_color[4];
   UI_GetThemeColorShade4fv(TH_CFRAME, -5, bg_color);
 
-  /* Draw vertical line to from the bottom of the current frame box to the bottom of the screen.
-   */
+  /* Draw vertical line from the bottom of the current frame box to the bottom of the screen. */
   const float subframe_x = UI_view2d_view_to_region_x(v2d, BKE_scene_ctime_get(scene));
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
