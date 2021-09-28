@@ -21,7 +21,7 @@
  * \ingroup cmpnodes
  */
 
-#include "node_composite_util.h"
+#include "node_composite_util.hh"
 
 #include "BLI_assert.h"
 #include "BLI_dynstr.h"
