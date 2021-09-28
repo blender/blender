@@ -433,7 +433,7 @@ class VIEW3D_PT_tools_brush_settings_channels(Panel, View3DPaintBrushPanel):
 class VIEW3D_PT_tools_brush_settings_channels_preview(Panel, View3DPaintBrushPanel):
     bl_context = ".paint_common"
     bl_parent_id = "VIEW3D_PT_tools_brush_settings"
-    bl_label = "Settings Preview"
+    bl_label = "Workspace Settings Preview"
 
     @classmethod
     def poll(cls, context):
@@ -513,7 +513,7 @@ class VIEW3D_PT_tools_persistent_base_channels(Panel, View3DPaintPanel):
 
         ch = UnifiedPaintPanel.get_channel(context, brush, "use_persistent")
 
-        capabilities = sculpt.brush.sculpt_capabilities
+        capabilities = brush.sculpt_capabilities
 
         ok = context.mode == "SCULPT"
         ok = ok and ch and ch.show_in_workspace
@@ -1201,6 +1201,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
 
         tool_settings = context.tool_settings
         sculpt = tool_settings.sculpt
+        brush = sculpt.brush
 
         col = layout.column(heading="Display", align=True)
         col.prop(sculpt, "show_low_resolution")
@@ -1208,11 +1209,17 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_fast_draw")
         col.prop(sculpt, "use_deform_only")
         col.prop(sculpt, "show_sculpt_pivot")
-        col.prop(sculpt, "smooth_strength_factor")
+
+        UnifiedPaintPanel.channel_unified(
+                layout.column(),
+                context,
+                brush,
+                "smooth_strength_factor", ui_editing=False, slider=True)
+
+        #col.prop(sculpt, "smooth_strength_factor")
 
         col.separator()
 
-        brush = sculpt.brush
         UnifiedPaintPanel.channel_unified(
                 layout.column(),
                 context,

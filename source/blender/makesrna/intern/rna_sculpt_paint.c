@@ -606,7 +606,7 @@ static char *rna_GPencilSculptGuide_path(PointerRNA *UNUSED(ptr))
 
 bool SCULPT_has_persistent_base(SculptSession *ss);
 
-ATTR_NO_OPT bool rna_Sculpt_has_persistent_base(bContext *C)
+bool rna_Sculpt_has_persistent_base(bContext *C)
 {
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 

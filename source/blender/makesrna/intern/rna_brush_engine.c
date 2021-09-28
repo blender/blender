@@ -78,8 +78,7 @@ BrushChannelSet *rna_BrushChannelSet_get_set(struct PointerRNA *ptr)
   return chset;
 }
 
-ATTR_NO_OPT int rna_BrushChannelSet_channels_begin(CollectionPropertyIterator *iter,
-                                                   struct PointerRNA *ptr)
+int rna_BrushChannelSet_channels_begin(CollectionPropertyIterator *iter, struct PointerRNA *ptr)
 {
   BrushChannelSet *chset = rna_BrushChannelSet_get_set(ptr);
 
@@ -421,7 +420,7 @@ char *rna_BrushChannel_rnapath(PointerRNA *ptr)
   }
 }
 
-ATTR_NO_OPT void rna_BrushChannelSet_ensure(ID *id, BrushChannel *channel)
+void rna_BrushChannelSet_ensure(ID *id, BrushChannel *channel)
 {
   PointerRNA ptr;
 
@@ -435,7 +434,7 @@ ATTR_NO_OPT void rna_BrushChannelSet_ensure(ID *id, BrushChannel *channel)
   }
 }
 
-ATTR_NO_OPT int rna_BrushChannelSet_length(PointerRNA *ptr)
+int rna_BrushChannelSet_length(PointerRNA *ptr)
 {
   BrushChannelSet *chset = rna_BrushChannelSet_get_set(ptr);
   // BrushChannelSet *chset = (BrushChannelSet *)ptr->data;

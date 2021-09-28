@@ -736,7 +736,7 @@ void BKE_brush_channelset_compat_load(BrushChannelSet *chset, Brush *brush, bool
   }
 }
 
-ATTR_NO_OPT static void reset_clay_mappings(BrushChannelSet *chset, bool strips)
+static void reset_clay_mappings(BrushChannelSet *chset, bool strips)
 {
   BrushMapping *mp = BRUSHSET_LOOKUP(chset, radius)->mappings + BRUSH_MAPPING_PRESSURE;
   BKE_brush_mapping_ensure_write(mp);
@@ -793,11 +793,10 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
 
   namestack_push(__func__);
 
-  bool setup_ui = false;
+  bool setup_ui = !brush->channels || !brush->channels->totchannel;
 
   if (!brush->channels) {
     brush->channels = BKE_brush_channelset_create();
-    setup_ui = true;
   }
 
   BrushChannelSet *chset = brush->channels;
@@ -853,6 +852,8 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(dyntopo_constant_detail);
   ADDCH(dyntopo_spacing);
   ADDCH(dyntopo_radius_scale);
+
+  ADDCH(smooth_strength_factor);
 
   ADDCH(accumulate);
   ADDCH(original_normal);
@@ -989,6 +990,14 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
   SHOWALL(strength);
   SHOWALL(color);
   SHOWALL(secondary_color);
+
+  if (!ELEM(tool,
+            SCULPT_TOOL_DRAW_FACE_SETS,
+            SCULPT_TOOL_PAINT,
+            SCULPT_TOOL_SMEAR,
+            SCULPT_TOOL_VCOL_BOUNDARY)) {
+    SHOWALL(hard_edge_mode);
+  }
 
   if (!ELEM(tool,
             SCULPT_TOOL_SNAKE_HOOK,
@@ -1401,6 +1410,8 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH(strength);
   ADDCH(radius_unit);
   ADDCH(unprojected_radius);
+
+  ADDCH(smooth_strength_factor);
 
   ADDCH(tilt_strength_factor);
   ADDCH(automasking_boundary_edges_propagation_steps);

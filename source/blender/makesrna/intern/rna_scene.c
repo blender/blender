@@ -3682,6 +3682,16 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Hard Edge Mode", "Hard edge mode; treat all face set boundaries as hard edges");
   RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "brush_editor_mode", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_FLAG_UI_ADVANCED);
+  RNA_def_property_ui_text(prop, "Workspace Edit Mode", "Brush editor mode");
+  RNA_def_property_update(prop, NC_BRUSH | NA_EDITED, NULL);
+
+  prop = RNA_def_property(srna, "brush_editor_advanced", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", 1 << 7);
+  RNA_def_property_ui_text(prop, "Show Advanced", "Show Advanced Settings");
+  RNA_def_property_update(prop, NC_BRUSH | NA_EDITED, NULL);
 }
 
 static void rna_def_curve_paint_settings(BlenderRNA *brna)

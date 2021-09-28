@@ -887,15 +887,19 @@ void BKE_brush_channel_set_int(BrushChannel *ch, int val)
   ch->ivalue = val;
 }
 
-int BKE_brush_channelset_get_final_int(BrushChannelSet *brushset,
-                                       BrushChannelSet *toolset,
+int BKE_brush_channelset_get_final_int(BrushChannelSet *child,
+                                       BrushChannelSet *parent,
                                        const char *idname,
                                        BrushMappingData *mapdata)
 {
-  BrushChannel *ch = BKE_brush_channelset_lookup(brushset, idname);
+  if (!parent) {
+    return BKE_brush_channelset_get_int(child, idname, mapdata);
+  }
+
+  BrushChannel *ch = BKE_brush_channelset_lookup(child, idname);
 
   if (!ch || (ch->flag & BRUSH_CHANNEL_INHERIT)) {
-    BrushChannel *pch = BKE_brush_channelset_lookup(toolset, idname);
+    BrushChannel *pch = BKE_brush_channelset_lookup(parent, idname);
 
     if (pch) {
       return BKE_brush_channel_get_int(pch, mapdata);
@@ -911,15 +915,19 @@ int BKE_brush_channelset_get_final_int(BrushChannelSet *brushset,
   return 0;
 }
 
-void BKE_brush_channelset_set_final_int(BrushChannelSet *brushset,
-                                        BrushChannelSet *toolset,
+void BKE_brush_channelset_set_final_int(BrushChannelSet *child,
+                                        BrushChannelSet *parent,
                                         const char *idname,
                                         int value)
 {
-  BrushChannel *ch = BKE_brush_channelset_lookup(brushset, idname);
+  BrushChannel *ch = BKE_brush_channelset_lookup(child, idname);
+
+  if (!parent) {
+    BKE_brush_channelset_set_int(child, idname, value);
+  }
 
   if (!ch || (ch->flag & BRUSH_CHANNEL_INHERIT)) {
-    BrushChannel *pch = BKE_brush_channelset_lookup(toolset, idname);
+    BrushChannel *pch = BKE_brush_channelset_lookup(parent, idname);
 
     if (pch) {
       BKE_brush_channel_set_int(pch, value);
@@ -1354,28 +1362,30 @@ BrushCommand *BKE_brush_command_init(BrushCommand *command, int tool)
   command->tool = tool;
 
   ADDCH("spacing");
+  ADDCH("radius");
+  ADDCH("strength");
+  ADDCH("hard_edge_mode");
 
   switch (tool) {
     case SCULPT_TOOL_DRAW:
-      ADDCH("radius");
-      ADDCH("strength");
       break;
     case SCULPT_TOOL_SMOOTH:
-      ADDCH("radius");
-      ADDCH("strength");
-      ADDCH("fset_slide");
       ADDCH("boundary_smooth");
       ADDCH("projection");
+      ADDCH("boundary_smooth");
+      ADDCH("fset_slide");
+      ADDCH("preserve_faceset_boundary");
       break;
     case SCULPT_TOOL_TOPOLOGY_RAKE:
-      ADDCH("radius");
-      ADDCH("strength");
-      // ADDCH("fset_slide");
-      // ADDCH("boundary_smooth");
+      ADDCH("fset_slide");
+      ADDCH("preserve_faceset_boundary");
+      ADDCH("boundary_smooth");
       ADDCH("projection");
       ADDCH("topology_rake_mode");
       break;
     case SCULPT_TOOL_DYNTOPO:
+      ADDCH("fset_slide");
+      ADDCH("preserve_faceset_boundary");
       break;
   }
 
@@ -1477,6 +1487,29 @@ static void bke_builtin_commandlist_create_paint(Brush *brush,
   // float
 }
 
+void BKE_builtin_apply_hard_edge_mode(BrushChannelSet *chset, bool do_apply)
+{
+  if (!do_apply) {
+    return;
+  }
+
+  // hard edge mode overrides fset_slide to be 0.0.
+  BrushChannel *ch = BRUSHSET_LOOKUP(chset, fset_slide);
+
+  if (ch) {
+    // clear inheritance flag
+    ch->flag &= ~BRUSH_CHANNEL_INHERIT;
+    ch->fvalue = 0.0f;
+  }
+
+  // make sure preserve faceset boundaries is on
+  ch = BRUSHSET_LOOKUP(chset, preserve_faceset_boundary);
+  if (ch) {
+    ch->flag &= ~BRUSH_CHANNEL_INHERIT;
+    ch->ivalue = 1;
+  }
+}
+
 void BKE_builtin_commandlist_create(Brush *brush,
                                     BrushChannelSet *chset,
                                     BrushCommandList *cl,
@@ -1486,6 +1519,8 @@ void BKE_builtin_commandlist_create(Brush *brush,
   BrushCommand *cmd;
   BrushChannel *ch;
 
+  bool hard_edge_mode = BRUSHSET_GET_INT(chset, hard_edge_mode, mapdata);
+
   /* add main tool */
   if (ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
     bke_builtin_commandlist_create_paint(brush, chset, cl, tool, mapdata);
@@ -1494,12 +1529,14 @@ void BKE_builtin_commandlist_create(Brush *brush,
 
   cmd = BKE_brush_commandlist_add(cl, chset, true);
   BKE_brush_command_init(cmd, tool);
+  BKE_builtin_apply_hard_edge_mode(cmd->params, hard_edge_mode);
 
   float radius = BKE_brush_channelset_get_float(chset, "radius", mapdata);
 
   bool no_autosmooth = ELEM(
       brush->sculpt_tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK);
-  bool no_rake = no_autosmooth;
+  bool no_rake = ELEM(brush->sculpt_tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_MASK);
+  ;
 
   /* build autosmooth command */
   float autosmooth_scale = BKE_brush_channelset_get_float(
@@ -1530,6 +1567,7 @@ void BKE_builtin_commandlist_create(Brush *brush,
   float autosmooth = BKE_brush_channelset_get_float(chset, "autosmooth", mapdata);
   if (!no_autosmooth && autosmooth > 0.0f) {
     cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true), SCULPT_TOOL_SMOOTH);
+    BKE_builtin_apply_hard_edge_mode(cmd->params, hard_edge_mode);
 
     BrushChannel *ch = BRUSHSET_ENSURE_BUILTIN(cmd->params, falloff_curve);
     BrushChannel *ch2 = BRUSHSET_LOOKUP(chset, autosmooth_falloff_curve);
@@ -1569,6 +1607,7 @@ void BKE_builtin_commandlist_create(Brush *brush,
   if (!no_rake && topology_rake > 0.0f) {
     cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true),
                                  SCULPT_TOOL_TOPOLOGY_RAKE);
+    BKE_builtin_apply_hard_edge_mode(cmd->params, hard_edge_mode);
 
     BrushChannel *ch = BRUSHSET_ENSURE_BUILTIN(cmd->params, falloff_curve);
     BrushChannel *ch2 = BRUSHSET_LOOKUP(chset, topology_rake_falloff_curve);
@@ -1591,6 +1630,7 @@ void BKE_builtin_commandlist_create(Brush *brush,
 
   if (!BKE_brush_channelset_get_int(chset, "dyntopo_disabled", NULL)) {
     cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true), SCULPT_TOOL_DYNTOPO);
+    BKE_builtin_apply_hard_edge_mode(cmd->params, hard_edge_mode);
 
     float spacing = BKE_brush_channelset_get_float(chset, "dyntopo_spacing", mapdata);
     float radius2 = BKE_brush_channelset_get_float(chset, "dyntopo_radius_scale", mapdata);

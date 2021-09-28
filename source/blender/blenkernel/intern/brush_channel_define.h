@@ -130,19 +130,21 @@ places in rna_engine_codebase are relevent:
   MAKE_FLOAT_EX_FLAG(dyntopo_radius_scale, "Radius Scale", "Ratio between the brush radius and the radius that is going to be "
                            "used for DynTopo", 1.0f, 0.001f, 5.0f, 0.01f, 2.0f, false, BRUSH_CHANNEL_INHERIT)
   MAKE_FLOAT_EX(projection, "Projection", "Amount of volume preserving projection", 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, false)
-  MAKE_FLOAT_EX(autosmooth_projection, "Projection", "Amount of volume preserving projection", 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, false)
-  MAKE_FLOAT_EX(topology_rake_projection, "Projection", "Amount of volume preserving projection", 0.975f, 0.0f, 1.0f, 0.0f, 1.0f, false)
+  MAKE_FLOAT_EX(autosmooth_projection, "Auto-Smooth Projection", "Amount of volume preserving projection", 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, false)
+  MAKE_FLOAT_EX(topology_rake_projection, "Rake Projection", "Amount of volume preserving projection", 0.975f, 0.0f, 1.0f, 0.0f, 1.0f, false)
   MAKE_FLOAT(fset_slide, "Face Set Projection", "Stick face set boundaries to surface of mesh", 1.0f, 0.0f, 1.0f)
   MAKE_FLOAT(boundary_smooth, "Boundary Smooth", "Smooth hard boundaries", 0.0f, 0.0f, 1.0f)
-  MAKE_BOOL(topology_rake_use_spacing, "Use Spacing", "Use custom spacing for topology rake", false)
-  MAKE_BOOL(autosmooth_use_spacing, "Use Spacing", "Use custom spacing for autosmooth", false)
-  MAKE_FLOAT_EX(topology_rake_spacing, "Spacing", "Topology rake stroke spacing", 13.0f, 0.05f, 1000.0f, 0.1f, 300.0f, false)
-  MAKE_FLOAT_EX(autosmooth_spacing, "Spacing", "Autosmooth stroke spacing", 13.0f, 0.05f, 1000.0f, 0.1f, 300.0f, false)
+  MAKE_BOOL(topology_rake_use_spacing, "Use Rake Spacing", "Use custom spacing for topology rake", false)
+  MAKE_BOOL(autosmooth_use_spacing, "Use Auto-Smooth Spacing", "Use custom spacing for autosmooth", false)
+  MAKE_FLOAT_EX(topology_rake_spacing, "Rake Spacing", "Topology rake stroke spacing", 13.0f, 0.05f, 1000.0f, 0.1f, 300.0f, false)
+  MAKE_FLOAT_EX(autosmooth_spacing, "Auto-Smooth Spacing", "Autosmooth stroke spacing", 13.0f, 0.05f, 1000.0f, 0.1f, 300.0f, false)
   MAKE_ENUM(topology_rake_mode, "Topology Rake Mode", "", 1, _({
       {0, "BRUSH_DIRECTION", ICON_NONE, "Stroke", "Stroke Direction"},
       {1, "CURVATURE", ICON_NONE, "Curvature", "Follow mesh curvature"},
       {-1},
-   }))
+  }))
+
+  MAKE_FLOAT_EX_EX(smooth_strength_factor, "Smooth Strength", "Factor to control the strength of shift-smooth", 0.1f, 0.0f, 10.0f, 0.0f, 2.0f, false, false, BRUSH_CHANNEL_INHERIT)
 
   MAKE_FLAGS_EX(automasking, "Automasking", "", 0, _({
          {BRUSH_AUTOMASKING_BOUNDARY_EDGES, "BOUNDARY_EDGE", ICON_NONE, "Boundary Edges", ""},
@@ -197,8 +199,8 @@ MAKE_FLOAT_EX(plane_offset, "Plane Offset", "Adjust plane on which the brush act
 MAKE_BOOL(original_normal, "Original Normal", "When locked keep using normal of surface where stroke was initiated", false)
 MAKE_BOOL(original_plane, "Original Plane", "When locked keep using the plane origin of surface where stroke was initiated", false)
 MAKE_BOOL(use_weighted_smooth, "Weight By Area", "Weight by face area to get a smoother result", true)
-MAKE_BOOL(preserve_faceset_boundary, "Preserve Faceset Boundary", "Preserve face set boundaries", true)
-MAKE_BOOL(hard_edge_mode, "Hard Edge Mode", "Forces all brushes into hard edge face set mode (sets face set slide to 0)", false)
+MAKE_BOOL_EX(preserve_faceset_boundary, "Preserve Faceset Boundary", "Preserve face set boundaries", true, BRUSH_CHANNEL_INHERIT)
+MAKE_BOOL_EX(hard_edge_mode, "Hard Edge Mode", "Forces all brushes into hard edge face set mode (sets face set slide to 0)", false, BRUSH_CHANNEL_INHERIT)
 MAKE_BOOL(grab_silhouette, "Grab Silhouette", "Grabs trying to automask the silhouette of the object", false)
 MAKE_FLOAT_EX_FLAG(dyntopo_detail_percent, "Detail Percent", "Detail Percent", 25.0f, 0.0f, 1000.0f, 0.0f, 1000.0f, false, BRUSH_CHANNEL_INHERIT)
 MAKE_FLOAT_EX_FLAG(dyntopo_detail_range, "Detail Range", "Detail Range", 0.45f, 0.01f, 0.99f, 0.01f, 0.99f, false, BRUSH_CHANNEL_INHERIT)

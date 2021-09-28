@@ -1854,7 +1854,7 @@ BLI_INLINE IDOverrideLibraryRuntime *override_library_rna_path_runtime_ensure(
 }
 
 /* We only build override GHash on request. */
-ATTR_NO_OPT BLI_INLINE GHash *override_library_rna_path_mapping_ensure(IDOverrideLibrary *override)
+BLI_INLINE GHash *override_library_rna_path_mapping_ensure(IDOverrideLibrary *override)
 {
   IDOverrideLibraryRuntime *override_runtime = override_library_rna_path_runtime_ensure(override);
   if (override_runtime->rna_path_to_override_properties == NULL) {

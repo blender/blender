@@ -163,6 +163,9 @@ void BKE_brush_default_input_curves_set(struct Brush *brush);
   { \
     CHECK_TYPE_ANY(brush, struct Brush *); \
     *(char *)POINTER_OFFSET(brush, (p)->runtime.tool_offset) = tool; \
+    if ((p)->runtime.ob_mode == OB_MODE_SCULPT) { \
+      BKE_brush_builtin_patch(brush, tool); \
+    } \
   } \
   ((void)0)
 

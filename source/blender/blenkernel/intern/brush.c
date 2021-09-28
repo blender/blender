@@ -63,6 +63,8 @@ static void brush_init_data(ID *id)
 
   MEMCPY_STRUCT_AFTER(brush, DNA_struct_default_get(Brush), id);
 
+  brush->channels = BKE_brush_channelset_create();
+
   /* enable fake user by default */
   id_fake_user_set(&brush->id);
 
@@ -166,6 +168,10 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
   BLI_assert(force_copy == false || force_copy != force_local);
 
   bool is_local = false, is_lib = false;
+
+  if (brush->channels) {
+    brush->channels = BKE_brush_channelset_copy(brush->channels);
+  }
 
   /* - only lib users: do nothing (unless force_local is set)
    * - only local users: set flag

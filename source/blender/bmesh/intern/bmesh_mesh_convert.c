@@ -916,7 +916,7 @@ BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
  * \param bmain: May be NULL in case \a calc_object_remap parameter option is not set.
  */
 
-ATTR_NO_OPT void BM_mesh_bm_to_me(
+void BM_mesh_bm_to_me(
     Main *bmain, Object *ob, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
 {
   MEdge *med;

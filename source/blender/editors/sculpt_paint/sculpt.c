@@ -467,13 +467,13 @@ void SCULPT_vertex_persistent_normal_get(SculptSession *ss, SculptVertRef vertex
   }
 }
 
-ATTR_NO_OPT static bool sculpt_temp_customlayer_get(SculptSession *ss,
-                                                    AttributeDomain domain,
-                                                    int proptype,
-                                                    char *name,
-                                                    SculptCustomLayer *out,
-                                                    bool autocreate,
-                                                    SculptLayerParams *params)
+static bool sculpt_temp_customlayer_get(SculptSession *ss,
+                                        AttributeDomain domain,
+                                        int proptype,
+                                        char *name,
+                                        SculptCustomLayer *out,
+                                        bool autocreate,
+                                        SculptLayerParams *params)
 {
   bool simple_array = params->simple_array;
   bool permanent = params->permanent;
@@ -732,7 +732,7 @@ ATTR_NO_OPT static bool sculpt_temp_customlayer_get(SculptSession *ss,
   return true;
 }
 
-ATTR_NO_OPT void SCULPT_update_customdata_refs(SculptSession *ss)
+void SCULPT_update_customdata_refs(SculptSession *ss)
 {
   if (ss->bm) {
     SCULPT_dyntopo_node_layers_update_offsets(ss);
@@ -3892,9 +3892,9 @@ static float brush_strength(const Sculpt *sd,
 
     case SCULPT_TOOL_SMOOTH: {
       const float smooth_strength_base = flip * pressure * feather;
-      if (cache->alt_smooth) {
-        return smooth_strength_base * sd->smooth_strength_factor;
-      }
+      // if (cache->alt_smooth) {
+      //  return smooth_strength_base * sd->smooth_strength_factor;
+      //}
       return smooth_strength_base * alpha;
     }
 
@@ -6796,9 +6796,9 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 
 //#define LAYER_FACE_SET_MODE
 
-ATTR_NO_OPT static void do_layer_brush_task_cb_ex(void *__restrict userdata,
-                                                  const int n,
-                                                  const TaskParallelTLS *__restrict tls)
+static void do_layer_brush_task_cb_ex(void *__restrict userdata,
+                                      const int n,
+                                      const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -8649,6 +8649,7 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
     case SCULPT_TOOL_LAYER:
     case SCULPT_TOOL_DRAW_FACE_SETS:
     case SCULPT_TOOL_CLOTH:
+    case SCULPT_TOOL_SMOOTH:
     case SCULPT_TOOL_SIMPLIFY:
     case SCULPT_TOOL_SNAKE_HOOK:
     case SCULPT_TOOL_INFLATE:
@@ -8665,6 +8666,11 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
       }
 
       BrushCommandList *list = ss->cache->commandlist = BKE_brush_commandlist_create();
+
+      if (ss->cache->alt_smooth && brush->sculpt_tool == SCULPT_TOOL_SMOOTH) {
+        float factor = BRUSHSET_GET_FLOAT(ss->cache->channels_final, smooth_strength_factor, NULL);
+        BRUSHSET_SET_FLOAT(ss->cache->channels_final, strength, factor);
+      }
 
       BKE_builtin_commandlist_create(
           brush, ss->cache->channels_final, list, brush->sculpt_tool, &ss->cache->input_mapping);
@@ -11605,6 +11611,23 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
     ss->cache->channels_final = BKE_brush_channelset_copy(brush->channels);
   }
 
+  if (ss->cache->alt_smooth) {
+    Brush *brush = (Brush *)BKE_libblock_find_name(
+        CTX_data_main(C), ID_BR, ss->cache->saved_active_brush_name);
+
+    if (brush) {
+      // some settings should not be overridden
+
+      bool hard_edge = BRUSHSET_GET_FINAL_INT(
+          brush->channels, sd->channels ? sd->channels : NULL, hard_edge_mode, NULL);
+      float smooth_factor = BRUSHSET_GET_FINAL_FLOAT(
+          brush->channels, sd->channels ? sd->channels : NULL, smooth_strength_factor, NULL);
+
+      BRUSHSET_SET_INT(ss->cache->channels_final, hard_edge_mode, hard_edge);
+      BRUSHSET_SET_FLOAT(ss->cache->channels_final, smooth_strength_factor, smooth_factor);
+    }
+  }
+
   // load settings into brush and unified paint settings
   BKE_brush_channelset_compat_load(ss->cache->channels_final, brush, false);
   BKE_brush_channelset_to_unified_settings(ss->cache->channels_final, ups);
@@ -11939,7 +11962,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 /* Reset the copy of the mesh that is being sculpted on (currently just for the layer brush). */
 
-ATTR_NO_OPT static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
+static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);

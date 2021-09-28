@@ -330,15 +330,15 @@ bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACo
  * \note When there is no equality,
  * but we cannot determine an order (greater than/lesser than), we return 1.
  */
-ATTR_NO_OPT static int rna_property_override_diff(Main *bmain,
-                                                  PropertyRNAOrID *prop_a,
-                                                  PropertyRNAOrID *prop_b,
-                                                  const char *rna_path,
-                                                  const size_t rna_path_len,
-                                                  eRNACompareMode mode,
-                                                  IDOverrideLibrary *override,
-                                                  const eRNAOverrideMatch flags,
-                                                  eRNAOverrideMatchResult *r_report_flags)
+static int rna_property_override_diff(Main *bmain,
+                                      PropertyRNAOrID *prop_a,
+                                      PropertyRNAOrID *prop_b,
+                                      const char *rna_path,
+                                      const size_t rna_path_len,
+                                      eRNACompareMode mode,
+                                      IDOverrideLibrary *override,
+                                      const eRNAOverrideMatch flags,
+                                      eRNAOverrideMatchResult *r_report_flags)
 {
   BLI_assert(!ELEM(NULL, prop_a, prop_b));
 
@@ -641,14 +641,14 @@ static bool rna_property_override_operation_apply(Main *bmain,
  * \return True if _resulting_ \a ptr_local does match \a ptr_reference.
  */
 #include "stdio.h"
-ATTR_NO_OPT bool RNA_struct_override_matches(Main *bmain,
-                                             PointerRNA *ptr_local,
-                                             PointerRNA *ptr_reference,
-                                             const char *root_path,
-                                             const size_t root_path_len,
-                                             IDOverrideLibrary *override,
-                                             const eRNAOverrideMatch flags,
-                                             eRNAOverrideMatchResult *r_report_flags)
+bool RNA_struct_override_matches(Main *bmain,
+                                 PointerRNA *ptr_local,
+                                 PointerRNA *ptr_reference,
+                                 const char *root_path,
+                                 const size_t root_path_len,
+                                 IDOverrideLibrary *override,
+                                 const eRNAOverrideMatch flags,
+                                 eRNAOverrideMatchResult *r_report_flags)
 {
   CollectionPropertyIterator iter;
   PropertyRNA *iterprop;

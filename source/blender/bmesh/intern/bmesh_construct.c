@@ -128,7 +128,7 @@ void bm_id_freelist_push(BMesh *bm, uint id)
 
 // static const int _typemap[] = {0, 0, 1, 0, 2, 0, 0, 0, 3};
 
-ATTR_NO_OPT void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
+void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
 {
   // CustomData *cdata = &bm->vdata + _typemap[elem->head.htype];
   // int cd_id_off = cdata->layers[cdata->typemap[CD_MESH_ID]].offset;
@@ -163,7 +163,7 @@ ATTR_NO_OPT void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
   }
 }
 
-ATTR_NO_OPT void bm_assign_id(BMesh *bm, BMElem *elem, uint id, bool check_unqiue)
+void bm_assign_id(BMesh *bm, BMElem *elem, uint id, bool check_unqiue)
 {
   if (check_unqiue && (bm->idmap.flag & BM_HAS_ID_MAP)) {
     if (BM_ELEM_FROM_ID(bm, id)) {

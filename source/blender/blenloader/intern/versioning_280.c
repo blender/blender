@@ -4425,7 +4425,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
       ToolSettings *ts = scene->toolsettings;
       UnifiedPaintSettings *ups = &ts->unified_paint_settings;
-      ups->flag &= ~(UNIFIED_PAINT_FLAG_UNUSED_1);
+      ups->flag &= ~(UNIFIED_PAINT_FLAG_UI_ADVANCED);
     }
 
     /* Set the default render pass in the viewport to Combined. */

@@ -1473,12 +1473,12 @@ int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co)
   return fset;
 }
 
-ATTR_NO_OPT void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
-                                               int cd_faceset_offset,
-                                               int cd_vert_node_offset,
-                                               int cd_face_node_offset,
-                                               BMVert *v,
-                                               int bound_symmetry)
+void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
+                                   int cd_faceset_offset,
+                                   int cd_vert_node_offset,
+                                   int cd_face_node_offset,
+                                   BMVert *v,
+                                   int bound_symmetry)
 {
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
 

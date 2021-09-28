@@ -1488,15 +1488,15 @@ static int rna_property_override_diff_propptr(Main *bmain,
     (is_array ? RNA_property_##_typename##_set_index((_ptr), (_prop), (_index), (_value)) : \
                 RNA_property_##_typename##_set((_ptr), (_prop), (_value)))
 
-ATTR_NO_OPT int rna_property_override_diff_default(Main *bmain,
-                                                   PropertyRNAOrID *prop_a,
-                                                   PropertyRNAOrID *prop_b,
-                                                   const int mode,
-                                                   IDOverrideLibrary *override,
-                                                   const char *rna_path,
-                                                   const size_t rna_path_len,
-                                                   const int flags,
-                                                   bool *r_override_changed)
+int rna_property_override_diff_default(Main *bmain,
+                                       PropertyRNAOrID *prop_a,
+                                       PropertyRNAOrID *prop_b,
+                                       const int mode,
+                                       IDOverrideLibrary *override,
+                                       const char *rna_path,
+                                       const size_t rna_path_len,
+                                       const int flags,
+                                       bool *r_override_changed)
 {
   PointerRNA *ptr_a = &prop_a->ptr;
   PointerRNA *ptr_b = &prop_b->ptr;

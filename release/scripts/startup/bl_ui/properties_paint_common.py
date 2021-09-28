@@ -166,10 +166,14 @@ class UnifiedPaintPanel:
     def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None,
                         slider=False, header=False, show_reorder=False, expand=None, toolsettings_only=False, ui_editing=True):
         """ Generalized way of adding brush options to the UI,
-            along with their pen pressure setting and global toggle, if they exist. """
+            along with their pen pressure setting and global toggle"""
 
         if context.mode != "SCULPT":
             return UnifiedPaintPanel.prop_unified(layout, context, brush, prop_name, icon=icon, text=text, slider=slider, header=header, expand=expand)
+
+        if not context.tool_settings.unified_paint_settings.brush_editor_mode:
+            ui_editing = False
+            show_reorder = False
 
         if prop_name == "size":
             prop_name = "radius"
@@ -261,7 +265,7 @@ class UnifiedPaintPanel:
             #row.prop(ch, "ui_order", text="")
 
         if ch.type == "CURVE":
-            row.prop(finalch.curve, "curve_preset")
+            row.prop(finalch.curve, "curve_preset", text=text)
             if finalch.curve.curve_preset == "CUSTOM":            
                 path2 = path + ".curve.curve"
                 template_curve(layout, finalch.curve, "curve", path2)
@@ -415,8 +419,6 @@ class UnifiedPaintPanel:
     @staticmethod
     def prop_unified_color(parent, context, brush, prop_name, *, text=None):
         if context.mode == 'SCULPT':
-#    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None,
- #                       slider=False, header=False, expand=None, toolsettings_only=False):
             return UnifiedPaintPanel.channel_unified(parent, context, brush, prop_name, text=text)
 
 
@@ -824,6 +826,11 @@ def brush_settings(layout, context, brush, popover=False):
 
     mode = UnifiedPaintPanel.get_brush_mode(context)
 
+    layout.prop(context.tool_settings.unified_paint_settings, "brush_editor_mode")
+    layout.prop(context.tool_settings.unified_paint_settings, "brush_editor_advanced")
+
+    advanced = context.tool_settings.unified_paint_settings.brush_editor_advanced
+
     ### Draw simple settings unique to each paint mode. ###
     brush_shared_settings(layout, context, brush, popover)
 
@@ -832,23 +839,24 @@ def brush_settings(layout, context, brush, popover=False):
         capabilities = brush.sculpt_capabilities
         sculpt_tool = brush.sculpt_tool
 
-        # normal_radius_factor
-        UnifiedPaintPanel.prop_unified(
-                layout,
-                context,
-                brush,
-                "normal_radius_factor",
-                slider=True,
-         )
-
-        if context.preferences.experimental.use_sculpt_tools_tilt and capabilities.has_tilt:
+        if advanced:
+            # normal_radius_factor
             UnifiedPaintPanel.prop_unified(
                     layout,
                     context,
                     brush,
-                    "tilt_strength_factor",
+                    "normal_radius_factor",
                     slider=True,
              )
+
+            if context.preferences.experimental.use_sculpt_tools_tilt and capabilities.has_tilt:
+                UnifiedPaintPanel.prop_unified(
+                        layout,
+                        context,
+                        brush,
+                        "tilt_strength_factor",
+                        slider=True,
+                 )
 
         UnifiedPaintPanel.prop_unified(
                 layout,
@@ -878,28 +886,34 @@ def brush_settings(layout, context, brush, popover=False):
                 slider=True,
             )
 
-            #box.prop(brush, "boundary_smooth_factor")
-            #box.prop(brush, "use_weighted_smooth")
-            #box.prop(brush, "preserve_faceset_boundary")
+            if advanced:
+                UnifiedPaintPanel.prop_unified(box, context, brush, "boundary_smooth_factor", slider=True)
+                UnifiedPaintPanel.prop_unified(box, context, brush, "use_weighted_smooth")
+                UnifiedPaintPanel.prop_unified(box, context, brush, "preserve_faceset_boundary")
 
-            UnifiedPaintPanel.prop_unified(box, context, brush, "boundary_smooth_factor", slider=True)
-            UnifiedPaintPanel.prop_unified(box, context, brush, "use_weighted_smooth")
-            UnifiedPaintPanel.prop_unified(box, context, brush, "preserve_faceset_boundary")
+                if brush.channels["preserve_faceset_boundary"].bool_value:
+                    UnifiedPaintPanel.prop_unified(box, context, brush, "autosmooth_fset_slide", slider=True)
 
-            if 1: #brush.preserve_faceset_boundary:
-                UnifiedPaintPanel.prop_unified(box, context, brush, "autosmooth_fset_slide", slider=True)
-                #box.prop(brush, "autosmooth_fset_slide")
-
-            box.prop(brush, "use_custom_auto_smooth_spacing", text="Custom Spacing")
-            if brush.use_custom_auto_smooth_spacing:
-               UnifiedPaintPanel.prop_unified(
+            if advanced:
+                UnifiedPaintPanel.prop_unified(
                     box,
                     context,
                     brush,
-                    "auto_smooth_spacing",
+                    "autosmooth_use_spacing",
                     slider=True,
-                    text="Spacing"
-                )                
+                    text="Custom Spacing"
+                )
+                    
+                if brush.use_custom_auto_smooth_spacing:
+                    UnifiedPaintPanel.prop_unified(
+                        box,
+                        context,
+                        brush,
+                        "auto_smooth_spacing",
+                        slider=True,
+                        text="Spacing"
+                    )
+                    
             UnifiedPaintPanel.prop_unified(
                 box,
                 context,
@@ -907,19 +921,21 @@ def brush_settings(layout, context, brush, popover=False):
                 "auto_smooth_projection",
                 slider=True
             )
-            UnifiedPaintPanel.prop_unified(
-                box,
-                context,
-                brush,
-                "auto_smooth_radius_factor",
-                slider=True
-            )
-            UnifiedPaintPanel.channel_unified(
-                box,
-                context,
-                brush,
-                "autosmooth_falloff_curve"
-            )
+
+            if advanced:
+                UnifiedPaintPanel.prop_unified(
+                    box,
+                    context,
+                    brush,
+                    "auto_smooth_radius_factor",
+                    slider=True
+                )
+                UnifiedPaintPanel.channel_unified(
+                    box,
+                    context,
+                    brush,
+                    "autosmooth_falloff_curve"
+                )
         elif brush.sculpt_tool == "SMOOTH":
             UnifiedPaintPanel.prop_unified(
                 layout,
@@ -947,33 +963,35 @@ def brush_settings(layout, context, brush, popover=False):
                     "topology_rake_factor",
                     slider=True,
                     text="Topology Rake"
-                ) 
-            box.prop(brush, "use_custom_topology_rake_spacing", text="Custom Spacing")
+                )
 
-            if brush.channels["topology_rake_use_spacing"].bool_value:
+            if advanced:
+                box.prop(brush, "use_custom_topology_rake_spacing", text="Custom Spacing")
+
+                if brush.channels["topology_rake_use_spacing"].bool_value:
+                    UnifiedPaintPanel.prop_unified(
+                        box,
+                        context,
+                        brush,
+                        "topology_rake_spacing",
+                        slider=True,
+                        text="Spacing"
+                    )
+
                 UnifiedPaintPanel.prop_unified(
                     box,
                     context,
                     brush,
-                    "topology_rake_spacing",
-                    slider=True,
-                    text="Spacing"
+                    "topology_rake_projection",
+                    slider=True
                 )
-
-            UnifiedPaintPanel.prop_unified(
-                box,
-                context,
-                brush,
-                "topology_rake_projection",
-                slider=True
-            )
-            UnifiedPaintPanel.prop_unified(
-                box,
-                context,
-                brush,
-                "topology_rake_radius_scale",
-                slider=True
-            )
+                UnifiedPaintPanel.prop_unified(
+                    box,
+                    context,
+                    brush,
+                    "topology_rake_radius_scale",
+                    slider=True
+                )
 
             UnifiedPaintPanel.channel_unified(
                 box,
@@ -982,12 +1000,14 @@ def brush_settings(layout, context, brush, popover=False):
                 "topology_rake_mode",
                 expand=True
             )
-            UnifiedPaintPanel.channel_unified(
-                box,
-                context,
-                brush,
-                "topology_rake_falloff_curve"
-            )
+
+            if advanced:
+                UnifiedPaintPanel.channel_unified(
+                    box,
+                    context,
+                    brush,
+                    "topology_rake_falloff_curve"
+                )
             
             #box.prop(brush, "use_curvature_rake")
             box.prop(brush, "ignore_falloff_for_topology_rake")

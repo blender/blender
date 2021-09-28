@@ -2250,11 +2250,11 @@ void CustomData_copy_all_layout(const struct CustomData *source, struct CustomDa
   }
 }
 
-ATTR_NO_OPT bool CustomData_merge(const struct CustomData *source,
-                                  struct CustomData *dest,
-                                  CustomDataMask mask,
-                                  eCDAllocType alloctype,
-                                  int totelem)
+bool CustomData_merge(const struct CustomData *source,
+                      struct CustomData *dest,
+                      CustomDataMask mask,
+                      eCDAllocType alloctype,
+                      int totelem)
 {
   // const LayerTypeInfo *typeInfo;
   CustomDataLayer *layer, *newlayer;
@@ -2355,11 +2355,11 @@ void CustomData_realloc(CustomData *data, int totelem)
   }
 }
 
-ATTR_NO_OPT void CustomData_copy(const struct CustomData *source,
-                                 struct CustomData *dest,
-                                 CustomDataMask mask,
-                                 eCDAllocType alloctype,
-                                 int totelem)
+void CustomData_copy(const struct CustomData *source,
+                     struct CustomData *dest,
+                     CustomDataMask mask,
+                     eCDAllocType alloctype,
+                     int totelem)
 {
   CustomData_reset(dest);
 
@@ -3074,7 +3074,7 @@ bool CustomData_is_referenced_layer(struct CustomData *data, int type)
   return (layer->flag & CD_FLAG_NOFREE) != 0;
 }
 
-ATTR_NO_OPT void CustomData_unmark_temporary_nocopy(CustomData *data)
+void CustomData_unmark_temporary_nocopy(CustomData *data)
 {
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].flag & CD_FLAG_TEMPORARY) {
@@ -3083,7 +3083,7 @@ ATTR_NO_OPT void CustomData_unmark_temporary_nocopy(CustomData *data)
   }
 }
 
-ATTR_NO_OPT void CustomData_mark_temporary_nocopy(CustomData *data)
+void CustomData_mark_temporary_nocopy(CustomData *data)
 {
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].flag & CD_FLAG_TEMPORARY) {
@@ -3092,7 +3092,7 @@ ATTR_NO_OPT void CustomData_mark_temporary_nocopy(CustomData *data)
   }
 }
 
-ATTR_NO_OPT void CustomData_free_temporary(CustomData *data, int totelem)
+void CustomData_free_temporary(CustomData *data, int totelem)
 {
   int i, j;
   bool changed = false;

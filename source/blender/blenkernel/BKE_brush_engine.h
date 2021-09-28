@@ -72,6 +72,8 @@ struct LibraryForeachIDData;
   BKE_brush_channelset_get_final_float(childset, parentset, MAKE_BUILTIN_CH_NAME(channel), mapdata)
 #define BRUSHSET_GET_INT(chset, channel, mapdata) \
   BKE_brush_channelset_get_int(chset, MAKE_BUILTIN_CH_NAME(channel), mapdata)
+#define BRUSHSET_GET_FINAL_INT(child, parent, channel, mapdata) \
+  BKE_brush_channelset_get_final_int(child, parent, MAKE_BUILTIN_CH_NAME(channel), mapdata)
 #define BRUSHSET_ENSURE_BUILTIN(chset, channel) \
   BKE_brush_channelset_ensure_builtin(chset, MAKE_BUILTIN_CH_NAME(channel))
 #define BRUSHSET_SET_FLOAT(chset, channel, val) \

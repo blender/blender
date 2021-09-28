@@ -1425,7 +1425,7 @@ BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry)
 /* Free all the data in a BMLog including the log itself
  * safe_mode means log->refcount will be checked, and if nonzero log will not be freed
  */
-ATTR_NO_OPT static bool bm_log_free_direct(BMLog *log, bool safe_mode)
+static bool bm_log_free_direct(BMLog *log, bool safe_mode)
 {
   BMLogEntry *entry;
 
