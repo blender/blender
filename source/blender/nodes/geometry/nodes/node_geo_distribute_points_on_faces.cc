@@ -50,6 +50,7 @@ static void geo_node_point_distribute_points_on_faces_declare(NodeDeclarationBui
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
+      .subtype(PROP_FACTOR)
       .supports_field();
   b.add_input<decl::Int>("Seed");
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
