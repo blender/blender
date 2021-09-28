@@ -19,6 +19,7 @@
  */
 
 #include "BKE_context.h"
+#include "BKE_lib_id.h"
 #include "BKE_report.h"
 
 #include "BLI_vector.hh"
@@ -26,6 +27,7 @@
 #include "ED_asset.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -34,9 +36,28 @@
 
 using PointerRNAVec = blender::Vector<PointerRNA>;
 
+static PointerRNAVec asset_operation_get_ids_from_context(const bContext *C);
+static PointerRNAVec asset_operation_get_nonexperimental_ids_from_context(const bContext *C);
+static bool asset_type_is_nonexperimental(const ID_Type id_type);
+
 static bool asset_operation_poll(bContext * /*C*/)
 {
+  /* At this moment only the pose library is non-experimental. Still, directly marking arbitrary
+   * Actions as asset is not part of the stable functionality; instead, the pose library "Create
+   * Pose Asset" operator should be used. Actions can still be marked as asset via
+   * `the_action.asset_mark()` (so a function call instead of this operator), which is what the
+   * pose library uses internally. */
   return U.experimental.use_extended_asset_browser;
+}
+
+static bool asset_clear_poll(bContext *C)
+{
+  if (asset_operation_poll(C)) {
+    return true;
+  }
+
+  PointerRNAVec pointers = asset_operation_get_nonexperimental_ids_from_context(C);
+  return !pointers.is_empty();
 }
 
 /**
@@ -62,6 +83,28 @@ static PointerRNAVec asset_operation_get_ids_from_context(const bContext *C)
   }
 
   return ids;
+}
+
+static PointerRNAVec asset_operation_get_nonexperimental_ids_from_context(const bContext *C)
+{
+  PointerRNAVec nonexperimental;
+  PointerRNAVec pointers = asset_operation_get_ids_from_context(C);
+  for (PointerRNA &ptr : pointers) {
+    BLI_assert(RNA_struct_is_ID(ptr.type));
+
+    ID *id = static_cast<ID *>(ptr.data);
+    if (asset_type_is_nonexperimental(GS(id->name))) {
+      nonexperimental.append(ptr);
+    }
+  }
+  return nonexperimental;
+}
+
+static bool asset_type_is_nonexperimental(const ID_Type id_type)
+{
+  /* At this moment only the pose library is non-experimental. For simplicity, allow asset
+   * operations on all Action datablocks (even though pose assets are limited to single frames). */
+  return ELEM(id_type, ID_AC);
 }
 
 /* -------------------------------------------------------------------- */
@@ -166,7 +209,13 @@ static void ASSET_OT_mark(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 
 class AssetClearHelper {
+  const bool set_fake_user_;
+
  public:
+  AssetClearHelper(const bool set_fake_user) : set_fake_user_(set_fake_user)
+  {
+  }
+
   void operator()(PointerRNAVec &ids);
 
   void reportResults(const bContext *C, ReportList &reports) const;
@@ -191,10 +240,16 @@ void AssetClearHelper::operator()(PointerRNAVec &ids)
       continue;
     }
 
-    if (ED_asset_clear_id(id)) {
-      stats.tot_cleared++;
-      stats.last_id = id;
+    if (!ED_asset_clear_id(id)) {
+      continue;
     }
+
+    if (set_fake_user_) {
+      id_fake_user_set(id);
+    }
+
+    stats.tot_cleared++;
+    stats.last_id = id;
   }
 }
 
@@ -234,7 +289,8 @@ static int asset_clear_exec(bContext *C, wmOperator *op)
 {
   PointerRNAVec ids = asset_operation_get_ids_from_context(C);
 
-  AssetClearHelper clear_helper;
+  const bool set_fake_user = RNA_boolean_get(op->ptr, "set_fake_user");
+  AssetClearHelper clear_helper(set_fake_user);
   clear_helper(ids);
   clear_helper.reportResults(C, *op->reports);
 
@@ -248,18 +304,39 @@ static int asset_clear_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static char *asset_clear_get_description(struct bContext *UNUSED(C),
+                                         struct wmOperatorType *UNUSED(op),
+                                         struct PointerRNA *values)
+{
+  const bool set_fake_user = RNA_boolean_get(values, "set_fake_user");
+  if (!set_fake_user) {
+    return nullptr;
+  }
+
+  return BLI_strdup(
+      "Delete all asset metadata, turning the selected asset data-blocks back into normal "
+      "data-blocks, and set Fake User to ensure the data-blocks will still be saved");
+}
+
 static void ASSET_OT_clear(wmOperatorType *ot)
 {
   ot->name = "Clear Asset";
   ot->description =
       "Delete all asset metadata and turn the selected asset data-blocks back into normal "
       "data-blocks";
+  ot->get_description = asset_clear_get_description;
   ot->idname = "ASSET_OT_clear";
 
   ot->exec = asset_clear_exec;
-  ot->poll = asset_operation_poll;
+  ot->poll = asset_clear_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "set_fake_user",
+                  false,
+                  "Set Fake User",
+                  "Ensure the data-block is saved, even when it is no longer marked as asset");
 }
 
 /* -------------------------------------------------------------------- */

@@ -67,8 +67,7 @@ bool ED_asset_clear_id(ID *id)
     return false;
   }
   BKE_asset_metadata_free(&id->asset_data);
-  /* Don't clear fake user here, there's no guarantee that it was actually set by
-   * #ED_asset_mark_id(), it might have been something/someone else. */
+  id_fake_user_clear(id);
 
   /* Important for asset storage to update properly! */
   ED_assetlist_storage_tag_main_data_dirty();

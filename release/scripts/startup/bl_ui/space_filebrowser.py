@@ -786,9 +786,10 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
 
         layout.separator()
 
-        sub = layout.row()
+        sub = layout.column()
         sub.operator_context = 'EXEC_DEFAULT'
-        sub.operator("asset.clear", text="Clear Asset")
+        sub.operator("asset.clear", text="Clear Asset").set_fake_user = False
+        sub.operator("asset.clear", text="Clear Asset (Set Fake User)").set_fake_user = True
 
         layout.separator()
 
