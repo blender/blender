@@ -30,7 +30,6 @@ static void cmp_node_trackpos_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("X");
   b.add_output<decl::Float>("Y");
   b.add_output<decl::Vector>("Speed").subtype(PROP_VELOCITY);
-
 }
 
 }  // namespace blender::nodes

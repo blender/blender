@@ -26,7 +26,6 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 
-
 namespace blender::nodes {
 
 static void cmp_node_movieclip_declare(NodeDeclarationBuilder &b)
@@ -37,8 +36,6 @@ static void cmp_node_movieclip_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Offset Y");
   b.add_output<decl::Float>("Scale");
   b.add_output<decl::Float>("Angle");
-
-
 }
 
 }  // namespace blender::nodes
