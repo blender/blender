@@ -1058,7 +1058,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         col = layout.column()
         col.active = context.sculpt_object.use_dynamic_topology_sculpting
 
-        col.prop(sculpt, "use_dyntopo");
+        col.prop(sculpt, "use_dyntopo")
 
         sub = col.column()
         sub.active = (brush and brush.sculpt_tool != 'MASK')
@@ -1145,7 +1145,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         UnifiedPaintPanel.channel_unified(layout, context, brush, "dyntopo_radius_scale", slider=True, ui_editing=False)
         
         #col.prop(sculpt, "dyntopo_spacing")
-        #col.prop(sculpt, "dyntopo_radius_scale");
+        #col.prop(sculpt, "dyntopo_radius_scale")
 
 
 class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):

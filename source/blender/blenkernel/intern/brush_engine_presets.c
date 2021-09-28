@@ -996,7 +996,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
             SCULPT_TOOL_PAINT,
             SCULPT_TOOL_SMEAR,
             SCULPT_TOOL_VCOL_BOUNDARY)) {
-    SHOWALL(hard_edge_mode);
+    SHOWWRK(hard_edge_mode);
   }
 
   if (!ELEM(tool,

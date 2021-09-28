@@ -2614,6 +2614,22 @@ class WM_OT_batch_rename(Operator):
         return wm.invoke_props_dialog(self, width=400)
 
 
+def show_build_notes(layout):
+    msg = """
+Build Notes:
+
+Please report broken brushes and hotkeys at the
+link below.
+
+""".strip()
+
+    for line in msg.split("\n"):
+        layout.label(text=line)
+
+    url = "https://blender.chat/channel/sculpt-paint-texture-module"
+    props = layout.operator("wm.url_open", text=url)
+    props.url = url
+
 class WM_MT_splash_quick_setup(Menu):
     bl_label = "Quick Setup"
 
@@ -2625,6 +2641,7 @@ class WM_MT_splash_quick_setup(Menu):
 
         layout.operator_context = 'EXEC_DEFAULT'
 
+        show_build_notes(layout)
         layout.label(text="Quick Setup")
 
         split = layout.split(factor=0.25)
@@ -2714,6 +2731,7 @@ class WM_MT_splash(Menu):
         layout.operator_context = 'EXEC_DEFAULT'
         layout.emboss = 'PULLDOWN_MENU'
 
+        show_build_notes(layout)
         split = layout.split()
 
         # Templates
@@ -2766,6 +2784,7 @@ class WM_MT_splash_about(Menu):
         layout = self.layout
         layout.operator_context = 'EXEC_DEFAULT'
 
+        show_build_notes(layout)
         split = layout.split(factor=0.65)
 
         col = split.column(align=True)

@@ -224,7 +224,7 @@ class UnifiedPaintPanel:
             text = ch.name
 
         if len(text) == 0: #auto-generate from idname
-            s = prop_name.lower().replace("_", " ").split(" ");
+            s = prop_name.lower().replace("_", " ").split(" ")
             text = ''
             for k in s:
                 text += k[0].upper() + k[1:] + " "
