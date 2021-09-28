@@ -542,7 +542,7 @@ if(WITH_CYCLES_HIP_BINARIES)
         -D WITH_NANOVDB
         -I "${NANOVDB_INCLUDE_DIR}")
     endif()
-
+  endmacro()
 
   set(prev_arch "none")
   foreach(arch ${CYCLES_HIP_BINARIES_ARCH})

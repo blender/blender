@@ -22,19 +22,21 @@ set(INC_SYS
   ../../../extern/clew/include
 )
 
-if(WITH_CUDA_DYNLOAD)
-  list(APPEND INC
-    ../../../extern/cuew/include
-  )
-  add_definitions(-DWITH_CUDA_DYNLOAD)
-else()
-  list(APPEND INC_SYS
-    ${CUDA_TOOLKIT_INCLUDE}
-  )
-  add_definitions(-DCYCLES_CUDA_NVCC_EXECUTABLE="${CUDA_NVCC_EXECUTABLE}")
+if(WITH_CYCLES_DEVICE_OPTIX OR WITH_CYCLES_DEVICE_CUDA)
+  if(WITH_CUDA_DYNLOAD)
+    list(APPEND INC
+      ../../../extern/cuew/include
+    )
+    add_definitions(-DWITH_CUDA_DYNLOAD)
+  else()
+    list(APPEND INC_SYS
+      ${CUDA_TOOLKIT_INCLUDE}
+    )
+    add_definitions(-DCYCLES_CUDA_NVCC_EXECUTABLE="${CUDA_NVCC_EXECUTABLE}")
+  endif()
 endif()
 
-if(WITH_HIP_DYNLOAD)
+if(WITH_CYCLES_DEVICE_HIP AND WITH_HIP_DYNLOAD)
   list(APPEND INC
     ../../../extern/hipew/include
   )
@@ -127,17 +129,19 @@ set(LIB
   ${CYCLES_GL_LIBRARIES}
 )
 
-if(WITH_CUDA_DYNLOAD)
-  list(APPEND LIB
-    extern_cuew
-  )
-else()
-  list(APPEND LIB
-    ${CUDA_CUDA_LIBRARY}
-  )
+if(WITH_CYCLES_DEVICE_OPTIX OR WITH_CYCLES_DEVICE_CUDA)
+  if(WITH_CUDA_DYNLOAD)
+    list(APPEND LIB
+      extern_cuew
+    )
+  else()
+    list(APPEND LIB
+      ${CUDA_CUDA_LIBRARY}
+    )
+  endif()
 endif()
 
-if(WITH_HIP_DYNLOAD)
+if(WITH_CYCLES_DEVICE_HIP AND WITH_HIP_DYNLOAD)
   list(APPEND LIB
     extern_hipew
   )

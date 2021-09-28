@@ -531,8 +531,13 @@ if(WITH_CYCLES_CUDA_BINARIES OR NOT WITH_CUDA_DYNLOAD)
     endif()
   endif()
 endif()
+
+
+###########################################################################
+# HIP
+###########################################################################
+
 if(NOT WITH_HIP_DYNLOAD)
-  message(STATUS "Setting up HIP Dynamic Load")
   set(WITH_HIP_DYNLOAD ON)
 endif()
 
