@@ -449,6 +449,73 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
 #undef SEQ_SPEED_COMPRESS_IPO_Y
 }
 
+static bNodeLink *find_connected_link(bNodeTree *ntree, bNodeSocket *in_socket)
+{
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    if (link->tosock == in_socket) {
+      return link;
+    }
+  }
+  return NULL;
+}
+
+static void add_realize_instances_before_socket(bNodeTree *ntree,
+                                                bNode *node,
+                                                bNodeSocket *geometry_socket)
+{
+  BLI_assert(geometry_socket->type == SOCK_GEOMETRY);
+  bNodeLink *link = find_connected_link(ntree, geometry_socket);
+  if (link == NULL) {
+    return;
+  }
+
+  /* If the realize instances node is already before this socket, no need to continue. */
+  if (link->fromnode->type == GEO_NODE_REALIZE_INSTANCES) {
+    return;
+  }
+
+  bNode *realize_node = nodeAddStaticNode(NULL, ntree, GEO_NODE_REALIZE_INSTANCES);
+  realize_node->parent = node->parent;
+  realize_node->locx = node->locx - 100;
+  realize_node->locy = node->locy;
+  nodeAddLink(ntree, link->fromnode, link->fromsock, realize_node, realize_node->inputs.first);
+  link->fromnode = realize_node;
+  link->fromsock = realize_node->outputs.first;
+}
+
+/**
+ * If a node used to realize instances implicitly and will no longer do so in 3.0, add a "Realize
+ * Instances" node in front of it to avoid changing behavior. Don't do this if the node will be
+ * replaced anyway though.
+ */
+static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
+    if (ELEM(node->type,
+             GEO_NODE_ATTRIBUTE_CAPTURE,
+             GEO_NODE_SEPARATE_COMPONENTS,
+             GEO_NODE_CONVEX_HULL,
+             GEO_NODE_CURVE_LENGTH,
+             GEO_NODE_BOOLEAN,
+             GEO_NODE_CURVE_FILLET,
+             GEO_NODE_CURVE_RESAMPLE,
+             GEO_NODE_CURVE_TO_MESH,
+             GEO_NODE_CURVE_TRIM,
+             GEO_NODE_MATERIAL_REPLACE,
+             GEO_NODE_MESH_SUBDIVIDE,
+             GEO_NODE_ATTRIBUTE_REMOVE,
+             GEO_NODE_TRIANGULATE)) {
+      bNodeSocket *geometry_socket = node->inputs.first;
+      add_realize_instances_before_socket(ntree, node, geometry_socket);
+    }
+    /* Also realize instances for the profile input of the curve to mesh node. */
+    if (node->type == GEO_NODE_CURVE_TO_MESH) {
+      bNodeSocket *profile_socket = node->inputs.last;
+      add_realize_instances_before_socket(ntree, node, profile_socket);
+    }
+  }
+}
+
 void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
 {
   if (MAIN_VERSION_ATLEAST(bmain, 300, 0) && !MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
@@ -527,6 +594,14 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
       if (brush->clone.image != NULL &&
           ELEM(brush->clone.image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
         brush->clone.image = NULL;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 28)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_geometry_nodes_add_realize_instance_nodes(ntree);
       }
     }
   }

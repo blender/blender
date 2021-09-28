@@ -318,6 +318,16 @@ bool GeometrySet::has_realized_data() const
   return this->get_component_for_read<InstancesComponent>() == nullptr;
 }
 
+/* Return true if the geometry set has any component that isn't empty. */
+bool GeometrySet::is_empty() const
+{
+  if (components_.is_empty()) {
+    return true;
+  }
+  return !(this->has_mesh() || this->has_curve() || this->has_pointcloud() ||
+           this->has_instances());
+}
+
 /* Create a new geometry set that only contains the given mesh. */
 GeometrySet GeometrySet::create_with_mesh(Mesh *mesh, GeometryOwnershipType ownership)
 {

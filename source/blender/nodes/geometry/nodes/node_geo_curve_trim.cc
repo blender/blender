@@ -320,27 +320,17 @@ static void trim_bezier_spline(Spline &spline,
   bezier_spline.resize(size);
 }
 
-static void geo_node_curve_trim_exec(GeoNodeExecParams params)
+static void geometry_set_curve_trim(GeometrySet &geometry_set,
+                                    const GeometryNodeCurveSampleMode mode,
+                                    const float start,
+                                    const float end)
 {
-  const NodeGeometryCurveTrim &node_storage = *(NodeGeometryCurveTrim *)params.node().storage;
-  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
-
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-  geometry_set = bke::geometry_set_realize_instances(geometry_set);
   if (!geometry_set.has_curve()) {
-    params.set_output("Curve", std::move(geometry_set));
     return;
   }
 
-  CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-  CurveEval &curve = *curve_component.get_for_write();
+  CurveEval &curve = *geometry_set.get_curve_for_write();
   MutableSpan<SplinePtr> splines = curve.splines();
-
-  const float start = mode == GEO_NODE_CURVE_SAMPLE_FACTOR ?
-                          params.extract_input<float>("Start") :
-                          params.extract_input<float>("Start_001");
-  const float end = mode == GEO_NODE_CURVE_SAMPLE_FACTOR ? params.extract_input<float>("End") :
-                                                           params.extract_input<float>("End_001");
 
   threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
     for (const int i : range) {
@@ -382,6 +372,29 @@ static void geo_node_curve_trim_exec(GeoNodeExecParams params)
       splines[i]->mark_cache_invalid();
     }
   });
+}
+
+static void geo_node_curve_trim_exec(GeoNodeExecParams params)
+{
+  const NodeGeometryCurveTrim &node_storage = *(NodeGeometryCurveTrim *)params.node().storage;
+  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
+
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
+
+  if (mode == GEO_NODE_CURVE_SAMPLE_FACTOR) {
+    const float start = params.extract_input<float>("Start");
+    const float end = params.extract_input<float>("End");
+    geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+      geometry_set_curve_trim(geometry_set, mode, start, end);
+    });
+  }
+  else if (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
+    const float start = params.extract_input<float>("Start_001");
+    const float end = params.extract_input<float>("End_001");
+    geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+      geometry_set_curve_trim(geometry_set, mode, start, end);
+    });
+  }
 
   params.set_output("Curve", std::move(geometry_set));
 }

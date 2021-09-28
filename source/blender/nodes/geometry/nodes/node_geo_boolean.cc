@@ -83,10 +83,14 @@ static void geo_node_boolean_exec(GeoNodeExecParams params)
   GeometrySet set_a;
   if (operation == GEO_NODE_BOOLEAN_DIFFERENCE) {
     set_a = params.extract_input<GeometrySet>("Geometry 1");
+    if (set_a.has_instances()) {
+      params.error_message_add(
+          NodeWarningType::Info,
+          TIP_("Instances are not supported for the first geometry input, and will not be used"));
+    }
     /* Note that it technically wouldn't be necessary to realize the instances for the first
      * geometry input, but the boolean code expects the first shape for the difference operation
      * to be a single mesh. */
-    set_a = geometry_set_realize_instances(set_a);
     const Mesh *mesh_in_a = set_a.get_mesh_for_read();
     if (mesh_in_a != nullptr) {
       meshes.append(mesh_in_a);

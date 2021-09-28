@@ -58,14 +58,14 @@ static void geo_node_triangulate_exec(GeoNodeExecParams params)
   GeometryNodeTriangulateNGons ngon_method = static_cast<GeometryNodeTriangulateNGons>(
       params.node().custom2);
 
-  geometry_set = geometry_set_realize_instances(geometry_set);
-
-  /* #triangulate_mesh might modify the input mesh currently. */
-  Mesh *mesh_in = geometry_set.get_mesh_for_write();
-  if (mesh_in != nullptr) {
-    Mesh *mesh_out = triangulate_mesh(mesh_in, quad_method, ngon_method, min_vertices, 0);
-    geometry_set.replace_mesh(mesh_out);
-  }
+  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    /* #triangulate_mesh might modify the input mesh currently. */
+    Mesh *mesh_in = geometry_set.get_mesh_for_write();
+    if (mesh_in != nullptr) {
+      Mesh *mesh_out = triangulate_mesh(mesh_in, quad_method, ngon_method, min_vertices, 0);
+      geometry_set.replace_mesh(mesh_out);
+    }
+  });
 
   params.set_output("Geometry", std::move(geometry_set));
 }

@@ -32,39 +32,52 @@ static void geo_node_curve_to_mesh_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Mesh");
 }
 
-static void geo_node_curve_to_mesh_exec(GeoNodeExecParams params)
+static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,
+                                       const GeometrySet &profile_set,
+                                       const GeoNodeExecParams &params)
 {
-  GeometrySet curve_set = params.extract_input<GeometrySet>("Curve");
-  GeometrySet profile_set = params.extract_input<GeometrySet>("Profile Curve");
-
-  curve_set = bke::geometry_set_realize_instances(curve_set);
-  profile_set = bke::geometry_set_realize_instances(profile_set);
-
-  /* NOTE: Theoretically an "is empty" check would be more correct for errors. */
-  if (profile_set.has_mesh() && !profile_set.has_curve()) {
-    params.error_message_add(NodeWarningType::Warning,
-                             TIP_("No curve data available in profile input"));
-  }
-
-  if (!curve_set.has_curve()) {
-    if (curve_set.has_mesh()) {
+  if (!geometry_set.has_curve()) {
+    if (!geometry_set.is_empty()) {
       params.error_message_add(NodeWarningType::Warning,
                                TIP_("No curve data available in curve input"));
     }
-    params.set_output("Mesh", GeometrySet());
     return;
   }
 
   const CurveEval *profile_curve = profile_set.get_curve_for_read();
 
   if (profile_curve == nullptr) {
-    Mesh *mesh = bke::curve_to_wire_mesh(*curve_set.get_curve_for_read());
-    params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+    Mesh *mesh = bke::curve_to_wire_mesh(*geometry_set.get_curve_for_read());
+    geometry_set.replace_mesh(mesh);
   }
   else {
-    Mesh *mesh = bke::curve_to_mesh_sweep(*curve_set.get_curve_for_read(), *profile_curve);
-    params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+    Mesh *mesh = bke::curve_to_mesh_sweep(*geometry_set.get_curve_for_read(), *profile_curve);
+    geometry_set.replace_mesh(mesh);
   }
+}
+
+static void geo_node_curve_to_mesh_exec(GeoNodeExecParams params)
+{
+  GeometrySet curve_set = params.extract_input<GeometrySet>("Curve");
+  GeometrySet profile_set = params.extract_input<GeometrySet>("Profile Curve");
+
+  if (profile_set.has_instances()) {
+    params.error_message_add(NodeWarningType::Error,
+                             TIP_("Instances are not supported in the profile input"));
+    params.set_output("Mesh", GeometrySet());
+    return;
+  }
+
+  if (!profile_set.has_curve() && !profile_set.is_empty()) {
+    params.error_message_add(NodeWarningType::Warning,
+                             TIP_("No curve data available in the profile input"));
+  }
+
+  curve_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    geometry_set_curve_to_mesh(geometry_set, profile_set, params);
+  });
+
+  params.set_output("Mesh", std::move(curve_set));
 }
 
 }  // namespace blender::nodes

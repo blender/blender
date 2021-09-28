@@ -47,8 +47,6 @@ static void geo_node_attribute_remove_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   Vector<std::string> attribute_names = params.extract_multi_input<std::string>("Attribute");
 
-  geometry_set = geometry_set_realize_instances(geometry_set);
-
   if (geometry_set.has<MeshComponent>()) {
     remove_attribute(
         geometry_set.get_component_for_write<MeshComponent>(), params, attribute_names);

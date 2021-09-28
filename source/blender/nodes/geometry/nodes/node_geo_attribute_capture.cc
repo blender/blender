@@ -117,8 +117,6 @@ static void geo_node_attribute_capture_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
-  geometry_set = bke::geometry_set_realize_instances(geometry_set);
-
   const bNode &node = params.node();
   const NodeGeometryAttributeCapture &storage = *(const NodeGeometryAttributeCapture *)
                                                      node.storage;

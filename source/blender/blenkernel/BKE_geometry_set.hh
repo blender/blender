@@ -330,6 +330,7 @@ struct GeometrySet {
   bool has_volume() const;
   bool has_curve() const;
   bool has_realized_data() const;
+  bool is_empty() const;
 
   const Mesh *get_mesh_for_read() const;
   const PointCloud *get_pointcloud_for_read() const;

@@ -202,20 +202,26 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveEval &input_curve,
   return output_curve;
 }
 
-static void geo_node_resample_exec(GeoNodeExecParams params)
+static void geometry_set_curve_resample(GeometrySet &geometry_set,
+                                        const SampleModeParam &mode_param)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-
-  geometry_set = bke::geometry_set_realize_instances(geometry_set);
-
   if (!geometry_set.has_curve()) {
-    params.set_output("Geometry", GeometrySet());
     return;
   }
 
   const CurveEval &input_curve = *geometry_set.get_curve_for_read();
+  std::unique_ptr<CurveEval> output_curve = resample_curve(input_curve, mode_param);
+
+  geometry_set.replace_curve(output_curve.release());
+}
+
+static void geo_node_resample_exec(GeoNodeExecParams params)
+{
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+
   NodeGeometryCurveResample &node_storage = *(NodeGeometryCurveResample *)params.node().storage;
   const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
+
   SampleModeParam mode_param;
   mode_param.mode = mode;
   if (mode == GEO_NODE_CURVE_RESAMPLE_COUNT) {
@@ -232,9 +238,10 @@ static void geo_node_resample_exec(GeoNodeExecParams params)
     mode_param.length.emplace(resolution);
   }
 
-  std::unique_ptr<CurveEval> output_curve = resample_curve(input_curve, mode_param);
+  geometry_set.modify_geometry_sets(
+      [&](GeometrySet &geometry_set) { geometry_set_curve_resample(geometry_set, mode_param); });
 
-  params.set_output("Geometry", GeometrySet::create_with_curve(output_curve.release()));
+  params.set_output("Geometry", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes
