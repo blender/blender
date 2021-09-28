@@ -14,9 +14,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <codecvt>
-#include <locale>
-
 #include "DNA_curve_types.h"
 #include "DNA_vfont_types.h"
 
@@ -207,13 +204,13 @@ static TextLayout get_text_layout(GeoNodeExecParams &params)
 /* Returns a mapping of UTF-32 character code to instance handle. */
 static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
                                             const float fontsize,
-                                            const std::u32string &charcodes,
+                                            const Span<char32_t> charcodes,
                                             InstancesComponent &instance_component)
 {
   VFont *vfont = (VFont *)params.node().id;
   Map<int, int> handles;
 
-  for (int i : IndexRange(charcodes.length())) {
+  for (int i : charcodes.index_range()) {
     if (handles.contains(charcodes[i])) {
       continue;
     }
@@ -239,7 +236,7 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
 
 static void add_instances_from_handles(InstancesComponent &instances,
                                        const Map<int, int> &char_handles,
-                                       const std::u32string &charcodes,
+                                       const Span<char32_t> charcodes,
                                        const Span<float2> positions)
 {
   instances.resize(positions.size());
@@ -272,15 +269,17 @@ static void geo_node_string_to_curves_exec(GeoNodeExecParams params)
   }
 
   /* Convert UTF-8 encoded string to UTF-32. */
-  std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
-  std::u32string utf32_text = converter.from_bytes(layout.text);
+  size_t len_bytes;
+  size_t len_chars = BLI_strlen_utf8_ex(layout.text.c_str(), &len_bytes);
+  Array<char32_t> char_codes(len_chars + 1);
+  BLI_str_utf8_as_utf32(char_codes.data(), layout.text.c_str(), len_chars + 1);
 
   /* Create and add instances. */
   GeometrySet geometry_set_out;
   InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
   Map<int, int> char_handles = create_curve_instances(
-      params, layout.final_font_size, utf32_text, instances);
-  add_instances_from_handles(instances, char_handles, utf32_text, layout.positions);
+      params, layout.final_font_size, char_codes, instances);
+  add_instances_from_handles(instances, char_handles, char_codes, layout.positions);
 
   params.set_output("Curves", std::move(geometry_set_out));
 }
