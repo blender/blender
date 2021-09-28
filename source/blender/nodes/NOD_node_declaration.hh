@@ -113,6 +113,24 @@ class OutputFieldDependency {
 };
 
 /**
+ * Information about how a node interacts with fields.
+ */
+struct FieldInferencingInterface {
+  Vector<InputSocketFieldType> inputs;
+  Vector<OutputFieldDependency> outputs;
+
+  friend bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
+  {
+    return a.inputs == b.inputs && a.outputs == b.outputs;
+  }
+
+  friend bool operator!=(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
+  {
+    return !(a == b);
+  }
+};
+
+/**
  * Describes a single input or output socket. This is subclassed for different socket types.
  */
 class SocketDeclaration {

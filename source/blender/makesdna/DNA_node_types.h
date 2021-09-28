@@ -463,7 +463,15 @@ typedef struct bNodeLink {
 #define NTREE_CHUNKSIZE_512 512
 #define NTREE_CHUNKSIZE_1024 1024
 
+/** Workaround to forward-declare C++ type in C header. */
+#ifdef __cplusplus
+namespace blender::nodes {
 struct FieldInferencingInterface;
+}
+using FieldInferencingInterfaceHandle = blender::nodes::FieldInferencingInterface;
+#else
+typedef struct FieldInferencingInterfaceHandle FieldInferencingInterfaceHandle;
+#endif
 
 /* the basis for a Node tree, all links and nodes reside internal here */
 /* only re-usable node trees are in the library though,
@@ -488,7 +496,7 @@ typedef struct bNodeTree {
 
   ListBase nodes, links;
   /** Information about how inputs and outputs of the node group interact with fields. */
-  struct FieldInferencingInterface *field_inferencing_interface;
+  FieldInferencingInterfaceHandle *field_inferencing_interface;
 
   /** Set init on fileread. */
   int type, init;

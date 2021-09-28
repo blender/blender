@@ -104,6 +104,7 @@ using blender::Span;
 using blender::Stack;
 using blender::Vector;
 using blender::VectorSet;
+using blender::nodes::FieldInferencingInterface;
 using blender::nodes::InputSocketFieldType;
 using blender::nodes::NodeDeclaration;
 using blender::nodes::OutputFieldDependency;
@@ -822,6 +823,11 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
 
   /* TODO: should be dealt by new generic cache handling of IDs... */
   ntree->previews = nullptr;
+
+  if (ntree->type == NTREE_GEOMETRY) {
+    /* Update field referencing for the geometry nodes modifier. */
+    ntree->update |= NTREE_UPDATE_FIELD_INFERENCING;
+  }
 
   /* type verification is in lib-link */
 }
@@ -4455,24 +4461,6 @@ void ntreeUpdateAllNew(Main *main)
   }
   FOREACH_NODETREE_END;
 }
-
-/**
- * Information about how a node interacts with fields.
- */
-struct FieldInferencingInterface {
-  Vector<InputSocketFieldType> inputs;
-  Vector<OutputFieldDependency> outputs;
-
-  friend bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
-  {
-    return a.inputs == b.inputs && a.outputs == b.outputs;
-  }
-
-  friend bool operator!=(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
-  {
-    return !(a == b);
-  }
-};
 
 static FieldInferencingInterface *node_field_inferencing_interface_copy(
     const FieldInferencingInterface &field_inferencing_interface)
