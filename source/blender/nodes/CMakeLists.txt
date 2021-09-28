@@ -374,12 +374,12 @@ set(SRC
   intern/geometry_nodes_eval_log.cc
   intern/math_functions.cc
   intern/node_common.c
+  intern/node_declaration.cc
   intern/node_exec.cc
   intern/node_geometry_exec.cc
   intern/node_multi_function.cc
-  intern/node_declaration.cc
-  intern/node_socket_declarations.cc
   intern/node_socket.cc
+  intern/node_socket_declarations.cc
   intern/node_tree_ref.cc
   intern/node_util.c
   intern/type_conversions.cc
@@ -400,10 +400,10 @@ set(SRC
   NOD_math_functions.hh
   NOD_multi_function.hh
   NOD_node_declaration.hh
-  NOD_socket_declarations.hh
   NOD_node_tree_ref.hh
   NOD_shader.h
   NOD_socket.h
+  NOD_socket_declarations.hh
   NOD_static_types.h
   NOD_texture.h
   NOD_type_conversions.hh

@@ -53,9 +53,9 @@ set(SRC
   FN_multi_function_builder.hh
   FN_multi_function_context.hh
   FN_multi_function_data_type.hh
+  FN_multi_function_parallel.hh
   FN_multi_function_param_type.hh
   FN_multi_function_params.hh
-  FN_multi_function_parallel.hh
   FN_multi_function_procedure.hh
   FN_multi_function_procedure_builder.hh
   FN_multi_function_procedure_executor.hh
