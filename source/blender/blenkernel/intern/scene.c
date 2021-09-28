@@ -997,7 +997,7 @@ static void link_recurs_seq(BlendDataReader *reader, ListBase *lb)
 
   LISTBASE_FOREACH_MUTABLE (Sequence *, seq, lb) {
     /* Sanity check. */
-    if ((seq->machine < 1) || (seq->machine > MAXSEQ)) {
+    if (!SEQ_valid_strip_channel(seq)) {
       BLI_freelinkN(lb, seq);
       BLO_read_data_reports(reader)->count.vse_strips_skipped++;
     }

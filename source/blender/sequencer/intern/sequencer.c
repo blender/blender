@@ -636,6 +636,18 @@ void SEQ_sequence_base_dupli_recursive(const Scene *scene_src,
     seq_new_fix_links_recursive(seq);
   }
 }
+
+bool SEQ_valid_strip_channel(Sequence *seq)
+{
+  if (seq->machine < 1) {
+    return false;
+  }
+  if (seq->machine > MAXSEQ) {
+    return false;
+  }
+  return true;
+}
+
 /* r_prefix + [" + escaped_name + "] + \0 */
 #define SEQ_RNAPATH_MAXSTR ((30 + 2 + (SEQ_NAME_MAXSTR * 2) + 2) + 1)
 

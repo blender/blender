@@ -89,6 +89,7 @@ void SEQ_sequence_base_dupli_recursive(const struct Scene *scene_src,
                                        const struct ListBase *seqbase,
                                        int dupe_flag,
                                        const int flag);
+bool SEQ_valid_strip_channel(struct Sequence *seq);
 
 /* Read and Write functions for .blend file data */
 void SEQ_blend_write(struct BlendWriter *writer, struct ListBase *seqbase);

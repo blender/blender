@@ -278,7 +278,7 @@ bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
     SEQ_time_update_sequence(evil_scene, test);
   }
 
-  if ((test->machine < 1) || (test->machine > MAXSEQ)) {
+  if (!SEQ_valid_strip_channel(test)) {
     /* Blender 2.4x would remove the strip.
      * nicer to move it to the end */
 
