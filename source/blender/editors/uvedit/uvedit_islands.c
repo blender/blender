@@ -247,7 +247,7 @@ bool uv_coords_isect_udim(const Image *image, const int udim_grid[2], float coor
     return true;
   }
   /* Check if selection lies on a valid UDIM image tile. */
-  else if (is_tiled_image) {
+  if (is_tiled_image) {
     LISTBASE_FOREACH (const ImageTile *, tile, &image->tiles) {
       const int tile_index = tile->tile_number - 1001;
       const int target_x = (tile_index % 10);
