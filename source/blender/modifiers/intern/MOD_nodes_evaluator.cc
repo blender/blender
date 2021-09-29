@@ -334,8 +334,7 @@ static void get_socket_value(const SocketRef &socket, void *r_value)
                SH_NODE_TEX_NOISE,
                GEO_NODE_MESH_TO_POINTS,
                GEO_NODE_PROXIMITY)) {
-        new (r_value) Field<float3>(
-            std::make_shared<bke::AttributeFieldInput>("position", CPPType::get<float3>()));
+        new (r_value) Field<float3>(bke::AttributeFieldInput::Create<float3>("position"));
         return;
       }
     }

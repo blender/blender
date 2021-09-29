@@ -722,6 +722,13 @@ class AttributeFieldInput : public fn::FieldInput {
   {
   }
 
+  template<typename T> static fn::Field<T> Create(std::string name)
+  {
+    const CPPType &type = CPPType::get<T>();
+    auto field_input = std::make_shared<AttributeFieldInput>(std::move(name), type);
+    return fn::Field<T>{field_input};
+  }
+
   StringRefNull attribute_name() const
   {
     return name_;

@@ -25,8 +25,7 @@ static void geo_node_input_position_declare(NodeDeclarationBuilder &b)
 
 static void geo_node_input_position_exec(GeoNodeExecParams params)
 {
-  Field<float3> position_field{
-      std::make_shared<AttributeFieldInput>("position", CPPType::get<float3>())};
+  Field<float3> position_field{AttributeFieldInput::Create<float3>("position")};
   params.set_output("Position", std::move(position_field));
 }
 
