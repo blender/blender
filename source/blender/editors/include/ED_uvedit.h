@@ -246,9 +246,14 @@ struct UVPackIsland_Params {
   uint use_seams : 1;
   uint correct_aspect : 1;
 };
+
+bool uv_coords_isect_udim(const struct Image *image, const int udim_grid[2], float coords[2]);
 void ED_uvedit_pack_islands_multi(const struct Scene *scene,
+                                  const struct SpaceImage *sima,
                                   Object **objects,
                                   const uint objects_len,
+                                  const bool use_target_udim,
+                                  int target_udim,
                                   const struct UVPackIsland_Params *params);
 
 #ifdef __cplusplus
