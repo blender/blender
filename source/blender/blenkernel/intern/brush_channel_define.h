@@ -133,8 +133,8 @@ places in rna_engine_codebase are relevent:
   MAKE_FLOAT(boundary_smooth, "Boundary Smooth", "Smooth hard boundaries", 0.0f, 0.0f, 1.0f)
   MAKE_BOOL(topology_rake_use_spacing, "Use Rake Spacing", "Use custom spacing for topology rake", false)
   MAKE_BOOL(autosmooth_use_spacing, "Use Auto-Smooth Spacing", "Use custom spacing for autosmooth", false)
-  MAKE_FLOAT_EX(topology_rake_spacing, "Rake Spacing", "Topology rake stroke spacing", 13.0f, 0.05f, 1000.0f, 0.1f, 300.0f, false)
-  MAKE_FLOAT_EX(autosmooth_spacing, "Auto-Smooth Spacing", "Autosmooth stroke spacing", 13.0f, 0.05f, 1000.0f, 0.1f, 300.0f, false)
+  MAKE_FLOAT_EX(topology_rake_spacing, "Rake Spacing", "Topology rake stroke spacing", 13.0f, 0.05f, 1000.0f, 0.5f, 150.0f, false)
+  MAKE_FLOAT_EX(autosmooth_spacing, "Auto-Smooth Spacing", "Autosmooth stroke spacing", 13.0f, 0.05f, 1000.0f, 0.5f, 150.0f, false)
   MAKE_ENUM(topology_rake_mode, "Topology Rake Mode", "", 1, {
       {0, "BRUSH_DIRECTION", ICON_NONE, "Stroke", "Stroke Direction"},
       {1, "CURVATURE", ICON_NONE, "Curvature", "Follow mesh curvature"},

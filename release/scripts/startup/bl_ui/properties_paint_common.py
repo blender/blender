@@ -358,6 +358,8 @@ class UnifiedPaintPanel:
                     row2.label(text=name)
                     row2.prop(mp0, "inherit", text="", icon="BRUSHES_ALL")
                     row2.prop(mp, "enabled", text="", icon="STYLUS_PRESSURE")
+                    row2.prop(mp, "invert", text="", icon="ARROW_LEFTRIGHT")
+
                     row2.prop(mp0, "ui_expanded", text="", icon="TRIA_DOWN" if mp.ui_expanded else "TRIA_RIGHT")
 
                     if mp0.ui_expanded:
@@ -878,9 +880,18 @@ def brush_settings(layout, context, brush, popover=False):
 
         row = layout.row(align=True)
 
-        row.prop(brush, "hardness", slider=True)
-        row.prop(brush, "invert_hardness_pressure", text="")
-        row.prop(brush, "use_hardness_pressure", text="")
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "hardness",
+            slider=True,
+            pressure_name = "use_hardness_pressure"
+        )
+
+        #row.prop(brush, "hardness", slider=True)
+        #row.prop(brush, "invert_hardness_pressure", text="")
+        #row.prop(brush, "use_hardness_pressure", text="")
 
         # auto_smooth_factor and use_inverse_smooth_pressure
         if capabilities.has_auto_smooth:
@@ -913,12 +924,12 @@ def brush_settings(layout, context, brush, popover=False):
                     text="Custom Spacing"
                 )
                     
-                if brush.use_custom_auto_smooth_spacing:
-                    UnifiedPaintPanel.prop_unified(
+                if brush.channels["autosmooth_use_spacing"].bool_value:
+                    UnifiedPaintPanel.channel_unified(
                         box,
                         context,
                         brush,
-                        "auto_smooth_spacing",
+                        "autosmooth_spacing",
                         slider=True,
                         text="Spacing"
                     )

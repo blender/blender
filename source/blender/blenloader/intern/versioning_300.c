@@ -1316,6 +1316,16 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       BKE_brush_channelset_compat_load(brush->channels, brush, true);
     }
   }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 25)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->sculpt_tool == SCULPT_TOOL_CLAY && brush->channels) {
+        BRUSHSET_SET_BOOL(brush->channels, autosmooth_use_spacing, true);
+        BRUSHSET_SET_FLOAT(brush->channels, autosmooth_spacing, 7.0f);
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

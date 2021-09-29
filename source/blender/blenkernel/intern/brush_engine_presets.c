@@ -1234,6 +1234,10 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       GETCH(autosmooth)->fvalue = 0.25f;
       GETCH(normal_radius_factor)->fvalue = 0.75f;
       GETCH(hardness)->fvalue = 0.65;
+
+      BRUSHSET_SET_BOOL(chset, autosmooth_use_spacing, true);
+      BRUSHSET_SET_FLOAT(chset, autosmooth_spacing, 7);
+
       reset_clay_mappings(chset, false);
       break;
     case SCULPT_TOOL_TWIST:

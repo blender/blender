@@ -484,6 +484,13 @@ void RNA_def_brush_mapping(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushMapping", "flag", BRUSH_MAPPING_ENABLED);
+  RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Enabled", "Input Mapping Is Enabled");
+
+  prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, "BrushMapping", "flag", BRUSH_MAPPING_INVERT);
+  RNA_def_property_ui_icon(prop, ICON_ARROW_LEFTRIGHT, 0);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Enabled", "Input Mapping Is Enabled");
 

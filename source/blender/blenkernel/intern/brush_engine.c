@@ -154,7 +154,7 @@ static bool check_corrupted_curve(BrushMapping *dst)
       BKE_curvemap_reset(curve->cm + i,
                          &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
                          CURVE_PRESET_LINE,
-                         dst->flag & BRUSH_MAPPING_INVERT);
+                         1);
       BKE_curvemapping_init(dst->curve);
     }
 
@@ -817,27 +817,27 @@ void BKE_brush_resolve_channels(Brush *brush, Sculpt *sd)
   BKE_brush_channelset_merge(brush->channels_final, brush->channels, sd->channels);
 }
 
-int BKE_brush_channelset_get_int(BrushChannelSet *chset,
-                                 const char *idname,
-                                 BrushMappingData *mapdata)
+static bool channel_has_mappings(BrushChannel *ch)
 {
-  BrushChannel *ch = BKE_brush_channelset_lookup(chset, idname);
-
-  if (!ch) {
-    printf("%s, unknown channel %s", __func__, idname);
-    return 0;
+  for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+    if (ch->mappings[i].flag & BRUSH_MAPPING_ENABLED) {
+      return true;
+    }
   }
 
-  return BKE_brush_channel_get_int(ch, mapdata);
+  return false;
 }
 
-float BKE_brush_channel_get_int(BrushChannel *ch, BrushMappingData *mapdata)
+// idx is used by vector channels
+static double eval_channel_mappings(BrushChannel *ch, BrushMappingData *mapdata, double f, int idx)
 {
 
-  float f = (float)ch->ivalue;
+  if (idx == 3 && !(ch->flag & BRUSH_CHANNEL_APPLY_MAPPING_TO_ALPHA)) {
+    return f;
+  }
 
   if (mapdata) {
-    float factor = 1.0f;
+    double factor = 1.0f;
 
     for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
       BrushMapping *mp = ch->mappings + i;
@@ -846,7 +846,12 @@ float BKE_brush_channel_get_int(BrushChannel *ch, BrushMappingData *mapdata)
         continue;
       }
 
-      float f2 = BKE_curvemapping_evaluateF(mp->curve, 0, f);
+      float inputf = ((float *)mapdata)[i];
+      if (mp->flag & BRUSH_MAPPING_INVERT) {
+        inputf = 1.0 - inputf;
+      }
+
+      double f2 = (float)BKE_curvemapping_evaluateF(mp->curve, 0, inputf);
 
       switch (mp->blendmode) {
         case MA_RAMP_BLEND:
@@ -879,7 +884,32 @@ float BKE_brush_channel_get_int(BrushChannel *ch, BrushMappingData *mapdata)
     f *= factor;
   }
 
-  return (int)f;
+  return f;
+}
+
+int BKE_brush_channelset_get_int(BrushChannelSet *chset,
+                                 const char *idname,
+                                 BrushMappingData *mapdata)
+{
+  BrushChannel *ch = BKE_brush_channelset_lookup(chset, idname);
+
+  if (!ch) {
+    printf("%s, unknown channel %s", __func__, idname);
+    return 0;
+  }
+
+  return BKE_brush_channel_get_int(ch, mapdata);
+}
+
+float BKE_brush_channel_get_int(BrushChannel *ch, BrushMappingData *mapdata)
+{
+
+  if (channel_has_mappings(ch)) {
+    return (int)eval_channel_mappings(ch, mapdata, (double)ch->ivalue, 0);
+  }
+  else {
+    return ch->ivalue;
+  }
 }
 
 void BKE_brush_channel_set_int(BrushChannel *ch, int val)
@@ -1007,56 +1037,9 @@ float BKE_brush_channelset_get_float(BrushChannelSet *chset,
 
 float BKE_brush_channel_get_float(BrushChannel *ch, BrushMappingData *mapdata)
 {
-
-  float f = ch->fvalue;
-
-  if (mapdata) {
-    float factor = 1.0f;
-
-    for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
-      BrushMapping *mp = ch->mappings + i;
-
-      if (!(mp->flag & BRUSH_MAPPING_ENABLED)) {
-        continue;
-      }
-
-      float inputf = ((float *)mapdata)[i];
-
-      float f2 = BKE_curvemapping_evaluateF(mp->curve, 0, inputf);
-
-      switch (mp->blendmode) {
-        case MA_RAMP_BLEND:
-          break;
-        case MA_RAMP_MULT:
-          f2 *= factor;
-          break;
-        case MA_RAMP_DIV:
-          f2 = factor / (0.00001f + f2);
-          break;
-        case MA_RAMP_ADD:
-          f2 += factor;
-          break;
-        case MA_RAMP_SUB:
-          f2 = factor - f2;
-          break;
-        case MA_RAMP_DIFF:
-          f2 = fabsf(factor - f2);
-          break;
-        default:
-          printf("Unsupported brush mapping blend mode for %s (%s); will mix instead\n",
-                 ch->name,
-                 ch->idname);
-          break;
-      }
-
-      factor += (f2 - factor) * mp->factor;
-    }
-
-    f *= factor;
-  }
-
-  return f;
+  return (float)eval_channel_mappings(ch, mapdata, (double)ch->fvalue, 0);
 }
+
 void BKE_brush_channel_set_vector(BrushChannel *ch, float vec[4])
 {
   if (ch->type == BRUSH_CHANNEL_VEC4) {
@@ -1086,65 +1069,8 @@ int BKE_brush_channel_get_vector(BrushChannel *ch, float out[4], BrushMappingDat
     size = 4;
   }
 
-  if (mapdata) {
-    float factor = 1.0f;
-
-    for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
-      BrushMapping *mp = ch->mappings + i;
-
-      if (!(mp->flag & BRUSH_MAPPING_ENABLED)) {
-        continue;
-      }
-
-      float inputf = ((float *)mapdata)[i];
-
-      float f2 = BKE_curvemapping_evaluateF(mp->curve, 0, inputf);
-
-      switch (mp->blendmode) {
-        case MA_RAMP_BLEND:
-          break;
-        case MA_RAMP_MULT:
-          f2 *= inputf * f2;
-          break;
-        case MA_RAMP_DIV:
-          f2 = inputf / (0.00001f + inputf);
-          break;
-        case MA_RAMP_ADD:
-          f2 += inputf;
-          break;
-        case MA_RAMP_SUB:
-          f2 = inputf - f2;
-          break;
-        case MA_RAMP_DIFF:
-          f2 = fabsf(inputf - f2);
-          break;
-        default:
-          printf("Unsupported brush mapping blend mode for %s (%s); will mix instead\n",
-                 ch->name,
-                 ch->idname);
-          break;
-      }
-
-      factor += (f2 - factor) * mp->factor;
-    }
-
-    if (size == 3) {
-      copy_v3_v3(out, ch->vector);
-      mul_v3_fl(out, factor);
-    }
-    else {
-      copy_v4_v4(out, ch->vector);
-
-      if (ch->flag & BRUSH_CHANNEL_APPLY_MAPPING_TO_ALPHA) {
-        mul_v4_fl(out, factor);
-      }
-      else {
-        mul_v3_fl(out, factor);
-      }
-    }
-  }
-  else {
-    copy_v4_v4(out, ch->vector);
+  for (int i = 0; i < 4; i++) {
+    out[i] = eval_channel_mappings(ch, mapdata, (float)ch->vector[i], i);
   }
 
   return size;
