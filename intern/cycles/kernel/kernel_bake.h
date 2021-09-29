@@ -42,6 +42,16 @@ ccl_device void kernel_displace_evaluate(const KernelGlobals *kg,
 
   object_inverse_dir_transform(kg, &sd, &D);
 
+#ifdef __KERNEL_DEBUG_NAN__
+  if (!isfinite3_safe(D)) {
+    kernel_assert(!"Cycles displacement with non-finite value detected");
+  }
+#endif
+
+  /* Ensure finite displacement, preventing BVH from becoming degenerate and avoiding possible
+   * traversal issues caused by non-finite math. */
+  D = ensure_finite3(D);
+
   /* Write output. */
   output[offset] += make_float4(D.x, D.y, D.z, 0.0f);
 }
@@ -66,7 +76,16 @@ ccl_device void kernel_background_evaluate(const KernelGlobals *kg,
   const int path_flag = PATH_RAY_EMISSION;
   shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
       INTEGRATOR_STATE_PASS_NULL, &sd, NULL, path_flag);
-  const float3 color = shader_background_eval(&sd);
+  float3 color = shader_background_eval(&sd);
+
+#ifdef __KERNEL_DEBUG_NAN__
+  if (!isfinite3_safe(color)) {
+    kernel_assert(!"Cycles background with non-finite value detected");
+  }
+#endif
+
+  /* Ensure finite color, avoiding possible numerical instabilities in the path tracing kernels. */
+  color = ensure_finite3(color);
 
   /* Write output. */
   output[offset] += make_float4(color.x, color.y, color.z, 0.0f);
