@@ -31,8 +31,11 @@ extern "C" {
 
 struct ARegion;
 struct ARegionType;
+struct AssetLibrary;
 struct FileSelectParams;
+struct FileAssetSelectParams;
 struct SpaceFile;
+struct uiLayout;
 struct View2D;
 
 /* file_draw.c */
@@ -151,11 +154,18 @@ void file_on_reload_callback_register(struct SpaceFile *sfile,
 /* file_panels.c */
 void file_tool_props_region_panels_register(struct ARegionType *art);
 void file_execute_region_panels_register(struct ARegionType *art);
+void file_tools_region_panels_register(struct ARegionType *art);
 
 /* file_utils.c */
 void file_tile_boundbox(const ARegion *region, FileLayout *layout, const int file, rcti *r_bounds);
 
 void file_path_to_ui_path(const char *path, char *r_pathi, int max_size);
+
+/* asset_catalog_tree_view.cc */
+
+void file_create_asset_catalog_tree_view_in_layout(struct AssetLibrary *asset_library,
+                                                   struct uiLayout *layout,
+                                                   struct FileAssetSelectParams *params);
 
 #ifdef __cplusplus
 }

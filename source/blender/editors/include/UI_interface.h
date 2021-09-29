@@ -2761,7 +2761,8 @@ void UI_interface_tag_script_reload(void);
 /* Support click-drag motion which presses the button and closes a popover (like a menu). */
 #define USE_UI_POPOVER_ONCE
 
-bool UI_tree_view_item_is_active(uiTreeViewItemHandle *item_);
+bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item);
+bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a, const uiTreeViewItemHandle *b);
 
 #ifdef __cplusplus
 }

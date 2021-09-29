@@ -68,6 +68,29 @@ bool BKE_asset_library_find_suitable_root_path_from_main(const Main *bmain, char
   return BKE_asset_library_find_suitable_root_path_from_path(bmain->name, r_library_path);
 }
 
+blender::bke::AssetCatalogService *BKE_asset_library_get_catalog_service(
+    const ::AssetLibrary *library_c)
+{
+  if (library_c == nullptr) {
+    return nullptr;
+  }
+
+  const blender::bke::AssetLibrary &library = reinterpret_cast<const blender::bke::AssetLibrary &>(
+      *library_c);
+  return library.catalog_service.get();
+}
+
+blender::bke::AssetCatalogTree *BKE_asset_library_get_catalog_tree(const ::AssetLibrary *library)
+{
+  blender::bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(
+      library);
+  if (catalog_service == nullptr) {
+    return nullptr;
+  }
+
+  return catalog_service->get_catalog_tree();
+}
+
 namespace blender::bke {
 
 void AssetLibrary::load(StringRefNull library_root_directory)

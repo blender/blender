@@ -126,13 +126,10 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
   FileSelectParams *base_params = &asset_params->base_params;
   base_params->file[0] = '\0';
   base_params->filter_glob[0] = '\0';
-  /* TODO: this way of using filters to form categories is notably slower than specifying a
-   * "group" to read. That's because all types are read and filtering is applied afterwards. Would
-   * be nice if we could lazy-read individual groups. */
   base_params->flag |= U_default.file_space_data.flag | FILE_ASSETS_ONLY | FILE_FILTER;
   base_params->flag &= ~FILE_DIRSEL_ONLY;
   base_params->filter |= FILE_TYPE_BLENDERLIB;
-  base_params->filter_id = FILTER_ID_OB | FILTER_ID_GR;
+  base_params->filter_id = FILTER_ID_ALL;
   base_params->display = FILE_IMGDISPLAY;
   base_params->sort = FILE_SORT_ALPHA;
   /* Asset libraries include all sub-directories, so enable maximal recursion. */
@@ -460,6 +457,15 @@ bool ED_fileselect_is_file_browser(const SpaceFile *sfile)
 bool ED_fileselect_is_asset_browser(const SpaceFile *sfile)
 {
   return (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS);
+}
+
+struct AssetLibrary *ED_fileselect_active_asset_library_get(const SpaceFile *sfile)
+{
+  if (!ED_fileselect_is_asset_browser(sfile) || !sfile->files) {
+    return NULL;
+  }
+
+  return filelist_asset_library(sfile->files);
 }
 
 struct ID *ED_fileselect_active_asset_get(const SpaceFile *sfile)

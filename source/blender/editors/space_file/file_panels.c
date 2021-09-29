@@ -47,6 +47,7 @@
 #include "WM_types.h"
 
 #include "file_intern.h"
+#include "filelist.h"
 #include "fsmenu.h"
 
 #include <string.h>
@@ -55,6 +56,12 @@ static bool file_panel_operator_poll(const bContext *C, PanelType *UNUSED(pt))
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   return (sfile && sfile->op);
+}
+
+static bool file_panel_asset_browsing_poll(const bContext *C, PanelType *UNUSED(pt))
+{
+  SpaceFile *sfile = CTX_wm_space_file(C);
+  return sfile && sfile->files && ED_fileselect_is_asset_browser(sfile);
 }
 
 static void file_panel_operator_header(const bContext *C, Panel *panel)
@@ -220,5 +227,30 @@ void file_execute_region_panels_register(ARegionType *art)
   pt->flag = PANEL_TYPE_NO_HEADER;
   pt->poll = file_panel_operator_poll;
   pt->draw = file_panel_execution_buttons_draw;
+  BLI_addtail(&art->paneltypes, pt);
+}
+
+static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *panel)
+{
+  SpaceFile *sfile = CTX_wm_space_file(C);
+  /* May be null if the library wasn't loaded yet. */
+  struct AssetLibrary *asset_library = filelist_asset_library(sfile->files);
+  FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
+  BLI_assert(params != NULL);
+
+  file_create_asset_catalog_tree_view_in_layout(asset_library, panel->layout, params);
+}
+
+void file_tools_region_panels_register(ARegionType *art)
+{
+  PanelType *pt;
+
+  pt = MEM_callocN(sizeof(PanelType), "spacetype file asset catalog buttons");
+  strcpy(pt->idname, "FILE_PT_asset_catalog_buttons");
+  strcpy(pt->label, N_("Asset Catalogs"));
+  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  pt->flag = PANEL_TYPE_NO_HEADER;
+  pt->poll = file_panel_asset_browsing_poll;
+  pt->draw = file_panel_asset_catalog_buttons_draw;
   BLI_addtail(&art->paneltypes, pt);
 }

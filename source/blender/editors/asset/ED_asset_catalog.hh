@@ -15,40 +15,21 @@
  */
 
 /** \file
- * \ingroup bke
+ * \ingroup edasset
  */
 
 #pragma once
 
-#ifndef __cplusplus
-#  error This is a C++-only header file. Use BKE_asset_library.h instead.
-#endif
-
-#include "BKE_asset_library.h"
-
 #include "BKE_asset_catalog.hh"
-#include "BKE_callbacks.h"
 
-#include <memory>
+#include "BLI_string_ref.hh"
 
+struct AssetLibrary;
 namespace blender::bke {
-
-struct AssetLibrary {
-  std::unique_ptr<AssetCatalogService> catalog_service;
-
-  void load(StringRefNull library_root_directory);
-
-  void on_save_handler_register();
-  void on_save_handler_unregister();
-
-  void on_save_post(struct Main *, struct PointerRNA **pointers, const int num_pointers);
-
- private:
-  bCallbackFuncStore on_save_callback_store_;
-};
-
+class AssetCatalog;
 }  // namespace blender::bke
 
-blender::bke::AssetCatalogService *BKE_asset_library_get_catalog_service(
-    const ::AssetLibrary *library);
-blender::bke::AssetCatalogTree *BKE_asset_library_get_catalog_tree(const ::AssetLibrary *library);
+blender::bke::AssetCatalog *ED_asset_catalog_add(AssetLibrary *library,
+                                                 blender::StringRefNull name,
+                                                 blender::StringRef parent_path = nullptr);
+void ED_asset_catalog_remove(AssetLibrary *library, const blender::bke::CatalogID &catalog_id);

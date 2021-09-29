@@ -743,6 +743,15 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
     return false;
   }
 
+  if ((but->type == UI_BTYPE_TREEROW) && (oldbut->type == UI_BTYPE_TREEROW)) {
+    uiButTreeRow *but_treerow = (uiButTreeRow *)but;
+    uiButTreeRow *oldbut_treerow = (uiButTreeRow *)oldbut;
+    if (!but_treerow->tree_item || !oldbut_treerow->tree_item ||
+        !UI_tree_view_item_matches(but_treerow->tree_item, oldbut_treerow->tree_item)) {
+      return false;
+    }
+  }
+
   return true;
 }
 

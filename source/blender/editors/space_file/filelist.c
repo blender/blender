@@ -50,6 +50,7 @@
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+#include "BLI_uuid.h"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -369,6 +370,9 @@ typedef struct FileListFilter {
   char filter_glob[FILE_MAXFILE];
   char filter_search[66]; /* + 2 for heading/trailing implicit '*' wildcards. */
   short flags;
+
+  eFileSel_Params_AssetCatalogVisibility asset_catalog_visibility;
+  bUUID asset_catalog_id;
 } FileListFilter;
 
 /* FileListFilter.flags */
@@ -806,6 +810,22 @@ static bool is_filtered_hidden(const char *filename,
     return true;
   }
 
+  /* TODO Make catalog activation work properly with the "Current File" asset library. Currently
+   * this will only work for external asset data. */
+  if (file->imported_asset_data) {
+    switch (filter->asset_catalog_visibility) {
+      case FILE_SHOW_ASSETS_WITHOUT_CATALOG:
+        return !BLI_uuid_is_nil(file->imported_asset_data->catalog_id);
+      case FILE_SHOW_ASSETS_FROM_CATALOG:
+        /* TODO show all assets that are in child catalogs of the selected catalog. */
+        return BLI_uuid_is_nil(filter->asset_catalog_id) ||
+               !BLI_uuid_equal(filter->asset_catalog_id, file->imported_asset_data->catalog_id);
+      case FILE_SHOW_ASSETS_ALL_CATALOGS:
+        /* All asset files should be visible. */
+        break;
+    }
+  }
+
   return false;
 }
 
@@ -1033,6 +1053,33 @@ void filelist_setfilter_options(FileList *filelist,
 
   if (update) {
     /* And now, free filtered data so that we know we have to filter again. */
+    filelist_filter_clear(filelist);
+  }
+}
+
+/**
+ * \param catalog_id: The catalog that should be filtered by if \a catalog_visibility is
+ *                    #FILE_SHOW_ASSETS_FROM_CATALOG. May be NULL otherwise.
+ */
+void filelist_set_asset_catalog_filter_options(
+    FileList *filelist,
+    eFileSel_Params_AssetCatalogVisibility catalog_visibility,
+    const bUUID *catalog_id)
+{
+  bool update = false;
+
+  if (filelist->filter_data.asset_catalog_visibility != catalog_visibility) {
+    filelist->filter_data.asset_catalog_visibility = catalog_visibility;
+    update = true;
+  }
+
+  if (filelist->filter_data.asset_catalog_visibility == FILE_SHOW_ASSETS_FROM_CATALOG &&
+      catalog_id && !BLI_uuid_equal(filelist->filter_data.asset_catalog_id, *catalog_id)) {
+    filelist->filter_data.asset_catalog_id = *catalog_id;
+    update = true;
+  }
+
+  if (update) {
     filelist_filter_clear(filelist);
   }
 }
@@ -1807,6 +1854,11 @@ void filelist_free(struct FileList *filelist)
   memset(&filelist->filter_data, 0, sizeof(filelist->filter_data));
 
   filelist->flags &= ~(FL_NEED_SORTING | FL_NEED_FILTERING);
+}
+
+AssetLibrary *filelist_asset_library(FileList *filelist)
+{
+  return filelist->asset_library;
 }
 
 void filelist_freelib(struct FileList *filelist)

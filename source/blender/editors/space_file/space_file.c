@@ -335,9 +335,9 @@ static void file_refresh(const bContext *C, ScrArea *area)
     params->highlight_file = -1; /* added this so it opens nicer (ton) */
   }
 
-  if (!U.experimental.use_extended_asset_browser && ED_fileselect_is_asset_browser(sfile)) {
+  if (ED_fileselect_is_asset_browser(sfile)) {
     /* Only poses supported as non-experimental right now. */
-    params->filter_id = FILTER_ID_AC;
+    params->filter_id = U.experimental.use_extended_asset_browser ? FILTER_ID_ALL : FILTER_ID_AC;
   }
 
   filelist_settype(sfile->files, params->type);
@@ -355,6 +355,10 @@ static void file_refresh(const bContext *C, ScrArea *area)
       (params->flag & FILE_ASSETS_ONLY) != 0,
       params->filter_glob,
       params->filter_search);
+  if (asset_params) {
+    filelist_set_asset_catalog_filter_options(
+        sfile->files, asset_params->asset_catalog_visibility, &asset_params->catalog_id);
+  }
 
   /* Update the active indices of bookmarks & co. */
   sfile->systemnr = fsmenu_get_active_indices(fsmenu, FS_CATEGORY_SYSTEM, params->dir);
@@ -1050,6 +1054,7 @@ void ED_spacetype_file(void)
   art->init = file_tools_region_init;
   art->draw = file_tools_region_draw;
   BLI_addhead(&st->regiontypes, art);
+  file_tools_region_panels_register(art);
 
   /* regions: tool properties */
   art = MEM_callocN(sizeof(ARegionType), "spacetype file operator region");

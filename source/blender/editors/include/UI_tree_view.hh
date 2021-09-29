@@ -190,6 +190,12 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    * last redraw to this item. If sub-classes introduce more advanced state they should override
    * this and make it update their state accordingly. */
   virtual void update_from_old(const AbstractTreeViewItem &old);
+  /** Compare this item to \a other to check if they represent the same data. This is critical for
+   * being able to recognize an item from a previous redraw, to be able to keep its state (e.g.
+   * open/closed, active, etc.). Items are only matched if their parents also match.
+   * By default this just matches the items names/labels (if their parents match!). If that isn't
+   * good enough for a sub-class, that can override it. */
+  virtual bool matches(const AbstractTreeViewItem &other) const;
 
   const AbstractTreeView &get_tree_view() const;
   int count_parents() const;
