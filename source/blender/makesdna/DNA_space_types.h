@@ -1200,6 +1200,12 @@ typedef struct SpaceImage {
   float uv_opacity;
 
   int tile_grid_shape[2];
+  /**
+   * UV editor custom-grid. Value of `N` will produce `NxN` grid.
+   * Use when #SI_CUSTOM_GRID is set.
+   */
+  int custom_grid_subdiv;
+  char _pad3[4];
 
   MaskSpaceInfo mask_info;
   SpaceImageOverlay overlay;
@@ -1255,6 +1261,7 @@ typedef enum eSpaceImage_Flag {
   SI_FLAG_UNUSED_7 = (1 << 7), /* cleared */
   SI_FLAG_UNUSED_8 = (1 << 8), /* cleared */
   SI_COORDFLOATS = (1 << 9),
+
   SI_FLAG_UNUSED_10 = (1 << 10),
   SI_LIVE_UNWRAP = (1 << 11),
   SI_USE_ALPHA = (1 << 12),
@@ -1266,7 +1273,7 @@ typedef enum eSpaceImage_Flag {
   SI_FULLWINDOW = (1 << 16),
 
   SI_FLAG_UNUSED_17 = (1 << 17),
-  SI_FLAG_UNUSED_18 = (1 << 18), /* cleared */
+  SI_CUSTOM_GRID = (1 << 18),
 
   /**
    * This means that the image is drawn until it reaches the view edge,
@@ -1291,6 +1298,9 @@ typedef enum eSpaceImage_Flag {
 typedef enum eSpaceImageOverlay_Flag {
   SI_OVERLAY_SHOW_OVERLAYS = (1 << 0),
 } eSpaceImageOverlay_Flag;
+
+/** Keep in sync with `STEPS_LEN` in `grid_frag.glsl`. */
+#define SI_GRID_STEPS_LEN 8
 
 /** \} */
 

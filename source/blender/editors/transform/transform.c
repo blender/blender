@@ -28,6 +28,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_math.h"
 #include "BLI_rect.h"
@@ -1609,8 +1610,16 @@ static void initSnapSpatial(TransInfo *t, float r_snap[2])
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    r_snap[0] = 0.0625f;
-    r_snap[1] = 0.03125f;
+    SpaceImage *sima = t->area->spacedata.first;
+    View2D *v2d = &t->region->v2d;
+    int grid_size = SI_GRID_STEPS_LEN;
+    float zoom_factor = ED_space_image_zoom_level(v2d, grid_size);
+    float grid_steps[SI_GRID_STEPS_LEN];
+
+    ED_space_image_grid_steps(sima, grid_steps, grid_size);
+    /* Snapping value based on what type of grid is used (adaptive-subdividing or custom-grid). */
+    r_snap[0] = ED_space_image_increment_snap_value(grid_size, grid_steps, zoom_factor);
+    r_snap[1] = r_snap[0] / 2.0f;
   }
   else if (t->spacetype == SPACE_CLIP) {
     r_snap[0] = 0.125f;

@@ -41,6 +41,16 @@ struct SpaceImage;
 struct bContext;
 struct wmOperator;
 struct wmWindowManager;
+struct View2D;
+
+/* image_draw.c */
+float ED_space_image_zoom_level(const struct View2D *v2d, const int grid_dimension);
+void ED_space_image_grid_steps(struct SpaceImage *sima,
+                               float grid_steps[SI_GRID_STEPS_LEN],
+                               const int grid_dimension);
+float ED_space_image_increment_snap_value(const int grid_dimesnions,
+                                          const float grid_steps[SI_GRID_STEPS_LEN],
+                                          const float zoom_factor);
 
 /* image_edit.c, exported for transform */
 struct Image *ED_space_image(struct SpaceImage *sima);
