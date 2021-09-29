@@ -574,7 +574,7 @@ static void join_instance_groups_curve(Span<GeometryInstanceGroup> set_groups, G
   geometry_set_gather_instances_attribute_info(
       set_groups,
       {GEO_COMPONENT_TYPE_CURVE},
-      {"position", "radius", "tilt", "cyclic", "resolution"},
+      {"position", "radius", "tilt", "handle_left", "handle_right", "cyclic", "resolution"},
       attributes);
   join_attributes(set_groups,
                   {GEO_COMPONENT_TYPE_CURVE},

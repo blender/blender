@@ -437,7 +437,7 @@ static void join_curve_components(MutableSpan<GeometrySet> src_geometry_sets, Ge
   /* Retrieve attribute info before moving the splines out of the input components. */
   const Map<AttributeIDRef, AttributeMetaData> info = get_final_attribute_info(
       {(const GeometryComponent **)src_components.data(), src_components.size()},
-      {"position", "radius", "tilt", "cyclic", "resolution"});
+      {"position", "radius", "tilt", "handle_left", "handle_right", "cyclic", "resolution"});
 
   CurveComponent &dst_component = result.get_component_for_write<CurveComponent>();
   CurveEval *dst_curve = new CurveEval();

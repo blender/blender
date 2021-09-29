@@ -535,6 +535,9 @@ static GVMutableArrayPtr make_cyclic_write_attribute(CurveEval &curve)
  * array implementations try to make it workable in common situations.
  * \{ */
 
+/**
+ * Individual spans in \a data may be empty if that spline contains no data for the attribute.
+ */
 template<typename T>
 static void point_attribute_materialize(Span<Span<T>> data,
                                         Span<int> offsets,
@@ -546,7 +549,15 @@ static void point_attribute_materialize(Span<Span<T>> data,
     for (const int spline_index : data.index_range()) {
       const int offset = offsets[spline_index];
       const int next_offset = offsets[spline_index + 1];
-      r_span.slice(offset, next_offset - offset).copy_from(data[spline_index]);
+
+      Span<T> src = data[spline_index];
+      MutableSpan<T> dst = r_span.slice(offset, next_offset - offset);
+      if (src.is_empty()) {
+        dst.fill(T());
+      }
+      else {
+        dst.copy_from(src);
+      }
     }
   }
   else {
@@ -557,11 +568,20 @@ static void point_attribute_materialize(Span<Span<T>> data,
       }
 
       const int index_in_spline = dst_index - offsets[spline_index];
-      r_span[dst_index] = data[spline_index][index_in_spline];
+      Span<T> src = data[spline_index];
+      if (src.is_empty()) {
+        r_span[dst_index] = T();
+      }
+      else {
+        r_span[dst_index] = src[index_in_spline];
+      }
     }
   }
 }
 
+/**
+ * Individual spans in \a data may be empty if that spline contains no data for the attribute.
+ */
 template<typename T>
 static void point_attribute_materialize_to_uninitialized(Span<Span<T>> data,
                                                          Span<int> offsets,
@@ -574,7 +594,14 @@ static void point_attribute_materialize_to_uninitialized(Span<Span<T>> data,
     for (const int spline_index : data.index_range()) {
       const int offset = offsets[spline_index];
       const int next_offset = offsets[spline_index + 1];
-      uninitialized_copy_n(data[spline_index].data(), next_offset - offset, dst + offset);
+
+      Span<T> src = data[spline_index];
+      if (src.is_empty()) {
+        uninitialized_fill_n(dst + offset, next_offset - offset, T());
+      }
+      else {
+        uninitialized_copy_n(src.data(), next_offset - offset, dst + offset);
+      }
     }
   }
   else {
@@ -585,7 +612,13 @@ static void point_attribute_materialize_to_uninitialized(Span<Span<T>> data,
       }
 
       const int index_in_spline = dst_index - offsets[spline_index];
-      new (dst + dst_index) T(data[spline_index][index_in_spline]);
+      Span<T> src = data[spline_index];
+      if (src.is_empty()) {
+        new (dst + dst_index) T();
+      }
+      else {
+        new (dst + dst_index) T(src[index_in_spline]);
+      }
     }
   }
 }
@@ -769,6 +802,169 @@ class VMutableArray_For_SplinePosition final : public VMutableArray<float3> {
   }
 };
 
+class VArray_For_BezierHandle final : public VArray<float3> {
+ private:
+  Span<SplinePtr> splines_;
+  Array<int> offsets_;
+  bool is_right_;
+
+ public:
+  VArray_For_BezierHandle(Span<SplinePtr> splines, Array<int> offsets, const bool is_right)
+      : VArray<float3>(offsets.last()),
+        splines_(std::move(splines)),
+        offsets_(std::move(offsets)),
+        is_right_(is_right)
+  {
+  }
+
+  static float3 get_internal(const int64_t index,
+                             Span<SplinePtr> splines,
+                             Span<int> offsets,
+                             const bool is_right)
+  {
+    const PointIndices indices = lookup_point_indices(offsets, index);
+    const Spline &spline = *splines[indices.spline_index];
+    if (spline.type() == Spline::Type::Bezier) {
+      const BezierSpline &bezier_spline = static_cast<const BezierSpline &>(spline);
+      return is_right ? bezier_spline.handle_positions_right()[indices.point_index] :
+                        bezier_spline.handle_positions_left()[indices.point_index];
+    }
+    return float3(0);
+  }
+
+  float3 get_impl(const int64_t index) const final
+  {
+    return get_internal(index, splines_, offsets_, is_right_);
+  }
+
+  /**
+   * Utility so we can pass handle positions to the materialize functions above.
+   *
+   * \note This relies on the ability of the materialize implementations to
+   * handle empty spans, since only Bezier splines have handles.
+   */
+  static Array<Span<float3>> get_handle_spans(Span<SplinePtr> splines, const bool is_right)
+  {
+    Array<Span<float3>> spans(splines.size());
+    for (const int i : spans.index_range()) {
+      if (splines[i]->type() == Spline::Type::Bezier) {
+        BezierSpline &bezier_spline = static_cast<BezierSpline &>(*splines[i]);
+        spans[i] = is_right ? bezier_spline.handle_positions_right() :
+                              bezier_spline.handle_positions_left();
+      }
+      else {
+        spans[i] = {};
+      }
+    }
+    return spans;
+  }
+
+  static void materialize_internal(const IndexMask mask,
+                                   Span<SplinePtr> splines,
+                                   Span<int> offsets,
+                                   const bool is_right,
+                                   MutableSpan<float3> r_span)
+  {
+    Array<Span<float3>> spans = get_handle_spans(splines, is_right);
+    point_attribute_materialize(spans.as_span(), offsets, mask, r_span);
+  }
+
+  static void materialize_to_uninitialized_internal(const IndexMask mask,
+                                                    Span<SplinePtr> splines,
+                                                    Span<int> offsets,
+                                                    const bool is_right,
+                                                    MutableSpan<float3> r_span)
+  {
+    Array<Span<float3>> spans = get_handle_spans(splines, is_right);
+    point_attribute_materialize_to_uninitialized(spans.as_span(), offsets, mask, r_span);
+  }
+
+  void materialize_impl(const IndexMask mask, MutableSpan<float3> r_span) const final
+  {
+    materialize_internal(mask, splines_, offsets_, is_right_, r_span);
+  }
+
+  void materialize_to_uninitialized_impl(const IndexMask mask,
+                                         MutableSpan<float3> r_span) const final
+  {
+    materialize_to_uninitialized_internal(mask, splines_, offsets_, is_right_, r_span);
+  }
+};
+
+class VMutableArray_For_BezierHandles final : public VMutableArray<float3> {
+ private:
+  MutableSpan<SplinePtr> splines_;
+  Array<int> offsets_;
+  bool is_right_;
+
+ public:
+  VMutableArray_For_BezierHandles(MutableSpan<SplinePtr> splines,
+                                  Array<int> offsets,
+                                  const bool is_right)
+      : VMutableArray<float3>(offsets.last()),
+        splines_(splines),
+        offsets_(std::move(offsets)),
+        is_right_(is_right)
+  {
+  }
+
+  float3 get_impl(const int64_t index) const final
+  {
+    return VArray_For_BezierHandle::get_internal(index, splines_, offsets_, is_right_);
+  }
+
+  void set_impl(const int64_t index, float3 value) final
+  {
+    const PointIndices indices = lookup_point_indices(offsets_, index);
+    Spline &spline = *splines_[indices.spline_index];
+    if (spline.type() == Spline::Type::Bezier) {
+      BezierSpline &bezier_spline = static_cast<BezierSpline &>(spline);
+      if (is_right_) {
+        bezier_spline.set_handle_position_right(indices.point_index, value);
+      }
+      else {
+        bezier_spline.set_handle_position_left(indices.point_index, value);
+      }
+      bezier_spline.mark_cache_invalid();
+    }
+  }
+
+  void set_all_impl(Span<float3> src) final
+  {
+    for (const int spline_index : splines_.index_range()) {
+      Spline &spline = *splines_[spline_index];
+      if (spline.type() == Spline::Type::Bezier) {
+        const int offset = offsets_[spline_index];
+
+        BezierSpline &bezier_spline = static_cast<BezierSpline &>(spline);
+        if (is_right_) {
+          for (const int i : IndexRange(bezier_spline.size())) {
+            bezier_spline.set_handle_position_right(i, src[offset + i]);
+          }
+        }
+        else {
+          for (const int i : IndexRange(bezier_spline.size())) {
+            bezier_spline.set_handle_position_left(i, src[offset + i]);
+          }
+        }
+        bezier_spline.mark_cache_invalid();
+      }
+    }
+  }
+
+  void materialize_impl(const IndexMask mask, MutableSpan<float3> r_span) const final
+  {
+    VArray_For_BezierHandle::materialize_internal(mask, splines_, offsets_, is_right_, r_span);
+  }
+
+  void materialize_to_uninitialized_impl(const IndexMask mask,
+                                         MutableSpan<float3> r_span) const final
+  {
+    VArray_For_BezierHandle::materialize_to_uninitialized_internal(
+        mask, splines_, offsets_, is_right_, r_span);
+  }
+};
+
 /**
  * Provider for any builtin control point attribute that doesn't need
  * special handling like access to other arrays in the spline.
@@ -903,6 +1099,78 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
     return std::make_unique<
         fn::GVMutableArray_For_EmbeddedVMutableArray<float3, VMutableArray_For_SplinePosition>>(
         offsets.last(), curve->splines(), std::move(offsets));
+  }
+};
+
+class BezierHandleAttributeProvider : public BuiltinAttributeProvider {
+ private:
+  bool is_right_;
+
+ public:
+  BezierHandleAttributeProvider(const bool is_right)
+      : BuiltinAttributeProvider(is_right ? "handle_right" : "handle_left",
+                                 ATTR_DOMAIN_POINT,
+                                 CD_PROP_FLOAT3,
+                                 BuiltinAttributeProvider::NonCreatable,
+                                 BuiltinAttributeProvider::Writable,
+                                 BuiltinAttributeProvider::NonDeletable),
+        is_right_(is_right)
+  {
+  }
+
+  GVArrayPtr try_get_for_read(const GeometryComponent &component) const override
+  {
+    const CurveEval *curve = get_curve_from_component_for_read(component);
+    if (curve == nullptr) {
+      return {};
+    }
+
+    if (!curve->has_spline_with_type(Spline::Type::Bezier)) {
+      return {};
+    }
+
+    Array<int> offsets = curve->control_point_offsets();
+    return std::make_unique<fn::GVArray_For_EmbeddedVArray<float3, VArray_For_BezierHandle>>(
+        offsets.last(), curve->splines(), std::move(offsets), is_right_);
+  }
+
+  GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const override
+  {
+    CurveEval *curve = get_curve_from_component_for_write(component);
+    if (curve == nullptr) {
+      return {};
+    }
+
+    if (!curve->has_spline_with_type(Spline::Type::Bezier)) {
+      return {};
+    }
+
+    Array<int> offsets = curve->control_point_offsets();
+    return std::make_unique<
+        fn::GVMutableArray_For_EmbeddedVMutableArray<float3, VMutableArray_For_BezierHandles>>(
+        offsets.last(), curve->splines(), std::move(offsets), is_right_);
+  }
+
+  bool try_delete(GeometryComponent &UNUSED(component)) const final
+  {
+    return false;
+  }
+
+  bool try_create(GeometryComponent &UNUSED(component),
+                  const AttributeInit &UNUSED(initializer)) const final
+  {
+    return false;
+  }
+
+  bool exists(const GeometryComponent &component) const final
+  {
+    const CurveEval *curve = get_curve_from_component_for_read(component);
+    if (curve == nullptr) {
+      return false;
+    }
+
+    return curve->has_spline_with_type(Spline::Type::Bezier) &&
+           component.attribute_domain_size(ATTR_DOMAIN_POINT) != 0;
   }
 };
 
@@ -1196,6 +1464,8 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                         spline_custom_data_access);
 
   static PositionAttributeProvider position;
+  static BezierHandleAttributeProvider handles_start(false);
+  static BezierHandleAttributeProvider handles_end(true);
 
   static BuiltinPointAttributeProvider<float> radius(
       "radius",
@@ -1213,8 +1483,9 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
 
   static DynamicPointAttributeProvider point_custom_data;
 
-  return ComponentAttributeProviders({&position, &radius, &tilt, &resolution, &cyclic},
-                                     {&spline_custom_data, &point_custom_data});
+  return ComponentAttributeProviders(
+      {&position, &radius, &tilt, &handles_start, &handles_end, &resolution, &cyclic},
+      {&spline_custom_data, &point_custom_data});
 }
 
 }  // namespace blender::bke
