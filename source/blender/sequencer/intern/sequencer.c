@@ -144,6 +144,8 @@ Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int 
   seq->strip = seq_strip_alloc(type);
   seq->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Sequence Stereo Format");
 
+  seq->color_tag = SEQUENCE_COLOR_NONE;
+
   SEQ_relations_session_uuid_generate(seq);
 
   return seq;

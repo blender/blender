@@ -449,6 +449,12 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
 #undef SEQ_SPEED_COMPRESS_IPO_Y
 }
 
+static bool do_versions_sequencer_color_tags(Sequence *seq, void *UNUSED(user_data))
+{
+  seq->color_tag = SEQUENCE_COLOR_NONE;
+  return true;
+}
+
 static bNodeLink *find_connected_link(bNodeTree *ntree, bNodeSocket *in_socket)
 {
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
@@ -1614,18 +1620,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 31)) {
     /* Swap header with the tool header so the regular header is always on the edge. */
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -1650,5 +1645,37 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Set strip color tags to SEQUENCE_COLOR_NONE. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != NULL) {
+        SEQ_for_each_callback(&scene->ed->seqbase, do_versions_sequencer_color_tags, NULL);
+      }
+    }
+
+    /* Show vse color tags by default. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SEQ) {
+            SpaceSeq *sseq = (SpaceSeq *)sl;
+            sseq->timeline_overlay.flag |= SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG;
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

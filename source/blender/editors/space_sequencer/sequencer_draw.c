@@ -107,36 +107,53 @@
 
 static Sequence *special_seq_update = NULL;
 
-void color3ubv_from_seq(Scene *curscene, Sequence *seq, uchar col[3])
+void color3ubv_from_seq(const Scene *curscene,
+                                const Sequence *seq,
+                                const bool show_strip_color_tag,
+                                uchar r_col[3])
 {
+  if (show_strip_color_tag && (uint)seq->color_tag < SEQUENCE_COLOR_TOT &&
+      seq->color_tag != SEQUENCE_COLOR_NONE) {
+    bTheme *btheme = UI_GetTheme();
+    const ThemeStripColor *strip_color = &btheme->strip_color[seq->color_tag];
+    copy_v3_v3_uchar(r_col, strip_color->color);
+    return;
+  }
+
   uchar blendcol[3];
+
+  /* Sometimes the active theme is not the sequencer theme, e.g. when an operator invokes the file
+   * browser. This makes sure we get the right color values for the theme. */
+  struct bThemeState theme_state;
+  UI_Theme_Store(&theme_state);
+  UI_SetTheme(SPACE_SEQ, RGN_TYPE_WINDOW);
 
   switch (seq->type) {
     case SEQ_TYPE_IMAGE:
-      UI_GetThemeColor3ubv(TH_SEQ_IMAGE, col);
+      UI_GetThemeColor3ubv(TH_SEQ_IMAGE, r_col);
       break;
 
     case SEQ_TYPE_META:
-      UI_GetThemeColor3ubv(TH_SEQ_META, col);
+      UI_GetThemeColor3ubv(TH_SEQ_META, r_col);
       break;
 
     case SEQ_TYPE_MOVIE:
-      UI_GetThemeColor3ubv(TH_SEQ_MOVIE, col);
+      UI_GetThemeColor3ubv(TH_SEQ_MOVIE, r_col);
       break;
 
     case SEQ_TYPE_MOVIECLIP:
-      UI_GetThemeColor3ubv(TH_SEQ_MOVIECLIP, col);
+      UI_GetThemeColor3ubv(TH_SEQ_MOVIECLIP, r_col);
       break;
 
     case SEQ_TYPE_MASK:
-      UI_GetThemeColor3ubv(TH_SEQ_MASK, col);
+      UI_GetThemeColor3ubv(TH_SEQ_MASK, r_col);
       break;
 
     case SEQ_TYPE_SCENE:
-      UI_GetThemeColor3ubv(TH_SEQ_SCENE, col);
+      UI_GetThemeColor3ubv(TH_SEQ_SCENE, r_col);
 
       if (seq->scene == curscene) {
-        UI_GetColorPtrShade3ubv(col, col, 20);
+        UI_GetColorPtrShade3ubv(r_col, r_col, 20);
       }
       break;
 
@@ -144,9 +161,9 @@ void color3ubv_from_seq(Scene *curscene, Sequence *seq, uchar col[3])
     case SEQ_TYPE_CROSS:
     case SEQ_TYPE_GAMCROSS:
     case SEQ_TYPE_WIPE:
-      col[0] = 130;
-      col[1] = 130;
-      col[2] = 130;
+      r_col[0] = 130;
+      r_col[1] = 130;
+      r_col[2] = 130;
       break;
 
     /* Effects. */
@@ -163,72 +180,74 @@ void color3ubv_from_seq(Scene *curscene, Sequence *seq, uchar col[3])
     case SEQ_TYPE_ADJUSTMENT:
     case SEQ_TYPE_GAUSSIAN_BLUR:
     case SEQ_TYPE_COLORMIX:
-      UI_GetThemeColor3ubv(TH_SEQ_EFFECT, col);
+      UI_GetThemeColor3ubv(TH_SEQ_EFFECT, r_col);
 
       /* Slightly offset hue to distinguish different effects. */
       if (seq->type == SEQ_TYPE_ADD) {
-        rgb_byte_set_hue_float_offset(col, 0.03);
+        rgb_byte_set_hue_float_offset(r_col, 0.03);
       }
       else if (seq->type == SEQ_TYPE_SUB) {
-        rgb_byte_set_hue_float_offset(col, 0.06);
+        rgb_byte_set_hue_float_offset(r_col, 0.06);
       }
       else if (seq->type == SEQ_TYPE_MUL) {
-        rgb_byte_set_hue_float_offset(col, 0.13);
+        rgb_byte_set_hue_float_offset(r_col, 0.13);
       }
       else if (seq->type == SEQ_TYPE_ALPHAOVER) {
-        rgb_byte_set_hue_float_offset(col, 0.16);
+        rgb_byte_set_hue_float_offset(r_col, 0.16);
       }
       else if (seq->type == SEQ_TYPE_ALPHAUNDER) {
-        rgb_byte_set_hue_float_offset(col, 0.23);
+        rgb_byte_set_hue_float_offset(r_col, 0.23);
       }
       else if (seq->type == SEQ_TYPE_OVERDROP) {
-        rgb_byte_set_hue_float_offset(col, 0.26);
+        rgb_byte_set_hue_float_offset(r_col, 0.26);
       }
       else if (seq->type == SEQ_TYPE_COLORMIX) {
-        rgb_byte_set_hue_float_offset(col, 0.33);
+        rgb_byte_set_hue_float_offset(r_col, 0.33);
       }
       else if (seq->type == SEQ_TYPE_GAUSSIAN_BLUR) {
-        rgb_byte_set_hue_float_offset(col, 0.43);
+        rgb_byte_set_hue_float_offset(r_col, 0.43);
       }
       else if (seq->type == SEQ_TYPE_GLOW) {
-        rgb_byte_set_hue_float_offset(col, 0.46);
+        rgb_byte_set_hue_float_offset(r_col, 0.46);
       }
       else if (seq->type == SEQ_TYPE_ADJUSTMENT) {
-        rgb_byte_set_hue_float_offset(col, 0.55);
+        rgb_byte_set_hue_float_offset(r_col, 0.55);
       }
       else if (seq->type == SEQ_TYPE_SPEED) {
-        rgb_byte_set_hue_float_offset(col, 0.65);
+        rgb_byte_set_hue_float_offset(r_col, 0.65);
       }
       else if (seq->type == SEQ_TYPE_TRANSFORM) {
-        rgb_byte_set_hue_float_offset(col, 0.75);
+        rgb_byte_set_hue_float_offset(r_col, 0.75);
       }
       else if (seq->type == SEQ_TYPE_MULTICAM) {
-        rgb_byte_set_hue_float_offset(col, 0.85);
+        rgb_byte_set_hue_float_offset(r_col, 0.85);
       }
       break;
 
     case SEQ_TYPE_COLOR:
-      UI_GetThemeColor3ubv(TH_SEQ_COLOR, col);
+      UI_GetThemeColor3ubv(TH_SEQ_COLOR, r_col);
       break;
 
     case SEQ_TYPE_SOUND_RAM:
-      UI_GetThemeColor3ubv(TH_SEQ_AUDIO, col);
+      UI_GetThemeColor3ubv(TH_SEQ_AUDIO, r_col);
       blendcol[0] = blendcol[1] = blendcol[2] = 128;
       if (seq->flag & SEQ_MUTE) {
-        UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.5, 20);
+        UI_GetColorPtrBlendShade3ubv(r_col, blendcol, r_col, 0.5, 20);
       }
       break;
 
     case SEQ_TYPE_TEXT:
-      UI_GetThemeColor3ubv(TH_SEQ_TEXT, col);
+      UI_GetThemeColor3ubv(TH_SEQ_TEXT, r_col);
       break;
 
     default:
-      col[0] = 10;
-      col[1] = 255;
-      col[2] = 40;
+      r_col[0] = 10;
+      r_col[1] = 255;
+      r_col[2] = 40;
       break;
   }
+
+  UI_Theme_Restore(&theme_state);
 }
 
 typedef struct WaveVizData {
@@ -558,7 +577,13 @@ static void draw_seq_waveform_overlay(View2D *v2d,
   }
 }
 
-static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, float x2, float y2)
+static void drawmeta_contents(Scene *scene,
+                              Sequence *seqm,
+                              float x1,
+                              float y1,
+                              float x2,
+                              float y2,
+                              const bool show_strip_color_tag)
 {
   Sequence *seq;
   uchar col[4];
@@ -614,7 +639,7 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
         rgb_float_to_uchar(col, colvars->col);
       }
       else {
-        color3ubv_from_seq(scene, seq, col);
+        color3ubv_from_seq(scene, seq, show_strip_color_tag, col);
       }
 
       if ((seqm->flag & SEQ_MUTE) || (seq->flag & SEQ_MUTE)) {
@@ -953,7 +978,8 @@ static void draw_seq_text_overlay(View2D *v2d,
   UI_view2d_text_cache_add_rectf(v2d, &rect, overlay_string, overlay_string_len, col);
 }
 
-static void draw_sequence_extensions_overlay(Scene *scene, Sequence *seq, uint pos, float pixely)
+static void draw_sequence_extensions_overlay(
+    Scene *scene, Sequence *seq, uint pos, float pixely, const bool show_strip_color_tag)
 {
   float x1, x2, y1, y2;
   uchar col[4], blend_col[3];
@@ -966,7 +992,7 @@ static void draw_sequence_extensions_overlay(Scene *scene, Sequence *seq, uint p
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  color3ubv_from_seq(scene, seq, col);
+  color3ubv_from_seq(scene, seq, show_strip_color_tag, col);
   if (seq->flag & SELECT) {
     UI_GetColorPtrShade3ubv(col, col, 50);
   }
@@ -1036,7 +1062,8 @@ static void draw_seq_background(Scene *scene,
                                 float x2,
                                 float y1,
                                 float y2,
-                                bool is_single_image)
+                                bool is_single_image,
+                                bool show_strip_color_tag)
 {
   uchar col[4];
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1049,11 +1076,11 @@ static void draw_seq_background(Scene *scene,
       rgb_float_to_uchar(col, colvars->col);
     }
     else {
-      color3ubv_from_seq(scene, seq1, col);
+      color3ubv_from_seq(scene, seq1, show_strip_color_tag, col);
     }
   }
   else {
-    color3ubv_from_seq(scene, seq, col);
+    color3ubv_from_seq(scene, seq, show_strip_color_tag, col);
   }
 
   /* Draw muted strips semi-transparent. */
@@ -1108,7 +1135,7 @@ static void draw_seq_background(Scene *scene,
       rgb_float_to_uchar(col, colvars->col);
     }
     else {
-      color3ubv_from_seq(scene, seq2, col);
+      color3ubv_from_seq(scene, seq2, show_strip_color_tag, col);
       /* If the transition inputs are of the same type, draw the right side slightly darker. */
       if (seq1->type == seq2->type) {
         UI_GetColorPtrShade3ubv(col, col, -15);
@@ -1822,6 +1849,10 @@ static void draw_seq_strip(const bContext *C,
   /* Check if we are doing "solo preview". */
   bool is_single_image = (char)SEQ_transform_single_image_check(seq);
 
+  /* Use the seq->color_tag to display the tag color. */
+  const bool show_strip_color_tag = (sseq->timeline_overlay.flag &
+                                     SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG);
+
   /* Draw strip body. */
   x1 = (seq->startstill) ? seq->start : seq->startdisp;
   y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
@@ -1852,7 +1883,7 @@ static void draw_seq_strip(const bContext *C,
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  draw_seq_background(scene, seq, pos, x1, x2, y1, y2, is_single_image);
+  draw_seq_background(scene, seq, pos, x1, x2, y1, y2, is_single_image, show_strip_color_tag);
 
   /* Draw a color band inside color strip. */
   if (seq->type == SEQ_TYPE_COLOR && y_threshold) {
@@ -1864,7 +1895,7 @@ static void draw_seq_strip(const bContext *C,
     if (!is_single_image && (seq->startofs || seq->endofs) && pixely > 0) {
       if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_OFFSETS) ||
           (seq == special_seq_update)) {
-        draw_sequence_extensions_overlay(scene, seq, pos, pixely);
+        draw_sequence_extensions_overlay(scene, seq, pos, pixely, show_strip_color_tag);
       }
     }
   }
@@ -1875,7 +1906,7 @@ static void draw_seq_strip(const bContext *C,
 
   if ((seq->type == SEQ_TYPE_META) ||
       ((seq->type == SEQ_TYPE_SCENE) && (seq->flag & SEQ_SCENE_STRIPS))) {
-    drawmeta_contents(scene, seq, x1, y1, x2, y2);
+    drawmeta_contents(scene, seq, x1, y1, x2, y2, show_strip_color_tag);
   }
 
   if ((sseq->flag & SEQ_SHOW_OVERLAY) &&

@@ -232,6 +232,10 @@ typedef struct Sequence {
   int blend_mode;
   float blend_opacity;
 
+  /* Tag color showed if `SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG` is set. */
+  int16_t color_tag;
+  char _pad4[6];
+
   /* is sfra needed anymore? - it looks like its only used in one place */
   /** Starting frame according to the timeline of the scene. */
   int sfra;
@@ -726,6 +730,22 @@ enum {
   SEQ_CACHE_DISK_CACHE_ENABLE = (1 << 11),
   SEQ_CACHE_STORE_THUMBNAIL = (1 << 12),
 };
+
+/* Sequence->color_tag. */
+typedef enum SequenceColorTag {
+  SEQUENCE_COLOR_NONE = -1,
+  SEQUENCE_COLOR_01,
+  SEQUENCE_COLOR_02,
+  SEQUENCE_COLOR_03,
+  SEQUENCE_COLOR_04,
+  SEQUENCE_COLOR_05,
+  SEQUENCE_COLOR_06,
+  SEQUENCE_COLOR_07,
+  SEQUENCE_COLOR_08,
+  SEQUENCE_COLOR_09,
+
+  SEQUENCE_COLOR_TOT,
+} SequenceColorTag;
 
 #ifdef __cplusplus
 }

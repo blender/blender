@@ -458,6 +458,10 @@ typedef struct ThemeCollectionColor {
   unsigned char color[4];
 } ThemeCollectionColor;
 
+typedef struct ThemeStripColor {
+  unsigned char color[4];
+} ThemeStripColor;
+
 /**
  * A theme.
  *
@@ -500,8 +504,10 @@ typedef struct bTheme {
   /* See COLLECTION_COLOR_TOT for the number of collection colors. */
   ThemeCollectionColor collection_color[8];
 
+  /* See SEQUENCE_COLOR_TOT for the total number of strip colors. */
+  ThemeStripColor strip_color[9];
+
   int active_theme_area;
-  char _pad0[4];
 } bTheme;
 
 #define UI_THEMESPACE_START(btheme) \

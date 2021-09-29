@@ -241,6 +241,7 @@ class SEQUENCER_PT_sequencer_overlay(Panel):
         layout.prop(overlay_settings, "show_strip_name", text="Name")
         layout.prop(overlay_settings, "show_strip_source", text="Source")
         layout.prop(overlay_settings, "show_strip_duration", text="Duration")
+        layout.prop(overlay_settings, "show_strip_tag_color", text="Color Tags")
 
         layout.separator()
 
@@ -869,6 +870,9 @@ class SEQUENCER_MT_strip(Menu):
                 layout.operator("sequencer.meta_toggle", text="Toggle Meta")
 
         layout.separator()
+        layout.menu("SEQUENCER_MT_color_tag_picker")
+
+        layout.separator()
         layout.menu("SEQUENCER_MT_strip_lock_mute")
 
         layout.separator()
@@ -965,6 +969,9 @@ class SEQUENCER_MT_context_menu(Menu):
                 layout.operator("sequencer.meta_toggle", text="Toggle Meta")
 
         layout.separator()
+        layout.menu("SEQUENCER_MT_color_tag_picker")
+
+        layout.separator()
 
         layout.menu("SEQUENCER_MT_strip_lock_mute")
 
@@ -994,6 +1001,41 @@ class SequencerButtonsPanel_Output:
     @classmethod
     def poll(cls, context):
         return cls.has_preview(context)
+
+
+class SEQUENCER_PT_color_tag_picker(Panel):
+    bl_label = "Color Tag"
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Strip"
+    bl_options = {'HIDE_HEADER', 'INSTANCED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_sequence_strip is not None
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row(align=True)
+        row.operator("sequencer.strip_color_tag_set", icon="X").color = 'NONE'
+        for i in range(1, 10):
+            icon = 'SEQUENCE_COLOR_%02d' % i
+            row.operator("sequencer.strip_color_tag_set", icon=icon).color = 'COLOR_%02d' % i
+
+
+class SEQUENCER_MT_color_tag_picker(Menu):
+    bl_label = "Set Color Tag"
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_sequence_strip is not None
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row(align=True)
+        row.operator_enum("sequencer.strip_color_tag_set", "color", icon_only=True)
 
 
 class SEQUENCER_PT_strip(SequencerButtonsPanel, Panel):
@@ -1039,9 +1081,20 @@ class SEQUENCER_PT_strip(SequencerButtonsPanel, Panel):
         else:
             icon_header = 'SEQ_SEQUENCER'
 
-        row = layout.row()
+        row = layout.row(align=True)
+        row.use_property_decorate = False
         row.label(text="", icon=icon_header)
+        row.separator()
         row.prop(strip, "name", text="")
+
+        sub = row.row(align=True)
+        if strip.color_tag == 'NONE':
+            sub.popover(panel="SEQUENCER_PT_color_tag_picker", text="", icon='COLOR')
+        else:
+            icon = 'SEQUENCE_' + strip.color_tag
+            sub.popover(panel="SEQUENCER_PT_color_tag_picker", text="", icon=icon)
+
+        row.separator()
         row.prop(strip, "mute", toggle=True, icon_only=True, emboss=False)
 
 
@@ -2327,7 +2380,10 @@ classes = (
     SEQUENCER_MT_strip_transform,
     SEQUENCER_MT_strip_input,
     SEQUENCER_MT_strip_lock_mute,
+    SEQUENCER_MT_color_tag_picker,
     SEQUENCER_MT_context_menu,
+
+    SEQUENCER_PT_color_tag_picker,
 
     SEQUENCER_PT_active_tool,
     SEQUENCER_PT_strip,

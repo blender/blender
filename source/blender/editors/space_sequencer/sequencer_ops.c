@@ -79,6 +79,8 @@ void sequencer_operatortypes(void)
   WM_operatortype_append(SEQUENCER_OT_strip_transform_clear);
   WM_operatortype_append(SEQUENCER_OT_strip_transform_fit);
 
+  WM_operatortype_append(SEQUENCER_OT_strip_color_tag_set);
+
   /* sequencer_select.c */
   WM_operatortype_append(SEQUENCER_OT_select_all);
   WM_operatortype_append(SEQUENCER_OT_select);

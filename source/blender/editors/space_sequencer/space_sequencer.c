@@ -104,7 +104,7 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   sseq->preview_overlay.flag = SEQ_PREVIEW_SHOW_GPENCIL | SEQ_PREVIEW_SHOW_OUTLINE_SELECTED;
   sseq->timeline_overlay.flag = SEQ_TIMELINE_SHOW_STRIP_NAME | SEQ_TIMELINE_SHOW_STRIP_SOURCE |
                                 SEQ_TIMELINE_SHOW_STRIP_DURATION | SEQ_TIMELINE_SHOW_GRID |
-                                SEQ_TIMELINE_SHOW_FCURVES;
+                                SEQ_TIMELINE_SHOW_FCURVES | SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG;
 
   BLI_rctf_init(&sseq->runtime.last_thumbnail_area, 0.0f, 0.0f, 0.0f, 0.0f);
   sseq->runtime.last_displayed_thumbnails = NULL;

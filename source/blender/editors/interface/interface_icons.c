@@ -47,6 +47,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 
 #include "RNA_access.h"
@@ -479,6 +480,35 @@ DEF_ICON_COLLECTION_COLOR_DRAW(07, COLLECTION_COLOR_07);
 DEF_ICON_COLLECTION_COLOR_DRAW(08, COLLECTION_COLOR_08);
 
 #  undef DEF_ICON_COLLECTION_COLOR_DRAW
+
+static void vicon_strip_color_draw(
+    short color_tag, int x, int y, int w, int UNUSED(h), float UNUSED(alpha))
+{
+  bTheme *btheme = UI_GetTheme();
+  const ThemeStripColor *strip_color = &btheme->strip_color[color_tag];
+
+  const float aspect = (float)ICON_DEFAULT_WIDTH / (float)w;
+
+  UI_icon_draw_ex(x, y, ICON_SNAP_FACE, aspect, 1.0f, 0.0f, strip_color->color, true);
+}
+
+#  define DEF_ICON_STRIP_COLOR_DRAW(index, color) \
+    static void vicon_strip_color_draw_##index(int x, int y, int w, int h, float alpha) \
+    { \
+      vicon_strip_color_draw(color, x, y, w, h, alpha); \
+    }
+
+DEF_ICON_STRIP_COLOR_DRAW(01, SEQUENCE_COLOR_01);
+DEF_ICON_STRIP_COLOR_DRAW(02, SEQUENCE_COLOR_02);
+DEF_ICON_STRIP_COLOR_DRAW(03, SEQUENCE_COLOR_03);
+DEF_ICON_STRIP_COLOR_DRAW(04, SEQUENCE_COLOR_04);
+DEF_ICON_STRIP_COLOR_DRAW(05, SEQUENCE_COLOR_05);
+DEF_ICON_STRIP_COLOR_DRAW(06, SEQUENCE_COLOR_06);
+DEF_ICON_STRIP_COLOR_DRAW(07, SEQUENCE_COLOR_07);
+DEF_ICON_STRIP_COLOR_DRAW(08, SEQUENCE_COLOR_08);
+DEF_ICON_STRIP_COLOR_DRAW(09, SEQUENCE_COLOR_09);
+
+#  undef DEF_ICON_STRIP_COLOR_DRAW
 
 /* Dynamically render icon instead of rendering a plain color to a texture/buffer
  * This is not strictly a "vicon", as it needs access to icon->obj to get the color info,
@@ -995,6 +1025,16 @@ static void init_internal_icons(void)
   def_internal_vicon(ICON_COLLECTION_COLOR_06, vicon_collection_color_draw_06);
   def_internal_vicon(ICON_COLLECTION_COLOR_07, vicon_collection_color_draw_07);
   def_internal_vicon(ICON_COLLECTION_COLOR_08, vicon_collection_color_draw_08);
+
+  def_internal_vicon(ICON_SEQUENCE_COLOR_01, vicon_strip_color_draw_01);
+  def_internal_vicon(ICON_SEQUENCE_COLOR_02, vicon_strip_color_draw_02);
+  def_internal_vicon(ICON_SEQUENCE_COLOR_03, vicon_strip_color_draw_03);
+  def_internal_vicon(ICON_SEQUENCE_COLOR_04, vicon_strip_color_draw_04);
+  def_internal_vicon(ICON_SEQUENCE_COLOR_05, vicon_strip_color_draw_05);
+  def_internal_vicon(ICON_SEQUENCE_COLOR_06, vicon_strip_color_draw_06);
+  def_internal_vicon(ICON_SEQUENCE_COLOR_07, vicon_strip_color_draw_07);
+  def_internal_vicon(ICON_SEQUENCE_COLOR_08, vicon_strip_color_draw_08);
+  def_internal_vicon(ICON_SEQUENCE_COLOR_09, vicon_strip_color_draw_09);
 }
 
 static void init_iconfile_list(struct ListBase *list)

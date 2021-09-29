@@ -1175,6 +1175,35 @@ const bTheme U_theme_default = {
       .color = RGBA(0x7a5441ff),
     },
   },
+  .strip_color = {
+    {
+      .color = RGBA(0xe2605bff),
+    },
+    {
+      .color = RGBA(0xf1a355ff),
+    },
+    {
+      .color = RGBA(0xf1dc55ff),
+    },
+    {
+      .color = RGBA(0x7bcc7bff),
+    },
+    {
+      .color = RGBA(0x5db6eaff),
+    },
+    {
+      .color = RGBA(0x8d59daff),
+    },
+    {
+      .color = RGBA(0xc673b8ff),
+    },
+    {
+      .color = RGBA(0x7a5441ff),
+    },
+    {
+      .color = RGBA(0x5f5f5fff),
+    },
+  },
 };
 
 /* clang-format on */

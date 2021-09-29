@@ -51,7 +51,10 @@ void sequencer_draw_preview(const struct bContext *C,
                             int offset,
                             bool draw_overlay,
                             bool draw_backdrop);
-void color3ubv_from_seq(struct Scene *curscene, struct Sequence *seq, unsigned char col[3]);
+void color3ubv_from_seq(const struct Scene *curscene,
+                        const struct Sequence *seq,
+                        const bool show_strip_color_tag,
+                        uchar r_col[3]);
 
 void sequencer_special_update_set(Sequence *seq);
 float sequence_handle_size_get_clamped(struct Sequence *seq, const float pixelx);
@@ -147,6 +150,8 @@ void SEQUENCER_OT_export_subtitles(struct wmOperatorType *ot);
 void SEQUENCER_OT_set_range_to_strips(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_transform_clear(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_transform_fit(struct wmOperatorType *ot);
+
+void SEQUENCER_OT_strip_color_tag_set(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
 void SEQUENCER_OT_select_all(struct wmOperatorType *ot);
