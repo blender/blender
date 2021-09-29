@@ -606,6 +606,10 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 30)) {
+    do_versions_idproperty_ui_data(bmain);
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -618,7 +622,6 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
-    do_versions_idproperty_ui_data(bmain);
   }
 }
 
