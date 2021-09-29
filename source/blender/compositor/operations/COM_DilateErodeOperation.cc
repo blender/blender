@@ -783,7 +783,8 @@ static void step_update_memory_buffer(MemoryBuffer *output,
 
       start = half_window + (i - 1) * window + 1;
       for (int y = -MIN2(0, start); y < window - MAX2(0, start + window - bheight); y++) {
-        result.get_value(x, y + start + area.ymin, 0) = selector(temp[y], temp[y + window - 1]);
+        result.get_value(x + area.xmin, y + start + area.ymin, 0) = selector(temp[y],
+                                                                             temp[y + window - 1]);
       }
     }
   }
