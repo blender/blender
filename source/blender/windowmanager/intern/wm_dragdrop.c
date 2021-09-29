@@ -398,6 +398,16 @@ static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)
     case FILE_ASSET_IMPORT_APPEND:
       return WM_file_append_datablock(
           G_MAIN, NULL, NULL, NULL, asset_drag->path, idtype, name, BLO_LIBLINK_APPEND_RECURSIVE);
+    case FILE_ASSET_IMPORT_APPEND_REUSE:
+      return WM_file_append_datablock(G_MAIN,
+                                      NULL,
+                                      NULL,
+                                      NULL,
+                                      asset_drag->path,
+                                      idtype,
+                                      name,
+                                      BLO_LIBLINK_APPEND_RECURSIVE |
+                                          BLO_LIBLINK_APPEND_LOCAL_ID_REUSE);
   }
 
   BLI_assert_unreachable();

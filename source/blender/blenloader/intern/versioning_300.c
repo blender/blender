@@ -1554,6 +1554,11 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
                 sfile->params->flag &= ~(FILE_PARAMS_FLAG_UNUSED_1 | FILE_PARAMS_FLAG_UNUSED_2 |
                                          FILE_PARAMS_FLAG_UNUSED_3 | FILE_PARAMS_FLAG_UNUSED_4);
               }
+
+              /* New default import type: Append with reuse. */
+              if (sfile->asset_params) {
+                sfile->asset_params->import_type = FILE_ASSET_IMPORT_APPEND_REUSE;
+              }
               break;
             }
             default:

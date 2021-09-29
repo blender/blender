@@ -6643,6 +6643,14 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
        0,
        "Append",
        "Import the assets as copied data-block, with no link to the original asset data-block"},
+      {FILE_ASSET_IMPORT_APPEND_REUSE,
+       "APPEND_REUSE",
+       0,
+       "Append (Reuse Data)",
+       "Import the assets as copied data-block while avoiding multiple copies of nested, "
+       "typically heavy data. For example the textures of a material asset, or the mesh of an "
+       "object asset, don't have to be copied every time this asset is imported. The instances of "
+       "the asset share the data instead"},
       {0, NULL, 0, NULL, NULL},
   };
 

@@ -812,8 +812,14 @@ typedef struct FileAssetSelectParams {
 } FileAssetSelectParams;
 
 typedef enum eFileAssetImportType {
+  /** Regular data-block linking. */
   FILE_ASSET_IMPORT_LINK = 0,
+  /** Regular data-block appending (basically linking + "Make Local"). */
   FILE_ASSET_IMPORT_APPEND = 1,
+  /** Append data-block with the #BLO_LIBLINK_APPEND_LOCAL_ID_REUSE flag enabled. Some typically
+   * heavy data dependencies (e.g. the image data-blocks of a material, the mesh of an object) may
+   * be reused from an earlier append. */
+  FILE_ASSET_IMPORT_APPEND_REUSE = 2,
 } eFileAssetImportType;
 
 /**
