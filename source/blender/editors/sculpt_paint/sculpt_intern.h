@@ -692,7 +692,7 @@ void SCULPT_boundary_pivot_line_preview_draw(const uint gpuattr, struct SculptSe
 
 /* Array Brush. */
 void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
-void SCULPT_array_datalayers_free(Object *ob);
+void SCULPT_array_datalayers_free(SculptArray *array, Object *ob);
 void SCULPT_array_path_draw(const uint gpuattr, Brush *brush, SculptSession *ss);
 
 /* Multi-plane Scrape Brush. */

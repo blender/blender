@@ -11872,7 +11872,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
   if (brush->sculpt_tool == SCULPT_TOOL_ARRAY) {
     SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
-    SCULPT_array_datalayers_free(ob);
+    SCULPT_array_datalayers_free(ss->array, ob);
   }
 
   SCULPT_undo_push_end();
