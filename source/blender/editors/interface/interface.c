@@ -6224,6 +6224,13 @@ void UI_but_drag_set_asset(uiBut *but,
   asset_drag->id_type = ED_asset_handle_get_id_type(asset);
   asset_drag->import_type = import_type;
 
+  /* FIXME: This is temporary evil solution to get scene/viewlayer/etc in the copy callback of the
+   * #wmDropBox.
+   * TODO: Handle link/append in operator called at the end of the drop process, and NOT in its
+   * copy callback.
+   * */
+  asset_drag->evil_C = but->block->evil_C;
+
   but->dragtype = WM_DRAG_ASSET;
   ui_def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
   if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {

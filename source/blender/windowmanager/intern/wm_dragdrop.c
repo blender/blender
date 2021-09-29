@@ -42,6 +42,7 @@
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
+#include "BKE_main.h"
 
 #include "BLO_readfile.h"
 
@@ -392,21 +393,42 @@ static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)
   const char *name = asset_drag->name;
   ID_Type idtype = asset_drag->id_type;
 
+  /* FIXME: Link/Append should happens in the operator called at the end of drop process, not from
+   * here. */
+
+  Main *bmain = CTX_data_main(asset_drag->evil_C);
+  Scene *scene = CTX_data_scene(asset_drag->evil_C);
+  ViewLayer *view_layer = CTX_data_view_layer(asset_drag->evil_C);
+  View3D *view3d = CTX_wm_view3d(asset_drag->evil_C);
+
   switch ((eFileAssetImportType)asset_drag->import_type) {
     case FILE_ASSET_IMPORT_LINK:
-      return WM_file_link_datablock(G_MAIN, NULL, NULL, NULL, asset_drag->path, idtype, name, 0);
+      return WM_file_link_datablock(bmain,
+                                    scene,
+                                    view_layer,
+                                    view3d,
+                                    asset_drag->path,
+                                    idtype,
+                                    name,
+                                    FILE_ACTIVE_COLLECTION);
     case FILE_ASSET_IMPORT_APPEND:
-      return WM_file_append_datablock(
-          G_MAIN, NULL, NULL, NULL, asset_drag->path, idtype, name, BLO_LIBLINK_APPEND_RECURSIVE);
-    case FILE_ASSET_IMPORT_APPEND_REUSE:
-      return WM_file_append_datablock(G_MAIN,
-                                      NULL,
-                                      NULL,
-                                      NULL,
+      return WM_file_append_datablock(bmain,
+                                      scene,
+                                      view_layer,
+                                      view3d,
                                       asset_drag->path,
                                       idtype,
                                       name,
-                                      BLO_LIBLINK_APPEND_RECURSIVE |
+                                      BLO_LIBLINK_APPEND_RECURSIVE | FILE_ACTIVE_COLLECTION);
+    case FILE_ASSET_IMPORT_APPEND_REUSE:
+      return WM_file_append_datablock(G_MAIN,
+                                      scene,
+                                      view_layer,
+                                      view3d,
+                                      asset_drag->path,
+                                      idtype,
+                                      name,
+                                      BLO_LIBLINK_APPEND_RECURSIVE | FILE_ACTIVE_COLLECTION |
                                           BLO_LIBLINK_APPEND_LOCAL_ID_REUSE);
   }
 
