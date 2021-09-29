@@ -44,6 +44,7 @@ class MovieDistortionOperation : public MultiThreadedOperation {
   MovieDistortionOperation(bool distortion);
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
+  void init_data() override;
   void initExecution() override;
   void deinitExecution() override;
 

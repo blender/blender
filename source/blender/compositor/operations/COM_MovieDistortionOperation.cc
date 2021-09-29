@@ -35,9 +35,8 @@ MovieDistortionOperation::MovieDistortionOperation(bool distortion)
   this->m_apply = distortion;
 }
 
-void MovieDistortionOperation::initExecution()
+void MovieDistortionOperation::init_data()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
   if (this->m_movieClip) {
     MovieTracking *tracking = &this->m_movieClip->tracking;
     MovieClipUser clipUser = {0};
@@ -60,15 +59,25 @@ void MovieDistortionOperation::initExecution()
     m_margin[0] = delta[0] + 5;
     m_margin[1] = delta[1] + 5;
 
-    this->m_distortion = BKE_tracking_distortion_new(
-        tracking, calibration_width, calibration_height);
     this->m_calibration_width = calibration_width;
     this->m_calibration_height = calibration_height;
     this->m_pixel_aspect = tracking->camera.pixel_aspect;
   }
   else {
     m_margin[0] = m_margin[1] = 0;
-    this->m_distortion = nullptr;
+  }
+}
+
+void MovieDistortionOperation::initExecution()
+{
+  m_inputOperation = this->getInputSocketReader(0);
+  if (m_movieClip) {
+    MovieTracking *tracking = &m_movieClip->tracking;
+    m_distortion = BKE_tracking_distortion_new(
+        tracking, m_calibration_width, m_calibration_height);
+  }
+  else {
+    m_distortion = nullptr;
   }
 }
 
