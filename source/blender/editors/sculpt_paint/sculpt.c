@@ -9133,8 +9133,17 @@ static void SCULPT_run_command_list(
 
     ss->cache->brush = &brush2;
 
-    ss->cache->bstrength = brush_strength(
-        sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
+    if (cmd->tool == SCULPT_TOOL_SMOOTH) {
+      ss->cache->bstrength = brush2.alpha;
+
+      if (ss->cache->invert && BRUSHSET_GET_INT(cmd->params_final, use_ctrl_invert, NULL)) {
+        ss->cache->bstrength = -ss->cache->bstrength;
+      }
+    }
+    else {
+      ss->cache->bstrength = brush_strength(
+          sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
+    }
 
     brush2.alpha = fabs(ss->cache->bstrength);
 
@@ -9357,8 +9366,13 @@ static void SCULPT_run_command_list(
     ss->cache->brush = brush2;
     ups->alpha = BRUSHSET_GET_FLOAT(cmd->params_mapped, strength, NULL);
 
-    ss->cache->bstrength = brush_strength(
-        sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
+    if (cmd->tool == SCULPT_TOOL_SMOOTH) {
+      ss->cache->bstrength = brush2->alpha;
+    }
+    else {
+      ss->cache->bstrength = brush_strength(
+          sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
+    }
 
     if (!BRUSHSET_GET_INT(cmd->params_mapped, use_ctrl_invert, NULL)) {
       ss->cache->bstrength = fabsf(ss->cache->bstrength);

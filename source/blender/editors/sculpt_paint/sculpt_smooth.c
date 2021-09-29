@@ -74,21 +74,10 @@
 #include <math.h>
 #include <stdlib.h>
 
-#if 0
-ATTR_NO_OPT void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
-                                                         float result[3],
-                                                         SculptVertRef vertex,
-                                                         float projection,
-                                                         float slide_fset,
-                                                         float bound_smooth,
-                                                         SculptCustomLayer *bound_scl,
-                                                         bool do_origco)
-#else
-ATTR_NO_OPT void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
-                                                         float result[3],
-                                                         SculptVertRef vertex,
-                                                         SculptSmoothArgs *args)
-#endif
+void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                             float result[3],
+                                             SculptVertRef vertex,
+                                             SculptSmoothArgs *args)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
 

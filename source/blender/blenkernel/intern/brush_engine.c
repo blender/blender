@@ -1522,6 +1522,13 @@ void BKE_builtin_commandlist_create(Brush *brush,
       ch->flag |= BRUSH_CHANNEL_INHERIT;
     }
 
+    ch = BRUSHSET_LOOKUP(cmd->params, strength);
+    ch2 = BRUSHSET_LOOKUP(chset, autosmooth);
+
+    for (int j = 0; j < BRUSH_MAPPING_MAX; j++) {
+      BKE_brush_mapping_copy_data(ch->mappings + j, ch2->mappings + j);
+    }
+
     int_set_uninherit(cmd->params, use_ctrl_invert, false);
     float_set_uninherit(cmd->params, strength, autosmooth);
     float_set_uninherit(cmd->params, radius, radius * autosmooth_scale);
