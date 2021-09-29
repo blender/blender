@@ -764,8 +764,10 @@ ccl_device_inline void curve_shader_setup(const KernelGlobals *kg,
     /* Thick curves, compute normal using direction from inside the curve.
      * This could be optimized by recording the normal in the intersection,
      * however for Optix this would go beyond the size of the payload. */
+    /* NOTE: It is possible that P will be the same as P_inside (precision issues, or very small
+     * radius). In this case use the view direction to approximate the normal. */
     const float3 P_inside = float4_to_float3(catmull_rom_basis_eval(P_curve, sd->u));
-    const float3 Ng = normalize(P - P_inside);
+    const float3 Ng = (!isequal_float3(P, P_inside)) ? normalize(P - P_inside) : -sd->I;
 
     sd->N = Ng;
     sd->Ng = Ng;
