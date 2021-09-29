@@ -27,11 +27,17 @@
 #include "BKE_image.h"
 
 /* **************** VIEWER ******************** */
-static bNodeSocketTemplate cmp_node_viewer_in[] = {
-    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Z"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, ""}};
+
+namespace blender::nodes {
+
+static void cmp_node_viewer_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>("Image");
+  b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_input<decl::Float>("Z").default_value(1.0f).min(0.0f).max(1.0f);
+}
+
+}  // namespace blender::nodes
 
 static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -50,7 +56,7 @@ void register_node_type_cmp_viewer(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
-  node_type_socket_templates(&ntype, cmp_node_viewer_in, nullptr);
+  ntype.declare = blender::nodes::cmp_node_viewer_declare;
   node_type_init(&ntype, node_composit_init_viewer);
   node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
 
