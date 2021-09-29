@@ -53,7 +53,7 @@ static std::string catalog_name_ensure_unique(AssetCatalogService &catalog_servi
 {
   CatalogUniqueNameFnData fn_data = {catalog_service, parent_path};
 
-  char unique_name[NAME_MAX] = "";
+  char unique_name[MAX_NAME] = "";
   BLI_uniquename_cb(
       catalog_name_exists_fn, &fn_data, name.c_str(), '.', unique_name, sizeof(unique_name));
 
