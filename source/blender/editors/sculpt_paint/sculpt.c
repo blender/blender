@@ -10494,7 +10494,7 @@ static void sculpt_update_cache_invariants(
   }
 
   if (SCULPT_TOOL_HAS_ACCUMULATE(brush->sculpt_tool)) {
-    if (!(brush->flag & BRUSH_ACCUMULATE)) {
+    if (!(BRUSHSET_GET_INT(brush->channels, accumulate, &ss->cache->input_mapping))) {
       cache->original = true;
       if (brush->sculpt_tool == SCULPT_TOOL_DRAW_SHARP) {
         cache->original = false;
