@@ -62,7 +62,7 @@ typedef enum eScreenAxis {
 #define AREAJOINTOLERANCEY (HEADERY * U.dpi_fac)
 
 /* Expanded interaction influence of area borders. */
-#define BORDERPADDING (U.dpi_fac + U.pixelsize)
+#define BORDERPADDING ((2.0f * U.dpi_fac) + U.pixelsize)
 
 /* area.c */
 void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, const bool do_free);
