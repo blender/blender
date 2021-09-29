@@ -23,6 +23,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* internal exports only */
 
 struct ARegion;
@@ -152,3 +156,7 @@ void file_execute_region_panels_register(struct ARegionType *art);
 void file_tile_boundbox(const ARegion *region, FileLayout *layout, const int file, rcti *r_bounds);
 
 void file_path_to_ui_path(const char *path, char *r_pathi, int max_size);
+
+#ifdef __cplusplus
+}
+#endif
