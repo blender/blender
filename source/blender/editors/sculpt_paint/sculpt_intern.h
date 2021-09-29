@@ -1836,12 +1836,12 @@ Access per element data with SCULPT_temp_cdata_get.
 bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
                                     AttributeDomain domain,
                                     int proptype,
-                                    char *name,
+                                    const char *name,
                                     SculptLayerParams *params);
 bool SCULPT_temp_customlayer_get(SculptSession *ss,
                                  AttributeDomain domain,
                                  int proptype,
-                                 char *name,
+                                 const char *name,
                                  SculptCustomLayer *scl,
                                  SculptLayerParams *params);
 bool SCULPT_temp_customlayer_release(SculptSession *ss, SculptCustomLayer *scl);

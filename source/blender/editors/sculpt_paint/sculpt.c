@@ -470,7 +470,7 @@ void SCULPT_vertex_persistent_normal_get(SculptSession *ss, SculptVertRef vertex
 static bool sculpt_temp_customlayer_get(SculptSession *ss,
                                         AttributeDomain domain,
                                         int proptype,
-                                        char *name,
+                                        const char *name,
                                         SculptCustomLayer *out,
                                         bool autocreate,
                                         SculptLayerParams *params)
@@ -775,8 +775,11 @@ float SCULPT_vertex_mask_get(SculptSession *ss, SculptVertRef index)
   return 0.0f;
 }
 
-bool SCULPT_temp_customlayer_ensure(
-    SculptSession *ss, AttributeDomain domain, int proptype, char *name, SculptLayerParams *params)
+bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
+                                    AttributeDomain domain,
+                                    int proptype,
+                                    const char *name,
+                                    SculptLayerParams *params)
 {
   SculptCustomLayer scl;
   bool ret = sculpt_temp_customlayer_get(ss, domain, proptype, name, &scl, true, params);
@@ -839,7 +842,7 @@ bool SCULPT_temp_customlayer_release(SculptSession *ss, SculptCustomLayer *scl)
 bool SCULPT_temp_customlayer_get(SculptSession *ss,
                                  AttributeDomain domain,
                                  int proptype,
-                                 char *name,
+                                 const char *name,
                                  SculptCustomLayer *scl,
                                  SculptLayerParams *params)
 {
