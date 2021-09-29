@@ -25,22 +25,23 @@
 
 /* **************** Exposure ******************** */
 
-static bNodeSocketTemplate cmp_node_exposure_in[] = {
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_FLOAT, N_("Exposure"), 0.0f, 0.0f, 0.0f, 0.0f, -10.0f, 10.0f, PROP_NONE},
-    {-1, ""},
-};
-static bNodeSocketTemplate cmp_node_exposure_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_exposure_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Exposure").min(-10.0f).max(10.0f);
+  b.add_output<decl::Color>("Image");
+}
+
+}  // namespace blender::nodes
 
 void register_node_type_cmp_exposure(void)
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_EXPOSURE, "Exposure", NODE_CLASS_OP_COLOR, 0);
-  node_type_socket_templates(&ntype, cmp_node_exposure_in, cmp_node_exposure_out);
+  ntype.declare = blender::nodes::cmp_node_exposure_declare;
 
   nodeRegisterType(&ntype);
 }

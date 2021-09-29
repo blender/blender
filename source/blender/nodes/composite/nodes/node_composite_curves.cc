@@ -85,18 +85,19 @@ void register_node_type_cmp_curve_vec(void)
 }
 
 /* **************** CURVE RGB  ******************** */
-static bNodeSocketTemplate cmp_node_curve_rgb_in[] = {
-    {SOCK_FLOAT, N_("Fac"), 1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_RGBA, N_("Black Level"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_("White Level"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, ""},
-};
 
-static bNodeSocketTemplate cmp_node_curve_rgb_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_rgbcurves_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Fac").default_value(1.0f).min(-1.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Black Level").default_value({0.0f, 0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Color>("White Level").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Color>("Image");
+}
+
+}  // namespace blender::nodes
 
 static void node_composit_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -108,7 +109,7 @@ void register_node_type_cmp_curve_rgb(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR, 0);
-  node_type_socket_templates(&ntype, cmp_node_curve_rgb_in, cmp_node_curve_rgb_out);
+  ntype.declare = blender::nodes::cmp_node_rgbcurves_declare;
   node_type_size(&ntype, 200, 140, 320);
   node_type_init(&ntype, node_composit_init_curve_rgb);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);

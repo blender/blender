@@ -25,16 +25,17 @@
 
 /* **************** Bright and Contrast  ******************** */
 
-static bNodeSocketTemplate cmp_node_brightcontrast_in[] = {
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_FLOAT, N_("Bright"), 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Contrast"), 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
-    {-1, ""},
-};
-static bNodeSocketTemplate cmp_node_brightcontrast_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_brightcontrast_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Bright").min(-100.0f).max(100.0f);
+  b.add_input<decl::Float>("Contrast").min(-100.0f).max(100.0f);
+  b.add_output<decl::Color>("Image");
+}
+
+}  // namespace blender::nodes
 
 static void node_composit_init_brightcontrast(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -46,7 +47,7 @@ void register_node_type_cmp_brightcontrast(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR, 0);
-  node_type_socket_templates(&ntype, cmp_node_brightcontrast_in, cmp_node_brightcontrast_out);
+  ntype.declare = blender::nodes::cmp_node_brightcontrast_declare;
   node_type_init(&ntype, node_composit_init_brightcontrast);
 
   nodeRegisterType(&ntype);

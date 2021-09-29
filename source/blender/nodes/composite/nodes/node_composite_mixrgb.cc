@@ -24,16 +24,18 @@
 #include "node_composite_util.hh"
 
 /* **************** MIX RGB ******************** */
-static bNodeSocketTemplate cmp_node_mix_rgb_in[] = {
-    {SOCK_FLOAT, N_("Fac"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, ""},
-};
-static bNodeSocketTemplate cmp_node_mix_rgb_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+
+namespace blender::nodes {
+
+static void cmp_node_mixrgb_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Fac").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Image", "Image_001").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Color>("Image");
+}
+
+}  // namespace blender::nodes
 
 /* custom1 = mix type */
 void register_node_type_cmp_mix_rgb(void)
@@ -41,7 +43,7 @@ void register_node_type_cmp_mix_rgb(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR, NODE_PREVIEW);
-  node_type_socket_templates(&ntype, cmp_node_mix_rgb_in, cmp_node_mix_rgb_out);
+  ntype.declare = blender::nodes::cmp_node_mixrgb_declare;
   node_type_label(&ntype, node_blend_label);
 
   nodeRegisterType(&ntype);

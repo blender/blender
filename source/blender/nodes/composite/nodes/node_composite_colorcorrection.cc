@@ -23,17 +23,18 @@
 
 #include "node_composite_util.hh"
 
-/* ******************* Color Balance ********************************* */
-static bNodeSocketTemplate cmp_node_colorcorrection_in[] = {
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_FLOAT, N_("Mask"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, ""},
-};
+/* ******************* Color Correction ********************************* */
 
-static bNodeSocketTemplate cmp_node_colorcorrection_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_colorcorrection_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Mask").default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_output<decl::Color>("Image");
+}
+
+}  // namespace blender::nodes
 
 static void node_composit_init_colorcorrection(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -70,7 +71,7 @@ void register_node_type_cmp_colorcorrection(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_COLORCORRECTION, "Color Correction", NODE_CLASS_OP_COLOR, 0);
-  node_type_socket_templates(&ntype, cmp_node_colorcorrection_in, cmp_node_colorcorrection_out);
+  ntype.declare = blender::nodes::cmp_node_colorcorrection_declare;
   node_type_size(&ntype, 400, 200, 600);
   node_type_init(&ntype, node_composit_init_colorcorrection);
   node_type_storage(

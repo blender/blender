@@ -24,16 +24,17 @@
 #include "node_composite_util.hh"
 
 /* ******************* Color Balance ********************************* */
-static bNodeSocketTemplate cmp_node_colorbalance_in[] = {
-    {SOCK_FLOAT, N_("Fac"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, ""},
-};
 
-static bNodeSocketTemplate cmp_node_colorbalance_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Fac").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Color>("Image");
+}
+
+}  // namespace blender::nodes
 
 /* Sync functions update formula parameters for other modes, such that the result is comparable.
  * Note that the results are not exactly the same due to differences in color handling
@@ -84,7 +85,7 @@ void register_node_type_cmp_colorbalance(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_COLORBALANCE, "Color Balance", NODE_CLASS_OP_COLOR, 0);
-  node_type_socket_templates(&ntype, cmp_node_colorbalance_in, cmp_node_colorbalance_out);
+  ntype.declare = blender::nodes::cmp_node_colorbalance_declare;
   node_type_size(&ntype, 400, 200, 400);
   node_type_init(&ntype, node_composit_init_colorbalance);
   node_type_storage(

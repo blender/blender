@@ -24,12 +24,17 @@
 #include "node_composite_util.hh"
 
 /* **************** INVERT ******************** */
-static bNodeSocketTemplate cmp_node_invert_in[] = {
-    {SOCK_FLOAT, N_("Fac"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, ""}};
 
-static bNodeSocketTemplate cmp_node_invert_out[] = {{SOCK_RGBA, N_("Color")}, {-1, ""}};
+namespace blender::nodes {
+
+static void cmp_node_invert_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Fac").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Color>("Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Color>("Color");
+}
+
+}  // namespace blender::nodes
 
 static void node_composit_init_invert(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -42,7 +47,7 @@ void register_node_type_cmp_invert(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, 0);
-  node_type_socket_templates(&ntype, cmp_node_invert_in, cmp_node_invert_out);
+  ntype.declare = blender::nodes::cmp_node_invert_declare;
   node_type_init(&ntype, node_composit_init_invert);
 
   nodeRegisterType(&ntype);
