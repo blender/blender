@@ -24,47 +24,51 @@
 #include "node_composite_util.hh"
 
 /* **************** SEPARATE RGBA ******************** */
-static bNodeSocketTemplate cmp_node_seprgba_in[] = {
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, ""},
-};
-static bNodeSocketTemplate cmp_node_seprgba_out[] = {
-    {SOCK_FLOAT, N_("R")},
-    {SOCK_FLOAT, N_("G")},
-    {SOCK_FLOAT, N_("B")},
-    {SOCK_FLOAT, N_("A")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_seprgba_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Float>("R");
+  b.add_output<decl::Float>("G");
+  b.add_output<decl::Float>("B");
+  b.add_output<decl::Float>("A");
+
+}
+
+}  // namespace blender::nodes
 
 void register_node_type_cmp_seprgba(void)
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SEPRGBA, "Separate RGBA", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, cmp_node_seprgba_in, cmp_node_seprgba_out);
+  ntype.declare = blender::nodes::cmp_node_seprgba_declare;
 
   nodeRegisterType(&ntype);
 }
 
 /* **************** COMBINE RGBA ******************** */
-static bNodeSocketTemplate cmp_node_combrgba_in[] = {
-    {SOCK_FLOAT, N_("R"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("G"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("B"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("A"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, ""},
-};
-static bNodeSocketTemplate cmp_node_combrgba_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+
+namespace blender::nodes {
+
+static void cmp_node_combrgba_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("R").min(0.0f).max(1.0f);
+  b.add_input<decl::Float>("G").min(0.0f).max(1.0f);
+  b.add_input<decl::Float>("B").min(0.0f).max(1.0f);
+  b.add_input<decl::Float>("A").default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_output<decl::Color>("Image");
+}
+
+}  // namespace blender::nodes
 
 void register_node_type_cmp_combrgba(void)
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_COMBRGBA, "Combine RGBA", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, cmp_node_combrgba_in, cmp_node_combrgba_out);
+  ntype.declare = blender::nodes::cmp_node_combrgba_declare;
 
   nodeRegisterType(&ntype);
 }

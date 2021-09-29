@@ -24,47 +24,51 @@
 #include "node_composite_util.hh"
 
 /* **************** SEPARATE HSVA ******************** */
-static bNodeSocketTemplate cmp_node_sephsva_in[] = {
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, ""},
-};
-static bNodeSocketTemplate cmp_node_sephsva_out[] = {
-    {SOCK_FLOAT, N_("H")},
-    {SOCK_FLOAT, N_("S")},
-    {SOCK_FLOAT, N_("V")},
-    {SOCK_FLOAT, N_("A")},
-    {-1, ""},
-};
+
+namespace blender::nodes {
+
+static void cmp_node_sephsva_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Float>("H");
+  b.add_output<decl::Float>("S");
+  b.add_output<decl::Float>("V");
+  b.add_output<decl::Float>("A");
+
+}
+
+}  // namespace blender::nodes
 
 void register_node_type_cmp_sephsva(void)
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SEPHSVA, "Separate HSVA", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, cmp_node_sephsva_in, cmp_node_sephsva_out);
-
+  ntype.declare = blender::nodes::cmp_node_sephsva_declare;
   nodeRegisterType(&ntype);
 }
 
 /* **************** COMBINE HSVA ******************** */
-static bNodeSocketTemplate cmp_node_combhsva_in[] = {
-    {SOCK_FLOAT, N_("H"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("S"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("V"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("A"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, ""},
-};
-static bNodeSocketTemplate cmp_node_combhsva_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+
+namespace blender::nodes {
+
+static void cmp_node_combhsva_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("H").min(0.0f).max(1.0f);
+  b.add_input<decl::Float>("S").min(0.0f).max(1.0f);
+  b.add_input<decl::Float>("V").min(0.0f).max(1.0f);
+  b.add_input<decl::Float>("A").default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_output<decl::Color>("Image");
+}
+
+}  // namespace blender::nodes
 
 void register_node_type_cmp_combhsva(void)
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_COMBHSVA, "Combine HSVA", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, cmp_node_combhsva_in, cmp_node_combhsva_out);
+  ntype.declare = blender::nodes::cmp_node_combhsva_declare;
 
   nodeRegisterType(&ntype);
 }

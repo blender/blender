@@ -25,21 +25,22 @@
 
 /* **************** Premul and Key Alpha Convert ******************** */
 
-static bNodeSocketTemplate cmp_node_premulkey_in[] = {
-    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {-1, ""},
-};
-static bNodeSocketTemplate cmp_node_premulkey_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_premulkey_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Color>("Image");
+}
+
+}  // namespace blender::nodes
 
 void register_node_type_cmp_premulkey(void)
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_PREMULKEY, "Alpha Convert", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, cmp_node_premulkey_in, cmp_node_premulkey_out);
-
+  ntype.declare = blender::nodes::cmp_node_premulkey_declare;
+  
   nodeRegisterType(&ntype);
 }

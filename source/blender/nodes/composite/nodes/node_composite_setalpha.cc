@@ -24,15 +24,17 @@
 #include "node_composite_util.hh"
 
 /* **************** SET ALPHA ******************** */
-static bNodeSocketTemplate cmp_node_setalpha_in[] = {
-    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, ""},
-};
-static bNodeSocketTemplate cmp_node_setalpha_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+
+namespace blender::nodes {
+
+static void cmp_node_setalpha_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f);  
+  b.add_output<decl::Color>("Image");
+}
+
+}  // namespace blender::nodes
 
 static void node_composit_init_setalpha(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -46,7 +48,7 @@ void register_node_type_cmp_setalpha(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SETALPHA, "Set Alpha", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, cmp_node_setalpha_in, cmp_node_setalpha_out);
+  ntype.declare = blender::nodes::cmp_node_setalpha_declare;
   node_type_init(&ntype, node_composit_init_setalpha);
   node_type_storage(
       &ntype, "NodeSetAlpha", node_free_standard_storage, node_copy_standard_storage);

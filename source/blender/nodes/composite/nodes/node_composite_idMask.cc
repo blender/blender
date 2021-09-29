@@ -25,21 +25,22 @@
 
 /* **************** ID Mask  ******************** */
 
-static bNodeSocketTemplate cmp_node_idmask_in[] = {
-    {SOCK_FLOAT, N_("ID value"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {-1, ""},
-};
-static bNodeSocketTemplate cmp_node_idmask_out[] = {
-    {SOCK_FLOAT, N_("Alpha")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void cmp_node_idmask_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("ID value").default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_output<decl::Float>("Alpha");
+}
+
+}  // namespace blender::nodes
 
 void register_node_type_cmp_idmask(void)
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_ID_MASK, "ID Mask", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, cmp_node_idmask_in, cmp_node_idmask_out);
+  ntype.declare = blender::nodes::cmp_node_idmask_declare;
 
   nodeRegisterType(&ntype);
 }
