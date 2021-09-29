@@ -369,7 +369,16 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         // float slide_fset = SCULPT_get_float(ss, fset_slide, NULL, ss->cache->brush);
 
         fade = clamp_f(fade, -1.0f, 1.0f);
-        SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex, 0.0f, 1.0f, 0.0f, NULL, false);
+        SCULPT_neighbor_coords_average_interior(
+            ss,
+            avg,
+            vd.vertex,
+            &((SculptSmoothArgs){.projection = 0.0f,
+                                 .slide_fset = 0.0f,
+                                 .bound_smooth = 0.0f,
+                                 .preserve_fset_boundaries = false,
+                                 .do_weighted_smooth = false}));
+
         sub_v3_v3v3(val, avg, orig_co);
         madd_v3_v3v3fl(val, orig_co, val, fade);
         sub_v3_v3v3(disp, val, orig_co);
@@ -777,6 +786,9 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
     /* All axis are disabled, so the filter is not going to produce any deformation. */
     return OPERATOR_CANCELLED;
   }
+
+  // flag original data to update
+  ss->stroke_id++;
 
   if (use_automasking) {
     /* Update the active face set manually as the paint cursor is not enabled when using the Mesh

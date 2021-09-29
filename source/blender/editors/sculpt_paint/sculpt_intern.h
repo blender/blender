@@ -368,6 +368,14 @@ typedef struct {
   struct SculptSession *ss;
 } SculptOrigVertData;
 
+typedef struct SculptSmoothArgs {
+  float projection, slide_fset, bound_smooth;
+  SculptCustomLayer *bound_scl;
+  bool do_origco : 1;
+  bool do_weighted_smooth : 1;
+  bool preserve_fset_boundaries : 1;
+} SculptSmoothArgs;
+
 /* Utils. */
 void SCULPT_calc_brush_plane(struct Sculpt *sd,
                              struct Object *ob,
@@ -721,6 +729,8 @@ float SCULPT_neighbor_mask_average(SculptSession *ss, SculptVertRef index);
 void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVertRef index);
 
 /* Mask the mesh boundaries smoothing only the mesh surface without using automasking. */
+
+#if 0
 void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float result[3],
                                              SculptVertRef vertex,
@@ -729,6 +739,12 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float bound_smooth,
                                              SculptCustomLayer *bound_scl,
                                              bool do_origco);
+#endif
+
+void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                             float result[3],
+                                             SculptVertRef vertex,
+                                             SculptSmoothArgs *args);
 
 void SCULPT_smooth_vcol_boundary(
     Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, float bstrength);

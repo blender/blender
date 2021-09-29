@@ -2031,7 +2031,17 @@ static void SCULPT_boundary_autosmooth(SculptSession *ss, SculptBoundary *bounda
         float sco[3];
 
         SCULPT_neighbor_coords_average_interior(
-            ss, sco, vd.vertex, projection, slide_fset, bound_smooth, NULL, false);
+            ss,
+            sco,
+            vd.vertex,
+            &((SculptSmoothArgs){.projection = projection,
+                                 .slide_fset = slide_fset,
+                                 .bound_smooth = bound_smooth,
+                                 .bound_scl = NULL,
+                                 .do_weighted_smooth = ss->cache->brush->flag2 &
+                                                       BRUSH_SMOOTH_USE_AREA_WEIGHT,
+                                 .preserve_fset_boundaries = ss->cache->brush->flag2 &
+                                                             BRUSH_SMOOTH_PRESERVE_FACE_SETS}));
 
         float *co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
 
@@ -2072,7 +2082,16 @@ static void SCULPT_boundary_build_smoothco(SculptSession *ss, SculptBoundary *bo
         float sco[3];
 
         SCULPT_neighbor_coords_average_interior(
-            ss, sco, vd.vertex, projection, slide_fset, bound_smooth, NULL, false);
+            ss,
+            sco,
+            vd.vertex,
+            &((SculptSmoothArgs){.projection = projection,
+                                 .slide_fset = slide_fset,
+                                 .bound_smooth = bound_smooth,
+                                 .do_weighted_smooth = ss->cache->brush->flag2 &
+                                                       BRUSH_SMOOTH_USE_AREA_WEIGHT,
+                                 .preserve_fset_boundaries = ss->cache->brush->flag2 &
+                                                             BRUSH_SMOOTH_PRESERVE_FACE_SETS}));
 
         float *co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
 

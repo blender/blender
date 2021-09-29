@@ -74,16 +74,29 @@
 #include <math.h>
 #include <stdlib.h>
 
-void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
-                                             float result[3],
-                                             SculptVertRef vertex,
-                                             float projection,
-                                             float slide_fset,
-                                             float bound_smooth,
-                                             SculptCustomLayer *bound_scl,
-                                             bool do_origco)
+#if 0
+ATTR_NO_OPT void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                                         float result[3],
+                                                         SculptVertRef vertex,
+                                                         float projection,
+                                                         float slide_fset,
+                                                         float bound_smooth,
+                                                         SculptCustomLayer *bound_scl,
+                                                         bool do_origco)
+#else
+ATTR_NO_OPT void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                                         float result[3],
+                                                         SculptVertRef vertex,
+                                                         SculptSmoothArgs *args)
+#endif
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
+
+  float projection = args->projection;
+  float slide_fset = args->slide_fset;
+  float bound_smooth = args->bound_smooth;
+  bool do_origco = args->do_origco;
+  SculptCustomLayer *bound_scl = args->bound_scl;
 
   MDynTopoVert *mv = SCULPT_vertex_get_mdyntopo(ss, vertex);
 
@@ -93,7 +106,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
   float total = 0.0f;
   int neighbor_count = 0;
-  bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
+  bool check_fsets = args->preserve_fset_boundaries;
 
   int bflag = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
 
@@ -117,7 +130,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     }
   }
 
-  const bool weighted = (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) && !is_boundary;
+  const bool weighted = args->do_weighted_smooth && !is_boundary;
   float *areas = NULL;
 
   SculptCornerType ctype = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
@@ -340,97 +353,6 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   }
 
   interp_v3_v3v3(result, result, co, 1.0f - corner_smooth);
-}
-
-void SCULPT_neighbor_coords_average_interior_velocity(SculptSession *ss,
-                                                      float result[3],
-                                                      SculptVertRef vertex,
-                                                      float projection,
-                                                      SculptCustomLayer *scl)
-{
-  float avg[3] = {0.0f, 0.0f, 0.0f};
-  int total = 0;
-  int neighbor_count = 0;
-  bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
-  int bflag = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
-
-  if (check_fsets) {
-    bflag |= SCULPT_BOUNDARY_FACE_SET;
-  }
-
-  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bflag);
-  const float *co = SCULPT_vertex_co_get(ss, vertex);
-  float no[3];
-
-  if (projection > 0.0f) {
-    SCULPT_vertex_normal_get(ss, vertex, no);
-  }
-
-  float vel[3];
-
-  copy_v3_v3(vel, (float *)SCULPT_temp_cdata_get(vertex, scl));
-  mul_v3_fl(vel, 0.4f);
-
-  SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    neighbor_count++;
-
-    float tmp[3];
-    bool ok = false;
-
-    float *vel2 = SCULPT_temp_cdata_get(ni.vertex, scl);
-
-    // propegate smooth velocities a bit
-    madd_v3_v3fl(vel2, vel, 1.0f / (float)ni.size);
-
-    if (is_boundary) {
-      /* Boundary vertices use only other boundary vertices. */
-      if (SCULPT_vertex_is_boundary(ss, ni.vertex, bflag)) {
-        copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
-        ok = true;
-      }
-    }
-    else {
-      /* Interior vertices use all neighbors. */
-      copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
-      ok = true;
-    }
-
-    if (!ok) {
-      continue;
-    }
-
-    if (projection > 0.0f) {
-      sub_v3_v3(tmp, co);
-      float fac = dot_v3v3(tmp, no);
-      madd_v3_v3fl(tmp, no, -fac * projection);
-      add_v3_v3(avg, tmp);
-    }
-    else {
-      add_v3_v3(avg, tmp);
-    }
-
-    total++;
-  }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-  /* Do not modify corner vertices. */
-  if (neighbor_count <= 2) {
-    copy_v3_v3(result, SCULPT_vertex_co_get(ss, vertex));
-    return;
-  }
-
-  /* Avoid division by 0 when there are no neighbors. */
-  if (total == 0) {
-    copy_v3_v3(result, SCULPT_vertex_co_get(ss, vertex));
-    return;
-  }
-
-  mul_v3_v3fl(result, avg, 1.0f / total);
-
-  if (projection > 0.0f) {
-    add_v3_v3(result, co);
-  }
 }
 
 int closest_vec_to_perp(float dir[3], float r_dir2[3], float no[3], float *buckets, float w)
@@ -800,7 +722,7 @@ void SCULPT_neighbor_coords_average(
     SCULPT_vertex_normal_get(ss, vertex, no);
   }
 
-  const bool weighted = ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
+  const bool weighted = ss->cache ? ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT : false;
   float *areas;
 
   if (weighted) {
@@ -1136,7 +1058,18 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
         float *co = step ? (float *)SCULPT_vertex_origco_get(ss, vd.vertex) : vd.co;
 
         SCULPT_neighbor_coords_average_interior(
-            ss, avg, vd.vertex, projection, fset_slide, bound_smooth, bound_scl, step);
+            ss,
+            avg,
+            vd.vertex,
+            &((SculptSmoothArgs){.projection = projection,
+                                 .slide_fset = fset_slide,
+                                 .bound_smooth = bound_smooth,
+                                 .bound_scl = bound_scl,
+                                 .do_origco = step,
+                                 .do_weighted_smooth = ss->cache->brush->flag2 &
+                                                       BRUSH_SMOOTH_USE_AREA_WEIGHT,
+                                 .preserve_fset_boundaries = ss->cache->brush->flag2 &
+                                                             BRUSH_SMOOTH_PRESERVE_FACE_SETS}));
 
         sub_v3_v3v3(val, avg, co);
         madd_v3_v3v3fl(val, co, val, fade);
@@ -1160,66 +1093,6 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   }
 }
 #endif
-
-static void do_smooth_brush_task_cb_ex_scl(void *__restrict userdata,
-                                           const int n,
-                                           const TaskParallelTLS *__restrict tls)
-{
-  SculptThreadedTaskData *data = userdata;
-  SculptSession *ss = data->ob->sculpt;
-  Sculpt *sd = data->sd;
-  const Brush *brush = data->brush;
-  float bstrength = data->strength;
-  float projection = data->smooth_projection;
-
-  SculptCustomLayer *scl = data->scl;
-
-  PBVHVertexIter vd;
-
-  CLAMP(bstrength, 0.0f, 1.0f);
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
-
-  const int thread_id = BLI_task_parallel_thread_id(tls);
-
-  // const float fset_slide = SCULPT_get_float(ss, fset_slide, NULL, NULL);
-  // const float bound_smooth = SCULPT_get_float(ss, boundary_smooth, NULL, NULL);
-
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
-      continue;
-    }
-    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                brush,
-                                                                vd.co,
-                                                                sqrtf(test.dist),
-                                                                vd.no,
-                                                                vd.fno,
-                                                                (vd.mask ? *vd.mask : 0.0f),
-                                                                vd.vertex,
-                                                                thread_id);
-
-    float avg[3], val[3];
-
-    SCULPT_neighbor_coords_average_interior_velocity(ss, avg, vd.vertex, projection, scl);
-
-    sub_v3_v3v3(val, avg, vd.co);
-
-    float *vel = (float *)SCULPT_temp_cdata_get(vd.vertex, scl);
-    interp_v3_v3v3(vel, vel, val, 0.5);
-
-    madd_v3_v3v3fl(val, vd.co, vel, fade);
-
-    SCULPT_clip(sd, ss, vd.co, val);
-
-    if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-}
 
 void SCULPT_smooth(Sculpt *sd,
                    Object *ob,
@@ -1314,12 +1187,7 @@ void SCULPT_smooth(Sculpt *sd,
 
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    if (0) {  // have_scl) {
-      BLI_task_parallel_range(0, totnode, &data, do_smooth_brush_task_cb_ex_scl, &settings);
-    }
-    else {
-      BLI_task_parallel_range(0, totnode, &data, do_smooth_brush_task_cb_ex, &settings);
-    }
+    BLI_task_parallel_range(0, totnode, &data, do_smooth_brush_task_cb_ex, &settings);
 
 #ifdef PROXY_ADVANCED
     BKE_pbvh_gather_proxyarray(ss->pbvh, nodes, totnode);

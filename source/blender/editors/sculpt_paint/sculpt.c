@@ -5576,7 +5576,9 @@ void SCULPT_relax_vertex(SculptSession *ss,
   zero_v3(boundary_normal);
 
   int bset = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
-  if (ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS) {
+
+  // forcibly enable if no ss->cache
+  if (!ss->cache || (ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS)) {
     bset |= SCULPT_BOUNDARY_FACE_SET;
   }
 
