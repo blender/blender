@@ -83,7 +83,8 @@ struct RenderPass *render_layer_add_pass(struct RenderResult *rr,
                                          int channels,
                                          const char *name,
                                          const char *viewname,
-                                         const char *chan_id);
+                                         const char *chan_id,
+                                         const bool allocate);
 
 int render_result_exr_file_read_path(struct RenderResult *rr,
                                      struct RenderLayer *rl_single,

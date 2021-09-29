@@ -213,12 +213,37 @@ static void set_pass_full_name(
 
 /********************************** New **************************************/
 
+static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
+{
+  if (rp->rect != NULL) {
+    return;
+  }
+
+  const size_t rectsize = ((size_t)rr->rectx) * rr->recty * rp->channels;
+  rp->rect = MEM_callocN(sizeof(float) * rectsize, rp->name);
+
+  if (STREQ(rp->name, RE_PASSNAME_VECTOR)) {
+    /* initialize to max speed */
+    float *rect = rp->rect;
+    for (int x = rectsize - 1; x >= 0; x--) {
+      rect[x] = PASS_VECTOR_MAX;
+    }
+  }
+  else if (STREQ(rp->name, RE_PASSNAME_Z)) {
+    float *rect = rp->rect;
+    for (int x = rectsize - 1; x >= 0; x--) {
+      rect[x] = 10e10;
+    }
+  }
+}
+
 RenderPass *render_layer_add_pass(RenderResult *rr,
                                   RenderLayer *rl,
                                   int channels,
                                   const char *name,
                                   const char *viewname,
-                                  const char *chan_id)
+                                  const char *chan_id,
+                                  const bool allocate)
 {
   const int view_id = BLI_findstringindex(&rr->views, viewname, offsetof(RenderView, name));
   RenderPass *rpass = MEM_callocN(sizeof(RenderPass), name);
@@ -250,8 +275,13 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
 
   BLI_addtail(&rl->passes, rpass);
 
-  /* The result contains non-allocated pass now, so tag it as such. */
-  rr->passes_allocated = false;
+  if (allocate) {
+    render_layer_allocate_pass(rr, rpass);
+  }
+  else {
+    /* The result contains non-allocated pass now, so tag it as such. */
+    rr->passes_allocated = false;
+  }
 
   return rpass;
 }
@@ -323,14 +353,14 @@ RenderResult *render_result_new(Render *re,
 
 #define RENDER_LAYER_ADD_PASS_SAFE(rr, rl, channels, name, viewname, chan_id) \
   do { \
-    if (render_layer_add_pass(rr, rl, channels, name, viewname, chan_id) == NULL) { \
+    if (render_layer_add_pass(rr, rl, channels, name, viewname, chan_id, false) == NULL) { \
       render_result_free(rr); \
       return NULL; \
     } \
   } while (false)
 
       /* A renderlayer should always have a Combined pass. */
-      render_layer_add_pass(rr, rl, 4, "Combined", view, "RGBA");
+      render_layer_add_pass(rr, rl, 4, "Combined", view, "RGBA", false);
 
       if (view_layer->passflag & SCE_PASS_Z) {
         RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, RE_PASSNAME_Z, view, "Z");
@@ -427,7 +457,7 @@ RenderResult *render_result_new(Render *re,
       }
 
       /* a renderlayer should always have a Combined pass */
-      render_layer_add_pass(rr, rl, 4, RE_PASSNAME_COMBINED, view, "RGBA");
+      render_layer_add_pass(rr, rl, 4, RE_PASSNAME_COMBINED, view, "RGBA", false);
     }
 
     /* NOTE: this has to be in sync with `scene.c`. */
@@ -453,26 +483,7 @@ void render_result_passes_allocated_ensure(RenderResult *rr)
         continue;
       }
 
-      if (rp->rect != NULL) {
-        continue;
-      }
-
-      const size_t rectsize = ((size_t)rr->rectx) * rr->recty * rp->channels;
-      rp->rect = MEM_callocN(sizeof(float) * rectsize, rp->name);
-
-      if (STREQ(rp->name, RE_PASSNAME_VECTOR)) {
-        /* initialize to max speed */
-        float *rect = rp->rect;
-        for (int x = rectsize - 1; x >= 0; x--) {
-          rect[x] = PASS_VECTOR_MAX;
-        }
-      }
-      else if (STREQ(rp->name, RE_PASSNAME_Z)) {
-        float *rect = rp->rect;
-        for (int x = rectsize - 1; x >= 0; x--) {
-          rect[x] = 10e10;
-        }
-      }
+      render_layer_allocate_pass(rr, rp);
     }
   }
 
@@ -501,7 +512,7 @@ void render_result_clone_passes(Render *re, RenderResult *rr, const char *viewna
           &rl->passes, main_rp->fullname, offsetof(RenderPass, fullname));
       if (!rp) {
         render_layer_add_pass(
-            rr, rl, main_rp->channels, main_rp->name, main_rp->view, main_rp->chan_id);
+            rr, rl, main_rp->channels, main_rp->name, main_rp->view, main_rp->chan_id, false);
       }
     }
   }
@@ -512,7 +523,8 @@ void RE_create_render_pass(RenderResult *rr,
                            int channels,
                            const char *chan_id,
                            const char *layername,
-                           const char *viewname)
+                           const char *viewname,
+                           const bool allocate)
 {
   RenderLayer *rl;
   RenderPass *rp;
@@ -542,7 +554,7 @@ void RE_create_render_pass(RenderResult *rr,
       }
 
       if (!rp) {
-        render_layer_add_pass(rr, rl, channels, name, view, chan_id);
+        render_layer_add_pass(rr, rl, channels, name, view, chan_id, allocate);
       }
     }
   }

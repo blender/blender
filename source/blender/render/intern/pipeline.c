@@ -2817,7 +2817,7 @@ RenderPass *RE_create_gp_pass(RenderResult *rr, const char *layername, const cha
     BLI_freelinkN(&rl->passes, rp);
   }
   /* create a totally new pass */
-  return render_layer_add_pass(rr, rl, 4, RE_PASSNAME_COMBINED, viewname, "RGBA");
+  return render_layer_add_pass(rr, rl, 4, RE_PASSNAME_COMBINED, viewname, "RGBA", true);
 }
 
 bool RE_allow_render_generic_object(Object *ob)
