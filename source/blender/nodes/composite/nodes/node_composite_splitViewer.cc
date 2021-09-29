@@ -33,7 +33,7 @@ namespace blender::nodes {
 static void cmp_node_splitviewer_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image");
-  b.add_input<decl::Color>("Image");
+  b.add_input<decl::Color>("Image", "Image_001");
 }
 
 }  // namespace blender::nodes
