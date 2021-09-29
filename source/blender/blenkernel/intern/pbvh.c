@@ -35,6 +35,7 @@
 
 #include "BKE_ccg.h"
 #include "BKE_mesh.h" /* for BKE_mesh_calc_normals */
+#include "BKE_mesh_mapping.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_subdiv_ccg.h"
@@ -4123,5 +4124,90 @@ void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry)
 
       mv->flag |= DYNVERT_NEED_BOUNDARY;
     }
+  }
+}
+
+void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
+                                         MVert *mvert,
+                                         MEdge *medge,
+                                         MLoop *mloop,
+                                         MPoly *mpoly,
+                                         MDynTopoVert *mdyntopo_verts,
+                                         MeshElemMap *pmap,
+                                         SculptVertRef vertex)
+{
+  MDynTopoVert *mv = mdyntopo_verts + vertex.i;
+  MeshElemMap *vert_map = &pmap[vertex.i];
+
+  int last_fset = 0;
+  int last_fset2 = 0;
+
+  mv->flag &= ~(DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY | DYNVERT_NEED_BOUNDARY |
+                DYNVERT_FSET_CORNER | DYNVERT_CORNER | DYNVERT_SEAM_BOUNDARY |
+                DYNVERT_SHARP_BOUNDARY | DYNVERT_SEAM_CORNER | DYNVERT_SHARP_CORNER);
+
+  int totsharp = 0, totseam = 0;
+  int visible = false;
+
+  for (int i = 0; i < vert_map->count; i++) {
+    int f_i = vert_map->indices[i];
+
+    MPoly *mp = mpoly + f_i;
+    MLoop *ml = mloop + mp->loopstart;
+    int j = 0;
+
+    for (j = 0; j < mp->totloop; j++, ml++) {
+      if (ml->v == (int)vertex.i) {
+        break;
+      }
+    }
+
+    if (j < mp->totloop) {
+      MEdge *me = medge + ml->e;
+      if (me->flag & ME_SHARP) {
+        mv->flag |= DYNVERT_SHARP_BOUNDARY;
+        totsharp++;
+      }
+
+      if (me->flag & ME_SEAM) {
+        mv->flag |= DYNVERT_SEAM_BOUNDARY;
+        totseam++;
+      }
+    }
+
+    int fset = face_sets[f_i];
+
+    if (fset > 0) {
+      visible = true;
+    }
+    else {
+      fset = -fset;
+    }
+
+    if (i > 0 && fset != last_fset) {
+      mv->flag |= DYNVERT_FSET_BOUNDARY;
+
+      if (i > 1 && last_fset2 != last_fset) {
+        mv->flag |= DYNVERT_FSET_CORNER;
+      }
+    }
+
+    if (i > 0 && last_fset != fset) {
+      last_fset2 = last_fset;
+    }
+
+    last_fset = fset;
+  }
+
+  if (!visible) {
+    mv->flag |= DYNVERT_VERT_FSET_HIDDEN;
+  }
+
+  if (totsharp > 2) {
+    mv->flag |= DYNVERT_SHARP_CORNER;
+  }
+
+  if (totseam > 2) {
+    mv->flag |= DYNVERT_SEAM_CORNER;
   }
 }

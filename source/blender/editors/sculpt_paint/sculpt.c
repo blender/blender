@@ -1796,6 +1796,7 @@ static void sculpt_vertex_neighbors_get_bmesh(const SculptSession *ss,
   iter->is_duplicate = false;
   iter->size = 0;
   iter->num_duplicates = 0;
+  iter->has_edge = true;
   iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
   iter->neighbors = iter->neighbors_fixed;
   iter->neighbor_indices = iter->neighbor_indices_fixed;
@@ -1851,6 +1852,7 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
   iter->neighbors = iter->neighbors_fixed;
   iter->neighbor_indices = iter->neighbor_indices_fixed;
   iter->is_duplicate = false;
+  iter->has_edge = true;
 
   for (int i = 0; i < ss->pmap[index].count; i++) {
     if (ss->face_sets[vert_map->indices[i]] < 0) {
@@ -1859,23 +1861,31 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
     }
     const MPoly *p = &ss->mpoly[vert_map->indices[i]];
     uint f_adj_v[2];
-    if (poly_get_adj_loops_from_vert(p, ss->mloop, index, f_adj_v) != -1) {
-      for (int j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
+
+    MLoop *l = &ss->mloop[p->loopstart];
+    int e1, e2;
+
+    bool ok = false;
+
+    for (int j = 0; j < p->totloop; j++, l++) {
+      if (l->v == index) {
+        f_adj_v[0] = ME_POLY_LOOP_PREV(ss->mloop, p, j)->v;
+        f_adj_v[1] = ME_POLY_LOOP_NEXT(ss->mloop, p, j)->v;
+
+        e1 = ME_POLY_LOOP_PREV(ss->mloop, p, j)->e;
+        e2 = l->e;
+        ok = true;
+        break;
+      }
+    }
+
+    if (ok) {
+      for (int j = 0; j < 2; j += 1) {
         int e = 0;
 
         if (f_adj_v[j] != index) {
-          int loopidx = p->loopstart;
-
-          for (int k = 0; k < p->totloop; k++, loopidx++) {
-            const MEdge *e2 = &ss->medge[ss->mloop[loopidx].e];
-            if ((e2->v1 == index && e2->v2 == f_adj_v[j]) ||
-                (e2->v2 == index && e2->v1 == f_adj_v[j])) {
-              e = e2 - ss->medge;
-            }
-          }
-
           sculpt_vertex_neighbor_add(
-              iter, BKE_pbvh_make_vref(f_adj_v[j]), BKE_pbvh_make_eref(e), f_adj_v[j]);
+              iter, BKE_pbvh_make_vref(f_adj_v[j]), BKE_pbvh_make_eref(j ? e2 : e1), f_adj_v[j]);
         }
       }
     }
@@ -1910,8 +1920,9 @@ static void sculpt_vertex_neighbors_get_faces_vemap(const SculptSession *ss,
     const MEdge *me = &ss->medge[vert_map->indices[i]];
 
     unsigned int v = me->v1 == (unsigned int)vertex.i ? me->v2 : me->v1;
+    MDynTopoVert *mv = ss->mdyntopo_verts + v;
 
-    if (ss->face_sets[v] < 0) {
+    if (mv->flag & DYNVERT_VERT_FSET_HIDDEN) {
       /* Skip connectivity from hidden faces. */
       continue;
     }
@@ -2128,18 +2139,39 @@ static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss,
   return BLI_BITMAP_TEST(ss->vertex_info.boundary,
                          BKE_pbvh_vertex_index_to_table(ss->pbvh, index));
 }
+static void faces_update_boundary_flags(const SculptSession *ss, const SculptVertRef vertex)
+{
+  BKE_pbvh_update_vert_boundary_faces(ss->face_sets,
+                                      ss->mvert,
+                                      ss->medge,
+                                      ss->mloop,
+                                      ss->mpoly,
+                                      ss->mdyntopo_verts,
+                                      ss->pmap,
+                                      vertex);
+  // have to handle boundary here
+  MDynTopoVert *mv = ss->mdyntopo_verts + vertex.i;
 
+  if (sculpt_check_boundary_vertex_in_base_mesh(ss, vertex)) {
+    mv->flag |= DYNVERT_BOUNDARY;
+
+    if (ss->pmap[vertex.i].count < 4) {
+      mv->flag |= DYNVERT_CORNER;
+    }
+  }
+}
 SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                          const SculptVertRef vertex,
                                          SculptCornerType cornertype)
 {
   bool check_facesets = cornertype & SCULPT_CORNER_FACE_SET;
   SculptCornerType ret = 0;
+  MDynTopoVert *mv = NULL;
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
       BMVert *v = (BMVert *)vertex.i;
-      MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+      mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
 
       if (mv->flag & DYNVERT_NEED_BOUNDARY) {
         BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert,
@@ -2150,36 +2182,13 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                       ss->boundary_symmetry);
       }
 
-      ret = 0;
-
-      if (cornertype & SCULPT_CORNER_MESH) {
-        ret |= (mv->flag & DYNVERT_CORNER) ? SCULPT_CORNER_MESH : 0;
-      }
-      if (cornertype & SCULPT_CORNER_FACE_SET) {
-        ret |= (mv->flag & DYNVERT_FSET_CORNER) ? SCULPT_CORNER_FACE_SET : 0;
-      }
-      if (cornertype & SCULPT_CORNER_SEAM) {
-        ret |= (mv->flag & DYNVERT_SEAM_CORNER) ? SCULPT_CORNER_SEAM : 0;
-      }
-      if (cornertype & SCULPT_CORNER_SHARP) {
-        ret |= (mv->flag & DYNVERT_SHARP_CORNER) ? SCULPT_CORNER_SHARP : 0;
-      }
-
       break;
     }
     case PBVH_FACES:
-      if (ss->pmap) {
-        // sculpt_check_corner_face_set_in_base_mesh
-        ret = sculpt_check_corner_in_base_mesh(ss, vertex, check_facesets);
-      }
-      else {
-        // approximate
-        if (SCULPT_vertex_is_boundary(ss, vertex, SCULPT_BOUNDARY_MESH) &&
-            SCULPT_vertex_valence_get(ss, vertex) < 4) {
-          ret = SCULPT_CORNER_MESH;
-        }
+      mv = ss->mdyntopo_verts + vertex.i;
 
-        // can't check face sets in this case
+      if (mv->flag & DYNVERT_NEED_BOUNDARY) {
+        faces_update_boundary_flags(ss, vertex);
       }
       break;
     case PBVH_GRIDS: {
@@ -2199,9 +2208,25 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
           return false;  // sculpt_check_unique_face_set_for_edge_in_base_mesh(ss, v1, v2);
         case SUBDIV_CCG_ADJACENT_NONE:
           return false;
-          break;
       }
+
+      return 0;
     }
+  }
+
+  ret = 0;
+
+  if (cornertype & SCULPT_CORNER_MESH) {
+    ret |= (mv->flag & DYNVERT_CORNER) ? SCULPT_CORNER_MESH : 0;
+  }
+  if (cornertype & SCULPT_CORNER_FACE_SET) {
+    ret |= (mv->flag & DYNVERT_FSET_CORNER) ? SCULPT_CORNER_FACE_SET : 0;
+  }
+  if (cornertype & SCULPT_CORNER_SEAM) {
+    ret |= (mv->flag & DYNVERT_SEAM_CORNER) ? SCULPT_CORNER_SEAM : 0;
+  }
+  if (cornertype & SCULPT_CORNER_SHARP) {
+    ret |= (mv->flag & DYNVERT_SHARP_CORNER) ? SCULPT_CORNER_SHARP : 0;
   }
 
   return ret;
@@ -2212,10 +2237,11 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
                                              SculptBoundaryType boundary_types)
 {
   bool check_facesets = boundary_types & SCULPT_BOUNDARY_FACE_SET;
+  MDynTopoVert *mv = NULL;
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
-      MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, ((BMVert *)(vertex.i)));
+      mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, ((BMVert *)(vertex.i)));
 
       if (mv->flag & DYNVERT_NEED_BOUNDARY) {
         BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert,
@@ -2226,47 +2252,15 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
                                       ss->boundary_symmetry);
       }
 
-      int flag = 0;
-      if (boundary_types & SCULPT_BOUNDARY_MESH) {
-        flag |= (mv->flag & DYNVERT_BOUNDARY) ? SCULPT_BOUNDARY_MESH : 0;
-      }
-      if (boundary_types & SCULPT_BOUNDARY_FACE_SET) {
-        flag |= (mv->flag & DYNVERT_FSET_BOUNDARY) ? SCULPT_BOUNDARY_FACE_SET : 0;
-      }
-      if (boundary_types & SCULPT_BOUNDARY_SHARP) {
-        flag |= (mv->flag & DYNVERT_SHARP_BOUNDARY) ? SCULPT_BOUNDARY_SHARP : 0;
-      }
-      if (boundary_types & SCULPT_BOUNDARY_SEAM) {
-        flag |= (mv->flag & DYNVERT_SEAM_BOUNDARY) ? SCULPT_BOUNDARY_SEAM : 0;
-      }
-
-      return flag;
+      break;
     }
     case PBVH_FACES: {
-      int flag = 0;
+      mv = ss->mdyntopo_verts + vertex.i;
 
-      if (!SCULPT_vertex_all_face_sets_visible_get(ss, vertex)) {
-        flag |= SCULPT_BOUNDARY_MESH;
+      if (mv->flag & DYNVERT_NEED_BOUNDARY) {
+        faces_update_boundary_flags(ss, vertex);
       }
-
-      if (check_facesets) {
-        bool ret = sculpt_check_boundary_vertex_in_base_mesh(ss, vertex);
-
-        if (ret) {
-          flag |= SCULPT_BOUNDARY_MESH;
-        }
-
-        if (!SCULPT_vertex_has_unique_face_set(ss, vertex)) {
-          flag |= SCULPT_BOUNDARY_FACE_SET;
-        }
-
-        return flag;
-      }
-      else if (sculpt_check_boundary_vertex_in_base_mesh(ss, vertex)) {
-        return SCULPT_BOUNDARY_MESH;
-      }
-
-      return 0;
+      break;
     }
 
     case PBVH_GRIDS: {
@@ -2296,6 +2290,21 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
     }
   }
 
+  int flag = 0;
+  if (boundary_types & SCULPT_BOUNDARY_MESH) {
+    flag |= (mv->flag & DYNVERT_BOUNDARY) ? SCULPT_BOUNDARY_MESH : 0;
+  }
+  if (boundary_types & SCULPT_BOUNDARY_FACE_SET) {
+    flag |= (mv->flag & DYNVERT_FSET_BOUNDARY) ? SCULPT_BOUNDARY_FACE_SET : 0;
+  }
+  if (boundary_types & SCULPT_BOUNDARY_SHARP) {
+    flag |= (mv->flag & DYNVERT_SHARP_BOUNDARY) ? SCULPT_BOUNDARY_SHARP : 0;
+  }
+  if (boundary_types & SCULPT_BOUNDARY_SEAM) {
+    flag |= (mv->flag & DYNVERT_SEAM_BOUNDARY) ? SCULPT_BOUNDARY_SEAM : 0;
+  }
+
+  return flag;
   return 0;
 }
 
@@ -7417,6 +7426,8 @@ static void do_clay_brush_task_cb_ex(void *__restrict userdata,
     }
   }
   BKE_pbvh_vertex_iter_end;
+
+  BKE_pbvh_node_mark_update(data->nodes[n]);
 }
 
 static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
@@ -8702,7 +8713,7 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
     return;
   }
 
-  if (brush->sculpt_tool == SCULPT_TOOL_ARRAY && type != PBVH_FACES) {
+  if (brush->sculpt_tool == SCULPT_TOOL_ARRAY && !ELEM(type, PBVH_FACES, PBVH_BMESH)) {
     return;
   }
 
@@ -8787,7 +8798,7 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
         BKE_pbvh_node_mark_update(nodes[i]);
       }
     }
-    else {
+    else if (brush->sculpt_tool != SCULPT_TOOL_ARRAY) {
       for (int i = 0; i < totnode; i++) {
         SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COORDS, -1);
 
@@ -9162,7 +9173,7 @@ static void SCULPT_run_command_list(
     return;
   }
 
-  if (brush->sculpt_tool == SCULPT_TOOL_ARRAY && type != PBVH_FACES) {
+  if (brush->sculpt_tool == SCULPT_TOOL_ARRAY && !ELEM(type, PBVH_FACES, PBVH_BMESH)) {
     return;
   }
 
@@ -9346,6 +9357,11 @@ static void SCULPT_run_command_list(
 
     ss->cache->bstrength = brush_strength(
         sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
+
+    if (!BRUSHSET_GET_INT(cmd->params_mapped, use_ctrl_invert, NULL)) {
+      ss->cache->bstrength = fabsf(ss->cache->bstrength);
+    }
+
     brush2->alpha = fabs(ss->cache->bstrength);
 
     // printf("brush2->alpha: %f\n", brush2->alpha);
@@ -10892,6 +10908,8 @@ static bool sculpt_needs_connectivity_info(Sculpt *sd,
                                            SculptSession *ss,
                                            int stroke_mode)
 {
+  return true;
+#if 0
   if (ss && ss->pbvh && SCULPT_is_automasking_enabled(sd, ss, brush)) {
     return true;
   }
@@ -10909,6 +10927,7 @@ static bool sculpt_needs_connectivity_info(Sculpt *sd,
           (brush->sculpt_tool == SCULPT_TOOL_CLOTH) || (brush->sculpt_tool == SCULPT_TOOL_SMEAR) ||
           (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) ||
           (brush->sculpt_tool == SCULPT_TOOL_DISPLACEMENT_SMEAR));
+#endif
 }
 
 void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush)
@@ -13952,20 +13971,20 @@ int SCULPT_vertex_valence_get(const struct SculptSession *ss, SculptVertRef vert
   }
 #endif
 
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    tot++;
-  }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+  MDynTopoVert *mv = ss->mdyntopo_verts + vertex.i;
 
-#ifdef NDEBUG
-  if (mval >= 0 && mval != tot) {
-    printf("Out of date vertex valence detected! old: %d, should be: %d\n", mval, tot);
-  }
-#else
-  BLI_assert(mval < 0 || mval == tot);
-#endif
+  if (mv->flag & DYNVERT_NEED_VALENCE) {
+    mv->flag &= ~DYNVERT_NEED_VALENCE;
 
-  return tot;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+      tot++;
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+    mv->valence = tot;
+  }
+
+  return mv->valence;
 }
 
 typedef struct BMLinkItem {

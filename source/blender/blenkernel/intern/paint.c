@@ -2203,6 +2203,7 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
 
 static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool respect_hide)
 {
+  SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
   const int looptris_num = poly_to_tri_count(me->totpoly, me->totloop);
   PBVH *pbvh = BKE_pbvh_new();
@@ -2213,6 +2214,19 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
   BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
 
   BKE_sculpt_sync_face_set_visibility(me, NULL);
+
+  if (!ss->pmap) {
+    BKE_mesh_vert_poly_map_create(&ss->pmap,
+                                  &ss->pmap_mem,
+                                  me->mvert,
+                                  me->medge,
+                                  me->mpoly,
+                                  me->mloop,
+                                  me->totvert,
+                                  me->totpoly,
+                                  me->totloop,
+                                  false);
+  }
 
   BKE_sculptsession_check_mdyntopo(ob->sculpt, me->totvert);
 
@@ -2294,6 +2308,16 @@ static void init_mdyntopo_layer(SculptSession *ss, int totvert)
   for (int i = 0; i < totvert; i++, mv++) {
     mv->flag = DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT;
     mv->stroke_id = -1;
+
+    SculptVertRef vertex = {.i = i};
+    BKE_pbvh_update_vert_boundary_faces(ss->face_sets,
+                                        ss->mvert,
+                                        ss->medge,
+                                        ss->mloop,
+                                        ss->mpoly,
+                                        ss->mdyntopo_verts,
+                                        ss->pmap,
+                                        vertex);
   }
 }
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)

@@ -159,6 +159,7 @@ struct PBVH {
   MVert *verts;
   const MPoly *mpoly;
   const MLoop *mloop;
+  struct MDynTopoVert *mdyntopo_verts;
   const MLoopTri *looptri;
   CustomData *vdata;
   CustomData *ldata;
@@ -218,7 +219,6 @@ struct PBVH {
 
   int balance_counter;
   int stroke_id;  // used to keep origdata up to date in PBVH_BMESH
-  struct MDynTopoVert *mdyntopo_verts;
 };
 
 /* pbvh.c */

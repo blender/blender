@@ -110,6 +110,7 @@ struct BMVert;
 struct BMEdge;
 struct BMFace;
 struct CCGElem;
+struct MeshElemMap;
 struct CCGKey;
 struct CustomData;
 struct TableGSet;
@@ -912,6 +913,15 @@ typedef struct SculptLayerEntry {
 
 int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co);
 bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v);
+
+void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
+                                         struct MVert *mvert,
+                                         struct MEdge *medge,
+                                         struct MLoop *mloop,
+                                         struct MPoly *mpoly,
+                                         struct MDynTopoVert *mdyntopo_verts,
+                                         struct MeshElemMap *pmap,
+                                         SculptVertRef vertex);
 
 #ifdef __cplusplus
 }

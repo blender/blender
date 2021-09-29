@@ -538,7 +538,7 @@ typedef struct SculptArray {
   int *symmetry_pass;
 
   float *smooth_strength;
-
+  struct SculptCustomLayer *scl_inst, *scl_sym;
 } SculptArray;
 
 typedef struct SculptFakeNeighbors {

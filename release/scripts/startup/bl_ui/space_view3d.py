@@ -274,7 +274,19 @@ class _draw_tool_settings_context_mode:
 
         # direction
         if not capabilities.has_direction:
-            layout.row().prop(brush, "direction", expand=True, text="")
+            row = layout.row()
+
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "direction",
+                pressure_name=pressure_name,
+                unified_name="use_unified_strength",
+                text="",
+                header=True,
+                expand=True
+            )
 
         if capabilities.has_color:
             UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")

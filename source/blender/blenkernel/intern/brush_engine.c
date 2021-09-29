@@ -1397,6 +1397,9 @@ BrushCommand *BKE_brush_command_init(BrushCommand *command, int tool)
 #define float_set_uninherit(chset, channel, val) \
   _float_set_uninherit(chset, MAKE_BUILTIN_CH_NAME(channel), val)
 
+#define int_set_uninherit(chset, channel, val) \
+  _int_set_uninherit(chset, MAKE_BUILTIN_CH_NAME(channel), val)
+
 static void _float_set_uninherit(BrushChannelSet *chset, const char *channel, float val)
 {
   BrushChannel *ch = BKE_brush_channelset_lookup(chset, channel);
@@ -1407,6 +1410,19 @@ static void _float_set_uninherit(BrushChannelSet *chset, const char *channel, fl
   }
 
   ch->fvalue = val;
+  ch->flag &= ~BRUSH_CHANNEL_INHERIT;
+}
+
+static void _int_set_uninherit(BrushChannelSet *chset, const char *channel, int val)
+{
+  BrushChannel *ch = BKE_brush_channelset_lookup(chset, channel);
+
+  if (!ch) {
+    printf("%s: unknown channel %s\n", __func__, channel);
+    return;
+  }
+
+  ch->ivalue = val;
   ch->flag &= ~BRUSH_CHANNEL_INHERIT;
 }
 
@@ -1463,6 +1479,7 @@ static void bke_builtin_commandlist_create_paint(Brush *brush,
       ch->flag |= BRUSH_CHANNEL_INHERIT;
     }
 
+    int_set_uninherit(cmd->params, use_ctrl_invert, false);
     float_set_uninherit(cmd->params, strength, autosmooth);
     float_set_uninherit(cmd->params, radius, radius * autosmooth_scale);
     float_set_uninherit(cmd->params, projection, autosmooth_projection);
@@ -1580,6 +1597,7 @@ void BKE_builtin_commandlist_create(Brush *brush,
       ch->flag |= BRUSH_CHANNEL_INHERIT;
     }
 
+    int_set_uninherit(cmd->params, use_ctrl_invert, false);
     float_set_uninherit(cmd->params, strength, autosmooth);
     float_set_uninherit(cmd->params, radius, radius * autosmooth_scale);
     float_set_uninherit(cmd->params, projection, autosmooth_projection);
@@ -1620,6 +1638,7 @@ void BKE_builtin_commandlist_create(Brush *brush,
       ch->flag |= BRUSH_CHANNEL_INHERIT;
     }
 
+    int_set_uninherit(cmd->params, use_ctrl_invert, false);
     float_set_uninherit(cmd->params, strength, topology_rake);
     float_set_uninherit(cmd->params, radius, radius * topology_rake_scale);
     float_set_uninherit(cmd->params, projection, topology_rake_projection);
@@ -1637,6 +1656,7 @@ void BKE_builtin_commandlist_create(Brush *brush,
 
     radius2 *= radius;
 
+    int_set_uninherit(cmd->params, use_ctrl_invert, false);
     float_set_uninherit(cmd->params, spacing, spacing);
     float_set_uninherit(cmd->params, radius, radius2);
   }

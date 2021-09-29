@@ -300,6 +300,15 @@ class UnifiedPaintPanel:
                         itemicon = "CHECKBOX_DEHLT"
                     row3.prop_enum(finalch, typeprop, item.identifier, icon=itemicon)
 
+        elif header and ch.idname == "direction":
+            row2 = row.row(align=True)
+            row2.use_property_split = False
+            row2.use_property_decorate = False
+
+            #replicate pre-existing functionality of direction showing up as +/-  in the header
+            row2.prop_enum(finalch, typeprop, "ADD", text="")
+            row2.prop_enum(finalch, typeprop, "SUBTRACT", text="")
+            pass
         elif expand is not None:
             row.prop(finalch, typeprop, icon=icon, text=text, slider=slider, expand=expand)
         else:

@@ -43,6 +43,7 @@ struct BMeshCreateParams {
   uint no_reuse_ids : 1;  // do not reuse IDs; a GHash will be used internally instead of a lookup
                           // array
   uint temporary_ids : 1;
+  uint copy_all_layers : 1;  // used by BM_mesh_copy_ex
 };
 
 // used to temporary save/restore element IDs

@@ -441,6 +441,7 @@ MAKE_ENUM(elastic_deform_type, "Deformation", "Deformation type that is used in 
   {BRUSH_ELASTIC_DEFORM_TWIST, "TWIST", "NONE", "Twist", ""},
   {-1}
 })
+MAKE_BOOL(use_ctrl_invert, "Use Ctrl Invert", "Take brush addition or subtraction mode into account", true)
 
 //MAKE_FLOAT3_EX
 /* clang-format on */

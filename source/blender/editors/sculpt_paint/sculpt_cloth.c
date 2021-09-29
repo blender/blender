@@ -928,7 +928,8 @@ static void cloth_sort_constraints_for_tasks(SculptSession *ss,
   SculptClothTaskData *tasks = MEM_calloc_arrayN(
       totthread + 1, sizeof(SculptClothTaskData), "SculptClothTaskData");
 
-  int *vthreads = MEM_calloc_arrayN(ss->totvert, sizeof(*vthreads), "cloth vthreads");
+  int *vthreads = MEM_calloc_arrayN(
+      SCULPT_vertex_count_get(ss), sizeof(*vthreads), "cloth vthreads");
 
   SculptClothLengthConstraint *cons = cloth_sim->length_constraints, *con;
   int totcon = cloth_sim->tot_length_constraints;

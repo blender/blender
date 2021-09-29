@@ -807,6 +807,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(radius_unit);
   ADDCH(unprojected_radius);
 
+  ADDCH(use_ctrl_invert);
   ADDCH(tilt_strength_factor);
 
   ADDCH(autosmooth);
