@@ -217,10 +217,10 @@ ccl_device_inline void integrator_state_copy_only(const IntegratorState to_state
     while (false) \
       ;
 
-#  define KERNEL_STRUCT_END_ARRAY(name, array_size) \
+#  define KERNEL_STRUCT_END_ARRAY(name, cpu_array_size, gpu_array_size) \
     ++index; \
     } \
-    while (index < array_size) \
+    while (index < gpu_array_size) \
       ;
 
 #  include "kernel/integrator/integrator_state_template.h"
@@ -264,7 +264,12 @@ ccl_device_inline void integrator_state_shadow_catcher_split(INTEGRATOR_STATE_AR
 
   IntegratorStateCPU *ccl_restrict split_state = state + 1;
 
-  *split_state = *state;
+  /* Only copy the required subset, since shadow intersections are big and irrelevant here. */
+  split_state->path = state->path;
+  split_state->ray = state->ray;
+  split_state->isect = state->isect;
+  memcpy(split_state->volume_stack, state->volume_stack, sizeof(state->volume_stack));
+  split_state->shadow_path = state->shadow_path;
 
   split_state->path.flag |= PATH_RAY_SHADOW_CATCHER_PASS;
 #endif

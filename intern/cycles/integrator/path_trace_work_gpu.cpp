@@ -95,8 +95,8 @@ void PathTraceWorkGPU::alloc_integrator_soa()
 #define KERNEL_STRUCT_END(name) \
   break; \
   }
-#define KERNEL_STRUCT_END_ARRAY(name, array_size) \
-  if (array_index == array_size - 1) { \
+#define KERNEL_STRUCT_END_ARRAY(name, cpu_array_size, gpu_array_size) \
+  if (array_index == gpu_array_size - 1) { \
     break; \
   } \
   }

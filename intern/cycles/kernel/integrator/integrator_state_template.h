@@ -107,7 +107,7 @@ KERNEL_STRUCT_END(subsurface)
 KERNEL_STRUCT_BEGIN(volume_stack)
 KERNEL_STRUCT_ARRAY_MEMBER(volume_stack, int, object, KERNEL_FEATURE_VOLUME)
 KERNEL_STRUCT_ARRAY_MEMBER(volume_stack, int, shader, KERNEL_FEATURE_VOLUME)
-KERNEL_STRUCT_END_ARRAY(volume_stack, INTEGRATOR_VOLUME_STACK_SIZE)
+KERNEL_STRUCT_END_ARRAY(volume_stack, INTEGRATOR_VOLUME_STACK_SIZE, INTEGRATOR_VOLUME_STACK_SIZE)
 
 /********************************* Shadow Path State **************************/
 
@@ -153,11 +153,15 @@ KERNEL_STRUCT_ARRAY_MEMBER(shadow_isect, int, object, KERNEL_FEATURE_PATH_TRACIN
 KERNEL_STRUCT_ARRAY_MEMBER(shadow_isect, int, type, KERNEL_FEATURE_PATH_TRACING)
 /* TODO: exclude for GPU. */
 KERNEL_STRUCT_ARRAY_MEMBER(shadow_isect, float3, Ng, KERNEL_FEATURE_PATH_TRACING)
-KERNEL_STRUCT_END_ARRAY(shadow_isect, INTEGRATOR_SHADOW_ISECT_SIZE)
+KERNEL_STRUCT_END_ARRAY(shadow_isect,
+                        INTEGRATOR_SHADOW_ISECT_SIZE_CPU,
+                        INTEGRATOR_SHADOW_ISECT_SIZE_GPU)
 
 /**************************** Shadow Volume Stack *****************************/
 
 KERNEL_STRUCT_BEGIN(shadow_volume_stack)
 KERNEL_STRUCT_ARRAY_MEMBER(shadow_volume_stack, int, object, KERNEL_FEATURE_VOLUME)
 KERNEL_STRUCT_ARRAY_MEMBER(shadow_volume_stack, int, shader, KERNEL_FEATURE_VOLUME)
-KERNEL_STRUCT_END_ARRAY(shadow_volume_stack, INTEGRATOR_VOLUME_STACK_SIZE)
+KERNEL_STRUCT_END_ARRAY(shadow_volume_stack,
+                        INTEGRATOR_VOLUME_STACK_SIZE,
+                        INTEGRATOR_VOLUME_STACK_SIZE)
