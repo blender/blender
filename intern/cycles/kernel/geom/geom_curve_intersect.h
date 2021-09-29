@@ -713,7 +713,7 @@ ccl_device_inline void curve_shader_setup(const KernelGlobals *kg,
 
     P = transform_point(&tfm, P);
     D = transform_direction(&tfm, D * t);
-    D = normalize_len(D, &t);
+    D = safe_normalize_len(D, &t);
   }
 
   int prim = kernel_tex_fetch(__prim_index, isect_prim);
