@@ -19,6 +19,7 @@
  */
 
 #include "BKE_asset_catalog.hh"
+#include "BKE_asset_library.h"
 #include "BKE_preferences.h"
 
 #include "BLI_fileops.h"
@@ -299,6 +300,10 @@ bool AssetCatalogService::write_to_disk_on_blendfile_save(const CatalogFilePath 
 CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
     const CatalogFilePath &blend_file_path)
 {
+  BLI_assert_msg(!blend_file_path.empty(),
+                 "A non-empty .blend file path is required to be able to determine where the "
+                 "catalog definition file should be put");
+
   /* Determine the default CDF path in the same directory of the blend file. */
   char blend_dir_path[PATH_MAX];
   BLI_split_dir_part(blend_file_path.c_str(), blend_dir_path, sizeof(blend_dir_path));
@@ -311,26 +316,19 @@ CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
     return cdf_path_next_to_blend;
   }
 
-  const bUserAssetLibrary *asset_lib_pref = BKE_preferences_asset_library_containing_path(
-      &U, blend_file_path.c_str());
-  if (asset_lib_pref) {
-    /* - The directory containing the blend file is part of an asset library, as per
-     *   the user's preferences?
-     *    -> Merge with & write to ${ASSET_LIBRARY_ROOT}/blender_assets.cats.txt  */
+  /* - There's no definition file next to the .blend file.
+   *    -> Ask the asset library API for an appropriate location.  */
+  char suitable_root_path[PATH_MAX];
+  BKE_asset_library_find_suitable_root_path_from_path(blend_file_path.c_str(),
+                                                          suitable_root_path);
+  char asset_lib_cdf_path[PATH_MAX];
+  BLI_path_join(asset_lib_cdf_path,
+                sizeof(asset_lib_cdf_path),
+                suitable_root_path,
+                DEFAULT_CATALOG_FILENAME.c_str(),
+                NULL);
 
-    char asset_lib_cdf_path[PATH_MAX];
-    BLI_path_join(asset_lib_cdf_path,
-                  sizeof(asset_lib_cdf_path),
-                  asset_lib_pref->path,
-                  DEFAULT_CATALOG_FILENAME.c_str(),
-                  NULL);
-
-    return asset_lib_cdf_path;
-  }
-
-  /* - Otherwise
-   *    -> Create a new file blender_assets.cats.txt next to the blend file. */
-  return cdf_path_next_to_blend;
+  return asset_lib_cdf_path;
 }
 
 std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::construct_cdf_in_memory(

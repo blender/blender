@@ -21,6 +21,11 @@
 #include "BKE_asset_library.hh"
 #include "BKE_callbacks.h"
 #include "BKE_main.h"
+#include "BKE_preferences.h"
+
+#include "BLI_path_util.h"
+
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -43,6 +48,24 @@ void BKE_asset_library_free(struct AssetLibrary *asset_library)
   blender::bke::AssetLibrary *lib = reinterpret_cast<blender::bke::AssetLibrary *>(asset_library);
   lib->on_save_handler_unregister();
   delete lib;
+}
+
+bool BKE_asset_library_find_suitable_root_path_from_path(const char *input_path,
+                                                         char *r_library_path)
+{
+  if (bUserAssetLibrary *preferences_lib = BKE_preferences_asset_library_containing_path(
+          &U, input_path)) {
+    BLI_strncpy(r_library_path, preferences_lib->path, FILE_MAXDIR);
+    return true;
+  }
+
+  BLI_split_dir_part(input_path, r_library_path, FILE_MAXDIR);
+  return r_library_path[0] != '\0';
+}
+
+bool BKE_asset_library_find_suitable_root_path_from_main(const Main *bmain, char *r_library_path)
+{
+  return BKE_asset_library_find_suitable_root_path_from_path(bmain->name, r_library_path);
 }
 
 namespace blender::bke {
