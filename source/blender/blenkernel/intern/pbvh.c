@@ -4175,7 +4175,7 @@ void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
       }
     }
 
-    int fset = face_sets[f_i];
+    int fset = face_sets ? face_sets[f_i] : -1;
 
     if (fset > 0) {
       visible = true;

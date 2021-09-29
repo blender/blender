@@ -10514,6 +10514,8 @@ static void sculpt_update_cache_invariants(
 
 static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, float initial_size)
 {
+  return initial_size;
+#if 0
   if (brush->pressure_size_curve) {
     return initial_size *
            BKE_curvemapping_evaluateF(brush->pressure_size_curve, 0, cache->pressure);
@@ -10531,6 +10533,7 @@ static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, flo
     default:
       return initial_size * cache->pressure;
   }
+#endif
 }
 
 /* In these brushes the grab delta is calculated always from the initial stroke location, which

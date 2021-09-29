@@ -114,7 +114,7 @@ places in rna_engine_codebase are relevent:
 
 /* clang-format off */
   MAKE_FLOAT_EX(radius, "Radius", "Radius of the brush in pixels", 50.0f, 0.5f, MAX_BRUSH_PIXEL_RADIUS*10, 0.5, MAX_BRUSH_PIXEL_RADIUS, false)
-  MAKE_FLOAT_EX(strength, "Strength", "How powerful the effect of the brush is when applied", 0.5f, 0.0f, 10.0f, 0.0f, 1.0f, false)
+  MAKE_FLOAT_EX(strength, "Strength", "How powerful the effect of the brush is when applied", 0.5f, 0.0f, 10.0f, 0.0f, 1.0f, true)
   MAKE_FLOAT_EX(spacing, "Spacing", "", 10.0f, 0.25f, 1000.0f, 1.0f, 500.0f, false)
   MAKE_FLOAT_EX(topology_rake, "Topology Rake", "Automatically align edges to the brush direction to "
                            "generate cleaner topology and define sharp features. "
@@ -183,9 +183,9 @@ MAKE_FLOAT(normal_weight, "Normal Weight", "", 0.0f, 0.0f, 1.0f)
 MAKE_FLOAT(weight, "Weight", "", 0.5f, 0.0f, 1.0f)
 MAKE_FLOAT(jitter, "Jitter",  "Jitter the position of the brush while painting", 0.0f, 0.0f, 1.0f)
 MAKE_INT(jitter_absolute, "Absolute Jitter", "", 0, 0.0f, 1000.0f)
-MAKE_FLOAT(smooth_stroke_radius, "Smooth Stroke Radius", "Minimum distance from last point before stroke continues", 10.0f, 10.0f, 200.0f)
-MAKE_FLOAT(smooth_stroke_factor, "Smooth Stroke Factor", "", 0.5f, 0.5f, 0.99f)
-MAKE_FLOAT_EX(rate, "Rate", "", 0.5, 0.0001f, 10000.0f, 0.01f, 1.0f, false)
+MAKE_FLOAT(smooth_stroke_radius, "Smooth Stroke Radius", "Minimum distance from last point before stroke continues", 75.0f, 10.0f, 200.0f)
+MAKE_FLOAT(smooth_stroke_factor, "Smooth Stroke Factor", "", 0.9f, 0.5f, 0.99f)
+MAKE_FLOAT_EX(rate, "Rate", "", 0.1, 0.0001f, 10000.0f, 0.01f, 1.0f, false)
 MAKE_FLOAT(flow, "Flow", "Amount of paint that is applied per stroke sample", 1.0f, 0.0f, 1.0f)
 MAKE_FLOAT(wet_mix, "Wet Mix", "Amount of paint that is picked from the surface into the brush color", 0.0f, 0.0f, 1.0f)
 MAKE_FLOAT(wet_persistence, "Wet Persistence", "Amount of wet paint that stays in the brush after applying paint to the surface", 0.0f, 0.0f, 1.0f)
@@ -397,7 +397,7 @@ MAKE_ENUM(pose_origin_type, "Rotation Origins",
   {-1}
 })
 
-MAKE_FLOAT(crease_pinch_factor, "Crease Brush Pinch Factor", "How much the crease brush pinches", 0.0f, 0.0f, 1.0f)
+MAKE_FLOAT(crease_pinch_factor, "Crease Brush Pinch Factor", "How much the crease brush pinches", 0.5f, 0.0f, 1.0f)
 
 MAKE_ENUM(snake_hook_deform_type, "Deformation", "Deformation type that is used in the brush", BRUSH_SNAKE_HOOK_DEFORM_FALLOFF, {\
   {BRUSH_SNAKE_HOOK_DEFORM_FALLOFF,

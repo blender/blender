@@ -280,6 +280,7 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(smooth_stroke_factor, smooth_stroke_factor, FLOAT, FLOAT)
   DEF(rate, rate, FLOAT, FLOAT)
   DEF(flow, flow, FLOAT, FLOAT)
+  DEF(hardness, hardness, FLOAT, FLOAT)
   DEF(wet_mix, wet_mix, FLOAT, FLOAT)
   DEF(wet_persistence, wet_persistence, FLOAT, FLOAT)
   DEF(density, density, FLOAT, FLOAT)
@@ -321,6 +322,7 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(tip_scale_x, tip_scale_x, FLOAT, FLOAT)
   DEF(height, height, FLOAT, FLOAT)
   DEF(elastic_deform_type, elastic_deform_type, INT, INT)
+  DEF(plane_offset, plane_offset, FLOAT, FLOAT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -735,7 +737,7 @@ void BKE_brush_channelset_compat_load(BrushChannelSet *chset, Brush *brush, bool
   }
 }
 
-static void reset_clay_mappings(BrushChannelSet *chset, bool strips)
+void reset_clay_mappings(BrushChannelSet *chset, bool strips)
 {
   BrushMapping *mp = BRUSHSET_LOOKUP(chset, radius)->mappings + BRUSH_MAPPING_PRESSURE;
   BKE_brush_mapping_ensure_write(mp);
@@ -782,7 +784,11 @@ static void reset_clay_mappings(BrushChannelSet *chset, bool strips)
   BKE_curvemapping_init(curve);
 
   cuma = curve->cm;
-  BKE_curvemap_insert(cuma, 0.6f, 0.25f);
+  if (strips) {
+    BKE_curvemap_insert(cuma, 0.6f, 0.25f);
+  }
+  else {
+  }
   BKE_curvemapping_changed(curve, true);
 }
 // adds any missing channels to brushes
@@ -806,6 +812,8 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(strength);
   ADDCH(radius_unit);
   ADDCH(unprojected_radius);
+
+  ADDCH(plane_offset);
 
   ADDCH(use_ctrl_invert);
   ADDCH(tilt_strength_factor);
@@ -1060,6 +1068,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(area_radius_factor);
       break;
     case SCULPT_TOOL_CLAY_STRIPS:
+      SHOWWRK(tip_roundness);
     case SCULPT_TOOL_CLAY:
     case SCULPT_TOOL_CLAY_THUMB:
     case SCULPT_TOOL_FLATTEN:
@@ -1148,6 +1157,25 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
     brush->channels = BKE_brush_channelset_create();
   }
 
+  if (brush->channels) {
+    // forcibly reset all non-user-defined channels for this brush
+
+    BrushChannelSet *chset = BKE_brush_channelset_create();
+    Brush tmp = *brush;
+    tmp.channels = chset;
+
+    BKE_brush_builtin_patch(&tmp, tool);
+
+    BrushChannel *ch;
+    for (ch = chset->channels.first; ch; ch = ch->next) {
+      BrushChannel *ch2 = BKE_brush_channelset_lookup(brush->channels, ch->idname);
+
+      if (ch2) {
+        BKE_brush_channel_copy_data(ch, ch2, false);
+      }
+    }
+  }
+
   BrushChannelSet *chset = brush->channels;
 
   BKE_brush_builtin_patch(brush, tool);
@@ -1230,10 +1258,15 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       break;
     case SCULPT_TOOL_CLAY:
       GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
+      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
+
       GETCH(spacing)->fvalue = 3;
       GETCH(autosmooth)->fvalue = 0.25f;
       GETCH(normal_radius_factor)->fvalue = 0.75f;
       GETCH(hardness)->fvalue = 0.65;
+
+      // ADDCH(autosmooth_falloff_curve);
+      // GETCH(autosmooth_falloff_curve)->curve.preset = BRUSH_CURVE_SPHERE;
 
       BRUSHSET_SET_BOOL(chset, autosmooth_use_spacing, true);
       BRUSHSET_SET_FLOAT(chset, autosmooth_spacing, 7);
@@ -1252,10 +1285,12 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       BRUSHSET_SET_FLOAT(chset, spacing, 6.0f);
       BRUSHSET_SET_FLOAT(chset, normal_radius_factor, 1.0f);
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
-      BRUSHSET_LOOKUP(chset, radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
-          BRUSH_MAPPING_ENABLED;
+      BRUSHSET_LOOKUP(chset, radius)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
       break;
     case SCULPT_TOOL_CLAY_STRIPS: {
+      // GETCH(falloff_curve)->curve.preset = BRUSH_CURVE_SMOOTHER;
+
       GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
       GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
 
@@ -1323,6 +1358,14 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       break;
     case SCULPT_TOOL_ELASTIC_DEFORM:
       ADDCH(elastic_deform_type);
+      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
+      break;
+    case SCULPT_TOOL_GRAB:
+      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
+      GETCH(strength)->fvalue = 0.4f;
+      GETCH(radius)->fvalue = 75.0f;
+      GETCH(dyntopo_disabled)->ivalue = 1;
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
       GETCH(dyntopo_mode)->ivalue = DYNTOPO_LOCAL_COLLAPSE | DYNTOPO_SUBDIVIDE;
@@ -1338,10 +1381,12 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       break;
     case SCULPT_TOOL_BOUNDARY:
+      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       ADDCH(elastic_deform_type);
       break;
     case SCULPT_TOOL_POSE:
+      GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       ADDCH(elastic_deform_type);
       break;
