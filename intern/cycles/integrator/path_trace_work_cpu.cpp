@@ -19,6 +19,8 @@
 #include "device/cpu/kernel.h"
 #include "device/device.h"
 
+#include "kernel/kernel_path_state.h"
+
 #include "integrator/pass_accessor_cpu.h"
 
 #include "render/buffers.h"
@@ -116,13 +118,17 @@ void PathTraceWorkCPU::render_samples_full_pipeline(KernelGlobals *kernel_global
                                                     const KernelWorkTile &work_tile,
                                                     const int samples_num)
 {
-  const bool has_shadow_catcher = device_scene_->data.integrator.has_shadow_catcher;
   const bool has_bake = device_scene_->data.bake.use;
 
-  IntegratorStateCPU integrator_states[2] = {};
+  IntegratorStateCPU integrator_states[2];
 
   IntegratorStateCPU *state = &integrator_states[0];
-  IntegratorStateCPU *shadow_catcher_state = &integrator_states[1];
+  IntegratorStateCPU *shadow_catcher_state = nullptr;
+
+  if (device_scene_->data.integrator.has_shadow_catcher) {
+    shadow_catcher_state = &integrator_states[1];
+    path_state_init_queues(kernel_globals, shadow_catcher_state);
+  }
 
   KernelWorkTile sample_work_tile = work_tile;
   float *render_buffer = buffers_->buffer.data();
@@ -147,7 +153,7 @@ void PathTraceWorkCPU::render_samples_full_pipeline(KernelGlobals *kernel_global
 
     kernels_.integrator_megakernel(kernel_globals, state, render_buffer);
 
-    if (has_shadow_catcher) {
+    if (shadow_catcher_state) {
       kernels_.integrator_megakernel(kernel_globals, shadow_catcher_state, render_buffer);
     }
 
