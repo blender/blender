@@ -749,9 +749,25 @@ set(geo_node_tests
   points
   utilities
   vector
-  volume
-
 )
+
+if(WITH_GMP)
+  list(APPEND geo_node_tests mesh/boolean)
+else()
+  MESSAGE(STATUS "Disabling mesh/boolean tests because WITH_GMP is off.")
+endif()
+
+if(WITH_OPENVDB)
+  list(APPEND geo_node_tests volume)
+else()
+  MESSAGE(STATUS "Disabling volume tests because WITH_OPENVDB is off.")
+endif()
+
+if(WITH_OPENSUBDIV)
+  list(APPEND geo_node_tests mesh/subdivision_tests)
+else()
+  MESSAGE(STATUS "Disabling mesh/subdivision_tests because WITH_OPENSUBDIV is off.")
+endif()
 
 foreach(geo_node_test ${geo_node_tests})
   if(EXISTS "${TEST_SRC_DIR}/modeling/geometry_nodes/${geo_node_test}/")
