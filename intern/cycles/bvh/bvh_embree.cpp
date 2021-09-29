@@ -213,7 +213,7 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       if (ctx->num_hits < ctx->max_hits) {
         Intersection current_isect;
         kernel_embree_convert_hit(kg, ray, hit, &current_isect);
-        for (size_t i = 0; i < ctx->max_hits; ++i) {
+        for (size_t i = 0; i < ctx->num_hits; ++i) {
           if (current_isect.object == ctx->isect_s[i].object &&
               current_isect.prim == ctx->isect_s[i].prim && current_isect.t == ctx->isect_s[i].t) {
             /* This intersection was already recorded, skip it. */
