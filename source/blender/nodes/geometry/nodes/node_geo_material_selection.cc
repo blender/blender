@@ -100,13 +100,16 @@ class MaterialSelectionFieldInput final : public fn::FieldInput {
 
   uint64_t hash() const override
   {
-    /* Some random constant hash. */
-    return 91619626;
+    return get_default_hash(material_);
   }
 
   bool is_equal_to(const fn::FieldNode &other) const override
   {
-    return dynamic_cast<const MaterialSelectionFieldInput *>(&other) != nullptr;
+    if (const MaterialSelectionFieldInput *other_material_selection =
+            dynamic_cast<const MaterialSelectionFieldInput *>(&other)) {
+      return material_ == other_material_selection->material_;
+    }
+    return false;
   }
 };
 
