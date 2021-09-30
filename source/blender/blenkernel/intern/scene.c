@@ -1801,6 +1801,7 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     /* Scene duplication is always root of duplication currently. */
     const bool is_subprocess = false;
     const bool is_root_id = true;
+    const int copy_flags = LIB_ID_COPY_DEFAULT;
 
     if (!is_subprocess) {
       BKE_main_id_newptr_and_tag_clear(bmain);
@@ -1816,20 +1817,39 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     /* Copy Freestyle LineStyle datablocks. */
     LISTBASE_FOREACH (ViewLayer *, view_layer_dst, &sce_copy->view_layers) {
       LISTBASE_FOREACH (FreestyleLineSet *, lineset, &view_layer_dst->freestyle_config.linesets) {
-        BKE_id_copy_for_duplicate(bmain, (ID *)lineset->linestyle, duplicate_flags);
+        BKE_id_copy_for_duplicate(bmain, (ID *)lineset->linestyle, duplicate_flags, copy_flags);
       }
     }
 
     /* Full copy of world (included animations) */
-    BKE_id_copy_for_duplicate(bmain, (ID *)sce->world, duplicate_flags);
+    BKE_id_copy_for_duplicate(bmain, (ID *)sce->world, duplicate_flags, copy_flags);
 
     /* Full copy of GreasePencil. */
-    BKE_id_copy_for_duplicate(bmain, (ID *)sce->gpd, duplicate_flags);
+    BKE_id_copy_for_duplicate(bmain, (ID *)sce->gpd, duplicate_flags, copy_flags);
 
     /* Deep-duplicate collections and objects (using preferences' settings for which sub-data to
      * duplicate along the object itself). */
     BKE_collection_duplicate(
         bmain, NULL, sce_copy->master_collection, duplicate_flags, LIB_ID_DUPLICATE_IS_SUBPROCESS);
+
+    /* Rigid body world collections may not be instantiated as scene's collections, ensure they
+     * also get properly duplicated. */
+    if (sce_copy->rigidbody_world != NULL) {
+      if (sce_copy->rigidbody_world->group != NULL) {
+        BKE_collection_duplicate(bmain,
+                                 NULL,
+                                 sce_copy->rigidbody_world->group,
+                                 duplicate_flags,
+                                 LIB_ID_DUPLICATE_IS_SUBPROCESS);
+      }
+      if (sce_copy->rigidbody_world->constraints != NULL) {
+        BKE_collection_duplicate(bmain,
+                                 NULL,
+                                 sce_copy->rigidbody_world->constraints,
+                                 duplicate_flags,
+                                 LIB_ID_DUPLICATE_IS_SUBPROCESS);
+      }
+    }
 
     if (!is_subprocess) {
       /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW. */

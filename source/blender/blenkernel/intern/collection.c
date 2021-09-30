@@ -597,7 +597,7 @@ static Collection *collection_duplicate_recursive(Main *bmain,
   }
   else if (collection_old->id.newid == NULL) {
     collection_new = (Collection *)BKE_id_copy_for_duplicate(
-        bmain, (ID *)collection_old, duplicate_flags);
+        bmain, (ID *)collection_old, duplicate_flags, LIB_ID_COPY_DEFAULT);
 
     if (collection_new == collection_old) {
       return collection_new;

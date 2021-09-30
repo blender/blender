@@ -2634,9 +2634,15 @@ Object *BKE_object_duplicate(Main *bmain,
 {
   const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
   const bool is_root_id = (duplicate_options & LIB_ID_DUPLICATE_IS_ROOT_ID) != 0;
+  int copy_flags = LIB_ID_COPY_DEFAULT;
 
   if (!is_subprocess) {
     BKE_main_id_newptr_and_tag_clear(bmain);
+  }
+  else {
+    /* In case copying object is a sub-process of collection (or scene) copying, do not try to
+     * re-assign RB objects to existing RBW collections. */
+    copy_flags |= LIB_ID_COPY_RIGID_BODY_NO_COLLECTION_HANDLING;
   }
   if (is_root_id) {
     /* In case root duplicated ID is linked, assume we want to get a local copy of it and duplicate
@@ -2649,7 +2655,7 @@ Object *BKE_object_duplicate(Main *bmain,
 
   Material ***matarar;
 
-  Object *obn = (Object *)BKE_id_copy_for_duplicate(bmain, &ob->id, dupflag);
+  Object *obn = (Object *)BKE_id_copy_for_duplicate(bmain, &ob->id, dupflag, copy_flags);
 
   /* 0 == full linked. */
   if (dupflag == 0) {
@@ -2658,13 +2664,13 @@ Object *BKE_object_duplicate(Main *bmain,
 
   if (dupflag & USER_DUP_MAT) {
     for (int i = 0; i < obn->totcol; i++) {
-      BKE_id_copy_for_duplicate(bmain, (ID *)obn->mat[i], dupflag);
+      BKE_id_copy_for_duplicate(bmain, (ID *)obn->mat[i], dupflag, copy_flags);
     }
   }
   if (dupflag & USER_DUP_PSYS) {
     ParticleSystem *psys;
     for (psys = obn->particlesystem.first; psys; psys = psys->next) {
-      BKE_id_copy_for_duplicate(bmain, (ID *)psys->part, dupflag);
+      BKE_id_copy_for_duplicate(bmain, (ID *)psys->part, dupflag, copy_flags);
     }
   }
 
@@ -2675,77 +2681,77 @@ Object *BKE_object_duplicate(Main *bmain,
   switch (obn->type) {
     case OB_MESH:
       if (dupflag & USER_DUP_MESH) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_CURVE:
       if (dupflag & USER_DUP_CURVE) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_SURF:
       if (dupflag & USER_DUP_SURF) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_FONT:
       if (dupflag & USER_DUP_FONT) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_MBALL:
       if (dupflag & USER_DUP_MBALL) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_LAMP:
       if (dupflag & USER_DUP_LAMP) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_ARMATURE:
       if (dupflag & USER_DUP_ARM) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_LATTICE:
       if (dupflag != 0) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_CAMERA:
       if (dupflag != 0) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_LIGHTPROBE:
       if (dupflag & USER_DUP_LIGHTPROBE) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_SPEAKER:
       if (dupflag != 0) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_GPENCIL:
       if (dupflag & USER_DUP_GPENCIL) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_HAIR:
       if (dupflag & USER_DUP_HAIR) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_POINTCLOUD:
       if (dupflag & USER_DUP_POINTCLOUD) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
     case OB_VOLUME:
       if (dupflag & USER_DUP_VOLUME) {
-        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag);
+        id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
   }
@@ -2756,7 +2762,7 @@ Object *BKE_object_duplicate(Main *bmain,
       matarar = BKE_object_material_array_p(obn);
       if (matarar) {
         for (int i = 0; i < obn->totcol; i++) {
-          BKE_id_copy_for_duplicate(bmain, (ID *)(*matarar)[i], dupflag);
+          BKE_id_copy_for_duplicate(bmain, (ID *)(*matarar)[i], dupflag, copy_flags);
         }
       }
     }

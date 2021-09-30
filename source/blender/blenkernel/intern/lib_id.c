@@ -674,7 +674,10 @@ ID *BKE_id_copy(Main *bmain, const ID *id)
  * Invokes the appropriate copy method for the block and returns the result in
  * newid, unless test. Returns true if the block can be copied.
  */
-ID *BKE_id_copy_for_duplicate(Main *bmain, ID *id, const eDupli_ID_Flags duplicate_flags)
+ID *BKE_id_copy_for_duplicate(Main *bmain,
+                              ID *id,
+                              const eDupli_ID_Flags duplicate_flags,
+                              const int copy_flags)
 {
   if (id == NULL) {
     return id;
@@ -685,7 +688,7 @@ ID *BKE_id_copy_for_duplicate(Main *bmain, ID *id, const eDupli_ID_Flags duplica
       return id;
     }
 
-    ID *id_new = BKE_id_copy(bmain, id);
+    ID *id_new = BKE_id_copy_ex(bmain, id, NULL, copy_flags);
     /* Copying add one user by default, need to get rid of that one. */
     id_us_min(id_new);
     ID_NEW_SET(id, id_new);

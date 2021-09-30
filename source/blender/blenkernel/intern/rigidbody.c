@@ -302,7 +302,7 @@ void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src
   ob_dst->rigidbody_object = rigidbody_copy_object(ob_src, flag);
   ob_dst->rigidbody_constraint = rigidbody_copy_constraint(ob_src, flag);
 
-  if (flag & LIB_ID_CREATE_NO_MAIN) {
+  if ((flag & (LIB_ID_CREATE_NO_MAIN | LIB_ID_COPY_RIGID_BODY_NO_COLLECTION_HANDLING)) != 0) {
     return;
   }
 
