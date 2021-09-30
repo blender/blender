@@ -1848,7 +1848,7 @@ const char *BKE_brush_channel_category_get(BrushChannel *ch)
   return ch->category ? ch->category : ch->def->category;
 }
 
-const char *BKE_brush_channel_category_set(BrushChannel *ch, const char *str)
+void BKE_brush_channel_category_set(BrushChannel *ch, const char *str)
 {
   MEM_SAFE_FREE(ch->category);
 

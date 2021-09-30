@@ -357,7 +357,7 @@ void BKE_brush_channelset_ui_init(struct Brush *brush, int tool);
 void BKE_brush_channelset_check_radius(BrushChannelSet *chset);
 
 const char *BKE_brush_channel_category_get(BrushChannel *ch);
-const char *BKE_brush_channel_category_set(BrushChannel *ch, const char *str);
+void BKE_brush_channel_category_set(BrushChannel *ch, const char *str);
 
 /*
 set up static type checker for BRUSHSET_XXX macros
