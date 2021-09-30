@@ -233,27 +233,26 @@ typedef struct Sequence {
   float blend_opacity;
 
   /* Tag color showed if `SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG` is set. */
-  int16_t color_tag;
-  char _pad4[6];
+  int8_t color_tag;
+
+  char alpha_mode;
+  char _pad4[2];
+
+  int cache_flag;
 
   /* is sfra needed anymore? - it looks like its only used in one place */
   /** Starting frame according to the timeline of the scene. */
   int sfra;
 
-  char alpha_mode;
-  char _pad[2];
-
   /* Multiview */
   char views_format;
+  char _pad[3];
   struct Stereo3dFormat *stereo3d_format;
 
   struct IDProperty *prop;
 
   /* modifiers */
   ListBase modifiers;
-
-  int cache_flag;
-  int _pad2[3];
 
   SequenceRuntime runtime;
 } Sequence;
