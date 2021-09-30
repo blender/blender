@@ -870,9 +870,9 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 void SEQUENCER_OT_slip(struct wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Trim Strips";
+  ot->name = "Slip Strips";
   ot->idname = "SEQUENCER_OT_slip";
-  ot->description = "Trim the contents of the active strip";
+  ot->description = "Slip the contents of selected strips";
 
   /* Api callbacks. */
   ot->invoke = sequencer_slip_invoke;
