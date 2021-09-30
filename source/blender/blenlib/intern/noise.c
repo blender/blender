@@ -926,10 +926,46 @@ static float dist_Minkovsky(float x, float y, float z, float e)
   return powf(powf(fabsf(x), e) + powf(fabsf(y), e) + powf(fabsf(z), e), 1.0f / e);
 }
 
+BLI_INLINE float calc_voronoi_dist(int dtype, float x, float y, float z, float e)
+{
+  switch (dtype) {
+    case 1:
+      return (x * x + y * y + z * z);
+      break;
+    case 2:
+      return fabsf(x) + fabsf(y) + fabsf(z);
+      break;
+    case 3: {
+      x = fabsf(x);
+      y = fabsf(y);
+      z = fabsf(z);
+
+      float t = (x > y) ? x : y;
+      return ((z > t) ? z : t);
+    }
+    case 4: {
+      float d = sqrtf(fabsf(x)) + sqrtf(fabsf(y)) + sqrtf(fabsf(z));
+      return (d * d);
+    }
+    case 5: {
+      x *= x;
+      y *= y;
+      z *= z;
+      return sqrtf(sqrtf(x * x + y * y + z * z));
+    }
+    case 6: {
+      return powf(powf(fabsf(x), e) + powf(fabsf(y), e) + powf(fabsf(z), e), 1.0f / e);
+    }
+    case 0:
+    default:
+      return sqrtf(x * x + y * y + z * z);
+  }
+}
 /* Not 'pure' Worley, but the results are virtually the same.
  * Returns distances in da and point coords in pa */
 void BLI_noise_voronoi(float x, float y, float z, float *da, float *pa, float me, int dtype)
 {
+#if 1
   float (*distfunc)(float, float, float, float);
   switch (dtype) {
     case 1:
@@ -955,6 +991,7 @@ void BLI_noise_voronoi(float x, float y, float z, float *da, float *pa, float me
       distfunc = dist_Real;
       break;
   }
+#endif
 
   int xi = (int)(floor(x));
   int yi = (int)(floor(y));

@@ -47,6 +47,12 @@
 #  pragma warning(error : 4033) /* 'function' must return a value */
 #endif
 
+#if 1
+struct {
+  char t1[32], t2[32], t3[32], t4[32];
+} test[1] = {{1, 1, 1, 1}};
+#endif
+
 static bool check_builtin_init();
 
 #if 1
@@ -247,6 +253,7 @@ static bool check_builtin_init()
   SETCAT(tip_scale_x, "Basic");
   SETCAT(tip_roundness, "Basic");
   SETCAT(normal_radius_factor, "Basic");
+  SETCAT(use_smoothed_rake, "Basic");
 
   SETCAT(plane_offset, "Clay");
   SETCAT(plane_trim, "Clay");
@@ -925,6 +932,15 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(radius_unit);
   ADDCH(unprojected_radius);
 
+  if (!BRUSHSET_LOOKUP(chset, use_smoothed_rake)) {
+    BrushChannel *ch = ADDCH(use_smoothed_rake);
+
+    if (tool == SCULPT_TOOL_CLAY_STRIPS) {
+      ch->flag |= BRUSH_CHANNEL_SHOW_IN_WORKSPACE;
+      ch->flag |= BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU;
+    }
+  }
+
   ADDCH(plane_offset);
   ADDCH(plane_trim);
   ADDCH(use_plane_trim);
@@ -1217,6 +1233,9 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(plane_trim);
       SHOWWRK(tip_roundness);
       SHOWWRK(use_plane_trim);
+
+      SHOWWRK(use_smoothed_rake);
+      SHOWCTX(use_smoothed_rake);
 
       SHOWCTX(autosmooth);
       SHOWCTX(plane_offset);

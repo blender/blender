@@ -10720,13 +10720,34 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
       add_v3_v3(cache->grab_delta, delta);
     }
     else if (sculpt_needs_delta_for_tip_orientation(brush)) {
-      if (brush->flag & BRUSH_ANCHORED) {
+      if (brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT)) {
         float orig[3];
         mul_v3_m4v3(orig, ob->obmat, cache->orig_grab_location);
         sub_v3_v3v3(cache->grab_delta, grab_location, orig);
       }
       else {
-        sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
+        if (SCULPT_get_int(ss, use_smoothed_rake, NULL, brush)) {
+          float tmp1[3];
+          float tmp2[3];
+
+          sub_v3_v3v3(tmp1, grab_location, cache->old_grab_location);
+          copy_v3_v3(tmp2, ss->cache->grab_delta);
+
+          normalize_v3(tmp1);
+          normalize_v3(tmp2);
+
+          bool bad = len_v3v3(grab_location, cache->old_grab_location) < 0.0001f;
+          bad = bad || saacos(dot_v3v3(tmp1, tmp2) > 0.35f);
+
+          float t = bad ? 0.1f : 0.5f;
+
+          sub_v3_v3v3(tmp1, grab_location, cache->old_grab_location);
+          interp_v3_v3v3(cache->grab_delta, cache->grab_delta, tmp1, t);
+        }
+        else {
+          sub_v3_v3v3(ss->cache->grab_delta, grab_location, cache->old_grab_location);
+        }
+        // cache->grab_delta
       }
       invert_m4_m4(imat, ob->obmat);
       mul_mat3_m4_v3(imat, cache->grab_delta);

@@ -210,7 +210,8 @@ void BKE_paint_face_set_overlay_color_get(const int face_set, const int seed, uc
 /* stroke related */
 bool paint_calculate_rake_rotation(struct UnifiedPaintSettings *ups,
                                    struct Brush *brush,
-                                   const float mouse_pos[2]);
+                                   const float mouse_pos[2],
+                                   const float initial_mouse_pos[2]);
 void paint_update_brush_rake_rotation(struct UnifiedPaintSettings *ups,
                                       struct Brush *brush,
                                       float rotation);

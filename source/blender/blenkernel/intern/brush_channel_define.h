@@ -438,7 +438,7 @@ MAKE_FLOAT(pose_offset, "Pose Origin Offset", "Offset of the pose origin in rela
 MAKE_FLOAT(disconnected_distance_max, "Max Element Distance",
                            "Maximum distance to search for disconnected loose parts in the mesh", 0.1f, 0.0f, 10.0f)
 MAKE_INT(pose_smooth_iterations,  "Smooth Iterations",
-      "Smooth iterations applied after calculating the pose factor of each vertex", 4.0f, 0.0f, 100.0f)
+      "Smooth iterations applied after calculating the pose factor of each vertex", 4, 0.0f, 100.0f)
 MAKE_INT(pose_ik_segments, "Pose IK Segments",
       "Number of segments of the inverse kinematics chain that will deform the mesh", 1, 1, 20)
 MAKE_FLOAT(surface_smooth_shape_preservation, "Shape Preservation", "How much of the original shape is preserved when smoothing", 0.5f, 0.0f, 1.0f)
@@ -523,6 +523,8 @@ MAKE_ENUM(elastic_deform_type, "Deformation", "Deformation type that is used in 
   {-1}
 })
 MAKE_BOOL(use_ctrl_invert, "Use Ctrl Invert", "Take brush addition or subtraction mode into account", true)
+
+MAKE_BOOL(use_smoothed_rake, "Smooth Raking", "Smooth angles of clay strips brush and raked textures", false)
 
 //MAKE_FLOAT3_EX
 /* clang-format on */

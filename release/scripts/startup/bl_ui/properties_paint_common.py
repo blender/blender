@@ -847,6 +847,13 @@ class StrokePanel(BrushPanel):
                 row.prop(brush, "spacing", text="Spacing")
                 row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
+            UnifiedPaintPanel.channel_unified(
+                col,
+                context,
+                brush,
+                "use_smoothed_rake"
+            )
+
         if brush.use_line or brush.use_curve:
             row = col.row(align=True)
             if mode == 'SCULPT':

@@ -191,7 +191,7 @@ static bool paint_stroke_use_scene_spacing(Brush *brush, ePaintMode mode)
 
 static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode mode)
 {
-  if (brush->flag & BRUSH_ANCHORED) {
+  if (brush->flag & (BRUSH_ANCHORED|BRUSH_DRAG_DOT)) {
     return false;
   }
 
@@ -400,7 +400,7 @@ static bool paint_brush_update(bContext *C,
     }
     /* curve strokes do their own rake calculation */
     else if (!(brush->flag & BRUSH_CURVE)) {
-      if (!paint_calculate_rake_rotation(ups, brush, mouse_init)) {
+      if (!paint_calculate_rake_rotation(ups, brush, mouse_init, stroke->initial_mouse)) {
         /* Not enough motion to define an angle. */
         if (!stroke->rake_started) {
           is_dry_run = true;
@@ -1574,7 +1574,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
           (br->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE)) {
         copy_v2_v2(stroke->ups->last_rake, stroke->last_mouse_position);
       }
-      paint_calculate_rake_rotation(stroke->ups, br, mouse);
+      paint_calculate_rake_rotation(stroke->ups, br, mouse, stroke->initial_mouse);
     }
   }
   else if (first_modal ||

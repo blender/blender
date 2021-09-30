@@ -1309,13 +1309,27 @@ void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, f
 
 bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
                                    Brush *brush,
-                                   const float mouse_pos[2])
+                                   const float mouse_pos[2],
+                                   const float initial_mouse_pos[2])
 {
   bool ok = false;
   if ((brush->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) ||
       (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE)) {
     const float r = RAKE_THRESHHOLD;
     float rotation;
+
+    if (brush->flag & BRUSH_DRAG_DOT) {
+      const float dx = mouse_pos[0] - initial_mouse_pos[0];
+      const float dy = mouse_pos[1] - initial_mouse_pos[1];
+
+      if (dx * dx + dy * dy > 0.5f) {
+        ups->brush_rotation = ups->brush_rotation_sec = atan2f(dx, dy) + (float)M_PI;
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
 
     float dpos[2];
     sub_v2_v2v2(dpos, ups->last_rake, mouse_pos);
