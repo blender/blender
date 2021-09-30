@@ -46,44 +46,85 @@ def selected_sequences_len(context):
 
 def draw_color_balance(layout, color_balance):
 
+    layout.prop(color_balance, "correction_method")
+
     layout.use_property_split = False
 
     flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-    col = flow.column()
 
-    box = col.box()
-    split = box.split(factor=0.35)
-    col = split.column(align=True)
-    col.label(text="Lift:")
-    col.separator()
-    col.separator()
-    col.prop(color_balance, "lift", text="")
-    col.prop(color_balance, "invert_lift", text="Invert", icon='ARROW_LEFTRIGHT')
-    split.template_color_picker(color_balance, "lift", value_slider=True, cubic=True)
+    if color_balance.correction_method == 'LIFT_GAMMA_GAIN':
+        col = flow.column()
 
-    col = flow.column()
+        box = col.box()
+        split = box.split(factor=0.35)
+        col = split.column(align=True)
+        col.label(text="Lift:")
+        col.separator()
+        col.separator()
+        col.prop(color_balance, "lift", text="")
+        col.prop(color_balance, "invert_lift", text="Invert", icon='ARROW_LEFTRIGHT')
+        split.template_color_picker(color_balance, "lift", value_slider=True, cubic=True)
 
-    box = col.box()
-    split = box.split(factor=0.35)
-    col = split.column(align=True)
-    col.label(text="Gamma:")
-    col.separator()
-    col.separator()
-    col.prop(color_balance, "gamma", text="")
-    col.prop(color_balance, "invert_gamma", text="Invert", icon='ARROW_LEFTRIGHT')
-    split.template_color_picker(color_balance, "gamma", value_slider=True, lock_luminosity=True, cubic=True)
+        col = flow.column()
 
-    col = flow.column()
+        box = col.box()
+        split = box.split(factor=0.35)
+        col = split.column(align=True)
+        col.label(text="Gamma:")
+        col.separator()
+        col.separator()
+        col.prop(color_balance, "gamma", text="")
+        col.prop(color_balance, "invert_gamma", text="Invert", icon='ARROW_LEFTRIGHT')
+        split.template_color_picker(color_balance, "gamma", value_slider=True, lock_luminosity=True, cubic=True)
 
-    box = col.box()
-    split = box.split(factor=0.35)
-    col = split.column(align=True)
-    col.label(text="Gain:")
-    col.separator()
-    col.separator()
-    col.prop(color_balance, "gain", text="")
-    col.prop(color_balance, "invert_gain", text="Invert", icon='ARROW_LEFTRIGHT')
-    split.template_color_picker(color_balance, "gain", value_slider=True, lock_luminosity=True, cubic=True)
+        col = flow.column()
+
+        box = col.box()
+        split = box.split(factor=0.35)
+        col = split.column(align=True)
+        col.label(text="Gain:")
+        col.separator()
+        col.separator()
+        col.prop(color_balance, "gain", text="")
+        col.prop(color_balance, "invert_gain", text="Invert", icon='ARROW_LEFTRIGHT')
+        split.template_color_picker(color_balance, "gain", value_slider=True, lock_luminosity=True, cubic=True)
+
+    elif color_balance.correction_method == 'OFFSET_POWER_SLOPE':
+        col = flow.column()
+
+        box = col.box()
+        split = box.split(factor=0.35)
+        col = split.column(align=True)
+        col.label(text="Offset:")
+        col.separator()
+        col.separator()
+        col.prop(color_balance, "offset", text="")
+        col.prop(color_balance, "invert_offset", text="Invert", icon='ARROW_LEFTRIGHT')
+        split.template_color_picker(color_balance, "offset", value_slider=True, cubic=True)
+
+        col = flow.column()
+
+        box = col.box()
+        split = box.split(factor=0.35)
+        col = split.column(align=True)
+        col.label(text="Power:")
+        col.separator()
+        col.separator()
+        col.prop(color_balance, "power", text="")
+        col.prop(color_balance, "invert_power", text="Invert", icon='ARROW_LEFTRIGHT')
+        split.template_color_picker(color_balance, "power", value_slider=True, cubic=True)
+
+        col = flow.column()
+
+        box = col.box()
+        split = box.split(factor=0.35)
+        col = split.column(align=True)
+        col.label(text="Slope:")
+        col.separator()
+        col.separator()
+        col.prop(color_balance, "slope", text="")
+        col.prop(color_balance, "invert_slope", text="Invert", icon='ARROW_LEFTRIGHT')
+        split.template_color_picker(color_balance, "slope", value_slider=True, cubic=True)
 
 
 class SEQUENCER_PT_active_tool(ToolActivePanelHelper, Panel):

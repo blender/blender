@@ -79,9 +79,13 @@ typedef struct StripTransform {
 } StripTransform;
 
 typedef struct StripColorBalance {
+  int method;
   float lift[3];
   float gamma[3];
   float gain[3];
+  float slope[3];
+  float offset[3];
+  float power[3];
   int flag;
   char _pad[4];
   /* float exposure; */
@@ -434,6 +438,11 @@ typedef struct ColorBalanceModifierData {
   float color_multiply;
 } ColorBalanceModifierData;
 
+enum {
+  SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN = 0,
+  SEQ_COLOR_BALANCE_METHOD_SLOPEOFFSETPOWER = 1,
+};
+
 typedef struct CurvesModifierData {
   SequenceModifierData modifier;
 
@@ -571,6 +580,9 @@ enum {
 #define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
 #define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2
 #define SEQ_COLOR_BALANCE_INVERSE_LIFT 4
+#define SEQ_COLOR_BALANCE_INVERSE_SLOPE 8
+#define SEQ_COLOR_BALANCE_INVERSE_OFFSET 16
+#define SEQ_COLOR_BALANCE_INVERSE_POWER 32
 
 /* !!! has to be same as IMB_imbuf.h IMB_PROXY_... and IMB_TC_... */
 
