@@ -30,6 +30,8 @@
 #include "BLI_uuid.h"
 #include "BLI_vector.hh"
 
+#include "BKE_asset_catalog_path.hh"
+
 #include <map>
 #include <memory>
 #include <set>
@@ -38,7 +40,7 @@
 namespace blender::bke {
 
 using CatalogID = bUUID;
-using CatalogPath = std::string;
+using CatalogPath = AssetCatalogPath;
 using CatalogPathComponent = std::string;
 /* Would be nice to be able to use `std::filesystem::path` for this, but it's currently not
  * available on the minimum macOS target version. */
@@ -52,7 +54,6 @@ class AssetCatalogTree;
  * directory hierarchy). */
 class AssetCatalogService {
  public:
-  static const char PATH_SEPARATOR;
   static const CatalogFilePath DEFAULT_CATALOG_FILENAME;
 
  public:
@@ -298,22 +299,12 @@ class AssetCatalog {
   } flags;
 
   /**
-   * \return true only if this catalog's path is contained within the given path.
-   * When this catalog's path is equal to the given path, return true as well.
-   *
-   * Note that non-normalized paths (so for example starting or ending with a slash) are not
-   * supported, and result in undefined behavior.
-   */
-  bool is_contained_in(const CatalogPath &other_path) const;
-
-  /**
    * Create a new Catalog with the given path, auto-generating a sensible catalog simple-name.
    *
    * NOTE: the given path will be cleaned up (trailing spaces removed, etc.), so the returned
    * `AssetCatalog`'s path differ from the given one.
    */
   static std::unique_ptr<AssetCatalog> from_path(const CatalogPath &path);
-  static CatalogPath cleanup_path(const CatalogPath &path);
 
  protected:
   /** Generate a sensible catalog ID for the given path. */

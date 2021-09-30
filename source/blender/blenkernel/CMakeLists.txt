@@ -85,6 +85,7 @@ set(SRC
   intern/armature_update.c
   intern/asset.cc
   intern/asset_catalog.cc
+  intern/asset_catalog_path.cc
   intern/asset_library.cc
   intern/attribute.c
   intern/attribute_access.cc
@@ -306,6 +307,7 @@ set(SRC
   BKE_armature.hh
   BKE_asset.h
   BKE_asset_catalog.hh
+  BKE_asset_catalog_path.hh
   BKE_asset_library.h
   BKE_asset_library.hh
   BKE_attribute.h
@@ -789,6 +791,7 @@ if(WITH_GTESTS)
     intern/action_test.cc
     intern/armature_test.cc
     intern/asset_catalog_test.cc
+    intern/asset_catalog_path_test.cc
     intern/asset_library_test.cc
     intern/asset_test.cc
     intern/cryptomatte_test.cc

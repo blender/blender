@@ -49,7 +49,7 @@ TEST(AssetLibraryTest, load_and_free_c_functions)
   const bUUID uuid_poses_ellie("df60e1f6-2259-475b-93d9-69a1b4a8db78");
   AssetCatalog *poses_ellie = service->find_catalog(uuid_poses_ellie);
   ASSERT_NE(nullptr, poses_ellie) << "unable to find POSES_ELLIE catalog";
-  EXPECT_EQ("character/Ellie/poselib", poses_ellie->path);
+  EXPECT_EQ("character/Ellie/poselib", poses_ellie->path.str());
 
   BKE_asset_library_free(library_c_ptr);
 }

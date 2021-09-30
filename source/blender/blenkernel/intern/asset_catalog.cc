@@ -38,7 +38,6 @@
 
 namespace blender::bke {
 
-const char AssetCatalogService::PATH_SEPARATOR = '/';
 const CatalogFilePath AssetCatalogService::DEFAULT_CATALOG_FILENAME = "blender_assets.cats.txt";
 
 /* For now this is the only version of the catalog definition files that is supported.
@@ -115,12 +114,12 @@ void AssetCatalogService::update_catalog_path(CatalogID catalog_id,
 
   for (auto &catalog_uptr : catalogs_.values()) {
     AssetCatalog *cat = catalog_uptr.get();
-    if (!cat->is_contained_in(old_cat_path)) {
+
+    const CatalogPath new_path = cat->path.rebase(old_cat_path, new_catalog_path);
+    if (!new_path) {
       continue;
     }
-
-    const CatalogPath path_suffix = cat->path.substr(old_cat_path.length());
-    cat->path = new_catalog_path + path_suffix;
+    cat->path = new_path;
   }
 
   this->rebuild_tree();
@@ -319,8 +318,7 @@ CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
   /* - There's no definition file next to the .blend file.
    *    -> Ask the asset library API for an appropriate location.  */
   char suitable_root_path[PATH_MAX];
-  BKE_asset_library_find_suitable_root_path_from_path(blend_file_path.c_str(),
-                                                          suitable_root_path);
+  BKE_asset_library_find_suitable_root_path_from_path(blend_file_path.c_str(), suitable_root_path);
   char asset_lib_cdf_path[PATH_MAX];
   BLI_path_join(asset_lib_cdf_path,
                 sizeof(asset_lib_cdf_path),
@@ -382,9 +380,9 @@ StringRef AssetCatalogTreeItem::get_name() const
 
 CatalogPath AssetCatalogTreeItem::catalog_path() const
 {
-  std::string current_path = name_;
+  CatalogPath current_path = name_;
   for (const AssetCatalogTreeItem *parent = parent_; parent; parent = parent->parent_) {
-    current_path = parent->name_ + AssetCatalogService::PATH_SEPARATOR + current_path;
+    current_path = CatalogPath(parent->name_) / current_path;
   }
   return current_path;
 }
@@ -405,32 +403,6 @@ bool AssetCatalogTreeItem::has_children() const
 
 /* ---------------------------------------------------------------------- */
 
-/**
- * Iterate over path components, calling \a callback for each component. E.g. "just/some/path"
- * iterates over "just", then "some" then "path".
- */
-static void iterate_over_catalog_path_components(
-    const CatalogPath &path,
-    FunctionRef<void(StringRef component_name, bool is_last_component)> callback)
-{
-  const char *next_slash_ptr;
-
-  for (const char *path_component = path.data(); path_component && path_component[0];
-       /* Jump to one after the next slash if there is any. */
-       path_component = next_slash_ptr ? next_slash_ptr + 1 : nullptr) {
-    next_slash_ptr = BLI_path_slash_find(path_component);
-
-    const bool is_last_component = next_slash_ptr == nullptr;
-    /* Note that this won't be null terminated. */
-    const StringRef component_name = is_last_component ?
-                                         path_component :
-                                         StringRef(path_component,
-                                                   next_slash_ptr - path_component);
-
-    callback(component_name, is_last_component);
-  }
-}
-
 void AssetCatalogTree::insert_item(const AssetCatalog &catalog)
 {
   const AssetCatalogTreeItem *parent = nullptr;
@@ -438,30 +410,29 @@ void AssetCatalogTree::insert_item(const AssetCatalog &catalog)
    * added to (if not there yet). */
   AssetCatalogTreeItem::ChildMap *current_item_children = &root_items_;
 
-  BLI_assert_msg(!ELEM(catalog.path[0], '/', '\\'),
+  BLI_assert_msg(!ELEM(catalog.path.str()[0], '/', '\\'),
                  "Malformed catalog path; should not start with a separator");
 
   const CatalogID nil_id{};
 
-  iterate_over_catalog_path_components(
-      catalog.path, [&](StringRef component_name, const bool is_last_component) {
-        /* Insert new tree element - if no matching one is there yet! */
-        auto [key_and_item, was_inserted] = current_item_children->emplace(
-            component_name,
-            AssetCatalogTreeItem(
-                component_name, is_last_component ? catalog.catalog_id : nil_id, parent));
-        AssetCatalogTreeItem &item = key_and_item->second;
+  catalog.path.iterate_components([&](StringRef component_name, const bool is_last_component) {
+    /* Insert new tree element - if no matching one is there yet! */
+    auto [key_and_item, was_inserted] = current_item_children->emplace(
+        component_name,
+        AssetCatalogTreeItem(
+            component_name, is_last_component ? catalog.catalog_id : nil_id, parent));
+    AssetCatalogTreeItem &item = key_and_item->second;
 
-        /* If full path of this catalog already exists as parent path of a previously read catalog,
-         * we can ensure this tree item's UUID is set here. */
-        if (is_last_component && BLI_uuid_is_nil(item.catalog_id_)) {
-          item.catalog_id_ = catalog.catalog_id;
-        }
+    /* If full path of this catalog already exists as parent path of a previously read catalog,
+     * we can ensure this tree item's UUID is set here. */
+    if (is_last_component && BLI_uuid_is_nil(item.catalog_id_)) {
+      item.catalog_id_ = catalog.catalog_id;
+    }
 
-        /* Walk further into the path (no matter if a new item was created or not). */
-        parent = &item;
-        current_item_children = &item.children_;
-      });
+    /* Walk further into the path (no matter if a new item was created or not). */
+    parent = &item;
+    current_item_children = &item.children_;
+  });
 }
 
 void AssetCatalogTree::foreach_item(AssetCatalogTreeItem::ItemIterFn callback)
@@ -592,7 +563,7 @@ std::unique_ptr<AssetCatalog> AssetCatalogDefinitionFile::parse_catalog_line(con
   const StringRef path_and_simple_name = line.substr(first_delim + 1);
   const int64_t second_delim = path_and_simple_name.find_first_of(delim);
 
-  CatalogPath catalog_path;
+  std::string path_in_file;
   std::string simple_name;
   if (second_delim == 0) {
     /* Delimiter as first character means there is no path. These lines are to be ignored. */
@@ -601,16 +572,16 @@ std::unique_ptr<AssetCatalog> AssetCatalogDefinitionFile::parse_catalog_line(con
 
   if (second_delim == StringRef::not_found) {
     /* No delimiter means no simple name, just treat it as all "path". */
-    catalog_path = path_and_simple_name;
+    path_in_file = path_and_simple_name;
     simple_name = "";
   }
   else {
-    catalog_path = path_and_simple_name.substr(0, second_delim);
+    path_in_file = path_and_simple_name.substr(0, second_delim);
     simple_name = path_and_simple_name.substr(second_delim + 1).trim();
   }
 
-  catalog_path = AssetCatalog::cleanup_path(catalog_path);
-  return std::make_unique<AssetCatalog>(catalog_id, catalog_path, simple_name);
+  CatalogPath catalog_path = path_in_file;
+  return std::make_unique<AssetCatalog>(catalog_id, catalog_path.cleanup(), simple_name);
 }
 
 bool AssetCatalogDefinitionFile::write_to_disk() const
@@ -724,7 +695,7 @@ AssetCatalog::AssetCatalog(const CatalogID catalog_id,
 
 std::unique_ptr<AssetCatalog> AssetCatalog::from_path(const CatalogPath &path)
 {
-  const CatalogPath clean_path = cleanup_path(path);
+  const CatalogPath clean_path = path.cleanup();
   const CatalogID cat_id = BLI_uuid_generate_random();
   const std::string simple_name = sensible_simple_name_for_path(clean_path);
   auto catalog = std::make_unique<AssetCatalog>(cat_id, clean_path, simple_name);
@@ -733,8 +704,8 @@ std::unique_ptr<AssetCatalog> AssetCatalog::from_path(const CatalogPath &path)
 
 std::string AssetCatalog::sensible_simple_name_for_path(const CatalogPath &path)
 {
-  std::string name = path;
-  std::replace(name.begin(), name.end(), AssetCatalogService::PATH_SEPARATOR, '-');
+  std::string name = path.str();
+  std::replace(name.begin(), name.end(), CatalogPath::SEPARATOR, '-');
   if (name.length() < MAX_NAME - 1) {
     return name;
   }
@@ -742,35 +713,6 @@ std::string AssetCatalog::sensible_simple_name_for_path(const CatalogPath &path)
   /* Trim off the start of the path, as that's the most generic part and thus contains the least
    * information. */
   return "..." + name.substr(name.length() - 60);
-}
-
-CatalogPath AssetCatalog::cleanup_path(const CatalogPath &path)
-{
-  /* TODO(@sybren): maybe go over each element of the path, and trim those? */
-  CatalogPath clean_path = StringRef(path).trim().trim(AssetCatalogService::PATH_SEPARATOR).trim();
-  return clean_path;
-}
-
-bool AssetCatalog::is_contained_in(const CatalogPath &other_path) const
-{
-  if (other_path.empty()) {
-    return true;
-  }
-
-  if (this->path == other_path) {
-    return true;
-  }
-
-  /* To be a child path of 'other_path', our path must be at least a separator and another
-   * character longer. */
-  if (this->path.length() < other_path.length() + 2) {
-    return false;
-  }
-
-  const StringRef this_path(this->path);
-  const bool prefix_ok = this_path.startswith(other_path);
-  const char next_char = this_path[other_path.length()];
-  return prefix_ok && next_char == AssetCatalogService::PATH_SEPARATOR;
 }
 
 }  // namespace blender::bke

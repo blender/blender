@@ -19,6 +19,7 @@
  */
 
 #include "BKE_asset_catalog.hh"
+#include "BKE_asset_catalog_path.hh"
 #include "BKE_asset_library.hh"
 
 #include "BLI_string_utils.h"
@@ -33,17 +34,10 @@ struct CatalogUniqueNameFnData {
   StringRef parent_path;
 };
 
-static std::string to_full_path(StringRef parent_path, StringRef name)
-{
-  return parent_path.is_empty() ?
-             std::string(name) :
-             std::string(parent_path) + AssetCatalogService::PATH_SEPARATOR + name;
-}
-
 static bool catalog_name_exists_fn(void *arg, const char *name)
 {
   CatalogUniqueNameFnData &fn_data = *static_cast<CatalogUniqueNameFnData *>(arg);
-  std::string fullpath = to_full_path(fn_data.parent_path, name);
+  CatalogPath fullpath = CatalogPath(fn_data.parent_path) / name;
   return fn_data.catalog_service.find_catalog_by_path(fullpath);
 }
 
@@ -70,7 +64,7 @@ AssetCatalog *ED_asset_catalog_add(::AssetLibrary *library,
   }
 
   std::string unique_name = catalog_name_ensure_unique(*catalog_service, name, parent_path);
-  std::string fullpath = to_full_path(parent_path, unique_name);
+  CatalogPath fullpath = CatalogPath(parent_path) / unique_name;
 
   return catalog_service->create_catalog(fullpath);
 }
