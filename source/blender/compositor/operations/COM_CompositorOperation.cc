@@ -256,8 +256,16 @@ void CompositorOperation::determine_canvas(const rcti &UNUSED(preferred_area), r
   rcti local_preferred;
   BLI_rcti_init(&local_preferred, 0, width, 0, height);
 
-  NodeOperation::determine_canvas(local_preferred, r_area);
-  r_area = local_preferred;
+  switch (execution_model_) {
+    case eExecutionModel::Tiled:
+      NodeOperation::determine_canvas(local_preferred, r_area);
+      r_area = local_preferred;
+      break;
+    case eExecutionModel::FullFrame:
+      set_determined_canvas_modifier([&](rcti &canvas) { canvas = local_preferred; });
+      NodeOperation::determine_canvas(local_preferred, r_area);
+      break;
+  }
 }
 
 }  // namespace blender::compositor
