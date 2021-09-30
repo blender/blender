@@ -718,7 +718,7 @@ TEST_F(AssetCatalogTest, update_catalog_path)
                          AssetCatalogService::DEFAULT_CATALOG_FILENAME);
 
   const AssetCatalog *orig_cat = service.find_catalog(UUID_POSES_RUZENA);
-  const CatalogPath orig_path = orig_cat->path;
+  const AssetCatalogPath orig_path = orig_cat->path;
 
   service.update_catalog_path(UUID_POSES_RUZENA, "charlib/Ružena");
 

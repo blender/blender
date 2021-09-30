@@ -74,7 +74,7 @@ AssetCatalog *AssetCatalogService::find_catalog(CatalogID catalog_id)
   return catalog_uptr_ptr->get();
 }
 
-AssetCatalog *AssetCatalogService::find_catalog_by_path(const CatalogPath &path) const
+AssetCatalog *AssetCatalogService::find_catalog_by_path(const AssetCatalogPath &path) const
 {
   for (const auto &catalog : catalogs_.values()) {
     if (catalog->path == path) {
@@ -107,15 +107,15 @@ void AssetCatalogService::delete_catalog(CatalogID catalog_id)
 }
 
 void AssetCatalogService::update_catalog_path(CatalogID catalog_id,
-                                              const CatalogPath &new_catalog_path)
+                                              const AssetCatalogPath &new_catalog_path)
 {
   AssetCatalog *renamed_cat = this->find_catalog(catalog_id);
-  const CatalogPath old_cat_path = renamed_cat->path;
+  const AssetCatalogPath old_cat_path = renamed_cat->path;
 
   for (auto &catalog_uptr : catalogs_.values()) {
     AssetCatalog *cat = catalog_uptr.get();
 
-    const CatalogPath new_path = cat->path.rebase(old_cat_path, new_catalog_path);
+    const AssetCatalogPath new_path = cat->path.rebase(old_cat_path, new_catalog_path);
     if (!new_path) {
       continue;
     }
@@ -125,7 +125,7 @@ void AssetCatalogService::update_catalog_path(CatalogID catalog_id,
   this->rebuild_tree();
 }
 
-AssetCatalog *AssetCatalogService::create_catalog(const CatalogPath &catalog_path)
+AssetCatalog *AssetCatalogService::create_catalog(const AssetCatalogPath &catalog_path)
 {
   std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path(catalog_path);
 
@@ -378,11 +378,11 @@ StringRef AssetCatalogTreeItem::get_name() const
   return name_;
 }
 
-CatalogPath AssetCatalogTreeItem::catalog_path() const
+AssetCatalogPath AssetCatalogTreeItem::catalog_path() const
 {
-  CatalogPath current_path = name_;
+  AssetCatalogPath current_path = name_;
   for (const AssetCatalogTreeItem *parent = parent_; parent; parent = parent->parent_) {
-    current_path = CatalogPath(parent->name_) / current_path;
+    current_path = AssetCatalogPath(parent->name_) / current_path;
   }
   return current_path;
 }
@@ -580,7 +580,7 @@ std::unique_ptr<AssetCatalog> AssetCatalogDefinitionFile::parse_catalog_line(con
     simple_name = path_and_simple_name.substr(second_delim + 1).trim();
   }
 
-  CatalogPath catalog_path = path_in_file;
+  AssetCatalogPath catalog_path = path_in_file;
   return std::make_unique<AssetCatalog>(catalog_id, catalog_path.cleanup(), simple_name);
 }
 
@@ -687,25 +687,25 @@ bool AssetCatalogDefinitionFile::ensure_directory_exists(
 }
 
 AssetCatalog::AssetCatalog(const CatalogID catalog_id,
-                           const CatalogPath &path,
+                           const AssetCatalogPath &path,
                            const std::string &simple_name)
     : catalog_id(catalog_id), path(path), simple_name(simple_name)
 {
 }
 
-std::unique_ptr<AssetCatalog> AssetCatalog::from_path(const CatalogPath &path)
+std::unique_ptr<AssetCatalog> AssetCatalog::from_path(const AssetCatalogPath &path)
 {
-  const CatalogPath clean_path = path.cleanup();
+  const AssetCatalogPath clean_path = path.cleanup();
   const CatalogID cat_id = BLI_uuid_generate_random();
   const std::string simple_name = sensible_simple_name_for_path(clean_path);
   auto catalog = std::make_unique<AssetCatalog>(cat_id, clean_path, simple_name);
   return catalog;
 }
 
-std::string AssetCatalog::sensible_simple_name_for_path(const CatalogPath &path)
+std::string AssetCatalog::sensible_simple_name_for_path(const AssetCatalogPath &path)
 {
   std::string name = path.str();
-  std::replace(name.begin(), name.end(), CatalogPath::SEPARATOR, '-');
+  std::replace(name.begin(), name.end(), AssetCatalogPath::SEPARATOR, '-');
   if (name.length() < MAX_NAME - 1) {
     return name;
   }

@@ -37,7 +37,7 @@ struct CatalogUniqueNameFnData {
 static bool catalog_name_exists_fn(void *arg, const char *name)
 {
   CatalogUniqueNameFnData &fn_data = *static_cast<CatalogUniqueNameFnData *>(arg);
-  CatalogPath fullpath = CatalogPath(fn_data.parent_path) / name;
+  AssetCatalogPath fullpath = AssetCatalogPath(fn_data.parent_path) / name;
   return fn_data.catalog_service.find_catalog_by_path(fullpath);
 }
 
@@ -64,7 +64,7 @@ AssetCatalog *ED_asset_catalog_add(::AssetLibrary *library,
   }
 
   std::string unique_name = catalog_name_ensure_unique(*catalog_service, name, parent_path);
-  CatalogPath fullpath = CatalogPath(parent_path) / unique_name;
+  AssetCatalogPath fullpath = AssetCatalogPath(parent_path) / unique_name;
 
   return catalog_service->create_catalog(fullpath);
 }
