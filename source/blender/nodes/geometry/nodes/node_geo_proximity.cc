@@ -31,8 +31,8 @@ namespace blender::nodes {
 
 static void geo_node_proximity_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>("Source Position").implicit_field();
   b.add_input<decl::Geometry>("Target");
+  b.add_input<decl::Vector>("Source Position").implicit_field();
   b.add_output<decl::Vector>("Position").dependent_field();
   b.add_output<decl::Float>("Distance").dependent_field();
 }
