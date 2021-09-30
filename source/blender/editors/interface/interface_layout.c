@@ -295,6 +295,7 @@ static bool ui_layout_variable_size(uiLayout *layout)
 struct uiTextIconPadFactor {
   float text;
   float icon;
+  float icon_only;
 };
 
 /**
@@ -309,18 +310,21 @@ struct uiTextIconPadFactor {
 static const struct uiTextIconPadFactor ui_text_pad_default = {
     .text = 1.50f,
     .icon = 0.25f,
+    .icon_only = 0.0f,
 };
 
 /** #ui_text_pad_default scaled down. */
 static const struct uiTextIconPadFactor ui_text_pad_compact = {
     .text = 1.25f,
-    .icon = 0.35,
+    .icon = 0.35f,
+    .icon_only = 0.0f,
 };
 
 /** Least amount of padding not to clip the text or icon. */
 static const struct uiTextIconPadFactor ui_text_pad_none = {
-    .text = 0.25,
+    .text = 0.25f,
     .icon = 1.50f,
+    .icon_only = 0.0f,
 };
 
 /**
@@ -333,14 +337,13 @@ static int ui_text_icon_width_ex(uiLayout *layout,
 {
   const int unit_x = UI_UNIT_X * (layout->scale[0] ? layout->scale[0] : 1.0f);
 
-  if (icon && !name[0]) {
-    return unit_x; /* icon only */
+  /* When there is no text, always behave as if this is an icon-only button
+   * since it's not useful to return empty space. */
+  if (!name[0]) {
+    return unit_x * (1.0f + pad_factor->icon_only);
   }
 
   if (ui_layout_variable_size(layout)) {
-    if (!icon && !name[0]) {
-      return unit_x; /* No icon or name. */
-    }
     if (layout->alignment != UI_LAYOUT_ALIGN_EXPAND) {
       layout->item.flag |= UI_ITEM_FIXED_SIZE;
     }
@@ -2907,11 +2910,10 @@ static uiBut *ui_item_menu(uiLayout *layout,
     }
     else if (force_menu) {
       pad_factor.text = 1.85;
+      pad_factor.icon_only = 0.6f;
     }
     else {
-      if (name[0]) {
-        pad_factor.text = 0.75;
-      }
+      pad_factor.text = 0.75f;
     }
   }
 
