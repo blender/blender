@@ -1804,7 +1804,7 @@ int SCULPT_get_symmetry_pass(const SculptSession *ss);
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
 void SCULPT_reorder_bmesh(SculptSession *ss);
 
-ATTR_NO_OPT static inline void *SCULPT_temp_cdata_get(SculptVertRef vertex, SculptCustomLayer *scl)
+static inline void *SCULPT_temp_cdata_get(SculptVertRef vertex, SculptCustomLayer *scl)
 {
   if (scl->data) {
     char *p = (char *)scl->data;

@@ -732,7 +732,7 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
   return true;
 }
 
-ATTR_NO_OPT void SCULPT_update_customdata_refs(SculptSession *ss)
+void SCULPT_update_customdata_refs(SculptSession *ss)
 {
   /* run twice, in case sculpt_temp_customlayer_get had to recreate a layer and
      messed up the ordering. */
@@ -4811,7 +4811,7 @@ static void do_fairing_brush_tag_store_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-ATTR_NO_OPT static void do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+static void do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);

@@ -2201,9 +2201,7 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
   return pbvh;
 }
 
-ATTR_NO_OPT static PBVH *build_pbvh_from_regular_mesh(Object *ob,
-                                                      Mesh *me_eval_deform,
-                                                      bool respect_hide)
+static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool respect_hide)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
@@ -2286,7 +2284,7 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
   return pbvh;
 }
 
-ATTR_NO_OPT bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, PBVH *pbvh, int totvert)
+bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, PBVH *pbvh, int totvert)
 {
   if (!ss->bm && (!ss->mdyntopo_verts || totvert != ss->mdyntopo_verts_size)) {
     init_mdyntopo_layer(ss, pbvh, totvert);
@@ -2296,7 +2294,7 @@ ATTR_NO_OPT bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, PBVH *pbvh,
   return false;
 }
 
-ATTR_NO_OPT static void init_mdyntopo_layer_faces(SculptSession *ss, PBVH *pbvh, int totvert)
+static void init_mdyntopo_layer_faces(SculptSession *ss, PBVH *pbvh, int totvert)
 {
   if (ss->mdyntopo_verts) {
     MEM_freeN(ss->mdyntopo_verts);
@@ -2326,7 +2324,7 @@ ATTR_NO_OPT static void init_mdyntopo_layer_faces(SculptSession *ss, PBVH *pbvh,
   }
 }
 
-ATTR_NO_OPT static void init_mdyntopo_layer_grids(SculptSession *ss, PBVH *pbvh, int totvert)
+static void init_mdyntopo_layer_grids(SculptSession *ss, PBVH *pbvh, int totvert)
 {
   if (ss->mdyntopo_verts) {
     MEM_freeN(ss->mdyntopo_verts);
@@ -2349,7 +2347,7 @@ ATTR_NO_OPT static void init_mdyntopo_layer_grids(SculptSession *ss, PBVH *pbvh,
   }
 }
 
-ATTR_NO_OPT static void init_mdyntopo_layer(SculptSession *ss, PBVH *pbvh, int totvert)
+static void init_mdyntopo_layer(SculptSession *ss, PBVH *pbvh, int totvert)
 {
   if (BKE_pbvh_type(pbvh) == PBVH_FACES) {
     init_mdyntopo_layer_faces(ss, pbvh, totvert);

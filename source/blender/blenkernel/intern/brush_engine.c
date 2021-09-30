@@ -885,10 +885,10 @@ static bool channel_has_mappings(BrushChannel *ch)
 }
 
 // idx is used by vector channels
-ATTR_NO_OPT double BKE_brush_channel_eval_mappings(BrushChannel *ch,
-                                                   BrushMappingData *mapdata,
-                                                   double f,
-                                                   int idx)
+double BKE_brush_channel_eval_mappings(BrushChannel *ch,
+                                       BrushMappingData *mapdata,
+                                       double f,
+                                       int idx)
 {
 
   if (idx == 3 && !(ch->flag & BRUSH_CHANNEL_APPLY_MAPPING_TO_ALPHA)) {
