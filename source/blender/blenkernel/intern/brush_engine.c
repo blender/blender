@@ -40,6 +40,17 @@
 
 #include "BLO_read_write.h"
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#  pragma warning(error : 4018) /* signed/unsigned mismatch */
+#  pragma warning(error : 4245) /* conversion from 'int' to 'unsigned int' */
+#  pragma warning(error : 4389) /* signed/unsigned mismatch */
+#  pragma warning(error : 4002) /* too many actual parameters for macro 'identifier' */
+#  pragma warning(error : 4003) /* not enough actual parameters for macro 'identifier' */
+#  pragma warning( \
+      error : 4022) /* 'function': pointer mismatch for actual parameter 'parameter number' */
+#  pragma warning(error : 4033) /* 'function' must return a value */
+#endif
+
 #define IS_CACHE_CURVE(curve) BKE_curvemapping_in_cache(curve)
 
 // frees curve if it wasn't cached, returns cache curved

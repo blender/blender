@@ -178,7 +178,7 @@ places in rna_engine_codebase are relevent:
     "NONE",
     "Exclusion",
     "Use Exclusion blending mode while painting"},
-  {IMB_BLEND_SUB, "SUB", 0, "Subtract", "Use Subtract blending mode while painting"},
+  {IMB_BLEND_SUB, "SUB", "NONE", "Subtract", "Use Subtract blending mode while painting"},
   {0, "", "NONE", "", ""},
   {IMB_BLEND_HUE, "HUE", "NONE", "Hue", "Use Hue blending mode while painting"},
   {IMB_BLEND_SATURATION,
@@ -188,7 +188,7 @@ places in rna_engine_codebase are relevent:
     "Use Saturation blending mode while painting"},
   {IMB_BLEND_COLOR, "COLOR", "NONE", "Color", "Use Color blending mode while painting"},
   {IMB_BLEND_LUMINOSITY, "LUMINOSITY", "NONE", "Value", "Use Value blending mode while painting"},
-  {0, "", ICON_NONE, "", ""},
+  {0, "", "NONE", "", ""},
   {IMB_BLEND_ERASE_ALPHA, "ERASE_ALPHA", "NONE", "Erase Alpha", "Erase alpha while painting"},
   {IMB_BLEND_ADD_ALPHA, "ADD_ALPHA", "NONE", "Add Alpha", "Add alpha while painting"},
   {-1}
@@ -215,36 +215,36 @@ places in rna_engine_codebase are relevent:
   MAKE_FLOAT_EX(topology_rake_spacing, "Rake Spacing", "Topology rake stroke spacing", 13.0f, 0.05f, 1000.0f, 0.5f, 150.0f, false)
   MAKE_FLOAT_EX(autosmooth_spacing, "Auto-Smooth Spacing", "Autosmooth stroke spacing", 13.0f, 0.05f, 1000.0f, 0.5f, 150.0f, false)
   MAKE_ENUM(topology_rake_mode, "Topology Rake Mode", "", 1, {
-      {0, "BRUSH_DIRECTION", ICON_NONE, "Stroke", "Stroke Direction"},
-      {1, "CURVATURE", ICON_NONE, "Curvature", "Follow mesh curvature"},
+      {0, "BRUSH_DIRECTION", "NONE", "Stroke", "Stroke Direction"},
+      {1, "CURVATURE", "NONE", "Curvature", "Follow mesh curvature"},
       {-1}
   })
 
   MAKE_FLOAT_EX_EX(smooth_strength_factor, "Smooth Strength", "Factor to control the strength of shift-smooth", 0.1f, 0.0f, 10.0f, 0.0f, 2.0f, false, false, BRUSH_CHANNEL_INHERIT)
 
   MAKE_FLAGS_EX(automasking, "Automasking", "", 0, BRUSH_CHANNEL_INHERIT_IF_UNSET, {\
-         {BRUSH_AUTOMASKING_BOUNDARY_EDGES, "BOUNDARY_EDGE", ICON_NONE, "Boundary Edges", ""},
-         {BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS, "BOUNDARY_FACE_SETS", ICON_NONE, "Boundary Face Sets", ""},
-         {BRUSH_AUTOMASKING_CONCAVITY, "CONCAVITY", ICON_NONE, "Cavity", ""},
-         {BRUSH_AUTOMASKING_INVERT_CONCAVITY, "INVERT_CONCAVITY", ICON_NONE, "Invert Cavity", "Invert Cavity Map"},
-         {BRUSH_AUTOMASKING_FACE_SETS, "FACE_SETS", ICON_NONE, "Face Sets", ""},
-         {BRUSH_AUTOMASKING_TOPOLOGY, "TOPOLOGY", ICON_NONE, "Topology", ""},
+         {BRUSH_AUTOMASKING_BOUNDARY_EDGES, "BOUNDARY_EDGE", "NONE", "Boundary Edges", ""},
+         {BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS, "BOUNDARY_FACE_SETS", "NONE", "Boundary Face Sets", ""},
+         {BRUSH_AUTOMASKING_CONCAVITY, "CONCAVITY", "NONE", "Cavity", ""},
+         {BRUSH_AUTOMASKING_INVERT_CONCAVITY, "INVERT_CONCAVITY", "NONE", "Invert Cavity", "Invert Cavity Map"},
+         {BRUSH_AUTOMASKING_FACE_SETS, "FACE_SETS", "NONE", "Face Sets", ""},
+         {BRUSH_AUTOMASKING_TOPOLOGY, "TOPOLOGY", "NONE", "Topology", ""},
          {-1},
     })
 
   MAKE_BOOL_EX(dyntopo_disabled, "Disable Dyntopo", "", false, BRUSH_CHANNEL_NO_MAPPINGS)
   MAKE_FLAGS_EX(dyntopo_mode, "Dyntopo Operators", "", DYNTOPO_COLLAPSE|DYNTOPO_CLEANUP|DYNTOPO_SUBDIVIDE, BRUSH_CHANNEL_INHERIT, {\
-        {DYNTOPO_COLLAPSE, "COLLAPSE", ICON_NONE, "Collapse", ""},
-        {DYNTOPO_SUBDIVIDE, "SUBDIVIDE", ICON_NONE, "Subdivide", ""},
-        {DYNTOPO_CLEANUP, "CLEANUP", ICON_NONE, "Cleanup", ""},
-        {DYNTOPO_LOCAL_COLLAPSE, "LOCAL_COLLAPSE", ICON_NONE, "Local Collapse", ""},
-        {DYNTOPO_LOCAL_SUBDIVIDE, "LOCAL_SUBDIVIDE", ICON_NONE, "Local Subdivide", ""},
+        {DYNTOPO_COLLAPSE, "COLLAPSE", "NONE", "Collapse", ""},
+        {DYNTOPO_SUBDIVIDE, "SUBDIVIDE", "NONE", "Subdivide", ""},
+        {DYNTOPO_CLEANUP, "CLEANUP", "NONE", "Cleanup", ""},
+        {DYNTOPO_LOCAL_COLLAPSE, "LOCAL_COLLAPSE", "NONE", "Local Collapse", ""},
+        {DYNTOPO_LOCAL_SUBDIVIDE, "LOCAL_SUBDIVIDE", "NONE", "Local Subdivide", ""},
         {-1}
       })
   MAKE_ENUM(slide_deform_type, "Slide Deform Type", "", BRUSH_SLIDE_DEFORM_DRAG, {\
-       {BRUSH_SLIDE_DEFORM_DRAG, "DRAG", ICON_NONE, "Drag", ""},
-       {BRUSH_SLIDE_DEFORM_PINCH, "PINCH", ICON_NONE, "Pinch", ""},
-       {BRUSH_SLIDE_DEFORM_EXPAND, "EXPAND", ICON_NONE, "Expand", ""},
+       {BRUSH_SLIDE_DEFORM_DRAG, "DRAG", "NONE", "Drag", ""},
+       {BRUSH_SLIDE_DEFORM_PINCH, "PINCH", "NONE", "Pinch", ""},
+       {BRUSH_SLIDE_DEFORM_EXPAND, "EXPAND", "NONE", "Expand", ""},
        {-1}
     })
   MAKE_FLOAT(normal_radius_factor, "Normal Radius", "Ratio between the brush radius and the radius that is going to be "
@@ -264,7 +264,7 @@ MAKE_FLOAT(jitter, "Jitter",  "Jitter the position of the brush while painting",
 MAKE_INT(jitter_absolute, "Absolute Jitter", "", 0, 0.0f, 1000.0f)
 MAKE_FLOAT(smooth_stroke_radius, "Smooth Stroke Radius", "Minimum distance from last point before stroke continues", 75.0f, 10.0f, 200.0f)
 MAKE_FLOAT(smooth_stroke_factor, "Smooth Stroke Factor", "", 0.9f, 0.5f, 0.99f)
-MAKE_FLOAT_EX(rate, "Rate", "", 0.1, 0.0001f, 10000.0f, 0.01f, 1.0f, false)
+MAKE_FLOAT_EX(rate, "Rate", "", 0.1f, 0.0001f, 10000.0f, 0.01f, 1.0f, false)
 MAKE_FLOAT(flow, "Flow", "Amount of paint that is applied per stroke sample", 1.0f, 0.0f, 1.0f)
 MAKE_FLOAT(wet_mix, "Wet Mix", "Amount of paint that is picked from the surface into the brush color", 0.0f, 0.0f, 1.0f)
 MAKE_FLOAT(wet_persistence, "Wet Persistence", "Amount of wet paint that stays in the brush after applying paint to the surface", 0.0f, 0.0f, 1.0f)
@@ -283,7 +283,7 @@ MAKE_BOOL(grab_silhouette, "Grab Silhouette", "Grabs trying to automask the silh
 MAKE_FLOAT_EX_FLAG(dyntopo_detail_percent, "Detail Percent", "Detail Percent", 25.0f, 0.0f, 1000.0f, 0.0f, 1000.0f, false, BRUSH_CHANNEL_INHERIT)
 MAKE_FLOAT_EX_FLAG(dyntopo_detail_range, "Detail Range", "Detail Range", 0.45f, 0.01f, 0.99f, 0.01f, 0.99f, false, BRUSH_CHANNEL_INHERIT)
 MAKE_FLOAT_EX_FLAG(dyntopo_detail_size, "Detail Size", "Detail Size", 8.0f, 0.1f, 100.0f, 0.001f, 500.0f, false, BRUSH_CHANNEL_INHERIT)
-MAKE_FLOAT_EX_FLAG(dyntopo_constant_detail, "Constaint Detail", "", 3.0f, 0.001f, 1000.0f, 0.0001, FLT_MAX, false, BRUSH_CHANNEL_INHERIT)
+MAKE_FLOAT_EX_FLAG(dyntopo_constant_detail, "Constaint Detail", "", 3.0f, 0.001f, 1000.0f, 0.0001f, FLT_MAX, false, BRUSH_CHANNEL_INHERIT)
 MAKE_FLOAT_EX_FLAG(dyntopo_spacing, "Spacing", "Dyntopo Spacing", 35.0f, 0.01f, 300.0f, 0.001f, 50000.0f, false, BRUSH_CHANNEL_INHERIT)
 MAKE_ENUM_EX(dyntopo_detail_mode, "Detail Mode", "", DYNTOPO_DETAIL_RELATIVE, BRUSH_CHANNEL_INHERIT, {\
     {DYNTOPO_DETAIL_RELATIVE, "RELATIVE", "NONE", "Relative", ""},
@@ -304,7 +304,7 @@ MAKE_COLOR3(secondary_color, "Secondary Color", "", 0.0f, 0.0f, 0.0f)
 MAKE_FLOAT(vcol_boundary_factor, "Boundary Hardening", "Automatically align edges on color boundaries"
                         "to generate sharper features. ", 0.0f, 0.0f, 1.0f)
 MAKE_FLOAT_EX(vcol_boundary_exponent, "Exponent", "Hardening exponent (smaller values make smoother edges)",
-                1.0, 0.001f, 6.0f, 0.001, 3.0f, false)
+                1.0f, 0.001f, 6.0f, 0.001, 3.0f, false)
 MAKE_FLOAT_EX(vcol_boundary_radius_scale, "Radius Scale",
   "Scale brush radius for vcol boundary hardening",
   1.0f, 0.0001f, 100.0f, 0.001f, 3.0f, false)
@@ -425,7 +425,7 @@ MAKE_ENUM(deform_target, "Deformation Target", "How the deformation of the brush
 MAKE_CURVE(autosmooth_falloff_curve, "Autosmooth Falloff", "Custom curve for autosmooth", BRUSH_CURVE_SMOOTH)
 MAKE_CURVE(topology_rake_falloff_curve, "Rake Falloff", "Custom curve for topolgoy rake", BRUSH_CURVE_SMOOTH)
 MAKE_CURVE(falloff_curve, "Falloff", "Falloff curve", BRUSH_CURVE_SMOOTH)
-MAKE_FLOAT_EX(unprojected_radius, "Unprojected Radius", "Radius of brush in Blender units", 0.1f, 0.001, FLT_MAX, 0.001, 1.0f, false)
+MAKE_FLOAT_EX(unprojected_radius, "Unprojected Radius", "Radius of brush in Blender units", 0.1f, 0.001f, FLT_MAX, 0.001f, 1.0f, false)
 MAKE_ENUM_EX(radius_unit,  "Radius Unit", "Measure brush size relative to the view or the scene", 0, BRUSH_CHANNEL_SHOW_IN_WORKSPACE, {\
   {0, "VIEW", "NONE", "View", "Measure brush size relative to the view"},
   {BRUSH_LOCK_SIZE, "SCENE", "NONE", "Scene", "Measure brush size relative to the scene"},
@@ -509,7 +509,7 @@ MAKE_ENUM(mtex_map_mode, "Mode", "", MTEX_MAP_MODE_TILED, {\
 })
 MAKE_BOOL(mtex_use_rake, "Rake", "", false)
 MAKE_BOOL(mtex_use_random, "Random", "", false)
-MAKE_FLOAT(mtex_random_angle, "Random Angle", "Brush texture random angle", 0.0f, 0.0f, M_PI*2.0f)
+MAKE_FLOAT(mtex_random_angle, "Random Angle", "Brush texture random angle", 0.0f, 0.0f, ((float)M_PI)*2.0f)
 MAKE_FLOAT(mtex_angle, "Angle", "", 0.0f, 0.0f, M_PI*2.0f)
 MAKE_FLOAT_EX(height, "Brush Height", "Affectable height of brush (layer height for layer tool, i.e.)", 0.05f, 0.0f, 1.0f, 0.0f, 0.2f, false)
 MAKE_BOOL(use_space_attenuation, "Adjust Strength for Spacing",

@@ -36,6 +36,17 @@
 
 #include "BKE_brush_engine.h"
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#  pragma warning(error : 4018) /* signed/unsigned mismatch */
+#  pragma warning(error : 4245) /* conversion from 'int' to 'unsigned int' */
+#  pragma warning(error : 4389) /* signed/unsigned mismatch */
+#  pragma warning(error : 4002) /* too many actual parameters for macro 'identifier' */
+#  pragma warning(error : 4003) /* not enough actual parameters for macro 'identifier' */
+#  pragma warning( \
+      error : 4022) /* 'function': pointer mismatch for actual parameter 'parameter number' */
+#  pragma warning(error : 4033) /* 'function' must return a value */
+#endif
+
 static bool check_builtin_init();
 
 #if 1
@@ -905,7 +916,6 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   }
 
   BrushChannelSet *chset = brush->channels;
-  BrushChannel *_ch;
 
   bool set_mappings = BRUSHSET_LOOKUP(chset, radius) == NULL;
 
@@ -1187,7 +1197,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
     case SCULPT_TOOL_SCRAPE:
     case SCULPT_TOOL_FILL:
       SHOWWRK(plane_offset);
-      SHOWWRK(plane_trim, plane_trim);
+      SHOWWRK(plane_trim);
       SHOWWRK(invert_to_scrape_fill);
       SHOWWRK(area_radius_factor);
 
@@ -1217,7 +1227,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
     case SCULPT_TOOL_FLATTEN:
       SHOWWRK(area_radius_factor);
       SHOWWRK(plane_offset);
-      SHOWWRK(plane_trim, plane_trim);
+      SHOWWRK(plane_trim);
       SHOWWRK(tip_roundness);
       SHOWWRK(use_plane_trim);
 
