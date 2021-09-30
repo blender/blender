@@ -75,6 +75,7 @@ static void geo_node_curve_to_mesh_exec(GeoNodeExecParams params)
 
   curve_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     geometry_set_curve_to_mesh(geometry_set, profile_set, params);
+    geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
   });
 
   params.set_output("Mesh", std::move(curve_set));
