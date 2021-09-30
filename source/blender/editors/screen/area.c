@@ -1699,6 +1699,9 @@ static void ed_default_handlers(
     wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "User Interface", 0, 0);
     WM_event_add_keymap_handler(handlers, keymap);
 
+    ListBase *dropboxes = WM_dropboxmap_find("User Interface", 0, 0);
+    WM_event_add_dropbox_handler(handlers, dropboxes);
+
     /* user interface widgets */
     UI_region_handlers_add(handlers);
   }

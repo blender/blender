@@ -42,6 +42,7 @@ set(SRC
   interface_button_group.c
   interface_context_menu.c
   interface_draw.c
+  interface_dropboxes.cc
   interface_eyedropper.c
   interface_eyedropper_color.c
   interface_eyedropper_colorband.c

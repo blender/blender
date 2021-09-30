@@ -20,6 +20,8 @@
 
 #include "DNA_userdef_types.h"
 
+#include "BLT_translation.h"
+
 #include "interface_intern.h"
 
 #include "UI_interface.h"
@@ -137,6 +139,24 @@ AbstractTreeViewItem *AbstractTreeView::find_matching_child(
 void AbstractTreeViewItem::on_activate()
 {
   /* Do nothing by default. */
+}
+
+bool AbstractTreeViewItem::on_drop(const wmDrag & /*drag*/)
+{
+  /* Do nothing by default. */
+  return false;
+}
+
+bool AbstractTreeViewItem::can_drop(const wmDrag & /*drag*/) const
+{
+  return false;
+}
+
+std::string AbstractTreeViewItem::drop_tooltip(const bContext & /*C*/,
+                                               const wmDrag & /*drag*/,
+                                               const wmEvent & /*event*/) const
+{
+  return TIP_("Drop into/onto tree item");
 }
 
 void AbstractTreeViewItem::update_from_old(const AbstractTreeViewItem &old)
@@ -326,4 +346,36 @@ bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a_handle,
   const AbstractTreeViewItem &a = reinterpret_cast<const AbstractTreeViewItem &>(*a_handle);
   const AbstractTreeViewItem &b = reinterpret_cast<const AbstractTreeViewItem &>(*b_handle);
   return a.matches(b);
+}
+
+bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_, const wmDrag *drag)
+{
+  const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_);
+  return item.can_drop(*drag);
+}
+
+char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item_,
+                                     const bContext *C,
+                                     const wmDrag *drag,
+                                     const wmEvent *event)
+{
+  const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_);
+  return BLI_strdup(item.drop_tooltip(*C, *drag, *event).c_str());
+}
+
+/**
+ * Let a tree-view item handle a drop event.
+ * \return True if the drop was handled by the tree-view item.
+ */
+bool UI_tree_view_item_drop_handle(uiTreeViewItemHandle *item_, const ListBase *drags)
+{
+  AbstractTreeViewItem &item = reinterpret_cast<AbstractTreeViewItem &>(*item_);
+
+  LISTBASE_FOREACH (const wmDrag *, drag, drags) {
+    if (item.can_drop(*drag)) {
+      return item.on_drop(*drag);
+    }
+  }
+
+  return false;
 }

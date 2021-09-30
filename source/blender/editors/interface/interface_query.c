@@ -463,6 +463,16 @@ uiBut *ui_list_row_find_from_index(const ARegion *region, const int index, uiBut
   return ui_but_find(region, ui_but_is_listrow_at_index, &data);
 }
 
+static bool ui_but_is_treerow(const uiBut *but, const void *UNUSED(customdata))
+{
+  return but->type == UI_BTYPE_TREEROW;
+}
+
+uiBut *ui_tree_row_find_mouse_over(const ARegion *region, const int x, const int y)
+{
+  return ui_but_find_mouse_over_ex(region, x, y, false, ui_but_is_treerow, NULL);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

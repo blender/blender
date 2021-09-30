@@ -29,11 +29,14 @@
 
 #include "UI_resources.h"
 
+struct bContext;
 struct PointerRNA;
 struct uiBlock;
 struct uiBut;
 struct uiButTreeRow;
 struct uiLayout;
+struct wmEvent;
+struct wmDrag;
 
 namespace blender::ui {
 
@@ -185,10 +188,19 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   virtual void build_row(uiLayout &row) = 0;
 
   virtual void on_activate();
+  virtual bool on_drop(const wmDrag &drag);
+  virtual bool can_drop(const wmDrag &drag) const;
+  /** Custom text to display when dragging over a tree item. Should explain what happens when
+   * dropping the data onto this item. Will only be used if #AbstractTreeViewItem::can_drop()
+   * returns true, so the implementing override doesn't have to check that again.
+   * The returned value must be a translated string. */
+  virtual std::string drop_tooltip(const bContext &C,
+                                   const wmDrag &drag,
+                                   const wmEvent &event) const;
 
-  /** Copy persistent state (e.g. is-collapsed flag, selection, etc.) from a matching item of the
-   * last redraw to this item. If sub-classes introduce more advanced state they should override
-   * this and make it update their state accordingly. */
+  /** Copy persistent state (e.g. is-collapsed flag, selection, etc.) from a matching item of
+   * the last redraw to this item. If sub-classes introduce more advanced state they should
+   * override this and make it update their state accordingly. */
   virtual void update_from_old(const AbstractTreeViewItem &old);
   /** Compare this item to \a other to check if they represent the same data. This is critical for
    * being able to recognize an item from a previous redraw, to be able to keep its state (e.g.

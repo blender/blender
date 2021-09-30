@@ -26,6 +26,8 @@
 #include <memory>
 #include <variant>
 
+#include "DNA_screen_types.h"
+
 #include "BLI_listbase.h"
 
 #include "interface_intern.h"
@@ -75,6 +77,21 @@ void ui_block_free_views(uiBlock *block)
   LISTBASE_FOREACH_MUTABLE (ViewLink *, link, &block->views) {
     OBJECT_GUARDED_DELETE(link, ViewLink);
   }
+}
+
+/**
+ * \param x, y: Coordinate to find a tree-row item at, in window space.
+ */
+uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const ARegion *region,
+                                                      const int x,
+                                                      const int y)
+{
+  uiButTreeRow *tree_row_but = (uiButTreeRow *)ui_tree_row_find_mouse_over(region, x, y);
+  if (!tree_row_but) {
+    return nullptr;
+  }
+
+  return tree_row_but->tree_item;
 }
 
 static StringRef ui_block_view_find_idname(const uiBlock &block, const AbstractTreeView &view)

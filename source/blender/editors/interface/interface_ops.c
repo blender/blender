@@ -1918,6 +1918,51 @@ static void UI_OT_list_start_filter(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name UI Tree-View Drop Operator
+ * \{ */
+
+static bool ui_tree_view_drop_poll(bContext *C)
+{
+  const wmWindow *win = CTX_wm_window(C);
+  const ARegion *region = CTX_wm_region(C);
+  const uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(
+      region, win->eventstate->x, win->eventstate->y);
+
+  return hovered_tree_item != NULL;
+}
+
+static int ui_tree_view_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+{
+  if (event->custom != EVT_DATA_DRAGDROP) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
+
+  const ARegion *region = CTX_wm_region(C);
+  uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(
+      region, event->x, event->y);
+
+  if (!UI_tree_view_item_drop_handle(hovered_tree_item, event->customdata)) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_tree_view_drop(wmOperatorType *ot)
+{
+  ot->name = "Tree View drop";
+  ot->idname = "UI_OT_tree_view_drop";
+  ot->description = "Drag and drop items onto a tree item";
+
+  ot->invoke = ui_tree_view_drop_invoke;
+  ot->poll = ui_tree_view_drop_poll;
+
+  ot->flag = OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Operator & Keymap Registration
  * \{ */
 
@@ -1943,6 +1988,8 @@ void ED_operatortypes_ui(void)
   WM_operatortype_append(UI_OT_button_string_clear);
 
   WM_operatortype_append(UI_OT_list_start_filter);
+
+  WM_operatortype_append(UI_OT_tree_view_drop);
 
   /* external */
   WM_operatortype_append(UI_OT_eyedropper_color);
