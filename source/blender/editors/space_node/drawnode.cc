@@ -164,6 +164,11 @@ static void node_buts_curvevec(uiLayout *layout, bContext *UNUSED(C), PointerRNA
   uiTemplateCurveMapping(layout, ptr, "mapping", 'v', false, false, false, false);
 }
 
+static void node_buts_curvefloat(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiTemplateCurveMapping(layout, ptr, "mapping", 0, false, false, false, false);
+}
+
 #define SAMPLE_FLT_ISNONE FLT_MAX
 /* Bad bad, 2.5 will do better? ... no it won't! */
 static float _sample_col[4] = {SAMPLE_FLT_ISNONE};
@@ -1182,6 +1187,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
       break;
     case SH_NODE_CURVE_RGB:
       ntype->draw_buttons = node_buts_curvecol;
+      break;
+    case SH_NODE_CURVE_FLOAT:
+      ntype->draw_buttons = node_buts_curvefloat;
       break;
     case SH_NODE_MAPPING:
       ntype->draw_buttons = node_shader_buts_mapping;

@@ -279,7 +279,7 @@ static ShaderNode *add_node(Scene *scene,
     array<float3> curve_mapping_curves;
     float min_x, max_x;
     curvemapping_color_to_array(mapping, curve_mapping_curves, RAMP_TABLE_SIZE, true);
-    curvemapping_minmax(mapping, true, &min_x, &max_x);
+    curvemapping_minmax(mapping, 4, &min_x, &max_x);
     curves->set_min_x(min_x);
     curves->set_max_x(max_x);
     curves->set_curves(curve_mapping_curves);
@@ -292,11 +292,24 @@ static ShaderNode *add_node(Scene *scene,
     array<float3> curve_mapping_curves;
     float min_x, max_x;
     curvemapping_color_to_array(mapping, curve_mapping_curves, RAMP_TABLE_SIZE, false);
-    curvemapping_minmax(mapping, false, &min_x, &max_x);
+    curvemapping_minmax(mapping, 3, &min_x, &max_x);
     curves->set_min_x(min_x);
     curves->set_max_x(max_x);
     curves->set_curves(curve_mapping_curves);
     node = curves;
+  }
+  else if (b_node.is_a(&RNA_ShaderNodeFloatCurve)) {
+    BL::ShaderNodeFloatCurve b_curve_node(b_node);
+    BL::CurveMapping mapping(b_curve_node.mapping());
+    FloatCurveNode *curve = graph->create_node<FloatCurveNode>();
+    array<float> curve_mapping_curve;
+    float min_x, max_x;
+    curvemapping_float_to_array(mapping, curve_mapping_curve, RAMP_TABLE_SIZE);
+    curvemapping_minmax(mapping, 1, &min_x, &max_x);
+    curve->set_min_x(min_x);
+    curve->set_max_x(max_x);
+    curve->set_curve(curve_mapping_curve);
+    node = curve;
   }
   else if (b_node.is_a(&RNA_ShaderNodeValToRGB)) {
     RGBRampNode *ramp = graph->create_node<RGBRampNode>();

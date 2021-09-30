@@ -171,12 +171,11 @@ static inline void curvemap_minmax_curve(/*const*/ BL::CurveMap &curve, float *m
 }
 
 static inline void curvemapping_minmax(/*const*/ BL::CurveMapping &cumap,
-                                       bool rgb_curve,
+                                       int num_curves,
                                        float *min_x,
                                        float *max_x)
 {
   // const int num_curves = cumap.curves.length(); /* Gives linking error so far. */
-  const int num_curves = rgb_curve ? 4 : 3;
   *min_x = FLT_MAX;
   *max_x = -FLT_MAX;
   for (int i = 0; i < num_curves; ++i) {
@@ -193,6 +192,28 @@ static inline void curvemapping_to_array(BL::CurveMapping &cumap, array<float> &
   for (int i = 0; i < size; i++) {
     float t = (float)i / (float)(size - 1);
     data[i] = cumap.evaluate(curve, t);
+  }
+}
+
+static inline void curvemapping_float_to_array(BL::CurveMapping &cumap,
+                                               array<float> &data,
+                                               int size)
+{
+  float min = 0.0f, max = 1.0f;
+
+  curvemapping_minmax(cumap, 1, &min, &max);
+
+  const float range = max - min;
+
+  cumap.update();
+
+  BL::CurveMap map = cumap.curves[0];
+
+  data.resize(size);
+
+  for (int i = 0; i < size; i++) {
+    float t = min + (float)i / (float)(size - 1) * range;
+    data[i] = cumap.evaluate(map, t);
   }
 }
 
@@ -214,7 +235,8 @@ static inline void curvemapping_color_to_array(BL::CurveMapping &cumap,
    *
    * There might be some better estimations here tho.
    */
-  curvemapping_minmax(cumap, rgb_curve, &min_x, &max_x);
+  const int num_curves = rgb_curve ? 4 : 3;
+  curvemapping_minmax(cumap, num_curves, &min_x, &max_x);
 
   const float range_x = max_x - min_x;
 

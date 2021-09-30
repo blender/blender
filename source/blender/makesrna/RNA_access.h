@@ -558,6 +558,7 @@ extern StructRNA RNA_ShaderFxWave;
 extern StructRNA RNA_ShaderNode;
 extern StructRNA RNA_ShaderNodeCameraData;
 extern StructRNA RNA_ShaderNodeCombineRGB;
+extern StructRNA RNA_ShaderNodeFloatCurve;
 extern StructRNA RNA_ShaderNodeGamma;
 extern StructRNA RNA_ShaderNodeHueSaturation;
 extern StructRNA RNA_ShaderNodeInvert;

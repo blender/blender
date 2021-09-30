@@ -493,10 +493,12 @@ ccl_device void svm_eval_nodes(INTEGRATOR_STATE_CONST_ARGS,
       case NODE_IES:
         svm_node_ies(kg, sd, stack, node);
         break;
-
       case NODE_RGB_CURVES:
       case NODE_VECTOR_CURVES:
         offset = svm_node_curves(kg, sd, stack, node, offset);
+        break;
+      case NODE_FLOAT_CURVE:
+        offset = svm_node_curve(kg, sd, stack, node, offset);
         break;
       case NODE_TANGENT:
         svm_node_tangent(kg, sd, stack, node);

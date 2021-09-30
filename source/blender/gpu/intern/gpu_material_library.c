@@ -62,6 +62,7 @@ extern char datatoc_gpu_shader_material_diffuse_glsl[];
 extern char datatoc_gpu_shader_material_displacement_glsl[];
 extern char datatoc_gpu_shader_material_eevee_specular_glsl[];
 extern char datatoc_gpu_shader_material_emission_glsl[];
+extern char datatoc_gpu_shader_material_float_curve_glsl[];
 extern char datatoc_gpu_shader_material_fractal_noise_glsl[];
 extern char datatoc_gpu_shader_material_fresnel_glsl[];
 extern char datatoc_gpu_shader_material_gamma_glsl[];
@@ -259,6 +260,11 @@ static GPUMaterialLibrary gpu_shader_material_eevee_specular_library = {
 
 static GPUMaterialLibrary gpu_shader_material_emission_library = {
     .code = datatoc_gpu_shader_material_emission_glsl,
+    .dependencies = {NULL},
+};
+
+static GPUMaterialLibrary gpu_shader_material_float_curve_library = {
+    .code = datatoc_gpu_shader_material_float_curve_glsl,
     .dependencies = {NULL},
 };
 
@@ -591,6 +597,7 @@ static GPUMaterialLibrary *gpu_material_libraries[] = {
     &gpu_shader_material_color_util_library,
     &gpu_shader_material_hash_library,
     &gpu_shader_material_noise_library,
+    &gpu_shader_material_float_curve_library,
     &gpu_shader_material_fractal_noise_library,
     &gpu_shader_material_add_shader_library,
     &gpu_shader_material_ambient_occlusion_library,

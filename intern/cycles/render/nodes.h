@@ -1398,6 +1398,18 @@ class VectorCurvesNode : public CurvesNode {
   void constant_fold(const ConstantFolder &folder);
 };
 
+class FloatCurveNode : public ShaderNode {
+ public:
+  SHADER_NODE_CLASS(FloatCurveNode)
+  void constant_fold(const ConstantFolder &folder);
+
+  NODE_SOCKET_API_ARRAY(array<float>, curve)
+  NODE_SOCKET_API(float, min_x)
+  NODE_SOCKET_API(float, max_x)
+  NODE_SOCKET_API(float, fac)
+  NODE_SOCKET_API(float, value)
+};
+
 class RGBRampNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(RGBRampNode)

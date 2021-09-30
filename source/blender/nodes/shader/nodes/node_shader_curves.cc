@@ -343,3 +343,142 @@ void register_node_type_sh_curve_rgb(void)
 
   nodeRegisterType(&ntype);
 }
+
+/* **************** CURVE FLOAT  ******************** */
+
+namespace blender::nodes {
+
+static void sh_node_curve_float_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Factor").min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Value").default_value(1.0f);
+  b.add_output<decl::Float>("Value");
+};
+
+}  // namespace blender::nodes
+
+static void node_shader_exec_curve_float(void *UNUSED(data),
+                                         int UNUSED(thread),
+                                         bNode *node,
+                                         bNodeExecData *UNUSED(execdata),
+                                         bNodeStack **in,
+                                         bNodeStack **out)
+{
+  float value;
+  float fac;
+
+  nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);
+  nodestack_get_vec(&value, SOCK_FLOAT, in[1]);
+  out[0]->vec[0] = BKE_curvemapping_evaluateF((CurveMapping *)node->storage, 0, value);
+  if (fac != 1.0f) {
+    out[0]->vec[0] = (1.0f - fac) * value + fac * out[0]->vec[0];
+  }
+}
+
+static void node_shader_init_curve_float(bNodeTree *ntree, bNode *node)
+{
+  node->storage = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+}
+
+static int gpu_shader_curve_float(GPUMaterial *mat,
+                                  bNode *node,
+                                  bNodeExecData *UNUSED(execdata),
+                                  GPUNodeStack *in,
+                                  GPUNodeStack *out)
+{
+  float *array, layer;
+  int size;
+
+  CurveMapping *cumap = (CurveMapping *)node->storage;
+
+  BKE_curvemapping_table_F(cumap, &array, &size);
+  GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
+
+  float ext_xyz[4];
+  float range_x;
+
+  const CurveMap *cm = &cumap->cm[0];
+  ext_xyz[0] = cm->mintable;
+  ext_xyz[2] = cm->maxtable;
+  range_x = 1.0f / max_ff(1e-8f, cm->maxtable - cm->mintable);
+  /* Compute extrapolation gradients. */
+  if ((cumap->flag & CUMA_EXTEND_EXTRAPOLATE) != 0) {
+    ext_xyz[1] = (cm->ext_in[0] != 0.0f) ? (cm->ext_in[1] / (cm->ext_in[0] * range_x)) : 1e8f;
+    ext_xyz[3] = (cm->ext_out[0] != 0.0f) ? (cm->ext_out[1] / (cm->ext_out[0] * range_x)) : 1e8f;
+  }
+  else {
+    ext_xyz[1] = 0.0f;
+    ext_xyz[3] = 0.0f;
+  }
+  return GPU_stack_link(mat,
+                        node,
+                        "curve_float",
+                        in,
+                        out,
+                        tex,
+                        GPU_constant(&layer),
+                        GPU_uniform(&range_x),
+                        GPU_uniform(ext_xyz));
+}
+
+class CurveFloatFunction : public blender::fn::MultiFunction {
+ private:
+  const CurveMapping &cumap_;
+
+ public:
+  CurveFloatFunction(const CurveMapping &cumap) : cumap_(cumap)
+  {
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Curve Float"};
+    signature.single_input<float>("Factor");
+    signature.single_input<float>("Value");
+    signature.single_output<float>("Value");
+    return signature.build();
+  }
+
+  void call(blender::IndexMask mask,
+            blender::fn::MFParams params,
+            blender::fn::MFContext UNUSED(context)) const override
+  {
+    const blender::VArray<float> &fac = params.readonly_single_input<float>(0, "Factor");
+    const blender::VArray<float> &val_in = params.readonly_single_input<float>(1, "Value");
+    blender::MutableSpan<float> val_out = params.uninitialized_single_output<float>(2, "Value");
+
+    for (int64_t i : mask) {
+      val_out[i] = BKE_curvemapping_evaluateF(&cumap_, 0, val_in[i]);
+      if (fac[i] != 1.0f) {
+        val_out[i] = (1.0f - fac[i]) * val_in[i] + fac[i] * val_out[i];
+      }
+    }
+  }
+};
+
+static void sh_node_curve_float_build_multi_function(
+    blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  bNode &bnode = builder.node();
+  CurveMapping *cumap = (CurveMapping *)bnode.storage;
+  BKE_curvemapping_init(cumap);
+  builder.construct_and_set_matching_fn<CurveFloatFunction>(*cumap);
+}
+
+void register_node_type_sh_curve_float(void)
+{
+  static bNodeType ntype;
+
+  sh_fn_node_type_base(&ntype, SH_NODE_CURVE_FLOAT, "Float Curve", NODE_CLASS_CONVERTER, 0);
+  ntype.declare = blender::nodes::sh_node_curve_float_declare;
+  node_type_init(&ntype, node_shader_init_curve_float);
+  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
+  node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+  node_type_exec(&ntype, node_initexec_curves, nullptr, node_shader_exec_curve_float);
+  node_type_gpu(&ntype, gpu_shader_curve_float);
+  ntype.build_multi_function = sh_node_curve_float_build_multi_function;
+
+  nodeRegisterType(&ntype);
+}

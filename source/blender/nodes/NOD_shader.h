@@ -49,6 +49,7 @@ void register_node_type_sh_normal(void);
 void register_node_type_sh_gamma(void);
 void register_node_type_sh_brightcontrast(void);
 void register_node_type_sh_mapping(void);
+void register_node_type_sh_curve_float(void);
 void register_node_type_sh_curve_vec(void);
 void register_node_type_sh_curve_rgb(void);
 void register_node_type_sh_map_range(void);
