@@ -52,6 +52,7 @@ GLStateManager::GLStateManager()
   glDisable(GL_DITHER);
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glPixelStorei(GL_PACK_ALIGNMENT, 1);
   glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
   glPrimitiveRestartIndex((GLuint)0xFFFFFFFF);
