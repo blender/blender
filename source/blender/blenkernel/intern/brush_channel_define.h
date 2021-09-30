@@ -273,6 +273,7 @@ MAKE_FLOAT(tip_scale_x, "Tip Scale X", "Scale of the brush tip in the X axis", 1
 MAKE_FLOAT(dash_ratio, "Dash Ratio", "Ratio of samples in a cycle that the brush is enabled", 1.0f, 0.0f, 1.0f)
 MAKE_FLOAT_EX(plane_offset, "Plane Offset", "Adjust plane on which the brush acts towards or away from the object surface", 0.0f, -2.0f, 2.0f, -0.5f, 0.5f, false)
 MAKE_FLOAT(plane_trim, "Plane Trim", "If a vertex is further away from offset plane than this, then it is not affected", 0.5f, 0.0f, 1.0f)
+MAKE_BOOL(use_plane_trim, "Use Plane Trim", "Enable Plane Trim", false)
 MAKE_BOOL(original_normal, "Original Normal", "When locked keep using normal of surface where stroke was initiated", false)
 MAKE_BOOL(original_plane, "Original Plane", "When locked keep using the plane origin of surface where stroke was initiated", false)
 MAKE_BOOL(use_weighted_smooth, "Weight By Area", "Weight by face area to get a smoother result", true)

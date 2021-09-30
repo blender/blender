@@ -127,23 +127,25 @@ class DynamicPaintPanelGen:
         global classes
 
         name = group.prefix + group.idname.lower()
+        name1 = name
         name2 = ""
 
         for c in name:
             n = ord(c)
 
-            ok = n >= ord("a") and n <= ord("a")
-            ok = ok or n >= ord("A") and n <= ord("Z")
-            ok = ok or n >= ord("0") and n <= ord("9")
+            ok = n >= ord("a") and n <= ord("z")
+            ok = ok or (n >= ord("A") and n <= ord("Z"))
+            ok = ok or (n >= ord("0") and n <= ord("9"))
             ok = ok or c == "_"
 
             if not ok:
                 c = "_"
+
             name2 += c
         name = name2
 
         for cls in classes[:]:
-            print("_", cls.bl_rna.identifier, cls.bl_rna.identifier == name)  # r, dir(cls.bl_rna)) #.name)
+            #print("_", cls.bl_rna.identifier, cls.bl_rna.identifier == name)  # r, dir(cls.bl_rna)) #.name)
 
             if cls.bl_rna.identifier == name:
                 try:
@@ -180,7 +182,6 @@ classes.append(CLASSNAME)
 """.strip().replace("CLASSNAME", name).replace("PARENT", parent).replace("LABEL", group.name).replace("OPT", opt)
         code = code.replace("IDNAME", group.idname)
 
-        print("\n", code)
         exec(code)
 
 
@@ -522,7 +523,7 @@ class UnifiedPaintPanel:
             if not toolsettings_only:
                 row.prop(ch, "inherit", text="", icon='BRUSHES_ALL')
 
-            if ch.type in ["BITMASK", "BOOL", "CURVE"]:
+            if ch.type in ["BITMASK", "BOOL", "CURVE", "ENUM"]:
                 return
 
             if not ui_editing and not show_reorder:
@@ -1038,6 +1039,7 @@ def brush_settings(layout, context, brush, popover=False):
     layout.prop(context.tool_settings.unified_paint_settings, "brush_editor_advanced")
 
     advanced = context.tool_settings.unified_paint_settings.brush_editor_advanced
+    editor = context.tool_settings.unified_paint_settings.brush_editor_mode
 
     ### Draw simple settings unique to each paint mode. ###
     brush_shared_settings(layout, context, brush, popover)
@@ -1267,11 +1269,33 @@ def brush_settings(layout, context, brush, popover=False):
                 slider=True,
             )
 
-            row = layout.row(heading="Plane Trim")
-            row.prop(brush, "use_plane_trim", text="")
-            sub = row.row()
-            sub.active = brush.use_plane_trim
-            sub.prop(brush, "plane_trim", slider=True, text="")
+            if editor:
+                col = layout.column()
+
+                #row.prop(brush, "use_plane_trim", text="")
+                #"""
+                UnifiedPaintPanel.channel_unified(
+                    col,
+                    context,
+                    brush,
+                    "use_plane_trim",
+                    text="Plane Trim"
+                )
+                UnifiedPaintPanel.channel_unified(
+                    col,
+                    context,
+                    brush,
+                    "plane_trim",
+                    slider=True
+                )
+                #"""
+            else:
+                row = layout.row(heading="Plane Trim")
+                row.prop(brush.channels["use_plane_trim"], "bool_value", text="")
+
+                sub = row.row()
+                sub.active = brush.channels["use_plane_trim"].bool_value
+                sub.prop(brush.channels["plane_trim"], "factor_value", slider=True, text="")
 
             layout.separator()
 
@@ -1802,9 +1826,26 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         # sculpt plane settings
         if capabilities.has_sculpt_plane:
             layout.prop(brush, "sculpt_plane")
-            col = layout.column(heading="Use Original", align=True)
-            col.prop(brush, "use_original_normal", text="Normal")
-            col.prop(brush, "use_original_plane", text="Plane")
+
+            col = layout.column(heading="Use Original", align=False)
+            col = col.column()
+
+            UnifiedPaintPanel.channel_unified(
+                col,
+                context,
+                brush,
+                "original_normal",
+                text="Normal",
+                expand=False
+            )
+            UnifiedPaintPanel.channel_unified(
+                col,
+                context,
+                brush,
+                "original_plane",
+                text="Plane",
+                expand=False
+            )
             layout.separator()
 
     # 3D and 2D Texture Paint.

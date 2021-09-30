@@ -62,6 +62,8 @@ struct LibraryForeachIDData;
 
 /* these macros check channel names at compile time */
 
+#define BRUSHSET_LOOKUP_FINAL(childset, parentset, idname) \
+  BKE_brush_channelset_lookup_final(childset, parentset, MAKE_BUILTIN_CH_NAME(idname))
 #define BRUSHSET_LOOKUP(chset, channel) \
   BKE_brush_channelset_lookup(chset, MAKE_BUILTIN_CH_NAME(channel))
 #define BRUSHSET_HAS(chset, channel, mapdata) \
@@ -214,6 +216,9 @@ bool BKE_brush_channelset_remove_named(BrushChannelSet *chset, const char *idnam
 void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset, BrushChannel *existing);
 
 BrushChannel *BKE_brush_channelset_lookup(BrushChannelSet *chset, const char *idname);
+BrushChannel *BKE_brush_channelset_lookup_final(BrushChannelSet *child,
+                                                BrushChannelSet *parent,
+                                                const char *idname);
 
 bool BKE_brush_channelset_has(BrushChannelSet *chset, const char *idname);
 
@@ -270,6 +275,11 @@ void BKE_brush_channel_set_vector(BrushChannel *ch, float vec[4]);
 int BKE_brush_channel_get_vector_size(BrushChannel *ch);
 
 float BKE_brush_channel_curve_evaluate(BrushChannel *ch, float val, const float maxval);
+double BKE_brush_channel_eval_mappings(BrushChannel *ch,
+                                       BrushMappingData *mapdata,
+                                       double f,
+                                       int idx);
+
 CurveMapping *BKE_brush_channel_curvemapping_get(BrushCurve *curve, bool force_create);
 bool BKE_brush_channel_curve_ensure_write(BrushCurve *curve);
 void BKE_brush_channel_curve_assign(BrushChannel *ch, BrushCurve *curve);

@@ -1342,6 +1342,7 @@ typedef struct StrokeCache {
   struct bContext *C;
 
   struct BrushCommandList *commandlist;
+  bool use_plane_trim;
 } StrokeCache;
 
 /* Sculpt Filters */

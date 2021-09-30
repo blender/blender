@@ -593,6 +593,28 @@ BrushChannel *BKE_brush_channelset_lookup(BrushChannelSet *chset, const char *id
   return BLI_ghash_lookup(chset->namemap, idname);
 }
 
+BrushChannel *BKE_brush_channelset_lookup_final(BrushChannelSet *child,
+                                                BrushChannelSet *parent,
+                                                const char *idname)
+{
+  BrushChannel *ch = child ? BKE_brush_channelset_lookup(child, idname) : NULL;
+  BrushChannel *pch = parent ? BKE_brush_channelset_lookup(parent, idname) : NULL;
+
+  if (ch && pch) {
+    if (ch->flag & BRUSH_CHANNEL_INHERIT) {
+      return pch;
+    }
+
+    return ch;
+  }
+  else if (pch) {
+    return pch;
+  }
+  else {
+    return ch;
+  }
+}
+
 bool BKE_brush_channelset_has(BrushChannelSet *chset, const char *idname)
 {
   return BKE_brush_channelset_lookup(chset, idname) != NULL;
@@ -843,7 +865,10 @@ static bool channel_has_mappings(BrushChannel *ch)
 }
 
 // idx is used by vector channels
-static double eval_channel_mappings(BrushChannel *ch, BrushMappingData *mapdata, double f, int idx)
+double BKE_brush_channel_eval_mappings(BrushChannel *ch,
+                                       BrushMappingData *mapdata,
+                                       double f,
+                                       int idx)
 {
 
   if (idx == 3 && !(ch->flag & BRUSH_CHANNEL_APPLY_MAPPING_TO_ALPHA)) {
@@ -919,7 +944,7 @@ float BKE_brush_channel_get_int(BrushChannel *ch, BrushMappingData *mapdata)
 {
 
   if (channel_has_mappings(ch)) {
-    return (int)eval_channel_mappings(ch, mapdata, (double)ch->ivalue, 0);
+    return (int)BKE_brush_channel_eval_mappings(ch, mapdata, (double)ch->ivalue, 0);
   }
   else {
     return ch->ivalue;
@@ -1051,7 +1076,7 @@ float BKE_brush_channelset_get_float(BrushChannelSet *chset,
 
 float BKE_brush_channel_get_float(BrushChannel *ch, BrushMappingData *mapdata)
 {
-  return (float)eval_channel_mappings(ch, mapdata, (double)ch->fvalue, 0);
+  return (float)BKE_brush_channel_eval_mappings(ch, mapdata, (double)ch->fvalue, 0);
 }
 
 void BKE_brush_channel_set_vector(BrushChannel *ch, float vec[4])
@@ -1084,7 +1109,7 @@ int BKE_brush_channel_get_vector(BrushChannel *ch, float out[4], BrushMappingDat
   }
 
   for (int i = 0; i < 4; i++) {
-    out[i] = eval_channel_mappings(ch, mapdata, (float)ch->vector[i], i);
+    out[i] = BKE_brush_channel_eval_mappings(ch, mapdata, (float)ch->vector[i], i);
   }
 
   return size;

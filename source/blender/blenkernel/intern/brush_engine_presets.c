@@ -477,6 +477,7 @@ BrushFlagMap brush_flags_map[] =  {
   DEF(flag2, use_connected_only, BRUSH_USE_CONNECTED_ONLY)
   DEF(flag2, use_pose_lock_rotation, BRUSH_POSE_USE_LOCK_ROTATION)
   DEF(flag, use_space_attenuation, BRUSH_SPACE_ATTEN)
+  DEF(flag, use_plane_trim, BRUSH_PLANE_TRIM)
 };
 
 int brush_flags_map_len = ARRAY_SIZE(brush_flags_map);
@@ -875,7 +876,14 @@ void reset_clay_mappings(BrushChannelSet *chset, bool strips)
 
   cuma = curve->cm;
   if (strips) {
+    //[[0,0.000], [0.062,0.016], [0.250,0.074], [0.562,0.274], [1,1.000]
+#if 0
+    BKE_curvemap_insert(cuma, 0.062f, 0.016f);
+    BKE_curvemap_insert(cuma, 0.25f, 0.074f);
+    BKE_curvemap_insert(cuma, 0.562f, 0.274f);
+#else
     BKE_curvemap_insert(cuma, 0.6f, 0.25f);
+#endif
   }
   else {
   }
@@ -908,6 +916,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
 
   ADDCH(plane_offset);
   ADDCH(plane_trim);
+  ADDCH(use_plane_trim);
 
   ADDCH(use_ctrl_invert);
   ADDCH(tilt_strength_factor);
@@ -1184,6 +1193,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWCTX(autosmooth);
       SHOWCTX(plane_offset);
       SHOWCTX(plane_trim);
+      SHOWCTX(use_plane_trim);
       break;
     case SCULPT_TOOL_GRAB:
       SHOWCTX(normal_weight);
@@ -1195,10 +1205,12 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(plane_offset);
       SHOWWRK(plane_trim);
       SHOWWRK(tip_roundness);
+      SHOWWRK(use_plane_trim);
 
       SHOWCTX(autosmooth);
       SHOWCTX(plane_offset);
       SHOWCTX(plane_trim);
+      SHOWCTX(use_plane_trim);
     case SCULPT_TOOL_CLAY:
     case SCULPT_TOOL_CLAY_THUMB:
     case SCULPT_TOOL_FLATTEN:
@@ -1206,16 +1218,20 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(plane_offset);
       SHOWWRK(plane_trim, plane_trim);
       SHOWWRK(tip_roundness);
+      SHOWWRK(use_plane_trim);
 
       SHOWCTX(autosmooth);
       SHOWCTX(plane_offset);
       SHOWCTX(plane_trim);
+      SHOWCTX(use_plane_trim);
       break;
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
       SHOWCTX(autosmooth);
       SHOWCTX(plane_offset);
       SHOWCTX(autosmooth);
       SHOWCTX(multiplane_scrape_angle);
+      SHOWWRK(use_plane_trim);
+      SHOWCTX(use_plane_trim);
 
       SHOWWRK(plane_offset);
       SHOWWRK(plane_trim);

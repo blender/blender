@@ -3781,10 +3781,10 @@ static void calc_area_normal_and_center(
  * values pull vertices, negative values push. Uses tablet pressure and a
  * special multiplier found experimentally to scale the strength factor.
  */
-static float brush_strength(const Sculpt *sd,
-                            const StrokeCache *cache,
-                            const float feather,
-                            const UnifiedPaintSettings *ups)
+ATTR_NO_OPT static float brush_strength(const Sculpt *sd,
+                                        const StrokeCache *cache,
+                                        const float feather,
+                                        const UnifiedPaintSettings *ups)
 {
   const Scene *scene = cache->vc->scene;
   const Brush *brush = cache->brush;  // BKE_paint_brush((Paint *)&sd->paint);
@@ -7193,7 +7193,7 @@ static void do_inflate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 
 int SCULPT_plane_trim(const StrokeCache *cache, const Brush *brush, const float val[3])
 {
-  return (!(brush->flag & BRUSH_PLANE_TRIM) ||
+  return (!(cache->use_plane_trim) ||
           ((dot_v3v3(val, val) <= cache->radius_squared * cache->plane_trim_squared)));
 }
 
@@ -9355,6 +9355,11 @@ static void SCULPT_run_command_list(
     // Load parameters into brush2 for compatibility with old code
     // Make sure to remove all pen pressure/tilt old code
     BKE_brush_channelset_compat_load(cmd->params_mapped, brush2, false);
+
+    ss->cache->use_plane_trim = BRUSHSET_GET_INT(cmd->params_mapped, use_plane_trim, NULL);
+
+    float plane_trim = BRUSHSET_GET_FLOAT(cmd->params_mapped, plane_trim, NULL);
+    ss->cache->plane_trim_squared = plane_trim * plane_trim;
 
     brush2->flag &= ~(BRUSH_ALPHA_PRESSURE | BRUSH_SIZE_PRESSURE | BRUSH_SPACING_PRESSURE |
                       BRUSH_JITTER_PRESSURE | BRUSH_OFFSET_PRESSURE |
@@ -11653,6 +11658,9 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
     ss->cache->channels_final = BKE_brush_channelset_copy(brush->channels);
   }
 
+  ss->cache->use_plane_trim = BRUSHSET_GET_INT(
+      ss->cache->channels_final, use_plane_trim, &ss->cache->input_mapping);
+
   if (ss->cache->alt_smooth) {
     Brush *brush = (Brush *)BKE_libblock_find_name(
         CTX_data_main(C), ID_BR, ss->cache->saved_active_brush_name);
@@ -11675,6 +11683,11 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
   BKE_brush_channelset_to_unified_settings(ss->cache->channels_final, ups);
 
   ss->cache->bstrength = brush_strength(sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
+
+  // we have to evaluate channel mappings here manually
+  BrushChannel *ch = BRUSHSET_LOOKUP_FINAL(brush->channels, sd->channels, strength);
+  ss->cache->bstrength = BKE_brush_channel_eval_mappings(
+      ch, &ss->cache->input_mapping, (double)ss->cache->bstrength, 0);
 
   if (ss->cache->invert) {
     brush->alpha = fabs(brush->alpha);

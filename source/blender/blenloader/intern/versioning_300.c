@@ -1317,7 +1317,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 300, 26)) {
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 27)) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (ELEM(brush->sculpt_tool, SCULPT_TOOL_CLAY, SCULPT_TOOL_CLAY_STRIPS) && brush->channels) {
         BRUSHSET_SET_BOOL(brush->channels, autosmooth_use_spacing, true);
