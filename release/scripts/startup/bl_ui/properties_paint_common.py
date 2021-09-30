@@ -836,19 +836,43 @@ class StrokePanel(BrushPanel):
 
         if brush.use_space:
             row = col.row(align=True)
-            row.prop(brush, "spacing", text="Spacing")
-            row.prop(brush, "use_pressure_spacing", toggle=True, text="")
+            if mode == 'SCULPT':
+                UnifiedPaintPanel.channel_unified(
+                    col,
+                    context,
+                    brush,
+                    "spacing"
+                )
+            else:
+                row.prop(brush, "spacing", text="Spacing")
+                row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
         if brush.use_line or brush.use_curve:
             row = col.row(align=True)
-            row.prop(brush, "spacing", text="Spacing")
+            if mode == 'SCULPT':
+                UnifiedPaintPanel.channel_unified(
+                    col,
+                    context,
+                    brush,
+                    "spacing"
+                )
+            else:
+                row.prop(brush, "spacing", text="Spacing")
 
         if mode == 'SCULPT':
             col.row().prop(brush, "use_scene_spacing", text="Spacing Distance", expand=True)
 
-        if mode in {'PAINT_TEXTURE', 'PAINT_2D', 'SCULPT'}:
+        if mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
             if brush.image_paint_capabilities.has_space_attenuation or brush.sculpt_capabilities.has_space_attenuation:
                 col.prop(brush, "use_space_attenuation")
+        elif mode == 'SCULPT':
+            if brush.image_paint_capabilities.has_space_attenuation or brush.sculpt_capabilities.has_space_attenuation:
+                UnifiedPaintPanel.channel_unified(
+                    col,
+                    context,
+                    brush,
+                    "use_space_attenuation"
+                )
 
         if brush.use_curve:
             col.separator()

@@ -697,6 +697,15 @@ BrushChannel *BKE_brush_channelset_ensure_builtin(BrushChannelSet *chset, const 
   return ch;
 }
 
+void BKE_brush_channelset_clear_inherit(BrushChannelSet *chset)
+{
+  BrushChannel *ch;
+
+  for (ch = chset->channels.first; ch; ch = ch->next) {
+    ch->flag &= ~(BRUSH_CHANNEL_INHERIT | BRUSH_CHANNEL_INHERIT_IF_UNSET);
+  }
+}
+
 void BKE_brush_channelset_ensure_existing(BrushChannelSet *chset, BrushChannel *existing)
 {
   if (BKE_brush_channelset_has(chset, existing->idname)) {
@@ -798,6 +807,7 @@ BrushChannelSet *BKE_brush_channelset_copy(BrushChannelSet *src)
 void BKE_brush_channelset_apply_mapping(BrushChannelSet *chset, BrushMappingData *mapdata)
 {
   BrushChannel *ch;
+  int n;
 
   for (ch = chset->channels.first; ch; ch = ch->next) {
     switch (ch->type) {
@@ -809,6 +819,16 @@ void BKE_brush_channelset_apply_mapping(BrushChannelSet *chset, BrushMappingData
       case BRUSH_CHANNEL_BITMASK:
       case BRUSH_CHANNEL_BOOL:
         ch->ivalue = BKE_brush_channel_get_int(ch, mapdata);
+        break;
+      case BRUSH_CHANNEL_VEC4:
+        n = 4;
+      case BRUSH_CHANNEL_VEC3:
+        n = 3;
+
+        for (int i = 0; i < n; i++) {
+          ch->vector[i] = (float)BKE_brush_channel_eval_mappings(
+              ch, mapdata, (double)ch->vector[i], i);
+        }
         break;
     }
 
@@ -865,10 +885,10 @@ static bool channel_has_mappings(BrushChannel *ch)
 }
 
 // idx is used by vector channels
-double BKE_brush_channel_eval_mappings(BrushChannel *ch,
-                                       BrushMappingData *mapdata,
-                                       double f,
-                                       int idx)
+ATTR_NO_OPT double BKE_brush_channel_eval_mappings(BrushChannel *ch,
+                                                   BrushMappingData *mapdata,
+                                                   double f,
+                                                   int idx)
 {
 
   if (idx == 3 && !(ch->flag & BRUSH_CHANNEL_APPLY_MAPPING_TO_ALPHA)) {
@@ -886,6 +906,7 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
       }
 
       float inputf = ((float *)mapdata)[i];
+
       if (mp->flag & BRUSH_MAPPING_INVERT) {
         inputf = 1.0 - inputf;
       }

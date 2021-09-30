@@ -347,6 +347,7 @@ void BKE_brush_channeltype_rna_check(BrushChannelType *def,
                                      int (*getIconFromName)(const char *name));
 bool BKE_brush_mapping_ensure_write(BrushMapping *mp);
 
+void BKE_brush_channelset_clear_inherit(BrushChannelSet *chset);
 void BKE_brush_channelset_apply_mapping(BrushChannelSet *chset, BrushMappingData *mapdata);
 void BKE_brush_check_toolsettings(struct Sculpt *sd);
 void BKE_brush_channelset_ui_init(struct Brush *brush, int tool);

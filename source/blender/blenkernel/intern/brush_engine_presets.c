@@ -348,6 +348,7 @@ typedef struct BrushSettingsMap {
 static BrushSettingsMap brush_settings_map[] = {
   DEF(size, radius, INT, FLOAT)
   DEF(alpha, strength, FLOAT, FLOAT)
+  DEF(spacing, spacing, INT, FLOAT)
   DEF(autosmooth_factor, autosmooth, FLOAT, FLOAT)
   DEF(area_radius_factor, area_radius_factor, FLOAT, FLOAT)
   DEF(autosmooth_projection, SMOOTH_PROJECTION, FLOAT, FLOAT)

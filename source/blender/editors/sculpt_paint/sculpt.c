@@ -3790,7 +3790,7 @@ ATTR_NO_OPT static float brush_strength(const Sculpt *sd,
   const Brush *brush = cache->brush;  // BKE_paint_brush((Paint *)&sd->paint);
 
   /* Primary strength input; square it to make lower values more sensitive. */
-  const float root_alpha = BKE_brush_alpha_get(scene, brush);
+  const float root_alpha = brush->alpha;  // BKE_brush_alpha_get(scene, brush);
   const float alpha = root_alpha * root_alpha;
   const float dir = (brush->flag & BRUSH_DIR_IN) ? -1.0f : 1.0f;
   const float pen_flip = cache->pen_flip ? -1.0f : 1.0f;
@@ -9220,7 +9220,7 @@ static void SCULPT_run_command_list(
     ss->cache->radius_squared = old_radius * old_radius;
   }
   else {
-    nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
+    nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale * 1.2, &totnode);
   }
 
   /* Draw Face Sets in draw mode makes a single undo push, in alt-smooth mode deforms the
@@ -9316,6 +9316,7 @@ static void SCULPT_run_command_list(
     BKE_brush_channelset_free(cmd->params_mapped);
     cmd->params_mapped = BKE_brush_channelset_copy(cmd->params_final);
     BKE_brush_channelset_apply_mapping(cmd->params_mapped, &ss->cache->input_mapping);
+    BKE_brush_channelset_clear_inherit(cmd->params_mapped);
 
     float radius = BRUSHSET_GET_FLOAT(cmd->params_mapped, radius, NULL);
     radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->true_location, radius);
@@ -9372,6 +9373,7 @@ static void SCULPT_run_command_list(
     ss->cache->channels_final = cmd->params_mapped;
 
     ss->cache->brush = brush2;
+
     ups->alpha = BRUSHSET_GET_FLOAT(cmd->params_mapped, strength, NULL);
 
     if (cmd->tool == SCULPT_TOOL_SMOOTH) {
@@ -9386,7 +9388,7 @@ static void SCULPT_run_command_list(
       ss->cache->bstrength = fabsf(ss->cache->bstrength);
     }
 
-    brush2->alpha = fabs(ss->cache->bstrength);
+    // brush2->alpha = fabs(ss->cache->bstrength);
 
     // printf("brush2->alpha: %f\n", brush2->alpha);
     // printf("ss->cache->bstrength: %f\n", ss->cache->bstrength);
@@ -10824,7 +10826,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
    * events. We should avoid this after events system re-design. */
   if (paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT) || cache->first_time) {
     cache->pressure = RNA_float_get(ptr, "pressure");
-    cache->input_mapping.pressure = cache->pressure;
+    cache->input_mapping.pressure = sqrtf(cache->pressure);
     // printf("pressure: %f\n", cache->pressure);
   }
 
