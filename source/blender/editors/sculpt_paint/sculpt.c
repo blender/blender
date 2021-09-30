@@ -8694,6 +8694,17 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
 
     SCULPT_run_command_list(sd, ob, brush, ss->cache->commandlist, ups);
 
+    float location[3];
+
+    /* Update average stroke position. */
+    copy_v3_v3(location, ss->cache->true_location);
+    mul_m4_v3(ob->obmat, location);
+
+    add_v3_v3(ups->average_stroke_accum, location);
+    ups->average_stroke_counter++;
+    /* Update last stroke position. */
+    ups->last_stroke_valid = true;
+
     return;
   }
 
