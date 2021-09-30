@@ -452,8 +452,13 @@ class VIEW3D_PT_tools_brush_settings_channels_preview(Panel, View3DPaintBrushPan
 
         settings = self.paint_settings(context)
         brush = settings.brush
+        
+        brush_settings_channels(layout.column(), context, brush, show_reorder=True, ui_editing=False,
+            popover=self.is_popover,
+            prefix="VIEW3D_PT_brush_category_edit_",
+            parent="VIEW3D_PT_tools_brush_settings_channels_preview"
+        )
 
-        brush_settings_channels(layout.column(), context, brush, ui_editing=True, popover=self.is_popover)
 
 class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
     bl_context = ".paint_common"

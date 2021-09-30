@@ -17,7 +17,168 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-from bpy.types import Menu
+from bpy.types import Menu, Panel
+
+classes = []
+
+
+class DynamicBrushCategoryPanel(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Tool"
+
+    @classmethod
+    def poll(self, context):        
+        ok = context.mode == "SCULPT" and context.tool_settings.sculpt and context.tool_settings.sculpt.brush
+        ok = ok and len(self.get_channels(context)) > 0
+
+        return ok
+
+    @classmethod
+    def get_channels(self, context):
+        brush = context.tool_settings.sculpt.brush
+        
+        idname = self.get_category(self)
+
+        channels = list(filter(lambda ch: ch.show_in_workspace and ch.category == idname, brush.channels))
+        channels.sort(key=lambda ch: ch.ui_order)
+
+        return channels
+
+    def draw(self, context):
+        layout = self.layout
+        brush = context.tool_settings.sculpt.brush
+        
+        idname = self.get_category()
+        opt = self.get_options()
+
+        layout.use_property_split = True
+
+        channels = self.get_channels(context)
+
+        for ch in channels:
+            ok = ch.show_in_workspace
+            ok = ok and ch.category == idname
+            
+            if not ok:
+                continue
+            
+            UnifiedPaintPanel.channel_unified(
+                layout, 
+                context, 
+                brush,
+                ch.idname, 
+                slider=True,
+                ui_editing=opt["ui_editing"],
+                show_reorder=opt["show_reorder"])
+            
+class DynamicPaintPanelGen:
+    class Group:
+        def __init__(self, idname, name, prefix, parent):
+            self.idname = idname
+            self.name = name
+            self.prefix = prefix
+            self.rnaclass = None
+            self.parent = parent
+            self.options = {}
+    
+    groups = {}
+    
+    @staticmethod
+    def ensureCategory(idname, name=None, prefix="VIEW3D_PT_brush_category_", parent=None, show_reorder=False, ui_editing=False):
+        if name is None:
+            name = idname
+
+        groupid = prefix + idname.lower()
+
+        if groupid in DynamicPaintPanelGen.groups:
+            return DynamicPaintPanelGen.groups[groupid]
+
+        group = DynamicPaintPanelGen.Group(idname, name, prefix, parent)
+        DynamicPaintPanelGen.groups[groupid] = group
+
+        group.options={
+            "ui_editing" : ui_editing,
+            "show_reorder" : show_reorder
+        }
+        
+        def callback():
+            print("creating panel")
+            DynamicPaintPanelGen.createPanel(group)
+            pass
+        
+        import bpy
+        bpy.app.timers.register(callback)
+        
+        return group
+    
+    @staticmethod
+    def get(idname, prefix):
+        return DynamicPaintPanelGen.groups[idname]
+
+    @staticmethod
+    def createPanel(group):
+        from bpy.utils import register_class, unregister_class
+
+        from bpy.types import Panel
+        global classes
+        
+        name = group.prefix + group.idname.lower()
+        name2 = ""
+
+        for c in name:
+            n = ord(c)
+
+            ok = n >= ord("a") and n <= ord("a")
+            ok = ok or n >= ord("A") and n <= ord("Z")
+            ok = ok or n >= ord("0") and n <= ord("9")
+            ok = ok or c == "_"
+
+            if not ok:
+                c = "_"
+            name2 += c
+        name = name2
+
+        for cls in classes[:]:
+            print("_", cls.bl_rna.identifier, cls.bl_rna.identifier == name) #r, dir(cls.bl_rna)) #.name)
+            
+            if cls.bl_rna.identifier == name:
+                try:
+                    unregister_class(cls)
+                except:
+                    print("failed to unregister", name)
+                    
+                classes.remove(cls)
+
+        if group.parent:
+            parent = 'bl_parent_id = "%s"' % group.parent
+        else:
+            parent = ""
+
+        opt = repr(group.options)
+
+        code = """
+
+global classes
+
+class CLASSNAME (DynamicBrushCategoryPanel):
+    bl_label = "LABEL"
+    PARENT
+    
+    def get_category(self):
+        return "IDNAME"
+
+    def get_options(self):
+        return OPT
+
+register_class(CLASSNAME)
+classes.append(CLASSNAME)
+
+""".strip().replace("CLASSNAME", name).replace("PARENT", parent).replace("LABEL", group.name).replace("OPT", opt)
+        code = code.replace("IDNAME", group.idname)
+        
+        print("\n", code)
+        exec(code)        
 
 channel_name_map = {
     "size" : "radius",
@@ -1556,15 +1717,30 @@ class ReorderBrushChannel(Operator):
         
         return {'FINISHED'}
 
-def brush_settings_channels(layout, context, brush, ui_editing=False, popover=False, filterkey="show_in_workspace"):
+def brush_settings_channels(layout, context, brush, ui_editing=False, popover=False, show_reorder=None, filterkey="show_in_workspace",
+                            parent="VIEW3D_PT_tools_brush_settings_channels", prefix="VIEW3D_PT_brush_category_"):
     channels = get_ui_channels(brush.channels, [filterkey])
-    
+
+    if show_reorder is None:
+        show_reorder = ui_editing
+
+    DynamicPaintPanelGen.ensureCategory("Basic", "Basic", parent=parent,
+                       prefix=prefix, ui_editing=ui_editing,
+                       show_reorder=show_reorder)
+
     for ch in channels:
+        if len(ch.category) > 0:
+            DynamicPaintPanelGen.ensureCategory(ch.category, ch.category, parent=parent,
+                       prefix=prefix, ui_editing=ui_editing,
+                       show_reorder=show_reorder)
+            continue
+
+        #VIEW3D_PT_brush_category_edit_
         UnifiedPaintPanel.channel_unified(
                 layout.column(),
                 context,
                 brush,
-                ch.idname, show_reorder = ui_editing, expand=False, ui_editing=False)
+                ch.idname, show_reorder = show_reorder, expand=False, ui_editing=ui_editing)
 
 
 def brush_settings_advanced(layout, context, brush, popover=False):
@@ -2047,10 +2223,10 @@ def brush_basic_gpencil_vertex_settings(layout, _context, brush, *, compact=Fals
         row.prop(gp_settings, "vertex_mode", text="Mode")
 
 
-classes = (
+classes += [
     VIEW3D_MT_tools_projectpaint_clone,
     ReorderBrushChannel
-)
+]
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class

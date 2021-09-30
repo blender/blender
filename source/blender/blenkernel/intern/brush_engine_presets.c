@@ -212,7 +212,7 @@ static BrushChannelType *_get_def(const char *idname)
   BLI_strncpy(GETDEF(idname)->category, cat, sizeof(GETDEF(idname)->category))
 
 static bool do_builtin_init = true;
-ATTR_NO_OPT static bool check_builtin_init()
+static bool check_builtin_init()
 {
   if (!do_builtin_init || !BLI_thread_is_main()) {
     return false;
@@ -225,35 +225,70 @@ ATTR_NO_OPT static bool check_builtin_init()
   // BKE_brush_channeltype_rna_check(brush_builtin_channels + i);
   //}
 
-  SETCAT(strength, "Basic");
-  SETCAT(radius, "Basic");
-  SETCAT(direction, "Basic");
+  // don't group strength/radius/direction in subpanels
+  // SETCAT(strength, "Basic");
+  // SETCAT(radius, "Basic");
+  // SETCAT(direction, "Basic");
   SETCAT(accumulate, "Basic");
+
   SETCAT(tip_roundness, "Basic");
   SETCAT(hardness, "Basic");
   SETCAT(tip_scale_x, "Basic");
   SETCAT(tip_roundness, "Basic");
-
   SETCAT(normal_radius_factor, "Basic");
 
   SETCAT(plane_offset, "Clay");
+  SETCAT(plane_trim, "Clay");
   SETCAT(original_normal, "Clay");
   SETCAT(original_plane, "Clay");
 
   SETCAT(spacing, "Stroke");
   SETCAT(use_space_attenuation, "Stroke");
 
-  SETCAT(autosmooth, "Smoothers");
-  SETCAT(autosmooth_projection, "Smoothers");
-  SETCAT(autosmooth_radius_scale, "Smoothers");
-  SETCAT(autosmooth_spacing, "Smoothers");
-  SETCAT(autosmooth_use_spacing, "Smoothers");
+  SETCAT(autosmooth, "Smoothing");
+  SETCAT(autosmooth_projection, "Smoothing");
+  SETCAT(autosmooth_radius_scale, "Smoothing");
+  SETCAT(autosmooth_spacing, "Smoothing");
+  SETCAT(autosmooth_use_spacing, "Smoothing");
 
-  SETCAT(topology_rake, "Smoothers");
-  SETCAT(topology_rake_radius_scale, "Smoothers");
-  SETCAT(topology_rake_projection, "Smoothers");
-  SETCAT(topology_rake_use_spacing, "Smoothers");
-  SETCAT(topology_rake_spacing, "Smoothers");
+  SETCAT(topology_rake, "Smoothing");
+  SETCAT(topology_rake_radius_scale, "Smoothing");
+  SETCAT(topology_rake_projection, "Smoothing");
+  SETCAT(topology_rake_use_spacing, "Smoothing");
+  SETCAT(topology_rake_spacing, "Smoothing");
+
+  SETCAT(boundary_smooth, "Smoothing");
+  SETCAT(fset_slide, "Smoothing");
+  SETCAT(preserve_faceset_boundary, "Smoothing");
+  SETCAT(use_weighted_smooth, "Smoothing");
+
+  SETCAT(boundary_offset, "Boundary Tool");
+  SETCAT(boundary_deform_type, "Boundary Tool");
+  SETCAT(boundary_falloff_type, "Boundary Tool");
+
+  SETCAT(cloth_deform_type, "Cloth Tool");
+  SETCAT(cloth_simulation_area_type, "Cloth Tool");
+  SETCAT(cloth_force_falloff_type, "Cloth Tool");
+  SETCAT(cloth_mass, "Cloth Tool");
+  SETCAT(cloth_damping, "Cloth Tool");
+  SETCAT(cloth_sim_limit, "Cloth Tool");
+  SETCAT(cloth_sim_falloff, "Cloth Tool");
+  SETCAT(cloth_constraint_softbody_strength, "Cloth Tool");
+  SETCAT(cloth_use_collision, "Cloth Tool");
+  SETCAT(cloth_pin_simulation_boundary, "Cloth Tool");
+
+  SETCAT(pose_offset, "Pose Tool");
+  SETCAT(pose_smooth_iterations, "Pose Tool");
+  SETCAT(pose_ik_segments, "Pose Tool");
+  SETCAT(use_pose_ik_anchored, "Pose Tool");
+  SETCAT(use_pose_lock_rotation, "Pose Tool");
+  SETCAT(pose_deform_type, "Pose Tool");
+  SETCAT(pose_origin_type, "Pose Tool");
+  SETCAT(pose_origin_type, "Pose Tool");
+  SETCAT(pose_origin_type, "Pose Tool");
+  SETCAT(pose_origin_type, "Pose Tool");
+  SETCAT(pose_origin_type, "Pose Tool");
+  SETCAT(pose_origin_type, "Pose Tool");
 
   SETCAT(color, "Color");
   SETCAT(secondary_color, "Color");
@@ -1151,10 +1186,10 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWCTX(plane_trim);
       break;
     case SCULPT_TOOL_GRAB:
-       SHOWCTX(normal_weight);
-       SHOWWRK(normal_weight);
+      SHOWCTX(normal_weight);
+      SHOWWRK(normal_weight);
 
-       break;
+      break;
     case SCULPT_TOOL_CLAY_STRIPS:
       SHOWWRK(area_radius_factor);
       SHOWWRK(plane_offset);

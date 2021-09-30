@@ -421,8 +421,8 @@ MAKE_ENUM(deform_target, "Deformation Target", "How the deformation of the brush
     {-1}
 })
 
-MAKE_CURVE(autosmooth_falloff_curve, "Falloff", "Custom curve for autosmooth", BRUSH_CURVE_SMOOTH)
-MAKE_CURVE(topology_rake_falloff_curve, "Falloff", "Custom curve for topolgoy rake", BRUSH_CURVE_SMOOTH)
+MAKE_CURVE(autosmooth_falloff_curve, "Autosmooth Falloff", "Custom curve for autosmooth", BRUSH_CURVE_SMOOTH)
+MAKE_CURVE(topology_rake_falloff_curve, "Rake Falloff", "Custom curve for topolgoy rake", BRUSH_CURVE_SMOOTH)
 MAKE_CURVE(falloff_curve, "Falloff", "Falloff curve", BRUSH_CURVE_SMOOTH)
 MAKE_FLOAT_EX(unprojected_radius, "Unprojected Radius", "Radius of brush in Blender units", 0.1f, 0.001, FLT_MAX, 0.001, 1.0f, false)
 MAKE_ENUM_EX(radius_unit,  "Radius Unit", "Measure brush size relative to the view or the scene", 0, BRUSH_CHANNEL_SHOW_IN_WORKSPACE, {\
