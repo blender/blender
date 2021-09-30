@@ -339,11 +339,15 @@ static int ui_text_icon_width_ex(uiLayout *layout,
 
   /* When there is no text, always behave as if this is an icon-only button
    * since it's not useful to return empty space. */
-  if (!name[0]) {
+  if (icon && !name[0]) {
     return unit_x * (1.0f + pad_factor->icon_only);
   }
 
   if (ui_layout_variable_size(layout)) {
+    if (!icon && !name[0]) {
+      return unit_x * (1.0f + pad_factor->icon_only);
+    }
+
     if (layout->alignment != UI_LAYOUT_ALIGN_EXPAND) {
       layout->item.flag |= UI_ITEM_FIXED_SIZE;
     }
