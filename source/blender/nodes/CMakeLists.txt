@@ -373,7 +373,7 @@ set(SRC
   intern/derived_node_tree.cc
   intern/geometry_nodes_eval_log.cc
   intern/math_functions.cc
-  intern/node_common.c
+  intern/node_common.cc
   intern/node_declaration.cc
   intern/node_exec.cc
   intern/node_geometry_exec.cc
