@@ -485,18 +485,22 @@ void BlenderGPUDisplay::do_draw(const GPUDisplayParams &params)
   /* See do_update_begin() for why no locking is required here. */
   const bool transparent = true;  // TODO(sergey): Derive this from Film.
 
-  if (texture_.need_clear) {
-    /* Texture is requested to be cleared and was not yet cleared.
-     * Do early return which should be equivalent of drawing all-zero texture. */
-    return;
-  }
-
   if (!gl_draw_resources_ensure()) {
     return;
   }
 
   if (use_gl_context_) {
     gl_context_mutex_.lock();
+  }
+
+  if (texture_.need_clear) {
+    /* Texture is requested to be cleared and was not yet cleared.
+     *
+     * Do early return which should be equivalent of drawing all-zero texture.
+     * Watchout for the lock though so that the clear happening during update is properly
+     * synchronized here. */
+    gl_context_mutex_.unlock();
+    return;
   }
 
   if (gl_upload_sync_) {
