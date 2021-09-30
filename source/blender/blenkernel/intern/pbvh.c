@@ -4127,6 +4127,47 @@ void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry)
   }
 }
 
+void BKE_pbvh_set_mdyntopo_verts(PBVH *pbvh, struct MDynTopoVert *mdyntopoverts)
+{
+  pbvh->mdyntopo_verts = mdyntopoverts;
+}
+
+void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
+                                         struct SubdivCCG *subdiv_ccg,
+                                         SculptVertRef vertex)
+{
+  MDynTopoVert *mv = pbvh->mdyntopo_verts + vertex.i;
+
+  int last_fset = 0;
+  int last_fset2 = 0;
+
+  mv->flag &= ~(DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY | DYNVERT_NEED_BOUNDARY |
+                DYNVERT_FSET_CORNER | DYNVERT_CORNER | DYNVERT_SEAM_BOUNDARY |
+                DYNVERT_SHARP_BOUNDARY | DYNVERT_SEAM_CORNER | DYNVERT_SHARP_CORNER);
+
+  int totsharp = 0, totseam = 0;
+  int visible = false;
+
+  int index = (int)vertex.i;
+
+  /* TODO: optimize this. We could fill #SculptVertexNeighborIter directly,
+   * maybe provide coordinate and mask pointers directly rather than converting
+   * back and forth between #CCGElem and global index. */
+  const CCGKey *key = BKE_pbvh_get_grid_key(pbvh);
+  const int grid_index = index / key->grid_area;
+  const int vertex_index = index - grid_index * key->grid_area;
+
+  SubdivCCGCoord coord = {.grid_index = grid_index,
+                          .x = vertex_index % key->grid_size,
+                          .y = vertex_index / key->grid_size};
+
+  SubdivCCGNeighbors neighbors;
+  BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, &coord, false, &neighbors);
+
+  mv->valence = neighbors.size;
+  mv->flag &= ~DYNVERT_NEED_VALENCE;
+}
+
 void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
                                          MVert *mvert,
                                          MEdge *medge,

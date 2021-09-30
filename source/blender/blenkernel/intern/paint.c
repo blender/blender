@@ -86,7 +86,7 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss);
 BMesh *SCULPT_dyntopo_empty_bmesh();
 void SCULPT_undo_ensure_bmlog(Object *ob);
 
-static void init_mdyntopo_layer(SculptSession *ss, int totvert);
+static void init_mdyntopo_layer(SculptSession *ss, PBVH *pbvh, int totvert);
 
 static void palette_init_data(ID *id)
 {
@@ -2201,7 +2201,9 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
   return pbvh;
 }
 
-static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool respect_hide)
+ATTR_NO_OPT static PBVH *build_pbvh_from_regular_mesh(Object *ob,
+                                                      Mesh *me_eval_deform,
+                                                      bool respect_hide)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
@@ -2228,7 +2230,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
                                   false);
   }
 
-  BKE_sculptsession_check_mdyntopo(ob->sculpt, me->totvert);
+  BKE_sculptsession_check_mdyntopo(ob->sculpt, pbvh, me->totvert);
 
   BKE_pbvh_build_mesh(pbvh,
                       me,
@@ -2277,24 +2279,24 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
                        subdiv_ccg->grid_hidden,
                        ob->sculpt->fast_draw);
 
-  BKE_sculptsession_check_mdyntopo(ob->sculpt, BKE_pbvh_get_grid_num_vertices(pbvh));
+  BKE_sculptsession_check_mdyntopo(ob->sculpt, pbvh, BKE_pbvh_get_grid_num_vertices(pbvh));
 
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
   return pbvh;
 }
 
-bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, int totvert)
+ATTR_NO_OPT bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, PBVH *pbvh, int totvert)
 {
   if (!ss->bm && (!ss->mdyntopo_verts || totvert != ss->mdyntopo_verts_size)) {
-    init_mdyntopo_layer(ss, totvert);
+    init_mdyntopo_layer(ss, pbvh, totvert);
     return true;
   }
 
   return false;
 }
 
-static void init_mdyntopo_layer(SculptSession *ss, int totvert)
+ATTR_NO_OPT static void init_mdyntopo_layer_faces(SculptSession *ss, PBVH *pbvh, int totvert)
 {
   if (ss->mdyntopo_verts) {
     MEM_freeN(ss->mdyntopo_verts);
@@ -2303,6 +2305,8 @@ static void init_mdyntopo_layer(SculptSession *ss, int totvert)
   ss->mdyntopo_verts = MEM_calloc_arrayN(totvert, sizeof(*ss->mdyntopo_verts), "mdyntopo_verts");
   ss->mdyntopo_verts_size = totvert;
 
+  BKE_pbvh_set_mdyntopo_verts(pbvh, ss->mdyntopo_verts);
+
   MDynTopoVert *mv = ss->mdyntopo_verts;
 
   for (int i = 0; i < totvert; i++, mv++) {
@@ -2310,6 +2314,7 @@ static void init_mdyntopo_layer(SculptSession *ss, int totvert)
     mv->stroke_id = -1;
 
     SculptVertRef vertex = {.i = i};
+
     BKE_pbvh_update_vert_boundary_faces(ss->face_sets,
                                         ss->mvert,
                                         ss->medge,
@@ -2320,6 +2325,40 @@ static void init_mdyntopo_layer(SculptSession *ss, int totvert)
                                         vertex);
   }
 }
+
+ATTR_NO_OPT static void init_mdyntopo_layer_grids(SculptSession *ss, PBVH *pbvh, int totvert)
+{
+  if (ss->mdyntopo_verts) {
+    MEM_freeN(ss->mdyntopo_verts);
+  }
+
+  ss->mdyntopo_verts = MEM_calloc_arrayN(totvert, sizeof(*ss->mdyntopo_verts), "mdyntopo_verts");
+  ss->mdyntopo_verts_size = totvert;
+
+  BKE_pbvh_set_mdyntopo_verts(pbvh, ss->mdyntopo_verts);
+
+  MDynTopoVert *mv = ss->mdyntopo_verts;
+
+  for (int i = 0; i < totvert; i++, mv++) {
+    mv->flag = DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT;
+    mv->stroke_id = -1;
+
+    SculptVertRef vertex = {.i = i};
+
+    BKE_pbvh_update_vert_boundary_grids(pbvh, ss->subdiv_ccg, vertex);
+  }
+}
+
+ATTR_NO_OPT static void init_mdyntopo_layer(SculptSession *ss, PBVH *pbvh, int totvert)
+{
+  if (BKE_pbvh_type(pbvh) == PBVH_FACES) {
+    init_mdyntopo_layer_faces(ss, pbvh, totvert);
+  }
+  else if (BKE_pbvh_type(pbvh) == PBVH_GRIDS) {
+    init_mdyntopo_layer_grids(ss, pbvh, totvert);
+  }
+}
+
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 {
   if (ob == NULL || ob->sculpt == NULL) {

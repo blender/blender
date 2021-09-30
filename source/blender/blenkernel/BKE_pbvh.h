@@ -135,6 +135,7 @@ struct MPoly;
 struct MVert;
 struct Mesh;
 struct PBVH;
+struct MEdge;
 struct PBVHNode;
 struct SubdivCCG;
 struct TaskParallelSettings;
@@ -933,6 +934,11 @@ void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
                                          struct MDynTopoVert *mdyntopo_verts,
                                          struct MeshElemMap *pmap,
                                          SculptVertRef vertex);
+void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
+                                         struct SubdivCCG *subdiv_ccg,
+                                         SculptVertRef vertex);
+
+void BKE_pbvh_set_mdyntopo_verts(PBVH *pbvh, struct MDynTopoVert *mdyntopoverts);
 
 #ifdef __cplusplus
 }

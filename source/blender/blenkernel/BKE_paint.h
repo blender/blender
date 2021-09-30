@@ -791,7 +791,7 @@ void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
 void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
-bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, int totvert);
+bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, struct PBVH *pbvh, int totvert);
 
 /* Create new color layer on object if it doesn't have one and if experimental feature set has
  * sculpt vertex color enabled. Returns truth if new layer has been added, false otherwise. */
