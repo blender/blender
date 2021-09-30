@@ -237,8 +237,10 @@ static void bm_face_array_uv_scale_y(BMFace **faces,
 /** \name UDIM packing helper functions
  * \{ */
 
-/* Returns true if UV coordinates lie on a valid tile in UDIM grid or tiled image. */
-bool uv_coords_isect_udim(const Image *image, const int udim_grid[2], float coords[2])
+/**
+ *  Returns true if UV coordinates lie on a valid tile in UDIM grid or tiled image.
+ */
+bool uv_coords_isect_udim(const Image *image, const int udim_grid[2], const float coords[2])
 {
   const float coords_floor[2] = {floorf(coords[0]), floorf(coords[1])};
   const bool is_tiled_image = image && (image->source == IMA_SRC_TILED);
@@ -452,11 +454,9 @@ static int bm_mesh_calc_uv_islands(const Scene *scene,
  * \{ */
 
 void ED_uvedit_pack_islands_multi(const Scene *scene,
-                                  const SpaceImage *sima,
                                   Object **objects,
                                   const uint objects_len,
-                                  const bool use_target_udim,
-                                  int target_udim,
+                                  const struct UVMapUDIM_Params *udim_params,
                                   const struct UVPackIsland_Params *params)
 {
   /* Align to the Y axis, could make this configurable. */
@@ -512,7 +512,7 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
   LISTBASE_FOREACH_INDEX (struct FaceIsland *, island, &island_list, index) {
 
     /* Skip calculation if using specified UDIM option. */
-    if (!use_target_udim) {
+    if (udim_params && (udim_params->use_target_udim == false)) {
       float bounds_min[2], bounds_max[2];
       INIT_MINMAX2(bounds_min, bounds_max);
       for (int i = 0; i < island->faces_len; i++) {
@@ -525,6 +525,7 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
       selection_max_co[0] = MAX2(bounds_max[0], selection_max_co[0]);
       selection_max_co[1] = MAX2(bounds_max[1], selection_max_co[1]);
     }
+
     if (params->rotate) {
       if (island->aspect_y != 1.0f) {
         bm_face_array_uv_scale_y(
@@ -559,7 +560,7 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
 
   /* Center of bounding box containing all selected UVs. */
   float selection_center[2];
-  if (!use_target_udim) {
+  if (udim_params && (udim_params->use_target_udim == false)) {
     selection_center[0] = (selection_min_co[0] + selection_max_co[0]) / 2.0f;
     selection_center[1] = (selection_min_co[1] + selection_max_co[1]) / 2.0f;
   }
@@ -590,24 +591,22 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
   /* Tile offset. */
   float base_offset[2] = {0.0f, 0.0f};
 
+  /* CASE: ignore UDIM. */
+  if (udim_params == NULL) {
+    /* pass */
+  }
   /* CASE: Active/specified(smart uv project) UDIM. */
-  if (use_target_udim) {
+  else if (udim_params->use_target_udim) {
+
     /* Calculate offset based on specified_tile_index. */
-    base_offset[0] = (target_udim - 1001) % 10;
-    base_offset[1] = (target_udim - 1001) / 10;
+    base_offset[0] = (udim_params->target_udim - 1001) % 10;
+    base_offset[1] = (udim_params->target_udim - 1001) / 10;
   }
 
   /* CASE: Closest UDIM. */
   else {
-    const Image *image;
-    int udim_grid[2] = {1, 1};
-    /* To handle cases where `sima == NULL` - Smart UV project in 3D viewport. */
-    if (sima != NULL) {
-      image = sima->image;
-      udim_grid[0] = sima->tile_grid_shape[0];
-      udim_grid[1] = sima->tile_grid_shape[1];
-    }
-
+    const Image *image = udim_params->image;
+    const int *udim_grid = udim_params->grid_shape;
     /* Check if selection lies on a valid UDIM grid tile. */
     bool is_valid_udim = uv_coords_isect_udim(image, udim_grid, selection_center);
     if (is_valid_udim) {
@@ -643,8 +642,8 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
         island->bounds_rect.ymin,
     };
     const float offset[2] = {
-        (boxarray[i].x * scale[0]) - island->bounds_rect.xmin + base_offset[0],
-        (boxarray[i].y * scale[1]) - island->bounds_rect.ymin + base_offset[1],
+        ((boxarray[i].x * scale[0]) - island->bounds_rect.xmin) + base_offset[0],
+        ((boxarray[i].y * scale[1]) - island->bounds_rect.ymin) + base_offset[1],
     };
     for (int j = 0; j < island->faces_len; j++) {
       BMFace *efa = island->faces[j];

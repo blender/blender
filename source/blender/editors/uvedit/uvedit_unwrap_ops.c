@@ -145,6 +145,61 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name UDIM Access
+ * \{ */
+
+bool ED_uvedit_udim_params_from_image_space(const SpaceImage *sima,
+                                            bool use_active,
+                                            struct UVMapUDIM_Params *udim_params)
+{
+  memset(udim_params, 0, sizeof(*udim_params));
+
+  udim_params->grid_shape[0] = 1;
+  udim_params->grid_shape[1] = 1;
+  udim_params->target_udim = 0;
+  udim_params->use_target_udim = false;
+
+  if (sima == NULL) {
+    return false;
+  }
+
+  udim_params->image = sima->image;
+  udim_params->grid_shape[0] = sima->tile_grid_shape[0];
+  udim_params->grid_shape[1] = sima->tile_grid_shape[1];
+
+  if (use_active) {
+    int active_udim = 1001;
+    /* NOTE: Presently, when UDIM grid and tiled image are present together, only active tile for
+     * the tiled image is considered. */
+    Image *image = sima->image;
+    if (image && image->source == IMA_SRC_TILED) {
+      ImageTile *active_tile = BLI_findlink(&image->tiles, image->active_tile_index);
+      if (active_tile) {
+        active_udim = active_tile->tile_number;
+      }
+    }
+    else {
+      /* TODO: Support storing an active UDIM when there are no tiles present.
+       * Until then, use 2D cursor to find the active tile index for the UDIM grid. */
+      const float cursor_loc[2] = {sima->cursor[0], sima->cursor[1]};
+      if (uv_coords_isect_udim(sima->image, sima->tile_grid_shape, cursor_loc)) {
+        int tile_number = 1001;
+        tile_number += floorf(cursor_loc[1]) * 10;
+        tile_number += floorf(cursor_loc[0]);
+        active_udim = tile_number;
+      }
+    }
+
+    udim_params->target_udim = active_udim;
+    udim_params->use_target_udim = true;
+  }
+
+  return true;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Parametrizer Conversion
  * \{ */
 
@@ -1040,7 +1095,6 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   /* RNA props */
   const bool rotate = RNA_boolean_get(op->ptr, "rotate");
   const int udim_source = RNA_enum_get(op->ptr, "udim_source");
-  bool use_target_udim = false;
   if (RNA_struct_property_is_set(op->ptr, "margin")) {
     scene->toolsettings->uvcalc_margin = RNA_float_get(op->ptr, "margin");
   }
@@ -1048,46 +1102,15 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
     RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
   }
 
-  int target_udim = 1001;
-  if (udim_source == PACK_UDIM_SRC_CLOSEST) {
-    /* pass */
-  }
-  else if (udim_source == PACK_UDIM_SRC_ACTIVE) {
-    int active_udim = 1001;
-    /* NOTE: Presently, when UDIM grid and tiled image are present together, only active tile for
-     * the tiled imgae is considered. */
-    if (sima && sima->image) {
-      Image *image = sima->image;
-      ImageTile *active_tile = BLI_findlink(&image->tiles, image->active_tile_index);
-      if (active_tile) {
-        active_udim = active_tile->tile_number;
-      }
-    }
-    else if (sima && !sima->image) {
-      /* Use 2D cursor to find the active tile index for the UDIM grid. */
-      float cursor_loc[2] = {sima->cursor[0], sima->cursor[1]};
-      if (uv_coords_isect_udim(sima->image, sima->tile_grid_shape, cursor_loc)) {
-        int tile_number = 1001;
-        tile_number += floorf(cursor_loc[1]) * 10;
-        tile_number += floorf(cursor_loc[0]);
-        active_udim = tile_number;
-      }
-      /* TODO: Support storing an active UDIM when there are no tiles present. */
-    }
-
-    target_udim = active_udim;
-    use_target_udim = true;
-  }
-  else {
-    BLI_assert_unreachable();
-  }
+  struct UVMapUDIM_Params udim_params;
+  const bool use_active = (udim_source == PACK_UDIM_SRC_ACTIVE);
+  const bool use_udim_params = ED_uvedit_udim_params_from_image_space(
+      sima, use_active, &udim_params);
 
   ED_uvedit_pack_islands_multi(scene,
-                               sima,
                                objects,
                                objects_len,
-                               use_target_udim,
-                               target_udim,
+                               use_udim_params ? &udim_params : NULL,
                                &(struct UVPackIsland_Params){
                                    .rotate = rotate,
                                    .rotate_align_axis = -1,
@@ -2114,7 +2137,6 @@ static int smart_project_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  const SpaceImage *sima = CTX_wm_space_image(C);
 
   /* May be NULL. */
   View3D *v3d = CTX_wm_view3d(C);
@@ -2125,7 +2147,6 @@ static int smart_project_exec(bContext *C, wmOperator *op)
 
   const float project_angle_limit_cos = cosf(project_angle_limit);
   const float project_angle_limit_half_cos = cosf(project_angle_limit / 2);
-  const int target_udim = 1001; /* 0-1 UV space. */
 
   /* Memory arena for list links (cleared for each object). */
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
@@ -2265,11 +2286,9 @@ static int smart_project_exec(bContext *C, wmOperator *op)
     /* Depsgraph refresh functions are called here. */
     const bool correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
     ED_uvedit_pack_islands_multi(scene,
-                                 sima,
                                  objects_changed,
                                  object_changed_len,
-                                 true,
-                                 target_udim,
+                                 NULL,
                                  &(struct UVPackIsland_Params){
                                      .rotate = true,
                                      /* We could make this optional. */
