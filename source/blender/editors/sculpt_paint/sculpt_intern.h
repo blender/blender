@@ -336,6 +336,10 @@ bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, SculptVertRef ind
 void SCULPT_face_sets_visibility_invert(SculptSession *ss);
 void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible);
 
+void SCULPT_face_ensure_original(SculptSession *ss);
+int SCULPT_face_set_original_get(SculptSession *ss, SculptFaceRef face);
+void SCULPT_face_check_origdata(SculptSession *ss, SculptFaceRef face);
+
 int SCULPT_face_set_get(SculptSession *ss, SculptFaceRef face);
 
 // returns previous face set
@@ -1800,7 +1804,6 @@ int SCULPT_get_symmetry_pass(const SculptSession *ss);
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
 void SCULPT_reorder_bmesh(SculptSession *ss);
 
-// TODO: support faces
 static inline void *SCULPT_temp_cdata_get(SculptVertRef vertex, SculptCustomLayer *scl)
 {
   if (scl->data) {
@@ -1808,14 +1811,36 @@ static inline void *SCULPT_temp_cdata_get(SculptVertRef vertex, SculptCustomLaye
     int idx = (int)vertex.i;
 
     if (scl->from_bmesh) {
-      BMVert *v = (BMVert *)vertex.i;
+      BMElem *v = (BMElem *)vertex.i;
       idx = v->head.index;
     }
 
     return p + scl->elemsize * (int)vertex.i;
   }
   else {
-    BMVert *v = (BMVert *)vertex.i;
+    BMElem *v = (BMElem *)vertex.i;
+    return BM_ELEM_CD_GET_VOID_P(v, scl->cd_offset);
+  }
+
+  return NULL;
+}
+
+// arg, duplicate functions!
+static inline void *SCULPT_temp_cdata_get_f(SculptFaceRef vertex, SculptCustomLayer *scl)
+{
+  if (scl->data) {
+    char *p = (char *)scl->data;
+    int idx = (int)vertex.i;
+
+    if (scl->from_bmesh) {
+      BMElem *v = (BMElem *)vertex.i;
+      idx = v->head.index;
+    }
+
+    return p + scl->elemsize * (int)vertex.i;
+  }
+  else {
+    BMElem *v = (BMElem *)vertex.i;
     return BM_ELEM_CD_GET_VOID_P(v, scl->cd_offset);
   }
 

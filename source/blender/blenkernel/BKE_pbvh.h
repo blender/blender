@@ -38,6 +38,17 @@ extern "C" {
 // experimental feature to detect quad diagonals and mark (but not dissolve) them
 //#define SCULPT_DIAGONAL_EDGE_MARKS
 
+/*
+   These structs represent logical verts/edges/faces.
+   for PBVH_GRIDS and PBVH_FACES they store integer
+   offsets, PBVH_BMESH stores pointers.
+
+   The idea is to enforce stronger type checking by encapsulating
+   intptr_t's in structs.*/
+typedef struct SculptElemRef {
+  intptr_t i;
+} SculptElemRef;
+
 typedef struct SculptVertRef {
   intptr_t i;
 } SculptVertRef;

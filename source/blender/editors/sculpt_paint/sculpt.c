@@ -2959,11 +2959,18 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
 
   SCULPT_orig_vert_data_unode_init(&orig_data, data->ob, unode);
 
+  bool modified = false;
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     if (orig_data.unode->type == SCULPT_UNDO_COORDS) {
+      if (len_squared_v3v3(vd.co, orig_data.co) > FLT_EPSILON) {
+        modified = true;
+      }
+
       copy_v3_v3(vd.co, orig_data.co);
+
       if (vd.no) {
         copy_v3_v3_short(vd.no, orig_data.no);
       }
@@ -2972,9 +2979,17 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
       }
     }
     else if (orig_data.unode->type == SCULPT_UNDO_MASK) {
+      if ((*vd.mask - orig_data.mask) * (*vd.mask - orig_data.mask) > FLT_EPSILON) {
+        modified = true;
+      }
+
       *vd.mask = orig_data.mask;
     }
     else if (orig_data.unode->type == SCULPT_UNDO_COLOR && vd.col && orig_data.col) {
+      if (len_squared_v4v4(vd.col, orig_data.col) > FLT_EPSILON) {
+        modified = true;
+      }
+
       copy_v4_v4(vd.col, orig_data.col);
     }
 
@@ -2984,7 +2999,9 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
   }
   BKE_pbvh_vertex_iter_end;
 
-  BKE_pbvh_node_mark_update(data->nodes[n]);
+  if (modified) {
+    BKE_pbvh_node_mark_update(data->nodes[n]);
+  }
 }
 
 static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
@@ -2997,11 +3014,6 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 
   BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-  /**
-   * Disable multi-threading when dynamic-topology is enabled. Otherwise,
-   * new entries might be inserted by #SCULPT_undo_push_node() into the #GHash
-   * used internally by #BM_log_original_vert_co() by a different thread. See T33787.
-   */
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
@@ -3010,7 +3022,7 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
   };
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true && !ss->bm, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, paint_mesh_restore_co_task_cb, &settings);
 
   BKE_pbvh_node_color_buffer_free(ss->pbvh);
@@ -3784,10 +3796,10 @@ static void calc_area_normal_and_center(
  * values pull vertices, negative values push. Uses tablet pressure and a
  * special multiplier found experimentally to scale the strength factor.
  */
-ATTR_NO_OPT static float brush_strength(const Sculpt *sd,
-                                        const StrokeCache *cache,
-                                        const float feather,
-                                        const UnifiedPaintSettings *ups)
+static float brush_strength(const Sculpt *sd,
+                            const StrokeCache *cache,
+                            const float feather,
+                            const UnifiedPaintSettings *ups)
 {
   const Scene *scene = cache->vc->scene;
   const Brush *brush = cache->brush;  // BKE_paint_brush((Paint *)&sd->paint);
@@ -8784,8 +8796,20 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
    * Check that original data is for anchored and drag dot modes
    */
   if (brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT)) {
+    if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
+        brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
+
+      SCULPT_face_ensure_original(ss);
+
+      for (int i = 0; i < ss->totfaces; i++) {
+        SculptFaceRef face = BKE_pbvh_table_index_to_face(ss->pbvh, i);
+        SCULPT_face_check_origdata(ss, face);
+      }
+    }
+
     for (int i = 0; i < totnode; i++) {
       PBVHVertexIter vd;
+
       BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
         SCULPT_vertex_check_origdata(ss, vd.vertex);
       }
@@ -11421,13 +11445,11 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
        BKE_brush_use_size_pressure(brush)) ||
       (brush->flag & BRUSH_DRAG_DOT)) {
 
-    if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
-      SculptUndoNode *unode = SCULPT_undo_get_first_node();
-      if (unode && unode->type == SCULPT_UNDO_FACE_SETS) {
-        for (int i = 0; i < ss->totfaces; i++) {
-          ss->face_sets[i] = unode->face_sets[i];
-        }
-      }
+    for (int i = 0; i < ss->totfaces; i++) {
+      SculptFaceRef face = BKE_pbvh_table_index_to_face(ss->pbvh, i);
+      int origf = SCULPT_face_set_original_get(ss, face);
+
+      SCULPT_face_set_set(ss, face, origf);
     }
 
     paint_mesh_restore_co(sd, ob);
