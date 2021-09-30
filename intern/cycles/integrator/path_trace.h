@@ -37,6 +37,7 @@ class RenderBuffers;
 class RenderScheduler;
 class RenderWork;
 class PathTraceDisplay;
+class OutputDriver;
 class Progress;
 class TileManager;
 
@@ -99,7 +100,10 @@ class PathTrace {
    * Use this to configure the adaptive sampler before rendering any samples. */
   void set_adaptive_sampling(const AdaptiveSampling &adaptive_sampling);
 
-  /* Set display driver which takes care of drawing the render result. */
+  /* Sets output driver for render buffer output. */
+  void set_output_driver(unique_ptr<OutputDriver> driver);
+
+  /* Set display driver for interactive render buffer display. */
   void set_display_driver(unique_ptr<DisplayDriver> driver);
 
   /* Clear the display buffer by filling it in with all zeroes. */
@@ -158,6 +162,7 @@ class PathTrace {
    * instead. */
   int2 get_render_tile_size() const;
   int2 get_render_tile_offset() const;
+  int2 get_render_size() const;
 
   /* Get buffer parameters of the current tile.
    *
@@ -168,18 +173,6 @@ class PathTrace {
   /* Generate full multi-line report of the rendering process, including rendering parameters,
    * times, and so on. */
   string full_report() const;
-
-  /* Callback which communicates an updates state of the render buffer of the current big tile.
-   * Is called during path tracing to communicate work-in-progress state of the final buffer. */
-  function<void(void)> tile_buffer_update_cb;
-
-  /* Callback which communicates final rendered buffer. Is called after path-tracing is done. */
-  function<void(void)> tile_buffer_write_cb;
-
-  /* Callback which initializes rendered buffer. Is called before path-tracing starts.
-   *
-   * This is used for baking. */
-  function<bool(void)> tile_buffer_read_cb;
 
   /* Callback which is called to report current rendering progress.
    *
@@ -253,7 +246,11 @@ class PathTrace {
   RenderScheduler &render_scheduler_;
   TileManager &tile_manager_;
 
+  /* Display driver for interactive render buffer display. */
   unique_ptr<PathTraceDisplay> display_;
+
+  /* Output driver to write render buffer to. */
+  unique_ptr<OutputDriver> output_driver_;
 
   /* Per-compute device descriptors of work which is responsible for path tracing on its configured
    * device. */

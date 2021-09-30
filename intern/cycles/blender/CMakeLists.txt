@@ -38,6 +38,7 @@ set(SRC
   blender_mesh.cpp
   blender_object.cpp
   blender_object_cull.cpp
+  blender_output_driver.cpp
   blender_particles.cpp
   blender_curves.cpp
   blender_logging.cpp
@@ -55,6 +56,7 @@ set(SRC
   blender_id_map.h
   blender_image.h
   blender_object_cull.h
+  blender_output_driver.h
   blender_sync.h
   blender_session.h
   blender_texture.h

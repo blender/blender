@@ -36,6 +36,9 @@
 #include "util/util_unique_ptr.h"
 #include "util/util_version.h"
 
+#include "app/cycles_xml.h"
+#include "app/oiio_output_driver.h"
+
 #ifdef WITH_CYCLES_STANDALONE_GUI
 #  include "util/util_view.h"
 #endif
@@ -54,6 +57,7 @@ struct Options {
   bool quiet;
   bool show_help, interactive, pause;
   string output_filepath;
+  string output_pass;
 } options;
 
 static void session_print(const string &str)
@@ -87,30 +91,6 @@ static void session_print_status()
   /* print status */
   status = string_printf("Progress %05.2f   %s", (double)progress * 100, status.c_str());
   session_print(status);
-}
-
-static bool write_render(const uchar *pixels, int w, int h, int channels)
-{
-  string msg = string_printf("Writing image %s", options.output_path.c_str());
-  session_print(msg);
-
-  unique_ptr<ImageOutput> out = unique_ptr<ImageOutput>(ImageOutput::create(options.output_path));
-  if (!out) {
-    return false;
-  }
-
-  ImageSpec spec(w, h, channels, TypeDesc::UINT8);
-  if (!out->open(options.output_path, spec)) {
-    return false;
-  }
-
-  /* conversion for different top/bottom convention */
-  out->write_image(
-      TypeDesc::UINT8, pixels + (h - 1) * w * channels, AutoStride, -w * channels, AutoStride);
-
-  out->close();
-
-  return true;
 }
 
 static BufferParams &session_buffer_params()
@@ -147,8 +127,13 @@ static void scene_init()
 
 static void session_init()
 {
-  options.session_params.write_render_cb = write_render;
+  options.output_pass = "combined";
   options.session = new Session(options.session_params, options.scene_params);
+
+  if (!options.output_filepath.empty()) {
+    options.session->set_output_driver(make_unique<OIIOOutputDriver>(
+        options.output_filepath, options.output_pass, session_print));
+  }
 
   if (options.session_params.background && !options.quiet)
     options.session->progress.set_update_callback(function_bind(&session_print_status));
@@ -159,6 +144,11 @@ static void session_init()
 
   /* load scene */
   scene_init();
+
+  /* add pass for output. */
+  Pass *pass = options.scene->create_node<Pass>();
+  pass->set_name(ustring(options.output_pass.c_str()));
+  pass->set_type(PASS_COMBINED);
 
   options.session->reset(options.session_params, session_buffer_params());
   options.session->start();

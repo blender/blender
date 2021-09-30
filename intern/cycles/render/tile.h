@@ -82,6 +82,7 @@ class TileManager {
   bool done();
 
   const Tile &get_current_tile() const;
+  const int2 get_size() const;
 
   /* Write render buffer of a tile to a file on disk.
    *

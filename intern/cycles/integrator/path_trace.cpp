@@ -20,6 +20,7 @@
 #include "device/device.h"
 #include "integrator/pass_accessor.h"
 #include "integrator/path_trace_display.h"
+#include "integrator/path_trace_tile.h"
 #include "integrator/render_scheduler.h"
 #include "render/pass.h"
 #include "render/scene.h"
@@ -535,6 +536,11 @@ void PathTrace::denoise(const RenderWork &render_work)
   render_scheduler_.report_denoise_time(render_work, time_dt() - start_time);
 }
 
+void PathTrace::set_output_driver(unique_ptr<OutputDriver> driver)
+{
+  output_driver_ = move(driver);
+}
+
 void PathTrace::set_display_driver(unique_ptr<DisplayDriver> driver)
 {
   if (driver) {
@@ -567,7 +573,7 @@ void PathTrace::update_display(const RenderWork &render_work)
     return;
   }
 
-  if (!display_ && !tile_buffer_update_cb) {
+  if (!display_ && !output_driver_) {
     VLOG(3) << "Ignore display update.";
     return;
   }
@@ -579,10 +585,11 @@ void PathTrace::update_display(const RenderWork &render_work)
 
   const double start_time = time_dt();
 
-  if (tile_buffer_update_cb) {
+  if (output_driver_) {
     VLOG(3) << "Invoke buffer update callback.";
 
-    tile_buffer_update_cb();
+    PathTraceTile tile(*this);
+    output_driver_->update_render_tile(tile);
   }
 
   if (display_) {
@@ -758,20 +765,26 @@ bool PathTrace::is_cancel_requested()
 
 void PathTrace::tile_buffer_write()
 {
-  if (!tile_buffer_write_cb) {
+  if (!output_driver_) {
     return;
   }
 
-  tile_buffer_write_cb();
+  PathTraceTile tile(*this);
+  output_driver_->write_render_tile(tile);
 }
 
 void PathTrace::tile_buffer_read()
 {
-  if (!tile_buffer_read_cb) {
+  if (!device_scene_->data.bake.use) {
     return;
   }
 
-  if (tile_buffer_read_cb()) {
+  if (!output_driver_) {
+    return;
+  }
+
+  PathTraceTile tile(*this);
+  if (output_driver_->read_render_tile(tile)) {
     tbb::parallel_for_each(path_trace_works_, [](unique_ptr<PathTraceWork> &path_trace_work) {
       path_trace_work->copy_render_buffers_to_device();
     });
@@ -1008,6 +1021,11 @@ int2 PathTrace::get_render_tile_offset() const
 
   const Tile &tile = tile_manager_.get_current_tile();
   return make_int2(tile.x, tile.y);
+}
+
+int2 PathTrace::get_render_size() const
+{
+  return tile_manager_.get_size();
 }
 
 const BufferParams &PathTrace::get_render_tile_params() const

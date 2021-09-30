@@ -333,6 +333,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
       }
 
       snode = (ShaderNode *)node_type->create(node_type);
+      snode->set_owner(graph);
     }
 
     xml_read_node(graph_reader, snode, node);

@@ -43,6 +43,7 @@
 #include "util/util_time.h"
 
 #include "blender/blender_display_driver.h"
+#include "blender/blender_output_driver.h"
 #include "blender/blender_session.h"
 #include "blender/blender_sync.h"
 #include "blender/blender_util.h"
@@ -157,7 +158,8 @@ void BlenderSession::create_session()
       b_v3d, b_rv3d, scene->camera, width, height);
   session->reset(session_params, buffer_params);
 
-  /* Create GPU display. */
+  /* Create GPU display.
+   * TODO(sergey): Investigate whether DisplayDriver can be used for the preview as well. */
   if (!b_engine.is_preview() && !headless) {
     unique_ptr<BlenderDisplayDriver> display_driver = make_unique<BlenderDisplayDriver>(b_engine,
                                                                                         b_scene);
@@ -279,96 +281,6 @@ void BlenderSession::free_session()
   session = nullptr;
 }
 
-void BlenderSession::read_render_tile()
-{
-  const int2 tile_offset = session->get_render_tile_offset();
-  const int2 tile_size = session->get_render_tile_size();
-
-  /* get render result */
-  BL::RenderResult b_rr = b_engine.begin_result(tile_offset.x,
-                                                tile_offset.y,
-                                                tile_size.x,
-                                                tile_size.y,
-                                                b_rlay_name.c_str(),
-                                                b_rview_name.c_str());
-
-  /* can happen if the intersected rectangle gives 0 width or height */
-  if (b_rr.ptr.data == NULL) {
-    return;
-  }
-
-  BL::RenderResult::layers_iterator b_single_rlay;
-  b_rr.layers.begin(b_single_rlay);
-
-  /* layer will be missing if it was disabled in the UI */
-  if (b_single_rlay == b_rr.layers.end())
-    return;
-
-  BL::RenderLayer b_rlay = *b_single_rlay;
-
-  vector<float> pixels(tile_size.x * tile_size.y * 4);
-
-  /* Copy each pass.
-   * TODO:copy only the required ones for better performance? */
-  for (BL::RenderPass &b_pass : b_rlay.passes) {
-    session->set_render_tile_pixels(b_pass.name(), b_pass.channels(), (float *)b_pass.rect());
-  }
-
-  b_engine.end_result(b_rr, false, false, false);
-}
-
-void BlenderSession::write_render_tile()
-{
-  const int2 tile_offset = session->get_render_tile_offset();
-  const int2 tile_size = session->get_render_tile_size();
-
-  const string_view render_layer_name = session->get_render_tile_layer();
-  const string_view render_view_name = session->get_render_tile_view();
-
-  b_engine.tile_highlight_clear_all();
-
-  /* get render result */
-  BL::RenderResult b_rr = b_engine.begin_result(tile_offset.x,
-                                                tile_offset.y,
-                                                tile_size.x,
-                                                tile_size.y,
-                                                render_layer_name.c_str(),
-                                                render_view_name.c_str());
-
-  /* can happen if the intersected rectangle gives 0 width or height */
-  if (b_rr.ptr.data == NULL) {
-    return;
-  }
-
-  BL::RenderResult::layers_iterator b_single_rlay;
-  b_rr.layers.begin(b_single_rlay);
-
-  /* layer will be missing if it was disabled in the UI */
-  if (b_single_rlay == b_rr.layers.end()) {
-    return;
-  }
-
-  BL::RenderLayer b_rlay = *b_single_rlay;
-
-  write_render_result(b_rlay);
-
-  b_engine.end_result(b_rr, true, false, true);
-}
-
-void BlenderSession::update_render_tile()
-{
-  if (!session->has_multiple_render_tiles()) {
-    /* Don't highlight full-frame tile. */
-    return;
-  }
-
-  const int2 tile_offset = session->get_render_tile_offset();
-  const int2 tile_size = session->get_render_tile_size();
-
-  b_engine.tile_highlight_clear_all();
-  b_engine.tile_highlight_set(tile_offset.x, tile_offset.y, tile_size.x, tile_size.y, true);
-}
-
 void BlenderSession::full_buffer_written(string_view filename)
 {
   full_buffer_files_.emplace_back(filename);
@@ -442,18 +354,8 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
     return;
   }
 
-  /* set callback to write out render results */
-  session->write_render_tile_cb = [&]() { write_render_tile(); };
-
-  /* Use final write for preview renders, otherwise render result wouldn't be be updated on Blender
-   * side. */
-  /* TODO(sergey): Investigate whether DisplayDriver can be used for the preview as well. */
-  if (b_engine.is_preview()) {
-    session->update_render_tile_cb = [&]() { write_render_tile(); };
-  }
-  else {
-    session->update_render_tile_cb = [&]() { update_render_tile(); };
-  }
+  /* Create driver to write out render results. */
+  session->set_output_driver(make_unique<BlenderOutputDriver>(b_engine));
 
   session->full_buffer_written_cb = [&](string_view filename) { full_buffer_written(filename); };
 
@@ -599,9 +501,8 @@ void BlenderSession::render_frame_finish()
     path_remove(filename);
   }
 
-  /* clear callback */
-  session->write_render_tile_cb = function_null;
-  session->update_render_tile_cb = function_null;
+  /* Clear driver. */
+  session->set_output_driver(nullptr);
   session->full_buffer_written_cb = function_null;
 }
 
@@ -707,9 +608,8 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
   pass->set_type(bake_type_to_pass(bake_type, bake_filter));
   pass->set_include_albedo((bake_filter & BL::BakeSettings::pass_filter_COLOR));
 
-  session->read_render_tile_cb = [&]() { read_render_tile(); };
-  session->write_render_tile_cb = [&]() { write_render_tile(); };
   session->set_display_driver(nullptr);
+  session->set_output_driver(make_unique<BlenderOutputDriver>(b_engine));
 
   if (!session->progress.get_cancel()) {
     /* Sync scene. */
@@ -752,43 +652,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
     session->wait();
   }
 
-  session->read_render_tile_cb = function_null;
-  session->write_render_tile_cb = function_null;
-}
-
-void BlenderSession::write_render_result(BL::RenderLayer &b_rlay)
-{
-  if (!session->copy_render_tile_from_device()) {
-    return;
-  }
-
-  const int2 tile_size = session->get_render_tile_size();
-  vector<float> pixels(tile_size.x * tile_size.y * 4);
-
-  /* Copy each pass. */
-  for (BL::RenderPass &b_pass : b_rlay.passes) {
-    if (!session->get_render_tile_pixels(b_pass.name(), b_pass.channels(), &pixels[0])) {
-      memset(&pixels[0], 0, pixels.size() * sizeof(float));
-    }
-
-    b_pass.rect(&pixels[0]);
-  }
-}
-
-void BlenderSession::update_render_result(BL::RenderLayer &b_rlay)
-{
-  if (!session->copy_render_tile_from_device()) {
-    return;
-  }
-
-  const int2 tile_size = session->get_render_tile_size();
-  vector<float> pixels(tile_size.x * tile_size.y * 4);
-
-  /* Copy combined pass. */
-  BL::RenderPass b_combined_pass(b_rlay.passes.find_by_name("Combined", b_rview_name.c_str()));
-  if (session->get_render_tile_pixels("Combined", b_combined_pass.channels(), &pixels[0])) {
-    b_combined_pass.rect(&pixels[0]);
-  }
+  session->set_output_driver(nullptr);
 }
 
 void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)

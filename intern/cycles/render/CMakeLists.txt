@@ -78,6 +78,7 @@ set(SRC_HEADERS
   constant_fold.h
   denoising.h
   display_driver.h
+  output_driver.h
   film.h
   geometry.h
   graph.h

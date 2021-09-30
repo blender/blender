@@ -36,6 +36,7 @@ class BufferParams;
 class Device;
 class DeviceScene;
 class DisplayDriver;
+class OutputDriver;
 class PathTrace;
 class Progress;
 class RenderBuffers;
@@ -66,8 +67,6 @@ class SessionParams {
   int tile_size;
 
   ShadingSystem shadingsystem;
-
-  function<bool(const uchar *pixels, int width, int height, int channels)> write_render_cb;
 
   SessionParams()
   {
@@ -114,10 +113,6 @@ class Session {
   Stats stats;
   Profiler profiler;
 
-  function<void(void)> write_render_tile_cb;
-  function<void(void)> update_render_tile_cb;
-  function<void(void)> read_render_tile_cb;
-
   /* Callback is invoked by tile manager whenever on-dist tiles storage file is closed after
    * writing. Allows an engine integration to keep track of those files without worry about
    * transferring the information when it needs to re-create session during rendering. */
@@ -143,6 +138,7 @@ class Session {
   void set_samples(int samples);
   void set_time_limit(double time_limit);
 
+  void set_output_driver(unique_ptr<OutputDriver> driver);
   void set_display_driver(unique_ptr<DisplayDriver> driver);
 
   double get_estimated_remaining_time() const;
@@ -154,24 +150,6 @@ class Session {
   float get_progress();
 
   void collect_statistics(RenderStats *stats);
-
-  /* --------------------------------------------------------------------
-   * Tile and tile pixels access.
-   */
-
-  bool has_multiple_render_tiles() const;
-
-  /* Get size and offset (relative to the buffer's full x/y) of the currently rendering tile. */
-  int2 get_render_tile_size() const;
-  int2 get_render_tile_offset() const;
-
-  string_view get_render_tile_layer() const;
-  string_view get_render_tile_view() const;
-
-  bool copy_render_tile_from_device();
-
-  bool get_render_tile_pixels(const string &pass_name, int num_components, float *pixels);
-  bool set_render_tile_pixels(const string &pass_name, int num_components, const float *pixels);
 
   /* --------------------------------------------------------------------
    * Full-frame on-disk storage.

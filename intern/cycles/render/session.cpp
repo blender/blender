@@ -31,6 +31,7 @@
 #include "render/light.h"
 #include "render/mesh.h"
 #include "render/object.h"
+#include "render/output_driver.h"
 #include "render/scene.h"
 #include "render/session.h"
 
@@ -64,25 +65,6 @@ Session::Session(const SessionParams &params_, const SceneParams &scene_params)
   path_trace_ = make_unique<PathTrace>(
       device, scene->film, &scene->dscene, render_scheduler_, tile_manager_);
   path_trace_->set_progress(&progress);
-  path_trace_->tile_buffer_update_cb = [&]() {
-    if (!update_render_tile_cb) {
-      return;
-    }
-    update_render_tile_cb();
-  };
-  path_trace_->tile_buffer_write_cb = [&]() {
-    if (!write_render_tile_cb) {
-      return;
-    }
-    write_render_tile_cb();
-  };
-  path_trace_->tile_buffer_read_cb = [&]() -> bool {
-    if (!read_render_tile_cb) {
-      return false;
-    }
-    read_render_tile_cb();
-    return true;
-  };
   path_trace_->progress_update_cb = [&]() { update_status_time(); };
 
   tile_manager_.full_buffer_written_cb = [&](string_view filename) {
@@ -96,24 +78,6 @@ Session::Session(const SessionParams &params_, const SceneParams &scene_params)
 Session::~Session()
 {
   cancel();
-
-  /* TODO(sergey): Bring the passes in viewport back.
-   * It is unclear why there is such an exception needed though. */
-#if 0
-  if (buffers && params.write_render_cb) {
-    /* Copy to display buffer and write out image if requested */
-    delete display;
-
-    display = new DisplayBuffer(device, false);
-    display->reset(buffers->params);
-    copy_to_display_buffer(params.samples);
-
-    int w = display->draw_width;
-    int h = display->draw_height;
-    uchar4 *pixels = display->rgba_byte.copy_from_device(0, w, h);
-    params.write_render_cb((uchar *)pixels, w, h, 4);
-  }
-#endif
 
   /* Make sure path tracer is destroyed before the device. This is needed because destruction might
    * need to access device for device memory free. */
@@ -514,6 +478,11 @@ void Session::set_pause(bool pause)
   }
 }
 
+void Session::set_output_driver(unique_ptr<OutputDriver> driver)
+{
+  path_trace_->set_output_driver(move(driver));
+}
+
 void Session::set_display_driver(unique_ptr<DisplayDriver> driver)
 {
   path_trace_->set_display_driver(move(driver));
@@ -634,101 +603,6 @@ void Session::collect_statistics(RenderStats *render_stats)
   if (params.use_profiling && (params.device.type == DEVICE_CPU)) {
     render_stats->collect_profiling(scene, profiler);
   }
-}
-
-/* --------------------------------------------------------------------
- * Tile and tile pixels access.
- */
-
-bool Session::has_multiple_render_tiles() const
-{
-  return tile_manager_.has_multiple_tiles();
-}
-
-int2 Session::get_render_tile_size() const
-{
-  return path_trace_->get_render_tile_size();
-}
-
-int2 Session::get_render_tile_offset() const
-{
-  return path_trace_->get_render_tile_offset();
-}
-
-string_view Session::get_render_tile_layer() const
-{
-  const BufferParams &buffer_params = path_trace_->get_render_tile_params();
-  return buffer_params.layer;
-}
-
-string_view Session::get_render_tile_view() const
-{
-  const BufferParams &buffer_params = path_trace_->get_render_tile_params();
-  return buffer_params.view;
-}
-
-bool Session::copy_render_tile_from_device()
-{
-  return path_trace_->copy_render_tile_from_device();
-}
-
-bool Session::get_render_tile_pixels(const string &pass_name, int num_components, float *pixels)
-{
-  /* NOTE: The code relies on a fact that session is fully update and no scene/buffer modification
-   * is happening while this function runs. */
-
-  const BufferParams &buffer_params = path_trace_->get_render_tile_params();
-
-  const BufferPass *pass = buffer_params.find_pass(pass_name);
-  if (pass == nullptr) {
-    return false;
-  }
-
-  const bool has_denoised_result = path_trace_->has_denoised_result();
-  if (pass->mode == PassMode::DENOISED && !has_denoised_result) {
-    pass = buffer_params.find_pass(pass->type);
-    if (pass == nullptr) {
-      /* Happens when denoised result pass is requested but is never written by the kernel. */
-      return false;
-    }
-  }
-
-  pass = buffer_params.get_actual_display_pass(pass);
-
-  const float exposure = buffer_params.exposure;
-  const int num_samples = path_trace_->get_num_render_tile_samples();
-
-  PassAccessor::PassAccessInfo pass_access_info(*pass);
-  pass_access_info.use_approximate_shadow_catcher = buffer_params.use_approximate_shadow_catcher;
-  pass_access_info.use_approximate_shadow_catcher_background =
-      pass_access_info.use_approximate_shadow_catcher && !buffer_params.use_transparent_background;
-
-  const PassAccessorCPU pass_accessor(pass_access_info, exposure, num_samples);
-  const PassAccessor::Destination destination(pixels, num_components);
-
-  return path_trace_->get_render_tile_pixels(pass_accessor, destination);
-}
-
-bool Session::set_render_tile_pixels(const string &pass_name,
-                                     int num_components,
-                                     const float *pixels)
-{
-  /* NOTE: The code relies on a fact that session is fully update and no scene/buffer modification
-   * is happening while this function runs. */
-
-  const BufferPass *pass = buffer_params_.find_pass(pass_name);
-  if (!pass) {
-    return false;
-  }
-
-  const float exposure = scene->film->get_exposure();
-  const int num_samples = render_scheduler_.get_num_rendered_samples();
-
-  const PassAccessor::PassAccessInfo pass_access_info(*pass);
-  PassAccessorCPU pass_accessor(pass_access_info, exposure, num_samples);
-  PassAccessor::Source source(pixels, num_components);
-
-  return path_trace_->set_render_tile_pixels(pass_accessor, source);
 }
 
 /* --------------------------------------------------------------------

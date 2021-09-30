@@ -420,6 +420,11 @@ const Tile &TileManager::get_current_tile() const
   return tile_state_.current_tile;
 }
 
+const int2 TileManager::get_size() const
+{
+  return make_int2(buffer_params_.width, buffer_params_.height);
+}
+
 bool TileManager::open_tile_output()
 {
   write_state_.filename = path_temp_get("cycles-tile-buffer-" + tile_file_unique_part_ + "-" +
