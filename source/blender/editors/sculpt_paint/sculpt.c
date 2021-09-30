@@ -732,12 +732,8 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
   return true;
 }
 
-void SCULPT_update_customdata_refs(SculptSession *ss)
+ATTR_NO_OPT void SCULPT_update_customdata_refs(SculptSession *ss)
 {
-  if (ss->bm) {
-    SCULPT_dyntopo_node_layers_update_offsets(ss);
-  }
-
   /* run twice, in case sculpt_temp_customlayer_get had to recreate a layer and
      messed up the ordering. */
   for (int i = 0; i < 2; i++) {
@@ -749,6 +745,10 @@ void SCULPT_update_customdata_refs(SculptSession *ss)
             ss, scl->domain, scl->proptype, scl->name, scl, true, &scl->params);
       }
     }
+  }
+
+  if (ss->bm) {
+    SCULPT_dyntopo_node_layers_update_offsets(ss);
   }
 }
 
@@ -4811,7 +4811,7 @@ static void do_fairing_brush_tag_store_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+ATTR_NO_OPT static void do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -4820,6 +4820,9 @@ static void do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
   if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
     return;
   }
+
+  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_face_random_access_ensure(ss);
 
   if (!ss->custom_layers[SCULPT_SCL_FAIRING_MASK]) {
     // SCULPT_temp_customlayer_ensure(ss, ATTR_DOMAIN_POINT, CD_PROP_BOOL, "fairing_mask");
@@ -4835,24 +4838,31 @@ static void do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 
     SculptLayerParams params = {.permanent = false, .simple_array = true};
 
-    SCULPT_temp_customlayer_get(ss,
+    sculpt_temp_customlayer_get(ss,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_BOOL,
                                 "fairing_mask",
                                 ss->custom_layers[SCULPT_SCL_FAIRING_MASK],
+                                true,
                                 &params);
-    SCULPT_temp_customlayer_get(ss,
+
+    sculpt_temp_customlayer_get(ss,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_FLOAT,
                                 "fairing_fade",
                                 ss->custom_layers[SCULPT_SCL_FAIRING_FADE],
+                                true,
                                 &params);
-    SCULPT_temp_customlayer_get(ss,
+
+    sculpt_temp_customlayer_get(ss,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_FLOAT3,
                                 "prefairing_co",
                                 ss->custom_layers[SCULPT_SCL_PREFAIRING_CO],
+                                true,
                                 &params);
+
+    SCULPT_update_customdata_refs(ss);
   }
 
   if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {

@@ -1804,7 +1804,7 @@ int SCULPT_get_symmetry_pass(const SculptSession *ss);
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
 void SCULPT_reorder_bmesh(SculptSession *ss);
 
-static inline void *SCULPT_temp_cdata_get(SculptVertRef vertex, SculptCustomLayer *scl)
+ATTR_NO_OPT static inline void *SCULPT_temp_cdata_get(SculptVertRef vertex, SculptCustomLayer *scl)
 {
   if (scl->data) {
     char *p = (char *)scl->data;
@@ -1815,7 +1815,7 @@ static inline void *SCULPT_temp_cdata_get(SculptVertRef vertex, SculptCustomLaye
       idx = v->head.index;
     }
 
-    return p + scl->elemsize * (int)vertex.i;
+    return p + scl->elemsize * (int)idx;
   }
   else {
     BMElem *v = (BMElem *)vertex.i;
@@ -1837,7 +1837,7 @@ static inline void *SCULPT_temp_cdata_get_f(SculptFaceRef vertex, SculptCustomLa
       idx = v->head.index;
     }
 
-    return p + scl->elemsize * (int)vertex.i;
+    return p + scl->elemsize * (int)idx;
   }
   else {
     BMElem *v = (BMElem *)vertex.i;
