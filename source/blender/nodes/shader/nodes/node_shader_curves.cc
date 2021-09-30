@@ -375,7 +375,7 @@ static void node_shader_exec_curve_float(void *UNUSED(data),
   }
 }
 
-static void node_shader_init_curve_float(bNodeTree *ntree, bNode *node)
+static void node_shader_init_curve_float(bNodeTree *UNUSED(ntree), bNode *node)
 {
   node->storage = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
