@@ -17,6 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
+from bpy.props import EnumProperty
+from bpy.types import Operator
 from bpy.types import Menu, Panel, UIList, WindowManager, SpaceProperties
 from bl_ui.properties_grease_pencil_common import (
     GreasePencilSculptOptionsPanel,
@@ -382,6 +384,7 @@ class VIEW3D_PT_tools_brush_select(Panel, View3DPaintBrushPanel, BrushSelectPane
 def is_brush_editor(context):
     return type(context.space_data) == SpaceProperties and context.space_data.context == "BRUSH_EDITOR"
 
+
 class VIEW3D_PT_tools_brush_settings(Panel, View3DPaintBrushPanel):
     bl_context = ".paint_common"
     bl_label = "Brush Settings"
@@ -405,6 +408,7 @@ class VIEW3D_PT_tools_brush_settings(Panel, View3DPaintBrushPanel):
         brush = settings.brush
 
         brush_settings(layout.column(), context, brush, popover=self.is_popover)
+
 
 class VIEW3D_PT_tools_brush_settings_channels(Panel, View3DPaintBrushPanel):
     bl_context = ".paint_common"
@@ -430,6 +434,7 @@ class VIEW3D_PT_tools_brush_settings_channels(Panel, View3DPaintBrushPanel):
 
         brush_settings_channels(layout.column(), context, brush, popover=self.is_popover)
 
+
 class VIEW3D_PT_tools_brush_settings_channels_preview(Panel, View3DPaintBrushPanel):
     bl_context = ".paint_common"
     bl_parent_id = "VIEW3D_PT_tools_brush_settings"
@@ -452,12 +457,12 @@ class VIEW3D_PT_tools_brush_settings_channels_preview(Panel, View3DPaintBrushPan
 
         settings = self.paint_settings(context)
         brush = settings.brush
-        
+
         brush_settings_channels(layout.column(), context, brush, show_reorder=True, ui_editing=False,
-            popover=self.is_popover,
-            prefix="VIEW3D_PT_brush_category_edit_",
-            parent="VIEW3D_PT_tools_brush_settings_channels_preview"
-        )
+                                popover=self.is_popover,
+                                prefix="VIEW3D_PT_brush_category_edit_",
+                                parent="VIEW3D_PT_tools_brush_settings_channels_preview"
+                                )
 
 
 class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
@@ -505,12 +510,13 @@ class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
 
         draw_color_settings(context, layout, brush, color_type=not context.vertex_paint_object)
 
+
 class VIEW3D_PT_tools_persistent_base_channels(Panel, View3DPaintPanel):
     bl_context = ".paint_common"
     bl_parent_id = "VIEW3D_PT_tools_brush_settings_channels"
     bl_label = "Persistent Base"
     bl_options = {'DEFAULT_CLOSED'}
-    
+
     @classmethod
     def poll(cls, context):
         settings = cls.paint_settings(context)
@@ -548,11 +554,13 @@ class VIEW3D_PT_tools_persistent_base_channels(Panel, View3DPaintPanel):
         else:
             layout.label(text="No persisent base data")
 
+
 class VIEW3D_PT_tools_brush_swatches_channels(Panel, View3DPaintPanel, ColorPalettePanel):
     bl_context = ".paint_common"
     bl_parent_id = "VIEW3D_PT_tools_brush_settings_channels"
     bl_label = "Color Palette"
     bl_options = {'DEFAULT_CLOSED'}
+
 
 class VIEW3D_PT_tools_brush_swatches(Panel, View3DPaintPanel, ColorPalettePanel):
     bl_context = ".brush_editor"
@@ -733,8 +741,8 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
     @classmethod
     def poll(cls, context):
         if (
-                (settings := cls.paint_settings(context)) and
-                (brush := settings.brush)
+                (settings:= cls.paint_settings(context)) and
+                (brush:= settings.brush)
         ):
             if context.sculpt_object or context.vertex_paint_object:
                 return True
@@ -913,7 +921,7 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
         )
 
         keys = ["dyntopo_spacing", "dyntopo_detail_size", "dyntopo_detail_range", "dyntopo_detail_percent",
-                 "dyntopo_constant_detail", "dyntopo_radius_scale", "dyntopo_disabled"]
+                "dyntopo_constant_detail", "dyntopo_radius_scale", "dyntopo_disabled"]
         for k in keys:
             UnifiedPaintPanel.channel_unified(
                 layout,
@@ -976,38 +984,36 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
         do_prop("radius_scale")
 
 
-from bpy.types import Operator
-from bpy.props import EnumProperty
-
 class SCULPT_OT_set_dyntopo_mode (Operator):
     """Set refine mode"""
 
     bl_label = "Set Detail Mode"
     bl_idname = "sculpt.set_dyntopo_mode"
-    
+
     mode: EnumProperty(items=[
         ("SC", "Subdivide Collapse", "", 1),
         ("S", "Subdivide Edges", "", 2),
         ("C", "Collapse Edges", "", 3)
     ])
-    
+
     def execute(self, context):
         brush = context.tool_settings.sculpt.brush
         ch = UnifiedPaintPanel.get_channel(context, brush, "dyntopo_mode")
-        
+
         oldf = set()
         for f in ch.flags_value:
             if f not in ["SUBDIVIDE", "COLLAPSE"]:
                 oldf.add(f)
-                
+
         if self.mode == "SC":
             ch.flags_value = oldf.union({"SUBDIVIDE", "COLLAPSE"})
         elif self.mode == "S":
             ch.flags_value = oldf.union({"SUBDIVIDE"})
         elif self.mode == "C":
             ch.flags_value = oldf.union({"COLLAPSE"})
-            
+
         return {'FINISHED'}
+
 
 def set_dyntopo_mode_button(layout, context):
     brush = context.tool_settings.sculpt.brush
@@ -1028,6 +1034,7 @@ def set_dyntopo_mode_button(layout, context):
     row.use_property_split = False
     row.operator_menu_enum("sculpt.set_dyntopo_mode", "mode", text=text)
     row.prop(ch, "inherit", text="", icon="BRUSHES_ALL")
+
 
 class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
@@ -1059,7 +1066,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         sculpt = tool_settings.sculpt
         settings = self.paint_settings(context)
         brush = settings.brush
-            
+
         col = layout.column()
         col.active = context.sculpt_object.use_dynamic_topology_sculpting
 
@@ -1079,7 +1086,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
                 brush,
                 "dyntopo_constant_detail",
                 text="Constant Resolution",
-                #slider=True,
+                # slider=True,
                 ui_editing=False,
                 pressure=False
             )
@@ -1092,23 +1099,23 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
                 brush,
                 "dyntopo_detail_percent",
                 text="Detail Percent",
-                #slider=True,
+                # slider=True,
                 ui_editing=False,
                 pressure=False
             )
         else:
             UnifiedPaintPanel.channel_unified(
-            sub,
-            context,
-            brush,
-            "dyntopo_detail_size",
-            text="Detail Size",
-            #slider=True,
-            ui_editing=False,
-            pressure=False
+                sub,
+                context,
+                brush,
+                "dyntopo_detail_size",
+                text="Detail Size",
+                # slider=True,
+                ui_editing=False,
+                pressure=False
             )
 
-        #"""
+        # """
         UnifiedPaintPanel.channel_unified(
             sub,
             context,
@@ -1121,11 +1128,11 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
 
         set_dyntopo_mode_button(sub, context)
 
-        col2 = col.row() #sub.column()
+        col2 = col.row()  # sub.column()
         ch = UnifiedPaintPanel.get_channel(context, brush, "dyntopo_mode")
 
         col2.use_property_split = False
-        col2.prop_enum(ch, "flags_value", "CLEANUP", icon = "CHECKBOX_HLT" if "CLEANUP" in ch.flags_value else "CHECKBOX_DEHLT")
+        col2.prop_enum(ch, "flags_value", "CLEANUP", icon="CHECKBOX_HLT" if "CLEANUP" in ch.flags_value else "CHECKBOX_DEHLT")
 
         """
         UnifiedPaintPanel.channel_unified(
@@ -1148,7 +1155,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
 
         UnifiedPaintPanel.channel_unified(layout, context, brush, "dyntopo_spacing", slider=True, ui_editing=False)
         UnifiedPaintPanel.channel_unified(layout, context, brush, "dyntopo_radius_scale", slider=True, ui_editing=False)
-        
+
         #col.prop(sculpt, "dyntopo_spacing")
         #col.prop(sculpt, "dyntopo_radius_scale")
 
@@ -1216,32 +1223,32 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "show_sculpt_pivot")
 
         UnifiedPaintPanel.channel_unified(
-                layout.column(),
-                context,
-                brush,
-                "smooth_strength_factor", ui_editing=False, slider=True)
+            layout.column(),
+            context,
+            brush,
+            "smooth_strength_factor", ui_editing=False, slider=True)
 
         #col.prop(sculpt, "smooth_strength_factor")
 
         col.separator()
 
         UnifiedPaintPanel.channel_unified(
-                layout.column(),
-                context,
-                brush,
-                "automasking", toolsettings_only=True, expand=True, ui_editing=False)
+            layout.column(),
+            context,
+            brush,
+            "automasking", toolsettings_only=True, expand=True, ui_editing=False)
         UnifiedPaintPanel.channel_unified(
-                layout.column(),
-                context,
-                brush,
-                "automasking_boundary_edges_propagation_steps",
-                toolsettings_only=True, ui_editing=False)
+            layout.column(),
+            context,
+            brush,
+            "automasking_boundary_edges_propagation_steps",
+            toolsettings_only=True, ui_editing=False)
         UnifiedPaintPanel.channel_unified(
-                layout.column(),
-                context,
-                brush,
-                "concave_mask_factor",
-                toolsettings_only=True, ui_editing=False, slider=True)
+            layout.column(),
+            context,
+            brush,
+            "concave_mask_factor",
+            toolsettings_only=True, ui_editing=False, slider=True)
 
         """
         col = layout.column(heading="Auto-Masking", align=True)

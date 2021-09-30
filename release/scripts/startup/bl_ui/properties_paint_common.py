@@ -17,6 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
+from bpy.types import Operator
+from bpy.props import IntProperty, StringProperty
 from bpy.types import Menu, Panel
 
 classes = []
@@ -28,7 +30,7 @@ class DynamicBrushCategoryPanel(Panel):
     bl_category = "Tool"
 
     @classmethod
-    def poll(self, context):        
+    def poll(self, context):
         ok = context.mode == "SCULPT" and context.tool_settings.sculpt and context.tool_settings.sculpt.brush
         ok = ok and len(self.get_channels(context)) > 0
 
@@ -37,7 +39,7 @@ class DynamicBrushCategoryPanel(Panel):
     @classmethod
     def get_channels(self, context):
         brush = context.tool_settings.sculpt.brush
-        
+
         idname = self.get_category(self)
 
         channels = list(filter(lambda ch: ch.show_in_workspace and ch.category == idname, brush.channels))
@@ -48,7 +50,7 @@ class DynamicBrushCategoryPanel(Panel):
     def draw(self, context):
         layout = self.layout
         brush = context.tool_settings.sculpt.brush
-        
+
         idname = self.get_category()
         opt = self.get_options()
 
@@ -59,19 +61,20 @@ class DynamicBrushCategoryPanel(Panel):
         for ch in channels:
             ok = ch.show_in_workspace
             ok = ok and ch.category == idname
-            
+
             if not ok:
                 continue
-            
+
             UnifiedPaintPanel.channel_unified(
-                layout, 
-                context, 
+                layout,
+                context,
                 brush,
-                ch.idname, 
+                ch.idname,
                 slider=True,
                 ui_editing=opt["ui_editing"],
                 show_reorder=opt["show_reorder"])
-            
+
+
 class DynamicPaintPanelGen:
     class Group:
         def __init__(self, idname, name, prefix, parent):
@@ -81,9 +84,9 @@ class DynamicPaintPanelGen:
             self.rnaclass = None
             self.parent = parent
             self.options = {}
-    
+
     groups = {}
-    
+
     @staticmethod
     def ensureCategory(idname, name=None, prefix="VIEW3D_PT_brush_category_", parent=None, show_reorder=False, ui_editing=False):
         if name is None:
@@ -97,21 +100,21 @@ class DynamicPaintPanelGen:
         group = DynamicPaintPanelGen.Group(idname, name, prefix, parent)
         DynamicPaintPanelGen.groups[groupid] = group
 
-        group.options={
-            "ui_editing" : ui_editing,
-            "show_reorder" : show_reorder
+        group.options = {
+            "ui_editing": ui_editing,
+            "show_reorder": show_reorder
         }
-        
+
         def callback():
             print("creating panel")
             DynamicPaintPanelGen.createPanel(group)
             pass
-        
+
         import bpy
         bpy.app.timers.register(callback)
-        
+
         return group
-    
+
     @staticmethod
     def get(idname, prefix):
         return DynamicPaintPanelGen.groups[idname]
@@ -122,7 +125,7 @@ class DynamicPaintPanelGen:
 
         from bpy.types import Panel
         global classes
-        
+
         name = group.prefix + group.idname.lower()
         name2 = ""
 
@@ -140,14 +143,14 @@ class DynamicPaintPanelGen:
         name = name2
 
         for cls in classes[:]:
-            print("_", cls.bl_rna.identifier, cls.bl_rna.identifier == name) #r, dir(cls.bl_rna)) #.name)
-            
+            print("_", cls.bl_rna.identifier, cls.bl_rna.identifier == name)  # r, dir(cls.bl_rna)) #.name)
+
             if cls.bl_rna.identifier == name:
                 try:
                     unregister_class(cls)
                 except:
                     print("failed to unregister", name)
-                    
+
                 classes.remove(cls)
 
         if group.parent:
@@ -164,7 +167,7 @@ global classes
 class CLASSNAME (DynamicBrushCategoryPanel):
     bl_label = "LABEL"
     PARENT
-    
+
     def get_category(self):
         return "IDNAME"
 
@@ -176,22 +179,24 @@ classes.append(CLASSNAME)
 
 """.strip().replace("CLASSNAME", name).replace("PARENT", parent).replace("LABEL", group.name).replace("OPT", opt)
         code = code.replace("IDNAME", group.idname)
-        
+
         print("\n", code)
-        exec(code)        
+        exec(code)
+
 
 channel_name_map = {
-    "size" : "radius",
-    "autosmooth_fset_slide":"fset_slide",
+    "size": "radius",
+    "autosmooth_fset_slide": "fset_slide",
     "auto_smooth_factor": "autosmooth",
     "auto_smooth_projection": "autosmooth_projection",
     "auto_smooth_radius_factor": "autosmooth_radius_scale",
     "boundary_smooth_factor": "boundary_smooth",
     "autosmooth_fset_slide": "fset_slide",
     "topology_rake_factor": "topology_rake",
-    "use_locked_size" : "radius_unit"
-};
+    "use_locked_size": "radius_unit"
+}
 expand_channels = {"direction", "radius_unit", "automasking"}
+
 
 def template_curve(layout, base, propname, full_path):
     layout.template_curve_mapping(base, propname, brush=True)
@@ -208,6 +213,7 @@ def template_curve(layout, base, propname, full_path):
         props = row.operator("brush.curve_preset_load", icon=icons[i], text="")
         props.shape = shape
         props.path = path
+
 
 class UnifiedPaintPanel:
     # subclass must set
@@ -287,7 +293,7 @@ class UnifiedPaintPanel:
         return None
 
     @staticmethod
-    def get_channel(context, brush, prop_name, toolsettings_only=False, need_path=False):        
+    def get_channel(context, brush, prop_name, toolsettings_only=False, need_path=False):
         ch = brush.channels[prop_name] if prop_name in brush.channels else None
 
         path = None
@@ -299,7 +305,7 @@ class UnifiedPaintPanel:
             sd = context.tool_settings.sculpt
 
             if ch:
-                #ensure channel exists in tool settings channel set
+                # ensure channel exists in tool settings channel set
                 sd.channels.ensure(ch)
 
             ch = sd.channels[prop_name] if prop_name in sd.channels else None
@@ -317,7 +323,7 @@ class UnifiedPaintPanel:
 
         if ch.inherit or toolsettings_only:
             sd = context.tool_settings.sculpt
-            #ensure channel exists in tool settings channel set
+            # ensure channel exists in tool settings channel set
             sd.channels.ensure(ch)
             ch = sd.channels[prop_name]
 
@@ -342,7 +348,6 @@ class UnifiedPaintPanel:
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle"""
 
-
         if ui_editing is None:
             ui_editing = True
         ui_editing = ui_editing and not header
@@ -361,7 +366,7 @@ class UnifiedPaintPanel:
 
         ch = brush.channels[prop_name]
 
-        #dynamically switch to unprojected radius if necassary
+        # dynamically switch to unprojected radius if necassary
         if prop_name == "radius":
             size_mode = brush.channels["radius_unit"].enum_value == "SCENE"
             if size_mode:
@@ -375,14 +380,13 @@ class UnifiedPaintPanel:
 
         l1 = layout
 
-        #if ch.ui_expanded:
+        # if ch.ui_expanded:
         #    layout = layout.box().column() #.column() is a bit more compact
 
         if ch.type == "BITMASK":
             layout = layout.column(align=True)
 
         row = layout.row(align=True)
-
 
         if ch.type == "FLOAT":
             typeprop = "float_value" if "spacing" in ch.idname else "factor_value"
@@ -399,13 +403,13 @@ class UnifiedPaintPanel:
         elif ch.type == "VEC4":
             typeprop = "color4_value"
 
-        if pressure == None:
+        if pressure is None:
             pressure = ch.type not in ["VEC3", "VEC4", "BITMASK", "ENUM", "BOOL"]
 
         if text is None:
             text = ch.name
 
-        if len(text) == 0: #auto-generate from idname
+        if len(text) == 0:  # auto-generate from idname
             s = prop_name.lower().replace("_", " ").split(" ")
             text = ''
             for k in s:
@@ -419,7 +423,7 @@ class UnifiedPaintPanel:
 
         if ch.inherit or toolsettings_only:
             sd = context.tool_settings.sculpt
-            #ensure channel exists in tool settings channel set
+            # ensure channel exists in tool settings channel set
             sd.channels.ensure(ch)
 
             finalch = sd.channels[prop_name]
@@ -430,7 +434,7 @@ class UnifiedPaintPanel:
             path = "tool_settings.sculpt.channels[\"%s\"]" % ch.idname
         else:
             path = "tool_settings.sculpt.brush.channels[\"%s\"]" % ch.idname
-        
+
         if show_reorder:
             props = row.operator("brush.change_channel_order", text="", icon="TRIA_UP")
             props.channel = ch.idname
@@ -441,7 +445,7 @@ class UnifiedPaintPanel:
             props.filterkey = "show_in_workspace"
             props.channel = ch.idname
             props.direction = 1
-        
+
         if ui_editing and not header:
             row.prop(ch, "show_in_workspace", text="", icon="HIDE_OFF")
             row.prop(ch, "show_in_context_menu", text="", icon="MENU_PANEL")
@@ -449,7 +453,7 @@ class UnifiedPaintPanel:
 
         if ch.type == "CURVE":
             row.prop(finalch.curve, "curve_preset", text=text)
-            if finalch.curve.curve_preset == "CUSTOM":            
+            if finalch.curve.curve_preset == "CUSTOM":
                 path2 = path + ".curve.curve"
                 template_curve(layout, finalch.curve, "curve", path2)
 
@@ -458,7 +462,7 @@ class UnifiedPaintPanel:
                 row.label(text=text)
                 row.prop_menu_enum(finalch, typeprop, text=text)
             else:
-                #why is it so hard to make bitflag checkboxes?
+                # why is it so hard to make bitflag checkboxes?
 
                 row.label(text=text)
                 col = layout.row(align=True)
@@ -475,7 +479,7 @@ class UnifiedPaintPanel:
                 row2.use_property_decorate = False
 
                 for j, item in enumerate(finalch.enum_items):
-                    row3 = row1 if j % 2 == 0  else row2
+                    row3 = row1 if j % 2 == 0 else row2
 
                     if item.identifier in finalch.flags_value:
                         itemicon = "CHECKBOX_HLT"
@@ -488,7 +492,7 @@ class UnifiedPaintPanel:
             row2.use_property_split = False
             row2.use_property_decorate = False
 
-            #replicate pre-existing functionality of direction showing up as +/-  in the header
+            # replicate pre-existing functionality of direction showing up as +/-  in the header
             row2.prop_enum(finalch, typeprop, "ADD", text="")
             row2.prop_enum(finalch, typeprop, "SUBTRACT", text="")
             pass
@@ -498,17 +502,17 @@ class UnifiedPaintPanel:
             row.prop(finalch, typeprop, icon=icon, text=text, slider=slider)
 
         pressure = pressure and ch.type not in ["BOOL", "ENUM", "BITMASK", "CURVE"]
-            
+
         if pressure:
             row.prop(pressurech.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
 
-        #if ch.is_color:
+        # if ch.is_color:
         #    UnifiedPaintPanel.prop_unified_color_picker(row, context, brush, prop_name)
 
-        #if pressure_name:
+        # if pressure_name:
         #    row.prop(brush, pressure_name, text="")
 
-        #if unified_name and not header:
+        # if unified_name and not header:
         #    # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
         #    row.prop(ups, unified_name, text="", icon='BRUSHES_ALL')
         if not header:
@@ -562,7 +566,7 @@ class UnifiedPaintPanel:
                             props = row.operator("brush.curve_preset_load", icon=icons[i], text="")
                             props.shape = shape
                             props.path = path2
-                        
+
                     #row2.prop(mp, "curve")
 
         return row
@@ -617,7 +621,6 @@ class UnifiedPaintPanel:
         if context.mode == 'SCULPT':
             return UnifiedPaintPanel.channel_unified(parent, context, brush, prop_name, text=text)
 
-
         ups = context.tool_settings.unified_paint_settings
         prop_owner = ups if ups.use_unified_color else brush
         parent.prop(prop_owner, prop_name, text=text)
@@ -634,7 +637,7 @@ class UnifiedPaintPanel:
                 print("FOUND CH", ch.idname)
                 prop_owner = ch
                 prop_name = "color3_value"
-            
+
         parent.template_color_picker(prop_owner, prop_name, value_slider=value_slider)
 
 
@@ -1047,30 +1050,30 @@ def brush_settings(layout, context, brush, popover=False):
         if advanced:
             # normal_radius_factor
             UnifiedPaintPanel.prop_unified(
-                    layout,
-                    context,
-                    brush,
-                    "normal_radius_factor",
-                    slider=True,
-             )
-
-            if context.preferences.experimental.use_sculpt_tools_tilt and capabilities.has_tilt:
-                UnifiedPaintPanel.prop_unified(
-                        layout,
-                        context,
-                        brush,
-                        "tilt_strength_factor",
-                        slider=True,
-                 )
-
-        UnifiedPaintPanel.prop_unified(
                 layout,
                 context,
                 brush,
-                "hard_edge_mode",
+                "normal_radius_factor",
                 slider=True,
-                unified_name="use_unified_hard_edge_mode",
-         )
+            )
+
+            if context.preferences.experimental.use_sculpt_tools_tilt and capabilities.has_tilt:
+                UnifiedPaintPanel.prop_unified(
+                    layout,
+                    context,
+                    brush,
+                    "tilt_strength_factor",
+                    slider=True,
+                )
+
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "hard_edge_mode",
+            slider=True,
+            unified_name="use_unified_hard_edge_mode",
+        )
 
         row = layout.row(align=True)
 
@@ -1080,7 +1083,7 @@ def brush_settings(layout, context, brush, popover=False):
             brush,
             "hardness",
             slider=True,
-            pressure_name = "use_hardness_pressure"
+            pressure_name="use_hardness_pressure"
         )
 
         #row.prop(brush, "hardness", slider=True)
@@ -1089,7 +1092,7 @@ def brush_settings(layout, context, brush, popover=False):
 
         # auto_smooth_factor and use_inverse_smooth_pressure
         if capabilities.has_auto_smooth:
-            box = layout.column() #.column() is a bit more compact
+            box = layout.column()  # .column() is a bit more compact
 
             UnifiedPaintPanel.prop_unified(
                 box,
@@ -1117,7 +1120,7 @@ def brush_settings(layout, context, brush, popover=False):
                     slider=True,
                     text="Custom Spacing"
                 )
-                    
+
                 if brush.channels["autosmooth_use_spacing"].bool_value:
                     UnifiedPaintPanel.channel_unified(
                         box,
@@ -1127,7 +1130,7 @@ def brush_settings(layout, context, brush, popover=False):
                         slider=True,
                         text="Spacing"
                     )
-                    
+
             UnifiedPaintPanel.prop_unified(
                 box,
                 context,
@@ -1158,7 +1161,6 @@ def brush_settings(layout, context, brush, popover=False):
                 "projection",
                 slider=True
             )
-        
 
         if capabilities.has_vcol_boundary_smooth:
             layout.prop(brush, "vcol_boundary_factor", slider=True)
@@ -1167,17 +1169,17 @@ def brush_settings(layout, context, brush, popover=False):
                 capabilities.has_topology_rake and
                 context.sculpt_object.use_dynamic_topology_sculpting
         ):
-            box = layout.column() #.column() is a bit more compact
-            
+            box = layout.column()  # .column() is a bit more compact
+
             #box.prop(brush, "topology_rake_factor", slider=True)
             UnifiedPaintPanel.prop_unified(
-                    box,
-                    context,
-                    brush,
-                    "topology_rake_factor",
-                    slider=True,
-                    text="Topology Rake"
-                )
+                box,
+                context,
+                brush,
+                "topology_rake_factor",
+                slider=True,
+                text="Topology Rake"
+            )
 
             if advanced:
                 box.prop(brush, "use_custom_topology_rake_spacing", text="Custom Spacing")
@@ -1222,7 +1224,7 @@ def brush_settings(layout, context, brush, popover=False):
                     brush,
                     "topology_rake_falloff_curve"
                 )
-            
+
             #box.prop(brush, "use_curvature_rake")
             box.prop(brush, "ignore_falloff_for_topology_rake")
 
@@ -1237,7 +1239,7 @@ def brush_settings(layout, context, brush, popover=False):
                 header=True
             )
             #layout.prop(brush.dyntopo, "disabled", text="Disable Dyntopo")
-            
+
         # normal_weight
         if capabilities.has_normal_weight:
             layout.prop(brush, "normal_weight", slider=True)
@@ -1451,7 +1453,7 @@ def brush_settings(layout, context, brush, popover=False):
                 context,
                 brush,
                 "boundary_smooth",
-                slider = True
+                slider=True
                 #text="Weight By Face Area",
             )
 
@@ -1493,7 +1495,6 @@ def brush_settings(layout, context, brush, popover=False):
 
         elif sculpt_tool == 'MASK':
             layout.row().prop(brush, "mask_tool", expand=True)
-
 
         # End sculpt_tool interface.
 
@@ -1611,7 +1612,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             )
             layout.separator()
 
-    if strength:    
+    if strength:
         UnifiedPaintPanel.prop_unified(
             layout,
             context,
@@ -1636,14 +1637,12 @@ def brush_shared_settings(layout, context, brush, popover=False):
         layout.separator()
     if direction:
         UnifiedPaintPanel.channel_unified(
-                layout,
-                context,
-                brush,
-                "direction", expand=True)
+            layout,
+            context,
+            brush,
+            "direction", expand=True)
         #layout.row().prop(brush, "direction", expand=True)
 
-from bpy.types import Operator
-from bpy.props import IntProperty, StringProperty
 
 def get_ui_channels(channels, filterkeys=["show_in_workspace"]):
     ret = []
@@ -1655,10 +1654,11 @@ def get_ui_channels(channels, filterkeys=["show_in_workspace"]):
                 break
         if ok:
             ret.append(ch)
-    
-    ret.sort(key = lambda x: x.ui_order)
-    
+
+    ret.sort(key=lambda x: x.ui_order)
+
     return ret
+
 
 class ReorderBrushChannel(Operator):
     """Tooltip"""
@@ -1666,9 +1666,9 @@ class ReorderBrushChannel(Operator):
     bl_label = "Change Channel Order"
     bl_options = {"UNDO"}
 
-    direction   : IntProperty()
-    channel     : StringProperty()
-    filterkey   : StringProperty()
+    direction: IntProperty()
+    channel: StringProperty()
+    filterkey: StringProperty()
 
     @classmethod
     def poll(cls, context):
@@ -1676,9 +1676,9 @@ class ReorderBrushChannel(Operator):
 
     def execute(self, context):
         ts = context.tool_settings
-        
+
         brush = ts.sculpt.brush
-        
+
         channels = brush.channels
         if self.channel not in channels:
             print("bad channel ", self.channel)
@@ -1688,10 +1688,10 @@ class ReorderBrushChannel(Operator):
         uinames = set(map(lambda x: x.idname, uinames))
 
         channel = channels[self.channel]
-        
+
         channels = list(channels)
-        channels.sort(key = lambda x: x.ui_order)
-        
+        channels.sort(key=lambda x: x.ui_order)
+
         i = channels.index(channel)
         i2 = i + self.direction
 
@@ -1703,19 +1703,19 @@ class ReorderBrushChannel(Operator):
         while i2 >= 0 and i2 < len(channels) and channels[i2].idname not in uinames:
             i2 += self.direction
 
-        i2 = min(max(i2, 0), len(channels)-1)
+        i2 = min(max(i2, 0), len(channels) - 1)
 
         tmp = channels[i2]
         channels[i2] = channels[i]
         channels[i] = tmp
-        
-        #ensure ui_order is 1-to-1
+
+        # ensure ui_order is 1-to-1
         for i, ch in enumerate(channels):
             ch.ui_order = i
             print(ch.idname, i)
 
-        
         return {'FINISHED'}
+
 
 def brush_settings_channels(layout, context, brush, ui_editing=False, popover=False, show_reorder=None, filterkey="show_in_workspace",
                             parent="VIEW3D_PT_tools_brush_settings_channels", prefix="VIEW3D_PT_brush_category_"):
@@ -1725,22 +1725,22 @@ def brush_settings_channels(layout, context, brush, ui_editing=False, popover=Fa
         show_reorder = ui_editing
 
     DynamicPaintPanelGen.ensureCategory("Basic", "Basic", parent=parent,
-                       prefix=prefix, ui_editing=ui_editing,
-                       show_reorder=show_reorder)
+                                        prefix=prefix, ui_editing=ui_editing,
+                                        show_reorder=show_reorder)
 
     for ch in channels:
         if len(ch.category) > 0:
             DynamicPaintPanelGen.ensureCategory(ch.category, ch.category, parent=parent,
-                       prefix=prefix, ui_editing=ui_editing,
-                       show_reorder=show_reorder)
+                                                prefix=prefix, ui_editing=ui_editing,
+                                                show_reorder=show_reorder)
             continue
 
-        #VIEW3D_PT_brush_category_edit_
+        # VIEW3D_PT_brush_category_edit_
         UnifiedPaintPanel.channel_unified(
-                layout.column(),
-                context,
-                brush,
-                ch.idname, show_reorder = show_reorder, expand=False, ui_editing=ui_editing)
+            layout.column(),
+            context,
+            brush,
+            ch.idname, show_reorder=show_reorder, expand=False, ui_editing=ui_editing)
 
 
 def brush_settings_advanced(layout, context, brush, popover=False):
@@ -1764,15 +1764,15 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         use_frontface = True
 
         UnifiedPaintPanel.channel_unified(
-                layout.column(),
-                context,
-                brush,
-                "automasking", expand=True)
+            layout.column(),
+            context,
+            brush,
+            "automasking", expand=True)
         UnifiedPaintPanel.channel_unified(
-                layout.column(),
-                context,
-                brush,
-                "automasking_boundary_edges_propagation_steps")
+            layout.column(),
+            context,
+            brush,
+            "automasking_boundary_edges_propagation_steps")
 
         """
         col = layout.column(heading="Auto-Masking", align=True)

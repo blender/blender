@@ -171,7 +171,7 @@ class VIEW3D_HT_tool_header(Header):
                 row.popover(panel="VIEW3D_PT_tools_weightpaint_symmetry_for_topbar", text="")
             elif mode_string == 'SCULPT':
                 row.popover(panel="VIEW3D_PT_sculpt_symmetry_for_topbar", text="")
-                layout.prop(context.object.data, "use_fset_boundary_mirror");
+                layout.prop(context.object.data, "use_fset_boundary_mirror")
             elif mode_string == 'PAINT_VERTEX':
                 row.popover(panel="VIEW3D_PT_tools_vertexpaint_symmetry_for_topbar", text="")
 
@@ -3081,7 +3081,6 @@ class VIEW3D_MT_sculpt(Menu):
         layout.operator("sculpt.reset_brushes")
 
 
-
 class VIEW3D_MT_mask(Menu):
     bl_label = "Mask"
 
@@ -5327,7 +5326,7 @@ class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
         op = pie.operator("sculpt.ipmask_filter", text='IPMask Smooth')
         op.filter_type = "SMOOTH_SHARPEN"
         op.iterations = 1
-        
+
         op = pie.operator("sculpt.ipmask_filter", text='IPMask Grow')
         op.filter_type = "GROW_SHRINK"
         op.iterations = 1
@@ -5339,8 +5338,6 @@ class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
         op = pie.operator("sculpt.ipmask_filter", text='IPMask Contrast')
         op.filter_type = "CONTRAST"
         op.iterations = 1
-
-
 
 
 class VIEW3D_MT_sculpt_automasking_pie(Menu):
@@ -6443,7 +6440,6 @@ class VIEW3D_PT_overlay_edit_mesh_normals(Panel):
         row.prop(overlay, "use_normals_constant_screen_size", text="", icon='FIXED_SIZE')
 
 
-
 class VIEW3D_PT_overlay_edit_mesh_freestyle(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -7458,8 +7454,8 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
         colorch = None
         keys = {}
 
-        #maintain compatibility with old text overrides
-        textmap = {"plane_trim" : "Distance"}
+        # maintain compatibility with old text overrides
+        textmap = {"plane_trim": "Distance"}
 
         for ch in brush.channels:
             if ch.show_in_context_menu:
