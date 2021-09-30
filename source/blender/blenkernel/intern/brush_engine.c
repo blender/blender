@@ -189,7 +189,6 @@ void BKE_brush_channeltype_rna_check(BrushChannelType *def,
     // builtin channel types are never freed, don't use guardedalloc
     def->rna_enumdef = malloc(sizeof(EnumPropertyItem) * ARRAY_SIZE(def->enumdef));
   }
-
   else {
     def->rna_enumdef = MEM_calloc_arrayN(
         ARRAY_SIZE(def->enumdef), sizeof(EnumPropertyItem), "def->rna_enumdef");
@@ -205,16 +204,27 @@ void BKE_brush_channeltype_rna_check(BrushChannelType *def,
       break;
     }
 
-    def->rna_enumdef[i].value = def->enumdef[i].value;
-    def->rna_enumdef[i].identifier = def->enumdef[i].identifier;
-    def->rna_enumdef[i].icon = getIconFromName ? getIconFromName(def->enumdef[i].icon) : -1;
-    def->rna_enumdef[i].name = def->enumdef[i].name;
-    def->rna_enumdef[i].description = def->enumdef[i].description;
+    EnumPropertyItem *item = def->rna_enumdef + i;
+
+    item->value = def->enumdef[i].value;
+    item->identifier = def->enumdef[i].identifier;
+    item->icon = getIconFromName ? getIconFromName(def->enumdef[i].icon) : -1;
+    item->name = def->enumdef[i].name;
+    item->description = def->enumdef[i].description;
+
+    // detect seperaters
+    if (!item->value && !item->identifier[0] && !item->name[0] && !item->description[0]) {
+      item->description = NULL;
+      item->name = NULL;
+      item->icon = 0;
+    }
   }
 }
 
 void BKE_brush_channel_free_data(BrushChannel *ch)
 {
+  MEM_SAFE_FREE(ch->category);
+
   if (ch->curve.curve) {
     RELEASE_OR_FREE_CURVE(ch->curve.curve);
   }
@@ -317,6 +327,10 @@ void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src, bool keep
   void *next = dst->next, *prev = dst->prev;
 
   *dst = *src;
+
+  if (dst->category) {
+    dst->category = BLI_strdup(dst->category);
+  }
 
   if (src->curve.curve) {
     if (!IS_CACHE_CURVE(src->curve.curve)) {
@@ -1781,6 +1795,18 @@ void BKE_brush_tex_free(BrushTex *btex)
 {
   BKE_brush_channelset_free(btex->channels);
   MEM_freeN(btex);
+}
+
+const char *BKE_brush_channel_category_get(BrushChannel *ch)
+{
+  return ch->category ? ch->category : ch->def->category;
+}
+
+const char *BKE_brush_channel_category_set(BrushChannel *ch, const char *str)
+{
+  MEM_SAFE_FREE(ch->category);
+
+  ch->category = BLI_strdup(str);
 }
 
 /* idea for building built-in preset node graphs:

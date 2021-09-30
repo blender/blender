@@ -11,8 +11,12 @@
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
+
+#include "IMB_imbuf.h"
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
@@ -192,8 +196,23 @@ BrushChannelType brush_builtin_channels[] = {
 /* clang-format on */
 const int brush_builtin_channel_len = ARRAY_SIZE(brush_builtin_channels);
 
+static BrushChannelType *_get_def(const char *idname)
+{
+  for (int i = 0; i < brush_builtin_channel_len; i++) {
+    if (STREQ(brush_builtin_channels[i].idname, idname)) {
+      return &brush_builtin_channels[i];
+    }
+  }
+
+  return NULL;
+}
+
+#define GETDEF(idname) _get_def(MAKE_BUILTIN_CH_NAME(idname))
+#define SETCAT(idname, cat) \
+  BLI_strncpy(GETDEF(idname)->category, cat, sizeof(GETDEF(idname)->category))
+
 static bool do_builtin_init = true;
-static bool check_builtin_init()
+ATTR_NO_OPT static bool check_builtin_init()
 {
   if (!do_builtin_init || !BLI_thread_is_main()) {
     return false;
@@ -205,6 +224,40 @@ static bool check_builtin_init()
   // for (int i = 0; i < brush_builtin_channel_len; i++) {
   // BKE_brush_channeltype_rna_check(brush_builtin_channels + i);
   //}
+
+  SETCAT(strength, "Basic");
+  SETCAT(radius, "Basic");
+  SETCAT(direction, "Basic");
+  SETCAT(accumulate, "Basic");
+  SETCAT(tip_roundness, "Basic");
+  SETCAT(hardness, "Basic");
+  SETCAT(tip_scale_x, "Basic");
+  SETCAT(tip_roundness, "Basic");
+
+  SETCAT(normal_radius_factor, "Basic");
+
+  SETCAT(plane_offset, "Clay");
+  SETCAT(original_normal, "Clay");
+  SETCAT(original_plane, "Clay");
+
+  SETCAT(spacing, "Stroke");
+  SETCAT(use_space_attenuation, "Stroke");
+
+  SETCAT(autosmooth, "Smoothers");
+  SETCAT(autosmooth_projection, "Smoothers");
+  SETCAT(autosmooth_radius_scale, "Smoothers");
+  SETCAT(autosmooth_spacing, "Smoothers");
+  SETCAT(autosmooth_use_spacing, "Smoothers");
+
+  SETCAT(topology_rake, "Smoothers");
+  SETCAT(topology_rake_radius_scale, "Smoothers");
+  SETCAT(topology_rake_projection, "Smoothers");
+  SETCAT(topology_rake_use_spacing, "Smoothers");
+  SETCAT(topology_rake_spacing, "Smoothers");
+
+  SETCAT(color, "Color");
+  SETCAT(secondary_color, "Color");
+  SETCAT(blend, "Color");
 
   return true;
 }
@@ -323,6 +376,8 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(height, height, FLOAT, FLOAT)
   DEF(elastic_deform_type, elastic_deform_type, INT, INT)
   DEF(plane_offset, plane_offset, FLOAT, FLOAT)
+  DEF(plane_trim, plane_trim, FLOAT, FLOAT)
+  DEF(blend, blend, INT, INT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -791,6 +846,7 @@ void reset_clay_mappings(BrushChannelSet *chset, bool strips)
   }
   BKE_curvemapping_changed(curve, true);
 }
+
 // adds any missing channels to brushes
 void BKE_brush_builtin_patch(Brush *brush, int tool)
 {
@@ -805,6 +861,8 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   }
 
   BrushChannelSet *chset = brush->channels;
+  BrushChannel *_ch;
+
   bool set_mappings = BRUSHSET_LOOKUP(chset, radius) == NULL;
 
   ADDCH(radius);
@@ -814,6 +872,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(unprojected_radius);
 
   ADDCH(plane_offset);
+  ADDCH(plane_trim);
 
   ADDCH(use_ctrl_invert);
   ADDCH(tilt_strength_factor);
@@ -899,7 +958,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       break;
     case SCULPT_TOOL_DRAW:
       break;
-    case SCULPT_TOOL_PAINT: {
+    case SCULPT_TOOL_PAINT:
       ADDCH(color);
       ADDCH(secondary_color);
       ADDCH(wet_mix);
@@ -909,9 +968,12 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       ADDCH(tip_roundness);
       ADDCH(flow);
       ADDCH(rate);
+      ADDCH(blend);
 
       break;
-    }
+    case SCULPT_TOOL_SMEAR:
+      ADDCH(rate);
+      break;
     case SCULPT_TOOL_SLIDE_RELAX:
       ADDCH(slide_deform_type);
       break;
@@ -991,8 +1053,12 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
 
 #define SHOWHDR(idname) SETFLAG_SAFE(idname, BRUSH_CHANNEL_SHOW_IN_HEADER)
 #define SHOWWRK(idname) SETFLAG_SAFE(idname, BRUSH_CHANNEL_SHOW_IN_WORKSPACE)
+#define SHOWCTX(idname) SETFLAG_SAFE(idname, BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU)
+
 #define SHOWALL(idname) \
-  SETFLAG_SAFE(idname, BRUSH_CHANNEL_SHOW_IN_WORKSPACE | BRUSH_CHANNEL_SHOW_IN_HEADER)
+  SETFLAG_SAFE(idname, \
+               BRUSH_CHANNEL_SHOW_IN_WORKSPACE | BRUSH_CHANNEL_SHOW_IN_HEADER | \
+                   BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU)
 
   SHOWALL(radius);
   SHOWALL(strength);
@@ -1014,6 +1080,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
             SCULPT_TOOL_POSE,
             SCULPT_TOOL_ROTATE,
             SCULPT_TOOL_SCENE_PROJECT,
+            SCULPT_TOOL_SMEAR,
             SCULPT_TOOL_SLIDE_RELAX,
             SCULPT_TOOL_CLOTH,
             SCULPT_TOOL_ELASTIC_DEFORM,
@@ -1039,6 +1106,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
   if (!ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
     SHOWWRK(autosmooth);
     SHOWWRK(topology_rake);
+    SHOWCTX(autosmooth);
   }
 
   if (ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
@@ -1049,12 +1117,22 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
   }
   else if (tool == SCULPT_TOOL_VCOL_BOUNDARY) {
     SHOWWRK(vcol_boundary_exponent);
+    SHOWCTX(vcol_boundary_exponent);
   }
 
   SHOWWRK(normal_radius_factor);
   SHOWWRK(hardness);
 
   switch (tool) {
+    case SCULPT_TOOL_INFLATE:
+    case SCULPT_TOOL_BLOB:
+    case SCULPT_TOOL_DRAW:
+      SHOWCTX(autosmooth);
+      break;
+    case SCULPT_TOOL_PINCH:
+      SHOWCTX(autosmooth);
+      SHOWALL(crease_pinch_factor);
+      SHOWWRK(autosmooth);
     case SCULPT_TOOL_SMOOTH:
       SHOWWRK(surface_smooth_shape_preservation);
       SHOWWRK(surface_smooth_current_vertex);
@@ -1064,25 +1142,63 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
     case SCULPT_TOOL_SCRAPE:
     case SCULPT_TOOL_FILL:
       SHOWWRK(plane_offset);
+      SHOWWRK(plane_trim, plane_trim);
       SHOWWRK(invert_to_scrape_fill);
       SHOWWRK(area_radius_factor);
+
+      SHOWCTX(autosmooth);
+      SHOWCTX(plane_offset);
+      SHOWCTX(plane_trim);
       break;
+    case SCULPT_TOOL_GRAB:
+       SHOWCTX(normal_weight);
+       SHOWWRK(normal_weight);
+
+       break;
     case SCULPT_TOOL_CLAY_STRIPS:
+      SHOWWRK(area_radius_factor);
+      SHOWWRK(plane_offset);
+      SHOWWRK(plane_trim);
       SHOWWRK(tip_roundness);
+
+      SHOWCTX(autosmooth);
+      SHOWCTX(plane_offset);
+      SHOWCTX(plane_trim);
     case SCULPT_TOOL_CLAY:
     case SCULPT_TOOL_CLAY_THUMB:
     case SCULPT_TOOL_FLATTEN:
+      SHOWWRK(area_radius_factor);
       SHOWWRK(plane_offset);
+      SHOWWRK(plane_trim, plane_trim);
+      SHOWWRK(tip_roundness);
+
+      SHOWCTX(autosmooth);
+      SHOWCTX(plane_offset);
+      SHOWCTX(plane_trim);
       break;
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
+      SHOWCTX(autosmooth);
+      SHOWCTX(plane_offset);
+      SHOWCTX(autosmooth);
+      SHOWCTX(multiplane_scrape_angle);
+
       SHOWWRK(plane_offset);
+      SHOWWRK(plane_trim);
+      SHOWWRK(area_radius_factor);
       SHOWWRK(use_multiplane_scrape_dynamic);
       SHOWWRK(multiplane_scrape_angle);
 
       break;
+    case SCULPT_TOOL_SIMPLIFY:
+      SHOWCTX(autosmooth);
+      SHOWCTX(topology_rake);
+      break;
     case SCULPT_TOOL_LAYER:
       SHOWWRK(use_persistent);
       SHOWWRK(height);
+
+      SHOWCTX(autosmooth);
+      SHOWCTX(height);
       break;
     case SCULPT_TOOL_CLOTH:
       SHOWWRK(cloth_deform_type);
@@ -1104,15 +1220,28 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(boundary_deform_type);
       SHOWWRK(boundary_falloff_type);
       SHOWWRK(deform_target);
+      SHOWCTX(boundary_offset);
+      SHOWCTX(autosmooth);
+      SHOWCTX(boundary_deform_type);
+      SHOWCTX(boundary_falloff_type);
       break;
     case SCULPT_TOOL_CREASE:
-      SHOWWRK(crease_pinch_factor);
+      SHOWALL(crease_pinch_factor);
+      SHOWCTX(autosmooth);
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
+
+      SHOWCTX(autosmooth);
+
       SHOWWRK(crease_pinch_factor);
       SHOWWRK(rake_factor);
       SHOWWRK(snake_hook_deform_type);
       SHOWWRK(elastic_deform_type);
+      SHOWWRK(normal_weight);
+
+      SHOWCTX(crease_pinch_factor);
+      SHOWCTX(normal_weight);
+      SHOWCTX(rake_factor);
       break;
     case SCULPT_TOOL_PAINT:
       SHOWWRK(color);
@@ -1126,7 +1255,10 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(tip_roundness);
       SHOWWRK(flow);
       SHOWWRK(rate);
+      SHOWALL(blend);
 
+      SHOWCTX(color);
+      SHOWCTX(blend);
       break;
     case SCULPT_TOOL_POSE:
       SHOWWRK(pose_ik_segments);
@@ -1467,6 +1599,9 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH(concave_mask_factor);
   ADDCH(automasking);
   ADDCH(topology_rake_mode);
+
+  ADDCH(plane_offset);
+  ADDCH(plane_trim);
 
   ADDCH(autosmooth);
   ADDCH(autosmooth_projection);

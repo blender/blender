@@ -126,16 +126,29 @@ class UnifiedPaintPanel:
         return None
 
     @staticmethod
-    def get_channel(context, brush, prop_name, toolsettings_only=False):
-        ch = brush.channels[prop_name]
+    def get_channel(context, brush, prop_name, toolsettings_only=False, need_path=False):        
+        ch = brush.channels[prop_name] if prop_name in brush.channels else None
 
-        if ch.inherit or toolsettings_only:
+        path = None
+
+        if ch:
+            path = "sculpt.brush.channels[\"%s\"]" % prop_name
+
+        if not ch or ch.inherit or toolsettings_only:
             sd = context.tool_settings.sculpt
-            #ensure channel exists in tool settings channel set
-            sd.channels.ensure(ch)
-            ch = sd.channels[prop_name]
 
-        return ch
+            if ch:
+                #ensure channel exists in tool settings channel set
+                sd.channels.ensure(ch)
+
+            ch = sd.channels[prop_name] if prop_name in sd.channels else None
+            if ch:
+                path = "sculpt.channels[\"%s\"]" % prop_name
+
+        if need_path:
+            return (ch, path)
+        else:
+            return ch
 
     @staticmethod
     def get_channel_value(context, brush, prop_name, toolsettings_only=False):
@@ -163,10 +176,15 @@ class UnifiedPaintPanel:
             return ch.curve
 
     @staticmethod
-    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None,
-                        slider=False, header=False, show_reorder=False, expand=None, toolsettings_only=False, ui_editing=True):
+    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=None, text=None,
+                        slider=False, header=False, show_reorder=False, expand=None, toolsettings_only=False, ui_editing=None):
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle"""
+
+
+        if ui_editing is None:
+            ui_editing = True
+        ui_editing = ui_editing and not header
 
         if context.mode != "SCULPT":
             return UnifiedPaintPanel.prop_unified(layout, context, brush, prop_name, icon=icon, text=text, slider=slider, header=header, expand=expand)
@@ -220,6 +238,9 @@ class UnifiedPaintPanel:
         elif ch.type == "VEC4":
             typeprop = "color4_value"
 
+        if pressure == None:
+            pressure = ch.type not in ["VEC3", "VEC4", "BITMASK", "ENUM", "BOOL"]
+
         if text is None:
             text = ch.name
 
@@ -262,6 +283,7 @@ class UnifiedPaintPanel:
         
         if ui_editing and not header:
             row.prop(ch, "show_in_workspace", text="", icon="HIDE_OFF")
+            row.prop(ch, "show_in_context_menu", text="", icon="MENU_PANEL")
             #row.prop(ch, "ui_order", text="")
 
         if ch.type == "CURVE":
@@ -319,6 +341,8 @@ class UnifiedPaintPanel:
         if pressure:
             row.prop(pressurech.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
 
+        #if ch.is_color:
+        #    UnifiedPaintPanel.prop_unified_color_picker(row, context, brush, prop_name)
 
         #if pressure_name:
         #    row.prop(brush, pressure_name, text="")
@@ -441,6 +465,15 @@ class UnifiedPaintPanel:
     def prop_unified_color_picker(parent, context, brush, prop_name, value_slider=True):
         ups = context.tool_settings.unified_paint_settings
         prop_owner = ups if ups.use_unified_color else brush
+
+        if context.mode == "SCULPT":
+            ch, path = UnifiedPaintPanel.get_channel(context, brush, prop_name, need_path=True)
+
+            if ch is not None:
+                print("FOUND CH", ch.idname)
+                prop_owner = ch
+                prop_name = "color3_value"
+            
         parent.template_color_picker(prop_owner, prop_name, value_slider=value_slider)
 
 

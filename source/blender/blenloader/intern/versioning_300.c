@@ -1342,6 +1342,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 27)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->channels) {
+        BKE_brush_channelset_ui_init(brush, brush->sculpt_tool);
+      }
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *

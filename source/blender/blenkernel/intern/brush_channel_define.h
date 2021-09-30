@@ -115,6 +115,85 @@ places in rna_engine_codebase are relevent:
 /* clang-format off */
   MAKE_FLOAT_EX(radius, "Radius", "Radius of the brush in pixels", 50.0f, 0.5f, MAX_BRUSH_PIXEL_RADIUS*10, 0.5, MAX_BRUSH_PIXEL_RADIUS, false)
   MAKE_FLOAT_EX(strength, "Strength", "How powerful the effect of the brush is when applied", 0.5f, 0.0f, 10.0f, 0.0f, 1.0f, true)
+
+  MAKE_ENUM(blend, "Blending Mode", "Brush blending mode", IMB_BLEND_MIX, {\
+  {IMB_BLEND_MIX, "MIX", "NONE", "Mix", "Use Mix blending mode while painting"},
+  {0, "", "NONE", "", ""},
+  {IMB_BLEND_DARKEN, "DARKEN", "NONE", "Darken", "Use Darken blending mode while painting"},
+  {IMB_BLEND_MUL, "MUL", "NONE", "Multiply", "Use Multiply blending mode while painting"},
+  {IMB_BLEND_COLORBURN,
+    "COLORBURN",
+    "NONE",
+    "Color Burn",
+    "Use Color Burn blending mode while painting"},
+  {IMB_BLEND_LINEARBURN,
+    "LINEARBURN",
+    "NONE",
+    "Linear Burn",
+    "Use Linear Burn blending mode while painting"},
+  {0, "", "NONE", "", ""},
+  {IMB_BLEND_LIGHTEN, "LIGHTEN", "NONE", "Lighten", "Use Lighten blending mode while painting"},
+  {IMB_BLEND_SCREEN, "SCREEN", "NONE", "Screen", "Use Screen blending mode while painting"},
+  {IMB_BLEND_COLORDODGE,
+    "COLORDODGE",
+    "NONE",
+    "Color Dodge",
+    "Use Color Dodge blending mode while painting"},
+  {IMB_BLEND_ADD, "ADD", "NONE", "Add", "Use Add blending mode while painting"},
+  {0, "", "NONE", "", ""},
+  {IMB_BLEND_OVERLAY, "OVERLAY", "NONE", "Overlay", "Use Overlay blending mode while painting"},
+  {IMB_BLEND_SOFTLIGHT,
+    "SOFTLIGHT",
+    "NONE",
+    "Soft Light",
+    "Use Soft Light blending mode while painting"},
+  {IMB_BLEND_HARDLIGHT,
+    "HARDLIGHT",
+    "NONE",
+    "Hard Light",
+    "Use Hard Light blending mode while painting"},
+  {IMB_BLEND_VIVIDLIGHT,
+    "VIVIDLIGHT",
+    "NONE",
+    "Vivid Light",
+    "Use Vivid Light blending mode while painting"},
+  {IMB_BLEND_LINEARLIGHT,
+    "LINEARLIGHT",
+    "NONE",
+    "Linear Light",
+    "Use Linear Light blending mode while painting"},
+  {IMB_BLEND_PINLIGHT,
+    "PINLIGHT",
+    "NONE",
+    "Pin Light",
+    "Use Pin Light blending mode while painting"},
+  {0, "", "NONE", "", ""},
+  {IMB_BLEND_DIFFERENCE,
+    "DIFFERENCE",
+    "NONE",
+    "Difference",
+    "Use Difference blending mode while painting"},
+  {IMB_BLEND_EXCLUSION,
+    "EXCLUSION",
+    "NONE",
+    "Exclusion",
+    "Use Exclusion blending mode while painting"},
+  {IMB_BLEND_SUB, "SUB", 0, "Subtract", "Use Subtract blending mode while painting"},
+  {0, "", "NONE", "", ""},
+  {IMB_BLEND_HUE, "HUE", "NONE", "Hue", "Use Hue blending mode while painting"},
+  {IMB_BLEND_SATURATION,
+    "SATURATION",
+    "NONE",
+    "Saturation",
+    "Use Saturation blending mode while painting"},
+  {IMB_BLEND_COLOR, "COLOR", "NONE", "Color", "Use Color blending mode while painting"},
+  {IMB_BLEND_LUMINOSITY, "LUMINOSITY", "NONE", "Value", "Use Value blending mode while painting"},
+  {0, "", ICON_NONE, "", ""},
+  {IMB_BLEND_ERASE_ALPHA, "ERASE_ALPHA", "NONE", "Erase Alpha", "Erase alpha while painting"},
+  {IMB_BLEND_ADD_ALPHA, "ADD_ALPHA", "NONE", "Add Alpha", "Add alpha while painting"},
+  {-1}
+})
+
   MAKE_FLOAT_EX(spacing, "Spacing", "", 10.0f, 0.25f, 1000.0f, 1.0f, 500.0f, false)
   MAKE_FLOAT_EX(topology_rake, "Topology Rake", "Automatically align edges to the brush direction to "
                            "generate cleaner topology and define sharp features. "
@@ -193,6 +272,7 @@ MAKE_FLOAT(density, "Density", "Amount of random elements that are going to be a
 MAKE_FLOAT(tip_scale_x, "Tip Scale X", "Scale of the brush tip in the X axis", 1.0f, 0.0f, 1.0f)
 MAKE_FLOAT(dash_ratio, "Dash Ratio", "Ratio of samples in a cycle that the brush is enabled", 1.0f, 0.0f, 1.0f)
 MAKE_FLOAT_EX(plane_offset, "Plane Offset", "Adjust plane on which the brush acts towards or away from the object surface", 0.0f, -2.0f, 2.0f, -0.5f, 0.5f, false)
+MAKE_FLOAT(plane_trim, "Plane Trim", "If a vertex is further away from offset plane than this, then it is not affected", 0.5f, 0.0f, 1.0f)
 MAKE_BOOL(original_normal, "Original Normal", "When locked keep using normal of surface where stroke was initiated", false)
 MAKE_BOOL(original_plane, "Original Plane", "When locked keep using the plane origin of surface where stroke was initiated", false)
 MAKE_BOOL(use_weighted_smooth, "Weight By Area", "Weight by face area to get a smoother result", true)
@@ -397,7 +477,7 @@ MAKE_ENUM(pose_origin_type, "Rotation Origins",
   {-1}
 })
 
-MAKE_FLOAT(crease_pinch_factor, "Crease Brush Pinch Factor", "How much the crease brush pinches", 0.5f, 0.0f, 1.0f)
+MAKE_FLOAT(crease_pinch_factor, "Pinch", "How much the crease brush pinches", 0.5f, 0.0f, 1.0f)
 
 MAKE_ENUM(snake_hook_deform_type, "Deformation", "Deformation type that is used in the brush", BRUSH_SNAKE_HOOK_DEFORM_FALLOFF, {\
   {BRUSH_SNAKE_HOOK_DEFORM_FALLOFF,

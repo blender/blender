@@ -10378,7 +10378,8 @@ static void sculpt_update_cache_invariants(
   cache->scale[1] = max_scale / ob->scale[1];
   cache->scale[2] = max_scale / ob->scale[2];
 
-  cache->plane_trim_squared = brush->plane_trim * brush->plane_trim;
+  float plane_trim = BRUSHSET_GET_FINAL_FLOAT(sd->channels, brush->channels, plane_trim, NULL);
+  cache->plane_trim_squared = plane_trim * plane_trim;
 
   cache->flag = 0;
 

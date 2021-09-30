@@ -442,6 +442,21 @@ int rna_BrushChannelSet_length(PointerRNA *ptr)
   return chset->totchannel;
 }
 
+void rna_BrushChannel_category_get(PointerRNA *ptr, char *value)
+{
+  strcpy(value, BKE_brush_channel_category_get((BrushChannel *)ptr->data));
+}
+
+int rna_BrushChannel_category_length(PointerRNA *ptr)
+{
+  return strlen(BKE_brush_channel_category_get((BrushChannel *)ptr->data));
+}
+
+void rna_BrushChannel_category_set(PointerRNA *ptr, const char *value)
+{
+  BKE_brush_channel_category_set((BrushChannel *)ptr->data, value);
+}
+
 #endif
 
 static EnumPropertyItem mapping_type_items[] = {
@@ -567,6 +582,14 @@ void RNA_def_brush_channel(BlenderRNA *brna)
 
   RNA_def_struct_name_property(srna, prop);
 
+  prop = RNA_def_property(srna, "category", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop,
+                                "rna_BrushChannel_category_get",
+                                "rna_BrushChannel_category_length",
+                                "rna_BrushChannel_category_set");
+
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, "BrushChannel", "name");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
@@ -640,6 +663,11 @@ void RNA_def_brush_channel(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_in_workspace", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_SHOW_IN_WORKSPACE);
+  RNA_def_property_ui_text(prop, "In Workspace", "Show in workspace");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+
+  prop = RNA_def_property(srna, "show_in_context_menu", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, "BrushChannel", "flag", BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU);
   RNA_def_property_ui_text(prop, "In Workspace", "Show in workspace");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 

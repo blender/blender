@@ -50,6 +50,7 @@ typedef struct BrushChannel {
 
   char idname[64];
   char name[64];
+  char *category;  // if NULL, def->category will be used
 
   struct BrushChannelType *def;
 
@@ -105,7 +106,8 @@ enum {
   BRUSH_CHANNEL_APPLY_MAPPING_TO_ALPHA = 1 << 4,
   BRUSH_CHANNEL_COLOR = 1 << 5,
   BRUSH_CHANNEL_SHOW_IN_WORKSPACE = 1 << 6,
-  BRUSH_CHANNEL_SHOW_IN_HEADER = 1 << 7
+  BRUSH_CHANNEL_SHOW_IN_HEADER = 1 << 7,
+  BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU = 1 << 8,
 };
 
 // BrushChannelType->type

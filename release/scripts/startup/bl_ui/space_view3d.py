@@ -7454,6 +7454,49 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
         brush = context.tool_settings.sculpt.brush
         capabilities = brush.sculpt_capabilities
 
+        channels = []
+        colorch = None
+        keys = {}
+
+        #maintain compatibility with old text overrides
+        textmap = {"plane_trim" : "Distance"}
+
+        for ch in brush.channels:
+            if ch.show_in_context_menu:
+                if ch.idname == "color":
+                    colorch = ch
+                else:
+                    key = ch.ui_order
+
+                    if ch.idname == "blend":
+                        key = -2
+                    elif ch.idname == "secondary_color":
+                        key = -1
+
+                    keys[ch.idname] = key
+                    channels.append(ch)
+
+        channels.sort(key=lambda ch: keys[ch.idname])
+
+        """
+    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=None, text=None,
+                        slider=False, header=False, show_reorder=False, expand=None, toolsettings_only=False, ui_editing=None):
+
+        """
+        if colorch:
+            split = layout.split(factor=0.1)
+            UnifiedPaintPanel.prop_unified_color(split, context, brush, "color", text="")
+            UnifiedPaintPanel.prop_unified_color_picker(split, context, brush, "color", value_slider=True)
+
+        for ch in channels:
+            if ch.idname in textmap:
+                UnifiedPaintPanel.channel_unified(layout, context, brush, ch.idname, ui_editing=False, slider=True, text=textmap[ch.idname])
+            else:
+                UnifiedPaintPanel.channel_unified(layout, context, brush, ch.idname, ui_editing=False, slider=True)
+
+        return
+        layout.label(text="-----")
+
         if capabilities.has_color:
             split = layout.split(factor=0.1)
             UnifiedPaintPanel.prop_unified_color(split, context, brush, "color", text="")
@@ -7480,26 +7523,71 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
         )
 
         if capabilities.has_auto_smooth:
-            layout.prop(brush, "auto_smooth_factor", slider=True)
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "auto_smooth_factor",
+                slider=True,
+            )
 
         if capabilities.has_normal_weight:
-            layout.prop(brush, "normal_weight", slider=True)
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "normal_weight",
+                slider=True,
+            )
 
         if capabilities.has_pinch_factor:
             text = "Pinch"
             if brush.sculpt_tool in {'BLOB', 'SNAKE_HOOK'}:
                 text = "Magnify"
-            layout.prop(brush, "crease_pinch_factor", slider=True, text=text)
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "crease_pinch_factor",
+                text=text,
+                slider=True,
+            )
 
         if capabilities.has_rake_factor:
-            layout.prop(brush, "rake_factor", slider=True)
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "rake_factor",
+                slider=True,
+            )
 
         if capabilities.has_plane_offset:
-            layout.prop(brush, "plane_offset", slider=True)
-            layout.prop(brush, "plane_trim", slider=True, text="Distance")
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "plane_offset",
+                slider=True,
+            )
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "plane_trim",
+                slider=True,
+                text="Distance"
+            )
 
         if capabilities.has_height:
-            layout.prop(brush, "height", slider=True, text="Height")
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "height",
+                slider=True,
+                text="Height"
+            )
 
 
 class TOPBAR_PT_gpencil_materials(GreasePencilMaterialsPanel, Panel):
