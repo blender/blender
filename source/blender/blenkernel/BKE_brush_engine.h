@@ -301,6 +301,8 @@ int BKE_brush_channelset_get_vector(BrushChannelSet *chset,
                                     float r_vec[4],
                                     BrushMappingData *mapdata);
 bool BKE_brush_channelset_set_vector(BrushChannelSet *chset, const char *idname, float vec[4]);
+extern void BKE_brush_channelset_to_unified_settings(BrushChannelSet *chset,
+                                                     struct UnifiedPaintSettings *ups);
 
 void BKE_brush_init_toolsettings(struct Sculpt *sd);
 void BKE_brush_builtin_create(struct Brush *brush, int tool);
@@ -310,6 +312,7 @@ BrushCommand *BKE_brush_commandlist_add(BrushCommandList *cl,
                                         BrushChannelSet *chset_template,
                                         bool auto_inherit);
 BrushCommand *BKE_brush_command_init(BrushCommand *command, int tool);
+
 void BKE_builtin_commandlist_create(struct Brush *brush,
                                     BrushChannelSet *chset,
                                     BrushCommandList *cl,

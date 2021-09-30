@@ -2940,15 +2940,18 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
   SculptUndoType type = (data->brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
                                                                         SCULPT_UNDO_COORDS);
 
+  SculptUndoNode tmp = {0};
   if (ss->bm) {
-    unode = SCULPT_undo_push_node(data->ob, data->nodes[n], type);
+    unode = &tmp;
+    tmp.type = type;
+    // unode = SCULPT_undo_push_node(data->ob, data->nodes[n], type);
   }
   else {
     unode = SCULPT_undo_get_node(data->nodes[n], type);
-  }
 
-  if (!unode) {
-    return;
+    if (!unode) {
+      return;
+    }
   }
 
   PBVHVertexIter vd;
@@ -8675,6 +8678,8 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
       break;
   }
 
+  ok = ok && !(brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT));
+
   if (ok) {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
       if (ss->cache->commandlist) {
@@ -8750,7 +8755,7 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
     if (brush->sculpt_tool == SCULPT_TOOL_DRAW && brush->flag & BRUSH_ORIGINAL_NORMAL) {
       radius_scale = MAX2(radius_scale, 2.0f);
     }
-    nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
+    nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale * 1.2, &totnode);
   }
 
   /* Draw Face Sets in draw mode makes a single undo push, in alt-smooth mode deforms the
@@ -8772,6 +8777,19 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
     else {
       /* By default create a new Face Sets. */
       ss->cache->paint_face_set = SCULPT_face_set_next_available_get(ss);
+    }
+  }
+
+  /*
+   * Check that original data is for anchored and drag dot modes
+   */
+  if (brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT)) {
+    for (int i = 0; i < totnode; i++) {
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        SCULPT_vertex_check_origdata(ss, vd.vertex);
+      }
+      BKE_pbvh_vertex_iter_end;
     }
   }
 
@@ -11403,10 +11421,12 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
        BKE_brush_use_size_pressure(brush)) ||
       (brush->flag & BRUSH_DRAG_DOT)) {
 
-    SculptUndoNode *unode = SCULPT_undo_get_first_node();
-    if (unode && unode->type == SCULPT_UNDO_FACE_SETS) {
-      for (int i = 0; i < ss->totfaces; i++) {
-        ss->face_sets[i] = unode->face_sets[i];
+    if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+      SculptUndoNode *unode = SCULPT_undo_get_first_node();
+      if (unode && unode->type == SCULPT_UNDO_FACE_SETS) {
+        for (int i = 0; i < ss->totfaces; i++) {
+          ss->face_sets[i] = unode->face_sets[i];
+        }
       }
     }
 
@@ -11613,14 +11633,14 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
     SculptSession *ss = ob->sculpt;
     Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
-    ED_view3d_init_mats_rv3d(ob, CTX_wm_region_view3d(C));
-
     // increment stroke_id to flag origdata update
     ss->stroke_id++;
 
     if (ss->pbvh) {
       BKE_pbvh_set_stroke_id(ss->pbvh, ss->stroke_id);
     }
+
+    ED_view3d_init_mats_rv3d(ob, CTX_wm_region_view3d(C));
 
     sculpt_update_cache_invariants(C, sd, ss, op, mouse);
 
@@ -11648,8 +11668,6 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  extern void BKE_brush_channelset_to_unified_settings(BrushChannelSet * chset,
-                                                       UnifiedPaintSettings * ups);
   if (ss->cache->channels_final) {
     BKE_brush_channelset_free(ss->cache->channels_final);
   }
@@ -11693,7 +11711,10 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
 
   // load settings into brush and unified paint settings
   BKE_brush_channelset_compat_load(ss->cache->channels_final, brush, false);
-  BKE_brush_channelset_to_unified_settings(ss->cache->channels_final, ups);
+
+  if (!(brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT))) {
+    BKE_brush_channelset_to_unified_settings(ss->cache->channels_final, ups);
+  }
 
   ss->cache->bstrength = brush_strength(sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
 
