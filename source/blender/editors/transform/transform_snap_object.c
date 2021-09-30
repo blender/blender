@@ -724,7 +724,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
   }
 
   /* Test BoundBox */
-  BoundBox *bb = BKE_mesh_boundbox_get(ob_eval);
+  BoundBox *bb = BKE_object_boundbox_get(ob_eval);
   if (bb) {
     /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
     if (!isect_ray_aabb_v3_simple(
