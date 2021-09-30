@@ -57,6 +57,11 @@ class TestableAssetCatalogService : public AssetCatalogService {
   {
     return catalog_definition_file_.get();
   }
+
+  void create_missing_catalogs()
+  {
+    AssetCatalogService::create_missing_catalogs();
+  }
 };
 
 class AssetCatalogTest : public testing::Test {
@@ -844,6 +849,44 @@ TEST_F(AssetCatalogTest, order_by_path)
     FAIL() << "Did not expect more items in the set, had at least " << next_cat->catalog_id << ":"
            << next_cat->path;
   }
+}
+
+TEST_F(AssetCatalogTest, create_missing_catalogs)
+{
+  TestableAssetCatalogService new_service;
+  new_service.create_catalog("path/with/missing/parents");
+
+  EXPECT_EQ(nullptr, new_service.find_catalog_by_path("path/with/missing"))
+      << "Missing parents should not be immediately created.";
+  EXPECT_EQ(nullptr, new_service.find_catalog_by_path("")) << "Empty path should never be valid";
+
+  new_service.create_missing_catalogs();
+
+  EXPECT_NE(nullptr, new_service.find_catalog_by_path("path/with/missing"));
+  EXPECT_NE(nullptr, new_service.find_catalog_by_path("path/with"));
+  EXPECT_NE(nullptr, new_service.find_catalog_by_path("path"));
+  EXPECT_EQ(nullptr, new_service.find_catalog_by_path(""))
+      << "Empty path should never be valid, even when after missing catalogs";
+}
+
+TEST_F(AssetCatalogTest, create_missing_catalogs_after_loading)
+{
+  TestableAssetCatalogService loaded_service(asset_library_root_);
+  loaded_service.load_from_disk();
+
+  const AssetCatalog *cat_char = loaded_service.find_catalog_by_path("character");
+  const AssetCatalog *cat_ellie = loaded_service.find_catalog_by_path("character/Ellie");
+  const AssetCatalog *cat_ruzena = loaded_service.find_catalog_by_path("character/Ružena");
+  ASSERT_NE(nullptr, cat_char) << "Missing parents should be created immediately after loading.";
+  ASSERT_NE(nullptr, cat_ellie) << "Missing parents should be created immediately after loading.";
+  ASSERT_NE(nullptr, cat_ruzena) << "Missing parents should be created immediately after loading.";
+
+  AssetCatalogDefinitionFile *cdf = loaded_service.get_catalog_definition_file();
+  ASSERT_NE(nullptr, cdf);
+  EXPECT_TRUE(cdf->contains(cat_char->catalog_id)) << "Missing parents should be saved to a CDF.";
+  EXPECT_TRUE(cdf->contains(cat_ellie->catalog_id)) << "Missing parents should be saved to a CDF.";
+  EXPECT_TRUE(cdf->contains(cat_ruzena->catalog_id))
+      << "Missing parents should be saved to a CDF.";
 }
 
 }  // namespace blender::bke::tests

@@ -188,7 +188,7 @@ void AssetCatalogService::load_from_disk(const CatalogFilePath &file_or_director
 
   /* TODO: Should there be a sanitize step? E.g. to remove catalogs with identical paths? */
 
-  catalog_tree_ = read_into_tree();
+  rebuild_tree();
 }
 
 void AssetCatalogService::load_directory_recursive(const CatalogFilePath &directory_path)
@@ -356,7 +356,46 @@ std::unique_ptr<AssetCatalogTree> AssetCatalogService::read_into_tree()
 
 void AssetCatalogService::rebuild_tree()
 {
+  create_missing_catalogs();
   this->catalog_tree_ = read_into_tree();
+}
+
+void AssetCatalogService::create_missing_catalogs()
+{
+  /* Construct an ordered set of paths to check, so that parents are ordered before children. */
+  std::set<AssetCatalogPath> paths_to_check;
+  for (auto &catalog : catalogs_.values()) {
+    paths_to_check.insert(catalog->path);
+  }
+
+  std::set<AssetCatalogPath> seen_paths;
+  /* The empty parent should never be created, so always be considered "seen". */
+  seen_paths.insert(AssetCatalogPath(""));
+
+  /* Find and create missing direct parents (so ignoring parents-of-parents). */
+  while (!paths_to_check.empty()) {
+    /* Pop the first path of the queue. */
+    const AssetCatalogPath path = *paths_to_check.begin();
+    paths_to_check.erase(paths_to_check.begin());
+
+    if (seen_paths.find(path) != seen_paths.end()) {
+      /* This path has been seen already, so it can be ignored. */
+      continue;
+    }
+    seen_paths.insert(path);
+
+    const AssetCatalogPath parent_path = path.parent();
+    if (seen_paths.find(parent_path) != seen_paths.end()) {
+      /* The parent exists, continue to the next path. */
+      continue;
+    }
+
+    /* The parent doesn't exist, so create it and queue it up for checking its parent. */
+    create_catalog(parent_path);
+    paths_to_check.insert(parent_path);
+  }
+
+  /* TODO(Sybren): bind the newly created catalogs to a CDF, if we know about it. */
 }
 
 /* ---------------------------------------------------------------------- */

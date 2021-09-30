@@ -231,4 +231,21 @@ TEST(AssetCatalogPathTest, rebase)
   EXPECT_EQ(empty.rebase("", ""), "");
 }
 
+TEST(AssetCatalogPathTest, parent)
+{
+  const AssetCatalogPath ascii_path("path/with/missing/parents");
+  EXPECT_EQ(ascii_path.parent(), "path/with/missing");
+
+  const AssetCatalogPath path("путь/в/Пермь/долог/и/далек");
+  EXPECT_EQ(path.parent(), "путь/в/Пермь/долог/и");
+  EXPECT_EQ(path.parent().parent(), "путь/в/Пермь/долог");
+  EXPECT_EQ(path.parent().parent().parent(), "путь/в/Пермь");
+
+  const AssetCatalogPath one_level("one");
+  EXPECT_EQ(one_level.parent(), "");
+
+  const AssetCatalogPath empty("");
+  EXPECT_EQ(empty.parent(), "");
+}
+
 }  // namespace blender::bke::tests

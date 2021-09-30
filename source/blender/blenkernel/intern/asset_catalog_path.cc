@@ -172,6 +172,18 @@ bool AssetCatalogPath::is_contained_in(const AssetCatalogPath &other_path) const
   return prefix_ok && next_char == SEPARATOR;
 }
 
+AssetCatalogPath AssetCatalogPath::parent() const
+{
+  if (!*this) {
+    return AssetCatalogPath("");
+  }
+  std::string::size_type last_sep_index = this->path_.rfind(SEPARATOR);
+  if (last_sep_index == std::string::npos) {
+    return AssetCatalogPath("");
+  }
+  return AssetCatalogPath(this->path_.substr(0, last_sep_index));
+}
+
 void AssetCatalogPath::iterate_components(ComponentIteratorFn callback) const
 {
   const char *next_slash_ptr;

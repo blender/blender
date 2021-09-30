@@ -112,6 +112,11 @@ class AssetCatalogPath {
   bool is_contained_in(const AssetCatalogPath &other_path) const;
 
   /**
+   * \return the parent path, or an empty path if there is no parent.
+   */
+  AssetCatalogPath parent() const;
+
+  /**
    * Change the initial part of the path from `from_path` to `to_path`.
    * If this path does not start with `from_path`, return an empty path as result.
    *

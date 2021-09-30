@@ -150,6 +150,11 @@ class AssetCatalogService {
 
   std::unique_ptr<AssetCatalogTree> read_into_tree();
   void rebuild_tree();
+
+  /**
+   * For every catalog, ensure that its parent path also has a known catalog.
+   */
+  void create_missing_catalogs();
 };
 
 /**
