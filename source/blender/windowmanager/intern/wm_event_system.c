@@ -3025,7 +3025,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
             /* Other drop custom types allowed. */
             if (event->custom == EVT_DATA_DRAGDROP) {
               ListBase *lb = (ListBase *)event->customdata;
-              LISTBASE_FOREACH (wmDrag *, drag, lb) {
+              LISTBASE_FOREACH_MUTABLE (wmDrag *, drag, lb) {
                 if (drop->poll(C, drag, event)) {
                   /* Optionally copy drag information to operator properties. Don't call it if the
                    * operator fails anyway, it might do more than just set properties (e.g.
@@ -3036,7 +3036,8 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 
                   /* Pass single matched wmDrag onto the operator. */
                   BLI_remlink(lb, drag);
-                  ListBase single_lb = {drag, drag};
+                  ListBase single_lb = {0};
+                  BLI_addtail(&single_lb, drag);
                   event->customdata = &single_lb;
 
                   int op_retval = wm_operator_call_internal(
