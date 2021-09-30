@@ -50,7 +50,7 @@ static void geo_node_mesh_to_points_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeGeometryMeshToPoints *data = (NodeGeometryMeshToPoints *)MEM_callocN(
       sizeof(NodeGeometryMeshToPoints), __func__);
-  data->mode = GEO_NODE_MESH_TO_POINTS_FACES;
+  data->mode = GEO_NODE_MESH_TO_POINTS_VERTICES;
   node->storage = data;
 }
 
