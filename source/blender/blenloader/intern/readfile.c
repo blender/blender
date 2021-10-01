@@ -4506,7 +4506,10 @@ static void add_loose_objects_to_scene(Main *mainvar,
   /* Give all objects which are LIB_TAG_INDIRECT a base,
    * or for a collection when *lib has been set. */
   LISTBASE_FOREACH (Object *, ob, &mainvar->objects) {
-    bool do_it = (ob->id.tag & LIB_TAG_DOIT) != 0;
+    /* NOTE: Even if this is a directly linked object and is tagged for instantiation, it might
+     * have already been instantiated through one of its owner collections, in which case we do not
+     * want to re-instantiate it in the active collection here. */
+    bool do_it = (ob->id.tag & LIB_TAG_DOIT) != 0 && !BKE_scene_object_find(scene, ob);
     if (do_it ||
         ((ob->id.tag & LIB_TAG_INDIRECT) != 0 && (ob->id.tag & LIB_TAG_PRE_EXISTING) == 0)) {
       if (do_append) {
