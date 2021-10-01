@@ -445,7 +445,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__with_existing_cdf)
   const AssetCatalog *cat = service.create_catalog("some/catalog/path");
 
   const CatalogFilePath blendfilename = top_level_dir + "subdir/some_file.blend";
-  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename.c_str()));
+  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename));
   EXPECT_EQ(cdf_filename, service.get_catalog_definition_file()->file_path);
 
   /* Test that the CDF was created in the expected location. */
@@ -472,7 +472,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_empty_directory)
   const AssetCatalog *cat = service.create_catalog("some/catalog/path");
 
   const CatalogFilePath blendfilename = target_dir + "some_file.blend";
-  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename.c_str()));
+  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename));
 
   /* Test that the CDF was created in the expected location. */
   const CatalogFilePath expected_cdf_path = target_dir +
@@ -505,7 +505,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_cdf_and_me
 
   /* Mock that the blend file is written to a subdirectory of the asset library. */
   const CatalogFilePath blendfilename = target_dir + "some_file.blend";
-  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename.c_str()));
+  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename));
 
   /* Test that the CDF still exists in the expected location. */
   const CatalogFilePath backup_filename = writable_cdf_file + "~";
@@ -550,7 +550,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_asset_lib)
   const AssetCatalog *cat = service.create_catalog("some/catalog/path");
 
   /* Mock that the blend file is written to the directory already containing a CDF. */
-  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename.c_str()));
+  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename));
 
   /* Test that the CDF still exists in the expected location. */
   EXPECT_TRUE(BLI_exists(writable_cdf_file.c_str()));
