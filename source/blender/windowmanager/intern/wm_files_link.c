@@ -597,6 +597,11 @@ static int foreach_libblock_append_callback(LibraryIDLinkCallbackData *cb_data)
   }
 
   if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
+    /* While we do not want to add non-linkable ID (shape keys...) to the list of linked items,
+     * unfortunately they can use fully linkable valid IDs too, like actions. Those need to be
+     * processed, so we need to recursively deal with them here. */
+    BKE_library_foreach_ID_link(
+        cb_data->bmain, id, foreach_libblock_append_callback, data, IDWALK_NOP);
     return IDWALK_RET_NOP;
   }
 
