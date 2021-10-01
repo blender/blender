@@ -376,6 +376,7 @@ static void move_vertex_group_names_to_object_data(Main *bmain)
         /* Clear the list in case the it was already assigned from another object. */
         BLI_freelistN(new_defbase);
         *new_defbase = object->defbase;
+        BKE_object_defgroup_active_index_set(object, object->actdef);
       }
     }
   }
@@ -628,6 +629,16 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
+
+    /* This was missing from #move_vertex_group_names_to_object_data. */
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
+        /* This uses the fact that the active vertex group index starts counting at 1. */
+        if (BKE_object_defgroup_active_index_get(object) == 0) {
+          BKE_object_defgroup_active_index_set(object, object->actdef);
+        }
+      }
+    }
   }
 }
 
