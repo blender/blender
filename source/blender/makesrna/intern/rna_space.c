@@ -39,6 +39,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_uuid.h"
 
 #include "DNA_action_types.h"
 #include "DNA_gpencil_types.h"
@@ -3177,6 +3178,17 @@ static void rna_SpaceSpreadsheet_context_path_guess(SpaceSpreadsheet *sspreadshe
   ED_spreadsheet_context_path_guess(C, sspreadsheet);
   ED_spreadsheet_context_path_update_tag(sspreadsheet);
   WM_main_add_notifier(NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
+}
+
+static void rna_FileAssetSelectParams_catalog_id_get(PointerRNA *ptr, char *value)
+{
+  const FileAssetSelectParams *params = ptr->data;
+  BLI_uuid_format(value, params->catalog_id);
+}
+
+static int rna_FileAssetSelectParams_catalog_id_length(PointerRNA *UNUSED(ptr))
+{
+  return UUID_STRING_LEN - 1;
 }
 
 #else
@@ -6610,6 +6622,14 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
                                                 "rna_FileAssetSelectParams_asset_library_set");
   RNA_def_property_ui_text(prop, "Asset Library", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+
+  prop = RNA_def_property(srna, "catalog_id", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop,
+                                "rna_FileAssetSelectParams_catalog_id_get",
+                                "rna_FileAssetSelectParams_catalog_id_length",
+                                NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Catalog UUID", "The UUID of the catalog shown in the browser");
 
   prop = RNA_def_property(srna, "import_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, asset_import_type_items);
