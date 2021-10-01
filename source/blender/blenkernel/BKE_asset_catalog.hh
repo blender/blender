@@ -94,7 +94,7 @@ class AssetCatalogService {
   void merge_from_disk_before_writing();
 
   /** Return catalog with the given ID. Return nullptr if not found. */
-  AssetCatalog *find_catalog(CatalogID catalog_id);
+  AssetCatalog *find_catalog(CatalogID catalog_id) const;
 
   /** Return first catalog with the given path. Return nullptr if not found. This is not an
    * efficient call as it's just a linear search over the catalogs. */

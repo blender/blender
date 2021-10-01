@@ -65,9 +65,9 @@ bool AssetCatalogService::is_empty() const
   return catalogs_.is_empty();
 }
 
-AssetCatalog *AssetCatalogService::find_catalog(CatalogID catalog_id)
+AssetCatalog *AssetCatalogService::find_catalog(CatalogID catalog_id) const
 {
-  std::unique_ptr<AssetCatalog> *catalog_uptr_ptr = this->catalogs_.lookup_ptr(catalog_id);
+  const std::unique_ptr<AssetCatalog> *catalog_uptr_ptr = this->catalogs_.lookup_ptr(catalog_id);
   if (catalog_uptr_ptr == nullptr) {
     return nullptr;
   }
