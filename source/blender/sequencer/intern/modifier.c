@@ -302,9 +302,8 @@ static StripColorBalance calc_cb(StripColorBalance *cb_)
   if (cb_->method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
     return calc_cb_lgg(cb_);
   }
-  else { /* cb_->method == SEQ_COLOR_BALANCE_METHOD_SLOPEOFFSETPOWER */
-    return calc_cb_sop(cb_);
-  }
+  /* `cb_->method == SEQ_COLOR_BALANCE_METHOD_SLOPEOFFSETPOWER`. */
+  return calc_cb_sop(cb_);
 }
 
 /* NOTE: lift is actually 2-lift. */

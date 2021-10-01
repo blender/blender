@@ -49,7 +49,7 @@ bool IMB_exr_begin_read(void * /*handle*/,
                         int * /*height*/,
                         const bool /*add_channels*/)
 {
-  return 0;
+  return false;
 }
 bool IMB_exr_begin_write(void * /*handle*/,
                          const char * /*filename*/,
