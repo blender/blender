@@ -32,6 +32,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
 
 #include "RNA_access.h"
@@ -67,6 +68,10 @@ static bool gizmo2d_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
   }
 
   if ((U.gizmo_flag & USER_GIZMO_DRAW) == 0) {
+    return false;
+  }
+
+  if (G.moving) {
     return false;
   }
 
