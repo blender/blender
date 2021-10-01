@@ -398,6 +398,8 @@ typedef struct MovieTrackingDopesheetChannel {
   int *segments;
   /** Longest segment length and total number of tracked frames. */
   int max_segment, total_frames;
+  /** These numbers are valid only if tot_segment > 0. */
+  int first_not_disabled_marker_framenr, last_not_disabled_marker_framenr;
 } MovieTrackingDopesheetChannel;
 
 typedef struct MovieTrackingDopesheetCoverageSegment {
@@ -592,6 +594,8 @@ enum {
   TRACKING_DOPE_SORT_LONGEST = 1,
   TRACKING_DOPE_SORT_TOTAL = 2,
   TRACKING_DOPE_SORT_AVERAGE_ERROR = 3,
+  TRACKING_DOPE_SORT_START = 4,
+  TRACKING_DOPE_SORT_END = 5,
 };
 
 /* MovieTrackingDopesheet->flag */
