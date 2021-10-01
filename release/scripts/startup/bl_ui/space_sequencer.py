@@ -189,8 +189,12 @@ class SEQUENCER_HT_header(Header):
         if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
             row = layout.row(align=True)
             row.prop(sequencer_tool_settings, "overlap_mode", text="")
+
+        if st.view_type == 'SEQUENCER_PREVIEW':
             row = layout.row(align=True)
             row.prop(sequencer_tool_settings, "pivot_point", text="", icon_only=True)
+
+        if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
             row = layout.row(align=True)
             row.prop(tool_settings, "use_snap_sequencer", text="")
             sub = row.row(align=True)
