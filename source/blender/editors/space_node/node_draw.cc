@@ -1109,13 +1109,13 @@ static void node_socket_draw_nested(const bContext *C,
           if (!description.is_empty()) {
             output << TIP_(description.data()) << ".\n\n";
           }
-
-          if (socket_inspection_str.has_value()) {
-            output << *socket_inspection_str;
-            return BLI_strdup(output.str().c_str());
-          }
         }
-        output << TIP_("The socket value has not been computed yet");
+        if (socket_inspection_str.has_value()) {
+          output << *socket_inspection_str;
+        }
+        else {
+          output << TIP_("The socket value has not been computed yet");
+        }
         return BLI_strdup(output.str().c_str());
       },
       data,
