@@ -171,11 +171,8 @@ AssetCatalog *AssetCatalogService::create_catalog(const AssetCatalogPath &catalo
     catalog_definition_file_->add_new(catalog_ptr);
   }
 
-  /* The tree may not exist; this happens when no catalog definition file has been loaded yet. When
-   * the tree is created any in-memory catalogs will be added, so it doesn't need to happen now. */
-  if (catalog_tree_) {
-    catalog_tree_->insert_item(*catalog_ptr);
-  }
+  BLI_assert_msg(catalog_tree_, "An Asset Catalog tree should always exist.");
+  catalog_tree_->insert_item(*catalog_ptr);
 
   return catalog_ptr;
 }

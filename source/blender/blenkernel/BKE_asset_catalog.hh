@@ -134,7 +134,7 @@ class AssetCatalogService {
   Map<CatalogID, std::unique_ptr<AssetCatalog>> catalogs_;
   Map<CatalogID, std::unique_ptr<AssetCatalog>> deleted_catalogs_;
   std::unique_ptr<AssetCatalogDefinitionFile> catalog_definition_file_;
-  std::unique_ptr<AssetCatalogTree> catalog_tree_;
+  std::unique_ptr<AssetCatalogTree> catalog_tree_ = std::make_unique<AssetCatalogTree>();
   CatalogFilePath asset_library_root_;
 
   void load_directory_recursive(const CatalogFilePath &directory_path);
