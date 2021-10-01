@@ -108,9 +108,9 @@
 static Sequence *special_seq_update = NULL;
 
 void color3ubv_from_seq(const Scene *curscene,
-                                const Sequence *seq,
-                                const bool show_strip_color_tag,
-                                uchar r_col[3])
+                        const Sequence *seq,
+                        const bool show_strip_color_tag,
+                        uchar r_col[3])
 {
   if (show_strip_color_tag && (uint)seq->color_tag < SEQUENCE_COLOR_TOT &&
       seq->color_tag != SEQUENCE_COLOR_NONE) {
@@ -2616,7 +2616,7 @@ static int sequencer_draw_get_transform_preview_frame(Scene *scene)
   return preview_frame;
 }
 
-static void seq_draw_image_origin_and_outline(const bContext *C, Sequence *seq)
+static void seq_draw_image_origin_and_outline(const bContext *C, Sequence *seq, bool is_active_seq)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   if ((seq->flag & SELECT) == 0) {
@@ -2659,7 +2659,12 @@ static void seq_draw_image_origin_and_outline(const bContext *C, Sequence *seq)
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   float col[3];
-  UI_GetThemeColor3fv(TH_SEQ_SELECTED, col);
+  if (is_active_seq) {
+    UI_GetThemeColor3fv(TH_SEQ_ACTIVE, col);
+  }
+  else {
+    UI_GetThemeColor3fv(TH_SEQ_SELECTED, col);
+  }
   immUniformColor3fv(col);
   immUniform1f("lineWidth", U.pixelsize);
   immBegin(GPU_PRIM_LINE_LOOP, 4);
@@ -2753,8 +2758,9 @@ void sequencer_draw_preview(const bContext *C,
   if (!draw_backdrop && scene->ed != NULL) {
     SeqCollection *collection = SEQ_query_rendered_strips(&scene->ed->seqbase, timeline_frame, 0);
     Sequence *seq;
+    Sequence *active_seq = SEQ_select_active_get(scene);
     SEQ_ITERATOR_FOREACH (seq, collection) {
-      seq_draw_image_origin_and_outline(C, seq);
+      seq_draw_image_origin_and_outline(C, seq, seq == active_seq);
     }
     SEQ_collection_free(collection);
   }
