@@ -14,8 +14,6 @@ CurveMapping *BKE_curvemapping_cache_get(CurveMappingCache *cache,
                                          bool free_input);
 void BKE_curvemapping_cache_free(CurveMappingCache *cache);
 
-CurveMappingCache *BKE_curvemapping_cache_global(void);
-
 // takes a curve that's already in the cache and increases its user count
 void BKE_curvemapping_cache_aquire(CurveMappingCache *cache, CurveMapping *curve);
 void BKE_curvemapping_cache_release(CurveMappingCache *cache, CurveMapping *curve);

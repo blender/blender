@@ -16,6 +16,9 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "IMB_imbuf.h"
 
 #include "DNA_brush_enums.h"
@@ -30,7 +33,6 @@
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_curvemapping_cache.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
 
@@ -46,6 +48,8 @@
       error : 4022) /* 'function': pointer mismatch for actual parameter 'parameter number' */
 #  pragma warning(error : 4033) /* 'function' must return a value */
 #endif
+
+struct CurveMappingCache *brush_curve_cache;
 
 #if 1
 struct {

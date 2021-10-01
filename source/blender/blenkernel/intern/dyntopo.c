@@ -5606,7 +5606,7 @@ typedef struct EdgeQueueContext {
       if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology) &&
           !(node->flag & PBVH_FullyHidden)) {
 
-        node->flag &= ~PBVH_UpdateTopology;
+        /* do not clear PBVH_UpdateTopology here in case split messes with it */
 
         /* Recursively split nodes that have gotten too many
          * elements */
@@ -5616,14 +5616,17 @@ typedef struct EdgeQueueContext {
       }
     }
   }
-  else {  // still unmark nodes
-    for (int i = 0; i < pbvh->totnode; i++) {
-      PBVHNode *node = pbvh->nodes + i;
 
-      if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology)) {
-        node->flag &= ~PBVH_UpdateTopology;
-      }
+  /* clear PBVH_UpdateTopology flags */
+  for (int i = 0; i < pbvh->totnode; i++) {
+    BMVert *v;
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
     }
+
+    node->flag &= ~PBVH_UpdateTopology;
   }
 
   MEM_SAFE_FREE(eq_ctx.val34_verts);

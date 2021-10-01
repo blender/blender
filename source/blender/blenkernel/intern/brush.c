@@ -37,6 +37,7 @@
 #include "BKE_brush_engine.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_curvemapping_cache.h"
 #include "BKE_gpencil.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
@@ -555,12 +556,16 @@ static RNG *brush_rng;
 
 void BKE_brush_system_init(void)
 {
+  BKE_brush_channel_system_init();
+
   brush_rng = BLI_rng_new(0);
   BLI_rng_srandom(brush_rng, 31415682);
 }
 
 void BKE_brush_system_exit(void)
 {
+  BKE_brush_channel_system_exit();
+
   if (brush_rng == NULL) {
     return;
   }

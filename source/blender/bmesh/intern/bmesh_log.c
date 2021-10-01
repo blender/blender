@@ -58,7 +58,7 @@
 #define CUSTOMDATA
 
 //#define DEBUG_LOG_REFCOUNTNG
-#define PRINT_LOG_REF_COUNTING
+//#define PRINT_LOG_REF_COUNTING
 
 #ifdef DEBUG_LOG_REFCOUNTNG
 static struct {

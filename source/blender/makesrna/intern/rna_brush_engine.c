@@ -77,130 +77,134 @@ struct StructRNA *rna_BrushChannel_refine(PointerRNA *ptr)
     return &RNA_BrushChannel;
   }
 
-  if (!ch->def->rna_ext) {
-    char buf[512] = "BrushChannel";
-    const char *c = (const char *)ch->def->idname;
-
-    int i = strlen(buf);
-    bool first = true;
-
-    do {
-      if (*c == '_') {
-        first = true;
-        continue;
-      }
-
-      if (first) {
-        buf[i++] = toupper(*c);
-        first = false;
-      }
-      else {
-        buf[i++] = *c;
-      }
-    } while (*++c);
-
-    buf[i] = 0;
-
-    StructRNA *srna = ch->def->rna_ext = RNA_def_struct_ptr(&BLENDER_RNA, strdup(buf), ptr->type);
-    srna->refine = NULL;
-
-    PropertyRNA *prop;
-    const char *propname = NULL;
-    int proptype;
-    int subtype = PROP_NONE;
-
-    switch (ch->def->subtype) {
-      case BRUSH_CHANNEL_FACTOR:
-        subtype = PROP_FACTOR;
-        break;
-      case BRUSH_CHANNEL_PERCENT:
-        subtype = PROP_PERCENTAGE;
-        break;
-      case BRUSH_CHANNEL_COLOR:
-        subtype = PROP_COLOR;
-        break;
-      case BRUSH_CHANNEL_PIXEL:
-        subtype = PROP_PIXEL;
-        break;
-      default:
-        subtype = PROP_NONE;
-        break;
-    }
-
-    switch (ch->def->type) {
-      case BRUSH_CHANNEL_TYPE_FLOAT:
-        propname = "float_value";
-        proptype = PROP_FLOAT;
-        break;
-      case BRUSH_CHANNEL_TYPE_INT:
-        propname = "int_value";
-        proptype = PROP_INT;
-        break;
-      case BRUSH_CHANNEL_TYPE_BOOL:
-        propname = "bool_value";
-        proptype = PROP_BOOLEAN;
-        break;
-      case BRUSH_CHANNEL_TYPE_ENUM:
-        propname = "enum_value";
-        proptype = PROP_ENUM;
-        break;
-      case BRUSH_CHANNEL_TYPE_BITMASK:
-        propname = "flags_value";
-        proptype = PROP_ENUM;
-        break;
-      case BRUSH_CHANNEL_TYPE_VEC3:
-        propname = ch->def->subtype == BRUSH_CHANNEL_COLOR ? "color3_value" : "vector3_value";
-        proptype = PROP_FLOAT;
-        break;
-      case BRUSH_CHANNEL_TYPE_VEC4:
-        propname = ch->def->subtype == BRUSH_CHANNEL_COLOR ? "color4_value" : "vector4_value";
-        proptype = PROP_FLOAT;
-        break;
-      case BRUSH_CHANNEL_TYPE_CURVE:
-        propname = "curve";
-        proptype = PROP_POINTER;
-        break;
-    }
-
-    PointerRNA ptr2 = *ptr;
-    ptr2.type = &RNA_BrushChannel;
-
-    // create a .value alias
-    PropertyRNA *prop2;
-    if (propname && (prop2 = RNA_struct_find_property(&ptr2, propname))) {
-
-      prop = RNA_def_property(srna, "value", proptype, subtype);
-      PropertyRNA old = *prop;
-
-      size_t size = MEM_allocN_len(prop);
-      memcpy(prop, prop2, size);
-
-      prop->subtype = old.subtype;
-      prop->next = old.next;
-      prop->prev = old.prev;
-      prop->srna = old.srna;
-      prop->magic = old.magic;
-
-      prop->name = ch->def->name;
-      prop->identifier = "value";
-      prop->description = ch->def->tooltip;
-    }
-
-    ptr2.type = srna;
-    /*
-    rna_BrushChannel_update_tooltip(&ptr2, "bool_value");
-    rna_BrushChannel_update_tooltip(&ptr2, "int_value");
-    rna_BrushChannel_update_tooltip(&ptr2, "value");
-    rna_BrushChannel_update_tooltip(&ptr2, "factor_value");
-    rna_BrushChannel_update_tooltip(&ptr2, "float_value");
-    rna_BrushChannel_update_tooltip(&ptr2, "color3_value");
-    rna_BrushChannel_update_tooltip(&ptr2, "color4_value");
-    rna_BrushChannel_update_tooltip(&ptr2, "vector3_value");
-    rna_BrushChannel_update_tooltip(&ptr2, "vector4_value");
-    rna_BrushChannel_update_tooltip(&ptr2, "enum_value");
-    rna_BrushChannel_update_tooltip(&ptr2, "flags_value");
-    */
+  if (ch->def->rna_ext) {
+    return ch->def->rna_ext;
   }
+
+  char buf[512] = "BrushChannel";
+  const char *c = (const char *)ch->def->idname;
+
+  int i = strlen(buf);
+  bool first = true;
+
+  do {
+    if (*c == '_') {
+      first = true;
+      continue;
+    }
+
+    if (first) {
+      buf[i++] = toupper(*c);
+      first = false;
+    }
+    else {
+      buf[i++] = *c;
+    }
+  } while (*++c);
+
+  buf[i] = 0;
+
+  StructRNA *srna = ch->def->rna_ext = RNA_def_struct_ptr(&BLENDER_RNA, strdup(buf), ptr->type);
+  srna->refine = NULL;
+
+  PropertyRNA *prop;
+  const char *propname = NULL;
+  int proptype;
+  int subtype = PROP_NONE;
+
+  switch (ch->def->subtype) {
+    case BRUSH_CHANNEL_FACTOR:
+      subtype = PROP_FACTOR;
+      break;
+    case BRUSH_CHANNEL_PERCENT:
+      subtype = PROP_PERCENTAGE;
+      break;
+    case BRUSH_CHANNEL_COLOR:
+      subtype = PROP_COLOR;
+      break;
+    case BRUSH_CHANNEL_PIXEL:
+      subtype = PROP_PIXEL;
+      break;
+    default:
+      subtype = PROP_NONE;
+      break;
+  }
+
+  switch (ch->def->type) {
+    case BRUSH_CHANNEL_TYPE_FLOAT:
+      propname = "float_value";
+      proptype = PROP_FLOAT;
+      break;
+    case BRUSH_CHANNEL_TYPE_INT:
+      propname = "int_value";
+      proptype = PROP_INT;
+      break;
+    case BRUSH_CHANNEL_TYPE_BOOL:
+      propname = "bool_value";
+      proptype = PROP_BOOLEAN;
+      break;
+    case BRUSH_CHANNEL_TYPE_ENUM:
+      propname = "enum_value";
+      proptype = PROP_ENUM;
+      break;
+    case BRUSH_CHANNEL_TYPE_BITMASK:
+      propname = "flags_value";
+      proptype = PROP_ENUM;
+      break;
+    case BRUSH_CHANNEL_TYPE_VEC3:
+      propname = ch->def->subtype == BRUSH_CHANNEL_COLOR ? "color3_value" : "vector3_value";
+      proptype = PROP_FLOAT;
+      break;
+    case BRUSH_CHANNEL_TYPE_VEC4:
+      propname = ch->def->subtype == BRUSH_CHANNEL_COLOR ? "color4_value" : "vector4_value";
+      proptype = PROP_FLOAT;
+      break;
+    case BRUSH_CHANNEL_TYPE_CURVE:
+      propname = "curve";
+      proptype = PROP_POINTER;
+      break;
+  }
+
+  PointerRNA ptr2 = *ptr;
+  ptr2.type = &RNA_BrushChannel;
+
+  // create a .value alias
+  PropertyRNA *prop2;
+  if (propname && (prop2 = RNA_struct_find_property(&ptr2, propname))) {
+
+    prop = RNA_def_property(srna, "value", proptype, subtype);
+    PropertyRNA old = *prop;
+
+    size_t size = MEM_allocN_len(prop);
+    memcpy(prop, prop2, size);
+
+    prop->subtype = old.subtype;
+    prop->next = old.next;
+    prop->prev = old.prev;
+    prop->srna = old.srna;
+    prop->flag_internal = old.flag_internal;
+
+    prop->name = ch->def->name;
+    prop->identifier = "value";
+    prop->description = ch->def->tooltip;
+
+    RNA_def_property_duplicate_pointers(srna, prop);
+  }
+
+  ptr2.type = srna;
+  /*
+  rna_BrushChannel_update_tooltip(&ptr2, "bool_value");
+  rna_BrushChannel_update_tooltip(&ptr2, "int_value");
+  rna_BrushChannel_update_tooltip(&ptr2, "value");
+  rna_BrushChannel_update_tooltip(&ptr2, "factor_value");
+  rna_BrushChannel_update_tooltip(&ptr2, "float_value");
+  rna_BrushChannel_update_tooltip(&ptr2, "color3_value");
+  rna_BrushChannel_update_tooltip(&ptr2, "color4_value");
+  rna_BrushChannel_update_tooltip(&ptr2, "vector3_value");
+  rna_BrushChannel_update_tooltip(&ptr2, "vector4_value");
+  rna_BrushChannel_update_tooltip(&ptr2, "enum_value");
+  rna_BrushChannel_update_tooltip(&ptr2, "flags_value");
+  */
 
   return ch->def->rna_ext;
 }

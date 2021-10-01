@@ -300,7 +300,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
   BKE_pbvh_node_mark_rebuild_draw(n);
 
   BKE_pbvh_node_fully_hidden_set(n, !has_visible);
-  n->flag |= PBVH_UpdateNormals | PBVH_UpdateTopology | PBVH_UpdateCurvatureDir | PBVH_UpdateTris;
+  n->flag |= PBVH_UpdateNormals | PBVH_UpdateCurvatureDir | PBVH_UpdateTris;
 
   if (add_orco) {
     BKE_pbvh_bmesh_check_tris(pbvh, n);
@@ -1872,12 +1872,6 @@ void BKE_pbvh_set_bm_log(PBVH *pbvh, struct BMLog *log)
   pbvh->bm_log = log;
 }
 
-/*
-static double last_update_time[128] = {
-    0,
-};
-*/
-
 bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                           bool (*searchcb)(PBVHNode *node, void *data),
                                           void (*undopush)(PBVHNode *node, void *data),
@@ -1910,8 +1904,6 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
     }
   }
 
-  // double start = PIL_check_seconds_timer();
-
   modified = modified || BKE_pbvh_bmesh_update_topology(pbvh,
                                                         mode,
                                                         center,
@@ -1924,10 +1916,6 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                                         mask_cb,
                                                         mask_cb_data,
                                                         0);
-
-  // double end = PIL_check_seconds_timer();
-
-  // printf("dyntopo time: %f\n", end - start);
 
   return modified;
 }
@@ -2640,8 +2628,7 @@ static void BKE_pbvh_bmesh_correct_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *pa
     node->children_offset = 0;
     node->flag |= PBVH_Leaf | PBVH_UpdateRedraw | PBVH_UpdateBB | PBVH_UpdateDrawBuffers |
                   PBVH_RebuildDrawBuffers | PBVH_UpdateOriginalBB | PBVH_UpdateMask |
-                  PBVH_UpdateVisibility | PBVH_UpdateColor | PBVH_UpdateTopology |
-                  PBVH_UpdateNormals | PBVH_UpdateTris;
+                  PBVH_UpdateVisibility | PBVH_UpdateColor | PBVH_UpdateNormals | PBVH_UpdateTris;
 
     TableGSet *other = BLI_table_gset_new(__func__);
     BMVert *v;

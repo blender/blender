@@ -265,22 +265,8 @@ void BKE_curvemapping_cache_free(CurveMappingCache *cache)
   MEM_freeN(cache);
 }
 
-static CurveMappingCache *the_global_cache = NULL;
-
 void BKE_curvemapping_cache_exit()
 {
-  if (the_global_cache) {
-    BKE_curvemapping_cache_free(the_global_cache);
-  }
-}
-
-CurveMappingCache *BKE_curvemapping_cache_global()
-{
-  if (!the_global_cache) {
-    the_global_cache = BKE_curvemapping_cache_create();
-  }
-
-  return the_global_cache;
 }
 
 // releases a curve if it's in the cache, otherwise frees it

@@ -17,6 +17,10 @@
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_types.h"
+
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
@@ -54,15 +58,11 @@
 #define IS_CACHE_CURVE(curve) BKE_curvemapping_in_cache(curve)
 
 // frees curve if it wasn't cached, returns cache curved
-#define GET_CACHE_CURVE(curve) \
-  BKE_curvemapping_cache_get(BKE_curvemapping_cache_global(), curve, true)
-#define RELEASE_CACHE_CURVE(curve) \
-  BKE_curvemapping_cache_release(BKE_curvemapping_cache_global(), curve)
+#define GET_CACHE_CURVE(curve) BKE_curvemapping_cache_get(brush_curve_cache, curve, true)
+#define RELEASE_CACHE_CURVE(curve) BKE_curvemapping_cache_release(brush_curve_cache, curve)
 #define RELEASE_OR_FREE_CURVE(curve) \
-  curve ? \
-      (BKE_curvemapping_cache_release_or_free(BKE_curvemapping_cache_global(), curve), NULL) : \
-      NULL
-#define CURVE_ADDREF(curve) BKE_curvemapping_cache_aquire(BKE_curvemapping_cache_global(), curve)
+  curve ? (BKE_curvemapping_cache_release_or_free(brush_curve_cache, curve), NULL) : NULL
+#define CURVE_ADDREF(curve) BKE_curvemapping_cache_aquire(brush_curve_cache, curve)
 
 #ifdef DEBUG_CURVE_MAPPING_ALLOC
 static struct {
@@ -98,6 +98,19 @@ void BKE_curvemapping_copy_data_tag_ex(CurveMapping *target,
 #  define namestack_pop(passthru)
 #endif
 
+struct CurveMappingCache *brush_curve_cache = NULL;
+extern BrushChannelType brush_builtin_channels[];
+extern int brush_builtin_channel_len;
+
+void BKE_brush_channel_system_init()
+{
+  brush_curve_cache = BKE_curvemapping_cache_create();
+}
+
+void BKE_brush_channel_system_exit()
+{
+  BKE_curvemapping_cache_free(brush_curve_cache);
+}
 // returns true if curve was duplicated
 bool BKE_brush_mapping_ensure_write(BrushMapping *mp)
 {
@@ -186,9 +199,6 @@ networks.  BrushCommandPreset will be
 generated from the node group inputs.
 */
 
-extern BrushChannelType brush_builtin_channels[];
-extern const int brush_builtin_channel_len;
-
 void BKE_brush_channeltype_rna_check(BrushChannelType *def,
                                      int (*getIconFromName)(const char *name))
 {
@@ -275,8 +285,7 @@ static void copy_channel_data_keep_mappings(BrushChannel *dst, BrushChannel *src
       }
 
       if (src->curve.curve && !IS_CACHE_CURVE(src->curve.curve)) {
-        dst->curve.curve = BKE_curvemapping_cache_get(
-            BKE_curvemapping_cache_global(), src->curve.curve, false);
+        dst->curve.curve = BKE_curvemapping_cache_get(brush_curve_cache, src->curve.curve, false);
       }
       else {
         dst->curve.curve = src->curve.curve;
@@ -348,8 +357,7 @@ void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src, bool keep
       // dst->curve = GET_CACHE_CURVE(src->curve);
 
       // hrm, let's not modify src->curve, GET_CACHE_CURVE might free it
-      dst->curve.curve = BKE_curvemapping_cache_get(
-          BKE_curvemapping_cache_global(), src->curve.curve, false);
+      dst->curve.curve = BKE_curvemapping_cache_get(brush_curve_cache, src->curve.curve, false);
     }
     else {
       CURVE_ADDREF(dst->curve.curve);
@@ -1807,7 +1815,7 @@ void BKE_brush_mapping_copy_data(BrushMapping *dst, BrushMapping *src)
     // dst->curve = GET_CACHE_CURVE(src->curve);
 
     // hrm, let's not modify src->curve, GET_CACHE_CURVE might free it
-    dst->curve = BKE_curvemapping_cache_get(BKE_curvemapping_cache_global(), src->curve, false);
+    dst->curve = BKE_curvemapping_cache_get(brush_curve_cache, src->curve, false);
   }
   else {
     dst->curve = src->curve;
