@@ -62,6 +62,17 @@ class TestableAssetCatalogService : public AssetCatalogService {
   {
     AssetCatalogService::create_missing_catalogs();
   }
+
+  int64_t count_catalogs_with_path(const CatalogFilePath &path)
+  {
+    int64_t count = 0;
+    for (auto &catalog_uptr : catalogs_.values()) {
+      if (catalog_uptr->path == path) {
+        count++;
+      }
+    }
+    return count;
+  }
 };
 
 class AssetCatalogTest : public testing::Test {
@@ -887,6 +898,12 @@ TEST_F(AssetCatalogTest, create_missing_catalogs_after_loading)
   EXPECT_TRUE(cdf->contains(cat_ellie->catalog_id)) << "Missing parents should be saved to a CDF.";
   EXPECT_TRUE(cdf->contains(cat_ruzena->catalog_id))
       << "Missing parents should be saved to a CDF.";
+
+  /* Check that each missing parent is only created once. The CDF contains multiple paths that
+   * could trigger the creation of missing parents, so this test makes sense. */
+  EXPECT_EQ(1, loaded_service.count_catalogs_with_path("character"));
+  EXPECT_EQ(1, loaded_service.count_catalogs_with_path("character/Ellie"));
+  EXPECT_EQ(1, loaded_service.count_catalogs_with_path("character/Ružena"));
 }
 
 }  // namespace blender::bke::tests
