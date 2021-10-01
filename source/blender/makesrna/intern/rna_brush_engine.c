@@ -631,7 +631,7 @@ void rna_BrushChannel_bool_set(PointerRNA *prop, bool value)
 {
   BrushChannel *ch = (BrushChannel *)prop->data;
 
-  return ch->ivalue = value ? 1 : 0;
+  ch->ivalue = value ? 1 : 0;
 }
 
 #endif
