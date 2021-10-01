@@ -29,6 +29,7 @@ void register_node_tree_type_geo(void);
 void register_node_type_geo_group(void);
 void register_node_type_geo_custom_group(bNodeType *ntype);
 
+void register_node_type_geo_legacy_curve_set_handles(void);
 void register_node_type_geo_legacy_attribute_proximity(void);
 void register_node_type_geo_legacy_attribute_randomize(void);
 void register_node_type_geo_legacy_material_assign(void);

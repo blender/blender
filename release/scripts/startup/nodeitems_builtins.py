@@ -529,6 +529,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeSplineLength"),
         NodeItem("GeometryNodeCurveSubdivide"),
         NodeItem("GeometryNodeCurveParameter"),
+        NodeItem("GeometryNodeCurveSetHandles"),
         NodeItem("GeometryNodeInputTangent"),
         NodeItem("GeometryNodeCurveSample"),
         NodeItem("GeometryNodeCurveFillet"),
