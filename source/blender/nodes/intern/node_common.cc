@@ -27,6 +27,10 @@
 #include "DNA_node_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
+#include "BLI_multi_value_map.hh"
+#include "BLI_set.hh"
+#include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -42,10 +46,10 @@
 #include "node_common.h"
 #include "node_util.h"
 
-enum {
-  REFINE_FORWARD = 1 << 0,
-  REFINE_BACKWARD = 1 << 1,
-};
+using blender::Map;
+using blender::MultiValueMap;
+using blender::Set;
+using blender::Stack;
 
 /* -------------------------------------------------------------------- */
 /** \name Node Group
@@ -289,76 +293,37 @@ void register_node_type_reroute(void)
   nodeRegisterType(ntype);
 }
 
-static void node_reroute_inherit_type_recursive(bNodeTree *ntree, bNode *node, int flag)
+static void propagate_reroute_type_from_start_socket(
+    bNodeSocket *start_socket,
+    const MultiValueMap<bNodeSocket *, bNodeLink *> &links_map,
+    Map<bNode *, const bNodeSocketType *> &r_reroute_types)
 {
-  bNodeSocket *input = (bNodeSocket *)node->inputs.first;
-  bNodeSocket *output = (bNodeSocket *)node->outputs.first;
-  bNodeLink *link;
-  int type = SOCK_FLOAT;
-  const char *type_idname = nodeStaticSocketType(type, PROP_NONE);
-
-  /* XXX it would be a little bit more efficient to restrict actual updates
-   * to reroute nodes connected to an updated node, but there's no reliable flag
-   * to indicate updated nodes (node->update is not set on linking).
-   */
-
-  node->done = 1;
-
-  /* recursive update */
-  for (link = (bNodeLink *)ntree->links.first; link; link = link->next) {
-    bNode *fromnode = link->fromnode;
-    bNode *tonode = link->tonode;
-    if (!tonode || !fromnode) {
-      continue;
+  Stack<bNode *> nodes_to_check;
+  for (bNodeLink *link : links_map.lookup(start_socket)) {
+    if (link->tonode->type == NODE_REROUTE) {
+      nodes_to_check.push(link->tonode);
     }
-    if (nodeLinkIsHidden(link)) {
-      continue;
+    if (link->fromnode->type == NODE_REROUTE) {
+      nodes_to_check.push(link->fromnode);
     }
-
-    if (flag & REFINE_FORWARD) {
-      if (tonode == node && fromnode->type == NODE_REROUTE && !fromnode->done) {
-        node_reroute_inherit_type_recursive(ntree, fromnode, REFINE_FORWARD);
+  }
+  const bNodeSocketType *current_type = start_socket->typeinfo;
+  while (!nodes_to_check.is_empty()) {
+    bNode *reroute_node = nodes_to_check.pop();
+    BLI_assert(reroute_node->type == NODE_REROUTE);
+    if (r_reroute_types.add(reroute_node, current_type)) {
+      for (bNodeLink *link : links_map.lookup((bNodeSocket *)reroute_node->inputs.first)) {
+        if (link->fromnode->type == NODE_REROUTE) {
+          nodes_to_check.push(link->fromnode);
+        }
       }
-    }
-    if (flag & REFINE_BACKWARD) {
-      if (fromnode == node && tonode->type == NODE_REROUTE && !tonode->done) {
-        node_reroute_inherit_type_recursive(ntree, tonode, REFINE_BACKWARD);
+      for (bNodeLink *link : links_map.lookup((bNodeSocket *)reroute_node->outputs.first)) {
+        if (link->tonode->type == NODE_REROUTE) {
+          nodes_to_check.push(link->tonode);
+        }
       }
     }
   }
-
-  /* determine socket type from unambiguous input/output connection if possible */
-  if (nodeSocketLinkLimit(input) == 1 && input->link) {
-    type = input->link->fromsock->type;
-    type_idname = nodeStaticSocketType(type, PROP_NONE);
-  }
-  else if (nodeSocketLinkLimit(output) == 1 && output->link) {
-    type = output->link->tosock->type;
-    type_idname = nodeStaticSocketType(type, PROP_NONE);
-  }
-
-  if (input->type != type) {
-    bNodeSocket *ninput = nodeAddSocket(ntree, node, SOCK_IN, type_idname, "input", "Input");
-    for (link = (bNodeLink *)ntree->links.first; link; link = link->next) {
-      if (link->tosock == input) {
-        link->tosock = ninput;
-        ninput->link = link;
-      }
-    }
-    nodeRemoveSocket(ntree, node, input);
-  }
-
-  if (output->type != type) {
-    bNodeSocket *noutput = nodeAddSocket(ntree, node, SOCK_OUT, type_idname, "output", "Output");
-    for (link = (bNodeLink *)ntree->links.first; link; link = link->next) {
-      if (link->fromsock == output) {
-        link->fromsock = noutput;
-      }
-    }
-    nodeRemoveSocket(ntree, node, output);
-  }
-
-  nodeUpdateInternalLinks(ntree, node);
 }
 
 /* Global update function for Reroute node types.
@@ -366,16 +331,58 @@ static void node_reroute_inherit_type_recursive(bNodeTree *ntree, bNode *node, i
  */
 void ntree_update_reroute_nodes(bNodeTree *ntree)
 {
-  bNode *node;
-
-  /* clear tags */
-  for (node = (bNode *)ntree->nodes.first; node; node = node->next) {
-    node->done = 0;
+  /* Contains nodes that are linked to at least one reroute node. */
+  Set<bNode *> nodes_linked_with_reroutes;
+  /* Contains all links that are linked to at least one reroute node. */
+  MultiValueMap<bNodeSocket *, bNodeLink *> links_map;
+  /* Build acceleration data structures for the algorithm below. */
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    if (link->fromsock == nullptr || link->tosock == nullptr) {
+      continue;
+    }
+    if (link->fromnode->type != NODE_REROUTE && link->tonode->type != NODE_REROUTE) {
+      continue;
+    }
+    if (link->fromnode->type != NODE_REROUTE) {
+      nodes_linked_with_reroutes.add(link->fromnode);
+    }
+    if (link->tonode->type != NODE_REROUTE) {
+      nodes_linked_with_reroutes.add(link->tonode);
+    }
+    links_map.add(link->fromsock, link);
+    links_map.add(link->tosock, link);
   }
 
-  for (node = (bNode *)ntree->nodes.first; node; node = node->next) {
-    if (node->type == NODE_REROUTE && !node->done) {
-      node_reroute_inherit_type_recursive(ntree, node, REFINE_FORWARD | REFINE_BACKWARD);
+  /* Will contain the socket type for every linked reroute node. */
+  Map<bNode *, const bNodeSocketType *> reroute_types;
+
+  /* Propagate socket types from left to right. */
+  for (bNode *start_node : nodes_linked_with_reroutes) {
+    LISTBASE_FOREACH (bNodeSocket *, output_socket, &start_node->outputs) {
+      propagate_reroute_type_from_start_socket(output_socket, links_map, reroute_types);
+    }
+  }
+
+  /* Propagate socket types from right to left. This affects reroute nodes that haven't been
+   * changed in the the loop above. */
+  for (bNode *start_node : nodes_linked_with_reroutes) {
+    LISTBASE_FOREACH (bNodeSocket *, input_socket, &start_node->inputs) {
+      propagate_reroute_type_from_start_socket(input_socket, links_map, reroute_types);
+    }
+  }
+
+  /* Actually update reroute nodes with changed types. */
+  for (const auto &item : reroute_types.items()) {
+    bNode *reroute_node = item.key;
+    const bNodeSocketType *socket_type = item.value;
+    bNodeSocket *input_socket = (bNodeSocket *)reroute_node->inputs.first;
+    bNodeSocket *output_socket = (bNodeSocket *)reroute_node->outputs.first;
+
+    if (input_socket->typeinfo != socket_type) {
+      nodeModifySocketType(ntree, reroute_node, input_socket, socket_type->idname);
+    }
+    if (output_socket->typeinfo != socket_type) {
+      nodeModifySocketType(ntree, reroute_node, output_socket, socket_type->idname);
     }
   }
 }
