@@ -4788,6 +4788,13 @@ int BLO_library_link_copypaste(Main *mainl, BlendHandle *bh, const uint64_t id_t
       ListBase *lb = which_libbase(mainl, GS(id->name));
       id_sort_by_name(lb, id, NULL);
 
+      /* Tag as loose object (or data associated with objects)
+       * needing to be instantiated (see also #link_named_part and its usage of
+       * #BLO_LIBLINK_NEEDS_ID_TAG_DOIT above). */
+      if (library_link_idcode_needs_tag_check(GS(id->name), BLO_LIBLINK_NEEDS_ID_TAG_DOIT)) {
+        id->tag |= LIB_TAG_DOIT;
+      }
+
       if (bhead->code == ID_OB) {
         /* Instead of instancing Base's directly, postpone until after collections are loaded
          * otherwise the base's flag is set incorrectly when collections are used */
