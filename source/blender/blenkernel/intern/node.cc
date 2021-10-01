@@ -5767,6 +5767,7 @@ static void registerGeometryNodes()
   register_node_type_geo_input_normal();
   register_node_type_geo_input_position();
   register_node_type_geo_input_tangent();
+  register_node_type_geo_input_spline_length();
   register_node_type_geo_instance_on_points();
   register_node_type_geo_is_viewport();
   register_node_type_geo_join_geometry();

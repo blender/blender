@@ -86,6 +86,7 @@ void register_node_type_geo_input_index(void);
 void register_node_type_geo_input_material(void);
 void register_node_type_geo_input_normal(void);
 void register_node_type_geo_input_position(void);
+void register_node_type_geo_input_spline_length(void);
 void register_node_type_geo_input_tangent(void);
 void register_node_type_geo_instance_on_points(void);
 void register_node_type_geo_is_viewport(void);

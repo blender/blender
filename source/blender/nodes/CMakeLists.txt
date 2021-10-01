@@ -217,6 +217,7 @@ set(SRC
   geometry/nodes/node_geo_input_material.cc
   geometry/nodes/node_geo_input_normal.cc
   geometry/nodes/node_geo_input_position.cc
+  geometry/nodes/node_geo_input_spline_length.cc
   geometry/nodes/node_geo_input_tangent.cc
   geometry/nodes/node_geo_instance_on_points.cc
   geometry/nodes/node_geo_is_viewport.cc

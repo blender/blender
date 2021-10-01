@@ -525,6 +525,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeCurveFill"),
         NodeItem("GeometryNodeCurveTrim"),
         NodeItem("GeometryNodeCurveLength"),
+        NodeItem("GeometryNodeSplineLength"),
         NodeItem("GeometryNodeCurveSubdivide"),
         NodeItem("GeometryNodeCurveParameter"),
         NodeItem("GeometryNodeInputTangent"),
