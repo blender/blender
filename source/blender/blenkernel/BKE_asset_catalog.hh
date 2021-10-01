@@ -26,6 +26,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
+#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_uuid.h"
 #include "BLI_vector.hh"
@@ -48,6 +49,7 @@ using CatalogFilePath = std::string;
 class AssetCatalog;
 class AssetCatalogDefinitionFile;
 class AssetCatalogTree;
+class AssetCatalogFilter;
 
 /* Manages the asset catalogs of a single asset library (i.e. of catalogs defined in a single
  * directory hierarchy). */
@@ -99,6 +101,14 @@ class AssetCatalogService {
   /** Return first catalog with the given path. Return nullptr if not found. This is not an
    * efficient call as it's just a linear search over the catalogs. */
   AssetCatalog *find_catalog_by_path(const AssetCatalogPath &path) const;
+
+  /**
+   * Create a filter object that can be used to determine whether an asset belongs to the given
+   * catalog, or any of the catalogs in the sub-tree rooted at the given catalog.
+   *
+   * \see #AssetCatalogFilter
+   */
+  AssetCatalogFilter create_catalog_filter(CatalogID active_catalog_id) const;
 
   /** Create a catalog with some sensible auto-generated catalog ID.
    * The catalog will be saved to the default catalog file.*/
@@ -330,5 +340,21 @@ struct AssetCatalogPathCmp {
  * Set that stores catalogs ordered by (path, UUID).
  * Being a set, duplicates are removed. The catalog's simple name is ignored in this. */
 using AssetCatalogOrderedSet = std::set<const AssetCatalog *, AssetCatalogPathCmp>;
+
+/**
+ * Filter that can determine whether an asset should be visible or not, based on its catalog ID.
+ *
+ * \see AssetCatalogService::create_filter()
+ */
+class AssetCatalogFilter {
+ public:
+  bool contains(CatalogID asset_catalog_id) const;
+
+ protected:
+  friend AssetCatalogService;
+  const Set<CatalogID> matching_catalog_ids;
+
+  explicit AssetCatalogFilter(Set<CatalogID> &&matching_catalog_ids);
+};
 
 }  // namespace blender::bke
