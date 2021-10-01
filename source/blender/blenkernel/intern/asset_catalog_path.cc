@@ -38,8 +38,6 @@ AssetCatalogPath::AssetCatalogPath(const char *path) : path_(path)
 {
 }
 
-AssetCatalogPath::AssetCatalogPath(const AssetCatalogPath &other_path) = default;
-
 AssetCatalogPath::AssetCatalogPath(AssetCatalogPath &&other_path) noexcept
     : path_(std::move(other_path.path_))
 {
