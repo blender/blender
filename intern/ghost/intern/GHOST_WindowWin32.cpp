@@ -54,19 +54,19 @@ extern "C" {
 __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
 
-GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
-                                     const char *title,
-                                     int32_t left,
-                                     int32_t top,
-                                     uint32_t width,
-                                     uint32_t height,
-                                     GHOST_TWindowState state,
-                                     GHOST_TDrawingContextType type,
-                                     bool wantStereoVisual,
-                                     bool alphaBackground,
-                                     GHOST_WindowWin32 *parentwindow,
-                                     bool is_debug,
-                                     bool dialog)
+ATTR_NO_ASAN GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
+                                                  const char *title,
+                                                  int32_t left,
+                                                  int32_t top,
+                                                  uint32_t width,
+                                                  uint32_t height,
+                                                  GHOST_TWindowState state,
+                                                  GHOST_TDrawingContextType type,
+                                                  bool wantStereoVisual,
+                                                  bool alphaBackground,
+                                                  GHOST_WindowWin32 *parentwindow,
+                                                  bool is_debug,
+                                                  bool dialog)
     : GHOST_Window(width, height, state, wantStereoVisual, false),
       m_mousePresent(false),
       m_inLiveResize(false),
@@ -526,7 +526,7 @@ GHOST_TSuccess GHOST_WindowWin32::invalidate()
   return success;
 }
 
-GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType type)
+ATTR_NO_ASAN GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType type)
 {
   if (type == GHOST_kDrawingContextTypeOpenGL) {
     GHOST_Context *context;

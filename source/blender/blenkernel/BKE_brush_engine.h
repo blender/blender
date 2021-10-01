@@ -50,6 +50,7 @@ This should completely replace UnifiedPaintSettings.
 
 struct BrushChannel;
 struct BlendWriter;
+struct StructRNA;
 struct BlendDataReader;
 struct BlendLibReader;
 struct ID;
@@ -131,6 +132,7 @@ typedef struct BrushChannelType {
   BrushMappingPreset mappings;
 
   int type, flag;
+  int subtype;
   int ivalue;
   float fvalue;
   float vector[4];
@@ -140,6 +142,7 @@ typedef struct BrushChannelType {
   EnumPropertyItem *rna_enumdef;
 
   bool user_defined;
+  struct StructRNA *rna_ext;
 } BrushChannelType;
 
 /* since MTex is going away lets'

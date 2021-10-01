@@ -31,6 +31,14 @@
 
 #include <cstdlib>  // for NULL
 
+#if defined(__clang__) || defined(__GCC__)
+#  define ATTR_NO_ASAN __attribute__((no_sanitize("address")))
+#elif _MSC_VER
+#  define ATTR_NO_ASAN __declspec(no_sanitize_address)
+#else
+#  define ATTR_NO_ASAN
+#endif
+
 class GHOST_Context : public GHOST_IContext {
  public:
   /**

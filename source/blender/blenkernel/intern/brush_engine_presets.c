@@ -87,7 +87,8 @@ To enable converting to/from old data:
    .soft_min = smin1,\
    .flag = flag1,\
    .soft_max = smax1,\
-   .type = BRUSH_CHANNEL_FLOAT,\
+   .type = BRUSH_CHANNEL_TYPE_FLOAT,\
+    .subtype = BRUSH_CHANNEL_FACTOR,\
    .mappings = {\
         .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0f, .min = 0.0f, .max = 1.0f, .enabled = pressure_enabled, .inv = pressure_inv},\
     }\
@@ -106,18 +107,18 @@ MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pre
   .idname = #idname1, \
   .name = name1, \
   .tooltip = tooltip1, \
-  .type = BRUSH_CHANNEL_VEC3,\
+  .type = BRUSH_CHANNEL_TYPE_VEC3,\
   .vector = {r, g, b, 1.0f},\
   .min = 0.0f, .max = 5.0f,\
   .soft_min = 0.0f, .soft_max = 1.0f,\
-  .flag = BRUSH_CHANNEL_COLOR,\
+  .subtype = BRUSH_CHANNEL_COLOR,\
 },
 
 #define MAKE_FLOAT3_EX(idname1, name1, tooltip1, x1, y1, z1, min1, max1, smin, smax, flag1){\
   .idname = #idname1, \
   .name = name1, \
   .tooltip = tooltip1, \
-  .type = BRUSH_CHANNEL_VEC3,\
+  .type = BRUSH_CHANNEL_TYPE_VEC3,\
   .vector = {x1, y1, z1, 1.0f},\
   .min = min1, .max = max1,\
   .soft_min = smin, .soft_max = smax,\
@@ -131,11 +132,11 @@ MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pre
   .idname = #idname1, \
   .name = name1, \
   .tooltip = tooltip1, \
-  .type = BRUSH_CHANNEL_VEC4,\
+  .type = BRUSH_CHANNEL_TYPE_VEC4,\
   .vector = {r, g, b, a},\
   .min = 0.0f, .max = 5.0f,\
   .soft_min = 0.0f, .soft_max = 1.0f,\
-  .flag = BRUSH_CHANNEL_COLOR,\
+  .subtype = BRUSH_CHANNEL_COLOR,\
 },
 
 #define MAKE_INT_EX_OPEN(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1) \
@@ -147,7 +148,7 @@ MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pre
    .ivalue = value1,\
    .soft_min = smin1,\
    .soft_max = smax1,\
-   .type = BRUSH_CHANNEL_INT
+   .type = BRUSH_CHANNEL_TYPE_INT
 
 #define MAKE_INT_EX(idname, name, tooltip, value, min, max, smin, smax) \
   MAKE_INT_EX_OPEN(idname, name, tooltip, value, min, max, smin, smax) },
@@ -160,7 +161,7 @@ MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pre
    .tooltip = tooltip1, \
    .ivalue = value1,\
    .flag = flag1,\
-   .type = BRUSH_CHANNEL_BOOL\
+   .type = BRUSH_CHANNEL_TYPE_BOOL\
   },
 
 #define MAKE_BOOL(idname, name, tooltip, value)\
@@ -172,7 +173,7 @@ MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pre
  .tooltip = tooltip1,\
  .ivalue = value1,\
  .flag = flag1,\
- .type = BRUSH_CHANNEL_ENUM,\
+ .type = BRUSH_CHANNEL_TYPE_ENUM,\
  .rna_enumdef = NULL,\
  .enumdef = enumdef1\
  , __VA_ARGS__\
@@ -183,7 +184,7 @@ MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pre
  .tooltip = tooltip1,\
  .ivalue = value1,\
  .flag = flag1,\
- .type = BRUSH_CHANNEL_BITMASK,\
+ .type = BRUSH_CHANNEL_TYPE_BITMASK,\
  .rna_enumdef = NULL,\
  .enumdef = enumdef1 , __VA_ARGS__\
 },
@@ -195,7 +196,7 @@ MAKE_FLOAT_EX_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pre
   .idname = #idname1,\
   .name = name1,\
   .tooltip = tooltip1,\
-  .type = BRUSH_CHANNEL_CURVE,\
+  .type = BRUSH_CHANNEL_TYPE_CURVE,\
   .curve_preset = preset1,\
 },
 
@@ -227,6 +228,7 @@ static BrushChannelType *_get_def(const char *idname)
 #define GETDEF(idname) _get_def(MAKE_BUILTIN_CH_NAME(idname))
 #define SETCAT(idname, cat) \
   BLI_strncpy(GETDEF(idname)->category, cat, sizeof(GETDEF(idname)->category))
+#define SUBTYPE_SET(idname, type1) GETDEF(idname)->subtype = type1
 
 static bool do_builtin_init = true;
 static bool check_builtin_init()
@@ -241,6 +243,13 @@ static bool check_builtin_init()
   // for (int i = 0; i < brush_builtin_channel_len; i++) {
   // BKE_brush_channeltype_rna_check(brush_builtin_channels + i);
   //}
+
+  SUBTYPE_SET(radius, BRUSH_CHANNEL_PIXEL);
+  SUBTYPE_SET(spacing, BRUSH_CHANNEL_PERCENT);
+  SUBTYPE_SET(autosmooth_spacing, BRUSH_CHANNEL_PERCENT);
+  SUBTYPE_SET(topology_rake_spacing, BRUSH_CHANNEL_PERCENT);
+  SUBTYPE_SET(autosmooth_radius_scale, BRUSH_CHANNEL_PERCENT);
+  SUBTYPE_SET(topology_rake_radius_scale, BRUSH_CHANNEL_PERCENT);
 
   // don't group strength/radius/direction in subpanels
   // SETCAT(strength, "Basic");
@@ -325,11 +334,11 @@ static bool check_builtin_init()
 #  undef BOOL
 #endif
 
-#define FLOAT BRUSH_CHANNEL_FLOAT
-#define INT BRUSH_CHANNEL_INT
-#define BOOL BRUSH_CHANNEL_BOOL
-#define FLOAT3 BRUSH_CHANNEL_VEC3
-#define FLOAT4 BRUSH_CHANNEL_VEC4
+#define FLOAT BRUSH_CHANNEL_TYPE_FLOAT
+#define INT BRUSH_CHANNEL_TYPE_INT
+#define BOOL BRUSH_CHANNEL_TYPE_BOOL
+#define FLOAT3 BRUSH_CHANNEL_TYPE_VEC3
+#define FLOAT4 BRUSH_CHANNEL_TYPE_VEC4
 
 #ifdef ADDCH
 #  undef ADDCH
@@ -509,13 +518,13 @@ static void do_coerce(int type1, void *ptr1, int size1, int type2, void *ptr2, i
   float vec[4];
 
   switch (type1) {
-    case BRUSH_CHANNEL_FLOAT:
+    case BRUSH_CHANNEL_TYPE_FLOAT:
       val = *(float *)ptr1;
       break;
-    case BRUSH_CHANNEL_INT:
-    case BRUSH_CHANNEL_ENUM:
-    case BRUSH_CHANNEL_BITMASK:
-    case BRUSH_CHANNEL_BOOL:
+    case BRUSH_CHANNEL_TYPE_INT:
+    case BRUSH_CHANNEL_TYPE_ENUM:
+    case BRUSH_CHANNEL_TYPE_BITMASK:
+    case BRUSH_CHANNEL_TYPE_BOOL:
       switch (size1) {
         case 1:
           val = (double)*(char *)ptr1;
@@ -531,22 +540,22 @@ static void do_coerce(int type1, void *ptr1, int size1, int type2, void *ptr2, i
           break;
       }
       break;
-    case BRUSH_CHANNEL_VEC3:
+    case BRUSH_CHANNEL_TYPE_VEC3:
       copy_v3_v3(vec, (float *)ptr1);
       break;
-    case BRUSH_CHANNEL_VEC4:
+    case BRUSH_CHANNEL_TYPE_VEC4:
       copy_v4_v4(vec, (float *)ptr1);
       break;
   }
 
   switch (type2) {
-    case BRUSH_CHANNEL_FLOAT:
+    case BRUSH_CHANNEL_TYPE_FLOAT:
       *(float *)ptr2 = (float)val;
       break;
-    case BRUSH_CHANNEL_INT:
-    case BRUSH_CHANNEL_ENUM:
-    case BRUSH_CHANNEL_BITMASK:
-    case BRUSH_CHANNEL_BOOL: {
+    case BRUSH_CHANNEL_TYPE_INT:
+    case BRUSH_CHANNEL_TYPE_ENUM:
+    case BRUSH_CHANNEL_TYPE_BITMASK:
+    case BRUSH_CHANNEL_TYPE_BOOL: {
       switch (size2) {
         case 1:
           *(char *)ptr2 = (char)val;
@@ -563,10 +572,10 @@ static void do_coerce(int type1, void *ptr1, int size1, int type2, void *ptr2, i
       }
       break;
     }
-    case BRUSH_CHANNEL_VEC3:
+    case BRUSH_CHANNEL_TYPE_VEC3:
       copy_v3_v3((float *)ptr2, vec);
       break;
-    case BRUSH_CHANNEL_VEC4:
+    case BRUSH_CHANNEL_TYPE_VEC4:
       copy_v4_v4((float *)ptr2, vec);
       break;
   }
@@ -577,17 +586,17 @@ void *get_channel_value_pointer(BrushChannel *ch, int *r_data_size)
   *r_data_size = 4;
 
   switch (ch->type) {
-    case BRUSH_CHANNEL_FLOAT:
+    case BRUSH_CHANNEL_TYPE_FLOAT:
       return &ch->fvalue;
-    case BRUSH_CHANNEL_INT:
-    case BRUSH_CHANNEL_ENUM:
-    case BRUSH_CHANNEL_BITMASK:
-    case BRUSH_CHANNEL_BOOL:
+    case BRUSH_CHANNEL_TYPE_INT:
+    case BRUSH_CHANNEL_TYPE_ENUM:
+    case BRUSH_CHANNEL_TYPE_BITMASK:
+    case BRUSH_CHANNEL_TYPE_BOOL:
       return &ch->ivalue;
-    case BRUSH_CHANNEL_VEC3:
+    case BRUSH_CHANNEL_TYPE_VEC3:
       *r_data_size = sizeof(float) * 3;
       return ch->vector;
-    case BRUSH_CHANNEL_VEC4:
+    case BRUSH_CHANNEL_TYPE_VEC4:
       *r_data_size = sizeof(float) * 4;
       return ch->vector;
   }

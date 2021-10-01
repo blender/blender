@@ -264,7 +264,7 @@ static void copy_channel_data_keep_mappings(BrushChannel *dst, BrushChannel *src
   dst->ui_order = src->ui_order;
 
   switch (src->type) {
-    case BRUSH_CHANNEL_CURVE:
+    case BRUSH_CHANNEL_TYPE_CURVE:
       dst->curve.preset = src->curve.preset;
 
       if (dst->curve.curve && IS_CACHE_CURVE(dst->curve.curve)) {
@@ -285,17 +285,17 @@ static void copy_channel_data_keep_mappings(BrushChannel *dst, BrushChannel *src
         }
       }
       break;
-    case BRUSH_CHANNEL_FLOAT:
+    case BRUSH_CHANNEL_TYPE_FLOAT:
       dst->fvalue = src->fvalue;
       break;
-    case BRUSH_CHANNEL_BOOL:
-    case BRUSH_CHANNEL_ENUM:
-    case BRUSH_CHANNEL_BITMASK:
-    case BRUSH_CHANNEL_INT:
+    case BRUSH_CHANNEL_TYPE_BOOL:
+    case BRUSH_CHANNEL_TYPE_ENUM:
+    case BRUSH_CHANNEL_TYPE_BITMASK:
+    case BRUSH_CHANNEL_TYPE_INT:
       dst->ivalue = src->ivalue;
       break;
-    case BRUSH_CHANNEL_VEC3:
-    case BRUSH_CHANNEL_VEC4:
+    case BRUSH_CHANNEL_TYPE_VEC3:
+    case BRUSH_CHANNEL_TYPE_VEC4:
       copy_v4_v4(dst->vector, src->vector);
       break;
   }
@@ -308,7 +308,7 @@ void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src, bool keep
     return;
   }
 
-  if (src->type == BRUSH_CHANNEL_CURVE) {
+  if (src->type == BRUSH_CHANNEL_TYPE_CURVE) {
     if (dst->curve.curve && IS_CACHE_CURVE(dst->curve.curve)) {
       RELEASE_CACHE_CURVE(dst->curve.curve);
     }
@@ -638,7 +638,7 @@ BrushChannelType brush_default_channel_type = {
     .max = 1.0f,
     .soft_min = 0.0f,
     .soft_max = 1.0f,
-    .type = BRUSH_CHANNEL_FLOAT,
+    .type = BRUSH_CHANNEL_TYPE_FLOAT,
     .flag = 0,
     .ivalue = 0,
     .fvalue = 0.0f,
@@ -783,7 +783,7 @@ void BKE_brush_channelset_merge(BrushChannelSet *dst,
       continue;
     }
 
-    if (ch->type == BRUSH_CHANNEL_BITMASK && (ch->flag & BRUSH_CHANNEL_INHERIT_IF_UNSET)) {
+    if (ch->type == BRUSH_CHANNEL_TYPE_BITMASK && (ch->flag & BRUSH_CHANNEL_INHERIT_IF_UNSET)) {
       mch->ivalue = ch->ivalue | pch->ivalue;
     }
   }
@@ -822,18 +822,18 @@ void BKE_brush_channelset_apply_mapping(BrushChannelSet *chset, BrushMappingData
 
   for (ch = chset->channels.first; ch; ch = ch->next) {
     switch (ch->type) {
-      case BRUSH_CHANNEL_FLOAT:
+      case BRUSH_CHANNEL_TYPE_FLOAT:
         ch->fvalue = BKE_brush_channel_get_float(ch, mapdata);
         break;
-      case BRUSH_CHANNEL_INT:
-      case BRUSH_CHANNEL_ENUM:
-      case BRUSH_CHANNEL_BITMASK:
-      case BRUSH_CHANNEL_BOOL:
+      case BRUSH_CHANNEL_TYPE_INT:
+      case BRUSH_CHANNEL_TYPE_ENUM:
+      case BRUSH_CHANNEL_TYPE_BITMASK:
+      case BRUSH_CHANNEL_TYPE_BOOL:
         ch->ivalue = BKE_brush_channel_get_int(ch, mapdata);
         break;
-      case BRUSH_CHANNEL_VEC4:
+      case BRUSH_CHANNEL_TYPE_VEC4:
         n = 4;
-      case BRUSH_CHANNEL_VEC3:
+      case BRUSH_CHANNEL_TYPE_VEC3:
         n = 3;
 
         for (int i = 0; i < n; i++) {
@@ -1113,7 +1113,7 @@ float BKE_brush_channel_get_float(BrushChannel *ch, BrushMappingData *mapdata)
 
 void BKE_brush_channel_set_vector(BrushChannel *ch, float vec[4])
 {
-  if (ch->type == BRUSH_CHANNEL_VEC4) {
+  if (ch->type == BRUSH_CHANNEL_TYPE_VEC4) {
     copy_v4_v4(ch->vector, vec);
   }
   else {
@@ -1124,9 +1124,9 @@ void BKE_brush_channel_set_vector(BrushChannel *ch, float vec[4])
 int BKE_brush_channel_get_vector_size(BrushChannel *ch)
 {
   switch (ch->type) {
-    case BRUSH_CHANNEL_VEC3:
+    case BRUSH_CHANNEL_TYPE_VEC3:
       return 3;
-    case BRUSH_CHANNEL_VEC4:
+    case BRUSH_CHANNEL_TYPE_VEC4:
       return 4;
     default:
       return 1;
@@ -1136,7 +1136,7 @@ int BKE_brush_channel_get_vector_size(BrushChannel *ch)
 int BKE_brush_channel_get_vector(BrushChannel *ch, float out[4], BrushMappingData *mapdata)
 {
   int size = 3;
-  if (ch->type == BRUSH_CHANNEL_VEC4) {
+  if (ch->type == BRUSH_CHANNEL_TYPE_VEC4) {
     size = 4;
   }
 

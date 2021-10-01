@@ -31,6 +31,7 @@
 #include <cstdio>
 #include <vector>
 
+
 HGLRC GHOST_ContextWGL::s_sharedHGLRC = NULL;
 int GHOST_ContextWGL::s_sharedCount = 0;
 
@@ -143,7 +144,8 @@ GHOST_TSuccess GHOST_ContextWGL::releaseDrawingContext()
 /* Ron Fosner's code for weighting pixel formats and forcing software.
  * See http://www.opengl.org/resources/faq/technical/weight.cpp
  */
-static int weight_pixel_format(PIXELFORMATDESCRIPTOR &pfd, PIXELFORMATDESCRIPTOR &preferredPFD)
+ATTR_NO_ASAN static int weight_pixel_format(PIXELFORMATDESCRIPTOR &pfd,
+                                            PIXELFORMATDESCRIPTOR &preferredPFD)
 {
   int weight = 0;
 
@@ -178,7 +180,7 @@ static int weight_pixel_format(PIXELFORMATDESCRIPTOR &pfd, PIXELFORMATDESCRIPTOR
  * A modification of Ron Fosner's replacement for ChoosePixelFormat
  * returns 0 on error, else returns the pixel format number to be used
  */
-static int choose_pixel_format_legacy(HDC hDC, PIXELFORMATDESCRIPTOR &preferredPFD)
+ATTR_NO_ASAN static int choose_pixel_format_legacy(HDC hDC, PIXELFORMATDESCRIPTOR &preferredPFD)
 {
   int iPixelFormat = 0;
   int weight = 0;
@@ -231,7 +233,7 @@ static int choose_pixel_format_legacy(HDC hDC, PIXELFORMATDESCRIPTOR &preferredP
  * There is no generic way to clone the lpParam parameter,
  * so the caller is responsible for cloning it themselves.
  */
-static HWND clone_window(HWND hWnd, LPVOID lpParam)
+ATTR_NO_ASAN static HWND clone_window(HWND hWnd, LPVOID lpParam)
 {
   int count;
 
@@ -282,7 +284,7 @@ static HWND clone_window(HWND hWnd, LPVOID lpParam)
   return hwndCloned;
 }
 
-void GHOST_ContextWGL::initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD)
+ATTR_NO_ASAN void GHOST_ContextWGL::initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD)
 {
   HWND dummyHWND = NULL;
 
@@ -365,7 +367,7 @@ finalize:
   }
 }
 
-static void makeAttribList(std::vector<int> &out, bool stereoVisual, bool needAlpha)
+ATTR_NO_ASAN static void makeAttribList(std::vector<int> &out, bool stereoVisual, bool needAlpha)
 {
   out.clear();
   out.reserve(30);
@@ -401,7 +403,7 @@ static void makeAttribList(std::vector<int> &out, bool stereoVisual, bool needAl
   out.push_back(0);
 }
 
-int GHOST_ContextWGL::_choose_pixel_format_arb_1(bool stereoVisual, bool needAlpha)
+ATTR_NO_ASAN int GHOST_ContextWGL::_choose_pixel_format_arb_1(bool stereoVisual, bool needAlpha)
 {
   std::vector<int> iAttributes;
 
@@ -453,7 +455,7 @@ int GHOST_ContextWGL::_choose_pixel_format_arb_1(bool stereoVisual, bool needAlp
   return iPixelFormat;
 }
 
-int GHOST_ContextWGL::choose_pixel_format_arb(bool stereoVisual, bool needAlpha)
+ATTR_NO_ASAN int GHOST_ContextWGL::choose_pixel_format_arb(bool stereoVisual, bool needAlpha)
 {
   int iPixelFormat;
 
@@ -470,7 +472,7 @@ int GHOST_ContextWGL::choose_pixel_format_arb(bool stereoVisual, bool needAlpha)
   return iPixelFormat;
 }
 
-int GHOST_ContextWGL::choose_pixel_format(bool stereoVisual, bool needAlpha)
+ATTR_NO_ASAN int GHOST_ContextWGL::choose_pixel_format(bool stereoVisual, bool needAlpha)
 {
   PIXELFORMATDESCRIPTOR preferredPFD = {
       sizeof(PIXELFORMATDESCRIPTOR), /* size */
@@ -532,7 +534,7 @@ static void reportContextString(const char *name, const char *dummy, const char 
 }
 #endif
 
-GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
+ATTR_NO_ASAN GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 {
   SetLastError(NO_ERROR);
 

@@ -2672,6 +2672,10 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
       BMVert *v = td->val34_verts[j];
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
 
+      if (bm_elem_is_free((BMElem *)v, BM_VERT)) {
+        continue;
+      }
+
       if (mv->flag & DYNVERT_NEED_VALENCE) {
         BKE_pbvh_bmesh_update_valence(pbvh->cd_dyn_vert, (SculptVertRef){.i = (intptr_t)v});
       }

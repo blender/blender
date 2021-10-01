@@ -328,20 +328,8 @@ class UnifiedPaintPanel:
             sd.channels.ensure(ch)
             ch = sd.channels[prop_name]
 
-        if ch.type == "FLOAT":
-            return ch.float_value
-        elif ch.type == "INT":
-            return ch.int_value
-        elif ch.type == "ENUM":
-            return ch.enum_value
-        elif ch.type == "BITMASK":
-            return ch.flags_value
-        elif ch.type == "VEC3":
-            return ch.color3_value
-        elif ch.type == "VEC4":
-            return ch.color4_value
-        elif ch.type == "CURVE":
-            return ch.curve
+        return ch.value
+
 
     @staticmethod
     def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=None, text=None,
@@ -389,20 +377,7 @@ class UnifiedPaintPanel:
 
         row = layout.row(align=True)
 
-        if ch.type == "FLOAT":
-            typeprop = "float_value" if "spacing" in ch.idname else "factor_value"
-        if ch.type == "INT":
-            typeprop = "int_value"
-        elif ch.type == "BOOL":
-            typeprop = "bool_value"
-        elif ch.type == "ENUM":
-            typeprop = "enum_value"
-        elif ch.type == "BITMASK":
-            typeprop = "flags_value"
-        elif ch.type == "VEC3":
-            typeprop = "color3_value"
-        elif ch.type == "VEC4":
-            typeprop = "color4_value"
+        typeprop = "value"
 
         if pressure is None:
             pressure = ch.type not in ["VEC3", "VEC4", "BITMASK", "ENUM", "BOOL"]
@@ -482,7 +457,7 @@ class UnifiedPaintPanel:
                 for j, item in enumerate(finalch.enum_items):
                     row3 = row1 if j % 2 == 0 else row2
 
-                    if item.identifier in finalch.flags_value:
+                    if item.identifier in finalch.value:
                         itemicon = "CHECKBOX_HLT"
                     else:
                         itemicon = "CHECKBOX_DEHLT"
@@ -637,7 +612,7 @@ class UnifiedPaintPanel:
             if ch is not None:
                 print("FOUND CH", ch.idname)
                 prop_owner = ch
-                prop_name = "color3_value"
+                prop_name = "value"
 
         parent.template_color_picker(prop_owner, prop_name, value_slider=value_slider)
 
@@ -1141,7 +1116,7 @@ def brush_settings(layout, context, brush, popover=False):
                 UnifiedPaintPanel.prop_unified(box, context, brush, "use_weighted_smooth")
                 UnifiedPaintPanel.prop_unified(box, context, brush, "preserve_faceset_boundary")
 
-                if brush.channels["preserve_faceset_boundary"].bool_value:
+                if brush.channels["preserve_faceset_boundary"].value:
                     UnifiedPaintPanel.prop_unified(box, context, brush, "autosmooth_fset_slide", slider=True)
 
             if advanced:
@@ -1154,7 +1129,7 @@ def brush_settings(layout, context, brush, popover=False):
                     text="Custom Spacing"
                 )
 
-                if brush.channels["autosmooth_use_spacing"].bool_value:
+                if brush.channels["autosmooth_use_spacing"].value:
                     UnifiedPaintPanel.channel_unified(
                         box,
                         context,
@@ -1217,7 +1192,7 @@ def brush_settings(layout, context, brush, popover=False):
             if advanced:
                 box.prop(brush, "use_custom_topology_rake_spacing", text="Custom Spacing")
 
-                if brush.channels["topology_rake_use_spacing"].bool_value:
+                if brush.channels["topology_rake_use_spacing"].value:
                     UnifiedPaintPanel.prop_unified(
                         box,
                         context,
@@ -1322,11 +1297,11 @@ def brush_settings(layout, context, brush, popover=False):
                 #"""
             else:
                 row = layout.row(heading="Plane Trim")
-                row.prop(brush.channels["use_plane_trim"], "bool_value", text="")
+                row.prop(brush.channels["use_plane_trim"], "value", text="")
 
                 sub = row.row()
-                sub.active = brush.channels["use_plane_trim"].bool_value
-                sub.prop(brush.channels["plane_trim"], "factor_value", slider=True, text="")
+                sub.active = brush.channels["use_plane_trim"].value
+                sub.prop(brush.channels["plane_trim"], "value", slider=True, text="")
 
             layout.separator()
 
@@ -1529,7 +1504,7 @@ def brush_settings(layout, context, brush, popover=False):
             #col.prop(brush, "use_weighted_smooth")
             #col.prop(brush, "preserve_faceset_boundary")
 
-            if brush.channels["preserve_faceset_boundary"].bool_value:
+            if brush.channels["preserve_faceset_boundary"].value:
                 UnifiedPaintPanel.channel_unified(
                     layout,
                     context,

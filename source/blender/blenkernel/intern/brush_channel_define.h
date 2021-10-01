@@ -278,7 +278,7 @@ MAKE_BOOL(original_normal, "Original Normal", "When locked keep using normal of 
 MAKE_BOOL(original_plane, "Original Plane", "When locked keep using the plane origin of surface where stroke was initiated", false)
 MAKE_BOOL(use_weighted_smooth, "Weight By Area", "Weight by face area to get a smoother result", true)
 MAKE_BOOL_EX(preserve_faceset_boundary, "Preserve Faceset Boundary", "Preserve face set boundaries", true, BRUSH_CHANNEL_INHERIT)
-MAKE_BOOL_EX(hard_edge_mode, "Hard Edge Mode", "Forces all brushes into hard edge face set mode (sets face set slide to 0)", false, BRUSH_CHANNEL_INHERIT)
+MAKE_BOOL_EX(hard_edge_mode, "Hard Edge Mode", "Treat face set boundaries as hard edges", false, BRUSH_CHANNEL_INHERIT)
 MAKE_BOOL(grab_silhouette, "Grab Silhouette", "Grabs trying to automask the silhouette of the object", false)
 MAKE_FLOAT_EX_FLAG(dyntopo_detail_percent, "Detail Percent", "Detail Percent", 25.0f, 0.0f, 1000.0f, 0.0f, 1000.0f, false, BRUSH_CHANNEL_INHERIT)
 MAKE_FLOAT_EX_FLAG(dyntopo_detail_range, "Detail Range", "Detail Range", 0.45f, 0.01f, 0.99f, 0.01f, 0.99f, false, BRUSH_CHANNEL_INHERIT)
