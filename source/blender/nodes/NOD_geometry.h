@@ -33,6 +33,7 @@ void register_node_type_geo_legacy_attribute_proximity(void);
 void register_node_type_geo_legacy_attribute_randomize(void);
 void register_node_type_geo_legacy_material_assign(void);
 void register_node_type_geo_legacy_select_by_material(void);
+void register_node_type_geo_legacy_curve_spline_type(void);
 void register_node_type_geo_legacy_curve_reverse(void);
 void register_node_type_geo_legacy_curve_subdivide(void);
 

@@ -335,6 +335,7 @@ DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_QUADRILATERAL, def_geo_curve_prim
 DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_SPIRAL, 0, "CURVE_PRIMITIVE_SPIRAL", CurveSpiral, "Curve Spiral", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_STAR, 0, "CURVE_PRIMITIVE_STAR", CurveStar, "Star", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_RESAMPLE, def_geo_curve_resample, "CURVE_RESAMPLE", CurveResample, "Resample Curve", "")
+DefNode(GeometryNode, GEO_NODE_CURVE_SPLINE_TYPE, def_geo_curve_spline_type, "CURVE_SPLINE_TYPE", CurveSplineType, "Set Spline Type", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_REVERSE, 0, "CURVE_REVERSE", CurveReverse, "Curve Reverse", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_SAMPLE, def_geo_curve_sample, "CURVE_SAMPLE", CurveSample, "Curve Sample", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_SUBDIVIDE, 0, "CURVE_SUBDIVIDE", CurveSubdivide, "Curve Subdivide", "")
