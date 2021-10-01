@@ -10280,7 +10280,7 @@ static void def_geo_curve_resample(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
-static void def_geo_curve_subdivide(StructRNA *srna)
+static void def_geo_legacy_curve_subdivide(StructRNA *srna)
 {
   PropertyRNA *prop;
 

@@ -209,6 +209,7 @@ set(SRC
   geometry/nodes/node_geo_curve_resample.cc
   geometry/nodes/node_geo_curve_reverse.cc
   geometry/nodes/node_geo_curve_sample.cc
+  geometry/nodes/node_geo_curve_subdivide.cc
   geometry/nodes/node_geo_curve_to_mesh.cc
   geometry/nodes/node_geo_curve_trim.cc
   geometry/nodes/node_geo_distribute_points_on_faces.cc
