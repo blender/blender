@@ -24,6 +24,11 @@
 namespace blender::compositor {
 
 class TranslateOperation : public MultiThreadedOperation {
+ protected:
+  static constexpr int IMAGE_INPUT_INDEX = 0;
+  static constexpr int X_INPUT_INDEX = 1;
+  static constexpr int Y_INPUT_INDEX = 2;
+
  private:
   SocketReader *m_inputOperation;
   SocketReader *m_inputXOperation;
@@ -33,12 +38,14 @@ class TranslateOperation : public MultiThreadedOperation {
   bool m_isDeltaSet;
   float m_factorX;
   float m_factorY;
+
+ protected:
   MemoryBufferExtend x_extend_mode_;
   MemoryBufferExtend y_extend_mode_;
 
  public:
   TranslateOperation();
-  TranslateOperation(DataType data_type);
+  TranslateOperation(DataType data_type, ResizeMode mode = ResizeMode::Center);
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
@@ -67,16 +74,8 @@ class TranslateOperation : public MultiThreadedOperation {
         this->m_deltaY = tempDelta[0];
       }
       else {
-        this->m_deltaX = 0;
-        NodeOperation *x_op = getInputOperation(1);
-        if (x_op->get_flags().is_constant_operation) {
-          this->m_deltaX = ((ConstantOperation *)x_op)->get_constant_elem()[0];
-        }
-        this->m_deltaY = 0;
-        NodeOperation *y_op = getInputOperation(2);
-        if (y_op->get_flags().is_constant_operation) {
-          this->m_deltaY = ((ConstantOperation *)y_op)->get_constant_elem()[0];
-        }
+        m_deltaX = get_input_operation(X_INPUT_INDEX)->get_constant_value_default(0.0f);
+        m_deltaY = get_input_operation(Y_INPUT_INDEX)->get_constant_value_default(0.0f);
       }
 
       this->m_isDeltaSet = true;
@@ -91,6 +90,12 @@ class TranslateOperation : public MultiThreadedOperation {
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;
+};
+
+class TranslateCanvasOperation : public TranslateOperation {
+ public:
+  TranslateCanvasOperation();
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 };
 
 }  // namespace blender::compositor

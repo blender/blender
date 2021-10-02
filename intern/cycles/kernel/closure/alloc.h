@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#pragma once
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device ShaderClosure *closure_alloc(ShaderData *sd, int size, ClosureType type, float3 weight)

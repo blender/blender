@@ -18,16 +18,21 @@
  * \ingroup bli
  */
 
+#include "BLI_assert.h"
 #include "BLI_uuid.h"
 
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <random>
+#include <sstream>
+#include <string>
+#include <tuple>
 
 /* Ensure the UUID struct doesn't have any padding, to be compatible with memcmp(). */
-static_assert(sizeof(UUID) == 16, "expect UUIDs to be 128 bit exactly");
+static_assert(sizeof(bUUID) == 16, "expect UUIDs to be 128 bit exactly");
 
-UUID BLI_uuid_generate_random()
+bUUID BLI_uuid_generate_random()
 {
   static std::mt19937_64 rng = []() {
     std::mt19937_64 rng;
@@ -37,13 +42,25 @@ UUID BLI_uuid_generate_random()
     static_assert(std::mt19937_64::max() == 0xffffffffffffffffLL);
 
     struct timespec ts;
+#ifdef __APPLE__
+    /* `timespec_get()` is only available on macOS 10.15+, so until that's the minimum version
+     * supported by Blender, use another function to get the timespec.
+     *
+     * `clock_gettime()` is only available on POSIX, so not on Windows; Linux uses the newer C++11
+     * function `timespec_get()` as well. */
+    clock_gettime(CLOCK_REALTIME, &ts);
+#else
     timespec_get(&ts, TIME_UTC);
-    rng.seed(ts.tv_nsec);
+#endif
+    /* XOR the nanosecond and second fields, just in case the clock only has seconds resolution. */
+    uint64_t seed = ts.tv_nsec;
+    seed ^= ts.tv_sec;
+    rng.seed(seed);
 
     return rng;
   }();
 
-  UUID uuid;
+  bUUID uuid;
 
   /* RFC4122 suggests setting certain bits to a fixed value, and then randomizing the remaining
    * bits. The opposite is easier to implement, though, so that's what's done here. */
@@ -64,12 +81,23 @@ UUID BLI_uuid_generate_random()
   return uuid;
 }
 
-bool BLI_uuid_equal(const UUID uuid1, const UUID uuid2)
+bUUID BLI_uuid_nil(void)
+{
+  const bUUID nil = {0, 0, 0, 0, 0, 0};
+  return nil;
+}
+
+bool BLI_uuid_is_nil(bUUID uuid)
+{
+  return BLI_uuid_equal(BLI_uuid_nil(), uuid);
+}
+
+bool BLI_uuid_equal(const bUUID uuid1, const bUUID uuid2)
 {
   return std::memcmp(&uuid1, &uuid2, sizeof(uuid1)) == 0;
 }
 
-void BLI_uuid_format(char *buffer, const UUID uuid)
+void BLI_uuid_format(char *buffer, const bUUID uuid)
 {
   std::sprintf(buffer,
                "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
@@ -86,7 +114,7 @@ void BLI_uuid_format(char *buffer, const UUID uuid)
                uuid.node[5]);
 }
 
-bool BLI_uuid_parse_string(UUID *uuid, const char *buffer)
+bool BLI_uuid_parse_string(bUUID *uuid, const char *buffer)
 {
   const int num_fields_parsed = std::sscanf(
       buffer,
@@ -105,10 +133,79 @@ bool BLI_uuid_parse_string(UUID *uuid, const char *buffer)
   return num_fields_parsed == 11;
 }
 
-std::ostream &operator<<(std::ostream &stream, UUID uuid)
+std::ostream &operator<<(std::ostream &stream, bUUID uuid)
 {
   std::string buffer(36, '\0');
   BLI_uuid_format(buffer.data(), uuid);
   stream << buffer;
   return stream;
 }
+
+namespace blender {
+
+bUUID::bUUID(const std::initializer_list<uint32_t> field_values)
+{
+  BLI_assert_msg(field_values.size() == 11, "bUUID requires 5 regular fields + 6 `node` values");
+
+  const auto *field_iter = field_values.begin();
+
+  this->time_low = *field_iter++;
+  this->time_mid = static_cast<uint16_t>(*field_iter++);
+  this->time_hi_and_version = static_cast<uint16_t>(*field_iter++);
+  this->clock_seq_hi_and_reserved = static_cast<uint8_t>(*field_iter++);
+  this->clock_seq_low = static_cast<uint8_t>(*field_iter++);
+
+  std::copy(field_iter, field_values.end(), this->node);
+}
+
+bUUID::bUUID(const std::string &string_formatted_uuid)
+{
+  const bool parsed_ok = BLI_uuid_parse_string(this, string_formatted_uuid.c_str());
+  if (!parsed_ok) {
+    std::stringstream ss;
+    ss << "invalid UUID string " << string_formatted_uuid;
+    throw std::runtime_error(ss.str());
+  }
+}
+
+bUUID::bUUID(const ::bUUID &struct_uuid)
+{
+  *(static_cast<::bUUID *>(this)) = struct_uuid;
+}
+
+uint64_t bUUID::hash() const
+{
+  /* Convert the struct into two 64-bit numbers, and XOR them to get the hash. */
+  const uint64_t *uuid_as_int64 = reinterpret_cast<const uint64_t *>(this);
+  return uuid_as_int64[0] ^ uuid_as_int64[1];
+}
+
+bool operator==(const bUUID uuid1, const bUUID uuid2)
+{
+  return BLI_uuid_equal(uuid1, uuid2);
+}
+
+bool operator!=(const bUUID uuid1, const bUUID uuid2)
+{
+  return !(uuid1 == uuid2);
+}
+
+bool operator<(const bUUID uuid1, const bUUID uuid2)
+{
+  auto simple_fields1 = std::tie(uuid1.time_low,
+                                 uuid1.time_mid,
+                                 uuid1.time_hi_and_version,
+                                 uuid1.clock_seq_hi_and_reserved,
+                                 uuid1.clock_seq_low);
+  auto simple_fields2 = std::tie(uuid2.time_low,
+                                 uuid2.time_mid,
+                                 uuid2.time_hi_and_version,
+                                 uuid2.clock_seq_hi_and_reserved,
+                                 uuid2.clock_seq_low);
+  if (simple_fields1 == simple_fields2) {
+    return std::memcmp(uuid1.node, uuid2.node, sizeof(uuid1.node)) < 0;
+  }
+  return simple_fields1 < simple_fields2;
+}
+
+}  // namespace blender

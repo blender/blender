@@ -54,8 +54,7 @@ class MaskOperation : public MultiThreadedOperation {
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
    */
-  void determineResolution(unsigned int resolution[2],
-                           unsigned int preferredResolution[2]) override;
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
  public:
   MaskOperation();

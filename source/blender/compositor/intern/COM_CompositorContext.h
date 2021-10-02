@@ -288,6 +288,8 @@ class CompositorContext {
     return m_rd->size * 0.01f;
   }
 
+  Size2f get_render_size() const;
+
   /**
    * Get active execution model.
    */

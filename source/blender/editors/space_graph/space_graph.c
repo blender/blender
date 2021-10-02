@@ -237,29 +237,27 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
     v2d->tot.xmax += 10.0f;
   }
 
-  if (((sipo->flag & SIPO_NODRAWCURSOR) == 0) || (sipo->mode == SIPO_MODE_DRIVERS)) {
+  if (((sipo->flag & SIPO_NODRAWCURSOR) == 0)) {
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
     /* horizontal component of value-cursor (value line before the current frame line) */
-    if ((sipo->flag & SIPO_NODRAWCURSOR) == 0) {
-      float y = sipo->cursorVal;
+    float y = sipo->cursorVal;
 
-      /* Draw a green line to indicate the cursor value */
-      immUniformThemeColorShadeAlpha(TH_CFRAME, -10, -50);
-      GPU_blend(GPU_BLEND_ALPHA);
-      GPU_line_width(2.0);
+    /* Draw a line to indicate the cursor value. */
+    immUniformThemeColorShadeAlpha(TH_CFRAME, -10, -50);
+    GPU_blend(GPU_BLEND_ALPHA);
+    GPU_line_width(2.0);
 
-      immBegin(GPU_PRIM_LINES, 2);
-      immVertex2f(pos, v2d->cur.xmin, y);
-      immVertex2f(pos, v2d->cur.xmax, y);
-      immEnd();
+    immBegin(GPU_PRIM_LINES, 2);
+    immVertex2f(pos, v2d->cur.xmin, y);
+    immVertex2f(pos, v2d->cur.xmax, y);
+    immEnd();
 
-      GPU_blend(GPU_BLEND_NONE);
-    }
+    GPU_blend(GPU_BLEND_NONE);
 
-    /* current frame or vertical component of vertical component of the cursor */
+    /* Vertical component of of the cursor. */
     if (sipo->mode == SIPO_MODE_DRIVERS) {
       /* cursor x-value */
       float x = sipo->cursorTime;
@@ -311,12 +309,17 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   const SpaceGraph *sipo = CTX_wm_space_graph(C);
+
+  /* Driver Editor's X axis is not time. */
+  if (sipo->mode == SIPO_MODE_DRIVERS) {
+    return;
+  }
+
   const Scene *scene = CTX_data_scene(C);
-  const bool draw_vert_line = sipo->mode != SIPO_MODE_DRIVERS;
   View2D *v2d = &region->v2d;
 
   /* scrubbing region */
-  ED_time_scrub_draw_current_frame(region, scene, sipo->flag & SIPO_DRAWTIME, draw_vert_line);
+  ED_time_scrub_draw_current_frame(region, scene, sipo->flag & SIPO_DRAWTIME);
 
   /* scrollers */
   /* FIXME: args for scrollers depend on the type of data being shown. */

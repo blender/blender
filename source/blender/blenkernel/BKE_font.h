@@ -85,6 +85,15 @@ bool BKE_vfont_to_curve_ex(struct Object *ob,
                            struct CharTrans **r_chartransdata);
 bool BKE_vfont_to_curve_nubase(struct Object *ob, int mode, struct ListBase *r_nubase);
 bool BKE_vfont_to_curve(struct Object *ob, int mode);
+void BKE_vfont_build_char(struct Curve *cu,
+                          struct ListBase *nubase,
+                          unsigned int character,
+                          struct CharInfo *info,
+                          float ofsx,
+                          float ofsy,
+                          float rot,
+                          int charidx,
+                          const float fsize);
 
 int BKE_vfont_select_get(struct Object *ob, int *r_start, int *r_end);
 void BKE_vfont_select_clamp(struct Object *ob);

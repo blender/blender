@@ -24,6 +24,8 @@
  * language governing permissions and limitations under the Apache License.
  */
 
+#pragma once
+
 CCL_NAMESPACE_BEGIN
 
 typedef struct PatchHandle {
@@ -60,7 +62,7 @@ ccl_device_inline int patch_map_resolve_quadrant(float median, float *u, float *
 /* retrieve PatchHandle from patch coords */
 
 ccl_device_inline PatchHandle
-patch_map_find_patch(KernelGlobals *kg, int object, int patch, float u, float v)
+patch_map_find_patch(const KernelGlobals *kg, int object, int patch, float u, float v)
 {
   PatchHandle handle;
 
@@ -191,7 +193,7 @@ ccl_device_inline void patch_eval_normalize_coords(uint patch_bits, float *u, fl
 
 /* retrieve patch control indices */
 
-ccl_device_inline int patch_eval_indices(KernelGlobals *kg,
+ccl_device_inline int patch_eval_indices(const KernelGlobals *kg,
                                          const PatchHandle *handle,
                                          int channel,
                                          int indices[PATCH_MAX_CONTROL_VERTS])
@@ -208,7 +210,7 @@ ccl_device_inline int patch_eval_indices(KernelGlobals *kg,
 
 /* evaluate patch basis functions */
 
-ccl_device_inline void patch_eval_basis(KernelGlobals *kg,
+ccl_device_inline void patch_eval_basis(const KernelGlobals *kg,
                                         const PatchHandle *handle,
                                         float u,
                                         float v,
@@ -247,7 +249,7 @@ ccl_device_inline void patch_eval_basis(KernelGlobals *kg,
 
 /* generic function for evaluating indices and weights from patch coords */
 
-ccl_device_inline int patch_eval_control_verts(KernelGlobals *kg,
+ccl_device_inline int patch_eval_control_verts(const KernelGlobals *kg,
                                                int object,
                                                int patch,
                                                float u,
@@ -269,7 +271,7 @@ ccl_device_inline int patch_eval_control_verts(KernelGlobals *kg,
 
 /* functions for evaluating attributes on patches */
 
-ccl_device float patch_eval_float(KernelGlobals *kg,
+ccl_device float patch_eval_float(const KernelGlobals *kg,
                                   const ShaderData *sd,
                                   int offset,
                                   int patch,
@@ -306,7 +308,7 @@ ccl_device float patch_eval_float(KernelGlobals *kg,
   return val;
 }
 
-ccl_device float2 patch_eval_float2(KernelGlobals *kg,
+ccl_device float2 patch_eval_float2(const KernelGlobals *kg,
                                     const ShaderData *sd,
                                     int offset,
                                     int patch,
@@ -343,7 +345,7 @@ ccl_device float2 patch_eval_float2(KernelGlobals *kg,
   return val;
 }
 
-ccl_device float3 patch_eval_float3(KernelGlobals *kg,
+ccl_device float3 patch_eval_float3(const KernelGlobals *kg,
                                     const ShaderData *sd,
                                     int offset,
                                     int patch,
@@ -380,7 +382,7 @@ ccl_device float3 patch_eval_float3(KernelGlobals *kg,
   return val;
 }
 
-ccl_device float4 patch_eval_float4(KernelGlobals *kg,
+ccl_device float4 patch_eval_float4(const KernelGlobals *kg,
                                     const ShaderData *sd,
                                     int offset,
                                     int patch,
@@ -417,7 +419,7 @@ ccl_device float4 patch_eval_float4(KernelGlobals *kg,
   return val;
 }
 
-ccl_device float4 patch_eval_uchar4(KernelGlobals *kg,
+ccl_device float4 patch_eval_uchar4(const KernelGlobals *kg,
                                     const ShaderData *sd,
                                     int offset,
                                     int patch,

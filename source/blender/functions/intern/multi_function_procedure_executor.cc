@@ -1022,7 +1022,13 @@ static void execute_call_instruction(const MFCallInstruction &instruction,
       }
     }
 
-    fn.call(IndexRange(1), params, context);
+    try {
+      fn.call(IndexRange(1), params, context);
+    }
+    catch (...) {
+      /* Multi-functions must not throw exceptions. */
+      BLI_assert_unreachable();
+    }
   }
   else {
     MFParamsBuilder params(fn, &mask);
@@ -1038,7 +1044,13 @@ static void execute_call_instruction(const MFCallInstruction &instruction,
       }
     }
 
-    fn.call(mask, params, context);
+    try {
+      fn.call(mask, params, context);
+    }
+    catch (...) {
+      /* Multi-functions must not throw exceptions. */
+      BLI_assert_unreachable();
+    }
   }
 }
 

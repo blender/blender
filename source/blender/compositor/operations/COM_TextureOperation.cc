@@ -72,34 +72,20 @@ void TextureBaseOperation::deinitExecution()
   NodeOperation::deinitExecution();
 }
 
-void TextureBaseOperation::determineResolution(unsigned int resolution[2],
-                                               unsigned int preferredResolution[2])
+void TextureBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  switch (execution_model_) {
-    case eExecutionModel::Tiled: {
-      if (preferredResolution[0] == 0 || preferredResolution[1] == 0) {
-        int width = this->m_rd->xsch * this->m_rd->size / 100;
-        int height = this->m_rd->ysch * this->m_rd->size / 100;
-        resolution[0] = width;
-        resolution[1] = height;
-      }
-      else {
-        resolution[0] = preferredResolution[0];
-        resolution[1] = preferredResolution[1];
-      }
-      break;
-    }
-    case eExecutionModel::FullFrame: {
-      /* Determine inputs resolutions. */
-      unsigned int temp[2];
-      NodeOperation::determineResolution(temp, preferredResolution);
+  r_area = preferred_area;
+  if (BLI_rcti_is_empty(&preferred_area)) {
+    int width = this->m_rd->xsch * this->m_rd->size / 100;
+    int height = this->m_rd->ysch * this->m_rd->size / 100;
+    r_area.xmax = preferred_area.xmin + width;
+    r_area.ymax = preferred_area.ymin + height;
+  }
 
-      /* We don't use inputs resolutions because they are only used as parameters, not image data.
-       */
-      resolution[0] = preferredResolution[0];
-      resolution[1] = preferredResolution[1];
-      break;
-    }
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    /* Determine inputs. */
+    rcti temp;
+    NodeOperation::determine_canvas(r_area, temp);
   }
 }
 

@@ -345,7 +345,7 @@ IDTypeInfo IDType_ID_IM = {
     .name = "Image",
     .name_plural = "images",
     .translation_context = BLT_I18NCONTEXT_ID_IMAGE,
-    .flags = IDTYPE_FLAGS_NO_ANIMDATA,
+    .flags = IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = image_init_data,
     .copy_data = image_copy_data,

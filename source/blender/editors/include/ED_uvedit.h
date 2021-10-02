@@ -237,6 +237,18 @@ void ED_image_draw_cursor(struct ARegion *region, const float cursor[2]);
 void ED_uvedit_buttons_register(struct ARegionType *art);
 
 /* uvedit_islands.c */
+
+struct UVMapUDIM_Params {
+  const struct Image *image;
+  /** Copied from #SpaceImage.tile_grid_shape */
+  int grid_shape[2];
+  bool use_target_udim;
+  int target_udim;
+};
+bool ED_uvedit_udim_params_from_image_space(const struct SpaceImage *sima,
+                                            bool use_active,
+                                            struct UVMapUDIM_Params *udim_params);
+
 struct UVPackIsland_Params {
   uint rotate : 1;
   /** -1 not to align to axis, otherwise 0,1 for X,Y. */
@@ -246,9 +258,14 @@ struct UVPackIsland_Params {
   uint use_seams : 1;
   uint correct_aspect : 1;
 };
+
+bool uv_coords_isect_udim(const struct Image *image,
+                          const int udim_grid[2],
+                          const float coords[2]);
 void ED_uvedit_pack_islands_multi(const struct Scene *scene,
                                   Object **objects,
                                   const uint objects_len,
+                                  const struct UVMapUDIM_Params *udim_params,
                                   const struct UVPackIsland_Params *params);
 
 #ifdef __cplusplus

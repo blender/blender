@@ -16,15 +16,17 @@
 
 #include "render/denoising.h"
 
-#include "kernel/filter/filter_defines.h"
+#if 0
 
-#include "util/util_foreach.h"
-#include "util/util_map.h"
-#include "util/util_system.h"
-#include "util/util_task.h"
-#include "util/util_time.h"
+#  include "kernel/filter/filter_defines.h"
 
-#include <OpenImageIO/filesystem.h>
+#  include "util/util_foreach.h"
+#  include "util/util_map.h"
+#  include "util/util_system.h"
+#  include "util/util_task.h"
+#  include "util/util_time.h"
+
+#  include <OpenImageIO/filesystem.h>
 
 CCL_NAMESPACE_BEGIN
 
@@ -225,7 +227,7 @@ bool DenoiseImageLayer::match_channels(int neighbor,
 /* Denoise Task */
 
 DenoiseTask::DenoiseTask(Device *device,
-                         Denoiser *denoiser,
+                         DenoiserPipeline *denoiser,
                          int frame,
                          const vector<int> &neighbor_frames)
     : denoiser(denoiser),
@@ -386,7 +388,6 @@ void DenoiseTask::create_task(DeviceTask &task)
   task.denoising = denoiser->params;
   task.denoising.type = DENOISER_NLM;
   task.denoising.use = true;
-  task.denoising.store_passes = false;
   task.denoising_from_render = false;
 
   task.denoising_frames.resize(neighbor_frames.size());
@@ -863,7 +864,7 @@ bool DenoiseImage::save_output(const string &out_filepath, string &error)
 
 /* File pattern handling and outer loop over frames */
 
-Denoiser::Denoiser(DeviceInfo &device_info)
+DenoiserPipeline::DenoiserPipeline(DeviceInfo &device_info)
 {
   samples_override = 0;
   tile_size = make_int2(64, 64);
@@ -876,18 +877,16 @@ Denoiser::Denoiser(DeviceInfo &device_info)
   /* Initialize device. */
   device = Device::create(device_info, stats, profiler, true);
 
-  DeviceRequestedFeatures req;
-  req.use_denoising = true;
-  device->load_kernels(req);
+  device->load_kernels(KERNEL_FEATURE_DENOISING);
 }
 
-Denoiser::~Denoiser()
+DenoiserPipeline::~DenoiserPipeline()
 {
   delete device;
   TaskScheduler::exit();
 }
 
-bool Denoiser::run()
+bool DenoiserPipeline::run()
 {
   assert(input.size() == output.size());
 
@@ -931,3 +930,5 @@ bool Denoiser::run()
 }
 
 CCL_NAMESPACE_END
+
+#endif

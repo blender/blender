@@ -1001,8 +1001,6 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
   gps->dvert = NULL;
 
-  /* drawing batch cache is dirty now */
-  gpencil_update_cache(p->gpd);
   /* set pointer to first non-initialized point */
   pt = gps->points + (gps->totpoints - totelem);
   if (gps->dvert != NULL) {

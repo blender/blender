@@ -120,7 +120,10 @@ typedef struct bNodeSocket {
   /* XXX deprecated, kept for forward compatibility */
   short stack_type DNA_DEPRECATED;
   char display_shape;
-  char _pad[1];
+
+  /* #AttributeDomain used when the geometry nodes modifier creates an attribute for a group
+   * output. */
+  char attribute_domain;
   /* Runtime-only cache of the number of input links, for multi-input sockets. */
   short total_inputs;
 
@@ -395,8 +398,8 @@ typedef struct bNode {
 /* XXX NODE_UPDATE is a generic update flag. More fine-grained updates
  * might be used in the future, but currently all work the same way.
  */
-#define NODE_UPDATE 0xFFFF /* generic update flag (includes all others) */
-#define NODE_UPDATE_ID 1 /* associated id data block has changed */
+#define NODE_UPDATE 0xFFFF     /* generic update flag (includes all others) */
+#define NODE_UPDATE_ID 1       /* associated id data block has changed */
 #define NODE_UPDATE_OPERATOR 2 /* node update triggered from update operator */
 
 /* Unique hash key for identifying node instances
@@ -442,9 +445,10 @@ typedef struct bNodeLink {
 /* link->flag */
 #define NODE_LINKFLAG_HILITE (1 << 0) /* link has been successfully validated */
 #define NODE_LINK_VALID (1 << 1)
-#define NODE_LINK_TEST (1 << 2) /* free test flag, undefined */
+#define NODE_LINK_TEST (1 << 2)           /* free test flag, undefined */
 #define NODE_LINK_TEMP_HIGHLIGHT (1 << 3) /* Link is highlighted for picking. */
-#define NODE_LINK_MUTED (1 << 4) /* Link is muted. */
+#define NODE_LINK_MUTED (1 << 4)          /* Link is muted. */
+#define NODE_LINK_DRAGGED (1 << 5)        /* Node link is being dragged by the user. */
 
 /* tree->edit_quality/tree->render_quality */
 #define NTREE_QUALITY_HIGH 0
@@ -458,6 +462,16 @@ typedef struct bNodeLink {
 #define NTREE_CHUNKSIZE_256 256
 #define NTREE_CHUNKSIZE_512 512
 #define NTREE_CHUNKSIZE_1024 1024
+
+/** Workaround to forward-declare C++ type in C header. */
+#ifdef __cplusplus
+namespace blender::nodes {
+struct FieldInferencingInterface;
+}
+using FieldInferencingInterfaceHandle = blender::nodes::FieldInferencingInterface;
+#else
+typedef struct FieldInferencingInterfaceHandle FieldInferencingInterfaceHandle;
+#endif
 
 /* the basis for a Node tree, all links and nodes reside internal here */
 /* only re-usable node trees are in the library though,
@@ -481,6 +495,8 @@ typedef struct bNodeTree {
   float view_center[2];
 
   ListBase nodes, links;
+  /** Information about how inputs and outputs of the node group interact with fields. */
+  FieldInferencingInterfaceHandle *field_inferencing_interface;
 
   /** Set init on fileread. */
   int type, init;
@@ -558,11 +574,11 @@ typedef struct bNodeTree {
 #define NTREE_TYPE_INIT 1
 
 /* ntree->flag */
-#define NTREE_DS_EXPAND (1 << 0) /* for animation editors */
-#define NTREE_COM_OPENCL (1 << 1) /* use opencl */
-#define NTREE_TWO_PASS (1 << 2) /* two pass */
+#define NTREE_DS_EXPAND (1 << 0)            /* for animation editors */
+#define NTREE_COM_OPENCL (1 << 1)           /* use opencl */
+#define NTREE_TWO_PASS (1 << 2)             /* two pass */
 #define NTREE_COM_GROUPNODE_BUFFER (1 << 3) /* use groupnode buffers */
-#define NTREE_VIEWER_BORDER (1 << 4) /* use a border for viewer nodes */
+#define NTREE_VIEWER_BORDER (1 << 4)        /* use a border for viewer nodes */
 /* NOTE: DEPRECATED, use (id->tag & LIB_TAG_LOCALIZED) instead. */
 
 /* tree is localized copy, free when deleting node groups */
@@ -575,6 +591,9 @@ typedef enum eNodeTreeUpdate {
   NTREE_UPDATE_NODES = (1 << 1),     /* nodes or sockets have been added or removed */
   NTREE_UPDATE_GROUP_IN = (1 << 4),  /* group inputs have changed */
   NTREE_UPDATE_GROUP_OUT = (1 << 5), /* group outputs have changed */
+  /* The field interface has changed. So e.g. an output that was always a field before is not
+   * anymore. This implies that the field type inferencing has to be done again. */
+  NTREE_UPDATE_FIELD_INFERENCING = (1 << 6),
   /* group has changed (generic flag including all other group flags) */
   NTREE_UPDATE_GROUP = (NTREE_UPDATE_GROUP_IN | NTREE_UPDATE_GROUP_OUT),
 } eNodeTreeUpdate;
@@ -836,7 +855,7 @@ typedef struct NodeVertexCol {
   char name[64];
 } NodeVertexCol;
 
-/* qdn: Defocus blur node */
+/** Defocus blur node. */
 typedef struct NodeDefocus {
   char bktype, _pad0, preview, gamco;
   short samples, no_zbuf;
@@ -852,7 +871,7 @@ typedef struct NodeScriptDict {
   void *node;
 } NodeScriptDict;
 
-/* qdn: glare node */
+/** glare node. */
 typedef struct NodeGlare {
   char quality, type, iter;
   /* XXX angle is only kept for backward/forward compatibility,
@@ -863,14 +882,14 @@ typedef struct NodeGlare {
   char _pad1[4];
 } NodeGlare;
 
-/* qdn: tonemap node */
+/** Tonemap node. */
 typedef struct NodeTonemap {
   float key, offset, gamma;
   float f, m, a, c;
   int type;
 } NodeTonemap;
 
-/* qdn: lens distortion node */
+/** Lens distortion node. */
 typedef struct NodeLensDist {
   short jit, proj, fit;
   char _pad[2];
@@ -1032,6 +1051,11 @@ typedef struct NodeShaderTexPointDensity {
   char _pad2[4];
 } NodeShaderTexPointDensity;
 
+typedef struct NodeShaderPrincipled {
+  char use_subsurface_auto_radius;
+  char _pad[3];
+} NodeShaderPrincipled;
+
 /* TEX_output */
 typedef struct TexNodeOutput {
   char name[64];
@@ -1167,6 +1191,7 @@ typedef struct NodeCryptomatte {
 
 typedef struct NodeDenoise {
   char hdr;
+  char prefilter;
 } NodeDenoise;
 
 typedef struct NodeAttributeClamp {
@@ -1215,6 +1240,11 @@ typedef struct NodeAttributeMix {
   uint8_t input_type_a;
   uint8_t input_type_b;
 } NodeAttributeMix;
+
+typedef struct NodeRandomValue {
+  /* CustomDataType. */
+  uint8_t data_type;
+} NodeRandomValue;
 
 typedef struct NodeAttributeRandomize {
   /* CustomDataType. */
@@ -1332,6 +1362,11 @@ typedef struct NodeGeometryAttributeProximity {
   uint8_t target_geometry_element;
 } NodeGeometryAttributeProximity;
 
+typedef struct NodeGeometryProximity {
+  /* GeometryNodeProximityTargetType. */
+  uint8_t target_element;
+} NodeGeometryProximity;
+
 typedef struct NodeGeometryVolumeToMesh {
   /* VolumeToMeshResolutionMode */
   uint8_t resolution_mode;
@@ -1432,7 +1467,7 @@ typedef struct NodeGeometryCurvePrimitiveQuad {
 } NodeGeometryCurvePrimitiveQuad;
 
 typedef struct NodeGeometryCurveResample {
-  /* GeometryNodeCurveSampleMode. */
+  /* GeometryNodeCurveResampleMode. */
   uint8_t mode;
 } NodeGeometryCurveResample;
 
@@ -1441,15 +1476,25 @@ typedef struct NodeGeometryCurveSubdivide {
   uint8_t cuts_type;
 } NodeGeometryCurveSubdivide;
 
+typedef struct NodeGeometryCurveFillet {
+  /* GeometryNodeCurveFilletMode. */
+  uint8_t mode;
+} NodeGeometryCurveFillet;
+
 typedef struct NodeGeometryCurveTrim {
-  /* GeometryNodeCurveInterpolateMode. */
+  /* GeometryNodeCurveSampleMode. */
   uint8_t mode;
 } NodeGeometryCurveTrim;
 
 typedef struct NodeGeometryCurveToPoints {
-  /* GeometryNodeCurveSampleMode. */
+  /* GeometryNodeCurveResampleMode. */
   uint8_t mode;
 } NodeGeometryCurveToPoints;
+
+typedef struct NodeGeometryCurveSample {
+  /* GeometryNodeCurveSampleMode. */
+  uint8_t mode;
+} NodeGeometryCurveSample;
 
 typedef struct NodeGeometryAttributeTransfer {
   /* AttributeDomain. */
@@ -1471,12 +1516,27 @@ typedef struct NodeGeometryCurveFill {
   uint8_t mode;
 } NodeGeometryCurveFill;
 
+typedef struct NodeGeometryMeshToPoints {
+  /* GeometryNodeMeshToPointsMode */
+  uint8_t mode;
+} NodeGeometryMeshToPoints;
+
 typedef struct NodeGeometryAttributeCapture {
   /* CustomDataType. */
   int8_t data_type;
   /* AttributeDomain. */
   int8_t domain;
 } NodeGeometryAttributeCapture;
+
+typedef struct NodeGeometryStringToCurves {
+  /* GeometryNodeStringToCurvesOverflowMode */
+  uint8_t overflow;
+  /* GeometryNodeStringToCurvesAlignXMode */
+  uint8_t align_x;
+  /* GeometryNodeStringToCurvesAlignYMode */
+  uint8_t align_y;
+  char _pad[1];
+} NodeGeometryStringToCurves;
 
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
@@ -1490,7 +1550,7 @@ typedef struct NodeGeometryAttributeCapture {
 #define NODE_IES_EXTERNAL 1
 
 /* frame node flags */
-#define NODE_FRAME_SHRINK 1 /* keep the bounding box minimal */
+#define NODE_FRAME_SHRINK 1     /* keep the bounding box minimal */
 #define NODE_FRAME_RESIZEABLE 2 /* test flag, if frame can be resized by user */
 
 /* proxy node flags */
@@ -1797,11 +1857,12 @@ enum {
 enum {
 #ifdef DNA_DEPRECATED_ALLOW
   SHD_SUBSURFACE_COMPATIBLE = 0, /* Deprecated */
-#endif
   SHD_SUBSURFACE_CUBIC = 1,
   SHD_SUBSURFACE_GAUSSIAN = 2,
-  SHD_SUBSURFACE_BURLEY = 3,
-  SHD_SUBSURFACE_RANDOM_WALK = 4,
+#endif
+  SHD_SUBSURFACE_DIFFUSION = 3,
+  SHD_SUBSURFACE_RANDOM_WALK_FIXED_RADIUS = 4,
+  SHD_SUBSURFACE_RANDOM_WALK = 5,
 };
 
 /* blur node */
@@ -1839,6 +1900,14 @@ typedef enum CMPNodeSetAlphaMode {
   CMP_NODE_SETALPHA_MODE_APPLY = 0,
   CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA = 1,
 } CMPNodeSetAlphaMode;
+
+/* Denoise Node. */
+/* `NodeDenoise.prefilter` */
+typedef enum CMPNodeDenoisePrefilter {
+  CMP_NODE_DENOISE_PREFILTER_FAST = 0,
+  CMP_NODE_DENOISE_PREFILTER_NONE = 1,
+  CMP_NODE_DENOISE_PREFILTER_ACCURATE = 2
+} CMPNodeDenoisePrefilter;
 
 #define CMP_NODE_PLANETRACKDEFORM_MBLUR_SAMPLES_MAX 64
 
@@ -1881,6 +1950,12 @@ typedef enum GeometryNodeAttributeProximityTargetType {
   GEO_NODE_PROXIMITY_TARGET_EDGES = 1,
   GEO_NODE_PROXIMITY_TARGET_FACES = 2,
 } GeometryNodeAttributeProximityTargetType;
+
+typedef enum GeometryNodeProximityTargetType {
+  GEO_NODE_PROX_TARGET_POINTS = 0,
+  GEO_NODE_PROX_TARGET_EDGES = 1,
+  GEO_NODE_PROX_TARGET_FACES = 2,
+} GeometryNodeProximityTargetType;
 
 typedef enum GeometryNodeBooleanOperation {
   GEO_NODE_BOOLEAN_INTERSECT = 0,
@@ -1946,6 +2021,11 @@ typedef enum GeometryNodePointDistributeMode {
   GEO_NODE_POINT_DISTRIBUTE_RANDOM = 0,
   GEO_NODE_POINT_DISTRIBUTE_POISSON = 1,
 } GeometryNodePointDistributeMode;
+
+typedef enum GeometryNodeDistributePointsOnFacesMode {
+  GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM = 0,
+  GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON = 1,
+} GeometryNodeDistributePointsOnFacesMode;
 
 typedef enum GeometryNodeRotatePointsType {
   GEO_NODE_POINT_ROTATE_TYPE_EULER = 0,
@@ -2029,16 +2109,21 @@ typedef enum GeometryNodeCurvePrimitiveBezierSegmentMode {
   GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_OFFSET = 1,
 } GeometryNodeCurvePrimitiveBezierSegmentMode;
 
+typedef enum GeometryNodeCurveResampleMode {
+  GEO_NODE_CURVE_RESAMPLE_COUNT = 0,
+  GEO_NODE_CURVE_RESAMPLE_LENGTH = 1,
+  GEO_NODE_CURVE_RESAMPLE_EVALUATED = 2,
+} GeometryNodeCurveResampleMode;
+
 typedef enum GeometryNodeCurveSampleMode {
-  GEO_NODE_CURVE_SAMPLE_COUNT = 0,
+  GEO_NODE_CURVE_SAMPLE_FACTOR = 0,
   GEO_NODE_CURVE_SAMPLE_LENGTH = 1,
-  GEO_NODE_CURVE_SAMPLE_EVALUATED = 2,
 } GeometryNodeCurveSampleMode;
 
-typedef enum GeometryNodeCurveInterpolateMode {
-  GEO_NODE_CURVE_INTERPOLATE_FACTOR = 0,
-  GEO_NODE_CURVE_INTERPOLATE_LENGTH = 1,
-} GeometryNodeCurveInterpolateMode;
+typedef enum GeometryNodeCurveFilletMode {
+  GEO_NODE_CURVE_FILLET_BEZIER = 0,
+  GEO_NODE_CURVE_FILLET_POLY = 1,
+} GeometryNodeCurveFilletMode;
 
 typedef enum GeometryNodeAttributeTransferMapMode {
   GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,
@@ -2054,6 +2139,35 @@ typedef enum GeometryNodeCurveFillMode {
   GEO_NODE_CURVE_FILL_MODE_TRIANGULATED = 0,
   GEO_NODE_CURVE_FILL_MODE_NGONS = 1,
 } GeometryNodeCurveFillMode;
+
+typedef enum GeometryNodeMeshToPointsMode {
+  GEO_NODE_MESH_TO_POINTS_VERTICES = 0,
+  GEO_NODE_MESH_TO_POINTS_EDGES = 1,
+  GEO_NODE_MESH_TO_POINTS_FACES = 2,
+  GEO_NODE_MESH_TO_POINTS_CORNERS = 3,
+} GeometryNodeMeshToPointsMode;
+
+typedef enum GeometryNodeStringToCurvesOverflowMode {
+  GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW = 0,
+  GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT = 1,
+  GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE = 2,
+} GeometryNodeStringToCurvesOverflowMode;
+
+typedef enum GeometryNodeStringToCurvesAlignXMode {
+  GEO_NODE_STRING_TO_CURVES_ALIGN_X_LEFT = 0,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_X_CENTER = 1,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_X_RIGHT = 2,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_X_JUSTIFY = 3,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_X_FLUSH = 4,
+} GeometryNodeStringToCurvesAlignXMode;
+
+typedef enum GeometryNodeStringToCurvesAlignYMode {
+  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE = 0,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP = 1,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_MIDDLE = 2,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_BOTTOM_BASELINE = 3,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_BOTTOM = 4,
+} GeometryNodeStringToCurvesAlignYMode;
 
 #ifdef __cplusplus
 }

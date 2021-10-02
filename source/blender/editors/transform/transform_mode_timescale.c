@@ -87,7 +87,7 @@ static void applyTimeScaleValue(TransInfo *t, float value)
       }
 
       /* now, calculate the new value */
-      *(td->val) = ((td->ival - startx) * fac) + startx;
+      td->loc[0] = ((td->iloc[0] - startx) * fac) + startx;
     }
   }
 }

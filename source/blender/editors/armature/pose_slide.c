@@ -117,6 +117,7 @@ typedef enum ePoseSlide_Modes {
   POSESLIDE_BREAKDOWN,
   POSESLIDE_PUSH_REST,
   POSESLIDE_RELAX_REST,
+  POSESLIDE_BLEND,
 } ePoseSlide_Modes;
 
 /** Transforms/Channels to Affect. */
@@ -423,6 +424,25 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
       (*val) = ((sVal * w2) + (eVal * w1));
       break;
     }
+    case POSESLIDE_BLEND: /* Blend the current pose with the previous (<50%) or next key (>50%). */
+    {
+      /* FCurve value on current frame. */
+      const float cVal = evaluate_fcurve(fcu, cframe);
+      const float factor = ED_slider_factor_get(pso->slider);
+      /* Convert factor to absolute 0-1 range. */
+      const float blend_factor = fabs((factor - 0.5f) * 2);
+
+      if (factor < 0.5) {
+        /* Blend to previous key. */
+        (*val) = (cVal * (1 - blend_factor)) + (sVal * blend_factor);
+      }
+      else {
+        /* Blend to next key. */
+        (*val) = (cVal * (1 - blend_factor)) + (eVal * blend_factor);
+      }
+
+      break;
+    }
     /* Those are handled in pose_slide_rest_pose_apply. */
     case POSESLIDE_PUSH_REST:
     case POSESLIDE_RELAX_REST: {
@@ -614,8 +634,7 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 
       interp_qt_qtqt(quat_final, quat_prev, quat_next, ED_slider_factor_get(pso->slider));
     }
-    else {
-      /* POSESLIDE_PUSH and POSESLIDE_RELAX. */
+    else if (pso->mode == POSESLIDE_PUSH || pso->mode == POSESLIDE_RELAX) {
       float quat_breakdown[4];
       float quat_curr[4];
 
@@ -637,6 +656,32 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
         BLI_assert(pso->mode == POSESLIDE_RELAX);
         interp_qt_qtqt(quat_final, quat_curr, quat_breakdown, ED_slider_factor_get(pso->slider));
       }
+    }
+    else if (pso->mode == POSESLIDE_BLEND) {
+      float quat_blend[4];
+      float quat_curr[4];
+
+      copy_qt_qt(quat_curr, pchan->quat);
+
+      if (ED_slider_factor_get(pso->slider) < 0.5) {
+        quat_blend[0] = evaluate_fcurve(fcu_w, prevFrameF);
+        quat_blend[1] = evaluate_fcurve(fcu_x, prevFrameF);
+        quat_blend[2] = evaluate_fcurve(fcu_y, prevFrameF);
+        quat_blend[3] = evaluate_fcurve(fcu_z, prevFrameF);
+      }
+      else {
+        quat_blend[0] = evaluate_fcurve(fcu_w, nextFrameF);
+        quat_blend[1] = evaluate_fcurve(fcu_x, nextFrameF);
+        quat_blend[2] = evaluate_fcurve(fcu_y, nextFrameF);
+        quat_blend[3] = evaluate_fcurve(fcu_z, nextFrameF);
+      }
+
+      normalize_qt(quat_blend);
+      normalize_qt(quat_curr);
+
+      const float blend_factor = fabs((ED_slider_factor_get(pso->slider) - 0.5f) * 2);
+
+      interp_qt_qtqt(quat_final, quat_curr, quat_blend, blend_factor);
     }
 
     /* Apply final to the pose bone, keeping compatible for similar keyframe positions. */
@@ -867,6 +912,9 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
       break;
     case POSESLIDE_BREAKDOWN:
       strcpy(mode_str, TIP_("Breakdown"));
+      break;
+    case POSESLIDE_BLEND:
+      strcpy(mode_str, TIP_("Blend To Neighbour"));
       break;
 
     default:
@@ -1657,6 +1705,56 @@ void POSE_OT_breakdown(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
 
   /* Properties */
+  pose_slide_opdef_properties(ot);
+}
+
+/* ........................ */
+static int pose_slide_blend_to_neighbours_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  /* Initialize data. */
+  if (pose_slide_init(C, op, POSESLIDE_BLEND) == 0) {
+    pose_slide_exit(C, op);
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Do common setup work. */
+  return pose_slide_invoke_common(C, op, event);
+}
+
+static int pose_slide_blend_to_neighbours_exec(bContext *C, wmOperator *op)
+{
+  tPoseSlideOp *pso;
+
+  /* Initialize data (from RNA-props). */
+  if (pose_slide_init(C, op, POSESLIDE_BLEND) == 0) {
+    pose_slide_exit(C, op);
+    return OPERATOR_CANCELLED;
+  }
+
+  pso = op->customdata;
+
+  /* Do common exec work. */
+  return pose_slide_exec_common(C, op, pso);
+}
+
+void POSE_OT_blend_to_neighbours(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Blend To Neighbour";
+  ot->idname = "POSE_OT_blend_to_neighbour";
+  ot->description = "Blend from current position to previous or next keyframe";
+
+  /* Callbacks. */
+  ot->exec = pose_slide_blend_to_neighbours_exec;
+  ot->invoke = pose_slide_blend_to_neighbours_invoke;
+  ot->modal = pose_slide_modal;
+  ot->cancel = pose_slide_cancel;
+  ot->poll = ED_operator_posemode;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
+
+  /* Properties. */
   pose_slide_opdef_properties(ot);
 }
 

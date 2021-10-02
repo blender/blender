@@ -204,7 +204,7 @@ IDTypeInfo IDType_ID_SO = {
     .name = "Sound",
     .name_plural = "sounds",
     .translation_context = BLT_I18NCONTEXT_ID_SOUND,
-    .flags = IDTYPE_FLAGS_NO_ANIMDATA,
+    .flags = IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     /* A fuzzy case, think NULLified content is OK here... */
     .init_data = NULL,
@@ -1213,7 +1213,6 @@ static bool sound_info_from_playback_handle(void *playback_handle, SoundInfo *so
   AUD_SoundInfo info = AUD_getInfo(playback_handle);
   sound_info->specs.channels = (eSoundChannels)info.specs.channels;
   sound_info->length = info.length;
-  sound_info->start_offset = info.start_offset;
   return true;
 }
 
@@ -1229,6 +1228,47 @@ bool BKE_sound_info_get(struct Main *main, struct bSound *sound, SoundInfo *soun
   const bool result = sound_info_from_playback_handle(sound->playback_handle, sound_info);
   sound_free_audio(sound);
   return result;
+}
+
+bool BKE_sound_stream_info_get(struct Main *main,
+                               const char *filepath,
+                               int stream,
+                               SoundStreamInfo *sound_info)
+{
+  const char *path;
+  char str[FILE_MAX];
+  AUD_Sound *sound;
+  AUD_StreamInfo *stream_infos;
+  int stream_count;
+
+  BLI_strncpy(str, filepath, sizeof(str));
+  path = BKE_main_blendfile_path(main);
+  BLI_path_abs(str, path);
+
+  sound = AUD_Sound_file(str);
+  if (!sound) {
+    return false;
+  }
+
+  stream_count = AUD_Sound_getFileStreams(sound, &stream_infos);
+
+  AUD_Sound_free(sound);
+
+  if (!stream_infos) {
+    return false;
+  }
+
+  if ((stream < 0) || (stream >= stream_count)) {
+    free(stream_infos);
+    return false;
+  }
+
+  sound_info->start = stream_infos[stream].start;
+  sound_info->duration = stream_infos[stream].duration;
+
+  free(stream_infos);
+
+  return true;
 }
 
 #else /* WITH_AUDASPACE */
@@ -1396,6 +1436,14 @@ void BKE_sound_free_waveform(bSound *UNUSED(sound))
 bool BKE_sound_info_get(struct Main *UNUSED(main),
                         struct bSound *UNUSED(sound),
                         SoundInfo *UNUSED(sound_info))
+{
+  return false;
+}
+
+bool BKE_sound_stream_info_get(struct Main *UNUSED(main),
+                               const char *UNUSED(filepath),
+                               int UNUSED(stream),
+                               SoundStreamInfo *UNUSED(sound_info))
 {
   return false;
 }

@@ -67,16 +67,14 @@ void SplitOperation::executePixelSampled(float output[4],
   }
 }
 
-void SplitOperation::determineResolution(unsigned int resolution[2],
-                                         unsigned int preferredResolution[2])
+void SplitOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  unsigned int tempPreferredResolution[2] = {0, 0};
-  unsigned int tempResolution[2];
+  rcti unused_area;
 
-  this->getInputSocket(0)->determineResolution(tempResolution, tempPreferredResolution);
-  this->setResolutionInputSocketIndex((tempResolution[0] && tempResolution[1]) ? 0 : 1);
+  const bool determined = this->getInputSocket(0)->determine_canvas(COM_AREA_NONE, unused_area);
+  this->set_canvas_input_index(determined ? 0 : 1);
 
-  NodeOperation::determineResolution(resolution, preferredResolution);
+  NodeOperation::determine_canvas(preferred_area, r_area);
 }
 
 void SplitOperation::update_memory_buffer_partial(MemoryBuffer *output,

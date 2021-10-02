@@ -24,6 +24,8 @@ namespace blender::compositor {
 
 class MapUVOperation : public MultiThreadedOperation {
  private:
+  static constexpr int IMAGE_INPUT_INDEX = 0;
+  static constexpr int UV_INPUT_INDEX = 1;
   /**
    * Cached reference to the inputProgram
    */

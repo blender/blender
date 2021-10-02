@@ -50,7 +50,7 @@ typedef struct SubdivMeshContext {
   const Mesh *coarse_mesh;
   Subdiv *subdiv;
   Mesh *subdiv_mesh;
-  /* Cached custom data arrays for fastter access. */
+  /* Cached custom data arrays for faster access. */
   int *vert_origindex;
   int *edge_origindex;
   int *loop_origindex;

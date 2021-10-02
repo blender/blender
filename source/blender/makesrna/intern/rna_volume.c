@@ -41,6 +41,16 @@
 #  include "WM_api.h"
 #  include "WM_types.h"
 
+static char *rna_VolumeRender_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("render");
+}
+
+static char *rna_VolumeDisplay_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("display");
+}
+
 /* Updates */
 
 static void rna_Volume_update_display(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -371,6 +381,7 @@ static void rna_def_volume_display(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "VolumeDisplay", NULL);
   RNA_def_struct_ui_text(srna, "Volume Display", "Volume object display settings for 3D viewport");
   RNA_def_struct_sdna(srna, "VolumeDisplay");
+  RNA_def_struct_path_func(srna, "rna_VolumeDisplay_path");
 
   prop = RNA_def_property(srna, "density", PROP_FLOAT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -477,6 +488,7 @@ static void rna_def_volume_render(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "VolumeRender", NULL);
   RNA_def_struct_ui_text(srna, "Volume Render", "Volume object render settings");
   RNA_def_struct_sdna(srna, "VolumeRender");
+  RNA_def_struct_path_func(srna, "rna_VolumeRender_path");
 
   static const EnumPropertyItem space_items[] = {
       {VOLUME_SPACE_OBJECT,

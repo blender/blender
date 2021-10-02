@@ -47,6 +47,7 @@
 #include "BKE_mask.h"
 #include "BKE_movieclip.h"
 #include "BKE_report.h"
+#include "BKE_sound.h"
 
 #include "IMB_imbuf.h"
 
@@ -643,7 +644,15 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
     BLI_strncpy(load_data->name, file_only, sizeof(load_data->name));
     Sequence *seq_movie = NULL;
     Sequence *seq_sound = NULL;
-    double video_start_offset;
+    double video_start_offset = -1;
+    double audio_start_offset = 0;
+
+    if (RNA_boolean_get(op->ptr, "sound")) {
+      SoundStreamInfo sound_info;
+      if (BKE_sound_stream_info_get(bmain, load_data->path, 0, &sound_info)) {
+        audio_start_offset = video_start_offset = sound_info.start;
+      }
+    }
 
     load_data->channel++;
     seq_movie = SEQ_add_movie_strip(bmain, scene, ed->seqbasep, load_data, &video_start_offset);
@@ -653,9 +662,30 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
     }
     else {
       if (RNA_boolean_get(op->ptr, "sound")) {
-        seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data, video_start_offset);
+        int minimum_frame_offset = MIN2(video_start_offset, audio_start_offset) * FPS;
+
+        int video_frame_offset = video_start_offset * FPS;
+        int audio_frame_offset = audio_start_offset * FPS;
+
+        double video_frame_remainder = video_start_offset * FPS - video_frame_offset;
+        double audio_frame_remainder = audio_start_offset * FPS - audio_frame_offset;
+
+        double audio_skip = (video_frame_remainder - audio_frame_remainder) / FPS;
+
+        video_frame_offset -= minimum_frame_offset;
+        audio_frame_offset -= minimum_frame_offset;
+
+        load_data->start_frame += audio_frame_offset;
+        seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data, audio_skip);
+
+        int min_startdisp = MIN2(seq_movie->startdisp, seq_sound->startdisp);
+        int max_enddisp = MAX2(seq_movie->enddisp, seq_sound->enddisp);
+
+        load_data->start_frame += max_enddisp - min_startdisp - audio_frame_offset;
       }
-      load_data->start_frame += seq_movie->enddisp - seq_movie->startdisp;
+      else {
+        load_data->start_frame += seq_movie->enddisp - seq_movie->startdisp;
+      }
       seq_load_apply_generic_options(C, op, seq_sound);
       seq_load_apply_generic_options(C, op, seq_movie);
       seq_build_proxy(C, seq_movie);
@@ -672,7 +702,15 @@ static bool sequencer_add_movie_single_strip(bContext *C, wmOperator *op, SeqLoa
 
   Sequence *seq_movie = NULL;
   Sequence *seq_sound = NULL;
-  double video_start_offset;
+  double video_start_offset = -1;
+  double audio_start_offset = 0;
+
+  if (RNA_boolean_get(op->ptr, "sound")) {
+    SoundStreamInfo sound_info;
+    if (BKE_sound_stream_info_get(bmain, load_data->path, 0, &sound_info)) {
+      audio_start_offset = video_start_offset = sound_info.start;
+    }
+  }
 
   load_data->channel++;
   seq_movie = SEQ_add_movie_strip(bmain, scene, ed->seqbasep, load_data, &video_start_offset);
@@ -683,7 +721,21 @@ static bool sequencer_add_movie_single_strip(bContext *C, wmOperator *op, SeqLoa
     return false;
   }
   if (RNA_boolean_get(op->ptr, "sound")) {
-    seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data, video_start_offset);
+    int minimum_frame_offset = MIN2(video_start_offset, audio_start_offset) * FPS;
+
+    int video_frame_offset = video_start_offset * FPS;
+    int audio_frame_offset = audio_start_offset * FPS;
+
+    double video_frame_remainder = video_start_offset * FPS - video_frame_offset;
+    double audio_frame_remainder = audio_start_offset * FPS - audio_frame_offset;
+
+    double audio_skip = (video_frame_remainder - audio_frame_remainder) / FPS;
+
+    video_frame_offset -= minimum_frame_offset;
+    audio_frame_offset -= minimum_frame_offset;
+
+    load_data->start_frame += audio_frame_offset;
+    seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data, audio_skip);
   }
   seq_load_apply_generic_options(C, op, seq_sound);
   seq_load_apply_generic_options(C, op, seq_movie);

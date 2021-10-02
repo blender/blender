@@ -145,8 +145,8 @@ class NodeOperationBuilder {
   /** Replace proxy operations with direct links */
   void resolve_proxies();
 
-  /** Calculate resolution for each operation */
-  void determineResolutions();
+  /** Calculate canvas area for each operation. */
+  void determine_canvases();
 
   /** Helper function to store connected inputs for replacement */
   Vector<NodeOperationInput *> cache_output_links(NodeOperationOutput *output) const;

@@ -34,6 +34,7 @@
 #include "BLT_translation.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math_color.h"
 
 #include "BIF_glutil.h"
 
@@ -41,6 +42,9 @@
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
+#include "BKE_main.h"
+
+#include "BLO_readfile.h"
 
 #include "GPU_shader.h"
 #include "GPU_state.h"
@@ -50,6 +54,7 @@
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
+#include "UI_resources.h"
 
 #include "RNA_access.h"
 
@@ -388,11 +393,43 @@ static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)
   const char *name = asset_drag->name;
   ID_Type idtype = asset_drag->id_type;
 
+  /* FIXME: Link/Append should happens in the operator called at the end of drop process, not from
+   * here. */
+
+  Main *bmain = CTX_data_main(asset_drag->evil_C);
+  Scene *scene = CTX_data_scene(asset_drag->evil_C);
+  ViewLayer *view_layer = CTX_data_view_layer(asset_drag->evil_C);
+  View3D *view3d = CTX_wm_view3d(asset_drag->evil_C);
+
   switch ((eFileAssetImportType)asset_drag->import_type) {
     case FILE_ASSET_IMPORT_LINK:
-      return WM_file_link_datablock(G_MAIN, NULL, NULL, NULL, asset_drag->path, idtype, name);
+      return WM_file_link_datablock(bmain,
+                                    scene,
+                                    view_layer,
+                                    view3d,
+                                    asset_drag->path,
+                                    idtype,
+                                    name,
+                                    FILE_ACTIVE_COLLECTION);
     case FILE_ASSET_IMPORT_APPEND:
-      return WM_file_append_datablock(G_MAIN, NULL, NULL, NULL, asset_drag->path, idtype, name);
+      return WM_file_append_datablock(bmain,
+                                      scene,
+                                      view_layer,
+                                      view3d,
+                                      asset_drag->path,
+                                      idtype,
+                                      name,
+                                      BLO_LIBLINK_APPEND_RECURSIVE | FILE_ACTIVE_COLLECTION);
+    case FILE_ASSET_IMPORT_APPEND_REUSE:
+      return WM_file_append_datablock(G_MAIN,
+                                      scene,
+                                      view_layer,
+                                      view3d,
+                                      asset_drag->path,
+                                      idtype,
+                                      name,
+                                      BLO_LIBLINK_APPEND_RECURSIVE | FILE_ACTIVE_COLLECTION |
+                                          BLO_LIBLINK_APPEND_LOCAL_ID_REUSE);
   }
 
   BLI_assert_unreachable();
@@ -426,7 +463,7 @@ ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
 }
 
 /**
- * \brief Free asset ID imported for cancelled drop.
+ * \brief Free asset ID imported for canceled drop.
  *
  * If the asset was imported (linked/appended) using #WM_drag_get_local_ID_or_import_from_asset()`
  * (typically via a #wmDropBox.copy() callback), we want the ID to be removed again if the drop
@@ -463,8 +500,14 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain, wmDrag *drag, wmDropBox *
 static void wm_drop_operator_draw(const char *name, int x, int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  const float col_fg[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-  const float col_bg[4] = {0.0f, 0.0f, 0.0f, 0.2f};
+
+  /* Use the theme settings from tooltips. */
+  const bTheme *btheme = UI_GetTheme();
+  const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
+
+  float col_fg[4], col_bg[4];
+  rgba_uchar_to_float(col_fg, wcol->text);
+  rgba_uchar_to_float(col_bg, wcol->inner);
 
   UI_fontstyle_draw_simple_backdrop(fstyle, x, y, name, col_fg, col_bg);
 }

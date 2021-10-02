@@ -1968,14 +1968,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      NULL,
      NULL,
      NULL},
-    /* 51 CD_DYNTOPO_VERT */
-    {sizeof(MDynTopoVert),
-     "MDynTopoVert",
-     1,
-     NULL,  // flag singleton layer
-     layerDynTopoVert_copy,
-     NULL,
-     layerDynTopoVert_interp},
+    /* 51: CD_HAIRLENGTH */
+    {sizeof(float), "float", 1, NULL, NULL, NULL, NULL, NULL, NULL},
     /*52 CD_MESH_ID */
     {sizeof(unsigned int),
      "MIntProperty",
@@ -1985,55 +1979,74 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      NULL,
      layerInterp_noop,
      NULL,
-     layerDefault_mesh_id}};
+     layerDefault_mesh_id},
+    /* 53 CD_DYNTOPO_VERT */
+    {sizeof(MDynTopoVert),
+     "MDynTopoVert",
+     1,
+     NULL,  // flag singleton layer
+     layerDynTopoVert_copy,
+     NULL,
+     layerDynTopoVert_interp}};
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
-    /*   0-4 */ "CDMVert",
+    /*   0-4 */
+    "CDMVert",
     "CDMSticky",
     "CDMDeformVert",
     "CDMEdge",
     "CDMFace",
-    /*   5-9 */ "CDMTFace",
+    /*   5-9 */
+    "CDMTFace",
     "CDMCol",
     "CDOrigIndex",
     "CDNormal",
     "CDFaceMap",
-    /* 10-14 */ "CDMFloatProperty",
+    /* 10-14 */
+    "CDMFloatProperty",
     "CDMIntProperty",
     "CDMStringProperty",
     "CDOrigSpace",
     "CDOrco",
-    /* 15-19 */ "CDMTexPoly",
+    /* 15-19 */
+    "CDMTexPoly",
     "CDMLoopUV",
     "CDMloopCol",
     "CDTangent",
     "CDMDisps",
-    /* 20-24 */ "CDPreviewMCol",
+    /* 20-24 */
+    "CDPreviewMCol",
     "CDIDMCol",
     "CDTextureMCol",
     "CDClothOrco",
     "CDMRecast",
 
     /* BMESH ONLY */
-    /* 25-29 */ "CDMPoly",
+    /* 25-29 */
+    "CDMPoly",
     "CDMLoop",
     "CDShapeKeyIndex",
     "CDShapeKey",
     "CDBevelWeight",
-    /* 30-34 */ "CDSubSurfCrease",
+    /* 30-34 */
+    "CDSubSurfCrease",
     "CDOrigSpaceLoop",
     "CDPreviewLoopCol",
     "CDBMElemPyPtr",
     "CDPaintMask",
-    /* 35-36 */ "CDGridPaintMask",
+    /* 35-36 */
+    "CDGridPaintMask",
     "CDMVertSkin",
-    /* 37-38 */ "CDFreestyleEdge",
+    /* 37-38 */
+    "CDFreestyleEdge",
     "CDFreestyleFace",
-    /* 39-42 */ "CDMLoopTangent",
+    /* 39-42 */
+    "CDMLoopTangent",
     "CDTessLoopNormal",
     "CDCustomLoopNormal",
     "CDSculptFaceGroups",
-    /* 43-46 */ "CDHairPoint",
+    /* 43-46 */
+    "CDHairPoint",
     "CDHairCurve",
     "CDHairMapping",
     "CDPoint",
@@ -2041,6 +2054,8 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     "CDPropFloat3",
     "CDPropFloat2",
     "CDPropBoolean",
+    "CDHairLength",
+    "CDMeshID",
     "CDDyntopoVert"};
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {

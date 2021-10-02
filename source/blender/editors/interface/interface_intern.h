@@ -368,6 +368,14 @@ typedef struct uiButDatasetRow {
   int indentation;
 } uiButDatasetRow;
 
+/** Derived struct for #UI_BTYPE_TREEROW. */
+typedef struct uiButTreeRow {
+  uiBut but;
+
+  uiTreeViewItemHandle *tree_item;
+  int indentation;
+} uiButTreeRow;
+
 /** Derived struct for #UI_BTYPE_HSVCUBE. */
 typedef struct uiButHSVCube {
   uiBut but;
@@ -495,6 +503,11 @@ struct uiBlock {
   struct uiLayout *curlayout;
 
   ListBase contexts;
+
+  /** A block can store "views" on data-sets. Currently tree-views (#AbstractTreeView) only.
+   * Others are imaginable, e.g. table-views, grid-views, etc. These are stored here to support
+   * state that is persistent over redraws (e.g. collapsed tree-view items). */
+  ListBase views;
 
   char name[UI_MAX_NAME_STR];
 
@@ -1166,6 +1179,7 @@ uiBut *ui_list_row_find_mouse_over(const struct ARegion *region,
 uiBut *ui_list_row_find_from_index(const struct ARegion *region,
                                    const int index,
                                    uiBut *listbox) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_tree_row_find_mouse_over(const struct ARegion *region, const int x, const int y);
 
 typedef bool (*uiButFindPollFn)(const uiBut *but, const void *customdata);
 uiBut *ui_but_find_mouse_over_ex(const struct ARegion *region,
@@ -1283,6 +1297,11 @@ bool ui_jump_to_target_button_poll(struct bContext *C);
 void ui_interface_tag_script_reload_queries(void);
 void poison_ui_but(struct uiBut *but);
 void unpoison_ui_but(struct uiBut *but);
+
+/* interface_view.cc */
+void ui_block_free_views(struct uiBlock *block);
+uiTreeViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
+                                                           const uiTreeViewHandle *new_view);
 
 #ifdef __cplusplus
 }

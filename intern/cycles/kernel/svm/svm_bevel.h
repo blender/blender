@@ -14,9 +14,80 @@
  * limitations under the License.
  */
 
+#include "kernel/bvh/bvh.h"
+#include "kernel/kernel_montecarlo.h"
+#include "kernel/kernel_random.h"
+
 CCL_NAMESPACE_BEGIN
 
 #ifdef __SHADER_RAYTRACE__
+
+/* Planar Cubic BSSRDF falloff, reused for bevel.
+ *
+ * This is basically (Rm - x)^3, with some factors to normalize it. For sampling
+ * we integrate 2*pi*x * (Rm - x)^3, which gives us a quintic equation that as
+ * far as I can tell has no closed form solution. So we get an iterative solution
+ * instead with newton-raphson. */
+
+ccl_device float svm_bevel_cubic_eval(const float radius, float r)
+{
+  const float Rm = radius;
+
+  if (r >= Rm)
+    return 0.0f;
+
+  /* integrate (2*pi*r * 10*(R - r)^3)/(pi * R^5) from 0 to R = 1 */
+  const float Rm5 = (Rm * Rm) * (Rm * Rm) * Rm;
+  const float f = Rm - r;
+  const float num = f * f * f;
+
+  return (10.0f * num) / (Rm5 * M_PI_F);
+}
+
+ccl_device float svm_bevel_cubic_pdf(const float radius, float r)
+{
+  return svm_bevel_cubic_eval(radius, r);
+}
+
+/* solve 10x^2 - 20x^3 + 15x^4 - 4x^5 - xi == 0 */
+ccl_device_forceinline float svm_bevel_cubic_quintic_root_find(float xi)
+{
+  /* newton-raphson iteration, usually succeeds in 2-4 iterations, except
+   * outside 0.02 ... 0.98 where it can go up to 10, so overall performance
+   * should not be too bad */
+  const float tolerance = 1e-6f;
+  const int max_iteration_count = 10;
+  float x = 0.25f;
+  int i;
+
+  for (i = 0; i < max_iteration_count; i++) {
+    float x2 = x * x;
+    float x3 = x2 * x;
+    float nx = (1.0f - x);
+
+    float f = 10.0f * x2 - 20.0f * x3 + 15.0f * x2 * x2 - 4.0f * x2 * x3 - xi;
+    float f_ = 20.0f * (x * nx) * (nx * nx);
+
+    if (fabsf(f) < tolerance || f_ == 0.0f)
+      break;
+
+    x = saturate(x - f / f_);
+  }
+
+  return x;
+}
+
+ccl_device void svm_bevel_cubic_sample(const float radius, float xi, float *r, float *h)
+{
+  float Rm = radius;
+  float r_ = svm_bevel_cubic_quintic_root_find(xi);
+
+  r_ *= Rm;
+  *r = r_;
+
+  /* h^2 + r^2 = Rm^2 */
+  *h = safe_sqrtf(Rm * Rm - r_ * r_);
+}
 
 /* Bevel shader averaging normals from nearby surfaces.
  *
@@ -24,11 +95,14 @@ CCL_NAMESPACE_BEGIN
  * http://library.imageworks.com/pdfs/imageworks-library-BSSRDF-sampling.pdf
  */
 
-ccl_device_noinline float3 svm_bevel(KernelGlobals *kg,
-                                     ShaderData *sd,
-                                     ccl_addr_space PathState *state,
-                                     float radius,
-                                     int num_samples)
+#  ifdef __KERNEL_OPTIX__
+extern "C" __device__ float3 __direct_callable__svm_node_bevel(INTEGRATOR_STATE_CONST_ARGS,
+#  else
+ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
+#  endif
+                                                               ShaderData *sd,
+                                                               float radius,
+                                                               int num_samples)
 {
   /* Early out if no sampling needed. */
   if (radius <= 0.0f || num_samples < 1 || sd->object == OBJECT_NONE) {
@@ -41,21 +115,27 @@ ccl_device_noinline float3 svm_bevel(KernelGlobals *kg,
   }
 
   /* Don't bevel for blurry indirect rays. */
-  if (state->min_ray_pdf < 8.0f) {
+  if (INTEGRATOR_STATE(path, min_ray_pdf) < 8.0f) {
     return sd->N;
   }
 
   /* Setup for multi intersection. */
   LocalIntersection isect;
-  uint lcg_state = lcg_state_init_addrspace(state, 0x64c6a40e);
+  uint lcg_state = lcg_state_init(INTEGRATOR_STATE(path, rng_hash),
+                                  INTEGRATOR_STATE(path, rng_offset),
+                                  INTEGRATOR_STATE(path, sample),
+                                  0x64c6a40e);
 
   /* Sample normals from surrounding points on surface. */
   float3 sum_N = make_float3(0.0f, 0.0f, 0.0f);
 
+  /* TODO: support ray-tracing in shadow shader evaluation? */
+  RNGState rng_state;
+  path_state_rng_load(INTEGRATOR_STATE_PASS, &rng_state);
+
   for (int sample = 0; sample < num_samples; sample++) {
     float disk_u, disk_v;
-    path_branched_rng_2D(
-        kg, state->rng_hash, state, sample, num_samples, PRNG_BEVEL_U, &disk_u, &disk_v);
+    path_branched_rng_2D(kg, &rng_state, sample, num_samples, PRNG_BEVEL_U, &disk_u, &disk_v);
 
     /* Pick random axis in local frame and point on disk. */
     float3 disk_N, disk_T, disk_B;
@@ -97,7 +177,7 @@ ccl_device_noinline float3 svm_bevel(KernelGlobals *kg,
     float disk_height;
 
     /* Perhaps find something better than Cubic BSSRDF, but happens to work well. */
-    bssrdf_cubic_sample(radius, 0.0f, disk_r, &disk_r, &disk_height);
+    svm_bevel_cubic_sample(radius, disk_r, &disk_r, &disk_height);
 
     float3 disk_P = (disk_r * cosf(phi)) * disk_T + (disk_r * sinf(phi)) * disk_B;
 
@@ -106,8 +186,8 @@ ccl_device_noinline float3 svm_bevel(KernelGlobals *kg,
     ray->P = sd->P + disk_N * disk_height + disk_P;
     ray->D = -disk_N;
     ray->t = 2.0f * disk_height;
-    ray->dP = sd->dP;
-    ray->dD = differential3_zero();
+    ray->dP = differential_zero_compact();
+    ray->dD = differential_zero_compact();
     ray->time = sd->time;
 
     /* Intersect with the same object. if multiple intersections are found it
@@ -120,14 +200,16 @@ ccl_device_noinline float3 svm_bevel(KernelGlobals *kg,
       /* Quickly retrieve P and Ng without setting up ShaderData. */
       float3 hit_P;
       if (sd->type & PRIMITIVE_TRIANGLE) {
-        hit_P = triangle_refine_local(kg, sd, &isect.hits[hit], ray);
+        hit_P = triangle_refine_local(
+            kg, sd, ray->P, ray->D, ray->t, isect.hits[hit].object, isect.hits[hit].prim);
       }
 #  ifdef __OBJECT_MOTION__
       else if (sd->type & PRIMITIVE_MOTION_TRIANGLE) {
         float3 verts[3];
         motion_triangle_vertices(
             kg, sd->object, kernel_tex_fetch(__prim_index, isect.hits[hit].prim), sd->time, verts);
-        hit_P = motion_triangle_refine_local(kg, sd, &isect.hits[hit], ray, verts);
+        hit_P = motion_triangle_refine_local(
+            kg, sd, ray->P, ray->D, ray->t, isect.hits[hit].object, isect.hits[hit].prim, verts);
       }
 #  endif /* __OBJECT_MOTION__ */
 
@@ -173,7 +255,7 @@ ccl_device_noinline float3 svm_bevel(KernelGlobals *kg,
 
       /* Multiple importance sample between 3 axes, power heuristic
        * found to be slightly better than balance heuristic. pdf_N
-       * in the MIS weight and denominator cancelled out. */
+       * in the MIS weight and denominator canceled out. */
       float w = pdf_N / (sqr(pdf_N) + sqr(pdf_T) + sqr(pdf_B));
       if (isect.num_hits > LOCAL_MAX_HITS) {
         w *= isect.num_hits / (float)LOCAL_MAX_HITS;
@@ -183,8 +265,8 @@ ccl_device_noinline float3 svm_bevel(KernelGlobals *kg,
       float r = len(hit_P - sd->P);
 
       /* Compute weight. */
-      float pdf = bssrdf_cubic_pdf(radius, 0.0f, r);
-      float disk_pdf = bssrdf_cubic_pdf(radius, 0.0f, disk_r);
+      float pdf = svm_bevel_cubic_pdf(radius, r);
+      float disk_pdf = svm_bevel_cubic_pdf(radius, disk_r);
 
       w *= pdf / disk_pdf;
 
@@ -198,19 +280,34 @@ ccl_device_noinline float3 svm_bevel(KernelGlobals *kg,
   return is_zero(N) ? sd->N : (sd->flag & SD_BACKFACING) ? -N : N;
 }
 
-ccl_device void svm_node_bevel(
-    KernelGlobals *kg, ShaderData *sd, ccl_addr_space PathState *state, float *stack, uint4 node)
+template<uint node_feature_mask>
+#  if defined(__KERNEL_OPTIX__)
+ccl_device_inline
+#  else
+ccl_device_noinline
+#  endif
+    void
+    svm_node_bevel(INTEGRATOR_STATE_CONST_ARGS, ShaderData *sd, float *stack, uint4 node)
 {
   uint num_samples, radius_offset, normal_offset, out_offset;
   svm_unpack_node_uchar4(node.y, &num_samples, &radius_offset, &normal_offset, &out_offset);
 
   float radius = stack_load_float(stack, radius_offset);
-  float3 bevel_N = svm_bevel(kg, sd, state, radius, num_samples);
 
-  if (stack_valid(normal_offset)) {
-    /* Preserve input normal. */
-    float3 ref_N = stack_load_float3(stack, normal_offset);
-    bevel_N = normalize(ref_N + (bevel_N - sd->N));
+  float3 bevel_N = sd->N;
+
+  if (KERNEL_NODES_FEATURE(RAYTRACE)) {
+#  ifdef __KERNEL_OPTIX__
+    bevel_N = optixDirectCall<float3>(1, INTEGRATOR_STATE_PASS, sd, radius, num_samples);
+#  else
+    bevel_N = svm_bevel(INTEGRATOR_STATE_PASS, sd, radius, num_samples);
+#  endif
+
+    if (stack_valid(normal_offset)) {
+      /* Preserve input normal. */
+      float3 ref_N = stack_load_float3(stack, normal_offset);
+      bevel_N = normalize(ref_N + (bevel_N - sd->N));
+    }
   }
 
   stack_store_float3(stack, out_offset, bevel_N);

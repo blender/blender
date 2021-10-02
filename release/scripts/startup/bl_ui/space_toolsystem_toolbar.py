@@ -105,6 +105,7 @@ class _defs_view3d_generic:
             icon="ops.generic.cursor",
             keymap="3D View Tool: Cursor",
             draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
         )
 
     @ToolDef.from_fn
@@ -143,6 +144,7 @@ class _defs_view3d_generic:
             icon="ops.view3d.ruler",
             widget="VIEW3D_GGT_ruler",
             keymap="3D View Tool: Measure",
+            options={'KEYMAP_FALLBACK'},
         )
 
 
@@ -237,6 +239,7 @@ class _defs_annotate:
             cursor='PAINT_BRUSH',
             keymap="Generic Tool: Annotate",
             draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
         )
 
     @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
@@ -248,6 +251,7 @@ class _defs_annotate:
             cursor='PAINT_BRUSH',
             keymap="Generic Tool: Annotate Line",
             draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
         )
 
     @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
@@ -259,6 +263,7 @@ class _defs_annotate:
             cursor='PAINT_BRUSH',
             keymap="Generic Tool: Annotate Polygon",
             draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
         )
 
     @ToolDef.from_fn
@@ -274,6 +279,7 @@ class _defs_annotate:
             cursor='ERASER',
             keymap="Generic Tool: Annotate Eraser",
             draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
         )
 
 
@@ -501,18 +507,14 @@ class _defs_view3d_add:
         props = tool.operator_properties("view3d.interactive_add")
         if not extra:
             row = layout.row()
-            row.scale_x = 0.8
             row.label(text="Depth:")
             row = layout.row()
-            row.scale_x = 0.9
             row.prop(props, "plane_depth", text="")
             row = layout.row()
-            row.scale_x = 0.8
             row.label(text="Orientation:")
             row = layout.row()
             row.prop(props, "plane_orientation", text="")
             row = layout.row()
-            row.scale_x = 0.8
             row.prop(props, "snap_target")
 
             region_is_header = bpy.context.region.type == 'TOOL_HEADER'
@@ -553,6 +555,7 @@ class _defs_view3d_add:
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
             draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
         )
 
     @ToolDef.from_fn
@@ -579,6 +582,7 @@ class _defs_view3d_add:
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
             draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
         )
 
     @ToolDef.from_fn
@@ -604,6 +608,7 @@ class _defs_view3d_add:
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
             draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
         )
 
     @ToolDef.from_fn
@@ -629,6 +634,7 @@ class _defs_view3d_add:
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
             draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
         )
 
     @ToolDef.from_fn
@@ -653,6 +659,7 @@ class _defs_view3d_add:
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
             draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
         )
 
 
@@ -1086,11 +1093,29 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def knife():
-        def draw_settings(_context, layout, tool):
+        def draw_settings(_context, layout, tool, *, extra=False):
+            show_extra = False
             props = tool.operator_properties("mesh.knife_tool")
-            layout.prop(props, "use_occlude_geometry")
-            layout.prop(props, "only_selected")
-
+            if not extra:
+                row = layout.row()
+                layout.prop(props, "use_occlude_geometry")
+                row = layout.row()
+                layout.prop(props, "only_selected")
+                row = layout.row()
+                layout.prop(props, "xray")
+                region_is_header = bpy.context.region.type == 'TOOL_HEADER'
+                if region_is_header:
+                    show_extra = True
+                else:
+                    extra = True
+            if extra:
+                layout.use_property_split = True
+                layout.prop(props, "visible_measurements")
+                layout.prop(props, "angle_snapping")
+                layout.label(text="Angle Snapping Increment")
+                layout.row().prop(props, "angle_snapping_increment", text="", expand=True)
+            if show_extra:
+                layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
         return dict(
             idname="builtin.knife",
             label="Knife",
@@ -1099,6 +1124,7 @@ class _defs_edit_mesh:
             widget=None,
             keymap=(),
             draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
         )
 
     @ToolDef.from_fn
@@ -1716,6 +1742,7 @@ class _defs_weight_paint:
 
             props = tool.operator_properties("paint.weight_gradient")
             layout.prop(props, "type", expand=True)
+            layout.popover("VIEW3D_PT_tools_weight_gradient")
 
         return dict(
             idname="builtin.gradient",
@@ -1750,6 +1777,7 @@ class _defs_image_generic:
             ),
             icon="ops.generic.cursor",
             keymap=(),
+            options={'KEYMAP_FALLBACK'},
         )
 
     # Currently a place holder so we can switch away from the annotation tool.
@@ -1901,6 +1929,7 @@ class _defs_image_uv_edit:
             # TODO: generic operator (UV version of `VIEW3D_GGT_tool_generic_handle_free`).
             widget=None,
             keymap=(),
+            options={'KEYMAP_FALLBACK'},
         )
 
 
@@ -1934,6 +1963,7 @@ class _defs_image_uv_sculpt:
                 operator="sculpt.uv_sculpt_stroke",
                 keymap="Image Editor Tool: Uv, Sculpt Stroke",
                 draw_cursor=draw_cursor,
+                options={'KEYMAP_FALLBACK'},
             ),
         )
 
@@ -2492,6 +2522,39 @@ class _defs_sequencer_generic:
             ),
             icon="ops.paint.weight_sample",  # XXX, needs own icon.
             keymap="Sequencer Tool: Sample",
+        )
+
+    @ToolDef.from_fn
+    def translate():
+        return dict(
+            idname="builtin.move",
+            label="Move",
+            icon="ops.transform.translate",
+            widget="SEQUENCER_GGT_gizmo2d_translate",
+            operator="transform.translate",
+            keymap="Sequencer Tool: Move",
+        )
+
+    @ToolDef.from_fn
+    def rotate():
+        return dict(
+            idname="builtin.rotate",
+            label="Rotate",
+            icon="ops.transform.rotate",
+            widget="SEQUENCER_GGT_gizmo2d_rotate",
+            operator="transform.rotate",
+            keymap="Sequencer Tool: Rotate",
+        )
+
+    @ToolDef.from_fn
+    def scale():
+        return dict(
+            idname="builtin.scale",
+            label="Scale",
+            icon="ops.transform.resize",
+            widget="SEQUENCER_GGT_gizmo2d_resize",
+            operator="transform.resize",
+            keymap="Sequencer Tool: Scale",
         )
 
 
@@ -3090,6 +3153,10 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         None: [
         ],
         'PREVIEW': [
+            *_tools_select,
+            _defs_sequencer_generic.translate,
+            _defs_sequencer_generic.rotate,
+            _defs_sequencer_generic.scale,
             _defs_sequencer_generic.sample,
             *_tools_annotate,
         ],
@@ -3099,6 +3166,9 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'SEQUENCER_PREVIEW': [
             *_tools_select,
+            _defs_sequencer_generic.translate,
+            _defs_sequencer_generic.rotate,
+            _defs_sequencer_generic.scale,
             _defs_sequencer_generic.blade,
             _defs_sequencer_generic.sample,
             *_tools_annotate,

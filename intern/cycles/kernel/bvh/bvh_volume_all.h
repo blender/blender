@@ -35,7 +35,7 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-    uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
+    uint BVH_FUNCTION_FULL_NAME(BVH)(const KernelGlobals *kg,
                                      const Ray *ray,
                                      Intersection *isect_array,
                                      const uint max_hits,
@@ -150,7 +150,8 @@ ccl_device_inline
                 if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
                   continue;
                 }
-                hit = triangle_intersect(kg, isect_array, P, dir, visibility, object, prim_addr);
+                hit = triangle_intersect(
+                    kg, isect_array, P, dir, isect_t, visibility, object, prim_addr);
                 if (hit) {
                   /* Move on to next entry in intersections array. */
                   isect_array++;
@@ -190,7 +191,7 @@ ccl_device_inline
                   continue;
                 }
                 hit = motion_triangle_intersect(
-                    kg, isect_array, P, dir, ray->time, visibility, object, prim_addr);
+                    kg, isect_array, P, dir, isect_t, ray->time, visibility, object, prim_addr);
                 if (hit) {
                   /* Move on to next entry in intersections array. */
                   isect_array++;
@@ -228,10 +229,9 @@ ccl_device_inline
           int object_flag = kernel_tex_fetch(__object_flag, object);
           if (object_flag & SD_OBJECT_HAS_VOLUME) {
 #if BVH_FEATURE(BVH_MOTION)
-            isect_t = bvh_instance_motion_push(
-                kg, object, ray, &P, &dir, &idir, isect_t, &ob_itfm);
+            isect_t *= bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &ob_itfm);
 #else
-            isect_t = bvh_instance_push(kg, object, ray, &P, &dir, &idir, isect_t);
+            isect_t *= bvh_instance_push(kg, object, ray, &P, &dir, &idir);
 #endif
 
             num_hits_in_instance = 0;
@@ -289,7 +289,7 @@ ccl_device_inline
   return num_hits;
 }
 
-ccl_device_inline uint BVH_FUNCTION_NAME(KernelGlobals *kg,
+ccl_device_inline uint BVH_FUNCTION_NAME(const KernelGlobals *kg,
                                          const Ray *ray,
                                          Intersection *isect_array,
                                          const uint max_hits,

@@ -30,8 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BSDF_ASHIKHMIN_VELVET_H__
-#define __BSDF_ASHIKHMIN_VELVET_H__
+#pragma once
+
+#include "kernel/kernel_montecarlo.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -52,14 +53,6 @@ ccl_device int bsdf_ashikhmin_velvet_setup(VelvetBsdf *bsdf)
   bsdf->type = CLOSURE_BSDF_ASHIKHMIN_VELVET_ID;
 
   return SD_BSDF | SD_BSDF_HAS_EVAL;
-}
-
-ccl_device bool bsdf_ashikhmin_velvet_merge(const ShaderClosure *a, const ShaderClosure *b)
-{
-  const VelvetBsdf *bsdf_a = (const VelvetBsdf *)a;
-  const VelvetBsdf *bsdf_b = (const VelvetBsdf *)b;
-
-  return (isequal_float3(bsdf_a->N, bsdf_b->N)) && (bsdf_a->sigma == bsdf_b->sigma);
 }
 
 ccl_device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderClosure *sc,
@@ -175,5 +168,3 @@ ccl_device int bsdf_ashikhmin_velvet_sample(const ShaderClosure *sc,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __BSDF_ASHIKHMIN_VELVET_H__ */

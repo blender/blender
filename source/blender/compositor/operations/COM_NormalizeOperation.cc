@@ -133,11 +133,7 @@ void NormalizeOperation::get_area_of_interest(const int UNUSED(input_idx),
                                               const rcti &UNUSED(output_area),
                                               rcti &r_input_area)
 {
-  NodeOperation *input = get_input_operation(0);
-  r_input_area.xmin = 0;
-  r_input_area.xmax = input->getWidth();
-  r_input_area.ymin = 0;
-  r_input_area.ymax = input->getHeight();
+  r_input_area = get_input_operation(0)->get_canvas();
 }
 
 void NormalizeOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output),

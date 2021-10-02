@@ -42,6 +42,11 @@ vec3 orco_get(vec3 local_pos, mat4 modelmatinv, vec4 orco_madd[2], const sampler
   return orco_madd[0].xyz + orco * orco_madd[1].xyz;
 }
 
+float hair_len_get(int id, const samplerBuffer len)
+{
+  return texelFetch(len, id).x;
+}
+
 vec4 tangent_get(const samplerBuffer attr, mat3 normalmat)
 {
   /* Unsupported */
@@ -69,6 +74,11 @@ vec3 orco_get(vec3 local_pos, mat4 modelmatinv, vec4 orco_madd[2], vec4 orco)
   else {
     return orco_madd[0].xyz + local_pos * orco_madd[1].xyz;
   }
+}
+
+float hair_len_get(int id, const float len)
+{
+  return len;
 }
 
 vec4 tangent_get(vec4 attr, mat3 normalmat)

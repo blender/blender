@@ -403,4 +403,13 @@ size_t system_physical_ram()
 #endif
 }
 
+uint64_t system_self_process_id()
+{
+#ifdef _WIN32
+  return GetCurrentProcessId();
+#else
+  return getpid();
+#endif
+}
+
 CCL_NAMESPACE_END

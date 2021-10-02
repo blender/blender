@@ -287,9 +287,6 @@ if(CYCLES_STANDALONE_REPOSITORY)
   endif()
 
   set(__boost_packages filesystem regex system thread date_time)
-  if(WITH_CYCLES_NETWORK)
-    list(APPEND __boost_packages serialization)
-  endif()
   if(WITH_CYCLES_OSL)
     list(APPEND __boost_packages wave)
   endif()
@@ -533,6 +530,15 @@ if(WITH_CYCLES_CUDA_BINARIES OR NOT WITH_CUDA_DYNLOAD)
       set(WITH_CUDA_DYNLOAD ON)
     endif()
   endif()
+endif()
+
+
+###########################################################################
+# HIP
+###########################################################################
+
+if(NOT WITH_HIP_DYNLOAD)
+  set(WITH_HIP_DYNLOAD ON)
 endif()
 
 unset(_cycles_lib_dir)

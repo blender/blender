@@ -55,6 +55,21 @@ using blender::fn::GVArray_For_SingleValue;
 
 namespace blender::bke {
 
+std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_id)
+{
+  if (attribute_id.is_named()) {
+    stream << attribute_id.name();
+  }
+  else if (attribute_id.is_anonymous()) {
+    const AnonymousAttributeID &anonymous_id = attribute_id.anonymous_id();
+    stream << "<" << BKE_anonymous_attribute_id_debug_name(&anonymous_id) << ">";
+  }
+  else {
+    stream << "<none>";
+  }
+  return stream;
+}
+
 const blender::fn::CPPType *custom_data_type_to_cpp_type(const CustomDataType type)
 {
   switch (type) {

@@ -192,6 +192,9 @@ class SVMCompiler {
      * all areas to use this flags array.
      */
     vector<bool> nodes_done_flag;
+
+    /* Node features that can be compiled. */
+    uint node_feature_mask;
   };
 
   void stack_clear_temporary(ShaderNode *node);

@@ -215,6 +215,12 @@ void Geometry::compute_bvh(
       msg += string_printf("%s %u/%u", name.c_str(), (uint)(n + 1), (uint)total);
 
     Object object;
+
+    /* Ensure all visibility bits are set at the geometry level BVH. In
+     * the object level BVH is where actual visibility is tested. */
+    object.set_is_shadow_catcher(true);
+    object.set_visibility(~0);
+
     object.set_geometry(this);
 
     vector<Geometry *> geometry;
@@ -315,7 +321,7 @@ void GeometryManager::update_osl_attributes(Device *device,
 {
 #ifdef WITH_OSL
   /* for OSL, a hash map is used to lookup the attribute by name. */
-  OSLGlobals *og = (OSLGlobals *)device->osl_memory();
+  OSLGlobals *og = (OSLGlobals *)device->get_cpu_osl_memory();
 
   og->object_name_map.clear();
   og->attribute_map.clear();
@@ -788,11 +794,6 @@ void GeometryManager::device_update_attributes(Device *device,
     foreach (AttributeRequest &req, attributes.requests) {
       Attribute *attr = geom->attributes.find(req);
 
-      /* Vertex normals are stored in DeviceScene.tri_vnormal. */
-      if (attr && attr->std == ATTR_STD_VERTEX_NORMAL) {
-        continue;
-      }
-
       update_attribute_element_size(geom,
                                     attr,
                                     ATTR_PRIM_GEOMETRY,
@@ -804,11 +805,6 @@ void GeometryManager::device_update_attributes(Device *device,
       if (geom->is_mesh()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         Attribute *subd_attr = mesh->subd_attributes.find(req);
-
-        /* Vertex normals are stored in DeviceScene.tri_vnormal. */
-        if (subd_attr && subd_attr->std == ATTR_STD_VERTEX_NORMAL) {
-          continue;
-        }
 
         update_attribute_element_size(mesh,
                                       subd_attr,
@@ -864,11 +860,6 @@ void GeometryManager::device_update_attributes(Device *device,
       Attribute *attr = geom->attributes.find(req);
 
       if (attr) {
-        /* Vertex normals are stored in DeviceScene.tri_vnormal. */
-        if (attr->std == ATTR_STD_VERTEX_NORMAL) {
-          continue;
-        }
-
         /* force a copy if we need to reallocate all the data */
         attr->modified |= attributes_need_realloc[Attribute::kernel_type(*attr)];
       }
@@ -892,11 +883,6 @@ void GeometryManager::device_update_attributes(Device *device,
         Attribute *subd_attr = mesh->subd_attributes.find(req);
 
         if (subd_attr) {
-          /* Vertex normals are stored in DeviceScene.tri_vnormal. */
-          if (subd_attr->std == ATTR_STD_VERTEX_NORMAL) {
-            continue;
-          }
-
           /* force a copy if we need to reallocate all the data */
           subd_attr->modified |= attributes_need_realloc[Attribute::kernel_type(*subd_attr)];
         }
@@ -1855,8 +1841,8 @@ void GeometryManager::device_update(Device *device,
     });
 
     Camera *dicing_camera = scene->dicing_camera;
-    dicing_camera->set_screen_size_and_resolution(
-        dicing_camera->get_full_width(), dicing_camera->get_full_height(), 1);
+    dicing_camera->set_screen_size(dicing_camera->get_full_width(),
+                                   dicing_camera->get_full_height());
     dicing_camera->update(scene);
 
     size_t i = 0;
@@ -2157,7 +2143,7 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->data.bvh.bvh_layout = BVH_LAYOUT_NONE;
 
 #ifdef WITH_OSL
-  OSLGlobals *og = (OSLGlobals *)device->osl_memory();
+  OSLGlobals *og = (OSLGlobals *)device->get_cpu_osl_memory();
 
   if (og) {
     og->object_name_map.clear();

@@ -182,12 +182,17 @@ class NodeRef : NonCopyable, NonMovable {
   Span<const InputSocketRef *> inputs() const;
   Span<const OutputSocketRef *> outputs() const;
   Span<const InternalLinkRef *> internal_links() const;
+  Span<const SocketRef *> sockets(eNodeSocketInOut in_out) const;
 
   const InputSocketRef &input(int index) const;
   const OutputSocketRef &output(int index) const;
 
   const InputSocketRef &input_by_identifier(StringRef identifier) const;
   const OutputSocketRef &output_by_identifier(StringRef identifier) const;
+
+  bool any_input_is_directly_linked() const;
+  bool any_output_is_directly_linked() const;
+  bool any_socket_is_directly_linked(eNodeSocketInOut in_out) const;
 
   bNode *bnode() const;
   bNodeTree *btree() const;
@@ -196,6 +201,7 @@ class NodeRef : NonCopyable, NonMovable {
   StringRefNull idname() const;
   StringRefNull name() const;
   bNodeType *typeinfo() const;
+  const NodeDeclaration *declaration() const;
 
   int id() const;
 
@@ -271,6 +277,13 @@ class NodeTreeRef : NonCopyable, NonMovable {
 
   bool has_link_cycles() const;
   bool has_undefined_nodes_or_sockets() const;
+
+  enum class ToposortDirection {
+    LeftToRight,
+    RightToLeft,
+  };
+
+  Vector<const NodeRef *> toposort(ToposortDirection direction) const;
 
   bNodeTree *btree() const;
   StringRefNull name() const;
@@ -496,6 +509,12 @@ inline Span<const OutputSocketRef *> NodeRef::outputs() const
   return outputs_;
 }
 
+inline Span<const SocketRef *> NodeRef::sockets(const eNodeSocketInOut in_out) const
+{
+  return in_out == SOCK_IN ? inputs_.as_span().cast<const SocketRef *>() :
+                             outputs_.as_span().cast<const SocketRef *>();
+}
+
 inline Span<const InternalLinkRef *> NodeRef::internal_links() const
 {
   return internal_links_;
@@ -551,6 +570,13 @@ inline StringRefNull NodeRef::name() const
 inline bNodeType *NodeRef::typeinfo() const
 {
   return bnode_->typeinfo;
+}
+
+/* Returns a pointer because not all nodes have declarations currently. */
+inline const NodeDeclaration *NodeRef::declaration() const
+{
+  nodeDeclarationEnsure(this->tree().btree(), bnode_);
+  return bnode_->declaration;
 }
 
 inline int NodeRef::id() const

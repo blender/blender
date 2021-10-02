@@ -1464,7 +1464,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
           view_layer->cryptomatte_levels = 6;
-          view_layer->cryptomatte_flag = VIEW_LAYER_CRYPTOMATTE_ACCURATE;
         }
       }
     }
@@ -1532,8 +1531,8 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_SEQ) {
             SpaceSeq *sseq = (SpaceSeq *)sl;
-            sseq->flag |= (SEQ_SHOW_STRIP_OVERLAY | SEQ_SHOW_STRIP_NAME | SEQ_SHOW_STRIP_SOURCE |
-                           SEQ_SHOW_STRIP_DURATION);
+            sseq->flag |= (SEQ_SHOW_OVERLAY | SEQ_TIMELINE_SHOW_STRIP_NAME |
+                           SEQ_TIMELINE_SHOW_STRIP_SOURCE | SEQ_TIMELINE_SHOW_STRIP_DURATION);
           }
         }
       }
@@ -1544,7 +1543,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
         if (STREQ(node->idname, "GeometryNodeRandomAttribute")) {
-          STRNCPY(node->idname, "GeometryNodeAttributeRandomize");
+          STRNCPY(node->idname, "GeometryLegacyNodeAttributeRandomize");
         }
       }
     }

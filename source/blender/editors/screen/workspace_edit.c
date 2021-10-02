@@ -310,7 +310,14 @@ static int workspace_append_activate_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", filepath);
 
   WorkSpace *appended_workspace = (WorkSpace *)WM_file_append_datablock(
-      bmain, CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_view3d(C), filepath, ID_WS, idname);
+      bmain,
+      CTX_data_scene(C),
+      CTX_data_view_layer(C),
+      CTX_wm_view3d(C),
+      filepath,
+      ID_WS,
+      idname,
+      BLO_LIBLINK_APPEND_RECURSIVE);
 
   if (appended_workspace) {
     /* Set defaults. */

@@ -814,7 +814,7 @@ bool Node::socket_is_modified(const SocketType &input) const
   return (socket_modified & input.modified_flag_bit) != 0;
 }
 
-bool Node::is_modified()
+bool Node::is_modified() const
 {
   return socket_modified != 0;
 }

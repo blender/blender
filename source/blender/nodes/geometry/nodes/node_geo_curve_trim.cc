@@ -30,9 +30,9 @@ static void geo_node_curve_trim_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Curve");
   b.add_input<decl::Float>("Start").min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("End").min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("End").min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
   b.add_input<decl::Float>("Start", "Start_001").min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("End", "End_001").min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("End", "End_001").min(0.0f).default_value(1.0f).subtype(PROP_DISTANCE);
   b.add_output<decl::Geometry>("Curve");
 }
 
@@ -46,25 +46,24 @@ static void geo_node_curve_trim_init(bNodeTree *UNUSED(tree), bNode *node)
   NodeGeometryCurveTrim *data = (NodeGeometryCurveTrim *)MEM_callocN(sizeof(NodeGeometryCurveTrim),
                                                                      __func__);
 
-  data->mode = GEO_NODE_CURVE_INTERPOLATE_FACTOR;
+  data->mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
   node->storage = data;
 }
 
 static void geo_node_curve_trim_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   const NodeGeometryCurveTrim &node_storage = *(NodeGeometryCurveTrim *)node->storage;
-  const GeometryNodeCurveInterpolateMode mode = (GeometryNodeCurveInterpolateMode)
-                                                    node_storage.mode;
+  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
 
   bNodeSocket *start_fac = ((bNodeSocket *)node->inputs.first)->next;
   bNodeSocket *end_fac = start_fac->next;
   bNodeSocket *start_len = end_fac->next;
   bNodeSocket *end_len = start_len->next;
 
-  nodeSetSocketAvailability(start_fac, mode == GEO_NODE_CURVE_INTERPOLATE_FACTOR);
-  nodeSetSocketAvailability(end_fac, mode == GEO_NODE_CURVE_INTERPOLATE_FACTOR);
-  nodeSetSocketAvailability(start_len, mode == GEO_NODE_CURVE_INTERPOLATE_LENGTH);
-  nodeSetSocketAvailability(end_len, mode == GEO_NODE_CURVE_INTERPOLATE_LENGTH);
+  nodeSetSocketAvailability(start_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+  nodeSetSocketAvailability(end_fac, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+  nodeSetSocketAvailability(start_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+  nodeSetSocketAvailability(end_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
 }
 
 struct TrimLocation {
@@ -321,29 +320,17 @@ static void trim_bezier_spline(Spline &spline,
   bezier_spline.resize(size);
 }
 
-static void geo_node_curve_trim_exec(GeoNodeExecParams params)
+static void geometry_set_curve_trim(GeometrySet &geometry_set,
+                                    const GeometryNodeCurveSampleMode mode,
+                                    const float start,
+                                    const float end)
 {
-  const NodeGeometryCurveTrim &node_storage = *(NodeGeometryCurveTrim *)params.node().storage;
-  const GeometryNodeCurveInterpolateMode mode = (GeometryNodeCurveInterpolateMode)
-                                                    node_storage.mode;
-
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-  geometry_set = bke::geometry_set_realize_instances(geometry_set);
   if (!geometry_set.has_curve()) {
-    params.set_output("Curve", std::move(geometry_set));
     return;
   }
 
-  CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-  CurveEval &curve = *curve_component.get_for_write();
+  CurveEval &curve = *geometry_set.get_curve_for_write();
   MutableSpan<SplinePtr> splines = curve.splines();
-
-  const float start = mode == GEO_NODE_CURVE_INTERPOLATE_FACTOR ?
-                          params.extract_input<float>("Start") :
-                          params.extract_input<float>("Start_001");
-  const float end = mode == GEO_NODE_CURVE_INTERPOLATE_FACTOR ?
-                        params.extract_input<float>("End") :
-                        params.extract_input<float>("End_001");
 
   threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
     for (const int i : range) {
@@ -362,11 +349,11 @@ static void geo_node_curve_trim_exec(GeoNodeExecParams params)
       }
 
       const Spline::LookupResult start_lookup =
-          (mode == GEO_NODE_CURVE_INTERPOLATE_LENGTH) ?
+          (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) ?
               spline.lookup_evaluated_length(std::clamp(start, 0.0f, spline.length())) :
               spline.lookup_evaluated_factor(std::clamp(start, 0.0f, 1.0f));
       const Spline::LookupResult end_lookup =
-          (mode == GEO_NODE_CURVE_INTERPOLATE_LENGTH) ?
+          (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) ?
               spline.lookup_evaluated_length(std::clamp(end, 0.0f, spline.length())) :
               spline.lookup_evaluated_factor(std::clamp(end, 0.0f, 1.0f));
 
@@ -385,6 +372,29 @@ static void geo_node_curve_trim_exec(GeoNodeExecParams params)
       splines[i]->mark_cache_invalid();
     }
   });
+}
+
+static void geo_node_curve_trim_exec(GeoNodeExecParams params)
+{
+  const NodeGeometryCurveTrim &node_storage = *(NodeGeometryCurveTrim *)params.node().storage;
+  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
+
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
+
+  if (mode == GEO_NODE_CURVE_SAMPLE_FACTOR) {
+    const float start = params.extract_input<float>("Start");
+    const float end = params.extract_input<float>("End");
+    geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+      geometry_set_curve_trim(geometry_set, mode, start, end);
+    });
+  }
+  else if (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
+    const float start = params.extract_input<float>("Start_001");
+    const float end = params.extract_input<float>("End_001");
+    geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+      geometry_set_curve_trim(geometry_set, mode, start, end);
+    });
+  }
 
   params.set_output("Curve", std::move(geometry_set));
 }

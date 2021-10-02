@@ -98,7 +98,7 @@ IDTypeInfo IDType_ID_SPK = {
     .name = "Speaker",
     .name_plural = "speakers",
     .translation_context = BLT_I18NCONTEXT_ID_SPEAKER,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = speaker_init_data,
     .copy_data = NULL,

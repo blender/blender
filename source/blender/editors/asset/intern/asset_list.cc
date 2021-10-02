@@ -157,7 +157,7 @@ void AssetList::setup()
 
   /* Relevant bits from file_refresh(). */
   /* TODO pass options properly. */
-  filelist_setrecursion(files, 1);
+  filelist_setrecursion(files, FILE_SELECT_MAX_RECURSIONS);
   filelist_setsorting(files, FILE_SORT_ALPHA, false);
   filelist_setlibrary(files, &library_ref_);
   filelist_setfilter_options(
@@ -390,7 +390,7 @@ std::optional<eFileSelectType> AssetListStorage::asset_library_reference_to_file
 {
   switch (library_reference.type) {
     case ASSET_LIBRARY_CUSTOM:
-      return FILE_LOADLIB;
+      return FILE_ASSET_LIBRARY;
     case ASSET_LIBRARY_LOCAL:
       return FILE_MAIN_ASSET;
   }

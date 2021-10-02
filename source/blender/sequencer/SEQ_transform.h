@@ -61,6 +61,15 @@ void SEQ_transform_offset_after_frame(struct Scene *scene,
                                       const int delta,
                                       const int timeline_frame);
 
+/* Image transformation. */
+void SEQ_image_transform_mirror_factor_get(const struct Sequence *seq, float r_mirror[2]);
+void SEQ_image_transform_origin_offset_pixelspace_get(const struct Scene *scene,
+                                                      const struct Sequence *seq,
+                                                      float r_origin[2]);
+void SEQ_image_transform_final_quad_get(const struct Scene *scene,
+                                        const struct Sequence *seq,
+                                        float r_quad[4][2]);
+
 #ifdef __cplusplus
 }
 #endif

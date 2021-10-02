@@ -19,18 +19,18 @@
 
 #include "../node_shader_util.h"
 
-/* **************** WHITE NOISE **************** */
+namespace blender::nodes {
 
-static bNodeSocketTemplate sh_node_tex_white_noise_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("W"), 0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {-1, ""}};
-
-static bNodeSocketTemplate sh_node_tex_white_noise_out[] = {
-    {SOCK_FLOAT, N_("Value")},
-    {SOCK_RGBA, N_("Color")},
-    {-1, ""},
+static void sh_node_tex_white_noise_declare(NodeDeclarationBuilder &b)
+{
+  b.is_function_node();
+  b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("W").min(-10000.0f).max(10000.0f);
+  b.add_output<decl::Float>("Value");
+  b.add_output<decl::Color>("Color");
 };
+
+}  // namespace blender::nodes
 
 static void node_shader_init_tex_white_noise(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -70,7 +70,7 @@ void register_node_type_sh_tex_white_noise(void)
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_WHITE_NOISE, "White Noise Texture", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_white_noise_in, sh_node_tex_white_noise_out);
+  ntype.declare = blender::nodes::sh_node_tex_white_noise_declare;
   node_type_init(&ntype, node_shader_init_tex_white_noise);
   node_type_gpu(&ntype, gpu_shader_tex_white_noise);
   node_type_update(&ntype, node_shader_update_tex_white_noise);

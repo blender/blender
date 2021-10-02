@@ -156,10 +156,16 @@ macro(cycles_target_link_libraries target)
     ${PLATFORM_LINKLIBS}
   )
 
-  if(WITH_CUDA_DYNLOAD)
-    target_link_libraries(${target} extern_cuew)
-  else()
-    target_link_libraries(${target} ${CUDA_CUDA_LIBRARY})
+  if(WITH_CYCLES_DEVICE_CUDA OR WITH_CYCLES_DEVICE_OPTIX)
+    if(WITH_CUDA_DYNLOAD)
+      target_link_libraries(${target} extern_cuew)
+    else()
+      target_link_libraries(${target} ${CUDA_CUDA_LIBRARY})
+    endif()
+  endif()
+
+  if(WITH_CYCLES_DEVICE_HIP AND WITH_HIP_DYNLOAD)
+    target_link_libraries(${target} extern_hipew)
   endif()
 
   if(CYCLES_STANDALONE_REPOSITORY)

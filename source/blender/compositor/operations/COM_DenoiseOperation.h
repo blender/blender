@@ -23,7 +23,24 @@
 
 namespace blender::compositor {
 
-class DenoiseOperation : public SingleThreadedOperation {
+bool COM_is_denoise_supported();
+
+class DenoiseBaseOperation : public SingleThreadedOperation {
+ protected:
+  bool output_rendered_;
+
+ protected:
+  DenoiseBaseOperation();
+
+ public:
+  bool determineDependingAreaOfInterest(rcti *input,
+                                        ReadBufferOperation *readOperation,
+                                        rcti *output) override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+};
+
+class DenoiseOperation : public DenoiseBaseOperation {
  private:
   /**
    * \brief Cached reference to the input programs
@@ -36,8 +53,6 @@ class DenoiseOperation : public SingleThreadedOperation {
    * \brief settings of the denoise node.
    */
   NodeDenoise *m_settings;
-
-  bool output_rendered_;
 
  public:
   DenoiseOperation();
@@ -55,16 +70,13 @@ class DenoiseOperation : public SingleThreadedOperation {
   {
     this->m_settings = settings;
   }
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
 
-  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer(MemoryBuffer *output,
                             const rcti &area,
                             Span<MemoryBuffer *> inputs) override;
 
  protected:
+  void hash_output_params() override;
   void generateDenoise(MemoryBuffer *output,
                        MemoryBuffer *input_color,
                        MemoryBuffer *input_normal,
@@ -72,6 +84,30 @@ class DenoiseOperation : public SingleThreadedOperation {
                        NodeDenoise *settings);
 
   MemoryBuffer *createMemoryBuffer(rcti *rect) override;
+};
+
+class DenoisePrefilterOperation : public DenoiseBaseOperation {
+ private:
+  std::string image_name_;
+
+ public:
+  DenoisePrefilterOperation(DataType data_type);
+
+  void set_image_name(StringRef name)
+  {
+    image_name_ = name;
+  }
+
+  void update_memory_buffer(MemoryBuffer *output,
+                            const rcti &area,
+                            Span<MemoryBuffer *> inputs) override;
+
+ protected:
+  void hash_output_params() override;
+  MemoryBuffer *createMemoryBuffer(rcti *rect) override;
+
+ private:
+  void generate_denoise(MemoryBuffer *output, MemoryBuffer *input);
 };
 
 }  // namespace blender::compositor

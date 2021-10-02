@@ -73,7 +73,6 @@ class ResourceScope : NonCopyable, NonMovable {
    */
   template<typename T> T *add(std::unique_ptr<T> resource)
   {
-    BLI_assert(resource.get() != nullptr);
     T *ptr = resource.release();
     if (ptr == nullptr) {
       return nullptr;

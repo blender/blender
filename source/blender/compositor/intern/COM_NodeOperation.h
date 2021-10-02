@@ -62,9 +62,13 @@ enum class ResizeMode {
   /** \brief Center the input image to the center of the working area of the node, no resizing
    * occurs */
   Center = NS_CR_CENTER,
-  /** \brief The bottom left of the input image is the bottom left of the working area of the node,
-   * no resizing occurs */
+  /** No resizing or translation. */
   None = NS_CR_NONE,
+  /**
+   * Input image is translated so that its bottom left matches the bottom left of the working area
+   * of the node, no resizing occurs.
+   */
+  Align = 100,
   /** \brief Fit the width of the input image to the width of the working area of the node */
   FitWidth = NS_CR_FIT_WIDTH,
   /** \brief Fit the height of the input image to the height of the working area of the node */
@@ -130,7 +134,7 @@ class NodeOperationInput {
 
   SocketReader *getReader();
 
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  bool determine_canvas(const rcti &preferred_area, rcti &r_area);
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
@@ -158,12 +162,7 @@ class NodeOperationOutput {
     return m_datatype;
   }
 
-  /**
-   * \brief determine the resolution of this data going through this socket
-   * \param resolution: the result of this operation
-   * \param preferredResolution: the preferable resolution as no resolution could be determined
-   */
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void determine_canvas(const rcti &preferred_area, rcti &r_area);
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
@@ -211,9 +210,9 @@ struct NodeOperationFlags {
   bool use_viewer_border : 1;
 
   /**
-   * Is the resolution of the operation set.
+   * Is the canvas of the operation set.
    */
-  bool is_resolution_set : 1;
+  bool is_canvas_set : 1;
 
   /**
    * Is this a set operation (value, color, vector).
@@ -257,7 +256,7 @@ struct NodeOperationFlags {
     open_cl = false;
     use_render_border = false;
     use_viewer_border = false;
-    is_resolution_set = false;
+    is_canvas_set = false;
     is_set_operation = false;
     is_read_buffer_operation = false;
     is_write_buffer_operation = false;
@@ -324,11 +323,11 @@ class NodeOperation {
   bool is_hash_output_params_implemented_;
 
   /**
-   * \brief the index of the input socket that will be used to determine the resolution
+   * \brief the index of the input socket that will be used to determine the canvas
    */
-  unsigned int m_resolutionInputSocketIndex;
+  unsigned int canvas_input_index_;
 
-  std::function<void(unsigned int resolution[2])> modify_determined_resolution_fn_;
+  std::function<void(rcti &canvas)> modify_determined_canvas_fn_;
 
   /**
    * \brief mutex reference for very special node initializations
@@ -352,15 +351,7 @@ class NodeOperation {
    */
   eExecutionModel execution_model_;
 
-  /**
-   * Width of the output of this operation.
-   */
-  unsigned int m_width;
-
-  /**
-   * Height of the output of this operation.
-   */
-  unsigned int m_height;
+  rcti canvas_;
 
   /**
    * Flags how to evaluate this operation.
@@ -372,11 +363,6 @@ class NodeOperation {
  public:
   virtual ~NodeOperation()
   {
-  }
-
-  void set_execution_model(const eExecutionModel model)
-  {
-    execution_model_ = model;
   }
 
   void set_name(const std::string name)
@@ -398,6 +384,9 @@ class NodeOperation {
   {
     return m_id;
   }
+
+  float get_constant_value_default(float default_value);
+  const float *get_constant_elem_default(const float *default_elem);
 
   const NodeOperationFlags get_flags() const
   {
@@ -424,14 +413,7 @@ class NodeOperation {
     return getInputOperation(index);
   }
 
-  /**
-   * \brief determine the resolution of this node
-   * \note this method will not set the resolution, this is the responsibility of the caller
-   * \param resolution: the result of this operation
-   * \param preferredResolution: the preferable resolution as no resolution could be determined
-   */
-  virtual void determineResolution(unsigned int resolution[2],
-                                   unsigned int preferredResolution[2]);
+  virtual void determine_canvas(const rcti &preferred_area, rcti &r_area);
 
   /**
    * \brief isOutputOperation determines whether this operation is an output of the
@@ -451,6 +433,11 @@ class NodeOperation {
   virtual bool isOutputOperation(bool /*rendering*/) const
   {
     return false;
+  }
+
+  void set_execution_model(const eExecutionModel model)
+  {
+    execution_model_ = model;
   }
 
   void setbNodeTree(const bNodeTree *tree)
@@ -527,18 +514,9 @@ class NodeOperation {
   }
   virtual void deinitExecution();
 
-  /**
-   * \brief set the resolution
-   * \param resolution: the resolution to set
-   */
-  void setResolution(unsigned int resolution[2])
-  {
-    if (!this->flags.is_resolution_set) {
-      this->m_width = resolution[0];
-      this->m_height = resolution[1];
-      this->flags.is_resolution_set = true;
-    }
-  }
+  void set_canvas(const rcti &canvas_area);
+  const rcti &get_canvas() const;
+  void unset_canvas();
 
   /**
    * \brief is this operation the active viewer output
@@ -557,18 +535,18 @@ class NodeOperation {
                                                 rcti *output);
 
   /**
-   * \brief set the index of the input socket that will determine the resolution of this
+   * \brief set the index of the input socket that will determine the canvas of this
    * operation \param index: the index to set
    */
-  void setResolutionInputSocketIndex(unsigned int index);
+  void set_canvas_input_index(unsigned int index);
 
   /**
-   * Set a custom function to modify determined resolution from main input just before setting it
-   * as preferred resolution for the other inputs.
+   * Set a custom function to modify determined canvas from main input just before setting it
+   * as preferred for the other inputs.
    */
-  void set_determined_resolution_modifier(std::function<void(unsigned int resolution[2])> fn)
+  void set_determined_canvas_modifier(std::function<void(rcti &canvas)> fn)
   {
-    modify_determined_resolution_fn_ = fn;
+    modify_determined_canvas_fn_ = fn;
   }
 
   /**
@@ -595,12 +573,12 @@ class NodeOperation {
 
   unsigned int getWidth() const
   {
-    return m_width;
+    return BLI_rcti_size_x(&get_canvas());
   }
 
   unsigned int getHeight() const
   {
-    return m_height;
+    return BLI_rcti_size_y(&get_canvas());
   }
 
   inline void readSampled(float result[4], float x, float y, PixelSampler sampler)
@@ -697,16 +675,18 @@ class NodeOperation {
   void addInputSocket(DataType datatype, ResizeMode resize_mode = ResizeMode::Center);
   void addOutputSocket(DataType datatype);
 
+  /* TODO(manzanilla): to be removed with tiled implementation. */
   void setWidth(unsigned int width)
   {
-    this->m_width = width;
-    this->flags.is_resolution_set = true;
+    canvas_.xmax = canvas_.xmin + width;
+    this->flags.is_canvas_set = true;
   }
   void setHeight(unsigned int height)
   {
-    this->m_height = height;
-    this->flags.is_resolution_set = true;
+    canvas_.ymax = canvas_.ymin + height;
+    this->flags.is_canvas_set = true;
   }
+
   SocketReader *getInputSocketReader(unsigned int inputSocketindex);
   NodeOperation *getInputOperation(unsigned int inputSocketindex);
 

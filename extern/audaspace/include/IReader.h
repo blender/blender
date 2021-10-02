@@ -71,12 +71,6 @@ public:
 	virtual int getPosition() const=0;
 
 	/**
-	 * Returns the start offset the sound should have to line up with related sources.
-	 * \return The required start offset in seconds.
-	 */
-	virtual double getStartOffset() const { return 0.0;}
-
-	/**
 	 * Returns the specification of the reader.
 	 * \return The Specs structure.
 	 */

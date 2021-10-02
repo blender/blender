@@ -30,8 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BSDF_REFLECTION_H__
-#define __BSDF_REFLECTION_H__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
@@ -93,5 +92,3 @@ ccl_device int bsdf_reflection_sample(const ShaderClosure *sc,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __BSDF_REFLECTION_H__ */

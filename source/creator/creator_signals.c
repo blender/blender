@@ -79,7 +79,7 @@ static void sig_handle_fpe(int UNUSED(sig))
 }
 #  endif
 
-/* handling ctrl-c event in console */
+/* Handling `Ctrl-C` event in the console. */
 #  if !defined(WITH_HEADLESS)
 static void sig_handle_blender_esc(int sig)
 {

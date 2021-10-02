@@ -944,6 +944,13 @@ typedef struct wmDragAsset {
   const char *path;
   int id_type;
   int import_type; /* eFileAssetImportType */
+
+  /* FIXME: This is temporary evil solution to get scene/viewlayer/etc in the copy callback of the
+   * #wmDropBox.
+   * TODO: Handle link/append in operator called at the end of the drop process, and NOT in its
+   * copy callback.
+   * */
+  struct bContext *evil_C;
 } wmDragAsset;
 
 typedef char *(*WMDropboxTooltipFunc)(struct bContext *,

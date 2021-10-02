@@ -75,6 +75,7 @@
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_override.h"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_light.h"
@@ -2015,6 +2016,15 @@ static int object_delete_exec(bContext *C, wmOperator *op)
       continue;
     }
 
+    if (!BKE_lib_override_library_id_is_user_deletable(bmain, &ob->id)) {
+      /* Can this case ever happen? */
+      BKE_reportf(op->reports,
+                  RPT_WARNING,
+                  "Cannot delete object '%s' as it used by override collections",
+                  ob->id.name + 2);
+      continue;
+    }
+
     if (ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0 &&
         BKE_library_ID_is_indirectly_used(bmain, ob)) {
       BKE_reportf(op->reports,
@@ -2828,8 +2838,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       /* Remove unused materials. */
       int actcol = ob_gpencil->actcol;
       for (int slot = 1; slot <= ob_gpencil->totcol; slot++) {
-        while (slot <= ob_gpencil->totcol &&
-               !BKE_object_material_slot_used(ob_gpencil->data, slot)) {
+        while (slot <= ob_gpencil->totcol && !BKE_object_material_slot_used(ob_gpencil, slot)) {
           ob_gpencil->actcol = slot;
           BKE_object_material_slot_remove(CTX_data_main(C), ob_gpencil);
 

@@ -221,6 +221,29 @@ places in rna_engine_codebase are relevent:
   })
 
   MAKE_FLOAT_EX_EX(smooth_strength_factor, "Smooth Strength", "Factor to control the strength of shift-smooth", 0.1f, 0.0f, 10.0f, 0.0f, 2.0f, false, false, BRUSH_CHANNEL_INHERIT)
+  MAKE_ENUM(smooth_deform_type, "Deformation", "Deformation type that is used in the brush",  BRUSH_SMOOTH_DEFORM_LAPLACIAN, {
+      {BRUSH_SMOOTH_DEFORM_LAPLACIAN,
+       "LAPLACIAN",
+       "NONE",
+       "Laplacian",
+       "Smooths the surface and the volume"},
+      {BRUSH_SMOOTH_DEFORM_SURFACE,
+       "SURFACE",
+       "NONE",
+       "Surface",
+       "Smooths the surface of the mesh, preserving the volume"},
+      {BRUSH_SMOOTH_DEFORM_DIRECTIONAL,
+       "DIRECTIONAL",
+       "NONE",
+       "Directional",
+       "Smooths the surface taking into account the direction of the stroke"},
+      {BRUSH_SMOOTH_DEFORM_UNIFORM_WEIGHTS,
+       "UNIFORM_WEIGHTS",
+       "NONE",
+       "Uniform Weights",
+       "Smooths the surface considering that all edges have the same length"},
+    {-1}
+  })
 
   MAKE_FLAGS_EX(automasking, "Automasking", "", 0, BRUSH_CHANNEL_INHERIT_IF_UNSET, {\
          {BRUSH_AUTOMASKING_BOUNDARY_EDGES, "BOUNDARY_EDGE", "NONE", "Boundary Edges", ""},

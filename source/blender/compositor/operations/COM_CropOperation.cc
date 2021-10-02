@@ -23,7 +23,7 @@ namespace blender::compositor {
 
 CropBaseOperation::CropBaseOperation()
 {
-  this->addInputSocket(DataType::Color, ResizeMode::None);
+  this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addOutputSocket(DataType::Color);
   this->m_inputOperation = nullptr;
   this->m_settings = nullptr;
@@ -142,13 +142,12 @@ void CropImageOperation::get_area_of_interest(const int input_idx,
   r_input_area.ymin = output_area.ymin + this->m_ymin;
 }
 
-void CropImageOperation::determineResolution(unsigned int resolution[2],
-                                             unsigned int preferredResolution[2])
+void CropImageOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  NodeOperation::determineResolution(resolution, preferredResolution);
+  NodeOperation::determine_canvas(preferred_area, r_area);
   updateArea();
-  resolution[0] = this->m_xmax - this->m_xmin;
-  resolution[1] = this->m_ymax - this->m_ymin;
+  r_area.xmax = r_area.xmin + (m_xmax - m_xmin);
+  r_area.ymax = r_area.ymin + (m_ymax - m_ymin);
 }
 
 void CropImageOperation::executePixelSampled(float output[4],

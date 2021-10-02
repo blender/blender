@@ -33,6 +33,8 @@ struct ModifierData;
 
 namespace blender::nodes {
 
+using bke::AnonymousAttributeFieldInput;
+using bke::AttributeFieldInput;
 using bke::AttributeIDRef;
 using bke::geometry_set_realize_instances;
 using bke::GeometryComponentFieldContext;
@@ -44,6 +46,8 @@ using bke::WeakAnonymousAttributeID;
 using bke::WriteAttributeLookup;
 using fn::CPPType;
 using fn::Field;
+using fn::FieldContext;
+using fn::FieldEvaluator;
 using fn::FieldInput;
 using fn::FieldOperation;
 using fn::GField;

@@ -72,12 +72,12 @@ ccl_device_noinline_cpu float2 svm_brick(float3 p,
   return make_float2(tint, mortar);
 }
 
-ccl_device void svm_node_tex_brick(
-    KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device_noinline int svm_node_tex_brick(
+    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int offset)
 {
-  uint4 node2 = read_node(kg, offset);
-  uint4 node3 = read_node(kg, offset);
-  uint4 node4 = read_node(kg, offset);
+  uint4 node2 = read_node(kg, &offset);
+  uint4 node3 = read_node(kg, &offset);
+  uint4 node4 = read_node(kg, &offset);
 
   /* Input and Output Sockets */
   uint co_offset, color1_offset, color2_offset, mortar_offset, scale_offset;
@@ -133,6 +133,7 @@ ccl_device void svm_node_tex_brick(
     stack_store_float3(stack, color_offset, color1 * (1.0f - f) + mortar * f);
   if (stack_valid(fac_offset))
     stack_store_float(stack, fac_offset, f);
+  return offset;
 }
 
 CCL_NAMESPACE_END

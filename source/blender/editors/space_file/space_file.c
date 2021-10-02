@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -335,9 +335,9 @@ static void file_refresh(const bContext *C, ScrArea *area)
     params->highlight_file = -1; /* added this so it opens nicer (ton) */
   }
 
-  if (!U.experimental.use_extended_asset_browser && ED_fileselect_is_asset_browser(sfile)) {
+  if (ED_fileselect_is_asset_browser(sfile)) {
     /* Only poses supported as non-experimental right now. */
-    params->filter_id = FILTER_ID_AC;
+    params->filter_id = U.experimental.use_extended_asset_browser ? FILTER_ID_ALL : FILTER_ID_AC;
   }
 
   filelist_settype(sfile->files, params->type);
@@ -355,6 +355,10 @@ static void file_refresh(const bContext *C, ScrArea *area)
       (params->flag & FILE_ASSETS_ONLY) != 0,
       params->filter_glob,
       params->filter_search);
+  if (asset_params) {
+    filelist_set_asset_catalog_filter_options(
+        sfile->files, asset_params->asset_catalog_visibility, &asset_params->catalog_id);
+  }
 
   /* Update the active indices of bookmarks & co. */
   sfile->systemnr = fsmenu_get_active_indices(fsmenu, FS_CATEGORY_SYSTEM, params->dir);
@@ -738,8 +742,18 @@ static void file_tools_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void file_tools_region_listener(const wmRegionListenerParams *UNUSED(listener_params))
+static void file_tools_region_listener(const wmRegionListenerParams *listener_params)
 {
+  const wmNotifier *wmn = listener_params->notifier;
+  ARegion *region = listener_params->region;
+
+  switch (wmn->category) {
+    case NC_SCENE:
+      if (ELEM(wmn->data, ND_MODE)) {
+        ED_region_tag_redraw(region);
+      }
+      break;
+  }
 }
 
 static void file_tool_props_region_listener(const wmRegionListenerParams *listener_params)
@@ -751,6 +765,11 @@ static void file_tool_props_region_listener(const wmRegionListenerParams *listen
     case NC_ID:
       if (ELEM(wmn->action, NA_RENAME)) {
         /* In case the filelist shows ID names. */
+        ED_region_tag_redraw(region);
+      }
+      break;
+    case NC_SCENE:
+      if (ELEM(wmn->data, ND_MODE)) {
         ED_region_tag_redraw(region);
       }
       break;
@@ -1035,6 +1054,7 @@ void ED_spacetype_file(void)
   art->init = file_tools_region_init;
   art->draw = file_tools_region_draw;
   BLI_addhead(&st->regiontypes, art);
+  file_tools_region_panels_register(art);
 
   /* regions: tool properties */
   art = MEM_callocN(sizeof(ARegionType), "spacetype file operator region");

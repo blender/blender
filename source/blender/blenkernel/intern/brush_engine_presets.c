@@ -382,7 +382,7 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(spacing, spacing, INT, FLOAT)
   DEF(autosmooth_factor, autosmooth, FLOAT, FLOAT)
   DEF(area_radius_factor, area_radius_factor, FLOAT, FLOAT)
-  DEF(autosmooth_projection, SMOOTH_PROJECTION, FLOAT, FLOAT)
+  DEF(autosmooth_projection, autosmooth_projection, FLOAT, FLOAT)
   DEF(topology_rake_projection, topology_rake_projection, FLOAT, FLOAT)
   DEF(topology_rake_radius_factor, topology_rake_radius_scale, FLOAT, FLOAT)
   DEF(topology_rake_spacing, topology_rake_spacing, INT, FLOAT)
@@ -446,6 +446,7 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(plane_trim, plane_trim, FLOAT, FLOAT)
   DEF(blend, blend, INT, INT)
   DEF(elastic_deform_volume_preservation, elastic_deform_volume_preservation, FLOAT, FLOAT)
+  DEF(smooth_deform_type, smooth_deform_type, INT, INT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -1011,7 +1012,9 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(dyntopo_spacing);
   ADDCH(dyntopo_radius_scale);
 
-  ADDCH(smooth_strength_factor);
+  if (!BRUSHSET_LOOKUP(chset, smooth_strength_factor)) {
+    ADDCH(smooth_strength_factor)->flag |= BRUSH_CHANNEL_INHERIT;
+  }
 
   ADDCH(accumulate);
   ADDCH(original_normal);
@@ -1035,6 +1038,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(dash_ratio);
   ADDCH(smooth_stroke_factor);
   ADDCH(smooth_stroke_radius);
+  ADDCH(smooth_deform_type);
 
   switch (tool) {
     case SCULPT_TOOL_CLAY:
@@ -1238,6 +1242,8 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(surface_smooth_shape_preservation);
       SHOWWRK(surface_smooth_current_vertex);
       SHOWWRK(surface_smooth_iterations);
+      SHOWWRK(smooth_deform_type);
+      SHOWCTX(smooth_deform_type);
       SHOWWRK(projection);
       break;
     case SCULPT_TOOL_SCRAPE:

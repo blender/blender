@@ -216,6 +216,7 @@ void POSE_OT_relax(struct wmOperatorType *ot);
 void POSE_OT_push_rest(struct wmOperatorType *ot);
 void POSE_OT_relax_rest(struct wmOperatorType *ot);
 void POSE_OT_breakdown(struct wmOperatorType *ot);
+void POSE_OT_blend_to_neighbours(struct wmOperatorType *ot);
 
 void POSE_OT_propagate(struct wmOperatorType *ot);
 

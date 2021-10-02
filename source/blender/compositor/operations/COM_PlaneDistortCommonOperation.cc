@@ -73,7 +73,7 @@ BLI_INLINE void warpCoord(float x, float y, float matrix[3][3], float uv[2], flo
 
 PlaneDistortWarpImageOperation::PlaneDistortWarpImageOperation() : PlaneDistortBaseOperation()
 {
-  this->addInputSocket(DataType::Color, ResizeMode::None);
+  this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addOutputSocket(DataType::Color);
   this->m_pixelReader = nullptr;
   this->flags.complex = true;
@@ -196,10 +196,7 @@ void PlaneDistortWarpImageOperation::get_area_of_interest(const int input_idx,
   }
 
   /* TODO: figure out the area needed for warping and EWA filtering. */
-  r_input_area.xmin = 0;
-  r_input_area.ymin = 0;
-  r_input_area.xmax = get_input_operation(0)->getWidth();
-  r_input_area.ymax = get_input_operation(0)->getHeight();
+  r_input_area = get_input_operation(0)->get_canvas();
 
 /* Old implementation but resulting coordinates are way out of input operation bounds and in some
  * cases the area result may incorrectly cause cropping. */

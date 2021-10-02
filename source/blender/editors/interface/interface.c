@@ -762,6 +762,15 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
     return false;
   }
 
+  if ((but->type == UI_BTYPE_TREEROW) && (oldbut->type == UI_BTYPE_TREEROW)) {
+    uiButTreeRow *but_treerow = (uiButTreeRow *)but;
+    uiButTreeRow *oldbut_treerow = (uiButTreeRow *)oldbut;
+    if (!but_treerow->tree_item || !oldbut_treerow->tree_item ||
+        !UI_tree_view_item_matches(but_treerow->tree_item, oldbut_treerow->tree_item)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -875,10 +884,21 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
     oldbut->hardmax = but->hardmax;
   }
 
-  if (oldbut->type == UI_BTYPE_PROGRESS_BAR) {
-    uiButProgressbar *progress_oldbut = (uiButProgressbar *)oldbut;
-    uiButProgressbar *progress_but = (uiButProgressbar *)but;
-    progress_oldbut->progress = progress_but->progress;
+  switch (oldbut->type) {
+    case UI_BTYPE_PROGRESS_BAR: {
+      uiButProgressbar *progress_oldbut = (uiButProgressbar *)oldbut;
+      uiButProgressbar *progress_but = (uiButProgressbar *)but;
+      progress_oldbut->progress = progress_but->progress;
+      break;
+    }
+    case UI_BTYPE_TREEROW: {
+      uiButTreeRow *treerow_oldbut = (uiButTreeRow *)oldbut;
+      uiButTreeRow *treerow_newbut = (uiButTreeRow *)but;
+      SWAP(uiTreeViewItemHandle *, treerow_newbut->tree_item, treerow_oldbut->tree_item);
+      break;
+    }
+    default:
+      break;
   }
 
   /* move/copy string from the new button to the old */
@@ -2222,6 +2242,15 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
           }
         }
         break;
+      case UI_BTYPE_TREEROW: {
+        uiButTreeRow *tree_row_but = (uiButTreeRow *)but;
+
+        is_push = -1;
+        if (tree_row_but->tree_item) {
+          is_push = UI_tree_view_item_is_active(tree_row_but->tree_item);
+        }
+        break;
+      }
       default:
         is_push = -1;
         break;
@@ -3474,6 +3503,7 @@ void UI_block_free(const bContext *C, uiBlock *block)
   BLI_freelistN(&block->color_pickers.list);
 
   ui_block_free_button_groups(block);
+  ui_block_free_views(block);
 
   MEM_freeN(block);
 }
@@ -3969,6 +3999,10 @@ static void ui_but_alloc_info(const eButType type,
       alloc_size = sizeof(uiButDatasetRow);
       alloc_str = "uiButDatasetRow";
       break;
+    case UI_BTYPE_TREEROW:
+      alloc_size = sizeof(uiButTreeRow);
+      alloc_str = "uiButTreeRow";
+      break;
     default:
       alloc_size = sizeof(uiBut);
       alloc_str = "uiBut";
@@ -4175,6 +4209,7 @@ static uiBut *ui_def_but(uiBlock *block,
                 UI_BTYPE_BUT_MENU,
                 UI_BTYPE_SEARCH_MENU,
                 UI_BTYPE_DATASETROW,
+                UI_BTYPE_TREEROW,
                 UI_BTYPE_POPOVER)) {
     but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
   }
@@ -6232,6 +6267,13 @@ void UI_but_drag_set_asset(uiBut *but,
   asset_drag->id_type = ED_asset_handle_get_id_type(asset);
   asset_drag->import_type = import_type;
 
+  /* FIXME: This is temporary evil solution to get scene/viewlayer/etc in the copy callback of the
+   * #wmDropBox.
+   * TODO: Handle link/append in operator called at the end of the drop process, and NOT in its
+   * copy callback.
+   * */
+  asset_drag->evil_C = but->block->evil_C;
+
   but->dragtype = WM_DRAG_ASSET;
   ui_def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
   if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
@@ -6909,6 +6951,15 @@ void UI_but_datasetrow_indentation_set(uiBut *but, int indentation)
   BLI_assert(but->type == UI_BTYPE_DATASETROW);
 
   but_dataset->indentation = indentation;
+  BLI_assert(indentation >= 0);
+}
+
+void UI_but_treerow_indentation_set(uiBut *but, int indentation)
+{
+  uiButTreeRow *but_row = (uiButTreeRow *)but;
+  BLI_assert(but->type == UI_BTYPE_TREEROW);
+
+  but_row->indentation = indentation;
   BLI_assert(indentation >= 0);
 }
 

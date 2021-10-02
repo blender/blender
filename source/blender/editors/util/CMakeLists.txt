@@ -103,8 +103,10 @@ set(SRC
   ../include/ED_view3d_offscreen.h
   ../include/UI_icons.h
   ../include/UI_interface.h
+  ../include/UI_interface.hh
   ../include/UI_interface_icons.h
   ../include/UI_resources.h
+  ../include/UI_tree_view.hh
   ../include/UI_view2d.h
 )
 

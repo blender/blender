@@ -218,6 +218,10 @@ void createTransSeqData(TransInfo *t);
 void recalcData_sequencer(TransInfo *t);
 void special_aftertrans_update__sequencer(bContext *C, TransInfo *t);
 
+/* transform_convert_sequencer_image.c */
+void createTransSeqImageData(TransInfo *t);
+void recalcData_sequencer_image(TransInfo *t);
+
 /* transform_convert_tracking.c */
 void createTransTrackingData(bContext *C, TransInfo *t);
 void recalcData_tracking(TransInfo *t);

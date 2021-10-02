@@ -63,6 +63,7 @@
 #include "WM_types.h"
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 /* For menu, popup, icons, etc. */
 #include "ED_numinput.h"
@@ -579,7 +580,6 @@ static int sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 static bool sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
 {
   /* Only data types supported for now. */
-  Editing *ed = SEQ_editing_get(scene);
   bool changed = false;
 
   /* Iterate in reverse so meta-strips are iterated after their children. */
@@ -633,7 +633,10 @@ static bool sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
     }
   }
   if (changed) {
-    SEQ_relations_free_imbuf(scene, &ed->seqbase, false);
+    for (int i = data->num_seq - 1; i >= 0; i--) {
+      Sequence *seq = data->seq_array[i];
+      SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+    }
   }
   return changed;
 }
@@ -867,9 +870,9 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 void SEQUENCER_OT_slip(struct wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Trim Strips";
+  ot->name = "Slip Strips";
   ot->idname = "SEQUENCER_OT_slip";
-  ot->description = "Trim the contents of the active strip";
+  ot->description = "Slip the contents of selected strips";
 
   /* Api callbacks. */
   ot->invoke = sequencer_slip_invoke;
@@ -3318,6 +3321,40 @@ void SEQUENCER_OT_strip_transform_fit(struct wmOperatorType *ot)
                           SEQ_SCALE_TO_FIT,
                           "Fit Method",
                           "Scale fit fit_method");
+}
+
+static int sequencer_strip_color_tag_set_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  const Editing *ed = SEQ_editing_get(scene);
+  const short color_tag = RNA_enum_get(op->ptr, "color");
+
+  LISTBASE_FOREACH (Sequence *, seq, &ed->seqbase) {
+    if (seq->flag & SELECT) {
+      seq->color_tag = color_tag;
+    }
+  }
+
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_strip_color_tag_set(struct wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Set Color Tag";
+  ot->idname = "SEQUENCER_OT_strip_color_tag_set";
+  ot->description = "Set a color tag for the selected strips";
+
+  /* Api callbacks. */
+  ot->exec = sequencer_strip_color_tag_set_exec;
+  ot->poll = sequencer_edit_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(
+      ot->srna, "color", rna_enum_strip_color_items, SEQUENCE_COLOR_NONE, "Color Tag", "");
 }
 
 /** \} */

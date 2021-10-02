@@ -19,27 +19,16 @@
 
 #include "../node_shader_util.h"
 
-/* **************** BLEND ******************** */
+namespace blender::nodes {
 
-static bNodeSocketTemplate sh_node_tex_gradient_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {-1, ""},
+static void sh_node_tex_gradient_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>("Vector").hide_value();
+  b.add_output<decl::Color>("Color").no_muted_links();
+  b.add_output<decl::Float>("Fac").no_muted_links();
 };
 
-static bNodeSocketTemplate sh_node_tex_gradient_out[] = {
-    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
-    {SOCK_FLOAT,
-     N_("Fac"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_FACTOR,
-     SOCK_NO_INTERNAL_LINK},
-    {-1, ""},
-};
+}  // namespace blender::nodes
 
 static void node_shader_init_tex_gradient(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -72,7 +61,7 @@ void register_node_type_sh_tex_gradient(void)
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_GRADIENT, "Gradient Texture", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_gradient_in, sh_node_tex_gradient_out);
+  ntype.declare = blender::nodes::sh_node_tex_gradient_declare;
   node_type_init(&ntype, node_shader_init_tex_gradient);
   node_type_storage(
       &ntype, "NodeTexGradient", node_free_standard_storage, node_copy_standard_storage);

@@ -1284,8 +1284,8 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
                RGN_TYPE_TOOLS,
                RGN_TYPE_UI,
                RGN_TYPE_TOOL_PROPS,
-               RGN_TYPE_HEADER,
-               RGN_TYPE_FOOTER)) {
+               RGN_TYPE_FOOTER,
+               RGN_TYPE_TOOL_HEADER)) {
         return true;
       }
     }
@@ -1699,6 +1699,9 @@ static void ed_default_handlers(
     wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "User Interface", 0, 0);
     WM_event_add_keymap_handler(handlers, keymap);
 
+    ListBase *dropboxes = WM_dropboxmap_find("User Interface", 0, 0);
+    WM_event_add_dropbox_handler(handlers, dropboxes);
+
     /* user interface widgets */
     UI_region_handlers_add(handlers);
   }
@@ -1735,10 +1738,14 @@ static void ed_default_handlers(
     WM_event_add_keymap_handler(handlers, keymap);
   }
   if (flag & ED_KEYMAP_TOOL) {
-    WM_event_add_keymap_handler_dynamic(
-        &region->handlers, WM_event_get_keymap_from_toolsystem_fallback, area);
-    WM_event_add_keymap_handler_dynamic(
-        &region->handlers, WM_event_get_keymap_from_toolsystem, area);
+    if (flag & ED_KEYMAP_GIZMO) {
+      WM_event_add_keymap_handler_dynamic(
+          &region->handlers, WM_event_get_keymap_from_toolsystem_fallback, area);
+    }
+    else {
+      WM_event_add_keymap_handler_dynamic(
+          &region->handlers, WM_event_get_keymap_from_toolsystem, area);
+    }
   }
   if (flag & ED_KEYMAP_FRAMES) {
     /* frame changing/jumping (for all spaces) */
@@ -2996,7 +3003,7 @@ void ED_region_panels_layout_ex(const bContext *C,
 
   /* before setting the view */
   if (region_layout_based) {
-    /* XXX, only single panel support atm.
+    /* XXX, only single panel support at the moment.
      * Can't use x/y values calculated above because they're not using the real height of panels,
      * instead they calculate offsets for the next panel to start drawing. */
     Panel *panel = region->panels.last;

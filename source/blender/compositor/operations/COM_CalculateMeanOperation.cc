@@ -27,7 +27,7 @@ namespace blender::compositor {
 
 CalculateMeanOperation::CalculateMeanOperation()
 {
-  this->addInputSocket(DataType::Color, ResizeMode::None);
+  this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addOutputSocket(DataType::Value);
   this->m_imageReader = nullptr;
   this->m_iscalculated = false;
@@ -165,11 +165,7 @@ void CalculateMeanOperation::get_area_of_interest(int input_idx,
                                                   rcti &r_input_area)
 {
   BLI_assert(input_idx == 0);
-  NodeOperation *operation = getInputOperation(input_idx);
-  r_input_area.xmin = 0;
-  r_input_area.ymin = 0;
-  r_input_area.xmax = operation->getWidth();
-  r_input_area.ymax = operation->getHeight();
+  r_input_area = get_input_operation(input_idx)->get_canvas();
 }
 
 void CalculateMeanOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output),

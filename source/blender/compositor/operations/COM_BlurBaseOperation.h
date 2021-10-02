@@ -85,8 +85,7 @@ class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelpe
 
   int get_blur_size(eDimension dim) const;
 
-  void determineResolution(unsigned int resolution[2],
-                           unsigned int preferredResolution[2]) override;
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
   virtual void get_area_of_interest(int input_idx,
                                     const rcti &output_area,

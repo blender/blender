@@ -28,9 +28,12 @@
  * The SndFileReader class.
  */
 
+#include "file/FileInfo.h"
+
 #include <string>
 #include <sndfile.h>
 #include <memory>
+#include <vector>
 
 AUD_NAMESPACE_BEGIN
 
@@ -96,6 +99,7 @@ public:
 	/**
 	 * Creates a new reader.
 	 * \param filename The path to the file to be read.
+	 * \param stream The index of the audio stream within the file if it contains multiple audio streams.
 	 * \exception Exception Thrown if the file specified does not exist or
 	 *            cannot be read with libsndfile.
 	 */
@@ -104,6 +108,7 @@ public:
 	/**
 	 * Creates a new reader.
 	 * \param buffer The buffer to read from.
+	 * \param stream The index of the audio stream within the file if it contains multiple audio streams.
 	 * \exception Exception Thrown if the buffer specified cannot be read
 	 *                          with libsndfile.
 	 */
@@ -113,6 +118,13 @@ public:
 	 * Destroys the reader and closes the file.
 	 */
 	virtual ~SndFileReader();
+
+	/**
+	 * Queries the streams of a sound file.
+	 * \return A vector with as many streams as there are in the file.
+	 * \exception Exception Thrown if the file specified cannot be read.
+	 */
+	virtual std::vector<StreamInfo> queryStreams();
 
 	virtual bool isSeekable() const;
 	virtual void seek(int position);

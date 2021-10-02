@@ -109,22 +109,15 @@ void MaskOperation::deinitExecution()
   }
 }
 
-void MaskOperation::determineResolution(unsigned int resolution[2],
-                                        unsigned int preferredResolution[2])
+void MaskOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   if (this->m_maskWidth == 0 || this->m_maskHeight == 0) {
-    NodeOperation::determineResolution(resolution, preferredResolution);
+    r_area = COM_AREA_NONE;
   }
   else {
-    unsigned int nr[2];
-
-    nr[0] = this->m_maskWidth;
-    nr[1] = this->m_maskHeight;
-
-    NodeOperation::determineResolution(resolution, nr);
-
-    resolution[0] = this->m_maskWidth;
-    resolution[1] = this->m_maskHeight;
+    r_area = preferred_area;
+    r_area.xmax = r_area.xmin + m_maskWidth;
+    r_area.ymax = r_area.ymin + m_maskHeight;
   }
 }
 

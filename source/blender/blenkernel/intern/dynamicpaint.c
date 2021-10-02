@@ -317,7 +317,7 @@ static bool setError(DynamicPaintCanvasSettings *canvas, const char *string)
 static int dynamicPaint_surfaceNumOfPoints(DynamicPaintSurface *surface)
 {
   if (surface->format == MOD_DPAINT_SURFACE_F_PTEX) {
-    return 0; /* not supported atm */
+    return 0; /* Not supported at the moment. */
   }
   if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
     const Mesh *canvas_mesh = dynamicPaint_canvas_mesh_get(surface->canvas);
@@ -1231,7 +1231,7 @@ void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd,
     /* copy existing surfaces */
     for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
       DynamicPaintSurface *t_surface = dynamicPaint_createNewSurface(tpmd->canvas, NULL);
-      if (flag & LIB_ID_CREATE_NO_MAIN) {
+      if (flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) {
         /* TODO(sergey): Consider passing some tips to the surface
          * creation to avoid this allocate-and-free cache behavior. */
         BKE_ptcache_free_list(&t_surface->ptcaches);

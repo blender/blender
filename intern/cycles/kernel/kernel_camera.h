@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
+#pragma once
+
+#include "kernel_differential.h"
+#include "kernel_lookup_table.h"
+#include "kernel_montecarlo.h"
+#include "kernel_projection.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Perspective Camera */
@@ -39,7 +46,7 @@ ccl_device float2 camera_sample_aperture(ccl_constant KernelCamera *cam, float u
   return bokeh;
 }
 
-ccl_device void camera_sample_perspective(KernelGlobals *kg,
+ccl_device void camera_sample_perspective(const KernelGlobals *ccl_restrict kg,
                                           float raster_x,
                                           float raster_y,
                                           float lens_u,
@@ -113,10 +120,14 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg,
 
 #ifdef __RAY_DIFFERENTIALS__
     float3 Dcenter = transform_direction(&cameratoworld, Pcamera);
+    float3 Dcenter_normalized = normalize(Dcenter);
 
-    ray->dP = differential3_zero();
-    ray->dD.dx = normalize(Dcenter + float4_to_float3(kernel_data.cam.dx)) - normalize(Dcenter);
-    ray->dD.dy = normalize(Dcenter + float4_to_float3(kernel_data.cam.dy)) - normalize(Dcenter);
+    /* TODO: can this be optimized to give compact differentials directly? */
+    ray->dP = differential_zero_compact();
+    differential3 dD;
+    dD.dx = normalize(Dcenter + float4_to_float3(kernel_data.cam.dx)) - Dcenter_normalized;
+    dD.dy = normalize(Dcenter + float4_to_float3(kernel_data.cam.dy)) - Dcenter_normalized;
+    ray->dD = differential_make_compact(dD);
 #endif
   }
   else {
@@ -143,8 +154,10 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg,
     Dx = normalize(transform_direction(&cameratoworld, Dx));
     spherical_stereo_transform(&kernel_data.cam, &Px, &Dx);
 
-    ray->dP.dx = Px - Pcenter;
-    ray->dD.dx = Dx - Dcenter;
+    differential3 dP, dD;
+
+    dP.dx = Px - Pcenter;
+    dD.dx = Dx - Dcenter;
 
     float3 Py = Pnostereo;
     float3 Dy = transform_perspective(&rastertocamera,
@@ -152,8 +165,10 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg,
     Dy = normalize(transform_direction(&cameratoworld, Dy));
     spherical_stereo_transform(&kernel_data.cam, &Py, &Dy);
 
-    ray->dP.dy = Py - Pcenter;
-    ray->dD.dy = Dy - Dcenter;
+    dP.dy = Py - Pcenter;
+    dD.dy = Dy - Dcenter;
+    ray->dD = differential_make_compact(dD);
+    ray->dP = differential_make_compact(dP);
 #endif
   }
 
@@ -162,8 +177,7 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg,
   float z_inv = 1.0f / normalize(Pcamera).z;
   float nearclip = kernel_data.cam.nearclip * z_inv;
   ray->P += nearclip * ray->D;
-  ray->dP.dx += nearclip * ray->dD.dx;
-  ray->dP.dy += nearclip * ray->dD.dy;
+  ray->dP += nearclip * ray->dD;
   ray->t = kernel_data.cam.cliplength * z_inv;
 #else
   ray->t = FLT_MAX;
@@ -171,7 +185,7 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg,
 }
 
 /* Orthographic Camera */
-ccl_device void camera_sample_orthographic(KernelGlobals *kg,
+ccl_device void camera_sample_orthographic(const KernelGlobals *ccl_restrict kg,
                                            float raster_x,
                                            float raster_y,
                                            float lens_u,
@@ -220,10 +234,12 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg,
 
 #ifdef __RAY_DIFFERENTIALS__
   /* ray differential */
-  ray->dP.dx = float4_to_float3(kernel_data.cam.dx);
-  ray->dP.dy = float4_to_float3(kernel_data.cam.dy);
+  differential3 dP;
+  dP.dx = float4_to_float3(kernel_data.cam.dx);
+  dP.dy = float4_to_float3(kernel_data.cam.dx);
 
-  ray->dD = differential3_zero();
+  ray->dP = differential_make_compact(dP);
+  ray->dD = differential_zero_compact();
 #endif
 
 #ifdef __CAMERA_CLIPPING__
@@ -323,8 +339,9 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
     spherical_stereo_transform(cam, &Px, &Dx);
   }
 
-  ray->dP.dx = Px - Pcenter;
-  ray->dD.dx = Dx - Dcenter;
+  differential3 dP, dD;
+  dP.dx = Px - Pcenter;
+  dD.dx = Dx - Dcenter;
 
   float3 Py = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y + 1.0f, 0.0f));
   float3 Dy = panorama_to_direction(cam, Py.x, Py.y);
@@ -334,16 +351,17 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
     spherical_stereo_transform(cam, &Py, &Dy);
   }
 
-  ray->dP.dy = Py - Pcenter;
-  ray->dD.dy = Dy - Dcenter;
+  dP.dy = Py - Pcenter;
+  dD.dy = Dy - Dcenter;
+  ray->dD = differential_make_compact(dD);
+  ray->dP = differential_make_compact(dP);
 #endif
 
 #ifdef __CAMERA_CLIPPING__
   /* clipping */
   float nearclip = cam->nearclip;
   ray->P += nearclip * ray->D;
-  ray->dP.dx += nearclip * ray->dD.dx;
-  ray->dP.dy += nearclip * ray->dD.dy;
+  ray->dP += nearclip * ray->dD;
   ray->t = cam->cliplength;
 #else
   ray->t = FLT_MAX;
@@ -352,7 +370,7 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
 
 /* Common */
 
-ccl_device_inline void camera_sample(KernelGlobals *kg,
+ccl_device_inline void camera_sample(const KernelGlobals *ccl_restrict kg,
                                      int x,
                                      int y,
                                      float filter_u,
@@ -426,13 +444,13 @@ ccl_device_inline void camera_sample(KernelGlobals *kg,
 
 /* Utilities */
 
-ccl_device_inline float3 camera_position(KernelGlobals *kg)
+ccl_device_inline float3 camera_position(const KernelGlobals *kg)
 {
   Transform cameratoworld = kernel_data.cam.cameratoworld;
   return make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
 }
 
-ccl_device_inline float camera_distance(KernelGlobals *kg, float3 P)
+ccl_device_inline float camera_distance(const KernelGlobals *kg, float3 P)
 {
   Transform cameratoworld = kernel_data.cam.cameratoworld;
   float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
@@ -446,7 +464,7 @@ ccl_device_inline float camera_distance(KernelGlobals *kg, float3 P)
   }
 }
 
-ccl_device_inline float camera_z_depth(KernelGlobals *kg, float3 P)
+ccl_device_inline float camera_z_depth(const KernelGlobals *kg, float3 P)
 {
   if (kernel_data.cam.type != CAMERA_PANORAMA) {
     Transform worldtocamera = kernel_data.cam.worldtocamera;
@@ -459,7 +477,7 @@ ccl_device_inline float camera_z_depth(KernelGlobals *kg, float3 P)
   }
 }
 
-ccl_device_inline float3 camera_direction_from_point(KernelGlobals *kg, float3 P)
+ccl_device_inline float3 camera_direction_from_point(const KernelGlobals *kg, float3 P)
 {
   Transform cameratoworld = kernel_data.cam.cameratoworld;
 
@@ -473,7 +491,7 @@ ccl_device_inline float3 camera_direction_from_point(KernelGlobals *kg, float3 P
   }
 }
 
-ccl_device_inline float3 camera_world_to_ndc(KernelGlobals *kg, ShaderData *sd, float3 P)
+ccl_device_inline float3 camera_world_to_ndc(const KernelGlobals *kg, ShaderData *sd, float3 P)
 {
   if (kernel_data.cam.type != CAMERA_PANORAMA) {
     /* perspective / ortho */

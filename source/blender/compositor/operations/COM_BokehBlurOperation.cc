@@ -34,7 +34,7 @@ constexpr int SIZE_INPUT_INDEX = 3;
 BokehBlurOperation::BokehBlurOperation()
 {
   this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Color, ResizeMode::None);
+  this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
@@ -266,31 +266,30 @@ void BokehBlurOperation::updateSize()
   this->m_sizeavailable = true;
 }
 
-void BokehBlurOperation::determineResolution(unsigned int resolution[2],
-                                             unsigned int preferredResolution[2])
+void BokehBlurOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   if (!m_extend_bounds) {
-    NodeOperation::determineResolution(resolution, preferredResolution);
+    NodeOperation::determine_canvas(preferred_area, r_area);
     return;
   }
 
   switch (execution_model_) {
     case eExecutionModel::Tiled: {
-      NodeOperation::determineResolution(resolution, preferredResolution);
-      const float max_dim = MAX2(resolution[0], resolution[1]);
-      resolution[0] += 2 * this->m_size * max_dim / 100.0f;
-      resolution[1] += 2 * this->m_size * max_dim / 100.0f;
+      NodeOperation::determine_canvas(preferred_area, r_area);
+      const float max_dim = MAX2(BLI_rcti_size_x(&r_area), BLI_rcti_size_y(&r_area));
+      r_area.xmax += 2 * this->m_size * max_dim / 100.0f;
+      r_area.ymax += 2 * this->m_size * max_dim / 100.0f;
       break;
     }
     case eExecutionModel::FullFrame: {
-      set_determined_resolution_modifier([=](unsigned int res[2]) {
-        const float max_dim = MAX2(res[0], res[1]);
+      set_determined_canvas_modifier([=](rcti &canvas) {
+        const float max_dim = MAX2(BLI_rcti_size_x(&canvas), BLI_rcti_size_y(&canvas));
         /* Rounding to even prevents image jiggling in backdrop while switching size values. */
         float add_size = round_to_even(2 * this->m_size * max_dim / 100.0f);
-        res[0] += add_size;
-        res[1] += add_size;
+        canvas.xmax += add_size;
+        canvas.ymax += add_size;
       });
-      NodeOperation::determineResolution(resolution, preferredResolution);
+      NodeOperation::determine_canvas(preferred_area, r_area);
       break;
     }
   }
@@ -312,17 +311,14 @@ void BokehBlurOperation::get_area_of_interest(const int input_idx,
     }
     case BOKEH_INPUT_INDEX: {
       NodeOperation *bokeh_input = getInputOperation(BOKEH_INPUT_INDEX);
-      r_input_area.xmin = 0;
-      r_input_area.xmax = bokeh_input->getWidth();
-      r_input_area.ymin = 0;
-      r_input_area.ymax = bokeh_input->getHeight();
+      r_input_area = bokeh_input->get_canvas();
       break;
     }
     case BOUNDING_BOX_INPUT_INDEX:
       r_input_area = output_area;
       break;
     case SIZE_INPUT_INDEX: {
-      r_input_area = COM_SINGLE_ELEM_AREA;
+      r_input_area = COM_CONSTANT_INPUT_AREA_OF_INTEREST;
       break;
     }
   }

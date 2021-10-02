@@ -209,15 +209,13 @@ void *PlaneCornerPinMaskOperation::initializeTileData(rcti *rect)
   return data;
 }
 
-void PlaneCornerPinMaskOperation::determineResolution(unsigned int resolution[2],
-                                                      unsigned int preferredResolution[2])
+void PlaneCornerPinMaskOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   if (execution_model_ == eExecutionModel::FullFrame) {
-    /* Determine inputs resolution. */
-    PlaneDistortMaskOperation::determineResolution(resolution, preferredResolution);
+    /* Determine input canvases. */
+    PlaneDistortMaskOperation::determine_canvas(preferred_area, r_area);
   }
-  resolution[0] = preferredResolution[0];
-  resolution[1] = preferredResolution[1];
+  r_area = preferred_area;
 }
 
 void PlaneCornerPinMaskOperation::get_area_of_interest(const int UNUSED(input_idx),
@@ -225,7 +223,7 @@ void PlaneCornerPinMaskOperation::get_area_of_interest(const int UNUSED(input_id
                                                        rcti &r_input_area)
 {
   /* All corner inputs are used as constants. */
-  r_input_area = COM_SINGLE_ELEM_AREA;
+  r_input_area = COM_CONSTANT_INPUT_AREA_OF_INTEREST;
 }
 
 /* ******** PlaneCornerPinWarpImageOperation ******** */
@@ -322,7 +320,7 @@ void PlaneCornerPinWarpImageOperation::get_area_of_interest(const int input_idx,
   }
   else {
     /* Corner inputs are used as constants. */
-    r_input_area = COM_SINGLE_ELEM_AREA;
+    r_input_area = COM_CONSTANT_INPUT_AREA_OF_INTEREST;
   }
 }
 

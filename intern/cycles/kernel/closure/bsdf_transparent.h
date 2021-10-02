@@ -30,8 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BSDF_TRANSPARENT_H__
-#define __BSDF_TRANSPARENT_H__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
@@ -123,5 +122,3 @@ ccl_device int bsdf_transparent_sample(const ShaderClosure *sc,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __BSDF_TRANSPARENT_H__ */

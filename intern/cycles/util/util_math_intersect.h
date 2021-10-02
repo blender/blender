@@ -40,7 +40,7 @@ ccl_device bool ray_sphere_intersect(float3 ray_P,
       /* Ray  points away from sphere. */
       return false;
     }
-    const float dsq = tsq - tp * tp; /* pythagoras */
+    const float dsq = tsq - tp * tp; /* Pythagoras. */
     if (dsq > radiussq) {
       /* Closest point on ray outside sphere. */
       return false;

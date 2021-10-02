@@ -80,6 +80,15 @@ void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt)
   BLI_addtail(lb, funcstore);
 }
 
+void BKE_callback_remove(bCallbackFuncStore *funcstore, eCbEvent evt)
+{
+  ListBase *lb = &callback_slots[evt];
+  BLI_remlink(lb, funcstore);
+  if (funcstore->alloc) {
+    MEM_freeN(funcstore);
+  }
+}
+
 void BKE_callback_global_init(void)
 {
   /* do nothing */
@@ -95,10 +104,7 @@ void BKE_callback_global_finalize(void)
     bCallbackFuncStore *funcstore_next;
     for (funcstore = lb->first; funcstore; funcstore = funcstore_next) {
       funcstore_next = funcstore->next;
-      BLI_remlink(lb, funcstore);
-      if (funcstore->alloc) {
-        MEM_freeN(funcstore);
-      }
+      BKE_callback_remove(funcstore, evt);
     }
   }
 }

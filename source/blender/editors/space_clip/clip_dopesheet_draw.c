@@ -224,7 +224,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
       uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
       GPU_program_point_size(true);
-      immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+      immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
       immUniform1f("outline_scale", 1.0f);
       immUniform2f(
           "ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);

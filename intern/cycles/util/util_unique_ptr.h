@@ -21,6 +21,7 @@
 
 CCL_NAMESPACE_BEGIN
 
+using std::make_unique;
 using std::unique_ptr;
 
 CCL_NAMESPACE_END

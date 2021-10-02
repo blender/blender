@@ -24,12 +24,7 @@ BufferOperation::BufferOperation(MemoryBuffer *buffer, DataType data_type)
 {
   buffer_ = buffer;
   inflated_buffer_ = nullptr;
-  /* TODO: Implement a MemoryBuffer get_size() method returning a Size2d type. Shorten following
-   * code to: set_resolution(buffer.get_size()) */
-  unsigned int resolution[2];
-  resolution[0] = buffer->getWidth();
-  resolution[1] = buffer->getHeight();
-  setResolution(resolution);
+  set_canvas(buffer->get_rect());
   addOutputSocket(data_type);
   flags.is_constant_operation = buffer_->is_a_single_elem();
   flags.is_fullframe_operation = false;

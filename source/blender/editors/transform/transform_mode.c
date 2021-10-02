@@ -75,7 +75,7 @@ bool transdata_check_local_center(const TransInfo *t, short around)
            /* implicit: (t->flag & T_EDIT) */
            (ELEM(t->obedit_type, OB_MESH, OB_CURVE, OB_MBALL, OB_ARMATURE, OB_GPENCIL)) ||
            (t->spacetype == SPACE_GRAPH) ||
-           (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE))));
+           (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE | CTX_SEQUENCER_IMAGE))));
 }
 
 /* Informs if the mode can be switched during modal. */

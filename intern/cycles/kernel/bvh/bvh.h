@@ -25,6 +25,8 @@
  * the code has been extended and modified to support more primitives and work
  * with CPU/CUDA/OpenCL. */
 
+#pragma once
+
 #ifdef __EMBREE__
 #  include "kernel/bvh/bvh_embree.h"
 #endif
@@ -152,13 +154,11 @@ ccl_device_inline bool scene_intersect_valid(const Ray *ray)
   return isfinite_safe(ray->P.x) && isfinite_safe(ray->D.x) && len_squared(ray->D) != 0.0f;
 }
 
-ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
+ccl_device_intersect bool scene_intersect(const KernelGlobals *kg,
                                           const Ray *ray,
                                           const uint visibility,
                                           Intersection *isect)
 {
-  PROFILING_INIT(kg, PROFILING_INTERSECT);
-
 #ifdef __KERNEL_OPTIX__
   uint p0 = 0;
   uint p1 = 0;
@@ -167,15 +167,25 @@ ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
   uint p4 = visibility;
   uint p5 = PRIMITIVE_NONE;
 
+  uint ray_mask = visibility & 0xFF;
+  uint ray_flags = OPTIX_RAY_FLAG_NONE;
+  if (0 == ray_mask && (visibility & ~0xFF) != 0) {
+    ray_mask = 0xFF;
+    ray_flags = OPTIX_RAY_FLAG_ENFORCE_ANYHIT;
+  }
+  else if (visibility & PATH_RAY_SHADOW_OPAQUE) {
+    ray_flags = OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT;
+  }
+
   optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
              ray->P,
              ray->D,
              0.0f,
              ray->t,
              ray->time,
-             0xF,
-             OPTIX_RAY_FLAG_NONE,
-             0,  // SBT offset for PG_HITD
+             ray_mask,
+             ray_flags,
+             0, /* SBT offset for PG_HITD */
              0,
              0,
              p0,
@@ -238,26 +248,24 @@ ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
 }
 
 #ifdef __BVH_LOCAL__
-ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
+ccl_device_intersect bool scene_intersect_local(const KernelGlobals *kg,
                                                 const Ray *ray,
                                                 LocalIntersection *local_isect,
                                                 int local_object,
                                                 uint *lcg_state,
                                                 int max_hits)
 {
-  PROFILING_INIT(kg, PROFILING_INTERSECT_LOCAL);
-
 #  ifdef __KERNEL_OPTIX__
   uint p0 = ((uint64_t)lcg_state) & 0xFFFFFFFF;
   uint p1 = (((uint64_t)lcg_state) >> 32) & 0xFFFFFFFF;
   uint p2 = ((uint64_t)local_isect) & 0xFFFFFFFF;
   uint p3 = (((uint64_t)local_isect) >> 32) & 0xFFFFFFFF;
   uint p4 = local_object;
-  // Is set to zero on miss or if ray is aborted, so can be used as return value
+  /* Is set to zero on miss or if ray is aborted, so can be used as return value. */
   uint p5 = max_hits;
 
   if (local_isect) {
-    local_isect->num_hits = 0;  // Initialize hit count to zero
+    local_isect->num_hits = 0; /* Initialize hit count to zero. */
   }
   optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
              ray->P,
@@ -265,11 +273,10 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
              0.0f,
              ray->t,
              ray->time,
-             // Skip curves
-             0x3,
-             // Need to always call into __anyhit__kernel_optix_local_hit
+             0xFF,
+             /* Need to always call into __anyhit__kernel_optix_local_hit. */
              OPTIX_RAY_FLAG_ENFORCE_ANYHIT,
-             2,  // SBT offset for PG_HITL
+             2, /* SBT offset for PG_HITL */
              0,
              0,
              p0,
@@ -313,8 +320,8 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
         float3 dir = ray->D;
         float3 idir = ray->D;
         Transform ob_itfm;
-        rtc_ray.tfar = bvh_instance_motion_push(
-            kg, local_object, ray, &P, &dir, &idir, ray->t, &ob_itfm);
+        rtc_ray.tfar = ray->t *
+                       bvh_instance_motion_push(kg, local_object, ray, &P, &dir, &idir, &ob_itfm);
         /* bvh_instance_motion_push() returns the inverse transform but
          * it's not needed here. */
         (void)ob_itfm;
@@ -353,15 +360,13 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
 #endif
 
 #ifdef __SHADOW_RECORD_ALL__
-ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals *kg,
+ccl_device_intersect bool scene_intersect_shadow_all(const KernelGlobals *kg,
                                                      const Ray *ray,
                                                      Intersection *isect,
                                                      uint visibility,
                                                      uint max_hits,
                                                      uint *num_hits)
 {
-  PROFILING_INIT(kg, PROFILING_INTERSECT_SHADOW_ALL);
-
 #  ifdef __KERNEL_OPTIX__
   uint p0 = ((uint64_t)isect) & 0xFFFFFFFF;
   uint p1 = (((uint64_t)isect) >> 32) & 0xFFFFFFFF;
@@ -369,17 +374,22 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals *kg,
   uint p4 = visibility;
   uint p5 = false;
 
-  *num_hits = 0;  // Initialize hit count to zero
+  uint ray_mask = visibility & 0xFF;
+  if (0 == ray_mask && (visibility & ~0xFF) != 0) {
+    ray_mask = 0xFF;
+  }
+
+  *num_hits = 0; /* Initialize hit count to zero. */
   optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
              ray->P,
              ray->D,
              0.0f,
              ray->t,
              ray->time,
-             0xF,
-             // Need to always call into __anyhit__kernel_optix_shadow_all_hit
+             ray_mask,
+             /* Need to always call into __anyhit__kernel_optix_shadow_all_hit. */
              OPTIX_RAY_FLAG_ENFORCE_ANYHIT,
-             1,  // SBT offset for PG_HITS
+             1, /* SBT offset for PG_HITS */
              0,
              0,
              p0,
@@ -401,17 +411,13 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals *kg,
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_SHADOW_ALL);
     ctx.isect_s = isect;
     ctx.max_hits = max_hits;
-    ctx.num_hits = 0;
     IntersectContext rtc_ctx(&ctx);
     RTCRay rtc_ray;
     kernel_embree_setup_ray(*ray, rtc_ray, visibility);
     rtcOccluded1(kernel_data.bvh.scene, &rtc_ctx.context, &rtc_ray);
 
-    if (ctx.num_hits > max_hits) {
-      return true;
-    }
     *num_hits = ctx.num_hits;
-    return rtc_ray.tfar == -INFINITY;
+    return ctx.opaque_hit;
   }
 #    endif /* __EMBREE__ */
 
@@ -439,13 +445,11 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals *kg,
 #endif /* __SHADOW_RECORD_ALL__ */
 
 #ifdef __VOLUME__
-ccl_device_intersect bool scene_intersect_volume(KernelGlobals *kg,
+ccl_device_intersect bool scene_intersect_volume(const KernelGlobals *kg,
                                                  const Ray *ray,
                                                  Intersection *isect,
                                                  const uint visibility)
 {
-  PROFILING_INIT(kg, PROFILING_INTERSECT_VOLUME);
-
 #  ifdef __KERNEL_OPTIX__
   uint p0 = 0;
   uint p1 = 0;
@@ -454,16 +458,21 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals *kg,
   uint p4 = visibility;
   uint p5 = PRIMITIVE_NONE;
 
+  uint ray_mask = visibility & 0xFF;
+  if (0 == ray_mask && (visibility & ~0xFF) != 0) {
+    ray_mask = 0xFF;
+  }
+
   optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
              ray->P,
              ray->D,
              0.0f,
              ray->t,
              ray->time,
-             // Skip everything but volumes
-             0x2,
-             OPTIX_RAY_FLAG_NONE,
-             0,  // SBT offset for PG_HITD
+             ray_mask,
+             /* Need to always call into __anyhit__kernel_optix_volume_test. */
+             OPTIX_RAY_FLAG_ENFORCE_ANYHIT,
+             3, /* SBT offset for PG_HITV */
              0,
              0,
              p0,
@@ -498,14 +507,12 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals *kg,
 #endif /* __VOLUME__ */
 
 #ifdef __VOLUME_RECORD_ALL__
-ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals *kg,
+ccl_device_intersect uint scene_intersect_volume_all(const KernelGlobals *kg,
                                                      const Ray *ray,
                                                      Intersection *isect,
                                                      const uint max_hits,
                                                      const uint visibility)
 {
-  PROFILING_INIT(kg, PROFILING_INTERSECT_VOLUME_ALL);
-
   if (!scene_intersect_valid(ray)) {
     return false;
   }

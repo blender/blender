@@ -23,8 +23,8 @@ namespace blender::nodes {
 static void geo_node_set_position_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Vector>("Position");
-  b.add_input<decl::Bool>("Selection").default_value(true).hide_value();
+  b.add_input<decl::Vector>("Position").implicit_field();
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   b.add_output<decl::Geometry>("Geometry");
 }
 
@@ -34,6 +34,9 @@ static void set_position_in_component(GeometryComponent &component,
 {
   GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
   const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_POINT);
+  if (domain_size == 0) {
+    return;
+  }
 
   fn::FieldEvaluator selection_evaluator{field_context, domain_size};
   selection_evaluator.add(selection_field);
@@ -51,12 +54,13 @@ static void set_position_in_component(GeometryComponent &component,
 static void geo_node_set_position_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
-  geometry = geometry_set_realize_instances(geometry);
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   Field<float3> position_field = params.extract_input<Field<float3>>("Position");
 
-  for (const GeometryComponentType type :
-       {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE}) {
+  for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_MESH,
+                                           GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                           GEO_COMPONENT_TYPE_CURVE,
+                                           GEO_COMPONENT_TYPE_INSTANCES}) {
     if (geometry.has(type)) {
       set_position_in_component(
           geometry.get_component_for_write(type), selection_field, position_field);

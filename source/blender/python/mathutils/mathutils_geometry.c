@@ -1210,7 +1210,7 @@ PyDoc_STRVAR(M_Geometry_tessellate_polygon_doc,
              "\n"
              "   :arg veclist_list: list of polylines\n"
              "   :rtype: list\n");
-/* PolyFill function, uses Blenders scanfill to fill multiple poly lines */
+/* PolyFill function, uses Blenders scan-fill to fill multiple poly lines. */
 static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject *polyLineSeq)
 {
   PyObject *tri_list; /* Return this list of tri's */

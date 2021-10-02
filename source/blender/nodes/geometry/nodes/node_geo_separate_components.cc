@@ -25,20 +25,18 @@ static void geo_node_join_geometry_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Point Cloud");
   b.add_output<decl::Geometry>("Curve");
   b.add_output<decl::Geometry>("Volume");
+  b.add_output<decl::Geometry>("Instances");
 }
 
 static void geo_node_separate_components_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
-  /* Note that it will be possible to skip realizing instances here when instancing
-   * geometry directly is supported by creating corresponding geometry instances. */
-  geometry_set = bke::geometry_set_realize_instances(geometry_set);
-
   GeometrySet meshes;
   GeometrySet point_clouds;
   GeometrySet volumes;
   GeometrySet curves;
+  GeometrySet instances;
 
   if (geometry_set.has<MeshComponent>()) {
     meshes.add(*geometry_set.get_component_for_read<MeshComponent>());
@@ -52,11 +50,15 @@ static void geo_node_separate_components_exec(GeoNodeExecParams params)
   if (geometry_set.has<VolumeComponent>()) {
     volumes.add(*geometry_set.get_component_for_read<VolumeComponent>());
   }
+  if (geometry_set.has<InstancesComponent>()) {
+    instances.add(*geometry_set.get_component_for_read<InstancesComponent>());
+  }
 
   params.set_output("Mesh", meshes);
   params.set_output("Point Cloud", point_clouds);
   params.set_output("Curve", curves);
   params.set_output("Volume", volumes);
+  params.set_output("Instances", instances);
 }
 
 }  // namespace blender::nodes

@@ -66,29 +66,27 @@ void MixBaseOperation::executePixelSampled(float output[4], float x, float y, Pi
   output[3] = inputColor1[3];
 }
 
-void MixBaseOperation::determineResolution(unsigned int resolution[2],
-                                           unsigned int preferredResolution[2])
+void MixBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   NodeOperationInput *socket;
-  unsigned int tempPreferredResolution[2] = {0, 0};
-  unsigned int tempResolution[2];
+  rcti temp_area;
 
   socket = this->getInputSocket(1);
-  socket->determineResolution(tempResolution, tempPreferredResolution);
-  if ((tempResolution[0] != 0) && (tempResolution[1] != 0)) {
-    this->setResolutionInputSocketIndex(1);
+  bool determined = socket->determine_canvas(COM_AREA_NONE, temp_area);
+  if (determined) {
+    this->set_canvas_input_index(1);
   }
   else {
     socket = this->getInputSocket(2);
-    socket->determineResolution(tempResolution, tempPreferredResolution);
-    if ((tempResolution[0] != 0) && (tempResolution[1] != 0)) {
-      this->setResolutionInputSocketIndex(2);
+    determined = socket->determine_canvas(COM_AREA_NONE, temp_area);
+    if (determined) {
+      this->set_canvas_input_index(2);
     }
     else {
-      this->setResolutionInputSocketIndex(0);
+      this->set_canvas_input_index(0);
     }
   }
-  NodeOperation::determineResolution(resolution, preferredResolution);
+  NodeOperation::determine_canvas(preferred_area, r_area);
 }
 
 void MixBaseOperation::deinitExecution()
@@ -111,7 +109,7 @@ void MixBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
   p.value_stride = input_value->elem_stride;
   p.color1_stride = input_color1->elem_stride;
   p.color2_stride = input_color2->elem_stride;
-  for (const int y : YRange(area)) {
+  for (int y = area.ymin; y < area.ymax; y++) {
     p.out = output->get_elem(area.xmin, y);
     p.row_end = p.out + width * output->elem_stride;
     p.value = input_value->get_elem(area.xmin, y);

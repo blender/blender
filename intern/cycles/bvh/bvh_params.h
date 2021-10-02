@@ -31,6 +31,27 @@ CCL_NAMESPACE_BEGIN
  */
 typedef KernelBVHLayout BVHLayout;
 
+/* Type of BVH, in terms whether it is supported dynamic updates of meshes
+ * or whether modifying geometry requires full BVH rebuild.
+ */
+enum BVHType {
+  /* BVH supports dynamic updates of geometry.
+   *
+   * Faster for updating BVH tree when doing modifications in viewport,
+   * but slower for rendering.
+   */
+  BVH_TYPE_DYNAMIC = 0,
+  /* BVH tree is calculated for specific scene, updates in geometry
+   * requires full tree rebuild.
+   *
+   * Slower to update BVH tree when modifying objects in viewport, also
+   * slower to build final BVH tree but gives best possible render speed.
+   */
+  BVH_TYPE_STATIC = 1,
+
+  BVH_NUM_TYPES,
+};
+
 /* Names bitflag type to denote which BVH layouts are supported by
  * particular area.
  *

@@ -43,9 +43,9 @@
 #  define ccl_local_param
 #  define ccl_private
 #  define ccl_restrict __restrict
-#  define ccl_ref &
 #  define ccl_optional_struct_init
 #  define ccl_loop_no_unroll
+#  define ccl_attr_maybe_unused [[maybe_unused]]
 #  define __KERNEL_WITH_SSE_ALIGN__
 
 #  if defined(_WIN32) && !defined(FREE_WINDOWS)
@@ -62,7 +62,6 @@
 #    define ccl_may_alias
 #    define ccl_always_inline __forceinline
 #    define ccl_never_inline __declspec(noinline)
-#    define ccl_maybe_unused
 #  else /* _WIN32 && !FREE_WINDOWS */
 #    define ccl_device_inline static inline __attribute__((always_inline))
 #    define ccl_device_forceinline static inline __attribute__((always_inline))
@@ -74,7 +73,6 @@
 #    define ccl_may_alias __attribute__((__may_alias__))
 #    define ccl_always_inline __attribute__((always_inline))
 #    define ccl_never_inline __attribute__((noinline))
-#    define ccl_maybe_unused __attribute__((used))
 #  endif /* _WIN32 && !FREE_WINDOWS */
 
 /* Use to suppress '-Wimplicit-fallthrough' (in place of 'break'). */

@@ -37,16 +37,16 @@ void CombineColorNode::convertToOperations(NodeConverter &converter,
 
   CombineChannelsOperation *operation = new CombineChannelsOperation();
   if (inputRSocket->isLinked()) {
-    operation->setResolutionInputSocketIndex(0);
+    operation->set_canvas_input_index(0);
   }
   else if (inputGSocket->isLinked()) {
-    operation->setResolutionInputSocketIndex(1);
+    operation->set_canvas_input_index(1);
   }
   else if (inputBSocket->isLinked()) {
-    operation->setResolutionInputSocketIndex(2);
+    operation->set_canvas_input_index(2);
   }
   else {
-    operation->setResolutionInputSocketIndex(3);
+    operation->set_canvas_input_index(3);
   }
   converter.addOperation(operation);
 

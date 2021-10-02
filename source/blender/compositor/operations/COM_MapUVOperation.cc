@@ -23,12 +23,12 @@ namespace blender::compositor {
 
 MapUVOperation::MapUVOperation()
 {
-  this->addInputSocket(DataType::Color, ResizeMode::None);
+  this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addInputSocket(DataType::Vector);
   this->addOutputSocket(DataType::Color);
   this->m_alpha = 0.0f;
   this->flags.complex = true;
-  setResolutionInputSocketIndex(1);
+  set_canvas_input_index(UV_INPUT_INDEX);
 
   this->m_inputUVProgram = nullptr;
   this->m_inputColorProgram = nullptr;
@@ -36,11 +36,11 @@ MapUVOperation::MapUVOperation()
 
 void MapUVOperation::init_data()
 {
-  NodeOperation *image_input = get_input_operation(0);
+  NodeOperation *image_input = get_input_operation(IMAGE_INPUT_INDEX);
   image_width_ = image_input->getWidth();
   image_height_ = image_input->getHeight();
 
-  NodeOperation *uv_input = get_input_operation(1);
+  NodeOperation *uv_input = get_input_operation(UV_INPUT_INDEX);
   uv_width_ = uv_input->getWidth();
   uv_height_ = uv_input->getHeight();
 }
@@ -205,14 +205,11 @@ void MapUVOperation::get_area_of_interest(const int input_idx,
                                           rcti &r_input_area)
 {
   switch (input_idx) {
-    case 0: {
-      r_input_area.xmin = 0;
-      r_input_area.xmax = image_width_;
-      r_input_area.ymin = 0;
-      r_input_area.ymax = image_height_;
+    case IMAGE_INPUT_INDEX: {
+      r_input_area = get_input_operation(IMAGE_INPUT_INDEX)->get_canvas();
       break;
     }
-    case 1: {
+    case UV_INPUT_INDEX: {
       r_input_area = output_area;
       expand_area_for_sampler(r_input_area, PixelSampler::Bilinear);
       break;
@@ -224,7 +221,7 @@ void MapUVOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output),
                                                   const rcti &UNUSED(area),
                                                   Span<MemoryBuffer *> inputs)
 {
-  const MemoryBuffer *uv_input = inputs[1];
+  const MemoryBuffer *uv_input = inputs[UV_INPUT_INDEX];
   uv_input_read_fn_ = [=](float x, float y, float *out) {
     uv_input->read_elem_bilinear(x, y, out);
   };
@@ -234,7 +231,7 @@ void MapUVOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                   const rcti &area,
                                                   Span<MemoryBuffer *> inputs)
 {
-  const MemoryBuffer *input_image = inputs[0];
+  const MemoryBuffer *input_image = inputs[IMAGE_INPUT_INDEX];
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
     float xy[2] = {(float)it.x, (float)it.y};
     float uv[2];

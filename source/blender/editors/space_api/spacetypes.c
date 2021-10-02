@@ -177,6 +177,7 @@ void ED_spacemacros_init(void)
   ED_operatormacros_gpencil();
 
   /* Register dropboxes (can use macros). */
+  ED_dropboxes_ui();
   const ListBase *spacetypes = BKE_spacetypes_list();
   LISTBASE_FOREACH (const SpaceType *, type, spacetypes) {
     if (type->dropboxes) {

@@ -326,7 +326,10 @@ void WM_toolsystem_ref_set_from_runtime(struct bContext *C,
   bool use_fallback_keymap = false;
 
   if (tref->idname_fallback[0] || tref->runtime->keymap_fallback[0]) {
-    if (tref_rt->gizmo_group[0]) {
+    if (tref_rt->flag & TOOLREF_FLAG_FALLBACK_KEYMAP) {
+      use_fallback_keymap = true;
+    }
+    else if (tref_rt->gizmo_group[0]) {
       wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(tref_rt->gizmo_group, false);
       if (gzgt) {
         if (gzgt->flag & WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP) {

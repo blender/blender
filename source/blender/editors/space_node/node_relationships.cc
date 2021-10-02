@@ -220,6 +220,7 @@ static LinkData *create_drag_link(Main *bmain, SpaceNode *snode, bNode *node, bN
   if (node_connected_to_output(bmain, snode->edittree, node)) {
     oplink->flag |= NODE_LINK_TEST;
   }
+  oplink->flag |= NODE_LINK_DRAGGED;
   return linkdata;
 }
 
@@ -894,6 +895,8 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
      */
     do_tag_update |= (link->flag & NODE_LINK_TEST) != 0;
 
+    link->flag &= ~NODE_LINK_DRAGGED;
+
     if (apply_links && link->tosock && link->fromsock) {
       /* before actually adding the link,
        * let nodes perform special link insertion handling
@@ -1097,6 +1100,7 @@ static bNodeLinkDrag *node_link_init(Main *bmain, SpaceNode *snode, float cursor
           *oplink = *link;
           oplink->next = oplink->prev = nullptr;
           oplink->flag |= NODE_LINK_VALID;
+          oplink->flag |= NODE_LINK_DRAGGED;
 
           /* The link could be disconnected and in that case we
            * wouldn't be able to check whether tag update is
@@ -1150,6 +1154,7 @@ static bNodeLinkDrag *node_link_init(Main *bmain, SpaceNode *snode, float cursor
         *oplink = *link_to_pick;
         oplink->next = oplink->prev = nullptr;
         oplink->flag |= NODE_LINK_VALID;
+        oplink->flag |= NODE_LINK_DRAGGED;
         oplink->flag &= ~NODE_LINK_TEST;
         if (node_connected_to_output(bmain, snode->edittree, link_to_pick->tonode)) {
           oplink->flag |= NODE_LINK_TEST;

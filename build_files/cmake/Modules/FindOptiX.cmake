@@ -33,11 +33,23 @@ FIND_PATH(OPTIX_INCLUDE_DIR
     include
 )
 
+IF(EXISTS "${OPTIX_INCLUDE_DIR}/optix.h")
+  FILE(STRINGS "${OPTIX_INCLUDE_DIR}/optix.h" _optix_version REGEX "^#define OPTIX_VERSION[ \t].*$")
+  STRING(REGEX MATCHALL "[0-9]+" _optix_version ${_optix_version})
+
+  MATH(EXPR _optix_version_major "${_optix_version} / 10000")
+  MATH(EXPR _optix_version_minor "(${_optix_version} % 10000) / 100")
+  MATH(EXPR _optix_version_patch "${_optix_version} % 100")
+
+  SET(OPTIX_VERSION "${_optix_version_major}.${_optix_version_minor}.${_optix_version_patch}")
+ENDIF()
+
 # handle the QUIETLY and REQUIRED arguments and set OPTIX_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(OptiX DEFAULT_MSG
-    OPTIX_INCLUDE_DIR)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(OptiX
+    REQUIRED_VARS OPTIX_INCLUDE_DIR
+    VERSION_VAR OPTIX_VERSION)
 
 IF(OPTIX_FOUND)
   SET(OPTIX_INCLUDE_DIRS ${OPTIX_INCLUDE_DIR})
@@ -45,6 +57,7 @@ ENDIF()
 
 MARK_AS_ADVANCED(
   OPTIX_INCLUDE_DIR
+  OPTIX_VERSION
 )
 
 UNSET(_optix_SEARCH_DIRS)

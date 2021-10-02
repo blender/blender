@@ -19,6 +19,8 @@ in vec2 P3;
 in ivec4 colid_doarrow;
 in ivec2 domuted;
 in float dim_factor;
+in float thickness;
+in float dash_factor;
 
 uniform vec4 colors[6];
 
@@ -41,6 +43,8 @@ uniform vec4 colors[3];
 uniform bool doArrow;
 uniform bool doMuted;
 uniform float dim_factor;
+uniform float thickness;
+uniform float dash_factor;
 
 #  define colShadow colors[0]
 #  define colStart colors[1]
@@ -54,9 +58,21 @@ uniform mat4 ModelViewProjectionMatrix;
 
 out float colorGradient;
 out vec4 finalColor;
+out float lineU;
+flat out float lineLength;
+flat out float dashFactor;
+flat out int isMainLine;
 
 void main(void)
 {
+  /* Parameters for the dashed line. */
+  isMainLine = expand.y != 1.0 ? 0 : 1;
+  dashFactor = dash_factor;
+  /* Approximate line length, no need for real bezier length calculation. */
+  lineLength = distance(P0, P3);
+  /* TODO: Incorrect U, this leads to non-uniform dash distribution. */
+  lineU = uv.x;
+
   float t = uv.x;
   float t2 = t * t;
   float t2_3 = 3.0 * t2;
@@ -103,7 +119,7 @@ void main(void)
   finalColor[3] *= dim_factor;
 
   /* Expand into a line */
-  gl_Position.xy += exp_axis * expandSize * expand_dist;
+  gl_Position.xy += exp_axis * expandSize * expand_dist * thickness;
 
   /* If the link is not muted or is not a reroute arrow the points are squashed to the center of
    * the line. Magic numbers are defined in drawnode.c */

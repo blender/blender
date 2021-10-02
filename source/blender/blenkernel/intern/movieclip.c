@@ -346,7 +346,7 @@ IDTypeInfo IDType_ID_MC = {
     .name = "MovieClip",
     .name_plural = "movieclips",
     .translation_context = BLT_I18NCONTEXT_ID_MOVIECLIP,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = movie_clip_init_data,
     .copy_data = movie_clip_copy_data,

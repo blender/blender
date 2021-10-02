@@ -26,6 +26,8 @@
 #include "FN_generic_value_map.hh"
 #include "FN_multi_function.hh"
 
+#include "BLT_translation.h"
+
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_stack.hh"
 #include "BLI_task.h"
@@ -321,6 +323,29 @@ static const CPPType *get_socket_cpp_type(const DSocket socket)
 
 static void get_socket_value(const SocketRef &socket, void *r_value)
 {
+  const bNodeSocket &bsocket = *socket.bsocket();
+  /* This is not supposed to be a long term solution. Eventually we want that nodes can specify
+   * more complex defaults (other than just single values) in their socket declarations. */
+  if (bsocket.flag & SOCK_HIDE_VALUE) {
+    const bNode &bnode = *socket.bnode();
+    if (bsocket.type == SOCK_VECTOR) {
+      if (ELEM(bnode.type,
+               GEO_NODE_SET_POSITION,
+               SH_NODE_TEX_NOISE,
+               GEO_NODE_MESH_TO_POINTS,
+               GEO_NODE_PROXIMITY)) {
+        new (r_value) Field<float3>(bke::AttributeFieldInput::Create<float3>("position"));
+        return;
+      }
+    }
+    else if (bsocket.type == SOCK_INT) {
+      if (ELEM(bnode.type, FN_NODE_RANDOM_VALUE, GEO_NODE_INSTANCE_ON_POINTS)) {
+        new (r_value) Field<int>(std::make_shared<fn::IndexFieldInput>());
+        return;
+      }
+    }
+  }
+
   const bNodeSocketType *typeinfo = socket.typeinfo();
   typeinfo->get_geometry_nodes_cpp_value(*socket.bsocket(), r_value);
 }
@@ -856,6 +881,10 @@ class GeometryNodesEvaluator {
 
     NodeParamsProvider params_provider{*this, node, node_state};
     GeoNodeExecParams params{params_provider};
+    if (node->idname().find("Legacy") != StringRef::not_found) {
+      params.error_message_add(geo_log::NodeWarningType::Legacy,
+                               TIP_("Legacy node will be removed before Blender 4.0"));
+    }
     bnode.typeinfo->geometry_node_execute(params);
   }
 
@@ -863,6 +892,14 @@ class GeometryNodesEvaluator {
                                    const MultiFunction &fn,
                                    NodeState &node_state)
   {
+    if (node->idname().find("Legacy") != StringRef::not_found) {
+      /* Create geometry nodes params just for creating an error message. */
+      NodeParamsProvider params_provider{*this, node, node_state};
+      GeoNodeExecParams params{params_provider};
+      params.error_message_add(geo_log::NodeWarningType::Legacy,
+                               TIP_("Legacy node will be removed before Blender 4.0"));
+    }
+
     LinearAllocator<> &allocator = local_allocators_.local();
 
     /* Prepare the inputs for the multi function. */

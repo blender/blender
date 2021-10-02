@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
+#pragma once
+
+#include "geom/geom.h"
+
 #include "kernel_light_background.h"
+#include "kernel_montecarlo.h"
+#include "kernel_projection.h"
+#include "kernel_types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -37,10 +44,22 @@ typedef struct LightSample {
 
 /* Regular Light */
 
-ccl_device_inline bool lamp_light_sample(
-    KernelGlobals *kg, int lamp, float randu, float randv, float3 P, LightSample *ls)
+template<bool in_volume_segment>
+ccl_device_inline bool light_sample(const KernelGlobals *kg,
+                                    const int lamp,
+                                    const float randu,
+                                    const float randv,
+                                    const float3 P,
+                                    const int path_flag,
+                                    LightSample *ls)
 {
   const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
+  if (path_flag & PATH_RAY_SHADOW_CATCHER_PASS) {
+    if (klight->shader_id & SHADER_EXCLUDE_SHADOW_CATCHER) {
+      return false;
+    }
+  }
+
   LightType type = (LightType)klight->type;
   ls->type = type;
   ls->shader = klight->shader_id;
@@ -49,6 +68,18 @@ ccl_device_inline bool lamp_light_sample(
   ls->lamp = lamp;
   ls->u = randu;
   ls->v = randv;
+
+  if (in_volume_segment && (type == LIGHT_DISTANT || type == LIGHT_BACKGROUND)) {
+    /* Distant lights in a volume get a dummy sample, position will not actually
+     * be used in that case. Only when sampling from a specific scatter position
+     * do we actually need to evaluate these. */
+    ls->P = zero_float3();
+    ls->Ng = zero_float3();
+    ls->D = zero_float3();
+    ls->pdf = true;
+    ls->t = FLT_MAX;
+    return true;
+  }
 
   if (type == LIGHT_DISTANT) {
     /* distant light */
@@ -123,13 +154,15 @@ ccl_device_inline bool lamp_light_sample(
       float invarea = fabsf(klight->area.invarea);
       bool is_round = (klight->area.invarea < 0.0f);
 
-      if (dot(ls->P - P, Ng) > 0.0f) {
-        return false;
+      if (!in_volume_segment) {
+        if (dot(ls->P - P, Ng) > 0.0f) {
+          return false;
+        }
       }
 
       float3 inplane;
 
-      if (is_round) {
+      if (is_round || in_volume_segment) {
         inplane = ellipse_sample(axisu * 0.5f, axisv * 0.5f, randu, randv);
         ls->P += inplane;
         ls->pdf = invarea;
@@ -176,11 +209,137 @@ ccl_device_inline bool lamp_light_sample(
   return (ls->pdf > 0.0f);
 }
 
-ccl_device bool lamp_light_eval(
-    KernelGlobals *kg, int lamp, float3 P, float3 D, float t, LightSample *ls)
+ccl_device bool lights_intersect(const KernelGlobals *ccl_restrict kg,
+                                 const Ray *ccl_restrict ray,
+                                 Intersection *ccl_restrict isect,
+                                 const int last_prim,
+                                 const int last_object,
+                                 const int last_type,
+                                 const int path_flag)
+{
+  for (int lamp = 0; lamp < kernel_data.integrator.num_all_lights; lamp++) {
+    const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
+
+    if (path_flag & PATH_RAY_CAMERA) {
+      if (klight->shader_id & SHADER_EXCLUDE_CAMERA) {
+        continue;
+      }
+    }
+    else {
+      if (!(klight->shader_id & SHADER_USE_MIS)) {
+        continue;
+      }
+    }
+
+    if (path_flag & PATH_RAY_SHADOW_CATCHER_PASS) {
+      if (klight->shader_id & SHADER_EXCLUDE_SHADOW_CATCHER) {
+        continue;
+      }
+    }
+
+    LightType type = (LightType)klight->type;
+    float t = 0.0f, u = 0.0f, v = 0.0f;
+
+    if (type == LIGHT_POINT || type == LIGHT_SPOT) {
+      /* Sphere light. */
+      const float3 lightP = make_float3(klight->co[0], klight->co[1], klight->co[2]);
+      const float radius = klight->spot.radius;
+      if (radius == 0.0f) {
+        continue;
+      }
+
+      float3 P;
+      if (!ray_aligned_disk_intersect(ray->P, ray->D, ray->t, lightP, radius, &P, &t)) {
+        continue;
+      }
+    }
+    else if (type == LIGHT_AREA) {
+      /* Area light. */
+      const float invarea = fabsf(klight->area.invarea);
+      const bool is_round = (klight->area.invarea < 0.0f);
+      if (invarea == 0.0f) {
+        continue;
+      }
+
+      const float3 axisu = make_float3(
+          klight->area.axisu[0], klight->area.axisu[1], klight->area.axisu[2]);
+      const float3 axisv = make_float3(
+          klight->area.axisv[0], klight->area.axisv[1], klight->area.axisv[2]);
+      const float3 Ng = make_float3(klight->area.dir[0], klight->area.dir[1], klight->area.dir[2]);
+
+      /* One sided. */
+      if (dot(ray->D, Ng) >= 0.0f) {
+        continue;
+      }
+
+      const float3 light_P = make_float3(klight->co[0], klight->co[1], klight->co[2]);
+
+      float3 P;
+      if (!ray_quad_intersect(
+              ray->P, ray->D, 0.0f, ray->t, light_P, axisu, axisv, Ng, &P, &t, &u, &v, is_round)) {
+        continue;
+      }
+    }
+    else {
+      continue;
+    }
+
+    if (t < isect->t &&
+        !(last_prim == lamp && last_object == OBJECT_NONE && last_type == PRIMITIVE_LAMP)) {
+      isect->t = t;
+      isect->u = u;
+      isect->v = v;
+      isect->type = PRIMITIVE_LAMP;
+      isect->prim = lamp;
+      isect->object = OBJECT_NONE;
+    }
+  }
+
+  return isect->prim != PRIM_NONE;
+}
+
+ccl_device bool light_sample_from_distant_ray(const KernelGlobals *ccl_restrict kg,
+                                              const float3 ray_D,
+                                              const int lamp,
+                                              LightSample *ccl_restrict ls)
 {
   const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
-  LightType type = (LightType)klight->type;
+  const int shader = klight->shader_id;
+  const float radius = klight->distant.radius;
+  const LightType type = (LightType)klight->type;
+
+  if (type != LIGHT_DISTANT) {
+    return false;
+  }
+  if (!(shader & SHADER_USE_MIS)) {
+    return false;
+  }
+  if (radius == 0.0f) {
+    return false;
+  }
+
+  /* a distant light is infinitely far away, but equivalent to a disk
+   * shaped light exactly 1 unit away from the current shading point.
+   *
+   *     radius              t^2/cos(theta)
+   *  <---------->           t = sqrt(1^2 + tan(theta)^2)
+   *       tan(th)           area = radius*radius*pi
+   *       <----->
+   *        \    |           (1 + tan(theta)^2)/cos(theta)
+   *         \   |           (1 + tan(acos(cos(theta)))^2)/cos(theta)
+   *       t  \th| 1         simplifies to
+   *           \-|           1/(cos(theta)^3)
+   *            \|           magic!
+   *             P
+   */
+
+  float3 lightD = make_float3(klight->co[0], klight->co[1], klight->co[2]);
+  float costheta = dot(-lightD, ray_D);
+  float cosangle = klight->distant.cosangle;
+
+  if (costheta < cosangle)
+    return false;
+
   ls->type = type;
   ls->shader = klight->shader_id;
   ls->object = PRIM_NONE;
@@ -189,66 +348,41 @@ ccl_device bool lamp_light_eval(
   /* todo: missing texture coordinates */
   ls->u = 0.0f;
   ls->v = 0.0f;
+  ls->t = FLT_MAX;
+  ls->P = -ray_D;
+  ls->Ng = -ray_D;
+  ls->D = ray_D;
 
-  if (!(ls->shader & SHADER_USE_MIS))
-    return false;
+  /* compute pdf */
+  float invarea = klight->distant.invarea;
+  ls->pdf = invarea / (costheta * costheta * costheta);
+  ls->pdf *= kernel_data.integrator.pdf_lights;
+  ls->eval_fac = ls->pdf;
 
-  if (type == LIGHT_DISTANT) {
-    /* distant light */
-    float radius = klight->distant.radius;
+  return true;
+}
 
-    if (radius == 0.0f)
-      return false;
-    if (t != FLT_MAX)
-      return false;
+ccl_device bool light_sample_from_intersection(const KernelGlobals *ccl_restrict kg,
+                                               const Intersection *ccl_restrict isect,
+                                               const float3 ray_P,
+                                               const float3 ray_D,
+                                               LightSample *ccl_restrict ls)
+{
+  const int lamp = isect->prim;
+  const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
+  LightType type = (LightType)klight->type;
+  ls->type = type;
+  ls->shader = klight->shader_id;
+  ls->object = PRIM_NONE;
+  ls->prim = PRIM_NONE;
+  ls->lamp = lamp;
+  /* todo: missing texture coordinates */
+  ls->t = isect->t;
+  ls->P = ray_P + ray_D * ls->t;
+  ls->D = ray_D;
 
-    /* a distant light is infinitely far away, but equivalent to a disk
-     * shaped light exactly 1 unit away from the current shading point.
-     *
-     *     radius              t^2/cos(theta)
-     *  <---------->           t = sqrt(1^2 + tan(theta)^2)
-     *       tan(th)           area = radius*radius*pi
-     *       <----->
-     *        \    |           (1 + tan(theta)^2)/cos(theta)
-     *         \   |           (1 + tan(acos(cos(theta)))^2)/cos(theta)
-     *       t  \th| 1         simplifies to
-     *           \-|           1/(cos(theta)^3)
-     *            \|           magic!
-     *             P
-     */
-
-    float3 lightD = make_float3(klight->co[0], klight->co[1], klight->co[2]);
-    float costheta = dot(-lightD, D);
-    float cosangle = klight->distant.cosangle;
-
-    if (costheta < cosangle)
-      return false;
-
-    ls->P = -D;
-    ls->Ng = -D;
-    ls->D = D;
-    ls->t = FLT_MAX;
-
-    /* compute pdf */
-    float invarea = klight->distant.invarea;
-    ls->pdf = invarea / (costheta * costheta * costheta);
-    ls->eval_fac = ls->pdf;
-  }
-  else if (type == LIGHT_POINT || type == LIGHT_SPOT) {
-    float3 lightP = make_float3(klight->co[0], klight->co[1], klight->co[2]);
-
-    float radius = klight->spot.radius;
-
-    /* sphere light */
-    if (radius == 0.0f)
-      return false;
-
-    if (!ray_aligned_disk_intersect(P, D, t, lightP, radius, &ls->P, &ls->t)) {
-      return false;
-    }
-
-    ls->Ng = -D;
-    ls->D = D;
+  if (type == LIGHT_POINT || type == LIGHT_SPOT) {
+    ls->Ng = -ray_D;
 
     float invarea = klight->spot.invarea;
     ls->eval_fac = (0.25f * M_1_PI_F) * invarea;
@@ -260,8 +394,9 @@ ccl_device bool lamp_light_eval(
       ls->eval_fac *= spot_light_attenuation(
           dir, klight->spot.spot_angle, klight->spot.spot_smooth, ls->Ng);
 
-      if (ls->eval_fac == 0.0f)
+      if (ls->eval_fac == 0.0f) {
         return false;
+      }
     }
     float2 uv = map_to_sphere(ls->Ng);
     ls->u = uv.x;
@@ -274,31 +409,22 @@ ccl_device bool lamp_light_eval(
   else if (type == LIGHT_AREA) {
     /* area light */
     float invarea = fabsf(klight->area.invarea);
-    bool is_round = (klight->area.invarea < 0.0f);
-    if (invarea == 0.0f)
-      return false;
 
     float3 axisu = make_float3(
         klight->area.axisu[0], klight->area.axisu[1], klight->area.axisu[2]);
     float3 axisv = make_float3(
         klight->area.axisv[0], klight->area.axisv[1], klight->area.axisv[2]);
     float3 Ng = make_float3(klight->area.dir[0], klight->area.dir[1], klight->area.dir[2]);
-
-    /* one sided */
-    if (dot(D, Ng) >= 0.0f)
-      return false;
-
     float3 light_P = make_float3(klight->co[0], klight->co[1], klight->co[2]);
 
-    if (!ray_quad_intersect(
-            P, D, 0.0f, t, light_P, axisu, axisv, Ng, &ls->P, &ls->t, &ls->u, &ls->v, is_round)) {
-      return false;
-    }
-
-    ls->D = D;
+    ls->u = isect->u;
+    ls->v = isect->v;
+    ls->D = ray_D;
     ls->Ng = Ng;
+
+    const bool is_round = (klight->area.invarea < 0.0f);
     if (is_round) {
-      ls->pdf = invarea * lamp_light_pdf(kg, Ng, -D, ls->t);
+      ls->pdf = invarea * lamp_light_pdf(kg, Ng, -ray_D, ls->t);
     }
     else {
       float3 sample_axisu = axisu;
@@ -306,12 +432,12 @@ ccl_device bool lamp_light_eval(
 
       if (klight->area.tan_spread > 0.0f) {
         if (!light_spread_clamp_area_light(
-                P, Ng, &light_P, &sample_axisu, &sample_axisv, klight->area.tan_spread)) {
+                ray_P, Ng, &light_P, &sample_axisu, &sample_axisv, klight->area.tan_spread)) {
           return false;
         }
       }
 
-      ls->pdf = rect_light_sample(P, &light_P, sample_axisu, sample_axisv, 0, 0, false);
+      ls->pdf = rect_light_sample(ray_P, &light_P, sample_axisu, sample_axisv, 0, 0, false);
     }
     ls->eval_fac = 0.25f * invarea;
 
@@ -325,6 +451,7 @@ ccl_device bool lamp_light_eval(
     }
   }
   else {
+    kernel_assert(!"Invalid lamp type in light_sample_from_intersection");
     return false;
   }
 
@@ -337,7 +464,7 @@ ccl_device bool lamp_light_eval(
 
 /* returns true if the triangle is has motion blur or an instancing transform applied */
 ccl_device_inline bool triangle_world_space_vertices(
-    KernelGlobals *kg, int object, int prim, float time, float3 V[3])
+    const KernelGlobals *kg, int object, int prim, float time, float3 V[3])
 {
   bool has_motion = false;
   const int object_flag = kernel_tex_fetch(__object_flag, object);
@@ -365,7 +492,7 @@ ccl_device_inline bool triangle_world_space_vertices(
   return has_motion;
 }
 
-ccl_device_inline float triangle_light_pdf_area(KernelGlobals *kg,
+ccl_device_inline float triangle_light_pdf_area(const KernelGlobals *kg,
                                                 const float3 Ng,
                                                 const float3 I,
                                                 float t)
@@ -379,7 +506,9 @@ ccl_device_inline float triangle_light_pdf_area(KernelGlobals *kg,
   return t * t * pdf / cos_pi;
 }
 
-ccl_device_forceinline float triangle_light_pdf(KernelGlobals *kg, ShaderData *sd, float t)
+ccl_device_forceinline float triangle_light_pdf(const KernelGlobals *kg,
+                                                const ShaderData *sd,
+                                                float t)
 {
   /* A naive heuristic to decide between costly solid angle sampling
    * and simple area sampling, comparing the distance to the triangle plane
@@ -448,7 +577,8 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals *kg, ShaderData *s
   }
 }
 
-ccl_device_forceinline void triangle_light_sample(KernelGlobals *kg,
+template<bool in_volume_segment>
+ccl_device_forceinline void triangle_light_sample(const KernelGlobals *kg,
                                                   int prim,
                                                   int object,
                                                   float randu,
@@ -488,7 +618,7 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals *kg,
 
   float distance_to_plane = fabsf(dot(N0, V[0] - P) / dot(N0, N0));
 
-  if (longest_edge_squared > distance_to_plane * distance_to_plane) {
+  if (!in_volume_segment && (longest_edge_squared > distance_to_plane * distance_to_plane)) {
     /* see James Arvo, "Stratified Sampling of Spherical Triangles"
      * http://www.graphics.cornell.edu/pubs/1995/Arv95c.pdf */
 
@@ -617,7 +747,7 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals *kg,
 
 /* Light Distribution */
 
-ccl_device int light_distribution_sample(KernelGlobals *kg, float *randu)
+ccl_device int light_distribution_sample(const KernelGlobals *kg, float *randu)
 {
   /* This is basically std::upper_bound as used by PBRT, to find a point light or
    * triangle to emit from, proportional to area. a good improvement would be to
@@ -655,51 +785,93 @@ ccl_device int light_distribution_sample(KernelGlobals *kg, float *randu)
 
 /* Generic Light */
 
-ccl_device_inline bool light_select_reached_max_bounces(KernelGlobals *kg, int index, int bounce)
+ccl_device_inline bool light_select_reached_max_bounces(const KernelGlobals *kg,
+                                                        int index,
+                                                        int bounce)
 {
   return (bounce > kernel_tex_fetch(__lights, index).max_bounces);
 }
 
-ccl_device_noinline bool light_sample(KernelGlobals *kg,
-                                      int lamp,
-                                      float randu,
-                                      float randv,
-                                      float time,
-                                      float3 P,
-                                      int bounce,
-                                      LightSample *ls)
+template<bool in_volume_segment>
+ccl_device_noinline bool light_distribution_sample(const KernelGlobals *kg,
+                                                   float randu,
+                                                   const float randv,
+                                                   const float time,
+                                                   const float3 P,
+                                                   const int bounce,
+                                                   const int path_flag,
+                                                   LightSample *ls)
 {
-  if (lamp < 0) {
-    /* sample index */
-    int index = light_distribution_sample(kg, &randu);
+  /* Sample light index from distribution. */
+  const int index = light_distribution_sample(kg, &randu);
+  const ccl_global KernelLightDistribution *kdistribution = &kernel_tex_fetch(__light_distribution,
+                                                                              index);
+  const int prim = kdistribution->prim;
 
-    /* fetch light data */
-    const ccl_global KernelLightDistribution *kdistribution = &kernel_tex_fetch(
-        __light_distribution, index);
-    int prim = kdistribution->prim;
+  if (prim >= 0) {
+    /* Mesh light. */
+    const int object = kdistribution->mesh_light.object_id;
 
-    if (prim >= 0) {
-      int object = kdistribution->mesh_light.object_id;
-      int shader_flag = kdistribution->mesh_light.shader_flag;
-
-      triangle_light_sample(kg, prim, object, randu, randv, time, ls, P);
-      ls->shader |= shader_flag;
-      return (ls->pdf > 0.0f);
+    /* Exclude synthetic meshes from shadow catcher pass. */
+    if ((path_flag & PATH_RAY_SHADOW_CATCHER_PASS) &&
+        !(kernel_tex_fetch(__object_flag, object) & SD_OBJECT_SHADOW_CATCHER)) {
+      return false;
     }
 
-    lamp = -prim - 1;
+    const int shader_flag = kdistribution->mesh_light.shader_flag;
+    triangle_light_sample<in_volume_segment>(kg, prim, object, randu, randv, time, ls, P);
+    ls->shader |= shader_flag;
+    return (ls->pdf > 0.0f);
   }
+
+  const int lamp = -prim - 1;
 
   if (UNLIKELY(light_select_reached_max_bounces(kg, lamp, bounce))) {
     return false;
   }
 
-  return lamp_light_sample(kg, lamp, randu, randv, P, ls);
+  return light_sample<in_volume_segment>(kg, lamp, randu, randv, P, path_flag, ls);
 }
 
-ccl_device_inline int light_select_num_samples(KernelGlobals *kg, int index)
+ccl_device_inline bool light_distribution_sample_from_volume_segment(const KernelGlobals *kg,
+                                                                     float randu,
+                                                                     const float randv,
+                                                                     const float time,
+                                                                     const float3 P,
+                                                                     const int bounce,
+                                                                     const int path_flag,
+                                                                     LightSample *ls)
 {
-  return kernel_tex_fetch(__lights, index).samples;
+  return light_distribution_sample<true>(kg, randu, randv, time, P, bounce, path_flag, ls);
+}
+
+ccl_device_inline bool light_distribution_sample_from_position(const KernelGlobals *kg,
+                                                               float randu,
+                                                               const float randv,
+                                                               const float time,
+                                                               const float3 P,
+                                                               const int bounce,
+                                                               const int path_flag,
+                                                               LightSample *ls)
+{
+  return light_distribution_sample<false>(kg, randu, randv, time, P, bounce, path_flag, ls);
+}
+
+ccl_device_inline bool light_distribution_sample_new_position(const KernelGlobals *kg,
+                                                              const float randu,
+                                                              const float randv,
+                                                              const float time,
+                                                              const float3 P,
+                                                              LightSample *ls)
+{
+  /* Sample a new position on the same light, for volume sampling. */
+  if (ls->type == LIGHT_TRIANGLE) {
+    triangle_light_sample<false>(kg, ls->prim, ls->object, randu, randv, time, ls, P);
+    return (ls->pdf > 0.0f);
+  }
+  else {
+    return light_sample<false>(kg, ls->lamp, randu, randv, P, 0, ls);
+  }
 }
 
 CCL_NAMESPACE_END

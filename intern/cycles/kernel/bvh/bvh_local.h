@@ -36,7 +36,7 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-    bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
+    bool BVH_FUNCTION_FULL_NAME(BVH)(const KernelGlobals *kg,
                                      const Ray *ray,
                                      LocalIntersection *local_isect,
                                      int local_object,
@@ -74,9 +74,9 @@ ccl_device_inline
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 #if BVH_FEATURE(BVH_MOTION)
     Transform ob_itfm;
-    isect_t = bvh_instance_motion_push(kg, local_object, ray, &P, &dir, &idir, isect_t, &ob_itfm);
+    isect_t *= bvh_instance_motion_push(kg, local_object, ray, &P, &dir, &idir, &ob_itfm);
 #else
-    isect_t = bvh_instance_push(kg, local_object, ray, &P, &dir, &idir, isect_t);
+    isect_t *= bvh_instance_push(kg, local_object, ray, &P, &dir, &idir);
 #endif
     object = local_object;
   }
@@ -196,7 +196,7 @@ ccl_device_inline
   return false;
 }
 
-ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
+ccl_device_inline bool BVH_FUNCTION_NAME(const KernelGlobals *kg,
                                          const Ray *ray,
                                          LocalIntersection *local_isect,
                                          int local_object,

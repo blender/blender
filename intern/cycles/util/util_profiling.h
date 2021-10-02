@@ -28,38 +28,30 @@ CCL_NAMESPACE_BEGIN
 enum ProfilingEvent : uint32_t {
   PROFILING_UNKNOWN,
   PROFILING_RAY_SETUP,
-  PROFILING_PATH_INTEGRATE,
-  PROFILING_SCENE_INTERSECT,
-  PROFILING_INDIRECT_EMISSION,
-  PROFILING_VOLUME,
-  PROFILING_SHADER_SETUP,
-  PROFILING_SHADER_EVAL,
-  PROFILING_SHADER_APPLY,
-  PROFILING_AO,
-  PROFILING_SUBSURFACE,
-  PROFILING_CONNECT_LIGHT,
-  PROFILING_SURFACE_BOUNCE,
-  PROFILING_WRITE_RESULT,
 
-  PROFILING_INTERSECT,
-  PROFILING_INTERSECT_LOCAL,
-  PROFILING_INTERSECT_SHADOW_ALL,
-  PROFILING_INTERSECT_VOLUME,
-  PROFILING_INTERSECT_VOLUME_ALL,
+  PROFILING_INTERSECT_CLOSEST,
+  PROFILING_INTERSECT_SUBSURFACE,
+  PROFILING_INTERSECT_SHADOW,
+  PROFILING_INTERSECT_VOLUME_STACK,
 
-  PROFILING_CLOSURE_EVAL,
-  PROFILING_CLOSURE_SAMPLE,
-  PROFILING_CLOSURE_VOLUME_EVAL,
-  PROFILING_CLOSURE_VOLUME_SAMPLE,
+  PROFILING_SHADE_SURFACE_SETUP,
+  PROFILING_SHADE_SURFACE_EVAL,
+  PROFILING_SHADE_SURFACE_DIRECT_LIGHT,
+  PROFILING_SHADE_SURFACE_INDIRECT_LIGHT,
+  PROFILING_SHADE_SURFACE_AO,
+  PROFILING_SHADE_SURFACE_PASSES,
 
-  PROFILING_DENOISING,
-  PROFILING_DENOISING_CONSTRUCT_TRANSFORM,
-  PROFILING_DENOISING_RECONSTRUCT,
-  PROFILING_DENOISING_DIVIDE_SHADOW,
-  PROFILING_DENOISING_NON_LOCAL_MEANS,
-  PROFILING_DENOISING_COMBINE_HALVES,
-  PROFILING_DENOISING_GET_FEATURE,
-  PROFILING_DENOISING_DETECT_OUTLIERS,
+  PROFILING_SHADE_VOLUME_SETUP,
+  PROFILING_SHADE_VOLUME_INTEGRATE,
+  PROFILING_SHADE_VOLUME_DIRECT_LIGHT,
+  PROFILING_SHADE_VOLUME_INDIRECT_LIGHT,
+
+  PROFILING_SHADE_SHADOW_SETUP,
+  PROFILING_SHADE_SHADOW_SURFACE,
+  PROFILING_SHADE_SHADOW_VOLUME,
+
+  PROFILING_SHADE_LIGHT_SETUP,
+  PROFILING_SHADE_LIGHT_EVAL,
 
   PROFILING_NUM_EVENTS,
 };
@@ -136,37 +128,51 @@ class ProfilingHelper {
     state->event = event;
   }
 
-  inline void set_event(ProfilingEvent event)
-  {
-    state->event = event;
-  }
-
-  inline void set_shader(int shader)
-  {
-    state->shader = shader;
-    if (state->active) {
-      assert(shader < state->shader_hits.size());
-      state->shader_hits[shader]++;
-    }
-  }
-
-  inline void set_object(int object)
-  {
-    state->object = object;
-    if (state->active) {
-      assert(object < state->object_hits.size());
-      state->object_hits[object]++;
-    }
-  }
-
   ~ProfilingHelper()
   {
     state->event = previous_event;
   }
 
- private:
+  inline void set_event(ProfilingEvent event)
+  {
+    state->event = event;
+  }
+
+ protected:
   ProfilingState *state;
   uint32_t previous_event;
+};
+
+class ProfilingWithShaderHelper : public ProfilingHelper {
+ public:
+  ProfilingWithShaderHelper(ProfilingState *state, ProfilingEvent event)
+      : ProfilingHelper(state, event)
+  {
+  }
+
+  ~ProfilingWithShaderHelper()
+  {
+    state->object = -1;
+    state->shader = -1;
+  }
+
+  inline void set_shader(int object, int shader)
+  {
+    if (state->active) {
+      state->shader = shader;
+      state->object = object;
+
+      if (shader >= 0) {
+        assert(shader < state->shader_hits.size());
+        state->shader_hits[shader]++;
+      }
+
+      if (object >= 0) {
+        assert(object < state->object_hits.size());
+        state->object_hits[object]++;
+      }
+    }
+  }
 };
 
 CCL_NAMESPACE_END

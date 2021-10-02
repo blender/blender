@@ -145,11 +145,13 @@ void BokehImageOperation::deinitExecution()
   }
 }
 
-void BokehImageOperation::determineResolution(unsigned int resolution[2],
-                                              unsigned int /*preferredResolution*/[2])
+void BokehImageOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  resolution[0] = COM_BLUR_BOKEH_PIXELS;
-  resolution[1] = COM_BLUR_BOKEH_PIXELS;
+  BLI_rcti_init(&r_area,
+                preferred_area.xmin,
+                preferred_area.xmin + COM_BLUR_BOKEH_PIXELS,
+                preferred_area.ymin,
+                preferred_area.ymin + COM_BLUR_BOKEH_PIXELS);
 }
 
 }  // namespace blender::compositor

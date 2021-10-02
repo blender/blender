@@ -30,8 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BSDF_DIFFUSE_H__
-#define __BSDF_DIFFUSE_H__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
@@ -47,14 +46,6 @@ ccl_device int bsdf_diffuse_setup(DiffuseBsdf *bsdf)
 {
   bsdf->type = CLOSURE_BSDF_DIFFUSE_ID;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
-}
-
-ccl_device bool bsdf_diffuse_merge(const ShaderClosure *a, const ShaderClosure *b)
-{
-  const DiffuseBsdf *bsdf_a = (const DiffuseBsdf *)a;
-  const DiffuseBsdf *bsdf_b = (const DiffuseBsdf *)b;
-
-  return (isequal_float3(bsdf_a->N, bsdf_b->N));
 }
 
 ccl_device float3 bsdf_diffuse_eval_reflect(const ShaderClosure *sc,
@@ -174,5 +165,3 @@ ccl_device int bsdf_translucent_sample(const ShaderClosure *sc,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __BSDF_DIFFUSE_H__ */

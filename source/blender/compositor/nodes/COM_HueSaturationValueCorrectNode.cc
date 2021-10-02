@@ -53,7 +53,7 @@ void HueSaturationValueCorrectNode::convertToOperations(
   converter.addOperation(changeHSV);
 
   MixBlendOperation *blend = new MixBlendOperation();
-  blend->setResolutionInputSocketIndex(1);
+  blend->set_canvas_input_index(1);
   converter.addOperation(blend);
 
   converter.mapInputSocket(colorSocket, rgbToHSV->getInputSocket(0));

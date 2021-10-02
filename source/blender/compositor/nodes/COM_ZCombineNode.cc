@@ -31,9 +31,9 @@
 namespace blender::compositor {
 
 void ZCombineNode::convertToOperations(NodeConverter &converter,
-                                       const CompositorContext &context) const
+                                       const CompositorContext & /*context*/) const
 {
-  if ((context.getRenderData()->scemode & R_FULL_SAMPLE) || this->getbNode()->custom2) {
+  if (this->getbNode()->custom2) {
     ZCombineOperation *operation = nullptr;
     if (this->getbNode()->custom1) {
       operation = new ZCombineAlphaOperation();
@@ -64,18 +64,14 @@ void ZCombineNode::convertToOperations(NodeConverter &converter,
     NodeOperation *maskoperation;
     if (this->getbNode()->custom1) {
       maskoperation = new MathGreaterThanOperation();
-      converter.addOperation(maskoperation);
-
-      converter.mapInputSocket(getInputSocket(1), maskoperation->getInputSocket(0));
-      converter.mapInputSocket(getInputSocket(3), maskoperation->getInputSocket(1));
     }
     else {
       maskoperation = new MathLessThanOperation();
-      converter.addOperation(maskoperation);
-
-      converter.mapInputSocket(getInputSocket(1), maskoperation->getInputSocket(0));
-      converter.mapInputSocket(getInputSocket(3), maskoperation->getInputSocket(1));
     }
+    converter.addOperation(maskoperation);
+
+    converter.mapInputSocket(getInputSocket(1), maskoperation->getInputSocket(0));
+    converter.mapInputSocket(getInputSocket(3), maskoperation->getInputSocket(1));
 
     /* Step 2 anti alias mask bit of an expensive operation, but does the trick. */
     AntiAliasOperation *antialiasoperation = new AntiAliasOperation();

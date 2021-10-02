@@ -1418,7 +1418,7 @@ static void annotation_visible_on_space(tGPsdata *p)
     }
     case SPACE_SEQ: {
       SpaceSeq *sseq = (SpaceSeq *)area->spacedata.first;
-      sseq->flag |= SEQ_SHOW_GPENCIL;
+      sseq->flag |= SEQ_PREVIEW_SHOW_GPENCIL;
       break;
     }
     case SPACE_IMAGE: {
@@ -2104,7 +2104,7 @@ static void annotation_draw_apply_event(
         p->flags |= GP_PAINTFLAG_USE_STABILIZER_TEMP;
       }
     }
-    /* We are using the temporal stabilizer flag atm,
+    /* We are using the temporal stabilizer flag at the moment,
      * but shift is not pressed as well as the permanent flag is not used,
      * so we don't need the cursor anymore. */
     else if (p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) {

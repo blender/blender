@@ -49,8 +49,11 @@ enum {
    * appended.
    * NOTE: Mutually exclusive with `IDTYPE_FLAGS_NO_LIBLINKING`. */
   IDTYPE_FLAGS_ONLY_APPEND = 1 << 2,
+  /** Allow to re-use an existing local ID with matching weak library reference instead of creating
+   * a new copy of it, when appending. See also #LibraryWeakReference in `DNA_ID.h`. */
+  IDTYPE_FLAGS_APPEND_IS_REUSABLE = 1 << 3,
   /** Indicates that the given IDType does not have animation data. */
-  IDTYPE_FLAGS_NO_ANIMDATA = 1 << 3,
+  IDTYPE_FLAGS_NO_ANIMDATA = 1 << 4,
 };
 
 typedef struct IDCacheKey {
@@ -290,6 +293,7 @@ bool BKE_idtype_idcode_is_valid(const short idcode);
 
 bool BKE_idtype_idcode_is_linkable(const short idcode);
 bool BKE_idtype_idcode_is_only_appendable(const short idcode);
+bool BKE_idtype_idcode_append_is_reusable(const short idcode);
 /* Macro currently, since any linkable IDtype should be localizable. */
 #define BKE_idtype_idcode_is_localizable BKE_idtype_idcode_is_linkable
 

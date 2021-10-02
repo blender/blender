@@ -2169,6 +2169,12 @@ static void lineart_main_load_geometries(
       use_mesh = use_ob->data;
     }
     else {
+      /* If DEG_ITER_OBJECT_FLAG_DUPLI is set, the curve objects are going to have a mesh
+       * equivalent already in the object list, so ignore converting the original curve in this
+       * case. */
+      if (allow_duplicates) {
+        continue;
+      }
       use_mesh = BKE_mesh_new_from_object(depsgraph, use_ob, true, true);
     }
 
@@ -3057,8 +3063,9 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->shift_y /= (1 + rb->overscan);
 
   rb->crease_threshold = cos(M_PI - lmd->crease_threshold);
-  rb->angle_splitting_threshold = lmd->angle_splitting_threshold;
   rb->chaining_image_threshold = lmd->chaining_image_threshold;
+  rb->angle_splitting_threshold = lmd->angle_splitting_threshold;
+  rb->chain_smooth_tolerance = lmd->chain_smooth_tolerance;
 
   rb->fuzzy_intersections = (lmd->calculation_flags & LRT_INTERSECTION_AS_CONTOUR) != 0;
   rb->fuzzy_everything = (lmd->calculation_flags & LRT_EVERYTHING_AS_CONTOUR) != 0;
@@ -4172,6 +4179,13 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
     float *t_image = &lmd->chaining_image_threshold;
     /* This configuration ensures there won't be accidental lost of short unchained segments. */
     MOD_lineart_chain_discard_short(rb, MIN2(*t_image, 0.001f) - FLT_EPSILON);
+
+    if (rb->chain_smooth_tolerance > FLT_EPSILON) {
+      /* Keeping UI range of 0-1 for ease of read while scaling down the actual value for best
+       * effective range in image-space (Coordinate only goes from -1 to 1). This value is somewhat
+       * arbitrary, but works best for the moment.  */
+      MOD_lineart_smooth_chains(rb, rb->chain_smooth_tolerance / 50);
+    }
 
     if (rb->angle_splitting_threshold > FLT_EPSILON) {
       MOD_lineart_chain_split_angle(rb, rb->angle_splitting_threshold);

@@ -37,7 +37,7 @@ ccl_device float sky_perez_function(float *lam, float theta, float gamma)
          (1.0f + lam[2] * expf(lam[3] * gamma) + lam[4] * cgamma * cgamma);
 }
 
-ccl_device float3 sky_radiance_preetham(KernelGlobals *kg,
+ccl_device float3 sky_radiance_preetham(const KernelGlobals *kg,
                                         float3 dir,
                                         float sunphi,
                                         float suntheta,
@@ -90,7 +90,7 @@ ccl_device float sky_radiance_internal(float *configuration, float theta, float 
           configuration[6] * mieM + configuration[7] * zenith);
 }
 
-ccl_device float3 sky_radiance_hosek(KernelGlobals *kg,
+ccl_device float3 sky_radiance_hosek(const KernelGlobals *kg,
                                      float3 dir,
                                      float sunphi,
                                      float suntheta,
@@ -127,7 +127,7 @@ ccl_device float3 geographical_to_direction(float lat, float lon)
   return make_float3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
 }
 
-ccl_device float3 sky_radiance_nishita(KernelGlobals *kg,
+ccl_device float3 sky_radiance_nishita(const KernelGlobals *kg,
                                        float3 dir,
                                        float *nishita_data,
                                        uint texture_id)
@@ -209,8 +209,8 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals *kg,
   return xyz_to_rgb(kg, xyz);
 }
 
-ccl_device void svm_node_tex_sky(
-    KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device_noinline int svm_node_tex_sky(
+    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int offset)
 {
   /* Load data */
   uint dir_offset = node.y;
@@ -226,49 +226,49 @@ ccl_device void svm_node_tex_sky(
     float sunphi, suntheta, radiance_x, radiance_y, radiance_z;
     float config_x[9], config_y[9], config_z[9];
 
-    float4 data = read_node_float(kg, offset);
+    float4 data = read_node_float(kg, &offset);
     sunphi = data.x;
     suntheta = data.y;
     radiance_x = data.z;
     radiance_y = data.w;
 
-    data = read_node_float(kg, offset);
+    data = read_node_float(kg, &offset);
     radiance_z = data.x;
     config_x[0] = data.y;
     config_x[1] = data.z;
     config_x[2] = data.w;
 
-    data = read_node_float(kg, offset);
+    data = read_node_float(kg, &offset);
     config_x[3] = data.x;
     config_x[4] = data.y;
     config_x[5] = data.z;
     config_x[6] = data.w;
 
-    data = read_node_float(kg, offset);
+    data = read_node_float(kg, &offset);
     config_x[7] = data.x;
     config_x[8] = data.y;
     config_y[0] = data.z;
     config_y[1] = data.w;
 
-    data = read_node_float(kg, offset);
+    data = read_node_float(kg, &offset);
     config_y[2] = data.x;
     config_y[3] = data.y;
     config_y[4] = data.z;
     config_y[5] = data.w;
 
-    data = read_node_float(kg, offset);
+    data = read_node_float(kg, &offset);
     config_y[6] = data.x;
     config_y[7] = data.y;
     config_y[8] = data.z;
     config_z[0] = data.w;
 
-    data = read_node_float(kg, offset);
+    data = read_node_float(kg, &offset);
     config_z[1] = data.x;
     config_z[2] = data.y;
     config_z[3] = data.z;
     config_z[4] = data.w;
 
-    data = read_node_float(kg, offset);
+    data = read_node_float(kg, &offset);
     config_z[5] = data.x;
     config_z[6] = data.y;
     config_z[7] = data.z;
@@ -305,19 +305,19 @@ ccl_device void svm_node_tex_sky(
     /* Define variables */
     float nishita_data[10];
 
-    float4 data = read_node_float(kg, offset);
+    float4 data = read_node_float(kg, &offset);
     nishita_data[0] = data.x;
     nishita_data[1] = data.y;
     nishita_data[2] = data.z;
     nishita_data[3] = data.w;
 
-    data = read_node_float(kg, offset);
+    data = read_node_float(kg, &offset);
     nishita_data[4] = data.x;
     nishita_data[5] = data.y;
     nishita_data[6] = data.z;
     nishita_data[7] = data.w;
 
-    data = read_node_float(kg, offset);
+    data = read_node_float(kg, &offset);
     nishita_data[8] = data.x;
     nishita_data[9] = data.y;
     uint texture_id = __float_as_uint(data.z);
@@ -327,6 +327,7 @@ ccl_device void svm_node_tex_sky(
   }
 
   stack_store_float3(stack, out_offset, f);
+  return offset;
 }
 
 CCL_NAMESPACE_END

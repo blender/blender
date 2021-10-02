@@ -22,9 +22,9 @@ namespace blender::compositor {
 
 FlipOperation::FlipOperation()
 {
-  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addOutputSocket(DataType::Color);
-  this->setResolutionInputSocketIndex(0);
+  this->set_canvas_input_index(0);
   this->m_inputOperation = nullptr;
   this->m_flipX = true;
   this->m_flipY = false;
@@ -75,6 +75,24 @@ bool FlipOperation::determineDependingAreaOfInterest(rcti *input,
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
+void FlipOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
+{
+  NodeOperation::determine_canvas(preferred_area, r_area);
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    rcti input_area = r_area;
+    if (m_flipX) {
+      const int width = BLI_rcti_size_x(&input_area) - 1;
+      r_area.xmax = (width - input_area.xmin) + 1;
+      r_area.xmin = (width - input_area.xmax) + 1;
+    }
+    if (m_flipY) {
+      const int height = BLI_rcti_size_y(&input_area) - 1;
+      r_area.ymax = (height - input_area.ymin) + 1;
+      r_area.ymin = (height - input_area.ymax) + 1;
+    }
+  }
+}
+
 void FlipOperation::get_area_of_interest(const int input_idx,
                                          const rcti &output_area,
                                          rcti &r_input_area)
@@ -84,7 +102,7 @@ void FlipOperation::get_area_of_interest(const int input_idx,
   if (this->m_flipX) {
     const int w = (int)this->getWidth() - 1;
     r_input_area.xmax = (w - output_area.xmin) + 1;
-    r_input_area.xmin = (w - output_area.xmax) - 1;
+    r_input_area.xmin = (w - output_area.xmax) + 1;
   }
   else {
     r_input_area.xmin = output_area.xmin;
@@ -93,7 +111,7 @@ void FlipOperation::get_area_of_interest(const int input_idx,
   if (this->m_flipY) {
     const int h = (int)this->getHeight() - 1;
     r_input_area.ymax = (h - output_area.ymin) + 1;
-    r_input_area.ymin = (h - output_area.ymax) - 1;
+    r_input_area.ymin = (h - output_area.ymax) + 1;
   }
   else {
     r_input_area.ymin = output_area.ymin;
@@ -106,10 +124,12 @@ void FlipOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                  Span<MemoryBuffer *> inputs)
 {
   const MemoryBuffer *input_img = inputs[0];
+  const int input_offset_x = input_img->get_rect().xmin;
+  const int input_offset_y = input_img->get_rect().ymin;
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
     const int nx = this->m_flipX ? ((int)this->getWidth() - 1) - it.x : it.x;
     const int ny = this->m_flipY ? ((int)this->getHeight() - 1) - it.y : it.y;
-    input_img->read_elem(nx, ny, it.out);
+    input_img->read_elem(input_offset_x + nx, input_offset_y + ny, it.out);
   }
 }
 

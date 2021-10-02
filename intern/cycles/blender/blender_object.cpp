@@ -568,7 +568,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
   /* object loop */
   bool cancel = false;
   bool use_portal = false;
-  const bool show_lights = BlenderViewportParameters(b_v3d).use_scene_lights;
+  const bool show_lights = BlenderViewportParameters(b_v3d, use_developer_ui).use_scene_lights;
 
   BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
   BL::Depsgraph::object_instances_iterator b_instance_iter;

@@ -23,23 +23,31 @@
 
 AUD_NAMESPACE_BEGIN
 
-File::File(std::string filename) :
-	m_filename(filename)
+File::File(std::string filename, int stream) :
+	m_filename(filename), m_stream(stream)
 {
 }
 
-File::File(const data_t* buffer, int size) :
-	m_buffer(new Buffer(size))
+File::File(const data_t* buffer, int size, int stream) :
+	m_buffer(new Buffer(size)), m_stream(stream)
 {
 	std::memcpy(m_buffer->getBuffer(), buffer, size);
+}
+
+std::vector<StreamInfo> File::queryStreams()
+{
+	if(m_buffer.get())
+		return FileManager::queryStreams(m_buffer);
+	else
+		return FileManager::queryStreams(m_filename);
 }
 
 std::shared_ptr<IReader> File::createReader()
 {
 	if(m_buffer.get())
-		return FileManager::createReader(m_buffer);
+		return FileManager::createReader(m_buffer, m_stream);
 	else
-		return FileManager::createReader(m_filename);
+		return FileManager::createReader(m_filename, m_stream);
 }
 
 AUD_NAMESPACE_END

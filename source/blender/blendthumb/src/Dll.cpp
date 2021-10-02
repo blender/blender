@@ -14,11 +14,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/** \file
+ * \ingroup blendthumb
+ *
+ * Thumbnail from Blend file extraction for MS-Windows (DLL).
+ */
+
 #include <new>
 #include <objbase.h>
-#include <shlobj.h>  // For SHChangeNotify
+#include <shlobj.h> /* For #SHChangeNotify */
 #include <shlwapi.h>
-#include <thumbcache.h>  // For IThumbnailProvider.
+#include <thumbcache.h> /* For IThumbnailProvider */
 
 extern HRESULT CBlendThumb_CreateInstance(REFIID riid, void **ppv);
 
@@ -33,16 +39,16 @@ struct CLASS_OBJECT_INIT {
   PFNCREATEINSTANCE pfnCreate;
 };
 
-// add classes supported by this module here
+/* Add classes supported by this module here. */
 const CLASS_OBJECT_INIT c_rgClassObjectInit[] = {
     {&CLSID_BlendThumbHandler, CBlendThumb_CreateInstance}};
 
 long g_cRefModule = 0;
 
-// Handle the DLL's module
-HINSTANCE g_hInst = NULL;
+/** Handle the DLL's module */
+HINSTANCE g_hInst = nullptr;
 
-// Standard DLL functions
+/** Standard DLL functions. */
 STDAPI_(BOOL) DllMain(HINSTANCE hInstance, DWORD dwReason, void *)
 {
   if (dwReason == DLL_PROCESS_ATTACH) {
@@ -54,7 +60,7 @@ STDAPI_(BOOL) DllMain(HINSTANCE hInstance, DWORD dwReason, void *)
 
 STDAPI DllCanUnloadNow()
 {
-  // Only allow the DLL to be unloaded after all outstanding references have been released
+  /* Only allow the DLL to be unloaded after all outstanding references have been released. */
   return (g_cRefModule == 0) ? S_OK : S_FALSE;
 }
 
@@ -76,7 +82,7 @@ class CClassFactory : public IClassFactory {
                                 REFIID riid,
                                 void **ppv)
   {
-    *ppv = NULL;
+    *ppv = nullptr;
     HRESULT hr = CLASS_E_CLASSNOTAVAILABLE;
     for (size_t i = 0; i < cClassObjectInits; i++) {
       if (clsid == *pClassObjectInits[i].pClsid) {
@@ -87,7 +93,8 @@ class CClassFactory : public IClassFactory {
           hr = pClassFactory->QueryInterface(riid, ppv);
           pClassFactory->Release();
         }
-        break;  // match found
+        /* Match found. */
+        break;
       }
     }
     return hr;
@@ -98,7 +105,7 @@ class CClassFactory : public IClassFactory {
     DllAddRef();
   }
 
-  // IUnknown
+  /** #IUnknown */
   IFACEMETHODIMP QueryInterface(REFIID riid, void **ppv)
   {
     static const QITAB qit[] = {QITABENT(CClassFactory, IClassFactory), {0}};
@@ -119,7 +126,7 @@ class CClassFactory : public IClassFactory {
     return cRef;
   }
 
-  // IClassFactory
+  /** #IClassFactory */
   IFACEMETHODIMP CreateInstance(IUnknown *punkOuter, REFIID riid, void **ppv)
   {
     return punkOuter ? CLASS_E_NOAGGREGATION : _pfnCreate(riid, ppv);
@@ -152,33 +159,37 @@ STDAPI DllGetClassObject(REFCLSID clsid, REFIID riid, void **ppv)
       clsid, c_rgClassObjectInit, ARRAYSIZE(c_rgClassObjectInit), riid, ppv);
 }
 
-// A struct to hold the information required for a registry entry
-
+/**
+ * A struct to hold the information required for a registry entry.
+ */
 struct REGISTRY_ENTRY {
   HKEY hkeyRoot;
   PCWSTR pszKeyName;
   PCWSTR pszValueName;
   DWORD dwValueType;
-  PCWSTR pszData;  // These two fields could/should have been a union, but C++
-  DWORD dwData;    // only lets you initialize the first field in a union.
+  /** These two fields could/should have been a union, but C++ */
+  PCWSTR pszData;
+  /** Only lets you initialize the first field in a union. */
+  DWORD dwData;
 };
 
-// Creates a registry key (if needed) and sets the default value of the key
-
+/**
+ * Creates a registry key (if needed) and sets the default value of the key.
+ */
 HRESULT CreateRegKeyAndSetValue(const REGISTRY_ENTRY *pRegistryEntry)
 {
   HKEY hKey;
   HRESULT hr = HRESULT_FROM_WIN32(RegCreateKeyExW(pRegistryEntry->hkeyRoot,
                                                   pRegistryEntry->pszKeyName,
                                                   0,
-                                                  NULL,
+                                                  nullptr,
                                                   REG_OPTION_NON_VOLATILE,
                                                   KEY_SET_VALUE,
-                                                  NULL,
+                                                  nullptr,
                                                   &hKey,
-                                                  NULL));
+                                                  nullptr));
   if (SUCCEEDED(hr)) {
-    // All this just to support REG_DWORD...
+    /* All this just to support #REG_DWORD. */
     DWORD size;
     DWORD data;
     BYTE *lpData = (LPBYTE)pRegistryEntry->pszData;
@@ -202,9 +213,9 @@ HRESULT CreateRegKeyAndSetValue(const REGISTRY_ENTRY *pRegistryEntry)
   return hr;
 }
 
-//
-// Registers this COM server
-//
+/**
+ * Registers this COM server.
+ */
 STDAPI DllRegisterServer()
 {
   HRESULT hr;
@@ -216,15 +227,15 @@ STDAPI DllRegisterServer()
   }
   else {
     const REGISTRY_ENTRY rgRegistryEntries[] = {
-        // RootKey KeyName ValueName ValueType Data
+        /* `RootKey KeyName ValueName ValueType Data` */
         {HKEY_CURRENT_USER,
          L"Software\\Classes\\CLSID\\" SZ_CLSID_BLENDTHUMBHANDLER,
-         NULL,
+         nullptr,
          REG_SZ,
          SZ_BLENDTHUMBHANDLER},
         {HKEY_CURRENT_USER,
          L"Software\\Classes\\CLSID\\" SZ_CLSID_BLENDTHUMBHANDLER L"\\InProcServer32",
-         NULL,
+         nullptr,
          REG_SZ,
          szModuleName},
         {HKEY_CURRENT_USER,
@@ -237,10 +248,10 @@ STDAPI DllRegisterServer()
          L"Treatment",
          REG_DWORD,
          0,
-         0},  // doesn't appear to do anything...
+         0}, /* This doesn't appear to do anything. */
         {HKEY_CURRENT_USER,
          L"Software\\Classes\\.blend\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}",
-         NULL,
+         nullptr,
          REG_SZ,
          SZ_CLSID_BLENDTHUMBHANDLER},
     };
@@ -251,17 +262,17 @@ STDAPI DllRegisterServer()
     }
   }
   if (SUCCEEDED(hr)) {
-    // This tells the shell to invalidate the thumbnail cache.  This is important because any
-    // .blend files viewed before registering this handler would otherwise show cached blank
-    // thumbnails.
-    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
+    /* This tells the shell to invalidate the thumbnail cache.
+     * This is important because any `.blend` files viewed before registering this handler
+     * would otherwise show cached blank thumbnails. */
+    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
   }
   return hr;
 }
 
-//
-// Unregisters this COM server
-//
+/**
+ * Unregisters this COM server
+ */
 STDAPI DllUnregisterServer()
 {
   HRESULT hr = S_OK;
@@ -270,11 +281,11 @@ STDAPI DllUnregisterServer()
       L"Software\\Classes\\CLSID\\" SZ_CLSID_BLENDTHUMBHANDLER,
       L"Software\\Classes\\.blend\\ShellEx\\{e357fccd-a995-4576-b01f-234630154e96}"};
 
-  // Delete the registry entries
+  /* Delete the registry entries. */
   for (int i = 0; i < ARRAYSIZE(rgpszKeys) && SUCCEEDED(hr); i++) {
     hr = HRESULT_FROM_WIN32(RegDeleteTreeW(HKEY_CURRENT_USER, rgpszKeys[i]));
     if (hr == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) {
-      // If the registry entry has already been deleted, say S_OK.
+      /* If the registry entry has already been deleted, say S_OK. */
       hr = S_OK;
     }
   }

@@ -23,6 +23,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
+#include "COM_ExecutionSystem.h"
 #include "MEM_guardedalloc.h"
 #include "PIL_time.h"
 #include "WM_api.h"
@@ -33,6 +34,8 @@
 #include "IMB_imbuf_types.h"
 
 namespace blender::compositor {
+
+static int MAX_VIEWER_TRANSLATION_PADDING = 12000;
 
 ViewerOperation::ViewerOperation()
 {
@@ -67,7 +70,7 @@ void ViewerOperation::initExecution()
   this->m_depthInput = getInputSocketReader(2);
   this->m_doDepthBuffer = (this->m_depthInput != nullptr);
 
-  if (isActiveViewerOutput()) {
+  if (isActiveViewerOutput() && !exec_system_->is_breaked()) {
     initImage();
   }
 }
@@ -122,15 +125,16 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
   updateImage(rect);
 }
 
-void ViewerOperation::determineResolution(unsigned int resolution[2],
-                                          unsigned int /*preferredResolution*/[2])
+void ViewerOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   const int sceneRenderWidth = this->m_rd->xsch * this->m_rd->size / 100;
   const int sceneRenderHeight = this->m_rd->ysch * this->m_rd->size / 100;
 
-  unsigned int localPrefRes[2] = {static_cast<unsigned int>(sceneRenderWidth),
-                                  static_cast<unsigned int>(sceneRenderHeight)};
-  NodeOperation::determineResolution(resolution, localPrefRes);
+  rcti local_preferred = preferred_area;
+  local_preferred.xmax = local_preferred.xmin + sceneRenderWidth;
+  local_preferred.ymax = local_preferred.ymin + sceneRenderHeight;
+
+  NodeOperation::determine_canvas(local_preferred, r_area);
 }
 
 void ViewerOperation::initImage()
@@ -155,13 +159,24 @@ void ViewerOperation::initImage()
     BLI_thread_unlock(LOCK_DRAW_IMAGE);
     return;
   }
-  if (ibuf->x != (int)getWidth() || ibuf->y != (int)getHeight()) {
 
+  int padding_x = abs(canvas_.xmin) * 2;
+  int padding_y = abs(canvas_.ymin) * 2;
+  if (padding_x > MAX_VIEWER_TRANSLATION_PADDING) {
+    padding_x = MAX_VIEWER_TRANSLATION_PADDING;
+  }
+  if (padding_y > MAX_VIEWER_TRANSLATION_PADDING) {
+    padding_y = MAX_VIEWER_TRANSLATION_PADDING;
+  }
+
+  display_width_ = getWidth() + padding_x;
+  display_height_ = getHeight() + padding_y;
+  if (ibuf->x != display_width_ || ibuf->y != display_height_) {
     imb_freerectImBuf(ibuf);
     imb_freerectfloatImBuf(ibuf);
     IMB_freezbuffloatImBuf(ibuf);
-    ibuf->x = getWidth();
-    ibuf->y = getHeight();
+    ibuf->x = display_width_;
+    ibuf->y = display_height_;
     /* zero size can happen if no image buffers exist to define a sensible resolution */
     if (ibuf->x > 0 && ibuf->y > 0) {
       imb_addrectfloatImBuf(ibuf);
@@ -193,11 +208,15 @@ void ViewerOperation::initImage()
 
 void ViewerOperation::updateImage(const rcti *rect)
 {
+  if (exec_system_->is_breaked()) {
+    return;
+  }
+
   float *buffer = m_outputBuffer;
   IMB_partial_display_buffer_update(this->m_ibuf,
                                     buffer,
                                     nullptr,
-                                    getWidth(),
+                                    display_width_,
                                     0,
                                     0,
                                     this->m_viewSettings,
@@ -227,29 +246,46 @@ void ViewerOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
     return;
   }
 
+  const int offset_x = area.xmin + (canvas_.xmin > 0 ? canvas_.xmin * 2 : 0);
+  const int offset_y = area.ymin + (canvas_.ymin > 0 ? canvas_.ymin * 2 : 0);
   MemoryBuffer output_buffer(
-      m_outputBuffer, COM_DATA_TYPE_COLOR_CHANNELS, getWidth(), getHeight());
+      m_outputBuffer, COM_DATA_TYPE_COLOR_CHANNELS, display_width_, display_height_);
   const MemoryBuffer *input_image = inputs[0];
-  output_buffer.copy_from(input_image, area);
+  output_buffer.copy_from(input_image, area, offset_x, offset_y);
   if (this->m_useAlphaInput) {
     const MemoryBuffer *input_alpha = inputs[1];
-    output_buffer.copy_from(input_alpha, area, 0, COM_DATA_TYPE_VALUE_CHANNELS, 3);
+    output_buffer.copy_from(
+        input_alpha, area, 0, COM_DATA_TYPE_VALUE_CHANNELS, offset_x, offset_y, 3);
   }
 
   if (m_depthBuffer) {
     MemoryBuffer depth_buffer(
-        m_depthBuffer, COM_DATA_TYPE_VALUE_CHANNELS, getWidth(), getHeight());
+        m_depthBuffer, COM_DATA_TYPE_VALUE_CHANNELS, display_width_, display_height_);
     const MemoryBuffer *input_depth = inputs[2];
-    depth_buffer.copy_from(input_depth, area);
+    depth_buffer.copy_from(input_depth, area, offset_x, offset_y);
   }
 
-  updateImage(&area);
+  rcti display_area;
+  BLI_rcti_init(&display_area,
+                offset_x,
+                offset_x + BLI_rcti_size_x(&area),
+                offset_y,
+                offset_y + BLI_rcti_size_y(&area));
+  updateImage(&display_area);
 }
 
 void ViewerOperation::clear_display_buffer()
 {
   BLI_assert(isActiveViewerOutput());
+  if (exec_system_->is_breaked()) {
+    return;
+  }
+
   initImage();
+  if (m_outputBuffer == nullptr) {
+    return;
+  }
+
   size_t buf_bytes = (size_t)m_ibuf->y * m_ibuf->x * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float);
   if (buf_bytes > 0) {
     memset(m_outputBuffer, 0, buf_bytes);

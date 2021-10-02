@@ -9,14 +9,16 @@
 uniform sampler2D source;
 uniform float fireflyFactor;
 
+#ifndef COPY_SRC
+uniform vec2 texelSize;
+#endif
+
 out vec4 FragColor;
 
 void main()
 {
-  vec2 texel_size = 1.0 / vec2(textureSize(source, 0));
-  vec2 uvs = gl_FragCoord.xy * texel_size;
-
 #ifdef COPY_SRC
+  vec2 uvs = gl_FragCoord.xy / vec2(textureSize(source, 0));
   FragColor = textureLod(source, uvs, 0.0);
   FragColor = safe_color(FragColor);
 
@@ -25,7 +27,10 @@ void main()
   FragColor *= 1.0 - max(0.0, luma - fireflyFactor) / luma;
 
 #else
-  vec4 ofs = texel_size.xyxy * vec4(0.75, 0.75, -0.75, -0.75);
+  /* NOTE(@fclem): textureSize() does not work the same on all implementations
+   * when changing the min and max texture levels. Use uniform instead (see T87801). */
+  vec2 uvs = gl_FragCoord.xy * texelSize;
+  vec4 ofs = texelSize.xyxy * vec4(0.75, 0.75, -0.75, -0.75);
   uvs *= 2.0;
 
   FragColor = textureLod(source, uvs + ofs.xy, 0.0);

@@ -43,13 +43,13 @@ void FileManager::registerOutput(std::shared_ptr<aud::IFileOutput> output)
 	outputs().push_back(output);
 }
 
-std::shared_ptr<IReader> FileManager::createReader(std::string filename)
+std::shared_ptr<IReader> FileManager::createReader(std::string filename, int stream)
 {
 	for(std::shared_ptr<IFileInput> input : inputs())
 	{
 		try
 		{
-			return input->createReader(filename);
+			return input->createReader(filename, stream);
 		}
 		catch(Exception&) {}
 	}
@@ -57,13 +57,41 @@ std::shared_ptr<IReader> FileManager::createReader(std::string filename)
 	AUD_THROW(FileException, "The file couldn't be read with any installed file reader.");
 }
 
-std::shared_ptr<IReader> FileManager::createReader(std::shared_ptr<Buffer> buffer)
+std::shared_ptr<IReader> FileManager::createReader(std::shared_ptr<Buffer> buffer, int stream)
 {
 	for(std::shared_ptr<IFileInput> input : inputs())
 	{
 		try
 		{
-			return input->createReader(buffer);
+			return input->createReader(buffer, stream);
+		}
+		catch(Exception&) {}
+	}
+
+	AUD_THROW(FileException, "The file couldn't be read with any installed file reader.");
+}
+
+std::vector<StreamInfo> FileManager::queryStreams(std::string filename)
+{
+	for(std::shared_ptr<IFileInput> input : inputs())
+	{
+		try
+		{
+			return input->queryStreams(filename);
+		}
+		catch(Exception&) {}
+	}
+
+	AUD_THROW(FileException, "The file couldn't be read with any installed file reader.");
+}
+
+std::vector<StreamInfo> FileManager::queryStreams(std::shared_ptr<Buffer> buffer)
+{
+	for(std::shared_ptr<IFileInput> input : inputs())
+	{
+		try
+		{
+			return input->queryStreams(buffer);
 		}
 		catch(Exception&) {}
 	}

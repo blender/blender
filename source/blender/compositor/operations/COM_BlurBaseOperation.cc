@@ -212,31 +212,30 @@ void BlurBaseOperation::updateSize()
   this->m_sizeavailable = true;
 }
 
-void BlurBaseOperation::determineResolution(unsigned int resolution[2],
-                                            unsigned int preferredResolution[2])
+void BlurBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   if (!m_extend_bounds) {
-    NodeOperation::determineResolution(resolution, preferredResolution);
+    NodeOperation::determine_canvas(preferred_area, r_area);
     return;
   }
 
   switch (execution_model_) {
     case eExecutionModel::Tiled: {
-      NodeOperation::determineResolution(resolution, preferredResolution);
-      resolution[0] += 2 * m_size * m_data.sizex;
-      resolution[1] += 2 * m_size * m_data.sizey;
+      NodeOperation::determine_canvas(preferred_area, r_area);
+      r_area.xmax += 2 * m_size * m_data.sizex;
+      r_area.ymax += 2 * m_size * m_data.sizey;
       break;
     }
     case eExecutionModel::FullFrame: {
       /* Setting a modifier ensures all non main inputs have extended bounds as preferred
-       * resolution, avoiding unnecessary resolution conversions that would hide constant
+       * canvas, avoiding unnecessary canvas conversions that would hide constant
        * operations. */
-      set_determined_resolution_modifier([=](unsigned int res[2]) {
+      set_determined_canvas_modifier([=](rcti &canvas) {
         /* Rounding to even prevents jiggling in backdrop while switching size values. */
-        res[0] += round_to_even(2 * m_size * m_data.sizex);
-        res[1] += round_to_even(2 * m_size * m_data.sizey);
+        canvas.xmax += round_to_even(2 * m_size * m_data.sizex);
+        canvas.ymax += round_to_even(2 * m_size * m_data.sizey);
       });
-      NodeOperation::determineResolution(resolution, preferredResolution);
+      NodeOperation::determine_canvas(preferred_area, r_area);
       break;
     }
   }
@@ -251,7 +250,7 @@ void BlurBaseOperation::get_area_of_interest(const int input_idx,
       r_input_area = output_area;
       break;
     case 1:
-      r_input_area = use_variable_size_ ? output_area : COM_SINGLE_ELEM_AREA;
+      r_input_area = use_variable_size_ ? output_area : COM_CONSTANT_INPUT_AREA_OF_INTEREST;
       break;
   }
 }

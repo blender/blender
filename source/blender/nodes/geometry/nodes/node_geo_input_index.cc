@@ -20,30 +20,12 @@ namespace blender::nodes {
 
 static void geo_node_input_index_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Int>("Index");
+  b.add_output<decl::Int>("Index").field_source();
 }
-
-class IndexFieldInput final : public fn::FieldInput {
- public:
-  IndexFieldInput() : FieldInput(CPPType::get<int>(), "Index")
-  {
-  }
-
-  const GVArray *get_varray_for_context(const fn::FieldContext &UNUSED(context),
-                                        IndexMask mask,
-                                        ResourceScope &scope) const final
-  {
-    /* TODO: Investigate a similar method to IndexRange::as_span() */
-    auto index_func = [](int i) { return i; };
-    return &scope.construct<
-        fn::GVArray_For_EmbeddedVArray<int, VArray_For_Func<int, decltype(index_func)>>>(
-        mask.min_array_size(), mask.min_array_size(), index_func);
-  }
-};
 
 static void geo_node_input_index_exec(GeoNodeExecParams params)
 {
-  Field<int> index_field{std::make_shared<IndexFieldInput>()};
+  Field<int> index_field{std::make_shared<fn::IndexFieldInput>()};
   params.set_output("Index", std::move(index_field));
 }
 

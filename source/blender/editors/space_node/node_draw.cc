@@ -79,6 +79,7 @@
 #include "RNA_access.h"
 
 #include "NOD_geometry_nodes_eval_log.hh"
+#include "NOD_node_declaration.hh"
 
 #include "FN_field_cpp_type.hh"
 
@@ -733,12 +734,6 @@ static void node_draw_mute_line(const View2D *v2d, const SpaceNode *snode, const
   GPU_blend(GPU_BLEND_NONE);
 }
 
-/* Flags used in gpu_shader_keyframe_diamond_frag.glsl. */
-#define MARKER_SHAPE_DIAMOND 0x1
-#define MARKER_SHAPE_SQUARE 0xC
-#define MARKER_SHAPE_CIRCLE 0x2
-#define MARKER_SHAPE_INNER_DOT 0x10
-
 static void node_socket_draw(const bNodeSocket *sock,
                              const float color[4],
                              const float color_outline[4],
@@ -757,16 +752,16 @@ static void node_socket_draw(const bNodeSocket *sock,
   switch (sock->display_shape) {
     case SOCK_DISPLAY_SHAPE_DIAMOND:
     case SOCK_DISPLAY_SHAPE_DIAMOND_DOT:
-      flags = MARKER_SHAPE_DIAMOND;
+      flags = GPU_KEYFRAME_SHAPE_DIAMOND;
       break;
     case SOCK_DISPLAY_SHAPE_SQUARE:
     case SOCK_DISPLAY_SHAPE_SQUARE_DOT:
-      flags = MARKER_SHAPE_SQUARE;
+      flags = GPU_KEYFRAME_SHAPE_SQUARE;
       break;
     default:
     case SOCK_DISPLAY_SHAPE_CIRCLE:
     case SOCK_DISPLAY_SHAPE_CIRCLE_DOT:
-      flags = MARKER_SHAPE_CIRCLE;
+      flags = GPU_KEYFRAME_SHAPE_CIRCLE;
       break;
   }
 
@@ -774,7 +769,7 @@ static void node_socket_draw(const bNodeSocket *sock,
            SOCK_DISPLAY_SHAPE_DIAMOND_DOT,
            SOCK_DISPLAY_SHAPE_SQUARE_DOT,
            SOCK_DISPLAY_SHAPE_CIRCLE_DOT)) {
-    flags |= MARKER_SHAPE_INNER_DOT;
+    flags |= GPU_KEYFRAME_SHAPE_INNER_DOT;
   }
 
   immAttr4fv(col_id, color);
@@ -1091,12 +1086,37 @@ static void node_socket_draw_nested(const bContext *C,
       but,
       [](bContext *C, void *argN, const char *UNUSED(tip)) {
         SocketTooltipData *data = (SocketTooltipData *)argN;
-        std::optional<std::string> str = create_socket_inspection_string(
+        std::optional<std::string> socket_inspection_str = create_socket_inspection_string(
             C, *data->ntree, *data->node, *data->socket);
-        if (str.has_value()) {
-          return BLI_strdup(str->c_str());
+
+        std::stringstream output;
+        if (data->node->declaration != nullptr) {
+          ListBase *list;
+          Span<blender::nodes::SocketDeclarationPtr> decl_list;
+
+          if (data->socket->in_out == SOCK_IN) {
+            list = &data->node->inputs;
+            decl_list = data->node->declaration->inputs();
+          }
+          else {
+            list = &data->node->outputs;
+            decl_list = data->node->declaration->outputs();
+          }
+
+          const int socket_index = BLI_findindex(list, data->socket);
+          const blender::nodes::SocketDeclaration &socket_decl = *decl_list[socket_index];
+          blender::StringRef description = socket_decl.description();
+          if (!description.is_empty()) {
+            output << TIP_(description.data()) << ".\n\n";
+          }
         }
-        return BLI_strdup(TIP_("The socket value has not been computed yet"));
+        if (socket_inspection_str.has_value()) {
+          output << *socket_inspection_str;
+        }
+        else {
+          output << TIP_("The socket value has not been computed yet");
+        }
+        return BLI_strdup(output.str().c_str());
       },
       data,
       MEM_freeN);
@@ -1132,7 +1152,7 @@ void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_program_point_size(true);
 
-  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
   immUniform1f("outline_scale", 0.7f);
   immUniform2f("ViewportSize", -1.0f, -1.0f);
 
@@ -1277,7 +1297,7 @@ void node_draw_sockets(const View2D *v2d,
 
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_program_point_size(true);
-  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
   immUniform1f("outline_scale", 0.7f);
   immUniform2f("ViewportSize", -1.0f, -1.0f);
 
@@ -1446,6 +1466,8 @@ static int node_error_type_to_icon(const geo_log::NodeWarningType type)
       return ICON_ERROR;
     case geo_log::NodeWarningType::Info:
       return ICON_INFO;
+    case geo_log::NodeWarningType::Legacy:
+      return ICON_ERROR;
   }
 
   BLI_assert(false);
@@ -1456,6 +1478,8 @@ static uint8_t node_error_type_priority(const geo_log::NodeWarningType type)
 {
   switch (type) {
     case geo_log::NodeWarningType::Error:
+      return 4;
+    case geo_log::NodeWarningType::Legacy:
       return 3;
     case geo_log::NodeWarningType::Warning:
       return 2;

@@ -40,7 +40,7 @@
  * There are two coordinate systems:
  *
  * - The screen coordinate system. The origin of the screen is located in the
- *   upper left corner of the screen.</li>
+ *   upper left corner of the screen.
  * - The client rectangle coordinate system. The client rectangle of a window
  *   is the area that is drawable by the application (excluding title bars etc.).
  */

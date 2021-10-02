@@ -268,7 +268,7 @@ class PREFERENCES_OT_keyconfig_export(Operator):
     )
     filepath: StringProperty(
         subtype='FILE_PATH',
-        default="keymap.py",
+        default="",
     )
     filter_folder: BoolProperty(
         name="Filter folders",
@@ -307,7 +307,13 @@ class PREFERENCES_OT_keyconfig_export(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, _event):
+        import os
         wm = context.window_manager
+        if not self.filepath:
+            self.filepath = os.path.join(
+                os.path.expanduser("~"),
+                bpy.path.display_name_to_filepath(wm.keyconfigs.active.name) + ".py",
+            )
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

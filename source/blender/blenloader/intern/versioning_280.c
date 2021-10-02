@@ -1774,7 +1774,7 @@ static void do_versions_seq_set_cache_defaults(Editing *ed)
 
 static bool seq_update_flags_cb(Sequence *seq, void *UNUSED(user_data))
 {
-  seq->flag &= ~(SEQ_FLAG_UNUSED_6 | SEQ_FLAG_UNUSED_18 | SEQ_FLAG_UNUSED_19 | SEQ_FLAG_UNUSED_21);
+  seq->flag &= ~((1 << 6) | (1 << 18) | (1 << 19) | (1 << 21));
   if (seq->type == SEQ_TYPE_SPEED) {
     SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
     s->flags &= ~(SEQ_SPEED_UNUSED_1);
@@ -3394,7 +3394,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
               SpaceImage *sima = (SpaceImage *)sl;
               sima->flag &= ~(SI_FLAG_UNUSED_0 | SI_FLAG_UNUSED_1 | SI_FLAG_UNUSED_3 |
                               SI_FLAG_UNUSED_6 | SI_FLAG_UNUSED_7 | SI_FLAG_UNUSED_8 |
-                              SI_FLAG_UNUSED_17 | SI_FLAG_UNUSED_18 | SI_FLAG_UNUSED_23 |
+                              SI_FLAG_UNUSED_17 | SI_CUSTOM_GRID | SI_FLAG_UNUSED_23 |
                               SI_FLAG_UNUSED_24);
               break;
             }
@@ -3416,8 +3416,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             case SPACE_FILE: {
               SpaceFile *sfile = (SpaceFile *)sl;
               if (sfile->params) {
-                sfile->params->flag &= ~(FILE_APPEND_SET_FAKEUSER | FILE_APPEND_RECURSIVE |
-                                         FILE_OBDATA_INSTANCE);
+                sfile->params->flag &= ~(FILE_PARAMS_FLAG_UNUSED_1 | FILE_PARAMS_FLAG_UNUSED_2 |
+                                         FILE_PARAMS_FLAG_UNUSED_3);
               }
               break;
             }
@@ -3719,7 +3719,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             STRNCPY(node->idname, "ShaderNodeOutputLight");
           }
           if (node->type == SH_NODE_BSDF_PRINCIPLED && node->custom2 == 0) {
-            node->custom2 = SHD_SUBSURFACE_BURLEY;
+            node->custom2 = SHD_SUBSURFACE_DIFFUSION;
           }
         }
       }
@@ -4967,7 +4967,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_SEQ) {
             SpaceSeq *sseq = (SpaceSeq *)sl;
-            sseq->flag |= SEQ_SHOW_FCURVES;
+            sseq->flag |= SEQ_TIMELINE_SHOW_FCURVES;
           }
         }
       }

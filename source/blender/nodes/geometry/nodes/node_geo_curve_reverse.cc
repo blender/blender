@@ -25,37 +25,39 @@ namespace blender::nodes {
 static void geo_node_curve_reverse_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Curve");
-  b.add_input<decl::String>("Selection");
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   b.add_output<decl::Geometry>("Curve");
 }
 
 static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-  geometry_set = bke::geometry_set_realize_instances(geometry_set);
-  if (!geometry_set.has_curve()) {
-    params.set_output("Curve", geometry_set);
-    return;
-  }
 
-  /* Retrieve data for write access so we can avoid new allocations for the reversed data. */
-  CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-  CurveEval &curve = *curve_component.get_for_write();
-  MutableSpan<SplinePtr> splines = curve.splines();
-
-  const std::string selection_name = params.extract_input<std::string>("Selection");
-  GVArray_Typed<bool> selection = curve_component.attribute_get_for_read(
-      selection_name, ATTR_DOMAIN_CURVE, true);
-
-  threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
-    for (const int i : range) {
-      if (selection[i]) {
-        splines[i]->reverse();
-      }
+  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    if (!geometry_set.has_curve()) {
+      return;
     }
+
+    Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+    CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
+    GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_CURVE};
+    const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_CURVE);
+
+    fn::FieldEvaluator selection_evaluator{field_context, domain_size};
+    selection_evaluator.add(selection_field);
+    selection_evaluator.evaluate();
+    const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
+
+    CurveEval &curve = *component.get_for_write();
+    MutableSpan<SplinePtr> splines = curve.splines();
+    threading::parallel_for(selection.index_range(), 128, [&](IndexRange range) {
+      for (const int i : range) {
+        splines[selection[i]]->reverse();
+      }
+    });
   });
 
-  params.set_output("Curve", geometry_set);
+  params.set_output("Curve", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes
@@ -63,8 +65,7 @@ static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
 void register_node_type_geo_curve_reverse()
 {
   static bNodeType ntype;
-  geo_node_type_base(
-      &ntype, GEO_NODE_LEGACY_CURVE_REVERSE, "Curve Reverse", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_CURVE_REVERSE, "Curve Reverse", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_curve_reverse_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_reverse_exec;
   nodeRegisterType(&ntype);

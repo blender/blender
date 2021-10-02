@@ -32,28 +32,9 @@ static void geo_node_mesh_subdivide_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Geometry");
 }
 
-static void geo_node_mesh_subdivide_exec(GeoNodeExecParams params)
+static void geometry_set_mesh_subdivide(GeometrySet &geometry_set, const int level)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  geometry_set = geometry_set_realize_instances(geometry_set);
-
   if (!geometry_set.has_mesh()) {
-    params.set_output("Geometry", geometry_set);
-    return;
-  }
-
-#ifndef WITH_OPENSUBDIV
-  params.error_message_add(NodeWarningType::Error,
-                           TIP_("Disabled, Blender was compiled without OpenSubdiv"));
-  params.set_output("Geometry", std::move(geometry_set));
-  return;
-#endif
-
-  /* See CCGSUBSURF_LEVEL_MAX for max limit. */
-  const int subdiv_level = clamp_i(params.extract_input<int>("Level"), 0, 11);
-
-  if (subdiv_level == 0) {
-    params.set_output("Geometry", std::move(geometry_set));
     return;
   }
 
@@ -61,7 +42,7 @@ static void geo_node_mesh_subdivide_exec(GeoNodeExecParams params)
 
   /* Initialize mesh settings. */
   SubdivToMeshSettings mesh_settings;
-  mesh_settings.resolution = (1 << subdiv_level) + 1;
+  mesh_settings.resolution = (1 << level) + 1;
   mesh_settings.use_optimal_display = false;
 
   /* Initialize subdivision settings. */
@@ -79,7 +60,6 @@ static void geo_node_mesh_subdivide_exec(GeoNodeExecParams params)
 
   /* In case of bad topology, skip to input mesh. */
   if (subdiv == nullptr) {
-    params.set_output("Geometry", std::move(geometry_set));
     return;
   }
 
@@ -90,6 +70,29 @@ static void geo_node_mesh_subdivide_exec(GeoNodeExecParams params)
   mesh_component.replace(mesh_out);
 
   BKE_subdiv_free(subdiv);
+}
+
+static void geo_node_mesh_subdivide_exec(GeoNodeExecParams params)
+{
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+
+#ifndef WITH_OPENSUBDIV
+  params.error_message_add(NodeWarningType::Error,
+                           TIP_("Disabled, Blender was compiled without OpenSubdiv"));
+  params.set_output("Geometry", std::move(geometry_set));
+  return;
+#endif
+
+  /* See CCGSUBSURF_LEVEL_MAX for max limit. */
+  const int subdiv_level = clamp_i(params.extract_input<int>("Level"), 0, 11);
+
+  if (subdiv_level == 0) {
+    params.set_output("Geometry", std::move(geometry_set));
+    return;
+  }
+
+  geometry_set.modify_geometry_sets(
+      [&](GeometrySet &geometry_set) { geometry_set_mesh_subdivide(geometry_set, subdiv_level); });
 
   params.set_output("Geometry", std::move(geometry_set));
 }

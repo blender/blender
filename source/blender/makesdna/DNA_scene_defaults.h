@@ -135,8 +135,6 @@
     .border.xmax = 1.0f, \
     .border.ymax = 1.0f, \
  \
-    .preview_start_resolution = 64, \
- \
     .line_thickness_mode = R_LINE_THICKNESS_ABSOLUTE, \
     .unit_line_thickness = 1.0f, \
  \

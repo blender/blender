@@ -1800,7 +1800,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
             case SPACE_SEQ: {
               SpaceSeq *sseq = (SpaceSeq *)sl;
-              sseq->flag |= SEQ_SHOW_GPENCIL;
+              sseq->flag |= SEQ_PREVIEW_SHOW_GPENCIL;
               break;
             }
             case SPACE_IMAGE: {

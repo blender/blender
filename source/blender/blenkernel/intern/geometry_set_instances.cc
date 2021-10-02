@@ -14,6 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BKE_collection.h"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -23,6 +24,7 @@
 #include "BKE_spline.hh"
 
 #include "DNA_collection_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -185,134 +187,6 @@ void geometry_set_gather_instances(const GeometrySet &geometry_set,
   unit_m4(unit_transform.values);
 
   geometry_set_collect_recursive(geometry_set, unit_transform, r_instance_groups);
-}
-
-static bool collection_instance_attribute_foreach(const Collection &collection,
-                                                  const AttributeForeachCallback callback,
-                                                  const int limit,
-                                                  int &count);
-
-static bool instances_attribute_foreach_recursive(const GeometrySet &geometry_set,
-                                                  const AttributeForeachCallback callback,
-                                                  const int limit,
-                                                  int &count);
-
-static bool object_instance_attribute_foreach(const Object &object,
-                                              const AttributeForeachCallback callback,
-                                              const int limit,
-                                              int &count)
-{
-  GeometrySet instance_geometry_set = object_get_geometry_set_for_read(object);
-  if (!instances_attribute_foreach_recursive(instance_geometry_set, callback, limit, count)) {
-    return false;
-  }
-
-  if (object.type == OB_EMPTY) {
-    const Collection *collection_instance = object.instance_collection;
-    if (collection_instance != nullptr) {
-      if (!collection_instance_attribute_foreach(*collection_instance, callback, limit, count)) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-static bool collection_instance_attribute_foreach(const Collection &collection,
-                                                  const AttributeForeachCallback callback,
-                                                  const int limit,
-                                                  int &count)
-{
-  LISTBASE_FOREACH (const CollectionObject *, collection_object, &collection.gobject) {
-    BLI_assert(collection_object->ob != nullptr);
-    const Object &object = *collection_object->ob;
-    if (!object_instance_attribute_foreach(object, callback, limit, count)) {
-      return false;
-    }
-  }
-  LISTBASE_FOREACH (const CollectionChild *, collection_child, &collection.children) {
-    BLI_assert(collection_child->collection != nullptr);
-    const Collection &collection = *collection_child->collection;
-    if (!collection_instance_attribute_foreach(collection, callback, limit, count)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/**
- * \return True if the recursive iteration should continue, false if the limit is reached or the
- * callback has returned false indicating it should stop.
- */
-static bool instances_attribute_foreach_recursive(const GeometrySet &geometry_set,
-                                                  const AttributeForeachCallback callback,
-                                                  const int limit,
-                                                  int &count)
-{
-  for (const GeometryComponent *component : geometry_set.get_components_for_read()) {
-    if (!component->attribute_foreach(callback)) {
-      return false;
-    }
-  }
-
-  /* Now that this geometry set is visited, increase the count and check with the limit. */
-  if (limit > 0 && count++ > limit) {
-    return false;
-  }
-
-  const InstancesComponent *instances_component =
-      geometry_set.get_component_for_read<InstancesComponent>();
-  if (instances_component == nullptr) {
-    return true;
-  }
-
-  for (const InstanceReference &reference : instances_component->references()) {
-    switch (reference.type()) {
-      case InstanceReference::Type::Object: {
-        const Object &object = reference.object();
-        if (!object_instance_attribute_foreach(object, callback, limit, count)) {
-          return false;
-        }
-        break;
-      }
-      case InstanceReference::Type::Collection: {
-        const Collection &collection = reference.collection();
-        if (!collection_instance_attribute_foreach(collection, callback, limit, count)) {
-          return false;
-        }
-        break;
-      }
-      case InstanceReference::Type::GeometrySet: {
-        const GeometrySet &geometry_set = reference.geometry_set();
-        if (!instances_attribute_foreach_recursive(geometry_set, callback, limit, count)) {
-          return false;
-        }
-        break;
-      }
-      case InstanceReference::Type::None: {
-        break;
-      }
-    }
-  }
-
-  return true;
-}
-
-/**
- * Call the callback on all of this geometry set's components, including geometry sets from
- * instances and recursive instances. This is necessary to access available attributes without
- * making all of the set's geometry real.
- *
- * \param limit: The total number of geometry sets to visit before returning early. This is used
- * to avoid looking through too many geometry sets recursively, as an explicit tradeoff in favor
- * of performance at the cost of visiting every unique attribute.
- */
-void geometry_set_instances_attribute_foreach(const GeometrySet &geometry_set,
-                                              const AttributeForeachCallback callback,
-                                              const int limit)
-{
-  int count = 0;
-  instances_attribute_foreach_recursive(geometry_set, callback, limit, count);
 }
 
 void geometry_set_gather_instances_attribute_info(Span<GeometryInstanceGroup> set_groups,
@@ -700,7 +574,7 @@ static void join_instance_groups_curve(Span<GeometryInstanceGroup> set_groups, G
   geometry_set_gather_instances_attribute_info(
       set_groups,
       {GEO_COMPONENT_TYPE_CURVE},
-      {"position", "radius", "tilt", "cyclic", "resolution"},
+      {"position", "radius", "tilt", "handle_left", "handle_right", "cyclic", "resolution"},
       attributes);
   join_attributes(set_groups,
                   {GEO_COMPONENT_TYPE_CURVE},
@@ -745,3 +619,91 @@ GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set)
 }
 
 }  // namespace blender::bke
+
+void InstancesComponent::foreach_referenced_geometry(
+    blender::FunctionRef<void(const GeometrySet &geometry_set)> callback) const
+{
+  using namespace blender::bke;
+  for (const InstanceReference &reference : references_) {
+    switch (reference.type()) {
+      case InstanceReference::Type::Object: {
+        const Object &object = reference.object();
+        const GeometrySet object_geometry_set = object_get_geometry_set_for_read(object);
+        callback(object_geometry_set);
+        break;
+      }
+      case InstanceReference::Type::Collection: {
+        Collection &collection = reference.collection();
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
+          const GeometrySet object_geometry_set = object_get_geometry_set_for_read(*object);
+          callback(object_geometry_set);
+        }
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+        break;
+      }
+      case InstanceReference::Type::GeometrySet: {
+        const GeometrySet &instance_geometry_set = reference.geometry_set();
+        callback(instance_geometry_set);
+        break;
+      }
+      case InstanceReference::Type::None: {
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * If references have a collection or object type, convert them into geometry instances
+ * recursively. After that, the geometry sets can be edited. There may still be instances of other
+ * types of they can't be converted to geometry sets.
+ */
+void InstancesComponent::ensure_geometry_instances()
+{
+  using namespace blender;
+  using namespace blender::bke;
+  VectorSet<InstanceReference> new_references;
+  new_references.reserve(references_.size());
+  for (const InstanceReference &reference : references_) {
+    switch (reference.type()) {
+      case InstanceReference::Type::None:
+      case InstanceReference::Type::GeometrySet: {
+        /* Those references can stay as their were. */
+        new_references.add_new(reference);
+        break;
+      }
+      case InstanceReference::Type::Object: {
+        /* Create a new reference that contains the geometry set of the object. We may want to
+         * treat e.g. lamps and similar object types separately here. */
+        const Object &object = reference.object();
+        GeometrySet object_geometry_set = object_get_geometry_set_for_read(object);
+        if (object_geometry_set.has_instances()) {
+          InstancesComponent &component =
+              object_geometry_set.get_component_for_write<InstancesComponent>();
+          component.ensure_geometry_instances();
+        }
+        new_references.add_new(std::move(object_geometry_set));
+        break;
+      }
+      case InstanceReference::Type::Collection: {
+        /* Create a new reference that contains a geometry set that contains all objects from the
+         * collection as instances. */
+        GeometrySet collection_geometry_set;
+        InstancesComponent &component =
+            collection_geometry_set.get_component_for_write<InstancesComponent>();
+        Collection &collection = reference.collection();
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
+          const int handle = component.add_reference(*object);
+          component.add_instance(handle, object->obmat);
+          float4x4 &transform = component.instance_transforms().last();
+          sub_v3_v3(transform.values[3], collection.instance_offset);
+        }
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+        component.ensure_geometry_instances();
+        new_references.add_new(std::move(collection_geometry_set));
+        break;
+      }
+    }
+  }
+  references_ = std::move(new_references);
+}

@@ -39,7 +39,7 @@ extern AUD_API void AUD_PlaybackManager_free(AUD_PlaybackManager* manager);
 * Plays a sound through the playback manager, adding it into a category.
 * \param manager The PlaybackManager object.
 * \param sound The sound to be played.
-* \param catKey The key of the category into which the sound will be added. If it doesn't exist a new one will be creatd.
+* \param catKey The key of the category into which the sound will be added. If it doesn't exist a new one will be created.
 */
 extern AUD_API void AUD_PlaybackManager_play(AUD_PlaybackManager* manager, AUD_Sound* sound, unsigned int catKey);
 

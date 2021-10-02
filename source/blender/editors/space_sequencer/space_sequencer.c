@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -42,6 +43,7 @@
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_transform.h"
 #include "ED_view3d.h"
 #include "ED_view3d_offscreen.h" /* Only for sequencer view3d drawing callback. */
 
@@ -98,9 +100,21 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   sseq->chanshown = 0;
   sseq->view = SEQ_VIEW_SEQUENCE;
   sseq->mainb = SEQ_DRAW_IMG_IMBUF;
-  sseq->flag = SEQ_SHOW_GPENCIL | SEQ_USE_ALPHA | SEQ_SHOW_MARKERS | SEQ_SHOW_FCURVES |
-               SEQ_ZOOM_TO_FIT | SEQ_SHOW_STRIP_OVERLAY | SEQ_SHOW_STRIP_NAME |
-               SEQ_SHOW_STRIP_SOURCE | SEQ_SHOW_STRIP_DURATION | SEQ_SHOW_GRID;
+  sseq->flag = SEQ_USE_ALPHA | SEQ_SHOW_MARKERS | SEQ_ZOOM_TO_FIT | SEQ_SHOW_OVERLAY;
+  sseq->preview_overlay.flag = SEQ_PREVIEW_SHOW_GPENCIL | SEQ_PREVIEW_SHOW_OUTLINE_SELECTED;
+  sseq->timeline_overlay.flag = SEQ_TIMELINE_SHOW_STRIP_NAME | SEQ_TIMELINE_SHOW_STRIP_SOURCE |
+                                SEQ_TIMELINE_SHOW_STRIP_DURATION | SEQ_TIMELINE_SHOW_GRID |
+                                SEQ_TIMELINE_SHOW_FCURVES | SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG;
+
+  BLI_rctf_init(&sseq->runtime.last_thumbnail_area, 0.0f, 0.0f, 0.0f, 0.0f);
+  sseq->runtime.last_displayed_thumbnails = NULL;
+
+  /* Header. */
+  region = MEM_callocN(sizeof(ARegion), "header for sequencer");
+
+  BLI_addtail(&sseq->regionbase, region);
+  region->regiontype = RGN_TYPE_HEADER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* Tool header. */
   region = MEM_callocN(sizeof(ARegion), "tool header for sequencer");
@@ -109,13 +123,6 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   region->regiontype = RGN_TYPE_TOOL_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
   region->flag = RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
-
-  /* Header. */
-  region = MEM_callocN(sizeof(ARegion), "header for sequencer");
-
-  BLI_addtail(&sseq->regionbase, region);
-  region->regiontype = RGN_TYPE_HEADER;
-  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* Buttons/list view. */
   region = MEM_callocN(sizeof(ARegion), "buttons for sequencer");
@@ -171,7 +178,7 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   region->v2d.cur = region->v2d.tot;
 
   region->v2d.min[0] = 10.0f;
-  region->v2d.min[1] = 0.5f;
+  region->v2d.min[1] = 4.0f;
 
   region->v2d.max[0] = MAXFRAMEF;
   region->v2d.max[1] = MAXSEQ;
@@ -184,6 +191,8 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   region->v2d.keepzoom = 0;
   region->v2d.keeptot = 0;
   region->v2d.align = V2D_ALIGN_NO_NEG_Y;
+
+  sseq->runtime.last_displayed_thumbnails = NULL;
 
   return (SpaceLink *)sseq;
 }
@@ -214,6 +223,12 @@ static void sequencer_free(SpaceLink *sl)
 
   if (scopes->histogram_ibuf) {
     IMB_freeImBuf(scopes->histogram_ibuf);
+  }
+
+  if (sseq->runtime.last_displayed_thumbnails) {
+    BLI_ghash_free(
+        sseq->runtime.last_displayed_thumbnails, NULL, last_displayed_thumbnails_list_free);
+    sseq->runtime.last_displayed_thumbnails = NULL;
   }
 }
 
@@ -329,6 +344,7 @@ static SpaceLink *sequencer_duplicate(SpaceLink *sl)
   /* XXX  sseq->gpd = gpencil_data_duplicate(sseq->gpd, false); */
 
   memset(&sseqn->scopes, 0, sizeof(sseqn->scopes));
+  memset(&sseqn->runtime, 0, sizeof(sseqn->runtime));
 
   return (SpaceLink *)sseqn;
 }
@@ -480,10 +496,71 @@ static void SEQUENCER_GGT_navigate(wmGizmoGroupType *gzgt)
   VIEW2D_GGT_navigate_impl(gzgt, "SEQUENCER_GGT_navigate");
 }
 
+static void SEQUENCER_GGT_gizmo2d(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "Sequencer Transform Gizmo";
+  gzgt->idname = "SEQUENCER_GGT_gizmo2d";
+
+  gzgt->flag |= (WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                 WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK);
+
+  gzgt->gzmap_params.spaceid = SPACE_SEQ;
+  gzgt->gzmap_params.regionid = RGN_TYPE_PREVIEW;
+
+  ED_widgetgroup_gizmo2d_xform_callbacks_set(gzgt);
+}
+
+static void SEQUENCER_GGT_gizmo2d_translate(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "Sequencer Translate Gizmo";
+  gzgt->idname = "SEQUENCER_GGT_gizmo2d_translate";
+
+  gzgt->flag |= (WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                 WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK);
+
+  gzgt->gzmap_params.spaceid = SPACE_SEQ;
+  gzgt->gzmap_params.regionid = RGN_TYPE_PREVIEW;
+
+  ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set(gzgt);
+}
+
+static void SEQUENCER_GGT_gizmo2d_resize(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "Sequencer Transform Gizmo Resize";
+  gzgt->idname = "SEQUENCER_GGT_gizmo2d_resize";
+
+  gzgt->flag |= (WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                 WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK);
+
+  gzgt->gzmap_params.spaceid = SPACE_SEQ;
+  gzgt->gzmap_params.regionid = RGN_TYPE_PREVIEW;
+
+  ED_widgetgroup_gizmo2d_resize_callbacks_set(gzgt);
+}
+
+static void SEQUENCER_GGT_gizmo2d_rotate(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "Sequencer Transform Gizmo Resize";
+  gzgt->idname = "SEQUENCER_GGT_gizmo2d_rotate";
+
+  gzgt->flag |= (WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+                 WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK);
+
+  gzgt->gzmap_params.spaceid = SPACE_SEQ;
+  gzgt->gzmap_params.regionid = RGN_TYPE_PREVIEW;
+
+  ED_widgetgroup_gizmo2d_rotate_callbacks_set(gzgt);
+}
+
 static void sequencer_gizmos(void)
 {
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(
       &(const struct wmGizmoMapType_Params){SPACE_SEQ, RGN_TYPE_PREVIEW});
+
+  WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d);
+  WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_translate);
+  WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_resize);
+  WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_rotate);
 
   WM_gizmogrouptype_append_and_link(gzmap_type, SEQUENCER_GGT_navigate);
 }
@@ -699,7 +776,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   const bool draw_overlay = (scene->ed && (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) &&
-                             (sseq->flag & SEQ_SHOW_STRIP_OVERLAY));
+                             (sseq->flag & SEQ_SHOW_OVERLAY));
 
   /* XXX temp fix for wrong setting in sseq->mainb */
   if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
@@ -740,6 +817,8 @@ static void sequencer_preview_region_listener(const wmRegionListenerParams *para
 {
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
+
+  WM_gizmomap_tag_refresh(region->gizmo_map);
 
   /* Context changes. */
   switch (wmn->category) {

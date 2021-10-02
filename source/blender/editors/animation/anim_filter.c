@@ -3087,7 +3087,10 @@ static size_t animdata_filter_dopesheet_movieclips(bAnimContext *ac,
 }
 
 /* Helper for animdata_filter_dopesheet() - For checking if an object should be included or not */
-static bool animdata_filter_base_is_ok(bDopeSheet *ads, Base *base, int filter_mode)
+static bool animdata_filter_base_is_ok(bDopeSheet *ads,
+                                       Base *base,
+                                       const eObjectMode object_mode,
+                                       int filter_mode)
 {
   Object *ob = base->object;
 
@@ -3144,10 +3147,21 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads, Base *base, int filter_m
   }
 
   /* check selection and object type filters */
-  if ((ads->filterflag & ADS_FILTER_ONLYSEL) &&
-      !((base->flag & BASE_SELECTED) /*|| (base == sce->basact) */)) {
-    /* only selected should be shown */
-    return false;
+  if (ads->filterflag & ADS_FILTER_ONLYSEL) {
+    if (object_mode & OB_MODE_POSE) {
+      /* When in pose-mode handle all pose-mode objects.
+       * This avoids problems with pose-mode where objects may be unselected,
+       * where a selected bone of an unselected object would be hidden. see: T81922. */
+      if (!(base->object->mode & object_mode)) {
+        return false;
+      }
+    }
+    else {
+      /* only selected should be shown (ignore active) */
+      if (!(base->flag & BASE_SELECTED)) {
+        return false;
+      }
+    }
   }
 
   /* check if object belongs to the filtering group if option to filter
@@ -3185,7 +3199,7 @@ static Base **animdata_filter_ds_sorted_bases(bDopeSheet *ads,
 
   Base **sorted_bases = MEM_mallocN(sizeof(Base *) * tot_bases, "Dopesheet Usable Sorted Bases");
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
-    if (animdata_filter_base_is_ok(ads, base, filter_mode)) {
+    if (animdata_filter_base_is_ok(ads, base, OB_MODE_OBJECT, filter_mode)) {
       sorted_bases[num_bases++] = base;
     }
   }
@@ -3278,8 +3292,10 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac,
     /* Filter and add contents of each base (i.e. object) without them sorting first
      * NOTE: This saves performance in cases where order doesn't matter
      */
+    Object *obact = OBACT(view_layer);
+    const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
     LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
-      if (animdata_filter_base_is_ok(ads, base, filter_mode)) {
+      if (animdata_filter_base_is_ok(ads, base, object_mode, filter_mode)) {
         /* since we're still here, this object should be usable */
         items += animdata_filter_dopesheet_ob(ac, anim_data, ads, base, filter_mode);
       }

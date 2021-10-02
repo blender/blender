@@ -494,7 +494,7 @@ void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_r
     if (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS) {
       // Create a blank render pass output.
       RE_create_render_pass(
-          re->result, RE_PASSNAME_FREESTYLE, 4, "RGBA", view_layer->name, re->viewname);
+          re->result, RE_PASSNAME_FREESTYLE, 4, "RGBA", view_layer->name, re->viewname, true);
     }
     return;
   }
@@ -530,7 +530,7 @@ void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_r
 
   if (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS) {
     RE_create_render_pass(
-        re->result, RE_PASSNAME_FREESTYLE, 4, "RGBA", view_layer->name, re->viewname);
+        re->result, RE_PASSNAME_FREESTYLE, 4, "RGBA", view_layer->name, re->viewname, true);
     dest = RE_RenderLayerGetPass(rl, RE_PASSNAME_FREESTYLE, re->viewname);
   }
   else {

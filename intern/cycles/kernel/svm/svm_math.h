@@ -16,13 +16,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void svm_node_math(KernelGlobals *kg,
-                              ShaderData *sd,
-                              float *stack,
-                              uint type,
-                              uint inputs_stack_offsets,
-                              uint result_stack_offset,
-                              int *offset)
+ccl_device_noinline void svm_node_math(const KernelGlobals *kg,
+                                       ShaderData *sd,
+                                       float *stack,
+                                       uint type,
+                                       uint inputs_stack_offsets,
+                                       uint result_stack_offset)
 {
   uint a_stack_offset, b_stack_offset, c_stack_offset;
   svm_unpack_node_uchar3(inputs_stack_offsets, &a_stack_offset, &b_stack_offset, &c_stack_offset);
@@ -35,13 +34,13 @@ ccl_device void svm_node_math(KernelGlobals *kg,
   stack_store_float(stack, result_stack_offset, result);
 }
 
-ccl_device void svm_node_vector_math(KernelGlobals *kg,
-                                     ShaderData *sd,
-                                     float *stack,
-                                     uint type,
-                                     uint inputs_stack_offsets,
-                                     uint outputs_stack_offsets,
-                                     int *offset)
+ccl_device_noinline int svm_node_vector_math(const KernelGlobals *kg,
+                                             ShaderData *sd,
+                                             float *stack,
+                                             uint type,
+                                             uint inputs_stack_offsets,
+                                             uint outputs_stack_offsets,
+                                             int offset)
 {
   uint value_stack_offset, vector_stack_offset;
   uint a_stack_offset, b_stack_offset, param1_stack_offset;
@@ -60,7 +59,7 @@ ccl_device void svm_node_vector_math(KernelGlobals *kg,
   /* 3 Vector Operators */
   if (type == NODE_VECTOR_MATH_WRAP || type == NODE_VECTOR_MATH_FACEFORWARD ||
       type == NODE_VECTOR_MATH_MULTIPLY_ADD) {
-    uint4 extra_node = read_node(kg, offset);
+    uint4 extra_node = read_node(kg, &offset);
     c = stack_load_float3(stack, extra_node.x);
   }
 
@@ -70,6 +69,7 @@ ccl_device void svm_node_vector_math(KernelGlobals *kg,
     stack_store_float(stack, value_stack_offset, value);
   if (stack_valid(vector_stack_offset))
     stack_store_float3(stack, vector_stack_offset, vector);
+  return offset;
 }
 
 CCL_NAMESPACE_END

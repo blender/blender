@@ -74,12 +74,18 @@ typedef struct StripTransform {
   float scale_x;
   float scale_y;
   float rotation;
+  /** 0-1 range, use SEQ_image_transform_origin_offset_pixelspace_get to convert to pixel space. */
+  float origin[2];
 } StripTransform;
 
 typedef struct StripColorBalance {
+  int method;
   float lift[3];
   float gamma[3];
   float gain[3];
+  float slope[3];
+  float offset[3];
+  float power[3];
   int flag;
   char _pad[4];
   /* float exposure; */
@@ -230,24 +236,27 @@ typedef struct Sequence {
   int blend_mode;
   float blend_opacity;
 
+  /* Tag color showed if `SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG` is set. */
+  int8_t color_tag;
+
+  char alpha_mode;
+  char _pad4[2];
+
+  int cache_flag;
+
   /* is sfra needed anymore? - it looks like its only used in one place */
   /** Starting frame according to the timeline of the scene. */
   int sfra;
 
-  char alpha_mode;
-  char _pad[2];
-
   /* Multiview */
   char views_format;
+  char _pad[3];
   struct Stereo3dFormat *stereo3d_format;
 
   struct IDProperty *prop;
 
   /* modifiers */
   ListBase modifiers;
-
-  int cache_flag;
-  int _pad2[3];
 
   SequenceRuntime runtime;
 } Sequence;
@@ -429,6 +438,11 @@ typedef struct ColorBalanceModifierData {
   float color_multiply;
 } ColorBalanceModifierData;
 
+enum {
+  SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN = 0,
+  SEQ_COLOR_BALANCE_METHOD_SLOPEOFFSETPOWER = 1,
+};
+
 typedef struct CurvesModifierData {
   SequenceModifierData modifier;
 
@@ -484,7 +498,7 @@ typedef struct SequencerScopes {
   struct ImBuf *histogram_ibuf;
 } SequencerScopes;
 
-#define MAXSEQ 32
+#define MAXSEQ 128
 
 #define SELECT 1
 
@@ -516,7 +530,7 @@ enum {
   SEQ_OVERLAP = (1 << 3),
   SEQ_FILTERY = (1 << 4),
   SEQ_MUTE = (1 << 5),
-  SEQ_FLAG_UNUSED_6 = (1 << 6), /* cleared */
+  SEQ_FLAG_SKIP_THUMBNAILS = (1 << 6),
   SEQ_REVERSE_FRAMES = (1 << 7),
   SEQ_IPO_FRAME_LOCKED = (1 << 8),
   SEQ_EFFECT_NOT_LOADED = (1 << 9),
@@ -566,6 +580,9 @@ enum {
 #define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
 #define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2
 #define SEQ_COLOR_BALANCE_INVERSE_LIFT 4
+#define SEQ_COLOR_BALANCE_INVERSE_SLOPE 8
+#define SEQ_COLOR_BALANCE_INVERSE_OFFSET 16
+#define SEQ_COLOR_BALANCE_INVERSE_POWER 32
 
 /* !!! has to be same as IMB_imbuf.h IMB_PROXY_... and IMB_TC_... */
 
@@ -722,7 +739,24 @@ enum {
 
   SEQ_CACHE_PREFETCH_ENABLE = (1 << 10),
   SEQ_CACHE_DISK_CACHE_ENABLE = (1 << 11),
+  SEQ_CACHE_STORE_THUMBNAIL = (1 << 12),
 };
+
+/* Sequence->color_tag. */
+typedef enum SequenceColorTag {
+  SEQUENCE_COLOR_NONE = -1,
+  SEQUENCE_COLOR_01,
+  SEQUENCE_COLOR_02,
+  SEQUENCE_COLOR_03,
+  SEQUENCE_COLOR_04,
+  SEQUENCE_COLOR_05,
+  SEQUENCE_COLOR_06,
+  SEQUENCE_COLOR_07,
+  SEQUENCE_COLOR_08,
+  SEQUENCE_COLOR_09,
+
+  SEQUENCE_COLOR_TOT,
+} SequenceColorTag;
 
 #ifdef __cplusplus
 }

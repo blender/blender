@@ -1135,7 +1135,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
              * to the struct to resolve the problem. */
             if ((size_64 % max_align_64 == 0) && (size_32 % max_align_32 == 4)) {
               fprintf(stderr,
-                      "Sizeerror in 32 bit struct: %s (add paddding pointer)\n",
+                      "Sizeerror in 32 bit struct: %s (add padding pointer)\n",
                       types[structtype]);
             }
             else {

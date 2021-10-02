@@ -42,6 +42,7 @@ class MovieClipAttributeOperation : public ConstantOperation {
   bool m_invert;
   MovieClipAttribute m_attribute;
   bool is_value_calculated_;
+  NodeOperationInput *stabilization_resolution_socket_;
 
  public:
   /**
@@ -55,8 +56,7 @@ class MovieClipAttributeOperation : public ConstantOperation {
    * The inner loop of this operation.
    */
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
-  void determineResolution(unsigned int resolution[2],
-                           unsigned int preferredResolution[2]) override;
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
   const float *get_constant_elem() override;
 
@@ -75,6 +75,14 @@ class MovieClipAttributeOperation : public ConstantOperation {
   void setInvert(bool invert)
   {
     this->m_invert = invert;
+  }
+
+  /**
+   * Set an operation socket which input will be used to get the resolution for stabilization.
+   */
+  void set_socket_input_resolution_for_stabilization(NodeOperationInput *input_socket)
+  {
+    stabilization_resolution_socket_ = input_socket;
   }
 
  private:

@@ -147,6 +147,8 @@ static void view_pan_init(bContext *C, wmOperator *op)
   const float winy = (float)(BLI_rcti_size_y(&vpd->region->winrct) + 1);
   vpd->facx = (BLI_rctf_size_x(&vpd->v2d->cur)) / winx;
   vpd->facy = (BLI_rctf_size_y(&vpd->v2d->cur)) / winy;
+
+  vpd->v2d->flag |= V2D_IS_NAVIGATING;
 }
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
@@ -190,6 +192,8 @@ static void view_pan_apply(bContext *C, wmOperator *op)
 /* Cleanup temp custom-data. */
 static void view_pan_exit(wmOperator *op)
 {
+  v2dViewPanData *vpd = op->customdata;
+  vpd->v2d->flag &= ~V2D_IS_NAVIGATING;
   MEM_SAFE_FREE(op->customdata);
 }
 
@@ -358,6 +362,7 @@ static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event
   View2DEdgePanData *vpd = op->customdata;
 
   if (event->val == KM_RELEASE || event->type == EVT_ESCKEY) {
+    vpd->v2d->flag &= ~V2D_IS_NAVIGATING;
     MEM_SAFE_FREE(op->customdata);
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
   }
@@ -371,6 +376,8 @@ static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event
 
 static void view_edge_pan_cancel(bContext *UNUSED(C), wmOperator *op)
 {
+  v2dViewPanData *vpd = op->customdata;
+  vpd->v2d->flag &= ~V2D_IS_NAVIGATING;
   MEM_SAFE_FREE(op->customdata);
 }
 
@@ -680,6 +687,8 @@ static void view_zoomdrag_init(bContext *C, wmOperator *op)
   vzd->v2d = &vzd->region->v2d;
   /* False by default. Interactive callbacks (ie invoke()) can set it to true. */
   vzd->zoom_to_mouse_pos = false;
+
+  vzd->v2d->flag |= V2D_IS_NAVIGATING;
 }
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
@@ -809,7 +818,8 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 static void view_zoomstep_exit(wmOperator *op)
 {
   UI_view2d_zoom_cache_reset();
-
+  v2dViewZoomData *vzd = op->customdata;
+  vzd->v2d->flag &= ~V2D_IS_NAVIGATING;
   MEM_SAFE_FREE(op->customdata);
 }
 
@@ -1041,6 +1051,7 @@ static void view_zoomdrag_exit(bContext *C, wmOperator *op)
 
   if (op->customdata) {
     v2dViewZoomData *vzd = op->customdata;
+    vzd->v2d->flag &= ~V2D_IS_NAVIGATING;
 
     if (vzd->timer) {
       WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), vzd->timer);
@@ -1911,6 +1922,8 @@ static void scroller_activate_init(bContext *C,
     vsm->scrollbar_orig = ((scrollers.vert_max + scrollers.vert_min) / 2) + region->winrct.ymin;
   }
 
+  vsm->v2d->flag |= V2D_IS_NAVIGATING;
+
   ED_region_tag_redraw_no_rebuild(region);
 }
 
@@ -1921,6 +1934,7 @@ static void scroller_activate_exit(bContext *C, wmOperator *op)
     v2dScrollerMove *vsm = op->customdata;
 
     vsm->v2d->scroll_ui &= ~(V2D_SCROLL_H_ACTIVE | V2D_SCROLL_V_ACTIVE);
+    vsm->v2d->flag &= ~V2D_IS_NAVIGATING;
 
     MEM_freeN(op->customdata);
     op->customdata = NULL;

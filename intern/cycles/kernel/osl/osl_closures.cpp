@@ -40,10 +40,10 @@
 #include "util/util_param.h"
 
 // clang-format off
+#include "kernel/device/cpu/compat.h"
+#include "kernel/device/cpu/globals.h"
+
 #include "kernel/kernel_types.h"
-#include "kernel/kernel_compat_cpu.h"
-#include "kernel/split/kernel_split_data_types.h"
-#include "kernel/kernel_globals.h"
 #include "kernel/kernel_montecarlo.h"
 #include "kernel/kernel_random.h"
 
@@ -500,7 +500,7 @@ bool CBSDFClosure::skip(const ShaderData *sd, int path_flag, int scattering)
 {
   /* caustic options */
   if ((scattering & LABEL_GLOSSY) && (path_flag & PATH_RAY_DIFFUSE)) {
-    KernelGlobals *kg = sd->osl_globals;
+    const KernelGlobals *kg = sd->osl_globals;
 
     if ((!kernel_data.integrator.caustics_reflective && (scattering & LABEL_REFLECT)) ||
         (!kernel_data.integrator.caustics_refractive && (scattering & LABEL_TRANSMIT))) {

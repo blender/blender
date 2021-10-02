@@ -40,11 +40,9 @@ static void geo_node_material_replace_exec(GeoNodeExecParams params)
   Material *new_material = params.extract_input<Material *>("New");
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  geometry_set = geometry_set_realize_instances(geometry_set);
 
-  if (geometry_set.has<MeshComponent>()) {
-    MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-    Mesh *mesh = mesh_component.get_for_write();
+  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    Mesh *mesh = geometry_set.get_mesh_for_write();
     if (mesh != nullptr) {
       for (const int i : IndexRange(mesh->totcol)) {
         if (mesh->mat[i] == old_material) {
@@ -52,7 +50,7 @@ static void geo_node_material_replace_exec(GeoNodeExecParams params)
         }
       }
     }
-  }
+  });
 
   params.set_output("Geometry", std::move(geometry_set));
 }

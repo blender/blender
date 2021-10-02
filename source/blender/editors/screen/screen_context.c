@@ -1073,9 +1073,14 @@ static eContextResult screen_ctx_ui_list(const bContext *C, bContextDataResult *
 {
   wmWindow *win = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
-  uiList *list = UI_list_find_mouse_over(region, win->eventstate);
-  CTX_data_pointer_set(result, NULL, &RNA_UIList, list);
-  return CTX_RESULT_OK;
+  if (region) {
+    uiList *list = UI_list_find_mouse_over(region, win->eventstate);
+    if (list) {
+      CTX_data_pointer_set(result, NULL, &RNA_UIList, list);
+      return CTX_RESULT_OK;
+    }
+  }
+  return CTX_RESULT_NO_DATA;
 }
 
 /* Registry of context callback functions. */

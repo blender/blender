@@ -24,7 +24,7 @@ PixelateOperation::PixelateOperation(DataType datatype)
 {
   this->addInputSocket(datatype);
   this->addOutputSocket(datatype);
-  this->setResolutionInputSocketIndex(0);
+  this->set_canvas_input_index(0);
   this->m_inputOperation = nullptr;
 }
 

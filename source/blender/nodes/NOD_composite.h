@@ -145,7 +145,7 @@ void node_cmp_rlayers_register_pass(struct bNodeTree *ntree,
                                     struct Scene *scene,
                                     struct ViewLayer *view_layer,
                                     const char *name,
-                                    int type);
+                                    eNodeSocketDatatype type);
 const char *node_cmp_rlayers_sock_to_pass(int sock_index);
 
 void register_node_type_cmp_custom_group(bNodeType *ntype);

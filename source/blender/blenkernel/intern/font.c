@@ -34,6 +34,7 @@
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_base_safe.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -160,7 +161,7 @@ IDTypeInfo IDType_ID_VF = {
     .name = "Font",
     .name_plural = "fonts",
     .translation_context = BLT_I18NCONTEXT_ID_VFONT,
-    .flags = IDTYPE_FLAGS_NO_ANIMDATA,
+    .flags = IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     .init_data = vfont_init_data,
     .copy_data = vfont_copy_data,
@@ -490,15 +491,15 @@ static void build_underline(Curve *cu,
   mul_v2_fl(bp[3].vec, font_size);
 }
 
-static void buildchar(Curve *cu,
-                      ListBase *nubase,
-                      unsigned int character,
-                      CharInfo *info,
-                      float ofsx,
-                      float ofsy,
-                      float rot,
-                      int charidx,
-                      const float fsize)
+void BKE_vfont_build_char(Curve *cu,
+                          ListBase *nubase,
+                          unsigned int character,
+                          CharInfo *info,
+                          float ofsx,
+                          float ofsy,
+                          float rot,
+                          int charidx,
+                          const float fsize)
 {
   VFontData *vfd = vfont_get_data(which_vfont(cu, info));
   if (!vfd) {
@@ -794,8 +795,8 @@ static bool vfont_to_curve(Object *ob,
   bool ok = false;
   const float font_size = cu->fsize * iter_data->scale_to_fit;
   const bool word_wrap = iter_data->word_wrap;
-  const float xof_scale = cu->xof / font_size;
-  const float yof_scale = cu->yof / font_size;
+  const float xof_scale = safe_divide(cu->xof, font_size);
+  const float yof_scale = safe_divide(cu->yof, font_size);
   int last_line = -1;
   /* Length of the text disregarding \n breaks. */
   float current_line_length = 0.0f;
@@ -889,7 +890,7 @@ static bool vfont_to_curve(Object *ob,
   linedist = cu->linedist;
 
   curbox = 0;
-  textbox_scale(&tb_scale, &cu->tb[curbox], 1.0f / font_size);
+  textbox_scale(&tb_scale, &cu->tb[curbox], safe_divide(1.0f, font_size));
   use_textbox = (tb_scale.w != 0.0f);
 
   xof = MARGIN_X_MIN;
@@ -1525,7 +1526,7 @@ static bool vfont_to_curve(Object *ob,
       }
       /* We do not want to see any character for \n or \r */
       if (cha != '\n') {
-        buildchar(cu, r_nubase, cha, info, ct->xof, ct->yof, ct->rot, i, font_size);
+        BKE_vfont_build_char(cu, r_nubase, cha, info, ct->xof, ct->yof, ct->rot, i, font_size);
       }
 
       if ((info->flag & CU_CHINFO_UNDERLINE) && (cha != '\n')) {

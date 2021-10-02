@@ -382,13 +382,30 @@ void ScreenLensDistortionOperation::updateVariables(float distortion, float disp
   mul_v3_v3fl(m_k4, m_k, 4.0f);
 }
 
+void ScreenLensDistortionOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
+{
+  switch (execution_model_) {
+    case eExecutionModel::FullFrame: {
+      set_determined_canvas_modifier([=](rcti &canvas) {
+        /* Ensure screen space. */
+        BLI_rcti_translate(&canvas, -canvas.xmin, -canvas.ymin);
+      });
+      break;
+    }
+    default:
+      break;
+  }
+
+  NodeOperation::determine_canvas(preferred_area, r_area);
+}
+
 void ScreenLensDistortionOperation::get_area_of_interest(const int input_idx,
                                                          const rcti &UNUSED(output_area),
                                                          rcti &r_input_area)
 {
   if (input_idx != 0) {
     /* Dispersion and distortion inputs are used as constants only. */
-    r_input_area = COM_SINGLE_ELEM_AREA;
+    r_input_area = COM_CONSTANT_INPUT_AREA_OF_INTEREST;
   }
 
   /* XXX the original method of estimating the area-of-interest does not work
@@ -398,10 +415,7 @@ void ScreenLensDistortionOperation::get_area_of_interest(const int input_idx,
    */
 #if 1
   NodeOperation *image = getInputOperation(0);
-  r_input_area.xmax = image->getWidth();
-  r_input_area.xmin = 0;
-  r_input_area.ymax = image->getHeight();
-  r_input_area.ymin = 0;
+  r_input_area = image->get_canvas();
 
 #else /* Original method in tiled implementation. */
   rcti newInput;

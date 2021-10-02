@@ -37,6 +37,7 @@ class Scene;
 
 struct ShaderClosure;
 struct ShaderData;
+struct IntegratorStateCPU;
 struct differential3;
 struct KernelGlobals;
 
@@ -49,19 +50,28 @@ class OSLShader {
   static void register_closures(OSLShadingSystem *ss);
 
   /* per thread data */
-  static void thread_init(KernelGlobals *kg,
-                          KernelGlobals *kernel_globals,
-                          OSLGlobals *osl_globals);
+  static void thread_init(KernelGlobals *kg, OSLGlobals *osl_globals);
   static void thread_free(KernelGlobals *kg);
 
   /* eval */
-  static void eval_surface(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
-  static void eval_background(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
-  static void eval_volume(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
-  static void eval_displacement(KernelGlobals *kg, ShaderData *sd, PathState *state);
+  static void eval_surface(const KernelGlobals *kg,
+                           const IntegratorStateCPU *state,
+                           ShaderData *sd,
+                           int path_flag);
+  static void eval_background(const KernelGlobals *kg,
+                              const IntegratorStateCPU *state,
+                              ShaderData *sd,
+                              int path_flag);
+  static void eval_volume(const KernelGlobals *kg,
+                          const IntegratorStateCPU *state,
+                          ShaderData *sd,
+                          int path_flag);
+  static void eval_displacement(const KernelGlobals *kg,
+                                const IntegratorStateCPU *state,
+                                ShaderData *sd);
 
   /* attributes */
-  static int find_attribute(KernelGlobals *kg,
+  static int find_attribute(const KernelGlobals *kg,
                             const ShaderData *sd,
                             uint id,
                             AttributeDescriptor *desc);

@@ -58,7 +58,7 @@ void VIEW3D_GGT_mesh_preselect_elem(wmGizmoGroupType *gzgt)
   gzgt->name = "Mesh Preselect Element";
   gzgt->idname = "VIEW3D_GGT_mesh_preselect_elem";
 
-  gzgt->flag = WM_GIZMOGROUPTYPE_3D;
+  gzgt->flag = WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP | WM_GIZMOGROUPTYPE_3D;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
@@ -95,7 +95,7 @@ void VIEW3D_GGT_mesh_preselect_edgering(wmGizmoGroupType *gzgt)
   gzgt->name = "Mesh Preselect Edge Ring";
   gzgt->idname = "VIEW3D_GGT_mesh_preselect_edgering";
 
-  gzgt->flag = WM_GIZMOGROUPTYPE_3D;
+  gzgt->flag = WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP | WM_GIZMOGROUPTYPE_3D;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;

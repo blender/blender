@@ -32,7 +32,7 @@
   BLI_assert((buf)->get_rect().ymax >= (y) + BLI_rcti_size_y(&(area)))
 
 #define ASSERT_VALID_ELEM_SIZE(buf, channel_offset, elem_size) \
-  BLI_assert((buf)->get_num_channels() <= (channel_offset) + (elem_size))
+  BLI_assert((buf)->get_num_channels() >= (channel_offset) + (elem_size))
 
 namespace blender::compositor {
 
@@ -122,6 +122,8 @@ void MemoryBuffer::set_strides()
     this->elem_stride = m_num_channels;
     this->row_stride = getWidth() * m_num_channels;
   }
+  to_positive_x_stride_ = m_rect.xmin < 0 ? -m_rect.xmin + 1 : (m_rect.xmin == 0 ? 1 : 0);
+  to_positive_y_stride_ = m_rect.ymin < 0 ? -m_rect.ymin + 1 : (m_rect.ymin == 0 ? 1 : 0);
 }
 
 void MemoryBuffer::clear()

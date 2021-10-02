@@ -674,7 +674,10 @@ ID *BKE_id_copy(Main *bmain, const ID *id)
  * Invokes the appropriate copy method for the block and returns the result in
  * newid, unless test. Returns true if the block can be copied.
  */
-ID *BKE_id_copy_for_duplicate(Main *bmain, ID *id, const uint duplicate_flags)
+ID *BKE_id_copy_for_duplicate(Main *bmain,
+                              ID *id,
+                              const uint duplicate_flags,
+                              const int copy_flags)
 {
   if (id == NULL) {
     return id;
@@ -685,7 +688,7 @@ ID *BKE_id_copy_for_duplicate(Main *bmain, ID *id, const uint duplicate_flags)
       return id;
     }
 
-    ID *id_new = BKE_id_copy(bmain, id);
+    ID *id_new = BKE_id_copy_ex(bmain, id, NULL, copy_flags);
     /* Copying add one user by default, need to get rid of that one. */
     id_us_min(id_new);
     ID_NEW_SET(id, id_new);
@@ -1300,6 +1303,9 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
   if (id->properties) {
     new_id->properties = IDP_CopyProperty_ex(id->properties, copy_data_flag);
   }
+
+  /* This is never duplicated, only one existing ID should have a given weak ref to library/ID. */
+  new_id->library_weak_reference = NULL;
 
   if ((orig_flag & LIB_ID_COPY_NO_LIB_OVERRIDE) == 0) {
     if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
@@ -2438,6 +2444,10 @@ void BKE_id_blend_write(BlendWriter *writer, ID *id)
 {
   if (id->asset_data) {
     BKE_asset_metadata_write(writer, id->asset_data);
+  }
+
+  if (id->library_weak_reference != NULL) {
+    BLO_write_struct(writer, LibraryWeakReference, id->library_weak_reference);
   }
 
   /* ID_WM's id->properties are considered runtime only, and never written in .blend file. */

@@ -21,9 +21,10 @@
 import bpy
 
 from mathutils import Vector
+from bpy.types import bpy_prop_array
 from idprop.types import IDPropertyArray, IDPropertyGroup
 
-ARRAY_TYPES = (list, tuple, IDPropertyArray, Vector)
+ARRAY_TYPES = (list, tuple, IDPropertyArray, Vector, bpy_prop_array)
 
 # Maximum length of an array property for which a multi-line
 # edit field will be displayed in the Custom Properties panel.
@@ -136,7 +137,7 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
 
     def assign_props(prop, val, key):
         prop.data_path = context_member
-        prop.property = key
+        prop.property_name = key
 
         try:
             prop.value = str(val)

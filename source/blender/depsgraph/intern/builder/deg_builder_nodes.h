@@ -55,6 +55,7 @@ struct Scene;
 struct Simulation;
 struct Speaker;
 struct Tex;
+struct VFont;
 struct World;
 struct bAction;
 struct bArmature;
@@ -235,6 +236,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_scene_sequencer(Scene *scene);
   virtual void build_scene_audio(Scene *scene);
   virtual void build_scene_speakers(Scene *scene, ViewLayer *view_layer);
+  virtual void build_vfont(VFont *vfont);
 
   /* Per-ID information about what was already in the dependency graph.
    * Allows to re-use certain values, to speed up following evaluation. */

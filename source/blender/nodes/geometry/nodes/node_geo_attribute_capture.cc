@@ -26,18 +26,18 @@ namespace blender::nodes {
 static void geo_node_attribute_capture_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Vector>("Value");
-  b.add_input<decl::Float>("Value", "Value_001");
-  b.add_input<decl::Color>("Value", "Value_002");
-  b.add_input<decl::Bool>("Value", "Value_003");
-  b.add_input<decl::Int>("Value", "Value_004");
+  b.add_input<decl::Vector>("Value").supports_field();
+  b.add_input<decl::Float>("Value", "Value_001").supports_field();
+  b.add_input<decl::Color>("Value", "Value_002").supports_field();
+  b.add_input<decl::Bool>("Value", "Value_003").supports_field();
+  b.add_input<decl::Int>("Value", "Value_004").supports_field();
 
   b.add_output<decl::Geometry>("Geometry");
-  b.add_output<decl::Vector>("Attribute");
-  b.add_output<decl::Float>("Attribute", "Attribute_001");
-  b.add_output<decl::Color>("Attribute", "Attribute_002");
-  b.add_output<decl::Bool>("Attribute", "Attribute_003");
-  b.add_output<decl::Int>("Attribute", "Attribute_004");
+  b.add_output<decl::Vector>("Attribute").field_source();
+  b.add_output<decl::Float>("Attribute", "Attribute_001").field_source();
+  b.add_output<decl::Color>("Attribute", "Attribute_002").field_source();
+  b.add_output<decl::Bool>("Attribute", "Attribute_003").field_source();
+  b.add_output<decl::Int>("Attribute", "Attribute_004").field_source();
 }
 
 static void geo_node_attribute_capture_layout(uiLayout *layout,
@@ -66,8 +66,8 @@ static void geo_node_attribute_capture_update(bNodeTree *UNUSED(ntree), bNode *n
                                                      node->storage;
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
 
-  bNodeSocket *socket_value_attribute_name = (bNodeSocket *)node->inputs.first;
-  bNodeSocket *socket_value_vector = socket_value_attribute_name->next;
+  bNodeSocket *socket_value_geometry = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *socket_value_vector = socket_value_geometry->next;
   bNodeSocket *socket_value_float = socket_value_vector->next;
   bNodeSocket *socket_value_color4f = socket_value_float->next;
   bNodeSocket *socket_value_boolean = socket_value_color4f->next;
@@ -79,8 +79,8 @@ static void geo_node_attribute_capture_update(bNodeTree *UNUSED(ntree), bNode *n
   nodeSetSocketAvailability(socket_value_boolean, data_type == CD_PROP_BOOL);
   nodeSetSocketAvailability(socket_value_int32, data_type == CD_PROP_INT32);
 
-  bNodeSocket *out_socket_value_attribute_name = (bNodeSocket *)node->outputs.first;
-  bNodeSocket *out_socket_value_vector = out_socket_value_attribute_name->next;
+  bNodeSocket *out_socket_value_geometry = (bNodeSocket *)node->outputs.first;
+  bNodeSocket *out_socket_value_vector = out_socket_value_geometry->next;
   bNodeSocket *out_socket_value_float = out_socket_value_vector->next;
   bNodeSocket *out_socket_value_color4f = out_socket_value_float->next;
   bNodeSocket *out_socket_value_boolean = out_socket_value_color4f->next;
@@ -116,8 +116,6 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
 static void geo_node_attribute_capture_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-
-  geometry_set = bke::geometry_set_realize_instances(geometry_set);
 
   const bNode &node = params.node();
   const NodeGeometryAttributeCapture &storage = *(const NodeGeometryAttributeCapture *)

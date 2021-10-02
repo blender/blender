@@ -214,6 +214,11 @@ void BezierSpline::ensure_auto_handles() const
     return;
   }
 
+  if (this->size() == 1) {
+    auto_handles_dirty_ = false;
+    return;
+  }
+
   for (const int i : IndexRange(this->size())) {
     if (ELEM(HandleType::Auto, handle_types_left_[i], handle_types_right_[i])) {
       const float3 prev_diff = positions_[i] - previous_position(positions_, is_cyclic_, i);
@@ -282,6 +287,56 @@ void BezierSpline::transform(const blender::float4x4 &matrix)
     handle_position = matrix * handle_position;
   }
   this->mark_cache_invalid();
+}
+
+static void set_handle_position(const float3 &position,
+                                const BezierSpline::HandleType type,
+                                const BezierSpline::HandleType type_other,
+                                const float3 &new_value,
+                                float3 &handle,
+                                float3 &handle_other)
+{
+  /* Don't bother when the handle positions are calculated automatically anyway. */
+  if (ELEM(type, BezierSpline::HandleType::Auto, BezierSpline::HandleType::Vector)) {
+    return;
+  }
+
+  handle = new_value;
+  if (type_other == BezierSpline::HandleType::Align) {
+    /* Keep track of the old length of the opposite handle. */
+    const float length = float3::distance(handle_other, position);
+    /* Set the other handle to directly opposite from the current handle. */
+    const float3 dir = (handle - position).normalized();
+    handle_other = position - dir * length;
+  }
+}
+
+/**
+ * Set positions for the right handle of the control point, ensuring that
+ * aligned handles stay aligned. Has no effect for auto and vector type handles.
+ */
+void BezierSpline::set_handle_position_right(const int index, const blender::float3 &value)
+{
+  set_handle_position(positions_[index],
+                      handle_types_right_[index],
+                      handle_types_left_[index],
+                      value,
+                      handle_positions_right_[index],
+                      handle_positions_left_[index]);
+}
+
+/**
+ * Set positions for the left handle of the control point, ensuring that
+ * aligned handles stay aligned. Has no effect for auto and vector type handles.
+ */
+void BezierSpline::set_handle_position_left(const int index, const blender::float3 &value)
+{
+  set_handle_position(positions_[index],
+                      handle_types_left_[index],
+                      handle_types_right_[index],
+                      value,
+                      handle_positions_left_[index],
+                      handle_positions_right_[index]);
 }
 
 bool BezierSpline::point_is_sharp(const int index) const

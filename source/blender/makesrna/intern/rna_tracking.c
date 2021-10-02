@@ -2437,6 +2437,8 @@ static void rna_def_trackingDopesheet(BlenderRNA *brna)
        0,
        "Average Error",
        "Sort channels by average reprojection error of tracks after solve"},
+      {TRACKING_DOPE_SORT_START, "START", 0, "Start Frame", "Sort channels by first frame number"},
+      {TRACKING_DOPE_SORT_END, "END", 0, "End Frame", "Sort channels by last frame number"},
       {0, NULL, 0, NULL, NULL},
   };
 

@@ -272,6 +272,22 @@ class MFParams {
     return span;
   }
 
+  /**
+   * Same as #uninitialized_single_output, but returns an empty span when the output is not
+   * required.
+   */
+  template<typename T>
+  MutableSpan<T> uninitialized_single_output_if_required(int param_index, StringRef name = "")
+  {
+    return this->uninitialized_single_output_if_required(param_index, name).typed<T>();
+  }
+  GMutableSpan uninitialized_single_output_if_required(int param_index, StringRef name = "")
+  {
+    this->assert_correct_param(param_index, name, MFParamType::SingleOutput);
+    int data_index = builder_->signature_->data_index(param_index);
+    return builder_->mutable_spans_[data_index];
+  }
+
   template<typename T>
   const VVectorArray<T> &readonly_vector_input(int param_index, StringRef name = "")
   {

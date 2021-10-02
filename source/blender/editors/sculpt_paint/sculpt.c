@@ -11770,6 +11770,9 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
     BKE_brush_channelset_to_unified_settings(ss->cache->channels_final, ups);
   }
 
+  sd->smooth_strength_factor = BRUSHSET_GET_FLOAT(
+      ss->cache->channels_final, smooth_strength_factor, NULL);
+
   ss->cache->bstrength = brush_strength(sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
 
   // we have to evaluate channel mappings here manually

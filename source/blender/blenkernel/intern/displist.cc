@@ -261,7 +261,7 @@ bool BKE_displist_surfindex_get(
   return true;
 }
 
-/* ****************** make displists ********************* */
+/* ****************** Make #DispList ********************* */
 #ifdef __INTEL_COMPILER
 /* ICC with the optimization -02 causes crashes. */
 #  pragma intel optimization_level 1
@@ -1538,23 +1538,6 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
   }
 
   boundbox_displist_object(ob);
-}
-
-void BKE_displist_make_curveTypes_forRender(
-    Depsgraph *depsgraph, const Scene *scene, Object *ob, ListBase *r_dispbase, Mesh **r_final)
-{
-  if (ob->runtime.curve_cache == nullptr) {
-    ob->runtime.curve_cache = (CurveCache *)MEM_callocN(sizeof(CurveCache), __func__);
-  }
-
-  if (ob->type == OB_SURF) {
-    evaluate_surface_object(depsgraph, scene, ob, true, r_dispbase, r_final);
-  }
-  else {
-    GeometrySet geometry_set = evaluate_curve_type_object(depsgraph, scene, ob, true, r_dispbase);
-    MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-    *r_final = mesh_component.release();
-  }
 }
 
 void BKE_displist_minmax(const ListBase *dispbase, float min[3], float max[3])

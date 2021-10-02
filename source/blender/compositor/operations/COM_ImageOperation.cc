@@ -112,17 +112,14 @@ void BaseImageOperation::deinitExecution()
   }
 }
 
-void BaseImageOperation::determineResolution(unsigned int resolution[2],
-                                             unsigned int /*preferredResolution*/[2])
+void BaseImageOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
 {
   ImBuf *stackbuf = getImBuf();
 
-  resolution[0] = 0;
-  resolution[1] = 0;
+  r_area = COM_AREA_NONE;
 
   if (stackbuf) {
-    resolution[0] = stackbuf->x;
-    resolution[1] = stackbuf->y;
+    BLI_rcti_init(&r_area, 0, stackbuf->x, 0, stackbuf->y);
   }
 
   BKE_image_release_ibuf(this->m_image, stackbuf, nullptr);
@@ -222,7 +219,7 @@ void ImageDepthOperation::executePixelSampled(float output[4],
       output[0] = 0.0f;
     }
     else {
-      int offset = y * this->m_width + x;
+      int offset = y * getWidth() + x;
       output[0] = this->m_depthBuffer[offset];
     }
   }

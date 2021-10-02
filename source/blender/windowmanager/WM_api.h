@@ -212,14 +212,16 @@ struct ID *WM_file_link_datablock(struct Main *bmain,
                                   struct View3D *v3d,
                                   const char *filepath,
                                   const short id_code,
-                                  const char *id_name);
+                                  const char *id_name,
+                                  int flag);
 struct ID *WM_file_append_datablock(struct Main *bmain,
                                     struct Scene *scene,
                                     struct ViewLayer *view_layer,
                                     struct View3D *v3d,
                                     const char *filepath,
                                     const short id_code,
-                                    const char *id_name);
+                                    const char *id_name,
+                                    int flag);
 void WM_lib_reload(struct Library *lib, struct bContext *C, struct ReportList *reports);
 
 /* mouse cursors */
@@ -262,14 +264,21 @@ struct wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *han
                                                                    wmKeyMap *keymap,
                                                                    int priority);
 
-typedef struct wmKeyMap *(wmEventHandler_KeymapDynamicFn)(wmWindowManager *wm,
-                                                          struct wmEventHandler_Keymap *handler)
-    ATTR_WARN_UNUSED_RESULT;
+typedef struct wmEventHandler_KeymapResult {
+  wmKeyMap *keymaps[3];
+  int keymaps_len;
+} wmEventHandler_KeymapResult;
 
-struct wmKeyMap *WM_event_get_keymap_from_toolsystem_fallback(
-    struct wmWindowManager *wm, struct wmEventHandler_Keymap *handler);
-struct wmKeyMap *WM_event_get_keymap_from_toolsystem(struct wmWindowManager *wm,
-                                                     struct wmEventHandler_Keymap *handler);
+typedef void(wmEventHandler_KeymapDynamicFn)(wmWindowManager *wm,
+                                             struct wmEventHandler_Keymap *handler,
+                                             struct wmEventHandler_KeymapResult *km_result);
+
+void WM_event_get_keymap_from_toolsystem_fallback(struct wmWindowManager *wm,
+                                                  struct wmEventHandler_Keymap *handler,
+                                                  wmEventHandler_KeymapResult *km_result);
+void WM_event_get_keymap_from_toolsystem(struct wmWindowManager *wm,
+                                         struct wmEventHandler_Keymap *handler,
+                                         wmEventHandler_KeymapResult *km_result);
 
 struct wmEventHandler_Keymap *WM_event_add_keymap_handler_dynamic(
     ListBase *handlers, wmEventHandler_KeymapDynamicFn *keymap_fn, void *user_data);
@@ -281,8 +290,9 @@ void WM_event_set_keymap_handler_post_callback(struct wmEventHandler_Keymap *han
                                                                 wmKeyMapItem *kmi,
                                                                 void *user_data),
                                                void *user_data);
-wmKeyMap *WM_event_get_keymap_from_handler(wmWindowManager *wm,
-                                           struct wmEventHandler_Keymap *handler);
+void WM_event_get_keymaps_from_handler(wmWindowManager *wm,
+                                       struct wmEventHandler_Keymap *handler,
+                                       struct wmEventHandler_KeymapResult *km_result);
 
 wmKeyMapItem *WM_event_match_keymap_item(struct bContext *C,
                                          wmKeyMap *keymap,
@@ -707,6 +717,8 @@ void WM_event_fileselect_event(struct wmWindowManager *wm, void *ophandle, int e
 
 void WM_operator_region_active_win_set(struct bContext *C);
 
+int WM_operator_flag_only_pass_through_on_press(int retval, const struct wmEvent *event);
+
 /* drag and drop */
 struct wmDrag *WM_event_start_drag(
     struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags);
@@ -787,6 +799,7 @@ enum {
   WM_JOB_TYPE_QUADRIFLOW_REMESH,
   WM_JOB_TYPE_TRACE_IMAGE,
   WM_JOB_TYPE_LINEART,
+  WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL,
   /* add as needed, bake, seq proxy build
    * if having hard coded values is a problem */
 };
@@ -893,6 +906,7 @@ int WM_event_modifier_flag(const struct wmEvent *event);
 bool WM_event_is_modal_tweak_exit(const struct wmEvent *event, int tweak_event);
 bool WM_event_is_last_mousemove(const struct wmEvent *event);
 bool WM_event_is_mouse_drag(const struct wmEvent *event);
+bool WM_event_is_mouse_drag_or_press(const wmEvent *event);
 
 int WM_event_drag_threshold(const struct wmEvent *event);
 bool WM_event_drag_test(const struct wmEvent *event, const int prev_xy[2]);

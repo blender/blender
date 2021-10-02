@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-#ifndef __KERNEL_PROFILING_H__
-#define __KERNEL_PROFILING_H__
+#pragma once
 
 #ifdef __KERNEL_CPU__
 #  include "util/util_profiling.h"
@@ -24,23 +23,18 @@
 CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_CPU__
-#  define PROFILING_INIT(kg, event) ProfilingHelper profiling_helper(&kg->profiler, event)
+#  define PROFILING_INIT(kg, event) \
+    ProfilingHelper profiling_helper((ProfilingState *)&kg->profiler, event)
 #  define PROFILING_EVENT(event) profiling_helper.set_event(event)
-#  define PROFILING_SHADER(shader) \
-    if ((shader) != SHADER_NONE) { \
-      profiling_helper.set_shader((shader)&SHADER_MASK); \
-    }
-#  define PROFILING_OBJECT(object) \
-    if ((object) != PRIM_NONE) { \
-      profiling_helper.set_object(object); \
-    }
+#  define PROFILING_INIT_FOR_SHADER(kg, event) \
+    ProfilingWithShaderHelper profiling_helper((ProfilingState *)&kg->profiler, event)
+#  define PROFILING_SHADER(object, shader) \
+    profiling_helper.set_shader(object, (shader)&SHADER_MASK);
 #else
 #  define PROFILING_INIT(kg, event)
 #  define PROFILING_EVENT(event)
-#  define PROFILING_SHADER(shader)
-#  define PROFILING_OBJECT(object)
+#  define PROFILING_INIT_FOR_SHADER(kg, event)
+#  define PROFILING_SHADER(object, shader)
 #endif /* __KERNEL_CPU__ */
 
 CCL_NAMESPACE_END
-
-#endif /* __KERNEL_PROFILING_H__ */

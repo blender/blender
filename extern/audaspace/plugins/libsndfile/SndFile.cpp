@@ -32,14 +32,24 @@ void SndFile::registerPlugin()
 	FileManager::registerOutput(plugin);
 }
 
-std::shared_ptr<IReader> SndFile::createReader(std::string filename)
+std::shared_ptr<IReader> SndFile::createReader(std::string filename, int stream)
 {
 	return std::shared_ptr<IReader>(new SndFileReader(filename));
 }
 
-std::shared_ptr<IReader> SndFile::createReader(std::shared_ptr<Buffer> buffer)
+std::shared_ptr<IReader> SndFile::createReader(std::shared_ptr<Buffer> buffer, int stream)
 {
 	return std::shared_ptr<IReader>(new SndFileReader(buffer));
+}
+
+std::vector<StreamInfo> SndFile::queryStreams(std::string filename)
+{
+	return SndFileReader(filename).queryStreams();
+}
+
+std::vector<StreamInfo> SndFile::queryStreams(std::shared_ptr<Buffer> buffer)
+{
+	return SndFileReader(buffer).queryStreams();
 }
 
 std::shared_ptr<IWriter> SndFile::createWriter(std::string filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate)

@@ -894,12 +894,8 @@ void BlenderSync::sync_view(BL::SpaceView3D &b_v3d,
   }
 }
 
-BufferParams BlenderSync::get_buffer_params(BL::SpaceView3D &b_v3d,
-                                            BL::RegionView3D &b_rv3d,
-                                            Camera *cam,
-                                            int width,
-                                            int height,
-                                            const bool use_denoiser)
+BufferParams BlenderSync::get_buffer_params(
+    BL::SpaceView3D &b_v3d, BL::RegionView3D &b_rv3d, Camera *cam, int width, int height)
 {
   BufferParams params;
   bool use_border = false;
@@ -930,11 +926,6 @@ BufferParams BlenderSync::get_buffer_params(BL::SpaceView3D &b_v3d,
     params.width = width;
     params.height = height;
   }
-
-  PassType display_pass = update_viewport_display_passes(b_v3d, params.passes);
-
-  /* Can only denoise the combined image pass */
-  params.denoising_data_pass = display_pass == PASS_COMBINED && use_denoiser;
 
   return params;
 }

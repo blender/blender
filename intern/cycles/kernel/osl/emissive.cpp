@@ -37,7 +37,7 @@
 #include "kernel/osl/osl_closures.h"
 
 // clang-format off
-#include "kernel/kernel_compat_cpu.h"
+#include "kernel/device/cpu/compat.h"
 #include "kernel/kernel_types.h"
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/emissive.h"

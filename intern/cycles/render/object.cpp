@@ -216,6 +216,10 @@ void Object::tag_update(Scene *scene)
     if (use_holdout_is_modified()) {
       flag |= ObjectManager::HOLDOUT_MODIFIED;
     }
+
+    if (is_shadow_catcher_is_modified()) {
+      scene->tag_shadow_catcher_modified();
+    }
   }
 
   if (geometry) {
@@ -273,14 +277,7 @@ bool Object::is_traceable() const
 
 uint Object::visibility_for_tracing() const
 {
-  uint trace_visibility = visibility;
-  if (is_shadow_catcher) {
-    trace_visibility &= ~PATH_RAY_SHADOW_NON_CATCHER;
-  }
-  else {
-    trace_visibility &= ~PATH_RAY_SHADOW_CATCHER;
-  }
-  return trace_visibility;
+  return SHADOW_CATCHER_OBJECT_VISIBILITY(is_shadow_catcher, visibility & PATH_RAY_ALL_VISIBILITY);
 }
 
 float Object::compute_volume_step_size() const
@@ -680,7 +677,7 @@ void ObjectManager::device_update(Device *device,
 
   /* prepare for static BVH building */
   /* todo: do before to support getting object level coords? */
-  if (scene->params.bvh_type == SceneParams::BVH_STATIC) {
+  if (scene->params.bvh_type == BVH_TYPE_STATIC) {
     scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->object.times.add_entry(
@@ -932,6 +929,11 @@ void ObjectManager::tag_update(Scene *scene, uint32_t flag)
   }
 
   scene->light_manager->tag_update(scene, LightManager::OBJECT_MANAGER);
+
+  /* Integrator's shadow catcher settings depends on object visibility settings. */
+  if (flag & (OBJECT_ADDED | OBJECT_REMOVED | OBJECT_MODIFIED)) {
+    scene->integrator->tag_update(scene, Integrator::OBJECT_MANAGER);
+  }
 }
 
 bool ObjectManager::need_update() const

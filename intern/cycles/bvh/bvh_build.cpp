@@ -832,18 +832,18 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
   typedef StackAllocator<256, float2> LeafTimeStackAllocator;
   typedef StackAllocator<256, BVHReference> LeafReferenceStackAllocator;
 
-  vector<int, LeafStackAllocator> p_type[PRIMITIVE_NUM_TOTAL];
-  vector<int, LeafStackAllocator> p_index[PRIMITIVE_NUM_TOTAL];
-  vector<int, LeafStackAllocator> p_object[PRIMITIVE_NUM_TOTAL];
-  vector<float2, LeafTimeStackAllocator> p_time[PRIMITIVE_NUM_TOTAL];
-  vector<BVHReference, LeafReferenceStackAllocator> p_ref[PRIMITIVE_NUM_TOTAL];
+  vector<int, LeafStackAllocator> p_type[PRIMITIVE_NUM];
+  vector<int, LeafStackAllocator> p_index[PRIMITIVE_NUM];
+  vector<int, LeafStackAllocator> p_object[PRIMITIVE_NUM];
+  vector<float2, LeafTimeStackAllocator> p_time[PRIMITIVE_NUM];
+  vector<BVHReference, LeafReferenceStackAllocator> p_ref[PRIMITIVE_NUM];
 
   /* TODO(sergey): In theory we should be able to store references. */
   vector<BVHReference, LeafReferenceStackAllocator> object_references;
 
-  uint visibility[PRIMITIVE_NUM_TOTAL] = {0};
+  uint visibility[PRIMITIVE_NUM] = {0};
   /* NOTE: Keep initialization in sync with actual number of primitives. */
-  BoundBox bounds[PRIMITIVE_NUM_TOTAL] = {
+  BoundBox bounds[PRIMITIVE_NUM] = {
       BoundBox::empty, BoundBox::empty, BoundBox::empty, BoundBox::empty};
   int ob_num = 0;
   int num_new_prims = 0;
@@ -877,7 +877,7 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
    * TODO(sergey): With some pointer trickery we can write directly to the
    * destination buffers for the non-spatial split BVH.
    */
-  BVHNode *leaves[PRIMITIVE_NUM_TOTAL + 1] = {NULL};
+  BVHNode *leaves[PRIMITIVE_NUM + 1] = {NULL};
   int num_leaves = 0;
   size_t start_index = 0;
   vector<int, LeafStackAllocator> local_prim_type, local_prim_index, local_prim_object;
@@ -888,7 +888,7 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
   if (need_prim_time) {
     local_prim_time.resize(num_new_prims);
   }
-  for (int i = 0; i < PRIMITIVE_NUM_TOTAL; ++i) {
+  for (int i = 0; i < PRIMITIVE_NUM; ++i) {
     int num = (int)p_type[i].size();
     if (num != 0) {
       assert(p_type[i].size() == p_index[i].size());

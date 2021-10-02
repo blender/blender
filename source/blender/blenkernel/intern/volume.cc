@@ -642,7 +642,7 @@ IDTypeInfo IDType_ID_VO = {
     /* name */ "Volume",
     /* name_plural */ "volumes",
     /* translation_context */ BLT_I18NCONTEXT_ID_VOLUME,
-    /* flags */ 0,
+    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
 
     /* init_data */ volume_init_data,
     /* copy_data */ volume_copy_data,

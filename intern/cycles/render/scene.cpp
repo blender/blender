@@ -163,12 +163,15 @@ void Scene::free_memory(bool final)
     delete p;
   foreach (Light *l, lights)
     delete l;
+  foreach (Pass *p, passes)
+    delete p;
 
   geometry.clear();
   objects.clear();
   lights.clear();
   particle_systems.clear();
   procedurals.clear();
+  passes.clear();
 
   if (device) {
     camera->device_free(device, &dscene, this);
@@ -253,7 +256,6 @@ void Scene::device_update(Device *device_, Progress &progress)
    * - Camera may be used for adaptive subdivision.
    * - Displacement shader must have all shader data available.
    * - Light manager needs lookup tables and final mesh data to compute emission CDF.
-   * - Film needs light manager to run for use_light_visibility
    * - Lookup tables are done a second time to handle film tables
    */
 
@@ -469,88 +471,110 @@ void Scene::enable_update_stats()
   }
 }
 
-DeviceRequestedFeatures Scene::get_requested_device_features()
+void Scene::update_kernel_features()
 {
-  DeviceRequestedFeatures requested_features;
+  if (!need_update()) {
+    return;
+  }
 
-  shader_manager->get_requested_features(this, &requested_features);
+  /* These features are not being tweaked as often as shaders,
+   * so could be done selective magic for the viewport as well. */
+  uint kernel_features = shader_manager->get_kernel_features(this);
 
-  /* This features are not being tweaked as often as shaders,
-   * so could be done selective magic for the viewport as well.
-   */
   bool use_motion = need_motion() == Scene::MotionType::MOTION_BLUR;
-  requested_features.use_hair = false;
-  requested_features.use_hair_thick = (params.hair_shape == CURVE_THICK);
-  requested_features.use_object_motion = false;
-  requested_features.use_camera_motion = use_motion && camera->use_motion();
+  kernel_features |= KERNEL_FEATURE_PATH_TRACING;
+  if (params.hair_shape == CURVE_THICK) {
+    kernel_features |= KERNEL_FEATURE_HAIR_THICK;
+  }
+  if (use_motion && camera->use_motion()) {
+    kernel_features |= KERNEL_FEATURE_CAMERA_MOTION;
+  }
   foreach (Object *object, objects) {
     Geometry *geom = object->get_geometry();
     if (use_motion) {
-      requested_features.use_object_motion |= object->use_motion() | geom->get_use_motion_blur();
-      requested_features.use_camera_motion |= geom->get_use_motion_blur();
+      if (object->use_motion() || geom->get_use_motion_blur()) {
+        kernel_features |= KERNEL_FEATURE_OBJECT_MOTION;
+      }
+      if (geom->get_use_motion_blur()) {
+        kernel_features |= KERNEL_FEATURE_CAMERA_MOTION;
+      }
     }
     if (object->get_is_shadow_catcher()) {
-      requested_features.use_shadow_tricks = true;
+      kernel_features |= KERNEL_FEATURE_SHADOW_CATCHER;
     }
     if (geom->is_mesh()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
 #ifdef WITH_OPENSUBDIV
       if (mesh->get_subdivision_type() != Mesh::SUBDIVISION_NONE) {
-        requested_features.use_patch_evaluation = true;
+        kernel_features |= KERNEL_FEATURE_PATCH_EVALUATION;
       }
 #endif
-      requested_features.use_true_displacement |= mesh->has_true_displacement();
     }
     else if (geom->is_hair()) {
-      requested_features.use_hair = true;
+      kernel_features |= KERNEL_FEATURE_HAIR;
     }
   }
 
-  requested_features.use_background_light = light_manager->has_background_light(this);
-
-  requested_features.use_baking = bake_manager->get_baking();
-  requested_features.use_integrator_branched = (integrator->get_method() ==
-                                                Integrator::BRANCHED_PATH);
-  if (film->get_denoising_data_pass()) {
-    requested_features.use_denoising = true;
-    requested_features.use_shadow_tricks = true;
+  if (bake_manager->get_baking()) {
+    kernel_features |= KERNEL_FEATURE_BAKING;
   }
 
-  return requested_features;
+  kernel_features |= film->get_kernel_features(this);
+
+  dscene.data.kernel_features = kernel_features;
+
+  /* Currently viewport render is faster with higher max_closures, needs investigating. */
+  const uint max_closures = (params.background) ? get_max_closure_count() : MAX_CLOSURE;
+  dscene.data.max_closures = max_closures;
+  dscene.data.max_shaders = shaders.size();
 }
 
-bool Scene::update(Progress &progress, bool &kernel_switch_needed)
+bool Scene::update(Progress &progress)
 {
-  /* update scene */
-  if (need_update()) {
-    /* Update max_closures. */
-    KernelIntegrator *kintegrator = &dscene.data.integrator;
-    if (params.background) {
-      kintegrator->max_closures = get_max_closure_count();
-    }
-    else {
-      /* Currently viewport render is faster with higher max_closures, needs investigating. */
-      kintegrator->max_closures = MAX_CLOSURE;
-    }
-
-    /* Load render kernels, before device update where we upload data to the GPU. */
-    bool new_kernels_needed = load_kernels(progress, false);
-
-    progress.set_status("Updating Scene");
-    MEM_GUARDED_CALL(&progress, device_update, device, progress);
-
-    DeviceKernelStatus kernel_switch_status = device->get_active_kernel_switch_state();
-    kernel_switch_needed = kernel_switch_status == DEVICE_KERNEL_FEATURE_KERNEL_AVAILABLE ||
-                           kernel_switch_status == DEVICE_KERNEL_FEATURE_KERNEL_INVALID;
-    if (new_kernels_needed || kernel_switch_needed) {
-      progress.set_kernel_status("Compiling render kernels");
-      device->wait_for_availability(loaded_kernel_features);
-      progress.set_kernel_status("");
-    }
-
-    return true;
+  if (!need_update()) {
+    return false;
   }
-  return false;
+
+  /* Load render kernels, before device update where we upload data to the GPU. */
+  load_kernels(progress, false);
+
+  /* Upload scene data to the GPU. */
+  progress.set_status("Updating Scene");
+  MEM_GUARDED_CALL(&progress, device_update, device, progress);
+
+  return true;
+}
+
+static void log_kernel_features(const uint features)
+{
+  VLOG(2) << "Requested features:\n";
+  VLOG(2) << "Use BSDF " << string_from_bool(features & KERNEL_FEATURE_NODE_BSDF) << "\n";
+  VLOG(2) << "Use Principled BSDF " << string_from_bool(features & KERNEL_FEATURE_PRINCIPLED)
+          << "\n";
+  VLOG(2) << "Use Emission " << string_from_bool(features & KERNEL_FEATURE_NODE_EMISSION) << "\n";
+  VLOG(2) << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_NODE_VOLUME) << "\n";
+  VLOG(2) << "Use Hair " << string_from_bool(features & KERNEL_FEATURE_NODE_HAIR) << "\n";
+  VLOG(2) << "Use Bump " << string_from_bool(features & KERNEL_FEATURE_NODE_BUMP) << "\n";
+  VLOG(2) << "Use Voronoi " << string_from_bool(features & KERNEL_FEATURE_NODE_VORONOI_EXTRA)
+          << "\n";
+  VLOG(2) << "Use Shader Raytrace " << string_from_bool(features & KERNEL_FEATURE_NODE_RAYTRACE)
+          << "\n";
+  VLOG(2) << "Use Transparent " << string_from_bool(features & KERNEL_FEATURE_TRANSPARENT) << "\n";
+  VLOG(2) << "Use Denoising " << string_from_bool(features & KERNEL_FEATURE_DENOISING) << "\n";
+  VLOG(2) << "Use Path Tracing " << string_from_bool(features & KERNEL_FEATURE_PATH_TRACING)
+          << "\n";
+  VLOG(2) << "Use Hair " << string_from_bool(features & KERNEL_FEATURE_HAIR) << "\n";
+  VLOG(2) << "Use Object Motion " << string_from_bool(features & KERNEL_FEATURE_OBJECT_MOTION)
+          << "\n";
+  VLOG(2) << "Use Camera Motion " << string_from_bool(features & KERNEL_FEATURE_CAMERA_MOTION)
+          << "\n";
+  VLOG(2) << "Use Baking " << string_from_bool(features & KERNEL_FEATURE_BAKING) << "\n";
+  VLOG(2) << "Use Subsurface " << string_from_bool(features & KERNEL_FEATURE_SUBSURFACE) << "\n";
+  VLOG(2) << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_VOLUME) << "\n";
+  VLOG(2) << "Use Patch Evaluation "
+          << string_from_bool(features & KERNEL_FEATURE_PATCH_EVALUATION) << "\n";
+  VLOG(2) << "Use Shadow Catcher " << string_from_bool(features & KERNEL_FEATURE_SHADOW_CATCHER)
+          << "\n";
 }
 
 bool Scene::load_kernels(Progress &progress, bool lock_scene)
@@ -560,15 +584,15 @@ bool Scene::load_kernels(Progress &progress, bool lock_scene)
     scene_lock = thread_scoped_lock(mutex);
   }
 
-  DeviceRequestedFeatures requested_features = get_requested_device_features();
+  const uint kernel_features = dscene.data.kernel_features;
 
-  if (!kernels_loaded || loaded_kernel_features.modified(requested_features)) {
+  if (!kernels_loaded || loaded_kernel_features != kernel_features) {
     progress.set_status("Loading render kernels (may take a few minutes the first time)");
 
     scoped_timer timer;
 
-    VLOG(2) << "Requested features:\n" << requested_features;
-    if (!device->load_kernels(requested_features)) {
+    log_kernel_features(kernel_features);
+    if (!device->load_kernels(kernel_features)) {
       string message = device->error_message();
       if (message.empty())
         message = "Failed loading render kernel, see console for errors";
@@ -580,7 +604,7 @@ bool Scene::load_kernels(Progress &progress, bool lock_scene)
     }
 
     kernels_loaded = true;
-    loaded_kernel_features = requested_features;
+    loaded_kernel_features = kernel_features;
     return true;
   }
   return false;
@@ -616,6 +640,28 @@ int Scene::get_max_closure_count()
   }
 
   return max_closure_global;
+}
+
+bool Scene::has_shadow_catcher()
+{
+  if (shadow_catcher_modified_) {
+    has_shadow_catcher_ = false;
+    for (Object *object : objects) {
+      if (object->get_is_shadow_catcher()) {
+        has_shadow_catcher_ = true;
+        break;
+      }
+    }
+
+    shadow_catcher_modified_ = false;
+  }
+
+  return has_shadow_catcher_;
+}
+
+void Scene::tag_shadow_catcher_modified()
+{
+  shadow_catcher_modified_ = true;
 }
 
 template<> Light *Scene::create_node<Light>()
@@ -692,6 +738,15 @@ template<> AlembicProcedural *Scene::create_node<AlembicProcedural>()
 #else
   return nullptr;
 #endif
+}
+
+template<> Pass *Scene::create_node<Pass>()
+{
+  Pass *node = new Pass();
+  node->set_owner(this);
+  passes.push_back(node);
+  film->tag_modified();
+  return node;
 }
 
 template<typename T> void delete_node_from_array(vector<T> &nodes, T node)
@@ -779,6 +834,12 @@ template<> void Scene::delete_node_impl(AlembicProcedural *node)
 #endif
 }
 
+template<> void Scene::delete_node_impl(Pass *node)
+{
+  delete_node_from_array(passes, node);
+  film->tag_modified();
+}
+
 template<typename T>
 static void remove_nodes_in_set(const set<T *> &nodes_set,
                                 vector<T *> &nodes_array,
@@ -840,6 +901,12 @@ template<> void Scene::delete_nodes(const set<Procedural *> &nodes, const NodeOw
 {
   remove_nodes_in_set(nodes, procedurals, owner);
   procedural_manager->tag_update();
+}
+
+template<> void Scene::delete_nodes(const set<Pass *> &nodes, const NodeOwner *owner)
+{
+  remove_nodes_in_set(nodes, passes, owner);
+  film->tag_modified();
 }
 
 CCL_NAMESPACE_END

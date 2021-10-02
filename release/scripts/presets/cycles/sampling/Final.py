@@ -1,18 +1,12 @@
 import bpy
 cycles = bpy.context.scene.cycles
 
-# Path Trace
-cycles.samples = 512
-cycles.preview_samples = 128
-
-# Branched Path Trace
-cycles.aa_samples = 128
-cycles.preview_aa_samples = 32
-
-cycles.diffuse_samples = 4
-cycles.glossy_samples = 4
-cycles.transmission_samples = 4
-cycles.ao_samples = 1
-cycles.mesh_light_samples = 4
-cycles.subsurface_samples = 4
-cycles.volume_samples = 4
+cycles.use_adaptive_sampling = True
+cycles.adaptive_threshold = 0.01
+cycles.samples = 4096
+cycles.adaptive_min_samples = 0
+cycles.time_limit = 0.0
+cycles.use_denoising = True
+cycles.denoiser = 'OPENIMAGEDENOISE'
+cycles.denoising_input_passes = 'RGB_ALBEDO_NORMAL'
+cycles.denoising_prefilter = 'ACCURATE'

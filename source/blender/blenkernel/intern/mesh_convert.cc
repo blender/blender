@@ -41,6 +41,7 @@
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -51,12 +52,15 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
+#include "BKE_spline.hh"
 /* these 2 are only used by conversion functions */
 #include "BKE_curve.h"
 /* -- */
 #include "BKE_object.h"
 /* -- */
 #include "BKE_pointcloud.h"
+
+#include "BKE_curve_to_mesh.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -237,7 +241,7 @@ static int mesh_nurbs_displist_to_mdata(const Curve *cu,
   int a, b, ofs, vertcount, startvert, totvert = 0, totedge = 0, totloop = 0, totpoly = 0;
   int p1, p2, p3, p4, *index;
   const bool conv_polys = (
-      /* 2d polys are filled with DL_INDEX3 displists */
+      /* 2D polys are filled with #DispList.type == #DL_INDEX3. */
       (CU_DO_2DFILL(cu) == false) ||
       /* surf polys are never filled */
       BKE_curve_type_get(cu) == OB_SURF);
@@ -573,90 +577,6 @@ Mesh *BKE_mesh_new_nomain_from_curve(const Object *ob)
   return BKE_mesh_new_nomain_from_curve_displist(ob, &disp);
 }
 
-static void mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const char *obdata_name)
-{
-  if (ob->runtime.data_eval && GS(((ID *)ob->runtime.data_eval)->name) != ID_ME) {
-    return;
-  }
-
-  Mesh *me_eval = (Mesh *)ob->runtime.data_eval;
-  Mesh *me;
-  MVert *allvert = nullptr;
-  MEdge *alledge = nullptr;
-  MLoop *allloop = nullptr;
-  MLoopUV *alluv = nullptr;
-  MPoly *allpoly = nullptr;
-  int totvert, totedge, totloop, totpoly;
-
-  Curve *cu = (Curve *)ob->data;
-
-  if (me_eval == nullptr) {
-    if (mesh_nurbs_displist_to_mdata(cu,
-                                     dispbase,
-                                     &allvert,
-                                     &totvert,
-                                     &alledge,
-                                     &totedge,
-                                     &allloop,
-                                     &allpoly,
-                                     &alluv,
-                                     &totloop,
-                                     &totpoly) != 0) {
-      /* Error initializing */
-      return;
-    }
-
-    /* make mesh */
-    me = (Mesh *)BKE_id_new_nomain(ID_ME, obdata_name);
-
-    me->totvert = totvert;
-    me->totedge = totedge;
-    me->totloop = totloop;
-    me->totpoly = totpoly;
-
-    me->mvert = (MVert *)CustomData_add_layer(
-        &me->vdata, CD_MVERT, CD_ASSIGN, allvert, me->totvert);
-    me->medge = (MEdge *)CustomData_add_layer(
-        &me->edata, CD_MEDGE, CD_ASSIGN, alledge, me->totedge);
-    me->mloop = (MLoop *)CustomData_add_layer(
-        &me->ldata, CD_MLOOP, CD_ASSIGN, allloop, me->totloop);
-    me->mpoly = (MPoly *)CustomData_add_layer(
-        &me->pdata, CD_MPOLY, CD_ASSIGN, allpoly, me->totpoly);
-
-    if (alluv) {
-      const char *uvname = "UVMap";
-      me->mloopuv = (MLoopUV *)CustomData_add_layer_named(
-          &me->ldata, CD_MLOOPUV, CD_ASSIGN, alluv, me->totloop, uvname);
-    }
-
-    BKE_mesh_calc_normals(me);
-  }
-  else {
-    me = (Mesh *)BKE_id_new_nomain(ID_ME, obdata_name);
-
-    ob->runtime.data_eval = nullptr;
-    BKE_mesh_nomain_to_mesh(me_eval, me, ob, &CD_MASK_MESH, true);
-  }
-
-  me->totcol = cu->totcol;
-  me->mat = cu->mat;
-
-  mesh_copy_texture_space_from_curve_type(cu, me);
-
-  cu->mat = nullptr;
-  cu->totcol = 0;
-
-  /* Do not decrement ob->data usercount here,
-   * it's done at end of func with BKE_id_free_us() call. */
-  ob->data = me;
-  ob->type = OB_MESH;
-
-  /* For temporary objects in BKE_mesh_new_from_object don't remap
-   * the entire scene with associated depsgraph updates, which are
-   * problematic for renderers exporting data. */
-  BKE_id_free(nullptr, cu);
-}
-
 struct EdgeLink {
   struct EdgeLink *next, *prev;
   void *edge;
@@ -948,54 +868,32 @@ void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(sce
   BKE_object_free_derived_caches(ob);
 }
 
-/* Create a temporary object to be used for nurbs-to-mesh conversion.
- *
- * This is more complex that it should be because #mesh_from_nurbs_displist will do more than
- * simply conversion and will attempt to take over ownership of evaluated result and will also
- * modify the input object. */
-static Object *object_for_curve_to_mesh_create(Object *object)
+/* Create a temporary object to be used for nurbs-to-mesh conversion. */
+static Object *object_for_curve_to_mesh_create(const Object *object)
 {
-  Curve *curve = (Curve *)object->data;
+  const Curve *curve = (const Curve *)object->data;
 
-  /* Create object itself. */
+  /* Create a temporary object which can be evaluated and modified by generic
+   * curve evaluation (hence the #LIB_ID_COPY_SET_COPIED_ON_WRITE flag). */
   Object *temp_object = (Object *)BKE_id_copy_ex(
-      nullptr, &object->id, nullptr, LIB_ID_COPY_LOCALIZE);
+      nullptr, &object->id, nullptr, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_SET_COPIED_ON_WRITE);
 
   /* Remove all modifiers, since we don't want them to be applied. */
   BKE_object_free_modifiers(temp_object, LIB_ID_CREATE_NO_USER_REFCOUNT);
 
-  /* Copy relevant evaluated fields of curve cache.
-   *
-   * Note that there are extra fields in there like bevel and path, but those are not needed during
-   * conversion, so they are not copied to save unnecessary allocations. */
-  if (temp_object->runtime.curve_cache == nullptr) {
-    temp_object->runtime.curve_cache = (CurveCache *)MEM_callocN(sizeof(CurveCache),
-                                                                 "CurveCache for curve types");
-  }
-
-  if (object->runtime.curve_cache != nullptr) {
-    BKE_displist_copy(&temp_object->runtime.curve_cache->disp, &object->runtime.curve_cache->disp);
-  }
-
-  /* Constructive modifiers will use mesh to store result. */
-  if (object->runtime.data_eval != nullptr) {
-    BKE_id_copy_ex(
-        nullptr, object->runtime.data_eval, &temp_object->runtime.data_eval, LIB_ID_COPY_LOCALIZE);
-  }
-
-  /* Need to create copy of curve itself as well, it will be freed by underlying conversion
-   * functions.
-   *
-   * NOTE: Copies the data, but not the shapekeys. */
-  BKE_id_copy_ex(
-      nullptr, (const ID *)object->data, (ID **)&temp_object->data, LIB_ID_COPY_LOCALIZE);
+  /* Need to create copy of curve itself as well, since it will be changed by the curve evaluation
+   * process. NOTE: Copies the data, but not the shape-keys. */
+  temp_object->data = BKE_id_copy_ex(nullptr,
+                                     (const ID *)object->data,
+                                     nullptr,
+                                     LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_SET_COPIED_ON_WRITE);
   Curve *temp_curve = (Curve *)temp_object->data;
 
   /* Make sure texture space is calculated for a copy of curve, it will be used for the final
    * result. */
   BKE_curve_texspace_calc(temp_curve);
 
-  /* Temporarily set edit so we get updates from edit mode, but also because for text datablocks
+  /* Temporarily set edit so we get updates from edit mode, but also because for text data-blocks
    * copying it while in edit mode gives invalid data structures. */
   temp_curve->editfont = curve->editfont;
   temp_curve->editnurb = curve->editnurb;
@@ -1006,23 +904,10 @@ static Object *object_for_curve_to_mesh_create(Object *object)
 /**
  * Populate `object->runtime.curve_cache` which is then used to create the mesh.
  */
-static void curve_to_mesh_eval_ensure(Object *object)
+static void curve_to_mesh_eval_ensure(Object &object)
 {
-  Curve *curve = (Curve *)object->data;
-  Curve remapped_curve = *curve;
-  Object remapped_object = *object;
-  BKE_object_runtime_reset(&remapped_object);
-
-  remapped_object.data = &remapped_curve;
-
-  if (object->runtime.curve_cache == nullptr) {
-    object->runtime.curve_cache = (CurveCache *)MEM_callocN(sizeof(CurveCache),
-                                                            "CurveCache for Curve");
-  }
-
-  /* Temporarily share the curve-cache with the temporary object, owned by `object`. */
-  remapped_object.runtime.curve_cache = object->runtime.curve_cache;
-
+  BLI_assert(GS(static_cast<ID *>(object.data)->name) == ID_CU);
+  Curve &curve = *static_cast<Curve *>(object.data);
   /* Clear all modifiers for the bevel object.
    *
    * This is because they can not be reliably evaluated for an original object (at least because
@@ -1031,83 +916,97 @@ static void curve_to_mesh_eval_ensure(Object *object)
    * So we create temporary copy of the object which will use same data as the original bevel, but
    * will have no modifiers. */
   Object bevel_object = {{nullptr}};
-  if (remapped_curve.bevobj != nullptr) {
-    bevel_object = *remapped_curve.bevobj;
+  if (curve.bevobj != nullptr) {
+    bevel_object = *curve.bevobj;
     BLI_listbase_clear(&bevel_object.modifiers);
     BKE_object_runtime_reset(&bevel_object);
-    remapped_curve.bevobj = &bevel_object;
+    curve.bevobj = &bevel_object;
   }
 
   /* Same thing for taper. */
   Object taper_object = {{nullptr}};
-  if (remapped_curve.taperobj != nullptr) {
-    taper_object = *remapped_curve.taperobj;
+  if (curve.taperobj != nullptr) {
+    taper_object = *curve.taperobj;
     BLI_listbase_clear(&taper_object.modifiers);
     BKE_object_runtime_reset(&taper_object);
-    remapped_curve.taperobj = &taper_object;
+    curve.taperobj = &taper_object;
   }
 
   /* NOTE: We don't have dependency graph or scene here, so we pass nullptr. This is all fine since
    * they are only used for modifier stack, which we have explicitly disabled for all objects.
    *
    * TODO(sergey): This is a very fragile logic, but proper solution requires re-writing quite a
-   * bit of internal functions (#mesh_from_nurbs_displist, BKE_mesh_nomain_to_mesh) and also
-   * Mesh From Curve operator.
+   * bit of internal functions (#BKE_mesh_nomain_to_mesh) and also Mesh From Curve operator.
    * Brecht says hold off with that. */
-  Mesh *mesh_eval = nullptr;
-  BKE_displist_make_curveTypes_forRender(
-      nullptr, nullptr, &remapped_object, &remapped_object.runtime.curve_cache->disp, &mesh_eval);
+  BKE_displist_make_curveTypes(nullptr, nullptr, &object, true);
 
-  /* NOTE: this is to be consistent with `BKE_displist_make_curveTypes()`, however that is not a
-   * real issue currently, code here is broken in more than one way, fix(es) will be done
-   * separately. */
-  if (mesh_eval != nullptr) {
-    BKE_object_eval_assign_data(&remapped_object, &mesh_eval->id, true);
-  }
-
-  /* Owned by `object` & needed by the caller to create the mesh. */
-  remapped_object.runtime.curve_cache = nullptr;
-
-  BKE_object_runtime_free_data(&remapped_object);
-  BKE_object_runtime_free_data(&taper_object);
+  BKE_object_runtime_free_data(&bevel_object);
   BKE_object_runtime_free_data(&taper_object);
 }
 
-static Mesh *mesh_new_from_curve_type_object(Object *object)
+/* Necessary because #BKE_object_get_evaluated_mesh doesn't look in the geometry set yet. */
+static const Mesh *get_evaluated_mesh_from_object(const Object *object)
 {
-  Curve *curve = (Curve *)object->data;
+  const Mesh *mesh = BKE_object_get_evaluated_mesh(object);
+  if (mesh) {
+    return mesh;
+  }
+  GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval;
+  if (geometry_set_eval) {
+    return geometry_set_eval->get_mesh_for_read();
+  }
+  return nullptr;
+}
+
+static const CurveEval *get_evaluated_curve_from_object(const Object *object)
+{
+  GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval;
+  if (geometry_set_eval) {
+    return geometry_set_eval->get_curve_for_read();
+  }
+  return nullptr;
+}
+
+static Mesh *mesh_new_from_evaluated_curve_type_object(const Object *evaluated_object)
+{
+  const Mesh *mesh = get_evaluated_mesh_from_object(evaluated_object);
+  if (mesh) {
+    return BKE_mesh_copy_for_eval(mesh, false);
+  }
+  const CurveEval *curve = get_evaluated_curve_from_object(evaluated_object);
+  if (curve) {
+    return blender::bke::curve_to_wire_mesh(*curve);
+  }
+  return nullptr;
+}
+
+static Mesh *mesh_new_from_curve_type_object(const Object *object)
+{
+  /* If the object is evaluated, it should either have an evaluated mesh or curve data already.
+   * The mesh can be duplicated, or the curve converted to wire mesh edges. */
+  if (DEG_is_evaluated_object(object)) {
+    return mesh_new_from_evaluated_curve_type_object(object);
+  }
+
+  /* Otherwise, create a temporary "fake" evaluated object and try again. This might have
+   * different results, since in order to avoid having adverse affects to other original objects,
+   * modifiers are cleared. An alternative would be to create a temporary depsgraph only for this
+   * object and its dependencies. */
   Object *temp_object = object_for_curve_to_mesh_create(object);
-  Curve *temp_curve = (Curve *)temp_object->data;
+  ID *temp_data = static_cast<ID *>(temp_object->data);
+  curve_to_mesh_eval_ensure(*temp_object);
 
-  /* When input object is an original one, we don't have evaluated curve cache yet, so need to
-   * create it in the temporary object. */
-  if (!DEG_is_evaluated_object(object)) {
-    curve_to_mesh_eval_ensure(temp_object);
+  /* If evaluating the curve replaced object data with different data, free the original data. */
+  if (temp_data != temp_object->data) {
+    BKE_id_free(nullptr, temp_data);
   }
 
-  /* Reset pointers before conversion. */
-  temp_curve->editfont = nullptr;
-  temp_curve->editnurb = nullptr;
+  Mesh *mesh = mesh_new_from_evaluated_curve_type_object(temp_object);
 
-  /* Convert to mesh. */
-  mesh_from_nurbs_displist(
-      temp_object, &temp_object->runtime.curve_cache->disp, curve->id.name + 2);
-
-  /* #mesh_from_nurbs_displist changes the type to a mesh, check it worked. If it didn't
-   * the curve did not have any segments or otherwise would have generated an empty mesh. */
-  if (temp_object->type != OB_MESH) {
-    BKE_id_free(nullptr, temp_object->data);
-    BKE_id_free(nullptr, temp_object);
-    return nullptr;
-  }
-
-  Mesh *mesh_result = (Mesh *)temp_object->data;
-
+  BKE_id_free(nullptr, temp_object->data);
   BKE_id_free(nullptr, temp_object);
 
-  /* NOTE: Materials are copied in #mesh_from_nurbs_displist(). */
-
-  return mesh_result;
+  return mesh;
 }
 
 static Mesh *mesh_new_from_mball_object(Object *object)
@@ -1118,7 +1017,7 @@ static Mesh *mesh_new_from_mball_object(Object *object)
    * balls and all evaluated child meta balls (since polygonization is only stored in the mother
    * ball).
    *
-   * We create empty mesh so scripters don't run into None objects. */
+   * Create empty mesh so script-authors don't run into None objects. */
   if (!DEG_is_evaluated_object(object) || object->runtime.curve_cache == nullptr ||
       BLI_listbase_is_empty(&object->runtime.curve_cache->disp)) {
     return (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);
@@ -1290,7 +1189,7 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
     return mesh_in_bmain;
   }
 
-  /* Make sure mesh only points original datablocks, also increase users of materials and other
+  /* Make sure mesh only points original data-blocks, also increase users of materials and other
    * possibly referenced data-blocks.
    *
    * Going to original data-blocks is required to have bmain in a consistent state, where

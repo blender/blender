@@ -330,7 +330,7 @@ ccl_device_inline ssef grad(const ssei &hash, const ssef &x, const ssef &y)
  *               |__________________________|
  *
  */
-ccl_device_noinline float perlin_2d(float x, float y)
+ccl_device_noinline_cpu float perlin_2d(float x, float y)
 {
   ssei XY;
   ssef fxy = floorfrac(ssef(x, y, 0.0f, 0.0f), &XY);
@@ -447,7 +447,7 @@ ccl_device_inline ssef quad_mix(ssef p, ssef q, ssef r, ssef s, ssef f)
  *     v7      (1, 1, 1)
  *
  */
-ccl_device_noinline float perlin_3d(float x, float y, float z)
+ccl_device_noinline_cpu float perlin_3d(float x, float y, float z)
 {
   ssei XYZ;
   ssef fxyz = floorfrac(ssef(x, y, z, 0.0f), &XYZ);
@@ -501,7 +501,7 @@ ccl_device_noinline float perlin_3d(float x, float y, float z)
  *     v15    (1, 1, 1, 1)
  *
  */
-ccl_device_noinline float perlin_4d(float x, float y, float z, float w)
+ccl_device_noinline_cpu float perlin_4d(float x, float y, float z, float w)
 {
   ssei XYZW;
   ssef fxyzw = floorfrac(ssef(x, y, z, w), &XYZW);
@@ -585,7 +585,7 @@ ccl_device_inline ssef quad_mix(avxf p, avxf q, ssef f)
  *                 |__________________________|
  *
  */
-ccl_device_noinline float perlin_3d(float x, float y, float z)
+ccl_device_noinline_cpu float perlin_3d(float x, float y, float z)
 {
   ssei XYZ;
   ssef fxyz = floorfrac(ssef(x, y, z, 0.0f), &XYZ);
@@ -637,7 +637,7 @@ ccl_device_noinline float perlin_3d(float x, float y, float z)
  *     v15    (1, 1, 1, 1)
  *
  */
-ccl_device_noinline float perlin_4d(float x, float y, float z, float w)
+ccl_device_noinline_cpu float perlin_4d(float x, float y, float z, float w)
 {
   ssei XYZW;
   ssef fxyzw = floorfrac(ssef(x, y, z, w), &XYZW);

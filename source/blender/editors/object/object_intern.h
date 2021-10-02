@@ -78,7 +78,6 @@ void OBJECT_OT_mode_set(struct wmOperatorType *ot);
 void OBJECT_OT_mode_set_with_submode(struct wmOperatorType *ot);
 void OBJECT_OT_editmode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_posemode_toggle(struct wmOperatorType *ot);
-void OBJECT_OT_proxy_make(struct wmOperatorType *ot);
 void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
 void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
 void OBJECT_OT_paths_calculate(struct wmOperatorType *ot);

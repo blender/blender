@@ -65,7 +65,7 @@
 static CLG_LogRef LOG = {"bke.gpencil_modifier"};
 static GpencilModifierTypeInfo *modifier_gpencil_types[NUM_GREASEPENCIL_MODIFIER_TYPES] = {NULL};
 #if 0
-/* Note that GPencil actually does not support these atm, but might do in the future. */
+/* Note that GPencil actually does not support these at the moment, but might do in the future. */
 static GpencilVirtualModifierData virtualModifierCommonData;
 #endif
 
@@ -129,7 +129,8 @@ GpencilModifierData *BKE_gpencil_modifiers_get_virtual_modifierlist(
   GpencilModifierData *md = ob->greasepencil_modifiers.first;
 
 #if 0
-  /* Note that GPencil actually does not support these atm, but might do in the future. */
+  /* Note that GPencil actually does not support these at the moment,
+   * but might do in the future. */
   *virtualModifierData = virtualModifierCommonData;
   if (ob->parent) {
     if (ob->parent->type == OB_ARMATURE && ob->partype == PARSKEL) {
@@ -328,8 +329,9 @@ void BKE_gpencil_modifier_init(void)
   gpencil_modifier_type_init(modifier_gpencil_types); /* MOD_gpencil_util.c */
 
 #if 0
-  /* Note that GPencil actually does not support these atm, but might do in the future. */
-  /* Initialize global cmmon storage used for virtual modifier list */
+  /* Note that GPencil actually does not support these at the moment,
+   * but might do in the future. */
+  /* Initialize global common storage used for virtual modifier list. */
   GpencilModifierData *md;
   md = BKE_gpencil_modifier_new(eGpencilModifierType_Armature);
   virtualModifierCommonData.amd = *((ArmatureGpencilModifierData *)md);
@@ -518,7 +520,7 @@ static void gpencil_modifier_copy_data_id_us_cb(void *UNUSED(userData),
  * Copy grease pencil modifier data.
  * \param md: Source modifier data
  * \param target: Target modifier data
- * \parm flag: Flags
+ * \param flag: Flags
  */
 void BKE_gpencil_modifier_copydata_ex(GpencilModifierData *md,
                                       GpencilModifierData *target,

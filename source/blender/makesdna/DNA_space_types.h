@@ -577,6 +577,46 @@ typedef enum eSpaceNla_Flag {
 /** \name Sequence Editor
  * \{ */
 
+typedef struct SequencerPreviewOverlay {
+  int flag;
+  char _pad0[4];
+} SequencerPreviewOverlay;
+
+/* SequencerPreviewOverlay.flag */
+typedef enum eSpaceSeq_SequencerPreviewOverlay_Flag {
+  SEQ_PREVIEW_SHOW_OUTLINE_SELECTED = (1 << 2),
+  SEQ_PREVIEW_SHOW_SAFE_MARGINS = (1 << 3),
+  SEQ_PREVIEW_SHOW_GPENCIL = (1 << 4),
+  SEQ_PREVIEW_SHOW_SAFE_CENTER = (1 << 9),
+  SEQ_PREVIEW_SHOW_METADATA = (1 << 10),
+} eSpaceSeq_SequencerPreviewOverlay_Flag;
+
+typedef struct SequencerTimelineOverlay {
+  int flag;
+  char _pad0[4];
+} SequencerTimelineOverlay;
+
+/* SequencerTimelineOverlay.flag */
+typedef enum eSpaceSeq_SequencerTimelineOverlay_Flag {
+  SEQ_TIMELINE_SHOW_STRIP_OFFSETS = (1 << 1),
+  SEQ_TIMELINE_SHOW_THUMBNAILS = (1 << 2),
+  SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG = (1 << 3), /* use Sequence->color_tag */
+  SEQ_TIMELINE_SHOW_FCURVES = (1 << 5),
+  SEQ_TIMELINE_ALL_WAVEFORMS = (1 << 7), /* draw all waveforms */
+  SEQ_TIMELINE_NO_WAVEFORMS = (1 << 8),  /* draw no waveforms */
+  SEQ_TIMELINE_SHOW_STRIP_NAME = (1 << 14),
+  SEQ_TIMELINE_SHOW_STRIP_SOURCE = (1 << 15),
+  SEQ_TIMELINE_SHOW_STRIP_DURATION = (1 << 16),
+  SEQ_TIMELINE_SHOW_GRID = (1 << 18),
+} eSpaceSeq_SequencerTimelineOverlay_Flag;
+
+typedef struct SpaceSeqRuntime {
+  /** Required for Thumbnail job start condition. */
+  struct rctf last_thumbnail_area;
+  /** Stores lists of most recently displayed thumbnails. */
+  struct GHash *last_displayed_thumbnails;
+} SpaceSeqRuntime;
+
 /* Sequencer */
 typedef struct SpaceSeq {
   SpaceLink *next, *prev;
@@ -613,10 +653,14 @@ typedef struct SpaceSeq {
 
   /** Different scoped displayed in space. */
   struct SequencerScopes scopes;
+  struct SequencerPreviewOverlay preview_overlay;
+  struct SequencerTimelineOverlay timeline_overlay;
 
   /** Multiview current eye - for internal use. */
   char multiview_eye;
   char _pad2[7];
+
+  SpaceSeqRuntime runtime;
 } SpaceSeq;
 
 /* SpaceSeq.mainb */
@@ -631,7 +675,7 @@ typedef enum eSpaceSeq_RegionType {
 /* SpaceSeq.draw_flag */
 typedef enum eSpaceSeq_DrawFlag {
   SEQ_DRAW_BACKDROP = (1 << 0),
-  SEQ_DRAW_OFFSET_EXT = (1 << 1),
+  SEQ_DRAW_UNUSED_1 = (1 << 1),
   SEQ_DRAW_TRANSFORM_PREVIEW = (1 << 2),
 } eSpaceSeq_DrawFlag;
 
@@ -640,20 +684,18 @@ typedef enum eSpaceSeq_Flag {
   SEQ_DRAWFRAMES = (1 << 0),
   SEQ_MARKER_TRANS = (1 << 1),
   SEQ_DRAW_COLOR_SEPARATED = (1 << 2),
-  SEQ_SHOW_SAFE_MARGINS = (1 << 3),
-  SEQ_SHOW_GPENCIL = (1 << 4),
-  SEQ_SHOW_FCURVES = (1 << 5),
-  SEQ_USE_ALPHA = (1 << 6),     /* use RGBA display mode for preview */
-  SEQ_ALL_WAVEFORMS = (1 << 7), /* draw all waveforms */
-  SEQ_NO_WAVEFORMS = (1 << 8),  /* draw no waveforms */
-  SEQ_SHOW_SAFE_CENTER = (1 << 9),
-  SEQ_SHOW_METADATA = (1 << 10),
+  SPACE_SEQ_FLAG_UNUSED_3 = (1 << 3),
+  SPACE_SEQ_FLAG_UNUSED_4 = (1 << 4),
+  SPACE_SEQ_FLAG_UNUSED_5 = (1 << 5),
+  SEQ_USE_ALPHA = (1 << 6), /* use RGBA display mode for preview */
+  SPACE_SEQ_FLAG_UNUSED_9 = (1 << 9),
+  SPACE_SEQ_FLAG_UNUSED_10 = (1 << 10),
   SEQ_SHOW_MARKERS = (1 << 11), /* show markers region */
   SEQ_ZOOM_TO_FIT = (1 << 12),
-  SEQ_SHOW_STRIP_OVERLAY = (1 << 13),
-  SEQ_SHOW_STRIP_NAME = (1 << 14),
-  SEQ_SHOW_STRIP_SOURCE = (1 << 15),
-  SEQ_SHOW_STRIP_DURATION = (1 << 16),
+  SEQ_SHOW_OVERLAY = (1 << 13),
+  SPACE_SEQ_FLAG_UNUSED_14 = (1 << 14),
+  SPACE_SEQ_FLAG_UNUSED_15 = (1 << 15),
+  SPACE_SEQ_FLAG_UNUSED_16 = (1 << 16),
   SEQ_USE_PROXIES = (1 << 17),
   SEQ_SHOW_GRID = (1 << 18),
 } eSpaceSeq_Flag;
@@ -765,14 +807,25 @@ typedef struct FileAssetSelectParams {
   FileSelectParams base_params;
 
   AssetLibraryReference asset_library_ref;
+  short asset_catalog_visibility; /* eFileSel_Params_AssetCatalogVisibility */
+  char _pad[6];
+  /** If #asset_catalog_visibility is #FILE_SHOW_ASSETS_FROM_CATALOG, this sets the ID of the
+   * catalog to show. */
+  bUUID catalog_id;
 
   short import_type; /* eFileAssetImportType */
-  char _pad[6];
+  char _pad2[6];
 } FileAssetSelectParams;
 
 typedef enum eFileAssetImportType {
+  /** Regular data-block linking. */
   FILE_ASSET_IMPORT_LINK = 0,
+  /** Regular data-block appending (basically linking + "Make Local"). */
   FILE_ASSET_IMPORT_APPEND = 1,
+  /** Append data-block with the #BLO_LIBLINK_APPEND_LOCAL_ID_REUSE flag enabled. Some typically
+   * heavy data dependencies (e.g. the image data-blocks of a material, the mesh of an object) may
+   * be reused from an earlier append. */
+  FILE_ASSET_IMPORT_APPEND_REUSE = 2,
 } eFileAssetImportType;
 
 /**
@@ -925,7 +978,10 @@ enum eFileDetails {
 typedef enum eFileSelectType {
   FILE_LOADLIB = 1,
   FILE_MAIN = 2,
+  /** Load assets from #Main. */
   FILE_MAIN_ASSET = 3,
+  /** Load assets of an asset library containing external files. */
+  FILE_ASSET_LIBRARY = 4,
 
   FILE_UNIX = 8,
   FILE_BLENDER = 8, /* don't display relative paths */
@@ -944,22 +1000,30 @@ typedef enum eFileSel_Action {
  * (WM and BLO code area, see #eBLOLibLinkFlags in BLO_readfile.h).
  */
 typedef enum eFileSel_Params_Flag {
-  FILE_APPEND_SET_FAKEUSER = (1 << 0),
+  FILE_PARAMS_FLAG_UNUSED_1 = (1 << 0),
   FILE_RELPATH = (1 << 1),
   FILE_LINK = (1 << 2),
   FILE_HIDE_DOT = (1 << 3),
   FILE_AUTOSELECT = (1 << 4),
   FILE_ACTIVE_COLLECTION = (1 << 5),
-  FILE_APPEND_RECURSIVE = (1 << 6),
+  FILE_PARAMS_FLAG_UNUSED_2 = (1 << 6),
   FILE_DIRSEL_ONLY = (1 << 7),
   FILE_FILTER = (1 << 8),
-  FILE_OBDATA_INSTANCE = (1 << 9),
-  FILE_COLLECTION_INSTANCE = (1 << 10),
+  FILE_PARAMS_FLAG_UNUSED_3 = (1 << 9),
+  FILE_PARAMS_FLAG_UNUSED_4 = (1 << 10),
   FILE_SORT_INVERT = (1 << 11),
   FILE_HIDE_TOOL_PROPS = (1 << 12),
   FILE_CHECK_EXISTING = (1 << 13),
   FILE_ASSETS_ONLY = (1 << 14),
+  /** Enables filtering by asset catalog. */
+  FILE_FILTER_ASSET_CATALOG = (1 << 15),
 } eFileSel_Params_Flag;
+
+typedef enum eFileSel_Params_AssetCatalogVisibility {
+  FILE_SHOW_ASSETS_ALL_CATALOGS,
+  FILE_SHOW_ASSETS_FROM_CATALOG,
+  FILE_SHOW_ASSETS_WITHOUT_CATALOG,
+} eFileSel_Params_AssetCatalogVisibility;
 
 /* sfile->params->rename_flag */
 /* NOTE: short flag. Defined as bitflags, but currently only used as exclusive status markers... */
@@ -1135,13 +1199,10 @@ typedef struct SpaceImage {
   char mode_prev;
 
   char pin;
-  char _pad1;
-  /**
-   * The currently active tile of the image when tile is enabled,
-   * is kept in sync with the active faces tile.
-   */
-  short curtile;
-  short lock;
+
+  char pixel_snap_mode;
+
+  char lock;
   /** UV draw type. */
   char dt_uv;
   /** Sticky selection type. */
@@ -1149,14 +1210,19 @@ typedef struct SpaceImage {
   char dt_uvstretch;
   char around;
 
-  int flag;
+  char _pad1[3];
 
-  char pixel_snap_mode;
-  char _pad2[7];
+  int flag;
 
   float uv_opacity;
 
   int tile_grid_shape[2];
+  /**
+   * UV editor custom-grid. Value of `N` will produce `NxN` grid.
+   * Use when #SI_CUSTOM_GRID is set.
+   */
+  int custom_grid_subdiv;
+  char _pad3[4];
 
   MaskSpaceInfo mask_info;
   SpaceImageOverlay overlay;
@@ -1212,6 +1278,7 @@ typedef enum eSpaceImage_Flag {
   SI_FLAG_UNUSED_7 = (1 << 7), /* cleared */
   SI_FLAG_UNUSED_8 = (1 << 8), /* cleared */
   SI_COORDFLOATS = (1 << 9),
+
   SI_FLAG_UNUSED_10 = (1 << 10),
   SI_LIVE_UNWRAP = (1 << 11),
   SI_USE_ALPHA = (1 << 12),
@@ -1223,7 +1290,7 @@ typedef enum eSpaceImage_Flag {
   SI_FULLWINDOW = (1 << 16),
 
   SI_FLAG_UNUSED_17 = (1 << 17),
-  SI_FLAG_UNUSED_18 = (1 << 18), /* cleared */
+  SI_CUSTOM_GRID = (1 << 18),
 
   /**
    * This means that the image is drawn until it reaches the view edge,
@@ -1248,6 +1315,9 @@ typedef enum eSpaceImage_Flag {
 typedef enum eSpaceImageOverlay_Flag {
   SI_OVERLAY_SHOW_OVERLAYS = (1 << 0),
 } eSpaceImageOverlay_Flag;
+
+/** Keep in sync with `STEPS_LEN` in `grid_frag.glsl`. */
+#define SI_GRID_STEPS_LEN 8
 
 /** \} */
 

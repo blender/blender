@@ -291,6 +291,16 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->space_sequencer.grid[3] = 255;
   }
 
+  if (!USER_VERSION_ATLEAST(300, 30)) {
+    FROM_DEFAULT_V4_UCHAR(space_node.wire);
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 31)) {
+    for (int i = 0; i < SEQUENCE_COLOR_TOT; ++i) {
+      FROM_DEFAULT_V4_UCHAR(strip_color[i].color);
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -765,7 +775,7 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
-  /* patch to set Dupli Lightprobes and Grease Pencil */
+  /* Patch to set dupli light-probes and grease-pencil. */
   if (!USER_VERSION_ATLEAST(280, 58)) {
     userdef->dupflag |= USER_DUP_LIGHTPROBE;
     userdef->dupflag |= USER_DUP_GPENCIL;

@@ -59,6 +59,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "SEQ_sequencer.h"
+
 #include "transform.h"
 #include "transform_convert.h"
 #include "transform_mode.h"
@@ -334,6 +336,11 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     else if (ED_space_clip_check_show_maskedit(sclip)) {
       t->options |= CTX_MASK;
     }
+  }
+  else if (t->spacetype == SPACE_SEQ && region->regiontype == RGN_TYPE_PREVIEW) {
+    t->view = &region->v2d;
+    t->around = SEQ_tool_settings_pivot_point_get(t->scene);
+    t->options |= CTX_SEQUENCER_IMAGE;
   }
   else {
     if (region) {

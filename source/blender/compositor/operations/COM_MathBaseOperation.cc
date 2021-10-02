@@ -51,22 +51,19 @@ void MathBaseOperation::deinitExecution()
   this->m_inputValue3Operation = nullptr;
 }
 
-void MathBaseOperation::determineResolution(unsigned int resolution[2],
-                                            unsigned int preferredResolution[2])
+void MathBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   NodeOperationInput *socket;
-  unsigned int tempPreferredResolution[2] = {0, 0};
-  unsigned int tempResolution[2];
-
+  rcti temp_area;
   socket = this->getInputSocket(0);
-  socket->determineResolution(tempResolution, tempPreferredResolution);
-  if ((tempResolution[0] != 0) && (tempResolution[1] != 0)) {
-    this->setResolutionInputSocketIndex(0);
+  const bool determined = socket->determine_canvas(COM_AREA_NONE, temp_area);
+  if (determined) {
+    this->set_canvas_input_index(0);
   }
   else {
-    this->setResolutionInputSocketIndex(1);
+    this->set_canvas_input_index(1);
   }
-  NodeOperation::determineResolution(resolution, preferredResolution);
+  NodeOperation::determine_canvas(preferred_area, r_area);
 }
 
 void MathBaseOperation::clampIfNeeded(float *color)

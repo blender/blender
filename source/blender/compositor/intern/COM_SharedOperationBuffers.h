@@ -53,7 +53,7 @@ class SharedOperationBuffers {
   bool has_registered_reads(NodeOperation *op);
   void register_read(NodeOperation *read_op);
 
-  blender::Span<rcti> get_areas_to_render(NodeOperation *op);
+  Vector<rcti> get_areas_to_render(NodeOperation *op, int offset_x, int offset_y);
   bool is_operation_rendered(NodeOperation *op);
   void set_rendered_buffer(NodeOperation *op, std::unique_ptr<MemoryBuffer> buffer);
   MemoryBuffer *get_rendered_buffer(NodeOperation *op);

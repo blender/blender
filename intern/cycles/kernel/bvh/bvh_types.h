@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-#ifndef __BVH_TYPES__
-#define __BVH_TYPES__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
@@ -43,5 +42,3 @@ CCL_NAMESPACE_BEGIN
 #define BVH_FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_TYPES__ */

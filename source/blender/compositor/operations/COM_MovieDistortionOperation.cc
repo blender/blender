@@ -29,15 +29,14 @@ MovieDistortionOperation::MovieDistortionOperation(bool distortion)
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->setResolutionInputSocketIndex(0);
+  this->set_canvas_input_index(0);
   this->m_inputOperation = nullptr;
   this->m_movieClip = nullptr;
   this->m_apply = distortion;
 }
 
-void MovieDistortionOperation::initExecution()
+void MovieDistortionOperation::init_data()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
   if (this->m_movieClip) {
     MovieTracking *tracking = &this->m_movieClip->tracking;
     MovieClipUser clipUser = {0};
@@ -49,10 +48,10 @@ void MovieDistortionOperation::initExecution()
     float delta[2];
     rcti full_frame;
     full_frame.xmin = full_frame.ymin = 0;
-    full_frame.xmax = this->m_width;
-    full_frame.ymax = this->m_height;
+    full_frame.xmax = this->getWidth();
+    full_frame.ymax = this->getHeight();
     BKE_tracking_max_distortion_delta_across_bound(
-        tracking, this->m_width, this->m_height, &full_frame, !this->m_apply, delta);
+        tracking, this->getWidth(), this->getHeight(), &full_frame, !this->m_apply, delta);
 
     /* 5 is just in case we didn't hit real max of distortion in
      * BKE_tracking_max_undistortion_delta_across_bound
@@ -60,15 +59,25 @@ void MovieDistortionOperation::initExecution()
     m_margin[0] = delta[0] + 5;
     m_margin[1] = delta[1] + 5;
 
-    this->m_distortion = BKE_tracking_distortion_new(
-        tracking, calibration_width, calibration_height);
     this->m_calibration_width = calibration_width;
     this->m_calibration_height = calibration_height;
     this->m_pixel_aspect = tracking->camera.pixel_aspect;
   }
   else {
     m_margin[0] = m_margin[1] = 0;
-    this->m_distortion = nullptr;
+  }
+}
+
+void MovieDistortionOperation::initExecution()
+{
+  m_inputOperation = this->getInputSocketReader(0);
+  if (m_movieClip) {
+    MovieTracking *tracking = &m_movieClip->tracking;
+    m_distortion = BKE_tracking_distortion_new(
+        tracking, m_calibration_width, m_calibration_height);
+  }
+  else {
+    m_distortion = nullptr;
   }
 }
 
@@ -89,8 +98,8 @@ void MovieDistortionOperation::executePixelSampled(float output[4],
   if (this->m_distortion != nullptr) {
     /* float overscan = 0.0f; */
     const float pixel_aspect = this->m_pixel_aspect;
-    const float w = (float)this->m_width /* / (1 + overscan) */;
-    const float h = (float)this->m_height /* / (1 + overscan) */;
+    const float w = (float)this->getWidth() /* / (1 + overscan) */;
+    const float h = (float)this->getHeight() /* / (1 + overscan) */;
     const float aspx = w / (float)this->m_calibration_width;
     const float aspy = h / (float)this->m_calibration_height;
     float in[2];
@@ -152,8 +161,8 @@ void MovieDistortionOperation::update_memory_buffer_partial(MemoryBuffer *output
 
   /* `float overscan = 0.0f;` */
   const float pixel_aspect = this->m_pixel_aspect;
-  const float w = (float)this->m_width /* `/ (1 + overscan)` */;
-  const float h = (float)this->m_height /* `/ (1 + overscan)` */;
+  const float w = (float)this->getWidth() /* `/ (1 + overscan)` */;
+  const float h = (float)this->getHeight() /* `/ (1 + overscan)` */;
   const float aspx = w / (float)this->m_calibration_width;
   const float aspy = h / (float)this->m_calibration_height;
   float xy[2];

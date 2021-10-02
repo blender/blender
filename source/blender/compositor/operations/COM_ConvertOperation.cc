@@ -587,7 +587,7 @@ CombineChannelsOperation::CombineChannelsOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
-  this->setResolutionInputSocketIndex(0);
+  this->set_canvas_input_index(0);
   this->m_inputChannel1Operation = nullptr;
   this->m_inputChannel2Operation = nullptr;
   this->m_inputChannel3Operation = nullptr;

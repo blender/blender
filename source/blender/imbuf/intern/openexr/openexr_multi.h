@@ -50,13 +50,14 @@ void IMB_exr_add_channel(void *handle,
                          float *rect,
                          bool use_half_float);
 
-int IMB_exr_begin_read(void *handle, const char *filename, int *width, int *height);
-int IMB_exr_begin_write(void *handle,
-                        const char *filename,
-                        int width,
-                        int height,
-                        int compress,
-                        const struct StampData *stamp);
+bool IMB_exr_begin_read(
+    void *handle, const char *filename, int *width, int *height, const bool parse_channels);
+bool IMB_exr_begin_write(void *handle,
+                         const char *filename,
+                         int width,
+                         int height,
+                         int compress,
+                         const struct StampData *stamp);
 void IMB_exrtile_begin_write(
     void *handle, const char *filename, int mipmap, int width, int height, int tilex, int tiley);
 

@@ -242,12 +242,6 @@ class PMJ02_Generator : public PMJ_Generator {
 
 static void shuffle(float2 points[], int size, int rng_seed)
 {
-  /* Offset samples by 1.0 for faster scrambling in kernel_random.h */
-  for (int i = 0; i < size; ++i) {
-    points[i].x += 1.0f;
-    points[i].y += 1.0f;
-  }
-
   if (rng_seed == 0) {
     return;
   }

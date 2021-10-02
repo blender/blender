@@ -261,20 +261,6 @@ static void build_multi_function_procedure_for_fields(MFProcedure &procedure,
 }
 
 /**
- * Utility class that destructs elements from a partially initialized array.
- */
-struct PartiallyInitializedArray : NonCopyable, NonMovable {
-  void *buffer;
-  IndexMask mask;
-  const CPPType *type;
-
-  ~PartiallyInitializedArray()
-  {
-    this->type->destruct_indices(this->buffer, this->mask);
-  }
-};
-
-/**
  * Evaluate fields in the given context. If possible, multiple fields should be evaluated together,
  * because that can be more efficient when they share common sub-fields.
  *
@@ -387,11 +373,11 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
         /* Allocate a new buffer for the computed result. */
         buffer = scope.linear_allocator().allocate(type.size() * array_size, type.alignment());
 
-        /* Make sure that elements in the buffer will be destructed. */
-        PartiallyInitializedArray &destruct_helper = scope.construct<PartiallyInitializedArray>();
-        destruct_helper.buffer = buffer;
-        destruct_helper.mask = mask;
-        destruct_helper.type = &type;
+        if (!type.is_trivially_destructible()) {
+          /* Destruct values in the end. */
+          scope.add_destruct_call(
+              [buffer, mask, &type]() { type.destruct_indices(buffer, mask); });
+        }
 
         r_varrays[out_index] = &scope.construct<GVArray_For_GSpan>(
             GSpan{type, buffer, array_size});
@@ -418,7 +404,10 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
     build_multi_function_procedure_for_fields(
         procedure, scope, field_tree_info, constant_fields_to_evaluate);
     MFProcedureExecutor procedure_executor{"Procedure", procedure};
-    MFParamsBuilder mf_params{procedure_executor, 1};
+    /* Run the code below even when the mask is empty, so that outputs are properly prepared.
+     * Higher level code can detect this as well and just skip evaluating the field. */
+    const int mask_size = mask.is_empty() ? 0 : 1;
+    MFParamsBuilder mf_params{procedure_executor, mask_size};
     MFContextBuilder mf_context;
 
     /* Provide inputs to the procedure executor. */
@@ -432,14 +421,14 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
       /* Allocate memory where the computed value will be stored in. */
       void *buffer = scope.linear_allocator().allocate(type.size(), type.alignment());
 
-      /* Use this to make sure that the value is destructed in the end. */
-      PartiallyInitializedArray &destruct_helper = scope.construct<PartiallyInitializedArray>();
-      destruct_helper.buffer = buffer;
-      destruct_helper.mask = IndexRange(1);
-      destruct_helper.type = &type;
+      if (!type.is_trivially_destructible() && mask_size > 0) {
+        BLI_assert(mask_size == 1);
+        /* Destruct value in the end. */
+        scope.add_destruct_call([buffer, &type]() { type.destruct(buffer); });
+      }
 
       /* Pass output buffer to the procedure executor. */
-      mf_params.add_uninitialized_single_output({type, buffer, 1});
+      mf_params.add_uninitialized_single_output({type, buffer, mask_size});
 
       /* Create virtual array that can be used after the procedure has been executed below. */
       const int out_index = constant_field_indices[i];
@@ -447,7 +436,7 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
           type, array_size, buffer);
     }
 
-    procedure_executor.call(IndexRange(1), mf_params, mf_context);
+    procedure_executor.call(IndexRange(mask_size), mf_params, mf_context);
   }
 
   /* Copy data to supplied destination arrays if necessary. In some cases the evaluation above has
@@ -468,7 +457,8 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
       /* Still have to copy over the data in the destination provided by the caller. */
       if (output_varray->is_span()) {
         /* Materialize into a span. */
-        computed_varray->materialize_to_uninitialized(output_varray->get_internal_span().data());
+        computed_varray->materialize_to_uninitialized(mask,
+                                                      output_varray->get_internal_span().data());
       }
       else {
         /* Slower materialize into a different structure. */
@@ -523,6 +513,21 @@ const GVArray *FieldContext::get_varray_for_input(const FieldInput &field_input,
   /* By default ask the field input to create the varray. Another field context might overwrite
    * the context here. */
   return field_input.get_varray_for_context(*this, mask, scope);
+}
+
+IndexFieldInput::IndexFieldInput() : FieldInput(CPPType::get<int>(), "Index")
+{
+}
+
+const GVArray *IndexFieldInput::get_varray_for_context(const fn::FieldContext &UNUSED(context),
+                                                       IndexMask mask,
+                                                       ResourceScope &scope) const
+{
+  /* TODO: Investigate a similar method to IndexRange::as_span() */
+  auto index_func = [](int i) { return i; };
+  return &scope.construct<
+      fn::GVArray_For_EmbeddedVArray<int, VArray_For_Func<int, decltype(index_func)>>>(
+      mask.min_array_size(), mask.min_array_size(), index_func);
 }
 
 /* --------------------------------------------------------------------

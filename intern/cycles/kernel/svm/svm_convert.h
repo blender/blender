@@ -18,8 +18,8 @@ CCL_NAMESPACE_BEGIN
 
 /* Conversion Nodes */
 
-ccl_device void svm_node_convert(
-    KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint from, uint to)
+ccl_device_noinline void svm_node_convert(
+    const KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint from, uint to)
 {
   switch (type) {
     case NODE_CONVERT_FI: {

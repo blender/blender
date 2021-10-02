@@ -23,17 +23,18 @@
 
 #include "node_shader_util.h"
 
-/* **************** Clamp ******************** */
-static bNodeSocketTemplate sh_node_clamp_in[] = {
-    {SOCK_FLOAT, N_("Value"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Min"), 0.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Max"), 1.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-    {-1, ""},
+namespace blender::nodes {
+
+static void sh_node_clamp_declare(NodeDeclarationBuilder &b)
+{
+  b.is_function_node();
+  b.add_input<decl::Float>("Value").min(0.0f).max(1.0f).default_value(1.0f);
+  b.add_input<decl::Float>("Min").default_value(0.0f).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("Max").default_value(1.0f).min(-10000.0f).max(10000.0f);
+  b.add_output<decl::Float>("Result");
 };
-static bNodeSocketTemplate sh_node_clamp_out[] = {
-    {SOCK_FLOAT, N_("Result")},
-    {-1, ""},
-};
+
+}  // namespace blender::nodes
 
 static void node_shader_init_clamp(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -79,7 +80,7 @@ void register_node_type_sh_clamp(void)
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_CLAMP, "Clamp", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, sh_node_clamp_in, sh_node_clamp_out);
+  ntype.declare = blender::nodes::sh_node_clamp_declare;
   node_type_init(&ntype, node_shader_init_clamp);
   node_type_gpu(&ntype, gpu_shader_clamp);
   ntype.build_multi_function = sh_node_clamp_build_multi_function;

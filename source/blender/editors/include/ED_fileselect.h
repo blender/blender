@@ -142,6 +142,7 @@ void ED_fileselect_exit(struct wmWindowManager *wm, struct SpaceFile *sfile);
 
 bool ED_fileselect_is_file_browser(const struct SpaceFile *sfile);
 bool ED_fileselect_is_asset_browser(const struct SpaceFile *sfile);
+struct AssetLibrary *ED_fileselect_active_asset_library_get(const struct SpaceFile *sfile);
 struct ID *ED_fileselect_active_asset_get(const struct SpaceFile *sfile);
 
 /* Activate the file that corresponds to the given ID.

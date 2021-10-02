@@ -203,6 +203,7 @@ Shader::Shader() : Node(get_node_type())
   has_surface = false;
   has_surface_transparent = false;
   has_surface_emission = false;
+  has_surface_raytrace = false;
   has_surface_bssrdf = false;
   has_volume = false;
   has_displacement = false;
@@ -485,7 +486,7 @@ void ShaderManager::device_update(Device *device,
   device_update_specific(device, dscene, scene, progress);
 }
 
-void ShaderManager::device_update_common(Device *device,
+void ShaderManager::device_update_common(Device * /*device*/,
                                          DeviceScene *dscene,
                                          Scene *scene,
                                          Progress & /*progress*/)
@@ -508,6 +509,8 @@ void ShaderManager::device_update_common(Device *device,
       flag |= SD_HAS_EMISSION;
     if (shader->has_surface_transparent && shader->get_use_transparent_shadow())
       flag |= SD_HAS_TRANSPARENT_SHADOW;
+    if (shader->has_surface_raytrace)
+      flag |= SD_HAS_RAYTRACE;
     if (shader->has_volume) {
       flag |= SD_HAS_VOLUME;
       has_volumes = true;
@@ -528,12 +531,10 @@ void ShaderManager::device_update_common(Device *device,
       flag |= SD_NEED_VOLUME_ATTRIBUTES;
     if (shader->has_bssrdf_bump)
       flag |= SD_HAS_BSSRDF_BUMP;
-    if (device->info.has_volume_decoupled) {
-      if (shader->get_volume_sampling_method() == VOLUME_SAMPLING_EQUIANGULAR)
-        flag |= SD_VOLUME_EQUIANGULAR;
-      if (shader->get_volume_sampling_method() == VOLUME_SAMPLING_MULTIPLE_IMPORTANCE)
-        flag |= SD_VOLUME_MIS;
-    }
+    if (shader->get_volume_sampling_method() == VOLUME_SAMPLING_EQUIANGULAR)
+      flag |= SD_VOLUME_EQUIANGULAR;
+    if (shader->get_volume_sampling_method() == VOLUME_SAMPLING_MULTIPLE_IMPORTANCE)
+      flag |= SD_VOLUME_MIS;
     if (shader->get_volume_interpolation_method() == VOLUME_INTERPOLATION_CUBIC)
       flag |= SD_VOLUME_CUBIC;
     if (shader->has_bump)
@@ -682,39 +683,35 @@ void ShaderManager::add_default(Scene *scene)
   }
 }
 
-void ShaderManager::get_requested_graph_features(ShaderGraph *graph,
-                                                 DeviceRequestedFeatures *requested_features)
+uint ShaderManager::get_graph_kernel_features(ShaderGraph *graph)
 {
+  uint kernel_features = 0;
+
   foreach (ShaderNode *node, graph->nodes) {
-    requested_features->max_nodes_group = max(requested_features->max_nodes_group,
-                                              node->get_group());
-    requested_features->nodes_features |= node->get_feature();
+    kernel_features |= node->get_feature();
     if (node->special_type == SHADER_SPECIAL_TYPE_CLOSURE) {
       BsdfBaseNode *bsdf_node = static_cast<BsdfBaseNode *>(node);
       if (CLOSURE_IS_VOLUME(bsdf_node->get_closure_type())) {
-        requested_features->nodes_features |= NODE_FEATURE_VOLUME;
+        kernel_features |= KERNEL_FEATURE_NODE_VOLUME;
       }
       else if (CLOSURE_IS_PRINCIPLED(bsdf_node->get_closure_type())) {
-        requested_features->use_principled = true;
+        kernel_features |= KERNEL_FEATURE_PRINCIPLED;
       }
     }
     if (node->has_surface_bssrdf()) {
-      requested_features->use_subsurface = true;
+      kernel_features |= KERNEL_FEATURE_SUBSURFACE;
     }
     if (node->has_surface_transparent()) {
-      requested_features->use_transparent = true;
-    }
-    if (node->has_raytrace()) {
-      requested_features->use_shader_raytrace = true;
+      kernel_features |= KERNEL_FEATURE_TRANSPARENT;
     }
   }
+
+  return kernel_features;
 }
 
-void ShaderManager::get_requested_features(Scene *scene,
-                                           DeviceRequestedFeatures *requested_features)
+uint ShaderManager::get_kernel_features(Scene *scene)
 {
-  requested_features->max_nodes_group = NODE_GROUP_LEVEL_0;
-  requested_features->nodes_features = 0;
+  uint kernel_features = KERNEL_FEATURE_NODE_BSDF | KERNEL_FEATURE_NODE_EMISSION;
   for (int i = 0; i < scene->shaders.size(); i++) {
     Shader *shader = scene->shaders[i];
     if (!shader->reference_count()) {
@@ -722,21 +719,22 @@ void ShaderManager::get_requested_features(Scene *scene,
     }
 
     /* Gather requested features from all the nodes from the graph nodes. */
-    get_requested_graph_features(shader->graph, requested_features);
+    kernel_features |= get_graph_kernel_features(shader->graph);
     ShaderNode *output_node = shader->graph->output();
     if (output_node->input("Displacement")->link != NULL) {
-      requested_features->nodes_features |= NODE_FEATURE_BUMP;
+      kernel_features |= KERNEL_FEATURE_NODE_BUMP;
       if (shader->get_displacement_method() == DISPLACE_BOTH) {
-        requested_features->nodes_features |= NODE_FEATURE_BUMP_STATE;
-        requested_features->max_nodes_group = max(requested_features->max_nodes_group,
-                                                  NODE_GROUP_LEVEL_1);
+        kernel_features |= KERNEL_FEATURE_NODE_BUMP_STATE;
       }
     }
     /* On top of volume nodes, also check if we need volume sampling because
-     * e.g. an Emission node would slip through the NODE_FEATURE_VOLUME check */
-    if (shader->has_volume)
-      requested_features->use_volume |= true;
+     * e.g. an Emission node would slip through the KERNEL_FEATURE_NODE_VOLUME check */
+    if (shader->has_volume_connected) {
+      kernel_features |= KERNEL_FEATURE_VOLUME;
+    }
   }
+
+  return kernel_features;
 }
 
 void ShaderManager::free_memory()

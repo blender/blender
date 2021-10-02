@@ -41,7 +41,7 @@ class PlaneTrackCommon {
    * implementation classes must make wrappers to use these methods, see below.
    */
   void read_and_calculate_corners(PlaneDistortBaseOperation *distort_op);
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void determine_canvas(const rcti &preferred_area, rcti &r_area);
 
  public:
   PlaneTrackCommon();
@@ -77,13 +77,13 @@ class PlaneTrackMaskOperation : public PlaneDistortMaskOperation, public PlaneTr
 
   void initExecution() override;
 
-  void determineResolution(unsigned int resolution[2],
-                           unsigned int preferredResolution[2]) override
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override
   {
-    PlaneTrackCommon::determineResolution(resolution, preferredResolution);
+    PlaneTrackCommon::determine_canvas(preferred_area, r_area);
 
-    unsigned int temp[2];
-    NodeOperation::determineResolution(temp, resolution);
+    rcti unused;
+    rcti &preferred = r_area;
+    NodeOperation::determine_canvas(preferred, unused);
   }
 };
 
@@ -98,12 +98,13 @@ class PlaneTrackWarpImageOperation : public PlaneDistortWarpImageOperation,
 
   void initExecution() override;
 
-  void determineResolution(unsigned int resolution[2],
-                           unsigned int preferredResolution[2]) override
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override
   {
-    PlaneTrackCommon::determineResolution(resolution, preferredResolution);
-    unsigned int temp[2];
-    NodeOperation::determineResolution(temp, resolution);
+    PlaneTrackCommon::determine_canvas(preferred_area, r_area);
+
+    rcti unused;
+    rcti &preferred = r_area;
+    NodeOperation::determine_canvas(preferred, unused);
   }
 };
 

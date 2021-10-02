@@ -43,26 +43,18 @@ static std::unique_ptr<CurveEval> create_spiral_curve(const float rotations,
 
   const int totalpoints = std::max(int(resolution * rotations), 1);
   const float delta_radius = (end_radius - start_radius) / (float)totalpoints;
-  float radius = start_radius;
   const float delta_height = height / (float)totalpoints;
-  const float delta_theta = (M_PI * 2 * rotations) / (float)totalpoints;
-  float theta = 0.0f;
+  const float delta_theta = (M_PI * 2 * rotations) / (float)totalpoints *
+                            (direction ? 1.0f : -1.0f);
 
   for (const int i : IndexRange(totalpoints + 1)) {
+    const float theta = i * delta_theta;
+    const float radius = start_radius + i * delta_radius;
     const float x = radius * cos(theta);
     const float y = radius * sin(theta);
     const float z = delta_height * i;
 
     spline->add_point(float3(x, y, z), 1.0f, 0.0f);
-
-    radius += delta_radius;
-
-    if (direction) {
-      theta += delta_theta;
-    }
-    else {
-      theta -= delta_theta;
-    }
   }
 
   spline->attributes.reallocate(spline->size());

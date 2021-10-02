@@ -44,6 +44,7 @@
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
 #include "SEQ_transform.h"
+#include "SEQ_utils.h"
 
 /* For menu, popup, icons, etc. */
 
@@ -385,6 +386,20 @@ void recurs_sel_seq(Sequence *seq_meta)
   }
 }
 
+static bool seq_point_image_isect(const Scene *scene, const Sequence *seq, float point[2])
+{
+  float seq_image_quad[4][2];
+  SEQ_image_transform_final_quad_get(scene, seq, seq_image_quad);
+  return isect_point_quad_v2(
+      point, seq_image_quad[0], seq_image_quad[1], seq_image_quad[2], seq_image_quad[3]);
+}
+
+static void sequencer_select_do_updates(bContext *C, Scene *scene)
+{
+  ED_outliner_select_sync_from_sequence_tag(C);
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -523,12 +538,6 @@ static void sequencer_select_set_active(Scene *scene, Sequence *seq)
   recurs_sel_seq(seq);
 }
 
-static void sequencer_select_do_updates(bContext *C, Scene *scene)
-{
-  ED_outliner_select_sync_from_sequence_tag(C);
-  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
-}
-
 static void sequencer_select_side_of_frame(const bContext *C,
                                            const View2D *v2d,
                                            const int mval[2],
@@ -626,6 +635,45 @@ static void sequencer_select_linked_handle(const bContext *C,
   }
 }
 
+/* Check if click happened on image which belongs to strip. If multiple strips are found, loop
+ * through them in order. */
+static Sequence *seq_select_seq_from_preview(const bContext *C, const int mval[2])
+{
+  Scene *scene = CTX_data_scene(C);
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *seqbase = SEQ_active_seqbase_get(ed);
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  View2D *v2d = UI_view2d_fromcontext(C);
+
+  float mouseco_view[2];
+  UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouseco_view[0], &mouseco_view[1]);
+
+  SeqCollection *strips = SEQ_query_rendered_strips(seqbase, scene->r.cfra, sseq->chanshown);
+  ListBase strips_ordered = {NULL};
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, strips) {
+    if (seq_point_image_isect(scene, seq, mouseco_view)) {
+      BLI_remlink(seqbase, seq);
+      BLI_addtail(&strips_ordered, seq);
+    }
+  }
+  SEQ_collection_free(strips);
+  SEQ_sort(&strips_ordered);
+
+  Sequence *seq_active = SEQ_select_active_get(scene);
+  Sequence *seq_select = strips_ordered.first;
+  LISTBASE_FOREACH (Sequence *, seq_iter, &strips_ordered) {
+    if (seq_iter == seq_active && seq_iter->next != NULL) {
+      seq_select = seq_iter->next;
+      break;
+    }
+  }
+
+  BLI_movelisttolist(seqbase, &strips_ordered);
+
+  return seq_select;
+}
+
 static bool element_already_selected(const Sequence *seq, const int handle_clicked)
 {
   const bool handle_already_selected = ((handle_clicked == SEQ_SIDE_LEFT) &&
@@ -680,8 +728,15 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
   mval[0] = RNA_int_get(op->ptr, "mouse_x");
   mval[1] = RNA_int_get(op->ptr, "mouse_y");
 
-  int handle_clicked;
-  Sequence *seq = find_nearest_seq(scene, v2d, &handle_clicked, mval);
+  ARegion *region = CTX_wm_region(C);
+  int handle_clicked = SEQ_SIDE_NONE;
+  Sequence *seq = NULL;
+  if (region->regiontype == RGN_TYPE_PREVIEW) {
+    seq = seq_select_seq_from_preview(C, mval);
+  }
+  else {
+    seq = find_nearest_seq(scene, v2d, &handle_clicked, mval);
+  }
 
   /* NOTE: `side_of_frame` and `linked_time` functionality is designed to be shared on one keymap,
    * therefore both properties can be true at the same time. */
@@ -1311,6 +1366,47 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot)
 /** \name Box Select Operator
  * \{ */
 
+static bool seq_box_select_rect_image_isect(const Scene *scene, const Sequence *seq, rctf *rect)
+{
+  float seq_image_quad[4][2];
+  SEQ_image_transform_final_quad_get(scene, seq, seq_image_quad);
+  float rect_quad[4][2] = {{rect->xmax, rect->ymax},
+                           {rect->xmax, rect->ymin},
+                           {rect->xmin, rect->ymin},
+                           {rect->xmin, rect->ymax}};
+
+  return seq_point_image_isect(scene, seq, rect_quad[0]) ||
+         seq_point_image_isect(scene, seq, rect_quad[1]) ||
+         seq_point_image_isect(scene, seq, rect_quad[2]) ||
+         seq_point_image_isect(scene, seq, rect_quad[3]) ||
+         isect_point_quad_v2(
+             seq_image_quad[0], rect_quad[0], rect_quad[1], rect_quad[2], rect_quad[3]) ||
+         isect_point_quad_v2(
+             seq_image_quad[1], rect_quad[0], rect_quad[1], rect_quad[2], rect_quad[3]) ||
+         isect_point_quad_v2(
+             seq_image_quad[2], rect_quad[0], rect_quad[1], rect_quad[2], rect_quad[3]) ||
+         isect_point_quad_v2(
+             seq_image_quad[3], rect_quad[0], rect_quad[1], rect_quad[2], rect_quad[3]);
+}
+
+static void seq_box_select_seq_from_preview(const bContext *C, rctf *rect)
+{
+  Scene *scene = CTX_data_scene(C);
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *seqbase = SEQ_active_seqbase_get(ed);
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+
+  SeqCollection *strips = SEQ_query_rendered_strips(seqbase, scene->r.cfra, sseq->chanshown);
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, strips) {
+    if (seq_box_select_rect_image_isect(scene, seq, rect)) {
+      seq->flag |= SELECT;
+    }
+  }
+
+  SEQ_collection_free(strips);
+}
+
 static int sequencer_box_select_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
@@ -1332,6 +1428,13 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
   rctf rectf;
   WM_operator_properties_border_to_rctf(op, &rectf);
   UI_view2d_region_to_view_rctf(v2d, &rectf, &rectf);
+
+  ARegion *region = CTX_wm_region(C);
+  if (region->regiontype == RGN_TYPE_PREVIEW) {
+    seq_box_select_seq_from_preview(C, &rectf);
+    sequencer_select_do_updates(C, scene);
+    return OPERATOR_FINISHED;
+  }
 
   LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
     rctf rq;
@@ -1378,9 +1481,7 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  ED_outliner_select_sync_from_sequence_tag(C);
-
-  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
+  sequencer_select_do_updates(C, scene);
 
   return OPERATOR_FINISHED;
 }

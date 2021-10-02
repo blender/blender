@@ -38,7 +38,6 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 class DeviceScene;
-class DeviceRequestedFeatures;
 class Mesh;
 class Progress;
 class Scene;
@@ -117,6 +116,7 @@ class Shader : public Node {
   bool has_surface;
   bool has_surface_emission;
   bool has_surface_transparent;
+  bool has_surface_raytrace;
   bool has_volume;
   bool has_displacement;
   bool has_surface_bssrdf;
@@ -216,7 +216,7 @@ class ShaderManager {
   static void add_default(Scene *scene);
 
   /* Selective nodes compilation. */
-  void get_requested_features(Scene *scene, DeviceRequestedFeatures *requested_features);
+  uint get_kernel_features(Scene *scene);
 
   static void free_memory();
 
@@ -244,8 +244,7 @@ class ShaderManager {
 
   size_t beckmann_table_offset;
 
-  void get_requested_graph_features(ShaderGraph *graph,
-                                    DeviceRequestedFeatures *requested_features);
+  uint get_graph_kernel_features(ShaderGraph *graph);
 
   thread_spin_lock attribute_lock_;
 

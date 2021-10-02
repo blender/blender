@@ -236,8 +236,7 @@ void CompositorOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(outp
   depth_buf.copy_from(inputs[2], area);
 }
 
-void CompositorOperation::determineResolution(unsigned int resolution[2],
-                                              unsigned int preferredResolution[2])
+void CompositorOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
 {
   int width = this->m_rd->xsch * this->m_rd->size / 100;
   int height = this->m_rd->ysch * this->m_rd->size / 100;
@@ -254,13 +253,19 @@ void CompositorOperation::determineResolution(unsigned int resolution[2],
     RE_ReleaseResult(re);
   }
 
-  preferredResolution[0] = width;
-  preferredResolution[1] = height;
+  rcti local_preferred;
+  BLI_rcti_init(&local_preferred, 0, width, 0, height);
 
-  NodeOperation::determineResolution(resolution, preferredResolution);
-
-  resolution[0] = width;
-  resolution[1] = height;
+  switch (execution_model_) {
+    case eExecutionModel::Tiled:
+      NodeOperation::determine_canvas(local_preferred, r_area);
+      r_area = local_preferred;
+      break;
+    case eExecutionModel::FullFrame:
+      set_determined_canvas_modifier([&](rcti &canvas) { canvas = local_preferred; });
+      NodeOperation::determine_canvas(local_preferred, r_area);
+      break;
+  }
 }
 
 }  // namespace blender::compositor

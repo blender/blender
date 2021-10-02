@@ -152,7 +152,7 @@ static void nla_action_draw_keyframes(
         format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
     GPU_program_point_size(true);
-    immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+    immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
     immUniform1f("outline_scale", 1.0f);
     immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);
     immBegin(GPU_PRIM_POINTS, key_len);

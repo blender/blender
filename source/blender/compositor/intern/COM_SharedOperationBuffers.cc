@@ -76,9 +76,17 @@ void SharedOperationBuffers::register_read(NodeOperation *read_op)
 /**
  * Get registered areas given operation needs to render.
  */
-blender::Span<rcti> SharedOperationBuffers::get_areas_to_render(NodeOperation *op)
+Vector<rcti> SharedOperationBuffers::get_areas_to_render(NodeOperation *op,
+                                                         const int offset_x,
+                                                         const int offset_y)
 {
-  return get_buffer_data(op).render_areas.as_span();
+  Span<rcti> render_areas = get_buffer_data(op).render_areas.as_span();
+  Vector<rcti> dst_areas;
+  for (rcti dst : render_areas) {
+    BLI_rcti_translate(&dst, offset_x, offset_y);
+    dst_areas.append(std::move(dst));
+  }
+  return dst_areas;
 }
 
 /**

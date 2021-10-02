@@ -23,6 +23,7 @@ namespace blender::nodes {
 
 static void fn_node_input_string_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_output<decl::String>("String");
 };
 

@@ -2082,7 +2082,7 @@ static int mixed_bones_object_selectbuffer_extended(ViewContext *vc,
 /**
  * \param has_bones: When true, skip non-bone hits, also allow bases to be used
  * that are visible but not select-able,
- * since you may be in pose mode with an unselect-able object.
+ * since you may be in pose mode with an un-selectable object.
  *
  * \return the active base or NULL.
  */
@@ -2813,7 +2813,9 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, const wmEvent *even
 {
   RNA_int_set_array(op->ptr, "location", event->mval);
 
-  return view3d_select_exec(C, op);
+  const int retval = view3d_select_exec(C, op);
+
+  return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
 
 void VIEW3D_OT_select(wmOperatorType *ot)

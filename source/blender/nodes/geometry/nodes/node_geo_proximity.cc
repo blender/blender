@@ -1,0 +1,235 @@
+/*
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "BLI_task.hh"
+#include "BLI_timeit.hh"
+
+#include "DNA_mesh_types.h"
+
+#include "BKE_bvhutils.h"
+#include "BKE_geometry_set.hh"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "node_geometry_util.hh"
+
+namespace blender::nodes {
+
+static void geo_node_proximity_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Target");
+  b.add_input<decl::Vector>("Source Position").implicit_field();
+  b.add_output<decl::Vector>("Position").dependent_field();
+  b.add_output<decl::Float>("Distance").dependent_field();
+}
+
+static void geo_node_proximity_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "target_element", 0, "", ICON_NONE);
+}
+
+static void geo_proximity_init(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  NodeGeometryProximity *node_storage = (NodeGeometryProximity *)MEM_callocN(
+      sizeof(NodeGeometryProximity), __func__);
+  node_storage->target_element = GEO_NODE_PROX_TARGET_FACES;
+  node->storage = node_storage;
+}
+
+static void calculate_mesh_proximity(const VArray<float3> &positions,
+                                     const IndexMask mask,
+                                     const Mesh &mesh,
+                                     const GeometryNodeProximityTargetType type,
+                                     const MutableSpan<float> r_distances,
+                                     const MutableSpan<float3> r_locations)
+{
+  BVHTreeFromMesh bvh_data;
+  switch (type) {
+    case GEO_NODE_PROX_TARGET_POINTS:
+      BKE_bvhtree_from_mesh_get(&bvh_data, &mesh, BVHTREE_FROM_VERTS, 2);
+      break;
+    case GEO_NODE_PROX_TARGET_EDGES:
+      BKE_bvhtree_from_mesh_get(&bvh_data, &mesh, BVHTREE_FROM_EDGES, 2);
+      break;
+    case GEO_NODE_PROX_TARGET_FACES:
+      BKE_bvhtree_from_mesh_get(&bvh_data, &mesh, BVHTREE_FROM_LOOPTRI, 2);
+      break;
+  }
+
+  if (bvh_data.tree == nullptr) {
+    return;
+  }
+
+  threading::parallel_for(mask.index_range(), 512, [&](IndexRange range) {
+    BVHTreeNearest nearest;
+    copy_v3_fl(nearest.co, FLT_MAX);
+    nearest.index = -1;
+
+    for (int i : range) {
+      const int index = mask[i];
+      /* Use the distance to the last found point as upper bound to speedup the bvh lookup. */
+      nearest.dist_sq = float3::distance_squared(nearest.co, positions[index]);
+
+      BLI_bvhtree_find_nearest(
+          bvh_data.tree, positions[index], &nearest, bvh_data.nearest_callback, &bvh_data);
+
+      if (nearest.dist_sq < r_distances[index]) {
+        r_distances[index] = nearest.dist_sq;
+        if (!r_locations.is_empty()) {
+          r_locations[index] = nearest.co;
+        }
+      }
+    }
+  });
+
+  free_bvhtree_from_mesh(&bvh_data);
+}
+
+static void calculate_pointcloud_proximity(const VArray<float3> &positions,
+                                           const IndexMask mask,
+                                           const PointCloud &pointcloud,
+                                           const MutableSpan<float> r_distances,
+                                           const MutableSpan<float3> r_locations)
+{
+  BVHTreeFromPointCloud bvh_data;
+  BKE_bvhtree_from_pointcloud_get(&bvh_data, &pointcloud, 2);
+  if (bvh_data.tree == nullptr) {
+    return;
+  }
+
+  threading::parallel_for(mask.index_range(), 512, [&](IndexRange range) {
+    BVHTreeNearest nearest;
+    copy_v3_fl(nearest.co, FLT_MAX);
+    nearest.index = -1;
+
+    for (int i : range) {
+      const int index = mask[i];
+      /* Use the distance to the closest point in the mesh to speedup the pointcloud bvh lookup.
+       * This is ok because we only need to find the closest point in the pointcloud if it's
+       * closer than the mesh. */
+      nearest.dist_sq = r_distances[index];
+
+      BLI_bvhtree_find_nearest(
+          bvh_data.tree, positions[index], &nearest, bvh_data.nearest_callback, &bvh_data);
+
+      if (nearest.dist_sq < r_distances[index]) {
+        r_distances[index] = nearest.dist_sq;
+        if (!r_locations.is_empty()) {
+          r_locations[index] = nearest.co;
+        }
+      }
+    }
+  });
+
+  free_bvhtree_from_pointcloud(&bvh_data);
+}
+
+class ProximityFunction : public fn::MultiFunction {
+ private:
+  GeometrySet target_;
+  GeometryNodeProximityTargetType type_;
+
+ public:
+  ProximityFunction(GeometrySet target, GeometryNodeProximityTargetType type)
+      : target_(std::move(target)), type_(type)
+  {
+    static fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Geometry Proximity"};
+    signature.single_input<float3>("Source Position");
+    signature.single_output<float3>("Position");
+    signature.single_output<float>("Distance");
+    return signature.build();
+  }
+
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  {
+    const VArray<float3> &src_positions = params.readonly_single_input<float3>(0,
+                                                                               "Source Position");
+    MutableSpan<float3> positions = params.uninitialized_single_output_if_required<float3>(
+        1, "Position");
+    /* Make sure there is a distance array, used for finding the smaller distance when there are
+     * multiple components. Theoretically it would be possible to avoid using the distance array
+     * when there is only one component. However, this only adds an allocation and a single float
+     * comparison per vertex, so it's likely not worth it. */
+    MutableSpan<float> distances = params.uninitialized_single_output<float>(2, "Distance");
+
+    distances.fill(FLT_MAX);
+
+    if (target_.has_mesh()) {
+      calculate_mesh_proximity(
+          src_positions, mask, *target_.get_mesh_for_read(), type_, distances, positions);
+    }
+
+    if (target_.has_pointcloud() && type_ == GEO_NODE_PROX_TARGET_POINTS) {
+      calculate_pointcloud_proximity(
+          src_positions, mask, *target_.get_pointcloud_for_read(), distances, positions);
+    }
+
+    if (params.single_output_is_required(2, "Distance")) {
+      threading::parallel_for(mask.index_range(), 2048, [&](IndexRange range) {
+        for (const int i : range) {
+          const int j = mask[i];
+          distances[j] = std::sqrt(distances[j]);
+        }
+      });
+    }
+  }
+};
+
+static void geo_node_proximity_exec(GeoNodeExecParams params)
+{
+  GeometrySet geometry_set_target = params.extract_input<GeometrySet>("Target");
+
+  if (!geometry_set_target.has_mesh() && !geometry_set_target.has_pointcloud()) {
+    params.set_output("Position", fn::make_constant_field<float3>({0.0f, 0.0f, 0.0f}));
+    params.set_output("Distance", fn::make_constant_field<float>({0.0f}));
+    return;
+  }
+
+  const NodeGeometryProximity &storage = *(const NodeGeometryProximity *)params.node().storage;
+  Field<float3> position_field = params.extract_input<Field<float3>>("Source Position");
+
+  auto proximity_fn = std::make_unique<ProximityFunction>(
+      std::move(geometry_set_target),
+      static_cast<GeometryNodeProximityTargetType>(storage.target_element));
+  auto proximity_op = std::make_shared<FieldOperation>(
+      FieldOperation(std::move(proximity_fn), {std::move(position_field)}));
+
+  params.set_output("Position", Field<float3>(proximity_op, 0));
+  params.set_output("Distance", Field<float>(proximity_op, 1));
+}
+
+}  // namespace blender::nodes
+
+void register_node_type_geo_proximity()
+{
+  static bNodeType ntype;
+
+  geo_node_type_base(&ntype, GEO_NODE_PROXIMITY, "Geometry Proximity", NODE_CLASS_GEOMETRY, 0);
+  node_type_init(&ntype, blender::nodes::geo_proximity_init);
+  node_type_storage(
+      &ntype, "NodeGeometryProximity", node_free_standard_storage, node_copy_standard_storage);
+  ntype.declare = blender::nodes::geo_node_proximity_declare;
+  ntype.geometry_node_execute = blender::nodes::geo_node_proximity_exec;
+  ntype.draw_buttons = blender::nodes::geo_node_proximity_layout;
+  nodeRegisterType(&ntype);
+}

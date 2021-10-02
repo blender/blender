@@ -123,17 +123,54 @@ void Stabilize2dNode::convertToOperations(NodeConverter &converter,
       break;
     }
     case eExecutionModel::FullFrame: {
-      TransformOperation *transform_op = new TransformOperation();
-      transform_op->set_sampler(sampler);
-      transform_op->set_convert_rotate_degree_to_rad(false);
-      transform_op->set_invert(invert);
-      converter.addOperation(transform_op);
-      converter.mapInputSocket(imageInput, transform_op->getInputSocket(0));
-      converter.addLink(xAttribute->getOutputSocket(), transform_op->getInputSocket(1));
-      converter.addLink(yAttribute->getOutputSocket(), transform_op->getInputSocket(2));
-      converter.addLink(angleAttribute->getOutputSocket(), transform_op->getInputSocket(3));
-      converter.addLink(scaleAttribute->getOutputSocket(), transform_op->getInputSocket(4));
-      converter.mapOutputSocket(getOutputSocket(), transform_op->getOutputSocket());
+      ScaleRelativeOperation *scaleOperation = new ScaleRelativeOperation();
+      scaleOperation->setSampler(sampler);
+      RotateOperation *rotateOperation = new RotateOperation();
+      rotateOperation->setDoDegree2RadConversion(false);
+      rotateOperation->set_sampler(sampler);
+      TranslateOperation *translateOperation = new TranslateCanvasOperation();
+
+      converter.addOperation(scaleOperation);
+      converter.addOperation(translateOperation);
+      converter.addOperation(rotateOperation);
+
+      converter.addLink(scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(1));
+      converter.addLink(scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(2));
+
+      converter.addLink(angleAttribute->getOutputSocket(), rotateOperation->getInputSocket(1));
+
+      converter.addLink(xAttribute->getOutputSocket(), translateOperation->getInputSocket(1));
+      converter.addLink(yAttribute->getOutputSocket(), translateOperation->getInputSocket(2));
+
+      NodeOperationInput *stabilization_socket = nullptr;
+      if (invert) {
+        /* Translate -> Rotate -> Scale. */
+        stabilization_socket = translateOperation->getInputSocket(0);
+        converter.mapInputSocket(imageInput, translateOperation->getInputSocket(0));
+
+        converter.addLink(translateOperation->getOutputSocket(),
+                          rotateOperation->getInputSocket(0));
+        converter.addLink(rotateOperation->getOutputSocket(), scaleOperation->getInputSocket(0));
+
+        converter.mapOutputSocket(getOutputSocket(), scaleOperation->getOutputSocket());
+      }
+      else {
+        /* Scale  -> Rotate -> Translate. */
+        stabilization_socket = scaleOperation->getInputSocket(0);
+        converter.mapInputSocket(imageInput, scaleOperation->getInputSocket(0));
+
+        converter.addLink(scaleOperation->getOutputSocket(), rotateOperation->getInputSocket(0));
+        converter.addLink(rotateOperation->getOutputSocket(),
+                          translateOperation->getInputSocket(0));
+
+        converter.mapOutputSocket(getOutputSocket(), translateOperation->getOutputSocket());
+      }
+
+      xAttribute->set_socket_input_resolution_for_stabilization(stabilization_socket);
+      yAttribute->set_socket_input_resolution_for_stabilization(stabilization_socket);
+      scaleAttribute->set_socket_input_resolution_for_stabilization(stabilization_socket);
+      angleAttribute->set_socket_input_resolution_for_stabilization(stabilization_socket);
+      break;
     }
   }
 }

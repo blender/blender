@@ -18,10 +18,13 @@
 
 #pragma once
 
+#include "BLI_float2.hh"
 #include "BLI_index_range.hh"
 #include "BLI_rect.h"
 
 namespace blender::compositor {
+
+using Size2f = float2;
 
 enum class eExecutionModel {
   /**
@@ -121,26 +124,7 @@ constexpr float COM_PREVIEW_SIZE = 140.f;
 constexpr float COM_RULE_OF_THIRDS_DIVIDER = 100.0f;
 constexpr float COM_BLUR_BOKEH_PIXELS = 512;
 
-constexpr rcti COM_SINGLE_ELEM_AREA = {0, 1, 0, 1};
-
-constexpr IndexRange XRange(const rcti &area)
-{
-  return IndexRange(area.xmin, area.xmax - area.xmin);
-}
-
-constexpr IndexRange YRange(const rcti &area)
-{
-  return IndexRange(area.ymin, area.ymax - area.ymin);
-}
-
-constexpr IndexRange XRange(const rcti *area)
-{
-  return XRange(*area);
-}
-
-constexpr IndexRange YRange(const rcti *area)
-{
-  return YRange(*area);
-}
+constexpr rcti COM_AREA_NONE = {0, 0, 0, 0};
+constexpr rcti COM_CONSTANT_INPUT_AREA_OF_INTEREST = COM_AREA_NONE;
 
 }  // namespace blender::compositor

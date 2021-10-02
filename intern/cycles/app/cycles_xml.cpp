@@ -333,6 +333,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
       }
 
       snode = (ShaderNode *)node_type->create(node_type);
+      snode->set_owner(graph);
     }
 
     xml_read_node(graph_reader, snode, node);
@@ -703,7 +704,7 @@ void xml_read_file(Scene *scene, const char *filepath)
 
   xml_read_include(state, path_filename(filepath));
 
-  scene->params.bvh_type = SceneParams::BVH_STATIC;
+  scene->params.bvh_type = BVH_TYPE_STATIC;
 }
 
 CCL_NAMESPACE_END

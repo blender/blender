@@ -84,6 +84,10 @@ typedef struct uiBlock uiBlock;
 typedef struct uiBut uiBut;
 typedef struct uiLayout uiLayout;
 typedef struct uiPopupBlockHandle uiPopupBlockHandle;
+/* C handle for C++ #ui::AbstractTreeView type. */
+typedef struct uiTreeViewHandle uiTreeViewHandle;
+/* C handle for C++ #ui::AbstractTreeViewItem type. */
+typedef struct uiTreeViewItemHandle uiTreeViewItemHandle;
 
 /* Defines */
 
@@ -389,6 +393,8 @@ typedef enum {
   UI_BTYPE_GRIP = 57 << 9,
   UI_BTYPE_DECORATOR = 58 << 9,
   UI_BTYPE_DATASETROW = 59 << 9,
+  /* An item in a tree view. Parent items may be collapsible. */
+  UI_BTYPE_TREEROW = 60 << 9,
 } eButType;
 
 #define BUTTYPE (63 << 9)
@@ -1672,6 +1678,7 @@ void UI_but_datasetrow_component_set(uiBut *but, uint8_t geometry_component_type
 void UI_but_datasetrow_domain_set(uiBut *but, uint8_t attribute_domain);
 uint8_t UI_but_datasetrow_component_get(uiBut *but);
 uint8_t UI_but_datasetrow_domain_get(uiBut *but);
+void UI_but_treerow_indentation_set(uiBut *but, int indentation);
 
 void UI_but_node_link_set(uiBut *but, struct bNodeSocket *socket, const float draw_color[4]);
 
@@ -2586,6 +2593,7 @@ typedef struct uiDragColorHandle {
 
 void ED_operatortypes_ui(void);
 void ED_keymap_ui(struct wmKeyConfig *keyconf);
+void ED_dropboxes_ui(void);
 void ED_uilisttypes_ui(void);
 
 void UI_drop_color_copy(struct wmDrag *drag, struct wmDropBox *drop);
@@ -2753,6 +2761,17 @@ void UI_interface_tag_script_reload(void);
 
 /* Support click-drag motion which presses the button and closes a popover (like a menu). */
 #define USE_UI_POPOVER_ONCE
+
+bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item);
+bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a, const uiTreeViewItemHandle *b);
+bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_, const struct wmDrag *drag);
+bool UI_tree_view_item_drop_handle(uiTreeViewItemHandle *item_, const struct ListBase *drags);
+char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item,
+                                     const struct bContext *C,
+                                     const struct wmDrag *drag,
+                                     const struct wmEvent *event);
+
+uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const struct ARegion *region, int x, int y);
 
 #ifdef __cplusplus
 }

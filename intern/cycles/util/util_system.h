@@ -65,6 +65,9 @@ size_t system_physical_ram();
 /* Start a new process of the current application with the given arguments. */
 bool system_call_self(const vector<string> &args);
 
+/* Get identifier of the currently running process. */
+uint64_t system_self_process_id();
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_SYSTEM_H__ */

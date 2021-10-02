@@ -45,6 +45,13 @@ struct float4x4 {
     return mat;
   }
 
+  static float4x4 from_location(const float3 location)
+  {
+    float4x4 mat = float4x4::identity();
+    copy_v3_v3(mat.values[3], location);
+    return mat;
+  }
+
   static float4x4 from_normalized_axis_data(const float3 location,
                                             const float3 forward,
                                             const float3 up)

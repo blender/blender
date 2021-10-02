@@ -152,10 +152,7 @@ void DirectionalBlurOperation::get_area_of_interest(const int input_idx,
 {
   BLI_assert(input_idx == 0);
   UNUSED_VARS_NDEBUG(input_idx);
-  r_input_area.xmin = 0;
-  r_input_area.xmax = this->getWidth();
-  r_input_area.ymin = 0;
-  r_input_area.ymax = this->getHeight();
+  r_input_area = this->get_canvas();
 }
 
 void DirectionalBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,

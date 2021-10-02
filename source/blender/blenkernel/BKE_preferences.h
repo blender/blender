@@ -29,22 +29,32 @@ extern "C" {
 struct UserDef;
 struct bUserAssetLibrary;
 
-void BKE_preferences_asset_library_free(struct bUserAssetLibrary *library) ATTR_NONNULL();
-
 struct bUserAssetLibrary *BKE_preferences_asset_library_add(struct UserDef *userdef,
                                                             const char *name,
                                                             const char *path) ATTR_NONNULL(1);
+void BKE_preferences_asset_library_remove(struct UserDef *userdef,
+                                          struct bUserAssetLibrary *library) ATTR_NONNULL();
+
 void BKE_preferences_asset_library_name_set(struct UserDef *userdef,
                                             struct bUserAssetLibrary *library,
                                             const char *name) ATTR_NONNULL();
-
-void BKE_preferences_asset_library_remove(struct UserDef *userdef,
-                                          struct bUserAssetLibrary *library) ATTR_NONNULL();
 
 struct bUserAssetLibrary *BKE_preferences_asset_library_find_from_index(
     const struct UserDef *userdef, int index) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 struct bUserAssetLibrary *BKE_preferences_asset_library_find_from_name(
     const struct UserDef *userdef, const char *name) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+
+/**
+ * Return the bUserAssetLibrary that contains the given file/directory path. The given path can be
+ * the library's top-level directory, or any path inside that directory.
+ *
+ * When more than one asset libraries match, the first matching one is returned (no smartness when
+ * there nested asset libraries).
+ *
+ * Return NULL when no such asset library is found. */
+struct bUserAssetLibrary *BKE_preferences_asset_library_containing_path(
+    const struct UserDef *userdef, const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+
 int BKE_preferences_asset_library_get_index(const struct UserDef *userdef,
                                             const struct bUserAssetLibrary *library)
     ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;

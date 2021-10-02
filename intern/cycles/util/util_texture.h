@@ -85,8 +85,6 @@ typedef struct TextureInfo {
   uint64_t data;
   /* Data Type */
   uint data_type;
-  /* Buffer number for OpenCL. */
-  uint cl_buffer;
   /* Interpolation and extension type. */
   uint interpolation, extension;
   /* Dimensions. */

@@ -81,6 +81,20 @@ const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_strip_color_items[] = {
+    {SEQUENCE_COLOR_NONE, "NONE", ICON_X, "None", "Assign no color tag to the collection"},
+    {SEQUENCE_COLOR_01, "COLOR_01", ICON_SEQUENCE_COLOR_01, "Color 01", ""},
+    {SEQUENCE_COLOR_02, "COLOR_02", ICON_SEQUENCE_COLOR_02, "Color 02", ""},
+    {SEQUENCE_COLOR_03, "COLOR_03", ICON_SEQUENCE_COLOR_03, "Color 03", ""},
+    {SEQUENCE_COLOR_04, "COLOR_04", ICON_SEQUENCE_COLOR_04, "Color 04", ""},
+    {SEQUENCE_COLOR_05, "COLOR_05", ICON_SEQUENCE_COLOR_05, "Color 05", ""},
+    {SEQUENCE_COLOR_06, "COLOR_06", ICON_SEQUENCE_COLOR_06, "Color 06", ""},
+    {SEQUENCE_COLOR_07, "COLOR_07", ICON_SEQUENCE_COLOR_07, "Color 07", ""},
+    {SEQUENCE_COLOR_08, "COLOR_08", ICON_SEQUENCE_COLOR_08, "Color 08", ""},
+    {SEQUENCE_COLOR_09, "COLOR_09", ICON_SEQUENCE_COLOR_09, "Color 09", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "BKE_global.h"
@@ -840,9 +854,9 @@ static int rna_Sequence_proxy_filepath_length(PointerRNA *ptr)
   return strlen(path);
 }
 
-static void rna_Sequence_audio_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Sequence_audio_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_SEQUENCER_STRIPS);
 }
 
 static void rna_Sequence_pan_range(
@@ -940,8 +954,9 @@ static void rna_Sequence_filepath_update(Main *bmain, Scene *UNUSED(scene), Poin
   rna_Sequence_invalidate_raw_update(bmain, scene, ptr);
 }
 
-static void rna_Sequence_sound_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Sequence_sound_update(Main *bmain, Scene *UNUSED(active_scene), PointerRNA *ptr)
 {
+  Scene *scene = (Scene *)ptr->owner_id;
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
   DEG_relations_tag_update(bmain);
 }
@@ -997,6 +1012,18 @@ static void rna_Sequence_opacity_set(PointerRNA *ptr, float value)
   Sequence *seq = (Sequence *)(ptr->data);
   CLAMP(value, 0.0f, 1.0f);
   seq->blend_opacity = value * 100.0f;
+}
+
+static int rna_Sequence_color_tag_get(PointerRNA *ptr)
+{
+  Sequence *seq = (Sequence *)(ptr->data);
+  return seq->color_tag;
+}
+
+static void rna_Sequence_color_tag_set(PointerRNA *ptr, int value)
+{
+  Sequence *seq = (Sequence *)(ptr->data);
+  seq->color_tag = value;
 }
 
 static bool colbalance_seq_cmp_fn(Sequence *seq, void *arg_pt)
@@ -1442,6 +1469,12 @@ static void rna_def_strip_transform(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Rotation", "Rotate around image center");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
+  prop = RNA_def_property(srna, "origin", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "origin");
+  RNA_def_property_ui_text(prop, "Origin", "Origin of image for transformation");
+  RNA_def_property_ui_range(prop, 0, 1, 1, 3);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
+
   RNA_def_struct_path_func(srna, "rna_SequenceTransform_path");
 }
 
@@ -1558,11 +1591,27 @@ static void rna_def_color_balance(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  static const EnumPropertyItem method_items[] = {
+      {SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN, "LIFT_GAMMA_GAIN", 0, "Lift/Gamma/Gain", ""},
+      {SEQ_COLOR_BALANCE_METHOD_SLOPEOFFSETPOWER,
+       "OFFSET_POWER_SLOPE",
+       0,
+       "Offset/Power/Slope (ASC-CDL)",
+       "ASC-CDL standard color correction"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "SequenceColorBalanceData", NULL);
   RNA_def_struct_ui_text(srna,
                          "Sequence Color Balance Data",
                          "Color balance parameters for a sequence strip and its modifiers");
   RNA_def_struct_sdna(srna, "StripColorBalance");
+
+  prop = RNA_def_property(srna, "correction_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "method");
+  RNA_def_property_enum_items(prop, method_items);
+  RNA_def_property_ui_text(prop, "Correction Method", "");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
 
   prop = RNA_def_property(srna, "lift", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_ui_text(prop, "Lift", "Color balance lift (shadows)");
@@ -1582,9 +1631,27 @@ static void rna_def_color_balance(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
 
-  prop = RNA_def_property(srna, "invert_gain", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_COLOR_BALANCE_INVERSE_GAIN);
-  RNA_def_property_ui_text(prop, "Inverse Gain", "Invert the gain color`");
+  prop = RNA_def_property(srna, "slope", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_ui_text(prop, "Slope", "Correction for highlights");
+  RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
+
+  prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_ui_text(prop, "Offset", "Correction for entire tonal range");
+  RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
+
+  prop = RNA_def_property(srna, "power", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_ui_text(prop, "Power", "Correction for midtones");
+  RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
+
+  prop = RNA_def_property(srna, "invert_lift", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_COLOR_BALANCE_INVERSE_LIFT);
+  RNA_def_property_ui_text(prop, "Inverse Lift", "Invert the lift color");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
 
   prop = RNA_def_property(srna, "invert_gamma", PROP_BOOLEAN, PROP_NONE);
@@ -1592,9 +1659,24 @@ static void rna_def_color_balance(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Inverse Gamma", "Invert the gamma color");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
 
-  prop = RNA_def_property(srna, "invert_lift", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_COLOR_BALANCE_INVERSE_LIFT);
-  RNA_def_property_ui_text(prop, "Inverse Lift", "Invert the lift color");
+  prop = RNA_def_property(srna, "invert_gain", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_COLOR_BALANCE_INVERSE_GAIN);
+  RNA_def_property_ui_text(prop, "Inverse Gain", "Invert the gain color`");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
+
+  prop = RNA_def_property(srna, "invert_slope", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_COLOR_BALANCE_INVERSE_SLOPE);
+  RNA_def_property_ui_text(prop, "Inverse Slope", "Invert the slope color`");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
+
+  prop = RNA_def_property(srna, "invert_offset", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_COLOR_BALANCE_INVERSE_OFFSET);
+  RNA_def_property_ui_text(prop, "Inverse Offset", "Invert the offset color");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
+
+  prop = RNA_def_property(srna, "invert_power", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_COLOR_BALANCE_INVERSE_POWER);
+  RNA_def_property_ui_text(prop, "Inverse Power", "Invert the power color");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
 
   /* not yet used */
@@ -1930,6 +2012,14 @@ static void rna_def_sequence(BlenderRNA *brna)
       "effect strip)");
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
+
+  prop = RNA_def_property(srna, "color_tag", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "color_tag");
+  RNA_def_property_enum_funcs(
+      prop, "rna_Sequence_color_tag_get", "rna_Sequence_color_tag_set", NULL);
+  RNA_def_property_enum_items(prop, rna_enum_strip_color_items);
+  RNA_def_property_ui_text(prop, "Strip Color", "Color tag for a strip");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
 
   /* modifiers */
   prop = RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);

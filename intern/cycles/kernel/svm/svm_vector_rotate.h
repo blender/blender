@@ -18,11 +18,11 @@ CCL_NAMESPACE_BEGIN
 
 /* Vector Rotate */
 
-ccl_device void svm_node_vector_rotate(ShaderData *sd,
-                                       float *stack,
-                                       uint input_stack_offsets,
-                                       uint axis_stack_offsets,
-                                       uint result_stack_offset)
+ccl_device_noinline void svm_node_vector_rotate(ShaderData *sd,
+                                                float *stack,
+                                                uint input_stack_offsets,
+                                                uint axis_stack_offsets,
+                                                uint result_stack_offset)
 {
   uint type, vector_stack_offset, rotation_stack_offset, center_stack_offset, axis_stack_offset,
       angle_stack_offset, invert;

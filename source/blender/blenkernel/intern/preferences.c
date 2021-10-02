@@ -61,6 +61,15 @@ bUserAssetLibrary *BKE_preferences_asset_library_add(UserDef *userdef,
   return library;
 }
 
+/**
+ * Unlink and free a library preference member.
+ * \note Free's \a library itself.
+ */
+void BKE_preferences_asset_library_remove(UserDef *userdef, bUserAssetLibrary *library)
+{
+  BLI_freelinkN(&userdef->asset_libraries, library);
+}
+
 void BKE_preferences_asset_library_name_set(UserDef *userdef,
                                             bUserAssetLibrary *library,
                                             const char *name)
@@ -74,15 +83,6 @@ void BKE_preferences_asset_library_name_set(UserDef *userdef,
                  sizeof(library->name));
 }
 
-/**
- * Unlink and free a library preference member.
- * \note Free's \a library itself.
- */
-void BKE_preferences_asset_library_remove(UserDef *userdef, bUserAssetLibrary *library)
-{
-  BLI_freelinkN(&userdef->asset_libraries, library);
-}
-
 bUserAssetLibrary *BKE_preferences_asset_library_find_from_index(const UserDef *userdef, int index)
 {
   return BLI_findlink(&userdef->asset_libraries, index);
@@ -92,6 +92,17 @@ bUserAssetLibrary *BKE_preferences_asset_library_find_from_name(const UserDef *u
                                                                 const char *name)
 {
   return BLI_findstring(&userdef->asset_libraries, name, offsetof(bUserAssetLibrary, name));
+}
+
+bUserAssetLibrary *BKE_preferences_asset_library_containing_path(const UserDef *userdef,
+                                                                 const char *path)
+{
+  LISTBASE_FOREACH (bUserAssetLibrary *, asset_lib_pref, &userdef->asset_libraries) {
+    if (BLI_path_contains(asset_lib_pref->path, path)) {
+      return asset_lib_pref;
+    }
+  }
+  return NULL;
 }
 
 int BKE_preferences_asset_library_get_index(const UserDef *userdef,

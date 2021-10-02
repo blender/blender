@@ -71,19 +71,13 @@ void MovieClipBaseOperation::deinitExecution()
   }
 }
 
-void MovieClipBaseOperation::determineResolution(unsigned int resolution[2],
-                                                 unsigned int /*preferredResolution*/[2])
+void MovieClipBaseOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
 {
-  resolution[0] = 0;
-  resolution[1] = 0;
-
+  r_area = COM_AREA_NONE;
   if (this->m_movieClip) {
     int width, height;
-
     BKE_movieclip_get_size(this->m_movieClip, this->m_movieClipUser, &width, &height);
-
-    resolution[0] = width;
-    resolution[1] = height;
+    BLI_rcti_init(&r_area, 0, width, 0, height);
   }
 }
 

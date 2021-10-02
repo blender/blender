@@ -37,6 +37,8 @@
 #include "BKE_scene.h"
 
 #include "SEQ_iterator.h"
+#include "SEQ_time.h"
+#include "render.h"
 
 /* -------------------------------------------------------------------- */
 /** \Iterator API
@@ -340,6 +342,114 @@ SeqCollection *SEQ_query_selected_strips(ListBase *seqbase)
   return collection;
 }
 
+static SeqCollection *query_strips_at_frame(ListBase *seqbase, const int timeline_frame)
+{
+  SeqCollection *collection = SEQ_collection_create(__func__);
+
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if (SEQ_time_strip_intersects_frame(seq, timeline_frame)) {
+      SEQ_collection_append_strip(seq, collection);
+    }
+  }
+  return collection;
+}
+
+static void collection_filter_channel_up_to_incl(SeqCollection *collection, const int channel)
+{
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    if (seq->machine <= channel) {
+      continue;
+    }
+    SEQ_collection_remove_strip(seq, collection);
+  }
+}
+
+static bool seq_is_effect_of(const Sequence *seq_effect, const Sequence *possibly_input)
+{
+  if (seq_effect->seq1 == possibly_input || seq_effect->seq2 == possibly_input ||
+      seq_effect->seq3 == possibly_input) {
+    return true;
+  }
+  return false;
+}
+
+/* Check if seq must be rendered. This depends on whole stack in some cases, not only seq itself.
+ * Order of applying these conditions is important. */
+static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_timeline_frame)
+{
+  bool seq_have_effect_in_stack = false;
+  Sequence *seq_iter;
+  SEQ_ITERATOR_FOREACH (seq_iter, strips_at_timeline_frame) {
+    /* Strips is below another strip with replace blending are not rendered. */
+    if (seq_iter->blend_mode == SEQ_BLEND_REPLACE && seq->machine < seq_iter->machine) {
+      return false;
+    }
+
+    if ((seq_iter->type & SEQ_TYPE_EFFECT) != 0 && seq_is_effect_of(seq_iter, seq)) {
+      /* Strips in same channel or higher than its effect are rendered. */
+      if (seq->machine >= seq_iter->machine) {
+        return true;
+      }
+      /* Mark that this strip has effect in stack, that is above the strip. */
+      seq_have_effect_in_stack = true;
+    }
+  }
+
+  /* All effects are rendered (with respect to conditions above). */
+  if ((seq->type & SEQ_TYPE_EFFECT) != 0) {
+    return true;
+  }
+
+  /* If strip has effects in stack, and all effects are above this strip, it is not rendered. */
+  if (seq_have_effect_in_stack) {
+    return false;
+  }
+
+  return true;
+}
+
+/* Remove strips we don't want to render from collection. */
+static void collection_filter_rendered_strips(SeqCollection *collection)
+{
+  Sequence *seq;
+
+  /* Remove sound strips and muted strips from collection, because these are not rendered.
+   * Function #must_render_strip() don't have to check for these strips anymore. */
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    if (seq->type == SEQ_TYPE_SOUND_RAM || (seq->flag & SEQ_MUTE) != 0) {
+      SEQ_collection_remove_strip(seq, collection);
+    }
+  }
+
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    if (must_render_strip(seq, collection)) {
+      continue;
+    }
+    SEQ_collection_remove_strip(seq, collection);
+  }
+}
+
+/**
+ * Query strips that are rendered at \a timeline_frame when \a displayed channel is viewed
+ *
+ * \param seqbase: ListBase in which strips are queried
+ * \param timeline_frame: viewed frame
+ * \param displayed_channel: viewed channel. when set to 0, no channel filter is applied
+ * \return strip collection
+ */
+SeqCollection *SEQ_query_rendered_strips(ListBase *seqbase,
+                                         const int timeline_frame,
+                                         const int displayed_channel)
+{
+  SeqCollection *collection = query_strips_at_frame(seqbase, timeline_frame);
+  if (displayed_channel != 0) {
+    collection_filter_channel_up_to_incl(collection, displayed_channel);
+  }
+  collection_filter_rendered_strips(collection);
+  return collection;
+}
+
 /**
  * Query all unselected strips in seqbase.
  *
@@ -393,6 +503,16 @@ void SEQ_query_strip_effect_chain(Sequence *seq_reference,
     if (seq_test->seq1 == seq_reference || seq_test->seq2 == seq_reference ||
         seq_test->seq3 == seq_reference) {
       SEQ_query_strip_effect_chain(seq_test, seqbase, collection);
+    }
+  }
+}
+
+void SEQ_filter_selected_strips(SeqCollection *collection)
+{
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    if ((seq->flag & SELECT) == 0) {
+      SEQ_collection_remove_strip(seq, collection);
     }
   }
 }

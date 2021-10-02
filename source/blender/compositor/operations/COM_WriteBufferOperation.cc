@@ -50,7 +50,7 @@ void WriteBufferOperation::executePixelSampled(float output[4],
 void WriteBufferOperation::initExecution()
 {
   this->m_input = this->getInputOperation(0);
-  this->m_memoryProxy->allocate(this->m_width, this->m_height);
+  this->m_memoryProxy->allocate(this->getWidth(), this->getHeight());
 }
 
 void WriteBufferOperation::deinitExecution()
@@ -206,18 +206,17 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
   delete clKernelsToCleanUp;
 }
 
-void WriteBufferOperation::determineResolution(unsigned int resolution[2],
-                                               unsigned int preferredResolution[2])
+void WriteBufferOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  NodeOperation::determineResolution(resolution, preferredResolution);
+  NodeOperation::determine_canvas(preferred_area, r_area);
   /* make sure there is at least one pixel stored in case the input is a single value */
   m_single_value = false;
-  if (resolution[0] == 0) {
-    resolution[0] = 1;
+  if (BLI_rcti_size_x(&r_area) == 0) {
+    r_area.xmax += 1;
     m_single_value = true;
   }
-  if (resolution[1] == 0) {
-    resolution[1] = 1;
+  if (BLI_rcti_size_y(&r_area) == 0) {
+    r_area.ymax += 1;
     m_single_value = true;
   }
 }

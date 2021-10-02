@@ -23,7 +23,7 @@ CCL_NAMESPACE_BEGIN
 
 device_memory::device_memory(Device *device, const char *name, MemoryType type)
     : data_type(device_type_traits<uchar>::data_type),
-      data_elements(device_type_traits<uchar>::num_elements),
+      data_elements(device_type_traits<uchar>::num_elements_cpu),
       data_size(0),
       device_size(0),
       data_width(0),
@@ -136,7 +136,7 @@ void device_memory::device_copy_to()
   }
 }
 
-void device_memory::device_copy_from(int y, int w, int h, int elem)
+void device_memory::device_copy_from(size_t y, size_t w, size_t h, size_t elem)
 {
   assert(type != MEM_TEXTURE && type != MEM_READ_ONLY && type != MEM_GLOBAL);
   device->mem_copy_from(*this, y, w, h, elem);
@@ -147,6 +147,11 @@ void device_memory::device_zero()
   if (data_size) {
     device->mem_zero(*this);
   }
+}
+
+bool device_memory::device_is_cpu()
+{
+  return (device->info.type == DEVICE_CPU);
 }
 
 void device_memory::swap_device(Device *new_device,
@@ -176,7 +181,7 @@ bool device_memory::is_resident(Device *sub_device) const
 
 /* Device Sub Ptr */
 
-device_sub_ptr::device_sub_ptr(device_memory &mem, int offset, int size) : device(mem.device)
+device_sub_ptr::device_sub_ptr(device_memory &mem, size_t offset, size_t size) : device(mem.device)
 {
   ptr = device->mem_alloc_sub_ptr(mem, offset, size);
 }

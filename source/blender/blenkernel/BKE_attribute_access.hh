@@ -101,6 +101,8 @@ class AttributeIDRef {
     BLI_assert(this->is_anonymous());
     return *anonymous_id_;
   }
+
+  friend std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_id);
 };
 
 }  // namespace blender::bke
@@ -118,6 +120,11 @@ struct AttributeMetaData {
   {
     return (a.domain == b.domain) && (a.data_type == b.data_type);
   }
+};
+
+struct AttributeKind {
+  AttributeDomain domain;
+  CustomDataType data_type;
 };
 
 /**

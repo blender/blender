@@ -350,24 +350,28 @@ static void menu_types_add_from_keymap_items(bContext *C,
 
       if (handler_base->poll == NULL || handler_base->poll(region, win->eventstate)) {
         wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
-        wmKeyMap *keymap = WM_event_get_keymap_from_handler(wm, handler);
-        if (keymap && WM_keymap_poll(C, keymap)) {
-          LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
-            if (kmi->flag & KMI_INACTIVE) {
-              continue;
-            }
-            if (STR_ELEM(kmi->idname, "WM_OT_call_menu", "WM_OT_call_menu_pie")) {
-              char menu_idname[MAX_NAME];
-              RNA_string_get(kmi->ptr, "name", menu_idname);
-              MenuType *mt = WM_menutype_find(menu_idname, false);
+        wmEventHandler_KeymapResult km_result;
+        WM_event_get_keymaps_from_handler(wm, handler, &km_result);
+        for (int km_index = 0; km_index < km_result.keymaps_len; km_index++) {
+          wmKeyMap *keymap = km_result.keymaps[km_index];
+          if (keymap && WM_keymap_poll(C, keymap)) {
+            LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
+              if (kmi->flag & KMI_INACTIVE) {
+                continue;
+              }
+              if (STR_ELEM(kmi->idname, "WM_OT_call_menu", "WM_OT_call_menu_pie")) {
+                char menu_idname[MAX_NAME];
+                RNA_string_get(kmi->ptr, "name", menu_idname);
+                MenuType *mt = WM_menutype_find(menu_idname, false);
 
-              if (mt && BLI_gset_add(menu_tagged, mt)) {
-                /* Unlikely, but possible this will be included twice. */
-                BLI_linklist_prepend(menuid_stack_p, mt);
+                if (mt && BLI_gset_add(menu_tagged, mt)) {
+                  /* Unlikely, but possible this will be included twice. */
+                  BLI_linklist_prepend(menuid_stack_p, mt);
 
-                void **kmi_p;
-                if (!BLI_ghash_ensure_p(menu_to_kmi, mt, &kmi_p)) {
-                  *kmi_p = kmi;
+                  void **kmi_p;
+                  if (!BLI_ghash_ensure_p(menu_to_kmi, mt, &kmi_p)) {
+                    *kmi_p = kmi;
+                  }
                 }
               }
             }

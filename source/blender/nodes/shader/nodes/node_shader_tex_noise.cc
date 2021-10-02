@@ -19,32 +19,28 @@
 
 #include "../node_shader_util.h"
 
-/* **************** NOISE ******************** */
+#include "BLI_noise.hh"
 
-static bNodeSocketTemplate sh_node_tex_noise_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_FLOAT, N_("W"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Scale"), 5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Detail"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 16.0f},
-    {SOCK_FLOAT, N_("Roughness"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Distortion"), 0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {-1, ""},
+namespace blender::nodes {
+
+static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
+{
+  b.is_function_node();
+  b.add_input<decl::Vector>("Vector").implicit_field();
+  b.add_input<decl::Float>("W").min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f);
+  b.add_input<decl::Float>("Detail").min(0.0f).max(16.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Roughness")
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(0.5f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Distortion").min(-1000.0f).max(1000.0f).default_value(0.0f);
+  b.add_output<decl::Float>("Fac").no_muted_links();
+  b.add_output<decl::Color>("Color").no_muted_links();
 };
 
-static bNodeSocketTemplate sh_node_tex_noise_out[] = {
-    {SOCK_FLOAT,
-     N_("Fac"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_FACTOR,
-     SOCK_NO_INTERNAL_LINK},
-    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
-    {-1, ""},
-};
+}  // namespace blender::nodes
 
 static void node_shader_init_tex_noise(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -90,18 +86,173 @@ static void node_shader_update_tex_noise(bNodeTree *UNUSED(ntree), bNode *node)
   nodeSetSocketAvailability(sockW, tex->dimensions == 1 || tex->dimensions == 4);
 }
 
+namespace blender::nodes {
+
+class NoiseFunction : public fn::MultiFunction {
+ private:
+  int dimensions_;
+
+ public:
+  NoiseFunction(int dimensions) : dimensions_(dimensions)
+  {
+    BLI_assert(dimensions >= 1 && dimensions <= 4);
+    static std::array<fn::MFSignature, 4> signatures{
+        create_signature(1),
+        create_signature(2),
+        create_signature(3),
+        create_signature(4),
+    };
+    this->set_signature(&signatures[dimensions - 1]);
+  }
+
+  static fn::MFSignature create_signature(int dimensions)
+  {
+    fn::MFSignatureBuilder signature{"Noise"};
+
+    if (ELEM(dimensions, 2, 3, 4)) {
+      signature.single_input<float3>("Vector");
+    }
+    if (ELEM(dimensions, 1, 4)) {
+      signature.single_input<float>("W");
+    }
+
+    signature.single_input<float>("Scale");
+    signature.single_input<float>("Detail");
+    signature.single_input<float>("Roughness");
+    signature.single_input<float>("Distortion");
+
+    signature.single_output<float>("Fac");
+    signature.single_output<ColorGeometry4f>("Color");
+
+    return signature.build();
+  }
+
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  {
+    int param = ELEM(dimensions_, 2, 3, 4) + ELEM(dimensions_, 1, 4);
+    const VArray<float> &scale = params.readonly_single_input<float>(param++, "Scale");
+    const VArray<float> &detail = params.readonly_single_input<float>(param++, "Detail");
+    const VArray<float> &roughness = params.readonly_single_input<float>(param++, "Roughness");
+    const VArray<float> &distortion = params.readonly_single_input<float>(param++, "Distortion");
+
+    MutableSpan<float> r_factor = params.uninitialized_single_output_if_required<float>(param++,
+                                                                                        "Fac");
+    MutableSpan<ColorGeometry4f> r_color =
+        params.uninitialized_single_output_if_required<ColorGeometry4f>(param++, "Color");
+
+    const bool compute_factor = !r_factor.is_empty();
+    const bool compute_color = !r_color.is_empty();
+
+    switch (dimensions_) {
+      case 1: {
+        const VArray<float> &w = params.readonly_single_input<float>(0, "W");
+        if (compute_factor) {
+          for (int64_t i : mask) {
+            const float position = w[i] * scale[i];
+            r_factor[i] = noise::perlin_fractal_distorted(
+                position, detail[i], roughness[i], distortion[i]);
+          }
+        }
+        if (compute_color) {
+          for (int64_t i : mask) {
+            const float position = w[i] * scale[i];
+            const float3 c = noise::perlin_float3_fractal_distorted(
+                position, detail[i], roughness[i], distortion[i]);
+            r_color[i] = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
+          }
+        }
+        break;
+      }
+      case 2: {
+        const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
+        if (compute_factor) {
+          for (int64_t i : mask) {
+            const float2 position = vector[i] * scale[i];
+            r_factor[i] = noise::perlin_fractal_distorted(
+                position, detail[i], roughness[i], distortion[i]);
+          }
+        }
+        if (compute_color) {
+          for (int64_t i : mask) {
+            const float2 position = vector[i] * scale[i];
+            const float3 c = noise::perlin_float3_fractal_distorted(
+                position, detail[i], roughness[i], distortion[i]);
+            r_color[i] = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
+          }
+        }
+        break;
+      }
+      case 3: {
+        const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
+        if (compute_factor) {
+          for (int64_t i : mask) {
+            const float3 position = vector[i] * scale[i];
+            r_factor[i] = noise::perlin_fractal_distorted(
+                position, detail[i], roughness[i], distortion[i]);
+          }
+        }
+        if (compute_color) {
+          for (int64_t i : mask) {
+            const float3 position = vector[i] * scale[i];
+            const float3 c = noise::perlin_float3_fractal_distorted(
+                position, detail[i], roughness[i], distortion[i]);
+            r_color[i] = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
+          }
+        }
+        break;
+      }
+      case 4: {
+        const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
+        const VArray<float> &w = params.readonly_single_input<float>(1, "W");
+        if (compute_factor) {
+          for (int64_t i : mask) {
+            const float3 position_vector = vector[i] * scale[i];
+            const float position_w = w[i] * scale[i];
+            const float4 position{
+                position_vector[0], position_vector[1], position_vector[2], position_w};
+            r_factor[i] = noise::perlin_fractal_distorted(
+                position, detail[i], roughness[i], distortion[i]);
+          }
+        }
+        if (compute_color) {
+          for (int64_t i : mask) {
+            const float3 position_vector = vector[i] * scale[i];
+            const float position_w = w[i] * scale[i];
+            const float4 position{
+                position_vector[0], position_vector[1], position_vector[2], position_w};
+            const float3 c = noise::perlin_float3_fractal_distorted(
+                position, detail[i], roughness[i], distortion[i]);
+            r_color[i] = ColorGeometry4f(c[0], c[1], c[2], 1.0f);
+          }
+        }
+        break;
+      }
+    }
+  }
+};
+
+static void sh_node_noise_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+{
+  bNode &node = builder.node();
+  NodeTexNoise *tex = (NodeTexNoise *)node.storage;
+  builder.construct_and_set_matching_fn<NoiseFunction>(tex->dimensions);
+}
+
+}  // namespace blender::nodes
+
 /* node type definition */
 void register_node_type_sh_tex_noise(void)
 {
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TEX_NOISE, "Noise Texture", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_noise_in, sh_node_tex_noise_out);
+  sh_fn_node_type_base(&ntype, SH_NODE_TEX_NOISE, "Noise Texture", NODE_CLASS_TEXTURE, 0);
+  ntype.declare = blender::nodes::sh_node_tex_noise_declare;
   node_type_init(&ntype, node_shader_init_tex_noise);
   node_type_storage(
       &ntype, "NodeTexNoise", node_free_standard_storage, node_copy_standard_storage);
   node_type_gpu(&ntype, node_shader_gpu_tex_noise);
   node_type_update(&ntype, node_shader_update_tex_noise);
+  ntype.build_multi_function = blender::nodes::sh_node_noise_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

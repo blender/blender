@@ -23,17 +23,18 @@
 
 #include "node_shader_util.h"
 
-/* **************** SEPARATE RGBA ******************** */
-static bNodeSocketTemplate sh_node_seprgb_in[] = {
-    {SOCK_RGBA, N_("Image"), 0.8f, 0.8f, 0.8f, 1.0f},
-    {-1, ""},
+namespace blender::nodes {
+
+static void sh_node_seprgb_declare(NodeDeclarationBuilder &b)
+{
+  b.is_function_node();
+  b.add_input<decl::Color>("Image").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_output<decl::Float>("R");
+  b.add_output<decl::Float>("G");
+  b.add_output<decl::Float>("B");
 };
-static bNodeSocketTemplate sh_node_seprgb_out[] = {
-    {SOCK_FLOAT, N_("R")},
-    {SOCK_FLOAT, N_("G")},
-    {SOCK_FLOAT, N_("B")},
-    {-1, ""},
-};
+
+}  // namespace blender::nodes
 
 static void node_shader_exec_seprgb(void *UNUSED(data),
                                     int UNUSED(thread),
@@ -107,7 +108,7 @@ void register_node_type_sh_seprgb(void)
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_SEPRGB, "Separate RGB", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, sh_node_seprgb_in, sh_node_seprgb_out);
+  ntype.declare = blender::nodes::sh_node_seprgb_declare;
   node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_seprgb);
   node_type_gpu(&ntype, gpu_shader_seprgb);
   ntype.build_multi_function = sh_node_seprgb_build_multi_function;
@@ -115,17 +116,18 @@ void register_node_type_sh_seprgb(void)
   nodeRegisterType(&ntype);
 }
 
-/* **************** COMBINE RGB ******************** */
-static bNodeSocketTemplate sh_node_combrgb_in[] = {
-    {SOCK_FLOAT, N_("R"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, N_("G"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, N_("B"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-    {-1, ""},
+namespace blender::nodes {
+
+static void sh_node_combrgb_declare(NodeDeclarationBuilder &b)
+{
+  b.is_function_node();
+  b.add_input<decl::Float>("R").min(0.0f).max(1.0f);
+  b.add_input<decl::Float>("G").min(0.0f).max(1.0f);
+  b.add_input<decl::Float>("B").min(0.0f).max(1.0f);
+  b.add_output<decl::Color>("Image");
 };
-static bNodeSocketTemplate sh_node_combrgb_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {-1, ""},
-};
+
+}  // namespace blender::nodes
 
 static void node_shader_exec_combrgb(void *UNUSED(data),
                                      int UNUSED(thread),
@@ -166,7 +168,7 @@ void register_node_type_sh_combrgb(void)
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_COMBRGB, "Combine RGB", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, sh_node_combrgb_in, sh_node_combrgb_out);
+  ntype.declare = blender::nodes::sh_node_combrgb_declare;
   node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_combrgb);
   node_type_gpu(&ntype, gpu_shader_combrgb);
   ntype.build_multi_function = sh_node_combrgb_build_multi_function;

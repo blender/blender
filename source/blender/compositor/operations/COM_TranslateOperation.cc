@@ -23,13 +23,13 @@ namespace blender::compositor {
 TranslateOperation::TranslateOperation() : TranslateOperation(DataType::Color)
 {
 }
-TranslateOperation::TranslateOperation(DataType data_type)
+TranslateOperation::TranslateOperation(DataType data_type, ResizeMode resize_mode)
 {
-  this->addInputSocket(data_type);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
+  this->addInputSocket(data_type, resize_mode);
+  this->addInputSocket(DataType::Value, ResizeMode::None);
+  this->addInputSocket(DataType::Value, ResizeMode::None);
   this->addOutputSocket(data_type);
-  this->setResolutionInputSocketIndex(0);
+  this->set_canvas_input_index(0);
   this->m_inputOperation = nullptr;
   this->m_inputXOperation = nullptr;
   this->m_inputYOperation = nullptr;
@@ -39,6 +39,7 @@ TranslateOperation::TranslateOperation(DataType data_type)
   this->x_extend_mode_ = MemoryBufferExtend::Clip;
   this->y_extend_mode_ = MemoryBufferExtend::Clip;
 }
+
 void TranslateOperation::initExecution()
 {
   this->m_inputOperation = this->getInputSocketReader(0);
@@ -122,6 +123,9 @@ void TranslateOperation::get_area_of_interest(const int input_idx,
       BLI_rcti_translate(&r_input_area, 0, -delta_y);
     }
   }
+  else {
+    r_input_area = output_area;
+  }
 }
 
 void TranslateOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -139,6 +143,29 @@ void TranslateOperation::update_memory_buffer_partial(MemoryBuffer *output,
       input->read(out, input_x, input_y, x_extend_mode_, y_extend_mode_);
       out += output->elem_stride;
     }
+  }
+}
+
+TranslateCanvasOperation::TranslateCanvasOperation()
+    : TranslateOperation(DataType::Color, ResizeMode::None)
+{
+}
+
+void TranslateCanvasOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
+{
+  const bool determined =
+      getInputSocket(IMAGE_INPUT_INDEX)->determine_canvas(preferred_area, r_area);
+  if (determined) {
+    NodeOperationInput *x_socket = getInputSocket(X_INPUT_INDEX);
+    NodeOperationInput *y_socket = getInputSocket(Y_INPUT_INDEX);
+    rcti unused;
+    x_socket->determine_canvas(r_area, unused);
+    y_socket->determine_canvas(r_area, unused);
+
+    ensureDelta();
+    const float delta_x = x_extend_mode_ == MemoryBufferExtend::Clip ? getDeltaX() : 0.0f;
+    const float delta_y = y_extend_mode_ == MemoryBufferExtend::Clip ? getDeltaY() : 0.0f;
+    BLI_rcti_translate(&r_area, delta_x, delta_y);
   }
 }
 

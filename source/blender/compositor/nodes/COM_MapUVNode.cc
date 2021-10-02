@@ -34,7 +34,7 @@ void MapUVNode::convertToOperations(NodeConverter &converter,
 
   MapUVOperation *operation = new MapUVOperation();
   operation->setAlpha((float)node->custom1);
-  operation->setResolutionInputSocketIndex(1);
+  operation->set_canvas_input_index(1);
   converter.addOperation(operation);
 
   converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));

@@ -1394,6 +1394,11 @@ BrushCommand *BKE_brush_command_init(BrushCommand *command, int tool)
       break;
   }
 
+  BrushChannel *ch;
+  for (ch = command->params->channels.first; ch; ch = ch->next) {
+    ch->flag |= BRUSH_CHANNEL_INHERIT;
+  }
+
   namestack_pop(NULL);
 
   return command;
@@ -1834,15 +1839,15 @@ void BKE_brush_channelset_to_unified_settings(BrushChannelSet *chset, UnifiedPai
 {
   BrushChannel *ch;
 
-  if ((ch = BKE_brush_channelset_lookup(chset, "radius"))) {
+  if (ch = BRUSHSET_LOOKUP(chset, radius)) {
     ups->size = ch->fvalue;
   }
 
-  if ((ch = BKE_brush_channelset_lookup(chset, "strength"))) {
+  if (ch = BRUSHSET_LOOKUP(chset, strength)) {
     ups->alpha = ch->fvalue;
   }
 
-  if ((ch = BKE_brush_channelset_lookup(chset, "weight"))) {
+  if (ch = BRUSHSET_LOOKUP(chset, weight)) {
     ups->weight = ch->fvalue;
   }
 }

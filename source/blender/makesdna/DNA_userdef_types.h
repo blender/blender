@@ -458,6 +458,10 @@ typedef struct ThemeCollectionColor {
   unsigned char color[4];
 } ThemeCollectionColor;
 
+typedef struct ThemeStripColor {
+  unsigned char color[4];
+} ThemeStripColor;
+
 /**
  * A theme.
  *
@@ -500,8 +504,10 @@ typedef struct bTheme {
   /* See COLLECTION_COLOR_TOT for the number of collection colors. */
   ThemeCollectionColor collection_color[8];
 
+  /* See SEQUENCE_COLOR_TOT for the total number of strip colors. */
+  ThemeStripColor strip_color[9];
+
   int active_theme_area;
-  char _pad0[4];
 } bTheme;
 
 #define UI_THEMESPACE_START(btheme) \
@@ -635,7 +641,9 @@ typedef struct UserDef_Experimental {
   /* Debug options, always available. */
   char use_undo_legacy;
   char no_override_auto_resync;
+  char no_proxy_to_override_conversion;
   char use_cycles_debug;
+  char use_geometry_nodes_legacy;
   char SANITIZE_AFTER_HERE;
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
@@ -648,7 +656,7 @@ typedef struct UserDef_Experimental {
   char use_override_templates;
   char use_sculpt_uvsmooth;
   char use_geometry_nodes_fields;
-  char _pad[3];
+  char _pad[1];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
