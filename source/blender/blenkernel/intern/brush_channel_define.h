@@ -280,6 +280,8 @@ MAKE_BOOL(use_weighted_smooth, "Weight By Area", "Weight by face area to get a s
 MAKE_BOOL_EX(preserve_faceset_boundary, "Preserve Faceset Boundary", "Preserve face set boundaries", true, BRUSH_CHANNEL_INHERIT)
 MAKE_BOOL_EX(hard_edge_mode, "Hard Edge Mode", "Treat face set boundaries as hard edges", false, BRUSH_CHANNEL_INHERIT)
 MAKE_BOOL(grab_silhouette, "Grab Silhouette", "Grabs trying to automask the silhouette of the object", false)
+MAKE_BOOL(use_grab_active_vertex, "Grab Active Vertex",
+      "Apply the maximum grab strength to the active vertex instead of the cursor location", false)
 MAKE_FLOAT_EX_FLAG(dyntopo_detail_percent, "Detail Percent", "Detail Percent", 25.0f, 0.0f, 1000.0f, 0.0f, 1000.0f, false, BRUSH_CHANNEL_INHERIT)
 MAKE_FLOAT_EX_FLAG(dyntopo_detail_range, "Detail Range", "Detail Range", 0.45f, 0.01f, 0.99f, 0.01f, 0.99f, false, BRUSH_CHANNEL_INHERIT)
 MAKE_FLOAT_EX_FLAG(dyntopo_detail_size, "Detail Size", "Detail Size", 8.0f, 0.1f, 100.0f, 0.001f, 500.0f, false, BRUSH_CHANNEL_INHERIT)
@@ -522,9 +524,15 @@ MAKE_ENUM(elastic_deform_type, "Deformation", "Deformation type that is used in 
   {BRUSH_ELASTIC_DEFORM_TWIST, "TWIST", "NONE", "Twist", ""},
   {-1}
 })
+MAKE_FLOAT(elastic_deform_volume_preservation,  "Volume Preservation",
+                           "Poisson ratio for elastic deformation. Higher values preserve volume "
+                           "more, but also lead to more bulging", 0.0f, 0.9f, false)
+
 MAKE_BOOL(use_ctrl_invert, "Use Ctrl Invert", "Take brush addition or subtraction mode into account", true)
 
 MAKE_BOOL(use_smoothed_rake, "Smooth Raking", "Smooth angles of clay strips brush and raked textures", false)
+MAKE_BOOL(use_surface_falloff,  "Use Surface Falloff",
+                           "Propagate the falloff of the brush trough the surface of the mesh", false)
 
 //MAKE_FLOAT3_EX
 /* clang-format on */

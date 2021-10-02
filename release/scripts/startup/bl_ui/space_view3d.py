@@ -230,6 +230,14 @@ class _draw_tool_settings_context_mode:
         if (tool is None) or (not tool.has_datablock):
             return False
 
+        try:
+            row = layout.row()
+            row.operator_context = 'INVOKE_DEFAULT'
+            row.scale_y = 1.25
+            row.operator("sculpt.call_brush_palette", text="Palette")
+        except:
+            pass
+
         paint = context.tool_settings.sculpt
         layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
 

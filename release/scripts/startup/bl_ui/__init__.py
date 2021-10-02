@@ -69,6 +69,8 @@ _modules = [
     "properties_world",
     "properties_collection",
 
+    "sculpt_ui",
+
     # Generic Space Modules
     #
     # Depends on DNA_WORKSPACE_TOOL (C define).
@@ -124,6 +126,9 @@ def register():
     from bpy.types import (
         WindowManager,
     )
+
+    from . import sculpt_ui
+    sculpt_ui.post_register()
 
     # space_userprefs.py
     def addon_filter_items(_self, _context):

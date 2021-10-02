@@ -337,6 +337,9 @@ class UnifiedPaintPanel:
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle"""
 
+        if slider is None:
+            slider = False
+
         if ui_editing is None:
             ui_editing = True
         ui_editing = ui_editing and not header
@@ -1243,7 +1246,6 @@ def brush_settings(layout, context, brush, popover=False):
                 brush,
                 "dyntopo_disabled",
                 #text="Weight By Face Area",
-                slider=True,
                 header=True
             )
             #layout.prop(brush.dyntopo, "disabled", text="Disable Dyntopo")
@@ -1257,7 +1259,16 @@ def brush_settings(layout, context, brush, popover=False):
             text = "Pinch"
             if sculpt_tool in {'BLOB', 'SNAKE_HOOK'}:
                 text = "Magnify"
-            layout.prop(brush, "crease_pinch_factor", slider=True, text=text)
+
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "crease_pinch_factor",
+                #text="Weight By Face Area",
+                slider=True,
+                text = text
+            )
 
         # rake_factor
         if capabilities.has_rake_factor:
@@ -1310,7 +1321,7 @@ def brush_settings(layout, context, brush, popover=False):
             layout.prop(brush, "height", slider=True, text="Height")
 
         # use_persistent, set_persistent_base
-        if capabilities.has_persistence:
+        if 0: #capabilities.has_persistence:
             layout.separator()
             layout.prop(brush, "use_persistent")
             layout.operator("sculpt.set_persistent_base")
@@ -1335,89 +1346,211 @@ def brush_settings(layout, context, brush, popover=False):
 
         # Per sculpt tool options.
 
+        def doprop(col, prop, slider=None):
+            UnifiedPaintPanel.channel_unified(
+                col,
+                context,
+                brush,
+                prop,
+                slider=slider
+            )
+
         if sculpt_tool == "VCOL_BOUNDARY":
             row = layout.row()
-            row.prop(brush, "vcol_boundary_exponent")
+            UnifiedPaintPanel.channel_unified(
+                row,
+                context,
+                brush,
+                "vcol_boundary_exponent",
+                slider=True
+            )
 
         if sculpt_tool == 'CLAY_STRIPS':
             row = layout.row()
-            row.prop(brush, "tip_roundness")
+            UnifiedPaintPanel.channel_unified(
+                row,
+                context,
+                brush,
+                "tip_roundness",
+                slider=True
+            )
 
         elif sculpt_tool == 'ELASTIC_DEFORM':
             layout.separator()
-            layout.prop(brush, "elastic_deform_type")
-            layout.prop(brush, "elastic_deform_volume_preservation", slider=True)
-            layout.prop(brush, "use_surface_falloff")
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "elastic_deform_type",
+            )
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "elastic_deform_volume_preservation",
+                slider=True
+            )
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "use_surface_falloff",
+            )
             layout.separator()
 
         elif sculpt_tool == 'SNAKE_HOOK':
             layout.separator()
-            layout.prop(brush, "snake_hook_deform_type")
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "snake_hook_deform_type",
+            )
             layout.separator()
 
         elif sculpt_tool == 'POSE':
             layout.separator()
-            layout.prop(brush, "deform_target")
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "deform_target",
+            )
             layout.separator()
-            layout.prop(brush, "pose_deform_type")
-            layout.prop(brush, "pose_origin_type")
-            layout.prop(brush, "pose_offset")
-            layout.prop(brush, "pose_smooth_iterations")
-            if brush.pose_deform_type == 'ROTATE_TWIST' and brush.pose_origin_type in {'TOPOLOGY', 'FACE_SETS'}:
-                layout.prop(brush, "pose_ik_segments")
-            if brush.pose_deform_type == 'SCALE_TRANSLATE':
-                layout.prop(brush, "use_pose_lock_rotation")
-            layout.prop(brush, "use_pose_ik_anchored")
-            layout.prop(brush, "use_connected_only")
-            layout.prop(brush, "disconnected_distance_max")
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "pose_deform_type",
+            )
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "pose_origin_type",
+            )
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "pose_offset",
+            )
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "pose_smooth_iterations",
+            )
+
+            if brush.channels["pose_deform_type"].value == 'ROTATE_TWIST' and \
+              brush.channels["pose_origin_type"].value in {'TOPOLOGY', 'FACE_SETS'}:
+                UnifiedPaintPanel.channel_unified(
+                    layout,
+                    context,
+                    brush,
+                    "pose_ik_segments",
+                )
+            if brush.channels["pose_deform_type"].value == 'SCALE_TRANSLATE':
+                UnifiedPaintPanel.channel_unified(
+                    layout,
+                    context,
+                    brush,
+                    "use_pose_lock_rotation",
+                )
+
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "use_pose_ik_anchored",
+            )
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "use_connected_only",
+            )
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "disconnected_distance_max",
+            )
 
             layout.separator()
 
         elif sculpt_tool == 'CLOTH':
             layout.separator()
-            layout.prop(brush, "cloth_simulation_area_type")
-            if brush.cloth_simulation_area_type != 'GLOBAL':
-                layout.prop(brush, "cloth_sim_limit")
-                layout.prop(brush, "cloth_sim_falloff")
+            UnifiedPaintPanel.channel_unified(
+                layout,
+                context,
+                brush,
+                "cloth_simulation_area_type",
+            )
 
-            if brush.cloth_simulation_area_type == 'LOCAL':
-                layout.prop(brush, "use_cloth_pin_simulation_boundary")
+            if brush.channels["cloth_simulation_area_type"].value != 'GLOBAL':
+                UnifiedPaintPanel.channel_unified(
+                    layout,
+                    context,
+                    brush,
+                    "cloth_sim_limit",
+                )
+                UnifiedPaintPanel.channel_unified(
+                    layout,
+                    context,
+                    brush,
+                    "cloth_sim_falloff",
+                )
+
+            if brush.channels["cloth_simulation_area_type"].value == 'LOCAL':
+                UnifiedPaintPanel.channel_unified(
+                    layout,
+                    context,
+                    brush,
+                    "cloth_sim_falloff",
+                )
+                UnifiedPaintPanel.channel_unified(
+                    layout,
+                    context,
+                    brush,
+                    "cloth_pin_simulation_boundary",
+                )
 
             layout.separator()
-            layout.prop(brush, "cloth_deform_type")
-            layout.prop(brush, "cloth_force_falloff_type")
+            doprop(layout, "cloth_deform_type")
+            doprop(layout, "cloth_force_falloff_type")
             layout.separator()
-            layout.prop(brush, "cloth_mass")
-            layout.prop(brush, "cloth_damping")
-            layout.prop(brush, "cloth_constraint_softbody_strength")
+            doprop(layout, "cloth_mass")
+            doprop(layout, "cloth_damping")
+            doprop(layout, "cloth_constraint_softbody_strength")
             layout.separator()
-            layout.prop(brush, "use_cloth_collision")
+            doprop(layout, "use_cloth_collision")
             layout.separator()
 
         elif sculpt_tool == 'SCRAPE':
             row = layout.row(align=True)
-            row.prop(brush, "area_radius_factor")
-            row.prop(brush, "use_pressure_area_radius", text="")
+            doprop(row, "area_radius_factor")
+            doprop(row,  "use_pressure_area_radius", text="")
             row = layout.row()
-            row.prop(brush, "invert_to_scrape_fill", text="Invert to Fill")
+            doprop(row, "invert_to_scrape_fill", text="Invert to Fill")
 
         elif sculpt_tool == 'FILL':
             row = layout.row(align=True)
-            row.prop(brush, "area_radius_factor")
-            row.prop(brush, "use_pressure_area_radius", text="")
+            doprop(row, "area_radius_factor")
+            doprop(row, "use_pressure_area_radius", text="")
             row = layout.row()
-            row.prop(brush, "invert_to_scrape_fill", text="Invert to Scrape")
+            doprop(row, "invert_to_scrape_fill", text="Invert to Scrape")
 
         elif sculpt_tool == 'GRAB':
-            layout.prop(brush, "use_grab_active_vertex")
-            layout.prop(brush, "use_grab_silhouette")
-            layout.prop(brush, "use_surface_falloff")
+            doprop(layout, "use_grab_active_vertex")
+            doprop(layout, "grab_silhouette")
+            doprop(layout, "use_surface_falloff")
 
         elif sculpt_tool == 'PAINT':
             row = layout.row(align=True)
-            row.prop(brush, "flow")
-            row.prop(brush, "invert_flow_pressure", text="")
-            row.prop(brush, "use_flow_pressure", text="")
+            doprop(row, "flow")
+            doprop(row, "invert_flow_pressure", text="")
+            doprop(row, "use_flow_pressure", text="")
 
             row = layout.row(align=True)
             row.prop(brush, "wet_mix")
@@ -1425,56 +1558,56 @@ def brush_settings(layout, context, brush, popover=False):
             row.prop(brush, "use_wet_mix_pressure", text="")
 
             row = layout.row(align=True)
-            row.prop(brush, "wet_persistence")
-            row.prop(brush, "invert_wet_persistence_pressure", text="")
-            row.prop(brush, "use_wet_persistence_pressure", text="")
+            doprop(row, "wet_persistence")
+            doprop(row, "invert_wet_persistence_pressure", text="")
+            doprop(row, "use_wet_persistence_pressure", text="")
 
             row = layout.row(align=True)
-            row.prop(brush, "wet_paint_radius_factor")
+            doprop(row, "wet_paint_radius_factor")
 
             row = layout.row(align=True)
-            row.prop(brush, "density")
-            row.prop(brush, "invert_density_pressure", text="")
-            row.prop(brush, "use_density_pressure", text="")
+            doprop(row, "density")
+            doprop(row, "invert_density_pressure", text="")
+            doprop(row, "use_density_pressure", text="")
 
             row = layout.row()
-            row.prop(brush, "tip_roundness")
+            doprop(row, "tip_roundness")
 
             row = layout.row()
-            row.prop(brush, "tip_scale_x")
+            doprop(row, "tip_scale_x")
 
         elif sculpt_tool == 'SMEAR':
             col = layout.column()
-            col.prop(brush, "smear_deform_type")
+            doprop(col, "smear_deform_type")
 
         elif sculpt_tool == 'BOUNDARY':
-            layout.prop(brush, "deform_target")
+            doprop(layout, "deform_target")
             layout.separator()
             col = layout.column()
-            col.prop(brush, "boundary_deform_type")
-            col.prop(brush, "boundary_falloff_type")
-            col.prop(brush, "boundary_offset")
+            doprop(col, "boundary_deform_type")
+            doprop(col, "boundary_falloff_type")
+            doprop(col, "boundary_offset")
 
         elif sculpt_tool == 'TOPOLOGY':
             col = layout.column()
-            col.prop(brush, "slide_deform_type")
+            doprop(col, "slide_deform_type")
 
         elif sculpt_tool == 'MULTIPLANE_SCRAPE':
             col = layout.column()
-            col.prop(brush, "multiplane_scrape_angle")
-            col.prop(brush, "use_multiplane_scrape_dynamic")
-            col.prop(brush, "show_multiplane_scrape_planes_preview")
+            doprop(col, "multiplane_scrape_angle")
+            doprop(col, "use_multiplane_scrape_dynamic")
+            doprop(col, "show_multiplane_scrape_planes_preview")
 
         elif sculpt_tool == 'SCENE_PROJECT':
             col = layout.column()
-            col.prop(brush, "scene_project_direction_type")
+            doprop(col, "scene_project_direction_type")
 
         elif sculpt_tool == 'ARRAY':
             col = layout.column()
-            col.prop(brush, "array_deform_type")
-            col.prop(brush, "array_count")
-            col.prop(brush, "use_array_lock_orientation")
-            col.prop(brush, "use_array_fill_holes")
+            doprop(col, "array_deform_type")
+            doprop(col, "array_count")
+            doprop(col, "use_array_lock_orientation")
+            doprop(col, "use_array_fill_holes")
 
         elif sculpt_tool == 'SMOOTH':
             col = layout.column()
@@ -1512,19 +1645,19 @@ def brush_settings(layout, context, brush, popover=False):
                     "fset_slide"
                 )
 
-            col.prop(brush, "smooth_deform_type")
+            doprop(col, "smooth_deform_type")
 
             if brush.smooth_deform_type == 'SURFACE':
-                col.prop(brush, "surface_smooth_shape_preservation")
-                col.prop(brush, "surface_smooth_current_vertex")
-                col.prop(brush, "surface_smooth_iterations")
+                doprop(col, "surface_smooth_shape_preservation")
+                doprop(col, "surface_smooth_current_vertex")
+                doprop(col, "surface_smooth_iterations")
 
         elif sculpt_tool == 'DISPLACEMENT_SMEAR':
             col = layout.column()
-            col.prop(brush, "smear_deform_type")
+            doprop(col, "smear_deform_type")
 
         elif sculpt_tool == 'MASK':
-            layout.row().prop(brush, "mask_tool", expand=True)
+            doprop(layout.row(), "mask_tool", expand=True)
 
         # End sculpt_tool interface.
 
@@ -2270,12 +2403,3 @@ def brush_basic_gpencil_vertex_settings(layout, _context, brush, *, compact=Fals
         row.prop(gp_settings, "vertex_mode", text="Mode")
 
 
-classes += [
-    VIEW3D_MT_tools_projectpaint_clone,
-    ReorderBrushChannel
-]
-
-if __name__ == "__main__":  # only for live edit.
-    from bpy.utils import register_class
-    for cls in classes:
-        register_class(cls)

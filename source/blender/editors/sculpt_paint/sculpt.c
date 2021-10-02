@@ -8685,6 +8685,7 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
     case SCULPT_TOOL_ELASTIC_DEFORM:
     case SCULPT_TOOL_FAIRING:
     case SCULPT_TOOL_FILL:
+    case SCULPT_TOOL_BLOB:
     case SCULPT_TOOL_FLATTEN:
     case SCULPT_TOOL_GRAB:
     case SCULPT_TOOL_LAYER:
