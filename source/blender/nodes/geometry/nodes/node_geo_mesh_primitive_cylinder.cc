@@ -32,8 +32,18 @@ static void geo_node_mesh_primitive_cylinder_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>("Vertices")
       .default_value(32)
       .min(3)
-      .max(4096)
+      .max(512)
       .description("The number of vertices around the circumference");
+  b.add_input<decl::Int>("Side Segments")
+      .default_value(1)
+      .min(1)
+      .max(512)
+      .description("The number of segments along the side");
+  b.add_input<decl::Int>("Fill Segments")
+      .default_value(1)
+      .min(1)
+      .max(512)
+      .description("The number of concentric segments of the fill");
   b.add_input<decl::Float>("Radius")
       .default_value(1.0f)
       .min(0.0f)
@@ -66,6 +76,19 @@ static void geo_node_mesh_primitive_cylinder_init(bNodeTree *UNUSED(ntree), bNod
   node->storage = node_storage;
 }
 
+static void geo_node_mesh_primitive_cylinder_update(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  bNodeSocket *vertices_socket = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *rings_socket = vertices_socket->next;
+  bNodeSocket *fill_subdiv_socket = rings_socket->next;
+
+  const NodeGeometryMeshCone &storage = *(const NodeGeometryMeshCone *)node->storage;
+  const GeometryNodeMeshCircleFillType fill_type =
+      static_cast<const GeometryNodeMeshCircleFillType>(storage.fill_type);
+  const bool has_fill = fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE;
+  nodeSetSocketAvailability(fill_subdiv_socket, has_fill);
+}
+
 static void geo_node_mesh_primitive_cylinder_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
@@ -76,15 +99,31 @@ static void geo_node_mesh_primitive_cylinder_exec(GeoNodeExecParams params)
 
   const float radius = params.extract_input<float>("Radius");
   const float depth = params.extract_input<float>("Depth");
-  const int verts_num = params.extract_input<int>("Vertices");
-  if (verts_num < 3) {
+  const int circle_segments = params.extract_input<int>("Vertices");
+  if (circle_segments < 3) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 3"));
     params.set_output("Geometry", GeometrySet());
     return;
   }
 
+  const int side_segments = params.extract_input<int>("Side Segments");
+  if (side_segments < 1) {
+    params.error_message_add(NodeWarningType::Info, TIP_("Side Segments must be at least 1"));
+    params.set_output("Geometry", GeometrySet());
+    return;
+  }
+
+  const bool no_fill = fill_type == GEO_NODE_MESH_CIRCLE_FILL_NONE;
+  const int fill_segments = no_fill ? 1 : params.extract_input<int>("Fill Segments");
+  if (fill_segments < 1) {
+    params.error_message_add(NodeWarningType::Info, TIP_("Fill Segments must be at least 1"));
+    params.set_output("Geometry", GeometrySet());
+    return;
+  }
+
   /* The cylinder is a special case of the cone mesh where the top and bottom radius are equal. */
-  Mesh *mesh = create_cylinder_or_cone_mesh(radius, radius, depth, verts_num, fill_type);
+  Mesh *mesh = create_cylinder_or_cone_mesh(
+      radius, radius, depth, circle_segments, side_segments, fill_segments, fill_type);
 
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }
@@ -96,6 +135,7 @@ void register_node_type_geo_mesh_primitive_cylinder()
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CYLINDER, "Cylinder", NODE_CLASS_GEOMETRY, 0);
   node_type_init(&ntype, blender::nodes::geo_node_mesh_primitive_cylinder_init);
+  node_type_update(&ntype, blender::nodes::geo_node_mesh_primitive_cylinder_update);
   node_type_storage(
       &ntype, "NodeGeometryMeshCylinder", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = blender::nodes::geo_node_mesh_primitive_cylinder_declare;

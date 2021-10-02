@@ -10152,7 +10152,7 @@ static void def_geo_mesh_cylinder(StructRNA *srna)
   prop = RNA_def_property(srna, "fill_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_node_geometry_mesh_circle_fill_type_items);
   RNA_def_property_ui_text(prop, "Fill Type", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
 static void def_geo_mesh_cone(StructRNA *srna)
@@ -10164,7 +10164,7 @@ static void def_geo_mesh_cone(StructRNA *srna)
   prop = RNA_def_property(srna, "fill_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_node_geometry_mesh_circle_fill_type_items);
   RNA_def_property_ui_text(prop, "Fill Type", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
 static void def_geo_mesh_line(StructRNA *srna)
