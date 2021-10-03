@@ -75,6 +75,8 @@ void BKE_curveprofile_create_samples(struct CurveProfile *profile,
                                      bool sample_straight_edges,
                                      struct CurveProfilePoint *r_samples);
 
+int BKE_curveprofile_table_size(const struct CurveProfile *profile);
+
 void BKE_curveprofile_init(struct CurveProfile *profile, short segments_len);
 
 /* Called for a complete update of the widget after modifications */

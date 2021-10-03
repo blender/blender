@@ -21,6 +21,8 @@
  * \ingroup bke
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
@@ -34,6 +36,9 @@
 #include "BKE_curveprofile.h"
 
 #include "BLO_read_write.h"
+
+/** Number of points in high resolution table is dynamic up to a maximum. */
+#define PROF_TABLE_MAX 512
 
 /* -------------------------------------------------------------------- */
 /** \name Data Handling
@@ -569,6 +574,14 @@ void BKE_curveprofile_reset(CurveProfile *profile)
 /** \name Sampling and Evaluation
  * \{ */
 
+int BKE_curveprofile_table_size(const CurveProfile *profile)
+{
+  /** Number of table points per control point. */
+  const int resolution = 16;
+
+  return std::clamp((profile->path_len - 1) * resolution + 1, 0, PROF_TABLE_MAX);
+}
+
 /**
  * Helper for 'curve_profile_create' samples.
  * Returns whether both handles that make up the edge are vector handles.
@@ -848,7 +861,7 @@ void BKE_curveprofile_create_samples(CurveProfile *profile,
  */
 static void curveprofile_make_table(CurveProfile *profile)
 {
-  int n_samples = PROF_TABLE_LEN(profile->path_len);
+  int n_samples = BKE_curveprofile_table_size(profile);
   CurveProfilePoint *new_table = (CurveProfilePoint *)MEM_callocN(
       sizeof(CurveProfilePoint) * (n_samples + 1), __func__);
 
@@ -1012,7 +1025,7 @@ void BKE_curveprofile_init(CurveProfile *profile, short segments_len)
  */
 static float curveprofile_distance_to_next_table_point(const CurveProfile *profile, int i)
 {
-  BLI_assert(i < PROF_TABLE_LEN(profile->path_len));
+  BLI_assert(i < BKE_curveprofile_table_size(profile));
 
   return len_v2v2(&profile->table[i].x, &profile->table[i + 1].x);
 }
@@ -1025,7 +1038,7 @@ static float curveprofile_distance_to_next_table_point(const CurveProfile *profi
 static float curveprofile_total_length(const CurveProfile *profile)
 {
   float total_length = 0;
-  for (int i = 0; i < PROF_TABLE_LEN(profile->path_len) - 1; i++) {
+  for (int i = 0; i < BKE_curveprofile_table_size(profile) - 1; i++) {
     total_length += len_v2v2(&profile->table[i].x, &profile->table[i + 1].x);
   }
   return total_length;
@@ -1109,7 +1122,7 @@ void BKE_curveprofile_evaluate_length_portion(const CurveProfile *profile,
   float length_travelled = 0.0f;
   while (length_travelled < requested_length) {
     /* Check if we reached the last point before the final one. */
-    if (i == PROF_TABLE_LEN(profile->path_len) - 2) {
+    if (i == BKE_curveprofile_table_size(profile) - 2) {
       break;
     }
     float new_length = curveprofile_distance_to_next_table_point(profile, i);
