@@ -71,7 +71,7 @@ class Params:
         # (derived from other settings).
         #
         # This case needs to be checked often,
-        # Shorthand for: `(params.use_fallback_tool if params.select_mouse == 'RIGHT' else False)`.
+        # Shorthand for: `(params.use_fallback_tool if params.select_mouse == 'RIGHTMOUSE' else False)`.
         "use_fallback_tool_rmb",
         # Shorthand for: `('CLICK' if params.use_fallback_tool_rmb else params.select_mouse_value)`.
         "select_mouse_value_fallback",
@@ -195,7 +195,7 @@ class Params:
         self.use_file_single_click = use_file_single_click
 
         # Convenience variables:
-        self.use_fallback_tool_rmb = self.use_fallback_tool if self.select_mouse == 'RIGHT' else False
+        self.use_fallback_tool_rmb = self.use_fallback_tool if select_mouse == 'RIGHT' else False
         self.select_mouse_value_fallback = 'CLICK' if self.use_fallback_tool_rmb else self.select_mouse_value
         self.pie_value = 'CLICK_DRAG' if use_pie_click_drag else 'PRESS'
         self.tool_tweak_event = {"type": self.tool_tweak, "value": 'ANY'}
