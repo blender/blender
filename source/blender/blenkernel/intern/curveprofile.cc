@@ -35,6 +35,10 @@
 
 #include "BLO_read_write.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Data Handling
+ * \{ */
+
 void BKE_curveprofile_free_data(CurveProfile *profile)
 {
   MEM_SAFE_FREE(profile->path);
@@ -73,6 +77,33 @@ CurveProfile *BKE_curveprofile_copy(const CurveProfile *profile)
   }
   return nullptr;
 }
+
+void BKE_curveprofile_blend_write(struct BlendWriter *writer, const struct CurveProfile *profile)
+{
+  BLO_write_struct(writer, CurveProfile, profile);
+  BLO_write_struct_array(writer, CurveProfilePoint, profile->path_len, profile->path);
+}
+
+/* Expects that the curve profile itself has been read already. */
+void BKE_curveprofile_blend_read(struct BlendDataReader *reader, struct CurveProfile *profile)
+{
+  BLO_read_data_address(reader, &profile->path);
+  profile->table = nullptr;
+  profile->segments = nullptr;
+
+  /* Reset the points' pointers to the profile. */
+  for (int i = 0; i < profile->path_len; i++) {
+    profile->path[i].profile = profile;
+  }
+
+  BKE_curveprofile_init(profile, profile->segments_len);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Editing
+ * \{ */
 
 /**
  * Move a point's handle, accounting for the alignment of handles with the #HD_ALIGN type.
@@ -531,6 +562,12 @@ void BKE_curveprofile_reset(CurveProfile *profile)
   MEM_SAFE_FREE(profile->table);
   profile->table = nullptr;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sampling and Evaluation
+ * \{ */
 
 /**
  * Helper for 'curve_profile_create' samples.
@@ -1103,23 +1140,4 @@ void BKE_curveprofile_evaluate_length_portion(const CurveProfile *profile,
   *y_out = interpf(profile->table[i].y, profile->table[i + 1].y, lerp_factor);
 }
 
-void BKE_curveprofile_blend_write(struct BlendWriter *writer, const struct CurveProfile *profile)
-{
-  BLO_write_struct(writer, CurveProfile, profile);
-  BLO_write_struct_array(writer, CurveProfilePoint, profile->path_len, profile->path);
-}
-
-/* Expects that the curve profile itself has been read already. */
-void BKE_curveprofile_blend_read(struct BlendDataReader *reader, struct CurveProfile *profile)
-{
-  BLO_read_data_address(reader, &profile->path);
-  profile->table = nullptr;
-  profile->segments = nullptr;
-
-  /* Reset the points' pointers to the profile. */
-  for (int i = 0; i < profile->path_len; i++) {
-    profile->path[i].profile = profile;
-  }
-
-  BKE_curveprofile_init(profile, profile->segments_len);
-}
+/** \} */
