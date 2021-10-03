@@ -124,6 +124,7 @@ set(SRC
   intern/quadric.c
   intern/rand.cc
   intern/rct.c
+  intern/resource_scope.cc
   intern/scanfill.c
   intern/scanfill_utils.c
   intern/session_uuid.c

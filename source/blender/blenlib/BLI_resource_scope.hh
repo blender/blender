@@ -56,106 +56,113 @@ class ResourceScope : NonCopyable, NonMovable {
   Vector<ResourceData> resources_;
 
  public:
-  ResourceScope() = default;
+  ResourceScope();
+  ~ResourceScope();
 
-  ~ResourceScope()
-  {
-    /* Free in reversed order. */
-    for (int64_t i = resources_.size(); i--;) {
-      ResourceData &data = resources_[i];
-      data.free(data.data);
-    }
-  }
+  template<typename T> T *add(std::unique_ptr<T> resource);
+  template<typename T> T *add(destruct_ptr<T> resource);
+  void add(void *userdata, void (*free)(void *));
 
-  /**
-   * Pass ownership of the resource to the ResourceScope. It will be destructed and freed when
-   * the collector is destructed.
-   */
-  template<typename T> T *add(std::unique_ptr<T> resource)
-  {
-    T *ptr = resource.release();
-    if (ptr == nullptr) {
-      return nullptr;
-    }
-    this->add(ptr, [](void *data) {
-      T *typed_data = reinterpret_cast<T *>(data);
-      delete typed_data;
-    });
-    return ptr;
-  }
+  template<typename T> T &add_value(T &&value);
+  template<typename Func> void add_destruct_call(Func func);
 
-  /**
-   * Pass ownership of the resource to the ResourceScope. It will be destructed when the
-   * collector is destructed.
-   */
-  template<typename T> T *add(destruct_ptr<T> resource)
-  {
-    T *ptr = resource.release();
-    if (ptr == nullptr) {
-      return nullptr;
-    }
-    /* There is no need to keep track of such types. */
-    if (std::is_trivially_destructible_v<T>) {
-      return ptr;
-    }
+  template<typename T, typename... Args> T &construct(Args &&...args);
 
-    this->add(ptr, [](void *data) {
-      T *typed_data = reinterpret_cast<T *>(data);
-      typed_data->~T();
-    });
-    return ptr;
-  }
-
-  /**
-   * Pass ownership of some resource to the ResourceScope. The given free function will be
-   * called when the collector is destructed.
-   */
-  void add(void *userdata, void (*free)(void *))
-  {
-    ResourceData data;
-    data.data = userdata;
-    data.free = free;
-    resources_.append(data);
-  }
-
-  /**
-   * Construct an object with the same value in the ResourceScope and return a reference to the
-   * new value.
-   */
-  template<typename T> T &add_value(T &&value)
-  {
-    return this->construct<T>(std::forward<T>(value));
-  }
-
-  /**
-   * The passed in function will be called when the scope is destructed.
-   */
-  template<typename Func> void add_destruct_call(Func func)
-  {
-    void *buffer = allocator_.allocate(sizeof(Func), alignof(Func));
-    new (buffer) Func(std::move(func));
-    this->add(buffer, [](void *data) { (*(Func *)data)(); });
-  }
-
-  /**
-   * Returns a reference to a linear allocator that is owned by the ResourcesCollector. Memory
-   * allocated through this allocator will be freed when the collector is destructed.
-   */
-  LinearAllocator<> &linear_allocator()
-  {
-    return allocator_;
-  }
-
-  /**
-   * Utility method to construct an instance of type T that will be owned by the ResourceScope.
-   */
-  template<typename T, typename... Args> T &construct(Args &&...args)
-  {
-    destruct_ptr<T> value_ptr = allocator_.construct<T>(std::forward<Args>(args)...);
-    T &value_ref = *value_ptr;
-    this->add(std::move(value_ptr));
-    return value_ref;
-  }
+  LinearAllocator<> &linear_allocator();
 };
+
+/* --------------------------------------------------------------------
+ * #ResourceScope inline methods.
+ */
+
+/**
+ * Pass ownership of the resource to the ResourceScope. It will be destructed and freed when
+ * the collector is destructed.
+ */
+template<typename T> inline T *ResourceScope::add(std::unique_ptr<T> resource)
+{
+  T *ptr = resource.release();
+  if (ptr == nullptr) {
+    return nullptr;
+  }
+  this->add(ptr, [](void *data) {
+    T *typed_data = reinterpret_cast<T *>(data);
+    delete typed_data;
+  });
+  return ptr;
+}
+
+/**
+ * Pass ownership of the resource to the ResourceScope. It will be destructed when the
+ * collector is destructed.
+ */
+template<typename T> inline T *ResourceScope::add(destruct_ptr<T> resource)
+{
+  T *ptr = resource.release();
+  if (ptr == nullptr) {
+    return nullptr;
+  }
+  /* There is no need to keep track of such types. */
+  if constexpr (std::is_trivially_destructible_v<T>) {
+    return ptr;
+  }
+
+  this->add(ptr, [](void *data) {
+    T *typed_data = reinterpret_cast<T *>(data);
+    typed_data->~T();
+  });
+  return ptr;
+}
+
+/**
+ * Pass ownership of some resource to the ResourceScope. The given free function will be
+ * called when the collector is destructed.
+ */
+inline void ResourceScope::add(void *userdata, void (*free)(void *))
+{
+  ResourceData data;
+  data.data = userdata;
+  data.free = free;
+  resources_.append(data);
+}
+
+/**
+ * Construct an object with the same value in the ResourceScope and return a reference to the
+ * new value.
+ */
+template<typename T> inline T &ResourceScope::add_value(T &&value)
+{
+  return this->construct<T>(std::forward<T>(value));
+}
+
+/**
+ * The passed in function will be called when the scope is destructed.
+ */
+template<typename Func> inline void ResourceScope::add_destruct_call(Func func)
+{
+  void *buffer = allocator_.allocate(sizeof(Func), alignof(Func));
+  new (buffer) Func(std::move(func));
+  this->add(buffer, [](void *data) { (*(Func *)data)(); });
+}
+
+/**
+ * Utility method to construct an instance of type T that will be owned by the ResourceScope.
+ */
+template<typename T, typename... Args> inline T &ResourceScope::construct(Args &&...args)
+{
+  destruct_ptr<T> value_ptr = allocator_.construct<T>(std::forward<Args>(args)...);
+  T &value_ref = *value_ptr;
+  this->add(std::move(value_ptr));
+  return value_ref;
+}
+
+/**
+ * Returns a reference to a linear allocator that is owned by the ResourcesCollector. Memory
+ * allocated through this allocator will be freed when the collector is destructed.
+ */
+inline LinearAllocator<> &ResourceScope::linear_allocator()
+{
+  return allocator_;
+}
 
 }  // namespace blender
