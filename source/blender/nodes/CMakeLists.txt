@@ -377,6 +377,7 @@ set(SRC
   texture/node_texture_util.c
 
   intern/derived_node_tree.cc
+  intern/extern_implementations.cc
   intern/geometry_nodes_eval_log.cc
   intern/math_functions.cc
   intern/node_common.cc

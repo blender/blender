@@ -197,6 +197,7 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   {
     decl_->output_field_dependency_ = OutputFieldDependency::ForPartiallyDependentField(
         std::move(input_dependencies));
+    return *(Self *)this;
   }
 };
 
