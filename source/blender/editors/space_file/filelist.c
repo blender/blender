@@ -490,7 +490,7 @@ static void filelist_readjob_main_assets(struct FileListReadJob *job_params,
 static int groupname_to_code(const char *group);
 static uint64_t groupname_to_filter_id(const char *group);
 
-static void filelist_filter_clear(FileList *filelist);
+static void filelist_tag_needs_filtering(FileList *filelist);
 static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size);
 
 /* ********** Sort helpers ********** */
@@ -720,7 +720,7 @@ void filelist_sort(struct FileList *filelist)
         sort_cb,
         &(struct FileSortData){.inverted = (filelist->flags & FL_SORT_INVERT) != 0});
 
-    filelist_filter_clear(filelist);
+    filelist_tag_needs_filtering(filelist);
     filelist->flags &= ~FL_NEED_SORTING;
   }
 }
@@ -970,7 +970,7 @@ static bool is_filtered_main_assets(FileListInternEntry *file,
          is_filtered_asset(file, filter);
 }
 
-static void filelist_filter_clear(FileList *filelist)
+static void filelist_tag_needs_filtering(FileList *filelist)
 {
   filelist->flags |= FL_NEED_FILTERING;
 }
@@ -1078,7 +1078,7 @@ void filelist_setfilter_options(FileList *filelist,
 
   if (update) {
     /* And now, free filtered data so that we know we have to filter again. */
-    filelist_filter_clear(filelist);
+    filelist_tag_needs_filtering(filelist);
   }
 }
 
@@ -1105,7 +1105,7 @@ void filelist_set_asset_catalog_filter_options(
   }
 
   if (update) {
-    filelist_filter_clear(filelist);
+    filelist_tag_needs_filtering(filelist);
   }
 }
 
@@ -1831,7 +1831,7 @@ void filelist_clear_ex(struct FileList *filelist,
     return;
   }
 
-  filelist_filter_clear(filelist);
+  filelist_tag_needs_filtering(filelist);
 
   if (do_cache) {
     filelist_cache_clear(&filelist->filelist_cache, filelist->filelist_cache.size);
