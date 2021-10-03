@@ -8460,7 +8460,7 @@ typedef struct DynTopoAutomaskState {
   bool free_automasking;
 } DynTopoAutomaskState;
 
-static float sculpt_topology_automasking_cb(SculptVertRef vertex, void *vdata)
+ATTR_NO_OPT static float sculpt_topology_automasking_cb(SculptVertRef vertex, void *vdata)
 {
   DynTopoAutomaskState *state = (DynTopoAutomaskState *)vdata;
   float mask = SCULPT_automasking_factor_get(state->cache, state->ss, vertex);
@@ -8469,7 +8469,7 @@ static float sculpt_topology_automasking_cb(SculptVertRef vertex, void *vdata)
   return mask * mask2;
 }
 
-static float sculpt_topology_automasking_mask_cb(SculptVertRef vertex, void *vdata)
+ATTR_NO_OPT static float sculpt_topology_automasking_mask_cb(SculptVertRef vertex, void *vdata)
 {
   DynTopoAutomaskState *state = (DynTopoAutomaskState *)vdata;
   return 1.0f - SCULPT_vertex_mask_get(state->ss, vertex);
@@ -8614,7 +8614,8 @@ static void sculpt_topology_update(Sculpt *sd,
       symidx,
       DYNTOPO_HAS_DYNAMIC_SPLIT(brush->sculpt_tool),
       mask_cb,
-      mask_cb_data);
+      mask_cb_data,
+      SCULPT_get_int(ss, dyntopo_disable_smooth, sd, brush));
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);
 

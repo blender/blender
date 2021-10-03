@@ -30,6 +30,7 @@
 
 #include "DNA_mesh_types.h"
 
+#include "BKE_brush_engine.h"
 #include "BKE_context.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -72,8 +73,10 @@ static bool sculpt_and_constant_or_manual_detail_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
-  return SCULPT_mode_poll(C) && ob->sculpt->bm &&
-         (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL));
+  /*checking for constant/manual mode isn't necassary since we do this on the python side
+    in the ui scripts*/
+  return SCULPT_mode_poll(C) && ob->sculpt->bm; /*&&
+         (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL));*/
 }
 
 static bool sculpt_and_dynamic_topology_poll(bContext *C)
@@ -87,6 +90,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
   SculptSession *ss = ob->sculpt;
   float size;
   float bb_min[3], bb_max[3], center[3], dim[3];
@@ -109,9 +114,17 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
   sub_v3_v3v3(dim, bb_max, bb_min);
   size = max_fff(dim[0], dim[1], dim[2]);
 
+  float constant_detail = BRUSHSET_GET_FINAL_FLOAT(
+      brush ? brush->channels : NULL, sd->channels, dyntopo_constant_detail, NULL);
+  float detail_range = BRUSHSET_GET_FINAL_FLOAT(
+      brush ? brush->channels : NULL, sd->channels, dyntopo_detail_range, NULL);
+
   /* Update topology size. */
-  float object_space_constant_detail = 1.0f / (sd->constant_detail * mat4_to_scale(ob->obmat));
-  BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail, sd->detail_range);
+  float object_space_constant_detail = 1.0f / (constant_detail * mat4_to_scale(ob->obmat));
+  BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail, detail_range);
+
+  bool enable_surface_relax = BRUSHSET_GET_FINAL_INT(
+      brush ? brush->channels : NULL, sd->channels, dyntopo_disable_smooth, NULL);
 
   SCULPT_undo_push_begin(ob, "Dynamic topology flood fill");
   SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_COORDS);
@@ -140,7 +153,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
                                               false,
                                               mask_cb,
                                               mask_cb_data,
-                                              max_dyntopo_steps_coll);
+                                              max_dyntopo_steps_coll,
+                                              enable_surface_relax);
 
     for (int j = 0; j < totnodes; j++) {
       BKE_pbvh_node_mark_topology_update(nodes[j]);
@@ -157,7 +171,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
                                                false,
                                                mask_cb,
                                                mask_cb_data,
-                                               max_dyntopo_steps_subd);
+                                               max_dyntopo_steps_subd,
+                                               enable_surface_relax);
     for (int j = 0; j < totnodes; j++) {
       BKE_pbvh_node_mark_topology_update(nodes[j]);
     }
@@ -184,7 +199,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
                                    false,
                                    mask_cb,
                                    mask_cb_data,
-                                   max_dyntopo_steps_coll);
+                                   max_dyntopo_steps_coll,
+                                   enable_surface_relax);
   }
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);

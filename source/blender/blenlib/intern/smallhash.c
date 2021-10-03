@@ -118,6 +118,11 @@ BLI_INLINE bool smallhash_val_is_used(const void *val)
 extern const uint BLI_ghash_hash_sizes[];
 #define hashsizes BLI_ghash_hash_sizes
 
+int BLI_smallhash_memuse(SmallHash *sh)
+{
+  return (int)sh->nbuckets * sizeof(SmallHashEntry) + (int)sizeof(SmallHash);
+}
+
 BLI_INLINE uintptr_t smallhash_key(const uintptr_t key)
 {
 #if 1

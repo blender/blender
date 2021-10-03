@@ -622,6 +622,10 @@ static void update_unode_bmesh_memsize(SculptUndoNode *unode)
   // update memory size
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
 
+  if (!usculpt) {
+    return;
+  }
+
   // subtract old size
   if (usculpt->undo_size >= unode->undo_size) {
     usculpt->undo_size -= unode->undo_size;
@@ -1930,6 +1934,10 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
     unode->bm_entry = BM_log_entry_add(ss->bm, ss->bm_log);
 
     return SCULPT_ensure_dyntopo_node_undo(ob, node, type, extraType);
+  }
+
+  if (!node) {
+    return;
   }
 
   int n = BKE_pbvh_get_node_id(ss->pbvh, node);

@@ -53,6 +53,8 @@ typedef struct {
   unsigned int i;
 } SmallHashIter;
 
+int BLI_smallhash_memuse(SmallHash *sh);
+
 void BLI_smallhash_init_ex(SmallHash *sh, const unsigned int nentries_reserve) ATTR_NONNULL(1);
 void BLI_smallhash_init(SmallHash *sh) ATTR_NONNULL(1);
 void BLI_smallhash_release(SmallHash *sh) ATTR_NONNULL(1);

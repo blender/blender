@@ -475,7 +475,8 @@ bool BKE_pbvh_bmesh_update_topology(
     bool updatePBVH,
     DyntopoMaskCB mask_cb,
     void *mask_cb_data,
-    int custom_max_steps);  // if 0, will use defaul hueristics for max steps
+    int custom_max_steps,  // if 0, will use defaul hueristics for max steps
+    bool disable_surface_relax);
 
 bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                           bool (*searchcb)(PBVHNode *node, void *data),
@@ -490,7 +491,8 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                           int sym_axis,
                                           bool updatePBVH,
                                           DyntopoMaskCB mask_cb,
-                                          void *mask_cb_data);
+                                          void *mask_cb_data,
+                                          bool disable_surface_relax);
 /* Node Access */
 
 void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node);
@@ -801,8 +803,20 @@ void BKE_pbvh_bmesh_free_tris(PBVH *pbvh, PBVHNode *node);
   symmetrize.*/
 void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh);
 
+/* saves all bmesh references to internal indices, to be restored later */
+void BKE_pbvh_bmesh_save_indices(PBVH *pbvh);
+
+/* restore bmesh references from previously indices saved by BKE_pbvh_bmesh_save_indices */
+void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh);
+
+/* wraps calls to BM_mesh_toolflags_set in BKE_pbvh_bmesh_save_indices and
+ * BKE_pbvh_bmesh_from_saved_indices */
+void BKE_pbvh_bmesh_set_toolflags(PBVH *pbvh, bool use_toolflags);
+
 void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, struct BMFace *f, bool log_face);
+void BKE_pbvh_bmesh_remove_edge(PBVH *pbvh, struct BMEdge *e, bool log_vert);
 void BKE_pbvh_bmesh_remove_vertex(PBVH *pbvh, struct BMVert *v, bool log_vert);
+
 void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool force_tree_walk);
 
 // note that e_tri and f_example are allowed to be NULL

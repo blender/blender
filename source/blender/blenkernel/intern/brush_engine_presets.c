@@ -1002,6 +1002,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(concave_mask_factor);
 
   ADDCH(dyntopo_disabled);
+  ADDCH(dyntopo_disable_smooth);
 
   ADDCH(dyntopo_detail_mode);
   ADDCH(dyntopo_mode)->flag;

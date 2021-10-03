@@ -1642,6 +1642,8 @@ void BM_mesh_rebuild(BMesh *bm,
     BLI_mempool_destroy(bm->fpool);
     bm->fpool = fpool_dst;
   }
+
+  bm_rebuild_idmap(bm);
 }
 
 /**

@@ -28,6 +28,7 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
+#include "BLI_smallhash.h"
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
@@ -939,8 +940,6 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
 
   bm = sculpt_faceset_bm_begin(ss, mesh);
 
-  int totface = bm->totface;
-
   BLI_bitmap *visited_faces = BLI_BITMAP_NEW(ss->totfaces, "visited faces");
   const int totfaces = ss->totfaces;  // mesh->totpoly;
 
@@ -1008,7 +1007,6 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
 
 static void sculpt_face_sets_init_loop(Object *ob, const int mode)
 {
-  Mesh *mesh = ob->data;
   SculptSession *ss = ob->sculpt;
 
   SCULPT_face_random_access_ensure(ss);
@@ -2023,39 +2021,566 @@ typedef struct FaceSetExtrudeCD {
   float (*orig_co)[3];
   float init_mval[2];
   float (*orig_no)[3];
+  int *verts;
+  int totvert;
 } FaceSetExtrudeCD;
 
-static void sculpt_face_set_extrude_id(Object *ob, SculptSession *ss, const int active_face_set_id)
+static int sculpt_bm_mesh_elem_hflag_disable_all(BMesh *bm, char htype, char hflag)
+{
+  static int iters[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+  static int types[3] = {BM_VERT, BM_EDGE, BM_FACE};
+
+  for (int i = 0; i < 3; i++) {
+    int type = types[i];
+
+    if (!(htype & type)) {
+      continue;
+    }
+
+    BMIter iter;
+    BMElem *elem;
+
+    BM_ITER_MESH (elem, &iter, bm, iters[i]) {
+      // do not call bm selection api
+      // BM_elem_select_set(bm, elem, false);
+
+      elem->head.hflag &= ~hflag;
+    }
+  }
+}
+
+void bmesh_radial_loop_append(BMEdge *e, BMLoop *l);
+void bmesh_radial_loop_remove(BMEdge *e, BMLoop *l);
+void bmesh_disk_edge_append(BMEdge *e, BMVert *v);
+void bmesh_disk_edge_remove(BMEdge *e, BMVert *v);
+
+ATTR_NO_OPT static void sculpt_face_set_extrude_id_2(
+    Object *ob, SculptSession *ss, const int active_face_set_id, int **r_verts, int *r_totvert)
+{
+  Mesh *mesh = ob->data;
+  const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
+
+  BMesh *bm = ss->bm ? ss->bm : sculpt_faceset_bm_begin(ss, mesh);
+
+  BMVert **vs = NULL;
+  BMEdge **es = NULL;
+  BMFace **fs = NULL;
+  BMVert **retvs = NULL;
+  BMEdge **borderes = NULL;
+  BMEdge **borderes_new = NULL;
+  SmallHash *vmap = MEM_callocN(sizeof(*vmap), __func__);
+  BLI_smallhash_init(vmap);
+  SmallHash *emap = MEM_callocN(sizeof(*emap), __func__);
+  BLI_smallhash_init(emap);
+
+  BLI_array_declare(vs);
+  BLI_array_declare(es);
+  BLI_array_declare(fs);
+  BLI_array_declare(retvs);
+
+  BLI_array_declare(borderes);
+  BLI_array_declare(borderes_new);
+
+  BMIter iter;
+  BMFace *f;
+
+  BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
+
+  sculpt_bm_mesh_elem_hflag_disable_all(
+      bm, BM_ALL_NOLOOP, BM_ELEM_SELECT | BM_ELEM_TAG_ALT | BM_ELEM_TAG);
+
+  const int tag = BM_ELEM_TAG;
+  const int tag2 = BM_ELEM_SELECT;
+
+  BMLoop **ls = NULL;
+  BMEdge **v1es = NULL;
+  BMEdge **v2es = NULL;
+  BMFace **borderfs1 = NULL;
+  BMFace **borderfs2 = NULL;
+  BMVert **bordervs1 = NULL;
+  BMVert **bordervs2 = NULL;
+  BMEdge **otheres = NULL;
+
+  BLI_array_declare(otheres);
+  BLI_array_declare(borderfs1);
+  BLI_array_declare(borderfs2);
+  BLI_array_declare(bordervs1);
+  BLI_array_declare(bordervs2);
+  BLI_array_declare(ls);
+  BLI_array_declare(v1es);
+  BLI_array_declare(v2es);
+
+  // mark faceset region and its border edges
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+
+    if (fset == active_face_set_id) {
+      f->head.hflag |= tag;
+
+      BLI_array_append(fs, f);
+
+      BMLoop *l = f->l_first;
+      do {
+        if (!(l->v->head.hflag & tag)) {
+          l->v->head.hflag |= tag;
+
+          BLI_array_append(vs, l->v);
+          BLI_array_append(retvs, l->v);
+        }
+
+        if (!(l->e->head.hflag & tag)) {
+          l->e->head.hflag |= tag;
+
+          BLI_array_append(es, l->e);
+        }
+      } while ((l = l->next) != f->l_first);
+    }
+  }
+
+  for (int i = 0; i < BLI_array_len(es); i++) {
+    BMEdge *e = es[i];
+    BMLoop *l2 = e->l;
+
+    do {
+      if (!(l2->f->head.hflag & tag)) {
+        BLI_array_append(borderes, e);
+        break;
+      }
+    } while ((l2 = l2->radial_next) != e->l);
+  }
+
+  for (int i = 0; i < BLI_array_len(borderes); i++) {
+    BMEdge *e = borderes[i];
+    BMLoop *l = e->l;
+
+    e->head.hflag |= tag;
+
+    if (!l) {
+      continue;
+    }
+
+    BLI_array_clear(ls);
+    do {
+      if (l->f->head.hflag & tag2) {
+        continue;
+      }
+
+      l->f->head.hflag |= tag2;
+
+      if (l->f->head.hflag & tag) {
+        BLI_array_append(borderfs1, l->f);
+      }
+      else {
+        BLI_array_append(borderfs2, l->f);
+      }
+
+    } while ((l = l->radial_next) != e->l);
+  }
+
+  for (int i = 0; i < BLI_array_len(fs); i++) {
+    fs[i]->head.hflag &= ~tag2;
+  }
+
+  for (int step = 0; step < 2; step++) {
+    int len = step ? BLI_array_len(borderfs2) : BLI_array_len(borderfs1);
+    BMFace **borderfs = step ? borderfs2 : borderfs1;
+
+    for (int i = 0; i < len; i++) {
+      BMFace *f = borderfs[i];
+      BMLoop *l = f->l_first;
+
+      do {
+        if (l->e->head.hflag & tag) {
+          bmesh_radial_loop_remove(l->e, l);
+        }
+        else if (!(l->e->head.hflag & tag) && !(l->e->head.hflag & tag2)) {
+          l->e->head.hflag |= tag2;
+          BLI_array_append(otheres, l->e);
+
+          bmesh_disk_edge_remove(l->e, l->e->v1);
+          bmesh_disk_edge_remove(l->e, l->e->v2);
+        }
+      } while ((l = l->next) != f->l_first);
+    }
+  }
+
+  // create and splice in new border edges and vertices
+  for (int i = 0; i < BLI_array_len(borderes); i++) {
+    BMEdge *e = borderes[i];
+    void **val = NULL;
+    BMVert *v1_new, *v2_new;
+
+    bmesh_disk_edge_remove(e, e->v1);
+    bmesh_disk_edge_remove(e, e->v2);
+
+    if (!BLI_smallhash_ensure_p(vmap, (uintptr_t)e->v1, &val)) {
+      *val = v1_new = (void *)BM_vert_create(bm, e->v1->co, e->v1, BM_CREATE_NOP);
+      BM_ELEM_CD_SET_INT(v1_new, ss->cd_face_node_offset, DYNTOPO_NODE_NONE);
+    }
+    else {
+      v1_new = *val;
+    }
+
+    if (!BLI_smallhash_ensure_p(vmap, (uintptr_t)e->v2, &val)) {
+      *val = v2_new = (void *)BM_vert_create(bm, e->v2->co, e->v2, BM_CREATE_NOP);
+      BM_ELEM_CD_SET_INT(v2_new, ss->cd_face_node_offset, DYNTOPO_NODE_NONE);
+    }
+    else {
+      v2_new = *val;
+    }
+
+    BMEdge *e_new = BM_edge_create(bm, v1_new, v2_new, e, BM_CREATE_NOP);
+    e_new->head.hflag &= ~tag;
+
+    bmesh_disk_edge_remove(e_new, v1_new);
+    bmesh_disk_edge_remove(e_new, v2_new);
+
+    // BM_log_edge_added(ss->bm_log, e_new);
+
+    BLI_array_append(borderes_new, e_new);
+
+    BLI_smallhash_insert(emap, (uintptr_t)e, e_new);
+  }
+
+  // relink borderfs1
+  for (int i = 0; i < BLI_array_len(borderfs1); i++) {
+    BMFace *f = borderfs1[i];
+    BMLoop *l = f->l_first;
+
+    do {
+      bmesh_radial_loop_append(l->e, l);
+    } while ((l = l->next) != f->l_first);
+  }
+
+  // relink borderfs2
+  for (int i = 0; i < BLI_array_len(borderfs2); i++) {
+    BMFace *f = borderfs2[i];
+    BMLoop *l = f->l_first;
+
+    do {
+      if (l->e->head.hflag & tag) {
+        l->e = BLI_smallhash_lookup(emap, l->e);
+      }
+
+      BMVert *newv = BLI_smallhash_lookup(vmap, l->v);
+      if (newv) {
+        l->v = newv;
+      }
+    } while ((l = l->next) != f->l_first);
+
+    do {
+      bmesh_radial_loop_append(l->e, l);
+    } while ((l = l->next) != f->l_first);
+  }
+
+  for (int i = 0; i < BLI_array_len(borderes); i++) {
+    BMEdge *e1 = borderes[i];
+    BMEdge *e2 = borderes_new[i];
+
+    bmesh_disk_edge_append(e1, e1->v1);
+    bmesh_disk_edge_append(e1, e1->v2);
+
+    bmesh_disk_edge_append(e2, e2->v1);
+    bmesh_disk_edge_append(e2, e2->v2);
+  }
+
+  for (int i = 0; i < BLI_array_len(otheres); i++) {
+    BMEdge *e = otheres[i];
+
+    bmesh_disk_edge_append(e, e->v1);
+    bmesh_disk_edge_append(e, e->v2);
+  }
+#if 0
+  for (int i = 0; i < BLI_array_len(borderes); i++) {
+    BMEdge *e = borderes[i];
+
+    // first unlink local geometry
+
+    BLI_array_clear(ls);
+    BLI_array_clear(v1es);
+    BLI_array_clear(v2es);
+
+    // edge disk cycles
+    for (int step = 0; step < 2; step++) {
+      BMVert *v = step ? e->v2 : e->v1;
+      BMEdge *e2 = v->e;
+
+      // update ss->bm_log for undo
+      if (!(e2->head.hflag & tag) && !(e2->head.hflag & tag2)) {
+        BMLoop *l2 = e2->l;
+
+        if (l2) {
+          do {
+            if (!(l2->f->head.hflag & tag) && !(l2->f->head.hflag & tag2)) {
+              l2->f->head.hflag |= tag2;
+
+              BKE_pbvh_bmesh_remove_face(ss->pbvh, l2->f, true);
+              // BM_log_face_removed(ss->bm_log, l2->f);
+            }
+
+          } while ((l2 = l2->radial_next) != e2->l);
+        }
+
+        BM_log_edge_removed(ss->bm_log, e2);
+        e2->head.hflag |= tag2;
+      }
+
+      do {
+        if (step) {
+          BLI_array_append(v1es, e2);
+        }
+        else {
+          BLI_array_append(v2es, e2);
+        }
+      } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
+    }
+
+    // finish unlinking disk cycles
+    e->v1->e = NULL;
+    e->v2->e = NULL;
+
+    // loop radial cycles
+    BMLoop *l = e->l;
+    do {
+      BLI_array_append(ls, l);
+    } while ((l = l->radial_next) != e->l);
+
+    for (int j = 0; j < BLI_array_len(ls); j++) {
+      l = ls[j];
+      bmesh_radial_loop_remove(l->e, l);
+    }
+
+    // now splice geometry
+
+    BMVert *v1_new = BM_vert_create(bm, e->v1->co, e->v1, BM_CREATE_NOP);
+    BMVert *v2_new = BM_vert_create(bm, e->v2->co, e->v2, BM_CREATE_NOP);
+
+    BM_log_vert_added(ss->bm_log, v1_new, ss->cd_vert_mask_offset);
+    BM_log_vert_added(ss->bm_log, v2_new, ss->cd_vert_mask_offset);
+
+    BMEdge *e_new = BM_edge_create(bm, v1_new, v2_new, e, BM_CREATE_NOP);
+    BM_log_edge_added(ss->bm_log, e_new);
+
+    BLI_array_append(borderes_new, e_new);
+
+    for (int j = 0; j < BLI_array_len(ls); j++) {
+      BMLoop *l = ls[j];
+
+      if (l->f->head.hflag & tag) {
+        l->e = e;
+      }
+      else {
+        l->e = e_new;
+        l->v = l->v == e->v1 ? v1_new : v2_new;
+      }
+    }
+
+    bmesh_disk_edge_append(e, e->v1);
+    bmesh_disk_edge_append(e, e->v2);
+
+    for (int step = 0; step < 2; step++) {
+      int len = step ? BLI_array_len(v2es) : BLI_array_len(v1es);
+      BMEdge **ves = step ? v2es : v1es;
+      BMVert *v_orig = step ? e->v2 : e->v1;
+      BMVert *v_new = step ? e->v2 : e->v1;
+
+      for (int j = 0; j < len; j++) {
+        BMEdge *e2 = ves[j];
+
+        if (e2 == e_new || e2 == e) {
+          continue;
+        }
+
+        // part of kept geometry?
+        if (e2->head.hflag & tag) {
+          BMVert *v2 = e2->v1 == v_orig ? e2->v1 : e2->v2;
+          bmesh_disk_edge_append(e2, v2);
+        }
+        else {
+          BMVert *v2 = e2->v1 == v_orig ? v1_new : v2_new;
+          bmesh_disk_edge_append(e2, v2);
+        }
+      }
+    }
+
+    // complete final relinking of loops
+    for (int j = 0; j < BLI_array_len(ls); j++) {
+      BMLoop *l = ls[j];
+
+      bmesh_radial_loop_append(l->e, l);
+    }
+  }
+#endif
+  if (!ss->bm) {
+    BM_mesh_bm_to_me(NULL,
+                     NULL,
+                     bm,
+                     ob->data,
+                     (&(struct BMeshToMeshParams){
+                         .calc_object_remap = false,
+                     }));
+  }
+
+  if (!ss->bm) {
+    sculpt_faceset_bm_end(ss, bm);
+  }
+
+  *r_verts = MEM_malloc_arrayN(BLI_array_len(retvs), sizeof(int), "face set extrude verts");
+  *r_totvert = BLI_array_len(retvs);
+
+  BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
+
+  for (int i = 0; i < BLI_array_len(retvs); i++) {
+    BMVert *v = retvs[i];
+    (*r_verts)[i] = v->head.index;
+  }
+
+  BLI_array_free(vs);
+  BLI_array_free(es);
+  BLI_array_free(fs);
+  BLI_array_free(retvs);
+}
+
+ATTR_NO_OPT static void sculpt_face_set_extrude_id(
+    Object *ob, SculptSession *ss, const int active_face_set_id, int **r_verts, int *r_totvert)
 {
 
   Mesh *mesh = ob->data;
   const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
-  BMesh *bm = BM_mesh_create(&allocsize,
-                             &((struct BMeshCreateParams){
-                                 .use_toolflags = true,
-                             }));
 
-  BM_mesh_bm_from_me(NULL,
-                     bm,
-                     mesh,
-                     (&(struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
-                     }));
+  BMesh *bm = sculpt_faceset_bm_begin(ss, mesh);
+  if (ss->bm) {
+    BKE_pbvh_bmesh_set_toolflags(ss->pbvh, true);
+  }
 
   BM_mesh_elem_table_init(bm, BM_FACE);
   BM_mesh_elem_table_ensure(bm, BM_FACE);
-  BM_mesh_elem_hflag_disable_all(bm, BM_ALL_NOLOOP, BM_ELEM_TAG, false);
-  BM_mesh_elem_hflag_disable_all(bm, BM_ALL_NOLOOP, BM_ELEM_SELECT, false);
+
+  sculpt_bm_mesh_elem_hflag_disable_all(
+      bm, BM_ALL_NOLOOP, BM_ELEM_SELECT | BM_ELEM_TAG_ALT | BM_ELEM_TAG);
+
   BMIter iter;
   BMFace *f;
+
+  if (ss->bm && ss->pbvh) {
+    BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
+  }
+
   BM_mesh_select_mode_set(bm, SCE_SELECT_FACE);
+
+  BMVert **retvs = NULL;
+  BMVert **vs = NULL;
+  BMEdge **es = NULL;
+  BLI_array_declare(vs);
+  BLI_array_declare(es);
+  BLI_array_declare(retvs);
+
+  const int cd_faceset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+
+  const int tag1 = BM_ELEM_SELECT;
+  const int tag2 = BM_ELEM_TAG_ALT;
+  const int tag3 = BM_ELEM_TAG;
+  float no[3] = {0.0f, 0.0f, 0.0f};
+
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     const int face_index = BM_elem_index_get(f);
-    const int face_set_id = ss->face_sets[face_index];
-    BM_elem_select_set(bm, (BMElem *)f, face_set_id == active_face_set_id);
+    const int face_set_id = BM_ELEM_CD_GET_INT(f, cd_faceset_offset);
+
+    if (face_set_id == active_face_set_id) {
+      BM_elem_select_set(bm, (BMElem *)f, true);
+      if (dot_v3v3(f->no, f->no) > 0.0f) {
+        add_v3_v3(no, f->no);
+      }
+
+      if (ss->bm) {
+        BMLoop *l = f->l_first;
+
+        do {
+          if (!(BM_elem_flag_test(l->e, tag2))) {
+            BM_elem_flag_enable(l->e, tag2);
+            BLI_array_append(es, l->e);
+          }
+
+          if (!(BM_elem_flag_test(l->v, tag2))) {
+            BM_elem_flag_enable(l->v, tag2);
+            BLI_array_append(vs, l->v);
+          }
+
+        } while ((l = l->next) != f->l_first);
+
+        BKE_pbvh_bmesh_remove_face(ss->pbvh, f, true);
+      }
+    }
+    else {
+      BM_elem_select_set(bm, (BMElem *)f, false);
+    }
+
     BM_elem_flag_set(f, BM_ELEM_TAG, face_set_id == active_face_set_id);
   }
+
+  *r_verts = NULL;
+  *r_totvert = 0;
+
+  if (ss->bm) {
+    for (int i = 0; i < BLI_array_len(es); i++) {
+      BMEdge *e = es[i];
+      BMLoop *l = e->l;
+
+      bool remove = true;
+      do {
+        if (!(BM_elem_flag_test(l->f, tag1))) {
+          // remove = false;
+          if (!BM_elem_flag_test(l->f, tag2)) {
+            BKE_pbvh_bmesh_remove_face(ss->pbvh, l->f, true);
+            BM_elem_flag_enable(l->f, tag2);
+          }
+          break;
+        }
+      } while ((l = l->radial_next) != e->l);
+
+      if (remove) {
+        if (!BM_elem_flag_test(e->v1, tag3)) {
+          BM_log_vert_removed(ss->bm_log, e->v1, ss->cd_vert_mask_offset);
+          // BKE_pbvh_bmesh_remove_vertex(ss->pbvh, e->v1, true);
+          BM_elem_flag_enable(e->v1, tag3);
+        }
+
+        if (!BM_elem_flag_test(e->v2, tag3)) {
+          BM_log_vert_removed(ss->bm_log, e->v2, ss->cd_vert_mask_offset);
+          // BKE_pbvh_bmesh_remove_vertex(ss->pbvh, e->v2, true);
+          BM_elem_flag_enable(e->v2, tag3);
+        }
+
+        BKE_pbvh_bmesh_remove_edge(ss->pbvh, e, true);
+        e->head.hflag |= tag1;
+      }
+    }
+
+    for (int i = 0; i < BLI_array_len(vs); i++) {
+      BMVert *v = vs[i];
+      BMEdge *e = v->e;
+      bool remove = true;
+
+      if (BM_elem_flag_test(v, tag3)) {
+        continue;
+      }
+
+      BM_elem_flag_enable(v, tag3);
+
+      do {
+        if (!BM_elem_flag_test(e, tag1)) {
+          // remove = false;
+          break;
+        }
+      } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+      if (remove) {
+        // BKE_pbvh_bmesh_remove_vertex(ss->pbvh, v, true);
+        BM_log_vert_removed(ss->bm_log, v, ss->cd_vert_mask_offset);
+      }
+    }
+  }
+
   BM_mesh_select_flush(bm);
   BM_mesh_select_mode_flush(bm);
 
@@ -2071,15 +2596,145 @@ static void sculpt_face_set_extrude_id(Object *ob, SculptSession *ss, const int 
   }
 
   BMO_slot_buffer_from_enabled_hflag(bm, &extop, extop.slots_in, "geom", htype, BM_ELEM_SELECT);
+
   BMO_op_exec(bm, &extop);
-  BM_mesh_elem_hflag_disable_all(bm, BM_ALL_NOLOOP, BM_ELEM_SELECT, false);
+  sculpt_bm_mesh_elem_hflag_disable_all(
+      bm, BM_ALL_NOLOOP, BM_ELEM_SELECT | BM_ELEM_TAG_ALT | BM_ELEM_TAG);
 
   BMOIter siter;
   BMElem *ele;
-  BMO_ITER (ele, &siter, extop.slots_out, "geom.out", BM_ALL_NOLOOP) {
-    BM_elem_flag_set(ele, BM_ELEM_TAG, true);
+
+  for (int step = 0; step < (ss->bm ? 2 : 1); step++) {
+    BMO_ITER (ele, &siter, extop.slots_out, step ? "side_geom.out" : "geom.out", BM_ALL_NOLOOP) {
+      /*
+      if (ele->head.htype == BM_VERT && BM_log_has_vert(ss->bm_log, (BMVert *)ele)) {
+        BM_elem_flag_enable(ele, tag1);
+      }
+      if (ele->head.htype == BM_EDGE && BM_log_has_edge(ss->bm_log, (BMEdge *)ele)) {
+        BM_elem_flag_enable(ele, tag1);
+      }
+      if (ele->head.htype == BM_FACE && BM_log_has_face(ss->bm_log, (BMFace *)ele)) {
+        BM_elem_flag_enable(ele, tag1);
+      }*/
+
+      if (ele->head.htype == BM_VERT) {
+        BM_ELEM_CD_SET_INT(ele, ss->cd_vert_node_offset, DYNTOPO_NODE_NONE);
+      }
+      else if (ele->head.htype == BM_FACE) {
+        BM_ELEM_CD_SET_INT(ele, ss->cd_face_node_offset, DYNTOPO_NODE_NONE);
+      }
+    }
   }
+
+  BMFace **flipfs = NULL;
+  BLI_array_declare(flipfs);
+
+  for (int step = 0; step < (ss->bm ? 2 : 1); step++) {
+    BMO_ITER (ele, &siter, extop.slots_out, step ? "side_geom.out" : "geom.out", BM_ALL_NOLOOP) {
+      if (step == 0 && ele->head.htype != BM_VERT) {
+        BM_elem_flag_set(ele, BM_ELEM_TAG, true);
+      }
+
+      if (!ss->bm || BM_elem_flag_test(ele, tag1)) {
+        continue;
+      }
+
+      BM_elem_flag_enable(ele, tag1);
+
+      switch (ele->head.htype) {
+        case BM_VERT:
+          BM_log_vert_added(ss->bm_log, (BMVert *)ele, ss->cd_vert_mask_offset);
+
+          if (step == 0) {
+            BLI_array_append(retvs, (BMVert *)ele);
+          }
+
+          break;
+        case BM_EDGE: {
+          BMEdge *e = (BMEdge *)ele;
+          BM_log_edge_added(ss->bm_log, e);
+
+          if (!BM_elem_flag_test(e->v1, tag1)) {
+            BM_elem_flag_enable(e->v1, tag1);
+            BM_log_vert_added(ss->bm_log, e->v1, ss->cd_vert_mask_offset);
+          }
+
+          if (!BM_elem_flag_test(e->v2, tag1)) {
+            BM_elem_flag_enable(e->v2, tag1);
+            BM_log_vert_added(ss->bm_log, e->v2, ss->cd_vert_mask_offset);
+          }
+
+          if (1 || step == 1) {
+            BMLoop *l = e->l;
+
+            if (l) {
+              do {
+                if (!BM_elem_flag_test(l->f, tag1)) {
+                  // BLI_array_append(flipfs, l->f);
+
+                  BKE_pbvh_bmesh_add_face(ss->pbvh, l->f, false, false);
+                  BM_log_face_added(ss->bm_log, l->f);
+
+                  BM_elem_flag_enable(l->f, tag1);
+                }
+              } while ((l = l->radial_next) != e->l);
+            }
+          }
+
+          break;
+        }
+        case BM_FACE: {
+          BMFace *f = (BMFace *)ele;
+
+          if (dot_v3v3(f->no, f->no) > 0.0f) {
+            add_v3_v3(no, f->no);
+          }
+
+          BMLoop *l = f->l_first;
+          do {
+            if (!(l->v->head.hflag & tag1)) {
+              l->v->head.hflag |= tag1;
+              BM_log_vert_added(ss->bm_log, l->v, ss->cd_vert_mask_offset);
+            }
+
+            if (!(l->e->head.hflag & tag1)) {
+              l->e->head.hflag |= tag1;
+              BM_log_edge_added(ss->bm_log, l->e);
+            }
+          } while ((l = l->next) != f->l_first);
+
+          BKE_pbvh_bmesh_add_face(ss->pbvh, f, false, false);
+          BM_log_face_added(ss->bm_log, f);
+          break;
+        }
+        default:
+          break;
+      }
+    }
+  }
+
+#if 0 
+  for (int i=0; i<BLI_array_len(flipfs); i++) {
+    BMFace *f = flipfs[i];
+
+    //BM_face_normal_flip(bm, f);
+
+    if (ss->bm) {
+      BKE_pbvh_bmesh_add_face(ss->pbvh, f, false, false);
+      BM_log_face_added(ss->bm_log, f);
+    }
+  }
+#endif
+
   BMO_op_finish(bm, &extop);
+
+  for (int i = 0; i < BLI_array_len(retvs); i++) {
+    BM_elem_flag_enable(retvs[i], BM_ELEM_TAG);
+  }
+
+  SmallHash keymap;
+  int keyi = 0;
+  BLI_smallhash_init(&keymap);
 
   /* Set the new Face Set ID for the extrusion. */
   const int cd_face_sets_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
@@ -2089,17 +2744,69 @@ static void sculpt_face_set_extrude_id(Object *ob, SculptSession *ss, const int 
     if (face_set_id == active_face_set_id) {
       continue;
     }
+
+    normalize_v3(no);
+
+    const int cd_dyn_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
+
     BMVert *v;
     BMIter face_iter;
     BM_ITER_ELEM (v, &face_iter, f, BM_VERTS_OF_FACE) {
+      BMLoop *l = f->l_first;
+
+      if (cd_dyn_vert >= 0) {
+        do {
+          MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(l->v, cd_dyn_vert);
+          mv->flag |= DYNVERT_NEED_BOUNDARY|DYNVERT_NEED_DISK_SORT|DYNVERT_NEED_TRIANGULATE|DYNVERT_NEED_VALENCE;
+        } while ((l = l->next) != f->l_first);
+      }
+
+      if (dot_v3v3(f->no, f->no) == 0.0f) {
+        float co1[3], co2[3], co3[3];
+
+        copy_v3_v3(co1, l->v->co);
+        copy_v3_v3(co2, l->next->v->co);
+        copy_v3_v3(co3, l->next->next->v->co);
+
+        if (BM_elem_flag_test(l->v, BM_ELEM_TAG)) {
+          madd_v3_v3fl(co1, no, 0.01);
+        }
+        else if (BM_elem_flag_test(l->next->next->v, BM_ELEM_TAG)) {
+          madd_v3_v3fl(co3, no, 0.01);
+        }
+
+        if (1 || f->len > 3) {
+          normal_tri_v3(f->no, co1, co2, co3);
+        }
+        else {
+          normal_quad_v3(
+              f->no, l->v->co, l->next->v->co, l->next->next->v->co, l->next->next->next->v->co);
+        }
+        printf("eek!");
+      }
+
+      int dimen = 1;
+      int x = (int)((f->no[0] + 1.0f) * (float)dimen);
+      int y = (int)((f->no[1] + 1.0f) * (float)dimen);
+      int z = (int)((f->no[2] + 1.0f) * (float)dimen);
+
+      int key = x * dimen * dimen + y * dimen + z;
+      void **val = NULL;
+      if (!BLI_smallhash_ensure_p(&keymap, (uintptr_t)key, &val)) {
+        *val = POINTER_FROM_INT(keyi);
+        keyi++;
+      }
+      int fset = next_face_set_id;  // + POINTER_AS_INT(*val);
+
       if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-        BM_ELEM_CD_SET_INT(f, cd_face_sets_offset, next_face_set_id);
+        BM_ELEM_CD_SET_INT(f, cd_face_sets_offset, fset);
         break;
       }
     }
   }
 
   BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+
   BMO_op_callf(bm,
                (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
                "recalc_face_normals faces=%hf",
@@ -2108,15 +2815,33 @@ static void sculpt_face_set_extrude_id(Object *ob, SculptSession *ss, const int 
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
 
-  BM_mesh_bm_to_me(NULL,
-                   NULL,
-                   bm,
-                   ob->data,
-                   (&(struct BMeshToMeshParams){
-                       .calc_object_remap = false,
-                   }));
+  *r_verts = MEM_malloc_arrayN(BLI_array_len(retvs), sizeof(int), "face set extrude verts");
+  *r_totvert = BLI_array_len(retvs);
 
-  BM_mesh_free(bm);
+  BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
+
+  for (int i = 0; i < BLI_array_len(retvs); i++) {
+    BMVert *v = retvs[i];
+    (*r_verts)[i] = v->head.index;
+  }
+
+  BLI_array_free(vs);
+  BLI_array_free(es);
+
+  if (!ss->bm) {
+    BM_mesh_bm_to_me(NULL,
+                     NULL,
+                     bm,
+                     ob->data,
+                     (&(struct BMeshToMeshParams){
+                         .calc_object_remap = false,
+                     }));
+  }
+
+  sculpt_faceset_bm_end(ss, bm);
+  if (ss->bm) {
+    BKE_pbvh_bmesh_set_toolflags(ss->pbvh, false);
+  }
 }
 
 static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2137,81 +2862,123 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
     FaceSetExtrudeCD *fsecd = op->customdata;
     MEM_SAFE_FREE(fsecd->orig_co);
     MEM_SAFE_FREE(fsecd->orig_no);
+    MEM_SAFE_FREE(fsecd->verts);
     MEM_SAFE_FREE(op->customdata);
-    ED_sculpt_undo_geometry_end(ob);
+
+    if (ss->bm) {
+      SCULPT_undo_push_end();
+    }
+    else {
+      ED_sculpt_undo_geometry_end(ob);
+    }
+
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
     return OPERATOR_FINISHED;
   }
 
   FaceSetExtrudeCD *fsecd = op->customdata;
-  float depth_world_space[3];
-  float new_pos[3];
-  mul_v3_m4v3(depth_world_space, ob->obmat, fsecd->cursor_location);
   ViewContext vc;
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
+
+  float depth_world_space[3];
+  float new_pos[3];
+
+  mul_v3_m4v3(depth_world_space, ob->obmat, fsecd->cursor_location);
+
   float fmval[2] = {event->mval[0], fsecd->init_mval[1]};
+
   ED_view3d_win_to_3d(vc.v3d, vc.region, depth_world_space, fmval, new_pos);
   float extrude_disp = len_v3v3(depth_world_space, new_pos);
 
+  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_face_random_access_ensure(ss);
+
   if (event->mval[0] <= fsecd->init_mval[0]) {
-    extrude_disp *= -1.0f;
+    // extrude_disp *= -1.0f;
   }
 
   if (!fsecd->orig_co) {
-    fsecd->orig_co = MEM_calloc_arrayN(totvert, sizeof(float) * 3, "origco");
-    fsecd->orig_no = MEM_calloc_arrayN(totvert, sizeof(float) * 3, "origno");
-    for (int i = 0; i < totvert; i++) {
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    fsecd->orig_co = MEM_calloc_arrayN(fsecd->totvert, sizeof(float) * 3, "origco");
+    fsecd->orig_no = MEM_calloc_arrayN(fsecd->totvert, sizeof(float) * 3, "origno");
+
+    for (int i = 0; i < fsecd->totvert; i++) {
+      int idx = fsecd->verts[i];
+      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, idx);
 
       copy_v3_v3(fsecd->orig_co[i], SCULPT_vertex_co_get(ss, vertex));
       SCULPT_vertex_normal_get(ss, vertex, fsecd->orig_no[i]);
     }
   }
 
-  MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
-  for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+  if (!ss->bm) {
+    MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+    for (int i = 0; i < fsecd->totvert; i++) {
+      int idx = fsecd->verts[i];
+      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, idx);
 
-    if (!SCULPT_vertex_has_face_set(ss, vertex, fsecd->active_face_set)) {
-      continue;
+      madd_v3_v3v3fl(mvert[idx].co, fsecd->orig_co[i], fsecd->orig_no[i], extrude_disp);
+      mvert[idx].flag |= ME_VERT_PBVH_UPDATE;
     }
 
-    madd_v3_v3v3fl(mvert[i].co, fsecd->orig_co[i], fsecd->orig_no[i], extrude_disp);
-    mvert[i].flag |= ME_VERT_PBVH_UPDATE;
+    PBVHNode **nodes;
+    int totnode;
+    BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+    for (int i = 0; i < totnode; i++) {
+      BKE_pbvh_node_mark_update(nodes[i]);
+    }
+    MEM_SAFE_FREE(nodes);
   }
+  else {
+    BM_mesh_elem_index_ensure(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
 
-  PBVHNode **nodes;
-  int totnode;
-  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
-  for (int i = 0; i < totnode; i++) {
-    BKE_pbvh_node_mark_update(nodes[i]);
+    for (int i = 0; i < fsecd->totvert; i++) {
+      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, fsecd->verts[i]);
+
+      BMVert *v = (BMVert *)vertex.i;
+
+      int ni = BM_ELEM_CD_GET_INT(v, ss->cd_vert_node_offset);
+      if (ni != DYNTOPO_NODE_NONE) {
+        BKE_pbvh_node_mark_update(BKE_pbvh_node_from_index(ss->pbvh, ni));
+      }
+
+      madd_v3_v3v3fl(v->co, fsecd->orig_co[i], fsecd->orig_no[i], extrude_disp);
+    }
   }
-  MEM_SAFE_FREE(nodes);
 
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void sculpt_face_set_extrude_begin(bContext *C,
-                                          wmOperator *op,
-                                          const wmEvent *event,
-                                          Object *ob,
-                                          const int active_face_set,
-                                          const float cursor_location[3])
+static void sculpt_face_set_extrude(bContext *C,
+                                    wmOperator *op,
+                                    const wmEvent *event,
+                                    Object *ob,
+                                    const int active_face_set,
+                                    const float cursor_location[3])
 {
   FaceSetExtrudeCD *fsecd = MEM_callocN(sizeof(FaceSetExtrudeCD), "face set extrude cd");
+
   fsecd->active_face_set = active_face_set;
   copy_v3_v3(fsecd->cursor_location, cursor_location);
   float fmval[2] = {event->mval[0], event->mval[1]};
   copy_v2_v2(fsecd->init_mval, fmval);
   op->customdata = fsecd;
 
-  ED_sculpt_undo_geometry_begin(ob, "face set extrude");
+  if (!ob->sculpt->bm) {
+    ED_sculpt_undo_geometry_begin(ob, "Face Set Extrude");
+  }
+  else {
+    SCULPT_undo_push_begin(ob, "Face Set Extrude");
+    SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_COORDS);
+  }
 
-  sculpt_face_set_extrude_id(ob, ob->sculpt, active_face_set);
+  sculpt_face_set_extrude_id(ob, ob->sculpt, active_face_set, &fsecd->verts, &fsecd->totvert);
 
-  BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  if (!ob->sculpt->bm) {
+    BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
+
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 }
 
@@ -2244,7 +3011,8 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
 
   switch (mode) {
     case SCULPT_FACE_SET_EDIT_EXTRUDE:
-      sculpt_face_set_extrude_begin(C, op, event, ob, active_face_set, sgi.location);
+      sculpt_face_set_extrude(C, op, event, ob, active_face_set, sgi.location);
+
       SCULPT_tag_update_overlays(C);
       WM_event_add_modal_handler(C, op);
       return OPERATOR_RUNNING_MODAL;

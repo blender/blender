@@ -35,12 +35,7 @@
 
 #define USE_EDGE_REGION_FLAGS
 
-enum {
-  EXT_INPUT = 1,
-  EXT_KEEP = 2,
-  EXT_DEL = 4,
-  EXT_TAG = 8,
-};
+enum { EXT_INPUT = 1, EXT_KEEP = 2, EXT_DEL = 4, EXT_TAG = 8, EXT_ALT = 16 };
 
 #define VERT_MARK 1
 #define EDGE_MARK 1
@@ -332,12 +327,16 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
   BMFace *f;
   bool found, delorig = false;
   BMOpSlot *slot_facemap_out;
+  BMOpSlot *slot_sidemap_out;
   BMOpSlot *slot_edges_exclude;
+
   const bool use_normal_flip = BMO_slot_bool_get(op->slots_in, "use_normal_flip");
   const bool use_normal_from_adjacent = BMO_slot_bool_get(op->slots_in,
                                                           "use_normal_from_adjacent");
   const bool use_dissolve_ortho_edges = BMO_slot_bool_get(op->slots_in,
                                                           "use_dissolve_ortho_edges");
+
+  bool side_tag = EXT_ALT;
 
   /* initialize our sub-operators */
   BMO_op_initf(bm,
@@ -552,29 +551,37 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
       char e_hflag[2];
       bool e_hflag_ok = bm_extrude_region_edge_flag(f_verts[2], e_hflag);
       f_edges[1] = BM_edge_create(bm, f_verts[1], f_verts[2], NULL, BM_CREATE_NOP);
+
       if (e_hflag_ok) {
         BM_elem_flag_enable(f_edges[1], e_hflag[0]);
         BM_elem_flag_disable(f_edges[1], e_hflag[1]);
       }
     }
+    BMO_elem_flag_set(bm, f_edges[1], side_tag, true);
 
     f_edges[3] = BM_edge_exists(f_verts[3], f_verts[0]);
+
     if (f_edges[3] == NULL) {
       char e_hflag[2];
       bool e_hflag_ok = bm_extrude_region_edge_flag(f_verts[3], e_hflag);
       f_edges[3] = BM_edge_create(bm, f_verts[3], f_verts[0], NULL, BM_CREATE_NOP);
+
       if (e_hflag_ok) {
         BM_elem_flag_enable(f_edges[3], e_hflag[0]);
         BM_elem_flag_disable(f_edges[3], e_hflag[1]);
       }
     }
+    BMO_elem_flag_set(bm, f_edges[3], side_tag, true);
 
     f = BM_face_create(bm, f_verts, f_edges, 4, NULL, BM_CREATE_NOP);
+
 #else
     f = BM_face_create_verts(bm, f_verts, 4, NULL, BM_CREATE_NOP, true);
 #endif
 
     bm_extrude_copy_face_loop_attributes(bm, f);
+    BMO_elem_flag_set(bm, (BMElem *)f, side_tag, true);
+
     if (join_face) {
       BMVert *v1 = e->v1;
       BMVert *v2 = e->v2;
@@ -605,7 +612,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
       }
     }
 
-    BM_edge_create(bm, v, v2, NULL, BM_CREATE_NO_DOUBLE);
+    BMO_elem_flag_set(bm, BM_edge_create(bm, v, v2, NULL, BM_CREATE_NO_DOUBLE), side_tag, true);
   }
 
   if (dissolve_verts) {
@@ -625,6 +632,9 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
     }
     MEM_freeN(dissolve_verts);
   }
+
+  BMO_slot_buffer_from_enabled_flag(
+      bm, op, op->slots_out, "side_geom.out", BM_FACE | BM_EDGE, side_tag);
 
   /* cleanup */
   if (delorig) {

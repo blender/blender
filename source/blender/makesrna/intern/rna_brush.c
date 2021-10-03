@@ -2572,6 +2572,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, brush_curve_preset_items);
   RNA_def_property_ui_text(prop, "Curve Preset", "");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "deform_target", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_deformation_target_items);
@@ -2678,6 +2679,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, falloff_shape_unit_items);
   RNA_def_property_ui_text(prop, "Falloff Shape", "Use projected or spherical falloff");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   /* number values */
   prop = RNA_def_property(srna, "size", PROP_INT, PROP_PIXEL);
@@ -3695,6 +3697,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_ui_text(prop, "Curve", "Editable falloff curve");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "pressure_size_curve", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);

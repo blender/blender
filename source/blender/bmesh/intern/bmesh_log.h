@@ -156,3 +156,7 @@ void BM_log_undo_skip(BMesh *bm, BMLog *log);
 BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, float t);
 
 int BM_log_entry_size(BMLogEntry *entry);
+
+bool BM_log_has_vert(BMLog *log, BMVert *v);
+bool BM_log_has_edge(BMLog *log, BMEdge *e);
+bool BM_log_has_face(BMLog *log, BMFace *f);

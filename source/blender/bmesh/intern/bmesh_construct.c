@@ -1248,3 +1248,78 @@ void bm_update_idmap_cdlayers(BMesh *bm)
   bm->idmap.cd_id_off[BM_LOOP] = CustomData_get_offset(&bm->ldata, CD_MESH_ID);
   bm->idmap.cd_id_off[BM_FACE] = CustomData_get_offset(&bm->pdata, CD_MESH_ID);
 }
+
+ATTR_NO_OPT void bm_rebuild_idmap(BMesh *bm)
+{
+  CustomData *cdatas[4] = {
+      &bm->vdata,
+      &bm->edata,
+      &bm->ldata,
+      &bm->pdata,
+  };
+
+  if (bm->idmap.flag & BM_HAS_ID_MAP) {
+    if (bm->idmap.flag & BM_NO_REUSE_IDS) {
+      if (bm->idmap.ghash) {
+        BLI_ghash_clear(bm->idmap.ghash, NULL, NULL);
+      }
+      else {
+        bm->idmap.ghash = BLI_ghash_ptr_new("bm->idmap.ghash");
+      }
+    }
+    else if (bm->idmap.map) {
+      memset(bm->idmap.map, 0, sizeof(void *) * bm->idmap.map_size);
+    }
+  }
+
+  for (int i = 0; i < 4; i++) {
+    int type = 1 << i;
+
+    if (!(bm->idmap.flag & type)) {
+      continue;
+    }
+
+    int cd_off = bm->idmap.cd_id_off[type];
+    cd_off = CustomData_get_offset(cdatas[i], CD_MESH_ID);
+
+    if (bm->idmap.flag & BM_NO_REUSE_IDS) {
+      BLI_mempool_iter iter;
+
+      BLI_mempool_iternew((&bm->vpool)[i], &iter);
+      BMElem *elem = (BMElem *)BLI_mempool_iterstep(&iter);
+      for (; elem; elem = (BMElem *)BLI_mempool_iterstep(&iter)) {
+        void **val;
+
+        if (!BLI_ghash_ensure_p(bm->idmap.ghash, (void *)elem, &val)) {
+          *val = POINTER_FROM_INT(BM_ELEM_CD_GET_INT(elem, cd_off));
+        }
+      }
+    }
+    else {
+      BLI_mempool_iter iter;
+
+      BLI_mempool_iternew((&bm->vpool)[i], &iter);
+      BMElem *elem = (BMElem *)BLI_mempool_iterstep(&iter);
+      for (; elem; elem = (BMElem *)BLI_mempool_iterstep(&iter)) {
+        void **val;
+        int id = BM_ELEM_CD_GET_INT(elem, cd_off);
+
+        if (!bm->idmap.map || bm->idmap.map_size <= id) {
+          int size = (2 + id);
+          size += size >> 1;
+
+          if (!bm->idmap.map) {
+            bm->idmap.map = MEM_calloc_arrayN(size, sizeof(*bm->idmap.map), "bm->idmap.map");
+          }
+          else {
+            bm->idmap.map = MEM_recallocN(bm->idmap.map, sizeof(void *) * size);
+          }
+
+          bm->idmap.map_size = size;
+        }
+
+        bm->idmap.map[BM_ELEM_CD_GET_INT(elem, cd_off)] = elem;
+      }
+    }
+  }
+}

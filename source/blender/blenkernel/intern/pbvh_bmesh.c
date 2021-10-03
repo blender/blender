@@ -1885,7 +1885,8 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                           int sym_axis,
                                           bool updatePBVH,
                                           DyntopoMaskCB mask_cb,
-                                          void *mask_cb_data)
+                                          void *mask_cb_data,
+                                          bool disable_surface_relax)
 {
   bool modified = false;
 
@@ -1915,7 +1916,8 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                                         updatePBVH,
                                                         mask_cb,
                                                         mask_cb_data,
-                                                        0);
+                                                        0,
+                                                        disable_surface_relax);
 
   return modified;
 }
@@ -5150,4 +5152,209 @@ void pbvh_bmesh_do_cache_test()
   }
   // pbvh_bmesh_cache_test_default_params(&params);
   // pbvh_bmesh_cache_test(&params, &bm, &pbvh);
+}
+
+/* saves all bmesh references to internal indices, to be restored later */
+ATTR_NO_OPT void BKE_pbvh_bmesh_save_indices(PBVH *pbvh)
+{
+  BM_mesh_elem_index_ensure(pbvh->bm, BM_VERT | BM_EDGE | BM_FACE);
+
+  BMFace *f;
+  BMVert *v;
+  BMIter iter;
+
+  int j = 0;
+
+  BM_ITER_MESH (f, &iter, pbvh->bm, BM_FACES_OF_MESH) {
+    BMLoop *l = f->l_first;
+
+    do {
+      l->head.index = j++;
+    } while ((l = l->next) != f->l_first);
+  }
+
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
+    }
+
+    node->prim_indices = MEM_calloc_arrayN(1 + node->bm_faces->length +
+                                               node->bm_unique_verts->length,
+                                           sizeof(int),
+                                           "saved bmesh indices");
+
+    int j = 0;
+
+    TGSET_ITER (f, node->bm_faces) {
+      node->prim_indices[j++] = f->head.index;
+    }
+    TGSET_ITER_END;
+
+    // flag start of vertex array
+    node->prim_indices[j++] = -1;
+
+    TGSET_ITER (v, node->bm_unique_verts) {
+      node->prim_indices[j++] = v->head.index;
+    }
+    TGSET_ITER_END;
+
+    node->totprim = j;
+
+    // don't try to save invalid triangulation
+    if (node->flag & PBVH_UpdateTris) {
+      continue;
+    }
+
+    // now do tribufs
+    for (j = 0; j < node->tot_tri_buffers + 1; j++) {
+      PBVHTriBuf *tribuf = j == node->tot_tri_buffers ? node->tribuf : node->tri_buffers + j;
+
+      if (!tribuf) {
+        break;
+      }
+
+      for (int k = 0; k < tribuf->totvert; k++) {
+        if (i == 35 && k == 12) {
+          printf("eek!");
+        }
+
+        tribuf->verts[k].i = ((BMVert *)tribuf->verts[k].i)->head.index;
+      }
+
+      for (int k = 0; k < tribuf->totloop; k++) {
+        tribuf->loops[k] = ((BMLoop *)tribuf->loops[k])->head.index;
+      }
+
+      for (int k = 0; k < tribuf->tottri; k++) {
+        PBVHTri *tri = tribuf->tris + k;
+        BMFace *f = (BMFace *)tri->f.i;
+
+        tri->f.i = f->head.index;
+
+        for (int l = 0; l < 3; l++) {
+          tri->l[l] = ((BMLoop *)tri->l[l])->head.index;
+        }
+      }
+    }
+  }
+}
+
+/* restore bmesh references from previously indices saved by BKE_pbvh_bmesh_save_indices */
+ATTR_NO_OPT void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
+{
+  BM_mesh_elem_table_ensure(pbvh->bm, BM_VERT | BM_EDGE | BM_FACE);
+  BM_mesh_elem_index_ensure(pbvh->bm, BM_VERT | BM_EDGE | BM_FACE);
+
+  BMLoop **ltable = NULL;
+  BLI_array_declare(ltable);
+
+  BMFace *f;
+  BMIter iter;
+  int i = 0;
+
+  BM_ITER_MESH (f, &iter, pbvh->bm, BM_FACES_OF_MESH) {
+    BMLoop *l = f->l_first;
+
+    do {
+      l->head.index = i++;
+      BLI_array_append(ltable, l);
+    } while ((l = l->next) != f->l_first);
+  }
+
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
+    }
+
+    BLI_table_gset_free(node->bm_unique_verts, NULL);
+    BLI_table_gset_free(node->bm_faces, NULL);
+
+    if (node->bm_other_verts) {
+      BLI_table_gset_free(node->bm_other_verts, NULL);
+    }
+
+    node->bm_other_verts = BLI_table_gset_new("bm_other_verts");
+    node->flag |= PBVH_UpdateOtherVerts;
+
+    node->bm_faces = BLI_table_gset_new("bm_faces");
+    node->bm_unique_verts = BLI_table_gset_new("bm_verts");
+
+    int j = 0;
+    int *data = node->prim_indices;
+
+    while (data[j] != -1 && j < node->totprim) {
+      BMFace *f = pbvh->bm->ftable[data[j]];
+      BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, i);
+
+      BLI_table_gset_insert(node->bm_faces, f);
+      j++;
+    }
+
+    j++;
+
+    while (j < node->totprim) {
+      if (data[j] < 0 || data[j] >= pbvh->bm->totvert) {
+        printf("%s: bad vertex at index %d!\n", __func__, data[j]);
+        continue;
+      }
+      BMVert *v = pbvh->bm->vtable[data[j]];
+      BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, i);
+
+      BLI_table_gset_insert(node->bm_unique_verts, v);
+      j++;
+    }
+
+    MEM_SAFE_FREE(node->prim_indices);
+
+    // don't try to load invalid triangulation
+    if (node->flag & PBVH_UpdateTris) {
+      continue;
+    }
+
+    for (j = 0; j < node->tot_tri_buffers + 1; j++) {
+      PBVHTriBuf *tribuf = j == node->tot_tri_buffers ? node->tribuf : node->tri_buffers + j;
+
+      if (!tribuf) {
+        break;
+      }
+
+      for (int k = 0; k < tribuf->totvert; k++) {
+        tribuf->verts[k].i = (intptr_t)pbvh->bm->vtable[tribuf->verts[k].i];
+      }
+
+      for (int k = 0; k < tribuf->totloop; k++) {
+        tribuf->loops[k] = (uintptr_t)ltable[tribuf->loops[k]];
+      }
+
+      for (int k = 0; k < tribuf->tottri; k++) {
+        PBVHTri *tri = tribuf->tris + k;
+
+        for (int l = 0; l < 3; l++) {
+          tri->l[l] = (uintptr_t)ltable[tri->l[l]];
+        }
+
+        tri->f.i = (intptr_t)pbvh->bm->ftable[tri->f.i];
+      }
+    }
+
+    node->prim_indices = NULL;
+    node->totprim = 0;
+  }
+
+  BLI_array_free(ltable);
+}
+
+void BKE_pbvh_bmesh_set_toolflags(PBVH *pbvh, bool use_toolflags)
+{
+  if (use_toolflags == pbvh->bm->use_toolflags) {
+    return;
+  }
+
+  BKE_pbvh_bmesh_save_indices(pbvh);
+  BM_mesh_toolflags_set(pbvh->bm, use_toolflags);
+  BKE_pbvh_bmesh_from_saved_indices(pbvh);
 }

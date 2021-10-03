@@ -205,6 +205,7 @@ places in rna_engine_codebase are relevent:
                            "used for topology rake", 1.0f, 0.001f, 5.0f, 0.01f, 2.0f, false)
   MAKE_FLOAT_EX_FLAG(dyntopo_radius_scale, "Radius Scale", "Ratio between the brush radius and the radius that is going to be "
                            "used for DynTopo", 1.0f, 0.001f, 5.0f, 0.01f, 2.0f, false, BRUSH_CHANNEL_INHERIT)
+  MAKE_BOOL(dyntopo_disable_smooth, "Disable Dyntopo Smooth", "Disable the small amount of smoothing dyntopo applies to improve numerical stability", false)
   MAKE_FLOAT_EX(projection, "Projection", "Amount of volume preserving projection", 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, false)
   MAKE_FLOAT_EX(autosmooth_projection, "Auto-Smooth Projection", "Amount of volume preserving projection", 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, false)
   MAKE_FLOAT_EX(topology_rake_projection, "Rake Projection", "Amount of volume preserving projection", 0.975f, 0.0f, 1.0f, 0.0f, 1.0f, false)

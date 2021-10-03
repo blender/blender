@@ -1257,6 +1257,14 @@ void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face)
   pbvh_bmesh_face_remove(pbvh, f, log_face, true, true);
 }
 
+
+void BKE_pbvh_bmesh_remove_edge(PBVH *pbvh, BMEdge *e, bool log_vert)
+{
+  if (log_vert) {
+    BM_log_edge_removed(pbvh->bm_log, e);
+  }
+}
+
 void BKE_pbvh_bmesh_remove_vertex(PBVH *pbvh, BMVert *v, bool log_vert)
 {
   pbvh_bmesh_vert_remove(pbvh, v);
@@ -1973,9 +1981,9 @@ BLI_INLINE int dyntopo_thread_rand(int seed)
   return (seed * multiplier + addend) & mask;
 }
 
-static void long_edge_queue_task_cb(void *__restrict userdata,
-                                    const int n,
-                                    const TaskParallelTLS *__restrict tls)
+ATTR_NO_OPT static void long_edge_queue_task_cb(void *__restrict userdata,
+                                                const int n,
+                                                const TaskParallelTLS *__restrict tls)
 {
   EdgeQueueThreadData *tdata = ((EdgeQueueThreadData *)userdata) + n;
   PBVHNode *node = tdata->node;
@@ -1989,6 +1997,7 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
   BMFace *f, **faces = NULL;
   BLI_array_declare(faces);
   const int cd_dyn_vert = tdata->pbvh->cd_dyn_vert;
+  bool do_smooth = eq_ctx->surface_smooth_fac > 0.0f;
 
 #if 1
 #  if 0
@@ -2052,7 +2061,7 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
         // but tangentially to surface.
         int randval = (seed = dyntopo_thread_rand(seed)) & 255;
 
-        if (randval > 127) {
+        if (do_smooth && randval > 127) {
           surface_smooth_v_safe(tdata->pbvh, l_iter->v, eq_ctx->surface_smooth_fac);
         }
 
@@ -5269,7 +5278,8 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     bool updatePBVH,
                                     DyntopoMaskCB mask_cb,
                                     void *mask_cb_data,
-                                    int custom_max_steps)
+                                    int custom_max_steps,
+                                    bool disable_surface_relax)
 {
 
   /* 2 is enough for edge faces - manifold edge */
@@ -5322,7 +5332,10 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
   float safe_smooth;
 
-  if ((mode & PBVH_Subdivide) && (!(mode & PBVH_Collapse) || (mode & PBVH_LocalCollapse))) {
+  if (disable_surface_relax) {
+    safe_smooth = 0.0f;
+  }
+  else if ((mode & PBVH_Subdivide) && (!(mode & PBVH_Collapse) || (mode & PBVH_LocalCollapse))) {
     safe_smooth = DYNTOPO_SAFE_SMOOTH_SUBD_ONLY_FAC;
   }
   else {

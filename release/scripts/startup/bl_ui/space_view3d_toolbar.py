@@ -140,16 +140,11 @@ def draw_vpaint_symmetry(layout, vpaint, obj):
 
 # Most of these panels should not be visible in GP edit modes
 def is_not_gpencil_edit_mode(context):
-    is_gpmode = (
-        context.active_object and
-        context.active_object.mode in {'EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}
-    )
+    is_gpmode = (context.active_object and context.active_object.mode in {'EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'})
     return not is_gpmode
 
 
 # ********** default tools for object mode ****************
-
-
 class VIEW3D_PT_tools_object_options(View3DPanel, Panel):
     bl_category = "Tool"
     bl_context = ".objectmode"  # dot on purpose (access from topbar)
@@ -181,8 +176,6 @@ class VIEW3D_PT_tools_object_options_transform(View3DPanel, Panel):
 
 
 # ********** default tools for editmode_mesh ****************
-
-
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
     bl_category = "Tool"
     bl_context = ".mesh_edit"  # dot on purpose (access from topbar)
@@ -256,8 +249,6 @@ class VIEW3D_PT_tools_meshedit_options_automerge(View3DPanel, Panel):
 
 
 # ********** default tools for editmode_armature ****************
-
-
 class VIEW3D_PT_tools_armatureedit_options(View3DPanel, Panel):
     bl_category = "Tool"
     bl_context = ".armature_edit"  # dot on purpose (access from topbar)
@@ -270,7 +261,6 @@ class VIEW3D_PT_tools_armatureedit_options(View3DPanel, Panel):
 
 
 # ********** default tools for pose-mode ****************
-
 class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
     bl_category = "Tool"
     bl_context = ".posemode"  # dot on purpose (access from topbar)
@@ -292,8 +282,6 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
         layout.prop(tool_settings, "use_transform_pivot_point_align", text="Locations")
 
 # ********** default tools for paint modes ****************
-
-
 class TEXTURE_UL_texpaintslots(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         # mat = data
@@ -461,8 +449,7 @@ class VIEW3D_PT_tools_brush_settings_channels_preview(Panel, View3DPaintBrushPan
         brush_settings_channels(layout.column(), context, brush, show_reorder=True, ui_editing=False,
                                 popover=self.is_popover,
                                 prefix="VIEW3D_PT_brush_category_edit_",
-                                parent="VIEW3D_PT_tools_brush_settings_channels_preview"
-                                )
+                                parent="VIEW3D_PT_tools_brush_settings_channels_preview")
 
 
 class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
@@ -538,14 +525,12 @@ class VIEW3D_PT_tools_persistent_base_channels(Panel, View3DPaintPanel):
         brush = settings.brush
         sculpt = context.tool_settings.sculpt
 
-        UnifiedPaintPanel.channel_unified(
-            layout,
+        UnifiedPaintPanel.channel_unified(layout,
             context,
             brush,
             "use_persistent",
             #text="Weight By Face Area",
-            ui_editing=False
-        )
+            ui_editing=False)
 
         layout.operator("sculpt.set_persistent_base")
 
@@ -740,10 +725,11 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
 
     @classmethod
     def poll(cls, context):
-        if (
-                (settings:= cls.paint_settings(context)) and
-                (brush:= settings.brush)
-        ):
+        settings = cls.paint_settings(context)
+
+        if settings and settings.brush:
+            brush = settings.brush
+
             if context.sculpt_object or context.vertex_paint_object:
                 return True
             elif context.image_paint_object:
@@ -935,34 +921,28 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
             row.label(text="Remesher Options")
             row.prop(ch, "inherit", text="", icon="BRUSHES_ALL")
         else:
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
                 "dyntopo_mode",
                 text="Remesher Options",
-                expand=True
-            )
+                expand=True)
 
-        UnifiedPaintPanel.channel_unified(
-            layout,
+        UnifiedPaintPanel.channel_unified(layout,
             context,
             brush,
             "dyntopo_detail_mode",
             text="Detail Mode",
-            expand=False
-        )
+            expand=False)
 
         keys = ["dyntopo_spacing", "dyntopo_detail_size", "dyntopo_detail_range", "dyntopo_detail_percent",
                 "dyntopo_constant_detail", "dyntopo_radius_scale", "dyntopo_disabled"]
         for k in keys:
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
                 k,
-                slider=True
-            )
+                slider=True)
 
         return
         layout.use_property_split = True
@@ -1017,17 +997,15 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
         do_prop("radius_scale")
 
 
-class SCULPT_OT_set_dyntopo_mode (Operator):
+class SCULPT_OT_set_dyntopo_mode(Operator):
     """Set refine mode"""
 
     bl_label = "Set Detail Mode"
     bl_idname = "sculpt.set_dyntopo_mode"
 
-    mode: EnumProperty(items=[
-        ("SC", "Subdivide Collapse", "", 1),
+    mode : EnumProperty(items=[("SC", "Subdivide Collapse", "", 1),
         ("S", "Subdivide Edges", "", 2),
-        ("C", "Collapse Edges", "", 3)
-    ])
+        ("C", "Collapse Edges", "", 3)])
 
     def execute(self, context):
         brush = context.tool_settings.sculpt.brush
@@ -1083,12 +1061,10 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     def draw_header(self, context):
         is_popover = self.is_popover
         layout = self.layout
-        layout.operator(
-            "sculpt.dynamic_topology_toggle",
+        layout.operator("sculpt.dynamic_topology_toggle",
             icon='CHECKBOX_HLT' if context.sculpt_object.use_dynamic_topology_sculpting else 'CHECKBOX_DEHLT',
             text="",
-            emboss=is_popover,
-        )
+            emboss=is_popover,)
 
     def draw(self, context):
         layout = self.layout
@@ -1113,51 +1089,43 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         if detail_mode in {'CONSTANT', 'MANUAL'}:
             row = sub.row(align=True)
             #row.prop(sculpt, "constant_detail_resolution")
-            UnifiedPaintPanel.channel_unified(
-                row,
+            UnifiedPaintPanel.channel_unified(row,
                 context,
                 brush,
                 "dyntopo_constant_detail",
                 text="Constant Resolution",
                 # slider=True,
                 ui_editing=False,
-                pressure=False
-            )
+                pressure=False)
             props = row.operator("sculpt.sample_detail_size", text="", icon='EYEDROPPER')
             props.mode = 'DYNTOPO'
         elif detail_mode == 'BRUSH':
-            UnifiedPaintPanel.channel_unified(
-                sub,
+            UnifiedPaintPanel.channel_unified(sub,
                 context,
                 brush,
                 "dyntopo_detail_percent",
                 text="Detail Percent",
                 # slider=True,
                 ui_editing=False,
-                pressure=False
-            )
+                pressure=False)
         else:
-            UnifiedPaintPanel.channel_unified(
-                sub,
+            UnifiedPaintPanel.channel_unified(sub,
                 context,
                 brush,
                 "dyntopo_detail_size",
                 text="Detail Size",
                 # slider=True,
                 ui_editing=False,
-                pressure=False
-            )
+                pressure=False)
 
         # """
-        UnifiedPaintPanel.channel_unified(
-            sub,
+        UnifiedPaintPanel.channel_unified(sub,
             context,
             brush,
             "dyntopo_detail_mode",
             text="Detailing",
             expand=False,
-            ui_editing=False
-        )
+            ui_editing=False)
 
         set_dyntopo_mode_button(sub, context)
 
@@ -1189,10 +1157,16 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         UnifiedPaintPanel.channel_unified(layout, context, brush, "dyntopo_spacing", slider=True, ui_editing=False)
         UnifiedPaintPanel.channel_unified(layout, context, brush, "dyntopo_radius_scale", slider=True, ui_editing=False)
 
+        UnifiedPaintPanel.channel_unified(sub,
+            context,
+            brush,
+            "dyntopo_disable_smooth",
+            expand=False,
+            text="No Dyntopo Smooth",
+            ui_editing=False)
+
         #col.prop(sculpt, "dyntopo_spacing")
         #col.prop(sculpt, "dyntopo_radius_scale")
-
-
 class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Remesh"
@@ -1255,8 +1229,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_deform_only")
         col.prop(sculpt, "show_sculpt_pivot")
 
-        UnifiedPaintPanel.channel_unified(
-            layout.column(),
+        UnifiedPaintPanel.channel_unified(layout.column(),
             context,
             brush,
             "smooth_strength_factor", ui_editing=False, slider=True)
@@ -1265,19 +1238,16 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
 
         col.separator()
 
-        UnifiedPaintPanel.channel_unified(
-            layout.column(),
+        UnifiedPaintPanel.channel_unified(layout.column(),
             context,
             brush,
             "automasking", toolsettings_only=True, expand=True, ui_editing=False)
-        UnifiedPaintPanel.channel_unified(
-            layout.column(),
+        UnifiedPaintPanel.channel_unified(layout.column(),
             context,
             brush,
             "automasking_boundary_edges_propagation_steps",
             toolsettings_only=True, ui_editing=False)
-        UnifiedPaintPanel.channel_unified(
-            layout.column(),
+        UnifiedPaintPanel.channel_unified(layout.column(),
             context,
             brush,
             "concave_mask_factor",
@@ -1327,11 +1297,9 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
 
     @classmethod
     def poll(cls, context):
-        return (
-            (context.sculpt_object and context.tool_settings.sculpt) and
-            # When used in the tool header, this is explicitly included next to the XYZ symmetry buttons.
-            (context.region.type != 'TOOL_HEADER')
-        )
+        return ((context.sculpt_object and context.tool_settings.sculpt) and # When used in the tool header, this is explicitly included next to
+            # the XYZ symmetry buttons.
+            (context.region.type != 'TOOL_HEADER'))
 
     def draw(self, context):
         layout = self.layout
@@ -1387,7 +1355,8 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
 
     @classmethod
     def poll(cls, context):
-        # When used in the tool header, this is explicitly included next to the XYZ symmetry buttons.
+        # When used in the tool header, this is explicitly included next to the
+        # XYZ symmetry buttons.
         return (context.region.type != 'TOOL_HEADER')
 
     def draw(self, context):
@@ -1451,7 +1420,8 @@ class VIEW3D_PT_tools_vertexpaint_options(Panel, View3DPaintPanel):
 
     @classmethod
     def poll(cls, _context):
-        # This is currently unused, since there aren't any Vertex Paint mode specific options.
+        # This is currently unused, since there aren't any Vertex Paint mode
+        # specific options.
         return False
 
     def draw(self, _context):
@@ -1468,7 +1438,8 @@ class VIEW3D_PT_tools_vertexpaint_symmetry(Panel, View3DPaintPanel):
 
     @classmethod
     def poll(cls, context):
-        # When used in the tool header, this is explicitly included next to the XYZ symmetry buttons.
+        # When used in the tool header, this is explicitly included next to the
+        # XYZ symmetry buttons.
         return (context.region.type != 'TOOL_HEADER')
 
     def draw(self, context):
@@ -1529,7 +1500,8 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
 
     @classmethod
     def poll(cls, context):
-        # When used in the tool header, this is explicitly included next to the XYZ symmetry buttons.
+        # When used in the tool header, this is explicitly included next to the
+        # XYZ symmetry buttons.
         return (context.region.type != 'TOOL_HEADER')
 
     def draw(self, context):
@@ -1608,9 +1580,11 @@ class VIEW3D_PT_imagepaint_options(View3DPaintPanel):
 
     @classmethod
     def poll(cls, _context):
-        # This is currently unused, since there aren't any Vertex Paint mode specific options.
+        # This is currently unused, since there aren't any Vertex Paint mode
+        # specific options.
         return False
-        # return (context.image_paint_object and context.tool_settings.image_paint)
+        # return (context.image_paint_object and
+        # context.tool_settings.image_paint)
 
     def draw(self, _context):
         layout = self.layout
@@ -1741,7 +1715,6 @@ class VIEW3D_PT_tools_particlemode_options_display(View3DPanel, Panel):
 # ********** grease pencil object tool panels ****************
 
 # Grease Pencil drawing brushes
-
 def tool_use_brush(context):
     from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
     tool = ToolSelectPanelHelper.tool_active_from_context(context)
@@ -1801,7 +1774,8 @@ class VIEW3D_PT_tools_grease_pencil_brush_settings(Panel, View3DPanel, GreasePen
     bl_label = "Brush Settings"
     bl_options = {'DEFAULT_CLOSED'}
 
-    # What is the point of brush presets? Seems to serve the exact same purpose as brushes themselves??
+    # What is the point of brush presets?  Seems to serve the exact same
+    # purpose as brushes themselves??
     def draw_header_preset(self, _context):
         VIEW3D_PT_gpencil_brush_presets.draw_panel_header(self.layout)
 
@@ -1888,12 +1862,10 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
             elif brush.gpencil_tool == 'FILL':
                 row = col.row(align=True)
                 row.prop(gp_settings, "fill_draw_mode", text="Boundary")
-                row.prop(
-                    gp_settings,
+                row.prop(gp_settings,
                     "show_fill_boundary",
                     icon='HIDE_OFF' if gp_settings.show_fill_boundary else 'HIDE_ON',
-                    text="",
-                )
+                    text="",)
 
                 col.separator()
                 row = col.row(align=True)
@@ -1902,12 +1874,10 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
                 col.separator()
                 row = col.row(align=True)
                 row.prop(gp_settings, "extend_stroke_factor")
-                row.prop(
-                    gp_settings,
+                row.prop(gp_settings,
                     "show_fill_extend",
                     icon='HIDE_OFF' if gp_settings.show_fill_extend else 'HIDE_ON',
-                    text="",
-                )
+                    text="",)
 
                 col.separator()
                 col.prop(gp_settings, "fill_leak", text="Leak Size")
@@ -2612,8 +2582,7 @@ class VIEW3D_PT_gpencil_brush_presets(Panel, PresetPanel):
     preset_add_operator = "scene.gpencil_brush_preset_add"
 
 
-classes = (
-    VIEW3D_MT_brush_context_menu,
+classes = (VIEW3D_MT_brush_context_menu,
     VIEW3D_MT_brush_gpencil_context_menu,
     VIEW3D_MT_brush_context_menu_paint_modes,
     VIEW3D_PT_tools_object_options,
@@ -2705,8 +2674,7 @@ classes = (
     VIEW3D_PT_tools_brush_swatches_channels,
     VIEW3D_PT_tools_persistent_base_channels,
     VIEW3D_PT_sculpt_dyntopo_advanced,
-    SCULPT_OT_set_dyntopo_mode
-)
+    SCULPT_OT_set_dyntopo_mode)
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class

@@ -39,6 +39,7 @@
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
+#include "BLI_smallhash.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -57,6 +58,66 @@
 
 #define CUSTOMDATA
 
+#define BM_LOG_USE_SMALLHASH
+
+#ifdef BM_LOG_USE_SMALLHASH
+static SmallHash *new_smallhash()
+{
+  SmallHash *sh = MEM_callocN(sizeof(*sh), "smallhash for dyntopo");
+
+  BLI_smallhash_init(sh);
+
+  return sh;
+}
+
+static void free_smallhash(SmallHash *sh)
+{
+  BLI_smallhash_release(sh);
+  MEM_freeN(sh);
+}
+
+static void smallhash_reserve(SmallHash *sh, int n)
+{
+}
+
+typedef struct myiter {
+  SmallHashIter iter;
+  uintptr_t key;
+  void *data;
+} myiter;
+
+#  ifdef GHASH_ITER
+#    undef GHASH_ITER
+#  endif
+
+#  define GHashIterator myiter
+
+#  define BLI_ghash_free(sh, a, b) free_smallhash(sh)
+#  define BLI_ghash_int_new_ex(a, b) new_smallhash()
+#  define BLI_ghash_reserve(sh, n) smallhash_reserve(sh, n)
+#  define BLI_ghash_new(a, b, c) new_smallhash()
+#  define BLI_ghash_insert(sh, key, val) BLI_smallhash_insert((sh), (uintptr_t)(key), (val))
+#  define BLI_ghash_remove(sh, key, a, b) BLI_smallhash_remove((sh), (uintptr_t)(key))
+#  define BLI_ghash_lookup(sh, key) BLI_smallhash_lookup((sh), (uintptr_t)(key))
+#  define BLI_ghash_lookup_p(sh, key) BLI_smallhash_lookup_p((sh), (uintptr_t)(key))
+#  define BLI_ghash_haskey(sh, key) BLI_smallhash_haskey((sh), (uintptr_t)(key))
+#  define GHASH_ITER(iter1, sh) \
+    for (iter1.data = BLI_smallhash_iternew(sh, &iter1.iter, &iter1.key); iter1.data; \
+         iter1.data = BLI_smallhash_iternext(&iter1.iter, &iter1.key))
+#  define BLI_ghashIterator_getKey(iter) ((void *)(iter)->key)
+#  define BLI_ghashIterator_getValue(iter) ((void *)(iter)->data)
+#  define BLI_ghash_ensure_p(sh, key, val) BLI_smallhash_ensure_p(sh, (uintptr_t)(key), val)
+#  define BLI_ghash_reinsert(sh, key, val, a, b) BLI_smallhash_reinsert(sh, (uintptr_t)(key), val)
+#  define BLI_ghash_len(sh) (int)sh->nentries
+#  define GHash SmallHash
+
+#  ifdef BM_ELEM_FROM_ID
+#    undef BM_ELEM_FROM_ID
+#  endif
+
+#  define BM_ELEM_FROM_ID(bm, id) bm->idmap.map[id]
+
+#endif
 //#define DEBUG_LOG_REFCOUNTNG
 //#define PRINT_LOG_REF_COUNTING
 
@@ -2406,6 +2467,40 @@ void BM_log_face_modified(BMLog *log, BMFace *f)
   bm_log_face_customdata(log->bm, log, f, lf);
 }
 
+bool BM_log_has_vert(BMLog *log, BMVert *v)
+{
+  int id = BM_ELEM_GET_ID(log->bm, v);
+
+  bool ret = BLI_ghash_haskey(log->current_entry->added_verts, POINTER_FROM_INT(id));
+  ret = ret || BLI_ghash_haskey(log->current_entry->deleted_verts, POINTER_FROM_INT(id));
+  ret = ret || BLI_ghash_haskey(log->current_entry->modified_verts, POINTER_FROM_INT(id));
+
+  return ret;
+}
+
+bool BM_log_has_edge(BMLog *log, BMEdge *e)
+{
+  int id = BM_ELEM_GET_ID(log->bm, e);
+
+  bool ret = BLI_ghash_haskey(log->current_entry->added_edges, POINTER_FROM_INT(id));
+  ret = ret || BLI_ghash_haskey(log->current_entry->deleted_edges, POINTER_FROM_INT(id));
+  ret = ret || BLI_ghash_haskey(log->current_entry->modified_edges, POINTER_FROM_INT(id));
+  ret = ret || BLI_ghash_haskey(log->current_entry->deleted_edges_post, POINTER_FROM_INT(id));
+
+  return ret;
+}
+
+bool BM_log_has_face(BMLog *log, BMFace *f)
+{
+  int id = BM_ELEM_GET_ID(log->bm, f);
+
+  bool ret = BLI_ghash_haskey(log->current_entry->added_faces, POINTER_FROM_INT(id));
+  ret = ret || BLI_ghash_haskey(log->current_entry->deleted_faces, POINTER_FROM_INT(id));
+  ret = ret || BLI_ghash_haskey(log->current_entry->modified_faces, POINTER_FROM_INT(id));
+
+  return ret;
+}
+
 /* Log a new face as added to the BMesh
  *
  * The new face gets a unique ID assigned. It is then added to a map
@@ -2875,7 +2970,7 @@ void bm_log_print(const BMLog *log, const char *description)
 }
 #endif
 
-static int bmlog_entry_memsize(BMLogEntry *entry)
+ATTR_NO_OPT static int bmlog_entry_memsize(BMLogEntry *entry)
 {
   int ret = 0;
 
@@ -2888,6 +2983,11 @@ static int bmlog_entry_memsize(BMLogEntry *entry)
     ret += entry->ldata.pool ? (int)BLI_mempool_get_size(entry->ldata.pool) : 0;
     ret += entry->pdata.pool ? (int)BLI_mempool_get_size(entry->pdata.pool) : 0;
 
+    ret += BLI_memarena_size(entry->arena);
+
+    if (BLI_memarena_size(entry->arena)) {
+      printf("%d\n", BLI_memarena_size(entry->arena));
+    }
     // estimate ghash memory usage
     ret += (int)BLI_ghash_len(entry->added_verts) * (int)sizeof(void *) * 4;
     ret += (int)BLI_ghash_len(entry->added_edges) * (int)sizeof(void *) * 4;
