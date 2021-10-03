@@ -69,7 +69,7 @@ void IMB_flipy(struct ImBuf *ibuf)
 
     topf = ibuf->rect_float;
     bottomf = topf + 4 * ((y - 1) * x);
-    linef = MEM_mallocN(4 * x * sizeof(float), "linebuff");
+    linef = MEM_mallocN(4 * x * sizeof(float), "linebuf");
 
     y >>= 1;
 

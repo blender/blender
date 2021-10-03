@@ -417,7 +417,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc,
       data->pos = marker->pos;
       data->offset = track->offset;
       data->old_markers = MEM_callocN(sizeof(*data->old_markers) * track->markersnr,
-                                      "slide marekrs");
+                                      "slide markers");
       for (int a = 0; a < track->markersnr; a++) {
         copy_v2_v2(data->old_markers[a], track->markers[a].pos);
       }

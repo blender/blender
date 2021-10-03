@@ -1950,7 +1950,7 @@ static PyObject *bpy_bmface_calc_tangent_edge_diagonal(BPy_BMFace *self)
 PyDoc_STRVAR(bpy_bmface_calc_tangent_vert_diagonal_doc,
              ".. method:: calc_tangent_vert_diagonal()\n"
              "\n"
-             "   Return face tangent based on the two most distent vertices.\n"
+             "   Return face tangent based on the two most distant vertices.\n"
              "\n"
              "   :return: a normalized vector.\n"
              "   :rtype: :class:`mathutils.Vector`\n");
@@ -3464,7 +3464,7 @@ PyDoc_STRVAR(bpy_bmelemseq_doc,
              ":class:`BMVert`, :class:`BMEdge`, :class:`BMFace`, :class:`BMLoop`.\n"
              "\n"
              "When accessed via :class:`BMesh.verts`, :class:`BMesh.edges`, :class:`BMesh.faces`\n"
-             "there are also functions to create/remomove items.\n");
+             "there are also functions to create/remove items.\n");
 PyDoc_STRVAR(bpy_bmiter_doc,
              "Internal BMesh type for looping over verts/faces/edges,\n"
              "used for iterating over :class:`BMElemSeq` types.\n");
