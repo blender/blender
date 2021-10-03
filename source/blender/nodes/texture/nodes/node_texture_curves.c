@@ -26,7 +26,7 @@
 
 /* **************** CURVE Time  ******************** */
 
-/* custom1 = sfra, custom2 = efra */
+/* custom1 = start-frame, custom2 = end-frame. */
 static bNodeSocketTemplate time_outputs[] = {{SOCK_FLOAT, N_("Value")}, {-1, ""}};
 
 static void time_colorfn(

@@ -20,8 +20,8 @@
 /** \file
  * \ingroup gpu
  *
- * Interface for accessing gpu-related methods for selection. The semantics are
- * similar to glRenderMode(GL_SELECT) from older OpenGL versions.
+ * Interface for accessing GPU-related methods for selection. The semantics are
+ * similar to `glRenderMode(GL_SELECT)` from older OpenGL versions.
  */
 #include <stdlib.h>
 #include <string.h>

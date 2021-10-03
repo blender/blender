@@ -945,7 +945,7 @@ typedef struct wmDragAsset {
   int id_type;
   int import_type; /* eFileAssetImportType */
 
-  /* FIXME: This is temporary evil solution to get scene/viewlayer/etc in the copy callback of the
+  /* FIXME: This is temporary evil solution to get scene/view-layer/etc in the copy callback of the
    * #wmDropBox.
    * TODO: Handle link/append in operator called at the end of the drop process, and NOT in its
    * copy callback.

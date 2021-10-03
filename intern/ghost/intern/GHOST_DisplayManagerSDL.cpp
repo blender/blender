@@ -101,8 +101,7 @@ GHOST_TSuccess GHOST_DisplayManagerSDL::setCurrentDisplaySetting(
     uint8_t display, const GHOST_DisplaySetting &setting)
 {
   /*
-   * Mode switching code ported from Quake 2 version 3.21 and bzflag version
-   * 2.4.0:
+   * Mode switching code ported from Quake 2 version 3.21 and BZFLAG version 2.4.0:
    * ftp://ftp.idsoftware.com/idstuff/source/q2source-3.21.zip
    * See linux/gl_glx.c:GLimp_SetMode
    * http://wiki.bzflag.org/BZFlag_Source

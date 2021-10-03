@@ -460,7 +460,7 @@ void BlenderDisplayDriver::draw(const Params &params)
     /* Texture is requested to be cleared and was not yet cleared.
      *
      * Do early return which should be equivalent of drawing all-zero texture.
-     * Watchout for the lock though so that the clear happening during update is properly
+     * Watch out for the lock though so that the clear happening during update is properly
      * synchronized here. */
     gl_context_mutex_.unlock();
     return;

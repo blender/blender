@@ -169,7 +169,7 @@ void register_node_tree_type_tex(void)
   tt->type = NTREE_TEXTURE;
   strcpy(tt->idname, "TextureNodeTree");
   strcpy(tt->ui_name, N_("Texture Node Editor"));
-  tt->ui_icon = 0; /* defined in drawnode.c */
+  tt->ui_icon = 0; /* Defined in `drawnode.c`. */
   strcpy(tt->ui_description, N_("Texture nodes"));
 
   tt->foreach_nodeclass = foreach_nodeclass;

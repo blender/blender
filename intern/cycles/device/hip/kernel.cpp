@@ -28,7 +28,7 @@ void HIPDeviceKernels::load(HIPDevice *device)
   for (int i = 0; i < (int)DEVICE_KERNEL_NUM; i++) {
     HIPDeviceKernel &kernel = kernels_[i];
 
-    /* No megakernel used for GPU. */
+    /* No mega-kernel used for GPU. */
     if (i == DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL) {
       continue;
     }

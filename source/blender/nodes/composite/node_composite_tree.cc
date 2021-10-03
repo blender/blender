@@ -104,7 +104,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
     local_node->original = node;
 
     /* move over the compbufs */
-    /* right after ntreeCopyTree() oldsock pointers are valid */
+    /* right after #ntreeCopyTree() `oldsock` pointers are valid */
 
     if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
       if (node->id) {
@@ -220,7 +220,7 @@ void register_node_tree_type_cmp(void)
   tt->type = NTREE_COMPOSIT;
   strcpy(tt->idname, "CompositorNodeTree");
   strcpy(tt->ui_name, N_("Compositor"));
-  tt->ui_icon = 0; /* defined in drawnode.c */
+  tt->ui_icon = 0; /* Defined in `drawnode.c`. */
   strcpy(tt->ui_description, N_("Compositing nodes"));
 
   tt->free_cache = free_cache;

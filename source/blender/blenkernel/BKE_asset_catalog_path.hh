@@ -39,8 +39,8 @@ namespace blender::bke {
  * make things easy to save in the colon-delimited Catalog Definition File format.
  *
  * The path of a catalog determines where in the catalog hierarchy the catalog is shown. Examples
- * are "Characters/Ellie/Poses/Hand" or "Kitbash/City/Skyscrapers". The path looks like a
- * filesystem path, with a few differences:
+ * are "Characters/Ellie/Poses/Hand" or "Kit_bash/City/Skyscrapers". The path looks like a
+ * file-system path, with a few differences:
  *
  * - Only slashes are used as path component separators.
  * - All paths are absolute, so there is no need for a leading slash.

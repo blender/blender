@@ -1092,9 +1092,9 @@ GHOST_TSuccess GHOST_WindowX11::setOrder(GHOST_TWindowOrder order)
     XWindowAttributes attr;
     Atom atom;
 
-    /* We use both XRaiseWindow and _NET_ACTIVE_WINDOW, since some
-     * window managers ignore the former (e.g. kwin from kde) and others
-     * don't implement the latter (e.g. fluxbox pre 0.9.9) */
+    /* We use both #XRaiseWindow and #_NET_ACTIVE_WINDOW, since some
+     * window managers ignore the former (e.g. KWIN from KDE) and others
+     * don't implement the latter (e.g. FLUXBOX before 0.9.9). */
 
     XRaiseWindow(m_display, m_window);
 

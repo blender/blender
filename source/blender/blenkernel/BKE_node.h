@@ -417,7 +417,7 @@ typedef struct bNodeTreeType {
   void (*local_sync)(struct bNodeTree *localtree, struct bNodeTree *ntree);
   void (*local_merge)(struct Main *bmain, struct bNodeTree *localtree, struct bNodeTree *ntree);
 
-  /* Tree update. Overrides nodetype->updatetreefunc! */
+  /* Tree update. Overrides `nodetype->updatetreefunc` ! */
   void (*update)(struct bNodeTree *ntree);
 
   bool (*validate_link)(struct bNodeTree *ntree, struct bNodeLink *link);
@@ -443,7 +443,7 @@ void ntreeTypeFreeLink(const struct bNodeTreeType *nt);
 bool ntreeIsRegistered(struct bNodeTree *ntree);
 struct GHashIterator *ntreeTypeGetIterator(void);
 
-/* helper macros for iterating over tree types */
+/* Helper macros for iterating over tree types. */
 #define NODE_TREE_TYPES_BEGIN(ntype) \
   { \
     GHashIterator *__node_tree_type_iter__ = ntreeTypeGetIterator(); \
@@ -548,7 +548,7 @@ void nodeUnregisterType(struct bNodeType *ntype);
 bool nodeTypeUndefined(struct bNode *node);
 struct GHashIterator *nodeTypeGetIterator(void);
 
-/* helper macros for iterating over node types */
+/* Helper macros for iterating over node types. */
 #define NODE_TYPES_BEGIN(ntype) \
   { \
     GHashIterator *__node_type_iter__ = nodeTypeGetIterator(); \
@@ -574,7 +574,7 @@ const char *nodeStaticSocketType(int type, int subtype);
 const char *nodeStaticSocketInterfaceType(int type, int subtype);
 const char *nodeStaticSocketLabel(int type, int subtype);
 
-/* helper macros for iterating over node types */
+/* Helper macros for iterating over node types. */
 #define NODE_SOCKET_TYPES_BEGIN(stype) \
   { \
     GHashIterator *__node_socket_type_iter__ = nodeSocketTypeGetIterator(); \
@@ -746,7 +746,8 @@ int BKE_node_clipboard_get_type(void);
 
 /* Node Instance Hash */
 typedef struct bNodeInstanceHash {
-  GHash *ghash; /* XXX should be made a direct member, GHash allocation needs to support it */
+  /** XXX should be made a direct member, #GHash allocation needs to support it */
+  GHash *ghash;
 } bNodeInstanceHash;
 
 typedef void (*bNodeInstanceValueFP)(void *value);
@@ -1347,7 +1348,7 @@ void ntreeCompositCryptomatteLayerPrefix(const Scene *scene,
                                          const bNode *node,
                                          char *r_prefix,
                                          size_t prefix_len);
-/* Update the runtime layer names with the cryptomatte layer names of the references
+/* Update the runtime layer names with the crypto-matte layer names of the references
  * render layer or image. */
 void ntreeCompositCryptomatteUpdateLayerNames(const Scene *scene, bNode *node);
 struct CryptomatteSession *ntreeCompositCryptomatteSession(const Scene *scene, bNode *node);

@@ -1419,7 +1419,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       }
       else {
         /* Can disable __anyhit__kernel_optix_visibility_test by default (except for thick curves,
-         * since it needs to filter out endcaps there).
+         * since it needs to filter out end-caps there).
          * It is enabled where necessary (visibility mask exceeds 8 bits or the other any-hit
          * programs like __anyhit__kernel_optix_shadow_all_hit) via OPTIX_RAY_FLAG_ENFORCE_ANYHIT.
          */

@@ -111,7 +111,7 @@ typedef struct EdgeHalf {
   bool is_bev;
   /** Is e->v2 the vertex at this end? */
   bool is_rev;
-  /** Is e a seam for custom loopdata (e.g., UVs)? */
+  /** Is e a seam for custom loop-data (e.g., UV's). */
   bool is_seam;
   /** Used during the custom profile orientation pass. */
   bool visited_rpo;

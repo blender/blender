@@ -86,7 +86,7 @@ struct ConeConfig {
   bool top_has_center_vert;
   bool bottom_has_center_vert;
 
-  /* Helpful quantitites. */
+  /* Helpful quantities. */
   int tot_quad_rings;
   int tot_edge_rings;
   int tot_verts;

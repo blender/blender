@@ -86,7 +86,8 @@ void bmesh_disk_vert_replace(BMEdge *e, BMVert *v_dst, BMVert *v_src)
 
 /**
  * \section bm_cycles BMesh Cycles
- * (this is somewhat outdate, though bits of its API are still used) - joeedh
+ *
+ * NOTE(@joeedh): this is somewhat outdated, though bits of its API are still used.
  *
  * Cycles are circular doubly linked lists that form the basis of adjacency
  * information in the BME modeler. Full adjacency relations can be derived
