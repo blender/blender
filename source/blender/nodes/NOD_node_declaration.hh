@@ -57,59 +57,15 @@ class OutputFieldDependency {
   Vector<int> linked_input_indices_;
 
  public:
-  static OutputFieldDependency ForFieldSource()
-  {
-    OutputFieldDependency field_dependency;
-    field_dependency.type_ = OutputSocketFieldType::FieldSource;
-    return field_dependency;
-  }
+  static OutputFieldDependency ForFieldSource();
+  static OutputFieldDependency ForDataSource();
+  static OutputFieldDependency ForDependentField();
+  static OutputFieldDependency ForPartiallyDependentField(Vector<int> indices);
 
-  static OutputFieldDependency ForDataSource()
-  {
-    OutputFieldDependency field_dependency;
-    field_dependency.type_ = OutputSocketFieldType::None;
-    return field_dependency;
-  }
+  OutputSocketFieldType field_type() const;
+  Span<int> linked_input_indices() const;
 
-  static OutputFieldDependency ForPartiallyDependentField(Vector<int> indices)
-  {
-    OutputFieldDependency field_dependency;
-    if (indices.is_empty()) {
-      field_dependency.type_ = OutputSocketFieldType::None;
-    }
-    else {
-      field_dependency.type_ = OutputSocketFieldType::PartiallyDependent;
-      field_dependency.linked_input_indices_ = std::move(indices);
-    }
-    return field_dependency;
-  }
-
-  static OutputFieldDependency ForDependentField()
-  {
-    OutputFieldDependency field_dependency;
-    field_dependency.type_ = OutputSocketFieldType::DependentField;
-    return field_dependency;
-  }
-
-  OutputSocketFieldType field_type() const
-  {
-    return type_;
-  }
-
-  Span<int> linked_input_indices() const
-  {
-    return linked_input_indices_;
-  }
-
-  friend bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b)
-  {
-    return a.type_ == b.type_ && a.linked_input_indices_ == b.linked_input_indices_;
-  }
-
-  friend bool operator!=(const OutputFieldDependency &a, const OutputFieldDependency &b)
-  {
-    return !(a == b);
-  }
+  friend bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b);
 };
 
 /**
@@ -118,16 +74,6 @@ class OutputFieldDependency {
 struct FieldInferencingInterface {
   Vector<InputSocketFieldType> inputs;
   Vector<OutputFieldDependency> outputs;
-
-  friend bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
-  {
-    return a.inputs == b.inputs && a.outputs == b.outputs;
-  }
-
-  friend bool operator!=(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
-  {
-    return !(a == b);
-  }
 };
 
 /**
@@ -309,7 +255,79 @@ class NodeDeclarationBuilder {
 };
 
 /* --------------------------------------------------------------------
- * SocketDeclaration inline methods.
+ * #OutputFieldDependency inline methods.
+ */
+
+inline OutputFieldDependency OutputFieldDependency::ForFieldSource()
+{
+  OutputFieldDependency field_dependency;
+  field_dependency.type_ = OutputSocketFieldType::FieldSource;
+  return field_dependency;
+}
+
+inline OutputFieldDependency OutputFieldDependency::ForDataSource()
+{
+  OutputFieldDependency field_dependency;
+  field_dependency.type_ = OutputSocketFieldType::None;
+  return field_dependency;
+}
+
+inline OutputFieldDependency OutputFieldDependency::ForDependentField()
+{
+  OutputFieldDependency field_dependency;
+  field_dependency.type_ = OutputSocketFieldType::DependentField;
+  return field_dependency;
+}
+
+inline OutputFieldDependency OutputFieldDependency::ForPartiallyDependentField(Vector<int> indices)
+{
+  OutputFieldDependency field_dependency;
+  if (indices.is_empty()) {
+    field_dependency.type_ = OutputSocketFieldType::None;
+  }
+  else {
+    field_dependency.type_ = OutputSocketFieldType::PartiallyDependent;
+    field_dependency.linked_input_indices_ = std::move(indices);
+  }
+  return field_dependency;
+}
+
+inline OutputSocketFieldType OutputFieldDependency::field_type() const
+{
+  return type_;
+}
+
+inline Span<int> OutputFieldDependency::linked_input_indices() const
+{
+  return linked_input_indices_;
+}
+
+inline bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b)
+{
+  return a.type_ == b.type_ && a.linked_input_indices_ == b.linked_input_indices_;
+}
+
+inline bool operator!=(const OutputFieldDependency &a, const OutputFieldDependency &b)
+{
+  return !(a == b);
+}
+
+/* --------------------------------------------------------------------
+ * #FieldInferencingInterface inline methods.
+ */
+
+inline bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
+{
+  return a.inputs == b.inputs && a.outputs == b.outputs;
+}
+
+inline bool operator!=(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
+{
+  return !(a == b);
+}
+
+/* --------------------------------------------------------------------
+ * #SocketDeclaration inline methods.
  */
 
 inline StringRefNull SocketDeclaration::name() const
@@ -337,7 +355,7 @@ inline const OutputFieldDependency &SocketDeclaration::output_field_dependency()
 }
 
 /* --------------------------------------------------------------------
- * NodeDeclarationBuilder inline methods.
+ * #NodeDeclarationBuilder inline methods.
  */
 
 inline NodeDeclarationBuilder::NodeDeclarationBuilder(NodeDeclaration &declaration)
@@ -377,7 +395,7 @@ inline typename DeclType::Builder &NodeDeclarationBuilder::add_socket(
 }
 
 /* --------------------------------------------------------------------
- * NodeDeclaration inline methods.
+ * #NodeDeclaration inline methods.
  */
 
 inline Span<SocketDeclarationPtr> NodeDeclaration::inputs() const
