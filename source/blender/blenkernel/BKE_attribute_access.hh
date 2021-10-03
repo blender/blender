@@ -42,66 +42,21 @@ class AttributeIDRef {
   const AnonymousAttributeID *anonymous_id_ = nullptr;
 
  public:
-  AttributeIDRef() = default;
+  AttributeIDRef();
+  AttributeIDRef(StringRef name);
+  AttributeIDRef(StringRefNull name);
+  AttributeIDRef(const char *name);
+  AttributeIDRef(const std::string &name);
+  AttributeIDRef(const AnonymousAttributeID *anonymous_id);
 
-  AttributeIDRef(StringRef name) : name_(name)
-  {
-  }
+  operator bool() const;
+  uint64_t hash() const;
+  bool is_named() const;
+  bool is_anonymous() const;
+  StringRef name() const;
+  const AnonymousAttributeID &anonymous_id() const;
 
-  AttributeIDRef(StringRefNull name) : name_(name)
-  {
-  }
-
-  AttributeIDRef(const char *name) : name_(name)
-  {
-  }
-
-  AttributeIDRef(const std::string &name) : name_(name)
-  {
-  }
-
-  /* The anonymous id is only borrowed, the caller has to keep a reference to it. */
-  AttributeIDRef(const AnonymousAttributeID *anonymous_id) : anonymous_id_(anonymous_id)
-  {
-  }
-
-  operator bool() const
-  {
-    return this->is_named() || this->is_anonymous();
-  }
-
-  friend bool operator==(const AttributeIDRef &a, const AttributeIDRef &b)
-  {
-    return a.anonymous_id_ == b.anonymous_id_ && a.name_ == b.name_;
-  }
-
-  uint64_t hash() const
-  {
-    return get_default_hash_2(name_, anonymous_id_);
-  }
-
-  bool is_named() const
-  {
-    return !name_.is_empty();
-  }
-
-  bool is_anonymous() const
-  {
-    return anonymous_id_ != nullptr;
-  }
-
-  StringRef name() const
-  {
-    BLI_assert(this->is_named());
-    return name_;
-  }
-
-  const AnonymousAttributeID &anonymous_id() const
-  {
-    BLI_assert(this->is_anonymous());
-    return *anonymous_id_;
-  }
-
+  friend bool operator==(const AttributeIDRef &a, const AttributeIDRef &b);
   friend std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_id);
 };
 
@@ -259,73 +214,26 @@ class OutputAttribute {
   bool save_has_been_called_ = false;
 
  public:
-  OutputAttribute() = default;
-
+  OutputAttribute();
+  OutputAttribute(OutputAttribute &&other);
   OutputAttribute(GVMutableArrayPtr varray,
                   AttributeDomain domain,
                   SaveFn save,
-                  const bool ignore_old_values)
-      : varray_(std::move(varray)),
-        domain_(domain),
-        save_(std::move(save)),
-        ignore_old_values_(ignore_old_values)
-  {
-  }
-
-  OutputAttribute(OutputAttribute &&other) = default;
+                  const bool ignore_old_values);
 
   ~OutputAttribute();
 
-  operator bool() const
-  {
-    return varray_.get() != nullptr;
-  }
+  operator bool() const;
 
-  GVMutableArray &operator*()
-  {
-    return *varray_;
-  }
+  GVMutableArray &operator*();
+  GVMutableArray *operator->();
+  GVMutableArray &varray();
+  AttributeDomain domain() const;
+  const CPPType &cpp_type() const;
+  CustomDataType custom_data_type() const;
 
-  GVMutableArray *operator->()
-  {
-    return varray_.get();
-  }
-
-  GVMutableArray &varray()
-  {
-    return *varray_;
-  }
-
-  AttributeDomain domain() const
-  {
-    return domain_;
-  }
-
-  const CPPType &cpp_type() const
-  {
-    return varray_->type();
-  }
-
-  CustomDataType custom_data_type() const
-  {
-    return cpp_type_to_custom_data_type(this->cpp_type());
-  }
-
-  fn::GMutableSpan as_span()
-  {
-    if (!optional_span_varray_) {
-      const bool materialize_old_values = !ignore_old_values_;
-      optional_span_varray_ = std::make_unique<fn::GVMutableArray_GSpan>(*varray_,
-                                                                         materialize_old_values);
-    }
-    fn::GVMutableArray_GSpan &span_varray = *optional_span_varray_;
-    return span_varray;
-  }
-
-  template<typename T> MutableSpan<T> as_span()
-  {
-    return this->as_span().typed<T>();
-  }
+  fn::GMutableSpan as_span();
+  template<typename T> MutableSpan<T> as_span();
 
   void save();
 };
@@ -443,5 +351,139 @@ class CustomDataAttributes {
   bool foreach_attribute(const AttributeForeachCallback callback,
                          const AttributeDomain domain) const;
 };
+
+/* --------------------------------------------------------------------
+ * #AttributeIDRef inline methods.
+ */
+
+inline AttributeIDRef::AttributeIDRef() = default;
+
+inline AttributeIDRef::AttributeIDRef(StringRef name) : name_(name)
+{
+}
+
+inline AttributeIDRef::AttributeIDRef(StringRefNull name) : name_(name)
+{
+}
+
+inline AttributeIDRef::AttributeIDRef(const char *name) : name_(name)
+{
+}
+
+inline AttributeIDRef::AttributeIDRef(const std::string &name) : name_(name)
+{
+}
+
+/* The anonymous id is only borrowed, the caller has to keep a reference to it. */
+inline AttributeIDRef::AttributeIDRef(const AnonymousAttributeID *anonymous_id)
+    : anonymous_id_(anonymous_id)
+{
+}
+
+inline bool operator==(const AttributeIDRef &a, const AttributeIDRef &b)
+{
+  return a.anonymous_id_ == b.anonymous_id_ && a.name_ == b.name_;
+}
+
+inline AttributeIDRef::operator bool() const
+{
+  return this->is_named() || this->is_anonymous();
+}
+
+inline uint64_t AttributeIDRef::hash() const
+{
+  return get_default_hash_2(name_, anonymous_id_);
+}
+
+inline bool AttributeIDRef::is_named() const
+{
+  return !name_.is_empty();
+}
+
+inline bool AttributeIDRef::is_anonymous() const
+{
+  return anonymous_id_ != nullptr;
+}
+
+inline StringRef AttributeIDRef::name() const
+{
+  BLI_assert(this->is_named());
+  return name_;
+}
+
+inline const AnonymousAttributeID &AttributeIDRef::anonymous_id() const
+{
+  BLI_assert(this->is_anonymous());
+  return *anonymous_id_;
+}
+
+/* --------------------------------------------------------------------
+ * #OutputAttribute inline methods.
+ */
+
+inline OutputAttribute::OutputAttribute() = default;
+inline OutputAttribute::OutputAttribute(OutputAttribute &&other) = default;
+
+inline OutputAttribute::OutputAttribute(GVMutableArrayPtr varray,
+                                        AttributeDomain domain,
+                                        SaveFn save,
+                                        const bool ignore_old_values)
+    : varray_(std::move(varray)),
+      domain_(domain),
+      save_(std::move(save)),
+      ignore_old_values_(ignore_old_values)
+{
+}
+
+inline OutputAttribute::operator bool() const
+{
+  return varray_.get() != nullptr;
+}
+
+inline GVMutableArray &OutputAttribute::operator*()
+{
+  return *varray_;
+}
+
+inline GVMutableArray *OutputAttribute::operator->()
+{
+  return varray_.get();
+}
+
+inline GVMutableArray &OutputAttribute::varray()
+{
+  return *varray_;
+}
+
+inline AttributeDomain OutputAttribute::domain() const
+{
+  return domain_;
+}
+
+inline const CPPType &OutputAttribute::cpp_type() const
+{
+  return varray_->type();
+}
+
+inline CustomDataType OutputAttribute::custom_data_type() const
+{
+  return cpp_type_to_custom_data_type(this->cpp_type());
+}
+
+inline fn::GMutableSpan OutputAttribute::as_span()
+{
+  if (!optional_span_varray_) {
+    const bool materialize_old_values = !ignore_old_values_;
+    optional_span_varray_ = std::make_unique<fn::GVMutableArray_GSpan>(*varray_,
+                                                                       materialize_old_values);
+  }
+  fn::GVMutableArray_GSpan &span_varray = *optional_span_varray_;
+  return span_varray;
+}
+
+template<typename T> inline MutableSpan<T> OutputAttribute::as_span()
+{
+  return this->as_span().typed<T>();
+}
 
 }  // namespace blender::bke
