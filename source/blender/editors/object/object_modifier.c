@@ -1927,8 +1927,8 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const eMultiresSubdivideModeType subdivide_mode = (eMultiresSubdivideModeType)(
-      RNA_enum_get(op->ptr, "mode"));
+  const eMultiresSubdivideModeType subdivide_mode = (eMultiresSubdivideModeType)(RNA_enum_get(
+      op->ptr, "mode"));
   multiresModifier_subdivide(object, mmd, subdivide_mode);
 
   ED_object_iter_other(
