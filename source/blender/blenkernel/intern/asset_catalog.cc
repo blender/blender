@@ -426,8 +426,9 @@ void AssetCatalogService::create_missing_catalogs()
 
 AssetCatalogTreeItem::AssetCatalogTreeItem(StringRef name,
                                            CatalogID catalog_id,
+                                           StringRef simple_name,
                                            const AssetCatalogTreeItem *parent)
-    : name_(name), catalog_id_(catalog_id), parent_(parent)
+    : name_(name), catalog_id_(catalog_id), simple_name_(simple_name), parent_(parent)
 {
 }
 
@@ -436,9 +437,14 @@ CatalogID AssetCatalogTreeItem::get_catalog_id() const
   return catalog_id_;
 }
 
-StringRef AssetCatalogTreeItem::get_name() const
+StringRefNull AssetCatalogTreeItem::get_name() const
 {
   return name_;
+}
+
+StringRefNull AssetCatalogTreeItem::get_simple_name() const
+{
+  return simple_name_;
 }
 
 AssetCatalogPath AssetCatalogTreeItem::catalog_path() const
@@ -482,8 +488,10 @@ void AssetCatalogTree::insert_item(const AssetCatalog &catalog)
     /* Insert new tree element - if no matching one is there yet! */
     auto [key_and_item, was_inserted] = current_item_children->emplace(
         component_name,
-        AssetCatalogTreeItem(
-            component_name, is_last_component ? catalog.catalog_id : nil_id, parent));
+        AssetCatalogTreeItem(component_name,
+                             is_last_component ? catalog.catalog_id : nil_id,
+                             is_last_component ? catalog.simple_name : "",
+                             parent));
     AssetCatalogTreeItem &item = key_and_item->second;
 
     /* If full path of this catalog already exists as parent path of a previously read catalog,

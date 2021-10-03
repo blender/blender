@@ -25,6 +25,7 @@
 
 #include "DNA_space_types.h"
 
+#include "BKE_asset.h"
 #include "BKE_asset_catalog.hh"
 #include "BKE_asset_library.hh"
 
@@ -43,6 +44,7 @@
 #include "WM_types.h"
 
 #include "file_intern.h"
+#include "filelist.h"
 
 using namespace blender;
 using namespace blender::bke;
@@ -53,11 +55,14 @@ class AssetCatalogTreeView : public ui::AbstractTreeView {
   /** The asset catalog tree this tree-view represents. */
   bke::AssetCatalogTree *catalog_tree_;
   FileAssetSelectParams *params_;
+  SpaceFile &space_file_;
 
   friend class AssetCatalogTreeViewItem;
 
  public:
-  AssetCatalogTreeView(::AssetLibrary *library, FileAssetSelectParams *params);
+  AssetCatalogTreeView(::AssetLibrary *library,
+                       FileAssetSelectParams *params,
+                       SpaceFile &space_file);
 
   void build_tree() override;
 
@@ -117,6 +122,70 @@ class AssetCatalogTreeViewItem : public ui::BasicTreeViewItem {
       RNA_string_set(props, "catalog_id", catalog_id_str_buffer);
     }
   }
+
+  bool has_droppable_item(const wmDrag &drag) const
+  {
+    const ListBase *asset_drags = WM_drag_asset_list_get(&drag);
+
+    /* There needs to be at least one asset from the current file. */
+    LISTBASE_FOREACH (const wmDragAssetListItem *, asset_item, asset_drags) {
+      if (!asset_item->is_external) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool can_drop(const wmDrag &drag) const override
+  {
+    if (drag.type != WM_DRAG_ASSET_LIST) {
+      return false;
+    }
+    return has_droppable_item(drag);
+  }
+
+  std::string drop_tooltip(const bContext & /*C*/,
+                           const wmDrag &drag,
+                           const wmEvent & /*event*/) const override
+  {
+    const ListBase *asset_drags = WM_drag_asset_list_get(&drag);
+    const bool is_multiple_assets = !BLI_listbase_is_single(asset_drags);
+
+    /* Don't try to be smart by dynamically adding the 's' for the plural. Just makes translation
+     * harder, so use full literals. */
+    std::string basic_tip = is_multiple_assets ? TIP_("Move assets to catalog") :
+                                                 TIP_("Move asset to catalog");
+
+    return basic_tip + ": " + catalog_item_.get_name() + " (" +
+           catalog_item_.catalog_path().str() + ")";
+  }
+
+  bool on_drop(const wmDrag &drag) override
+  {
+    const ListBase *asset_drags = WM_drag_asset_list_get(&drag);
+    if (!asset_drags) {
+      return false;
+    }
+
+    const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
+        get_tree_view());
+
+    LISTBASE_FOREACH (wmDragAssetListItem *, asset_item, asset_drags) {
+      if (asset_item->is_external) {
+        /* Only internal assets can be modified! */
+        continue;
+      }
+      BKE_asset_metadata_catalog_id_set(asset_item->asset_data.local_id->asset_data,
+                                        catalog_item_.get_catalog_id(),
+                                        catalog_item_.get_simple_name().c_str());
+
+      /* Trigger re-run of filtering to update visible assets. */
+      filelist_tag_needs_filtering(tree_view.space_file_.files);
+      file_select_deselect_all(&tree_view.space_file_, FILE_SEL_SELECTED | FILE_SEL_HIGHLIGHTED);
+    }
+
+    return true;
+  }
 };
 
 /** Only reason this isn't just `BasicTreeViewItem` is to add a '+' icon for adding a root level
@@ -140,8 +209,12 @@ class AssetCatalogTreeViewAllItem : public ui::BasicTreeViewItem {
   }
 };
 
-AssetCatalogTreeView::AssetCatalogTreeView(::AssetLibrary *library, FileAssetSelectParams *params)
-    : catalog_tree_(BKE_asset_library_get_catalog_tree(library)), params_(params)
+AssetCatalogTreeView::AssetCatalogTreeView(::AssetLibrary *library,
+                                           FileAssetSelectParams *params,
+                                           SpaceFile &space_file)
+    : catalog_tree_(BKE_asset_library_get_catalog_tree(library)),
+      params_(params),
+      space_file_(space_file)
 {
 }
 
@@ -216,6 +289,7 @@ bool AssetCatalogTreeView::is_active_catalog(CatalogID catalog_id) const
 
 void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library,
                                                    uiLayout *layout,
+                                                   SpaceFile *space_file,
                                                    FileAssetSelectParams *params)
 {
   uiBlock *block = uiLayoutGetBlock(layout);
@@ -223,7 +297,8 @@ void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library
   ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "asset catalog tree view",
-      std::make_unique<ed::asset_browser::AssetCatalogTreeView>(asset_library, params));
+      std::make_unique<ed::asset_browser::AssetCatalogTreeView>(
+          asset_library, params, *space_file));
 
   ui::TreeViewBuilder builder(*block);
   builder.build_tree_view(*tree_view);

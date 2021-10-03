@@ -490,7 +490,6 @@ static void filelist_readjob_main_assets(struct FileListReadJob *job_params,
 static int groupname_to_code(const char *group);
 static uint64_t groupname_to_filter_id(const char *group);
 
-static void filelist_tag_needs_filtering(FileList *filelist);
 static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size);
 
 /* ********** Sort helpers ********** */
@@ -970,7 +969,7 @@ static bool is_filtered_main_assets(FileListInternEntry *file,
          is_filtered_asset(file, filter);
 }
 
-static void filelist_tag_needs_filtering(FileList *filelist)
+void filelist_tag_needs_filtering(FileList *filelist)
 {
   filelist->flags |= FL_NEED_FILTERING;
 }

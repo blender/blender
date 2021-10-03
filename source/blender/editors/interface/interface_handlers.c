@@ -2166,6 +2166,12 @@ static bool ui_but_drag_init(bContext *C,
                             BLI_rctf_size_x(&but->rect),
                             BLI_rctf_size_y(&but->rect));
       }
+
+      /* Special feature for assets: We add another drag item that supports multiple assets. It
+       * gets the assets from context. */
+      if (ELEM(but->dragtype, WM_DRAG_ASSET, WM_DRAG_ID)) {
+        WM_event_start_drag(C, ICON_NONE, WM_DRAG_ASSET_LIST, NULL, 0, WM_DRAG_NOP);
+      }
     }
     return true;
   }

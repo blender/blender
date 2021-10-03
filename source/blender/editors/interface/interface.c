@@ -6226,12 +6226,7 @@ void UI_but_drag_set_asset(uiBut *but,
                            struct ImBuf *imb,
                            float scale)
 {
-  wmDragAsset *asset_drag = MEM_mallocN(sizeof(*asset_drag), "wmDragAsset");
-
-  BLI_strncpy(asset_drag->name, ED_asset_handle_get_name(asset), sizeof(asset_drag->name));
-  asset_drag->path = path;
-  asset_drag->id_type = ED_asset_handle_get_id_type(asset);
-  asset_drag->import_type = import_type;
+  wmDragAsset *asset_drag = WM_drag_create_asset_data(asset, path, import_type);
 
   /* FIXME: This is temporary evil solution to get scene/viewlayer/etc in the copy callback of the
    * #wmDropBox.

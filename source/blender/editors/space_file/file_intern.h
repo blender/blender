@@ -165,6 +165,7 @@ void file_path_to_ui_path(const char *path, char *r_pathi, int max_size);
 
 void file_create_asset_catalog_tree_view_in_layout(struct AssetLibrary *asset_library,
                                                    struct uiLayout *layout,
+                                                   struct SpaceFile *space_file,
                                                    struct FileAssetSelectParams *params);
 
 #ifdef __cplusplus

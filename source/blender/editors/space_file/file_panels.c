@@ -238,7 +238,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
   FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
   BLI_assert(params != NULL);
 
-  file_create_asset_catalog_tree_view_in_layout(asset_library, panel->layout, params);
+  file_create_asset_catalog_tree_view_in_layout(asset_library, panel->layout, sfile, params);
 }
 
 void file_tools_region_panels_register(ARegionType *art)

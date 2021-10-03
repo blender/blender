@@ -915,12 +915,16 @@ typedef void (*wmPaintCursorDraw)(struct bContext *C, int, int, void *customdata
 
 #define WM_DRAG_ID 0
 #define WM_DRAG_ASSET 1
-#define WM_DRAG_RNA 2
-#define WM_DRAG_PATH 3
-#define WM_DRAG_NAME 4
-#define WM_DRAG_VALUE 5
-#define WM_DRAG_COLOR 6
-#define WM_DRAG_DATASTACK 7
+/** The user is dragging multiple assets. This is only supported in few specific cases, proper
+ * multi-item support for dragging isn't supported well yet. Therefore this is kept separate from
+ * #WM_DRAG_ASSET. */
+#define WM_DRAG_ASSET_LIST 2
+#define WM_DRAG_RNA 3
+#define WM_DRAG_PATH 4
+#define WM_DRAG_NAME 5
+#define WM_DRAG_VALUE 6
+#define WM_DRAG_COLOR 7
+#define WM_DRAG_DATASTACK 8
 
 typedef enum wmDragFlags {
   WM_DRAG_NOP = 0,
@@ -953,6 +957,25 @@ typedef struct wmDragAsset {
   struct bContext *evil_C;
 } wmDragAsset;
 
+/**
+ * For some specific cases we support dragging multiple assets (#WM_DRAG_ASSET_LIST). There is no
+ * proper support for dragging multiple items in the `wmDrag`/`wmDrop` API yet, so this is really
+ * just to enable specific features for assets.
+ *
+ * This struct basically contains a tagged union to either store a local ID pointer, or information
+ * about an externally stored asset.
+ */
+typedef struct wmDragAssetListItem {
+  struct wmDragAssetListItem *next, *prev;
+
+  union {
+    struct ID *local_id;
+    wmDragAsset *external_info;
+  } asset_data;
+
+  bool is_external;
+} wmDragAssetListItem;
+
 typedef char *(*WMDropboxTooltipFunc)(struct bContext *,
                                       struct wmDrag *,
                                       const struct wmEvent *event,
@@ -979,6 +1002,8 @@ typedef struct wmDrag {
 
   /** List of wmDragIDs, all are guaranteed to have the same ID type. */
   ListBase ids;
+  /** List of `wmDragAssetListItem`s. */
+  ListBase asset_items;
 } wmDrag;
 
 /**
