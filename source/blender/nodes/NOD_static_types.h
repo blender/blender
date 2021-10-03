@@ -272,9 +272,10 @@ DefNode(FunctionNode, FN_NODE_INPUT_SPECIAL_CHARACTERS, 0, "INPUT_SPECIAL_CHARAC
 DefNode(FunctionNode, FN_NODE_INPUT_STRING, def_fn_input_string, "INPUT_STRING", InputString, "String", "")
 DefNode(FunctionNode, FN_NODE_INPUT_VECTOR, def_fn_input_vector, "INPUT_VECTOR", InputVector, "Vector", "")
 DefNode(FunctionNode, FN_NODE_RANDOM_VALUE, def_fn_random_value, "RANDOM_VALUE", RandomValue, "Random Value", "")
-DefNode(FunctionNode, FN_NODE_VALUE_TO_STRING, 0, "VALUE_TO_STRING", ValueToString, "Value to String", "")
+DefNode(FunctionNode, FN_NODE_ROTATE_EULER, def_fn_rotate_euler, "ROTATE_EULER", RotateEuler, "Rotate Euler", "")
 DefNode(FunctionNode, FN_NODE_STRING_LENGTH, 0, "STRING_LENGTH", StringLength, "String Length", "")
 DefNode(FunctionNode, FN_NODE_STRING_SUBSTRING, 0, "STRING_SUBSTRING", StringSubstring, "String Substring", "")
+DefNode(FunctionNode, FN_NODE_VALUE_TO_STRING, 0, "VALUE_TO_STRING", ValueToString, "Value to String", "")
 
 DefNode(GeometryNode, GEO_NODE_LEGACY_ALIGN_ROTATION_TO_VECTOR, def_geo_align_rotation_to_vector, "LEGACY_ALIGN_ROTATION_TO_VECTOR", LegacyAlignRotationToVector, "Align Rotation to Vector", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_ATTRIBUTE_CLAMP, def_geo_attribute_clamp, "LEGACY_ATTRIBUTE_CLAMP", LegacyAttributeClamp, "Attribute Clamp", "")

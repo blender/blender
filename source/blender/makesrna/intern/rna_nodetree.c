@@ -9818,6 +9818,51 @@ static void def_geo_point_rotate(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_fn_rotate_euler(StructRNA *srna)
+{
+  static const EnumPropertyItem type_items[] = {
+      {FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE,
+       "AXIS_ANGLE",
+       ICON_NONE,
+       "Axis Angle",
+       "Rotate around an axis by an angle"},
+      {FN_NODE_ROTATE_EULER_TYPE_EULER,
+       "EULER",
+       ICON_NONE,
+       "Euler",
+       "Rotate around the X, Y, and Z axes"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem space_items[] = {
+      {FN_NODE_ROTATE_EULER_SPACE_OBJECT,
+       "OBJECT",
+       ICON_NONE,
+       "Object",
+       "Rotate the input rotation in the local space of the object"},
+      {FN_NODE_ROTATE_EULER_SPACE_POINT,
+       "POINT",
+       ICON_NONE,
+       "Point",
+       "Rotate the input rotation in its local space"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, type_items);
+  RNA_def_property_ui_text(prop, "Type", "Method used to describe the rotation");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom2");
+  RNA_def_property_enum_items(prop, space_items);
+  RNA_def_property_ui_text(prop, "Space", "Base orientation of the points");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_geo_align_rotation_to_vector(StructRNA *srna)
 {
   static const EnumPropertyItem axis_items[] = {

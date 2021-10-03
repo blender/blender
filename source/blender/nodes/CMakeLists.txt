@@ -142,6 +142,7 @@ set(SRC
   function/nodes/node_fn_input_string.cc
   function/nodes/node_fn_input_vector.cc
   function/nodes/node_fn_random_value.cc
+  function/nodes/node_fn_rotate_euler.cc
   function/nodes/node_fn_string_length.cc
   function/nodes/node_fn_string_substring.cc
   function/nodes/node_fn_value_to_string.cc

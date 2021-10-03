@@ -5824,6 +5824,7 @@ static void registerFunctionNodes()
   register_node_type_fn_input_string();
   register_node_type_fn_input_vector();
   register_node_type_fn_random_value();
+  register_node_type_fn_rotate_euler();
   register_node_type_fn_string_length();
   register_node_type_fn_string_substring();
   register_node_type_fn_value_to_string();

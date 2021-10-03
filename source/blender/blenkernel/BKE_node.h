@@ -1529,6 +1529,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define FN_NODE_STRING_SUBSTRING 1212
 #define FN_NODE_INPUT_SPECIAL_CHARACTERS 1213
 #define FN_NODE_RANDOM_VALUE 1214
+#define FN_NODE_ROTATE_EULER 1215
 
 /** \} */
 
