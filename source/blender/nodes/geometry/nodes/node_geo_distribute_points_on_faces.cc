@@ -331,28 +331,28 @@ BLI_NOINLINE static void compute_attribute_outputs(const MeshComponent &mesh_com
                                                    const Span<int> looptri_indices,
                                                    const AttributeOutputs &attribute_outputs)
 {
-  std::optional<OutputAttribute_Typed<int>> id_attribute;
-  std::optional<OutputAttribute_Typed<float3>> normal_attribute;
-  std::optional<OutputAttribute_Typed<float3>> rotation_attribute;
+  OutputAttribute_Typed<int> id_attribute;
+  OutputAttribute_Typed<float3> normal_attribute;
+  OutputAttribute_Typed<float3> rotation_attribute;
 
   MutableSpan<int> ids;
   MutableSpan<float3> normals;
   MutableSpan<float3> rotations;
 
   if (attribute_outputs.stable_id_id) {
-    id_attribute.emplace(point_component.attribute_try_get_for_output_only<int>(
-        attribute_outputs.stable_id_id.get(), ATTR_DOMAIN_POINT));
-    ids = id_attribute->as_span();
+    id_attribute = point_component.attribute_try_get_for_output_only<int>(
+        attribute_outputs.stable_id_id.get(), ATTR_DOMAIN_POINT);
+    ids = id_attribute.as_span();
   }
   if (attribute_outputs.normal_id) {
-    normal_attribute.emplace(point_component.attribute_try_get_for_output_only<float3>(
-        attribute_outputs.normal_id.get(), ATTR_DOMAIN_POINT));
-    normals = normal_attribute->as_span();
+    normal_attribute = point_component.attribute_try_get_for_output_only<float3>(
+        attribute_outputs.normal_id.get(), ATTR_DOMAIN_POINT);
+    normals = normal_attribute.as_span();
   }
   if (attribute_outputs.rotation_id) {
-    rotation_attribute.emplace(point_component.attribute_try_get_for_output_only<float3>(
-        attribute_outputs.rotation_id.get(), ATTR_DOMAIN_POINT));
-    rotations = rotation_attribute->as_span();
+    rotation_attribute = point_component.attribute_try_get_for_output_only<float3>(
+        attribute_outputs.rotation_id.get(), ATTR_DOMAIN_POINT);
+    rotations = rotation_attribute.as_span();
   }
 
   const Mesh &mesh = *mesh_component.get_for_read();
@@ -387,13 +387,13 @@ BLI_NOINLINE static void compute_attribute_outputs(const MeshComponent &mesh_com
   }
 
   if (id_attribute) {
-    id_attribute->save();
+    id_attribute.save();
   }
   if (normal_attribute) {
-    normal_attribute->save();
+    normal_attribute.save();
   }
   if (rotation_attribute) {
-    rotation_attribute->save();
+    rotation_attribute.save();
   }
 }
 

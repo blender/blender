@@ -248,6 +248,7 @@ template<typename T> class OutputAttribute_Typed {
   VMutableArray<T> *varray_ = nullptr;
 
  public:
+  OutputAttribute_Typed() = default;
   OutputAttribute_Typed(OutputAttribute attribute) : attribute_(std::move(attribute))
   {
     if (attribute_) {
@@ -258,6 +259,16 @@ template<typename T> class OutputAttribute_Typed {
 
   OutputAttribute_Typed(OutputAttribute_Typed &&other) = default;
   ~OutputAttribute_Typed() = default;
+
+  OutputAttribute_Typed &operator=(OutputAttribute_Typed &&other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+    this->~OutputAttribute_Typed();
+    new (this) OutputAttribute_Typed(std::move(other));
+    return *this;
+  }
 
   operator bool() const
   {
