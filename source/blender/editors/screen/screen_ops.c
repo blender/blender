@@ -4410,7 +4410,7 @@ static void SCREEN_OT_region_context_menu(wmOperatorType *ot)
  * Animation Step.
  * \{ */
 static bool screen_animation_region_supports_time_follow(eSpace_Type spacetype,
-                                                         eRegionType regiontype)
+                                                         eRegion_Type regiontype)
 {
   return (regiontype == RGN_TYPE_WINDOW &&
           ELEM(spacetype, SPACE_SEQ, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) ||
@@ -4418,7 +4418,7 @@ static bool screen_animation_region_supports_time_follow(eSpace_Type spacetype,
 }
 
 static bool match_region_with_redraws(const ScrArea *area,
-                                      eRegionType regiontype,
+                                      eRegion_Type regiontype,
                                       eScreen_Redraws_Flag redraws,
                                       bool from_anim_edit)
 {
