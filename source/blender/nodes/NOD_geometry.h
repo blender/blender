@@ -37,6 +37,7 @@ void register_node_type_geo_legacy_points_to_volume(void);
 void register_node_type_geo_legacy_select_by_material(void);
 void register_node_type_geo_legacy_curve_spline_type(void);
 void register_node_type_geo_legacy_curve_reverse(void);
+void register_node_type_geo_legacy_select_by_handle_type(void);
 void register_node_type_geo_legacy_curve_subdivide(void);
 
 void register_node_type_geo_align_rotation_to_vector(void);
@@ -64,6 +65,7 @@ void register_node_type_geo_convex_hull(void);
 void register_node_type_geo_curve_endpoints(void);
 void register_node_type_geo_curve_fill(void);
 void register_node_type_geo_curve_fillet(void);
+void register_node_type_geo_curve_handle_type_selection(void);
 void register_node_type_geo_curve_length(void);
 void register_node_type_geo_curve_parameter(void);
 void register_node_type_geo_curve_primitive_bezier_segment(void);

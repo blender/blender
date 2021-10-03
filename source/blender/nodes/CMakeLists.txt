@@ -198,6 +198,7 @@ set(SRC
   geometry/nodes/node_geo_convex_hull.cc
   geometry/nodes/node_geo_curve_fill.cc
   geometry/nodes/node_geo_curve_fillet.cc
+  geometry/nodes/node_geo_curve_handle_type_selection.cc
   geometry/nodes/node_geo_curve_length.cc
   geometry/nodes/node_geo_curve_parameter.cc
   geometry/nodes/node_geo_curve_primitive_bezier_segment.cc

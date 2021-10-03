@@ -123,7 +123,7 @@ static void geo_node_select_by_handle_type_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_select_by_handle_type()
+void register_node_type_geo_legacy_select_by_handle_type()
 {
   static bNodeType ntype;
 

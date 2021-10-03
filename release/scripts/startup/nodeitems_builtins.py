@@ -532,6 +532,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeCurveSetHandles"),
         NodeItem("GeometryNodeInputTangent"),
         NodeItem("GeometryNodeCurveSample"),
+        NodeItem("GeometryNodeCurveHandleTypeSelection"),
         NodeItem("GeometryNodeCurveFillet"),
         NodeItem("GeometryNodeCurveReverse"),
     ]),
