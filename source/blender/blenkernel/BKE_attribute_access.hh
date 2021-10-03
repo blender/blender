@@ -244,17 +244,20 @@ class OutputAttribute {
 template<typename T> class OutputAttribute_Typed {
  private:
   OutputAttribute attribute_;
-  std::optional<fn::GVMutableArray_Typed<T>> optional_varray_;
+  std::unique_ptr<fn::GVMutableArray_Typed<T>> optional_varray_;
   VMutableArray<T> *varray_ = nullptr;
 
  public:
   OutputAttribute_Typed(OutputAttribute attribute) : attribute_(std::move(attribute))
   {
     if (attribute_) {
-      optional_varray_.emplace(attribute_.varray());
+      optional_varray_ = std::make_unique<fn::GVMutableArray_Typed<T>>(attribute_.varray());
       varray_ = &**optional_varray_;
     }
   }
+
+  OutputAttribute_Typed(OutputAttribute_Typed &&other) = default;
+  ~OutputAttribute_Typed() = default;
 
   operator bool() const
   {
