@@ -120,7 +120,7 @@ set(SRC
   intern/curve_deform.c
   intern/curve_eval.cc
   intern/curve_to_mesh_convert.cc
-  intern/curveprofile.c
+  intern/curveprofile.cc
   intern/customdata.c
   intern/customdata_file.c
   intern/data_transfer.c
