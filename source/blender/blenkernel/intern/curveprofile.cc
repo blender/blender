@@ -1022,7 +1022,7 @@ static float curveprofile_distance_to_next_table_point(const CurveProfile *profi
  *
  * \note Requires #BKE_curveprofile_init or #BKE_curveprofile_update call before to fill table.
  */
-float BKE_curveprofile_total_length(const CurveProfile *profile)
+static float curveprofile_total_length(const CurveProfile *profile)
 {
   float total_length = 0;
   for (int i = 0; i < PROF_TABLE_LEN(profile->path_len) - 1; i++) {
@@ -1043,7 +1043,7 @@ void BKE_curveprofile_create_samples_even_spacing(CurveProfile *profile,
                                                   int n_segments,
                                                   CurveProfilePoint *r_samples)
 {
-  const float total_length = BKE_curveprofile_total_length(profile);
+  const float total_length = curveprofile_total_length(profile);
   const float segment_length = total_length / n_segments;
   float distance_to_next_table_point = curveprofile_distance_to_next_table_point(profile, 0);
   float distance_to_previous_table_point = 0.0f;
@@ -1101,7 +1101,7 @@ void BKE_curveprofile_evaluate_length_portion(const CurveProfile *profile,
                                               float *x_out,
                                               float *y_out)
 {
-  const float total_length = BKE_curveprofile_total_length(profile);
+  const float total_length = curveprofile_total_length(profile);
   const float requested_length = length_portion * total_length;
 
   /* Find the last point along the path with a lower length portion than the input. */

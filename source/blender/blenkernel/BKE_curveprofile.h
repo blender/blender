@@ -85,9 +85,6 @@ enum {
 };
 void BKE_curveprofile_update(struct CurveProfile *profile, const int update_flags);
 
-/* Need to find the total length of the curve to sample a portion of it */
-float BKE_curveprofile_total_length(const struct CurveProfile *profile);
-
 void BKE_curveprofile_create_samples_even_spacing(struct CurveProfile *profile,
                                                   int n_segments,
                                                   struct CurveProfilePoint *r_samples);
