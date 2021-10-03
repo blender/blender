@@ -2665,7 +2665,34 @@ static int wm_handlers_do_keymap_with_keymap_handler(
         if (wm_eventmatch(event, kmi)) {
           struct wmEventHandler_KeymapPost keymap_post = handler->post;
 
-          PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
+          if (do_debug_handler) {
+            /* Short representation of the key that was pressed,
+             * include this since it may differ from the event in minor details
+             * which can help looking up the key-map definition. */
+            char kmi_buf[256];
+            WM_keymap_item_to_string(kmi, false, kmi_buf, sizeof(kmi_buf));
+
+            /* The key-map item properties can further help distinguish this item from others. */
+            char *kmi_props = NULL;
+            if (kmi->properties != NULL) {
+              wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
+              if (ot) {
+                kmi_props = RNA_pointer_as_string_keywords(C, kmi->ptr, false, false, true, 512);
+              }
+              else { /* Fallback. */
+                kmi_props = IDP_reprN(kmi->properties, NULL);
+              }
+            }
+
+            printf("%s:     item matched: \"%s\", %s(%s)\n",
+                   __func__,
+                   kmi_buf,
+                   kmi->idname,
+                   kmi_props ? kmi_props : "");
+            if (kmi_props != NULL) {
+              MEM_freeN(kmi_props);
+            }
+          }
 
           action |= wm_handler_operator_call(
               C, handlers, &handler->head, event, kmi->ptr, kmi->idname);
