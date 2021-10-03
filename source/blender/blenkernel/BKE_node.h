@@ -1513,6 +1513,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_INPUT_SPLINE_LENGTH 1098
 #define GEO_NODE_CURVE_SPLINE_TYPE 1099
 #define GEO_NODE_CURVE_SET_HANDLES 1100
+#define GEO_NODE_POINTS_TO_VOLUME 1101
 /** \} */
 
 /* -------------------------------------------------------------------- */

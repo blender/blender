@@ -646,6 +646,7 @@ geometry_node_categories = [
     GeometryNodeCategory("GEO_VOLUME", "Volume", items=[
         NodeItem("GeometryNodeLegacyPointsToVolume", poll=geometry_nodes_legacy_poll),
 
+        NodeItem("GeometryNodePointsToVolume"),
         NodeItem("GeometryNodeVolumeToMesh"),
     ]),
     GeometryNodeCategory("GEO_GROUP", "Group", items=node_group_items),

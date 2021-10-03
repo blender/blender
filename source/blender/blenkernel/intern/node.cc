@@ -5713,6 +5713,7 @@ static void registerGeometryNodes()
   register_node_type_geo_legacy_attribute_proximity();
   register_node_type_geo_legacy_attribute_randomize();
   register_node_type_geo_legacy_material_assign();
+  register_node_type_geo_legacy_points_to_volume();
   register_node_type_geo_legacy_select_by_material();
   register_node_type_geo_legacy_curve_spline_type();
   register_node_type_geo_legacy_curve_reverse();
