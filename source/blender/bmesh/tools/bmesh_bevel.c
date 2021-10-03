@@ -3048,7 +3048,9 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
         }
       }
       else {
-        offset_meet(bp, e, e2, bv->v, e->fnext, true, co, eip);
+        /* Since all edges between e and e2 are in the same plane, it is OK
+         * to treat this like the case where there are no edges between. */
+        offset_meet(bp, e, e2, bv->v, e->fnext, false, co, NULL);
       }
     }
 
