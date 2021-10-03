@@ -248,7 +248,7 @@ template<typename T> class OutputAttribute_Typed {
   VMutableArray<T> *varray_ = nullptr;
 
  public:
-  OutputAttribute_Typed() = default;
+  OutputAttribute_Typed();
   OutputAttribute_Typed(OutputAttribute attribute) : attribute_(std::move(attribute))
   {
     if (attribute_) {
@@ -257,8 +257,8 @@ template<typename T> class OutputAttribute_Typed {
     }
   }
 
-  OutputAttribute_Typed(OutputAttribute_Typed &&other) = default;
-  ~OutputAttribute_Typed() = default;
+  OutputAttribute_Typed(OutputAttribute_Typed &&other);
+  ~OutputAttribute_Typed();
 
   OutputAttribute_Typed &operator=(OutputAttribute_Typed &&other)
   {
@@ -315,6 +315,13 @@ template<typename T> class OutputAttribute_Typed {
     attribute_.save();
   }
 };
+
+/* These are not defined in the class directly, because when defining them there, the external
+ * template instantiation does not work, resulting in longer compile times. */
+template<typename T> inline OutputAttribute_Typed<T>::OutputAttribute_Typed() = default;
+template<typename T>
+inline OutputAttribute_Typed<T>::OutputAttribute_Typed(OutputAttribute_Typed &&other) = default;
+template<typename T> inline OutputAttribute_Typed<T>::~OutputAttribute_Typed() = default;
 
 /**
  * A basic container around DNA CustomData so that its users
@@ -500,4 +507,16 @@ template<typename T> inline MutableSpan<T> OutputAttribute::as_span()
   return this->as_span().typed<T>();
 }
 
+}  // namespace blender::bke
+
+/* --------------------------------------------------------------------
+ * Extern template instantiations that are defined in `intern/extern_implementations.cc`.
+ */
+
+namespace blender::bke {
+extern template class OutputAttribute_Typed<float>;
+extern template class OutputAttribute_Typed<int>;
+extern template class OutputAttribute_Typed<float3>;
+extern template class OutputAttribute_Typed<bool>;
+extern template class OutputAttribute_Typed<ColorGeometry4f>;
 }  // namespace blender::bke
