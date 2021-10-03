@@ -35,8 +35,9 @@ namespace blender::nodes {
 static void geo_node_curve_resample_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Int>("Count").default_value(10).min(1).max(100000);
-  b.add_input<decl::Float>("Length").default_value(0.1f).min(0.001f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Int>("Count").default_value(10).min(1).max(100000).supports_field();
+  b.add_input<decl::Float>("Length").default_value(0.1f).min(0.001f).supports_field().subtype(
+      PROP_DISTANCE);
   b.add_output<decl::Geometry>("Geometry");
 }
 
@@ -68,8 +69,8 @@ static void geo_node_curve_resample_update(bNodeTree *UNUSED(ntree), bNode *node
 
 struct SampleModeParam {
   GeometryNodeCurveResampleMode mode;
-  std::optional<float> length;
-  std::optional<int> count;
+  std::optional<Field<float>> length;
+  std::optional<Field<int>> count;
 };
 
 static SplinePtr resample_spline(const Spline &src, const int count)
@@ -163,28 +164,44 @@ static SplinePtr resample_spline_evaluated(const Spline &src)
   return dst;
 }
 
-static std::unique_ptr<CurveEval> resample_curve(const CurveEval &input_curve,
+static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component,
                                                  const SampleModeParam &mode_param)
 {
-  Span<SplinePtr> input_splines = input_curve.splines();
+  const CurveEval *input_curve = component->get_for_read();
+  GeometryComponentFieldContext field_context{*component, ATTR_DOMAIN_CURVE};
+  const int domain_size = component->attribute_domain_size(ATTR_DOMAIN_CURVE);
+
+  fn::FieldEvaluator evaluator{field_context, domain_size};
+
+  Span<SplinePtr> input_splines = input_curve->splines();
 
   std::unique_ptr<CurveEval> output_curve = std::make_unique<CurveEval>();
   output_curve->resize(input_splines.size());
   MutableSpan<SplinePtr> output_splines = output_curve->splines();
 
   if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_COUNT) {
+    evaluator.add(*mode_param.count);
+    evaluator.evaluate();
+    const VArray<int> &cuts = evaluator.get_evaluated<int>(0);
+
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
         BLI_assert(mode_param.count);
-        output_splines[i] = resample_spline(*input_splines[i], *mode_param.count);
+        output_splines[i] = resample_spline(*input_splines[i], std::max(cuts[i], 1));
       }
     });
   }
   else if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_LENGTH) {
+    evaluator.add(*mode_param.length);
+    evaluator.evaluate();
+    const VArray<float> &lengths = evaluator.get_evaluated<float>(0);
+
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
-        const float length = input_splines[i]->length();
-        const int count = std::max(int(length / *mode_param.length) + 1, 1);
+        /* Don't allow asymptotic count increase for low resolution values. */
+        const float divide_length = std::max(lengths[i], 0.0001f);
+        const float spline_length = input_splines[i]->length();
+        const int count = std::max(int(spline_length / divide_length) + 1, 1);
         output_splines[i] = resample_spline(*input_splines[i], count);
       }
     });
@@ -197,7 +214,7 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveEval &input_curve,
     });
   }
 
-  output_curve->attributes = input_curve.attributes;
+  output_curve->attributes = input_curve->attributes;
 
   return output_curve;
 }
@@ -209,8 +226,8 @@ static void geometry_set_curve_resample(GeometrySet &geometry_set,
     return;
   }
 
-  const CurveEval &input_curve = *geometry_set.get_curve_for_read();
-  std::unique_ptr<CurveEval> output_curve = resample_curve(input_curve, mode_param);
+  std::unique_ptr<CurveEval> output_curve = resample_curve(
+      geometry_set.get_component_for_read<CurveComponent>(), mode_param);
 
   geometry_set.replace_curve(output_curve.release());
 }
@@ -225,7 +242,7 @@ static void geo_node_resample_exec(GeoNodeExecParams params)
   SampleModeParam mode_param;
   mode_param.mode = mode;
   if (mode == GEO_NODE_CURVE_RESAMPLE_COUNT) {
-    const int count = params.extract_input<int>("Count");
+    Field<int> count = params.extract_input<Field<int>>("Count");
     if (count < 1) {
       params.set_output("Geometry", GeometrySet());
       return;
@@ -233,8 +250,7 @@ static void geo_node_resample_exec(GeoNodeExecParams params)
     mode_param.count.emplace(count);
   }
   else if (mode == GEO_NODE_CURVE_RESAMPLE_LENGTH) {
-    /* Don't allow asymptotic count increase for low resolution values. */
-    const float resolution = std::max(params.extract_input<float>("Length"), 0.0001f);
+    Field<int> resolution = params.extract_input<Field<int>>("Length");
     mode_param.length.emplace(resolution);
   }
 
