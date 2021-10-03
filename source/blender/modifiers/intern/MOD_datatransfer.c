@@ -163,7 +163,6 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return !dtmd->ob_source || dtmd->ob_source->type != OB_MESH;
 }
 
-#define HIGH_POLY_WARNING 10000
 #define DT_TYPES_AFFECT_MESH \
   (DT_TYPE_BWEIGHT_VERT | DT_TYPE_BWEIGHT_EDGE | DT_TYPE_CREASE | DT_TYPE_SHARP_EDGE | \
    DT_TYPE_LNOR | DT_TYPE_SHARP_FACE)
@@ -238,13 +237,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   else if ((dtmd->data_types & DT_TYPE_LNOR) && !(me->flag & ME_AUTOSMOOTH)) {
     BKE_modifier_set_error(
         ctx->object, (ModifierData *)dtmd, "Enable 'Auto Smooth' in Object Data Properties");
-  }
-  else if (result->totvert > HIGH_POLY_WARNING ||
-           ((Mesh *)(ob_source->data))->totvert > HIGH_POLY_WARNING) {
-    BKE_modifier_set_error(
-        ctx->object,
-        md,
-        "Source or destination object has a high polygon count, computation might be slow");
   }
 
   return result;
@@ -473,7 +465,6 @@ static void panelRegister(ARegionType *region_type)
       region_type, "advanced", "Topology Mapping", NULL, advanced_panel_draw, panel_type);
 }
 
-#undef HIGH_POLY_WARNING
 #undef DT_TYPES_AFFECT_MESH
 
 ModifierTypeInfo modifierType_DataTransfer = {
