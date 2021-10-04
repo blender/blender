@@ -393,7 +393,7 @@ static void planeProjection(const TransInfo *t, const float in[3], float out[3])
  */
 static void applyAxisConstraintVec(const TransInfo *t,
                                    const TransDataContainer *UNUSED(tc),
-                                   TransData *td,
+                                   const TransData *td,
                                    const float in[3],
                                    float out[3])
 {
@@ -477,7 +477,7 @@ static void applyAxisConstraintVec(const TransInfo *t,
  */
 static void applyObjectConstraintVec(const TransInfo *t,
                                      const TransDataContainer *tc,
-                                     TransData *td,
+                                     const TransData *td,
                                      const float in[3],
                                      float out[3])
 {
@@ -502,7 +502,7 @@ static void applyObjectConstraintVec(const TransInfo *t,
  */
 static void applyAxisConstraintSize(const TransInfo *t,
                                     const TransDataContainer *UNUSED(tc),
-                                    TransData *td,
+                                    const TransData *td,
                                     float r_smat[3][3])
 {
   if (!td && t->con.mode & CON_APPLY) {
@@ -528,7 +528,7 @@ static void applyAxisConstraintSize(const TransInfo *t,
  */
 static void applyObjectConstraintSize(const TransInfo *t,
                                       const TransDataContainer *tc,
-                                      TransData *td,
+                                      const TransData *td,
                                       float r_smat[3][3])
 {
   if (td && t->con.mode & CON_APPLY) {
@@ -603,7 +603,7 @@ static void constraints_rotation_impl(const TransInfo *t,
  */
 static void applyAxisConstraintRot(const TransInfo *t,
                                    const TransDataContainer *UNUSED(tc),
-                                   TransData *td,
+                                   const TransData *td,
                                    float r_axis[3],
                                    float *r_angle)
 {
@@ -627,7 +627,7 @@ static void applyAxisConstraintRot(const TransInfo *t,
  */
 static void applyObjectConstraintRot(const TransInfo *t,
                                      const TransDataContainer *tc,
-                                     TransData *td,
+                                     const TransData *td,
                                      float r_axis[3],
                                      float *r_angle)
 {

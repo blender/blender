@@ -106,7 +106,7 @@ class TreeDisplayLibraries final : public AbstractTreeDisplay {
 
  private:
   TreeElement *add_library_contents(Main &, ListBase &, Library *) const;
-  bool library_id_filter_poll(Library *lib, ID *id) const;
+  bool library_id_filter_poll(const Library *lib, ID *id) const;
   short id_filter_get() const;
 };
 
@@ -124,7 +124,7 @@ class TreeDisplayOverrideLibrary final : public AbstractTreeDisplay {
 
  private:
   TreeElement *add_library_contents(Main &, ListBase &, Library *) const;
-  bool override_library_id_filter_poll(Library *lib, ID *id) const;
+  bool override_library_id_filter_poll(const Library *lib, ID *id) const;
   short id_filter_get() const;
 };
 
