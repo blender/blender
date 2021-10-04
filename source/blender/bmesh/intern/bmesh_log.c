@@ -24,7 +24,7 @@
  * Currently it supports the following types of changes:
  *
  * - Adding and removing vertices
- * - Adding and removing faces
+ * - Adding and removing facels
  * - Moving vertices
  * - Setting vertex paint-mask values
  * - Setting vertex hflags
@@ -92,9 +92,19 @@ typedef struct myiter {
 
 #  define GHashIterator myiter
 
+#ifdef __GNUC__
+/* I can't even *cast* signed ints in gcc's sign-conversion warning? gcc 10.3.0 -joeedh */
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+
+#ifdef __GNUC__
+/* I can't even *cast* signed ints in gcc's sign-conversion warning? gcc 10.3.0 -joeedh */
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+
 #  define BLI_ghash_free(sh, a, b) free_smallhash(sh)
 #  define BLI_ghash_int_new_ex(a, b) new_smallhash()
-#  define BLI_ghash_reserve(sh, n) smallhash_reserve(sh, n)
+#  define BLI_ghash_reserve(sh, n) smallhash_reserve(sh, (unsigned int)(n))
 #  define BLI_ghash_new(a, b, c) new_smallhash()
 #  define BLI_ghash_insert(sh, key, val) BLI_smallhash_insert((sh), (uintptr_t)(key), (val))
 #  define BLI_ghash_remove(sh, key, a, b) BLI_smallhash_remove((sh), (uintptr_t)(key))
@@ -2796,11 +2806,11 @@ void BM_log_all_added(BMesh *bm, BMLog *log)
 
   /* avoid unnecessary resizing on initialization */
   if (BLI_ghash_len(log->current_entry->added_verts) == 0) {
-    BLI_ghash_reserve(log->current_entry->added_verts, (uint)bm->totvert);
+    BLI_ghash_reserve(log->current_entry->added_verts, ((uint)bm->totvert));
   }
 
   if (BLI_ghash_len(log->current_entry->added_faces) == 0) {
-    BLI_ghash_reserve(log->current_entry->added_faces, (uint)bm->totface);
+    BLI_ghash_reserve(log->current_entry->added_faces, ((uint)bm->totface));
   }
 
   /* Log all vertices as newly created */

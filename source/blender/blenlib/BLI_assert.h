@@ -71,8 +71,8 @@ void _BLI_assert_unreachable_print(const char *file, const int line, const char 
                       NULL)) : \
                     NULL)
 #else
-#  define BLI_assert(a) ((void)0)
-#  define BLI_assert_msg(a, msg) ((void)0)
+#  define BLI_assert(a) ((void*)0)
+#  define BLI_assert_msg(a, msg) ((void*)0)
 #endif
 
 #if defined(__cplusplus)

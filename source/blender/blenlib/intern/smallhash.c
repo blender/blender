@@ -17,6 +17,16 @@
  * All rights reserved.
  */
 
+#ifdef __GNUC__
+/* I can't even *cast* signed ints in gcc's sign-conversion warning? gcc 10.3.0 -joeedh */
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+
+#ifdef __GNUC__
+/* I can't even *cast* signed ints in gcc's sign-conversion warning? gcc 10.3.0 -joeedh */
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+
 /** \file
  * \ingroup bli
  *
@@ -110,7 +120,7 @@ extern const uint BLI_ghash_hash_sizes[];
 
 int BLI_smallhash_memuse(SmallHash *sh)
 {
-  return (int)sh->nbuckets * sizeof(SmallHashEntry) + (int)sizeof(SmallHash);
+  return (int)sh->nbuckets * (int)sizeof(SmallHashEntry) + (int)sizeof(SmallHash);
 }
 
 #if 0

@@ -125,45 +125,45 @@ static BMFlagLayer *BMO_elem_flag_from_header(BMesh *bm, BMElem *ele)
       typeof(e) _e = e; \
       (BM_CHECK_TYPE_VERT(_e), \
       (const BMFlagLayer*) BMO_elem_flag_from_header(bm, \
-       BLI_assert(((const BMHeader *)_e)->htype == BM_VERT), \
-       (BMElem*)_e)); \
+       (BLI_assert(((const BMHeader *)_e)->htype == BM_VERT), \
+       (BMElem*)_e))); \
 })
 #define _BMO_CAST_V(bm, e) ({\
       typeof(e) _e = e; \
       (BM_CHECK_TYPE_VERT_NONCONST(_e), \
        BMO_elem_flag_from_header(bm, \
-       BLI_assert(((const BMHeader *)_e)->htype == BM_VERT), \
-       (BMElem*)_e)); \
+       (BLI_assert(((const BMHeader *)_e)->htype == BM_VERT), \
+       (BMElem*)_e))); \
 })
 
 #define _BMO_CAST_E_CONST(bm, e) ({\
       typeof(e) _e = e; \
-      (BM_CHECK_TYPE_VERT(_e), \
+      (BM_CHECK_TYPE_EDGE(_e), \
       (const BMFlagLayer*) BMO_elem_flag_from_header(bm, \
-       BLI_assert(((const BMHeader *)_e)->htype == BM_EDGE), \
-       (BMElem*)_e)); \
+       (BLI_assert(((const BMHeader *)_e)->htype == BM_EDGE), \
+       (BMElem*)_e))); \
 })
 #define _BMO_CAST_E(bm, e) ({\
       typeof(e) _e = e; \
-      (BM_CHECK_TYPE_VERT_NONCONST(_e), \
+      (BM_CHECK_TYPE_EDGE_NONCONST(_e), \
        BMO_elem_flag_from_header(bm, \
-       BLI_assert(((const BMHeader *)_e)->htype == BM_EDGE), \
-       (BMElem*)_e)); \
+       (BLI_assert(((const BMHeader *)_e)->htype == BM_EDGE), \
+       (BMElem*)_e))); \
 })
 
 #define _BMO_CAST_F_CONST(bm, e) ({\
       typeof(e) _e = e; \
-      (BM_CHECK_TYPE_VERT(_e), \
+      (BM_CHECK_TYPE_FACE(_e), \
       (const BMFlagLayer*) BMO_elem_flag_from_header(bm, \
-       BLI_assert(((const BMHeader *)_e)->htype == BM_FACE), \
-       (BMElem*)_e)); \
+       (BLI_assert(((const BMHeader *)_e)->htype == BM_FACE), \
+       (BMElem*)_e))); \
 })
 #define _BMO_CAST_F(bm, e) ({\
       typeof(e) _e = e; \
-      (BM_CHECK_TYPE_VERT_NONCONST(_e), \
+      (BM_CHECK_TYPE_FACE_NONCONST(_e), \
        BMO_elem_flag_from_header(bm, \
-       BLI_assert(((const BMHeader *)_e)->htype == BM_FACE), \
-       (BMElem*)_e)); \
+       (BLI_assert(((const BMHeader *)_e)->htype == BM_FACE), \
+       (BMElem*)_e))); \
 })
 
 /* clang-format on */

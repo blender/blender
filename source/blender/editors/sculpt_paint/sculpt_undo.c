@@ -1937,7 +1937,7 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
   }
 
   if (!node) {
-    return;
+    return false;
   }
 
   int n = BKE_pbvh_get_node_id(ss->pbvh, node);

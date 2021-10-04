@@ -26,6 +26,9 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_compiler_compat.h"
+#include "BLI_compiler_typecheck.h"
+#include "BLI_utildefines.h"
 
 /* disable holes for now,
  * these are ifdef'd because they use more memory and can't be saved in DNA currently */
@@ -444,8 +447,7 @@ enum {
 
 /* args for _Generic */
 #define _BM_GENERIC_TYPE_ELEM_NONCONST \
-  void *, BMVert *, BMEdge *, BMLoop *, BMFace *, BMVert_OFlag *, BMEdge_OFlag *, BMFace_OFlag *, \
-      BMElem *, BMElemF *, BMHeader *
+  void *, BMVert *, BMEdge *, BMLoop *, BMFace *, BMElem *, BMElemF *, BMHeader *
 
 #define _BM_GENERIC_TYPE_ELEM_CONST \
   const void *, const BMVert *, const BMEdge *, const BMLoop *, const BMFace *, const BMElem *, \
@@ -460,22 +462,22 @@ enum {
   CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST, _BM_GENERIC_TYPE_ELEM_CONST)
 
 /* vert */
-#define _BM_GENERIC_TYPE_VERT_NONCONST BMVert *, BMVert_OFlag *
-#define _BM_GENERIC_TYPE_VERT_CONST const BMVert *, const BMVert_OFlag *
+#define _BM_GENERIC_TYPE_VERT_NONCONST BMVert *
+#define _BM_GENERIC_TYPE_VERT_CONST const BMVert *
 #define BM_CHECK_TYPE_VERT_CONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_VERT_CONST)
 #define BM_CHECK_TYPE_VERT_NONCONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST)
 #define BM_CHECK_TYPE_VERT(ele) \
   CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_VERT_NONCONST, _BM_GENERIC_TYPE_VERT_CONST)
 /* edge */
-#define _BM_GENERIC_TYPE_EDGE_NONCONST BMEdge *, BMEdge_OFlag *
-#define _BM_GENERIC_TYPE_EDGE_CONST const BMEdge *, const BMEdge_OFlag *
+#define _BM_GENERIC_TYPE_EDGE_NONCONST BMEdge *
+#define _BM_GENERIC_TYPE_EDGE_CONST const BMEdge *
 #define BM_CHECK_TYPE_EDGE_CONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_EDGE_CONST)
 #define BM_CHECK_TYPE_EDGE_NONCONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST)
 #define BM_CHECK_TYPE_EDGE(ele) \
   CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_EDGE_NONCONST, _BM_GENERIC_TYPE_EDGE_CONST)
 /* face */
-#define _BM_GENERIC_TYPE_FACE_NONCONST BMFace *, BMFace_OFlag *
-#define _BM_GENERIC_TYPE_FACE_CONST const BMFace *, const BMFace_OFlag *
+#define _BM_GENERIC_TYPE_FACE_NONCONST BMFace *
+#define _BM_GENERIC_TYPE_FACE_CONST const BMFace *
 #define BM_CHECK_TYPE_FACE_CONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_FACE_CONST)
 #define BM_CHECK_TYPE_FACE_NONCONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST)
 #define BM_CHECK_TYPE_FACE(ele) \
