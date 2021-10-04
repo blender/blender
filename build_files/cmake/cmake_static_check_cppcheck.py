@@ -24,6 +24,7 @@ import project_source_info
 import subprocess
 import sys
 import os
+import tempfile
 
 from typing import (
     Any,
@@ -47,13 +48,15 @@ CHECKER_ARGS = [
     "--max-configs=1",  # speeds up execution
     #  "--check-config", # when includes are missing
     "--enable=all",  # if you want sixty hundred pedantic suggestions
+
+    # NOTE: `--cppcheck-build-dir=<dir>` is added later as a temporary directory.
 ]
 
 if USE_QUIET:
     CHECKER_ARGS.append("--quiet")
 
 
-def main() -> None:
+def cppcheck() -> None:
     source_info = project_source_info.build_info(ignore_prefix_list=CHECKER_IGNORE_PREFIX)
     source_defines = project_source_info.build_defines_as_args()
 
@@ -88,6 +91,12 @@ def main() -> None:
     project_source_info.queue_processes(process_functions)
 
     print("Finished!")
+
+
+def main() -> None:
+    with tempfile.TemporaryDirectory() as temp_dir:
+        CHECKER_ARGS.append("--cppcheck-build-dir=" + temp_dir)
+        cppcheck()
 
 
 if __name__ == "__main__":
