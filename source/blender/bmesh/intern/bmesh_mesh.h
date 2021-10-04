@@ -160,3 +160,5 @@ void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
   ((bm->idmap.flag & BM_NO_REUSE_IDS) ? \
        BLI_ghash_lookup(bm->idmap.ghash, POINTER_FROM_UINT(id)) : \
        bm->idmap.map[id])
+
+bool BM_elem_is_free(BMElem *elem, int htype);

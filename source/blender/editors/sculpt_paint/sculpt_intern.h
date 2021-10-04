@@ -319,6 +319,23 @@ void SCULPT_visibility_sync_all_vertex_to_face_sets(struct SculptSession *ss);
 
 /* Face Sets API */
 
+typedef struct SculptFaceSetIsland {
+  SculptFaceRef *faces;
+  int totface;
+} SculptFaceSetIsland;
+
+typedef struct SculptFaceSetIslands {
+  SculptFaceSetIsland *islands;
+  int totisland;
+} SculptFaceSetIslands;
+
+SculptFaceSetIslands *SCULPT_face_set_islands_get(SculptSession *ss, int fset);
+void SCULPT_face_set_islands_free(SculptSession *ss, SculptFaceSetIslands *islands);
+SculptFaceSetIsland *SCULPT_face_set_island_get(SculptSession *ss, SculptFaceRef face, int fset);
+void SCULPT_face_set_island_free(SculptFaceSetIsland *island);
+
+void SCULPT_face_normal_get(SculptSession *ss, SculptFaceRef face, float no[3]);
+
 int SCULPT_active_face_set_get(SculptSession *ss);
 int SCULPT_vertex_face_set_get(SculptSession *ss, SculptVertRef vertex);
 void SCULPT_vertex_face_set_set(SculptSession *ss, SculptVertRef vertex, int face_set);
@@ -1348,7 +1365,6 @@ typedef struct StrokeCache {
   struct BrushCommandList *commandlist;
   bool use_plane_trim;
 } StrokeCache;
-
 /* Sculpt Filters */
 typedef enum SculptFilterOrientation {
   SCULPT_FILTER_ORIENTATION_LOCAL = 0,

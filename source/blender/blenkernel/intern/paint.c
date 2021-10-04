@@ -1719,6 +1719,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->totvert = me_eval->totvert;
     ss->totpoly = me_eval->totpoly;
     ss->totfaces = me->totpoly;
+    ss->totloops = me->totloop;
+    ss->totedges = me->totedge;
 
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
      * and tools use the Face Sets data from the base mesh when Multires is active. */
@@ -1740,6 +1742,9 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->multires.level = 0;
     ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
     ss->vcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+
+    ss->totloops = me->totloop;
+    ss->totedges = me->totedge;
 
     ss->vdata = &me->vdata;
     ss->edata = &me->edata;

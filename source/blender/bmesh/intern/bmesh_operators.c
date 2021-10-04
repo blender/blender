@@ -1273,7 +1273,7 @@ ATTR_NO_OPT static void bmo_flag_layer_do(BMesh *bm,
     int cd_tflags = CustomData_get_offset(cdatas[i], CD_TOOLFLAGS);
 
     if (cd_tflags == -1) {
-      printf("eek!\n");
+      printf("%s: missing toolflags cd layer!\n", __func__);
     }
 
     callback(bm, cd_tflags, iters[i], types[i], tots[i], new_totflags, pools[i]);

@@ -617,7 +617,7 @@ typedef struct SculptSession {
 
   /* Mesh Face Sets */
   /* Total number of polys of the base mesh. */
-  int totfaces;
+  int totedges, totloops, totfaces;
   /* Face sets store its visibility in the sign of the integer, using the absolute value as the
    * Face Set ID. Positive IDs are visible, negative IDs are hidden.
    * The 0 ID is not used by the tools or the visibility system, it is just used when creating new

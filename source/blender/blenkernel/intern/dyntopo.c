@@ -1257,7 +1257,6 @@ void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face)
   pbvh_bmesh_face_remove(pbvh, f, log_face, true, true);
 }
 
-
 void BKE_pbvh_bmesh_remove_edge(PBVH *pbvh, BMEdge *e, bool log_vert)
 {
   if (log_vert) {
@@ -1293,7 +1292,7 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
     ni = BM_ELEM_CD_GET_INT(l->radial_next->f, pbvh->cd_face_node_offset);
 
     if (ni >= 0 && (!(pbvh->nodes[ni].flag & PBVH_Leaf) || ni >= pbvh->totnode)) {
-      printf("EEK! ni: %d totnode: %d\n", ni, pbvh->totnode);
+      printf("%s: error: ni: %d totnode: %d\n", __func__, ni, pbvh->totnode);
       l = l->next;
       continue;
     }
@@ -2277,7 +2276,7 @@ static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
     }
 
     if (f == f2) {
-      printf("eek!\n");
+      printf("%s: error\n", __func__);
       continue;
     }
 
@@ -4048,7 +4047,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   mv3->flag |= mupdateflag;
 
   if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
-    printf("eek!\n");
+    printf("%s: error\n", __func__);
   }
 
   for (int i = 0; i < 3; i++) {
@@ -6092,7 +6091,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
     }
     else {
       BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
-      printf("eek!");
+      printf("%s: error!\n", __func__);
     }
   }
 
@@ -6239,7 +6238,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
         BMFace *f = newfaces[j];
 
         if (f->len != 3) {
-          printf("eek! f->len was not 3! len: %d\n", f->len);
+          printf("%s: f->len was not 3! len: %d\n", __func__, f->len);
         }
       }
 

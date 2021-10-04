@@ -160,7 +160,7 @@ float SCULPT_get_float_intern(const SculptSession *ss,
     return BKE_brush_channelset_get_float(sd->channels, idname, mapdata);
   }
   else {
-    // eek!
+    // should not happen!
     return 0.0f;
   }
 }
@@ -185,7 +185,7 @@ int SCULPT_get_int_intern(const SculptSession *ss,
     return BKE_brush_channelset_get_int(sd->channels, idname, mapdata);
   }
   else {
-    // eek!
+    // should not happen!
     return 0;
   }
 }
@@ -209,7 +209,7 @@ int SCULPT_get_vector_intern(
     return BKE_brush_channelset_get_vector(sd->channels, idname, out, mapdata);
   }
   else {
-    // eek!
+    // should not happen!
     return 0;
   }
 }
@@ -230,6 +230,28 @@ void SCULPT_vertex_random_access_ensure(SculptSession *ss)
 
     BM_mesh_elem_index_ensure(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
     BM_mesh_elem_table_ensure(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
+  }
+}
+
+void SCULPT_face_normal_get(SculptSession *ss, SculptFaceRef face, float no[3])
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      BMFace *f = (BMFace *)face.i;
+
+      copy_v3_v3(no, f->no);
+      break;
+    }
+
+    case PBVH_FACES:
+    case PBVH_GRIDS: {
+      MPoly *mp = ss->mpoly + face.i;
+      BKE_mesh_calc_poly_normal(mp, ss->mloop + mp->loopstart, ss->mvert, no);
+      break;
+    }
+    default:  // failed
+      zero_v3(no);
+      break;
   }
 }
 
@@ -11728,7 +11750,7 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
   }
 
   if (!brush->channels) {
-    // eek!
+    // should not happen!
     printf("had to create brush->channels for brush '%s'!", brush->id.name + 2);
 
     brush->channels = BKE_brush_channelset_create();
