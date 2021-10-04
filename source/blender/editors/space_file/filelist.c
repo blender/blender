@@ -3295,6 +3295,7 @@ typedef struct FileListReadJob {
 } FileListReadJob;
 
 static bool filelist_readjob_should_recurse_into_entry(const int max_recursion,
+                                                       const bool is_lib,
                                                        const int current_recursion_level,
                                                        FileListInternEntry *entry)
 {
@@ -3302,8 +3303,14 @@ static bool filelist_readjob_should_recurse_into_entry(const int max_recursion,
     /* Recursive loading is disabled. */
     return false;
   }
-  if (current_recursion_level >= max_recursion) {
+  if (!is_lib && current_recursion_level > max_recursion) {
     /* No more levels of recursion left. */
+    return false;
+  }
+  /* Show entries when recursion is set to `Blend file` even when `current_recursion_level` exceeds
+   * `max_recursion`. */
+  if (!is_lib && (current_recursion_level >= max_recursion) &&
+      ((entry->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) == 0)) {
     return false;
   }
   if (entry->typeflag & FILE_TYPE_BLENDERLIB) {
@@ -3421,7 +3428,8 @@ static void filelist_readjob_do(const bool do_lib,
       entry->name = fileentry_uiname(root, entry->relpath, entry->typeflag, dir);
       entry->free_name = true;
 
-      if (filelist_readjob_should_recurse_into_entry(max_recursion, recursion_level, entry)) {
+      if (filelist_readjob_should_recurse_into_entry(
+              max_recursion, is_lib, recursion_level, entry)) {
         /* We have a directory we want to list, add it to todo list! */
         BLI_join_dirfile(dir, sizeof(dir), root, entry->relpath);
         BLI_path_normalize_dir(job_params->main_name, dir);
