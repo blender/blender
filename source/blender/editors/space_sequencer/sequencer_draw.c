@@ -350,7 +350,7 @@ static void draw_seq_waveform_overlay(View2D *v2d,
                                       float frames_per_pixel)
 {
   if (seq->sound &&
-      ((sseq->flag & SEQ_TIMELINE_ALL_WAVEFORMS) || (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM))) {
+      ((sseq->timeline_overlay.flag & SEQ_TIMELINE_ALL_WAVEFORMS) || (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM))) {
     /* Make sure that the start drawing position is aligned to the pixels on the screen to avoid
      * flickering when moving around the strip.
      * To do this we figure out the fractional offset in pixel space by checking where the
