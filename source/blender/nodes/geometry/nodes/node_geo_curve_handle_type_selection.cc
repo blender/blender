@@ -67,7 +67,7 @@ static BezierSpline::HandleType handle_type_from_input_type(const GeometryNodeCu
 static void select_by_handle_type(const CurveEval &curve,
                                   const BezierSpline::HandleType type,
                                   const GeometryNodeCurveHandleMode mode,
-                                  const IndexMask mask,
+                                  const IndexMask UNUSED(mask),
                                   const MutableSpan<bool> r_selection)
 {
   int offset = 0;
