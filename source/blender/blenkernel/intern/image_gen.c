@@ -101,13 +101,12 @@ static void image_buf_fill_checker_slice(
   /* these two passes could be combined into one, but it's more readable and
    * easy to tweak like this, speed isn't really that much of an issue in this situation... */
 
-  int checkerwidth = 32, dark = 1;
+  int checkerwidth = 32;
   int x, y;
 
   unsigned char *rect_orig = rect;
   float *rect_float_orig = rect_float;
 
-  float h = 0.0, hoffs = 0.0;
   float hsv[3] = {0.0f, 0.9f, 0.9f};
   float rgb[3];
 
@@ -119,7 +118,7 @@ static void image_buf_fill_checker_slice(
 
   /* checkers */
   for (y = offset; y < height + offset; y++) {
-    dark = powf(-1.0f, floorf(y / checkerwidth));
+    int dark = powf(-1.0f, floorf(y / checkerwidth));
 
     for (x = 0; x < width; x++) {
       if (x % checkerwidth == 0) {
@@ -156,10 +155,10 @@ static void image_buf_fill_checker_slice(
 
   /* 2nd pass, colored + */
   for (y = offset; y < height + offset; y++) {
-    hoffs = 0.125f * floorf(y / checkerwidth);
+    float hoffs = 0.125f * floorf(y / checkerwidth);
 
     for (x = 0; x < width; x++) {
-      h = 0.125f * floorf(x / checkerwidth);
+      float h = 0.125f * floorf(x / checkerwidth);
 
       if ((abs((x % checkerwidth) - (checkerwidth / 2)) < 4) &&
           (abs((y % checkerwidth) - (checkerwidth / 2)) < 4)) {
