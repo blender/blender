@@ -1063,7 +1063,7 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src,
   /* copy frames */
   BLI_listbase_clear(&gpl_dst->frames);
   if (dup_frames) {
-    for (gpf_src = gpl_src->frames.first; gpf_src; gpf_src = gpf_src->next) {
+    LISTBASE_FOREACH (bGPDframe *, gpf_src, &gpl_src->frames) {
       /* make a copy of source frame */
       gpf_dst = BKE_gpencil_frame_duplicate(gpf_src, dup_strokes);
       BLI_addtail(&gpl_dst->frames, gpf_dst);
