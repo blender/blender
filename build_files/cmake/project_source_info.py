@@ -243,7 +243,9 @@ def build_defines_as_args() -> List[str]:
 # use this module.
 def queue_processes(
         process_funcs: Sequence[Tuple[Callable[..., subprocess.Popen[Any]], Tuple[Any, ...]]],
+        *,
         job_total: int =-1,
+        sleep: float = 0.1,
 ) -> None:
     """ Takes a list of function arg pairs, each function must return a process
     """
@@ -271,13 +273,19 @@ def queue_processes(
 
                 if len(processes) <= job_total:
                     break
-                else:
-                    time.sleep(0.1)
+                time.sleep(sleep)
 
             sys.stdout.flush()
             sys.stderr.flush()
 
             processes.append(func(*args))
+
+        # Don't return until all jobs have finished.
+        while 1:
+            processes[:] = [p for p in processes if p.poll() is None]
+            if not processes:
+                break
+            time.sleep(sleep)
 
 
 def main() -> None:
