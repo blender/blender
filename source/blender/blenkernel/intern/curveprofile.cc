@@ -594,7 +594,8 @@ int BKE_curveprofile_table_size(const CurveProfile *profile)
   /** Number of table points per control point. */
   const int resolution = 16;
 
-  return std::clamp((profile->path_len - 1) * resolution + 1, 0, PROF_TABLE_MAX);
+  /* Make sure there is always one sample, even if there are no control points. */
+  return std::clamp((profile->path_len - 1) * resolution + 1, 1, PROF_TABLE_MAX);
 }
 
 /**
@@ -1006,7 +1007,10 @@ static void curveprofile_make_table(CurveProfile *profile)
   CurveProfilePoint *new_table = (CurveProfilePoint *)MEM_callocN(
       sizeof(CurveProfilePoint) * (n_samples + 1), __func__);
 
-  create_samples(profile, n_samples - 1, false, new_table);
+  if (n_samples > 1) {
+    create_samples(profile, n_samples - 1, false, new_table);
+  }
+
   /* Manually add last point at the end of the profile */
   new_table[n_samples - 1].x = 0.0f;
   new_table[n_samples - 1].y = 1.0f;
