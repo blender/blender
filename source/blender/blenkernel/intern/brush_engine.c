@@ -1537,11 +1537,11 @@ void BKE_builtin_apply_hard_edge_mode(BrushChannelSet *chset, bool do_apply)
   }
 }
 
-void BKE_builtin_commandlist_create(Brush *brush,
-                                    BrushChannelSet *chset,
-                                    BrushCommandList *cl,
-                                    int tool,
-                                    BrushMappingData *mapdata)
+ATTR_NO_OPT void BKE_builtin_commandlist_create(Brush *brush,
+                                                BrushChannelSet *chset,
+                                                BrushCommandList *cl,
+                                                int tool,
+                                                BrushMappingData *mapdata)
 {
   BrushCommand *cmd;
   BrushChannel *ch;
@@ -1560,9 +1560,8 @@ void BKE_builtin_commandlist_create(Brush *brush,
 
   float radius = BKE_brush_channelset_get_float(chset, "radius", NULL);
 
-  bool no_autosmooth = ELEM(
-      brush->sculpt_tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK);
-  bool no_rake = ELEM(brush->sculpt_tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_MASK);
+  bool no_autosmooth = ELEM(tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK);
+  bool no_rake = ELEM(tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_MASK);
   ;
 
   /* build autosmooth command */

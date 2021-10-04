@@ -8726,6 +8726,11 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
 
   ok = ok && !(brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT));
 
+  if (ss->cache->alt_smooth && brush->sculpt_tool == SCULPT_TOOL_SMOOTH) {
+    float factor = BRUSHSET_GET_FLOAT(ss->cache->channels_final, smooth_strength_factor, NULL);
+    BRUSHSET_SET_FLOAT(ss->cache->channels_final, strength, factor);
+  }
+
   if (ok) {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
       if (ss->cache->commandlist) {
@@ -8733,11 +8738,6 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
       }
 
       BrushCommandList *list = ss->cache->commandlist = BKE_brush_commandlist_create();
-
-      if (ss->cache->alt_smooth && brush->sculpt_tool == SCULPT_TOOL_SMOOTH) {
-        float factor = BRUSHSET_GET_FLOAT(ss->cache->channels_final, smooth_strength_factor, NULL);
-        BRUSHSET_SET_FLOAT(ss->cache->channels_final, strength, factor);
-      }
 
       BKE_builtin_commandlist_create(
           brush, ss->cache->channels_final, list, brush->sculpt_tool, &ss->cache->input_mapping);
