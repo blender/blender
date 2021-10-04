@@ -250,7 +250,7 @@ static void geo_node_resample_exec(GeoNodeExecParams params)
     mode_param.count.emplace(count);
   }
   else if (mode == GEO_NODE_CURVE_RESAMPLE_LENGTH) {
-    Field<int> resolution = params.extract_input<Field<int>>("Length");
+    Field<float> resolution = params.extract_input<Field<float>>("Length");
     mode_param.length.emplace(resolution);
   }
 
