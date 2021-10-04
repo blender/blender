@@ -44,6 +44,21 @@
 /** \name Data Handling
  * \{ */
 
+/**
+ * Returns a pointer to a newly allocated curve profile, using the given preset.
+ */
+struct CurveProfile *BKE_curveprofile_add(eCurveProfilePresets preset)
+{
+  CurveProfile *profile = (CurveProfile *)MEM_callocN(sizeof(CurveProfile), __func__);
+
+  BKE_curveprofile_set_defaults(profile);
+  profile->preset = preset;
+  BKE_curveprofile_reset(profile);
+  BKE_curveprofile_update(profile, 0);
+
+  return profile;
+}
+
 void BKE_curveprofile_free_data(CurveProfile *profile)
 {
   MEM_SAFE_FREE(profile->path);
@@ -676,7 +691,7 @@ static void calculate_path_handles(CurveProfilePoint *path, int path_len)
 }
 
 /**
- * Helper function for 'BKE_curveprofile_create_samples.' Calculates the angle between the
+ * Helper function for #create_samples. Calculates the angle between the
  * handles on the inside of the edge starting at index i. A larger angle means the edge is
  * more curved.
  * \param i_edge: The start index of the edge to calculate the angle for.
@@ -702,7 +717,7 @@ struct CurvatureSortPoint {
 };
 
 /**
- * Helper function for 'BKE_curveprofile_create_samples' for sorting edges based on curvature.
+ * Helper function for #create_samples for sorting edges based on curvature.
  */
 static int sort_points_curvature(const void *in_a, const void *in_b)
 {
@@ -729,10 +744,10 @@ static int sort_points_curvature(const void *in_a, const void *in_b)
  * n_segments. Fill the array with the sampled locations and if the point corresponds to a
  * control point, its handle type.
  */
-void BKE_curveprofile_create_samples(CurveProfile *profile,
-                                     int n_segments,
-                                     bool sample_straight_edges,
-                                     CurveProfilePoint *r_samples)
+static void create_samples(CurveProfile *profile,
+                           int n_segments,
+                           bool sample_straight_edges,
+                           CurveProfilePoint *r_samples)
 {
   CurveProfilePoint *path = profile->path;
   int totpoints = profile->path_len;
@@ -856,51 +871,6 @@ void BKE_curveprofile_create_samples(CurveProfile *profile,
 }
 
 /**
- * Creates a higher resolution table by sampling the curved points.
- * This table is used for display and evenly spaced evaluation.
- */
-static void curveprofile_make_table(CurveProfile *profile)
-{
-  int n_samples = BKE_curveprofile_table_size(profile);
-  CurveProfilePoint *new_table = (CurveProfilePoint *)MEM_callocN(
-      sizeof(CurveProfilePoint) * (n_samples + 1), __func__);
-
-  BKE_curveprofile_create_samples(profile, n_samples - 1, false, new_table);
-  /* Manually add last point at the end of the profile */
-  new_table[n_samples - 1].x = 0.0f;
-  new_table[n_samples - 1].y = 1.0f;
-
-  MEM_SAFE_FREE(profile->table);
-  profile->table = new_table;
-}
-
-/**
- * Creates the table of points used for displaying a preview of the sampled segment locations on
- * the widget itself.
- */
-static void curveprofile_make_segments_table(CurveProfile *profile)
-{
-  int n_samples = profile->segments_len;
-  if (n_samples <= 0) {
-    return;
-  }
-  CurveProfilePoint *new_table = (CurveProfilePoint *)MEM_callocN(
-      sizeof(CurveProfilePoint) * (n_samples + 1), __func__);
-
-  if (profile->flag & PROF_SAMPLE_EVEN_LENGTHS) {
-    /* Even length sampling incompatible with only straight edge sampling for now. */
-    BKE_curveprofile_create_samples_even_spacing(profile, n_samples, new_table);
-  }
-  else {
-    BKE_curveprofile_create_samples(
-        profile, n_samples, profile->flag & PROF_SAMPLE_STRAIGHT_EDGES, new_table);
-  }
-
-  MEM_SAFE_FREE(profile->segments);
-  profile->segments = new_table;
-}
-
-/**
  * Sets the default settings and clip range for the profile widget.
  * Does not generate either table.
  */
@@ -925,18 +895,149 @@ void BKE_curveprofile_set_defaults(CurveProfile *profile)
 }
 
 /**
- * Returns a pointer to a newly allocated curve profile, using the given preset.
+ * Refreshes the higher resolution table sampled from the input points. A call to this or
+ * #BKE_curveprofile_update is needed before evaluation functions that use the table.
+ * Also sets the number of segments used for the display preview of the locations
+ * of the sampled points.
  */
-struct CurveProfile *BKE_curveprofile_add(eCurveProfilePresets preset)
+void BKE_curveprofile_init(CurveProfile *profile, short segments_len)
 {
-  CurveProfile *profile = (CurveProfile *)MEM_callocN(sizeof(CurveProfile), __func__);
+  if (segments_len != profile->segments_len) {
+    profile->flag |= PROF_DIRTY_PRESET;
+  }
+  profile->segments_len = segments_len;
 
-  BKE_curveprofile_set_defaults(profile);
-  profile->preset = preset;
-  BKE_curveprofile_reset(profile);
-  curveprofile_make_table(profile);
+  /* Calculate the higher resolution / segments tables for display and evaluation. */
+  BKE_curveprofile_update(profile, PROF_UPDATE_NONE);
+}
 
-  return profile;
+/**
+ * Gives the distance to the next point in the widgets sampled table, in other words the length
+ * of the \a 'i' edge of the table.
+ *
+ * \note Requires #BKE_curveprofile_init or #BKE_curveprofile_update call before to fill table.
+ */
+static float curveprofile_distance_to_next_table_point(const CurveProfile *profile, int i)
+{
+  BLI_assert(i < BKE_curveprofile_table_size(profile));
+
+  return len_v2v2(&profile->table[i].x, &profile->table[i + 1].x);
+}
+
+/**
+ * Calculates the total length of the profile from the curves sampled in the table.
+ *
+ * \note Requires #BKE_curveprofile_init or #BKE_curveprofile_update call before to fill table.
+ */
+static float curveprofile_total_length(const CurveProfile *profile)
+{
+  float total_length = 0;
+  for (int i = 0; i < BKE_curveprofile_table_size(profile) - 1; i++) {
+    total_length += len_v2v2(&profile->table[i].x, &profile->table[i + 1].x);
+  }
+  return total_length;
+}
+
+/**
+ * Samples evenly spaced positions along the curve profile's table (generated from path). Fills
+ * an entire table at once for a speedup if all of the results are going to be used anyway.
+ *
+ * \note Requires #BKE_curveprofile_init or #BKE_curveprofile_update call before to fill table.
+ * \note Working, but would conflict with "Sample Straight Edges" option, so this is unused for
+ * now.
+ */
+static void create_samples_even_spacing(CurveProfile *profile,
+                                        int n_segments,
+                                        CurveProfilePoint *r_samples)
+{
+  const float total_length = curveprofile_total_length(profile);
+  const float segment_length = total_length / n_segments;
+  float distance_to_next_table_point = curveprofile_distance_to_next_table_point(profile, 0);
+  float distance_to_previous_table_point = 0.0f;
+  int i_table = 0;
+
+  /* Set the location for the first point. */
+  r_samples[0].x = profile->table[0].x;
+  r_samples[0].y = profile->table[0].y;
+
+  /* Travel along the path, recording the locations of segments as we pass them. */
+  float segment_left = segment_length;
+  for (int i = 1; i < n_segments; i++) {
+    /* Travel over all of the points that fit inside this segment. */
+    while (distance_to_next_table_point < segment_left) {
+      segment_left -= distance_to_next_table_point;
+      i_table++;
+      distance_to_next_table_point = curveprofile_distance_to_next_table_point(profile, i_table);
+      distance_to_previous_table_point = 0.0f;
+    }
+    /* We're at the last table point that fits inside the current segment, use interpolation. */
+    float factor = (distance_to_previous_table_point + segment_left) /
+                   (distance_to_previous_table_point + distance_to_next_table_point);
+    r_samples[i].x = interpf(profile->table[i_table + 1].x, profile->table[i_table].x, factor);
+    r_samples[i].y = interpf(profile->table[i_table + 1].y, profile->table[i_table].y, factor);
+    BLI_assert(factor <= 1.0f && factor >= 0.0f);
+#ifdef DEBUG_CURVEPROFILE_EVALUATE
+    printf("segment_left: %.3f\n", segment_left);
+    printf("i_table: %d\n", i_table);
+    printf("distance_to_previous_table_point: %.3f\n", distance_to_previous_table_point);
+    printf("distance_to_next_table_point: %.3f\n", distance_to_next_table_point);
+    printf("Interpolating with factor %.3f from (%.3f, %.3f) to (%.3f, %.3f)\n\n",
+           factor,
+           profile->table[i_table].x,
+           profile->table[i_table].y,
+           profile->table[i_table + 1].x,
+           profile->table[i_table + 1].y);
+#endif
+
+    /* We sampled in between this table point and the next, so the next travel step is smaller. */
+    distance_to_next_table_point -= segment_left;
+    distance_to_previous_table_point += segment_left;
+    segment_left = segment_length;
+  }
+}
+
+/**
+ * Creates a higher resolution table by sampling the curved points.
+ * This table is used for display and evenly spaced evaluation.
+ */
+static void curveprofile_make_table(CurveProfile *profile)
+{
+  int n_samples = BKE_curveprofile_table_size(profile);
+  CurveProfilePoint *new_table = (CurveProfilePoint *)MEM_callocN(
+      sizeof(CurveProfilePoint) * (n_samples + 1), __func__);
+
+  create_samples(profile, n_samples - 1, false, new_table);
+  /* Manually add last point at the end of the profile */
+  new_table[n_samples - 1].x = 0.0f;
+  new_table[n_samples - 1].y = 1.0f;
+
+  MEM_SAFE_FREE(profile->table);
+  profile->table = new_table;
+}
+
+/**
+ * Creates the table of points used for displaying a preview of the sampled segment locations on
+ * the widget itself.
+ */
+static void curveprofile_make_segments_table(CurveProfile *profile)
+{
+  int n_samples = profile->segments_len;
+  if (n_samples <= 0) {
+    return;
+  }
+  CurveProfilePoint *new_table = (CurveProfilePoint *)MEM_callocN(
+      sizeof(CurveProfilePoint) * (n_samples + 1), __func__);
+
+  if (profile->flag & PROF_SAMPLE_EVEN_LENGTHS) {
+    /* Even length sampling incompatible with only straight edge sampling for now. */
+    create_samples_even_spacing(profile, n_samples, new_table);
+  }
+  else {
+    create_samples(profile, n_samples, profile->flag & PROF_SAMPLE_STRAIGHT_EDGES, new_table);
+  }
+
+  MEM_SAFE_FREE(profile->segments);
+  profile->segments = new_table;
 }
 
 /**
@@ -997,108 +1098,6 @@ void BKE_curveprofile_update(CurveProfile *profile, const int update_flags)
   /* Store a table of samples for the segment locations for a preview and the table's user. */
   if (profile->segments_len > 0) {
     curveprofile_make_segments_table(profile);
-  }
-}
-
-/**
- * Refreshes the higher resolution table sampled from the input points. A call to this or
- * #BKE_curveprofile_update is needed before evaluation functions that use the table.
- * Also sets the number of segments used for the display preview of the locations
- * of the sampled points.
- */
-void BKE_curveprofile_init(CurveProfile *profile, short segments_len)
-{
-  if (segments_len != profile->segments_len) {
-    profile->flag |= PROF_DIRTY_PRESET;
-  }
-  profile->segments_len = segments_len;
-
-  /* Calculate the higher resolution / segments tables for display and evaluation. */
-  BKE_curveprofile_update(profile, PROF_UPDATE_NONE);
-}
-
-/**
- * Gives the distance to the next point in the widgets sampled table, in other words the length
- * of the \a 'i' edge of the table.
- *
- * \note Requires #BKE_curveprofile_init or #BKE_curveprofile_update call before to fill table.
- */
-static float curveprofile_distance_to_next_table_point(const CurveProfile *profile, int i)
-{
-  BLI_assert(i < BKE_curveprofile_table_size(profile));
-
-  return len_v2v2(&profile->table[i].x, &profile->table[i + 1].x);
-}
-
-/**
- * Calculates the total length of the profile from the curves sampled in the table.
- *
- * \note Requires #BKE_curveprofile_init or #BKE_curveprofile_update call before to fill table.
- */
-static float curveprofile_total_length(const CurveProfile *profile)
-{
-  float total_length = 0;
-  for (int i = 0; i < BKE_curveprofile_table_size(profile) - 1; i++) {
-    total_length += len_v2v2(&profile->table[i].x, &profile->table[i + 1].x);
-  }
-  return total_length;
-}
-
-/**
- * Samples evenly spaced positions along the curve profile's table (generated from path). Fills
- * an entire table at once for a speedup if all of the results are going to be used anyway.
- *
- * \note Requires #BKE_curveprofile_init or #BKE_curveprofile_update call before to fill table.
- * \note Working, but would conflict with "Sample Straight Edges" option, so this is unused for
- * now.
- */
-void BKE_curveprofile_create_samples_even_spacing(CurveProfile *profile,
-                                                  int n_segments,
-                                                  CurveProfilePoint *r_samples)
-{
-  const float total_length = curveprofile_total_length(profile);
-  const float segment_length = total_length / n_segments;
-  float distance_to_next_table_point = curveprofile_distance_to_next_table_point(profile, 0);
-  float distance_to_previous_table_point = 0.0f;
-  int i_table = 0;
-
-  /* Set the location for the first point. */
-  r_samples[0].x = profile->table[0].x;
-  r_samples[0].y = profile->table[0].y;
-
-  /* Travel along the path, recording the locations of segments as we pass them. */
-  float segment_left = segment_length;
-  for (int i = 1; i < n_segments; i++) {
-    /* Travel over all of the points that fit inside this segment. */
-    while (distance_to_next_table_point < segment_left) {
-      segment_left -= distance_to_next_table_point;
-      i_table++;
-      distance_to_next_table_point = curveprofile_distance_to_next_table_point(profile, i_table);
-      distance_to_previous_table_point = 0.0f;
-    }
-    /* We're at the last table point that fits inside the current segment, use interpolation. */
-    float factor = (distance_to_previous_table_point + segment_left) /
-                   (distance_to_previous_table_point + distance_to_next_table_point);
-    r_samples[i].x = interpf(profile->table[i_table + 1].x, profile->table[i_table].x, factor);
-    r_samples[i].y = interpf(profile->table[i_table + 1].y, profile->table[i_table].y, factor);
-    BLI_assert(factor <= 1.0f && factor >= 0.0f);
-#ifdef DEBUG_CURVEPROFILE_EVALUATE
-    printf("segment_left: %.3f\n", segment_left);
-    printf("i_table: %d\n", i_table);
-    printf("distance_to_previous_table_point: %.3f\n", distance_to_previous_table_point);
-    printf("distance_to_next_table_point: %.3f\n", distance_to_next_table_point);
-    printf("Interpolating with factor %.3f from (%.3f, %.3f) to (%.3f, %.3f)\n\n",
-           factor,
-           profile->table[i_table].x,
-           profile->table[i_table].y,
-           profile->table[i_table + 1].x,
-           profile->table[i_table + 1].y);
-#endif
-
-    /* We sampled in between this table point and the next, so the next travel step is smaller. */
-    distance_to_next_table_point -= segment_left;
-    distance_to_previous_table_point += segment_left;
-    segment_left = segment_length;
   }
 }
 
