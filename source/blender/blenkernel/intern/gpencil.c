@@ -1044,7 +1044,6 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src,
                                        const bool dup_frames,
                                        const bool dup_strokes)
 {
-  const bGPDframe *gpf_src;
   bGPDframe *gpf_dst;
   bGPDlayer *gpl_dst;
 

@@ -1051,7 +1051,7 @@ class SequencerButtonsPanel_Output:
 class SequencerColorTagPicker:
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
-    
+
     @staticmethod
     def has_sequencer(context):
         return (context.space_data.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'})
