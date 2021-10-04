@@ -52,7 +52,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
-#include "tiffio.h"
+#include <tiffio.h>
 
 #ifdef WIN32
 #  include "utfconv.h"

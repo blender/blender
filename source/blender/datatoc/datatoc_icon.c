@@ -32,7 +32,7 @@
 #  include <dirent.h>
 #endif
 
-#include "png.h"
+#include <png.h>
 
 /* for Win32 DIR functions */
 #ifdef WIN32

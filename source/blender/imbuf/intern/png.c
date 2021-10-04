@@ -23,7 +23,7 @@
  * \todo Save floats as 16 bits per channel, currently readonly.
  */
 
-#include "png.h"
+#include <png.h>
 
 #include "BLI_fileops.h"
 #include "BLI_math.h"

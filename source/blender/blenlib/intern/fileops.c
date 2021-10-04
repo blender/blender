@@ -30,8 +30,8 @@
 
 #include <errno.h>
 
-#include "zlib.h"
-#include "zstd.h"
+#include <zlib.h>
+#include <zstd.h>
 
 #ifdef WIN32
 #  include "BLI_fileops_types.h"

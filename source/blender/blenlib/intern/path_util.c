@@ -48,7 +48,7 @@
 #  include <shlobj.h>
 #  include <windows.h>
 #else
-#  include "unistd.h"
+#  include <unistd.h>
 #endif /* WIN32 */
 
 #include "MEM_guardedalloc.h"

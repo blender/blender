@@ -27,7 +27,7 @@
 #include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
-#include "math.h"
+#include <math.h>
 
 #ifndef __MATH_COLOR_INLINE_C__
 #  define __MATH_COLOR_INLINE_C__
