@@ -20,22 +20,21 @@
 /** \file
  * \ingroup cmpnodes
  */
-
+ 
 #include "node_composite_util.hh"
 
 /* **************** ALPHAOVER ******************** */
 
-namespace blender::nodes {
-
-static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
-{
-  b.add_input<decl::Float>("Fac").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Color>("Image", "Image_001").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Color>("Image");
-}
-
-}  // namespace blender::nodes
+static bNodeSocketTemplate cmp_node_alphaover_in[] = {
+    {SOCK_FLOAT, N_("Fac"), 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {-1, ""},
+};
+static bNodeSocketTemplate cmp_node_alphaover_out[] = {
+    {SOCK_RGBA, N_("Image")},
+    {-1, ""},
+};
 
 static void node_alphaover_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -47,7 +46,7 @@ void register_node_type_cmp_alphaover(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_ALPHAOVER, "Alpha Over", NODE_CLASS_OP_COLOR, 0);
-  ntype.declare = blender::nodes::cmp_node_alphaover_declare;
+  node_type_socket_templates(&ntype, cmp_node_alphaover_in, cmp_node_alphaover_out);
   node_type_init(&ntype, node_alphaover_init);
   node_type_storage(
       &ntype, "NodeTwoFloats", node_free_standard_storage, node_copy_standard_storage);

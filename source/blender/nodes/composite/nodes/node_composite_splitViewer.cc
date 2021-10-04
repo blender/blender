@@ -27,16 +27,11 @@
 #include "BKE_image.h"
 
 /* **************** SPLIT VIEWER ******************** */
-
-namespace blender::nodes {
-
-static void cmp_node_splitviewer_declare(NodeDeclarationBuilder &b)
-{
-  b.add_input<decl::Color>("Image");
-  b.add_input<decl::Color>("Image", "Image_001");
-}
-
-}  // namespace blender::nodes
+static bNodeSocketTemplate cmp_node_splitviewer_in[] = {
+    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
+};
 
 static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -55,7 +50,7 @@ void register_node_type_cmp_splitviewer(void)
 
   cmp_node_type_base(
       &ntype, CMP_NODE_SPLITVIEWER, "Split Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
-  ntype.declare = blender::nodes::cmp_node_splitviewer_declare;
+  node_type_socket_templates(&ntype, cmp_node_splitviewer_in, nullptr);
   node_type_init(&ntype, node_composit_init_splitviewer);
   node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
 
