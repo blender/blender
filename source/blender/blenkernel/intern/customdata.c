@@ -3932,7 +3932,7 @@ void CustomData_bmesh_free_block_data(CustomData *data, void *block)
   }
 }
 
-ATTR_NO_OPT static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
+static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
 {
   if (*block) {
     CustomData_bmesh_free_block(data, block);
@@ -4000,7 +4000,7 @@ static void CustomData_bmesh_set_default_n(CustomData *data, void **block, int n
   }
 }
 
-ATTR_NO_OPT void CustomData_bmesh_set_default(CustomData *data, void **block)
+void CustomData_bmesh_set_default(CustomData *data, void **block)
 {
   if (!*block) {
     CustomData_bmesh_alloc_block(data, block);

@@ -1980,7 +1980,7 @@ BLI_INLINE int dyntopo_thread_rand(int seed)
   return (seed * multiplier + addend) & mask;
 }
 
-ATTR_NO_OPT static void long_edge_queue_task_cb(void *__restrict userdata,
+ static void long_edge_queue_task_cb(void *__restrict userdata,
                                                 const int n,
                                                 const TaskParallelTLS *__restrict tls)
 {

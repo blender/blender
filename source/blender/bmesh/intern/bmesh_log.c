@@ -2970,7 +2970,7 @@ void bm_log_print(const BMLog *log, const char *description)
 }
 #endif
 
-ATTR_NO_OPT static int bmlog_entry_memsize(BMLogEntry *entry)
+static int bmlog_entry_memsize(BMLogEntry *entry)
 {
   int ret = 0;
 

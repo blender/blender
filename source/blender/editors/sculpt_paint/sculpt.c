@@ -8482,7 +8482,7 @@ typedef struct DynTopoAutomaskState {
   bool free_automasking;
 } DynTopoAutomaskState;
 
-ATTR_NO_OPT static float sculpt_topology_automasking_cb(SculptVertRef vertex, void *vdata)
+static float sculpt_topology_automasking_cb(SculptVertRef vertex, void *vdata)
 {
   DynTopoAutomaskState *state = (DynTopoAutomaskState *)vdata;
   float mask = SCULPT_automasking_factor_get(state->cache, state->ss, vertex);
@@ -8491,7 +8491,7 @@ ATTR_NO_OPT static float sculpt_topology_automasking_cb(SculptVertRef vertex, vo
   return mask * mask2;
 }
 
-ATTR_NO_OPT static float sculpt_topology_automasking_mask_cb(SculptVertRef vertex, void *vdata)
+static float sculpt_topology_automasking_mask_cb(SculptVertRef vertex, void *vdata)
 {
   DynTopoAutomaskState *state = (DynTopoAutomaskState *)vdata;
   return 1.0f - SCULPT_vertex_mask_get(state->ss, vertex);

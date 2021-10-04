@@ -54,7 +54,7 @@
 
 #endif
 
-ATTR_NO_OPT void bm_elem_check_toolflags(BMesh *bm, BMElem *elem)
+void bm_elem_check_toolflags(BMesh *bm, BMElem *elem)
 {
   int cd_off = -1;
   MToolFlags *flags;
@@ -1783,10 +1783,7 @@ BMFace *bmesh_kernel_split_face_make_edge(BMesh *bm,
  *
  * \return The newly created BMVert pointer.
  */
-ATTR_NO_OPT BMVert *bmesh_kernel_split_edge_make_vert(BMesh *bm,
-                                                      BMVert *tv,
-                                                      BMEdge *e,
-                                                      BMEdge **r_e)
+BMVert *bmesh_kernel_split_edge_make_vert(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 {
   BMLoop *l_next;
   BMEdge *e_new;

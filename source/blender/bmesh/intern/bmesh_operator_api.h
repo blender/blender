@@ -69,7 +69,7 @@ extern "C" {
 
 struct GHashIterator;
 
-ATTR_NO_OPT static BMFlagLayer *BMO_elem_flag_from_header(BMesh *bm, BMElem *ele)
+static BMFlagLayer *BMO_elem_flag_from_header(BMesh *bm, BMElem *ele)
 {
   int cd_tflags;
 

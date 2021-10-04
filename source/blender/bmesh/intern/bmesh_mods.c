@@ -593,7 +593,7 @@ BMVert *BM_edge_collapse(BMesh *bm,
  * \param r_e: The newly created edge.
  * \return  The new vertex.
  */
-ATTR_NO_OPT BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
+BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 {
   BMVert *v_new, *v_other;
   BMEdge *e_new;

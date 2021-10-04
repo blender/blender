@@ -1254,7 +1254,7 @@ void bm_update_idmap_cdlayers(BMesh *bm)
   bm->idmap.cd_id_off[BM_FACE] = CustomData_get_offset(&bm->pdata, CD_MESH_ID);
 }
 
-ATTR_NO_OPT void bm_rebuild_idmap(BMesh *bm)
+void bm_rebuild_idmap(BMesh *bm)
 {
   CustomData *cdatas[4] = {
       &bm->vdata,

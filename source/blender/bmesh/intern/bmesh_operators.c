@@ -1252,15 +1252,15 @@ void BMO_slot_buffer_flag_disable(BMesh *bm,
   }
 }
 
-ATTR_NO_OPT static void bmo_flag_layer_do(BMesh *bm,
-                                          int new_totflags,
-                                          void (*callback)(BMesh *bm,
-                                                           int cd_tflags,
-                                                           int itertype,
-                                                           int htype,
-                                                           int totelem,
-                                                           int new_totflags,
-                                                           BLI_mempool **pool_ptr))
+static void bmo_flag_layer_do(BMesh *bm,
+                              int new_totflags,
+                              void (*callback)(BMesh *bm,
+                                               int cd_tflags,
+                                               int itertype,
+                                               int htype,
+                                               int totelem,
+                                               int new_totflags,
+                                               BLI_mempool **pool_ptr))
 {
   int iters[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
   int types[3] = {BM_VERT, BM_EDGE, BM_FACE};
@@ -1282,13 +1282,13 @@ ATTR_NO_OPT static void bmo_flag_layer_do(BMesh *bm,
   bm->totflags = new_totflags;
 }
 
-ATTR_NO_OPT static void bmo_flag_layer_alloc_do(BMesh *bm,
-                                                int cd_tflags,
-                                                int itertype,
-                                                int htype,
-                                                int totelem,
-                                                int new_totflags,
-                                                BLI_mempool **pool_ptr)
+static void bmo_flag_layer_alloc_do(BMesh *bm,
+                                    int cd_tflags,
+                                    int itertype,
+                                    int htype,
+                                    int totelem,
+                                    int new_totflags,
+                                    BLI_mempool **pool_ptr)
 {
   BMIter iter;
   BMElem *elem;
@@ -1327,26 +1327,26 @@ ATTR_NO_OPT static void bmo_flag_layer_alloc_do(BMesh *bm,
  * all operators have been executed. This would
  * save a lot of realloc potentially.
  */
-ATTR_NO_OPT static void bmo_flag_layer_alloc(BMesh *bm)
+static void bmo_flag_layer_alloc(BMesh *bm)
 {
   bmo_flag_layer_do(bm, bm->totflags + 1, bmo_flag_layer_alloc_do);
   bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE);
 }
 
-ATTR_NO_OPT static void bmo_flag_layer_free(BMesh *bm)
+static void bmo_flag_layer_free(BMesh *bm)
 {
 
   bmo_flag_layer_do(bm, bm->totflags - 1, bmo_flag_layer_alloc_do);
   bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE);
 }
 
-ATTR_NO_OPT static void bmo_flag_layer_clear_do(BMesh *bm,
-                                                int cd_tflags,
-                                                int itertype,
-                                                int htype,
-                                                int totelem,
-                                                int totflag,
-                                                BLI_mempool **pool_ptr)
+static void bmo_flag_layer_clear_do(BMesh *bm,
+                                    int cd_tflags,
+                                    int itertype,
+                                    int htype,
+                                    int totelem,
+                                    int totflag,
+                                    BLI_mempool **pool_ptr)
 {
   BMIter iter;
   BMElem *elem;

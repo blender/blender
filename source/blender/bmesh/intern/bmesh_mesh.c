@@ -113,7 +113,7 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
   bm->totflags = 1;
 }
 
-ATTR_NO_OPT void BM_mesh_elem_toolflags_clear(BMesh *bm)
+void BM_mesh_elem_toolflags_clear(BMesh *bm)
 {
   bool haveflags = bm->vtoolflagpool || bm->etoolflagpool || bm->ftoolflagpool;
 
@@ -1709,7 +1709,7 @@ static void bm_alloc_toolflags(BMesh *bm)
 
   CustomData *cdatas[3] = {&bm->vdata, &bm->edata, &bm->pdata};
   BLI_mempool *flagpools[3] = {bm->vtoolflagpool, bm->etoolflagpool, bm->ftoolflagpool};
-  BLI_mempool *elempools[3] = { bm->vpool, bm->epool, bm->fpool };
+  BLI_mempool *elempools[3] = {bm->vpool, bm->epool, bm->fpool};
 
   for (int i = 0; i < 3; i++) {
     CustomData *cdata = cdatas[i];

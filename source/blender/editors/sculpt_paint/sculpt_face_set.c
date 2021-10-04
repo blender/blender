@@ -2050,11 +2050,11 @@ static void sculpt_bm_mesh_elem_hflag_disable_all(BMesh *bm, char htype, char hf
   }
 }
 
-ATTR_NO_OPT static void sculpt_face_set_extrude_id(Object *ob,
-                                                   bool no_islands,
-                                                   SculptSession *ss,
-                                                   const int active_face_set_id,
-                                                   FaceSetExtrudeCD *fsecd)
+static void sculpt_face_set_extrude_id(Object *ob,
+                                       bool no_islands,
+                                       SculptSession *ss,
+                                       const int active_face_set_id,
+                                       FaceSetExtrudeCD *fsecd)
 {
 
   Mesh *mesh = ob->data;
@@ -2503,12 +2503,12 @@ ATTR_NO_OPT static void sculpt_face_set_extrude_id(Object *ob,
   }
 }
 
-ATTR_NO_OPT static void island_stack_bmesh_do(SculptSession *ss,
-                                              int fset,
-                                              SculptFaceRef face,
-                                              SculptFaceRef **r_faces,
-                                              int *r_totfaces,
-                                              BLI_bitmap *visit)
+static void island_stack_bmesh_do(SculptSession *ss,
+                                  int fset,
+                                  SculptFaceRef face,
+                                  SculptFaceRef **r_faces,
+                                  int *r_totfaces,
+                                  BLI_bitmap *visit)
 {
   BMFace **faces = (BMFace **)*r_faces;
   BLI_array_declare(faces);
@@ -2537,12 +2537,12 @@ ATTR_NO_OPT static void island_stack_bmesh_do(SculptSession *ss,
   *r_faces = (SculptFaceRef *)faces;
 }
 
-ATTR_NO_OPT static void island_stack_mesh_do(SculptSession *ss,
-                                             int fset,
-                                             SculptFaceRef face,
-                                             SculptFaceRef **r_faces,
-                                             int *r_totfaces,
-                                             BLI_bitmap *visit)
+static void island_stack_mesh_do(SculptSession *ss,
+                                 int fset,
+                                 SculptFaceRef face,
+                                 SculptFaceRef **r_faces,
+                                 int *r_totfaces,
+                                 BLI_bitmap *visit)
 {
   SculptFaceRef *faces = *r_faces;
   BLI_array_declare(faces);
@@ -2570,7 +2570,7 @@ ATTR_NO_OPT static void island_stack_mesh_do(SculptSession *ss,
   *r_totfaces = BLI_array_len(faces);
   *r_faces = (SculptFaceRef *)faces;
 }
-ATTR_NO_OPT SculptFaceSetIslands *SCULPT_face_set_islands_get(SculptSession *ss, int fset)
+SculptFaceSetIslands *SCULPT_face_set_islands_get(SculptSession *ss, int fset)
 {
   if (!ss->epmap) {
     BKE_mesh_edge_poly_map_create(&ss->epmap,
@@ -2645,7 +2645,7 @@ ATTR_NO_OPT SculptFaceSetIslands *SCULPT_face_set_islands_get(SculptSession *ss,
   return ret;
 }
 
-ATTR_NO_OPT void SCULPT_face_set_islands_free(SculptSession *ss, SculptFaceSetIslands *islands)
+void SCULPT_face_set_islands_free(SculptSession *ss, SculptFaceSetIslands *islands)
 {
   for (int i = 0; i < islands->totisland; i++) {
     MEM_SAFE_FREE(islands->islands[i].faces);
@@ -2655,9 +2655,7 @@ ATTR_NO_OPT void SCULPT_face_set_islands_free(SculptSession *ss, SculptFaceSetIs
   MEM_SAFE_FREE(islands);
 }
 
-ATTR_NO_OPT SculptFaceSetIsland *SCULPT_face_set_island_get(SculptSession *ss,
-                                                            SculptFaceRef face,
-                                                            int fset)
+SculptFaceSetIsland *SCULPT_face_set_island_get(SculptSession *ss, SculptFaceRef face, int fset)
 {
   SculptFaceSetIslands *islands = SCULPT_face_set_islands_get(ss, fset);
 
