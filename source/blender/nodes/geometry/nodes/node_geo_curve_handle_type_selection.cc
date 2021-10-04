@@ -14,8 +14,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "BLI_task.hh"
-
 #include "BKE_spline.hh"
 
 #include "UI_interface.h"
@@ -67,7 +65,6 @@ static BezierSpline::HandleType handle_type_from_input_type(const GeometryNodeCu
 static void select_by_handle_type(const CurveEval &curve,
                                   const BezierSpline::HandleType type,
                                   const GeometryNodeCurveHandleMode mode,
-                                  const IndexMask UNUSED(mask),
                                   const MutableSpan<bool> r_selection)
 {
   int offset = 0;
@@ -79,9 +76,9 @@ static void select_by_handle_type(const CurveEval &curve,
     else {
       BezierSpline *b = static_cast<BezierSpline *>(spline.get());
       for (int i : IndexRange(b->size())) {
-        r_selection[offset++] = (mode & GeometryNodeCurveHandleMode::GEO_NODE_CURVE_HANDLE_LEFT &&
+        r_selection[offset++] = (mode & GEO_NODE_CURVE_HANDLE_LEFT &&
                                  b->handle_types_left()[i] == type) ||
-                                (mode & GeometryNodeCurveHandleMode::GEO_NODE_CURVE_HANDLE_RIGHT &&
+                                (mode & GEO_NODE_CURVE_HANDLE_RIGHT &&
                                  b->handle_types_right()[i] == type);
       }
     }
@@ -119,7 +116,7 @@ class HandleTypeFieldInput final : public fn::FieldInput {
 
       if (domain == ATTR_DOMAIN_POINT) {
         Array<bool> selection(mask.min_array_size());
-        select_by_handle_type(*curve, type_, mode_, mask, selection);
+        select_by_handle_type(*curve, type_, mode_, selection);
         return &scope.construct<fn::GVArray_For_ArrayContainer<Array<bool>>>(std::move(selection));
       }
     }
