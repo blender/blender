@@ -211,12 +211,16 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
 
   const AbstractTreeView &get_tree_view() const;
   int count_parents() const;
-  void set_active(bool value = true);
+  /** Activates this item, deactivates other items, calls the #AbstractTreeViewItem::on_activate()
+   * function and ensures this item's parents are not collapsed (so the item is visible). */
+  void activate();
+  void deactivate();
   bool is_active() const;
   void toggle_collapsed();
   bool is_collapsed() const;
   void set_collapsed(bool collapsed);
   bool is_collapsible() const;
+  void ensure_parents_uncollapsed();
 };
 
 /** \} */

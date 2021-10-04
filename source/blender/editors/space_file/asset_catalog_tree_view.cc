@@ -152,7 +152,7 @@ ui::BasicTreeViewItem &AssetCatalogTreeView::build_catalog_items_recursive(
   ui::BasicTreeViewItem &view_item = view_parent_item.add_tree_item<AssetCatalogTreeViewItem>(
       &catalog);
   if (is_active_catalog(catalog.get_catalog_id())) {
-    view_item.set_active();
+    view_item.activate();
   }
 
   catalog.foreach_child([&view_item, this](AssetCatalogTreeItem &child) {
@@ -171,7 +171,7 @@ void AssetCatalogTreeView::add_all_item()
         WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
       });
   if (params->asset_catalog_visibility == FILE_SHOW_ASSETS_ALL_CATALOGS) {
-    item.set_active();
+    item.activate();
   }
 }
 
@@ -185,7 +185,7 @@ void AssetCatalogTreeView::add_unassigned_item()
         WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
       });
   if (params->asset_catalog_visibility == FILE_SHOW_ASSETS_WITHOUT_CATALOG) {
-    item.set_active();
+    item.activate();
   }
 }
 

@@ -184,14 +184,25 @@ int AbstractTreeViewItem::count_parents() const
   return i;
 }
 
-void AbstractTreeViewItem::set_active(bool value)
+void AbstractTreeViewItem::activate()
 {
-  if (value && !is_active()) {
-    /* Deactivate other items in the tree. */
-    get_tree_view().foreach_item([](auto &item) { item.set_active(false); });
-    on_activate();
+  if (is_active()) {
+    return;
   }
-  is_active_ = value;
+
+  /* Deactivate other items in the tree. */
+  get_tree_view().foreach_item([](auto &item) { item.deactivate(); });
+
+  on_activate();
+  /* Make sure the active item is always visible. */
+  ensure_parents_uncollapsed();
+
+  is_active_ = true;
+}
+
+void AbstractTreeViewItem::deactivate()
+{
+  is_active_ = false;
 }
 
 bool AbstractTreeViewItem::is_active() const
@@ -217,6 +228,13 @@ void AbstractTreeViewItem::set_collapsed(bool collapsed)
 bool AbstractTreeViewItem::is_collapsible() const
 {
   return !children_.is_empty();
+}
+
+void AbstractTreeViewItem::ensure_parents_uncollapsed()
+{
+  for (AbstractTreeViewItem *parent = parent_; parent; parent = parent->parent_) {
+    parent->set_collapsed(false);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -277,7 +295,7 @@ static void tree_row_click_fn(struct bContext *UNUSED(C), void *but_arg1, void *
   if (tree_item.is_collapsed() || tree_item.is_active()) {
     tree_item.toggle_collapsed();
   }
-  tree_item.set_active();
+  tree_item.activate();
 }
 
 void BasicTreeViewItem::build_row(uiLayout &row)
