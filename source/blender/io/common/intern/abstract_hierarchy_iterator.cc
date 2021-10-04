@@ -462,7 +462,6 @@ void AbstractHierarchyIterator::visit_dupli_object(DupliObject *dupli_object,
   context->weak_export = false;
   context->export_path = "";
   context->original_export_path = "";
-  context->export_path = "";
   context->animation_check_include_parent = false;
 
   copy_m4_m4(context->matrix_world, dupli_object->mat);
