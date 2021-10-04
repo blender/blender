@@ -84,11 +84,11 @@ class AssetCatalogTreeViewItem : public ui::BasicTreeViewItem {
  public:
   AssetCatalogTreeViewItem(AssetCatalogTreeItem *catalog_item);
 
+  static bool has_droppable_item(const wmDrag &drag);
+
   void on_activate() override;
 
   void build_row(uiLayout &row) override;
-
-  bool has_droppable_item(const wmDrag &drag) const;
 
   bool can_drop(const wmDrag &drag) const override;
   std::string drop_tooltip(const bContext &C,
@@ -225,7 +225,7 @@ void AssetCatalogTreeViewItem::build_row(uiLayout &row)
   }
 }
 
-bool AssetCatalogTreeViewItem::has_droppable_item(const wmDrag &drag) const
+bool AssetCatalogTreeViewItem::has_droppable_item(const wmDrag &drag)
 {
   const ListBase *asset_drags = WM_drag_asset_list_get(&drag);
 
