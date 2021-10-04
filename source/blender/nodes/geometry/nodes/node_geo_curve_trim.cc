@@ -29,10 +29,19 @@ namespace blender::nodes {
 static void geo_node_curve_trim_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Curve");
-  b.add_input<decl::Float>("Start").min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("End").min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Start", "Start_001").min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("End", "End_001").min(0.0f).default_value(1.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Start").min(0.0f).max(1.0f).subtype(PROP_FACTOR).supports_field();
+  b.add_input<decl::Float>("End")
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR)
+      .supports_field();
+  b.add_input<decl::Float>("Start", "Start_001").min(0.0f).subtype(PROP_DISTANCE).supports_field();
+  b.add_input<decl::Float>("End", "End_001")
+      .min(0.0f)
+      .default_value(1.0f)
+      .subtype(PROP_DISTANCE)
+      .supports_field();
   b.add_output<decl::Geometry>("Curve");
 }
 
@@ -322,12 +331,23 @@ static void trim_bezier_spline(Spline &spline,
 
 static void geometry_set_curve_trim(GeometrySet &geometry_set,
                                     const GeometryNodeCurveSampleMode mode,
-                                    const float start,
-                                    const float end)
+                                    Field<float> &start_field,
+                                    Field<float> &end_field)
 {
   if (!geometry_set.has_curve()) {
     return;
   }
+
+  CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
+  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_CURVE};
+  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_CURVE);
+
+  fn::FieldEvaluator evaluator{field_context, domain_size};
+  evaluator.add(start_field);
+  evaluator.add(end_field);
+  evaluator.evaluate();
+  const blender::VArray<float> &starts = evaluator.get_evaluated<float>(0);
+  const blender::VArray<float> &ends = evaluator.get_evaluated<float>(1);
 
   CurveEval &curve = *geometry_set.get_curve_for_write();
   MutableSpan<SplinePtr> splines = curve.splines();
@@ -343,19 +363,19 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
 
       /* Return a spline with one point instead of implicitly
        * reversing the spline or switching the parameters. */
-      if (end < start) {
+      if (ends[i] < starts[i]) {
         spline.resize(1);
         continue;
       }
 
       const Spline::LookupResult start_lookup =
           (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) ?
-              spline.lookup_evaluated_length(std::clamp(start, 0.0f, spline.length())) :
-              spline.lookup_evaluated_factor(std::clamp(start, 0.0f, 1.0f));
+              spline.lookup_evaluated_length(std::clamp(starts[i], 0.0f, spline.length())) :
+              spline.lookup_evaluated_factor(std::clamp(starts[i], 0.0f, 1.0f));
       const Spline::LookupResult end_lookup =
           (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) ?
-              spline.lookup_evaluated_length(std::clamp(end, 0.0f, spline.length())) :
-              spline.lookup_evaluated_factor(std::clamp(end, 0.0f, 1.0f));
+              spline.lookup_evaluated_length(std::clamp(ends[i], 0.0f, spline.length())) :
+              spline.lookup_evaluated_factor(std::clamp(ends[i], 0.0f, 1.0f));
 
       switch (spline.type()) {
         case Spline::Type::Bezier:
@@ -382,17 +402,17 @@ static void geo_node_curve_trim_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
   if (mode == GEO_NODE_CURVE_SAMPLE_FACTOR) {
-    const float start = params.extract_input<float>("Start");
-    const float end = params.extract_input<float>("End");
+    Field<float> start_field = params.extract_input<Field<float>>("Start");
+    Field<float> end_field = params.extract_input<Field<float>>("End");
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-      geometry_set_curve_trim(geometry_set, mode, start, end);
+      geometry_set_curve_trim(geometry_set, mode, start_field, end_field);
     });
   }
   else if (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
-    const float start = params.extract_input<float>("Start_001");
-    const float end = params.extract_input<float>("End_001");
+    Field<float> start_field = params.extract_input<Field<float>>("Start_001");
+    Field<float> end_field = params.extract_input<Field<float>>("End_001");
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-      geometry_set_curve_trim(geometry_set, mode, start, end);
+      geometry_set_curve_trim(geometry_set, mode, start_field, end_field);
     });
   }
 
