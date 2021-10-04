@@ -255,7 +255,6 @@ void gmp_blender_init_allocator()
  * - run #WM_main() event loop,
  *   or exit immediately when running in background-mode.
  */
-#include "direct.h"
 
 int main(int argc,
 #ifdef WIN32
