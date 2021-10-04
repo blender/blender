@@ -79,12 +79,10 @@ static void select_by_handle_type(const CurveEval &curve,
     else {
       BezierSpline *b = static_cast<BezierSpline *>(spline.get());
       for (int i : IndexRange(b->size())) {
-        if (mode & GeometryNodeCurveHandleMode::GEO_NODE_CURVE_HANDLE_LEFT) {
-          r_selection[offset++] = b->handle_types_left()[i] == type;
-        }
-        else if (mode & GeometryNodeCurveHandleMode::GEO_NODE_CURVE_HANDLE_RIGHT) {
-          r_selection[offset++] = b->handle_types_right()[i] == type;
-        }
+        r_selection[offset++] = (mode & GeometryNodeCurveHandleMode::GEO_NODE_CURVE_HANDLE_LEFT &&
+                                 b->handle_types_left()[i] == type) ||
+                                (mode & GeometryNodeCurveHandleMode::GEO_NODE_CURVE_HANDLE_RIGHT &&
+                                 b->handle_types_right()[i] == type);
       }
     }
   }
