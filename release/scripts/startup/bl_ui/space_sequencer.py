@@ -1048,16 +1048,23 @@ class SequencerButtonsPanel_Output:
         return cls.has_preview(context)
 
 
-class SEQUENCER_PT_color_tag_picker(Panel):
-    bl_label = "Color Tag"
+class SequencerColorTagPicker:
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Strip"
-    bl_options = {'HIDE_HEADER', 'INSTANCED'}
+    
+    @staticmethod
+    def has_sequencer(context):
+        return (context.space_data.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'})
 
     @classmethod
     def poll(cls, context):
-        return context.active_sequence_strip is not None
+        return cls.has_sequencer(context) and context.active_sequence_strip is not None
+
+
+class SEQUENCER_PT_color_tag_picker(SequencerColorTagPicker, Panel):
+    bl_label = "Color Tag"
+    bl_category = "Strip"
+    bl_options = {'HIDE_HEADER', 'INSTANCED'}
 
     def draw(self, context):
         layout = self.layout
@@ -1069,12 +1076,8 @@ class SEQUENCER_PT_color_tag_picker(Panel):
             row.operator("sequencer.strip_color_tag_set", icon=icon).color = 'COLOR_%02d' % i
 
 
-class SEQUENCER_MT_color_tag_picker(Menu):
+class SEQUENCER_MT_color_tag_picker(SequencerColorTagPicker, Menu):
     bl_label = "Set Color Tag"
-
-    @classmethod
-    def poll(cls, context):
-        return context.active_sequence_strip is not None
 
     def draw(self, context):
         layout = self.layout

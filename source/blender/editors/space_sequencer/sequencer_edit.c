@@ -3339,6 +3339,22 @@ static int sequencer_strip_color_tag_set_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static bool sequencer_strip_color_tag_set_poll(bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  if (scene == NULL) {
+    return false;
+  }
+
+  Editing *ed = SEQ_editing_get(scene);
+  if (ed == NULL) {
+    return false;
+  }
+
+  Sequence *act_seq = ed->act_seq;
+  return act_seq != NULL;
+}
+
 void SEQUENCER_OT_strip_color_tag_set(struct wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -3348,7 +3364,7 @@ void SEQUENCER_OT_strip_color_tag_set(struct wmOperatorType *ot)
 
   /* Api callbacks. */
   ot->exec = sequencer_strip_color_tag_set_exec;
-  ot->poll = sequencer_edit_poll;
+  ot->poll = sequencer_strip_color_tag_set_poll;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
