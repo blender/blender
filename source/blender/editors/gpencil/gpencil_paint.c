@@ -109,7 +109,6 @@ typedef enum eGP_StrokeAdd_Result {
 /* Runtime flags */
 typedef enum eGPencil_PaintFlags {
   GP_PAINTFLAG_FIRSTRUN = (1 << 0), /* operator just started */
-  GP_PAINTFLAG_STROKEADDED = (1 << 1),
   GP_PAINTFLAG_SELECTMASK = (1 << 3),
   GP_PAINTFLAG_HARD_ERASER = (1 << 4),
   GP_PAINTFLAG_STROKE_ERASER = (1 << 5),
@@ -285,7 +284,6 @@ static void gpencil_update_cache(bGPdata *gpd)
 static void gpencil_stroke_added_enable(tGPsdata *p)
 {
   BLI_assert(p->gpf->strokes.last != NULL);
-  p->flags |= GP_PAINTFLAG_STROKEADDED;
 
   /* drawing batch cache is dirty now */
   gpencil_update_cache(p->gpd);
