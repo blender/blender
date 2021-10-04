@@ -608,10 +608,9 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
       }
 
       GPU_blend(GPU_BLEND_NONE);
+      immUniformThemeColor3(TH_BACK);
+      imm_draw_box_wire_2d(shdr_pos, x1i, y1i, x2i, y2i);
     }
-
-    immUniformThemeColor3(TH_BACK);
-    imm_draw_box_wire_2d(shdr_pos, x1i, y1i, x2i, y2i);
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
     if (view3d_camera_border_hack_test == true) {
