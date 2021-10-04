@@ -506,7 +506,7 @@ void BlenderSession::render_frame_finish()
   session->full_buffer_written_cb = function_null;
 
   /* All the files are handled.
-   * Clear the list so that this session can be re-used by Persistent Data.  */
+   * Clear the list so that this session can be re-used by Persistent Data. */
   full_buffer_files_.clear();
 }
 
