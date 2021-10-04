@@ -89,6 +89,7 @@
 
 #include "atomic_ops.h"
 
+#include "file_intern.h"
 #include "filelist.h"
 
 #define FILEDIR_NBR_ENTRIES_UNSET -1
@@ -371,8 +372,7 @@ typedef struct FileListFilter {
   char filter_search[66]; /* + 2 for heading/trailing implicit '*' wildcards. */
   short flags;
 
-  eFileSel_Params_AssetCatalogVisibility asset_catalog_visibility;
-  bUUID asset_catalog_id;
+  FileAssetCatalogFilterSettingsHandle *asset_catalog_filter;
 } FileListFilter;
 
 /* FileListFilter.flags */
@@ -426,6 +426,8 @@ typedef struct FileList {
 
   /* Filter an entry of current filelist. */
   bool (*filter_fn)(struct FileListInternEntry *, const char *, FileListFilter *);
+  /* Executed before filtering individual items, to set up additional filter data. */
+  void (*prepare_filter_fn)(const struct FileList *, FileListFilter *);
 
   short tags; /* FileListTags */
 } FileList;
@@ -906,27 +908,26 @@ static AssetMetaData *filelist_file_internal_get_asset_data(const FileListIntern
   return local_id ? local_id->asset_data : file->imported_asset_data;
 }
 
-static bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
+static void prepare_filter_asset_library(const FileList *filelist, FileListFilter *filter)
 {
-  const AssetMetaData *asset_data = filelist_file_internal_get_asset_data(file);
-  bool is_visible = false;
-
-  switch (filter->asset_catalog_visibility) {
-    case FILE_SHOW_ASSETS_WITHOUT_CATALOG:
-      is_visible = BLI_uuid_is_nil(asset_data->catalog_id);
-      break;
-    case FILE_SHOW_ASSETS_FROM_CATALOG:
-      /* TODO show all assets that are in child catalogs of the selected catalog. */
-      is_visible = !BLI_uuid_is_nil(filter->asset_catalog_id) &&
-                   BLI_uuid_equal(filter->asset_catalog_id, asset_data->catalog_id);
-      break;
-    case FILE_SHOW_ASSETS_ALL_CATALOGS:
-      /* All asset files should be visible. */
-      is_visible = true;
-      break;
+  /* Not used yet for the asset view template. */
+  if (!filter->asset_catalog_filter) {
+    return;
   }
 
-  return is_visible;
+  file_ensure_updated_catalog_filter_data(filter->asset_catalog_filter, filelist->asset_library);
+}
+
+static bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
+{
+  /* Not used yet for the asset view template. */
+  if (!filter->asset_catalog_filter) {
+    return true;
+  }
+
+  const AssetMetaData *asset_data = filelist_file_internal_get_asset_data(file);
+  return file_is_asset_visible_in_catalog_filter_settings(filter->asset_catalog_filter,
+                                                          asset_data);
 }
 
 static bool is_filtered_lib(FileListInternEntry *file, const char *root, FileListFilter *filter)
@@ -997,6 +998,10 @@ void filelist_filter(FileList *filelist)
     if (!filelist_islibrary(filelist, dir, NULL)) {
       filelist->filter_data.flags |= FLF_HIDE_LIB_DIR;
     }
+  }
+
+  if (filelist->prepare_filter_fn) {
+    filelist->prepare_filter_fn(filelist, &filelist->filter_data);
   }
 
   filtered_tmp = MEM_mallocN(sizeof(*filtered_tmp) * (size_t)num_files, __func__);
@@ -1090,20 +1095,15 @@ void filelist_set_asset_catalog_filter_options(
     eFileSel_Params_AssetCatalogVisibility catalog_visibility,
     const bUUID *catalog_id)
 {
-  bool update = false;
-
-  if (filelist->filter_data.asset_catalog_visibility != catalog_visibility) {
-    filelist->filter_data.asset_catalog_visibility = catalog_visibility;
-    update = true;
+  if (!filelist->filter_data.asset_catalog_filter) {
+    /* There's no filter data yet. */
+    filelist->filter_data.asset_catalog_filter = file_create_asset_catalog_filter_settings();
   }
 
-  if (filelist->filter_data.asset_catalog_visibility == FILE_SHOW_ASSETS_FROM_CATALOG &&
-      catalog_id && !BLI_uuid_equal(filelist->filter_data.asset_catalog_id, *catalog_id)) {
-    filelist->filter_data.asset_catalog_id = *catalog_id;
-    update = true;
-  }
+  const bool needs_update = file_set_asset_catalog_filter_settings(
+      filelist->filter_data.asset_catalog_filter, catalog_visibility, *catalog_id);
 
-  if (update) {
+  if (needs_update) {
     filelist_tag_needs_filtering(filelist);
   }
 }
@@ -1803,11 +1803,13 @@ void filelist_settype(FileList *filelist, short type)
     case FILE_ASSET_LIBRARY:
       filelist->check_dir_fn = filelist_checkdir_lib;
       filelist->read_job_fn = filelist_readjob_asset_library;
+      filelist->prepare_filter_fn = prepare_filter_asset_library;
       filelist->filter_fn = is_filtered_asset_library;
       break;
     case FILE_MAIN_ASSET:
       filelist->check_dir_fn = filelist_checkdir_main_assets;
       filelist->read_job_fn = filelist_readjob_main_assets;
+      filelist->prepare_filter_fn = prepare_filter_asset_library;
       filelist->filter_fn = is_filtered_main_assets;
       filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA | FILELIST_TAGS_NO_THREADS;
       break;
@@ -1873,6 +1875,7 @@ void filelist_free(struct FileList *filelist)
     filelist->selection_state = NULL;
   }
 
+  file_delete_asset_catalog_filter_settings(&filelist->filter_data.asset_catalog_filter);
   MEM_SAFE_FREE(filelist->asset_library_ref);
 
   memset(&filelist->filter_data, 0, sizeof(filelist->filter_data));
@@ -3612,6 +3615,7 @@ static void filelist_readjob_startjob(void *flrjv, short *stop, short *do_update
   memset(&flrj->tmp_filelist->filelist_cache, 0, sizeof(flrj->tmp_filelist->filelist_cache));
   flrj->tmp_filelist->selection_state = NULL;
   flrj->tmp_filelist->asset_library_ref = NULL;
+  flrj->tmp_filelist->filter_data.asset_catalog_filter = NULL;
 
   BLI_mutex_unlock(&flrj->lock);
 

@@ -358,6 +358,97 @@ bool AssetCatalogTreeViewUnassignedItem::on_drop(const wmDrag &drag)
 
 }  // namespace blender::ed::asset_browser
 
+namespace blender::ed::asset_browser {
+
+class AssetCatalogFilterSettings {
+ public:
+  eFileSel_Params_AssetCatalogVisibility asset_catalog_visibility;
+  bUUID asset_catalog_id;
+
+  std::unique_ptr<AssetCatalogFilter> catalog_filter;
+};
+
+}  // namespace blender::ed::asset_browser
+
+using namespace blender::ed::asset_browser;
+
+FileAssetCatalogFilterSettingsHandle *file_create_asset_catalog_filter_settings()
+{
+  AssetCatalogFilterSettings *filter_settings = OBJECT_GUARDED_NEW(AssetCatalogFilterSettings);
+  return reinterpret_cast<FileAssetCatalogFilterSettingsHandle *>(filter_settings);
+}
+
+void file_delete_asset_catalog_filter_settings(
+    FileAssetCatalogFilterSettingsHandle **filter_settings_handle)
+{
+  AssetCatalogFilterSettings **filter_settings = reinterpret_cast<AssetCatalogFilterSettings **>(
+      filter_settings_handle);
+  OBJECT_GUARDED_SAFE_DELETE(*filter_settings, AssetCatalogFilterSettings);
+}
+
+/**
+ * \return True if the file list should update its filtered results (e.g. because filtering
+ *         parameters changed).
+ */
+bool file_set_asset_catalog_filter_settings(
+    FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
+    eFileSel_Params_AssetCatalogVisibility catalog_visibility,
+    ::bUUID catalog_id)
+{
+  AssetCatalogFilterSettings *filter_settings = reinterpret_cast<AssetCatalogFilterSettings *>(
+      filter_settings_handle);
+  bool needs_update = false;
+
+  if (filter_settings->asset_catalog_visibility != catalog_visibility) {
+    filter_settings->asset_catalog_visibility = catalog_visibility;
+    needs_update = true;
+  }
+
+  if (filter_settings->asset_catalog_visibility == FILE_SHOW_ASSETS_FROM_CATALOG &&
+      !BLI_uuid_equal(filter_settings->asset_catalog_id, catalog_id)) {
+    filter_settings->asset_catalog_id = catalog_id;
+    needs_update = true;
+  }
+
+  return needs_update;
+}
+
+void file_ensure_updated_catalog_filter_data(
+    FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
+    const ::AssetLibrary *asset_library)
+{
+  AssetCatalogFilterSettings *filter_settings = reinterpret_cast<AssetCatalogFilterSettings *>(
+      filter_settings_handle);
+  const AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(
+      asset_library);
+
+  if (filter_settings->asset_catalog_visibility == FILE_SHOW_ASSETS_FROM_CATALOG) {
+    filter_settings->catalog_filter = std::make_unique<AssetCatalogFilter>(
+        catalog_service->create_catalog_filter(filter_settings->asset_catalog_id));
+  }
+}
+
+bool file_is_asset_visible_in_catalog_filter_settings(
+    const FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
+    const AssetMetaData *asset_data)
+{
+  const AssetCatalogFilterSettings *filter_settings =
+      reinterpret_cast<const AssetCatalogFilterSettings *>(filter_settings_handle);
+
+  switch (filter_settings->asset_catalog_visibility) {
+    case FILE_SHOW_ASSETS_WITHOUT_CATALOG:
+      return BLI_uuid_is_nil(asset_data->catalog_id);
+    case FILE_SHOW_ASSETS_FROM_CATALOG:
+      return filter_settings->catalog_filter->contains(asset_data->catalog_id);
+    case FILE_SHOW_ASSETS_ALL_CATALOGS:
+      /* All asset files should be visible. */
+      return true;
+  }
+
+  BLI_assert_unreachable();
+  return false;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library,
