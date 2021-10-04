@@ -281,14 +281,6 @@ static void gpencil_update_cache(bGPdata *gpd)
   }
 }
 
-static void gpencil_stroke_added_enable(tGPsdata *p)
-{
-  BLI_assert(p->gpf->strokes.last != NULL);
-
-  /* drawing batch cache is dirty now */
-  gpencil_update_cache(p->gpd);
-}
-
 /* ------ */
 /* Forward defines for some functions... */
 
@@ -1322,7 +1314,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     BKE_gpencil_stroke_copy_to_keyframes(gpd, gpl, p->gpf, gps, tail);
   }
 
-  gpencil_stroke_added_enable(p);
+  gpencil_update_cache(p->gpd);
 }
 
 /* --- 'Eraser' for 'Paint' Tool ------ */
