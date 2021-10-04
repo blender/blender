@@ -123,7 +123,7 @@ ccl_device_forceinline void integrator_intersect_shader_next_kernel(
 #ifdef __SHADOW_CATCHER__
   const int object_flags = intersection_get_object_flags(kg, isect);
   if (kernel_shadow_catcher_split(INTEGRATOR_STATE_PASS, object_flags)) {
-    if (kernel_data.film.use_approximate_shadow_catcher && !kernel_data.background.transparent) {
+    if (kernel_data.film.pass_background != PASS_UNUSED && !kernel_data.background.transparent) {
       INTEGRATOR_STATE_WRITE(path, flag) |= PATH_RAY_SHADOW_CATCHER_BACKGROUND;
 
       if (use_raytrace_kernel) {
