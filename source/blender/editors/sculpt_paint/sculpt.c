@@ -2177,11 +2177,26 @@ static void faces_update_boundary_flags(const SculptSession *ss, const SculptVer
   // have to handle boundary here
   MDynTopoVert *mv = ss->mdyntopo_verts + vertex.i;
 
+  mv->flag &= ~(DYNVERT_CORNER | DYNVERT_BOUNDARY);
+
   if (sculpt_check_boundary_vertex_in_base_mesh(ss, vertex)) {
     mv->flag |= DYNVERT_BOUNDARY;
 
     if (ss->pmap[vertex.i].count < 4) {
-      mv->flag |= DYNVERT_CORNER;
+      bool ok = true;
+
+      for (int i = 0; i < ss->pmap[vertex.i].count; i++) {
+        MPoly *mp = ss->mpoly + ss->pmap[vertex.i].indices[i];
+        if (mp->totloop < 4) {
+          ok = false;
+        }
+      }
+      if (ok) {
+        mv->flag |= DYNVERT_CORNER;
+      }
+      else {
+        mv->flag &= ~DYNVERT_CORNER;
+      }
     }
   }
 }

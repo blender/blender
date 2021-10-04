@@ -2340,6 +2340,9 @@ static void init_mdyntopo_layer_faces(SculptSession *ss, PBVH *pbvh, int totvert
                                         ss->mdyntopo_verts,
                                         ss->pmap,
                                         vertex);
+
+    // can't fully update boundary here, so still flag for update
+    mv->flag |= DYNVERT_NEED_BOUNDARY;
   }
 }
 
@@ -2363,6 +2366,9 @@ static void init_mdyntopo_layer_grids(SculptSession *ss, PBVH *pbvh, int totvert
     SculptVertRef vertex = {.i = i};
 
     BKE_pbvh_update_vert_boundary_grids(pbvh, ss->subdiv_ccg, vertex);
+
+    // can't fully update boundary here, so still flag for update
+    mv->flag |= DYNVERT_NEED_BOUNDARY;
   }
 }
 

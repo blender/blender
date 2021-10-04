@@ -448,8 +448,7 @@ enum {
       BMElem *, BMElemF *, BMHeader *
 
 #define _BM_GENERIC_TYPE_ELEM_CONST \
-  const void *, const BMVert *, const BMEdge *, const BMLoop *, const BMFace *, \
-      const BMVert_OFlag *, const BMEdge_OFlag *, const BMFace_OFlag *, const BMElem *, \
+  const void *, const BMVert *, const BMEdge *, const BMLoop *, const BMFace *, const BMElem *, \
       const BMElemF *, const BMHeader *, void *const, BMVert *const, BMEdge *const, \
       BMLoop *const, BMFace *const, BMElem *const, BMElemF *const, BMHeader *const
 

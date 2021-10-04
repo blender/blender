@@ -4180,8 +4180,8 @@ void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
   MDynTopoVert *mv = mdyntopo_verts + vertex.i;
   MeshElemMap *vert_map = &pmap[vertex.i];
 
-  int last_fset = 0;
-  int last_fset2 = 0;
+  int last_fset = -1;
+  int last_fset2 = -1;
 
   mv->flag &= ~(DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY | DYNVERT_NEED_BOUNDARY |
                 DYNVERT_FSET_CORNER | DYNVERT_CORNER | DYNVERT_SEAM_BOUNDARY |
@@ -4216,7 +4216,7 @@ void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
       }
     }
 
-    int fset = face_sets ? face_sets[f_i] : -1;
+    int fset = face_sets ? abs(face_sets[f_i]) : -1;
 
     if (fset > 0) {
       visible = true;
@@ -4228,7 +4228,8 @@ void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
     if (i > 0 && fset != last_fset) {
       mv->flag |= DYNVERT_FSET_BOUNDARY;
 
-      if (i > 1 && last_fset2 != last_fset) {
+      if (i > 1 && last_fset2 != last_fset && last_fset != -1 && last_fset2 != -1 && fset != -1 &&
+          last_fset2 != fset) {
         mv->flag |= DYNVERT_FSET_CORNER;
       }
     }
