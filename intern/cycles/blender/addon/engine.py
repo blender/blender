@@ -211,7 +211,6 @@ def list_render_passes(scene, srl):
     if crl.use_pass_shadow_catcher:        yield ("Shadow Catcher",      "RGB",  'COLOR')
 
     # Debug passes.
-    if crl.pass_debug_render_time:             yield ("Debug Render Time",             "X",   'VALUE')
     if crl.pass_debug_sample_count:            yield ("Debug Sample Count",            "X",   'VALUE')
 
     # Cryptomatte passes.

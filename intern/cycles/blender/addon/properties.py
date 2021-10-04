@@ -1197,12 +1197,6 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
 
 class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
 
-    pass_debug_render_time: BoolProperty(
-        name="Debug Render Time",
-        description="Render time in milliseconds per sample and pixel",
-        default=False,
-        update=update_render_passes,
-    )
     pass_debug_sample_count: BoolProperty(
         name="Debug Sample Count",
         description="Number of samples/camera rays per pixel",

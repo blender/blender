@@ -149,9 +149,6 @@ bool PassAccessor::get_render_tile_pixels(const RenderBuffers *render_buffers,
       /* Denoised passes store their final pixels, no need in special calculation. */
       get_pass_float(render_buffers, buffer_params, destination);
     }
-    else if (type == PASS_RENDER_TIME) {
-      /* TODO(sergey): Needs implementation. */
-    }
     else if (type == PASS_DEPTH) {
       get_pass_depth(render_buffers, buffer_params, destination);
     }
