@@ -1017,6 +1017,8 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
     ADDCH(smooth_strength_factor)->flag |= BRUSH_CHANNEL_INHERIT;
   }
 
+  ADDCH(smooth_strength_projection);
+
   ADDCH(accumulate);
   ADDCH(original_normal);
   ADDCH(original_plane);
@@ -1727,6 +1729,7 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH(unprojected_radius);
 
   ADDCH(smooth_strength_factor);
+  ADDCH(smooth_strength_projection);
 
   ADDCH(tilt_strength_factor);
   ADDCH(automasking_boundary_edges_propagation_steps);

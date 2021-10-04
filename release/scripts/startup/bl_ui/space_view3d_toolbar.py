@@ -1234,6 +1234,11 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
             brush,
             "smooth_strength_factor", ui_editing=False, slider=True)
 
+        UnifiedPaintPanel.channel_unified(layout.column(),
+            context,
+            brush,
+            "smooth_strength_projection", ui_editing=False, slider=True)
+
         #col.prop(sculpt, "smooth_strength_factor")
 
         col.separator()

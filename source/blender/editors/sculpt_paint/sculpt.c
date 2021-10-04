@@ -8728,7 +8728,11 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
 
   if (ss->cache->alt_smooth && brush->sculpt_tool == SCULPT_TOOL_SMOOTH) {
     float factor = BRUSHSET_GET_FLOAT(ss->cache->channels_final, smooth_strength_factor, NULL);
+    float projection = BRUSHSET_GET_FLOAT(
+        ss->cache->channels_final, smooth_strength_projection, NULL);
+
     BRUSHSET_SET_FLOAT(ss->cache->channels_final, strength, factor);
+    BRUSHSET_SET_FLOAT(ss->cache->channels_final, projection, projection);
   }
 
   if (ok) {
@@ -9536,7 +9540,8 @@ static void SCULPT_run_command_list(
         break;
       case SCULPT_TOOL_SMOOTH:
         if (brush2->smooth_deform_type == BRUSH_SMOOTH_DEFORM_LAPLACIAN) {
-          SCULPT_do_smooth_brush(sd, ob, nodes, totnode, brush2->autosmooth_projection);
+          SCULPT_do_smooth_brush(
+              sd, ob, nodes, totnode, BRUSHSET_GET_FLOAT(cmd->params_mapped, projection, NULL));
         }
         else if (brush2->smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE) {
           SCULPT_do_surface_smooth_brush(sd, ob, nodes, totnode);
