@@ -103,7 +103,7 @@ ccl_device_inline void shader_setup_from_ray(const KernelGlobals *ccl_restrict k
 
   sd->flag |= kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
 
-  if (isect->object != OBJECT_NONE) {
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     /* instance transform */
     object_normal_transform_auto(kg, sd, &sd->N);
     object_normal_transform_auto(kg, sd, &sd->Ng);
