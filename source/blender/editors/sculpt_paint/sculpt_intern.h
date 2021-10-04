@@ -744,8 +744,12 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
                                         bool do_origco);
 
 /* Smoothing api */
-void SCULPT_neighbor_coords_average(
-    SculptSession *ss, float result[3], SculptVertRef index, float projection, bool check_fsets);
+void SCULPT_neighbor_coords_average(SculptSession *ss,
+                                    float result[3],
+                                    SculptVertRef index,
+                                    float projection,
+                                    bool check_fsets,
+                                    bool weighted);
 float SCULPT_neighbor_mask_average(SculptSession *ss, SculptVertRef index);
 void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVertRef index);
 
@@ -792,7 +796,8 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
                                           const float origco[3],
                                           const float alpha,
                                           const float projection,
-                                          bool check_fsets);
+                                          bool check_fsets,
+                                          bool weighted);
 
 void SCULPT_surface_smooth_displace_step(SculptSession *ss,
                                          float *co,

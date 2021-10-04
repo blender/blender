@@ -58,16 +58,6 @@
 #include "BLI_asan.h"
 #include "BLI_strict_flags.h"
 
-#ifdef BLI_asan_poison
-#  undef BLI_asan_poison
-#endif
-#ifdef BLI_asan_unpoison
-#  undef BLI_asan_unpoison
-#endif
-
-#define BLI_asan_poison(a, b)
-#define BLI_asan_unpoison(a, b)
-
 /* NOTE: copied from BLO_blend_defs.h, don't use here because we're in BLI. */
 #ifdef __BIG_ENDIAN__
 /* Big Endian */
@@ -123,19 +113,27 @@ int BLI_smallhash_memuse(SmallHash *sh)
   return (int)sh->nbuckets * sizeof(SmallHashEntry) + (int)sizeof(SmallHash);
 }
 
+#if 0
 BLI_INLINE uintptr_t smallhash_key(const uintptr_t key)
 {
-#if 1
+#  if 1
   return key;
-#else
+#  else
   uintptr_t y = (size_t)key;
   /* bottom 3 or 4 bits are likely to be 0; rotate y by 4 to avoid
    * excessive hash collisions for dicts and sets */
 
   return (uintptr_t)(y >> 4) | ((uintptr_t)y << (sizeof(uintptr_t[8]) - 4));
-#endif
+#  endif
 }
+#endif
 
+#ifdef _keyrot
+#  undef _keyrot
+#endif
+
+#define _keyrot(y) ((uintptr_t)(y) >> 4) | ((uintptr_t)(y) << (sizeof(uintptr_t[8]) - 4))
+#define smallhash_key(key) sh->use_pointer_hash ? _keyrot(key) : (key)
 /**
  * Check if the number of items in the smallhash is large enough to require more buckets.
  */
@@ -155,14 +153,10 @@ BLI_INLINE void smallhash_init_empty(SmallHash *sh)
 {
   uint i;
 
-  BLI_asan_unpoison(&sh->buckets, sizeof(void *));
-
   for (i = 0; i < sh->nbuckets; i++) {
     sh->buckets[i].key = SMHASH_KEY_UNUSED;
     sh->buckets[i].val = SMHASH_CELL_FREE;
   }
-
-  BLI_asan_poison(&sh->buckets, sizeof(void *));
 }
 
 /**
@@ -186,8 +180,6 @@ BLI_INLINE SmallHashEntry *smallhash_lookup(SmallHash *sh, const uintptr_t key)
 
   BLI_assert(key != SMHASH_KEY_UNUSED);
 
-  BLI_asan_unpoison(&sh->buckets, sizeof(void *));
-
   /* NOTE: there are always more buckets than entries,
    * so we know there will always be a free bucket if the key isn't found. */
   for (e = &sh->buckets[h % sh->nbuckets]; e->val != SMHASH_CELL_FREE;
@@ -198,8 +190,6 @@ BLI_INLINE SmallHashEntry *smallhash_lookup(SmallHash *sh, const uintptr_t key)
       return e;
     }
   }
-
-  BLI_asan_poison(&sh->buckets, sizeof(void *));
 
   return NULL;
 }
@@ -212,14 +202,10 @@ BLI_INLINE SmallHashEntry *smallhash_lookup_first_free(SmallHash *sh, const uint
   uintptr_t h = smallhash_key(key);
   uintptr_t hoff = 1;
 
-  BLI_asan_unpoison(&sh->buckets, sizeof(void *));
-
   for (e = &sh->buckets[h % sh->nbuckets]; smallhash_val_is_used(e->val);
        h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % sh->nbuckets]) {
     /* pass */
   }
-
-  BLI_asan_poison(&sh->buckets, sizeof(void *));
 
   return e;
 }
@@ -227,8 +213,6 @@ BLI_INLINE SmallHashEntry *smallhash_lookup_first_free(SmallHash *sh, const uint
 BLI_INLINE void smallhash_resize_buckets(SmallHash *sh, const uint nbuckets)
 {
   check_stack_move(sh);
-
-  BLI_asan_unpoison(&sh->buckets, sizeof(void *));
 
   SmallHashEntry *buckets_old = sh->buckets;
   const uint nbuckets_old = sh->nbuckets;
@@ -252,7 +236,6 @@ BLI_INLINE void smallhash_resize_buckets(SmallHash *sh, const uint nbuckets)
   sh->nfreecells = nbuckets;
   sh->nentries = 0;
 
-  BLI_asan_poison(&sh->buckets, sizeof(void *));
   smallhash_init_empty(sh);
 
   for (i = 0; i < nbuckets_old; i++) {
@@ -284,15 +267,11 @@ void BLI_smallhash_init_ex(SmallHash *sh, const uint nentries_reserve)
 
   sh->buckets = sh->buckets_stack;
 
-  BLI_asan_poison(&sh->buckets, sizeof(void *));
-
   if (nentries_reserve) {
     smallhash_buckets_reserve(sh, nentries_reserve);
 
     if (sh->nbuckets > SMSTACKSIZE) {
-      BLI_asan_unpoison(&sh->buckets, sizeof(void *));
       sh->buckets = MEM_mallocN(sizeof(*sh->buckets) * sh->nbuckets, __func__);
-      BLI_asan_poison(&sh->buckets, sizeof(void *));
 
       sh->using_stack = false;
     }
@@ -310,8 +289,6 @@ void BLI_smallhash_init(SmallHash *sh)
 void BLI_smallhash_release(SmallHash *sh)
 {
   check_stack_move(sh);
-
-  BLI_asan_unpoison(&sh->buckets, sizeof(void *));
 
   if (sh->buckets && sh->buckets != sh->buckets_stack) {
     MEM_freeN(sh->buckets);
@@ -332,8 +309,6 @@ bool BLI_smallhash_ensure_p(SmallHash *sh, uintptr_t key, void ***item)
 
   BLI_assert(key != SMHASH_KEY_UNUSED);
 
-  BLI_asan_unpoison(&sh->buckets, sizeof(void *));
-
   /* NOTE: there are always more buckets than entries,
    * so we know there will always be a free bucket if the key isn't found. */
   for (e = &sh->buckets[h % sh->nbuckets]; e->val != SMHASH_CELL_FREE;
@@ -344,8 +319,6 @@ bool BLI_smallhash_ensure_p(SmallHash *sh, uintptr_t key, void ***item)
       break;
     }
   }
-
-  BLI_asan_poison(&sh->buckets, sizeof(void *));
 
   bool ret;
 
@@ -484,8 +457,6 @@ void BLI_smallhash_clear(SmallHash *sh, uintptr_t key)
 {
   check_stack_move(sh);
 
-  BLI_asan_unpoison(&sh->buckets, sizeof(void *));
-
   SmallHashEntry *e = sh->buckets;
 
   for (uint i = 0; i < sh->nbuckets; i++, e++) {
@@ -494,8 +465,6 @@ void BLI_smallhash_clear(SmallHash *sh, uintptr_t key)
   }
 
   sh->nentries = 0;
-
-  BLI_asan_poison(&sh->buckets, sizeof(void *));
 }
 
 bool BLI_smallhash_haskey(SmallHash *sh, uintptr_t key)
@@ -512,8 +481,6 @@ int BLI_smallhash_len(SmallHash *sh)
 
 BLI_INLINE SmallHashEntry *smallhash_iternext(SmallHashIter *iter, uintptr_t *key)
 {
-  BLI_asan_unpoison(&iter->sh->buckets, sizeof(void *));
-
   while (iter->i < iter->sh->nbuckets) {
     if (smallhash_val_is_used(iter->sh->buckets[iter->i].val)) {
       if (key) {
@@ -526,7 +493,6 @@ BLI_INLINE SmallHashEntry *smallhash_iternext(SmallHashIter *iter, uintptr_t *ke
     iter->i++;
   }
 
-  BLI_asan_poison(&iter->sh->buckets, sizeof(void *));
   return NULL;
 }
 

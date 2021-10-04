@@ -331,6 +331,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   /* This produces better results as the relax operation is no completely focused on the
    * boundaries. */
   const bool relax_face_sets = !(ss->filter_cache->iteration_count % 3 == 0);
+  const bool weighted = false;
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -453,6 +454,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
                                              orig_data.co,
                                              ss->filter_cache->surface_smooth_shape_preservation,
                                              0.0f,
+                                             false,
                                              false);
         break;
       }
@@ -478,7 +480,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
 
         float disp_avg[3];
         float avg_co[3];
-        SCULPT_neighbor_coords_average(ss, avg_co, vd.vertex, 0.0f, false);
+        SCULPT_neighbor_coords_average(ss, avg_co, vd.vertex, 0.0f, false, weighted);
         sub_v3_v3v3(disp_avg, avg_co, vd.co);
         mul_v3_v3fl(
             disp_avg, disp_avg, smooth_ratio * pow2f(ss->filter_cache->sharpen_factor[vd.index]));
@@ -537,13 +539,15 @@ static void mesh_filter_enhance_details_init_directions(SculptSession *ss)
   const int totvert = SCULPT_vertex_count_get(ss);
   FilterCache *filter_cache = ss->filter_cache;
 
+  bool weighted = false;
+
   filter_cache->detail_directions = MEM_malloc_arrayN(
       totvert, sizeof(float[3]), "detail directions");
   for (int i = 0; i < totvert; i++) {
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
     float avg[3];
-    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, false);
+    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, false, weighted);
     sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
   }
 }
@@ -624,11 +628,13 @@ static void mesh_filter_sharpen_init(SculptSession *ss,
   filter_cache->detail_directions = MEM_malloc_arrayN(
       totvert, sizeof(float[3]), "sharpen detail direction");
 
+  const bool weighted = false;
+
   for (int i = 0; i < totvert; i++) {
     float avg[3];
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
-    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, false);
+    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, false, weighted);
     sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
     filter_cache->sharpen_factor[i] = len_v3(filter_cache->detail_directions[i]);
   }

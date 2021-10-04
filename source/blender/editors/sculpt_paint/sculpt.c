@@ -13729,9 +13729,13 @@ static int sculpt_set_limit_surface_exec(bContext *C, wmOperator *UNUSED(op))
 
   SCULPT_vertex_random_access_ensure(ss);
 
+  if (ss->limit_surface) {
+    SCULPT_temp_customlayer_release(ss, ss->limit_surface);
+  }
+
   MEM_SAFE_FREE(ss->limit_surface);
 
-  ss->limit_surface = MEM_callocN(sizeof(*ss->limit_surface), "ss->limit_surface");
+  ss->limit_surface = MEM_callocN(sizeof(SculptCustomLayer), "ss->limit_surface");
   SculptLayerParams params = {.permanent = false, .simple_array = false};
 
   SCULPT_temp_customlayer_ensure(
@@ -13740,12 +13744,12 @@ static int sculpt_set_limit_surface_exec(bContext *C, wmOperator *UNUSED(op))
       ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "_sculpt_limit_surface", ss->limit_surface, &params);
 
   const int totvert = SCULPT_vertex_count_get(ss);
-
+  const bool weighted = false;
   for (int i = 0; i < totvert; i++) {
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
     float *f = SCULPT_temp_cdata_get(vertex, ss->limit_surface);
 
-    SCULPT_neighbor_coords_average(ss, f, vertex, 0.0, true);
+    SCULPT_neighbor_coords_average(ss, f, vertex, 0.0, true, weighted);
   }
 
   return OPERATOR_FINISHED;

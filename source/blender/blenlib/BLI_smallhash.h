@@ -45,6 +45,7 @@ typedef struct SmallHash {
   SmallHashEntry *buckets;
   SmallHashEntry buckets_stack[SMSTACKSIZE];
 
+  bool use_pointer_hash;
   bool using_stack;
 } SmallHash;
 

@@ -622,10 +622,8 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
   }
 }
 
-static void sculpt_neighbor_coords_average_fset(SculptSession *ss,
-                                                float result[3],
-                                                SculptVertRef vertex,
-                                                float projection)
+static void sculpt_neighbor_coords_average_fset(
+    SculptSession *ss, float result[3], SculptVertRef vertex, float projection, bool weighted)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
   float *co, no[3];
@@ -638,7 +636,6 @@ static void sculpt_neighbor_coords_average_fset(SculptSession *ss,
     SCULPT_vertex_normal_get(ss, vertex, no);
   }
 
-  const bool weighted = (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) && !boundary;
   float *areas;
 
   if (weighted) {
@@ -694,11 +691,15 @@ static void sculpt_neighbor_coords_average_fset(SculptSession *ss,
 /* Generic functions for laplacian smoothing. These functions do not take boundary vertices into
  * account. */
 
-void SCULPT_neighbor_coords_average(
-    SculptSession *ss, float result[3], SculptVertRef vertex, float projection, bool check_fsets)
+void SCULPT_neighbor_coords_average(SculptSession *ss,
+                                    float result[3],
+                                    SculptVertRef vertex,
+                                    float projection,
+                                    bool check_fsets,
+                                    bool weighted)
 {
   if (check_fsets) {
-    sculpt_neighbor_coords_average_fset(ss, result, vertex, projection);
+    sculpt_neighbor_coords_average_fset(ss, result, vertex, projection, weighted);
     return;
   }
 
@@ -711,7 +712,6 @@ void SCULPT_neighbor_coords_average(
     SCULPT_vertex_normal_get(ss, vertex, no);
   }
 
-  const bool weighted = ss->cache ? ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT : false;
   float *areas;
 
   if (weighted) {
@@ -856,6 +856,7 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
 
   SculptCustomLayer scl;
   SculptLayerParams params = {.permanent = false, .simple_array = false};
+  bool weighted = SCULPT_get_int(ss, use_weighted_smooth, sd, brush);
 
   SCULPT_temp_customlayer_ensure(
       ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &params);
@@ -878,7 +879,7 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
       SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
       float *dir = SCULPT_temp_cdata_get(vertex, &scl);
 
-      SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, false);
+      SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, false, weighted);
       sub_v3_v3v3(dir, avg, SCULPT_vertex_co_get(ss, vertex));
     }
   }
@@ -1220,11 +1221,13 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
                                           const float origco[3],
                                           const float alpha,
                                           const float projection,
-                                          bool check_fsets)
+                                          bool check_fsets,
+                                          bool weighted)
 {
   float laplacian_smooth_co[3];
   float weigthed_o[3], weigthed_q[3], d[3];
-  SCULPT_neighbor_coords_average(ss, laplacian_smooth_co, v_index, projection, check_fsets);
+  SCULPT_neighbor_coords_average(
+      ss, laplacian_smooth_co, v_index, projection, check_fsets, weighted);
 
   // int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, v_index);
 
@@ -1316,7 +1319,8 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
                                          orig_data.co,
                                          alpha,
                                          data->smooth_projection,
-                                         check_fsets);
+                                         check_fsets,
+                                         weighted);
     madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;

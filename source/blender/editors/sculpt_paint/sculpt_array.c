@@ -681,6 +681,7 @@ static void do_array_smooth_task_cb_ex(void *__restrict userdata,
   bool any_modified = false;
 
   bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
+  const bool weighted = (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
@@ -696,7 +697,7 @@ static void do_array_smooth_task_cb_ex(void *__restrict userdata,
 
     float smooth_co[3];
     SCULPT_neighbor_coords_average(
-        ss, smooth_co, vd.vertex, ss->cache->brush->autosmooth_projection, check_fsets);
+        ss, smooth_co, vd.vertex, ss->cache->brush->autosmooth_projection, check_fsets, weighted);
     float disp[3];
     sub_v3_v3v3(disp, smooth_co, vd.co);
     mul_v3_fl(disp, fade);

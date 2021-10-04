@@ -1531,6 +1531,14 @@ void BKE_builtin_apply_hard_edge_mode(BrushChannelSet *chset, bool do_apply)
 
   // make sure preserve faceset boundaries is on
   ch = BRUSHSET_LOOKUP(chset, preserve_faceset_boundary);
+
+  if (ch) {
+    ch->flag &= ~BRUSH_CHANNEL_INHERIT;
+    ch->ivalue = 1;
+  }
+
+  //turn off dyntopo surface smoothing
+  ch = BRUSHSET_LOOKUP(chset, dyntopo_disable_smooth);
   if (ch) {
     ch->flag &= ~BRUSH_CHANNEL_INHERIT;
     ch->ivalue = 1;
