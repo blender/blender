@@ -114,10 +114,9 @@ typedef struct BMVert {
   struct BMEdge *e;
 } BMVert;
 
-typedef struct BMVert_OFlag {
-  BMVert base;
-  struct BMFlagLayer *oflags;
-} BMVert_OFlag;
+#define BMVert_OFlag BMVert
+#define BMEdge_OFlag BMEdge
+#define BMFace_OFlag BMFace
 
 /* disk link structure, only used by edges */
 typedef struct BMDiskLink {
@@ -152,11 +151,6 @@ typedef struct BMEdge {
    */
   BMDiskLink v1_disk_link, v2_disk_link;
 } BMEdge;
-
-typedef struct BMEdge_OFlag {
-  BMEdge base;
-  struct BMFlagLayer *oflags;
-} BMEdge_OFlag;
 
 typedef struct BMLoop {
   BMHeader head;
@@ -286,11 +280,6 @@ typedef struct BMFace {
   short mat_nr; /* material index */
   //  short _pad[3];
 } BMFace;
-
-typedef struct BMFace_OFlag {
-  BMFace base;
-  struct BMFlagLayer *oflags;
-} BMFace_OFlag;
 
 typedef struct BMFlagLayer {
   short f; /* flags */

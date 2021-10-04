@@ -542,7 +542,7 @@ typedef struct MDynTopoVert {
   int stroke_id;
 } MDynTopoVert;
 
-/*MDynTopoVert->flag*/
+/* MDynTopoVert->flag */
 enum {
   DYNVERT_BOUNDARY = (1 << 0),
   DYNVERT_VERT_FSET_HIDDEN = (1 << 1),
@@ -560,6 +560,11 @@ enum {
   DYNVERT_SPLIT_TEMP = (1 << 13),
   DYNVERT_PBVH_BOUNDARY = (1 << 14)
 };
+
+/* for internal bmesh toolflags api */
+typedef struct MToolFlags {
+  short *flag;
+} MToolFlags;
 
 #ifdef __cplusplus
 }

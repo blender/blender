@@ -2451,6 +2451,7 @@ ATTR_NO_OPT static void sculpt_face_set_extrude_id(
   BMesh *bm = sculpt_faceset_bm_begin(ss, mesh);
   if (ss->bm) {
     BKE_pbvh_bmesh_set_toolflags(ss->pbvh, true);
+    SCULPT_update_customdata_refs(ss);
   }
 
   BM_mesh_elem_table_init(bm, BM_FACE);
@@ -2653,7 +2654,7 @@ ATTR_NO_OPT static void sculpt_face_set_extrude_id(
         case BM_EDGE: {
           BMEdge *e = (BMEdge *)ele;
           BM_log_edge_added(ss->bm_log, e);
-
+#if 0
           if (!BM_elem_flag_test(e->v1, tag1)) {
             BM_elem_flag_enable(e->v1, tag1);
             BM_log_vert_added(ss->bm_log, e->v1, ss->cd_vert_mask_offset);
@@ -2680,7 +2681,7 @@ ATTR_NO_OPT static void sculpt_face_set_extrude_id(
               } while ((l = l->radial_next) != e->l);
             }
           }
-
+#endif
           break;
         }
         case BM_FACE: {
@@ -2689,7 +2690,7 @@ ATTR_NO_OPT static void sculpt_face_set_extrude_id(
           if (dot_v3v3(f->no, f->no) > 0.0f) {
             add_v3_v3(no, f->no);
           }
-
+#if 0
           BMLoop *l = f->l_first;
           do {
             if (!(l->v->head.hflag & tag1)) {
@@ -2702,7 +2703,7 @@ ATTR_NO_OPT static void sculpt_face_set_extrude_id(
               BM_log_edge_added(ss->bm_log, l->e);
             }
           } while ((l = l->next) != f->l_first);
-
+#endif
           BKE_pbvh_bmesh_add_face(ss->pbvh, f, false, false);
           BM_log_face_added(ss->bm_log, f);
           break;
@@ -2757,7 +2758,8 @@ ATTR_NO_OPT static void sculpt_face_set_extrude_id(
       if (cd_dyn_vert >= 0) {
         do {
           MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(l->v, cd_dyn_vert);
-          mv->flag |= DYNVERT_NEED_BOUNDARY|DYNVERT_NEED_DISK_SORT|DYNVERT_NEED_TRIANGULATE|DYNVERT_NEED_VALENCE;
+          mv->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_TRIANGULATE |
+                      DYNVERT_NEED_VALENCE;
         } while ((l = l->next) != f->l_first);
       }
 
@@ -2841,6 +2843,7 @@ ATTR_NO_OPT static void sculpt_face_set_extrude_id(
   sculpt_faceset_bm_end(ss, bm);
   if (ss->bm) {
     BKE_pbvh_bmesh_set_toolflags(ss->pbvh, false);
+    SCULPT_update_customdata_refs(ss);
   }
 }
 

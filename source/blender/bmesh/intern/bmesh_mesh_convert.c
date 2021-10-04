@@ -472,6 +472,21 @@ void BM_mesh_bm_from_me(Object *ob,
     }
   }
 
+  if (bm->use_toolflags) {
+    bm_alloc_toolflags_cdlayers(bm, !is_new);
+
+    if (!bm->vtoolflagpool) {
+      bm->vtoolflagpool = BLI_mempool_create(
+          sizeof(BMFlagLayer), bm->totvert, 512, BLI_MEMPOOL_NOP);
+      bm->etoolflagpool = BLI_mempool_create(
+          sizeof(BMFlagLayer), bm->totedge, 512, BLI_MEMPOOL_NOP);
+      bm->ftoolflagpool = BLI_mempool_create(
+          sizeof(BMFlagLayer), bm->totface, 512, BLI_MEMPOOL_NOP);
+
+      bm->totflags = 1;
+    }
+  }
+
   if (is_new) {
     CustomData_bmesh_init_pool_ex(&bm->vdata, me->totvert, BM_VERT, __func__);
     CustomData_bmesh_init_pool_ex(&bm->edata, me->totedge, BM_EDGE, __func__);
@@ -532,6 +547,8 @@ void BM_mesh_bm_from_me(Object *ob,
     /* Copy Custom Data */
     CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data, true);
 
+    bm_elem_check_toolflags(bm, (BMElem *)v);
+
     if (has_ids & BM_VERT) {
       if (use_exist_ids & BM_VERT) {
         bm_assign_id(bm, (BMElem *)v, existing_id_layers[0][i], false);
@@ -580,6 +597,8 @@ void BM_mesh_bm_from_me(Object *ob,
 
     /* Copy Custom Data */
     CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data, true);
+
+    bm_elem_check_toolflags(bm, (BMElem *)e);
 
     if (has_ids & BM_EDGE) {
       if (use_exist_ids & BM_EDGE) {
@@ -664,6 +683,8 @@ void BM_mesh_bm_from_me(Object *ob,
 
     /* Copy Custom Data */
     CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data, true);
+
+    bm_elem_check_toolflags(bm, (BMElem *)f);
 
     if (has_ids & BM_FACE) {
       if (use_exist_ids & BM_FACE) {

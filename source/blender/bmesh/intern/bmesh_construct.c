@@ -795,28 +795,28 @@ void BM_elem_attrs_copy_ex(BMesh *bm_src,
                          bm_dst,
                          (const BMVert *)ele_src,
                          (BMVert *)ele_dst,
-                         cd_mask_exclude | CD_MASK_MESH_ID);
+                         cd_mask_exclude | CD_MASK_MESH_ID | CD_MASK_TOOLFLAGS);
       break;
     case BM_EDGE:
       bm_edge_attrs_copy(bm_src,
                          bm_dst,
                          (const BMEdge *)ele_src,
                          (BMEdge *)ele_dst,
-                         cd_mask_exclude | CD_MASK_MESH_ID);
+                         cd_mask_exclude | CD_MASK_MESH_ID | CD_MASK_TOOLFLAGS);
       break;
     case BM_LOOP:
       bm_loop_attrs_copy(bm_src,
                          bm_dst,
                          (const BMLoop *)ele_src,
                          (BMLoop *)ele_dst,
-                         cd_mask_exclude | CD_MASK_MESH_ID);
+                         cd_mask_exclude | CD_MASK_MESH_ID | CD_MASK_TOOLFLAGS);
       break;
     case BM_FACE:
       bm_face_attrs_copy(bm_src,
                          bm_dst,
                          (const BMFace *)ele_src,
                          (BMFace *)ele_dst,
-                         cd_mask_exclude | CD_MASK_MESH_ID);
+                         cd_mask_exclude | CD_MASK_MESH_ID | CD_MASK_TOOLFLAGS);
       break;
     default:
       BLI_assert(0);
@@ -875,6 +875,8 @@ static BMFace *bm_mesh_copy_new_face(
 
   BM_elem_attrs_copy_ex(bm_old, bm_new, f, f_new, 0xff, 0x0);
   f_new->head.hflag = f->head.hflag; /* low level! don't do this for normal api use */
+
+  bm_elem_check_toolflags(bm_new, (BMElem *)f);
 
   j = 0;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
@@ -1047,7 +1049,9 @@ BMesh *BM_mesh_copy_ex(BMesh *bm_old, struct BMeshCreateParams *params)
     v_new = BM_vert_create(bm_new, v->co, NULL, BM_CREATE_SKIP_CD | BM_CREATE_SKIP_ID);
 
     BM_elem_attrs_copy_ex(bm_old, bm_new, v, v_new, 0xff, 0x0);
+
     bm_alloc_id(bm_new, (BMElem *)v_new);
+    bm_elem_check_toolflags(bm_new, (BMElem *)v_new);
 
     v_new->head.hflag = v->head.hflag; /* low level! don't do this for normal api use */
     vtable[i] = v_new;
@@ -1069,6 +1073,7 @@ BMesh *BM_mesh_copy_ex(BMesh *bm_old, struct BMeshCreateParams *params)
 
     BM_elem_attrs_copy_ex(bm_old, bm_new, e, e_new, 0xff, 0x0);
     bm_alloc_id(bm_new, (BMElem *)e_new);
+    bm_elem_check_toolflags(bm_new, (BMElem *)e_new);
 
     e_new->head.hflag = e->head.hflag; /* low level! don't do this for normal api use */
     etable[i] = e_new;

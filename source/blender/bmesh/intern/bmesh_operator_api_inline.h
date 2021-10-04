@@ -30,6 +30,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2) BLI_INLINE
     short _bmo_elem_flag_test(BMesh *bm, const BMFlagLayer *oflags, const short oflag)
 {
   BLI_assert(bm->use_toolflags);
+
   return oflags[bm->toolflag_index].f & oflag;
 }
 

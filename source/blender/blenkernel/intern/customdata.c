@@ -1563,11 +1563,6 @@ static void layerDynTopoVert_interp(
   mv->origmask = origmask;
 }
 
-static void layerCopy_noop(const void *UNUSED(source), void *UNUSED(dest), int UNUSED(count))
-{
-  // do nothing
-}
-
 static void layerInterp_noop(const void **UNUSED(sources),
                              const float *UNUSED(weights),
                              const float *UNUSED(sub_weights),
@@ -1987,7 +1982,16 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      NULL,  // flag singleton layer
      layerDynTopoVert_copy,
      NULL,
-     layerDynTopoVert_interp}};
+     layerDynTopoVert_interp},
+    /*54 CD_BMESH_TOOLFLAGS */
+    {sizeof(MToolFlags),
+     "MToolFlags",
+     1,
+     NULL,  // flag singleton layer
+     NULL,
+     NULL,
+     layerInterp_noop},
+};
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     /*   0-4 */
@@ -3752,7 +3756,7 @@ void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata, Custom
 
 void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
 {
-  return CustomData_bmesh_init_pool_ex(data, totelem, htype, __func__);
+  CustomData_bmesh_init_pool_ex(data, totelem, htype, __func__);
 }
 
 void CustomData_bmesh_init_pool_ex(CustomData *data,
@@ -3928,7 +3932,7 @@ void CustomData_bmesh_free_block_data(CustomData *data, void *block)
   }
 }
 
-static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
+ATTR_NO_OPT static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
 {
   if (*block) {
     CustomData_bmesh_free_block(data, block);
@@ -3936,6 +3940,18 @@ static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
 
   if (data->totsize > 0) {
     *block = BLI_mempool_alloc(data->pool);
+
+    /*clear toolflags pointer when created for the first time*/
+    int cd_tflags = data->typemap[CD_TOOLFLAGS];
+    if (cd_tflags != -1) {
+      cd_tflags = data->layers[cd_tflags].offset;
+
+      char *ptr = (char *)*block;
+      ptr += cd_tflags;
+
+      MToolFlags *flags = (MToolFlags *)ptr;
+      flags->flag = NULL;
+    }
   }
   else {
     *block = NULL;
@@ -3968,14 +3984,13 @@ void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
 
 static void CustomData_bmesh_set_default_n(CustomData *data, void **block, int n)
 {
-  int offset = data->layers[n].offset;
-  const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[n].type);
-
-  /* can't allow this to be called on CD_MESH_ID */
-
-  if (data->layers[n].type == CD_MESH_ID) {
+  if (ELEM(data->layers[n].type, CD_TOOLFLAGS, CD_MESH_ID)) {
+    /* do not do toolflags or mesh ids */
     return;
   }
+
+  int offset = data->layers[n].offset;
+  const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[n].type);
 
   if (typeInfo->set_default) {
     typeInfo->set_default(POINTER_OFFSET(*block, offset), 1);
@@ -3985,9 +4000,9 @@ static void CustomData_bmesh_set_default_n(CustomData *data, void **block, int n
   }
 }
 
-void CustomData_bmesh_set_default(CustomData *data, void **block)
+ATTR_NO_OPT void CustomData_bmesh_set_default(CustomData *data, void **block)
 {
-  if (*block == NULL) {
+  if (!*block) {
     CustomData_bmesh_alloc_block(data, block);
   }
 
@@ -4005,15 +4020,30 @@ void CustomData_bmesh_swap_data_simple(CustomData *data, void **block1, void **b
   *block1 = *block2;
   *block2 = tmp;
 
-  // unswap ids if they exist
-  if (cd_id != -1 && *block1 && *block2) {
-    int itmp;
-    int *id1 = (int *)(((char *)*block1) + cd_id);
-    int *id2 = (int *)(((char *)*block2) + cd_id);
+  int cd_tflags = data->typemap[CD_TOOLFLAGS];
+  cd_tflags = cd_tflags != -1 ? data->layers[cd_tflags].offset : -1;
 
-    itmp = *id1;
-    *id1 = *id2;
-    *id2 = itmp;
+  // unswap ids if they exist
+  if (*block1 && *block2) {
+    if (cd_id != -1) {
+      int itmp;
+      int *id1 = (int *)(((char *)*block1) + cd_id);
+      int *id2 = (int *)(((char *)*block2) + cd_id);
+
+      itmp = *id1;
+      *id1 = *id2;
+      *id2 = itmp;
+    }
+
+    if (cd_tflags != -1) {
+      MToolFlags tmp;
+      MToolFlags *flags1 = (MToolFlags *)(((char *)*block1) + cd_tflags);
+      MToolFlags *flags2 = (MToolFlags *)(((char *)*block2) + cd_tflags);
+
+      tmp = *flags1;
+      *flags1 = *flags2;
+      *flags2 = tmp;
+    }
   }
 }
 
@@ -4044,8 +4074,8 @@ void CustomData_bmesh_swap_data(CustomData *source,
       dest_i_start++;
     }
 
-    if (source->layers[src_i].type == CD_MESH_ID) {
-      // do not swap ids
+    if (ELEM(source->layers[src_i].type, CD_MESH_ID, CD_TOOLFLAGS)) {
+      // do not swap ids or toolflags
       continue;
     }
 
@@ -4096,6 +4126,14 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
    * would cause too much duplicate code, so add a check instead. */
   const bool no_mask = (mask_exclude == 0);
 
+  /*
+  Note that we don't handle id/toolflag layers specially here,
+  instead relying on CD_ELEM_NO_COPY semantics.
+
+  This is so BM_data_layer_add can reallocate customdata blocks without
+  zeroing those two layers.
+  */
+
   if (*dest_block == NULL) {
     CustomData_bmesh_alloc_block(dest, dest_block);
     if (*dest_block) {
@@ -4135,6 +4173,9 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
       /* if we found a matching layer, copy the data */
       if (STREQ(dest->layers[dest_i].name, source->layers[src_i].name)) {
         if (no_mask || ((CD_TYPE_AS_MASK(dest->layers[dest_i].type) & mask_exclude) == 0)) {
+          /* CD_FLAG_ELEM_NOCOPY is used to forcibly exclude copying CD_MESH_ID and CD_TOOLFLAGS
+             layers */
+
           if (dest->layers[dest_i].flag & CD_FLAG_ELEM_NOCOPY) {
             break;
           }
@@ -4463,6 +4504,12 @@ void CustomData_bmesh_interp(CustomData *data,
   for (int i = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &data->layers[i];
     const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+    // ignore id and toolflag layers
+    if (ELEM(layer->type, CD_MESH_ID, CD_TOOLFLAGS)) {
+      continue;
+    }
+
     if (typeInfo->interp) {
       for (int j = 0; j < count; j++) {
         sources[j] = POINTER_OFFSET(src_blocks[j], layer->offset);

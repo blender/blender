@@ -35,6 +35,8 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
 
+#include "DNA_meshdata_types.h"
+
 #include "bmesh.h"
 #include "bmesh_private.h"
 #include "range_tree.h"
@@ -42,6 +44,8 @@
 /* used as an extern, defined in bmesh.h */
 const BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
 const BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
+
+static void bm_alloc_toolflags(BMesh *bm);
 
 static void bm_mempool_init_ex(const BMAllocTemplate *allocsize,
                                const bool use_toolflags,
@@ -104,30 +108,15 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
   bm->etoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), bm->totedge, 512, BLI_MEMPOOL_NOP);
   bm->ftoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), bm->totface, 512, BLI_MEMPOOL_NOP);
 
-  BMIter iter;
-  BMVert_OFlag *v_olfag;
-  BLI_mempool *toolflagpool = bm->vtoolflagpool;
-  BM_ITER_MESH (v_olfag, &iter, bm, BM_VERTS_OF_MESH) {
-    v_olfag->oflags = BLI_mempool_calloc(toolflagpool);
-  }
-
-  BMEdge_OFlag *e_olfag;
-  toolflagpool = bm->etoolflagpool;
-  BM_ITER_MESH (e_olfag, &iter, bm, BM_EDGES_OF_MESH) {
-    e_olfag->oflags = BLI_mempool_calloc(toolflagpool);
-  }
-
-  BMFace_OFlag *f_olfag;
-  toolflagpool = bm->ftoolflagpool;
-  BM_ITER_MESH (f_olfag, &iter, bm, BM_FACES_OF_MESH) {
-    f_olfag->oflags = BLI_mempool_calloc(toolflagpool);
-  }
+  bm_alloc_toolflags(bm);
 
   bm->totflags = 1;
 }
 
-void BM_mesh_elem_toolflags_clear(BMesh *bm)
+ATTR_NO_OPT void BM_mesh_elem_toolflags_clear(BMesh *bm)
 {
+  bool haveflags = bm->vtoolflagpool || bm->etoolflagpool || bm->ftoolflagpool;
+
   if (bm->vtoolflagpool) {
     BLI_mempool_destroy(bm->vtoolflagpool);
     bm->vtoolflagpool = NULL;
@@ -139,6 +128,12 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
   if (bm->ftoolflagpool) {
     BLI_mempool_destroy(bm->ftoolflagpool);
     bm->ftoolflagpool = NULL;
+  }
+
+  if (haveflags) {
+    BM_data_layer_free(bm, &bm->vdata, CD_TOOLFLAGS);
+    BM_data_layer_free(bm, &bm->edata, CD_TOOLFLAGS);
+    BM_data_layer_free(bm, &bm->pdata, CD_TOOLFLAGS);
   }
 }
 
@@ -225,9 +220,19 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
   CustomData_reset(&bm->ldata);
   CustomData_reset(&bm->pdata);
 
+  bool init_cdata_pools = false;
+
+  if (bm->use_toolflags) {
+    init_cdata_pools = true;
+    bm_alloc_toolflags_cdlayers(bm, false);
+  }
+
   if (params->create_unique_ids) {
     bm_init_idmap_cdlayers(bm);
+    init_cdata_pools = true;
+  }
 
+  if (init_cdata_pools) {
     if (bm->vdata.totlayer) {
       CustomData_bmesh_init_pool_ex(&bm->vdata, 0, BM_VERT, __func__);
     }
@@ -343,8 +348,20 @@ void BM_mesh_data_free(BMesh *bm)
     MEM_freeN(bm->ftable);
   }
 
-  /* destroy flag pool */
-  BM_mesh_elem_toolflags_clear(bm);
+  /* destroy flag pools */
+
+  if (bm->vtoolflagpool) {
+    BLI_mempool_destroy(bm->vtoolflagpool);
+    bm->vtoolflagpool = NULL;
+  }
+  if (bm->etoolflagpool) {
+    BLI_mempool_destroy(bm->etoolflagpool);
+    bm->etoolflagpool = NULL;
+  }
+  if (bm->ftoolflagpool) {
+    BLI_mempool_destroy(bm->ftoolflagpool);
+    bm->ftoolflagpool = NULL;
+  }
 
 #ifdef USE_BMESH_HOLES
   BLI_mempool_destroy(bm->looplistpool);
@@ -1422,9 +1439,10 @@ void BM_mesh_rebuild(BMesh *bm,
       BMVert *v_dst = BLI_mempool_alloc(vpool_dst);
       memcpy(v_dst, v_src, sizeof(BMVert));
       if (use_toolflags) {
-        ((BMVert_OFlag *)v_dst)->oflags = bm->vtoolflagpool ?
-                                              BLI_mempool_calloc(bm->vtoolflagpool) :
-                                              NULL;
+        MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
+            v_dst, bm->vdata.layers[bm->vdata.typemap[CD_TOOLFLAGS]].offset);
+
+        flags->flag = bm->vtoolflagpool ? BLI_mempool_calloc(bm->vtoolflagpool) : NULL;
       }
 
       vtable_dst[index] = v_dst;
@@ -1440,9 +1458,10 @@ void BM_mesh_rebuild(BMesh *bm,
       BMEdge *e_dst = BLI_mempool_alloc(epool_dst);
       memcpy(e_dst, e_src, sizeof(BMEdge));
       if (use_toolflags) {
-        ((BMEdge_OFlag *)e_dst)->oflags = bm->etoolflagpool ?
-                                              BLI_mempool_calloc(bm->etoolflagpool) :
-                                              NULL;
+        MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
+            e_dst, bm->edata.layers[bm->edata.typemap[CD_TOOLFLAGS]].offset);
+
+        flags->flag = bm->etoolflagpool ? BLI_mempool_calloc(bm->etoolflagpool) : NULL;
       }
 
       etable_dst[index] = e_dst;
@@ -1459,10 +1478,12 @@ void BM_mesh_rebuild(BMesh *bm,
       if (remap & BM_FACE) {
         BMFace *f_dst = BLI_mempool_alloc(fpool_dst);
         memcpy(f_dst, f_src, sizeof(BMFace));
+
         if (use_toolflags) {
-          ((BMFace_OFlag *)f_dst)->oflags = bm->ftoolflagpool ?
-                                                BLI_mempool_calloc(bm->ftoolflagpool) :
-                                                NULL;
+          MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
+              f_dst, bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset);
+
+          flags->flag = bm->ftoolflagpool ? BLI_mempool_calloc(bm->ftoolflagpool) : NULL;
         }
 
         ftable_dst[index] = f_dst;
@@ -1646,6 +1667,66 @@ void BM_mesh_rebuild(BMesh *bm,
   bm_rebuild_idmap(bm);
 }
 
+void bm_alloc_toolflags_cdlayers(BMesh *bm, bool set_elems)
+{
+  CustomData *cdatas[3] = {&bm->vdata, &bm->edata, &bm->pdata};
+  int iters[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+
+  for (int i = 0; i < 3; i++) {
+    CustomData *cdata = cdatas[i];
+    int cd_tflags = CustomData_get_offset(cdata, CD_TOOLFLAGS);
+
+    if (cd_tflags == -1) {
+      if (set_elems) {
+        BM_data_layer_add(bm, cdata, CD_TOOLFLAGS);
+      }
+      else {
+        CustomData_add_layer(cdata, CD_TOOLFLAGS, CD_ASSIGN, NULL, 0);
+      }
+
+      int idx = CustomData_get_layer_index(cdata, CD_TOOLFLAGS);
+
+      cdata->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY | CD_FLAG_ELEM_NOCOPY;
+      cd_tflags = cdata->layers[idx].offset;
+
+      if (set_elems) {
+        BMIter iter;
+        BMElem *elem;
+
+        BM_ITER_MESH (elem, &iter, bm, iters[i]) {
+          MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(elem, cd_tflags);
+
+          flags->flag = NULL;
+        }
+      }
+    }
+  }
+}
+
+static void bm_alloc_toolflags(BMesh *bm)
+{
+  bm_alloc_toolflags_cdlayers(bm, true);
+
+  CustomData *cdatas[3] = {&bm->vdata, &bm->edata, &bm->pdata};
+  BLI_mempool *flagpools[3] = {bm->vtoolflagpool, bm->etoolflagpool, bm->ftoolflagpool};
+  BLI_mempool *elempools[3] = { bm->vpool, bm->epool, bm->fpool };
+
+  for (int i = 0; i < 3; i++) {
+    CustomData *cdata = cdatas[i];
+    int cd_tflags = CustomData_get_offset(cdata, CD_TOOLFLAGS);
+
+    BLI_mempool_iter iter;
+    BLI_mempool_iternew(elempools[i], &iter);
+    BMElem *elem = (BMElem *)BLI_mempool_iterstep(&iter);
+
+    for (; elem; elem = (BMElem *)BLI_mempool_iterstep(&iter)) {
+      MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(elem, cd_tflags);
+
+      flags->flag = BLI_mempool_calloc(flagpools[i]);
+    }
+  }
+}
+
 /**
  * Re-allocates mesh data with/without toolflags.
  */
@@ -1655,14 +1736,6 @@ void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags)
     return;
   }
 
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_BM(bm);
-
-  BLI_mempool *vpool_dst = NULL;
-  BLI_mempool *epool_dst = NULL;
-  BLI_mempool *fpool_dst = NULL;
-
-  bm_mempool_init_ex(&allocsize, use_toolflags, &vpool_dst, &epool_dst, NULL, &fpool_dst);
-
   if (use_toolflags == false) {
     BLI_mempool_destroy(bm->vtoolflagpool);
     BLI_mempool_destroy(bm->etoolflagpool);
@@ -1671,18 +1744,20 @@ void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags)
     bm->vtoolflagpool = NULL;
     bm->etoolflagpool = NULL;
     bm->ftoolflagpool = NULL;
+
+    BM_data_layer_free(bm, &bm->vdata, CD_TOOLFLAGS);
+    BM_data_layer_free(bm, &bm->edata, CD_TOOLFLAGS);
+    BM_data_layer_free(bm, &bm->pdata, CD_TOOLFLAGS);
+  }
+  else {
+    bm_alloc_toolflags_cdlayers(bm, true);
   }
 
-  BM_mesh_rebuild(bm,
-                  &((struct BMeshCreateParams){
-                      .use_toolflags = use_toolflags,
-                  }),
-                  vpool_dst,
-                  epool_dst,
-                  NULL,
-                  fpool_dst);
-
   bm->use_toolflags = use_toolflags;
+
+  if (use_toolflags) {
+    BM_mesh_elem_toolflags_ensure(bm);
+  }
 }
 
 /* -------------------------------------------------------------------- */

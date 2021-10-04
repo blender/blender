@@ -66,6 +66,28 @@ void bm_restore_id(BMesh *bm, BMElem *elem, int id)
   }
 }
 
+static void copy_cdata_simple(BMesh *bm,
+                              CustomData *data_layer,
+                              BMElem *ele_dst,
+                              const BMElem *ele_src)
+{
+  int id = bm_save_id(bm, ele_dst);
+  int cd_tflags;
+  MToolFlags saved_tflags;
+
+  if ((cd_tflags = CustomData_get_offset(data_layer, CD_TOOLFLAGS)) != -1) {
+    saved_tflags = *(MToolFlags *)BM_ELEM_CD_GET_VOID_P(ele_dst, cd_tflags);
+  }
+
+  CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
+  CustomData_bmesh_copy_data(data_layer, data_layer, ele_src->head.data, &ele_dst->head.data);
+
+  if (cd_tflags != -1) {
+    *(MToolFlags *)BM_ELEM_CD_GET_VOID_P(ele_dst, cd_tflags) = saved_tflags;
+  }
+  bm_restore_id(bm, ele_dst, id);
+}
+
 /* edge and vertex share, currently there's no need to have different logic */
 static void bm_data_interp_from_elem(BMesh *bm,
                                      CustomData *data_layer,
@@ -81,13 +103,7 @@ static void bm_data_interp_from_elem(BMesh *bm,
         /* do nothing */
       }
       else {
-        int id = bm_save_id(bm, ele_dst);
-
-        CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
-        CustomData_bmesh_copy_data(
-            data_layer, data_layer, ele_src_1->head.data, &ele_dst->head.data);
-
-        bm_restore_id(bm, ele_dst, id);
+        copy_cdata_simple(bm, data_layer, ele_dst, ele_src_1);
       }
     }
     else if (fac >= 1.0f) {
@@ -95,13 +111,7 @@ static void bm_data_interp_from_elem(BMesh *bm,
         /* do nothing */
       }
       else {
-        int id = bm_save_id(bm, ele_dst);
-
-        CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
-        CustomData_bmesh_copy_data(
-            data_layer, data_layer, ele_src_2->head.data, &ele_dst->head.data);
-
-        bm_restore_id(bm, ele_dst, id);
+        copy_cdata_simple(bm, data_layer, ele_dst, ele_src_2);
       }
     }
     else {

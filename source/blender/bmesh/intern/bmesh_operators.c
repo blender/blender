@@ -31,8 +31,12 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_customdata.h"
+
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
+
+#include "DNA_meshdata_types.h"
 
 /* forward declarations */
 static void bmo_flag_layer_alloc(BMesh *bm);
@@ -1248,6 +1252,68 @@ void BMO_slot_buffer_flag_disable(BMesh *bm,
   }
 }
 
+ATTR_NO_OPT static void bmo_flag_layer_do(BMesh *bm,
+                                          int new_totflags,
+                                          void (*callback)(BMesh *bm,
+                                                           int cd_tflags,
+                                                           int itertype,
+                                                           int htype,
+                                                           int totelem,
+                                                           int new_totflags,
+                                                           BLI_mempool **pool_ptr))
+{
+  int iters[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+  int types[3] = {BM_VERT, BM_EDGE, BM_FACE};
+  int tots[3] = {bm->totvert, bm->totedge, bm->totface};
+
+  BLI_mempool **pools[3] = {&bm->vtoolflagpool, &bm->etoolflagpool, &bm->ftoolflagpool};
+  CustomData *cdatas[3] = {&bm->vdata, &bm->edata, &bm->pdata};
+
+  for (int i = 0; i < 3; i++) {
+    int cd_tflags = CustomData_get_offset(cdatas[i], CD_TOOLFLAGS);
+
+    if (cd_tflags == -1) {
+      printf("eek!\n");
+    }
+
+    callback(bm, cd_tflags, iters[i], types[i], tots[i], new_totflags, pools[i]);
+  }
+
+  bm->totflags = new_totflags;
+}
+
+ATTR_NO_OPT static void bmo_flag_layer_alloc_do(BMesh *bm,
+                                                int cd_tflags,
+                                                int itertype,
+                                                int htype,
+                                                int totelem,
+                                                int new_totflags,
+                                                BLI_mempool **pool_ptr)
+{
+  BMIter iter;
+  BMElem *elem;
+  int i;
+
+  const size_t old_totflags_size = (bm->totflags * sizeof(BMFlagLayer));
+  BLI_mempool *oldpool = *pool_ptr;
+  BLI_mempool *newpool = BLI_mempool_create(
+      sizeof(BMFlagLayer) * new_totflags, totelem, 512, BLI_MEMPOOL_NOP);
+
+  BM_ITER_MESH_INDEX (elem, &iter, bm, itertype, i) {
+    MToolFlags *flags = BM_ELEM_CD_GET_VOID_P(elem, cd_tflags);
+
+    short *oldflags = flags->flag;
+    flags->flag = BLI_mempool_calloc(newpool);
+
+    memcpy(flags->flag, oldflags, old_totflags_size);
+    BM_elem_index_set(elem, i); /* set_inline */
+    BM_ELEM_API_FLAG_CLEAR((BMElemF *)elem);
+  }
+
+  *pool_ptr = newpool;
+  BLI_mempool_destroy(oldpool);
+}
+
 /**
  * \brief ALLOC/FREE FLAG LAYER
  *
@@ -1261,165 +1327,42 @@ void BMO_slot_buffer_flag_disable(BMesh *bm,
  * all operators have been executed. This would
  * save a lot of realloc potentially.
  */
-static void bmo_flag_layer_alloc(BMesh *bm)
+ATTR_NO_OPT static void bmo_flag_layer_alloc(BMesh *bm)
 {
-  /* set the index values since we are looping over all data anyway,
-   * may save time later on */
-
-  BLI_mempool *voldpool = bm->vtoolflagpool; /* old flag pool */
-  BLI_mempool *eoldpool = bm->etoolflagpool; /* old flag pool */
-  BLI_mempool *foldpool = bm->ftoolflagpool; /* old flag pool */
-
-  /* store memcpy size for reuse */
-  const size_t old_totflags_size = (bm->totflags * sizeof(BMFlagLayer));
-
-  bm->totflags++;
-
-  bm->vtoolflagpool = BLI_mempool_create(
-      sizeof(BMFlagLayer) * bm->totflags, bm->totvert, 512, BLI_MEMPOOL_NOP);
-  bm->etoolflagpool = BLI_mempool_create(
-      sizeof(BMFlagLayer) * bm->totflags, bm->totedge, 512, BLI_MEMPOOL_NOP);
-  bm->ftoolflagpool = BLI_mempool_create(
-      sizeof(BMFlagLayer) * bm->totflags, bm->totface, 512, BLI_MEMPOOL_NOP);
-
-  /* now go through and memcpy all the flags. Loops don't get a flag layer at this time. */
-  BMIter iter;
-  int i;
-
-  BMVert_OFlag *v_oflag;
-  BLI_mempool *newpool = bm->vtoolflagpool;
-  BM_ITER_MESH_INDEX (v_oflag, &iter, bm, BM_VERTS_OF_MESH, i) {
-    void *oldflags = v_oflag->oflags;
-    v_oflag->oflags = BLI_mempool_calloc(newpool);
-    memcpy(v_oflag->oflags, oldflags, old_totflags_size);
-    BM_elem_index_set(&v_oflag->base, i); /* set_inline */
-    BM_ELEM_API_FLAG_CLEAR((BMElemF *)v_oflag);
-  }
-
-  BMEdge_OFlag *e_oflag;
-  newpool = bm->etoolflagpool;
-  BM_ITER_MESH_INDEX (e_oflag, &iter, bm, BM_EDGES_OF_MESH, i) {
-    void *oldflags = e_oflag->oflags;
-    e_oflag->oflags = BLI_mempool_calloc(newpool);
-    memcpy(e_oflag->oflags, oldflags, old_totflags_size);
-    BM_elem_index_set(&e_oflag->base, i); /* set_inline */
-    BM_ELEM_API_FLAG_CLEAR((BMElemF *)e_oflag);
-  }
-
-  BMFace_OFlag *f_oflag;
-  newpool = bm->ftoolflagpool;
-  BM_ITER_MESH_INDEX (f_oflag, &iter, bm, BM_FACES_OF_MESH, i) {
-    void *oldflags = f_oflag->oflags;
-    f_oflag->oflags = BLI_mempool_calloc(newpool);
-    memcpy(f_oflag->oflags, oldflags, old_totflags_size);
-    BM_elem_index_set(&f_oflag->base, i); /* set_inline */
-    BM_ELEM_API_FLAG_CLEAR((BMElemF *)f_oflag);
-  }
-
-  BLI_mempool_destroy(voldpool);
-  BLI_mempool_destroy(eoldpool);
-  BLI_mempool_destroy(foldpool);
-
+  bmo_flag_layer_do(bm, bm->totflags + 1, bmo_flag_layer_alloc_do);
   bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE);
 }
 
-static void bmo_flag_layer_free(BMesh *bm)
+ATTR_NO_OPT static void bmo_flag_layer_free(BMesh *bm)
 {
-  /* set the index values since we are looping over all data anyway,
-   * may save time later on */
 
-  BLI_mempool *voldpool = bm->vtoolflagpool;
-  BLI_mempool *eoldpool = bm->etoolflagpool;
-  BLI_mempool *foldpool = bm->ftoolflagpool;
+  bmo_flag_layer_do(bm, bm->totflags - 1, bmo_flag_layer_alloc_do);
+  bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE);
+}
 
-  /* store memcpy size for reuse */
-  const size_t new_totflags_size = ((bm->totflags - 1) * sizeof(BMFlagLayer));
-
-  /* de-increment the totflags first. */
-  bm->totflags--;
-
-  bm->vtoolflagpool = BLI_mempool_create(new_totflags_size, bm->totvert, 512, BLI_MEMPOOL_NOP);
-  bm->etoolflagpool = BLI_mempool_create(new_totflags_size, bm->totedge, 512, BLI_MEMPOOL_NOP);
-  bm->ftoolflagpool = BLI_mempool_create(new_totflags_size, bm->totface, 512, BLI_MEMPOOL_NOP);
-
-  /* now go through and memcpy all the flag */
+ATTR_NO_OPT static void bmo_flag_layer_clear_do(BMesh *bm,
+                                                int cd_tflags,
+                                                int itertype,
+                                                int htype,
+                                                int totelem,
+                                                int totflag,
+                                                BLI_mempool **pool_ptr)
+{
   BMIter iter;
+  BMElem *elem;
   int i;
 
-  BMVert_OFlag *v_oflag;
-  BLI_mempool *newpool = bm->vtoolflagpool;
-  BM_ITER_MESH_INDEX (v_oflag, &iter, bm, BM_VERTS_OF_MESH, i) {
-    void *oldflags = v_oflag->oflags;
-    v_oflag->oflags = BLI_mempool_alloc(newpool);
-    memcpy(v_oflag->oflags, oldflags, new_totflags_size);
-    BM_elem_index_set(&v_oflag->base, i); /* set_inline */
-    BM_ELEM_API_FLAG_CLEAR((BMElemF *)v_oflag);
+  BM_ITER_MESH_INDEX (elem, &iter, bm, itertype, i) {
+    MToolFlags *flags = BM_ELEM_CD_GET_VOID_P(elem, cd_tflags);
+    flags->flag[totflag - 1] = 0;
+
+    BM_elem_index_set(elem, i); /* set_inline */
   }
-
-  BMEdge_OFlag *e_oflag;
-  newpool = bm->etoolflagpool;
-  BM_ITER_MESH_INDEX (e_oflag, &iter, bm, BM_EDGES_OF_MESH, i) {
-    void *oldflags = e_oflag->oflags;
-    e_oflag->oflags = BLI_mempool_alloc(newpool);
-    memcpy(e_oflag->oflags, oldflags, new_totflags_size);
-    BM_elem_index_set(&e_oflag->base, i); /* set_inline */
-    BM_ELEM_API_FLAG_CLEAR((BMElemF *)e_oflag);
-  }
-
-  BMFace_OFlag *f_oflag;
-  newpool = bm->ftoolflagpool;
-  BM_ITER_MESH_INDEX (f_oflag, &iter, bm, BM_FACES_OF_MESH, i) {
-    void *oldflags = f_oflag->oflags;
-    f_oflag->oflags = BLI_mempool_alloc(newpool);
-    memcpy(f_oflag->oflags, oldflags, new_totflags_size);
-    BM_elem_index_set(&f_oflag->base, i); /* set_inline */
-    BM_ELEM_API_FLAG_CLEAR((BMElemF *)f_oflag);
-  }
-
-  BLI_mempool_destroy(voldpool);
-  BLI_mempool_destroy(eoldpool);
-  BLI_mempool_destroy(foldpool);
-
-  bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE);
 }
 
 static void bmo_flag_layer_clear(BMesh *bm)
 {
-  /* set the index values since we are looping over all data anyway,
-   * may save time later on */
-  const BMFlagLayer zero_flag = {0};
-
-  const int totflags_offset = bm->totflags - 1;
-
-  /* now go through and memcpy all the flag */
-  {
-    BMIter iter;
-    BMVert_OFlag *ele;
-    int i;
-    BM_ITER_MESH_INDEX (ele, &iter, bm, BM_VERTS_OF_MESH, i) {
-      ele->oflags[totflags_offset] = zero_flag;
-      BM_elem_index_set(&ele->base, i); /* set_inline */
-    }
-  }
-  {
-    BMIter iter;
-    BMEdge_OFlag *ele;
-    int i;
-    BM_ITER_MESH_INDEX (ele, &iter, bm, BM_EDGES_OF_MESH, i) {
-      ele->oflags[totflags_offset] = zero_flag;
-      BM_elem_index_set(&ele->base, i); /* set_inline */
-    }
-  }
-  {
-    BMIter iter;
-    BMFace_OFlag *ele;
-    int i;
-    BM_ITER_MESH_INDEX (ele, &iter, bm, BM_FACES_OF_MESH, i) {
-      ele->oflags[totflags_offset] = zero_flag;
-      BM_elem_index_set(&ele->base, i); /* set_inline */
-    }
-  }
-
+  bmo_flag_layer_do(bm, bm->totflags, bmo_flag_layer_clear_do);
   bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE);
 }
 

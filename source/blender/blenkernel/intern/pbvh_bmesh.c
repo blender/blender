@@ -5348,13 +5348,40 @@ ATTR_NO_OPT void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
   BLI_array_free(ltable);
 }
 
+extern char dyntopop_node_idx_layer_id[];
+extern char dyntopop_faces_areas_layer_id[];
+
+static void pbvh_bmesh_fetch_cdrefs(PBVH *pbvh)
+{
+  BMesh *bm = pbvh->bm;
+
+  int idx = CustomData_get_named_layer_index(
+      &bm->vdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
+  pbvh->cd_vert_node_offset = bm->vdata.layers[idx].offset;
+
+  idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
+  pbvh->cd_face_node_offset = bm->pdata.layers[idx].offset;
+
+  idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_FLOAT, dyntopop_faces_areas_layer_id);
+  pbvh->cd_face_area = bm->pdata.layers[idx].offset;
+
+  pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  pbvh->cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
+  pbvh->cd_faceset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+  pbvh->cd_dyn_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
+}
+
 void BKE_pbvh_bmesh_set_toolflags(PBVH *pbvh, bool use_toolflags)
 {
   if (use_toolflags == pbvh->bm->use_toolflags) {
     return;
   }
 
-  BKE_pbvh_bmesh_save_indices(pbvh);
+  // BKE_pbvh_bmesh_save_indices(pbvh);
   BM_mesh_toolflags_set(pbvh->bm, use_toolflags);
-  BKE_pbvh_bmesh_from_saved_indices(pbvh);
+
+  // customdata layout might've changed
+  pbvh_bmesh_fetch_cdrefs(pbvh);
+
+  // BKE_pbvh_bmesh_from_saved_indices(pbvh);
 }

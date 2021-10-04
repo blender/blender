@@ -30,9 +30,13 @@ typedef enum eBMCreateFlag {
   /* Skip CustomData - for all element types data,
    * use if we immediately write customdata into the element so this skips copying from 'example'
    * args or setting defaults, speeds up conversion when data is converted all at once. */
-  BM_CREATE_SKIP_CD = (1 << 2),
+  BM_CREATE_SKIP_CD = (1 << 2), /* if true, you must call bm_elem_check_toolflags(bm, elem) later
+                                   if toolflags are on */
   BM_CREATE_SKIP_ID = (1 << 3)
 } eBMCreateFlag;
+
+/* if toolflags are enabled, checks that internal pointer to toolflags it not null */
+void bm_elem_check_toolflags(BMesh *bm, BMElem *elem);
 
 BMVert *BM_vert_create(BMesh *bm,
                        const float co[3],
