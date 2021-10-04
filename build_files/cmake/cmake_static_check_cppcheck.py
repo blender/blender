@@ -36,7 +36,6 @@ USE_QUIET = (os.environ.get("QUIET", None) is not None)
 
 CHECKER_IGNORE_PREFIX = [
     "extern",
-    "intern/moto",
 ]
 
 CHECKER_BIN = "cppcheck"
@@ -48,6 +47,10 @@ CHECKER_ARGS = [
     "--max-configs=1",  # speeds up execution
     #  "--check-config", # when includes are missing
     "--enable=all",  # if you want sixty hundred pedantic suggestions
+
+    # Quiet output, otherwise all defines/includes are printed (overly verbose).
+    # Only enable this for troubleshooting (if defines are not set as expected for example).
+    "--quiet",
 
     # NOTE: `--cppcheck-build-dir=<dir>` is added later as a temporary directory.
 ]
@@ -81,7 +84,10 @@ def cppcheck() -> None:
             percent_str = "[" + ("%.2f]" % percent).rjust(7) + " %:"
 
             sys.stdout.flush()
-            sys.stdout.write("%s " % percent_str)
+            sys.stdout.write("%s %s\n" % (
+                percent_str,
+                os.path.relpath(c, project_source_info.SOURCE_DIR)
+            ))
 
         return subprocess.Popen(cmd)
 
