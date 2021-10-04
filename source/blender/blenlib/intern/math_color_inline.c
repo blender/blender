@@ -329,7 +329,7 @@ MINLINE float dither_random_value(float s, float t)
   hash0 -= floorf(hash0);
   hash1 -= floorf(hash1);
   /* Convert uniform distribution into triangle-shaped distribution. */
-  return hash0 + hash0 - 0.5f;
+  return hash0 + hash1 - 0.5f;
 }
 
 MINLINE void float_to_byte_dither_v3(
