@@ -89,20 +89,9 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
 
       /* Test if we need to record this transparent intersection. */
       if (ctx->num_hits < ctx->max_hits || ray->tfar < ctx->max_t) {
-        /* Skip already recorded intersections. */
-        int num_recorded_hits = min(ctx->num_hits, ctx->max_hits);
-
-        for (int i = 0; i < num_recorded_hits; ++i) {
-          if (current_isect.object == ctx->isect_s[i].object &&
-              current_isect.prim == ctx->isect_s[i].prim && current_isect.t == ctx->isect_s[i].t) {
-            /* This intersection was already recorded, skip it. */
-            *args->valid = 0;
-            return;
-          }
-        }
-
         /* If maximum number of hits was reached, replace the intersection with the
          * highest distance. We want to find the N closest intersections. */
+        const int num_recorded_hits = min(ctx->num_hits, ctx->max_hits);
         int isect_index = num_recorded_hits;
         if (num_recorded_hits + 1 >= ctx->max_hits) {
           float max_t = ctx->isect_s[0].t;
@@ -213,14 +202,6 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       if (ctx->num_hits < ctx->max_hits) {
         Intersection current_isect;
         kernel_embree_convert_hit(kg, ray, hit, &current_isect);
-        for (size_t i = 0; i < ctx->num_hits; ++i) {
-          if (current_isect.object == ctx->isect_s[i].object &&
-              current_isect.prim == ctx->isect_s[i].prim && current_isect.t == ctx->isect_s[i].t) {
-            /* This intersection was already recorded, skip it. */
-            *args->valid = 0;
-            break;
-          }
-        }
         Intersection *isect = &ctx->isect_s[ctx->num_hits];
         ++ctx->num_hits;
         *isect = current_isect;
