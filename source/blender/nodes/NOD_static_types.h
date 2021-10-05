@@ -374,7 +374,7 @@ DefNode(GeometryNode, GEO_NODE_PROXIMITY, def_geo_proximity, "PROXIMITY", Proxim
 DefNode(GeometryNode, GEO_NODE_REALIZE_INSTANCES, 0, "REALIZE_INSTANCES", RealizeInstances, "Realize Instances", "")
 DefNode(GeometryNode, GEO_NODE_SEPARATE_COMPONENTS, 0, "SEPARATE_COMPONENTS", SeparateComponents, "Separate Components", "")
 DefNode(GeometryNode, GEO_NODE_SET_POSITION, 0, "SET_POSITION", SetPosition, "Set Position", "")
-DefNode(GeometryNode, GEO_NODE_STRING_JOIN, 0, "STRING_JOIN", StringJoin, "String Join", "")
+DefNode(GeometryNode, GEO_NODE_STRING_JOIN, 0, "STRING_JOIN", StringJoin, "Join Strings", "")
 DefNode(GeometryNode, GEO_NODE_STRING_TO_CURVES, def_geo_string_to_curves, "STRING_TO_CURVES", StringToCurves, "String to Curves", "")
 DefNode(GeometryNode, GEO_NODE_SWITCH, def_geo_switch, "SWITCH", Switch, "Switch", "")
 DefNode(GeometryNode, GEO_NODE_TRANSFORM, 0, "TRANSFORM", Transform, "Transform", "")
