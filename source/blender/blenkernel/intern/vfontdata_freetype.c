@@ -427,7 +427,7 @@ VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
 
 static void *vfontdata_copy_characters_value_cb(const void *src)
 {
-  return BKE_vfontdata_char_copy(src, 0);
+  return BKE_vfontdata_char_copy(src);
 }
 
 VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, const int UNUSED(flag))
@@ -466,7 +466,7 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, unsigned long characte
   return che;
 }
 
-VChar *BKE_vfontdata_char_copy(const VChar *vchar_src, const int UNUSED(flag))
+VChar *BKE_vfontdata_char_copy(const VChar *vchar_src)
 {
   VChar *vchar_dst = MEM_dupallocN(vchar_src);
 

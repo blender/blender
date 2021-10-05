@@ -53,7 +53,7 @@ VFontData *BKE_vfontdata_from_freetypefont(struct PackedFile *pf);
 VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, const int flag);
 
 VChar *BKE_vfontdata_char_from_freetypefont(struct VFont *vfont, unsigned long character);
-VChar *BKE_vfontdata_char_copy(const VChar *vchar_src, const int flag);
+VChar *BKE_vfontdata_char_copy(const VChar *vchar_src);
 
 #ifdef __cplusplus
 }
