@@ -373,9 +373,9 @@ class CustomDataAttributes {
                          const AttributeDomain domain) const;
 };
 
-/* --------------------------------------------------------------------
- * #AttributeIDRef inline methods.
- */
+/* -------------------------------------------------------------------- */
+/** \name #AttributeIDRef Inline Methods
+ * \{ */
 
 inline AttributeIDRef::AttributeIDRef() = default;
 
@@ -438,9 +438,11 @@ inline const AnonymousAttributeID &AttributeIDRef::anonymous_id() const
   return *anonymous_id_;
 }
 
-/* --------------------------------------------------------------------
- * #OutputAttribute inline methods.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #OutputAttribute Inline Methods
+ * \{ */
 
 inline OutputAttribute::OutputAttribute() = default;
 inline OutputAttribute::OutputAttribute(OutputAttribute &&other) = default;
@@ -496,11 +498,15 @@ template<typename T> inline MutableSpan<T> OutputAttribute::as_span()
   return this->as_span().typed<T>();
 }
 
+/** \} */
+
 }  // namespace blender::bke
 
-/* --------------------------------------------------------------------
- * Extern template instantiations that are defined in `intern/extern_implementations.cc`.
- */
+/* -------------------------------------------------------------------- */
+/** \name External Template Instantiations
+ *
+ * Defined in `intern/extern_implementations.cc`.
+ * \{ */
 
 namespace blender::bke {
 extern template class OutputAttribute_Typed<float>;
@@ -509,3 +515,5 @@ extern template class OutputAttribute_Typed<float3>;
 extern template class OutputAttribute_Typed<bool>;
 extern template class OutputAttribute_Typed<ColorGeometry4f>;
 }  // namespace blender::bke
+
+/** \} */

@@ -22,12 +22,12 @@
 
 namespace blender::noise {
 
-/* --------------------------------------------------------------------
- * Hash functions.
-
+/* -------------------------------------------------------------------- */
+/** \name Hash Functions
+ *
  * Create a randomized hash from the given inputs. Contrary to hash functions in `BLI_hash.hh`
  * these functions produce better randomness but are more expensive to compute.
- */
+ * \{ */
 
 /* Hash integers to `uint32_t`. */
 uint32_t hash(uint32_t kx);
@@ -53,9 +53,11 @@ float hash_float_to_float(float2 k);
 float hash_float_to_float(float3 k);
 float hash_float_to_float(float4 k);
 
-/* --------------------------------------------------------------------
- * Perlin noise.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Perlin Noise
+ * \{ */
 
 /* Perlin noise in the range [-1, 1]. */
 float perlin_signed(float position);
@@ -98,5 +100,7 @@ float3 perlin_float3_fractal_distorted(float4 position,
                                        float octaves,
                                        float roughness,
                                        float distortion);
+
+/** \} */
 
 }  // namespace blender::noise

@@ -71,9 +71,9 @@ class ResourceScope : NonCopyable, NonMovable {
   LinearAllocator<> &linear_allocator();
 };
 
-/* --------------------------------------------------------------------
- * #ResourceScope inline methods.
- */
+/* -------------------------------------------------------------------- */
+/** \name #ResourceScope Inline Methods
+ * \{ */
 
 /**
  * Pass ownership of the resource to the ResourceScope. It will be destructed and freed when
@@ -164,5 +164,7 @@ inline LinearAllocator<> &ResourceScope::linear_allocator()
 {
   return allocator_;
 }
+
+/** \} */
 
 }  // namespace blender

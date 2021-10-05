@@ -255,9 +255,9 @@ class NodeDeclarationBuilder {
                                          Vector<SocketDeclarationPtr> &r_decls);
 };
 
-/* --------------------------------------------------------------------
- * #OutputFieldDependency inline methods.
- */
+/* -------------------------------------------------------------------- */
+/** \name #OutputFieldDependency Inline Methods
+ * \{ */
 
 inline OutputFieldDependency OutputFieldDependency::ForFieldSource()
 {
@@ -313,9 +313,11 @@ inline bool operator!=(const OutputFieldDependency &a, const OutputFieldDependen
   return !(a == b);
 }
 
-/* --------------------------------------------------------------------
- * #FieldInferencingInterface inline methods.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #FieldInferencingInterface Inline Methods
+ * \{ */
 
 inline bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
 {
@@ -327,9 +329,11 @@ inline bool operator!=(const FieldInferencingInterface &a, const FieldInferencin
   return !(a == b);
 }
 
-/* --------------------------------------------------------------------
- * #SocketDeclaration inline methods.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #SocketDeclaration Inline Methods
+ * \{ */
 
 inline StringRefNull SocketDeclaration::name() const
 {
@@ -355,9 +359,11 @@ inline const OutputFieldDependency &SocketDeclaration::output_field_dependency()
   return output_field_dependency_;
 }
 
-/* --------------------------------------------------------------------
- * #NodeDeclarationBuilder inline methods.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #NodeDeclarationBuilder Inline Methods
+ * \{ */
 
 inline NodeDeclarationBuilder::NodeDeclarationBuilder(NodeDeclaration &declaration)
     : declaration_(declaration)
@@ -395,9 +401,11 @@ inline typename DeclType::Builder &NodeDeclarationBuilder::add_socket(
   return socket_decl_builder_ref;
 }
 
-/* --------------------------------------------------------------------
- * #NodeDeclaration inline methods.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #NodeDeclaration Inline Methods
+ * \{ */
 
 inline Span<SocketDeclarationPtr> NodeDeclaration::inputs() const
 {
@@ -408,5 +416,7 @@ inline Span<SocketDeclarationPtr> NodeDeclaration::outputs() const
 {
   return outputs_;
 }
+
+/** \} */
 
 }  // namespace blender::nodes

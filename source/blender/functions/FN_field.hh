@@ -391,9 +391,9 @@ Vector<const GVArray *> evaluate_fields(ResourceScope &scope,
                                         const FieldContext &context,
                                         Span<GVMutableArray *> dst_varrays = {});
 
-/* --------------------------------------------------------------------
- * Utility functions for simple field creation and evaluation.
- */
+/* -------------------------------------------------------------------- */
+/** \name Utility functions for simple field creation and evaluation
+ * \{ */
 
 void evaluate_constant_field(const GField &field, void *r_value);
 
@@ -423,9 +423,11 @@ class IndexFieldInput final : public FieldInput {
                                         ResourceScope &scope) const final;
 };
 
-/* --------------------------------------------------------------------
- * #FieldNode inline methods.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #FieldNode Inline Methods
+ * \{ */
 
 inline FieldNode::FieldNode(bool is_input, bool depends_on_input)
     : is_input_(is_input), depends_on_input_(depends_on_input)
@@ -467,9 +469,11 @@ inline bool operator!=(const FieldNode &a, const FieldNode &b)
   return !(a == b);
 }
 
-/* --------------------------------------------------------------------
- * #FieldOperation inline methods.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #FieldOperation Inline Methods
+ * \{ */
 
 inline Span<GField> FieldOperation::inputs() const
 {
@@ -497,9 +501,11 @@ inline const CPPType &FieldOperation::output_cpp_type(int output_index) const
   return CPPType::get<float>();
 }
 
-/* --------------------------------------------------------------------
- * #FieldInput inline methods.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #FieldInput Inline Methods
+ * \{ */
 
 inline std::string FieldInput::socket_inspection_name() const
 {
@@ -522,5 +528,7 @@ inline const CPPType &FieldInput::output_cpp_type(int output_index) const
   UNUSED_VARS_NDEBUG(output_index);
   return *type_;
 }
+
+/** \} */
 
 }  // namespace blender::fn

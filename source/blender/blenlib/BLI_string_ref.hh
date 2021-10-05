@@ -151,9 +151,9 @@ class StringRef : public StringRefBase {
   constexpr char operator[](int64_t index) const;
 };
 
-/* --------------------------------------------------------------------
- * #StringRefBase inline methods.
- */
+/* -------------------------------------------------------------------- */
+/** \name #StringRefBase Inline Methods
+ * \{ */
 
 constexpr StringRefBase::StringRefBase(const char *data, const int64_t size)
     : data_(data), size_(size)
@@ -418,9 +418,11 @@ constexpr StringRef StringRefBase::trim(StringRef characters_to_remove) const
   return this->substr(find_front, substr_len);
 }
 
-/* --------------------------------------------------------------------
- * #StringRefNull inline methods.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #StringRefNull Inline Methods
+ * \{ */
 
 constexpr StringRefNull::StringRefNull() : StringRefBase("", 0)
 {
@@ -476,9 +478,11 @@ constexpr const char *StringRefNull::c_str() const
   return data_;
 }
 
-/* --------------------------------------------------------------------
- * #StringRef inline methods.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #StringRef Inline Methods
+ * \{ */
 
 constexpr StringRef::StringRef() : StringRefBase(nullptr, 0)
 {
@@ -570,9 +574,11 @@ constexpr StringRef::StringRef(std::string_view view)
 {
 }
 
-/* --------------------------------------------------------------------
- * Operator overloads
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Overloads
+ * \{ */
 
 inline std::ostream &operator<<(std::ostream &stream, StringRef ref)
 {
@@ -631,5 +637,7 @@ constexpr bool operator>=(StringRef a, StringRef b)
 {
   return std::string_view(a) >= std::string_view(b);
 }
+
+/** \} */
 
 }  // namespace blender
