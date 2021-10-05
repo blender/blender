@@ -732,16 +732,16 @@ typedef struct wmXrActionData {
   eXrActionType type;
   /** State. Set appropriately based on type. */
   float state[2];
-  /** State of the other subaction path for bimanual actions. */
+  /** State of the other sub-action path for bimanual actions. */
   float state_other[2];
 
   /** Input threshold for float/vector2f actions. */
   float float_threshold;
 
-  /** Controller aim pose corresponding to the action's subaction path. */
+  /** Controller aim pose corresponding to the action's sub-action path. */
   float controller_loc[3];
   float controller_rot[4];
-  /** Controller aim pose of the other subaction path for bimanual actions. */
+  /** Controller aim pose of the other sub-action path for bimanual actions. */
   float controller_loc_other[3];
   float controller_rot_other[4];
 
@@ -749,14 +749,14 @@ typedef struct wmXrActionData {
   struct wmOperatorType *ot;
   struct IDProperty *op_properties;
 
-  /** Whether bimanual interaction is occuring. */
+  /** Whether bimanual interaction is occurring. */
   bool bimanual;
 } wmXrActionData;
 #endif
 
 /** Timer flags. */
 typedef enum {
-  /** Do not attempt to free customdata pointer even if non-NULL. */
+  /** Do not attempt to free custom-data pointer even if non-NULL. */
   WM_TIMER_NO_FREE_CUSTOM_DATA = 1 << 0,
 } wmTimerFlags;
 

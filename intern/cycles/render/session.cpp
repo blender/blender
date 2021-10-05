@@ -157,7 +157,7 @@ void Session::run_main_render_loop()
       continue;
     }
 
-    /* Stop rendering if error happenned during scene update or other step of preparing scene
+    /* Stop rendering if error happened during scene update or other step of preparing scene
      * for render. */
     if (device->have_error()) {
       progress.set_error(device->error_message());
@@ -179,7 +179,7 @@ void Session::run_main_render_loop()
       /* update status and timing */
       update_status_time();
 
-      /* Stop rendering if error happenned during path tracing. */
+      /* Stop rendering if error happened during path tracing. */
       if (device->have_error()) {
         progress.set_error(device->error_message());
         break;

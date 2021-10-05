@@ -249,7 +249,7 @@ static void rtc_filter_func_thick_curve(const RTCFilterFunctionNArguments *args)
   const RTCRay *ray = (RTCRay *)args->ray;
   RTCHit *hit = (RTCHit *)args->hit;
 
-  /* Always ignore backfacing intersections. */
+  /* Always ignore back-facing intersections. */
   if (dot(make_float3(ray->dir_x, ray->dir_y, ray->dir_z),
           make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z)) > 0.0f) {
     *args->valid = 0;
@@ -262,7 +262,7 @@ static void rtc_filter_occluded_func_thick_curve(const RTCFilterFunctionNArgumen
   const RTCRay *ray = (RTCRay *)args->ray;
   RTCHit *hit = (RTCHit *)args->hit;
 
-  /* Always ignore backfacing intersections. */
+  /* Always ignore back-facing intersections. */
   if (dot(make_float3(ray->dir_x, ray->dir_y, ray->dir_z),
           make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z)) > 0.0f) {
     *args->valid = 0;

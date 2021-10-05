@@ -253,13 +253,13 @@ bool BKE_image_is_stereo(struct Image *ima);
 struct RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, struct Image *ima);
 void BKE_image_release_renderresult(struct Scene *scene, struct Image *ima);
 
-/* for multilayer images as well as for singlelayer */
+/* For multi-layer images as well as for single-layer. */
 bool BKE_image_is_openexr(struct Image *ima);
 
-/* for multiple slot render, call this before render */
+/* For multiple slot render, call this before render. */
 void BKE_image_backup_render(struct Scene *scene, struct Image *ima, bool free_current_slot);
 
-/* for singlelayer openexr saving */
+/* For single-layer OpenEXR saving */
 bool BKE_image_save_openexr_multiview(struct Image *ima,
                                       struct ImBuf *ibuf,
                                       const char *filepath,
@@ -285,22 +285,22 @@ void BKE_image_packfiles_from_mem(struct ReportList *reports,
                                   char *data,
                                   const size_t data_len);
 
-/* prints memory statistics for images */
+/* Prints memory statistics for images. */
 void BKE_image_print_memlist(struct Main *bmain);
 
-/* merge source into dest, and free source */
+/* Merge source into dest, and free source. */
 void BKE_image_merge(struct Main *bmain, struct Image *dest, struct Image *source);
 
-/* scale the image */
+/* Scale the image. */
 bool BKE_image_scale(struct Image *image, int width, int height);
 
-/* check if texture has alpha (depth=32) */
+/* Check if texture has alpha (depth=32). */
 bool BKE_image_has_alpha(struct Image *image);
 
-/* check if texture has gpu texture code */
+/* Check if texture has GPU texture code. */
 bool BKE_image_has_opengl_texture(struct Image *ima);
 
-/* get tile index for tiled images */
+/* Get tile index for tiled images. */
 void BKE_image_get_tile_label(struct Image *ima,
                               struct ImageTile *tile,
                               char *label,
@@ -369,10 +369,10 @@ struct ImBuf *BKE_image_get_first_ibuf(struct Image *image);
 /* Not to be use directly. */
 struct GPUTexture *BKE_image_create_gpu_texture_from_ibuf(struct Image *image, struct ImBuf *ibuf);
 
-/* Get the GPUTexture for a given `Image`.
+/* Get the #GPUTexture for a given `Image`.
  *
  * `iuser` and `ibuf` are mutual exclusive parameters. The caller can pass the `ibuf` when already
- * available. It is also required when requesting the GPUTexture for a render result. */
+ * available. It is also required when requesting the #GPUTexture for a render result. */
 struct GPUTexture *BKE_image_get_gpu_texture(struct Image *image,
                                              struct ImageUser *iuser,
                                              struct ImBuf *ibuf);

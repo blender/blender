@@ -565,7 +565,7 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
   drw_viewport_data_reset(dst->vmempool);
 
   if (size == NULL && viewport == NULL) {
-    /* Avoid division by 0. Engines will either overide this or not use it. */
+    /* Avoid division by 0. Engines will either override this or not use it. */
     dst->size[0] = 1.0f;
     dst->size[1] = 1.0f;
   }
@@ -1335,7 +1335,7 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
       .object_mode = OB_MODE_OBJECT,
   };
 
-  /* Custom lightweight init to avoid reseting the mempools. */
+  /* Custom lightweight initialize to avoid resetting the memory-pools. */
   DST.viewport = viewport;
   DST.vmempool = drw_viewport_data_ensure(DST.viewport);
 

@@ -1496,14 +1496,15 @@ static void free_anim_ffmpeg(struct anim *anim)
 
 #endif
 
-/* Try to init the anim struct.
- * Returns true on success.*/
-
+/**
+ * Try to initialize the #anim struct.
+ * Returns true on success.
+ */
 static bool anim_getnew(struct anim *anim)
 {
   BLI_assert(anim->curtype == ANIM_NONE);
   if (anim == NULL) {
-    /* Nothing to init. */
+    /* Nothing to initialize. */
     return false;
   }
 

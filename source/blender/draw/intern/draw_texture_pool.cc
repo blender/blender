@@ -47,7 +47,7 @@ DRWTexturePool *DRW_texture_pool_create(void)
 
 void DRW_texture_pool_free(DRWTexturePool *pool)
 {
-  /* Reseting the pool twice will effectively free all textures. */
+  /* Resetting the pool twice will effectively free all textures. */
   DRW_texture_pool_reset(pool);
   DRW_texture_pool_reset(pool);
   delete pool;
@@ -86,7 +86,7 @@ GPUTexture *DRW_texture_pool_query(
     if (user_bit & handle.users_bits) {
       continue;
     }
-    /* If everthing matches reuse the texture. */
+    /* If everything matches reuse the texture. */
     if ((GPU_texture_format(handle.texture) == format) &&
         (GPU_texture_width(handle.texture) == width) &&
         (GPU_texture_height(handle.texture) == height)) {

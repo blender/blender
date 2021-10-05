@@ -3465,7 +3465,7 @@ static void wm_event_free_and_remove_from_queue_if_valid(wmEvent *event)
 /**
  * Special handling for XR events.
  *
- * Although XR events are added to regular window queues, they are handled in an "offscreen area"
+ * Although XR events are added to regular window queues, they are handled in an "off-screen area"
  * context that is owned entirely by XR runtime data and not tied to a window.
  */
 static void wm_event_handle_xrevent(bContext *C,

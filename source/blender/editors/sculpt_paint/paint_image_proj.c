@@ -5262,7 +5262,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
             color_f[3] *= ((float)projPixel->mask) * (1.0f / 65535.0f) * brush_alpha;
 
             if (is_floatbuf) {
-              /* convert to premultipied */
+              /* Convert to premutliplied. */
               mul_v3_fl(color_f, color_f[3]);
               IMB_blend_color_float(
                   projPixel->pixel.f_pt, projPixel->origColor.f_pt, color_f, ps->blend);
