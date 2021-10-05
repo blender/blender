@@ -1918,6 +1918,16 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
  */
 void BKE_lib_override_library_make_local(ID *id)
 {
+ if (!ID_IS_OVERRIDE_LIBRARY(id)) {
+    return;
+  }
+  if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id)) {
+    /* We should never directly 'make local' virtual overrides (aka shape keys). */
+    BLI_assert_unreachable();
+    id->flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+    return;
+  }
+
   BKE_lib_override_library_free(&id->override_library, true);
 
   Key *shape_key = BKE_key_from_id(id);
