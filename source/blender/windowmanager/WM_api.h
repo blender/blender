@@ -989,6 +989,7 @@ bool WM_region_use_viewport(struct ScrArea *area, struct ARegion *region);
 bool WM_xr_session_exists(const wmXrData *xr);
 bool WM_xr_session_is_ready(const wmXrData *xr);
 struct wmXrSessionState *WM_xr_session_state_handle_get(const wmXrData *xr);
+struct ScrArea *WM_xr_session_area_get(const wmXrData *xr);
 void WM_xr_session_base_pose_reset(wmXrData *xr);
 bool WM_xr_session_state_viewer_pose_location_get(const wmXrData *xr, float r_location[3]);
 bool WM_xr_session_state_viewer_pose_rotation_get(const wmXrData *xr, float r_rotation[4]);

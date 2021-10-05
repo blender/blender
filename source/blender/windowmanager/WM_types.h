@@ -120,6 +120,7 @@ struct wmWindowManager;
 #include "BLI_compiler_attrs.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
+#include "DNA_xr_types.h"
 #include "RNA_types.h"
 
 /* exported types for WM */
@@ -721,6 +722,36 @@ typedef struct wmXrActionState {
   };
   int type; /* eXrActionType */
 } wmXrActionState;
+
+typedef struct wmXrActionData {
+  /** Action set name. */
+  char action_set[64];
+  /** Action name. */
+  char action[64];
+  /** Type. */
+  eXrActionType type;
+  /** State. Set appropriately based on type. */
+  float state[2];
+  /** State of the other subaction path for bimanual actions. */
+  float state_other[2];
+
+  /** Input threshold for float/vector2f actions. */
+  float float_threshold;
+
+  /** Controller aim pose corresponding to the action's subaction path. */
+  float controller_loc[3];
+  float controller_rot[4];
+  /** Controller aim pose of the other subaction path for bimanual actions. */
+  float controller_loc_other[3];
+  float controller_rot_other[4];
+
+  /** Operator. */
+  struct wmOperatorType *ot;
+  struct IDProperty *op_properties;
+
+  /** Whether bimanual interaction is occuring. */
+  bool bimanual;
+} wmXrActionData;
 #endif
 
 /** Timer flags. */

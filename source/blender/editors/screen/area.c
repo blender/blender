@@ -2001,6 +2001,68 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
   }
 }
 
+static void area_offscreen_init(wmWindowManager *wm, ScrArea *area)
+{
+  area->type = BKE_spacetype_from_id(area->spacetype);
+
+  if (area->type == NULL) {
+    area->spacetype = SPACE_VIEW3D;
+    area->type = BKE_spacetype_from_id(area->spacetype);
+  }
+
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    region->type = BKE_regiontype_from_id_or_first(area->type, region->regiontype);
+  }
+}
+
+ScrArea *ED_area_offscreen_create(wmWindowManager *wm, wmWindow *win, eSpace_Type space_type)
+{
+  ScrArea *area = MEM_callocN(sizeof(*area), __func__);
+  area->spacetype = space_type;
+
+  screen_area_spacelink_add(WM_window_get_active_scene(win), area, space_type);
+  area_offscreen_init(wm, area);
+
+  return area;
+}
+
+static void area_offscreen_exit(wmWindowManager *wm, wmWindow *win, ScrArea *area)
+{
+  if (area->type && area->type->exit) {
+    area->type->exit(wm, area);
+  }
+
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    if (region->type && region->type->exit) {
+      region->type->exit(wm, region);
+    }
+
+    WM_event_modal_handler_region_replace(win, region, NULL);
+    WM_draw_region_free(region, true);
+
+    MEM_SAFE_FREE(region->headerstr);
+
+    if (region->regiontimer) {
+      WM_event_remove_timer(wm, win, region->regiontimer);
+      region->regiontimer = NULL;
+    }
+
+    if (wm->message_bus) {
+      WM_msgbus_clear_by_owner(wm->message_bus, region);
+    }
+  }
+
+  WM_event_modal_handler_area_replace(win, area, NULL);
+}
+
+void ED_area_offscreen_free(wmWindowManager *wm, wmWindow *win, ScrArea *area)
+{
+  area_offscreen_exit(wm, win, area);
+
+  BKE_screen_area_free(area);
+  MEM_freeN(area);
+}
+
 static void region_update_rect(ARegion *region)
 {
   region->winx = BLI_rcti_size_x(&region->winrct) + 1;
