@@ -292,7 +292,7 @@ typedef struct BMFlagLayer {
 
 struct RangeTreeUInt;
 
-#define WITH_BM_ID_FREELIST
+//#define WITH_BM_ID_FREELIST
 
 typedef struct BMesh {
   int totvert, totedge, totloop, totface;
