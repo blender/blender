@@ -4105,7 +4105,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
 }
 
 /* Test AABB against sphere. */
-bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v)
+ATTR_NO_OPT bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v)
 {
   SculptSearchSphereData *data = data_v;
   const float *center;
@@ -6144,6 +6144,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
   const bool grab_silhouette = brush->flag2 & BRUSH_GRAB_SILHOUETTE;
   const bool use_geodesic_dists = brush->flag2 & BRUSH_USE_SURFACE_FALLOFF;
 
+  int i = 0;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
@@ -6192,7 +6193,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
 static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
   float grab_delta[3];
 
   copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
@@ -9215,6 +9216,7 @@ static void SCULPT_run_command_list(
     Sculpt *sd, Object *ob, Brush *brush, BrushCommandList *list, UnifiedPaintSettings *ups)
 {
   SculptSession *ss = ob->sculpt;
+
   int totnode;
   PBVHNode **nodes;
 
@@ -9277,7 +9279,7 @@ static void SCULPT_run_command_list(
 
     float radius = BRUSHSET_GET_FLOAT(
         ss->cache->channels_final, radius, &ss->cache->input_mapping);
-    radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->true_location, radius);
+    radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->location, radius);
 
     radius_max = max_ff(radius_max, radius);
     ss->cache->brush = brush;
@@ -9425,7 +9427,7 @@ static void SCULPT_run_command_list(
     BKE_brush_channelset_clear_inherit(cmd->params_mapped);
 
     float radius = BRUSHSET_GET_FLOAT(cmd->params_mapped, radius, NULL);
-    radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->true_location, radius);
+    radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->location, radius);
 
     ss->cache->radius = radius;
     ss->cache->radius_squared = radius * radius;
@@ -9440,7 +9442,6 @@ static void SCULPT_run_command_list(
            ss->cache->input_mapping.pressure,
            spacing);  //// cmd->last_spacing_t[SCULPT_get_symmetry_pass(ss)]);
 #endif
-
     bool noskip = paint_stroke_apply_subspacing(
         ss->cache->stroke,
         spacing,
@@ -9464,7 +9465,6 @@ static void SCULPT_run_command_list(
     BKE_brush_channelset_compat_load(cmd->params_mapped, brush2, false);
 
     ss->cache->use_plane_trim = BRUSHSET_GET_INT(cmd->params_mapped, use_plane_trim, NULL);
-
     float plane_trim = BRUSHSET_GET_FLOAT(cmd->params_mapped, plane_trim, NULL);
     ss->cache->plane_trim_squared = plane_trim * plane_trim;
 
@@ -9475,13 +9475,11 @@ static void SCULPT_run_command_list(
 
     brush2->sculpt_tool = cmd->tool;
     BrushChannelSet *channels_final = ss->cache->channels_final;
-
     ss->cache->channels_final = cmd->params_mapped;
 
     ss->cache->brush = brush2;
 
     ups->alpha = BRUSHSET_GET_FLOAT(cmd->params_mapped, strength, NULL);
-
     if (cmd->tool == SCULPT_TOOL_SMOOTH) {
       ss->cache->bstrength = brush2->alpha;
     }
@@ -9493,7 +9491,6 @@ static void SCULPT_run_command_list(
     if (!BRUSHSET_GET_INT(cmd->params_mapped, use_ctrl_invert, NULL)) {
       ss->cache->bstrength = fabsf(ss->cache->bstrength);
     }
-
     // brush2->alpha = fabs(ss->cache->bstrength);
 
     // printf("brush2->alpha: %f\n", brush2->alpha);
@@ -9520,15 +9517,12 @@ static void SCULPT_run_command_list(
         nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
       }
     }
-
     if (sculpt_brush_needs_normal(ss, brush2)) {
       update_sculpt_normal(sd, ob, nodes, totnode);
     }
-
     if (brush2->mtex.brush_map_mode == MTEX_MAP_MODE_AREA) {
       update_brush_local_mat(sd, ob);
     }
-
     if (brush2->sculpt_tool == SCULPT_TOOL_POSE && SCULPT_stroke_is_first_brush_step(ss->cache)) {
       SCULPT_pose_brush_init(sd, ob, ss, brush2);
     }
@@ -9545,7 +9539,6 @@ static void SCULPT_run_command_list(
     }
 
     bool invert = ss->cache->pen_flip || ss->cache->invert || brush2->flag & BRUSH_DIR_IN;
-
     SCULPT_replay_log_append(sd, ss, ob);
 
     /* Apply one type of brush action. */
@@ -9697,27 +9690,33 @@ static void SCULPT_run_command_list(
         }
         break;
     }
-
     if (ss->needs_pbvh_rebuild) {
       bContext *C = ss->cache->vc->C;
 
       /* The mesh was modified, rebuild the PBVH. */
       BKE_particlesystem_reset_all(ob);
       BKE_ptcache_object_reset(CTX_data_scene(C), ob, PTCACHE_RESET_OUTDATED);
-
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       BKE_scene_graph_update_tagged(CTX_data_ensure_evaluated_depsgraph(C), CTX_data_main(C));
       SCULPT_pbvh_clear(ob);
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
-
       if (brush->sculpt_tool == SCULPT_TOOL_ARRAY) {
         SCULPT_tag_update_overlays(C);
       }
       ss->needs_pbvh_rebuild = false;
     }
 
-    sculpt_combine_proxies(sd, ob);
+    // brushes with origdata and large brush radii can't apply
+    // proxies here without interfering with each other.
+    if (!ELEM(brush->sculpt_tool,
+              SCULPT_TOOL_GRAB,
+              SCULPT_TOOL_ELASTIC_DEFORM,
+              SCULPT_TOOL_ROTATE,
+              SCULPT_TOOL_TWIST)) {
+      sculpt_combine_proxies(sd, ob);
+    }
+
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB);
 
     ss->cache->channels_final = channels_final;
@@ -9746,7 +9745,6 @@ static void SCULPT_run_command_list(
       SCULPT_cloth_brush_do_simulation_step(sd, ob, ss->cache->cloth_sim, nodes, totnode);
     }
   }
-
   ss->cache->brush = oldbrush;
   ss->cache->radius = start_radius;
   ss->cache->radius_squared = start_radius * start_radius;

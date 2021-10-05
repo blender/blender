@@ -1119,7 +1119,7 @@ def brush_settings(layout, context, brush, popover=False):
                 UnifiedPaintPanel.prop_unified(box, context, brush, "use_weighted_smooth")
                 UnifiedPaintPanel.prop_unified(box, context, brush, "preserve_faceset_boundary")
 
-                if brush.channels["preserve_faceset_boundary"].value:
+                if UnifiedPaintPanel.get_channel_value(context, brush, "preserve_faceset_boundary"):
                     UnifiedPaintPanel.prop_unified(box, context, brush, "autosmooth_fset_slide", slider=True)
 
             if advanced:
@@ -1637,7 +1637,7 @@ def brush_settings(layout, context, brush, popover=False):
             #col.prop(brush, "use_weighted_smooth")
             #col.prop(brush, "preserve_faceset_boundary")
 
-            if brush.channels["preserve_faceset_boundary"].value:
+            if UnifiedPaintPanel.get_channel_value(context, brush, "preserve_faceset_boundary"):
                 UnifiedPaintPanel.channel_unified(
                     layout,
                     context,
