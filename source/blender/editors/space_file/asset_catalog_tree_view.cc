@@ -151,9 +151,7 @@ ui::BasicTreeViewItem &AssetCatalogTreeView::build_catalog_items_recursive(
 {
   ui::BasicTreeViewItem &view_item = view_parent_item.add_tree_item<AssetCatalogTreeViewItem>(
       &catalog);
-  if (is_active_catalog(catalog.get_catalog_id())) {
-    view_item.activate();
-  }
+  view_item.is_active([this, &catalog]() { return is_active_catalog(catalog.get_catalog_id()); });
 
   catalog.foreach_child([&view_item, this](AssetCatalogTreeItem &child) {
     build_catalog_items_recursive(view_item, child);
@@ -171,9 +169,8 @@ void AssetCatalogTreeView::add_all_item()
     params->asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
     WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
   });
-  if (params->asset_catalog_visibility == FILE_SHOW_ASSETS_ALL_CATALOGS) {
-    item.activate();
-  }
+  item.is_active(
+      [params]() { return params->asset_catalog_visibility == FILE_SHOW_ASSETS_ALL_CATALOGS; });
 }
 
 void AssetCatalogTreeView::add_unassigned_item()
@@ -187,10 +184,8 @@ void AssetCatalogTreeView::add_unassigned_item()
     params->asset_catalog_visibility = FILE_SHOW_ASSETS_WITHOUT_CATALOG;
     WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
   });
-
-  if (params->asset_catalog_visibility == FILE_SHOW_ASSETS_WITHOUT_CATALOG) {
-    item.activate();
-  }
+  item.is_active(
+      [params]() { return params->asset_catalog_visibility == FILE_SHOW_ASSETS_WITHOUT_CATALOG; });
 }
 
 bool AssetCatalogTreeView::is_active_catalog(CatalogID catalog_id) const

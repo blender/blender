@@ -92,17 +92,20 @@ void AbstractTreeView::update_from_old(uiBlock &new_block)
 {
   uiBlock *old_block = new_block.oldblock;
   if (!old_block) {
+    /* Initial construction, nothing to update. */
+    is_reconstructed_ = true;
     return;
   }
 
   uiTreeViewHandle *old_view_handle = ui_block_view_find_matching_in_old_block(
       &new_block, reinterpret_cast<uiTreeViewHandle *>(this));
-  if (!old_view_handle) {
-    return;
-  }
+  BLI_assert(old_view_handle);
 
   AbstractTreeView &old_view = reinterpret_cast<AbstractTreeView &>(*old_view_handle);
   update_children_from_old_recursive(*this, old_view);
+
+  /* Finished (re-)constructing the tree. */
+  is_reconstructed_ = true;
 }
 
 void AbstractTreeView::update_children_from_old_recursive(const TreeViewItemContainer &new_items,
@@ -134,11 +137,29 @@ AbstractTreeViewItem *AbstractTreeView::find_matching_child(
   return nullptr;
 }
 
+bool AbstractTreeView::is_reconstructed() const
+{
+  return is_reconstructed_;
+}
+
+void AbstractTreeView::change_state_delayed()
+{
+  BLI_assert_msg(
+      is_reconstructed(),
+      "These state changes are supposed to be delayed until reconstruction is completed");
+  foreach_item([](AbstractTreeViewItem &item) { item.change_state_delayed(); });
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AbstractTreeViewItem::on_activate()
 {
   /* Do nothing by default. */
+}
+
+void AbstractTreeViewItem::is_active(IsActiveFn is_active_fn)
+{
+  is_active_fn_ = is_active_fn;
 }
 
 bool AbstractTreeViewItem::on_drop(const wmDrag & /*drag*/)
@@ -186,6 +207,9 @@ int AbstractTreeViewItem::count_parents() const
 
 void AbstractTreeViewItem::activate()
 {
+  BLI_assert_msg(get_tree_view().is_reconstructed(),
+                 "Item activation can't be done until reconstruction is completed");
+
   if (is_active()) {
     return;
   }
@@ -207,11 +231,15 @@ void AbstractTreeViewItem::deactivate()
 
 bool AbstractTreeViewItem::is_active() const
 {
+  BLI_assert_msg(get_tree_view().is_reconstructed(),
+                 "State can't be queried until reconstruction is completed");
   return is_active_;
 }
 
 bool AbstractTreeViewItem::is_collapsed() const
 {
+  BLI_assert_msg(get_tree_view().is_reconstructed(),
+                 "State can't be queried until reconstruction is completed");
   return is_collapsible() && !is_open_;
 }
 
@@ -237,6 +265,13 @@ void AbstractTreeViewItem::ensure_parents_uncollapsed()
   }
 }
 
+void AbstractTreeViewItem::change_state_delayed()
+{
+  if (is_active_fn_()) {
+    activate();
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 TreeViewBuilder::TreeViewBuilder(uiBlock &block) : block_(block)
@@ -247,6 +282,7 @@ void TreeViewBuilder::build_tree_view(AbstractTreeView &tree_view)
 {
   tree_view.build_tree();
   tree_view.update_from_old(block_);
+  tree_view.change_state_delayed();
   tree_view.build_layout_from_tree(TreeViewLayoutBuilder(block_));
 }
 
@@ -283,11 +319,10 @@ BasicTreeViewItem::BasicTreeViewItem(StringRef label, BIFIconID icon_) : icon(ic
   label_ = label;
 }
 
-static void tree_row_click_fn(struct bContext *UNUSED(C), void *but_arg1, void *UNUSED(arg2))
+void BasicTreeViewItem::tree_row_click_fn(struct bContext * /*C*/, void *but_arg1, void * /*arg2*/)
 {
   uiButTreeRow *tree_row_but = (uiButTreeRow *)but_arg1;
-  AbstractTreeViewItem &tree_item = reinterpret_cast<AbstractTreeViewItem &>(
-      *tree_row_but->tree_item);
+  BasicTreeViewItem &tree_item = reinterpret_cast<BasicTreeViewItem &>(*tree_row_but->tree_item);
 
   /* Let a click on an opened item activate it, a second click will close it then.
    * TODO Should this be for asset catalogs only? */

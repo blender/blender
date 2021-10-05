@@ -139,10 +139,16 @@ class AbstractTreeView : public TreeViewItemContainer {
   friend TreeViewBuilder;
   friend TreeViewLayoutBuilder;
 
+  bool is_reconstructed_ = false;
+
  public:
   virtual ~AbstractTreeView() = default;
 
   void foreach_item(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
+
+  /** Check if the tree is fully (re-)constructed. That means, both #build_tree() and
+   * #update_from_old() have finished. */
+  bool is_reconstructed() const;
 
  protected:
   virtual void build_tree() = 0;
@@ -156,6 +162,10 @@ class AbstractTreeView : public TreeViewItemContainer {
                                                  const TreeViewItemContainer &old_items);
   static AbstractTreeViewItem *find_matching_child(const AbstractTreeViewItem &lookup_item,
                                                    const TreeViewItemContainer &items);
+  /** Items may want to do additional work when state changes. But these state changes can only be
+   * reliably detected after the tree was reconstructed (see #is_reconstructed()). So this is done
+   * delayed. */
+  void change_state_delayed();
   void build_layout_from_tree(const TreeViewLayoutBuilder &builder);
 };
 
@@ -175,8 +185,14 @@ class AbstractTreeView : public TreeViewItemContainer {
 class AbstractTreeViewItem : public TreeViewItemContainer {
   friend class AbstractTreeView;
 
+ public:
+  using IsActiveFn = std::function<bool()>;
+
+ private:
   bool is_open_ = false;
   bool is_active_ = false;
+
+  IsActiveFn is_active_fn_;
 
  protected:
   /** This label is used for identifying an item (together with its parent's labels). */
@@ -188,6 +204,7 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   virtual void build_row(uiLayout &row) = 0;
 
   virtual void on_activate();
+  virtual void is_active(IsActiveFn is_active_fn);
   virtual bool on_drop(const wmDrag &drag);
   virtual bool can_drop(const wmDrag &drag) const;
   /** Custom text to display when dragging over a tree item. Should explain what happens when
@@ -211,16 +228,29 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
 
   const AbstractTreeView &get_tree_view() const;
   int count_parents() const;
-  /** Activates this item, deactivates other items, calls the #AbstractTreeViewItem::on_activate()
-   * function and ensures this item's parents are not collapsed (so the item is visible). */
-  void activate();
   void deactivate();
+  /** Must not be called before the tree was reconstructed (see #is_reconstructed()). Otherwise we
+   * can't be sure about the item state. */
   bool is_active() const;
   void toggle_collapsed();
+  /** Must not be called before the tree was reconstructed (see #is_reconstructed()). Otherwise we
+   * can't be sure about the item state. */
   bool is_collapsed() const;
   void set_collapsed(bool collapsed);
   bool is_collapsible() const;
   void ensure_parents_uncollapsed();
+
+ protected:
+  /** Activates this item, deactivates other items, calls the #AbstractTreeViewItem::on_activate()
+   * function and ensures this item's parents are not collapsed (so the item is visible).
+   * Must not be called before the tree was reconstructed (see #is_reconstructed()). Otherwise we
+   * can't be sure about the current item state and may call state-change update functions
+   * incorrectly. */
+  void activate();
+
+ private:
+  /** See #AbstractTreeView::change_state_delayed() */
+  void change_state_delayed();
 };
 
 /** \} */
@@ -242,7 +272,6 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
   BasicTreeViewItem(StringRef label, BIFIconID icon = ICON_NONE);
 
   void build_row(uiLayout &row) override;
-  void on_activate() override;
   void on_activate(ActivateFn fn);
 
  protected:
@@ -255,6 +284,11 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
 
   uiBut *button();
   BIFIconID get_draw_icon() const;
+
+ private:
+  static void tree_row_click_fn(struct bContext *C, void *arg1, void *arg2);
+
+  void on_activate() override;
 };
 
 /** \} */
