@@ -119,11 +119,9 @@ static float sculpt_concavity_factor(AutomaskingCache *automasking, float fac)
   return fac;
 }
 
-static int automasking_get_propegation(SculptSession *ss)
+static int automasking_get_propegation(SculptSession *ss, Sculpt *sd, const Brush *brush)
 {
-  return BKE_brush_channelset_get_int(ss->cache->channels_final,
-                                      "automasking_boundary_edges_propagation_steps",
-                                      &ss->cache->input_mapping);
+  return SCULPT_get_int(ss, automasking_boundary_edges_propagation_steps, sd, brush);
 }
 
 static bool SCULPT_automasking_needs_factors_cache(SculptSession *ss,
@@ -136,10 +134,10 @@ static bool SCULPT_automasking_needs_factors_cache(SculptSession *ss,
     return true;
   }
   if (automasking_flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
-    return brush && automasking_get_propegation(ss) != 1;
+    return brush && automasking_get_propegation(ss, sd, brush) != 1;
   }
   if (automasking_flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
-    return brush && automasking_get_propegation(ss) != 1;
+    return brush && automasking_get_propegation(ss, sd, brush) != 1;
   }
   return false;
 }
@@ -155,8 +153,7 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
     return mask;
   }
 
-  float concave_factor = BKE_brush_channelset_get_float(
-      ss->cache->channels_final, "concave_mask_factor", &ss->cache->input_mapping);
+  float concave_factor = automasking->settings.concave_factor;
 
   do_concave = ss->cache && concave_factor > 0.0f &&
                (automasking->settings.flags & BRUSH_AUTOMASKING_CONCAVITY);
@@ -396,8 +393,15 @@ static void SCULPT_automasking_cache_settings_update(AutomaskingCache *automaski
   automasking->settings.flags = sculpt_automasking_mode_effective_bits(ss, sd, brush);
 
   automasking->settings.initial_face_set = SCULPT_active_face_set_get(ss);
-  automasking->settings.concave_factor = BKE_brush_channelset_get_float(
-      ss->cache->channels_final, "concave_mask_factor", &ss->cache->input_mapping);
+  automasking->settings.concave_factor = SCULPT_get_float(ss, concave_mask_factor, sd, brush);
+}
+
+void SCULPT_automasking_step_update(AutomaskingCache *automasking,
+                                    SculptSession *ss,
+                                    Sculpt *sd,
+                                    const Brush *brush)
+{
+  automasking->settings.concave_factor = SCULPT_get_float(ss, concave_mask_factor, sd, brush);
 }
 
 float SCULPT_calc_concavity(SculptSession *ss, SculptVertRef vref)
@@ -500,7 +504,7 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
     *f = 1.0f;
   }
 
-  const int boundary_propagation_steps = automasking_get_propegation(ss);
+  const int boundary_propagation_steps = automasking_get_propegation(ss, sd, brush);
 
   if (SCULPT_is_automasking_mode_enabled(ss, sd, brush, BRUSH_AUTOMASKING_TOPOLOGY)) {
     SCULPT_vertex_random_access_ensure(ss);

@@ -2431,6 +2431,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     Mesh *mesh_orig = BKE_object_get_original_mesh(ob);
     bool is_dyntopo = (mesh_orig->flag & ME_SCULPT_DYNAMIC_TOPOLOGY);
 
+    void SCULPT_update_customdata_refs(SculptSession * ss);
+
     if (is_dyntopo) {
       BMesh *bm = SCULPT_dyntopo_empty_bmesh();
 
@@ -2447,10 +2449,11 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
                                                         .cd_mask_extra = CD_MASK_DYNTOPO_VERT}));
 
       SCULPT_dyntopo_node_layers_add(ob->sculpt);
-
       SCULPT_undo_ensure_bmlog(ob);
 
       pbvh = build_pbvh_for_dynamic_topology(ob);
+
+      SCULPT_update_customdata_refs(ob->sculpt);
     }
     else {
       Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);

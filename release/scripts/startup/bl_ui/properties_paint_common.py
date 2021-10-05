@@ -65,8 +65,7 @@ class DynamicBrushCategoryPanel(Panel):
             if not ok:
                 continue
 
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
                 ch.idname,
@@ -145,7 +144,8 @@ class DynamicPaintPanelGen:
         name = name2
 
         for cls in classes[:]:
-            #print("_", cls.bl_rna.identifier, cls.bl_rna.identifier == name)  # r, dir(cls.bl_rna)) #.name)
+            #print("_", cls.bl_rna.identifier, cls.bl_rna.identifier == name) #
+            #r, dir(cls.bl_rna)) #.name)
 
             if cls.bl_rna.identifier == name:
                 try:
@@ -471,7 +471,8 @@ class UnifiedPaintPanel:
             row2.use_property_split = False
             row2.use_property_decorate = False
 
-            # replicate pre-existing functionality of direction showing up as +/-  in the header
+            # replicate pre-existing functionality of direction showing up as
+            # +/- in the header
             row2.prop_enum(finalch, typeprop, "ADD", text="")
             row2.prop_enum(finalch, typeprop, "SUBTRACT", text="")
             pass
@@ -486,13 +487,15 @@ class UnifiedPaintPanel:
             row.prop(pressurech.mappings["PRESSURE"], "enabled", text="", icon="STYLUS_PRESSURE")
 
         # if ch.is_color:
-        #    UnifiedPaintPanel.prop_unified_color_picker(row, context, brush, prop_name)
+        #    UnifiedPaintPanel.prop_unified_color_picker(row, context, brush,
+        #    prop_name)
 
         # if pressure_name:
         #    row.prop(brush, pressure_name, text="")
 
         # if unified_name and not header:
-        #    # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
+        #    # NOTE: We don't draw UnifiedPaintSettings in the header to reduce
+        #    clutter.  D5928#136281
         #    row.prop(ups, unified_name, text="", icon='BRUSHES_ALL')
         if not header:
             if ch.type == "BITMASK" and not toolsettings_only and ch == finalch:
@@ -551,8 +554,7 @@ class UnifiedPaintPanel:
         return row
 
     @staticmethod
-    def prop_unified(
-            layout,
+    def prop_unified(layout,
             context,
             brush,
             prop_name,
@@ -562,8 +564,7 @@ class UnifiedPaintPanel:
             text=None,
             slider=False,
             header=False,
-            expand=None
-    ):
+            expand=None):
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle, if they exist. """
 
@@ -572,7 +573,9 @@ class UnifiedPaintPanel:
                 prop_name = channel_name_map[prop_name]
 
             if prop_name in brush.channels:
-                #    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=True, text=None, slider=False, header=False):
+                #    def channel_unified(layout, context, brush, prop_name,
+                #    icon='NONE', pressure=True, text=None, slider=False,
+                #    header=False):
                 return UnifiedPaintPanel.channel_unified(layout, context, brush, prop_name, icon=icon, text=text, slider=slider, header=header)
 
         row = layout.row(align=True)
@@ -590,7 +593,8 @@ class UnifiedPaintPanel:
             row.prop(brush, pressure_name, text="")
 
         if unified_name and not header:
-            # NOTE: We don't draw UnifiedPaintSettings in the header to reduce clutter. D5928#136281
+            # NOTE: We don't draw UnifiedPaintSettings in the header to reduce
+            # clutter.  D5928#136281
             row.prop(ups, unified_name, text="", icon='BRUSHES_ALL')
 
         return row
@@ -620,7 +624,8 @@ class UnifiedPaintPanel:
         parent.template_color_picker(prop_owner, prop_name, value_slider=value_slider)
 
 
-### Classes to let various paint modes' panels share code, by sub-classing these classes. ###
+### Classes to let various paint modes' panels share code, by sub-classing
+### these classes.  ###
 class BrushPanel(UnifiedPaintPanel):
     @classmethod
     def poll(cls, context):
@@ -718,22 +723,18 @@ class ClonePanel(BrushPanel):
         if settings.mode == 'MATERIAL':
             if len(ob.material_slots) > 1:
                 col.label(text="Materials")
-                col.template_list(
-                    "MATERIAL_UL_matslots", "",
+                col.template_list("MATERIAL_UL_matslots", "",
                     ob, "material_slots",
                     ob, "active_material_index",
-                    rows=2,
-                )
+                    rows=2,)
 
             mat = ob.active_material
             if mat:
                 col.label(text="Source Clone Slot")
-                col.template_list(
-                    "TEXTURE_UL_texpaintslots", "",
+                col.template_list("TEXTURE_UL_texpaintslots", "",
                     mat, "texture_paint_images",
                     mat, "paint_clone_slot",
-                    rows=2,
-                )
+                    rows=2,)
 
         elif settings.mode == 'IMAGE':
             mesh = ob.data
@@ -815,32 +816,26 @@ class StrokePanel(BrushPanel):
         if brush.use_space:
             row = col.row(align=True)
             if mode == 'SCULPT':
-                UnifiedPaintPanel.channel_unified(
-                    col,
+                UnifiedPaintPanel.channel_unified(col,
                     context,
                     brush,
-                    "spacing"
-                )
+                    "spacing")
             else:
                 row.prop(brush, "spacing", text="Spacing")
                 row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
-            UnifiedPaintPanel.channel_unified(
-                col,
+            UnifiedPaintPanel.channel_unified(col,
                 context,
                 brush,
-                "use_smoothed_rake"
-            )
+                "use_smoothed_rake")
 
         if brush.use_line or brush.use_curve:
             row = col.row(align=True)
             if mode == 'SCULPT':
-                UnifiedPaintPanel.channel_unified(
-                    col,
+                UnifiedPaintPanel.channel_unified(col,
                     context,
                     brush,
-                    "spacing"
-                )
+                    "spacing")
             else:
                 row.prop(brush, "spacing", text="Spacing")
 
@@ -852,12 +847,10 @@ class StrokePanel(BrushPanel):
                 col.prop(brush, "use_space_attenuation")
         elif mode == 'SCULPT':
             if brush.image_paint_capabilities.has_space_attenuation or brush.sculpt_capabilities.has_space_attenuation:
-                UnifiedPaintPanel.channel_unified(
-                    col,
+                UnifiedPaintPanel.channel_unified(col,
                     context,
                     brush,
-                    "use_space_attenuation"
-                )
+                    "use_space_attenuation")
 
         if brush.use_curve:
             col.separator()
@@ -1000,30 +993,24 @@ class DisplayPanel(BrushPanel):
         row = col.row(align=True)
         row.prop(brush, "cursor_overlay_alpha", text="Falloff Opacity")
         row.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
-        row.prop(
-            brush, "use_cursor_overlay", text="", toggle=True,
-            icon='HIDE_OFF' if brush.use_cursor_overlay else 'HIDE_ON',
-        )
+        row.prop(brush, "use_cursor_overlay", text="", toggle=True,
+            icon='HIDE_OFF' if brush.use_cursor_overlay else 'HIDE_ON',)
 
         if mode in ['PAINT_2D', 'PAINT_TEXTURE', 'PAINT_VERTEX', 'SCULPT']:
             row = col.row(align=True)
             row.prop(brush, "texture_overlay_alpha", text="Texture Opacity")
             row.prop(brush, "use_primary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
             if tex_slot.map_mode != 'STENCIL':
-                row.prop(
-                    brush, "use_primary_overlay", text="", toggle=True,
-                    icon='HIDE_OFF' if brush.use_primary_overlay else 'HIDE_ON',
-                )
+                row.prop(brush, "use_primary_overlay", text="", toggle=True,
+                    icon='HIDE_OFF' if brush.use_primary_overlay else 'HIDE_ON',)
 
         if mode in ['PAINT_TEXTURE', 'PAINT_2D']:
             row = col.row(align=True)
             row.prop(brush, "mask_overlay_alpha", text="Mask Texture Opacity")
             row.prop(brush, "use_secondary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
             if tex_slot_mask.map_mode != 'STENCIL':
-                row.prop(
-                    brush, "use_secondary_overlay", text="", toggle=True,
-                    icon='HIDE_OFF' if brush.use_secondary_overlay else 'HIDE_ON',
-                )
+                row.prop(brush, "use_secondary_overlay", text="", toggle=True,
+                    icon='HIDE_OFF' if brush.use_secondary_overlay else 'HIDE_ON',)
 
 
 class VIEW3D_MT_tools_projectpaint_clone(Menu):
@@ -1050,7 +1037,7 @@ def brush_settings(layout, context, brush, popover=False):
     advanced = context.tool_settings.unified_paint_settings.brush_editor_advanced
     editor = context.tool_settings.unified_paint_settings.brush_editor_mode
 
-    ### Draw simple settings unique to each paint mode. ###
+    ### Draw simple settings unique to each paint mode.  ###
     brush_shared_settings(layout, context, brush, popover)
 
     # Sculpt Mode #
@@ -1060,42 +1047,34 @@ def brush_settings(layout, context, brush, popover=False):
 
         if advanced:
             # normal_radius_factor
-            UnifiedPaintPanel.prop_unified(
-                layout,
+            UnifiedPaintPanel.prop_unified(layout,
                 context,
                 brush,
                 "normal_radius_factor",
-                slider=True,
-            )
+                slider=True,)
 
             if context.preferences.experimental.use_sculpt_tools_tilt and capabilities.has_tilt:
-                UnifiedPaintPanel.prop_unified(
-                    layout,
+                UnifiedPaintPanel.prop_unified(layout,
                     context,
                     brush,
                     "tilt_strength_factor",
-                    slider=True,
-                )
+                    slider=True,)
 
-        UnifiedPaintPanel.prop_unified(
-            layout,
+        UnifiedPaintPanel.prop_unified(layout,
             context,
             brush,
             "hard_edge_mode",
             slider=True,
-            unified_name="use_unified_hard_edge_mode",
-        )
+            unified_name="use_unified_hard_edge_mode",)
 
         row = layout.row(align=True)
 
-        UnifiedPaintPanel.prop_unified(
-            layout,
+        UnifiedPaintPanel.prop_unified(layout,
             context,
             brush,
             "hardness",
             slider=True,
-            pressure_name="use_hardness_pressure"
-        )
+            pressure_name="use_hardness_pressure")
 
         #row.prop(brush, "hardness", slider=True)
         #row.prop(brush, "invert_hardness_pressure", text="")
@@ -1105,14 +1084,12 @@ def brush_settings(layout, context, brush, popover=False):
         if capabilities.has_auto_smooth:
             box = layout.column()  # .column() is a bit more compact
 
-            UnifiedPaintPanel.prop_unified(
-                box,
+            UnifiedPaintPanel.prop_unified(box,
                 context,
                 brush,
                 "auto_smooth_factor",
                 pressure_name="use_inverse_smooth_pressure",
-                slider=True,
-            )
+                slider=True,)
 
             if advanced:
                 UnifiedPaintPanel.prop_unified(box, context, brush, "boundary_smooth_factor", slider=True)
@@ -1123,131 +1100,102 @@ def brush_settings(layout, context, brush, popover=False):
                     UnifiedPaintPanel.prop_unified(box, context, brush, "autosmooth_fset_slide", slider=True)
 
             if advanced:
-                UnifiedPaintPanel.prop_unified(
-                    box,
+                UnifiedPaintPanel.prop_unified(box,
                     context,
                     brush,
                     "autosmooth_use_spacing",
                     slider=True,
-                    text="Custom Spacing"
-                )
+                    text="Custom Spacing")
 
                 if brush.channels["autosmooth_use_spacing"].value:
-                    UnifiedPaintPanel.channel_unified(
-                        box,
+                    UnifiedPaintPanel.channel_unified(box,
                         context,
                         brush,
                         "autosmooth_spacing",
                         slider=True,
-                        text="Spacing"
-                    )
+                        text="Spacing")
 
-            UnifiedPaintPanel.prop_unified(
-                box,
+            UnifiedPaintPanel.prop_unified(box,
                 context,
                 brush,
                 "auto_smooth_projection",
-                slider=True
-            )
+                slider=True)
 
             if advanced:
-                UnifiedPaintPanel.prop_unified(
-                    box,
+                UnifiedPaintPanel.prop_unified(box,
                     context,
                     brush,
                     "auto_smooth_radius_factor",
-                    slider=True
-                )
-                UnifiedPaintPanel.channel_unified(
-                    box,
+                    slider=True)
+                UnifiedPaintPanel.channel_unified(box,
                     context,
                     brush,
-                    "autosmooth_falloff_curve"
-                )
+                    "autosmooth_falloff_curve")
         elif brush.sculpt_tool == "SMOOTH":
-            UnifiedPaintPanel.prop_unified(
-                layout,
+            UnifiedPaintPanel.prop_unified(layout,
                 context,
                 brush,
                 "projection",
-                slider=True
-            )
+                slider=True)
 
         if capabilities.has_vcol_boundary_smooth:
             layout.prop(brush, "vcol_boundary_factor", slider=True)
 
-        if (
-                capabilities.has_topology_rake and
-                context.sculpt_object.use_dynamic_topology_sculpting
-        ):
+        if (capabilities.has_topology_rake and context.sculpt_object.use_dynamic_topology_sculpting):
             box = layout.column()  # .column() is a bit more compact
 
             #box.prop(brush, "topology_rake_factor", slider=True)
-            UnifiedPaintPanel.prop_unified(
-                box,
+            UnifiedPaintPanel.prop_unified(box,
                 context,
                 brush,
                 "topology_rake_factor",
                 slider=True,
-                text="Topology Rake"
-            )
+                text="Topology Rake")
 
             if advanced:
                 box.prop(brush, "use_custom_topology_rake_spacing", text="Custom Spacing")
 
                 if brush.channels["topology_rake_use_spacing"].value:
-                    UnifiedPaintPanel.prop_unified(
-                        box,
+                    UnifiedPaintPanel.prop_unified(box,
                         context,
                         brush,
                         "topology_rake_spacing",
                         slider=True,
-                        text="Spacing"
-                    )
+                        text="Spacing")
 
-                UnifiedPaintPanel.prop_unified(
-                    box,
+                UnifiedPaintPanel.prop_unified(box,
                     context,
                     brush,
                     "topology_rake_projection",
-                    slider=True
-                )
-                UnifiedPaintPanel.prop_unified(
-                    box,
+                    slider=True)
+                UnifiedPaintPanel.prop_unified(box,
                     context,
                     brush,
                     "topology_rake_radius_scale",
-                    slider=True
-                )
+                    slider=True)
 
-            UnifiedPaintPanel.channel_unified(
-                box,
+            UnifiedPaintPanel.channel_unified(box,
                 context,
                 brush,
                 "topology_rake_mode",
-                expand=True
-            )
+                expand=True)
 
             if advanced:
-                UnifiedPaintPanel.channel_unified(
-                    box,
+                UnifiedPaintPanel.channel_unified(box,
                     context,
                     brush,
-                    "topology_rake_falloff_curve"
-                )
+                    "topology_rake_falloff_curve")
 
             #box.prop(brush, "use_curvature_rake")
             box.prop(brush, "ignore_falloff_for_topology_rake")
 
         if context.sculpt_object.use_dynamic_topology_sculpting:
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
                 "dyntopo_disabled",
                 #text="Weight By Face Area",
-                header=True
-            )
+                header=True)
             #layout.prop(brush.dyntopo, "disabled", text="Disable Dyntopo")
 
         # normal_weight
@@ -1260,15 +1208,13 @@ def brush_settings(layout, context, brush, popover=False):
             if sculpt_tool in {'BLOB', 'SNAKE_HOOK'}:
                 text = "Magnify"
 
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
                 "crease_pinch_factor",
                 #text="Weight By Face Area",
                 slider=True,
-                text = text
-            )
+                text = text)
 
         # rake_factor
         if capabilities.has_rake_factor:
@@ -1277,34 +1223,28 @@ def brush_settings(layout, context, brush, popover=False):
         # plane_offset, use_offset_pressure, use_plane_trim, plane_trim
         if capabilities.has_plane_offset:
             layout.separator()
-            UnifiedPaintPanel.prop_unified(
-                layout,
+            UnifiedPaintPanel.prop_unified(layout,
                 context,
                 brush,
                 "plane_offset",
                 pressure_name="use_offset_pressure",
-                slider=True,
-            )
+                slider=True,)
 
             if editor:
                 col = layout.column()
 
                 #row.prop(brush, "use_plane_trim", text="")
                 #"""
-                UnifiedPaintPanel.channel_unified(
-                    col,
+                UnifiedPaintPanel.channel_unified(col,
                     context,
                     brush,
                     "use_plane_trim",
-                    text="Plane Trim"
-                )
-                UnifiedPaintPanel.channel_unified(
-                    col,
+                    text="Plane Trim")
+                UnifiedPaintPanel.channel_unified(col,
                     context,
                     brush,
                     "plane_trim",
-                    slider=True
-                )
+                    slider=True)
                 #"""
             else:
                 row = layout.row(heading="Plane Trim")
@@ -1347,174 +1287,130 @@ def brush_settings(layout, context, brush, popover=False):
         # Per sculpt tool options.
 
         def doprop(col, prop, slider=None):
-            UnifiedPaintPanel.channel_unified(
-                col,
+            UnifiedPaintPanel.channel_unified(col,
                 context,
                 brush,
                 prop,
-                slider=slider
-            )
+                slider=slider)
 
         if sculpt_tool == "VCOL_BOUNDARY":
             row = layout.row()
-            UnifiedPaintPanel.channel_unified(
-                row,
+            UnifiedPaintPanel.channel_unified(row,
                 context,
                 brush,
                 "vcol_boundary_exponent",
-                slider=True
-            )
+                slider=True)
 
         if sculpt_tool == 'CLAY_STRIPS':
             row = layout.row()
-            UnifiedPaintPanel.channel_unified(
-                row,
+            UnifiedPaintPanel.channel_unified(row,
                 context,
                 brush,
                 "tip_roundness",
-                slider=True
-            )
+                slider=True)
 
         elif sculpt_tool == 'ELASTIC_DEFORM':
             layout.separator()
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
-                "elastic_deform_type",
-            )
-            UnifiedPaintPanel.channel_unified(
-                layout,
+                "elastic_deform_type",)
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
                 "elastic_deform_volume_preservation",
-                slider=True
-            )
-            UnifiedPaintPanel.channel_unified(
-                layout,
+                slider=True)
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
-                "use_surface_falloff",
-            )
+                "use_surface_falloff",)
             layout.separator()
 
         elif sculpt_tool == 'SNAKE_HOOK':
             layout.separator()
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
-                "snake_hook_deform_type",
-            )
+                "snake_hook_deform_type",)
             layout.separator()
 
         elif sculpt_tool == 'POSE':
             layout.separator()
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
-                "deform_target",
-            )
+                "deform_target",)
             layout.separator()
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
-                "pose_deform_type",
-            )
-            UnifiedPaintPanel.channel_unified(
-                layout,
+                "pose_deform_type",)
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
-                "pose_origin_type",
-            )
-            UnifiedPaintPanel.channel_unified(
-                layout,
+                "pose_origin_type",)
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
-                "pose_offset",
-            )
-            UnifiedPaintPanel.channel_unified(
-                layout,
+                "pose_offset",)
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
-                "pose_smooth_iterations",
-            )
+                "pose_smooth_iterations",)
 
             if brush.channels["pose_deform_type"].value == 'ROTATE_TWIST' and \
               brush.channels["pose_origin_type"].value in {'TOPOLOGY', 'FACE_SETS'}:
-                UnifiedPaintPanel.channel_unified(
-                    layout,
+                UnifiedPaintPanel.channel_unified(layout,
                     context,
                     brush,
-                    "pose_ik_segments",
-                )
+                    "pose_ik_segments",)
             if brush.channels["pose_deform_type"].value == 'SCALE_TRANSLATE':
-                UnifiedPaintPanel.channel_unified(
-                    layout,
+                UnifiedPaintPanel.channel_unified(layout,
                     context,
                     brush,
-                    "use_pose_lock_rotation",
-                )
+                    "use_pose_lock_rotation",)
 
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
-                "use_pose_ik_anchored",
-            )
-            UnifiedPaintPanel.channel_unified(
-                layout,
+                "use_pose_ik_anchored",)
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
-                "use_connected_only",
-            )
-            UnifiedPaintPanel.channel_unified(
-                layout,
+                "use_connected_only",)
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
-                "disconnected_distance_max",
-            )
+                "disconnected_distance_max",)
 
             layout.separator()
 
         elif sculpt_tool == 'CLOTH':
             layout.separator()
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
-                "cloth_simulation_area_type",
-            )
+                "cloth_simulation_area_type",)
 
             if brush.channels["cloth_simulation_area_type"].value != 'GLOBAL':
-                UnifiedPaintPanel.channel_unified(
-                    layout,
+                UnifiedPaintPanel.channel_unified(layout,
                     context,
                     brush,
-                    "cloth_sim_limit",
-                )
-                UnifiedPaintPanel.channel_unified(
-                    layout,
+                    "cloth_sim_limit",)
+                UnifiedPaintPanel.channel_unified(layout,
                     context,
                     brush,
-                    "cloth_sim_falloff",
-                )
+                    "cloth_sim_falloff",)
 
             if brush.channels["cloth_simulation_area_type"].value == 'LOCAL':
-                UnifiedPaintPanel.channel_unified(
-                    layout,
+                UnifiedPaintPanel.channel_unified(layout,
                     context,
                     brush,
-                    "cloth_sim_falloff",
-                )
-                UnifiedPaintPanel.channel_unified(
-                    layout,
+                    "cloth_sim_falloff",)
+                UnifiedPaintPanel.channel_unified(layout,
                     context,
                     brush,
-                    "cloth_pin_simulation_boundary",
-                )
+                    "cloth_pin_simulation_boundary",)
 
             layout.separator()
             doprop(layout, "cloth_deform_type")
@@ -1611,8 +1507,7 @@ def brush_settings(layout, context, brush, popover=False):
 
         elif sculpt_tool == 'SMOOTH':
             col = layout.column()
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
                 "boundary_smooth",
@@ -1620,30 +1515,25 @@ def brush_settings(layout, context, brush, popover=False):
                 #text="Weight By Face Area",
             )
 
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
                 "use_weighted_smooth"
                 #text="Weight By Face Area",
             )
-            UnifiedPaintPanel.channel_unified(
-                layout,
+            UnifiedPaintPanel.channel_unified(layout,
                 context,
                 brush,
-                "preserve_faceset_boundary"
-            )
+                "preserve_faceset_boundary")
 
             #col.prop(brush, "use_weighted_smooth")
             #col.prop(brush, "preserve_faceset_boundary")
 
             if UnifiedPaintPanel.get_channel_value(context, brush, "preserve_faceset_boundary"):
-                UnifiedPaintPanel.channel_unified(
-                    layout,
+                UnifiedPaintPanel.channel_unified(layout,
                     context,
                     brush,
-                    "fset_slide"
-                )
+                    "fset_slide")
 
             doprop(col, "smooth_deform_type")
 
@@ -1666,7 +1556,8 @@ def brush_settings(layout, context, brush, popover=False):
         capabilities = brush.image_paint_capabilities
 
         if brush.image_tool == 'FILL':
-            # For some reason fill threshold only appears to be implemented in 2D paint.
+            # For some reason fill threshold only appears to be implemented in
+            # 2D paint.
             if brush.color_type == 'COLOR':
                 if mode == 'PAINT_2D':
                     layout.prop(brush, "fill_threshold", text="Fill Threshold", slider=True)
@@ -1679,7 +1570,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
 
     mode = UnifiedPaintPanel.get_brush_mode(context)
 
-    ### Determine which settings to draw. ###
+    ### Determine which settings to draw.  ###
     blend_mode = False
     size = False
     size_mode = False
@@ -1718,7 +1609,8 @@ def brush_shared_settings(layout, context, brush, popover=False):
             size = True
             weight = brush.weight_paint_capabilities.has_weight
             strength = strength_pressure = True
-        # Only draw blend mode for the Draw tool, because for other tools it is pointless. D5928#137944
+        # Only draw blend mode for the Draw tool, because for other tools it is
+        # pointless.  D5928#137944
         if brush.weight_tool == 'DRAW':
             blend_mode = True
 
@@ -1727,7 +1619,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
         size = True
         strength = True
 
-    ### Draw settings. ###
+    ### Draw settings.  ###
     ups = context.scene.tool_settings.unified_paint_settings
 
     if blend_mode:
@@ -1735,14 +1627,12 @@ def brush_shared_settings(layout, context, brush, popover=False):
         layout.separator()
 
     if weight:
-        UnifiedPaintPanel.prop_unified(
-            layout,
+        UnifiedPaintPanel.prop_unified(layout,
             context,
             brush,
             "weight",
             unified_name="use_unified_weight",
-            slider=True,
-        )
+            slider=True,)
 
     size_owner = ups if ups.use_unified_size else brush
     size_prop = "size"
@@ -1751,62 +1641,51 @@ def brush_shared_settings(layout, context, brush, popover=False):
 
     if size or size_mode:
         if size:
-            UnifiedPaintPanel.prop_unified(
-                layout,
+            UnifiedPaintPanel.prop_unified(layout,
                 context,
                 brush,
                 size_prop,
                 unified_name="use_unified_size",
                 pressure_name="use_pressure_size",
                 text="Radius",
-                slider=True,
-            )
+                slider=True,)
         if size_mode:
             #layout.row().prop(size_owner, "use_locked_size", expand=True)
-            UnifiedPaintPanel.prop_unified(
-                layout.row(),
+            UnifiedPaintPanel.prop_unified(layout.row(),
                 context,
                 brush,
                 "use_locked_size",
                 unified_name="use_unified_size",
                 pressure_name="use_pressure_size",
                 expand=True,
-                slider=True
-            )
+                slider=True)
             layout.separator()
 
     if strength:
-        UnifiedPaintPanel.prop_unified(
-            layout,
+        UnifiedPaintPanel.prop_unified(layout,
             context,
             brush,
             "strength",
             unified_name="use_unified_strength",
             pressure_name="use_pressure_strength",
-            slider=True
-        )
+            slider=True)
         layout.separator()
     elif strength:
         pressure_name = "use_pressure_strength" if strength_pressure else None
-        UnifiedPaintPanel.prop_unified(
-            layout,
+        UnifiedPaintPanel.prop_unified(layout,
             context,
             brush,
             "strength",
             unified_name="use_unified_strength",
             pressure_name=pressure_name,
-            slider=True,
-        )
+            slider=True,)
         layout.separator()
     if direction:
-        UnifiedPaintPanel.channel_unified(
-            layout,
+        UnifiedPaintPanel.channel_unified(layout,
             context,
             brush,
             "direction", expand=True)
         #layout.row().prop(brush, "direction", expand=True)
-
-
 def get_ui_channels(channels, filterkeys=["show_in_workspace"]):
     ret = []
     for ch in channels:
@@ -1829,9 +1708,9 @@ class ReorderBrushChannel(Operator):
     bl_label = "Change Channel Order"
     bl_options = {"UNDO"}
 
-    direction: IntProperty()
-    channel: StringProperty()
-    filterkey: StringProperty()
+    direction : IntProperty()
+    channel : StringProperty()
+    filterkey : StringProperty()
 
     @classmethod
     def poll(cls, context):
@@ -1899,8 +1778,7 @@ def brush_settings_channels(layout, context, brush, ui_editing=False, popover=Fa
             continue
 
         # VIEW3D_PT_brush_category_edit_
-        UnifiedPaintPanel.channel_unified(
-            layout.column(),
+        UnifiedPaintPanel.channel_unified(layout.column(),
             context,
             brush,
             ch.idname, show_reorder=show_reorder, expand=False, ui_editing=ui_editing)
@@ -1911,7 +1789,8 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
     mode = UnifiedPaintPanel.get_brush_mode(context)
 
-    # In the popover we want to combine advanced brush settings with non-advanced brush settings.
+    # In the popover we want to combine advanced brush settings with
+    # non-advanced brush settings.
     if popover:
         brush_settings(layout, context, brush, popover=True)
         layout.separator()
@@ -1926,16 +1805,19 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         use_accumulate = capabilities.has_accumulate
         use_frontface = True
 
-        UnifiedPaintPanel.channel_unified(
-            layout.column(),
+        UnifiedPaintPanel.channel_unified(layout.column(),
             context,
             brush,
             "automasking", expand=True)
-        UnifiedPaintPanel.channel_unified(
-            layout.column(),
+        UnifiedPaintPanel.channel_unified(layout.column(),
             context,
             brush,
             "automasking_boundary_edges_propagation_steps")
+        UnifiedPaintPanel.channel_unified(layout.column(),
+            context,
+            brush,
+            "concave_mask_factor",
+            slider=True)
 
         """
         col = layout.column(heading="Auto-Masking", align=True)
@@ -1969,22 +1851,18 @@ def brush_settings_advanced(layout, context, brush, popover=False):
             col = layout.column(heading="Use Original", align=False)
             col = col.column()
 
-            UnifiedPaintPanel.channel_unified(
-                col,
+            UnifiedPaintPanel.channel_unified(col,
                 context,
                 brush,
                 "original_normal",
                 text="Normal",
-                expand=False
-            )
-            UnifiedPaintPanel.channel_unified(
-                col,
+                expand=False)
+            UnifiedPaintPanel.channel_unified(col,
                 context,
                 brush,
                 "original_plane",
                 text="Plane",
-                expand=False
-            )
+                expand=False)
             layout.separator()
 
     # 3D and 2D Texture Paint.
@@ -2063,15 +1941,13 @@ def draw_color_settings(context, layout, brush, color_type=False):
         col = layout.column()
 
         if brush.image_tool == 'DRAW':
-            UnifiedPaintPanel.prop_unified(
-                col,
+            UnifiedPaintPanel.prop_unified(col,
                 context,
                 brush,
                 "secondary_color",
                 unified_name="use_unified_color",
                 text="Background Color",
-                header=True,
-            )
+                header=True,)
 
             col.prop(brush, "gradient_stroke_mode", text="Gradient Mapping")
             if brush.gradient_stroke_mode in {'SPACING_REPEAT', 'SPACING_CLAMP'}:
@@ -2163,8 +2039,7 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
         UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
         layout.prop(brush, "blend", text="" if compact else "Blend")
 
-    UnifiedPaintPanel.prop_unified(
-        layout,
+    UnifiedPaintPanel.prop_unified(layout,
         context,
         brush,
         "size",
@@ -2172,17 +2047,14 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
         unified_name="use_unified_size",
         slider=True,
         text="Radius",
-        header=True
-    )
-    UnifiedPaintPanel.prop_unified(
-        layout,
+        header=True)
+    UnifiedPaintPanel.prop_unified(layout,
         context,
         brush,
         "strength",
         pressure_name="use_pressure_strength",
         unified_name="use_unified_strength",
-        header=True
-    )
+        header=True)
 
 
 def brush_basic__draw_color_selector(context, layout, brush, gp_settings, props):
@@ -2206,11 +2078,9 @@ def brush_basic__draw_color_selector(context, layout, brush, gp_settings, props)
 
     sub = row.row()
     sub.ui_units_x = 8
-    sub.popover(
-        panel="TOPBAR_PT_gpencil_materials",
+    sub.popover(panel="TOPBAR_PT_gpencil_materials",
         text=txt_ma,
-        icon_value=icon_id,
-    )
+        icon_value=icon_id,)
 
     row.prop(gp_settings, "use_material_pin", text="")
 
@@ -2328,10 +2198,8 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
             row.prop(settings, "use_thickness_curve", text="", icon='SPHERECURVE')
             sub = row.row(align=True)
             sub.active = settings.use_thickness_curve
-            sub.popover(
-                panel="TOPBAR_PT_gpencil_primitive",
-                text="Thickness Profile",
-            )
+            sub.popover(panel="TOPBAR_PT_gpencil_primitive",
+                text="Thickness Profile",)
         else:
             row = layout.row(align=True)
             row.prop(settings, "use_thickness_curve", text="Use Thickness Profile")

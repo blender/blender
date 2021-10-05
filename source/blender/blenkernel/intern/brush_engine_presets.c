@@ -255,6 +255,13 @@ static bool check_builtin_init()
   SUBTYPE_SET(autosmooth_radius_scale, BRUSH_CHANNEL_PERCENT);
   SUBTYPE_SET(topology_rake_radius_scale, BRUSH_CHANNEL_PERCENT);
 
+  SETCAT(concave_mask_factor, "Automasking");
+  SETCAT(automasking, "Automasking");
+  SETCAT(automasking_boundary_edges_propagation_steps, "Automasking");
+
+  BrushChannelType *def = GETDEF(concave_mask_factor);
+  def->mappings.pressure.inv = true;
+
   // don't group strength/radius/direction in subpanels
   // SETCAT(strength, "Basic");
   // SETCAT(radius, "Basic");

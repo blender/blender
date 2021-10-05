@@ -70,7 +70,7 @@ void bm_free_ids_check(BMesh *bm, uint id)
   }
 }
 
-static void bm_id_freelist_take(BMesh *bm, uint id)
+void bm_id_freelist_take(BMesh *bm, uint id)
 {
   bm_free_ids_check(bm, id);
 

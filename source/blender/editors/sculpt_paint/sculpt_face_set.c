@@ -394,6 +394,10 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
             MVert *v = &ss->mvert[ml->v];
             float fno[3];
 
+            MDynTopoVert *mv = ss->mdyntopo_verts + i;
+
+            mv->flag |= DYNVERT_NEED_BOUNDARY;
+
             normal_short_to_float_v3(fno, v->no);
             float mask = ss->vmask ? ss->vmask[ml->v] : 0.0f;
 
@@ -560,17 +564,20 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                brush,
-                                                                vd.co,
-                                                                sqrtf(test.dist),
-                                                                vd.no,
-                                                                vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
-                                                                vd.vertex,
-                                                                thread_id);
+    float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                          brush,
+                                                          vd.co,
+                                                          sqrtf(test.dist),
+                                                          vd.no,
+                                                          vd.fno,
+                                                          vd.mask ? *vd.mask : 0.0f,
+                                                          vd.vertex,
+                                                          thread_id);
 
-    SCULPT_relax_vertex(ss, &vd, fade * bstrength, relax_face_sets, vd.co);
+    CLAMP(fade, 0.0f, 1.0f);
+
+    SCULPT_relax_vertex(
+        ss, &vd, fade * bstrength, SCULPT_BOUNDARY_DEFAULT | SCULPT_BOUNDARY_FACE_SET, vd.co);
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }

@@ -92,15 +92,15 @@ typedef struct myiter {
 
 #  define GHashIterator myiter
 
-#ifdef __GNUC__
+#  ifdef __GNUC__
 /* I can't even *cast* signed ints in gcc's sign-conversion warning? gcc 10.3.0 -joeedh */
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#endif
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#  endif
 
-#ifdef __GNUC__
+#  ifdef __GNUC__
 /* I can't even *cast* signed ints in gcc's sign-conversion warning? gcc 10.3.0 -joeedh */
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#endif
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#  endif
 
 #  define BLI_ghash_free(sh, a, b) free_smallhash(sh)
 #  define BLI_ghash_int_new_ex(a, b) new_smallhash()
@@ -462,6 +462,10 @@ static uint bm_log_vert_id_get(BMLog *log, BMVert *v)
 /* Get a vertex from its unique ID */
 static BMVert *bm_log_vert_from_id(BMLog *log, uint id)
 {
+  if (log->bm->idmap.map && id >= ((unsigned int)log->bm->idmap.map_size)) {
+    return NULL;
+  }
+
   return (BMVert *)BM_ELEM_FROM_ID(log->bm, id);
 }
 
@@ -2170,6 +2174,8 @@ static void full_copy_swap(BMesh *bm, BMLog *log, BMLogEntry *entry)
 static void bm_log_undo_intern(
     BMesh *bm, BMLog *log, BMLogEntry *entry, BMLogCallbacks *callbacks, const char *node_layer_id)
 {
+  log->bm = bm;
+
   bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
   bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
 

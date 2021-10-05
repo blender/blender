@@ -718,6 +718,10 @@ void BM_mesh_bm_from_me(Object *ob,
 
     int iters[] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, -1, BM_FACES_OF_MESH};
 
+#ifdef WITH_BM_ID_FREELIST
+    uint max_id = 0;
+#endif
+
     // find first element in each id run and assign to map
     for (int i = 0; i < 4; i++) {
       int type = 1 << i;
@@ -740,7 +744,9 @@ void BM_mesh_bm_from_me(Object *ob,
 
           do {
             uint id = (uint)BM_ELEM_GET_ID(bm, (BMElem *)l);
-
+#ifdef WITH_BM_ID_FREELIST
+            max_id = MAX2(max_id, i);
+#endif
             if (!BM_ELEM_FROM_ID(bm, id)) {
               bm_assign_id_intern(bm, (BMElem *)l, id);
             }
@@ -748,6 +754,9 @@ void BM_mesh_bm_from_me(Object *ob,
         }
         else {
           uint id = (uint)BM_ELEM_GET_ID(bm, elem);
+#ifdef WITH_BM_ID_FREELIST
+          max_id = MAX2(max_id, i);
+#endif
 
           if (!BM_ELEM_FROM_ID(bm, id)) {
             bm_assign_id_intern(bm, elem, id);
@@ -791,11 +800,61 @@ void BM_mesh_bm_from_me(Object *ob,
 
           if (BM_ELEM_FROM_ID(bm, id) != elem) {
             bm_alloc_id(bm, elem);
+
+            id = (uint)BM_ELEM_GET_ID(bm, elem);
+#ifdef WITH_BM_ID_FREELIST
+            max_id = MAX2(max_id, id);
+#endif
           }
         }
       }
     }
+
+#ifdef WITH_BM_ID_FREELIST
+    max_id = MAX2(bm->idmap.maxid, max_id);
+    bm->idmap.maxid = max_id;
+#endif
   }
+
+#ifdef WITH_BM_ID_FREELIST
+  /*ensure correct id freelist*/
+  if (bm->idmap.flag & BM_HAS_IDS) {
+    bm_free_ids_check(bm, bm->idmap.max_id);
+
+    MEM_SAFE_FREE(bm->idmap.freelist);
+    bm->idmap.freelist_len = 0;
+    bm->idmap.freelist_size = 0;
+    bm->idmap.freelist = NULL;
+
+    memset(bm->idmap.free_ids, 0, bm->idmap.free_ids_size * sizeof(*bm->idmap.free_ids));
+
+    BLI_mempool_iter miter;
+    for (int i = 0; i < 4; i++) {
+      int htype = 1 << i;
+
+      if (!(bm->idmap.flag & htype)) {
+        continue;
+      }
+
+      BLI_mempool *pool = (&bm->vpool)[i];
+      BLI_mempool_iternew(pool, &miter);
+      BMElem *elem = (BMElem *)BLI_mempool_iterstep(&miter);
+
+      for (; elem; elem = (BMElem *)BLI_mempool_iterstep(&miter)) {
+        uint id = (uint)BM_ELEM_GET_ID(bm, elem);
+
+        BLI_BITMAP_SET(bm->idmap.free_ids, id, true);
+      }
+    }
+
+    for (uint i = 0; i < max_id; i++) {
+      if (!BLI_BITMAP_TEST(bm->idmap.free_ids, id)) {
+        bm_id_freelist_push(bm, i);
+      }
+    }
+  }
+#endif
+
   /* -------------------------------------------------------------------- */
   /* MSelect clears the array elements (avoid adding multiple times).
    *

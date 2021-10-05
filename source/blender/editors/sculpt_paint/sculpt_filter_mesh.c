@@ -429,12 +429,16 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         break;
       }
       case MESH_FILTER_RELAX: {
-        SCULPT_relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), false, val);
+        SCULPT_relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), SCULPT_BOUNDARY_DEFAULT, val);
         sub_v3_v3v3(disp, val, vd.co);
         break;
       }
       case MESH_FILTER_RELAX_FACE_SETS: {
-        SCULPT_relax_vertex(ss, &vd, clamp_f(fade, 0.0f, 1.0f), relax_face_sets, val);
+        SCULPT_relax_vertex(ss,
+                            &vd,
+                            clamp_f(fade, 0.0f, 1.0f),
+                            SCULPT_BOUNDARY_DEFAULT | SCULPT_BOUNDARY_FACE_SET,
+                            val);
         sub_v3_v3v3(disp, val, vd.co);
         break;
       }

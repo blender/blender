@@ -3337,6 +3337,10 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_dyn_vert,
                              const int cd_face_areas)
 {
+  if (pbvh->bm) {
+    pbvh->cd_vcol_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PROP_COLOR);
+  }
+
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_area = cd_face_areas;

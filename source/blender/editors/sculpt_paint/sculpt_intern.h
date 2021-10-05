@@ -301,7 +301,8 @@ typedef enum SculptBoundaryType {
   SCULPT_BOUNDARY_FACE_SET = 1 << 1,
   SCULPT_BOUNDARY_SEAM = 1 << 2,
   SCULPT_BOUNDARY_SHARP = 1 << 3,
-  SCULPT_BOUNDARY_ALL = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3)
+  SCULPT_BOUNDARY_ALL = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
+  SCULPT_BOUNDARY_DEFAULT = (1 << 0) | (1 << 3)  // mesh and sharp
 } SculptBoundaryType;
 
 /* Boundary Info needs to be initialized in order to use this function. */
@@ -525,6 +526,10 @@ bool SCULPT_is_automasking_mode_enabled(const SculptSession *ss,
                                         const Brush *br,
                                         const eAutomasking_flag mode);
 bool SCULPT_is_automasking_enabled(Sculpt *sd, const SculptSession *ss, const Brush *br);
+void SCULPT_automasking_step_update(struct AutomaskingCache *automasking,
+                                    SculptSession *ss,
+                                    Sculpt *sd,
+                                    const Brush *brush);
 
 typedef enum eBoundaryAutomaskMode {
   AUTOMASK_INIT_BOUNDARY_EDGES = 1,
@@ -819,7 +824,7 @@ void SCULPT_do_uniform_weights_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **n
 void SCULPT_relax_vertex(struct SculptSession *ss,
                          struct PBVHVertexIter *vd,
                          float factor,
-                         bool filter_boundary_face_sets,
+                         SculptBoundaryType boundary_mask,
                          float *r_final_pos);
 
 /* Symmetrize Map. */
@@ -1176,7 +1181,6 @@ typedef struct AutomaskingCache {
    * initialized in #SCULPT_automasking_cache_init when needed. */
   // float *factor;
   SculptCustomLayer *factorlayer;
-  float concave_mask_factor;
 } AutomaskingCache;
 
 typedef struct StrokeCache {

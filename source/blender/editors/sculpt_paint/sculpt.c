@@ -1656,69 +1656,11 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSessi
   return true;
 }
 
-bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, SculptVertRef index)
+bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, SculptVertRef vertex)
 {
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES: {
-      return sculpt_check_unique_face_set_in_base_mesh(ss, index);
-    }
-    case PBVH_BMESH: {
-      BMVert *v = (BMVert *)index.i;
-      MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+  MDynTopoVert *mv = SCULPT_vertex_get_mdyntopo(ss, vertex);
 
-      if (mv->flag & DYNVERT_NEED_BOUNDARY) {
-        BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert,
-                                      ss->cd_faceset_offset,
-                                      ss->cd_vert_node_offset,
-                                      ss->cd_face_node_offset,
-                                      v,
-                                      ss->boundary_symmetry);
-      }
-
-      return !(mv->flag & DYNVERT_FSET_BOUNDARY);
-
-#if 0
-      int face_set = 0;
-      bool first = true;
-      if (ss->cd_faceset_offset == -1) {
-        return false;
-      }
-
-      BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-        BMFace *f = l->f;
-        int face_set2 = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
-
-        if (!first && abs(face_set2) != abs(face_set)) {
-          return false;
-        }
-
-        first = false;
-        face_set = face_set2;
-      }
-      return true;
-#endif
-    }
-    case PBVH_GRIDS: {
-      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
-      const int grid_index = index.i / key->grid_area;
-      const int vertex_index = index.i - grid_index * key->grid_area;
-      const SubdivCCGCoord coord = {.grid_index = grid_index,
-                                    .x = vertex_index % key->grid_size,
-                                    .y = vertex_index / key->grid_size};
-      int v1, v2;
-      const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->mloop, ss->mpoly, &v1, &v2);
-      switch (adjacency) {
-        case SUBDIV_CCG_ADJACENT_VERTEX:
-          return sculpt_check_unique_face_set_in_base_mesh(ss, BKE_pbvh_make_vref(v1));
-        case SUBDIV_CCG_ADJACENT_EDGE:
-          return sculpt_check_unique_face_set_for_edge_in_base_mesh(ss, v1, v2);
-        case SUBDIV_CCG_ADJACENT_NONE:
-          return true;
-      }
-    }
-  }
-  return false;
+  return !SCULPT_vertex_is_boundary(ss, vertex, SCULPT_BOUNDARY_FACE_SET);
 }
 
 int SCULPT_face_set_next_available_get(SculptSession *ss)
@@ -2181,6 +2123,49 @@ static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss,
   return BLI_BITMAP_TEST(ss->vertex_info.boundary,
                          BKE_pbvh_vertex_index_to_table(ss->pbvh, index));
 }
+
+static void grids_update_boundary_flags(const SculptSession *ss, SculptVertRef vertex)
+{
+  MDynTopoVert *mv = ss->mdyntopo_verts + vertex.i;
+
+  mv->flag &= ~(DYNVERT_CORNER | DYNVERT_BOUNDARY | DYNVERT_NEED_BOUNDARY | DYNVERT_FSET_BOUNDARY |
+                DYNVERT_FSET_CORNER);
+
+  int index = (int)vertex.i;
+  const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+  const int grid_index = index / key->grid_area;
+  const int vertex_index = index - grid_index * key->grid_area;
+  const SubdivCCGCoord coord = {.grid_index = grid_index,
+                                .x = vertex_index % key->grid_size,
+                                .y = vertex_index / key->grid_size};
+  int v1, v2;
+  const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
+      ss->subdiv_ccg, &coord, ss->mloop, ss->mpoly, &v1, &v2);
+
+  switch (adjacency) {
+    case SUBDIV_CCG_ADJACENT_VERTEX:
+      if (sculpt_check_unique_face_set_in_base_mesh(ss, BKE_pbvh_make_vref(v1))) {
+        mv->flag |= DYNVERT_FSET_BOUNDARY;
+      }
+      if (sculpt_check_boundary_vertex_in_base_mesh(ss, BKE_pbvh_make_vref(v1))) {
+        mv->flag |= DYNVERT_BOUNDARY;
+      }
+      break;
+    case SUBDIV_CCG_ADJACENT_EDGE:
+      if (sculpt_check_unique_face_set_for_edge_in_base_mesh(ss, v1, v2)) {
+        mv->flag |= DYNVERT_FSET_BOUNDARY;
+      }
+
+      if (sculpt_check_boundary_vertex_in_base_mesh(ss, BKE_pbvh_make_vref(v1)) &&
+          sculpt_check_boundary_vertex_in_base_mesh(ss, BKE_pbvh_make_vref(v2))) {
+        mv->flag |= DYNVERT_BOUNDARY;
+      }
+      break;
+    case SUBDIV_CCG_ADJACENT_NONE:
+      break;
+  }
+}
+
 static void faces_update_boundary_flags(const SculptSession *ss, const SculptVertRef vertex)
 {
   BKE_pbvh_update_vert_boundary_faces(ss->face_sets,
@@ -2249,25 +2234,12 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
       }
       break;
     case PBVH_GRIDS: {
-      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
-      const int grid_index = vertex.i / key->grid_area;
-      const int vertex_index = vertex.i - grid_index * key->grid_area;
-      const SubdivCCGCoord coord = {.grid_index = grid_index,
-                                    .x = vertex_index % key->grid_size,
-                                    .y = vertex_index / key->grid_size};
-      int v1, v2;
-      const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->mloop, ss->mpoly, &v1, &v2);
-      switch (adjacency) {
-        case SUBDIV_CCG_ADJACENT_VERTEX:
-          return sculpt_check_corner_in_base_mesh(ss, BKE_pbvh_make_vref(v1), check_facesets);
-        case SUBDIV_CCG_ADJACENT_EDGE:
-          return false;  // sculpt_check_unique_face_set_for_edge_in_base_mesh(ss, v1, v2);
-        case SUBDIV_CCG_ADJACENT_NONE:
-          return false;
-      }
+      mv = ss->mdyntopo_verts + vertex.i;
 
-      return 0;
+      if (mv->flag & DYNVERT_NEED_BOUNDARY) {
+        grids_update_boundary_flags(ss, vertex);
+      }
+      break;
     }
   }
 
@@ -2331,6 +2303,7 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
           ss->subdiv_ccg, &coord, ss->mloop, ss->mpoly, &v1, &v2);
+
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:
           return sculpt_check_boundary_vertex_in_base_mesh(ss, BKE_pbvh_make_vref(v1)) ?
@@ -5667,21 +5640,19 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
 void SCULPT_relax_vertex(SculptSession *ss,
                          PBVHVertexIter *vd,
                          float factor,
-                         bool filter_boundary_face_sets,
+                         SculptBoundaryType boundary_mask,
                          float *r_final_pos)
 {
   float smooth_pos[3];
   float final_disp[3];
-  float boundary_normal[3];
   int avg_count = 0;
   int neighbor_count = 0;
   zero_v3(smooth_pos);
-  zero_v3(boundary_normal);
 
-  int bset = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
+  int bset = boundary_mask;
 
   // forcibly enable if no ss->cache
-  if (!ss->cache || (ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS)) {
+  if (ss->cache && (ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS)) {
     bset |= SCULPT_BOUNDARY_FACE_SET;
   }
 
@@ -5692,40 +5663,42 @@ void SCULPT_relax_vertex(SculptSession *ss,
 
   const int is_boundary = SCULPT_vertex_is_boundary(ss, vd->vertex, bset);
 
+  float boundary_tan_a[3];
+  float boundary_tan_b[3];
+  bool have_boundary_tan_a = false;
+
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd->vertex, ni) {
     neighbor_count++;
-    if (!filter_boundary_face_sets ||
-        (filter_boundary_face_sets && !SCULPT_vertex_has_unique_face_set(ss, ni.vertex))) {
 
-      /* When the vertex to relax is boundary, use only connected boundary vertices for the
-       * average position. */
-      if (is_boundary) {
-        if (!SCULPT_vertex_is_boundary(ss, ni.vertex, bset)) {
-          continue;
-        }
-        add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
-        avg_count++;
+    /* When the vertex to relax is boundary, use only connected boundary vertices for the
+     * average position. */
+    if (is_boundary) {
+      if (!SCULPT_vertex_is_boundary(ss, ni.vertex, bset)) {
+        continue;
+      }
+      add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
+      avg_count++;
 
-        /* Calculate a normal for the constraint plane using the edges of the boundary. */
-        float to_neighbor[3];
-        sub_v3_v3v3(to_neighbor, SCULPT_vertex_co_get(ss, ni.vertex), vd->co);
-        normalize_v3(to_neighbor);
-        add_v3_v3(boundary_normal, to_neighbor);
+      /* Calculate a normal for the constraint plane using the edges of the boundary. */
+      float to_neighbor[3];
+      sub_v3_v3v3(to_neighbor, SCULPT_vertex_co_get(ss, ni.vertex), vd->co);
+      normalize_v3(to_neighbor);
+
+      if (!have_boundary_tan_a) {
+        copy_v3_v3(boundary_tan_a, to_neighbor);
+        have_boundary_tan_a = true;
       }
       else {
-        add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
-        avg_count++;
+        copy_v3_v3(boundary_tan_b, to_neighbor);
       }
+    }
+    else {
+      add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
+      avg_count++;
     }
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-  /* Don't modify corner vertices. */
-  if (neighbor_count <= 2) {
-    copy_v3_v3(r_final_pos, vd->co);
-    return;
-  }
 
   if (avg_count > 0) {
     mul_v3_fl(smooth_pos, 1.0f / avg_count);
@@ -5739,8 +5712,9 @@ void SCULPT_relax_vertex(SculptSession *ss,
   float smooth_closest_plane[3];
   float vno[3];
 
-  if ((is_boundary & SCULPT_BOUNDARY_MESH) && avg_count == 2) {
-    normalize_v3_v3(vno, boundary_normal);
+  if ((is_boundary) && avg_count == 2 && fabsf(dot_v3v3(boundary_tan_a, boundary_tan_b)) < 0.99f) {
+    cross_v3_v3v3(vno, boundary_tan_a, boundary_tan_b);
+    normalize_v3(vno);
   }
   else {
     SCULPT_vertex_normal_get(ss, vd->vertex, vno);
@@ -5796,7 +5770,8 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
                                                     vd.vertex,
                                                     thread_id);
 
-    SCULPT_relax_vertex(ss, &vd, fade * bstrength, false, vd.co);
+    SCULPT_relax_vertex(ss, &vd, fade * bstrength, SCULPT_BOUNDARY_DEFAULT, vd.co);
+
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
@@ -7925,7 +7900,8 @@ static void do_twist_brush_post_smooth_task_cb_ex(void *__restrict userdata,
             */
 
     float final_co[3];
-    SCULPT_relax_vertex(ss, &vd, clamp_f(smooth_fade, 0.0f, 1.0f), false, final_co);
+    SCULPT_relax_vertex(
+        ss, &vd, clamp_f(smooth_fade, 0.0f, 1.0f), SCULPT_BOUNDARY_DEFAULT, final_co);
 
     sub_v3_v3v3(disp, final_co, vd.co);
     add_v3_v3(vd.co, disp);
@@ -9408,9 +9384,12 @@ static void SCULPT_run_command_list(
    * zero radius, thus we have no pbvh nodes on the first brush step. */
   if (totnode ||
       ((brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) && (brush->flag & BRUSH_ANCHORED))) {
-    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-      if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
+    if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
+      if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
         ss->cache->automasking = SCULPT_automasking_cache_init(sd, brush, ob);
+      }
+      else {
+        SCULPT_automasking_step_update(ss->cache->automasking, ss, sd, brush);
       }
     }
   }

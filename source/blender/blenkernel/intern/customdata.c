@@ -2240,6 +2240,65 @@ void CustomData_update_typemap(CustomData *data)
   }
 }
 
+static void customdata_regen_active_refs(CustomData *data)
+{
+  int i, j;
+  bool changed = false;
+
+  /* explicitly flag active layers */
+  for (i = 0, j = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = &data->layers[i];
+    CustomDataLayer *base = data->layers + data->typemap[layer->type];
+    int n = layer - base;
+
+    layer->active = n == base->active;
+    layer->active_clone = n == base->active_clone;
+    layer->active_mask = n == base->active_mask;
+    layer->active_rnd = n == base->active_rnd;
+  }
+
+  /* regenerate active refs */
+  for (i = 0; i < CD_NUMTYPES; i++) {
+    if (data->typemap[i] != -1) {
+      CustomDataLayer *base = data->layers + data->typemap[i];
+
+      base->active = base->active_clone = base->active_mask = base->active_rnd = 0;
+    }
+  }
+
+  /* set active n in base layer for all types */
+  for (i = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = &data->layers[i];
+    CustomDataLayer *base = data->layers + data->typemap[layer->type];
+
+    int n = layer - base;
+
+    if (layer->active) {
+      base->active = n;
+    }
+    if (layer->active_mask) {
+      base->active_mask = n;
+    }
+    if (layer->active_clone) {
+      base->active_clone = n;
+    }
+    if (layer->active_rnd) {
+      base->active_rnd = n;
+    }
+  }
+
+  /* set active n in all layers */
+  for (i = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = &data->layers[i];
+    CustomDataLayer *base = data->layers + data->typemap[layer->type];
+
+    layer->active = base->active;
+    layer->active_mask = base->active_mask;
+    layer->active_clone = base->active_clone;
+    layer->active_rnd = base->active_rnd;
+  }
+}
+
 /* currently only used in BLI_assert */
 #ifndef NDEBUG
 static bool customdata_typemap_is_valid(const CustomData *data)
@@ -2268,6 +2327,8 @@ void CustomData_copy_all_layout(const struct CustomData *source, struct CustomDa
       dest->layers[i].data = NULL;
     }
   }
+
+  customdata_regen_active_refs(dest);
 }
 
 bool CustomData_merge(const struct CustomData *source,
@@ -2289,6 +2350,10 @@ bool CustomData_merge(const struct CustomData *source,
     int type = layer->type;
     int flag = layer->flag;
 
+    if (flag & CD_FLAG_NOCOPY) {
+      continue;
+    }
+
     if (type != lasttype) {
       number = 0;
       maxnumber = CustomData_layertype_layers_max(type);
@@ -2302,9 +2367,6 @@ bool CustomData_merge(const struct CustomData *source,
       number++;
     }
 
-    if (flag & CD_FLAG_NOCOPY) {
-      continue;
-    }
     if (layer->anonymous_id &&
         !BKE_anonymous_attribute_id_has_strong_references(layer->anonymous_id)) {
       /* This attribute is not referenced anymore, so it can be treated as if it didn't exist. */
@@ -2358,6 +2420,8 @@ bool CustomData_merge(const struct CustomData *source,
   }
 
   CustomData_update_typemap(dest);
+  customdata_regen_active_refs(dest);
+
   return changed;
 }
 
@@ -3116,6 +3180,20 @@ void CustomData_free_temporary(CustomData *data, int totelem)
 {
   int i, j;
   bool changed = false;
+
+  /* explicitly flag active layers */
+  for (i = 0, j = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = &data->layers[i];
+    CustomDataLayer *base = data->layers + data->typemap[layer->type];
+    int n = layer - base;
+
+    layer->active = n == base->active;
+    layer->active_clone = n == base->active_clone;
+    layer->active_mask = n == base->active_mask;
+    layer->active_rnd = n == base->active_rnd;
+  }
+
+  /* free temp layers */
   for (i = 0, j = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &data->layers[i];
 
@@ -3126,10 +3204,54 @@ void CustomData_free_temporary(CustomData *data, int totelem)
     if ((layer->flag & CD_FLAG_TEMPORARY) == CD_FLAG_TEMPORARY) {
       customData_free_layer__internal(layer, totelem);
       changed = true;
+
+      // compact data->layers by not incrementing j here
     }
     else {
       j++;
     }
+  }
+
+  CustomData_update_typemap(data);
+
+  /* regenerate active refs */
+  for (int i = 0; i < CD_NUMTYPES; i++) {
+    if (data->typemap[i] != -1) {
+      CustomDataLayer *base = data->layers + data->typemap[i];
+      base->active = base->active_clone = base->active_mask = base->active_rnd = 0;
+    }
+  }
+
+  /* set active n in base layer for all types */
+  for (i = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = &data->layers[i];
+    CustomDataLayer *base = data->layers + data->typemap[layer->type];
+
+    int n = layer - base;
+
+    if (layer->active) {
+      base->active = n;
+    }
+    if (layer->active_mask) {
+      base->active_mask = n;
+    }
+    if (layer->active_clone) {
+      base->active_clone = n;
+    }
+    if (layer->active_rnd) {
+      base->active_rnd = n;
+    }
+  }
+
+  /* set active n in all layers */
+  for (i = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = &data->layers[i];
+    CustomDataLayer *base = data->layers + data->typemap[layer->type];
+
+    layer->active = base->active;
+    layer->active_mask = base->active_mask;
+    layer->active_clone = base->active_clone;
+    layer->active_rnd = base->active_rnd;
   }
 
   data->totlayer = j;
@@ -5656,4 +5778,5 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, int count)
   }
 
   CustomData_update_typemap(data);
+  customdata_regen_active_refs(data);  // check for corrupted active layer refs
 }
