@@ -165,11 +165,12 @@ void AssetCatalogTreeView::add_all_item()
 {
   FileAssetSelectParams *params = params_;
 
-  ui::AbstractTreeViewItem &item = add_tree_item<AssetCatalogTreeViewAllItem>(
-      IFACE_("All"), ICON_HOME, [params](ui::BasicTreeViewItem & /*item*/) {
-        params->asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
-        WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
-      });
+  AssetCatalogTreeViewAllItem &item = add_tree_item<AssetCatalogTreeViewAllItem>(IFACE_("All"),
+                                                                                 ICON_HOME);
+  item.on_activate([params](ui::BasicTreeViewItem & /*item*/) {
+    params->asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
+    WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+  });
   if (params->asset_catalog_visibility == FILE_SHOW_ASSETS_ALL_CATALOGS) {
     item.activate();
   }
@@ -180,10 +181,13 @@ void AssetCatalogTreeView::add_unassigned_item()
   FileAssetSelectParams *params = params_;
 
   AssetCatalogTreeViewUnassignedItem &item = add_tree_item<AssetCatalogTreeViewUnassignedItem>(
-      IFACE_("Unassigned"), ICON_FILE_HIDDEN, [params](ui::BasicTreeViewItem & /*item*/) {
-        params->asset_catalog_visibility = FILE_SHOW_ASSETS_WITHOUT_CATALOG;
-        WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
-      });
+      IFACE_("Unassigned"), ICON_FILE_HIDDEN);
+
+  item.on_activate([params](ui::BasicTreeViewItem & /*item*/) {
+    params->asset_catalog_visibility = FILE_SHOW_ASSETS_WITHOUT_CATALOG;
+    WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+  });
+
   if (params->asset_catalog_visibility == FILE_SHOW_ASSETS_WITHOUT_CATALOG) {
     item.activate();
   }

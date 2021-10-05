@@ -239,10 +239,11 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
   using ActivateFn = std::function<void(BasicTreeViewItem &new_active)>;
   BIFIconID icon;
 
-  BasicTreeViewItem(StringRef label, BIFIconID icon = ICON_NONE, ActivateFn activate_fn = nullptr);
+  BasicTreeViewItem(StringRef label, BIFIconID icon = ICON_NONE);
 
   void build_row(uiLayout &row) override;
   void on_activate() override;
+  void on_activate(ActivateFn fn);
 
  protected:
   /** Created in the #build() function. */

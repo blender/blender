@@ -278,8 +278,7 @@ uiLayout *TreeViewLayoutBuilder::current_layout() const
 
 /* ---------------------------------------------------------------------- */
 
-BasicTreeViewItem::BasicTreeViewItem(StringRef label, BIFIconID icon_, ActivateFn activate_fn)
-    : icon(icon_), activate_fn_(activate_fn)
+BasicTreeViewItem::BasicTreeViewItem(StringRef label, BIFIconID icon_) : icon(icon_)
 {
   label_ = label;
 }
@@ -328,6 +327,11 @@ void BasicTreeViewItem::on_activate()
   if (activate_fn_) {
     activate_fn_(*this);
   }
+}
+
+void BasicTreeViewItem::on_activate(ActivateFn fn)
+{
+  activate_fn_ = fn;
 }
 
 BIFIconID BasicTreeViewItem::get_draw_icon() const
