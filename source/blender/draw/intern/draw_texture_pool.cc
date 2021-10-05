@@ -28,10 +28,10 @@
 
 using namespace blender;
 
-typedef struct DRWTexturePoolHandle {
+struct DRWTexturePoolHandle {
   uint64_t users_bits;
   GPUTexture *texture;
-} DRWTexturePoolHandle;
+};
 
 struct DRWTexturePool {
   Vector<void *, 16> users;
