@@ -559,6 +559,15 @@ MAKE_BOOL(use_smoothed_rake, "Smooth Raking", "Smooth angles of clay strips brus
 MAKE_BOOL(use_surface_falloff,  "Use Surface Falloff",
                            "Propagate the falloff of the brush trough the surface of the mesh", false)
 
+MAKE_ENUM(array_deform_type, "Deformation", "Deformation type that is used in the brush", BRUSH_ARRAY_DEFORM_LINEAR, {
+      {BRUSH_ARRAY_DEFORM_LINEAR, "LINEAR", "NONE", "Linear", ""},
+      {BRUSH_ARRAY_DEFORM_RADIAL, "RADIAL", "NONE", "Radial", ""},
+      {BRUSH_ARRAY_DEFORM_PATH, "PATH", "NONE", "Path", ""},
+      {-1}
+})
+
+MAKE_INT_EX(array_count, "Count", "Number of copies", 2, 1, 10000, 1, 50)
+
 //MAKE_FLOAT3_EX
 /* clang-format on */
 #if defined(BRUSH_CHANNEL_DEFINE_TYPES) || defined(BRUSH_CHANNEL_DEFINE_EXTERNAL)

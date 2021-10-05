@@ -96,11 +96,11 @@ static void sculpt_array_datalayers_init(SculptArray *array, SculptSession *ss)
 
   SCULPT_temp_customlayer_ensure(
       ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, &params);
-  SCULPT_temp_customlayer_get(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, array->scl_inst, &params);
-
   SCULPT_temp_customlayer_ensure(
       ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_symmetry_pass_cd_name, &params);
+
+  SCULPT_temp_customlayer_get(
+      ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, array->scl_inst, &params);
   SCULPT_temp_customlayer_get(
       ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_symmetry_pass_cd_name, array->scl_sym, &params);
 }
@@ -117,6 +117,7 @@ static void sculpt_array_datalayers_add(SculptArray *array, SculptSession *ss, M
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
     *(int *)SCULPT_temp_cdata_get(vertex, scl) = ARRAY_INSTANCE_ORIGINAL;
+    *(int *)SCULPT_temp_cdata_get(vertex, array->scl_sym) = 0;
   }
 }
 
@@ -124,18 +125,59 @@ ATTR_NO_OPT void SCULPT_array_datalayers_free(SculptArray *array, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
+#if 0
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+
+  // update cdata pointers for SCULPT_temp_customlayer_release
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+    ss->vdata = &mesh->vdata;
+    ss->edata = &mesh->edata;
+    ss->ldata = &mesh->ldata;
+    ss->pdata = &mesh->pdata;
+
+    ss->mvert = (MVert *)CustomData_get_layer(ss->vdata, CD_MVERT);
+    ss->medge = (MEdge *)CustomData_get_layer(ss->edata, CD_MEDGE);
+    ss->mloop = (MLoop *)CustomData_get_layer(ss->ldata, CD_MLOOP);
+    ss->mpoly = (MPoly *)CustomData_get_layer(ss->pdata, CD_MPOLY);
+
+    ss->face_sets = (int *)CustomData_get_layer(ss->pdata, CD_SCULPT_FACE_SETS);
+
+    ss->totfaces = ss->totpoly = mesh->totpoly;
+    ss->totedges = mesh->totedge;
+
+    if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+      ss->totvert = mesh->totvert;
+    }
+
+    BKE_sculptsession_check_mdyntopo(ss, ss->pbvh, SCULPT_vertex_count_get(ss));
+  }
+#endif
+
+  SculptLayerParams params = {.permanent = true, .simple_array = false};
+
   if (array->scl_inst) {
+    SCULPT_temp_customlayer_get(
+        ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, array->scl_inst, &params);
     SCULPT_temp_customlayer_release(ss, array->scl_inst);
   }
 
   if (array->scl_sym) {
+    SCULPT_temp_customlayer_get(ss,
+                                ATTR_DOMAIN_POINT,
+                                CD_PROP_INT32,
+                                array_symmetry_pass_cd_name,
+                                array->scl_sym,
+                                &params);
     SCULPT_temp_customlayer_release(ss, array->scl_sym);
   }
 
+  SCULPT_update_customdata_refs(ss);
+
   array->scl_inst = NULL;
   array->scl_sym = NULL;
-  return;
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
+
+#if 0
+  // Mesh *mesh = BKE_object_get_original_mesh(ob);
   int v_layer_index = CustomData_get_named_layer_index(
       &mesh->vdata, CD_PROP_INT32, array_instance_cd_name);
   if (v_layer_index != -1) {
@@ -147,6 +189,7 @@ ATTR_NO_OPT void SCULPT_array_datalayers_free(SculptArray *array, Object *ob)
   if (v_layer_index != -1) {
     CustomData_free_layer(&mesh->vdata, CD_PROP_INT32, mesh->totvert, v_layer_index);
   }
+#endif
 }
 
 const float source_geometry_threshold = 0.5f;
@@ -295,6 +338,15 @@ ATTR_NO_OPT static void sculpt_array_ensure_geometry_indices(Object *ob, SculptA
 
   SculptSession *ss = ob->sculpt;
   int totvert = SCULPT_vertex_count_get(ss);
+
+  SCULPT_update_customdata_refs(ss);
+
+  SculptLayerParams params = {.permanent = true, .simple_array = false};
+
+  SCULPT_temp_customlayer_get(
+      ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, array->scl_inst, &params);
+  SCULPT_temp_customlayer_get(
+      ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_symmetry_pass_cd_name, array->scl_sym, &params);
 
   array->copy_index = MEM_malloc_arrayN(totvert, sizeof(int), "array copy index");
   array->symmetry_pass = MEM_malloc_arrayN(totvert, sizeof(int), "array symmetry pass index");
@@ -520,7 +572,10 @@ static void sculpt_array_update_copy(StrokeCache *cache,
   float scale = 1.0f;
   float direction[3];
 
-  eBrushArrayDeformType array_type = brush->array_deform_type;
+  BrushChannelSet *chset = cache->channels_final ? cache->channels_final : brush->channels;
+  eBrushArrayDeformType array_type = BRUSHSET_GET_INT(
+      chset, array_deform_type, &cache->input_mapping);
+
   float delta[3];
   copy_v3_v3(delta, sculpt_array_delta_from_path(array));
 
@@ -1002,7 +1057,7 @@ ATTR_NO_OPT void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
     return;
   }
 
-  if (brush->array_count == 0) {
+  if (SCULPT_get_int(ss, array_count, sd, brush) == 0) {
     return;
   }
 
@@ -1016,7 +1071,9 @@ ATTR_NO_OPT void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
       sculpt_array_cache_free(ss->array);
     }
 
-    ss->array = sculpt_array_cache_create(ob, brush->array_deform_type, brush->array_count);
+    ss->array = sculpt_array_cache_create(ob,
+                                          SCULPT_get_int(ss, array_deform_type, sd, brush),
+                                          SCULPT_get_int(ss, array_count, sd, brush));
     sculpt_array_init(ob, brush, ss->array);
     sculpt_array_stroke_sample_add(ob, ss->array);
     sculpt_array_mesh_build(sd, ob, ss->array);

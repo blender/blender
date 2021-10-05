@@ -447,6 +447,8 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(blend, blend, INT, INT)
   DEF(elastic_deform_volume_preservation, elastic_deform_volume_preservation, FLOAT, FLOAT)
   DEF(smooth_deform_type, smooth_deform_type, INT, INT)
+  DEF(array_deform_type, array_deform_type, INT, INT)
+  DEF(array_count, array_count, INT, INT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -1059,6 +1061,11 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
     case SCULPT_TOOL_ELASTIC_DEFORM:
       ADDCH(use_grab_active_vertex);
       break;
+    case SCULPT_TOOL_ARRAY:
+      ADDCH(array_deform_type);
+      ADDCH(array_count);
+
+      break;
     case SCULPT_TOOL_CLAY_STRIPS:
       if (set_mappings) {
         reset_clay_mappings(chset, true);
@@ -1401,6 +1408,13 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
     case SCULPT_TOOL_ELASTIC_DEFORM:
       SHOWWRK(elastic_deform_type);
       SHOWCTX(elastic_deform_type);
+      break;
+    case SCULPT_TOOL_ARRAY:
+      SHOWWRK(array_deform_type);
+      SHOWCTX(array_deform_type);
+
+      SHOWALL(array_count);
+
       break;
   }
 
