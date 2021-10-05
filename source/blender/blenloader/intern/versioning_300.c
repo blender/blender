@@ -1751,6 +1751,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 32)) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      BKE_brush_channelset_ui_init(brush, brush->sculpt_tool);
+
       if (ELEM(brush->sculpt_tool, SCULPT_TOOL_CLAY, SCULPT_TOOL_CLAY_STRIPS) && brush->channels) {
         BRUSHSET_SET_BOOL(brush->channels, autosmooth_use_spacing, true);
         BRUSHSET_SET_FLOAT(brush->channels, autosmooth_spacing, 7.0f);
