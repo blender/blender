@@ -67,6 +67,8 @@ void ED_sculpt_init_transform(struct bContext *C, Object *ob)
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
+  ss->stroke_id++;
+
   copy_v3_v3(ss->init_pivot_pos, ss->pivot_pos);
   copy_v4_v4(ss->init_pivot_rot, ss->pivot_rot);
   copy_v3_v3(ss->init_pivot_scale, ss->pivot_scale);
