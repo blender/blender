@@ -1011,17 +1011,22 @@ class SCULPT_OT_set_dyntopo_mode(Operator):
         brush = context.tool_settings.sculpt.brush
         ch = UnifiedPaintPanel.get_channel(context, brush, "dyntopo_mode")
 
+        finalch = ch
+
+        if not brush.channels["dyntopo_mode"].inherit and ch.inherit_if_unset:
+            finalch = context.tool_settings.sculpt.channels["dyntopo_mode"]
+
         oldf = set()
-        for f in ch.flags_value:
+        for f in finalch.flags_value:
             if f not in ["SUBDIVIDE", "COLLAPSE"]:
                 oldf.add(f)
 
         if self.mode == "SC":
-            ch.flags_value = oldf.union({"SUBDIVIDE", "COLLAPSE"})
+            finalch.flags_value = oldf.union({"SUBDIVIDE", "COLLAPSE"})
         elif self.mode == "S":
-            ch.flags_value = oldf.union({"SUBDIVIDE"})
+            finalch.flags_value = oldf.union({"SUBDIVIDE"})
         elif self.mode == "C":
-            ch.flags_value = oldf.union({"COLLAPSE"})
+            finalch.flags_value = oldf.union({"COLLAPSE"})
 
         return {'FINISHED'}
 
@@ -1031,12 +1036,16 @@ def set_dyntopo_mode_button(layout, context):
 
     ch = brush.channels["dyntopo_mode"]
     finalch = UnifiedPaintPanel.get_channel(context, brush, "dyntopo_mode")
+    val = finalch.flags_value
 
-    if "SUBDIVIDE" in finalch.flags_value and "COLLAPSE" in finalch.flags_value:
+    if finalch.inherit_if_unset:
+        val = val.union(context.tool_settings.sculpt.channels["dyntopo_mode"].flags_value)
+
+    if "SUBDIVIDE" in val and "COLLAPSE" in val:
         text = "Subdivide Collapse"
-    elif "SUBDIVIDE" in finalch.flags_value:
+    elif "SUBDIVIDE" in val:
         text = "Subdivide Edges"
-    elif "COLLAPSE" in finalch.flags_value:
+    elif "COLLAPSE" in val:
         text = "Collapse Edges"
     else:
         text = ""
