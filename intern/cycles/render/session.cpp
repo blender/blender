@@ -157,6 +157,13 @@ void Session::run_main_render_loop()
       continue;
     }
 
+    /* Stop rendering if error happenned during scene update or other step of preparing scene
+     * for render. */
+    if (device->have_error()) {
+      progress.set_error(device->error_message());
+      break;
+    }
+
     {
       /* buffers mutex is locked entirely while rendering each
        * sample, and released/reacquired on each iteration to allow
@@ -172,10 +179,9 @@ void Session::run_main_render_loop()
       /* update status and timing */
       update_status_time();
 
+      /* Stop rendering if error happenned during path tracing. */
       if (device->have_error()) {
-        const string &error_message = device->error_message();
-        progress.set_error(error_message);
-        progress.set_cancel(error_message);
+        progress.set_error(device->error_message());
         break;
       }
     }
