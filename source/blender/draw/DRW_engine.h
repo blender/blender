@@ -26,13 +26,12 @@
 
 #include "DNA_object_enums.h"
 
-#include "DRW_engine_types.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct ARegion;
+struct DRWData;
 struct DRWInstanceDataList;
 struct Depsgraph;
 struct DrawEngineType;
@@ -57,8 +56,6 @@ void DRW_engines_free(void);
 
 bool DRW_engine_render_support(struct DrawEngineType *draw_engine_type);
 void DRW_engine_register(struct DrawEngineType *draw_engine_type);
-void DRW_engine_viewport_data_size_get(
-    const void *engine_type, int *r_fbl_len, int *r_txl_len, int *r_psl_len, int *r_stl_len);
 
 typedef struct DRWUpdateContext {
   struct Main *bmain;
@@ -175,6 +172,9 @@ void DRW_deferred_shader_remove(struct GPUMaterial *mat);
 
 struct DrawDataList *DRW_drawdatalist_from_id(struct ID *id);
 void DRW_drawdata_free(struct ID *id);
+
+struct DRWData *DRW_viewport_data_create(void);
+void DRW_viewport_data_free(struct DRWData *drw_data);
 
 bool DRW_opengl_context_release(void);
 void DRW_opengl_context_activate(bool drw_state);

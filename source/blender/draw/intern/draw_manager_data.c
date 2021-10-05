@@ -87,7 +87,7 @@ static void draw_call_sort(DRWCommand *array, DRWCommand *array_tmp, int array_l
   memcpy(array, array_tmp, sizeof(*array) * array_len);
 }
 
-void drw_resource_buffer_finish(ViewportMemoryPool *vmempool)
+void drw_resource_buffer_finish(DRWData *vmempool)
 {
   int chunk_id = DRW_handle_chunk_get(&DST.resource_handle);
   int elem_id = DRW_handle_id_get(&DST.resource_handle);
@@ -908,7 +908,8 @@ void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
     drw_command_set_select_id(shgroup, NULL, DST.select_id);
   }
   DRWResourceHandle handle = drw_resource_handle(shgroup, ob ? ob->obmat : NULL, ob);
-  GPUBatch *batch = DRW_temp_batch_instance_request(DST.idatalist, NULL, inst_attributes, geom);
+  GPUBatch *batch = DRW_temp_batch_instance_request(
+      DST.vmempool->idatalist, NULL, inst_attributes, geom);
   drw_command_draw_instance(shgroup, batch, handle, 0, true);
 }
 
@@ -1128,7 +1129,7 @@ DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
   BLI_assert(format != NULL);
 
   DRWCallBuffer *callbuf = BLI_memblock_alloc(DST.vmempool->callbuffers);
-  callbuf->buf = DRW_temp_buffer_request(DST.idatalist, format, &callbuf->count);
+  callbuf->buf = DRW_temp_buffer_request(DST.vmempool->idatalist, format, &callbuf->count);
   callbuf->buf_select = NULL;
   callbuf->count = 0;
 
@@ -1138,12 +1139,12 @@ DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
       GPU_vertformat_attr_add(&inst_select_format, "selectId", GPU_COMP_I32, 1, GPU_FETCH_INT);
     }
     callbuf->buf_select = DRW_temp_buffer_request(
-        DST.idatalist, &inst_select_format, &callbuf->count);
+        DST.vmempool->idatalist, &inst_select_format, &callbuf->count);
     drw_command_set_select_id(shgroup, callbuf->buf_select, -1);
   }
 
   DRWResourceHandle handle = drw_resource_handle(shgroup, NULL, NULL);
-  GPUBatch *batch = DRW_temp_batch_request(DST.idatalist, callbuf->buf, prim_type);
+  GPUBatch *batch = DRW_temp_batch_request(DST.vmempool->idatalist, callbuf->buf, prim_type);
   drw_command_draw(shgroup, batch, handle);
 
   return callbuf;
@@ -1157,7 +1158,7 @@ DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
   BLI_assert(format != NULL);
 
   DRWCallBuffer *callbuf = BLI_memblock_alloc(DST.vmempool->callbuffers);
-  callbuf->buf = DRW_temp_buffer_request(DST.idatalist, format, &callbuf->count);
+  callbuf->buf = DRW_temp_buffer_request(DST.vmempool->idatalist, format, &callbuf->count);
   callbuf->buf_select = NULL;
   callbuf->count = 0;
 
@@ -1167,12 +1168,13 @@ DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
       GPU_vertformat_attr_add(&inst_select_format, "selectId", GPU_COMP_I32, 1, GPU_FETCH_INT);
     }
     callbuf->buf_select = DRW_temp_buffer_request(
-        DST.idatalist, &inst_select_format, &callbuf->count);
+        DST.vmempool->idatalist, &inst_select_format, &callbuf->count);
     drw_command_set_select_id(shgroup, callbuf->buf_select, -1);
   }
 
   DRWResourceHandle handle = drw_resource_handle(shgroup, NULL, NULL);
-  GPUBatch *batch = DRW_temp_batch_instance_request(DST.idatalist, callbuf->buf, NULL, geom);
+  GPUBatch *batch = DRW_temp_batch_instance_request(
+      DST.vmempool->idatalist, callbuf->buf, NULL, geom);
   drw_command_draw(shgroup, batch, handle);
 
   return callbuf;
