@@ -40,7 +40,6 @@
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
-#include "BLI_vfontdata.h"
 
 #include "BLT_translation.h"
 
@@ -57,6 +56,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
+#include "BKE_vfontdata.h"
 
 #include "BLO_read_write.h"
 
@@ -77,7 +77,7 @@ static void vfont_init_data(ID *id)
   if (pf) {
     VFontData *vfd;
 
-    vfd = BLI_vfontdata_from_freetypefont(pf);
+    vfd = BKE_vfontdata_from_freetypefont(pf);
     if (vfd) {
       vfont->data = vfd;
 
@@ -107,7 +107,7 @@ static void vfont_copy_data(Main *UNUSED(bmain),
   }
 
   if (vfont_dst->data) {
-    vfont_dst->data = BLI_vfontdata_copy(vfont_dst->data, flag_subdata);
+    vfont_dst->data = BKE_vfontdata_copy(vfont_dst->data, flag_subdata);
   }
 }
 
@@ -300,7 +300,7 @@ static VFontData *vfont_get_data(VFont *vfont)
     }
 
     if (pf) {
-      vfont->data = BLI_vfontdata_from_freetypefont(pf);
+      vfont->data = BKE_vfontdata_from_freetypefont(pf);
       if (pf != vfont->packedfile) {
         BKE_packedfile_free(pf);
       }
@@ -335,7 +335,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
   if (pf) {
     VFontData *vfd;
 
-    vfd = BLI_vfontdata_from_freetypefont(pf);
+    vfd = BKE_vfontdata_from_freetypefont(pf);
     if (vfd) {
       /* If there's a font name, use it for the ID name. */
       vfont = BKE_libblock_alloc(bmain, ID_VF, vfd->name[0] ? vfd->name : filename, 0);
@@ -954,7 +954,7 @@ static bool vfont_to_curve(Object *ob,
          * happen often once all the chars are load.
          */
         if ((che = find_vfont_char(vfd, ascii)) == NULL) {
-          che = BLI_vfontchar_from_freetypefont(vfont, ascii);
+          che = BKE_vfontdata_char_from_freetypefont(vfont, ascii);
         }
         BLI_rw_mutex_unlock(&vfont_rwlock);
       }

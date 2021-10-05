@@ -60,6 +60,9 @@ set(INC
 
 set(INC_SYS
   ${ZLIB_INCLUDE_DIRS}
+
+  # For `vfontdata_freetype.c`.
+  ${FREETYPE_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -286,6 +289,7 @@ set(SRC
   intern/tracking_util.c
   intern/undo_system.c
   intern/unit.c
+  intern/vfontdata_freetype.c
   intern/volume.cc
   intern/volume_render.cc
   intern/volume_to_mesh.cc
@@ -453,6 +457,7 @@ set(SRC
   BKE_tracking.h
   BKE_undo_system.h
   BKE_unit.h
+  BKE_vfontdata.h
   BKE_volume.h
   BKE_volume_render.h
   BKE_volume_to_mesh.hh
@@ -502,6 +507,9 @@ set(LIB
   bf_rna
   bf_shader_fx
   bf_simulation
+
+  # For `vfontdata_freetype.c`.
+  ${FREETYPE_LIBRARY}
 )
 
 if(WITH_BINRELOC)
