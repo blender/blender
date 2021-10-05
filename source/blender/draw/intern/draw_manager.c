@@ -2928,8 +2928,27 @@ void DRW_engines_register(void)
   }
 }
 
+static void drw_registered_engines_free(void)
+{
+  DRWRegisteredDrawEngine *next;
+  for (DRWRegisteredDrawEngine *type = g_registered_engines.engines.first; type; type = next) {
+    next = type->next;
+    BLI_remlink(&R_engines, type);
+
+    if (type->draw_engine->engine_free) {
+      type->draw_engine->engine_free();
+    }
+    MEM_freeN(type);
+  }
+
+  BLI_listbase_clear(&g_registered_engines.engines);
+  g_registered_engines.len = 0;
+}
+
 void DRW_engines_free(void)
 {
+  drw_registered_engines_free();
+
   if (DST.gl_context == NULL) {
     /* Nothing has been setup. Nothing to clear.
      * Otherwise, DRW_opengl_context_enable can
@@ -2947,17 +2966,6 @@ void DRW_engines_free(void)
   DRW_shape_cache_free();
   DRW_stats_free();
   DRW_globals_free();
-
-  DRWRegisteredDrawEngine *next;
-  for (DRWRegisteredDrawEngine *type = g_registered_engines.engines.first; type; type = next) {
-    next = type->next;
-    BLI_remlink(&R_engines, type);
-
-    if (type->draw_engine->engine_free) {
-      type->draw_engine->engine_free();
-    }
-    MEM_freeN(type);
-  }
 
   DRW_UBO_FREE_SAFE(G_draw.block_ubo);
   DRW_UBO_FREE_SAFE(G_draw.view_ubo);
