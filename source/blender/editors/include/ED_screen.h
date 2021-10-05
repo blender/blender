@@ -178,9 +178,7 @@ void ED_area_update_region_sizes(struct wmWindowManager *wm,
                                  struct wmWindow *win,
                                  struct ScrArea *area);
 bool ED_area_has_shared_border(struct ScrArea *a, struct ScrArea *b);
-ScrArea *ED_area_offscreen_create(struct wmWindowManager *wm,
-                                  struct wmWindow *win,
-                                  eSpace_Type space_type);
+ScrArea *ED_area_offscreen_create(struct wmWindow *win, eSpace_Type space_type);
 void ED_area_offscreen_free(struct wmWindowManager *wm,
                             struct wmWindow *win,
                             struct ScrArea *area);

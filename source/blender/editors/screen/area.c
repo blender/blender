@@ -2001,7 +2001,7 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
   }
 }
 
-static void area_offscreen_init(wmWindowManager *wm, ScrArea *area)
+static void area_offscreen_init(ScrArea *area)
 {
   area->type = BKE_spacetype_from_id(area->spacetype);
 
@@ -2015,13 +2015,13 @@ static void area_offscreen_init(wmWindowManager *wm, ScrArea *area)
   }
 }
 
-ScrArea *ED_area_offscreen_create(wmWindowManager *wm, wmWindow *win, eSpace_Type space_type)
+ScrArea *ED_area_offscreen_create(wmWindow *win, eSpace_Type space_type)
 {
   ScrArea *area = MEM_callocN(sizeof(*area), __func__);
   area->spacetype = space_type;
 
   screen_area_spacelink_add(WM_window_get_active_scene(win), area, space_type);
-  area_offscreen_init(wm, area);
+  area_offscreen_init(area);
 
   return area;
 }
