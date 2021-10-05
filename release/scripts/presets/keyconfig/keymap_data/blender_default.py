@@ -75,6 +75,8 @@ class Params:
         "use_fallback_tool_rmb",
         # Shorthand for: `('CLICK' if params.use_fallback_tool_rmb else params.select_mouse_value)`.
         "select_mouse_value_fallback",
+        # Shorthand for: `{"type": params.select_tweak, "value": 'ANY'}`.
+        "select_tweak_event",
         # Shorthand for: `('CLICK_DRAG' if params.use_pie_click_drag else 'PRESS')`
         "pie_value",
         # Shorthand for: `{"type": params.tool_tweak, "value": 'ANY'}`.
@@ -197,6 +199,7 @@ class Params:
         # Convenience variables:
         self.use_fallback_tool_rmb = self.use_fallback_tool if select_mouse == 'RIGHT' else False
         self.select_mouse_value_fallback = 'CLICK' if self.use_fallback_tool_rmb else self.select_mouse_value
+        self.select_tweak_event = {"type": self.select_tweak, "value": 'ANY'}
         self.pie_value = 'CLICK_DRAG' if use_pie_click_drag else 'PRESS'
         self.tool_tweak_event = {"type": self.tool_tweak, "value": 'ANY'}
         self.tool_maybe_tweak_event = {"type": self.tool_maybe_tweak, "value": self.tool_maybe_tweak_value}
@@ -6172,7 +6175,7 @@ def km_image_editor_tool_uv_select_box(params, *, fallback):
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
                 "uv.select_box",
                 # Don't use `tool_maybe_tweak_event`, see comment for this slot.
-                **({"type": params.select_tweak, "value": 'ANY'} if fallback else params.tool_tweak_event))),
+                **(params.select_tweak_event if fallback else params.tool_tweak_event))),
             *_template_uv_select_for_fallback(params, fallback),
         ]},
     )
@@ -6185,8 +6188,7 @@ def km_image_editor_tool_uv_select_circle(params, *, fallback):
         {"items": [
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
                 "uv.select_circle",
-                type=params.select_tweak if fallback else params.tool_mouse,
-                value='ANY' if fallback else 'PRESS',
+                **{params.select_tweak_event if fallback else {"type": params.tool_mouse, 'PRESS'}}
                 properties=[("wait_for_input", False)])),
             # No selection fallback since this operates on press.
         ]},
@@ -6201,7 +6203,7 @@ def km_image_editor_tool_uv_select_lasso(params, *, fallback):
         {"items": [
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
                 "uv.select_lasso",
-                **({"type": params.select_tweak, "value": 'ANY'} if fallback else params.tool_tweak_event))),
+                **(params.select_tweak_event if fallback else params.tool_tweak_event))),
             *_template_uv_select_for_fallback(params, fallback),
         ]},
     )
@@ -6365,7 +6367,7 @@ def km_3d_view_tool_select_box(params, *, fallback):
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
                 "view3d.select_box",
                 # Don't use `tool_maybe_tweak_event`, see comment for this slot.
-                **({"type": params.select_tweak, "value": 'ANY'} if fallback else params.tool_tweak_event))),
+                **(params.select_tweak_event if fallback else params.tool_tweak_event))),
             *_template_view3d_select_for_fallback(params, fallback),
         ]},
     )
@@ -6395,7 +6397,7 @@ def km_3d_view_tool_select_lasso(params, *, fallback):
         {"items": [
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
                 "view3d.select_lasso",
-                **({"type": params.select_tweak, "value": 'ANY'} if fallback else params.tool_tweak_event))),
+                **(params.select_tweak_event if fallback else params.tool_tweak_event))),
             *_template_view3d_select_for_fallback(params, fallback),
         ]}
     )
@@ -7251,7 +7253,7 @@ def km_3d_view_tool_edit_gpencil_select_box(params, *, fallback):
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
                 "gpencil.select_box",
                 # Don't use `tool_maybe_tweak_event`, see comment for this slot.
-                **({"type": params.select_tweak, "value": 'ANY'} if fallback else params.tool_tweak_event))),
+                **(params.select_tweak_event if fallback else params.tool_tweak_event))),
             *_template_view3d_gpencil_select_for_fallback(params, fallback),
         ]},
     )
@@ -7281,7 +7283,7 @@ def km_3d_view_tool_edit_gpencil_select_lasso(params, *, fallback):
         {"items": [
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
                 "gpencil.select_lasso",
-                **({"type": params.select_tweak, "value": 'ANY'} if fallback else params.tool_tweak_event))),
+                **(params.select_tweak_event if fallback else params.tool_tweak_event))),
             *_template_view3d_gpencil_select_for_fallback(params, fallback),
         ]}
     )
