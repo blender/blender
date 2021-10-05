@@ -1440,7 +1440,7 @@ static void do_render_full_pipeline(Render *re)
 
   /* ensure no images are in memory from previous animated sequences */
   BKE_image_all_free_anim_ibufs(re->main, re->r.cfra);
-  SEQ_relations_free_all_anim_ibufs(re->scene, re->r.cfra);
+  SEQ_cache_cleanup(re->scene);
 
   if (RE_engine_render(re, true)) {
     /* in this case external render overrides all */
