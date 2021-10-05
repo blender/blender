@@ -404,16 +404,27 @@ if(WITH_CYCLES_CUDA_BINARIES)
             -cuda-toolkit-dir "${cuda_toolkit_root_dir}"
         DEPENDS ${kernel_sources} cycles_cubin_cc)
     else()
-      add_custom_command(
-        OUTPUT ${cuda_file}
-        COMMAND ${cuda_nvcc_executable}
+      set(_cuda_nvcc_args
             -arch=${arch}
             ${CUDA_NVCC_FLAGS}
             --${format}
             ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
             --ptxas-options="-v"
-            ${cuda_flags}
-        DEPENDS ${kernel_sources})
+            ${cuda_flags})
+
+      if(WITH_COMPILER_CCACHE AND CCACHE_PROGRAM)
+        add_custom_command(
+          OUTPUT ${cuda_file}
+          COMMAND ${CCACHE_PROGRAM} ${cuda_nvcc_executable} ${_cuda_nvcc_args}
+          DEPENDS ${kernel_sources})
+      else()
+        add_custom_command(
+          OUTPUT ${cuda_file}
+          COMMAND ${cuda_nvcc_executable} ${_cuda_nvcc_args}
+          DEPENDS ${kernel_sources})
+      endif()
+
+      unset(_cuda_nvcc_args)
     endif()
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_file}" ${CYCLES_INSTALL_PATH}/lib)
     list(APPEND cuda_cubins ${cuda_file})
