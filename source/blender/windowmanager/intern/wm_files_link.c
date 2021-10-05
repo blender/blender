@@ -579,6 +579,16 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
 
     id->tag &= ~LIB_TAG_DOIT;
   }
+
+  /* Finally, add rigid body objects and constraints to current RB world(s). */
+  for (itemlink = lapp_data->items.list; itemlink; itemlink = itemlink->next) {
+    WMLinkAppendDataItem *item = itemlink->link;
+    ID *id = wm_append_loose_data_instantiate_process_check(item);
+    if (id == NULL || GS(id->name) != ID_OB) {
+      continue;
+    }
+    BKE_rigidbody_ensure_local_object(bmain, (Object *)id);
+  }
 }
 
 /** \} */
@@ -773,9 +783,6 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
                                                  local_appended_new_id);
       }
 
-      if (GS(local_appended_new_id->name) == ID_OB) {
-        BKE_rigidbody_ensure_local_object(bmain, (Object *)local_appended_new_id);
-      }
       if (set_fakeuser) {
         if (!ELEM(GS(local_appended_new_id->name), ID_OB, ID_GR)) {
           /* Do not set fake user on objects nor collections (instancing). */
