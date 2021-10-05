@@ -2572,7 +2572,7 @@ static void island_stack_mesh_do(SculptSession *ss,
 }
 SculptFaceSetIslands *SCULPT_face_set_islands_get(SculptSession *ss, int fset)
 {
-  if (!ss->epmap) {
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH && !ss->epmap) {
     BKE_mesh_edge_poly_map_create(&ss->epmap,
                                   &ss->epmap_mem,
                                   ss->medge,
