@@ -322,6 +322,23 @@ float *SCULPT_vertex_origco_get(SculptSession *ss, SculptVertRef vertex)
   return NULL;
 }
 
+float *SCULPT_vertex_origno_get(SculptSession *ss, SculptVertRef vertex)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      BMVert *v = (BMVert *)vertex.i;
+      return BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v)->origno;
+    }
+
+    case PBVH_GRIDS:
+    case PBVH_FACES: {
+      return ss->mdyntopo_verts[vertex.i].origno;
+    }
+  }
+
+  return NULL;
+}
+
 const float *SCULPT_vertex_co_get(SculptSession *ss, SculptVertRef index)
 {
   if (ss->bm) {
@@ -3391,7 +3408,7 @@ static float calc_overlap(StrokeCache *cache, const char symm, const char axis, 
 
   distsq = len_squared_v3v3(mirror, cache->true_location);
 
-  if (distsq <= 4.0f * (cache->radius_squared)) {
+  if (cache->radius > 0.0f && distsq <= 4.0f * (cache->radius_squared)) {
     return (2.0f * (cache->radius) - sqrtf(distsq)) / (2.0f * (cache->radius));
   }
   return 0.0f;
@@ -3432,7 +3449,9 @@ static float calc_symmetry_feather(Sculpt *sd, StrokeCache *cache)
     overlap += calc_radial_symmetry_feather(sd, cache, i, 'Y');
     overlap += calc_radial_symmetry_feather(sd, cache, i, 'Z');
   }
-  return 1.0f / overlap;
+
+  /* mathwise divice by zero is infinity, so use maximum value (1) in that case? */
+  return overlap != 0.0f ? 1.0f / overlap : 1.0f;
 }
 
 /* -------------------------------------------------------------------- */
@@ -4105,7 +4124,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
 }
 
 /* Test AABB against sphere. */
-ATTR_NO_OPT bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v)
+bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v)
 {
   SculptSearchSphereData *data = data_v;
   const float *center;
@@ -6826,11 +6845,8 @@ static void do_rotate_brush_task_cb_ex(void *__restrict userdata,
   const float angle = data->angle;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
   float(*proxy)[3];
   const float bstrength = ss->cache->bstrength;
-
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
@@ -6840,33 +6856,39 @@ static void do_rotate_brush_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_vertex_check_origdata(ss, vd.vertex);
 
-    if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
+    float *co = SCULPT_vertex_origco_get(ss, vd.vertex);
+    float *no = SCULPT_vertex_origno_get(ss, vd.vertex);
+
+    if (!sculpt_brush_test_sq_fn(&test, co)) {
       continue;
     }
+
     float vec[3], rot[3][3];
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
-                                                                orig_data.co,
+                                                                co,
                                                                 sqrtf(test.dist),
-                                                                orig_data.no,
                                                                 NULL,
+                                                                no,
                                                                 vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
                                                                 thread_id);
 
-    sub_v3_v3v3(vec, orig_data.co, ss->cache->location);
+    sub_v3_v3v3(vec, co, ss->cache->location);
     axis_angle_normalized_to_mat3(rot, ss->cache->sculpt_normal_symm, angle * fade);
     mul_v3_m3v3(proxy[vd.i], rot, vec);
     add_v3_v3(proxy[vd.i], ss->cache->location);
-    sub_v3_v3(proxy[vd.i], orig_data.co);
+    sub_v3_v3(proxy[vd.i], co);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
   }
   BKE_pbvh_vertex_iter_end;
+
+  BKE_pbvh_node_mark_update(data->nodes[n]);
 }
 
 static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)

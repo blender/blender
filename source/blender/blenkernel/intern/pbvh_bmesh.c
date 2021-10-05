@@ -5155,7 +5155,7 @@ void pbvh_bmesh_do_cache_test()
 }
 
 /* saves all bmesh references to internal indices, to be restored later */
-ATTR_NO_OPT void BKE_pbvh_bmesh_save_indices(PBVH *pbvh)
+void BKE_pbvh_bmesh_save_indices(PBVH *pbvh)
 {
   BM_mesh_elem_index_ensure(pbvh->bm, BM_VERT | BM_EDGE | BM_FACE);
 
@@ -5242,7 +5242,7 @@ ATTR_NO_OPT void BKE_pbvh_bmesh_save_indices(PBVH *pbvh)
 }
 
 /* restore bmesh references from previously indices saved by BKE_pbvh_bmesh_save_indices */
-ATTR_NO_OPT void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
+void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
 {
   BM_mesh_elem_table_ensure(pbvh->bm, BM_VERT | BM_EDGE | BM_FACE);
   BM_mesh_elem_index_ensure(pbvh->bm, BM_VERT | BM_EDGE | BM_FACE);

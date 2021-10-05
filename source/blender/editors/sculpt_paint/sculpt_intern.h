@@ -235,6 +235,8 @@ void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
 SculptVertRef SCULPT_active_vertex_get(SculptSession *ss);
 const float *SCULPT_active_vertex_co_get(SculptSession *ss);
 float *SCULPT_vertex_origco_get(SculptSession *ss, SculptVertRef vertex);
+float *SCULPT_vertex_origno_get(SculptSession *ss, SculptVertRef vertex);
+
 void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3]);
 MDynTopoVert *SCULPT_vertex_get_mdyntopo(SculptSession *ss, SculptVertRef vertex);
 
@@ -1826,7 +1828,7 @@ int SCULPT_get_symmetry_pass(const SculptSession *ss);
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
 void SCULPT_reorder_bmesh(SculptSession *ss);
 
-static inline void *SCULPT_temp_cdata_get(SculptVertRef vertex, SculptCustomLayer *scl)
+static inline void *SCULPT_temp_cdata_get(const SculptVertRef vertex, const SculptCustomLayer *scl)
 {
   if (scl->data) {
     char *p = (char *)scl->data;
@@ -1848,7 +1850,8 @@ static inline void *SCULPT_temp_cdata_get(SculptVertRef vertex, SculptCustomLaye
 }
 
 // arg, duplicate functions!
-static inline void *SCULPT_temp_cdata_get_f(SculptFaceRef vertex, SculptCustomLayer *scl)
+static inline void *SCULPT_temp_cdata_get_f(const SculptFaceRef vertex,
+                                            const SculptCustomLayer *scl)
 {
   if (scl->data) {
     char *p = (char *)scl->data;

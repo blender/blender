@@ -121,7 +121,7 @@ static void sculpt_array_datalayers_add(SculptArray *array, SculptSession *ss, M
   }
 }
 
-ATTR_NO_OPT void SCULPT_array_datalayers_free(SculptArray *array, Object *ob)
+void SCULPT_array_datalayers_free(SculptArray *array, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -286,9 +286,7 @@ static BMesh *sculpt_array_source_build(Object *ob, Brush *brush, SculptArray *a
   return srcbm;
 }
 
-ATTR_NO_OPT void sculpt_array_source_datalayer_update(BMesh *bm,
-                                                      const int symm_pass,
-                                                      const int copy_index)
+void sculpt_array_source_datalayer_update(BMesh *bm, const int symm_pass, const int copy_index)
 {
   const int cd_array_instance_index = CustomData_get_named_layer_index(
       &bm->vdata, CD_PROP_INT32, array_instance_cd_name);
@@ -326,10 +324,8 @@ static void sculpt_array_final_mesh_write(Object *ob, BMesh *final_mesh)
   ss->needs_pbvh_rebuild = true;
 }
 
-ATTR_NO_OPT static void sculpt_array_ensure_geometry_indices(Object *ob, SculptArray *array)
+static void sculpt_array_ensure_geometry_indices(Object *ob, SculptArray *array)
 {
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
-
   if (array->copy_index) {
     return;
   }
@@ -361,7 +357,7 @@ ATTR_NO_OPT static void sculpt_array_ensure_geometry_indices(Object *ob, SculptA
   SCULPT_array_datalayers_free(array, ob);
 }
 
-ATTR_NO_OPT static void sculpt_array_mesh_build(Sculpt *sd, Object *ob, SculptArray *array)
+static void sculpt_array_mesh_build(Sculpt *sd, Object *ob, SculptArray *array)
 {
   bool have_bmesh = ob->sculpt->bm && ob->sculpt->pbvh &&
                     BKE_pbvh_type(ob->sculpt->pbvh) == PBVH_BMESH;
@@ -566,7 +562,6 @@ static void sculpt_array_update_copy(StrokeCache *cache,
                                      Brush *brush)
 {
 
-  float copy_position[3];
   unit_m4(copy->mat);
 
   float scale = 1.0f;
@@ -663,15 +658,13 @@ static void sculpt_array_update(Object *ob, Brush *brush, SculptArray *array)
   }
 }
 
-ATTR_NO_OPT static void do_array_deform_task_cb_ex(void *__restrict userdata,
-                                                   const int n,
-                                                   const TaskParallelTLS *__restrict tls)
+static void do_array_deform_task_cb_ex(void *__restrict userdata,
+                                       const int n,
+                                       const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
   SculptArray *array = ss->array;
-
-  Mesh *mesh = BKE_object_get_original_mesh(data->ob);
 
   bool any_modified = false;
 
@@ -711,7 +704,6 @@ ATTR_NO_OPT static void do_array_deform_task_cb_ex(void *__restrict userdata,
 static void sculpt_array_deform(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   /* Threaded loop over nodes. */
-  SculptSession *ss = ob->sculpt;
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
@@ -730,8 +722,6 @@ static void do_array_smooth_task_cb_ex(void *__restrict userdata,
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
   SculptArray *array = ss->array;
-
-  Mesh *mesh = BKE_object_get_original_mesh(data->ob);
 
   bool any_modified = false;
 
@@ -821,7 +811,6 @@ static void sculpt_array_smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 static void sculpt_array_ensure_original_coordinates(Object *ob, SculptArray *array)
 {
   SculptSession *ss = ob->sculpt;
-  Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
   const int totvert = SCULPT_vertex_count_get(ss);
 
   if (array->orco) {
@@ -841,8 +830,6 @@ static void sculpt_array_ensure_base_transform(Sculpt *sd, Object *ob, SculptArr
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
-  Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
-  const int totvert = SCULPT_vertex_count_get(ss);
 
   if (array->source_mat_valid) {
     return;
@@ -921,7 +908,7 @@ static void sculpt_array_stroke_sample_add(Object *ob, SculptArray *array)
   array->path.tot_points++;
 }
 
-ATTR_NO_OPT void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
