@@ -366,6 +366,22 @@ float Object::compute_volume_step_size() const
   return step_size;
 }
 
+bool Object::check_is_volume() const
+{
+  if (geometry->geometry_type == Geometry::VOLUME) {
+    return true;
+  }
+
+  for (Node *node : get_geometry()->get_used_shaders()) {
+    const Shader *shader = static_cast<const Shader *>(node);
+    if (shader->has_volume_connected) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 int Object::get_device_index() const
 {
   return index;

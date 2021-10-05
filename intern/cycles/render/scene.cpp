@@ -527,6 +527,8 @@ void Scene::update_kernel_features()
   const uint max_closures = (params.background) ? get_max_closure_count() : MAX_CLOSURE;
   dscene.data.max_closures = max_closures;
   dscene.data.max_shaders = shaders.size();
+
+  dscene.data.volume_stack_size = get_volume_stack_size();
 }
 
 bool Scene::update(Progress &progress)
@@ -640,6 +642,33 @@ int Scene::get_max_closure_count()
   }
 
   return max_closure_global;
+}
+
+int Scene::get_volume_stack_size() const
+{
+  /* Quick non-expensive check. Can over-estimate maximum possible nested level, but does not
+   * require expensive calculation during pre-processing. */
+  int num_volume_objects = 0;
+  for (const Object *object : objects) {
+    if (object->check_is_volume()) {
+      ++num_volume_objects;
+    }
+
+    if (num_volume_objects == MAX_VOLUME_STACK_SIZE) {
+      break;
+    }
+  }
+
+  /* Count background world for the stack. */
+  const Shader *background_shader = background->get_shader(this);
+  if (background_shader && background_shader->has_volume_connected) {
+    ++num_volume_objects;
+  }
+
+  /* Space for terminator. */
+  ++num_volume_objects;
+
+  return min(num_volume_objects, MAX_VOLUME_STACK_SIZE);
 }
 
 bool Scene::has_shadow_catcher()

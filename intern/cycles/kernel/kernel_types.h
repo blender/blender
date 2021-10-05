@@ -61,8 +61,6 @@ CCL_NAMESPACE_BEGIN
 #define ID_NONE (0.0f)
 #define PASS_UNUSED (~0)
 
-#define VOLUME_STACK_SIZE 4
-
 /* Kernel features */
 #define __SOBOL__
 #define __DPDU__
@@ -606,6 +604,12 @@ typedef struct AttributeDescriptor {
 #  define MAX_CLOSURE 64
 #else
 #  define MAX_CLOSURE __MAX_CLOSURE__
+#endif
+
+#ifndef __MAX_VOLUME_STACK_SIZE__
+#  define MAX_VOLUME_STACK_SIZE 32
+#else
+#  define MAX_VOLUME_STACK_SIZE __MAX_VOLUME_STACK_SIZE__
 #endif
 
 #define MAX_VOLUME_CLOSURE 8
@@ -1223,7 +1227,7 @@ typedef struct KernelData {
   uint kernel_features;
   uint max_closures;
   uint max_shaders;
-  uint pad;
+  uint volume_stack_size;
 
   KernelCamera cam;
   KernelFilm film;

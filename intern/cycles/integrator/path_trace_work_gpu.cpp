@@ -23,6 +23,7 @@
 #include "render/buffers.h"
 #include "render/scene.h"
 #include "util/util_logging.h"
+#include "util/util_string.h"
 #include "util/util_tbb.h"
 #include "util/util_time.h"
 
@@ -30,7 +31,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-static size_t estimate_single_state_size()
+static size_t estimate_single_state_size(DeviceScene *device_scene)
 {
   size_t state_size = 0;
 
@@ -45,12 +46,14 @@ static size_t estimate_single_state_size()
     break; \
   } \
   }
+#define KERNEL_STRUCT_VOLUME_STACK_SIZE (device_scene->data.volume_stack_size)
 #include "kernel/integrator/integrator_state_template.h"
 #undef KERNEL_STRUCT_BEGIN
 #undef KERNEL_STRUCT_MEMBER
 #undef KERNEL_STRUCT_ARRAY_MEMBER
 #undef KERNEL_STRUCT_END
 #undef KERNEL_STRUCT_END_ARRAY
+#undef KERNEL_STRUCT_VOLUME_STACK_SIZE
 
   return state_size;
 }
@@ -72,7 +75,7 @@ PathTraceWorkGPU::PathTraceWorkGPU(Device *device,
       num_queued_paths_(device, "num_queued_paths", MEM_READ_WRITE),
       work_tiles_(device, "work_tiles", MEM_READ_WRITE),
       display_rgba_half_(device, "display buffer half", MEM_READ_WRITE),
-      max_num_paths_(queue_->num_concurrent_states(estimate_single_state_size())),
+      max_num_paths_(queue_->num_concurrent_states(estimate_single_state_size(device_scene))),
       min_num_active_paths_(queue_->num_concurrent_busy_states()),
       max_active_path_index_(0)
 {
@@ -125,12 +128,23 @@ void PathTraceWorkGPU::alloc_integrator_soa()
     break; \
   } \
   }
+#define KERNEL_STRUCT_VOLUME_STACK_SIZE (device_scene_->data.volume_stack_size)
 #include "kernel/integrator/integrator_state_template.h"
 #undef KERNEL_STRUCT_BEGIN
 #undef KERNEL_STRUCT_MEMBER
 #undef KERNEL_STRUCT_ARRAY_MEMBER
 #undef KERNEL_STRUCT_END
 #undef KERNEL_STRUCT_END_ARRAY
+#undef KERNEL_STRUCT_VOLUME_STACK_SIZE
+
+  if (VLOG_IS_ON(3)) {
+    size_t total_soa_size = 0;
+    for (auto &&soa_memory : integrator_state_soa_) {
+      total_soa_size += soa_memory->memory_size();
+    }
+
+    VLOG(3) << "GPU SoA state size: " << string_human_readable_size(total_soa_size);
+  }
 }
 
 void PathTraceWorkGPU::alloc_integrator_queue()

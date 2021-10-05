@@ -344,6 +344,9 @@ class Scene : public NodeOwner {
   /* Get maximum number of closures to be used in kernel. */
   int get_max_closure_count();
 
+  /* Get size of a volume stack needed to render this scene.  */
+  int get_volume_stack_size() const;
+
   template<typename T> void delete_node_impl(T *node)
   {
     delete node;
