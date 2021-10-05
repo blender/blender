@@ -1749,7 +1749,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 300, 27)) {
+  if (MAIN_VERSION_OLDER(bmain, 300, 20) && !MAIN_VERSION_ATLEAST(bmain, 300, 32)) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (ELEM(brush->sculpt_tool, SCULPT_TOOL_CLAY, SCULPT_TOOL_CLAY_STRIPS) && brush->channels) {
         BRUSHSET_SET_BOOL(brush->channels, autosmooth_use_spacing, true);
@@ -1761,7 +1761,10 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             BRUSH_MAPPING_ENABLED;
 
         if (brush->sculpt_tool == SCULPT_TOOL_CLAY_STRIPS) {
-          BRUSHSET_SET_FLOAT(brush->channels, tip_roundness, 0.18f);
+          if (BRUSHSET_GET_FLOAT(brush->channels, tip_roundness, NULL) == 0.0f) {
+            BRUSHSET_SET_FLOAT(brush->channels, tip_roundness, 0.18f);
+          }
+
           BRUSHSET_LOOKUP(brush->channels, tip_roundness)->flag |= BRUSH_CHANNEL_SHOW_IN_WORKSPACE;
           BRUSHSET_SET_BOOL(brush->channels, use_space_attenuation, false);
         }

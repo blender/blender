@@ -134,7 +134,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 
   SCULPT_dyntopo_automasking_init(ss, sd, NULL, ob, &mask_cb, &mask_cb_data);
 
-  const int max_steps = 10;
+  const int max_steps = 2;
   const int max_dyntopo_steps_coll = 1 << 13;
   const int max_dyntopo_steps_subd = 1 << 15;
 

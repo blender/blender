@@ -881,6 +881,7 @@ void reset_clay_mappings(BrushChannelSet *chset, bool strips)
   CurveMap *cuma = curve->cm;
 
   if (!strips) {  //[[0,0.200], [0.354,0.200], [0.595,0.210], [0.806,0.523], [1,1.000]
+#if 0
     cuma->curve[0].x = 0.0f;
     cuma->curve[0].y = 0.2f;
 
@@ -889,9 +890,9 @@ void reset_clay_mappings(BrushChannelSet *chset, bool strips)
     BKE_curvemap_insert(cuma, 0.8f, 0.525f);
 
     BKE_curvemapping_changed(curve, true);
+#endif
   }
   else {
-#if 0  // dunno if I've interpreted the original code's math right - joeedh
     //[[0,0], [0.250,0.050], [0.500,0.125], [0.750,0.422], [1,1]
     cuma->curve[0].x = 0.0f;
     cuma->curve[0].y = 0.55f;
@@ -899,7 +900,6 @@ void reset_clay_mappings(BrushChannelSet *chset, bool strips)
     cuma->curve[2].x = 1.0f;
     cuma->curve[2].y = 1.0f;
     BKE_curvemapping_changed(curve, true);
-#endif
   }
 
   mp = BRUSHSET_LOOKUP(chset, strength)->mappings + BRUSH_MAPPING_PRESSURE;

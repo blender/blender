@@ -1015,12 +1015,14 @@ class SCULPT_OT_set_dyntopo_mode(Operator):
 
         if not brush.channels["dyntopo_mode"].inherit and ch.inherit_if_unset:
             finalch = context.tool_settings.sculpt.channels["dyntopo_mode"]
+            pass
 
         oldf = set()
         for f in finalch.flags_value:
             if f not in ["SUBDIVIDE", "COLLAPSE"]:
                 oldf.add(f)
 
+        print("OLDF", oldf)
         if self.mode == "SC":
             finalch.flags_value = oldf.union({"SUBDIVIDE", "COLLAPSE"})
         elif self.mode == "S":
