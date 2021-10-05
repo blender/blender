@@ -791,6 +791,8 @@ void BKE_brush_channelset_merge(BrushChannelSet *dst,
       continue;
     }
 
+    /*TODO: should inherit if unset should always apply, i.e. this block should be moved above the
+     * previous one?*/
     if (ch->type == BRUSH_CHANNEL_TYPE_BITMASK && (ch->flag & BRUSH_CHANNEL_INHERIT_IF_UNSET)) {
       mch->ivalue = ch->ivalue | pch->ivalue;
     }
@@ -1537,7 +1539,7 @@ void BKE_builtin_apply_hard_edge_mode(BrushChannelSet *chset, bool do_apply)
     ch->ivalue = 1;
   }
 
-  //turn off dyntopo surface smoothing
+  // turn off dyntopo surface smoothing
   ch = BRUSHSET_LOOKUP(chset, dyntopo_disable_smooth);
   if (ch) {
     ch->flag &= ~BRUSH_CHANNEL_INHERIT;

@@ -1980,9 +1980,9 @@ BLI_INLINE int dyntopo_thread_rand(int seed)
   return (seed * multiplier + addend) & mask;
 }
 
- static void long_edge_queue_task_cb(void *__restrict userdata,
-                                                const int n,
-                                                const TaskParallelTLS *__restrict tls)
+static void long_edge_queue_task_cb(void *__restrict userdata,
+                                    const int n,
+                                    const TaskParallelTLS *__restrict tls)
 {
   EdgeQueueThreadData *tdata = ((EdgeQueueThreadData *)userdata) + n;
   PBVHNode *node = tdata->node;
@@ -3930,7 +3930,13 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     copy_v3_v3(v_conn->co, co);
   }
   else {
+    float co[3];
+
+    add_v3_v3v3(co, v_del->co, v_conn->co);
+    mul_v3_fl(co, 0.5f);
+
     BM_edge_collapse(pbvh->bm, e, v_del, true, true, true);
+    copy_v3_v3(v_conn->co, co);
   }
 
   for (int i = 0; i < BLI_array_len(delvs); i++) {

@@ -1512,7 +1512,7 @@ static void layerDynTopoVert_interp(
 {
   float co[3], no[3], origmask, color[4];
   MDynTopoVert *mv = (MDynTopoVert *)dest;
-  float totweight = 0.0f;
+  // float totweight = 0.0f;
 
   if (count == 0) {
     memset(mv, 0, sizeof(*mv));
@@ -1533,28 +1533,29 @@ static void layerDynTopoVert_interp(
       mv->stroke_id = mv2->stroke_id;
     }
 
-    if (sub_weights) {
-      w = sub_weights[i];
-    }
-    else {
-      w = 1.0f;
-    }
+    w = weights[i];
 
     madd_v3_v3fl(co, mv2->origco, w);
     madd_v3_v3fl(no, mv2->origno, w);
     madd_v4_v4fl(color, mv2->origcolor, w);
     origmask += mv2->origmask * w;
 
-    totweight += w;
+    // totweight += w;
   }
 
+  normalize_v3(no);
+
+#if 0
+  if (fabsf(totweight - 1.0) > 0.001) {
+    printf("eek\n");
+  }
   float mul = 1.0f / totweight;
 
   mul_v3_fl(co, mul);
-  normalize_v3(no);
 
   mul_v4_fl(color, mul);
   origmask *= mul;
+#endif
 
   copy_v3_v3(mv->origco, co);
   copy_v3_v3(mv->origno, no);

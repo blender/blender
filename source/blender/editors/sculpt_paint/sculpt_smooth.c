@@ -1020,6 +1020,10 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
+
+    // check origdata to be sure we don't mess it up
+    SCULPT_vertex_check_origdata(ss, vd.vertex);
+
     const float fade = bstrength * SCULPT_brush_strength_factor(
                                        ss,
                                        brush,
@@ -1172,7 +1176,7 @@ void SCULPT_smooth(Sculpt *sd,
         .bound_smooth = bound_smooth,
         .scl = have_scl ? &scl : NULL,
         .scl2 = bound_scl,
-        .do_origco = SCULPT_stroke_needs_original(ss->cache->brush),
+        .do_origco = do_origco,
     };
 
     TaskParallelSettings settings;
@@ -1186,7 +1190,7 @@ void SCULPT_smooth(Sculpt *sd,
 }
 
 void SCULPT_do_smooth_brush(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float projection)
+    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float projection, bool do_origco)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -1206,7 +1210,7 @@ void SCULPT_do_smooth_brush(
   }
   else {
     /* Regular mode, smooth. */
-    SCULPT_smooth(sd, ob, nodes, totnode, ss->cache->bstrength, false, projection, false);
+    SCULPT_smooth(sd, ob, nodes, totnode, ss->cache->bstrength, false, projection, do_origco);
   }
 }
 

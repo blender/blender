@@ -1063,7 +1063,8 @@ GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, BLI_bitmap **grid_hid
 static int debug_pass = 0;
 
 /* Output a BMVert into a VertexBufferFormat array at v_index. */
-static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
+static void gpu_bmesh_vert_to_buffer_copy(BMesh *bm,
+                                          BMVert *v,
                                           GPUVertBuf *vert_buf,
                                           int v_index,
                                           const float fno[3],
@@ -1086,12 +1087,21 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
       vert_buf, g_vbo_id.vertex_attrs, g_vbo_id.vertex_attrs_len, (BMElem *)v, v_index);
 #endif
 
-  /* Set coord, normal, and mask */
-  GPU_vertbuf_attr_set(vert_buf, g_vbo_id.pos, v_index, v->co);
-
   short no_short[3];
 
-  normal_float_to_short_v3(no_short, fno ? fno : v->no);
+  /* Set coord, normal, and mask */
+  if (G.debug_value == 890) {
+    const int cd_dyn_vert = bm->vdata.layers[bm->vdata.typemap[CD_DYNTOPO_VERT]].offset;
+    MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, cd_dyn_vert);
+
+    GPU_vertbuf_attr_set(vert_buf, g_vbo_id.pos, v_index, mv->origco);
+    normal_float_to_short_v3(no_short, mv->origno);
+  }
+  else {
+    GPU_vertbuf_attr_set(vert_buf, g_vbo_id.pos, v_index, v->co);
+    normal_float_to_short_v3(no_short, fno ? fno : v->no);
+  }
+
   GPU_vertbuf_attr_set(vert_buf, g_vbo_id.nor, v_index, no_short);
 
 #ifndef GPU_PERF_TEST
@@ -1746,7 +1756,8 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
 
     GPU_vertbuf_attr_set(vert_buf, g_vbo_id.nor, i, no_short);
 #else
-    gpu_bmesh_vert_to_buffer_copy(v,
+    gpu_bmesh_vert_to_buffer_copy(bm,
+                                  v,
                                   buffers->vert_buf,
                                   i,
                                   NULL,
@@ -1961,7 +1972,8 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
     for (int j = 0; j < 3; j++) {
       float *no = buffers->smooth ? v[j]->no : f->no;
 
-      gpu_bmesh_vert_to_buffer_copy(v[j],
+      gpu_bmesh_vert_to_buffer_copy(bm,
+                                    v[j],
                                     buffers->vert_buf,
                                     v_index,
                                     no,
@@ -2079,7 +2091,8 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
       for (i = 0; i < 3; i++) {
         float *no = buffers->smooth ? v[i]->no : f->no;
 
-        gpu_bmesh_vert_to_buffer_copy(v[i],
+        gpu_bmesh_vert_to_buffer_copy(bm,
+                                      v[i],
                                       buffers->vert_buf,
                                       v_index,
                                       no,

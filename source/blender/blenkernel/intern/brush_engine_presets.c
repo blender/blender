@@ -514,6 +514,7 @@ BrushFlagMap brush_flags_map[] =  {
   DEF(flag, use_plane_trim, BRUSH_PLANE_TRIM)
   DEF(flag2, use_surface_falloff, BRUSH_USE_SURFACE_FALLOFF)
   DEF(flag2, use_grab_active_vertex, BRUSH_GRAB_ACTIVE_VERTEX)
+  DEF(flag, accumulate, BRUSH_ACCUMULATE)
 };
 
 int brush_flags_map_len = ARRAY_SIZE(brush_flags_map);
@@ -1465,7 +1466,7 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       BRUSHSET_SET_FLOAT(chset, strength, 0.5);
       BRUSHSET_SET_FLOAT(chset, autosmooth, 0.05);
       BRUSHSET_SET_INT(chset, topology_rake_mode, 1);  // curvature mode
-      BRUSHSET_SET_FLOAT(chset, topology_rake, 0.35);
+      BRUSHSET_SET_FLOAT(chset, topology_rake, 0.5);
 
       BrushChannel *ch = BRUSHSET_LOOKUP(chset, dyntopo_mode);
       ch->flag &= ~BRUSH_CHANNEL_INHERIT;

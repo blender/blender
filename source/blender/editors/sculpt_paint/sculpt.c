@@ -4476,7 +4476,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  const bool use_curvature = ss->cache->brush->flag2 & BRUSH_CURVATURE_RAKE;
+  const bool use_curvature = data->use_curvature;
   int check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
   check_fsets = check_fsets ? SCULPT_BOUNDARY_FACE_SET : 0;
 
@@ -4542,39 +4542,55 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     }
 #endif
 
-    int steps = data->do_origco ? 2 : 1;
+    // check origdata to be sure we don't mess it up
+    SCULPT_vertex_check_origdata(ss, vd.vertex);
 
-    for (int step = 0; step < steps; step++) {
-      float *co = step ? (float *)SCULPT_vertex_origco_get(ss, vd.vertex) : vd.co;
+    float *co = vd.co;
 
-      SCULPT_bmesh_four_neighbor_average(ss,
-                                         avg,
-                                         direction2,
-                                         vd.bm_vert,
-                                         data->rake_projection,
-                                         check_fsets,
-                                         data->cd_temp,
-                                         data->cd_dyn_vert,
-                                         step);
+    float oldco[3];
+    copy_v3_v3(oldco, co);
 
-      sub_v3_v3v3(val, avg, co);
-      madd_v3_v3v3fl(val, co, val, fade);
-      SCULPT_clip(sd, ss, co, val);
-    }
+    SCULPT_bmesh_four_neighbor_average(ss,
+                                       avg,
+                                       direction2,
+                                       vd.bm_vert,
+                                       data->rake_projection,
+                                       check_fsets,
+                                       data->cd_temp,
+                                       data->cd_dyn_vert,
+                                       0);
+
+    sub_v3_v3v3(val, avg, co);
+
+    float tan[3];
+    copy_v3_v3(tan, val);
+    madd_v3_v3fl(tan, vd.bm_vert->no, -dot_v3v3(tan, vd.bm_vert->no));
+
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, vd.bm_vert);
+    madd_v3_v3v3fl(mv->origco, mv->origco, tan, fade * 0.5);
+
+    madd_v3_v3v3fl(val, co, val, fade);
+    SCULPT_clip(sd, ss, co, val);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
   }
   BKE_pbvh_vertex_iter_end;
+
+  BKE_pbvh_node_mark_normals_update(data->nodes[n]);
 }
 
-static void bmesh_topology_rake(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, float bstrength)
+static void bmesh_topology_rake(Sculpt *sd,
+                                Object *ob,
+                                PBVHNode **nodes,
+                                const int totnode,
+                                float bstrength,
+                                bool needs_origco)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
-  const float strength = clamp_f(bstrength, 0.0f, 1.0f);
+  const float strength = bstrength;  // clamp_f(bstrength, 0.0f, 1.0f);
 
   Brush local_brush;
 
@@ -4632,23 +4648,26 @@ static void bmesh_topology_rake(
 
   int iteration;
   const int count = iterations * strength + 1;
-  const float factor = iterations * strength / count;
+  const float factor = iterations * strength / count * 0.25;
 
   for (iteration = 0; iteration <= count; iteration++) {
 
-    SculptThreadedTaskData data = {.sd = sd,
-                                   .ob = ob,
-                                   .brush = brush,
-                                   .nodes = nodes,
-                                   .strength = factor,
-                                   .cd_temp = cd_temp,
-                                   .cd_dyn_vert = ss->cd_dyn_vert,
-                                   .rake_projection = brush->topology_rake_projection,
-                                   .do_origco = SCULPT_stroke_needs_original(brush)};
+    SculptThreadedTaskData data = {
+        .sd = sd,
+        .ob = ob,
+        .brush = brush,
+        .nodes = nodes,
+        .strength = factor,
+        .cd_temp = cd_temp,
+        .use_curvature = SCULPT_get_int(ss, topology_rake_mode, sd, brush),
+        .cd_dyn_vert = ss->cd_dyn_vert,
+        .rake_projection = brush->topology_rake_projection,
+        .do_origco = needs_origco};
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
 
     BLI_task_parallel_range(0, totnode, &data, do_topology_rake_bmesh_task_cb_ex, &settings);
+    BKE_pbvh_update_normals(ss->pbvh, ss->subdiv_ccg);
   }
 }
 
@@ -7471,6 +7490,8 @@ static void do_clay_brush_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
+    SCULPT_vertex_check_origdata(ss, vd.vertex);
+
     float intr[3];
     float val[3];
     closest_to_plane_normalized_v3(intr, test.plane_tool, vd.co);
@@ -8965,7 +8986,14 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
       break;
     case SCULPT_TOOL_SMOOTH:
       if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_LAPLACIAN) {
-        SCULPT_do_smooth_brush(sd, ob, nodes, totnode, brush->autosmooth_projection);
+        SCULPT_do_smooth_brush(
+            sd,
+            ob,
+            nodes,
+            totnode,
+            brush->autosmooth_projection,
+            SCULPT_stroke_needs_original(
+                brush));  // TODO: extract need original from commandlist and not parent brush
       }
       else if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE) {
         SCULPT_do_surface_smooth_brush(sd, ob, nodes, totnode);
@@ -9173,7 +9201,8 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
       ss->cache->radius_squared = ss->cache->radius * ss->cache->radius;
     }
 
-    bmesh_topology_rake(sd, ob, nodes, totnode, brush->topology_rake_factor);
+    bmesh_topology_rake(
+        sd, ob, nodes, totnode, brush->topology_rake_factor, SCULPT_stroke_needs_original(brush));
 
     if (brush->topology_rake_radius_factor != 1.0f) {
       ss->cache->radius = start_radius;
@@ -9548,8 +9577,12 @@ static void SCULPT_run_command_list(
         break;
       case SCULPT_TOOL_SMOOTH:
         if (brush2->smooth_deform_type == BRUSH_SMOOTH_DEFORM_LAPLACIAN) {
-          SCULPT_do_smooth_brush(
-              sd, ob, nodes, totnode, BRUSHSET_GET_FLOAT(cmd->params_mapped, projection, NULL));
+          SCULPT_do_smooth_brush(sd,
+                                 ob,
+                                 nodes,
+                                 totnode,
+                                 BRUSHSET_GET_FLOAT(cmd->params_mapped, projection, NULL),
+                                 SCULPT_stroke_needs_original(brush));
         }
         else if (brush2->smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE) {
           SCULPT_do_surface_smooth_brush(sd, ob, nodes, totnode);
@@ -9680,7 +9713,8 @@ static void SCULPT_run_command_list(
         break;
       case SCULPT_TOOL_TOPOLOGY_RAKE:
         if (ss->bm) {
-          bmesh_topology_rake(sd, ob, nodes, totnode, ss->cache->bstrength);
+          bmesh_topology_rake(
+              sd, ob, nodes, totnode, ss->cache->bstrength, SCULPT_stroke_needs_original(brush));
         }
         break;
       case SCULPT_TOOL_DYNTOPO:

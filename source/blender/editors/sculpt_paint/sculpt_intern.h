@@ -784,7 +784,7 @@ void SCULPT_smooth(Sculpt *sd,
                    bool do_origco);
 
 void SCULPT_do_smooth_brush(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float projection);
+    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float projection, bool do_origco);
 
 /* Surface Smooth Brush. */
 
@@ -1059,6 +1059,7 @@ typedef struct SculptThreadedTaskData {
 
   float fset_slide, bound_smooth;
   float crease_pinch_factor;
+  bool use_curvature;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/
