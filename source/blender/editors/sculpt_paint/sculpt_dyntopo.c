@@ -359,10 +359,10 @@ void SCULT_dyntopo_flag_all_disk_sort(SculptSession *ss)
 bool SCULPT_dyntopo_check_disk_sort(SculptSession *ss, SculptVertRef vertex)
 {
   BMVert *v = (BMVert *)vertex.i;
-  MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+  MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
 
-  if (mv->flag & DYNVERT_NEED_DISK_SORT) {
-    mv->flag &= ~DYNVERT_NEED_DISK_SORT;
+  if (mv->flag & SCULPTVERT_NEED_DISK_SORT) {
+    mv->flag &= ~SCULPTVERT_NEED_DISK_SORT;
 
     BM_sort_disk_cycle(v);
 
@@ -520,7 +520,7 @@ void SCULPT_dyntopo_save_origverts(SculptSession *ss)
   BMVert *v;
 
   BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-    MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+    MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
 
     copy_v3_v3(mv->origco, v->co);
     copy_v3_v3(mv->origno, v->no);
@@ -541,11 +541,11 @@ void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss)
     BKE_pbvh_update_offsets(ss->pbvh,
                             ss->cd_vert_node_offset,
                             ss->cd_face_node_offset,
-                            ss->cd_dyn_vert,
+                            ss->cd_sculpt_vert,
                             ss->cd_face_areas);
   }
   if (ss->bm_log) {
-    BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
+    BM_log_set_cd_offsets(ss->bm_log, ss->cd_sculpt_vert);
   }
 }
 
@@ -614,7 +614,7 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 
   ss->cd_origvcol_offset = -1;
 
-  ss->cd_dyn_vert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
+  ss->cd_sculpt_vert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
 
   ss->cd_vcol_offset = CustomData_get_offset(&ss->bm->vdata, CD_PROP_COLOR);
 
@@ -782,7 +782,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
     /* also check bm_log */
     if (!ss->bm_log) {
-      ss->bm_log = BM_log_create(ss->bm, ss->cd_dyn_vert);
+      ss->bm_log = BM_log_create(ss->bm, ss->cd_sculpt_vert);
     }
 
     return;
@@ -862,18 +862,18 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   }
 
   BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-    MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+    MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
 
-    mv->flag |= DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE;
+    mv->flag |= SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE;
 
-    BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert,
+    BKE_pbvh_update_vert_boundary(ss->cd_sculpt_vert,
                                   ss->cd_faceset_offset,
                                   ss->cd_vert_node_offset,
                                   ss->cd_face_node_offset,
                                   ss->cd_vcol_offset,
                                   v,
                                   ss->boundary_symmetry);
-    BKE_pbvh_bmesh_update_valence(ss->cd_dyn_vert, (SculptVertRef){.i = (intptr_t)v});
+    BKE_pbvh_bmesh_update_valence(ss->cd_sculpt_vert, (SculptVertRef){.i = (intptr_t)v});
 
     copy_v3_v3(mv->origco, v->co);
     copy_v3_v3(mv->origno, v->no);
@@ -896,7 +896,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
   /* Enable logging for undo/redo. */
   if (!ss->bm_log) {
-    ss->bm_log = BM_log_create(ss->bm, ss->cd_dyn_vert);
+    ss->bm_log = BM_log_create(ss->bm, ss->cd_sculpt_vert);
   }
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled

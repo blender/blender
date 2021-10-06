@@ -26,7 +26,7 @@
 /** \file
  * \ingroup bli
  */
-struct MDynTopoVert;
+struct MSculptVert;
 
 /* Axis-aligned bounding box */
 typedef struct {
@@ -159,7 +159,7 @@ struct PBVH {
   MVert *verts;
   const MPoly *mpoly;
   const MLoop *mloop;
-  struct MDynTopoVert *mdyntopo_verts;
+  struct MSculptVert *mdyntopo_verts;
   const MLoopTri *looptri;
   CustomData *vdata;
   CustomData *ldata;
@@ -197,7 +197,7 @@ struct PBVH {
   float bm_min_edge_len;
   float bm_detail_range;
 
-  int cd_dyn_vert;
+  int cd_sculpt_vert;
   int cd_vert_node_offset;
   int cd_face_node_offset;
   int cd_vert_mask_offset;
@@ -336,7 +336,7 @@ bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index);
 void pbvh_bmesh_check_nodes(PBVH *pbvh);
 void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni);
 void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f);
-void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
+void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
@@ -346,10 +346,10 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
 
 BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
 {
-  MDynTopoVert *mv = (MDynTopoVert *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_dyn_vert);
+  MSculptVert *mv = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_sculpt_vert);
 
-  if (mv->flag & DYNVERT_NEED_BOUNDARY) {
-    bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert,
+  if (mv->flag & SCULPTVERT_NEED_BOUNDARY) {
+    bke_pbvh_update_vert_boundary(pbvh->cd_sculpt_vert,
                                   pbvh->cd_faceset_offset,
                                   pbvh->cd_vert_node_offset,
                                   pbvh->cd_face_node_offset,

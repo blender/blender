@@ -285,7 +285,7 @@ struct BMLog {
   BMLogEntry *current_entry;
 
   bool has_edges;
-  int cd_dyn_vert;
+  int cd_sculpt_vert;
   bool dead;
 };
 
@@ -1386,9 +1386,9 @@ static GHash *bm_log_compress_ids_to_indices(uint *ids, uint totid)
 
 /***************************** Public API *****************************/
 
-void BM_log_set_cd_offsets(BMLog *log, int cd_dyn_vert)
+void BM_log_set_cd_offsets(BMLog *log, int cd_sculpt_vert)
 {
-  log->cd_dyn_vert = cd_dyn_vert;
+  log->cd_sculpt_vert = cd_sculpt_vert;
 }
 
 void BM_log_set_bm(BMesh *bm, BMLog *log)
@@ -1397,13 +1397,13 @@ void BM_log_set_bm(BMesh *bm, BMLog *log)
 }
 
 /* Allocate, initialize, and assign a new BMLog */
-BMLog *BM_log_create(BMesh *bm, int cd_dyn_vert)
+BMLog *BM_log_create(BMesh *bm, int cd_sculpt_vert)
 {
   BMLog *log = MEM_callocN(sizeof(*log), __func__);
 
   BLI_rw_mutex_init(&log->lock);
 
-  BM_log_set_cd_offsets(log, cd_dyn_vert);
+  BM_log_set_cd_offsets(log, cd_sculpt_vert);
 
   return log;
 }
@@ -2940,7 +2940,7 @@ const float *BM_log_original_vert_no(BMLog *log, BMVert *v)
  * Does not modify the log or the vertex */
 float BM_log_original_mask(BMLog *log, BMVert *v)
 {
-  MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, log->cd_dyn_vert);
+  MSculptVert *mv = BM_ELEM_CD_GET_VOID_P(v, log->cd_sculpt_vert);
   return mv->origmask;
 }
 

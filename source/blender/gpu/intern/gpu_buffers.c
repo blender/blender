@@ -1092,8 +1092,8 @@ static void gpu_bmesh_vert_to_buffer_copy(BMesh *bm,
 
   /* Set coord, normal, and mask */
   if (G.debug_value == 890 || pbvh_show_orig_co) {
-    const int cd_dyn_vert = bm->vdata.layers[bm->vdata.typemap[CD_DYNTOPO_VERT]].offset;
-    MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, cd_dyn_vert);
+    const int cd_sculpt_vert = bm->vdata.layers[bm->vdata.typemap[CD_DYNTOPO_VERT]].offset;
+    MSculptVert *mv = BM_ELEM_CD_GET_VOID_P(v, cd_sculpt_vert);
 
     GPU_vertbuf_attr_set(vert_buf, g_vbo_id.pos, v_index, mv->origco);
     normal_float_to_short_v3(no_short, mv->origno);

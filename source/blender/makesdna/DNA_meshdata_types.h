@@ -525,7 +525,7 @@ typedef struct MRecast {
 
 /** \} */
 
-typedef struct MDynTopoVert {
+typedef struct MSculptVert {
   short flag, valence;
 
   /**original coordinates*/
@@ -540,25 +540,25 @@ typedef struct MDynTopoVert {
   /* id of current stroke, used to detect
    if vertex original data needs to be updated*/
   int stroke_id;
-} MDynTopoVert;
+} MSculptVert;
 
-/* MDynTopoVert->flag */
+/* MSculptVert->flag */
 enum {
-  DYNVERT_BOUNDARY = (1 << 0),
-  DYNVERT_VERT_FSET_HIDDEN = (1 << 1),
-  DYNVERT_FSET_BOUNDARY = (1 << 2),
-  DYNVERT_NEED_BOUNDARY = (1 << 3),
-  DYNVERT_NEED_TRIANGULATE = (1 << 4),
-  DYNVERT_NEED_DISK_SORT = (1 << 5),
-  DYNVERT_NEED_VALENCE = (1 << 6),
-  DYNVERT_FSET_CORNER = (1 << 7),
-  DYNVERT_CORNER = (1 << 8),
-  DYNVERT_SEAM_BOUNDARY = (1 << 9),
-  DYNVERT_SHARP_BOUNDARY = (1 << 10),
-  DYNVERT_SEAM_CORNER = (1 << 11),
-  DYNVERT_SHARP_CORNER = (1 << 12),
-  DYNVERT_SPLIT_TEMP = (1 << 13),
-  DYNVERT_PBVH_BOUNDARY = (1 << 14)
+  SCULPTVERT_BOUNDARY = (1 << 0),
+  SCULPTVERT_VERT_FSET_HIDDEN = (1 << 1),
+  SCULPTVERT_FSET_BOUNDARY = (1 << 2),
+  SCULPTVERT_NEED_BOUNDARY = (1 << 3),
+  SCULPTVERT_NEED_TRIANGULATE = (1 << 4),
+  SCULPTVERT_NEED_DISK_SORT = (1 << 5),
+  SCULPTVERT_NEED_VALENCE = (1 << 6),
+  SCULPTVERT_FSET_CORNER = (1 << 7),
+  SCULPTVERT_CORNER = (1 << 8),
+  SCULPTVERT_SEAM_BOUNDARY = (1 << 9),
+  SCULPTVERT_SHARP_BOUNDARY = (1 << 10),
+  SCULPTVERT_SEAM_CORNER = (1 << 11),
+  SCULPTVERT_SHARP_CORNER = (1 << 12),
+  SCULPTVERT_SPLIT_TEMP = (1 << 13),
+  SCULPTVERT_PBVH_BOUNDARY = (1 << 14)
 };
 
 /* for internal bmesh toolflags api */

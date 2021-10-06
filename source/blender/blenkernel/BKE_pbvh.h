@@ -130,7 +130,7 @@ struct GPU_PBVH_Buffers;
 struct IsectRayPrecalc;
 struct MLoop;
 struct MLoopTri;
-struct MDynTopoVert;
+struct MSculptVert;
 struct MPoly;
 struct MVert;
 struct Mesh;
@@ -283,7 +283,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          const struct MPoly *mpoly,
                          const struct MLoop *mloop,
                          struct MVert *verts,
-                         struct MDynTopoVert *mdyntopo_verts,
+                         struct MSculptVert *mdyntopo_verts,
                          int totvert,
                          struct CustomData *vdata,
                          struct CustomData *ldata,
@@ -305,13 +305,13 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           struct BMLog *log,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset,
-                          const int cd_dyn_vert,
+                          const int cd_sculpt_vert,
                           const int cd_face_areas,
                           bool fast_draw);
 void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_vert_node_offset,
                              const int cd_face_node_offset,
-                             const int cd_dyn_vert,
+                             const int cd_sculpt_vert,
                              const int cd_face_areas);
 void BKE_pbvh_free(PBVH *pbvh);
 
@@ -500,7 +500,7 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node);
 // updates boundaries and valences for whole mesh
 void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh);
 bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, SculptVertRef vertex);
-void BKE_pbvh_bmesh_update_valence(int cd_dyn_vert, SculptVertRef vertex);
+void BKE_pbvh_bmesh_update_valence(int cd_sculpt_vert, SculptVertRef vertex);
 void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh);
 void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh);
 bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, SculptVertRef vertex);
@@ -626,7 +626,7 @@ typedef struct PBVHVertexIter {
   struct TableGSet *bm_unique_verts, *bm_other_verts;
 
   struct CustomData *bm_vdata;
-  int cd_dyn_vert;
+  int cd_sculpt_vert;
   int cd_vert_mask_offset;
   int cd_vcol_offset;
 
@@ -642,7 +642,7 @@ typedef struct PBVHVertexIter {
   bool visible;
 } PBVHVertexIter;
 
-#define BKE_PBVH_DYNVERT(cd_dyn_vert, v) ((MDynTopoVert *)BM_ELEM_CD_GET_VOID_P(v, cd_dyn_vert))
+#define BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v) ((MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, cd_sculpt_vert))
 
 void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int mode);
 
@@ -833,7 +833,7 @@ PBVHNode *BKE_pbvh_node_from_face_bmesh(PBVH *pbvh, struct BMFace *f);
 PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i);
 
 struct BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh);
-void BKE_pbvh_update_vert_boundary(int cd_dyn_vert,
+void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
@@ -947,20 +947,20 @@ void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
                                          struct MEdge *medge,
                                          struct MLoop *mloop,
                                          struct MPoly *mpoly,
-                                         struct MDynTopoVert *mdyntopo_verts,
+                                         struct MSculptVert *mdyntopo_verts,
                                          struct MeshElemMap *pmap,
                                          SculptVertRef vertex);
 void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
                                          struct SubdivCCG *subdiv_ccg,
                                          SculptVertRef vertex);
 
-void BKE_pbvh_set_mdyntopo_verts(PBVH *pbvh, struct MDynTopoVert *mdyntopoverts);
+void BKE_pbvh_set_mdyntopo_verts(PBVH *pbvh, struct MSculptVert *mdyntopoverts);
 
 #if 0
 #  include "DNA_meshdata_types.h"
-ATTR_NO_OPT static void MV_ADD_FLAG(MDynTopoVert *mv, int flag)
+ATTR_NO_OPT static void MV_ADD_FLAG(MSculptVert *mv, int flag)
 {
-  if (flag & DYNVERT_NEED_BOUNDARY) {
+  if (flag & SCULPTVERT_NEED_BOUNDARY) {
     flag |= flag;
   }
 

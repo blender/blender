@@ -37,7 +37,7 @@ extern "C" {
 #endif
 
 struct SculptCustomLayer;
-struct MDynTopoVert;
+struct MSculptVert;
 struct BMFace;
 struct BMesh;
 struct BlendDataReader;
@@ -628,7 +628,7 @@ typedef struct SculptSession {
 
   /* BMesh for dynamic topology sculpting */
   struct BMesh *bm;
-  int cd_dyn_vert;
+  int cd_sculpt_vert;
   int cd_vert_node_offset;
   int cd_face_node_offset;
   int cd_vcol_offset;
@@ -771,7 +771,7 @@ typedef struct SculptSession {
   int stroke_id, boundary_symmetry;
 
   bool fast_draw;  // hides facesets/masks and forces smooth to save GPU bandwidth
-  struct MDynTopoVert *mdyntopo_verts;  // for non-bmesh
+  struct MSculptVert *mdyntopo_verts;  // for non-bmesh
   int mdyntopo_verts_size;
 
   /*list of up to date custom layer references,

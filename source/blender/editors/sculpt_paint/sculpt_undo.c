@@ -428,7 +428,7 @@ typedef struct BmeshUndoData {
   bool do_full_recalc;
   bool balance_pbvh;
   int cd_face_node_offset, cd_vert_node_offset;
-  int cd_dyn_vert;
+  int cd_sculpt_vert;
   bool regen_all_unique_verts;
   bool is_redo;
 } BmeshUndoData;
@@ -458,10 +458,10 @@ static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
   // let face add vert
   BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
 
-  MDynTopoVert *mv = BKE_PBVH_DYNVERT(data->cd_dyn_vert, v);
+  MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, v);
   MV_ADD_FLAG(mv,
-              DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE | DYNVERT_NEED_TRIANGULATE |
-                  DYNVERT_NEED_BOUNDARY);
+              SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE |
+                  SCULPTVERT_NEED_BOUNDARY);
 }
 
 static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
@@ -493,8 +493,8 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
 
   BMLoop *l = f->l_first;
   do {
-    MDynTopoVert *mv = BKE_PBVH_DYNVERT(data->cd_dyn_vert, l->v);
-    MV_ADD_FLAG(mv, DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_BOUNDARY);
+    MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, l->v);
+    MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_BOUNDARY);
 
     int ni_l = BM_ELEM_CD_GET_INT(l->v, data->cd_vert_node_offset);
 
@@ -527,28 +527,28 @@ static void bmesh_undo_on_edge_kill(BMEdge *e, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
-  MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(data->cd_dyn_vert, e->v1);
-  MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(data->cd_dyn_vert, e->v2);
+  MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, e->v1);
+  MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, e->v2);
 
   MV_ADD_FLAG(mv1,
-              DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_TRIANGULATE | DYNVERT_NEED_DISK_SORT |
-                  DYNVERT_NEED_VALENCE);
+              SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT |
+                  SCULPTVERT_NEED_VALENCE);
   MV_ADD_FLAG(mv2,
-              DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_TRIANGULATE | DYNVERT_NEED_DISK_SORT |
-                  DYNVERT_NEED_VALENCE);
+              SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT |
+                  SCULPTVERT_NEED_VALENCE);
 }
 
 static void bmesh_undo_on_edge_add(BMEdge *e, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
-  MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(data->cd_dyn_vert, e->v1);
-  MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(data->cd_dyn_vert, e->v2);
+  MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, e->v1);
+  MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, e->v2);
 
-  mv1->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_TRIANGULATE | DYNVERT_NEED_DISK_SORT |
-               DYNVERT_NEED_VALENCE;
-  mv2->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_TRIANGULATE | DYNVERT_NEED_DISK_SORT |
-               DYNVERT_NEED_VALENCE;
+  mv1->flag |= SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT |
+               SCULPTVERT_NEED_VALENCE;
+  mv2->flag |= SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT |
+               SCULPTVERT_NEED_VALENCE;
 }
 
 static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_customdata)
@@ -648,7 +648,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
                         false,
                         ss->cd_face_node_offset,
                         ss->cd_vert_node_offset,
-                        ss->cd_dyn_vert,
+                        ss->cd_sculpt_vert,
                         false,
                         !unode->applied};
 
@@ -760,7 +760,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
     BM_log_set_current_entry(ss->bm_log, entry);
   }
 
-  BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
+  BM_log_set_cd_offsets(ss->bm_log, ss->cd_sculpt_vert);
 }
 
 static void sculpt_undo_bmesh_restore_begin(
@@ -964,7 +964,7 @@ static int sculpt_undo_bmesh_restore(
   if (ss->bm_log && ss->bm &&
       !ELEM(unode->type, SCULPT_UNDO_DYNTOPO_BEGIN, SCULPT_UNDO_DYNTOPO_END)) {
     SCULPT_update_customdata_refs(ss);
-    BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
+    BM_log_set_cd_offsets(ss->bm_log, ss->cd_sculpt_vert);
 
 #if 0
     if (ss->active_face_index.i && ss->active_face_index.i != -1LL) {
@@ -1117,7 +1117,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         ss->bm_log = log;
 
         SCULPT_dyntopo_node_layers_update_offsets(ss);
-        BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
+        BM_log_set_cd_offsets(ss->bm_log, ss->cd_sculpt_vert);
       }
 
       // PBVH is corrupted at this point, destroy it
@@ -1787,7 +1787,7 @@ void SCULPT_undo_ensure_bmlog(Object *ob)
       ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
     }
     else {
-      ss->bm_log = BM_log_create(ss->bm, ss->cd_dyn_vert);
+      ss->bm_log = BM_log_create(ss->bm, ss->cd_sculpt_vert);
     }
 
     if (ss->pbvh) {
@@ -1807,7 +1807,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
   SCULPT_undo_ensure_bmlog(ob);
 
   if (!ss->bm_log) {
-    ss->bm_log = BM_log_create(ss->bm, ss->cd_dyn_vert);
+    ss->bm_log = BM_log_create(ss->bm, ss->cd_sculpt_vert);
   }
 
   bool new_node = false;
@@ -2151,7 +2151,7 @@ void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_first_entry
   if (ss && ss->bm && ss->bm_log && BM_log_is_dead(ss->bm_log)) {
     // forcibly destroy all entries? the 'true' parameter
     BM_log_free(ss->bm_log, true);
-    ss->bm_log = BM_log_create(ss->bm, ss->cd_dyn_vert);
+    ss->bm_log = BM_log_create(ss->bm, ss->cd_sculpt_vert);
 
     if (ss->pbvh) {
       BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
@@ -2671,7 +2671,7 @@ void SCULPT_substep_undo(bContext *C, int dir)
                         false,
                         ss->cd_face_node_offset,
                         ss->cd_vert_node_offset,
-                        ss->cd_dyn_vert,
+                        ss->cd_sculpt_vert,
                         false,
                         false};
 

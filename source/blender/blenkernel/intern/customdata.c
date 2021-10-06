@@ -1504,14 +1504,14 @@ static bool layerValidate_propfloat2(void *data, const uint totitems, const bool
 
 static void layerDynTopoVert_copy(const void *source, void *dest, int count)
 {
-  memcpy(dest, source, count * sizeof(MDynTopoVert));
+  memcpy(dest, source, count * sizeof(MSculptVert));
 }
 
 static void layerDynTopoVert_interp(
     const void **sources, const float *weights, const float *sub_weights, int count, void *dest)
 {
   float co[3], no[3], origmask, color[4];
-  MDynTopoVert *mv = (MDynTopoVert *)dest;
+  MSculptVert *mv = (MSculptVert *)dest;
   // float totweight = 0.0f;
 
   if (count == 0) {
@@ -1525,7 +1525,7 @@ static void layerDynTopoVert_interp(
   zero_v4(color);
 
   for (int i = 0; i < count; i++) {
-    MDynTopoVert *mv2 = (MDynTopoVert *)sources[i];
+    MSculptVert *mv2 = (MSculptVert *)sources[i];
     float w;
 
     if (i == 0) {  // copy flag from first source
@@ -1977,8 +1977,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      NULL,
      layerDefault_mesh_id},
     /* 53 CD_DYNTOPO_VERT */
-    {sizeof(MDynTopoVert),
-     "MDynTopoVert",
+    {sizeof(MSculptVert),
+     "MSculptVert",
      1,
      NULL,  // flag singleton layer
      layerDynTopoVert_copy,

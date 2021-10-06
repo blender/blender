@@ -238,7 +238,7 @@ float *SCULPT_vertex_origco_get(SculptSession *ss, SculptVertRef vertex);
 float *SCULPT_vertex_origno_get(SculptSession *ss, SculptVertRef vertex);
 
 void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3]);
-MDynTopoVert *SCULPT_vertex_get_mdyntopo(SculptSession *ss, SculptVertRef vertex);
+MSculptVert *SCULPT_vertex_get_mdyntopo(SculptSession *ss, SculptVertRef vertex);
 
 /* Returns PBVH deformed vertices array if shape keys or deform modifiers are used, otherwise
  * returns mesh original vertices array. */
@@ -747,7 +747,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
                                         float projection,
                                         bool check_fsets,
                                         int cd_temp,
-                                        int cd_dyn_vert,
+                                        int cd_sculpt_vert,
                                         bool do_origco);
 
 /* Smoothing api */
@@ -1056,7 +1056,7 @@ typedef struct SculptThreadedTaskData {
   ThreadMutex mutex;
 
   // Layer brush
-  int cd_temp, cd_dyn_vert;
+  int cd_temp, cd_sculpt_vert;
 
   float smooth_projection;
   float rake_projection;

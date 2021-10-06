@@ -47,8 +47,8 @@ typedef struct BMLogCallbacks {
 } BMLogCallbacks;
 
 /* Allocate and initialize a new BMLog */
-BMLog *BM_log_create(BMesh *bm, int cd_dyn_vert);
-void BM_log_set_cd_offsets(BMLog *log, int cd_dyn_vert);
+BMLog *BM_log_create(BMesh *bm, int cd_sculpt_vert);
+void BM_log_set_cd_offsets(BMLog *log, int cd_sculpt_vert);
 
 /* Allocate and initialize a new BMLog using existing BMLogEntries */
 BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry);

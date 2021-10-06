@@ -394,9 +394,9 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
             MVert *v = &ss->mvert[ml->v];
             float fno[3];
 
-            MDynTopoVert *mv = ss->mdyntopo_verts + i;
+            MSculptVert *mv = ss->mdyntopo_verts + i;
 
-            MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY);
+            MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
 
             normal_short_to_float_v3(fno, v->no);
             float mask = ss->vmask ? ss->vmask[ml->v] : 0.0f;
@@ -493,8 +493,8 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                 break;
               }
 
-              MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, l->v);
-              MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY);
+              MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, l->v);
+              MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
             } while ((l = l->next) != f->l_first);
 
             if (ok) {
@@ -2106,8 +2106,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
 
   BM_mesh_select_mode_set(bm, SCE_SELECT_FACE);
 
-  int mupdateflag = DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_TRIANGULATE |
-                    DYNVERT_NEED_VALENCE;
+  int mupdateflag = SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_DISK_SORT |
+                    SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_VALENCE;
 
   BMVert **retvs = NULL;
   BMVert **vs = NULL;
@@ -2265,7 +2265,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
   sculpt_bm_mesh_elem_hflag_disable_all(
       bm, BM_ALL_NOLOOP, BM_ELEM_SELECT | BM_ELEM_TAG_ALT | BM_ELEM_TAG);
 
-  int cd_dyn_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
+  int cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
   cd_faceset_offset = CustomData_get_offset(
       &bm->pdata, CD_SCULPT_FACE_SETS);  // recalc in case bmop changed it
 
@@ -2351,10 +2351,10 @@ static void sculpt_face_set_extrude_id(Object *ob,
         case BM_FACE: {
           BMFace *f = (BMFace *)ele;
 
-          if (cd_dyn_vert != -1) {
+          if (cd_sculpt_vert != -1) {
             BMLoop *l = f->l_first;
             do {
-              MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, l->v);
+              MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, l->v);
               MV_ADD_FLAG(mv, mupdateflag);
             } while ((l = l->next) != f->l_first);
           }
@@ -2393,10 +2393,10 @@ static void sculpt_face_set_extrude_id(Object *ob,
       continue;
     }
 
-    if (cd_dyn_vert >= 0) {
+    if (cd_sculpt_vert >= 0) {
       BMLoop *l = f->l_first;
       do {
-        MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, l->v);
+        MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, l->v);
         MV_ADD_FLAG(mv, mupdateflag);
       } while ((l = l->next) != f->l_first);
     }
@@ -2422,14 +2422,14 @@ static void sculpt_face_set_extrude_id(Object *ob,
       continue;
     }
 
-    const int cd_dyn_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
+    const int cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
 
     BMLoop *l = f->l_first;
     int count = 0;
 
     do {
-      if (cd_dyn_vert >= 0) {
-        MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(l->v, cd_dyn_vert);
+      if (cd_sculpt_vert >= 0) {
+        MSculptVert *mv = BM_ELEM_CD_GET_VOID_P(l->v, cd_sculpt_vert);
 
         MV_ADD_FLAG(mv, mupdateflag);
       }

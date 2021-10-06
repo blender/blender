@@ -1357,7 +1357,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                          sgcontext->ss->bm_log,
                          sgcontext->ss->cd_vert_node_offset,
                          sgcontext->ss->cd_face_node_offset,
-                         sgcontext->ss->cd_dyn_vert,
+                         sgcontext->ss->cd_sculpt_vert,
                          sgcontext->ss->cd_face_areas,
                          sgcontext->ss->fast_draw);
   }

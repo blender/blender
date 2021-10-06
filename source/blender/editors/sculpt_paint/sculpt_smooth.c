@@ -87,7 +87,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   bool do_origco = args->do_origco;
   SculptCustomLayer *bound_scl = args->bound_scl;
 
-  MDynTopoVert *mv = SCULPT_vertex_get_mdyntopo(ss, vertex);
+  MSculptVert *mv = SCULPT_vertex_get_mdyntopo(ss, vertex);
 
   if (do_origco) {
     SCULPT_vertex_check_origdata(ss, vertex);
@@ -146,7 +146,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    MDynTopoVert *mv2 = SCULPT_vertex_get_mdyntopo(ss, ni.vertex);
+    MSculptVert *mv2 = SCULPT_vertex_get_mdyntopo(ss, ni.vertex);
     const float *co2;
 
     if (!do_origco || mv2->stroke_id != ss->stroke_id) {
@@ -405,7 +405,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
                                         float projection,
                                         bool check_fsets,
                                         int cd_temp,
-                                        int cd_dyn_vert,
+                                        int cd_sculpt_vert,
                                         bool do_origco)
 {
   float avg_co[3] = {0.0f, 0.0f, 0.0f};
@@ -415,7 +415,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
 
   // zero_v3(direction);
 
-  MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
+  MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
 
   float *col = BM_ELEM_CD_GET_VOID_P(v, cd_temp);
   float dir[3];
@@ -479,7 +479,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     // bucketw *= 2.0;
     //}
 
-    MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(cd_dyn_vert, v_other);
+    MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v_other);
     float *co2;
     float *no2;
 
@@ -493,9 +493,10 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     }
 
     // bool bound = (mv2->flag &
-    //             (DYNVERT_BOUNDARY));  // | DYNVERT_FSET_BOUNDARY | DYNVERT_SHARP_BOUNDARY));
+    //             (SCULPTVERT_BOUNDARY));  // | SCULPTVERT_FSET_BOUNDARY |
+    //             SCULPTVERT_SHARP_BOUNDARY));
     // bool bound2 = (mv2->flag &
-    //               (DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY | DYNVERT_SHARP_BOUNDARY));
+    //               (SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_SHARP_BOUNDARY));
 
     SculptBoundaryType bflag = SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_MESH |
                                SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_SEAM;
