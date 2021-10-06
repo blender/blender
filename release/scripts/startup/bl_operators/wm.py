@@ -2840,12 +2840,13 @@ class WM_MT_splash_quick_setup(Menu):
 
         col = split.column()
 
-        sub = col.split(factor=0.35)
-        row = sub.row()
-        row.alignment = 'RIGHT'
-        row.label(text="Language")
-        prefs = context.preferences
-        sub.prop(prefs.view, "language", text="")
+        if bpy.app.build_options.international:
+            sub = col.split(factor=0.35)
+            row = sub.row()
+            row.alignment = 'RIGHT'
+            row.label(text="Language")
+            prefs = context.preferences
+            sub.prop(prefs.view, "language", text="")
 
         col.separator()
 
