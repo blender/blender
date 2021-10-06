@@ -330,7 +330,8 @@ static bool update_changed_seq_recurs(
     }
 
     if (len_change) {
-      SEQ_time_update_sequence(scene, seq);
+      ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+      SEQ_time_update_sequence(scene, seqbase, seq);
     }
   }
 

@@ -148,7 +148,7 @@ void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
       scene, metaseq, metaseq_start(metaseq), metaseq_end(metaseq));
 }
 
-void SEQ_time_update_sequence_bounds(Scene *scene, Sequence *seq)
+static void seq_time_update_sequence_bounds(Scene *scene, Sequence *seq)
 {
   if (seq->startofs && seq->startstill) {
     seq->startstill = 0;
@@ -195,7 +195,7 @@ void SEQ_time_update_meta_strip_range(Scene *scene, Sequence *seq_meta)
   SEQ_transform_set_right_handle_frame(seq_meta, seq_meta->enddisp);
 }
 
-void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
+void SEQ_time_update_sequence(Scene *scene, ListBase *seqbase, Sequence *seq)
 {
   Sequence *seqm;
 
@@ -203,7 +203,7 @@ void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
   seqm = seq->seqbase.first;
   while (seqm) {
     if (seqm->seqbase.first) {
-      SEQ_time_update_sequence(scene, seqm);
+      SEQ_time_update_sequence(scene, &seqm->seqbase, seqm);
     }
     seqm = seqm->next;
   }
@@ -241,22 +241,25 @@ void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
       seq->len = seq->enddisp - seq->startdisp;
     }
     else {
-      SEQ_time_update_sequence_bounds(scene, seq);
+      seq_time_update_sequence_bounds(scene, seq);
     }
+  }
+  else if (seq->type == SEQ_TYPE_META) {
+    seq_time_update_meta_strip(scene, seq);
   }
   else {
-    if (seq->type == SEQ_TYPE_META) {
-      seq_time_update_meta_strip(scene, seq);
-    }
-
-    Editing *ed = SEQ_editing_get(scene);
-    MetaStack *ms = SEQ_meta_stack_active_get(ed);
-    if (ms != NULL) {
-      SEQ_time_update_meta_strip_range(scene, ms->parseq);
-    }
-
-    SEQ_time_update_sequence_bounds(scene, seq);
+    seq_time_update_sequence_bounds(scene, seq);
   }
+
+  Editing *ed = SEQ_editing_get(scene);
+
+  /* Strip is inside meta strip */
+  if (seqbase != &ed->seqbase) {
+    Sequence *meta = SEQ_get_meta_by_seqbase(&ed->seqbase, seqbase);
+    SEQ_time_update_meta_strip_range(scene, meta);
+  }
+
+  seq_time_update_sequence_bounds(scene, seq);
 }
 
 int SEQ_time_find_next_prev_edit(Scene *scene,
