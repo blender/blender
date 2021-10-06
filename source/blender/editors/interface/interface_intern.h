@@ -1107,6 +1107,7 @@ void ui_resources_free(void);
 
 /* interface_layout.c */
 void ui_layout_add_but(uiLayout *layout, uiBut *but);
+void ui_layout_remove_but(uiLayout *layout, const uiBut *but);
 bool ui_layout_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut *new_but);
 uiBut *ui_but_add_search(uiBut *but,
                          PointerRNA *ptr,

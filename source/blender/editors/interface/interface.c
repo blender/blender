@@ -1014,6 +1014,9 @@ bool UI_but_active_only_ex(
   else if ((found == true) && (isactive == false)) {
     if (remove_on_failure) {
       BLI_remlink(&block->buttons, but);
+      if (but->layout) {
+        ui_layout_remove_but(but->layout, but);
+      }
       ui_but_free(C, but);
     }
     return false;
