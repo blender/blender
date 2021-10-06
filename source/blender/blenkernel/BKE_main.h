@@ -201,6 +201,8 @@ typedef struct Main {
 struct Main *BKE_main_new(void);
 void BKE_main_free(struct Main *mainvar);
 
+bool BKE_main_is_empty(struct Main *bmain);
+
 void BKE_main_lock(struct Main *bmain);
 void BKE_main_unlock(struct Main *bmain);
 
