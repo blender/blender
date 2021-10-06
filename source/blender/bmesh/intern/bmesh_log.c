@@ -1677,8 +1677,6 @@ BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log)
   CustomData *cd1[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
   CustomData *cd2[4] = {&entry->vdata, &entry->edata, &entry->ldata, &entry->pdata};
 
-  void customdata_regen_active_refs(CustomData * data);
-
   for (int i = 0; i < 4; i++) {
     if (!CustomData_layout_is_same(cd1[i], cd2[i])) {
       printf("Customdata changed for undo\n");

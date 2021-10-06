@@ -37,6 +37,7 @@
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
@@ -511,7 +512,10 @@ static bool sculpt_vertex_color_remove_poll(bContext *C)
 }
 
 /* NOTE: keep in sync with #ED_mesh_uv_texture_add. */
-int ED_mesh_sculpt_color_add(Mesh *me, const char *name, const bool active_set, const bool do_init)
+ATTR_NO_OPT int ED_mesh_sculpt_color_add(Mesh *me,
+                                         const char *name,
+                                         const bool active_set,
+                                         const bool do_init)
 {
   BMEditMesh *em;
   int layernum;
@@ -775,14 +779,20 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 
 /*********************** Sculpt Vertex Color Operators ************************/
 
+void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me);
+
 static int mesh_sculpt_vertex_color_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = ED_object_context(C);
-  Mesh *me = ob->data;
+  Mesh *me = BKE_object_get_original_mesh(ob);
 
   if (ED_mesh_sculpt_color_add(me, NULL, true, true) == -1) {
     return OPERATOR_CANCELLED;
   }
+
+  /* have to call this to prevent the undo system from
+    overwriting the CD layout with ss->bm's layout*/
+  SCULPT_dynamic_topology_sync_layers(ob, me);
 
   return OPERATOR_FINISHED;
 }

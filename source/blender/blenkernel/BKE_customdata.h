@@ -631,6 +631,7 @@ void CustomData_unmark_temporary_nocopy(struct CustomData *data);
 void CustomData_mark_temporary_nocopy(struct CustomData *data);
 
 int CustomData_get_elem_size(CustomDataLayer *layer);
+void CustomData_regen_active_refs(CustomData *data);
 
 #ifdef __cplusplus
 }

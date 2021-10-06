@@ -641,7 +641,7 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 /**
   Syncs customdata layers with internal bmesh, but ignores deleted layers.
 */
-void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
+ATTR_NO_OPT void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -736,24 +736,16 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
         modified |= idx - baseidx != cl2->active_clone;
         cl2->active_clone = idx - baseidx;
       }
-
-      for (int k = baseidx; k < data2->totlayer; k++) {
-        CustomDataLayer *cl3 = data2->layers + k;
-
-        if (cl3->type != cl2->type) {
-          break;
-        }
-
-        // based off of how CustomData_set_layer_XXXX_index works
-
-        cl3->active = (cl2->active + baseidx) - k;
-        cl3->active_rnd = (cl2->active_rnd + baseidx) - k;
-        cl3->active_mask = (cl2->active_mask + baseidx) - k;
-        cl3->active_clone = (cl2->active_clone + baseidx) - k;
-      }
     }
 
     BLI_array_free(newlayers);
+  }
+
+  if (modified && ss->bm) {
+    CustomData_regen_active_refs(&ss->bm->vdata);
+    CustomData_regen_active_refs(&ss->bm->edata);
+    CustomData_regen_active_refs(&ss->bm->ldata);
+    CustomData_regen_active_refs(&ss->bm->pdata);
   }
 
   if (modified) {

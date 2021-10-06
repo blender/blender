@@ -1876,10 +1876,11 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
    * other data when modifiers change the mesh. */
   Object *ob_orig = DEG_get_original_object(ob_eval);
   Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  Mesh *me_orig = BKE_object_get_original_mesh(ob_orig);
 
   BLI_assert(me_eval != NULL);
   sculpt_update_object(depsgraph, ob_orig, me_eval, false, false, false);
-  SCULPT_dynamic_topology_sync_layers(ob_orig, me_eval);
+  SCULPT_dynamic_topology_sync_layers(ob_orig, me_orig);
 }
 
 void BKE_sculpt_color_layer_create_if_needed(struct Object *object)

@@ -2240,10 +2240,21 @@ void CustomData_update_typemap(CustomData *data)
   }
 }
 
-void customdata_regen_active_refs(CustomData *data)
+ATTR_NO_OPT void CustomData_regen_active_refs(CustomData *data)
 {
   int i, j;
-  bool changed = false;
+
+  for (int i = 0; i < CD_NUMTYPES; i++) {
+    data->typemap[i] = -1;
+  }
+
+  for (i = 0, j = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = &data->layers[i];
+
+    if (data->typemap[layer->type] == -1) {
+      data->typemap[layer->type] = i;
+    }
+  }
 
   /* explicitly flag active layers */
   for (i = 0, j = 0; i < data->totlayer; i++) {
@@ -2283,6 +2294,15 @@ void customdata_regen_active_refs(CustomData *data)
 
     int n = layer - base;
 
+    if (n < 0) {
+      printf("error!\n");
+      for (int j = 0; j < data->totlayer; j++) {
+        printf("%s", i == j ? "->" : "  ");
+        printf("%d : \"%s\"\n",
+               data->layers[i].type,
+               data->layers[i].name ? data->layers[i].name : "");
+      }
+    }
     if (layer->active) {
       base->active = n;
     }
@@ -2338,7 +2358,7 @@ void CustomData_copy_all_layout(const struct CustomData *source, struct CustomDa
     }
   }
 
-  customdata_regen_active_refs(dest);
+  CustomData_regen_active_refs(dest);
 }
 
 bool CustomData_merge(const struct CustomData *source,
@@ -2430,7 +2450,7 @@ bool CustomData_merge(const struct CustomData *source,
   }
 
   CustomData_update_typemap(dest);
-  customdata_regen_active_refs(dest);
+  CustomData_regen_active_refs(dest);
 
   return changed;
 }
@@ -3191,18 +3211,6 @@ void CustomData_free_temporary(CustomData *data, int totelem)
   int i, j;
   bool changed = false;
 
-  /* explicitly flag active layers */
-  for (i = 0, j = 0; i < data->totlayer; i++) {
-    CustomDataLayer *layer = &data->layers[i];
-    CustomDataLayer *base = data->layers + data->typemap[layer->type];
-    int n = layer - base;
-
-    layer->active = n == base->active;
-    layer->active_clone = n == base->active_clone;
-    layer->active_mask = n == base->active_mask;
-    layer->active_rnd = n == base->active_rnd;
-  }
-
   /* free temp layers */
   for (i = 0, j = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &data->layers[i];
@@ -3222,54 +3230,15 @@ void CustomData_free_temporary(CustomData *data, int totelem)
     }
   }
 
-  CustomData_update_typemap(data);
-
-  /* regenerate active refs */
-  for (int i = 0; i < CD_NUMTYPES; i++) {
-    if (data->typemap[i] != -1) {
-      CustomDataLayer *base = data->layers + data->typemap[i];
-      base->active = base->active_clone = base->active_mask = base->active_rnd = 0;
-    }
-  }
-
-  /* set active n in base layer for all types */
-  for (i = 0; i < data->totlayer; i++) {
-    CustomDataLayer *layer = &data->layers[i];
-    CustomDataLayer *base = data->layers + data->typemap[layer->type];
-
-    int n = layer - base;
-
-    if (layer->active) {
-      base->active = n;
-    }
-    if (layer->active_mask) {
-      base->active_mask = n;
-    }
-    if (layer->active_clone) {
-      base->active_clone = n;
-    }
-    if (layer->active_rnd) {
-      base->active_rnd = n;
-    }
-  }
-
-  /* set active n in all layers */
-  for (i = 0; i < data->totlayer; i++) {
-    CustomDataLayer *layer = &data->layers[i];
-    CustomDataLayer *base = data->layers + data->typemap[layer->type];
-
-    layer->active = base->active;
-    layer->active_mask = base->active_mask;
-    layer->active_clone = base->active_clone;
-    layer->active_rnd = base->active_rnd;
-  }
-
   data->totlayer = j;
 
   if (data->totlayer <= data->maxlayer - CUSTOMDATA_GROW) {
     customData_resize(data, -CUSTOMDATA_GROW);
     changed = true;
   }
+
+  CustomData_update_typemap(data);
+  CustomData_regen_active_refs(data);
 
   if (changed) {
     customData_update_offsets(data);
@@ -4734,6 +4703,9 @@ void CustomData_from_bmesh_block(const CustomData *source,
   /* copies a layer at a time */
   int dest_i = 0;
   for (int src_i = 0; src_i < source->totlayer; src_i++) {
+    if (source->layers[src_i].flag & CD_FLAG_NOCOPY) {
+      continue;
+    }
 
     /* find the first dest layer with type >= the source type
      * (this should work because layers are ordered by type)
@@ -5788,5 +5760,5 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, int count)
   }
 
   CustomData_update_typemap(data);
-  customdata_regen_active_refs(data);  // check for corrupted active layer refs
+  CustomData_regen_active_refs(data);  // check for corrupted active layer refs
 }
