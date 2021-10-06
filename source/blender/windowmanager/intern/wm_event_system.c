@@ -4025,6 +4025,7 @@ void WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
   const char *keymap_id_list[ARRAY_SIZE(km_result->keymaps)];
   int keymap_id_list_len = 0;
 
+  const Scene *scene = wm->winactive->scene;
   ScrArea *area = handler->dynamic.user_data;
   handler->keymap_tool = NULL;
   bToolRef_Runtime *tref_rt = area->runtime.tool ? area->runtime.tool->runtime : NULL;
@@ -4036,7 +4037,8 @@ void WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
   bool is_gizmo_visible = false;
   bool is_gizmo_highlight = false;
 
-  if (tref_rt && tref_rt->keymap_fallback[0]) {
+  if ((tref_rt && tref_rt->keymap_fallback[0]) &&
+      (scene->toolsettings->workspace_tool_type == SCE_WORKSPACE_TOOL_FALLBACK)) {
     bool add_keymap = false;
     /* Support for the gizmo owning the tool keymap. */
 
