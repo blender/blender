@@ -2869,6 +2869,7 @@ def km_sequencerpreview(params):
          {"properties": [("property", 'SCALE')]}),
         ("sequencer.strip_transform_clear", {"type": 'R', "alt": True, "value": 'PRESS'},
          {"properties": [("property", 'ROTATION')]}),
+        *_template_items_context_menu("SEQUENCER_MT_preview_context_menu", params.context_menu_event),
     ])
 
     return keymap

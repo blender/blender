@@ -1021,6 +1021,27 @@ class SEQUENCER_MT_context_menu(Menu):
         layout.menu("SEQUENCER_MT_strip_lock_mute")
 
 
+class SEQUENCER_MT_preview_context_menu(Menu):
+    bl_label = "Sequencer Preview Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        props = layout.operator("wm.call_panel", text="Rename...")
+        props.name = "TOPBAR_PT_name"
+        props.keep_open = False
+
+        # TODO: support in preview.
+        # layout.operator("sequencer.delete", text="Delete")
+
+        strip = context.active_sequence_strip
+
+        if strip:
+            pass
+
+
 class SequencerButtonsPanel:
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
@@ -2431,6 +2452,7 @@ classes = (
     SEQUENCER_MT_strip_lock_mute,
     SEQUENCER_MT_color_tag_picker,
     SEQUENCER_MT_context_menu,
+    SEQUENCER_MT_preview_context_menu,
 
     SEQUENCER_PT_color_tag_picker,
 
