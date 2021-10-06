@@ -1918,7 +1918,7 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
  */
 void BKE_lib_override_library_make_local(ID *id)
 {
- if (!ID_IS_OVERRIDE_LIBRARY(id)) {
+  if (!ID_IS_OVERRIDE_LIBRARY(id)) {
     return;
   }
   if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id)) {

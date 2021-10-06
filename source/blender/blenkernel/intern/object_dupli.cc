@@ -50,7 +50,6 @@
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
-#include "BKE_font.h"
 #include "BKE_geometry_set.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.h"
@@ -63,6 +62,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
+#include "BKE_vfont.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

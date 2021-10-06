@@ -63,7 +63,6 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
-#include "BKE_font.h"
 #include "BKE_gpencil.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
@@ -76,6 +75,7 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
+#include "BKE_vfont.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

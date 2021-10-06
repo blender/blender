@@ -94,7 +94,6 @@
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_font.h"
 #include "BKE_geometry_set.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
@@ -136,6 +135,7 @@
 #include "BKE_speaker.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
+#include "BKE_vfont.h"
 #include "BKE_volume.h"
 
 #include "DEG_depsgraph.h"

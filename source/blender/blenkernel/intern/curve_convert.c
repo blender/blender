@@ -26,9 +26,9 @@
 
 #include "BKE_curve.h"
 #include "BKE_displist.h"
-#include "BKE_font.h"
 #include "BKE_lib_id.h"
 #include "BKE_modifier.h"
+#include "BKE_vfont.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

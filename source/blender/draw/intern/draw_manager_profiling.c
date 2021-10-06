@@ -257,8 +257,7 @@ void DRW_stats_draw(const rcti *rect)
 
   /* Engines rows */
   char time_to_txt[16];
-  DRW_ENABLED_ENGINE_ITER(DST.view_data_active, engine, data)
-  {
+  DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
     u = 0;
 
     draw_stat_5row(rect, u++, v, engine->idname, sizeof(engine->idname));

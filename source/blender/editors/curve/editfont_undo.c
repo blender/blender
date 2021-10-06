@@ -33,9 +33,9 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
-#include "BKE_font.h"
 #include "BKE_main.h"
 #include "BKE_undo_system.h"
+#include "BKE_vfont.h"
 
 #include "DEG_depsgraph.h"
 

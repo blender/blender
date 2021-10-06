@@ -143,7 +143,6 @@ set(SRC
   intern/fcurve_driver.c
   intern/fluid.c
   intern/fmodifier.c
-  intern/font.c
   intern/freestyle.c
   intern/geometry_component_curve.cc
   intern/geometry_component_instances.cc
@@ -289,6 +288,7 @@ set(SRC
   intern/tracking_util.c
   intern/undo_system.c
   intern/unit.c
+  intern/vfont.c
   intern/vfontdata_freetype.c
   intern/volume.cc
   intern/volume_render.cc
@@ -364,7 +364,6 @@ set(SRC
   BKE_fcurve.h
   BKE_fcurve_driver.h
   BKE_fluid.h
-  BKE_font.h
   BKE_freestyle.h
   BKE_geometry_set.h
   BKE_geometry_set.hh
@@ -457,6 +456,7 @@ set(SRC
   BKE_tracking.h
   BKE_undo_system.h
   BKE_unit.h
+  BKE_vfont.h
   BKE_vfontdata.h
   BKE_volume.h
   BKE_volume_render.h
