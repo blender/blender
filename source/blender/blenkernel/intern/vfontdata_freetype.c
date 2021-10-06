@@ -23,7 +23,7 @@
  */
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  */
 
 #include <ft2build.h>

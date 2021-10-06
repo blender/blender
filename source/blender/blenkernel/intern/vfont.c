@@ -50,12 +50,12 @@
 
 #include "BKE_anim_path.h"
 #include "BKE_curve.h"
-#include "BKE_vfont.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
+#include "BKE_vfont.h"
 #include "BKE_vfontdata.h"
 
 #include "BLO_read_write.h"

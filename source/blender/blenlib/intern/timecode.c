@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup blendlib
+ * \ingroup bli
  *
  * Time-Code string formatting
  */

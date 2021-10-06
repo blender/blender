@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup blenkernel
+ * \ingroup bke
  * \brief Blender-side interface and methods for dealing with Rigid Body simulations
  */
 

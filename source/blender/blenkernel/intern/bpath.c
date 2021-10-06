@@ -15,7 +15,7 @@
  */
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  */
 
 /* TODO:
