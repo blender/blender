@@ -52,6 +52,7 @@ using namespace blender::bke;
 namespace blender::ed::asset_browser {
 
 class AssetCatalogTreeView : public ui::AbstractTreeView {
+  bke::AssetCatalogService *catalog_service_;
   /** The asset catalog tree this tree-view represents. */
   bke::AssetCatalogTree *catalog_tree_;
   FileAssetSelectParams *params_;
@@ -99,6 +100,9 @@ class AssetCatalogTreeViewItem : public ui::BasicTreeViewItem {
                            const wmDrag &drag,
                            const wmEvent &event) const override;
   bool on_drop(const wmDrag &drag) override;
+
+  bool can_rename() const override;
+  bool rename(StringRefNull new_name) override;
 };
 
 /** Only reason this isn't just `BasicTreeViewItem` is to add a '+' icon for adding a root level
@@ -124,7 +128,8 @@ class AssetCatalogTreeViewUnassignedItem : public ui::BasicTreeViewItem {
 AssetCatalogTreeView::AssetCatalogTreeView(::AssetLibrary *library,
                                            FileAssetSelectParams *params,
                                            SpaceFile &space_file)
-    : catalog_tree_(BKE_asset_library_get_catalog_tree(library)),
+    : catalog_service_(BKE_asset_library_get_catalog_service(library)),
+      catalog_tree_(BKE_asset_library_get_catalog_tree(library)),
       params_(params),
       space_file_(space_file)
 {
@@ -307,6 +312,25 @@ bool AssetCatalogTreeViewItem::on_drop(const wmDrag &drag)
       get_tree_view());
   return drop_into_catalog(
       tree_view, drag, catalog_item_.get_catalog_id(), catalog_item_.get_simple_name());
+}
+
+bool AssetCatalogTreeViewItem::can_rename() const
+{
+  return true;
+}
+
+bool AssetCatalogTreeViewItem::rename(StringRefNull new_name)
+{
+  /* Important to keep state. */
+  BasicTreeViewItem::rename(new_name);
+
+  const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
+      get_tree_view());
+
+  AssetCatalogPath new_path = catalog_item_.catalog_path().parent();
+  new_path = new_path / StringRef(new_name);
+  tree_view.catalog_service_->update_catalog_path(catalog_item_.get_catalog_id(), new_path);
+  return true;
 }
 
 /* ---------------------------------------------------------------------- */

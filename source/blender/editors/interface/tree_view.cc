@@ -20,6 +20,8 @@
 
 #include "DNA_userdef_types.h"
 
+#include "BKE_context.h"
+
 #include "BLT_translation.h"
 
 #include "interface_intern.h"
@@ -76,6 +78,11 @@ void AbstractTreeView::foreach_item(ItemIterFn iter_fn, IterOptions options) con
   foreach_item_recursive(iter_fn, options);
 }
 
+bool AbstractTreeView::is_renaming() const
+{
+  return rename_buffer_ != nullptr;
+}
+
 void AbstractTreeView::build_layout_from_tree(const TreeViewLayoutBuilder &builder)
 {
   uiLayout *prev_layout = builder.current_layout();
@@ -103,6 +110,13 @@ void AbstractTreeView::update_from_old(uiBlock &new_block)
   BLI_assert(old_view_handle);
 
   AbstractTreeView &old_view = reinterpret_cast<AbstractTreeView &>(*old_view_handle);
+
+  /* Update own persistent data. */
+  /* Keep the rename buffer persistent while renaming! The rename button uses the buffer's
+   * pointer to identify itself over redraws. */
+  rename_buffer_ = std::move(old_view.rename_buffer_);
+  old_view.rename_buffer_ = nullptr;
+
   update_children_from_old_recursive(*this, old_view);
 
   /* Finished (re-)constructing the tree. */
@@ -153,6 +167,95 @@ void AbstractTreeView::change_state_delayed()
 
 /* ---------------------------------------------------------------------- */
 
+void AbstractTreeViewItem::tree_row_click_fn(struct bContext * /*C*/,
+                                             void *but_arg1,
+                                             void * /*arg2*/)
+{
+  uiButTreeRow *tree_row_but = (uiButTreeRow *)but_arg1;
+  BasicTreeViewItem &tree_item = reinterpret_cast<BasicTreeViewItem &>(*tree_row_but->tree_item);
+
+  /* Let a click on an opened item activate it, a second click will close it then.
+   * TODO Should this be for asset catalogs only? */
+  if (tree_item.is_collapsed() || tree_item.is_active()) {
+    tree_item.toggle_collapsed();
+  }
+  tree_item.activate();
+}
+
+void AbstractTreeViewItem::add_treerow_button(uiBlock &block)
+{
+  tree_row_but_ = (uiButTreeRow *)uiDefBut(
+      &block, UI_BTYPE_TREEROW, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
+
+  tree_row_but_->tree_item = reinterpret_cast<uiTreeViewItemHandle *>(this);
+  UI_but_func_set(&tree_row_but_->but, tree_row_click_fn, tree_row_but_, nullptr);
+  UI_but_treerow_indentation_set(&tree_row_but_->but, count_parents());
+}
+
+AbstractTreeViewItem *AbstractTreeViewItem::find_tree_item_from_rename_button(
+    const uiBut &rename_but)
+{
+  /* A minimal sanity check, can't do much more here. */
+  BLI_assert(rename_but.type == UI_BTYPE_TEXT && rename_but.poin);
+
+  LISTBASE_FOREACH (uiBut *, but, &rename_but.block->buttons) {
+    if (but->type != UI_BTYPE_TREEROW) {
+      continue;
+    }
+
+    uiButTreeRow *tree_row_but = (uiButTreeRow *)but;
+    AbstractTreeViewItem *item = reinterpret_cast<AbstractTreeViewItem *>(tree_row_but->tree_item);
+    const AbstractTreeView &tree_view = item->get_tree_view();
+
+    if (item->is_renaming() && (tree_view.rename_buffer_->data() == rename_but.poin)) {
+      return item;
+    }
+  }
+
+  return nullptr;
+}
+
+void AbstractTreeViewItem::rename_button_fn(bContext *UNUSED(C), void *arg, char *UNUSED(origstr))
+{
+  const uiBut *rename_but = static_cast<uiBut *>(arg);
+  AbstractTreeViewItem *item = find_tree_item_from_rename_button(*rename_but);
+  BLI_assert(item);
+
+  const AbstractTreeView &tree_view = item->get_tree_view();
+  item->rename(tree_view.rename_buffer_->data());
+  item->end_renaming();
+}
+
+void AbstractTreeViewItem::add_rename_button(uiBlock &block)
+{
+  AbstractTreeView &tree_view = get_tree_view();
+  uiBut *rename_but = uiDefBut(&block,
+                               UI_BTYPE_TEXT,
+                               1,
+                               "",
+                               0,
+                               0,
+                               UI_UNIT_X,
+                               UI_UNIT_Y,
+                               tree_view.rename_buffer_->data(),
+                               1.0f,
+                               tree_view.rename_buffer_->max_size(),
+                               0,
+                               0,
+                               "");
+
+  /* Gotta be careful with what's passed to the `arg1` here. Any tree data will be freed once the
+   * callback is executed. */
+  UI_but_func_rename_set(rename_but, AbstractTreeViewItem::rename_button_fn, rename_but);
+
+  const bContext *evil_C = static_cast<bContext *>(block.evil_C);
+  ARegion *region = CTX_wm_region(evil_C);
+  /* Returns false if the button was removed. */
+  if (UI_but_active_only(evil_C, region, &block, rename_but) == false) {
+    end_renaming();
+  }
+}
+
 void AbstractTreeViewItem::on_activate()
 {
   /* Do nothing by default. */
@@ -181,10 +284,25 @@ std::string AbstractTreeViewItem::drop_tooltip(const bContext & /*C*/,
   return TIP_("Drop into/onto tree item");
 }
 
+bool AbstractTreeViewItem::can_rename() const
+{
+  /* No renaming by default. */
+  return false;
+}
+
+bool AbstractTreeViewItem::rename(StringRefNull new_name)
+{
+  /* It is important to update the label after renaming, so #AbstractTreeViewItem::matches()
+   * recognizes the item. (It only compares labels by default.) */
+  label_ = new_name;
+  return true;
+}
+
 void AbstractTreeViewItem::update_from_old(const AbstractTreeViewItem &old)
 {
   is_open_ = old.is_open_;
   is_active_ = old.is_active_;
+  is_renaming_ = old.is_renaming_;
 }
 
 bool AbstractTreeViewItem::matches(const AbstractTreeViewItem &other) const
@@ -192,7 +310,37 @@ bool AbstractTreeViewItem::matches(const AbstractTreeViewItem &other) const
   return label_ == other.label_;
 }
 
+void AbstractTreeViewItem::begin_renaming()
+{
+  AbstractTreeView &tree_view = get_tree_view();
+  if (tree_view.is_renaming() || !can_rename()) {
+    return;
+  }
+
+  is_renaming_ = true;
+
+  tree_view.rename_buffer_ = std::make_unique<decltype(tree_view.rename_buffer_)::element_type>();
+  std::copy(std::begin(label_), std::end(label_), std::begin(*tree_view.rename_buffer_));
+}
+
+void AbstractTreeViewItem::end_renaming()
+{
+  if (!is_renaming()) {
+    return;
+  }
+
+  is_renaming_ = false;
+
+  AbstractTreeView &tree_view = get_tree_view();
+  tree_view.rename_buffer_ = nullptr;
+}
+
 const AbstractTreeView &AbstractTreeViewItem::get_tree_view() const
+{
+  return static_cast<AbstractTreeView &>(*root_);
+}
+
+AbstractTreeView &AbstractTreeViewItem::get_tree_view()
 {
   return static_cast<AbstractTreeView &>(*root_);
 }
@@ -259,6 +407,11 @@ bool AbstractTreeViewItem::is_collapsible() const
   return !children_.is_empty();
 }
 
+bool AbstractTreeViewItem::is_renaming() const
+{
+  return is_renaming_;
+}
+
 void AbstractTreeViewItem::ensure_parents_uncollapsed()
 {
   for (AbstractTreeViewItem *parent = parent_; parent; parent = parent->parent_) {
@@ -298,9 +451,21 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   uiLayout *prev_layout = current_layout();
   uiLayout *row = uiLayoutRow(prev_layout, false);
 
-  item.build_row(*row);
+  uiLayoutOverlap(row);
 
-  UI_block_layout_set_current(&block(), prev_layout);
+  uiBlock &block_ = block();
+
+  /* Every item gets one! Other buttons can be overlapped on top. */
+  item.add_treerow_button(block_);
+
+  if (item.is_renaming()) {
+    item.add_rename_button(block_);
+  }
+  else {
+    item.build_row(*row);
+  }
+
+  UI_block_layout_set_current(&block_, prev_layout);
 }
 
 uiBlock &TreeViewLayoutBuilder::block() const
@@ -320,42 +485,12 @@ BasicTreeViewItem::BasicTreeViewItem(StringRef label, BIFIconID icon_) : icon(ic
   label_ = label;
 }
 
-void BasicTreeViewItem::tree_row_click_fn(struct bContext * /*C*/, void *but_arg1, void * /*arg2*/)
+void BasicTreeViewItem::build_row(uiLayout & /*row*/)
 {
-  uiButTreeRow *tree_row_but = (uiButTreeRow *)but_arg1;
-  BasicTreeViewItem &tree_item = reinterpret_cast<BasicTreeViewItem &>(*tree_row_but->tree_item);
-
-  /* Let a click on an opened item activate it, a second click will close it then.
-   * TODO Should this be for asset catalogs only? */
-  if (tree_item.is_collapsed() || tree_item.is_active()) {
-    tree_item.toggle_collapsed();
+  if (BIFIconID icon = get_draw_icon()) {
+    ui_def_but_icon(&tree_row_but_->but, icon, UI_HAS_ICON);
   }
-  tree_item.activate();
-}
-
-void BasicTreeViewItem::build_row(uiLayout &row)
-{
-  uiBlock *block = uiLayoutGetBlock(&row);
-  tree_row_but_ = (uiButTreeRow *)uiDefIconTextBut(block,
-                                                   UI_BTYPE_TREEROW,
-                                                   0,
-                                                   /* TODO allow icon besides the chevron icon? */
-                                                   get_draw_icon(),
-                                                   label_.data(),
-                                                   0,
-                                                   0,
-                                                   UI_UNIT_X,
-                                                   UI_UNIT_Y,
-                                                   nullptr,
-                                                   0,
-                                                   0,
-                                                   0,
-                                                   0,
-                                                   nullptr);
-
-  tree_row_but_->tree_item = reinterpret_cast<uiTreeViewItemHandle *>(this);
-  UI_but_func_set(&tree_row_but_->but, tree_row_click_fn, tree_row_but_, nullptr);
-  UI_but_treerow_indentation_set(&tree_row_but_->but, count_parents());
+  tree_row_but_->but.str = BLI_strdupn(label_.c_str(), label_.length());
 }
 
 void BasicTreeViewItem::on_activate()
@@ -436,4 +571,22 @@ bool UI_tree_view_item_drop_handle(uiTreeViewItemHandle *item_, const ListBase *
   }
 
   return false;
+}
+
+/**
+ * Can \a item_handle be renamed right now? Not that this isn't just a mere wrapper around
+ * #AbstractTreeViewItem::can_rename(). This also checks if there is another item being renamed,
+ * and returns false if so.
+ */
+bool UI_tree_view_item_can_rename(const uiTreeViewItemHandle *item_handle)
+{
+  const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_handle);
+  const AbstractTreeView &tree_view = item.get_tree_view();
+  return !tree_view.is_renaming() && item.can_rename();
+}
+
+void UI_tree_view_item_begin_rename(uiTreeViewItemHandle *item_handle)
+{
+  AbstractTreeViewItem &item = reinterpret_cast<AbstractTreeViewItem &>(*item_handle);
+  item.begin_renaming();
 }

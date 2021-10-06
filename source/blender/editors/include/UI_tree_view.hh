@@ -23,9 +23,12 @@
 
 #pragma once
 
+#include <array>
 #include <functional>
 #include <memory>
 #include <string>
+
+#include "DNA_defs.h"
 
 #include "BLI_function_ref.hh"
 #include "BLI_vector.hh"
@@ -144,8 +147,14 @@ class TreeViewLayoutBuilder {
  * \{ */
 
 class AbstractTreeView : public TreeViewItemContainer {
+  friend AbstractTreeViewItem;
   friend TreeViewBuilder;
-  friend TreeViewLayoutBuilder;
+
+  /**
+   * Only one item can be renamed at a time. So the tree is informed about the renaming state to
+   * enforce that.
+   */
+  std::unique_ptr<std::array<char, MAX_NAME>> rename_buffer_;
 
   bool is_reconstructed_ = false;
 
@@ -154,6 +163,8 @@ class AbstractTreeView : public TreeViewItemContainer {
 
   void foreach_item(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
 
+  /** Only one item can be renamed at a time. */
+  bool is_renaming() const;
   /**
    * Check if the tree is fully (re-)constructed. That means, both #build_tree() and
    * #update_from_old() have finished.
@@ -198,6 +209,7 @@ class AbstractTreeView : public TreeViewItemContainer {
  */
 class AbstractTreeViewItem : public TreeViewItemContainer {
   friend class AbstractTreeView;
+  friend class TreeViewLayoutBuilder;
 
  public:
   using IsActiveFn = std::function<bool()>;
@@ -205,12 +217,15 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
  private:
   bool is_open_ = false;
   bool is_active_ = false;
+  bool is_renaming_ = false;
 
   IsActiveFn is_active_fn_;
 
  protected:
   /** This label is used for identifying an item (together with its parent's labels). */
   std::string label_{};
+  /** Every item gets a button of type during the layout building #UI_BTYPE_TREEROW. */
+  uiButTreeRow *tree_row_but_ = nullptr;
 
  public:
   virtual ~AbstractTreeViewItem() = default;
@@ -234,6 +249,19 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   virtual std::string drop_tooltip(const bContext &C,
                                    const wmDrag &drag,
                                    const wmEvent &event) const;
+  /**
+   * Queries if the tree-view item supports renaming in principle. Renaming may still fail, e.g. if
+   * another item is already being renamed.
+   */
+  virtual bool can_rename() const;
+  /**
+   * Try renaming the item, or the data it represents. Can assume
+   * #AbstractTreeViewItem::can_rename() returned true. Sub-classes that override this should
+   * usually call this, unless they have a custom #AbstractTreeViewItem.matches().
+   *
+   * \return True if the renaming was successful.
+   */
+  virtual bool rename(StringRefNull new_name);
 
   /**
    * Copy persistent state (e.g. is-collapsed flag, selection, etc.) from a matching item of
@@ -250,7 +278,11 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    */
   virtual bool matches(const AbstractTreeViewItem &other) const;
 
+  void begin_renaming();
+  void end_renaming();
+
   const AbstractTreeView &get_tree_view() const;
+  AbstractTreeView &get_tree_view();
   int count_parents() const;
   void deactivate();
   /**
@@ -266,6 +298,8 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   bool is_collapsed() const;
   void set_collapsed(bool collapsed);
   bool is_collapsible() const;
+  bool is_renaming() const;
+
   void ensure_parents_uncollapsed();
 
  protected:
@@ -278,8 +312,14 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   void activate();
 
  private:
+  static void rename_button_fn(bContext *, void *, char *);
+  static AbstractTreeViewItem *find_tree_item_from_rename_button(const uiBut &but);
+  static void tree_row_click_fn(struct bContext *, void *, void *);
+
   /** See #AbstractTreeView::change_state_delayed() */
   void change_state_delayed();
+  void add_treerow_button(uiBlock &block);
+  void add_rename_button(uiBlock &block);
 };
 
 /** \} */
@@ -304,8 +344,6 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
   void on_activate(ActivateFn fn);
 
  protected:
-  /** Created in the #build() function. */
-  uiButTreeRow *tree_row_but_ = nullptr;
   /**
    * Optionally passed to the #BasicTreeViewItem constructor. Called when activating this tree
    * view item. This way users don't have to sub-class #BasicTreeViewItem, just to implement

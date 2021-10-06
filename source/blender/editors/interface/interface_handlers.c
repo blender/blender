@@ -4822,6 +4822,24 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
   return WM_UI_HANDLER_CONTINUE;
 }
 
+static int ui_do_but_TREEROW(bContext *C,
+                             uiBut *but,
+                             uiHandleButtonData *data,
+                             const wmEvent *event)
+{
+  uiButTreeRow *tree_row_but = (uiButTreeRow *)but;
+  BLI_assert(tree_row_but->but.type == UI_BTYPE_TREEROW);
+
+  if ((event->type == LEFTMOUSE) && (event->val == KM_DBL_CLICK)) {
+    button_activate_state(C, but, BUTTON_STATE_EXIT);
+
+    UI_tree_view_item_begin_rename(tree_row_but->tree_item);
+    return WM_UI_HANDLER_BREAK;
+  }
+
+  return ui_do_but_TOG(C, but, data, event);
+}
+
 static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -7989,9 +8007,11 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
     case UI_BTYPE_CHECKBOX:
     case UI_BTYPE_CHECKBOX_N:
     case UI_BTYPE_ROW:
-    case UI_BTYPE_TREEROW:
     case UI_BTYPE_DATASETROW:
       retval = ui_do_but_TOG(C, but, data, event);
+      break;
+    case UI_BTYPE_TREEROW:
+      retval = ui_do_but_TREEROW(C, but, data, event);
       break;
     case UI_BTYPE_SCROLL:
       retval = ui_do_but_SCROLL(C, block, but, data, event);
