@@ -4687,7 +4687,6 @@ def _template_sequencer_select_for_fallback(params, fallback):
         return _template_sequencer_generic_select(
             type=params.select_mouse,
             value=params.select_mouse_value,
-            preview=False,
             legacy=params.legacy,
         )
     return []
@@ -7471,7 +7470,7 @@ def km_sequencer_editor_tool_select(params, *, fallback):
               _template_items_tool_select(params, "sequencer.select", "sequencer.sample", extend="toggle")
               ),
             *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_generic_select(
-                type=params.select_mouse, value=params.select_mouse_value, preview=False, legacy=params.legacy)),
+                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
 
             *_template_items_change_frame(params),
         ]},
