@@ -36,6 +36,7 @@
 
 #include "BIF_glutil.h"
 
+#include "SEQ_relations.h"
 #include "SEQ_render.h"
 #include "SEQ_sequencer.h"
 
@@ -176,6 +177,7 @@ static void thumbnail_start_job(void *data,
       SEQ_render_thumbnails(
           &tj->context, val->seq_dupli, seq_orig, start_frame, frame_step, tj->view_area, stop);
       SEQ_render_thumbnails_base_set(&tj->context, val->seq_dupli, seq_orig, tj->view_area, stop);
+      SEQ_relations_sequence_free_anim(val->seq_dupli);
     }
     BLI_ghashIterator_step(&gh_iter);
   }
