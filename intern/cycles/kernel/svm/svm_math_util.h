@@ -200,42 +200,42 @@ ccl_device float svm_math(NodeMathType type, float a, float b, float c)
   }
 }
 
-/* Calculate color in range 800..12000 using an approximation
- * a/x+bx+c for R and G and ((at + b)t + c)t + d) for B
- * Max absolute error for RGB is (0.00095, 0.00077, 0.00057),
- * which is enough to get the same 8 bit/channel color.
- */
-
-ccl_static_constant float blackbody_table_r[6][3] = {
-    {2.52432244e+03f, -1.06185848e-03f, 3.11067539e+00f},
-    {3.37763626e+03f, -4.34581697e-04f, 1.64843306e+00f},
-    {4.10671449e+03f, -8.61949938e-05f, 6.41423749e-01f},
-    {4.66849800e+03f, 2.85655028e-05f, 1.29075375e-01f},
-    {4.60124770e+03f, 2.89727618e-05f, 1.48001316e-01f},
-    {3.78765709e+03f, 9.36026367e-06f, 3.98995841e-01f},
-};
-
-ccl_static_constant float blackbody_table_g[6][3] = {
-    {-7.50343014e+02f, 3.15679613e-04f, 4.73464526e-01f},
-    {-1.00402363e+03f, 1.29189794e-04f, 9.08181524e-01f},
-    {-1.22075471e+03f, 2.56245413e-05f, 1.20753416e+00f},
-    {-1.42546105e+03f, -4.01730887e-05f, 1.44002695e+00f},
-    {-1.18134453e+03f, -2.18913373e-05f, 1.30656109e+00f},
-    {-5.00279505e+02f, -4.59745390e-06f, 1.09090465e+00f},
-};
-
-ccl_static_constant float blackbody_table_b[6][4] = {
-    {0.0f, 0.0f, 0.0f, 0.0f}, /* zeros should be optimized by compiler */
-    {0.0f, 0.0f, 0.0f, 0.0f},
-    {0.0f, 0.0f, 0.0f, 0.0f},
-    {-2.02524603e-11f, 1.79435860e-07f, -2.60561875e-04f, -1.41761141e-02f},
-    {-2.22463426e-13f, -1.55078698e-08f, 3.81675160e-04f, -7.30646033e-01f},
-    {6.72595954e-13f, -2.73059993e-08f, 4.24068546e-04f, -7.52204323e-01f},
-};
-
 ccl_device float3 svm_math_blackbody_color(float t)
 {
   /* TODO(lukas): Reimplement in XYZ. */
+
+  /* Calculate color in range 800..12000 using an approximation
+   * a/x+bx+c for R and G and ((at + b)t + c)t + d) for B
+   * Max absolute error for RGB is (0.00095, 0.00077, 0.00057),
+   * which is enough to get the same 8 bit/channel color.
+   */
+
+  const float blackbody_table_r[6][3] = {
+      {2.52432244e+03f, -1.06185848e-03f, 3.11067539e+00f},
+      {3.37763626e+03f, -4.34581697e-04f, 1.64843306e+00f},
+      {4.10671449e+03f, -8.61949938e-05f, 6.41423749e-01f},
+      {4.66849800e+03f, 2.85655028e-05f, 1.29075375e-01f},
+      {4.60124770e+03f, 2.89727618e-05f, 1.48001316e-01f},
+      {3.78765709e+03f, 9.36026367e-06f, 3.98995841e-01f},
+  };
+
+  const float blackbody_table_g[6][3] = {
+      {-7.50343014e+02f, 3.15679613e-04f, 4.73464526e-01f},
+      {-1.00402363e+03f, 1.29189794e-04f, 9.08181524e-01f},
+      {-1.22075471e+03f, 2.56245413e-05f, 1.20753416e+00f},
+      {-1.42546105e+03f, -4.01730887e-05f, 1.44002695e+00f},
+      {-1.18134453e+03f, -2.18913373e-05f, 1.30656109e+00f},
+      {-5.00279505e+02f, -4.59745390e-06f, 1.09090465e+00f},
+  };
+
+  const float blackbody_table_b[6][4] = {
+      {0.0f, 0.0f, 0.0f, 0.0f}, /* zeros should be optimized by compiler */
+      {0.0f, 0.0f, 0.0f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 0.0f},
+      {-2.02524603e-11f, 1.79435860e-07f, -2.60561875e-04f, -1.41761141e-02f},
+      {-2.22463426e-13f, -1.55078698e-08f, 3.81675160e-04f, -7.30646033e-01f},
+      {6.72595954e-13f, -2.73059993e-08f, 4.24068546e-04f, -7.52204323e-01f},
+  };
 
   if (t >= 12000.0f) {
     return make_float3(0.826270103f, 0.994478524f, 1.56626022f);
