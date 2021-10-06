@@ -1836,6 +1836,22 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       }
     }
   }
+
+  int totvert = 0;
+
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES:
+      totvert = me->totvert;
+      break;
+    case PBVH_BMESH:
+      totvert = ss->bm ? ss->bm->totvert : me->totvert;
+      break;
+    case PBVH_GRIDS:
+      totvert = BKE_pbvh_get_grid_num_vertices(ss->pbvh);
+      break;
+  }
+
+  BKE_sculptsession_check_mdyntopo(ob->sculpt, pbvh, totvert);
 }
 
 void BKE_sculpt_update_object_before_eval(Object *ob)
@@ -2310,6 +2326,8 @@ bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, PBVH *pbvh, int totvert
     init_mdyntopo_layer(ss, pbvh, totvert);
     return true;
   }
+
+  BKE_pbvh_set_mdyntopo_verts(pbvh, ss->mdyntopo_verts);
 
   return false;
 }
