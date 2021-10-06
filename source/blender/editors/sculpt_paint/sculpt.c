@@ -8795,6 +8795,7 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
     /* Update last stroke position. */
     ups->last_stroke_valid = true;
 
+    copy_v3_v3(ss->cache->true_last_location, ss->cache->true_location);
     return;
   }
 
@@ -9234,10 +9235,6 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
   /* Update last stroke position. */
   ups->last_stroke_valid = true;
 }
-
-void BKE_brush_commandlist_start(BrushCommandList *list,
-                                 Brush *brush,
-                                 BrushChannelSet *chset_final);
 
 static void SCULPT_run_command_list(
     Sculpt *sd, Object *ob, Brush *brush, BrushCommandList *list, UnifiedPaintSettings *ups)

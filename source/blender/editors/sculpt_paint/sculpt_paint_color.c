@@ -31,6 +31,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -138,7 +139,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
 
   IMB_colormanagement_srgb_to_scene_linear_v3(brush_color);
 
-  // get un-pressure-mapped alpha
+  /* get un-pressure-mapped alpha */
   float alpha = BKE_brush_channelset_get_final_float(
       BKE_paint_brush(&data->sd->paint)->channels, data->sd->channels, "strength", NULL);
 
@@ -394,6 +395,8 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
   const Brush *brush = data->brush;
   const float bstrength = ss->cache->bstrength;
 
+  const float blend = SCULPT_get_float(ss, smear_deform_blend, NULL, brush);
+
   PBVHVertexIter vd;
 
   SculptBrushTest test;
@@ -453,7 +456,8 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-    blend_color_interpolate_float(vd.col, ss->cache->prev_colors[vd.index], interp_color, fade);
+    blend_color_interpolate_float(
+        vd.col, ss->cache->prev_colors[vd.index], interp_color, fade * blend);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;

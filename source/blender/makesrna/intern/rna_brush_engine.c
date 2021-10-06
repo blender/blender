@@ -120,7 +120,7 @@ struct StructRNA *rna_BrushChannel_refine(PointerRNA *ptr)
       subtype = PROP_PERCENTAGE;
       break;
     case BRUSH_CHANNEL_COLOR:
-      subtype = PROP_COLOR;
+      subtype = PROP_COLOR_GAMMA;
       break;
     case BRUSH_CHANNEL_PIXEL:
       subtype = PROP_PIXEL;
@@ -883,14 +883,14 @@ void RNA_def_brush_channel(BlenderRNA *brna)
                                     "rna_BrushChannel_mappings_assignint");
   RNA_def_property_struct_type(prop, "BrushMapping");
 
-  prop = RNA_def_property(srna, "color3_value", PROP_FLOAT, PROP_COLOR);
+  prop = RNA_def_property(srna, "color3_value", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, "BrushChannel", "vector");
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Color", "");
 
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
-  prop = RNA_def_property(srna, "color4_value", PROP_FLOAT, PROP_COLOR);
+  prop = RNA_def_property(srna, "color4_value", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, "BrushChannel", "vector");
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Color", "");

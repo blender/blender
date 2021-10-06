@@ -1113,7 +1113,7 @@ def brush_settings(layout, context, brush, popover=False):
                         brush,
                         "autosmooth_spacing",
                         slider=True,
-                        text="Spacing")
+                        text="Smooth Spacing")
 
             UnifiedPaintPanel.prop_unified(box,
                 context,
@@ -1161,7 +1161,7 @@ def brush_settings(layout, context, brush, popover=False):
                         brush,
                         "topology_rake_spacing",
                         slider=True,
-                        text="Spacing")
+                        text="Rake Spacing")
 
                 UnifiedPaintPanel.prop_unified(box,
                     context,

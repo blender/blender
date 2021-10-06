@@ -194,7 +194,7 @@ places in rna_engine_codebase are relevent:
   {-1}
 })
 
-  MAKE_FLOAT_EX(spacing, "Spacing", "", 10.0f, 0.25f, 1000.0f, 1.0f, 500.0f, false)
+  MAKE_FLOAT_EX(spacing, "Spacing", "", 10.0f, 0.25f, 1000.0f, 1.0f, 200.0f, false)
   MAKE_FLOAT_EX(topology_rake, "Topology Rake", "Automatically align edges to the brush direction to "
                            "generate cleaner topology and define sharp features. "
                            "Best used on low-poly meshes as it has a performance impact", 0.0f, 0.0f, 5.0f, 0.0f, 2.0f, false)
@@ -335,7 +335,7 @@ MAKE_FLOAT_EX(vcol_boundary_exponent, "Exponent", "Hardening exponent (smaller v
 MAKE_FLOAT_EX(vcol_boundary_radius_scale, "Radius Scale",
   "Scale brush radius for vcol boundary hardening",
   1.0f, 0.0001f, 100.0f, 0.001f, 3.0f, false)
-MAKE_FLOAT_EX(vcol_boundary_spacing, "Spacing", "Spacing for vcol boundary hardening", 15, 0.25, 5000, 0.5, 300, false)
+MAKE_FLOAT_EX(vcol_boundary_spacing, "Color Hardening Spacing", "Spacing for vcol boundary hardening", 15, 0.25, 5000, 0.5, 300, false)
 MAKE_BOOL(invert_to_scrape_fill,"Invert to Scrape or Fill",
                         "Use Scrape or Fill tool when inverting this brush instead of "
                         "inverting its displacement direction", true)
@@ -567,6 +567,15 @@ MAKE_ENUM(array_deform_type, "Deformation", "Deformation type that is used in th
 })
 
 MAKE_INT_EX(array_count, "Count", "Number of copies", 2, 1, 10000, 1, 50)
+
+MAKE_ENUM(smear_deform_type, "Deformation", "Deformation type that is used in the brush", BRUSH_SMEAR_DEFORM_DRAG, {
+      {BRUSH_SMEAR_DEFORM_DRAG, "DRAG", "NONE", "Drag", ""},
+      {BRUSH_SMEAR_DEFORM_PINCH, "PINCH", "NONE", "Pinch", ""},
+      {BRUSH_SMEAR_DEFORM_EXPAND, "EXPAND", "NONE", "Expand", ""},
+      {-1}
+})
+
+MAKE_FLOAT(smear_deform_blend, "Smear Blend", "Blend with existing paint", 1.0f, 0.0f, 1.0f)
 
 //MAKE_FLOAT3_EX
 /* clang-format on */

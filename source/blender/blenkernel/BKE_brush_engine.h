@@ -309,8 +309,14 @@ extern void BKE_brush_channelset_to_unified_settings(BrushChannelSet *chset,
 
 void BKE_brush_init_toolsettings(struct Sculpt *sd);
 void BKE_brush_builtin_create(struct Brush *brush, int tool);
+
 BrushCommandList *BKE_brush_commandlist_create();
+void BKE_brush_commandlist_start(BrushCommandList *list,
+                                 struct Brush *brush,
+                                 BrushChannelSet *chset_final);
+
 void BKE_brush_commandlist_free(BrushCommandList *cl);
+
 BrushCommand *BKE_brush_commandlist_add(BrushCommandList *cl,
                                         BrushChannelSet *chset_template,
                                         bool auto_inherit);

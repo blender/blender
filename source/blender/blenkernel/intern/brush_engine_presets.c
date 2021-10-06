@@ -268,6 +268,9 @@ static bool check_builtin_init()
   // SETCAT(direction, "Basic");
   SETCAT(accumulate, "Basic");
 
+  SETCAT(smear_deform_type, "Smear");
+  SETCAT(smear_deform_blend, "Smear");
+
   SETCAT(tip_roundness, "Basic");
   SETCAT(hardness, "Basic");
   SETCAT(tip_scale_x, "Basic");
@@ -331,6 +334,15 @@ static bool check_builtin_init()
   SETCAT(color, "Color");
   SETCAT(secondary_color, "Color");
   SETCAT(blend, "Color");
+  SETCAT(wet_mix, "Color");
+  SETCAT(wet_persistence, "Color");
+  SETCAT(density, "Color");
+  SETCAT(flow, "Color");
+
+  SETCAT(vcol_boundary_spacing, "Color Boundary Hardening");
+  SETCAT(vcol_boundary_radius_scale, "Color Boundary Hardening");
+  SETCAT(vcol_boundary_exponent, "Color Boundary Hardening");
+  SETCAT(vcol_boundary_factor, "Color Boundary Hardening");
 
   return true;
 }
@@ -456,6 +468,7 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(smooth_deform_type, smooth_deform_type, INT, INT)
   DEF(array_deform_type, array_deform_type, INT, INT)
   DEF(array_count, array_count, INT, INT)
+  DEF(smear_deform_type, smear_deform_type, INT, INT)
 };
 
 static const int brush_settings_map_len = ARRAY_SIZE(brush_settings_map);
@@ -1095,6 +1108,8 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       break;
     case SCULPT_TOOL_SMEAR:
       ADDCH(rate);
+      ADDCH(smear_deform_type);
+      ADDCH(smear_deform_blend);
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
       ADDCH(slide_deform_type);
@@ -1286,6 +1301,14 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWCTX(use_grab_active_vertex);
       SHOWALL(grab_silhouette);
       break;
+    case SCULPT_TOOL_SMEAR:
+      SHOWWRK(smear_deform_type);
+      SHOWCTX(smear_deform_type);
+      SHOWWRK(spacing);
+
+      // hrm, not sure this is such a good idea - joeedh
+      // SHOWALL(smear_deform_blend);
+      break;
     case SCULPT_TOOL_CLAY_STRIPS:
       SHOWWRK(area_radius_factor);
       SHOWWRK(plane_offset);
@@ -1396,6 +1419,9 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(flow);
       SHOWWRK(rate);
       SHOWALL(blend);
+
+      SHOWWRK(use_smoothed_rake);
+      SHOWCTX(use_smoothed_rake);
 
       SHOWCTX(color);
       SHOWCTX(blend);
@@ -1519,6 +1545,7 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
           ~BRUSH_MAPPING_ENABLED;
       BRUSHSET_SET_BOOL(chset, dyntopo_disabled, true);
+      BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       break;
 
     case SCULPT_TOOL_LAYER:

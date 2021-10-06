@@ -1788,6 +1788,14 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 34)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->channels && brush->sculpt_tool == SCULPT_TOOL_SMEAR) {
+        BRUSHSET_SET_BOOL(brush->channels, use_space_attenuation, false);
+        BKE_brush_channelset_ui_init(brush, brush->sculpt_tool);
+      }
+    }
+  }
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 27)) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->channels) {
