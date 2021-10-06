@@ -974,6 +974,8 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(radius_unit);
   ADDCH(unprojected_radius);
 
+  ADDCH(show_origco);
+
   ADDCH(use_surface_falloff);
 
   if (!BRUSHSET_LOOKUP(chset, use_smoothed_rake)) {
@@ -1780,6 +1782,8 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH(strength);
   ADDCH(radius_unit);
   ADDCH(unprojected_radius);
+
+  ADDCH(show_origco);
 
   ADDCH(smooth_strength_factor);
   ADDCH(smooth_strength_projection);

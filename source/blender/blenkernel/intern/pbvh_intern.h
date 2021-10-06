@@ -340,6 +340,7 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
                                    int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
+                                   int cd_vcol_offset,
                                    BMVert *v,
                                    int bound_symmetry);
 
@@ -352,6 +353,7 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
                                   pbvh->cd_faceset_offset,
                                   pbvh->cd_vert_node_offset,
                                   pbvh->cd_face_node_offset,
+                                  pbvh->cd_vcol_offset,
                                   v,
                                   pbvh->boundary_symmetry);
     return true;

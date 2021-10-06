@@ -2220,6 +2220,7 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                       ss->cd_faceset_offset,
                                       ss->cd_vert_node_offset,
                                       ss->cd_face_node_offset,
+                                      ss->cd_vcol_offset,
                                       (BMVert *)vertex.i,
                                       ss->boundary_symmetry);
       }
@@ -2277,6 +2278,7 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
                                       ss->cd_faceset_offset,
                                       ss->cd_vert_node_offset,
                                       ss->cd_face_node_offset,
+                                      ss->cd_vcol_offset,
                                       (BMVert *)vertex.i,
                                       ss->boundary_symmetry);
       }
@@ -2779,7 +2781,7 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
   data->datatype = type;
 }
 
-void SCULPT_vertex_check_origdata(SculptSession *ss, SculptVertRef vertex)
+bool SCULPT_vertex_check_origdata(SculptSession *ss, SculptVertRef vertex)
 {
   // check if we need to update original data for current stroke
   MDynTopoVert *mv = ss->bm ? BKE_PBVH_DYNVERT(ss->cd_dyn_vert, (BMVert *)vertex.i) :
@@ -2797,7 +2799,11 @@ void SCULPT_vertex_check_origdata(SculptSession *ss, SculptVertRef vertex)
     }
 
     mv->origmask = SCULPT_vertex_mask_get(ss, vertex);
+
+    return false;
   }
+
+  return true;
 }
 
 /**
@@ -8684,6 +8690,26 @@ static void sculpt_topology_update(Sculpt *sd,
   ss->totvert = ss->bm->totvert;
 }
 
+static void do_check_origco_cb(void *__restrict userdata,
+                               const int n,
+                               const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  PBVHVertexIter vd;
+
+  bool modified = false;
+
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    modified |= SCULPT_vertex_check_origdata(ss, vd.vertex);
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  if (modified) {
+    BKE_pbvh_node_mark_original_update(data->nodes[n]);
+  }
+}
+
 static void do_brush_action_task_cb(void *__restrict userdata,
                                     const int n,
                                     const TaskParallelTLS *__restrict UNUSED(tls))
@@ -8795,7 +8821,7 @@ void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
     /* Update last stroke position. */
     ups->last_stroke_valid = true;
 
-    copy_v3_v3(ss->cache->true_last_location, ss->cache->true_location);
+    // copy_v3_v3(ss->cache->true_last_location, ss->cache->true_location);
     return;
   }
 
@@ -9444,6 +9470,21 @@ static void SCULPT_run_command_list(
 
   Brush *oldbrush = ss->cache->brush;
   Brush _dummy = *brush, *brush2 = &_dummy;
+
+  if (ss->cache->original) {
+    SculptThreadedTaskData task_data = {
+        .sd = sd,
+        .ob = ob,
+        .brush = brush,
+        .nodes = nodes,
+    };
+
+    TaskParallelSettings settings;
+    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+    BLI_task_parallel_range(0, totnode, &task_data, do_check_origco_cb, &settings);
+
+    BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateOriginalBB);
+  }
 
   for (int step = 0; step < list->totcommand; step++) {
     BrushCommand *cmd = list->commands + step;
@@ -11819,6 +11860,10 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
   else if (brush->channels) {
     ss->cache->channels_final = BKE_brush_channelset_copy(brush->channels);
   }
+
+  // bad debug global
+  extern bool pbvh_show_orig_co;
+  pbvh_show_orig_co = BRUSHSET_GET_INT(ss->cache->channels_final, show_origco, NULL);
 
   ss->cache->use_plane_trim = BRUSHSET_GET_INT(
       ss->cache->channels_final, use_plane_trim, &ss->cache->input_mapping);

@@ -254,6 +254,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
   n->bm_other_verts = BLI_table_gset_new("bm_other_verts");
 
   BB_reset(&n->vb);
+  BB_reset(&n->orig_vb);
   BMFace *f;
 
   TGSET_ITER (f, n->bm_faces) {
@@ -280,6 +281,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
       }
       /* Update node bounding box */
       BB_expand(&n->vb, v->co);
+      BB_expand(&n->orig_vb, mv->origco);
     } while ((l_iter = l_iter->next) != l_first);
 
     if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -290,8 +292,6 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
 
   BLI_assert(n->vb.bmin[0] <= n->vb.bmax[0] && n->vb.bmin[1] <= n->vb.bmax[1] &&
              n->vb.bmin[2] <= n->vb.bmax[2]);
-
-  n->orig_vb = n->vb;
 
   /* Build GPU buffers for new node and update vertex normals */
   BKE_pbvh_node_mark_rebuild_draw(n);
@@ -888,6 +888,7 @@ bool pbvh_bmesh_node_raycast(PBVH *pbvh,
 
   for (int i = 0; i < node->tribuf->tottri; i++) {
     PBVHTri *tri = tribuf->tris + i;
+
     BMVert *v1 = (BMVert *)tribuf->verts[tri->v[0]].i;
     BMVert *v2 = (BMVert *)tribuf->verts[tri->v[1]].i;
     BMVert *v3 = (BMVert *)tribuf->verts[tri->v[2]].i;
@@ -925,7 +926,7 @@ bool pbvh_bmesh_node_raycast(PBVH *pbvh,
 
       for (int j = 0; j < 3; j++) {
         BMVert *v = (BMVert *)tribuf->verts[tri->v[j]].i;
-        float *co = BKE_PBVH_DYNVERT(cd_dyn_vert, v)->origco;
+        float *co = use_original ? BKE_PBVH_DYNVERT(cd_dyn_vert, v)->origco : v->co;
 
         float dist = len_squared_v3v3(co, ray_start);
         if (dist < nearest_vertex_dist) {
@@ -1469,10 +1470,29 @@ int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co)
   return fset;
 }
 
+//#define MV_COLOR_BOUNDARY
+
+#ifdef MV_COLOR_BOUNDARY
+static int color_boundary_key(float col[4])
+{
+  const float steps = 2.0f;
+  float hsv[3];
+
+  rgb_to_hsv(col[0], col[1], col[2], hsv, hsv + 1, hsv + 2);
+
+  int x = (int)((hsv[0] * 0.5f + 0.5f) * steps + 0.5f);
+  int y = (int)(hsv[1] * steps + 0.5f);
+  int z = (int)(hsv[2] * steps + 0.5f);
+
+  return z * steps * steps + y * steps + x;
+}
+#endif
+
 void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
                                    int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
+                                   int cd_vcol,
                                    BMVert *v,
                                    int bound_symmetry)
 {
@@ -1497,6 +1517,10 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
   int sharpcount = 0;
   int seamcount = 0;
   int quadcount = 0;
+
+#ifdef MV_COLOR_BOUNDARY
+  int last_key = -1;
+#endif
 
 #if 0
   struct FaceSetRef {
@@ -1523,6 +1547,20 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
         mv->flag |= DYNVERT_SEAM_CORNER;
       }
     }
+
+#ifdef MV_COLOR_BOUNDARY
+    if (cd_vcol >= 0) {
+      float *color1 = BM_ELEM_CD_GET_VOID_P(v, cd_vcol);
+      float *color2 = BM_ELEM_CD_GET_VOID_P(v2, cd_vcol);
+
+      int colorkey1 = color_boundary_key(color1);
+      int colorkey2 = color_boundary_key(color2);
+
+      if (colorkey1 != colorkey2) {
+        mv->flag |= DYNVERT_FSET_BOUNDARY;
+      }
+    }
+#endif
 
     if (!(e->head.hflag & BM_ELEM_SMOOTH)) {
       mv->flag |= DYNVERT_SHARP_BOUNDARY;
@@ -1634,11 +1672,17 @@ void BKE_pbvh_update_vert_boundary(int cd_dyn_vert,
                                    int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
+                                   int cd_vcol,
                                    BMVert *v,
                                    int bound_symmetry)
 {
-  bke_pbvh_update_vert_boundary(
-      cd_dyn_vert, cd_faceset_offset, cd_vert_node_offset, cd_face_node_offset, v, bound_symmetry);
+  bke_pbvh_update_vert_boundary(cd_dyn_vert,
+                                cd_faceset_offset,
+                                cd_vert_node_offset,
+                                cd_face_node_offset,
+                                cd_vcol,
+                                v,
+                                bound_symmetry);
 }
 
 /*Used by symmetrize to update boundary flags*/
@@ -1652,6 +1696,7 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
                                   pbvh->cd_faceset_offset,
                                   pbvh->cd_vert_node_offset,
                                   pbvh->cd_face_node_offset,
+                                  pbvh->cd_vcol_offset,
                                   v,
                                   pbvh->boundary_symmetry);
   }
@@ -1846,6 +1891,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                                   pbvh->cd_faceset_offset,
                                   pbvh->cd_vert_node_offset,
                                   pbvh->cd_face_node_offset,
+                                  pbvh->cd_vcol_offset,
                                   v,
                                   pbvh->boundary_symmetry);
     BKE_pbvh_bmesh_update_valence(pbvh->cd_dyn_vert, (SculptVertRef){(intptr_t)v});
@@ -2964,18 +3010,39 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
 
       float volume = BB_volume(&child1->vb) + BB_volume(&child2->vb);
 
+      /* dissolve nodes whose children overlap by more then a percentage
+        of the total volume.  we use a simple huerstic to calculate the
+        cutoff threshold.*/
+
       BB_intersect(&clip, &child1->vb, &child2->vb);
       float overlap = BB_volume(&clip);
+      float factor;
 
-      // for (int i = 0; i < depthmap[node - pbvh->nodes]; i++) {
-      // printf("-");
-      //}
+      /* use higher threshold for the root node and its immediate children */
+      switch (BLI_array_len(stack)) {
+        case 0:
+          factor = 0.75;
+          break;
+        case 1:
+        case 2:
+          factor = 0.5;
+          break;
+        default:
+          factor = 0.2;
+          break;
+      }
 
-      // printf("volume: %.4f overlap: %.4f ratio: %.3f\n", volume, overlap, overlap / volume);
+#if 0
+      for (int k = 0; k < BLI_array_len(stack); k++) {
+        printf(" ");
+      }
 
-      if (overlap > volume * 0.1) {
+      printf("factor: %.3f\n", factor);
+#endif
+
+      if (overlap > volume * factor) {
         modified = true;
-        // printf("  DELETE!\n");
+        printf("  DELETE! %.4f    %.4f  %d\n", overlap, volume, BLI_array_len(stack));
 
         BLI_array_clear(substack);
 

@@ -870,6 +870,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                                   ss->cd_faceset_offset,
                                   ss->cd_vert_node_offset,
                                   ss->cd_face_node_offset,
+                                  ss->cd_vcol_offset,
                                   v,
                                   ss->boundary_symmetry);
     BKE_pbvh_bmesh_update_valence(ss->cd_dyn_vert, (SculptVertRef){.i = (intptr_t)v});

@@ -1677,7 +1677,7 @@ void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
                                       const float angle);
 void SCULPT_cache_free(SculptSession *ss, StrokeCache *cache);
 
-void SCULPT_vertex_check_origdata(SculptSession *ss, SculptVertRef vertex);
+bool SCULPT_vertex_check_origdata(SculptSession *ss, SculptVertRef vertex);
 
 void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
                                 Object *ob,

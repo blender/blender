@@ -153,26 +153,75 @@ void BBC_update_centroid(BBC *bbc)
 }
 
 /* Not recursive */
-static void update_node_vb(PBVH *pbvh, PBVHNode *node)
+static void update_node_vb(PBVH *pbvh, PBVHNode *node, int updateflag)
 {
+  if (!(updateflag & (PBVH_UpdateBB | PBVH_UpdateOriginalBB))) {
+    return;
+  }
+
+  /* cannot clear flag here, causes leaky pbvh */
+  // node->flag &= ~(updateflag & (PBVH_UpdateBB | PBVH_UpdateOriginalBB));
+
   BB vb;
+  BB orig_vb;
 
   BB_reset(&vb);
+  BB_reset(&orig_vb);
+
+  bool do_orig = updateflag | PBVH_UpdateOriginalBB;
+  bool do_normal = updateflag | PBVH_UpdateBB;
 
   if (node->flag & PBVH_Leaf) {
     PBVHVertexIter vd;
 
     BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_ALL) {
-      BB_expand(&vb, vd.co);
+      if (do_normal) {
+        BB_expand(&vb, vd.co);
+      }
+
+      if (do_orig) {
+        MDynTopoVert *mv = pbvh->type == PBVH_BMESH ?
+                               BM_ELEM_CD_GET_VOID_P(vd.bm_vert, pbvh->cd_dyn_vert) :
+                               pbvh->mdyntopo_verts + vd.index;
+
+        if (mv->stroke_id != pbvh->stroke_id) {
+          BB_expand(&orig_vb, vd.co);
+        }
+        else {
+          BB_expand(&orig_vb, mv->origco);
+        }
+      }
     }
     BKE_pbvh_vertex_iter_end;
   }
   else {
-    BB_expand_with_bb(&vb, &pbvh->nodes[node->children_offset].vb);
-    BB_expand_with_bb(&vb, &pbvh->nodes[node->children_offset + 1].vb);
+    if (do_normal) {
+      BB_expand_with_bb(&vb, &pbvh->nodes[node->children_offset].vb);
+      BB_expand_with_bb(&vb, &pbvh->nodes[node->children_offset + 1].vb);
+    }
+
+    if (do_orig) {
+      BB_expand_with_bb(&orig_vb, &pbvh->nodes[node->children_offset].orig_vb);
+      BB_expand_with_bb(&orig_vb, &pbvh->nodes[node->children_offset + 1].orig_vb);
+    }
   }
 
-  node->vb = vb;
+  if (do_normal) {
+    node->vb = vb;
+  }
+
+  if (do_orig) {
+#if 0
+    float size[3];
+
+    sub_v3_v3v3(size, orig_vb.bmax, orig_vb.bmin);
+    mul_v3_fl(size, 0.05);
+
+    sub_v3_v3(orig_vb.bmin, size);
+    add_v3_v3(orig_vb.bmax, size);
+#endif
+    node->orig_vb = orig_vb;
+  }
 }
 
 // void BKE_pbvh_node_BB_reset(PBVHNode *node)
@@ -1288,15 +1337,7 @@ static void pbvh_update_BB_redraw_task_cb(void *__restrict userdata,
   PBVHNode *node = data->nodes[n];
   const int flag = data->flag;
 
-  if ((flag & PBVH_UpdateBB) && (node->flag & PBVH_UpdateBB)) {
-    /* don't clear flag yet, leave it for flushing later */
-    /* Note that bvh usage is read-only here, so no need to thread-protect it. */
-    update_node_vb(pbvh, node);
-  }
-
-  if ((flag & PBVH_UpdateOriginalBB) && (node->flag & PBVH_UpdateOriginalBB)) {
-    node->orig_vb = node->vb;
-  }
+  update_node_vb(pbvh, node, flag);
 
   if ((flag & PBVH_UpdateRedraw) && (node->flag & PBVH_UpdateRedraw)) {
     node->flag &= ~PBVH_UpdateRedraw;
@@ -1577,12 +1618,7 @@ static int pbvh_flush_bb(PBVH *pbvh, PBVHNode *node, int flag)
   update |= pbvh_flush_bb(pbvh, pbvh->nodes + node->children_offset, flag);
   update |= pbvh_flush_bb(pbvh, pbvh->nodes + node->children_offset + 1, flag);
 
-  if (update & PBVH_UpdateBB) {
-    update_node_vb(pbvh, node);
-  }
-  if (update & PBVH_UpdateOriginalBB) {
-    node->orig_vb = node->vb;
-  }
+  update_node_vb(pbvh, node, update);
 
   return update;
 }
@@ -1949,6 +1985,11 @@ BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh)
 
 /***************************** Node Access ***********************************/
 
+void BKE_pbvh_node_mark_original_update(PBVHNode *node)
+{
+  node->flag |= PBVH_UpdateOriginalBB;
+}
+
 void BKE_pbvh_node_mark_update(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateNormals | PBVH_UpdateBB | PBVH_UpdateOriginalBB |
@@ -2261,8 +2302,10 @@ void BKE_pbvh_raycast(PBVH *pbvh,
   RaycastData rcd;
 
   isect_ray_aabb_v3_precalc(&rcd.ray, ray_start, ray_normal);
+
   rcd.original = original;
   rcd.stroke_id = stroke_id;
+  pbvh->stroke_id = stroke_id;
 
   BKE_pbvh_search_callback_occluded(pbvh, ray_aabb_intersect, &rcd, cb, data);
 }
@@ -2352,6 +2395,7 @@ bool ray_face_intersection_depth_tri(const float ray_start[3],
                                      int *hit_count)
 {
   float depth_test;
+
   if (!isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, NULL)) {
     return false;
   }
@@ -3112,6 +3156,9 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
   MEM_SAFE_FREE(nodes);
 }
 
+// bad global from gpu_buffers.c
+extern bool pbvh_show_orig_co;
+
 void BKE_pbvh_draw_debug_cb(
     PBVH *pbvh,
     void (*draw_fn)(void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag),
@@ -3122,7 +3169,12 @@ void BKE_pbvh_draw_debug_cb(
 
     int num = a + node->updategen;
 
-    draw_fn(&num, node->vb.bmin, node->vb.bmax, node->flag);
+    if (pbvh_show_orig_co) {
+      draw_fn(&num, node->orig_vb.bmin, node->orig_vb.bmax, node->flag);
+    }
+    else {
+      draw_fn(&num, node->vb.bmin, node->vb.bmax, node->flag);
+    }
   }
 }
 

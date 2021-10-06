@@ -1061,6 +1061,7 @@ GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, BLI_bitmap **grid_hid
  * \{ */
 
 static int debug_pass = 0;
+bool pbvh_show_orig_co = false;
 
 /* Output a BMVert into a VertexBufferFormat array at v_index. */
 static void gpu_bmesh_vert_to_buffer_copy(BMesh *bm,
@@ -1090,7 +1091,7 @@ static void gpu_bmesh_vert_to_buffer_copy(BMesh *bm,
   short no_short[3];
 
   /* Set coord, normal, and mask */
-  if (G.debug_value == 890) {
+  if (G.debug_value == 890 || pbvh_show_orig_co) {
     const int cd_dyn_vert = bm->vdata.layers[bm->vdata.typemap[CD_DYNTOPO_VERT]].offset;
     MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, cd_dyn_vert);
 

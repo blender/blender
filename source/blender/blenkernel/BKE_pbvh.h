@@ -505,6 +505,7 @@ void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh);
 void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh);
 bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, SculptVertRef vertex);
 
+void BKE_pbvh_node_mark_original_update(PBVHNode *node);
 void BKE_pbvh_node_mark_update_tri_area(PBVHNode *node);
 void BKE_pbvh_update_all_tri_areas(PBVH *pbvh);
 void BKE_pbvh_node_mark_update(PBVHNode *node);
@@ -836,6 +837,7 @@ void BKE_pbvh_update_vert_boundary(int cd_dyn_vert,
                                    int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
+                                   int cd_vcol,
                                    struct BMVert *v,
                                    int symmetry);
 
