@@ -439,6 +439,9 @@ bool AbstractTreeViewItem::matches_including_parents(const AbstractTreeViewItem 
   if (!matches(other)) {
     return false;
   }
+  if (count_parents() != other.count_parents()) {
+    return false;
+  }
 
   for (AbstractTreeViewItem *parent = parent_, *other_parent = other.parent_;
        parent && other_parent;
