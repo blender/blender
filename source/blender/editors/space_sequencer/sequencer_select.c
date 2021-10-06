@@ -671,8 +671,7 @@ static Sequence *seq_select_seq_from_preview(const bContext *C,
     SEQ_ITERATOR_FOREACH (seq, strips) {
       float co[2];
       SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, co);
-      sub_v2_v2(co, mouseco_view);
-      const float center_dist_sq_test = len_squared_v2(co);
+      const float center_dist_sq_test = len_squared_v2v2(co, mouseco_view);
       if ((seq_best == NULL) || (center_dist_sq_test < center_dist_sq_best)) {
         seq_best = seq;
         center_dist_sq_best = center_dist_sq_test;

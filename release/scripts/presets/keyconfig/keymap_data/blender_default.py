@@ -4647,7 +4647,7 @@ def _template_sequencer_generic_select(*, type, value, legacy):
     )]
 
 
-def _template_sequencer_timeline_select(*, type, value, legacy):
+def _template_sequencer_preview_select(*, type, value, legacy):
     return _template_sequencer_generic_select(
         type=type, value=value, legacy=legacy,
     ) + [(
@@ -4665,7 +4665,7 @@ def _template_sequencer_timeline_select(*, type, value, legacy):
     )]
 
 
-def _template_sequencer_preview_select(*, type, value, legacy):
+def _template_sequencer_timeline_select(*, type, value, legacy):
     return _template_sequencer_generic_select(
         type=type, value=value, legacy=legacy,
     ) + [(
