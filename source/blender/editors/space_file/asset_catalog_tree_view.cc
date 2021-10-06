@@ -339,10 +339,6 @@ void AssetCatalogTreeViewAllItem::build_row(uiLayout &row)
 {
   ui::BasicTreeViewItem::build_row(row);
 
-  if (!is_active()) {
-    return;
-  }
-
   PointerRNA *props;
   props = UI_but_extra_operator_icon_add(
       button(), "ASSET_OT_catalog_new", WM_OP_INVOKE_DEFAULT, ICON_ADD);
