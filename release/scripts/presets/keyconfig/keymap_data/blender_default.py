@@ -2853,7 +2853,7 @@ def km_sequencerpreview(params):
          {"properties": [("ratio", 0.25)]}),
         ("sequencer.view_zoom_ratio", {"type": 'NUMPAD_8', "value": 'PRESS'},
          {"properties": [("ratio", 0.125)]}),
-        ("sequencer.sample", {"type": params.action_mouse, "value": 'PRESS'}, None),
+        ("transform.translate", {"type": params.select_tweak, "value": 'ANY'}, None),
         op_tool_optional(
             ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
             (op_tool_cycle, "builtin.move"), params),
@@ -4663,6 +4663,17 @@ def _template_sequencer_select(*, type, value, legacy):
         # (("toggle", "enumerate"), ("shift", "alt")),
         # (("toggle", "center", "enumerate"), ("shift", "ctrl", "alt")),
     )]
+
+
+def _template_sequencer_select_for_fallback(params, fallback):
+    if (not fallback) and params.use_fallback_tool_rmb:
+        # Needed so we have immediate select+tweak when the default select tool is active.
+        return _template_sequencer_select(
+            type=params.select_mouse,
+            value=params.select_mouse_value,
+            legacy=params.legacy,
+        )
+    return []
 
 
 def km_image_paint(params):
@@ -7435,11 +7446,16 @@ def km_3d_view_tool_sculpt_gpencil_select_lasso(params):
 
 def km_sequencer_editor_tool_select(params, *, fallback):
     return (
-        # TODO, fall-back tool support.
         _fallback_id("Sequencer Tool: Select", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'}, None),
+            # TODO: Use 2D cursor for preview region (currently `sequencer.sample`).
+            *([] if fallback else
+              _template_items_tool_select(params, "sequencer.select", "sequencer.sample", extend="extend")
+              ),
+            *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_select(
+                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+
             *_template_items_change_frame(params),
         ]},
     )
@@ -7447,15 +7463,16 @@ def km_sequencer_editor_tool_select(params, *, fallback):
 
 def km_sequencer_editor_tool_select_box(params, *, fallback):
     return (
-        # TODO, fall-back tool support.
         _fallback_id("Sequencer Tool: Select Box", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             # Don't use `tool_maybe_tweak_event`, see comment for this slot.
-            *_template_items_tool_select_actions_simple(
-                "sequencer.select_box", **params.tool_tweak_event,
-                properties=[("tweak", params.select_mouse == 'LEFTMOUSE')],
-            ),
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
+                "sequencer.select_box",
+                **(params.select_tweak_event if fallback else params.tool_tweak_event),
+                properties=[("tweak", params.select_mouse == 'LEFTMOUSE')])),
+            *_template_sequencer_select_for_fallback(params, fallback),
+
             # RMB select can already set the frame, match the tweak tool.
             *(_template_items_change_frame(params)
               if params.select_mouse == 'LEFTMOUSE' else []),
