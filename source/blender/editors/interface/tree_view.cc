@@ -385,6 +385,21 @@ bool AbstractTreeViewItem::is_active() const
   return is_active_;
 }
 
+bool AbstractTreeViewItem::is_hovered() const
+{
+  BLI_assert_msg(get_tree_view().is_reconstructed(),
+                 "State can't be queried until reconstruction is completed");
+  BLI_assert_msg(tree_row_but_ != nullptr,
+                 "Hovered state can't be queried before the tree row is being built");
+
+  const uiTreeViewItemHandle *this_handle = reinterpret_cast<const uiTreeViewItemHandle *>(this);
+  /* The new layout hasn't finished construction yet, so the final state of the button is unknown.
+   * Get the matching button from the previous redraw instead. */
+  uiButTreeRow *old_treerow_but = ui_block_view_find_treerow_in_old_block(tree_row_but_->but.block,
+                                                                          this_handle);
+  return old_treerow_but && (old_treerow_but->but.flag & UI_ACTIVE);
+}
+
 bool AbstractTreeViewItem::is_collapsed() const
 {
   BLI_assert_msg(get_tree_view().is_reconstructed(),

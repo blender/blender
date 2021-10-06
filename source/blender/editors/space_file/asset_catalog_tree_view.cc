@@ -219,7 +219,7 @@ void AssetCatalogTreeViewItem::build_row(uiLayout &row)
 {
   ui::BasicTreeViewItem::build_row(row);
 
-  if (!is_active()) {
+  if (!is_hovered()) {
     return;
   }
 

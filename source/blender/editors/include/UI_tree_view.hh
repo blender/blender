@@ -185,6 +185,7 @@ class AbstractTreeView : public TreeViewItemContainer {
                                                  const TreeViewItemContainer &old_items);
   static AbstractTreeViewItem *find_matching_child(const AbstractTreeViewItem &lookup_item,
                                                    const TreeViewItemContainer &items);
+
   /**
    * Items may want to do additional work when state changes. But these state changes can only be
    * reliably detected after the tree has completed reconstruction (see #is_reconstructed()). So
@@ -290,6 +291,12 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    * can't be sure about the item state.
    */
   bool is_active() const;
+  /**
+   * Can be called from the #AbstractTreeViewItem::build_row() implementation, but not earlier. The
+   * hovered state can't be queried reliably otherwise.
+   * Note that this does a linear lookup in the old block, so isn't too great performance-wise.
+   */
+  bool is_hovered() const;
   void toggle_collapsed();
   /**
    * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise we
