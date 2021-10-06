@@ -1598,11 +1598,15 @@ static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 #endif
 
   /* Check if triangle intersects the sphere */
+#if 1
   float dis = dist_to_tri_sphere_simple((float *)q->center,
                                         (float *)l->v->co,
                                         (float *)l->next->v->co,
                                         (float *)l->prev->v->co,
                                         (float *)f->no);
+#else
+  float dis = len_squared_v3v3(q->center, l->v->co);
+#endif
 
   return dis <= q->radius_squared;
 }
@@ -2593,14 +2597,14 @@ static void edge_queue_init(EdgeQueueContext *eq_ctx,
  *
  * The highest priority (lowest number) is given to the longest edge.
  */
-static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
-                                   PBVH *pbvh,
-                                   const float center[3],
-                                   const float view_normal[3],
-                                   float radius,
-                                   const bool use_frontface,
-                                   const bool use_projected,
-                                   const bool local_mode)
+ATTR_NO_OPT static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
+                                               PBVH *pbvh,
+                                               const float center[3],
+                                               const float view_normal[3],
+                                               float radius,
+                                               const bool use_frontface,
+                                               const bool use_projected,
+                                               const bool local_mode)
 {
   if (local_mode) {
     edge_queue_create_local(

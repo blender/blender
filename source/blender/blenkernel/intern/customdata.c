@@ -74,7 +74,7 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(((CustomData *)NULL)->typemap) == CD_NUMTYPES, "siz
 
 static CLG_LogRef LOG = {"bke.customdata"};
 
-bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
+ATTR_NO_OPT bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
 {
   CustomData a = *_a;
   CustomData b = *_b;
@@ -2240,7 +2240,7 @@ void CustomData_update_typemap(CustomData *data)
   }
 }
 
-static void customdata_regen_active_refs(CustomData *data)
+void customdata_regen_active_refs(CustomData *data)
 {
   int i, j;
   bool changed = false;
@@ -2251,24 +2251,34 @@ static void customdata_regen_active_refs(CustomData *data)
     CustomDataLayer *base = data->layers + data->typemap[layer->type];
     int n = layer - base;
 
+    if (layer == base) {
+      continue;
+    }
+
     layer->active = n == base->active;
     layer->active_clone = n == base->active_clone;
     layer->active_mask = n == base->active_mask;
     layer->active_rnd = n == base->active_rnd;
   }
 
-  /* regenerate active refs */
-  for (i = 0; i < CD_NUMTYPES; i++) {
-    if (data->typemap[i] != -1) {
-      CustomDataLayer *base = data->layers + data->typemap[i];
-
-      base->active = base->active_clone = base->active_mask = base->active_rnd = 0;
+  /* handle case of base layers being active */
+  for (int i = 0; i < CD_NUMTYPES; i++) {
+    if (data->typemap[i] == -1) {
+      continue;
     }
+
+    CustomDataLayer *base = data->layers + data->typemap[i];
+
+    base->active = !base->active;
+    base->active_mask = !base->active_mask;
+    base->active_clone = !base->active_clone;
+    base->active_rnd = !base->active_rnd;
   }
 
+  /* regenerate active refs */
   /* set active n in base layer for all types */
   for (i = 0; i < data->totlayer; i++) {
-    CustomDataLayer *layer = &data->layers[i];
+    CustomDataLayer *layer = data->layers + i;
     CustomDataLayer *base = data->layers + data->typemap[layer->type];
 
     int n = layer - base;
