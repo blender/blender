@@ -16,6 +16,9 @@
 
 /** \file
  * \ingroup editorui
+ *
+ * API for simple creation of tree UIs supporting advanced features.
+ * https://wiki.blender.org/wiki/Source/Interface/Views
  */
 
 #pragma once
@@ -78,18 +81,23 @@ class TreeViewItemContainer {
   using ItemIterFn = FunctionRef<void(AbstractTreeViewItem &)>;
 
   /**
-   * Convenience wrapper taking the arguments needed to construct an item of type \a ItemT. Calls
-   * the version just below.
+   * Convenience wrapper constructing the item by forwarding given arguments to the constructor of
+   * the type (\a ItemT).
+   *
+   * E.g. if your tree-item type has the following constructor:
+   * \code{.cpp}
+   * MyTreeItem(std::string str, int i);
+   * \endcode
+   * You can add an item like this:
+   * \code
+   * add_tree_item<MyTreeItem>("blabla", 42);
+   * \endcode
    */
-  template<class ItemT, typename... Args> ItemT &add_tree_item(Args &&...args)
-  {
-    static_assert(std::is_base_of<AbstractTreeViewItem, ItemT>::value,
-                  "Type must derive from and implement the AbstractTreeViewItem interface");
-
-    return dynamic_cast<ItemT &>(
-        add_tree_item(std::make_unique<ItemT>(std::forward<Args>(args)...)));
-  }
-
+  template<class ItemT, typename... Args> inline ItemT &add_tree_item(Args &&...args);
+  /**
+   * Add an already constructed tree item to this parent. Ownership is moved to it.
+   * All tree items must be added through this, it handles important invariants!
+   */
   AbstractTreeViewItem &add_tree_item(std::unique_ptr<AbstractTreeViewItem> item);
 
  protected:
@@ -146,25 +154,31 @@ class AbstractTreeView : public TreeViewItemContainer {
 
   void foreach_item(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
 
-  /** Check if the tree is fully (re-)constructed. That means, both #build_tree() and
-   * #update_from_old() have finished. */
+  /**
+   * Check if the tree is fully (re-)constructed. That means, both #build_tree() and
+   * #update_from_old() have finished.
+   */
   bool is_reconstructed() const;
 
  protected:
   virtual void build_tree() = 0;
 
  private:
-  /** Match the tree-view against an earlier version of itself (if any) and copy the old UI state
-   * (e.g. collapsed, active, selected) to the new one. See
-   * #AbstractTreeViewItem.update_from_old(). */
+  /**
+   * Match the tree-view against an earlier version of itself (if any) and copy the old UI state
+   * (e.g. collapsed, active, selected, renaming, etc.) to the new one. See
+   * #AbstractTreeViewItem.update_from_old().
+   */
   void update_from_old(uiBlock &new_block);
   static void update_children_from_old_recursive(const TreeViewItemContainer &new_items,
                                                  const TreeViewItemContainer &old_items);
   static AbstractTreeViewItem *find_matching_child(const AbstractTreeViewItem &lookup_item,
                                                    const TreeViewItemContainer &items);
-  /** Items may want to do additional work when state changes. But these state changes can only be
-   * reliably detected after the tree was reconstructed (see #is_reconstructed()). So this is done
-   * delayed. */
+  /**
+   * Items may want to do additional work when state changes. But these state changes can only be
+   * reliably detected after the tree has completed reconstruction (see #is_reconstructed()). So
+   * the actual state changes are done in a delayed manner through this function.
+   */
   void change_state_delayed();
   void build_layout_from_tree(const TreeViewLayoutBuilder &builder);
 };
@@ -204,48 +218,63 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   virtual void build_row(uiLayout &row) = 0;
 
   virtual void on_activate();
+  /**
+   * Set a custom callback to check if this item should be active. There's a version without
+   * arguments for checking if the item is currently in an active state.
+   */
   virtual void is_active(IsActiveFn is_active_fn);
   virtual bool on_drop(const wmDrag &drag);
   virtual bool can_drop(const wmDrag &drag) const;
-  /** Custom text to display when dragging over a tree item. Should explain what happens when
+  /**
+   * Custom text to display when dragging over a tree item. Should explain what happens when
    * dropping the data onto this item. Will only be used if #AbstractTreeViewItem::can_drop()
    * returns true, so the implementing override doesn't have to check that again.
-   * The returned value must be a translated string. */
+   * The returned value must be a translated string.
+   */
   virtual std::string drop_tooltip(const bContext &C,
                                    const wmDrag &drag,
                                    const wmEvent &event) const;
 
-  /** Copy persistent state (e.g. is-collapsed flag, selection, etc.) from a matching item of
+  /**
+   * Copy persistent state (e.g. is-collapsed flag, selection, etc.) from a matching item of
    * the last redraw to this item. If sub-classes introduce more advanced state they should
-   * override this and make it update their state accordingly. */
+   * override this and make it update their state accordingly.
+   */
   virtual void update_from_old(const AbstractTreeViewItem &old);
-  /** Compare this item to \a other to check if they represent the same data. This is critical for
-   * being able to recognize an item from a previous redraw, to be able to keep its state (e.g.
+  /**
+   * Compare this item to \a other to check if they represent the same data.
+   * Used to recognize an item from a previous redraw, to be able to keep its state (e.g.
    * open/closed, active, etc.). Items are only matched if their parents also match.
-   * By default this just matches the items names/labels (if their parents match!). If that isn't
-   * good enough for a sub-class, that can override it. */
+   * By default this just matches the item's label (if the parents match!). If that isn't
+   * good enough for a sub-class, that can override it.
+   */
   virtual bool matches(const AbstractTreeViewItem &other) const;
 
   const AbstractTreeView &get_tree_view() const;
   int count_parents() const;
   void deactivate();
-  /** Must not be called before the tree was reconstructed (see #is_reconstructed()). Otherwise we
-   * can't be sure about the item state. */
+  /**
+   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise we
+   * can't be sure about the item state.
+   */
   bool is_active() const;
   void toggle_collapsed();
-  /** Must not be called before the tree was reconstructed (see #is_reconstructed()). Otherwise we
-   * can't be sure about the item state. */
+  /**
+   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise we
+   * can't be sure about the item state.
+   */
   bool is_collapsed() const;
   void set_collapsed(bool collapsed);
   bool is_collapsible() const;
   void ensure_parents_uncollapsed();
 
  protected:
-  /** Activates this item, deactivates other items, calls the #AbstractTreeViewItem::on_activate()
+  /**
+   * Activates this item, deactivates other items, calls the #AbstractTreeViewItem::on_activate()
    * function and ensures this item's parents are not collapsed (so the item is visible).
-   * Must not be called before the tree was reconstructed (see #is_reconstructed()). Otherwise we
-   * can't be sure about the current item state and may call state-change update functions
-   * incorrectly. */
+   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise the
+   * actual item state is unknown, possibly calling state-change update functions incorrectly.
+   */
   void activate();
 
  private:
@@ -277,9 +306,11 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
  protected:
   /** Created in the #build() function. */
   uiButTreeRow *tree_row_but_ = nullptr;
-  /** Optionally passed to the #BasicTreeViewItem constructor. Called when activating this tree
+  /**
+   * Optionally passed to the #BasicTreeViewItem constructor. Called when activating this tree
    * view item. This way users don't have to sub-class #BasicTreeViewItem, just to implement
-   * custom activation behavior (a common thing to do). */
+   * custom activation behavior (a common thing to do).
+   */
   ActivateFn activate_fn_;
 
   uiBut *button();
@@ -292,5 +323,17 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
 };
 
 /** \} */
+
+/* ---------------------------------------------------------------------- */
+
+template<class ItemT, typename... Args>
+inline ItemT &TreeViewItemContainer::add_tree_item(Args &&...args)
+{
+  static_assert(std::is_base_of<AbstractTreeViewItem, ItemT>::value,
+                "Type must derive from and implement the AbstractTreeViewItem interface");
+
+  return dynamic_cast<ItemT &>(
+      add_tree_item(std::make_unique<ItemT>(std::forward<Args>(args)...)));
+}
 
 }  // namespace blender::ui
