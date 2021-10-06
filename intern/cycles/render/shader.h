@@ -193,6 +193,9 @@ class ShaderManager {
     return false;
   }
 
+  void host_update(Device *device, Scene *scene, Progress &progress);
+  virtual void host_update_specific(Device *device, Scene *scene, Progress &progress) = 0;
+
   /* device update */
   void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
   virtual void device_update_specific(Device *device,

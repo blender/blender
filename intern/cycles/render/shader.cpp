@@ -462,10 +462,7 @@ int ShaderManager::get_shader_id(Shader *shader, bool smooth)
   return id;
 }
 
-void ShaderManager::device_update(Device *device,
-                                  DeviceScene *dscene,
-                                  Scene *scene,
-                                  Progress &progress)
+void ShaderManager::host_update(Device *device, Scene *scene, Progress &progress)
 {
   if (!need_update()) {
     return;
@@ -482,6 +479,18 @@ void ShaderManager::device_update(Device *device,
   assert(scene->default_light->reference_count() != 0);
   assert(scene->default_background->reference_count() != 0);
   assert(scene->default_empty->reference_count() != 0);
+
+  host_update_specific(device, scene, progress);
+}
+
+void ShaderManager::device_update(Device *device,
+                                  DeviceScene *dscene,
+                                  Scene *scene,
+                                  Progress &progress)
+{
+  if (!need_update()) {
+    return;
+  }
 
   device_update_specific(device, dscene, scene, progress);
 }

@@ -79,6 +79,8 @@ class OSLShaderManager : public ShaderManager {
     return true;
   }
 
+  void host_update_specific(Device *device, Scene *scene, Progress &progress) override;
+
   void device_update_specific(Device *device,
                               DeviceScene *dscene,
                               Scene *scene,

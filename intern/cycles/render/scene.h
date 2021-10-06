@@ -251,6 +251,10 @@ class Scene : public NodeOwner {
   Scene(const SceneParams &params, Device *device);
   ~Scene();
 
+  /* NOTE: Device can only use used to access invariant data. For example, OSL globals is valid
+   * but anything what is related on kernel and kernel features is not. */
+  void host_update(Device *device, Progress &progress);
+
   void device_update(Device *device, Progress &progress);
 
   bool need_global_attribute(AttributeStandard std);
