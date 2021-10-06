@@ -1801,15 +1801,26 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
             split.label(text="Pitch")
             split.prop(strip, "pitch", text="")
 
+            audio_channels = context.scene.render.ffmpeg.audio_channels
+            pan_enabled = sound.use_mono and audio_channels != 'MONO'
+            pan_text = "%.2f°" % (strip.pan * 90)
+
             split = col.split(factor=0.4)
             split.alignment = 'RIGHT'
             split.label(text="Pan")
-            audio_channels = context.scene.render.ffmpeg.audio_channels
-            pan_text = ""
+            split.prop(strip, "pan", text="")
+            split.enabled = pan_enabled
+
             if audio_channels != 'MONO' and audio_channels != 'STEREO':
-                pan_text = "%.2f°" % (strip.pan * 90)
-            split.prop(strip, "pan", text=pan_text)
-            split.enabled = sound.use_mono and audio_channels != 'MONO'
+                split = col.split(factor=0.4)
+                split.alignment = 'RIGHT'
+                split.label(text="Pan Angle")
+                split.enabled = pan_enabled
+                subsplit = split.row()
+                subsplit.alignment = 'CENTER'
+                subsplit.label(text=pan_text)
+                subsplit.label(text=" ")  # Compensate for no decorate.
+                subsplit.enabled = pan_enabled
 
             layout.use_property_split = False
             col = layout.column()
