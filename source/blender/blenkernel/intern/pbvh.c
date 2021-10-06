@@ -4122,7 +4122,7 @@ void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry)
     BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
 
-      mv->flag |= DYNVERT_NEED_BOUNDARY;
+      MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY);
     }
   }
 }

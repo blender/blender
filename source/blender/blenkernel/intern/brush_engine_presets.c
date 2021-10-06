@@ -1244,6 +1244,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
 
   SHOWWRK(normal_radius_factor);
   SHOWWRK(hardness);
+  SHOWWRK(dyntopo_disabled);
 
   switch (tool) {
     case SCULPT_TOOL_INFLATE:
@@ -1263,6 +1264,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(smooth_deform_type);
       SHOWCTX(smooth_deform_type);
       SHOWWRK(projection);
+      SHOWCTX(dyntopo_disabled);
       break;
     case SCULPT_TOOL_SCRAPE:
     case SCULPT_TOOL_FILL:
@@ -1595,6 +1597,8 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       BRUSHSET_SET_FLOAT(chset, spacing, 5.0f);
       BRUSHSET_SET_FLOAT(chset, strength, 0.3f);
+
+      BRUSHSET_SET_BOOL(chset, dyntopo_disabled, true);
 
       ADDCH(surface_smooth_shape_preservation);
       ADDCH(surface_smooth_current_vertex);

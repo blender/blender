@@ -270,7 +270,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
     do {
       BMVert *v = l_iter->v;
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
-      mv->flag |= DYNVERT_NEED_BOUNDARY;
+      MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY);
 
       if (!BLI_table_gset_haskey(n->bm_unique_verts, v)) {
         if (BM_ELEM_CD_GET_INT(v, cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
@@ -2500,7 +2500,7 @@ void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh)
   BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
 
-    mv->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_TRIANGULATE;
+    MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_TRIANGULATE);
     BKE_pbvh_bmesh_update_valence(pbvh->cd_dyn_vert, (SculptVertRef){.i = (intptr_t)v});
   }
 }
@@ -2594,7 +2594,7 @@ static void pbvh_bmesh_join_subnodes(PBVH *pbvh, PBVHNode *node, PBVHNode *paren
     BLI_table_gset_add(parent->bm_unique_verts, v);
 
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
-    mv->flag |= DYNVERT_NEED_BOUNDARY;  // need to update DYNVERT_PBVH_BOUNDARY flags
+    MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY);  // need to update DYNVERT_PBVH_BOUNDARY flags
 
     BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
   }
@@ -3008,7 +3008,7 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
 
             TGSET_ITER (v, node2->bm_unique_verts) {
               MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
-              mv->flag |= DYNVERT_NEED_BOUNDARY;
+              MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY);
 
               BM_ELEM_CD_SET_INT(v, cd_vert_node, DYNTOPO_NODE_NONE);
             }

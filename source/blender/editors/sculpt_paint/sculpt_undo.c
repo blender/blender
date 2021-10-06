@@ -459,8 +459,9 @@ static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
   BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
 
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(data->cd_dyn_vert, v);
-  mv->flag |= DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE | DYNVERT_NEED_TRIANGULATE |
-              DYNVERT_NEED_BOUNDARY;
+  MV_ADD_FLAG(mv,
+              DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE | DYNVERT_NEED_TRIANGULATE |
+                  DYNVERT_NEED_BOUNDARY);
 }
 
 static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
@@ -493,7 +494,7 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
   BMLoop *l = f->l_first;
   do {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(data->cd_dyn_vert, l->v);
-    mv->flag |= DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_BOUNDARY;
+    MV_ADD_FLAG(mv, DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_BOUNDARY);
 
     int ni_l = BM_ELEM_CD_GET_INT(l->v, data->cd_vert_node_offset);
 
@@ -529,10 +530,12 @@ static void bmesh_undo_on_edge_kill(BMEdge *e, void *userdata)
   MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(data->cd_dyn_vert, e->v1);
   MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(data->cd_dyn_vert, e->v2);
 
-  mv1->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_TRIANGULATE | DYNVERT_NEED_DISK_SORT |
-               DYNVERT_NEED_VALENCE;
-  mv2->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_TRIANGULATE | DYNVERT_NEED_DISK_SORT |
-               DYNVERT_NEED_VALENCE;
+  MV_ADD_FLAG(mv1,
+              DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_TRIANGULATE | DYNVERT_NEED_DISK_SORT |
+                  DYNVERT_NEED_VALENCE);
+  MV_ADD_FLAG(mv2,
+              DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_TRIANGULATE | DYNVERT_NEED_DISK_SORT |
+                  DYNVERT_NEED_VALENCE);
 }
 
 static void bmesh_undo_on_edge_add(BMEdge *e, void *userdata)

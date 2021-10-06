@@ -396,7 +396,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
             MDynTopoVert *mv = ss->mdyntopo_verts + i;
 
-            mv->flag |= DYNVERT_NEED_BOUNDARY;
+            MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY);
 
             normal_short_to_float_v3(fno, v->no);
             float mask = ss->vmask ? ss->vmask[ml->v] : 0.0f;
@@ -494,7 +494,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
               }
 
               MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, l->v);
-              mv->flag |= DYNVERT_NEED_BOUNDARY;
+              MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY);
             } while ((l = l->next) != f->l_first);
 
             if (ok) {
@@ -2355,7 +2355,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
             BMLoop *l = f->l_first;
             do {
               MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, l->v);
-              mv->flag |= mupdateflag;
+              MV_ADD_FLAG(mv, mupdateflag);
             } while ((l = l->next) != f->l_first);
           }
 
@@ -2397,7 +2397,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
       BMLoop *l = f->l_first;
       do {
         MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, l->v);
-        mv->flag |= mupdateflag;
+        MV_ADD_FLAG(mv, mupdateflag);
       } while ((l = l->next) != f->l_first);
     }
 
@@ -2431,7 +2431,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
       if (cd_dyn_vert >= 0) {
         MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(l->v, cd_dyn_vert);
 
-        mv->flag |= mupdateflag;
+        MV_ADD_FLAG(mv, mupdateflag);
       }
 
       if (BM_elem_flag_test(l->v, BM_ELEM_TAG)) {

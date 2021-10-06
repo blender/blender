@@ -200,8 +200,9 @@ static void fix_mesh(PBVH *pbvh, BMesh *bm)
     v->e = NULL;
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
 
-    mv->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT |
-                DYNVERT_NEED_TRIANGULATE;
+    MV_ADD_FLAG(mv,
+                DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT |
+                    DYNVERT_NEED_TRIANGULATE);
   }
 
   BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
@@ -804,7 +805,7 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
   BMVert *v = BM_vert_create(pbvh->bm, co, NULL, BM_CREATE_NOP);
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
 
-  mv->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE;
+  MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE);
 
   if (v_example) {
     v->head.hflag = v_example->head.hflag;
@@ -925,7 +926,7 @@ static BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
       }
 
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
-      mv->flag |= DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE;
+      MV_ADD_FLAG(mv, DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE);
 
       l = l->next;
     } while (l != f->l_first);
@@ -935,7 +936,7 @@ static BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
     do {
 
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
-      mv->flag |= DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE;
+      MV_ADD_FLAG(mv, DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE);
     } while ((l = l->next) != f->l_first);
   }
 
@@ -978,7 +979,7 @@ BMVert *BKE_pbvh_vert_create_bmesh(
     BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
 
     MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_dyn_vert);
-    mv->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_BOUNDARY;
+    MV_ADD_FLAG(mv, DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_BOUNDARY);
 
     copy_v3_v3(mv->origco, co);
 
@@ -2539,7 +2540,7 @@ static bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
     do {
       MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
 
-      mv_l->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT;
+      MV_ADD_FLAG(mv_l, DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT);
     } while ((l = l->next) != f->l_first);
     BLI_array_append(fs, f);
   }
@@ -3131,8 +3132,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   pbvh_check_vert_boundary(pbvh, e->v1);
   pbvh_check_vert_boundary(pbvh, e->v2);
 
-  mv1->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
-  mv2->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
+  MV_ADD_FLAG(mv1, DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT);
+  MV_ADD_FLAG(mv2, DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT);
 
   bool boundary = (mv1->flag & DYNVERT_ALL_BOUNDARY) && (mv2->flag & DYNVERT_ALL_BOUNDARY);
 
@@ -3173,7 +3174,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
       &pbvh->bm->vdata, (const void **)vsrcs, (float *)vws, NULL, 2, v_new->head.data);
 
   // bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v_new);
-  mv_new->flag |= DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY;
+  MV_ADD_FLAG(mv_new, DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY);
   mv_new->flag &= ~DYNVERT_VALENCE_TEMP;
 
   int ni_new2 = BM_ELEM_CD_GET_INT(v_new, pbvh->cd_vert_node_offset);
@@ -3207,9 +3208,9 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     MDynTopoVert *mv2b = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v2);
     MDynTopoVert *mv_opp = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_opp);
 
-    mv1b->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
-    mv2b->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
-    mv_opp->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
+    MV_ADD_FLAG(mv1b, DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT);
+    MV_ADD_FLAG(mv2b, DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT);
+    MV_ADD_FLAG(mv_opp, DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT);
 
     if (ni != node_index && i == 0) {
       pbvh_bmesh_vert_ownership_transfer(pbvh, &pbvh->nodes[ni], v_new);
@@ -3778,7 +3779,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
     BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
       MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->next->v);
-      mv_l->flag |= mupdateflag;
+      MV_ADD_FLAG(mv_l, mupdateflag);
 
       BLI_array_append(ls, l);
       totl++;
@@ -3787,7 +3788,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
     BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_conn) {
       MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->next->v);
-      mv_l->flag |= mupdateflag;
+      MV_ADD_FLAG(mv_l, mupdateflag);
 
       BLI_array_append(ls, l);
       totl++;
@@ -3948,7 +3949,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     }
 
     MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
-    mv1->flag |= mupdateflag;
+    MV_ADD_FLAG(mv1, mupdateflag);
 
     BKE_pbvh_bmesh_remove_vertex(pbvh, v, true);
 
@@ -3980,7 +3981,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   }
 
   MDynTopoVert *mv_conn = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_conn);
-  mv_conn->flag |= mupdateflag;
+  MV_ADD_FLAG(mv_conn, mupdateflag);
 
   bool wasbad = false;
 
@@ -3996,7 +3997,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
     BMVert *v2 = BM_edge_other_vert(e2, v_conn);
     MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v2);
-    mv2->flag |= mupdateflag;
+    MV_ADD_FLAG(mv2, mupdateflag);
 
     // kill wire edge
     if (!l) {
@@ -4050,7 +4051,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   // BM_vert_splice(pbvh->bm, v_del, v_conn);
 
   MDynTopoVert *mv3 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_conn);
-  mv3->flag |= mupdateflag;
+  MV_ADD_FLAG(mv3, mupdateflag);
 
   if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
     printf("%s: error\n", __func__);
@@ -4149,7 +4150,7 @@ static void pbvh_bmesh_collapse_edge1(PBVH *pbvh,
       BMEdge *e2 = l->e;
 
       MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
-      mv_l->flag |= mupdateflag;
+      MV_ADD_FLAG(mv_l, mupdateflag);
 
       l = l->next;
     } while (l != f_adj->l_first);
@@ -4192,7 +4193,7 @@ static void pbvh_bmesh_collapse_edge1(PBVH *pbvh,
 
   BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
     MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
-    mv_l->flag |= mupdateflag;
+    MV_ADD_FLAG(mv_l, mupdateflag);
 
     BLI_array_append(ls, l);
     totl++;
@@ -4201,7 +4202,7 @@ static void pbvh_bmesh_collapse_edge1(PBVH *pbvh,
 
   BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_conn) {
     MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
-    mv_l->flag |= mupdateflag;
+    MV_ADD_FLAG(mv_l, mupdateflag);
 
     BLI_array_append(ls, l);
     totl++;
@@ -4340,8 +4341,8 @@ static void pbvh_bmesh_collapse_edge1(PBVH *pbvh,
       MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_tri[1]);
       MDynTopoVert *mv3 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_tri[2]);
 
-      mv2->flag |= mupdateflag;
-      mv3->flag |= mupdateflag;
+      MV_ADD_FLAG(mv2, mupdateflag);
+      MV_ADD_FLAG(mv3, mupdateflag);
 
       BLI_assert(!BM_face_exists(v_tri, 3));
       BMEdge *e_tri[3];
@@ -4436,7 +4437,7 @@ static void pbvh_bmesh_collapse_edge1(PBVH *pbvh,
       }
 
       MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
-      mv_l->flag |= mupdateflag;
+      MV_ADD_FLAG(mv_l, mupdateflag);
 
       l1 = l1->next;
     } while (l1 != f_del->l_first);
@@ -4507,7 +4508,7 @@ static void pbvh_bmesh_collapse_edge1(PBVH *pbvh,
       BMVert *v2 = BM_edge_other_vert(l->e, v_conn);
       MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v2);
 
-      mv2->flag |= mupdateflag;
+      MV_ADD_FLAG(mv2, mupdateflag);
 
       PBVHNode *f_node = pbvh_bmesh_node_from_face(pbvh, l->f);
       f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateBB |
@@ -4516,7 +4517,7 @@ static void pbvh_bmesh_collapse_edge1(PBVH *pbvh,
     BM_LOOPS_OF_VERT_ITER_END;
 
     MDynTopoVert *mv_conn = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_conn);
-    mv_conn->flag |= mupdateflag;
+    MV_ADD_FLAG(mv_conn, mupdateflag);
 
     MDynTopoVert *mv_del = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_del);
     mv_conn->flag |= mv_del->flag;
@@ -4540,9 +4541,9 @@ static void pbvh_bmesh_collapse_edge1(PBVH *pbvh,
 
           // paranoia check, propegate update flags
           MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
-          mv_l->flag |= mupdateflag;
+          MV_ADD_FLAG(mv_l, mupdateflag);
           mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->next->v);
-          mv_l->flag |= mupdateflag;
+          MV_ADD_FLAG(mv_l, mupdateflag);
 
           if (ni >= 0) {
             PBVHNode *node = pbvh->nodes + ni;
@@ -4809,7 +4810,7 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
         mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
       }
 
-      mv_l->flag |= updateflag;
+      MV_ADD_FLAG(mv_l, updateflag);
 
       l = l->prev->radial_next;
 
@@ -5008,9 +5009,9 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
     MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, vs[1]);
     MDynTopoVert *mv3 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, vs[2]);
 
-    mv1->flag |= updateflag;
-    mv2->flag |= updateflag;
-    mv3->flag |= updateflag;
+    MV_ADD_FLAG(mv1, updateflag);
+    MV_ADD_FLAG(mv2, updateflag);
+    MV_ADD_FLAG(mv3, updateflag);
 
     BMFace *f1 = NULL;
     bool ok1 = vs[0] != vs[1] && vs[1] != vs[2] && vs[0] != vs[2];
@@ -5043,9 +5044,9 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
       MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, vs[1]);
       MDynTopoVert *mv3 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, vs[2]);
 
-      mv1->flag |= updateflag;
-      mv2->flag |= updateflag;
-      mv3->flag |= updateflag;
+      MV_ADD_FLAG(mv1, updateflag);
+      MV_ADD_FLAG(mv2, updateflag);
+      MV_ADD_FLAG(mv3, updateflag);
 
       BMFace *example = NULL;
       if (v->e && v->e->l) {
@@ -5168,8 +5169,8 @@ static void on_vert_swap(BMVert *v1, BMVert *v2, void *userdata)
   MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v1);
   MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v2);
 
-  mv1->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT;
-  mv2->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT;
+  MV_ADD_FLAG(mv1, DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT);
+  MV_ADD_FLAG(mv2, DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT);
 
   int ni1 = BM_ELEM_CD_GET_INT(v1, pbvh->cd_vert_node_offset);
   int ni2 = BM_ELEM_CD_GET_INT(v2, pbvh->cd_vert_node_offset);
@@ -5891,7 +5892,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
         l2->v->head.hflag &= ~SPLIT_TAG;
 
         MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l2->v);
-        mv->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
+        MV_ADD_FLAG(mv, DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT);
 
         if (_j > 10000) {
           printf("infinite loop error 1\n");
@@ -6026,10 +6027,10 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, newv);
 
     newv->head.hflag |= SPLIT_TAG;
-    mv->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
+    MV_ADD_FLAG(mv, DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT);
     mv->stroke_id = pbvh->stroke_id;
 
-    mv->flag |= DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY;
+    MV_ADD_FLAG(mv, DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY);
     mv->flag &= ~DYNVERT_VALENCE_TEMP;
 
     BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);

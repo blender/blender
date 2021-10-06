@@ -953,7 +953,19 @@ void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
                                          SculptVertRef vertex);
 
 void BKE_pbvh_set_mdyntopo_verts(PBVH *pbvh, struct MDynTopoVert *mdyntopoverts);
+#if 0
+#  include "DNA_meshdata_types.h"
+ATTR_NO_OPT static void MV_ADD_FLAG(MDynTopoVert *mv, int flag)
+{
+  if (flag & DYNVERT_NEED_BOUNDARY) {
+    flag |= flag;
+  }
 
+  mv->flag |= flag;
+}
+#else
+#  define MV_ADD_FLAG(mv, flag1) (mv)->flag |= (flag1)
+#endif
 #ifdef __cplusplus
 }
 #endif

@@ -2327,7 +2327,7 @@ static void init_mdyntopo_layer_faces(SculptSession *ss, PBVH *pbvh, int totvert
   MDynTopoVert *mv = ss->mdyntopo_verts;
 
   for (int i = 0; i < totvert; i++, mv++) {
-    mv->flag = DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT;
+    MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT);
     mv->stroke_id = -1;
 
     SculptVertRef vertex = {.i = i};
@@ -2342,7 +2342,7 @@ static void init_mdyntopo_layer_faces(SculptSession *ss, PBVH *pbvh, int totvert
                                         vertex);
 
     // can't fully update boundary here, so still flag for update
-    mv->flag |= DYNVERT_NEED_BOUNDARY;
+    MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY);
   }
 }
 
@@ -2360,7 +2360,7 @@ static void init_mdyntopo_layer_grids(SculptSession *ss, PBVH *pbvh, int totvert
   MDynTopoVert *mv = ss->mdyntopo_verts;
 
   for (int i = 0; i < totvert; i++, mv++) {
-    mv->flag = DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT;
+    MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT);
     mv->stroke_id = -1;
 
     SculptVertRef vertex = {.i = i};
@@ -2368,7 +2368,7 @@ static void init_mdyntopo_layer_grids(SculptSession *ss, PBVH *pbvh, int totvert
     BKE_pbvh_update_vert_boundary_grids(pbvh, ss->subdiv_ccg, vertex);
 
     // can't fully update boundary here, so still flag for update
-    mv->flag |= DYNVERT_NEED_BOUNDARY;
+    MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY);
   }
 }
 

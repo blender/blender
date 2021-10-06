@@ -1220,7 +1220,7 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, SculptVertRef index, int face
         if (fset >= 0 && fset != abs(face_set)) {
           MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
 
-          mv->flag |= DYNVERT_NEED_BOUNDARY;
+          MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY);
           BM_ELEM_CD_SET_INT(l->f, ss->cd_faceset_offset, abs(face_set));
         }
       }
@@ -7064,7 +7064,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
 
           float *disp_factor = BM_ELEM_CD_GET_VOID_P(l->v, cd_disp);
           MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, l->v);
-          mv->flag |= DYNVERT_NEED_BOUNDARY;
+          MV_ADD_FLAG(mv, DYNVERT_NEED_BOUNDARY);
 
           if (cd_vcol >= 0) {
             MPropCol *col = BM_ELEM_CD_GET_VOID_P(l->v, cd_vcol);
@@ -9300,7 +9300,7 @@ static void SCULPT_run_command_list(
       cloth_nodes_undo = true;
     }
 
-    if (!SCULPT_TOOL_HAS_DYNTOPO(cmd->tool)) {
+    if (!SCULPT_TOOL_HAS_DYNTOPO(cmd->tool) || SCULPT_get_int(ss, dyntopo_disabled, sd, brush)) {
       has_dyntopo = false;
     }
 
