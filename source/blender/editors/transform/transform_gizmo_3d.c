@@ -1670,13 +1670,6 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   RegionView3D *rv3d = region->regiondata;
   struct TransformBounds tbounds;
 
-  if (scene->toolsettings->workspace_tool_type == SCE_WORKSPACE_TOOL_FALLBACK) {
-    gzgroup->use_fallback_keymap = true;
-  }
-  else {
-    gzgroup->use_fallback_keymap = false;
-  }
-
   if (ggd->use_twtype_refresh) {
     ggd->twtype = v3d->gizmo_show_object & ggd->twtype_init;
     if (ggd->twtype != ggd->twtype_prev) {
@@ -2105,13 +2098,6 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgr
 
   struct TransformBounds tbounds;
 
-  if (scene->toolsettings->workspace_tool_type == SCE_WORKSPACE_TOOL_FALLBACK) {
-    gzgroup->use_fallback_keymap = true;
-  }
-  else {
-    gzgroup->use_fallback_keymap = false;
-  }
-
   const int orient_index = BKE_scene_orientation_get_index_from_flag(scene, SCE_ORIENT_SCALE);
 
   if ((ED_transform_calc_gizmo_stats(C,
@@ -2315,13 +2301,6 @@ static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzg
 
   struct XFormShearWidgetGroup *xgzgroup = gzgroup->customdata;
   struct TransformBounds tbounds;
-
-  if (scene->toolsettings->workspace_tool_type == SCE_WORKSPACE_TOOL_FALLBACK) {
-    gzgroup->use_fallback_keymap = true;
-  }
-  else {
-    gzgroup->use_fallback_keymap = false;
-  }
 
   /* Needed to test view orientation changes. */
   copy_m3_m4(xgzgroup->prev.viewinv_m3, rv3d->viewinv);

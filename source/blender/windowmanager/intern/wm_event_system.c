@@ -4060,14 +4060,12 @@ void WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
       if (gzgroup != NULL) {
         if (gzgroup->type->flag & WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP) {
           /* If all are hidden, don't override. */
-          if (gzgroup->use_fallback_keymap) {
-            is_gizmo_visible = true;
-            wmGizmo *highlight = wm_gizmomap_highlight_get(gzmap);
-            if (highlight) {
-              is_gizmo_highlight = true;
-            }
-            add_keymap = true;
+          is_gizmo_visible = true;
+          wmGizmo *highlight = wm_gizmomap_highlight_get(gzmap);
+          if (highlight) {
+            is_gizmo_highlight = true;
           }
+          add_keymap = true;
         }
       }
     }
