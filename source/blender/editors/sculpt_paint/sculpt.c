@@ -10513,6 +10513,10 @@ static void sculpt_update_cache_invariants(
   float max_scale;
   int mode;
 
+  if (!sd->channels) {
+    BKE_brush_init_toolsettings(sd);
+  }
+
   cache->C = C;
   ss->cache = cache;
 
