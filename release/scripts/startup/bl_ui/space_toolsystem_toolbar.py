@@ -2508,10 +2508,10 @@ class _defs_sequencer_select:
     def select():
         return dict(
             idname="builtin.select",
-            label="Select",
+            label="Tweak",
             icon="ops.generic.select",
             widget=None,
-            keymap="Sequencer Tool: Select",
+            keymap="Sequencer Tool: Tweak",
         )
 
     @ToolDef.from_fn

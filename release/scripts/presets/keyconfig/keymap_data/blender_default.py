@@ -7446,7 +7446,7 @@ def km_3d_view_tool_sculpt_gpencil_select_lasso(params):
 
 def km_sequencer_editor_tool_select(params, *, fallback):
     return (
-        _fallback_id("Sequencer Tool: Select", fallback),
+        _fallback_id("Sequencer Tool: Tweak", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             # TODO: Use 2D cursor for preview region (currently `sequencer.sample`).
