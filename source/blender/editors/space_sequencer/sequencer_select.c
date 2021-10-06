@@ -801,6 +801,16 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
   return ret_value;
 }
 
+static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const int retval = WM_generic_select_invoke(C, op, event);
+  ARegion *region = CTX_wm_region(C);
+  if (region && (region->regiontype == RGN_TYPE_PREVIEW)) {
+    return WM_operator_flag_only_pass_through_on_press(retval, event);
+  }
+  return retval;
+}
+
 void SEQUENCER_OT_select(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -812,7 +822,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 
   /* Api callbacks. */
   ot->exec = sequencer_select_exec;
-  ot->invoke = WM_generic_select_invoke;
+  ot->invoke = sequencer_select_invoke;
   ot->modal = WM_generic_select_modal;
   ot->poll = ED_operator_sequencer_active;
 
