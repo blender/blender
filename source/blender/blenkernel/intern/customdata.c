@@ -74,7 +74,7 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(((CustomData *)NULL)->typemap) == CD_NUMTYPES, "siz
 
 static CLG_LogRef LOG = {"bke.customdata"};
 
-ATTR_NO_OPT bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
+bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
 {
   CustomData a = *_a;
   CustomData b = *_b;
@@ -2240,7 +2240,7 @@ void CustomData_update_typemap(CustomData *data)
   }
 }
 
-ATTR_NO_OPT void CustomData_regen_active_refs(CustomData *data)
+void CustomData_regen_active_refs(CustomData *data)
 {
   int i, j;
 

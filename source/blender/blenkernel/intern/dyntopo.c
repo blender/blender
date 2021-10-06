@@ -2597,14 +2597,14 @@ static void edge_queue_init(EdgeQueueContext *eq_ctx,
  *
  * The highest priority (lowest number) is given to the longest edge.
  */
-ATTR_NO_OPT static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
-                                               PBVH *pbvh,
-                                               const float center[3],
-                                               const float view_normal[3],
-                                               float radius,
-                                               const bool use_frontface,
-                                               const bool use_projected,
-                                               const bool local_mode)
+static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
+                                   PBVH *pbvh,
+                                   const float center[3],
+                                   const float view_normal[3],
+                                   float radius,
+                                   const bool use_frontface,
+                                   const bool use_projected,
+                                   const bool local_mode)
 {
   if (local_mode) {
     edge_queue_create_local(

@@ -641,7 +641,7 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 /**
   Syncs customdata layers with internal bmesh, but ignores deleted layers.
 */
-ATTR_NO_OPT void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
+void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
 {
   SculptSession *ss = ob->sculpt;
 
