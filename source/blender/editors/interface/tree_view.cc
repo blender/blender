@@ -80,7 +80,8 @@ void AbstractTreeView::build_layout_from_tree(const TreeViewLayoutBuilder &build
 {
   uiLayout *prev_layout = builder.current_layout();
 
-  uiLayoutColumn(prev_layout, true);
+  uiLayout *box = uiLayoutBox(prev_layout);
+  uiLayoutColumn(box, true);
 
   foreach_item([&builder](AbstractTreeViewItem &item) { builder.build_row(item); },
                IterOptions::SkipCollapsed);
