@@ -2767,21 +2767,11 @@ def km_sequencer(params):
              for i in range(10)
              )
         ),
-        *_template_sequencer_select(
+        *_template_sequencer_timeline_select(
             type=params.select_mouse,
             value=params.select_mouse_value_fallback,
             legacy=params.legacy,
         ),
-        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "alt": True},
-         {"properties": [("linked_handle", True)]}),
-        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "shift": True, "alt": True},
-         {"properties": [("extend", True), ("linked_handle", True)]}),
-        ("sequencer.select",
-         {"type": params.select_mouse, "value": 'PRESS' if params.legacy else 'CLICK', "ctrl": True},
-         {"properties": [("side_of_frame", True), ("linked_time", True)]}),
-        ("sequencer.select",
-         {"type": params.select_mouse, "value": 'PRESS' if params.legacy else 'CLICK', "ctrl": True, "shift": True},
-         {"properties": [("side_of_frame", True), ("linked_time", True), ("extend", True)]}),
         ("sequencer.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("sequencer.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("sequencer.select_linked_pick", {"type": 'L', "value": 'PRESS'}, None),
@@ -2831,7 +2821,7 @@ def km_sequencerpreview(params):
 
     items.extend([
         # Selection.
-        *_template_sequencer_select(
+        *_template_sequencer_preview_select(
             type=params.select_mouse,
             value=params.select_mouse_value_fallback,
             legacy=params.legacy,
@@ -4646,32 +4636,58 @@ def _template_uv_select_for_fallback(params, fallback):
     return []
 
 
-def _template_sequencer_select(*, type, value, legacy):
-    # FIXME.
-    legacy = True
+def _template_sequencer_generic_select(*, type, value, legacy):
     return [(
         "sequencer.select",
         {"type": type, "value": value, **{m: True for m in mods}},
         {"properties": [(c, True) for c in props]},
     ) for props, mods in (
         (("deselect_all",) if not legacy else (), ()),
-        (("extend",), ("shift",)),
+        (("toggle",), ("shift",)),
+    )]
+
+
+def _template_sequencer_timeline_select(*, type, value, legacy):
+    return _template_sequencer_generic_select(
+        type=type, value=value, legacy=legacy,
+    ) + [(
+        "sequencer.select",
+        {"type": type, "value": value, **{m: True for m in mods}},
+        {"properties": [(c, True) for c in props]},
+    ) for props, mods in (
+        (("center",), ("ctrl",)),
         # TODO:
-        # (("center", "object"), ("ctrl",)),
         # (("enumerate",), ("alt",)),
-        # (("toggle", "center"), ("shift", "ctrl")),
+            (("toggle", "center"), ("shift", "ctrl")),
         # (("center", "enumerate"), ("ctrl", "alt")),
         # (("toggle", "enumerate"), ("shift", "alt")),
         # (("toggle", "center", "enumerate"), ("shift", "ctrl", "alt")),
     )]
 
 
+def _template_sequencer_preview_select(*, type, value, legacy):
+    return _template_sequencer_generic_select(
+        type=type, value=value, legacy=legacy,
+    ) + [(
+        "sequencer.select",
+        {"type": type, "value": value, **{m: True for m in mods}},
+        {"properties": [(c, True) for c in props]},
+    ) for props, mods in (
+        (("linked_handle",), ("alt",)),
+        (("linked_handle", "extend"), ("shift", "alt",)),
+
+        (("side_of_frame", "linked_time"), ("ctrl",)),
+        (("side_of_frame", "linked_time", "extend"), ("ctrl", "shift")),
+    )]
+
+
 def _template_sequencer_select_for_fallback(params, fallback):
     if (not fallback) and params.use_fallback_tool_rmb:
         # Needed so we have immediate select+tweak when the default select tool is active.
-        return _template_sequencer_select(
+        return _template_sequencer_generic_select(
             type=params.select_mouse,
             value=params.select_mouse_value,
+            preview=False,
             legacy=params.legacy,
         )
     return []
@@ -7452,10 +7468,10 @@ def km_sequencer_editor_tool_select(params, *, fallback):
         {"items": [
             # TODO: Use 2D cursor for preview region (currently `sequencer.sample`).
             *([] if fallback else
-              _template_items_tool_select(params, "sequencer.select", "sequencer.sample", extend="extend")
+              _template_items_tool_select(params, "sequencer.select", "sequencer.sample", extend="toggle")
               ),
-            *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_select(
-                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+            *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_generic_select(
+                type=params.select_mouse, value=params.select_mouse_value, preview=False, legacy=params.legacy)),
 
             *_template_items_change_frame(params),
         ]},
