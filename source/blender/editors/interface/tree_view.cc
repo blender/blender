@@ -419,6 +419,23 @@ void AbstractTreeViewItem::ensure_parents_uncollapsed()
   }
 }
 
+bool AbstractTreeViewItem::matches_including_parents(const AbstractTreeViewItem &other) const
+{
+  if (!matches(other)) {
+    return false;
+  }
+
+  for (AbstractTreeViewItem *parent = parent_, *other_parent = other.parent_;
+       parent && other_parent;
+       parent = parent->parent_, other_parent = other_parent->parent_) {
+    if (!parent->matches(*other_parent)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void AbstractTreeViewItem::change_state_delayed()
 {
   if (is_active_fn_()) {
@@ -538,7 +555,8 @@ bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a_handle,
 {
   const AbstractTreeViewItem &a = reinterpret_cast<const AbstractTreeViewItem &>(*a_handle);
   const AbstractTreeViewItem &b = reinterpret_cast<const AbstractTreeViewItem &>(*b_handle);
-  return a.matches(b);
+  /* TODO should match the tree-view as well. */
+  return a.matches_including_parents(b);
 }
 
 bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_, const wmDrag *drag)

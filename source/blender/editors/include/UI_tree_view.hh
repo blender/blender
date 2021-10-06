@@ -301,6 +301,7 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   bool is_renaming() const;
 
   void ensure_parents_uncollapsed();
+  bool matches_including_parents(const AbstractTreeViewItem &other) const;
 
  protected:
   /**
