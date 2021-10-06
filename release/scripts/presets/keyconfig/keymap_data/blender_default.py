@@ -2685,9 +2685,6 @@ def km_sequencercommon(params):
         ("wm.context_toggle_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.view_type'), ("value_1", 'SEQUENCER'), ("value_2", 'PREVIEW')]}),
         ("sequencer.refresh_all", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),
-        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'}, None),
-        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "shift": True},
-         {"properties": [("extend", True)]}),
     ])
 
     if params.select_mouse == 'LEFTMOUSE' and not params.legacy:
@@ -2770,6 +2767,11 @@ def km_sequencer(params):
              for i in range(10)
              )
         ),
+        *_template_sequencer_select(
+            type=params.select_mouse,
+            value=params.select_mouse_value_fallback,
+            legacy=params.legacy,
+        ),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "alt": True},
          {"properties": [("linked_handle", True)]}),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "shift": True, "alt": True},
@@ -2828,6 +2830,12 @@ def km_sequencerpreview(params):
     )
 
     items.extend([
+        # Selection.
+        *_template_sequencer_select(
+            type=params.select_mouse,
+            value=params.select_mouse_value_fallback,
+            legacy=params.legacy,
+        ),
         ("sequencer.view_all_preview", {"type": 'HOME', "value": 'PRESS'}, None),
         ("sequencer.view_all_preview", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("sequencer.view_ghost_border", {"type": 'O', "value": 'PRESS'}, None),
@@ -4635,6 +4643,26 @@ def _template_uv_select_for_fallback(params, fallback):
             legacy=params.legacy,
         )
     return []
+
+
+def _template_sequencer_select(*, type, value, legacy):
+    # FIXME.
+    legacy = True
+    return [(
+        "sequencer.select",
+        {"type": type, "value": value, **{m: True for m in mods}},
+        {"properties": [(c, True) for c in props]},
+    ) for props, mods in (
+        (("deselect_all",) if not legacy else (), ()),
+        (("extend",), ("shift",)),
+        # TODO:
+        # (("center", "object"), ("ctrl",)),
+        # (("enumerate",), ("alt",)),
+        # (("toggle", "center"), ("shift", "ctrl")),
+        # (("center", "enumerate"), ("ctrl", "alt")),
+        # (("toggle", "enumerate"), ("shift", "alt")),
+        # (("toggle", "center", "enumerate"), ("shift", "ctrl", "alt")),
+    )]
 
 
 def km_image_paint(params):
