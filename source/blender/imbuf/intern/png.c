@@ -153,7 +153,7 @@ bool imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
     chanel_colormanage_cb = channel_colormanage_noop;
   }
   else {
-    /* standard linear-to-srgb conversion if float buffer wasn't managed */
+    /* Standard linear-to-SRGB conversion if float buffer wasn't managed. */
     chanel_colormanage_cb = linearrgb_to_srgb;
   }
 

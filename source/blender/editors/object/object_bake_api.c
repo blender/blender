@@ -697,7 +697,7 @@ static bool bake_targets_init_image_textures(const BakeAPIRender *bkr,
     }
   }
 
-  /* Overallocate in case there is more materials than images. */
+  /* Over-allocate in case there is more materials than images. */
   targets->num_materials = num_materials;
   targets->images = MEM_callocN(sizeof(BakeImage) * targets->num_materials, "BakeTargets.images");
   targets->material_to_image = MEM_callocN(sizeof(int) * targets->num_materials,

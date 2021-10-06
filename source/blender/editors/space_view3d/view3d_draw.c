@@ -780,9 +780,9 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
       immUniformThemeColorShadeAlpha(TH_VIEW_OVERLAY, 100, 255);
 
       /* TODO: Was using:
-       * UI_draw_roundbox_4fv(false, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 2.0f, color);
-       * We'll probably need a new imm_draw_line_roundbox_dashed dor that - though in practice the
-       * 2.0f round corner effect was nearly not visible anyway... */
+       * `UI_draw_roundbox_4fv(false, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 2.0f, color);`
+       * We'll probably need a new imm_draw_line_roundbox_dashed or that - though in practice the
+       * 2.0f round corner effect was nearly not visible anyway. */
       imm_draw_box_wire_2d(shdr_pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
     }
 

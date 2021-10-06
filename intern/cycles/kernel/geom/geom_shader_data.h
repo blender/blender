@@ -37,7 +37,7 @@ ccl_device void shader_setup_object_transforms(const KernelGlobals *ccl_restrict
 #endif
 
 /* TODO: break this up if it helps reduce register pressure to load data from
- * global memory as we write it to shaderdata. */
+ * global memory as we write it to shader-data. */
 ccl_device_inline void shader_setup_from_ray(const KernelGlobals *ccl_restrict kg,
                                              ShaderData *ccl_restrict sd,
                                              const Ray *ccl_restrict ray,

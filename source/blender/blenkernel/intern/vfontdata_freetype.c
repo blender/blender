@@ -100,7 +100,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
     /* Start converting the FT data */
     onpoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int), "onpoints");
 
-    /* get number of on-curve points for beziertriples (including conic virtual on-points) */
+    /* Get number of on-curve points for bezier-triples (including conic virtual on-points). */
     for (j = 0, contour_prev = -1; j < ftoutline.n_contours; j++) {
       const int n = ftoutline.contours[j] - contour_prev;
       contour_prev = ftoutline.contours[j];

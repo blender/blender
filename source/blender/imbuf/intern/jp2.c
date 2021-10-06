@@ -848,7 +848,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
     chanel_colormanage_cb = channel_colormanage_noop;
   }
   else {
-    /* standard linear-to-srgb conversion if float buffer wasn't managed */
+    /* standard linear-to-SRGB conversion if float buffer wasn't managed */
     chanel_colormanage_cb = linearrgb_to_srgb;
   }
 

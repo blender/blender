@@ -342,12 +342,12 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
       vfont->data = vfd;
       BLI_strncpy(vfont->filepath, filepath, sizeof(vfont->filepath));
 
-      /* if autopack is on store the packedfile in de font structure */
+      /* if auto-pack is on store the packed-file in de font structure */
       if (!is_builtin && (G.fileflags & G_FILE_AUTOPACK)) {
         vfont->packedfile = pf;
       }
 
-      /* Do not add FO_BUILTIN_NAME to temporary listbase */
+      /* Do not add #FO_BUILTIN_NAME to temporary list-base. */
       if (!STREQ(filename, FO_BUILTIN_NAME)) {
         vfont->temp_pf = BKE_packedfile_new(NULL, filepath, BKE_main_blendfile_path(bmain));
       }
@@ -694,7 +694,7 @@ struct TempLineInfo {
   float x_min;   /* left margin */
   float x_max;   /* right margin */
   int char_nr;   /* number of characters */
-  int wspace_nr; /* number of whitespaces of line */
+  int wspace_nr; /* number of white-spaces of line */
 };
 
 /* -------------------------------------------------------------------- */
@@ -803,7 +803,7 @@ static bool vfont_to_curve(Object *ob,
   float longest_line_length = 0.0f;
 
   /* Text at the beginning of the last used text-box (use for y-axis alignment).
-   * We overallocate by one to simplify logic of getting last char. */
+   * We over-allocate by one to simplify logic of getting last char. */
   int *i_textbox_array = MEM_callocN(sizeof(*i_textbox_array) * (cu->totbox + 1),
                                      "TextBox initial char index");
 
@@ -1136,7 +1136,7 @@ static bool vfont_to_curve(Object *ob,
     }
   }
 
-  /* linedata is now: width of line */
+  /* Line-data is now: width of line. */
 
   if (cu->spacemode != CU_ALIGN_X_LEFT) {
     ct = chartransdata;
@@ -1500,7 +1500,7 @@ static bool vfont_to_curve(Object *ob,
     chartransdata = NULL;
   }
   else if (mode == FO_EDIT) {
-    /* make nurbdata */
+    /* Make NURBS-data. */
     BKE_nurbList_free(r_nubase);
 
     ct = chartransdata;

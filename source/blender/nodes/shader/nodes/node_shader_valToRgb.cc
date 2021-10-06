@@ -205,8 +205,8 @@ static void node_shader_exec_rgbtobw(void *UNUSED(data),
                                      bNodeStack **in,
                                      bNodeStack **out)
 {
-  /* stack order out: bw */
-  /* stack order in: col */
+  /* Stack order out: BW. */
+  /* Stack order in: COL. */
   float col[3];
   nodestack_get_vec(col, SOCK_VECTOR, in[0]);
 

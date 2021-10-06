@@ -780,8 +780,8 @@ ccl_device_inline void shader_eval_volume(INTEGRATOR_STATE_CONST_ARGS,
       break;
     }
 
-    /* setup shaderdata from stack. it's mostly setup already in
-     * shader_setup_from_volume, this switching should be quick */
+    /* Setup shader-data from stack. it's mostly setup already in
+     * shader_setup_from_volume, this switching should be quick. */
     sd->object = entry.object;
     sd->lamp = LAMP_NONE;
     sd->shader = entry.shader;

@@ -142,7 +142,7 @@ const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes 
   }
 
   static string path = "";
-  /* Pipe stderr to /dev/null to avoid error prints. We will fail gracefully still. */
+  /* Pipe `stderr` to `/dev/null` to avoid error prints. We will fail gracefully still. */
   string command = string("xdg-user-dir ") + type_str + " 2> /dev/null";
 
   FILE *fstream = popen(command.c_str(), "r");
@@ -152,7 +152,7 @@ const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes 
   std::stringstream path_stream;
   while (!feof(fstream)) {
     char c = fgetc(fstream);
-    /* xdg-user-dir ends the path with '\n'. */
+    /* `xdg-user-dir` ends the path with '\n'. */
     if (c == '\n') {
       break;
     }

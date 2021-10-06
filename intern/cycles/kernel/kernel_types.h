@@ -190,7 +190,7 @@ enum SamplingPattern {
   SAMPLING_NUM_PATTERNS,
 };
 
-/* these flags values correspond to raytypes in osl.cpp, so keep them in sync! */
+/* These flags values correspond to `raytypes` in `osl.cpp`, so keep them in sync! */
 
 enum PathRayFlag {
   /* --------------------------------------------------------------------

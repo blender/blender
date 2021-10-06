@@ -7238,7 +7238,7 @@ static PyObject *pyrna_srna_ExternalType(StructRNA *srna)
   /* Sanity check, could skip this unless in debug mode. */
   if (newclass) {
     PyObject *base_compare = pyrna_srna_PyBase(srna);
-    /* Can't do this because it gets superclasses values! */
+    /* Can't do this because it gets super-classes values! */
     // PyObject *slots = PyObject_GetAttrString(newclass, "__slots__");
     /* Can do this, but faster not to. */
     // PyObject *bases = PyObject_GetAttrString(newclass, "__bases__");

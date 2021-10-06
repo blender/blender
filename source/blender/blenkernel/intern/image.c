@@ -1560,9 +1560,9 @@ bool BKE_imtype_requires_linear_float(const char imtype)
 
 char BKE_imtype_valid_channels(const char imtype, bool write_file)
 {
-  char chan_flag = IMA_CHAN_FLAG_RGB; /* assume all support rgb */
+  char chan_flag = IMA_CHAN_FLAG_RGB; /* Assume all support RGB. */
 
-  /* alpha */
+  /* Alpha. */
   switch (imtype) {
     case R_IMF_IMTYPE_BMP:
       if (write_file) {
@@ -1583,7 +1583,7 @@ char BKE_imtype_valid_channels(const char imtype, bool write_file)
       break;
   }
 
-  /* bw */
+  /* BW. */
   switch (imtype) {
     case R_IMF_IMTYPE_BMP:
     case R_IMF_IMTYPE_PNG:
@@ -3078,8 +3078,7 @@ int BKE_imbuf_write_as(ImBuf *ibuf, const char *name, ImageFormatData *imf, cons
   ImBuf ibuf_back = *ibuf;
   int ok;
 
-  /* all data is rgba anyway,
-   * this just controls how to save for some formats */
+  /* All data is RGBA anyway, this just controls how to save for some formats. */
   ibuf->planes = imf->planes;
 
   ok = BKE_imbuf_write(ibuf, name, imf);
@@ -4611,7 +4610,7 @@ static ImBuf *load_image_single(Image *ima,
       image_init_after_load(ima, iuser, ibuf);
       *r_assign = true;
 
-      /* make packed file for autopack */
+      /* Make packed file for auto-pack. */
       if ((has_packed == false) && (G.fileflags & G_FILE_AUTOPACK)) {
         ImagePackedFile *imapf = MEM_mallocN(sizeof(ImagePackedFile), "Image Pack-file");
         BLI_addtail(&ima->packedfiles, imapf);

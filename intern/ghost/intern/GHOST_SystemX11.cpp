@@ -1044,7 +1044,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
 #ifdef USE_NON_LATIN_KB_WORKAROUND
       /* XXX: Code below is kinda awfully convoluted... Issues are:
-       * - In keyboards like latin ones, numbers need a 'Shift' to be accessed but key_sym
+       * - In keyboards like Latin ones, numbers need a 'Shift' to be accessed but key_sym
        *   is unmodified (or anyone swapping the keys with `xmodmap`).
        * - #XLookupKeysym seems to always use first defined key-map (see T47228), which generates
        *   key-codes unusable by ghost_key_from_keysym for non-Latin-compatible key-maps.
@@ -1131,7 +1131,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         }
       }
 #else
-      /* In keyboards like latin ones,
+      /* In keyboards like Latin ones,
        * numbers needs a 'Shift' to be accessed but key_sym
        * is unmodified (or anyone swapping the keys with xmodmap).
        *
