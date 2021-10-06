@@ -565,6 +565,10 @@ bool ED_imbuf_sample_poll(bContext *C)
       if (SEQ_editing_get(CTX_data_scene(C)) == NULL) {
         return false;
       }
+      ARegion *region = CTX_wm_region(C);
+      if (!(region && (region->regiontype == RGN_TYPE_PREVIEW))) {
+        return false;
+      }
       return true;
     }
   }
