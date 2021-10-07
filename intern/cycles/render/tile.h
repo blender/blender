@@ -81,6 +81,11 @@ class TileManager {
     return tile_state_.num_tiles > 1;
   }
 
+  inline int get_tile_overscan() const
+  {
+    return overscan_;
+  }
+
   bool next();
   bool done();
 
