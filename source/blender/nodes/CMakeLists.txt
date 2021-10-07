@@ -319,19 +319,19 @@ set(SRC
   shader/nodes/node_shader_squeeze.c
   shader/nodes/node_shader_subsurface_scattering.c
   shader/nodes/node_shader_tangent.c
-  shader/nodes/node_shader_tex_brick.c
-  shader/nodes/node_shader_tex_checker.c
+  shader/nodes/node_shader_tex_brick.cc
+  shader/nodes/node_shader_tex_checker.cc
   shader/nodes/node_shader_tex_coord.c
   shader/nodes/node_shader_tex_environment.c
   shader/nodes/node_shader_tex_gradient.cc
-  shader/nodes/node_shader_tex_image.c
-  shader/nodes/node_shader_tex_magic.c
+  shader/nodes/node_shader_tex_image.cc
+  shader/nodes/node_shader_tex_magic.cc
   shader/nodes/node_shader_tex_musgrave.cc
   shader/nodes/node_shader_tex_noise.cc
   shader/nodes/node_shader_tex_pointdensity.c
   shader/nodes/node_shader_tex_sky.c
   shader/nodes/node_shader_tex_voronoi.cc
-  shader/nodes/node_shader_tex_wave.c
+  shader/nodes/node_shader_tex_wave.cc
   shader/nodes/node_shader_tex_white_noise.cc
   shader/nodes/node_shader_uvAlongStroke.c
   shader/nodes/node_shader_uvmap.c
