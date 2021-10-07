@@ -179,6 +179,9 @@ void DRW_viewport_data_free(struct DRWData *drw_data);
 bool DRW_opengl_context_release(void);
 void DRW_opengl_context_activate(bool drw_state);
 
+/* We may want to move this into a more general location. */
+void DRW_draw_cursor_2d_ex(const struct ARegion *region, const float cursor[2]);
+
 #ifdef __cplusplus
 }
 #endif

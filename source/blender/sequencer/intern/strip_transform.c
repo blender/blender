@@ -520,3 +520,15 @@ void SEQ_image_transform_final_quad_get(const Scene *scene,
   mul_v2_v2(r_quad[2], mirror);
   mul_v2_v2(r_quad[3], mirror);
 }
+
+void SEQ_image_preview_unit_to_px(const Scene *scene, const float co_src[2], float co_dst[2])
+{
+  co_dst[0] = co_src[0] * scene->r.xsch;
+  co_dst[1] = co_src[1] * scene->r.ysch;
+}
+
+void SEQ_image_preview_unit_from_px(const Scene *scene, const float co_src[2], float co_dst[2])
+{
+  co_dst[0] = co_src[0] / scene->r.xsch;
+  co_dst[1] = co_src[1] / scene->r.ysch;
+}

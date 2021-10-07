@@ -3397,3 +3397,64 @@ void SEQUENCER_OT_strip_color_tag_set(struct wmOperatorType *ot)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set 2D Cursor Operator
+ * \{ */
+
+static int sequencer_set_2d_cursor_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+
+  float cursor_pixel[2];
+  RNA_float_get_array(op->ptr, "location", cursor_pixel);
+
+  SEQ_image_preview_unit_from_px(scene, cursor_pixel, sseq->cursor);
+
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+static int sequencer_set_2d_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion *region = CTX_wm_region(C);
+  float cursor_pixel[2];
+  UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &cursor_pixel[0], &cursor_pixel[1]);
+
+  RNA_float_set_array(op->ptr, "location", cursor_pixel);
+
+  return sequencer_set_2d_cursor_exec(C, op);
+}
+
+void SEQUENCER_OT_cursor_set(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Set 2D Cursor";
+  ot->description = "Set 2D cursor location";
+  ot->idname = "SEQUENCER_OT_cursor_set";
+
+  /* api callbacks */
+  ot->exec = sequencer_set_2d_cursor_exec;
+  ot->invoke = sequencer_set_2d_cursor_invoke;
+  ot->poll = sequencer_view_preview_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  RNA_def_float_vector(ot->srna,
+                       "location",
+                       2,
+                       NULL,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Location",
+                       "Cursor location in normalized preview coordinates",
+                       -10.0f,
+                       10.0f);
+}
+
+/** \} */

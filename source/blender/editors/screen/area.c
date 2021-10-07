@@ -134,7 +134,7 @@ static void region_draw_emboss(const ARegion *region, const rcti *scirct, int si
   GPU_blend(GPU_BLEND_NONE);
 }
 
-void ED_region_pixelspace(ARegion *region)
+void ED_region_pixelspace(const ARegion *region)
 {
   wmOrtho2_region_pixelspace(region);
   GPU_matrix_identity_set();

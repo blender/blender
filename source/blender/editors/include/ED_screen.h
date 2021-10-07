@@ -68,7 +68,7 @@ void ED_region_do_layout(struct bContext *C, struct ARegion *region);
 void ED_region_do_draw(struct bContext *C, struct ARegion *region);
 void ED_region_exit(struct bContext *C, struct ARegion *region);
 void ED_region_remove(struct bContext *C, struct ScrArea *area, struct ARegion *region);
-void ED_region_pixelspace(struct ARegion *region);
+void ED_region_pixelspace(const struct ARegion *region);
 void ED_region_update_rect(struct ARegion *region);
 void ED_region_floating_init(struct ARegion *region);
 void ED_region_tag_redraw(struct ARegion *region);

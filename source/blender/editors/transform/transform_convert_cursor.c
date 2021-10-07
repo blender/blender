@@ -19,6 +19,8 @@
 
 /** \file
  * \ingroup edtransform
+ *
+ * Instead of transforming the selection, move the 2D/3D cursor.
  */
 
 #include "DNA_space_types.h"
@@ -35,18 +37,12 @@
 #include "transform_convert.h"
 
 /* -------------------------------------------------------------------- */
-/** \name Cursor Transform Creation
- *
- * Instead of transforming the selection, move the 2D/3D cursor.
- *
+/** \name Shared 2D Cursor Utilities
  * \{ */
 
-void createTransCursor_image(TransInfo *t)
+static void createTransCursor_2D_impl(TransInfo *t, float cursor_location[2])
 {
   TransData *td;
-  SpaceImage *sima = t->area->spacedata.first;
-  float *cursor_location = sima->cursor;
-
   {
     BLI_assert(t->data_container_len == 1);
     TransDataContainer *tc = t->data_container;
@@ -57,7 +53,7 @@ void createTransCursor_image(TransInfo *t)
 
   td->flag = TD_SELECTED;
 
-  /* UV coords are scaled by aspects (see UVsToTransData). This also applies for the Cursor in the
+  /* UV coords are scaled by aspects (see #UVsToTransData). This also applies for the Cursor in the
    * UV Editor which also means that for display and when the cursor coords are flushed
    * (recalcData_cursor_image), these are converted each time. */
   cursor_location[0] = cursor_location[0] * t->aspect[0];
@@ -73,6 +69,62 @@ void createTransCursor_image(TransInfo *t)
   td->loc = cursor_location;
   copy_v3_v3(td->iloc, cursor_location);
 }
+
+static void recalcData_cursor_2D_impl(TransInfo *t)
+{
+  TransDataContainer *tc = t->data_container;
+  TransData *td = tc->data;
+  float aspect_inv[2];
+
+  aspect_inv[0] = 1.0f / t->aspect[0];
+  aspect_inv[1] = 1.0f / t->aspect[1];
+
+  td->loc[0] = td->loc[0] * aspect_inv[0];
+  td->loc[1] = td->loc[1] * aspect_inv[1];
+
+  DEG_id_tag_update(&t->scene->id, ID_RECALC_COPY_ON_WRITE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Image Cursor
+ * \{ */
+
+void createTransCursor_image(TransInfo *t)
+{
+  SpaceImage *sima = t->area->spacedata.first;
+  createTransCursor_2D_impl(t, sima->cursor);
+}
+
+void recalcData_cursor_image(TransInfo *t)
+{
+  recalcData_cursor_2D_impl(t);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sequencer Cursor
+ * \{ */
+
+void createTransCursor_sequencer(TransInfo *t)
+{
+  SpaceSeq *sseq = t->area->spacedata.first;
+
+  createTransCursor_2D_impl(t, sseq->cursor);
+}
+
+void recalcData_cursor_sequencer(TransInfo *t)
+{
+  recalcData_cursor_2D_impl(t);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View 3D Cursor
+ * \{ */
 
 void createTransCursor_view3d(TransInfo *t)
 {
@@ -133,28 +185,7 @@ void createTransCursor_view3d(TransInfo *t)
   td->ext->rotOrder = cursor->rotation_mode;
 }
 
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Recalc Cursor
- * \{ */
-
-void recalcData_cursor_image(TransInfo *t)
-{
-  TransDataContainer *tc = t->data_container;
-  TransData *td = tc->data;
-  float aspect_inv[2];
-
-  aspect_inv[0] = 1.0f / t->aspect[0];
-  aspect_inv[1] = 1.0f / t->aspect[1];
-
-  td->loc[0] = td->loc[0] * aspect_inv[0];
-  td->loc[1] = td->loc[1] * aspect_inv[1];
-
-  DEG_id_tag_update(&t->scene->id, ID_RECALC_COPY_ON_WRITE);
-}
-
-void recalcData_cursor(TransInfo *t)
+void recalcData_cursor_view3d(TransInfo *t)
 {
   DEG_id_tag_update(&t->scene->id, ID_RECALC_COPY_ON_WRITE);
 }

@@ -30,6 +30,7 @@
 extern "C" {
 #endif
 
+struct GPUBatch;
 struct Main;
 struct bContext;
 

@@ -2441,6 +2441,19 @@ class _defs_node_edit:
 class _defs_sequencer_generic:
 
     @ToolDef.from_fn
+    def cursor():
+        return dict(
+            idname="builtin.cursor",
+            label="Cursor",
+            description=(
+                "Set the cursor location, drag to transform"
+            ),
+            icon="ops.generic.cursor",
+            keymap="Sequencer Tool: Cursor",
+            options={'KEYMAP_FALLBACK'},
+        )
+
+    @ToolDef.from_fn
     def blade():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sequencer.split")
@@ -3094,6 +3107,8 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'PREVIEW': [
             *_tools_select,
+            _defs_sequencer_generic.cursor,
+            None,
             _defs_sequencer_generic.translate,
             _defs_sequencer_generic.rotate,
             _defs_sequencer_generic.scale,
@@ -3106,6 +3121,8 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'SEQUENCER_PREVIEW': [
             *_tools_select,
+            _defs_sequencer_generic.cursor,
+            None,
             _defs_sequencer_generic.translate,
             _defs_sequencer_generic.rotate,
             _defs_sequencer_generic.scale,

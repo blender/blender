@@ -41,6 +41,8 @@
 #include "BKE_screen.h"
 #include "BKE_sequencer_offscreen.h"
 
+#include "GPU_state.h"
+
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_transform.h"
@@ -53,6 +55,7 @@
 
 #include "RNA_access.h"
 
+#include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
 #include "UI_interface.h"
@@ -60,6 +63,9 @@
 #include "UI_view2d.h"
 
 #include "IMB_imbuf.h"
+
+/* Only for cursor drawing. */
+#include "DRW_engine.h"
 
 /* Own include. */
 #include "sequencer_intern.h"
@@ -801,6 +807,17 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
       sequencer_draw_preview(
           C, scene, region, sseq, scene->r.cfra, over_cfra - scene->r.cfra, true, false);
     }
+  }
+
+  {
+    GPU_color_mask(true, true, true, true);
+    GPU_depth_mask(false);
+    GPU_depth_test(GPU_DEPTH_NONE);
+
+    float cursor_pixel[2];
+    SEQ_image_preview_unit_to_px(scene, sseq->cursor, cursor_pixel);
+
+    DRW_draw_cursor_2d_ex(region, cursor_pixel);
   }
 
   WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);

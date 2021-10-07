@@ -1042,6 +1042,22 @@ class SEQUENCER_MT_preview_context_menu(Menu):
             pass
 
 
+class SEQUENCER_MT_pivot_pie(Menu):
+    bl_label = "Pivot Point"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        tool_settings = context.tool_settings
+        sequencer_tool_settings = context.tool_settings.sequencer_tool_settings
+
+        pie.prop_enum(sequencer_tool_settings, "pivot_point", value='CENTER')
+        pie.prop_enum(sequencer_tool_settings, "pivot_point", value='CURSOR')
+        pie.prop_enum(sequencer_tool_settings, "pivot_point", value='INDIVIDUAL_ORIGINS')
+        pie.prop_enum(sequencer_tool_settings, "pivot_point", value='MEDIAN')
+
+
 class SequencerButtonsPanel:
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
@@ -2185,6 +2201,22 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
             col.prop(st, "show_separate_color")
 
 
+class SEQUENCER_PT_view_cursor(SequencerButtonsPanel_Output, Panel):
+    bl_category = "View"
+    bl_label = "2D Cursor"
+
+    def draw(self, context):
+        layout = self.layout
+
+        st = context.space_data
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        col = layout.column()
+        col.prop(st, "cursor_location", text="Location")
+
+
 class SEQUENCER_PT_frame_overlay(SequencerButtonsPanel_Output, Panel):
     bl_label = "Frame Overlay"
     bl_category = "View"
@@ -2464,6 +2496,7 @@ classes = (
     SEQUENCER_MT_color_tag_picker,
     SEQUENCER_MT_context_menu,
     SEQUENCER_MT_preview_context_menu,
+    SEQUENCER_MT_pivot_pie,
 
     SEQUENCER_PT_color_tag_picker,
 
@@ -2500,6 +2533,7 @@ classes = (
     SEQUENCER_PT_custom_props,
 
     SEQUENCER_PT_view,
+    SEQUENCER_PT_view_cursor,
     SEQUENCER_PT_frame_overlay,
     SEQUENCER_PT_view_safe_areas,
     SEQUENCER_PT_view_safe_areas_center_cut,

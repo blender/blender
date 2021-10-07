@@ -70,6 +70,13 @@ void SEQ_image_transform_final_quad_get(const struct Scene *scene,
                                         const struct Sequence *seq,
                                         float r_quad[4][2]);
 
+void SEQ_image_preview_unit_to_px(const struct Scene *scene,
+                                  const float co_src[2],
+                                  float co_dst[2]);
+void SEQ_image_preview_unit_from_px(const struct Scene *scene,
+                                    const float co_src[2],
+                                    float co_dst[2]);
+
 #ifdef __cplusplus
 }
 #endif

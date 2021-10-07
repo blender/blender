@@ -2826,6 +2826,8 @@ def km_sequencerpreview(params):
             value=params.select_mouse_value_fallback,
             legacy=params.legacy,
         ),
+        op_menu_pie("SEQUENCER_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
+
         ("sequencer.view_all_preview", {"type": 'HOME', "value": 'PRESS'}, None),
         ("sequencer.view_all_preview", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("sequencer.view_ghost_border", {"type": 'O', "value": 'PRESS'}, None),
@@ -2861,6 +2863,18 @@ def km_sequencerpreview(params):
          {"properties": [("property", 'ROTATION')]}),
         *_template_items_context_menu("SEQUENCER_MT_preview_context_menu", params.context_menu_event),
     ])
+
+    # 2D cursor.
+    if params.cursor_tweak_event:
+        items.extend([
+            ("sequencer.cursor_set", params.cursor_set_event, None),
+            ("transform.translate", params.cursor_tweak_event,
+             {"properties": [("release_confirm", True), ("cursor_transform", True)]}),
+        ])
+    else:
+        items.extend([
+            ("sequencer.cursor_set", params.cursor_set_event, None),
+        ])
 
     return keymap
 
@@ -7465,13 +7479,13 @@ def km_sequencer_editor_tool_select(params, *, fallback):
         _fallback_id("Sequencer Tool: Tweak", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            # TODO: Use 2D cursor for preview region (currently `sequencer.sample`).
             *([] if fallback else
-              _template_items_tool_select(params, "sequencer.select", "sequencer.sample", extend="toggle")
+              _template_items_tool_select(params, "sequencer.select", "sequencer.cursor_set", extend="toggle")
               ),
             *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_generic_select(
                 type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
 
+            # Ignored for preview.
             *_template_items_change_frame(params),
         ]},
     )
@@ -7490,6 +7504,7 @@ def km_sequencer_editor_tool_select_box(params, *, fallback):
             *_template_sequencer_select_for_fallback(params, fallback),
 
             # RMB select can already set the frame, match the tweak tool.
+            # Ignored for preview.
             *(_template_items_change_frame(params)
               if params.select_mouse == 'LEFTMOUSE' else []),
         ]},
@@ -7502,6 +7517,19 @@ def km_sequencer_editor_tool_generic_sample(params):
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             ("sequencer.sample", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+        ]},
+    )
+
+
+def km_sequencer_editor_tool_cursor(params):
+    return (
+        "Sequencer Tool: Cursor",
+        {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            ("sequencer.cursor_set", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            # Don't use `tool_maybe_tweak_event` since it conflicts with `PRESS` that places the cursor.
+            ("transform.translate", params.tool_tweak_event,
+             {"properties": [("release_confirm", True), ("cursor_transform", True)]}),
         ]},
     )
 
@@ -7808,6 +7836,7 @@ def generate_keymaps(params=None):
         *(km_sequencer_editor_tool_select_box(params, fallback=fallback) for fallback in (False, True)),
         km_sequencer_editor_tool_blade(params),
         km_sequencer_editor_tool_generic_sample(params),
+        km_sequencer_editor_tool_cursor(params),
         km_sequencer_editor_tool_scale(params),
         km_sequencer_editor_tool_rotate(params),
         km_sequencer_editor_tool_move(params),

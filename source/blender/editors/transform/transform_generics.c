@@ -46,6 +46,8 @@
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
 
+#include "SEQ_transform.h"
+
 #include "ED_clip.h"
 #include "ED_image.h"
 #include "ED_object.h"
@@ -885,11 +887,17 @@ void calculateCenterCursor(TransInfo *t, float r_center[3])
 
 void calculateCenterCursor2D(TransInfo *t, float r_center[2])
 {
+  float cursor_local_buf[2];
   const float *cursor = NULL;
 
   if (t->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = (SpaceImage *)t->area->spacedata.first;
     cursor = sima->cursor;
+  }
+  if (t->spacetype == SPACE_SEQ) {
+    SpaceSeq *sseq = (SpaceSeq *)t->area->spacedata.first;
+    SEQ_image_preview_unit_to_px(t->scene, sseq->cursor, cursor_local_buf);
+    cursor = cursor_local_buf;
   }
   else if (t->spacetype == SPACE_CLIP) {
     SpaceClip *space_clip = (SpaceClip *)t->area->spacedata.first;
@@ -1069,7 +1077,7 @@ static void calculateCenter_FromAround(TransInfo *t, int around, float r_center[
       calculateCenterMedian(t, r_center);
       break;
     case V3D_AROUND_CURSOR:
-      if (ELEM(t->spacetype, SPACE_IMAGE, SPACE_CLIP)) {
+      if (ELEM(t->spacetype, SPACE_IMAGE, SPACE_SEQ, SPACE_CLIP)) {
         calculateCenterCursor2D(t, r_center);
       }
       else if (t->spacetype == SPACE_GRAPH) {

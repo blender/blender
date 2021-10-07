@@ -284,23 +284,25 @@ static bool gizmo2d_calc_center(const bContext *C, float r_center[2])
     ED_uvedit_center_from_pivot_ex(sima, scene, view_layer, r_center, sima->around, &has_select);
   }
   else if (area->spacetype == SPACE_SEQ) {
+    SpaceSeq *sseq = area->spacedata.first;
+    const int pivot_point = scene->toolsettings->sequencer_tool_settings->pivot_point;
     ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
     SeqCollection *strips = SEQ_query_rendered_strips(seqbase, scene->r.cfra, 0);
     SEQ_filter_selected_strips(strips);
+    has_select = SEQ_collection_len(strips) != 0;
 
-    if (SEQ_collection_len(strips) <= 0) {
-      SEQ_collection_free(strips);
-      return false;
+    if (pivot_point == V3D_AROUND_CURSOR) {
+      SEQ_image_preview_unit_to_px(scene, sseq->cursor, r_center);
     }
-
-    has_select = true;
-    Sequence *seq;
-    SEQ_ITERATOR_FOREACH (seq, strips) {
-      float origin[2];
-      SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, origin);
-      add_v2_v2(r_center, origin);
+    else if (has_select) {
+      Sequence *seq;
+      SEQ_ITERATOR_FOREACH (seq, strips) {
+        float origin[2];
+        SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, origin);
+        add_v2_v2(r_center, origin);
+      }
+      mul_v2_fl(r_center, 1.0f / SEQ_collection_len(strips));
     }
-    mul_v2_fl(r_center, 1.0f / SEQ_collection_len(strips));
 
     SEQ_collection_free(strips);
   }

@@ -945,6 +945,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
       break;
     case TC_ARMATURE_VERTS:
     case TC_CURSOR_IMAGE:
+    case TC_CURSOR_SEQUENCER:
     case TC_CURSOR_VIEW3D:
     case TC_CURVE_VERTS:
     case TC_GPENCIL:
@@ -1037,6 +1038,7 @@ static void init_proportional_edit(TransInfo *t)
     case TC_POSE: /* Disable PET, its not usable in pose mode yet T32444. */
     case TC_ARMATURE_VERTS:
     case TC_CURSOR_IMAGE:
+    case TC_CURSOR_SEQUENCER:
     case TC_CURSOR_VIEW3D:
     case TC_NLA_DATA:
     case TC_OBJECT_TEXSPACE:
@@ -1112,6 +1114,7 @@ static void init_TransDataContainers(TransInfo *t,
     case TC_ACTION_DATA:
     case TC_GRAPH_EDIT_DATA:
     case TC_CURSOR_IMAGE:
+    case TC_CURSOR_SEQUENCER:
     case TC_CURSOR_VIEW3D:
     case TC_MASKING_DATA:
     case TC_NLA_DATA:
@@ -1223,6 +1226,7 @@ static eTFlag flags_from_data_type(eTConvertType data_type)
     case TC_MESH_UV:
       return T_EDIT | T_POINTS | T_2D_EDIT;
     case TC_CURSOR_IMAGE:
+    case TC_CURSOR_SEQUENCER:
       return T_2D_EDIT;
     case TC_PARTICLE_VERTS:
       return T_POINTS;
@@ -1248,6 +1252,9 @@ static eTConvertType convert_type_get(const TransInfo *t, Object **r_obj_armatur
   if (t->options & CTX_CURSOR) {
     if (t->spacetype == SPACE_IMAGE) {
       convert_type = TC_CURSOR_IMAGE;
+    }
+    else if (t->spacetype == SPACE_SEQ) {
+      convert_type = TC_CURSOR_SEQUENCER;
     }
     else {
       convert_type = TC_CURSOR_VIEW3D;
@@ -1395,6 +1402,9 @@ void createTransData(bContext *C, TransInfo *t)
       break;
     case TC_CURSOR_IMAGE:
       createTransCursor_image(t);
+      break;
+    case TC_CURSOR_SEQUENCER:
+      createTransCursor_sequencer(t);
       break;
     case TC_CURSOR_VIEW3D:
       createTransCursor_view3d(t);
@@ -1714,8 +1724,11 @@ void recalcData(TransInfo *t)
     case TC_CURSOR_IMAGE:
       recalcData_cursor_image(t);
       break;
+    case TC_CURSOR_SEQUENCER:
+      recalcData_cursor_sequencer(t);
+      break;
     case TC_CURSOR_VIEW3D:
-      recalcData_cursor(t);
+      recalcData_cursor_view3d(t);
       break;
     case TC_GRAPH_EDIT_DATA:
       recalcData_graphedit(t);

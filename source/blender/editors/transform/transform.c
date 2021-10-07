@@ -48,6 +48,8 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 
+#include "SEQ_transform.h"
+
 #include "WM_api.h"
 #include "WM_message.h"
 #include "WM_types.h"
@@ -126,6 +128,11 @@ void setTransformViewAspect(TransInfo *t, float r_aspect[3])
     }
     else {
       ED_space_image_get_uv_aspect(sima, &r_aspect[0], &r_aspect[1]);
+    }
+  }
+  else if (t->spacetype == SPACE_SEQ) {
+    if (t->options & CTX_CURSOR) {
+      SEQ_image_preview_unit_to_px(t->scene, r_aspect, r_aspect);
     }
   }
   else if (t->spacetype == SPACE_CLIP) {
