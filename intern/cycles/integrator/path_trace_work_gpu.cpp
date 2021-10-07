@@ -31,7 +31,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-static size_t estimate_single_state_size(DeviceScene *device_scene)
+static size_t estimate_single_state_size()
 {
   size_t state_size = 0;
 
@@ -42,11 +42,16 @@ static size_t estimate_single_state_size(DeviceScene *device_scene)
   break; \
   }
 #define KERNEL_STRUCT_END_ARRAY(name, cpu_array_size, gpu_array_size) \
-  if (array_index == gpu_array_size - 1) { \
+  if (array_index >= gpu_array_size - 1) { \
     break; \
   } \
   }
-#define KERNEL_STRUCT_VOLUME_STACK_SIZE (device_scene->data.volume_stack_size)
+/* TODO(sergey): Look into better estimation for fields which depend on scene features. Maybe
+ * maximum state calculation should happen as `alloc_work_memory()`, so that we can react to an
+ * updated scene state here.
+ * For until then use common value. Currently this size is only used for logging, but is weak to
+ * rely on this. */
+#define KERNEL_STRUCT_VOLUME_STACK_SIZE 4
 #include "kernel/integrator/integrator_state_template.h"
 #undef KERNEL_STRUCT_BEGIN
 #undef KERNEL_STRUCT_MEMBER
@@ -75,7 +80,7 @@ PathTraceWorkGPU::PathTraceWorkGPU(Device *device,
       num_queued_paths_(device, "num_queued_paths", MEM_READ_WRITE),
       work_tiles_(device, "work_tiles", MEM_READ_WRITE),
       display_rgba_half_(device, "display buffer half", MEM_READ_WRITE),
-      max_num_paths_(queue_->num_concurrent_states(estimate_single_state_size(device_scene))),
+      max_num_paths_(queue_->num_concurrent_states(estimate_single_state_size())),
       min_num_active_paths_(queue_->num_concurrent_busy_states()),
       max_active_path_index_(0)
 {
@@ -124,7 +129,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
   break; \
   }
 #define KERNEL_STRUCT_END_ARRAY(name, cpu_array_size, gpu_array_size) \
-  if (array_index == gpu_array_size - 1) { \
+  if (array_index >= gpu_array_size - 1) { \
     break; \
   } \
   }
