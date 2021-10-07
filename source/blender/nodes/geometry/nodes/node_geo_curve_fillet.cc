@@ -30,12 +30,13 @@ namespace blender::nodes {
 static void geo_node_curve_fillet_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Curve");
-  b.add_input<decl::Int>("Count").default_value(1).min(1).max(1000);
+  b.add_input<decl::Int>("Count").default_value(1).min(1).max(1000).supports_field();
   b.add_input<decl::Float>("Radius")
       .min(0.0f)
       .max(FLT_MAX)
       .subtype(PropertySubType::PROP_DISTANCE)
-      .default_value(0.25f);
+      .default_value(0.25f)
+      .supports_field();
   b.add_input<decl::Bool>("Limit Radius");
   b.add_output<decl::Geometry>("Curve");
 }
