@@ -198,12 +198,12 @@ void AbstractTreeViewItem::add_indent(uiLayout &row) const
   uiLayoutSetFixedSize(subrow, true);
 
   const float indent_size = count_parents() * UI_DPI_ICON_SIZE;
-  uiDefBut(block, UI_BTYPE_SEPR, 0, "", 0, 0, indent_size, 0, NULL, 0.0, 0.0, 0, 0, "");
+  uiDefBut(block, UI_BTYPE_SEPR, 0, "", 0, 0, indent_size, 0, nullptr, 0.0, 0.0, 0, 0, "");
 
   /* Indent items without collapsing icon some more within their parent. Makes it clear that they
    * are actually nested and not just a row at the same level without a chevron. */
   if (!is_collapsible() && parent_) {
-    uiDefBut(block, UI_BTYPE_SEPR, 0, "", 0, 0, 0.2f * UI_UNIT_X, 0, NULL, 0.0, 0.0, 0, 0, "");
+    uiDefBut(block, UI_BTYPE_SEPR, 0, "", 0, 0, 0.2f * UI_UNIT_X, 0, nullptr, 0.0, 0.0, 0, 0, "");
   }
 
   /* Restore. */

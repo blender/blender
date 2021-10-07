@@ -4836,7 +4836,7 @@ static int ui_do_but_TREEROW(bContext *C,
         button_activate_state(C, but, BUTTON_STATE_EXIT);
         return WM_UI_HANDLER_BREAK;
       }
-      else if (event->val == KM_DBL_CLICK) {
+      if (event->val == KM_DBL_CLICK) {
         data->cancel = true;
 
         UI_tree_view_item_begin_rename(tree_row_but->tree_item);
