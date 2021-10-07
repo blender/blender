@@ -91,6 +91,14 @@ class AssetCatalogTest : public testing::Test {
     temp_library_path_ = "";
   }
 
+  void TearDown() override
+  {
+    if (!temp_library_path_.empty()) {
+      BLI_delete(temp_library_path_.c_str(), true, true);
+      temp_library_path_ = "";
+    }
+  }
+
   /* Register a temporary path, which will be removed at the end of the test.
    * The returned path ends in a slash. */
   CatalogFilePath use_temp_path()
@@ -175,14 +183,6 @@ class AssetCatalogTest : public testing::Test {
       assert_expected_item(expected_paths[i], actual_item);
       i++;
     });
-  }
-
-  void TearDown() override
-  {
-    if (!temp_library_path_.empty()) {
-      BLI_delete(temp_library_path_.c_str(), true, true);
-      temp_library_path_ = "";
-    }
   }
 };
 
