@@ -138,6 +138,8 @@ class TreeViewLayoutBuilder {
  private:
   /* Created through #TreeViewBuilder. */
   TreeViewLayoutBuilder(uiBlock &block);
+
+  static void polish_layout(const uiBlock &block);
 };
 
 /** \} */
@@ -282,8 +284,7 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   void begin_renaming();
   void end_renaming();
 
-  const AbstractTreeView &get_tree_view() const;
-  AbstractTreeView &get_tree_view();
+  AbstractTreeView &get_tree_view() const;
   int count_parents() const;
   void deactivate();
   /**
@@ -310,6 +311,8 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   void ensure_parents_uncollapsed();
   bool matches_including_parents(const AbstractTreeViewItem &other) const;
 
+  uiButTreeRow *tree_row_button();
+
  protected:
   /**
    * Activates this item, deactivates other items, calls the #AbstractTreeViewItem::on_activate()
@@ -323,11 +326,16 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   static void rename_button_fn(bContext *, void *, char *);
   static AbstractTreeViewItem *find_tree_item_from_rename_button(const uiBut &but);
   static void tree_row_click_fn(struct bContext *, void *, void *);
+  static void collapse_chevron_click_fn(bContext *, void *but_arg1, void *);
+  static bool is_collapse_chevron_but(const uiBut *but);
 
   /** See #AbstractTreeView::change_state_delayed() */
   void change_state_delayed();
+
   void add_treerow_button(uiBlock &block);
-  void add_rename_button(uiBlock &block);
+  void add_indent(uiLayout &row) const;
+  void add_collapse_chevron(uiBlock &block) const;
+  void add_rename_button(uiLayout &row);
 };
 
 /** \} */
@@ -358,9 +366,6 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
    * custom activation behavior (a common thing to do).
    */
   ActivateFn activate_fn_;
-
-  uiBut *button();
-  BIFIconID get_draw_icon() const;
 
  private:
   static void tree_row_click_fn(struct bContext *C, void *arg1, void *arg2);

@@ -4830,14 +4830,23 @@ static int ui_do_but_TREEROW(bContext *C,
   uiButTreeRow *tree_row_but = (uiButTreeRow *)but;
   BLI_assert(tree_row_but->but.type == UI_BTYPE_TREEROW);
 
-  if ((event->type == LEFTMOUSE) && (event->val == KM_DBL_CLICK)) {
-    button_activate_state(C, but, BUTTON_STATE_EXIT);
+  if (data->state == BUTTON_STATE_HIGHLIGHT) {
+    if (event->type == LEFTMOUSE) {
+      if (event->val == KM_CLICK) {
+        button_activate_state(C, but, BUTTON_STATE_EXIT);
+        return WM_UI_HANDLER_BREAK;
+      }
+      else if (event->val == KM_DBL_CLICK) {
+        data->cancel = true;
 
-    UI_tree_view_item_begin_rename(tree_row_but->tree_item);
-    return WM_UI_HANDLER_BREAK;
+        UI_tree_view_item_begin_rename(tree_row_but->tree_item);
+        ED_region_tag_redraw(CTX_wm_region(C));
+        return WM_UI_HANDLER_BREAK;
+      }
+    }
   }
 
-  return ui_do_but_TOG(C, but, data, event);
+  return WM_UI_HANDLER_CONTINUE;
 }
 
 static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
@@ -9683,6 +9692,38 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
   return retval;
 }
 
+static int ui_handle_tree_hover(const wmEvent *event, const ARegion *region)
+{
+  bool has_treerows = false;
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    /* Avoid unnecessary work: Tree-rows are assumed to be inside tree-views. */
+    if (BLI_listbase_is_empty(&block->views)) {
+      continue;
+    }
+
+    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+      if (but->type == UI_BTYPE_TREEROW) {
+        but->flag &= ~UI_ACTIVE;
+        has_treerows = true;
+      }
+    }
+  }
+
+  if (!has_treerows) {
+    /* Avoid unnecessary lookup. */
+    return WM_UI_HANDLER_CONTINUE;
+  }
+
+  /* Always highlight the hovered tree-row, even if the mouse hovers another button inside of it.
+   */
+  uiBut *hovered_row_but = ui_tree_row_find_mouse_over(region, event->x, event->y);
+  if (hovered_row_but) {
+    hovered_row_but->flag |= UI_ACTIVE;
+  }
+
+  return WM_UI_HANDLER_CONTINUE;
+}
+
 static void ui_handle_button_return_submenu(bContext *C, const wmEvent *event, uiBut *but)
 {
   uiHandleButtonData *data = but->active;
@@ -11285,6 +11326,10 @@ static int ui_region_handler(bContext *C, const wmEvent *event, void *UNUSED(use
   if (event->type == MOUSEMOVE && (event->x != event->prevx || event->y != event->prevy)) {
     ui_blocks_set_tooltips(region, true);
   }
+
+  /* Always do this, to reliably update tree-row highlighting, even if the mouse hovers a button
+   * inside the row (it's an overlapping layout). */
+  ui_handle_tree_hover(event, region);
 
   /* delayed apply callbacks */
   ui_apply_but_funcs_after(C);

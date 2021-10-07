@@ -223,11 +223,12 @@ void AssetCatalogTreeViewItem::build_row(uiLayout &row)
     return;
   }
 
+  uiButTreeRow *tree_row_but = tree_row_button();
   PointerRNA *props;
   const CatalogID catalog_id = catalog_item_.get_catalog_id();
 
   props = UI_but_extra_operator_icon_add(
-      button(), "ASSET_OT_catalog_new", WM_OP_INVOKE_DEFAULT, ICON_ADD);
+      (uiBut *)tree_row_but, "ASSET_OT_catalog_new", WM_OP_INVOKE_DEFAULT, ICON_ADD);
   RNA_string_set(props, "parent_path", catalog_item_.catalog_path().c_str());
 
   /* Tree items without a catalog ID represent components of catalog paths that are not
@@ -238,7 +239,7 @@ void AssetCatalogTreeViewItem::build_row(uiLayout &row)
     BLI_uuid_format(catalog_id_str_buffer, catalog_id);
 
     props = UI_but_extra_operator_icon_add(
-        button(), "ASSET_OT_catalog_delete", WM_OP_INVOKE_DEFAULT, ICON_X);
+        (uiBut *)tree_row_but, "ASSET_OT_catalog_delete", WM_OP_INVOKE_DEFAULT, ICON_X);
     RNA_string_set(props, "catalog_id", catalog_id_str_buffer);
   }
 }
@@ -301,6 +302,7 @@ bool AssetCatalogTreeViewItem::drop_into_catalog(const AssetCatalogTreeView &tre
     /* Trigger re-run of filtering to update visible assets. */
     filelist_tag_needs_filtering(tree_view.space_file_.files);
     file_select_deselect_all(&tree_view.space_file_, FILE_SEL_SELECTED | FILE_SEL_HIGHLIGHTED);
+    WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
   }
 
   return true;
@@ -341,7 +343,7 @@ void AssetCatalogTreeViewAllItem::build_row(uiLayout &row)
 
   PointerRNA *props;
   props = UI_but_extra_operator_icon_add(
-      button(), "ASSET_OT_catalog_new", WM_OP_INVOKE_DEFAULT, ICON_ADD);
+      (uiBut *)tree_row_button(), "ASSET_OT_catalog_new", WM_OP_INVOKE_DEFAULT, ICON_ADD);
   /* No parent path to use the root level. */
   RNA_string_set(props, "parent_path", nullptr);
 }

@@ -965,7 +965,13 @@ static bool ui_but_update_from_old_block(const bContext *C,
     found_active = true;
   }
   else {
-    const int flag_copy = UI_BUT_DRAG_MULTI;
+    int flag_copy = UI_BUT_DRAG_MULTI;
+
+    /* Stupid special case: The active button may be inside (as in, overlapped on top) a tree-row
+     * button which we also want to keep highlighted then. */
+    if (but->type == UI_BTYPE_TREEROW) {
+      flag_copy |= UI_ACTIVE;
+    }
 
     but->flag = (but->flag & ~flag_copy) | (oldbut->flag & flag_copy);
 
