@@ -958,7 +958,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
           found = 1;
         }
         if (endmntent(fp) == 0) {
-          fprintf(stderr, "could not close the list of mounted filesystems\n");
+          fprintf(stderr, "could not close the list of mounted file-systems\n");
         }
       }
       /* Check gvfs shares. */

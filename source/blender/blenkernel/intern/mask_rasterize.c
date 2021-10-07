@@ -151,7 +151,7 @@ BLI_INLINE unsigned int clampis_uint(const unsigned int v,
 }
 
 /* --------------------------------------------------------------------- */
-/* local structs for mask rasterizeing                                   */
+/* local structs for mask rasterizing                                    */
 /* --------------------------------------------------------------------- */
 
 /**

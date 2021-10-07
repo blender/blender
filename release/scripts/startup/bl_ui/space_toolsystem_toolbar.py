@@ -2232,11 +2232,13 @@ class _defs_sequencer_generic:
 class _defs_sequencer_select:
     @ToolDef.from_fn
     def select():
-        return dict(idname="builtin.select",
-            label="Select",
+        return dict(
+            idname="builtin.select",
+            label="Tweak",
             icon="ops.generic.select",
             widget=None,
-            keymap="Sequencer Tool: Select",)
+            keymap="Sequencer Tool: Tweak",
+        )
 
     @ToolDef.from_fn
     def box():

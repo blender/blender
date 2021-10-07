@@ -1112,7 +1112,7 @@ static tbool AssignRecur(const int piTriListIn[],
 
 static tbool CompareSubGroups(const SSubGroup *pg1, const SSubGroup *pg2);
 static void QuickSort(int *pSortBuffer, int iLeft, int iRight, unsigned int uSeed);
-static STSpace EvalTspace(int face_indices[],
+static STSpace EvalTspace(const int face_indices[],
                           const int iFaces,
                           const int piTriListIn[],
                           const STriInfo pTriInfos[],
@@ -1292,7 +1292,7 @@ static tbool GenerateTSpaces(STSpace psTspace[],
   return TTRUE;
 }
 
-static STSpace EvalTspace(int face_indices[],
+static STSpace EvalTspace(const int face_indices[],
                           const int iFaces,
                           const int piTriListIn[],
                           const STriInfo pTriInfos[],

@@ -28,13 +28,10 @@ void main()
     float t = ANTIALIAS / DASH_WIDTH;
     float slope = 1.0 / (2.0 * t);
 
-    float alpha = min(1.0, max(0.0, slope * (normalized_distance_triangle - dashFactor + t)));
+    float unclamped_alpha = 1.0 - slope * (normalized_distance_triangle - dashFactor + t);
+    float alpha = max(0.0, min(unclamped_alpha, 1.0));
 
-    if (alpha < 0.0) {
-      discard;
-    }
-
-    fragColor.a *= 1.0 - alpha;
+    fragColor.a *= alpha;
   }
 
   fragColor.a *= smoothstep(1.0, 0.1, abs(colorGradient));

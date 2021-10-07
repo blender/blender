@@ -504,6 +504,10 @@ void BlenderSession::render_frame_finish()
   /* Clear driver. */
   session->set_output_driver(nullptr);
   session->full_buffer_written_cb = function_null;
+
+  /* All the files are handled.
+   * Clear the list so that this session can be re-used by Persistent Data. */
+  full_buffer_files_.clear();
 }
 
 static PassType bake_type_to_pass(const string &bake_type_str, const int bake_filter)

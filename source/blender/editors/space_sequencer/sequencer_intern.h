@@ -38,7 +38,10 @@ struct SpaceSeq;
 struct StripElem;
 struct bContext;
 struct rctf;
+struct View2D;
 struct wmOperator;
+
+#define OVERLAP_ALPHA 180
 
 /* sequencer_draw.c */
 void draw_timeline_seq(const struct bContext *C, struct ARegion *region);
@@ -70,7 +73,17 @@ struct ImBuf *sequencer_ibuf_get(struct Main *bmain,
                                  int timeline_frame,
                                  int frame_ofs,
                                  const char *viewname);
+
+/* sequencer_thumbnails.c */
 void last_displayed_thumbnails_list_free(void *val);
+void draw_seq_strip_thumbnail(struct View2D *v2d,
+                              const struct bContext *C,
+                              struct Scene *scene,
+                              struct Sequence *seq,
+                              float y1,
+                              float y2,
+                              float pixelx,
+                              float pixely);
 
 /* sequencer_edit.c */
 struct View2D;

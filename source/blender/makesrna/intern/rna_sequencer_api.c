@@ -64,12 +64,16 @@
 
 static void rna_Sequence_update_rnafunc(ID *id, Sequence *self, bool do_data)
 {
+  Scene *scene = (Scene *)id;
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, self);
+
   if (do_data) {
-    SEQ_relations_update_changed_seq_and_deps((Scene *)id, self, true, true);
+    SEQ_relations_update_changed_seq_and_deps(scene, self, true, true);
     // new_tstripdata(self); /* need 2.6x version of this. */
   }
-  SEQ_time_update_sequence((Scene *)id, self);
-  SEQ_time_update_sequence_bounds((Scene *)id, self);
+
+  SEQ_time_update_sequence(scene, seqbase, self);
 }
 
 static void rna_Sequence_swap_internal(Sequence *seq_self,
@@ -586,6 +590,8 @@ static void rna_Sequences_meta_remove(
 static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char *filename)
 {
   Scene *scene = (Scene *)id;
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
   StripElem *se;
 
   seq->strip->stripdata = se = MEM_reallocN(seq->strip->stripdata,
@@ -594,7 +600,7 @@ static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char 
   BLI_strncpy(se->name, filename, sizeof(se->name));
   seq->len++;
 
-  SEQ_time_update_sequence_bounds(scene, seq);
+  SEQ_time_update_sequence(scene, seqbase, seq);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
   return se;
@@ -603,6 +609,8 @@ static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char 
 static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports, int index)
 {
   Scene *scene = (Scene *)id;
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
   StripElem *new_seq, *se;
 
   if (seq->len == 1) {
@@ -635,7 +643,7 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
   MEM_freeN(seq->strip->stripdata);
   seq->strip->stripdata = new_seq;
 
-  SEQ_time_update_sequence_bounds(scene, seq);
+  SEQ_time_update_sequence(scene, seqbase, seq);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }

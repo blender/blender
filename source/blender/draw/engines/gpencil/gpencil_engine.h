@@ -298,14 +298,14 @@ typedef struct GPENCIL_PrivateData {
   /* Current frame */
   int cfra;
   /* If we are rendering for final render (F12).
-   * NOTE: set to false for viewport and opengl rendering (including VSE scene rendering), but set
-   * to true when rendering in `OB_RENDER` shading mode (viewport or opengl rendering) */
+   * NOTE: set to false for viewport and opengl rendering (including sequencer scene rendering),
+   * but set to true when rendering in #OB_RENDER shading mode (viewport or opengl rendering). */
   bool is_render;
   /* If we are in viewport display (used for VFX). */
   bool is_viewport;
   /* True in selection and auto_depth drawing */
   bool draw_depth_only;
-  /* Is shading set to wireframe. */
+  /* Is shading set to wire-frame. */
   bool draw_wireframe;
   /* Used by the depth merge step. */
   int is_stroke_order_3d;

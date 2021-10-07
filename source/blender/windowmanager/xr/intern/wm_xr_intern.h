@@ -37,7 +37,7 @@ typedef struct wmXrSessionState {
 
   /** Copy of XrSessionSettings.base_pose_ data to detect changes that need
    * resetting to base pose. */
-  char prev_base_pose_type; /* eXRSessionBasePoseType */
+  char prev_base_pose_type; /* #eXRSessionBasePoseType */
   Object *prev_base_pose_object;
   /** Copy of XrSessionSettings.flag created on the last draw call, stored to detect changes. */
   int prev_settings_flag;
@@ -52,7 +52,7 @@ typedef struct wmXrSessionState {
   bool is_view_data_set;
 
   /** Last known controller data. */
-  ListBase controllers; /* wmXrController */
+  ListBase controllers; /* #wmXrController */
 
   /** The currently active action set that will be updated on calls to
    * wm_xr_session_actions_update(). If NULL, all action sets will be treated as active and
@@ -67,11 +67,14 @@ typedef struct wmXrRuntimeData {
    * be an invalid reference, i.e. the window may have been closed. */
   wmWindow *session_root_win;
 
+  /** Off-screen area used for XR events. */
+  struct ScrArea *area;
+
   /** Although this struct is internal, RNA gets a handle to this for state information queries. */
   wmXrSessionState session_state;
   wmXrSessionExitFn exit_fn;
 
-  ListBase actionmaps; /* XrActionMap */
+  ListBase actionmaps; /* #XrActionMap */
   short actactionmap;
   short selactionmap;
 } wmXrRuntimeData;
@@ -84,7 +87,7 @@ typedef struct wmXrViewportPair {
 
 typedef struct {
   /** Off-screen buffers/viewports for each view. */
-  ListBase viewports; /* wmXrViewportPair */
+  ListBase viewports; /* #wmXrViewportPair */
 } wmXrSurfaceData;
 
 typedef struct wmXrDrawData {
@@ -172,10 +175,14 @@ typedef struct wmXrActionSet {
   ListBase active_haptic_actions;
 } wmXrActionSet;
 
+/* wm_xr.c */
 wmXrRuntimeData *wm_xr_runtime_data_create(void);
 void wm_xr_runtime_data_free(wmXrRuntimeData **runtime);
-void wm_xr_session_data_free(wmXrSessionState *state);
 
+/* wm_xr_session.c */
+void wm_xr_session_data_free(wmXrSessionState *state);
+wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
+                                                    const wmXrRuntimeData *runtime_data);
 void wm_xr_session_draw_data_update(const wmXrSessionState *state,
                                     const XrSessionSettings *settings,
                                     const GHOST_XrDrawViewInfo *draw_view,
@@ -190,12 +197,13 @@ void *wm_xr_session_gpu_binding_context_create(void);
 void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle context);
 
 void wm_xr_session_actions_init(wmXrData *xr);
-void wm_xr_session_actions_update(wmXrData *xr);
+void wm_xr_session_actions_update(wmWindowManager *wm);
 void wm_xr_session_controller_data_populate(const wmXrAction *grip_action,
                                             const wmXrAction *aim_action,
                                             wmXrData *xr);
 void wm_xr_session_controller_data_clear(wmXrSessionState *state);
 
+/* wm_xr_draw.c */
 void wm_xr_pose_to_mat(const GHOST_XrPose *pose, float r_mat[4][4]);
 void wm_xr_pose_to_imat(const GHOST_XrPose *pose, float r_imat[4][4]);
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata);

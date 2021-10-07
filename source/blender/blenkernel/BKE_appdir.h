@@ -16,7 +16,7 @@
 #pragma once
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  */
 
 #include <stddef.h>

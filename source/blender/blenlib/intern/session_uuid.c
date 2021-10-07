@@ -74,5 +74,5 @@ bool BLI_session_uuid_ghash_compare(const void *lhs_v, const void *rhs_v)
 {
   const SessionUUID *lhs = (const SessionUUID *)lhs_v;
   const SessionUUID *rhs = (const SessionUUID *)rhs_v;
-  return BLI_session_uuid_is_equal(lhs, rhs);
+  return !BLI_session_uuid_is_equal(lhs, rhs);
 }

@@ -697,7 +697,7 @@ static bool bake_targets_init_image_textures(const BakeAPIRender *bkr,
     }
   }
 
-  /* Overallocate in case there is more materials than images. */
+  /* Over-allocate in case there is more materials than images. */
   targets->num_materials = num_materials;
   targets->images = MEM_callocN(sizeof(BakeImage) * targets->num_materials, "BakeTargets.images");
   targets->material_to_image = MEM_callocN(sizeof(int) * targets->num_materials,
@@ -1532,22 +1532,22 @@ static int bake(const BakeAPIRender *bkr,
           if (md) {
             mode = md->mode;
             md->mode &= ~eModifierMode_Render;
-          }
 
-          /* Evaluate modifiers again. */
-          me_nores = BKE_mesh_new_from_object(NULL, ob_low_eval, false, false);
-          bake_targets_populate_pixels(bkr, &targets, ob_low, me_nores, pixel_array_low);
+            /* Evaluate modifiers again. */
+            me_nores = BKE_mesh_new_from_object(NULL, ob_low_eval, false, false);
+            bake_targets_populate_pixels(bkr, &targets, ob_low, me_nores, pixel_array_low);
+          }
 
           RE_bake_normal_world_to_tangent(pixel_array_low,
                                           targets.num_pixels,
                                           targets.num_channels,
                                           targets.result,
-                                          me_nores,
+                                          (me_nores) ? me_nores : me_low_eval,
                                           bkr->normal_swizzle,
                                           ob_low_eval->obmat);
-          BKE_id_free(NULL, &me_nores->id);
 
           if (md) {
+            BKE_id_free(NULL, &me_nores->id);
             md->mode = mode;
           }
         }

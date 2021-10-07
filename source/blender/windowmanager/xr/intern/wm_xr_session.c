@@ -30,8 +30,11 @@
 #include "DEG_depsgraph.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_space_types.h"
 
 #include "DRW_engine.h"
+
+#include "ED_screen.h"
 
 #include "GHOST_C-api.h"
 
@@ -111,6 +114,7 @@ void wm_xr_session_toggle(wmWindowManager *wm,
 
   if (WM_xr_session_exists(xr_data)) {
     GHOST_XrSessionEnd(xr_data->runtime->context);
+    xr_data->runtime->session_state.is_started = false;
   }
   else {
     GHOST_XrSessionBeginInfo begin_info;
@@ -197,8 +201,8 @@ static void wm_xr_session_draw_data_populate(wmXrData *xr_data,
   wm_xr_session_base_pose_calc(r_draw_data->scene, settings, &r_draw_data->base_pose);
 }
 
-static wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
-                                                           const wmXrRuntimeData *runtime_data)
+wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
+                                                    const wmXrRuntimeData *runtime_data)
 {
   if (runtime_data->session_root_win &&
       BLI_findindex(&wm->windows, runtime_data->session_root_win) != -1) {
@@ -371,6 +375,11 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
 wmXrSessionState *WM_xr_session_state_handle_get(const wmXrData *xr)
 {
   return xr->runtime ? &xr->runtime->session_state : NULL;
+}
+
+ScrArea *WM_xr_session_area_get(const wmXrData *xr)
+{
+  return xr->runtime ? xr->runtime->area : NULL;
 }
 
 bool WM_xr_session_state_viewer_pose_location_get(const wmXrData *xr, float r_location[3])
@@ -550,8 +559,9 @@ static void wm_xr_session_controller_data_update(const XrSessionSettings *settin
   }
 }
 
-void wm_xr_session_actions_update(wmXrData *xr)
+void wm_xr_session_actions_update(wmWindowManager *wm)
 {
+  wmXrData *xr = &wm->xr;
   if (!xr->runtime) {
     return;
   }
@@ -565,13 +575,26 @@ void wm_xr_session_actions_update(wmXrData *xr)
     return;
   }
 
-  /* Only update controller data for active action set. */
+  /* Only update controller data and dispatch events for active action set. */
   if (active_action_set) {
+    const XrSessionSettings *settings = &xr->session_settings;
+    wmWindow *win = wm_xr_session_root_window_or_fallback_get(wm, xr->runtime);
+
     if (active_action_set->controller_grip_action && active_action_set->controller_aim_action) {
-      wm_xr_session_controller_data_update(&xr->session_settings,
+      wm_xr_session_controller_data_update(settings,
                                            active_action_set->controller_grip_action,
                                            active_action_set->controller_aim_action,
                                            state);
+    }
+
+    if (win) {
+      /* Ensure an XR area exists for events. */
+      if (!xr->runtime->area) {
+        xr->runtime->area = ED_area_offscreen_create(win, SPACE_VIEW3D);
+      }
+
+      /* Implemented in D10944. */
+      // wm_xr_session_events_dispatch(xr, settings, xr_context, active_action_set, state, win);
     }
   }
 }
@@ -628,7 +651,7 @@ static void wm_xr_session_surface_draw(bContext *C)
   Main *bmain = CTX_data_main(C);
   wmXrDrawData draw_data;
 
-  if (!GHOST_XrSessionIsRunning(wm->xr.runtime->context)) {
+  if (!WM_xr_session_is_ready(&wm->xr)) {
     return;
   }
 

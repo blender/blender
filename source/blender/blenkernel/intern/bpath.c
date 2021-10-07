@@ -15,7 +15,7 @@
  */
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  */
 
 /* TODO:
@@ -66,13 +66,13 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_font.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
+#include "BKE_vfont.h"
 
 #include "BKE_bpath.h" /* own include */
 

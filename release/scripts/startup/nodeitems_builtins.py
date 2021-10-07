@@ -532,6 +532,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeCurveSetHandles"),
         NodeItem("GeometryNodeInputTangent"),
         NodeItem("GeometryNodeCurveSample"),
+        NodeItem("GeometryNodeCurveHandleTypeSelection"),
         NodeItem("GeometryNodeCurveFillet"),
         NodeItem("GeometryNodeCurveReverse"),
     ]),
@@ -624,6 +625,7 @@ geometry_node_categories = [
         NodeItem("ShaderNodeClamp"),
         NodeItem("ShaderNodeMath"),
         NodeItem("FunctionNodeBooleanMath"),
+        NodeItem("FunctionNodeRotateEuler"),
         NodeItem("FunctionNodeFloatCompare"),
         NodeItem("FunctionNodeFloatToInt"),
         NodeItem("GeometryNodeSwitch"),
@@ -645,6 +647,7 @@ geometry_node_categories = [
     GeometryNodeCategory("GEO_VOLUME", "Volume", items=[
         NodeItem("GeometryNodeLegacyPointsToVolume", poll=geometry_nodes_legacy_poll),
 
+        NodeItem("GeometryNodePointsToVolume"),
         NodeItem("GeometryNodeVolumeToMesh"),
     ]),
     GeometryNodeCategory("GEO_GROUP", "Group", items=node_group_items),

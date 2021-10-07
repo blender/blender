@@ -927,6 +927,9 @@ BufferParams BlenderSync::get_buffer_params(
     params.height = height;
   }
 
+  params.window_width = params.width;
+  params.window_height = params.height;
+
   return params;
 }
 

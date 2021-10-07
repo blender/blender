@@ -1496,8 +1496,10 @@ static void bone_children_clear_transflag(int mode, short around, ListBase *lb)
   }
 }
 
-/* Sets transform flags in the bones.
- * Returns total number of bones with `BONE_TRANSFORM`. */
+/**
+ * Sets transform flags in the bones.
+ * Returns total number of bones with #BONE_TRANSFORM.
+ */
 int transform_convert_pose_transflags_update(Object *ob,
                                              const int mode,
                                              const short around,
@@ -1730,7 +1732,7 @@ void special_aftertrans_update__pose(bContext *C, TransInfo *t)
         BKE_pose_where_is(t->depsgraph, t->scene, pose_ob);
       }
 
-      /* set BONE_TRANSFORM flags for autokey, gizmo draw might have changed them */
+      /* Set BONE_TRANSFORM flags for auto-key, gizmo draw might have changed them. */
       if (!canceled && (t->mode != TFM_DUMMY)) {
         transform_convert_pose_transflags_update(ob, t->mode, t->around, NULL);
       }

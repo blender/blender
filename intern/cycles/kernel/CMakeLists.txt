@@ -404,16 +404,27 @@ if(WITH_CYCLES_CUDA_BINARIES)
             -cuda-toolkit-dir "${cuda_toolkit_root_dir}"
         DEPENDS ${kernel_sources} cycles_cubin_cc)
     else()
-      add_custom_command(
-        OUTPUT ${cuda_file}
-        COMMAND ${cuda_nvcc_executable}
+      set(_cuda_nvcc_args
             -arch=${arch}
             ${CUDA_NVCC_FLAGS}
             --${format}
             ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
             --ptxas-options="-v"
-            ${cuda_flags}
-        DEPENDS ${kernel_sources})
+            ${cuda_flags})
+
+      if(WITH_COMPILER_CCACHE AND CCACHE_PROGRAM)
+        add_custom_command(
+          OUTPUT ${cuda_file}
+          COMMAND ${CCACHE_PROGRAM} ${cuda_nvcc_executable} ${_cuda_nvcc_args}
+          DEPENDS ${kernel_sources})
+      else()
+        add_custom_command(
+          OUTPUT ${cuda_file}
+          COMMAND ${cuda_nvcc_executable} ${_cuda_nvcc_args}
+          DEPENDS ${kernel_sources})
+      endif()
+
+      unset(_cuda_nvcc_args)
     endif()
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_file}" ${CYCLES_INSTALL_PATH}/lib)
     list(APPEND cuda_cubins ${cuda_file})
@@ -472,19 +483,9 @@ endif()
 
 # HIP module
 
-if(WITH_CYCLES_HIP_BINARIES)
+if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
   # 64 bit only
   set(HIP_BITS 64)
-
-  # HIP version
-  execute_process(COMMAND ${HIP_HIPCC_EXECUTABLE} "--version" OUTPUT_VARIABLE HIPCC_OUT)
-  string(REGEX REPLACE ".*release ([0-9]+)\\.([0-9]+).*" "\\1" HIP_VERSION_MAJOR "${HIPCC_OUT}")
-  string(REGEX REPLACE ".*release ([0-9]+)\\.([0-9]+).*" "\\2" HIP_VERSION_MINOR "${HIPCC_OUT}")
-  set(HIP_VERSION "${HIP_VERSION_MAJOR}${HIP_VERSION_MINOR}")
-
-
-  message(WARNING
-    "HIP version ${HIP_VERSION_MAJOR}.${HIP_VERSION_MINOR} detected")
 
   # build for each arch
   set(hip_sources device/hip/kernel.cpp
@@ -542,23 +543,24 @@ if(WITH_CYCLES_HIP_BINARIES)
         -D WITH_NANOVDB
         -I "${NANOVDB_INCLUDE_DIR}")
     endif()
+
+    add_custom_command(
+      OUTPUT ${hip_file}
+      COMMAND ${HIP_HIPCC_EXECUTABLE}
+          -arch=${arch}
+          ${HIP_HIPCC_FLAGS}
+          --${format}
+          ${CMAKE_CURRENT_SOURCE_DIR}${hip_kernel_src}
+          ${hip_flags}
+      DEPENDS ${kernel_sources})
+    delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${hip_file}" ${CYCLES_INSTALL_PATH}/lib)
+    list(APPEND hip_fatbins ${hip_file})
   endmacro()
 
   set(prev_arch "none")
   foreach(arch ${CYCLES_HIP_BINARIES_ARCH})
-      set(hip_hipcc_executable ${HIP_HIPCC_EXECUTABLE})
-      set(hip_toolkit_root_dir ${HIP_TOOLKIT_ROOT_DIR})
-    if(DEFINED hip_hipcc_executable AND DEFINED hip_toolkit_root_dir)
-      # Compile regular kernel
-      CYCLES_HIP_KERNEL_ADD(${arch} ${prev_arch} kernel "" "${hip_sources}" FALSE)
-
-      if(WITH_CYCLES_HIP_BUILD_SERIAL)
-        set(prev_arch ${arch})
-      endif()
-
-      unset(hip_hipcc_executable)
-      unset(hip_toolkit_root_dir)
-    endif()
+    # Compile regular kernel
+    CYCLES_HIP_KERNEL_ADD(${arch} ${prev_arch} kernel "" "${hip_sources}" FALSE)
   endforeach()
 
   add_custom_target(cycles_kernel_hip ALL DEPENDS ${hip_fatbins})

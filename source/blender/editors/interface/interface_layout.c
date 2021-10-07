@@ -5605,28 +5605,52 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
   ui_button_group_add_but(uiLayoutGetBlock(layout), but);
 }
 
-bool ui_layout_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut *new_but)
+static uiButtonItem *ui_layout_find_button_item(const uiLayout *layout, const uiBut *but)
 {
-  ListBase *child_list = layout->child_items_layout ? &layout->child_items_layout->items :
-                                                      &layout->items;
+  const ListBase *child_list = layout->child_items_layout ? &layout->child_items_layout->items :
+                                                            &layout->items;
 
   LISTBASE_FOREACH (uiItem *, item, child_list) {
     if (item->type == ITEM_BUTTON) {
       uiButtonItem *bitem = (uiButtonItem *)item;
 
-      if (bitem->but == old_but_ptr) {
-        bitem->but = new_but;
-        return true;
+      if (bitem->but == but) {
+        return bitem;
       }
     }
     else {
-      if (ui_layout_replace_but_ptr((uiLayout *)item, old_but_ptr, new_but)) {
-        return true;
+      uiButtonItem *nested_item = ui_layout_find_button_item((uiLayout *)item, but);
+      if (nested_item) {
+        return nested_item;
       }
     }
   }
 
-  return false;
+  return NULL;
+}
+
+void ui_layout_remove_but(uiLayout *layout, const uiBut *but)
+{
+  uiButtonItem *bitem = ui_layout_find_button_item(layout, but);
+  if (!bitem) {
+    return;
+  }
+
+  BLI_freelinkN(&layout->items, bitem);
+}
+
+/**
+ * \return true if the button was successfully replaced.
+ */
+bool ui_layout_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut *new_but)
+{
+  uiButtonItem *bitem = ui_layout_find_button_item(layout, old_but_ptr);
+  if (!bitem) {
+    return false;
+  }
+
+  bitem->but = new_but;
+  return true;
 }
 
 void uiLayoutSetFixedSize(uiLayout *layout, bool fixed_size)

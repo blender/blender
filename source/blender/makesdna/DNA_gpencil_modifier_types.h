@@ -260,7 +260,7 @@ typedef struct ColorGpencilModifierData {
   int pass_index;
   /** Flags. */
   int flag;
-  /** Hsv factors. */
+  /** HSV factors. */
   float hsv[3];
   /** Modify stroke, fill or both. */
   char modify_color;

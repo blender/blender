@@ -2943,7 +2943,7 @@ static void rna_def_modifier_gpencilweight_angle(BlenderRNA *brna)
   };
 
   srna = RNA_def_struct(brna, "WeightAngleGpencilModifier", "GpencilModifier");
-  RNA_def_struct_ui_text(srna, "Weight Modifier Amgle", "Calculate Vertex Weight dynamically");
+  RNA_def_struct_ui_text(srna, "Weight Modifier Angle", "Calculate Vertex Weight dynamically");
   RNA_def_struct_sdna(srna, "WeightAngleGpencilModifierData");
   RNA_def_struct_ui_icon(srna, ICON_MOD_VERTEX_WEIGHT);
 
@@ -3589,7 +3589,7 @@ static void rna_def_modifier_gpencildash(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "segment_active_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Active Dash Segement Index", "Active index in the segment list");
+  RNA_def_property_ui_text(prop, "Active Dash Segment Index", "Active index in the segment list");
 
   prop = RNA_def_property(srna, "dash_offset", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(

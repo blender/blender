@@ -20,7 +20,7 @@
 #pragma once
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  * \brief A structure to represent vector fonts,
  *   and to load them from PostScript fonts.
  */
@@ -49,11 +49,11 @@ typedef struct VChar {
   float width;
 } VChar;
 
-VFontData *BLI_vfontdata_from_freetypefont(struct PackedFile *pf);
-VFontData *BLI_vfontdata_copy(const VFontData *vfont_src, const int flag);
+VFontData *BKE_vfontdata_from_freetypefont(struct PackedFile *pf);
+VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, const int flag);
 
-VChar *BLI_vfontchar_from_freetypefont(struct VFont *vfont, unsigned long character);
-VChar *BLI_vfontchar_copy(const VChar *vchar_src, const int flag);
+VChar *BKE_vfontdata_char_from_freetypefont(struct VFont *vfont, unsigned long character);
+VChar *BKE_vfontdata_char_copy(const VChar *vchar_src);
 
 #ifdef __cplusplus
 }

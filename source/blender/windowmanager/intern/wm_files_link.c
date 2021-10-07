@@ -579,13 +579,26 @@ static void wm_append_loose_data_instantiate(WMLinkAppendData *lapp_data,
 
     id->tag &= ~LIB_TAG_DOIT;
   }
+
+  /* Finally, add rigid body objects and constraints to current RB world(s). */
+  for (itemlink = lapp_data->items.list; itemlink; itemlink = itemlink->next) {
+    WMLinkAppendDataItem *item = itemlink->link;
+    ID *id = wm_append_loose_data_instantiate_process_check(item);
+    if (id == NULL || GS(id->name) != ID_OB) {
+      continue;
+    }
+    BKE_rigidbody_ensure_local_object(bmain, (Object *)id);
+  }
 }
 
 /** \} */
 
 static int foreach_libblock_append_callback(LibraryIDLinkCallbackData *cb_data)
 {
-  if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_INTERNAL | IDWALK_CB_LOOPBACK)) {
+  /* NOTE: It is important to also skip liboverride references here, as those should never be made
+   * local. */
+  if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_INTERNAL | IDWALK_CB_LOOPBACK |
+                          IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
     return IDWALK_RET_NOP;
   }
 
@@ -642,7 +655,8 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
 
   LinkNode *itemlink;
 
-  /* Generate a mapping between newly linked IDs and their items. */
+  /* Generate a mapping between newly linked IDs and their items, and tag linked IDs used as
+   * liboverride references as already existing. */
   lapp_data->new_id_to_item = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
   for (itemlink = lapp_data->items.list; itemlink; itemlink = itemlink->next) {
     WMLinkAppendDataItem *item = itemlink->link;
@@ -651,6 +665,13 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
       continue;
     }
     BLI_ghash_insert(lapp_data->new_id_to_item, id, item);
+
+    /* This ensures that if a liboverride reference is also linked/used by some other appended
+     * data, it gets a local copy instead of being made directly local, so that the liboverride
+     * references remain valid (i.e. linked data). */
+    if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      id->override_library->reference->tag |= LIB_TAG_PRE_EXISTING;
+    }
   }
 
   lapp_data->library_weak_reference_mapping = BKE_main_library_weak_reference_create(bmain);
@@ -694,7 +715,6 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
       item->append_action = WM_APPEND_ACT_COPY_LOCAL;
     }
     else {
-      /* In future we could search for already existing matching local ID etc. */
       CLOG_INFO(&LOG, 3, "Appended ID '%s' will be made local...", id->name);
       item->append_action = WM_APPEND_ACT_MAKE_LOCAL;
     }
@@ -773,9 +793,6 @@ static void wm_append_do(WMLinkAppendData *lapp_data,
                                                  local_appended_new_id);
       }
 
-      if (GS(local_appended_new_id->name) == ID_OB) {
-        BKE_rigidbody_ensure_local_object(bmain, (Object *)local_appended_new_id);
-      }
       if (set_fakeuser) {
         if (!ELEM(GS(local_appended_new_id->name), ID_OB, ID_GR)) {
           /* Do not set fake user on objects nor collections (instancing). */

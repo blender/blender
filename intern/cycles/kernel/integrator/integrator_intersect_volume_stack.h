@@ -38,10 +38,13 @@ ccl_device void integrator_volume_stack_update_for_subsurface(INTEGRATOR_STATE_A
   volume_ray.P = from_P;
   volume_ray.D = normalize_len(to_P - from_P, &volume_ray.t);
 
+  /* Store to avoid global fetches on every intersection step. */
+  const uint volume_stack_size = kernel_data.volume_stack_size;
+
 #ifdef __VOLUME_RECORD_ALL__
-  Intersection hits[2 * VOLUME_STACK_SIZE + 1];
+  Intersection hits[2 * MAX_VOLUME_STACK_SIZE + 1];
   uint num_hits = scene_intersect_volume_all(
-      kg, &volume_ray, hits, 2 * VOLUME_STACK_SIZE, PATH_RAY_ALL_VISIBILITY);
+      kg, &volume_ray, hits, 2 * volume_stack_size, PATH_RAY_ALL_VISIBILITY);
   if (num_hits > 0) {
     Intersection *isect = hits;
 
@@ -55,7 +58,7 @@ ccl_device void integrator_volume_stack_update_for_subsurface(INTEGRATOR_STATE_A
 #else
   Intersection isect;
   int step = 0;
-  while (step < 2 * VOLUME_STACK_SIZE &&
+  while (step < 2 * volume_stack_size &&
          scene_intersect_volume(kg, &volume_ray, &isect, PATH_RAY_ALL_VISIBILITY)) {
     shader_setup_from_ray(kg, stack_sd, &volume_ray, &isect);
     volume_stack_enter_exit(INTEGRATOR_STATE_PASS, stack_sd);
@@ -91,12 +94,15 @@ ccl_device void integrator_intersect_volume_stack(INTEGRATOR_STATE_ARGS)
     stack_index++;
   }
 
+  /* Store to avoid global fetches on every intersection step. */
+  const uint volume_stack_size = kernel_data.volume_stack_size;
+
 #ifdef __VOLUME_RECORD_ALL__
-  Intersection hits[2 * VOLUME_STACK_SIZE + 1];
+  Intersection hits[2 * MAX_VOLUME_STACK_SIZE + 1];
   uint num_hits = scene_intersect_volume_all(
-      kg, &volume_ray, hits, 2 * VOLUME_STACK_SIZE, visibility);
+      kg, &volume_ray, hits, 2 * volume_stack_size, visibility);
   if (num_hits > 0) {
-    int enclosed_volumes[VOLUME_STACK_SIZE];
+    int enclosed_volumes[MAX_VOLUME_STACK_SIZE];
     Intersection *isect = hits;
 
     qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
@@ -121,7 +127,7 @@ ccl_device void integrator_intersect_volume_stack(INTEGRATOR_STATE_ARGS)
             break;
           }
         }
-        if (need_add && stack_index < VOLUME_STACK_SIZE - 1) {
+        if (need_add && stack_index < volume_stack_size - 1) {
           const VolumeStack new_entry = {stack_sd->object, stack_sd->shader};
           integrator_state_write_volume_stack(INTEGRATOR_STATE_PASS, stack_index, new_entry);
           ++stack_index;
@@ -136,11 +142,12 @@ ccl_device void integrator_intersect_volume_stack(INTEGRATOR_STATE_ARGS)
     }
   }
 #else
-  int enclosed_volumes[VOLUME_STACK_SIZE];
+  /* CUDA does not support defintion of a variable size arrays, so use the maximum possible. */
+  int enclosed_volumes[MAX_VOLUME_STACK_SIZE];
   int step = 0;
 
-  while (stack_index < VOLUME_STACK_SIZE - 1 && enclosed_index < VOLUME_STACK_SIZE - 1 &&
-         step < 2 * VOLUME_STACK_SIZE) {
+  while (stack_index < volume_stack_size - 1 && enclosed_index < volume_stack_size - 1 &&
+         step < 2 * volume_stack_size) {
     Intersection isect;
     if (!scene_intersect_volume(kg, &volume_ray, &isect, visibility)) {
       break;

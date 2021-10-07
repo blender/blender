@@ -225,7 +225,6 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BLI_math_base.h"
 
 #  include "BKE_anim_data.h"
-#  include "BKE_font.h"
 #  include "BKE_global.h" /* XXX, remove me */
 #  include "BKE_idprop.h"
 #  include "BKE_idtype.h"
@@ -234,6 +233,7 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BKE_lib_remap.h"
 #  include "BKE_library.h"
 #  include "BKE_material.h"
+#  include "BKE_vfont.h"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"

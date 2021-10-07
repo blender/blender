@@ -43,12 +43,12 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_font.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_sound.h"
+#include "BKE_vfont.h"
 #include "BKE_volume.h"
 
 #include "IMB_imbuf.h"

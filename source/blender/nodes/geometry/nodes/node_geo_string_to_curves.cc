@@ -18,8 +18,8 @@
 #include "DNA_vfont_types.h"
 
 #include "BKE_curve.h"
-#include "BKE_font.h"
 #include "BKE_spline.hh"
+#include "BKE_vfont.h"
 
 #include "BLI_hash.h"
 #include "BLI_string_utf8.h"

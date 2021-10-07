@@ -177,7 +177,7 @@ eDepsSceneComponentType nodeTypeToSceneComponent(NodeType type)
     case NodeType::SIMULATION:
       return DEG_SCENE_COMP_PARAMETERS;
   }
-  BLI_assert_msg(0, "Unhandled node type, not suppsed to happen.");
+  BLI_assert_msg(0, "Unhandled node type, not supposed to happen.");
   return DEG_SCENE_COMP_PARAMETERS;
 }
 

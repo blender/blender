@@ -535,37 +535,42 @@ void ED_imbuf_sample_cancel(bContext *C, wmOperator *op)
 
 bool ED_imbuf_sample_poll(bContext *C)
 {
-  ScrArea *sa = CTX_wm_area(C);
-
-  if (sa && sa->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = CTX_wm_space_image(C);
-    if (sima == NULL) {
-      return false;
-    }
-
-    Object *obedit = CTX_data_edit_object(C);
-    if (obedit) {
-      /* Disable when UV editing so it doesn't swallow all click events
-       * (use for setting cursor). */
-      if (ED_space_image_show_uvedit(sima, obedit)) {
-        return false;
-      }
-    }
-    else if (sima->mode != SI_MODE_VIEW) {
-      return false;
-    }
-
-    return true;
+  ScrArea *area = CTX_wm_area(C);
+  if (area == NULL) {
+    return false;
   }
 
-  if (sa && sa->spacetype == SPACE_SEQ) {
-    SpaceSeq *sseq = CTX_wm_space_seq(C);
-
-    if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
-      return false;
+  switch (area->spacetype) {
+    case SPACE_IMAGE: {
+      SpaceImage *sima = area->spacedata.first;
+      Object *obedit = CTX_data_edit_object(C);
+      if (obedit) {
+        /* Disable when UV editing so it doesn't swallow all click events
+         * (use for setting cursor). */
+        if (ED_space_image_show_uvedit(sima, obedit)) {
+          return false;
+        }
+      }
+      else if (sima->mode != SI_MODE_VIEW) {
+        return false;
+      }
+      return true;
     }
+    case SPACE_SEQ: {
+      SpaceSeq *sseq = area->spacedata.first;
 
-    return sseq && SEQ_editing_get(CTX_data_scene(C)) != NULL;
+      if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
+        return false;
+      }
+      if (SEQ_editing_get(CTX_data_scene(C)) == NULL) {
+        return false;
+      }
+      ARegion *region = CTX_wm_region(C);
+      if (!(region && (region->regiontype == RGN_TYPE_PREVIEW))) {
+        return false;
+      }
+      return true;
+    }
   }
 
   return false;

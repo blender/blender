@@ -17,7 +17,7 @@
 #pragma once
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  */
 
 #ifdef __cplusplus

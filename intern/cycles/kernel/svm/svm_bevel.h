@@ -206,8 +206,7 @@ ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
 #  ifdef __OBJECT_MOTION__
       else if (sd->type & PRIMITIVE_MOTION_TRIANGLE) {
         float3 verts[3];
-        motion_triangle_vertices(
-            kg, sd->object, kernel_tex_fetch(__prim_index, isect.hits[hit].prim), sd->time, verts);
+        motion_triangle_vertices(kg, sd->object, isect.hits[hit].prim, sd->time, verts);
         hit_P = motion_triangle_refine_local(
             kg, sd, ray->P, ray->D, ray->t, isect.hits[hit].object, isect.hits[hit].prim, verts);
       }
@@ -215,9 +214,7 @@ ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
 
       /* Get geometric normal. */
       float3 hit_Ng = isect.Ng[hit];
-      int object = (isect.hits[hit].object == OBJECT_NONE) ?
-                       kernel_tex_fetch(__prim_object, isect.hits[hit].prim) :
-                       isect.hits[hit].object;
+      int object = isect.hits[hit].object;
       int object_flag = kernel_tex_fetch(__object_flag, object);
       if (object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
         hit_Ng = -hit_Ng;
@@ -225,7 +222,7 @@ ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
 
       /* Compute smooth normal. */
       float3 N = hit_Ng;
-      int prim = kernel_tex_fetch(__prim_index, isect.hits[hit].prim);
+      int prim = isect.hits[hit].prim;
       int shader = kernel_tex_fetch(__tri_shader, prim);
 
       if (shader & SHADER_SMOOTH_NORMAL) {

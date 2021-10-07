@@ -51,9 +51,9 @@
 /* Z-depth of cleared depth buffer */
 #define DEPTH_MAX 0xffffffff
 
-/* ----------------------------------------------------------------------------
- * SubRectStride
- */
+/* -------------------------------------------------------------------- */
+/** \name #SubRectStride
+ * \{ */
 
 /* For looping over a sub-region of a rect, could be moved into 'rct.c'. */
 typedef struct SubRectStride {
@@ -99,14 +99,16 @@ BLI_INLINE bool depth_is_filled(const depth_t *prev, const depth_t *curr)
   return (*prev != *curr) && (*curr != DEPTH_MAX);
 }
 
-/* ----------------------------------------------------------------------------
- * DepthBufCache
- *
- * Result of reading glReadPixels,
- * use for both cache and non-cached storage.
- */
+/** \} */
 
-/* store result of glReadPixels */
+/* -------------------------------------------------------------------- */
+/** \name #DepthBufCache
+ *
+ * Result of reading #glReadPixels,
+ * use for both cache and non-cached storage.
+ * \{ */
+
+/** Store result of #glReadPixels. */
 typedef struct DepthBufCache {
   struct DepthBufCache *next, *prev;
   uint id;
@@ -188,11 +190,13 @@ static bool depth_buf_subrect_depth_any_filled(const DepthBufCache *rect_src,
   return false;
 }
 
-/* ----------------------------------------------------------------------------
- * DepthID
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #DepthID
  *
  * Internal structure for storing hits.
- */
+ * \{ */
 
 typedef struct DepthID {
   uint id;
@@ -224,6 +228,12 @@ static int depth_cmp(const void *v1, const void *v2)
 
   return 0;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Main Selection Begin/End/Load API
+ * \{ */
 
 /* depth sorting */
 typedef struct GPUPickState {
@@ -691,11 +701,13 @@ uint gpu_select_pick_end(void)
   return hits;
 }
 
-/* ----------------------------------------------------------------------------
- * Caching
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Caching
  *
  * Support multiple begin/end's reusing depth buffers.
- */
+ * \{ */
 
 void gpu_select_pick_cache_begin(void)
 {
@@ -749,3 +761,5 @@ void gpu_select_pick_cache_load_id(void)
     }
   }
 }
+
+/** \} */

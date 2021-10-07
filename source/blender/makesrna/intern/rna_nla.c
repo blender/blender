@@ -751,14 +751,14 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Influence", "Amount the strip contributes to the current result");
   /* XXX: Update temporarily disabled so that the property can be edited at all!
-   * Even autokey only applies after the curves have been re-evaluated,
+   * Even auto-key only applies after the curves have been re-evaluated,
    * causing the unkeyed values to be lost. */
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA | NA_EDITED, /*"rna_NlaStrip_update"*/ NULL);
 
   prop = RNA_def_property(srna, "strip_time", PROP_FLOAT, PROP_TIME);
   RNA_def_property_ui_text(prop, "Strip Time", "Frame of referenced Action to evaluate");
   /* XXX: Update temporarily disabled so that the property can be edited at all!
-   * Even autokey only applies after the curves have been re-evaluated,
+   * Even auto-key only applies after the curves have been re-evaluated,
    * causing the unkeyed values to be lost. */
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA | NA_EDITED, /*"rna_NlaStrip_update"*/ NULL);
 

@@ -150,7 +150,7 @@ void ED_operatortypes_armature(void)
   WM_operatortype_append(POSE_OT_push_rest);
   WM_operatortype_append(POSE_OT_relax_rest);
   WM_operatortype_append(POSE_OT_breakdown);
-  WM_operatortype_append(POSE_OT_blend_to_neighbours);
+  WM_operatortype_append(POSE_OT_blend_to_neighbors);
 }
 
 void ED_operatormacros_armature(void)

@@ -91,7 +91,7 @@ TEST(AssetCatalogPathTest, move_semantics)
   EXPECT_TRUE(source_path);
 
   AssetCatalogPath dest_path = std::move(source_path);
-  EXPECT_FALSE(source_path);
+  EXPECT_FALSE(source_path); /* NOLINT: bugprone-use-after-move */
   EXPECT_TRUE(dest_path);
 }
 

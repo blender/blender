@@ -70,6 +70,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sound.h"
+#include "BKE_vfont.h"
 
 #include "BKE_addon.h"
 #include "BKE_appdir.h"

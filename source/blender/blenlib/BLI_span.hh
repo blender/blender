@@ -729,29 +729,4 @@ template<typename T> class MutableSpan {
   }
 };
 
-/**
- * Utilities to check that arrays have the same size in debug builds.
- */
-template<typename T1, typename T2> constexpr void assert_same_size(const T1 &v1, const T2 &v2)
-{
-  UNUSED_VARS_NDEBUG(v1, v2);
-#ifdef DEBUG
-  int64_t size = v1.size();
-  BLI_assert(size == v1.size());
-  BLI_assert(size == v2.size());
-#endif
-}
-
-template<typename T1, typename T2, typename T3>
-constexpr void assert_same_size(const T1 &v1, const T2 &v2, const T3 &v3)
-{
-  UNUSED_VARS_NDEBUG(v1, v2, v3);
-#ifdef DEBUG
-  int64_t size = v1.size();
-  BLI_assert(size == v1.size());
-  BLI_assert(size == v2.size());
-  BLI_assert(size == v3.size());
-#endif
-}
-
 } /* namespace blender */

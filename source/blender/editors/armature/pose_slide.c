@@ -914,7 +914,7 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
       strcpy(mode_str, TIP_("Breakdown"));
       break;
     case POSESLIDE_BLEND:
-      strcpy(mode_str, TIP_("Blend To Neighbour"));
+      strcpy(mode_str, TIP_("Blend To Neighbor"));
       break;
 
     default:
@@ -1709,7 +1709,7 @@ void POSE_OT_breakdown(wmOperatorType *ot)
 }
 
 /* ........................ */
-static int pose_slide_blend_to_neighbours_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int pose_slide_blend_to_neighbors_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   /* Initialize data. */
   if (pose_slide_init(C, op, POSESLIDE_BLEND) == 0) {
@@ -1721,7 +1721,7 @@ static int pose_slide_blend_to_neighbours_invoke(bContext *C, wmOperator *op, co
   return pose_slide_invoke_common(C, op, event);
 }
 
-static int pose_slide_blend_to_neighbours_exec(bContext *C, wmOperator *op)
+static int pose_slide_blend_to_neighbors_exec(bContext *C, wmOperator *op)
 {
   tPoseSlideOp *pso;
 
@@ -1737,16 +1737,16 @@ static int pose_slide_blend_to_neighbours_exec(bContext *C, wmOperator *op)
   return pose_slide_exec_common(C, op, pso);
 }
 
-void POSE_OT_blend_to_neighbours(wmOperatorType *ot)
+void POSE_OT_blend_to_neighbors(wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Blend To Neighbour";
-  ot->idname = "POSE_OT_blend_to_neighbour";
+  ot->name = "Blend To Neighbor";
+  ot->idname = "POSE_OT_blend_to_neighbor";
   ot->description = "Blend from current position to previous or next keyframe";
 
   /* Callbacks. */
-  ot->exec = pose_slide_blend_to_neighbours_exec;
-  ot->invoke = pose_slide_blend_to_neighbours_invoke;
+  ot->exec = pose_slide_blend_to_neighbors_exec;
+  ot->invoke = pose_slide_blend_to_neighbors_invoke;
   ot->modal = pose_slide_modal;
   ot->cancel = pose_slide_cancel;
   ot->poll = ED_operator_posemode;

@@ -65,7 +65,9 @@ Mesh *create_grid_mesh(const int verts_x,
 Mesh *create_cylinder_or_cone_mesh(const float radius_top,
                                    const float radius_bottom,
                                    const float depth,
-                                   const int verts_num,
+                                   const int circle_segments,
+                                   const int side_segments,
+                                   const int fill_segments,
                                    const GeometryNodeMeshCircleFillType fill_type);
 
 Mesh *create_cuboid_mesh(float3 size, int verts_x, int verts_y, int verts_z);

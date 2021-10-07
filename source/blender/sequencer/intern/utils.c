@@ -450,6 +450,21 @@ ListBase *SEQ_get_seqbase_by_seq(ListBase *seqbase, Sequence *seq)
   return NULL;
 }
 
+Sequence *SEQ_get_meta_by_seqbase(ListBase *seqbase_main, ListBase *meta_seqbase)
+{
+  SeqCollection *strips = SEQ_query_all_strips_recursive(seqbase_main);
+
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, strips) {
+    if (seq->type == SEQ_TYPE_META && &seq->seqbase == meta_seqbase) {
+      break;
+    }
+  }
+
+  SEQ_collection_free(strips);
+  return seq;
+}
+
 /**
  * Only use as last resort when the StripElem is available but no the Sequence.
  * (needed for RNA)

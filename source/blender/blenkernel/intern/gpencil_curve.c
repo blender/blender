@@ -1167,7 +1167,7 @@ void BKE_gpencil_editcurve_recalculate_handles(bGPDstroke *gps)
     bGPDcurve_point *gpc_pt = &gpc->curve_points[i];
     bGPDcurve_point *gpc_pt_prev = &gpc->curve_points[i - 1];
     bGPDcurve_point *gpc_pt_next = &gpc->curve_points[i + 1];
-    /* update handle if point or neighbour is selected */
+    /* update handle if point or neighbor is selected */
     if (gpc_pt->flag & GP_CURVE_POINT_SELECT || gpc_pt_prev->flag & GP_CURVE_POINT_SELECT ||
         gpc_pt_next->flag & GP_CURVE_POINT_SELECT) {
       BezTriple *bezt = &gpc_pt->bezt;

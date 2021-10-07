@@ -51,8 +51,8 @@
 #  include "BLI_mesh_boolean.hh"
 
 #  ifdef WITH_TBB
-#    include "tbb/parallel_reduce.h"
-#    include "tbb/spin_mutex.h"
+#    include <tbb/parallel_reduce.h>
+#    include <tbb/spin_mutex.h>
 #  endif
 
 // #  define PERFDEBUG

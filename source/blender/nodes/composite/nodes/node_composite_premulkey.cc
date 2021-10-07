@@ -41,6 +41,6 @@ void register_node_type_cmp_premulkey(void)
 
   cmp_node_type_base(&ntype, CMP_NODE_PREMULKEY, "Alpha Convert", NODE_CLASS_CONVERTER, 0);
   ntype.declare = blender::nodes::cmp_node_premulkey_declare;
-  
+
   nodeRegisterType(&ntype);
 }

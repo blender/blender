@@ -109,7 +109,6 @@ typedef enum eGP_StrokeAdd_Result {
 /* Runtime flags */
 typedef enum eGPencil_PaintFlags {
   GP_PAINTFLAG_FIRSTRUN = (1 << 0), /* operator just started */
-  GP_PAINTFLAG_STROKEADDED = (1 << 1),
   GP_PAINTFLAG_SELECTMASK = (1 << 3),
   GP_PAINTFLAG_HARD_ERASER = (1 << 4),
   GP_PAINTFLAG_STROKE_ERASER = (1 << 5),
@@ -280,15 +279,6 @@ static void gpencil_update_cache(bGPdata *gpd)
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
   }
-}
-
-static void gpencil_stroke_added_enable(tGPsdata *p)
-{
-  BLI_assert(p->gpf->strokes.last != NULL);
-  p->flags |= GP_PAINTFLAG_STROKEADDED;
-
-  /* drawing batch cache is dirty now */
-  gpencil_update_cache(p->gpd);
 }
 
 /* ------ */
@@ -879,7 +869,7 @@ static short gpencil_stroke_addpoint(tGPsdata *p,
     pt->time = (float)(curtime - p->inittime);
 
     /* point uv (only 3d view) */
-    if ((p->area->spacetype == SPACE_VIEW3D) && (gpd->runtime.sbuffer_used > 0)) {
+    if (gpd->runtime.sbuffer_used > 0) {
       tGPspoint *ptb = (tGPspoint *)gpd->runtime.sbuffer + gpd->runtime.sbuffer_used - 1;
       bGPDspoint spt, spt2;
 
@@ -1324,7 +1314,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     BKE_gpencil_stroke_copy_to_keyframes(gpd, gpl, p->gpf, gps, tail);
   }
 
-  gpencil_stroke_added_enable(p);
+  gpencil_update_cache(p->gpd);
 }
 
 /* --- 'Eraser' for 'Paint' Tool ------ */
@@ -1345,8 +1335,7 @@ static bool gpencil_stroke_eraser_is_occluded(
     gp_settings = eraser->gpencil_settings;
   }
 
-  if ((gp_settings != NULL) && (p->area->spacetype == SPACE_VIEW3D) &&
-      (gp_settings->flag & GP_BRUSH_OCCLUDE_ERASER)) {
+  if ((gp_settings != NULL) && (gp_settings->flag & GP_BRUSH_OCCLUDE_ERASER)) {
     RegionView3D *rv3d = p->region->regiondata;
 
     const int mval_i[2] = {x, y};
@@ -1739,12 +1728,10 @@ static void gpencil_stroke_doeraser(tGPsdata *p)
   rect.xmax = p->mval[0] + calc_radius;
   rect.ymax = p->mval[1] + calc_radius;
 
-  if (p->area->spacetype == SPACE_VIEW3D) {
-    if ((gp_settings != NULL) && (gp_settings->flag & GP_BRUSH_OCCLUDE_ERASER)) {
-      View3D *v3d = p->area->spacedata.first;
-      view3d_region_operator_needs_opengl(p->win, p->region);
-      ED_view3d_depth_override(p->depsgraph, p->region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, NULL);
-    }
+  if ((gp_settings != NULL) && (gp_settings->flag & GP_BRUSH_OCCLUDE_ERASER)) {
+    View3D *v3d = p->area->spacedata.first;
+    view3d_region_operator_needs_opengl(p->win, p->region);
+    ED_view3d_depth_override(p->depsgraph, p->region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, NULL);
   }
 
   /* loop over all layers too, since while it's easy to restrict editing to
@@ -1971,47 +1958,34 @@ static bool gpencil_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
   unit_m4(p->imat);
   unit_m4(p->mat);
 
-  switch (curarea->spacetype) {
-    /* supported views first */
-    case SPACE_VIEW3D: {
-      /* set current area
-       * - must verify that region data is 3D-view (and not something else)
-       */
-      /* CAUTION: If this is the "toolbar", then this will change on the first stroke */
-      p->area = curarea;
-      p->region = region;
-      p->align_flag = &ts->gpencil_v3d_align;
+  /* set current area
+   * - must verify that region data is 3D-view (and not something else)
+   */
+  /* CAUTION: If this is the "toolbar", then this will change on the first stroke */
+  p->area = curarea;
+  p->region = region;
+  p->align_flag = &ts->gpencil_v3d_align;
 
-      if (region->regiondata == NULL) {
-        p->status = GP_STATUS_ERROR;
-        return 0;
-      }
-
-      if ((!obact) || (obact->type != OB_GPENCIL)) {
-        View3D *v3d = p->area->spacedata.first;
-        /* if active object doesn't exist or isn't a GP Object, create one */
-        const float *cur = p->scene->cursor.location;
-
-        ushort local_view_bits = 0;
-        if (v3d->localvd) {
-          local_view_bits = v3d->local_view_uuid;
-        }
-        /* create new default object */
-        obact = ED_gpencil_add_object(C, cur, local_view_bits);
-      }
-      /* assign object after all checks to be sure we have one active */
-      p->ob = obact;
-      p->ob_eval = (Object *)DEG_get_evaluated_object(p->depsgraph, p->ob);
-
-      break;
-    }
-
-    /* unsupported views */
-    default: {
-      p->status = GP_STATUS_ERROR;
-      return 0;
-    }
+  if (region->regiondata == NULL) {
+    p->status = GP_STATUS_ERROR;
+    return 0;
   }
+
+  if ((!obact) || (obact->type != OB_GPENCIL)) {
+    View3D *v3d = p->area->spacedata.first;
+    /* if active object doesn't exist or isn't a GP Object, create one */
+    const float *cur = p->scene->cursor.location;
+
+    ushort local_view_bits = 0;
+    if (v3d->localvd) {
+      local_view_bits = v3d->local_view_uuid;
+    }
+    /* create new default object */
+    obact = ED_gpencil_add_object(C, cur, local_view_bits);
+  }
+  /* assign object after all checks to be sure we have one active */
+  p->ob = obact;
+  p->ob_eval = (Object *)DEG_get_evaluated_object(p->depsgraph, p->ob);
 
   /* get gp-data */
   gpd_ptr = ED_gpencil_data_get_pointers(C, &p->ownerPtr);
@@ -2248,17 +2222,15 @@ static void gpencil_paint_initstroke(tGPsdata *p,
   /* when drawing in the camera view, in 2D space, set the subrect */
   p->subrect = NULL;
   if ((*p->align_flag & GP_PROJECT_VIEWSPACE) == 0) {
-    if (p->area->spacetype == SPACE_VIEW3D) {
-      View3D *v3d = p->area->spacedata.first;
-      RegionView3D *rv3d = p->region->regiondata;
+    View3D *v3d = p->area->spacedata.first;
+    RegionView3D *rv3d = p->region->regiondata;
 
-      /* for camera view set the subrect */
-      if (rv3d->persp == RV3D_CAMOB) {
-        /* no shift */
-        ED_view3d_calc_camera_border(
-            p->scene, depsgraph, p->region, v3d, rv3d, &p->subrect_data, true);
-        p->subrect = &p->subrect_data;
-      }
+    /* for camera view set the subrect */
+    if (rv3d->persp == RV3D_CAMOB) {
+      /* no shift */
+      ED_view3d_calc_camera_border(
+          p->scene, depsgraph, p->region, v3d, rv3d, &p->subrect_data, true);
+      p->subrect = &p->subrect_data;
     }
   }
 
@@ -2277,12 +2249,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
 
   /* check if points will need to be made in view-aligned space */
   if (*p->align_flag & GP_PROJECT_VIEWSPACE) {
-    switch (p->area->spacetype) {
-      case SPACE_VIEW3D: {
-        p->gpd->runtime.sbuffer_sflag |= GP_STROKE_3DSPACE;
-        break;
-      }
-    }
+    p->gpd->runtime.sbuffer_sflag |= GP_STROKE_3DSPACE;
   }
   if (!changed) {
     /* Copy the brush to avoid a full tag (very slow). */
@@ -2435,15 +2402,9 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
       p->eraser->size = p->radius;
     }
 
-    /* restore cursor to indicate end of drawing */
-    if (p->area->spacetype != SPACE_VIEW3D) {
-      WM_cursor_modal_restore(CTX_wm_window(C));
-    }
-    else {
-      /* drawing batch cache is dirty now */
-      bGPdata *gpd = CTX_data_gpencil_data(C);
-      gpencil_update_cache(gpd);
-    }
+    /* drawing batch cache is dirty now */
+    bGPdata *gpd = CTX_data_gpencil_data(C);
+    gpencil_update_cache(gpd);
 
     /* clear undo stack */
     gpencil_undo_finish();

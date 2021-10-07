@@ -52,6 +52,14 @@ typedef enum eGPUSamplerState {
   GPU_SAMPLER_REPEAT = (GPU_SAMPLER_REPEAT_S | GPU_SAMPLER_REPEAT_T | GPU_SAMPLER_REPEAT_R),
 } eGPUSamplerState;
 
+#define GPU_TEXTURE_FREE_SAFE(texture) \
+  do { \
+    if (texture != NULL) { \
+      GPU_texture_free(texture); \
+      texture = NULL; \
+    } \
+  } while (0)
+
 /* `GPU_SAMPLER_MAX` is not a valid enum value, but only a limit.
  * It also creates a bad mask for the `NOT` operator in `ENUM_OPERATORS`.
  */

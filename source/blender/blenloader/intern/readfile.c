@@ -5040,7 +5040,6 @@ static void library_link_end(Main *mainl,
     add_main_to_main(mainvar, main_newid);
   }
 
-  BKE_main_free(main_newid);
   blo_join_main((*fd)->mainlist);
   mainvar = (*fd)->mainlist->first;
   MEM_freeN((*fd)->mainlist);
@@ -5053,6 +5052,15 @@ static void library_link_end(Main *mainl,
   ntreeUpdateAllNew(mainvar);
 
   placeholders_ensure_valid(mainvar);
+
+  /* Apply overrides of newly linked data if needed. Already existing IDs need to split out, to
+   * avoid re-applying their own overrides. */
+  BLI_assert(BKE_main_is_empty(main_newid));
+  split_main_newid(mainvar, main_newid);
+  BKE_lib_override_library_main_validate(main_newid, (*fd)->reports->reports);
+  BKE_lib_override_library_main_update(main_newid);
+  add_main_to_main(mainvar, main_newid);
+  BKE_main_free(main_newid);
 
   BKE_main_id_tag_all(mainvar, LIB_TAG_NEW, false);
 

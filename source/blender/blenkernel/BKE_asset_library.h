@@ -21,6 +21,7 @@
 #pragma once
 
 struct Main;
+//
 
 #ifdef __cplusplus
 extern "C" {

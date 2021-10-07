@@ -100,7 +100,7 @@ void SEQ_add_load_data_init(SeqLoadData *load_data,
 static void seq_add_generic_update(Scene *scene, ListBase *seqbase, Sequence *seq)
 {
   SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, seq);
-  SEQ_time_update_sequence_bounds(scene, seq);
+  SEQ_time_update_sequence(scene, seqbase, seq);
   SEQ_sort(seqbase);
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
@@ -472,7 +472,7 @@ Sequence *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_
   /* Set frames start and length. */
   seqm->start = load_data->start_frame;
   seqm->len = 1;
-  SEQ_time_update_sequence(scene, seqm);
+  SEQ_time_update_sequence(scene, seqbase, seqm);
 
   return seqm;
 }
@@ -644,7 +644,9 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 
   if (lock_range) {
     /* keep so we don't have to move the actual start and end points (only the data) */
-    SEQ_time_update_sequence_bounds(scene, seq);
+    Editing *ed = SEQ_editing_get(scene);
+    ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+    SEQ_time_update_sequence(scene, seqbase, seq);
     prev_startdisp = seq->startdisp;
     prev_enddisp = seq->enddisp;
   }
@@ -794,7 +796,8 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
     SEQ_transform_fix_single_image_seq_offsets(seq);
   }
 
-  SEQ_time_update_sequence(scene, seq);
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+  SEQ_time_update_sequence(scene, seqbase, seq);
 }
 
 void SEQ_add_movie_reload_if_needed(struct Main *bmain,

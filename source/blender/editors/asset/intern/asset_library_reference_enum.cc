@@ -80,14 +80,16 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
 
   /* Note that there is no check if the path exists here. If an invalid library path is used, the
    * Asset Browser can give a nice hint on what's wrong. */
-  const bool is_valid = (user_library->name[0] && user_library->path[0]);
   if (!user_library) {
     library.type = ASSET_LIBRARY_LOCAL;
     library.custom_library_index = -1;
   }
-  else if (user_library && is_valid) {
-    library.custom_library_index = value - ASSET_LIBRARY_CUSTOM;
-    library.type = ASSET_LIBRARY_CUSTOM;
+  else {
+    const bool is_valid = (user_library->name[0] && user_library->path[0]);
+    if (is_valid) {
+      library.custom_library_index = value - ASSET_LIBRARY_CUSTOM;
+      library.type = ASSET_LIBRARY_CUSTOM;
+    }
   }
   return library;
 }

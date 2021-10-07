@@ -21,6 +21,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+struct KernelCurveSegment;
+
 class Hair : public Geometry {
  public:
   NODE_DECLARE
@@ -95,7 +97,8 @@ class Hair : public Geometry {
   NODE_SOCKET_API_ARRAY(array<int>, curve_shader)
 
   /* BVH */
-  size_t curvekey_offset;
+  size_t curve_key_offset;
+  size_t curve_segment_offset;
   CurveShapeType curve_shape;
 
   /* Constructor/Destructor */
@@ -144,12 +147,12 @@ class Hair : public Geometry {
   void get_uv_tiles(ustring map, unordered_set<int> &tiles) override;
 
   /* BVH */
-  void pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, size_t curvekey_offset);
+  void pack_curves(Scene *scene,
+                   float4 *curve_key_co,
+                   KernelCurve *curve,
+                   KernelCurveSegment *curve_segments);
 
-  void pack_primitives(PackedBVH *pack,
-                       int object,
-                       uint visibility,
-                       PackFlags pack_flags) override;
+  PrimitiveType primitive_type() const override;
 };
 
 CCL_NAMESPACE_END

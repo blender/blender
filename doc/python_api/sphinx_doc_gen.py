@@ -1101,6 +1101,7 @@ context_type_map = {
     "scene": ("Scene", False),
     "sculpt_object": ("Object", False),
     "selectable_objects": ("Object", True),
+    "selected_asset_files": ("FileSelectEntry", True),
     "selected_bones": ("EditBone", True),
     "selected_editable_bones": ("EditBone", True),
     "selected_editable_fcurves": ("FCurve", True),

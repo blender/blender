@@ -742,7 +742,7 @@ static void id_local_fn(bContext *C,
     }
   }
   else if (ID_IS_OVERRIDE_LIBRARY_REAL(tselem->id)) {
-    BKE_lib_override_library_free(&tselem->id->override_library, true);
+    BKE_lib_override_library_make_local(tselem->id);
   }
 }
 

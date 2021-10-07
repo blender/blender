@@ -1343,7 +1343,7 @@ static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
         BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
         BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
 
-        /* use default colorspaces for brushes */
+        /* Use default color-spaces for brushes. */
         brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
 
         /* otherwise lets try to find it in other directories */

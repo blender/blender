@@ -23,7 +23,7 @@
  */
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  */
 
 #include <ft2build.h>
@@ -42,7 +42,9 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
-#include "BLI_vfontdata.h"
+
+#include "BKE_curve.h"
+#include "BKE_vfontdata.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_packedFile_types.h"
@@ -98,7 +100,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
     /* Start converting the FT data */
     onpoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int), "onpoints");
 
-    /* get number of on-curve points for beziertriples (including conic virtual on-points) */
+    /* Get number of on-curve points for bezier-triples (including conic virtual on-points). */
     for (j = 0, contour_prev = -1; j < ftoutline.n_contours; j++) {
       const int n = ftoutline.contours[j] - contour_prev;
       contour_prev = ftoutline.contours[j];
@@ -402,7 +404,7 @@ static bool check_freetypefont(PackedFile *pf)
  * \retval A new VFontData structure, or NULL
  * if unable to load.
  */
-VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
+VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
 {
   VFontData *vfd = NULL;
 
@@ -425,10 +427,10 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 
 static void *vfontdata_copy_characters_value_cb(const void *src)
 {
-  return BLI_vfontchar_copy(src, 0);
+  return BKE_vfontdata_char_copy(src);
 }
 
-VFontData *BLI_vfontdata_copy(const VFontData *vfont_src, const int UNUSED(flag))
+VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, const int UNUSED(flag))
 {
   VFontData *vfont_dst = MEM_dupallocN(vfont_src);
 
@@ -440,7 +442,7 @@ VFontData *BLI_vfontdata_copy(const VFontData *vfont_src, const int UNUSED(flag)
   return vfont_dst;
 }
 
-VChar *BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
+VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, unsigned long character)
 {
   VChar *che = NULL;
 
@@ -464,12 +466,7 @@ VChar *BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
   return che;
 }
 
-/* Yeah, this is very bad... But why is this in BLI in the first place, since it uses Nurb data?
- * Anyway, do not feel like duplicating whole Nurb copy code here,
- * so unless someone has a better idea... */
-#include "../../blenkernel/BKE_curve.h"
-
-VChar *BLI_vfontchar_copy(const VChar *vchar_src, const int UNUSED(flag))
+VChar *BKE_vfontdata_char_copy(const VChar *vchar_src)
 {
   VChar *vchar_dst = MEM_dupallocN(vchar_src);
 

@@ -9667,6 +9667,7 @@ static void def_geo_curve_set_handles(StructRNA *srna)
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_node_geometry_curve_handle_side_items);
   RNA_def_property_ui_text(prop, "Mode", "Whether to update left and right handles");
+  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
@@ -9689,6 +9690,24 @@ static void def_geo_legacy_curve_set_handles(StructRNA *srna)
 }
 
 static void def_geo_curve_select_handles(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryCurveSelectHandles", "storage");
+
+  prop = RNA_def_property(srna, "handle_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "handle_type");
+  RNA_def_property_enum_items(prop, rna_node_geometry_curve_handle_type_items);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_curve_handle_side_items);
+  RNA_def_property_ui_text(prop, "Mode", "Whether to check the type of left and right handles");
+  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_geo_curve_handle_type_selection(StructRNA *srna)
 {
   PropertyRNA *prop;
 
@@ -9818,6 +9837,51 @@ static void def_geo_point_rotate(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_fn_rotate_euler(StructRNA *srna)
+{
+  static const EnumPropertyItem type_items[] = {
+      {FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE,
+       "AXIS_ANGLE",
+       ICON_NONE,
+       "Axis Angle",
+       "Rotate around an axis by an angle"},
+      {FN_NODE_ROTATE_EULER_TYPE_EULER,
+       "EULER",
+       ICON_NONE,
+       "Euler",
+       "Rotate around the X, Y, and Z axes"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem space_items[] = {
+      {FN_NODE_ROTATE_EULER_SPACE_OBJECT,
+       "OBJECT",
+       ICON_NONE,
+       "Object",
+       "Rotate the input rotation in the local space of the object"},
+      {FN_NODE_ROTATE_EULER_SPACE_POINT,
+       "POINT",
+       ICON_NONE,
+       "Point",
+       "Rotate the input rotation in its local space"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, type_items);
+  RNA_def_property_ui_text(prop, "Type", "Method used to describe the rotation");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom2");
+  RNA_def_property_enum_items(prop, space_items);
+  RNA_def_property_ui_text(prop, "Space", "Base orientation of the points");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_geo_align_rotation_to_vector(StructRNA *srna)
 {
   static const EnumPropertyItem axis_items[] = {
@@ -9942,7 +10006,7 @@ static void def_geo_object_info(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_geo_points_to_volume(StructRNA *srna)
+static void def_geo_legacy_points_to_volume(StructRNA *srna)
 {
   PropertyRNA *prop;
 
@@ -9970,6 +10034,32 @@ static void def_geo_points_to_volume(StructRNA *srna)
   prop = RNA_def_property(srna, "input_type_radius", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_float);
   RNA_def_property_ui_text(prop, "Radius Input Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_geo_points_to_volume(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static EnumPropertyItem resolution_mode_items[] = {
+      {GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT,
+       "VOXEL_AMOUNT",
+       0,
+       "Amount",
+       "Specify the approximate number of voxels along the diagonal"},
+      {GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE,
+       "VOXEL_SIZE",
+       0,
+       "Size",
+       "Specify the voxel side length"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryPointsToVolume", "storage");
+
+  prop = RNA_def_property(srna, "resolution_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, resolution_mode_items);
+  RNA_def_property_ui_text(prop, "Resolution Mode", "How the voxel size is specified");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
@@ -10152,7 +10242,7 @@ static void def_geo_mesh_cylinder(StructRNA *srna)
   prop = RNA_def_property(srna, "fill_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_node_geometry_mesh_circle_fill_type_items);
   RNA_def_property_ui_text(prop, "Fill Type", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
 static void def_geo_mesh_cone(StructRNA *srna)
@@ -10164,7 +10254,7 @@ static void def_geo_mesh_cone(StructRNA *srna)
   prop = RNA_def_property(srna, "fill_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_node_geometry_mesh_circle_fill_type_items);
   RNA_def_property_ui_text(prop, "Fill Type", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
 static void def_geo_mesh_line(StructRNA *srna)

@@ -23,12 +23,40 @@
 #include "render/buffers.h"
 #include "render/scene.h"
 #include "util/util_logging.h"
+#include "util/util_string.h"
 #include "util/util_tbb.h"
 #include "util/util_time.h"
 
 #include "kernel/kernel_types.h"
 
 CCL_NAMESPACE_BEGIN
+
+static size_t estimate_single_state_size(DeviceScene *device_scene)
+{
+  size_t state_size = 0;
+
+#define KERNEL_STRUCT_BEGIN(name) for (int array_index = 0;; array_index++) {
+#define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) state_size += sizeof(type);
+#define KERNEL_STRUCT_ARRAY_MEMBER(parent_struct, type, name, feature) state_size += sizeof(type);
+#define KERNEL_STRUCT_END(name) \
+  break; \
+  }
+#define KERNEL_STRUCT_END_ARRAY(name, cpu_array_size, gpu_array_size) \
+  if (array_index == gpu_array_size - 1) { \
+    break; \
+  } \
+  }
+#define KERNEL_STRUCT_VOLUME_STACK_SIZE (device_scene->data.volume_stack_size)
+#include "kernel/integrator/integrator_state_template.h"
+#undef KERNEL_STRUCT_BEGIN
+#undef KERNEL_STRUCT_MEMBER
+#undef KERNEL_STRUCT_ARRAY_MEMBER
+#undef KERNEL_STRUCT_END
+#undef KERNEL_STRUCT_END_ARRAY
+#undef KERNEL_STRUCT_VOLUME_STACK_SIZE
+
+  return state_size;
+}
 
 PathTraceWorkGPU::PathTraceWorkGPU(Device *device,
                                    Film *film,
@@ -47,7 +75,7 @@ PathTraceWorkGPU::PathTraceWorkGPU(Device *device,
       num_queued_paths_(device, "num_queued_paths", MEM_READ_WRITE),
       work_tiles_(device, "work_tiles", MEM_READ_WRITE),
       display_rgba_half_(device, "display buffer half", MEM_READ_WRITE),
-      max_num_paths_(queue_->num_concurrent_states(sizeof(IntegratorStateCPU))),
+      max_num_paths_(queue_->num_concurrent_states(estimate_single_state_size(device_scene))),
       min_num_active_paths_(queue_->num_concurrent_busy_states()),
       max_active_path_index_(0)
 {
@@ -100,12 +128,23 @@ void PathTraceWorkGPU::alloc_integrator_soa()
     break; \
   } \
   }
+#define KERNEL_STRUCT_VOLUME_STACK_SIZE (device_scene_->data.volume_stack_size)
 #include "kernel/integrator/integrator_state_template.h"
 #undef KERNEL_STRUCT_BEGIN
 #undef KERNEL_STRUCT_MEMBER
 #undef KERNEL_STRUCT_ARRAY_MEMBER
 #undef KERNEL_STRUCT_END
 #undef KERNEL_STRUCT_END_ARRAY
+#undef KERNEL_STRUCT_VOLUME_STACK_SIZE
+
+  if (VLOG_IS_ON(3)) {
+    size_t total_soa_size = 0;
+    for (auto &&soa_memory : integrator_state_soa_) {
+      total_soa_size += soa_memory->memory_size();
+    }
+
+    VLOG(3) << "GPU SoA state size: " << string_human_readable_size(total_soa_size);
+  }
 }
 
 void PathTraceWorkGPU::alloc_integrator_queue()
@@ -712,13 +751,13 @@ void PathTraceWorkGPU::copy_to_display_naive(PathTraceDisplay *display,
 {
   const int full_x = effective_buffer_params_.full_x;
   const int full_y = effective_buffer_params_.full_y;
-  const int width = effective_buffer_params_.width;
-  const int height = effective_buffer_params_.height;
-  const int final_width = buffers_->params.width;
-  const int final_height = buffers_->params.height;
+  const int width = effective_buffer_params_.window_width;
+  const int height = effective_buffer_params_.window_height;
+  const int final_width = buffers_->params.window_width;
+  const int final_height = buffers_->params.window_height;
 
-  const int texture_x = full_x - effective_full_params_.full_x;
-  const int texture_y = full_y - effective_full_params_.full_y;
+  const int texture_x = full_x - effective_full_params_.full_x + effective_buffer_params_.window_x;
+  const int texture_y = full_y - effective_full_params_.full_y + effective_buffer_params_.window_y;
 
   /* Re-allocate display memory if needed, and make sure the device pointer is allocated.
    *

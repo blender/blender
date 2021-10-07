@@ -18,11 +18,9 @@
 #  define KERNEL_TEX(type, name)
 #endif
 
-/* bvh */
+/* BVH2, not used for OptiX or Embree. */
 KERNEL_TEX(float4, __bvh_nodes)
 KERNEL_TEX(float4, __bvh_leaf_nodes)
-KERNEL_TEX(float4, __prim_tri_verts)
-KERNEL_TEX(uint, __prim_tri_index)
 KERNEL_TEX(uint, __prim_type)
 KERNEL_TEX(uint, __prim_visibility)
 KERNEL_TEX(uint, __prim_index)
@@ -46,10 +44,12 @@ KERNEL_TEX(float4, __tri_vnormal)
 KERNEL_TEX(uint4, __tri_vindex)
 KERNEL_TEX(uint, __tri_patch)
 KERNEL_TEX(float2, __tri_patch_uv)
+KERNEL_TEX(float4, __tri_verts)
 
 /* curves */
-KERNEL_TEX(float4, __curves)
+KERNEL_TEX(KernelCurve, __curves)
 KERNEL_TEX(float4, __curve_keys)
+KERNEL_TEX(KernelCurveSegment, __curve_segments)
 
 /* patches */
 KERNEL_TEX(uint, __patches)

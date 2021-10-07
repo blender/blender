@@ -33,7 +33,6 @@ static void cmp_node_seprgba_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("G");
   b.add_output<decl::Float>("B");
   b.add_output<decl::Float>("A");
-
 }
 
 }  // namespace blender::nodes

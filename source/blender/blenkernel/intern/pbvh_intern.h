@@ -24,7 +24,7 @@
 #include "bmesh.h"
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  */
 struct MSculptVert;
 

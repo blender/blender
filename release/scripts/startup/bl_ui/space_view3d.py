@@ -3469,7 +3469,7 @@ class VIEW3D_MT_pose_slide(Menu):
         layout.operator("pose.push")
         layout.operator("pose.relax")
         layout.operator("pose.breakdown")
-        layout.operator("pose.blend_to_neighbour")
+        layout.operator("pose.blend_to_neighbor")
 
 
 class VIEW3D_MT_pose_propagate(Menu):
@@ -3622,7 +3622,7 @@ class VIEW3D_MT_pose_context_menu(Menu):
         layout.operator("pose.push")
         layout.operator("pose.relax")
         layout.operator("pose.breakdown")
-        layout.operator("pose.blend_to_neighbour")
+        layout.operator("pose.blend_to_neighbor")
 
         layout.separator()
 

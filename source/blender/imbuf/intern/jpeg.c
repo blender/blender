@@ -40,8 +40,9 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 #include "imbuf.h"
-#include "jerror.h"
-#include "jpeglib.h"
+
+#include <jerror.h>
+#include <jpeglib.h>
 
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"

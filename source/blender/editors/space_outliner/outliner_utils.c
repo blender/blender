@@ -117,10 +117,8 @@ static TreeElement *outliner_find_item_at_x_in_row_recursive(const TreeElement *
 {
   TreeElement *child_te = parent_te->subtree.first;
 
-  bool over_element = false;
-
   while (child_te) {
-    over_element = (view_co_x > child_te->xs) && (view_co_x < child_te->xend);
+    const bool over_element = (view_co_x > child_te->xs) && (view_co_x < child_te->xend);
     if ((child_te->flag & TE_ICONROW) && over_element) {
       return child_te;
     }

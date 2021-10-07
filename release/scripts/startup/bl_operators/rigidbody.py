@@ -176,7 +176,7 @@ class BakeToKeyframes(Operator):
                         # NOTE: assume that on first frame, the starting rotation is appropriate
                         obj.rotation_euler = mat.to_euler(rot_mode, obj.rotation_euler)
 
-                bpy.ops.anim.keyframe_insert(type='BUILTIN_KSI_LocRot', confirm_success=False)
+                bpy.ops.anim.keyframe_insert(type='BUILTIN_KSI_LocRot')
 
             # remove baked objects from simulation
             bpy.ops.rigidbody.objects_remove()

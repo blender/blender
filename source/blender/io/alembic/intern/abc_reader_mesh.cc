@@ -435,6 +435,13 @@ static V3fArraySamplePtr get_velocity_prop(const ICompoundProperty &schema,
       const ICompoundProperty &prop = ICompoundProperty(schema, header.getName());
 
       if (has_property(prop, name)) {
+        /* Header cannot be null here, as its presence is checked via has_property, so it is safe
+         * to dereference. */
+        const PropertyHeader *header = prop.getPropertyHeader(name);
+        if (!IV3fArrayProperty::matches(*header)) {
+          continue;
+        }
+
         const IV3fArrayProperty &velocity_prop = IV3fArrayProperty(prop, name, 0);
         if (velocity_prop) {
           return velocity_prop.getValue(selector);
@@ -442,7 +449,7 @@ static V3fArraySamplePtr get_velocity_prop(const ICompoundProperty &schema,
       }
     }
     else if (header.isArray()) {
-      if (header.getName() == name) {
+      if (header.getName() == name && IV3fArrayProperty::matches(header)) {
         const IV3fArrayProperty &velocity_prop = IV3fArrayProperty(schema, name, 0);
         return velocity_prop.getValue(selector);
       }

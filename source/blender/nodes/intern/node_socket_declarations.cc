@@ -30,9 +30,9 @@ static void modify_subtype_except_for_storage(bNodeSocket &socket, int new_subty
   socket.typeinfo = socktype;
 }
 
-/* --------------------------------------------------------------------
- * Float.
- */
+/* -------------------------------------------------------------------- */
+/** \name #Float
+ * \{ */
 
 bNodeSocket &Float::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
@@ -83,9 +83,11 @@ bNodeSocket &Float::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &
   return socket;
 }
 
-/* --------------------------------------------------------------------
- * Int.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #Int
+ * \{ */
 
 bNodeSocket &Int::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
@@ -136,9 +138,11 @@ bNodeSocket &Int::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &so
   return socket;
 }
 
-/* --------------------------------------------------------------------
- * Vector.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #Vector
+ * \{ */
 
 bNodeSocket &Vector::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
@@ -181,9 +185,11 @@ bNodeSocket &Vector::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket 
   return socket;
 }
 
-/* --------------------------------------------------------------------
- * Bool.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #Bool
+ * \{ */
 
 bNodeSocket &Bool::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
@@ -206,9 +212,11 @@ bool Bool::matches(const bNodeSocket &socket) const
   return true;
 }
 
-/* --------------------------------------------------------------------
- * Color.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #Color
+ * \{ */
 
 bNodeSocket &Color::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
@@ -236,9 +244,11 @@ bool Color::matches(const bNodeSocket &socket) const
   return true;
 }
 
-/* --------------------------------------------------------------------
- * String.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #String
+ * \{ */
 
 bNodeSocket &String::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
@@ -259,9 +269,11 @@ bool String::matches(const bNodeSocket &socket) const
   return true;
 }
 
-/* --------------------------------------------------------------------
- * IDSocketDeclaration.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #IDSocketDeclaration
+ * \{ */
 
 bNodeSocket &IDSocketDeclaration::build(bNodeTree &ntree,
                                         bNode &node,
@@ -295,9 +307,11 @@ bNodeSocket &IDSocketDeclaration::update_or_build(bNodeTree &ntree,
   return socket;
 }
 
-/* --------------------------------------------------------------------
- * Geometry.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #Geometry
+ * \{ */
 
 bNodeSocket &Geometry::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
 {
@@ -317,5 +331,7 @@ bool Geometry::matches(const bNodeSocket &socket) const
   }
   return true;
 }
+
+/** \} */
 
 }  // namespace blender::nodes::decl

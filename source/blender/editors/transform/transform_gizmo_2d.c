@@ -465,16 +465,6 @@ static void gizmo2d_xform_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   copy_v2_v2(ggd->origin, origin);
   bool show_cage = !ggd->no_cage && !equals_v2v2(ggd->min, ggd->max);
 
-  if (gzgroup->type->flag & WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP) {
-    Scene *scene = CTX_data_scene(C);
-    if (scene->toolsettings->workspace_tool_type == SCE_WORKSPACE_TOOL_FALLBACK) {
-      gzgroup->use_fallback_keymap = true;
-    }
-    else {
-      gzgroup->use_fallback_keymap = false;
-    }
-  }
-
   if (has_select == false) {
     for (int i = 0; i < ARRAY_SIZE(ggd->translate_xy); i++) {
       ggd->translate_xy[i]->flag |= WM_GIZMO_HIDDEN;
@@ -641,16 +631,6 @@ static void gizmo2d_resize_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup
   GizmoGroup_Resize2D *ggd = gzgroup->customdata;
   float origin[3] = {UNPACK2(ggd->origin), 0.0f};
 
-  if (gzgroup->type->flag & WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP) {
-    Scene *scene = CTX_data_scene(C);
-    if (scene->toolsettings->workspace_tool_type == SCE_WORKSPACE_TOOL_FALLBACK) {
-      gzgroup->use_fallback_keymap = true;
-    }
-    else {
-      gzgroup->use_fallback_keymap = false;
-    }
-  }
-
   gizmo2d_origin_to_region(region, origin);
 
   for (int i = 0; i < ARRAY_SIZE(ggd->gizmo_xy); i++) {
@@ -792,16 +772,6 @@ static void gizmo2d_rotate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup
   ARegion *region = CTX_wm_region(C);
   GizmoGroup_Rotate2D *ggd = gzgroup->customdata;
   float origin[3] = {UNPACK2(ggd->origin), 0.0f};
-
-  if (gzgroup->type->flag & WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP) {
-    Scene *scene = CTX_data_scene(C);
-    if (scene->toolsettings->workspace_tool_type == SCE_WORKSPACE_TOOL_FALLBACK) {
-      gzgroup->use_fallback_keymap = true;
-    }
-    else {
-      gzgroup->use_fallback_keymap = false;
-    }
-  }
 
   gizmo2d_origin_to_region(region, origin);
 

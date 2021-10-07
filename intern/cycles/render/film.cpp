@@ -326,8 +326,6 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
         kfilm->pass_bake_differential = kfilm->pass_stride;
         break;
 
-      case PASS_RENDER_TIME:
-        break;
       case PASS_CRYPTOMATTE:
         kfilm->pass_cryptomatte = have_cryptomatte ?
                                       min(kfilm->pass_cryptomatte, kfilm->pass_stride) :

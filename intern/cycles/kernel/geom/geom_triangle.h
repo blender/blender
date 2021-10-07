@@ -29,9 +29,9 @@ ccl_device_inline float3 triangle_normal(const KernelGlobals *kg, ShaderData *sd
 {
   /* load triangle vertices */
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, sd->prim);
-  const float3 v0 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 0));
-  const float3 v1 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 1));
-  const float3 v2 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 2));
+  const float3 v0 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 0));
+  const float3 v1 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 1));
+  const float3 v2 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 2));
 
   /* return normal */
   if (sd->object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
@@ -54,9 +54,9 @@ ccl_device_inline void triangle_point_normal(const KernelGlobals *kg,
 {
   /* load triangle vertices */
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-  float3 v0 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 0));
-  float3 v1 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 1));
-  float3 v2 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 2));
+  float3 v0 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 0));
+  float3 v1 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 1));
+  float3 v2 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 2));
   /* compute point */
   float t = 1.0f - u - v;
   *P = (u * v0 + v * v1 + t * v2);
@@ -78,9 +78,9 @@ ccl_device_inline void triangle_point_normal(const KernelGlobals *kg,
 ccl_device_inline void triangle_vertices(const KernelGlobals *kg, int prim, float3 P[3])
 {
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-  P[0] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 0));
-  P[1] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 1));
-  P[2] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 2));
+  P[0] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 0));
+  P[1] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 1));
+  P[2] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 2));
 }
 
 /* Triangle vertex locations and vertex normals */
@@ -91,9 +91,9 @@ ccl_device_inline void triangle_vertices_and_normals(const KernelGlobals *kg,
                                                      float3 N[3])
 {
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-  P[0] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 0));
-  P[1] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 1));
-  P[2] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 2));
+  P[0] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 0));
+  P[1] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 1));
+  P[2] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 2));
   N[0] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.x));
   N[1] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.y));
   N[2] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.z));
@@ -145,9 +145,9 @@ ccl_device_inline void triangle_dPdudv(const KernelGlobals *kg,
 {
   /* fetch triangle vertex coordinates */
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-  const float3 p0 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 0));
-  const float3 p1 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 1));
-  const float3 p2 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 2));
+  const float3 p0 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 0));
+  const float3 p1 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 1));
+  const float3 p2 = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 2));
 
   /* compute derivatives of P w.r.t. uv */
   *dPdu = (p0 - p2);

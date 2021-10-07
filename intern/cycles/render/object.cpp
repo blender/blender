@@ -60,6 +60,7 @@ struct UpdateObjectTransformState {
 
   /* Packed object arrays. Those will be filled in. */
   uint *object_flag;
+  uint *object_visibility;
   KernelObject *objects;
   Transform *object_motion_pass;
   DecomposedTransform *object_motion;
@@ -366,6 +367,22 @@ float Object::compute_volume_step_size() const
   return step_size;
 }
 
+bool Object::check_is_volume() const
+{
+  if (geometry->geometry_type == Geometry::VOLUME) {
+    return true;
+  }
+
+  for (Node *node : get_geometry()->get_used_shaders()) {
+    const Shader *shader = static_cast<const Shader *>(node);
+    if (shader->has_volume_connected) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 int Object::get_device_index() const
 {
   return index;
@@ -511,6 +528,9 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.shadow_terminator_shading_offset = 1.0f /
                                              (1.0f - 0.5f * ob->shadow_terminator_shading_offset);
   kobject.shadow_terminator_geometry_offset = ob->shadow_terminator_geometry_offset;
+
+  kobject.visibility = ob->visibility_for_tracing();
+  kobject.primitive_type = geom->primitive_type();
 
   /* Object flag. */
   if (ob->use_holdout) {

@@ -61,8 +61,6 @@ CCL_NAMESPACE_BEGIN
 #define ID_NONE (0.0f)
 #define PASS_UNUSED (~0)
 
-#define VOLUME_STACK_SIZE 4
-
 /* Kernel features */
 #define __SOBOL__
 #define __DPDU__
@@ -190,7 +188,7 @@ enum SamplingPattern {
   SAMPLING_NUM_PATTERNS,
 };
 
-/* these flags values correspond to raytypes in osl.cpp, so keep them in sync! */
+/* These flags values correspond to `raytypes` in `osl.cpp`, so keep them in sync! */
 
 enum PathRayFlag {
   /* --------------------------------------------------------------------
@@ -360,7 +358,6 @@ typedef enum PassType {
   PASS_MATERIAL_ID,
   PASS_MOTION,
   PASS_MOTION_WEIGHT,
-  PASS_RENDER_TIME,
   PASS_CRYPTOMATTE,
   PASS_AOV_COLOR,
   PASS_AOV_VALUE,
@@ -607,6 +604,12 @@ typedef struct AttributeDescriptor {
 #  define MAX_CLOSURE 64
 #else
 #  define MAX_CLOSURE __MAX_CLOSURE__
+#endif
+
+#ifndef __MAX_VOLUME_STACK_SIZE__
+#  define MAX_VOLUME_STACK_SIZE 32
+#else
+#  define MAX_VOLUME_STACK_SIZE __MAX_VOLUME_STACK_SIZE__
 #endif
 
 #define MAX_VOLUME_CLOSURE 8
@@ -1224,7 +1227,7 @@ typedef struct KernelData {
   uint kernel_features;
   uint max_closures;
   uint max_shaders;
-  uint pad;
+  uint volume_stack_size;
 
   KernelCamera cam;
   KernelFilm film;
@@ -1267,9 +1270,24 @@ typedef struct KernelObject {
 
   float ao_distance;
 
-  float pad1, pad2;
+  uint visibility;
+  int primitive_type;
 } KernelObject;
 static_assert_align(KernelObject, 16);
+
+typedef struct KernelCurve {
+  int shader_id;
+  int first_key;
+  int num_keys;
+  int type;
+} KernelCurve;
+static_assert_align(KernelCurve, 16);
+
+typedef struct KernelCurveSegment {
+  int prim;
+  int type;
+} KernelCurveSegment;
+static_assert_align(KernelCurveSegment, 8);
 
 typedef struct KernelSpotLight {
   float radius;

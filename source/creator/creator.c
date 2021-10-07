@@ -54,7 +54,6 @@
 #include "BKE_cachefile.h"
 #include "BKE_callbacks.h"
 #include "BKE_context.h"
-#include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_idtype.h"
@@ -65,6 +64,7 @@
 #include "BKE_particle.h"
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"
+#include "BKE_vfont.h"
 #include "BKE_volume.h"
 
 #include "DEG_depsgraph.h"

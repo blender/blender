@@ -24,28 +24,26 @@
 #include "node_composite_util.hh"
 
 /* **************** Z COMBINE ******************** */
-
-namespace blender::nodes {
-
-static void cmp_node_zcombine_declare(NodeDeclarationBuilder &b)
-{
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>("Z").default_value(1.0f).min(0.0f).max(10000.0f);
-  b.add_input<decl::Color>("Image", "Image_001").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>("Z", "Z_001").default_value(1.0f).min(0.0f).max(10000.0f);
-  b.add_output<decl::Color>("Image");
-  b.add_output<decl::Float>("Z");
-}
-
-}  // namespace blender::nodes
-
 /* lazy coder NOTE: node->custom2 is abused to send signal. */
+static bNodeSocketTemplate cmp_node_zcombine_in[] = {
+    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {SOCK_FLOAT, N_("Z"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 10000.0f, PROP_NONE},
+    {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+    {SOCK_FLOAT, N_("Z"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 10000.0f, PROP_NONE},
+    {-1, ""},
+};
+static bNodeSocketTemplate cmp_node_zcombine_out[] = {
+    {SOCK_RGBA, N_("Image")},
+    {SOCK_FLOAT, N_("Z")},
+    {-1, ""},
+};
+
 void register_node_type_cmp_zcombine(void)
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_ZCOMBINE, "Z Combine", NODE_CLASS_OP_COLOR, 0);
-  ntype.declare = blender::nodes::cmp_node_zcombine_declare;
+  node_type_socket_templates(&ntype, cmp_node_zcombine_in, cmp_node_zcombine_out);
 
   nodeRegisterType(&ntype);
 }

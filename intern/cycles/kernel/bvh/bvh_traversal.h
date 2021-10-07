@@ -165,18 +165,18 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(const KernelGlobals *kg,
             case PRIMITIVE_CURVE_RIBBON:
             case PRIMITIVE_MOTION_CURVE_RIBBON: {
               for (; prim_addr < prim_addr2; prim_addr++) {
-                const uint curve_type = kernel_tex_fetch(__prim_type, prim_addr);
-                kernel_assert((curve_type & PRIMITIVE_ALL) == (type & PRIMITIVE_ALL));
-                const bool hit = curve_intersect(kg,
-                                                 isect,
-                                                 P,
-                                                 dir,
-                                                 isect->t,
-                                                 visibility,
-                                                 object,
-                                                 prim_addr,
-                                                 ray->time,
-                                                 curve_type);
+                if ((type & PRIMITIVE_ALL_MOTION) && kernel_data.bvh.use_bvh_steps) {
+                  const float2 prim_time = kernel_tex_fetch(__prim_time, prim_addr);
+                  if (ray->time < prim_time.x || ray->time > prim_time.y) {
+                    continue;
+                  }
+                }
+
+                const int curve_object = kernel_tex_fetch(__prim_object, prim_addr);
+                const int curve_prim = kernel_tex_fetch(__prim_index, prim_addr);
+                const int curve_type = kernel_tex_fetch(__prim_type, prim_addr);
+                const bool hit = curve_intersect(
+                    kg, isect, P, dir, isect->t, curve_object, curve_prim, ray->time, curve_type);
                 if (hit) {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)

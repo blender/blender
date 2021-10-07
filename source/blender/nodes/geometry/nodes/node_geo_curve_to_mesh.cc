@@ -32,8 +32,7 @@ static void geo_node_curve_to_mesh_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Mesh");
 }
 
-static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,
-                                       const GeometrySet &profile_set)
+static void geometry_set_curve_to_mesh(GeometrySet &geometry_set, const GeometrySet &profile_set)
 {
   const CurveEval *profile_curve = profile_set.get_curve_for_read();
 

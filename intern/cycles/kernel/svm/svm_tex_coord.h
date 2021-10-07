@@ -347,8 +347,6 @@ ccl_device_noinline void svm_node_normal_map(const KernelGlobals *kg,
     N = safe_normalize(sd->N + (N - sd->N) * strength);
   }
 
-  N = ensure_valid_reflection(sd->Ng, sd->I, N);
-
   if (is_zero(N)) {
     N = sd->N;
   }

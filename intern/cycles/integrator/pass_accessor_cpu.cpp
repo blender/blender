@@ -99,17 +99,22 @@ inline void PassAccessorCPU::run_get_pass_kernel_processor_float(
 {
   DCHECK_EQ(destination.stride, 0) << "Custom stride for float destination is not implemented.";
 
-  const float *buffer_data = render_buffers->buffer.data();
+  const int64_t pass_stride = buffer_params.pass_stride;
+  const int64_t buffer_row_stride = buffer_params.stride * buffer_params.pass_stride;
+
+  const float *window_data = render_buffers->buffer.data() + buffer_params.window_x * pass_stride +
+                             buffer_params.window_y * buffer_row_stride;
+
   const int pixel_stride = destination.pixel_stride ? destination.pixel_stride :
                                                       destination.num_components;
 
-  tbb::parallel_for(0, buffer_params.height, [&](int64_t y) {
-    int64_t pixel_index = y * buffer_params.width;
-    for (int64_t x = 0; x < buffer_params.width; ++x, ++pixel_index) {
-      const int64_t input_pixel_offset = pixel_index * buffer_params.pass_stride;
-      const float *buffer = buffer_data + input_pixel_offset;
-      float *pixel = destination.pixels + (pixel_index + destination.offset) * pixel_stride;
+  tbb::parallel_for(0, buffer_params.window_height, [&](int64_t y) {
+    const float *buffer = window_data + y * buffer_row_stride;
+    float *pixel = destination.pixels +
+                   (y * buffer_params.width + destination.offset) * pixel_stride;
 
+    for (int64_t x = 0; x < buffer_params.window_width;
+         ++x, buffer += pass_stride, pixel += pixel_stride) {
       processor(kfilm_convert, buffer, pixel);
     }
   });
@@ -123,26 +128,28 @@ inline void PassAccessorCPU::run_get_pass_kernel_processor_half_rgba(
     const Destination &destination,
     const Processor &processor) const
 {
-  const float *buffer_data = render_buffers->buffer.data();
+  const int64_t pass_stride = buffer_params.pass_stride;
+  const int64_t buffer_row_stride = buffer_params.stride * buffer_params.pass_stride;
+
+  const float *window_data = render_buffers->buffer.data() + buffer_params.window_x * pass_stride +
+                             buffer_params.window_y * buffer_row_stride;
 
   half4 *dst_start = destination.pixels_half_rgba + destination.offset;
   const int destination_stride = destination.stride != 0 ? destination.stride :
                                                            buffer_params.width;
 
-  tbb::parallel_for(0, buffer_params.height, [&](int64_t y) {
-    int64_t pixel_index = y * buffer_params.width;
-    half4 *dst_row_start = dst_start + y * destination_stride;
-    for (int64_t x = 0; x < buffer_params.width; ++x, ++pixel_index) {
-      const int64_t input_pixel_offset = pixel_index * buffer_params.pass_stride;
-      const float *buffer = buffer_data + input_pixel_offset;
+  tbb::parallel_for(0, buffer_params.window_height, [&](int64_t y) {
+    const float *buffer = window_data + y * buffer_row_stride;
+    half4 *pixel = dst_start + y * destination_stride;
+    for (int64_t x = 0; x < buffer_params.window_width; ++x, buffer += pass_stride, ++pixel) {
 
-      float pixel[4];
-      processor(kfilm_convert, buffer, pixel);
+      float pixel_rgba[4];
+      processor(kfilm_convert, buffer, pixel_rgba);
 
-      film_apply_pass_pixel_overlays_rgba(kfilm_convert, buffer, pixel);
+      film_apply_pass_pixel_overlays_rgba(kfilm_convert, buffer, pixel_rgba);
 
-      half4 *pixel_half_rgba = dst_row_start + x;
-      float4_store_half(&pixel_half_rgba->x, make_float4(pixel[0], pixel[1], pixel[2], pixel[3]));
+      float4_store_half(&pixel->x,
+                        make_float4(pixel_rgba[0], pixel_rgba[1], pixel_rgba[2], pixel_rgba[3]));
     }
   });
 }

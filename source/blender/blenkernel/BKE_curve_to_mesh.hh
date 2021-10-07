@@ -20,7 +20,7 @@ struct Mesh;
 struct CurveEval;
 
 /** \file
- * \ingroup geo
+ * \ingroup bke
  */
 
 namespace blender::bke {

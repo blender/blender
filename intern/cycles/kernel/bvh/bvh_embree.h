@@ -106,9 +106,6 @@ ccl_device_inline void kernel_embree_convert_hit(const KernelGlobals *kg,
                                                  const RTCHit *hit,
                                                  Intersection *isect)
 {
-  bool is_hair = hit->geomID & 1;
-  isect->u = is_hair ? hit->u : 1.0f - hit->v - hit->u;
-  isect->v = is_hair ? hit->v : hit->u;
   isect->t = ray->tfar;
   isect->Ng = make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z);
   if (hit->instID[0] != RTC_INVALID_GEOMETRY_ID) {
@@ -121,27 +118,37 @@ ccl_device_inline void kernel_embree_convert_hit(const KernelGlobals *kg,
   else {
     isect->prim = hit->primID + (intptr_t)rtcGetGeometryUserData(
                                     rtcGetGeometry(kernel_data.bvh.scene, hit->geomID));
-    isect->object = OBJECT_NONE;
+    isect->object = hit->geomID / 2;
   }
-  isect->type = kernel_tex_fetch(__prim_type, isect->prim);
+
+  const bool is_hair = hit->geomID & 1;
+  if (is_hair) {
+    const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, isect->prim);
+    isect->type = segment.type;
+    isect->prim = segment.prim;
+    isect->u = hit->u;
+    isect->v = hit->v;
+  }
+  else {
+    isect->type = kernel_tex_fetch(__objects, isect->object).primitive_type;
+    isect->u = 1.0f - hit->v - hit->u;
+    isect->v = hit->u;
+  }
 }
 
-ccl_device_inline void kernel_embree_convert_sss_hit(const KernelGlobals *kg,
-                                                     const RTCRay *ray,
-                                                     const RTCHit *hit,
-                                                     Intersection *isect,
-                                                     int local_object_id)
+ccl_device_inline void kernel_embree_convert_sss_hit(
+    const KernelGlobals *kg, const RTCRay *ray, const RTCHit *hit, Intersection *isect, int object)
 {
   isect->u = 1.0f - hit->v - hit->u;
   isect->v = hit->u;
   isect->t = ray->tfar;
   isect->Ng = make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z);
   RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
-      rtcGetGeometry(kernel_data.bvh.scene, local_object_id * 2));
+      rtcGetGeometry(kernel_data.bvh.scene, object * 2));
   isect->prim = hit->primID +
                 (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID));
-  isect->object = local_object_id;
-  isect->type = kernel_tex_fetch(__prim_type, isect->prim);
+  isect->object = object;
+  isect->type = kernel_tex_fetch(__objects, object).primitive_type;
 }
 
 CCL_NAMESPACE_END

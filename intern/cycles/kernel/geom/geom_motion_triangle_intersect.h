@@ -44,7 +44,7 @@ ccl_device_inline float3 motion_triangle_refine(const KernelGlobals *kg,
                                                 float3 verts[3])
 {
 #ifdef __INTERSECTION_REFINE__
-  if (isect_object != OBJECT_NONE) {
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     if (UNLIKELY(t == 0.0f)) {
       return P;
     }
@@ -70,7 +70,7 @@ ccl_device_inline float3 motion_triangle_refine(const KernelGlobals *kg,
   /* Compute refined position. */
   P = P + D * rt;
 
-  if (isect_object != OBJECT_NONE) {
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_transform(kg, sd);
     P = transform_point(&tfm, P);
   }
@@ -106,7 +106,7 @@ ccl_device_inline
   return motion_triangle_refine(kg, sd, P, D, t, isect_object, isect_prim, verts);
 #  else
 #    ifdef __INTERSECTION_REFINE__
-  if (isect_object != OBJECT_NONE) {
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_inverse_transform(kg, sd);
 
     P = transform_point(&tfm, P);
@@ -128,7 +128,7 @@ ccl_device_inline
 
   P = P + D * rt;
 
-  if (isect_object != OBJECT_NONE) {
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_transform(kg, sd);
     P = transform_point(&tfm, P);
   }
@@ -186,8 +186,9 @@ ccl_device_inline bool motion_triangle_intersect(const KernelGlobals *kg,
       isect->t = t;
       isect->u = u;
       isect->v = v;
-      isect->prim = prim_addr;
-      isect->object = object;
+      isect->prim = prim;
+      isect->object = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, prim_addr) :
+                                                object;
       isect->type = PRIMITIVE_MOTION_TRIANGLE;
       return true;
     }
@@ -288,8 +289,8 @@ ccl_device_inline bool motion_triangle_intersect_local(const KernelGlobals *kg,
   isect->t = t;
   isect->u = u;
   isect->v = v;
-  isect->prim = prim_addr;
-  isect->object = object;
+  isect->prim = prim;
+  isect->object = local_object;
   isect->type = PRIMITIVE_MOTION_TRIANGLE;
 
   /* Record geometric normal. */

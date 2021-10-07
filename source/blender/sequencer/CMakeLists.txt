@@ -63,6 +63,8 @@ set(SRC
   SEQ_utils.h
 
   intern/clipboard.c
+  intern/disk_cache.c
+  intern/disk_cache.h
   intern/effects.c
   intern/effects.h
   intern/image_cache.c

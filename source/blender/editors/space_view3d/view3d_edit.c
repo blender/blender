@@ -47,7 +47,6 @@
 #include "BKE_armature.h"
 #include "BKE_camera.h"
 #include "BKE_context.h"
-#include "BKE_font.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -57,6 +56,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_vfont.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

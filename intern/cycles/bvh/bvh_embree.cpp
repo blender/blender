@@ -89,20 +89,9 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
 
       /* Test if we need to record this transparent intersection. */
       if (ctx->num_hits < ctx->max_hits || ray->tfar < ctx->max_t) {
-        /* Skip already recorded intersections. */
-        int num_recorded_hits = min(ctx->num_hits, ctx->max_hits);
-
-        for (int i = 0; i < num_recorded_hits; ++i) {
-          if (current_isect.object == ctx->isect_s[i].object &&
-              current_isect.prim == ctx->isect_s[i].prim && current_isect.t == ctx->isect_s[i].t) {
-            /* This intersection was already recorded, skip it. */
-            *args->valid = 0;
-            return;
-          }
-        }
-
         /* If maximum number of hits was reached, replace the intersection with the
          * highest distance. We want to find the N closest intersections. */
+        const int num_recorded_hits = min(ctx->num_hits, ctx->max_hits);
         int isect_index = num_recorded_hits;
         if (num_recorded_hits + 1 >= ctx->max_hits) {
           float max_t = ctx->isect_s[0].t;
@@ -147,10 +136,7 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       }
       else {
         kernel_embree_convert_hit(kg, ray, hit, &current_isect);
-        int object = (current_isect.object == OBJECT_NONE) ?
-                         kernel_tex_fetch(__prim_object, current_isect.prim) :
-                         current_isect.object;
-        if (ctx->local_object_id != object) {
+        if (ctx->local_object_id != current_isect.object) {
           /* This tells Embree to continue tracing. */
           *args->valid = 0;
           break;
@@ -213,21 +199,11 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       if (ctx->num_hits < ctx->max_hits) {
         Intersection current_isect;
         kernel_embree_convert_hit(kg, ray, hit, &current_isect);
-        for (size_t i = 0; i < ctx->num_hits; ++i) {
-          if (current_isect.object == ctx->isect_s[i].object &&
-              current_isect.prim == ctx->isect_s[i].prim && current_isect.t == ctx->isect_s[i].t) {
-            /* This intersection was already recorded, skip it. */
-            *args->valid = 0;
-            break;
-          }
-        }
         Intersection *isect = &ctx->isect_s[ctx->num_hits];
         ++ctx->num_hits;
         *isect = current_isect;
         /* Only primitives from volume object. */
-        uint tri_object = (isect->object == OBJECT_NONE) ?
-                              kernel_tex_fetch(__prim_object, isect->prim) :
-                              isect->object;
+        uint tri_object = isect->object;
         int object_flag = kernel_tex_fetch(__object_flag, tri_object);
         if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
           --ctx->num_hits;
@@ -249,7 +225,7 @@ static void rtc_filter_func_thick_curve(const RTCFilterFunctionNArguments *args)
   const RTCRay *ray = (RTCRay *)args->ray;
   RTCHit *hit = (RTCHit *)args->hit;
 
-  /* Always ignore backfacing intersections. */
+  /* Always ignore back-facing intersections. */
   if (dot(make_float3(ray->dir_x, ray->dir_y, ray->dir_z),
           make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z)) > 0.0f) {
     *args->valid = 0;
@@ -262,7 +238,7 @@ static void rtc_filter_occluded_func_thick_curve(const RTCFilterFunctionNArgumen
   const RTCRay *ray = (RTCRay *)args->ray;
   RTCHit *hit = (RTCHit *)args->hit;
 
-  /* Always ignore backfacing intersections. */
+  /* Always ignore back-facing intersections. */
   if (dot(make_float3(ray->dir_x, ray->dir_y, ray->dir_z),
           make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z)) > 0.0f) {
     *args->valid = 0;
@@ -456,7 +432,7 @@ void BVHEmbree::add_instance(Object *ob, int i)
 
 void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
 {
-  size_t prim_offset = mesh->optix_prim_offset;
+  size_t prim_offset = mesh->prim_offset;
 
   const Attribute *attr_mP = NULL;
   size_t num_motion_steps = 1;
@@ -625,7 +601,7 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
 
 void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
 {
-  size_t prim_offset = hair->optix_prim_offset;
+  size_t prim_offset = hair->curve_segment_offset;
 
   const Attribute *attr_mP = NULL;
   size_t num_motion_steps = 1;
@@ -702,7 +678,7 @@ void BVHEmbree::refit(Progress &progress)
         if (mesh->num_triangles() > 0) {
           RTCGeometry geom = rtcGetGeometry(scene, geom_id);
           set_tri_vertex_buffer(geom, mesh, true);
-          rtcSetGeometryUserData(geom, (void *)mesh->optix_prim_offset);
+          rtcSetGeometryUserData(geom, (void *)mesh->prim_offset);
           rtcCommitGeometry(geom);
         }
       }
@@ -711,7 +687,7 @@ void BVHEmbree::refit(Progress &progress)
         if (hair->num_curves() > 0) {
           RTCGeometry geom = rtcGetGeometry(scene, geom_id + 1);
           set_curve_vertex_buffer(geom, hair, true);
-          rtcSetGeometryUserData(geom, (void *)hair->optix_prim_offset);
+          rtcSetGeometryUserData(geom, (void *)hair->curve_segment_offset);
           rtcCommitGeometry(geom);
         }
       }

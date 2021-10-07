@@ -22,7 +22,7 @@
 
 #include "DRW_render.h"
 
-#include "BKE_font.h"
+#include "BKE_vfont.h"
 
 #include "DNA_curve_types.h"
 

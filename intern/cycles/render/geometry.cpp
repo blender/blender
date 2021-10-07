@@ -46,12 +46,6 @@ CCL_NAMESPACE_BEGIN
 
 /* Geometry */
 
-PackFlags operator|=(PackFlags &pack_flags, uint32_t value)
-{
-  pack_flags = (PackFlags)((uint32_t)pack_flags | value);
-  return pack_flags;
-}
-
 NODE_ABSTRACT_DEFINE(Geometry)
 {
   NodeType *type = NodeType::add("geometry_base", NULL);
@@ -79,7 +73,6 @@ Geometry::Geometry(const NodeType *node_type, const Type type)
 
   bvh = NULL;
   attr_map_offset = 0;
-  optix_prim_offset = 0;
   prim_offset = 0;
 }
 
@@ -707,9 +700,9 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
       if (element == ATTR_ELEMENT_CURVE)
         offset -= hair->prim_offset;
       else if (element == ATTR_ELEMENT_CURVE_KEY)
-        offset -= hair->curvekey_offset;
+        offset -= hair->curve_key_offset;
       else if (element == ATTR_ELEMENT_CURVE_KEY_MOTION)
-        offset -= hair->curvekey_offset;
+        offset -= hair->curve_key_offset;
     }
   }
   else {
@@ -972,27 +965,21 @@ void GeometryManager::mesh_calc_offset(Scene *scene, BVHLayout bvh_layout)
   size_t vert_size = 0;
   size_t tri_size = 0;
 
-  size_t curve_key_size = 0;
   size_t curve_size = 0;
+  size_t curve_key_size = 0;
+  size_t curve_segment_size = 0;
 
   size_t patch_size = 0;
   size_t face_size = 0;
   size_t corner_size = 0;
 
-  size_t optix_prim_size = 0;
-
   foreach (Geometry *geom, scene->geometry) {
-    if (geom->optix_prim_offset != optix_prim_size) {
-      /* Need to rebuild BVH in OptiX, since refit only allows modified mesh data there */
-      const bool has_optix_bvh = bvh_layout == BVH_LAYOUT_OPTIX ||
-                                 bvh_layout == BVH_LAYOUT_MULTI_OPTIX ||
-                                 bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE;
-      geom->need_update_rebuild |= has_optix_bvh;
-      geom->need_update_bvh_for_offset = true;
-    }
+    bool prim_offset_changed = false;
 
     if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
       Mesh *mesh = static_cast<Mesh *>(geom);
+
+      prim_offset_changed = (mesh->prim_offset != tri_size);
 
       mesh->vert_offset = vert_size;
       mesh->prim_offset = tri_size;
@@ -1017,27 +1004,35 @@ void GeometryManager::mesh_calc_offset(Scene *scene, BVHLayout bvh_layout)
 
       face_size += mesh->get_num_subd_faces();
       corner_size += mesh->subd_face_corners.size();
-
-      mesh->optix_prim_offset = optix_prim_size;
-      optix_prim_size += mesh->num_triangles();
     }
     else if (geom->is_hair()) {
       Hair *hair = static_cast<Hair *>(geom);
 
-      hair->curvekey_offset = curve_key_size;
+      prim_offset_changed = (hair->curve_segment_offset != curve_segment_size);
+      hair->curve_key_offset = curve_key_size;
+      hair->curve_segment_offset = curve_segment_size;
       hair->prim_offset = curve_size;
 
-      curve_key_size += hair->get_curve_keys().size();
       curve_size += hair->num_curves();
+      curve_key_size += hair->get_curve_keys().size();
+      curve_segment_size += hair->num_segments();
+    }
 
-      hair->optix_prim_offset = optix_prim_size;
-      optix_prim_size += hair->num_segments();
+    if (prim_offset_changed) {
+      /* Need to rebuild BVH in OptiX, since refit only allows modified mesh data there */
+      const bool has_optix_bvh = bvh_layout == BVH_LAYOUT_OPTIX ||
+                                 bvh_layout == BVH_LAYOUT_MULTI_OPTIX ||
+                                 bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE;
+      geom->need_update_rebuild |= has_optix_bvh;
+      geom->need_update_bvh_for_offset = true;
     }
   }
 }
 
-void GeometryManager::device_update_mesh(
-    Device *, DeviceScene *dscene, Scene *scene, bool for_displacement, Progress &progress)
+void GeometryManager::device_update_mesh(Device *,
+                                         DeviceScene *dscene,
+                                         Scene *scene,
+                                         Progress &progress)
 {
   /* Count. */
   size_t vert_size = 0;
@@ -1045,6 +1040,7 @@ void GeometryManager::device_update_mesh(
 
   size_t curve_key_size = 0;
   size_t curve_size = 0;
+  size_t curve_segment_size = 0;
 
   size_t patch_size = 0;
 
@@ -1071,31 +1067,7 @@ void GeometryManager::device_update_mesh(
 
       curve_key_size += hair->get_curve_keys().size();
       curve_size += hair->num_curves();
-    }
-  }
-
-  /* Create mapping from triangle to primitive triangle array. */
-  vector<uint> tri_prim_index(tri_size);
-  if (for_displacement) {
-    /* For displacement kernels we do some trickery to make them believe
-     * we've got all required data ready. However, that data is different
-     * from final render kernels since we don't have BVH yet, so can't
-     * really use same semantic of arrays.
-     */
-    foreach (Geometry *geom, scene->geometry) {
-      if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
-        Mesh *mesh = static_cast<Mesh *>(geom);
-        for (size_t i = 0; i < mesh->num_triangles(); ++i) {
-          tri_prim_index[i + mesh->prim_offset] = 3 * (i + mesh->prim_offset);
-        }
-      }
-    }
-  }
-  else {
-    for (size_t i = 0; i < dscene->prim_index.size(); ++i) {
-      if ((dscene->prim_type[i] & PRIMITIVE_ALL_TRIANGLE) != 0) {
-        tri_prim_index[dscene->prim_index[i]] = dscene->prim_tri_index[i];
-      }
+      curve_segment_size += hair->num_segments();
     }
   }
 
@@ -1104,6 +1076,7 @@ void GeometryManager::device_update_mesh(
     /* normals */
     progress.set_status("Updating Mesh", "Computing normals");
 
+    float4 *tri_verts = dscene->tri_verts.alloc(tri_size * 3);
     uint *tri_shader = dscene->tri_shader.alloc(tri_size);
     float4 *vnormal = dscene->tri_vnormal.alloc(vert_size);
     uint4 *tri_vindex = dscene->tri_vindex.alloc(tri_size);
@@ -1129,13 +1102,12 @@ void GeometryManager::device_update_mesh(
           mesh->pack_normals(&vnormal[mesh->vert_offset]);
         }
 
-        if (mesh->triangles_is_modified() || mesh->vert_patch_uv_is_modified() || copy_all_data) {
-          mesh->pack_verts(tri_prim_index,
+        if (mesh->verts_is_modified() || mesh->triangles_is_modified() ||
+            mesh->vert_patch_uv_is_modified() || copy_all_data) {
+          mesh->pack_verts(&tri_verts[mesh->prim_offset * 3],
                            &tri_vindex[mesh->prim_offset],
                            &tri_patch[mesh->prim_offset],
-                           &tri_patch_uv[mesh->vert_offset],
-                           mesh->vert_offset,
-                           mesh->prim_offset);
+                           &tri_patch_uv[mesh->vert_offset]);
         }
 
         if (progress.get_cancel())
@@ -1146,6 +1118,7 @@ void GeometryManager::device_update_mesh(
     /* vertex coordinates */
     progress.set_status("Updating Mesh", "Copying Mesh to device");
 
+    dscene->tri_verts.copy_to_device_if_modified();
     dscene->tri_shader.copy_to_device_if_modified();
     dscene->tri_vnormal.copy_to_device_if_modified();
     dscene->tri_vindex.copy_to_device_if_modified();
@@ -1153,13 +1126,16 @@ void GeometryManager::device_update_mesh(
     dscene->tri_patch_uv.copy_to_device_if_modified();
   }
 
-  if (curve_size != 0) {
-    progress.set_status("Updating Mesh", "Copying Strands to device");
+  if (curve_segment_size != 0) {
+    progress.set_status("Updating Mesh", "Copying Curves to device");
 
     float4 *curve_keys = dscene->curve_keys.alloc(curve_key_size);
-    float4 *curves = dscene->curves.alloc(curve_size);
+    KernelCurve *curves = dscene->curves.alloc(curve_size);
+    KernelCurveSegment *curve_segments = dscene->curve_segments.alloc(curve_segment_size);
 
-    const bool copy_all_data = dscene->curve_keys.need_realloc() || dscene->curves.need_realloc();
+    const bool copy_all_data = dscene->curve_keys.need_realloc() ||
+                               dscene->curves.need_realloc() ||
+                               dscene->curve_segments.need_realloc();
 
     foreach (Geometry *geom, scene->geometry) {
       if (geom->is_hair()) {
@@ -1175,9 +1151,9 @@ void GeometryManager::device_update_mesh(
         }
 
         hair->pack_curves(scene,
-                          &curve_keys[hair->curvekey_offset],
+                          &curve_keys[hair->curve_key_offset],
                           &curves[hair->prim_offset],
-                          hair->curvekey_offset);
+                          &curve_segments[hair->curve_segment_offset]);
         if (progress.get_cancel())
           return;
       }
@@ -1185,6 +1161,7 @@ void GeometryManager::device_update_mesh(
 
     dscene->curve_keys.copy_to_device_if_modified();
     dscene->curves.copy_to_device_if_modified();
+    dscene->curve_segments.copy_to_device_if_modified();
   }
 
   if (patch_size != 0 && dscene->patches.need_realloc()) {
@@ -1195,10 +1172,7 @@ void GeometryManager::device_update_mesh(
     foreach (Geometry *geom, scene->geometry) {
       if (geom->is_mesh()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
-        mesh->pack_patches(&patch_data[mesh->patch_offset],
-                           mesh->vert_offset,
-                           mesh->face_offset,
-                           mesh->corner_offset);
+        mesh->pack_patches(&patch_data[mesh->patch_offset]);
 
         if (mesh->patch_table) {
           mesh->patch_table->copy_adjusting_offsets(&patch_data[mesh->patch_table_offset],
@@ -1211,23 +1185,6 @@ void GeometryManager::device_update_mesh(
     }
 
     dscene->patches.copy_to_device();
-  }
-
-  if (for_displacement) {
-    float4 *prim_tri_verts = dscene->prim_tri_verts.alloc(tri_size * 3);
-    foreach (Geometry *geom, scene->geometry) {
-      if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
-        Mesh *mesh = static_cast<Mesh *>(geom);
-        for (size_t i = 0; i < mesh->num_triangles(); ++i) {
-          Mesh::Triangle t = mesh->get_triangle(i);
-          size_t offset = 3 * (i + mesh->prim_offset);
-          prim_tri_verts[offset + 0] = float3_to_float4(mesh->verts[t.v[0]]);
-          prim_tri_verts[offset + 1] = float3_to_float4(mesh->verts[t.v[1]]);
-          prim_tri_verts[offset + 2] = float3_to_float4(mesh->verts[t.v[2]]);
-        }
-      }
-    }
-    dscene->prim_tri_verts.copy_to_device();
   }
 }
 
@@ -1256,16 +1213,6 @@ void GeometryManager::device_update_bvh(Device *device,
   const bool can_refit = scene->bvh != nullptr &&
                          (bparams.bvh_layout == BVHLayout::BVH_LAYOUT_OPTIX);
 
-  PackFlags pack_flags = PackFlags::PACK_NONE;
-
-  if (scene->bvh == nullptr) {
-    pack_flags |= PackFlags::PACK_ALL;
-  }
-
-  if (dscene->prim_visibility.is_modified()) {
-    pack_flags |= PackFlags::PACK_VISIBILITY;
-  }
-
   BVH *bvh = scene->bvh;
   if (!scene->bvh) {
     bvh = scene->bvh = BVH::create(bparams, scene->geometry, scene->objects, device);
@@ -1284,77 +1231,7 @@ void GeometryManager::device_update_bvh(Device *device,
     pack = std::move(static_cast<BVH2 *>(bvh)->pack);
   }
   else {
-    progress.set_status("Updating Scene BVH", "Packing BVH primitives");
-
-    size_t num_prims = 0;
-    size_t num_tri_verts = 0;
-    foreach (Geometry *geom, scene->geometry) {
-      if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
-        Mesh *mesh = static_cast<Mesh *>(geom);
-        num_prims += mesh->num_triangles();
-        num_tri_verts += 3 * mesh->num_triangles();
-      }
-      else if (geom->is_hair()) {
-        Hair *hair = static_cast<Hair *>(geom);
-        num_prims += hair->num_segments();
-      }
-    }
-
     pack.root_index = -1;
-
-    if (pack_flags != PackFlags::PACK_ALL) {
-      /* if we do not need to recreate the BVH, then only the vertices are updated, so we can
-       * safely retake the memory */
-      dscene->prim_tri_verts.give_data(pack.prim_tri_verts);
-
-      if ((pack_flags & PackFlags::PACK_VISIBILITY) != 0) {
-        dscene->prim_visibility.give_data(pack.prim_visibility);
-      }
-    }
-    else {
-      /* It is not strictly necessary to skip those resizes we if do not have to repack, as the OS
-       * will not allocate pages if we do not touch them, however it does help catching bugs. */
-      pack.prim_tri_index.resize(num_prims);
-      pack.prim_tri_verts.resize(num_tri_verts);
-      pack.prim_type.resize(num_prims);
-      pack.prim_index.resize(num_prims);
-      pack.prim_object.resize(num_prims);
-      pack.prim_visibility.resize(num_prims);
-    }
-
-    // Merge visibility flags of all objects and find object index for non-instanced geometry
-    unordered_map<const Geometry *, pair<int, uint>> geometry_to_object_info;
-    geometry_to_object_info.reserve(scene->geometry.size());
-    foreach (Object *ob, scene->objects) {
-      const Geometry *const geom = ob->get_geometry();
-      pair<int, uint> &info = geometry_to_object_info[geom];
-      info.second |= ob->visibility_for_tracing();
-      if (!geom->is_instanced()) {
-        info.first = ob->get_device_index();
-      }
-    }
-
-    TaskPool pool;
-    // Iterate over scene mesh list instead of objects, since 'optix_prim_offset' was calculated
-    // based on that list, which may be ordered differently from the object list.
-    foreach (Geometry *geom, scene->geometry) {
-      /* Make a copy of the pack_flags so the current geometry's flags do not pollute the others'.
-       */
-      PackFlags geom_pack_flags = pack_flags;
-
-      if (geom->is_modified()) {
-        geom_pack_flags |= PackFlags::PACK_VERTICES;
-      }
-
-      if (geom_pack_flags == PACK_NONE) {
-        continue;
-      }
-
-      const pair<int, uint> &info = geometry_to_object_info[geom];
-      pool.push(function_bind(
-          &Geometry::pack_primitives, geom, &pack, info.first, info.second, geom_pack_flags));
-    }
-    pool.wait_work();
   }
 
   /* copy to device */
@@ -1375,31 +1252,23 @@ void GeometryManager::device_update_bvh(Device *device,
     dscene->object_node.steal_data(pack.object_node);
     dscene->object_node.copy_to_device();
   }
-  if (pack.prim_tri_index.size() && (dscene->prim_tri_index.need_realloc() || has_bvh2_layout)) {
-    dscene->prim_tri_index.steal_data(pack.prim_tri_index);
-    dscene->prim_tri_index.copy_to_device();
-  }
-  if (pack.prim_tri_verts.size()) {
-    dscene->prim_tri_verts.steal_data(pack.prim_tri_verts);
-    dscene->prim_tri_verts.copy_to_device();
-  }
-  if (pack.prim_type.size() && (dscene->prim_type.need_realloc() || has_bvh2_layout)) {
+  if (pack.prim_type.size()) {
     dscene->prim_type.steal_data(pack.prim_type);
     dscene->prim_type.copy_to_device();
   }
-  if (pack.prim_visibility.size() && (dscene->prim_visibility.is_modified() || has_bvh2_layout)) {
+  if (pack.prim_visibility.size()) {
     dscene->prim_visibility.steal_data(pack.prim_visibility);
     dscene->prim_visibility.copy_to_device();
   }
-  if (pack.prim_index.size() && (dscene->prim_index.need_realloc() || has_bvh2_layout)) {
+  if (pack.prim_index.size()) {
     dscene->prim_index.steal_data(pack.prim_index);
     dscene->prim_index.copy_to_device();
   }
-  if (pack.prim_object.size() && (dscene->prim_object.need_realloc() || has_bvh2_layout)) {
+  if (pack.prim_object.size()) {
     dscene->prim_object.steal_data(pack.prim_object);
     dscene->prim_object.copy_to_device();
   }
-  if (pack.prim_time.size() && (dscene->prim_time.need_realloc() || has_bvh2_layout)) {
+  if (pack.prim_time.size()) {
     dscene->prim_time.steal_data(pack.prim_time);
     dscene->prim_time.copy_to_device();
   }
@@ -1629,8 +1498,6 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     dscene->bvh_nodes.tag_realloc();
     dscene->bvh_leaf_nodes.tag_realloc();
     dscene->object_node.tag_realloc();
-    dscene->prim_tri_verts.tag_realloc();
-    dscene->prim_tri_index.tag_realloc();
     dscene->prim_type.tag_realloc();
     dscene->prim_visibility.tag_realloc();
     dscene->prim_index.tag_realloc();
@@ -1649,6 +1516,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     if (device_update_flags & DEVICE_CURVE_DATA_NEEDS_REALLOC) {
       dscene->curves.tag_realloc();
       dscene->curve_keys.tag_realloc();
+      dscene->curve_segments.tag_realloc();
     }
   }
 
@@ -1691,6 +1559,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
   if (device_update_flags & DEVICE_MESH_DATA_MODIFIED) {
     /* if anything else than vertices or shaders are modified, we would need to reallocate, so
      * these are the only arrays that can be updated */
+    dscene->tri_verts.tag_modified();
     dscene->tri_vnormal.tag_modified();
     dscene->tri_shader.tag_modified();
   }
@@ -1698,6 +1567,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
   if (device_update_flags & DEVICE_CURVE_DATA_MODIFIED) {
     dscene->curve_keys.tag_modified();
     dscene->curves.tag_modified();
+    dscene->curve_segments.tag_modified();
   }
 
   need_flags_update = false;
@@ -1906,7 +1776,7 @@ void GeometryManager::device_update(Device *device,
             {"device_update (displacement: copy meshes to device)", time});
       }
     });
-    device_update_mesh(device, dscene, scene, true, progress);
+    device_update_mesh(device, dscene, scene, progress);
   }
   if (progress.get_cancel()) {
     return;
@@ -2058,7 +1928,7 @@ void GeometryManager::device_update(Device *device,
             {"device_update (copy meshes to device)", time});
       }
     });
-    device_update_mesh(device, dscene, scene, false, progress);
+    device_update_mesh(device, dscene, scene, progress);
     if (progress.get_cancel()) {
       return;
     }
@@ -2091,13 +1961,12 @@ void GeometryManager::device_update(Device *device,
   dscene->bvh_nodes.clear_modified();
   dscene->bvh_leaf_nodes.clear_modified();
   dscene->object_node.clear_modified();
-  dscene->prim_tri_verts.clear_modified();
-  dscene->prim_tri_index.clear_modified();
   dscene->prim_type.clear_modified();
   dscene->prim_visibility.clear_modified();
   dscene->prim_index.clear_modified();
   dscene->prim_object.clear_modified();
   dscene->prim_time.clear_modified();
+  dscene->tri_verts.clear_modified();
   dscene->tri_shader.clear_modified();
   dscene->tri_vindex.clear_modified();
   dscene->tri_patch.clear_modified();
@@ -2105,6 +1974,7 @@ void GeometryManager::device_update(Device *device,
   dscene->tri_patch_uv.clear_modified();
   dscene->curves.clear_modified();
   dscene->curve_keys.clear_modified();
+  dscene->curve_segments.clear_modified();
   dscene->patches.clear_modified();
   dscene->attributes_map.clear_modified();
   dscene->attributes_float.clear_modified();
@@ -2118,13 +1988,12 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->bvh_nodes.free_if_need_realloc(force_free);
   dscene->bvh_leaf_nodes.free_if_need_realloc(force_free);
   dscene->object_node.free_if_need_realloc(force_free);
-  dscene->prim_tri_verts.free_if_need_realloc(force_free);
-  dscene->prim_tri_index.free_if_need_realloc(force_free);
   dscene->prim_type.free_if_need_realloc(force_free);
   dscene->prim_visibility.free_if_need_realloc(force_free);
   dscene->prim_index.free_if_need_realloc(force_free);
   dscene->prim_object.free_if_need_realloc(force_free);
   dscene->prim_time.free_if_need_realloc(force_free);
+  dscene->tri_verts.free_if_need_realloc(force_free);
   dscene->tri_shader.free_if_need_realloc(force_free);
   dscene->tri_vnormal.free_if_need_realloc(force_free);
   dscene->tri_vindex.free_if_need_realloc(force_free);
@@ -2132,6 +2001,7 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->tri_patch_uv.free_if_need_realloc(force_free);
   dscene->curves.free_if_need_realloc(force_free);
   dscene->curve_keys.free_if_need_realloc(force_free);
+  dscene->curve_segments.free_if_need_realloc(force_free);
   dscene->patches.free_if_need_realloc(force_free);
   dscene->attributes_map.free_if_need_realloc(force_free);
   dscene->attributes_float.free_if_need_realloc(force_free);

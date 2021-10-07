@@ -186,8 +186,8 @@ ccl_device_inline float _shader_bsdf_multi_eval(const KernelGlobals *kg,
                                                 float sum_sample_weight,
                                                 const uint light_shader_flags)
 {
-  /* this is the veach one-sample model with balance heuristic, some pdf
-   * factors drop out when using balance heuristic weighting */
+  /* This is the veach one-sample model with balance heuristic,
+   * some PDF factors drop out when using balance heuristic weighting. */
   for (int i = 0; i < sd->num_closure; i++) {
     const ShaderClosure *sc = &sd->closure[i];
 
@@ -780,8 +780,8 @@ ccl_device_inline void shader_eval_volume(INTEGRATOR_STATE_CONST_ARGS,
       break;
     }
 
-    /* setup shaderdata from stack. it's mostly setup already in
-     * shader_setup_from_volume, this switching should be quick */
+    /* Setup shader-data from stack. it's mostly setup already in
+     * shader_setup_from_volume, this switching should be quick. */
     sd->object = entry.object;
     sd->lamp = LAMP_NONE;
     sd->shader = entry.shader;

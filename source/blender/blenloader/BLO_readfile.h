@@ -121,7 +121,7 @@ typedef struct BlendFileReadReport {
     int proxies_to_lib_overrides_success;
     /* Number of proxies that failed to convert to library overrides. */
     int proxies_to_lib_overrides_failures;
-    /* Number of VSE strips that were not read because were in non-supported channels. */
+    /* Number of sequencer strips that were not read because were in non-supported channels. */
     int vse_strips_skipped;
   } count;
 

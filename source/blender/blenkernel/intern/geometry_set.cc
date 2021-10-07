@@ -105,6 +105,14 @@ bool GeometryComponent::is_empty() const
 /** \name Geometry Set
  * \{ */
 
+/* The methods are defaulted here so that they are not instantiated in every translation unit. */
+GeometrySet::GeometrySet() = default;
+GeometrySet::GeometrySet(const GeometrySet &other) = default;
+GeometrySet::GeometrySet(GeometrySet &&other) = default;
+GeometrySet::~GeometrySet() = default;
+GeometrySet &GeometrySet::operator=(const GeometrySet &other) = default;
+GeometrySet &GeometrySet::operator=(GeometrySet &&other) = default;
+
 /* This method can only be used when the geometry set is mutable. It returns a mutable geometry
  * component of the given type.
  */

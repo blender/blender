@@ -608,10 +608,9 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
       }
 
       GPU_blend(GPU_BLEND_NONE);
+      immUniformThemeColor3(TH_BACK);
+      imm_draw_box_wire_2d(shdr_pos, x1i, y1i, x2i, y2i);
     }
-
-    immUniformThemeColor3(TH_BACK);
-    imm_draw_box_wire_2d(shdr_pos, x1i, y1i, x2i, y2i);
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
     if (view3d_camera_border_hack_test == true) {
@@ -781,9 +780,9 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
       immUniformThemeColorShadeAlpha(TH_VIEW_OVERLAY, 100, 255);
 
       /* TODO: Was using:
-       * UI_draw_roundbox_4fv(false, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 2.0f, color);
-       * We'll probably need a new imm_draw_line_roundbox_dashed dor that - though in practice the
-       * 2.0f round corner effect was nearly not visible anyway... */
+       * `UI_draw_roundbox_4fv(false, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 2.0f, color);`
+       * We'll probably need a new imm_draw_line_roundbox_dashed or that - though in practice the
+       * 2.0f round corner effect was nearly not visible anyway. */
       imm_draw_box_wire_2d(shdr_pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
     }
 
@@ -2181,13 +2180,17 @@ static void validate_object_select_id(struct Depsgraph *depsgraph,
  *       Calling this function should be avoided during interactive drawing. */
 static void view3d_opengl_read_Z_pixels(GPUViewport *viewport, rcti *rect, void *data)
 {
-  DefaultTextureList *dtxl = (DefaultTextureList *)GPU_viewport_texture_list_get(viewport);
+  GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
 
-  GPUFrameBuffer *tmp_fb = GPU_framebuffer_create(__func__);
-  GPU_framebuffer_texture_attach(tmp_fb, dtxl->depth, 0, 0);
-  GPU_framebuffer_bind(tmp_fb);
+  GPUFrameBuffer *depth_read_fb = NULL;
+  GPU_framebuffer_ensure_config(&depth_read_fb,
+                                {
+                                    GPU_ATTACHMENT_TEXTURE(depth_tx),
+                                    GPU_ATTACHMENT_NONE,
+                                });
 
-  GPU_framebuffer_read_depth(tmp_fb,
+  GPU_framebuffer_bind(depth_read_fb);
+  GPU_framebuffer_read_depth(depth_read_fb,
                              rect->xmin,
                              rect->ymin,
                              BLI_rcti_size_x(rect),
@@ -2196,7 +2199,7 @@ static void view3d_opengl_read_Z_pixels(GPUViewport *viewport, rcti *rect, void 
                              data);
 
   GPU_framebuffer_restore();
-  GPU_framebuffer_free(tmp_fb);
+  GPU_framebuffer_free(depth_read_fb);
 }
 
 void ED_view3d_select_id_validate(ViewContext *vc)
@@ -2266,12 +2269,11 @@ static ViewDepths *view3d_depths_create(ARegion *region)
   ViewDepths *d = MEM_callocN(sizeof(ViewDepths), "ViewDepths");
   d->w = region->winx;
   d->h = region->winy;
-  d->depths = MEM_mallocN(sizeof(float) * d->w * d->h, "View depths");
 
   {
     GPUViewport *viewport = WM_draw_region_get_viewport(region);
-    DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(viewport);
-    GPU_framebuffer_read_depth(fbl->depth_only_fb, 0, 0, d->w, d->h, GPU_DATA_FLOAT, d->depths);
+    GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
+    d->depths = GPU_texture_read(depth_tx, GPU_DATA_FLOAT, 0);
 
     /* Assumed to be this as they are never changed. */
     d->depth_range[0] = 0.0;

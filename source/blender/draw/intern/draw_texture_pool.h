@@ -13,38 +13,34 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Copyright 2016, Blender Foundation.
+ * Copyright 2021, Blender Foundation.
  */
 
 /** \file
  * \ingroup draw
+ *
+ * Texture pool
+ * A pool that gives temporary render targets that can be reused through other parts of the
+ * render pipeline.
+ * Expect texture data is garbage when acquiring it.
  */
 
 #pragma once
+
+#include "GPU_texture.h"
+
+typedef struct DRWTexturePool DRWTexturePool;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Buffer and textures used by the viewport by default */
-typedef struct DefaultFramebufferList {
-  struct GPUFrameBuffer *default_fb;
-  struct GPUFrameBuffer *overlay_fb;
-  struct GPUFrameBuffer *in_front_fb;
-  struct GPUFrameBuffer *color_only_fb;
-  struct GPUFrameBuffer *depth_only_fb;
-  struct GPUFrameBuffer *overlay_only_fb;
-  struct GPUFrameBuffer *stereo_comp_fb;
-} DefaultFramebufferList;
+DRWTexturePool *DRW_texture_pool_create(void);
+void DRW_texture_pool_free(DRWTexturePool *pool);
 
-typedef struct DefaultTextureList {
-  struct GPUTexture *color;
-  struct GPUTexture *color_overlay;
-  struct GPUTexture *color_stereo;
-  struct GPUTexture *color_overlay_stereo;
-  struct GPUTexture *depth;
-  struct GPUTexture *depth_in_front;
-} DefaultTextureList;
+GPUTexture *DRW_texture_pool_query(
+    DRWTexturePool *pool, int width, int height, eGPUTextureFormat format, void *user);
+void DRW_texture_pool_reset(DRWTexturePool *pool);
 
 #ifdef __cplusplus
 }

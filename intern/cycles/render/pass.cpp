@@ -89,7 +89,6 @@ const NodeEnum *Pass::get_type_enum()
     pass_type_enum.insert("material_id", PASS_MATERIAL_ID);
     pass_type_enum.insert("motion", PASS_MOTION);
     pass_type_enum.insert("motion_weight", PASS_MOTION_WEIGHT);
-    pass_type_enum.insert("render_time", PASS_RENDER_TIME);
     pass_type_enum.insert("cryptomatte", PASS_CRYPTOMATTE);
     pass_type_enum.insert("aov_color", PASS_AOV_COLOR);
     pass_type_enum.insert("aov_value", PASS_AOV_VALUE);
@@ -216,10 +215,6 @@ PassInfo Pass::get_info(const PassType type, const bool include_albedo)
     case PASS_SHADOW:
       pass_info.num_components = 3;
       pass_info.use_exposure = false;
-      break;
-    case PASS_RENDER_TIME:
-      /* This pass is handled entirely on the host side. */
-      pass_info.num_components = 0;
       break;
 
     case PASS_DIFFUSE_COLOR:

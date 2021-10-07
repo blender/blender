@@ -29,6 +29,7 @@ void register_node_type_fn_input_special_characters(void);
 void register_node_type_fn_input_string(void);
 void register_node_type_fn_input_vector(void);
 void register_node_type_fn_random_value(void);
+void register_node_type_fn_rotate_euler(void);
 void register_node_type_fn_string_length(void);
 void register_node_type_fn_string_substring(void);
 void register_node_type_fn_value_to_string(void);

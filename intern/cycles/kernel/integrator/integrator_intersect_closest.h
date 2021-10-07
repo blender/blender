@@ -123,7 +123,7 @@ ccl_device_forceinline void integrator_intersect_shader_next_kernel(
 #ifdef __SHADOW_CATCHER__
   const int object_flags = intersection_get_object_flags(kg, isect);
   if (kernel_shadow_catcher_split(INTEGRATOR_STATE_PASS, object_flags)) {
-    if (kernel_data.film.use_approximate_shadow_catcher && !kernel_data.background.transparent) {
+    if (kernel_data.film.pass_background != PASS_UNUSED && !kernel_data.background.transparent) {
       INTEGRATOR_STATE_WRITE(path, flag) |= PATH_RAY_SHADOW_CATCHER_BACKGROUND;
 
       if (use_raytrace_kernel) {
@@ -160,10 +160,7 @@ ccl_device void integrator_intersect_closest(INTEGRATOR_STATE_ARGS)
   if (path_state_ao_bounce(INTEGRATOR_STATE_PASS)) {
     ray.t = kernel_data.integrator.ao_bounces_distance;
 
-    const int last_object = last_isect_object != OBJECT_NONE ?
-                                last_isect_object :
-                                kernel_tex_fetch(__prim_object, last_isect_prim);
-    const float object_ao_distance = kernel_tex_fetch(__objects, last_object).ao_distance;
+    const float object_ao_distance = kernel_tex_fetch(__objects, last_isect_object).ao_distance;
     if (object_ao_distance != 0.0f) {
       ray.t = object_ao_distance;
     }

@@ -424,8 +424,12 @@ ccl_device_inline void kernel_gpu_film_convert_common(const KernelFilmConvert *k
     return;
   }
 
-  const uint64_t render_buffer_offset = (uint64_t)render_pixel_index * kfilm_convert->pass_stride;
-  ccl_global const float *buffer = render_buffer + render_buffer_offset;
+  const int x = render_pixel_index % width;
+  const int y = render_pixel_index / width;
+
+  ccl_global const float *buffer = render_buffer + offset + x * kfilm_convert->pass_stride +
+                                   y * stride * kfilm_convert->pass_stride;
+
   ccl_global float *pixel = pixels +
                             (render_pixel_index + dst_offset) * kfilm_convert->pixel_stride;
 
@@ -451,16 +455,16 @@ ccl_device_inline void kernel_gpu_film_convert_half_rgba_common_rgba(
     return;
   }
 
-  const uint64_t render_buffer_offset = (uint64_t)render_pixel_index * kfilm_convert->pass_stride;
-  ccl_global const float *buffer = render_buffer + render_buffer_offset;
+  const int x = render_pixel_index % width;
+  const int y = render_pixel_index / width;
+
+  ccl_global const float *buffer = render_buffer + offset + x * kfilm_convert->pass_stride +
+                                   y * stride * kfilm_convert->pass_stride;
 
   float pixel[4];
   processor(kfilm_convert, buffer, pixel);
 
   film_apply_pass_pixel_overlays_rgba(kfilm_convert, buffer, pixel);
-
-  const int x = render_pixel_index % width;
-  const int y = render_pixel_index / width;
 
   ccl_global half4 *out = ((ccl_global half4 *)rgba) + rgba_offset + y * rgba_stride + x;
   float4_store_half((ccl_global half *)out, make_float4(pixel[0], pixel[1], pixel[2], pixel[3]));

@@ -34,7 +34,6 @@ static void cmp_node_sephsva_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("S");
   b.add_output<decl::Float>("V");
   b.add_output<decl::Float>("A");
-
 }
 
 }  // namespace blender::nodes

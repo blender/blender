@@ -107,7 +107,9 @@ KERNEL_STRUCT_END(subsurface)
 KERNEL_STRUCT_BEGIN(volume_stack)
 KERNEL_STRUCT_ARRAY_MEMBER(volume_stack, int, object, KERNEL_FEATURE_VOLUME)
 KERNEL_STRUCT_ARRAY_MEMBER(volume_stack, int, shader, KERNEL_FEATURE_VOLUME)
-KERNEL_STRUCT_END_ARRAY(volume_stack, INTEGRATOR_VOLUME_STACK_SIZE, INTEGRATOR_VOLUME_STACK_SIZE)
+KERNEL_STRUCT_END_ARRAY(volume_stack,
+                        KERNEL_STRUCT_VOLUME_STACK_SIZE,
+                        KERNEL_STRUCT_VOLUME_STACK_SIZE)
 
 /********************************* Shadow Path State **************************/
 
@@ -163,5 +165,5 @@ KERNEL_STRUCT_BEGIN(shadow_volume_stack)
 KERNEL_STRUCT_ARRAY_MEMBER(shadow_volume_stack, int, object, KERNEL_FEATURE_VOLUME)
 KERNEL_STRUCT_ARRAY_MEMBER(shadow_volume_stack, int, shader, KERNEL_FEATURE_VOLUME)
 KERNEL_STRUCT_END_ARRAY(shadow_volume_stack,
-                        INTEGRATOR_VOLUME_STACK_SIZE,
-                        INTEGRATOR_VOLUME_STACK_SIZE)
+                        KERNEL_STRUCT_VOLUME_STACK_SIZE,
+                        KERNEL_STRUCT_VOLUME_STACK_SIZE)

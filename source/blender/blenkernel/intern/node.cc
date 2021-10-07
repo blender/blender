@@ -5713,11 +5713,12 @@ static void registerGeometryNodes()
   register_node_type_geo_legacy_attribute_proximity();
   register_node_type_geo_legacy_attribute_randomize();
   register_node_type_geo_legacy_material_assign();
+  register_node_type_geo_legacy_points_to_volume();
   register_node_type_geo_legacy_select_by_material();
   register_node_type_geo_legacy_curve_spline_type();
   register_node_type_geo_legacy_curve_reverse();
+  register_node_type_geo_legacy_select_by_handle_type();
   register_node_type_geo_legacy_curve_subdivide();
-
   register_node_type_geo_align_rotation_to_vector();
   register_node_type_geo_attribute_capture();
   register_node_type_geo_attribute_clamp();
@@ -5743,6 +5744,7 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_endpoints();
   register_node_type_geo_curve_fill();
   register_node_type_geo_curve_fillet();
+  register_node_type_geo_curve_handle_type_selection();
   register_node_type_geo_curve_length();
   register_node_type_geo_curve_parameter();
   register_node_type_geo_curve_primitive_bezier_segment();
@@ -5800,7 +5802,6 @@ static void registerGeometryNodes()
   register_node_type_geo_raycast();
   register_node_type_geo_realize_instances();
   register_node_type_geo_sample_texture();
-  register_node_type_geo_select_by_handle_type();
   register_node_type_geo_separate_components();
   register_node_type_geo_set_position();
   register_node_type_geo_string_join();
@@ -5824,6 +5825,7 @@ static void registerFunctionNodes()
   register_node_type_fn_input_string();
   register_node_type_fn_input_vector();
   register_node_type_fn_random_value();
+  register_node_type_fn_rotate_euler();
   register_node_type_fn_string_length();
   register_node_type_fn_string_substring();
   register_node_type_fn_value_to_string();

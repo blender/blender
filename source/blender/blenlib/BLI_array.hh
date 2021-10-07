@@ -31,7 +31,7 @@
  *
  * A main benefit of using Array over Vector is that it expresses the intent of the developer
  * better. It indicates that the size of the data structure is not expected to change. Furthermore,
- * you can be more certain that an array does not overallocate.
+ * you can be more certain that an array does not over-allocate.
  *
  * blender::Array supports small object optimization to improve performance when the size turns out
  * to be small at run-time.

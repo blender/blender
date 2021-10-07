@@ -157,15 +157,6 @@ struct DerivedMesh {
   int (*getNumLoops)(DerivedMesh *dm);
   int (*getNumPolys)(DerivedMesh *dm);
 
-  /** Copy a single vert/edge/tessellated face from the derived mesh into
-   * `*r_{vert/edge/face}`. note that the current implementation
-   * of this function can be quite slow, iterating over all
-   * elements (editmesh)
-   */
-  void (*getVert)(DerivedMesh *dm, int index, struct MVert *r_vert);
-  void (*getEdge)(DerivedMesh *dm, int index, struct MEdge *r_edge);
-  void (*getTessFace)(DerivedMesh *dm, int index, struct MFace *r_face);
-
   /** Return a pointer to the entire array of verts/edges/face from the
    * derived mesh. if such an array does not exist yet, it will be created,
    * and freed on the next ->release(). consider using getVert/Edge/Face if

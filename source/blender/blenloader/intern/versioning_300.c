@@ -619,6 +619,32 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     do_versions_idproperty_ui_data(bmain);
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 32)) {
+    /* Update Switch Node Non-Fields switch input to Switch_001. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+        if (link->tonode->type == GEO_NODE_SWITCH) {
+          if (STREQ(link->tosock->identifier, "Switch")) {
+            bNode *to_node = link->tonode;
+
+            uint8_t mode = ((NodeSwitch *)to_node->storage)->input_type;
+            if (ELEM(mode,
+                     SOCK_GEOMETRY,
+                     SOCK_OBJECT,
+                     SOCK_COLLECTION,
+                     SOCK_TEXTURE,
+                     SOCK_MATERIAL)) {
+              link->tosock = link->tosock->next;
+            }
+          }
+        }
+      }
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1710,7 +1736,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Show vse color tags by default. */
+    /* Show sequencer color tags by default. */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {

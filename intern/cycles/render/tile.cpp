@@ -372,8 +372,17 @@ void TileManager::update(const BufferParams &params, const Scene *scene)
   configure_image_spec_from_buffer(&write_state_.image_spec, buffer_params_, tile_size_);
 
   const DenoiseParams denoise_params = scene->integrator->get_denoise_params();
+  const AdaptiveSampling adaptive_sampling = scene->integrator->get_adaptive_sampling();
+
   node_to_image_spec_atttributes(
       &write_state_.image_spec, &denoise_params, ATTR_DENOISE_SOCKET_PREFIX);
+
+  if (adaptive_sampling.use) {
+    overscan_ = 4;
+  }
+  else {
+    overscan_ = 0;
+  }
 }
 
 bool TileManager::done()
@@ -399,18 +408,28 @@ Tile TileManager::get_tile_for_index(int index) const
   /* TODO(sergey): Consider using hilbert spiral, or. maybe, even configurable. Not sure this
    * brings a lot of value since this is only applicable to BIG tiles. */
 
-  const int tile_y = index / tile_state_.num_tiles_x;
-  const int tile_x = index - tile_y * tile_state_.num_tiles_x;
+  const int tile_index_y = index / tile_state_.num_tiles_x;
+  const int tile_index_x = index - tile_index_y * tile_state_.num_tiles_x;
+
+  const int tile_x = tile_index_x * tile_size_.x;
+  const int tile_y = tile_index_y * tile_size_.y;
 
   Tile tile;
 
-  tile.x = tile_x * tile_size_.x;
-  tile.y = tile_y * tile_size_.y;
-  tile.width = tile_size_.x;
-  tile.height = tile_size_.y;
+  tile.x = tile_x - overscan_;
+  tile.y = tile_y - overscan_;
+  tile.width = tile_size_.x + 2 * overscan_;
+  tile.height = tile_size_.y + 2 * overscan_;
 
+  tile.x = max(tile.x, 0);
+  tile.y = max(tile.y, 0);
   tile.width = min(tile.width, buffer_params_.width - tile.x);
   tile.height = min(tile.height, buffer_params_.height - tile.y);
+
+  tile.window_x = tile_x - tile.x;
+  tile.window_y = tile_y - tile.y;
+  tile.window_width = min(tile_size_.x, buffer_params_.width - (tile.x + tile.window_x));
+  tile.window_height = min(tile_size_.y, buffer_params_.height - (tile.y + tile.window_y));
 
   return tile;
 }
@@ -483,11 +502,22 @@ bool TileManager::write_tile(const RenderBuffers &tile_buffers)
 
   DCHECK_EQ(tile_buffers.params.pass_stride, buffer_params_.pass_stride);
 
+  vector<float> pixel_storage;
+
   const BufferParams &tile_params = tile_buffers.params;
 
-  const float *pixels = tile_buffers.buffer.data();
-  const int tile_x = tile_params.full_x - buffer_params_.full_x;
-  const int tile_y = tile_params.full_y - buffer_params_.full_y;
+  const int tile_x = tile_params.full_x - buffer_params_.full_x + tile_params.window_x;
+  const int tile_y = tile_params.full_y - buffer_params_.full_y + tile_params.window_y;
+
+  const int64_t pass_stride = tile_params.pass_stride;
+  const int64_t tile_row_stride = tile_params.width * pass_stride;
+
+  const int64_t xstride = pass_stride * sizeof(float);
+  const int64_t ystride = xstride * tile_params.width;
+  const int64_t zstride = ystride * tile_params.height;
+
+  const float *pixels = tile_buffers.buffer.data() + tile_params.window_x * pass_stride +
+                        tile_params.window_y * tile_row_stride;
 
   VLOG(3) << "Write tile at " << tile_x << ", " << tile_y;
 
@@ -499,13 +529,16 @@ bool TileManager::write_tile(const RenderBuffers &tile_buffers)
    * The only thing we have to ensure is that the tile_x and tile_y are a multiple of the
    * image tile size, which happens in compute_render_tile_size. */
   if (!write_state_.tile_out->write_tiles(tile_x,
-                                          tile_x + tile_params.width,
+                                          tile_x + tile_params.window_width,
                                           tile_y,
-                                          tile_y + tile_params.height,
+                                          tile_y + tile_params.window_height,
                                           0,
                                           1,
                                           TypeDesc::FLOAT,
-                                          pixels)) {
+                                          pixels,
+                                          xstride,
+                                          ystride,
+                                          zstride)) {
     LOG(ERROR) << "Error writing tile " << write_state_.tile_out->geterror();
     return false;
   }
@@ -531,12 +564,15 @@ void TileManager::finish_write_tiles()
          ++tile_index) {
       const Tile tile = get_tile_for_index(tile_index);
 
-      VLOG(3) << "Write dummy tile at " << tile.x << ", " << tile.y;
+      const int tile_x = tile.x + tile.window_x;
+      const int tile_y = tile.y + tile.window_y;
 
-      write_state_.tile_out->write_tiles(tile.x,
-                                         tile.x + tile.width,
-                                         tile.y,
-                                         tile.y + tile.height,
+      VLOG(3) << "Write dummy tile at " << tile_x << ", " << tile_y;
+
+      write_state_.tile_out->write_tiles(tile_x,
+                                         tile_x + tile.window_width,
+                                         tile_y,
+                                         tile_y + tile.window_height,
                                          0,
                                          1,
                                          TypeDesc::FLOAT,

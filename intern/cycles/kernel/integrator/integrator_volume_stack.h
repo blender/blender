@@ -72,7 +72,7 @@ ccl_device void volume_stack_enter_exit(INTEGRATOR_STATE_ARGS,
     }
 
     /* If we exceed the stack limit, ignore. */
-    if (i >= VOLUME_STACK_SIZE - 1) {
+    if (i >= kernel_data.volume_stack_size - 1) {
       return;
     }
 

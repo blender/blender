@@ -168,9 +168,13 @@ _km_hierarchy = [
     ('Node Editor', 'NODE_EDITOR', 'WINDOW', [
         ('Node Generic', 'NODE_EDITOR', 'WINDOW', []),
     ]),
-    ('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', [
-        ('SequencerCommon', 'SEQUENCE_EDITOR', 'WINDOW', []),
-        ('SequencerPreview', 'SEQUENCE_EDITOR', 'WINDOW', []),
+    ('SequencerCommon', 'SEQUENCE_EDITOR', 'WINDOW', [
+        ('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', [
+            _km_expand_from_toolsystem('SEQUENCE_EDITOR', 'SEQUENCER'),
+        ]),
+        ('SequencerPreview', 'SEQUENCE_EDITOR', 'WINDOW', [
+            _km_expand_from_toolsystem('SEQUENCE_EDITOR', 'PREVIEW'),
+        ]),
     ]),
 
     ('File Browser', 'FILE_BROWSER', 'WINDOW', [

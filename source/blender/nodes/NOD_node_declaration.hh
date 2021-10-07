@@ -57,59 +57,15 @@ class OutputFieldDependency {
   Vector<int> linked_input_indices_;
 
  public:
-  static OutputFieldDependency ForFieldSource()
-  {
-    OutputFieldDependency field_dependency;
-    field_dependency.type_ = OutputSocketFieldType::FieldSource;
-    return field_dependency;
-  }
+  static OutputFieldDependency ForFieldSource();
+  static OutputFieldDependency ForDataSource();
+  static OutputFieldDependency ForDependentField();
+  static OutputFieldDependency ForPartiallyDependentField(Vector<int> indices);
 
-  static OutputFieldDependency ForDataSource()
-  {
-    OutputFieldDependency field_dependency;
-    field_dependency.type_ = OutputSocketFieldType::None;
-    return field_dependency;
-  }
+  OutputSocketFieldType field_type() const;
+  Span<int> linked_input_indices() const;
 
-  static OutputFieldDependency ForPartiallyDependentField(Vector<int> indices)
-  {
-    OutputFieldDependency field_dependency;
-    if (indices.is_empty()) {
-      field_dependency.type_ = OutputSocketFieldType::None;
-    }
-    else {
-      field_dependency.type_ = OutputSocketFieldType::PartiallyDependent;
-      field_dependency.linked_input_indices_ = std::move(indices);
-    }
-    return field_dependency;
-  }
-
-  static OutputFieldDependency ForDependentField()
-  {
-    OutputFieldDependency field_dependency;
-    field_dependency.type_ = OutputSocketFieldType::DependentField;
-    return field_dependency;
-  }
-
-  OutputSocketFieldType field_type() const
-  {
-    return type_;
-  }
-
-  Span<int> linked_input_indices() const
-  {
-    return linked_input_indices_;
-  }
-
-  friend bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b)
-  {
-    return a.type_ == b.type_ && a.linked_input_indices_ == b.linked_input_indices_;
-  }
-
-  friend bool operator!=(const OutputFieldDependency &a, const OutputFieldDependency &b)
-  {
-    return !(a == b);
-  }
+  friend bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b);
 };
 
 /**
@@ -118,16 +74,6 @@ class OutputFieldDependency {
 struct FieldInferencingInterface {
   Vector<InputSocketFieldType> inputs;
   Vector<OutputFieldDependency> outputs;
-
-  friend bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
-  {
-    return a.inputs == b.inputs && a.outputs == b.outputs;
-  }
-
-  friend bool operator!=(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
-  {
-    return !(a == b);
-  }
 };
 
 /**
@@ -251,6 +197,7 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   {
     decl_->output_field_dependency_ = OutputFieldDependency::ForPartiallyDependentField(
         std::move(input_dependencies));
+    return *(Self *)this;
   }
 };
 
@@ -308,9 +255,85 @@ class NodeDeclarationBuilder {
                                          Vector<SocketDeclarationPtr> &r_decls);
 };
 
-/* --------------------------------------------------------------------
- * SocketDeclaration inline methods.
- */
+/* -------------------------------------------------------------------- */
+/** \name #OutputFieldDependency Inline Methods
+ * \{ */
+
+inline OutputFieldDependency OutputFieldDependency::ForFieldSource()
+{
+  OutputFieldDependency field_dependency;
+  field_dependency.type_ = OutputSocketFieldType::FieldSource;
+  return field_dependency;
+}
+
+inline OutputFieldDependency OutputFieldDependency::ForDataSource()
+{
+  OutputFieldDependency field_dependency;
+  field_dependency.type_ = OutputSocketFieldType::None;
+  return field_dependency;
+}
+
+inline OutputFieldDependency OutputFieldDependency::ForDependentField()
+{
+  OutputFieldDependency field_dependency;
+  field_dependency.type_ = OutputSocketFieldType::DependentField;
+  return field_dependency;
+}
+
+inline OutputFieldDependency OutputFieldDependency::ForPartiallyDependentField(Vector<int> indices)
+{
+  OutputFieldDependency field_dependency;
+  if (indices.is_empty()) {
+    field_dependency.type_ = OutputSocketFieldType::None;
+  }
+  else {
+    field_dependency.type_ = OutputSocketFieldType::PartiallyDependent;
+    field_dependency.linked_input_indices_ = std::move(indices);
+  }
+  return field_dependency;
+}
+
+inline OutputSocketFieldType OutputFieldDependency::field_type() const
+{
+  return type_;
+}
+
+inline Span<int> OutputFieldDependency::linked_input_indices() const
+{
+  return linked_input_indices_;
+}
+
+inline bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b)
+{
+  return a.type_ == b.type_ && a.linked_input_indices_ == b.linked_input_indices_;
+}
+
+inline bool operator!=(const OutputFieldDependency &a, const OutputFieldDependency &b)
+{
+  return !(a == b);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #FieldInferencingInterface Inline Methods
+ * \{ */
+
+inline bool operator==(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
+{
+  return a.inputs == b.inputs && a.outputs == b.outputs;
+}
+
+inline bool operator!=(const FieldInferencingInterface &a, const FieldInferencingInterface &b)
+{
+  return !(a == b);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #SocketDeclaration Inline Methods
+ * \{ */
 
 inline StringRefNull SocketDeclaration::name() const
 {
@@ -336,9 +359,11 @@ inline const OutputFieldDependency &SocketDeclaration::output_field_dependency()
   return output_field_dependency_;
 }
 
-/* --------------------------------------------------------------------
- * NodeDeclarationBuilder inline methods.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #NodeDeclarationBuilder Inline Methods
+ * \{ */
 
 inline NodeDeclarationBuilder::NodeDeclarationBuilder(NodeDeclaration &declaration)
     : declaration_(declaration)
@@ -376,9 +401,11 @@ inline typename DeclType::Builder &NodeDeclarationBuilder::add_socket(
   return socket_decl_builder_ref;
 }
 
-/* --------------------------------------------------------------------
- * NodeDeclaration inline methods.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #NodeDeclaration Inline Methods
+ * \{ */
 
 inline Span<SocketDeclarationPtr> NodeDeclaration::inputs() const
 {
@@ -389,5 +416,7 @@ inline Span<SocketDeclarationPtr> NodeDeclaration::outputs() const
 {
   return outputs_;
 }
+
+/** \} */
 
 }  // namespace blender::nodes

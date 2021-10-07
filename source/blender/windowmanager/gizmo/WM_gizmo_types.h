@@ -502,8 +502,6 @@ typedef struct wmGizmoGroup {
 
   bool tag_remove;
 
-  bool use_fallback_keymap;
-
   void *customdata;
   /** For freeing customdata from above. */
   void (*customdata_free)(void *);

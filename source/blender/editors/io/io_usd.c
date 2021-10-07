@@ -57,7 +57,7 @@
 #  include "io_usd.h"
 #  include "usd.h"
 
-#  include "stdio.h"
+#  include <stdio.h>
 
 const EnumPropertyItem rna_enum_usd_export_evaluation_mode_items[] = {
     {DAG_EVAL_RENDER,

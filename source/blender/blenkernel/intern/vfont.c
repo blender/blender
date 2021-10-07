@@ -40,7 +40,6 @@
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
-#include "BLI_vfontdata.h"
 
 #include "BLT_translation.h"
 
@@ -51,12 +50,13 @@
 
 #include "BKE_anim_path.h"
 #include "BKE_curve.h"
-#include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
+#include "BKE_vfont.h"
+#include "BKE_vfontdata.h"
 
 #include "BLO_read_write.h"
 
@@ -77,7 +77,7 @@ static void vfont_init_data(ID *id)
   if (pf) {
     VFontData *vfd;
 
-    vfd = BLI_vfontdata_from_freetypefont(pf);
+    vfd = BKE_vfontdata_from_freetypefont(pf);
     if (vfd) {
       vfont->data = vfd;
 
@@ -107,7 +107,7 @@ static void vfont_copy_data(Main *UNUSED(bmain),
   }
 
   if (vfont_dst->data) {
-    vfont_dst->data = BLI_vfontdata_copy(vfont_dst->data, flag_subdata);
+    vfont_dst->data = BKE_vfontdata_copy(vfont_dst->data, flag_subdata);
   }
 }
 
@@ -300,7 +300,7 @@ static VFontData *vfont_get_data(VFont *vfont)
     }
 
     if (pf) {
-      vfont->data = BLI_vfontdata_from_freetypefont(pf);
+      vfont->data = BKE_vfontdata_from_freetypefont(pf);
       if (pf != vfont->packedfile) {
         BKE_packedfile_free(pf);
       }
@@ -335,19 +335,19 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
   if (pf) {
     VFontData *vfd;
 
-    vfd = BLI_vfontdata_from_freetypefont(pf);
+    vfd = BKE_vfontdata_from_freetypefont(pf);
     if (vfd) {
       /* If there's a font name, use it for the ID name. */
       vfont = BKE_libblock_alloc(bmain, ID_VF, vfd->name[0] ? vfd->name : filename, 0);
       vfont->data = vfd;
       BLI_strncpy(vfont->filepath, filepath, sizeof(vfont->filepath));
 
-      /* if autopack is on store the packedfile in de font structure */
+      /* if auto-pack is on store the packed-file in de font structure */
       if (!is_builtin && (G.fileflags & G_FILE_AUTOPACK)) {
         vfont->packedfile = pf;
       }
 
-      /* Do not add FO_BUILTIN_NAME to temporary listbase */
+      /* Do not add #FO_BUILTIN_NAME to temporary list-base. */
       if (!STREQ(filename, FO_BUILTIN_NAME)) {
         vfont->temp_pf = BKE_packedfile_new(NULL, filepath, BKE_main_blendfile_path(bmain));
       }
@@ -694,7 +694,7 @@ struct TempLineInfo {
   float x_min;   /* left margin */
   float x_max;   /* right margin */
   int char_nr;   /* number of characters */
-  int wspace_nr; /* number of whitespaces of line */
+  int wspace_nr; /* number of white-spaces of line */
 };
 
 /* -------------------------------------------------------------------- */
@@ -803,7 +803,7 @@ static bool vfont_to_curve(Object *ob,
   float longest_line_length = 0.0f;
 
   /* Text at the beginning of the last used text-box (use for y-axis alignment).
-   * We overallocate by one to simplify logic of getting last char. */
+   * We over-allocate by one to simplify logic of getting last char. */
   int *i_textbox_array = MEM_callocN(sizeof(*i_textbox_array) * (cu->totbox + 1),
                                      "TextBox initial char index");
 
@@ -954,7 +954,7 @@ static bool vfont_to_curve(Object *ob,
          * happen often once all the chars are load.
          */
         if ((che = find_vfont_char(vfd, ascii)) == NULL) {
-          che = BLI_vfontchar_from_freetypefont(vfont, ascii);
+          che = BKE_vfontdata_char_from_freetypefont(vfont, ascii);
         }
         BLI_rw_mutex_unlock(&vfont_rwlock);
       }
@@ -1136,7 +1136,7 @@ static bool vfont_to_curve(Object *ob,
     }
   }
 
-  /* linedata is now: width of line */
+  /* Line-data is now: width of line. */
 
   if (cu->spacemode != CU_ALIGN_X_LEFT) {
     ct = chartransdata;
@@ -1500,7 +1500,7 @@ static bool vfont_to_curve(Object *ob,
     chartransdata = NULL;
   }
   else if (mode == FO_EDIT) {
-    /* make nurbdata */
+    /* Make NURBS-data. */
     BKE_nurbList_free(r_nubase);
 
     ct = chartransdata;

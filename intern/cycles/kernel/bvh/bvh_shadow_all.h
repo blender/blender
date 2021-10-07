@@ -130,7 +130,6 @@ ccl_device_inline
         if (prim_addr >= 0) {
           const int prim_addr2 = __float_as_int(leaf.y);
           const uint type = __float_as_int(leaf.w);
-          const uint p_type = type & PRIMITIVE_ALL;
 
           /* pop */
           node_addr = traversal_stack[stack_ptr];
@@ -138,14 +137,15 @@ ccl_device_inline
 
           /* primitive intersection */
           while (prim_addr < prim_addr2) {
-            kernel_assert((kernel_tex_fetch(__prim_type, prim_addr) & PRIMITIVE_ALL) == p_type);
+            kernel_assert((kernel_tex_fetch(__prim_type, prim_addr) & PRIMITIVE_ALL) ==
+                          (type & PRIMITIVE_ALL));
             bool hit;
 
             /* todo: specialized intersect functions which don't fill in
              * isect unless needed and check SD_HAS_TRANSPARENT_SHADOW?
              * might give a few % performance improvement */
 
-            switch (p_type) {
+            switch (type & PRIMITIVE_ALL) {
               case PRIMITIVE_TRIANGLE: {
                 hit = triangle_intersect(
                     kg, isect, P, dir, isect_t, visibility, object, prim_addr);
@@ -163,17 +163,20 @@ ccl_device_inline
               case PRIMITIVE_MOTION_CURVE_THICK:
               case PRIMITIVE_CURVE_RIBBON:
               case PRIMITIVE_MOTION_CURVE_RIBBON: {
-                const uint curve_type = kernel_tex_fetch(__prim_type, prim_addr);
-                hit = curve_intersect(kg,
-                                      isect,
-                                      P,
-                                      dir,
-                                      isect_t,
-                                      visibility,
-                                      object,
-                                      prim_addr,
-                                      ray->time,
-                                      curve_type);
+                if ((type & PRIMITIVE_ALL_MOTION) && kernel_data.bvh.use_bvh_steps) {
+                  const float2 prim_time = kernel_tex_fetch(__prim_time, prim_addr);
+                  if (ray->time < prim_time.x || ray->time > prim_time.y) {
+                    hit = false;
+                    break;
+                  }
+                }
+
+                const int curve_object = kernel_tex_fetch(__prim_object, prim_addr);
+                const int curve_type = kernel_tex_fetch(__prim_type, prim_addr);
+                const int curve_prim = kernel_tex_fetch(__prim_index, prim_addr);
+                hit = curve_intersect(
+                    kg, isect, P, dir, isect_t, curve_object, curve_prim, ray->time, curve_type);
+
                 break;
               }
 #endif

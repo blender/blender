@@ -545,8 +545,6 @@ static PassType get_blender_pass_type(BL::RenderPass &b_pass)
   MAP_PASS("Shadow Catcher", PASS_SHADOW_CATCHER);
   MAP_PASS("Noisy Shadow Catcher", PASS_SHADOW_CATCHER);
 
-  MAP_PASS("Debug Render Time", PASS_RENDER_TIME);
-
   MAP_PASS("AdaptiveAuxBuffer", PASS_ADAPTIVE_AUX_BUFFER);
   MAP_PASS("Debug Sample Count", PASS_SAMPLE_COUNT);
 
@@ -604,10 +602,6 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
   PointerRNA crl = RNA_pointer_get(&b_view_layer.ptr, "cycles");
 
   /* Debug passes. */
-  if (get_boolean(crl, "pass_debug_render_time")) {
-    b_engine.add_pass("Debug Render Time", 1, "X", b_view_layer.name().c_str());
-    pass_add(scene, PASS_RENDER_TIME, "Debug Render Time");
-  }
   if (get_boolean(crl, "pass_debug_sample_count")) {
     b_engine.add_pass("Debug Sample Count", 1, "X", b_view_layer.name().c_str());
     pass_add(scene, PASS_SAMPLE_COUNT, "Debug Sample Count");

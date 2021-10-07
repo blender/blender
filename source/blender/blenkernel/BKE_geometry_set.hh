@@ -253,6 +253,13 @@ struct GeometrySet {
   blender::Map<GeometryComponentType, GeometryComponentPtr> components_;
 
  public:
+  GeometrySet();
+  GeometrySet(const GeometrySet &other);
+  GeometrySet(GeometrySet &&other);
+  ~GeometrySet();
+  GeometrySet &operator=(const GeometrySet &other);
+  GeometrySet &operator=(GeometrySet &&other);
+
   GeometryComponent &get_component_for_write(GeometryComponentType component_type);
   template<typename Component> Component &get_component_for_write()
   {

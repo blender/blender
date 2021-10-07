@@ -111,7 +111,7 @@ typedef struct EdgeHalf {
   bool is_bev;
   /** Is e->v2 the vertex at this end? */
   bool is_rev;
-  /** Is e a seam for custom loopdata (e.g., UVs)? */
+  /** Is e a seam for custom loop-data (e.g., UV's). */
   bool is_seam;
   /** Used during the custom profile orientation pass. */
   bool visited_rpo;
@@ -3048,7 +3048,9 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
         }
       }
       else {
-        offset_meet(bp, e, e2, bv->v, e->fnext, true, co, eip);
+        /* Since all edges between e and e2 are in the same plane, it is OK
+         * to treat this like the case where there are no edges between. */
+        offset_meet(bp, e, e2, bv->v, e->fnext, false, co, NULL);
       }
     }
 

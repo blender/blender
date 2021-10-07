@@ -49,13 +49,12 @@ DeviceScene::DeviceScene(Device *device)
     : bvh_nodes(device, "__bvh_nodes", MEM_GLOBAL),
       bvh_leaf_nodes(device, "__bvh_leaf_nodes", MEM_GLOBAL),
       object_node(device, "__object_node", MEM_GLOBAL),
-      prim_tri_index(device, "__prim_tri_index", MEM_GLOBAL),
-      prim_tri_verts(device, "__prim_tri_verts", MEM_GLOBAL),
       prim_type(device, "__prim_type", MEM_GLOBAL),
       prim_visibility(device, "__prim_visibility", MEM_GLOBAL),
       prim_index(device, "__prim_index", MEM_GLOBAL),
       prim_object(device, "__prim_object", MEM_GLOBAL),
       prim_time(device, "__prim_time", MEM_GLOBAL),
+      tri_verts(device, "__tri_verts", MEM_GLOBAL),
       tri_shader(device, "__tri_shader", MEM_GLOBAL),
       tri_vnormal(device, "__tri_vnormal", MEM_GLOBAL),
       tri_vindex(device, "__tri_vindex", MEM_GLOBAL),
@@ -63,6 +62,7 @@ DeviceScene::DeviceScene(Device *device)
       tri_patch_uv(device, "__tri_patch_uv", MEM_GLOBAL),
       curves(device, "__curves", MEM_GLOBAL),
       curve_keys(device, "__curve_keys", MEM_GLOBAL),
+      curve_segments(device, "__curve_segments", MEM_GLOBAL),
       patches(device, "__patches", MEM_GLOBAL),
       objects(device, "__objects", MEM_GLOBAL),
       object_motion_pass(device, "__object_motion_pass", MEM_GLOBAL),
@@ -527,6 +527,8 @@ void Scene::update_kernel_features()
   const uint max_closures = (params.background) ? get_max_closure_count() : MAX_CLOSURE;
   dscene.data.max_closures = max_closures;
   dscene.data.max_shaders = shaders.size();
+
+  dscene.data.volume_stack_size = get_volume_stack_size();
 }
 
 bool Scene::update(Progress &progress)
@@ -640,6 +642,33 @@ int Scene::get_max_closure_count()
   }
 
   return max_closure_global;
+}
+
+int Scene::get_volume_stack_size() const
+{
+  /* Quick non-expensive check. Can over-estimate maximum possible nested level, but does not
+   * require expensive calculation during pre-processing. */
+  int num_volume_objects = 0;
+  for (const Object *object : objects) {
+    if (object->check_is_volume()) {
+      ++num_volume_objects;
+    }
+
+    if (num_volume_objects == MAX_VOLUME_STACK_SIZE) {
+      break;
+    }
+  }
+
+  /* Count background world for the stack. */
+  const Shader *background_shader = background->get_shader(this);
+  if (background_shader && background_shader->has_volume_connected) {
+    ++num_volume_objects;
+  }
+
+  /* Space for terminator. */
+  ++num_volume_objects;
+
+  return min(num_volume_objects, MAX_VOLUME_STACK_SIZE);
 }
 
 bool Scene::has_shadow_catcher()

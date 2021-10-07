@@ -31,8 +31,7 @@
 #include "bmesh_walkers_private.h"
 
 /**
- * - joeedh -
- * design notes:
+ * NOTE(@joeedh): Details on design.
  *
  * original design: walkers directly emulation recursive functions.
  * functions save their state onto a worklist, and also add new states

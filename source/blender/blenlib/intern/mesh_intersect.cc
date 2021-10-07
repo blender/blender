@@ -53,7 +53,7 @@
 #  include "BLI_mesh_intersect.hh"
 
 #  ifdef WITH_TBB
-#    include "tbb/parallel_sort.h"
+#    include <tbb/parallel_sort.h>
 #  endif
 
 // #  define PERFDEBUG

@@ -42,11 +42,11 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_font.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_vfont.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

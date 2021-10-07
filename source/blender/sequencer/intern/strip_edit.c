@@ -267,8 +267,9 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
     SEQ_relations_invalidate_cache_preprocessed(scene, seq);
 
     /* Update meta. */
+    ListBase *meta_seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, dst_seqm);
     SEQ_time_update_meta_strip_range(scene, dst_seqm);
-    SEQ_time_update_sequence(scene, dst_seqm);
+    SEQ_time_update_sequence(scene, meta_seqbase, dst_seqm);
     if (SEQ_transform_test_overlap(&dst_seqm->seqbase, seq)) {
       SEQ_transform_seqbase_shuffle(&dst_seqm->seqbase, seq, scene);
     }
@@ -359,6 +360,7 @@ static bool seq_edit_split_effect_intersect_check(const Sequence *seq, const int
 
 static void seq_edit_split_handle_strip_offsets(Main *bmain,
                                                 Scene *scene,
+                                                ListBase *seqbase,
                                                 Sequence *left_seq,
                                                 Sequence *right_seq,
                                                 const int timeline_frame,
@@ -374,7 +376,7 @@ static void seq_edit_split_handle_strip_offsets(Main *bmain,
         SEQ_add_reload_new_file(bmain, scene, right_seq, false);
         break;
     }
-    SEQ_time_update_sequence(scene, right_seq);
+    SEQ_time_update_sequence(scene, seqbase, right_seq);
   }
 
   if (seq_edit_split_effect_intersect_check(left_seq, timeline_frame)) {
@@ -387,7 +389,7 @@ static void seq_edit_split_handle_strip_offsets(Main *bmain,
         SEQ_add_reload_new_file(bmain, scene, left_seq, false);
         break;
     }
-    SEQ_time_update_sequence(scene, left_seq);
+    SEQ_time_update_sequence(scene, seqbase, left_seq);
   }
 }
 
@@ -509,7 +511,8 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
       SEQ_collection_append_strip(right_seq, strips_to_delete);
     }
 
-    seq_edit_split_handle_strip_offsets(bmain, scene, left_seq, right_seq, timeline_frame, method);
+    seq_edit_split_handle_strip_offsets(
+        bmain, scene, seqbase, left_seq, right_seq, timeline_frame, method);
     left_seq = left_seq->next;
     right_seq = right_seq->next;
   }

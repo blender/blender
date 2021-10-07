@@ -958,25 +958,25 @@ void special_aftertrans_update__object(bContext *C, TransInfo *t)
     }
     BLI_freelistN(&pidlist);
 
-    /* pointcache refresh */
+    /* Point-cache refresh. */
     if (BKE_ptcache_object_reset(t->scene, ob, PTCACHE_RESET_OUTDATED)) {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
 
-    /* Needed for proper updating of "quick cached" dynamics. */
-    /* Creates troubles for moving animated objects without */
-    /* autokey though, probably needed is an anim sys override? */
-    /* Please remove if some other solution is found. -jahka */
+    /* Needed for proper updating of "quick cached" dynamics.
+     * Creates troubles for moving animated objects without
+     * auto-key though, probably needed is an animation-system override?
+     * NOTE(@jahka): Please remove if some other solution is found. */
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
-    /* Set autokey if necessary */
+    /* Set auto-key if necessary. */
     if (!canceled) {
       autokeyframe_object(C, t->scene, t->view_layer, ob, t->mode);
     }
 
     motionpath_update |= motionpath_need_update_object(t->scene, ob);
 
-    /* restore rigid body transform */
+    /* Restore rigid body transform. */
     if (ob->rigidbody_object && canceled) {
       float ctime = BKE_scene_ctime_get(t->scene);
       if (BKE_rigidbody_check_sim_running(t->scene->rigidbody_world, ctime)) {

@@ -1739,7 +1739,7 @@ void OBJECT_OT_mode_set_with_submode(wmOperatorType *ot)
   OBJECT_OT_mode_set(ot);
 
   /* identifiers */
-  ot->name = "Set Object Mode with Submode";
+  ot->name = "Set Object Mode with Sub-mode";
   ot->idname = "OBJECT_OT_mode_set_with_submode";
 
   /* properties */

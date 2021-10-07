@@ -110,6 +110,7 @@ ustring OSLRenderServices::u_curve_thickness("geom:curve_thickness");
 ustring OSLRenderServices::u_curve_length("geom:curve_length");
 ustring OSLRenderServices::u_curve_tangent_normal("geom:curve_tangent_normal");
 ustring OSLRenderServices::u_curve_random("geom:curve_random");
+ustring OSLRenderServices::u_normal_map_normal("geom:normal_map_normal");
 ustring OSLRenderServices::u_path_ray_length("path:ray_length");
 ustring OSLRenderServices::u_path_ray_depth("path:ray_depth");
 ustring OSLRenderServices::u_path_diffuse_depth("path:diffuse_depth");
@@ -985,8 +986,18 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobals *kg,
     float3 f = curve_tangent_normal(kg, sd);
     return set_attribute_float3(f, type, derivatives, val);
   }
-  else
+  else if (name == u_normal_map_normal) {
+    if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
+      float3 f = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
+      return set_attribute_float3(f, type, derivatives, val);
+    }
+    else {
+      return false;
+    }
+  }
+  else {
     return false;
+  }
 }
 
 bool OSLRenderServices::get_background_attribute(const KernelGlobals *kg,

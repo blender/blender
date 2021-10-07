@@ -97,6 +97,11 @@ NODE_DEFINE(BufferParams)
   SOCKET_INT(width, "Width", 0);
   SOCKET_INT(height, "Height", 0);
 
+  SOCKET_INT(window_x, "Window X", 0);
+  SOCKET_INT(window_y, "Window Y", 0);
+  SOCKET_INT(window_width, "Window Width", 0);
+  SOCKET_INT(window_height, "Window Height", 0);
+
   SOCKET_INT(full_x, "Full X", 0);
   SOCKET_INT(full_y, "Full Y", 0);
   SOCKET_INT(full_width, "Full Width", 0);
@@ -233,13 +238,31 @@ void BufferParams::update_offset_stride()
 
 bool BufferParams::modified(const BufferParams &other) const
 {
-  if (!(width == other.width && height == other.height && full_x == other.full_x &&
-        full_y == other.full_y && full_width == other.full_width &&
-        full_height == other.full_height && offset == other.offset && stride == other.stride &&
-        pass_stride == other.pass_stride && layer == other.layer && view == other.view &&
-        exposure == other.exposure &&
-        use_approximate_shadow_catcher == other.use_approximate_shadow_catcher &&
-        use_transparent_background == other.use_transparent_background)) {
+  if (width != other.width || height != other.height) {
+    return true;
+  }
+
+  if (full_x != other.full_x || full_y != other.full_y || full_width != other.full_width ||
+      full_height != other.full_height) {
+    return true;
+  }
+
+  if (window_x != other.window_x || window_y != other.window_y ||
+      window_width != other.window_width || window_height != other.window_height) {
+    return true;
+  }
+
+  if (offset != other.offset || stride != other.stride || pass_stride != other.pass_stride) {
+    return true;
+  }
+
+  if (layer != other.layer || view != other.view) {
+    return false;
+  }
+
+  if (exposure != other.exposure ||
+      use_approximate_shadow_catcher != other.use_approximate_shadow_catcher ||
+      use_transparent_background != other.use_transparent_background) {
     return true;
   }
 

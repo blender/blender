@@ -181,10 +181,12 @@ class AssetCatalogTreeItem {
 
   AssetCatalogTreeItem(StringRef name,
                        CatalogID catalog_id,
+                       StringRef simple_name,
                        const AssetCatalogTreeItem *parent = nullptr);
 
   CatalogID get_catalog_id() const;
-  StringRef get_name() const;
+  StringRefNull get_simple_name() const;
+  StringRefNull get_name() const;
   /** Return the full catalog path, defined as the name of this catalog prefixed by the full
    * catalog path of its parent and a separator. */
   AssetCatalogPath catalog_path() const;
@@ -201,6 +203,8 @@ class AssetCatalogTreeItem {
   /** The user visible name of this component. */
   CatalogPathComponent name_;
   CatalogID catalog_id_;
+  /** Copy of #AssetCatalog::simple_name. */
+  std::string simple_name_;
 
   /** Pointer back to the parent item. Used to reconstruct the hierarchy from an item (e.g. to
    * build a path). */

@@ -637,7 +637,9 @@ static void sequencer_select_linked_handle(const bContext *C,
 
 /* Check if click happened on image which belongs to strip. If multiple strips are found, loop
  * through them in order. */
-static Sequence *seq_select_seq_from_preview(const bContext *C, const int mval[2])
+static Sequence *seq_select_seq_from_preview(const bContext *C,
+                                             const int mval[2],
+                                             const bool center)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
@@ -649,10 +651,52 @@ static Sequence *seq_select_seq_from_preview(const bContext *C, const int mval[2
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouseco_view[0], &mouseco_view[1]);
 
   SeqCollection *strips = SEQ_query_rendered_strips(seqbase, scene->r.cfra, sseq->chanshown);
+
+  /* Allow strips this far from the closest center to be included.
+   * This allows cycling over center points which are near enough
+   * to overlapping from the users perspective. */
+  const float center_threshold_cycle_px = 5.0f;
+  const float center_dist_sq_eps = square_f(center_threshold_cycle_px * U.pixelsize);
+  const float center_scale_px[2] = {
+      UI_view2d_scale_get_x(v2d),
+      UI_view2d_scale_get_y(v2d),
+  };
+  float center_co_best[2] = {0.0f};
+
+  if (center) {
+    Sequence *seq_best = NULL;
+    float center_dist_sq_best = 0.0f;
+
+    Sequence *seq;
+    SEQ_ITERATOR_FOREACH (seq, strips) {
+      float co[2];
+      SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, co);
+      const float center_dist_sq_test = len_squared_v2v2(co, mouseco_view);
+      if ((seq_best == NULL) || (center_dist_sq_test < center_dist_sq_best)) {
+        seq_best = seq;
+        center_dist_sq_best = center_dist_sq_test;
+        copy_v2_v2(center_co_best, co);
+      }
+    }
+  }
+
   ListBase strips_ordered = {NULL};
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, strips) {
-    if (seq_point_image_isect(scene, seq, mouseco_view)) {
+    bool isect = false;
+    if (center) {
+      /* Detect overlapping center points (scaled by the zoom level). */
+      float co[2];
+      SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, co);
+      sub_v2_v2(co, center_co_best);
+      mul_v2_v2(co, center_scale_px);
+      isect = len_squared_v2(co) <= center_dist_sq_eps;
+    }
+    else {
+      isect = seq_point_image_isect(scene, seq, mouseco_view);
+    }
+
+    if (isect) {
       BLI_remlink(seqbase, seq);
       BLI_addtail(&strips_ordered, seq);
     }
@@ -686,14 +730,15 @@ static bool element_already_selected(const Sequence *seq, const int handle_click
 static void sequencer_select_strip_impl(const Editing *ed,
                                         Sequence *seq,
                                         const int handle_clicked,
-                                        const bool extend)
+                                        const bool extend,
+                                        const bool deselect,
+                                        const bool toggle)
 {
-  /* Deselect strip. */
-  if (extend && (seq->flag & SELECT) && ed->act_seq == seq) {
+  const bool is_active = (ed->act_seq == seq);
+
+  /* Exception for active strip handles. */
+  if ((handle_clicked != SEQ_SIDE_NONE) && (seq->flag & SELECT) && is_active && toggle) {
     switch (handle_clicked) {
-      case SEQ_SIDE_NONE:
-        seq->flag &= ~SEQ_ALLSEL;
-        break;
       case SEQ_SIDE_LEFT:
         seq->flag ^= SEQ_LEFTSEL;
         break;
@@ -701,8 +746,28 @@ static void sequencer_select_strip_impl(const Editing *ed,
         seq->flag ^= SEQ_RIGHTSEL;
         break;
     }
+    return;
   }
-  else { /* Select strip. */
+
+  /* Select strip. */
+  /* Match object selection behavior. */
+  int action = -1;
+  if (extend) {
+    action = 1;
+  }
+  else if (deselect) {
+    action = 0;
+  }
+  else {
+    if ((seq->flag & SELECT) == 0 || is_active) {
+      action = 1;
+    }
+    else if (toggle) {
+      action = 0;
+    }
+  }
+
+  if (action == 1) {
     seq->flag |= SELECT;
     if (handle_clicked == SEQ_SIDE_LEFT) {
       seq->flag |= SEQ_LEFTSEL;
@@ -711,6 +776,9 @@ static void sequencer_select_strip_impl(const Editing *ed,
       seq->flag |= SEQ_RIGHTSEL;
     }
   }
+  else if (action == 0) {
+    seq->flag &= ~SEQ_ALLSEL;
+  }
 }
 
 static int sequencer_select_exec(bContext *C, wmOperator *op)
@@ -718,11 +786,16 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
   View2D *v2d = UI_view2d_fromcontext(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
-  const bool extend = RNA_boolean_get(op->ptr, "extend");
 
   if (ed == NULL) {
     return OPERATOR_CANCELLED;
   }
+
+  bool extend = RNA_boolean_get(op->ptr, "extend");
+  bool deselect = RNA_boolean_get(op->ptr, "deselect");
+  bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
+  bool toggle = RNA_boolean_get(op->ptr, "toggle");
+  bool center = RNA_boolean_get(op->ptr, "center");
 
   int mval[2];
   mval[0] = RNA_int_get(op->ptr, "mouse_x");
@@ -732,7 +805,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
   int handle_clicked = SEQ_SIDE_NONE;
   Sequence *seq = NULL;
   if (region->regiontype == RGN_TYPE_PREVIEW) {
-    seq = seq_select_seq_from_preview(C, mval);
+    seq = seq_select_seq_from_preview(C, mval, center);
   }
   else {
     seq = find_nearest_seq(scene, v2d, &handle_clicked, mval);
@@ -744,7 +817,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
     if (!extend) {
       ED_sequencer_deselect_all(scene);
     }
-    sequencer_select_strip_impl(ed, seq, handle_clicked, extend);
+    sequencer_select_strip_impl(ed, seq, handle_clicked, extend, deselect, toggle);
     select_linked_time(ed->seqbasep, seq);
     sequencer_select_do_updates(C, scene);
     sequencer_select_set_active(scene, seq);
@@ -776,29 +849,42 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
 
   /* Clicking on already selected element falls on modal operation.
    * All strips are deselected on mouse button release unless extend mode is used. */
-  if (seq && element_already_selected(seq, handle_clicked) && wait_to_deselect_others && !extend) {
+  if (seq && element_already_selected(seq, handle_clicked) && wait_to_deselect_others && !toggle) {
     return OPERATOR_RUNNING_MODAL;
   }
 
-  int ret_value = OPERATOR_CANCELLED;
+  bool changed = false;
 
-  if (!extend) {
+  /* Deselect everything */
+  if (deselect_all || (seq && ((extend == false && deselect == false && toggle == false)))) {
     ED_sequencer_deselect_all(scene);
-    ret_value = OPERATOR_FINISHED;
+    changed = true;
   }
 
   /* Nothing to select, but strips could be deselected. */
   if (!seq) {
-    sequencer_select_do_updates(C, scene);
-    return ret_value;
+    if (changed) {
+      sequencer_select_do_updates(C, scene);
+    }
+    return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
   }
 
   /* Do actual selection. */
-  sequencer_select_strip_impl(ed, seq, handle_clicked, extend);
-  ret_value = OPERATOR_FINISHED;
+  sequencer_select_strip_impl(ed, seq, handle_clicked, extend, deselect, toggle);
+
   sequencer_select_do_updates(C, scene);
   sequencer_select_set_active(scene, seq);
-  return ret_value;
+  return OPERATOR_FINISHED;
+}
+
+static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const int retval = WM_generic_select_invoke(C, op, event);
+  ARegion *region = CTX_wm_region(C);
+  if (region && (region->regiontype == RGN_TYPE_PREVIEW)) {
+    return WM_operator_flag_only_pass_through_on_press(retval, event);
+  }
+  return retval;
 }
 
 void SEQUENCER_OT_select(wmOperatorType *ot)
@@ -812,7 +898,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 
   /* Api callbacks. */
   ot->exec = sequencer_select_exec;
-  ot->invoke = WM_generic_select_invoke;
+  ot->invoke = sequencer_select_invoke;
   ot->modal = WM_generic_select_modal;
   ot->poll = ED_operator_sequencer_active;
 
@@ -822,7 +908,14 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
   /* Properties. */
   WM_operator_properties_generic_select(ot);
 
-  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+  WM_operator_properties_mouse_select(ot);
+
+  prop = RNA_def_boolean(
+      ot->srna,
+      "center",
+      0,
+      "Center",
+      "Use the object center when selecting, in edit mode used to extend object selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna,

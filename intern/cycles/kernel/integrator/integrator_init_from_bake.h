@@ -109,9 +109,17 @@ ccl_device bool integrator_init_from_bake(INTEGRATOR_STATE_ARGS,
   }
 
   /* Position and normal on triangle. */
+  const int object = kernel_data.bake.object_index;
   float3 P, Ng;
   int shader;
-  triangle_point_normal(kg, kernel_data.bake.object_index, prim, u, v, &P, &Ng, &shader);
+  triangle_point_normal(kg, object, prim, u, v, &P, &Ng, &shader);
+
+  const int object_flag = kernel_tex_fetch(__object_flag, object);
+  if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+    Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
+    P = transform_point_auto(&tfm, P);
+  }
+
   if (kernel_data.film.pass_background != PASS_UNUSED) {
     /* Environment baking. */
 
@@ -130,8 +138,13 @@ ccl_device bool integrator_init_from_bake(INTEGRATOR_STATE_ARGS,
   }
   else {
     /* Surface baking. */
-    const float3 N = (shader & SHADER_SMOOTH_NORMAL) ? triangle_smooth_normal(kg, Ng, prim, u, v) :
-                                                       Ng;
+    float3 N = (shader & SHADER_SMOOTH_NORMAL) ? triangle_smooth_normal(kg, Ng, prim, u, v) : Ng;
+
+    if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+      Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+      N = normalize(transform_direction_transposed(&itfm, N));
+      Ng = normalize(transform_direction_transposed(&itfm, Ng));
+    }
 
     /* Setup ray. */
     Ray ray ccl_optional_struct_init;
@@ -143,6 +156,12 @@ ccl_device bool integrator_init_from_bake(INTEGRATOR_STATE_ARGS,
     /* Setup differentials. */
     float3 dPdu, dPdv;
     triangle_dPdudv(kg, prim, &dPdu, &dPdv);
+    if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+      Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
+      dPdu = transform_direction(&tfm, dPdu);
+      dPdv = transform_direction(&tfm, dPdv);
+    }
+
     differential3 dP;
     dP.dx = dPdu * dudx + dPdv * dvdx;
     dP.dy = dPdu * dudy + dPdv * dvdy;

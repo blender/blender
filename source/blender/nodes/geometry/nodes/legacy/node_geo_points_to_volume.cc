@@ -258,7 +258,7 @@ static void geo_node_points_to_volume_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_points_to_volume()
+void register_node_type_geo_legacy_points_to_volume()
 {
   static bNodeType ntype;
 

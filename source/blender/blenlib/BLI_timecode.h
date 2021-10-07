@@ -20,7 +20,7 @@
 #pragma once
 
 /** \file
- * \ingroup BLI
+ * \ingroup bli
  */
 
 #include "BLI_compiler_attrs.h"

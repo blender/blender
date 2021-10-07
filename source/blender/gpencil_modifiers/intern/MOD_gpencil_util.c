@@ -73,7 +73,7 @@ void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[])
 /* verify if valid layer, material and pass index */
 bool is_stroke_affected_by_modifier(Object *ob,
                                     char *mlayername,
-                                    Material *material,
+                                    const Material *material,
                                     const int mpassindex,
                                     const int gpl_passindex,
                                     const int minpoints,

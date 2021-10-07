@@ -35,13 +35,14 @@ ccl_device_inline bool triangle_intersect(const KernelGlobals *kg,
                                           int object,
                                           int prim_addr)
 {
-  const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, prim_addr);
+  const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
 #if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-  const ssef *ssef_verts = (ssef *)&kg->__prim_tri_verts.data[tri_vindex];
+  const ssef *ssef_verts = (ssef *)&kg->__tri_verts.data[tri_vindex];
 #else
-  const float4 tri_a = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 0),
-               tri_b = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 1),
-               tri_c = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 2);
+  const float4 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
+               tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
+               tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
 #endif
   float t, u, v;
   if (ray_triangle_intersect(P,
@@ -64,8 +65,9 @@ ccl_device_inline bool triangle_intersect(const KernelGlobals *kg,
     if (kernel_tex_fetch(__prim_visibility, prim_addr) & visibility)
 #endif
     {
-      isect->prim = prim_addr;
-      isect->object = object;
+      isect->object = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, prim_addr) :
+                                                object;
+      isect->prim = prim;
       isect->type = PRIMITIVE_TRIANGLE;
       isect->u = u;
       isect->v = v;
@@ -102,13 +104,14 @@ ccl_device_inline bool triangle_intersect_local(const KernelGlobals *kg,
     }
   }
 
-  const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, prim_addr);
+  const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
 #  if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-  const ssef *ssef_verts = (ssef *)&kg->__prim_tri_verts.data[tri_vindex];
+  const ssef *ssef_verts = (ssef *)&kg->__tri_verts.data[tri_vindex];
 #  else
-  const float3 tri_a = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 0)),
-               tri_b = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 1)),
-               tri_c = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 2));
+  const float3 tri_a = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 0)),
+               tri_b = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 1)),
+               tri_c = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 2));
 #  endif
   float t, u, v;
   if (!ray_triangle_intersect(P,
@@ -167,8 +170,8 @@ ccl_device_inline bool triangle_intersect_local(const KernelGlobals *kg,
 
   /* Record intersection. */
   Intersection *isect = &local_isect->hits[hit];
-  isect->prim = prim_addr;
-  isect->object = object;
+  isect->prim = prim;
+  isect->object = local_object;
   isect->type = PRIMITIVE_TRIANGLE;
   isect->u = u;
   isect->v = v;
@@ -176,9 +179,9 @@ ccl_device_inline bool triangle_intersect_local(const KernelGlobals *kg,
 
   /* Record geometric normal. */
 #  if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-  const float3 tri_a = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 0)),
-               tri_b = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 1)),
-               tri_c = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 2));
+  const float3 tri_a = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 0)),
+               tri_b = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 1)),
+               tri_c = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 2));
 #  endif
   local_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
@@ -206,7 +209,7 @@ ccl_device_inline float3 triangle_refine(const KernelGlobals *kg,
                                          const int isect_prim)
 {
 #ifdef __INTERSECTION_REFINE__
-  if (isect_object != OBJECT_NONE) {
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     if (UNLIKELY(t == 0.0f)) {
       return P;
     }
@@ -219,10 +222,10 @@ ccl_device_inline float3 triangle_refine(const KernelGlobals *kg,
 
   P = P + D * t;
 
-  const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, isect_prim);
-  const float4 tri_a = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 0),
-               tri_b = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 1),
-               tri_c = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 2);
+  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, isect_prim).w;
+  const float4 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
+               tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
+               tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
   float3 edge1 = make_float3(tri_a.x - tri_c.x, tri_a.y - tri_c.y, tri_a.z - tri_c.z);
   float3 edge2 = make_float3(tri_b.x - tri_c.x, tri_b.y - tri_c.y, tri_b.z - tri_c.z);
   float3 tvec = make_float3(P.x - tri_c.x, P.y - tri_c.y, P.z - tri_c.z);
@@ -239,7 +242,7 @@ ccl_device_inline float3 triangle_refine(const KernelGlobals *kg,
     P = P + D * rt;
   }
 
-  if (isect_object != OBJECT_NONE) {
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_transform(kg, sd);
     P = transform_point(&tfm, P);
   }
@@ -265,7 +268,7 @@ ccl_device_inline float3 triangle_refine_local(const KernelGlobals *kg,
   /* t is always in world space with OptiX. */
   return triangle_refine(kg, sd, P, D, t, isect_object, isect_prim);
 #else
-  if (isect_object != OBJECT_NONE) {
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_inverse_transform(kg, sd);
 
     P = transform_point(&tfm, P);
@@ -276,10 +279,10 @@ ccl_device_inline float3 triangle_refine_local(const KernelGlobals *kg,
   P = P + D * t;
 
 #  ifdef __INTERSECTION_REFINE__
-  const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, isect_prim);
-  const float4 tri_a = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 0),
-               tri_b = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 1),
-               tri_c = kernel_tex_fetch(__prim_tri_verts, tri_vindex + 2);
+  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, isect_prim).w;
+  const float4 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
+               tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
+               tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
   float3 edge1 = make_float3(tri_a.x - tri_c.x, tri_a.y - tri_c.y, tri_a.z - tri_c.z);
   float3 edge2 = make_float3(tri_b.x - tri_c.x, tri_b.y - tri_c.y, tri_b.z - tri_c.z);
   float3 tvec = make_float3(P.x - tri_c.x, P.y - tri_c.y, P.z - tri_c.z);
@@ -297,7 +300,7 @@ ccl_device_inline float3 triangle_refine_local(const KernelGlobals *kg,
   }
 #  endif /* __INTERSECTION_REFINE__ */
 
-  if (isect_object != OBJECT_NONE) {
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_transform(kg, sd);
     P = transform_point(&tfm, P);
   }

@@ -253,7 +253,8 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
     SEQ_transform_set_right_handle_frame(seq, seq->enddisp + delta);
   }
 
-  SEQ_time_update_sequence(evil_scene, seq);
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(evil_scene));
+  SEQ_time_update_sequence(evil_scene, seqbase, seq);
 }
 
 /* return 0 if there weren't enough space */
@@ -266,7 +267,7 @@ bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
   BLI_assert(ELEM(channel_delta, -1, 1));
 
   test->machine += channel_delta;
-  SEQ_time_update_sequence(evil_scene, test);
+  SEQ_time_update_sequence(evil_scene, seqbasep, test);
   while (SEQ_transform_test_overlap(seqbasep, test)) {
     if ((channel_delta > 0) ? (test->machine >= MAXSEQ) : (test->machine < 1)) {
       break;
@@ -275,7 +276,7 @@ bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
     test->machine += channel_delta;
 
     /* XXX: I don't think this is needed since were only moving vertically, Campbell. */
-    SEQ_time_update_sequence(evil_scene, test);
+    SEQ_time_update_sequence(evil_scene, seqbasep, test);
   }
 
   if (!SEQ_valid_strip_channel(test)) {
@@ -295,7 +296,7 @@ bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
     new_frame = new_frame + (test->start - test->startdisp); /* adjust by the startdisp */
     SEQ_transform_translate_sequence(evil_scene, test, new_frame - test->start);
 
-    SEQ_time_update_sequence(evil_scene, test);
+    SEQ_time_update_sequence(evil_scene, seqbasep, test);
     return false;
   }
 
@@ -355,7 +356,7 @@ static int shuffle_seq_time_offset(SeqCollection *strips_to_shuffle,
   }
 
   SEQ_ITERATOR_FOREACH (seq, strips_to_shuffle) {
-    SEQ_time_update_sequence_bounds(scene, seq); /* corrects dummy startdisp/enddisp values */
+    SEQ_time_update_sequence(scene, seqbasep, seq); /* corrects dummy startdisp/enddisp values */
   }
 
   return tot_ofs;
@@ -408,7 +409,7 @@ void SEQ_transform_offset_after_frame(Scene *scene,
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (seq->startdisp >= timeline_frame) {
       SEQ_transform_translate_sequence(scene, seq, delta);
-      SEQ_time_update_sequence(scene, seq);
+      SEQ_time_update_sequence(scene, seqbase, seq);
       SEQ_relations_invalidate_cache_preprocessed(scene, seq);
     }
   }

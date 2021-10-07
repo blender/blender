@@ -126,9 +126,10 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
           structname = RNA_struct_ui_name(ptr.type);
         }
 
-        /* For the VSE, a strip's 'Transform' or 'Crop' is a nested (under Sequence) struct, but
-         * displaying the struct name alone is no meaningful information (and also cannot be
-         * filtered well), same for modifiers. So display strip name alongside as well. */
+        /* For the sequencer, a strip's 'Transform' or 'Crop' is a nested (under Sequence)
+         * struct, but displaying the struct name alone is no meaningful information
+         * (and also cannot be filtered well), same for modifiers.
+         * So display strip name alongside as well. */
         if (GS(ptr.owner_id->name) == ID_SCE) {
           char stripname[256];
           if (BLI_str_quoted_substr(

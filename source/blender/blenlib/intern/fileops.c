@@ -30,8 +30,8 @@
 
 #include <errno.h>
 
-#include "zlib.h"
-#include "zstd.h"
+#include <zlib.h>
+#include <zstd.h>
 
 #ifdef WIN32
 #  include "BLI_fileops_types.h"
@@ -761,7 +761,7 @@ static int recursive_operation(const char *startfrom,
 #  endif
 
       if (is_dir) {
-        /* recursively dig into a subfolder */
+        /* Recurse into sub-directories. */
         ret = recursive_operation(
             from_path, to_path, callback_dir_pre, callback_file, callback_dir_post);
       }
