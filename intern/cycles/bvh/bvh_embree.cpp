@@ -155,41 +155,49 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
         break;
       }
 
-      /* See triangle_intersect_subsurface() for the native equivalent. */
-      for (int i = min(ctx->max_hits, ctx->local_isect->num_hits) - 1; i >= 0; --i) {
-        if (ctx->local_isect->hits[i].t == ray->tfar) {
-          /* This tells Embree to continue tracing. */
-          *args->valid = 0;
-          break;
-        }
-      }
-
+      LocalIntersection *local_isect = ctx->local_isect;
       int hit_idx = 0;
 
       if (ctx->lcg_state) {
+        /* See triangle_intersect_subsurface() for the native equivalent. */
+        for (int i = min(ctx->max_hits, local_isect->num_hits) - 1; i >= 0; --i) {
+          if (local_isect->hits[i].t == ray->tfar) {
+            /* This tells Embree to continue tracing. */
+            *args->valid = 0;
+            return;
+          }
+        }
 
-        ++ctx->local_isect->num_hits;
-        if (ctx->local_isect->num_hits <= ctx->max_hits) {
-          hit_idx = ctx->local_isect->num_hits - 1;
+        local_isect->num_hits++;
+
+        if (local_isect->num_hits <= ctx->max_hits) {
+          hit_idx = local_isect->num_hits - 1;
         }
         else {
           /* reservoir sampling: if we are at the maximum number of
            * hits, randomly replace element or skip it */
-          hit_idx = lcg_step_uint(ctx->lcg_state) % ctx->local_isect->num_hits;
+          hit_idx = lcg_step_uint(ctx->lcg_state) % local_isect->num_hits;
 
           if (hit_idx >= ctx->max_hits) {
             /* This tells Embree to continue tracing. */
             *args->valid = 0;
-            break;
+            return;
           }
         }
       }
       else {
-        ctx->local_isect->num_hits = 1;
+        /* Record closest intersection only. */
+        if (local_isect->num_hits && current_isect.t > local_isect->hits[0].t) {
+          *args->valid = 0;
+          return;
+        }
+
+        local_isect->num_hits = 1;
       }
+
       /* record intersection */
-      ctx->local_isect->hits[hit_idx] = current_isect;
-      ctx->local_isect->Ng[hit_idx] = normalize(make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z));
+      local_isect->hits[hit_idx] = current_isect;
+      local_isect->Ng[hit_idx] = normalize(make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z));
       /* This tells Embree to continue tracing. */
       *args->valid = 0;
       break;
