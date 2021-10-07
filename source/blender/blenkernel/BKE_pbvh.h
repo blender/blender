@@ -505,6 +505,7 @@ void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh);
 void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh);
 bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, SculptVertRef vertex);
 
+void BKE_pbvh_node_mark_update_triangulation(PBVHNode *node);
 void BKE_pbvh_node_mark_original_update(PBVHNode *node);
 void BKE_pbvh_node_mark_update_tri_area(PBVHNode *node);
 void BKE_pbvh_update_all_tri_areas(PBVH *pbvh);
@@ -642,7 +643,8 @@ typedef struct PBVHVertexIter {
   bool visible;
 } PBVHVertexIter;
 
-#define BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v) ((MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, cd_sculpt_vert))
+#define BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v) \
+  ((MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, cd_sculpt_vert))
 
 void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int mode);
 
@@ -851,7 +853,7 @@ void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry);
 #if 0
 typedef enum {
   SCULPT_TEXTURE_UV = 1 << 0,  // per-uv
-  // SCULPT_TEXTURE_PTEX?
+  SCULPT_TEXTURE_GRIDS = 1<<1
 } SculptTextureType;
 
 typedef int TexLayerRef;
@@ -870,6 +872,8 @@ typedef struct SculptTextureDef {
 
   void (*build_begin)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
 
+  void (*calc_bounds)(PBVH *pbvh, PBVHNode *node, float r_min[3], float r_max[3], TexLayerRef vdm);
+
   /*vdms can cache data per node, which is freed to maintain memory limit.
     they store cache in the same structure they return in buildNodeData.*/
   void (*freeCachedData)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
@@ -878,6 +882,8 @@ typedef struct SculptTextureDef {
   /*builds all data that isn't cached.*/
   void *(*buildNodeData)(PBVH *pbvh, PBVHNode *node);
   bool (*validate)(PBVH *pbvh, TexLayerRef vdm);
+
+  void (*setVertexCos)(PBVH *pbvh, PBVHNode *node, SculptVertRef *verts, int totvert, TexLayerRef vdm);
 
   void (*getPointsFromNode)(PBVH *pbvh,
                             PBVHNode *node,
@@ -924,7 +930,7 @@ typedef struct SculptTextureDef {
       PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, int totid);
 
   /*displacement texture stuff*/
-  // can be tangent, object space displacement, whatever
+  // can be tangent, object space displacement
   void (*worldToDelta)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, int totid);
   void (*deltaToWorld)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, int totid);
 } SculptDisplacementDef;

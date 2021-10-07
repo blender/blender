@@ -4044,6 +4044,11 @@ PBVHNode *BKE_pbvh_get_node(PBVH *pbvh, int node)
   return pbvh->nodes + node;
 }
 
+void BKE_pbvh_node_mark_update_triangulation(PBVHNode *node)
+{
+  node->flag |= PBVH_UpdateTris;
+}
+
 void BKE_pbvh_node_mark_update_tri_area(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateTriAreas;

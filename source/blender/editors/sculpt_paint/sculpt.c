@@ -1023,6 +1023,7 @@ void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visibl
 
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
         int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+        int node = BM_ELEM_CD_GET_INT(f, ss->cd_face_node_offset);
 
         if (abs(fset) != face_set) {
           continue;
@@ -1033,6 +1034,10 @@ void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visibl
         }
         else {
           fset = -abs(fset);
+        }
+
+        if (node != DYNTOPO_NODE_NONE) {
+          BKE_pbvh_node_mark_update_triangulation(BKE_pbvh_node_from_index(ss->pbvh, node));
         }
 
         BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
@@ -1107,6 +1112,11 @@ void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible)
 
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
         int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+        int node = BM_ELEM_CD_GET_INT(f, ss->cd_face_node_offset);
+
+        if (node != DYNTOPO_NODE_NONE) {
+          BKE_pbvh_node_mark_update_triangulation(BKE_pbvh_node_from_index(ss->pbvh, node));
+        }
 
         /* This can run on geometry without a face set assigned, so its ID sign can't be changed to
          * modify the visibility. Force that geometry to the ID 1 to enable changing the visibility

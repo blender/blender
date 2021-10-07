@@ -3643,6 +3643,20 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     return;
   }
 
+  int uvidx = pbvh->bm->ldata.typemap[CD_MLOOPUV];
+  CustomDataLayer *uv_layer = NULL;
+  int totuv = 0;
+
+  if (uvidx >= 0) {
+    uv_layer = pbvh->bm->ldata.layers + uvidx;
+    totuv = 0;
+
+    while (uvidx < pbvh->bm->ldata.totlayer && pbvh->bm->ldata.layers[uvidx].type == CD_MLOOPUV) {
+      uvidx++;
+      totuv++;
+    }
+  }
+
   /*have to check edge flags directly, vertex flag test above isn't specific enough and
     can sometimes let bad edges through*/
   if ((mv1->flag & SCULPTVERT_SHARP_BOUNDARY) && (e->head.hflag & BM_ELEM_SMOOTH)) {
@@ -3783,72 +3797,109 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
     CustomData_bmesh_interp(&pbvh->bm->vdata, v_blocks, v_ws, NULL, 2, v_conn->head.data);
     BM_ELEM_CD_SET_INT(v_conn, pbvh->cd_vert_node_offset, ni_conn);
+  }
 
-    BMLoop **ls = NULL;
-    void **blocks = NULL;
-    float *ws = NULL;
-
-    BLI_array_staticdeclare(ls, 64);
-    BLI_array_staticdeclare(blocks, 64);
-    BLI_array_staticdeclare(ws, 64);
+  // deal with UVs
+  if (e->l) {
+    const int lflag = BM_ELEM_TAG_ALT;
 
     int totl = 0;
+    BMLoop *l = e->l;
 
-    BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
-      MSculptVert *mv_l = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, l->next->v);
-      MV_ADD_FLAG(mv_l, mupdateflag);
+    for (int step = 0; step < 2; step++) {
+      BMVert *v = step ? e->v2 : e->v1;
+      BMEdge *e2 = v->e;
 
-      BLI_array_append(ls, l);
-      totl++;
-    }
-    BM_LOOPS_OF_VERT_ITER_END;
+      if (!e2) {
+        continue;
+      }
 
-    BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_conn) {
-      MSculptVert *mv_l = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, l->next->v);
-      MV_ADD_FLAG(mv_l, mupdateflag);
+      do {
+        BMLoop *l2 = e2->l;
 
-      BLI_array_append(ls, l);
-      totl++;
-    }
-    BM_LOOPS_OF_VERT_ITER_END;
-
-    float w = totl > 0 ? 1.0f / (float)(totl) : 1.0f;
-
-    for (int i = 0; i < totl; i++) {
-      BLI_array_append(blocks, ls[i]->head.data);
-      BLI_array_append(ws, w);
-    }
-
-    // snap customdata
-    if (totl > 0) {
-      CustomData_bmesh_interp(
-          &pbvh->bm->ldata, (const void **)blocks, ws, NULL, totl, ls[0]->head.data);
-      //*
-      BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
-        BMLoop *l2 = l->v != v_del ? l->next : l;
-
-        if (l2 == ls[0]) {
+        if (!l2) {
           continue;
         }
 
-        CustomData_bmesh_copy_data(
-            &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &l2->head.data);
-      }
-      BM_LOOPS_OF_VERT_ITER_END;
+        do {
+          bool ok = true;
+          BMLoop *l3 = l2->v != v ? l2->next : l2;
 
-      BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_conn) {
-        BMLoop *l2 = l->v != v_conn ? l->next : l;
-
-        if (l2 == ls[0]) {
-          continue;
-        }
-
-        CustomData_bmesh_copy_data(
-            &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &l2->head.data);
-      }
-      BM_LOOPS_OF_VERT_ITER_END;
-      //*/
+          /* store visit bits for each uv layer in l3->head.index */
+          l3->head.index = 0;
+        } while ((l2 = l2->radial_next) != e2->l);
+      } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
     }
+
+    float(*uv)[2] = alloca(sizeof(float) * 4 * totuv);
+
+    do {
+      BMLoop *ls2[2] = {l->head.data, l->next->head.data};
+      float ws2[2] = {0.5f, 0.5f};
+
+      if (!snap) {
+        const int axis = l->v == v_del ? 0 : 1;
+
+        ws2[axis] = 0.0f;
+        ws2[axis ^ 1] = 1.0f;
+      }
+
+      float uv[2][2];
+      for (int step = 0; uv_layer && step < 2; step++) {
+        BMLoop *l1 = step ? l : l->next;
+
+        for (int k = 0; k < totuv; k++) {
+          MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l1, uv_layer[k].offset);
+
+          copy_v2_v2(uv[k * 2 + step], luv->uv);
+        }
+      }
+
+      CustomData_bmesh_interp(&pbvh->bm->ldata, ls2, ws2, NULL, 2, l->head.data);
+      CustomData_bmesh_copy_data(
+          &pbvh->bm->ldata, &pbvh->bm->ldata, l->head.data, &l->next->head.data);
+
+      for (int step = 0; totuv >= 0 && step < 2; step++) {
+        BMVert *v = step ? l->next->v : l->v;
+        BMLoop *l1 = step ? l->next : l;
+        BMEdge *e2 = v->e;
+
+        do {
+          BMLoop *l2 = e2->l;
+
+          do {
+            BMLoop *l3 = l2->v != v ? l2->next : l2;
+
+            if (!l3 || l3 == l1 || l3 == l || l3 == l->next) {
+              continue;
+            }
+
+            for (int k = 0; k < totuv; k++) {
+              const int flag = 1 << k;
+
+              if (l3->head.index & flag) {
+                continue;
+              }
+
+              const int cd_uv = uv_layer[k].offset;
+
+              MLoopUV *luv1 = BM_ELEM_CD_GET_VOID_P(l1, cd_uv);
+              MLoopUV *luv2 = BM_ELEM_CD_GET_VOID_P(l3, cd_uv);
+
+              float dx = luv2->uv[0] - uv[k * 2 + step][0];
+              float dy = luv2->uv[1] - uv[k * 2 + step][1];
+
+              float delta = dx * dx + dy * dy;
+
+              if (delta < 0.001) {
+                l3->head.index |= flag;
+                copy_v2_v2(luv2->uv, luv1->uv);
+              }
+            }
+          } while ((l2 = l2->radial_next) != e2->l);
+        } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
+      }
+    } while ((l = l->radial_next) != e->l);
   }
 
   validate_vert_faces(pbvh, pbvh->bm, v_conn, false, true);

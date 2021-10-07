@@ -1179,17 +1179,21 @@ static int gpu_bmesh_vert_visible_count(TableGSet *bm_unique_verts, TableGSet *b
 }
 
 /* Return the total number of visible faces */
-static int gpu_bmesh_face_visible_count(TableGSet *bm_faces, int mat_nr)
+static int gpu_bmesh_face_visible_count(PBVHTriBuf *tribuf, int mat_nr)
 {
   int totface = 0;
   BMFace *f;
 
-  TGSET_ITER (f, bm_faces) {
-    if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN) && f->mat_nr == mat_nr) {
-      totface++;
+  for (int i = 0; i < tribuf->tottri; i++) {
+    PBVHTri *tri = tribuf->tris + i;
+
+    BMFace *f = (BMFace *)tri->f.i;
+    if (f->mat_nr != mat_nr || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+      continue;
     }
+
+    totface++;
   }
-  TGSET_ITER_END
 
   return totface;
 }
@@ -1485,7 +1489,7 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
       &bm->vdata, cd_vcols, cd_vcol_layers, active_vcol_only);
 
   /* Count visible triangles */
-  tottri = tribuf->tottri * 6;
+  tottri = gpu_bmesh_face_visible_count(tribuf, mat_nr) * 6;
   totvert = tottri * 3;
 
   if (!tottri) {
@@ -1667,7 +1671,7 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
       &bm->vdata, cd_vcols, cd_vcol_layers, active_vcol_only);
 
   /* Count visible triangles */
-  tottri = tribuf->tottri;
+  tottri = gpu_bmesh_face_visible_count(tribuf, mat_nr);
 
   /* Count visible vertices */
   totvert = tribuf->totvert;
@@ -1685,6 +1689,12 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
 
   /* TODO, make mask layer optional for bmesh buffer */
   const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  int cd_fset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+
+  // int totuv = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  // int *cd_uvs = BLI_array_alloca(cd_uvs, totuv);
+  const int cd_uv = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const bool have_uv = cd_uv >= 0;
 
   bool default_face_set = true;
 
@@ -1733,6 +1743,7 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
 
   for (int i = 0; i < tribuf->totvert; i++) {
     BMVert *v = (BMVert *)tribuf->verts[i].i;
+    BMLoop *l = (BMLoop *)tribuf->loops[i];
 
 #ifdef QUANTIZED_PERF_TEST
     float co[3];
@@ -1771,6 +1782,25 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
                                   cd_vcols,
                                   cd_vcol_count);
 #endif
+
+    if (!g_vbo_id.fast_mode) {
+      const uchar face_set_color[3] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
+
+      /* Add default face sets color to avoid artifacts. */
+      int fset = BM_ELEM_CD_GET_INT(l->f, cd_fset_offset);
+
+      if (fset != face_sets_color_default) {
+        default_face_set = false;
+        BKE_paint_face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
+      }
+
+      GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.fset, i, &face_set_color);
+    }
+
+    if (have_uv) {
+      MLoopUV *mu = BM_ELEM_CD_GET_VOID_P(l, cd_uv);
+      GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.uv, i, mu->uv);
+    }
   }
 
   if (!need_indexed) {
@@ -1793,6 +1823,11 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
 
   for (int i = 0; i < tribuf->tottri; i++) {
     PBVHTri *tri = tribuf->tris + i;
+
+    BMFace *f = (BMFace *)tri->f.i;
+    if (f->mat_nr != mat_nr || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+      continue;
+    }
 
     GPU_indexbuf_add_tri_verts(&elb, tri->v[0], tri->v[1], tri->v[2]);
 
@@ -1874,7 +1909,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
       &bm->vdata, cd_vcols, cd_vcol_layers, active_vcol_only);
 
   /* Count visible triangles */
-  if (buffers->smooth && !have_uv) {
+  if (buffers->smooth) {
     GPU_pbvh_bmesh_buffers_update_indexed(buffers,
                                           bm,
                                           bm_faces,
@@ -1900,7 +1935,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   bool default_face_set = true;
 
 #ifdef DYNTOPO_DYNAMIC_TESS
-  tottri = tribuf->tottri;
+  tottri = gpu_bmesh_face_visible_count(tribuf, mat_nr);
   totvert = tottri * 3;
 
   if (!tottri) {
@@ -1929,7 +1964,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
     BMLoop **l = (BMLoop **)tri->l;
     BMVert *v[3];
 
-    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+    if (f->mat_nr != mat_nr || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
       continue;
     }
 

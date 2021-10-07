@@ -298,6 +298,7 @@ static bool check_builtin_init()
   SETCAT(topology_rake_projection, "Smoothing");
   SETCAT(topology_rake_use_spacing, "Smoothing");
   SETCAT(topology_rake_spacing, "Smoothing");
+  SETCAT(topology_rake_mode, "Smoothing");
 
   SETCAT(boundary_smooth, "Smoothing");
   SETCAT(fset_slide, "Smoothing");
@@ -1367,6 +1368,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
     case SCULPT_TOOL_SIMPLIFY:
       SHOWCTX(autosmooth);
       SHOWCTX(topology_rake);
+      SHOWCTX(topology_rake_mode);
       break;
     case SCULPT_TOOL_LAYER:
       SHOWWRK(use_persistent);

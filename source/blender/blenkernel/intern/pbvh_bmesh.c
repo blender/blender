@@ -41,6 +41,7 @@ Topology rake:
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_alloca.h"
 #include "BLI_array.h"
 #include "BLI_buffer.h"
 #include "BLI_ghash.h"
@@ -2149,25 +2150,30 @@ BLI_INLINE PBVHTri *pbvh_tribuf_add_tri(PBVHTriBuf *tribuf)
   return tribuf->tris + tribuf->tottri - 1;
 }
 
-BLI_INLINE void pbvh_tribuf_add_vert(PBVHTriBuf *tribuf, SculptVertRef vertex)
+BLI_INLINE void pbvh_tribuf_add_vert(PBVHTriBuf *tribuf, SculptVertRef vertex, BMLoop *l)
 {
   tribuf->totvert++;
+  tribuf->totloop++;
 
   if (tribuf->totvert >= tribuf->verts_size) {
     size_t newsize = (size_t)32 + (size_t)(tribuf->verts_size << 1);
 
     if (!tribuf->verts) {
       tribuf->verts = MEM_mallocN(sizeof(*tribuf->verts) * newsize, "tribuf verts");
+      tribuf->loops = MEM_mallocN(sizeof(*tribuf->loops) * newsize, "tribuf loops");
     }
     else {
       tribuf->verts = MEM_reallocN_id(
           tribuf->verts, sizeof(*tribuf->verts) * newsize, "tribuf verts");
+      tribuf->loops = MEM_reallocN_id(
+          tribuf->loops, sizeof(*tribuf->loops) * newsize, "tribuf loops");
     }
 
     tribuf->verts_size = newsize;
   }
 
   tribuf->verts[tribuf->totvert - 1] = vertex;
+  tribuf->loops[tribuf->totloop - 1] = (uintptr_t)l;
 }
 
 BLI_INLINE void pbvh_tribuf_add_edge(PBVHTriBuf *tribuf, int v1, int v2)
@@ -2239,6 +2245,30 @@ static void pbvh_init_tribuf(PBVHNode *node, PBVHTriBuf *tribuf)
 
   BLI_smallhash_init_ex(&tribuf->vertmap, node->bm_unique_verts->length);
 }
+
+static uintptr_t tri_loopkey(BMLoop *l, int mat_nr, int cd_fset, int cd_uvs[], int totuv)
+{
+  uintptr_t key = (uintptr_t)mat_nr;
+
+  key ^= (uintptr_t)l->v;
+
+  if (cd_fset >= 0) {
+    key ^= BM_ELEM_CD_GET_INT(l->f, cd_fset);
+  }
+
+  for (int i = 0; i < totuv; i++) {
+    MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_uvs[i]);
+    float snap = 4196.0f;
+
+    uintptr_t x = (uintptr_t)(luv->uv[0] * snap);
+    uintptr_t y = (uintptr_t)(luv->uv[1] * snap);
+
+    uintptr_t key2 = y * snap + x;
+    key ^= key2;
+  }
+
+  return key;
+}
 /* In order to perform operations on the original node coordinates
  * (currently just raycast), store the node's triangles and vertices.
  *
@@ -2249,6 +2279,14 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
   if (!(node->flag & PBVH_UpdateTris) && node->tribuf) {
     return false;
+  }
+
+  int totuv = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
+  int *cd_uvs = BLI_array_alloca(cd_uvs, totuv);
+
+  for (int i = 0; i < totuv; i++) {
+    int idx = CustomData_get_layer_index_n(&bm->ldata, CD_MLOOPUV, i);
+    cd_uvs[i] = bm->ldata.layers[idx].offset;
   }
 
   node->flag |= PBVH_UpdateOtherVerts;
@@ -2354,26 +2392,28 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
           mat_tri->eflag |= 1 << j;
         }
 
-        if (!BLI_smallhash_ensure_p(&node->tribuf->vertmap, (uintptr_t)l->v, &val)) {
+        uintptr_t loopkey = tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv);
+
+        if (!BLI_smallhash_ensure_p(&node->tribuf->vertmap, loopkey, &val)) {
           SculptVertRef sv = {(intptr_t)l->v};
 
           minmax_v3v3_v3(min, max, l->v->co);
 
           *val = POINTER_FROM_INT(node->tribuf->totvert);
-          pbvh_tribuf_add_vert(node->tribuf, sv);
+          pbvh_tribuf_add_vert(node->tribuf, sv, l);
         }
 
         tri->v[j] = (intptr_t)val[0];
         tri->l[j] = (intptr_t)l;
 
         val = NULL;
-        if (!BLI_smallhash_ensure_p(&mat_tribuf->vertmap, (uintptr_t)l->v, &val)) {
+        if (!BLI_smallhash_ensure_p(&mat_tribuf->vertmap, loopkey, &val)) {
           SculptVertRef sv = {(intptr_t)l->v};
 
           minmax_v3v3_v3(min, max, l->v->co);
 
           *val = POINTER_FROM_INT(mat_tribuf->totvert);
-          pbvh_tribuf_add_vert(mat_tribuf, sv);
+          pbvh_tribuf_add_vert(mat_tribuf, sv, l);
         }
 
         mat_tri->v[j] = (intptr_t)val[0];

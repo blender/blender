@@ -281,6 +281,7 @@ static void partialvis_update_bmesh(Object *ob,
   if (any_changed) {
     BKE_pbvh_node_mark_rebuild_draw(node);
     BKE_pbvh_node_fully_hidden_set(node, !any_visible);
+    BKE_pbvh_node_mark_update_triangulation(node);
   }
 }
 

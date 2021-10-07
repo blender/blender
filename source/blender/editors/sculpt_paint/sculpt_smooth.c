@@ -102,7 +102,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   slide_fset = MAX2(slide_fset, bound_smooth);
 
   if (check_fsets) {
-    bflag |= SCULPT_BOUNDARY_FACE_SET;
+    bflag |= SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM;
   }
 
   const SculptBoundaryType is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bflag);
@@ -124,7 +124,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
   SculptCornerType ctype = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
   if (check_fsets) {
-    ctype |= SCULPT_CORNER_FACE_SET;
+    ctype |= SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM;
   }
 
   // bool have_bmesh = ss->bm;
@@ -201,7 +201,8 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
       */
 
-      bool slide = (slide_fset > 0.0f && is_boundary == SCULPT_BOUNDARY_FACE_SET) ||
+      bool slide = (slide_fset > 0.0f &&
+                    (is_boundary & (SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM))) ||
                    bound_smooth > 0.0f;
       slide = slide && !final_boundary;
 
@@ -334,7 +335,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     return;
   }
 
-  if (c & SCULPT_CORNER_FACE_SET) {
+  if (c & (SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM)) {
     corner_smooth = MAX2(slide_fset, bound_smooth);
   }
   else {
@@ -1003,7 +1004,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
   SculptCornerType ctype = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
   if (check_fsets) {
-    ctype |= SCULPT_CORNER_FACE_SET;
+    ctype |= SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM;
   }
 
   if (weighted || ss->cache->brush->boundary_smooth_factor > 0.0f) {

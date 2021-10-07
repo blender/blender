@@ -57,7 +57,6 @@
 #include "BKE_callbacks.h"
 #include "BKE_context.h"
 #include "BKE_curvemapping_cache.h"
-#include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
