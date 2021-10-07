@@ -1790,7 +1790,10 @@ void WM_operator_name_call_ptr_with_depends_on_cursor(
   }
 
   wmWindow *win = CTX_wm_window(C);
-  ScrArea *area = CTX_wm_area(C);
+  /* The operator context is applied when the operator is called,
+   * the check for the area needs to be explicitly limited here.
+   * Useful so it's possible to screen-shot an area without drawing into it's header. */
+  ScrArea *area = WM_OP_CONTEXT_HAS_AREA(opcontext) ? CTX_wm_area(C) : NULL;
 
   {
     char header_text[UI_MAX_DRAW_STR];
