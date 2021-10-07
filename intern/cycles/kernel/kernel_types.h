@@ -866,9 +866,6 @@ typedef struct VolumeStack {
 
 /* Struct to gather multiple nearby intersections. */
 typedef struct LocalIntersection {
-  Ray ray;
-  float3 weight[LOCAL_MAX_HITS];
-
   int num_hits;
   struct Intersection hits[LOCAL_MAX_HITS];
   float3 Ng[LOCAL_MAX_HITS];
