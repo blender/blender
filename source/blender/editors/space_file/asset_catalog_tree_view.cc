@@ -479,6 +479,8 @@ void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library
 {
   uiBlock *block = uiLayoutGetBlock(layout);
 
+  UI_block_layout_set_current(block, layout);
+
   ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "asset catalog tree view",

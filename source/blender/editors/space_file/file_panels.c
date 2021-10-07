@@ -232,13 +232,27 @@ void file_execute_region_panels_register(ARegionType *art)
 
 static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *panel)
 {
+  bScreen *screen = CTX_wm_screen(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   /* May be null if the library wasn't loaded yet. */
   struct AssetLibrary *asset_library = filelist_asset_library(sfile->files);
   FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
   BLI_assert(params != NULL);
 
-  file_create_asset_catalog_tree_view_in_layout(asset_library, panel->layout, sfile, params);
+  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayout *row = uiLayoutRow(col, true);
+
+  PointerRNA params_ptr;
+  RNA_pointer_create(&screen->id, &RNA_FileAssetSelectParams, params, &params_ptr);
+
+  uiItemR(row, &params_ptr, "asset_library_ref", 0, "", ICON_NONE);
+  if (params->asset_library_ref.type != ASSET_LIBRARY_LOCAL) {
+    uiItemO(row, "", ICON_FILE_REFRESH, "FILE_OT_refresh");
+  }
+
+  uiItemS(col);
+
+  file_create_asset_catalog_tree_view_in_layout(asset_library, col, sfile, params);
 }
 
 void file_tools_region_panels_register(ARegionType *art)

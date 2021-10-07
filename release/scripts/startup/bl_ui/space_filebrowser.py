@@ -36,12 +36,6 @@ class FILEBROWSER_HT_header(Header):
         space_data = context.space_data
         params = space_data.params
 
-        row = layout.row(align=True)
-        row.prop(params, "asset_library_ref", text="")
-        # External libraries don't auto-refresh, add refresh button.
-        if params.asset_library_ref != 'LOCAL':
-            row.operator("file.refresh", text="", icon='FILE_REFRESH')
-
         layout.separator_spacer()
 
         layout.prop(params, "import_type", text="")
