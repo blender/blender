@@ -10522,13 +10522,13 @@ static void def_geo_curve_trim(StructRNA *srna)
 static void def_geo_attribute_transfer(StructRNA *srna)
 {
   static EnumPropertyItem mapping_items[] = {
-      {GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED,
+      {GEO_NODE_LEGACY_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED,
        "NEAREST_FACE_INTERPOLATED",
        0,
        "Nearest Face Interpolated",
        "Transfer the attribute from the nearest face on a surface (loose points and edges are "
        "ignored)"},
-      {GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST,
+      {GEO_NODE_LEGACY_ATTRIBUTE_TRANSFER_NEAREST,
        "NEAREST",
        0,
        "Nearest",

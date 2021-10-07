@@ -463,12 +463,12 @@ static void transfer_attribute(const GeoNodeExecParams &params,
       "position", dst_domain, {0, 0, 0});
 
   switch (mapping) {
-    case GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED: {
+    case GEO_NODE_LEGACY_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED: {
       transfer_attribute_nearest_face_interpolated(
           src_geometry, dst_component, dst_positions, dst_domain, data_type, src_name, dst_name);
       break;
     }
-    case GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST: {
+    case GEO_NODE_LEGACY_ATTRIBUTE_TRANSFER_NEAREST: {
       transfer_attribute_nearest(
           src_geometry, dst_component, dst_positions, dst_domain, data_type, src_name, dst_name);
       break;

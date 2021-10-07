@@ -2136,8 +2136,8 @@ typedef enum GeometryNodeCurveFilletMode {
 } GeometryNodeCurveFilletMode;
 
 typedef enum GeometryNodeAttributeTransferMapMode {
-  GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,
-  GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST = 1,
+  GEO_NODE_LEGACY_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,
+  GEO_NODE_LEGACY_ATTRIBUTE_TRANSFER_NEAREST = 1,
 } GeometryNodeAttributeTransferMapMode;
 
 typedef enum GeometryNodeRaycastMapMode {
