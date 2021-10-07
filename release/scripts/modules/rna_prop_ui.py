@@ -89,6 +89,9 @@ def rna_idprop_ui_prop_default_set(item, prop, value):
     ui_data.update(default=value)
 
 
+def rna_idprop_ui_prop_get(item, prop, create=False):
+    return rna_idprop_ui_create(item, prop, 0.0)
+
 def rna_idprop_ui_create(
         item, prop, *, default,
         min=0.0, max=1.0,

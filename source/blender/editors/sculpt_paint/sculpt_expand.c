@@ -622,7 +622,9 @@ static float *sculpt_expand_spherical_falloff_create(Object *ob, const SculptVer
  * boundary to a falloff value of 0. Then, it propagates that falloff to the rest of the mesh so it
  * stays parallel to the boundary, increasing the falloff value by 1 on each step.
  */
-static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd, Object *ob, const SculptVertRef v)
+static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
+                                                             Object *ob,
+                                                             const SculptVertRef v)
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
@@ -1407,9 +1409,8 @@ static void sculpt_expand_cancel(bContext *C, wmOperator *UNUSED(op))
 /**
  * Callback to update mask data per PBVH node.
  */
-static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
-                                              const int i,
-                                              const TaskParallelTLS *__restrict UNUSED(tls))
+ATTR_NO_OPT static void sculpt_expand_mask_update_task_cb(
+    void *__restrict userdata, const int i, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -1433,7 +1434,12 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
     }
 
     if (expand_cache->preserve) {
-      new_mask = max_ff(new_mask, expand_cache->original_mask[vd.index]);
+      if (expand_cache->invert) {
+        new_mask = min_ff(new_mask, expand_cache->original_mask[vd.index]);
+      }
+      else {
+        new_mask = max_ff(new_mask, expand_cache->original_mask[vd.index]);
+      }
     }
 
     if (new_mask == initial_mask) {

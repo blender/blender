@@ -117,7 +117,8 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
     int vi = vd.index;
     float final_mask = *vd.mask;
     if (data->mask_expand_use_normals) {
-      if (ss->filter_cache->normal_factor[BKE_pbvh_vertex_index_to_table(ss->pbvh, SCULPT_active_vertex_get(ss))] <
+      if (ss->filter_cache->normal_factor[BKE_pbvh_vertex_index_to_table(
+              ss->pbvh, SCULPT_active_vertex_get(ss))] <
           ss->filter_cache->normal_factor[vd.index]) {
         final_mask = 1.0f;
       }
@@ -309,8 +310,11 @@ typedef struct MaskExpandFloodFillData {
   bool use_normals;
 } MaskExpandFloodFillData;
 
-static bool mask_expand_floodfill_cb(
-    SculptSession *ss, SculptVertRef from_vref, SculptVertRef to_vref, bool is_duplicate, void *userdata)
+static bool mask_expand_floodfill_cb(SculptSession *ss,
+                                     SculptVertRef from_vref,
+                                     SculptVertRef to_vref,
+                                     bool is_duplicate,
+                                     void *userdata)
 {
   MaskExpandFloodFillData *data = userdata;
 
@@ -424,7 +428,8 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   ss->filter_cache->mask_update_last_it = 1;
   ss->filter_cache->mask_update_current_it = 1;
-  ss->filter_cache->mask_update_it[BKE_pbvh_vertex_index_to_table(ss->pbvh, SCULPT_active_vertex_get(ss))] = 0;
+  ss->filter_cache
+      ->mask_update_it[BKE_pbvh_vertex_index_to_table(ss->pbvh, SCULPT_active_vertex_get(ss))] = 0;
 
   copy_v3_v3(ss->filter_cache->mask_expand_initial_co, SCULPT_active_vertex_co_get(ss));
 
