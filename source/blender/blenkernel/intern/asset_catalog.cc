@@ -327,30 +327,26 @@ CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
                  "A non-empty .blend file path is required to be able to determine where the "
                  "catalog definition file should be put");
 
+  /* Ask the asset library API for an appropriate location.  */
+  char suitable_root_path[PATH_MAX];
+  const bool asset_lib_root_found = BKE_asset_library_find_suitable_root_path_from_path(
+      blend_file_path.c_str(), suitable_root_path);
+  if (asset_lib_root_found) {
+    char asset_lib_cdf_path[PATH_MAX];
+    BLI_path_join(asset_lib_cdf_path,
+                  sizeof(asset_lib_cdf_path),
+                  suitable_root_path,
+                  DEFAULT_CATALOG_FILENAME.c_str(),
+                  NULL);
+    return asset_lib_cdf_path;
+  }
+
   /* Determine the default CDF path in the same directory of the blend file. */
   char blend_dir_path[PATH_MAX];
   BLI_split_dir_part(blend_file_path.c_str(), blend_dir_path, sizeof(blend_dir_path));
   const CatalogFilePath cdf_path_next_to_blend = asset_definition_default_file_path_from_dir(
       blend_dir_path);
-
-  if (BLI_exists(cdf_path_next_to_blend.c_str())) {
-    /* - The directory containing the blend file has a blender_assets.cats.txt file?
-     *    -> Merge with & write to that file. */
-    return cdf_path_next_to_blend;
-  }
-
-  /* - There's no definition file next to the .blend file.
-   *    -> Ask the asset library API for an appropriate location.  */
-  char suitable_root_path[PATH_MAX];
-  BKE_asset_library_find_suitable_root_path_from_path(blend_file_path.c_str(), suitable_root_path);
-  char asset_lib_cdf_path[PATH_MAX];
-  BLI_path_join(asset_lib_cdf_path,
-                sizeof(asset_lib_cdf_path),
-                suitable_root_path,
-                DEFAULT_CATALOG_FILENAME.c_str(),
-                NULL);
-
-  return asset_lib_cdf_path;
+  return cdf_path_next_to_blend;
 }
 
 std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::construct_cdf_in_memory(
