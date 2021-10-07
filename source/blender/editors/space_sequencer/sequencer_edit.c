@@ -214,22 +214,38 @@ bool sequencer_strip_has_path_poll(bContext *C)
 bool sequencer_view_preview_poll(bContext *C)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
-  Editing *ed = SEQ_editing_get(CTX_data_scene(C));
-  if (ed && sseq && (sseq->mainb == SEQ_DRAW_IMG_IMBUF)) {
-    return 1;
+  if (sseq == NULL) {
+    return false;
+  }
+  if (SEQ_editing_get(CTX_data_scene(C)) == NULL) {
+    return false;
+  }
+  if (!(ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW) &&
+        (sseq->mainb == SEQ_DRAW_IMG_IMBUF))) {
+    return false;
+  }
+  ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_PREVIEW)) {
+    return false;
   }
 
-  return 0;
+  return true;
 }
 
 bool sequencer_view_strips_poll(bContext *C)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if (sseq && ED_space_sequencer_check_show_strip(sseq)) {
-    return 1;
+  if (sseq == NULL) {
+    return false;
   }
-
-  return 0;
+  if (!ED_space_sequencer_check_show_strip(sseq)) {
+    return false;
+  }
+  ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    return false;
+  }
+  return true;
 }
 
 /** \} */
