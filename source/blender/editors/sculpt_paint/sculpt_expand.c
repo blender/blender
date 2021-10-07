@@ -1243,12 +1243,7 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
     }
 
     if (expand_cache->preserve) {
-      if (expand_cache->invert) {
-        new_mask = min_ff(new_mask, expand_cache->original_mask[vd.index]);
-      }
-      else {
-        new_mask = max_ff(new_mask, expand_cache->original_mask[vd.index]);
-      }
+      new_mask = max_ff(new_mask, expand_cache->original_mask[vd.index]);
     }
 
     if (new_mask == initial_mask) {
