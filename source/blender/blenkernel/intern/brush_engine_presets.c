@@ -267,6 +267,7 @@ static bool check_builtin_init()
   // SETCAT(radius, "Basic");
   // SETCAT(direction, "Basic");
   SETCAT(accumulate, "Basic");
+  SETCAT(use_frontface, "Basic");
 
   SETCAT(smear_deform_type, "Smear");
   SETCAT(smear_deform_blend, "Smear");
@@ -973,7 +974,9 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(strength);
   ADDCH(radius_unit);
   ADDCH(unprojected_radius);
+  ADDCH(use_frontface);
 
+  ADDCH(sharp_mode);
   ADDCH(show_origco);
 
   ADDCH(use_surface_falloff);
@@ -1245,6 +1248,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
   if (!ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
     SHOWWRK(autosmooth);
     SHOWWRK(topology_rake);
+    SHOWWRK(topology_rake_mode);
     SHOWCTX(autosmooth);
   }
 
@@ -1264,6 +1268,12 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
   SHOWWRK(dyntopo_disabled);
 
   switch (tool) {
+    case SCULPT_TOOL_DRAW_SHARP:
+      SHOWWRK(sharp_mode);
+      SHOWCTX(sharp_mode);
+      // SHOWWRK(plane_offset);
+      // SHOWCTX(plane_offset);
+      break;
     case SCULPT_TOOL_INFLATE:
     case SCULPT_TOOL_BLOB:
       SHOWCTX(crease_pinch_factor);

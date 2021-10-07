@@ -1987,3 +1987,5 @@ struct BMesh *SCULPT_dyntopo_empty_bmesh();
        SCULPT_TOOL_POSE)
 
 void SCULPT_undo_ensure_bmlog(struct Object *ob);
+
+enum { SCULPT_SHARP_SIMPLE, SCULPT_SHARP_PLANE };

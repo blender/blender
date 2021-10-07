@@ -1907,10 +1907,16 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
     # Draw shared settings.
     if use_accumulate:
-        layout.prop(brush, "use_accumulate")
+        UnifiedPaintPanel.channel_unified(layout.column(),
+            context,
+            brush,
+            "accumulate")
 
     if use_frontface:
-        layout.prop(brush, "use_frontface", text="Front Faces Only")
+        UnifiedPaintPanel.channel_unified(layout.column(),
+            context,
+            brush,
+            "use_frontface", text="Front Faces Only")
 
 
 def draw_color_settings(context, layout, brush, color_type=False):

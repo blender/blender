@@ -578,6 +578,12 @@ MAKE_ENUM(smear_deform_type, "Deformation", "Deformation type that is used in th
 
 MAKE_FLOAT(smear_deform_blend, "Smear Blend", "Blend with existing paint", 1.0f, 0.0f, 1.0f)
 
+MAKE_ENUM_EX(sharp_mode, "Sharp Mode", "", 0, 0, {
+    {0, "SIMPLE", "NONE", "Simple", ""},
+    {1, "PLANE", "NONE", "Plane", ""},
+    {-1}
+})
+
 //MAKE_FLOAT3_EX
 /* clang-format on */
 #if defined(BRUSH_CHANNEL_DEFINE_TYPES) || defined(BRUSH_CHANNEL_DEFINE_EXTERNAL)

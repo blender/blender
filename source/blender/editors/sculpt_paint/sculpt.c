@@ -5251,9 +5251,9 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BLI_task_parallel_range(0, totnode, &data, do_draw_brush_task_cb_ex, &settings);
 }
 
-static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
-                                           const int n,
-                                           const TaskParallelTLS *__restrict tls)
+static void do_draw_sharp_brush_task_cb_ex_plane(void *__restrict userdata,
+                                                 const int n,
+                                                 const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -5272,6 +5272,13 @@ static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
+
+  float planeco[3], noffset[3];
+  copy_v3_v3(planeco, ss->cache->location);
+  add_v3_v3(planeco, offset);
+
+  copy_v3_v3(noffset, offset);
+  normalize_v3(noffset);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     // SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
@@ -5303,17 +5310,95 @@ static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_node_mark_update(data->nodes[n]);
 }
 
+static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
+                                           const int n,
+                                           const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  const float *offset = data->offset;
+
+  PBVHVertexIter vd;
+  SculptOrigVertData orig_data;
+  float(*proxy)[3];
+
+  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
+  float planeco[3], noffset[3];
+  copy_v3_v3(planeco, ss->cache->location);
+  add_v3_v3(planeco, offset);
+
+  copy_v3_v3(noffset, offset);
+  normalize_v3(noffset);
+
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    // SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_vertex_check_origdata(ss, vd.vertex);
+    MSculptVert *mv = SCULPT_vertex_get_mdyntopo(ss, vd.vertex);
+
+    if (!sculpt_brush_test_sq_fn(&test, mv->origco)) {
+      continue;
+    }
+    /* Offset vertex. */
+    const float fade = SCULPT_brush_strength_factor(ss,
+                                                    brush,
+                                                    mv->origco,
+                                                    sqrtf(test.dist),
+                                                    NULL,
+                                                    mv->origno,
+                                                    vd.mask ? *vd.mask : 0.0f,
+                                                    vd.vertex,
+                                                    thread_id);
+
+    float vec[3];
+    // copy_v3_v3(noffset, mv->origno);
+
+    copy_v3_v3(planeco, ss->cache->location);
+    madd_v3_v3fl(planeco, offset, fade);
+
+    sub_v3_v3v3(vec, mv->origco, planeco);
+    madd_v3_v3fl(vec, noffset, -dot_v3v3(noffset, vec));
+
+    add_v3_v3(vec, planeco);
+    sub_v3_v3(vec, vd.co);
+
+    mul_v3_v3fl(proxy[vd.i], vec, fade * fade);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  BKE_pbvh_node_mark_update(data->nodes[n]);
+}
+
 static void do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  Brush *brush = ss->cache->brush ? ss->cache->brush : BKE_paint_brush(&sd->paint);
   float offset[3];
   const float bstrength = ss->cache->bstrength;
+
+  bool mode = SCULPT_get_int(ss, sharp_mode, sd, brush);
+  float plane_offset = SCULPT_get_float(ss, plane_offset, sd, brush);
 
   /* Offset with as much as possible factored in already. */
   float effective_normal[3];
   SCULPT_tilt_effective_normal_get(ss, brush, effective_normal);
-  mul_v3_v3fl(offset, effective_normal, ss->cache->radius);
+
+  if (mode == SCULPT_SHARP_PLANE) {  // average with view normal
+    add_v3_v3(effective_normal, ss->cache->view_normal);
+    mul_v3_fl(effective_normal, 0.5f);
+  }
+
+  mul_v3_v3fl(offset, effective_normal, ss->cache->radius + ss->cache->radius * plane_offset);
   mul_v3_v3(offset, ss->cache->scale);
   mul_v3_fl(offset, bstrength);
 
@@ -5332,7 +5417,13 @@ static void do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_draw_sharp_brush_task_cb_ex, &settings);
+
+  if (mode == SCULPT_SHARP_SIMPLE) {
+    BLI_task_parallel_range(0, totnode, &data, do_draw_sharp_brush_task_cb_ex, &settings);
+  }
+  else {
+    BLI_task_parallel_range(0, totnode, &data, do_draw_sharp_brush_task_cb_ex_plane, &settings);
+  }
 }
 
 /* -------------------------------------------------------------------- */
