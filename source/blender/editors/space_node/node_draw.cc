@@ -2176,28 +2176,6 @@ static void draw_nodetree(const bContext *C,
   node_draw_nodetree(C, region, snode, ntree, parent_key);
 }
 
-/* Shade the parent node group and add a `uiBlock` to clip mouse events. */
-static void draw_group_overlay(const bContext *C, ARegion *region)
-{
-  const View2D *v2d = &region->v2d;
-  const rctf rect = v2d->cur;
-  float color[4];
-
-  /* Shade node groups to separate them visually. */
-  GPU_blend(GPU_BLEND_ALPHA);
-
-  UI_GetThemeColorShadeAlpha4fv(TH_NODE_GROUP, 0, 0, color);
-  UI_draw_roundbox_corner_set(UI_CNR_NONE);
-  UI_draw_roundbox_4fv(&rect, true, 0, color);
-  GPU_blend(GPU_BLEND_NONE);
-
-  /* Set the block bounds to clip mouse events from underlying nodes. */
-  uiBlock *block = UI_block_begin(C, region, "node tree bounds block", UI_EMBOSS);
-  UI_block_bounds_set_explicit(block, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
-  UI_block_flag_enable(block, UI_BLOCK_CLIP_EVENTS);
-  UI_block_end(C, block);
-}
-
 void node_draw_space(const bContext *C, ARegion *region)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -2237,8 +2215,6 @@ void node_draw_space(const bContext *C, ARegion *region)
 
   /* Draw parent node trees. */
   if (snode->treepath.last) {
-    static const int max_depth = 2;
-
     bNodeTreePath *path = (bNodeTreePath *)snode->treepath.last;
 
     /* Update tree path name (drawn in the bottom left). */
@@ -2259,35 +2235,13 @@ void node_draw_space(const bContext *C, ARegion *region)
       copy_v2_v2(snode->edittree->view_center, center);
     }
 
-    int depth = 0;
-    while (path->prev && depth < max_depth) {
-      path = path->prev;
-      depth++;
-    }
-
-    /* Parent node trees in the background. */
-    for (int curdepth = depth; curdepth > 0; path = path->next, curdepth--) {
-      bNodeTree *ntree = path->nodetree;
-      if (ntree) {
-        snode_setup_v2d(snode, region, path->view_center);
-
-        draw_nodetree(C, region, ntree, path->parent_key);
-
-        draw_group_overlay(C, region);
-      }
-    }
-
     /* Top-level edit tree. */
     bNodeTree *ntree = path->nodetree;
     if (ntree) {
       snode_setup_v2d(snode, region, center);
 
-      /* Grid, uses theme color based on node path depth. */
-      UI_view2d_multi_grid_draw(v2d,
-                                (depth > 0 ? TH_NODE_GROUP : TH_GRID),
-                                ED_node_grid_size(),
-                                NODE_GRID_STEPS,
-                                grid_levels);
+      /* Grid. */
+      UI_view2d_multi_grid_draw(v2d, TH_GRID, ED_node_grid_size(), NODE_GRID_STEPS, grid_levels);
 
       /* Backdrop. */
       draw_nodespace_back_pix(C, region, snode, path->parent_key);
