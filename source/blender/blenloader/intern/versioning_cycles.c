@@ -182,8 +182,8 @@ static void displacement_principled_nodes(bNode *node)
     }
   }
   else if (node->type == SH_NODE_BSDF_PRINCIPLED) {
-    if (node->custom2 != SHD_SUBSURFACE_RANDOM_WALK_FIXED_RADIUS) {
-      node->custom2 = SHD_SUBSURFACE_DIFFUSION;
+    if (node->custom2 != SHD_SUBSURFACE_RANDOM_WALK) {
+      node->custom2 = SHD_SUBSURFACE_BURLEY;
     }
   }
 }

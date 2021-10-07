@@ -113,6 +113,30 @@ ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
 }
 #endif /* __SHADOW_RECORD_ALL__ | __VOLUME_RECORD_ALL__ */
 
+/* For subsurface scattering, only sorting a small amount of intersections
+ * so bubble sort is fine for CPU and GPU. */
+ccl_device_inline void sort_intersections_and_normals(Intersection *hits,
+                                                      float3 *Ng,
+                                                      uint num_hits)
+{
+  bool swapped;
+  do {
+    swapped = false;
+    for (int j = 0; j < num_hits - 1; ++j) {
+      if (hits[j].t > hits[j + 1].t) {
+        struct Intersection tmp_hit = hits[j];
+        struct float3 tmp_Ng = Ng[j];
+        hits[j] = hits[j + 1];
+        Ng[j] = Ng[j + 1];
+        hits[j + 1] = tmp_hit;
+        Ng[j + 1] = tmp_Ng;
+        swapped = true;
+      }
+    }
+    --num_hits;
+  } while (swapped);
+}
+
 /* Utility to quickly get flags from an intersection. */
 
 ccl_device_forceinline int intersection_get_shader_flags(const KernelGlobals *ccl_restrict kg,

@@ -885,6 +885,7 @@ ccl_device_noinline int svm_node_closure_bsdf(
 #endif /* __HAIR__ */
 
 #ifdef __SUBSURFACE__
+    case CLOSURE_BSSRDF_BURLEY_ID:
     case CLOSURE_BSSRDF_RANDOM_WALK_ID:
     case CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID: {
       float3 weight = sd->svm_closure_weight * mix_weight;

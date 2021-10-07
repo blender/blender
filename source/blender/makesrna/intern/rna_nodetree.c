@@ -4678,6 +4678,11 @@ static const EnumPropertyItem node_principled_distribution_items[] = {
 };
 
 static const EnumPropertyItem node_subsurface_method_items[] = {
+    {SHD_SUBSURFACE_BURLEY,
+     "BURLEY",
+     0,
+     "Christensen-Burley",
+     "Approximation to physically based volume scattering"},
     {SHD_SUBSURFACE_RANDOM_WALK_FIXED_RADIUS,
      "RANDOM_WALK_FIXED_RADIUS",
      0,

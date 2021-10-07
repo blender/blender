@@ -29,6 +29,8 @@ typedef ccl_addr_space struct Bssrdf {
 
 static_assert(sizeof(ShaderClosure) >= sizeof(Bssrdf), "Bssrdf is too large!");
 
+/* Random Walk BSSRDF */
+
 ccl_device float bssrdf_dipole_compute_Rd(float alpha_prime, float fourthirdA)
 {
   float s = sqrtf(3.0f * (1.0f - alpha_prime));
@@ -66,7 +68,7 @@ ccl_device float bssrdf_dipole_compute_alpha_prime(float rd, float fourthirdA)
 
 ccl_device void bssrdf_setup_radius(Bssrdf *bssrdf, const ClosureType type, const float eta)
 {
-  if (type == CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID) {
+  if (type == CLOSURE_BSSRDF_BURLEY_ID || type == CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID) {
     /* Scale mean free path length so it gives similar looking result to older
      * Cubic, Gaussian and Burley models. */
     bssrdf->radius *= 0.25f * M_1_PI_F;
@@ -85,6 +87,176 @@ ccl_device void bssrdf_setup_radius(Bssrdf *bssrdf, const ClosureType type, cons
 
     bssrdf->radius *= sqrt(3.0f * (one_float3() - alpha_prime));
   }
+}
+
+/* Christensen-Burley BSSRDF.
+ *
+ * Approximate Reflectance Profiles from
+ * http://graphics.pixar.com/library/ApproxBSSRDF/paper.pdf
+ */
+
+/* This is a bit arbitrary, just need big enough radius so it matches
+ * the mean free length, but still not too big so sampling is still
+ * effective. */
+#define BURLEY_TRUNCATE 16.0f
+#define BURLEY_TRUNCATE_CDF 0.9963790093708328f  // cdf(BURLEY_TRUNCATE)
+
+ccl_device_inline float bssrdf_burley_fitting(float A)
+{
+  /* Diffuse surface transmission, equation (6). */
+  return 1.9f - A + 3.5f * (A - 0.8f) * (A - 0.8f);
+}
+
+/* Scale mean free path length so it gives similar looking result
+ * to Cubic and Gaussian models. */
+ccl_device_inline float3 bssrdf_burley_compatible_mfp(float3 r)
+{
+  return 0.25f * M_1_PI_F * r;
+}
+
+ccl_device void bssrdf_burley_setup(Bssrdf *bssrdf)
+{
+  /* Mean free path length. */
+  const float3 l = bssrdf_burley_compatible_mfp(bssrdf->radius);
+  /* Surface albedo. */
+  const float3 A = bssrdf->albedo;
+  const float3 s = make_float3(
+      bssrdf_burley_fitting(A.x), bssrdf_burley_fitting(A.y), bssrdf_burley_fitting(A.z));
+
+  bssrdf->radius = l / s;
+}
+
+ccl_device float bssrdf_burley_eval(const float d, float r)
+{
+  const float Rm = BURLEY_TRUNCATE * d;
+
+  if (r >= Rm)
+    return 0.0f;
+
+  /* Burley reflectance profile, equation (3).
+   *
+   * NOTES:
+   * - Surface albedo is already included into sc->weight, no need to
+   *   multiply by this term here.
+   * - This is normalized diffuse model, so the equation is multiplied
+   *   by 2*pi, which also matches cdf().
+   */
+  float exp_r_3_d = expf(-r / (3.0f * d));
+  float exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
+  return (exp_r_d + exp_r_3_d) / (4.0f * d);
+}
+
+ccl_device float bssrdf_burley_pdf(const float d, float r)
+{
+  if (r == 0.0f) {
+    return 0.0f;
+  }
+
+  return bssrdf_burley_eval(d, r) * (1.0f / BURLEY_TRUNCATE_CDF);
+}
+
+/* Find the radius for desired CDF value.
+ * Returns scaled radius, meaning the result is to be scaled up by d.
+ * Since there's no closed form solution we do Newton-Raphson method to find it.
+ */
+ccl_device_forceinline float bssrdf_burley_root_find(float xi)
+{
+  const float tolerance = 1e-6f;
+  const int max_iteration_count = 10;
+  /* Do initial guess based on manual curve fitting, this allows us to reduce
+   * number of iterations to maximum 4 across the [0..1] range. We keep maximum
+   * number of iteration higher just to be sure we didn't miss root in some
+   * corner case.
+   */
+  float r;
+  if (xi <= 0.9f) {
+    r = expf(xi * xi * 2.4f) - 1.0f;
+  }
+  else {
+    /* TODO(sergey): Some nicer curve fit is possible here. */
+    r = 15.0f;
+  }
+  /* Solve against scaled radius. */
+  for (int i = 0; i < max_iteration_count; i++) {
+    float exp_r_3 = expf(-r / 3.0f);
+    float exp_r = exp_r_3 * exp_r_3 * exp_r_3;
+    float f = 1.0f - 0.25f * exp_r - 0.75f * exp_r_3 - xi;
+    float f_ = 0.25f * exp_r + 0.25f * exp_r_3;
+
+    if (fabsf(f) < tolerance || f_ == 0.0f) {
+      break;
+    }
+
+    r = r - f / f_;
+    if (r < 0.0f) {
+      r = 0.0f;
+    }
+  }
+  return r;
+}
+
+ccl_device void bssrdf_burley_sample(const float d, float xi, float *r, float *h)
+{
+  const float Rm = BURLEY_TRUNCATE * d;
+  const float r_ = bssrdf_burley_root_find(xi * BURLEY_TRUNCATE_CDF) * d;
+
+  *r = r_;
+
+  /* h^2 + r^2 = Rm^2 */
+  *h = safe_sqrtf(Rm * Rm - r_ * r_);
+}
+
+ccl_device float bssrdf_num_channels(const float3 radius)
+{
+  float channels = 0;
+  if (radius.x > 0.0f) {
+    channels += 1.0f;
+  }
+  if (radius.y > 0.0f) {
+    channels += 1.0f;
+  }
+  if (radius.z > 0.0f) {
+    channels += 1.0f;
+  }
+  return channels;
+}
+
+ccl_device void bssrdf_sample(const float3 radius, float xi, float *r, float *h)
+{
+  const float num_channels = bssrdf_num_channels(radius);
+  float sampled_radius;
+
+  /* Sample color channel and reuse random number. Only a subset of channels
+   * may be used if their radius was too small to handle as BSSRDF. */
+  xi *= num_channels;
+
+  if (xi < 1.0f) {
+    sampled_radius = (radius.x > 0.0f) ? radius.x : (radius.y > 0.0f) ? radius.y : radius.z;
+  }
+  else if (xi < 2.0f) {
+    xi -= 1.0f;
+    sampled_radius = (radius.x > 0.0f && radius.y > 0.0f) ? radius.y : radius.z;
+  }
+  else {
+    xi -= 2.0f;
+    sampled_radius = radius.z;
+  }
+
+  /* Sample BSSRDF. */
+  bssrdf_burley_sample(sampled_radius, xi, r, h);
+}
+
+ccl_device_forceinline float3 bssrdf_eval(const float3 radius, float r)
+{
+  return make_float3(bssrdf_burley_pdf(radius.x, r),
+                     bssrdf_burley_pdf(radius.y, r),
+                     bssrdf_burley_pdf(radius.z, r));
+}
+
+ccl_device_forceinline float bssrdf_pdf(const float3 radius, float r)
+{
+  float3 pdf = bssrdf_eval(radius, r);
+  return (pdf.x + pdf.y + pdf.z) / bssrdf_num_channels(radius);
 }
 
 /* Setup */
