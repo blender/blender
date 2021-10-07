@@ -281,11 +281,10 @@ static void render_result_to_bake(RenderEngine *engine, RenderResult *rr)
 
 /* Render Results */
 
-static HighlightedTile highlighted_tile_from_result_get(Render *re, RenderResult *result)
+static HighlightedTile highlighted_tile_from_result_get(Render *UNUSED(re), RenderResult *result)
 {
   HighlightedTile tile;
   tile.rect = result->tilerect;
-  BLI_rcti_translate(&tile.rect, re->disprect.xmin, re->disprect.ymin);
 
   return tile;
 }
