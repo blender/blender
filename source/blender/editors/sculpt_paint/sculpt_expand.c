@@ -1434,7 +1434,7 @@ ATTR_NO_OPT static void sculpt_expand_mask_update_task_cb(
     }
 
     if (expand_cache->preserve) {
-      if (expand_cache->invert) {
+      if (expand_cache->invert && expand_cache->preserve_flip_inverse) {
         new_mask = min_ff(new_mask, expand_cache->original_mask[vd.index]);
       }
       else {
@@ -2333,6 +2333,7 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
 {
   /* RNA properties. */
   expand_cache->invert = RNA_boolean_get(op->ptr, "invert");
+  expand_cache->preserve_flip_inverse = RNA_boolean_get(op->ptr, "use_preserve_flip_inverse");
   expand_cache->preserve = RNA_boolean_get(op->ptr, "use_mask_preserve");
   expand_cache->falloff_gradient = RNA_boolean_get(op->ptr, "use_falloff_gradient");
   expand_cache->target = RNA_enum_get(op->ptr, "target");
@@ -2591,6 +2592,12 @@ void SCULPT_OT_expand(wmOperatorType *ot)
                SCULPT_EXPAND_FALLOFF_GEODESIC,
                "Falloff Type",
                "Initial falloff of the expand operation");
+
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "use_preserve_flip_inverse",
+                             false,
+                             "Preserve Inverted",
+                             "Flip preserve mode in inverse mode");
 
   ot->prop = RNA_def_boolean(
       ot->srna, "invert", false, "Invert", "Invert the expand active elements");

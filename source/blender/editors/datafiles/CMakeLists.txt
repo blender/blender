@@ -866,6 +866,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.lasso_trim
   ops.sculpt.line_mask
   ops.sculpt.line_project
+  ops.sculpt.mask_select
   ops.sculpt.mesh_filter
   ops.sequencer.blade
   ops.transform.bone_envelope

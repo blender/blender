@@ -1507,6 +1507,9 @@ typedef struct ExpandCache {
   /* When set to true, preserves the previous state of the data and adds the new one on top. */
   bool preserve;
 
+  /* When true, preserve mode will flip in inverse mode */
+  bool preserve_flip_inverse;
+
   /* When set to true, the mask or colors will be applied as a gradient. */
   bool falloff_gradient;
 

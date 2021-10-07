@@ -1298,6 +1298,20 @@ class _defs_sculpt:
             draw_settings=draw_settings,)
 
     @ToolDef.from_fn
+    def mask_select():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sculpt.expand")
+            layout.prop(props, "falloff_type")
+            layout.prop(props, "use_falloff_gradient")
+
+        return dict(idname="builtin.mask_select",
+            label="Mask Select",
+            icon="ops.sculpt.mask_select",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,)
+
+    @ToolDef.from_fn
     def project_lasso():
         return dict(idname="builtin.lasso_project",
             label="Lasso Project",
@@ -2232,13 +2246,11 @@ class _defs_sequencer_generic:
 class _defs_sequencer_select:
     @ToolDef.from_fn
     def select():
-        return dict(
-            idname="builtin.select",
+        return dict(idname="builtin.select",
             label="Tweak",
             icon="ops.generic.select",
             widget=None,
-            keymap="Sequencer Tool: Tweak",
-        )
+            keymap="Sequencer Tool: Tweak",)
 
     @ToolDef.from_fn
     def box():
@@ -2532,6 +2544,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             (_defs_sculpt.project_line,
             _defs_sculpt.project_box,
             _defs_sculpt.project_lasso,),
+            _defs_sculpt.mask_select,
             None,
             _defs_sculpt.mesh_filter,
             _defs_sculpt.cloth_filter,

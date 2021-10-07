@@ -70,14 +70,16 @@ class Params:
         # (derived from other settings).
         #
         # This case needs to be checked often,
-        # Shorthand for: `(params.use_fallback_tool if params.select_mouse == 'RIGHTMOUSE' else False)`.
+        # Shorthand for: `(params.use_fallback_tool if params.select_mouse ==
+        # 'RIGHTMOUSE' else False)`.
         "use_fallback_tool_rmb",
         # Shorthand for: `('CLICK' if params.use_fallback_tool_rmb else
         # params.select_mouse_value)`.
         "select_mouse_value_fallback",
         # Shorthand for: `{"type": params.select_tweak, "value": 'ANY'}`.
         "select_tweak_event",
-        # Shorthand for: `('CLICK_DRAG' if params.use_pie_click_drag else 'PRESS')`
+        # Shorthand for: `('CLICK_DRAG' if params.use_pie_click_drag else
+        # 'PRESS')`
         "pie_value",
         # Shorthand for: `{"type": params.tool_tweak, "value": 'ANY'}`.
         "tool_tweak_event",
@@ -749,7 +751,6 @@ def km_user_interface(_params):
 
 # ------------------------------------------------------------------------------
 # Editors
-
 def km_property_editor(_params):
     items = []
     keymap = ("Property Editor",
@@ -2355,8 +2356,7 @@ def km_sequencercommon(params):
          {"properties": [("data_path", 'scene.sequence_editor.show_overlay')]}),
         ("wm.context_toggle_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.view_type'), ("value_1", 'SEQUENCER'), ("value_2", 'PREVIEW')]}),
-        ("sequencer.refresh_all", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),
-    ])
+        ("sequencer.refresh_all", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),])
 
     if params.select_mouse == 'LEFTMOUSE' and not params.legacy:
         # Quick switch to select tool, since left select can't easily
@@ -2430,13 +2430,10 @@ def km_sequencer(params):
               {"type": NUMBERS_1[i], "value": 'PRESS'},
               {"properties": [("camera", i + 1)]})
              for i in range(10)
-             )
-        ),
-        *_template_sequencer_timeline_select(
-            type=params.select_mouse,
+             )),
+        *_template_sequencer_timeline_select(type=params.select_mouse,
             value=params.select_mouse_value_fallback,
-            legacy=params.legacy,
-        ),
+            legacy=params.legacy,),
         ("sequencer.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("sequencer.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("sequencer.select_linked_pick", {"type": 'L', "value": 'PRESS'}, None),
@@ -2481,13 +2478,10 @@ def km_sequencerpreview(params):
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": items},)
 
-    items.extend([
-        # Selection.
-        *_template_sequencer_preview_select(
-            type=params.select_mouse,
+    items.extend([# Selection.
+        *_template_sequencer_preview_select(type=params.select_mouse,
             value=params.select_mouse_value_fallback,
-            legacy=params.legacy,
-        ),
+            legacy=params.legacy,),
         ("sequencer.view_all_preview", {"type": 'HOME', "value": 'PRESS'}, None),
         ("sequencer.view_all_preview", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("sequencer.view_ghost_border", {"type": 'O', "value": 'PRESS'}, None),
@@ -2506,8 +2500,7 @@ def km_sequencerpreview(params):
         ("sequencer.view_zoom_ratio", {"type": 'NUMPAD_8', "value": 'PRESS'},
          {"properties": [("ratio", 0.125)]}),
         ("transform.translate", {"type": params.select_tweak, "value": 'ANY'}, None),
-        op_tool_optional(
-            ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
+        op_tool_optional(("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
             (op_tool_cycle, "builtin.move"), params),
         op_tool_optional(("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
             (op_tool_cycle, "builtin.rotate"), params),
@@ -2519,8 +2512,7 @@ def km_sequencerpreview(params):
          {"properties": [("property", 'SCALE')]}),
         ("sequencer.strip_transform_clear", {"type": 'R', "alt": True, "value": 'PRESS'},
          {"properties": [("property", 'ROTATION')]}),
-        *_template_items_context_menu("SEQUENCER_MT_preview_context_menu", params.context_menu_event),
-    ])
+        *_template_items_context_menu("SEQUENCER_MT_preview_context_menu", params.context_menu_event),])
 
     return keymap
 
@@ -2803,7 +2795,6 @@ def km_spreadsheet_generic(_params):
 
 # ------------------------------------------------------------------------------
 # Animation
-
 def km_frames(params):
     items = []
     keymap = ("Frames",
@@ -2946,7 +2937,6 @@ def km_animation_channels(params):
 
 # ------------------------------------------------------------------------------
 # Modes
-
 def km_grease_pencil(params):
     items = []
     keymap = ("Grease Pencil",
@@ -3977,7 +3967,6 @@ def radial_control_properties(paint, prop, secondary_prop, secondary_rotation=Fa
     }
 
 # Radial controls for the paint and sculpt modes.
-
 def _template_paint_radial_control(paint, rotation=False, secondary_rotation=False, color=False, zoom=False):
     items = []
 
@@ -4083,25 +4072,16 @@ def _template_uv_select_for_fallback(params, fallback):
     return []
 
 def _template_sequencer_generic_select(*, type, value, legacy):
-    return [(
-        "sequencer.select",
+    return [("sequencer.select",
         {"type": type, "value": value, **{m: True for m in mods}},
-        {"properties": [(c, True) for c in props]},
-    ) for props, mods in (
-        (("deselect_all",) if not legacy else (), ()),
-        (("toggle",), ("shift",)),
-    )]
+        {"properties": [(c, True) for c in props]},) for props, mods in ((("deselect_all",) if not legacy else (), ()),
+        (("toggle",), ("shift",)),)]
 
 
 def _template_sequencer_preview_select(*, type, value, legacy):
-    return _template_sequencer_generic_select(
-        type=type, value=value, legacy=legacy,
-    ) + [(
-        "sequencer.select",
+    return _template_sequencer_generic_select(type=type, value=value, legacy=legacy,) + [("sequencer.select",
         {"type": type, "value": value, **{m: True for m in mods}},
-        {"properties": [(c, True) for c in props]},
-    ) for props, mods in (
-        (("center",), ("ctrl",)),
+        {"properties": [(c, True) for c in props]},) for props, mods in ((("center",), ("ctrl",)),
         # TODO:
         # (("enumerate",), ("alt",)),
             (("toggle", "center"), ("shift", "ctrl")),
@@ -4112,29 +4092,22 @@ def _template_sequencer_preview_select(*, type, value, legacy):
 
 
 def _template_sequencer_timeline_select(*, type, value, legacy):
-    return _template_sequencer_generic_select(
-        type=type, value=value, legacy=legacy,
-    ) + [(
-        "sequencer.select",
+    return _template_sequencer_generic_select(type=type, value=value, legacy=legacy,) + [("sequencer.select",
         {"type": type, "value": value, **{m: True for m in mods}},
-        {"properties": [(c, True) for c in props]},
-    ) for props, mods in (
-        (("linked_handle",), ("alt",)),
+        {"properties": [(c, True) for c in props]},) for props, mods in ((("linked_handle",), ("alt",)),
         (("linked_handle", "extend"), ("shift", "alt",)),
 
         (("side_of_frame", "linked_time"), ("ctrl",)),
-        (("side_of_frame", "linked_time", "extend"), ("ctrl", "shift")),
-    )]
+        (("side_of_frame", "linked_time", "extend"), ("ctrl", "shift")),)]
 
 
 def _template_sequencer_select_for_fallback(params, fallback):
     if (not fallback) and params.use_fallback_tool_rmb:
-        # Needed so we have immediate select+tweak when the default select tool is active.
-        return _template_sequencer_generic_select(
-            type=params.select_mouse,
+        # Needed so we have immediate select+tweak when the default select tool
+        # is active.
+        return _template_sequencer_generic_select(type=params.select_mouse,
             value=params.select_mouse_value,
-            legacy=params.legacy,
-        )
+            legacy=params.legacy,)
     return []
 
 
@@ -4304,7 +4277,8 @@ def km_sculpt(params):
         ("sculpt.expand", {"type": 'W', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("target", "FACE_SETS"), ("falloff_type", "POLY_LOOP"), ("invert", False), ("use_modify_active", False)]}),
         # Partial Visibility Show/hide
-        # Match keys from: `_template_items_hide_reveal_actions`, cannot use because arguments aren't compatible.
+        # Match keys from: `_template_items_hide_reveal_actions`, cannot use
+        # because arguments aren't compatible.
         ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS'},
          {"properties": [("mode", 'TOGGLE')]}),
         ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS', "shift": True},
@@ -4389,8 +4363,7 @@ def km_sculpt(params):
         op_menu_pie("VIEW3D_MT_sculpt_mask_edit_pie", {"type": 'A', "value": 'PRESS'}),
         op_menu_pie("VIEW3D_MT_sculpt_automasking_pie", {"type": 'A', "alt": True, "value": 'PRESS'}),
         op_menu_pie("VIEW3D_MT_sculpt_face_sets_edit_pie", {"type": 'W', "value": 'PRESS'}),
-        *_template_items_context_panel("VIEW3D_PT_sculpt_context_menu", params.context_menu_event),
-    ])
+        *_template_items_context_panel("VIEW3D_PT_sculpt_context_menu", params.context_menu_event),])
 
     if params.legacy:
         items.extend(_template_items_legacy_tools_from_numbers())
@@ -4821,7 +4794,6 @@ def km_object_non_modal(params):
 
 # ------------------------------------------------------------------------------
 # Modal Maps and Gizmos
-
 def km_eyedropper_modal_map(_params):
     items = []
     keymap = ("Eyedropper Modal Map",
@@ -5397,7 +5369,6 @@ def km_popup_toolbar(_params):
 # Tool System Keymaps
 #
 # Named are auto-generated based on the tool name and it's toolbar.
-
 def km_generic_tool_annotate(params):
     return ("Generic Tool: Annotate",
         {"space_type": 'EMPTY', "region_type": 'WINDOW'},
@@ -5460,22 +5431,17 @@ def km_image_editor_tool_uv_select(params, *, fallback):
 def km_image_editor_tool_uv_select_box(params, *, fallback):
     return (_fallback_id("Image Editor Tool: Uv, Select Box", fallback),
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": [
-            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
-                "uv.select_box",
-                # Don't use `tool_maybe_tweak_event`, see comment for this slot.
+        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple("uv.select_box",
+                # Don't use `tool_maybe_tweak_event`, see comment for this
+                # slot.
                 **(params.select_tweak_event if fallback else params.tool_tweak_event))),
-            *_template_uv_select_for_fallback(params, fallback),
-        ]},
-    )
+            *_template_uv_select_for_fallback(params, fallback),]},)
 
 
 def km_image_editor_tool_uv_select_circle(params, *, fallback):
     return (_fallback_id("Image Editor Tool: Uv, Select Circle", fallback),
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": [
-            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
-                "uv.select_circle",
+        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple("uv.select_circle",
                 **(params.select_tweak_event if fallback else {"type": params.tool_mouse, "value": 'PRESS'}),
                 properties=[("wait_for_input", False)])),
             # No selection fallback since this operates on press.
@@ -5486,13 +5452,9 @@ def km_image_editor_tool_uv_select_lasso(params, *, fallback):
     return (_fallback_id("Image Editor Tool: Uv, Select Lasso", fallback),
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
 
-        {"items": [
-            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
-                "uv.select_lasso",
+        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple("uv.select_lasso",
                 **(params.select_tweak_event if fallback else params.tool_tweak_event))),
-            *_template_uv_select_for_fallback(params, fallback),
-        ]},
-    )
+            *_template_uv_select_for_fallback(params, fallback),]},)
 
 
 def km_image_editor_tool_uv_rip_region(params):
@@ -5593,14 +5555,11 @@ def km_3d_view_tool_select(params, *, fallback):
 def km_3d_view_tool_select_box(params, *, fallback):
     return (_fallback_id("3D View Tool: Select Box", fallback),
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": [
-            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
-                "view3d.select_box",
-                # Don't use `tool_maybe_tweak_event`, see comment for this slot.
+        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions("view3d.select_box",
+                # Don't use `tool_maybe_tweak_event`, see comment for this
+                # slot.
                 **(params.select_tweak_event if fallback else params.tool_tweak_event))),
-            *_template_view3d_select_for_fallback(params, fallback),
-        ]},
-    )
+            *_template_view3d_select_for_fallback(params, fallback),]},)
 
 
 def km_3d_view_tool_select_circle(params, *, fallback):
@@ -5620,13 +5579,9 @@ def km_3d_view_tool_select_circle(params, *, fallback):
 def km_3d_view_tool_select_lasso(params, *, fallback):
     return (_fallback_id("3D View Tool: Select Lasso", fallback),
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": [
-            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
-                "view3d.select_lasso",
+        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions("view3d.select_lasso",
                 **(params.select_tweak_event if fallback else params.tool_tweak_event))),
-            *_template_view3d_select_for_fallback(params, fallback),
-        ]}
-    )
+            *_template_view3d_select_for_fallback(params, fallback),]})
 
 
 def km_3d_view_tool_transform(params):
@@ -6021,6 +5976,22 @@ def km_3d_view_tool_sculpt_line_mask(params):
             ("paint.mask_line_gesture", {**params.tool_maybe_tweak_event, "ctrl": True},
              {"properties": [("value", 0.0)]}),]},)
 
+def km_3d_view_tool_sculpt_mask_select(params):
+    return ("3D View Tool: Sculpt, Mask Select",
+            {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+              {"items":
+               [("sculpt.expand",
+                 {"type": 'LEFTMOUSE', "value": 'PRESS'},
+                 {"properties": [("use_preserve_flip_inverse", False), ("invert", True), ("use_mask_preserve", False)]},),
+                ("sculpt.expand",
+                 {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+                 {"properties": [("use_preserve_flip_inverse", True), ("invert", True), ("use_mask_preserve", True)]}),
+                ("sculpt.expand",
+                 {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True},
+                 {"properties": [("use_preserve_flip_inverse", True), ("invert", False), ("use_mask_preserve", True)]}),
+                ("sculpt.expand",
+                 {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl" : True},
+                 {"properties": [("use_preserve_flip_inverse", False), ("invert", False), ("use_mask_preserve", False)]},),]})
 
 def km_3d_view_tool_sculpt_line_project(params):
     return ("3D View Tool: Sculpt, Line Project",
@@ -6203,14 +6174,11 @@ def km_3d_view_tool_edit_gpencil_select(params, *, fallback):
 def km_3d_view_tool_edit_gpencil_select_box(params, *, fallback):
     return (_fallback_id("3D View Tool: Edit Gpencil, Select Box", fallback),
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": [
-            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
-                "gpencil.select_box",
-                # Don't use `tool_maybe_tweak_event`, see comment for this slot.
+        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions("gpencil.select_box",
+                # Don't use `tool_maybe_tweak_event`, see comment for this
+                # slot.
                 **(params.select_tweak_event if fallback else params.tool_tweak_event))),
-            *_template_view3d_gpencil_select_for_fallback(params, fallback),
-        ]},
-    )
+            *_template_view3d_gpencil_select_for_fallback(params, fallback),]},)
 
 
 def km_3d_view_tool_edit_gpencil_select_circle(params, *, fallback):
@@ -6230,13 +6198,9 @@ def km_3d_view_tool_edit_gpencil_select_circle(params, *, fallback):
 def km_3d_view_tool_edit_gpencil_select_lasso(params, *, fallback):
     return (_fallback_id("3D View Tool: Edit Gpencil, Select Lasso", fallback),
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": [
-            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
-                "gpencil.select_lasso",
+        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions("gpencil.select_lasso",
                 **(params.select_tweak_event if fallback else params.tool_tweak_event))),
-            *_template_view3d_gpencil_select_for_fallback(params, fallback),
-        ]}
-    )
+            *_template_view3d_gpencil_select_for_fallback(params, fallback),]})
 
 
 def km_3d_view_tool_edit_gpencil_extrude(params):
@@ -6318,30 +6282,21 @@ def km_3d_view_tool_sculpt_gpencil_select_lasso(params):
 
 
 def km_sequencer_editor_tool_select(params, *, fallback):
-    return (
-        _fallback_id("Sequencer Tool: Tweak", fallback),
+    return (_fallback_id("Sequencer Tool: Tweak", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
-        {"items": [
-            # TODO: Use 2D cursor for preview region (currently `sequencer.sample`).
+        {"items": [# TODO: Use 2D cursor for preview region (currently `sequencer.sample`).
             *([] if fallback else
-              _template_items_tool_select(params, "sequencer.select", "sequencer.sample", extend="toggle")
-              ),
-            *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_generic_select(
-                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+              _template_items_tool_select(params, "sequencer.select", "sequencer.sample", extend="toggle")),
+            *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_generic_select(type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
 
-            *_template_items_change_frame(params),
-        ]},
-    )
+            *_template_items_change_frame(params),]},)
 
 
 def km_sequencer_editor_tool_select_box(params, *, fallback):
-    return (
-        _fallback_id("Sequencer Tool: Select Box", fallback),
+    return (_fallback_id("Sequencer Tool: Select Box", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
-        {"items": [
-            # Don't use `tool_maybe_tweak_event`, see comment for this slot.
-            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
-                "sequencer.select_box",
+        {"items": [# Don't use `tool_maybe_tweak_event`, see comment for this slot.
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple("sequencer.select_box",
                 **(params.select_tweak_event if fallback else params.tool_tweak_event),
                 properties=[("tweak", params.select_mouse == 'LEFTMOUSE')])),
             *_template_sequencer_select_for_fallback(params, fallback),
@@ -6603,6 +6558,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_lasso_trim(params),
         km_3d_view_tool_sculpt_line_mask(params),
         km_3d_view_tool_sculpt_line_project(params),
+        km_3d_view_tool_sculpt_mask_select(params),
         km_3d_view_tool_sculpt_lasso_project(params),
         km_3d_view_tool_sculpt_box_project(params),
         km_3d_view_tool_sculpt_mesh_filter(params),

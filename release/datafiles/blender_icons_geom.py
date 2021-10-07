@@ -115,7 +115,7 @@ def object_child_map(objects):
         ob_all.sort(key=lambda ob: ob.name)
     return objects_children
 
-
+import sys
 def mesh_data_lists_from_mesh(me, material_colors):
     me_loops = me.loops[:]
     me_loops_color = me.vertex_colors.active.data[:]
