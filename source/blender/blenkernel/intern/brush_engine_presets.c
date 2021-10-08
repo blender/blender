@@ -248,6 +248,10 @@ static bool check_builtin_init()
   // BKE_brush_channeltype_rna_check(brush_builtin_channels + i);
   //}
 
+  SUBTYPE_SET(smooth_stroke_radius, BRUSH_CHANNEL_PIXEL);
+
+  SUBTYPE_SET(jitter_absolute, BRUSH_CHANNEL_PIXEL);
+
   SUBTYPE_SET(radius, BRUSH_CHANNEL_PIXEL);
   SUBTYPE_SET(spacing, BRUSH_CHANNEL_PERCENT);
   SUBTYPE_SET(autosmooth_spacing, BRUSH_CHANNEL_PERCENT);
@@ -286,6 +290,12 @@ static bool check_builtin_init()
 
   SETCAT(spacing, "Stroke");
   SETCAT(use_space_attenuation, "Stroke");
+  SETCAT(use_smooth_stroke, "Stroke");
+  SETCAT(smooth_stroke_factor, "Stroke");
+  SETCAT(smooth_stroke_radius, "Stroke");
+  SETCAT(jitter_absolute, "Stroke");
+  SETCAT(jitter_unit, "Stroke");
+  SETCAT(jitter, "Stroke");
 
   SETCAT(autosmooth, "Smoothing");
   SETCAT(autosmooth_projection, "Smoothing");
@@ -416,7 +426,7 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(weight, weight, FLOAT, FLOAT)
   DEF(multiplane_scrape_angle, multiplane_scrape_angle, FLOAT, FLOAT)
   DEF(jitter, jitter, FLOAT, FLOAT)
-  DEF(jitter_absolute, JITTER_ABSOLITE, INT, INT)
+  DEF(jitter_absolute, jitter_absolute, INT, INT)
   DEF(smooth_stroke_radius, smooth_stroke_radius, INT, FLOAT)
   DEF(smooth_stroke_factor, smooth_stroke_factor, FLOAT, FLOAT)
   DEF(rate, rate, FLOAT, FLOAT)
@@ -502,6 +512,7 @@ typedef struct BrushFlagMap {
   char *channel_name;
   int flag;
   int member_size;
+  int bitmask_bit;
 } BrushFlagMap;
 
 /* clang-format off */
@@ -510,7 +521,10 @@ typedef struct BrushFlagMap {
 #endif
 
 #define DEF(member, channel, flag)\
-  {offsetof(Brush, member), #channel, flag, sizeof(((Brush){0}).member)},
+  {offsetof(Brush, member), #channel, flag, sizeof(((Brush){0}).member), 0},
+
+#define DEFBIT(member, channel, flag, bit)\
+  {offsetof(Brush, member), #channel, flag, sizeof(((Brush){0}).member), bit},
 
 /* This lookup table is like brush_settings_map except it converts
    individual bitflags instead of whole struct members.*/
@@ -539,6 +553,8 @@ BrushFlagMap brush_flags_map[] =  {
   DEF(flag2, use_surface_falloff, BRUSH_USE_SURFACE_FALLOFF)
   DEF(flag2, use_grab_active_vertex, BRUSH_GRAB_ACTIVE_VERTEX)
   DEF(flag, accumulate, BRUSH_ACCUMULATE)
+  DEF(flag, use_smooth_stroke, BRUSH_SMOOTH_STROKE)
+  DEFBIT(flag, jitter_unit, BRUSH_ABSOLUTE_JITTER, BRUSH_ABSOLUTE_JITTER)
 };
 
 int brush_flags_map_len = ARRAY_SIZE(brush_flags_map);
@@ -637,6 +653,38 @@ void *get_channel_value_pointer(BrushChannel *ch, int *r_data_size)
   return NULL;
 }
 
+static int brushflag_from_channel(BrushFlagMap *mf, int flag, int val)
+{
+  if (mf->bitmask_bit == 0) {
+    return val ? flag | mf->flag : flag & ~mf->flag;
+  }
+
+  if (val & mf->bitmask_bit) {
+    flag |= mf->flag;
+  }
+  else {
+    flag &= ~mf->flag;
+  }
+
+  return flag;
+}
+
+static int brushflag_to_channel(BrushFlagMap *mf, int chvalue, int val)
+{
+  if (mf->bitmask_bit == 0) {
+    return val & mf->flag ? 1 : 0;
+  }
+
+  if (val & mf->flag) {
+    chvalue |= mf->bitmask_bit;
+  }
+  else {
+    chvalue &= ~mf->bitmask_bit;
+  }
+
+  return chvalue;
+}
+
 static void brush_flags_from_channels(BrushChannelSet *chset, Brush *brush)
 {
   for (int i = 0; i < brush_flags_map_len; i++) {
@@ -653,42 +701,22 @@ static void brush_flags_from_channels(BrushChannelSet *chset, Brush *brush)
     switch (mf->member_size) {
       case 1: {
         char *f = (char *)ptr;
-        if (ch->ivalue) {
-          *f |= mf->flag;
-        }
-        else {
-          *f &= ~mf->flag;
-        }
+        *f = (char)brushflag_from_channel(mf, *f, ch->ivalue);
         break;
       }
       case 2: {
         ushort *f = (ushort *)ptr;
-        if (ch->ivalue) {
-          *f |= mf->flag;
-        }
-        else {
-          *f &= ~mf->flag;
-        }
+        *f = (ushort)brushflag_from_channel(mf, *f, ch->ivalue);
         break;
       }
       case 4: {
         uint *f = (uint *)ptr;
-        if (ch->ivalue) {
-          *f |= mf->flag;
-        }
-        else {
-          *f &= ~mf->flag;
-        }
+        *f = (uint)brushflag_from_channel(mf, *f, ch->ivalue);
         break;
       }
       case 8: {
         uint64_t *f = (uint64_t *)ptr;
-        if (ch->ivalue) {
-          *f |= mf->flag;
-        }
-        else {
-          *f &= ~mf->flag;
-        }
+        *f = (uint64_t)brushflag_from_channel(mf, *f, ch->ivalue);
         break;
       }
     }
@@ -711,22 +739,22 @@ static void brush_flags_to_channels(BrushChannelSet *chset, Brush *brush)
     switch (mf->member_size) {
       case 1: {
         char *f = (char *)ptr;
-        ch->ivalue = (*f & mf->flag) ? 1 : 0;
+        ch->ivalue = brushflag_to_channel(mf, ch->ivalue, *f);
         break;
       }
       case 2: {
         ushort *f = (ushort *)ptr;
-        ch->ivalue = (*f & mf->flag) ? 1 : 0;
+        ch->ivalue = brushflag_to_channel(mf, ch->ivalue, *f);
         break;
       }
       case 4: {
         uint *f = (uint *)ptr;
-        ch->ivalue = (*f & mf->flag) ? 1 : 0;
+        ch->ivalue = brushflag_to_channel(mf, ch->ivalue, *f);
         break;
       }
       case 8: {
         uint64_t *f = (uint64_t *)ptr;
-        ch->ivalue = (*f & mf->flag) ? 1 : 0;
+        ch->ivalue = brushflag_to_channel(mf, ch->ivalue, *f);
         break;
       }
     }
@@ -1053,6 +1081,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(original_plane);
   ADDCH(jitter);
   ADDCH(jitter_absolute);
+  ADDCH(jitter_unit);
   ADDCH(use_weighted_smooth);
   ADDCH(preserve_faceset_boundary);
   ADDCH(hard_edge_mode);
@@ -1068,6 +1097,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
 
   ADDCH(direction);
   ADDCH(dash_ratio);
+  ADDCH(use_smooth_stroke);
   ADDCH(smooth_stroke_factor);
   ADDCH(smooth_stroke_radius);
   ADDCH(smooth_deform_type);

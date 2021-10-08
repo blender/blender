@@ -11892,6 +11892,17 @@ static bool over_mesh(bContext *C, struct wmOperator *UNUSED(op), float x, float
 
 static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const float mouse[2])
 {
+  if (BKE_paintmode_get_active_from_context(C) == PAINT_MODE_SCULPT) {
+    /* load brush settings into old Brush fields so the
+       paint API can get at then */
+    Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+    Brush *brush = BKE_paint_brush(&sd->paint);
+
+    if (brush && brush->channels) {
+      BKE_brush_channelset_compat_load(brush->channels, brush, false);
+    }
+  }
+
   /* Don't start the stroke until mouse goes over the mesh.
    * NOTE: mouse will only be null when re-executing the saved stroke.
    * We have exception for 'exec' strokes since they may not set 'mouse',

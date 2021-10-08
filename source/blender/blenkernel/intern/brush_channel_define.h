@@ -288,8 +288,15 @@ MAKE_FLOAT(normal_weight, "Normal Weight", "", 0.0f, 0.0f, 1.0f)
 MAKE_FLOAT(weight, "Weight", "", 0.5f, 0.0f, 1.0f)
 MAKE_FLOAT(jitter, "Jitter",  "Jitter the position of the brush while painting", 0.0f, 0.0f, 1.0f)
 MAKE_INT(jitter_absolute, "Absolute Jitter", "", 0, 0.0f, 1000.0f)
-MAKE_FLOAT(smooth_stroke_radius, "Smooth Stroke Radius", "Minimum distance from last point before stroke continues", 75.0f, 10.0f, 200.0f)
-MAKE_FLOAT(smooth_stroke_factor, "Smooth Stroke Factor", "", 0.9f, 0.5f, 0.99f)
+MAKE_ENUM_EX(jitter_unit, "Jitter Unit", "Jitter in screen space or relative to brush size", 0, 0, {
+  {BRUSH_ABSOLUTE_JITTER, "VIEW", "NONE", "View", "Jittering happens in screen space, in pixels"},
+  {0, "BRUSH", "NONE", "Brush", "Jittering happens relative to the brush size"},
+  {-1}
+})
+
+MAKE_BOOL_EX(use_smooth_stroke, "Smooth Stroke", "Brush lags behind mouse and follows a smoother path", false, 0)
+MAKE_FLOAT_EX_EX(smooth_stroke_radius, "Smooth Stroke Radius", "Minimum distance from last point before stroke continues", 75.0f, 10.0f, 200.0f, 10.0f, 200.0f, false, false, 0)
+MAKE_FLOAT_EX_EX(smooth_stroke_factor, "Smooth Stroke Factor", "", 0.9f, 0.5f, 0.99f, 0.5f, 0.99f, false, false, 0)
 MAKE_FLOAT_EX(rate, "Rate", "", 0.1f, 0.0001f, 10000.0f, 0.01f, 1.0f, false)
 MAKE_FLOAT(flow, "Flow", "Amount of paint that is applied per stroke sample", 1.0f, 0.0f, 1.0f)
 MAKE_FLOAT(wet_mix, "Wet Mix", "Amount of paint that is picked from the surface into the brush color", 0.0f, 0.0f, 1.0f)

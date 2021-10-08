@@ -320,6 +320,12 @@ class UnifiedPaintPanel:
 
     @staticmethod
     def get_channel_value(context, brush, prop_name, toolsettings_only=False):
+        if context.mode != "SCULPT":
+            if prop_name in channel_name_map:
+                prop_name = channel_name_map[prop_name]
+
+            return getattr(brush, prop_name)
+
         ch = brush.channels[prop_name]
 
         if ch.inherit or toolsettings_only:
@@ -864,7 +870,7 @@ class StrokePanel(BrushPanel):
             col.prop(brush, "dash_ratio", text="Dash Ratio")
             col.prop(brush, "dash_samples", text="Dash Length")
 
-        if (mode == 'SCULPT' and brush.sculpt_capabilities.has_jitter) or mode != 'SCULPT':
+        if mode != 'SCULPT':
             col.separator()
             row = col.row(align=True)
             if brush.jitter_unit == 'BRUSH':
@@ -873,6 +879,26 @@ class StrokePanel(BrushPanel):
                 row.prop(brush, "jitter_absolute")
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
             col.row().prop(brush, "jitter_unit", expand=True)
+        elif mode == 'SCULPT' and brush.sculpt_capabilities.has_jitter:
+            col.separator()
+            row = col.row(align=True)
+            if UnifiedPaintPanel.get_channel_value(context, brush, "jitter_unit") == 'BRUSH':
+                UnifiedPaintPanel.channel_unified(row,
+                    context,
+                    brush,
+                    "jitter", slider=True)
+            else:
+                UnifiedPaintPanel.channel_unified(row,
+                    context,
+                    brush,
+                    "jitter_absolute")
+
+            #row.prop(brush, "use_pressure_jitter", toggle=True, text="")
+            UnifiedPaintPanel.channel_unified(col.row(),
+                    context,
+                    brush,
+                    "jitter_unit", expand=True)
+            #col.row().prop(brush, "jitter_unit", expand=True)
 
         col.separator()
         col.prop(settings, "input_samples")
@@ -896,20 +922,41 @@ class SmoothStrokePanel(BrushPanel):
         settings = self.paint_settings(context)
         brush = settings.brush
 
-        self.layout.prop(brush, "use_smooth_stroke", text="")
+        if context.mode == "SCULPT":
+            self.layout.prop(brush.channels["use_smooth_stroke"], "value", text="")
+        else:
+            self.layout.prop(brush, "use_smooth_stroke", text="")
 
     def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
+        ui_editing = context.tool_settings.unified_paint_settings.brush_editor_mode
 
         settings = self.paint_settings(context)
         brush = settings.brush
 
+        if ui_editing:
+            UnifiedPaintPanel.channel_unified(self.layout,
+                context,
+                brush,
+                "use_smooth_stroke", ui_editing=True, text="Stabilize Stroke")
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         col = layout.column()
-        col.active = brush.use_smooth_stroke
-        col.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
-        col.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
+
+        col.active = UnifiedPaintPanel.get_channel_value(context, brush, "use_smooth_stroke")
+
+        #col.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
+        #col.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
+        UnifiedPaintPanel.channel_unified(col,
+            context,
+            brush,
+            "smooth_stroke_radius", text="Radius", ui_editing=ui_editing, slider=True)
+        UnifiedPaintPanel.channel_unified(col,
+            context,
+            brush,
+            "smooth_stroke_factor", text="Factor", ui_editing=ui_editing, slider=True)
 
 
 class FalloffPanel(BrushPanel):
