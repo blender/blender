@@ -664,29 +664,29 @@ int Scene::get_max_closure_count()
 
 int Scene::get_volume_stack_size() const
 {
+  int volume_stack_size = 0;
+
+  /* Space for background volume and terminator.
+   * Don't do optional here because camera ray initialization expects that there is space for
+   * at least those elements (avoiding extra condition to check if there is actual volume or not).
+   */
+  volume_stack_size += 2;
+
   /* Quick non-expensive check. Can over-estimate maximum possible nested level, but does not
    * require expensive calculation during pre-processing. */
-  int num_volume_objects = 0;
   for (const Object *object : objects) {
     if (object->check_is_volume()) {
-      ++num_volume_objects;
+      ++volume_stack_size;
     }
 
-    if (num_volume_objects == MAX_VOLUME_STACK_SIZE) {
+    if (volume_stack_size == MAX_VOLUME_STACK_SIZE) {
       break;
     }
   }
 
-  /* Count background world for the stack. */
-  const Shader *background_shader = background->get_shader(this);
-  if (background_shader && background_shader->has_volume_connected) {
-    ++num_volume_objects;
-  }
+  volume_stack_size = min(volume_stack_size, MAX_VOLUME_STACK_SIZE);
 
-  /* Space for terminator. */
-  ++num_volume_objects;
-
-  return min(num_volume_objects, MAX_VOLUME_STACK_SIZE);
+  return volume_stack_size;
 }
 
 bool Scene::has_shadow_catcher()
