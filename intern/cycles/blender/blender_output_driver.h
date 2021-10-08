@@ -26,7 +26,7 @@ CCL_NAMESPACE_BEGIN
 
 class BlenderOutputDriver : public OutputDriver {
  public:
-  BlenderOutputDriver(BL::RenderEngine &b_engine);
+  explicit BlenderOutputDriver(BL::RenderEngine &b_engine);
   ~BlenderOutputDriver();
 
   virtual void write_render_tile(const Tile &tile) override;
