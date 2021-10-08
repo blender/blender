@@ -188,7 +188,9 @@ void initShrinkFatten(TransInfo *t)
 {
   /* If not in mesh edit mode, fallback to Resize. */
   if ((t->flag & T_EDIT) == 0 || (t->obedit_type != OB_MESH)) {
-    initResize(t);
+    float no_mouse_dir_constraint[3];
+    zero_v3(no_mouse_dir_constraint);
+    initResize(t, no_mouse_dir_constraint);
   }
   else {
     t->mode = TFM_SHRINKFATTEN;

@@ -2250,6 +2250,11 @@ void sequencer_draw_preview(const bContext *C,
   sequencer_draw_maskedit(C, scene, region, sseq);
 #endif
 
+  /* Draw registered callbacks. */
+  GPU_framebuffer_bind(framebuffer_overlay);
+  ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
+  GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
+
   /* Scope is freed in sequencer_check_scopes when `ibuf` changes and redraw is needed. */
   if (ibuf) {
     IMB_freeImBuf(ibuf);

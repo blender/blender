@@ -1082,9 +1082,17 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
     case TFM_ROTATION:
       initRotation(t);
       break;
-    case TFM_RESIZE:
-      initResize(t);
+    case TFM_RESIZE: {
+      float mouse_dir_constraint[3];
+      if (op) {
+        RNA_float_get_array(op->ptr, "mouse_dir_constraint", mouse_dir_constraint);
+      }
+      else {
+        zero_v3(mouse_dir_constraint);
+      }
+      initResize(t, mouse_dir_constraint);
       break;
+    }
     case TFM_SKIN_RESIZE:
       initSkinResize(t);
       break;

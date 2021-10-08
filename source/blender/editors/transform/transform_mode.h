@@ -121,7 +121,7 @@ void initMirror(TransInfo *t);
 void initPushPull(TransInfo *t);
 
 /* transform_mode_resize.c */
-void initResize(TransInfo *t);
+void initResize(TransInfo *t, float mouse_dir_constraint[3]);
 
 /* transform_mode_rotate.c */
 void initRotation(TransInfo *t);
