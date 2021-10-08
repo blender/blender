@@ -48,8 +48,8 @@ using CatalogFilePath = std::string;
 
 class AssetCatalog;
 class AssetCatalogDefinitionFile;
-class AssetCatalogTree;
 class AssetCatalogFilter;
+class AssetCatalogTree;
 
 /* Manages the asset catalogs of a single asset library (i.e. of catalogs defined in a single
  * directory hierarchy). */
