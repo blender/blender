@@ -72,15 +72,14 @@ bool BlenderOutputDriver::update_render_tile(const Tile &tile)
     write_render_tile(tile);
     return true;
   }
-  else {
-    /* Don't highlight full-frame tile. */
-    if (!(tile.size == tile.full_size)) {
-      b_engine_.tile_highlight_clear_all();
-      b_engine_.tile_highlight_set(tile.offset.x, tile.offset.y, tile.size.x, tile.size.y, true);
-    }
 
-    return false;
+  /* Don't highlight full-frame tile. */
+  if (!(tile.size == tile.full_size)) {
+    b_engine_.tile_highlight_clear_all();
+    b_engine_.tile_highlight_set(tile.offset.x, tile.offset.y, tile.size.x, tile.size.y, true);
   }
+
+  return false;
 }
 
 void BlenderOutputDriver::write_render_tile(const Tile &tile)
