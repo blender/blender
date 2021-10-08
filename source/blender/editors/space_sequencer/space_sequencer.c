@@ -783,6 +783,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   wmWindowManager *wm = CTX_wm_manager(C);
   const bool draw_overlay = (scene->ed && (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) &&
                              (sseq->flag & SEQ_SHOW_OVERLAY));
+  const bool is_playing = ED_screen_animation_playing(wm);
 
   if (!draw_overlay || sseq->overlay_type != SEQ_DRAW_OVERLAY_REFERENCE) {
     sequencer_draw_preview(C, scene, region, sseq, scene->r.cfra, 0, false, false);
@@ -805,7 +806,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   }
 
   /* No need to show the cursor for scopes. */
-  if (draw_overlay && (sseq->mainb == SEQ_DRAW_IMG_IMBUF)) {
+  if (draw_overlay && (is_playing == false) && (sseq->mainb == SEQ_DRAW_IMG_IMBUF)) {
     GPU_color_mask(true, true, true, true);
     GPU_depth_mask(false);
     GPU_depth_test(GPU_DEPTH_NONE);
@@ -816,7 +817,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     DRW_draw_cursor_2d_ex(region, cursor_pixel);
   }
 
-  if ((sseq->gizmo_flag & SEQ_GIZMO_HIDE) == 0) {
+  if ((is_playing == false) && (sseq->gizmo_flag & SEQ_GIZMO_HIDE) == 0) {
     WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
   }
 
