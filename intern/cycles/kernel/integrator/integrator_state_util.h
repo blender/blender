@@ -155,12 +155,17 @@ ccl_device_forceinline void integrator_state_read_shadow_isect(INTEGRATOR_STATE_
 ccl_device_forceinline void integrator_state_copy_volume_stack_to_shadow(INTEGRATOR_STATE_ARGS)
 {
   if (kernel_data.kernel_features & KERNEL_FEATURE_VOLUME) {
-    for (int i = 0; i < kernel_data.volume_stack_size; i++) {
-      INTEGRATOR_STATE_ARRAY_WRITE(shadow_volume_stack, i, object) = INTEGRATOR_STATE_ARRAY(
-          volume_stack, i, object);
-      INTEGRATOR_STATE_ARRAY_WRITE(shadow_volume_stack, i, shader) = INTEGRATOR_STATE_ARRAY(
-          volume_stack, i, shader);
-    }
+    int index = 0;
+    int shader;
+    do {
+      shader = INTEGRATOR_STATE_ARRAY(volume_stack, index, shader);
+
+      INTEGRATOR_STATE_ARRAY_WRITE(shadow_volume_stack, index, object) = INTEGRATOR_STATE_ARRAY(
+          volume_stack, index, object);
+      INTEGRATOR_STATE_ARRAY_WRITE(shadow_volume_stack, index, shader) = shader;
+
+      ++index;
+    } while (shader != OBJECT_NONE);
   }
 }
 
