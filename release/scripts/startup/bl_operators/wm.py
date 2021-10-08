@@ -1582,7 +1582,7 @@ class WM_OT_properties_edit(Operator):
                 min=self.min_int,
                 max=self.max_int,
                 soft_min=self.soft_min_int if self.use_soft_limits else self.min_int,
-                soft_max=self.soft_max_int if self.use_soft_limits else self.min_int,
+                soft_max=self.soft_max_int if self.use_soft_limits else self.max_int,
                 step=self.step_int,
                 default=self.default_int[0] if prop_type_new == 'INT' else self.default_int[:self.array_length],
                 description=self.description,
@@ -1702,7 +1702,6 @@ class WM_OT_properties_edit(Operator):
         name = self.property_name
 
         self._old_prop_name = [name]
-        self.last_property_type = self.property_type
 
         item = eval("context.%s" % data_path)
         if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
@@ -1712,6 +1711,7 @@ class WM_OT_properties_edit(Operator):
         # Set operator's property type with the type of the existing property, to display the right settings.
         old_type = self._get_property_type(item, name)
         self.property_type = old_type
+        self.last_property_type = old_type
 
         # So that the operator can do something for unsupported properties, change the property into
         # a string, just for editing in the dialog. When the operator executes, it will be converted back
@@ -1738,10 +1738,10 @@ class WM_OT_properties_edit(Operator):
             if self.min_float > self.max_float:
                 self.min_float, self.max_float = self.max_float, self.min_float
                 changed = True
-            if self.soft_min_float > self.soft_max_float:
-                self.soft_min_float, self.soft_max_float = self.soft_max_float, self.soft_min_float
-                changed = True
             if self.use_soft_limits:
+                if self.soft_min_float > self.soft_max_float:
+                    self.soft_min_float, self.soft_max_float = self.soft_max_float, self.soft_min_float
+                    changed = True
                 if self.soft_max_float > self.max_float:
                     self.soft_max_float = self.max_float
                     changed = True
@@ -1752,10 +1752,10 @@ class WM_OT_properties_edit(Operator):
             if self.min_int > self.max_int:
                 self.min_int, self.max_int = self.max_int, self.min_int
                 changed = True
-            if self.soft_min_int > self.soft_max_int:
-                self.soft_min_int, self.soft_max_int = self.soft_max_int, self.soft_min_int
-                changed = True
             if self.use_soft_limits:
+                if self.soft_min_int > self.soft_max_int:
+                    self.soft_min_int, self.soft_max_int = self.soft_max_int, self.soft_min_int
+                    changed = True
                 if self.soft_max_int > self.max_int:
                     self.soft_max_int = self.max_int
                     changed = True
