@@ -94,6 +94,7 @@ class AssetCatalogTreeViewItem : public ui::BasicTreeViewItem {
   void on_activate() override;
 
   void build_row(uiLayout &row) override;
+  void build_context_menu(bContext &C, uiLayout &column) const override;
 
   bool can_drop(const wmDrag &drag) const override;
   std::string drop_tooltip(const bContext &C,
@@ -225,23 +226,47 @@ void AssetCatalogTreeViewItem::build_row(uiLayout &row)
 
   uiButTreeRow *tree_row_but = tree_row_button();
   PointerRNA *props;
-  const CatalogID catalog_id = catalog_item_.get_catalog_id();
 
   props = UI_but_extra_operator_icon_add(
       (uiBut *)tree_row_but, "ASSET_OT_catalog_new", WM_OP_INVOKE_DEFAULT, ICON_ADD);
   RNA_string_set(props, "parent_path", catalog_item_.catalog_path().c_str());
+}
 
-  /* Tree items without a catalog ID represent components of catalog paths that are not
-   * associated with an actual catalog. They exist merely by the presence of a child catalog, and
-   * thus cannot be deleted themselves. */
-  if (!BLI_uuid_is_nil(catalog_id)) {
-    char catalog_id_str_buffer[UUID_STRING_LEN] = "";
-    BLI_uuid_format(catalog_id_str_buffer, catalog_id);
+void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column) const
+{
+  PointerRNA props;
 
-    props = UI_but_extra_operator_icon_add(
-        (uiBut *)tree_row_but, "ASSET_OT_catalog_delete", WM_OP_INVOKE_DEFAULT, ICON_X);
-    RNA_string_set(props, "catalog_id", catalog_id_str_buffer);
+  uiItemFullO(&column,
+              "ASSET_OT_catalog_new",
+              "New Catalog",
+              ICON_NONE,
+              nullptr,
+              WM_OP_INVOKE_DEFAULT,
+              0,
+              &props);
+  RNA_string_set(&props, "parent_path", catalog_item_.catalog_path().c_str());
+
+  char catalog_id_str_buffer[UUID_STRING_LEN] = "";
+  BLI_uuid_format(catalog_id_str_buffer, catalog_item_.get_catalog_id());
+  uiItemFullO(&column,
+              "ASSET_OT_catalog_delete",
+              "Delete Catalog",
+              ICON_NONE,
+              nullptr,
+              WM_OP_INVOKE_DEFAULT,
+              0,
+              &props);
+  RNA_string_set(&props, "catalog_id", catalog_id_str_buffer);
+  uiItemO(&column, "Rename", ICON_NONE, "UI_OT_tree_view_item_rename");
+
+  /* Doesn't actually exist right now, but could be defined in Python. Reason that this isn't done
+   * in Python yet is that catalogs are not exposed in BPY, and we'd somehow pass the clicked on
+   * catalog to the menu draw callback (via context probably).*/
+  MenuType *mt = WM_menutype_find("ASSETBROWSER_MT_catalog_context_menu", true);
+  if (!mt) {
+    return;
   }
+  UI_menutype_draw(&C, mt, &column);
 }
 
 bool AssetCatalogTreeViewItem::has_droppable_item(const wmDrag &drag)
