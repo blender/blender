@@ -1224,16 +1224,21 @@ void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_str
  * \{ */
 
 static bool ui_but_event_operator_string_from_operator(const bContext *C,
-                                                       uiBut *but,
+                                                       wmOperatorCallParams *op_call_params,
                                                        char *buf,
                                                        const size_t buf_len)
 {
-  BLI_assert(but->optype != NULL);
+  BLI_assert(op_call_params->optype != NULL);
   bool found = false;
-  IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
+  IDProperty *prop = (op_call_params->opptr) ? op_call_params->opptr->data : NULL;
 
-  if (WM_key_event_operator_string(
-          C, but->optype->idname, but->opcontext, prop, true, buf, buf_len)) {
+  if (WM_key_event_operator_string(C,
+                                   op_call_params->optype->idname,
+                                   op_call_params->opcontext,
+                                   prop,
+                                   true,
+                                   buf,
+                                   buf_len)) {
     found = true;
   }
   return found;
@@ -1318,7 +1323,12 @@ static bool ui_but_event_operator_string(const bContext *C,
   bool found = false;
 
   if (but->optype != NULL) {
-    found = ui_but_event_operator_string_from_operator(C, but, buf, buf_len);
+    found = ui_but_event_operator_string_from_operator(
+        C,
+        &(wmOperatorCallParams){
+            .optype = but->optype, .opptr = but->opptr, .opcontext = but->opcontext},
+        buf,
+        buf_len);
   }
   else if (UI_but_menutype_get(but) != NULL) {
     found = ui_but_event_operator_string_from_menu(C, but, buf, buf_len);
@@ -1328,6 +1338,20 @@ static bool ui_but_event_operator_string(const bContext *C,
   }
 
   return found;
+}
+
+static bool ui_but_extra_icon_event_operator_string(const bContext *C,
+                                                    uiButExtraOpIcon *extra_icon,
+                                                    char *buf,
+                                                    const size_t buf_len)
+{
+  wmOperatorType *extra_icon_optype = UI_but_extra_operator_icon_optype_get(extra_icon);
+
+  if (extra_icon_optype) {
+    return ui_but_event_operator_string_from_operator(C, extra_icon->optype_params, buf, buf_len);
+  }
+
+  return false;
 }
 
 static bool ui_but_event_property_operator_string(const bContext *C,
@@ -1711,6 +1735,16 @@ PointerRNA *UI_but_extra_operator_icon_add(uiBut *but,
   }
 
   return NULL;
+}
+
+wmOperatorType *UI_but_extra_operator_icon_optype_get(uiButExtraOpIcon *extra_icon)
+{
+  return extra_icon ? extra_icon->optype_params->optype : NULL;
+}
+
+PointerRNA *UI_but_extra_operator_icon_opptr_get(uiButExtraOpIcon *extra_icon)
+{
+  return extra_icon->optype_params->opptr;
 }
 
 static bool ui_but_icon_extra_is_visible_text_clear(const uiBut *but)
@@ -7260,6 +7294,42 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
   if (free_items && items) {
     MEM_freeN((void *)items);
   }
+}
+
+void UI_but_extra_icon_string_info_get(struct bContext *C, uiButExtraOpIcon *extra_icon, ...)
+{
+  va_list args;
+  uiStringInfo *si;
+
+  wmOperatorType *optype = UI_but_extra_operator_icon_optype_get(extra_icon);
+  PointerRNA *opptr = UI_but_extra_operator_icon_opptr_get(extra_icon);
+
+  va_start(args, extra_icon);
+  while ((si = (uiStringInfo *)va_arg(args, void *))) {
+    char *tmp = NULL;
+
+    switch (si->type) {
+      case BUT_GET_LABEL:
+        tmp = BLI_strdup(WM_operatortype_name(optype, opptr));
+        break;
+      case BUT_GET_TIP:
+        tmp = WM_operatortype_description(C, optype, opptr);
+        break;
+      case BUT_GET_OP_KEYMAP: {
+        char buf[128];
+        if (ui_but_extra_icon_event_operator_string(C, extra_icon, buf, sizeof(buf))) {
+          tmp = BLI_strdup(buf);
+        }
+      }
+        /* Other types not supported. The caller should expect that outcome, no need to message or
+         * assert here. */
+      default:
+        break;
+    }
+
+    si->strinfo = tmp;
+  }
+  va_end(args);
 }
 
 /* Program Init/Exit */
