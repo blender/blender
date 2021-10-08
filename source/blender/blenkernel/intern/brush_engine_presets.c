@@ -1542,7 +1542,7 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
   GETCH(dyntopo_spacing)->flag |= BRUSH_CHANNEL_INHERIT;
   GETCH(dyntopo_radius_scale)->flag |= BRUSH_CHANNEL_INHERIT;
 
-  GETCH(strength)->flag |= BRUSH_CHANNEL_INHERIT;
+  // GETCH(strength)->flag |= BRUSH_CHANNEL_INHERIT;
   GETCH(radius)->flag |= BRUSH_CHANNEL_INHERIT;
 
   ADDCH(area_radius_factor);
