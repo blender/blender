@@ -667,7 +667,6 @@ typedef struct SpaceSeq {
 
 /* SpaceSeq.mainb */
 typedef enum eSpaceSeq_RegionType {
-  SEQ_DRAW_SEQUENCE = 0,
   SEQ_DRAW_IMG_IMBUF = 1,
   SEQ_DRAW_IMG_WAVEFORM = 2,
   SEQ_DRAW_IMG_VECTORSCOPE = 3,
@@ -1417,7 +1416,7 @@ typedef enum eSpaceText_Flags {
   /* scrollable */
   ST_SCROLL_SELECT = (1 << 0),
 
-  ST_FLAG_UNUSED_4 = (1 << 4), /* dirty */
+  ST_FLAG_UNUSED_4 = (1 << 4), /* Cleared. */
 
   ST_FIND_WRAP = (1 << 5),
   ST_FIND_ALL = (1 << 6),

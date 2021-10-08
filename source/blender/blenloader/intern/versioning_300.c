@@ -1719,5 +1719,27 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          switch (sl->spacetype) {
+            case SPACE_SEQ: {
+              SpaceSeq *sseq = (SpaceSeq *)sl;
+              enum { SEQ_DRAW_SEQUENCE = 0 };
+              if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
+                sseq->mainb = SEQ_DRAW_IMG_IMBUF;
+              }
+              break;
+            }
+            case SPACE_TEXT: {
+              SpaceText *st = (SpaceText *)sl;
+              st->flags &= ~ST_FLAG_UNUSED_4;
+              break;
+            }
+          }
+        }
+      }
+    }
   }
 }

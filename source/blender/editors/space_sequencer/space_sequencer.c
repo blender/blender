@@ -784,11 +784,6 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   const bool draw_overlay = (scene->ed && (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) &&
                              (sseq->flag & SEQ_SHOW_OVERLAY));
 
-  /* XXX temp fix for wrong setting in sseq->mainb */
-  if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
-    sseq->mainb = SEQ_DRAW_IMG_IMBUF;
-  }
-
   if (!draw_overlay || sseq->overlay_type != SEQ_DRAW_OVERLAY_REFERENCE) {
     sequencer_draw_preview(C, scene, region, sseq, scene->r.cfra, 0, false, false);
   }
