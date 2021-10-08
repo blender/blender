@@ -1739,6 +1739,8 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       break;
     case SCULPT_TOOL_DRAW_FACE_SETS:
       BRUSHSET_SET_FLOAT(chset, strength, 0.5f);
+      BRUSHSET_LOOKUP(chset, radius)->flag &= ~BRUSH_CHANNEL_INHERIT;
+      BRUSHSET_LOOKUP(chset, strength)->flag &= ~BRUSH_CHANNEL_INHERIT;
       BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
           ~BRUSH_MAPPING_ENABLED;
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);

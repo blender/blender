@@ -5347,6 +5347,8 @@ static void do_draw_sharp_brush_task_cb_ex_plane(void *__restrict userdata,
   copy_v3_v3(noffset, offset);
   normalize_v3(noffset);
 
+  const float bstrength = fabsf(ss->cache->bstrength);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     // SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     SCULPT_vertex_check_origdata(ss, vd.vertex);
@@ -5356,21 +5358,22 @@ static void do_draw_sharp_brush_task_cb_ex_plane(void *__restrict userdata,
       continue;
     }
     /* Offset vertex. */
-    const float fade = SCULPT_brush_strength_factor(ss,
-                                                    brush,
-                                                    mv->origco,
-                                                    sqrtf(test.dist),
-                                                    NULL,
-                                                    mv->origno,
-                                                    vd.mask ? *vd.mask : 0.0f,
-                                                    vd.vertex,
-                                                    thread_id);
+    float fade = SCULPT_brush_strength_factor(ss,
+                                              brush,
+                                              mv->origco,
+                                              sqrtf(test.dist),
+                                              NULL,
+                                              mv->origno,
+                                              vd.mask ? *vd.mask : 0.0f,
+                                              vd.vertex,
+                                              thread_id);
 
     float vec[3];
     // copy_v3_v3(noffset, mv->origno);
 
+    // interp_v3_v3v3(planeco, mv->origco, ss->cache->location, 1.0f - fade);
     copy_v3_v3(planeco, ss->cache->location);
-    madd_v3_v3fl(planeco, offset, fade);
+    madd_v3_v3fl(planeco, noffset, ss->cache->radius * (fade * 0.5 + 0.5));
 
     sub_v3_v3v3(vec, mv->origco, planeco);
     madd_v3_v3fl(vec, noffset, -dot_v3v3(noffset, vec));
@@ -5378,7 +5381,7 @@ static void do_draw_sharp_brush_task_cb_ex_plane(void *__restrict userdata,
     add_v3_v3(vec, planeco);
     sub_v3_v3(vec, vd.co);
 
-    mul_v3_v3fl(proxy[vd.i], vec, fade * fade);
+    mul_v3_v3fl(proxy[vd.i], vec, fade * fade * bstrength);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -5405,7 +5408,7 @@ static void do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 
   if (mode == SCULPT_SHARP_PLANE) {  // average with view normal
     add_v3_v3(effective_normal, ss->cache->view_normal);
-    mul_v3_fl(effective_normal, 0.5f);
+    normalize_v3(effective_normal);
   }
 
   mul_v3_v3fl(offset, effective_normal, ss->cache->radius + ss->cache->radius * plane_offset);

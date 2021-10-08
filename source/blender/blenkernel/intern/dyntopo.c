@@ -1363,7 +1363,7 @@ typedef struct EdgeQueue {
   float limit_len;
 #endif
 
-  bool (*edge_queue_tri_in_range)(const struct EdgeQueue *q, BMFace *f);
+  bool (*edge_queue_tri_in_range)(const struct EdgeQueue *q, BMVert *vs[3], float no[3]);
   bool (*edge_queue_vert_in_range)(const struct EdgeQueue *q, BMVert *v);
 
   const float *view_normal;
@@ -1535,10 +1535,106 @@ static bool edge_queue_vert_in_sphere(const EdgeQueue *q, BMVert *v)
   Profiling revealed the accurate distance to tri in blenlib was too slow,
   so we use a simpler version here
   */
+/* reduce script
+
+on factor;
+off period;
+
+load_package "avector";
+
+comment: origin at p;
+
+p := avec(0, 0, 0);
+n :=- avec(nx, ny, nz);
+v1 := avec(v1x, v1y, v1z);
+v2 := avec(v2x, v2y, v2z);
+v3 := avec(v3x, v3y, v3z);
+
+comment: -((p - v1) dot n);simplified to this;
+fac := v1 dot n;
+
+co := fac*n;
+
+a := co - v1;
+b := co - v2;
+c := co - v3;
+
+a := v1;
+b := v2;
+c := v3;
+
+t1 := a cross b;
+t2 := b cross c;
+t3 := c cross a;
+
+on fort;
+w1 := t1 dot n;
+w2 := t2 dot n;
+w3 := t3 dot n;
+off fort;
+
+inside := sign(a dot n) + sign(b dot n) + sign(c dot n);
+
+
+*/
+static float point_in_tri_v3(float p[3], float v1[3], float v2[3], float v3[3], float n[3])
+{
+  float t1[3], t2[3], t3[3];
+  sub_v3_v3v3(t1, v1, p);
+  sub_v3_v3v3(t2, v2, p);
+  sub_v3_v3v3(t3, v3, p);
+
+  float c1[3], c2[3], c3[3];
+  cross_v3_v3v3(c1, t1, t2);
+  cross_v3_v3v3(c2, t2, t3);
+  cross_v3_v3v3(c3, t3, t1);
+
+  bool w1 = dot_v3v3(c1, n) >= 0.0f;
+  bool w2 = dot_v3v3(c2, n) >= 0.0f;
+  bool w3 = dot_v3v3(c3, n) >= 0.0f;
+
+  return w1 == w2 && w2 == w3;
+
+#if 0
+  const float nx = n[0], ny = n[1], nz = n[2];
+
+  float v1x = v1[0] - p[0], v1y = v1[1] - p[1], v1z = v1[2] - p[2];
+  float v2x = v2[0] - p[0], v2y = v2[1] - p[1], v2z = v2[2] - p[2];
+  float v3x = v3[0] - p[0], v3y = v3[1] - p[1], v3z = v3[2] - p[2];
+
+  const float w1 = -(nx * v1y * v2z - nx * v1z * v2y - ny * v1x * v2z + ny * v1z * v2x +
+                     nz * v1x * v2y - nz * v1y * v2x);
+  const float w2 = -(nx * v2y * v3z - nx * v2z * v3y - ny * v2x * v3z + ny * v2z * v3x +
+                     nz * v2x * v3y - nz * v2y * v3x);
+  const float w3 = nx * v1y * v3z - nx * v1z * v3y - ny * v1x * v3z + ny * v1z * v3x +
+                   nz * v1x * v3y - nz * v1y * v3x;
+  return !((w1 >= 0.0f) && (w2 >= 0.0f) && (w3 >= 0.0f));
+#endif
+}
+
 static float dist_to_tri_sphere_simple(
     float p[3], float v1[3], float v2[3], float v3[3], float n[3])
 {
   float co[3];
+  float t1[3], t2[3], t3[3];
+
+  if (dot_v3v3(n, n) == 0.0f) {
+    normal_tri_v3(n, v1, v2, v3);
+  }
+
+  if (point_in_tri_v3(p, v1, v2, v3, n)) {
+    sub_v3_v3v3(co, p, v2);
+
+    float dist = dot_v3v3(co, n);
+    return dist * dist;
+  }
+
+  sub_v3_v3v3(co, p, v1);
+  madd_v3_v3fl(co, n, -dot_v3v3(n, co));
+
+  sub_v3_v3v3(t1, v1, co);
+  sub_v3_v3v3(t2, v2, co);
+  sub_v3_v3v3(t3, v3, co);
 
   float dis = len_squared_v3v3(p, v1);
   dis = fmin(dis, len_squared_v3v3(p, v2));
@@ -1587,10 +1683,8 @@ static bool bm_elem_is_free(BMElem *elem, int htype)
   return ret;
 }
 
-static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
+static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMVert *vs[3], float no[3])
 {
-  BMLoop *l = f->l_first;
-
 #if 0
   float cent[3];
 
@@ -1605,11 +1699,8 @@ static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 
   /* Check if triangle intersects the sphere */
 #if 1
-  float dis = dist_to_tri_sphere_simple((float *)q->center,
-                                        (float *)l->v->co,
-                                        (float *)l->next->v->co,
-                                        (float *)l->prev->v->co,
-                                        (float *)f->no);
+  float dis = dist_to_tri_sphere_simple(
+      (float *)q->center, (float *)vs[0]->co, (float *)vs[1]->co, (float *)vs[2]->co, (float *)no);
 #else
   float dis = len_squared_v3v3(q->center, l->v->co);
 #endif
@@ -1617,14 +1708,10 @@ static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
   return dis <= q->radius_squared;
 }
 
-static bool edge_queue_tri_in_circle(const EdgeQueue *q, BMFace *f)
+static bool edge_queue_tri_in_circle(const EdgeQueue *q, BMVert *v_tri[3], float no[3])
 {
-  BMVert *v_tri[3];
   float c[3];
   float tri_proj[3][3];
-
-  /* Get closest point in triangle to sphere center */
-  BM_face_as_array_vert_tri(f, v_tri);
 
   project_plane_normalized_v3_v3v3(tri_proj[0], v_tri[0]->co, q->view_normal);
   project_plane_normalized_v3_v3v3(tri_proj[1], v_tri[1]->co, q->view_normal);
@@ -1811,7 +1898,9 @@ static void long_edge_queue_face_add(EdgeQueueContext *eq_ctx, BMFace *f, bool i
   }
 #endif
 
-  if (eq_ctx->q->edge_queue_tri_in_range(eq_ctx->q, f)) {
+  BMVert *vs[3] = {f->l_first->v, f->l_first->next->v, f->l_first->next->next->v};
+
+  if (eq_ctx->q->edge_queue_tri_in_range(eq_ctx->q, vs, f->no)) {
     /* Check each edge of the face */
     BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
     BMLoop *l_iter = l_first;
@@ -1848,7 +1937,9 @@ static void short_edge_queue_face_add(EdgeQueueContext *eq_ctx, BMFace *f)
   }
 #endif
 
-  if (eq_ctx->q->edge_queue_tri_in_range(eq_ctx->q, f)) {
+  BMVert *vs[3] = {f->l_first->v, f->l_first->next->v, f->l_first->next->next->v};
+
+  if (eq_ctx->q->edge_queue_tri_in_range(eq_ctx->q, vs, f->no)) {
     BMLoop *l_iter;
     BMLoop *l_first;
 
@@ -2009,6 +2100,10 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
   const int cd_sculpt_vert = tdata->pbvh->cd_sculpt_vert;
   bool do_smooth = eq_ctx->surface_smooth_fac > 0.0f;
 
+  BKE_pbvh_bmesh_check_tris(tdata->pbvh, node);
+
+  const char facetag = BM_ELEM_TAG_ALT;
+
 #if 1
 #  if 0
   // try to be nice to branch predictor
@@ -2023,6 +2118,8 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
   */
   TGSET_ITER (f, node->bm_faces) {
     BMLoop *l = f->l_first;
+
+    f->head.hflag &= ~facetag;
 
 #  if 0
     if ((stepi++) & 3) {
@@ -2041,7 +2138,15 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
   TGSET_ITER_END
 #endif
 
-  TGSET_ITER (f, node->bm_faces) {
+  PBVHTriBuf *tribuf = node->tribuf;
+  for (int i = 0; i < node->tribuf->tottri; i++) {
+    PBVHTri *tri = node->tribuf->tris + i;
+    BMFace *f = (BMFace *)tri->f.i;
+
+    if (f->head.hflag & facetag) {
+      continue;
+    }
+
 #ifdef USE_EDGEQUEUE_FRONTFACE
     if (eq_ctx->q->use_view_normal) {
       if (dot_v3v3(f->no, eq_ctx->q->view_normal) < 0.0f) {
@@ -2050,7 +2155,12 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
     }
 #endif
 
-    if (eq_ctx->q->edge_queue_tri_in_range(eq_ctx->q, f)) {
+    BMVert *vs[3] = {(BMVert *)tribuf->verts[tri->v[0]].i,
+                     (BMVert *)tribuf->verts[tri->v[1]].i,
+                     (BMVert *)tribuf->verts[tri->v[2]].i};
+    if (eq_ctx->q->edge_queue_tri_in_range(eq_ctx->q, vs, f->no)) {
+      f->head.hflag |= facetag;
+
       /* Check each edge of the face */
       BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
       BMLoop *l_iter = l_first;
@@ -2094,7 +2204,6 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
       } while ((l_iter = l_iter->next) != l_first);
     }
   }
-  TGSET_ITER_END
 
   BLI_rng_free(rng);
   BLI_array_free(faces);
@@ -2145,7 +2254,8 @@ static void short_edge_queue_task_cb(void *__restrict userdata,
     }
 #endif
 
-    if (eq_ctx->q->edge_queue_tri_in_range(eq_ctx->q, f)) {
+    BMVert *vs[3] = {f->l_first->v, f->l_first->next->v, f->l_first->next->next->v};
+    if (eq_ctx->q->edge_queue_tri_in_range(eq_ctx->q, vs, f->no)) {
       /* Check each edge of the face */
       BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
       BMLoop *l_iter = l_first;
@@ -2188,7 +2298,8 @@ static void short_edge_queue_task_cb_local(void *__restrict userdata,
     }
 #endif
 
-    if (eq_ctx->q->edge_queue_tri_in_range(eq_ctx->q, f)) {
+    BMVert *vs[3] = {f->l_first->v, f->l_first->next->v, f->l_first->next->next->v};
+    if (eq_ctx->q->edge_queue_tri_in_range(eq_ctx->q, vs, f->no)) {
       BMLoop *l = f->l_first;
 
       do {
