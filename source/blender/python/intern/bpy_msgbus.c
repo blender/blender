@@ -218,7 +218,12 @@ PyDoc_STRVAR(
     "\n"
     "      - ``PERSISTENT`` when set, the subscriber will be kept when remapping ID data.\n"
     "\n"
-    "   :type options: set of str.\n");
+    "   :type options: set of str.\n"
+    "\n"
+    ".. note::\n"
+    "\n"
+    "   All subscribers will be cleared on file-load. Subscribers can be re-registered on load,\n"
+    "   see :mod:`bpy.app.handlers.load_post`.\n");
 static PyObject *bpy_msgbus_subscribe_rna(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
   const char *error_prefix = "subscribe_rna";
