@@ -508,6 +508,8 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
   for (size_t i = 0; i < verts.size(); i++)
     verts[i] = transform_point(&tfm, verts[i]);
 
+  tag_verts_modified();
+
   if (apply_to_motion) {
     Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 

@@ -441,6 +441,9 @@ void Hair::apply_transform(const Transform &tfm, const bool apply_to_motion)
     curve_radius[i] = radius;
   }
 
+  tag_curve_keys_modified();
+  tag_curve_radius_modified();
+
   if (apply_to_motion) {
     Attribute *curve_attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
