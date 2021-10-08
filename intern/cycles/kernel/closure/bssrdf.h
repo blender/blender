@@ -277,10 +277,27 @@ ccl_device_inline Bssrdf *bssrdf_alloc(ShaderData *sd, float3 weight)
 ccl_device int bssrdf_setup(ShaderData *sd, Bssrdf *bssrdf, ClosureType type, const float ior)
 {
   int flag = 0;
+
+  /* Add retro-reflection component as separate diffuse BSDF. */
+  if (bssrdf->roughness != FLT_MAX) {
+    PrincipledDiffuseBsdf *bsdf = (PrincipledDiffuseBsdf *)bsdf_alloc(
+        sd, sizeof(PrincipledDiffuseBsdf), bssrdf->weight);
+
+    if (bsdf) {
+      bsdf->N = bssrdf->N;
+      bsdf->roughness = bssrdf->roughness;
+      flag |= bsdf_principled_diffuse_setup(bsdf, PRINCIPLED_DIFFUSE_RETRO_REFLECTION);
+
+      /* Ad-hoc weight adjusment to avoid retro-reflection taking away half the
+       * samples from BSSRDF. */
+      bsdf->sample_weight *= bsdf_principled_diffuse_retro_reflection_sample_weight(bsdf, sd->I);
+    }
+  }
+
+  /* Verify if the radii are large enough to sample without precision issues. */
   int bssrdf_channels = 3;
   float3 diffuse_weight = make_float3(0.0f, 0.0f, 0.0f);
 
-  /* Verify if the radii are large enough to sample without precision issues. */
   if (bssrdf->radius.x < BSSRDF_MIN_RADIUS) {
     diffuse_weight.x = bssrdf->weight.x;
     bssrdf->weight.x = 0.0f;
@@ -304,17 +321,13 @@ ccl_device int bssrdf_setup(ShaderData *sd, Bssrdf *bssrdf, ClosureType type, co
     /* Add diffuse BSDF if any radius too small. */
 #ifdef __PRINCIPLED__
     if (bssrdf->roughness != FLT_MAX) {
-      float roughness = bssrdf->roughness;
-      float3 N = bssrdf->N;
-
       PrincipledDiffuseBsdf *bsdf = (PrincipledDiffuseBsdf *)bsdf_alloc(
           sd, sizeof(PrincipledDiffuseBsdf), diffuse_weight);
 
       if (bsdf) {
-        bsdf->type = CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID;
-        bsdf->N = N;
-        bsdf->roughness = roughness;
-        flag |= bsdf_principled_diffuse_setup(bsdf);
+        bsdf->N = bssrdf->N;
+        bsdf->roughness = bssrdf->roughness;
+        flag |= bsdf_principled_diffuse_setup(bsdf, PRINCIPLED_DIFFUSE_LAMBERT);
       }
     }
     else
@@ -323,7 +336,6 @@ ccl_device int bssrdf_setup(ShaderData *sd, Bssrdf *bssrdf, ClosureType type, co
       DiffuseBsdf *bsdf = (DiffuseBsdf *)bsdf_alloc(sd, sizeof(DiffuseBsdf), diffuse_weight);
 
       if (bsdf) {
-        bsdf->type = CLOSURE_BSDF_BSSRDF_ID;
         bsdf->N = bssrdf->N;
         flag |= bsdf_diffuse_setup(bsdf);
       }

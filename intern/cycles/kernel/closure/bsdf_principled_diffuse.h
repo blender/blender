@@ -19,50 +19,98 @@
 /* DISNEY PRINCIPLED DIFFUSE BRDF
  *
  * Shading model by Brent Burley (Disney): "Physically Based Shading at Disney" (2012)
+ *
+ * "Extending the Disney BRDF to a BSDF with Integrated Subsurface Scattering" (2015)
+ * For the separation of retro-reflection, "2.3 Dielectric BRDF with integrated
+ * subsurface scattering"
  */
 
 #include "kernel/closure/bsdf_util.h"
 
 CCL_NAMESPACE_BEGIN
 
+enum PrincipledDiffuseBsdfComponents {
+  PRINCIPLED_DIFFUSE_FULL = 1,
+  PRINCIPLED_DIFFUSE_LAMBERT = 2,
+  PRINCIPLED_DIFFUSE_LAMBERT_EXIT = 4,
+  PRINCIPLED_DIFFUSE_RETRO_REFLECTION = 8,
+};
+
 typedef ccl_addr_space struct PrincipledDiffuseBsdf {
   SHADER_CLOSURE_BASE;
 
   float roughness;
+  int components;
 } PrincipledDiffuseBsdf;
 
 static_assert(sizeof(ShaderClosure) >= sizeof(PrincipledDiffuseBsdf),
               "PrincipledDiffuseBsdf is too large!");
 
-ccl_device float3 calculate_principled_diffuse_brdf(
+ccl_device int bsdf_principled_diffuse_setup(PrincipledDiffuseBsdf *bsdf)
+{
+  bsdf->type = CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID;
+  return SD_BSDF | SD_BSDF_HAS_EVAL;
+}
+
+ccl_device float3 bsdf_principled_diffuse_compute_brdf(
     const PrincipledDiffuseBsdf *bsdf, float3 N, float3 V, float3 L, float *pdf)
 {
-  float NdotL = dot(N, L);
+  const float NdotL = dot(N, L);
 
   if (NdotL <= 0) {
     return make_float3(0.0f, 0.0f, 0.0f);
   }
 
-  float NdotV = dot(N, V);
+  const float NdotV = dot(N, V);
 
-  /* H = normalize(L + V);  // Bisector of an angle between L and V.
-   * LH2 = 2 * dot(L, H)^2 = 2cos(x)^2 = cos(2x) + 1 = dot(L, V) + 1,
-   * half-angle x between L and V is at most 90 deg
-   */
-  float LH2 = dot(L, V) + 1;
+  const float FV = schlick_fresnel(NdotV);
+  const float FL = schlick_fresnel(NdotL);
 
-  float FL = schlick_fresnel(NdotL), FV = schlick_fresnel(NdotV);
-  const float Fd90 = 0.5f + LH2 * bsdf->roughness;
-  float Fd = (1.0f - FL + Fd90 * FL) * (1.0f - FV + Fd90 * FV);
+  float f = 0.0f;
 
-  float value = M_1_PI_F * NdotL * Fd;
+  /* Lambertian component. */
+  if (bsdf->components & (PRINCIPLED_DIFFUSE_FULL | PRINCIPLED_DIFFUSE_LAMBERT)) {
+    f += (1.0f - 0.5f * FV) * (1.0f - 0.5f * FL);
+  }
+  else if (bsdf->components & PRINCIPLED_DIFFUSE_LAMBERT_EXIT) {
+    f += (1.0f - 0.5f * FL);
+  }
+
+  /* Retro-reflection component. */
+  if (bsdf->components & (PRINCIPLED_DIFFUSE_FULL | PRINCIPLED_DIFFUSE_RETRO_REFLECTION)) {
+    /* H = normalize(L + V);  // Bisector of an angle between L and V
+     * LH2 = 2 * dot(L, H)^2 = 2cos(x)^2 = cos(2x) + 1 = dot(L, V) + 1,
+     * half-angle x between L and V is at most 90 deg. */
+    const float LH2 = dot(L, V) + 1;
+    const float RR = bsdf->roughness * LH2;
+    f += RR * (FL + FV + FL * FV * (RR - 1.0f));
+  }
+
+  float value = M_1_PI_F * NdotL * f;
 
   return make_float3(value, value, value);
 }
 
-ccl_device int bsdf_principled_diffuse_setup(PrincipledDiffuseBsdf *bsdf)
+/* Compute Fresnel at entry point, to be compbined with PRINCIPLED_DIFFUSE_LAMBERT_EXIT
+ * at the exit point to get the complete BSDF. */
+ccl_device_inline float bsdf_principled_diffuse_compute_entry_fresnel(const float NdotV)
+{
+  const float FV = schlick_fresnel(NdotV);
+  return (1.0f - 0.5f * FV);
+}
+
+/* Ad-hoc weight adjusment to avoid retro-reflection taking away half the
+ * samples from BSSRDF. */
+ccl_device_inline float bsdf_principled_diffuse_retro_reflection_sample_weight(
+    PrincipledDiffuseBsdf *bsdf, const float3 I)
+{
+  return bsdf->roughness * schlick_fresnel(dot(bsdf->N, I));
+}
+
+ccl_device int bsdf_principled_diffuse_setup(PrincipledDiffuseBsdf *bsdf, int components)
 {
   bsdf->type = CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID;
+  bsdf->components = components;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
@@ -79,7 +127,7 @@ ccl_device float3 bsdf_principled_diffuse_eval_reflect(const ShaderClosure *sc,
 
   if (dot(N, omega_in) > 0.0f) {
     *pdf = fmaxf(dot(N, omega_in), 0.0f) * M_1_PI_F;
-    return calculate_principled_diffuse_brdf(bsdf, N, V, L, pdf);
+    return bsdf_principled_diffuse_compute_brdf(bsdf, N, V, L, pdf);
   }
   else {
     *pdf = 0.0f;
@@ -115,7 +163,7 @@ ccl_device int bsdf_principled_diffuse_sample(const ShaderClosure *sc,
   sample_cos_hemisphere(N, randu, randv, omega_in, pdf);
 
   if (dot(Ng, *omega_in) > 0) {
-    *eval = calculate_principled_diffuse_brdf(bsdf, N, I, *omega_in, pdf);
+    *eval = bsdf_principled_diffuse_compute_brdf(bsdf, N, I, *omega_in, pdf);
 
 #ifdef __RAY_DIFFERENTIALS__
     // TODO: find a better approximation for the diffuse bounce

@@ -99,7 +99,6 @@ KERNEL_STRUCT_BEGIN(subsurface)
 KERNEL_STRUCT_MEMBER(subsurface, float3, albedo, KERNEL_FEATURE_SUBSURFACE)
 KERNEL_STRUCT_MEMBER(subsurface, float3, radius, KERNEL_FEATURE_SUBSURFACE)
 KERNEL_STRUCT_MEMBER(subsurface, float, anisotropy, KERNEL_FEATURE_SUBSURFACE)
-KERNEL_STRUCT_MEMBER(subsurface, float, roughness, KERNEL_FEATURE_SUBSURFACE)
 KERNEL_STRUCT_END(subsurface)
 
 /********************************** Volume Stack ******************************/

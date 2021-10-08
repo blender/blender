@@ -47,7 +47,7 @@ ccl_device int subsurface_bounce(INTEGRATOR_STATE_ARGS, ShaderData *sd, const Sh
 
   /* Setup ray into surface. */
   INTEGRATOR_STATE_WRITE(ray, P) = sd->P;
-  INTEGRATOR_STATE_WRITE(ray, D) = sd->N;
+  INTEGRATOR_STATE_WRITE(ray, D) = bssrdf->N;
   INTEGRATOR_STATE_WRITE(ray, t) = FLT_MAX;
   INTEGRATOR_STATE_WRITE(ray, dP) = differential_make_compact(sd->dP);
   INTEGRATOR_STATE_WRITE(ray, dD) = differential_zero_compact();
@@ -56,13 +56,20 @@ ccl_device int subsurface_bounce(INTEGRATOR_STATE_ARGS, ShaderData *sd, const Sh
   INTEGRATOR_STATE_WRITE(isect, Ng) = sd->Ng;
   INTEGRATOR_STATE_WRITE(isect, object) = sd->object;
 
-  /* Pass BSSRDF parameters. */
-  const uint32_t path_flag = INTEGRATOR_STATE_WRITE(path, flag);
-  INTEGRATOR_STATE_WRITE(path, flag) = (path_flag & ~PATH_RAY_CAMERA) |
-                                       ((sc->type == CLOSURE_BSSRDF_BURLEY_ID) ?
-                                            PATH_RAY_SUBSURFACE_DISK :
-                                            PATH_RAY_SUBSURFACE_RANDOM_WALK);
-  INTEGRATOR_STATE_WRITE(path, throughput) *= shader_bssrdf_sample_weight(sd, sc);
+  uint32_t path_flag = (INTEGRATOR_STATE(path, flag) & ~PATH_RAY_CAMERA) |
+                       ((sc->type == CLOSURE_BSSRDF_BURLEY_ID) ? PATH_RAY_SUBSURFACE_DISK :
+                                                                 PATH_RAY_SUBSURFACE_RANDOM_WALK);
+
+  /* Compute weight, optionally including Fresnel from entry point. */
+  float3 weight = shader_bssrdf_sample_weight(sd, sc);
+#  ifdef __PRINCIPLED__
+  if (bssrdf->roughness != FLT_MAX) {
+    path_flag |= PATH_RAY_SUBSURFACE_USE_FRESNEL;
+  }
+#  endif
+
+  INTEGRATOR_STATE_WRITE(path, throughput) *= weight;
+  INTEGRATOR_STATE_WRITE(path, flag) = path_flag;
 
   /* Advance random number offset for bounce. */
   INTEGRATOR_STATE_WRITE(path, rng_offset) += PRNG_BOUNCE_NUM;
@@ -73,15 +80,17 @@ ccl_device int subsurface_bounce(INTEGRATOR_STATE_ARGS, ShaderData *sd, const Sh
     }
   }
 
+  /* Pass BSSRDF parameters. */
   INTEGRATOR_STATE_WRITE(subsurface, albedo) = bssrdf->albedo;
   INTEGRATOR_STATE_WRITE(subsurface, radius) = bssrdf->radius;
-  INTEGRATOR_STATE_WRITE(subsurface, roughness) = bssrdf->roughness;
   INTEGRATOR_STATE_WRITE(subsurface, anisotropy) = bssrdf->anisotropy;
 
   return LABEL_SUBSURFACE_SCATTER;
 }
 
-ccl_device void subsurface_shader_data_setup(INTEGRATOR_STATE_ARGS, ShaderData *sd)
+ccl_device void subsurface_shader_data_setup(INTEGRATOR_STATE_ARGS,
+                                             ShaderData *sd,
+                                             const uint32_t path_flag)
 {
   /* Get bump mapped normal from shader evaluation at exit point. */
   float3 N = sd->N;
@@ -95,21 +104,16 @@ ccl_device void subsurface_shader_data_setup(INTEGRATOR_STATE_ARGS, ShaderData *
   sd->num_closure_left = kernel_data.max_closures;
 
   const float3 weight = one_float3();
-  const float roughness = INTEGRATOR_STATE(subsurface, roughness);
 
 #  ifdef __PRINCIPLED__
-  if (roughness != FLT_MAX) {
+  if (path_flag & PATH_RAY_SUBSURFACE_USE_FRESNEL) {
     PrincipledDiffuseBsdf *bsdf = (PrincipledDiffuseBsdf *)bsdf_alloc(
         sd, sizeof(PrincipledDiffuseBsdf), weight);
 
     if (bsdf) {
       bsdf->N = N;
-      bsdf->roughness = roughness;
-      sd->flag |= bsdf_principled_diffuse_setup(bsdf);
-
-      /* replace CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID with this special ID so render passes
-       * can recognize it as not being a regular Disney principled diffuse closure */
-      bsdf->type = CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID;
+      bsdf->roughness = FLT_MAX;
+      sd->flag |= bsdf_principled_diffuse_setup(bsdf, PRINCIPLED_DIFFUSE_LAMBERT_EXIT);
     }
   }
   else
@@ -120,10 +124,6 @@ ccl_device void subsurface_shader_data_setup(INTEGRATOR_STATE_ARGS, ShaderData *
     if (bsdf) {
       bsdf->N = N;
       sd->flag |= bsdf_diffuse_setup(bsdf);
-
-      /* replace CLOSURE_BSDF_DIFFUSE_ID with this special ID so render passes
-       * can recognize it as not being a regular diffuse closure */
-      bsdf->type = CLOSURE_BSDF_BSSRDF_ID;
     }
   }
 }

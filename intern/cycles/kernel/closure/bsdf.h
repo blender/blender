@@ -128,7 +128,6 @@ ccl_device_inline int bsdf_sample(const KernelGlobals *kg,
 
   switch (sc->type) {
     case CLOSURE_BSDF_DIFFUSE_ID:
-    case CLOSURE_BSDF_BSSRDF_ID:
       label = bsdf_diffuse_sample(sc,
                                   Ng,
                                   sd->I,
@@ -401,7 +400,6 @@ ccl_device_inline int bsdf_sample(const KernelGlobals *kg,
       break;
 #  ifdef __PRINCIPLED__
     case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
-    case CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID:
       label = bsdf_principled_diffuse_sample(sc,
                                              Ng,
                                              sd->I,
@@ -481,7 +479,6 @@ ccl_device_inline
   if (!is_transmission) {
     switch (sc->type) {
       case CLOSURE_BSDF_DIFFUSE_ID:
-      case CLOSURE_BSDF_BSSRDF_ID:
         eval = bsdf_diffuse_eval_reflect(sc, sd->I, omega_in, pdf);
         break;
 #ifdef __SVM__
@@ -550,7 +547,6 @@ ccl_device_inline
         break;
 #  ifdef __PRINCIPLED__
       case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
-      case CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID:
         eval = bsdf_principled_diffuse_eval_reflect(sc, sd->I, omega_in, pdf);
         break;
       case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
@@ -576,7 +572,6 @@ ccl_device_inline
   else {
     switch (sc->type) {
       case CLOSURE_BSDF_DIFFUSE_ID:
-      case CLOSURE_BSDF_BSSRDF_ID:
         eval = bsdf_diffuse_eval_transmit(sc, sd->I, omega_in, pdf);
         break;
 #ifdef __SVM__
@@ -637,7 +632,6 @@ ccl_device_inline
         break;
 #  ifdef __PRINCIPLED__
       case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
-      case CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID:
         eval = bsdf_principled_diffuse_eval_transmit(sc, sd->I, omega_in, pdf);
         break;
       case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:

@@ -159,7 +159,7 @@ ccl_device_forceinline bool _shader_bsdf_exclude(ClosureType type, uint light_sh
     return false;
   }
   if (light_shader_flags & SHADER_EXCLUDE_DIFFUSE) {
-    if (CLOSURE_IS_BSDF_DIFFUSE(type) || CLOSURE_IS_BSDF_BSSRDF(type)) {
+    if (CLOSURE_IS_BSDF_DIFFUSE(type)) {
       return true;
     }
   }
@@ -201,8 +201,7 @@ ccl_device_inline float _shader_bsdf_multi_eval(const KernelGlobals *kg,
         float3 eval = bsdf_eval(kg, sd, sc, omega_in, is_transmission, &bsdf_pdf);
 
         if (bsdf_pdf != 0.0f) {
-          const bool is_diffuse = (CLOSURE_IS_BSDF_DIFFUSE(sc->type) ||
-                                   CLOSURE_IS_BSDF_BSSRDF(sc->type));
+          const bool is_diffuse = CLOSURE_IS_BSDF_DIFFUSE(sc->type);
           bsdf_eval_accum(result_eval, is_diffuse, eval * sc->weight, 1.0f);
           sum_pdf += bsdf_pdf * sc->sample_weight;
         }
@@ -320,8 +319,7 @@ ccl_device int shader_bsdf_sample_closure(const KernelGlobals *kg,
   label = bsdf_sample(kg, sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
 
   if (*pdf != 0.0f) {
-    const bool is_diffuse = (CLOSURE_IS_BSDF_DIFFUSE(sc->type) ||
-                             CLOSURE_IS_BSDF_BSSRDF(sc->type));
+    const bool is_diffuse = CLOSURE_IS_BSDF_DIFFUSE(sc->type);
     bsdf_eval_init(bsdf_eval, is_diffuse, eval * sc->weight);
 
     if (sd->num_closure > 1) {
@@ -401,8 +399,7 @@ ccl_device float3 shader_bsdf_diffuse(const KernelGlobals *kg, const ShaderData 
   for (int i = 0; i < sd->num_closure; i++) {
     const ShaderClosure *sc = &sd->closure[i];
 
-    if (CLOSURE_IS_BSDF_DIFFUSE(sc->type) || CLOSURE_IS_BSSRDF(sc->type) ||
-        CLOSURE_IS_BSDF_BSSRDF(sc->type))
+    if (CLOSURE_IS_BSDF_DIFFUSE(sc->type) || CLOSURE_IS_BSSRDF(sc->type))
       eval += sc->weight;
   }
 
