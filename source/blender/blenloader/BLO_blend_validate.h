@@ -21,7 +21,7 @@
 
 /** \file
  * \ingroup blenloader
- * \brief Utils ensuring .blend file (i.e. Main)
+ * \brief Utilities ensuring `.blend` file (i.e. Main)
  * is in valid state during write and/or read process.
  */
 

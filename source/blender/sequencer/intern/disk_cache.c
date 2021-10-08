@@ -76,11 +76,12 @@
  * is used as UID. Blend file can still be copied manually which may cause conflict.
  */
 
-/* <cache type>-<resolution X>x<resolution Y>-<rendersize>%(<view_id>)-<frame no>.dcf */
+/* Format string:
+ * `<cache type>-<resolution X>x<resolution Y>-<rendersize>%(<view_id>)-<frame no>.dcf`. */
 #define DCACHE_FNAME_FORMAT "%d-%dx%d-%d%%(%d)-%d.dcf"
 #define DCACHE_IMAGES_PER_FILE 100
 #define DCACHE_CURRENT_VERSION 2
-#define COLORSPACE_NAME_MAX 64 /* XXX: defined in imb intern */
+#define COLORSPACE_NAME_MAX 64 /* XXX: defined in IMB intern. */
 
 typedef struct DiskCacheHeaderEntry {
   unsigned char encoding;

@@ -142,7 +142,7 @@ ccl_device void integrator_intersect_volume_stack(INTEGRATOR_STATE_ARGS)
     }
   }
 #else
-  /* CUDA does not support defintion of a variable size arrays, so use the maximum possible. */
+  /* CUDA does not support definition of a variable size arrays, so use the maximum possible. */
   int enclosed_volumes[MAX_VOLUME_STACK_SIZE];
   int step = 0;
 

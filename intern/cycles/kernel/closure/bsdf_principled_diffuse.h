@@ -45,7 +45,7 @@ ccl_device float3 calculate_principled_diffuse_brdf(
 
   float NdotV = dot(N, V);
 
-  /* H = normalize(L + V);  // Bissector of an angle between L and V
+  /* H = normalize(L + V);  // Bisector of an angle between L and V.
    * LH2 = 2 * dot(L, H)^2 = 2cos(x)^2 = cos(2x) + 1 = dot(L, V) + 1,
    * half-angle x between L and V is at most 90 deg
    */
