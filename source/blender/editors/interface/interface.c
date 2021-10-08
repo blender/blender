@@ -1701,6 +1701,7 @@ static PointerRNA *ui_but_extra_operator_icon_add_ptr(uiBut *but,
                                     extra_op_icon->optype_params->optype);
   extra_op_icon->optype_params->opcontext = opcontext;
   extra_op_icon->highlighted = false;
+  extra_op_icon->disabled = false;
 
   BLI_addtail(&but->extra_op_icons, extra_op_icon);
 
@@ -1905,24 +1906,32 @@ static void ui_but_validate(const uiBut *but)
 /**
  * Check if the operator \a ot poll is successful with the context given by \a but (optionally).
  * \param but: The button that might store context. Can be NULL for convenience (e.g. if there is
- * no button to take context from, but we still want to poll the operator).
+ *             no button to take context from, but we still want to poll the operator).
  */
-bool ui_but_context_poll_operator(bContext *C, wmOperatorType *ot, const uiBut *but)
+bool ui_but_context_poll_operator_ex(bContext *C,
+                                     const uiBut *but,
+                                     const wmOperatorCallParams *optype_params)
 {
   bool result;
-  int opcontext = but ? but->opcontext : WM_OP_INVOKE_DEFAULT;
 
   if (but && but->context) {
     CTX_store_set(C, but->context);
   }
 
-  result = WM_operator_poll_context(C, ot, opcontext);
+  result = WM_operator_poll_context(C, optype_params->optype, optype_params->opcontext);
 
   if (but && but->context) {
     CTX_store_set(C, NULL);
   }
 
   return result;
+}
+
+bool ui_but_context_poll_operator(bContext *C, wmOperatorType *ot, const uiBut *but)
+{
+  const int opcontext = but ? but->opcontext : WM_OP_INVOKE_DEFAULT;
+  return ui_but_context_poll_operator_ex(
+      C, but, &(wmOperatorCallParams){.optype = ot, .opcontext = opcontext});
 }
 
 void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_xy[2])
@@ -1952,6 +1961,12 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
 
       if (ot == NULL || !ui_but_context_poll_operator((bContext *)C, ot, but)) {
         but->flag |= UI_BUT_DISABLED;
+      }
+    }
+
+    LISTBASE_FOREACH (uiButExtraOpIcon *, op_icon, &but->extra_op_icons) {
+      if (!ui_but_context_poll_operator_ex((bContext *)C, but, op_icon->optype_params)) {
+        op_icon->disabled = true;
       }
     }
 

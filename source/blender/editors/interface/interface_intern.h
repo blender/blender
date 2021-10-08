@@ -407,6 +407,7 @@ typedef struct uiButExtraOpIcon {
   struct wmOperatorCallParams *optype_params;
 
   bool highlighted;
+  bool disabled;
 } uiButExtraOpIcon;
 
 typedef struct ColorPicker {
@@ -694,6 +695,9 @@ void ui_but_range_set_hard(uiBut *but);
 void ui_but_range_set_soft(uiBut *but);
 
 bool ui_but_context_poll_operator(struct bContext *C, struct wmOperatorType *ot, const uiBut *but);
+bool ui_but_context_poll_operator_ex(struct bContext *C,
+                                     const uiBut *but,
+                                     const struct wmOperatorCallParams *optype_params);
 
 extern void ui_but_update(uiBut *but);
 extern void ui_but_update_edited(uiBut *but);

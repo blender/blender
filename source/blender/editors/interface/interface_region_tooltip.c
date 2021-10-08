@@ -954,18 +954,19 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
   }
 
   /* button is disabled, we may be able to tell user why */
-  if (but->flag & UI_BUT_DISABLED) {
+  if ((but->flag & UI_BUT_DISABLED) || extra_icon) {
     const char *disabled_msg = NULL;
     bool disabled_msg_free = false;
 
     /* if operator poll check failed, it can give pretty precise info why */
-    if (but->optype) {
+    if (optype) {
       CTX_wm_operator_poll_msg_clear(C);
-      WM_operator_poll_context(C, but->optype, but->opcontext);
+      WM_operator_poll_context(
+          C, optype, extra_icon ? extra_icon->optype_params->opcontext : but->opcontext);
       disabled_msg = CTX_wm_operator_poll_msg_get(C, &disabled_msg_free);
     }
     /* alternatively, buttons can store some reasoning too */
-    else if (but->disabled_info) {
+    else if (!extra_icon && but->disabled_info) {
       disabled_msg = TIP_(but->disabled_info);
     }
 
