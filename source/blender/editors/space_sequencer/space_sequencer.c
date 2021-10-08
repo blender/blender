@@ -816,7 +816,9 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     DRW_draw_cursor_2d_ex(region, cursor_pixel);
   }
 
-  WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
+  if ((sseq->gizmo_flag & SEQ_GIZMO_HIDE) == 0) {
+    WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
+  }
 
   if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
     const rcti *rect = ED_region_visible_rect(region);

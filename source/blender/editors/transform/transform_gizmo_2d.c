@@ -76,13 +76,27 @@ static bool gizmo2d_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
   }
 
   ScrArea *area = CTX_wm_area(C);
+  if (area == NULL) {
+    return false;
+  }
+
+  /* NOTE: below this is assumed to be a tool gizmo.
+   * If there are cases that need to check other flags - this function could be split. */
   switch (area->spacetype) {
     case SPACE_IMAGE: {
-      SpaceImage *sima = area->spacedata.first;
+      const SpaceImage *sima = area->spacedata.first;
       Object *obedit = CTX_data_edit_object(C);
       if (!ED_space_image_show_uvedit(sima, obedit)) {
         return false;
       }
+      break;
+    }
+    case SPACE_SEQ: {
+      const SpaceSeq *sseq = area->spacedata.first;
+      if (sseq->gizmo_flag & (SEQ_GIZMO_HIDE | SEQ_GIZMO_HIDE_TOOL)) {
+        return false;
+      }
+      break;
     }
   }
 

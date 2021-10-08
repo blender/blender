@@ -641,10 +641,11 @@ typedef struct SpaceSeq {
   /** Deprecated, handled by View2D now. */
   float zoom DNA_DEPRECATED;
   /** See SEQ_VIEW_* below. */
-  int view;
-  int overlay_type;
+  char view;
+  char overlay_type;
   /** Overlay an image of the editing on below the strips. */
-  int draw_flag;
+  char draw_flag;
+  char gizmo_flag;
   char _pad[4];
 
   /** 2D cursor for transform. */
@@ -728,6 +729,15 @@ typedef struct MaskSpaceInfo {
   char overlay_mode;
   char _pad3[5];
 } MaskSpaceInfo;
+
+/** #SpaceSeq.gizmo_flag */
+enum {
+  /** All gizmos. */
+  SEQ_GIZMO_HIDE = (1 << 0),
+  SEQ_GIZMO_HIDE_NAVIGATE = (1 << 1),
+  SEQ_GIZMO_HIDE_CONTEXT = (1 << 2),
+  SEQ_GIZMO_HIDE_TOOL = (1 << 3),
+};
 
 /* SpaceSeq.mainb */
 typedef enum eSpaceSeq_OverlayType {
