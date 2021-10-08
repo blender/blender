@@ -362,6 +362,11 @@ std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::construct_cdf_i
   return cdf;
 }
 
+AssetCatalogTree *AssetCatalogService::get_catalog_tree()
+{
+  return catalog_tree_.get();
+}
+
 std::unique_ptr<AssetCatalogTree> AssetCatalogService::read_into_tree()
 {
   auto tree = std::make_unique<AssetCatalogTree>();
@@ -466,6 +471,22 @@ bool AssetCatalogTreeItem::has_children() const
   return !children_.empty();
 }
 
+void AssetCatalogTreeItem::foreach_item_recursive(AssetCatalogTreeItem::ChildMap &children,
+                                                  const ItemIterFn callback)
+{
+  for (auto &[key, item] : children) {
+    callback(item);
+    foreach_item_recursive(item.children_, callback);
+  }
+}
+
+void AssetCatalogTreeItem::foreach_child(const ItemIterFn callback)
+{
+  for (auto &[key, item] : children_) {
+    callback(item);
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AssetCatalogTree::insert_item(const AssetCatalog &catalog)
@@ -507,32 +528,11 @@ void AssetCatalogTree::foreach_item(AssetCatalogTreeItem::ItemIterFn callback)
   AssetCatalogTreeItem::foreach_item_recursive(root_items_, callback);
 }
 
-void AssetCatalogTreeItem::foreach_item_recursive(AssetCatalogTreeItem::ChildMap &children,
-                                                  const ItemIterFn callback)
-{
-  for (auto &[key, item] : children) {
-    callback(item);
-    foreach_item_recursive(item.children_, callback);
-  }
-}
-
 void AssetCatalogTree::foreach_root_item(const ItemIterFn callback)
 {
   for (auto &[key, item] : root_items_) {
     callback(item);
   }
-}
-
-void AssetCatalogTreeItem::foreach_child(const ItemIterFn callback)
-{
-  for (auto &[key, item] : children_) {
-    callback(item);
-  }
-}
-
-AssetCatalogTree *AssetCatalogService::get_catalog_tree()
-{
-  return catalog_tree_.get();
 }
 
 bool AssetCatalogDefinitionFile::contains(const CatalogID catalog_id) const
