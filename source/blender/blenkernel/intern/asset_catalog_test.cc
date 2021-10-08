@@ -565,8 +565,8 @@ TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_cdf_and_me
 {
   const CatalogFilePath target_dir = create_temp_path(); /* Has trailing slash. */
   const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
-  const CatalogFilePath writable_cdf_file = target_dir +
-                                            AssetCatalogService::DEFAULT_CATALOG_FILENAME;
+  CatalogFilePath writable_cdf_file = target_dir + AssetCatalogService::DEFAULT_CATALOG_FILENAME;
+  BLI_path_slash_native(writable_cdf_file.data());
   ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str()));
 
   /* Create the catalog service without loading the already-existing CDF. */
