@@ -2176,6 +2176,28 @@ static void draw_nodetree(const bContext *C,
   node_draw_nodetree(C, region, snode, ntree, parent_key);
 }
 
+/**
+ * Make the background slightly brighter to indicate that users are inside a nodegroup.
+ **/
+static void draw_background_color(const SpaceNode *snode)
+{
+  const int max_depth = 2;
+  const float bright_factor = 0.25f;
+
+  float color[3];
+  UI_GetThemeColor3fv(TH_BACK, color);
+
+  int depth = 0;
+  bNodeTreePath *path = (bNodeTreePath *)snode->treepath.last;
+  while (path->prev && depth < max_depth) {
+    path = path->prev;
+    depth++;
+  }
+
+  mul_v3_fl(color, 1.0f + bright_factor * depth);
+  GPU_clear_color(color[0], color[1], color[2], 1.0);
+}
+
 void node_draw_space(const bContext *C, ARegion *region)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -2189,7 +2211,7 @@ void node_draw_space(const bContext *C, ARegion *region)
   GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
 
   UI_view2d_view_ortho(v2d);
-  UI_ThemeClearColor(TH_BACK);
+  draw_background_color(snode);
   GPU_depth_test(GPU_DEPTH_NONE);
   GPU_scissor_test(true);
 
