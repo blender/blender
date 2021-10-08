@@ -369,6 +369,11 @@ bool AbstractTreeViewItem::rename(StringRefNull new_name)
   return true;
 }
 
+void AbstractTreeViewItem::build_context_menu(bContext & /*C*/, uiLayout & /*column*/) const
+{
+  /* No context menu by default. */
+}
+
 void AbstractTreeViewItem::update_from_old(const AbstractTreeViewItem &old)
 {
   is_open_ = old.is_open_;
@@ -706,4 +711,12 @@ void UI_tree_view_item_begin_rename(uiTreeViewItemHandle *item_handle)
 {
   AbstractTreeViewItem &item = reinterpret_cast<AbstractTreeViewItem &>(*item_handle);
   item.begin_renaming();
+}
+
+void UI_tree_view_item_context_menu_build(bContext *C,
+                                          const uiTreeViewItemHandle *item_handle,
+                                          uiLayout *column)
+{
+  const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_handle);
+  item.build_context_menu(*C, *column);
 }

@@ -234,6 +234,7 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   virtual ~AbstractTreeViewItem() = default;
 
   virtual void build_row(uiLayout &row) = 0;
+  virtual void build_context_menu(bContext &C, uiLayout &column) const;
 
   virtual void on_activate();
   /**

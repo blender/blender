@@ -94,6 +94,16 @@ uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const ARegion *region,
   return tree_row_but->tree_item;
 }
 
+uiTreeViewItemHandle *UI_block_tree_view_find_active_item(const ARegion *region)
+{
+  uiButTreeRow *tree_row_but = (uiButTreeRow *)ui_tree_row_find_active(region);
+  if (!tree_row_but) {
+    return nullptr;
+  }
+
+  return tree_row_but->tree_item;
+}
+
 static StringRef ui_block_view_find_idname(const uiBlock &block, const AbstractTreeView &view)
 {
   /* First get the idname the of the view we're looking for. */

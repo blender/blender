@@ -1963,6 +1963,49 @@ static void UI_OT_tree_view_drop(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name UI Tree-View Item Rename Operator
+ *
+ * General purpose renaming operator for tree-views. Thanks to this, to add a rename button to
+ * context menus for example, tree-view API users don't have to implement own renaming operators
+ * with the same logic as they already have for their #ui::AbstractTreeViewItem::rename() override.
+ *
+ * \{ */
+
+static bool ui_tree_view_item_rename_poll(bContext *C)
+{
+  const ARegion *region = CTX_wm_region(C);
+  const uiTreeViewItemHandle *active_item = UI_block_tree_view_find_active_item(region);
+  return active_item != NULL && UI_tree_view_item_can_rename(active_item);
+}
+
+static int ui_tree_view_item_rename_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  ARegion *region = CTX_wm_region(C);
+  uiTreeViewItemHandle *active_item = UI_block_tree_view_find_active_item(region);
+
+  UI_tree_view_item_begin_rename(active_item);
+  ED_region_tag_redraw(region);
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_tree_view_item_rename(wmOperatorType *ot)
+{
+  ot->name = "Rename Tree-View Item";
+  ot->idname = "UI_OT_tree_view_item_rename";
+  ot->description = "Rename the active item in the tree";
+
+  ot->exec = ui_tree_view_item_rename_exec;
+  ot->poll = ui_tree_view_item_rename_poll;
+  /* Could get a custom tooltip via the `get_description()` callback and another overridable
+   * function of the tree-view. */
+
+  ot->flag = OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Operator & Keymap Registration
  * \{ */
 
@@ -1990,6 +2033,7 @@ void ED_operatortypes_ui(void)
   WM_operatortype_append(UI_OT_list_start_filter);
 
   WM_operatortype_append(UI_OT_tree_view_drop);
+  WM_operatortype_append(UI_OT_tree_view_item_rename);
 
   /* external */
   WM_operatortype_append(UI_OT_eyedropper_color);
