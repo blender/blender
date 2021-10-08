@@ -5261,9 +5261,9 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BLI_task_parallel_range(0, totnode, &data, do_draw_brush_task_cb_ex, &settings);
 }
 
-static void do_draw_sharp_brush_task_cb_ex_plane(void *__restrict userdata,
-                                                 const int n,
-                                                 const TaskParallelTLS *__restrict tls)
+static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
+                                           const int n,
+                                           const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -5320,9 +5320,9 @@ static void do_draw_sharp_brush_task_cb_ex_plane(void *__restrict userdata,
   BKE_pbvh_node_mark_update(data->nodes[n]);
 }
 
-static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
-                                           const int n,
-                                           const TaskParallelTLS *__restrict tls)
+static void do_draw_sharp_brush_task_cb_ex_plane(void *__restrict userdata,
+                                                 const int n,
+                                                 const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
