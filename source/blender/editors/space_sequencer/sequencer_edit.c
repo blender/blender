@@ -130,14 +130,13 @@ bool ED_space_sequencer_maskedit_poll(bContext *C)
 /* Are we displaying the seq output (not channels or histogram). */
 bool ED_space_sequencer_check_show_imbuf(SpaceSeq *sseq)
 {
-  return (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW) &&
-          ELEM(sseq->mainb, SEQ_DRAW_SEQUENCE, SEQ_DRAW_IMG_IMBUF));
+  return (sseq->mainb == SEQ_DRAW_IMG_IMBUF) &&
+         (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW));
 }
 
 bool ED_space_sequencer_check_show_strip(SpaceSeq *sseq)
 {
-  return (ELEM(sseq->view, SEQ_VIEW_SEQUENCE, SEQ_VIEW_SEQUENCE_PREVIEW) &&
-          ELEM(sseq->mainb, SEQ_DRAW_SEQUENCE, SEQ_DRAW_IMG_IMBUF));
+  return ELEM(sseq->view, SEQ_VIEW_SEQUENCE, SEQ_VIEW_SEQUENCE_PREVIEW);
 }
 
 static bool sequencer_fcurves_targets_color_strip(const FCurve *fcurve)
