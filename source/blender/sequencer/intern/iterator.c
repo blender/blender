@@ -322,7 +322,9 @@ SeqCollection *SEQ_query_all_strips_recursive(ListBase *seqbase)
 SeqCollection *SEQ_query_all_strips(ListBase *seqbase)
 {
   SeqCollection *collection = SEQ_collection_create(__func__);
-  query_all_strips_recursive(seqbase, collection);
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    SEQ_collection_append_strip(seq, collection);
+  }
   return collection;
 }
 
