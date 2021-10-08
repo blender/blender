@@ -2178,22 +2178,16 @@ static void draw_nodetree(const bContext *C,
 
 /**
  * Make the background slightly brighter to indicate that users are inside a nodegroup.
- **/
+ */
 static void draw_background_color(const SpaceNode *snode)
 {
   const int max_depth = 2;
   const float bright_factor = 0.25f;
 
+  const int depth = BLI_listbase_count_at_most(&snode->treepath, max_depth);
+
   float color[3];
   UI_GetThemeColor3fv(TH_BACK, color);
-
-  int depth = 0;
-  bNodeTreePath *path = (bNodeTreePath *)snode->treepath.last;
-  while (path->prev && depth < max_depth) {
-    path = path->prev;
-    depth++;
-  }
-
   mul_v3_fl(color, 1.0f + bright_factor * depth);
   GPU_clear_color(color[0], color[1], color[2], 1.0);
 }
