@@ -208,6 +208,9 @@ static void bpy_msgbus_subscribe_value_free_data(struct wmMsgSubscribeKey *UNUSE
 PyDoc_STRVAR(
     bpy_msgbus_subscribe_rna_doc,
     ".. function:: subscribe_rna(key, owner, args, notify, options=set())\n"
+    "\n"
+    "   Register a message bus subscription. It will be cleared when another blend file is\n"
+    "   loaded, or can be cleared explicitly via :func:`bpy.msgbus.clear_by_owner`.\n"
     "\n" BPY_MSGBUS_RNA_MSGKEY_DOC
     "   :arg owner: Handle for this subscription (compared by identity).\n"
     "   :type owner: Any type.\n"
