@@ -662,7 +662,6 @@ class TOPBAR_MT_window(Menu):
         # - From the top-bar, the text replaces the file-menu (not so bad but strange).
         # - From menu-search it replaces the area that the user may want to screen-shot.
         # Setting the context to screen causes the status to show in the global status-bar.
-        print(layout.operator_context)
         layout.operator_context = 'INVOKE_SCREEN'
         layout.operator("screen.screenshot_area")
         layout.operator_context = operator_context_default
