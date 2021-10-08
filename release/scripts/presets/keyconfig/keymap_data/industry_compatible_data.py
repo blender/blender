@@ -1254,7 +1254,6 @@ def km_file_browser(params):
         ("file.select", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
          {"properties": [("open", False), ("only_activate_if_selected", True), ("pass_through", True)]}),
         *_template_items_context_menu("FILEBROWSER_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
-        *_template_items_context_menu("ASSETBROWSER_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
     ])
 
     return keymap
@@ -1316,6 +1315,7 @@ def km_file_browser_main(params):
         ("file.highlight", {"type": 'MOUSEMOVE', "value": 'ANY', "any": True}, None),
         ("file.sort_column_ui_context", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
         ("file.view_selected", {"type": 'F', "value": 'PRESS'}, None),
+        *_template_items_context_menu("ASSETBROWSER_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
     ])
 
     return keymap

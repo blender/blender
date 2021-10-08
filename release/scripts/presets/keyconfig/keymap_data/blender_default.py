@@ -2144,7 +2144,6 @@ def km_file_browser(params):
              ("only_activate_if_selected", params.select_mouse == 'LEFTMOUSE'), ("pass_through", True),
          ]}),
         *_template_items_context_menu("FILEBROWSER_MT_context_menu", params.context_menu_event),
-        *_template_items_context_menu("ASSETBROWSER_MT_context_menu", params.context_menu_event),
     ])
 
     return keymap
@@ -2212,6 +2211,7 @@ def km_file_browser_main(params):
         ("file.highlight", {"type": 'MOUSEMOVE', "value": 'ANY', "any": True}, None),
         ("file.sort_column_ui_context", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
         ("file.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        *_template_items_context_menu("ASSETBROWSER_MT_context_menu", params.context_menu_event),
     ])
 
     return keymap
