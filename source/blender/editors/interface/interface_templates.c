@@ -2364,7 +2364,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
   /* poll() on this operator may still fail,
    * at the moment there is no nice feedback when this happens just fails silently. */
   if (!WM_operator_repeat_check(C, op)) {
-    UI_block_lock_set(block, true, "Operator can't' redo");
+    UI_block_lock_set(block, true, "Operator can't redo");
     return return_info;
   }
 
