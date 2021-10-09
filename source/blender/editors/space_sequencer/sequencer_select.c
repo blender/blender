@@ -1482,7 +1482,7 @@ static bool seq_box_select_rect_image_isect(const Scene *scene, const Sequence *
              seq_image_quad[3], rect_quad[0], rect_quad[1], rect_quad[2], rect_quad[3]);
 }
 
-static void seq_box_select_seq_from_preview(const bContext *C, rctf *rect)
+static void seq_box_select_seq_from_preview(const bContext *C, rctf *rect, const eSelectOp mode)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
@@ -1492,8 +1492,16 @@ static void seq_box_select_seq_from_preview(const bContext *C, rctf *rect)
   SeqCollection *strips = SEQ_query_rendered_strips(seqbase, scene->r.cfra, sseq->chanshown);
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, strips) {
-    if (seq_box_select_rect_image_isect(scene, seq, rect)) {
+    if (!seq_box_select_rect_image_isect(scene, seq, rect)) {
+      continue;
+    }
+
+    if (ELEM(mode, SEL_OP_ADD, SEL_OP_SET)) {
       seq->flag |= SELECT;
+    }
+    else {
+      BLI_assert(mode == SEL_OP_SUB);
+      seq->flag &= ~SELECT;
     }
   }
 
@@ -1524,7 +1532,7 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
 
   ARegion *region = CTX_wm_region(C);
   if (region->regiontype == RGN_TYPE_PREVIEW) {
-    seq_box_select_seq_from_preview(C, &rectf);
+    seq_box_select_seq_from_preview(C, &rectf, sel_op);
     sequencer_select_do_updates(C, scene);
     return OPERATOR_FINISHED;
   }
@@ -1664,7 +1672,8 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
      "EFFECT_LINK",
      0,
      "Effect/Linked",
-     "Other strips affected by the active one (sharing some time, and below or effect-assigned)"},
+     "Other strips affected by the active one (sharing some time, and below or "
+     "effect-assigned)"},
     {SEQ_SELECT_GROUP_OVERLAP, "OVERLAP", 0, "Overlap", "Overlapping time"},
     {0, NULL, 0, NULL, NULL},
 };
