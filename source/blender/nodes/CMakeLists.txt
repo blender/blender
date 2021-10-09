@@ -135,6 +135,7 @@ set(SRC
 
   function/nodes/legacy/node_fn_random_float.cc
 
+  function/nodes/node_fn_align_euler_to_vector.cc
   function/nodes/node_fn_boolean_math.cc
   function/nodes/node_fn_float_compare.cc
   function/nodes/node_fn_float_to_int.cc

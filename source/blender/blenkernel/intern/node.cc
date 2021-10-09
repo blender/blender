@@ -5818,6 +5818,7 @@ static void registerFunctionNodes()
 {
   register_node_type_fn_legacy_random_float();
 
+  register_node_type_fn_align_euler_to_vector();
   register_node_type_fn_boolean_math();
   register_node_type_fn_float_compare();
   register_node_type_fn_float_to_int();
