@@ -503,7 +503,7 @@ typedef struct SequencerScopes {
 #define SELECT 1
 
 /* Editor->over_flag */
-#define SEQ_EDIT_OVERLAY_SHOW 1
+#define SEQ_EDIT_USE_FRAME_OVERLAY 1
 #define SEQ_EDIT_OVERLAY_ABS 2
 
 #define SEQ_STRIP_OFSBOTTOM 0.05f

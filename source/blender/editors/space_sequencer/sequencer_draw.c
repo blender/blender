@@ -2807,7 +2807,7 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
   if (scene->ed != NULL) {
     UI_view2d_view_ortho(v2d);
     draw_cache_view(C);
-    if (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) {
+    if (scene->ed->over_flag & SEQ_EDIT_USE_FRAME_OVERLAY) {
       draw_overlap_frame_indicator(scene, v2d);
     }
     UI_view2d_view_restore(C);
