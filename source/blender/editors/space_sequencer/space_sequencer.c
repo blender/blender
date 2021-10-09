@@ -781,15 +781,16 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   SpaceSeq *sseq = area->spacedata.first;
   Scene *scene = CTX_data_scene(C);
   wmWindowManager *wm = CTX_wm_manager(C);
-  const bool draw_overlay = (scene->ed && (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) &&
-                             (sseq->flag & SEQ_SHOW_OVERLAY));
+  const bool draw_overlay = sseq->flag & SEQ_SHOW_OVERLAY;
+  const bool draw_frame_overlay = (scene->ed && (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) &&
+                                   draw_overlay);
   const bool is_playing = ED_screen_animation_playing(wm);
 
-  if (!draw_overlay || sseq->overlay_type != SEQ_DRAW_OVERLAY_REFERENCE) {
+  if (!draw_frame_overlay || sseq->overlay_type != SEQ_DRAW_OVERLAY_REFERENCE) {
     sequencer_draw_preview(C, scene, region, sseq, scene->r.cfra, 0, false, false);
   }
 
-  if (draw_overlay && sseq->overlay_type != SEQ_DRAW_OVERLAY_CURRENT) {
+  if (draw_frame_overlay && sseq->overlay_type != SEQ_DRAW_OVERLAY_CURRENT) {
     int over_cfra;
 
     if (scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS) {
