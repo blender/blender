@@ -458,6 +458,7 @@ static void seq_transform_handle_overwrite_split(const TransInfo *t,
   SEQ_edit_strip_split(
       bmain, scene, seqbase, split_strip, transformed->enddisp, SEQ_SPLIT_SOFT, NULL);
   SEQ_edit_flag_for_removal(scene, seqbase_active_get(t), split_strip);
+  SEQ_edit_remove_flagged_sequences(t->scene, seqbase_active_get(t));
 }
 
 /* Trim strips by adjusting handle position.
@@ -498,8 +499,8 @@ static void seq_transform_handle_overwrite_trim(const TransInfo *t,
 static void seq_transform_handle_overwrite(const TransInfo *t, SeqCollection *transformed_strips)
 {
   SeqCollection *targets = query_overwrite_targets(t, transformed_strips);
+  SeqCollection *strips_to_delete = SEQ_collection_create(__func__);
 
-  bool strips_delete = false;
   Sequence *target;
   Sequence *transformed;
   SEQ_ITERATOR_FOREACH (target, targets) {
@@ -511,13 +512,10 @@ static void seq_transform_handle_overwrite(const TransInfo *t, SeqCollection *tr
       const eOvelapDescrition overlap = overlap_description_get(transformed, target);
 
       if (overlap == STRIP_OVERLAP_IS_FULL) {
-        /* Remove covered strip. */
-        SEQ_edit_flag_for_removal(t->scene, seqbase_active_get(t), target);
-        strips_delete = true;
+        SEQ_collection_append_strip(target, strips_to_delete);
       }
       else if (overlap == STRIP_OVERLAP_IS_INSIDE) {
         seq_transform_handle_overwrite_split(t, transformed, target);
-        strips_delete = true;
       }
       else if (ELEM(overlap, STRIP_OVERLAP_LEFT_SIDE, STRIP_OVERLAP_RIGHT_SIDE)) {
         seq_transform_handle_overwrite_trim(t, transformed, target, overlap);
@@ -527,9 +525,16 @@ static void seq_transform_handle_overwrite(const TransInfo *t, SeqCollection *tr
 
   SEQ_collection_free(targets);
 
-  if (strips_delete) {
+  /* Remove covered strips. This must be done in separate loop, because `SEQ_edit_strip_split()`
+   * also uses `SEQ_edit_remove_flagged_sequences()`. See T91096. */
+  if (SEQ_collection_len(strips_to_delete) > 0) {
+    Sequence *seq;
+    SEQ_ITERATOR_FOREACH (seq, strips_to_delete) {
+      SEQ_edit_flag_for_removal(t->scene, seqbase_active_get(t), seq);
+    }
     SEQ_edit_remove_flagged_sequences(t->scene, seqbase_active_get(t));
   }
+  SEQ_collection_free(strips_to_delete);
 }
 
 static void seq_transform_handle_overlap_shuffle(const TransInfo *t,
