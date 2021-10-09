@@ -135,12 +135,12 @@ def rna_idprop_ui_create(
 
 def draw(layout, context, context_member, property_type, *, use_edit=True):
 
-    def assign_props(prop, val, key):
+    def assign_props(prop, value, key):
         prop.data_path = context_member
         prop.property_name = key
 
         try:
-            prop.value = str(val)
+            prop.value = str(value)
         except:
             pass
 
@@ -176,25 +176,24 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
 
     flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
 
-    for key, val in items:
+    for key, value in items:
         is_rna = (key in rna_properties)
 
-        # only show API defined for developers
+        # Only show API defined properties to developers.
         if is_rna and not show_developer_ui:
             continue
 
-        to_dict = getattr(val, "to_dict", None)
-        to_list = getattr(val, "to_list", None)
+        to_dict = getattr(value, "to_dict", None)
+        to_list = getattr(value, "to_list", None)
 
-        # val_orig = val  # UNUSED
         if to_dict:
-            val = to_dict()
-            val_draw = str(val)
+            value = to_dict()
+            val_draw = str(value)
         elif to_list:
-            val = to_list()
-            val_draw = str(val)
+            value = to_list()
+            val_draw = str(value)
         else:
-            val_draw = val
+            val_draw = value
 
         row = layout.row(align=True)
         box = row.box()
@@ -210,10 +209,10 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
 
         row.label(text=key, translate=False)
 
-        # explicit exception for arrays.
-        show_array_ui = to_list and not is_rna and 0 < len(val) <= MAX_DISPLAY_ROWS
+        # Explicit exception for arrays.
+        show_array_ui = to_list and not is_rna and 0 < len(value) <= MAX_DISPLAY_ROWS
 
-        if show_array_ui and isinstance(val[0], (int, float)):
+        if show_array_ui and isinstance(value[0], (int, float)):
             row.prop(rna_item, '["%s"]' % escape_identifier(key), text="")
         elif to_dict or to_list:
             row.label(text=val_draw, translate=False)
@@ -225,8 +224,8 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
 
         if use_edit:
             row = split.row(align=True)
-            # Do not allow editing of overridden properties (we cannot use a poll function of the operators here
-            # since they's have no access to the specific property...).
+            # Do not allow editing of overridden properties (we cannot use a poll function 
+            # of the operators here since they's have no access to the specific property).
             row.enabled = not(is_lib_override and key in rna_item.id_data.override_library.reference)
             if is_rna:
                 row.label(text="API Defined")
