@@ -250,7 +250,7 @@ float *SCULPT_vertex_origco_get(SculptSession *ss, SculptVertRef vertex);
 float *SCULPT_vertex_origno_get(SculptSession *ss, SculptVertRef vertex);
 
 void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3]);
-MSculptVert *SCULPT_vertex_get_mdyntopo(SculptSession *ss, SculptVertRef vertex);
+MSculptVert *SCULPT_vertex_get_mdyntopo(const SculptSession *ss, SculptVertRef vertex);
 
 /* Returns PBVH deformed vertices array if shape keys or deform modifiers are used, otherwise
  * returns mesh original vertices array. */

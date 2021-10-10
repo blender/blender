@@ -288,7 +288,7 @@ int SCULPT_vertex_count_get(const SculptSession *ss)
   return 0;
 }
 
-MSculptVert *SCULPT_vertex_get_mdyntopo(SculptSession *ss, SculptVertRef vertex)
+MSculptVert *SCULPT_vertex_get_mdyntopo(const SculptSession *ss, SculptVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
@@ -2067,7 +2067,7 @@ static bool neighbor_cache_begin(const SculptSession *ss)
   ncache->totvert = totvert;
   NeighborCache *old = ss->cache->ncache;
 
-  atomic_cas_ptr(&ss->cache->ncache, NULL, ncache);
+  atomic_cas_ptr((void **)&ss->cache->ncache, NULL, ncache);
 
   if (ss->cache->ncache != ncache) {
     // another thread got here first?
@@ -2138,7 +2138,7 @@ static NeighborCacheItem *neighbor_cache_get(const SculptSession *ss,
     // another thread got here first
     //}
 
-    atomic_cas_ptr(&cache[i], NULL, item);
+    atomic_cas_ptr((void **)&cache[i], NULL, item);
   }
 
   return cache[i];

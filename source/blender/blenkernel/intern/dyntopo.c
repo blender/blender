@@ -3945,7 +3945,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     float(*uv)[2] = alloca(sizeof(float) * 4 * totuv);
 
     do {
-      BMLoop *ls2[2] = {l->head.data, l->next->head.data};
+      const void *ls2[2] = {l->head.data, l->next->head.data};
       float ws2[2] = {0.5f, 0.5f};
 
       if (!snap) {
@@ -4640,10 +4640,16 @@ static void pbvh_bmesh_collapse_edge1(PBVH *pbvh,
     else {
       for (int j = 0; j < 3; j++) {
         if (BM_edge_is_wire(e_tri[j])) {
-          v_conn ? validate_vert_faces(pbvh, pbvh->bm, v_conn, false, false) : NULL;
+          if (v_conn) {
+            validate_vert_faces(pbvh, pbvh->bm, v_conn, false, false);
+          }
+
           BM_log_edge_removed(pbvh->bm_log, e_tri[j]);
           BM_edge_kill(pbvh->bm, e_tri[j]);
-          v_conn ? validate_vert_faces(pbvh, pbvh->bm, v_conn, false, false) : NULL;
+
+          if (v_conn) {
+            validate_vert_faces(pbvh, pbvh->bm, v_conn, false, false);
+          }
         }
       }
     }
@@ -5133,8 +5139,7 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
       int ni2 = BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
 
       if (ni2 != DYNTOPO_NODE_NONE) {
-        PBVHNode *node2 = pbvh->nodes + ni2;
-
+        // PBVHNode *node2 = pbvh->nodes + ni2;
         // BLI_table_gset_remove(node2->bm_unique_verts, v, NULL);
 
         pbvh_bmesh_face_remove(pbvh, f, true, true, true);
@@ -5344,7 +5349,6 @@ static void on_vert_swap(BMVert *v1, BMVert *v2, void *userdata)
 {
   SwapData *sdata = (SwapData *)userdata;
   PBVH *pbvh = sdata->pbvh;
-  BMesh *bm = pbvh->bm;
 
   MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v1);
   MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v2);
@@ -5818,7 +5822,6 @@ typedef struct EdgeQueueContext {
 
   /* clear PBVH_UpdateTopology flags */
   for (int i = 0; i < pbvh->totnode; i++) {
-    BMVert *v;
     PBVHNode *node = pbvh->nodes + i;
 
     if (!(node->flag & PBVH_Leaf)) {
@@ -6273,8 +6276,6 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
       node->flag |= node_updateflag;
 
       BLI_table_gset_add(node->bm_unique_verts, newv);
-      BMIter iter;
-      BMFace *f;
 
       BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, ni);
       // BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, -1);
@@ -6314,7 +6315,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
     int flen = j;
 
-    if (mask >= ARRAY_SIZE(splitmap)) {
+    if (mask >= (int)ARRAY_SIZE(splitmap)) {
       printf("splitmap error!\n");
       continue;
     }

@@ -1383,6 +1383,8 @@ class _defs_sculpt:
             layout.prop(props, "cloth_damping")
             layout.prop(props, "use_face_sets")
             layout.prop(props, "use_collisions")
+            layout.prop(props, "use_bending")
+            layout.prop(props, "bending_stiffness")
 
         return dict(idname="builtin.cloth_filter",
             label="Cloth Filter",

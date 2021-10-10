@@ -754,7 +754,7 @@ static void cloth_brush_add_deformation_constraint(SculptClothSimulation *cloth_
   cloth_brush_reallocate_constraints(cloth_sim);
 }
 
-ATTR_NO_OPT static void do_cloth_brush_build_constraints_task_cb_ex(
+static void do_cloth_brush_build_constraints_task_cb_ex(
     void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
@@ -1617,6 +1617,8 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
 
 static void cloth_free_tasks(SculptClothSimulation *cloth_sim)
 {
+  // printf("Freeing tasks %d\n", BLI_task_parallel_thread_id(NULL));
+
   for (int i = 0; i < cloth_sim->tot_constraint_tasks; i++) {
     for (int j = 0; j < TOT_CONSTRAINT_TYPES; j++) {
       MEM_SAFE_FREE(cloth_sim->constraint_tasks[i].constraints[j]);
@@ -1760,11 +1762,11 @@ static void cloth_sort_constraints_for_tasks(SculptSession *ss,
   MEM_SAFE_FREE(vthreads);
 }
 
-ATTR_NO_OPT static void cloth_brush_satisfy_constraints_intern(SculptSession *ss,
-                                                               Brush *brush,
-                                                               SculptClothSimulation *cloth_sim,
-                                                               SculptClothTaskData *task,
-                                                               bool no_boundary)
+static void cloth_brush_satisfy_constraints_intern(SculptSession *ss,
+                                                   Brush *brush,
+                                                   SculptClothSimulation *cloth_sim,
+                                                   SculptClothTaskData *task,
+                                                   bool no_boundary)
 {
 
   AutomaskingCache *automasking = SCULPT_automasking_active_cache_get(ss);
@@ -2771,6 +2773,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   const float cloth_damping = RNA_float_get(op->ptr, "cloth_damping");
   const bool use_collisions = RNA_boolean_get(op->ptr, "use_collisions");
   const int pinch_origin = RNA_enum_get(op->ptr, "pinch_origin");
+
   ss->filter_cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
       ss,
       cloth_mass,
@@ -2778,6 +2781,9 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
       0.0f,
       use_collisions,
       cloth_filter_is_deformation_filter(filter_type));
+
+  ss->filter_cache->cloth_sim->use_bending = RNA_boolean_get(op->ptr, "use_bending");
+  ss->filter_cache->cloth_sim->bend_stiffness = RNA_float_get(op->ptr, "bending_stiffness");
 
   switch (pinch_origin) {
     case CLOTH_FILTER_PINCH_ORIGIN_CURSOR:
@@ -2889,4 +2895,8 @@ void SCULPT_OT_cloth_filter(struct wmOperatorType *ot)
                              false,
                              "Use Collisions",
                              "Collide with other collider objects in the scene");
+  ot->prop = RNA_def_boolean(
+      ot->srna, "use_bending", false, "Bending", "Enable bending constraints");
+  ot->prop = RNA_def_float(
+      ot->srna, "bending_stiffness", 0.5f, 0.0f, 1.0f, "Bending Stiffness", "", 0.0f, 1.0f);
 }
