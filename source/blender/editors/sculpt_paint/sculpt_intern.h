@@ -143,7 +143,7 @@ void SCULPT_face_random_access_ensure(struct SculptSession *ss);
 
 int SCULPT_vertex_valence_get(const struct SculptSession *ss, SculptVertRef vertex);
 
-int SCULPT_vertex_count_get(struct SculptSession *ss);
+int SCULPT_vertex_count_get(const struct SculptSession *ss);
 const float *SCULPT_vertex_co_get(struct SculptSession *ss, SculptVertRef index);
 void SCULPT_vertex_normal_get(SculptSession *ss, SculptVertRef index, float no[3]);
 float SCULPT_vertex_mask_get(struct SculptSession *ss, SculptVertRef index);
@@ -172,7 +172,8 @@ struct _SculptNeighborRef {
   SculptEdgeRef edge;
 };
 
-#define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 256
+#define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 12
+
 typedef struct SculptVertexNeighborIter {
   /* Storage */
   struct _SculptNeighborRef *neighbors;
@@ -193,6 +194,7 @@ typedef struct SculptVertexNeighborIter {
   int index;
   bool has_edge;  // does this iteration step have an edge, fake neighbors do not
   bool is_duplicate;
+  bool no_free;
 } SculptVertexNeighborIter;
 
 void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
@@ -227,8 +229,18 @@ void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
 
 #define SCULPT_VERTEX_NEIGHBORS_ITER_END(neighbor_iterator) \
   } \
-  if (neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
+  if (!neighbor_iterator.no_free && \
+      neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
     MEM_freeN(neighbor_iterator.neighbors); \
+    MEM_freeN(neighbor_iterator.neighbor_indices); \
+  } \
+  ((void)0)
+
+#define SCULPT_VERTEX_NEIGHBORS_ITER_FREE(neighbor_iterator) \
+  if (neighbor_iterator.neighbors && !neighbor_iterator.no_free && \
+      neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
+    MEM_freeN(neighbor_iterator.neighbors); \
+    MEM_freeN(neighbor_iterator.neighbor_indices); \
   } \
   ((void)0)
 
@@ -370,6 +382,8 @@ int SCULPT_face_set_flag_set(SculptSession *ss, SculptFaceRef face, char flag, b
 bool SCULPT_stroke_is_main_symmetry_pass(struct StrokeCache *cache);
 bool SCULPT_stroke_is_first_brush_step(struct StrokeCache *cache);
 bool SCULPT_stroke_is_first_brush_step_of_symmetry_pass(struct StrokeCache *cache);
+
+void SCULPT_ensure_epmap(SculptSession *ss);
 
 /* Sculpt Original Data */
 typedef struct {
@@ -1067,6 +1081,7 @@ typedef struct SculptThreadedTaskData {
   float fset_slide, bound_smooth;
   float crease_pinch_factor;
   bool use_curvature;
+  float vel_smooth_fac;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/
@@ -1376,7 +1391,10 @@ typedef struct StrokeCache {
 
   struct BrushCommandList *commandlist;
   bool use_plane_trim;
+
+  struct NeighborCache *ncache;
 } StrokeCache;
+
 /* Sculpt Filters */
 typedef enum SculptFilterOrientation {
   SCULPT_FILTER_ORIENTATION_LOCAL = 0,

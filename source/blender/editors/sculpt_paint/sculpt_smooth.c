@@ -134,6 +134,20 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     areas = BLI_array_alloca(areas, val);
 
     BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
+
+    float totarea = 0.0f;
+
+    for (int i = 0; i < val; i++) {
+      totarea += areas[i];
+    }
+
+    totarea = totarea != 0.0f ? 1.0f / totarea : 0.0f;
+
+    float df = 0.25f / (float)val;
+
+    for (int i = 0; i < val; i++) {
+      areas[i] = (areas[i] * totarea) + df;
+    }
   }
 
   float *b1 = NULL, btot = 0.0f, b1_orig;
@@ -443,6 +457,17 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     areas = BLI_array_alloca(areas, val * 2);
 
     BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
+    float totarea = 0.0f;
+
+    for (int i = 0; i < val; i++) {
+      totarea += areas[i];
+    }
+
+    totarea = totarea != 0.0f ? 1.0f / totarea : 0.0f;
+
+    for (int i = 0; i < val; i++) {
+      areas[i] *= totarea;
+    }
   }
 
   copy_v3_v3(dir, col);
@@ -990,6 +1015,10 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   float bstrength = data->strength;
   float projection = data->smooth_projection;
 
+  if (!data->nodes[n]) {
+    return;
+  }
+
   PBVHVertexIter vd;
 
   CLAMP(bstrength, 0.0f, 1.0f);
@@ -1017,11 +1046,14 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   // const float slide_fset = BKE_brush_fset_slide_get(ss->scene, ss->cache->brush);
 
   SculptCustomLayer *bound_scl = data->scl2;
+  SculptCustomLayer *vel_scl = data->scl;
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
+
+    modified = true;
 
     // check origdata to be sure we don't mess it up
     SCULPT_vertex_check_origdata(ss, vd.vertex);
@@ -1068,15 +1100,28 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
                                                              BRUSH_SMOOTH_PRESERVE_FACE_SETS}));
 
         sub_v3_v3v3(val, avg, co);
+
+        if (vel_scl) {
+          float *vel = SCULPT_temp_cdata_get(vd.vertex, vel_scl);
+          float oldval[3];
+          copy_v3_v3(oldval, val);
+
+          madd_v3_v3fl(val, vel, data->vel_smooth_fac);
+
+          interp_v3_v3v3(vel, vel, oldval, 0.25);
+          mul_v3_fl(vel, 0.95);
+          // madd_v3_v3fl(vel, dvel, 0.125);
+        }
+
         madd_v3_v3v3fl(val, co, val, fade);
         SCULPT_clip(sd, ss, co, val);
+
+        // interp_v3_v3v3(vel, vel, val, 0.5);
       }
     }
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
-
-    modified = true;
   }
   BKE_pbvh_vertex_iter_end;
 
@@ -1086,6 +1131,10 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
     }
 
     BKE_pbvh_node_mark_update(data->nodes[n]);
+  }
+  else {
+    // not modified? remove from future iterations
+    data->nodes[n] = NULL;
   }
 }
 #endif
@@ -1102,7 +1151,10 @@ void SCULPT_smooth(Sculpt *sd,
   SculptSession *ss = ob->sculpt;
   Brush *brush = ss->cache && ss->cache->brush ? ss->cache->brush : BKE_paint_brush(&sd->paint);
 
-  const int max_iterations = 4;
+  const float vel_smooth_cutoff = 0.75;
+  const bool do_vel_smooth = bstrength > vel_smooth_cutoff;
+
+  const int max_iterations = (int)(4.0f * ceilf(bstrength));
   const float fract = 1.0f / max_iterations;
   PBVHType type = BKE_pbvh_type(ss->pbvh);
   int iteration, count;
@@ -1114,22 +1166,34 @@ void SCULPT_smooth(Sculpt *sd,
     BKE_pbvh_update_all_tri_areas(ss->pbvh);
   }
 
-  CLAMP(bstrength, 0.0f, 1.0f);
+  SculptLayerParams params = {.permanent = false, .simple_array = false};
+  SculptCustomLayer vel_scl;
 
-  count = (int)(bstrength * max_iterations);
-  last = max_iterations * (bstrength - count * fract);
-
-  SculptCustomLayer scl;
-#if 0
-  bool have_scl = smooth_mask ? false :
-                                SCULPT_temp_customlayer_ensure(
-                                    ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__scl_smooth_vel");
-  if (have_scl) {
-    SCULPT_temp_customlayer_get(ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__scl_smooth_vel", &scl, false);
+  if (do_vel_smooth) {
+    SCULPT_temp_customlayer_ensure(
+        ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__scl_smooth_vel", &params);
+    SCULPT_temp_customlayer_get(
+        ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__scl_smooth_vel", &vel_scl, &params);
   }
-#else
-  bool have_scl = false;
-#endif
+
+  float bstrength2 = bstrength;
+  CLAMP(bstrength2, 0.0f, 1.0f);
+
+  count = (int)(bstrength2 * max_iterations);
+  last = max_iterations * (bstrength2 - count * fract);
+
+  if (do_vel_smooth && last == 0.0f) {
+    count--;
+    last = 1.0f;
+
+    count = MAX2(count, 1);
+  }
+
+  // increase strength of last to compensate for velocity smooth in previous iterations
+  if (count > 1) {
+    // last = sqrtf(last);
+    last = 1.0f;
+  }
 
   if (type == PBVH_FACES && !ss->pmap) {
     BLI_assert_msg(0, "sculpt smooth: pmap missing");
@@ -1155,7 +1219,14 @@ void SCULPT_smooth(Sculpt *sd,
         ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "__smooth_bdist", &params);
     SCULPT_temp_customlayer_get(
         ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "__smooth_bdist", bound_scl, &params);
+
+    if (do_vel_smooth) {
+      SCULPT_temp_customlayer_get(
+          ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__scl_smooth_vel", &vel_scl, &params);
+    }
   }
+
+  nodes = nodes ? MEM_dupallocN(nodes) : NULL;
 
 #ifdef PROXY_ADVANCED
   int datamask = PV_CO | PV_NEIGHBORS | PV_NO | PV_INDEX | PV_MASK;
@@ -1165,6 +1236,19 @@ void SCULPT_smooth(Sculpt *sd,
 #endif
   for (iteration = 0; iteration <= count; iteration++) {
     const float strength = (iteration != count) ? 1.0f : last;
+
+    // turn off velocity smooth for final iteration or two to smooth out ripples
+    bool do_vel = do_vel_smooth && iteration != count;
+
+    if (count > 3) {
+      do_vel = do_vel && iteration != count - 1;
+    }
+
+    float vel_fac = 1.0f;
+    if (do_vel) {
+      vel_fac = (bstrength - vel_smooth_cutoff) / 2.0f;
+      vel_fac = min_ff(vel_fac, 1.0f);
+    }
 
     SculptThreadedTaskData data = {
         .sd = sd,
@@ -1176,8 +1260,9 @@ void SCULPT_smooth(Sculpt *sd,
         .smooth_projection = projection,
         .fset_slide = fset_slide,
         .bound_smooth = bound_smooth,
-        .scl = have_scl ? &scl : NULL,
+        .scl = do_vel ? &vel_scl : NULL,
         .scl2 = bound_scl,
+        .vel_smooth_fac = vel_fac,
         .do_origco = do_origco,
     };
 

@@ -36,6 +36,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_memarena.h"
 #include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -273,7 +274,7 @@ void SCULPT_face_random_access_ensure(SculptSession *ss)
   }
 }
 
-int SCULPT_vertex_count_get(SculptSession *ss)
+int SCULPT_vertex_count_get(const SculptSession *ss)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
@@ -820,9 +821,15 @@ bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
                                     SculptLayerParams *params)
 {
   SculptCustomLayer scl;
+
+  // call SCULPT_update_customdata_refs before and after,
+  // thoeretically it can allocate new layers
+  SCULPT_update_customdata_refs(ss);
+
   bool ret = sculpt_temp_customlayer_get(ss, domain, proptype, name, &scl, true, params);
 
   SCULPT_update_customdata_refs(ss);
+
   return ret;
 }
 
@@ -1710,8 +1717,6 @@ int SCULPT_face_set_next_available_get(SculptSession *ss)
 
 /* Sculpt Neighbor Iterators */
 
-#define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 256
-
 static void sculpt_vertex_neighbor_add(SculptVertexNeighborIter *iter,
                                        SculptVertRef neighbor,
                                        SculptEdgeRef edge,
@@ -1727,19 +1732,21 @@ static void sculpt_vertex_neighbor_add(SculptVertexNeighborIter *iter,
     iter->capacity += SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
 
     if (iter->neighbors == iter->neighbors_fixed) {
-      iter->neighbors = MEM_mallocN(iter->capacity * sizeof(struct _SculptNeighborRef),
-                                    "neighbor array");
-      iter->neighbor_indices = MEM_mallocN(iter->capacity * sizeof(int), "neighbor array");
+      iter->neighbors = MEM_mallocN(iter->capacity * sizeof(*iter->neighbors), "neighbor array");
+      iter->neighbor_indices = MEM_mallocN(iter->capacity * sizeof(*iter->neighbor_indices),
+                                           "neighbor array");
 
-      memcpy(
-          iter->neighbors, iter->neighbors_fixed, sizeof(struct _SculptNeighborRef) * iter->size);
-      memcpy(iter->neighbor_indices, iter->neighbor_indices_fixed, sizeof(int) * iter->size);
+      memcpy(iter->neighbors, iter->neighbors_fixed, sizeof(*iter->neighbors) * iter->size);
+      memcpy(iter->neighbor_indices,
+             iter->neighbor_indices_fixed,
+             sizeof(*iter->neighbor_indices) * iter->size);
     }
     else {
       iter->neighbors = MEM_reallocN_id(
-          iter->neighbors, iter->capacity * sizeof(struct _SculptNeighborRef), "neighbor array");
-      iter->neighbor_indices = MEM_reallocN_id(
-          iter->neighbor_indices, iter->capacity * sizeof(int), "neighbor array");
+          iter->neighbors, iter->capacity * sizeof(*iter->neighbors), "neighbor array");
+      iter->neighbor_indices = MEM_reallocN_id(iter->neighbor_indices,
+                                               iter->capacity * sizeof(*iter->neighbor_indices),
+                                               "neighbor array");
     }
   }
 
@@ -1758,19 +1765,22 @@ static void sculpt_vertex_neighbor_add_nocheck(SculptVertexNeighborIter *iter,
     iter->capacity += SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
 
     if (iter->neighbors == iter->neighbors_fixed) {
-      iter->neighbors = MEM_mallocN(iter->capacity * sizeof(struct _SculptNeighborRef),
-                                    "neighbor array");
-      iter->neighbor_indices = MEM_mallocN(iter->capacity * sizeof(int), "neighbor array");
+      iter->neighbors = MEM_mallocN(iter->capacity * sizeof(*iter->neighbors), "neighbor array");
+      iter->neighbor_indices = MEM_mallocN(iter->capacity * sizeof(*iter->neighbor_indices),
+                                           "neighbor array");
 
-      memcpy(
-          iter->neighbors, iter->neighbors_fixed, sizeof(struct _SculptNeighborRef) * iter->size);
-      memcpy(iter->neighbor_indices, iter->neighbor_indices_fixed, sizeof(int) * iter->size);
+      memcpy(iter->neighbors, iter->neighbors_fixed, sizeof(*iter->neighbors) * iter->size);
+
+      memcpy(iter->neighbor_indices,
+             iter->neighbor_indices_fixed,
+             sizeof(*iter->neighbor_indices) * iter->size);
     }
     else {
       iter->neighbors = MEM_reallocN_id(
-          iter->neighbors, iter->capacity * sizeof(struct _SculptNeighborRef), "neighbor array");
-      iter->neighbor_indices = MEM_reallocN_id(
-          iter->neighbor_indices, iter->capacity * sizeof(int), "neighbor array");
+          iter->neighbors, iter->capacity * sizeof(*iter->neighbors), "neighbor array");
+      iter->neighbor_indices = MEM_reallocN_id(iter->neighbor_indices,
+                                               iter->capacity * sizeof(*iter->neighbor_indices),
+                                               "neighbor array");
     }
   }
 
@@ -1794,6 +1804,7 @@ static void sculpt_vertex_neighbors_get_bmesh(const SculptSession *ss,
   iter->neighbors = iter->neighbors_fixed;
   iter->neighbor_indices = iter->neighbor_indices_fixed;
   iter->i = 0;
+  iter->no_free = false;
 
   // cache profiling revealed a hotspot here, don't use BM_ITER
   BMEdge *e = v->e;
@@ -1846,6 +1857,7 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
   iter->neighbor_indices = iter->neighbor_indices_fixed;
   iter->is_duplicate = false;
   iter->has_edge = true;
+  iter->no_free = false;
 
   for (int i = 0; i < ss->pmap[index].count; i++) {
     if (ss->face_sets[vert_map->indices[i]] < 0) {
@@ -1908,6 +1920,7 @@ static void sculpt_vertex_neighbors_get_faces_vemap(const SculptSession *ss,
   iter->neighbors = iter->neighbors_fixed;
   iter->neighbor_indices = iter->neighbor_indices_fixed;
   iter->is_duplicate = false;
+  iter->no_free = false;
 
   for (int i = 0; i < vert_map->count; i++) {
     const MEdge *me = &ss->medge[vert_map->indices[i]];
@@ -1963,6 +1976,7 @@ static void sculpt_vertex_neighbors_get_grids(const SculptSession *ss,
   iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
   iter->neighbors = iter->neighbors_fixed;
   iter->neighbor_indices = iter->neighbor_indices_fixed;
+  iter->no_free = false;
 
   for (int i = 0; i < neighbors.size; i++) {
     int idx = neighbors.coords[i].grid_index * key->grid_area +
@@ -1987,11 +2001,175 @@ static void sculpt_vertex_neighbors_get_grids(const SculptSession *ss,
   }
 }
 
+#define SCULPT_NEIGHBORS_CACHE
+
+#ifdef SCULPT_NEIGHBORS_CACHE
+typedef struct NeighborCacheItem {
+  struct _SculptNeighborRef *neighbors;
+  int *neighbors_indices;
+  short num_duplicates, valence;
+  bool has_edge;
+} NeighborCacheItem;
+
+typedef struct NeighborCache {
+  MemArena **arenas;
+  NeighborCacheItem **cache;
+  NeighborCacheItem **duplicates;
+  int totvert, totthread;
+} NeighborCache;
+
+static void neighbor_cache_free(NeighborCache *ncache)
+{
+  for (int i = 0; i < ncache->totthread; i++) {
+    BLI_memarena_free(ncache->arenas[i]);
+  }
+
+  MEM_SAFE_FREE(ncache->arenas);
+  MEM_SAFE_FREE(ncache->cache);
+  MEM_SAFE_FREE(ncache->duplicates);
+  MEM_SAFE_FREE(ncache);
+}
+
+static bool neighbor_cache_begin(const SculptSession *ss)
+{
+  if (!ss->cache) {
+    return false;
+  }
+
+  // return false;
+  Brush *brush = ss->cache->brush;
+
+  if (brush && SCULPT_stroke_is_dynamic_topology(ss, brush)) {
+    return false;
+  }
+
+  if (ss->cache->ncache) {
+    return true;
+  }
+
+  int totvert = SCULPT_vertex_count_get(ss);
+
+  NeighborCache *ncache = MEM_callocN(sizeof(NeighborCache), "NeighborCache");
+  ncache->cache = MEM_calloc_arrayN(totvert, sizeof(void *), "Cache Items");
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    ncache->duplicates = MEM_calloc_arrayN(totvert, sizeof(void *), "Cache Items");
+  }
+
+  int totthread = BLI_task_scheduler_num_threads() * 4;
+  ncache->arenas = MEM_malloc_arrayN(totthread, sizeof(void *), "neighbor cache->arenas");
+  ncache->totthread = totthread;
+
+  for (int i = 0; i < totthread; i++) {
+    ncache->arenas[i] = BLI_memarena_new(1 << 17, "neighbor cache");
+  }
+
+  ncache->totvert = totvert;
+  NeighborCache *old = ss->cache->ncache;
+
+  atomic_cas_ptr(&ss->cache->ncache, NULL, ncache);
+
+  if (ss->cache->ncache != ncache) {
+    // another thread got here first?
+
+    neighbor_cache_free(ncache);
+
+    return false;
+  }
+
+  return true;
+}
+
+static NeighborCacheItem *neighbor_cache_get(const SculptSession *ss,
+                                             SculptVertRef vertex,
+                                             const bool include_duplicates)
+{
+  int i = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
+
+  NeighborCache *ncache = ss->cache->ncache;
+
+  if (include_duplicates && !ncache->duplicates) {
+    ncache->duplicates = MEM_calloc_arrayN(ncache->totvert, sizeof(void *), "ncache->duplicages");
+  }
+
+  NeighborCacheItem **cache = include_duplicates ? ncache->duplicates : ncache->cache;
+  int thread_nr = BLI_task_parallel_thread_id(NULL);
+
+  if (!cache[i]) {
+    NeighborCacheItem *item = BLI_memarena_calloc(ncache->arenas[thread_nr], sizeof(*item));
+    SculptVertexNeighborIter ni = {0};
+
+    ni.neighbors = ni.neighbors_fixed;
+    ni.neighbor_indices = ni.neighbor_indices_fixed;
+    ni.capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
+
+    switch (BKE_pbvh_type(ss->pbvh)) {
+      case PBVH_FACES:
+        // use vemap if it exists, so result is in disk cycle order
+        if (ss->vemap) {
+          sculpt_vertex_neighbors_get_faces_vemap(ss, vertex, &ni);
+        }
+        else {
+          sculpt_vertex_neighbors_get_faces(ss, vertex, &ni);
+        }
+        break;
+      case PBVH_BMESH:
+        sculpt_vertex_neighbors_get_bmesh(ss, vertex, &ni);
+        break;
+      case PBVH_GRIDS:
+        sculpt_vertex_neighbors_get_grids(ss, vertex, include_duplicates, &ni);
+        break;
+    }
+
+    item->num_duplicates = ni.num_duplicates;
+    item->has_edge = ni.has_edge;
+    item->valence = ni.size;
+
+    item->neighbors = BLI_memarena_alloc(ncache->arenas[thread_nr],
+                                         sizeof(*item->neighbors) * ni.size);
+    item->neighbors_indices = BLI_memarena_alloc(ncache->arenas[thread_nr],
+                                                 sizeof(*item->neighbors_indices) * ni.size);
+
+    memcpy(item->neighbors, ni.neighbors, sizeof(*item->neighbors) * ni.size);
+    memcpy(
+        item->neighbors_indices, ni.neighbor_indices, sizeof(*item->neighbors_indices) * ni.size);
+
+    // if (atomic_cas_ptr(&cache[i], NULL, item) != item) {
+    // another thread got here first
+    //}
+
+    atomic_cas_ptr(&cache[i], NULL, item);
+  }
+
+  return cache[i];
+}
+#endif
+
 void SCULPT_vertex_neighbors_get(const SculptSession *ss,
                                  const SculptVertRef vertex,
                                  const bool include_duplicates,
                                  SculptVertexNeighborIter *iter)
 {
+#ifdef SCULPT_NEIGHBORS_CACHE
+  if (neighbor_cache_begin(ss)) {
+    NeighborCacheItem *item = neighbor_cache_get(ss, vertex, include_duplicates);
+
+    // memset(iter, 0, sizeof(*iter));
+
+    iter->no_free = true;
+    iter->neighbors = item->neighbors;
+    iter->neighbor_indices = item->neighbors_indices;
+    iter->num_duplicates = item->num_duplicates;
+    iter->size = iter->capacity = item->valence;
+    iter->has_edge = item->has_edge;
+    iter->is_duplicate = false;
+
+    return;
+  }
+#endif
+
+  iter->no_free = false;
+
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
       // use vemap if it exists, so result is in disk cycle order
@@ -9344,8 +9522,12 @@ typedef struct BrushRunCommandData {
   float radius_max;
 } BrushRunCommandData;
 
-static void get_nodes_undo(
-    Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups, BrushRunCommandData *data)
+static void get_nodes_undo(Sculpt *sd,
+                           Object *ob,
+                           Brush *brush,
+                           UnifiedPaintSettings *ups,
+                           BrushRunCommandData *data,
+                           int tool)
 {
   PBVHNode **nodes = NULL;
   int totnode = 0;
@@ -9360,13 +9542,13 @@ static void get_nodes_undo(
      */
     BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
   }
-  else if (brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
+  else if (tool == SCULPT_TOOL_CLOTH) {
     nodes = SCULPT_cloth_brush_affected_nodes_gather(ss, brush, &totnode);
   }
   else {
     /* With these options enabled not all required nodes are inside the original brush radius,
      * so the brush can produce artifacts in some situations. */
-    if (brush->sculpt_tool == SCULPT_TOOL_DRAW && brush->flag & BRUSH_ORIGINAL_NORMAL) {
+    if (tool == SCULPT_TOOL_DRAW && brush->flag & BRUSH_ORIGINAL_NORMAL) {
       radius_scale = MAX2(radius_scale, 2.0f);
     }
     nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
@@ -9376,8 +9558,8 @@ static void get_nodes_undo(
    * vertices and uses regular coords undo. */
   /* It also assigns the paint_face_set here as it needs to be done regardless of the stroke type
    * and the number of nodes under the brush influence. */
-  if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS &&
-      SCULPT_stroke_is_first_brush_step(ss->cache) && !ss->cache->alt_smooth) {
+  if (tool == SCULPT_TOOL_DRAW_FACE_SETS && SCULPT_stroke_is_first_brush_step(ss->cache) &&
+      !ss->cache->alt_smooth) {
 
     // faceset undo node is created below for pbvh_bmesh
     if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
@@ -9421,7 +9603,7 @@ static void get_nodes_undo(
 
   // dyntopo can't push undo nodes inside a thread
   if (ss->bm) {
-    if (ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
+    if (ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
       for (int i = 0; i < totnode; i++) {
         int other = brush->vcol_boundary_factor > 0.0f ? SCULPT_UNDO_COORDS : -1;
 
@@ -9429,7 +9611,7 @@ static void get_nodes_undo(
         BKE_pbvh_node_mark_update_color(nodes[i]);
       }
     }
-    else if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
+    else if (tool == SCULPT_TOOL_DRAW_FACE_SETS) {
       for (int i = 0; i < totnode; i++) {
         if (ss->cache->alt_smooth) {
           SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_FACE_SETS, SCULPT_UNDO_COORDS);
@@ -9491,7 +9673,14 @@ static void SCULPT_run_command(
   BrushRunCommandData *data = userdata;
   BrushCommand *cmd = data->cmd;
 
-  get_nodes_undo(sd, ob, ss->cache->brush, ups, data);
+  float radius = BRUSHSET_GET_FLOAT(cmd->params_mapped, radius, NULL);
+  radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->true_location, radius);
+
+  ss->cache->radius = radius;
+  ss->cache->radius_squared = radius * radius;
+  ss->cache->initial_radius = radius;
+
+  get_nodes_undo(sd, ob, ss->cache->brush, ups, data, cmd->tool);
 
   PBVHNode **nodes = data->nodes;
   int totnode = data->totnode;
@@ -9506,13 +9695,6 @@ static void SCULPT_run_command(
   cmd->params_mapped = BKE_brush_channelset_copy(cmd->params_final);
   BKE_brush_channelset_apply_mapping(cmd->params_mapped, &ss->cache->input_mapping);
   BKE_brush_channelset_clear_inherit(cmd->params_mapped);
-
-  float radius = BRUSHSET_GET_FLOAT(cmd->params_mapped, radius, NULL);
-  radius = paint_calc_object_space_radius(ss->cache->vc, ss->cache->true_location, radius);
-
-  ss->cache->radius = radius;
-  ss->cache->radius_squared = radius * radius;
-  ss->cache->initial_radius = radius;
 
   radius_scale = 1.0f;
 
@@ -10521,6 +10703,13 @@ void SCULPT_cache_free(SculptSession *ss, StrokeCache *cache)
 {
   MEM_SAFE_FREE(cache->dial);
   MEM_SAFE_FREE(cache->surface_smooth_laplacian_disp);
+
+#ifdef SCULPT_NEIGHBORS_CACHE
+  if (ss->cache->ncache) {
+    neighbor_cache_free(ss->cache->ncache);
+    ss->cache->ncache = NULL;
+  }
+#endif
 
   if (ss->custom_layers[SCULPT_SCL_LAYER_DISP]) {
     SCULPT_temp_customlayer_release(ss, ss->custom_layers[SCULPT_SCL_LAYER_DISP]);
@@ -13839,6 +14028,20 @@ static void sculpt_mask_by_color_full_mesh(Object *object,
   BLI_task_parallel_range(0, totnode, &data, do_mask_by_color_task_cb, &settings);
 
   MEM_SAFE_FREE(nodes);
+}
+
+void SCULPT_ensure_epmap(SculptSession *ss)
+{
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH && !ss->epmap) {
+    BKE_mesh_edge_poly_map_create(&ss->epmap,
+                                  &ss->epmap_mem,
+                                  ss->medge,
+                                  ss->totedges,
+                                  ss->mpoly,
+                                  ss->totfaces,
+                                  ss->mloop,
+                                  ss->totloops);
+  }
 }
 
 static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)

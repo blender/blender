@@ -23,6 +23,14 @@ from bpy.types import Menu, Panel
 
 classes = []
 
+builtin_channel_categories = ["Cloth Tool",
+    "Color",
+    "Clay",
+    "Pose Tool",
+    "Basic",
+    "Smoothing",
+    "Stroke",
+    "Automasking"]
 
 class DynamicBrushCategoryPanel(Panel):
     bl_space_type = 'VIEW_3D'
@@ -184,6 +192,11 @@ classes.append(CLASSNAME)
 
         exec(code)
 
+#pre create category panels in correct order
+for cat in builtin_channel_categories:
+    DynamicPaintPanelGen.ensureCategory(cat, cat, parent="VIEW3D_PT_tools_brush_settings_channels", prefix="VIEW3D_PT_brush_category_")
+    DynamicPaintPanelGen.ensureCategory(cat, cat,  prefix="VIEW3D_PT_brush_category_edit_",
+                                parent="VIEW3D_PT_tools_brush_settings_channels_preview")
 
 channel_name_map = {
     "size": "radius",
@@ -194,7 +207,8 @@ channel_name_map = {
     "boundary_smooth_factor": "boundary_smooth",
     "autosmooth_fset_slide": "fset_slide",
     "topology_rake_factor": "topology_rake",
-    "use_locked_size": "radius_unit"
+    "use_locked_size": "radius_unit",
+    "use_cloth_collision" : "cloth_use_collision"
 }
 expand_channels = {"direction", "radius_unit", "automasking"}
 

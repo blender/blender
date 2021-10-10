@@ -1586,8 +1586,8 @@ void BKE_builtin_commandlist_create(Brush *brush,
   float cloth_radius_mul = 1.0f;
 
   if (is_cloth && (ch = BRUSHSET_LOOKUP(chset, cloth_sim_limit))) {
-    autosmooth_scale *= ch->fvalue;
-    cloth_radius_mul = ch->fvalue;
+    cloth_radius_mul += ch->fvalue;
+    autosmooth_scale *= cloth_radius_mul;
   }
 
   float autosmooth_spacing;

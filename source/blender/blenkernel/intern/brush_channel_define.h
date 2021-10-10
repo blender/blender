@@ -403,7 +403,9 @@ MAKE_BOOL(cloth_use_collision,  "Enable Collision", "Collide with objects during
 MAKE_BOOL(use_frontface, "Use Front-Face", "Brush only affects vertexes that face the viewer", false)
 MAKE_BOOL(cloth_pin_simulation_boundary, "Pin Simulation Boundary",
       "Lock the position of the vertices in the simulation falloff area to avoid artifacts and "
-      "create a softer transition with unaffected areas", false)
+      "create a softer transition with unaffected areas", true)
+MAKE_BOOL(cloth_solve_bending, "Bending", "Solve for bending", false)
+MAKE_FLOAT(cloth_bending_stiffness, "Bending Stiffness", "", 0.5f, 0.0f, 1.0f)
 
 MAKE_FLOAT(boundary_offset, "Boundary Origin Offset",
                            "Offset of the boundary origin in relation to the brush radius", 0.05f, 0.0f, 10.0f)

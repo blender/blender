@@ -329,6 +329,8 @@ static bool check_builtin_init()
   SETCAT(cloth_constraint_softbody_strength, "Cloth Tool");
   SETCAT(cloth_use_collision, "Cloth Tool");
   SETCAT(cloth_pin_simulation_boundary, "Cloth Tool");
+  SETCAT(cloth_solve_bending, "Cloth Tool");
+  SETCAT(cloth_bending_stiffness, "Cloth Tool");
 
   SETCAT(pose_offset, "Pose Tool");
   SETCAT(pose_smooth_iterations, "Pose Tool");
@@ -1151,6 +1153,8 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       ADDCH(slide_deform_type);
       break;
     case SCULPT_TOOL_CLOTH:
+      ADDCH(cloth_solve_bending);
+      ADDCH(cloth_bending_stiffness);
       ADDCH(cloth_mass);
       ADDCH(cloth_damping);
       ADDCH(cloth_sim_limit);
@@ -1161,6 +1165,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       ADDCH(cloth_deform_type);
       ADDCH(cloth_use_collision);
       ADDCH(cloth_pin_simulation_boundary);
+      ADDCH(cloth_constraint_softbody_strength);
 
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
@@ -1408,6 +1413,10 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWCTX(height);
       break;
     case SCULPT_TOOL_CLOTH:
+      SHOWWRK(spacing);
+      SHOWCTX(spacing);
+      SHOWWRK(cloth_solve_bending);
+      SHOWWRK(cloth_bending_stiffness);
       SHOWWRK(cloth_deform_type);
       SHOWWRK(cloth_force_falloff_type);
       SHOWWRK(cloth_simulation_area_type);
@@ -1711,6 +1720,7 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       GETCH(dyntopo_disabled)->ivalue = true;
       break;
     case SCULPT_TOOL_CLOTH:
+      BRUSHSET_SET_BOOL(chset, cloth_pin_simulation_boundary, true);
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;
       GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &= ~BRUSH_MAPPING_ENABLED;

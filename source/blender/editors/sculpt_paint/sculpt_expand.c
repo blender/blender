@@ -1409,8 +1409,9 @@ static void sculpt_expand_cancel(bContext *C, wmOperator *UNUSED(op))
 /**
  * Callback to update mask data per PBVH node.
  */
-ATTR_NO_OPT static void sculpt_expand_mask_update_task_cb(
-    void *__restrict userdata, const int i, const TaskParallelTLS *__restrict UNUSED(tls))
+static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
+                                              const int i,
+                                              const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
