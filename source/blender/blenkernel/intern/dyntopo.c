@@ -35,6 +35,7 @@
 #include <stdio.h>
 
 //#define DYNTOPO_REPORT
+//#define WITH_ADAPTIVE_CURVATURE
 
 #define SCULPTVERT_VALENCE_TEMP SCULPTVERT_SPLIT_TEMP
 
@@ -1422,8 +1423,10 @@ static void edge_queue_insert_val34_vert(EdgeQueueContext *eq_ctx, BMVert *v)
   eq_ctx->val34_verts[eq_ctx->val34_verts_tot - 1] = v;
 }
 
-BLI_INLINE float maskcb_get(EdgeQueueContext *eq_ctx, BMEdge *e)
+ATTR_NO_OPT static float maskcb_get(EdgeQueueContext *eq_ctx, BMEdge *e)
 {
+  float ret = 0.0f;
+
   if (eq_ctx->mask_cb) {
     SculptVertRef sv1 = {(intptr_t)e->v1};
     SculptVertRef sv2 = {(intptr_t)e->v2};
@@ -1431,13 +1434,16 @@ BLI_INLINE float maskcb_get(EdgeQueueContext *eq_ctx, BMEdge *e)
     float w1 = eq_ctx->mask_cb(sv1, eq_ctx->mask_cb_data);
     float w2 = eq_ctx->mask_cb(sv2, eq_ctx->mask_cb_data);
 
-    return (w1 + w2) * 0.5f;
+    ret = (w1 + w2) * 0.5f;
+  }
+  else {
+    ret = 1.0f;
   }
 
-  return 1.0f;
+  return ret;
 }
 
-BLI_INLINE float calc_weighted_edge_split(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
+ATTR_NO_OPT static float calc_weighted_edge_split(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
 {
 #ifdef FANCY_EDGE_WEIGHTS
   float l = len_squared_v3v3(v1->co, v2->co);
@@ -1461,12 +1467,27 @@ BLI_INLINE float calc_weighted_edge_split(EdgeQueueContext *eq_ctx, BMVert *v1, 
 
   return l;
 #else
+
+#  ifdef WITH_ADAPTIVE_CURVATURE
+  MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(eq_ctx->cd_sculpt_vert, v1);
+  MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(eq_ctx->cd_sculpt_vert, v2);
+
+  float c1 = (float)mv1->curv / 65535.0f;
+  float c2 = (float)mv2->curv / 65535.0f;
+  float fac = 1.0f + powf((c1 + c2) * 100.0, 4.0f);
+  fac = min_ff(fac, 4.0f);
+
+  return fac * len_squared_v3v3(v1->co, v2->co);
+#  else
   return len_squared_v3v3(v1->co, v2->co);
+#  endif
 #endif
 }
 
 BLI_INLINE float calc_weighted_edge_collapse(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
 {
+  return calc_weighted_edge_split(eq_ctx, v1, v2);
+
 #ifdef FANCY_EDGE_WEIGHTS
   float l = len_squared_v3v3(v1->co, v2->co);
   // float val = (float)BM_vert_edge_count(v1) + (float)BM_vert_edge_count(v2);
@@ -1812,7 +1833,7 @@ static void long_edge_queue_edge_add(EdgeQueueContext *eq_ctx, BMEdge *e)
 #endif
   {
     const float w = maskcb_get(eq_ctx, e);
-    const float len_sq = BM_edge_calc_length_squared(e) * w * w;
+    const float len_sq = calc_weighted_edge_split(eq_ctx, e->v1, e->v2) * w * w;
 
     if (len_sq > eq_ctx->q->limit_len_squared) {
       edge_queue_insert(eq_ctx, e, -len_sq, eq_ctx->q->limit_len);
@@ -1855,7 +1876,8 @@ static void long_edge_queue_edge_add_recursive(EdgeQueueContext *eq_ctx,
     do {
       BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
       for (int i = 0; i < (int)ARRAY_SIZE(l_adjacent); i++) {
-        float len_sq_other = BM_edge_calc_length_squared(l_adjacent[i]->e);
+        float len_sq_other = calc_weighted_edge_split(
+            eq_ctx, l_adjacent[i]->e->v1, l_adjacent[i]->e->v2);
         float w = maskcb_get(eq_ctx, l_adjacent[i]->e);
 
         len_sq_other *= w * w;
@@ -1906,7 +1928,7 @@ static void long_edge_queue_face_add(EdgeQueueContext *eq_ctx, BMFace *f, bool i
     BMLoop *l_iter = l_first;
     do {
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
-      float len_sq = BM_edge_calc_length_squared(l_iter->e);
+      float len_sq = calc_weighted_edge_split(eq_ctx, l_iter->e->v1, l_iter->e->v2);
       float w = maskcb_get(eq_ctx, l_iter->e);
 
       len_sq *= w * w;
@@ -2187,8 +2209,7 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
 
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
         float w = maskcb_get(eq_ctx, l_iter->e);
-        float len_sq = BM_edge_calc_length_squared(l_iter->e);
-
+        float len_sq = calc_weighted_edge_split(eq_ctx, l_iter->e->v1, l_iter->e->v2);
         len_sq *= w * w;
 
         if (len_sq > eq_ctx->q->limit_len_squared) {

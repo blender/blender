@@ -526,7 +526,7 @@ typedef struct MRecast {
 /** \} */
 
 typedef struct MSculptVert {
-  short flag, valence;
+  unsigned short flag, valence;
 
   /**original coordinates*/
   float origco[3], origno[3];
@@ -534,7 +534,13 @@ typedef struct MSculptVert {
   /**original color*/
   float origcolor[4];
 
-  float origmask;
+  unsigned short origmask;
+
+  /* curv is a fast curvature approximation used by dyntopo
+    adaptive curvature. */
+  unsigned short curv;
+
+  /* curvature_dir parallels a principle curvature direction */
   float curvature_dir[3];
 
   /* id of current stroke, used to detect

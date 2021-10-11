@@ -331,7 +331,20 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   /* This produces better results as the relax operation is no completely focused on the
    * boundaries. */
   const bool relax_face_sets = !(ss->filter_cache->iteration_count % 3 == 0);
-  const bool weighted = false;
+  const bool weighted = ss->filter_cache->weighted_smooth;
+  const bool preserve_fset_boundaries = ss->filter_cache->preserve_fset_boundaries;
+  // const float hard_edge_fac = ss->filter_cache->hard_edge_fac;
+  const bool hard_edge_mode = ss->filter_cache->hard_edge_mode;
+  const float bound_smooth_radius = ss->filter_cache->bound_smooth_radius;
+
+  if (ELEM(filter_type,
+           MESH_FILTER_SMOOTH,
+           MESH_FILTER_SURFACE_SMOOTH,
+           MESH_FILTER_SHARPEN,
+           MESH_FILTER_RELAX,
+           MESH_FILTER_RELAX_FACE_SETS)) {
+    BKE_pbvh_check_tri_areas(ss->pbvh, node);
+  }
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -365,20 +378,24 @@ static void mesh_filter_task_cb(void *__restrict userdata,
 
     switch (filter_type) {
       case MESH_FILTER_SMOOTH: {
-        // float bound_smooth = SCULPT_get_float(ss, boundary_smooth, ss->, ss->cache->brush);
-        // float projection = SCULPT_get_float(ss, autosmooth_projection, NULL, ss->cache->brush);
-        // float slide_fset = SCULPT_get_float(ss, fset_slide, NULL, ss->cache->brush);
-
         fade = clamp_f(fade, -1.0f, 1.0f);
+        float bsmooth = bound_smooth_radius > 0.0f ? 0.5f : 0.0f;
+        float slide_fset = bound_smooth_radius > 0.0f ?
+                               bsmooth :
+                               1.0f - (float)hard_edge_mode;  // powf(1.0 - hard_edge_fac, 0.5f);
+
         SCULPT_neighbor_coords_average_interior(
             ss,
             avg,
             vd.vertex,
             &((SculptSmoothArgs){.projection = 0.0f,
-                                 .slide_fset = 0.0f,
-                                 .bound_smooth = 0.0f,
-                                 .preserve_fset_boundaries = false,
-                                 .do_weighted_smooth = false}));
+                                 .slide_fset = slide_fset,  // 1.0f - hard_edge_fac,
+                                 .bound_smooth = bsmooth,
+                                 .preserve_fset_boundaries = preserve_fset_boundaries,
+                                 .do_weighted_smooth = weighted,
+                                 .bound_smooth_radius = bound_smooth_radius,
+                                 .bound_scl = bsmooth > 0.0f ? &ss->filter_cache->bound_scl :
+                                                               NULL}));
 
         sub_v3_v3v3(val, avg, orig_co);
         madd_v3_v3v3fl(val, orig_co, val, fade);
@@ -535,6 +552,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   }
   BKE_pbvh_vertex_iter_end;
 
+  BKE_pbvh_node_mark_update_tri_area(node);
   BKE_pbvh_node_mark_update(node);
 }
 
@@ -868,6 +886,17 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   SculptFilterOrientation orientation = RNA_enum_get(op->ptr, "orientation");
   ss->filter_cache->orientation = orientation;
 
+  ss->filter_cache->weighted_smooth = RNA_boolean_get(op->ptr, "weighted");
+  ss->filter_cache->preserve_fset_boundaries = RNA_boolean_get(op->ptr,
+                                                               "preserve_fset_boundaries");
+  // ss->filter_cache->hard_edge_fac = RNA_float_get(op->ptr, "hard_edge_fac");
+  ss->filter_cache->hard_edge_mode = RNA_boolean_get(op->ptr, "hard_edge_mode");
+  ss->filter_cache->bound_smooth_radius = RNA_float_get(op->ptr, "bound_smooth_radius");
+
+  if (filter_type == MESH_FILTER_SMOOTH && ss->filter_cache->bound_smooth_radius != 0.0f) {
+    SCULPT_bound_smooth_init(ss, &ss->filter_cache->bound_scl);
+  }
+
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
 }
@@ -963,4 +992,28 @@ void SCULPT_OT_mesh_filter(struct wmOperatorType *ot)
                MESH_FILTER_SPHERE_CENTER_AVERAGE,
                "Sphere Center",
                "Position of the center of the sphere created by the filter");
+
+  RNA_def_boolean(ot->srna, "weighted", true, "Weighted", "Weight smoothing by face areas");
+  RNA_def_boolean(ot->srna,
+                  "preserve_fset_boundaries",
+                  true,
+                  "Preserve Face Sets",
+                  "Preserve face set boundaries");
+  // RNA_def_float(ot->srna, "hard_edge_fac", 0.0f, 0.0f, 1.0f, "Hard Edge Factor", "",
+  // 0.0f, 1.0f);
+  RNA_def_boolean(ot->srna,
+                  "hard_edge_mode",
+                  false,
+                  "Hard Edge Mode",
+                  "Treat face set boundaries as hard edges");
+
+  RNA_def_float(ot->srna,
+                "bound_smooth_radius",
+                0.0,
+                0.0,
+                1000.0f,
+                "Bevel Radius",
+                "Radius to bevel hard edges, 0 disables",
+                0.0f,
+                5.0f);
 }

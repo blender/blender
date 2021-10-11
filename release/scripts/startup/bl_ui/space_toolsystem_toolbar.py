@@ -1346,6 +1346,15 @@ class _defs_sculpt:
             elif props.type == 'SPHERE':
                 layout.prop(props, "sphere_center", expand=False)
 
+            if props.type in ["SMOOTH", "SPHERE", "SURFACE_SMOOTH", "SHARPEN"]:
+                layout.prop(props, "weighted")
+
+            if props.type == "SMOOTH":
+                #layout.prop(props, "hard_edge_fac")
+                layout.prop(props, "hard_edge_mode")
+                layout.prop(props, "preserve_fset_boundaries")
+                layout.prop(props, "bound_smooth_radius")
+
         return dict(idname="builtin.mesh_filter",
             label="Mesh Filter",
             icon="ops.sculpt.mesh_filter",

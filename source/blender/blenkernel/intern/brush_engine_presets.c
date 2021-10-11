@@ -537,7 +537,7 @@ BrushFlagMap brush_flags_map[] =  {
   DEF(flag, accumulate, BRUSH_ACCUMULATE)
   DEF(flag2, use_weighted_smooth, BRUSH_SMOOTH_USE_AREA_WEIGHT)
   DEF(flag2, preserve_faceset_boundary, BRUSH_SMOOTH_PRESERVE_FACE_SETS)
-  DEF(flag2, hard_edge_mode, BRUSH_HARD_EDGE_MODE)
+  //DEF(flag2, hard_edge_mode, BRUSH_HARD_EDGE_MODE) don't convert, this only existed on temp_bmesh_multires
   DEF(flag2, grab_silhouette, BRUSH_GRAB_SILHOUETTE)
   DEF(flag, invert_to_scrape_fill, BRUSH_INVERT_TO_SCRAPE_FILL)
   DEF(flag2, use_multiplane_scrape_dynamic, BRUSH_MULTIPLANE_SCRAPE_DYNAMIC)
@@ -1703,13 +1703,14 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       break;
     case SCULPT_TOOL_CREASE:
       GETCH(direction)->ivalue = true;
-      GETCH(strength)->fvalue = 0.25;
+      GETCH(strength)->fvalue = 0.25f;
+      GETCH(crease_pinch_factor)->fvalue = 0.5f;
       break;
     case SCULPT_TOOL_SCRAPE:
     case SCULPT_TOOL_FILL:
       GETCH(strength)->fvalue = 0.7f;
       GETCH(area_radius_factor)->fvalue = 0.5f;
-      GETCH(spacing)->fvalue = 7;
+      GETCH(spacing)->fvalue = 7.0f;
       ADDCH(invert_to_scrape_fill);
       GETCH(invert_to_scrape_fill)->ivalue = true;
       GETCH(accumulate)->ivalue = true;
@@ -1803,6 +1804,11 @@ void BKE_brush_channelset_check_radius(BrushChannelSet *chset)
 
   if (!ch2) {
     return;
+  }
+
+  if (ch1->fvalue == 0.0 || ch2->fvalue == 0.0) {
+    ch1->fvalue = 100.0f;
+    ch2->fvalue = 0.1f;
   }
 
   int mask = BRUSH_CHANNEL_INHERIT | BRUSH_CHANNEL_INHERIT_IF_UNSET |

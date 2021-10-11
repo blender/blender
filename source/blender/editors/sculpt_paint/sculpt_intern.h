@@ -412,6 +412,7 @@ typedef struct SculptSmoothArgs {
   bool do_origco : 1;
   bool do_weighted_smooth : 1;
   bool preserve_fset_boundaries : 1;
+  float bound_smooth_radius;  // if 0, ss->cache->radius will be used
 } SculptSmoothArgs;
 
 /* Utils. */
@@ -1690,6 +1691,13 @@ typedef struct FilterCache {
 
   GHash *mask_delta_step;
 
+  bool preserve_fset_boundaries;
+  bool weighted_smooth;
+  float hard_edge_fac;
+  bool hard_edge_mode;
+  float bound_smooth_radius;
+
+  struct SculptCustomLayer bound_scl;
 } FilterCache;
 
 void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
@@ -1996,6 +2004,10 @@ void SCULPT_replay_test(void);
 #endif
 
 struct BMesh *SCULPT_dyntopo_empty_bmesh();
+
+/* initializes customdata layer used by SCULPT_neighbor_coords_average_interior when bound_smooth >
+ * 0.0f*/
+void SCULPT_bound_smooth_init(SculptSession *ss, SculptCustomLayer *r_bound_scl);
 
 #define SCULPT_stroke_needs_original(brush) \
   ELEM(brush->sculpt_tool, \

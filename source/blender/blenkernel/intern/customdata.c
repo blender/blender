@@ -1510,8 +1510,9 @@ static void layerDynTopoVert_copy(const void *source, void *dest, int count)
 static void layerDynTopoVert_interp(
     const void **sources, const float *weights, const float *sub_weights, int count, void *dest)
 {
-  float co[3], no[3], origmask, color[4];
+  float co[3], no[3], origmask, color[4], curv;
   MSculptVert *mv = (MSculptVert *)dest;
+
   // float totweight = 0.0f;
 
   if (count == 0) {
@@ -1522,6 +1523,7 @@ static void layerDynTopoVert_interp(
   zero_v3(co);
   zero_v3(no);
   origmask = 0.0f;
+  curv = 0.0f;
   zero_v4(color);
 
   for (int i = 0; i < count; i++) {
@@ -1538,7 +1540,8 @@ static void layerDynTopoVert_interp(
     madd_v3_v3fl(co, mv2->origco, w);
     madd_v3_v3fl(no, mv2->origno, w);
     madd_v4_v4fl(color, mv2->origcolor, w);
-    origmask += mv2->origmask * w;
+    origmask += (float)mv2->origmask * w;
+    curv += (float)mv2->curv * w;
 
     // totweight += w;
   }
@@ -1561,7 +1564,8 @@ static void layerDynTopoVert_interp(
   copy_v3_v3(mv->origno, no);
   copy_v4_v4(mv->origcolor, color);
 
-  mv->origmask = origmask;
+  mv->curv = (short)curv;
+  mv->origmask = (short)origmask;
 }
 
 static void layerInterp_noop(const void **UNUSED(sources),

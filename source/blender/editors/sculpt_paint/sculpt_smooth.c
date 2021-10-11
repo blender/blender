@@ -74,10 +74,10 @@
 #include <math.h>
 #include <stdlib.h>
 
-void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
-                                             float result[3],
-                                             SculptVertRef vertex,
-                                             SculptSmoothArgs *args)
+ATTR_NO_OPT void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                                         float result[3],
+                                                         SculptVertRef vertex,
+                                                         SculptSmoothArgs *args)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
 
@@ -155,7 +155,10 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   if (bound_scl) {
     b1 = SCULPT_temp_cdata_get(vertex, bound_scl);
     b1_orig = *b1;
-    *b1 = 0.0f;
+
+    if (1 || is_boundary) {
+      *b1 = 0.0f;
+    }
   }
 
   SculptVertexNeighborIter ni;
@@ -276,11 +279,21 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
         copy_v3_v3(no2, mv2->origno);
       }
 
-      float radius = ss->cache->radius * 10.0f;
+      float radius;
+      if (!args->bound_smooth_radius && ss->cache) {
+        radius = ss->cache->radius * 1.0f;
+      }
+      else {
+        radius = args->bound_smooth_radius * 1.0f;
+      }
+
+      radius = radius == 0.0f ? 0.0001f : radius;
 
       float th = radius - b1_orig;
       th = MAX2(th, 0.0f);
       th /= radius;
+
+      // th = 1.0 - th;
 
 #if 0
       float *color = (float *)SCULPT_vertex_color_get(ss, ni.vertex);
@@ -291,10 +304,24 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       float fac = bound_smooth;
       fac = MIN2(fac * 4.0f, 1.0f);
       fac = powf(fac, 0.2);
-      th *= fac;
+      // th *= fac;
+      // th *= shell_angle_to_dist(shellth * 1.0) * 0.5;
 
-      sub_v3_v3(tmp, co);
-      madd_v3_v3fl(tmp, no2, th * dot_v3v3(no2, tmp));
+      /* jump above the v,no2 plane, using distance from plane (which doubles after this)*/
+      // sub_v3_v3(tmp, co);
+      // madd_v3_v3fl(tmp, no2, th * dot_v3v3(no2, tmp));
+      // add_v3_v3(tmp, co);
+
+      th = min_ff(b1_orig / radius, 1.0f);
+
+      /*ok this bit smoothes the bevel edges.  why? hit on it
+        by accident.*/
+      float shellth = saacos(dot_v3v3(no, no2));
+      shellth = shell_angle_to_dist(shellth * 2.0);
+      th /= 0.00001 + shellth;
+
+      sub_v3_v3v3(tmp, co2, co);
+      madd_v3_v3fl(tmp, no, -dot_v3v3(no, tmp) * th);
       add_v3_v3(tmp, co);
     }
 
@@ -353,7 +380,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     corner_smooth = MAX2(slide_fset, bound_smooth);
   }
   else {
-    corner_smooth = bound_smooth;
+    corner_smooth = 2.0f * bound_smooth;
   }
 
   interp_v3_v3v3(result, result, co, 1.0f - corner_smooth);
@@ -1139,6 +1166,13 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 }
 #endif
 
+void SCULPT_bound_smooth_init(SculptSession *ss, SculptCustomLayer *r_bound_scl)
+{
+  SculptLayerParams params = {.permanent = true, .simple_array = false};
+  SCULPT_temp_customlayer_get(
+      ss, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "t__smooth_bdist", r_bound_scl, &params);
+}
+
 void SCULPT_smooth(Sculpt *sd,
                    Object *ob,
                    PBVHNode **nodes,
@@ -1213,12 +1247,7 @@ void SCULPT_smooth(Sculpt *sd,
     bound_smooth = powf(ss->cache->brush->boundary_smooth_factor, BOUNDARY_SMOOTH_EXP);
 
     bound_scl = &_scl;
-    SculptLayerParams params = {.permanent = false, .simple_array = false};
-
-    SCULPT_temp_customlayer_ensure(
-        ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "__smooth_bdist", &params);
-    SCULPT_temp_customlayer_get(
-        ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "__smooth_bdist", bound_scl, &params);
+    SCULPT_bound_smooth_init(ss, bound_scl);
 
     if (do_vel_smooth) {
       SCULPT_temp_customlayer_get(

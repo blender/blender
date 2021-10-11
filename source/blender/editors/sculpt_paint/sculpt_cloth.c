@@ -963,7 +963,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
                                               use_persistent);
             }
             else if (mp1->totloop == 4) {
-              ml1 = (ml1 + 1) % mp1->loopstart;
+                ml1 = (ml1 + 1) % mp1->loopstart;
 
               cloth_brush_add_bend_constraint(ss,
                                               data->cloth_sim,

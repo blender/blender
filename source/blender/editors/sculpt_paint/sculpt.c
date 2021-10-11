@@ -2985,7 +2985,7 @@ bool SCULPT_vertex_check_origdata(SculptSession *ss, SculptVertRef vertex)
       copy_v4_v4(mv->origcolor, color);
     }
 
-    mv->origmask = SCULPT_vertex_mask_get(ss, vertex);
+    mv->origmask = (short)(SCULPT_vertex_mask_get(ss, vertex) * 65535.0f);
 
     return false;
   }
@@ -3014,7 +3014,7 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, SculptVertRef v
     orig_data->col = mv->origcolor;
   }
   else if (orig_data->datatype == SCULPT_UNDO_MASK) {
-    orig_data->mask = mv->origmask;
+    orig_data->mask = (float)mv->origmask / 65535.0f;
   }
 }
 
@@ -9690,12 +9690,6 @@ static void SCULPT_run_command(
 
   /*create final, input mapped parameter list*/
 
-  BKE_brush_channelset_free(cmd->params_mapped);
-
-  cmd->params_mapped = BKE_brush_channelset_copy(cmd->params_final);
-  BKE_brush_channelset_apply_mapping(cmd->params_mapped, &ss->cache->input_mapping);
-  BKE_brush_channelset_clear_inherit(cmd->params_mapped);
-
   radius_scale = 1.0f;
 
   *brush2 = *brush;
@@ -10070,6 +10064,14 @@ static void SCULPT_run_commandlist(
         .nodes = NULL,
         .totnode = 0,
         .radius_max = radius_max};  //, .nodes = nodes, .totnode = totnode};
+
+    if (cmd->params_mapped) {
+      BKE_brush_channelset_free(cmd->params_mapped);
+    }
+
+    cmd->params_mapped = BKE_brush_channelset_copy(cmd->params_final);
+    BKE_brush_channelset_apply_mapping(cmd->params_mapped, &ss->cache->input_mapping);
+    BKE_brush_channelset_clear_inherit(cmd->params_mapped);
 
     do_symmetrical_brush_actions(sd, ob, SCULPT_run_command, ups, &data);
 

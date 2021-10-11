@@ -817,6 +817,10 @@ void BKE_pbvh_bmesh_update_origvert(
     BM_log_vert_before_modified(pbvh->bm_log, v, pbvh->cd_vert_mask_offset, r_color != NULL);
   }
 
+  if (pbvh->cd_vert_mask_offset) {
+    mv->origmask = (short)(BM_ELEM_CD_GET_FLOAT(v, pbvh->cd_vert_mask_offset) * 65535.0f);
+  }
+
   if (r_co || r_no) {
 
     copy_v3_v3(mv->origco, v->co);
@@ -1489,15 +1493,19 @@ static int color_boundary_key(float col[4])
 }
 #endif
 
-void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
-                                   int cd_faceset_offset,
-                                   int cd_vert_node_offset,
-                                   int cd_face_node_offset,
-                                   int cd_vcol,
-                                   BMVert *v,
-                                   int bound_symmetry)
+ATTR_NO_OPT void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
+                                               int cd_faceset_offset,
+                                               int cd_vert_node_offset,
+                                               int cd_face_node_offset,
+                                               int cd_vcol,
+                                               BMVert *v,
+                                               int bound_symmetry)
 {
   MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
+
+  float avg[3] = {0.0f, 0.0f, 0.0f};
+  float avg_len = 0.0f;
+  float curv = 0.0f, totcurv = 0.0f;
 
   BMEdge *e = v->e;
   mv->flag &= ~(SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_NEED_BOUNDARY |
@@ -1535,6 +1543,17 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
 
   do {
     BMVert *v2 = v == e->v1 ? e->v2 : e->v1;
+
+#if 0
+    float tmp[3];
+    sub_v3_v3v3(tmp, v2->co, v->co);
+    madd_v3_v3fl(avg, v->no, -dot_v3v3(v->no, tmp));
+    // madd_v3_v3fl(tmp, v->no, -dot_v3v3(v->no, tmp));
+    add_v3_v3(avg, tmp);
+
+    avg_len += len_squared_v3(tmp);
+    totcurv += 1.0f;
+#endif
 
     if (BM_ELEM_CD_GET_INT(v2, cd_vert_node_offset) != ni) {
       mv->flag |= SCULPTVERT_PBVH_BOUNDARY;
@@ -1612,6 +1631,11 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
       // also check e->l->radial_next, in case we are not manifold
       // which can mess up the loop order
       if (e->l->radial_next != e->l) {
+        float th = saacos(dot_v3v3(e->l->f->no, e->l->radial_next->f->no)) * M_1_PI * 0.25f;
+        // th = th * 0.5 + 0.5;
+        curv += th;
+        totcurv += 1.0f;
+
         // fset = abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset));
         int fset2 = BKE_pbvh_do_fset_symmetry(
             BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset), bound_symmetry, v2->co);
@@ -1660,6 +1684,27 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
   if ((mv->flag & SCULPTVERT_BOUNDARY) && quadcount >= 3) {
     mv->flag |= SCULPTVERT_CORNER;
   }
+
+#if 0
+  if (totcurv > 0.0f) {
+    mul_v3_fl(avg, 1.0f / totcurv);
+    avg_len /= totcurv;
+  }
+
+  if (avg_len > 0.0f) {
+    curv = len_squared_v3(avg) / avg_len;
+  }
+  else {
+    curv = 0.0f;
+  }
+#else
+  if (totcurv > 0.0f) {
+    curv /= totcurv;
+  }
+#endif
+
+  // mv->curv = (short)(fabsf(min_ff(curv * 50.0f, 1.0f)) * 32767.0f);
+  mv->curv = (short)(min_ff(fabsf(curv), 1.0f) * 65535.0f);
 
   BLI_array_free(fsets);
 }
