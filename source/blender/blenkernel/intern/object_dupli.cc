@@ -88,7 +88,6 @@ struct DupliContext {
   Object *obedit;
 
   Scene *scene;
-  ViewLayer *view_layer;
   Object *object;
   float space_mat[4][4];
 
@@ -127,7 +126,6 @@ static void init_context(DupliContext *r_ctx,
 {
   r_ctx->depsgraph = depsgraph;
   r_ctx->scene = scene;
-  r_ctx->view_layer = DEG_get_evaluated_view_layer(depsgraph);
   r_ctx->collection = nullptr;
 
   r_ctx->object = ob;
@@ -311,13 +309,18 @@ static void make_child_duplis(const DupliContext *ctx,
     FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
   }
   else {
-    int baseid;
-    ViewLayer *view_layer = ctx->view_layer;
-    LISTBASE_FOREACH_INDEX (Base *, base, &view_layer->object_bases, baseid) {
-      Object *ob = base->object;
+    /* FIXME: using a mere counter to generate a 'persistent' dupli id is very weak. One possible
+     * better solution could be to use `session_uuid` of ID's instead? */
+    int persistent_dupli_id = 0;
+    /* NOTE: this set of flags ensure we only iterate over objects that have a base in either the
+     * current scene, or the set (background) scene. */
+    int deg_objects_visibility_flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                                       DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
+
+    DEG_OBJECT_ITER_BEGIN (ctx->depsgraph, ob, deg_objects_visibility_flags) {
       if ((ob != ctx->obedit) && is_child(ob, parent)) {
         DupliContext pctx;
-        copy_dupli_context(&pctx, ctx, ctx->object, nullptr, baseid);
+        copy_dupli_context(&pctx, ctx, ctx->object, nullptr, persistent_dupli_id);
 
         /* Meta-balls have a different dupli-handling. */
         if (ob->type != OB_MBALL) {
@@ -326,7 +329,9 @@ static void make_child_duplis(const DupliContext *ctx,
 
         make_child_duplis_cb(&pctx, userdata, ob);
       }
+      persistent_dupli_id++;
     }
+    DEG_OBJECT_ITER_END;
   }
 }
 
