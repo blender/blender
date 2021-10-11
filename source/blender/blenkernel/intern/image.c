@@ -5749,7 +5749,7 @@ bool BKE_image_has_anim(Image *ima)
   return (BLI_listbase_is_empty(&ima->anims) == false);
 }
 
-bool BKE_image_has_packedfile(Image *ima)
+bool BKE_image_has_packedfile(const Image *ima)
 {
   return (BLI_listbase_is_empty(&ima->packedfiles) == false);
 }
