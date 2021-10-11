@@ -1419,7 +1419,7 @@ class WM_OT_properties_edit(Operator):
     # Helper method to avoid repetative code to retrieve a single value from sequences and non-sequences.
     @staticmethod
     def _convert_new_value_single(old_value, new_type):
-        if hasattr(old_value, "__len__"):
+        if hasattr(old_value, "__len__") and len(old_value) > 0:
             return new_type(old_value[0])
         return new_type(old_value)
 
