@@ -1649,7 +1649,30 @@ bool PyC_RunString_AsString(const char *imports[],
 #endif
 
 /**
- * Don't use `bool` return type, so -1 can be used as an error value.
+ *
+ * Comparison with #PyObject_IsTrue
+ * ================================
+ *
+ * Even though Python provides a way to retrieve the boolean value for an object,
+ * in many cases it's far too relaxed, with the following examples coercing values.
+ *
+ * \code{.py}
+ * data.value = "Text"    # True.
+ * data.value = ""        # False.
+ * data.value = {1, 2}    # True
+ * data.value = {}        # False.
+ * data.value = None      # False.
+ * \endcode
+ *
+ * In practice this is often a mistake by the script author that doesn't behave as they expect.
+ * So it's better to be more strict for attribute assignment and function arguments,
+ * only accepting True/False 0/1.
+ *
+ * If coercing a value is desired, it can be done explicitly: `data.value = bool(value)`
+ *
+ * \see #PyC_ParseBool for use with #PyArg_ParseTuple and related functions.
+ *
+ * \note Don't use `bool` return type, so -1 can be used as an error value.
  */
 int PyC_Long_AsBool(PyObject *value)
 {
