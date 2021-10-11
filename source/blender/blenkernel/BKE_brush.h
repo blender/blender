@@ -167,7 +167,7 @@ void BKE_brush_default_input_curves_set(struct Brush *brush);
     if ((p)->runtime.ob_mode == OB_MODE_SCULPT) { \
       BKE_brush_builtin_patch(brush, tool); \
       if (_old != tool) { \
-        BKE_brush_sculpt_reset(brush, tool); \
+        BKE_brush_sculpt_reset(brush); \
       } \
     } \
   } \
