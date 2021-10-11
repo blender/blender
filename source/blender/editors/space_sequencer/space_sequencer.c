@@ -782,7 +782,8 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   const bool draw_overlay = sseq->flag & SEQ_SHOW_OVERLAY;
-  const bool draw_frame_overlay = (scene->ed && (scene->ed->over_flag & SEQ_EDIT_USE_FRAME_OVERLAY) &&
+  const bool draw_frame_overlay = (scene->ed &&
+                                   (scene->ed->over_flag & SEQ_EDIT_USE_FRAME_OVERLAY) &&
                                    draw_overlay);
   const bool is_playing = ED_screen_animation_playing(wm);
 
