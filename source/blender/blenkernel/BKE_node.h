@@ -1550,6 +1550,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define FN_NODE_RANDOM_VALUE 1214
 #define FN_NODE_ROTATE_EULER 1215
 #define FN_NODE_ALIGN_EULER_TO_VECTOR 1216
+#define FN_NODE_INPUT_COLOR 1217
 
 /** \} */
 
