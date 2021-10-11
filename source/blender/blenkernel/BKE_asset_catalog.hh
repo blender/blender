@@ -40,16 +40,18 @@
 
 namespace blender::bke {
 
+class AssetCatalog;
+class AssetCatalogCollection;
+class AssetCatalogDefinitionFile;
+class AssetCatalogFilter;
+class AssetCatalogTree;
+
 using CatalogID = bUUID;
 using CatalogPathComponent = std::string;
 /* Would be nice to be able to use `std::filesystem::path` for this, but it's currently not
  * available on the minimum macOS target version. */
 using CatalogFilePath = std::string;
-
-class AssetCatalog;
-class AssetCatalogDefinitionFile;
-class AssetCatalogFilter;
-class AssetCatalogTree;
+using OwningAssetCatalogMap = Map<CatalogID, std::unique_ptr<AssetCatalog>>;
 
 /* Manages the asset catalogs of a single asset library (i.e. of catalogs defined in a single
  * directory hierarchy). */
@@ -131,8 +133,8 @@ class AssetCatalogService {
 
  protected:
   /* These pointers are owned by this AssetCatalogService. */
-  Map<CatalogID, std::unique_ptr<AssetCatalog>> catalogs_;
-  Map<CatalogID, std::unique_ptr<AssetCatalog>> deleted_catalogs_;
+  OwningAssetCatalogMap catalogs_;
+  OwningAssetCatalogMap deleted_catalogs_;
   std::unique_ptr<AssetCatalogDefinitionFile> catalog_definition_file_;
   std::unique_ptr<AssetCatalogTree> catalog_tree_ = std::make_unique<AssetCatalogTree>();
   CatalogFilePath asset_library_root_;
