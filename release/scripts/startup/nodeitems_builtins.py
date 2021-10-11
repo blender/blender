@@ -152,6 +152,34 @@ def mesh_node_items(context):
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeSetShadeSmooth")
 
+# Custom Menu for Geometry Node Input Nodes
+def geometry_input_node_items(context):
+    if context is None:
+        return
+    space = context.space_data
+    if not space:
+        return
+    if not space.edit_tree:
+        return
+
+    if geometry_nodes_legacy_poll(context):
+        yield NodeItem("FunctionNodeLegacyRandomFloat"),
+        yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+
+    yield NodeItem("GeometryNodeCollectionInfo")
+    yield NodeItem("FunctionNodeInputColor")
+    yield NodeItem("GeometryNodeIsViewport")
+    yield NodeItem("GeometryNodeInputMaterial")
+    yield NodeItem("GeometryNodeObjectInfo")
+    yield NodeItem("FunctionNodeInputString")
+    yield NodeItem("ShaderNodeValue")
+    yield NodeItem("FunctionNodeInputVector")
+    yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    yield NodeItem("GeometryNodeInputIndex")
+    yield NodeItem("GeometryNodeInputNormal")
+    yield NodeItem("GeometryNodeInputPosition")
+    yield NodeItem("GeometryNodeInputRadius")
+
 # Custom Menu for Geometry Node Curves
 def point_node_items(context):
     if context is None:
@@ -633,21 +661,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeSetPosition"),
         NodeItem("GeometryNodeRealizeInstances"),
     ]),
-    GeometryNodeCategory("GEO_INPUT", "Input", items=[
-        NodeItem("FunctionNodeLegacyRandomFloat", poll=geometry_nodes_legacy_poll),
-        NodeItem("GeometryNodeObjectInfo"),
-        NodeItem("GeometryNodeCollectionInfo"),
-        NodeItem("ShaderNodeValue"),
-        NodeItem("FunctionNodeInputString"),
-        NodeItem("FunctionNodeInputVector"),
-        NodeItem("FunctionNodeInputColor"),
-        NodeItem("GeometryNodeInputMaterial"),
-        NodeItem("GeometryNodeIsViewport"),
-        NodeItem("GeometryNodeInputIndex"),
-        NodeItem("GeometryNodeInputPosition"),
-        NodeItem("GeometryNodeInputRadius"),
-        NodeItem("GeometryNodeInputNormal"),
-    ]),
+    GeometryNodeCategory("GEO_INPUT", "Input", items=geometry_input_node_items),
     GeometryNodeCategory("GEO_MATERIAL", "Material", items=[
         NodeItem("GeometryNodeLegacyMaterialAssign", poll=geometry_nodes_legacy_poll),
         NodeItem("GeometryNodeLegacySelectByMaterial", poll=geometry_nodes_legacy_poll),
