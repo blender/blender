@@ -1432,6 +1432,11 @@ typedef struct NodeGeometryCurveSplineType {
   uint8_t spline_type;
 } NodeGeometryCurveSplineType;
 
+typedef struct NodeGeometrySetCurveHandlePositions {
+  /* GeometryNodeCurveHandleMode. */
+  uint8_t mode;
+} NodeGeometrySetCurveHandlePositions;
+
 typedef struct NodeGeometryCurveSetHandles {
   /* GeometryNodeCurveHandleType. */
   uint8_t handle_type;

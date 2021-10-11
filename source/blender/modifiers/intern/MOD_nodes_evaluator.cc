@@ -337,6 +337,14 @@ static void get_socket_value(const SocketRef &socket, void *r_value)
         new (r_value) Field<float3>(bke::AttributeFieldInput::Create<float3>("position"));
         return;
       }
+      if (bnode.type == GEO_NODE_SET_CURVE_HANDLES) {
+        StringRef side = ((NodeGeometrySetCurveHandlePositions *)bnode.storage)->mode ==
+                                 GEO_NODE_CURVE_HANDLE_LEFT ?
+                             "handle_left" :
+                             "handle_right";
+        new (r_value) Field<float3>(bke::AttributeFieldInput::Create<float3>(side));
+        return;
+      }
     }
     else if (bsocket.type == SOCK_INT) {
       if (ELEM(bnode.type, FN_NODE_RANDOM_VALUE, GEO_NODE_INSTANCE_ON_POINTS)) {
