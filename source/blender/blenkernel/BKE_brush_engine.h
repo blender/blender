@@ -364,6 +364,7 @@ void BKE_brush_channelset_apply_mapping(BrushChannelSet *chset, BrushMappingData
 void BKE_brush_check_toolsettings(struct Sculpt *sd);
 void BKE_brush_channelset_ui_init(struct Brush *brush, int tool);
 void BKE_brush_channelset_check_radius(BrushChannelSet *chset);
+void BKE_builtin_apply_hard_edge_mode(BrushChannelSet *chset, bool do_apply);
 
 const char *BKE_brush_channel_category_get(BrushChannel *ch);
 void BKE_brush_channel_category_set(BrushChannel *ch, const char *str);

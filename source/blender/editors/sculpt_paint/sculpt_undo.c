@@ -1927,16 +1927,23 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
   SculptUndoNode *unode = usculpt->nodes.first;
 
-  if (!unode || unode->type != type) {
+  if (!unode) {
     unode = sculpt_undo_alloc_node_type(ob, type);
 
     BLI_strncpy(unode->idname, ob->id.name, sizeof(unode->idname));
 
     unode->type = type;
+    unode->typemask = 1 << type;
     unode->applied = true;
     unode->bm_entry = BM_log_entry_add(ss->bm, ss->bm_log);
 
     return SCULPT_ensure_dyntopo_node_undo(ob, node, type, extraType);
+  }
+  else if (!(unode->typemask & (1 << type))) {
+    unode->typemask |= 1 << type;
+
+    /* add a log sub-entry */
+    BM_log_entry_add_ex(ss->bm, ss->bm_log, true);
   }
 
   if (!node) {
@@ -1946,7 +1953,8 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
   int n = BKE_pbvh_get_node_id(ss->pbvh, node);
 
   if (unode->nodemap_size <= n) {
-    int newsize = (n + 1) * 2;
+    int newsize = (n + 1);
+    newsize += newsize >> 1;
 
     if (!unode->nodemap) {
       unode->nodemap = MEM_callocN(sizeof(*unode->nodemap) * newsize, "unode->nodemap");
@@ -1958,11 +1966,11 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
     unode->nodemap_size = newsize;
   }
 
-  if (unode->nodemap[n]) {
+  if (unode->nodemap[n] & (1 << type)) {
     return false;
   }
 
-  unode->nodemap[n] = 1;
+  unode->nodemap[n] |= 1 << type;
   sculpt_undo_bmesh_push(ob, node, type);
 
   if (extraType >= 0) {

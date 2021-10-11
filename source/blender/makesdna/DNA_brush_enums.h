@@ -551,8 +551,6 @@ typedef enum eBrushUVSculptTool {
         SCULPT_TOOL_BOUNDARY, \
         SCULPT_TOOL_POSE, \
         SCULPT_TOOL_DRAW_FACE_SETS, \
-        SCULPT_TOOL_PAINT, \
-        SCULPT_TOOL_SMEAR, \
 \
         /* These brushes could handle dynamic topology, \ \
          * but user feedback indicates it's better not to */ \

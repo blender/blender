@@ -1461,6 +1461,9 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       break;
     case SCULPT_TOOL_PAINT:
       SHOWWRK(color);
+      SHOWWRK(dyntopo_disabled);
+      SHOWCTX(dyntopo_disabled);
+
       SHOWWRK(secondary_color);
       SHOWWRK(wet_mix);
       SHOWWRK(wet_persistence);
@@ -1614,6 +1617,7 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       GETCH(slide_deform_type)->ivalue = BRUSH_SLIDE_DEFORM_DRAG;
       break;
     case SCULPT_TOOL_PAINT:
+      BRUSHSET_SET_BOOL(chset, dyntopo_disabled, true);
       BRUSHSET_SET_FLOAT(chset, hardness, 0.4f);
       BRUSHSET_SET_FLOAT(chset, spacing, 10.0f);
       BRUSHSET_SET_FLOAT(chset, strength, 0.6f);

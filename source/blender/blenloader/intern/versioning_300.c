@@ -1842,6 +1842,11 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (brush->channels && brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
         BKE_brush_channelset_ui_init(brush, brush->sculpt_tool);
       }
+      else if (brush->channels &&
+               ELEM(brush->sculpt_plane, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
+        BKE_brush_channelset_ui_init(brush, brush->sculpt_tool);
+        BRUSHSET_SET_BOOL(brush->channels, dyntopo_disabled, true);
+      }
     }
   }
   /**

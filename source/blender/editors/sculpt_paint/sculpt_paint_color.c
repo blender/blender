@@ -121,13 +121,13 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   const float bstrength = fabsf(ss->cache->bstrength);
 
   PBVHVertexIter vd;
-  PBVHColorBufferNode *color_buffer;
+  // PBVHColorBufferNode *color_buffer;
 
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
   orig_data.datatype = SCULPT_UNDO_COLOR;
 
-  color_buffer = BKE_pbvh_node_color_buffer_get(data->nodes[n]);
+  // color_buffer = BKE_pbvh_node_color_buffer_get(data->nodes[n]);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -187,16 +187,19 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     float wet_mix_color[4];
     float buffer_color[4];
 
+    MSculptVert *mv = SCULPT_vertex_get_mdyntopo(ss, vd.vertex);
+    float *color_buffer = mv->origcolor;
+
     mul_v4_v4fl(paint_color, brush_color, fade * ss->cache->paint_brush.flow);
     mul_v4_v4fl(wet_mix_color, data->wet_mix_sampled_color, fade * ss->cache->paint_brush.flow);
 
     /* Interpolate with the wet_mix color for wet paint mixing. */
     blend_color_interpolate_float(
         paint_color, paint_color, wet_mix_color, ss->cache->paint_brush.wet_mix);
-    blend_color_mix_float(color_buffer->color[vd.i], color_buffer->color[vd.i], paint_color);
+    blend_color_mix_float(color_buffer, color_buffer, paint_color);
 
     /* Final mix over the original color using brush alpha. */
-    mul_v4_v4fl(buffer_color, color_buffer->color[vd.i], alpha);
+    mul_v4_v4fl(buffer_color, color_buffer, alpha);
 
     IMB_blend_color_float(vd.col, orig_data.col, buffer_color, brush->blend);
 
@@ -421,7 +424,9 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
     float current_disp[3];
     float current_disp_norm[3];
     float interp_color[4];
-    copy_v4_v4(interp_color, ss->cache->prev_colors[vd.index]);
+    float *prev_color = (float *)SCULPT_temp_cdata_get(vd.vertex, data->scl);
+
+    copy_v4_v4(interp_color, prev_color);
 
     switch (brush->smear_deform_type) {
       case BRUSH_SMEAR_DEFORM_DRAG:
@@ -442,7 +447,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
       float vertex_disp[3];
       float vertex_disp_norm[3];
       sub_v3_v3v3(vertex_disp, SCULPT_vertex_co_get(ss, ni.vertex), vd.co);
-      const float *neighbor_color = ss->cache->prev_colors[ni.index];
+      const float *neighbor_color = SCULPT_temp_cdata_get(ni.vertex, data->scl);
       normalize_v3_v3(vertex_disp_norm, vertex_disp);
       if (dot_v3v3(current_disp_norm, vertex_disp_norm) >= 0.0f) {
         continue;
@@ -456,8 +461,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-    blend_color_interpolate_float(
-        vd.col, ss->cache->prev_colors[vd.index], interp_color, fade * blend);
+    blend_color_interpolate_float(vd.col, prev_color, interp_color, fade * blend);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -475,7 +479,10 @@ static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    copy_v4_v4(ss->cache->prev_colors[vd.index], SCULPT_vertex_color_get(ss, vd.vertex));
+    copy_v4_v4((float *)SCULPT_temp_cdata_get(vd.vertex, data->scl),
+               SCULPT_vertex_color_get(ss, vd.vertex));
+
+    // copy_v4_v4(ss->cache->prev_colors[vd.index], SCULPT_vertex_color_get(ss, vd.vertex));
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -488,6 +495,12 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   if (!ss->vcol) {
     return;
   }
+
+  SculptCustomLayer prev_scl;
+  SculptLayerParams params = {.permanent = false, .simple_array = false};
+  SCULPT_temp_customlayer_ensure(ss, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "smear_previous", &params);
+  SCULPT_temp_customlayer_get(
+      ss, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "smear_previous", &prev_scl, &params);
 
   SCULPT_vertex_random_access_ensure(ss);
 
@@ -509,6 +522,7 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
+      .scl = &prev_scl,
       .brush = brush,
       .nodes = nodes,
   };

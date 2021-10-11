@@ -930,8 +930,11 @@ typedef struct SculptUndoNode {
   /* Sculpt Face Sets */
   int *face_sets;
 
-  bool *nodemap;
+  // dyntopo stuff
+
+  int *nodemap;
   int nodemap_size;
+  int typemask;
 
   size_t undo_size;
   // int gen, lasthash;
