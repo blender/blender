@@ -979,6 +979,12 @@ class WM_OT_url_open(Operator):
         return {'FINISHED'}
 
 
+# NOTE: needed for Python 3.10 since there are name-space issues with annotations.
+# This can be moved into the class as a static-method once Python 3.9x is dropped.
+def _wm_url_open_preset_type_items(_self, _context):
+    return [item for (item, _) in WM_OT_url_open_preset.preset_items]
+
+
 class WM_OT_url_open_preset(Operator):
     """Open a preset website in the web browser"""
     bl_idname = "wm.url_open_preset"
@@ -987,9 +993,7 @@ class WM_OT_url_open_preset(Operator):
 
     type: EnumProperty(
         name="Site",
-        items=lambda self, _context: (
-            item for (item, _) in WM_OT_url_open_preset.preset_items
-        ),
+        items=_wm_url_open_preset_type_items,
     )
 
     id: StringProperty(
