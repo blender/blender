@@ -535,6 +535,8 @@ void AssetCatalogTree::foreach_root_item(const ItemIterFn callback)
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 bool AssetCatalogDefinitionFile::contains(const CatalogID catalog_id) const
 {
   return catalogs_.contains(catalog_id);
