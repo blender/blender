@@ -94,6 +94,26 @@ static int py_rna_gizmo_target_id_parse(PyObject *o, void *p)
   return 1;
 }
 
+static int py_rna_gizmo_target_id_parse_and_ensure_is_valid(PyObject *o, void *p)
+{
+  if (py_rna_gizmo_target_id_parse(o, p) == 0) {
+    return 0;
+  }
+  struct BPyGizmoWithTarget *gizmo_with_target = p;
+  wmGizmo *gz = gizmo_with_target->gz;
+  wmGizmoProperty *gz_prop = gizmo_with_target->gz_prop;
+  if (!WM_gizmo_target_property_is_valid(gz_prop)) {
+    const char *gz_prop_id = PyUnicode_AsUTF8(o);
+    PyErr_Format(PyExc_ValueError,
+                 "Gizmo target property '%s.%s' has not been initialized, "
+                 "Call \"target_set_prop\" first!",
+                 gz->type->idname,
+                 gz_prop_id);
+    return 0;
+  }
+  return 1;
+}
+
 static int py_rna_gizmo_target_type_id_parse(PyObject *o, void *p)
 {
   struct BPyGizmoWithTargetType *gizmo_with_target = p;
@@ -424,7 +444,7 @@ static PyObject *bpy_gizmo_target_get_value(PyObject *UNUSED(self), PyObject *ar
                                         py_rna_gizmo_parse,
                                         &params.gz_with_target.gz,
                                         /* `target` */
-                                        py_rna_gizmo_target_id_parse,
+                                        py_rna_gizmo_target_id_parse_and_ensure_is_valid,
                                         &params.gz_with_target)) {
     goto fail;
   }
@@ -482,7 +502,7 @@ static PyObject *bpy_gizmo_target_set_value(PyObject *UNUSED(self), PyObject *ar
                                         py_rna_gizmo_parse,
                                         &params.gz_with_target.gz,
                                         /* `target` */
-                                        py_rna_gizmo_target_id_parse,
+                                        py_rna_gizmo_target_id_parse_and_ensure_is_valid,
                                         &params.gz_with_target,
                                         /* `value` */
                                         &params.value)) {
@@ -551,7 +571,7 @@ static PyObject *bpy_gizmo_target_get_range(PyObject *UNUSED(self), PyObject *ar
                                         py_rna_gizmo_parse,
                                         &params.gz_with_target.gz,
                                         /* `target` */
-                                        py_rna_gizmo_target_id_parse,
+                                        py_rna_gizmo_target_id_parse_and_ensure_is_valid,
                                         &params.gz_with_target)) {
     goto fail;
   }
