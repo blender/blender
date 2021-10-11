@@ -57,6 +57,7 @@ static void align_rotations_auto_pivot(IndexMask mask,
       const float3 vector = vectors[i];
       if (is_zero_v3(vector)) {
         output_rotations[i] = input_rotations[i];
+        continue;
       }
 
       float old_rotation[3][3];
@@ -106,10 +107,12 @@ static void align_rotations_fixed_pivot(IndexMask mask,
       if (local_main_axis == local_pivot_axis) {
         /* Can't compute any meaningful rotation angle in this case. */
         output_rotations[i] = input_rotations[i];
+        continue;
       }
 
       const float3 vector = vectors[i];
       if (is_zero_v3(vector)) {
+        output_rotations[i] = input_rotations[i];
         continue;
       }
 
@@ -182,7 +185,7 @@ class MF_AlignEulerToVector : public fn::MultiFunction {
     }
     else {
       float3 local_pivot_axis = {0.0f, 0.0f, 0.0f};
-      local_pivot_axis[main_axis_mode_] = 1;
+      local_pivot_axis[pivot_axis_mode_ - 1] = 1;
       align_rotations_fixed_pivot(mask,
                                   input_rotations,
                                   vectors,
