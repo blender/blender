@@ -1515,6 +1515,9 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_CURVE_SET_HANDLES 1100
 #define GEO_NODE_POINTS_TO_VOLUME 1101
 #define GEO_NODE_CURVE_HANDLE_TYPE_SELECTION 1102
+#define GEO_NODE_DELETE_GEOMETRY 1103
+#define GEO_NODE_SEPARATE_GEOMETRY 1104
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

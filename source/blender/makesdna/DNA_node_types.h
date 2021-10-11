@@ -1538,6 +1538,18 @@ typedef struct NodeGeometryStringToCurves {
   char _pad[1];
 } NodeGeometryStringToCurves;
 
+typedef struct NodeGeometryDeleteGeometry {
+  /* AttributeDomain. */
+  int8_t domain;
+  /* GeometryNodeDeleteGeometryMode. */
+  int8_t mode;
+} NodeGeometryDeleteGeometry;
+
+typedef struct NodeGeometrySeparateGeometry {
+  /* AttributeDomain. */
+  int8_t domain;
+} NodeGeometrySeparateGeometry;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1
@@ -2191,6 +2203,12 @@ typedef enum GeometryNodeStringToCurvesAlignYMode {
   GEO_NODE_STRING_TO_CURVES_ALIGN_Y_BOTTOM_BASELINE = 3,
   GEO_NODE_STRING_TO_CURVES_ALIGN_Y_BOTTOM = 4,
 } GeometryNodeStringToCurvesAlignYMode;
+
+typedef enum GeometryNodeDeleteGeometryMode {
+  GEO_NODE_DELETE_GEOMETRY_MODE_ALL = 0,
+  GEO_NODE_DELETE_GEOMETRY_MODE_EDGE_FACE = 1,
+  GEO_NODE_DELETE_GEOMETRY_MODE_ONLY_FACE = 2,
+} GeometryNodeDeleteGeometryMode;
 
 #ifdef __cplusplus
 }

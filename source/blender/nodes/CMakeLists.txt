@@ -217,6 +217,7 @@ set(SRC
   geometry/nodes/node_geo_curve_subdivide.cc
   geometry/nodes/node_geo_curve_to_mesh.cc
   geometry/nodes/node_geo_curve_trim.cc
+  geometry/nodes/node_geo_delete_geometry.cc
   geometry/nodes/node_geo_distribute_points_on_faces.cc
   geometry/nodes/node_geo_input_index.cc
   geometry/nodes/node_geo_input_material.cc
@@ -246,6 +247,7 @@ set(SRC
   geometry/nodes/node_geo_proximity.cc
   geometry/nodes/node_geo_realize_instances.cc
   geometry/nodes/node_geo_separate_components.cc
+  geometry/nodes/node_geo_separate_geometry.cc
   geometry/nodes/node_geo_set_position.cc
   geometry/nodes/node_geo_string_join.cc
   geometry/nodes/node_geo_string_to_curves.cc

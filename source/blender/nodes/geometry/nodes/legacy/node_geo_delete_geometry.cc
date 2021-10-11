@@ -664,7 +664,7 @@ static void geo_node_delete_geometry_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_delete_geometry()
+void register_node_type_geo_legacy_delete_geometry()
 {
   static bNodeType ntype;
 
