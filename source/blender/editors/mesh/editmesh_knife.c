@@ -97,7 +97,7 @@
 
 #define KNIFE_DEFAULT_ANGLE_SNAPPING_INCREMENT 30.0f
 #define KNIFE_MIN_ANGLE_SNAPPING_INCREMENT 0.0f
-#define KNIFE_MAX_ANGLE_SNAPPING_INCREMENT 90.0f
+#define KNIFE_MAX_ANGLE_SNAPPING_INCREMENT 180.0f
 
 typedef struct KnifeColors {
   uchar line[3];
@@ -1124,7 +1124,7 @@ static void knife_update_header(bContext *C, wmOperator *op, KnifeTool_OpData *k
       WM_MODALKEY(KNF_MODAL_ANGLE_SNAP_TOGGLE),
       (kcd->angle >= 0.0f) ? RAD2DEGF(kcd->angle) : 360.0f + RAD2DEGF(kcd->angle),
       (kcd->angle_snapping_increment > KNIFE_MIN_ANGLE_SNAPPING_INCREMENT &&
-       kcd->angle_snapping_increment < KNIFE_MAX_ANGLE_SNAPPING_INCREMENT) ?
+       kcd->angle_snapping_increment <= KNIFE_MAX_ANGLE_SNAPPING_INCREMENT) ?
           kcd->angle_snapping_increment :
           KNIFE_DEFAULT_ANGLE_SNAPPING_INCREMENT,
       kcd->angle_snapping ?
@@ -3532,9 +3532,9 @@ static bool knife_snap_angle_screen(KnifeTool_OpData *kcd)
   float dvec[2], dvec_snap[2];
 
   float snap_step;
-  /* Currently user can input any float between 0 and 90. */
+  /* Currently user can input any float between 0 and 180. */
   if (kcd->angle_snapping_increment > KNIFE_MIN_ANGLE_SNAPPING_INCREMENT &&
-      kcd->angle_snapping_increment < KNIFE_MAX_ANGLE_SNAPPING_INCREMENT) {
+      kcd->angle_snapping_increment <= KNIFE_MAX_ANGLE_SNAPPING_INCREMENT) {
     snap_step = DEG2RADF(kcd->angle_snapping_increment);
   }
   else {
@@ -3688,7 +3688,7 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
     /* Calculate snap step. */
     float snap_step;
     if (kcd->angle_snapping_increment > KNIFE_MIN_ANGLE_SNAPPING_INCREMENT &&
-        kcd->angle_snapping_increment < KNIFE_MAX_ANGLE_SNAPPING_INCREMENT) {
+        kcd->angle_snapping_increment <= KNIFE_MAX_ANGLE_SNAPPING_INCREMENT) {
       snap_step = DEG2RADF(kcd->angle_snapping_increment);
     }
     else {
@@ -4363,7 +4363,8 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
   float snapping_increment_temp;
 
   if (kcd->angle_snapping) {
-    if (kcd->num.str_cur >= 2) {
+    if (kcd->num.str_cur >= 3 ||
+        kcd->angle_snapping_increment > KNIFE_MAX_ANGLE_SNAPPING_INCREMENT / 10) {
       knife_reset_snap_angle_input(kcd);
     }
     knife_update_header(C, op, kcd); /* Update the angle multiple. */
@@ -4371,9 +4372,9 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
     if (event->val == KM_PRESS && hasNumInput(&kcd->num) && handleNumInput(C, &kcd->num, event)) {
       handled = true;
       applyNumInput(&kcd->num, &snapping_increment_temp);
-      /* Restrict number key input to 0 - 90 degree range. */
+      /* Restrict number key input to 0 - 180 degree range. */
       if (snapping_increment_temp > KNIFE_MIN_ANGLE_SNAPPING_INCREMENT &&
-          snapping_increment_temp < KNIFE_MAX_ANGLE_SNAPPING_INCREMENT) {
+          snapping_increment_temp <= KNIFE_MAX_ANGLE_SNAPPING_INCREMENT) {
         kcd->angle_snapping_increment = snapping_increment_temp;
       }
       knife_update_active(C, kcd);
@@ -4617,16 +4618,17 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (kcd->angle_snapping) {
-    if (kcd->num.str_cur >= 2) {
+    if (kcd->num.str_cur >= 3 ||
+        kcd->angle_snapping_increment > KNIFE_MAX_ANGLE_SNAPPING_INCREMENT / 10) {
       knife_reset_snap_angle_input(kcd);
     }
     if (event->type != EVT_MODAL_MAP) {
       /* Modal number-input inactive, try to handle numeric inputs last. */
       if (!handled && event->val == KM_PRESS && handleNumInput(C, &kcd->num, event)) {
         applyNumInput(&kcd->num, &snapping_increment_temp);
-        /* Restrict number key input to 0 - 90 degree range. */
+        /* Restrict number key input to 0 - 180 degree range. */
         if (snapping_increment_temp > KNIFE_MIN_ANGLE_SNAPPING_INCREMENT &&
-            snapping_increment_temp < KNIFE_MAX_ANGLE_SNAPPING_INCREMENT) {
+            snapping_increment_temp <= KNIFE_MAX_ANGLE_SNAPPING_INCREMENT) {
           kcd->angle_snapping_increment = snapping_increment_temp;
         }
         knife_update_active(C, kcd);
