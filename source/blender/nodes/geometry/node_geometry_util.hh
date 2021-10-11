@@ -89,7 +89,7 @@ void separate_geometry(GeometrySet &geometry_set,
                        const GeometryNodeDeleteGeometryMode mode,
                        const Field<bool> &selection_field,
                        const bool invert,
-                       bool &r_error_message);
+                       bool &r_is_error);
 
 struct CurveToPointsResults {
   int result_size;
