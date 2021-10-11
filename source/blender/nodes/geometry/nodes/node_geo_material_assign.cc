@@ -90,7 +90,7 @@ void register_node_type_geo_material_assign()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MATERIAL_ASSIGN, "Material Assign", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_MATERIAL_ASSIGN, "Assign Material", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_material_assign_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_material_assign_exec;
   nodeRegisterType(&ntype);

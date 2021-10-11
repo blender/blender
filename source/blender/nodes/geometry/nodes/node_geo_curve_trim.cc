@@ -424,7 +424,7 @@ static void geo_node_curve_trim_exec(GeoNodeExecParams params)
 void register_node_type_geo_curve_trim()
 {
   static bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_TRIM, "Curve Trim", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_CURVE_TRIM, "Trim Curve", NODE_CLASS_GEOMETRY, 0);
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_trim_exec;
   ntype.draw_buttons = blender::nodes::geo_node_curve_trim_layout;
   ntype.declare = blender::nodes::geo_node_curve_trim_declare;

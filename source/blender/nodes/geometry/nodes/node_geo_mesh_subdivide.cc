@@ -103,7 +103,7 @@ void register_node_type_geo_mesh_subdivide()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MESH_SUBDIVIDE, "Mesh Subdivide", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_MESH_SUBDIVIDE, "Subdivide Mesh", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_mesh_subdivide_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_mesh_subdivide_exec;
   nodeRegisterType(&ntype);
