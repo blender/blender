@@ -3739,7 +3739,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   }
 
   if (bm_edge_collapse_is_degenerate_topology(e)) {
-    return;
+    // return;
   }
 
   pbvh_check_vert_boundary(pbvh, v1);
