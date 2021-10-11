@@ -235,7 +235,8 @@ def do_versions(self):
                     cscene.use_denoising = False
                 if not cscene.is_property_set("use_preview_denoising"):
                     cscene.use_preview_denoising = False
-                if not cscene.is_property_set("sampling_pattern"):
+                if not cscene.is_property_set("sampling_pattern") or \
+                   cscene.get('sampling_pattern') >= 2:
                     cscene.sampling_pattern = 'PROGRESSIVE_MUTI_JITTER'
 
                 # Removal of square samples.
