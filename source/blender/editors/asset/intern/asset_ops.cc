@@ -450,7 +450,6 @@ static void ASSET_OT_catalog_delete(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = asset_catalog_delete_exec;
-  ot->invoke = WM_operator_confirm;
   ot->poll = asset_catalog_operator_poll;
 
   RNA_def_string(ot->srna, "catalog_id", nullptr, 0, "Catalog ID", "ID of the catalog to delete");
