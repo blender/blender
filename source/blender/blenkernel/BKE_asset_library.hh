@@ -38,6 +38,14 @@ struct AssetLibrary {
 
   void load(StringRefNull library_root_directory);
 
+  /**
+   * Update `catalog_simple_name` by looking up the asset's catalog by its ID.
+   *
+   * No-op if the catalog cannot be found. This could be the kind of "the
+   * catalog definition file is corrupt/lost" scenario that the simple name is
+   * meant to help recover from. */
+  void refresh_catalog_simplename(struct AssetMetaData *asset_data);
+
   void on_save_handler_register();
   void on_save_handler_unregister();
 
