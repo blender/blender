@@ -180,6 +180,15 @@ static PyObject *id_free_weakref_cb(PyObject *weakinfo_pair, PyObject *weakref);
 static PyMethodDef id_free_weakref_cb_def = {
     "id_free_weakref_cb", (PyCFunction)id_free_weakref_cb, METH_O, NULL};
 
+/**
+ * Only used when there are values left on exit (causing memory leaks).
+ */
+static void id_weakref_pool_free_value_fn(void *p)
+{
+  GHash *weakinfo_hash = p;
+  BLI_ghash_free(weakinfo_hash, NULL, NULL);
+}
+
 /* Adds a reference to the list, remember to decref. */
 static GHash *id_weakref_pool_get(ID *id)
 {
@@ -7633,7 +7642,7 @@ void BPY_rna_exit(void)
       printf("ID: %s\n", id->name);
     }
   }
-  BLI_ghash_free(id_weakref_pool, NULL, NULL);
+  BLI_ghash_free(id_weakref_pool, NULL, id_weakref_pool_free_value_fn);
   id_weakref_pool = NULL;
 #endif
 }
