@@ -124,6 +124,11 @@ struct float4x4 {
     return result;
   }
 
+  void operator*=(const float4x4 &other)
+  {
+    mul_m4_m4_post(values, other.values);
+  }
+
   /**
    * This also applies the translation on the vector. Use `m.ref_3x3() * v` if that is not
    * intended.
