@@ -1148,6 +1148,7 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me,
                                   .calc_face_normal = false,
                                   .add_key_index = add_key_index,
                                   .use_shapekey = true,
+                                  .create_shapekey_layers = true,
                                   .active_shapekey = ob->shapenr,
                               });
 }

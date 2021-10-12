@@ -2208,6 +2208,11 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
 
     do {
       BMLoop *l = e2->l;
+
+      if (!l) {
+        continue;
+      }
+
       do {
         if (!BM_ELEM_API_FLAG_TEST(l->f, tag)) {
           BM_ELEM_API_FLAG_ENABLE(l->f, tag);

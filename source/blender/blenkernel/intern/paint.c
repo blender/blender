@@ -28,6 +28,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -85,6 +86,7 @@ void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
 void SCULPT_dyntopo_node_layers_add(SculptSession *ss);
 BMesh *SCULPT_dyntopo_empty_bmesh();
 void SCULPT_undo_ensure_bmlog(Object *ob);
+void SCULPT_update_customdata_refs(SculptSession *ss);
 
 static void init_mdyntopo_layer(SculptSession *ss, PBVH *pbvh, int totvert);
 
@@ -1401,7 +1403,7 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
 
   if (ss->bm) {
     if (ob->data) {
-      Mesh *me = BKE_object_get_original_mesh(ob);
+      // Mesh *me = BKE_object_get_original_mesh(ob);
 
       BM_mesh_bm_to_me(
           NULL,
@@ -1415,6 +1417,7 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
                                        */
                                        .copy_temp_cdlayers = false,
                                        .ignore_mesh_id_layers = false,
+                                       .update_shapekey_indices = true,
                                        .cd_mask_extra = CD_MASK_MESH_ID | CD_MASK_DYNTOPO_VERT
 
           }));
@@ -1852,6 +1855,58 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   }
 
   BKE_sculptsession_check_mdyntopo(ob->sculpt, pbvh, totvert);
+  if (ss->bm && me->key && ob->shapenr != ss->bm->shapenr) {
+    KeyBlock *actkey = BLI_findlink(&me->key->block, ss->bm->shapenr - 1);
+    KeyBlock *newkey = BLI_findlink(&me->key->block, ob->shapenr - 1);
+
+    if (!actkey) {
+      printf("%s: failed to find active shapekey\n", __func__);
+    }
+    if (!newkey) {
+      printf("%s: failed to find new active shapekey\n", __func__);
+    }
+
+    if (actkey && newkey) {
+      int cd_co1 = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, actkey->name);
+      int cd_co2 = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, newkey->name);
+
+      if (cd_co1 == -1) {  // non-recoverable error
+        printf("%s: failed to find active shapekey in customdata.\n", __func__);
+        return;
+      }
+      else if (cd_co2 == -1) {
+        BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_SHAPEKEY, newkey->name);
+        cd_co2 = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, newkey->name);
+        SCULPT_update_customdata_refs(ss);
+      }
+
+      cd_co1 = ss->bm->vdata.layers[cd_co1].offset;
+      cd_co2 = ss->bm->vdata.layers[cd_co2].offset;
+
+      BMVert *v;
+      BMIter iter;
+      BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+        float *co1 = BM_ELEM_CD_GET_VOID_P(v, cd_co1);
+        float *co2 = BM_ELEM_CD_GET_VOID_P(v, cd_co2);
+
+        copy_v3_v3(co1, v->co);
+        copy_v3_v3(v->co, co2);
+      }
+
+      ss->bm->shapenr = ob->shapenr;
+
+      if (ss->pbvh) {
+        PBVHNode **nodes;
+        int totnode;
+        BKE_pbvh_get_nodes(ss->pbvh, PBVH_Leaf, &nodes, &totnode);
+
+        for (int i = 0; i < totnode; i++) {
+          BKE_pbvh_node_mark_update(nodes[i]);
+          BKE_pbvh_node_mark_update_tri_area(nodes[i]);
+        }
+      }
+    }
+  }
 }
 
 void BKE_sculpt_update_object_before_eval(Object *ob)
@@ -2433,7 +2488,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       }
     }
     else if (BKE_pbvh_type(pbvh) == PBVH_BMESH) {
-      Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+      // Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
 
       SCULPT_dynamic_topology_sync_layers(ob, BKE_object_get_original_mesh(ob));
     }
@@ -2452,8 +2507,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     Mesh *mesh_orig = BKE_object_get_original_mesh(ob);
     bool is_dyntopo = (mesh_orig->flag & ME_SCULPT_DYNAMIC_TOPOLOGY);
 
-    void SCULPT_update_customdata_refs(SculptSession * ss);
-
     if (is_dyntopo) {
       BMesh *bm = SCULPT_dyntopo_empty_bmesh();
 
@@ -2467,6 +2520,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
                                                         .active_shapekey = ob->shapenr,
                                                         .ignore_id_layers = false,
                                                         .copy_temp_cdlayers = true,
+                                                        .create_shapekey_layers = true,
                                                         .cd_mask_extra = CD_MASK_DYNTOPO_VERT}));
 
       SCULPT_dyntopo_node_layers_add(ob->sculpt);

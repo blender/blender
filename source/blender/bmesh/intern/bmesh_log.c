@@ -799,7 +799,7 @@ static void bm_log_verts_unmake(
     uint id = POINTER_AS_UINT(key);
     BMVert *v = bm_log_vert_from_id(log, id);
 
-    if (!v) {
+    if (!v || v->head.htype != BM_VERT) {
       printf("bmlog error.  vertex id: %p\n", key);
       continue;
     }
@@ -1205,7 +1205,7 @@ static void bm_log_full_mesh_intern(BMesh *bm, BMLog *log, BMLogEntry *entry)
 
   entry->full_copy_mesh = BKE_mesh_from_bmesh_nomain(
       bm,
-      (&(struct BMeshToMeshParams){.update_shapekey_indices = false,
+      (&(struct BMeshToMeshParams){.update_shapekey_indices = true,
                                    .calc_object_remap = false,
                                    .cd_mask_extra = cd_mask_extra,
                                    .copy_temp_cdlayers = true,
@@ -1866,9 +1866,9 @@ static void full_copy_load(BMesh *bm, BMLog *log, BMLogEntry *entry)
                      entry->full_copy_mesh,
                      (&(struct BMeshFromMeshParams){.calc_face_normal = false,
                                                     .add_key_index = false,
-                                                    .use_shapekey = false,
-                                                    .active_shapekey = -1,
-
+                                                    .use_shapekey = true,
+                                                    .active_shapekey = bm->shapenr,
+                                                    .create_shapekey_layers = true,
                                                     .cd_mask_extra = cd_mask_extra,
                                                     .copy_temp_cdlayers = true,
                                                     .ignore_id_layers = false}));
@@ -2150,9 +2150,9 @@ static void full_copy_swap(BMesh *bm, BMLog *log, BMLogEntry *entry)
                      entry->full_copy_mesh,
                      (&(struct BMeshFromMeshParams){.calc_face_normal = false,
                                                     .add_key_index = false,
-                                                    .use_shapekey = false,
-                                                    .active_shapekey = -1,
-
+                                                    .use_shapekey = true,
+                                                    .active_shapekey = bm->shapenr,
+                                                    .create_shapekey_layers = true,
                                                     .cd_mask_extra = cd_mask_extra,
                                                     .copy_temp_cdlayers = true,
                                                     .ignore_id_layers = false}));

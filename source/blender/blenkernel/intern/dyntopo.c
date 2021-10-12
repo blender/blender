@@ -41,12 +41,13 @@
 
 #define USE_NEW_SPLIT
 #define SCULPTVERT_SMOOTH_BOUNDARY \
-  (SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_SHARP_BOUNDARY)
+  (SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_SHARP_BOUNDARY | \
+   SCULPTVERT_SEAM_BOUNDARY)
 #define SCULPTVERT_ALL_BOUNDARY \
   (SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_SHARP_BOUNDARY | \
    SCULPTVERT_SEAM_BOUNDARY)
 #define SCULPTVERT_SMOOTH_CORNER \
-  (SCULPTVERT_CORNER | SCULPTVERT_FSET_CORNER | SCULPTVERT_SHARP_CORNER)
+  (SCULPTVERT_CORNER | SCULPTVERT_FSET_CORNER | SCULPTVERT_SHARP_CORNER | SCULPTVERT_SEAM_CORNER)
 #define SCULPTVERT_ALL_CORNER \
   (SCULPTVERT_CORNER | SCULPTVERT_FSET_CORNER | SCULPTVERT_SHARP_CORNER | SCULPTVERT_SEAM_CORNER)
 
@@ -175,7 +176,7 @@ static void pbvh_split_edges(struct EdgeQueueContext *eq_ctx,
                              int totedge,
                              bool ignore_isolated_edges);
 void bm_log_message(const char *fmt, ...);
-void pbvh_bmesh_check_nodes_simple(PBVH *pbvh);
+
 static void edge_queue_create_local(struct EdgeQueueContext *eq_ctx,
                                     PBVH *pbvh,
                                     const float center[3],
@@ -288,7 +289,7 @@ static void fix_mesh(PBVH *pbvh, BMesh *bm)
   printf("done fixing mesh.\n");
 }
 
-//#define CHECKMESH
+#define CHECKMESH
 //#define TEST_INVALID_NORMALS
 
 #ifndef CHECKMESH
@@ -3967,16 +3968,25 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     BMVert *v_step = step ? v_del : v_conn;
 
     e2 = v_step->e;
+    do {
+      e2->head.hflag &= ~tag;
+    } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_step)) != v_step->e);
+  }
+
+  for (int step = 0; step < 2; step++) {
+    BMVert *v_step = step ? v_del : v_conn;
+
+    e2 = v_step->e;
 
     // remove faces and log edges around v_del from pbvh
     do {
       BMLoop *l = e2->l;
 
-      e2->head.hflag |= tag;
-
-      if (e2 != e) {
+      if (e2 != e && !(e2->head.hflag & tag)) {
         BM_log_edge_removed(pbvh->bm_log, e2);
       }
+
+      e2->head.hflag |= tag;
 
       if (!l) {
         continue;  // edge will be killed later
@@ -3996,6 +4006,8 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   BM_log_vert_removed(pbvh->bm_log, v_del, pbvh->cd_vert_mask_offset);
 
   BLI_ghash_insert(deleted_verts, (void *)v_del, NULL);
+
+  pbvh_bmesh_check_nodes(pbvh);
 
   if (!snap) {
     float co[3];
@@ -4018,6 +4030,25 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     // non_manifold_collapse(pbvh->bm, e, v_conn);
     copy_v3_v3(v_conn->co, co);
   }
+
+  e2 = v_conn->e;
+  do {
+    BMLoop *l = e2->l;
+
+    if (!l) {
+      continue;
+    }
+
+    do {
+      BMLoop *l2 = l->f->l_first;
+      do {
+        MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, l2->v);
+        mv->flag |= mupdateflag;
+      } while ((l2 = l2->next) != l->f->l_first);
+    } while ((l = l->radial_next) != e2->l);
+  } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_conn)) != v_conn->e);
+
+  pbvh_bmesh_check_nodes(pbvh);
 
   for (int i = 0; i < BLI_array_len(delvs); i++) {
     BMVert *v = delvs[i];

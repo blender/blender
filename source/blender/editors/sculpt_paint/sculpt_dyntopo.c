@@ -822,6 +822,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                        (&(struct BMeshFromMeshParams){
                            .calc_face_normal = true,
                            .use_shapekey = true,
+                           .create_shapekey_layers = true,
                            .active_shapekey = ob->shapenr,
                        }));
   }

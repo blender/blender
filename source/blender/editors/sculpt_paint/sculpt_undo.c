@@ -186,7 +186,7 @@ static bool test_swap_v3_v3(float a[3], float b[3])
   return false;
 }
 
-void pbvh_bmesh_check_nodes(PBVH *pbvh);
+// void pbvh_bmesh_check_nodes(PBVH *pbvh);
 
 static bool sculpt_undo_restore_deformed(
     const SculptSession *ss, SculptUndoNode *unode, int uindex, int oindex, float coord[3])
@@ -667,7 +667,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
 
   SCULPT_update_customdata_refs(ss);
 
-  pbvh_bmesh_check_nodes(ss->pbvh);
+  // pbvh_bmesh_check_nodes(ss->pbvh);
 
   if (unode->applied) {
     BM_log_undo(ss->bm, ss->bm_log, &callbacks, dyntopop_node_idx_layer_id);
@@ -692,9 +692,9 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
       }
     }
 
-    pbvh_bmesh_check_nodes(ss->pbvh);
+    // pbvh_bmesh_check_nodes(ss->pbvh);
     BKE_pbvh_bmesh_regen_node_verts(ss->pbvh);
-    pbvh_bmesh_check_nodes(ss->pbvh);
+    // pbvh_bmesh_check_nodes(ss->pbvh);
 
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
 
@@ -706,7 +706,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
       BKE_pbvh_bmesh_after_stroke(ss->pbvh, true);
     }
 
-    pbvh_bmesh_check_nodes(ss->pbvh);
+    // pbvh_bmesh_check_nodes(ss->pbvh);
   }
   else {
     SCULPT_pbvh_clear(ob);
@@ -742,6 +742,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
                          .use_shapekey = true,
+                         .create_shapekey_layers = true,
                          .active_shapekey = ob->shapenr,
                      }));
 

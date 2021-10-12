@@ -332,8 +332,17 @@ BLI_INLINE PBVHNode *pbvh_bmesh_node_from_face(PBVH *pbvh, const BMFace *key)
   return ni >= 0 ? pbvh->nodes + ni : NULL;
   // return &pbvh->nodes[pbvh_bmesh_node_index_from_face(pbvh, key)];
 }
+
 bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index);
+
+#ifdef PBVH_BMESH_DEBUG
 void pbvh_bmesh_check_nodes(PBVH *pbvh);
+void pbvh_bmesh_check_nodes_simple(PBVH *pbvh);
+#else
+#  define pbvh_bmesh_check_nodes(pbvh)
+#  define pbvh_bmesh_check_nodes_simple(pbvh)
+#endif
+
 void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni);
 void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f);
 void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,

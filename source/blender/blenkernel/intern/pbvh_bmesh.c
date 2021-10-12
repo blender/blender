@@ -83,9 +83,9 @@ static void _debugprint(const char *fmt, ...)
   va_end(args);
 }
 
+#ifdef PBVH_BMESH_DEBUG
 void pbvh_bmesh_check_nodes_simple(PBVH *pbvh)
 {
-#if 0
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
     BMFace *f;
@@ -94,24 +94,22 @@ void pbvh_bmesh_check_nodes_simple(PBVH *pbvh)
       continue;
     }
 
-    TGSET_ITER (f,node->bm_faces) {
+    TGSET_ITER (f, node->bm_faces) {
       if (!f || f->head.htype != BM_FACE) {
         _debugprint("Corrupted (freed?) face in node->bm_faces\n");
         continue;
       }
 
-      if (BM_ELEM_CD_GET_INT(f,pbvh->cd_face_node_offset) != i) {
+      if (BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset) != i) {
         _debugprint("Face in more then one node\n");
       }
     }
     TGSET_ITER_END;
   }
-#endif
 }
 
 void pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
-#if 0
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
 
@@ -123,12 +121,12 @@ void pbvh_bmesh_check_nodes(PBVH *pbvh)
   BMVert *v;
   BMIter iter;
 
-  BM_ITER_MESH (v,&iter,pbvh->bm,BM_VERTS_OF_MESH) {
-    int ni = BM_ELEM_CD_GET_INT(v,pbvh->cd_vert_node_offset);
+  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+    int ni = BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset);
 
-    if (ni >= 0 && !v->e || !v->e->l) {
+    if (ni >= 0 && (!v->e || !v->e->l)) {
       _debugprint("wire vert had node reference\n");
-      BM_ELEM_CD_SET_INT(v,pbvh->cd_vert_node_offset,DYNTOPO_NODE_NONE);
+      BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
     }
 
     if (ni < -1 || ni >= pbvh->totnode) {
@@ -146,21 +144,21 @@ void pbvh_bmesh_check_nodes(PBVH *pbvh)
       continue;
     }
 
-    if (!BLI_table_gset_haskey(node->bm_unique_verts,v)) {
+    if (!BLI_table_gset_haskey(node->bm_unique_verts, v)) {
       _debugprint("vert not in node->bm_unique_verts\n");
     }
 
-    if (BLI_table_gset_haskey(node->bm_other_verts,v)) {
+    if (BLI_table_gset_haskey(node->bm_other_verts, v)) {
       _debugprint("vert in node->bm_other_verts");
     }
 
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert,v);
-    BKE_pbvh_bmesh_check_valence(pbvh,(SculptVertRef) { .i = (intptr_t)v });
+    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
+    BKE_pbvh_bmesh_check_valence(pbvh, (SculptVertRef){.i = (intptr_t)v});
 
     if (BM_vert_edge_count(v) != mv->valence) {
       _debugprint("cached vertex valence mismatch; old: %d, should be: %d\n",
-        mv->valence,
-        BM_vert_edge_count(v));
+                  mv->valence,
+                  BM_vert_edge_count(v));
     }
   }
 
@@ -182,57 +180,60 @@ void pbvh_bmesh_check_nodes(PBVH *pbvh)
       continue;
     }
 
-    TGSET_ITER (v,node->bm_unique_verts) {
-      int ni = BM_ELEM_CD_GET_INT(v,pbvh->cd_vert_node_offset);
+    TGSET_ITER (v, node->bm_unique_verts) {
+      int ni = BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset);
 
       if (ni != i) {
         if (ni >= 0 && ni < pbvh->totnode) {
           PBVHNode *node2 = pbvh->nodes + ni;
           _debugprint("v node offset is wrong, %d\n",
-            !node2->bm_unique_verts ? 0 :
-            BLI_table_gset_haskey(node2->bm_unique_verts,v));
-        } else {
+                      !node2->bm_unique_verts ? 0 :
+                                                BLI_table_gset_haskey(node2->bm_unique_verts, v));
+        }
+        else {
           _debugprint("v node offset is wrong\n");
         }
       }
 
       if (!v || v->head.htype != BM_VERT) {
         _debugprint("corruption in pbvh! bm_unique_verts\n");
-      } else if (BLI_table_gset_haskey(node->bm_other_verts,v)) {
+      }
+      else if (BLI_table_gset_haskey(node->bm_other_verts, v)) {
         _debugprint("v in both unique and other verts\n");
       }
     }
     TGSET_ITER_END;
 
-    TGSET_ITER (f,node->bm_faces) {
+    TGSET_ITER (f, node->bm_faces) {
       if (!f || f->head.htype != BM_FACE) {
         _debugprint("corruption in pbvh! bm_faces\n");
         continue;
       }
 
-      int ni = BM_ELEM_CD_GET_INT(f,pbvh->cd_face_node_offset);
+      int ni = BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
       if (pbvh->nodes + ni != node) {
         _debugprint("face in multiple nodes!\n");
       }
     }
     TGSET_ITER_END;
 
-    TGSET_ITER (v,node->bm_other_verts) {
+    TGSET_ITER (v, node->bm_other_verts) {
       if (!v || v->head.htype != BM_VERT) {
         _debugprint("corruption in pbvh! bm_other_verts\n");
-      } else if (BLI_table_gset_haskey(node->bm_unique_verts,v)) {
+      }
+      else if (BLI_table_gset_haskey(node->bm_unique_verts, v)) {
         _debugprint("v in both unique and other verts\n");
       }
     }
     TGSET_ITER_END;
   }
-#endif
 }
 
 void pbvh_bmesh_pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
   pbvh_bmesh_check_nodes(pbvh);
 }
+#endif
 
 /** \} */
 

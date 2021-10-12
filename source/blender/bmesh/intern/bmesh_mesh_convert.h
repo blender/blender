@@ -34,6 +34,9 @@ void BM_mesh_cd_flag_apply(BMesh *bm, const char cd_flag);
 char BM_mesh_cd_flag_from_bmesh(BMesh *bm);
 
 struct BMeshFromMeshParams {
+  /* automatically create shapekey layers */
+  uint create_shapekey_layers : 1;
+
   uint calc_face_normal : 1;
   /* add a vertex CD_SHAPE_KEYINDEX layer */
   uint add_key_index : 1;

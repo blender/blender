@@ -280,9 +280,9 @@ void BM_enter_multires_space(Object *ob, BMesh *bm, int space)
  */
 
 void BM_mesh_bm_from_me(Object *ob,
-                        BMesh *bm,
-                        const Mesh *me,
-                        const struct BMeshFromMeshParams *params)
+                                    BMesh *bm,
+                                    const Mesh *me,
+                                    const struct BMeshFromMeshParams *params)
 {
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
                                         bm->pdata.totlayer || bm->ldata.totlayer));
@@ -418,7 +418,7 @@ void BM_mesh_bm_from_me(Object *ob,
      */
     BLI_assert(!CustomData_has_layer(&me->vdata, CD_SHAPEKEY));
   }
-  if (is_new == false) {
+  if (is_new == false && CustomData_has_layer(&me->vdata, CD_SHAPEKEY)) {
     tot_shape_keys = min_ii(tot_shape_keys, CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY));
   }
   const float(**shape_key_table)[3] = tot_shape_keys ?
@@ -439,7 +439,7 @@ void BM_mesh_bm_from_me(Object *ob,
   }
 
   if (tot_shape_keys) {
-    if (is_new) {
+    if (is_new || params->create_shapekey_layers) {
       /* Check if we need to generate unique ids for the shape-keys.
        * This also exists in the file reading code, but is here for a sanity check. */
       if (!me->key->uidgen) {
@@ -457,7 +457,7 @@ void BM_mesh_bm_from_me(Object *ob,
 
     if (actkey && actkey->totelem == me->totvert) {
       keyco = params->use_shapekey ? actkey->data : NULL;
-      if (is_new) {
+      if (is_new || params->create_shapekey_layers) {
         bm->shapenr = params->active_shapekey;
       }
     }
@@ -465,9 +465,13 @@ void BM_mesh_bm_from_me(Object *ob,
     for (i = 0, block = me->key->block.first; i < tot_shape_keys; block = block->next, i++) {
       if (is_new) {
         CustomData_add_layer_named(&bm->vdata, CD_SHAPEKEY, CD_ASSIGN, NULL, 0, block->name);
-        int j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
-        bm->vdata.layers[j].uid = block->uid;
       }
+      else {
+        BM_data_layer_add_named(bm, &bm->vdata, CD_SHAPEKEY, block->name);
+      }
+
+      int j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
+      bm->vdata.layers[j].uid = block->uid;
       shape_key_table[i] = (const float(*)[3])block->data;
     }
   }
@@ -521,11 +525,17 @@ void BM_mesh_bm_from_me(Object *ob,
   const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
   const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
   const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
-  const int cd_shape_key_offset = tot_shape_keys ? CustomData_get_offset(&bm->vdata, CD_SHAPEKEY) :
-                                                   -1;
+  int *cd_shape_key_offset = tot_shape_keys ?
+                                 MEM_mallocN(sizeof(int) * tot_shape_keys, "cd_shape_key_offset") :
+                                 NULL;
   const int cd_shape_keyindex_offset = is_new && (tot_shape_keys || params->add_key_index) ?
                                            CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX) :
                                            -1;
+
+  for (int i = 0; i < tot_shape_keys; i++) {
+    int idx = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
+    cd_shape_key_offset[i] = bm->vdata.layers[idx].offset;
+  }
 
   vtable = MEM_mallocN(sizeof(BMVert **) * me->totvert, __func__);
 
@@ -569,9 +579,9 @@ void BM_mesh_bm_from_me(Object *ob,
 
     /* Set shape-key data. */
     if (tot_shape_keys) {
-      float(*co_dst)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_shape_key_offset);
-      for (int j = 0; j < tot_shape_keys; j++, co_dst++) {
-        copy_v3_v3(*co_dst, shape_key_table[j][i]);
+      for (int j = 0; j < tot_shape_keys; j++) {
+        float *co_dst = BM_ELEM_CD_GET_VOID_P(v, cd_shape_key_offset[j]);
+        copy_v3_v3(co_dst, shape_key_table[j][i]);
       }
     }
   }
@@ -911,6 +921,8 @@ void BM_mesh_bm_from_me(Object *ob,
       }
     }
   }
+
+  MEM_SAFE_FREE(cd_shape_key_offset);
 }
 
 /**
