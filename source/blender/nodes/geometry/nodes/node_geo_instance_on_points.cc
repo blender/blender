@@ -44,6 +44,7 @@ static void geo_node_instance_on_points_declare(NodeDeclarationBuilder &b)
       .description("Rotation of the instances");
   b.add_input<decl::Vector>("Scale")
       .default_value({1.0f, 1.0f, 1.0f})
+      .subtype(PROP_XYZ)
       .supports_field()
       .description("Scale of the instances");
   b.add_input<decl::Int>("Stable ID")
