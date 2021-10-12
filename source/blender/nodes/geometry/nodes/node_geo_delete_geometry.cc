@@ -371,7 +371,7 @@ static std::unique_ptr<CurveEval> curve_separate(const CurveEval &input_curve,
 
       indices_to_copy.clear();
       for (const int i_point : IndexRange(spline.size())) {
-        if (selection[selection_index] == invert) {
+        if (selection[selection_index] != invert) {
           /* Append i_point instead of selection_index because we need indices local to the spline
            * for copying. */
           indices_to_copy.append(i_point);
