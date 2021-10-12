@@ -474,7 +474,7 @@ static int asset_catalog_undo_exec(bContext *C, wmOperator * /*op*/)
   }
 
   catalog_service->undo();
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -504,7 +504,7 @@ static int asset_catalog_redo_exec(bContext *C, wmOperator * /*op*/)
   }
 
   catalog_service->redo();
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
   return OPERATOR_FINISHED;
 }
 
