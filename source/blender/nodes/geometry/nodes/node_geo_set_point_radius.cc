@@ -21,7 +21,8 @@ namespace blender::nodes {
 static void geo_node_set_point_radius_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Float>("Radius").default_value(0.05f).min(0.0f).supports_field();
+  b.add_input<decl::Float>("Radius").default_value(0.05f).min(0.0f).supports_field().subtype(
+      PROP_DISTANCE);
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   b.add_output<decl::Geometry>("Geometry");
 }
