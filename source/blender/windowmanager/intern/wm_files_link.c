@@ -624,7 +624,7 @@ static int foreach_libblock_append_callback(LibraryIDLinkCallbackData *cb_data)
     item = wm_link_append_data_item_add(data->lapp_data, id->name, GS(id->name), NULL);
     item->new_id = id;
     item->source_library = id->lib;
-    /* Since we did not have an item for that ID yet, we now user did not selected it explicitly,
+    /* Since we did not have an item for that ID yet, we know user did not selected it explicitly,
      * it was rather linked indirectly. This info is important for instantiation of collections. */
     item->append_tag |= WM_APPEND_TAG_INDIRECT;
     BLI_ghash_insert(data->lapp_data->new_id_to_item, id, item);
