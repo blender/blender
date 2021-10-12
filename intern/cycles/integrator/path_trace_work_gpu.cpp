@@ -97,11 +97,15 @@ void PathTraceWorkGPU::alloc_integrator_soa()
   /* IntegrateState allocated as structure of arrays. */
 
   /* Check if we already allocated memory for the required features. */
+  const int requested_volume_stack_size = device_scene_->data.volume_stack_size;
   const uint kernel_features = device_scene_->data.kernel_features;
-  if ((integrator_state_soa_kernel_features_ & kernel_features) == kernel_features) {
+  if ((integrator_state_soa_kernel_features_ & kernel_features) == kernel_features &&
+      integrator_state_soa_volume_stack_size_ >= requested_volume_stack_size) {
     return;
   }
   integrator_state_soa_kernel_features_ = kernel_features;
+  integrator_state_soa_volume_stack_size_ = max(integrator_state_soa_volume_stack_size_,
+                                                requested_volume_stack_size);
 
   /* Allocate a device only memory buffer before for each struct member, and then
    * write the pointers into a struct that resides in constant memory.
@@ -133,7 +137,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
     break; \
   } \
   }
-#define KERNEL_STRUCT_VOLUME_STACK_SIZE (device_scene_->data.volume_stack_size)
+#define KERNEL_STRUCT_VOLUME_STACK_SIZE (integrator_state_soa_volume_stack_size_)
 #include "kernel/integrator/integrator_state_template.h"
 #undef KERNEL_STRUCT_BEGIN
 #undef KERNEL_STRUCT_MEMBER
