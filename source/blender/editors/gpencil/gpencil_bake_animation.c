@@ -213,7 +213,6 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
-  ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
 
   ListBase ob_selected_list = {NULL, NULL};
@@ -256,7 +255,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
     gsc.ob = ob_gpencil;
 
     /* Init snap context for geometry projection. */
-    sctx = ED_transform_snap_object_context_create_view3d(scene, 0, region, CTX_wm_view3d(C));
+    sctx = ED_transform_snap_object_context_create(scene, 0);
   }
 
   /* Loop all frame range. */

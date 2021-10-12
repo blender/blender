@@ -356,8 +356,7 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
     if (do_thickness && inter->co_index != 1) {
       Scene *scene = DEG_get_input_scene(depsgraph);
       View3D *v3d = ruler_info->area->spacedata.first;
-      SnapObjectContext *snap_context = ED_gizmotypes_snap_3d_context_ensure(
-          scene, ruler_info->region, v3d, snap_gizmo);
+      SnapObjectContext *snap_context = ED_gizmotypes_snap_3d_context_ensure(scene, snap_gizmo);
       const float mval_fl[2] = {UNPACK2(mval)};
       float ray_normal[3];
       float ray_start[3];
@@ -367,6 +366,8 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
 
       if (ED_transform_snap_object_project_view3d(snap_context,
                                                   depsgraph,
+                                                  ruler_info->region,
+                                                  v3d,
                                                   SCE_SNAP_MODE_FACE,
                                                   &(const struct SnapObjectParams){
                                                       .snap_select = SNAP_ALL,
@@ -382,6 +383,7 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
         madd_v3_v3v3fl(ray_start, co, ray_normal, eps_bias);
         ED_transform_snap_object_project_ray(snap_context,
                                              depsgraph,
+                                             v3d,
                                              &(const struct SnapObjectParams){
                                                  .snap_select = SNAP_ALL,
                                                  .edit_mode_type = SNAP_GEOM_CAGE,
