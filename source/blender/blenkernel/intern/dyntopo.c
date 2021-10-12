@@ -3869,6 +3869,10 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
         do {
           BMLoop *l2 = e2->l;
 
+          if (!l2) {
+            continue;
+          }
+
           do {
             BMLoop *l3 = l2->v != v ? l2->next : l2;
 
