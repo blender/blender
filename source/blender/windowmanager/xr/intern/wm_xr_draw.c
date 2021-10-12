@@ -150,7 +150,7 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
   ED_view3d_draw_offscreen_simple(draw_data->depsgraph,
                                   draw_data->scene,
                                   &settings->shading,
-                                  settings->shading.type,
+                                  (eDrawType)settings->shading.type,
                                   draw_view->width,
                                   draw_view->height,
                                   display_flags,
