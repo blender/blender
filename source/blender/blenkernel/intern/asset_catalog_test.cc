@@ -55,7 +55,7 @@ class TestableAssetCatalogService : public AssetCatalogService {
 
   AssetCatalogDefinitionFile *get_catalog_definition_file()
   {
-    return catalog_definition_file_.get();
+    return AssetCatalogService::get_catalog_definition_file();
   }
 
   void create_missing_catalogs()
@@ -66,7 +66,7 @@ class TestableAssetCatalogService : public AssetCatalogService {
   int64_t count_catalogs_with_path(const CatalogFilePath &path)
   {
     int64_t count = 0;
-    for (auto &catalog_uptr : catalogs_.values()) {
+    for (auto &catalog_uptr : get_catalogs().values()) {
       if (catalog_uptr->path == path) {
         count++;
       }
@@ -1052,6 +1052,189 @@ TEST_F(AssetCatalogTest, create_catalog_filter_for_unassigned_assets)
   AssetCatalogFilter filter = service.create_catalog_filter(BLI_uuid_nil());
   EXPECT_TRUE(filter.contains(BLI_uuid_nil()));
   EXPECT_FALSE(filter.contains(UUID_POSES_ELLIE));
+}
+
+TEST_F(AssetCatalogTest, cat_collection_deep_copy__empty)
+{
+  const AssetCatalogCollection empty;
+  auto copy = empty.deep_copy();
+  EXPECT_NE(&empty, copy.get());
+}
+
+class TestableAssetCatalogCollection : public AssetCatalogCollection {
+ public:
+  OwningAssetCatalogMap &get_catalogs()
+  {
+    return catalogs_;
+  }
+  OwningAssetCatalogMap &get_deleted_catalogs()
+  {
+    return deleted_catalogs_;
+  }
+  AssetCatalogDefinitionFile *get_catalog_definition_file()
+  {
+    return catalog_definition_file_.get();
+  }
+  AssetCatalogDefinitionFile *allocate_catalog_definition_file()
+  {
+    catalog_definition_file_ = std::make_unique<AssetCatalogDefinitionFile>();
+    return get_catalog_definition_file();
+  }
+};
+
+TEST_F(AssetCatalogTest, cat_collection_deep_copy__nonempty_nocdf)
+{
+  TestableAssetCatalogCollection catcoll;
+  auto cat1 = std::make_unique<AssetCatalog>(UUID_POSES_RUZENA, "poses/Henrik", "");
+  auto cat2 = std::make_unique<AssetCatalog>(UUID_POSES_RUZENA_FACE, "poses/Henrik/face", "");
+  auto cat3 = std::make_unique<AssetCatalog>(UUID_POSES_RUZENA_HAND, "poses/Henrik/hands", "");
+  cat3->flags.is_deleted = true;
+
+  AssetCatalog *cat1_ptr = cat1.get();
+  AssetCatalog *cat3_ptr = cat3.get();
+
+  catcoll.get_catalogs().add_new(cat1->catalog_id, std::move(cat1));
+  catcoll.get_catalogs().add_new(cat2->catalog_id, std::move(cat2));
+  catcoll.get_deleted_catalogs().add_new(cat3->catalog_id, std::move(cat3));
+
+  auto copy = catcoll.deep_copy();
+  EXPECT_NE(&catcoll, copy.get());
+
+  TestableAssetCatalogCollection *testcopy = reinterpret_cast<TestableAssetCatalogCollection *>(
+      copy.get());
+
+  /* Test catalogs & deleted catalogs. */
+  EXPECT_EQ(2, testcopy->get_catalogs().size());
+  EXPECT_EQ(1, testcopy->get_deleted_catalogs().size());
+
+  ASSERT_TRUE(testcopy->get_catalogs().contains(UUID_POSES_RUZENA));
+  ASSERT_TRUE(testcopy->get_catalogs().contains(UUID_POSES_RUZENA_FACE));
+  ASSERT_TRUE(testcopy->get_deleted_catalogs().contains(UUID_POSES_RUZENA_HAND));
+
+  EXPECT_NE(nullptr, testcopy->get_catalogs().lookup(UUID_POSES_RUZENA));
+  EXPECT_NE(cat1_ptr, testcopy->get_catalogs().lookup(UUID_POSES_RUZENA).get())
+      << "AssetCatalogs should be actual copies.";
+
+  EXPECT_NE(nullptr, testcopy->get_deleted_catalogs().lookup(UUID_POSES_RUZENA_HAND));
+  EXPECT_NE(cat3_ptr, testcopy->get_deleted_catalogs().lookup(UUID_POSES_RUZENA_HAND).get())
+      << "AssetCatalogs should be actual copies.";
+}
+
+class TestableAssetCatalogDefinitionFile : public AssetCatalogDefinitionFile {
+ public:
+  Map<CatalogID, AssetCatalog *> get_catalogs()
+  {
+    return catalogs_;
+  }
+};
+
+TEST_F(AssetCatalogTest, cat_collection_deep_copy__nonempty_cdf)
+{
+  TestableAssetCatalogCollection catcoll;
+  auto cat1 = std::make_unique<AssetCatalog>(UUID_POSES_RUZENA, "poses/Henrik", "");
+  auto cat2 = std::make_unique<AssetCatalog>(UUID_POSES_RUZENA_FACE, "poses/Henrik/face", "");
+  auto cat3 = std::make_unique<AssetCatalog>(UUID_POSES_RUZENA_HAND, "poses/Henrik/hands", "");
+  cat3->flags.is_deleted = true;
+
+  AssetCatalog *cat1_ptr = cat1.get();
+  AssetCatalog *cat2_ptr = cat2.get();
+  AssetCatalog *cat3_ptr = cat3.get();
+
+  catcoll.get_catalogs().add_new(cat1->catalog_id, std::move(cat1));
+  catcoll.get_catalogs().add_new(cat2->catalog_id, std::move(cat2));
+  catcoll.get_deleted_catalogs().add_new(cat3->catalog_id, std::move(cat3));
+
+  AssetCatalogDefinitionFile *cdf = catcoll.allocate_catalog_definition_file();
+  cdf->file_path = "path/to/somewhere.cats.txt";
+  cdf->add_new(cat1_ptr);
+  cdf->add_new(cat2_ptr);
+  cdf->add_new(cat3_ptr);
+
+  /* Test CDF remapping. */
+  auto copy = catcoll.deep_copy();
+  TestableAssetCatalogCollection *testable_copy = static_cast<TestableAssetCatalogCollection *>(
+      copy.get());
+
+  TestableAssetCatalogDefinitionFile *cdf_copy = static_cast<TestableAssetCatalogDefinitionFile *>(
+      testable_copy->get_catalog_definition_file());
+  EXPECT_EQ(testable_copy->get_catalogs().lookup(UUID_POSES_RUZENA).get(),
+            cdf_copy->get_catalogs().lookup(UUID_POSES_RUZENA))
+      << "AssetCatalog pointers should have been remapped to the copy.";
+
+  EXPECT_EQ(testable_copy->get_deleted_catalogs().lookup(UUID_POSES_RUZENA_HAND).get(),
+            cdf_copy->get_catalogs().lookup(UUID_POSES_RUZENA_HAND))
+      << "Deleted AssetCatalog pointers should have been remapped to the copy.";
+}
+
+TEST_F(AssetCatalogTest, undo_redo_one_step)
+{
+  TestableAssetCatalogService service(asset_library_root_);
+  service.load_from_disk();
+
+  EXPECT_FALSE(service.is_undo_possbile());
+  EXPECT_FALSE(service.is_redo_possbile());
+
+  service.create_catalog("some/catalog/path");
+  EXPECT_FALSE(service.is_undo_possbile())
+      << "Undo steps should be created explicitly, and not after creating any catalog.";
+
+  service.store_undo_snapshot();
+  const bUUID other_catalog_id = service.create_catalog("other/catalog/path")->catalog_id;
+  EXPECT_TRUE(service.is_undo_possbile())
+      << "Undo should be possible after creating an undo snapshot.";
+
+  // Undo the creation of the catalog.
+  service.undo();
+  EXPECT_FALSE(service.is_undo_possbile())
+      << "Undoing the only stored step should make it impossible to undo further.";
+  EXPECT_TRUE(service.is_redo_possbile()) << "Undoing a step should make redo possible.";
+  EXPECT_EQ(nullptr, service.find_catalog_by_path("other/catalog/path"))
+      << "Undone catalog should not exist after undo.";
+  EXPECT_NE(nullptr, service.find_catalog_by_path("some/catalog/path"))
+      << "First catalog should still exist after undo.";
+  EXPECT_FALSE(service.get_catalog_definition_file()->contains(other_catalog_id))
+      << "The CDF should also not contain the undone catalog.";
+
+  // Redo the creation of the catalog.
+  service.redo();
+  EXPECT_TRUE(service.is_undo_possbile())
+      << "Undoing and then redoing a step should make it possible to undo again.";
+  EXPECT_FALSE(service.is_redo_possbile())
+      << "Undoing and then redoing a step should make redo impossible.";
+  EXPECT_NE(nullptr, service.find_catalog_by_path("other/catalog/path"))
+      << "Redone catalog should exist after redo.";
+  EXPECT_NE(nullptr, service.find_catalog_by_path("some/catalog/path"))
+      << "First catalog should still exist after redo.";
+  EXPECT_TRUE(service.get_catalog_definition_file()->contains(other_catalog_id))
+      << "The CDF should contain the redone catalog.";
+}
+
+TEST_F(AssetCatalogTest, undo_redo_more_complex)
+{
+  TestableAssetCatalogService service(asset_library_root_);
+  service.load_from_disk();
+
+  service.store_undo_snapshot();
+  service.find_catalog(UUID_POSES_ELLIE_WHITESPACE)->simple_name = "Edited simple name";
+
+  service.store_undo_snapshot();
+  service.find_catalog(UUID_POSES_ELLIE)->path = "poselib/EllieWithEditedPath";
+
+  service.undo();
+  service.undo();
+
+  service.store_undo_snapshot();
+  service.find_catalog(UUID_POSES_ELLIE)->simple_name = "Ellie Simple";
+
+  EXPECT_FALSE(service.is_redo_possbile())
+      << "After storing an undo snapshot, the redo buffer should be empty.";
+  EXPECT_TRUE(service.is_undo_possbile())
+      << "After storing an undo snapshot, undoing should be possible";
+
+  EXPECT_EQ(service.find_catalog(UUID_POSES_ELLIE)->simple_name, "Ellie Simple"); /* Not undone. */
+  EXPECT_EQ(service.find_catalog(UUID_POSES_ELLIE_WHITESPACE)->simple_name,
+            "POSES_ELLIE WHITESPACE");                                                /* Undone. */
+  EXPECT_EQ(service.find_catalog(UUID_POSES_ELLIE)->path, "character/Ellie/poselib"); /* Undone. */
 }
 
 }  // namespace blender::bke::tests

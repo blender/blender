@@ -60,7 +60,7 @@ class AssetCatalogService {
   static const CatalogFilePath DEFAULT_CATALOG_FILENAME;
 
  public:
-  AssetCatalogService() = default;
+  AssetCatalogService();
   explicit AssetCatalogService(const CatalogFilePath &asset_library_root);
 
   /** Load asset catalog definitions from the files found in the asset library. */
@@ -143,13 +143,29 @@ class AssetCatalogService {
   /** Return true only if there are no catalogs known. */
   bool is_empty() const;
 
+  /**
+   * Store the current catalogs in the undo stack.
+   * This snapshots everything in the #AssetCatalogCollection. */
+  void store_undo_snapshot();
+  /**
+   * Restore the last-saved undo snapshot, pushing the current state onto the redo stack.
+   * The caller is responsible for first checking that undoing is possible.
+   */
+  void undo();
+  bool is_undo_possbile() const;
+  /**
+   * Restore the last-saved redo snapshot, pushing the current state onto the undo stack.
+   * The caller is responsible for first checking that undoing is possible. */
+  void redo();
+  bool is_redo_possbile() const;
+
  protected:
-  /* These pointers are owned by this AssetCatalogService. */
-  OwningAssetCatalogMap catalogs_;
-  OwningAssetCatalogMap deleted_catalogs_;
-  std::unique_ptr<AssetCatalogDefinitionFile> catalog_definition_file_;
+  std::unique_ptr<AssetCatalogCollection> catalog_collection_;
   std::unique_ptr<AssetCatalogTree> catalog_tree_ = std::make_unique<AssetCatalogTree>();
   CatalogFilePath asset_library_root_;
+
+  Vector<std::unique_ptr<AssetCatalogCollection>> undo_snapshots_;
+  Vector<std::unique_ptr<AssetCatalogCollection>> redo_snapshots_;
 
   void load_directory_recursive(const CatalogFilePath &directory_path);
   void load_single_file(const CatalogFilePath &catalog_definition_file_path);
@@ -179,6 +195,41 @@ class AssetCatalogService {
    * For every catalog, ensure that its parent path also has a known catalog.
    */
   void create_missing_catalogs();
+
+  /* For access by subclasses, as those will not be marked as friend by #AssetCatalogCollection. */
+  AssetCatalogDefinitionFile *get_catalog_definition_file();
+  OwningAssetCatalogMap &get_catalogs();
+};
+
+/**
+ * All catalogs that are owned by a single asset library, and managed by a single instance of
+ * #AssetCatalogService. The undo system for asset catalog edits contains historical copies of this
+ * struct.
+ */
+class AssetCatalogCollection {
+  friend AssetCatalogService;
+
+ public:
+  AssetCatalogCollection() = default;
+  AssetCatalogCollection(const AssetCatalogCollection &other) = delete;
+  AssetCatalogCollection(AssetCatalogCollection &&other) noexcept = default;
+
+  std::unique_ptr<AssetCatalogCollection> deep_copy() const;
+
+ protected:
+  /** All catalogs known, except the known-but-deleted ones. */
+  OwningAssetCatalogMap catalogs_;
+
+  /** Catalogs that have been deleted. They are kept around so that the load-merge-save of catalog
+   * definition files can actually delete them if they already existed on disk (instead of the
+   * merge operation resurrecting them). */
+  OwningAssetCatalogMap deleted_catalogs_;
+
+  /* For now only a single catalog definition file is supported.
+   * The aim is to support an arbitrary number of such files per asset library in the future. */
+  std::unique_ptr<AssetCatalogDefinitionFile> catalog_definition_file_;
+
+  static OwningAssetCatalogMap copy_catalog_map(const OwningAssetCatalogMap &orig);
 };
 
 /**
@@ -291,6 +342,9 @@ class AssetCatalogDefinitionFile {
   using AssetCatalogParsedFn = FunctionRef<bool(std::unique_ptr<AssetCatalog>)>;
   void parse_catalog_file(const CatalogFilePath &catalog_definition_file_path,
                           AssetCatalogParsedFn callback);
+
+  std::unique_ptr<AssetCatalogDefinitionFile> copy_and_remap(
+      const OwningAssetCatalogMap &catalogs, const OwningAssetCatalogMap &deleted_catalogs) const;
 
  protected:
   /* Catalogs stored in this file. They are mapped by ID to make it possible to query whether a
