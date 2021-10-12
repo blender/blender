@@ -553,6 +553,9 @@ static void ASSET_OT_catalog_undo_push(struct wmOperatorType *ot)
   /* api callbacks */
   ot->exec = asset_catalog_undo_push_exec;
   ot->poll = asset_catalog_undo_push_poll;
+
+  /* Generally artists don't need to find & use this operator, it's meant for scripts only. */
+  ot->flag = OPTYPE_INTERNAL;
 }
 
 /* -------------------------------------------------------------------- */
