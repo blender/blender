@@ -141,9 +141,6 @@ uint8_t GHOST_SystemSDL::getNumDisplays() const
 
 GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GLSettings glSettings)
 {
-  SDL_GLContext prev_context = SDL_GL_GetCurrentContext();
-  SDL_Window *prev_window = SDL_GL_GetCurrentWindow();
-
   GHOST_Context *context = new GHOST_ContextSDL(0,
                                                 NULL,
                                                 0, /* Profile bit. */
@@ -152,18 +149,12 @@ GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GLSettings glSetti
                                                 GHOST_OPENGL_SDL_CONTEXT_FLAGS,
                                                 GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
 
-  if (context->initializeDrawingContext()) {
-    /* Pass */
-  }
-  else {
+  if (context->initializeDrawingContext())
+    return context;
+  else
     delete context;
-    context = nullptr;
-  }
 
-  if (m_context) {
-    SDL_GL_MakeCurrent(prev_window, prev_context);
-  }
-  return context;
+  return NULL;
 }
 
 GHOST_TSuccess GHOST_SystemSDL::disposeContext(GHOST_IContext *context)

@@ -437,32 +437,16 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSetti
 #  endif
 #endif
 
-#if defined(WITH_GL_EGL)
-  EGLDisplay prev_display = eglGetCurrentDisplay();
-  /* It doesn't matter which one we query since we use the same surface for both read and write. */
-  EGLSurface prev_surface = eglGetCurrentSurface(EGL_DRAW);
-  EGLContext prev_context = eglGetCurrentContext();
-#else
-  Display *prev_display = glXGetCurrentDisplay();
-  GLXDrawable prev_drawable = glXGetCurrentDrawable();
-  GLXContext prev_context = glXGetCurrentContext();
-#endif
-
   GHOST_Context *context;
 
-  const int versions[][2] = {{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0}, {3, 3}};
-  const int versions_len = sizeof(versions) / sizeof(versions[0]);
-
-  for (int i = 0; i < versions_len; i++) {
-    int major = versions[i][0];
-    int minor = versions[i][1];
+  for (int minor = 5; minor >= 0; --minor) {
 #if defined(WITH_GL_EGL)
     context = new GHOST_ContextEGL(this,
                                    false,
                                    EGLNativeWindowType(nullptr),
                                    EGLNativeDisplayType(m_display),
                                    profile_mask,
-                                   major,
+                                   4,
                                    minor,
                                    GHOST_OPENGL_EGL_CONTEXT_FLAGS |
                                        (debug_context ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
@@ -474,31 +458,50 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSetti
                                    m_display,
                                    (GLXFBConfig)NULL,
                                    profile_mask,
-                                   major,
+                                   4,
                                    minor,
                                    GHOST_OPENGL_GLX_CONTEXT_FLAGS |
                                        (debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
                                    GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
 #endif
 
-    if (context->initializeDrawingContext()) {
-      break;
-    }
-    else {
+    if (context->initializeDrawingContext())
+      return context;
+    else
       delete context;
-      context = nullptr;
-    }
   }
 
-  if (prev_context) {
-    /* Restore previously bound context. This is just to follow the win32 behavior. */
 #if defined(WITH_GL_EGL)
-    eglMakeCurrent(prev_display, prev_surface, prev_surface, prev_context);
+  context = new GHOST_ContextEGL(this,
+                                 false,
+                                 EGLNativeWindowType(nullptr),
+                                 EGLNativeDisplayType(m_display),
+                                 profile_mask,
+                                 3,
+                                 3,
+                                 GHOST_OPENGL_EGL_CONTEXT_FLAGS |
+                                     (debug_context ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
+                                 GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+                                 EGL_OPENGL_API);
 #else
-    glXMakeCurrent(prev_display, prev_drawable, prev_context);
+  context = new GHOST_ContextGLX(false,
+                                 (Window)NULL,
+                                 m_display,
+                                 (GLXFBConfig)NULL,
+                                 profile_mask,
+                                 3,
+                                 3,
+                                 GHOST_OPENGL_GLX_CONTEXT_FLAGS |
+                                     (debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
+                                 GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
 #endif
-  }
-  return context;
+
+  if (context->initializeDrawingContext())
+    return context;
+  else
+    delete context;
+
+  return NULL;
 }
 
 /**

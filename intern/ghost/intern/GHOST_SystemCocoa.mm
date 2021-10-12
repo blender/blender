@@ -767,18 +767,13 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
  */
 GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GLSettings glSettings)
 {
-  NSOpenGLContext *prevContext = [NSOpenGLContext currentContext];
-
   GHOST_Context *context = new GHOST_ContextCGL(false, NULL, NULL, NULL);
-  if (context->initializeDrawingContext() == false) {
+  if (context->initializeDrawingContext())
+    return context;
+  else
     delete context;
-    context = nullptr;
-  }
-  /* Restore previously bound context. This is just to follow the win32 behavior. */
-  if (prevContext) {
-    [prevContext makeCurrentContext];
-  }
-  return context;
+
+  return NULL;
 }
 
 /**

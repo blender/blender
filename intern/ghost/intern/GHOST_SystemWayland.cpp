@@ -1599,47 +1599,45 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*g
 
   GHOST_Context *context;
 
-  EGLDisplay prev_display = eglGetCurrentDisplay();
-  /* It doesn't matter which one we query since we use the same surface for both read and write. */
-  EGLSurface prev_surface = eglGetCurrentSurface(EGL_DRAW);
-  EGLContext prev_context = eglGetCurrentContext();
-
-  const int versions[][2] = {{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0}, {3, 3}};
-  const int versions_len = sizeof(versions) / sizeof(versions[0]);
-
-  for (int i = 0; i < versions_len; i++) {
-    int major = versions[i][0];
-    int minor = versions[i][1];
-
+  for (int minor = 6; minor >= 0; --minor) {
     context = new GHOST_ContextEGL(this,
                                    false,
                                    EGLNativeWindowType(os_egl_window),
                                    EGLNativeDisplayType(d->display),
                                    EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                                   major,
+                                   4,
                                    minor,
                                    GHOST_OPENGL_EGL_CONTEXT_FLAGS,
                                    GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
                                    EGL_OPENGL_API);
 
-    if (context->initializeDrawingContext()) {
-      break;
-    }
-    else {
+    if (context->initializeDrawingContext())
+      return context;
+    else
       delete context;
-      context = nullptr;
-    }
   }
 
-  if (context == nullptr) {
-    GHOST_PRINT("Cannot create off-screen EGL context" << std::endl);
+  context = new GHOST_ContextEGL(this,
+                                 false,
+                                 EGLNativeWindowType(os_egl_window),
+                                 EGLNativeDisplayType(d->display),
+                                 EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+                                 3,
+                                 3,
+                                 GHOST_OPENGL_EGL_CONTEXT_FLAGS,
+                                 GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+                                 EGL_OPENGL_API);
+
+  if (context->initializeDrawingContext()) {
+    return context;
+  }
+  else {
+    delete context;
   }
 
-  if (prev_context) {
-    /* Restore previously bound context. This is just to follow the win32 behavior. */
-    eglMakeCurrent(prev_display, prev_surface, prev_surface, prev_context);
-  }
-  return context;
+  GHOST_PRINT("Cannot create off-screen EGL context" << std::endl);
+
+  return nullptr;
 }
 
 GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
