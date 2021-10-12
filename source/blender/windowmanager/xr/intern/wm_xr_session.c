@@ -985,7 +985,7 @@ static wmXrActionData *wm_xr_session_event_create(const char *action_set_name,
 
 /* Dispatch events to window queues. */
 static void wm_xr_session_events_dispatch(wmXrData *xr,
-                                          const XrSessionSettings *settings,
+                                          const XrSessionSettings *UNUSED(settings),
                                           GHOST_XrContextHandle xr_context,
                                           wmXrActionSet *action_set,
                                           wmXrSessionState *session_state,
