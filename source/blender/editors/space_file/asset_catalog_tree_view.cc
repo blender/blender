@@ -356,6 +356,8 @@ bool AssetCatalogTreeViewItem::rename(StringRefNull new_name)
 
   AssetCatalogPath new_path = catalog_item_.catalog_path().parent();
   new_path = new_path / StringRef(new_name);
+
+  tree_view.catalog_service_->undo_push();
   tree_view.catalog_service_->update_catalog_path(catalog_item_.get_catalog_id(), new_path);
   return true;
 }

@@ -485,6 +485,7 @@ void AssetCatalogService::undo()
 
   redo_snapshots_.append(std::move(catalog_collection_));
   catalog_collection_ = std::move(undo_snapshots_.pop_last());
+  rebuild_tree();
 }
 
 void AssetCatalogService::redo()
@@ -493,6 +494,7 @@ void AssetCatalogService::redo()
 
   undo_snapshots_.append(std::move(catalog_collection_));
   catalog_collection_ = std::move(redo_snapshots_.pop_last());
+  rebuild_tree();
 }
 
 void AssetCatalogService::undo_push()
