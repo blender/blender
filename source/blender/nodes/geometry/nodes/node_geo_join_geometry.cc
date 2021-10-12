@@ -209,7 +209,7 @@ static void join_attributes(Span<const GeometryComponent *> src_components,
   const Map<AttributeIDRef, AttributeMetaData> info = get_final_attribute_info(src_components,
                                                                                ignored_attributes);
 
-  for (const Map<AttributeIDRef, AttributeMetaData>::Item &item : info.items()) {
+  for (const Map<AttributeIDRef, AttributeMetaData>::Item item : info.items()) {
     const AttributeIDRef attribute_id = item.key;
     const AttributeMetaData &meta_data = item.value;
 
@@ -399,7 +399,7 @@ static void join_curve_attributes(const Map<AttributeIDRef, AttributeMetaData> &
                                   Span<CurveComponent *> src_components,
                                   CurveEval &result)
 {
-  for (const Map<AttributeIDRef, AttributeMetaData>::Item &item : info.items()) {
+  for (const Map<AttributeIDRef, AttributeMetaData>::Item item : info.items()) {
     const AttributeIDRef attribute_id = item.key;
     const AttributeMetaData meta_data = item.value;
 

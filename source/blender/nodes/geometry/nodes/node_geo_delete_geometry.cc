@@ -923,10 +923,10 @@ static void do_mesh_separation(GeometrySet &geometry_set,
   switch (mode) {
     case GEO_NODE_DELETE_GEOMETRY_MODE_ALL: {
       Array<int> vertex_map(mesh_in.totvert);
-      int num_selected_vertices;
+      int num_selected_vertices = 0;
 
       Array<int> edge_map(mesh_in.totedge);
-      int num_selected_edges;
+      int num_selected_edges = 0;
 
       /* Fill all the maps based on the selection. */
       switch (domain) {
@@ -990,7 +990,7 @@ static void do_mesh_separation(GeometrySet &geometry_set,
     }
     case GEO_NODE_DELETE_GEOMETRY_MODE_EDGE_FACE: {
       Array<int> edge_map(mesh_in.totedge);
-      int num_selected_edges;
+      int num_selected_edges = 0;
 
       /* Fill all the maps based on the selection. */
       switch (domain) {

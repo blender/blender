@@ -180,7 +180,7 @@ static void copy_evaluated_point_attributes(Span<SplinePtr> splines,
       spline.interpolate_to_evaluated(spline.radii())->materialize(data.radii.slice(offset, size));
       spline.interpolate_to_evaluated(spline.tilts())->materialize(data.tilts.slice(offset, size));
 
-      for (const Map<AttributeIDRef, GMutableSpan>::Item &item : data.point_attributes.items()) {
+      for (const Map<AttributeIDRef, GMutableSpan>::Item item : data.point_attributes.items()) {
         const AttributeIDRef attribute_id = item.key;
         GMutableSpan point_span = item.value;
 
@@ -223,7 +223,7 @@ static void copy_uniform_sample_point_attributes(Span<SplinePtr> splines,
                                               uniform_samples,
                                               data.tilts.slice(offset, size));
 
-      for (const Map<AttributeIDRef, GMutableSpan>::Item &item : data.point_attributes.items()) {
+      for (const Map<AttributeIDRef, GMutableSpan>::Item item : data.point_attributes.items()) {
         const AttributeIDRef attribute_id = item.key;
         GMutableSpan point_span = item.value;
 

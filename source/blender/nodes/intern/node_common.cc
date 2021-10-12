@@ -372,7 +372,7 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
   }
 
   /* Actually update reroute nodes with changed types. */
-  for (const auto &item : reroute_types.items()) {
+  for (const auto item : reroute_types.items()) {
     bNode *reroute_node = item.key;
     const bNodeSocketType *socket_type = item.value;
     bNodeSocket *input_socket = (bNodeSocket *)reroute_node->inputs.first;

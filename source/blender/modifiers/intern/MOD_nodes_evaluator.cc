@@ -1108,7 +1108,7 @@ class GeometryNodesEvaluator {
       return;
     }
     bool will_be_triggered_by_other_node = false;
-    for (const DSocket origin_socket : origin_sockets) {
+    for (const DSocket &origin_socket : origin_sockets) {
       if (origin_socket->is_input()) {
         /* Load the value directly from the origin socket. In most cases this is an unlinked
          * group input. */

@@ -201,7 +201,7 @@ static void geo_node_proximity_exec(GeoNodeExecParams params)
 
   if (!geometry_set_target.has_mesh() && !geometry_set_target.has_pointcloud()) {
     params.set_output("Position", fn::make_constant_field<float3>({0.0f, 0.0f, 0.0f}));
-    params.set_output("Distance", fn::make_constant_field<float>({0.0f}));
+    params.set_output("Distance", fn::make_constant_field<float>(0.0f));
     return;
   }
 
