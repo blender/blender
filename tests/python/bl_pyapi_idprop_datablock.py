@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# ./blender.bin --background -noaudio --python tests/python/bl_pyapi_idprop_datablock.py -- --verbose
+
 import bpy
 import sys
 import os
@@ -25,8 +27,10 @@ from bpy.types import UIList
 
 arr_len = 100
 ob_cp_count = 100
-lib_path = os.path.join(tempfile.gettempdir(), "lib.blend")
-test_path = os.path.join(tempfile.gettempdir(), "test.blend")
+
+# Set before execution.
+lib_path = None
+test_path = None
 
 
 def print_fail_msg_and_exit(msg):
@@ -321,12 +325,18 @@ def test_restrictions2():
 
 
 def main():
-    init()
-    test_users_counting()
-    test_linking()
-    test_restrictions1()
-    check_crash(test_regressions)
-    test_restrictions2()
+    global lib_path
+    global test_path
+    with tempfile.TemporaryDirectory() as temp_dir:
+        lib_path = os.path.join(temp_dir, "lib.blend")
+        test_path = os.path.join(temp_dir, "test.blend")
+
+        init()
+        test_users_counting()
+        test_linking()
+        test_restrictions1()
+        check_crash(test_regressions)
+        test_restrictions2()
 
 
 if __name__ == "__main__":
