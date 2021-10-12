@@ -117,9 +117,21 @@ class AssetCatalogService {
   AssetCatalog *create_catalog(const AssetCatalogPath &catalog_path);
 
   /**
-   * Soft-delete the catalog, ensuring it actually gets deleted when the catalog definition file is
-   * written. */
-  void delete_catalog(CatalogID catalog_id);
+   * Delete all catalogs with the given path, and their children.
+   */
+  void prune_catalogs_by_path(const AssetCatalogPath &path);
+
+  /**
+   * Delete all catalogs with the same path as the identified catalog, and their children.
+   * This call is the same as calling `prune_catalogs_by_path(find_catalog(catalog_id)->path)`.
+   */
+  void prune_catalogs_by_id(CatalogID catalog_id);
+
+  /**
+   * Delete a catalog, without deleting any of its children and without rebuilding the catalog
+   * tree. This is a lower-level function than #prune_catalogs_by_path.
+   */
+  void delete_catalog_by_id(CatalogID catalog_id);
 
   /**
    * Update the catalog path, also updating the catalog path of all sub-catalogs.

@@ -112,7 +112,7 @@ AssetCatalogFilter AssetCatalogService::create_catalog_filter(
   return AssetCatalogFilter(std::move(matching_catalog_ids));
 }
 
-void AssetCatalogService::delete_catalog(CatalogID catalog_id)
+void AssetCatalogService::delete_catalog_by_id(const CatalogID catalog_id)
 {
   std::unique_ptr<AssetCatalog> *catalog_uptr_ptr = this->catalogs_.lookup_ptr(catalog_id);
   if (catalog_uptr_ptr == nullptr) {
@@ -129,11 +129,38 @@ void AssetCatalogService::delete_catalog(CatalogID catalog_id)
 
   /* The catalog can now be removed from the map without freeing the actual AssetCatalog. */
   this->catalogs_.remove(catalog_id);
+}
+
+void AssetCatalogService::prune_catalogs_by_path(const AssetCatalogPath &path)
+{
+  /* Build a collection of catalog IDs to delete. */
+  Set<CatalogID> catalogs_to_delete;
+  for (const auto &catalog_uptr : this->catalogs_.values()) {
+    const AssetCatalog *cat = catalog_uptr.get();
+    if (cat->path.is_contained_in(path)) {
+      catalogs_to_delete.add(cat->catalog_id);
+    }
+  }
+
+  /* Delete the catalogs. */
+  for (const CatalogID cat_id : catalogs_to_delete) {
+    this->delete_catalog_by_id(cat_id);
+  }
 
   this->rebuild_tree();
 }
 
-void AssetCatalogService::update_catalog_path(CatalogID catalog_id,
+void AssetCatalogService::prune_catalogs_by_id(const CatalogID catalog_id)
+{
+  const AssetCatalog *catalog = find_catalog(catalog_id);
+  BLI_assert_msg(catalog, "trying to prune asset catalogs by the path of a non-existent catalog");
+  if (!catalog) {
+    return;
+  }
+  this->prune_catalogs_by_path(catalog->path);
+}
+
+void AssetCatalogService::update_catalog_path(const CatalogID catalog_id,
                                               const AssetCatalogPath &new_catalog_path)
 {
   AssetCatalog *renamed_cat = this->find_catalog(catalog_id);

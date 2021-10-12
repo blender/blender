@@ -77,5 +77,5 @@ void ED_asset_catalog_remove(::AssetLibrary *library, const CatalogID &catalog_i
     return;
   }
 
-  catalog_service->delete_catalog(catalog_id);
+  catalog_service->prune_catalogs_by_id(catalog_id);
 }

@@ -719,7 +719,7 @@ TEST_F(AssetCatalogTest, delete_catalog_leaf)
 
   /* Delete a leaf catalog, i.e. one that is not a parent of another catalog.
    * This keeps this particular test easy. */
-  service.delete_catalog(UUID_POSES_RUZENA_HAND);
+  service.prune_catalogs_by_id(UUID_POSES_RUZENA_HAND);
   EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA_HAND));
 
   /* Contains not only paths from the CDF but also the missing parents (implicitly defined
@@ -743,13 +743,65 @@ TEST_F(AssetCatalogTest, delete_catalog_leaf)
   assert_expected_tree_items(tree, expected_paths);
 }
 
+TEST_F(AssetCatalogTest, delete_catalog_parent_by_id)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+
+  /* Delete a parent catalog. */
+  service.delete_catalog_by_id(UUID_POSES_RUZENA);
+
+  /* The catalog should have been deleted, but its children should still be there. */
+  EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA));
+  EXPECT_NE(nullptr, service.find_catalog(UUID_POSES_RUZENA_FACE));
+  EXPECT_NE(nullptr, service.find_catalog(UUID_POSES_RUZENA_HAND));
+}
+
+TEST_F(AssetCatalogTest, delete_catalog_parent_by_path)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+
+  /* Create an extra catalog with the to-be-deleted path, and one with a child of that.
+   * This creates some duplicates that are bound to occur in production asset libraries as well. */
+  const bUUID cat1_uuid = service.create_catalog("character/Ružena/poselib")->catalog_id;
+  const bUUID cat2_uuid = service.create_catalog("character/Ružena/poselib/body")->catalog_id;
+
+  /* Delete a parent catalog. */
+  service.prune_catalogs_by_path("character/Ružena/poselib");
+
+  /* The catalogs and their children should have been deleted. */
+  EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA));
+  EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA_FACE));
+  EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA_HAND));
+  EXPECT_EQ(nullptr, service.find_catalog(cat1_uuid));
+  EXPECT_EQ(nullptr, service.find_catalog(cat2_uuid));
+
+  /* Contains not only paths from the CDF but also the missing parents (implicitly defined
+   * catalogs). This is why a leaf catalog was deleted. */
+  std::vector<AssetCatalogPath> expected_paths{
+      "character",
+      "character/Ellie",
+      "character/Ellie/poselib",
+      "character/Ellie/poselib/tailslash",
+      "character/Ellie/poselib/white space",
+      "character/Ružena",
+      "path",
+      "path/without",
+      "path/without/simplename",
+  };
+
+  AssetCatalogTree *tree = service.get_catalog_tree();
+  assert_expected_tree_items(tree, expected_paths);
+}
+
 TEST_F(AssetCatalogTest, delete_catalog_write_to_disk)
 {
   TestableAssetCatalogService service(asset_library_root_);
   service.load_from_disk(asset_library_root_ + "/" +
                          AssetCatalogService::DEFAULT_CATALOG_FILENAME);
 
-  service.delete_catalog(UUID_POSES_ELLIE);
+  service.delete_catalog_by_id(UUID_POSES_ELLIE);
 
   const CatalogFilePath save_to_path = use_temp_path();
   AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
@@ -844,7 +896,7 @@ TEST_F(AssetCatalogTest, backups)
   /* Read a CDF, modify, and write it. */
   AssetCatalogService service(cdf_dir);
   service.load_from_disk();
-  service.delete_catalog(UUID_POSES_ELLIE);
+  service.delete_catalog_by_id(UUID_POSES_ELLIE);
   service.write_to_disk_on_blendfile_save(cdf_dir + "phony.blend");
 
   const CatalogFilePath backup_path = writable_cdf_file + "~";
