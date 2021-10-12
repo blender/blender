@@ -31,6 +31,16 @@ namespace blender::bke::tests {
 
 TEST(AssetCatalogPathTest, construction)
 {
+  AssetCatalogPath default_constructed;
+  /* Use `.str()` to use `std:string`'s comparison operators here, not our own (which are tested
+   * later). */
+  EXPECT_EQ(default_constructed.str(), "");
+
+  /* C++ considers this construction special, it doesn't call the default constructor but does
+   * recursive, member-wise value initialization. See https://stackoverflow.com/a/4982720. */
+  AssetCatalogPath value_initialized = AssetCatalogPath();
+  EXPECT_EQ(value_initialized.str(), "");
+
   AssetCatalogPath from_char_literal("the/path");
 
   const std::string str_const = "the/path";

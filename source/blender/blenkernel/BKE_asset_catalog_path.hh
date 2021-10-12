@@ -56,12 +56,12 @@ class AssetCatalogPath {
   /**
    * The path itself, such as "Agents/Secret/327".
    */
-  std::string path_;
+  std::string path_ = "";
 
  public:
   static const char SEPARATOR;
 
-  AssetCatalogPath() = delete;
+  AssetCatalogPath() = default;
   AssetCatalogPath(StringRef path);
   AssetCatalogPath(const std::string &path);
   AssetCatalogPath(const char *path);
