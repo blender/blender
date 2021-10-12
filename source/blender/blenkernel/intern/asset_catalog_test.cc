@@ -1178,7 +1178,7 @@ TEST_F(AssetCatalogTest, undo_redo_one_step)
   EXPECT_FALSE(service.is_undo_possbile())
       << "Undo steps should be created explicitly, and not after creating any catalog.";
 
-  service.store_undo_snapshot();
+  service.undo_push();
   const bUUID other_catalog_id = service.create_catalog("other/catalog/path")->catalog_id;
   EXPECT_TRUE(service.is_undo_possbile())
       << "Undo should be possible after creating an undo snapshot.";
@@ -1214,16 +1214,16 @@ TEST_F(AssetCatalogTest, undo_redo_more_complex)
   TestableAssetCatalogService service(asset_library_root_);
   service.load_from_disk();
 
-  service.store_undo_snapshot();
+  service.undo_push();
   service.find_catalog(UUID_POSES_ELLIE_WHITESPACE)->simple_name = "Edited simple name";
 
-  service.store_undo_snapshot();
+  service.undo_push();
   service.find_catalog(UUID_POSES_ELLIE)->path = "poselib/EllieWithEditedPath";
 
   service.undo();
   service.undo();
 
-  service.store_undo_snapshot();
+  service.undo_push();
   service.find_catalog(UUID_POSES_ELLIE)->simple_name = "Ellie Simple";
 
   EXPECT_FALSE(service.is_redo_possbile())

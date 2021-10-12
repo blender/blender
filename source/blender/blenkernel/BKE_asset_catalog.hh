@@ -146,7 +146,7 @@ class AssetCatalogService {
   /**
    * Store the current catalogs in the undo stack.
    * This snapshots everything in the #AssetCatalogCollection. */
-  void store_undo_snapshot();
+  void undo_push();
   /**
    * Restore the last-saved undo snapshot, pushing the current state onto the redo stack.
    * The caller is responsible for first checking that undoing is possible.

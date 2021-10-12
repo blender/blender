@@ -495,7 +495,7 @@ void AssetCatalogService::redo()
   catalog_collection_ = std::move(redo_snapshots_.pop_last());
 }
 
-void AssetCatalogService::store_undo_snapshot()
+void AssetCatalogService::undo_push()
 {
   std::unique_ptr<AssetCatalogCollection> snapshot = catalog_collection_->deep_copy();
   undo_snapshots_.append(std::move(snapshot));
