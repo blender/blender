@@ -627,6 +627,9 @@ def km_screen(params):
         ("file.execute", {"type": 'RET', "value": 'PRESS'}, None),
         ("file.execute", {"type": 'NUMPAD_ENTER', "value": 'PRESS'}, None),
         ("file.cancel", {"type": 'ESC', "value": 'PRESS'}, None),
+        # Asset Catalog undo is only available in the asset browser, and should take priority over `ed.undo`.
+        ("asset.catalog_undo", {"type": 'Z', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
+        ("asset.catalog_redo", {"type": 'Z', "value": 'PRESS', "ctrl": True, "shift": True, "repeat": True}, None),
         # Undo
         ("ed.undo", {"type": 'Z', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("ed.redo", {"type": 'Z', "value": 'PRESS', "shift": True, "ctrl": True, "repeat": True}, None),
