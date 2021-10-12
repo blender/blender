@@ -116,21 +116,23 @@ class AssetCatalogTest : public testing::Test {
     return path;
   }
 
-  struct CatalogPathInfo {
-    StringRef name;
-    int parent_count;
-  };
-
-  void assert_expected_item(const CatalogPathInfo &expected_path,
+  void assert_expected_item(const AssetCatalogPath &expected_path,
                             const AssetCatalogTreeItem &actual_item)
   {
-    char expected_filename[FILE_MAXFILE];
+    if (expected_path != actual_item.catalog_path().str()) {
+      /* This will fail, but with a nicer error message than just calling FAIL(). */
+      EXPECT_EQ(expected_path, actual_item.catalog_path());
+      return;
+    }
+
     /* Is the catalog name as expected? "character", "Ellie", ... */
-    BLI_split_file_part(expected_path.name.data(), expected_filename, sizeof(expected_filename));
-    EXPECT_EQ(expected_filename, actual_item.get_name());
+    EXPECT_EQ(expected_path.name(), actual_item.get_name());
+
     /* Does the computed number of parents match? */
-    EXPECT_EQ(expected_path.parent_count, actual_item.count_parents());
-    EXPECT_EQ(expected_path.name, actual_item.catalog_path().str());
+    const std::string expected_path_str = expected_path.str();
+    const size_t expected_parent_count = std::count(
+        expected_path_str.begin(), expected_path_str.end(), AssetCatalogPath::SEPARATOR);
+    EXPECT_EQ(expected_parent_count, actual_item.count_parents());
   }
 
   /**
@@ -138,7 +140,7 @@ class AssetCatalogTest : public testing::Test {
    * the items map exactly to \a expected_paths.
    */
   void assert_expected_tree_items(AssetCatalogTree *tree,
-                                  const std::vector<CatalogPathInfo> &expected_paths)
+                                  const std::vector<AssetCatalogPath> &expected_paths)
   {
     int i = 0;
     tree->foreach_item([&](const AssetCatalogTreeItem &actual_item) {
@@ -155,7 +157,7 @@ class AssetCatalogTest : public testing::Test {
    * #AssetCatalogTree::foreach_root_item() instead of #AssetCatalogTree::foreach_item().
    */
   void assert_expected_tree_root_items(AssetCatalogTree *tree,
-                                       const std::vector<CatalogPathInfo> &expected_paths)
+                                       const std::vector<AssetCatalogPath> &expected_paths)
   {
     int i = 0;
     tree->foreach_root_item([&](const AssetCatalogTreeItem &actual_item) {
@@ -173,7 +175,7 @@ class AssetCatalogTest : public testing::Test {
    * #AssetCatalogTreeItem::foreach_child() instead of #AssetCatalogTree::foreach_item().
    */
   void assert_expected_tree_item_child_items(AssetCatalogTreeItem *parent_item,
-                                             const std::vector<CatalogPathInfo> &expected_paths)
+                                             const std::vector<AssetCatalogPath> &expected_paths)
   {
     int i = 0;
     parent_item->foreach_child([&](const AssetCatalogTreeItem &actual_item) {
@@ -305,32 +307,30 @@ TEST_F(AssetCatalogTest, insert_item_into_tree)
 
     std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path("item");
     tree.insert_item(*catalog);
-    assert_expected_tree_items(&tree, {{"item", 0}});
+    assert_expected_tree_items(&tree, {"item"});
 
     /* Insert child after parent already exists. */
     std::unique_ptr<AssetCatalog> child_catalog = AssetCatalog::from_path("item/child");
     tree.insert_item(*catalog);
-    assert_expected_tree_items(&tree, {{"item", 0}, {"item/child", 1}});
+    assert_expected_tree_items(&tree, {"item", "item/child"});
 
-    std::vector<CatalogPathInfo> expected_paths;
+    std::vector<AssetCatalogPath> expected_paths;
 
     /* Test inserting multi-component sub-path. */
     std::unique_ptr<AssetCatalog> grandgrandchild_catalog = AssetCatalog::from_path(
         "item/child/grandchild/grandgrandchild");
     tree.insert_item(*catalog);
-    expected_paths = {{"item", 0},
-                      {"item/child", 1},
-                      {"item/child/grandchild", 2},
-                      {"item/child/grandchild/grandgrandchild", 3}};
+    expected_paths = {
+        "item", "item/child", "item/child/grandchild", "item/child/grandchild/grandgrandchild"};
     assert_expected_tree_items(&tree, expected_paths);
 
     std::unique_ptr<AssetCatalog> root_level_catalog = AssetCatalog::from_path("root level");
     tree.insert_item(*catalog);
-    expected_paths = {{"item", 0},
-                      {"item/child", 1},
-                      {"item/child/grandchild", 2},
-                      {"item/child/grandchild/grandgrandchild", 3},
-                      {"root level", 0}};
+    expected_paths = {"item",
+                      "item/child",
+                      "item/child/grandchild",
+                      "item/child/grandchild/grandgrandchild",
+                      "root level"};
     assert_expected_tree_items(&tree, expected_paths);
   }
 
@@ -339,7 +339,7 @@ TEST_F(AssetCatalogTest, insert_item_into_tree)
 
     std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path("item/child");
     tree.insert_item(*catalog);
-    assert_expected_tree_items(&tree, {{"item", 0}, {"item/child", 1}});
+    assert_expected_tree_items(&tree, {"item", "item/child"});
   }
 
   {
@@ -347,7 +347,7 @@ TEST_F(AssetCatalogTest, insert_item_into_tree)
 
     std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path("white space");
     tree.insert_item(*catalog);
-    assert_expected_tree_items(&tree, {{"white space", 0}});
+    assert_expected_tree_items(&tree, {"white space"});
   }
 
   {
@@ -355,7 +355,7 @@ TEST_F(AssetCatalogTest, insert_item_into_tree)
 
     std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path("/item/white space");
     tree.insert_item(*catalog);
-    assert_expected_tree_items(&tree, {{"item", 0}, {"item/white space", 1}});
+    assert_expected_tree_items(&tree, {"item", "item/white space"});
   }
 
   {
@@ -363,11 +363,11 @@ TEST_F(AssetCatalogTest, insert_item_into_tree)
 
     std::unique_ptr<AssetCatalog> catalog_unicode_path = AssetCatalog::from_path("Ružena");
     tree.insert_item(*catalog_unicode_path);
-    assert_expected_tree_items(&tree, {{"Ružena", 0}});
+    assert_expected_tree_items(&tree, {"Ružena"});
 
     catalog_unicode_path = AssetCatalog::from_path("Ružena/Ružena");
     tree.insert_item(*catalog_unicode_path);
-    assert_expected_tree_items(&tree, {{"Ružena", 0}, {"Ružena/Ružena", 1}});
+    assert_expected_tree_items(&tree, {"Ružena", "Ružena/Ružena"});
   }
 }
 
@@ -378,19 +378,19 @@ TEST_F(AssetCatalogTest, load_single_file_into_tree)
 
   /* Contains not only paths from the CDF but also the missing parents (implicitly defined
    * catalogs). */
-  std::vector<CatalogPathInfo> expected_paths{
-      {"character", 0},
-      {"character/Ellie", 1},
-      {"character/Ellie/poselib", 2},
-      {"character/Ellie/poselib/tailslash", 3},
-      {"character/Ellie/poselib/white space", 3},
-      {"character/Ružena", 1},
-      {"character/Ružena/poselib", 2},
-      {"character/Ružena/poselib/face", 3},
-      {"character/Ružena/poselib/hand", 3},
-      {"path", 0},                    /* Implicit. */
-      {"path/without", 1},            /* Implicit. */
-      {"path/without/simplename", 2}, /* From CDF. */
+  std::vector<AssetCatalogPath> expected_paths{
+      "character",
+      "character/Ellie",
+      "character/Ellie/poselib",
+      "character/Ellie/poselib/tailslash",
+      "character/Ellie/poselib/white space",
+      "character/Ružena",
+      "character/Ružena/poselib",
+      "character/Ružena/poselib/face",
+      "character/Ružena/poselib/hand",
+      "path",                    /* Implicit. */
+      "path/without",            /* Implicit. */
+      "path/without/simplename", /* From CDF. */
   };
 
   AssetCatalogTree *tree = service.get_catalog_tree();
@@ -401,7 +401,7 @@ TEST_F(AssetCatalogTest, foreach_in_tree)
 {
   {
     AssetCatalogTree tree{};
-    const std::vector<CatalogPathInfo> no_catalogs{};
+    const std::vector<AssetCatalogPath> no_catalogs{};
 
     assert_expected_tree_items(&tree, no_catalogs);
     assert_expected_tree_root_items(&tree, no_catalogs);
@@ -416,16 +416,16 @@ TEST_F(AssetCatalogTest, foreach_in_tree)
   AssetCatalogService service(asset_library_root_);
   service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
 
-  std::vector<CatalogPathInfo> expected_root_items{{"character", 0}, {"path", 0}};
+  std::vector<AssetCatalogPath> expected_root_items{{"character", "path"}};
   AssetCatalogTree *tree = service.get_catalog_tree();
   assert_expected_tree_root_items(tree, expected_root_items);
 
   /* Test if the direct children of the root item are what's expected. */
-  std::vector<std::vector<CatalogPathInfo>> expected_root_child_items = {
+  std::vector<std::vector<AssetCatalogPath>> expected_root_child_items = {
       /* Children of the "character" root item. */
-      {{"character/Ellie", 1}, {"character/Ružena", 1}},
+      {"character/Ellie", "character/Ružena"},
       /* Children of the "path" root item. */
-      {{"path/without", 1}},
+      {"path/without"},
   };
   int i = 0;
   tree->foreach_root_item([&expected_root_child_items, &i, this](AssetCatalogTreeItem &item) {
@@ -724,19 +724,19 @@ TEST_F(AssetCatalogTest, delete_catalog_leaf)
 
   /* Contains not only paths from the CDF but also the missing parents (implicitly defined
    * catalogs). This is why a leaf catalog was deleted. */
-  std::vector<CatalogPathInfo> expected_paths{
-      {"character", 0},
-      {"character/Ellie", 1},
-      {"character/Ellie/poselib", 2},
-      {"character/Ellie/poselib/tailslash", 3},
-      {"character/Ellie/poselib/white space", 3},
-      {"character/Ružena", 1},
-      {"character/Ružena/poselib", 2},
-      {"character/Ružena/poselib/face", 3},
-      // {"character/Ružena/poselib/hand", 3}, /* This is the deleted one. */
-      {"path", 0},
-      {"path/without", 1},
-      {"path/without/simplename", 2},
+  std::vector<AssetCatalogPath> expected_paths{
+      "character",
+      "character/Ellie",
+      "character/Ellie/poselib",
+      "character/Ellie/poselib/tailslash",
+      "character/Ellie/poselib/white space",
+      "character/Ružena",
+      "character/Ružena/poselib",
+      "character/Ružena/poselib/face",
+      // "character/Ružena/poselib/hand", /* This is the deleted one. */
+      "path",
+      "path/without",
+      "path/without/simplename",
   };
 
   AssetCatalogTree *tree = service.get_catalog_tree();

@@ -58,6 +58,15 @@ TEST(AssetCatalogPathTest, length)
   EXPECT_EQ(21, utf8.length()) << "13 characters should be 21 bytes.";
 }
 
+TEST(AssetCatalogPathTest, name)
+{
+  EXPECT_EQ(StringRefNull(""), AssetCatalogPath("").name());
+  EXPECT_EQ(StringRefNull("word"), AssetCatalogPath("word").name());
+  EXPECT_EQ(StringRefNull("Пермь"), AssetCatalogPath("дорога/в/Пермь").name());
+  EXPECT_EQ(StringRefNull("windows\\paths"),
+            AssetCatalogPath("these/are/not/windows\\paths").name());
+}
+
 TEST(AssetCatalogPathTest, comparison_operators)
 {
   const AssetCatalogPath empty("");

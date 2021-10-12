@@ -76,6 +76,9 @@ class AssetCatalogPath {
   const char *c_str() const;
   const std::string &str() const;
 
+  /* The last path component, used as label in the tree view. */
+  StringRefNull name() const;
+
   /* In-class operators, because of the implicit `AssetCatalogPath(StringRef)` constructor.
    * Otherwise `string == string` could cast both sides to `AssetCatalogPath`. */
   bool operator==(const AssetCatalogPath &other_path) const;
