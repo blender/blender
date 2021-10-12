@@ -308,14 +308,14 @@ def test_restrictions2():
 
     bpy.types.Addon.a = bpy.props.PointerProperty(type=bpy.types.Object)
 
-    class TestUIList(UIList):
+    class TEST_UL_list(UIList):
         test: bpy.props.PointerProperty(type=bpy.types.Object)
 
         def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
             layout.prop(item, "name", text="", emboss=False, icon_value=icon)
 
     check_crash(bpy.utils.register_class, TestPrefs)
-    check_crash(bpy.utils.register_class, TestUIList)
+    check_crash(bpy.utils.register_class, TEST_UL_list)
 
     bpy.utils.unregister_class(TestClassCollection)
 
