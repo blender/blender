@@ -1493,13 +1493,13 @@ static int color_boundary_key(float col[4])
 }
 #endif
 
-ATTR_NO_OPT void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
-                                               int cd_faceset_offset,
-                                               int cd_vert_node_offset,
-                                               int cd_face_node_offset,
-                                               int cd_vcol,
-                                               BMVert *v,
-                                               int bound_symmetry)
+void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
+                                   int cd_faceset_offset,
+                                   int cd_vert_node_offset,
+                                   int cd_face_node_offset,
+                                   int cd_vcol,
+                                   BMVert *v,
+                                   int bound_symmetry)
 {
   MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
 

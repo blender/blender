@@ -568,10 +568,16 @@ BMVert *BM_edge_collapse(BMesh *bm,
                          BMVert *v_kill,
                          const bool do_del,
                          const bool kill_degenerate_faces,
-                         const bool combine_flags)
+                         const bool combine_flags,
+                         const bool full_non_manifold_collapse)
 {
-  return bmesh_kernel_join_vert_kill_edge(
-      bm, e_kill, v_kill, do_del, true, kill_degenerate_faces, combine_flags);
+  if (full_non_manifold_collapse) {
+    return bmesh_kernel_join_vert_kill_edge(bm, e_kill, v_kill, do_del, combine_flags);
+  }
+  else {
+    return bmesh_kernel_join_vert_kill_edge_fast(
+        bm, e_kill, v_kill, do_del, true, kill_degenerate_faces, combine_flags);
+  }
 }
 
 /**

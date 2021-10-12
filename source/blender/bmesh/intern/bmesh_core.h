@@ -122,13 +122,15 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
                                          const bool check_edge_exists,
                                          const bool kill_degenerate_faces,
                                          const bool kill_duplicate_faces);
-BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
-                                         BMEdge *e_kill,
-                                         BMVert *v_kill,
-                                         const bool do_del,
-                                         const bool check_edge_exists,
-                                         const bool kill_degenerate_faces,
-                                         const bool combine_flags);
+BMVert *bmesh_kernel_join_vert_kill_edge(
+    BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool do_del, const bool combine_flags);
+BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
+                                              BMEdge *e_kill,
+                                              BMVert *v_kill,
+                                              const bool do_del,
+                                              const bool check_edge_exists,
+                                              const bool kill_degenerate_faces,
+                                              const bool combine_flags);
 BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e);
 
 BMVert *bmesh_kernel_unglue_region_make_vert(BMesh *bm, BMLoop *l_sep);

@@ -2133,6 +2133,23 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
   return NULL;
 }
 
+static void check_vert_faces(BMVert *v_target)
+{
+  BMEdge *e = v_target->e;
+  if (e) {
+    do {
+      BM_CHECK_ELEMENT(e);
+      if (e->l) {
+        BMLoop *l = e->l;
+
+        do {
+          BM_CHECK_ELEMENT(l->f);
+        } while ((l = l->radial_next) != e->l);
+      }
+    } while ((e = BM_DISK_EDGE_NEXT(e, v_target)) != v_target->e);
+  }
+}
+
 /**
  * \brief Join Vert Kill Edge (JVKE)
  *
@@ -2151,13 +2168,227 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
  * +-+-+-+    +-+-+-+
  * </pre>
  */
-BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
-                                         BMEdge *e_kill,
-                                         BMVert *v_kill,
-                                         const bool do_del,
-                                         const bool check_edge_exists,
-                                         const bool kill_degenerate_faces,
-                                         const bool combine_flags)
+BMVert *bmesh_kernel_join_vert_kill_edge(
+    BMesh *bm, BMEdge *e, BMVert *v_kill, const bool do_del, const bool combine_flags)
+{
+  BMVert *v_conn = BM_edge_other_vert(e, v_kill);
+
+  BMFace **fs = NULL;
+  BMEdge **deles = NULL;
+  BLI_array_staticdeclare(fs, 32);
+  BLI_array_staticdeclare(deles, 32);
+
+  BMVert *v_del = BM_edge_other_vert(e, v_conn);
+  const int tag = _FLAG_WALK_ALT;  // using bmhead.api_flag here
+
+  /* first clear tags */
+  for (int i = 0; i < 2; i++) {
+    BMVert *v = i ? v_del : v_conn;
+    BMEdge *e2 = v->e;
+    do {
+      if (!e2->l) {
+        continue;
+      }
+
+      BMLoop *l = e2->l;
+      do {
+        BM_ELEM_API_FLAG_DISABLE(l->f, tag);
+      } while ((l = l->radial_next) != e2->l);
+    } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
+  }
+
+  /* now build face list */
+  for (int i = 0; i < 2; i++) {
+    BMVert *v = i ? v_del : v_conn;
+    BMEdge *e2 = v->e;
+
+    if (!e2 || !e2->l) {
+      continue;
+    }
+
+    do {
+      BMLoop *l = e2->l;
+      do {
+        if (!BM_ELEM_API_FLAG_TEST(l->f, tag)) {
+          BM_ELEM_API_FLAG_ENABLE(l->f, tag);
+
+          BMLoop *l2 = l;
+          do {
+            BM_ELEM_API_FLAG_DISABLE(l2->e, tag);
+          } while ((l2 = l2->next) != l);
+
+          BLI_array_append(fs, l->f);
+        }
+      } while ((l = l->radial_next) != e2->l);
+    } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
+  }
+
+  /* unlink loops */
+  for (int i = 0; i < BLI_array_len(fs); i++) {
+    BMFace *f = fs[i];
+    BMLoop *l = f->l_first;
+
+    do {
+      BMEdge *e2 = l->e;
+
+      l->radial_next->radial_prev = l->radial_prev;
+      l->radial_prev->radial_next = l->radial_next;
+
+      if (l == e2->l) {
+        e2->l = l->radial_next;
+      }
+
+      if (l == e2->l) {
+        e2->l = NULL;
+      }
+    } while ((l = l->next) != f->l_first);
+  }
+
+  /* swap verts */
+  for (int i = 0; i < BLI_array_len(fs); i++) {
+    BMFace *f = fs[i];
+    BMLoop *l = f->l_first, *lnext = NULL;
+
+    do {
+      lnext = l->next;
+
+      if (l->v == v_del) {
+        l->v = v_conn;
+      }
+
+      BM_ELEM_API_FLAG_DISABLE(l->v, tag);
+
+      for (int step = 0; step < 2; step++) {
+        BMVert *v_edge = step ? l->e->v2 : l->e->v1;
+        BMVert *v_other = BM_edge_other_vert(l->e, v_edge);
+
+        if (v_edge != v_del) {
+          continue;
+        }
+
+        if (v_other == v_conn) {
+          /* flag for later selection */
+          if (!BM_ELEM_API_FLAG_TEST(l->e, tag)) {
+            BLI_array_append(deles, l->e);
+          }
+
+          BM_ELEM_API_FLAG_ENABLE(l->e, tag);
+        }
+        else {
+          BMEdge *e3;
+
+          if ((e3 = BM_edge_exists(v_conn, v_other))) {
+            if (combine_flags) {
+              e3->head.hflag |= l->e->head.hflag;
+            }
+
+            /* flag for later deletion */
+            if (!BM_ELEM_API_FLAG_TEST(l->e, tag)) {
+              BLI_array_append(deles, l->e);
+            }
+
+            BM_ELEM_API_FLAG_ENABLE(l->e, tag);
+
+            l->e = e3;
+          }
+          else {
+            bmesh_disk_vert_replace(l->e, v_conn, v_del);
+          }
+        }
+      }
+    } while ((l = lnext) != f->l_first);
+  }
+
+  for (int i = 0; i < BLI_array_len(deles); i++) {
+    deles[i]->l = NULL;
+    BM_edge_kill(bm, deles[i]);
+  }
+
+  for (int i = 0; i < BLI_array_len(fs); i++) {
+    BMFace *f = fs[i];
+    BMLoop *l, *lnext;
+
+    /* validate */
+    l = f->l_first;
+    do {
+      lnext = l->next;
+
+      if (l->v == l->next->v) {
+        l->prev->next = l->next;
+        l->next->prev = l->prev;
+
+        if (l == l->f->l_first) {
+          l->f->l_first = l->next;
+        }
+
+        l->f->len--;
+        bm_kill_only_loop(bm, l);
+      }
+    } while ((l = lnext) != f->l_first);
+
+    if (f->len <= 2) {
+      /* kill face */
+      while (f->l_first) {
+        BMLoop *l = f->l_first;
+
+        l->prev->next = l->next;
+        f->l_first = l->next;
+
+        bm_kill_only_loop(bm, l);
+
+        if (f->l_first == l) {
+          f->l_first = NULL;
+        }
+      }
+
+      bm_kill_only_face(bm, f);
+      fs[i] = NULL;
+    }
+  }
+
+  bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+  bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+
+  /* relink */
+  for (int i = 0; i < BLI_array_len(fs); i++) {
+    BMFace *f = fs[i];
+
+    if (!f) {
+      continue;
+    }
+
+    BMLoop *l = f->l_first;
+    do {
+      l->e = BM_edge_exists(l->v, l->next->v);
+
+      if (!l->e) {
+        printf("warning: missing edge! %p %p\n", l->v, l->next->v);
+        l->e = BM_edge_create(bm, l->v, l->next->v, NULL, BM_CREATE_NOP);
+      }
+
+      bmesh_radial_loop_append(l->e, l);
+    } while ((l = l->next) != f->l_first);
+  }
+
+  // printf("v_del: %p, v_conn: %p\n", v_del->e, v_conn->e);
+  if (do_del) {
+    BM_vert_kill(bm, v_del);
+  }
+
+  BLI_array_free(deles);
+  BLI_array_free(fs);
+
+  return v_conn;
+}
+
+/*original version of bmesh_kernel_join_vert_kill_edge*/
+BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
+                                              BMEdge *e_kill,
+                                              BMVert *v_kill,
+                                              const bool do_del,
+                                              const bool check_edge_exists,
+                                              const bool kill_degenerate_faces,
+                                              const bool combine_flags)
 {
   BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
   BMVert *v_target = BM_edge_other_vert(e_kill, v_kill);
@@ -2186,6 +2417,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
           BLI_SMALLSTACK_PUSH(faces_degenerate, l_kill->f);
         }
       }
+
       l_kill_next = l_kill->radial_next;
 
       bm_kill_only_loop(bm, l_kill);
@@ -2203,7 +2435,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
     /* inline BM_vert_splice(bm, v_target, v_kill); */
     BMEdge *e;
     while ((e = v_kill->e)) {
-      BMEdge *e_target;
+      BMEdge *e_target = NULL;
 
       if (check_edge_exists) {
         e_target = BM_edge_exists(v_target, BM_edge_other_vert(e, v_kill));
@@ -2231,6 +2463,8 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
     BLI_assert(v_kill->e == NULL);
     bm_kill_only_vert(bm, v_kill);
   }
+
+  BM_CHECK_ELEMENT(v_target);
 
   return v_target;
 }

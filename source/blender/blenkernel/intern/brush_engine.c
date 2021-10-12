@@ -1450,12 +1450,12 @@ void BKE_brush_commandset_inherit_all_mappings(BrushChannelSet *chset)
   }
 }
 
-ATTR_NO_OPT static void commandlist_add_dyntopo(BrushChannelSet *chset,
-                                                BrushCommandList *cl,
-                                                Brush *brush,
-                                                int tool,
-                                                bool hard_edge_mode,
-                                                float radius_base)
+static void commandlist_add_dyntopo(BrushChannelSet *chset,
+                                    BrushCommandList *cl,
+                                    Brush *brush,
+                                    int tool,
+                                    bool hard_edge_mode,
+                                    float radius_base)
 {
 
   if (!BKE_brush_channelset_get_int(chset, "dyntopo_disabled", NULL)) {
