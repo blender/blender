@@ -484,7 +484,7 @@ void AssetCatalogService::undo()
   BLI_assert_msg(is_undo_possbile(), "Undo stack is empty");
 
   redo_snapshots_.append(std::move(catalog_collection_));
-  catalog_collection_ = std::move(undo_snapshots_.pop_last());
+  catalog_collection_ = undo_snapshots_.pop_last();
   rebuild_tree();
 }
 
@@ -493,7 +493,7 @@ void AssetCatalogService::redo()
   BLI_assert_msg(is_redo_possbile(), "Redo stack is empty");
 
   undo_snapshots_.append(std::move(catalog_collection_));
-  catalog_collection_ = std::move(redo_snapshots_.pop_last());
+  catalog_collection_ = redo_snapshots_.pop_last();
   rebuild_tree();
 }
 
@@ -510,12 +510,12 @@ std::unique_ptr<AssetCatalogCollection> AssetCatalogCollection::deep_copy() cons
 {
   auto copy = std::make_unique<AssetCatalogCollection>();
 
-  copy->catalogs_ = std::move(copy_catalog_map(this->catalogs_));
-  copy->deleted_catalogs_ = std::move(copy_catalog_map(this->deleted_catalogs_));
+  copy->catalogs_ = copy_catalog_map(this->catalogs_);
+  copy->deleted_catalogs_ = copy_catalog_map(this->deleted_catalogs_);
 
   if (catalog_definition_file_) {
-    copy->catalog_definition_file_ = std::move(
-        catalog_definition_file_->copy_and_remap(copy->catalogs_, copy->deleted_catalogs_));
+    copy->catalog_definition_file_ = catalog_definition_file_->copy_and_remap(
+        copy->catalogs_, copy->deleted_catalogs_);
   }
 
   return copy;
