@@ -88,6 +88,11 @@ typedef struct wmXrViewportPair {
 typedef struct {
   /** Off-screen buffers/viewports for each view. */
   ListBase viewports; /* #wmXrViewportPair */
+
+  /** Dummy region type for controller draw callback. */
+  struct ARegionType *controller_art;
+  /** Controller draw callback handle. */
+  void *controller_draw_handle;
 } wmXrSurfaceData;
 
 typedef struct wmXrDrawData {
@@ -114,12 +119,16 @@ typedef struct wmXrController {
   /input/trigger/value, interaction_path = /user/hand/left/input/trigger/value).
   */
   char subaction_path[64];
-  /* Pose (in world space) that represents the user's hand when holding the controller.*/
+
+  /** Pose (in world space) that represents the user's hand when holding the controller. */
   GHOST_XrPose grip_pose;
   float grip_mat[4][4];
-  /* Pose (in world space) that represents the controller's aiming source. */
+  /** Pose (in world space) that represents the controller's aiming source. */
   GHOST_XrPose aim_pose;
   float aim_mat[4][4];
+
+  /** Controller model. */
+  struct GPUBatch *model;
 } wmXrController;
 
 typedef struct wmXrAction {
@@ -207,3 +216,4 @@ void wm_xr_session_controller_data_clear(wmXrSessionState *state);
 void wm_xr_pose_to_mat(const GHOST_XrPose *pose, float r_mat[4][4]);
 void wm_xr_pose_to_imat(const GHOST_XrPose *pose, float r_imat[4][4]);
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata);
+void wm_xr_draw_controllers(const struct bContext *C, struct ARegion *region, void *customdata);

@@ -24,6 +24,7 @@
 #include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -36,9 +37,11 @@
 #include "DRW_engine.h"
 
 #include "ED_screen.h"
+#include "ED_space_api.h"
 
 #include "GHOST_C-api.h"
 
+#include "GPU_batch.h"
 #include "GPU_viewport.h"
 
 #include "MEM_guardedalloc.h"
@@ -72,7 +75,15 @@ static void wm_xr_session_create_cb(void)
 
 static void wm_xr_session_controller_data_free(wmXrSessionState *state)
 {
-  BLI_freelistN(&state->controllers);
+  ListBase *lb = &state->controllers;
+  wmXrController *c;
+
+  while ((c = BLI_pophead(lb))) {
+    if (c->model) {
+      GPU_batch_discard(c->model);
+    }
+    BLI_freelinkN(lb, c);
+  }
 }
 
 void wm_xr_session_data_free(wmXrSessionState *state)
@@ -529,6 +540,7 @@ static void wm_xr_session_controller_pose_calc(const GHOST_XrPose *raw_pose,
 static void wm_xr_session_controller_data_update(const XrSessionSettings *settings,
                                                  const wmXrAction *grip_action,
                                                  const wmXrAction *aim_action,
+                                                 GHOST_XrContextHandle xr_context,
                                                  wmXrSessionState *state)
 {
   BLI_assert(grip_action->count_subaction_paths == aim_action->count_subaction_paths);
@@ -560,6 +572,16 @@ static void wm_xr_session_controller_data_update(const XrSessionSettings *settin
                                        base_mat,
                                        &controller->aim_pose,
                                        controller->aim_mat);
+
+    if (!controller->model) {
+      /* Notify GHOST to load/continue loading the controller model data. This can be called more
+       * than once since the model may not be available from the runtime yet. The batch itself will
+       * be created in wm_xr_draw_controllers(). */
+      GHOST_XrLoadControllerModel(xr_context, controller->subaction_path);
+    }
+    else {
+      GHOST_XrUpdateControllerModelComponents(xr_context, controller->subaction_path);
+    }
   }
 }
 
@@ -1089,6 +1111,7 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
       wm_xr_session_controller_data_update(&xr->session_settings,
                                            active_action_set->controller_grip_action,
                                            active_action_set->controller_aim_action,
+                                           xr_context,
                                            state);
     }
 
@@ -1125,11 +1148,33 @@ void wm_xr_session_controller_data_populate(const wmXrAction *grip_action,
 
     BLI_addtail(controllers, controller);
   }
+
+  /* Activate draw callback. */
+  if (g_xr_surface) {
+    wmXrSurfaceData *surface_data = g_xr_surface->customdata;
+    if (surface_data && !surface_data->controller_draw_handle) {
+      if (surface_data->controller_art) {
+        surface_data->controller_draw_handle = ED_region_draw_cb_activate(
+            surface_data->controller_art, wm_xr_draw_controllers, xr, REGION_DRAW_POST_VIEW);
+      }
+    }
+  }
 }
 
 void wm_xr_session_controller_data_clear(wmXrSessionState *state)
 {
   wm_xr_session_controller_data_free(state);
+
+  /* Deactivate draw callback. */
+  if (g_xr_surface) {
+    wmXrSurfaceData *surface_data = g_xr_surface->customdata;
+    if (surface_data && surface_data->controller_draw_handle) {
+      if (surface_data->controller_art) {
+        ED_region_draw_cb_exit(surface_data->controller_art, surface_data->controller_draw_handle);
+      }
+      surface_data->controller_draw_handle = NULL;
+    }
+  }
 }
 
 /** \} */ /* XR-Session Actions */
@@ -1255,6 +1300,11 @@ static void wm_xr_session_surface_free_data(wmSurface *surface)
     BLI_freelinkN(lb, vp);
   }
 
+  if (data->controller_art) {
+    BLI_freelistN(&data->controller_art->drawcalls);
+    MEM_freeN(data->controller_art);
+  }
+
   MEM_freeN(surface->customdata);
 
   g_xr_surface = NULL;
@@ -1269,6 +1319,7 @@ static wmSurface *wm_xr_session_surface_create(void)
 
   wmSurface *surface = MEM_callocN(sizeof(*surface), __func__);
   wmXrSurfaceData *data = MEM_callocN(sizeof(*data), "XrSurfaceData");
+  data->controller_art = MEM_callocN(sizeof(*(data->controller_art)), "XrControllerRegionType");
 
   surface->draw = wm_xr_session_surface_draw;
   surface->free_data = wm_xr_session_surface_free_data;
@@ -1278,6 +1329,7 @@ static wmSurface *wm_xr_session_surface_create(void)
   surface->ghost_ctx = DRW_xr_opengl_context_get();
   surface->gpu_ctx = DRW_xr_gpu_context_get();
 
+  data->controller_art->regionid = RGN_TYPE_XR;
   surface->customdata = data;
 
   g_xr_surface = surface;
@@ -1309,6 +1361,16 @@ void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle UNUSED(contex
   /* Some regions may need to redraw with updated session state after the session is entirely
    * stopped. */
   WM_main_add_notifier(NC_WM | ND_XR_DATA_CHANGED, NULL);
+}
+
+ARegionType *WM_xr_surface_controller_region_type_get(void)
+{
+  if (g_xr_surface) {
+    wmXrSurfaceData *data = g_xr_surface->customdata;
+    return data->controller_art;
+  }
+
+  return NULL;
 }
 
 /** \} */ /* XR-Session Surface */

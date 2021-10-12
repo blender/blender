@@ -412,10 +412,13 @@ void GHOST_XrContext::getExtensionsToEnable(
     try_ext.push_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
 
-  /* Try enabling interaction profile extensions. */
+  /* Interaction profile extensions. */
   try_ext.push_back(XR_EXT_HP_MIXED_REALITY_CONTROLLER_EXTENSION_NAME);
   try_ext.push_back(XR_HTC_VIVE_COSMOS_CONTROLLER_INTERACTION_EXTENSION_NAME);
   try_ext.push_back(XR_HUAWEI_CONTROLLER_INTERACTION_EXTENSION_NAME);
+
+  /* Controller model extension. */
+  try_ext.push_back(XR_MSFT_CONTROLLER_MODEL_EXTENSION_NAME);
 
   /* Varjo quad view extension. */
   try_ext.push_back(XR_VARJO_QUAD_VIEWS_EXTENSION_NAME);

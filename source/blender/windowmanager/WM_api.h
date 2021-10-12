@@ -1013,6 +1013,8 @@ bool WM_xr_session_state_controller_aim_rotation_get(const wmXrData *xr,
                                                      unsigned int subaction_idx,
                                                      float r_rotation[4]);
 
+struct ARegionType *WM_xr_surface_controller_region_type_get(void);
+
 /* wm_xr_actions.c */
 /* XR action functions to be called pre-XR session start.
  * NOTE: The "destroy" functions can also be called post-session start. */

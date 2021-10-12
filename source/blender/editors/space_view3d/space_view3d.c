@@ -1798,5 +1798,10 @@ void ED_spacetype_view3d(void)
   art = ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
+  /* regions: xr */
+  art = MEM_callocN(sizeof(ARegionType), "spacetype view3d xr region");
+  art->regionid = RGN_TYPE_XR;
+  BLI_addhead(&st->regiontypes, art);
+
   BKE_spacetype_register(st);
 }
