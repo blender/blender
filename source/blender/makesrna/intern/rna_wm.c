@@ -362,6 +362,8 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
      0,
      "ActionZone Fullscreen",
      "AZone FullScr"},
+    /* xr */
+    {EVT_XR_ACTION, "XR_ACTION", 0, "XR Action", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -698,6 +700,18 @@ static void rna_Event_tilt_get(PointerRNA *ptr, float *values)
 {
   wmEvent *event = ptr->data;
   WM_event_tablet_data(event, NULL, values);
+}
+
+static PointerRNA rna_Event_xr_get(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  wmEvent *event = ptr->data;
+  wmXrActionData *actiondata = WM_event_is_xr(event) ? event->customdata : NULL;
+  return rna_pointer_inherit_refine(ptr, &RNA_XrEventData, actiondata);
+#  else
+  UNUSED_VARS(ptr);
+  return PointerRNA_NULL;
+#  endif
 }
 
 static PointerRNA rna_PopupMenu_layout_get(PointerRNA *ptr)
@@ -2227,6 +2241,13 @@ static void rna_def_event(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "tablet.is_motion_absolute", 1);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Absolute Motion", "The last motion event was an absolute input");
+
+  /* xr */
+  prop = RNA_def_property(srna, "xr", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "XrEventData");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop, "rna_Event_xr_get", NULL, NULL, NULL);
+  RNA_def_property_ui_text(prop, "XR", "XR event data");
 
   /* modifiers */
   prop = RNA_def_property(srna, "shift", PROP_BOOLEAN, PROP_NONE);

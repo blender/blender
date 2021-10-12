@@ -937,6 +937,10 @@ float WM_event_ndof_to_axis_angle(const struct wmNDOFMotionData *ndof, float axi
 void WM_event_ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4]);
 #endif /* WITH_INPUT_NDOF */
 
+#ifdef WITH_XR_OPENXR
+bool WM_event_is_xr(const struct wmEvent *event);
+#endif
+
 float WM_event_tablet_data(const struct wmEvent *event, int *pen_flip, float tilt[2]);
 bool WM_event_is_tablet(const struct wmEvent *event);
 
