@@ -218,6 +218,38 @@ bool BKE_appdir_folder_documents(char *dir)
 }
 
 /**
+ * Get the user's cache directory, i.e. $HOME/.cache/blender/ on Linux,
+ * %USERPROFILE%\AppData\Local\blender\ on Windows.
+ *
+ * \returns True if the path is valid. It doesn't create or checks format
+ *     if the `blender` folder exists. It does check if the parent of the
+ *     path exists.
+ */
+bool BKE_appdir_folder_caches(char *r_path, const size_t path_len)
+{
+  r_path[0] = '\0';
+
+  const char *caches_root_path = GHOST_getUserSpecialDir(GHOST_kUserSpecialDirCaches);
+  if (caches_root_path == NULL || !BLI_is_dir(caches_root_path)) {
+    caches_root_path = BKE_tempdir_base();
+  }
+  if (caches_root_path == NULL || !BLI_is_dir(caches_root_path)) {
+    return false;
+  }
+
+#ifdef WIN32
+  BLI_path_join(
+      r_path, path_len, caches_root_path, "Blender Foundation", "Blender", "Cache", SEP_STR, NULL);
+#elif __APPLE__
+  BLI_path_join(r_path, path_len, caches_root_path, "Blender", SEP_STR, NULL);
+#else /* __linux__ */
+  BLI_path_join(r_path, path_len, caches_root_path, "blender", SEP_STR, NULL);
+#endif
+
+  return true;
+}
+
+/**
  * Gets a good default directory for fonts.
  */
 bool BKE_appdir_font_folder_default(

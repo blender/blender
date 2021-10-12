@@ -35,6 +35,7 @@ void BKE_appdir_exit(void);
 const char *BKE_appdir_folder_default(void);
 const char *BKE_appdir_folder_home(void);
 bool BKE_appdir_folder_documents(char *dir);
+bool BKE_appdir_folder_caches(char *r_path, size_t path_len);
 bool BKE_appdir_folder_id_ex(const int folder_id,
                              const char *subfolder,
                              char *path,

@@ -569,6 +569,7 @@ typedef enum {
   GHOST_kUserSpecialDirMusic,
   GHOST_kUserSpecialDirPictures,
   GHOST_kUserSpecialDirVideos,
+  GHOST_kUserSpecialDirCaches,
   /* Can be extended as needed. */
 } GHOST_TUserSpecialDirTypes;
 
