@@ -985,7 +985,6 @@ static wmXrActionData *wm_xr_session_event_create(const char *action_set_name,
 
 /* Dispatch events to window queues. */
 static void wm_xr_session_events_dispatch(wmXrData *xr,
-                                          const XrSessionSettings *UNUSED(settings),
                                           GHOST_XrContextHandle xr_context,
                                           wmXrActionSet *action_set,
                                           wmXrSessionState *session_state,
@@ -1084,11 +1083,10 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
 
   /* Only update controller data and dispatch events for active action set. */
   if (active_action_set) {
-    const XrSessionSettings *settings = &xr->session_settings;
     wmWindow *win = wm_xr_session_root_window_or_fallback_get(wm, xr->runtime);
 
     if (active_action_set->controller_grip_action && active_action_set->controller_aim_action) {
-      wm_xr_session_controller_data_update(settings,
+      wm_xr_session_controller_data_update(&xr->session_settings,
                                            active_action_set->controller_grip_action,
                                            active_action_set->controller_aim_action,
                                            state);
@@ -1100,7 +1098,7 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
         xr->runtime->area = ED_area_offscreen_create(win, SPACE_VIEW3D);
       }
 
-      wm_xr_session_events_dispatch(xr, settings, xr_context, active_action_set, state, win);
+      wm_xr_session_events_dispatch(xr, xr_context, active_action_set, state, win);
     }
   }
 }
