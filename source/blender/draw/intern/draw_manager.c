@@ -2801,7 +2801,6 @@ void DRW_draw_depth_object(
   GPU_framebuffer_restore();
 
   GPU_framebuffer_free(depth_fb);
-  DRW_opengl_context_disable();
 }
 
 /** \} */
