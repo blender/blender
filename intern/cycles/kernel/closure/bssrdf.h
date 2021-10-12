@@ -136,10 +136,10 @@ ccl_device float bssrdf_burley_eval(const float d, float r)
   /* Burley reflectance profile, equation (3).
    *
    * NOTES:
-   * - Surface albedo is already included into sc->weight, no need to
+   * - Surface albedo is already included into `sc->weight`, no need to
    *   multiply by this term here.
    * - This is normalized diffuse model, so the equation is multiplied
-   *   by 2*pi, which also matches cdf().
+   *   by `2*pi`, which also matches `cdf()`.
    */
   float exp_r_3_d = expf(-r / (3.0f * d));
   float exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
@@ -288,7 +288,7 @@ ccl_device int bssrdf_setup(ShaderData *sd, Bssrdf *bssrdf, ClosureType type, co
       bsdf->roughness = bssrdf->roughness;
       flag |= bsdf_principled_diffuse_setup(bsdf, PRINCIPLED_DIFFUSE_RETRO_REFLECTION);
 
-      /* Ad-hoc weight adjusment to avoid retro-reflection taking away half the
+      /* Ad-hoc weight adjustment to avoid retro-reflection taking away half the
        * samples from BSSRDF. */
       bsdf->sample_weight *= bsdf_principled_diffuse_retro_reflection_sample_weight(bsdf, sd->I);
     }

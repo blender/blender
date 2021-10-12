@@ -1797,7 +1797,7 @@ static void neighbor_coords_edge_get(const SubdivCCG *subdiv_ccg,
     r_neighbors->coords[i + 2] = coord_step_inside_from_boundary(subdiv_ccg, &grid_coord);
 
     if (grid_coord.grid_index == coord->grid_index) {
-      /* Prev and next along the edge for the current grid. */
+      /* Previous and next along the edge for the current grid. */
       r_neighbors->coords[0] = boundary_coords[prev_point_index];
       r_neighbors->coords[1] = boundary_coords[next_point_index];
     }

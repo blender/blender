@@ -2177,7 +2177,7 @@ static void draw_nodetree(const bContext *C,
 }
 
 /**
- * Make the background slightly brighter to indicate that users are inside a nodegroup.
+ * Make the background slightly brighter to indicate that users are inside a node-group.
  */
 static void draw_background_color(const SpaceNode *snode)
 {

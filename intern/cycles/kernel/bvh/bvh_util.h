@@ -72,7 +72,7 @@ ccl_device_inline float3 ray_offset(float3 P, float3 Ng)
 }
 
 #if defined(__VOLUME_RECORD_ALL__) || (defined(__SHADOW_RECORD_ALL__) && defined(__KERNEL_CPU__))
-/* ToDo: Move to another file? */
+/* TODO: Move to another file? */
 ccl_device int intersections_compare(const void *a, const void *b)
 {
   const Intersection *isect_a = (const Intersection *)a;

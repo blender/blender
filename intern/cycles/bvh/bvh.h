@@ -52,7 +52,7 @@ struct PackedBVH {
   array<int> object_node;
   /* primitive type - triangle or strand */
   array<int> prim_type;
-  /* visibility visibilitys for primitives */
+  /* Visibility visibilities for primitives. */
   array<uint> prim_visibility;
   /* mapping from BVH primitive index to true primitive index, as primitives
    * may be duplicated due to spatial splits. -1 for instances. */

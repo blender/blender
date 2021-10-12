@@ -91,7 +91,7 @@ ccl_device float3 bsdf_principled_diffuse_compute_brdf(
   return make_float3(value, value, value);
 }
 
-/* Compute Fresnel at entry point, to be compbined with PRINCIPLED_DIFFUSE_LAMBERT_EXIT
+/* Compute Fresnel at entry point, to be combined with #PRINCIPLED_DIFFUSE_LAMBERT_EXIT
  * at the exit point to get the complete BSDF. */
 ccl_device_inline float bsdf_principled_diffuse_compute_entry_fresnel(const float NdotV)
 {
@@ -99,7 +99,7 @@ ccl_device_inline float bsdf_principled_diffuse_compute_entry_fresnel(const floa
   return (1.0f - 0.5f * FV);
 }
 
-/* Ad-hoc weight adjusment to avoid retro-reflection taking away half the
+/* Ad-hoc weight adjustment to avoid retro-reflection taking away half the
  * samples from BSSRDF. */
 ccl_device_inline float bsdf_principled_diffuse_retro_reflection_sample_weight(
     PrincipledDiffuseBsdf *bsdf, const float3 I)

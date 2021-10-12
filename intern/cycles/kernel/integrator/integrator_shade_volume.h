@@ -232,7 +232,7 @@ ccl_device void volume_shadow_heterogeneous(INTEGRATOR_STATE_ARGS,
        * because `exp(a)*exp(b) = exp(a+b)`, also do a quick #VOLUME_THROUGHPUT_EPSILON
        * check then. */
       sum += (-sigma_t * dt);
-      if ((i & 0x07) == 0) { /* ToDo: Other interval? */
+      if ((i & 0x07) == 0) { /* TODO: Other interval? */
         tp = *throughput * exp3(sum);
 
         /* stop if nearly all light is blocked */

@@ -20,11 +20,10 @@
 /** \file
  * \ingroup imbuf
  *
- * This file was moved here from the src/ directory. It is meant to
- * deal with endianness. It resided in a general blending lib. The
- * other functions were only used during rendering. This single
- * function remained. It should probably move to imbuf/intern/util.c,
- * but we'll keep it here for the time being. (nzc)
+ * This file was moved here from the `src/` directory.
+ * It is meant to deal with endianness. It resided in a general blending lib.
+ * The other functions were only used during rendering. This single function remained.
+ * It should probably move to `imbuf/intern/util.c`, but we'll keep it here for the time being.
  */
 
 #include <math.h>

@@ -274,7 +274,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
     return NULL;
   }
 
-  /* Could pe part of the magic check above,
+  /* Could be part of the magic check above,
    * by convention this check only requests the size needed to read it's magic though. */
   if (size < HEADER_SIZE) {
     return NULL;

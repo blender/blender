@@ -955,7 +955,7 @@ void ArmatureImporter::make_shape_keys(bContext *C)
     COLLADAFW::UniqueIdArray &morphTargetIds = (*mc)->getMorphTargets();
     COLLADAFW::FloatOrDoubleArray &morphWeights = (*mc)->getMorphWeights();
 
-    /* Prereq: all the geometries must be imported and mesh objects must be made */
+    /* Prerequisite: all the geometries must be imported and mesh objects must be made. */
     Object *source_ob = this->mesh_importer->get_object_by_geom_uid((*mc)->getSource());
 
     if (source_ob) {

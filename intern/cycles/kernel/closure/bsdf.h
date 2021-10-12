@@ -654,7 +654,7 @@ ccl_device_inline
 
 ccl_device void bsdf_blur(const KernelGlobals *kg, ShaderClosure *sc, float roughness)
 {
-  /* ToDo: do we want to blur volume closures? */
+  /* TODO: do we want to blur volume closures? */
 #ifdef __SVM__
   switch (sc->type) {
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:

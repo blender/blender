@@ -142,10 +142,10 @@ ccl_device_noinline void svm_node_tex_image_box(const KernelGlobals *kg,
    * in between we blend between two textures, and in the middle we a blend
    * between three textures.
    *
-   * the Nxyz values are the barycentric coordinates in an equilateral
+   * The `Nxyz` values are the barycentric coordinates in an equilateral
    * triangle, which in case of blending, in the middle has a smaller
    * equilateral triangle where 3 textures blend. this divides things into
-   * 7 zones, with an if() test for each zone */
+   * 7 zones, with an if() test for each zone. */
 
   float3 weight = make_float3(0.0f, 0.0f, 0.0f);
   float blend = __int_as_float(node.w);

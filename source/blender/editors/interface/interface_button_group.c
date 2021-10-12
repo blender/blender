@@ -57,7 +57,7 @@ void ui_button_group_add_but(uiBlock *block, uiBut *but)
   uiButtonGroup *current_button_group = block->button_groups.last;
 
   /* We can't use the button directly because adding it to
-   * this list would mess with its prev and next pointers. */
+   * this list would mess with its `prev` and `next` pointers. */
   LinkData *button_link = BLI_genericNodeN(but);
   BLI_addtail(&current_button_group->buttons, button_link);
 }

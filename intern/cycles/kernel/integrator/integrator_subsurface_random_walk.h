@@ -253,7 +253,7 @@ ccl_device_inline bool subsurface_random_walk(INTEGRATOR_STATE_ARGS,
   bool have_opposite_interface = false;
   float opposite_distance = 0.0f;
 
-  /* Todo: Disable for alpha>0.999 or so? */
+  /* TODO: Disable for `alpha > 0.999` or so? */
   /* Our heuristic, a compromise between guiding and classic. */
   const float guided_fraction = 1.0f - fmaxf(0.5f, powf(fabsf(anisotropy), 0.125f));
 
@@ -295,7 +295,7 @@ ccl_device_inline bool subsurface_random_walk(INTEGRATOR_STATE_ARGS,
     float sample_sigma_t = volume_channel_get(sigma_t, channel);
     float randt = path_state_rng_1D(kg, &rng_state, PRNG_SCATTER_DISTANCE);
 
-    /* We need the result of the raycast to compute the full guided PDF, so just remember the
+    /* We need the result of the ray-cast to compute the full guided PDF, so just remember the
      * relevant terms to avoid recomputing them later. */
     float backward_fraction = 0.0f;
     float forward_pdf_factor = 0.0f;
@@ -330,7 +330,7 @@ ccl_device_inline bool subsurface_random_walk(INTEGRATOR_STATE_ARGS,
       float hg_pdf;
       if (guided) {
         cos_theta = sample_phase_dwivedi(diffusion_length, phase_log, scatter_u);
-        /* The backwards guiding distribution is just mirrored along sd->N, so swapping the
+        /* The backwards guiding distribution is just mirrored along `sd->N`, so swapping the
          * sign here is enough to sample from that instead. */
         if (guide_backward) {
           cos_theta = -cos_theta;
@@ -358,7 +358,7 @@ ccl_device_inline bool subsurface_random_walk(INTEGRATOR_STATE_ARGS,
 
       /* Prepare distance sampling.
        * For the backwards case, this also needs the sign swapped since now directions against
-       * sd->N (and therefore with negative cos_theta) are preferred. */
+       * `sd->N` (and therefore with negative cos_theta) are preferred. */
       forward_stretching = (1.0f - cos_theta / diffusion_length);
       backward_stretching = (1.0f + cos_theta / diffusion_length);
       if (guided) {
@@ -369,10 +369,10 @@ ccl_device_inline bool subsurface_random_walk(INTEGRATOR_STATE_ARGS,
     /* Sample direction along ray. */
     float t = -logf(1.0f - randt) / sample_sigma_t;
 
-    /* On the first bounce, we use the raycast to check if the opposite side is nearby.
+    /* On the first bounce, we use the ray-cast to check if the opposite side is nearby.
      * If yes, we will later use backwards guided sampling in order to have a decent
      * chance of connecting to it.
-     * Todo: Maybe use less than 10 times the mean free path? */
+     * TODO: Maybe use less than 10 times the mean free path? */
     ray.t = (bounce == 0) ? max(t, 10.0f / (min3(sigma_t))) : t;
     scene_intersect_local(kg, &ray, &ss_isect, object, NULL, 1);
     hit = (ss_isect.num_hits > 0);
