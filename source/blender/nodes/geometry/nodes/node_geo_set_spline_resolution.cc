@@ -60,7 +60,7 @@ static void geo_node_set_spline_resolution_exec(GeoNodeExecParams params)
   bool only_poly = true;
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has_curve()) {
-      if (!only_poly) {
+      if (only_poly) {
         for (const SplinePtr &spline : geometry_set.get_curve_for_read()->splines()) {
           if (ELEM(spline->type(), Spline::Type::Bezier, Spline::Type::NURBS)) {
             only_poly = false;
