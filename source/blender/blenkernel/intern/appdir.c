@@ -219,7 +219,8 @@ bool BKE_appdir_folder_documents(char *dir)
 
 /**
  * Get the user's cache directory, i.e. $HOME/.cache/blender/ on Linux,
- * %USERPROFILE%\AppData\Local\blender\ on Windows.
+ * %USERPROFILE%\AppData\Local\Blender Foundation\Blender\ on Windows and
+ * /Library/Caches/Blender on MacOS.
  *
  * \returns True if the path is valid. It doesn't create or checks format
  *     if the `blender` folder exists. It does check if the parent of the
