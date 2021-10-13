@@ -822,6 +822,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph, const IDNode 
 
   /* Sanity checks. */
   BLI_assert(check_datablock_expanded(id_cow) == false);
+  BLI_assert(id_cow->py_instance == nullptr);
 
   /* Copy data from original ID to a copied version. */
   /* TODO(sergey): Avoid doing full ID copy somehow, make Mesh to reference
@@ -1015,6 +1016,7 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
       break;
   }
   discard_edit_mode_pointers(id_cow);
+  BKE_libblock_free_data_py(id_cow);
   BKE_libblock_free_datablock(id_cow, 0);
   BKE_libblock_free_data(id_cow, false);
   /* Signal datablock as not being expanded. */
