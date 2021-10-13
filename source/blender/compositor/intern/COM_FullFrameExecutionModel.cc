@@ -122,7 +122,7 @@ void FullFrameExecutionModel::render_operation(NodeOperation *op)
     Vector<MemoryBuffer *> input_bufs = get_input_buffers(op, output_x, output_y);
     const int op_offset_x = output_x - op->get_canvas().xmin;
     const int op_offset_y = output_y - op->get_canvas().ymin;
-    Span<rcti> areas = active_buffers_.get_areas_to_render(op, op_offset_x, op_offset_y);
+    Vector<rcti> areas = active_buffers_.get_areas_to_render(op, op_offset_x, op_offset_y);
     op->render(op_buf, areas, input_bufs);
     DebugInfo::operation_rendered(op, op_buf);
 
