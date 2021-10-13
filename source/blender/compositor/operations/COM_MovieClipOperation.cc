@@ -27,30 +27,30 @@ namespace blender::compositor {
 
 MovieClipBaseOperation::MovieClipBaseOperation()
 {
-  this->m_movieClip = nullptr;
-  this->m_movieClipBuffer = nullptr;
-  this->m_movieClipUser = nullptr;
-  this->m_movieClipwidth = 0;
-  this->m_movieClipheight = 0;
-  this->m_framenumber = 0;
+  m_movieClip = nullptr;
+  m_movieClipBuffer = nullptr;
+  m_movieClipUser = nullptr;
+  m_movieClipwidth = 0;
+  m_movieClipheight = 0;
+  m_framenumber = 0;
 }
 
 void MovieClipBaseOperation::initExecution()
 {
-  if (this->m_movieClip) {
-    BKE_movieclip_user_set_frame(this->m_movieClipUser, this->m_framenumber);
+  if (m_movieClip) {
+    BKE_movieclip_user_set_frame(m_movieClipUser, m_framenumber);
     ImBuf *ibuf;
 
-    if (this->m_cacheFrame) {
-      ibuf = BKE_movieclip_get_ibuf(this->m_movieClip, this->m_movieClipUser);
+    if (m_cacheFrame) {
+      ibuf = BKE_movieclip_get_ibuf(m_movieClip, m_movieClipUser);
     }
     else {
       ibuf = BKE_movieclip_get_ibuf_flag(
-          this->m_movieClip, this->m_movieClipUser, this->m_movieClip->flag, MOVIECLIP_CACHE_SKIP);
+          m_movieClip, m_movieClipUser, m_movieClip->flag, MOVIECLIP_CACHE_SKIP);
     }
 
     if (ibuf) {
-      this->m_movieClipBuffer = ibuf;
+      m_movieClipBuffer = ibuf;
       if (ibuf->rect_float == nullptr || ibuf->userflags & IB_RECT_INVALID) {
         IMB_float_from_rect(ibuf);
         ibuf->userflags &= ~IB_RECT_INVALID;
@@ -61,19 +61,19 @@ void MovieClipBaseOperation::initExecution()
 
 void MovieClipBaseOperation::deinitExecution()
 {
-  if (this->m_movieClipBuffer) {
-    IMB_freeImBuf(this->m_movieClipBuffer);
+  if (m_movieClipBuffer) {
+    IMB_freeImBuf(m_movieClipBuffer);
 
-    this->m_movieClipBuffer = nullptr;
+    m_movieClipBuffer = nullptr;
   }
 }
 
 void MovieClipBaseOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
 {
   r_area = COM_AREA_NONE;
-  if (this->m_movieClip) {
+  if (m_movieClip) {
     int width, height;
-    BKE_movieclip_get_size(this->m_movieClip, this->m_movieClipUser, &width, &height);
+    BKE_movieclip_get_size(m_movieClip, m_movieClipUser, &width, &height);
     BLI_rcti_init(&r_area, 0, width, 0, height);
   }
 }
@@ -83,7 +83,7 @@ void MovieClipBaseOperation::executePixelSampled(float output[4],
                                                  float y,
                                                  PixelSampler sampler)
 {
-  ImBuf *ibuf = this->m_movieClipBuffer;
+  ImBuf *ibuf = m_movieClipBuffer;
 
   if (ibuf == nullptr) {
     zero_v4(output);

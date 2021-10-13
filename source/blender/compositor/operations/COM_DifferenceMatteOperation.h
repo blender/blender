@@ -48,7 +48,7 @@ class DifferenceMatteOperation : public MultiThreadedOperation {
 
   void setSettings(NodeChroma *nodeChroma)
   {
-    this->m_settings = nodeChroma;
+    m_settings = nodeChroma;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

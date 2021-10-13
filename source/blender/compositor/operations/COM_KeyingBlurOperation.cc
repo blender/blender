@@ -25,8 +25,8 @@ KeyingBlurOperation::KeyingBlurOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
 
-  this->m_size = 0;
-  this->m_axis = BLUR_AXIS_X;
+  m_size = 0;
+  m_axis = BLUR_AXIS_X;
 
   this->flags.complex = true;
 }
@@ -46,8 +46,8 @@ void KeyingBlurOperation::executePixel(float output[4], int x, int y, void *data
   int count = 0;
   float average = 0.0f;
 
-  if (this->m_axis == 0) {
-    const int start = MAX2(0, x - this->m_size + 1), end = MIN2(bufferWidth, x + this->m_size);
+  if (m_axis == 0) {
+    const int start = MAX2(0, x - m_size + 1), end = MIN2(bufferWidth, x + m_size);
     for (int cx = start; cx < end; cx++) {
       int bufferIndex = (y * bufferWidth + cx);
       average += buffer[bufferIndex];
@@ -55,8 +55,7 @@ void KeyingBlurOperation::executePixel(float output[4], int x, int y, void *data
     }
   }
   else {
-    const int start = MAX2(0, y - this->m_size + 1),
-              end = MIN2(inputBuffer->getHeight(), y + this->m_size);
+    const int start = MAX2(0, y - m_size + 1), end = MIN2(inputBuffer->getHeight(), y + m_size);
     for (int cy = start; cy < end; cy++) {
       int bufferIndex = (cy * bufferWidth + x);
       average += buffer[bufferIndex];
@@ -75,17 +74,17 @@ bool KeyingBlurOperation::determineDependingAreaOfInterest(rcti *input,
 {
   rcti newInput;
 
-  if (this->m_axis == BLUR_AXIS_X) {
-    newInput.xmin = input->xmin - this->m_size;
+  if (m_axis == BLUR_AXIS_X) {
+    newInput.xmin = input->xmin - m_size;
     newInput.ymin = input->ymin;
-    newInput.xmax = input->xmax + this->m_size;
+    newInput.xmax = input->xmax + m_size;
     newInput.ymax = input->ymax;
   }
   else {
     newInput.xmin = input->xmin;
-    newInput.ymin = input->ymin - this->m_size;
+    newInput.ymin = input->ymin - m_size;
     newInput.xmax = input->xmax;
-    newInput.ymax = input->ymax + this->m_size;
+    newInput.ymax = input->ymax + m_size;
   }
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);

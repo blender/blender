@@ -42,14 +42,14 @@ OpenCLDevice::OpenCLDevice(cl_context context,
                            cl_program program,
                            cl_int vendorId)
 {
-  this->m_device = device;
-  this->m_context = context;
-  this->m_program = program;
-  this->m_queue = nullptr;
-  this->m_vendorID = vendorId;
+  m_device = device;
+  m_context = context;
+  m_program = program;
+  m_queue = nullptr;
+  m_vendorID = vendorId;
 
   cl_int error;
-  this->m_queue = clCreateCommandQueue(this->m_context, this->m_device, 0, &error);
+  m_queue = clCreateCommandQueue(m_context, m_device, 0, &error);
 }
 
 OpenCLDevice::OpenCLDevice(OpenCLDevice &&other) noexcept
@@ -64,8 +64,8 @@ OpenCLDevice::OpenCLDevice(OpenCLDevice &&other) noexcept
 
 OpenCLDevice::~OpenCLDevice()
 {
-  if (this->m_queue) {
-    clReleaseCommandQueue(this->m_queue);
+  if (m_queue) {
+    clReleaseCommandQueue(m_queue);
   }
 }
 
@@ -131,7 +131,7 @@ cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
 
   const cl_image_format *imageFormat = determineImageFormat(result);
 
-  cl_mem clBuffer = clCreateImage2D(this->m_context,
+  cl_mem clBuffer = clCreateImage2D(m_context,
                                     CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                     imageFormat,
                                     result->getWidth(),
@@ -206,8 +206,7 @@ void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel, MemoryBuffer *outputMemo
       (size_t)outputMemoryBuffer->getHeight(),
   };
 
-  error = clEnqueueNDRangeKernel(
-      this->m_queue, kernel, 2, nullptr, size, nullptr, 0, nullptr, nullptr);
+  error = clEnqueueNDRangeKernel(m_queue, kernel, 2, nullptr, size, nullptr, 0, nullptr, nullptr);
   if (error != CL_SUCCESS) {
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
@@ -227,7 +226,7 @@ void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel,
   size_t size[2];
   cl_int2 offset;
 
-  if (this->m_vendorID == NVIDIA) {
+  if (m_vendorID == NVIDIA) {
     localSize = 32;
   }
 
@@ -255,11 +254,11 @@ void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel,
         printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
       }
       error = clEnqueueNDRangeKernel(
-          this->m_queue, kernel, 2, nullptr, size, nullptr, 0, nullptr, nullptr);
+          m_queue, kernel, 2, nullptr, size, nullptr, 0, nullptr, nullptr);
       if (error != CL_SUCCESS) {
         printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
       }
-      clFlush(this->m_queue);
+      clFlush(m_queue);
       if (operation->isBraked()) {
         breaked = false;
       }
@@ -271,7 +270,7 @@ cl_kernel OpenCLDevice::COM_clCreateKernel(const char *kernelname,
                                            std::list<cl_kernel> *clKernelsToCleanUp)
 {
   cl_int error;
-  cl_kernel kernel = clCreateKernel(this->m_program, kernelname, &error);
+  cl_kernel kernel = clCreateKernel(m_program, kernelname, &error);
   if (error != CL_SUCCESS) {
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }

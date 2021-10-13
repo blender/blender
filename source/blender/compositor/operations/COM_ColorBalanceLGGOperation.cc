@@ -42,16 +42,16 @@ ColorBalanceLGGOperation::ColorBalanceLGGOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->m_inputValueOperation = nullptr;
-  this->m_inputColorOperation = nullptr;
+  m_inputValueOperation = nullptr;
+  m_inputColorOperation = nullptr;
   this->set_canvas_input_index(1);
   flags.can_be_constant = true;
 }
 
 void ColorBalanceLGGOperation::initExecution()
 {
-  this->m_inputValueOperation = this->getInputSocketReader(0);
-  this->m_inputColorOperation = this->getInputSocketReader(1);
+  m_inputValueOperation = this->getInputSocketReader(0);
+  m_inputColorOperation = this->getInputSocketReader(1);
 }
 
 void ColorBalanceLGGOperation::executePixelSampled(float output[4],
@@ -62,22 +62,19 @@ void ColorBalanceLGGOperation::executePixelSampled(float output[4],
   float inputColor[4];
   float value[4];
 
-  this->m_inputValueOperation->readSampled(value, x, y, sampler);
-  this->m_inputColorOperation->readSampled(inputColor, x, y, sampler);
+  m_inputValueOperation->readSampled(value, x, y, sampler);
+  m_inputColorOperation->readSampled(inputColor, x, y, sampler);
 
   float fac = value[0];
   fac = MIN2(1.0f, fac);
   const float mfac = 1.0f - fac;
 
   output[0] = mfac * inputColor[0] +
-              fac * colorbalance_lgg(
-                        inputColor[0], this->m_lift[0], this->m_gamma_inv[0], this->m_gain[0]);
+              fac * colorbalance_lgg(inputColor[0], m_lift[0], m_gamma_inv[0], m_gain[0]);
   output[1] = mfac * inputColor[1] +
-              fac * colorbalance_lgg(
-                        inputColor[1], this->m_lift[1], this->m_gamma_inv[1], this->m_gain[1]);
+              fac * colorbalance_lgg(inputColor[1], m_lift[1], m_gamma_inv[1], m_gain[1]);
   output[2] = mfac * inputColor[2] +
-              fac * colorbalance_lgg(
-                        inputColor[2], this->m_lift[2], this->m_gamma_inv[2], this->m_gain[2]);
+              fac * colorbalance_lgg(inputColor[2], m_lift[2], m_gamma_inv[2], m_gain[2]);
   output[3] = inputColor[3];
 }
 
@@ -100,8 +97,8 @@ void ColorBalanceLGGOperation::update_memory_buffer_row(PixelCursor &p)
 
 void ColorBalanceLGGOperation::deinitExecution()
 {
-  this->m_inputValueOperation = nullptr;
-  this->m_inputColorOperation = nullptr;
+  m_inputValueOperation = nullptr;
+  m_inputColorOperation = nullptr;
 }
 
 }  // namespace blender::compositor

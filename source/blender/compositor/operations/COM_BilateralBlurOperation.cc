@@ -27,14 +27,14 @@ BilateralBlurOperation::BilateralBlurOperation()
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
 
-  this->m_inputColorProgram = nullptr;
-  this->m_inputDeterminatorProgram = nullptr;
+  m_inputColorProgram = nullptr;
+  m_inputDeterminatorProgram = nullptr;
 }
 
 void BilateralBlurOperation::initExecution()
 {
-  this->m_inputColorProgram = getInputSocketReader(0);
-  this->m_inputDeterminatorProgram = getInputSocketReader(1);
+  m_inputColorProgram = getInputSocketReader(0);
+  m_inputDeterminatorProgram = getInputSocketReader(1);
   QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
@@ -47,14 +47,14 @@ void BilateralBlurOperation::executePixel(float output[4], int x, int y, void *d
   float tempColor[4];
   float blurColor[4];
   float blurDivider;
-  float space = this->m_space;
-  float sigmacolor = this->m_data->sigma_color;
+  float space = m_space;
+  float sigmacolor = m_data->sigma_color;
   int minx = floor(x - space);
   int maxx = ceil(x + space);
   int miny = floor(y - space);
   int maxy = ceil(y + space);
   float deltaColor;
-  this->m_inputDeterminatorProgram->read(determinatorReferenceColor, x, y, data);
+  m_inputDeterminatorProgram->read(determinatorReferenceColor, x, y, data);
 
   zero_v4(blurColor);
   blurDivider = 0.0f;
@@ -65,14 +65,14 @@ void BilateralBlurOperation::executePixel(float output[4], int x, int y, void *d
   for (int yi = miny; yi < maxy; yi += QualityStepHelper::getStep()) {
     for (int xi = minx; xi < maxx; xi += QualityStepHelper::getStep()) {
       /* Read determinator. */
-      this->m_inputDeterminatorProgram->read(determinator, xi, yi, data);
+      m_inputDeterminatorProgram->read(determinator, xi, yi, data);
       deltaColor = (fabsf(determinatorReferenceColor[0] - determinator[0]) +
                     fabsf(determinatorReferenceColor[1] - determinator[1]) +
                     /* Do not take the alpha channel into account. */
                     fabsf(determinatorReferenceColor[2] - determinator[2]));
       if (deltaColor < sigmacolor) {
         /* Add this to the blur. */
-        this->m_inputColorProgram->read(tempColor, xi, yi, data);
+        m_inputColorProgram->read(tempColor, xi, yi, data);
         add_v4_v4(blurColor, tempColor);
         blurDivider += 1.0f;
       }
@@ -92,8 +92,8 @@ void BilateralBlurOperation::executePixel(float output[4], int x, int y, void *d
 
 void BilateralBlurOperation::deinitExecution()
 {
-  this->m_inputColorProgram = nullptr;
-  this->m_inputDeterminatorProgram = nullptr;
+  m_inputColorProgram = nullptr;
+  m_inputDeterminatorProgram = nullptr;
 }
 
 bool BilateralBlurOperation::determineDependingAreaOfInterest(rcti *input,
@@ -101,7 +101,7 @@ bool BilateralBlurOperation::determineDependingAreaOfInterest(rcti *input,
                                                               rcti *output)
 {
   rcti newInput;
-  int add = ceil(this->m_space) + 1;
+  int add = ceil(m_space) + 1;
 
   newInput.xmax = input->xmax + (add);
   newInput.xmin = input->xmin - (add);
@@ -115,7 +115,7 @@ void BilateralBlurOperation::get_area_of_interest(const int UNUSED(input_idx),
                                                   const rcti &output_area,
                                                   rcti &r_input_area)
 {
-  const int add = ceil(this->m_space) + 1;
+  const int add = ceil(m_space) + 1;
 
   r_input_area.xmax = output_area.xmax + (add);
   r_input_area.xmin = output_area.xmin - (add);
@@ -174,10 +174,10 @@ void BilateralBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
 {
   PixelCursor p = {};
   p.step = QualityStepHelper::getStep();
-  p.sigma_color = this->m_data->sigma_color;
+  p.sigma_color = m_data->sigma_color;
   p.input_color = inputs[0];
   p.input_determinator = inputs[1];
-  const float space = this->m_space;
+  const float space = m_space;
   for (int y = area.ymin; y < area.ymax; y++) {
     p.out = output->get_elem(area.xmin, y);
     /* This will be used as the reference color for the determinator. */

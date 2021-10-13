@@ -80,7 +80,7 @@ class RenderLayersProg : public MultiThreadedOperation {
    */
   inline float *getInputBuffer()
   {
-    return this->m_inputBuffer;
+    return m_inputBuffer;
   }
 
   void doInterpolation(float output[4], float x, float y, PixelSampler sampler);
@@ -97,31 +97,31 @@ class RenderLayersProg : public MultiThreadedOperation {
    */
   void setScene(Scene *scene)
   {
-    this->m_scene = scene;
+    m_scene = scene;
   }
   Scene *getScene() const
   {
-    return this->m_scene;
+    return m_scene;
   }
   void setRenderData(const RenderData *rd)
   {
-    this->m_rd = rd;
+    m_rd = rd;
   }
   void setLayerId(short layerId)
   {
-    this->m_layerId = layerId;
+    m_layerId = layerId;
   }
   short getLayerId() const
   {
-    return this->m_layerId;
+    return m_layerId;
   }
   void setViewName(const char *viewName)
   {
-    this->m_viewName = viewName;
+    m_viewName = viewName;
   }
   const char *getViewName()
   {
-    return this->m_viewName;
+    return m_viewName;
   }
   void initExecution() override;
   void deinitExecution() override;

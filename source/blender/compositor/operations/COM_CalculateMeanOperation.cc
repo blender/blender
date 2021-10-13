@@ -28,26 +28,26 @@ CalculateMeanOperation::CalculateMeanOperation()
 {
   this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addOutputSocket(DataType::Value);
-  this->m_imageReader = nullptr;
-  this->m_iscalculated = false;
-  this->m_setting = 1;
+  m_imageReader = nullptr;
+  m_iscalculated = false;
+  m_setting = 1;
   this->flags.complex = true;
 }
 void CalculateMeanOperation::initExecution()
 {
-  this->m_imageReader = this->getInputSocketReader(0);
-  this->m_iscalculated = false;
+  m_imageReader = this->getInputSocketReader(0);
+  m_iscalculated = false;
   NodeOperation::initMutex();
 }
 
 void CalculateMeanOperation::executePixel(float output[4], int /*x*/, int /*y*/, void * /*data*/)
 {
-  output[0] = this->m_result;
+  output[0] = m_result;
 }
 
 void CalculateMeanOperation::deinitExecution()
 {
-  this->m_imageReader = nullptr;
+  m_imageReader = nullptr;
   NodeOperation::deinitMutex();
 }
 
@@ -56,7 +56,7 @@ bool CalculateMeanOperation::determineDependingAreaOfInterest(rcti * /*input*/,
                                                               rcti *output)
 {
   rcti imageInput;
-  if (this->m_iscalculated) {
+  if (m_iscalculated) {
     return false;
   }
   NodeOperation *operation = getInputOperation(0);
@@ -73,10 +73,10 @@ bool CalculateMeanOperation::determineDependingAreaOfInterest(rcti * /*input*/,
 void *CalculateMeanOperation::initializeTileData(rcti *rect)
 {
   lockMutex();
-  if (!this->m_iscalculated) {
-    MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect);
+  if (!m_iscalculated) {
+    MemoryBuffer *tile = (MemoryBuffer *)m_imageReader->initializeTileData(rect);
     calculateMean(tile);
-    this->m_iscalculated = true;
+    m_iscalculated = true;
   }
   unlockMutex();
   return nullptr;
@@ -84,7 +84,7 @@ void *CalculateMeanOperation::initializeTileData(rcti *rect)
 
 void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
 {
-  this->m_result = 0.0f;
+  m_result = 0.0f;
   float *buffer = tile->getBuffer();
   int size = tile->getWidth() * tile->getHeight();
   int pixels = 0;
@@ -93,7 +93,7 @@ void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
     if (buffer[offset + 3] > 0) {
       pixels++;
 
-      switch (this->m_setting) {
+      switch (m_setting) {
         case 1: {
           sum += IMB_colormanagement_get_luminance(&buffer[offset]);
           break;
@@ -125,12 +125,12 @@ void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
       }
     }
   }
-  this->m_result = sum / pixels;
+  m_result = sum / pixels;
 }
 
 void CalculateMeanOperation::setSetting(int setting)
 {
-  this->m_setting = setting;
+  m_setting = setting;
   switch (setting) {
     case 1: {
       setting_func_ = IMB_colormanagement_get_luminance;
@@ -171,10 +171,10 @@ void CalculateMeanOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(o
                                                           const rcti &UNUSED(area),
                                                           Span<MemoryBuffer *> inputs)
 {
-  if (!this->m_iscalculated) {
+  if (!m_iscalculated) {
     MemoryBuffer *input = inputs[0];
     m_result = calc_mean(input);
-    this->m_iscalculated = true;
+    m_iscalculated = true;
   }
 }
 

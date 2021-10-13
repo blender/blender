@@ -38,11 +38,11 @@ class SplitOperation : public MultiThreadedOperation {
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
   void setSplitPercentage(float splitPercentage)
   {
-    this->m_splitPercentage = splitPercentage;
+    m_splitPercentage = splitPercentage;
   }
   void setXSplit(bool xsplit)
   {
-    this->m_xSplit = xsplit;
+    m_xSplit = xsplit;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

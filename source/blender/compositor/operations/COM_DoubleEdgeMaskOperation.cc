@@ -1267,8 +1267,8 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
      *
      * Each version has slightly different criteria for detecting an edge pixel.
      */
-    if (this->m_adjacentOnly) { /* If "adjacent only" inner edge mode is turned on. */
-      if (this->m_keepInside) { /* If "keep inside" buffer edge mode is turned on. */
+    if (m_adjacentOnly) { /* If "adjacent only" inner edge mode is turned on. */
+      if (m_keepInside) { /* If "keep inside" buffer edge mode is turned on. */
         do_adjacentKeepBorders(t, rw, limask, lomask, lres, res, rsize);
       }
       else { /* "bleed out" buffer edge mode is turned on. */
@@ -1281,8 +1281,8 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
       /* Detect edges in all non-border pixels in the buffer. */
       do_adjacentEdgeDetection(t, rw, limask, lomask, lres, res, rsize, isz, osz, gsz);
     }
-    else {                      /* "all" inner edge mode is turned on. */
-      if (this->m_keepInside) { /* If "keep inside" buffer edge mode is turned on. */
+    else {                /* "all" inner edge mode is turned on. */
+      if (m_keepInside) { /* If "keep inside" buffer edge mode is turned on. */
         do_allKeepBorders(t, rw, limask, lomask, lres, res, rsize);
       }
       else { /* "bleed out" buffer edge mode is turned on. */
@@ -1322,10 +1322,10 @@ DoubleEdgeMaskOperation::DoubleEdgeMaskOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
-  this->m_inputInnerMask = nullptr;
-  this->m_inputOuterMask = nullptr;
-  this->m_adjacentOnly = false;
-  this->m_keepInside = false;
+  m_inputInnerMask = nullptr;
+  m_inputOuterMask = nullptr;
+  m_adjacentOnly = false;
+  m_keepInside = false;
   this->flags.complex = true;
   is_output_rendered_ = false;
 }
@@ -1334,7 +1334,7 @@ bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti * /*input*/,
                                                                ReadBufferOperation *readOperation,
                                                                rcti *output)
 {
-  if (this->m_cachedInstance == nullptr) {
+  if (m_cachedInstance == nullptr) {
     rcti newInput;
     newInput.xmax = this->getWidth();
     newInput.xmin = 0;
@@ -1348,31 +1348,31 @@ bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti * /*input*/,
 
 void DoubleEdgeMaskOperation::initExecution()
 {
-  this->m_inputInnerMask = this->getInputSocketReader(0);
-  this->m_inputOuterMask = this->getInputSocketReader(1);
+  m_inputInnerMask = this->getInputSocketReader(0);
+  m_inputOuterMask = this->getInputSocketReader(1);
   initMutex();
-  this->m_cachedInstance = nullptr;
+  m_cachedInstance = nullptr;
 }
 
 void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect)
 {
-  if (this->m_cachedInstance) {
-    return this->m_cachedInstance;
+  if (m_cachedInstance) {
+    return m_cachedInstance;
   }
 
   lockMutex();
-  if (this->m_cachedInstance == nullptr) {
-    MemoryBuffer *innerMask = (MemoryBuffer *)this->m_inputInnerMask->initializeTileData(rect);
-    MemoryBuffer *outerMask = (MemoryBuffer *)this->m_inputOuterMask->initializeTileData(rect);
+  if (m_cachedInstance == nullptr) {
+    MemoryBuffer *innerMask = (MemoryBuffer *)m_inputInnerMask->initializeTileData(rect);
+    MemoryBuffer *outerMask = (MemoryBuffer *)m_inputOuterMask->initializeTileData(rect);
     float *data = (float *)MEM_mallocN(sizeof(float) * this->getWidth() * this->getHeight(),
                                        __func__);
     float *imask = innerMask->getBuffer();
     float *omask = outerMask->getBuffer();
     doDoubleEdgeMask(imask, omask, data);
-    this->m_cachedInstance = data;
+    m_cachedInstance = data;
   }
   unlockMutex();
-  return this->m_cachedInstance;
+  return m_cachedInstance;
 }
 void DoubleEdgeMaskOperation::executePixel(float output[4], int x, int y, void *data)
 {
@@ -1383,12 +1383,12 @@ void DoubleEdgeMaskOperation::executePixel(float output[4], int x, int y, void *
 
 void DoubleEdgeMaskOperation::deinitExecution()
 {
-  this->m_inputInnerMask = nullptr;
-  this->m_inputOuterMask = nullptr;
+  m_inputInnerMask = nullptr;
+  m_inputOuterMask = nullptr;
   deinitMutex();
-  if (this->m_cachedInstance) {
-    MEM_freeN(this->m_cachedInstance);
-    this->m_cachedInstance = nullptr;
+  if (m_cachedInstance) {
+    MEM_freeN(m_cachedInstance);
+    m_cachedInstance = nullptr;
   }
 }
 

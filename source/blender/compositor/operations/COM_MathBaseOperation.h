@@ -48,7 +48,7 @@ class MathBaseOperation : public MultiThreadedOperation {
 
   float clamp_when_enabled(float value)
   {
-    if (this->m_useClamp) {
+    if (m_useClamp) {
       return CLAMPIS(value, 0.0f, 1.0f);
     }
     return value;
@@ -56,7 +56,7 @@ class MathBaseOperation : public MultiThreadedOperation {
 
   void clamp_when_enabled(float *out)
   {
-    if (this->m_useClamp) {
+    if (m_useClamp) {
       CLAMP(*out, 0.0f, 1.0f);
     }
   }
@@ -79,7 +79,7 @@ class MathBaseOperation : public MultiThreadedOperation {
 
   void setUseClamp(bool value)
   {
-    this->m_useClamp = value;
+    m_useClamp = value;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

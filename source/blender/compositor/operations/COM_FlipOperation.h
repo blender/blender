@@ -39,11 +39,11 @@ class FlipOperation : public MultiThreadedOperation {
   void deinitExecution() override;
   void setFlipX(bool flipX)
   {
-    this->m_flipX = flipX;
+    m_flipX = flipX;
   }
   void setFlipY(bool flipY)
   {
-    this->m_flipY = flipY;
+    m_flipY = flipY;
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;

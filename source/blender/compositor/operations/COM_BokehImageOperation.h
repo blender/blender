@@ -136,7 +136,7 @@ class BokehImageOperation : public MultiThreadedOperation {
    */
   void setData(NodeBokehImage *data)
   {
-    this->m_data = data;
+    m_data = data;
   }
 
   /**
@@ -148,7 +148,7 @@ class BokehImageOperation : public MultiThreadedOperation {
    */
   void deleteDataOnFinish()
   {
-    this->m_deleteData = true;
+    m_deleteData = true;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

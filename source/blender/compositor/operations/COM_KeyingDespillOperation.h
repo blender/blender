@@ -40,11 +40,11 @@ class KeyingDespillOperation : public MultiThreadedOperation {
 
   void setDespillFactor(float value)
   {
-    this->m_despillFactor = value;
+    m_despillFactor = value;
   }
   void setColorBalance(float value)
   {
-    this->m_colorBalance = value;
+    m_colorBalance = value;
   }
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;

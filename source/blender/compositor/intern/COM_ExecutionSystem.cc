@@ -43,25 +43,25 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
                                  const char *viewName)
 {
   num_work_threads_ = WorkScheduler::get_num_cpu_threads();
-  this->m_context.setViewName(viewName);
-  this->m_context.setScene(scene);
-  this->m_context.setbNodeTree(editingtree);
-  this->m_context.setPreviewHash(editingtree->previews);
-  this->m_context.setFastCalculation(fastcalculation);
+  m_context.setViewName(viewName);
+  m_context.setScene(scene);
+  m_context.setbNodeTree(editingtree);
+  m_context.setPreviewHash(editingtree->previews);
+  m_context.setFastCalculation(fastcalculation);
   /* initialize the CompositorContext */
   if (rendering) {
-    this->m_context.setQuality((eCompositorQuality)editingtree->render_quality);
+    m_context.setQuality((eCompositorQuality)editingtree->render_quality);
   }
   else {
-    this->m_context.setQuality((eCompositorQuality)editingtree->edit_quality);
+    m_context.setQuality((eCompositorQuality)editingtree->edit_quality);
   }
-  this->m_context.setRendering(rendering);
-  this->m_context.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() &&
-                                            (editingtree->flag & NTREE_COM_OPENCL));
+  m_context.setRendering(rendering);
+  m_context.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() &&
+                                      (editingtree->flag & NTREE_COM_OPENCL));
 
-  this->m_context.setRenderData(rd);
-  this->m_context.setViewSettings(viewSettings);
-  this->m_context.setDisplaySettings(displaySettings);
+  m_context.setRenderData(rd);
+  m_context.setViewSettings(viewSettings);
+  m_context.setDisplaySettings(displaySettings);
 
   BLI_mutex_init(&work_mutex_);
   BLI_condition_init(&work_finished_cond_);
@@ -94,12 +94,12 @@ ExecutionSystem::~ExecutionSystem()
   for (NodeOperation *operation : m_operations) {
     delete operation;
   }
-  this->m_operations.clear();
+  m_operations.clear();
 
   for (ExecutionGroup *group : m_groups) {
     delete group;
   }
-  this->m_groups.clear();
+  m_groups.clear();
 }
 
 void ExecutionSystem::set_operations(const Vector<NodeOperation *> &operations,

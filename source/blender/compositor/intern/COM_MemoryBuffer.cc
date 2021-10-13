@@ -47,14 +47,14 @@ static rcti create_rect(const int width, const int height)
 MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect, MemoryBufferState state)
 {
   m_rect = rect;
-  this->m_is_a_single_elem = false;
-  this->m_memoryProxy = memoryProxy;
-  this->m_num_channels = COM_data_type_num_channels(memoryProxy->getDataType());
-  this->m_buffer = (float *)MEM_mallocN_aligned(
-      sizeof(float) * buffer_len() * this->m_num_channels, 16, "COM_MemoryBuffer");
+  m_is_a_single_elem = false;
+  m_memoryProxy = memoryProxy;
+  m_num_channels = COM_data_type_num_channels(memoryProxy->getDataType());
+  m_buffer = (float *)MEM_mallocN_aligned(
+      sizeof(float) * buffer_len() * m_num_channels, 16, "COM_MemoryBuffer");
   owns_data_ = true;
-  this->m_state = state;
-  this->m_datatype = memoryProxy->getDataType();
+  m_state = state;
+  m_datatype = memoryProxy->getDataType();
 
   set_strides();
 }
@@ -62,14 +62,14 @@ MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect, MemoryBuf
 MemoryBuffer::MemoryBuffer(DataType dataType, const rcti &rect, bool is_a_single_elem)
 {
   m_rect = rect;
-  this->m_is_a_single_elem = is_a_single_elem;
-  this->m_memoryProxy = nullptr;
-  this->m_num_channels = COM_data_type_num_channels(dataType);
-  this->m_buffer = (float *)MEM_mallocN_aligned(
-      sizeof(float) * buffer_len() * this->m_num_channels, 16, "COM_MemoryBuffer");
+  m_is_a_single_elem = is_a_single_elem;
+  m_memoryProxy = nullptr;
+  m_num_channels = COM_data_type_num_channels(dataType);
+  m_buffer = (float *)MEM_mallocN_aligned(
+      sizeof(float) * buffer_len() * m_num_channels, 16, "COM_MemoryBuffer");
   owns_data_ = true;
-  this->m_state = MemoryBufferState::Temporary;
-  this->m_datatype = dataType;
+  m_state = MemoryBufferState::Temporary;
+  m_datatype = dataType;
 
   set_strides();
 }
@@ -153,20 +153,20 @@ BuffersIterator<float> MemoryBuffer::iterate_with(Span<MemoryBuffer *> inputs, c
 MemoryBuffer *MemoryBuffer::inflate() const
 {
   BLI_assert(is_a_single_elem());
-  MemoryBuffer *inflated = new MemoryBuffer(this->m_datatype, this->m_rect, false);
-  inflated->copy_from(this, this->m_rect);
+  MemoryBuffer *inflated = new MemoryBuffer(m_datatype, m_rect, false);
+  inflated->copy_from(this, m_rect);
   return inflated;
 }
 
 float MemoryBuffer::get_max_value() const
 {
-  float result = this->m_buffer[0];
+  float result = m_buffer[0];
   const unsigned int size = this->buffer_len();
   unsigned int i;
 
-  const float *fp_src = this->m_buffer;
+  const float *fp_src = m_buffer;
 
-  for (i = 0; i < size; i++, fp_src += this->m_num_channels) {
+  for (i = 0; i < size; i++, fp_src += m_num_channels) {
     float value = *fp_src;
     if (value > result) {
       result = value;
@@ -181,10 +181,10 @@ float MemoryBuffer::get_max_value(const rcti &rect) const
   rcti rect_clamp;
 
   /* first clamp the rect by the bounds or we get un-initialized values */
-  BLI_rcti_isect(&rect, &this->m_rect, &rect_clamp);
+  BLI_rcti_isect(&rect, &m_rect, &rect_clamp);
 
   if (!BLI_rcti_is_empty(&rect_clamp)) {
-    MemoryBuffer temp_buffer(this->m_datatype, rect_clamp);
+    MemoryBuffer temp_buffer(m_datatype, rect_clamp);
     temp_buffer.fill_from(*this);
     return temp_buffer.get_max_value();
   }
@@ -195,9 +195,9 @@ float MemoryBuffer::get_max_value(const rcti &rect) const
 
 MemoryBuffer::~MemoryBuffer()
 {
-  if (this->m_buffer && owns_data_) {
-    MEM_freeN(this->m_buffer);
-    this->m_buffer = nullptr;
+  if (m_buffer && owns_data_) {
+    MEM_freeN(m_buffer);
+    m_buffer = nullptr;
   }
 }
 
@@ -398,30 +398,28 @@ void MemoryBuffer::fill(const rcti &area,
 void MemoryBuffer::fill_from(const MemoryBuffer &src)
 {
   rcti overlap;
-  overlap.xmin = MAX2(this->m_rect.xmin, src.m_rect.xmin);
-  overlap.xmax = MIN2(this->m_rect.xmax, src.m_rect.xmax);
-  overlap.ymin = MAX2(this->m_rect.ymin, src.m_rect.ymin);
-  overlap.ymax = MIN2(this->m_rect.ymax, src.m_rect.ymax);
+  overlap.xmin = MAX2(m_rect.xmin, src.m_rect.xmin);
+  overlap.xmax = MIN2(m_rect.xmax, src.m_rect.xmax);
+  overlap.ymin = MAX2(m_rect.ymin, src.m_rect.ymin);
+  overlap.ymax = MIN2(m_rect.ymax, src.m_rect.ymax);
   copy_from(&src, overlap);
 }
 
 void MemoryBuffer::writePixel(int x, int y, const float color[4])
 {
-  if (x >= this->m_rect.xmin && x < this->m_rect.xmax && y >= this->m_rect.ymin &&
-      y < this->m_rect.ymax) {
+  if (x >= m_rect.xmin && x < m_rect.xmax && y >= m_rect.ymin && y < m_rect.ymax) {
     const int offset = get_coords_offset(x, y);
-    memcpy(&this->m_buffer[offset], color, sizeof(float) * this->m_num_channels);
+    memcpy(&m_buffer[offset], color, sizeof(float) * m_num_channels);
   }
 }
 
 void MemoryBuffer::addPixel(int x, int y, const float color[4])
 {
-  if (x >= this->m_rect.xmin && x < this->m_rect.xmax && y >= this->m_rect.ymin &&
-      y < this->m_rect.ymax) {
+  if (x >= m_rect.xmin && x < m_rect.xmax && y >= m_rect.ymin && y < m_rect.ymax) {
     const int offset = get_coords_offset(x, y);
-    float *dst = &this->m_buffer[offset];
+    float *dst = &m_buffer[offset];
     const float *src = color;
-    for (int i = 0; i < this->m_num_channels; i++, dst++, src++) {
+    for (int i = 0; i < m_num_channels; i++, dst++, src++) {
       *dst += *src;
     }
   }
@@ -436,7 +434,7 @@ static void read_ewa_elem(void *userdata, int x, int y, float result[4])
 void MemoryBuffer::read_elem_filtered(
     const float x, const float y, float dx[2], float dy[2], float *out) const
 {
-  BLI_assert(this->m_datatype == DataType::Color);
+  BLI_assert(m_datatype == DataType::Color);
 
   const float deriv[2][2] = {{dx[0], dx[1]}, {dy[0], dy[1]}};
 
@@ -472,10 +470,10 @@ static void read_ewa_pixel_sampled(void *userdata, int x, int y, float result[4]
 void MemoryBuffer::readEWA(float *result, const float uv[2], const float derivatives[2][2])
 {
   if (m_is_a_single_elem) {
-    memcpy(result, m_buffer, sizeof(float) * this->m_num_channels);
+    memcpy(result, m_buffer, sizeof(float) * m_num_channels);
   }
   else {
-    BLI_assert(this->m_datatype == DataType::Color);
+    BLI_assert(m_datatype == DataType::Color);
     float inv_width = 1.0f / (float)this->getWidth(), inv_height = 1.0f / (float)this->getHeight();
     /* TODO(sergey): Render pipeline uses normalized coordinates and derivatives,
      * but compositor uses pixel space. For now let's just divide the values and

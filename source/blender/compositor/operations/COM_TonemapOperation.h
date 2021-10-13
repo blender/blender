@@ -79,7 +79,7 @@ class TonemapOperation : public MultiThreadedOperation {
 
   void setData(NodeTonemap *data)
   {
-    this->m_data = data;
+    m_data = data;
   }
 
   bool determineDependingAreaOfInterest(rcti *input,

@@ -50,20 +50,20 @@ class MovieClipBaseOperation : public MultiThreadedOperation {
   void deinitExecution() override;
   void setMovieClip(MovieClip *image)
   {
-    this->m_movieClip = image;
+    m_movieClip = image;
   }
   void setMovieClipUser(MovieClipUser *imageuser)
   {
-    this->m_movieClipUser = imageuser;
+    m_movieClipUser = imageuser;
   }
   void setCacheFrame(bool value)
   {
-    this->m_cacheFrame = value;
+    m_cacheFrame = value;
   }
 
   void setFramenumber(int framenumber)
   {
-    this->m_framenumber = framenumber;
+    m_framenumber = framenumber;
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 

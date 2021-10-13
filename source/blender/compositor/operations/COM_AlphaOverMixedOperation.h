@@ -43,7 +43,7 @@ class AlphaOverMixedOperation : public MixBaseOperation {
 
   void setX(float x)
   {
-    this->m_x = x;
+    m_x = x;
   }
 
   void update_memory_buffer_row(PixelCursor &p) override;

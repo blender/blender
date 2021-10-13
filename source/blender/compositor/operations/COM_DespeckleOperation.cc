@@ -28,19 +28,19 @@ DespeckleOperation::DespeckleOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
   this->set_canvas_input_index(0);
-  this->m_inputOperation = nullptr;
+  m_inputOperation = nullptr;
   this->flags.complex = true;
 }
 void DespeckleOperation::initExecution()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
-  this->m_inputValueOperation = this->getInputSocketReader(1);
+  m_inputOperation = this->getInputSocketReader(0);
+  m_inputValueOperation = this->getInputSocketReader(1);
 }
 
 void DespeckleOperation::deinitExecution()
 {
-  this->m_inputOperation = nullptr;
-  this->m_inputValueOperation = nullptr;
+  m_inputOperation = nullptr;
+  m_inputValueOperation = nullptr;
 }
 
 BLI_INLINE int color_diff(const float a[3], const float b[3], const float threshold)
@@ -69,10 +69,10 @@ void DespeckleOperation::executePixel(float output[4], int x, int y, void * /*da
   CLAMP(y2, 0, getHeight() - 1);
   CLAMP(y3, 0, getHeight() - 1);
   float value[4];
-  this->m_inputValueOperation->read(value, x2, y2, nullptr);
+  m_inputValueOperation->read(value, x2, y2, nullptr);
   // const float mval = 1.0f - value[0];
 
-  this->m_inputOperation->read(color_org, x2, y2, nullptr);
+  m_inputOperation->read(color_org, x2, y2, nullptr);
 
 #define TOT_DIV_ONE 1.0f
 #define TOT_DIV_CNR (float)M_SQRT1_2
@@ -82,7 +82,7 @@ void DespeckleOperation::executePixel(float output[4], int x, int y, void * /*da
 #define COLOR_ADD(fac) \
   { \
     madd_v4_v4fl(color_mid, in1, fac); \
-    if (color_diff(in1, color_org, this->m_threshold)) { \
+    if (color_diff(in1, color_org, m_threshold)) { \
       w += fac; \
       madd_v4_v4fl(color_mid_ok, in1, fac); \
     } \
@@ -91,34 +91,34 @@ void DespeckleOperation::executePixel(float output[4], int x, int y, void * /*da
   zero_v4(color_mid);
   zero_v4(color_mid_ok);
 
-  this->m_inputOperation->read(in1, x1, y1, nullptr);
+  m_inputOperation->read(in1, x1, y1, nullptr);
   COLOR_ADD(TOT_DIV_CNR)
-  this->m_inputOperation->read(in1, x2, y1, nullptr);
+  m_inputOperation->read(in1, x2, y1, nullptr);
   COLOR_ADD(TOT_DIV_ONE)
-  this->m_inputOperation->read(in1, x3, y1, nullptr);
+  m_inputOperation->read(in1, x3, y1, nullptr);
   COLOR_ADD(TOT_DIV_CNR)
-  this->m_inputOperation->read(in1, x1, y2, nullptr);
+  m_inputOperation->read(in1, x1, y2, nullptr);
   COLOR_ADD(TOT_DIV_ONE)
 
 #if 0
-  this->m_inputOperation->read(in2, x2, y2, nullptr);
-  madd_v4_v4fl(color_mid, in2, this->m_filter[4]);
+  m_inputOperation->read(in2, x2, y2, nullptr);
+  madd_v4_v4fl(color_mid, in2, m_filter[4]);
 #endif
 
-  this->m_inputOperation->read(in1, x3, y2, nullptr);
+  m_inputOperation->read(in1, x3, y2, nullptr);
   COLOR_ADD(TOT_DIV_ONE)
-  this->m_inputOperation->read(in1, x1, y3, nullptr);
+  m_inputOperation->read(in1, x1, y3, nullptr);
   COLOR_ADD(TOT_DIV_CNR)
-  this->m_inputOperation->read(in1, x2, y3, nullptr);
+  m_inputOperation->read(in1, x2, y3, nullptr);
   COLOR_ADD(TOT_DIV_ONE)
-  this->m_inputOperation->read(in1, x3, y3, nullptr);
+  m_inputOperation->read(in1, x3, y3, nullptr);
   COLOR_ADD(TOT_DIV_CNR)
 
   mul_v4_fl(color_mid, 1.0f / (4.0f + (4.0f * (float)M_SQRT1_2)));
   // mul_v4_fl(color_mid, 1.0f / w);
 
-  if ((w != 0.0f) && ((w / WTOT) > (this->m_threshold_neighbor)) &&
-      color_diff(color_mid, color_org, this->m_threshold)) {
+  if ((w != 0.0f) && ((w / WTOT) > (m_threshold_neighbor)) &&
+      color_diff(color_mid, color_org, m_threshold)) {
     mul_v4_fl(color_mid_ok, 1.0f / w);
     interp_v4_v4v4(output, color_org, color_mid_ok, value[0]);
   }
@@ -137,8 +137,8 @@ bool DespeckleOperation::determineDependingAreaOfInterest(rcti *input,
                                                           rcti *output)
 {
   rcti newInput;
-  int addx = 2;  //(this->m_filterWidth - 1) / 2 + 1;
-  int addy = 2;  //(this->m_filterHeight - 1) / 2 + 1;
+  int addx = 2;  //(m_filterWidth - 1) / 2 + 1;
+  int addy = 2;  //(m_filterHeight - 1) / 2 + 1;
   newInput.xmax = input->xmax + addx;
   newInput.xmin = input->xmin - addx;
   newInput.ymax = input->ymax + addy;
@@ -153,8 +153,8 @@ void DespeckleOperation::get_area_of_interest(const int input_idx,
 {
   switch (input_idx) {
     case IMAGE_INPUT_INDEX: {
-      const int add_x = 2;  //(this->m_filterWidth - 1) / 2 + 1;
-      const int add_y = 2;  //(this->m_filterHeight - 1) / 2 + 1;
+      const int add_x = 2;  //(m_filterWidth - 1) / 2 + 1;
+      const int add_y = 2;  //(m_filterHeight - 1) / 2 + 1;
       r_input_area.xmin = output_area.xmin - add_x;
       r_input_area.xmax = output_area.xmax + add_x;
       r_input_area.ymin = output_area.ymin - add_y;
@@ -217,7 +217,7 @@ void DespeckleOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
 #if 0
   const float* in2 = image->get_elem(x2, y2);
-  madd_v4_v4fl(color_mid, in2, this->m_filter[4]);
+  madd_v4_v4fl(color_mid, in2, m_filter[4]);
 #endif
 
     in1 = image->get_elem(x3, y2);

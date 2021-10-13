@@ -74,13 +74,13 @@ class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelpe
 
   void setSize(float size)
   {
-    this->m_size = size;
-    this->m_sizeavailable = true;
+    m_size = size;
+    m_sizeavailable = true;
   }
 
   void setExtendBounds(bool extend_bounds)
   {
-    this->m_extend_bounds = extend_bounds;
+    m_extend_bounds = extend_bounds;
   }
 
   int get_blur_size(eDimension dim) const;

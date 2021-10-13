@@ -93,12 +93,12 @@ class OpenCLDevice : public Device {
 
   cl_context getContext()
   {
-    return this->m_context;
+    return m_context;
   }
 
   cl_command_queue getQueue()
   {
-    return this->m_queue;
+    return m_queue;
   }
 
   cl_mem COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,

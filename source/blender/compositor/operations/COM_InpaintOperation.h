@@ -59,7 +59,7 @@ class InpaintSimpleOperation : public NodeOperation {
 
   void setIterations(int iterations)
   {
-    this->m_iterations = iterations;
+    m_iterations = iterations;
   }
 
   bool determineDependingAreaOfInterest(rcti *input,

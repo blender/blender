@@ -31,7 +31,7 @@ void SetValueOperation::executePixelSampled(float output[4],
                                             float /*y*/,
                                             PixelSampler /*sampler*/)
 {
-  output[0] = this->m_value;
+  output[0] = m_value;
 }
 
 void SetValueOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)

@@ -61,15 +61,15 @@ class ColorBalanceLGGOperation : public MultiThreadedRowOperation {
 
   void setGain(const float gain[3])
   {
-    copy_v3_v3(this->m_gain, gain);
+    copy_v3_v3(m_gain, gain);
   }
   void setLift(const float lift[3])
   {
-    copy_v3_v3(this->m_lift, lift);
+    copy_v3_v3(m_lift, lift);
   }
   void setGammaInv(const float gamma_inv[3])
   {
-    copy_v3_v3(this->m_gamma_inv, gamma_inv);
+    copy_v3_v3(m_gamma_inv, gamma_inv);
   }
 
   void update_memory_buffer_row(PixelCursor &p) override;

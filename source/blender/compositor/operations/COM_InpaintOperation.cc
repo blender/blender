@@ -31,21 +31,21 @@ InpaintSimpleOperation::InpaintSimpleOperation()
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
-  this->m_inputImageProgram = nullptr;
-  this->m_pixelorder = nullptr;
-  this->m_manhattan_distance = nullptr;
-  this->m_cached_buffer = nullptr;
-  this->m_cached_buffer_ready = false;
+  m_inputImageProgram = nullptr;
+  m_pixelorder = nullptr;
+  m_manhattan_distance = nullptr;
+  m_cached_buffer = nullptr;
+  m_cached_buffer_ready = false;
   flags.is_fullframe_operation = true;
 }
 void InpaintSimpleOperation::initExecution()
 {
-  this->m_inputImageProgram = this->getInputSocketReader(0);
+  m_inputImageProgram = this->getInputSocketReader(0);
 
-  this->m_pixelorder = nullptr;
-  this->m_manhattan_distance = nullptr;
-  this->m_cached_buffer = nullptr;
-  this->m_cached_buffer_ready = false;
+  m_pixelorder = nullptr;
+  m_manhattan_distance = nullptr;
+  m_cached_buffer = nullptr;
+  m_cached_buffer_ready = false;
 
   this->initMutex();
 }
@@ -76,8 +76,8 @@ float *InpaintSimpleOperation::get_pixel(int x, int y)
 
   ASSERT_XY_RANGE(x, y);
 
-  return &this->m_cached_buffer[y * width * COM_DATA_TYPE_COLOR_CHANNELS +
-                                x * COM_DATA_TYPE_COLOR_CHANNELS];
+  return &m_cached_buffer[y * width * COM_DATA_TYPE_COLOR_CHANNELS +
+                          x * COM_DATA_TYPE_COLOR_CHANNELS];
 }
 
 int InpaintSimpleOperation::mdist(int x, int y)
@@ -86,18 +86,18 @@ int InpaintSimpleOperation::mdist(int x, int y)
 
   ASSERT_XY_RANGE(x, y);
 
-  return this->m_manhattan_distance[y * width + x];
+  return m_manhattan_distance[y * width + x];
 }
 
 bool InpaintSimpleOperation::next_pixel(int &x, int &y, int &curr, int iters)
 {
   int width = this->getWidth();
 
-  if (curr >= this->m_area_size) {
+  if (curr >= m_area_size) {
     return false;
   }
 
-  int r = this->m_pixelorder[curr++];
+  int r = m_pixelorder[curr++];
 
   x = r % width;
   y = r / width;
@@ -113,8 +113,7 @@ void InpaintSimpleOperation::calc_manhattan_distance()
 {
   int width = this->getWidth();
   int height = this->getHeight();
-  short *m = this->m_manhattan_distance = (short *)MEM_mallocN(sizeof(short) * width * height,
-                                                               __func__);
+  short *m = m_manhattan_distance = (short *)MEM_mallocN(sizeof(short) * width * height, __func__);
   int *offsets;
 
   offsets = (int *)MEM_callocN(sizeof(int) * (width + height + 1),
@@ -160,12 +159,12 @@ void InpaintSimpleOperation::calc_manhattan_distance()
     offsets[i] += offsets[i - 1];
   }
 
-  this->m_area_size = offsets[width + height];
-  this->m_pixelorder = (int *)MEM_mallocN(sizeof(int) * this->m_area_size, __func__);
+  m_area_size = offsets[width + height];
+  m_pixelorder = (int *)MEM_mallocN(sizeof(int) * m_area_size, __func__);
 
   for (int i = 0; i < width * height; i++) {
     if (m[i] > 0) {
-      this->m_pixelorder[offsets[m[i] - 1]++] = i;
+      m_pixelorder[offsets[m[i] - 1]++] = i;
     }
   }
 
@@ -216,27 +215,27 @@ void InpaintSimpleOperation::pix_step(int x, int y)
 
 void *InpaintSimpleOperation::initializeTileData(rcti *rect)
 {
-  if (this->m_cached_buffer_ready) {
-    return this->m_cached_buffer;
+  if (m_cached_buffer_ready) {
+    return m_cached_buffer;
   }
   lockMutex();
-  if (!this->m_cached_buffer_ready) {
-    MemoryBuffer *buf = (MemoryBuffer *)this->m_inputImageProgram->initializeTileData(rect);
-    this->m_cached_buffer = (float *)MEM_dupallocN(buf->getBuffer());
+  if (!m_cached_buffer_ready) {
+    MemoryBuffer *buf = (MemoryBuffer *)m_inputImageProgram->initializeTileData(rect);
+    m_cached_buffer = (float *)MEM_dupallocN(buf->getBuffer());
 
     this->calc_manhattan_distance();
 
     int curr = 0;
     int x, y;
 
-    while (this->next_pixel(x, y, curr, this->m_iterations)) {
+    while (this->next_pixel(x, y, curr, m_iterations)) {
       this->pix_step(x, y);
     }
-    this->m_cached_buffer_ready = true;
+    m_cached_buffer_ready = true;
   }
 
   unlockMutex();
-  return this->m_cached_buffer;
+  return m_cached_buffer;
 }
 
 void InpaintSimpleOperation::executePixel(float output[4], int x, int y, void * /*data*/)
@@ -247,30 +246,30 @@ void InpaintSimpleOperation::executePixel(float output[4], int x, int y, void * 
 
 void InpaintSimpleOperation::deinitExecution()
 {
-  this->m_inputImageProgram = nullptr;
+  m_inputImageProgram = nullptr;
   this->deinitMutex();
-  if (this->m_cached_buffer) {
-    MEM_freeN(this->m_cached_buffer);
-    this->m_cached_buffer = nullptr;
+  if (m_cached_buffer) {
+    MEM_freeN(m_cached_buffer);
+    m_cached_buffer = nullptr;
   }
 
-  if (this->m_pixelorder) {
-    MEM_freeN(this->m_pixelorder);
-    this->m_pixelorder = nullptr;
+  if (m_pixelorder) {
+    MEM_freeN(m_pixelorder);
+    m_pixelorder = nullptr;
   }
 
-  if (this->m_manhattan_distance) {
-    MEM_freeN(this->m_manhattan_distance);
-    this->m_manhattan_distance = nullptr;
+  if (m_manhattan_distance) {
+    MEM_freeN(m_manhattan_distance);
+    m_manhattan_distance = nullptr;
   }
-  this->m_cached_buffer_ready = false;
+  m_cached_buffer_ready = false;
 }
 
 bool InpaintSimpleOperation::determineDependingAreaOfInterest(rcti * /*input*/,
                                                               ReadBufferOperation *readOperation,
                                                               rcti *output)
 {
-  if (this->m_cached_buffer_ready) {
+  if (m_cached_buffer_ready) {
     return false;
   }
 
@@ -313,7 +312,7 @@ void InpaintSimpleOperation::update_memory_buffer(MemoryBuffer *output,
 
     int curr = 0;
     int x, y;
-    while (this->next_pixel(x, y, curr, this->m_iterations)) {
+    while (this->next_pixel(x, y, curr, m_iterations)) {
       this->pix_step(x, y);
     }
     m_cached_buffer_ready = true;

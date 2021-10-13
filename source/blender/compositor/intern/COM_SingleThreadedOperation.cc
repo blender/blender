@@ -22,7 +22,7 @@ namespace blender::compositor {
 
 SingleThreadedOperation::SingleThreadedOperation()
 {
-  this->m_cachedInstance = nullptr;
+  m_cachedInstance = nullptr;
   flags.complex = true;
   flags.single_threaded = true;
 }
@@ -34,30 +34,30 @@ void SingleThreadedOperation::initExecution()
 
 void SingleThreadedOperation::executePixel(float output[4], int x, int y, void * /*data*/)
 {
-  this->m_cachedInstance->readNoCheck(output, x, y);
+  m_cachedInstance->readNoCheck(output, x, y);
 }
 
 void SingleThreadedOperation::deinitExecution()
 {
   deinitMutex();
-  if (this->m_cachedInstance) {
-    delete this->m_cachedInstance;
-    this->m_cachedInstance = nullptr;
+  if (m_cachedInstance) {
+    delete m_cachedInstance;
+    m_cachedInstance = nullptr;
   }
 }
 void *SingleThreadedOperation::initializeTileData(rcti *rect)
 {
-  if (this->m_cachedInstance) {
-    return this->m_cachedInstance;
+  if (m_cachedInstance) {
+    return m_cachedInstance;
   }
 
   lockMutex();
-  if (this->m_cachedInstance == nullptr) {
+  if (m_cachedInstance == nullptr) {
     //
-    this->m_cachedInstance = createMemoryBuffer(rect);
+    m_cachedInstance = createMemoryBuffer(rect);
   }
   unlockMutex();
-  return this->m_cachedInstance;
+  return m_cachedInstance;
 }
 
 }  // namespace blender::compositor

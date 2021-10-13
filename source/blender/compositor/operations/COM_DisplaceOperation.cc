@@ -29,12 +29,12 @@ DisplaceOperation::DisplaceOperation()
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
 
-  this->m_inputColorProgram = nullptr;
+  m_inputColorProgram = nullptr;
 }
 
 void DisplaceOperation::initExecution()
 {
-  this->m_inputColorProgram = this->getInputSocketReader(0);
+  m_inputColorProgram = this->getInputSocketReader(0);
   NodeOperation *vector = this->getInputSocketReader(1);
   NodeOperation *scale_x = this->getInputSocketReader(2);
   NodeOperation *scale_y = this->getInputSocketReader(3);
@@ -50,8 +50,8 @@ void DisplaceOperation::initExecution()
     };
   }
 
-  this->m_width_x4 = this->getWidth() * 4;
-  this->m_height_x4 = this->getHeight() * 4;
+  m_width_x4 = this->getWidth() * 4;
+  m_height_x4 = this->getHeight() * 4;
   input_vector_width_ = vector->getWidth();
   input_vector_height_ = vector->getHeight();
 }
@@ -66,11 +66,11 @@ void DisplaceOperation::executePixelSampled(float output[4],
 
   pixelTransform(xy, uv, deriv);
   if (is_zero_v2(deriv[0]) && is_zero_v2(deriv[1])) {
-    this->m_inputColorProgram->readSampled(output, uv[0], uv[1], PixelSampler::Bilinear);
+    m_inputColorProgram->readSampled(output, uv[0], uv[1], PixelSampler::Bilinear);
   }
   else {
     /* EWA filtering (without nearest it gets blurry with NO distortion) */
-    this->m_inputColorProgram->readFiltered(output, uv[0], uv[1], deriv[0], deriv[1]);
+    m_inputColorProgram->readFiltered(output, uv[0], uv[1], deriv[0], deriv[1]);
   }
 }
 
@@ -153,7 +153,7 @@ void DisplaceOperation::pixelTransform(const float xy[2], float r_uv[2], float r
 
 void DisplaceOperation::deinitExecution()
 {
-  this->m_inputColorProgram = nullptr;
+  m_inputColorProgram = nullptr;
   vector_read_fn_ = nullptr;
   scale_x_read_fn_ = nullptr;
   scale_y_read_fn_ = nullptr;

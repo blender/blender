@@ -266,7 +266,7 @@ class ExecutionGroup {
    */
   void setOutputExecutionGroup(bool is_output)
   {
-    this->m_flags.is_output = is_output;
+    m_flags.is_output = is_output;
   }
 
   /**
@@ -281,8 +281,8 @@ class ExecutionGroup {
    */
   void setResolution(unsigned int resolution[2])
   {
-    this->m_width = resolution[0];
-    this->m_height = resolution[1];
+    m_width = resolution[0];
+    m_height = resolution[1];
   }
 
   /**
@@ -381,7 +381,7 @@ class ExecutionGroup {
 
   void setChunksize(int chunksize)
   {
-    this->m_chunkSize = chunksize;
+    m_chunkSize = chunksize;
   }
 
   /**

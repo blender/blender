@@ -40,11 +40,11 @@ class KeyingBlurOperation : public MultiThreadedOperation {
 
   void setSize(int value)
   {
-    this->m_size = value;
+    m_size = value;
   }
   void setAxis(int value)
   {
-    this->m_axis = value;
+    m_axis = value;
   }
 
   void *initializeTileData(rcti *rect) override;

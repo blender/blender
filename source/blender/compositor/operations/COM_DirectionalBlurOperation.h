@@ -56,7 +56,7 @@ class DirectionalBlurOperation : public MultiThreadedOperation, public QualitySt
 
   void setData(NodeDBlurData *data)
   {
-    this->m_data = data;
+    m_data = data;
   }
 
   void executeOpenCL(OpenCLDevice *device,

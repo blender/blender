@@ -64,15 +64,15 @@ class DilateErodeThresholdOperation : public MultiThreadedOperation {
 
   void setDistance(float distance)
   {
-    this->m_distance = distance;
+    m_distance = distance;
   }
   void setSwitch(float sw)
   {
-    this->m__switch = sw;
+    m__switch = sw;
   }
   void setInset(float inset)
   {
-    this->m_inset = inset;
+    m_inset = inset;
   }
 
   bool determineDependingAreaOfInterest(rcti *input,
@@ -119,7 +119,7 @@ class DilateDistanceOperation : public MultiThreadedOperation {
 
   void setDistance(float distance)
   {
-    this->m_distance = distance;
+    m_distance = distance;
   }
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
@@ -190,7 +190,7 @@ class DilateStepOperation : public MultiThreadedOperation {
 
   void setIterations(int iterations)
   {
-    this->m_iterations = iterations;
+    m_iterations = iterations;
   }
 
   bool determineDependingAreaOfInterest(rcti *input,

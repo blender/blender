@@ -61,15 +61,15 @@ class ColorBalanceASCCDLOperation : public MultiThreadedRowOperation {
 
   void setOffset(float offset[3])
   {
-    copy_v3_v3(this->m_offset, offset);
+    copy_v3_v3(m_offset, offset);
   }
   void setPower(float power[3])
   {
-    copy_v3_v3(this->m_power, power);
+    copy_v3_v3(m_power, power);
   }
   void setSlope(float slope[3])
   {
-    copy_v3_v3(this->m_slope, slope);
+    copy_v3_v3(m_slope, slope);
   }
 
   void update_memory_buffer_row(PixelCursor &p) override;

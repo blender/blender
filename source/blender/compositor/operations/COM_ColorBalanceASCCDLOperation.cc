@@ -37,16 +37,16 @@ ColorBalanceASCCDLOperation::ColorBalanceASCCDLOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->m_inputValueOperation = nullptr;
-  this->m_inputColorOperation = nullptr;
+  m_inputValueOperation = nullptr;
+  m_inputColorOperation = nullptr;
   this->set_canvas_input_index(1);
   flags.can_be_constant = true;
 }
 
 void ColorBalanceASCCDLOperation::initExecution()
 {
-  this->m_inputValueOperation = this->getInputSocketReader(0);
-  this->m_inputColorOperation = this->getInputSocketReader(1);
+  m_inputValueOperation = this->getInputSocketReader(0);
+  m_inputColorOperation = this->getInputSocketReader(1);
 }
 
 void ColorBalanceASCCDLOperation::executePixelSampled(float output[4],
@@ -57,22 +57,19 @@ void ColorBalanceASCCDLOperation::executePixelSampled(float output[4],
   float inputColor[4];
   float value[4];
 
-  this->m_inputValueOperation->readSampled(value, x, y, sampler);
-  this->m_inputColorOperation->readSampled(inputColor, x, y, sampler);
+  m_inputValueOperation->readSampled(value, x, y, sampler);
+  m_inputColorOperation->readSampled(inputColor, x, y, sampler);
 
   float fac = value[0];
   fac = MIN2(1.0f, fac);
   const float mfac = 1.0f - fac;
 
   output[0] = mfac * inputColor[0] +
-              fac * colorbalance_cdl(
-                        inputColor[0], this->m_offset[0], this->m_power[0], this->m_slope[0]);
+              fac * colorbalance_cdl(inputColor[0], m_offset[0], m_power[0], m_slope[0]);
   output[1] = mfac * inputColor[1] +
-              fac * colorbalance_cdl(
-                        inputColor[1], this->m_offset[1], this->m_power[1], this->m_slope[1]);
+              fac * colorbalance_cdl(inputColor[1], m_offset[1], m_power[1], m_slope[1]);
   output[2] = mfac * inputColor[2] +
-              fac * colorbalance_cdl(
-                        inputColor[2], this->m_offset[2], this->m_power[2], this->m_slope[2]);
+              fac * colorbalance_cdl(inputColor[2], m_offset[2], m_power[2], m_slope[2]);
   output[3] = inputColor[3];
 }
 
@@ -95,8 +92,8 @@ void ColorBalanceASCCDLOperation::update_memory_buffer_row(PixelCursor &p)
 
 void ColorBalanceASCCDLOperation::deinitExecution()
 {
-  this->m_inputValueOperation = nullptr;
-  this->m_inputColorOperation = nullptr;
+  m_inputValueOperation = nullptr;
+  m_inputColorOperation = nullptr;
 }
 
 }  // namespace blender::compositor

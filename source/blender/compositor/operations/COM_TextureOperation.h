@@ -58,17 +58,17 @@ class TextureBaseOperation : public MultiThreadedOperation {
 
   void setTexture(Tex *texture)
   {
-    this->m_texture = texture;
+    m_texture = texture;
   }
   void initExecution() override;
   void deinitExecution() override;
   void setRenderData(const RenderData *rd)
   {
-    this->m_rd = rd;
+    m_rd = rd;
   }
   void setSceneColorManage(bool sceneColorManage)
   {
-    this->m_sceneColorManage = sceneColorManage;
+    m_sceneColorManage = sceneColorManage;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

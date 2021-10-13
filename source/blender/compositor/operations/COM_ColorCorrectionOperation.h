@@ -55,19 +55,19 @@ class ColorCorrectionOperation : public MultiThreadedRowOperation {
 
   void setData(NodeColorCorrection *data)
   {
-    this->m_data = data;
+    m_data = data;
   }
   void setRedChannelEnabled(bool enabled)
   {
-    this->m_redChannelEnabled = enabled;
+    m_redChannelEnabled = enabled;
   }
   void setGreenChannelEnabled(bool enabled)
   {
-    this->m_greenChannelEnabled = enabled;
+    m_greenChannelEnabled = enabled;
   }
   void setBlueChannelEnabled(bool enabled)
   {
-    this->m_blueChannelEnabled = enabled;
+    m_blueChannelEnabled = enabled;
   }
 
   void update_memory_buffer_row(PixelCursor &p) override;

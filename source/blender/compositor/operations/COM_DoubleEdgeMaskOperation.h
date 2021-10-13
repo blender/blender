@@ -64,11 +64,11 @@ class DoubleEdgeMaskOperation : public NodeOperation {
 
   void setAdjecentOnly(bool adjacentOnly)
   {
-    this->m_adjacentOnly = adjacentOnly;
+    m_adjacentOnly = adjacentOnly;
   }
   void setKeepInside(bool keepInside)
   {
-    this->m_keepInside = keepInside;
+    m_keepInside = keepInside;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

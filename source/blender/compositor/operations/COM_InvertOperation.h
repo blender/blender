@@ -53,11 +53,11 @@ class InvertOperation : public MultiThreadedOperation {
 
   void setColor(bool color)
   {
-    this->m_color = color;
+    m_color = color;
   }
   void setAlpha(bool alpha)
   {
-    this->m_alpha = alpha;
+    m_alpha = alpha;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

@@ -34,7 +34,7 @@ NodeOperation::NodeOperation()
 {
   canvas_input_index_ = 0;
   canvas_ = COM_AREA_NONE;
-  this->m_btree = nullptr;
+  m_btree = nullptr;
 }
 
 /** Get constant value when operation is constant, otherwise return default_value. */
@@ -179,22 +179,22 @@ void NodeOperation::initExecution()
 
 void NodeOperation::initMutex()
 {
-  BLI_mutex_init(&this->m_mutex);
+  BLI_mutex_init(&m_mutex);
 }
 
 void NodeOperation::lockMutex()
 {
-  BLI_mutex_lock(&this->m_mutex);
+  BLI_mutex_lock(&m_mutex);
 }
 
 void NodeOperation::unlockMutex()
 {
-  BLI_mutex_unlock(&this->m_mutex);
+  BLI_mutex_unlock(&m_mutex);
 }
 
 void NodeOperation::deinitMutex()
 {
-  BLI_mutex_end(&this->m_mutex);
+  BLI_mutex_end(&m_mutex);
 }
 
 void NodeOperation::deinitExecution()

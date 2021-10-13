@@ -26,19 +26,19 @@ ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation()
 {
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
-  this->m_inputOperation = nullptr;
-  this->m_fStop = 128.0f;
-  this->m_cameraObject = nullptr;
-  this->m_maxRadius = 32.0f;
-  this->m_blurPostOperation = nullptr;
+  m_inputOperation = nullptr;
+  m_fStop = 128.0f;
+  m_cameraObject = nullptr;
+  m_maxRadius = 32.0f;
+  m_blurPostOperation = nullptr;
 }
 
 float ConvertDepthToRadiusOperation::determineFocalDistance()
 {
-  if (this->m_cameraObject && this->m_cameraObject->type == OB_CAMERA) {
-    Camera *camera = (Camera *)this->m_cameraObject->data;
-    this->m_cam_lens = camera->lens;
-    return BKE_camera_object_dof_distance(this->m_cameraObject);
+  if (m_cameraObject && m_cameraObject->type == OB_CAMERA) {
+    Camera *camera = (Camera *)m_cameraObject->data;
+    m_cam_lens = camera->lens;
+    return BKE_camera_object_dof_distance(m_cameraObject);
   }
 
   return 10.0f;
@@ -49,28 +49,27 @@ void ConvertDepthToRadiusOperation::initExecution()
   float cam_sensor = DEFAULT_SENSOR_WIDTH;
   Camera *camera = nullptr;
 
-  if (this->m_cameraObject && this->m_cameraObject->type == OB_CAMERA) {
-    camera = (Camera *)this->m_cameraObject->data;
+  if (m_cameraObject && m_cameraObject->type == OB_CAMERA) {
+    camera = (Camera *)m_cameraObject->data;
     cam_sensor = BKE_camera_sensor_size(camera->sensor_fit, camera->sensor_x, camera->sensor_y);
   }
 
-  this->m_inputOperation = this->getInputSocketReader(0);
+  m_inputOperation = this->getInputSocketReader(0);
   float focalDistance = determineFocalDistance();
   if (focalDistance == 0.0f) {
     focalDistance = 1e10f; /* If the DOF is 0.0 then set it to be far away. */
   }
-  this->m_inverseFocalDistance = 1.0f / focalDistance;
-  this->m_aspect = (this->getWidth() > this->getHeight()) ?
-                       (this->getHeight() / (float)this->getWidth()) :
-                       (this->getWidth() / (float)this->getHeight());
-  this->m_aperture = 0.5f * (this->m_cam_lens / (this->m_aspect * cam_sensor)) / this->m_fStop;
+  m_inverseFocalDistance = 1.0f / focalDistance;
+  m_aspect = (this->getWidth() > this->getHeight()) ?
+                 (this->getHeight() / (float)this->getWidth()) :
+                 (this->getWidth() / (float)this->getHeight());
+  m_aperture = 0.5f * (m_cam_lens / (m_aspect * cam_sensor)) / m_fStop;
   const float minsz = MIN2(getWidth(), getHeight());
-  this->m_dof_sp =
-      minsz / ((cam_sensor / 2.0f) /
-               this->m_cam_lens); /* <- == `aspect * MIN2(img->x, img->y) / tan(0.5f * fov)` */
+  m_dof_sp = minsz / ((cam_sensor / 2.0f) /
+                      m_cam_lens); /* <- == `aspect * MIN2(img->x, img->y) / tan(0.5f * fov)` */
 
-  if (this->m_blurPostOperation) {
-    m_blurPostOperation->setSigma(MIN2(m_aperture * 128.0f, this->m_maxRadius));
+  if (m_blurPostOperation) {
+    m_blurPostOperation->setSigma(MIN2(m_aperture * 128.0f, m_maxRadius));
   }
 }
 
@@ -82,7 +81,7 @@ void ConvertDepthToRadiusOperation::executePixelSampled(float output[4],
   float inputValue[4];
   float z;
   float radius;
-  this->m_inputOperation->readSampled(inputValue, x, y, sampler);
+  m_inputOperation->readSampled(inputValue, x, y, sampler);
   z = inputValue[0];
   if (z != 0.0f) {
     float iZ = (1.0f / z);
@@ -93,15 +92,14 @@ void ConvertDepthToRadiusOperation::executePixelSampled(float output[4],
     /* Scale crad back to original maximum and blend. */
     crad->rect[px] = bcrad + wts->rect[px] * (scf * crad->rect[px] - bcrad);
 #endif
-    radius = 0.5f * fabsf(this->m_aperture *
-                          (this->m_dof_sp * (this->m_inverseFocalDistance - iZ) - 1.0f));
+    radius = 0.5f * fabsf(m_aperture * (m_dof_sp * (m_inverseFocalDistance - iZ) - 1.0f));
     /* 'bug' T6615, limit minimum radius to 1 pixel,
      * not really a solution, but somewhat mitigates the problem. */
     if (radius < 0.0f) {
       radius = 0.0f;
     }
-    if (radius > this->m_maxRadius) {
-      radius = this->m_maxRadius;
+    if (radius > m_maxRadius) {
+      radius = m_maxRadius;
     }
     output[0] = radius;
   }
@@ -112,7 +110,7 @@ void ConvertDepthToRadiusOperation::executePixelSampled(float output[4],
 
 void ConvertDepthToRadiusOperation::deinitExecution()
 {
-  this->m_inputOperation = nullptr;
+  m_inputOperation = nullptr;
 }
 
 void ConvertDepthToRadiusOperation::update_memory_buffer_partial(MemoryBuffer *output,

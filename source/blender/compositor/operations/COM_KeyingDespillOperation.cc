@@ -26,24 +26,24 @@ KeyingDespillOperation::KeyingDespillOperation()
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
 
-  this->m_despillFactor = 0.5f;
-  this->m_colorBalance = 0.5f;
+  m_despillFactor = 0.5f;
+  m_colorBalance = 0.5f;
 
-  this->m_pixelReader = nullptr;
-  this->m_screenReader = nullptr;
+  m_pixelReader = nullptr;
+  m_screenReader = nullptr;
   flags.can_be_constant = true;
 }
 
 void KeyingDespillOperation::initExecution()
 {
-  this->m_pixelReader = this->getInputSocketReader(0);
-  this->m_screenReader = this->getInputSocketReader(1);
+  m_pixelReader = this->getInputSocketReader(0);
+  m_screenReader = this->getInputSocketReader(1);
 }
 
 void KeyingDespillOperation::deinitExecution()
 {
-  this->m_pixelReader = nullptr;
-  this->m_screenReader = nullptr;
+  m_pixelReader = nullptr;
+  m_screenReader = nullptr;
 }
 
 void KeyingDespillOperation::executePixelSampled(float output[4],
@@ -54,8 +54,8 @@ void KeyingDespillOperation::executePixelSampled(float output[4],
   float pixelColor[4];
   float screenColor[4];
 
-  this->m_pixelReader->readSampled(pixelColor, x, y, sampler);
-  this->m_screenReader->readSampled(screenColor, x, y, sampler);
+  m_pixelReader->readSampled(pixelColor, x, y, sampler);
+  m_screenReader->readSampled(screenColor, x, y, sampler);
 
   const int screen_primary_channel = max_axis_v3(screenColor);
   const int other_1 = (screen_primary_channel + 1) % 3;
@@ -66,13 +66,13 @@ void KeyingDespillOperation::executePixelSampled(float output[4],
 
   float average_value, amount;
 
-  average_value = this->m_colorBalance * pixelColor[min_channel] +
-                  (1.0f - this->m_colorBalance) * pixelColor[max_channel];
+  average_value = m_colorBalance * pixelColor[min_channel] +
+                  (1.0f - m_colorBalance) * pixelColor[max_channel];
   amount = (pixelColor[screen_primary_channel] - average_value);
 
   copy_v4_v4(output, pixelColor);
 
-  const float amount_despill = this->m_despillFactor * amount;
+  const float amount_despill = m_despillFactor * amount;
   if (amount_despill > 0.0f) {
     output[screen_primary_channel] = pixelColor[screen_primary_channel] - amount_despill;
   }

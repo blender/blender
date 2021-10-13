@@ -65,11 +65,11 @@ class ChannelMatteOperation : public MultiThreadedOperation {
 
   void setSettings(NodeChroma *nodeChroma, const int custom2)
   {
-    this->m_limit_max = nodeChroma->t1;
-    this->m_limit_min = nodeChroma->t2;
-    this->m_limit_method = nodeChroma->algorithm;
-    this->m_limit_channel = nodeChroma->channel;
-    this->m_matte_channel = custom2;
+    m_limit_max = nodeChroma->t1;
+    m_limit_min = nodeChroma->t2;
+    m_limit_method = nodeChroma->algorithm;
+    m_limit_channel = nodeChroma->channel;
+    m_matte_channel = custom2;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

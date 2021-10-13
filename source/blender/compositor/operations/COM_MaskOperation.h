@@ -64,36 +64,36 @@ class MaskOperation : public MultiThreadedOperation {
 
   void setMask(Mask *mask)
   {
-    this->m_mask = mask;
+    m_mask = mask;
   }
   void setMaskWidth(int width)
   {
-    this->m_maskWidth = width;
-    this->m_maskWidthInv = 1.0f / (float)width;
-    this->m_mask_px_ofs[0] = this->m_maskWidthInv * 0.5f;
+    m_maskWidth = width;
+    m_maskWidthInv = 1.0f / (float)width;
+    m_mask_px_ofs[0] = m_maskWidthInv * 0.5f;
   }
   void setMaskHeight(int height)
   {
-    this->m_maskHeight = height;
-    this->m_maskHeightInv = 1.0f / (float)height;
-    this->m_mask_px_ofs[1] = this->m_maskHeightInv * 0.5f;
+    m_maskHeight = height;
+    m_maskHeightInv = 1.0f / (float)height;
+    m_mask_px_ofs[1] = m_maskHeightInv * 0.5f;
   }
   void setFramenumber(int frame_number)
   {
-    this->m_frame_number = frame_number;
+    m_frame_number = frame_number;
   }
   void setFeather(bool feather)
   {
-    this->m_do_feather = feather;
+    m_do_feather = feather;
   }
 
   void setMotionBlurSamples(int samples)
   {
-    this->m_rasterMaskHandleTot = MIN2(MAX2(1, samples), CMP_NODE_MASK_MBLUR_SAMPLES_MAX);
+    m_rasterMaskHandleTot = MIN2(MAX2(1, samples), CMP_NODE_MASK_MBLUR_SAMPLES_MAX);
   }
   void setMotionBlurShutter(float shutter)
   {
-    this->m_frame_shutter = shutter;
+    m_frame_shutter = shutter;
   }
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;

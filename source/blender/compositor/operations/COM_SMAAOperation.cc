@@ -171,22 +171,22 @@ SMAAEdgeDetectionOperation::SMAAEdgeDetectionOperation()
   this->addInputSocket(DataType::Value); /* Depth, material ID, etc. TODO: currently unused. */
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
-  this->m_imageReader = nullptr;
-  this->m_valueReader = nullptr;
+  m_imageReader = nullptr;
+  m_valueReader = nullptr;
   this->setThreshold(CMP_DEFAULT_SMAA_THRESHOLD);
   this->setLocalContrastAdaptationFactor(CMP_DEFAULT_SMAA_CONTRAST_LIMIT);
 }
 
 void SMAAEdgeDetectionOperation::initExecution()
 {
-  this->m_imageReader = this->getInputSocketReader(0);
-  this->m_valueReader = this->getInputSocketReader(1);
+  m_imageReader = this->getInputSocketReader(0);
+  m_valueReader = this->getInputSocketReader(1);
 }
 
 void SMAAEdgeDetectionOperation::deinitExecution()
 {
-  this->m_imageReader = nullptr;
-  this->m_valueReader = nullptr;
+  m_imageReader = nullptr;
+  m_valueReader = nullptr;
 }
 
 void SMAAEdgeDetectionOperation::setThreshold(float threshold)
@@ -401,7 +401,7 @@ SMAABlendingWeightCalculationOperation::SMAABlendingWeightCalculationOperation()
   this->addInputSocket(DataType::Color); /* edges */
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
-  this->m_imageReader = nullptr;
+  m_imageReader = nullptr;
   this->setCornerRounding(CMP_DEFAULT_SMAA_CORNER_ROUNDING);
 }
 
@@ -412,7 +412,7 @@ void *SMAABlendingWeightCalculationOperation::initializeTileData(rcti *rect)
 
 void SMAABlendingWeightCalculationOperation::initExecution()
 {
-  this->m_imageReader = this->getInputSocketReader(0);
+  m_imageReader = this->getInputSocketReader(0);
   if (execution_model_ == eExecutionModel::Tiled) {
     sample_image_fn_ = [=](int x, int y, float *out) { sample(m_imageReader, x, y, out); };
   }
@@ -630,7 +630,7 @@ void SMAABlendingWeightCalculationOperation::update_memory_buffer_partial(
 
 void SMAABlendingWeightCalculationOperation::deinitExecution()
 {
-  this->m_imageReader = nullptr;
+  m_imageReader = nullptr;
 }
 
 bool SMAABlendingWeightCalculationOperation::determineDependingAreaOfInterest(
@@ -1011,8 +1011,8 @@ SMAANeighborhoodBlendingOperation::SMAANeighborhoodBlendingOperation()
   this->addInputSocket(DataType::Color); /* blend */
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
-  this->m_image1Reader = nullptr;
-  this->m_image2Reader = nullptr;
+  m_image1Reader = nullptr;
+  m_image2Reader = nullptr;
 }
 
 void *SMAANeighborhoodBlendingOperation::initializeTileData(rcti *rect)
@@ -1022,8 +1022,8 @@ void *SMAANeighborhoodBlendingOperation::initializeTileData(rcti *rect)
 
 void SMAANeighborhoodBlendingOperation::initExecution()
 {
-  this->m_image1Reader = this->getInputSocketReader(0);
-  this->m_image2Reader = this->getInputSocketReader(1);
+  m_image1Reader = this->getInputSocketReader(0);
+  m_image2Reader = this->getInputSocketReader(1);
 }
 
 void SMAANeighborhoodBlendingOperation::executePixel(float output[4],
@@ -1129,8 +1129,8 @@ void SMAANeighborhoodBlendingOperation::update_memory_buffer_partial(MemoryBuffe
 
 void SMAANeighborhoodBlendingOperation::deinitExecution()
 {
-  this->m_image1Reader = nullptr;
-  this->m_image2Reader = nullptr;
+  m_image1Reader = nullptr;
+  m_image2Reader = nullptr;
 }
 
 bool SMAANeighborhoodBlendingOperation::determineDependingAreaOfInterest(

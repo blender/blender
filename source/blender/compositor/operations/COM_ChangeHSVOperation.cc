@@ -27,24 +27,24 @@ ChangeHSVOperation::ChangeHSVOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
-  this->m_inputOperation = nullptr;
+  m_inputOperation = nullptr;
   this->flags.can_be_constant = true;
 }
 
 void ChangeHSVOperation::initExecution()
 {
-  this->m_inputOperation = getInputSocketReader(0);
-  this->m_hueOperation = getInputSocketReader(1);
-  this->m_saturationOperation = getInputSocketReader(2);
-  this->m_valueOperation = getInputSocketReader(3);
+  m_inputOperation = getInputSocketReader(0);
+  m_hueOperation = getInputSocketReader(1);
+  m_saturationOperation = getInputSocketReader(2);
+  m_valueOperation = getInputSocketReader(3);
 }
 
 void ChangeHSVOperation::deinitExecution()
 {
-  this->m_inputOperation = nullptr;
-  this->m_hueOperation = nullptr;
-  this->m_saturationOperation = nullptr;
-  this->m_valueOperation = nullptr;
+  m_inputOperation = nullptr;
+  m_hueOperation = nullptr;
+  m_saturationOperation = nullptr;
+  m_valueOperation = nullptr;
 }
 
 void ChangeHSVOperation::executePixelSampled(float output[4],
@@ -55,10 +55,10 @@ void ChangeHSVOperation::executePixelSampled(float output[4],
   float inputColor1[4];
   float hue[4], saturation[4], value[4];
 
-  this->m_inputOperation->readSampled(inputColor1, x, y, sampler);
-  this->m_hueOperation->readSampled(hue, x, y, sampler);
-  this->m_saturationOperation->readSampled(saturation, x, y, sampler);
-  this->m_valueOperation->readSampled(value, x, y, sampler);
+  m_inputOperation->readSampled(inputColor1, x, y, sampler);
+  m_hueOperation->readSampled(hue, x, y, sampler);
+  m_saturationOperation->readSampled(saturation, x, y, sampler);
+  m_valueOperation->readSampled(value, x, y, sampler);
 
   output[0] = inputColor1[0] + (hue[0] - 0.5f);
   if (output[0] > 1.0f) {

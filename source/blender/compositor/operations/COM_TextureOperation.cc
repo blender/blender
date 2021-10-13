@@ -28,12 +28,12 @@ TextureBaseOperation::TextureBaseOperation()
 {
   this->addInputSocket(DataType::Vector);  // offset
   this->addInputSocket(DataType::Vector);  // size
-  this->m_texture = nullptr;
-  this->m_inputSize = nullptr;
-  this->m_inputOffset = nullptr;
-  this->m_rd = nullptr;
-  this->m_pool = nullptr;
-  this->m_sceneColorManage = false;
+  m_texture = nullptr;
+  m_inputSize = nullptr;
+  m_inputOffset = nullptr;
+  m_rd = nullptr;
+  m_pool = nullptr;
+  m_sceneColorManage = false;
   flags.complex = true;
 }
 TextureOperation::TextureOperation() : TextureBaseOperation()
@@ -47,24 +47,23 @@ TextureAlphaOperation::TextureAlphaOperation() : TextureBaseOperation()
 
 void TextureBaseOperation::initExecution()
 {
-  this->m_inputOffset = getInputSocketReader(0);
-  this->m_inputSize = getInputSocketReader(1);
-  this->m_pool = BKE_image_pool_new();
-  if (this->m_texture != nullptr && this->m_texture->nodetree != nullptr &&
-      this->m_texture->use_nodes) {
-    ntreeTexBeginExecTree(this->m_texture->nodetree);
+  m_inputOffset = getInputSocketReader(0);
+  m_inputSize = getInputSocketReader(1);
+  m_pool = BKE_image_pool_new();
+  if (m_texture != nullptr && m_texture->nodetree != nullptr && m_texture->use_nodes) {
+    ntreeTexBeginExecTree(m_texture->nodetree);
   }
   NodeOperation::initExecution();
 }
 void TextureBaseOperation::deinitExecution()
 {
-  this->m_inputSize = nullptr;
-  this->m_inputOffset = nullptr;
-  BKE_image_pool_free(this->m_pool);
-  this->m_pool = nullptr;
-  if (this->m_texture != nullptr && this->m_texture->use_nodes &&
-      this->m_texture->nodetree != nullptr && this->m_texture->nodetree->execdata != nullptr) {
-    ntreeTexEndExecTree(this->m_texture->nodetree->execdata);
+  m_inputSize = nullptr;
+  m_inputOffset = nullptr;
+  BKE_image_pool_free(m_pool);
+  m_pool = nullptr;
+  if (m_texture != nullptr && m_texture->use_nodes && m_texture->nodetree != nullptr &&
+      m_texture->nodetree->execdata != nullptr) {
+    ntreeTexEndExecTree(m_texture->nodetree->execdata);
   }
   NodeOperation::deinitExecution();
 }
@@ -73,8 +72,8 @@ void TextureBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_
 {
   r_area = preferred_area;
   if (BLI_rcti_is_empty(&preferred_area)) {
-    int width = this->m_rd->xsch * this->m_rd->size / 100;
-    int height = this->m_rd->ysch * this->m_rd->size / 100;
+    int width = m_rd->xsch * m_rd->size / 100;
+    int height = m_rd->ysch * m_rd->size / 100;
     r_area.xmax = preferred_area.xmin + width;
     r_area.ymax = preferred_area.ymin + height;
   }
@@ -121,24 +120,16 @@ void TextureBaseOperation::executePixelSampled(float output[4],
     v += 0.5f / cy;
   }
 
-  this->m_inputSize->readSampled(textureSize, x, y, sampler);
-  this->m_inputOffset->readSampled(textureOffset, x, y, sampler);
+  m_inputSize->readSampled(textureSize, x, y, sampler);
+  m_inputOffset->readSampled(textureOffset, x, y, sampler);
 
   vec[0] = textureSize[0] * (u + textureOffset[0]);
   vec[1] = textureSize[1] * (v + textureOffset[1]);
   vec[2] = textureSize[2] * textureOffset[2];
 
   const int thread_id = WorkScheduler::current_thread_id();
-  retval = multitex_ext(this->m_texture,
-                        vec,
-                        nullptr,
-                        nullptr,
-                        0,
-                        &texres,
-                        thread_id,
-                        m_pool,
-                        m_sceneColorManage,
-                        false);
+  retval = multitex_ext(
+      m_texture, vec, nullptr, nullptr, 0, &texres, thread_id, m_pool, m_sceneColorManage, false);
 
   output[3] = texres.talpha ? texres.ta : texres.tin;
   if (retval & TEX_RGB) {
@@ -182,7 +173,7 @@ void TextureBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
     vec[1] = tex_size[1] * (v + tex_offset[1]);
     vec[2] = tex_size[2] * tex_offset[2];
 
-    const int retval = multitex_ext(this->m_texture,
+    const int retval = multitex_ext(m_texture,
                                     vec,
                                     nullptr,
                                     nullptr,

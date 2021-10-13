@@ -44,7 +44,7 @@ class KeyingOperation : public MultiThreadedOperation {
 
   void setScreenBalance(float value)
   {
-    this->m_screenBalance = value;
+    m_screenBalance = value;
   }
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;

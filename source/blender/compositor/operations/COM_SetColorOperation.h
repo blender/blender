@@ -43,39 +43,39 @@ class SetColorOperation : public ConstantOperation {
 
   float getChannel1()
   {
-    return this->m_color[0];
+    return m_color[0];
   }
   void setChannel1(float value)
   {
-    this->m_color[0] = value;
+    m_color[0] = value;
   }
   float getChannel2()
   {
-    return this->m_color[1];
+    return m_color[1];
   }
   void setChannel2(float value)
   {
-    this->m_color[1] = value;
+    m_color[1] = value;
   }
   float getChannel3()
   {
-    return this->m_color[2];
+    return m_color[2];
   }
   void setChannel3(float value)
   {
-    this->m_color[2] = value;
+    m_color[2] = value;
   }
   float getChannel4()
   {
-    return this->m_color[3];
+    return m_color[3];
   }
   void setChannel4(const float value)
   {
-    this->m_color[3] = value;
+    m_color[3] = value;
   }
   void setChannels(const float value[4])
   {
-    copy_v4_v4(this->m_color, value);
+    copy_v4_v4(m_color, value);
   }
 
   /**

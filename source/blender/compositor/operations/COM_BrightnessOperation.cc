@@ -26,21 +26,21 @@ BrightnessOperation::BrightnessOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
-  this->m_inputProgram = nullptr;
-  this->m_use_premultiply = false;
+  m_inputProgram = nullptr;
+  m_use_premultiply = false;
   flags.can_be_constant = true;
 }
 
 void BrightnessOperation::setUsePremultiply(bool use_premultiply)
 {
-  this->m_use_premultiply = use_premultiply;
+  m_use_premultiply = use_premultiply;
 }
 
 void BrightnessOperation::initExecution()
 {
-  this->m_inputProgram = this->getInputSocketReader(0);
-  this->m_inputBrightnessProgram = this->getInputSocketReader(1);
-  this->m_inputContrastProgram = this->getInputSocketReader(2);
+  m_inputProgram = this->getInputSocketReader(0);
+  m_inputBrightnessProgram = this->getInputSocketReader(1);
+  m_inputContrastProgram = this->getInputSocketReader(2);
 }
 
 void BrightnessOperation::executePixelSampled(float output[4],
@@ -52,9 +52,9 @@ void BrightnessOperation::executePixelSampled(float output[4],
   float a, b;
   float inputBrightness[4];
   float inputContrast[4];
-  this->m_inputProgram->readSampled(inputValue, x, y, sampler);
-  this->m_inputBrightnessProgram->readSampled(inputBrightness, x, y, sampler);
-  this->m_inputContrastProgram->readSampled(inputContrast, x, y, sampler);
+  m_inputProgram->readSampled(inputValue, x, y, sampler);
+  m_inputBrightnessProgram->readSampled(inputBrightness, x, y, sampler);
+  m_inputContrastProgram->readSampled(inputContrast, x, y, sampler);
   float brightness = inputBrightness[0];
   float contrast = inputContrast[0];
   brightness /= 100.0f;
@@ -74,14 +74,14 @@ void BrightnessOperation::executePixelSampled(float output[4],
     a = max_ff(1.0f - delta * 2.0f, 0.0f);
     b = a * brightness + delta;
   }
-  if (this->m_use_premultiply) {
+  if (m_use_premultiply) {
     premul_to_straight_v4(inputValue);
   }
   output[0] = a * inputValue[0] + b;
   output[1] = a * inputValue[1] + b;
   output[2] = a * inputValue[2] + b;
   output[3] = inputValue[3];
-  if (this->m_use_premultiply) {
+  if (m_use_premultiply) {
     straight_to_premul_v4(output);
   }
 }
@@ -113,7 +113,7 @@ void BrightnessOperation::update_memory_buffer_partial(MemoryBuffer *output,
       b = a * brightness + delta;
     }
     const float *color;
-    if (this->m_use_premultiply) {
+    if (m_use_premultiply) {
       premul_to_straight_v4_v4(tmp_color, in_color);
       color = tmp_color;
     }
@@ -124,7 +124,7 @@ void BrightnessOperation::update_memory_buffer_partial(MemoryBuffer *output,
     it.out[1] = a * color[1] + b;
     it.out[2] = a * color[2] + b;
     it.out[3] = color[3];
-    if (this->m_use_premultiply) {
+    if (m_use_premultiply) {
       straight_to_premul_v4(it.out);
     }
   }
@@ -132,9 +132,9 @@ void BrightnessOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
 void BrightnessOperation::deinitExecution()
 {
-  this->m_inputProgram = nullptr;
-  this->m_inputBrightnessProgram = nullptr;
-  this->m_inputContrastProgram = nullptr;
+  m_inputProgram = nullptr;
+  m_inputBrightnessProgram = nullptr;
+  m_inputContrastProgram = nullptr;
 }
 
 }  // namespace blender::compositor

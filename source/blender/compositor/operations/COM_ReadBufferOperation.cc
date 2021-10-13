@@ -26,9 +26,9 @@ namespace blender::compositor {
 ReadBufferOperation::ReadBufferOperation(DataType datatype)
 {
   this->addOutputSocket(datatype);
-  this->m_single_value = false;
-  this->m_offset = 0;
-  this->m_buffer = nullptr;
+  m_single_value = false;
+  m_offset = 0;
+  m_buffer = nullptr;
   flags.is_read_buffer_operation = true;
 }
 
@@ -39,16 +39,16 @@ void *ReadBufferOperation::initializeTileData(rcti * /*rect*/)
 
 void ReadBufferOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  if (this->m_memoryProxy != nullptr) {
-    WriteBufferOperation *operation = this->m_memoryProxy->getWriteBufferOperation();
+  if (m_memoryProxy != nullptr) {
+    WriteBufferOperation *operation = m_memoryProxy->getWriteBufferOperation();
     operation->determine_canvas(preferred_area, r_area);
     operation->set_canvas(r_area);
 
     /** \todo may not occur! But does with blur node. */
-    if (this->m_memoryProxy->getExecutor()) {
+    if (m_memoryProxy->getExecutor()) {
       uint resolution[2] = {static_cast<uint>(BLI_rcti_size_x(&r_area)),
                             static_cast<uint>(BLI_rcti_size_y(&r_area))};
-      this->m_memoryProxy->getExecutor()->setResolution(resolution);
+      m_memoryProxy->getExecutor()->setResolution(resolution);
     }
 
     m_single_value = operation->isSingleValue();
@@ -125,8 +125,8 @@ bool ReadBufferOperation::determineDependingAreaOfInterest(rcti *input,
 
 void ReadBufferOperation::readResolutionFromWriteBuffer()
 {
-  if (this->m_memoryProxy != nullptr) {
-    WriteBufferOperation *operation = this->m_memoryProxy->getWriteBufferOperation();
+  if (m_memoryProxy != nullptr) {
+    WriteBufferOperation *operation = m_memoryProxy->getWriteBufferOperation();
     this->setWidth(operation->getWidth());
     this->setHeight(operation->getHeight());
   }
@@ -134,7 +134,7 @@ void ReadBufferOperation::readResolutionFromWriteBuffer()
 
 void ReadBufferOperation::updateMemoryBuffer()
 {
-  this->m_buffer = this->getMemoryProxy()->getBuffer();
+  m_buffer = this->getMemoryProxy()->getBuffer();
 }
 
 }  // namespace blender::compositor

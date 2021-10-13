@@ -59,12 +59,12 @@ class EllipseMaskOperation : public MultiThreadedOperation {
 
   void setData(NodeEllipseMask *data)
   {
-    this->m_data = data;
+    m_data = data;
   }
 
   void setMaskType(int maskType)
   {
-    this->m_maskType = maskType;
+    m_maskType = maskType;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

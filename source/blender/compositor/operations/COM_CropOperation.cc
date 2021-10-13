@@ -24,8 +24,8 @@ CropBaseOperation::CropBaseOperation()
 {
   this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addOutputSocket(DataType::Color);
-  this->m_inputOperation = nullptr;
-  this->m_settings = nullptr;
+  m_inputOperation = nullptr;
+  m_settings = nullptr;
 }
 
 void CropBaseOperation::updateArea()
@@ -33,10 +33,10 @@ void CropBaseOperation::updateArea()
   SocketReader *inputReference = this->getInputSocketReader(0);
   float width = inputReference->getWidth();
   float height = inputReference->getHeight();
-  NodeTwoXYs local_settings = *this->m_settings;
+  NodeTwoXYs local_settings = *m_settings;
 
   if (width > 0.0f && height > 0.0f) {
-    if (this->m_relative) {
+    if (m_relative) {
       local_settings.x1 = width * local_settings.fac_x1;
       local_settings.x2 = width * local_settings.fac_x2;
       local_settings.y1 = height * local_settings.fac_y1;
@@ -55,28 +55,28 @@ void CropBaseOperation::updateArea()
       local_settings.y2 = height - 1;
     }
 
-    this->m_xmax = MAX2(local_settings.x1, local_settings.x2) + 1;
-    this->m_xmin = MIN2(local_settings.x1, local_settings.x2);
-    this->m_ymax = MAX2(local_settings.y1, local_settings.y2) + 1;
-    this->m_ymin = MIN2(local_settings.y1, local_settings.y2);
+    m_xmax = MAX2(local_settings.x1, local_settings.x2) + 1;
+    m_xmin = MIN2(local_settings.x1, local_settings.x2);
+    m_ymax = MAX2(local_settings.y1, local_settings.y2) + 1;
+    m_ymin = MIN2(local_settings.y1, local_settings.y2);
   }
   else {
-    this->m_xmax = 0;
-    this->m_xmin = 0;
-    this->m_ymax = 0;
-    this->m_ymin = 0;
+    m_xmax = 0;
+    m_xmin = 0;
+    m_ymax = 0;
+    m_ymin = 0;
   }
 }
 
 void CropBaseOperation::initExecution()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
+  m_inputOperation = this->getInputSocketReader(0);
   updateArea();
 }
 
 void CropBaseOperation::deinitExecution()
 {
-  this->m_inputOperation = nullptr;
+  m_inputOperation = nullptr;
 }
 
 CropOperation::CropOperation() : CropBaseOperation()
@@ -86,8 +86,8 @@ CropOperation::CropOperation() : CropBaseOperation()
 
 void CropOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-  if ((x < this->m_xmax && x >= this->m_xmin) && (y < this->m_ymax && y >= this->m_ymin)) {
-    this->m_inputOperation->readSampled(output, x, y, sampler);
+  if ((x < m_xmax && x >= m_xmin) && (y < m_ymax && y >= m_ymin)) {
+    m_inputOperation->readSampled(output, x, y, sampler);
   }
   else {
     zero_v4(output);
@@ -121,10 +121,10 @@ bool CropImageOperation::determineDependingAreaOfInterest(rcti *input,
 {
   rcti newInput;
 
-  newInput.xmax = input->xmax + this->m_xmin;
-  newInput.xmin = input->xmin + this->m_xmin;
-  newInput.ymax = input->ymax + this->m_ymin;
-  newInput.ymin = input->ymin + this->m_ymin;
+  newInput.xmax = input->xmax + m_xmin;
+  newInput.xmin = input->xmin + m_xmin;
+  newInput.ymax = input->ymax + m_ymin;
+  newInput.ymin = input->ymin + m_ymin;
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
@@ -135,10 +135,10 @@ void CropImageOperation::get_area_of_interest(const int input_idx,
 {
   BLI_assert(input_idx == 0);
   UNUSED_VARS_NDEBUG(input_idx);
-  r_input_area.xmax = output_area.xmax + this->m_xmin;
-  r_input_area.xmin = output_area.xmin + this->m_xmin;
-  r_input_area.ymax = output_area.ymax + this->m_ymin;
-  r_input_area.ymin = output_area.ymin + this->m_ymin;
+  r_input_area.xmax = output_area.xmax + m_xmin;
+  r_input_area.xmin = output_area.xmin + m_xmin;
+  r_input_area.ymax = output_area.ymax + m_ymin;
+  r_input_area.ymin = output_area.ymin + m_ymin;
 }
 
 void CropImageOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
@@ -155,7 +155,7 @@ void CropImageOperation::executePixelSampled(float output[4],
                                              PixelSampler sampler)
 {
   if (x >= 0 && x < getWidth() && y >= 0 && y < getHeight()) {
-    this->m_inputOperation->readSampled(output, (x + this->m_xmin), (y + this->m_ymin), sampler);
+    m_inputOperation->readSampled(output, (x + m_xmin), (y + m_ymin), sampler);
   }
   else {
     zero_v4(output);
@@ -171,7 +171,7 @@ void CropImageOperation::update_memory_buffer_partial(MemoryBuffer *output,
   const MemoryBuffer *input = inputs[0];
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
     if (BLI_rcti_isect_pt(&op_area, it.x, it.y)) {
-      input->read_elem_checked(it.x + this->m_xmin, it.y + this->m_ymin, it.out);
+      input->read_elem_checked(it.x + m_xmin, it.y + m_ymin, it.out);
     }
     else {
       zero_v4(it.out);

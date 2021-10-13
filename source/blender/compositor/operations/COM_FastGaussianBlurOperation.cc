@@ -24,7 +24,7 @@ namespace blender::compositor {
 
 FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(DataType::Color)
 {
-  this->m_iirgaus = nullptr;
+  m_iirgaus = nullptr;
 }
 
 void FastGaussianBlurOperation::executePixel(float output[4], int x, int y, void *data)
@@ -48,7 +48,7 @@ bool FastGaussianBlurOperation::determineDependingAreaOfInterest(
     return true;
   }
 
-  if (this->m_iirgaus) {
+  if (m_iirgaus) {
     return false;
   }
 
@@ -63,8 +63,8 @@ bool FastGaussianBlurOperation::determineDependingAreaOfInterest(
 void FastGaussianBlurOperation::init_data()
 {
   BlurBaseOperation::init_data();
-  this->m_sx = this->m_data.sizex * this->m_size / 2.0f;
-  this->m_sy = this->m_data.sizey * this->m_size / 2.0f;
+  m_sx = m_data.sizex * m_size / 2.0f;
+  m_sy = m_data.sizey * m_size / 2.0f;
 }
 
 void FastGaussianBlurOperation::initExecution()
@@ -75,9 +75,9 @@ void FastGaussianBlurOperation::initExecution()
 
 void FastGaussianBlurOperation::deinitExecution()
 {
-  if (this->m_iirgaus) {
-    delete this->m_iirgaus;
-    this->m_iirgaus = nullptr;
+  if (m_iirgaus) {
+    delete m_iirgaus;
+    m_iirgaus = nullptr;
   }
   BlurBaseOperation::deinitMutex();
 }
@@ -85,36 +85,36 @@ void FastGaussianBlurOperation::deinitExecution()
 void *FastGaussianBlurOperation::initializeTileData(rcti *rect)
 {
   lockMutex();
-  if (!this->m_iirgaus) {
-    MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect);
+  if (!m_iirgaus) {
+    MemoryBuffer *newBuf = (MemoryBuffer *)m_inputProgram->initializeTileData(rect);
     MemoryBuffer *copy = new MemoryBuffer(*newBuf);
     updateSize();
 
     int c;
-    this->m_sx = this->m_data.sizex * this->m_size / 2.0f;
-    this->m_sy = this->m_data.sizey * this->m_size / 2.0f;
+    m_sx = m_data.sizex * m_size / 2.0f;
+    m_sy = m_data.sizey * m_size / 2.0f;
 
-    if ((this->m_sx == this->m_sy) && (this->m_sx > 0.0f)) {
+    if ((m_sx == m_sy) && (m_sx > 0.0f)) {
       for (c = 0; c < COM_DATA_TYPE_COLOR_CHANNELS; c++) {
-        IIR_gauss(copy, this->m_sx, c, 3);
+        IIR_gauss(copy, m_sx, c, 3);
       }
     }
     else {
-      if (this->m_sx > 0.0f) {
+      if (m_sx > 0.0f) {
         for (c = 0; c < COM_DATA_TYPE_COLOR_CHANNELS; c++) {
-          IIR_gauss(copy, this->m_sx, c, 1);
+          IIR_gauss(copy, m_sx, c, 1);
         }
       }
-      if (this->m_sy > 0.0f) {
+      if (m_sy > 0.0f) {
         for (c = 0; c < COM_DATA_TYPE_COLOR_CHANNELS; c++) {
-          IIR_gauss(copy, this->m_sy, c, 2);
+          IIR_gauss(copy, m_sy, c, 2);
         }
       }
     }
-    this->m_iirgaus = copy;
+    m_iirgaus = copy;
   }
   unlockMutex();
-  return this->m_iirgaus;
+  return m_iirgaus;
 }
 
 void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
@@ -294,20 +294,20 @@ void FastGaussianBlurOperation::update_memory_buffer_started(MemoryBuffer *outpu
   }
   image->copy_from(input, area);
 
-  if ((this->m_sx == this->m_sy) && (this->m_sx > 0.0f)) {
+  if ((m_sx == m_sy) && (m_sx > 0.0f)) {
     for (const int c : IndexRange(COM_DATA_TYPE_COLOR_CHANNELS)) {
-      IIR_gauss(image, this->m_sx, c, 3);
+      IIR_gauss(image, m_sx, c, 3);
     }
   }
   else {
-    if (this->m_sx > 0.0f) {
+    if (m_sx > 0.0f) {
       for (const int c : IndexRange(COM_DATA_TYPE_COLOR_CHANNELS)) {
-        IIR_gauss(image, this->m_sx, c, 1);
+        IIR_gauss(image, m_sx, c, 1);
       }
     }
-    if (this->m_sy > 0.0f) {
+    if (m_sy > 0.0f) {
       for (const int c : IndexRange(COM_DATA_TYPE_COLOR_CHANNELS)) {
-        IIR_gauss(image, this->m_sy, c, 2);
+        IIR_gauss(image, m_sy, c, 2);
       }
     }
   }
@@ -322,10 +322,10 @@ FastGaussianBlurValueOperation::FastGaussianBlurValueOperation()
 {
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
-  this->m_iirgaus = nullptr;
-  this->m_inputprogram = nullptr;
-  this->m_sigma = 1.0f;
-  this->m_overlay = 0;
+  m_iirgaus = nullptr;
+  m_inputprogram = nullptr;
+  m_sigma = 1.0f;
+  m_overlay = 0;
   flags.complex = true;
 }
 
@@ -340,7 +340,7 @@ bool FastGaussianBlurValueOperation::determineDependingAreaOfInterest(
 {
   rcti newInput;
 
-  if (this->m_iirgaus) {
+  if (m_iirgaus) {
     return false;
   }
 
@@ -354,15 +354,15 @@ bool FastGaussianBlurValueOperation::determineDependingAreaOfInterest(
 
 void FastGaussianBlurValueOperation::initExecution()
 {
-  this->m_inputprogram = getInputSocketReader(0);
+  m_inputprogram = getInputSocketReader(0);
   initMutex();
 }
 
 void FastGaussianBlurValueOperation::deinitExecution()
 {
-  if (this->m_iirgaus) {
-    delete this->m_iirgaus;
-    this->m_iirgaus = nullptr;
+  if (m_iirgaus) {
+    delete m_iirgaus;
+    m_iirgaus = nullptr;
   }
   deinitMutex();
 }
@@ -370,12 +370,12 @@ void FastGaussianBlurValueOperation::deinitExecution()
 void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
 {
   lockMutex();
-  if (!this->m_iirgaus) {
-    MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputprogram->initializeTileData(rect);
+  if (!m_iirgaus) {
+    MemoryBuffer *newBuf = (MemoryBuffer *)m_inputprogram->initializeTileData(rect);
     MemoryBuffer *copy = new MemoryBuffer(*newBuf);
-    FastGaussianBlurOperation::IIR_gauss(copy, this->m_sigma, 0, 3);
+    FastGaussianBlurOperation::IIR_gauss(copy, m_sigma, 0, 3);
 
-    if (this->m_overlay == FAST_GAUSS_OVERLAY_MIN) {
+    if (m_overlay == FAST_GAUSS_OVERLAY_MIN) {
       float *src = newBuf->getBuffer();
       float *dst = copy->getBuffer();
       for (int i = copy->getWidth() * copy->getHeight(); i != 0;
@@ -385,7 +385,7 @@ void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
         }
       }
     }
-    else if (this->m_overlay == FAST_GAUSS_OVERLAY_MAX) {
+    else if (m_overlay == FAST_GAUSS_OVERLAY_MAX) {
       float *src = newBuf->getBuffer();
       float *dst = copy->getBuffer();
       for (int i = copy->getWidth() * copy->getHeight(); i != 0;
@@ -396,10 +396,10 @@ void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
       }
     }
 
-    this->m_iirgaus = copy;
+    m_iirgaus = copy;
   }
   unlockMutex();
-  return this->m_iirgaus;
+  return m_iirgaus;
 }
 
 void FastGaussianBlurValueOperation::get_area_of_interest(const int UNUSED(input_idx),
@@ -427,12 +427,12 @@ void FastGaussianBlurValueOperation::update_memory_buffer_partial(MemoryBuffer *
 {
   MemoryBuffer *image = inputs[0];
   BuffersIterator<float> it = output->iterate_with({image, m_iirgaus}, area);
-  if (this->m_overlay == FAST_GAUSS_OVERLAY_MIN) {
+  if (m_overlay == FAST_GAUSS_OVERLAY_MIN) {
     for (; !it.is_end(); ++it) {
       *it.out = MIN2(*it.in(0), *it.in(1));
     }
   }
-  else if (this->m_overlay == FAST_GAUSS_OVERLAY_MAX) {
+  else if (m_overlay == FAST_GAUSS_OVERLAY_MAX) {
     for (; !it.is_end(); ++it) {
       *it.out = MAX2(*it.in(0), *it.in(1));
     }

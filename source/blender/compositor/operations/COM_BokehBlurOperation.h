@@ -64,8 +64,8 @@ class BokehBlurOperation : public MultiThreadedOperation, public QualityStepHelp
 
   void setSize(float size)
   {
-    this->m_size = size;
-    this->m_sizeavailable = true;
+    m_size = size;
+    m_sizeavailable = true;
   }
 
   void executeOpenCL(OpenCLDevice *device,
@@ -77,7 +77,7 @@ class BokehBlurOperation : public MultiThreadedOperation, public QualityStepHelp
 
   void setExtendBounds(bool extend_bounds)
   {
-    this->m_extend_bounds = extend_bounds;
+    m_extend_bounds = extend_bounds;
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;

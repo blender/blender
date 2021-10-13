@@ -48,11 +48,11 @@ class PlaneDistortBaseOperation : public MultiThreadedOperation {
   void setMotionBlurSamples(int samples)
   {
     BLI_assert(samples <= PLANE_DISTORT_MAX_SAMPLES);
-    this->m_motion_blur_samples = samples;
+    m_motion_blur_samples = samples;
   }
   void setMotionBlurShutter(float shutter)
   {
-    this->m_motion_blur_shutter = shutter;
+    m_motion_blur_shutter = shutter;
   }
 
   virtual void calculateCorners(const float corners[4][2], bool normalized, int sample);

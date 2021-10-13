@@ -35,12 +35,12 @@ class ReadBufferOperation : public NodeOperation {
   ReadBufferOperation(DataType datatype);
   void setMemoryProxy(MemoryProxy *memoryProxy)
   {
-    this->m_memoryProxy = memoryProxy;
+    m_memoryProxy = memoryProxy;
   }
 
   MemoryProxy *getMemoryProxy() const
   {
-    return this->m_memoryProxy;
+    return m_memoryProxy;
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
@@ -56,18 +56,18 @@ class ReadBufferOperation : public NodeOperation {
   void executePixelFiltered(float output[4], float x, float y, float dx[2], float dy[2]) override;
   void setOffset(unsigned int offset)
   {
-    this->m_offset = offset;
+    m_offset = offset;
   }
   unsigned int getOffset() const
   {
-    return this->m_offset;
+    return m_offset;
   }
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
   MemoryBuffer *getInputMemoryBuffer(MemoryBuffer **memoryBuffers) override
   {
-    return memoryBuffers[this->m_offset];
+    return memoryBuffers[m_offset];
   }
   void readResolutionFromWriteBuffer();
   void updateMemoryBuffer();

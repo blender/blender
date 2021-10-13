@@ -26,21 +26,21 @@ ColorMatteOperation::ColorMatteOperation()
   addInputSocket(DataType::Color);
   addOutputSocket(DataType::Value);
 
-  this->m_inputImageProgram = nullptr;
-  this->m_inputKeyProgram = nullptr;
+  m_inputImageProgram = nullptr;
+  m_inputKeyProgram = nullptr;
   flags.can_be_constant = true;
 }
 
 void ColorMatteOperation::initExecution()
 {
-  this->m_inputImageProgram = this->getInputSocketReader(0);
-  this->m_inputKeyProgram = this->getInputSocketReader(1);
+  m_inputImageProgram = this->getInputSocketReader(0);
+  m_inputKeyProgram = this->getInputSocketReader(1);
 }
 
 void ColorMatteOperation::deinitExecution()
 {
-  this->m_inputImageProgram = nullptr;
-  this->m_inputKeyProgram = nullptr;
+  m_inputImageProgram = nullptr;
+  m_inputKeyProgram = nullptr;
 }
 
 void ColorMatteOperation::executePixelSampled(float output[4],
@@ -51,14 +51,14 @@ void ColorMatteOperation::executePixelSampled(float output[4],
   float inColor[4];
   float inKey[4];
 
-  const float hue = this->m_settings->t1;
-  const float sat = this->m_settings->t2;
-  const float val = this->m_settings->t3;
+  const float hue = m_settings->t1;
+  const float sat = m_settings->t2;
+  const float val = m_settings->t3;
 
   float h_wrap;
 
-  this->m_inputImageProgram->readSampled(inColor, x, y, sampler);
-  this->m_inputKeyProgram->readSampled(inKey, x, y, sampler);
+  m_inputImageProgram->readSampled(inColor, x, y, sampler);
+  m_inputKeyProgram->readSampled(inKey, x, y, sampler);
 
   /* Store matte(alpha) value in [0] to go with
    * COM_SetAlphaMultiplyOperation and the Value output.

@@ -72,15 +72,15 @@ class KeyingScreenOperation : public MultiThreadedOperation {
 
   void setMovieClip(MovieClip *clip)
   {
-    this->m_movieClip = clip;
+    m_movieClip = clip;
   }
   void setTrackingObject(const char *object)
   {
-    BLI_strncpy(this->m_trackingObject, object, sizeof(this->m_trackingObject));
+    BLI_strncpy(m_trackingObject, object, sizeof(m_trackingObject));
   }
   void setFramenumber(int framenumber)
   {
-    this->m_framenumber = framenumber;
+    m_framenumber = framenumber;
   }
 
   void executePixel(float output[4], int x, int y, void *data) override;

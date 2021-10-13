@@ -28,7 +28,7 @@ GaussianAlphaYBlurOperation::GaussianAlphaYBlurOperation()
 void *GaussianAlphaYBlurOperation::initializeTileData(rcti * /*rect*/)
 {
   lockMutex();
-  if (!this->m_sizeavailable) {
+  if (!m_sizeavailable) {
     updateGauss();
   }
   void *buffer = getInputOperation(0)->initializeTileData(nullptr);
@@ -43,7 +43,7 @@ void GaussianAlphaYBlurOperation::initExecution()
 
   initMutex();
 
-  if (this->m_sizeavailable && execution_model_ == eExecutionModel::Tiled) {
+  if (m_sizeavailable && execution_model_ == eExecutionModel::Tiled) {
     float rad = max_ff(m_size * m_data.sizey, 0.0f);
     m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
@@ -55,7 +55,7 @@ void GaussianAlphaYBlurOperation::initExecution()
 /* TODO(manzanilla): to be removed with tiled implementation. */
 void GaussianAlphaYBlurOperation::updateGauss()
 {
-  if (this->m_gausstab == nullptr) {
+  if (m_gausstab == nullptr) {
     updateSize();
     float rad = max_ff(m_size * m_data.sizey, 0.0f);
     rad = min_ff(rad, MAX_GAUSSTAB_RADIUS);
@@ -64,7 +64,7 @@ void GaussianAlphaYBlurOperation::updateGauss()
     m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
   }
 
-  if (this->m_distbuf_inv == nullptr) {
+  if (m_distbuf_inv == nullptr) {
     updateSize();
     float rad = max_ff(m_size * m_data.sizey, 0.0f);
     m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
@@ -80,7 +80,7 @@ BLI_INLINE float finv_test(const float f, const bool test)
 
 void GaussianAlphaYBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
-  const bool do_invert = this->m_do_subtract;
+  const bool do_invert = m_do_subtract;
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   const rcti &input_rect = inputBuffer->get_rect();
   float *buffer = inputBuffer->getBuffer();
@@ -108,20 +108,20 @@ void GaussianAlphaYBlurOperation::executePixel(float output[4], int x, int y, vo
   for (int ny = ymin; ny < ymax; ny += step) {
     int bufferindex = ((xmin - bufferstartx)) + ((ny - bufferstarty) * bufferwidth);
 
-    const int index = (ny - y) + this->m_filtersize;
+    const int index = (ny - y) + m_filtersize;
     float value = finv_test(buffer[bufferindex], do_invert);
     float multiplier;
 
     /* gauss */
     {
-      multiplier = this->m_gausstab[index];
+      multiplier = m_gausstab[index];
       alpha_accum += value * multiplier;
       multiplier_accum += multiplier;
     }
 
     /* dilate - find most extreme color */
     if (value > value_max) {
-      multiplier = this->m_distbuf_inv[index];
+      multiplier = m_distbuf_inv[index];
       value *= multiplier;
       if (value > value_max) {
         value_max = value;
@@ -140,14 +140,14 @@ void GaussianAlphaYBlurOperation::deinitExecution()
 {
   GaussianAlphaBlurBaseOperation::deinitExecution();
 
-  if (this->m_gausstab) {
-    MEM_freeN(this->m_gausstab);
-    this->m_gausstab = nullptr;
+  if (m_gausstab) {
+    MEM_freeN(m_gausstab);
+    m_gausstab = nullptr;
   }
 
-  if (this->m_distbuf_inv) {
-    MEM_freeN(this->m_distbuf_inv);
-    this->m_distbuf_inv = nullptr;
+  if (m_distbuf_inv) {
+    MEM_freeN(m_distbuf_inv);
+    m_distbuf_inv = nullptr;
   }
 
   deinitMutex();
@@ -171,11 +171,11 @@ bool GaussianAlphaYBlurOperation::determineDependingAreaOfInterest(
   else
 #endif
   {
-    if (this->m_sizeavailable && this->m_gausstab != nullptr) {
+    if (m_sizeavailable && m_gausstab != nullptr) {
       newInput.xmax = input->xmax;
       newInput.xmin = input->xmin;
-      newInput.ymax = input->ymax + this->m_filtersize + 1;
-      newInput.ymin = input->ymin - this->m_filtersize - 1;
+      newInput.ymax = input->ymax + m_filtersize + 1;
+      newInput.ymin = input->ymin - m_filtersize - 1;
     }
     else {
       newInput.xmax = this->getWidth();

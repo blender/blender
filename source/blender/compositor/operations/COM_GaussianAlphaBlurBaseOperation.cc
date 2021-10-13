@@ -23,9 +23,9 @@ namespace blender::compositor {
 GaussianAlphaBlurBaseOperation::GaussianAlphaBlurBaseOperation(eDimension dim)
     : BlurBaseOperation(DataType::Value)
 {
-  this->m_gausstab = nullptr;
-  this->m_filtersize = 0;
-  this->m_falloff = -1; /* Intentionally invalid, so we can detect uninitialized values. */
+  m_gausstab = nullptr;
+  m_filtersize = 0;
+  m_falloff = -1; /* Intentionally invalid, so we can detect uninitialized values. */
   dimension_ = dim;
 }
 
@@ -52,14 +52,14 @@ void GaussianAlphaBlurBaseOperation::deinitExecution()
 {
   BlurBaseOperation::deinitExecution();
 
-  if (this->m_gausstab) {
-    MEM_freeN(this->m_gausstab);
-    this->m_gausstab = nullptr;
+  if (m_gausstab) {
+    MEM_freeN(m_gausstab);
+    m_gausstab = nullptr;
   }
 
-  if (this->m_distbuf_inv) {
-    MEM_freeN(this->m_distbuf_inv);
-    this->m_distbuf_inv = nullptr;
+  if (m_distbuf_inv) {
+    MEM_freeN(m_distbuf_inv);
+    m_distbuf_inv = nullptr;
   }
 }
 

@@ -33,9 +33,9 @@ SunBeamsOperation::SunBeamsOperation()
 void SunBeamsOperation::calc_rays_common_data()
 {
   /* convert to pixels */
-  this->m_source_px[0] = this->m_data.source[0] * this->getWidth();
-  this->m_source_px[1] = this->m_data.source[1] * this->getHeight();
-  this->m_ray_length_px = this->m_data.ray_length * MAX2(this->getWidth(), this->getHeight());
+  m_source_px[0] = m_data.source[0] * this->getWidth();
+  m_source_px[1] = m_data.source[1] * this->getHeight();
+  m_ray_length_px = m_data.ray_length * MAX2(this->getWidth(), this->getHeight());
 }
 
 void SunBeamsOperation::initExecution()
@@ -322,8 +322,7 @@ void SunBeamsOperation::executePixel(float output[4], int x, int y, void *data)
 {
   const float co[2] = {(float)x, (float)y};
 
-  accumulate_line(
-      (MemoryBuffer *)data, output, co, this->m_source_px, 0.0f, this->m_ray_length_px);
+  accumulate_line((MemoryBuffer *)data, output, co, m_source_px, 0.0f, m_ray_length_px);
 }
 
 static void calc_ray_shift(rcti *rect, float x, float y, const float source[2], float ray_length)
@@ -350,10 +349,10 @@ bool SunBeamsOperation::determineDependingAreaOfInterest(rcti *input,
    * and gives a rect that contains all possible accumulated pixels.
    */
   rcti rect = *input;
-  calc_ray_shift(&rect, input->xmin, input->ymin, this->m_source_px, this->m_ray_length_px);
-  calc_ray_shift(&rect, input->xmin, input->ymax, this->m_source_px, this->m_ray_length_px);
-  calc_ray_shift(&rect, input->xmax, input->ymin, this->m_source_px, this->m_ray_length_px);
-  calc_ray_shift(&rect, input->xmax, input->ymax, this->m_source_px, this->m_ray_length_px);
+  calc_ray_shift(&rect, input->xmin, input->ymin, m_source_px, m_ray_length_px);
+  calc_ray_shift(&rect, input->xmin, input->ymax, m_source_px, m_ray_length_px);
+  calc_ray_shift(&rect, input->xmax, input->ymin, m_source_px, m_ray_length_px);
+  calc_ray_shift(&rect, input->xmax, input->ymax, m_source_px, m_ray_length_px);
 
   return NodeOperation::determineDependingAreaOfInterest(&rect, readOperation, output);
 }

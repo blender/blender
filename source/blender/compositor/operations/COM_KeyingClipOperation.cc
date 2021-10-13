@@ -25,13 +25,13 @@ KeyingClipOperation::KeyingClipOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
 
-  this->m_kernelRadius = 3;
-  this->m_kernelTolerance = 0.1f;
+  m_kernelRadius = 3;
+  m_kernelTolerance = 0.1f;
 
-  this->m_clipBlack = 0.0f;
-  this->m_clipWhite = 1.0f;
+  m_clipBlack = 0.0f;
+  m_clipWhite = 1.0f;
 
-  this->m_isEdgeMatte = false;
+  m_isEdgeMatte = false;
 
   this->flags.complex = true;
 }
@@ -45,8 +45,8 @@ void *KeyingClipOperation::initializeTileData(rcti *rect)
 
 void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data)
 {
-  const int delta = this->m_kernelRadius;
-  const float tolerance = this->m_kernelTolerance;
+  const int delta = m_kernelRadius;
+  const float tolerance = m_kernelTolerance;
 
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
@@ -86,7 +86,7 @@ void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data
     }
   }
 
-  if (this->m_isEdgeMatte) {
+  if (m_isEdgeMatte) {
     if (ok) {
       output[0] = 0.0f;
     }
@@ -98,14 +98,14 @@ void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data
     output[0] = value;
 
     if (ok) {
-      if (output[0] < this->m_clipBlack) {
+      if (output[0] < m_clipBlack) {
         output[0] = 0.0f;
       }
-      else if (output[0] >= this->m_clipWhite) {
+      else if (output[0] >= m_clipWhite) {
         output[0] = 1.0f;
       }
       else {
-        output[0] = (output[0] - this->m_clipBlack) / (this->m_clipWhite - this->m_clipBlack);
+        output[0] = (output[0] - m_clipBlack) / (m_clipWhite - m_clipBlack);
       }
     }
   }
@@ -117,10 +117,10 @@ bool KeyingClipOperation::determineDependingAreaOfInterest(rcti *input,
 {
   rcti newInput;
 
-  newInput.xmin = input->xmin - this->m_kernelRadius;
-  newInput.ymin = input->ymin - this->m_kernelRadius;
-  newInput.xmax = input->xmax + this->m_kernelRadius;
-  newInput.ymax = input->ymax + this->m_kernelRadius;
+  newInput.xmin = input->xmin - m_kernelRadius;
+  newInput.ymin = input->ymin - m_kernelRadius;
+  newInput.xmax = input->xmax + m_kernelRadius;
+  newInput.ymax = input->ymax + m_kernelRadius;
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }

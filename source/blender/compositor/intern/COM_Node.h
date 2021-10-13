@@ -97,7 +97,7 @@ class Node {
    */
   void setbNode(bNode *node)
   {
-    this->m_editorNode = node;
+    m_editorNode = node;
   }
 
   /**
@@ -106,7 +106,7 @@ class Node {
    */
   void setbNodeTree(bNodeTree *nodetree)
   {
-    this->m_editorNodeTree = nodetree;
+    m_editorNodeTree = nodetree;
   }
 
   /**
@@ -145,7 +145,7 @@ class Node {
    */
   void setIsInActiveGroup(bool value)
   {
-    this->m_inActiveGroup = value;
+    m_inActiveGroup = value;
   }
 
   /**
@@ -156,7 +156,7 @@ class Node {
    */
   inline bool isInActiveGroup() const
   {
-    return this->m_inActiveGroup;
+    return m_inActiveGroup;
   }
 
   /**
@@ -222,7 +222,7 @@ class NodeInput {
 
   Node *getNode() const
   {
-    return this->m_node;
+    return m_node;
   }
   DataType getDataType() const
   {
@@ -230,7 +230,7 @@ class NodeInput {
   }
   bNodeSocket *getbNodeSocket() const
   {
-    return this->m_editorSocket;
+    return m_editorSocket;
   }
 
   void setLink(NodeOutput *link);
@@ -264,7 +264,7 @@ class NodeOutput {
 
   Node *getNode() const
   {
-    return this->m_node;
+    return m_node;
   }
   DataType getDataType() const
   {
@@ -272,7 +272,7 @@ class NodeOutput {
   }
   bNodeSocket *getbNodeSocket() const
   {
-    return this->m_editorSocket;
+    return m_editorSocket;
   }
 
   float getEditorValueFloat();

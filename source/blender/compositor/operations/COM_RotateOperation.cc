@@ -26,10 +26,10 @@ RotateOperation::RotateOperation()
   this->addInputSocket(DataType::Value, ResizeMode::None);
   this->addOutputSocket(DataType::Color);
   this->set_canvas_input_index(0);
-  this->m_imageSocket = nullptr;
-  this->m_degreeSocket = nullptr;
-  this->m_doDegree2RadConversion = false;
-  this->m_isDegreeSet = false;
+  m_imageSocket = nullptr;
+  m_degreeSocket = nullptr;
+  m_doDegree2RadConversion = false;
+  m_isDegreeSet = false;
   sampler_ = PixelSampler::Bilinear;
 }
 
@@ -133,23 +133,23 @@ void RotateOperation::init_data()
 
 void RotateOperation::initExecution()
 {
-  this->m_imageSocket = this->getInputSocketReader(0);
-  this->m_degreeSocket = this->getInputSocketReader(1);
+  m_imageSocket = this->getInputSocketReader(0);
+  m_degreeSocket = this->getInputSocketReader(1);
 }
 
 void RotateOperation::deinitExecution()
 {
-  this->m_imageSocket = nullptr;
-  this->m_degreeSocket = nullptr;
+  m_imageSocket = nullptr;
+  m_degreeSocket = nullptr;
 }
 
 inline void RotateOperation::ensureDegree()
 {
-  if (!this->m_isDegreeSet) {
+  if (!m_isDegreeSet) {
     float degree[4];
     switch (execution_model_) {
       case eExecutionModel::Tiled:
-        this->m_degreeSocket->readSampled(degree, 0, 0, PixelSampler::Nearest);
+        m_degreeSocket->readSampled(degree, 0, 0, PixelSampler::Nearest);
         break;
       case eExecutionModel::FullFrame:
         degree[0] = get_input_operation(DEGREE_INPUT_INDEX)->get_constant_value_default(0.0f);
@@ -157,27 +157,27 @@ inline void RotateOperation::ensureDegree()
     }
 
     double rad;
-    if (this->m_doDegree2RadConversion) {
+    if (m_doDegree2RadConversion) {
       rad = DEG2RAD((double)degree[0]);
     }
     else {
       rad = degree[0];
     }
-    this->m_cosine = cos(rad);
-    this->m_sine = sin(rad);
+    m_cosine = cos(rad);
+    m_sine = sin(rad);
 
-    this->m_isDegreeSet = true;
+    m_isDegreeSet = true;
   }
 }
 
 void RotateOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
   ensureDegree();
-  const float dy = y - this->m_centerY;
-  const float dx = x - this->m_centerX;
-  const float nx = this->m_centerX + (this->m_cosine * dx + this->m_sine * dy);
-  const float ny = this->m_centerY + (-this->m_sine * dx + this->m_cosine * dy);
-  this->m_imageSocket->readSampled(output, nx, ny, sampler);
+  const float dy = y - m_centerY;
+  const float dx = x - m_centerX;
+  const float nx = m_centerX + (m_cosine * dx + m_sine * dy);
+  const float ny = m_centerY + (-m_sine * dx + m_cosine * dy);
+  m_imageSocket->readSampled(output, nx, ny, sampler);
 }
 
 bool RotateOperation::determineDependingAreaOfInterest(rcti *input,
@@ -187,19 +187,19 @@ bool RotateOperation::determineDependingAreaOfInterest(rcti *input,
   ensureDegree();
   rcti newInput;
 
-  const float dxmin = input->xmin - this->m_centerX;
-  const float dymin = input->ymin - this->m_centerY;
-  const float dxmax = input->xmax - this->m_centerX;
-  const float dymax = input->ymax - this->m_centerY;
+  const float dxmin = input->xmin - m_centerX;
+  const float dymin = input->ymin - m_centerY;
+  const float dxmax = input->xmax - m_centerX;
+  const float dymax = input->ymax - m_centerY;
 
-  const float x1 = this->m_centerX + (this->m_cosine * dxmin + this->m_sine * dymin);
-  const float x2 = this->m_centerX + (this->m_cosine * dxmax + this->m_sine * dymin);
-  const float x3 = this->m_centerX + (this->m_cosine * dxmin + this->m_sine * dymax);
-  const float x4 = this->m_centerX + (this->m_cosine * dxmax + this->m_sine * dymax);
-  const float y1 = this->m_centerY + (-this->m_sine * dxmin + this->m_cosine * dymin);
-  const float y2 = this->m_centerY + (-this->m_sine * dxmax + this->m_cosine * dymin);
-  const float y3 = this->m_centerY + (-this->m_sine * dxmin + this->m_cosine * dymax);
-  const float y4 = this->m_centerY + (-this->m_sine * dxmax + this->m_cosine * dymax);
+  const float x1 = m_centerX + (m_cosine * dxmin + m_sine * dymin);
+  const float x2 = m_centerX + (m_cosine * dxmax + m_sine * dymin);
+  const float x3 = m_centerX + (m_cosine * dxmin + m_sine * dymax);
+  const float x4 = m_centerX + (m_cosine * dxmax + m_sine * dymax);
+  const float y1 = m_centerY + (-m_sine * dxmin + m_cosine * dymin);
+  const float y2 = m_centerY + (-m_sine * dxmax + m_cosine * dymin);
+  const float y3 = m_centerY + (-m_sine * dxmin + m_cosine * dymax);
+  const float y4 = m_centerY + (-m_sine * dxmax + m_cosine * dymax);
   const float minx = MIN2(x1, MIN2(x2, MIN2(x3, x4)));
   const float maxx = MAX2(x1, MAX2(x2, MAX2(x3, x4)));
   const float miny = MIN2(y1, MIN2(y2, MIN2(y3, y4)));

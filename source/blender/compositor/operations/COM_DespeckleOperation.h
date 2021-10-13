@@ -46,11 +46,11 @@ class DespeckleOperation : public MultiThreadedOperation {
 
   void setThreshold(float threshold)
   {
-    this->m_threshold = threshold;
+    m_threshold = threshold;
   }
   void setThresholdNeighbor(float threshold)
   {
-    this->m_threshold_neighbor = threshold;
+    m_threshold_neighbor = threshold;
   }
 
   void initExecution() override;

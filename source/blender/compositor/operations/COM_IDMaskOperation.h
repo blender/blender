@@ -34,7 +34,7 @@ class IDMaskOperation : public MultiThreadedOperation {
 
   void setObjectIndex(float objectIndex)
   {
-    this->m_objectIndex = objectIndex;
+    m_objectIndex = objectIndex;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

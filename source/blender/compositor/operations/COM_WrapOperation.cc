@@ -24,7 +24,7 @@ namespace blender::compositor {
 
 WrapOperation::WrapOperation(DataType datatype) : ReadBufferOperation(datatype)
 {
-  this->m_wrappingType = CMP_NODE_WRAP_NONE;
+  m_wrappingType = CMP_NODE_WRAP_NONE;
 }
 
 inline float WrapOperation::getWrappedOriginalXPos(float x)

@@ -22,7 +22,7 @@ namespace blender::compositor {
 
 AlphaOverMixedOperation::AlphaOverMixedOperation()
 {
-  this->m_x = 0.0f;
+  m_x = 0.0f;
   this->flags.can_be_constant = true;
 }
 
@@ -35,9 +35,9 @@ void AlphaOverMixedOperation::executePixelSampled(float output[4],
   float inputOverColor[4];
   float value[4];
 
-  this->m_inputValueOperation->readSampled(value, x, y, sampler);
-  this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
-  this->m_inputColor2Operation->readSampled(inputOverColor, x, y, sampler);
+  m_inputValueOperation->readSampled(value, x, y, sampler);
+  m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
+  m_inputColor2Operation->readSampled(inputOverColor, x, y, sampler);
 
   if (inputOverColor[3] <= 0.0f) {
     copy_v4_v4(output, inputColor1);
@@ -46,7 +46,7 @@ void AlphaOverMixedOperation::executePixelSampled(float output[4],
     copy_v4_v4(output, inputOverColor);
   }
   else {
-    float addfac = 1.0f - this->m_x + inputOverColor[3] * this->m_x;
+    float addfac = 1.0f - m_x + inputOverColor[3] * m_x;
     float premul = value[0] * addfac;
     float mul = 1.0f - value[0] * inputOverColor[3];
 
@@ -71,7 +71,7 @@ void AlphaOverMixedOperation::update_memory_buffer_row(PixelCursor &p)
       copy_v4_v4(p.out, over_color);
     }
     else {
-      const float addfac = 1.0f - this->m_x + over_color[3] * this->m_x;
+      const float addfac = 1.0f - m_x + over_color[3] * m_x;
       const float premul = value * addfac;
       const float mul = 1.0f - value * over_color[3];
 

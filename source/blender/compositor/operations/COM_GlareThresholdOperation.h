@@ -55,7 +55,7 @@ class GlareThresholdOperation : public MultiThreadedOperation {
 
   void setGlareSettings(NodeGlare *settings)
   {
-    this->m_settings = settings;
+    m_settings = settings;
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;

@@ -39,7 +39,7 @@ class SetSamplerOperation : public NodeOperation {
 
   void setSampler(PixelSampler sampler)
   {
-    this->m_sampler = sampler;
+    m_sampler = sampler;
   }
 
   /**

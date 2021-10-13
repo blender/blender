@@ -54,8 +54,8 @@ class BilateralBlurOperation : public MultiThreadedOperation, public QualityStep
 
   void setData(NodeBilateralBlurData *data)
   {
-    this->m_data = data;
-    this->m_space = data->sigma_space + data->iter;
+    m_data = data;
+    m_space = data->sigma_space + data->iter;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

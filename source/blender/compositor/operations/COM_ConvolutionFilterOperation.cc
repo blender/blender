@@ -26,35 +26,35 @@ ConvolutionFilterOperation::ConvolutionFilterOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
   this->set_canvas_input_index(0);
-  this->m_inputOperation = nullptr;
+  m_inputOperation = nullptr;
   this->flags.complex = true;
 }
 void ConvolutionFilterOperation::initExecution()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
-  this->m_inputValueOperation = this->getInputSocketReader(1);
+  m_inputOperation = this->getInputSocketReader(0);
+  m_inputValueOperation = this->getInputSocketReader(1);
 }
 
 void ConvolutionFilterOperation::set3x3Filter(
     float f1, float f2, float f3, float f4, float f5, float f6, float f7, float f8, float f9)
 {
-  this->m_filter[0] = f1;
-  this->m_filter[1] = f2;
-  this->m_filter[2] = f3;
-  this->m_filter[3] = f4;
-  this->m_filter[4] = f5;
-  this->m_filter[5] = f6;
-  this->m_filter[6] = f7;
-  this->m_filter[7] = f8;
-  this->m_filter[8] = f9;
-  this->m_filterHeight = 3;
-  this->m_filterWidth = 3;
+  m_filter[0] = f1;
+  m_filter[1] = f2;
+  m_filter[2] = f3;
+  m_filter[3] = f4;
+  m_filter[4] = f5;
+  m_filter[5] = f6;
+  m_filter[6] = f7;
+  m_filter[7] = f8;
+  m_filter[8] = f9;
+  m_filterHeight = 3;
+  m_filterWidth = 3;
 }
 
 void ConvolutionFilterOperation::deinitExecution()
 {
-  this->m_inputOperation = nullptr;
-  this->m_inputValueOperation = nullptr;
+  m_inputOperation = nullptr;
+  m_inputValueOperation = nullptr;
 }
 
 void ConvolutionFilterOperation::executePixel(float output[4], int x, int y, void * /*data*/)
@@ -74,28 +74,28 @@ void ConvolutionFilterOperation::executePixel(float output[4], int x, int y, voi
   CLAMP(y2, 0, getHeight() - 1);
   CLAMP(y3, 0, getHeight() - 1);
   float value[4];
-  this->m_inputValueOperation->read(value, x2, y2, nullptr);
+  m_inputValueOperation->read(value, x2, y2, nullptr);
   const float mval = 1.0f - value[0];
 
   zero_v4(output);
-  this->m_inputOperation->read(in1, x1, y1, nullptr);
-  madd_v4_v4fl(output, in1, this->m_filter[0]);
-  this->m_inputOperation->read(in1, x2, y1, nullptr);
-  madd_v4_v4fl(output, in1, this->m_filter[1]);
-  this->m_inputOperation->read(in1, x3, y1, nullptr);
-  madd_v4_v4fl(output, in1, this->m_filter[2]);
-  this->m_inputOperation->read(in1, x1, y2, nullptr);
-  madd_v4_v4fl(output, in1, this->m_filter[3]);
-  this->m_inputOperation->read(in2, x2, y2, nullptr);
-  madd_v4_v4fl(output, in2, this->m_filter[4]);
-  this->m_inputOperation->read(in1, x3, y2, nullptr);
-  madd_v4_v4fl(output, in1, this->m_filter[5]);
-  this->m_inputOperation->read(in1, x1, y3, nullptr);
-  madd_v4_v4fl(output, in1, this->m_filter[6]);
-  this->m_inputOperation->read(in1, x2, y3, nullptr);
-  madd_v4_v4fl(output, in1, this->m_filter[7]);
-  this->m_inputOperation->read(in1, x3, y3, nullptr);
-  madd_v4_v4fl(output, in1, this->m_filter[8]);
+  m_inputOperation->read(in1, x1, y1, nullptr);
+  madd_v4_v4fl(output, in1, m_filter[0]);
+  m_inputOperation->read(in1, x2, y1, nullptr);
+  madd_v4_v4fl(output, in1, m_filter[1]);
+  m_inputOperation->read(in1, x3, y1, nullptr);
+  madd_v4_v4fl(output, in1, m_filter[2]);
+  m_inputOperation->read(in1, x1, y2, nullptr);
+  madd_v4_v4fl(output, in1, m_filter[3]);
+  m_inputOperation->read(in2, x2, y2, nullptr);
+  madd_v4_v4fl(output, in2, m_filter[4]);
+  m_inputOperation->read(in1, x3, y2, nullptr);
+  madd_v4_v4fl(output, in1, m_filter[5]);
+  m_inputOperation->read(in1, x1, y3, nullptr);
+  madd_v4_v4fl(output, in1, m_filter[6]);
+  m_inputOperation->read(in1, x2, y3, nullptr);
+  madd_v4_v4fl(output, in1, m_filter[7]);
+  m_inputOperation->read(in1, x3, y3, nullptr);
+  madd_v4_v4fl(output, in1, m_filter[8]);
 
   output[0] = output[0] * value[0] + in2[0] * mval;
   output[1] = output[1] * value[0] + in2[1] * mval;
@@ -113,8 +113,8 @@ bool ConvolutionFilterOperation::determineDependingAreaOfInterest(
     rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
   rcti newInput;
-  int addx = (this->m_filterWidth - 1) / 2 + 1;
-  int addy = (this->m_filterHeight - 1) / 2 + 1;
+  int addx = (m_filterWidth - 1) / 2 + 1;
+  int addy = (m_filterHeight - 1) / 2 + 1;
   newInput.xmax = input->xmax + addx;
   newInput.xmin = input->xmin - addx;
   newInput.ymax = input->ymax + addy;

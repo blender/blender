@@ -160,21 +160,21 @@ DenoiseOperation::DenoiseOperation()
   this->addInputSocket(DataType::Vector);
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->m_settings = nullptr;
+  m_settings = nullptr;
 }
 void DenoiseOperation::initExecution()
 {
   SingleThreadedOperation::initExecution();
-  this->m_inputProgramColor = getInputSocketReader(0);
-  this->m_inputProgramNormal = getInputSocketReader(1);
-  this->m_inputProgramAlbedo = getInputSocketReader(2);
+  m_inputProgramColor = getInputSocketReader(0);
+  m_inputProgramNormal = getInputSocketReader(1);
+  m_inputProgramAlbedo = getInputSocketReader(2);
 }
 
 void DenoiseOperation::deinitExecution()
 {
-  this->m_inputProgramColor = nullptr;
-  this->m_inputProgramNormal = nullptr;
-  this->m_inputProgramAlbedo = nullptr;
+  m_inputProgramColor = nullptr;
+  m_inputProgramNormal = nullptr;
+  m_inputProgramAlbedo = nullptr;
   SingleThreadedOperation::deinitExecution();
 }
 
@@ -199,16 +199,16 @@ void DenoiseOperation::hash_output_params()
 
 MemoryBuffer *DenoiseOperation::createMemoryBuffer(rcti *rect2)
 {
-  MemoryBuffer *tileColor = (MemoryBuffer *)this->m_inputProgramColor->initializeTileData(rect2);
-  MemoryBuffer *tileNormal = (MemoryBuffer *)this->m_inputProgramNormal->initializeTileData(rect2);
-  MemoryBuffer *tileAlbedo = (MemoryBuffer *)this->m_inputProgramAlbedo->initializeTileData(rect2);
+  MemoryBuffer *tileColor = (MemoryBuffer *)m_inputProgramColor->initializeTileData(rect2);
+  MemoryBuffer *tileNormal = (MemoryBuffer *)m_inputProgramNormal->initializeTileData(rect2);
+  MemoryBuffer *tileAlbedo = (MemoryBuffer *)m_inputProgramAlbedo->initializeTileData(rect2);
   rcti rect;
   rect.xmin = 0;
   rect.ymin = 0;
   rect.xmax = getWidth();
   rect.ymax = getHeight();
   MemoryBuffer *result = new MemoryBuffer(DataType::Color, rect);
-  this->generateDenoise(result, tileColor, tileNormal, tileAlbedo, this->m_settings);
+  this->generateDenoise(result, tileColor, tileNormal, tileAlbedo, m_settings);
   return result;
 }
 

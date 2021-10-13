@@ -41,11 +41,11 @@ class QualityStepHelper {
 
   inline int getStep() const
   {
-    return this->m_step;
+    return m_step;
   }
   inline int getOffsetAdd() const
   {
-    return this->m_offsetadd;
+    return m_offsetadd;
   }
 
  public:
@@ -53,7 +53,7 @@ class QualityStepHelper {
 
   void setQuality(eCompositorQuality quality)
   {
-    this->m_quality = quality;
+    m_quality = quality;
   }
 };
 

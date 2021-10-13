@@ -28,14 +28,14 @@ TonemapOperation::TonemapOperation()
 {
   this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addOutputSocket(DataType::Color);
-  this->m_imageReader = nullptr;
-  this->m_data = nullptr;
-  this->m_cachedInstance = nullptr;
+  m_imageReader = nullptr;
+  m_data = nullptr;
+  m_cachedInstance = nullptr;
   this->flags.complex = true;
 }
 void TonemapOperation::initExecution()
 {
-  this->m_imageReader = this->getInputSocketReader(0);
+  m_imageReader = this->getInputSocketReader(0);
   NodeOperation::initMutex();
 }
 
@@ -43,11 +43,11 @@ void TonemapOperation::executePixel(float output[4], int x, int y, void *data)
 {
   AvgLogLum *avg = (AvgLogLum *)data;
 
-  this->m_imageReader->read(output, x, y, nullptr);
+  m_imageReader->read(output, x, y, nullptr);
   mul_v3_fl(output, avg->al);
-  float dr = output[0] + this->m_data->offset;
-  float dg = output[1] + this->m_data->offset;
-  float db = output[2] + this->m_data->offset;
+  float dr = output[0] + m_data->offset;
+  float dg = output[1] + m_data->offset;
+  float db = output[2] + m_data->offset;
   output[0] /= ((dr == 0.0f) ? 1.0f : dr);
   output[1] /= ((dg == 0.0f) ? 1.0f : dg);
   output[2] /= ((db == 0.0f) ? 1.0f : db);
@@ -61,13 +61,13 @@ void TonemapOperation::executePixel(float output[4], int x, int y, void *data)
 void PhotoreceptorTonemapOperation::executePixel(float output[4], int x, int y, void *data)
 {
   AvgLogLum *avg = (AvgLogLum *)data;
-  NodeTonemap *ntm = this->m_data;
+  NodeTonemap *ntm = m_data;
 
-  const float f = expf(-this->m_data->f);
+  const float f = expf(-m_data->f);
   const float m = (ntm->m > 0.0f) ? ntm->m : (0.3f + 0.7f * powf(avg->auto_key, 1.4f));
   const float ic = 1.0f - ntm->c, ia = 1.0f - ntm->a;
 
-  this->m_imageReader->read(output, x, y, nullptr);
+  m_imageReader->read(output, x, y, nullptr);
 
   const float L = IMB_colormanagement_get_luminance(output);
   float I_l = output[0] + ic * (L - output[0]);
@@ -86,8 +86,8 @@ void PhotoreceptorTonemapOperation::executePixel(float output[4], int x, int y, 
 
 void TonemapOperation::deinitExecution()
 {
-  this->m_imageReader = nullptr;
-  delete this->m_cachedInstance;
+  m_imageReader = nullptr;
+  delete m_cachedInstance;
   NodeOperation::deinitMutex();
 }
 
@@ -111,8 +111,8 @@ bool TonemapOperation::determineDependingAreaOfInterest(rcti * /*input*/,
 void *TonemapOperation::initializeTileData(rcti *rect)
 {
   lockMutex();
-  if (this->m_cachedInstance == nullptr) {
-    MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect);
+  if (m_cachedInstance == nullptr) {
+    MemoryBuffer *tile = (MemoryBuffer *)m_imageReader->initializeTileData(rect);
     AvgLogLum *data = new AvgLogLum();
 
     float *buffer = tile->getBuffer();
@@ -140,12 +140,12 @@ void *TonemapOperation::initializeTileData(rcti *rect)
     avl = lsum * sc;
     data->auto_key = (maxl > minl) ? ((maxl - avl) / (maxl - minl)) : 1.0f;
     float al = exp((double)avl);
-    data->al = (al == 0.0f) ? 0.0f : (this->m_data->key / al);
-    data->igm = (this->m_data->gamma == 0.0f) ? 1 : (1.0f / this->m_data->gamma);
-    this->m_cachedInstance = data;
+    data->al = (al == 0.0f) ? 0.0f : (m_data->key / al);
+    data->igm = (m_data->gamma == 0.0f) ? 1 : (1.0f / m_data->gamma);
+    m_cachedInstance = data;
   }
   unlockMutex();
-  return this->m_cachedInstance;
+  return m_cachedInstance;
 }
 
 void TonemapOperation::deinitializeTileData(rcti * /*rect*/, void * /*data*/)
@@ -189,7 +189,7 @@ void TonemapOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output)
                                                     const rcti &UNUSED(area),
                                                     Span<MemoryBuffer *> inputs)
 {
-  if (this->m_cachedInstance == nullptr) {
+  if (m_cachedInstance == nullptr) {
     Luminance lum = {0};
     const MemoryBuffer *input = inputs[0];
     exec_system_->execute_work<Luminance>(
@@ -213,9 +213,9 @@ void TonemapOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output)
     const float avg_log = lum.log_sum / lum.num_pixels;
     avg->auto_key = (max_log > min_log) ? ((max_log - avg_log) / (max_log - min_log)) : 1.0f;
     const float al = exp((double)avg_log);
-    avg->al = (al == 0.0f) ? 0.0f : (this->m_data->key / al);
-    avg->igm = (this->m_data->gamma == 0.0f) ? 1 : (1.0f / this->m_data->gamma);
-    this->m_cachedInstance = avg;
+    avg->al = (al == 0.0f) ? 0.0f : (m_data->key / al);
+    avg->igm = (m_data->gamma == 0.0f) ? 1 : (1.0f / m_data->gamma);
+    m_cachedInstance = avg;
   }
 }
 
@@ -225,7 +225,7 @@ void TonemapOperation::update_memory_buffer_partial(MemoryBuffer *output,
 {
   AvgLogLum *avg = m_cachedInstance;
   const float igm = avg->igm;
-  const float offset = this->m_data->offset;
+  const float offset = m_data->offset;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     copy_v4_v4(it.out, it.in(0));
     mul_v3_fl(it.out, avg->al);
@@ -248,8 +248,8 @@ void PhotoreceptorTonemapOperation::update_memory_buffer_partial(MemoryBuffer *o
                                                                  Span<MemoryBuffer *> inputs)
 {
   AvgLogLum *avg = m_cachedInstance;
-  NodeTonemap *ntm = this->m_data;
-  const float f = expf(-this->m_data->f);
+  NodeTonemap *ntm = m_data;
+  const float f = expf(-m_data->f);
   const float m = (ntm->m > 0.0f) ? ntm->m : (0.3f + 0.7f * powf(avg->auto_key, 1.4f));
   const float ic = 1.0f - ntm->c;
   const float ia = 1.0f - ntm->a;

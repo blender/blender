@@ -26,27 +26,27 @@ MultilayerBaseOperation::MultilayerBaseOperation(RenderLayer *render_layer,
                                                  RenderPass *render_pass,
                                                  int view)
 {
-  this->m_passId = BLI_findindex(&render_layer->passes, render_pass);
-  this->m_view = view;
-  this->m_renderLayer = render_layer;
-  this->m_renderPass = render_pass;
+  m_passId = BLI_findindex(&render_layer->passes, render_pass);
+  m_view = view;
+  m_renderLayer = render_layer;
+  m_renderPass = render_pass;
 }
 
 ImBuf *MultilayerBaseOperation::getImBuf()
 {
   /* temporarily changes the view to get the right ImBuf */
-  int view = this->m_imageUser->view;
+  int view = m_imageUser->view;
 
-  this->m_imageUser->view = this->m_view;
-  this->m_imageUser->pass = this->m_passId;
+  m_imageUser->view = m_view;
+  m_imageUser->pass = m_passId;
 
-  if (BKE_image_multilayer_index(this->m_image->rr, this->m_imageUser)) {
+  if (BKE_image_multilayer_index(m_image->rr, m_imageUser)) {
     ImBuf *ibuf = BaseImageOperation::getImBuf();
-    this->m_imageUser->view = view;
+    m_imageUser->view = view;
     return ibuf;
   }
 
-  this->m_imageUser->view = view;
+  m_imageUser->view = view;
   return nullptr;
 }
 
@@ -59,12 +59,12 @@ void MultilayerBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
 std::unique_ptr<MetaData> MultilayerColorOperation::getMetaData()
 {
-  BLI_assert(this->m_buffer);
+  BLI_assert(m_buffer);
   MetaDataExtractCallbackData callback_data = {nullptr};
-  RenderResult *render_result = this->m_image->rr;
+  RenderResult *render_result = m_image->rr;
   if (render_result && render_result->stamp_data) {
-    RenderLayer *render_layer = this->m_renderLayer;
-    RenderPass *render_pass = this->m_renderPass;
+    RenderLayer *render_layer = m_renderLayer;
+    RenderPass *render_pass = m_renderPass;
     std::string full_layer_name =
         std::string(render_layer->name,
                     BLI_strnlen(render_layer->name, sizeof(render_layer->name))) +
@@ -88,20 +88,20 @@ void MultilayerColorOperation::executePixelSampled(float output[4],
                                                    float y,
                                                    PixelSampler sampler)
 {
-  if (this->m_imageFloatBuffer == nullptr) {
+  if (m_imageFloatBuffer == nullptr) {
     zero_v4(output);
   }
   else {
-    if (this->m_numberOfChannels == 4) {
+    if (m_numberOfChannels == 4) {
       switch (sampler) {
         case PixelSampler::Nearest:
-          nearest_interpolation_color(this->m_buffer, nullptr, output, x, y);
+          nearest_interpolation_color(m_buffer, nullptr, output, x, y);
           break;
         case PixelSampler::Bilinear:
-          bilinear_interpolation_color(this->m_buffer, nullptr, output, x, y);
+          bilinear_interpolation_color(m_buffer, nullptr, output, x, y);
           break;
         case PixelSampler::Bicubic:
-          bicubic_interpolation_color(this->m_buffer, nullptr, output, x, y);
+          bicubic_interpolation_color(m_buffer, nullptr, output, x, y);
           break;
       }
     }
@@ -114,7 +114,7 @@ void MultilayerColorOperation::executePixelSampled(float output[4],
       }
       else {
         int offset = (yi * this->getWidth() + xi) * 3;
-        copy_v3_v3(output, &this->m_imageFloatBuffer[offset]);
+        copy_v3_v3(output, &m_imageFloatBuffer[offset]);
       }
     }
   }
@@ -125,7 +125,7 @@ void MultilayerValueOperation::executePixelSampled(float output[4],
                                                    float y,
                                                    PixelSampler /*sampler*/)
 {
-  if (this->m_imageFloatBuffer == nullptr) {
+  if (m_imageFloatBuffer == nullptr) {
     output[0] = 0.0f;
   }
   else {
@@ -136,7 +136,7 @@ void MultilayerValueOperation::executePixelSampled(float output[4],
       output[0] = 0.0f;
     }
     else {
-      float result = this->m_imageFloatBuffer[yi * this->getWidth() + xi];
+      float result = m_imageFloatBuffer[yi * this->getWidth() + xi];
       output[0] = result;
     }
   }
@@ -147,7 +147,7 @@ void MultilayerVectorOperation::executePixelSampled(float output[4],
                                                     float y,
                                                     PixelSampler /*sampler*/)
 {
-  if (this->m_imageFloatBuffer == nullptr) {
+  if (m_imageFloatBuffer == nullptr) {
     output[0] = 0.0f;
   }
   else {
@@ -159,7 +159,7 @@ void MultilayerVectorOperation::executePixelSampled(float output[4],
     }
     else {
       int offset = (yi * this->getWidth() + xi) * 3;
-      copy_v3_v3(output, &this->m_imageFloatBuffer[offset]);
+      copy_v3_v3(output, &m_imageFloatBuffer[offset]);
     }
   }
 }

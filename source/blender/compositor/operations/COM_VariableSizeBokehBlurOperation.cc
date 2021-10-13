@@ -34,24 +34,24 @@ VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
   flags.complex = true;
   flags.open_cl = true;
 
-  this->m_inputProgram = nullptr;
-  this->m_inputBokehProgram = nullptr;
-  this->m_inputSizeProgram = nullptr;
-  this->m_maxBlur = 32.0f;
-  this->m_threshold = 1.0f;
-  this->m_do_size_scale = false;
+  m_inputProgram = nullptr;
+  m_inputBokehProgram = nullptr;
+  m_inputSizeProgram = nullptr;
+  m_maxBlur = 32.0f;
+  m_threshold = 1.0f;
+  m_do_size_scale = false;
 #ifdef COM_DEFOCUS_SEARCH
-  this->m_inputSearchProgram = nullptr;
+  m_inputSearchProgram = nullptr;
 #endif
 }
 
 void VariableSizeBokehBlurOperation::initExecution()
 {
-  this->m_inputProgram = getInputSocketReader(0);
-  this->m_inputBokehProgram = getInputSocketReader(1);
-  this->m_inputSizeProgram = getInputSocketReader(2);
+  m_inputProgram = getInputSocketReader(0);
+  m_inputBokehProgram = getInputSocketReader(1);
+  m_inputSizeProgram = getInputSocketReader(2);
 #ifdef COM_DEFOCUS_SEARCH
-  this->m_inputSearchProgram = getInputSocketReader(3);
+  m_inputSearchProgram = getInputSocketReader(3);
 #endif
   QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
@@ -65,19 +65,18 @@ struct VariableSizeBokehBlurTileData {
 void *VariableSizeBokehBlurOperation::initializeTileData(rcti *rect)
 {
   VariableSizeBokehBlurTileData *data = new VariableSizeBokehBlurTileData();
-  data->color = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect);
-  data->bokeh = (MemoryBuffer *)this->m_inputBokehProgram->initializeTileData(rect);
-  data->size = (MemoryBuffer *)this->m_inputSizeProgram->initializeTileData(rect);
+  data->color = (MemoryBuffer *)m_inputProgram->initializeTileData(rect);
+  data->bokeh = (MemoryBuffer *)m_inputBokehProgram->initializeTileData(rect);
+  data->size = (MemoryBuffer *)m_inputSizeProgram->initializeTileData(rect);
 
   rcti rect2;
-  this->determineDependingAreaOfInterest(
-      rect, (ReadBufferOperation *)this->m_inputSizeProgram, &rect2);
+  this->determineDependingAreaOfInterest(rect, (ReadBufferOperation *)m_inputSizeProgram, &rect2);
 
   const float max_dim = MAX2(this->getWidth(), this->getHeight());
-  const float scalar = this->m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
+  const float scalar = m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
 
   data->maxBlurScalar = (int)(data->size->get_max_value(rect2) * scalar);
-  CLAMP(data->maxBlurScalar, 1.0f, this->m_maxBlur);
+  CLAMP(data->maxBlurScalar, 1.0f, m_maxBlur);
   return data;
 }
 
@@ -102,7 +101,7 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
   float color_accum[4];
 
   const float max_dim = MAX2(getWidth(), getHeight());
-  const float scalar = this->m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
+  const float scalar = m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
   int maxBlurScalar = tileData->maxBlurScalar;
 
   BLI_assert(inputBokehBuffer->getWidth() == COM_BLUR_BOKEH_PIXELS);
@@ -110,10 +109,10 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
 
 #ifdef COM_DEFOCUS_SEARCH
   float search[4];
-  this->m_inputSearchProgram->read(search,
-                                   x / InverseSearchRadiusOperation::DIVIDER,
-                                   y / InverseSearchRadiusOperation::DIVIDER,
-                                   nullptr);
+  m_inputSearchProgram->read(search,
+                             x / InverseSearchRadiusOperation::DIVIDER,
+                             y / InverseSearchRadiusOperation::DIVIDER,
+                             nullptr);
   int minx = search[0];
   int miny = search[1];
   int maxx = search[2];
@@ -136,7 +135,7 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
     const int addYStepValue = addXStepValue;
     const int addXStepColor = addXStepValue * COM_DATA_TYPE_COLOR_CHANNELS;
 
-    if (size_center > this->m_threshold) {
+    if (size_center > m_threshold) {
       for (int ny = miny; ny < maxy; ny += addYStepValue) {
         float dy = ny - y;
         int offsetValueNy = ny * inputSizeBuffer->getWidth();
@@ -145,7 +144,7 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
         for (int nx = minx; nx < maxx; nx += addXStepValue) {
           if (nx != x || ny != y) {
             float size = MIN2(inputSizeFloatBuffer[offsetValueNxNy] * scalar, size_center);
-            if (size > this->m_threshold) {
+            if (size > m_threshold) {
               float dx = nx - x;
               if (size > fabsf(dx) && size > fabsf(dy)) {
                 float uv[2] = {
@@ -172,9 +171,9 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
     output[3] = color_accum[3] / multiplier_accum[3];
 
     /* blend in out values over the threshold, otherwise we get sharp, ugly transitions */
-    if ((size_center > this->m_threshold) && (size_center < this->m_threshold * 2.0f)) {
+    if ((size_center > m_threshold) && (size_center < m_threshold * 2.0f)) {
       /* factor from 0-1 */
-      float fac = (size_center - this->m_threshold) / this->m_threshold;
+      float fac = (size_center - m_threshold) / m_threshold;
       interp_v4_v4v4(output, readColor, output, fac);
     }
   }
@@ -191,22 +190,21 @@ void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice *device,
 
   cl_int step = this->getStep();
   cl_int maxBlur;
-  cl_float threshold = this->m_threshold;
+  cl_float threshold = m_threshold;
 
-  MemoryBuffer *sizeMemoryBuffer = this->m_inputSizeProgram->getInputMemoryBuffer(
-      inputMemoryBuffers);
+  MemoryBuffer *sizeMemoryBuffer = m_inputSizeProgram->getInputMemoryBuffer(inputMemoryBuffers);
 
   const float max_dim = MAX2(getWidth(), getHeight());
-  cl_float scalar = this->m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
+  cl_float scalar = m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
 
-  maxBlur = (cl_int)min_ff(sizeMemoryBuffer->get_max_value() * scalar, (float)this->m_maxBlur);
+  maxBlur = (cl_int)min_ff(sizeMemoryBuffer->get_max_value() * scalar, (float)m_maxBlur);
 
   device->COM_clAttachMemoryBufferToKernelParameter(
-      defocusKernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputProgram);
+      defocusKernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, m_inputProgram);
   device->COM_clAttachMemoryBufferToKernelParameter(
-      defocusKernel, 1, -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputBokehProgram);
+      defocusKernel, 1, -1, clMemToCleanUp, inputMemoryBuffers, m_inputBokehProgram);
   device->COM_clAttachMemoryBufferToKernelParameter(
-      defocusKernel, 2, 4, clMemToCleanUp, inputMemoryBuffers, this->m_inputSizeProgram);
+      defocusKernel, 2, 4, clMemToCleanUp, inputMemoryBuffers, m_inputSizeProgram);
   device->COM_clAttachOutputMemoryBufferToKernelParameter(defocusKernel, 3, clOutputBuffer);
   device->COM_clAttachMemoryBufferOffsetToKernelParameter(defocusKernel, 5, outputMemoryBuffer);
   clSetKernelArg(defocusKernel, 6, sizeof(cl_int), &step);
@@ -220,11 +218,11 @@ void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice *device,
 
 void VariableSizeBokehBlurOperation::deinitExecution()
 {
-  this->m_inputProgram = nullptr;
-  this->m_inputBokehProgram = nullptr;
-  this->m_inputSizeProgram = nullptr;
+  m_inputProgram = nullptr;
+  m_inputBokehProgram = nullptr;
+  m_inputSizeProgram = nullptr;
 #ifdef COM_DEFOCUS_SEARCH
-  this->m_inputSearchProgram = nullptr;
+  m_inputSearchProgram = nullptr;
 #endif
 }
 
@@ -235,8 +233,8 @@ bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(
   rcti bokehInput;
 
   const float max_dim = MAX2(getWidth(), getHeight());
-  const float scalar = this->m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
-  int maxBlurScalar = this->m_maxBlur * scalar;
+  const float scalar = m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
+  int maxBlurScalar = m_maxBlur * scalar;
 
   newInput.xmax = input->xmax + maxBlurScalar + 2;
   newInput.xmin = input->xmin - maxBlurScalar + 2;
@@ -439,12 +437,12 @@ InverseSearchRadiusOperation::InverseSearchRadiusOperation()
   this->addInputSocket(DataType::Value, ResizeMode::Align); /* Radius. */
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
-  this->m_inputRadius = nullptr;
+  m_inputRadius = nullptr;
 }
 
 void InverseSearchRadiusOperation::initExecution()
 {
-  this->m_inputRadius = this->getInputSocketReader(0);
+  m_inputRadius = this->getInputSocketReader(0);
 }
 
 void *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
@@ -452,8 +450,8 @@ void *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
   MemoryBuffer *data = new MemoryBuffer(DataType::Color, rect);
   float *buffer = data->getBuffer();
   int x, y;
-  int width = this->m_inputRadius->getWidth();
-  int height = this->m_inputRadius->getHeight();
+  int width = m_inputRadius->getWidth();
+  int height = m_inputRadius->getHeight();
   float temp[4];
   int offset = 0;
   for (y = rect->ymin; y < rect->ymax; y++) {
@@ -478,7 +476,7 @@ void *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
 
       for (int x2 = 0; x2 < DIVIDER; x2++) {
         for (int y2 = 0; y2 < DIVIDER; y2++) {
-          this->m_inputRadius->read(temp, rx + x2, ry + y2, PixelSampler::Nearest);
+          m_inputRadius->read(temp, rx + x2, ry + y2, PixelSampler::Nearest);
           if (radius < temp[0]) {
             radius = temp[0];
             maxx = x2;
@@ -519,7 +517,7 @@ void InverseSearchRadiusOperation::deinitializeTileData(rcti *rect, void *data)
 
 void InverseSearchRadiusOperation::deinitExecution()
 {
-  this->m_inputRadius = nullptr;
+  m_inputRadius = nullptr;
 }
 
 void InverseSearchRadiusOperation::determineResolution(unsigned int resolution[2],

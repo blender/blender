@@ -24,25 +24,25 @@ GlareBaseOperation::GlareBaseOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->m_settings = nullptr;
+  m_settings = nullptr;
   flags.is_fullframe_operation = true;
   is_output_rendered_ = false;
 }
 void GlareBaseOperation::initExecution()
 {
   SingleThreadedOperation::initExecution();
-  this->m_inputProgram = getInputSocketReader(0);
+  m_inputProgram = getInputSocketReader(0);
 }
 
 void GlareBaseOperation::deinitExecution()
 {
-  this->m_inputProgram = nullptr;
+  m_inputProgram = nullptr;
   SingleThreadedOperation::deinitExecution();
 }
 
 MemoryBuffer *GlareBaseOperation::createMemoryBuffer(rcti *rect2)
 {
-  MemoryBuffer *tile = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect2);
+  MemoryBuffer *tile = (MemoryBuffer *)m_inputProgram->initializeTileData(rect2);
   rcti rect;
   rect.xmin = 0;
   rect.ymin = 0;
@@ -50,7 +50,7 @@ MemoryBuffer *GlareBaseOperation::createMemoryBuffer(rcti *rect2)
   rect.ymax = getHeight();
   MemoryBuffer *result = new MemoryBuffer(DataType::Color, rect);
   float *data = result->getBuffer();
-  this->generateGlare(data, tile, this->m_settings);
+  this->generateGlare(data, tile, m_settings);
   return result;
 }
 

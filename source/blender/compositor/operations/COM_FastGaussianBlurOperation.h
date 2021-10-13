@@ -83,13 +83,13 @@ class FastGaussianBlurValueOperation : public MultiThreadedOperation {
   void initExecution() override;
   void setSigma(float sigma)
   {
-    this->m_sigma = sigma;
+    m_sigma = sigma;
   }
 
   /* used for DOF blurring ZBuffer */
   void setOverlay(int overlay)
   {
-    this->m_overlay = overlay;
+    m_overlay = overlay;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

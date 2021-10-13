@@ -51,7 +51,7 @@ class ColorRampOperation : public MultiThreadedOperation {
 
   void setColorBand(ColorBand *colorBand)
   {
-    this->m_colorBand = colorBand;
+    m_colorBand = colorBand;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

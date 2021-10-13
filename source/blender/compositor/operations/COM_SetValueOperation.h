@@ -43,11 +43,11 @@ class SetValueOperation : public ConstantOperation {
 
   float getValue()
   {
-    return this->m_value;
+    return m_value;
   }
   void setValue(float value)
   {
-    this->m_value = value;
+    m_value = value;
   }
 
   /**

@@ -40,11 +40,11 @@ class CropBaseOperation : public MultiThreadedOperation {
   void deinitExecution() override;
   void setCropSettings(NodeTwoXYs *settings)
   {
-    this->m_settings = settings;
+    m_settings = settings;
   }
   void setRelative(bool rel)
   {
-    this->m_relative = rel;
+    m_relative = rel;
   }
 };
 

@@ -46,21 +46,21 @@ VectorBlurOperation::VectorBlurOperation()
   this->addInputSocket(DataType::Value); /* ZBUF */
   this->addInputSocket(DataType::Color); /* SPEED */
   this->addOutputSocket(DataType::Color);
-  this->m_settings = nullptr;
-  this->m_cachedInstance = nullptr;
-  this->m_inputImageProgram = nullptr;
-  this->m_inputSpeedProgram = nullptr;
-  this->m_inputZProgram = nullptr;
+  m_settings = nullptr;
+  m_cachedInstance = nullptr;
+  m_inputImageProgram = nullptr;
+  m_inputSpeedProgram = nullptr;
+  m_inputZProgram = nullptr;
   flags.complex = true;
   flags.is_fullframe_operation = true;
 }
 void VectorBlurOperation::initExecution()
 {
   initMutex();
-  this->m_inputImageProgram = getInputSocketReader(0);
-  this->m_inputZProgram = getInputSocketReader(1);
-  this->m_inputSpeedProgram = getInputSocketReader(2);
-  this->m_cachedInstance = nullptr;
+  m_inputImageProgram = getInputSocketReader(0);
+  m_inputZProgram = getInputSocketReader(1);
+  m_inputSpeedProgram = getInputSocketReader(2);
+  m_cachedInstance = nullptr;
   QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
@@ -74,38 +74,38 @@ void VectorBlurOperation::executePixel(float output[4], int x, int y, void *data
 void VectorBlurOperation::deinitExecution()
 {
   deinitMutex();
-  this->m_inputImageProgram = nullptr;
-  this->m_inputSpeedProgram = nullptr;
-  this->m_inputZProgram = nullptr;
-  if (this->m_cachedInstance) {
-    MEM_freeN(this->m_cachedInstance);
-    this->m_cachedInstance = nullptr;
+  m_inputImageProgram = nullptr;
+  m_inputSpeedProgram = nullptr;
+  m_inputZProgram = nullptr;
+  if (m_cachedInstance) {
+    MEM_freeN(m_cachedInstance);
+    m_cachedInstance = nullptr;
   }
 }
 void *VectorBlurOperation::initializeTileData(rcti *rect)
 {
-  if (this->m_cachedInstance) {
-    return this->m_cachedInstance;
+  if (m_cachedInstance) {
+    return m_cachedInstance;
   }
 
   lockMutex();
-  if (this->m_cachedInstance == nullptr) {
-    MemoryBuffer *tile = (MemoryBuffer *)this->m_inputImageProgram->initializeTileData(rect);
-    MemoryBuffer *speed = (MemoryBuffer *)this->m_inputSpeedProgram->initializeTileData(rect);
-    MemoryBuffer *z = (MemoryBuffer *)this->m_inputZProgram->initializeTileData(rect);
+  if (m_cachedInstance == nullptr) {
+    MemoryBuffer *tile = (MemoryBuffer *)m_inputImageProgram->initializeTileData(rect);
+    MemoryBuffer *speed = (MemoryBuffer *)m_inputSpeedProgram->initializeTileData(rect);
+    MemoryBuffer *z = (MemoryBuffer *)m_inputZProgram->initializeTileData(rect);
     float *data = (float *)MEM_dupallocN(tile->getBuffer());
     this->generateVectorBlur(data, tile, speed, z);
-    this->m_cachedInstance = data;
+    m_cachedInstance = data;
   }
   unlockMutex();
-  return this->m_cachedInstance;
+  return m_cachedInstance;
 }
 
 bool VectorBlurOperation::determineDependingAreaOfInterest(rcti * /*input*/,
                                                            ReadBufferOperation *readOperation,
                                                            rcti *output)
 {
-  if (this->m_cachedInstance == nullptr) {
+  if (m_cachedInstance == nullptr) {
     rcti newInput;
     newInput.xmax = this->getWidth();
     newInput.xmin = 0;
@@ -165,11 +165,11 @@ void VectorBlurOperation::generateVectorBlur(float *data,
                                              MemoryBuffer *inputZ)
 {
   NodeBlurData blurdata;
-  blurdata.samples = this->m_settings->samples / QualityStepHelper::getStep();
-  blurdata.maxspeed = this->m_settings->maxspeed;
-  blurdata.minspeed = this->m_settings->minspeed;
-  blurdata.curved = this->m_settings->curved;
-  blurdata.fac = this->m_settings->fac;
+  blurdata.samples = m_settings->samples / QualityStepHelper::getStep();
+  blurdata.maxspeed = m_settings->maxspeed;
+  blurdata.minspeed = m_settings->minspeed;
+  blurdata.curved = m_settings->curved;
+  blurdata.fac = m_settings->fac;
   zbuf_accumulate_vecblur(&blurdata,
                           this->getWidth(),
                           this->getHeight(),

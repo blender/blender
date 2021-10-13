@@ -24,13 +24,13 @@ MapValueOperation::MapValueOperation()
 {
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
-  this->m_inputOperation = nullptr;
+  m_inputOperation = nullptr;
   flags.can_be_constant = true;
 }
 
 void MapValueOperation::initExecution()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
+  m_inputOperation = this->getInputSocketReader(0);
 }
 
 void MapValueOperation::executePixelSampled(float output[4],
@@ -39,8 +39,8 @@ void MapValueOperation::executePixelSampled(float output[4],
                                             PixelSampler sampler)
 {
   float src[4];
-  this->m_inputOperation->readSampled(src, x, y, sampler);
-  TexMapping *texmap = this->m_settings;
+  m_inputOperation->readSampled(src, x, y, sampler);
+  TexMapping *texmap = m_settings;
   float value = (src[0] + texmap->loc[0]) * texmap->size[0];
   if (texmap->flag & TEXMAP_CLIP_MIN) {
     if (value < texmap->min[0]) {
@@ -58,7 +58,7 @@ void MapValueOperation::executePixelSampled(float output[4],
 
 void MapValueOperation::deinitExecution()
 {
-  this->m_inputOperation = nullptr;
+  m_inputOperation = nullptr;
 }
 
 void MapValueOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -67,7 +67,7 @@ void MapValueOperation::update_memory_buffer_partial(MemoryBuffer *output,
 {
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     const float input = *it.in(0);
-    TexMapping *texmap = this->m_settings;
+    TexMapping *texmap = m_settings;
     float value = (input + texmap->loc[0]) * texmap->size[0];
     if (texmap->flag & TEXMAP_CLIP_MIN) {
       if (value < texmap->min[0]) {

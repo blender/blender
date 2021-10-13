@@ -28,11 +28,11 @@ SetSamplerOperation::SetSamplerOperation()
 
 void SetSamplerOperation::initExecution()
 {
-  this->m_reader = this->getInputSocketReader(0);
+  m_reader = this->getInputSocketReader(0);
 }
 void SetSamplerOperation::deinitExecution()
 {
-  this->m_reader = nullptr;
+  m_reader = nullptr;
 }
 
 void SetSamplerOperation::executePixelSampled(float output[4],
@@ -40,7 +40,7 @@ void SetSamplerOperation::executePixelSampled(float output[4],
                                               float y,
                                               PixelSampler /*sampler*/)
 {
-  this->m_reader->readSampled(output, x, y, this->m_sampler);
+  m_reader->readSampled(output, x, y, m_sampler);
 }
 
 }  // namespace blender::compositor

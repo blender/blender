@@ -38,44 +38,44 @@ void ConvolutionEdgeFilterOperation::executePixel(float output[4], int x, int y,
   CLAMP(y3, 0, getHeight() - 1);
 
   float value[4];
-  this->m_inputValueOperation->read(value, x2, y2, nullptr);
+  m_inputValueOperation->read(value, x2, y2, nullptr);
   float mval = 1.0f - value[0];
 
-  this->m_inputOperation->read(in1, x1, y1, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[0]);
-  madd_v3_v3fl(res2, in1, this->m_filter[0]);
+  m_inputOperation->read(in1, x1, y1, nullptr);
+  madd_v3_v3fl(res1, in1, m_filter[0]);
+  madd_v3_v3fl(res2, in1, m_filter[0]);
 
-  this->m_inputOperation->read(in1, x2, y1, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[1]);
-  madd_v3_v3fl(res2, in1, this->m_filter[3]);
+  m_inputOperation->read(in1, x2, y1, nullptr);
+  madd_v3_v3fl(res1, in1, m_filter[1]);
+  madd_v3_v3fl(res2, in1, m_filter[3]);
 
-  this->m_inputOperation->read(in1, x3, y1, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[2]);
-  madd_v3_v3fl(res2, in1, this->m_filter[6]);
+  m_inputOperation->read(in1, x3, y1, nullptr);
+  madd_v3_v3fl(res1, in1, m_filter[2]);
+  madd_v3_v3fl(res2, in1, m_filter[6]);
 
-  this->m_inputOperation->read(in1, x1, y2, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[3]);
-  madd_v3_v3fl(res2, in1, this->m_filter[1]);
+  m_inputOperation->read(in1, x1, y2, nullptr);
+  madd_v3_v3fl(res1, in1, m_filter[3]);
+  madd_v3_v3fl(res2, in1, m_filter[1]);
 
-  this->m_inputOperation->read(in2, x2, y2, nullptr);
-  madd_v3_v3fl(res1, in2, this->m_filter[4]);
-  madd_v3_v3fl(res2, in2, this->m_filter[4]);
+  m_inputOperation->read(in2, x2, y2, nullptr);
+  madd_v3_v3fl(res1, in2, m_filter[4]);
+  madd_v3_v3fl(res2, in2, m_filter[4]);
 
-  this->m_inputOperation->read(in1, x3, y2, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[5]);
-  madd_v3_v3fl(res2, in1, this->m_filter[7]);
+  m_inputOperation->read(in1, x3, y2, nullptr);
+  madd_v3_v3fl(res1, in1, m_filter[5]);
+  madd_v3_v3fl(res2, in1, m_filter[7]);
 
-  this->m_inputOperation->read(in1, x1, y3, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[6]);
-  madd_v3_v3fl(res2, in1, this->m_filter[2]);
+  m_inputOperation->read(in1, x1, y3, nullptr);
+  madd_v3_v3fl(res1, in1, m_filter[6]);
+  madd_v3_v3fl(res2, in1, m_filter[2]);
 
-  this->m_inputOperation->read(in1, x2, y3, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[7]);
-  madd_v3_v3fl(res2, in1, this->m_filter[5]);
+  m_inputOperation->read(in1, x2, y3, nullptr);
+  madd_v3_v3fl(res1, in1, m_filter[7]);
+  madd_v3_v3fl(res2, in1, m_filter[5]);
 
-  this->m_inputOperation->read(in1, x3, y3, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[8]);
-  madd_v3_v3fl(res2, in1, this->m_filter[8]);
+  m_inputOperation->read(in1, x3, y3, nullptr);
+  madd_v3_v3fl(res1, in1, m_filter[8]);
+  madd_v3_v3fl(res2, in1, m_filter[8]);
 
   output[0] = sqrt(res1[0] * res1[0] + res2[0] * res2[0]);
   output[1] = sqrt(res1[1] * res1[1] + res2[1] * res2[1]);

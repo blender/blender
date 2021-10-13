@@ -24,12 +24,12 @@ GammaCorrectOperation::GammaCorrectOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->m_inputProgram = nullptr;
+  m_inputProgram = nullptr;
   flags.can_be_constant = true;
 }
 void GammaCorrectOperation::initExecution()
 {
-  this->m_inputProgram = this->getInputSocketReader(0);
+  m_inputProgram = this->getInputSocketReader(0);
 }
 
 void GammaCorrectOperation::executePixelSampled(float output[4],
@@ -38,7 +38,7 @@ void GammaCorrectOperation::executePixelSampled(float output[4],
                                                 PixelSampler sampler)
 {
   float inputColor[4];
-  this->m_inputProgram->readSampled(inputColor, x, y, sampler);
+  m_inputProgram->readSampled(inputColor, x, y, sampler);
   if (inputColor[3] > 0.0f) {
     inputColor[0] /= inputColor[3];
     inputColor[1] /= inputColor[3];
@@ -88,19 +88,19 @@ void GammaCorrectOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
 void GammaCorrectOperation::deinitExecution()
 {
-  this->m_inputProgram = nullptr;
+  m_inputProgram = nullptr;
 }
 
 GammaUncorrectOperation::GammaUncorrectOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->m_inputProgram = nullptr;
+  m_inputProgram = nullptr;
   flags.can_be_constant = true;
 }
 void GammaUncorrectOperation::initExecution()
 {
-  this->m_inputProgram = this->getInputSocketReader(0);
+  m_inputProgram = this->getInputSocketReader(0);
 }
 
 void GammaUncorrectOperation::executePixelSampled(float output[4],
@@ -109,7 +109,7 @@ void GammaUncorrectOperation::executePixelSampled(float output[4],
                                                   PixelSampler sampler)
 {
   float inputColor[4];
-  this->m_inputProgram->readSampled(inputColor, x, y, sampler);
+  m_inputProgram->readSampled(inputColor, x, y, sampler);
 
   if (inputColor[3] > 0.0f) {
     inputColor[0] /= inputColor[3];
@@ -158,7 +158,7 @@ void GammaUncorrectOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
 void GammaUncorrectOperation::deinitExecution()
 {
-  this->m_inputProgram = nullptr;
+  m_inputProgram = nullptr;
 }
 
 }  // namespace blender::compositor

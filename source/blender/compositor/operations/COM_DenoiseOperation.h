@@ -68,7 +68,7 @@ class DenoiseOperation : public DenoiseBaseOperation {
 
   void setDenoiseSettings(NodeDenoise *settings)
   {
-    this->m_settings = settings;
+    m_settings = settings;
   }
 
   void update_memory_buffer(MemoryBuffer *output,

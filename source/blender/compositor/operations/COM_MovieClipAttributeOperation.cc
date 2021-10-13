@@ -26,9 +26,9 @@ namespace blender::compositor {
 MovieClipAttributeOperation::MovieClipAttributeOperation()
 {
   this->addOutputSocket(DataType::Value);
-  this->m_framenumber = 0;
-  this->m_attribute = MCA_X;
-  this->m_invert = false;
+  m_framenumber = 0;
+  m_attribute = MCA_X;
+  m_invert = false;
   needs_canvas_to_get_constant_ = true;
   is_value_calculated_ = false;
   stabilization_resolution_socket_ = nullptr;
@@ -45,7 +45,7 @@ void MovieClipAttributeOperation::calc_value()
 {
   BLI_assert(this->get_flags().is_canvas_set);
   is_value_calculated_ = true;
-  if (this->m_clip == nullptr) {
+  if (m_clip == nullptr) {
     return;
   }
   float loc[2], scale, angle;
@@ -53,38 +53,38 @@ void MovieClipAttributeOperation::calc_value()
   loc[1] = 0.0f;
   scale = 1.0f;
   angle = 0.0f;
-  int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(this->m_clip, this->m_framenumber);
+  int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(m_clip, m_framenumber);
   NodeOperation &stabilization_operation =
       stabilization_resolution_socket_ ?
           stabilization_resolution_socket_->getLink()->getOperation() :
           *this;
-  BKE_tracking_stabilization_data_get(this->m_clip,
+  BKE_tracking_stabilization_data_get(m_clip,
                                       clip_framenr,
                                       stabilization_operation.getWidth(),
                                       stabilization_operation.getHeight(),
                                       loc,
                                       &scale,
                                       &angle);
-  switch (this->m_attribute) {
+  switch (m_attribute) {
     case MCA_SCALE:
-      this->m_value = scale;
+      m_value = scale;
       break;
     case MCA_ANGLE:
-      this->m_value = angle;
+      m_value = angle;
       break;
     case MCA_X:
-      this->m_value = loc[0];
+      m_value = loc[0];
       break;
     case MCA_Y:
-      this->m_value = loc[1];
+      m_value = loc[1];
       break;
   }
-  if (this->m_invert) {
-    if (this->m_attribute != MCA_SCALE) {
-      this->m_value = -this->m_value;
+  if (m_invert) {
+    if (m_attribute != MCA_SCALE) {
+      m_value = -m_value;
     }
     else {
-      this->m_value = 1.0f / this->m_value;
+      m_value = 1.0f / m_value;
     }
   }
 }
@@ -94,7 +94,7 @@ void MovieClipAttributeOperation::executePixelSampled(float output[4],
                                                       float /*y*/,
                                                       PixelSampler /*sampler*/)
 {
-  output[0] = this->m_value;
+  output[0] = m_value;
 }
 
 void MovieClipAttributeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)

@@ -27,60 +27,60 @@ ColorSpillOperation::ColorSpillOperation()
   addInputSocket(DataType::Value);
   addOutputSocket(DataType::Color);
 
-  this->m_inputImageReader = nullptr;
-  this->m_inputFacReader = nullptr;
-  this->m_spillChannel = 1; /* GREEN */
-  this->m_spillMethod = 0;
+  m_inputImageReader = nullptr;
+  m_inputFacReader = nullptr;
+  m_spillChannel = 1; /* GREEN */
+  m_spillMethod = 0;
   flags.can_be_constant = true;
 }
 
 void ColorSpillOperation::initExecution()
 {
-  this->m_inputImageReader = this->getInputSocketReader(0);
-  this->m_inputFacReader = this->getInputSocketReader(1);
-  if (this->m_spillChannel == 0) {
-    this->m_rmut = -1.0f;
-    this->m_gmut = 1.0f;
-    this->m_bmut = 1.0f;
-    this->m_channel2 = 1;
-    this->m_channel3 = 2;
-    if (this->m_settings->unspill == 0) {
-      this->m_settings->uspillr = 1.0f;
-      this->m_settings->uspillg = 0.0f;
-      this->m_settings->uspillb = 0.0f;
+  m_inputImageReader = this->getInputSocketReader(0);
+  m_inputFacReader = this->getInputSocketReader(1);
+  if (m_spillChannel == 0) {
+    m_rmut = -1.0f;
+    m_gmut = 1.0f;
+    m_bmut = 1.0f;
+    m_channel2 = 1;
+    m_channel3 = 2;
+    if (m_settings->unspill == 0) {
+      m_settings->uspillr = 1.0f;
+      m_settings->uspillg = 0.0f;
+      m_settings->uspillb = 0.0f;
     }
   }
-  else if (this->m_spillChannel == 1) {
-    this->m_rmut = 1.0f;
-    this->m_gmut = -1.0f;
-    this->m_bmut = 1.0f;
-    this->m_channel2 = 0;
-    this->m_channel3 = 2;
-    if (this->m_settings->unspill == 0) {
-      this->m_settings->uspillr = 0.0f;
-      this->m_settings->uspillg = 1.0f;
-      this->m_settings->uspillb = 0.0f;
+  else if (m_spillChannel == 1) {
+    m_rmut = 1.0f;
+    m_gmut = -1.0f;
+    m_bmut = 1.0f;
+    m_channel2 = 0;
+    m_channel3 = 2;
+    if (m_settings->unspill == 0) {
+      m_settings->uspillr = 0.0f;
+      m_settings->uspillg = 1.0f;
+      m_settings->uspillb = 0.0f;
     }
   }
   else {
-    this->m_rmut = 1.0f;
-    this->m_gmut = 1.0f;
-    this->m_bmut = -1.0f;
+    m_rmut = 1.0f;
+    m_gmut = 1.0f;
+    m_bmut = -1.0f;
 
-    this->m_channel2 = 0;
-    this->m_channel3 = 1;
-    if (this->m_settings->unspill == 0) {
-      this->m_settings->uspillr = 0.0f;
-      this->m_settings->uspillg = 0.0f;
-      this->m_settings->uspillb = 1.0f;
+    m_channel2 = 0;
+    m_channel3 = 1;
+    if (m_settings->unspill == 0) {
+      m_settings->uspillr = 0.0f;
+      m_settings->uspillg = 0.0f;
+      m_settings->uspillb = 1.0f;
     }
   }
 }
 
 void ColorSpillOperation::deinitExecution()
 {
-  this->m_inputImageReader = nullptr;
-  this->m_inputFacReader = nullptr;
+  m_inputImageReader = nullptr;
+  m_inputFacReader = nullptr;
 }
 
 void ColorSpillOperation::executePixelSampled(float output[4],
@@ -90,27 +90,25 @@ void ColorSpillOperation::executePixelSampled(float output[4],
 {
   float fac[4];
   float input[4];
-  this->m_inputFacReader->readSampled(fac, x, y, sampler);
-  this->m_inputImageReader->readSampled(input, x, y, sampler);
+  m_inputFacReader->readSampled(fac, x, y, sampler);
+  m_inputImageReader->readSampled(input, x, y, sampler);
   float rfac = MIN2(1.0f, fac[0]);
   float map;
 
-  switch (this->m_spillMethod) {
+  switch (m_spillMethod) {
     case 0: /* simple */
-      map = rfac * (input[this->m_spillChannel] -
-                    (this->m_settings->limscale * input[this->m_settings->limchan]));
+      map = rfac * (input[m_spillChannel] - (m_settings->limscale * input[m_settings->limchan]));
       break;
     default: /* average */
-      map = rfac *
-            (input[this->m_spillChannel] -
-             (this->m_settings->limscale * AVG(input[this->m_channel2], input[this->m_channel3])));
+      map = rfac * (input[m_spillChannel] -
+                    (m_settings->limscale * AVG(input[m_channel2], input[m_channel3])));
       break;
   }
 
   if (map > 0.0f) {
-    output[0] = input[0] + this->m_rmut * (this->m_settings->uspillr * map);
-    output[1] = input[1] + this->m_gmut * (this->m_settings->uspillg * map);
-    output[2] = input[2] + this->m_bmut * (this->m_settings->uspillb * map);
+    output[0] = input[0] + m_rmut * (m_settings->uspillr * map);
+    output[1] = input[1] + m_gmut * (m_settings->uspillg * map);
+    output[2] = input[2] + m_bmut * (m_settings->uspillb * map);
     output[3] = input[3];
   }
   else {

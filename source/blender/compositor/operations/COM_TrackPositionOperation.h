@@ -60,35 +60,35 @@ class TrackPositionOperation : public ConstantOperation {
 
   void setMovieClip(MovieClip *clip)
   {
-    this->m_movieClip = clip;
+    m_movieClip = clip;
   }
   void setTrackingObject(char *object)
   {
-    BLI_strncpy(this->m_trackingObjectName, object, sizeof(this->m_trackingObjectName));
+    BLI_strncpy(m_trackingObjectName, object, sizeof(m_trackingObjectName));
   }
   void setTrackName(char *track)
   {
-    BLI_strncpy(this->m_trackName, track, sizeof(this->m_trackName));
+    BLI_strncpy(m_trackName, track, sizeof(m_trackName));
   }
   void setFramenumber(int framenumber)
   {
-    this->m_framenumber = framenumber;
+    m_framenumber = framenumber;
   }
   void setAxis(int value)
   {
-    this->m_axis = value;
+    m_axis = value;
   }
   void setPosition(int value)
   {
-    this->m_position = value;
+    m_position = value;
   }
   void setRelativeFrame(int value)
   {
-    this->m_relativeFrame = value;
+    m_relativeFrame = value;
   }
   void setSpeedOutput(bool speed_output)
   {
-    this->m_speed_output = speed_output;
+    m_speed_output = speed_output;
   }
 
   void initExecution() override;

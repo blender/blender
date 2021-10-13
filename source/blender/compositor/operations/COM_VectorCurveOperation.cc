@@ -27,12 +27,12 @@ VectorCurveOperation::VectorCurveOperation()
   this->addInputSocket(DataType::Vector);
   this->addOutputSocket(DataType::Vector);
 
-  this->m_inputProgram = nullptr;
+  m_inputProgram = nullptr;
 }
 void VectorCurveOperation::initExecution()
 {
   CurveBaseOperation::initExecution();
-  this->m_inputProgram = this->getInputSocketReader(0);
+  m_inputProgram = this->getInputSocketReader(0);
 }
 
 void VectorCurveOperation::executePixelSampled(float output[4],
@@ -42,22 +42,22 @@ void VectorCurveOperation::executePixelSampled(float output[4],
 {
   float input[4];
 
-  this->m_inputProgram->readSampled(input, x, y, sampler);
+  m_inputProgram->readSampled(input, x, y, sampler);
 
-  BKE_curvemapping_evaluate_premulRGBF(this->m_curveMapping, output, input);
+  BKE_curvemapping_evaluate_premulRGBF(m_curveMapping, output, input);
 }
 
 void VectorCurveOperation::deinitExecution()
 {
   CurveBaseOperation::deinitExecution();
-  this->m_inputProgram = nullptr;
+  m_inputProgram = nullptr;
 }
 
 void VectorCurveOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                         const rcti &area,
                                                         Span<MemoryBuffer *> inputs)
 {
-  CurveMapping *curve_map = this->m_curveMapping;
+  CurveMapping *curve_map = m_curveMapping;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     BKE_curvemapping_evaluate_premulRGBF(curve_map, it.out, it.in(0));
   }

@@ -68,20 +68,20 @@ class ConvertDepthToRadiusOperation : public MultiThreadedOperation {
 
   void setfStop(float fStop)
   {
-    this->m_fStop = fStop;
+    m_fStop = fStop;
   }
   void setMaxRadius(float maxRadius)
   {
-    this->m_maxRadius = maxRadius;
+    m_maxRadius = maxRadius;
   }
   void setCameraObject(Object *camera)
   {
-    this->m_cameraObject = camera;
+    m_cameraObject = camera;
   }
   float determineFocalDistance();
   void setPostBlur(FastGaussianBlurValueOperation *operation)
   {
-    this->m_blurPostOperation = operation;
+    m_blurPostOperation = operation;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

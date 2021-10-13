@@ -51,11 +51,11 @@ class GaussianAlphaBlurBaseOperation : public BlurBaseOperation {
    */
   void setSubtract(bool subtract)
   {
-    this->m_do_subtract = subtract;
+    m_do_subtract = subtract;
   }
   void setFalloff(int falloff)
   {
-    this->m_falloff = falloff;
+    m_falloff = falloff;
   }
 };
 

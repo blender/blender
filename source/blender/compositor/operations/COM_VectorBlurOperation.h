@@ -66,7 +66,7 @@ class VectorBlurOperation : public NodeOperation, public QualityStepHelper {
 
   void setVectorBlurSettings(NodeBlurData *settings)
   {
-    this->m_settings = settings;
+    m_settings = settings;
   }
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,

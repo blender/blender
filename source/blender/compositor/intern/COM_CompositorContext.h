@@ -99,7 +99,7 @@ class CompositorContext {
    */
   void setRendering(bool rendering)
   {
-    this->m_rendering = rendering;
+    m_rendering = rendering;
   }
 
   /**
@@ -107,7 +107,7 @@ class CompositorContext {
    */
   bool isRendering() const
   {
-    return this->m_rendering;
+    return m_rendering;
   }
 
   /**
@@ -115,7 +115,7 @@ class CompositorContext {
    */
   void setRenderData(RenderData *rd)
   {
-    this->m_rd = rd;
+    m_rd = rd;
   }
 
   /**
@@ -123,7 +123,7 @@ class CompositorContext {
    */
   void setbNodeTree(bNodeTree *bnodetree)
   {
-    this->m_bnodetree = bnodetree;
+    m_bnodetree = bnodetree;
   }
 
   /**
@@ -131,7 +131,7 @@ class CompositorContext {
    */
   const bNodeTree *getbNodeTree() const
   {
-    return this->m_bnodetree;
+    return m_bnodetree;
   }
 
   /**
@@ -139,7 +139,7 @@ class CompositorContext {
    */
   const RenderData *getRenderData() const
   {
-    return this->m_rd;
+    return m_rd;
   }
 
   void setScene(Scene *scene)
@@ -156,7 +156,7 @@ class CompositorContext {
    */
   void setPreviewHash(bNodeInstanceHash *previews)
   {
-    this->m_previews = previews;
+    m_previews = previews;
   }
 
   /**
@@ -164,7 +164,7 @@ class CompositorContext {
    */
   bNodeInstanceHash *getPreviewHash() const
   {
-    return this->m_previews;
+    return m_previews;
   }
 
   /**
@@ -172,7 +172,7 @@ class CompositorContext {
    */
   void setViewSettings(const ColorManagedViewSettings *viewSettings)
   {
-    this->m_viewSettings = viewSettings;
+    m_viewSettings = viewSettings;
   }
 
   /**
@@ -180,7 +180,7 @@ class CompositorContext {
    */
   const ColorManagedViewSettings *getViewSettings() const
   {
-    return this->m_viewSettings;
+    return m_viewSettings;
   }
 
   /**
@@ -188,7 +188,7 @@ class CompositorContext {
    */
   void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings)
   {
-    this->m_displaySettings = displaySettings;
+    m_displaySettings = displaySettings;
   }
 
   /**
@@ -196,7 +196,7 @@ class CompositorContext {
    */
   const ColorManagedDisplaySettings *getDisplaySettings() const
   {
-    return this->m_displaySettings;
+    return m_displaySettings;
   }
 
   /**
@@ -204,7 +204,7 @@ class CompositorContext {
    */
   void setQuality(eCompositorQuality quality)
   {
-    this->m_quality = quality;
+    m_quality = quality;
   }
 
   /**
@@ -212,7 +212,7 @@ class CompositorContext {
    */
   eCompositorQuality getQuality() const
   {
-    return this->m_quality;
+    return m_quality;
   }
 
   /**
@@ -225,7 +225,7 @@ class CompositorContext {
    */
   bool getHasActiveOpenCLDevices() const
   {
-    return this->m_hasActiveOpenCLDevices;
+    return m_hasActiveOpenCLDevices;
   }
 
   /**
@@ -233,7 +233,7 @@ class CompositorContext {
    */
   void setHasActiveOpenCLDevices(bool hasAvtiveOpenCLDevices)
   {
-    this->m_hasActiveOpenCLDevices = hasAvtiveOpenCLDevices;
+    m_hasActiveOpenCLDevices = hasAvtiveOpenCLDevices;
   }
 
   /** Whether it has a view with a specific name and not the default one. */
@@ -247,7 +247,7 @@ class CompositorContext {
    */
   const char *getViewName() const
   {
-    return this->m_viewName;
+    return m_viewName;
   }
 
   /**
@@ -255,7 +255,7 @@ class CompositorContext {
    */
   void setViewName(const char *viewName)
   {
-    this->m_viewName = viewName;
+    m_viewName = viewName;
   }
 
   int getChunksize() const
@@ -265,11 +265,11 @@ class CompositorContext {
 
   void setFastCalculation(bool fastCalculation)
   {
-    this->m_fastCalculation = fastCalculation;
+    m_fastCalculation = fastCalculation;
   }
   bool isFastCalculation() const
   {
-    return this->m_fastCalculation;
+    return m_fastCalculation;
   }
   bool isGroupnodeBufferEnabled() const
   {

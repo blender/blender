@@ -53,15 +53,15 @@ class ColorSpillOperation : public MultiThreadedOperation {
 
   void setSettings(NodeColorspill *nodeColorSpill)
   {
-    this->m_settings = nodeColorSpill;
+    m_settings = nodeColorSpill;
   }
   void setSpillChannel(int channel)
   {
-    this->m_spillChannel = channel;
+    m_spillChannel = channel;
   }
   void setSpillMethod(int method)
   {
-    this->m_spillMethod = method;
+    m_spillMethod = method;
   }
 
   float calculateMapValue(float fac, float *input);

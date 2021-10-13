@@ -24,16 +24,16 @@ namespace blender::compositor {
 WriteBufferOperation::WriteBufferOperation(DataType datatype)
 {
   this->addInputSocket(datatype);
-  this->m_memoryProxy = new MemoryProxy(datatype);
-  this->m_memoryProxy->setWriteBufferOperation(this);
-  this->m_memoryProxy->setExecutor(nullptr);
+  m_memoryProxy = new MemoryProxy(datatype);
+  m_memoryProxy->setWriteBufferOperation(this);
+  m_memoryProxy->setExecutor(nullptr);
   flags.is_write_buffer_operation = true;
 }
 WriteBufferOperation::~WriteBufferOperation()
 {
-  if (this->m_memoryProxy) {
-    delete this->m_memoryProxy;
-    this->m_memoryProxy = nullptr;
+  if (m_memoryProxy) {
+    delete m_memoryProxy;
+    m_memoryProxy = nullptr;
   }
 }
 
@@ -42,28 +42,28 @@ void WriteBufferOperation::executePixelSampled(float output[4],
                                                float y,
                                                PixelSampler sampler)
 {
-  this->m_input->readSampled(output, x, y, sampler);
+  m_input->readSampled(output, x, y, sampler);
 }
 
 void WriteBufferOperation::initExecution()
 {
-  this->m_input = this->getInputOperation(0);
-  this->m_memoryProxy->allocate(this->getWidth(), this->getHeight());
+  m_input = this->getInputOperation(0);
+  m_memoryProxy->allocate(this->getWidth(), this->getHeight());
 }
 
 void WriteBufferOperation::deinitExecution()
 {
-  this->m_input = nullptr;
-  this->m_memoryProxy->free();
+  m_input = nullptr;
+  m_memoryProxy->free();
 }
 
 void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 {
-  MemoryBuffer *memoryBuffer = this->m_memoryProxy->getBuffer();
+  MemoryBuffer *memoryBuffer = m_memoryProxy->getBuffer();
   float *buffer = memoryBuffer->getBuffer();
   const uint8_t num_channels = memoryBuffer->get_num_channels();
-  if (this->m_input->get_flags().complex) {
-    void *data = this->m_input->initializeTileData(rect);
+  if (m_input->get_flags().complex) {
+    void *data = m_input->initializeTileData(rect);
     int x1 = rect->xmin;
     int y1 = rect->ymin;
     int x2 = rect->xmax;
@@ -74,7 +74,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/
     for (y = y1; y < y2 && (!breaked); y++) {
       int offset4 = (y * memoryBuffer->getWidth() + x1) * num_channels;
       for (x = x1; x < x2; x++) {
-        this->m_input->read(&(buffer[offset4]), x, y, data);
+        m_input->read(&(buffer[offset4]), x, y, data);
         offset4 += num_channels;
       }
       if (isBraked()) {
@@ -82,7 +82,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/
       }
     }
     if (data) {
-      this->m_input->deinitializeTileData(rect, data);
+      m_input->deinitializeTileData(rect, data);
       data = nullptr;
     }
   }
@@ -98,7 +98,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/
     for (y = y1; y < y2 && (!breaked); y++) {
       int offset4 = (y * memoryBuffer->getWidth() + x1) * num_channels;
       for (x = x1; x < x2; x++) {
-        this->m_input->readSampled(&(buffer[offset4]), x, y, PixelSampler::Nearest);
+        m_input->readSampled(&(buffer[offset4]), x, y, PixelSampler::Nearest);
         offset4 += num_channels;
       }
       if (isBraked()) {
@@ -147,12 +147,12 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
   clMemToCleanUp->push_back(clOutputBuffer);
   std::list<cl_kernel> *clKernelsToCleanUp = new std::list<cl_kernel>();
 
-  this->m_input->executeOpenCL(device,
-                               outputBuffer,
-                               clOutputBuffer,
-                               inputMemoryBuffers,
-                               clMemToCleanUp,
-                               clKernelsToCleanUp);
+  m_input->executeOpenCL(device,
+                         outputBuffer,
+                         clOutputBuffer,
+                         inputMemoryBuffers,
+                         clMemToCleanUp,
+                         clKernelsToCleanUp);
 
   /* STEP 3 */
 

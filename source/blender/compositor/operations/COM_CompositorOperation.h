@@ -84,7 +84,7 @@ class CompositorOperation : public MultiThreadedOperation {
   CompositorOperation();
   bool isActiveCompositorOutput() const
   {
-    return this->m_active;
+    return m_active;
   }
   void executeRegion(rcti *rect, unsigned int tileNumber) override;
   void setScene(const struct Scene *scene)
@@ -93,15 +93,15 @@ class CompositorOperation : public MultiThreadedOperation {
   }
   void setSceneName(const char *sceneName)
   {
-    BLI_strncpy(this->m_sceneName, sceneName, sizeof(this->m_sceneName));
+    BLI_strncpy(m_sceneName, sceneName, sizeof(m_sceneName));
   }
   void setViewName(const char *viewName)
   {
-    this->m_viewName = viewName;
+    m_viewName = viewName;
   }
   void setRenderData(const RenderData *rd)
   {
-    this->m_rd = rd;
+    m_rd = rd;
   }
   bool isOutputOperation(bool /*rendering*/) const override
   {
@@ -116,11 +116,11 @@ class CompositorOperation : public MultiThreadedOperation {
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
   void setUseAlphaInput(bool value)
   {
-    this->m_useAlphaInput = value;
+    m_useAlphaInput = value;
   }
   void setActive(bool active)
   {
-    this->m_active = active;
+    m_active = active;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

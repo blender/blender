@@ -71,15 +71,15 @@ class ConvertColorProfileOperation : public NodeOperation {
 
   void setFromColorProfile(int colorProfile)
   {
-    this->m_fromProfile = colorProfile;
+    m_fromProfile = colorProfile;
   }
   void setToColorProfile(int colorProfile)
   {
-    this->m_toProfile = colorProfile;
+    m_toProfile = colorProfile;
   }
   void setPredivided(bool predivided)
   {
-    this->m_predivided = predivided;
+    m_predivided = predivided;
   }
 };
 

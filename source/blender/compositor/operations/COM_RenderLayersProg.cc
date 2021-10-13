@@ -28,9 +28,9 @@ RenderLayersProg::RenderLayersProg(const char *passName, DataType type, int elem
     : m_passName(passName)
 {
   this->setScene(nullptr);
-  this->m_inputBuffer = nullptr;
-  this->m_elementsize = elementsize;
-  this->m_rd = nullptr;
+  m_inputBuffer = nullptr;
+  m_elementsize = elementsize;
+  m_rd = nullptr;
   layer_buffer_ = nullptr;
 
   this->addOutputSocket(type);
@@ -52,8 +52,7 @@ void RenderLayersProg::initExecution()
 
       RenderLayer *rl = RE_GetRenderLayer(rr, view_layer->name);
       if (rl) {
-        this->m_inputBuffer = RE_RenderLayerGetPass(
-            rl, this->m_passName.c_str(), this->m_viewName);
+        m_inputBuffer = RE_RenderLayerGetPass(rl, m_passName.c_str(), m_viewName);
         if (m_inputBuffer) {
           layer_buffer_ = new MemoryBuffer(m_inputBuffer, m_elementsize, getWidth(), getHeight());
         }
@@ -73,10 +72,10 @@ void RenderLayersProg::doInterpolation(float output[4], float x, float y, PixelS
 
   int ix = x, iy = y;
   if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
-    if (this->m_elementsize == 1) {
+    if (m_elementsize == 1) {
       output[0] = 0.0f;
     }
-    else if (this->m_elementsize == 3) {
+    else if (m_elementsize == 3) {
       zero_v3(output);
     }
     else {
@@ -87,28 +86,26 @@ void RenderLayersProg::doInterpolation(float output[4], float x, float y, PixelS
 
   switch (sampler) {
     case PixelSampler::Nearest: {
-      offset = (iy * width + ix) * this->m_elementsize;
+      offset = (iy * width + ix) * m_elementsize;
 
-      if (this->m_elementsize == 1) {
-        output[0] = this->m_inputBuffer[offset];
+      if (m_elementsize == 1) {
+        output[0] = m_inputBuffer[offset];
       }
-      else if (this->m_elementsize == 3) {
-        copy_v3_v3(output, &this->m_inputBuffer[offset]);
+      else if (m_elementsize == 3) {
+        copy_v3_v3(output, &m_inputBuffer[offset]);
       }
       else {
-        copy_v4_v4(output, &this->m_inputBuffer[offset]);
+        copy_v4_v4(output, &m_inputBuffer[offset]);
       }
       break;
     }
 
     case PixelSampler::Bilinear:
-      BLI_bilinear_interpolation_fl(
-          this->m_inputBuffer, output, width, height, this->m_elementsize, x, y);
+      BLI_bilinear_interpolation_fl(m_inputBuffer, output, width, height, m_elementsize, x, y);
       break;
 
     case PixelSampler::Bicubic:
-      BLI_bicubic_interpolation_fl(
-          this->m_inputBuffer, output, width, height, this->m_elementsize, x, y);
+      BLI_bicubic_interpolation_fl(m_inputBuffer, output, width, height, m_elementsize, x, y);
       break;
   }
 }
@@ -116,7 +113,7 @@ void RenderLayersProg::doInterpolation(float output[4], float x, float y, PixelS
 void RenderLayersProg::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 #if 0
-  const RenderData *rd = this->m_rd;
+  const RenderData *rd = m_rd;
 
   int dx = 0, dy = 0;
 
@@ -138,7 +135,7 @@ void RenderLayersProg::executePixelSampled(float output[4], float x, float y, Pi
 #ifndef NDEBUG
   {
     const DataType data_type = this->getOutputSocket()->getDataType();
-    int actual_element_size = this->m_elementsize;
+    int actual_element_size = m_elementsize;
     int expected_element_size;
     if (data_type == DataType::Value) {
       expected_element_size = 1;
@@ -157,8 +154,8 @@ void RenderLayersProg::executePixelSampled(float output[4], float x, float y, Pi
   }
 #endif
 
-  if (this->m_inputBuffer == nullptr) {
-    int elemsize = this->m_elementsize;
+  if (m_inputBuffer == nullptr) {
+    int elemsize = m_elementsize;
     if (elemsize == 1) {
       output[0] = 0.0f;
     }
@@ -177,7 +174,7 @@ void RenderLayersProg::executePixelSampled(float output[4], float x, float y, Pi
 
 void RenderLayersProg::deinitExecution()
 {
-  this->m_inputBuffer = nullptr;
+  m_inputBuffer = nullptr;
   if (layer_buffer_) {
     delete layer_buffer_;
     layer_buffer_ = nullptr;

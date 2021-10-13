@@ -23,9 +23,9 @@ namespace blender::compositor {
 
 MemoryProxy::MemoryProxy(DataType datatype)
 {
-  this->m_writeBufferOperation = nullptr;
-  this->m_executor = nullptr;
-  this->m_datatype = datatype;
+  m_writeBufferOperation = nullptr;
+  m_executor = nullptr;
+  m_datatype = datatype;
 }
 
 void MemoryProxy::allocate(unsigned int width, unsigned int height)
@@ -36,14 +36,14 @@ void MemoryProxy::allocate(unsigned int width, unsigned int height)
   result.ymin = 0;
   result.ymax = height;
 
-  this->m_buffer = new MemoryBuffer(this, result, MemoryBufferState::Default);
+  m_buffer = new MemoryBuffer(this, result, MemoryBufferState::Default);
 }
 
 void MemoryProxy::free()
 {
-  if (this->m_buffer) {
-    delete this->m_buffer;
-    this->m_buffer = nullptr;
+  if (m_buffer) {
+    delete m_buffer;
+    m_buffer = nullptr;
   }
 }
 

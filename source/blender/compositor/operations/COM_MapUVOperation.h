@@ -72,7 +72,7 @@ class MapUVOperation : public MultiThreadedOperation {
 
   void setAlpha(float alpha)
   {
-    this->m_alpha = alpha;
+    m_alpha = alpha;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

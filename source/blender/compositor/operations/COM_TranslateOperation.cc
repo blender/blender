@@ -30,28 +30,28 @@ TranslateOperation::TranslateOperation(DataType data_type, ResizeMode resize_mod
   this->addInputSocket(DataType::Value, ResizeMode::None);
   this->addOutputSocket(data_type);
   this->set_canvas_input_index(0);
-  this->m_inputOperation = nullptr;
-  this->m_inputXOperation = nullptr;
-  this->m_inputYOperation = nullptr;
-  this->m_isDeltaSet = false;
-  this->m_factorX = 1.0f;
-  this->m_factorY = 1.0f;
+  m_inputOperation = nullptr;
+  m_inputXOperation = nullptr;
+  m_inputYOperation = nullptr;
+  m_isDeltaSet = false;
+  m_factorX = 1.0f;
+  m_factorY = 1.0f;
   this->x_extend_mode_ = MemoryBufferExtend::Clip;
   this->y_extend_mode_ = MemoryBufferExtend::Clip;
 }
 
 void TranslateOperation::initExecution()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
-  this->m_inputXOperation = this->getInputSocketReader(1);
-  this->m_inputYOperation = this->getInputSocketReader(2);
+  m_inputOperation = this->getInputSocketReader(0);
+  m_inputXOperation = this->getInputSocketReader(1);
+  m_inputYOperation = this->getInputSocketReader(2);
 }
 
 void TranslateOperation::deinitExecution()
 {
-  this->m_inputOperation = nullptr;
-  this->m_inputXOperation = nullptr;
-  this->m_inputYOperation = nullptr;
+  m_inputOperation = nullptr;
+  m_inputXOperation = nullptr;
+  m_inputYOperation = nullptr;
 }
 
 void TranslateOperation::executePixelSampled(float output[4],
@@ -64,7 +64,7 @@ void TranslateOperation::executePixelSampled(float output[4],
   float originalXPos = x - this->getDeltaX();
   float originalYPos = y - this->getDeltaY();
 
-  this->m_inputOperation->readSampled(output, originalXPos, originalYPos, PixelSampler::Bilinear);
+  m_inputOperation->readSampled(output, originalXPos, originalYPos, PixelSampler::Bilinear);
 }
 
 bool TranslateOperation::determineDependingAreaOfInterest(rcti *input,

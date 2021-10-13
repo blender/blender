@@ -62,19 +62,19 @@ class MovieClipAttributeOperation : public ConstantOperation {
 
   void setMovieClip(MovieClip *clip)
   {
-    this->m_clip = clip;
+    m_clip = clip;
   }
   void setFramenumber(int framenumber)
   {
-    this->m_framenumber = framenumber;
+    m_framenumber = framenumber;
   }
   void setAttribute(MovieClipAttribute attribute)
   {
-    this->m_attribute = attribute;
+    m_attribute = attribute;
   }
   void setInvert(bool invert)
   {
-    this->m_invert = invert;
+    m_invert = invert;
   }
 
   /**

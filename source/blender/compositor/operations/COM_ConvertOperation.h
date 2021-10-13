@@ -221,7 +221,7 @@ class SeparateChannelOperation : public MultiThreadedOperation {
 
   void setChannel(int channel)
   {
-    this->m_channel = channel;
+    m_channel = channel;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

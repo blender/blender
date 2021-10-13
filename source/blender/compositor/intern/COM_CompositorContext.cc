@@ -22,14 +22,14 @@ namespace blender::compositor {
 
 CompositorContext::CompositorContext()
 {
-  this->m_scene = nullptr;
-  this->m_rd = nullptr;
-  this->m_quality = eCompositorQuality::High;
-  this->m_hasActiveOpenCLDevices = false;
-  this->m_fastCalculation = false;
-  this->m_viewSettings = nullptr;
-  this->m_displaySettings = nullptr;
-  this->m_bnodetree = nullptr;
+  m_scene = nullptr;
+  m_rd = nullptr;
+  m_quality = eCompositorQuality::High;
+  m_hasActiveOpenCLDevices = false;
+  m_fastCalculation = false;
+  m_viewSettings = nullptr;
+  m_displaySettings = nullptr;
+  m_bnodetree = nullptr;
 }
 
 int CompositorContext::getFramenumber() const

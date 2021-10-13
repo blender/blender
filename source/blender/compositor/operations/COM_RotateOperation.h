@@ -89,7 +89,7 @@ class RotateOperation : public MultiThreadedOperation {
 
   void setDoDegree2RadConversion(bool abool)
   {
-    this->m_doDegree2RadConversion = abool;
+    m_doDegree2RadConversion = abool;
   }
 
   void set_sampler(PixelSampler sampler)

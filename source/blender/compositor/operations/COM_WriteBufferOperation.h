@@ -40,7 +40,7 @@ class WriteBufferOperation : public NodeOperation {
   ~WriteBufferOperation();
   MemoryProxy *getMemoryProxy()
   {
-    return this->m_memoryProxy;
+    return m_memoryProxy;
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
   bool isSingleValue() const

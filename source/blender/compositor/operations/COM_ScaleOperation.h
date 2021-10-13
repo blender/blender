@@ -29,7 +29,7 @@ class BaseScaleOperation : public MultiThreadedOperation {
  public:
   void setSampler(PixelSampler sampler)
   {
-    this->m_sampler = (int)sampler;
+    m_sampler = (int)sampler;
   }
   void setVariableSize(bool variable_size)
   {
@@ -184,24 +184,24 @@ class ScaleFixedSizeOperation : public BaseScaleOperation {
   void deinitExecution() override;
   void setNewWidth(int width)
   {
-    this->m_newWidth = width;
+    m_newWidth = width;
   }
   void setNewHeight(int height)
   {
-    this->m_newHeight = height;
+    m_newHeight = height;
   }
   void setIsAspect(bool is_aspect)
   {
-    this->m_is_aspect = is_aspect;
+    m_is_aspect = is_aspect;
   }
   void setIsCrop(bool is_crop)
   {
-    this->m_is_crop = is_crop;
+    m_is_crop = is_crop;
   }
   void setOffset(float x, float y)
   {
-    this->m_offsetX = x;
-    this->m_offsetY = y;
+    m_offsetX = x;
+    m_offsetY = y;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

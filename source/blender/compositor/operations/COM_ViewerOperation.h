@@ -68,65 +68,65 @@ class ViewerOperation : public MultiThreadedOperation {
   }
   void setImage(Image *image)
   {
-    this->m_image = image;
+    m_image = image;
   }
   void setImageUser(ImageUser *imageUser)
   {
-    this->m_imageUser = imageUser;
+    m_imageUser = imageUser;
   }
   bool isActiveViewerOutput() const override
   {
-    return this->m_active;
+    return m_active;
   }
   void setActive(bool active)
   {
-    this->m_active = active;
+    m_active = active;
   }
   void setCenterX(float centerX)
   {
-    this->m_centerX = centerX;
+    m_centerX = centerX;
   }
   void setCenterY(float centerY)
   {
-    this->m_centerY = centerY;
+    m_centerY = centerY;
   }
   void setChunkOrder(ChunkOrdering tileOrder)
   {
-    this->m_chunkOrder = tileOrder;
+    m_chunkOrder = tileOrder;
   }
   float getCenterX() const
   {
-    return this->m_centerX;
+    return m_centerX;
   }
   float getCenterY() const
   {
-    return this->m_centerY;
+    return m_centerY;
   }
   ChunkOrdering getChunkOrder() const
   {
-    return this->m_chunkOrder;
+    return m_chunkOrder;
   }
   eCompositorPriority getRenderPriority() const override;
   void setUseAlphaInput(bool value)
   {
-    this->m_useAlphaInput = value;
+    m_useAlphaInput = value;
   }
   void setRenderData(const RenderData *rd)
   {
-    this->m_rd = rd;
+    m_rd = rd;
   }
   void setViewName(const char *viewName)
   {
-    this->m_viewName = viewName;
+    m_viewName = viewName;
   }
 
   void setViewSettings(const ColorManagedViewSettings *viewSettings)
   {
-    this->m_viewSettings = viewSettings;
+    m_viewSettings = viewSettings;
   }
   void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings)
   {
-    this->m_displaySettings = displaySettings;
+    m_displaySettings = displaySettings;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

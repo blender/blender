@@ -68,7 +68,7 @@ class MemoryProxy {
    */
   void setExecutor(ExecutionGroup *executor)
   {
-    this->m_executor = executor;
+    m_executor = executor;
   }
 
   /**
@@ -76,7 +76,7 @@ class MemoryProxy {
    */
   ExecutionGroup *getExecutor() const
   {
-    return this->m_executor;
+    return m_executor;
   }
 
   /**
@@ -85,7 +85,7 @@ class MemoryProxy {
    */
   void setWriteBufferOperation(WriteBufferOperation *operation)
   {
-    this->m_writeBufferOperation = operation;
+    m_writeBufferOperation = operation;
   }
 
   /**
@@ -94,7 +94,7 @@ class MemoryProxy {
    */
   WriteBufferOperation *getWriteBufferOperation() const
   {
-    return this->m_writeBufferOperation;
+    return m_writeBufferOperation;
   }
 
   /**
@@ -112,12 +112,12 @@ class MemoryProxy {
    */
   inline MemoryBuffer *getBuffer()
   {
-    return this->m_buffer;
+    return m_buffer;
   }
 
   inline DataType getDataType()
   {
-    return this->m_datatype;
+    return m_datatype;
   }
 
 #ifdef WITH_CXX_GUARDEDALLOC

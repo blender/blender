@@ -40,25 +40,25 @@ class KeyingClipOperation : public MultiThreadedOperation {
 
   void setClipBlack(float value)
   {
-    this->m_clipBlack = value;
+    m_clipBlack = value;
   }
   void setClipWhite(float value)
   {
-    this->m_clipWhite = value;
+    m_clipWhite = value;
   }
 
   void setKernelRadius(int value)
   {
-    this->m_kernelRadius = value;
+    m_kernelRadius = value;
   }
   void setKernelTolerance(float value)
   {
-    this->m_kernelTolerance = value;
+    m_kernelTolerance = value;
   }
 
   void setIsEdgeMatte(bool value)
   {
-    this->m_isEdgeMatte = value;
+    m_isEdgeMatte = value;
   }
 
   void *initializeTileData(rcti *rect) override;

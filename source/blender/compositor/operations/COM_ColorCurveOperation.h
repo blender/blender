@@ -85,11 +85,11 @@ class ConstantLevelColorCurveOperation : public CurveBaseOperation {
 
   void setBlackLevel(float black[3])
   {
-    copy_v3_v3(this->m_black, black);
+    copy_v3_v3(m_black, black);
   }
   void setWhiteLevel(float white[3])
   {
-    copy_v3_v3(this->m_white, white);
+    copy_v3_v3(m_white, white);
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

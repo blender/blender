@@ -72,17 +72,17 @@ class VariableSizeBokehBlurOperation : public MultiThreadedOperation, public Qua
 
   void setMaxBlur(int maxRadius)
   {
-    this->m_maxBlur = maxRadius;
+    m_maxBlur = maxRadius;
   }
 
   void setThreshold(float threshold)
   {
-    this->m_threshold = threshold;
+    m_threshold = threshold;
   }
 
   void setDoScaleSize(bool scale_size)
   {
-    this->m_do_size_scale = scale_size;
+    m_do_size_scale = scale_size;
   }
 
   void executeOpenCL(OpenCLDevice *device,
@@ -134,7 +134,7 @@ class InverseSearchRadiusOperation : public NodeOperation {
 
   void setMaxBlur(int maxRadius)
   {
-    this->m_maxBlur = maxRadius;
+    m_maxBlur = maxRadius;
   }
 };
 #endif

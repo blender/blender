@@ -61,7 +61,7 @@ class MapValueOperation : public MultiThreadedOperation {
    */
   void setSettings(TexMapping *settings)
   {
-    this->m_settings = settings;
+    m_settings = settings;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

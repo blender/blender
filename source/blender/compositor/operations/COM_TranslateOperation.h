@@ -56,29 +56,29 @@ class TranslateOperation : public MultiThreadedOperation {
 
   float getDeltaX()
   {
-    return this->m_deltaX * this->m_factorX;
+    return m_deltaX * m_factorX;
   }
   float getDeltaY()
   {
-    return this->m_deltaY * this->m_factorY;
+    return m_deltaY * m_factorY;
   }
 
   inline void ensureDelta()
   {
-    if (!this->m_isDeltaSet) {
+    if (!m_isDeltaSet) {
       if (execution_model_ == eExecutionModel::Tiled) {
         float tempDelta[4];
-        this->m_inputXOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
-        this->m_deltaX = tempDelta[0];
-        this->m_inputYOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
-        this->m_deltaY = tempDelta[0];
+        m_inputXOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
+        m_deltaX = tempDelta[0];
+        m_inputYOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
+        m_deltaY = tempDelta[0];
       }
       else {
         m_deltaX = get_input_operation(X_INPUT_INDEX)->get_constant_value_default(0.0f);
         m_deltaY = get_input_operation(Y_INPUT_INDEX)->get_constant_value_default(0.0f);
       }
 
-      this->m_isDeltaSet = true;
+      m_isDeltaSet = true;
     }
   }
 

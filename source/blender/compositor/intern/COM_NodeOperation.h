@@ -125,11 +125,11 @@ class NodeOperationInput {
 
   void setResizeMode(ResizeMode resizeMode)
   {
-    this->m_resizeMode = resizeMode;
+    m_resizeMode = resizeMode;
   }
   ResizeMode getResizeMode() const
   {
-    return this->m_resizeMode;
+    return m_resizeMode;
   }
 
   SocketReader *getReader();
@@ -442,7 +442,7 @@ class NodeOperation {
 
   void setbNodeTree(const bNodeTree *tree)
   {
-    this->m_btree = tree;
+    m_btree = tree;
   }
 
   void set_execution_system(ExecutionSystem *system)
@@ -561,13 +561,13 @@ class NodeOperation {
 
   inline bool isBraked() const
   {
-    return this->m_btree->test_break(this->m_btree->tbh);
+    return m_btree->test_break(m_btree->tbh);
   }
 
   inline void updateDraw()
   {
-    if (this->m_btree->update_draw) {
-      this->m_btree->update_draw(this->m_btree->udh);
+    if (m_btree->update_draw) {
+      m_btree->update_draw(m_btree->udh);
     }
   }
 

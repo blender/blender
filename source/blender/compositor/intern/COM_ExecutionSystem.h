@@ -200,7 +200,7 @@ class ExecutionSystem {
    */
   const CompositorContext &getContext() const
   {
-    return this->m_context;
+    return m_context;
   }
 
   SharedOperationBuffers &get_active_buffers()

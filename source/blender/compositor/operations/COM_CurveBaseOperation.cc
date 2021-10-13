@@ -24,37 +24,37 @@ namespace blender::compositor {
 
 CurveBaseOperation::CurveBaseOperation()
 {
-  this->m_curveMapping = nullptr;
+  m_curveMapping = nullptr;
   this->flags.can_be_constant = true;
 }
 
 CurveBaseOperation::~CurveBaseOperation()
 {
-  if (this->m_curveMapping) {
-    BKE_curvemapping_free(this->m_curveMapping);
-    this->m_curveMapping = nullptr;
+  if (m_curveMapping) {
+    BKE_curvemapping_free(m_curveMapping);
+    m_curveMapping = nullptr;
   }
 }
 
 void CurveBaseOperation::initExecution()
 {
-  BKE_curvemapping_init(this->m_curveMapping);
+  BKE_curvemapping_init(m_curveMapping);
 }
 void CurveBaseOperation::deinitExecution()
 {
-  if (this->m_curveMapping) {
-    BKE_curvemapping_free(this->m_curveMapping);
-    this->m_curveMapping = nullptr;
+  if (m_curveMapping) {
+    BKE_curvemapping_free(m_curveMapping);
+    m_curveMapping = nullptr;
   }
 }
 
 void CurveBaseOperation::setCurveMapping(CurveMapping *mapping)
 {
   /* duplicate the curve to avoid glitches while drawing, see bug T32374. */
-  if (this->m_curveMapping) {
-    BKE_curvemapping_free(this->m_curveMapping);
+  if (m_curveMapping) {
+    BKE_curvemapping_free(m_curveMapping);
   }
-  this->m_curveMapping = BKE_curvemapping_copy(mapping);
+  m_curveMapping = BKE_curvemapping_copy(mapping);
 }
 
 }  // namespace blender::compositor

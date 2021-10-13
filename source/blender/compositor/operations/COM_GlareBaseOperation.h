@@ -64,7 +64,7 @@ class GlareBaseOperation : public SingleThreadedOperation {
 
   void setGlareSettings(NodeGlare *settings)
   {
-    this->m_settings = settings;
+    m_settings = settings;
   }
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,

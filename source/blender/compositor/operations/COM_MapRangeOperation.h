@@ -66,7 +66,7 @@ class MapRangeOperation : public MultiThreadedOperation {
    */
   void setUseClamp(bool value)
   {
-    this->m_useClamp = value;
+    m_useClamp = value;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

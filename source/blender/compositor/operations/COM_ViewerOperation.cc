@@ -33,23 +33,23 @@ ViewerOperation::ViewerOperation()
 {
   this->setImage(nullptr);
   this->setImageUser(nullptr);
-  this->m_outputBuffer = nullptr;
-  this->m_depthBuffer = nullptr;
-  this->m_active = false;
-  this->m_doDepthBuffer = false;
-  this->m_viewSettings = nullptr;
-  this->m_displaySettings = nullptr;
-  this->m_useAlphaInput = false;
+  m_outputBuffer = nullptr;
+  m_depthBuffer = nullptr;
+  m_active = false;
+  m_doDepthBuffer = false;
+  m_viewSettings = nullptr;
+  m_displaySettings = nullptr;
+  m_useAlphaInput = false;
 
   this->addInputSocket(DataType::Color);
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
 
-  this->m_imageInput = nullptr;
-  this->m_alphaInput = nullptr;
-  this->m_depthInput = nullptr;
-  this->m_rd = nullptr;
-  this->m_viewName = nullptr;
+  m_imageInput = nullptr;
+  m_alphaInput = nullptr;
+  m_depthInput = nullptr;
+  m_rd = nullptr;
+  m_viewName = nullptr;
   flags.use_viewer_border = true;
   flags.is_viewer_operation = true;
 }
@@ -57,10 +57,10 @@ ViewerOperation::ViewerOperation()
 void ViewerOperation::initExecution()
 {
   /* When initializing the tree during initial load the width and height can be zero. */
-  this->m_imageInput = getInputSocketReader(0);
-  this->m_alphaInput = getInputSocketReader(1);
-  this->m_depthInput = getInputSocketReader(2);
-  this->m_doDepthBuffer = (this->m_depthInput != nullptr);
+  m_imageInput = getInputSocketReader(0);
+  m_alphaInput = getInputSocketReader(1);
+  m_depthInput = getInputSocketReader(2);
+  m_doDepthBuffer = (m_depthInput != nullptr);
 
   if (isActiveViewerOutput() && !exec_system_->is_breaked()) {
     initImage();
@@ -69,16 +69,16 @@ void ViewerOperation::initExecution()
 
 void ViewerOperation::deinitExecution()
 {
-  this->m_imageInput = nullptr;
-  this->m_alphaInput = nullptr;
-  this->m_depthInput = nullptr;
-  this->m_outputBuffer = nullptr;
+  m_imageInput = nullptr;
+  m_alphaInput = nullptr;
+  m_depthInput = nullptr;
+  m_outputBuffer = nullptr;
 }
 
 void ViewerOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 {
-  float *buffer = this->m_outputBuffer;
-  float *depthbuffer = this->m_depthBuffer;
+  float *buffer = m_outputBuffer;
+  float *depthbuffer = m_depthBuffer;
   if (!buffer) {
     return;
   }
@@ -97,12 +97,12 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 
   for (y = y1; y < y2 && (!breaked); y++) {
     for (x = x1; x < x2; x++) {
-      this->m_imageInput->readSampled(&(buffer[offset4]), x, y, PixelSampler::Nearest);
-      if (this->m_useAlphaInput) {
-        this->m_alphaInput->readSampled(alpha, x, y, PixelSampler::Nearest);
+      m_imageInput->readSampled(&(buffer[offset4]), x, y, PixelSampler::Nearest);
+      if (m_useAlphaInput) {
+        m_alphaInput->readSampled(alpha, x, y, PixelSampler::Nearest);
         buffer[offset4 + 3] = alpha[0];
       }
-      this->m_depthInput->readSampled(depth, x, y, PixelSampler::Nearest);
+      m_depthInput->readSampled(depth, x, y, PixelSampler::Nearest);
       depthbuffer[offset] = depth[0];
 
       offset++;
@@ -119,8 +119,8 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 
 void ViewerOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  const int sceneRenderWidth = this->m_rd->xsch * this->m_rd->size / 100;
-  const int sceneRenderHeight = this->m_rd->ysch * this->m_rd->size / 100;
+  const int sceneRenderWidth = m_rd->xsch * m_rd->size / 100;
+  const int sceneRenderHeight = m_rd->ysch * m_rd->size / 100;
 
   rcti local_preferred = preferred_area;
   local_preferred.xmax = local_preferred.xmin + sceneRenderWidth;
@@ -131,20 +131,20 @@ void ViewerOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 
 void ViewerOperation::initImage()
 {
-  Image *ima = this->m_image;
-  ImageUser iuser = *this->m_imageUser;
+  Image *ima = m_image;
+  ImageUser iuser = *m_imageUser;
   void *lock;
   ImBuf *ibuf;
 
   /* make sure the image has the correct number of views */
-  if (ima && BKE_scene_multiview_is_render_view_first(this->m_rd, this->m_viewName)) {
-    BKE_image_ensure_viewer_views(this->m_rd, ima, this->m_imageUser);
+  if (ima && BKE_scene_multiview_is_render_view_first(m_rd, m_viewName)) {
+    BKE_image_ensure_viewer_views(m_rd, ima, m_imageUser);
   }
 
   BLI_thread_lock(LOCK_DRAW_IMAGE);
 
   /* local changes to the original ImageUser */
-  iuser.multi_index = BKE_scene_multiview_view_id_get(this->m_rd, this->m_viewName);
+  iuser.multi_index = BKE_scene_multiview_view_id_get(m_rd, m_viewName);
   ibuf = BKE_image_acquire_ibuf(ima, &iuser, &lock);
 
   if (!ibuf) {
@@ -184,16 +184,16 @@ void ViewerOperation::initImage()
   }
 
   /* now we combine the input with ibuf */
-  this->m_outputBuffer = ibuf->rect_float;
+  m_outputBuffer = ibuf->rect_float;
 
   /* needed for display buffer update */
-  this->m_ibuf = ibuf;
+  m_ibuf = ibuf;
 
   if (m_doDepthBuffer) {
-    this->m_depthBuffer = ibuf->zbuf_float;
+    m_depthBuffer = ibuf->zbuf_float;
   }
 
-  BKE_image_release_ibuf(this->m_image, this->m_ibuf, lock);
+  BKE_image_release_ibuf(m_image, m_ibuf, lock);
 
   BLI_thread_unlock(LOCK_DRAW_IMAGE);
 }
@@ -205,19 +205,19 @@ void ViewerOperation::updateImage(const rcti *rect)
   }
 
   float *buffer = m_outputBuffer;
-  IMB_partial_display_buffer_update(this->m_ibuf,
+  IMB_partial_display_buffer_update(m_ibuf,
                                     buffer,
                                     nullptr,
                                     display_width_,
                                     0,
                                     0,
-                                    this->m_viewSettings,
-                                    this->m_displaySettings,
+                                    m_viewSettings,
+                                    m_displaySettings,
                                     rect->xmin,
                                     rect->ymin,
                                     rect->xmax,
                                     rect->ymax);
-  this->m_image->gpuflag |= IMA_GPU_REFRESH;
+  m_image->gpuflag |= IMA_GPU_REFRESH;
   this->updateDraw();
 }
 
@@ -244,7 +244,7 @@ void ViewerOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
       m_outputBuffer, COM_DATA_TYPE_COLOR_CHANNELS, display_width_, display_height_);
   const MemoryBuffer *input_image = inputs[0];
   output_buffer.copy_from(input_image, area, offset_x, offset_y);
-  if (this->m_useAlphaInput) {
+  if (m_useAlphaInput) {
     const MemoryBuffer *input_alpha = inputs[1];
     output_buffer.copy_from(
         input_alpha, area, 0, COM_DATA_TYPE_VALUE_CHANNELS, offset_x, offset_y, 3);

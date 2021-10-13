@@ -91,15 +91,15 @@ class MixBaseOperation : public MultiThreadedOperation {
 
   void setUseValueAlphaMultiply(const bool value)
   {
-    this->m_valueAlphaMultiply = value;
+    m_valueAlphaMultiply = value;
   }
   inline bool useValueAlphaMultiply()
   {
-    return this->m_valueAlphaMultiply;
+    return m_valueAlphaMultiply;
   }
   void setUseClamp(bool value)
   {
-    this->m_useClamp = value;
+    m_useClamp = value;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

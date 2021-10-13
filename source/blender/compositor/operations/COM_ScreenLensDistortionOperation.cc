@@ -33,12 +33,12 @@ ScreenLensDistortionOperation::ScreenLensDistortionOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
-  this->m_inputProgram = nullptr;
-  this->m_distortion = 0.0f;
-  this->m_dispersion = 0.0f;
-  this->m_distortion_const = false;
-  this->m_dispersion_const = false;
-  this->m_variables_ready = false;
+  m_inputProgram = nullptr;
+  m_distortion = 0.0f;
+  m_dispersion = 0.0f;
+  m_distortion_const = false;
+  m_dispersion_const = false;
+  m_variables_ready = false;
 }
 
 void ScreenLensDistortionOperation::setDistortion(float distortion)
@@ -55,8 +55,8 @@ void ScreenLensDistortionOperation::setDispersion(float dispersion)
 
 void ScreenLensDistortionOperation::init_data()
 {
-  this->m_cx = 0.5f * (float)getWidth();
-  this->m_cy = 0.5f * (float)getHeight();
+  m_cx = 0.5f * (float)getWidth();
+  m_cy = 0.5f * (float)getHeight();
 
   switch (execution_model_) {
     case eExecutionModel::FullFrame: {
@@ -84,17 +84,17 @@ void ScreenLensDistortionOperation::init_data()
 
 void ScreenLensDistortionOperation::initExecution()
 {
-  this->m_inputProgram = this->getInputSocketReader(0);
+  m_inputProgram = this->getInputSocketReader(0);
   this->initMutex();
 
   uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
   rng_seed ^= (uint)POINTER_AS_INT(m_inputProgram);
-  this->m_rng = BLI_rng_new(rng_seed);
+  m_rng = BLI_rng_new(rng_seed);
 }
 
 void *ScreenLensDistortionOperation::initializeTileData(rcti * /*rect*/)
 {
-  void *buffer = this->m_inputProgram->initializeTileData(nullptr);
+  void *buffer = m_inputProgram->initializeTileData(nullptr);
 
   /* get distortion/dispersion values once, by reading inputs at (0,0)
    * XXX this assumes invariable values (no image inputs),
@@ -231,8 +231,8 @@ void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, 
 void ScreenLensDistortionOperation::deinitExecution()
 {
   this->deinitMutex();
-  this->m_inputProgram = nullptr;
-  BLI_rng_free(this->m_rng);
+  m_inputProgram = nullptr;
+  BLI_rng_free(m_rng);
 }
 
 void ScreenLensDistortionOperation::determineUV(float result[6], float x, float y) const

@@ -29,12 +29,12 @@ HueSaturationValueCorrectOperation::HueSaturationValueCorrectOperation()
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
 
-  this->m_inputProgram = nullptr;
+  m_inputProgram = nullptr;
 }
 void HueSaturationValueCorrectOperation::initExecution()
 {
   CurveBaseOperation::initExecution();
-  this->m_inputProgram = this->getInputSocketReader(0);
+  m_inputProgram = this->getInputSocketReader(0);
 }
 
 void HueSaturationValueCorrectOperation::executePixelSampled(float output[4],
@@ -44,18 +44,18 @@ void HueSaturationValueCorrectOperation::executePixelSampled(float output[4],
 {
   float hsv[4], f;
 
-  this->m_inputProgram->readSampled(hsv, x, y, sampler);
+  m_inputProgram->readSampled(hsv, x, y, sampler);
 
   /* adjust hue, scaling returned default 0.5 up to 1 */
-  f = BKE_curvemapping_evaluateF(this->m_curveMapping, 0, hsv[0]);
+  f = BKE_curvemapping_evaluateF(m_curveMapping, 0, hsv[0]);
   hsv[0] += f - 0.5f;
 
   /* adjust saturation, scaling returned default 0.5 up to 1 */
-  f = BKE_curvemapping_evaluateF(this->m_curveMapping, 1, hsv[0]);
+  f = BKE_curvemapping_evaluateF(m_curveMapping, 1, hsv[0]);
   hsv[1] *= (f * 2.0f);
 
   /* adjust value, scaling returned default 0.5 up to 1 */
-  f = BKE_curvemapping_evaluateF(this->m_curveMapping, 2, hsv[0]);
+  f = BKE_curvemapping_evaluateF(m_curveMapping, 2, hsv[0]);
   hsv[2] *= (f * 2.0f);
 
   hsv[0] = hsv[0] - floorf(hsv[0]); /* mod 1.0 */
@@ -70,7 +70,7 @@ void HueSaturationValueCorrectOperation::executePixelSampled(float output[4],
 void HueSaturationValueCorrectOperation::deinitExecution()
 {
   CurveBaseOperation::deinitExecution();
-  this->m_inputProgram = nullptr;
+  m_inputProgram = nullptr;
 }
 
 void HueSaturationValueCorrectOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -82,15 +82,15 @@ void HueSaturationValueCorrectOperation::update_memory_buffer_partial(MemoryBuff
     copy_v4_v4(hsv, it.in(0));
 
     /* Adjust hue, scaling returned default 0.5 up to 1. */
-    float f = BKE_curvemapping_evaluateF(this->m_curveMapping, 0, hsv[0]);
+    float f = BKE_curvemapping_evaluateF(m_curveMapping, 0, hsv[0]);
     hsv[0] += f - 0.5f;
 
     /* Adjust saturation, scaling returned default 0.5 up to 1. */
-    f = BKE_curvemapping_evaluateF(this->m_curveMapping, 1, hsv[0]);
+    f = BKE_curvemapping_evaluateF(m_curveMapping, 1, hsv[0]);
     hsv[1] *= (f * 2.0f);
 
     /* Adjust value, scaling returned default 0.5 up to 1. */
-    f = BKE_curvemapping_evaluateF(this->m_curveMapping, 2, hsv[0]);
+    f = BKE_curvemapping_evaluateF(m_curveMapping, 2, hsv[0]);
     hsv[2] *= (f * 2.0f);
 
     hsv[0] = hsv[0] - floorf(hsv[0]); /* Mod 1.0. */

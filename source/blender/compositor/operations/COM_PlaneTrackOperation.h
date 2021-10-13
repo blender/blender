@@ -48,19 +48,19 @@ class PlaneTrackCommon {
 
   void setMovieClip(MovieClip *clip)
   {
-    this->m_movieClip = clip;
+    m_movieClip = clip;
   }
   void setTrackingObject(char *object)
   {
-    BLI_strncpy(this->m_trackingObjectName, object, sizeof(this->m_trackingObjectName));
+    BLI_strncpy(m_trackingObjectName, object, sizeof(m_trackingObjectName));
   }
   void setPlaneTrackName(char *plane_track)
   {
-    BLI_strncpy(this->m_planeTrackName, plane_track, sizeof(this->m_planeTrackName));
+    BLI_strncpy(m_planeTrackName, plane_track, sizeof(m_planeTrackName));
   }
   void setFramenumber(int framenumber)
   {
-    this->m_framenumber = framenumber;
+    m_framenumber = framenumber;
   }
 
  private:

@@ -330,12 +330,12 @@ class MemoryBuffer {
 
   uint8_t get_num_channels() const
   {
-    return this->m_num_channels;
+    return m_num_channels;
   }
 
   uint8_t get_elem_bytes_len() const
   {
-    return this->m_num_channels * sizeof(float);
+    return m_num_channels * sizeof(float);
   }
 
   /**
@@ -370,13 +370,13 @@ class MemoryBuffer {
    */
   float *getBuffer()
   {
-    return this->m_buffer;
+    return m_buffer;
   }
 
   float *release_ownership_buffer()
   {
     owns_data_ = false;
-    return this->m_buffer;
+    return m_buffer;
   }
 
   MemoryBuffer *inflate() const;
@@ -494,15 +494,15 @@ class MemoryBuffer {
     bool clip_y = (extend_y == MemoryBufferExtend::Clip && (y < m_rect.ymin || y >= m_rect.ymax));
     if (clip_x || clip_y) {
       /* clip result outside rect is zero */
-      memset(result, 0, this->m_num_channels * sizeof(float));
+      memset(result, 0, m_num_channels * sizeof(float));
     }
     else {
       int u = x;
       int v = y;
       this->wrap_pixel(u, v, extend_x, extend_y);
       const int offset = get_coords_offset(u, v);
-      float *buffer = &this->m_buffer[offset];
-      memcpy(result, buffer, sizeof(float) * this->m_num_channels);
+      float *buffer = &m_buffer[offset];
+      memcpy(result, buffer, sizeof(float) * m_num_channels);
     }
   }
 
@@ -520,11 +520,11 @@ class MemoryBuffer {
     const int offset = get_coords_offset(u, v);
 
     BLI_assert(offset >= 0);
-    BLI_assert(offset < this->buffer_len() * this->m_num_channels);
+    BLI_assert(offset < this->buffer_len() * m_num_channels);
     BLI_assert(!(extend_x == MemoryBufferExtend::Clip && (u < m_rect.xmin || u >= m_rect.xmax)) &&
                !(extend_y == MemoryBufferExtend::Clip && (v < m_rect.ymin || v >= m_rect.ymax)));
-    float *buffer = &this->m_buffer[offset];
-    memcpy(result, buffer, sizeof(float) * this->m_num_channels);
+    float *buffer = &m_buffer[offset];
+    memcpy(result, buffer, sizeof(float) * m_num_channels);
   }
 
   void writePixel(int x, int y, const float color[4]);
@@ -540,18 +540,18 @@ class MemoryBuffer {
     this->wrap_pixel(u, v, extend_x, extend_y);
     if ((extend_x != MemoryBufferExtend::Repeat && (u < 0.0f || u >= getWidth())) ||
         (extend_y != MemoryBufferExtend::Repeat && (v < 0.0f || v >= getHeight()))) {
-      copy_vn_fl(result, this->m_num_channels, 0.0f);
+      copy_vn_fl(result, m_num_channels, 0.0f);
       return;
     }
     if (m_is_a_single_elem) {
-      memcpy(result, m_buffer, sizeof(float) * this->m_num_channels);
+      memcpy(result, m_buffer, sizeof(float) * m_num_channels);
     }
     else {
-      BLI_bilinear_interpolation_wrap_fl(this->m_buffer,
+      BLI_bilinear_interpolation_wrap_fl(m_buffer,
                                          result,
                                          getWidth(),
                                          getHeight(),
-                                         this->m_num_channels,
+                                         m_num_channels,
                                          u,
                                          v,
                                          extend_x == MemoryBufferExtend::Repeat,
@@ -566,7 +566,7 @@ class MemoryBuffer {
    */
   inline bool isTemporarily() const
   {
-    return this->m_state == MemoryBufferState::Temporary;
+    return m_state == MemoryBufferState::Temporary;
   }
 
   void copy_from(const MemoryBuffer *src, const rcti &area);
@@ -632,7 +632,7 @@ class MemoryBuffer {
    */
   const rcti &get_rect() const
   {
-    return this->m_rect;
+    return m_rect;
   }
 
   /**
@@ -668,7 +668,7 @@ class MemoryBuffer {
 
   void clear_elem(float *out) const
   {
-    memset(out, 0, this->m_num_channels * sizeof(float));
+    memset(out, 0, m_num_channels * sizeof(float));
   }
 
   template<typename T> T get_relative_x(T x) const
