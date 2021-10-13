@@ -262,12 +262,6 @@ ccl_device_inline void integrator_state_shadow_catcher_split(INTEGRATOR_STATE_AR
   integrator_state_copy_only(to_state, state);
 
   kernel_integrator_state.path.flag[to_state] |= PATH_RAY_SHADOW_CATCHER_PASS;
-
-  /* Sanity check: expect to split in the intersect-closest kernel, where there is no shadow ray
-   * and no sorting yet. */
-  kernel_assert(INTEGRATOR_STATE(shadow_path, queued_kernel) == 0);
-  kernel_assert(kernel_integrator_state.sort_key_counter[INTEGRATOR_STATE(path, queued_kernel)] ==
-                nullptr);
 #else
 
   IntegratorStateCPU *ccl_restrict split_state = state + 1;

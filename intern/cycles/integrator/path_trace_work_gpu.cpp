@@ -342,10 +342,14 @@ bool PathTraceWorkGPU::enqueue_path_iteration()
   }
 
   /* Finish shadows before potentially adding more shadow rays. We can only
-   * store one shadow ray in the integrator state. */
+   * store one shadow ray in the integrator state.
+   *
+   * When there is a shadow catcher in the scene finish shadow rays before invoking interesect
+   * closest kernel since so that the shadow paths are writing to the pre-split state. */
   if (kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE ||
       kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME) {
+      kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME ||
+      (has_shadow_catcher() && kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST)) {
     if (queue_counter->num_queued[DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW]) {
       enqueue_path_iteration(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
       return true;
