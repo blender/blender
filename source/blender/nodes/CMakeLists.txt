@@ -269,6 +269,7 @@ set(SRC
   geometry/nodes/node_geo_string_to_curves.cc
   geometry/nodes/node_geo_switch.cc
   geometry/nodes/node_geo_transform.cc
+  geometry/nodes/node_geo_translate_instances.cc
   geometry/nodes/node_geo_triangulate.cc
   geometry/nodes/node_geo_viewer.cc
   geometry/nodes/node_geo_volume_to_mesh.cc

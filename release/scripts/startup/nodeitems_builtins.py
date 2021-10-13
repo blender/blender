@@ -683,6 +683,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeSeparateGeometry"),
         NodeItem("GeometryNodeSetPosition"),
         NodeItem("GeometryNodeRealizeInstances"),
+        NodeItem("GeometryNodeTranslateInstances"),
     ]),
     GeometryNodeCategory("GEO_INPUT", "Input", items=geometry_input_node_items),
     GeometryNodeCategory("GEO_MATERIAL", "Material", items=geometry_material_node_items),
