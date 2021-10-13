@@ -657,6 +657,8 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
   if (!b_v3d)
     return;
 
+  ensure_display_driver_if_needed();
+
   /* on session/scene parameter changes, we recreate session entirely */
   const SessionParams session_params = BlenderSync::get_session_params(
       b_engine, b_userpref, b_scene, background);
@@ -718,8 +720,6 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
 
   /* unlock */
   session->scene->mutex.unlock();
-
-  ensure_display_driver_if_needed();
 
   /* Start rendering thread, if it's not running already. Do this
    * after all scene data has been synced at least once. */
