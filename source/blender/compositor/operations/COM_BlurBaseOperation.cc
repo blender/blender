@@ -29,7 +29,7 @@ BlurBaseOperation::BlurBaseOperation(DataType data_type)
   this->add_input_socket(data_type);
   this->add_input_socket(DataType::Value);
   this->add_output_socket(data_type);
-  this->flags.complex = true;
+  flags_.complex = true;
   input_program_ = nullptr;
   memset(&data_, 0, sizeof(NodeBlurData));
   size_ = 1.0f;

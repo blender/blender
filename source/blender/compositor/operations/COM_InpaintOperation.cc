@@ -30,13 +30,13 @@ InpaintSimpleOperation::InpaintSimpleOperation()
 {
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
-  this->flags.complex = true;
+  flags_.complex = true;
   input_image_program_ = nullptr;
   pixelorder_ = nullptr;
   manhattan_distance_ = nullptr;
   cached_buffer_ = nullptr;
   cached_buffer_ready_ = false;
-  flags.is_fullframe_operation = true;
+  flags_.is_fullframe_operation = true;
 }
 void InpaintSimpleOperation::init_execution()
 {

@@ -26,7 +26,7 @@ ExposureOperation::ExposureOperation()
   this->add_input_socket(DataType::Value);
   this->add_output_socket(DataType::Color);
   input_program_ = nullptr;
-  flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void ExposureOperation::init_execution()

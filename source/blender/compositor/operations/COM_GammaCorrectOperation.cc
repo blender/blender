@@ -25,7 +25,7 @@ GammaCorrectOperation::GammaCorrectOperation()
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
   input_program_ = nullptr;
-  flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 void GammaCorrectOperation::init_execution()
 {
@@ -96,7 +96,7 @@ GammaUncorrectOperation::GammaUncorrectOperation()
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
   input_program_ = nullptr;
-  flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 void GammaUncorrectOperation::init_execution()
 {

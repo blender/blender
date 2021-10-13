@@ -28,7 +28,7 @@ DotproductOperation::DotproductOperation()
   this->set_canvas_input_index(0);
   input1Operation_ = nullptr;
   input2Operation_ = nullptr;
-  flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 void DotproductOperation::init_execution()
 {

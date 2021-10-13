@@ -24,8 +24,8 @@ SocketProxyOperation::SocketProxyOperation(DataType type, bool use_conversion)
 {
   this->add_input_socket(type);
   this->add_output_socket(type);
-  flags.is_proxy_operation = true;
-  flags.use_datatype_conversion = use_conversion;
+  flags_.is_proxy_operation = true;
+  flags_.use_datatype_conversion = use_conversion;
 }
 
 std::unique_ptr<MetaData> SocketProxyOperation::get_meta_data()

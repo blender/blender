@@ -28,7 +28,7 @@ BrightnessOperation::BrightnessOperation()
   this->add_output_socket(DataType::Color);
   input_program_ = nullptr;
   use_premultiply_ = false;
-  flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void BrightnessOperation::set_use_premultiply(bool use_premultiply)

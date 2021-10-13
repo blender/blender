@@ -66,11 +66,11 @@ Node::Node(bNode *editor_node, bool create_sockets)
 
 Node::~Node()
 {
-  while (!this->outputs.is_empty()) {
-    delete (this->outputs.pop_last());
+  while (!outputs_.is_empty()) {
+    delete (outputs_.pop_last());
   }
-  while (!this->inputs.is_empty()) {
-    delete (this->inputs.pop_last());
+  while (!inputs_.is_empty()) {
+    delete (inputs_.pop_last());
   }
 }
 
@@ -82,7 +82,7 @@ void Node::add_input_socket(DataType datatype)
 void Node::add_input_socket(DataType datatype, bNodeSocket *bSocket)
 {
   NodeInput *socket = new NodeInput(this, bSocket, datatype);
-  this->inputs.append(socket);
+  inputs_.append(socket);
 }
 
 void Node::add_output_socket(DataType datatype)
@@ -92,17 +92,17 @@ void Node::add_output_socket(DataType datatype)
 void Node::add_output_socket(DataType datatype, bNodeSocket *bSocket)
 {
   NodeOutput *socket = new NodeOutput(this, bSocket, datatype);
-  outputs.append(socket);
+  outputs_.append(socket);
 }
 
 NodeOutput *Node::get_output_socket(unsigned int index) const
 {
-  return outputs[index];
+  return outputs_[index];
 }
 
 NodeInput *Node::get_input_socket(unsigned int index) const
 {
-  return inputs[index];
+  return inputs_[index];
 }
 
 bNodeSocket *Node::get_editor_input_socket(int editor_node_input_socket_index)

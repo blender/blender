@@ -150,7 +150,7 @@ void RenderLayersNode::missing_socket_link(NodeConverter &converter, NodeOutput 
 
 void RenderLayersNode::missing_render_link(NodeConverter &converter) const
 {
-  for (NodeOutput *output : outputs) {
+  for (NodeOutput *output : outputs_) {
     missing_socket_link(converter, output);
   }
 }

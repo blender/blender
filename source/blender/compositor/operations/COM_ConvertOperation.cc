@@ -27,7 +27,7 @@ namespace blender::compositor {
 ConvertBaseOperation::ConvertBaseOperation()
 {
   input_operation_ = nullptr;
-  this->flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void ConvertBaseOperation::init_execution()

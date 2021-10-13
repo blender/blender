@@ -85,8 +85,8 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
       if (rl) {
         is_multilayer_ok = true;
 
-        for (int64_t index = 0; index < outputs.size(); index++) {
-          NodeOutput *socket = outputs[index];
+        for (int64_t index = 0; index < outputs_.size(); index++) {
+          NodeOutput *socket = outputs_[index];
           NodeOperation *operation = nullptr;
           bNodeSocket *bnode_socket = socket->get_bnode_socket();
           NodeImageLayer *storage = (NodeImageLayer *)bnode_socket->storage;

@@ -32,7 +32,7 @@ ColorCorrectionOperation::ColorCorrectionOperation()
   red_channel_enabled_ = true;
   green_channel_enabled_ = true;
   blue_channel_enabled_ = true;
-  flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 void ColorCorrectionOperation::init_execution()
 {

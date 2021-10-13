@@ -23,7 +23,7 @@ namespace blender::compositor {
 SetVectorOperation::SetVectorOperation()
 {
   this->add_output_socket(DataType::Vector);
-  flags.is_set_operation = true;
+  flags_.is_set_operation = true;
 }
 
 void SetVectorOperation::execute_pixel_sampled(float output[4],

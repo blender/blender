@@ -205,7 +205,7 @@ void NodeOperation::deinit_execution()
 void NodeOperation::set_canvas(const rcti &canvas_area)
 {
   canvas_ = canvas_area;
-  flags.is_canvas_set = true;
+  flags_.is_canvas_set = true;
 }
 
 const rcti &NodeOperation::get_canvas() const
@@ -220,7 +220,7 @@ const rcti &NodeOperation::get_canvas() const
 void NodeOperation::unset_canvas()
 {
   BLI_assert(inputs_.size() == 0);
-  flags.is_canvas_set = false;
+  flags_.is_canvas_set = false;
 }
 
 SocketReader *NodeOperation::get_input_socket_reader(unsigned int index)

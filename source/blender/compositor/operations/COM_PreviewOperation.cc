@@ -38,8 +38,8 @@ PreviewOperation::PreviewOperation(const ColorManagedViewSettings *view_settings
   display_settings_ = display_settings;
   default_width_ = default_width;
   default_height_ = default_height;
-  flags.use_viewer_border = true;
-  flags.is_preview_operation = true;
+  flags_.use_viewer_border = true;
+  flags_.is_preview_operation = true;
 }
 
 void PreviewOperation::verify_preview(bNodeInstanceHash *previews, bNodeInstanceKey key)

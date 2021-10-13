@@ -31,7 +31,7 @@ ColorSpillOperation::ColorSpillOperation()
   input_fac_reader_ = nullptr;
   spill_channel_ = 1; /* GREEN */
   spill_method_ = 0;
-  flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void ColorSpillOperation::init_execution()

@@ -127,7 +127,7 @@ class DenoiseFilter {
 
 DenoiseBaseOperation::DenoiseBaseOperation()
 {
-  flags.is_fullframe_operation = true;
+  flags_.is_fullframe_operation = true;
   output_rendered_ = false;
 }
 

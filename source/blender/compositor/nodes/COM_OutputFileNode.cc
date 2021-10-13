@@ -27,7 +27,7 @@ OutputFileNode::OutputFileNode(bNode *editor_node) : Node(editor_node)
 
 void OutputFileNode::add_input_sockets(OutputOpenExrMultiLayerOperation &operation) const
 {
-  for (NodeInput *input : inputs) {
+  for (NodeInput *input : inputs_) {
     NodeImageMultiFileSocket *sockdata =
         (NodeImageMultiFileSocket *)input->get_bnode_socket()->storage;
     /* NOTE: layer becomes an empty placeholder if the input is not linked. */
@@ -40,7 +40,7 @@ void OutputFileNode::map_input_sockets(NodeConverter &converter,
 {
   bool preview_added = false;
   int index = 0;
-  for (NodeInput *input : inputs) {
+  for (NodeInput *input : inputs_) {
     converter.map_input_socket(input, operation.get_input_socket(index++));
 
     if (!preview_added) {
@@ -97,7 +97,7 @@ void OutputFileNode::convert_to_operations(NodeConverter &converter,
   }
   else { /* single layer format */
     bool preview_added = false;
-    for (NodeInput *input : inputs) {
+    for (NodeInput *input : inputs_) {
       if (input->is_linked()) {
         NodeImageMultiFileSocket *sockdata =
             (NodeImageMultiFileSocket *)input->get_bnode_socket()->storage;

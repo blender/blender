@@ -28,7 +28,7 @@ KeyingBlurOperation::KeyingBlurOperation()
   size_ = 0;
   axis_ = BLUR_AXIS_X;
 
-  this->flags.complex = true;
+  flags_.complex = true;
 }
 
 void *KeyingBlurOperation::initialize_tile_data(rcti *rect)

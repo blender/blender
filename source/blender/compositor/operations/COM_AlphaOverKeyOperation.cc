@@ -22,7 +22,7 @@ namespace blender::compositor {
 
 AlphaOverKeyOperation::AlphaOverKeyOperation()
 {
-  this->flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void AlphaOverKeyOperation::execute_pixel_sampled(float output[4],

@@ -50,8 +50,8 @@ ViewerOperation::ViewerOperation()
   depth_input_ = nullptr;
   rd_ = nullptr;
   view_name_ = nullptr;
-  flags.use_viewer_border = true;
-  flags.is_viewer_operation = true;
+  flags_.use_viewer_border = true;
+  flags_.is_viewer_operation = true;
 }
 
 void ViewerOperation::init_execution()

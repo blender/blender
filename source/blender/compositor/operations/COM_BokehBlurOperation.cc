@@ -36,8 +36,8 @@ BokehBlurOperation::BokehBlurOperation()
   this->add_input_socket(DataType::Value);
   this->add_output_socket(DataType::Color);
 
-  flags.complex = true;
-  flags.open_cl = true;
+  flags_.complex = true;
+  flags_.open_cl = true;
 
   size_ = 1.0f;
   sizeavailable_ = false;

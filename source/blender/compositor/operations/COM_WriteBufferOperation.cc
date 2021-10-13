@@ -27,7 +27,7 @@ WriteBufferOperation::WriteBufferOperation(DataType datatype)
   memory_proxy_ = new MemoryProxy(datatype);
   memory_proxy_->set_write_buffer_operation(this);
   memory_proxy_->set_executor(nullptr);
-  flags.is_write_buffer_operation = true;
+  flags_.is_write_buffer_operation = true;
 }
 WriteBufferOperation::~WriteBufferOperation()
 {

@@ -25,7 +25,7 @@ MapValueOperation::MapValueOperation()
   this->add_input_socket(DataType::Value);
   this->add_output_socket(DataType::Value);
   input_operation_ = nullptr;
-  flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void MapValueOperation::init_execution()

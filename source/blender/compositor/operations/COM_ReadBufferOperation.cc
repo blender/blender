@@ -29,7 +29,7 @@ ReadBufferOperation::ReadBufferOperation(DataType datatype)
   single_value_ = false;
   offset_ = 0;
   buffer_ = nullptr;
-  flags.is_read_buffer_operation = true;
+  flags_.is_read_buffer_operation = true;
 }
 
 void *ReadBufferOperation::initialize_tile_data(rcti * /*rect*/)

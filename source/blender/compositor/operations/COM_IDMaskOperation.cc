@@ -24,8 +24,8 @@ IDMaskOperation::IDMaskOperation()
 {
   this->add_input_socket(DataType::Value);
   this->add_output_socket(DataType::Value);
-  this->flags.complex = true;
-  flags.can_be_constant = true;
+  flags_.complex = true;
+  flags_.can_be_constant = true;
 }
 
 void *IDMaskOperation::initialize_tile_data(rcti *rect)

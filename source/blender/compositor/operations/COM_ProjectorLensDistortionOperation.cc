@@ -26,7 +26,7 @@ ProjectorLensDistortionOperation::ProjectorLensDistortionOperation()
   this->add_input_socket(DataType::Color);
   this->add_input_socket(DataType::Value);
   this->add_output_socket(DataType::Color);
-  this->flags.complex = true;
+  flags_.complex = true;
   input_program_ = nullptr;
   dispersion_available_ = false;
   dispersion_ = 0.0f;

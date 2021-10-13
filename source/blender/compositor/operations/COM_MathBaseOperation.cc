@@ -32,7 +32,7 @@ MathBaseOperation::MathBaseOperation()
   input_value2_operation_ = nullptr;
   input_value3_operation_ = nullptr;
   use_clamp_ = false;
-  this->flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void MathBaseOperation::init_execution()

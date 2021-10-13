@@ -28,7 +28,7 @@ ChangeHSVOperation::ChangeHSVOperation()
   this->add_input_socket(DataType::Value);
   this->add_output_socket(DataType::Color);
   input_operation_ = nullptr;
-  this->flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void ChangeHSVOperation::init_execution()

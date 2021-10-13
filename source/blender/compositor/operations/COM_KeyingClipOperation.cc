@@ -33,7 +33,7 @@ KeyingClipOperation::KeyingClipOperation()
 
   is_edge_matte_ = false;
 
-  this->flags.complex = true;
+  flags_.complex = true;
 }
 
 void *KeyingClipOperation::initialize_tile_data(rcti *rect)

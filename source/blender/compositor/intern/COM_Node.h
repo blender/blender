@@ -62,12 +62,12 @@ class Node {
   /**
    * \brief the list of actual input-sockets \see NodeInput
    */
-  Vector<NodeInput *> inputs;
+  Vector<NodeInput *> inputs_;
 
   /**
    * \brief the list of actual output-sockets \see NodeOutput
    */
-  Vector<NodeOutput *> outputs;
+  Vector<NodeOutput *> outputs_;
 
  public:
   Node(bNode *editor_node, bool create_sockets = true);
@@ -114,7 +114,7 @@ class Node {
    */
   const Vector<NodeInput *> &get_input_sockets() const
   {
-    return this->inputs;
+    return inputs_;
   }
 
   /**
@@ -122,7 +122,7 @@ class Node {
    */
   const Vector<NodeOutput *> &get_output_sockets() const
   {
-    return this->outputs;
+    return outputs_;
   }
 
   /**

@@ -45,7 +45,7 @@ CompositorOperation::CompositorOperation()
   scene_name_[0] = '\0';
   view_name_ = nullptr;
 
-  flags.use_render_border = true;
+  flags_.use_render_border = true;
 }
 
 void CompositorOperation::init_execution()

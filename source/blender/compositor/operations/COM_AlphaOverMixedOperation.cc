@@ -23,7 +23,7 @@ namespace blender::compositor {
 AlphaOverMixedOperation::AlphaOverMixedOperation()
 {
   x_ = 0.0f;
-  this->flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void AlphaOverMixedOperation::execute_pixel_sampled(float output[4],

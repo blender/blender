@@ -31,7 +31,7 @@ KeyingDespillOperation::KeyingDespillOperation()
 
   pixel_reader_ = nullptr;
   screen_reader_ = nullptr;
-  flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void KeyingDespillOperation::init_execution()

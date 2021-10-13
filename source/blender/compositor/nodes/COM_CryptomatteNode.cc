@@ -255,7 +255,7 @@ CryptomatteOperation *CryptomatteLegacyNode::create_cryptomatte_operation(
     const bNode &UNUSED(node),
     const NodeCryptomatte *cryptomatte_settings) const
 {
-  const int num_inputs = inputs.size() - 1;
+  const int num_inputs = inputs_.size() - 1;
   CryptomatteOperation *operation = new CryptomatteOperation(num_inputs);
   if (cryptomatte_settings) {
     LISTBASE_FOREACH (CryptomatteEntry *, cryptomatte_entry, &cryptomatte_settings->entries) {

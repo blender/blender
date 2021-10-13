@@ -28,7 +28,7 @@ SetAlphaReplaceOperation::SetAlphaReplaceOperation()
 
   input_color_ = nullptr;
   input_alpha_ = nullptr;
-  this->flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void SetAlphaReplaceOperation::init_execution()

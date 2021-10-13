@@ -27,7 +27,7 @@ DisplaceOperation::DisplaceOperation()
   this->add_input_socket(DataType::Value);
   this->add_input_socket(DataType::Value);
   this->add_output_socket(DataType::Color);
-  this->flags.complex = true;
+  flags_.complex = true;
 
   input_color_program_ = nullptr;
 }

@@ -1326,7 +1326,7 @@ DoubleEdgeMaskOperation::DoubleEdgeMaskOperation()
   input_outer_mask_ = nullptr;
   adjacent_only_ = false;
   keep_inside_ = false;
-  this->flags.complex = true;
+  flags_.complex = true;
   is_output_rendered_ = false;
 }
 

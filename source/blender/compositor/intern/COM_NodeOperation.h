@@ -356,7 +356,7 @@ class NodeOperation {
   /**
    * Flags how to evaluate this operation.
    */
-  NodeOperationFlags flags;
+  NodeOperationFlags flags_;
 
   ExecutionSystem *exec_system_;
 
@@ -390,7 +390,7 @@ class NodeOperation {
 
   const NodeOperationFlags get_flags() const
   {
-    return flags;
+    return flags_;
   }
 
   std::optional<NodeOperationHash> generate_hash();
@@ -674,12 +674,12 @@ class NodeOperation {
   void set_width(unsigned int width)
   {
     canvas_.xmax = canvas_.xmin + width;
-    this->flags.is_canvas_set = true;
+    flags_.is_canvas_set = true;
   }
   void set_height(unsigned int height)
   {
     canvas_.ymax = canvas_.ymin + height;
-    this->flags.is_canvas_set = true;
+    flags_.is_canvas_set = true;
   }
 
   SocketReader *get_input_socket_reader(unsigned int index);
@@ -697,7 +697,7 @@ class NodeOperation {
    */
   void set_complex(bool complex)
   {
-    this->flags.complex = complex;
+    flags_.complex = complex;
   }
 
   /**

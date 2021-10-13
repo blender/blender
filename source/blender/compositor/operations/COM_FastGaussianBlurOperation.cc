@@ -326,7 +326,7 @@ FastGaussianBlurValueOperation::FastGaussianBlurValueOperation()
   inputprogram_ = nullptr;
   sigma_ = 1.0f;
   overlay_ = 0;
-  flags.complex = true;
+  flags_.complex = true;
 }
 
 void FastGaussianBlurValueOperation::execute_pixel(float output[4], int x, int y, void *data)

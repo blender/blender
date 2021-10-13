@@ -26,7 +26,7 @@ MapUVOperation::MapUVOperation()
   this->add_input_socket(DataType::Vector);
   this->add_output_socket(DataType::Color);
   alpha_ = 0.0f;
-  this->flags.complex = true;
+  flags_.complex = true;
   set_canvas_input_index(UV_INPUT_INDEX);
 
   inputUVProgram_ = nullptr;

@@ -27,7 +27,7 @@ PosterizeOperation::PosterizeOperation()
   this->add_output_socket(DataType::Color);
   input_program_ = nullptr;
   input_steps_program_ = nullptr;
-  flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void PosterizeOperation::init_execution()

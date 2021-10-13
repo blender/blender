@@ -32,7 +32,7 @@ ZCombineOperation::ZCombineOperation()
   depth1Reader_ = nullptr;
   image2Reader_ = nullptr;
   depth2Reader_ = nullptr;
-  this->flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void ZCombineOperation::init_execution()

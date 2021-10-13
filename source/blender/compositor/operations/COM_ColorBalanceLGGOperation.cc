@@ -45,7 +45,7 @@ ColorBalanceLGGOperation::ColorBalanceLGGOperation()
   input_value_operation_ = nullptr;
   input_color_operation_ = nullptr;
   this->set_canvas_input_index(1);
-  flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void ColorBalanceLGGOperation::init_execution()

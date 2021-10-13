@@ -31,7 +31,7 @@ CalculateMeanOperation::CalculateMeanOperation()
   image_reader_ = nullptr;
   iscalculated_ = false;
   setting_ = 1;
-  this->flags.complex = true;
+  flags_.complex = true;
 }
 void CalculateMeanOperation::init_execution()
 {

@@ -30,7 +30,7 @@ InvertOperation::InvertOperation()
   color_ = true;
   alpha_ = false;
   set_canvas_input_index(1);
-  this->flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 void InvertOperation::init_execution()
 {

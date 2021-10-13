@@ -29,7 +29,7 @@ ColorRampOperation::ColorRampOperation()
 
   input_program_ = nullptr;
   color_band_ = nullptr;
-  this->flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 void ColorRampOperation::init_execution()
 {

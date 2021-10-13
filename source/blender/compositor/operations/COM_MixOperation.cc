@@ -33,7 +33,7 @@ MixBaseOperation::MixBaseOperation()
   input_color2_operation_ = nullptr;
   this->set_use_value_alpha_multiply(false);
   this->set_use_clamp(false);
-  flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void MixBaseOperation::init_execution()

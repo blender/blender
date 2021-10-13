@@ -22,7 +22,7 @@ namespace blender::compositor {
 
 AlphaOverPremultiplyOperation::AlphaOverPremultiplyOperation()
 {
-  this->flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void AlphaOverPremultiplyOperation::execute_pixel_sampled(float output[4],

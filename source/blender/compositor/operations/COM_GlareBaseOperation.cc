@@ -25,7 +25,7 @@ GlareBaseOperation::GlareBaseOperation()
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
   settings_ = nullptr;
-  flags.is_fullframe_operation = true;
+  flags_.is_fullframe_operation = true;
   is_output_rendered_ = false;
 }
 void GlareBaseOperation::init_execution()

@@ -27,7 +27,7 @@ SunBeamsOperation::SunBeamsOperation()
   this->add_output_socket(DataType::Color);
   this->set_canvas_input_index(0);
 
-  this->flags.complex = true;
+  flags_.complex = true;
 }
 
 void SunBeamsOperation::calc_rays_common_data()

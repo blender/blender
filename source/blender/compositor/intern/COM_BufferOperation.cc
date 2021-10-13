@@ -26,8 +26,8 @@ BufferOperation::BufferOperation(MemoryBuffer *buffer, DataType data_type)
   inflated_buffer_ = nullptr;
   set_canvas(buffer->get_rect());
   add_output_socket(data_type);
-  flags.is_constant_operation = buffer_->is_a_single_elem();
-  flags.is_fullframe_operation = false;
+  flags_.is_constant_operation = buffer_->is_a_single_elem();
+  flags_.is_fullframe_operation = false;
 }
 
 const float *BufferOperation::get_constant_elem()

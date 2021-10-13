@@ -28,7 +28,7 @@ ChromaMatteOperation::ChromaMatteOperation()
 
   input_image_program_ = nullptr;
   input_key_program_ = nullptr;
-  flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
 
 void ChromaMatteOperation::init_execution()
