@@ -291,8 +291,16 @@ class _draw_tool_settings_context_mode:
             )
 
         if capabilities.has_color:
+            #note we swap the labels here so users don't get confused.
+            row = layout.row(align=True)
+            row.ui_units_x = 4.5
+            row.prop_enum(context.space_data.shading, "color_type", "VERTEX", text="Colors")
+            row.prop_enum(context.space_data.shading, "color_type", "MATERIAL", text="Normal")
+
             UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
-            layout.prop(brush, "blend", text="", expand=False)
+            row = layout.row()
+            row.ui_units_x = 3
+            row.prop(brush, "blend", text="", expand=False)
 
         return True
 
