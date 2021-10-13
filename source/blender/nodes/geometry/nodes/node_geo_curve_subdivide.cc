@@ -63,9 +63,9 @@ static void subdivide_attribute(Span<T> src,
     for (const int i : range) {
       const int cuts = offsets[i + 1] - offsets[i];
       dst[offsets[i]] = src[i];
-      const float factor_delta = 1.0f / (cuts + 1.0f);
+      const float factor_delta = cuts == 0 ? 1.0f : 1.0f / cuts;
       for (const int cut : IndexRange(cuts)) {
-        const float factor = (cut + 1) * factor_delta;
+        const float factor = cut * factor_delta;
         dst[offsets[i] + cut] = attribute_math::mix2(factor, src[i], src[i + 1]);
       }
     }
@@ -75,9 +75,9 @@ static void subdivide_attribute(Span<T> src,
     const int i = src_size - 1;
     const int cuts = offsets[i + 1] - offsets[i];
     dst[offsets[i]] = src.last();
-    const float factor_delta = 1.0f / (cuts + 1.0f);
+    const float factor_delta = cuts == 0 ? 1.0f : 1.0f / cuts;
     for (const int cut : IndexRange(cuts)) {
-      const float factor = (cut + 1) * factor_delta;
+      const float factor = cut * factor_delta;
       dst[offsets[i] + cut] = attribute_math::mix2(factor, src.last(), src.first());
     }
   }
