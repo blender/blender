@@ -2518,9 +2518,9 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
                          (&(struct BMeshFromMeshParams){.calc_face_normal = true,
                                                         .use_shapekey = true,
                                                         .active_shapekey = ob->shapenr,
+                                                        .create_shapekey_layers = true,
                                                         .ignore_id_layers = false,
                                                         .copy_temp_cdlayers = true,
-                                                        .create_shapekey_layers = true,
                                                         .cd_mask_extra = CD_MASK_DYNTOPO_VERT}));
 
       SCULPT_dyntopo_node_layers_add(ob->sculpt);

@@ -227,6 +227,9 @@ static BMesh *sculpt_array_source_build(Object *ob, Brush *brush, SculptArray *a
                        sculpt_mesh,
                        &((struct BMeshFromMeshParams){
                            .calc_face_normal = true,
+                           .active_shapekey = ob->shapenr,
+                           .use_shapekey = true,
+                           .create_shapekey_layers = true,
                        }));
   }
 
@@ -383,6 +386,9 @@ static void sculpt_array_mesh_build(Sculpt *sd, Object *ob, SculptArray *array)
                        sculpt_mesh,
                        &((struct BMeshFromMeshParams){
                            .calc_face_normal = true,
+                           .active_shapekey = ob->shapenr,
+                           .use_shapekey = true,
+                           .create_shapekey_layers = true,
                        }));
   }
   else {

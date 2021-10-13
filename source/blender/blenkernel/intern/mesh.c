@@ -1144,13 +1144,11 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me,
   return BKE_mesh_to_bmesh_ex(ob,
                               me,
                               params,
-                              &(struct BMeshFromMeshParams){
-                                  .calc_face_normal = false,
-                                  .add_key_index = add_key_index,
-                                  .use_shapekey = true,
-                                  .create_shapekey_layers = true,
-                                  .active_shapekey = ob->shapenr,
-                              });
+                              &(struct BMeshFromMeshParams){.calc_face_normal = false,
+                                                            .add_key_index = add_key_index,
+                                                            .use_shapekey = true,
+                                                            .create_shapekey_layers = true,
+                                                            .active_shapekey = ob->shapenr});
 }
 
 Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm,

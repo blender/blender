@@ -1301,13 +1301,16 @@ static void bm_log_face_values_swap(BMLog *log,
 
 static void bm_log_full_mesh_intern(BMesh *bm, BMLog *log, BMLogEntry *entry)
 {
-  CustomData_MeshMasks cd_mask_extra = {CD_MASK_DYNTOPO_VERT, 0, 0, 0, 0};
+  // keep shapekey as explicit cd layers since we
+  // don't have access to the original mesh's ->key member.
+
+  CustomData_MeshMasks cd_mask_extra = {CD_MASK_DYNTOPO_VERT | CD_MASK_SHAPEKEY, 0, 0, 0, 0};
 
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
 
   entry->full_copy_mesh = BKE_mesh_from_bmesh_nomain(
       bm,
-      (&(struct BMeshToMeshParams){.update_shapekey_indices = true,
+      (&(struct BMeshToMeshParams){.update_shapekey_indices = false,
                                    .calc_object_remap = false,
                                    .cd_mask_extra = cd_mask_extra,
                                    .copy_temp_cdlayers = true,
@@ -1970,21 +1973,24 @@ bool BM_log_entry_drop(BMLogEntry *entry)
 
 static void full_copy_load(BMesh *bm, BMLog *log, BMLogEntry *entry)
 {
-  CustomData_MeshMasks cd_mask_extra = {CD_MASK_DYNTOPO_VERT, 0, 0, 0, 0};
+  CustomData_MeshMasks cd_mask_extra = {CD_MASK_DYNTOPO_VERT | CD_MASK_SHAPEKEY, 0, 0, 0, 0};
+
+  int shapenr = bm->shapenr;
 
   BM_mesh_clear(bm);
   BM_mesh_bm_from_me(NULL,
                      bm,
-                     entry->full_copy_mesh,
+                     entry->full_copy_mesh,  // note we stored shapekeys as customdata layers,
+                                             // that's why the shapekey params are false
                      (&(struct BMeshFromMeshParams){.calc_face_normal = false,
                                                     .add_key_index = false,
-                                                    .use_shapekey = true,
-                                                    .active_shapekey = bm->shapenr,
-                                                    .create_shapekey_layers = true,
+                                                    .use_shapekey = false,
+                                                    .create_shapekey_layers = false,
                                                     .cd_mask_extra = cd_mask_extra,
                                                     .copy_temp_cdlayers = true,
                                                     .ignore_id_layers = false}));
 
+  bm->shapenr = shapenr;
   bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
 
   BM_mesh_elem_table_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
@@ -2250,24 +2256,28 @@ BMLogEntry *BM_log_all_ids(BMesh *bm, BMLog *log, BMLogEntry *entry)
 
 static void full_copy_swap(BMesh *bm, BMLog *log, BMLogEntry *entry)
 {
-  CustomData_MeshMasks cd_mask_extra = {CD_MASK_DYNTOPO_VERT, 0, 0, 0, 0};
+  CustomData_MeshMasks cd_mask_extra = {CD_MASK_DYNTOPO_VERT | CD_MASK_SHAPEKEY, 0, 0, 0, 0};
 
   BMLogEntry tmp = {0};
 
   bm_log_full_mesh_intern(bm, log, &tmp);
 
+  int shapenr = bm->shapenr;
+
   BM_mesh_clear(bm);
   BM_mesh_bm_from_me(NULL,
                      bm,
-                     entry->full_copy_mesh,
+                     entry->full_copy_mesh,  // note we stored shapekeys as customdata layers,
+                                             // that's why the shapekey params are false
                      (&(struct BMeshFromMeshParams){.calc_face_normal = false,
                                                     .add_key_index = false,
-                                                    .use_shapekey = true,
-                                                    .active_shapekey = bm->shapenr,
-                                                    .create_shapekey_layers = true,
+                                                    .use_shapekey = false,
+                                                    .create_shapekey_layers = false,
                                                     .cd_mask_extra = cd_mask_extra,
                                                     .copy_temp_cdlayers = true,
                                                     .ignore_id_layers = false}));
+
+  bm->shapenr = shapenr;
 
   bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
   bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;

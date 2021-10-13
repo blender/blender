@@ -250,6 +250,10 @@ static BMesh *BMD_mesh_bm_create(
 
   BMeshFromMeshParams params{};
   params.calc_face_normal = true;
+  params.active_shapekey = object->shapenr;
+  params.use_shapekey = true;
+  params.create_shapekey_layers = true,
+
   BM_mesh_bm_from_me(object, bm, mesh_operand_ob, &params);
 
   if (UNLIKELY(*r_is_flip)) {

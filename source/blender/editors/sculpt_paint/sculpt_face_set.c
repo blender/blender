@@ -268,7 +268,7 @@ int ED_sculpt_face_sets_active_update_and_get(bContext *C, Object *ob, const flo
   return SCULPT_active_face_set_get(ss);
 }
 
-static BMesh *sculpt_faceset_bm_begin(SculptSession *ss, Mesh *mesh)
+static BMesh *sculpt_faceset_bm_begin(Object *ob, SculptSession *ss, Mesh *mesh)
 {
   if (ss->bm) {
     return ss->bm;
@@ -285,6 +285,9 @@ static BMesh *sculpt_faceset_bm_begin(SculptSession *ss, Mesh *mesh)
                      mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .active_shapekey = ob->shapenr,
+                         .use_shapekey = true,
+                         .create_shapekey_layers = true,
                      }));
   return bm;
 }
@@ -945,7 +948,7 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_face_random_access_ensure(ss);
 
-  bm = sculpt_faceset_bm_begin(ss, mesh);
+  bm = sculpt_faceset_bm_begin(ob, ss, mesh);
 
   BLI_bitmap *visited_faces = BLI_BITMAP_NEW(ss->totfaces, "visited faces");
   const int totfaces = ss->totfaces;  // mesh->totpoly;
@@ -1793,6 +1796,9 @@ static void sculpt_face_set_delete_geometry(Object *ob,
                        mesh,
                        (&(struct BMeshFromMeshParams){
                            .calc_face_normal = true,
+                           .active_shapekey = ob->shapenr,
+                           .use_shapekey = true,
+                           .create_shapekey_layers = true,
                        }));
 
     BM_mesh_elem_table_init(bm, BM_FACE);
@@ -2085,7 +2091,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
 
   no_islands = no_islands && island != NULL;
 
-  BMesh *bm = sculpt_faceset_bm_begin(ss, mesh);
+  BMesh *bm = sculpt_faceset_bm_begin(ob, ss, mesh);
   if (ss->bm) {
     BKE_pbvh_bmesh_set_toolflags(ss->pbvh, true);
     SCULPT_update_customdata_refs(ss);
