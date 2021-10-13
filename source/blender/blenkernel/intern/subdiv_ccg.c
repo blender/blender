@@ -359,30 +359,29 @@ static void subdiv_ccg_init_faces(SubdivCCG *subdiv_ccg)
 /* TODO(sergey): Consider making it generic enough to be fit into BLI. */
 typedef struct StaticOrHeapIntStorage {
   int static_storage[64];
-  int static_storage_size;
+  int static_storage_len;
   int *heap_storage;
-  int heap_storage_size;
+  int heap_storage_len;
 } StaticOrHeapIntStorage;
 
 static void static_or_heap_storage_init(StaticOrHeapIntStorage *storage)
 {
-  storage->static_storage_size = sizeof(storage->static_storage) /
-                                 sizeof(*storage->static_storage);
+  storage->static_storage_len = sizeof(storage->static_storage) / sizeof(*storage->static_storage);
   storage->heap_storage = NULL;
-  storage->heap_storage_size = 0;
+  storage->heap_storage_len = 0;
 }
 
-static int *static_or_heap_storage_get(StaticOrHeapIntStorage *storage, int size)
+static int *static_or_heap_storage_get(StaticOrHeapIntStorage *storage, int heap_len)
 {
   /* Requested size small enough to be fit into stack allocated memory. */
-  if (size <= storage->static_storage_size) {
+  if (heap_len <= storage->static_storage_len) {
     return storage->static_storage;
   }
   /* Make sure heap ius big enough. */
-  if (size > storage->heap_storage_size) {
+  if (heap_len > storage->heap_storage_len) {
     MEM_SAFE_FREE(storage->heap_storage);
-    storage->heap_storage = MEM_malloc_arrayN(size, sizeof(int), "int storage");
-    storage->heap_storage_size = size;
+    storage->heap_storage = MEM_malloc_arrayN(heap_len, sizeof(int), "int storage");
+    storage->heap_storage_len = heap_len;
   }
   return storage->heap_storage;
 }

@@ -1168,9 +1168,9 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                           add_index++;
                         }
                         if (last_split > split) {
-                          const uint size = (split + edges_len) - (uint)last_split;
+                          const uint edges_len_group = (split + edges_len) - (uint)last_split;
                           NewEdgeRef **edges = MEM_malloc_arrayN(
-                              size, sizeof(*edges), "edge_group split in solidify");
+                              edges_len_group, sizeof(*edges), "edge_group split in solidify");
                           memcpy(edges,
                                  g.edges + last_split,
                                  (edges_len - (uint)last_split) * sizeof(*edges));
@@ -1180,7 +1180,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                           edge_groups[j + add_index] = (EdgeGroup){
                               .valid = true,
                               .edges = edges,
-                              .edges_len = size,
+                              .edges_len = edges_len_group,
                               .open_face_edge = MOD_SOLIDIFY_EMPTY_TAG,
                               .is_orig_closed = g.is_orig_closed,
                               .is_even_split = is_even_split,
@@ -1193,14 +1193,14 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                           };
                         }
                         else {
-                          const uint size = split - (uint)last_split;
+                          const uint edges_len_group = split - (uint)last_split;
                           NewEdgeRef **edges = MEM_malloc_arrayN(
-                              size, sizeof(*edges), "edge_group split in solidify");
-                          memcpy(edges, g.edges + last_split, size * sizeof(*edges));
+                              edges_len_group, sizeof(*edges), "edge_group split in solidify");
+                          memcpy(edges, g.edges + last_split, edges_len_group * sizeof(*edges));
                           edge_groups[j + add_index] = (EdgeGroup){
                               .valid = true,
                               .edges = edges,
-                              .edges_len = size,
+                              .edges_len = edges_len_group,
                               .open_face_edge = MOD_SOLIDIFY_EMPTY_TAG,
                               .is_orig_closed = g.is_orig_closed,
                               .is_even_split = is_even_split,
