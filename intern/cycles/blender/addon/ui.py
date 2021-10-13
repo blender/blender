@@ -981,8 +981,8 @@ class CYCLES_PT_context_material(CyclesButtonsPanel, Panel):
                 row.prop(slot, "link", text="", icon=icon_link, icon_only=True)
 
         elif mat:
-            split.template_ID(space, "pin_id")
-            split.separator()
+            layout.template_ID(space, "pin_id")
+            layout.separator()
 
 
 class CYCLES_OBJECT_PT_motion_blur(CyclesButtonsPanel, Panel):
