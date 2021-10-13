@@ -1535,6 +1535,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_TRANSLATE_INSTANCES 1120
 #define GEO_NODE_SCALE_INSTANCES 1121
 #define GEO_NODE_ROTATE_INSTANCES 1122
+#define GEO_NODE_EDGE_SPLIT 1123
 
 /** \} */
 

@@ -220,6 +220,7 @@ set(SRC
   geometry/nodes/node_geo_curve_trim.cc
   geometry/nodes/node_geo_delete_geometry.cc
   geometry/nodes/node_geo_distribute_points_on_faces.cc
+  geometry/nodes/node_geo_edge_split.cc
   geometry/nodes/node_geo_input_curve_handles.cc
   geometry/nodes/node_geo_input_curve_tilt.cc  
   geometry/nodes/node_geo_input_index.cc

@@ -78,7 +78,7 @@ static void geo_node_edge_split_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_edge_split()
+void register_node_type_geo_legacy_edge_split()
 {
   static bNodeType ntype;
 
