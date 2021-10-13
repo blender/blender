@@ -94,6 +94,10 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
 
   effects = stl->effects;
 
+  int div = 1 << MAX_SCREEN_BUFFERS_LOD_LEVEL;
+  effects->hiz_size[0] = divide_ceil_u(size_fs[0], div) * div;
+  effects->hiz_size[1] = divide_ceil_u(size_fs[1], div) * div;
+
   effects->enabled_effects = 0;
   effects->enabled_effects |= (G.debug_value == 9) ? EFFECT_VELOCITY_BUFFER : 0;
   effects->enabled_effects |= EEVEE_motion_blur_init(sldata, vedata);
@@ -118,9 +122,6 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   /**
    * MinMax Pyramid
    */
-  int div = 1 << MAX_SCREEN_BUFFERS_LOD_LEVEL;
-  effects->hiz_size[0] = divide_ceil_u(size_fs[0], div) * div;
-  effects->hiz_size[1] = divide_ceil_u(size_fs[1], div) * div;
 
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     /* Intel gpu seems to have problem rendering to only depth hiz_format */
