@@ -853,6 +853,10 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
   if (!deg_copy_on_write_is_needed(id_orig)) {
     return id_cow;
   }
+  /* Avoid removing & re-creating the reference if it exists. */
+  void *py_instance = id_cow->py_instance;
+  id_cow->py_instance = nullptr;
+
   DEG_COW_PRINT(
       "Expanding datablock for %s: id_orig=%p id_cow=%p\n", id_orig->name, id_orig, id_cow);
   /* Sanity checks. */
@@ -925,6 +929,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
    * from above. */
   update_id_after_copy(depsgraph, id_node, id_orig, id_cow);
   id_cow->recalc = id_cow_recalc;
+  id_cow->py_instance = py_instance;
   return id_cow;
 }
 
@@ -1042,6 +1047,11 @@ void discard_edit_mode_pointers(ID *id_cow)
  * - Does not free data-block itself. */
 void deg_free_copy_on_write_datablock(ID *id_cow)
 {
+  /* There may be Python references to to shallow copies, see: T92136. */
+  if (id_cow->py_instance) {
+    BKE_libblock_free_data_py(id_cow);
+  }
+
   if (!check_datablock_expanded(id_cow)) {
     /* Actual content was never copied on top of CoW block, we have
      * nothing to free. */
@@ -1103,6 +1113,7 @@ void deg_tag_copy_on_write_id(ID *id_cow, const ID *id_orig)
   /* This ID is no longer localized, is a self-sustaining copy now. */
   id_cow->tag &= ~LIB_TAG_LOCALIZED;
   id_cow->orig_id = (ID *)id_orig;
+  BLI_assert(id_cow->py_instance == nullptr);
 }
 
 bool deg_copy_on_write_is_expanded(const ID *id_cow)
