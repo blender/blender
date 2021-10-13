@@ -52,9 +52,7 @@ void RuntimeBackup::init_from_id(ID *id)
   }
   have_backup = true;
 
-  /* Clear, so freeing the expanded data doesn't remove this Python reference. */
   id_data.py_instance = id->py_instance;
-  id->py_instance = nullptr;
 
   animation_backup.init_from_id(id);
 
