@@ -149,12 +149,14 @@ static void geo_node_attribute_capture_exec(GeoNodeExecParams params)
 
   static const Array<GeometryComponentType> types = {
       GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE};
-  for (const GeometryComponentType type : types) {
-    if (geometry_set.has(type)) {
-      GeometryComponent &component = geometry_set.get_component_for_write(type);
-      try_capture_field_on_geometry(component, anonymous_id.get(), domain, field);
+  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    for (const GeometryComponentType type : types) {
+      if (geometry_set.has(type)) {
+        GeometryComponent &component = geometry_set.get_component_for_write(type);
+        try_capture_field_on_geometry(component, anonymous_id.get(), domain, field);
+      }
     }
-  }
+  });
 
   GField output_field{
       std::make_shared<bke::AnonymousAttributeFieldInput>(std::move(anonymous_id), type)};
