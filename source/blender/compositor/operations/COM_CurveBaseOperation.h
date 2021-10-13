@@ -29,7 +29,7 @@ class CurveBaseOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  CurveMapping *m_curveMapping;
+  CurveMapping *curveMapping_;
 
  public:
   CurveBaseOperation();

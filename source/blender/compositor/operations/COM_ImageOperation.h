@@ -34,21 +34,21 @@ namespace blender::compositor {
  */
 class BaseImageOperation : public MultiThreadedOperation {
  protected:
-  ImBuf *m_buffer;
-  Image *m_image;
-  ImageUser *m_imageUser;
+  ImBuf *buffer_;
+  Image *image_;
+  ImageUser *imageUser_;
   /* TODO: Remove raw buffers when removing Tiled implementation. */
-  float *m_imageFloatBuffer;
-  unsigned int *m_imageByteBuffer;
-  float *m_depthBuffer;
+  float *imageFloatBuffer_;
+  unsigned int *imageByteBuffer_;
+  float *depthBuffer_;
 
   MemoryBuffer *depth_buffer_;
-  int m_imageheight;
-  int m_imagewidth;
-  int m_framenumber;
-  int m_numberOfChannels;
-  const RenderData *m_rd;
-  const char *m_viewName;
+  int imageheight_;
+  int imagewidth_;
+  int framenumber_;
+  int numberOfChannels_;
+  const RenderData *rd_;
+  const char *viewName_;
 
   BaseImageOperation();
   /**
@@ -63,23 +63,23 @@ class BaseImageOperation : public MultiThreadedOperation {
   void deinitExecution() override;
   void setImage(Image *image)
   {
-    m_image = image;
+    image_ = image;
   }
   void setImageUser(ImageUser *imageuser)
   {
-    m_imageUser = imageuser;
+    imageUser_ = imageuser;
   }
   void setRenderData(const RenderData *rd)
   {
-    m_rd = rd;
+    rd_ = rd;
   }
   void setViewName(const char *viewName)
   {
-    m_viewName = viewName;
+    viewName_ = viewName;
   }
   void setFramenumber(int framenumber)
   {
-    m_framenumber = framenumber;
+    framenumber_ = framenumber;
   }
 };
 class ImageOperation : public BaseImageOperation {

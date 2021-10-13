@@ -24,8 +24,8 @@ namespace blender::compositor {
 
 class DotproductOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_input1Operation;
-  SocketReader *m_input2Operation;
+  SocketReader *input1Operation_;
+  SocketReader *input2Operation_;
 
  public:
   DotproductOperation();

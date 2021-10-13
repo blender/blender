@@ -28,19 +28,19 @@ namespace blender::compositor {
 
 class PreviewOperation : public MultiThreadedOperation {
  protected:
-  unsigned char *m_outputBuffer;
+  unsigned char *outputBuffer_;
 
   /**
    * \brief holds reference to the SDNA bNode, where this nodes will render the preview image for
    */
-  bNodePreview *m_preview;
-  SocketReader *m_input;
-  float m_divider;
-  unsigned int m_defaultWidth;
-  unsigned int m_defaultHeight;
+  bNodePreview *preview_;
+  SocketReader *input_;
+  float divider_;
+  unsigned int defaultWidth_;
+  unsigned int defaultHeight_;
 
-  const ColorManagedViewSettings *m_viewSettings;
-  const ColorManagedDisplaySettings *m_displaySettings;
+  const ColorManagedViewSettings *viewSettings_;
+  const ColorManagedDisplaySettings *displaySettings_;
 
  public:
   PreviewOperation(const ColorManagedViewSettings *viewSettings,

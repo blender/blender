@@ -28,18 +28,18 @@ MapRangeOperation::MapRangeOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
-  m_inputOperation = nullptr;
-  m_useClamp = false;
+  inputOperation_ = nullptr;
+  useClamp_ = false;
   flags.can_be_constant = true;
 }
 
 void MapRangeOperation::initExecution()
 {
-  m_inputOperation = this->getInputSocketReader(0);
-  m_sourceMinOperation = this->getInputSocketReader(1);
-  m_sourceMaxOperation = this->getInputSocketReader(2);
-  m_destMinOperation = this->getInputSocketReader(3);
-  m_destMaxOperation = this->getInputSocketReader(4);
+  inputOperation_ = this->getInputSocketReader(0);
+  sourceMinOperation_ = this->getInputSocketReader(1);
+  sourceMaxOperation_ = this->getInputSocketReader(2);
+  destMinOperation_ = this->getInputSocketReader(3);
+  destMaxOperation_ = this->getInputSocketReader(4);
 }
 
 /* The code below assumes all data is inside range +- this, and that input buffer is single channel
@@ -56,11 +56,11 @@ void MapRangeOperation::executePixelSampled(float output[4],
   float source_min, source_max;
   float dest_min, dest_max;
 
-  m_inputOperation->readSampled(inputs, x, y, sampler);
-  m_sourceMinOperation->readSampled(inputs + 1, x, y, sampler);
-  m_sourceMaxOperation->readSampled(inputs + 2, x, y, sampler);
-  m_destMinOperation->readSampled(inputs + 3, x, y, sampler);
-  m_destMaxOperation->readSampled(inputs + 4, x, y, sampler);
+  inputOperation_->readSampled(inputs, x, y, sampler);
+  sourceMinOperation_->readSampled(inputs + 1, x, y, sampler);
+  sourceMaxOperation_->readSampled(inputs + 2, x, y, sampler);
+  destMinOperation_->readSampled(inputs + 3, x, y, sampler);
+  destMaxOperation_->readSampled(inputs + 4, x, y, sampler);
 
   value = inputs[0];
   source_min = inputs[1];
@@ -84,7 +84,7 @@ void MapRangeOperation::executePixelSampled(float output[4],
     value = dest_min;
   }
 
-  if (m_useClamp) {
+  if (useClamp_) {
     if (dest_max > dest_min) {
       CLAMP(value, dest_min, dest_max);
     }
@@ -98,11 +98,11 @@ void MapRangeOperation::executePixelSampled(float output[4],
 
 void MapRangeOperation::deinitExecution()
 {
-  m_inputOperation = nullptr;
-  m_sourceMinOperation = nullptr;
-  m_sourceMaxOperation = nullptr;
-  m_destMinOperation = nullptr;
-  m_destMaxOperation = nullptr;
+  inputOperation_ = nullptr;
+  sourceMinOperation_ = nullptr;
+  sourceMaxOperation_ = nullptr;
+  destMinOperation_ = nullptr;
+  destMaxOperation_ = nullptr;
 }
 
 void MapRangeOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -131,7 +131,7 @@ void MapRangeOperation::update_memory_buffer_partial(MemoryBuffer *output,
       value = dest_min;
     }
 
-    if (m_useClamp) {
+    if (useClamp_) {
       if (dest_max > dest_min) {
         CLAMP(value, dest_min, dest_max);
       }

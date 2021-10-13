@@ -43,27 +43,27 @@ class OpenCLDevice : public Device {
   /**
    * \brief opencl context
    */
-  cl_context m_context;
+  cl_context context_;
 
   /**
    * \brief opencl device
    */
-  cl_device_id m_device;
+  cl_device_id device_;
 
   /**
    * \brief opencl program
    */
-  cl_program m_program;
+  cl_program program_;
 
   /**
    * \brief opencl command queue
    */
-  cl_command_queue m_queue;
+  cl_command_queue queue_;
 
   /**
    * \brief opencl vendor ID
    */
-  cl_int m_vendorID;
+  cl_int vendorID_;
 
  public:
   /**
@@ -93,12 +93,12 @@ class OpenCLDevice : public Device {
 
   cl_context getContext()
   {
-    return m_context;
+    return context_;
   }
 
   cl_command_queue getQueue()
   {
-    return m_queue;
+    return queue_;
   }
 
   cl_mem COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,

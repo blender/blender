@@ -34,20 +34,20 @@ NodeOperation::NodeOperation()
 {
   canvas_input_index_ = 0;
   canvas_ = COM_AREA_NONE;
-  m_btree = nullptr;
+  btree_ = nullptr;
 }
 
 /** Get constant value when operation is constant, otherwise return default_value. */
 float NodeOperation::get_constant_value_default(float default_value)
 {
-  BLI_assert(m_outputs.size() > 0 && getOutputSocket()->getDataType() == DataType::Value);
+  BLI_assert(outputs_.size() > 0 && getOutputSocket()->getDataType() == DataType::Value);
   return *get_constant_elem_default(&default_value);
 }
 
 /** Get constant elem when operation is constant, otherwise return default_elem. */
 const float *NodeOperation::get_constant_elem_default(const float *default_elem)
 {
-  BLI_assert(m_outputs.size() > 0);
+  BLI_assert(outputs_.size() > 0);
   if (get_flags().is_constant_operation) {
     return static_cast<ConstantOperation *>(this)->get_constant_elem();
   }
@@ -72,15 +72,15 @@ std::optional<NodeOperationHash> NodeOperation::generate_hash()
   }
 
   hash_params(canvas_.ymin, canvas_.ymax);
-  if (m_outputs.size() > 0) {
-    BLI_assert(m_outputs.size() == 1);
+  if (outputs_.size() > 0) {
+    BLI_assert(outputs_.size() == 1);
     hash_param(this->getOutputSocket()->getDataType());
   }
   NodeOperationHash hash;
   hash.params_hash_ = params_hash_;
 
   hash.parents_hash_ = 0;
-  for (NodeOperationInput &socket : m_inputs) {
+  for (NodeOperationInput &socket : inputs_) {
     if (!socket.isConnected()) {
       continue;
     }
@@ -108,29 +108,29 @@ std::optional<NodeOperationHash> NodeOperation::generate_hash()
 
 NodeOperationOutput *NodeOperation::getOutputSocket(unsigned int index)
 {
-  return &m_outputs[index];
+  return &outputs_[index];
 }
 
 NodeOperationInput *NodeOperation::getInputSocket(unsigned int index)
 {
-  return &m_inputs[index];
+  return &inputs_[index];
 }
 
 void NodeOperation::addInputSocket(DataType datatype, ResizeMode resize_mode)
 {
-  m_inputs.append(NodeOperationInput(this, datatype, resize_mode));
+  inputs_.append(NodeOperationInput(this, datatype, resize_mode));
 }
 
 void NodeOperation::addOutputSocket(DataType datatype)
 {
-  m_outputs.append(NodeOperationOutput(this, datatype));
+  outputs_.append(NodeOperationOutput(this, datatype));
 }
 
 void NodeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   unsigned int used_canvas_index = 0;
   if (canvas_input_index_ == RESOLUTION_INPUT_ANY) {
-    for (NodeOperationInput &input : m_inputs) {
+    for (NodeOperationInput &input : inputs_) {
       rcti any_area = COM_AREA_NONE;
       const bool determined = input.determine_canvas(preferred_area, any_area);
       if (determined) {
@@ -140,8 +140,8 @@ void NodeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
       used_canvas_index += 1;
     }
   }
-  else if (canvas_input_index_ < m_inputs.size()) {
-    NodeOperationInput &input = m_inputs[canvas_input_index_];
+  else if (canvas_input_index_ < inputs_.size()) {
+    NodeOperationInput &input = inputs_[canvas_input_index_];
     input.determine_canvas(preferred_area, r_area);
     used_canvas_index = canvas_input_index_;
   }
@@ -152,11 +152,11 @@ void NodeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 
   rcti unused_area;
   const rcti &local_preferred_area = r_area;
-  for (unsigned int index = 0; index < m_inputs.size(); index++) {
+  for (unsigned int index = 0; index < inputs_.size(); index++) {
     if (index == used_canvas_index) {
       continue;
     }
-    NodeOperationInput &input = m_inputs[index];
+    NodeOperationInput &input = inputs_[index];
     if (input.isConnected()) {
       input.determine_canvas(local_preferred_area, unused_area);
     }
@@ -179,22 +179,22 @@ void NodeOperation::initExecution()
 
 void NodeOperation::initMutex()
 {
-  BLI_mutex_init(&m_mutex);
+  BLI_mutex_init(&mutex_);
 }
 
 void NodeOperation::lockMutex()
 {
-  BLI_mutex_lock(&m_mutex);
+  BLI_mutex_lock(&mutex_);
 }
 
 void NodeOperation::unlockMutex()
 {
-  BLI_mutex_unlock(&m_mutex);
+  BLI_mutex_unlock(&mutex_);
 }
 
 void NodeOperation::deinitMutex()
 {
-  BLI_mutex_end(&m_mutex);
+  BLI_mutex_end(&mutex_);
 }
 
 void NodeOperation::deinitExecution()
@@ -219,7 +219,7 @@ const rcti &NodeOperation::get_canvas() const
  */
 void NodeOperation::unset_canvas()
 {
-  BLI_assert(m_inputs.size() == 0);
+  BLI_assert(inputs_.size() == 0);
   flags.is_canvas_set = false;
 }
 
@@ -242,7 +242,7 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti *input,
                                                      ReadBufferOperation *readOperation,
                                                      rcti *output)
 {
-  if (m_inputs.size() == 0) {
+  if (inputs_.size() == 0) {
     BLI_rcti_init(output, input->xmin, input->xmax, input->ymin, input->ymax);
     return false;
   }
@@ -445,14 +445,14 @@ void NodeOperation::remove_buffers_and_restore_original_inputs(
  *****************/
 
 NodeOperationInput::NodeOperationInput(NodeOperation *op, DataType datatype, ResizeMode resizeMode)
-    : m_operation(op), m_datatype(datatype), m_resizeMode(resizeMode), m_link(nullptr)
+    : operation_(op), datatype_(datatype), resizeMode_(resizeMode), link_(nullptr)
 {
 }
 
 SocketReader *NodeOperationInput::getReader()
 {
   if (isConnected()) {
-    return &m_link->getOperation();
+    return &link_->getOperation();
   }
 
   return nullptr;
@@ -463,8 +463,8 @@ SocketReader *NodeOperationInput::getReader()
  */
 bool NodeOperationInput::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  if (m_link) {
-    m_link->determine_canvas(preferred_area, r_area);
+  if (link_) {
+    link_->determine_canvas(preferred_area, r_area);
     return !BLI_rcti_is_empty(&r_area);
   }
   return false;
@@ -475,7 +475,7 @@ bool NodeOperationInput::determine_canvas(const rcti &preferred_area, rcti &r_ar
  ******************/
 
 NodeOperationOutput::NodeOperationOutput(NodeOperation *op, DataType datatype)
-    : m_operation(op), m_datatype(datatype)
+    : operation_(op), datatype_(datatype)
 {
 }
 

@@ -28,8 +28,8 @@ class ColorRampOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
-  ColorBand *m_colorBand;
+  SocketReader *inputProgram_;
+  ColorBand *colorBand_;
 
  public:
   ColorRampOperation();
@@ -51,7 +51,7 @@ class ColorRampOperation : public MultiThreadedOperation {
 
   void setColorBand(ColorBand *colorBand)
   {
-    m_colorBand = colorBand;
+    colorBand_ = colorBand;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

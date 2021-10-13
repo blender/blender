@@ -24,7 +24,7 @@ namespace blender::compositor {
 
 class IDMaskOperation : public MultiThreadedOperation {
  private:
-  float m_objectIndex;
+  float objectIndex_;
 
  public:
   IDMaskOperation();
@@ -34,7 +34,7 @@ class IDMaskOperation : public MultiThreadedOperation {
 
   void setObjectIndex(float objectIndex)
   {
-    m_objectIndex = objectIndex;
+    objectIndex_ = objectIndex;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

@@ -31,7 +31,7 @@ namespace blender::compositor {
  */
 class CalculateStandardDeviationOperation : public CalculateMeanOperation {
  protected:
-  float m_standardDeviation;
+  float standardDeviation_;
 
  public:
   /**

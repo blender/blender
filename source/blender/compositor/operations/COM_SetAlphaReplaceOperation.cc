@@ -26,15 +26,15 @@ SetAlphaReplaceOperation::SetAlphaReplaceOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
 
-  m_inputColor = nullptr;
-  m_inputAlpha = nullptr;
+  inputColor_ = nullptr;
+  inputAlpha_ = nullptr;
   this->flags.can_be_constant = true;
 }
 
 void SetAlphaReplaceOperation::initExecution()
 {
-  m_inputColor = getInputSocketReader(0);
-  m_inputAlpha = getInputSocketReader(1);
+  inputColor_ = getInputSocketReader(0);
+  inputAlpha_ = getInputSocketReader(1);
 }
 
 void SetAlphaReplaceOperation::executePixelSampled(float output[4],
@@ -44,15 +44,15 @@ void SetAlphaReplaceOperation::executePixelSampled(float output[4],
 {
   float alpha_input[4];
 
-  m_inputColor->readSampled(output, x, y, sampler);
-  m_inputAlpha->readSampled(alpha_input, x, y, sampler);
+  inputColor_->readSampled(output, x, y, sampler);
+  inputAlpha_->readSampled(alpha_input, x, y, sampler);
   output[3] = alpha_input[0];
 }
 
 void SetAlphaReplaceOperation::deinitExecution()
 {
-  m_inputColor = nullptr;
-  m_inputAlpha = nullptr;
+  inputColor_ = nullptr;
+  inputAlpha_ = nullptr;
 }
 
 void SetAlphaReplaceOperation::update_memory_buffer_partial(MemoryBuffer *output,

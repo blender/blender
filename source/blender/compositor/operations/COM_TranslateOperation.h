@@ -30,14 +30,14 @@ class TranslateOperation : public MultiThreadedOperation {
   static constexpr int Y_INPUT_INDEX = 2;
 
  private:
-  SocketReader *m_inputOperation;
-  SocketReader *m_inputXOperation;
-  SocketReader *m_inputYOperation;
-  float m_deltaX;
-  float m_deltaY;
-  bool m_isDeltaSet;
-  float m_factorX;
-  float m_factorY;
+  SocketReader *inputOperation_;
+  SocketReader *inputXOperation_;
+  SocketReader *inputYOperation_;
+  float deltaX_;
+  float deltaY_;
+  bool isDeltaSet_;
+  float factorX_;
+  float factorY_;
 
  protected:
   MemoryBufferExtend x_extend_mode_;
@@ -56,29 +56,29 @@ class TranslateOperation : public MultiThreadedOperation {
 
   float getDeltaX()
   {
-    return m_deltaX * m_factorX;
+    return deltaX_ * factorX_;
   }
   float getDeltaY()
   {
-    return m_deltaY * m_factorY;
+    return deltaY_ * factorY_;
   }
 
   inline void ensureDelta()
   {
-    if (!m_isDeltaSet) {
+    if (!isDeltaSet_) {
       if (execution_model_ == eExecutionModel::Tiled) {
         float tempDelta[4];
-        m_inputXOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
-        m_deltaX = tempDelta[0];
-        m_inputYOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
-        m_deltaY = tempDelta[0];
+        inputXOperation_->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
+        deltaX_ = tempDelta[0];
+        inputYOperation_->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
+        deltaY_ = tempDelta[0];
       }
       else {
-        m_deltaX = get_input_operation(X_INPUT_INDEX)->get_constant_value_default(0.0f);
-        m_deltaY = get_input_operation(Y_INPUT_INDEX)->get_constant_value_default(0.0f);
+        deltaX_ = get_input_operation(X_INPUT_INDEX)->get_constant_value_default(0.0f);
+        deltaY_ = get_input_operation(Y_INPUT_INDEX)->get_constant_value_default(0.0f);
       }
 
-      m_isDeltaSet = true;
+      isDeltaSet_ = true;
     }
   }
 

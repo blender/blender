@@ -49,10 +49,10 @@ class KeyingScreenOperation : public MultiThreadedOperation {
     int triangles_total;
   } TileData;
 
-  MovieClip *m_movieClip;
-  int m_framenumber;
-  TriangulationData *m_cachedTriangulation;
-  char m_trackingObject[64];
+  MovieClip *movieClip_;
+  int framenumber_;
+  TriangulationData *cachedTriangulation_;
+  char trackingObject_[64];
 
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -72,15 +72,15 @@ class KeyingScreenOperation : public MultiThreadedOperation {
 
   void setMovieClip(MovieClip *clip)
   {
-    m_movieClip = clip;
+    movieClip_ = clip;
   }
   void setTrackingObject(const char *object)
   {
-    BLI_strncpy(m_trackingObject, object, sizeof(m_trackingObject));
+    BLI_strncpy(trackingObject_, object, sizeof(trackingObject_));
   }
   void setFramenumber(int framenumber)
   {
-    m_framenumber = framenumber;
+    framenumber_ = framenumber;
   }
 
   void executePixel(float output[4], int x, int y, void *data) override;

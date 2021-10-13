@@ -28,12 +28,12 @@ class GlareThresholdOperation : public MultiThreadedOperation {
   /**
    * \brief Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
+  SocketReader *inputProgram_;
 
   /**
    * \brief settings of the glare node.
    */
-  NodeGlare *m_settings;
+  NodeGlare *settings_;
 
  public:
   GlareThresholdOperation();
@@ -55,7 +55,7 @@ class GlareThresholdOperation : public MultiThreadedOperation {
 
   void setGlareSettings(NodeGlare *settings)
   {
-    m_settings = settings;
+    settings_ = settings;
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;

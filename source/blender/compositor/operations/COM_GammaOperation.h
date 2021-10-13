@@ -27,8 +27,8 @@ class GammaOperation : public MultiThreadedRowOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
-  SocketReader *m_inputGammaProgram;
+  SocketReader *inputProgram_;
+  SocketReader *inputGammaProgram_;
 
  public:
   GammaOperation();

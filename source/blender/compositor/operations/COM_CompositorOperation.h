@@ -29,79 +29,79 @@ namespace blender::compositor {
  */
 class CompositorOperation : public MultiThreadedOperation {
  private:
-  const struct Scene *m_scene;
+  const struct Scene *scene_;
   /**
    * \brief Scene name, used for getting the render output, includes 'SC' prefix.
    */
-  char m_sceneName[MAX_ID_NAME];
+  char sceneName_[MAX_ID_NAME];
 
   /**
    * \brief local reference to the scene
    */
-  const RenderData *m_rd;
+  const RenderData *rd_;
 
   /**
    * \brief reference to the output float buffer
    */
-  float *m_outputBuffer;
+  float *outputBuffer_;
 
   /**
    * \brief reference to the output depth float buffer
    */
-  float *m_depthBuffer;
+  float *depthBuffer_;
 
   /**
    * \brief local reference to the input image operation
    */
-  SocketReader *m_imageInput;
+  SocketReader *imageInput_;
 
   /**
    * \brief local reference to the input alpha operation
    */
-  SocketReader *m_alphaInput;
+  SocketReader *alphaInput_;
 
   /**
    * \brief local reference to the depth operation
    */
-  SocketReader *m_depthInput;
+  SocketReader *depthInput_;
 
   /**
    * \brief Ignore any alpha input
    */
-  bool m_useAlphaInput;
+  bool useAlphaInput_;
 
   /**
    * \brief operation is active for calculating final compo result
    */
-  bool m_active;
+  bool active_;
 
   /**
    * \brief View name, used for multiview
    */
-  const char *m_viewName;
+  const char *viewName_;
 
  public:
   CompositorOperation();
   bool isActiveCompositorOutput() const
   {
-    return m_active;
+    return active_;
   }
   void executeRegion(rcti *rect, unsigned int tileNumber) override;
   void setScene(const struct Scene *scene)
   {
-    m_scene = scene;
+    scene_ = scene;
   }
   void setSceneName(const char *sceneName)
   {
-    BLI_strncpy(m_sceneName, sceneName, sizeof(m_sceneName));
+    BLI_strncpy(sceneName_, sceneName, sizeof(sceneName_));
   }
   void setViewName(const char *viewName)
   {
-    m_viewName = viewName;
+    viewName_ = viewName;
   }
   void setRenderData(const RenderData *rd)
   {
-    m_rd = rd;
+    rd_ = rd;
   }
   bool isOutputOperation(bool /*rendering*/) const override
   {
@@ -116,11 +116,11 @@ class CompositorOperation : public MultiThreadedOperation {
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
   void setUseAlphaInput(bool value)
   {
-    m_useAlphaInput = value;
+    useAlphaInput_ = value;
   }
   void setActive(bool active)
   {
-    m_active = active;
+    active_ = active;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

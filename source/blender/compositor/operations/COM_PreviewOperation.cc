@@ -30,14 +30,14 @@ PreviewOperation::PreviewOperation(const ColorManagedViewSettings *viewSettings,
 
 {
   this->addInputSocket(DataType::Color, ResizeMode::Align);
-  m_preview = nullptr;
-  m_outputBuffer = nullptr;
-  m_input = nullptr;
-  m_divider = 1.0f;
-  m_viewSettings = viewSettings;
-  m_displaySettings = displaySettings;
-  m_defaultWidth = defaultWidth;
-  m_defaultHeight = defaultHeight;
+  preview_ = nullptr;
+  outputBuffer_ = nullptr;
+  input_ = nullptr;
+  divider_ = 1.0f;
+  viewSettings_ = viewSettings;
+  displaySettings_ = displaySettings;
+  defaultWidth_ = defaultWidth;
+  defaultHeight_ = defaultHeight;
   flags.use_viewer_border = true;
   flags.is_preview_operation = true;
 }
@@ -47,34 +47,34 @@ void PreviewOperation::verifyPreview(bNodeInstanceHash *previews, bNodeInstanceK
   /* Size (0, 0) ensures the preview rect is not allocated in advance,
    * this is set later in initExecution once the resolution is determined.
    */
-  m_preview = BKE_node_preview_verify(previews, key, 0, 0, true);
+  preview_ = BKE_node_preview_verify(previews, key, 0, 0, true);
 }
 
 void PreviewOperation::initExecution()
 {
-  m_input = getInputSocketReader(0);
+  input_ = getInputSocketReader(0);
 
-  if (this->getWidth() == (unsigned int)m_preview->xsize &&
-      this->getHeight() == (unsigned int)m_preview->ysize) {
-    m_outputBuffer = m_preview->rect;
+  if (this->getWidth() == (unsigned int)preview_->xsize &&
+      this->getHeight() == (unsigned int)preview_->ysize) {
+    outputBuffer_ = preview_->rect;
   }
 
-  if (m_outputBuffer == nullptr) {
-    m_outputBuffer = (unsigned char *)MEM_callocN(
+  if (outputBuffer_ == nullptr) {
+    outputBuffer_ = (unsigned char *)MEM_callocN(
         sizeof(unsigned char) * 4 * getWidth() * getHeight(), "PreviewOperation");
-    if (m_preview->rect) {
-      MEM_freeN(m_preview->rect);
+    if (preview_->rect) {
+      MEM_freeN(preview_->rect);
     }
-    m_preview->xsize = getWidth();
-    m_preview->ysize = getHeight();
-    m_preview->rect = m_outputBuffer;
+    preview_->xsize = getWidth();
+    preview_->ysize = getHeight();
+    preview_->rect = outputBuffer_;
   }
 }
 
 void PreviewOperation::deinitExecution()
 {
-  m_outputBuffer = nullptr;
-  m_input = nullptr;
+  outputBuffer_ = nullptr;
+  input_ = nullptr;
 }
 
 void PreviewOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
@@ -83,21 +83,21 @@ void PreviewOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
   float color[4];
   struct ColormanageProcessor *cm_processor;
 
-  cm_processor = IMB_colormanagement_display_processor_new(m_viewSettings, m_displaySettings);
+  cm_processor = IMB_colormanagement_display_processor_new(viewSettings_, displaySettings_);
 
   for (int y = rect->ymin; y < rect->ymax; y++) {
     offset = (y * getWidth() + rect->xmin) * 4;
     for (int x = rect->xmin; x < rect->xmax; x++) {
-      float rx = floor(x / m_divider);
-      float ry = floor(y / m_divider);
+      float rx = floor(x / divider_);
+      float ry = floor(y / divider_);
 
       color[0] = 0.0f;
       color[1] = 0.0f;
       color[2] = 0.0f;
       color[3] = 1.0f;
-      m_input->readSampled(color, rx, ry, PixelSampler::Nearest);
+      input_->readSampled(color, rx, ry, PixelSampler::Nearest);
       IMB_colormanagement_processor_apply_v4(cm_processor, color);
-      rgba_float_to_uchar(m_outputBuffer + offset, color);
+      rgba_float_to_uchar(outputBuffer_ + offset, color);
       offset += 4;
     }
   }
@@ -110,10 +110,10 @@ bool PreviewOperation::determineDependingAreaOfInterest(rcti *input,
 {
   rcti newInput;
 
-  newInput.xmin = input->xmin / m_divider;
-  newInput.xmax = input->xmax / m_divider;
-  newInput.ymin = input->ymin / m_divider;
-  newInput.ymax = input->ymax / m_divider;
+  newInput.xmin = input->xmin / divider_;
+  newInput.xmax = input->xmax / divider_;
+  newInput.ymin = input->ymin / divider_;
+  newInput.ymax = input->ymax / divider_;
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
@@ -121,9 +121,9 @@ void PreviewOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti
 {
   /* Use default preview resolution as preferred ensuring it has size so that
    * generated inputs (which don't have resolution on their own) are displayed */
-  BLI_assert(m_defaultWidth > 0 && m_defaultHeight > 0);
+  BLI_assert(defaultWidth_ > 0 && defaultHeight_ > 0);
   rcti local_preferred;
-  BLI_rcti_init(&local_preferred, 0, m_defaultWidth, 0, m_defaultHeight);
+  BLI_rcti_init(&local_preferred, 0, defaultWidth_, 0, defaultHeight_);
   NodeOperation::determine_canvas(local_preferred, r_area);
 
   /* If resolution is 0 there are two possible scenarios:
@@ -137,17 +137,17 @@ void PreviewOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti
    */
   int width = BLI_rcti_size_x(&r_area);
   int height = BLI_rcti_size_y(&r_area);
-  m_divider = 0.0f;
+  divider_ = 0.0f;
   if (width > 0 && height > 0) {
     if (width > height) {
-      m_divider = (float)COM_PREVIEW_SIZE / (width);
+      divider_ = (float)COM_PREVIEW_SIZE / (width);
     }
     else {
-      m_divider = (float)COM_PREVIEW_SIZE / (height);
+      divider_ = (float)COM_PREVIEW_SIZE / (height);
     }
   }
-  width = width * m_divider;
-  height = height * m_divider;
+  width = width * divider_;
+  height = height * divider_;
 
   BLI_rcti_init(&r_area, r_area.xmin, r_area.xmin + width, r_area.ymin, r_area.ymin + height);
 }
@@ -164,10 +164,10 @@ void PreviewOperation::get_area_of_interest(const int input_idx,
   BLI_assert(input_idx == 0);
   UNUSED_VARS_NDEBUG(input_idx);
 
-  r_input_area.xmin = output_area.xmin / m_divider;
-  r_input_area.xmax = output_area.xmax / m_divider;
-  r_input_area.ymin = output_area.ymin / m_divider;
-  r_input_area.ymax = output_area.ymax / m_divider;
+  r_input_area.xmin = output_area.xmin / divider_;
+  r_input_area.xmax = output_area.xmax / divider_;
+  r_input_area.ymin = output_area.ymin / divider_;
+  r_input_area.ymax = output_area.ymax / divider_;
 }
 
 void PreviewOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
@@ -176,16 +176,16 @@ void PreviewOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output)
 {
   MemoryBuffer *input = inputs[0];
   struct ColormanageProcessor *cm_processor = IMB_colormanagement_display_processor_new(
-      m_viewSettings, m_displaySettings);
+      viewSettings_, displaySettings_);
 
   rcti buffer_area;
   BLI_rcti_init(&buffer_area, 0, this->getWidth(), 0, this->getHeight());
   BuffersIteratorBuilder<uchar> it_builder(
-      m_outputBuffer, buffer_area, area, COM_data_type_num_channels(DataType::Color));
+      outputBuffer_, buffer_area, area, COM_data_type_num_channels(DataType::Color));
 
   for (BuffersIterator<uchar> it = it_builder.build(); !it.is_end(); ++it) {
-    const float rx = it.x / m_divider;
-    const float ry = it.y / m_divider;
+    const float rx = it.x / divider_;
+    const float ry = it.y / divider_;
 
     float color[4];
     input->read_elem_checked(rx, ry, color);

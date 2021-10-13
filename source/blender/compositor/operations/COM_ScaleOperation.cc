@@ -31,11 +31,11 @@ namespace blender::compositor {
 BaseScaleOperation::BaseScaleOperation()
 {
 #ifdef USE_FORCE_BILINEAR
-  m_sampler = (int)PixelSampler::Bilinear;
+  sampler_ = (int)PixelSampler::Bilinear;
 #else
-  m_sampler = -1;
+  sampler_ = -1;
 #endif
-  m_variable_size = false;
+  variable_size_ = false;
 }
 
 void BaseScaleOperation::set_scale_canvas_max_size(Size2f size)
@@ -53,9 +53,9 @@ ScaleOperation::ScaleOperation(DataType data_type) : BaseScaleOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(data_type);
-  m_inputOperation = nullptr;
-  m_inputXOperation = nullptr;
-  m_inputYOperation = nullptr;
+  inputOperation_ = nullptr;
+  inputXOperation_ = nullptr;
+  inputYOperation_ = nullptr;
 }
 
 float ScaleOperation::get_constant_scale(const int input_op_idx, const float factor)
@@ -118,16 +118,16 @@ void ScaleOperation::init_data()
 
 void ScaleOperation::initExecution()
 {
-  m_inputOperation = this->getInputSocketReader(0);
-  m_inputXOperation = this->getInputSocketReader(1);
-  m_inputYOperation = this->getInputSocketReader(2);
+  inputOperation_ = this->getInputSocketReader(0);
+  inputXOperation_ = this->getInputSocketReader(1);
+  inputYOperation_ = this->getInputSocketReader(2);
 }
 
 void ScaleOperation::deinitExecution()
 {
-  m_inputOperation = nullptr;
-  m_inputXOperation = nullptr;
-  m_inputYOperation = nullptr;
+  inputOperation_ = nullptr;
+  inputXOperation_ = nullptr;
+  inputYOperation_ = nullptr;
 }
 
 void ScaleOperation::get_scale_offset(const rcti &input_canvas,
@@ -176,7 +176,7 @@ void ScaleOperation::get_area_of_interest(const int input_idx,
 
   get_scale_area_of_interest(
       image_op->get_canvas(), this->get_canvas(), scale_x, scale_y, output_area, r_input_area);
-  expand_area_for_sampler(r_input_area, (PixelSampler)m_sampler);
+  expand_area_for_sampler(r_input_area, (PixelSampler)sampler_);
 }
 
 void ScaleOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -207,7 +207,7 @@ void ScaleOperation::update_memory_buffer_partial(MemoryBuffer *output,
         from_scale_offset_y + canvas_.ymin + it.y, scale_center_y, rel_scale_y);
 
     input_image->read_elem_sampled(
-        scaled_x - canvas_.xmin, scaled_y - canvas_.ymin, (PixelSampler)m_sampler, it.out);
+        scaled_x - canvas_.xmin, scaled_y - canvas_.ymin, (PixelSampler)sampler_, it.out);
   }
 }
 
@@ -268,15 +268,15 @@ void ScaleRelativeOperation::executePixelSampled(float output[4],
   float scaleX[4];
   float scaleY[4];
 
-  m_inputXOperation->readSampled(scaleX, x, y, effective_sampler);
-  m_inputYOperation->readSampled(scaleY, x, y, effective_sampler);
+  inputXOperation_->readSampled(scaleX, x, y, effective_sampler);
+  inputYOperation_->readSampled(scaleY, x, y, effective_sampler);
 
   const float scx = scaleX[0];
   const float scy = scaleY[0];
 
   float nx = this->canvas_center_x_ + (x - this->canvas_center_x_) / scx;
   float ny = this->canvas_center_y_ + (y - this->canvas_center_y_) / scy;
-  m_inputOperation->readSampled(output, nx, ny, effective_sampler);
+  inputOperation_->readSampled(output, nx, ny, effective_sampler);
 }
 
 bool ScaleRelativeOperation::determineDependingAreaOfInterest(rcti *input,
@@ -284,12 +284,12 @@ bool ScaleRelativeOperation::determineDependingAreaOfInterest(rcti *input,
                                                               rcti *output)
 {
   rcti newInput;
-  if (!m_variable_size) {
+  if (!variable_size_) {
     float scaleX[4];
     float scaleY[4];
 
-    m_inputXOperation->readSampled(scaleX, 0, 0, PixelSampler::Nearest);
-    m_inputYOperation->readSampled(scaleY, 0, 0, PixelSampler::Nearest);
+    inputXOperation_->readSampled(scaleX, 0, 0, PixelSampler::Nearest);
+    inputYOperation_->readSampled(scaleY, 0, 0, PixelSampler::Nearest);
 
     const float scx = scaleX[0];
     const float scy = scaleY[0];
@@ -318,8 +318,8 @@ void ScaleAbsoluteOperation::executePixelSampled(float output[4],
   float scaleX[4];
   float scaleY[4];
 
-  m_inputXOperation->readSampled(scaleX, x, y, effective_sampler);
-  m_inputYOperation->readSampled(scaleY, x, y, effective_sampler);
+  inputXOperation_->readSampled(scaleX, x, y, effective_sampler);
+  inputYOperation_->readSampled(scaleY, x, y, effective_sampler);
 
   const float scx = scaleX[0]; /* Target absolute scale. */
   const float scy = scaleY[0]; /* Target absolute scale. */
@@ -333,7 +333,7 @@ void ScaleAbsoluteOperation::executePixelSampled(float output[4],
   float nx = this->canvas_center_x_ + (x - this->canvas_center_x_) / relativeXScale;
   float ny = this->canvas_center_y_ + (y - this->canvas_center_y_) / relativeYScale;
 
-  m_inputOperation->readSampled(output, nx, ny, effective_sampler);
+  inputOperation_->readSampled(output, nx, ny, effective_sampler);
 }
 
 bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input,
@@ -341,12 +341,12 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input,
                                                               rcti *output)
 {
   rcti newInput;
-  if (!m_variable_size) {
+  if (!variable_size_) {
     float scaleX[4];
     float scaleY[4];
 
-    m_inputXOperation->readSampled(scaleX, 0, 0, PixelSampler::Nearest);
-    m_inputYOperation->readSampled(scaleY, 0, 0, PixelSampler::Nearest);
+    inputXOperation_->readSampled(scaleX, 0, 0, PixelSampler::Nearest);
+    inputYOperation_->readSampled(scaleY, 0, 0, PixelSampler::Nearest);
 
     const float scx = scaleX[0];
     const float scy = scaleY[0];
@@ -380,78 +380,78 @@ ScaleFixedSizeOperation::ScaleFixedSizeOperation() : BaseScaleOperation()
   this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addOutputSocket(DataType::Color);
   this->set_canvas_input_index(0);
-  m_inputOperation = nullptr;
-  m_is_offset = false;
+  inputOperation_ = nullptr;
+  is_offset_ = false;
 }
 
 void ScaleFixedSizeOperation::init_data(const rcti &input_canvas)
 {
   const int input_width = BLI_rcti_size_x(&input_canvas);
   const int input_height = BLI_rcti_size_y(&input_canvas);
-  m_relX = input_width / (float)m_newWidth;
-  m_relY = input_height / (float)m_newHeight;
+  relX_ = input_width / (float)newWidth_;
+  relY_ = input_height / (float)newHeight_;
 
   /* *** all the options below are for a fairly special case - camera framing *** */
-  if (m_offsetX != 0.0f || m_offsetY != 0.0f) {
-    m_is_offset = true;
+  if (offsetX_ != 0.0f || offsetY_ != 0.0f) {
+    is_offset_ = true;
 
-    if (m_newWidth > m_newHeight) {
-      m_offsetX *= m_newWidth;
-      m_offsetY *= m_newWidth;
+    if (newWidth_ > newHeight_) {
+      offsetX_ *= newWidth_;
+      offsetY_ *= newWidth_;
     }
     else {
-      m_offsetX *= m_newHeight;
-      m_offsetY *= m_newHeight;
+      offsetX_ *= newHeight_;
+      offsetY_ *= newHeight_;
     }
   }
 
-  if (m_is_aspect) {
+  if (is_aspect_) {
     /* apply aspect from clip */
     const float w_src = input_width;
     const float h_src = input_height;
 
     /* destination aspect is already applied from the camera frame */
-    const float w_dst = m_newWidth;
-    const float h_dst = m_newHeight;
+    const float w_dst = newWidth_;
+    const float h_dst = newHeight_;
 
     const float asp_src = w_src / h_src;
     const float asp_dst = w_dst / h_dst;
 
     if (fabsf(asp_src - asp_dst) >= FLT_EPSILON) {
-      if ((asp_src > asp_dst) == (m_is_crop == true)) {
+      if ((asp_src > asp_dst) == (is_crop_ == true)) {
         /* fit X */
         const float div = asp_src / asp_dst;
-        m_relX /= div;
-        m_offsetX += ((w_src - (w_src * div)) / (w_src / w_dst)) / 2.0f;
-        if (m_is_crop && execution_model_ == eExecutionModel::FullFrame) {
-          int fit_width = m_newWidth * div;
+        relX_ /= div;
+        offsetX_ += ((w_src - (w_src * div)) / (w_src / w_dst)) / 2.0f;
+        if (is_crop_ && execution_model_ == eExecutionModel::FullFrame) {
+          int fit_width = newWidth_ * div;
           if (fit_width > max_scale_canvas_size_.x) {
             fit_width = max_scale_canvas_size_.x;
           }
 
-          const int added_width = fit_width - m_newWidth;
-          m_newWidth += added_width;
-          m_offsetX += added_width / 2.0f;
+          const int added_width = fit_width - newWidth_;
+          newWidth_ += added_width;
+          offsetX_ += added_width / 2.0f;
         }
       }
       else {
         /* fit Y */
         const float div = asp_dst / asp_src;
-        m_relY /= div;
-        m_offsetY += ((h_src - (h_src * div)) / (h_src / h_dst)) / 2.0f;
-        if (m_is_crop && execution_model_ == eExecutionModel::FullFrame) {
-          int fit_height = m_newHeight * div;
+        relY_ /= div;
+        offsetY_ += ((h_src - (h_src * div)) / (h_src / h_dst)) / 2.0f;
+        if (is_crop_ && execution_model_ == eExecutionModel::FullFrame) {
+          int fit_height = newHeight_ * div;
           if (fit_height > max_scale_canvas_size_.y) {
             fit_height = max_scale_canvas_size_.y;
           }
 
-          const int added_height = fit_height - m_newHeight;
-          m_newHeight += added_height;
-          m_offsetY += added_height / 2.0f;
+          const int added_height = fit_height - newHeight_;
+          newHeight_ += added_height;
+          offsetY_ += added_height / 2.0f;
         }
       }
 
-      m_is_offset = true;
+      is_offset_ = true;
     }
   }
   /* *** end framing options *** */
@@ -459,12 +459,12 @@ void ScaleFixedSizeOperation::init_data(const rcti &input_canvas)
 
 void ScaleFixedSizeOperation::initExecution()
 {
-  m_inputOperation = this->getInputSocketReader(0);
+  inputOperation_ = this->getInputSocketReader(0);
 }
 
 void ScaleFixedSizeOperation::deinitExecution()
 {
-  m_inputOperation = nullptr;
+  inputOperation_ = nullptr;
 }
 
 void ScaleFixedSizeOperation::executePixelSampled(float output[4],
@@ -474,13 +474,13 @@ void ScaleFixedSizeOperation::executePixelSampled(float output[4],
 {
   PixelSampler effective_sampler = getEffectiveSampler(sampler);
 
-  if (m_is_offset) {
-    float nx = ((x - m_offsetX) * m_relX);
-    float ny = ((y - m_offsetY) * m_relY);
-    m_inputOperation->readSampled(output, nx, ny, effective_sampler);
+  if (is_offset_) {
+    float nx = ((x - offsetX_) * relX_);
+    float ny = ((y - offsetY_) * relY_);
+    inputOperation_->readSampled(output, nx, ny, effective_sampler);
   }
   else {
-    m_inputOperation->readSampled(output, x * m_relX, y * m_relY, effective_sampler);
+    inputOperation_->readSampled(output, x * relX_, y * relY_, effective_sampler);
   }
 }
 
@@ -490,10 +490,10 @@ bool ScaleFixedSizeOperation::determineDependingAreaOfInterest(rcti *input,
 {
   rcti newInput;
 
-  newInput.xmax = (input->xmax - m_offsetX) * m_relX + 1;
-  newInput.xmin = (input->xmin - m_offsetX) * m_relX;
-  newInput.ymax = (input->ymax - m_offsetY) * m_relY + 1;
-  newInput.ymin = (input->ymin - m_offsetY) * m_relY;
+  newInput.xmax = (input->xmax - offsetX_) * relX_ + 1;
+  newInput.xmin = (input->xmin - offsetX_) * relX_;
+  newInput.ymax = (input->ymax - offsetY_) * relY_ + 1;
+  newInput.ymin = (input->ymin - offsetY_) * relY_;
 
   return BaseScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
@@ -501,22 +501,22 @@ bool ScaleFixedSizeOperation::determineDependingAreaOfInterest(rcti *input,
 void ScaleFixedSizeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   rcti local_preferred = preferred_area;
-  local_preferred.xmax = local_preferred.xmin + m_newWidth;
-  local_preferred.ymax = local_preferred.ymin + m_newHeight;
+  local_preferred.xmax = local_preferred.xmin + newWidth_;
+  local_preferred.ymax = local_preferred.ymin + newHeight_;
   rcti input_canvas;
   const bool input_determined = getInputSocket(0)->determine_canvas(local_preferred, input_canvas);
   if (input_determined) {
     init_data(input_canvas);
     r_area = input_canvas;
     if (execution_model_ == eExecutionModel::FullFrame) {
-      r_area.xmin /= m_relX;
-      r_area.ymin /= m_relY;
-      r_area.xmin += m_offsetX;
-      r_area.ymin += m_offsetY;
+      r_area.xmin /= relX_;
+      r_area.ymin /= relY_;
+      r_area.xmin += offsetX_;
+      r_area.ymin += offsetY_;
     }
 
-    r_area.xmax = r_area.xmin + m_newWidth;
-    r_area.ymax = r_area.ymin + m_newHeight;
+    r_area.xmax = r_area.xmin + newWidth_;
+    r_area.ymax = r_area.ymin + newHeight_;
   }
 }
 
@@ -527,11 +527,11 @@ void ScaleFixedSizeOperation::get_area_of_interest(const int input_idx,
   BLI_assert(input_idx == 0);
   UNUSED_VARS_NDEBUG(input_idx);
 
-  r_input_area.xmax = ceilf((output_area.xmax - m_offsetX) * m_relX);
-  r_input_area.xmin = floorf((output_area.xmin - m_offsetX) * m_relX);
-  r_input_area.ymax = ceilf((output_area.ymax - m_offsetY) * m_relY);
-  r_input_area.ymin = floorf((output_area.ymin - m_offsetY) * m_relY);
-  expand_area_for_sampler(r_input_area, (PixelSampler)m_sampler);
+  r_input_area.xmax = ceilf((output_area.xmax - offsetX_) * relX_);
+  r_input_area.xmin = floorf((output_area.xmin - offsetX_) * relX_);
+  r_input_area.ymax = ceilf((output_area.ymax - offsetY_) * relY_);
+  r_input_area.ymin = floorf((output_area.ymin - offsetY_) * relY_);
+  expand_area_for_sampler(r_input_area, (PixelSampler)sampler_);
 }
 
 void ScaleFixedSizeOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -539,19 +539,19 @@ void ScaleFixedSizeOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                            Span<MemoryBuffer *> inputs)
 {
   const MemoryBuffer *input_img = inputs[0];
-  PixelSampler sampler = (PixelSampler)m_sampler;
+  PixelSampler sampler = (PixelSampler)sampler_;
   BuffersIterator<float> it = output->iterate_with({}, area);
-  if (m_is_offset) {
+  if (is_offset_) {
     for (; !it.is_end(); ++it) {
-      const float nx = (canvas_.xmin + it.x - m_offsetX) * m_relX;
-      const float ny = (canvas_.ymin + it.y - m_offsetY) * m_relY;
+      const float nx = (canvas_.xmin + it.x - offsetX_) * relX_;
+      const float ny = (canvas_.ymin + it.y - offsetY_) * relY_;
       input_img->read_elem_sampled(nx - canvas_.xmin, ny - canvas_.ymin, sampler, it.out);
     }
   }
   else {
     for (; !it.is_end(); ++it) {
-      input_img->read_elem_sampled((canvas_.xmin + it.x) * m_relX - canvas_.xmin,
-                                   (canvas_.ymin + it.y) * m_relY - canvas_.ymin,
+      input_img->read_elem_sampled((canvas_.xmin + it.x) * relX_ - canvas_.xmin,
+                                   (canvas_.ymin + it.y) * relY_ - canvas_.ymin,
                                    sampler,
                                    it.out);
     }

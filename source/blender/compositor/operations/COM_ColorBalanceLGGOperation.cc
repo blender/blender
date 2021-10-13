@@ -42,16 +42,16 @@ ColorBalanceLGGOperation::ColorBalanceLGGOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  m_inputValueOperation = nullptr;
-  m_inputColorOperation = nullptr;
+  inputValueOperation_ = nullptr;
+  inputColorOperation_ = nullptr;
   this->set_canvas_input_index(1);
   flags.can_be_constant = true;
 }
 
 void ColorBalanceLGGOperation::initExecution()
 {
-  m_inputValueOperation = this->getInputSocketReader(0);
-  m_inputColorOperation = this->getInputSocketReader(1);
+  inputValueOperation_ = this->getInputSocketReader(0);
+  inputColorOperation_ = this->getInputSocketReader(1);
 }
 
 void ColorBalanceLGGOperation::executePixelSampled(float output[4],
@@ -62,19 +62,19 @@ void ColorBalanceLGGOperation::executePixelSampled(float output[4],
   float inputColor[4];
   float value[4];
 
-  m_inputValueOperation->readSampled(value, x, y, sampler);
-  m_inputColorOperation->readSampled(inputColor, x, y, sampler);
+  inputValueOperation_->readSampled(value, x, y, sampler);
+  inputColorOperation_->readSampled(inputColor, x, y, sampler);
 
   float fac = value[0];
   fac = MIN2(1.0f, fac);
   const float mfac = 1.0f - fac;
 
   output[0] = mfac * inputColor[0] +
-              fac * colorbalance_lgg(inputColor[0], m_lift[0], m_gamma_inv[0], m_gain[0]);
+              fac * colorbalance_lgg(inputColor[0], lift_[0], gamma_inv_[0], gain_[0]);
   output[1] = mfac * inputColor[1] +
-              fac * colorbalance_lgg(inputColor[1], m_lift[1], m_gamma_inv[1], m_gain[1]);
+              fac * colorbalance_lgg(inputColor[1], lift_[1], gamma_inv_[1], gain_[1]);
   output[2] = mfac * inputColor[2] +
-              fac * colorbalance_lgg(inputColor[2], m_lift[2], m_gamma_inv[2], m_gain[2]);
+              fac * colorbalance_lgg(inputColor[2], lift_[2], gamma_inv_[2], gain_[2]);
   output[3] = inputColor[3];
 }
 
@@ -86,19 +86,19 @@ void ColorBalanceLGGOperation::update_memory_buffer_row(PixelCursor &p)
     const float fac = MIN2(1.0f, in_factor[0]);
     const float fac_m = 1.0f - fac;
     p.out[0] = fac_m * in_color[0] +
-               fac * colorbalance_lgg(in_color[0], m_lift[0], m_gamma_inv[0], m_gain[0]);
+               fac * colorbalance_lgg(in_color[0], lift_[0], gamma_inv_[0], gain_[0]);
     p.out[1] = fac_m * in_color[1] +
-               fac * colorbalance_lgg(in_color[1], m_lift[1], m_gamma_inv[1], m_gain[1]);
+               fac * colorbalance_lgg(in_color[1], lift_[1], gamma_inv_[1], gain_[1]);
     p.out[2] = fac_m * in_color[2] +
-               fac * colorbalance_lgg(in_color[2], m_lift[2], m_gamma_inv[2], m_gain[2]);
+               fac * colorbalance_lgg(in_color[2], lift_[2], gamma_inv_[2], gain_[2]);
     p.out[3] = in_color[3];
   }
 }
 
 void ColorBalanceLGGOperation::deinitExecution()
 {
-  m_inputValueOperation = nullptr;
-  m_inputColorOperation = nullptr;
+  inputValueOperation_ = nullptr;
+  inputColorOperation_ = nullptr;
 }
 
 }  // namespace blender::compositor

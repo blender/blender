@@ -116,7 +116,7 @@ class NodeConverter {
 
  private:
   /** The internal builder for storing the results of the graph construction. */
-  NodeOperationBuilder *m_builder;
+  NodeOperationBuilder *builder_;
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeCompiler")

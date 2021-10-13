@@ -23,7 +23,7 @@
 
 namespace blender::compositor {
 
-CPUDevice::CPUDevice(int thread_id) : m_thread_id(thread_id)
+CPUDevice::CPUDevice(int thread_id) : thread_id_(thread_id)
 {
 }
 

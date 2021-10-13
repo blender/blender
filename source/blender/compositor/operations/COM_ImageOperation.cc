@@ -28,19 +28,19 @@ namespace blender::compositor {
 
 BaseImageOperation::BaseImageOperation()
 {
-  m_image = nullptr;
-  m_buffer = nullptr;
-  m_imageFloatBuffer = nullptr;
-  m_imageByteBuffer = nullptr;
-  m_imageUser = nullptr;
-  m_imagewidth = 0;
-  m_imageheight = 0;
-  m_framenumber = 0;
-  m_depthBuffer = nullptr;
+  image_ = nullptr;
+  buffer_ = nullptr;
+  imageFloatBuffer_ = nullptr;
+  imageByteBuffer_ = nullptr;
+  imageUser_ = nullptr;
+  imagewidth_ = 0;
+  imageheight_ = 0;
+  framenumber_ = 0;
+  depthBuffer_ = nullptr;
   depth_buffer_ = nullptr;
-  m_numberOfChannels = 0;
-  m_rd = nullptr;
-  m_viewName = nullptr;
+  numberOfChannels_ = 0;
+  rd_ = nullptr;
+  viewName_ = nullptr;
 }
 ImageOperation::ImageOperation() : BaseImageOperation()
 {
@@ -58,20 +58,20 @@ ImageDepthOperation::ImageDepthOperation() : BaseImageOperation()
 ImBuf *BaseImageOperation::getImBuf()
 {
   ImBuf *ibuf;
-  ImageUser iuser = *m_imageUser;
+  ImageUser iuser = *imageUser_;
 
-  if (m_image == nullptr) {
+  if (image_ == nullptr) {
     return nullptr;
   }
 
   /* local changes to the original ImageUser */
-  if (BKE_image_is_multilayer(m_image) == false) {
-    iuser.multi_index = BKE_scene_multiview_view_id_get(m_rd, m_viewName);
+  if (BKE_image_is_multilayer(image_) == false) {
+    iuser.multi_index = BKE_scene_multiview_view_id_get(rd_, viewName_);
   }
 
-  ibuf = BKE_image_acquire_ibuf(m_image, &iuser, nullptr);
+  ibuf = BKE_image_acquire_ibuf(image_, &iuser, nullptr);
   if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
-    BKE_image_release_ibuf(m_image, ibuf, nullptr);
+    BKE_image_release_ibuf(image_, ibuf, nullptr);
     return nullptr;
   }
   return ibuf;
@@ -80,25 +80,25 @@ ImBuf *BaseImageOperation::getImBuf()
 void BaseImageOperation::initExecution()
 {
   ImBuf *stackbuf = getImBuf();
-  m_buffer = stackbuf;
+  buffer_ = stackbuf;
   if (stackbuf) {
-    m_imageFloatBuffer = stackbuf->rect_float;
-    m_imageByteBuffer = stackbuf->rect;
-    m_depthBuffer = stackbuf->zbuf_float;
+    imageFloatBuffer_ = stackbuf->rect_float;
+    imageByteBuffer_ = stackbuf->rect;
+    depthBuffer_ = stackbuf->zbuf_float;
     if (stackbuf->zbuf_float) {
       depth_buffer_ = new MemoryBuffer(stackbuf->zbuf_float, 1, stackbuf->x, stackbuf->y);
     }
-    m_imagewidth = stackbuf->x;
-    m_imageheight = stackbuf->y;
-    m_numberOfChannels = stackbuf->channels;
+    imagewidth_ = stackbuf->x;
+    imageheight_ = stackbuf->y;
+    numberOfChannels_ = stackbuf->channels;
   }
 }
 
 void BaseImageOperation::deinitExecution()
 {
-  m_imageFloatBuffer = nullptr;
-  m_imageByteBuffer = nullptr;
-  BKE_image_release_ibuf(m_image, m_buffer, nullptr);
+  imageFloatBuffer_ = nullptr;
+  imageByteBuffer_ = nullptr;
+  BKE_image_release_ibuf(image_, buffer_, nullptr);
   if (depth_buffer_) {
     delete depth_buffer_;
     depth_buffer_ = nullptr;
@@ -115,7 +115,7 @@ void BaseImageOperation::determine_canvas(const rcti &UNUSED(preferred_area), rc
     BLI_rcti_init(&r_area, 0, stackbuf->x, 0, stackbuf->y);
   }
 
-  BKE_image_release_ibuf(m_image, stackbuf, nullptr);
+  BKE_image_release_ibuf(image_, stackbuf, nullptr);
 }
 
 static void sampleImageAtLocation(
@@ -157,14 +157,14 @@ static void sampleImageAtLocation(
 void ImageOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
   int ix = x, iy = y;
-  if (m_imageFloatBuffer == nullptr && m_imageByteBuffer == nullptr) {
+  if (imageFloatBuffer_ == nullptr && imageByteBuffer_ == nullptr) {
     zero_v4(output);
   }
-  else if (ix < 0 || iy < 0 || ix >= m_buffer->x || iy >= m_buffer->y) {
+  else if (ix < 0 || iy < 0 || ix >= buffer_->x || iy >= buffer_->y) {
     zero_v4(output);
   }
   else {
-    sampleImageAtLocation(m_buffer, x, y, sampler, true, output);
+    sampleImageAtLocation(buffer_, x, y, sampler, true, output);
   }
 }
 
@@ -172,7 +172,7 @@ void ImageOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                   const rcti &area,
                                                   Span<MemoryBuffer *> UNUSED(inputs))
 {
-  output->copy_from(m_buffer, area, true);
+  output->copy_from(buffer_, area, true);
 }
 
 void ImageAlphaOperation::executePixelSampled(float output[4],
@@ -182,12 +182,12 @@ void ImageAlphaOperation::executePixelSampled(float output[4],
 {
   float tempcolor[4];
 
-  if (m_imageFloatBuffer == nullptr && m_imageByteBuffer == nullptr) {
+  if (imageFloatBuffer_ == nullptr && imageByteBuffer_ == nullptr) {
     output[0] = 0.0f;
   }
   else {
     tempcolor[3] = 1.0f;
-    sampleImageAtLocation(m_buffer, x, y, sampler, false, tempcolor);
+    sampleImageAtLocation(buffer_, x, y, sampler, false, tempcolor);
     output[0] = tempcolor[3];
   }
 }
@@ -196,7 +196,7 @@ void ImageAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                        const rcti &area,
                                                        Span<MemoryBuffer *> UNUSED(inputs))
 {
-  output->copy_from(m_buffer, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);
+  output->copy_from(buffer_, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);
 }
 
 void ImageDepthOperation::executePixelSampled(float output[4],
@@ -204,7 +204,7 @@ void ImageDepthOperation::executePixelSampled(float output[4],
                                               float y,
                                               PixelSampler /*sampler*/)
 {
-  if (m_depthBuffer == nullptr) {
+  if (depthBuffer_ == nullptr) {
     output[0] = 0.0f;
   }
   else {
@@ -213,7 +213,7 @@ void ImageDepthOperation::executePixelSampled(float output[4],
     }
     else {
       int offset = y * getWidth() + x;
-      output[0] = m_depthBuffer[offset];
+      output[0] = depthBuffer_[offset];
     }
   }
 }

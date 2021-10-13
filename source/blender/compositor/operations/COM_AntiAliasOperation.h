@@ -33,7 +33,7 @@ class AntiAliasOperation : public MultiThreadedOperation {
   /**
    * \brief Cached reference to the reader
    */
-  SocketReader *m_valueReader;
+  SocketReader *valueReader_;
 
  public:
   AntiAliasOperation();

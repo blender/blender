@@ -27,11 +27,11 @@ class InvertOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputValueProgram;
-  SocketReader *m_inputColorProgram;
+  SocketReader *inputValueProgram_;
+  SocketReader *inputColorProgram_;
 
-  bool m_alpha;
-  bool m_color;
+  bool alpha_;
+  bool color_;
 
  public:
   InvertOperation();
@@ -53,11 +53,11 @@ class InvertOperation : public MultiThreadedOperation {
 
   void setColor(bool color)
   {
-    m_color = color;
+    color_ = color;
   }
   void setAlpha(bool alpha)
   {
-    m_alpha = alpha;
+    alpha_ = alpha;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

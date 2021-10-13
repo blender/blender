@@ -24,16 +24,16 @@ namespace blender::compositor {
 WriteBufferOperation::WriteBufferOperation(DataType datatype)
 {
   this->addInputSocket(datatype);
-  m_memoryProxy = new MemoryProxy(datatype);
-  m_memoryProxy->setWriteBufferOperation(this);
-  m_memoryProxy->setExecutor(nullptr);
+  memoryProxy_ = new MemoryProxy(datatype);
+  memoryProxy_->setWriteBufferOperation(this);
+  memoryProxy_->setExecutor(nullptr);
   flags.is_write_buffer_operation = true;
 }
 WriteBufferOperation::~WriteBufferOperation()
 {
-  if (m_memoryProxy) {
-    delete m_memoryProxy;
-    m_memoryProxy = nullptr;
+  if (memoryProxy_) {
+    delete memoryProxy_;
+    memoryProxy_ = nullptr;
   }
 }
 
@@ -42,28 +42,28 @@ void WriteBufferOperation::executePixelSampled(float output[4],
                                                float y,
                                                PixelSampler sampler)
 {
-  m_input->readSampled(output, x, y, sampler);
+  input_->readSampled(output, x, y, sampler);
 }
 
 void WriteBufferOperation::initExecution()
 {
-  m_input = this->getInputOperation(0);
-  m_memoryProxy->allocate(this->getWidth(), this->getHeight());
+  input_ = this->getInputOperation(0);
+  memoryProxy_->allocate(this->getWidth(), this->getHeight());
 }
 
 void WriteBufferOperation::deinitExecution()
 {
-  m_input = nullptr;
-  m_memoryProxy->free();
+  input_ = nullptr;
+  memoryProxy_->free();
 }
 
 void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 {
-  MemoryBuffer *memoryBuffer = m_memoryProxy->getBuffer();
+  MemoryBuffer *memoryBuffer = memoryProxy_->getBuffer();
   float *buffer = memoryBuffer->getBuffer();
   const uint8_t num_channels = memoryBuffer->get_num_channels();
-  if (m_input->get_flags().complex) {
-    void *data = m_input->initializeTileData(rect);
+  if (input_->get_flags().complex) {
+    void *data = input_->initializeTileData(rect);
     int x1 = rect->xmin;
     int y1 = rect->ymin;
     int x2 = rect->xmax;
@@ -74,7 +74,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/
     for (y = y1; y < y2 && (!breaked); y++) {
       int offset4 = (y * memoryBuffer->getWidth() + x1) * num_channels;
       for (x = x1; x < x2; x++) {
-        m_input->read(&(buffer[offset4]), x, y, data);
+        input_->read(&(buffer[offset4]), x, y, data);
         offset4 += num_channels;
       }
       if (isBraked()) {
@@ -82,7 +82,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/
       }
     }
     if (data) {
-      m_input->deinitializeTileData(rect, data);
+      input_->deinitializeTileData(rect, data);
       data = nullptr;
     }
   }
@@ -98,7 +98,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/
     for (y = y1; y < y2 && (!breaked); y++) {
       int offset4 = (y * memoryBuffer->getWidth() + x1) * num_channels;
       for (x = x1; x < x2; x++) {
-        m_input->readSampled(&(buffer[offset4]), x, y, PixelSampler::Nearest);
+        input_->readSampled(&(buffer[offset4]), x, y, PixelSampler::Nearest);
         offset4 += num_channels;
       }
       if (isBraked()) {
@@ -147,12 +147,12 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
   clMemToCleanUp->push_back(clOutputBuffer);
   std::list<cl_kernel> *clKernelsToCleanUp = new std::list<cl_kernel>();
 
-  m_input->executeOpenCL(device,
-                         outputBuffer,
-                         clOutputBuffer,
-                         inputMemoryBuffers,
-                         clMemToCleanUp,
-                         clKernelsToCleanUp);
+  input_->executeOpenCL(device,
+                        outputBuffer,
+                        clOutputBuffer,
+                        inputMemoryBuffers,
+                        clMemToCleanUp,
+                        clKernelsToCleanUp);
 
   /* STEP 3 */
 
@@ -208,14 +208,14 @@ void WriteBufferOperation::determine_canvas(const rcti &preferred_area, rcti &r_
 {
   NodeOperation::determine_canvas(preferred_area, r_area);
   /* make sure there is at least one pixel stored in case the input is a single value */
-  m_single_value = false;
+  single_value_ = false;
   if (BLI_rcti_size_x(&r_area) == 0) {
     r_area.xmax += 1;
-    m_single_value = true;
+    single_value_ = true;
   }
   if (BLI_rcti_size_y(&r_area) == 0) {
     r_area.ymax += 1;
-    m_single_value = true;
+    single_value_ = true;
   }
 }
 

@@ -24,12 +24,12 @@ namespace blender::compositor {
 
 class MultilayerBaseOperation : public BaseImageOperation {
  private:
-  int m_passId;
-  int m_view;
+  int passId_;
+  int view_;
 
  protected:
-  RenderLayer *m_renderLayer;
-  RenderPass *m_renderPass;
+  RenderLayer *renderLayer_;
+  RenderPass *renderPass_;
   ImBuf *getImBuf() override;
 
  public:

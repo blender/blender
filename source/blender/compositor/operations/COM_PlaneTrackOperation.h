@@ -32,10 +32,10 @@ namespace blender::compositor {
 
 class PlaneTrackCommon {
  protected:
-  MovieClip *m_movieClip;
-  int m_framenumber;
-  char m_trackingObjectName[64];
-  char m_planeTrackName[64];
+  MovieClip *movieClip_;
+  int framenumber_;
+  char trackingObjectName_[64];
+  char planeTrackName_[64];
 
   /* NOTE: this class is not an operation itself (to prevent virtual inheritance issues)
    * implementation classes must make wrappers to use these methods, see below.
@@ -48,19 +48,19 @@ class PlaneTrackCommon {
 
   void setMovieClip(MovieClip *clip)
   {
-    m_movieClip = clip;
+    movieClip_ = clip;
   }
   void setTrackingObject(char *object)
   {
-    BLI_strncpy(m_trackingObjectName, object, sizeof(m_trackingObjectName));
+    BLI_strncpy(trackingObjectName_, object, sizeof(trackingObjectName_));
   }
   void setPlaneTrackName(char *plane_track)
   {
-    BLI_strncpy(m_planeTrackName, plane_track, sizeof(m_planeTrackName));
+    BLI_strncpy(planeTrackName_, plane_track, sizeof(planeTrackName_));
   }
   void setFramenumber(int framenumber)
   {
-    m_framenumber = framenumber;
+    framenumber_ = framenumber;
   }
 
  private:

@@ -27,13 +27,13 @@ ColorRampOperation::ColorRampOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
 
-  m_inputProgram = nullptr;
-  m_colorBand = nullptr;
+  inputProgram_ = nullptr;
+  colorBand_ = nullptr;
   this->flags.can_be_constant = true;
 }
 void ColorRampOperation::initExecution()
 {
-  m_inputProgram = this->getInputSocketReader(0);
+  inputProgram_ = this->getInputSocketReader(0);
 }
 
 void ColorRampOperation::executePixelSampled(float output[4],
@@ -43,13 +43,13 @@ void ColorRampOperation::executePixelSampled(float output[4],
 {
   float values[4];
 
-  m_inputProgram->readSampled(values, x, y, sampler);
-  BKE_colorband_evaluate(m_colorBand, values[0], output);
+  inputProgram_->readSampled(values, x, y, sampler);
+  BKE_colorband_evaluate(colorBand_, values[0], output);
 }
 
 void ColorRampOperation::deinitExecution()
 {
-  m_inputProgram = nullptr;
+  inputProgram_ = nullptr;
 }
 
 void ColorRampOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -57,7 +57,7 @@ void ColorRampOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                       Span<MemoryBuffer *> inputs)
 {
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
-    BKE_colorband_evaluate(m_colorBand, *it.in(0), it.out);
+    BKE_colorband_evaluate(colorBand_, *it.in(0), it.out);
   }
 }
 

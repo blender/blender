@@ -31,7 +31,7 @@ void SetColorOperation::executePixelSampled(float output[4],
                                             float /*y*/,
                                             PixelSampler /*sampler*/)
 {
-  copy_v4_v4(output, m_color);
+  copy_v4_v4(output, color_);
 }
 
 void SetColorOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)

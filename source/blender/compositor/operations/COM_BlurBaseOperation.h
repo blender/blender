@@ -29,7 +29,7 @@ namespace blender::compositor {
 
 class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelper {
  private:
-  bool m_extend_bounds;
+  bool extend_bounds_;
 
  protected:
   static constexpr int IMAGE_INPUT_INDEX = 0;
@@ -48,12 +48,12 @@ class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelpe
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
-  SocketReader *m_inputSize;
-  NodeBlurData m_data;
+  SocketReader *inputProgram_;
+  SocketReader *inputSize_;
+  NodeBlurData data_;
 
-  float m_size;
-  bool m_sizeavailable;
+  float size_;
+  bool sizeavailable_;
 
   /* Flags for inheriting classes. */
   bool use_variable_size_;
@@ -74,13 +74,13 @@ class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelpe
 
   void setSize(float size)
   {
-    m_size = size;
-    m_sizeavailable = true;
+    size_ = size;
+    sizeavailable_ = true;
   }
 
   void setExtendBounds(bool extend_bounds)
   {
-    m_extend_bounds = extend_bounds;
+    extend_bounds_ = extend_bounds;
   }
 
   int get_blur_size(eDimension dim) const;

@@ -83,18 +83,18 @@ enum class ResizeMode {
 
 class NodeOperationInput {
  private:
-  NodeOperation *m_operation;
+  NodeOperation *operation_;
 
   /** Datatype of this socket. Is used for automatically data transformation.
    * \section data-conversion
    */
-  DataType m_datatype;
+  DataType datatype_;
 
   /** Resize mode of this socket */
-  ResizeMode m_resizeMode;
+  ResizeMode resizeMode_;
 
   /** Connected output */
-  NodeOperationOutput *m_link;
+  NodeOperationOutput *link_;
 
  public:
   NodeOperationInput(NodeOperation *op,
@@ -103,33 +103,33 @@ class NodeOperationInput {
 
   NodeOperation &getOperation() const
   {
-    return *m_operation;
+    return *operation_;
   }
   DataType getDataType() const
   {
-    return m_datatype;
+    return datatype_;
   }
 
   void setLink(NodeOperationOutput *link)
   {
-    m_link = link;
+    link_ = link;
   }
   NodeOperationOutput *getLink() const
   {
-    return m_link;
+    return link_;
   }
   bool isConnected() const
   {
-    return m_link;
+    return link_;
   }
 
   void setResizeMode(ResizeMode resizeMode)
   {
-    m_resizeMode = resizeMode;
+    resizeMode_ = resizeMode;
   }
   ResizeMode getResizeMode() const
   {
-    return m_resizeMode;
+    return resizeMode_;
   }
 
   SocketReader *getReader();
@@ -143,23 +143,23 @@ class NodeOperationInput {
 
 class NodeOperationOutput {
  private:
-  NodeOperation *m_operation;
+  NodeOperation *operation_;
 
   /** Datatype of this socket. Is used for automatically data transformation.
    * \section data-conversion
    */
-  DataType m_datatype;
+  DataType datatype_;
 
  public:
   NodeOperationOutput(NodeOperation *op, DataType datatype);
 
   NodeOperation &getOperation() const
   {
-    return *m_operation;
+    return *operation_;
   }
   DataType getDataType() const
   {
-    return m_datatype;
+    return datatype_;
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area);
@@ -314,10 +314,10 @@ struct NodeOperationHash {
  */
 class NodeOperation {
  private:
-  int m_id;
-  std::string m_name;
-  Vector<NodeOperationInput> m_inputs;
-  Vector<NodeOperationOutput> m_outputs;
+  int id_;
+  std::string name_;
+  Vector<NodeOperationInput> inputs_;
+  Vector<NodeOperationOutput> outputs_;
 
   size_t params_hash_;
   bool is_hash_output_params_implemented_;
@@ -338,12 +338,12 @@ class NodeOperation {
    * \see NodeOperation.deinitMutex deinitializes this mutex
    * \see NodeOperation.getMutex retrieve a pointer to this mutex.
    */
-  ThreadMutex m_mutex;
+  ThreadMutex mutex_;
 
   /**
    * \brief reference to the editing bNodeTree, used for break and update callback
    */
-  const bNodeTree *m_btree;
+  const bNodeTree *btree_;
 
  protected:
   /**
@@ -367,22 +367,22 @@ class NodeOperation {
 
   void set_name(const std::string name)
   {
-    m_name = name;
+    name_ = name;
   }
 
   const std::string get_name() const
   {
-    return m_name;
+    return name_;
   }
 
   void set_id(const int id)
   {
-    m_id = id;
+    id_ = id;
   }
 
   const int get_id() const
   {
-    return m_id;
+    return id_;
   }
 
   float get_constant_value_default(float default_value);
@@ -397,11 +397,11 @@ class NodeOperation {
 
   unsigned int getNumberOfInputSockets() const
   {
-    return m_inputs.size();
+    return inputs_.size();
   }
   unsigned int getNumberOfOutputSockets() const
   {
-    return m_outputs.size();
+    return outputs_.size();
   }
   NodeOperationOutput *getOutputSocket(unsigned int index = 0);
   NodeOperationInput *getInputSocket(unsigned int index);
@@ -442,7 +442,7 @@ class NodeOperation {
 
   void setbNodeTree(const bNodeTree *tree)
   {
-    m_btree = tree;
+    btree_ = tree;
   }
 
   void set_execution_system(ExecutionSystem *system)
@@ -561,13 +561,13 @@ class NodeOperation {
 
   inline bool isBraked() const
   {
-    return m_btree->test_break(m_btree->tbh);
+    return btree_->test_break(btree_->tbh);
   }
 
   inline void updateDraw()
   {
-    if (m_btree->update_draw) {
-      m_btree->update_draw(m_btree->udh);
+    if (btree_->update_draw) {
+      btree_->update_draw(btree_->udh);
     }
   }
 

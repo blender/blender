@@ -47,19 +47,19 @@ class NodeGraph {
   };
 
  private:
-  Vector<Node *> m_nodes;
-  Vector<Link> m_links;
+  Vector<Node *> nodes_;
+  Vector<Link> links_;
 
  public:
   ~NodeGraph();
 
   const Vector<Node *> &nodes() const
   {
-    return m_nodes;
+    return nodes_;
   }
   const Vector<Link> &links() const
   {
-    return m_links;
+    return links_;
   }
 
   void from_bNodeTree(const CompositorContext &context, bNodeTree *tree);

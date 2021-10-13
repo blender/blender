@@ -27,38 +27,38 @@ namespace blender::compositor {
  */
 class KeyingClipOperation : public MultiThreadedOperation {
  protected:
-  float m_clipBlack;
-  float m_clipWhite;
+  float clipBlack_;
+  float clipWhite_;
 
-  int m_kernelRadius;
-  float m_kernelTolerance;
+  int kernelRadius_;
+  float kernelTolerance_;
 
-  bool m_isEdgeMatte;
+  bool isEdgeMatte_;
 
  public:
   KeyingClipOperation();
 
   void setClipBlack(float value)
   {
-    m_clipBlack = value;
+    clipBlack_ = value;
   }
   void setClipWhite(float value)
   {
-    m_clipWhite = value;
+    clipWhite_ = value;
   }
 
   void setKernelRadius(int value)
   {
-    m_kernelRadius = value;
+    kernelRadius_ = value;
   }
   void setKernelTolerance(float value)
   {
-    m_kernelTolerance = value;
+    kernelTolerance_ = value;
   }
 
   void setIsEdgeMatte(bool value)
   {
-    m_isEdgeMatte = value;
+    isEdgeMatte_ = value;
   }
 
   void *initializeTileData(rcti *rect) override;

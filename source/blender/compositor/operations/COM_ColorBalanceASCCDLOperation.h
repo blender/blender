@@ -31,12 +31,12 @@ class ColorBalanceASCCDLOperation : public MultiThreadedRowOperation {
   /**
    * Prefetched reference to the inputProgram
    */
-  SocketReader *m_inputValueOperation;
-  SocketReader *m_inputColorOperation;
+  SocketReader *inputValueOperation_;
+  SocketReader *inputColorOperation_;
 
-  float m_offset[3];
-  float m_power[3];
-  float m_slope[3];
+  float offset_[3];
+  float power_[3];
+  float slope_[3];
 
  public:
   /**
@@ -61,15 +61,15 @@ class ColorBalanceASCCDLOperation : public MultiThreadedRowOperation {
 
   void setOffset(float offset[3])
   {
-    copy_v3_v3(m_offset, offset);
+    copy_v3_v3(offset_, offset);
   }
   void setPower(float power[3])
   {
-    copy_v3_v3(m_power, power);
+    copy_v3_v3(power_, power);
   }
   void setSlope(float slope[3])
   {
-    copy_v3_v3(m_slope, slope);
+    copy_v3_v3(slope_, slope);
   }
 
   void update_memory_buffer_row(PixelCursor &p) override;

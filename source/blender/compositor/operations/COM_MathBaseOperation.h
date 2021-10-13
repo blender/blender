@@ -31,11 +31,11 @@ class MathBaseOperation : public MultiThreadedOperation {
   /**
    * Prefetched reference to the inputProgram
    */
-  SocketReader *m_inputValue1Operation;
-  SocketReader *m_inputValue2Operation;
-  SocketReader *m_inputValue3Operation;
+  SocketReader *inputValue1Operation_;
+  SocketReader *inputValue2Operation_;
+  SocketReader *inputValue3Operation_;
 
-  bool m_useClamp;
+  bool useClamp_;
 
  protected:
   /**
@@ -48,7 +48,7 @@ class MathBaseOperation : public MultiThreadedOperation {
 
   float clamp_when_enabled(float value)
   {
-    if (m_useClamp) {
+    if (useClamp_) {
       return CLAMPIS(value, 0.0f, 1.0f);
     }
     return value;
@@ -56,7 +56,7 @@ class MathBaseOperation : public MultiThreadedOperation {
 
   void clamp_when_enabled(float *out)
   {
-    if (m_useClamp) {
+    if (useClamp_) {
       CLAMP(*out, 0.0f, 1.0f);
     }
   }
@@ -79,7 +79,7 @@ class MathBaseOperation : public MultiThreadedOperation {
 
   void setUseClamp(bool value)
   {
-    m_useClamp = value;
+    useClamp_ = value;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

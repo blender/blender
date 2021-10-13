@@ -1267,8 +1267,8 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
      *
      * Each version has slightly different criteria for detecting an edge pixel.
      */
-    if (m_adjacentOnly) { /* If "adjacent only" inner edge mode is turned on. */
-      if (m_keepInside) { /* If "keep inside" buffer edge mode is turned on. */
+    if (adjacentOnly_) { /* If "adjacent only" inner edge mode is turned on. */
+      if (keepInside_) { /* If "keep inside" buffer edge mode is turned on. */
         do_adjacentKeepBorders(t, rw, limask, lomask, lres, res, rsize);
       }
       else { /* "bleed out" buffer edge mode is turned on. */
@@ -1281,8 +1281,8 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
       /* Detect edges in all non-border pixels in the buffer. */
       do_adjacentEdgeDetection(t, rw, limask, lomask, lres, res, rsize, isz, osz, gsz);
     }
-    else {                /* "all" inner edge mode is turned on. */
-      if (m_keepInside) { /* If "keep inside" buffer edge mode is turned on. */
+    else {               /* "all" inner edge mode is turned on. */
+      if (keepInside_) { /* If "keep inside" buffer edge mode is turned on. */
         do_allKeepBorders(t, rw, limask, lomask, lres, res, rsize);
       }
       else { /* "bleed out" buffer edge mode is turned on. */
@@ -1322,10 +1322,10 @@ DoubleEdgeMaskOperation::DoubleEdgeMaskOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
-  m_inputInnerMask = nullptr;
-  m_inputOuterMask = nullptr;
-  m_adjacentOnly = false;
-  m_keepInside = false;
+  inputInnerMask_ = nullptr;
+  inputOuterMask_ = nullptr;
+  adjacentOnly_ = false;
+  keepInside_ = false;
   this->flags.complex = true;
   is_output_rendered_ = false;
 }
@@ -1334,7 +1334,7 @@ bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti * /*input*/,
                                                                ReadBufferOperation *readOperation,
                                                                rcti *output)
 {
-  if (m_cachedInstance == nullptr) {
+  if (cachedInstance_ == nullptr) {
     rcti newInput;
     newInput.xmax = this->getWidth();
     newInput.xmin = 0;
@@ -1348,31 +1348,31 @@ bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti * /*input*/,
 
 void DoubleEdgeMaskOperation::initExecution()
 {
-  m_inputInnerMask = this->getInputSocketReader(0);
-  m_inputOuterMask = this->getInputSocketReader(1);
+  inputInnerMask_ = this->getInputSocketReader(0);
+  inputOuterMask_ = this->getInputSocketReader(1);
   initMutex();
-  m_cachedInstance = nullptr;
+  cachedInstance_ = nullptr;
 }
 
 void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect)
 {
-  if (m_cachedInstance) {
-    return m_cachedInstance;
+  if (cachedInstance_) {
+    return cachedInstance_;
   }
 
   lockMutex();
-  if (m_cachedInstance == nullptr) {
-    MemoryBuffer *innerMask = (MemoryBuffer *)m_inputInnerMask->initializeTileData(rect);
-    MemoryBuffer *outerMask = (MemoryBuffer *)m_inputOuterMask->initializeTileData(rect);
+  if (cachedInstance_ == nullptr) {
+    MemoryBuffer *innerMask = (MemoryBuffer *)inputInnerMask_->initializeTileData(rect);
+    MemoryBuffer *outerMask = (MemoryBuffer *)inputOuterMask_->initializeTileData(rect);
     float *data = (float *)MEM_mallocN(sizeof(float) * this->getWidth() * this->getHeight(),
                                        __func__);
     float *imask = innerMask->getBuffer();
     float *omask = outerMask->getBuffer();
     doDoubleEdgeMask(imask, omask, data);
-    m_cachedInstance = data;
+    cachedInstance_ = data;
   }
   unlockMutex();
-  return m_cachedInstance;
+  return cachedInstance_;
 }
 void DoubleEdgeMaskOperation::executePixel(float output[4], int x, int y, void *data)
 {
@@ -1383,12 +1383,12 @@ void DoubleEdgeMaskOperation::executePixel(float output[4], int x, int y, void *
 
 void DoubleEdgeMaskOperation::deinitExecution()
 {
-  m_inputInnerMask = nullptr;
-  m_inputOuterMask = nullptr;
+  inputInnerMask_ = nullptr;
+  inputOuterMask_ = nullptr;
   deinitMutex();
-  if (m_cachedInstance) {
-    MEM_freeN(m_cachedInstance);
-    m_cachedInstance = nullptr;
+  if (cachedInstance_) {
+    MEM_freeN(cachedInstance_);
+    cachedInstance_ = nullptr;
   }
 }
 

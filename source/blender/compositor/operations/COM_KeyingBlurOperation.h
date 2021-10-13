@@ -27,8 +27,8 @@ namespace blender::compositor {
  */
 class KeyingBlurOperation : public MultiThreadedOperation {
  protected:
-  int m_size;
-  int m_axis;
+  int size_;
+  int axis_;
 
  public:
   enum BlurAxis {
@@ -40,11 +40,11 @@ class KeyingBlurOperation : public MultiThreadedOperation {
 
   void setSize(int value)
   {
-    m_size = value;
+    size_ = value;
   }
   void setAxis(int value)
   {
-    m_axis = value;
+    axis_ = value;
   }
 
   void *initializeTileData(rcti *rect) override;

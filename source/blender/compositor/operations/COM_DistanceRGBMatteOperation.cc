@@ -26,21 +26,21 @@ DistanceRGBMatteOperation::DistanceRGBMatteOperation()
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Value);
 
-  m_inputImageProgram = nullptr;
-  m_inputKeyProgram = nullptr;
+  inputImageProgram_ = nullptr;
+  inputKeyProgram_ = nullptr;
   flags.can_be_constant = true;
 }
 
 void DistanceRGBMatteOperation::initExecution()
 {
-  m_inputImageProgram = this->getInputSocketReader(0);
-  m_inputKeyProgram = this->getInputSocketReader(1);
+  inputImageProgram_ = this->getInputSocketReader(0);
+  inputKeyProgram_ = this->getInputSocketReader(1);
 }
 
 void DistanceRGBMatteOperation::deinitExecution()
 {
-  m_inputImageProgram = nullptr;
-  m_inputKeyProgram = nullptr;
+  inputImageProgram_ = nullptr;
+  inputKeyProgram_ = nullptr;
 }
 
 float DistanceRGBMatteOperation::calculateDistance(const float key[4], const float image[4])
@@ -56,14 +56,14 @@ void DistanceRGBMatteOperation::executePixelSampled(float output[4],
   float inKey[4];
   float inImage[4];
 
-  const float tolerance = m_settings->t1;
-  const float falloff = m_settings->t2;
+  const float tolerance = settings_->t1;
+  const float falloff = settings_->t2;
 
   float distance;
   float alpha;
 
-  m_inputKeyProgram->readSampled(inKey, x, y, sampler);
-  m_inputImageProgram->readSampled(inImage, x, y, sampler);
+  inputKeyProgram_->readSampled(inKey, x, y, sampler);
+  inputImageProgram_->readSampled(inImage, x, y, sampler);
 
   distance = this->calculateDistance(inKey, inImage);
 
@@ -102,8 +102,8 @@ void DistanceRGBMatteOperation::update_memory_buffer_partial(MemoryBuffer *outpu
     const float *in_key = it.in(1);
 
     float distance = this->calculateDistance(in_key, in_image);
-    const float tolerance = m_settings->t1;
-    const float falloff = m_settings->t2;
+    const float tolerance = settings_->t1;
+    const float falloff = settings_->t2;
 
     /* Store matte(alpha) value in [0] to go with
      * COM_SetAlphaMultiplyOperation and the Value output.

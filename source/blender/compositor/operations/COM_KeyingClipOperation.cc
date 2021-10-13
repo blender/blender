@@ -25,13 +25,13 @@ KeyingClipOperation::KeyingClipOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
 
-  m_kernelRadius = 3;
-  m_kernelTolerance = 0.1f;
+  kernelRadius_ = 3;
+  kernelTolerance_ = 0.1f;
 
-  m_clipBlack = 0.0f;
-  m_clipWhite = 1.0f;
+  clipBlack_ = 0.0f;
+  clipWhite_ = 1.0f;
 
-  m_isEdgeMatte = false;
+  isEdgeMatte_ = false;
 
   this->flags.complex = true;
 }
@@ -45,8 +45,8 @@ void *KeyingClipOperation::initializeTileData(rcti *rect)
 
 void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data)
 {
-  const int delta = m_kernelRadius;
-  const float tolerance = m_kernelTolerance;
+  const int delta = kernelRadius_;
+  const float tolerance = kernelTolerance_;
 
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
@@ -86,7 +86,7 @@ void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data
     }
   }
 
-  if (m_isEdgeMatte) {
+  if (isEdgeMatte_) {
     if (ok) {
       output[0] = 0.0f;
     }
@@ -98,14 +98,14 @@ void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data
     output[0] = value;
 
     if (ok) {
-      if (output[0] < m_clipBlack) {
+      if (output[0] < clipBlack_) {
         output[0] = 0.0f;
       }
-      else if (output[0] >= m_clipWhite) {
+      else if (output[0] >= clipWhite_) {
         output[0] = 1.0f;
       }
       else {
-        output[0] = (output[0] - m_clipBlack) / (m_clipWhite - m_clipBlack);
+        output[0] = (output[0] - clipBlack_) / (clipWhite_ - clipBlack_);
       }
     }
   }
@@ -117,10 +117,10 @@ bool KeyingClipOperation::determineDependingAreaOfInterest(rcti *input,
 {
   rcti newInput;
 
-  newInput.xmin = input->xmin - m_kernelRadius;
-  newInput.ymin = input->ymin - m_kernelRadius;
-  newInput.xmax = input->xmax + m_kernelRadius;
-  newInput.ymax = input->ymax + m_kernelRadius;
+  newInput.xmin = input->xmin - kernelRadius_;
+  newInput.ymin = input->ymin - kernelRadius_;
+  newInput.xmax = input->xmax + kernelRadius_;
+  newInput.ymax = input->ymax + kernelRadius_;
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
@@ -131,10 +131,10 @@ void KeyingClipOperation::get_area_of_interest(const int input_idx,
 {
   BLI_assert(input_idx == 0);
   UNUSED_VARS_NDEBUG(input_idx);
-  r_input_area.xmin = output_area.xmin - m_kernelRadius;
-  r_input_area.xmax = output_area.xmax + m_kernelRadius;
-  r_input_area.ymin = output_area.ymin - m_kernelRadius;
-  r_input_area.ymax = output_area.ymax + m_kernelRadius;
+  r_input_area.xmin = output_area.xmin - kernelRadius_;
+  r_input_area.xmax = output_area.xmax + kernelRadius_;
+  r_input_area.ymin = output_area.ymin - kernelRadius_;
+  r_input_area.ymax = output_area.ymax + kernelRadius_;
 }
 
 void KeyingClipOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -144,8 +144,8 @@ void KeyingClipOperation::update_memory_buffer_partial(MemoryBuffer *output,
   const MemoryBuffer *input = inputs[0];
   BuffersIterator<float> it = output->iterate_with(inputs, area);
 
-  const int delta = m_kernelRadius;
-  const float tolerance = m_kernelTolerance;
+  const int delta = kernelRadius_;
+  const float tolerance = kernelTolerance_;
   const int width = this->getWidth();
   const int height = this->getHeight();
   const int row_stride = input->row_stride;
@@ -190,21 +190,21 @@ void KeyingClipOperation::update_memory_buffer_partial(MemoryBuffer *output,
       }
     }
 
-    if (m_isEdgeMatte) {
+    if (isEdgeMatte_) {
       *it.out = ok ? 0.0f : 1.0f;
     }
     else {
       if (!ok) {
         *it.out = value;
       }
-      else if (value < m_clipBlack) {
+      else if (value < clipBlack_) {
         *it.out = 0.0f;
       }
-      else if (value >= m_clipWhite) {
+      else if (value >= clipWhite_) {
         *it.out = 1.0f;
       }
       else {
-        *it.out = (value - m_clipBlack) / (m_clipWhite - m_clipBlack);
+        *it.out = (value - clipBlack_) / (clipWhite_ - clipBlack_);
       }
     }
   }

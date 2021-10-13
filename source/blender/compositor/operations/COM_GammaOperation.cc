@@ -25,14 +25,14 @@ GammaOperation::GammaOperation()
   this->addInputSocket(DataType::Color);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
-  m_inputProgram = nullptr;
-  m_inputGammaProgram = nullptr;
+  inputProgram_ = nullptr;
+  inputGammaProgram_ = nullptr;
   flags.can_be_constant = true;
 }
 void GammaOperation::initExecution()
 {
-  m_inputProgram = this->getInputSocketReader(0);
-  m_inputGammaProgram = this->getInputSocketReader(1);
+  inputProgram_ = this->getInputSocketReader(0);
+  inputGammaProgram_ = this->getInputSocketReader(1);
 }
 
 void GammaOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
@@ -40,8 +40,8 @@ void GammaOperation::executePixelSampled(float output[4], float x, float y, Pixe
   float inputValue[4];
   float inputGamma[4];
 
-  m_inputProgram->readSampled(inputValue, x, y, sampler);
-  m_inputGammaProgram->readSampled(inputGamma, x, y, sampler);
+  inputProgram_->readSampled(inputValue, x, y, sampler);
+  inputGammaProgram_->readSampled(inputGamma, x, y, sampler);
   const float gamma = inputGamma[0];
   /* check for negative to avoid nan's */
   output[0] = inputValue[0] > 0.0f ? powf(inputValue[0], gamma) : inputValue[0];
@@ -67,8 +67,8 @@ void GammaOperation::update_memory_buffer_row(PixelCursor &p)
 
 void GammaOperation::deinitExecution()
 {
-  m_inputProgram = nullptr;
-  m_inputGammaProgram = nullptr;
+  inputProgram_ = nullptr;
+  inputGammaProgram_ = nullptr;
 }
 
 }  // namespace blender::compositor

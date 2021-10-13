@@ -39,11 +39,11 @@ class CalculateMeanOperation : public MultiThreadedOperation {
   /**
    * \brief Cached reference to the reader
    */
-  SocketReader *m_imageReader;
+  SocketReader *imageReader_;
 
-  bool m_iscalculated;
-  float m_result;
-  int m_setting;
+  bool iscalculated_;
+  float result_;
+  int setting_;
   std::function<float(const float *elem)> setting_func_;
 
  public:

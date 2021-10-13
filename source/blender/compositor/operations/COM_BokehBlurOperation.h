@@ -25,17 +25,17 @@ namespace blender::compositor {
 
 class BokehBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
  private:
-  SocketReader *m_inputProgram;
-  SocketReader *m_inputBokehProgram;
-  SocketReader *m_inputBoundingBoxReader;
+  SocketReader *inputProgram_;
+  SocketReader *inputBokehProgram_;
+  SocketReader *inputBoundingBoxReader_;
   void updateSize();
-  float m_size;
-  bool m_sizeavailable;
+  float size_;
+  bool sizeavailable_;
 
-  float m_bokehMidX;
-  float m_bokehMidY;
-  float m_bokehDimension;
-  bool m_extend_bounds;
+  float bokehMidX_;
+  float bokehMidY_;
+  float bokehDimension_;
+  bool extend_bounds_;
 
  public:
   BokehBlurOperation();
@@ -64,8 +64,8 @@ class BokehBlurOperation : public MultiThreadedOperation, public QualityStepHelp
 
   void setSize(float size)
   {
-    m_size = size;
-    m_sizeavailable = true;
+    size_ = size;
+    sizeavailable_ = true;
   }
 
   void executeOpenCL(OpenCLDevice *device,
@@ -77,7 +77,7 @@ class BokehBlurOperation : public MultiThreadedOperation, public QualityStepHelp
 
   void setExtendBounds(bool extend_bounds)
   {
-    m_extend_bounds = extend_bounds;
+    extend_bounds_ = extend_bounds;
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;

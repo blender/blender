@@ -24,13 +24,13 @@ namespace blender::compositor {
 
 class CropBaseOperation : public MultiThreadedOperation {
  protected:
-  SocketReader *m_inputOperation;
-  NodeTwoXYs *m_settings;
-  bool m_relative;
-  int m_xmax;
-  int m_xmin;
-  int m_ymax;
-  int m_ymin;
+  SocketReader *inputOperation_;
+  NodeTwoXYs *settings_;
+  bool relative_;
+  int xmax_;
+  int xmin_;
+  int ymax_;
+  int ymin_;
 
   void updateArea();
 
@@ -40,11 +40,11 @@ class CropBaseOperation : public MultiThreadedOperation {
   void deinitExecution() override;
   void setCropSettings(NodeTwoXYs *settings)
   {
-    m_settings = settings;
+    settings_ = settings;
   }
   void setRelative(bool rel)
   {
-    m_relative = rel;
+    relative_ = rel;
   }
 };
 

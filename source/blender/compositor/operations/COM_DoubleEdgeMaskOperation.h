@@ -27,13 +27,13 @@ class DoubleEdgeMaskOperation : public NodeOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputOuterMask;
-  SocketReader *m_inputInnerMask;
-  bool m_adjacentOnly;
-  bool m_keepInside;
+  SocketReader *inputOuterMask_;
+  SocketReader *inputInnerMask_;
+  bool adjacentOnly_;
+  bool keepInside_;
 
   /* TODO(manzanilla): To be removed with tiled implementation. */
-  float *m_cachedInstance;
+  float *cachedInstance_;
 
   bool is_output_rendered_;
 
@@ -64,11 +64,11 @@ class DoubleEdgeMaskOperation : public NodeOperation {
 
   void setAdjecentOnly(bool adjacentOnly)
   {
-    m_adjacentOnly = adjacentOnly;
+    adjacentOnly_ = adjacentOnly;
   }
   void setKeepInside(bool keepInside)
   {
-    m_keepInside = keepInside;
+    keepInside_ = keepInside;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

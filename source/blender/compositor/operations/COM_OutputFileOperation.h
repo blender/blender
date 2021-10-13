@@ -32,21 +32,21 @@ namespace blender::compositor {
 /* Writes the image to a single-layer file. */
 class OutputSingleLayerOperation : public MultiThreadedOperation {
  protected:
-  const RenderData *m_rd;
-  const bNodeTree *m_tree;
+  const RenderData *rd_;
+  const bNodeTree *tree_;
 
-  ImageFormatData *m_format;
-  char m_path[FILE_MAX];
+  ImageFormatData *format_;
+  char path_[FILE_MAX];
 
-  float *m_outputBuffer;
-  DataType m_datatype;
-  SocketReader *m_imageInput;
+  float *outputBuffer_;
+  DataType datatype_;
+  SocketReader *imageInput_;
 
-  const ColorManagedViewSettings *m_viewSettings;
-  const ColorManagedDisplaySettings *m_displaySettings;
+  const ColorManagedViewSettings *viewSettings_;
+  const ColorManagedDisplaySettings *displaySettings_;
 
-  const char *m_viewName;
-  bool m_saveAsRender;
+  const char *viewName_;
+  bool saveAsRender_;
 
  public:
   OutputSingleLayerOperation(const RenderData *rd,
@@ -92,15 +92,15 @@ struct OutputOpenExrLayer {
 /* Writes inputs into OpenEXR multilayer channels. */
 class OutputOpenExrMultiLayerOperation : public MultiThreadedOperation {
  protected:
-  const Scene *m_scene;
-  const RenderData *m_rd;
-  const bNodeTree *m_tree;
+  const Scene *scene_;
+  const RenderData *rd_;
+  const bNodeTree *tree_;
 
-  char m_path[FILE_MAX];
-  char m_exr_codec;
-  bool m_exr_half_float;
-  Vector<OutputOpenExrLayer> m_layers;
-  const char *m_viewName;
+  char path_[FILE_MAX];
+  char exr_codec_;
+  bool exr_half_float_;
+  Vector<OutputOpenExrLayer> layers_;
+  const char *viewName_;
 
   StampData *createStampData() const;
 

@@ -22,45 +22,45 @@ namespace blender::compositor {
 
 QualityStepHelper::QualityStepHelper()
 {
-  m_quality = eCompositorQuality::High;
-  m_step = 1;
-  m_offsetadd = 4;
+  quality_ = eCompositorQuality::High;
+  step_ = 1;
+  offsetadd_ = 4;
 }
 
 void QualityStepHelper::initExecution(QualityHelper helper)
 {
   switch (helper) {
     case COM_QH_INCREASE:
-      switch (m_quality) {
+      switch (quality_) {
         case eCompositorQuality::High:
         default:
-          m_step = 1;
-          m_offsetadd = 1;
+          step_ = 1;
+          offsetadd_ = 1;
           break;
         case eCompositorQuality::Medium:
-          m_step = 2;
-          m_offsetadd = 2;
+          step_ = 2;
+          offsetadd_ = 2;
           break;
         case eCompositorQuality::Low:
-          m_step = 3;
-          m_offsetadd = 3;
+          step_ = 3;
+          offsetadd_ = 3;
           break;
       }
       break;
     case COM_QH_MULTIPLY:
-      switch (m_quality) {
+      switch (quality_) {
         case eCompositorQuality::High:
         default:
-          m_step = 1;
-          m_offsetadd = 4;
+          step_ = 1;
+          offsetadd_ = 4;
           break;
         case eCompositorQuality::Medium:
-          m_step = 2;
-          m_offsetadd = 8;
+          step_ = 2;
+          offsetadd_ = 8;
           break;
         case eCompositorQuality::Low:
-          m_step = 4;
-          m_offsetadd = 16;
+          step_ = 4;
+          offsetadd_ = 16;
           break;
       }
       break;

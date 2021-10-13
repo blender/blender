@@ -30,17 +30,17 @@ class DilateErodeThresholdOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
+  SocketReader *inputProgram_;
 
-  float m_distance;
-  float m__switch;
-  float m_inset;
+  float distance_;
+  float switch_;
+  float inset_;
 
   /**
    * determines the area of interest to track pixels
    * keep this one as small as possible for speed gain.
    */
-  int m_scope;
+  int scope_;
 
  public:
   DilateErodeThresholdOperation();
@@ -64,15 +64,15 @@ class DilateErodeThresholdOperation : public MultiThreadedOperation {
 
   void setDistance(float distance)
   {
-    m_distance = distance;
+    distance_ = distance;
   }
   void setSwitch(float sw)
   {
-    m__switch = sw;
+    switch_ = sw;
   }
   void setInset(float inset)
   {
-    m_inset = inset;
+    inset_ = inset;
   }
 
   bool determineDependingAreaOfInterest(rcti *input,
@@ -93,9 +93,9 @@ class DilateDistanceOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
-  float m_distance;
-  int m_scope;
+  SocketReader *inputProgram_;
+  float distance_;
+  int scope_;
 
  public:
   DilateDistanceOperation();
@@ -119,7 +119,7 @@ class DilateDistanceOperation : public MultiThreadedOperation {
 
   void setDistance(float distance)
   {
-    m_distance = distance;
+    distance_ = distance;
   }
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
@@ -164,9 +164,9 @@ class DilateStepOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
+  SocketReader *inputProgram_;
 
-  int m_iterations;
+  int iterations_;
 
  public:
   DilateStepOperation();
@@ -190,7 +190,7 @@ class DilateStepOperation : public MultiThreadedOperation {
 
   void setIterations(int iterations)
   {
-    m_iterations = iterations;
+    iterations_ = iterations;
   }
 
   bool determineDependingAreaOfInterest(rcti *input,

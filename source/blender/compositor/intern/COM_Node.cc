@@ -29,10 +29,10 @@ namespace blender::compositor {
  **************/
 
 Node::Node(bNode *editorNode, bool create_sockets)
-    : m_editorNodeTree(nullptr),
-      m_editorNode(editorNode),
-      m_inActiveGroup(false),
-      m_instanceKey(NODE_INSTANCE_KEY_NONE)
+    : editorNodeTree_(nullptr),
+      editorNode_(editorNode),
+      inActiveGroup_(false),
+      instanceKey_(NODE_INSTANCE_KEY_NONE)
 {
   if (create_sockets) {
     bNodeSocket *input = (bNodeSocket *)editorNode->inputs.first;
@@ -137,13 +137,13 @@ bNodeSocket *Node::getEditorOutputSocket(int editorNodeOutputSocketIndex)
  *******************/
 
 NodeInput::NodeInput(Node *node, bNodeSocket *b_socket, DataType datatype)
-    : m_node(node), m_editorSocket(b_socket), m_datatype(datatype), m_link(nullptr)
+    : node_(node), editorSocket_(b_socket), datatype_(datatype), link_(nullptr)
 {
 }
 
 void NodeInput::setLink(NodeOutput *link)
 {
-  m_link = link;
+  link_ = link;
 }
 
 float NodeInput::getEditorValueFloat() const
@@ -172,7 +172,7 @@ void NodeInput::getEditorValueVector(float *value) const
  ********************/
 
 NodeOutput::NodeOutput(Node *node, bNodeSocket *b_socket, DataType datatype)
-    : m_node(node), m_editorSocket(b_socket), m_datatype(datatype)
+    : node_(node), editorSocket_(b_socket), datatype_(datatype)
 {
 }
 

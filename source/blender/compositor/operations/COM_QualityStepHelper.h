@@ -29,9 +29,9 @@ typedef enum QualityHelper {
 
 class QualityStepHelper {
  private:
-  eCompositorQuality m_quality;
-  int m_step;
-  int m_offsetadd;
+  eCompositorQuality quality_;
+  int step_;
+  int offsetadd_;
 
  protected:
   /**
@@ -41,11 +41,11 @@ class QualityStepHelper {
 
   inline int getStep() const
   {
-    return m_step;
+    return step_;
   }
   inline int getOffsetAdd() const
   {
-    return m_offsetadd;
+    return offsetadd_;
   }
 
  public:
@@ -53,7 +53,7 @@ class QualityStepHelper {
 
   void setQuality(eCompositorQuality quality)
   {
-    m_quality = quality;
+    quality_ = quality;
   }
 };
 

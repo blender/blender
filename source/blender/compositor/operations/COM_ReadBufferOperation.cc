@@ -26,32 +26,32 @@ namespace blender::compositor {
 ReadBufferOperation::ReadBufferOperation(DataType datatype)
 {
   this->addOutputSocket(datatype);
-  m_single_value = false;
-  m_offset = 0;
-  m_buffer = nullptr;
+  single_value_ = false;
+  offset_ = 0;
+  buffer_ = nullptr;
   flags.is_read_buffer_operation = true;
 }
 
 void *ReadBufferOperation::initializeTileData(rcti * /*rect*/)
 {
-  return m_buffer;
+  return buffer_;
 }
 
 void ReadBufferOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  if (m_memoryProxy != nullptr) {
-    WriteBufferOperation *operation = m_memoryProxy->getWriteBufferOperation();
+  if (memoryProxy_ != nullptr) {
+    WriteBufferOperation *operation = memoryProxy_->getWriteBufferOperation();
     operation->determine_canvas(preferred_area, r_area);
     operation->set_canvas(r_area);
 
     /** \todo may not occur! But does with blur node. */
-    if (m_memoryProxy->getExecutor()) {
+    if (memoryProxy_->getExecutor()) {
       uint resolution[2] = {static_cast<uint>(BLI_rcti_size_x(&r_area)),
                             static_cast<uint>(BLI_rcti_size_y(&r_area))};
-      m_memoryProxy->getExecutor()->setResolution(resolution);
+      memoryProxy_->getExecutor()->setResolution(resolution);
     }
 
-    m_single_value = operation->isSingleValue();
+    single_value_ = operation->isSingleValue();
   }
 }
 void ReadBufferOperation::executePixelSampled(float output[4],
@@ -59,21 +59,21 @@ void ReadBufferOperation::executePixelSampled(float output[4],
                                               float y,
                                               PixelSampler sampler)
 {
-  if (m_single_value) {
+  if (single_value_) {
     /* write buffer has a single value stored at (0,0) */
-    m_buffer->read(output, 0, 0);
+    buffer_->read(output, 0, 0);
   }
   else {
     switch (sampler) {
       case PixelSampler::Nearest:
-        m_buffer->read(output, x, y);
+        buffer_->read(output, x, y);
         break;
       case PixelSampler::Bilinear:
       default:
-        m_buffer->readBilinear(output, x, y);
+        buffer_->readBilinear(output, x, y);
         break;
       case PixelSampler::Bicubic:
-        m_buffer->readBilinear(output, x, y);
+        buffer_->readBilinear(output, x, y);
         break;
     }
   }
@@ -86,29 +86,29 @@ void ReadBufferOperation::executePixelExtend(float output[4],
                                              MemoryBufferExtend extend_x,
                                              MemoryBufferExtend extend_y)
 {
-  if (m_single_value) {
+  if (single_value_) {
     /* write buffer has a single value stored at (0,0) */
-    m_buffer->read(output, 0, 0);
+    buffer_->read(output, 0, 0);
   }
   else if (sampler == PixelSampler::Nearest) {
-    m_buffer->read(output, x, y, extend_x, extend_y);
+    buffer_->read(output, x, y, extend_x, extend_y);
   }
   else {
-    m_buffer->readBilinear(output, x, y, extend_x, extend_y);
+    buffer_->readBilinear(output, x, y, extend_x, extend_y);
   }
 }
 
 void ReadBufferOperation::executePixelFiltered(
     float output[4], float x, float y, float dx[2], float dy[2])
 {
-  if (m_single_value) {
+  if (single_value_) {
     /* write buffer has a single value stored at (0,0) */
-    m_buffer->read(output, 0, 0);
+    buffer_->read(output, 0, 0);
   }
   else {
     const float uv[2] = {x, y};
     const float deriv[2][2] = {{dx[0], dx[1]}, {dy[0], dy[1]}};
-    m_buffer->readEWA(output, uv, deriv);
+    buffer_->readEWA(output, uv, deriv);
   }
 }
 
@@ -125,8 +125,8 @@ bool ReadBufferOperation::determineDependingAreaOfInterest(rcti *input,
 
 void ReadBufferOperation::readResolutionFromWriteBuffer()
 {
-  if (m_memoryProxy != nullptr) {
-    WriteBufferOperation *operation = m_memoryProxy->getWriteBufferOperation();
+  if (memoryProxy_ != nullptr) {
+    WriteBufferOperation *operation = memoryProxy_->getWriteBufferOperation();
     this->setWidth(operation->getWidth());
     this->setHeight(operation->getHeight());
   }
@@ -134,7 +134,7 @@ void ReadBufferOperation::readResolutionFromWriteBuffer()
 
 void ReadBufferOperation::updateMemoryBuffer()
 {
-  m_buffer = this->getMemoryProxy()->getBuffer();
+  buffer_ = this->getMemoryProxy()->getBuffer();
 }
 
 }  // namespace blender::compositor

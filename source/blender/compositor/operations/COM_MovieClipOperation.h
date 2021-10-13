@@ -30,13 +30,13 @@ namespace blender::compositor {
  */
 class MovieClipBaseOperation : public MultiThreadedOperation {
  protected:
-  MovieClip *m_movieClip;
-  MovieClipUser *m_movieClipUser;
-  ImBuf *m_movieClipBuffer;
-  int m_movieClipheight;
-  int m_movieClipwidth;
-  int m_framenumber;
-  bool m_cacheFrame;
+  MovieClip *movieClip_;
+  MovieClipUser *movieClipUser_;
+  ImBuf *movieClipBuffer_;
+  int movieClipheight_;
+  int movieClipwidth_;
+  int framenumber_;
+  bool cacheFrame_;
 
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -50,20 +50,20 @@ class MovieClipBaseOperation : public MultiThreadedOperation {
   void deinitExecution() override;
   void setMovieClip(MovieClip *image)
   {
-    m_movieClip = image;
+    movieClip_ = image;
   }
   void setMovieClipUser(MovieClipUser *imageuser)
   {
-    m_movieClipUser = imageuser;
+    movieClipUser_ = imageuser;
   }
   void setCacheFrame(bool value)
   {
-    m_cacheFrame = value;
+    cacheFrame_ = value;
   }
 
   void setFramenumber(int framenumber)
   {
-    m_framenumber = framenumber;
+    framenumber_ = framenumber;
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 

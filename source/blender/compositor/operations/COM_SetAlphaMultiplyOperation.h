@@ -29,8 +29,8 @@ namespace blender::compositor {
  */
 class SetAlphaMultiplyOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_inputColor;
-  SocketReader *m_inputAlpha;
+  SocketReader *inputColor_;
+  SocketReader *inputAlpha_;
 
  public:
   SetAlphaMultiplyOperation();

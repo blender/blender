@@ -27,30 +27,30 @@ namespace blender::compositor {
 
 MovieClipBaseOperation::MovieClipBaseOperation()
 {
-  m_movieClip = nullptr;
-  m_movieClipBuffer = nullptr;
-  m_movieClipUser = nullptr;
-  m_movieClipwidth = 0;
-  m_movieClipheight = 0;
-  m_framenumber = 0;
+  movieClip_ = nullptr;
+  movieClipBuffer_ = nullptr;
+  movieClipUser_ = nullptr;
+  movieClipwidth_ = 0;
+  movieClipheight_ = 0;
+  framenumber_ = 0;
 }
 
 void MovieClipBaseOperation::initExecution()
 {
-  if (m_movieClip) {
-    BKE_movieclip_user_set_frame(m_movieClipUser, m_framenumber);
+  if (movieClip_) {
+    BKE_movieclip_user_set_frame(movieClipUser_, framenumber_);
     ImBuf *ibuf;
 
-    if (m_cacheFrame) {
-      ibuf = BKE_movieclip_get_ibuf(m_movieClip, m_movieClipUser);
+    if (cacheFrame_) {
+      ibuf = BKE_movieclip_get_ibuf(movieClip_, movieClipUser_);
     }
     else {
       ibuf = BKE_movieclip_get_ibuf_flag(
-          m_movieClip, m_movieClipUser, m_movieClip->flag, MOVIECLIP_CACHE_SKIP);
+          movieClip_, movieClipUser_, movieClip_->flag, MOVIECLIP_CACHE_SKIP);
     }
 
     if (ibuf) {
-      m_movieClipBuffer = ibuf;
+      movieClipBuffer_ = ibuf;
       if (ibuf->rect_float == nullptr || ibuf->userflags & IB_RECT_INVALID) {
         IMB_float_from_rect(ibuf);
         ibuf->userflags &= ~IB_RECT_INVALID;
@@ -61,19 +61,19 @@ void MovieClipBaseOperation::initExecution()
 
 void MovieClipBaseOperation::deinitExecution()
 {
-  if (m_movieClipBuffer) {
-    IMB_freeImBuf(m_movieClipBuffer);
+  if (movieClipBuffer_) {
+    IMB_freeImBuf(movieClipBuffer_);
 
-    m_movieClipBuffer = nullptr;
+    movieClipBuffer_ = nullptr;
   }
 }
 
 void MovieClipBaseOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
 {
   r_area = COM_AREA_NONE;
-  if (m_movieClip) {
+  if (movieClip_) {
     int width, height;
-    BKE_movieclip_get_size(m_movieClip, m_movieClipUser, &width, &height);
+    BKE_movieclip_get_size(movieClip_, movieClipUser_, &width, &height);
     BLI_rcti_init(&r_area, 0, width, 0, height);
   }
 }
@@ -83,7 +83,7 @@ void MovieClipBaseOperation::executePixelSampled(float output[4],
                                                  float y,
                                                  PixelSampler sampler)
 {
-  ImBuf *ibuf = m_movieClipBuffer;
+  ImBuf *ibuf = movieClipBuffer_;
 
   if (ibuf == nullptr) {
     zero_v4(output);
@@ -111,8 +111,8 @@ void MovieClipBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                           const rcti &area,
                                                           Span<MemoryBuffer *> UNUSED(inputs))
 {
-  if (m_movieClipBuffer) {
-    output->copy_from(m_movieClipBuffer, area);
+  if (movieClipBuffer_) {
+    output->copy_from(movieClipBuffer_, area);
   }
   else {
     output->fill(area, COM_COLOR_TRANSPARENT);
@@ -143,8 +143,8 @@ void MovieClipAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                            const rcti &area,
                                                            Span<MemoryBuffer *> UNUSED(inputs))
 {
-  if (m_movieClipBuffer) {
-    output->copy_from(m_movieClipBuffer, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);
+  if (movieClipBuffer_) {
+    output->copy_from(movieClipBuffer_, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);
   }
   else {
     output->fill(area, COM_VALUE_ZERO);

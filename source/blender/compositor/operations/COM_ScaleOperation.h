@@ -29,11 +29,11 @@ class BaseScaleOperation : public MultiThreadedOperation {
  public:
   void setSampler(PixelSampler sampler)
   {
-    m_sampler = (int)sampler;
+    sampler_ = (int)sampler;
   }
   void setVariableSize(bool variable_size)
   {
-    m_variable_size = variable_size;
+    variable_size_ = variable_size;
   };
 
   void set_scale_canvas_max_size(Size2f size);
@@ -43,13 +43,13 @@ class BaseScaleOperation : public MultiThreadedOperation {
 
   PixelSampler getEffectiveSampler(PixelSampler sampler)
   {
-    return (m_sampler == -1) ? sampler : (PixelSampler)m_sampler;
+    return (sampler_ == -1) ? sampler : (PixelSampler)sampler_;
   }
 
   Size2f max_scale_canvas_size_ = {DEFAULT_MAX_SCALE_CANVAS_SIZE, DEFAULT_MAX_SCALE_CANVAS_SIZE};
-  int m_sampler;
+  int sampler_;
   /* TODO(manzanilla): to be removed with tiled implementation. */
-  bool m_variable_size;
+  bool variable_size_;
 };
 
 class ScaleOperation : public BaseScaleOperation {
@@ -61,9 +61,9 @@ class ScaleOperation : public BaseScaleOperation {
   static constexpr int X_INPUT_INDEX = 1;
   static constexpr int Y_INPUT_INDEX = 2;
 
-  SocketReader *m_inputOperation;
-  SocketReader *m_inputXOperation;
-  SocketReader *m_inputYOperation;
+  SocketReader *inputOperation_;
+  SocketReader *inputXOperation_;
+  SocketReader *inputYOperation_;
   float canvas_center_x_;
   float canvas_center_y_;
 
@@ -157,20 +157,20 @@ class ScaleAbsoluteOperation : public ScaleOperation {
 };
 
 class ScaleFixedSizeOperation : public BaseScaleOperation {
-  SocketReader *m_inputOperation;
-  int m_newWidth;
-  int m_newHeight;
-  float m_relX;
-  float m_relY;
+  SocketReader *inputOperation_;
+  int newWidth_;
+  int newHeight_;
+  float relX_;
+  float relY_;
 
   /* center is only used for aspect correction */
-  float m_offsetX;
-  float m_offsetY;
-  bool m_is_aspect;
-  bool m_is_crop;
+  float offsetX_;
+  float offsetY_;
+  bool is_aspect_;
+  bool is_crop_;
   /* set from other properties on initialization,
    * check if we need to apply offset */
-  bool m_is_offset;
+  bool is_offset_;
 
  public:
   ScaleFixedSizeOperation();
@@ -184,24 +184,24 @@ class ScaleFixedSizeOperation : public BaseScaleOperation {
   void deinitExecution() override;
   void setNewWidth(int width)
   {
-    m_newWidth = width;
+    newWidth_ = width;
   }
   void setNewHeight(int height)
   {
-    m_newHeight = height;
+    newHeight_ = height;
   }
   void setIsAspect(bool is_aspect)
   {
-    m_is_aspect = is_aspect;
+    is_aspect_ = is_aspect;
   }
   void setIsCrop(bool is_crop)
   {
-    m_is_crop = is_crop;
+    is_crop_ = is_crop;
   }
   void setOffset(float x, float y)
   {
-    m_offsetX = x;
-    m_offsetY = y;
+    offsetX_ = x;
+    offsetY_ = y;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

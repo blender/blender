@@ -32,13 +32,13 @@ class NormalizeOperation : public MultiThreadedOperation {
   /**
    * \brief Cached reference to the reader
    */
-  SocketReader *m_imageReader;
+  SocketReader *imageReader_;
 
   /**
    * \brief temporarily cache of the execution storage
    * it stores `x->min` and `y->multiply`.
    */
-  NodeTwoFloats *m_cachedInstance;
+  NodeTwoFloats *cachedInstance_;
 
  public:
   NormalizeOperation();

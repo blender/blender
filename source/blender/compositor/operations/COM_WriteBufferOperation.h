@@ -31,21 +31,21 @@ class MemoryProxy;
  * \ingroup Operation
  */
 class WriteBufferOperation : public NodeOperation {
-  MemoryProxy *m_memoryProxy;
-  bool m_single_value; /* single value stored in buffer */
-  NodeOperation *m_input;
+  MemoryProxy *memoryProxy_;
+  bool single_value_; /* single value stored in buffer */
+  NodeOperation *input_;
 
  public:
   WriteBufferOperation(DataType datatype);
   ~WriteBufferOperation();
   MemoryProxy *getMemoryProxy()
   {
-    return m_memoryProxy;
+    return memoryProxy_;
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
   bool isSingleValue() const
   {
-    return m_single_value;
+    return single_value_;
   }
 
   void executeRegion(rcti *rect, unsigned int tileNumber) override;
@@ -60,7 +60,7 @@ class WriteBufferOperation : public NodeOperation {
   void readResolutionFromInputSocket();
   inline NodeOperation *getInput()
   {
-    return m_input;
+    return input_;
   }
 };
 

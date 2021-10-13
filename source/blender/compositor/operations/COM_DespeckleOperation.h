@@ -27,15 +27,15 @@ class DespeckleOperation : public MultiThreadedOperation {
   constexpr static int IMAGE_INPUT_INDEX = 0;
   constexpr static int FACTOR_INPUT_INDEX = 1;
 
-  float m_threshold;
-  float m_threshold_neighbor;
+  float threshold_;
+  float threshold_neighbor_;
 
-  // int m_filterWidth;
-  // int m_filterHeight;
+  // int filterWidth_;
+  // int filterHeight_;
 
  protected:
-  SocketReader *m_inputOperation;
-  SocketReader *m_inputValueOperation;
+  SocketReader *inputOperation_;
+  SocketReader *inputValueOperation_;
 
  public:
   DespeckleOperation();
@@ -46,11 +46,11 @@ class DespeckleOperation : public MultiThreadedOperation {
 
   void setThreshold(float threshold)
   {
-    m_threshold = threshold;
+    threshold_ = threshold;
   }
   void setThresholdNeighbor(float threshold)
   {
-    m_threshold_neighbor = threshold;
+    threshold_neighbor_ = threshold;
   }
 
   void initExecution() override;

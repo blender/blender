@@ -27,10 +27,10 @@ class DisplaceOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputColorProgram;
+  SocketReader *inputColorProgram_;
 
-  float m_width_x4;
-  float m_height_x4;
+  float width_x4_;
+  float height_x4_;
 
   int input_vector_width_;
   int input_vector_height_;

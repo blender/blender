@@ -25,21 +25,21 @@ SplitOperation::SplitOperation()
   this->addInputSocket(DataType::Color);
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  m_image1Input = nullptr;
-  m_image2Input = nullptr;
+  image1Input_ = nullptr;
+  image2Input_ = nullptr;
 }
 
 void SplitOperation::initExecution()
 {
   /* When initializing the tree during initial load the width and height can be zero. */
-  m_image1Input = getInputSocketReader(0);
-  m_image2Input = getInputSocketReader(1);
+  image1Input_ = getInputSocketReader(0);
+  image2Input_ = getInputSocketReader(1);
 }
 
 void SplitOperation::deinitExecution()
 {
-  m_image1Input = nullptr;
-  m_image2Input = nullptr;
+  image1Input_ = nullptr;
+  image2Input_ = nullptr;
 }
 
 void SplitOperation::executePixelSampled(float output[4],
@@ -47,14 +47,14 @@ void SplitOperation::executePixelSampled(float output[4],
                                          float y,
                                          PixelSampler /*sampler*/)
 {
-  int perc = m_xSplit ? m_splitPercentage * this->getWidth() / 100.0f :
-                        m_splitPercentage * this->getHeight() / 100.0f;
-  bool image1 = m_xSplit ? x > perc : y > perc;
+  int perc = xSplit_ ? splitPercentage_ * this->getWidth() / 100.0f :
+                       splitPercentage_ * this->getHeight() / 100.0f;
+  bool image1 = xSplit_ ? x > perc : y > perc;
   if (image1) {
-    m_image1Input->readSampled(output, x, y, PixelSampler::Nearest);
+    image1Input_->readSampled(output, x, y, PixelSampler::Nearest);
   }
   else {
-    m_image2Input->readSampled(output, x, y, PixelSampler::Nearest);
+    image2Input_->readSampled(output, x, y, PixelSampler::Nearest);
   }
 }
 
@@ -72,11 +72,11 @@ void SplitOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                   const rcti &area,
                                                   Span<MemoryBuffer *> inputs)
 {
-  const int percent = m_xSplit ? m_splitPercentage * this->getWidth() / 100.0f :
-                                 m_splitPercentage * this->getHeight() / 100.0f;
+  const int percent = xSplit_ ? splitPercentage_ * this->getWidth() / 100.0f :
+                                splitPercentage_ * this->getHeight() / 100.0f;
   const size_t elem_bytes = COM_data_type_bytes_len(getOutputSocket()->getDataType());
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
-    const bool is_image1 = m_xSplit ? it.x > percent : it.y > percent;
+    const bool is_image1 = xSplit_ ? it.x > percent : it.y > percent;
     memcpy(it.out, it.in(is_image1 ? 0 : 1), elem_bytes);
   }
 }

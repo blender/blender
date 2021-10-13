@@ -40,7 +40,7 @@ void IDMaskOperation::executePixel(float output[4], int x, int y, void *data)
   const int buffer_width = input_buffer->getWidth();
   float *buffer = input_buffer->getBuffer();
   int buffer_index = (y * buffer_width + x);
-  output[0] = (roundf(buffer[buffer_index]) == m_objectIndex) ? 1.0f : 0.0f;
+  output[0] = (roundf(buffer[buffer_index]) == objectIndex_) ? 1.0f : 0.0f;
 }
 
 void IDMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -54,7 +54,7 @@ void IDMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
     const float *in = input->get_elem(area.xmin, y);
     const float *row_end = out + width * output->elem_stride;
     while (out < row_end) {
-      out[0] = (roundf(in[0]) == m_objectIndex) ? 1.0f : 0.0f;
+      out[0] = (roundf(in[0]) == objectIndex_) ? 1.0f : 0.0f;
       in += input->elem_stride;
       out += output->elem_stride;
     }

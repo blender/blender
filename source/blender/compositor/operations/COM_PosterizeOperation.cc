@@ -25,15 +25,15 @@ PosterizeOperation::PosterizeOperation()
   this->addInputSocket(DataType::Color);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
-  m_inputProgram = nullptr;
-  m_inputStepsProgram = nullptr;
+  inputProgram_ = nullptr;
+  inputStepsProgram_ = nullptr;
   flags.can_be_constant = true;
 }
 
 void PosterizeOperation::initExecution()
 {
-  m_inputProgram = this->getInputSocketReader(0);
-  m_inputStepsProgram = this->getInputSocketReader(1);
+  inputProgram_ = this->getInputSocketReader(0);
+  inputStepsProgram_ = this->getInputSocketReader(1);
 }
 
 void PosterizeOperation::executePixelSampled(float output[4],
@@ -44,8 +44,8 @@ void PosterizeOperation::executePixelSampled(float output[4],
   float inputValue[4];
   float inputSteps[4];
 
-  m_inputProgram->readSampled(inputValue, x, y, sampler);
-  m_inputStepsProgram->readSampled(inputSteps, x, y, sampler);
+  inputProgram_->readSampled(inputValue, x, y, sampler);
+  inputStepsProgram_->readSampled(inputSteps, x, y, sampler);
   CLAMP(inputSteps[0], 2.0f, 1024.0f);
   const float steps_inv = 1.0f / inputSteps[0];
 
@@ -75,8 +75,8 @@ void PosterizeOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
 void PosterizeOperation::deinitExecution()
 {
-  m_inputProgram = nullptr;
-  m_inputStepsProgram = nullptr;
+  inputProgram_ = nullptr;
+  inputStepsProgram_ = nullptr;
 }
 
 }  // namespace blender::compositor

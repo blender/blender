@@ -24,7 +24,7 @@ namespace blender::compositor {
 
 class WrapOperation : public ReadBufferOperation {
  private:
-  int m_wrappingType;
+  int wrappingType_;
 
  public:
   WrapOperation(DataType datatype);

@@ -28,10 +28,10 @@ namespace blender::compositor {
  */
 class ChangeHSVOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_inputOperation;
-  SocketReader *m_hueOperation;
-  SocketReader *m_saturationOperation;
-  SocketReader *m_valueOperation;
+  SocketReader *inputOperation_;
+  SocketReader *hueOperation_;
+  SocketReader *saturationOperation_;
+  SocketReader *valueOperation_;
 
  public:
   /**

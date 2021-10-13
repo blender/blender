@@ -27,8 +27,8 @@ class ExposureOperation : public MultiThreadedRowOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
-  SocketReader *m_inputExposureProgram;
+  SocketReader *inputProgram_;
+  SocketReader *inputExposureProgram_;
 
  public:
   ExposureOperation();

@@ -25,9 +25,9 @@ namespace blender::compositor {
 
 class FastGaussianBlurOperation : public BlurBaseOperation {
  private:
-  float m_sx;
-  float m_sy;
-  MemoryBuffer *m_iirgaus;
+  float sx_;
+  float sy_;
+  MemoryBuffer *iirgaus_;
 
  public:
   FastGaussianBlurOperation();
@@ -61,15 +61,15 @@ enum {
 
 class FastGaussianBlurValueOperation : public MultiThreadedOperation {
  private:
-  float m_sigma;
-  MemoryBuffer *m_iirgaus;
-  SocketReader *m_inputprogram;
+  float sigma_;
+  MemoryBuffer *iirgaus_;
+  SocketReader *inputprogram_;
 
   /**
    * -1: re-mix with darker
    *  0: do nothing
    *  1 re-mix with lighter */
-  int m_overlay;
+  int overlay_;
 
  public:
   FastGaussianBlurValueOperation();
@@ -83,13 +83,13 @@ class FastGaussianBlurValueOperation : public MultiThreadedOperation {
   void initExecution() override;
   void setSigma(float sigma)
   {
-    m_sigma = sigma;
+    sigma_ = sigma;
   }
 
   /* used for DOF blurring ZBuffer */
   void setOverlay(int overlay)
   {
-    m_overlay = overlay;
+    overlay_ = overlay;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

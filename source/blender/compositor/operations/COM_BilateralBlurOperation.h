@@ -25,10 +25,10 @@ namespace blender::compositor {
 
 class BilateralBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
  private:
-  SocketReader *m_inputColorProgram;
-  SocketReader *m_inputDeterminatorProgram;
-  NodeBilateralBlurData *m_data;
-  float m_space;
+  SocketReader *inputColorProgram_;
+  SocketReader *inputDeterminatorProgram_;
+  NodeBilateralBlurData *data_;
+  float space_;
 
  public:
   BilateralBlurOperation();
@@ -54,8 +54,8 @@ class BilateralBlurOperation : public MultiThreadedOperation, public QualityStep
 
   void setData(NodeBilateralBlurData *data)
   {
-    m_data = data;
-    m_space = data->sigma_space + data->iter;
+    data_ = data;
+    space_ = data->sigma_space + data->iter;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

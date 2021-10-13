@@ -27,13 +27,13 @@ class DisplaceSimpleOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputColorProgram;
-  SocketReader *m_inputVectorProgram;
-  SocketReader *m_inputScaleXProgram;
-  SocketReader *m_inputScaleYProgram;
+  SocketReader *inputColorProgram_;
+  SocketReader *inputVectorProgram_;
+  SocketReader *inputScaleXProgram_;
+  SocketReader *inputScaleYProgram_;
 
-  float m_width_x4;
-  float m_height_x4;
+  float width_x4_;
+  float height_x4_;
 
  public:
   DisplaceSimpleOperation();

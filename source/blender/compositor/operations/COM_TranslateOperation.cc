@@ -30,28 +30,28 @@ TranslateOperation::TranslateOperation(DataType data_type, ResizeMode resize_mod
   this->addInputSocket(DataType::Value, ResizeMode::None);
   this->addOutputSocket(data_type);
   this->set_canvas_input_index(0);
-  m_inputOperation = nullptr;
-  m_inputXOperation = nullptr;
-  m_inputYOperation = nullptr;
-  m_isDeltaSet = false;
-  m_factorX = 1.0f;
-  m_factorY = 1.0f;
+  inputOperation_ = nullptr;
+  inputXOperation_ = nullptr;
+  inputYOperation_ = nullptr;
+  isDeltaSet_ = false;
+  factorX_ = 1.0f;
+  factorY_ = 1.0f;
   this->x_extend_mode_ = MemoryBufferExtend::Clip;
   this->y_extend_mode_ = MemoryBufferExtend::Clip;
 }
 
 void TranslateOperation::initExecution()
 {
-  m_inputOperation = this->getInputSocketReader(0);
-  m_inputXOperation = this->getInputSocketReader(1);
-  m_inputYOperation = this->getInputSocketReader(2);
+  inputOperation_ = this->getInputSocketReader(0);
+  inputXOperation_ = this->getInputSocketReader(1);
+  inputYOperation_ = this->getInputSocketReader(2);
 }
 
 void TranslateOperation::deinitExecution()
 {
-  m_inputOperation = nullptr;
-  m_inputXOperation = nullptr;
-  m_inputYOperation = nullptr;
+  inputOperation_ = nullptr;
+  inputXOperation_ = nullptr;
+  inputYOperation_ = nullptr;
 }
 
 void TranslateOperation::executePixelSampled(float output[4],
@@ -64,7 +64,7 @@ void TranslateOperation::executePixelSampled(float output[4],
   float originalXPos = x - this->getDeltaX();
   float originalYPos = y - this->getDeltaY();
 
-  m_inputOperation->readSampled(output, originalXPos, originalYPos, PixelSampler::Bilinear);
+  inputOperation_->readSampled(output, originalXPos, originalYPos, PixelSampler::Bilinear);
 }
 
 bool TranslateOperation::determineDependingAreaOfInterest(rcti *input,
@@ -85,8 +85,8 @@ bool TranslateOperation::determineDependingAreaOfInterest(rcti *input,
 
 void TranslateOperation::setFactorXY(float factorX, float factorY)
 {
-  m_factorX = factorX;
-  m_factorY = factorY;
+  factorX_ = factorX;
+  factorY_ = factorY;
 }
 
 void TranslateOperation::set_wrapping(int wrapping_type)

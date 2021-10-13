@@ -28,14 +28,14 @@ namespace blender::compositor {
  */
 class ColorSpillOperation : public MultiThreadedOperation {
  protected:
-  NodeColorspill *m_settings;
-  SocketReader *m_inputImageReader;
-  SocketReader *m_inputFacReader;
-  int m_spillChannel;
-  int m_spillMethod;
-  int m_channel2;
-  int m_channel3;
-  float m_rmut, m_gmut, m_bmut;
+  NodeColorspill *settings_;
+  SocketReader *inputImageReader_;
+  SocketReader *inputFacReader_;
+  int spillChannel_;
+  int spillMethod_;
+  int channel2_;
+  int channel3_;
+  float rmut_, gmut_, bmut_;
 
  public:
   /**
@@ -53,15 +53,15 @@ class ColorSpillOperation : public MultiThreadedOperation {
 
   void setSettings(NodeColorspill *nodeColorSpill)
   {
-    m_settings = nodeColorSpill;
+    settings_ = nodeColorSpill;
   }
   void setSpillChannel(int channel)
   {
-    m_spillChannel = channel;
+    spillChannel_ = channel;
   }
   void setSpillMethod(int method)
   {
-    m_spillMethod = method;
+    spillMethod_ = method;
   }
 
   float calculateMapValue(float fac, float *input);

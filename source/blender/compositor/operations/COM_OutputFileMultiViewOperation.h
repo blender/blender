@@ -65,8 +65,8 @@ class OutputOpenExrMultiLayerMultiViewOperation : public OutputOpenExrMultiLayer
 
 class OutputStereoOperation : public OutputSingleLayerOperation {
  private:
-  char m_name[FILE_MAX];
-  size_t m_channels;
+  char name_[FILE_MAX];
+  size_t channels_;
 
  public:
   OutputStereoOperation(const RenderData *rd,

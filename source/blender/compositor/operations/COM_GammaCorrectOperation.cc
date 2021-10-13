@@ -24,12 +24,12 @@ GammaCorrectOperation::GammaCorrectOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  m_inputProgram = nullptr;
+  inputProgram_ = nullptr;
   flags.can_be_constant = true;
 }
 void GammaCorrectOperation::initExecution()
 {
-  m_inputProgram = this->getInputSocketReader(0);
+  inputProgram_ = this->getInputSocketReader(0);
 }
 
 void GammaCorrectOperation::executePixelSampled(float output[4],
@@ -38,7 +38,7 @@ void GammaCorrectOperation::executePixelSampled(float output[4],
                                                 PixelSampler sampler)
 {
   float inputColor[4];
-  m_inputProgram->readSampled(inputColor, x, y, sampler);
+  inputProgram_->readSampled(inputColor, x, y, sampler);
   if (inputColor[3] > 0.0f) {
     inputColor[0] /= inputColor[3];
     inputColor[1] /= inputColor[3];
@@ -88,19 +88,19 @@ void GammaCorrectOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
 void GammaCorrectOperation::deinitExecution()
 {
-  m_inputProgram = nullptr;
+  inputProgram_ = nullptr;
 }
 
 GammaUncorrectOperation::GammaUncorrectOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  m_inputProgram = nullptr;
+  inputProgram_ = nullptr;
   flags.can_be_constant = true;
 }
 void GammaUncorrectOperation::initExecution()
 {
-  m_inputProgram = this->getInputSocketReader(0);
+  inputProgram_ = this->getInputSocketReader(0);
 }
 
 void GammaUncorrectOperation::executePixelSampled(float output[4],
@@ -109,7 +109,7 @@ void GammaUncorrectOperation::executePixelSampled(float output[4],
                                                   PixelSampler sampler)
 {
   float inputColor[4];
-  m_inputProgram->readSampled(inputColor, x, y, sampler);
+  inputProgram_->readSampled(inputColor, x, y, sampler);
 
   if (inputColor[3] > 0.0f) {
     inputColor[0] /= inputColor[3];
@@ -158,7 +158,7 @@ void GammaUncorrectOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
 void GammaUncorrectOperation::deinitExecution()
 {
-  m_inputProgram = nullptr;
+  inputProgram_ = nullptr;
 }
 
 }  // namespace blender::compositor

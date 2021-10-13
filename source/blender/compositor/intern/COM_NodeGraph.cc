@@ -36,8 +36,8 @@ namespace blender::compositor {
 
 NodeGraph::~NodeGraph()
 {
-  while (m_nodes.size()) {
-    delete m_nodes.pop_last();
+  while (nodes_.size()) {
+    delete nodes_.pop_last();
   }
 }
 
@@ -75,14 +75,14 @@ void NodeGraph::add_node(Node *node,
   node->setInstanceKey(key);
   node->setIsInActiveGroup(is_active_group);
 
-  m_nodes.append(node);
+  nodes_.append(node);
 
   DebugInfo::node_added(node);
 }
 
 void NodeGraph::add_link(NodeOutput *fromSocket, NodeInput *toSocket)
 {
-  m_links.append(Link(fromSocket, toSocket));
+  links_.append(Link(fromSocket, toSocket));
 
   /* register with the input */
   toSocket->setLink(fromSocket);
@@ -104,7 +104,7 @@ void NodeGraph::add_bNodeTree(const CompositorContext &context,
     add_bNode(context, tree, node, key, is_active_group);
   }
 
-  NodeRange node_range(m_nodes.begin() + nodes_start, m_nodes.end());
+  NodeRange node_range(nodes_.begin() + nodes_start, nodes_.end());
   /* Add all node-links of the tree to the link list. */
   for (bNodeLink *nodelink = (bNodeLink *)tree->links.first; nodelink; nodelink = nodelink->next) {
     add_bNodeLink(node_range, nodelink);
@@ -285,7 +285,7 @@ void NodeGraph::add_proxies_group(const CompositorContext &context,
   }
 
   /* use node list size before adding proxies, so they can be connected in add_bNodeTree */
-  int nodes_start = m_nodes.size();
+  int nodes_start = nodes_.size();
 
   /* create proxy nodes for group input/output nodes */
   for (bNode *b_node_io = (bNode *)b_group_tree->nodes.first; b_node_io;

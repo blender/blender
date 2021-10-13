@@ -29,12 +29,12 @@ DisplaceOperation::DisplaceOperation()
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
 
-  m_inputColorProgram = nullptr;
+  inputColorProgram_ = nullptr;
 }
 
 void DisplaceOperation::initExecution()
 {
-  m_inputColorProgram = this->getInputSocketReader(0);
+  inputColorProgram_ = this->getInputSocketReader(0);
   NodeOperation *vector = this->getInputSocketReader(1);
   NodeOperation *scale_x = this->getInputSocketReader(2);
   NodeOperation *scale_y = this->getInputSocketReader(3);
@@ -50,8 +50,8 @@ void DisplaceOperation::initExecution()
     };
   }
 
-  m_width_x4 = this->getWidth() * 4;
-  m_height_x4 = this->getHeight() * 4;
+  width_x4_ = this->getWidth() * 4;
+  height_x4_ = this->getHeight() * 4;
   input_vector_width_ = vector->getWidth();
   input_vector_height_ = vector->getHeight();
 }
@@ -66,11 +66,11 @@ void DisplaceOperation::executePixelSampled(float output[4],
 
   pixelTransform(xy, uv, deriv);
   if (is_zero_v2(deriv[0]) && is_zero_v2(deriv[1])) {
-    m_inputColorProgram->readSampled(output, uv[0], uv[1], PixelSampler::Bilinear);
+    inputColorProgram_->readSampled(output, uv[0], uv[1], PixelSampler::Bilinear);
   }
   else {
     /* EWA filtering (without nearest it gets blurry with NO distortion) */
-    m_inputColorProgram->readFiltered(output, uv[0], uv[1], deriv[0], deriv[1]);
+    inputColorProgram_->readFiltered(output, uv[0], uv[1], deriv[0], deriv[1]);
   }
 }
 
@@ -104,8 +104,8 @@ void DisplaceOperation::pixelTransform(const float xy[2], float r_uv[2], float r
   float ys = col[0];
   /* clamp x and y displacement to triple image resolution -
    * to prevent hangs from huge values mistakenly plugged in eg. z buffers */
-  CLAMP(xs, -m_width_x4, m_width_x4);
-  CLAMP(ys, -m_height_x4, m_height_x4);
+  CLAMP(xs, -width_x4_, width_x4_);
+  CLAMP(ys, -height_x4_, height_x4_);
 
   /* displaced pixel in uv coords, for image sampling */
   read_displacement(xy[0], xy[1], xs, ys, xy, r_uv[0], r_uv[1]);
@@ -153,7 +153,7 @@ void DisplaceOperation::pixelTransform(const float xy[2], float r_uv[2], float r
 
 void DisplaceOperation::deinitExecution()
 {
-  m_inputColorProgram = nullptr;
+  inputColorProgram_ = nullptr;
   vector_read_fn_ = nullptr;
   scale_x_read_fn_ = nullptr;
   scale_y_read_fn_ = nullptr;

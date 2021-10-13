@@ -53,15 +53,15 @@ class MixBaseOperation : public MultiThreadedOperation {
   /**
    * Prefetched reference to the inputProgram
    */
-  SocketReader *m_inputValueOperation;
-  SocketReader *m_inputColor1Operation;
-  SocketReader *m_inputColor2Operation;
-  bool m_valueAlphaMultiply;
-  bool m_useClamp;
+  SocketReader *inputValueOperation_;
+  SocketReader *inputColor1Operation_;
+  SocketReader *inputColor2Operation_;
+  bool valueAlphaMultiply_;
+  bool useClamp_;
 
   inline void clampIfNeeded(float color[4])
   {
-    if (m_useClamp) {
+    if (useClamp_) {
       clamp_v4(color, 0.0f, 1.0f);
     }
   }
@@ -91,15 +91,15 @@ class MixBaseOperation : public MultiThreadedOperation {
 
   void setUseValueAlphaMultiply(const bool value)
   {
-    m_valueAlphaMultiply = value;
+    valueAlphaMultiply_ = value;
   }
   inline bool useValueAlphaMultiply()
   {
-    return m_valueAlphaMultiply;
+    return valueAlphaMultiply_;
   }
   void setUseClamp(bool value)
   {
-    m_useClamp = value;
+    useClamp_ = value;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

@@ -40,7 +40,7 @@ void CryptomatteOperation::initExecution()
 void CryptomatteOperation::addObjectIndex(float objectIndex)
 {
   if (objectIndex != 0.0f) {
-    m_objectIndex.append(objectIndex);
+    objectIndex_.append(objectIndex);
   }
 }
 
@@ -60,7 +60,7 @@ void CryptomatteOperation::executePixel(float output[4], int x, int y, void *dat
       output[1] = ((float)(m3hash << 8) / (float)UINT32_MAX);
       output[2] = ((float)(m3hash << 16) / (float)UINT32_MAX);
     }
-    for (float hash : m_objectIndex) {
+    for (float hash : objectIndex_) {
       if (input[0] == hash) {
         output[3] += input[1];
       }
@@ -89,7 +89,7 @@ void CryptomatteOperation::update_memory_buffer_partial(MemoryBuffer *output,
         it.out[1] = ((float)(m3hash << 8) / (float)UINT32_MAX);
         it.out[2] = ((float)(m3hash << 16) / (float)UINT32_MAX);
       }
-      for (const float hash : m_objectIndex) {
+      for (const float hash : objectIndex_) {
         if (input[0] == hash) {
           it.out[3] += input[1];
         }

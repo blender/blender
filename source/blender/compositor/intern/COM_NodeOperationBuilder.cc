@@ -40,9 +40,9 @@ namespace blender::compositor {
 NodeOperationBuilder::NodeOperationBuilder(const CompositorContext *context,
                                            bNodeTree *b_nodetree,
                                            ExecutionSystem *system)
-    : m_context(context), exec_system_(system), m_current_node(nullptr), m_active_viewer(nullptr)
+    : context_(context), exec_system_(system), current_node_(nullptr), active_viewer_(nullptr)
 {
-  m_graph.from_bNodeTree(*context, b_nodetree);
+  graph_.from_bNodeTree(*context, b_nodetree);
 }
 
 void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
@@ -50,29 +50,29 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
   /* interface handle for nodes */
   NodeConverter converter(this);
 
-  for (Node *node : m_graph.nodes()) {
-    m_current_node = node;
+  for (Node *node : graph_.nodes()) {
+    current_node_ = node;
 
     DebugInfo::node_to_operations(node);
-    node->convertToOperations(converter, *m_context);
+    node->convertToOperations(converter, *context_);
   }
 
-  m_current_node = nullptr;
+  current_node_ = nullptr;
 
   /* The input map constructed by nodes maps operation inputs to node inputs.
    * Inverting yields a map of node inputs to all connected operation inputs,
    * so multiple operations can use the same node input.
    */
   blender::MultiValueMap<NodeInput *, NodeOperationInput *> inverse_input_map;
-  for (Map<NodeOperationInput *, NodeInput *>::MutableItem item : m_input_map.items()) {
+  for (Map<NodeOperationInput *, NodeInput *>::MutableItem item : input_map_.items()) {
     inverse_input_map.add(item.value, item.key);
   }
 
-  for (const NodeGraph::Link &link : m_graph.links()) {
+  for (const NodeGraph::Link &link : graph_.links()) {
     NodeOutput *from = link.from;
     NodeInput *to = link.to;
 
-    NodeOperationOutput *op_from = m_output_map.lookup_default(from, nullptr);
+    NodeOperationOutput *op_from = output_map_.lookup_default(from, nullptr);
 
     const blender::Span<NodeOperationInput *> op_to_list = inverse_input_map.lookup(to);
     if (!op_from || op_to_list.is_empty()) {
@@ -96,7 +96,7 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
 
   add_datatype_conversions();
 
-  if (m_context->get_execution_model() == eExecutionModel::FullFrame) {
+  if (context_->get_execution_model() == eExecutionModel::FullFrame) {
     save_graphviz("compositor_prior_folding");
     ConstantFolder folder(*this);
     folder.fold_operations();
@@ -107,37 +107,37 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
   save_graphviz("compositor_prior_merging");
   merge_equal_operations();
 
-  if (m_context->get_execution_model() == eExecutionModel::Tiled) {
+  if (context_->get_execution_model() == eExecutionModel::Tiled) {
     /* surround complex ops with read/write buffer */
     add_complex_operation_buffers();
   }
 
   /* links not available from here on */
-  /* XXX make m_links a local variable to avoid confusion! */
-  m_links.clear();
+  /* XXX make links_ a local variable to avoid confusion! */
+  links_.clear();
 
   prune_operations();
 
   /* ensure topological (link-based) order of nodes */
   /*sort_operations();*/ /* not needed yet */
 
-  if (m_context->get_execution_model() == eExecutionModel::Tiled) {
+  if (context_->get_execution_model() == eExecutionModel::Tiled) {
     /* create execution groups */
     group_operations();
   }
 
   /* transfer resulting operations to the system */
-  system->set_operations(m_operations, m_groups);
+  system->set_operations(operations_, groups_);
 }
 
 void NodeOperationBuilder::addOperation(NodeOperation *operation)
 {
-  operation->set_id(m_operations.size());
-  m_operations.append(operation);
-  if (m_current_node) {
-    operation->set_name(m_current_node->getbNode()->name);
+  operation->set_id(operations_.size());
+  operations_.append(operation);
+  if (current_node_) {
+    operation->set_name(current_node_->getbNode()->name);
   }
-  operation->set_execution_model(m_context->get_execution_model());
+  operation->set_execution_model(context_->get_execution_model());
   operation->set_execution_system(exec_system_);
 }
 
@@ -153,17 +153,17 @@ void NodeOperationBuilder::unlink_inputs_and_relink_outputs(NodeOperation *unlin
                                                             NodeOperation *linked_op)
 {
   int i = 0;
-  while (i < m_links.size()) {
-    Link &link = m_links[i];
+  while (i < links_.size()) {
+    Link &link = links_[i];
     if (&link.to()->getOperation() == unlinked_op) {
       link.to()->setLink(nullptr);
-      m_links.remove(i);
+      links_.remove(i);
       continue;
     }
 
     if (&link.from()->getOperation() == unlinked_op) {
       link.to()->setLink(linked_op->getOutputSocket());
-      m_links[i] = Link(linked_op->getOutputSocket(), link.to());
+      links_[i] = Link(linked_op->getOutputSocket(), link.to());
     }
     i++;
   }
@@ -172,23 +172,23 @@ void NodeOperationBuilder::unlink_inputs_and_relink_outputs(NodeOperation *unlin
 void NodeOperationBuilder::mapInputSocket(NodeInput *node_socket,
                                           NodeOperationInput *operation_socket)
 {
-  BLI_assert(m_current_node);
-  BLI_assert(node_socket->getNode() == m_current_node);
+  BLI_assert(current_node_);
+  BLI_assert(node_socket->getNode() == current_node_);
 
   /* NOTE: this maps operation sockets to node sockets.
    * for resolving links the map will be inverted first in convertToOperations,
    * to get a list of links for each node input socket.
    */
-  m_input_map.add_new(operation_socket, node_socket);
+  input_map_.add_new(operation_socket, node_socket);
 }
 
 void NodeOperationBuilder::mapOutputSocket(NodeOutput *node_socket,
                                            NodeOperationOutput *operation_socket)
 {
-  BLI_assert(m_current_node);
-  BLI_assert(node_socket->getNode() == m_current_node);
+  BLI_assert(current_node_);
+  BLI_assert(node_socket->getNode() == current_node_);
 
-  m_output_map.add_new(node_socket, operation_socket);
+  output_map_.add_new(node_socket, operation_socket);
 }
 
 void NodeOperationBuilder::addLink(NodeOperationOutput *from, NodeOperationInput *to)
@@ -197,7 +197,7 @@ void NodeOperationBuilder::addLink(NodeOperationOutput *from, NodeOperationInput
     return;
   }
 
-  m_links.append(Link(from, to));
+  links_.append(Link(from, to));
 
   /* register with the input */
   to->setLink(from);
@@ -206,12 +206,12 @@ void NodeOperationBuilder::addLink(NodeOperationOutput *from, NodeOperationInput
 void NodeOperationBuilder::removeInputLink(NodeOperationInput *to)
 {
   int index = 0;
-  for (Link &link : m_links) {
+  for (Link &link : links_) {
     if (link.to() == to) {
       /* unregister with the input */
       to->setLink(nullptr);
 
-      m_links.remove(index);
+      links_.remove(index);
       return;
     }
     index++;
@@ -220,28 +220,28 @@ void NodeOperationBuilder::removeInputLink(NodeOperationInput *to)
 
 PreviewOperation *NodeOperationBuilder::make_preview_operation() const
 {
-  BLI_assert(m_current_node);
+  BLI_assert(current_node_);
 
-  if (!(m_current_node->getbNode()->flag & NODE_PREVIEW)) {
+  if (!(current_node_->getbNode()->flag & NODE_PREVIEW)) {
     return nullptr;
   }
   /* previews only in the active group */
-  if (!m_current_node->isInActiveGroup()) {
+  if (!current_node_->isInActiveGroup()) {
     return nullptr;
   }
   /* do not calculate previews of hidden nodes */
-  if (m_current_node->getbNode()->flag & NODE_HIDDEN) {
+  if (current_node_->getbNode()->flag & NODE_HIDDEN) {
     return nullptr;
   }
 
-  bNodeInstanceHash *previews = m_context->getPreviewHash();
+  bNodeInstanceHash *previews = context_->getPreviewHash();
   if (previews) {
-    PreviewOperation *operation = new PreviewOperation(m_context->getViewSettings(),
-                                                       m_context->getDisplaySettings(),
-                                                       m_current_node->getbNode()->preview_xsize,
-                                                       m_current_node->getbNode()->preview_ysize);
-    operation->setbNodeTree(m_context->getbNodeTree());
-    operation->verifyPreview(previews, m_current_node->getInstanceKey());
+    PreviewOperation *operation = new PreviewOperation(context_->getViewSettings(),
+                                                       context_->getDisplaySettings(),
+                                                       current_node_->getbNode()->preview_xsize,
+                                                       current_node_->getbNode()->preview_ysize);
+    operation->setbNodeTree(context_->getbNodeTree());
+    operation->verifyPreview(previews, current_node_->getInstanceKey());
     return operation;
   }
 
@@ -270,18 +270,18 @@ void NodeOperationBuilder::addNodeInputPreview(NodeInput *input)
 
 void NodeOperationBuilder::registerViewer(ViewerOperation *viewer)
 {
-  if (m_active_viewer) {
-    if (m_current_node->isInActiveGroup()) {
+  if (active_viewer_) {
+    if (current_node_->isInActiveGroup()) {
       /* deactivate previous viewer */
-      m_active_viewer->setActive(false);
+      active_viewer_->setActive(false);
 
-      m_active_viewer = viewer;
+      active_viewer_ = viewer;
       viewer->setActive(true);
     }
   }
   else {
-    if (m_current_node->getbNodeTree() == m_context->getbNodeTree()) {
-      m_active_viewer = viewer;
+    if (current_node_->getbNodeTree() == context_->getbNodeTree()) {
+      active_viewer_ = viewer;
       viewer->setActive(true);
     }
   }
@@ -294,7 +294,7 @@ void NodeOperationBuilder::registerViewer(ViewerOperation *viewer)
 void NodeOperationBuilder::add_datatype_conversions()
 {
   Vector<Link> convert_links;
-  for (const Link &link : m_links) {
+  for (const Link &link : links_) {
     /* proxy operations can skip data type conversion */
     NodeOperation *from_op = &link.from()->getOperation();
     NodeOperation *to_op = &link.to()->getOperation();
@@ -322,10 +322,10 @@ void NodeOperationBuilder::add_datatype_conversions()
 void NodeOperationBuilder::add_operation_input_constants()
 {
   /* NOTE: unconnected inputs cached first to avoid modifying
-   *       m_operations while iterating over it
+   *       operations_ while iterating over it
    */
   Vector<NodeOperationInput *> pending_inputs;
-  for (NodeOperation *op : m_operations) {
+  for (NodeOperation *op : operations_) {
     for (int k = 0; k < op->getNumberOfInputSockets(); ++k) {
       NodeOperationInput *input = op->getInputSocket(k);
       if (!input->isConnected()) {
@@ -334,7 +334,7 @@ void NodeOperationBuilder::add_operation_input_constants()
     }
   }
   for (NodeOperationInput *input : pending_inputs) {
-    add_input_constant_value(input, m_input_map.lookup_default(input, nullptr));
+    add_input_constant_value(input, input_map_.lookup_default(input, nullptr));
   }
 }
 
@@ -393,7 +393,7 @@ void NodeOperationBuilder::add_input_constant_value(NodeOperationInput *input,
 void NodeOperationBuilder::resolve_proxies()
 {
   Vector<Link> proxy_links;
-  for (const Link &link : m_links) {
+  for (const Link &link : links_) {
     /* don't replace links from proxy to proxy, since we may need them for replacing others! */
     if (link.from()->getOperation().get_flags().is_proxy_operation &&
         !link.to()->getOperation().get_flags().is_proxy_operation) {
@@ -423,16 +423,16 @@ void NodeOperationBuilder::determine_canvases()
 {
   /* Determine all canvas areas of the operations. */
   const rcti &preferred_area = COM_AREA_NONE;
-  for (NodeOperation *op : m_operations) {
-    if (op->isOutputOperation(m_context->isRendering()) && !op->get_flags().is_preview_operation) {
+  for (NodeOperation *op : operations_) {
+    if (op->isOutputOperation(context_->isRendering()) && !op->get_flags().is_preview_operation) {
       rcti canvas = COM_AREA_NONE;
       op->determine_canvas(preferred_area, canvas);
       op->set_canvas(canvas);
     }
   }
 
-  for (NodeOperation *op : m_operations) {
-    if (op->isOutputOperation(m_context->isRendering()) && op->get_flags().is_preview_operation) {
+  for (NodeOperation *op : operations_) {
+    if (op->isOutputOperation(context_->isRendering()) && op->get_flags().is_preview_operation) {
       rcti canvas = COM_AREA_NONE;
       op->determine_canvas(preferred_area, canvas);
       op->set_canvas(canvas);
@@ -442,7 +442,7 @@ void NodeOperationBuilder::determine_canvases()
   /* Convert operation canvases when needed. */
   {
     Vector<Link> convert_links;
-    for (const Link &link : m_links) {
+    for (const Link &link : links_) {
       if (link.to()->getResizeMode() != ResizeMode::None) {
         const rcti &from_canvas = link.from()->getOperation().get_canvas();
         const rcti &to_canvas = link.to()->getOperation().get_canvas();
@@ -485,7 +485,7 @@ void NodeOperationBuilder::merge_equal_operations()
   bool check_for_next_merge = true;
   while (check_for_next_merge) {
     /* Re-generate hashes with any change. */
-    Vector<NodeOperationHash> hashes = generate_hashes(m_operations);
+    Vector<NodeOperationHash> hashes = generate_hashes(operations_);
 
     /* Make hashes be consecutive when they are equal. */
     std::sort(hashes.begin(), hashes.end());
@@ -507,7 +507,7 @@ void NodeOperationBuilder::merge_equal_operations()
 void NodeOperationBuilder::merge_equal_operations(NodeOperation *from, NodeOperation *into)
 {
   unlink_inputs_and_relink_outputs(from, into);
-  m_operations.remove_first_occurrence_and_reorder(from);
+  operations_.remove_first_occurrence_and_reorder(from);
   delete from;
 }
 
@@ -515,7 +515,7 @@ Vector<NodeOperationInput *> NodeOperationBuilder::cache_output_links(
     NodeOperationOutput *output) const
 {
   Vector<NodeOperationInput *> inputs;
-  for (const Link &link : m_links) {
+  for (const Link &link : links_) {
     if (link.from() == output) {
       inputs.append(link.to());
     }
@@ -526,7 +526,7 @@ Vector<NodeOperationInput *> NodeOperationBuilder::cache_output_links(
 WriteBufferOperation *NodeOperationBuilder::find_attached_write_buffer_operation(
     NodeOperationOutput *output) const
 {
-  for (const Link &link : m_links) {
+  for (const Link &link : links_) {
     if (link.from() == output) {
       NodeOperation &op = link.to()->getOperation();
       if (op.get_flags().is_write_buffer_operation) {
@@ -557,7 +557,7 @@ void NodeOperationBuilder::add_input_buffers(NodeOperation * /*operation*/,
   WriteBufferOperation *writeoperation = find_attached_write_buffer_operation(output);
   if (!writeoperation) {
     writeoperation = new WriteBufferOperation(output->getDataType());
-    writeoperation->setbNodeTree(m_context->getbNodeTree());
+    writeoperation->setbNodeTree(context_->getbNodeTree());
     addOperation(writeoperation);
 
     addLink(output, writeoperation->getInputSocket(0));
@@ -600,7 +600,7 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation,
   /* if no write buffer operation exists yet, create a new one */
   if (!writeOperation) {
     writeOperation = new WriteBufferOperation(operation->getOutputSocket()->getDataType());
-    writeOperation->setbNodeTree(m_context->getbNodeTree());
+    writeOperation->setbNodeTree(context_->getbNodeTree());
     addOperation(writeOperation);
 
     addLink(output, writeOperation->getInputSocket(0));
@@ -628,10 +628,10 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation,
 void NodeOperationBuilder::add_complex_operation_buffers()
 {
   /* NOTE: complex ops and get cached here first, since adding operations
-   * will invalidate iterators over the main m_operations
+   * will invalidate iterators over the main operations_
    */
   Vector<NodeOperation *> complex_ops;
-  for (NodeOperation *operation : m_operations) {
+  for (NodeOperation *operation : operations_) {
     if (operation->get_flags().complex) {
       complex_ops.append(operation);
     }
@@ -677,16 +677,16 @@ static void find_reachable_operations_recursive(Tags &reachable, NodeOperation *
 void NodeOperationBuilder::prune_operations()
 {
   Tags reachable;
-  for (NodeOperation *op : m_operations) {
+  for (NodeOperation *op : operations_) {
     /* output operations are primary executed operations */
-    if (op->isOutputOperation(m_context->isRendering())) {
+    if (op->isOutputOperation(context_->isRendering())) {
       find_reachable_operations_recursive(reachable, op);
     }
   }
 
   /* delete unreachable operations */
   Vector<NodeOperation *> reachable_ops;
-  for (NodeOperation *op : m_operations) {
+  for (NodeOperation *op : operations_) {
     if (reachable.find(op) != reachable.end()) {
       reachable_ops.append(op);
     }
@@ -695,7 +695,7 @@ void NodeOperationBuilder::prune_operations()
     }
   }
   /* finally replace the operations list with the pruned list */
-  m_operations = reachable_ops;
+  operations_ = reachable_ops;
 }
 
 /* topological (depth-first) sorting of operations */
@@ -721,14 +721,14 @@ static void sort_operations_recursive(Vector<NodeOperation *> &sorted,
 void NodeOperationBuilder::sort_operations()
 {
   Vector<NodeOperation *> sorted;
-  sorted.reserve(m_operations.size());
+  sorted.reserve(operations_.size());
   Tags visited;
 
-  for (NodeOperation *operation : m_operations) {
+  for (NodeOperation *operation : operations_) {
     sort_operations_recursive(sorted, visited, operation);
   }
 
-  m_operations = sorted;
+  operations_ = sorted;
 }
 
 static void add_group_operations_recursive(Tags &visited, NodeOperation *op, ExecutionGroup *group)
@@ -753,8 +753,8 @@ static void add_group_operations_recursive(Tags &visited, NodeOperation *op, Exe
 
 ExecutionGroup *NodeOperationBuilder::make_group(NodeOperation *op)
 {
-  ExecutionGroup *group = new ExecutionGroup(m_groups.size());
-  m_groups.append(group);
+  ExecutionGroup *group = new ExecutionGroup(groups_.size());
+  groups_.append(group);
 
   Tags visited;
   add_group_operations_recursive(visited, op, group);
@@ -764,8 +764,8 @@ ExecutionGroup *NodeOperationBuilder::make_group(NodeOperation *op)
 
 void NodeOperationBuilder::group_operations()
 {
-  for (NodeOperation *op : m_operations) {
-    if (op->isOutputOperation(m_context->isRendering())) {
+  for (NodeOperation *op : operations_) {
+    if (op->isOutputOperation(context_->isRendering())) {
       ExecutionGroup *group = make_group(op);
       group->setOutputExecutionGroup(true);
     }
@@ -786,7 +786,7 @@ void NodeOperationBuilder::group_operations()
 void NodeOperationBuilder::save_graphviz(StringRefNull name)
 {
   if (COM_EXPORT_GRAPHVIZ) {
-    exec_system_->set_operations(m_operations, m_groups);
+    exec_system_->set_operations(operations_, groups_);
     DebugInfo::graphviz(exec_system_, name);
   }
 }

@@ -28,27 +28,27 @@ namespace blender::compositor {
 class ViewerOperation : public MultiThreadedOperation {
  private:
   /* TODO(manzanilla): To be removed together with tiled implementation. */
-  float *m_outputBuffer;
-  float *m_depthBuffer;
+  float *outputBuffer_;
+  float *depthBuffer_;
 
-  Image *m_image;
-  ImageUser *m_imageUser;
-  bool m_active;
-  float m_centerX;
-  float m_centerY;
-  ChunkOrdering m_chunkOrder;
-  bool m_doDepthBuffer;
-  ImBuf *m_ibuf;
-  bool m_useAlphaInput;
-  const RenderData *m_rd;
-  const char *m_viewName;
+  Image *image_;
+  ImageUser *imageUser_;
+  bool active_;
+  float centerX_;
+  float centerY_;
+  ChunkOrdering chunkOrder_;
+  bool doDepthBuffer_;
+  ImBuf *ibuf_;
+  bool useAlphaInput_;
+  const RenderData *rd_;
+  const char *viewName_;
 
-  const ColorManagedViewSettings *m_viewSettings;
-  const ColorManagedDisplaySettings *m_displaySettings;
+  const ColorManagedViewSettings *viewSettings_;
+  const ColorManagedDisplaySettings *displaySettings_;
 
-  SocketReader *m_imageInput;
-  SocketReader *m_alphaInput;
-  SocketReader *m_depthInput;
+  SocketReader *imageInput_;
+  SocketReader *alphaInput_;
+  SocketReader *depthInput_;
 
   int display_width_;
   int display_height_;
@@ -68,65 +68,65 @@ class ViewerOperation : public MultiThreadedOperation {
   }
   void setImage(Image *image)
   {
-    m_image = image;
+    image_ = image;
   }
   void setImageUser(ImageUser *imageUser)
   {
-    m_imageUser = imageUser;
+    imageUser_ = imageUser;
   }
   bool isActiveViewerOutput() const override
   {
-    return m_active;
+    return active_;
   }
   void setActive(bool active)
   {
-    m_active = active;
+    active_ = active;
   }
   void setCenterX(float centerX)
   {
-    m_centerX = centerX;
+    centerX_ = centerX;
   }
   void setCenterY(float centerY)
   {
-    m_centerY = centerY;
+    centerY_ = centerY;
   }
   void setChunkOrder(ChunkOrdering tileOrder)
   {
-    m_chunkOrder = tileOrder;
+    chunkOrder_ = tileOrder;
   }
   float getCenterX() const
   {
-    return m_centerX;
+    return centerX_;
   }
   float getCenterY() const
   {
-    return m_centerY;
+    return centerY_;
   }
   ChunkOrdering getChunkOrder() const
   {
-    return m_chunkOrder;
+    return chunkOrder_;
   }
   eCompositorPriority getRenderPriority() const override;
   void setUseAlphaInput(bool value)
   {
-    m_useAlphaInput = value;
+    useAlphaInput_ = value;
   }
   void setRenderData(const RenderData *rd)
   {
-    m_rd = rd;
+    rd_ = rd;
   }
   void setViewName(const char *viewName)
   {
-    m_viewName = viewName;
+    viewName_ = viewName;
   }
 
   void setViewSettings(const ColorManagedViewSettings *viewSettings)
   {
-    m_viewSettings = viewSettings;
+    viewSettings_ = viewSettings;
   }
   void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings)
   {
-    m_displaySettings = displaySettings;
+    displaySettings_ = displaySettings;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

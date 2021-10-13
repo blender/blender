@@ -32,13 +32,13 @@ class MapRangeOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputOperation;
-  SocketReader *m_sourceMinOperation;
-  SocketReader *m_sourceMaxOperation;
-  SocketReader *m_destMinOperation;
-  SocketReader *m_destMaxOperation;
+  SocketReader *inputOperation_;
+  SocketReader *sourceMinOperation_;
+  SocketReader *sourceMaxOperation_;
+  SocketReader *destMinOperation_;
+  SocketReader *destMaxOperation_;
 
-  bool m_useClamp;
+  bool useClamp_;
 
  public:
   /**
@@ -66,7 +66,7 @@ class MapRangeOperation : public MultiThreadedOperation {
    */
   void setUseClamp(bool value)
   {
-    m_useClamp = value;
+    useClamp_ = value;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

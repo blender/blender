@@ -134,7 +134,7 @@ static void read_input_corners(NodeOperation *op, const int first_input_idx, flo
 
 /* ******** PlaneCornerPinMaskOperation ******** */
 
-PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation() : m_corners_ready(false)
+PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation() : corners_ready_(false)
 {
   addInputSocket(DataType::Vector);
   addInputSocket(DataType::Vector);
@@ -182,7 +182,7 @@ void *PlaneCornerPinMaskOperation::initializeTileData(rcti *rect)
    * we don't have a nice generic system for that yet
    */
   lockMutex();
-  if (!m_corners_ready) {
+  if (!corners_ready_) {
     SocketReader *readers[4] = {
         getInputSocketReader(0),
         getInputSocketReader(1),
@@ -193,7 +193,7 @@ void *PlaneCornerPinMaskOperation::initializeTileData(rcti *rect)
     readCornersFromSockets(rect, readers, corners);
     calculateCorners(corners, true, 0);
 
-    m_corners_ready = true;
+    corners_ready_ = true;
   }
   unlockMutex();
 
@@ -219,7 +219,7 @@ void PlaneCornerPinMaskOperation::get_area_of_interest(const int UNUSED(input_id
 
 /* ******** PlaneCornerPinWarpImageOperation ******** */
 
-PlaneCornerPinWarpImageOperation::PlaneCornerPinWarpImageOperation() : m_corners_ready(false)
+PlaneCornerPinWarpImageOperation::PlaneCornerPinWarpImageOperation() : corners_ready_(false)
 {
   addInputSocket(DataType::Vector);
   addInputSocket(DataType::Vector);
@@ -259,7 +259,7 @@ void *PlaneCornerPinWarpImageOperation::initializeTileData(rcti *rect)
    * we don't have a nice generic system for that yet
    */
   lockMutex();
-  if (!m_corners_ready) {
+  if (!corners_ready_) {
     /* corner sockets start at index 1 */
     SocketReader *readers[4] = {
         getInputSocketReader(1),
@@ -271,7 +271,7 @@ void *PlaneCornerPinWarpImageOperation::initializeTileData(rcti *rect)
     readCornersFromSockets(rect, readers, corners);
     calculateCorners(corners, true, 0);
 
-    m_corners_ready = true;
+    corners_ready_ = true;
   }
   unlockMutex();
 

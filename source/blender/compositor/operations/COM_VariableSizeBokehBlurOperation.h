@@ -34,14 +34,14 @@ class VariableSizeBokehBlurOperation : public MultiThreadedOperation, public Qua
   static constexpr int DEFOCUS_INPUT_INDEX = 3;
 #endif
 
-  int m_maxBlur;
-  float m_threshold;
-  bool m_do_size_scale; /* scale size, matching 'BokehBlurNode' */
-  SocketReader *m_inputProgram;
-  SocketReader *m_inputBokehProgram;
-  SocketReader *m_inputSizeProgram;
+  int maxBlur_;
+  float threshold_;
+  bool do_size_scale_; /* scale size, matching 'BokehBlurNode' */
+  SocketReader *inputProgram_;
+  SocketReader *inputBokehProgram_;
+  SocketReader *inputSizeProgram_;
 #ifdef COM_DEFOCUS_SEARCH
-  SocketReader *m_inputSearchProgram;
+  SocketReader *inputSearchProgram_;
 #endif
 
  public:
@@ -72,17 +72,17 @@ class VariableSizeBokehBlurOperation : public MultiThreadedOperation, public Qua
 
   void setMaxBlur(int maxRadius)
   {
-    m_maxBlur = maxRadius;
+    maxBlur_ = maxRadius;
   }
 
   void setThreshold(float threshold)
   {
-    m_threshold = threshold;
+    threshold_ = threshold;
   }
 
   void setDoScaleSize(bool scale_size)
   {
-    m_do_size_scale = scale_size;
+    do_size_scale_ = scale_size;
   }
 
   void executeOpenCL(OpenCLDevice *device,
@@ -102,8 +102,8 @@ class VariableSizeBokehBlurOperation : public MultiThreadedOperation, public Qua
 #ifdef COM_DEFOCUS_SEARCH
 class InverseSearchRadiusOperation : public NodeOperation {
  private:
-  int m_maxBlur;
-  SocketReader *m_inputRadius;
+  int maxBlur_;
+  SocketReader *inputRadius_;
 
  public:
   static const int DIVIDER = 4;
@@ -134,7 +134,7 @@ class InverseSearchRadiusOperation : public NodeOperation {
 
   void setMaxBlur(int maxRadius)
   {
-    m_maxBlur = maxRadius;
+    maxBlur_ = maxRadius;
   }
 };
 #endif

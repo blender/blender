@@ -29,31 +29,31 @@ namespace blender::compositor {
 KeyingScreenOperation::KeyingScreenOperation()
 {
   this->addOutputSocket(DataType::Color);
-  m_movieClip = nullptr;
-  m_framenumber = 0;
-  m_trackingObject[0] = 0;
+  movieClip_ = nullptr;
+  framenumber_ = 0;
+  trackingObject_[0] = 0;
   flags.complex = true;
-  m_cachedTriangulation = nullptr;
+  cachedTriangulation_ = nullptr;
 }
 
 void KeyingScreenOperation::initExecution()
 {
   initMutex();
   if (execution_model_ == eExecutionModel::FullFrame) {
-    BLI_assert(m_cachedTriangulation == nullptr);
-    if (m_movieClip) {
-      m_cachedTriangulation = buildVoronoiTriangulation();
+    BLI_assert(cachedTriangulation_ == nullptr);
+    if (movieClip_) {
+      cachedTriangulation_ = buildVoronoiTriangulation();
     }
   }
   else {
-    m_cachedTriangulation = nullptr;
+    cachedTriangulation_ = nullptr;
   }
 }
 
 void KeyingScreenOperation::deinitExecution()
 {
-  if (m_cachedTriangulation) {
-    TriangulationData *triangulation = m_cachedTriangulation;
+  if (cachedTriangulation_) {
+    TriangulationData *triangulation = cachedTriangulation_;
 
     if (triangulation->triangulated_points) {
       MEM_freeN(triangulation->triangulated_points);
@@ -67,9 +67,9 @@ void KeyingScreenOperation::deinitExecution()
       MEM_freeN(triangulation->triangles_AABB);
     }
 
-    MEM_freeN(m_cachedTriangulation);
+    MEM_freeN(cachedTriangulation_);
 
-    m_cachedTriangulation = nullptr;
+    cachedTriangulation_ = nullptr;
   }
 }
 
@@ -77,7 +77,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 {
   MovieClipUser user = {0};
   TriangulationData *triangulation;
-  MovieTracking *tracking = &m_movieClip->tracking;
+  MovieTracking *tracking = &movieClip_->tracking;
   MovieTrackingTrack *track;
   VoronoiSite *sites, *site;
   ImBuf *ibuf;
@@ -87,10 +87,10 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
   int i;
   int width = this->getWidth();
   int height = this->getHeight();
-  int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(m_movieClip, m_framenumber);
+  int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(movieClip_, framenumber_);
 
-  if (m_trackingObject[0]) {
-    MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, m_trackingObject);
+  if (trackingObject_[0]) {
+    MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, trackingObject_);
 
     if (!object) {
       return nullptr;
@@ -126,7 +126,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
   }
 
   BKE_movieclip_user_set_frame(&user, clip_frame);
-  ibuf = BKE_movieclip_get_ibuf(m_movieClip, &user);
+  ibuf = BKE_movieclip_get_ibuf(movieClip_, &user);
 
   if (!ibuf) {
     return nullptr;
@@ -237,7 +237,7 @@ KeyingScreenOperation::TileData *KeyingScreenOperation::triangulate(const rcti *
   int chunk_size = 20;
   int i;
 
-  triangulation = m_cachedTriangulation;
+  triangulation = cachedTriangulation_;
 
   if (!triangulation) {
     return nullptr;
@@ -271,14 +271,14 @@ KeyingScreenOperation::TileData *KeyingScreenOperation::triangulate(const rcti *
 
 void *KeyingScreenOperation::initializeTileData(rcti *rect)
 {
-  if (m_movieClip == nullptr) {
+  if (movieClip_ == nullptr) {
     return nullptr;
   }
 
-  if (!m_cachedTriangulation) {
+  if (!cachedTriangulation_) {
     lockMutex();
-    if (m_cachedTriangulation == nullptr) {
-      m_cachedTriangulation = buildVoronoiTriangulation();
+    if (cachedTriangulation_ == nullptr) {
+      cachedTriangulation_ = buildVoronoiTriangulation();
     }
     unlockMutex();
   }
@@ -301,13 +301,13 @@ void KeyingScreenOperation::determine_canvas(const rcti &preferred_area, rcti &r
 {
   r_area = COM_AREA_NONE;
 
-  if (m_movieClip) {
+  if (movieClip_) {
     MovieClipUser user = {0};
     int width, height;
-    int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(m_movieClip, m_framenumber);
+    int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(movieClip_, framenumber_);
 
     BKE_movieclip_user_set_frame(&user, clip_frame);
-    BKE_movieclip_get_size(m_movieClip, &user, &width, &height);
+    BKE_movieclip_get_size(movieClip_, &user, &width, &height);
     r_area = preferred_area;
     r_area.xmax = r_area.xmin + width;
     r_area.ymax = r_area.ymin + height;
@@ -321,8 +321,8 @@ void KeyingScreenOperation::executePixel(float output[4], int x, int y, void *da
   output[2] = 0.0f;
   output[3] = 1.0f;
 
-  if (m_movieClip && data) {
-    TriangulationData *triangulation = m_cachedTriangulation;
+  if (movieClip_ && data) {
+    TriangulationData *triangulation = cachedTriangulation_;
     TileData *tile_data = (TileData *)data;
     int i;
     float co[2] = {(float)x, (float)y};
@@ -356,7 +356,7 @@ void KeyingScreenOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                          const rcti &area,
                                                          Span<MemoryBuffer *> inputs)
 {
-  if (m_movieClip == nullptr) {
+  if (movieClip_ == nullptr) {
     output->fill(area, COM_COLOR_BLACK);
     return;
   }
@@ -366,7 +366,7 @@ void KeyingScreenOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
   const int *triangles = tri_area->triangles;
   const int num_triangles = tri_area->triangles_total;
-  const TriangulationData *triangulation = m_cachedTriangulation;
+  const TriangulationData *triangulation = cachedTriangulation_;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     copy_v4_v4(it.out, COM_COLOR_BLACK);
 

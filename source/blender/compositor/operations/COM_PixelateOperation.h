@@ -34,7 +34,7 @@ class PixelateOperation : public NodeOperation {
   /**
    * \brief cached reference to the input operation
    */
-  SocketReader *m_inputOperation;
+  SocketReader *inputOperation_;
 
  public:
   /**

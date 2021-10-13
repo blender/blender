@@ -38,55 +38,55 @@ class CompositorContext {
    * editor) This field is initialized in ExecutionSystem and must only be read from that point
    * on. \see ExecutionSystem
    */
-  bool m_rendering;
+  bool rendering_;
 
   /**
    * \brief The quality of the composite.
    * This field is initialized in ExecutionSystem and must only be read from that point on.
    * \see ExecutionSystem
    */
-  eCompositorQuality m_quality;
+  eCompositorQuality quality_;
 
-  Scene *m_scene;
+  Scene *scene_;
 
   /**
    * \brief Reference to the render data that is being composited.
    * This field is initialized in ExecutionSystem and must only be read from that point on.
    * \see ExecutionSystem
    */
-  RenderData *m_rd;
+  RenderData *rd_;
 
   /**
    * \brief reference to the bNodeTree
    * This field is initialized in ExecutionSystem and must only be read from that point on.
    * \see ExecutionSystem
    */
-  bNodeTree *m_bnodetree;
+  bNodeTree *bnodetree_;
 
   /**
    * \brief Preview image hash table
    * This field is initialized in ExecutionSystem and must only be read from that point on.
    */
-  bNodeInstanceHash *m_previews;
+  bNodeInstanceHash *previews_;
 
   /**
    * \brief does this system have active opencl devices?
    */
-  bool m_hasActiveOpenCLDevices;
+  bool hasActiveOpenCLDevices_;
 
   /**
    * \brief Skip slow nodes
    */
-  bool m_fastCalculation;
+  bool fastCalculation_;
 
   /* \brief color management settings */
-  const ColorManagedViewSettings *m_viewSettings;
-  const ColorManagedDisplaySettings *m_displaySettings;
+  const ColorManagedViewSettings *viewSettings_;
+  const ColorManagedDisplaySettings *displaySettings_;
 
   /**
    * \brief active rendering view name
    */
-  const char *m_viewName;
+  const char *viewName_;
 
  public:
   /**
@@ -99,7 +99,7 @@ class CompositorContext {
    */
   void setRendering(bool rendering)
   {
-    m_rendering = rendering;
+    rendering_ = rendering;
   }
 
   /**
@@ -107,7 +107,7 @@ class CompositorContext {
    */
   bool isRendering() const
   {
-    return m_rendering;
+    return rendering_;
   }
 
   /**
@@ -115,7 +115,7 @@ class CompositorContext {
    */
   void setRenderData(RenderData *rd)
   {
-    m_rd = rd;
+    rd_ = rd;
   }
 
   /**
@@ -123,7 +123,7 @@ class CompositorContext {
    */
   void setbNodeTree(bNodeTree *bnodetree)
   {
-    m_bnodetree = bnodetree;
+    bnodetree_ = bnodetree;
   }
 
   /**
@@ -131,7 +131,7 @@ class CompositorContext {
    */
   const bNodeTree *getbNodeTree() const
   {
-    return m_bnodetree;
+    return bnodetree_;
   }
 
   /**
@@ -139,16 +139,16 @@ class CompositorContext {
    */
   const RenderData *getRenderData() const
   {
-    return m_rd;
+    return rd_;
   }
 
   void setScene(Scene *scene)
   {
-    m_scene = scene;
+    scene_ = scene;
   }
   Scene *getScene() const
   {
-    return m_scene;
+    return scene_;
   }
 
   /**
@@ -156,7 +156,7 @@ class CompositorContext {
    */
   void setPreviewHash(bNodeInstanceHash *previews)
   {
-    m_previews = previews;
+    previews_ = previews;
   }
 
   /**
@@ -164,7 +164,7 @@ class CompositorContext {
    */
   bNodeInstanceHash *getPreviewHash() const
   {
-    return m_previews;
+    return previews_;
   }
 
   /**
@@ -172,7 +172,7 @@ class CompositorContext {
    */
   void setViewSettings(const ColorManagedViewSettings *viewSettings)
   {
-    m_viewSettings = viewSettings;
+    viewSettings_ = viewSettings;
   }
 
   /**
@@ -180,7 +180,7 @@ class CompositorContext {
    */
   const ColorManagedViewSettings *getViewSettings() const
   {
-    return m_viewSettings;
+    return viewSettings_;
   }
 
   /**
@@ -188,7 +188,7 @@ class CompositorContext {
    */
   void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings)
   {
-    m_displaySettings = displaySettings;
+    displaySettings_ = displaySettings;
   }
 
   /**
@@ -196,7 +196,7 @@ class CompositorContext {
    */
   const ColorManagedDisplaySettings *getDisplaySettings() const
   {
-    return m_displaySettings;
+    return displaySettings_;
   }
 
   /**
@@ -204,7 +204,7 @@ class CompositorContext {
    */
   void setQuality(eCompositorQuality quality)
   {
-    m_quality = quality;
+    quality_ = quality;
   }
 
   /**
@@ -212,7 +212,7 @@ class CompositorContext {
    */
   eCompositorQuality getQuality() const
   {
-    return m_quality;
+    return quality_;
   }
 
   /**
@@ -225,7 +225,7 @@ class CompositorContext {
    */
   bool getHasActiveOpenCLDevices() const
   {
-    return m_hasActiveOpenCLDevices;
+    return hasActiveOpenCLDevices_;
   }
 
   /**
@@ -233,13 +233,13 @@ class CompositorContext {
    */
   void setHasActiveOpenCLDevices(bool hasAvtiveOpenCLDevices)
   {
-    m_hasActiveOpenCLDevices = hasAvtiveOpenCLDevices;
+    hasActiveOpenCLDevices_ = hasAvtiveOpenCLDevices;
   }
 
   /** Whether it has a view with a specific name and not the default one. */
   bool has_explicit_view() const
   {
-    return m_viewName && m_viewName[0] != '\0';
+    return viewName_ && viewName_[0] != '\0';
   }
 
   /**
@@ -247,7 +247,7 @@ class CompositorContext {
    */
   const char *getViewName() const
   {
-    return m_viewName;
+    return viewName_;
   }
 
   /**
@@ -255,7 +255,7 @@ class CompositorContext {
    */
   void setViewName(const char *viewName)
   {
-    m_viewName = viewName;
+    viewName_ = viewName;
   }
 
   int getChunksize() const
@@ -265,11 +265,11 @@ class CompositorContext {
 
   void setFastCalculation(bool fastCalculation)
   {
-    m_fastCalculation = fastCalculation;
+    fastCalculation_ = fastCalculation;
   }
   bool isFastCalculation() const
   {
-    return m_fastCalculation;
+    return fastCalculation_;
   }
   bool isGroupnodeBufferEnabled() const
   {
@@ -282,7 +282,7 @@ class CompositorContext {
    */
   float getRenderPercentageAsFactor() const
   {
-    return m_rd->size * 0.01f;
+    return rd_->size * 0.01f;
   }
 
   Size2f get_render_size() const;

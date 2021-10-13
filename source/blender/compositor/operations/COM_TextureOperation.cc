@@ -28,12 +28,12 @@ TextureBaseOperation::TextureBaseOperation()
 {
   this->addInputSocket(DataType::Vector);  // offset
   this->addInputSocket(DataType::Vector);  // size
-  m_texture = nullptr;
-  m_inputSize = nullptr;
-  m_inputOffset = nullptr;
-  m_rd = nullptr;
-  m_pool = nullptr;
-  m_sceneColorManage = false;
+  texture_ = nullptr;
+  inputSize_ = nullptr;
+  inputOffset_ = nullptr;
+  rd_ = nullptr;
+  pool_ = nullptr;
+  sceneColorManage_ = false;
   flags.complex = true;
 }
 TextureOperation::TextureOperation() : TextureBaseOperation()
@@ -47,23 +47,23 @@ TextureAlphaOperation::TextureAlphaOperation() : TextureBaseOperation()
 
 void TextureBaseOperation::initExecution()
 {
-  m_inputOffset = getInputSocketReader(0);
-  m_inputSize = getInputSocketReader(1);
-  m_pool = BKE_image_pool_new();
-  if (m_texture != nullptr && m_texture->nodetree != nullptr && m_texture->use_nodes) {
-    ntreeTexBeginExecTree(m_texture->nodetree);
+  inputOffset_ = getInputSocketReader(0);
+  inputSize_ = getInputSocketReader(1);
+  pool_ = BKE_image_pool_new();
+  if (texture_ != nullptr && texture_->nodetree != nullptr && texture_->use_nodes) {
+    ntreeTexBeginExecTree(texture_->nodetree);
   }
   NodeOperation::initExecution();
 }
 void TextureBaseOperation::deinitExecution()
 {
-  m_inputSize = nullptr;
-  m_inputOffset = nullptr;
-  BKE_image_pool_free(m_pool);
-  m_pool = nullptr;
-  if (m_texture != nullptr && m_texture->use_nodes && m_texture->nodetree != nullptr &&
-      m_texture->nodetree->execdata != nullptr) {
-    ntreeTexEndExecTree(m_texture->nodetree->execdata);
+  inputSize_ = nullptr;
+  inputOffset_ = nullptr;
+  BKE_image_pool_free(pool_);
+  pool_ = nullptr;
+  if (texture_ != nullptr && texture_->use_nodes && texture_->nodetree != nullptr &&
+      texture_->nodetree->execdata != nullptr) {
+    ntreeTexEndExecTree(texture_->nodetree->execdata);
   }
   NodeOperation::deinitExecution();
 }
@@ -72,8 +72,8 @@ void TextureBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_
 {
   r_area = preferred_area;
   if (BLI_rcti_is_empty(&preferred_area)) {
-    int width = m_rd->xsch * m_rd->size / 100;
-    int height = m_rd->ysch * m_rd->size / 100;
+    int width = rd_->xsch * rd_->size / 100;
+    int height = rd_->ysch * rd_->size / 100;
     r_area.xmax = preferred_area.xmin + width;
     r_area.ymax = preferred_area.ymin + height;
   }
@@ -115,13 +115,13 @@ void TextureBaseOperation::executePixelSampled(float output[4],
    * interpolation and (b) in such configuration multitex() simply floor's the value
    * which often produces artifacts.
    */
-  if (m_texture != nullptr && (m_texture->imaflag & TEX_INTERPOL) == 0) {
+  if (texture_ != nullptr && (texture_->imaflag & TEX_INTERPOL) == 0) {
     u += 0.5f / cx;
     v += 0.5f / cy;
   }
 
-  m_inputSize->readSampled(textureSize, x, y, sampler);
-  m_inputOffset->readSampled(textureOffset, x, y, sampler);
+  inputSize_->readSampled(textureSize, x, y, sampler);
+  inputOffset_->readSampled(textureOffset, x, y, sampler);
 
   vec[0] = textureSize[0] * (u + textureOffset[0]);
   vec[1] = textureSize[1] * (v + textureOffset[1]);
@@ -129,7 +129,7 @@ void TextureBaseOperation::executePixelSampled(float output[4],
 
   const int thread_id = WorkScheduler::current_thread_id();
   retval = multitex_ext(
-      m_texture, vec, nullptr, nullptr, 0, &texres, thread_id, m_pool, m_sceneColorManage, false);
+      texture_, vec, nullptr, nullptr, 0, &texres, thread_id, pool_, sceneColorManage_, false);
 
   output[3] = texres.talpha ? texres.ta : texres.tin;
   if (retval & TEX_RGB) {
@@ -164,7 +164,7 @@ void TextureBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
      * interpolation and (b) in such configuration multitex() simply floor's the value
      * which often produces artifacts.
      */
-    if (m_texture != nullptr && (m_texture->imaflag & TEX_INTERPOL) == 0) {
+    if (texture_ != nullptr && (texture_->imaflag & TEX_INTERPOL) == 0) {
       u += 0.5f / center_x;
       v += 0.5f / center_y;
     }
@@ -173,15 +173,15 @@ void TextureBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
     vec[1] = tex_size[1] * (v + tex_offset[1]);
     vec[2] = tex_size[2] * tex_offset[2];
 
-    const int retval = multitex_ext(m_texture,
+    const int retval = multitex_ext(texture_,
                                     vec,
                                     nullptr,
                                     nullptr,
                                     0,
                                     &tex_result,
                                     thread_id,
-                                    m_pool,
-                                    m_sceneColorManage,
+                                    pool_,
+                                    sceneColorManage_,
                                     false);
 
     it.out[3] = tex_result.talpha ? tex_result.ta : tex_result.tin;

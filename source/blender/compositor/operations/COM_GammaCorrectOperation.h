@@ -27,7 +27,7 @@ class GammaCorrectOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
+  SocketReader *inputProgram_;
 
  public:
   GammaCorrectOperation();
@@ -57,7 +57,7 @@ class GammaUncorrectOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
+  SocketReader *inputProgram_;
 
  public:
   GammaUncorrectOperation();

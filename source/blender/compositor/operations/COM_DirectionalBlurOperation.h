@@ -25,12 +25,12 @@ namespace blender::compositor {
 
 class DirectionalBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
  private:
-  SocketReader *m_inputProgram;
-  NodeDBlurData *m_data;
+  SocketReader *inputProgram_;
+  NodeDBlurData *data_;
 
-  float m_center_x_pix, m_center_y_pix;
-  float m_tx, m_ty;
-  float m_sc, m_rot;
+  float center_x_pix_, center_y_pix_;
+  float tx_, ty_;
+  float sc_, rot_;
 
  public:
   DirectionalBlurOperation();
@@ -56,7 +56,7 @@ class DirectionalBlurOperation : public MultiThreadedOperation, public QualitySt
 
   void setData(NodeDBlurData *data)
   {
-    m_data = data;
+    data_ = data;
   }
 
   void executeOpenCL(OpenCLDevice *device,

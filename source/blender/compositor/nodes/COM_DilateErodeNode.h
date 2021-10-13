@@ -28,7 +28,7 @@ namespace blender::compositor {
  */
 class DilateErodeNode : public Node {
   /** only used for blurring alpha, since the dilate/erode node doesn't have this. */
-  NodeBlurData m_alpha_blur;
+  NodeBlurData alpha_blur_;
 
  public:
   DilateErodeNode(bNode *editorNode);

@@ -112,13 +112,13 @@ AntiAliasOperation::AntiAliasOperation()
 {
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
-  m_valueReader = nullptr;
+  valueReader_ = nullptr;
   this->flags.complex = true;
 }
 
 void AntiAliasOperation::initExecution()
 {
-  m_valueReader = this->getInputSocketReader(0);
+  valueReader_ = this->getInputSocketReader(0);
 }
 
 void AntiAliasOperation::executePixel(float output[4], int x, int y, void *data)
@@ -175,7 +175,7 @@ void AntiAliasOperation::executePixel(float output[4], int x, int y, void *data)
 
 void AntiAliasOperation::deinitExecution()
 {
-  m_valueReader = nullptr;
+  valueReader_ = nullptr;
 }
 
 bool AntiAliasOperation::determineDependingAreaOfInterest(rcti *input,

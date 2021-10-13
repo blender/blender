@@ -32,8 +32,8 @@ class MapValueOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputOperation;
-  TexMapping *m_settings;
+  SocketReader *inputOperation_;
+  TexMapping *settings_;
 
  public:
   /**
@@ -61,7 +61,7 @@ class MapValueOperation : public MultiThreadedOperation {
    */
   void setSettings(TexMapping *settings)
   {
-    m_settings = settings;
+    settings_ = settings;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

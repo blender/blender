@@ -59,7 +59,7 @@ class GaussianXBlurOperation : public GaussianBlurBaseOperation {
 
   void checkOpenCL()
   {
-    flags.open_cl = (m_data.sizex >= 128);
+    flags.open_cl = (data_.sizex >= 128);
   }
 };
 

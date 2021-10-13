@@ -29,15 +29,15 @@ class EllipseMaskOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputMask;
-  SocketReader *m_inputValue;
+  SocketReader *inputMask_;
+  SocketReader *inputValue_;
 
-  float m_sine;
-  float m_cosine;
-  float m_aspectRatio;
-  int m_maskType;
+  float sine_;
+  float cosine_;
+  float aspectRatio_;
+  int maskType_;
 
-  NodeEllipseMask *m_data;
+  NodeEllipseMask *data_;
 
  public:
   EllipseMaskOperation();
@@ -59,12 +59,12 @@ class EllipseMaskOperation : public MultiThreadedOperation {
 
   void setData(NodeEllipseMask *data)
   {
-    m_data = data;
+    data_ = data;
   }
 
   void setMaskType(int maskType)
   {
-    m_maskType = maskType;
+    maskType_ = maskType;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

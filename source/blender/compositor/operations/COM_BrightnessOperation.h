@@ -27,11 +27,11 @@ class BrightnessOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
-  SocketReader *m_inputBrightnessProgram;
-  SocketReader *m_inputContrastProgram;
+  SocketReader *inputProgram_;
+  SocketReader *inputBrightnessProgram_;
+  SocketReader *inputContrastProgram_;
 
-  bool m_use_premultiply;
+  bool use_premultiply_;
 
  public:
   BrightnessOperation();

@@ -27,17 +27,17 @@ ColorCorrectionOperation::ColorCorrectionOperation()
   this->addInputSocket(DataType::Color);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
-  m_inputImage = nullptr;
-  m_inputMask = nullptr;
-  m_redChannelEnabled = true;
-  m_greenChannelEnabled = true;
-  m_blueChannelEnabled = true;
+  inputImage_ = nullptr;
+  inputMask_ = nullptr;
+  redChannelEnabled_ = true;
+  greenChannelEnabled_ = true;
+  blueChannelEnabled_ = true;
   flags.can_be_constant = true;
 }
 void ColorCorrectionOperation::initExecution()
 {
-  m_inputImage = this->getInputSocketReader(0);
-  m_inputMask = this->getInputSocketReader(1);
+  inputImage_ = this->getInputSocketReader(0);
+  inputMask_ = this->getInputSocketReader(1);
 }
 
 /* Calculate x^y if the function is defined. Otherwise return the given fallback value. */
@@ -56,15 +56,15 @@ void ColorCorrectionOperation::executePixelSampled(float output[4],
 {
   float inputImageColor[4];
   float inputMask[4];
-  m_inputImage->readSampled(inputImageColor, x, y, sampler);
-  m_inputMask->readSampled(inputMask, x, y, sampler);
+  inputImage_->readSampled(inputImageColor, x, y, sampler);
+  inputMask_->readSampled(inputMask, x, y, sampler);
 
   float level = (inputImageColor[0] + inputImageColor[1] + inputImageColor[2]) / 3.0f;
-  float contrast = m_data->master.contrast;
-  float saturation = m_data->master.saturation;
-  float gamma = m_data->master.gamma;
-  float gain = m_data->master.gain;
-  float lift = m_data->master.lift;
+  float contrast = data_->master.contrast;
+  float saturation = data_->master.saturation;
+  float gamma = data_->master.gamma;
+  float gain = data_->master.gain;
+  float lift = data_->master.lift;
   float r, g, b;
 
   float value = inputMask[0];
@@ -76,18 +76,18 @@ void ColorCorrectionOperation::executePixelSampled(float output[4],
   float levelHighlights = 0.0;
 #define MARGIN 0.10f
 #define MARGIN_DIV (0.5f / MARGIN)
-  if (level < m_data->startmidtones - MARGIN) {
+  if (level < data_->startmidtones - MARGIN) {
     levelShadows = 1.0f;
   }
-  else if (level < m_data->startmidtones + MARGIN) {
-    levelMidtones = ((level - m_data->startmidtones) * MARGIN_DIV) + 0.5f;
+  else if (level < data_->startmidtones + MARGIN) {
+    levelMidtones = ((level - data_->startmidtones) * MARGIN_DIV) + 0.5f;
     levelShadows = 1.0f - levelMidtones;
   }
-  else if (level < m_data->endmidtones - MARGIN) {
+  else if (level < data_->endmidtones - MARGIN) {
     levelMidtones = 1.0f;
   }
-  else if (level < m_data->endmidtones + MARGIN) {
-    levelHighlights = ((level - m_data->endmidtones) * MARGIN_DIV) + 0.5f;
+  else if (level < data_->endmidtones + MARGIN) {
+    levelHighlights = ((level - data_->endmidtones) * MARGIN_DIV) + 0.5f;
     levelMidtones = 1.0f - levelHighlights;
   }
   else {
@@ -95,18 +95,18 @@ void ColorCorrectionOperation::executePixelSampled(float output[4],
   }
 #undef MARGIN
 #undef MARGIN_DIV
-  contrast *= (levelShadows * m_data->shadows.contrast) +
-              (levelMidtones * m_data->midtones.contrast) +
-              (levelHighlights * m_data->highlights.contrast);
-  saturation *= (levelShadows * m_data->shadows.saturation) +
-                (levelMidtones * m_data->midtones.saturation) +
-                (levelHighlights * m_data->highlights.saturation);
-  gamma *= (levelShadows * m_data->shadows.gamma) + (levelMidtones * m_data->midtones.gamma) +
-           (levelHighlights * m_data->highlights.gamma);
-  gain *= (levelShadows * m_data->shadows.gain) + (levelMidtones * m_data->midtones.gain) +
-          (levelHighlights * m_data->highlights.gain);
-  lift += (levelShadows * m_data->shadows.lift) + (levelMidtones * m_data->midtones.lift) +
-          (levelHighlights * m_data->highlights.lift);
+  contrast *= (levelShadows * data_->shadows.contrast) +
+              (levelMidtones * data_->midtones.contrast) +
+              (levelHighlights * data_->highlights.contrast);
+  saturation *= (levelShadows * data_->shadows.saturation) +
+                (levelMidtones * data_->midtones.saturation) +
+                (levelHighlights * data_->highlights.saturation);
+  gamma *= (levelShadows * data_->shadows.gamma) + (levelMidtones * data_->midtones.gamma) +
+           (levelHighlights * data_->highlights.gamma);
+  gain *= (levelShadows * data_->shadows.gain) + (levelMidtones * data_->midtones.gain) +
+          (levelHighlights * data_->highlights.gain);
+  lift += (levelShadows * data_->shadows.lift) + (levelMidtones * data_->midtones.lift) +
+          (levelHighlights * data_->highlights.lift);
 
   float invgamma = 1.0f / gamma;
   float luma = IMB_colormanagement_get_luminance(inputImageColor);
@@ -133,19 +133,19 @@ void ColorCorrectionOperation::executePixelSampled(float output[4],
   g = mvalue * inputImageColor[1] + value * g;
   b = mvalue * inputImageColor[2] + value * b;
 
-  if (m_redChannelEnabled) {
+  if (redChannelEnabled_) {
     output[0] = r;
   }
   else {
     output[0] = inputImageColor[0];
   }
-  if (m_greenChannelEnabled) {
+  if (greenChannelEnabled_) {
     output[1] = g;
   }
   else {
     output[1] = inputImageColor[1];
   }
-  if (m_blueChannelEnabled) {
+  if (blueChannelEnabled_) {
     output[2] = b;
   }
   else {
@@ -166,40 +166,40 @@ void ColorCorrectionOperation::update_memory_buffer_row(PixelCursor &p)
     float level_highlights = 0.0f;
     constexpr float MARGIN = 0.10f;
     constexpr float MARGIN_DIV = 0.5f / MARGIN;
-    if (level < m_data->startmidtones - MARGIN) {
+    if (level < data_->startmidtones - MARGIN) {
       level_shadows = 1.0f;
     }
-    else if (level < m_data->startmidtones + MARGIN) {
-      level_midtones = ((level - m_data->startmidtones) * MARGIN_DIV) + 0.5f;
+    else if (level < data_->startmidtones + MARGIN) {
+      level_midtones = ((level - data_->startmidtones) * MARGIN_DIV) + 0.5f;
       level_shadows = 1.0f - level_midtones;
     }
-    else if (level < m_data->endmidtones - MARGIN) {
+    else if (level < data_->endmidtones - MARGIN) {
       level_midtones = 1.0f;
     }
-    else if (level < m_data->endmidtones + MARGIN) {
-      level_highlights = ((level - m_data->endmidtones) * MARGIN_DIV) + 0.5f;
+    else if (level < data_->endmidtones + MARGIN) {
+      level_highlights = ((level - data_->endmidtones) * MARGIN_DIV) + 0.5f;
       level_midtones = 1.0f - level_highlights;
     }
     else {
       level_highlights = 1.0f;
     }
-    float contrast = m_data->master.contrast;
-    float saturation = m_data->master.saturation;
-    float gamma = m_data->master.gamma;
-    float gain = m_data->master.gain;
-    float lift = m_data->master.lift;
-    contrast *= level_shadows * m_data->shadows.contrast +
-                level_midtones * m_data->midtones.contrast +
-                level_highlights * m_data->highlights.contrast;
-    saturation *= level_shadows * m_data->shadows.saturation +
-                  level_midtones * m_data->midtones.saturation +
-                  level_highlights * m_data->highlights.saturation;
-    gamma *= level_shadows * m_data->shadows.gamma + level_midtones * m_data->midtones.gamma +
-             level_highlights * m_data->highlights.gamma;
-    gain *= level_shadows * m_data->shadows.gain + level_midtones * m_data->midtones.gain +
-            level_highlights * m_data->highlights.gain;
-    lift += level_shadows * m_data->shadows.lift + level_midtones * m_data->midtones.lift +
-            level_highlights * m_data->highlights.lift;
+    float contrast = data_->master.contrast;
+    float saturation = data_->master.saturation;
+    float gamma = data_->master.gamma;
+    float gain = data_->master.gain;
+    float lift = data_->master.lift;
+    contrast *= level_shadows * data_->shadows.contrast +
+                level_midtones * data_->midtones.contrast +
+                level_highlights * data_->highlights.contrast;
+    saturation *= level_shadows * data_->shadows.saturation +
+                  level_midtones * data_->midtones.saturation +
+                  level_highlights * data_->highlights.saturation;
+    gamma *= level_shadows * data_->shadows.gamma + level_midtones * data_->midtones.gamma +
+             level_highlights * data_->highlights.gamma;
+    gain *= level_shadows * data_->shadows.gain + level_midtones * data_->midtones.gain +
+            level_highlights * data_->highlights.gain;
+    lift += level_shadows * data_->shadows.lift + level_midtones * data_->midtones.lift +
+            level_highlights * data_->highlights.lift;
 
     const float inv_gamma = 1.0f / gamma;
     const float luma = IMB_colormanagement_get_luminance(in_color);
@@ -219,22 +219,22 @@ void ColorCorrectionOperation::update_memory_buffer_row(PixelCursor &p)
 
     /* Mix with mask. */
     const float value = MIN2(1.0f, in_mask[0]);
-    const float m_value = 1.0f - value;
-    r = m_value * in_color[0] + value * r;
-    g = m_value * in_color[1] + value * g;
-    b = m_value * in_color[2] + value * b;
+    const float value_ = 1.0f - value;
+    r = value_ * in_color[0] + value * r;
+    g = value_ * in_color[1] + value * g;
+    b = value_ * in_color[2] + value * b;
 
-    p.out[0] = m_redChannelEnabled ? r : in_color[0];
-    p.out[1] = m_greenChannelEnabled ? g : in_color[1];
-    p.out[2] = m_blueChannelEnabled ? b : in_color[2];
+    p.out[0] = redChannelEnabled_ ? r : in_color[0];
+    p.out[1] = greenChannelEnabled_ ? g : in_color[1];
+    p.out[2] = blueChannelEnabled_ ? b : in_color[2];
     p.out[3] = in_color[3];
   }
 }
 
 void ColorCorrectionOperation::deinitExecution()
 {
-  m_inputImage = nullptr;
-  m_inputMask = nullptr;
+  inputImage_ = nullptr;
+  inputMask_ = nullptr;
 }
 
 }  // namespace blender::compositor

@@ -29,26 +29,26 @@ void CalculateStandardDeviationOperation::executePixel(float output[4],
                                                        int /*y*/,
                                                        void * /*data*/)
 {
-  output[0] = m_standardDeviation;
+  output[0] = standardDeviation_;
 }
 
 void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect)
 {
   lockMutex();
-  if (!m_iscalculated) {
-    MemoryBuffer *tile = (MemoryBuffer *)m_imageReader->initializeTileData(rect);
+  if (!iscalculated_) {
+    MemoryBuffer *tile = (MemoryBuffer *)imageReader_->initializeTileData(rect);
     CalculateMeanOperation::calculateMean(tile);
-    m_standardDeviation = 0.0f;
+    standardDeviation_ = 0.0f;
     float *buffer = tile->getBuffer();
     int size = tile->getWidth() * tile->getHeight();
     int pixels = 0;
     float sum = 0.0f;
-    float mean = m_result;
+    float mean = result_;
     for (int i = 0, offset = 0; i < size; i++, offset += 4) {
       if (buffer[offset + 3] > 0) {
         pixels++;
 
-        switch (m_setting) {
+        switch (setting_) {
           case 1: /* rgb combined */
           {
             float value = IMB_colormanagement_get_luminance(&buffer[offset]);
@@ -89,8 +89,8 @@ void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect)
         }
       }
     }
-    m_standardDeviation = sqrt(sum / (float)(pixels - 1));
-    m_iscalculated = true;
+    standardDeviation_ = sqrt(sum / (float)(pixels - 1));
+    iscalculated_ = true;
   }
   unlockMutex();
   return nullptr;
@@ -99,7 +99,7 @@ void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect)
 void CalculateStandardDeviationOperation::update_memory_buffer_started(
     MemoryBuffer *UNUSED(output), const rcti &UNUSED(area), Span<MemoryBuffer *> inputs)
 {
-  if (!m_iscalculated) {
+  if (!iscalculated_) {
     const MemoryBuffer *input = inputs[0];
     const float mean = CalculateMeanOperation::calc_mean(input);
 
@@ -112,16 +112,16 @@ void CalculateStandardDeviationOperation::update_memory_buffer_started(
           join.sum += chunk.sum;
           join.num_pixels += chunk.num_pixels;
         });
-    m_standardDeviation = total.num_pixels <= 1 ? 0.0f :
-                                                  sqrt(total.sum / (float)(total.num_pixels - 1));
-    m_iscalculated = true;
+    standardDeviation_ = total.num_pixels <= 1 ? 0.0f :
+                                                 sqrt(total.sum / (float)(total.num_pixels - 1));
+    iscalculated_ = true;
   }
 }
 
 void CalculateStandardDeviationOperation::update_memory_buffer_partial(
     MemoryBuffer *output, const rcti &area, Span<MemoryBuffer *> UNUSED(inputs))
 {
-  output->fill(area, &m_standardDeviation);
+  output->fill(area, &standardDeviation_);
 }
 
 using PixelsSum = CalculateMeanOperation::PixelsSum;

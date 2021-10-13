@@ -27,25 +27,25 @@ namespace blender::compositor {
 
 PlaneTrackCommon::PlaneTrackCommon()
 {
-  m_movieClip = nullptr;
-  m_framenumber = 0;
-  m_trackingObjectName[0] = '\0';
-  m_planeTrackName[0] = '\0';
+  movieClip_ = nullptr;
+  framenumber_ = 0;
+  trackingObjectName_[0] = '\0';
+  planeTrackName_[0] = '\0';
 }
 
 void PlaneTrackCommon::read_and_calculate_corners(PlaneDistortBaseOperation *distort_op)
 {
   float corners[4][2];
-  if (distort_op->m_motion_blur_samples == 1) {
-    readCornersFromTrack(corners, m_framenumber);
+  if (distort_op->motion_blur_samples_ == 1) {
+    readCornersFromTrack(corners, framenumber_);
     distort_op->calculateCorners(corners, true, 0);
   }
   else {
-    const float frame = (float)m_framenumber - distort_op->m_motion_blur_shutter;
-    const float frame_step = (distort_op->m_motion_blur_shutter * 2.0f) /
-                             distort_op->m_motion_blur_samples;
+    const float frame = (float)framenumber_ - distort_op->motion_blur_shutter_;
+    const float frame_step = (distort_op->motion_blur_shutter_ * 2.0f) /
+                             distort_op->motion_blur_samples_;
     float frame_iter = frame;
-    for (int sample = 0; sample < distort_op->m_motion_blur_samples; sample++) {
+    for (int sample = 0; sample < distort_op->motion_blur_samples_; sample++) {
       readCornersFromTrack(corners, frame_iter);
       distort_op->calculateCorners(corners, true, sample);
       frame_iter += frame_step;
@@ -58,18 +58,18 @@ void PlaneTrackCommon::readCornersFromTrack(float corners[4][2], float frame)
   MovieTracking *tracking;
   MovieTrackingObject *object;
 
-  if (!m_movieClip) {
+  if (!movieClip_) {
     return;
   }
 
-  tracking = &m_movieClip->tracking;
+  tracking = &movieClip_->tracking;
 
-  object = BKE_tracking_object_get_named(tracking, m_trackingObjectName);
+  object = BKE_tracking_object_get_named(tracking, trackingObjectName_);
   if (object) {
     MovieTrackingPlaneTrack *plane_track;
-    plane_track = BKE_tracking_plane_track_get_named(tracking, object, m_planeTrackName);
+    plane_track = BKE_tracking_plane_track_get_named(tracking, object, planeTrackName_);
     if (plane_track) {
-      float clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(m_movieClip, frame);
+      float clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movieClip_, frame);
       BKE_tracking_plane_marker_get_subframe_corners(plane_track, clip_framenr, corners);
     }
   }
@@ -78,11 +78,11 @@ void PlaneTrackCommon::readCornersFromTrack(float corners[4][2], float frame)
 void PlaneTrackCommon::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   r_area = COM_AREA_NONE;
-  if (m_movieClip) {
+  if (movieClip_) {
     int width, height;
     MovieClipUser user = {0};
-    BKE_movieclip_user_set_frame(&user, m_framenumber);
-    BKE_movieclip_get_size(m_movieClip, &user, &width, &height);
+    BKE_movieclip_user_set_frame(&user, framenumber_);
+    BKE_movieclip_get_size(movieClip_, &user, &width, &height);
     r_area = preferred_area;
     r_area.xmax = r_area.xmin + width;
     r_area.ymax = r_area.ymin + height;

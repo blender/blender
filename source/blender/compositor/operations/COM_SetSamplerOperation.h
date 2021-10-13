@@ -28,8 +28,8 @@ namespace blender::compositor {
  */
 class SetSamplerOperation : public NodeOperation {
  private:
-  PixelSampler m_sampler;
-  SocketReader *m_reader;
+  PixelSampler sampler_;
+  SocketReader *reader_;
 
  public:
   /**
@@ -39,7 +39,7 @@ class SetSamplerOperation : public NodeOperation {
 
   void setSampler(PixelSampler sampler)
   {
-    m_sampler = sampler;
+    sampler_ = sampler;
   }
 
   /**

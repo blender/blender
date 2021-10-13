@@ -29,38 +29,38 @@
 
 namespace blender::compositor {
 
-NodeConverter::NodeConverter(NodeOperationBuilder *builder) : m_builder(builder)
+NodeConverter::NodeConverter(NodeOperationBuilder *builder) : builder_(builder)
 {
 }
 
 void NodeConverter::addOperation(NodeOperation *operation)
 {
-  m_builder->addOperation(operation);
+  builder_->addOperation(operation);
 }
 
 void NodeConverter::mapInputSocket(NodeInput *node_socket, NodeOperationInput *operation_socket)
 {
-  m_builder->mapInputSocket(node_socket, operation_socket);
+  builder_->mapInputSocket(node_socket, operation_socket);
 }
 
 void NodeConverter::mapOutputSocket(NodeOutput *node_socket, NodeOperationOutput *operation_socket)
 {
-  m_builder->mapOutputSocket(node_socket, operation_socket);
+  builder_->mapOutputSocket(node_socket, operation_socket);
 }
 
 void NodeConverter::addLink(NodeOperationOutput *from, NodeOperationInput *to)
 {
-  m_builder->addLink(from, to);
+  builder_->addLink(from, to);
 }
 
 void NodeConverter::addPreview(NodeOperationOutput *output)
 {
-  m_builder->addPreview(output);
+  builder_->addPreview(output);
 }
 
 void NodeConverter::addNodeInputPreview(NodeInput *input)
 {
-  m_builder->addNodeInputPreview(input);
+  builder_->addNodeInputPreview(input);
 }
 
 NodeOperation *NodeConverter::setInvalidOutput(NodeOutput *output)
@@ -71,8 +71,8 @@ NodeOperation *NodeConverter::setInvalidOutput(NodeOutput *output)
   SetColorOperation *operation = new SetColorOperation();
   operation->setChannels(warning_color);
 
-  m_builder->addOperation(operation);
-  m_builder->mapOutputSocket(output, operation->getOutputSocket());
+  builder_->addOperation(operation);
+  builder_->mapOutputSocket(output, operation->getOutputSocket());
 
   return operation;
 }
@@ -80,9 +80,9 @@ NodeOperation *NodeConverter::setInvalidOutput(NodeOutput *output)
 NodeOperationOutput *NodeConverter::addInputProxy(NodeInput *input, bool use_conversion)
 {
   SocketProxyOperation *proxy = new SocketProxyOperation(input->getDataType(), use_conversion);
-  m_builder->addOperation(proxy);
+  builder_->addOperation(proxy);
 
-  m_builder->mapInputSocket(input, proxy->getInputSocket(0));
+  builder_->mapInputSocket(input, proxy->getInputSocket(0));
 
   return proxy->getOutputSocket();
 }
@@ -90,9 +90,9 @@ NodeOperationOutput *NodeConverter::addInputProxy(NodeInput *input, bool use_con
 NodeOperationInput *NodeConverter::addOutputProxy(NodeOutput *output, bool use_conversion)
 {
   SocketProxyOperation *proxy = new SocketProxyOperation(output->getDataType(), use_conversion);
-  m_builder->addOperation(proxy);
+  builder_->addOperation(proxy);
 
-  m_builder->mapOutputSocket(output, proxy->getOutputSocket());
+  builder_->mapOutputSocket(output, proxy->getOutputSocket());
 
   return proxy->getInputSocket(0);
 }
@@ -102,8 +102,8 @@ void NodeConverter::addInputValue(NodeOperationInput *input, float value)
   SetValueOperation *operation = new SetValueOperation();
   operation->setValue(value);
 
-  m_builder->addOperation(operation);
-  m_builder->addLink(operation->getOutputSocket(), input);
+  builder_->addOperation(operation);
+  builder_->addLink(operation->getOutputSocket(), input);
 }
 
 void NodeConverter::addInputColor(NodeOperationInput *input, const float value[4])
@@ -111,8 +111,8 @@ void NodeConverter::addInputColor(NodeOperationInput *input, const float value[4
   SetColorOperation *operation = new SetColorOperation();
   operation->setChannels(value);
 
-  m_builder->addOperation(operation);
-  m_builder->addLink(operation->getOutputSocket(), input);
+  builder_->addOperation(operation);
+  builder_->addLink(operation->getOutputSocket(), input);
 }
 
 void NodeConverter::addInputVector(NodeOperationInput *input, const float value[3])
@@ -120,8 +120,8 @@ void NodeConverter::addInputVector(NodeOperationInput *input, const float value[
   SetVectorOperation *operation = new SetVectorOperation();
   operation->setVector(value);
 
-  m_builder->addOperation(operation);
-  m_builder->addLink(operation->getOutputSocket(), input);
+  builder_->addOperation(operation);
+  builder_->addLink(operation->getOutputSocket(), input);
 }
 
 void NodeConverter::addOutputValue(NodeOutput *output, float value)
@@ -129,8 +129,8 @@ void NodeConverter::addOutputValue(NodeOutput *output, float value)
   SetValueOperation *operation = new SetValueOperation();
   operation->setValue(value);
 
-  m_builder->addOperation(operation);
-  m_builder->mapOutputSocket(output, operation->getOutputSocket());
+  builder_->addOperation(operation);
+  builder_->mapOutputSocket(output, operation->getOutputSocket());
 }
 
 void NodeConverter::addOutputColor(NodeOutput *output, const float value[4])
@@ -138,8 +138,8 @@ void NodeConverter::addOutputColor(NodeOutput *output, const float value[4])
   SetColorOperation *operation = new SetColorOperation();
   operation->setChannels(value);
 
-  m_builder->addOperation(operation);
-  m_builder->mapOutputSocket(output, operation->getOutputSocket());
+  builder_->addOperation(operation);
+  builder_->mapOutputSocket(output, operation->getOutputSocket());
 }
 
 void NodeConverter::addOutputVector(NodeOutput *output, const float value[3])
@@ -147,18 +147,18 @@ void NodeConverter::addOutputVector(NodeOutput *output, const float value[3])
   SetVectorOperation *operation = new SetVectorOperation();
   operation->setVector(value);
 
-  m_builder->addOperation(operation);
-  m_builder->mapOutputSocket(output, operation->getOutputSocket());
+  builder_->addOperation(operation);
+  builder_->mapOutputSocket(output, operation->getOutputSocket());
 }
 
 void NodeConverter::registerViewer(ViewerOperation *viewer)
 {
-  m_builder->registerViewer(viewer);
+  builder_->registerViewer(viewer);
 }
 
 ViewerOperation *NodeConverter::active_viewer() const
 {
-  return m_builder->active_viewer();
+  return builder_->active_viewer();
 }
 
 }  // namespace blender::compositor

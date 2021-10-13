@@ -28,7 +28,7 @@ namespace blender::compositor {
  */
 class SetColorOperation : public ConstantOperation {
  private:
-  float m_color[4];
+  float color_[4];
 
  public:
   /**
@@ -38,44 +38,44 @@ class SetColorOperation : public ConstantOperation {
 
   const float *get_constant_elem() override
   {
-    return m_color;
+    return color_;
   }
 
   float getChannel1()
   {
-    return m_color[0];
+    return color_[0];
   }
   void setChannel1(float value)
   {
-    m_color[0] = value;
+    color_[0] = value;
   }
   float getChannel2()
   {
-    return m_color[1];
+    return color_[1];
   }
   void setChannel2(float value)
   {
-    m_color[1] = value;
+    color_[1] = value;
   }
   float getChannel3()
   {
-    return m_color[2];
+    return color_[2];
   }
   void setChannel3(float value)
   {
-    m_color[2] = value;
+    color_[2] = value;
   }
   float getChannel4()
   {
-    return m_color[3];
+    return color_[3];
   }
   void setChannel4(const float value)
   {
-    m_color[3] = value;
+    color_[3] = value;
   }
   void setChannels(const float value[4])
   {
-    copy_v4_v4(m_color, value);
+    copy_v4_v4(color_, value);
   }
 
   /**

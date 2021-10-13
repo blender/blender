@@ -31,10 +31,10 @@ namespace blender::compositor {
  */
 class KeyingOperation : public MultiThreadedOperation {
  protected:
-  SocketReader *m_pixelReader;
-  SocketReader *m_screenReader;
+  SocketReader *pixelReader_;
+  SocketReader *screenReader_;
 
-  float m_screenBalance;
+  float screenBalance_;
 
  public:
   KeyingOperation();
@@ -44,7 +44,7 @@ class KeyingOperation : public MultiThreadedOperation {
 
   void setScreenBalance(float value)
   {
-    m_screenBalance = value;
+    screenBalance_ = value;
   }
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;

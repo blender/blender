@@ -33,17 +33,17 @@ class ConvertDepthToRadiusOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputOperation;
-  float m_fStop;
-  float m_aspect;
-  float m_maxRadius;
-  float m_inverseFocalDistance;
-  float m_aperture;
-  float m_cam_lens;
-  float m_dof_sp;
-  Object *m_cameraObject;
+  SocketReader *inputOperation_;
+  float fStop_;
+  float aspect_;
+  float maxRadius_;
+  float inverseFocalDistance_;
+  float aperture_;
+  float cam_lens_;
+  float dof_sp_;
+  Object *cameraObject_;
 
-  FastGaussianBlurValueOperation *m_blurPostOperation;
+  FastGaussianBlurValueOperation *blurPostOperation_;
 
  public:
   /**
@@ -68,20 +68,20 @@ class ConvertDepthToRadiusOperation : public MultiThreadedOperation {
 
   void setfStop(float fStop)
   {
-    m_fStop = fStop;
+    fStop_ = fStop;
   }
   void setMaxRadius(float maxRadius)
   {
-    m_maxRadius = maxRadius;
+    maxRadius_ = maxRadius;
   }
   void setCameraObject(Object *camera)
   {
-    m_cameraObject = camera;
+    cameraObject_ = camera;
   }
   float determineFocalDistance();
   void setPostBlur(FastGaussianBlurValueOperation *operation)
   {
-    m_blurPostOperation = operation;
+    blurPostOperation_ = operation;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

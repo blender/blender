@@ -41,22 +41,22 @@ class Node {
   /**
    * \brief stores the reference to the SDNA bNode struct
    */
-  bNodeTree *m_editorNodeTree;
+  bNodeTree *editorNodeTree_;
 
   /**
    * \brief stores the reference to the SDNA bNode struct
    */
-  bNode *m_editorNode;
+  bNode *editorNode_;
 
   /**
    * \brief Is this node part of the active group
    */
-  bool m_inActiveGroup;
+  bool inActiveGroup_;
 
   /**
    * \brief Instance key to identify the node in an instance hash table
    */
-  bNodeInstanceKey m_instanceKey;
+  bNodeInstanceKey instanceKey_;
 
  protected:
   /**
@@ -78,7 +78,7 @@ class Node {
    */
   bNode *getbNode() const
   {
-    return m_editorNode;
+    return editorNode_;
   }
 
   /**
@@ -86,7 +86,7 @@ class Node {
    */
   bNodeTree *getbNodeTree() const
   {
-    return m_editorNodeTree;
+    return editorNodeTree_;
   }
 
   /**
@@ -97,7 +97,7 @@ class Node {
    */
   void setbNode(bNode *node)
   {
-    m_editorNode = node;
+    editorNode_ = node;
   }
 
   /**
@@ -106,7 +106,7 @@ class Node {
    */
   void setbNodeTree(bNodeTree *nodetree)
   {
-    m_editorNodeTree = nodetree;
+    editorNodeTree_ = nodetree;
   }
 
   /**
@@ -145,7 +145,7 @@ class Node {
    */
   void setIsInActiveGroup(bool value)
   {
-    m_inActiveGroup = value;
+    inActiveGroup_ = value;
   }
 
   /**
@@ -156,7 +156,7 @@ class Node {
    */
   inline bool isInActiveGroup() const
   {
-    return m_inActiveGroup;
+    return inActiveGroup_;
   }
 
   /**
@@ -172,11 +172,11 @@ class Node {
 
   void setInstanceKey(bNodeInstanceKey instance_key)
   {
-    m_instanceKey = instance_key;
+    instanceKey_ = instance_key;
   }
   bNodeInstanceKey getInstanceKey() const
   {
-    return m_instanceKey;
+    return instanceKey_;
   }
 
  protected:
@@ -206,41 +206,41 @@ class Node {
  */
 class NodeInput {
  private:
-  Node *m_node;
-  bNodeSocket *m_editorSocket;
+  Node *node_;
+  bNodeSocket *editorSocket_;
 
-  DataType m_datatype;
+  DataType datatype_;
 
   /**
    * \brief link connected to this NodeInput.
    * An input socket can only have a single link
    */
-  NodeOutput *m_link;
+  NodeOutput *link_;
 
  public:
   NodeInput(Node *node, bNodeSocket *b_socket, DataType datatype);
 
   Node *getNode() const
   {
-    return m_node;
+    return node_;
   }
   DataType getDataType() const
   {
-    return m_datatype;
+    return datatype_;
   }
   bNodeSocket *getbNodeSocket() const
   {
-    return m_editorSocket;
+    return editorSocket_;
   }
 
   void setLink(NodeOutput *link);
   bool isLinked() const
   {
-    return m_link;
+    return link_;
   }
   NodeOutput *getLink()
   {
-    return m_link;
+    return link_;
   }
 
   float getEditorValueFloat() const;
@@ -254,25 +254,25 @@ class NodeInput {
  */
 class NodeOutput {
  private:
-  Node *m_node;
-  bNodeSocket *m_editorSocket;
+  Node *node_;
+  bNodeSocket *editorSocket_;
 
-  DataType m_datatype;
+  DataType datatype_;
 
  public:
   NodeOutput(Node *node, bNodeSocket *b_socket, DataType datatype);
 
   Node *getNode() const
   {
-    return m_node;
+    return node_;
   }
   DataType getDataType() const
   {
-    return m_datatype;
+    return datatype_;
   }
   bNodeSocket *getbNodeSocket() const
   {
-    return m_editorSocket;
+    return editorSocket_;
   }
 
   float getEditorValueFloat();

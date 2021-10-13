@@ -42,12 +42,12 @@ class GlareBaseOperation : public SingleThreadedOperation {
   /**
    * \brief Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
+  SocketReader *inputProgram_;
 
   /**
    * \brief settings of the glare node.
    */
-  NodeGlare *m_settings;
+  NodeGlare *settings_;
 
   bool is_output_rendered_;
 
@@ -64,7 +64,7 @@ class GlareBaseOperation : public SingleThreadedOperation {
 
   void setGlareSettings(NodeGlare *settings)
   {
-    m_settings = settings;
+    settings_ = settings;
   }
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,

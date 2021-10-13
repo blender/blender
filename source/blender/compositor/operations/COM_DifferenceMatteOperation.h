@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class DifferenceMatteOperation : public MultiThreadedOperation {
  private:
-  NodeChroma *m_settings;
-  SocketReader *m_inputImage1Program;
-  SocketReader *m_inputImage2Program;
+  NodeChroma *settings_;
+  SocketReader *inputImage1Program_;
+  SocketReader *inputImage2Program_;
 
  public:
   /**
@@ -48,7 +48,7 @@ class DifferenceMatteOperation : public MultiThreadedOperation {
 
   void setSettings(NodeChroma *nodeChroma)
   {
-    m_settings = nodeChroma;
+    settings_ = nodeChroma;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

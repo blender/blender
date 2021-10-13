@@ -35,18 +35,18 @@ namespace blender::compositor {
  */
 class TrackPositionOperation : public ConstantOperation {
  protected:
-  MovieClip *m_movieClip;
-  int m_framenumber;
-  char m_trackingObjectName[64];
-  char m_trackName[64];
-  int m_axis;
-  int m_position;
-  int m_relativeFrame;
-  bool m_speed_output;
+  MovieClip *movieClip_;
+  int framenumber_;
+  char trackingObjectName_[64];
+  char trackName_[64];
+  int axis_;
+  int position_;
+  int relativeFrame_;
+  bool speed_output_;
 
-  int m_width, m_height;
-  float m_markerPos[2];
-  float m_relativePos[2];
+  int width_, height_;
+  float markerPos_[2];
+  float relativePos_[2];
   float track_position_;
   bool is_track_position_calculated_;
 
@@ -60,35 +60,35 @@ class TrackPositionOperation : public ConstantOperation {
 
   void setMovieClip(MovieClip *clip)
   {
-    m_movieClip = clip;
+    movieClip_ = clip;
   }
   void setTrackingObject(char *object)
   {
-    BLI_strncpy(m_trackingObjectName, object, sizeof(m_trackingObjectName));
+    BLI_strncpy(trackingObjectName_, object, sizeof(trackingObjectName_));
   }
   void setTrackName(char *track)
   {
-    BLI_strncpy(m_trackName, track, sizeof(m_trackName));
+    BLI_strncpy(trackName_, track, sizeof(trackName_));
   }
   void setFramenumber(int framenumber)
   {
-    m_framenumber = framenumber;
+    framenumber_ = framenumber;
   }
   void setAxis(int value)
   {
-    m_axis = value;
+    axis_ = value;
   }
   void setPosition(int value)
   {
-    m_position = value;
+    position_ = value;
   }
   void setRelativeFrame(int value)
   {
-    m_relativeFrame = value;
+    relativeFrame_ = value;
   }
   void setSpeedOutput(bool speed_output)
   {
-    m_speed_output = speed_output;
+    speed_output_ = speed_output;
   }
 
   void initExecution() override;

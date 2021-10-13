@@ -26,9 +26,9 @@ namespace blender::compositor {
 MovieClipAttributeOperation::MovieClipAttributeOperation()
 {
   this->addOutputSocket(DataType::Value);
-  m_framenumber = 0;
-  m_attribute = MCA_X;
-  m_invert = false;
+  framenumber_ = 0;
+  attribute_ = MCA_X;
+  invert_ = false;
   needs_canvas_to_get_constant_ = true;
   is_value_calculated_ = false;
   stabilization_resolution_socket_ = nullptr;
@@ -45,7 +45,7 @@ void MovieClipAttributeOperation::calc_value()
 {
   BLI_assert(this->get_flags().is_canvas_set);
   is_value_calculated_ = true;
-  if (m_clip == nullptr) {
+  if (clip_ == nullptr) {
     return;
   }
   float loc[2], scale, angle;
@@ -53,38 +53,38 @@ void MovieClipAttributeOperation::calc_value()
   loc[1] = 0.0f;
   scale = 1.0f;
   angle = 0.0f;
-  int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(m_clip, m_framenumber);
+  int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip_, framenumber_);
   NodeOperation &stabilization_operation =
       stabilization_resolution_socket_ ?
           stabilization_resolution_socket_->getLink()->getOperation() :
           *this;
-  BKE_tracking_stabilization_data_get(m_clip,
+  BKE_tracking_stabilization_data_get(clip_,
                                       clip_framenr,
                                       stabilization_operation.getWidth(),
                                       stabilization_operation.getHeight(),
                                       loc,
                                       &scale,
                                       &angle);
-  switch (m_attribute) {
+  switch (attribute_) {
     case MCA_SCALE:
-      m_value = scale;
+      value_ = scale;
       break;
     case MCA_ANGLE:
-      m_value = angle;
+      value_ = angle;
       break;
     case MCA_X:
-      m_value = loc[0];
+      value_ = loc[0];
       break;
     case MCA_Y:
-      m_value = loc[1];
+      value_ = loc[1];
       break;
   }
-  if (m_invert) {
-    if (m_attribute != MCA_SCALE) {
-      m_value = -m_value;
+  if (invert_) {
+    if (attribute_ != MCA_SCALE) {
+      value_ = -value_;
     }
     else {
-      m_value = 1.0f / m_value;
+      value_ = 1.0f / value_;
     }
   }
 }
@@ -94,7 +94,7 @@ void MovieClipAttributeOperation::executePixelSampled(float output[4],
                                                       float /*y*/,
                                                       PixelSampler /*sampler*/)
 {
-  output[0] = m_value;
+  output[0] = value_;
 }
 
 void MovieClipAttributeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
@@ -107,7 +107,7 @@ const float *MovieClipAttributeOperation::get_constant_elem()
   if (!is_value_calculated_) {
     calc_value();
   }
-  return &m_value;
+  return &value_;
 }
 
 }  // namespace blender::compositor

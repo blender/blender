@@ -33,49 +33,49 @@ ScreenLensDistortionOperation::ScreenLensDistortionOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
-  m_inputProgram = nullptr;
-  m_distortion = 0.0f;
-  m_dispersion = 0.0f;
-  m_distortion_const = false;
-  m_dispersion_const = false;
-  m_variables_ready = false;
+  inputProgram_ = nullptr;
+  distortion_ = 0.0f;
+  dispersion_ = 0.0f;
+  distortion_const_ = false;
+  dispersion_const_ = false;
+  variables_ready_ = false;
 }
 
 void ScreenLensDistortionOperation::setDistortion(float distortion)
 {
-  m_distortion = distortion;
-  m_distortion_const = true;
+  distortion_ = distortion;
+  distortion_const_ = true;
 }
 
 void ScreenLensDistortionOperation::setDispersion(float dispersion)
 {
-  m_dispersion = dispersion;
-  m_dispersion_const = true;
+  dispersion_ = dispersion;
+  dispersion_const_ = true;
 }
 
 void ScreenLensDistortionOperation::init_data()
 {
-  m_cx = 0.5f * (float)getWidth();
-  m_cy = 0.5f * (float)getHeight();
+  cx_ = 0.5f * (float)getWidth();
+  cy_ = 0.5f * (float)getHeight();
 
   switch (execution_model_) {
     case eExecutionModel::FullFrame: {
       NodeOperation *distortion_op = get_input_operation(1);
       NodeOperation *dispersion_op = get_input_operation(2);
-      if (!m_distortion_const && distortion_op->get_flags().is_constant_operation) {
-        m_distortion = static_cast<ConstantOperation *>(distortion_op)->get_constant_elem()[0];
+      if (!distortion_const_ && distortion_op->get_flags().is_constant_operation) {
+        distortion_ = static_cast<ConstantOperation *>(distortion_op)->get_constant_elem()[0];
       }
-      if (!m_dispersion_const && distortion_op->get_flags().is_constant_operation) {
-        m_dispersion = static_cast<ConstantOperation *>(dispersion_op)->get_constant_elem()[0];
+      if (!dispersion_const_ && distortion_op->get_flags().is_constant_operation) {
+        dispersion_ = static_cast<ConstantOperation *>(dispersion_op)->get_constant_elem()[0];
       }
-      updateVariables(m_distortion, m_dispersion);
+      updateVariables(distortion_, dispersion_);
       break;
     }
     case eExecutionModel::Tiled: {
       /* If both are constant, init variables once. */
-      if (m_distortion_const && m_dispersion_const) {
-        updateVariables(m_distortion, m_dispersion);
-        m_variables_ready = true;
+      if (distortion_const_ && dispersion_const_) {
+        updateVariables(distortion_, dispersion_);
+        variables_ready_ = true;
       }
       break;
     }
@@ -84,38 +84,38 @@ void ScreenLensDistortionOperation::init_data()
 
 void ScreenLensDistortionOperation::initExecution()
 {
-  m_inputProgram = this->getInputSocketReader(0);
+  inputProgram_ = this->getInputSocketReader(0);
   this->initMutex();
 
   uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
-  rng_seed ^= (uint)POINTER_AS_INT(m_inputProgram);
-  m_rng = BLI_rng_new(rng_seed);
+  rng_seed ^= (uint)POINTER_AS_INT(inputProgram_);
+  rng_ = BLI_rng_new(rng_seed);
 }
 
 void *ScreenLensDistortionOperation::initializeTileData(rcti * /*rect*/)
 {
-  void *buffer = m_inputProgram->initializeTileData(nullptr);
+  void *buffer = inputProgram_->initializeTileData(nullptr);
 
   /* get distortion/dispersion values once, by reading inputs at (0,0)
    * XXX this assumes invariable values (no image inputs),
    * we don't have a nice generic system for that yet
    */
-  if (!m_variables_ready) {
+  if (!variables_ready_) {
     this->lockMutex();
 
-    if (!m_distortion_const) {
+    if (!distortion_const_) {
       float result[4];
       getInputSocketReader(1)->readSampled(result, 0, 0, PixelSampler::Nearest);
-      m_distortion = result[0];
+      distortion_ = result[0];
     }
-    if (!m_dispersion_const) {
+    if (!dispersion_const_) {
       float result[4];
       getInputSocketReader(2)->readSampled(result, 0, 0, PixelSampler::Nearest);
-      m_dispersion = result[0];
+      dispersion_ = result[0];
     }
 
-    updateVariables(m_distortion, m_dispersion);
-    m_variables_ready = true;
+    updateVariables(distortion_, dispersion_);
+    variables_ready_ = true;
 
     this->unlockMutex();
   }
@@ -125,8 +125,8 @@ void *ScreenLensDistortionOperation::initializeTileData(rcti * /*rect*/)
 
 void ScreenLensDistortionOperation::get_uv(const float xy[2], float uv[2]) const
 {
-  uv[0] = m_sc * ((xy[0] + 0.5f) - m_cx) / m_cx;
-  uv[1] = m_sc * ((xy[1] + 0.5f) - m_cy) / m_cy;
+  uv[0] = sc_ * ((xy[0] + 0.5f) - cx_) / cx_;
+  uv[1] = sc_ * ((xy[1] + 0.5f) - cy_) / cy_;
 }
 
 void ScreenLensDistortionOperation::distort_uv(const float uv[2], float t, float xy[2]) const
@@ -162,14 +162,14 @@ void ScreenLensDistortionOperation::accumulate(const MemoryBuffer *buffer,
   float color[4];
 
   float dsf = len_v2v2(delta[a], delta[b]) + 1.0f;
-  int ds = m_jitter ? (dsf < 4.0f ? 2 : (int)sqrtf(dsf)) : (int)dsf;
+  int ds = jitter_ ? (dsf < 4.0f ? 2 : (int)sqrtf(dsf)) : (int)dsf;
   float sd = 1.0f / (float)ds;
 
-  float k4 = m_k4[a];
-  float dk4 = m_dk4[a];
+  float k4 = k4_[a];
+  float dk4 = dk4_[a];
 
   for (float z = 0; z < ds; z++) {
-    float tz = (z + (m_jitter ? BLI_rng_get_float(m_rng) : 0.5f)) * sd;
+    float tz = (z + (jitter_ ? BLI_rng_get_float(rng_) : 0.5f)) * sd;
     float t = 1.0f - (k4 + tz * dk4) * r_sq;
 
     float xy[2];
@@ -202,9 +202,9 @@ void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, 
   float delta[3][2];
   float sum[4] = {0, 0, 0, 0};
 
-  bool valid_r = get_delta(uv_dot, m_k4[0], uv, delta[0]);
-  bool valid_g = get_delta(uv_dot, m_k4[1], uv, delta[1]);
-  bool valid_b = get_delta(uv_dot, m_k4[2], uv, delta[2]);
+  bool valid_r = get_delta(uv_dot, k4_[0], uv, delta[0]);
+  bool valid_g = get_delta(uv_dot, k4_[1], uv, delta[1]);
+  bool valid_b = get_delta(uv_dot, k4_[2], uv, delta[2]);
 
   if (valid_r && valid_g && valid_b) {
     accumulate(buffer, 0, 1, uv_dot, uv, delta, sum, count);
@@ -231,8 +231,8 @@ void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, 
 void ScreenLensDistortionOperation::deinitExecution()
 {
   this->deinitMutex();
-  m_inputProgram = nullptr;
-  BLI_rng_free(m_rng);
+  inputProgram_ = nullptr;
+  BLI_rng_free(rng_);
 }
 
 void ScreenLensDistortionOperation::determineUV(float result[6], float x, float y) const
@@ -245,9 +245,9 @@ void ScreenLensDistortionOperation::determineUV(float result[6], float x, float 
   copy_v2_v2(result + 0, xy);
   copy_v2_v2(result + 2, xy);
   copy_v2_v2(result + 4, xy);
-  get_delta(uv_dot, m_k4[0], uv, result + 0);
-  get_delta(uv_dot, m_k4[1], uv, result + 2);
-  get_delta(uv_dot, m_k4[2], uv, result + 4);
+  get_delta(uv_dot, k4_[0], uv, result + 0);
+  get_delta(uv_dot, k4_[1], uv, result + 2);
+  get_delta(uv_dot, k4_[2], uv, result + 4);
 }
 
 bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(
@@ -293,7 +293,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(
 
   BLI_rcti_init_minmax(&newInput);
 
-  if (m_dispersion_const && m_distortion_const) {
+  if (dispersion_const_ && distortion_const_) {
     /* update from fixed distortion/dispersion */
 #  define UPDATE_INPUT(x, y) \
     { \
@@ -315,7 +315,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(
   }
   else {
     /* use maximum dispersion 1.0 if not const */
-    float dispersion = m_dispersion_const ? m_dispersion : 1.0f;
+    float dispersion = dispersion_const_ ? dispersion_ : 1.0f;
 
 #  define UPDATE_INPUT(x, y, distortion) \
     { \
@@ -329,12 +329,12 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(
     } \
     (void)0
 
-    if (m_distortion_const) {
+    if (distortion_const_) {
       /* update from fixed distortion */
-      UPDATE_INPUT(input->xmin, input->xmax, m_distortion);
-      UPDATE_INPUT(input->xmin, input->ymax, m_distortion);
-      UPDATE_INPUT(input->xmax, input->ymax, m_distortion);
-      UPDATE_INPUT(input->xmax, input->ymin, m_distortion);
+      UPDATE_INPUT(input->xmin, input->xmax, distortion_);
+      UPDATE_INPUT(input->xmin, input->ymax, distortion_);
+      UPDATE_INPUT(input->xmax, input->ymax, distortion_);
+      UPDATE_INPUT(input->xmax, input->ymin, distortion_);
     }
     else {
       /* update from min/max distortion (-1..1) */
@@ -367,18 +367,18 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(
 
 void ScreenLensDistortionOperation::updateVariables(float distortion, float dispersion)
 {
-  m_k[1] = max_ff(min_ff(distortion, 1.0f), -0.999f);
+  k_[1] = max_ff(min_ff(distortion, 1.0f), -0.999f);
   /* Smaller dispersion range for somewhat more control. */
   float d = 0.25f * max_ff(min_ff(dispersion, 1.0f), 0.0f);
-  m_k[0] = max_ff(min_ff((m_k[1] + d), 1.0f), -0.999f);
-  m_k[2] = max_ff(min_ff((m_k[1] - d), 1.0f), -0.999f);
-  m_maxk = max_fff(m_k[0], m_k[1], m_k[2]);
-  m_sc = (m_fit && (m_maxk > 0.0f)) ? (1.0f / (1.0f + 2.0f * m_maxk)) : (1.0f / (1.0f + m_maxk));
-  m_dk4[0] = 4.0f * (m_k[1] - m_k[0]);
-  m_dk4[1] = 4.0f * (m_k[2] - m_k[1]);
-  m_dk4[2] = 0.0f; /* unused */
+  k_[0] = max_ff(min_ff((k_[1] + d), 1.0f), -0.999f);
+  k_[2] = max_ff(min_ff((k_[1] - d), 1.0f), -0.999f);
+  maxk_ = max_fff(k_[0], k_[1], k_[2]);
+  sc_ = (fit_ && (maxk_ > 0.0f)) ? (1.0f / (1.0f + 2.0f * maxk_)) : (1.0f / (1.0f + maxk_));
+  dk4_[0] = 4.0f * (k_[1] - k_[0]);
+  dk4_[1] = 4.0f * (k_[2] - k_[1]);
+  dk4_[2] = 0.0f; /* unused */
 
-  mul_v3_v3fl(m_k4, m_k, 4.0f);
+  mul_v3_v3fl(k4_, k_, 4.0f);
 }
 
 void ScreenLensDistortionOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
@@ -422,7 +422,7 @@ void ScreenLensDistortionOperation::get_area_of_interest(const int input_idx,
 
   BLI_rcti_init_minmax(&newInput);
 
-  if (m_dispersion_const && m_distortion_const) {
+  if (dispersion_const_ && distortion_const_) {
     /* update from fixed distortion/dispersion */
 #  define UPDATE_INPUT(x, y) \
     { \
@@ -444,7 +444,7 @@ void ScreenLensDistortionOperation::get_area_of_interest(const int input_idx,
   }
   else {
     /* use maximum dispersion 1.0 if not const */
-    float dispersion = m_dispersion_const ? m_dispersion : 1.0f;
+    float dispersion = dispersion_const_ ? dispersion_ : 1.0f;
 
 #  define UPDATE_INPUT(x, y, distortion) \
     { \
@@ -458,12 +458,12 @@ void ScreenLensDistortionOperation::get_area_of_interest(const int input_idx,
     } \
     (void)0
 
-    if (m_distortion_const) {
+    if (distortion_const_) {
       /* update from fixed distortion */
-      UPDATE_INPUT(input->xmin, input->xmax, m_distortion);
-      UPDATE_INPUT(input->xmin, input->ymax, m_distortion);
-      UPDATE_INPUT(input->xmax, input->ymax, m_distortion);
-      UPDATE_INPUT(input->xmax, input->ymin, m_distortion);
+      UPDATE_INPUT(input->xmin, input->xmax, distortion_);
+      UPDATE_INPUT(input->xmin, input->ymax, distortion_);
+      UPDATE_INPUT(input->xmax, input->ymax, distortion_);
+      UPDATE_INPUT(input->xmax, input->ymin, distortion_);
     }
     else {
       /* update from min/max distortion (-1..1) */
@@ -506,9 +506,9 @@ void ScreenLensDistortionOperation::update_memory_buffer_partial(MemoryBuffer *o
     const float uv_dot = len_squared_v2(uv);
 
     float delta[3][2];
-    const bool valid_r = get_delta(uv_dot, m_k4[0], uv, delta[0]);
-    const bool valid_g = get_delta(uv_dot, m_k4[1], uv, delta[1]);
-    const bool valid_b = get_delta(uv_dot, m_k4[2], uv, delta[2]);
+    const bool valid_r = get_delta(uv_dot, k4_[0], uv, delta[0]);
+    const bool valid_g = get_delta(uv_dot, k4_[1], uv, delta[1]);
+    const bool valid_b = get_delta(uv_dot, k4_[2], uv, delta[2]);
     if (!(valid_r && valid_g && valid_b)) {
       zero_v4(it.out);
       continue;

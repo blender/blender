@@ -26,7 +26,7 @@ SocketProxyNode::SocketProxyNode(bNode *editorNode,
                                  bNodeSocket *editorInput,
                                  bNodeSocket *editorOutput,
                                  bool use_conversion)
-    : Node(editorNode, false), m_use_conversion(use_conversion)
+    : Node(editorNode, false), use_conversion_(use_conversion)
 {
   DataType dt;
 
@@ -52,7 +52,7 @@ SocketProxyNode::SocketProxyNode(bNode *editorNode,
 void SocketProxyNode::convertToOperations(NodeConverter &converter,
                                           const CompositorContext & /*context*/) const
 {
-  NodeOperationOutput *proxy_output = converter.addInputProxy(getInputSocket(0), m_use_conversion);
+  NodeOperationOutput *proxy_output = converter.addInputProxy(getInputSocket(0), use_conversion_);
   converter.mapOutputSocket(getOutputSocket(), proxy_output);
 }
 

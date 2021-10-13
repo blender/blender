@@ -27,16 +27,16 @@ class InpaintSimpleOperation : public NodeOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputImageProgram;
+  SocketReader *inputImageProgram_;
 
-  int m_iterations;
+  int iterations_;
 
-  float *m_cached_buffer;
-  bool m_cached_buffer_ready;
+  float *cached_buffer_;
+  bool cached_buffer_ready_;
 
-  int *m_pixelorder;
-  int m_area_size;
-  short *m_manhattan_distance;
+  int *pixelorder_;
+  int area_size_;
+  short *manhattan_distance_;
 
  public:
   InpaintSimpleOperation();
@@ -59,7 +59,7 @@ class InpaintSimpleOperation : public NodeOperation {
 
   void setIterations(int iterations)
   {
-    m_iterations = iterations;
+    iterations_ = iterations;
   }
 
   bool determineDependingAreaOfInterest(rcti *input,

@@ -27,13 +27,13 @@ class ColorCorrectionOperation : public MultiThreadedRowOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputImage;
-  SocketReader *m_inputMask;
-  NodeColorCorrection *m_data;
+  SocketReader *inputImage_;
+  SocketReader *inputMask_;
+  NodeColorCorrection *data_;
 
-  bool m_redChannelEnabled;
-  bool m_greenChannelEnabled;
-  bool m_blueChannelEnabled;
+  bool redChannelEnabled_;
+  bool greenChannelEnabled_;
+  bool blueChannelEnabled_;
 
  public:
   ColorCorrectionOperation();
@@ -55,19 +55,19 @@ class ColorCorrectionOperation : public MultiThreadedRowOperation {
 
   void setData(NodeColorCorrection *data)
   {
-    m_data = data;
+    data_ = data;
   }
   void setRedChannelEnabled(bool enabled)
   {
-    m_redChannelEnabled = enabled;
+    redChannelEnabled_ = enabled;
   }
   void setGreenChannelEnabled(bool enabled)
   {
-    m_greenChannelEnabled = enabled;
+    greenChannelEnabled_ = enabled;
   }
   void setBlueChannelEnabled(bool enabled)
   {
-    m_blueChannelEnabled = enabled;
+    blueChannelEnabled_ = enabled;
   }
 
   void update_memory_buffer_row(PixelCursor &p) override;

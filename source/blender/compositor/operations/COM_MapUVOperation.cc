@@ -25,12 +25,12 @@ MapUVOperation::MapUVOperation()
   this->addInputSocket(DataType::Color, ResizeMode::Align);
   this->addInputSocket(DataType::Vector);
   this->addOutputSocket(DataType::Color);
-  m_alpha = 0.0f;
+  alpha_ = 0.0f;
   this->flags.complex = true;
   set_canvas_input_index(UV_INPUT_INDEX);
 
-  m_inputUVProgram = nullptr;
-  m_inputColorProgram = nullptr;
+  inputUVProgram_ = nullptr;
+  inputColorProgram_ = nullptr;
 }
 
 void MapUVOperation::init_data()
@@ -46,11 +46,11 @@ void MapUVOperation::init_data()
 
 void MapUVOperation::initExecution()
 {
-  m_inputColorProgram = this->getInputSocketReader(0);
-  m_inputUVProgram = this->getInputSocketReader(1);
+  inputColorProgram_ = this->getInputSocketReader(0);
+  inputUVProgram_ = this->getInputSocketReader(1);
   if (execution_model_ == eExecutionModel::Tiled) {
     uv_input_read_fn_ = [=](float x, float y, float *out) {
-      m_inputUVProgram->readSampled(out, x, y, PixelSampler::Bilinear);
+      inputUVProgram_->readSampled(out, x, y, PixelSampler::Bilinear);
     };
   }
 }
@@ -70,17 +70,17 @@ void MapUVOperation::executePixelSampled(float output[4],
   }
 
   /* EWA filtering */
-  m_inputColorProgram->readFiltered(output, uv[0], uv[1], deriv[0], deriv[1]);
+  inputColorProgram_->readFiltered(output, uv[0], uv[1], deriv[0], deriv[1]);
 
   /* UV to alpha threshold */
-  const float threshold = m_alpha * 0.05f;
+  const float threshold = alpha_ * 0.05f;
   /* XXX alpha threshold is used to fade out pixels on boundaries with invalid derivatives.
    * this calculation is not very well defined, should be looked into if it becomes a problem ...
    */
   float du = len_v2(deriv[0]);
   float dv = len_v2(deriv[1]);
-  float factor = 1.0f - threshold * (du / m_inputColorProgram->getWidth() +
-                                     dv / m_inputColorProgram->getHeight());
+  float factor = 1.0f - threshold * (du / inputColorProgram_->getWidth() +
+                                     dv / inputColorProgram_->getHeight());
   if (factor < 0.0f) {
     alpha = 0.0f;
   }
@@ -164,8 +164,8 @@ void MapUVOperation::pixelTransform(const float xy[2],
 
 void MapUVOperation::deinitExecution()
 {
-  m_inputUVProgram = nullptr;
-  m_inputColorProgram = nullptr;
+  inputUVProgram_ = nullptr;
+  inputColorProgram_ = nullptr;
 }
 
 bool MapUVOperation::determineDependingAreaOfInterest(rcti *input,
@@ -246,7 +246,7 @@ void MapUVOperation::update_memory_buffer_partial(MemoryBuffer *output,
     input_image->read_elem_filtered(uv[0], uv[1], deriv[0], deriv[1], it.out);
 
     /* UV to alpha threshold. */
-    const float threshold = m_alpha * 0.05f;
+    const float threshold = alpha_ * 0.05f;
     /* XXX alpha threshold is used to fade out pixels on boundaries with invalid derivatives.
      * this calculation is not very well defined, should be looked into if it becomes a problem ...
      */

@@ -24,7 +24,7 @@ namespace blender::compositor {
 
 class ConvertBaseOperation : public MultiThreadedOperation {
  protected:
-  SocketReader *m_inputOperation;
+  SocketReader *inputOperation_;
 
  public:
   ConvertBaseOperation();
@@ -114,7 +114,7 @@ class ConvertVectorToValueOperation : public ConvertBaseOperation {
 class ConvertRGBToYCCOperation : public ConvertBaseOperation {
  private:
   /** YCbCr mode (Jpeg, ITU601, ITU709) */
-  int m_mode;
+  int mode_;
 
  public:
   ConvertRGBToYCCOperation();
@@ -132,7 +132,7 @@ class ConvertRGBToYCCOperation : public ConvertBaseOperation {
 class ConvertYCCToRGBOperation : public ConvertBaseOperation {
  private:
   /** YCbCr mode (Jpeg, ITU601, ITU709) */
-  int m_mode;
+  int mode_;
 
  public:
   ConvertYCCToRGBOperation();
@@ -209,8 +209,8 @@ class ConvertStraightToPremulOperation : public ConvertBaseOperation {
 
 class SeparateChannelOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_inputOperation;
-  int m_channel;
+  SocketReader *inputOperation_;
+  int channel_;
 
  public:
   SeparateChannelOperation();
@@ -221,7 +221,7 @@ class SeparateChannelOperation : public MultiThreadedOperation {
 
   void setChannel(int channel)
   {
-    m_channel = channel;
+    channel_ = channel;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -231,10 +231,10 @@ class SeparateChannelOperation : public MultiThreadedOperation {
 
 class CombineChannelsOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_inputChannel1Operation;
-  SocketReader *m_inputChannel2Operation;
-  SocketReader *m_inputChannel3Operation;
-  SocketReader *m_inputChannel4Operation;
+  SocketReader *inputChannel1Operation_;
+  SocketReader *inputChannel2Operation_;
+  SocketReader *inputChannel3Operation_;
+  SocketReader *inputChannel4Operation_;
 
  public:
   CombineChannelsOperation();

@@ -27,18 +27,18 @@ LuminanceMatteOperation::LuminanceMatteOperation()
   addInputSocket(DataType::Color);
   addOutputSocket(DataType::Value);
 
-  m_inputImageProgram = nullptr;
+  inputImageProgram_ = nullptr;
   flags.can_be_constant = true;
 }
 
 void LuminanceMatteOperation::initExecution()
 {
-  m_inputImageProgram = this->getInputSocketReader(0);
+  inputImageProgram_ = this->getInputSocketReader(0);
 }
 
 void LuminanceMatteOperation::deinitExecution()
 {
-  m_inputImageProgram = nullptr;
+  inputImageProgram_ = nullptr;
 }
 
 void LuminanceMatteOperation::executePixelSampled(float output[4],
@@ -47,10 +47,10 @@ void LuminanceMatteOperation::executePixelSampled(float output[4],
                                                   PixelSampler sampler)
 {
   float inColor[4];
-  m_inputImageProgram->readSampled(inColor, x, y, sampler);
+  inputImageProgram_->readSampled(inColor, x, y, sampler);
 
-  const float high = m_settings->t1;
-  const float low = m_settings->t2;
+  const float high = settings_->t1;
+  const float low = settings_->t2;
   const float luminance = IMB_colormanagement_get_luminance(inColor);
 
   float alpha;
@@ -91,8 +91,8 @@ void LuminanceMatteOperation::update_memory_buffer_partial(MemoryBuffer *output,
      */
 
     /* Test range. */
-    const float high = m_settings->t1;
-    const float low = m_settings->t2;
+    const float high = settings_->t1;
+    const float low = settings_->t2;
     float alpha;
     if (luminance > high) {
       alpha = 1.0f;

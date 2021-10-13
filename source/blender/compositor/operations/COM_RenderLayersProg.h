@@ -38,17 +38,17 @@ class RenderLayersProg : public MultiThreadedOperation {
   /**
    * Reference to the scene object.
    */
-  Scene *m_scene;
+  Scene *scene_;
 
   /**
    * layerId of the layer where this operation needs to get its data from
    */
-  short m_layerId;
+  short layerId_;
 
   /**
    * viewName of the view to use (unless another view is specified by the node
    */
-  const char *m_viewName;
+  const char *viewName_;
 
   const MemoryBuffer *layer_buffer_;
 
@@ -56,19 +56,19 @@ class RenderLayersProg : public MultiThreadedOperation {
    * Cached instance to the float buffer inside the layer.
    * TODO: To be removed with tiled implementation.
    */
-  float *m_inputBuffer;
+  float *inputBuffer_;
 
   /**
    * Render-pass where this operation needs to get its data from.
    */
-  std::string m_passName;
+  std::string passName_;
 
-  int m_elementsize;
+  int elementsize_;
 
   /**
    * \brief render data used for active rendering
    */
-  const RenderData *m_rd;
+  const RenderData *rd_;
 
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -80,7 +80,7 @@ class RenderLayersProg : public MultiThreadedOperation {
    */
   inline float *getInputBuffer()
   {
-    return m_inputBuffer;
+    return inputBuffer_;
   }
 
   void doInterpolation(float output[4], float x, float y, PixelSampler sampler);
@@ -97,31 +97,31 @@ class RenderLayersProg : public MultiThreadedOperation {
    */
   void setScene(Scene *scene)
   {
-    m_scene = scene;
+    scene_ = scene;
   }
   Scene *getScene() const
   {
-    return m_scene;
+    return scene_;
   }
   void setRenderData(const RenderData *rd)
   {
-    m_rd = rd;
+    rd_ = rd;
   }
   void setLayerId(short layerId)
   {
-    m_layerId = layerId;
+    layerId_ = layerId;
   }
   short getLayerId() const
   {
-    return m_layerId;
+    return layerId_;
   }
   void setViewName(const char *viewName)
   {
-    m_viewName = viewName;
+    viewName_ = viewName;
   }
   const char *getViewName()
   {
-    return m_viewName;
+    return viewName_;
   }
   void initExecution() override;
   void deinitExecution() override;

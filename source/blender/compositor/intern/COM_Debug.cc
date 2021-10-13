@@ -35,12 +35,12 @@ extern "C" {
 
 namespace blender::compositor {
 
-int DebugInfo::m_file_index = 0;
-DebugInfo::NodeNameMap DebugInfo::m_node_names;
-DebugInfo::OpNameMap DebugInfo::m_op_names;
-std::string DebugInfo::m_current_node_name;
-std::string DebugInfo::m_current_op_name;
-DebugInfo::GroupStateMap DebugInfo::m_group_states;
+int DebugInfo::file_index_ = 0;
+DebugInfo::NodeNameMap DebugInfo::node_names_;
+DebugInfo::OpNameMap DebugInfo::op_names_;
+std::string DebugInfo::current_node_name_;
+std::string DebugInfo::current_op_name_;
+DebugInfo::GroupStateMap DebugInfo::group_states_;
 
 static std::string operation_class_name(const NodeOperation *op)
 {
@@ -53,8 +53,8 @@ static std::string operation_class_name(const NodeOperation *op)
 
 std::string DebugInfo::node_name(const Node *node)
 {
-  NodeNameMap::const_iterator it = m_node_names.find(node);
-  if (it != m_node_names.end()) {
+  NodeNameMap::const_iterator it = node_names_.find(node);
+  if (it != node_names_.end()) {
     return it->second;
   }
   return "";
@@ -62,8 +62,8 @@ std::string DebugInfo::node_name(const Node *node)
 
 std::string DebugInfo::operation_name(const NodeOperation *op)
 {
-  OpNameMap::const_iterator it = m_op_names.find(op);
-  if (it != m_op_names.end()) {
+  OpNameMap::const_iterator it = op_names_.find(op);
+  if (it != op_names_.end()) {
     return it->second;
   }
   return "";
@@ -300,25 +300,25 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 
   std::map<NodeOperation *, std::vector<std::string>> op_groups;
   int index = 0;
-  for (const ExecutionGroup *group : system->m_groups) {
+  for (const ExecutionGroup *group : system->groups_) {
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// GROUP: %d\r\n", index);
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "subgraph cluster_%d{\r\n", index);
     /* used as a check for executing group */
-    if (m_group_states[group] == EG_WAIT) {
+    if (group_states_[group] == EG_WAIT) {
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "style=dashed\r\n");
     }
-    else if (m_group_states[group] == EG_RUNNING) {
+    else if (group_states_[group] == EG_RUNNING) {
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "style=filled\r\n");
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "color=black\r\n");
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "fillcolor=firebrick1\r\n");
     }
-    else if (m_group_states[group] == EG_FINISHED) {
+    else if (group_states_[group] == EG_FINISHED) {
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "style=filled\r\n");
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "color=black\r\n");
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "fillcolor=chartreuse4\r\n");
     }
 
-    for (NodeOperation *operation : group->m_operations) {
+    for (NodeOperation *operation : group->operations_) {
 
       sprintf(strbuf, "_%p", group);
       op_groups[operation].push_back(std::string(strbuf));
@@ -332,7 +332,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
   }
 
   /* operations not included in any group */
-  for (NodeOperation *operation : system->m_operations) {
+  for (NodeOperation *operation : system->operations_) {
     if (op_groups.find(operation) != op_groups.end()) {
       continue;
     }
@@ -343,7 +343,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
         system, operation, nullptr, str + len, maxlen > len ? maxlen - len : 0);
   }
 
-  for (NodeOperation *operation : system->m_operations) {
+  for (NodeOperation *operation : system->operations_) {
     if (operation->get_flags().is_read_buffer_operation) {
       ReadBufferOperation *read = (ReadBufferOperation *)operation;
       WriteBufferOperation *write = read->getMemoryProxy()->getWriteBufferOperation();
@@ -364,8 +364,8 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
     }
   }
 
-  for (NodeOperation *op : system->m_operations) {
-    for (NodeOperationInput &to : op->m_inputs) {
+  for (NodeOperation *op : system->operations_) {
+    for (NodeOperationInput &to : op->inputs_) {
       NodeOperationOutput *from = to.getLink();
 
       if (!from) {
@@ -418,7 +418,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 
   const bool has_execution_groups = system->getContext().get_execution_model() ==
                                         eExecutionModel::Tiled &&
-                                    system->m_groups.size() > 0;
+                                    system->groups_.size() > 0;
   len += graphviz_legend(str + len, maxlen > len ? maxlen - len : 0, has_execution_groups);
 
   len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}\r\n");
@@ -437,13 +437,13 @@ void DebugInfo::graphviz(const ExecutionSystem *system, StringRefNull name)
     char filename[FILE_MAX];
 
     if (name.is_empty()) {
-      BLI_snprintf(basename, sizeof(basename), "compositor_%d.dot", m_file_index);
+      BLI_snprintf(basename, sizeof(basename), "compositor_%d.dot", file_index_);
     }
     else {
       BLI_strncpy(basename, (name + ".dot").c_str(), sizeof(basename));
     }
     BLI_join_dirfile(filename, sizeof(filename), BKE_tempdir_session(), basename);
-    m_file_index++;
+    file_index_++;
 
     std::cout << "Writing compositor debug to: " << filename << "\n";
 

@@ -54,37 +54,37 @@ class BokehImageOperation : public MultiThreadedOperation {
   /**
    * \brief Settings of the bokeh image
    */
-  NodeBokehImage *m_data;
+  NodeBokehImage *data_;
 
   /**
    * \brief precalculate center of the image
    */
-  float m_center[2];
+  float center_[2];
 
   /**
    * \brief 1.0-rounding
    */
-  float m_inverseRounding;
+  float inverseRounding_;
 
   /**
    * \brief distance of a full circle lens
    */
-  float m_circularDistance;
+  float circularDistance_;
 
   /**
    * \brief radius when the first flap starts
    */
-  float m_flapRad;
+  float flapRad_;
 
   /**
    * \brief radians of a single flap
    */
-  float m_flapRadAdd;
+  float flapRadAdd_;
 
   /**
-   * \brief should the m_data field by deleted when this operation is finished
+   * \brief should the data_ field by deleted when this operation is finished
    */
-  bool m_deleteData;
+  bool deleteData_;
 
   /**
    * \brief determine the coordinate of a flap corner.
@@ -136,7 +136,7 @@ class BokehImageOperation : public MultiThreadedOperation {
    */
   void setData(NodeBokehImage *data)
   {
-    m_data = data;
+    data_ = data;
   }
 
   /**
@@ -148,7 +148,7 @@ class BokehImageOperation : public MultiThreadedOperation {
    */
   void deleteDataOnFinish()
   {
-    m_deleteData = true;
+    deleteData_ = true;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

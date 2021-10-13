@@ -22,20 +22,20 @@ namespace blender::compositor {
 
 CompositorContext::CompositorContext()
 {
-  m_scene = nullptr;
-  m_rd = nullptr;
-  m_quality = eCompositorQuality::High;
-  m_hasActiveOpenCLDevices = false;
-  m_fastCalculation = false;
-  m_viewSettings = nullptr;
-  m_displaySettings = nullptr;
-  m_bnodetree = nullptr;
+  scene_ = nullptr;
+  rd_ = nullptr;
+  quality_ = eCompositorQuality::High;
+  hasActiveOpenCLDevices_ = false;
+  fastCalculation_ = false;
+  viewSettings_ = nullptr;
+  displaySettings_ = nullptr;
+  bnodetree_ = nullptr;
 }
 
 int CompositorContext::getFramenumber() const
 {
-  BLI_assert(m_rd);
-  return m_rd->cfra;
+  BLI_assert(rd_);
+  return rd_->cfra;
 }
 
 Size2f CompositorContext::get_render_size() const
@@ -47,8 +47,8 @@ Size2f CompositorContext::get_render_size() const
 eExecutionModel CompositorContext::get_execution_model() const
 {
   if (U.experimental.use_full_frame_compositor) {
-    BLI_assert(m_bnodetree != nullptr);
-    switch (m_bnodetree->execution_mode) {
+    BLI_assert(bnodetree_ != nullptr);
+    switch (bnodetree_->execution_mode) {
       case 1:
         return eExecutionModel::FullFrame;
       case 0:

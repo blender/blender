@@ -28,10 +28,10 @@ namespace blender::compositor {
  */
 class ZCombineOperation : public MultiThreadedOperation {
  protected:
-  SocketReader *m_image1Reader;
-  SocketReader *m_depth1Reader;
-  SocketReader *m_image2Reader;
-  SocketReader *m_depth2Reader;
+  SocketReader *image1Reader_;
+  SocketReader *depth1Reader_;
+  SocketReader *image2Reader_;
+  SocketReader *depth2Reader_;
 
  public:
   /**
@@ -62,9 +62,9 @@ class ZCombineAlphaOperation : public ZCombineOperation {
 
 class ZCombineMaskOperation : public MultiThreadedOperation {
  protected:
-  SocketReader *m_maskReader;
-  SocketReader *m_image1Reader;
-  SocketReader *m_image2Reader;
+  SocketReader *maskReader_;
+  SocketReader *image1Reader_;
+  SocketReader *image2Reader_;
 
  public:
   ZCombineMaskOperation();

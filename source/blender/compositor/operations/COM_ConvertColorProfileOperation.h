@@ -31,22 +31,22 @@ class ConvertColorProfileOperation : public NodeOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputOperation;
+  SocketReader *inputOperation_;
 
   /**
    * \brief color profile where to convert from
    */
-  int m_fromProfile;
+  int fromProfile_;
 
   /**
    * \brief color profile where to convert to
    */
-  int m_toProfile;
+  int toProfile_;
 
   /**
    * \brief is color predivided
    */
-  bool m_predivided;
+  bool predivided_;
 
  public:
   /**
@@ -71,15 +71,15 @@ class ConvertColorProfileOperation : public NodeOperation {
 
   void setFromColorProfile(int colorProfile)
   {
-    m_fromProfile = colorProfile;
+    fromProfile_ = colorProfile;
   }
   void setToColorProfile(int colorProfile)
   {
-    m_toProfile = colorProfile;
+    toProfile_ = colorProfile;
   }
   void setPredivided(bool predivided)
   {
-    m_predivided = predivided;
+    predivided_ = predivided;
   }
 };
 

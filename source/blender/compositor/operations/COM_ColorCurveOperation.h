@@ -27,10 +27,10 @@ class ColorCurveOperation : public CurveBaseOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputFacProgram;
-  SocketReader *m_inputImageProgram;
-  SocketReader *m_inputBlackProgram;
-  SocketReader *m_inputWhiteProgram;
+  SocketReader *inputFacProgram_;
+  SocketReader *inputImageProgram_;
+  SocketReader *inputBlackProgram_;
+  SocketReader *inputWhiteProgram_;
 
  public:
   ColorCurveOperation();
@@ -60,10 +60,10 @@ class ConstantLevelColorCurveOperation : public CurveBaseOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputFacProgram;
-  SocketReader *m_inputImageProgram;
-  float m_black[3];
-  float m_white[3];
+  SocketReader *inputFacProgram_;
+  SocketReader *inputImageProgram_;
+  float black_[3];
+  float white_[3];
 
  public:
   ConstantLevelColorCurveOperation();
@@ -85,11 +85,11 @@ class ConstantLevelColorCurveOperation : public CurveBaseOperation {
 
   void setBlackLevel(float black[3])
   {
-    copy_v3_v3(m_black, black);
+    copy_v3_v3(black_, black);
   }
   void setWhiteLevel(float white[3])
   {
-    copy_v3_v3(m_white, white);
+    copy_v3_v3(white_, white);
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

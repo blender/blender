@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class ColorMatteOperation : public MultiThreadedOperation {
  private:
-  NodeChroma *m_settings;
-  SocketReader *m_inputImageProgram;
-  SocketReader *m_inputKeyProgram;
+  NodeChroma *settings_;
+  SocketReader *inputImageProgram_;
+  SocketReader *inputKeyProgram_;
 
  public:
   /**
@@ -48,7 +48,7 @@ class ColorMatteOperation : public MultiThreadedOperation {
 
   void setSettings(NodeChroma *nodeChroma)
   {
-    m_settings = nodeChroma;
+    settings_ = nodeChroma;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

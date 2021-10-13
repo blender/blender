@@ -38,9 +38,9 @@ class PlaneDistortBaseOperation : public MultiThreadedOperation {
     float frameSpaceCorners[4][2]; /* Corners coordinates in pixel space. */
     float perspectiveMatrix[3][3];
   };
-  MotionSample m_samples[PLANE_DISTORT_MAX_SAMPLES];
-  int m_motion_blur_samples;
-  float m_motion_blur_shutter;
+  MotionSample samples_[PLANE_DISTORT_MAX_SAMPLES];
+  int motion_blur_samples_;
+  float motion_blur_shutter_;
 
  public:
   PlaneDistortBaseOperation();
@@ -48,11 +48,11 @@ class PlaneDistortBaseOperation : public MultiThreadedOperation {
   void setMotionBlurSamples(int samples)
   {
     BLI_assert(samples <= PLANE_DISTORT_MAX_SAMPLES);
-    m_motion_blur_samples = samples;
+    motion_blur_samples_ = samples;
   }
   void setMotionBlurShutter(float shutter)
   {
-    m_motion_blur_shutter = shutter;
+    motion_blur_shutter_ = shutter;
   }
 
   virtual void calculateCorners(const float corners[4][2], bool normalized, int sample);
@@ -63,7 +63,7 @@ class PlaneDistortBaseOperation : public MultiThreadedOperation {
 
 class PlaneDistortWarpImageOperation : public PlaneDistortBaseOperation {
  protected:
-  SocketReader *m_pixelReader;
+  SocketReader *pixelReader_;
 
  public:
   PlaneDistortWarpImageOperation();
@@ -87,8 +87,8 @@ class PlaneDistortWarpImageOperation : public PlaneDistortBaseOperation {
 
 class PlaneDistortMaskOperation : public PlaneDistortBaseOperation {
  protected:
-  int m_osa;
-  float m_jitter[32][2];
+  int osa_;
+  float jitter_[32][2];
 
  public:
   PlaneDistortMaskOperation();

@@ -37,16 +37,16 @@ class SocketProxyNode : public Node {
 
   bool getUseConversion() const
   {
-    return m_use_conversion;
+    return use_conversion_;
   }
   void setUseConversion(bool use_conversion)
   {
-    m_use_conversion = use_conversion;
+    use_conversion_ = use_conversion;
   }
 
  private:
   /** If true, the proxy will convert input and output data to/from the proxy socket types. */
-  bool m_use_conversion;
+  bool use_conversion_;
 };
 
 class SocketBufferNode : public Node {

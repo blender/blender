@@ -33,9 +33,9 @@ SunBeamsOperation::SunBeamsOperation()
 void SunBeamsOperation::calc_rays_common_data()
 {
   /* convert to pixels */
-  m_source_px[0] = m_data.source[0] * this->getWidth();
-  m_source_px[1] = m_data.source[1] * this->getHeight();
-  m_ray_length_px = m_data.ray_length * MAX2(this->getWidth(), this->getHeight());
+  source_px_[0] = data_.source[0] * this->getWidth();
+  source_px_[1] = data_.source[1] * this->getHeight();
+  ray_length_px_ = data_.ray_length * MAX2(this->getWidth(), this->getHeight());
 }
 
 void SunBeamsOperation::initExecution()
@@ -322,7 +322,7 @@ void SunBeamsOperation::executePixel(float output[4], int x, int y, void *data)
 {
   const float co[2] = {(float)x, (float)y};
 
-  accumulate_line((MemoryBuffer *)data, output, co, m_source_px, 0.0f, m_ray_length_px);
+  accumulate_line((MemoryBuffer *)data, output, co, source_px_, 0.0f, ray_length_px_);
 }
 
 static void calc_ray_shift(rcti *rect, float x, float y, const float source[2], float ray_length)
@@ -349,10 +349,10 @@ bool SunBeamsOperation::determineDependingAreaOfInterest(rcti *input,
    * and gives a rect that contains all possible accumulated pixels.
    */
   rcti rect = *input;
-  calc_ray_shift(&rect, input->xmin, input->ymin, m_source_px, m_ray_length_px);
-  calc_ray_shift(&rect, input->xmin, input->ymax, m_source_px, m_ray_length_px);
-  calc_ray_shift(&rect, input->xmax, input->ymin, m_source_px, m_ray_length_px);
-  calc_ray_shift(&rect, input->xmax, input->ymax, m_source_px, m_ray_length_px);
+  calc_ray_shift(&rect, input->xmin, input->ymin, source_px_, ray_length_px_);
+  calc_ray_shift(&rect, input->xmin, input->ymax, source_px_, ray_length_px_);
+  calc_ray_shift(&rect, input->xmax, input->ymin, source_px_, ray_length_px_);
+  calc_ray_shift(&rect, input->xmax, input->ymax, source_px_, ray_length_px_);
 
   return NodeOperation::determineDependingAreaOfInterest(&rect, readOperation, output);
 }
@@ -369,10 +369,10 @@ void SunBeamsOperation::get_area_of_interest(const int input_idx,
   /* Enlarges the rect by moving each corner toward the source.
    * This is the maximum distance that pixels can influence each other
    * and gives a rect that contains all possible accumulated pixels. */
-  calc_ray_shift(&r_input_area, output_area.xmin, output_area.ymin, m_source_px, m_ray_length_px);
-  calc_ray_shift(&r_input_area, output_area.xmin, output_area.ymax, m_source_px, m_ray_length_px);
-  calc_ray_shift(&r_input_area, output_area.xmax, output_area.ymin, m_source_px, m_ray_length_px);
-  calc_ray_shift(&r_input_area, output_area.xmax, output_area.ymax, m_source_px, m_ray_length_px);
+  calc_ray_shift(&r_input_area, output_area.xmin, output_area.ymin, source_px_, ray_length_px_);
+  calc_ray_shift(&r_input_area, output_area.xmin, output_area.ymax, source_px_, ray_length_px_);
+  calc_ray_shift(&r_input_area, output_area.xmax, output_area.ymin, source_px_, ray_length_px_);
+  calc_ray_shift(&r_input_area, output_area.xmax, output_area.ymax, source_px_, ray_length_px_);
 }
 
 void SunBeamsOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -386,7 +386,7 @@ void SunBeamsOperation::update_memory_buffer_partial(MemoryBuffer *output,
     float *out_elem = output->get_elem(area.xmin, y);
     for (int x = area.xmin; x < area.xmax; x++) {
       coords[0] = x;
-      accumulate_line(input, out_elem, coords, m_source_px, 0.0f, m_ray_length_px);
+      accumulate_line(input, out_elem, coords, source_px_, 0.0f, ray_length_px_);
       out_elem += output->elem_stride;
     }
   }

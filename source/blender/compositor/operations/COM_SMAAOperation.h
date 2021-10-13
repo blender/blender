@@ -29,11 +29,11 @@ namespace blender::compositor {
 
 class SMAAEdgeDetectionOperation : public MultiThreadedOperation {
  protected:
-  SocketReader *m_imageReader;
-  SocketReader *m_valueReader;
+  SocketReader *imageReader_;
+  SocketReader *valueReader_;
 
-  float m_threshold;
-  float m_contrast_limit;
+  float threshold_;
+  float contrast_limit_;
 
  public:
   SMAAEdgeDetectionOperation();
@@ -72,9 +72,9 @@ class SMAAEdgeDetectionOperation : public MultiThreadedOperation {
 
 class SMAABlendingWeightCalculationOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_imageReader;
+  SocketReader *imageReader_;
   std::function<void(int x, int y, float *out)> sample_image_fn_;
-  int m_corner_rounding;
+  int corner_rounding_;
 
  public:
   SMAABlendingWeightCalculationOperation();
@@ -132,8 +132,8 @@ class SMAABlendingWeightCalculationOperation : public MultiThreadedOperation {
 
 class SMAANeighborhoodBlendingOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_image1Reader;
-  SocketReader *m_image2Reader;
+  SocketReader *image1Reader_;
+  SocketReader *image2Reader_;
 
  public:
   SMAANeighborhoodBlendingOperation();

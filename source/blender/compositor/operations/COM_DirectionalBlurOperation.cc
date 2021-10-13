@@ -27,20 +27,20 @@ DirectionalBlurOperation::DirectionalBlurOperation()
   this->addOutputSocket(DataType::Color);
   flags.complex = true;
   flags.open_cl = true;
-  m_inputProgram = nullptr;
+  inputProgram_ = nullptr;
 }
 
 void DirectionalBlurOperation::initExecution()
 {
-  m_inputProgram = getInputSocketReader(0);
+  inputProgram_ = getInputSocketReader(0);
   QualityStepHelper::initExecution(COM_QH_INCREASE);
-  const float angle = m_data->angle;
-  const float zoom = m_data->zoom;
-  const float spin = m_data->spin;
-  const float iterations = m_data->iter;
-  const float distance = m_data->distance;
-  const float center_x = m_data->center_x;
-  const float center_y = m_data->center_y;
+  const float angle = data_->angle;
+  const float zoom = data_->zoom;
+  const float spin = data_->spin;
+  const float iterations = data_->iter;
+  const float distance = data_->distance;
+  const float center_x = data_->center_x;
+  const float center_y = data_->center_y;
   const float width = getWidth();
   const float height = getHeight();
 
@@ -49,45 +49,45 @@ void DirectionalBlurOperation::initExecution()
   float D;
 
   D = distance * sqrtf(width * width + height * height);
-  m_center_x_pix = center_x * width;
-  m_center_y_pix = center_y * height;
+  center_x_pix_ = center_x * width;
+  center_y_pix_ = center_y * height;
 
-  m_tx = itsc * D * cosf(a);
-  m_ty = -itsc * D * sinf(a);
-  m_sc = itsc * zoom;
-  m_rot = itsc * spin;
+  tx_ = itsc * D * cosf(a);
+  ty_ = -itsc * D * sinf(a);
+  sc_ = itsc * zoom;
+  rot_ = itsc * spin;
 }
 
 void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void * /*data*/)
 {
-  const int iterations = pow(2.0f, m_data->iter);
+  const int iterations = pow(2.0f, data_->iter);
   float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float col2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  m_inputProgram->readSampled(col2, x, y, PixelSampler::Bilinear);
-  float ltx = m_tx;
-  float lty = m_ty;
-  float lsc = m_sc;
-  float lrot = m_rot;
+  inputProgram_->readSampled(col2, x, y, PixelSampler::Bilinear);
+  float ltx = tx_;
+  float lty = ty_;
+  float lsc = sc_;
+  float lrot = rot_;
   /* blur the image */
   for (int i = 0; i < iterations; i++) {
     const float cs = cosf(lrot), ss = sinf(lrot);
     const float isc = 1.0f / (1.0f + lsc);
 
-    const float v = isc * (y - m_center_y_pix) + lty;
-    const float u = isc * (x - m_center_x_pix) + ltx;
+    const float v = isc * (y - center_y_pix_) + lty;
+    const float u = isc * (x - center_x_pix_) + ltx;
 
-    m_inputProgram->readSampled(col,
-                                cs * u + ss * v + m_center_x_pix,
-                                cs * v - ss * u + m_center_y_pix,
-                                PixelSampler::Bilinear);
+    inputProgram_->readSampled(col,
+                               cs * u + ss * v + center_x_pix_,
+                               cs * v - ss * u + center_y_pix_,
+                               PixelSampler::Bilinear);
 
     add_v4_v4(col2, col);
 
     /* double transformations */
-    ltx += m_tx;
-    lty += m_ty;
-    lrot += m_rot;
-    lsc += m_sc;
+    ltx += tx_;
+    lty += ty_;
+    lrot += rot_;
+    lsc += sc_;
   }
 
   mul_v4_v4fl(output, col2, 1.0f / (iterations + 1));
@@ -102,14 +102,14 @@ void DirectionalBlurOperation::executeOpenCL(OpenCLDevice *device,
 {
   cl_kernel directionalBlurKernel = device->COM_clCreateKernel("directionalBlurKernel", nullptr);
 
-  cl_int iterations = pow(2.0f, m_data->iter);
-  cl_float2 ltxy = {{m_tx, m_ty}};
-  cl_float2 centerpix = {{m_center_x_pix, m_center_y_pix}};
-  cl_float lsc = m_sc;
-  cl_float lrot = m_rot;
+  cl_int iterations = pow(2.0f, data_->iter);
+  cl_float2 ltxy = {{tx_, ty_}};
+  cl_float2 centerpix = {{center_x_pix_, center_y_pix_}};
+  cl_float lsc = sc_;
+  cl_float lrot = rot_;
 
   device->COM_clAttachMemoryBufferToKernelParameter(
-      directionalBlurKernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, m_inputProgram);
+      directionalBlurKernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, inputProgram_);
   device->COM_clAttachOutputMemoryBufferToKernelParameter(
       directionalBlurKernel, 1, clOutputBuffer);
   device->COM_clAttachMemoryBufferOffsetToKernelParameter(
@@ -125,7 +125,7 @@ void DirectionalBlurOperation::executeOpenCL(OpenCLDevice *device,
 
 void DirectionalBlurOperation::deinitExecution()
 {
-  m_inputProgram = nullptr;
+  inputProgram_ = nullptr;
 }
 
 bool DirectionalBlurOperation::determineDependingAreaOfInterest(rcti * /*input*/,
@@ -156,7 +156,7 @@ void DirectionalBlurOperation::update_memory_buffer_partial(MemoryBuffer *output
                                                             Span<MemoryBuffer *> inputs)
 {
   const MemoryBuffer *input = inputs[0];
-  const int iterations = pow(2.0f, m_data->iter);
+  const int iterations = pow(2.0f, data_->iter);
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
     const int x = it.x;
     const int y = it.y;
@@ -166,27 +166,27 @@ void DirectionalBlurOperation::update_memory_buffer_partial(MemoryBuffer *output
     /* Blur pixel. */
     /* TODO(manzanilla): Many values used on iterations can be calculated beforehand. Create a
      * table on operation initialization. */
-    float ltx = m_tx;
-    float lty = m_ty;
-    float lsc = m_sc;
-    float lrot = m_rot;
+    float ltx = tx_;
+    float lty = ty_;
+    float lsc = sc_;
+    float lrot = rot_;
     for (int i = 0; i < iterations; i++) {
       const float cs = cosf(lrot), ss = sinf(lrot);
       const float isc = 1.0f / (1.0f + lsc);
 
-      const float v = isc * (y - m_center_y_pix) + lty;
-      const float u = isc * (x - m_center_x_pix) + ltx;
+      const float v = isc * (y - center_y_pix_) + lty;
+      const float u = isc * (x - center_x_pix_) + ltx;
 
       float color[4];
       input->read_elem_bilinear(
-          cs * u + ss * v + m_center_x_pix, cs * v - ss * u + m_center_y_pix, color);
+          cs * u + ss * v + center_x_pix_, cs * v - ss * u + center_y_pix_, color);
       add_v4_v4(color_accum, color);
 
       /* Double transformations. */
-      ltx += m_tx;
-      lty += m_ty;
-      lrot += m_rot;
-      lsc += m_sc;
+      ltx += tx_;
+      lty += ty_;
+      lrot += rot_;
+      lsc += sc_;
     }
 
     mul_v4_v4fl(it.out, color_accum, 1.0f / (iterations + 1));

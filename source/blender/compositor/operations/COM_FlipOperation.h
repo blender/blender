@@ -24,9 +24,9 @@ namespace blender::compositor {
 
 class FlipOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_inputOperation;
-  bool m_flipX;
-  bool m_flipY;
+  SocketReader *inputOperation_;
+  bool flipX_;
+  bool flipY_;
 
  public:
   FlipOperation();
@@ -39,11 +39,11 @@ class FlipOperation : public MultiThreadedOperation {
   void deinitExecution() override;
   void setFlipX(bool flipX)
   {
-    m_flipX = flipX;
+    flipX_ = flipX;
   }
   void setFlipY(bool flipY)
   {
-    m_flipY = flipY;
+    flipY_ = flipY;
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;

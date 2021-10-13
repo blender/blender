@@ -28,7 +28,7 @@ namespace blender::compositor {
  */
 class AlphaOverMixedOperation : public MixBaseOperation {
  private:
-  float m_x;
+  float x_;
 
  public:
   /**
@@ -43,7 +43,7 @@ class AlphaOverMixedOperation : public MixBaseOperation {
 
   void setX(float x)
   {
-    m_x = x;
+    x_ = x;
   }
 
   void update_memory_buffer_row(PixelCursor &p) override;

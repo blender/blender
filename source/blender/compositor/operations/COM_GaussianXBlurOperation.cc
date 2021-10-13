@@ -28,7 +28,7 @@ GaussianXBlurOperation::GaussianXBlurOperation() : GaussianBlurBaseOperation(eDi
 void *GaussianXBlurOperation::initializeTileData(rcti * /*rect*/)
 {
   lockMutex();
-  if (!m_sizeavailable) {
+  if (!sizeavailable_) {
     updateGauss();
   }
   void *buffer = getInputOperation(0)->initializeTileData(nullptr);
@@ -43,14 +43,14 @@ void GaussianXBlurOperation::initExecution()
 
   initMutex();
 
-  if (m_sizeavailable && execution_model_ == eExecutionModel::Tiled) {
-    float rad = max_ff(m_size * m_data.sizex, 0.0f);
-    m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
+  if (sizeavailable_ && execution_model_ == eExecutionModel::Tiled) {
+    float rad = max_ff(size_ * data_.sizex, 0.0f);
+    filtersize_ = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
     /* TODO(sergey): De-duplicate with the case below and Y blur. */
-    m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
+    gausstab_ = BlurBaseOperation::make_gausstab(rad, filtersize_);
 #ifdef BLI_HAVE_SSE2
-    m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(m_gausstab, m_filtersize);
+    gausstab_sse_ = BlurBaseOperation::convert_gausstab_sse(gausstab_, filtersize_);
 #endif
   }
 }
@@ -58,15 +58,15 @@ void GaussianXBlurOperation::initExecution()
 /* TODO(manzanilla): to be removed with tiled implementation. */
 void GaussianXBlurOperation::updateGauss()
 {
-  if (m_gausstab == nullptr) {
+  if (gausstab_ == nullptr) {
     updateSize();
-    float rad = max_ff(m_size * m_data.sizex, 0.0f);
+    float rad = max_ff(size_ * data_.sizex, 0.0f);
     rad = min_ff(rad, MAX_GAUSSTAB_RADIUS);
-    m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
+    filtersize_ = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
-    m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
+    gausstab_ = BlurBaseOperation::make_gausstab(rad, filtersize_);
 #ifdef BLI_HAVE_SSE2
-    m_gausstab_sse = BlurBaseOperation::convert_gausstab_sse(m_gausstab, m_filtersize);
+    gausstab_sse_ = BlurBaseOperation::convert_gausstab_sse(gausstab_, filtersize_);
 #endif
   }
 }
@@ -82,8 +82,8 @@ void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *d
   int bufferstartx = input_rect.xmin;
   int bufferstarty = input_rect.ymin;
 
-  int xmin = max_ii(x - m_filtersize, input_rect.xmin);
-  int xmax = min_ii(x + m_filtersize + 1, input_rect.xmax);
+  int xmin = max_ii(x - filtersize_, input_rect.xmin);
+  int xmax = min_ii(x + filtersize_ + 1, input_rect.xmax);
   int ymin = max_ii(y, input_rect.ymin);
 
   int step = getStep();
@@ -92,17 +92,17 @@ void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *d
 
 #ifdef BLI_HAVE_SSE2
   __m128 accum_r = _mm_load_ps(color_accum);
-  for (int nx = xmin, index = (xmin - x) + m_filtersize; nx < xmax; nx += step, index += step) {
+  for (int nx = xmin, index = (xmin - x) + filtersize_; nx < xmax; nx += step, index += step) {
     __m128 reg_a = _mm_load_ps(&buffer[bufferindex]);
-    reg_a = _mm_mul_ps(reg_a, m_gausstab_sse[index]);
+    reg_a = _mm_mul_ps(reg_a, gausstab_sse_[index]);
     accum_r = _mm_add_ps(accum_r, reg_a);
-    multiplier_accum += m_gausstab[index];
+    multiplier_accum += gausstab_[index];
     bufferindex += offsetadd;
   }
   _mm_store_ps(color_accum, accum_r);
 #else
-  for (int nx = xmin, index = (xmin - x) + m_filtersize; nx < xmax; nx += step, index += step) {
-    const float multiplier = m_gausstab[index];
+  for (int nx = xmin, index = (xmin - x) + filtersize_; nx < xmax; nx += step, index += step) {
+    const float multiplier = gausstab_[index];
     madd_v4_v4fl(color_accum, &buffer[bufferindex], multiplier);
     multiplier_accum += multiplier;
     bufferindex += offsetadd;
@@ -120,16 +120,16 @@ void GaussianXBlurOperation::executeOpenCL(OpenCLDevice *device,
 {
   cl_kernel gaussianXBlurOperationKernel = device->COM_clCreateKernel(
       "gaussianXBlurOperationKernel", nullptr);
-  cl_int filter_size = m_filtersize;
+  cl_int filter_size = filtersize_;
 
   cl_mem gausstab = clCreateBuffer(device->getContext(),
                                    CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,
-                                   sizeof(float) * (m_filtersize * 2 + 1),
-                                   m_gausstab,
+                                   sizeof(float) * (filtersize_ * 2 + 1),
+                                   gausstab_,
                                    nullptr);
 
   device->COM_clAttachMemoryBufferToKernelParameter(
-      gaussianXBlurOperationKernel, 0, 1, clMemToCleanUp, inputMemoryBuffers, m_inputProgram);
+      gaussianXBlurOperationKernel, 0, 1, clMemToCleanUp, inputMemoryBuffers, inputProgram_);
   device->COM_clAttachOutputMemoryBufferToKernelParameter(
       gaussianXBlurOperationKernel, 2, clOutputBuffer);
   device->COM_clAttachMemoryBufferOffsetToKernelParameter(
@@ -147,14 +147,14 @@ void GaussianXBlurOperation::deinitExecution()
 {
   GaussianBlurBaseOperation::deinitExecution();
 
-  if (m_gausstab) {
-    MEM_freeN(m_gausstab);
-    m_gausstab = nullptr;
+  if (gausstab_) {
+    MEM_freeN(gausstab_);
+    gausstab_ = nullptr;
   }
 #ifdef BLI_HAVE_SSE2
-  if (m_gausstab_sse) {
-    MEM_freeN(m_gausstab_sse);
-    m_gausstab_sse = nullptr;
+  if (gausstab_sse_) {
+    MEM_freeN(gausstab_sse_);
+    gausstab_sse_ = nullptr;
   }
 #endif
 
@@ -167,7 +167,7 @@ bool GaussianXBlurOperation::determineDependingAreaOfInterest(rcti *input,
 {
   rcti newInput;
 
-  if (!m_sizeavailable) {
+  if (!sizeavailable_) {
     rcti sizeInput;
     sizeInput.xmin = 0;
     sizeInput.ymin = 0;
@@ -179,9 +179,9 @@ bool GaussianXBlurOperation::determineDependingAreaOfInterest(rcti *input,
     }
   }
   {
-    if (m_sizeavailable && m_gausstab != nullptr) {
-      newInput.xmax = input->xmax + m_filtersize + 1;
-      newInput.xmin = input->xmin - m_filtersize - 1;
+    if (sizeavailable_ && gausstab_ != nullptr) {
+      newInput.xmax = input->xmax + filtersize_ + 1;
+      newInput.xmin = input->xmin - filtersize_ - 1;
       newInput.ymax = input->ymax;
       newInput.ymin = input->ymin;
     }

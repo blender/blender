@@ -25,46 +25,46 @@ ChannelMatteOperation::ChannelMatteOperation()
   addInputSocket(DataType::Color);
   addOutputSocket(DataType::Value);
 
-  m_inputImageProgram = nullptr;
+  inputImageProgram_ = nullptr;
   flags.can_be_constant = true;
 }
 
 void ChannelMatteOperation::initExecution()
 {
-  m_inputImageProgram = this->getInputSocketReader(0);
+  inputImageProgram_ = this->getInputSocketReader(0);
 
-  m_limit_range = m_limit_max - m_limit_min;
+  limit_range_ = limit_max_ - limit_min_;
 
-  switch (m_limit_method) {
+  switch (limit_method_) {
     /* SINGLE */
     case 0: {
       /* 123 / RGB / HSV / YUV / YCC */
-      const int matte_channel = m_matte_channel - 1;
-      const int limit_channel = m_limit_channel - 1;
-      m_ids[0] = matte_channel;
-      m_ids[1] = limit_channel;
-      m_ids[2] = limit_channel;
+      const int matte_channel = matte_channel_ - 1;
+      const int limit_channel = limit_channel_ - 1;
+      ids_[0] = matte_channel;
+      ids_[1] = limit_channel;
+      ids_[2] = limit_channel;
       break;
     }
     /* MAX */
     case 1: {
-      switch (m_matte_channel) {
+      switch (matte_channel_) {
         case 1: {
-          m_ids[0] = 0;
-          m_ids[1] = 1;
-          m_ids[2] = 2;
+          ids_[0] = 0;
+          ids_[1] = 1;
+          ids_[2] = 2;
           break;
         }
         case 2: {
-          m_ids[0] = 1;
-          m_ids[1] = 0;
-          m_ids[2] = 2;
+          ids_[0] = 1;
+          ids_[1] = 0;
+          ids_[2] = 2;
           break;
         }
         case 3: {
-          m_ids[0] = 2;
-          m_ids[1] = 0;
-          m_ids[2] = 1;
+          ids_[0] = 2;
+          ids_[1] = 0;
+          ids_[2] = 1;
           break;
         }
         default:
@@ -79,7 +79,7 @@ void ChannelMatteOperation::initExecution()
 
 void ChannelMatteOperation::deinitExecution()
 {
-  m_inputImageProgram = nullptr;
+  inputImageProgram_ = nullptr;
 }
 
 void ChannelMatteOperation::executePixelSampled(float output[4],
@@ -90,14 +90,14 @@ void ChannelMatteOperation::executePixelSampled(float output[4],
   float inColor[4];
   float alpha;
 
-  const float limit_max = m_limit_max;
-  const float limit_min = m_limit_min;
-  const float limit_range = m_limit_range;
+  const float limit_max = limit_max_;
+  const float limit_min = limit_min_;
+  const float limit_range = limit_range_;
 
-  m_inputImageProgram->readSampled(inColor, x, y, sampler);
+  inputImageProgram_->readSampled(inColor, x, y, sampler);
 
   /* matte operation */
-  alpha = inColor[m_ids[0]] - MAX2(inColor[m_ids[1]], inColor[m_ids[2]]);
+  alpha = inColor[ids_[0]] - MAX2(inColor[ids_[1]], inColor[ids_[2]]);
 
   /* flip because 0.0 is transparent, not 1.0 */
   alpha = 1.0f - alpha;
@@ -129,20 +129,20 @@ void ChannelMatteOperation::update_memory_buffer_partial(MemoryBuffer *output,
     const float *color = it.in(0);
 
     /* Matte operation. */
-    float alpha = color[m_ids[0]] - MAX2(color[m_ids[1]], color[m_ids[2]]);
+    float alpha = color[ids_[0]] - MAX2(color[ids_[1]], color[ids_[2]]);
 
     /* Flip because 0.0 is transparent, not 1.0. */
     alpha = 1.0f - alpha;
 
     /* Test range. */
-    if (alpha > m_limit_max) {
+    if (alpha > limit_max_) {
       alpha = color[3]; /* Whatever it was prior. */
     }
-    else if (alpha < m_limit_min) {
+    else if (alpha < limit_min_) {
       alpha = 0.0f;
     }
     else { /* Blend. */
-      alpha = (alpha - m_limit_min) / m_limit_range;
+      alpha = (alpha - limit_min_) / limit_range_;
     }
 
     /* Store matte(alpha) value in [0] to go with

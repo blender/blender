@@ -36,11 +36,11 @@ typedef enum MovieClipAttribute {
  */
 class MovieClipAttributeOperation : public ConstantOperation {
  private:
-  MovieClip *m_clip;
-  float m_value;
-  int m_framenumber;
-  bool m_invert;
-  MovieClipAttribute m_attribute;
+  MovieClip *clip_;
+  float value_;
+  int framenumber_;
+  bool invert_;
+  MovieClipAttribute attribute_;
   bool is_value_calculated_;
   NodeOperationInput *stabilization_resolution_socket_;
 
@@ -62,19 +62,19 @@ class MovieClipAttributeOperation : public ConstantOperation {
 
   void setMovieClip(MovieClip *clip)
   {
-    m_clip = clip;
+    clip_ = clip;
   }
   void setFramenumber(int framenumber)
   {
-    m_framenumber = framenumber;
+    framenumber_ = framenumber;
   }
   void setAttribute(MovieClipAttribute attribute)
   {
-    m_attribute = attribute;
+    attribute_ = attribute;
   }
   void setInvert(bool invert)
   {
-    m_invert = invert;
+    invert_ = invert;
   }
 
   /**

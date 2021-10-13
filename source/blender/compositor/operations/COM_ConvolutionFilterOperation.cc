@@ -26,35 +26,35 @@ ConvolutionFilterOperation::ConvolutionFilterOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
   this->set_canvas_input_index(0);
-  m_inputOperation = nullptr;
+  inputOperation_ = nullptr;
   this->flags.complex = true;
 }
 void ConvolutionFilterOperation::initExecution()
 {
-  m_inputOperation = this->getInputSocketReader(0);
-  m_inputValueOperation = this->getInputSocketReader(1);
+  inputOperation_ = this->getInputSocketReader(0);
+  inputValueOperation_ = this->getInputSocketReader(1);
 }
 
 void ConvolutionFilterOperation::set3x3Filter(
     float f1, float f2, float f3, float f4, float f5, float f6, float f7, float f8, float f9)
 {
-  m_filter[0] = f1;
-  m_filter[1] = f2;
-  m_filter[2] = f3;
-  m_filter[3] = f4;
-  m_filter[4] = f5;
-  m_filter[5] = f6;
-  m_filter[6] = f7;
-  m_filter[7] = f8;
-  m_filter[8] = f9;
-  m_filterHeight = 3;
-  m_filterWidth = 3;
+  filter_[0] = f1;
+  filter_[1] = f2;
+  filter_[2] = f3;
+  filter_[3] = f4;
+  filter_[4] = f5;
+  filter_[5] = f6;
+  filter_[6] = f7;
+  filter_[7] = f8;
+  filter_[8] = f9;
+  filterHeight_ = 3;
+  filterWidth_ = 3;
 }
 
 void ConvolutionFilterOperation::deinitExecution()
 {
-  m_inputOperation = nullptr;
-  m_inputValueOperation = nullptr;
+  inputOperation_ = nullptr;
+  inputValueOperation_ = nullptr;
 }
 
 void ConvolutionFilterOperation::executePixel(float output[4], int x, int y, void * /*data*/)
@@ -74,28 +74,28 @@ void ConvolutionFilterOperation::executePixel(float output[4], int x, int y, voi
   CLAMP(y2, 0, getHeight() - 1);
   CLAMP(y3, 0, getHeight() - 1);
   float value[4];
-  m_inputValueOperation->read(value, x2, y2, nullptr);
+  inputValueOperation_->read(value, x2, y2, nullptr);
   const float mval = 1.0f - value[0];
 
   zero_v4(output);
-  m_inputOperation->read(in1, x1, y1, nullptr);
-  madd_v4_v4fl(output, in1, m_filter[0]);
-  m_inputOperation->read(in1, x2, y1, nullptr);
-  madd_v4_v4fl(output, in1, m_filter[1]);
-  m_inputOperation->read(in1, x3, y1, nullptr);
-  madd_v4_v4fl(output, in1, m_filter[2]);
-  m_inputOperation->read(in1, x1, y2, nullptr);
-  madd_v4_v4fl(output, in1, m_filter[3]);
-  m_inputOperation->read(in2, x2, y2, nullptr);
-  madd_v4_v4fl(output, in2, m_filter[4]);
-  m_inputOperation->read(in1, x3, y2, nullptr);
-  madd_v4_v4fl(output, in1, m_filter[5]);
-  m_inputOperation->read(in1, x1, y3, nullptr);
-  madd_v4_v4fl(output, in1, m_filter[6]);
-  m_inputOperation->read(in1, x2, y3, nullptr);
-  madd_v4_v4fl(output, in1, m_filter[7]);
-  m_inputOperation->read(in1, x3, y3, nullptr);
-  madd_v4_v4fl(output, in1, m_filter[8]);
+  inputOperation_->read(in1, x1, y1, nullptr);
+  madd_v4_v4fl(output, in1, filter_[0]);
+  inputOperation_->read(in1, x2, y1, nullptr);
+  madd_v4_v4fl(output, in1, filter_[1]);
+  inputOperation_->read(in1, x3, y1, nullptr);
+  madd_v4_v4fl(output, in1, filter_[2]);
+  inputOperation_->read(in1, x1, y2, nullptr);
+  madd_v4_v4fl(output, in1, filter_[3]);
+  inputOperation_->read(in2, x2, y2, nullptr);
+  madd_v4_v4fl(output, in2, filter_[4]);
+  inputOperation_->read(in1, x3, y2, nullptr);
+  madd_v4_v4fl(output, in1, filter_[5]);
+  inputOperation_->read(in1, x1, y3, nullptr);
+  madd_v4_v4fl(output, in1, filter_[6]);
+  inputOperation_->read(in1, x2, y3, nullptr);
+  madd_v4_v4fl(output, in1, filter_[7]);
+  inputOperation_->read(in1, x3, y3, nullptr);
+  madd_v4_v4fl(output, in1, filter_[8]);
 
   output[0] = output[0] * value[0] + in2[0] * mval;
   output[1] = output[1] * value[0] + in2[1] * mval;
@@ -113,8 +113,8 @@ bool ConvolutionFilterOperation::determineDependingAreaOfInterest(
     rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
   rcti newInput;
-  int addx = (m_filterWidth - 1) / 2 + 1;
-  int addy = (m_filterHeight - 1) / 2 + 1;
+  int addx = (filterWidth_ - 1) / 2 + 1;
+  int addy = (filterHeight_ - 1) / 2 + 1;
   newInput.xmax = input->xmax + addx;
   newInput.xmin = input->xmin - addx;
   newInput.ymax = input->ymax + addy;
@@ -129,8 +129,8 @@ void ConvolutionFilterOperation::get_area_of_interest(const int input_idx,
 {
   switch (input_idx) {
     case IMAGE_INPUT_INDEX: {
-      const int add_x = (m_filterWidth - 1) / 2 + 1;
-      const int add_y = (m_filterHeight - 1) / 2 + 1;
+      const int add_x = (filterWidth_ - 1) / 2 + 1;
+      const int add_y = (filterHeight_ - 1) / 2 + 1;
       r_input_area.xmin = output_area.xmin - add_x;
       r_input_area.xmax = output_area.xmax + add_x;
       r_input_area.ymin = output_area.ymin - add_y;
@@ -159,22 +159,22 @@ void ConvolutionFilterOperation::update_memory_buffer_partial(MemoryBuffer *outp
 
     const float *center_color = it.in(IMAGE_INPUT_INDEX);
     zero_v4(it.out);
-    madd_v4_v4fl(it.out, center_color + down_offset + left_offset, m_filter[0]);
-    madd_v4_v4fl(it.out, center_color + down_offset, m_filter[1]);
-    madd_v4_v4fl(it.out, center_color + down_offset + right_offset, m_filter[2]);
-    madd_v4_v4fl(it.out, center_color + left_offset, m_filter[3]);
-    madd_v4_v4fl(it.out, center_color, m_filter[4]);
-    madd_v4_v4fl(it.out, center_color + right_offset, m_filter[5]);
-    madd_v4_v4fl(it.out, center_color + up_offset + left_offset, m_filter[6]);
-    madd_v4_v4fl(it.out, center_color + up_offset, m_filter[7]);
-    madd_v4_v4fl(it.out, center_color + up_offset + right_offset, m_filter[8]);
+    madd_v4_v4fl(it.out, center_color + down_offset + left_offset, filter_[0]);
+    madd_v4_v4fl(it.out, center_color + down_offset, filter_[1]);
+    madd_v4_v4fl(it.out, center_color + down_offset + right_offset, filter_[2]);
+    madd_v4_v4fl(it.out, center_color + left_offset, filter_[3]);
+    madd_v4_v4fl(it.out, center_color, filter_[4]);
+    madd_v4_v4fl(it.out, center_color + right_offset, filter_[5]);
+    madd_v4_v4fl(it.out, center_color + up_offset + left_offset, filter_[6]);
+    madd_v4_v4fl(it.out, center_color + up_offset, filter_[7]);
+    madd_v4_v4fl(it.out, center_color + up_offset + right_offset, filter_[8]);
 
     const float factor = *it.in(FACTOR_INPUT_INDEX);
-    const float m_factor = 1.0f - factor;
-    it.out[0] = it.out[0] * factor + center_color[0] * m_factor;
-    it.out[1] = it.out[1] * factor + center_color[1] * m_factor;
-    it.out[2] = it.out[2] * factor + center_color[2] * m_factor;
-    it.out[3] = it.out[3] * factor + center_color[3] * m_factor;
+    const float factor_ = 1.0f - factor;
+    it.out[0] = it.out[0] * factor + center_color[0] * factor_;
+    it.out[1] = it.out[1] * factor + center_color[1] * factor_;
+    it.out[2] = it.out[2] * factor + center_color[2] * factor_;
+    it.out[3] = it.out[3] * factor + center_color[3] * factor_;
 
     /* Make sure we don't return negative color. */
     CLAMP4_MIN(it.out, 0.0f);

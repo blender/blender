@@ -35,12 +35,12 @@ namespace blender::compositor {
  */
 class TextureBaseOperation : public MultiThreadedOperation {
  private:
-  Tex *m_texture;
-  const RenderData *m_rd;
-  SocketReader *m_inputSize;
-  SocketReader *m_inputOffset;
-  struct ImagePool *m_pool;
-  bool m_sceneColorManage;
+  Tex *texture_;
+  const RenderData *rd_;
+  SocketReader *inputSize_;
+  SocketReader *inputOffset_;
+  struct ImagePool *pool_;
+  bool sceneColorManage_;
 
  protected:
   /**
@@ -58,17 +58,17 @@ class TextureBaseOperation : public MultiThreadedOperation {
 
   void setTexture(Tex *texture)
   {
-    m_texture = texture;
+    texture_ = texture;
   }
   void initExecution() override;
   void deinitExecution() override;
   void setRenderData(const RenderData *rd)
   {
-    m_rd = rd;
+    rd_ = rd;
   }
   void setSceneColorManage(bool sceneColorManage)
   {
-    m_sceneColorManage = sceneColorManage;
+    sceneColorManage_ = sceneColorManage;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

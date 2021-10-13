@@ -25,12 +25,12 @@ namespace blender::compositor {
 /* ******** Render Layers Base Prog ******** */
 
 RenderLayersProg::RenderLayersProg(const char *passName, DataType type, int elementsize)
-    : m_passName(passName)
+    : passName_(passName)
 {
   this->setScene(nullptr);
-  m_inputBuffer = nullptr;
-  m_elementsize = elementsize;
-  m_rd = nullptr;
+  inputBuffer_ = nullptr;
+  elementsize_ = elementsize;
+  rd_ = nullptr;
   layer_buffer_ = nullptr;
 
   this->addOutputSocket(type);
@@ -52,9 +52,9 @@ void RenderLayersProg::initExecution()
 
       RenderLayer *rl = RE_GetRenderLayer(rr, view_layer->name);
       if (rl) {
-        m_inputBuffer = RE_RenderLayerGetPass(rl, m_passName.c_str(), m_viewName);
-        if (m_inputBuffer) {
-          layer_buffer_ = new MemoryBuffer(m_inputBuffer, m_elementsize, getWidth(), getHeight());
+        inputBuffer_ = RE_RenderLayerGetPass(rl, passName_.c_str(), viewName_);
+        if (inputBuffer_) {
+          layer_buffer_ = new MemoryBuffer(inputBuffer_, elementsize_, getWidth(), getHeight());
         }
       }
     }
@@ -72,10 +72,10 @@ void RenderLayersProg::doInterpolation(float output[4], float x, float y, PixelS
 
   int ix = x, iy = y;
   if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
-    if (m_elementsize == 1) {
+    if (elementsize_ == 1) {
       output[0] = 0.0f;
     }
-    else if (m_elementsize == 3) {
+    else if (elementsize_ == 3) {
       zero_v3(output);
     }
     else {
@@ -86,26 +86,26 @@ void RenderLayersProg::doInterpolation(float output[4], float x, float y, PixelS
 
   switch (sampler) {
     case PixelSampler::Nearest: {
-      offset = (iy * width + ix) * m_elementsize;
+      offset = (iy * width + ix) * elementsize_;
 
-      if (m_elementsize == 1) {
-        output[0] = m_inputBuffer[offset];
+      if (elementsize_ == 1) {
+        output[0] = inputBuffer_[offset];
       }
-      else if (m_elementsize == 3) {
-        copy_v3_v3(output, &m_inputBuffer[offset]);
+      else if (elementsize_ == 3) {
+        copy_v3_v3(output, &inputBuffer_[offset]);
       }
       else {
-        copy_v4_v4(output, &m_inputBuffer[offset]);
+        copy_v4_v4(output, &inputBuffer_[offset]);
       }
       break;
     }
 
     case PixelSampler::Bilinear:
-      BLI_bilinear_interpolation_fl(m_inputBuffer, output, width, height, m_elementsize, x, y);
+      BLI_bilinear_interpolation_fl(inputBuffer_, output, width, height, elementsize_, x, y);
       break;
 
     case PixelSampler::Bicubic:
-      BLI_bicubic_interpolation_fl(m_inputBuffer, output, width, height, m_elementsize, x, y);
+      BLI_bicubic_interpolation_fl(inputBuffer_, output, width, height, elementsize_, x, y);
       break;
   }
 }
@@ -113,7 +113,7 @@ void RenderLayersProg::doInterpolation(float output[4], float x, float y, PixelS
 void RenderLayersProg::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 #if 0
-  const RenderData *rd = m_rd;
+  const RenderData *rd = rd_;
 
   int dx = 0, dy = 0;
 
@@ -135,7 +135,7 @@ void RenderLayersProg::executePixelSampled(float output[4], float x, float y, Pi
 #ifndef NDEBUG
   {
     const DataType data_type = this->getOutputSocket()->getDataType();
-    int actual_element_size = m_elementsize;
+    int actual_element_size = elementsize_;
     int expected_element_size;
     if (data_type == DataType::Value) {
       expected_element_size = 1;
@@ -154,8 +154,8 @@ void RenderLayersProg::executePixelSampled(float output[4], float x, float y, Pi
   }
 #endif
 
-  if (m_inputBuffer == nullptr) {
-    int elemsize = m_elementsize;
+  if (inputBuffer_ == nullptr) {
+    int elemsize = elementsize_;
     if (elemsize == 1) {
       output[0] = 0.0f;
     }
@@ -174,7 +174,7 @@ void RenderLayersProg::executePixelSampled(float output[4], float x, float y, Pi
 
 void RenderLayersProg::deinitExecution()
 {
-  m_inputBuffer = nullptr;
+  inputBuffer_ = nullptr;
   if (layer_buffer_) {
     delete layer_buffer_;
     layer_buffer_ = nullptr;
@@ -225,7 +225,7 @@ std::unique_ptr<MetaData> RenderLayersProg::getMetaData()
       std::string full_layer_name = std::string(
                                         view_layer->name,
                                         BLI_strnlen(view_layer->name, sizeof(view_layer->name))) +
-                                    "." + m_passName;
+                                    "." + passName_;
       blender::StringRef cryptomatte_layer_name =
           blender::bke::cryptomatte::BKE_cryptomatte_extract_layer_name(full_layer_name);
       callback_data.setCryptomatteKeys(cryptomatte_layer_name);
@@ -249,13 +249,13 @@ void RenderLayersProg::update_memory_buffer_partial(MemoryBuffer *output,
                                                     const rcti &area,
                                                     Span<MemoryBuffer *> UNUSED(inputs))
 {
-  BLI_assert(output->get_num_channels() >= m_elementsize);
+  BLI_assert(output->get_num_channels() >= elementsize_);
   if (layer_buffer_) {
-    output->copy_from(layer_buffer_, area, 0, m_elementsize, 0);
+    output->copy_from(layer_buffer_, area, 0, elementsize_, 0);
   }
   else {
-    std::unique_ptr<float[]> zero_elem = std::make_unique<float[]>(m_elementsize);
-    output->fill(area, 0, zero_elem.get(), m_elementsize);
+    std::unique_ptr<float[]> zero_elem = std::make_unique<float[]>(elementsize_);
+    output->fill(area, 0, zero_elem.get(), elementsize_);
   }
 }
 
@@ -280,7 +280,7 @@ void RenderLayersAOOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                            Span<MemoryBuffer *> UNUSED(inputs))
 {
   BLI_assert(output->get_num_channels() == COM_DATA_TYPE_COLOR_CHANNELS);
-  BLI_assert(m_elementsize == COM_DATA_TYPE_COLOR_CHANNELS);
+  BLI_assert(elementsize_ == COM_DATA_TYPE_COLOR_CHANNELS);
   if (layer_buffer_) {
     output->copy_from(layer_buffer_, area, 0, COM_DATA_TYPE_VECTOR_CHANNELS, 0);
   }
@@ -313,7 +313,7 @@ void RenderLayersAlphaProg::update_memory_buffer_partial(MemoryBuffer *output,
                                                          Span<MemoryBuffer *> UNUSED(inputs))
 {
   BLI_assert(output->get_num_channels() == COM_DATA_TYPE_VALUE_CHANNELS);
-  BLI_assert(m_elementsize == COM_DATA_TYPE_COLOR_CHANNELS);
+  BLI_assert(elementsize_ == COM_DATA_TYPE_COLOR_CHANNELS);
   if (layer_buffer_) {
     output->copy_from(layer_buffer_, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);
   }
@@ -347,7 +347,7 @@ void RenderLayersDepthProg::update_memory_buffer_partial(MemoryBuffer *output,
                                                          Span<MemoryBuffer *> UNUSED(inputs))
 {
   BLI_assert(output->get_num_channels() == COM_DATA_TYPE_VALUE_CHANNELS);
-  BLI_assert(m_elementsize == COM_DATA_TYPE_VALUE_CHANNELS);
+  BLI_assert(elementsize_ == COM_DATA_TYPE_VALUE_CHANNELS);
   if (layer_buffer_) {
     output->copy_from(layer_buffer_, area);
   }

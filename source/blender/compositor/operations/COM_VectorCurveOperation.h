@@ -28,7 +28,7 @@ class VectorCurveOperation : public CurveBaseOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
+  SocketReader *inputProgram_;
 
  public:
   VectorCurveOperation();

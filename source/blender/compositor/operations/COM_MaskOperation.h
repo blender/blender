@@ -33,23 +33,23 @@ namespace blender::compositor {
  */
 class MaskOperation : public MultiThreadedOperation {
  protected:
-  Mask *m_mask;
+  Mask *mask_;
 
   /* NOTE: these are used more like aspect,
    * but they _do_ impact on mask detail */
-  int m_maskWidth;
-  int m_maskHeight;
-  float m_maskWidthInv;  /* `1 / m_maskWidth` */
-  float m_maskHeightInv; /* `1 / m_maskHeight` */
-  float m_mask_px_ofs[2];
+  int maskWidth_;
+  int maskHeight_;
+  float maskWidthInv_;  /* `1 / maskWidth_` */
+  float maskHeightInv_; /* `1 / maskHeight_` */
+  float mask_px_ofs_[2];
 
-  float m_frame_shutter;
-  int m_frame_number;
+  float frame_shutter_;
+  int frame_number_;
 
-  bool m_do_feather;
+  bool do_feather_;
 
-  struct MaskRasterHandle *m_rasterMaskHandles[CMP_NODE_MASK_MBLUR_SAMPLES_MAX];
-  unsigned int m_rasterMaskHandleTot;
+  struct MaskRasterHandle *rasterMaskHandles_[CMP_NODE_MASK_MBLUR_SAMPLES_MAX];
+  unsigned int rasterMaskHandleTot_;
 
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -64,36 +64,36 @@ class MaskOperation : public MultiThreadedOperation {
 
   void setMask(Mask *mask)
   {
-    m_mask = mask;
+    mask_ = mask;
   }
   void setMaskWidth(int width)
   {
-    m_maskWidth = width;
-    m_maskWidthInv = 1.0f / (float)width;
-    m_mask_px_ofs[0] = m_maskWidthInv * 0.5f;
+    maskWidth_ = width;
+    maskWidthInv_ = 1.0f / (float)width;
+    mask_px_ofs_[0] = maskWidthInv_ * 0.5f;
   }
   void setMaskHeight(int height)
   {
-    m_maskHeight = height;
-    m_maskHeightInv = 1.0f / (float)height;
-    m_mask_px_ofs[1] = m_maskHeightInv * 0.5f;
+    maskHeight_ = height;
+    maskHeightInv_ = 1.0f / (float)height;
+    mask_px_ofs_[1] = maskHeightInv_ * 0.5f;
   }
   void setFramenumber(int frame_number)
   {
-    m_frame_number = frame_number;
+    frame_number_ = frame_number;
   }
   void setFeather(bool feather)
   {
-    m_do_feather = feather;
+    do_feather_ = feather;
   }
 
   void setMotionBlurSamples(int samples)
   {
-    m_rasterMaskHandleTot = MIN2(MAX2(1, samples), CMP_NODE_MASK_MBLUR_SAMPLES_MAX);
+    rasterMaskHandleTot_ = MIN2(MAX2(1, samples), CMP_NODE_MASK_MBLUR_SAMPLES_MAX);
   }
   void setMotionBlurShutter(float shutter)
   {
-    m_frame_shutter = shutter;
+    frame_shutter_ = shutter;
   }
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;

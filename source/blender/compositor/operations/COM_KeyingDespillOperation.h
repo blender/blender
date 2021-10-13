@@ -27,10 +27,10 @@ namespace blender::compositor {
  */
 class KeyingDespillOperation : public MultiThreadedOperation {
  protected:
-  SocketReader *m_pixelReader;
-  SocketReader *m_screenReader;
-  float m_despillFactor;
-  float m_colorBalance;
+  SocketReader *pixelReader_;
+  SocketReader *screenReader_;
+  float despillFactor_;
+  float colorBalance_;
 
  public:
   KeyingDespillOperation();
@@ -40,11 +40,11 @@ class KeyingDespillOperation : public MultiThreadedOperation {
 
   void setDespillFactor(float value)
   {
-    m_despillFactor = value;
+    despillFactor_ = value;
   }
   void setColorBalance(float value)
   {
-    m_colorBalance = value;
+    colorBalance_ = value;
   }
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;

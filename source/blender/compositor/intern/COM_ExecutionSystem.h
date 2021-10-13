@@ -137,17 +137,17 @@ class ExecutionSystem {
   /**
    * \brief the context used during execution
    */
-  CompositorContext m_context;
+  CompositorContext context_;
 
   /**
    * \brief vector of operations
    */
-  Vector<NodeOperation *> m_operations;
+  Vector<NodeOperation *> operations_;
 
   /**
    * \brief vector of groups
    */
-  Vector<ExecutionGroup *> m_groups;
+  Vector<ExecutionGroup *> groups_;
 
   /**
    * Active execution model implementation.
@@ -200,7 +200,7 @@ class ExecutionSystem {
    */
   const CompositorContext &getContext() const
   {
-    return m_context;
+    return context_;
   }
 
   SharedOperationBuffers &get_active_buffers()

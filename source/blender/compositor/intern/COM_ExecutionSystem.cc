@@ -43,40 +43,40 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
                                  const char *viewName)
 {
   num_work_threads_ = WorkScheduler::get_num_cpu_threads();
-  m_context.setViewName(viewName);
-  m_context.setScene(scene);
-  m_context.setbNodeTree(editingtree);
-  m_context.setPreviewHash(editingtree->previews);
-  m_context.setFastCalculation(fastcalculation);
+  context_.setViewName(viewName);
+  context_.setScene(scene);
+  context_.setbNodeTree(editingtree);
+  context_.setPreviewHash(editingtree->previews);
+  context_.setFastCalculation(fastcalculation);
   /* initialize the CompositorContext */
   if (rendering) {
-    m_context.setQuality((eCompositorQuality)editingtree->render_quality);
+    context_.setQuality((eCompositorQuality)editingtree->render_quality);
   }
   else {
-    m_context.setQuality((eCompositorQuality)editingtree->edit_quality);
+    context_.setQuality((eCompositorQuality)editingtree->edit_quality);
   }
-  m_context.setRendering(rendering);
-  m_context.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() &&
-                                      (editingtree->flag & NTREE_COM_OPENCL));
+  context_.setRendering(rendering);
+  context_.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() &&
+                                     (editingtree->flag & NTREE_COM_OPENCL));
 
-  m_context.setRenderData(rd);
-  m_context.setViewSettings(viewSettings);
-  m_context.setDisplaySettings(displaySettings);
+  context_.setRenderData(rd);
+  context_.setViewSettings(viewSettings);
+  context_.setDisplaySettings(displaySettings);
 
   BLI_mutex_init(&work_mutex_);
   BLI_condition_init(&work_finished_cond_);
 
   {
-    NodeOperationBuilder builder(&m_context, editingtree, this);
+    NodeOperationBuilder builder(&context_, editingtree, this);
     builder.convertToOperations(this);
   }
 
-  switch (m_context.get_execution_model()) {
+  switch (context_.get_execution_model()) {
     case eExecutionModel::Tiled:
-      execution_model_ = new TiledExecutionModel(m_context, m_operations, m_groups);
+      execution_model_ = new TiledExecutionModel(context_, operations_, groups_);
       break;
     case eExecutionModel::FullFrame:
-      execution_model_ = new FullFrameExecutionModel(m_context, active_buffers_, m_operations);
+      execution_model_ = new FullFrameExecutionModel(context_, active_buffers_, operations_);
       break;
     default:
       BLI_assert_msg(0, "Non implemented execution model");
@@ -91,28 +91,28 @@ ExecutionSystem::~ExecutionSystem()
 
   delete execution_model_;
 
-  for (NodeOperation *operation : m_operations) {
+  for (NodeOperation *operation : operations_) {
     delete operation;
   }
-  m_operations.clear();
+  operations_.clear();
 
-  for (ExecutionGroup *group : m_groups) {
+  for (ExecutionGroup *group : groups_) {
     delete group;
   }
-  m_groups.clear();
+  groups_.clear();
 }
 
 void ExecutionSystem::set_operations(const Vector<NodeOperation *> &operations,
                                      const Vector<ExecutionGroup *> &groups)
 {
-  m_operations = operations;
-  m_groups = groups;
+  operations_ = operations;
+  groups_ = groups;
 }
 
 void ExecutionSystem::execute()
 {
   DebugInfo::execute_started(this);
-  for (NodeOperation *op : m_operations) {
+  for (NodeOperation *op : operations_) {
     op->init_data();
   }
   execution_model_->execute(*this);
@@ -184,7 +184,7 @@ void ExecutionSystem::execute_work(const rcti &work_rect,
 
 bool ExecutionSystem::is_breaked() const
 {
-  const bNodeTree *btree = m_context.getbNodeTree();
+  const bNodeTree *btree = context_.getbNodeTree();
   return btree->test_break(btree->tbh);
 }
 

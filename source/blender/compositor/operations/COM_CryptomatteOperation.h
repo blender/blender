@@ -24,7 +24,7 @@ namespace blender::compositor {
 
 class CryptomatteOperation : public MultiThreadedOperation {
  private:
-  Vector<float> m_objectIndex;
+  Vector<float> objectIndex_;
 
  public:
   Vector<SocketReader *> inputs;

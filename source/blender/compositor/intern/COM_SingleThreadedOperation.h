@@ -24,12 +24,12 @@ namespace blender::compositor {
 
 class SingleThreadedOperation : public NodeOperation {
  private:
-  MemoryBuffer *m_cachedInstance;
+  MemoryBuffer *cachedInstance_;
 
  protected:
   inline bool isCached()
   {
-    return m_cachedInstance != nullptr;
+    return cachedInstance_ != nullptr;
   }
 
  public:

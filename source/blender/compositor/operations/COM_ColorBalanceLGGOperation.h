@@ -31,12 +31,12 @@ class ColorBalanceLGGOperation : public MultiThreadedRowOperation {
   /**
    * Prefetched reference to the inputProgram
    */
-  SocketReader *m_inputValueOperation;
-  SocketReader *m_inputColorOperation;
+  SocketReader *inputValueOperation_;
+  SocketReader *inputColorOperation_;
 
-  float m_gain[3];
-  float m_lift[3];
-  float m_gamma_inv[3];
+  float gain_[3];
+  float lift_[3];
+  float gamma_inv_[3];
 
  public:
   /**
@@ -61,15 +61,15 @@ class ColorBalanceLGGOperation : public MultiThreadedRowOperation {
 
   void setGain(const float gain[3])
   {
-    copy_v3_v3(m_gain, gain);
+    copy_v3_v3(gain_, gain);
   }
   void setLift(const float lift[3])
   {
-    copy_v3_v3(m_lift, lift);
+    copy_v3_v3(lift_, lift);
   }
   void setGammaInv(const float gamma_inv[3])
   {
-    copy_v3_v3(m_gamma_inv, gamma_inv);
+    copy_v3_v3(gamma_inv_, gamma_inv);
   }
 
   void update_memory_buffer_row(PixelCursor &p) override;

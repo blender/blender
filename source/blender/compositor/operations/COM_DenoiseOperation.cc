@@ -160,21 +160,21 @@ DenoiseOperation::DenoiseOperation()
   this->addInputSocket(DataType::Vector);
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  m_settings = nullptr;
+  settings_ = nullptr;
 }
 void DenoiseOperation::initExecution()
 {
   SingleThreadedOperation::initExecution();
-  m_inputProgramColor = getInputSocketReader(0);
-  m_inputProgramNormal = getInputSocketReader(1);
-  m_inputProgramAlbedo = getInputSocketReader(2);
+  inputProgramColor_ = getInputSocketReader(0);
+  inputProgramNormal_ = getInputSocketReader(1);
+  inputProgramAlbedo_ = getInputSocketReader(2);
 }
 
 void DenoiseOperation::deinitExecution()
 {
-  m_inputProgramColor = nullptr;
-  m_inputProgramNormal = nullptr;
-  m_inputProgramAlbedo = nullptr;
+  inputProgramColor_ = nullptr;
+  inputProgramNormal_ = nullptr;
+  inputProgramAlbedo_ = nullptr;
   SingleThreadedOperation::deinitExecution();
 }
 
@@ -192,23 +192,23 @@ static bool are_guiding_passes_noise_free(NodeDenoise *settings)
 
 void DenoiseOperation::hash_output_params()
 {
-  if (m_settings) {
-    hash_params((int)m_settings->hdr, are_guiding_passes_noise_free(m_settings));
+  if (settings_) {
+    hash_params((int)settings_->hdr, are_guiding_passes_noise_free(settings_));
   }
 }
 
 MemoryBuffer *DenoiseOperation::createMemoryBuffer(rcti *rect2)
 {
-  MemoryBuffer *tileColor = (MemoryBuffer *)m_inputProgramColor->initializeTileData(rect2);
-  MemoryBuffer *tileNormal = (MemoryBuffer *)m_inputProgramNormal->initializeTileData(rect2);
-  MemoryBuffer *tileAlbedo = (MemoryBuffer *)m_inputProgramAlbedo->initializeTileData(rect2);
+  MemoryBuffer *tileColor = (MemoryBuffer *)inputProgramColor_->initializeTileData(rect2);
+  MemoryBuffer *tileNormal = (MemoryBuffer *)inputProgramNormal_->initializeTileData(rect2);
+  MemoryBuffer *tileAlbedo = (MemoryBuffer *)inputProgramAlbedo_->initializeTileData(rect2);
   rcti rect;
   rect.xmin = 0;
   rect.ymin = 0;
   rect.xmax = getWidth();
   rect.ymax = getHeight();
   MemoryBuffer *result = new MemoryBuffer(DataType::Color, rect);
-  this->generateDenoise(result, tileColor, tileNormal, tileAlbedo, m_settings);
+  this->generateDenoise(result, tileColor, tileNormal, tileAlbedo, settings_);
   return result;
 }
 
@@ -270,7 +270,7 @@ void DenoiseOperation::update_memory_buffer(MemoryBuffer *output,
                                             Span<MemoryBuffer *> inputs)
 {
   if (!output_rendered_) {
-    this->generateDenoise(output, inputs[0], inputs[1], inputs[2], m_settings);
+    this->generateDenoise(output, inputs[0], inputs[1], inputs[2], settings_);
     output_rendered_ = true;
   }
 }

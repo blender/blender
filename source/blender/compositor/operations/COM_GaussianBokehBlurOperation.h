@@ -26,8 +26,8 @@ namespace blender::compositor {
 
 class GaussianBokehBlurOperation : public BlurBaseOperation {
  private:
-  float *m_gausstab;
-  int m_radx, m_rady;
+  float *gausstab_;
+  int radx_, rady_;
   float radxf_;
   float radyf_;
   void updateGauss();
@@ -61,13 +61,13 @@ class GaussianBokehBlurOperation : public BlurBaseOperation {
 
 class GaussianBlurReferenceOperation : public BlurBaseOperation {
  private:
-  float **m_maintabs;
+  float **maintabs_;
 
   void updateGauss();
-  int m_filtersizex;
-  int m_filtersizey;
-  float m_radx;
-  float m_rady;
+  int filtersizex_;
+  int filtersizey_;
+  float radx_;
+  float rady_;
 
  public:
   GaussianBlurReferenceOperation();

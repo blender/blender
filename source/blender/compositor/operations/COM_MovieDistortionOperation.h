@@ -28,17 +28,17 @@ namespace blender::compositor {
 
 class MovieDistortionOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_inputOperation;
-  MovieClip *m_movieClip;
-  int m_margin[2];
+  SocketReader *inputOperation_;
+  MovieClip *movieClip_;
+  int margin_[2];
 
  protected:
-  bool m_apply;
-  int m_framenumber;
+  bool apply_;
+  int framenumber_;
 
-  struct MovieDistortion *m_distortion;
-  int m_calibration_width, m_calibration_height;
-  float m_pixel_aspect;
+  struct MovieDistortion *distortion_;
+  int calibration_width_, calibration_height_;
+  float pixel_aspect_;
 
  public:
   MovieDistortionOperation(bool distortion);
@@ -50,11 +50,11 @@ class MovieDistortionOperation : public MultiThreadedOperation {
 
   void setMovieClip(MovieClip *clip)
   {
-    m_movieClip = clip;
+    movieClip_ = clip;
   }
   void setFramenumber(int framenumber)
   {
-    m_framenumber = framenumber;
+    framenumber_ = framenumber;
   }
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,

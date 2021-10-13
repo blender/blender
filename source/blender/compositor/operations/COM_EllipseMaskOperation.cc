@@ -25,19 +25,19 @@ EllipseMaskOperation::EllipseMaskOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
-  m_inputMask = nullptr;
-  m_inputValue = nullptr;
-  m_cosine = 0.0f;
-  m_sine = 0.0f;
+  inputMask_ = nullptr;
+  inputValue_ = nullptr;
+  cosine_ = 0.0f;
+  sine_ = 0.0f;
 }
 void EllipseMaskOperation::initExecution()
 {
-  m_inputMask = this->getInputSocketReader(0);
-  m_inputValue = this->getInputSocketReader(1);
-  const double rad = (double)m_data->rotation;
-  m_cosine = cos(rad);
-  m_sine = sin(rad);
-  m_aspectRatio = ((float)this->getWidth()) / this->getHeight();
+  inputMask_ = this->getInputSocketReader(0);
+  inputValue_ = this->getInputSocketReader(1);
+  const double rad = (double)data_->rotation;
+  cosine_ = cos(rad);
+  sine_ = sin(rad);
+  aspectRatio_ = ((float)this->getWidth()) / this->getHeight();
 }
 
 void EllipseMaskOperation::executePixelSampled(float output[4],
@@ -51,26 +51,26 @@ void EllipseMaskOperation::executePixelSampled(float output[4],
   float rx = x / this->getWidth();
   float ry = y / this->getHeight();
 
-  const float dy = (ry - m_data->y) / m_aspectRatio;
-  const float dx = rx - m_data->x;
-  rx = m_data->x + (m_cosine * dx + m_sine * dy);
-  ry = m_data->y + (-m_sine * dx + m_cosine * dy);
+  const float dy = (ry - data_->y) / aspectRatio_;
+  const float dx = rx - data_->x;
+  rx = data_->x + (cosine_ * dx + sine_ * dy);
+  ry = data_->y + (-sine_ * dx + cosine_ * dy);
 
-  m_inputMask->readSampled(inputMask, x, y, sampler);
-  m_inputValue->readSampled(inputValue, x, y, sampler);
+  inputMask_->readSampled(inputMask, x, y, sampler);
+  inputValue_->readSampled(inputValue, x, y, sampler);
 
-  const float halfHeight = (m_data->height) / 2.0f;
-  const float halfWidth = m_data->width / 2.0f;
-  float sx = rx - m_data->x;
+  const float halfHeight = (data_->height) / 2.0f;
+  const float halfWidth = data_->width / 2.0f;
+  float sx = rx - data_->x;
   sx *= sx;
   const float tx = halfWidth * halfWidth;
-  float sy = ry - m_data->y;
+  float sy = ry - data_->y;
   sy *= sy;
   const float ty = halfHeight * halfHeight;
 
   bool inside = ((sx / tx) + (sy / ty)) < 1.0f;
 
-  switch (m_maskType) {
+  switch (maskType_) {
     case CMP_NODE_MASKTYPE_ADD:
       if (inside) {
         output[0] = MAX2(inputMask[0], inputValue[0]);
@@ -117,7 +117,7 @@ void EllipseMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                         Span<MemoryBuffer *> inputs)
 {
   MaskFunc mask_func;
-  switch (m_maskType) {
+  switch (maskType_) {
     case CMP_NODE_MASKTYPE_ADD:
       mask_func = [](const bool is_inside, const float *mask, const float *value) {
         return is_inside ? MAX2(mask[0], value[0]) : mask[0];
@@ -154,24 +154,24 @@ void EllipseMaskOperation::apply_mask(MemoryBuffer *output,
   const MemoryBuffer *input_value = inputs[1];
   const float op_w = this->getWidth();
   const float op_h = this->getHeight();
-  const float half_w = m_data->width / 2.0f;
-  const float half_h = m_data->height / 2.0f;
+  const float half_w = data_->width / 2.0f;
+  const float half_h = data_->height / 2.0f;
   const float tx = half_w * half_w;
   const float ty = half_h * half_h;
   for (int y = area.ymin; y < area.ymax; y++) {
     const float op_ry = y / op_h;
-    const float dy = (op_ry - m_data->y) / m_aspectRatio;
+    const float dy = (op_ry - data_->y) / aspectRatio_;
     float *out = output->get_elem(area.xmin, y);
     const float *mask = input_mask->get_elem(area.xmin, y);
     const float *value = input_value->get_elem(area.xmin, y);
     for (int x = area.xmin; x < area.xmax; x++) {
       const float op_rx = x / op_w;
-      const float dx = op_rx - m_data->x;
-      const float rx = m_data->x + (m_cosine * dx + m_sine * dy);
-      const float ry = m_data->y + (-m_sine * dx + m_cosine * dy);
-      float sx = rx - m_data->x;
+      const float dx = op_rx - data_->x;
+      const float rx = data_->x + (cosine_ * dx + sine_ * dy);
+      const float ry = data_->y + (-sine_ * dx + cosine_ * dy);
+      float sx = rx - data_->x;
       sx *= sx;
-      float sy = ry - m_data->y;
+      float sy = ry - data_->y;
       sy *= sy;
       const bool inside = ((sx / tx) + (sy / ty)) < 1.0f;
       out[0] = mask_func(inside, mask, value);
@@ -185,8 +185,8 @@ void EllipseMaskOperation::apply_mask(MemoryBuffer *output,
 
 void EllipseMaskOperation::deinitExecution()
 {
-  m_inputMask = nullptr;
-  m_inputValue = nullptr;
+  inputMask_ = nullptr;
+  inputValue_ = nullptr;
 }
 
 }  // namespace blender::compositor

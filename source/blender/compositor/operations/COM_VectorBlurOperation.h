@@ -33,16 +33,16 @@ class VectorBlurOperation : public NodeOperation, public QualityStepHelper {
   /**
    * \brief Cached reference to the inputProgram
    */
-  SocketReader *m_inputImageProgram;
-  SocketReader *m_inputSpeedProgram;
-  SocketReader *m_inputZProgram;
+  SocketReader *inputImageProgram_;
+  SocketReader *inputSpeedProgram_;
+  SocketReader *inputZProgram_;
 
   /**
    * \brief settings of the glare node.
    */
-  NodeBlurData *m_settings;
+  NodeBlurData *settings_;
 
-  float *m_cachedInstance;
+  float *cachedInstance_;
 
  public:
   VectorBlurOperation();
@@ -66,7 +66,7 @@ class VectorBlurOperation : public NodeOperation, public QualityStepHelper {
 
   void setVectorBlurSettings(NodeBlurData *settings)
   {
-    m_settings = settings;
+    settings_ = settings;
   }
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,

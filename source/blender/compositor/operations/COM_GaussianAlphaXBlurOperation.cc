@@ -28,7 +28,7 @@ GaussianAlphaXBlurOperation::GaussianAlphaXBlurOperation()
 void *GaussianAlphaXBlurOperation::initializeTileData(rcti * /*rect*/)
 {
   lockMutex();
-  if (!m_sizeavailable) {
+  if (!sizeavailable_) {
     updateGauss();
   }
   void *buffer = getInputOperation(0)->initializeTileData(nullptr);
@@ -42,32 +42,32 @@ void GaussianAlphaXBlurOperation::initExecution()
 
   initMutex();
 
-  if (m_sizeavailable && execution_model_ == eExecutionModel::Tiled) {
-    float rad = max_ff(m_size * m_data.sizex, 0.0f);
-    m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
+  if (sizeavailable_ && execution_model_ == eExecutionModel::Tiled) {
+    float rad = max_ff(size_ * data_.sizex, 0.0f);
+    filtersize_ = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
-    m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
-    m_distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad, m_filtersize, m_falloff);
+    gausstab_ = BlurBaseOperation::make_gausstab(rad, filtersize_);
+    distbuf_inv_ = BlurBaseOperation::make_dist_fac_inverse(rad, filtersize_, falloff_);
   }
 }
 
 void GaussianAlphaXBlurOperation::updateGauss()
 {
-  if (m_gausstab == nullptr) {
+  if (gausstab_ == nullptr) {
     updateSize();
-    float rad = max_ff(m_size * m_data.sizex, 0.0f);
-    m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
+    float rad = max_ff(size_ * data_.sizex, 0.0f);
+    filtersize_ = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
-    m_gausstab = BlurBaseOperation::make_gausstab(rad, m_filtersize);
+    gausstab_ = BlurBaseOperation::make_gausstab(rad, filtersize_);
   }
 
-  if (m_distbuf_inv == nullptr) {
+  if (distbuf_inv_ == nullptr) {
     updateSize();
-    float rad = max_ff(m_size * m_data.sizex, 0.0f);
+    float rad = max_ff(size_ * data_.sizex, 0.0f);
     rad = min_ff(rad, MAX_GAUSSTAB_RADIUS);
-    m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
+    filtersize_ = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
-    m_distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad, m_filtersize, m_falloff);
+    distbuf_inv_ = BlurBaseOperation::make_dist_fac_inverse(rad, filtersize_, falloff_);
   }
 }
 
@@ -78,7 +78,7 @@ BLI_INLINE float finv_test(const float f, const bool test)
 
 void GaussianAlphaXBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
-  const bool do_invert = m_do_subtract;
+  const bool do_invert = do_subtract_;
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
   int bufferwidth = inputBuffer->getWidth();
@@ -87,8 +87,8 @@ void GaussianAlphaXBlurOperation::executePixel(float output[4], int x, int y, vo
   int bufferstarty = input_rect.ymin;
 
   const rcti &rect = inputBuffer->get_rect();
-  int xmin = max_ii(x - m_filtersize, rect.xmin);
-  int xmax = min_ii(x + m_filtersize + 1, rect.xmax);
+  int xmin = max_ii(x - filtersize_, rect.xmin);
+  int xmax = min_ii(x + filtersize_ + 1, rect.xmax);
   int ymin = max_ii(y, rect.ymin);
 
   /* *** this is the main part which is different to 'GaussianXBlurOperation'  *** */
@@ -106,20 +106,20 @@ void GaussianAlphaXBlurOperation::executePixel(float output[4], int x, int y, vo
   float distfacinv_max = 1.0f; /* 0 to 1 */
 
   for (int nx = xmin; nx < xmax; nx += step) {
-    const int index = (nx - x) + m_filtersize;
+    const int index = (nx - x) + filtersize_;
     float value = finv_test(buffer[bufferindex], do_invert);
     float multiplier;
 
     /* gauss */
     {
-      multiplier = m_gausstab[index];
+      multiplier = gausstab_[index];
       alpha_accum += value * multiplier;
       multiplier_accum += multiplier;
     }
 
     /* dilate - find most extreme color */
     if (value > value_max) {
-      multiplier = m_distbuf_inv[index];
+      multiplier = distbuf_inv_[index];
       value *= multiplier;
       if (value > value_max) {
         value_max = value;
@@ -139,14 +139,14 @@ void GaussianAlphaXBlurOperation::deinitExecution()
 {
   GaussianAlphaBlurBaseOperation::deinitExecution();
 
-  if (m_gausstab) {
-    MEM_freeN(m_gausstab);
-    m_gausstab = nullptr;
+  if (gausstab_) {
+    MEM_freeN(gausstab_);
+    gausstab_ = nullptr;
   }
 
-  if (m_distbuf_inv) {
-    MEM_freeN(m_distbuf_inv);
-    m_distbuf_inv = nullptr;
+  if (distbuf_inv_) {
+    MEM_freeN(distbuf_inv_);
+    distbuf_inv_ = nullptr;
   }
 
   deinitMutex();
@@ -170,9 +170,9 @@ bool GaussianAlphaXBlurOperation::determineDependingAreaOfInterest(
   else
 #endif
   {
-    if (m_sizeavailable && m_gausstab != nullptr) {
-      newInput.xmax = input->xmax + m_filtersize + 1;
-      newInput.xmin = input->xmin - m_filtersize - 1;
+    if (sizeavailable_ && gausstab_ != nullptr) {
+      newInput.xmax = input->xmax + filtersize_ + 1;
+      newInput.xmin = input->xmin - filtersize_ - 1;
       newInput.ymax = input->ymax;
       newInput.ymin = input->ymin;
     }

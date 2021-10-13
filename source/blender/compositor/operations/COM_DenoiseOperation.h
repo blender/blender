@@ -45,14 +45,14 @@ class DenoiseOperation : public DenoiseBaseOperation {
   /**
    * \brief Cached reference to the input programs
    */
-  SocketReader *m_inputProgramColor;
-  SocketReader *m_inputProgramAlbedo;
-  SocketReader *m_inputProgramNormal;
+  SocketReader *inputProgramColor_;
+  SocketReader *inputProgramAlbedo_;
+  SocketReader *inputProgramNormal_;
 
   /**
    * \brief settings of the denoise node.
    */
-  NodeDenoise *m_settings;
+  NodeDenoise *settings_;
 
  public:
   DenoiseOperation();
@@ -68,7 +68,7 @@ class DenoiseOperation : public DenoiseBaseOperation {
 
   void setDenoiseSettings(NodeDenoise *settings)
   {
-    m_settings = settings;
+    settings_ = settings;
   }
 
   void update_memory_buffer(MemoryBuffer *output,

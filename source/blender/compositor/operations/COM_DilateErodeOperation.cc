@@ -27,58 +27,58 @@ DilateErodeThresholdOperation::DilateErodeThresholdOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
   this->flags.complex = true;
-  m_inputProgram = nullptr;
-  m_inset = 0.0f;
-  m__switch = 0.5f;
-  m_distance = 0.0f;
+  inputProgram_ = nullptr;
+  inset_ = 0.0f;
+  switch_ = 0.5f;
+  distance_ = 0.0f;
 }
 
 void DilateErodeThresholdOperation::init_data()
 {
-  if (m_distance < 0.0f) {
-    m_scope = -m_distance + m_inset;
+  if (distance_ < 0.0f) {
+    scope_ = -distance_ + inset_;
   }
   else {
-    if (m_inset * 2 > m_distance) {
-      m_scope = MAX2(m_inset * 2 - m_distance, m_distance);
+    if (inset_ * 2 > distance_) {
+      scope_ = MAX2(inset_ * 2 - distance_, distance_);
     }
     else {
-      m_scope = m_distance;
+      scope_ = distance_;
     }
   }
-  if (m_scope < 3) {
-    m_scope = 3;
+  if (scope_ < 3) {
+    scope_ = 3;
   }
 }
 
 void DilateErodeThresholdOperation::initExecution()
 {
-  m_inputProgram = this->getInputSocketReader(0);
+  inputProgram_ = this->getInputSocketReader(0);
 }
 
 void *DilateErodeThresholdOperation::initializeTileData(rcti * /*rect*/)
 {
-  void *buffer = m_inputProgram->initializeTileData(nullptr);
+  void *buffer = inputProgram_->initializeTileData(nullptr);
   return buffer;
 }
 
 void DilateErodeThresholdOperation::executePixel(float output[4], int x, int y, void *data)
 {
   float inputValue[4];
-  const float sw = m__switch;
-  const float distance = m_distance;
+  const float sw = switch_;
+  const float distance = distance_;
   float pixelvalue;
-  const float rd = m_scope * m_scope;
-  const float inset = m_inset;
+  const float rd = scope_ * scope_;
+  const float inset = inset_;
   float mindist = rd * 2;
 
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
   const rcti &input_rect = inputBuffer->get_rect();
-  const int minx = MAX2(x - m_scope, input_rect.xmin);
-  const int miny = MAX2(y - m_scope, input_rect.ymin);
-  const int maxx = MIN2(x + m_scope, input_rect.xmax);
-  const int maxy = MIN2(y + m_scope, input_rect.ymax);
+  const int minx = MAX2(x - scope_, input_rect.xmin);
+  const int miny = MAX2(y - scope_, input_rect.ymin);
+  const int maxx = MIN2(x + scope_, input_rect.xmax);
+  const int maxy = MIN2(y + scope_, input_rect.ymax);
   const int bufferWidth = inputBuffer->getWidth();
   int offset;
 
@@ -146,7 +146,7 @@ void DilateErodeThresholdOperation::executePixel(float output[4], int x, int y, 
 
 void DilateErodeThresholdOperation::deinitExecution()
 {
-  m_inputProgram = nullptr;
+  inputProgram_ = nullptr;
 }
 
 bool DilateErodeThresholdOperation::determineDependingAreaOfInterest(
@@ -154,10 +154,10 @@ bool DilateErodeThresholdOperation::determineDependingAreaOfInterest(
 {
   rcti newInput;
 
-  newInput.xmax = input->xmax + m_scope;
-  newInput.xmin = input->xmin - m_scope;
-  newInput.ymax = input->ymax + m_scope;
-  newInput.ymin = input->ymin - m_scope;
+  newInput.xmax = input->xmax + scope_;
+  newInput.xmin = input->xmin - scope_;
+  newInput.ymax = input->ymax + scope_;
+  newInput.ymin = input->ymin - scope_;
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
@@ -168,10 +168,10 @@ void DilateErodeThresholdOperation::get_area_of_interest(const int input_idx,
 {
   BLI_assert(input_idx == 0);
   UNUSED_VARS_NDEBUG(input_idx);
-  r_input_area.xmin = output_area.xmin - m_scope;
-  r_input_area.xmax = output_area.xmax + m_scope;
-  r_input_area.ymin = output_area.ymin - m_scope;
-  r_input_area.ymax = output_area.ymax + m_scope;
+  r_input_area.xmin = output_area.xmin - scope_;
+  r_input_area.xmax = output_area.xmax + scope_;
+  r_input_area.ymin = output_area.ymin - scope_;
+  r_input_area.ymax = output_area.ymax + scope_;
 }
 
 struct DilateErodeThresholdOperation::PixelData {
@@ -222,21 +222,21 @@ void DilateErodeThresholdOperation::update_memory_buffer_partial(MemoryBuffer *o
 {
   const MemoryBuffer *input = inputs[0];
   const rcti &input_rect = input->get_rect();
-  const float rd = m_scope * m_scope;
-  const float inset = m_inset;
+  const float rd = scope_ * scope_;
+  const float inset = inset_;
 
   PixelData p;
-  p.sw = m__switch;
+  p.sw = switch_;
   p.distance = rd * 2;
   p.elem_stride = input->elem_stride;
   p.row_stride = input->row_stride;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     p.x = it.x;
     p.y = it.y;
-    p.xmin = MAX2(p.x - m_scope, input_rect.xmin);
-    p.ymin = MAX2(p.y - m_scope, input_rect.ymin);
-    p.xmax = MIN2(p.x + m_scope, input_rect.xmax);
-    p.ymax = MIN2(p.y + m_scope, input_rect.ymax);
+    p.xmin = MAX2(p.x - scope_, input_rect.xmin);
+    p.ymin = MAX2(p.y - scope_, input_rect.ymin);
+    p.xmax = MIN2(p.x + scope_, input_rect.xmax);
+    p.ymax = MIN2(p.y + scope_, input_rect.ymax);
     p.elem = it.in(0);
 
     float pixel_value;
@@ -247,8 +247,8 @@ void DilateErodeThresholdOperation::update_memory_buffer_partial(MemoryBuffer *o
       pixel_value = sqrtf(get_min_distance<std::greater>(p));
     }
 
-    if (m_distance > 0.0f) {
-      const float delta = m_distance - pixel_value;
+    if (distance_ > 0.0f) {
+      const float delta = distance_ - pixel_value;
       if (delta >= 0.0f) {
         *it.out = delta >= inset ? 1.0f : delta / inset;
       }
@@ -257,7 +257,7 @@ void DilateErodeThresholdOperation::update_memory_buffer_partial(MemoryBuffer *o
       }
     }
     else {
-      const float delta = -m_distance + pixel_value;
+      const float delta = -distance_ + pixel_value;
       if (delta < 0.0f) {
         *it.out = delta < -inset ? 1.0f : (-delta) / inset;
       }
@@ -273,43 +273,43 @@ DilateDistanceOperation::DilateDistanceOperation()
 {
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
-  m_inputProgram = nullptr;
-  m_distance = 0.0f;
+  inputProgram_ = nullptr;
+  distance_ = 0.0f;
   flags.complex = true;
   flags.open_cl = true;
 }
 
 void DilateDistanceOperation::init_data()
 {
-  m_scope = m_distance;
-  if (m_scope < 3) {
-    m_scope = 3;
+  scope_ = distance_;
+  if (scope_ < 3) {
+    scope_ = 3;
   }
 }
 
 void DilateDistanceOperation::initExecution()
 {
-  m_inputProgram = this->getInputSocketReader(0);
+  inputProgram_ = this->getInputSocketReader(0);
 }
 
 void *DilateDistanceOperation::initializeTileData(rcti * /*rect*/)
 {
-  void *buffer = m_inputProgram->initializeTileData(nullptr);
+  void *buffer = inputProgram_->initializeTileData(nullptr);
   return buffer;
 }
 
 void DilateDistanceOperation::executePixel(float output[4], int x, int y, void *data)
 {
-  const float distance = m_distance;
+  const float distance = distance_;
   const float mindist = distance * distance;
 
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
   const rcti &input_rect = inputBuffer->get_rect();
-  const int minx = MAX2(x - m_scope, input_rect.xmin);
-  const int miny = MAX2(y - m_scope, input_rect.ymin);
-  const int maxx = MIN2(x + m_scope, input_rect.xmax);
-  const int maxy = MIN2(y + m_scope, input_rect.ymax);
+  const int minx = MAX2(x - scope_, input_rect.xmin);
+  const int miny = MAX2(y - scope_, input_rect.ymin);
+  const int maxx = MIN2(x + scope_, input_rect.xmax);
+  const int maxy = MIN2(y + scope_, input_rect.ymax);
   const int bufferWidth = inputBuffer->getWidth();
   int offset;
 
@@ -332,7 +332,7 @@ void DilateDistanceOperation::executePixel(float output[4], int x, int y, void *
 
 void DilateDistanceOperation::deinitExecution()
 {
-  m_inputProgram = nullptr;
+  inputProgram_ = nullptr;
 }
 
 bool DilateDistanceOperation::determineDependingAreaOfInterest(rcti *input,
@@ -341,10 +341,10 @@ bool DilateDistanceOperation::determineDependingAreaOfInterest(rcti *input,
 {
   rcti newInput;
 
-  newInput.xmax = input->xmax + m_scope;
-  newInput.xmin = input->xmin - m_scope;
-  newInput.ymax = input->ymax + m_scope;
-  newInput.ymin = input->ymin - m_scope;
+  newInput.xmax = input->xmax + scope_;
+  newInput.xmin = input->xmin - scope_;
+  newInput.ymax = input->ymax + scope_;
+  newInput.ymin = input->ymin - scope_;
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
@@ -358,11 +358,11 @@ void DilateDistanceOperation::executeOpenCL(OpenCLDevice *device,
 {
   cl_kernel dilateKernel = device->COM_clCreateKernel("dilateKernel", nullptr);
 
-  cl_int distanceSquared = m_distance * m_distance;
-  cl_int scope = m_scope;
+  cl_int distanceSquared = distance_ * distance_;
+  cl_int scope = scope_;
 
   device->COM_clAttachMemoryBufferToKernelParameter(
-      dilateKernel, 0, 2, clMemToCleanUp, inputMemoryBuffers, m_inputProgram);
+      dilateKernel, 0, 2, clMemToCleanUp, inputMemoryBuffers, inputProgram_);
   device->COM_clAttachOutputMemoryBufferToKernelParameter(dilateKernel, 1, clOutputBuffer);
   device->COM_clAttachMemoryBufferOffsetToKernelParameter(dilateKernel, 3, outputMemoryBuffer);
   clSetKernelArg(dilateKernel, 4, sizeof(cl_int), &scope);
@@ -377,10 +377,10 @@ void DilateDistanceOperation::get_area_of_interest(const int input_idx,
 {
   BLI_assert(input_idx == 0);
   UNUSED_VARS_NDEBUG(input_idx);
-  r_input_area.xmin = output_area.xmin - m_scope;
-  r_input_area.xmax = output_area.xmax + m_scope;
-  r_input_area.ymin = output_area.ymin - m_scope;
-  r_input_area.ymax = output_area.ymax + m_scope;
+  r_input_area.xmin = output_area.xmin - scope_;
+  r_input_area.xmax = output_area.xmax + scope_;
+  r_input_area.ymin = output_area.ymin - scope_;
+  r_input_area.ymax = output_area.ymax + scope_;
 }
 
 struct DilateDistanceOperation::PixelData {
@@ -450,7 +450,7 @@ void DilateDistanceOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                            const rcti &area,
                                                            Span<MemoryBuffer *> inputs)
 {
-  PixelData p(inputs[0], m_distance, m_scope);
+  PixelData p(inputs[0], distance_, scope_);
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     p.update(it);
     *it.out = get_distance_value<std::greater>(p, 0.0f);
@@ -465,16 +465,16 @@ ErodeDistanceOperation::ErodeDistanceOperation() : DilateDistanceOperation()
 
 void ErodeDistanceOperation::executePixel(float output[4], int x, int y, void *data)
 {
-  const float distance = m_distance;
+  const float distance = distance_;
   const float mindist = distance * distance;
 
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
   const rcti &input_rect = inputBuffer->get_rect();
-  const int minx = MAX2(x - m_scope, input_rect.xmin);
-  const int miny = MAX2(y - m_scope, input_rect.ymin);
-  const int maxx = MIN2(x + m_scope, input_rect.xmax);
-  const int maxy = MIN2(y + m_scope, input_rect.ymax);
+  const int minx = MAX2(x - scope_, input_rect.xmin);
+  const int miny = MAX2(y - scope_, input_rect.ymin);
+  const int maxx = MIN2(x + scope_, input_rect.xmax);
+  const int maxy = MIN2(y + scope_, input_rect.ymax);
   const int bufferWidth = inputBuffer->getWidth();
   int offset;
 
@@ -504,11 +504,11 @@ void ErodeDistanceOperation::executeOpenCL(OpenCLDevice *device,
 {
   cl_kernel erodeKernel = device->COM_clCreateKernel("erodeKernel", nullptr);
 
-  cl_int distanceSquared = m_distance * m_distance;
-  cl_int scope = m_scope;
+  cl_int distanceSquared = distance_ * distance_;
+  cl_int scope = scope_;
 
   device->COM_clAttachMemoryBufferToKernelParameter(
-      erodeKernel, 0, 2, clMemToCleanUp, inputMemoryBuffers, m_inputProgram);
+      erodeKernel, 0, 2, clMemToCleanUp, inputMemoryBuffers, inputProgram_);
   device->COM_clAttachOutputMemoryBufferToKernelParameter(erodeKernel, 1, clOutputBuffer);
   device->COM_clAttachMemoryBufferOffsetToKernelParameter(erodeKernel, 3, outputMemoryBuffer);
   clSetKernelArg(erodeKernel, 4, sizeof(cl_int), &scope);
@@ -521,7 +521,7 @@ void ErodeDistanceOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                           const rcti &area,
                                                           Span<MemoryBuffer *> inputs)
 {
-  PixelData p(inputs[0], m_distance, m_scope);
+  PixelData p(inputs[0], distance_, scope_);
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     p.update(it);
     *it.out = get_distance_value<std::less>(p, 1.0f);
@@ -534,11 +534,11 @@ DilateStepOperation::DilateStepOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
   this->flags.complex = true;
-  m_inputProgram = nullptr;
+  inputProgram_ = nullptr;
 }
 void DilateStepOperation::initExecution()
 {
-  m_inputProgram = this->getInputSocketReader(0);
+  inputProgram_ = this->getInputSocketReader(0);
 }
 
 /* Small helper to pass data from initializeTileData to executePixel. */
@@ -563,13 +563,13 @@ static tile_info *create_cache(int xmin, int xmax, int ymin, int ymax)
 
 void *DilateStepOperation::initializeTileData(rcti *rect)
 {
-  MemoryBuffer *tile = (MemoryBuffer *)m_inputProgram->initializeTileData(nullptr);
+  MemoryBuffer *tile = (MemoryBuffer *)inputProgram_->initializeTileData(nullptr);
   int x, y, i;
   int width = tile->getWidth();
   int height = tile->getHeight();
   float *buffer = tile->getBuffer();
 
-  int half_window = m_iterations;
+  int half_window = iterations_;
   int window = half_window * 2 + 1;
 
   int xmin = MAX2(0, rect->xmin - half_window);
@@ -661,7 +661,7 @@ void DilateStepOperation::executePixel(float output[4], int x, int y, void *data
 
 void DilateStepOperation::deinitExecution()
 {
-  m_inputProgram = nullptr;
+  inputProgram_ = nullptr;
 }
 
 void DilateStepOperation::deinitializeTileData(rcti * /*rect*/, void *data)
@@ -676,7 +676,7 @@ bool DilateStepOperation::determineDependingAreaOfInterest(rcti *input,
                                                            rcti *output)
 {
   rcti newInput;
-  int it = m_iterations;
+  int it = iterations_;
   newInput.xmax = input->xmax + it;
   newInput.xmin = input->xmin - it;
   newInput.ymax = input->ymax + it;
@@ -691,10 +691,10 @@ void DilateStepOperation::get_area_of_interest(const int input_idx,
 {
   BLI_assert(input_idx == 0);
   UNUSED_VARS_NDEBUG(input_idx);
-  r_input_area.xmin = output_area.xmin - m_iterations;
-  r_input_area.xmax = output_area.xmax + m_iterations;
-  r_input_area.ymin = output_area.ymin - m_iterations;
-  r_input_area.ymax = output_area.ymax + m_iterations;
+  r_input_area.xmin = output_area.xmin - iterations_;
+  r_input_area.xmax = output_area.xmax + iterations_;
+  r_input_area.ymin = output_area.ymin - iterations_;
+  r_input_area.ymax = output_area.ymax + iterations_;
 }
 
 template<typename TCompareSelector>
@@ -803,7 +803,7 @@ void DilateStepOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                        const rcti &area,
                                                        Span<MemoryBuffer *> inputs)
 {
-  step_update_memory_buffer<Max2Selector>(output, inputs[0], area, m_iterations, -FLT_MAX);
+  step_update_memory_buffer<Max2Selector>(output, inputs[0], area, iterations_, -FLT_MAX);
 }
 
 /* Erode step */
@@ -814,13 +814,13 @@ ErodeStepOperation::ErodeStepOperation() : DilateStepOperation()
 
 void *ErodeStepOperation::initializeTileData(rcti *rect)
 {
-  MemoryBuffer *tile = (MemoryBuffer *)m_inputProgram->initializeTileData(nullptr);
+  MemoryBuffer *tile = (MemoryBuffer *)inputProgram_->initializeTileData(nullptr);
   int x, y, i;
   int width = tile->getWidth();
   int height = tile->getHeight();
   float *buffer = tile->getBuffer();
 
-  int half_window = m_iterations;
+  int half_window = iterations_;
   int window = half_window * 2 + 1;
 
   int xmin = MAX2(0, rect->xmin - half_window);
@@ -913,7 +913,7 @@ void ErodeStepOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                       const rcti &area,
                                                       Span<MemoryBuffer *> inputs)
 {
-  step_update_memory_buffer<Min2Selector>(output, inputs[0], area, m_iterations, FLT_MAX);
+  step_update_memory_buffer<Min2Selector>(output, inputs[0], area, iterations_, FLT_MAX);
 }
 
 }  // namespace blender::compositor

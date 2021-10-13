@@ -26,21 +26,21 @@ namespace blender::compositor {
 
 class ReadBufferOperation : public NodeOperation {
  private:
-  MemoryProxy *m_memoryProxy;
-  bool m_single_value; /* single value stored in buffer, copied from associated write operation */
-  unsigned int m_offset;
-  MemoryBuffer *m_buffer;
+  MemoryProxy *memoryProxy_;
+  bool single_value_; /* single value stored in buffer, copied from associated write operation */
+  unsigned int offset_;
+  MemoryBuffer *buffer_;
 
  public:
   ReadBufferOperation(DataType datatype);
   void setMemoryProxy(MemoryProxy *memoryProxy)
   {
-    m_memoryProxy = memoryProxy;
+    memoryProxy_ = memoryProxy;
   }
 
   MemoryProxy *getMemoryProxy() const
   {
-    return m_memoryProxy;
+    return memoryProxy_;
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
@@ -56,18 +56,18 @@ class ReadBufferOperation : public NodeOperation {
   void executePixelFiltered(float output[4], float x, float y, float dx[2], float dy[2]) override;
   void setOffset(unsigned int offset)
   {
-    m_offset = offset;
+    offset_ = offset;
   }
   unsigned int getOffset() const
   {
-    return m_offset;
+    return offset_;
   }
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
   MemoryBuffer *getInputMemoryBuffer(MemoryBuffer **memoryBuffers) override
   {
-    return memoryBuffers[m_offset];
+    return memoryBuffers[offset_];
   }
   void readResolutionFromWriteBuffer();
   void updateMemoryBuffer();

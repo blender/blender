@@ -29,15 +29,15 @@ class MapUVOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputUVProgram;
-  SocketReader *m_inputColorProgram;
+  SocketReader *inputUVProgram_;
+  SocketReader *inputColorProgram_;
 
   int uv_width_;
   int uv_height_;
   int image_width_;
   int image_height_;
 
-  float m_alpha;
+  float alpha_;
 
   std::function<void(float x, float y, float *out)> uv_input_read_fn_;
 
@@ -72,7 +72,7 @@ class MapUVOperation : public MultiThreadedOperation {
 
   void setAlpha(float alpha)
   {
-    m_alpha = alpha;
+    alpha_ = alpha;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

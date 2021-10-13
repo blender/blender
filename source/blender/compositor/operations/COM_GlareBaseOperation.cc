@@ -24,25 +24,25 @@ GlareBaseOperation::GlareBaseOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  m_settings = nullptr;
+  settings_ = nullptr;
   flags.is_fullframe_operation = true;
   is_output_rendered_ = false;
 }
 void GlareBaseOperation::initExecution()
 {
   SingleThreadedOperation::initExecution();
-  m_inputProgram = getInputSocketReader(0);
+  inputProgram_ = getInputSocketReader(0);
 }
 
 void GlareBaseOperation::deinitExecution()
 {
-  m_inputProgram = nullptr;
+  inputProgram_ = nullptr;
   SingleThreadedOperation::deinitExecution();
 }
 
 MemoryBuffer *GlareBaseOperation::createMemoryBuffer(rcti *rect2)
 {
-  MemoryBuffer *tile = (MemoryBuffer *)m_inputProgram->initializeTileData(rect2);
+  MemoryBuffer *tile = (MemoryBuffer *)inputProgram_->initializeTileData(rect2);
   rcti rect;
   rect.xmin = 0;
   rect.ymin = 0;
@@ -50,7 +50,7 @@ MemoryBuffer *GlareBaseOperation::createMemoryBuffer(rcti *rect2)
   rect.ymax = getHeight();
   MemoryBuffer *result = new MemoryBuffer(DataType::Color, rect);
   float *data = result->getBuffer();
-  this->generateGlare(data, tile, m_settings);
+  this->generateGlare(data, tile, settings_);
   return result;
 }
 
@@ -93,7 +93,7 @@ void GlareBaseOperation::update_memory_buffer(MemoryBuffer *output,
       input = input->inflate();
     }
 
-    this->generateGlare(output->getBuffer(), input, m_settings);
+    this->generateGlare(output->getBuffer(), input, settings_);
     is_output_rendered_ = true;
 
     if (is_input_inflated) {

@@ -26,21 +26,21 @@ ChromaMatteOperation::ChromaMatteOperation()
   addInputSocket(DataType::Color);
   addOutputSocket(DataType::Value);
 
-  m_inputImageProgram = nullptr;
-  m_inputKeyProgram = nullptr;
+  inputImageProgram_ = nullptr;
+  inputKeyProgram_ = nullptr;
   flags.can_be_constant = true;
 }
 
 void ChromaMatteOperation::initExecution()
 {
-  m_inputImageProgram = this->getInputSocketReader(0);
-  m_inputKeyProgram = this->getInputSocketReader(1);
+  inputImageProgram_ = this->getInputSocketReader(0);
+  inputKeyProgram_ = this->getInputSocketReader(1);
 }
 
 void ChromaMatteOperation::deinitExecution()
 {
-  m_inputImageProgram = nullptr;
-  m_inputKeyProgram = nullptr;
+  inputImageProgram_ = nullptr;
+  inputKeyProgram_ = nullptr;
 }
 
 void ChromaMatteOperation::executePixelSampled(float output[4],
@@ -51,16 +51,16 @@ void ChromaMatteOperation::executePixelSampled(float output[4],
   float inKey[4];
   float inImage[4];
 
-  const float acceptance = m_settings->t1; /* in radians */
-  const float cutoff = m_settings->t2;     /* in radians */
-  const float gain = m_settings->fstrength;
+  const float acceptance = settings_->t1; /* in radians */
+  const float cutoff = settings_->t2;     /* in radians */
+  const float gain = settings_->fstrength;
 
   float x_angle, z_angle, alpha;
   float theta, beta;
   float kfg;
 
-  m_inputKeyProgram->readSampled(inKey, x, y, sampler);
-  m_inputImageProgram->readSampled(inImage, x, y, sampler);
+  inputKeyProgram_->readSampled(inKey, x, y, sampler);
+  inputImageProgram_->readSampled(inImage, x, y, sampler);
 
   /* Store matte(alpha) value in [0] to go with
    * #COM_SetAlphaMultiplyOperation and the Value output. */
@@ -114,9 +114,9 @@ void ChromaMatteOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                         const rcti &area,
                                                         Span<MemoryBuffer *> inputs)
 {
-  const float acceptance = m_settings->t1; /* In radians. */
-  const float cutoff = m_settings->t2;     /* In radians. */
-  const float gain = m_settings->fstrength;
+  const float acceptance = settings_->t1; /* In radians. */
+  const float cutoff = settings_->t2;     /* In radians. */
+  const float gain = settings_->fstrength;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     const float *in_image = it.in(0);
     const float *in_key = it.in(1);

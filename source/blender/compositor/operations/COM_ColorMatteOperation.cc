@@ -26,21 +26,21 @@ ColorMatteOperation::ColorMatteOperation()
   addInputSocket(DataType::Color);
   addOutputSocket(DataType::Value);
 
-  m_inputImageProgram = nullptr;
-  m_inputKeyProgram = nullptr;
+  inputImageProgram_ = nullptr;
+  inputKeyProgram_ = nullptr;
   flags.can_be_constant = true;
 }
 
 void ColorMatteOperation::initExecution()
 {
-  m_inputImageProgram = this->getInputSocketReader(0);
-  m_inputKeyProgram = this->getInputSocketReader(1);
+  inputImageProgram_ = this->getInputSocketReader(0);
+  inputKeyProgram_ = this->getInputSocketReader(1);
 }
 
 void ColorMatteOperation::deinitExecution()
 {
-  m_inputImageProgram = nullptr;
-  m_inputKeyProgram = nullptr;
+  inputImageProgram_ = nullptr;
+  inputKeyProgram_ = nullptr;
 }
 
 void ColorMatteOperation::executePixelSampled(float output[4],
@@ -51,14 +51,14 @@ void ColorMatteOperation::executePixelSampled(float output[4],
   float inColor[4];
   float inKey[4];
 
-  const float hue = m_settings->t1;
-  const float sat = m_settings->t2;
-  const float val = m_settings->t3;
+  const float hue = settings_->t1;
+  const float sat = settings_->t2;
+  const float val = settings_->t3;
 
   float h_wrap;
 
-  m_inputImageProgram->readSampled(inColor, x, y, sampler);
-  m_inputKeyProgram->readSampled(inKey, x, y, sampler);
+  inputImageProgram_->readSampled(inColor, x, y, sampler);
+  inputKeyProgram_->readSampled(inKey, x, y, sampler);
 
   /* Store matte(alpha) value in [0] to go with
    * COM_SetAlphaMultiplyOperation and the Value output.
@@ -86,9 +86,9 @@ void ColorMatteOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                        const rcti &area,
                                                        Span<MemoryBuffer *> inputs)
 {
-  const float hue = m_settings->t1;
-  const float sat = m_settings->t2;
-  const float val = m_settings->t3;
+  const float hue = settings_->t1;
+  const float sat = settings_->t2;
+  const float val = settings_->t3;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     const float *in_color = it.in(0);
     const float *in_key = it.in(1);

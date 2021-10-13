@@ -28,21 +28,21 @@ DisplaceSimpleOperation::DisplaceSimpleOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
 
-  m_inputColorProgram = nullptr;
-  m_inputVectorProgram = nullptr;
-  m_inputScaleXProgram = nullptr;
-  m_inputScaleYProgram = nullptr;
+  inputColorProgram_ = nullptr;
+  inputVectorProgram_ = nullptr;
+  inputScaleXProgram_ = nullptr;
+  inputScaleYProgram_ = nullptr;
 }
 
 void DisplaceSimpleOperation::initExecution()
 {
-  m_inputColorProgram = this->getInputSocketReader(0);
-  m_inputVectorProgram = this->getInputSocketReader(1);
-  m_inputScaleXProgram = this->getInputSocketReader(2);
-  m_inputScaleYProgram = this->getInputSocketReader(3);
+  inputColorProgram_ = this->getInputSocketReader(0);
+  inputVectorProgram_ = this->getInputSocketReader(1);
+  inputScaleXProgram_ = this->getInputSocketReader(2);
+  inputScaleYProgram_ = this->getInputSocketReader(3);
 
-  m_width_x4 = this->getWidth() * 4;
-  m_height_x4 = this->getHeight() * 4;
+  width_x4_ = this->getWidth() * 4;
+  height_x4_ = this->getHeight() * 4;
 }
 
 /* minimum distance (in pixels) a pixel has to be displaced
@@ -60,17 +60,17 @@ void DisplaceSimpleOperation::executePixelSampled(float output[4],
   float p_dx, p_dy; /* main displacement in pixel space */
   float u, v;
 
-  m_inputScaleXProgram->readSampled(inScale, x, y, sampler);
+  inputScaleXProgram_->readSampled(inScale, x, y, sampler);
   float xs = inScale[0];
-  m_inputScaleYProgram->readSampled(inScale, x, y, sampler);
+  inputScaleYProgram_->readSampled(inScale, x, y, sampler);
   float ys = inScale[0];
 
   /* clamp x and y displacement to triple image resolution -
    * to prevent hangs from huge values mistakenly plugged in eg. z buffers */
-  CLAMP(xs, -m_width_x4, m_width_x4);
-  CLAMP(ys, -m_height_x4, m_height_x4);
+  CLAMP(xs, -width_x4_, width_x4_);
+  CLAMP(ys, -height_x4_, height_x4_);
 
-  m_inputVectorProgram->readSampled(inVector, x, y, sampler);
+  inputVectorProgram_->readSampled(inVector, x, y, sampler);
   p_dx = inVector[0] * xs;
   p_dy = inVector[1] * ys;
 
@@ -81,15 +81,15 @@ void DisplaceSimpleOperation::executePixelSampled(float output[4],
   CLAMP(u, 0.0f, this->getWidth() - 1.0f);
   CLAMP(v, 0.0f, this->getHeight() - 1.0f);
 
-  m_inputColorProgram->readSampled(output, u, v, sampler);
+  inputColorProgram_->readSampled(output, u, v, sampler);
 }
 
 void DisplaceSimpleOperation::deinitExecution()
 {
-  m_inputColorProgram = nullptr;
-  m_inputVectorProgram = nullptr;
-  m_inputScaleXProgram = nullptr;
-  m_inputScaleYProgram = nullptr;
+  inputColorProgram_ = nullptr;
+  inputVectorProgram_ = nullptr;
+  inputScaleXProgram_ = nullptr;
+  inputScaleYProgram_ = nullptr;
 }
 
 bool DisplaceSimpleOperation::determineDependingAreaOfInterest(rcti *input,
@@ -160,8 +160,8 @@ void DisplaceSimpleOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
     /* Clamp x and y displacement to triple image resolution -
      * to prevent hangs from huge values mistakenly plugged in eg. z buffers. */
-    CLAMP(scale_x, -m_width_x4, m_width_x4);
-    CLAMP(scale_y, -m_height_x4, m_height_x4);
+    CLAMP(scale_x, -width_x4_, width_x4_);
+    CLAMP(scale_y, -height_x4_, height_x4_);
 
     /* Main displacement in pixel space. */
     const float *vector = it.in(0);

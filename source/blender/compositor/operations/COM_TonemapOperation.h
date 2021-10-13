@@ -44,17 +44,17 @@ class TonemapOperation : public MultiThreadedOperation {
   /**
    * \brief Cached reference to the reader
    */
-  SocketReader *m_imageReader;
+  SocketReader *imageReader_;
 
   /**
    * \brief settings of the Tonemap
    */
-  NodeTonemap *m_data;
+  NodeTonemap *data_;
 
   /**
    * \brief temporarily cache of the execution storage
    */
-  AvgLogLum *m_cachedInstance;
+  AvgLogLum *cachedInstance_;
 
  public:
   TonemapOperation();
@@ -79,7 +79,7 @@ class TonemapOperation : public MultiThreadedOperation {
 
   void setData(NodeTonemap *data)
   {
-    m_data = data;
+    data_ = data;
   }
 
   bool determineDependingAreaOfInterest(rcti *input,

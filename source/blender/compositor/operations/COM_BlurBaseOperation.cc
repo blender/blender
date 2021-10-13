@@ -30,11 +30,11 @@ BlurBaseOperation::BlurBaseOperation(DataType data_type)
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(data_type);
   this->flags.complex = true;
-  m_inputProgram = nullptr;
-  memset(&m_data, 0, sizeof(NodeBlurData));
-  m_size = 1.0f;
-  m_sizeavailable = false;
-  m_extend_bounds = false;
+  inputProgram_ = nullptr;
+  memset(&data_, 0, sizeof(NodeBlurData));
+  size_ = 1.0f;
+  sizeavailable_ = false;
+  extend_bounds_ = false;
   use_variable_size_ = false;
 }
 
@@ -44,32 +44,32 @@ void BlurBaseOperation::init_data()
     updateSize();
   }
 
-  m_data.image_in_width = this->getWidth();
-  m_data.image_in_height = this->getHeight();
-  if (m_data.relative) {
+  data_.image_in_width = this->getWidth();
+  data_.image_in_height = this->getHeight();
+  if (data_.relative) {
     int sizex, sizey;
-    switch (m_data.aspect) {
+    switch (data_.aspect) {
       case CMP_NODE_BLUR_ASPECT_Y:
-        sizex = sizey = m_data.image_in_width;
+        sizex = sizey = data_.image_in_width;
         break;
       case CMP_NODE_BLUR_ASPECT_X:
-        sizex = sizey = m_data.image_in_height;
+        sizex = sizey = data_.image_in_height;
         break;
       default:
-        BLI_assert(m_data.aspect == CMP_NODE_BLUR_ASPECT_NONE);
-        sizex = m_data.image_in_width;
-        sizey = m_data.image_in_height;
+        BLI_assert(data_.aspect == CMP_NODE_BLUR_ASPECT_NONE);
+        sizex = data_.image_in_width;
+        sizey = data_.image_in_height;
         break;
     }
-    m_data.sizex = round_fl_to_int(m_data.percentx * 0.01f * sizex);
-    m_data.sizey = round_fl_to_int(m_data.percenty * 0.01f * sizey);
+    data_.sizex = round_fl_to_int(data_.percentx * 0.01f * sizex);
+    data_.sizey = round_fl_to_int(data_.percenty * 0.01f * sizey);
   }
 }
 
 void BlurBaseOperation::initExecution()
 {
-  m_inputProgram = this->getInputSocketReader(0);
-  m_inputSize = this->getInputSocketReader(1);
+  inputProgram_ = this->getInputSocketReader(0);
+  inputSize_ = this->getInputSocketReader(1);
 
   QualityStepHelper::initExecution(COM_QH_MULTIPLY);
 }
@@ -86,7 +86,7 @@ float *BlurBaseOperation::make_gausstab(float rad, int size)
   sum = 0.0f;
   float fac = (rad > 0.0f ? 1.0f / rad : 0.0f);
   for (i = -size; i <= size; i++) {
-    val = RE_filter_value(m_data.filtertype, (float)i * fac);
+    val = RE_filter_value(data_.filtertype, (float)i * fac);
     sum += val;
     gausstab[i + size] = val;
   }
@@ -165,29 +165,29 @@ float *BlurBaseOperation::make_dist_fac_inverse(float rad, int size, int falloff
 
 void BlurBaseOperation::deinitExecution()
 {
-  m_inputProgram = nullptr;
-  m_inputSize = nullptr;
+  inputProgram_ = nullptr;
+  inputSize_ = nullptr;
 }
 
 void BlurBaseOperation::setData(const NodeBlurData *data)
 {
-  memcpy(&m_data, data, sizeof(NodeBlurData));
+  memcpy(&data_, data, sizeof(NodeBlurData));
 }
 
 int BlurBaseOperation::get_blur_size(eDimension dim) const
 {
   switch (dim) {
     case eDimension::X:
-      return m_data.sizex;
+      return data_.sizex;
     case eDimension::Y:
-      return m_data.sizey;
+      return data_.sizey;
   }
   return -1;
 }
 
 void BlurBaseOperation::updateSize()
 {
-  if (m_sizeavailable || use_variable_size_) {
+  if (sizeavailable_ || use_variable_size_) {
     return;
   }
 
@@ -195,23 +195,23 @@ void BlurBaseOperation::updateSize()
     case eExecutionModel::Tiled: {
       float result[4];
       this->getInputSocketReader(1)->readSampled(result, 0, 0, PixelSampler::Nearest);
-      m_size = result[0];
+      size_ = result[0];
       break;
     }
     case eExecutionModel::FullFrame: {
       NodeOperation *size_input = get_input_operation(SIZE_INPUT_INDEX);
       if (size_input->get_flags().is_constant_operation) {
-        m_size = *static_cast<ConstantOperation *>(size_input)->get_constant_elem();
+        size_ = *static_cast<ConstantOperation *>(size_input)->get_constant_elem();
       } /* Else use default. */
       break;
     }
   }
-  m_sizeavailable = true;
+  sizeavailable_ = true;
 }
 
 void BlurBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  if (!m_extend_bounds) {
+  if (!extend_bounds_) {
     NodeOperation::determine_canvas(preferred_area, r_area);
     return;
   }
@@ -219,8 +219,8 @@ void BlurBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_are
   switch (execution_model_) {
     case eExecutionModel::Tiled: {
       NodeOperation::determine_canvas(preferred_area, r_area);
-      r_area.xmax += 2 * m_size * m_data.sizex;
-      r_area.ymax += 2 * m_size * m_data.sizey;
+      r_area.xmax += 2 * size_ * data_.sizex;
+      r_area.ymax += 2 * size_ * data_.sizey;
       break;
     }
     case eExecutionModel::FullFrame: {
@@ -229,8 +229,8 @@ void BlurBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_are
        * operations. */
       set_determined_canvas_modifier([=](rcti &canvas) {
         /* Rounding to even prevents jiggling in backdrop while switching size values. */
-        canvas.xmax += round_to_even(2 * m_size * m_data.sizex);
-        canvas.ymax += round_to_even(2 * m_size * m_data.sizey);
+        canvas.xmax += round_to_even(2 * size_ * data_.sizex);
+        canvas.ymax += round_to_even(2 * size_ * data_.sizey);
       });
       NodeOperation::determine_canvas(preferred_area, r_area);
       break;

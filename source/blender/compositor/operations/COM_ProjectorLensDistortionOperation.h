@@ -28,13 +28,13 @@ class ProjectorLensDistortionOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
+  SocketReader *inputProgram_;
 
-  float m_dispersion;
+  float dispersion_;
   /* TODO(manzanilla): to be removed with tiled implementation. */
-  bool m_dispersionAvailable;
+  bool dispersionAvailable_;
 
-  float m_kr, m_kr2;
+  float kr_, kr2_;
 
  public:
   ProjectorLensDistortionOperation();

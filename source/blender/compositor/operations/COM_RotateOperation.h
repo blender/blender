@@ -27,16 +27,16 @@ class RotateOperation : public MultiThreadedOperation {
   constexpr static int IMAGE_INPUT_INDEX = 0;
   constexpr static int DEGREE_INPUT_INDEX = 1;
 
-  SocketReader *m_imageSocket;
-  SocketReader *m_degreeSocket;
+  SocketReader *imageSocket_;
+  SocketReader *degreeSocket_;
   /* TODO(manzanilla): to be removed with tiled implementation. */
-  float m_centerX;
-  float m_centerY;
+  float centerX_;
+  float centerY_;
 
-  float m_cosine;
-  float m_sine;
-  bool m_doDegree2RadConversion;
-  bool m_isDegreeSet;
+  float cosine_;
+  float sine_;
+  bool doDegree2RadConversion_;
+  bool isDegreeSet_;
   PixelSampler sampler_;
 
  public:
@@ -89,7 +89,7 @@ class RotateOperation : public MultiThreadedOperation {
 
   void setDoDegree2RadConversion(bool abool)
   {
-    m_doDegree2RadConversion = abool;
+    doDegree2RadConversion_ = abool;
   }
 
   void set_sampler(PixelSampler sampler)

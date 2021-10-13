@@ -42,22 +42,22 @@ class MemoryProxy {
   /**
    * \brief reference to the output operation of the executiongroup
    */
-  WriteBufferOperation *m_writeBufferOperation;
+  WriteBufferOperation *writeBufferOperation_;
 
   /**
    * \brief reference to the executor. the Execution group that can fill a chunk
    */
-  ExecutionGroup *m_executor;
+  ExecutionGroup *executor_;
 
   /**
    * \brief the allocated memory
    */
-  MemoryBuffer *m_buffer;
+  MemoryBuffer *buffer_;
 
   /**
    * \brief datatype of this MemoryProxy
    */
-  DataType m_datatype;
+  DataType datatype_;
 
  public:
   MemoryProxy(DataType type);
@@ -68,7 +68,7 @@ class MemoryProxy {
    */
   void setExecutor(ExecutionGroup *executor)
   {
-    m_executor = executor;
+    executor_ = executor;
   }
 
   /**
@@ -76,7 +76,7 @@ class MemoryProxy {
    */
   ExecutionGroup *getExecutor() const
   {
-    return m_executor;
+    return executor_;
   }
 
   /**
@@ -85,7 +85,7 @@ class MemoryProxy {
    */
   void setWriteBufferOperation(WriteBufferOperation *operation)
   {
-    m_writeBufferOperation = operation;
+    writeBufferOperation_ = operation;
   }
 
   /**
@@ -94,7 +94,7 @@ class MemoryProxy {
    */
   WriteBufferOperation *getWriteBufferOperation() const
   {
-    return m_writeBufferOperation;
+    return writeBufferOperation_;
   }
 
   /**
@@ -112,12 +112,12 @@ class MemoryProxy {
    */
   inline MemoryBuffer *getBuffer()
   {
-    return m_buffer;
+    return buffer_;
   }
 
   inline DataType getDataType()
   {
-    return m_datatype;
+    return datatype_;
   }
 
 #ifdef WITH_CXX_GUARDEDALLOC

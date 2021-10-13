@@ -86,84 +86,84 @@ class ExecutionGroup {
   /**
    * Id of the execution group. For debugging purposes.
    */
-  int m_id;
+  int id_;
 
   /**
    * \brief list of operations in this ExecutionGroup
    */
-  Vector<NodeOperation *> m_operations;
+  Vector<NodeOperation *> operations_;
 
-  ExecutionGroupFlags m_flags;
+  ExecutionGroupFlags flags_;
 
   /**
    * \brief Width of the output
    */
-  unsigned int m_width;
+  unsigned int width_;
 
   /**
    * \brief Height of the output
    */
-  unsigned int m_height;
+  unsigned int height_;
 
   /**
    * \brief size of a single chunk, being Width or of height
    * a chunk is always a square, except at the edges of the MemoryBuffer
    */
-  unsigned int m_chunkSize;
+  unsigned int chunkSize_;
 
   /**
    * \brief number of chunks in the x-axis
    */
-  unsigned int m_x_chunks_len;
+  unsigned int x_chunks_len_;
 
   /**
    * \brief number of chunks in the y-axis
    */
-  unsigned int m_y_chunks_len;
+  unsigned int y_chunks_len_;
 
   /**
    * \brief total number of chunks
    */
-  unsigned int m_chunks_len;
+  unsigned int chunks_len_;
 
   /**
    * \brief what is the maximum number field of all ReadBufferOperation in this ExecutionGroup.
    * \note this is used to construct the MemoryBuffers that will be passed during execution.
    */
-  unsigned int m_max_read_buffer_offset;
+  unsigned int max_read_buffer_offset_;
 
   /**
    * \brief All read operations of this execution group.
    */
-  Vector<ReadBufferOperation *> m_read_operations;
+  Vector<ReadBufferOperation *> read_operations_;
 
   /**
    * \brief reference to the original bNodeTree,
    * this field is only set for the 'top' execution group.
    * \note can only be used to call the callbacks for progress, status and break.
    */
-  const bNodeTree *m_bTree;
+  const bNodeTree *bTree_;
 
   /**
    * \brief total number of chunks that have been calculated for this ExecutionGroup
    */
-  unsigned int m_chunks_finished;
+  unsigned int chunks_finished_;
 
   /**
-   * \brief m_work_packages holds all unit of work.
+   * \brief work_packages_ holds all unit of work.
    */
-  Vector<WorkPackage> m_work_packages;
+  Vector<WorkPackage> work_packages_;
 
   /**
    * \brief denotes boundary for border compositing
    * \note measured in pixel space
    */
-  rcti m_viewerBorder;
+  rcti viewerBorder_;
 
   /**
    * \brief start time of execution
    */
-  double m_executionStartTime;
+  double executionStartTime_;
 
   // methods
   /**
@@ -241,12 +241,12 @@ class ExecutionGroup {
 
   int get_id() const
   {
-    return m_id;
+    return id_;
   }
 
   const ExecutionGroupFlags get_flags() const
   {
-    return m_flags;
+    return flags_;
   }
 
   // methods
@@ -266,7 +266,7 @@ class ExecutionGroup {
    */
   void setOutputExecutionGroup(bool is_output)
   {
-    m_flags.is_output = is_output;
+    flags_.is_output = is_output;
   }
 
   /**
@@ -281,8 +281,8 @@ class ExecutionGroup {
    */
   void setResolution(unsigned int resolution[2])
   {
-    m_width = resolution[0];
-    m_height = resolution[1];
+    width_ = resolution[0];
+    height_ = resolution[1];
   }
 
   /**
@@ -290,7 +290,7 @@ class ExecutionGroup {
    */
   unsigned int getWidth() const
   {
-    return m_width;
+    return width_;
   }
 
   /**
@@ -298,7 +298,7 @@ class ExecutionGroup {
    */
   unsigned int getHeight() const
   {
-    return m_height;
+    return height_;
   }
 
   /**
@@ -381,7 +381,7 @@ class ExecutionGroup {
 
   void setChunksize(int chunksize)
   {
-    m_chunkSize = chunksize;
+    chunkSize_ = chunksize;
   }
 
   /**

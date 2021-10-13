@@ -27,8 +27,8 @@ class PosterizeOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
-  SocketReader *m_inputStepsProgram;
+  SocketReader *inputProgram_;
+  SocketReader *inputStepsProgram_;
 
  public:
   PosterizeOperation();

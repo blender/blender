@@ -27,7 +27,7 @@ namespace blender::compositor {
 DilateErodeNode::DilateErodeNode(bNode *editorNode) : Node(editorNode)
 {
   /* initialize node data */
-  NodeBlurData *data = &m_alpha_blur;
+  NodeBlurData *data = &alpha_blur_;
   memset(data, 0, sizeof(NodeBlurData));
   data->filtertype = R_FILTER_GAUSS;
 
@@ -86,7 +86,7 @@ void DilateErodeNode::convertToOperations(NodeConverter &converter,
     eCompositorQuality quality = context.getQuality();
 
     GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
-    operationx->setData(&m_alpha_blur);
+    operationx->setData(&alpha_blur_);
     operationx->setQuality(quality);
     operationx->setFalloff(PROP_SMOOTH);
     converter.addOperation(operationx);
@@ -96,7 +96,7 @@ void DilateErodeNode::convertToOperations(NodeConverter &converter,
     // yet
 
     GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
-    operationy->setData(&m_alpha_blur);
+    operationy->setData(&alpha_blur_);
     operationy->setQuality(quality);
     operationy->setFalloff(PROP_SMOOTH);
     converter.addOperation(operationy);

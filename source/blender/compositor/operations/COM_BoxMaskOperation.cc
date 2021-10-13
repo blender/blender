@@ -25,19 +25,19 @@ BoxMaskOperation::BoxMaskOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
-  m_inputMask = nullptr;
-  m_inputValue = nullptr;
-  m_cosine = 0.0f;
-  m_sine = 0.0f;
+  inputMask_ = nullptr;
+  inputValue_ = nullptr;
+  cosine_ = 0.0f;
+  sine_ = 0.0f;
 }
 void BoxMaskOperation::initExecution()
 {
-  m_inputMask = this->getInputSocketReader(0);
-  m_inputValue = this->getInputSocketReader(1);
-  const double rad = (double)m_data->rotation;
-  m_cosine = cos(rad);
-  m_sine = sin(rad);
-  m_aspectRatio = ((float)this->getWidth()) / this->getHeight();
+  inputMask_ = this->getInputSocketReader(0);
+  inputValue_ = this->getInputSocketReader(1);
+  const double rad = (double)data_->rotation;
+  cosine_ = cos(rad);
+  sine_ = sin(rad);
+  aspectRatio_ = ((float)this->getWidth()) / this->getHeight();
 }
 
 void BoxMaskOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
@@ -48,20 +48,20 @@ void BoxMaskOperation::executePixelSampled(float output[4], float x, float y, Pi
   float rx = x / this->getWidth();
   float ry = y / this->getHeight();
 
-  const float dy = (ry - m_data->y) / m_aspectRatio;
-  const float dx = rx - m_data->x;
-  rx = m_data->x + (m_cosine * dx + m_sine * dy);
-  ry = m_data->y + (-m_sine * dx + m_cosine * dy);
+  const float dy = (ry - data_->y) / aspectRatio_;
+  const float dx = rx - data_->x;
+  rx = data_->x + (cosine_ * dx + sine_ * dy);
+  ry = data_->y + (-sine_ * dx + cosine_ * dy);
 
-  m_inputMask->readSampled(inputMask, x, y, sampler);
-  m_inputValue->readSampled(inputValue, x, y, sampler);
+  inputMask_->readSampled(inputMask, x, y, sampler);
+  inputValue_->readSampled(inputValue, x, y, sampler);
 
-  float halfHeight = m_data->height / 2.0f;
-  float halfWidth = m_data->width / 2.0f;
-  bool inside = (rx > m_data->x - halfWidth && rx < m_data->x + halfWidth &&
-                 ry > m_data->y - halfHeight && ry < m_data->y + halfHeight);
+  float halfHeight = data_->height / 2.0f;
+  float halfWidth = data_->width / 2.0f;
+  bool inside = (rx > data_->x - halfWidth && rx < data_->x + halfWidth &&
+                 ry > data_->y - halfHeight && ry < data_->y + halfHeight);
 
-  switch (m_maskType) {
+  switch (maskType_) {
     case CMP_NODE_MASKTYPE_ADD:
       if (inside) {
         output[0] = MAX2(inputMask[0], inputValue[0]);
@@ -108,7 +108,7 @@ void BoxMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                     Span<MemoryBuffer *> inputs)
 {
   MaskFunc mask_func;
-  switch (m_maskType) {
+  switch (maskType_) {
     case CMP_NODE_MASKTYPE_ADD:
       mask_func = [](const bool is_inside, const float *mask, const float *value) {
         return is_inside ? MAX2(mask[0], value[0]) : mask[0];
@@ -143,18 +143,18 @@ void BoxMaskOperation::apply_mask(MemoryBuffer *output,
 {
   const float op_w = this->getWidth();
   const float op_h = this->getHeight();
-  const float half_w = m_data->width / 2.0f;
-  const float half_h = m_data->height / 2.0f;
+  const float half_w = data_->width / 2.0f;
+  const float half_h = data_->height / 2.0f;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     const float op_ry = it.y / op_h;
-    const float dy = (op_ry - m_data->y) / m_aspectRatio;
+    const float dy = (op_ry - data_->y) / aspectRatio_;
     const float op_rx = it.x / op_w;
-    const float dx = op_rx - m_data->x;
-    const float rx = m_data->x + (m_cosine * dx + m_sine * dy);
-    const float ry = m_data->y + (-m_sine * dx + m_cosine * dy);
+    const float dx = op_rx - data_->x;
+    const float rx = data_->x + (cosine_ * dx + sine_ * dy);
+    const float ry = data_->y + (-sine_ * dx + cosine_ * dy);
 
-    const bool inside = (rx > m_data->x - half_w && rx < m_data->x + half_w &&
-                         ry > m_data->y - half_h && ry < m_data->y + half_h);
+    const bool inside = (rx > data_->x - half_w && rx < data_->x + half_w &&
+                         ry > data_->y - half_h && ry < data_->y + half_h);
     const float *mask = it.in(0);
     const float *value = it.in(1);
     *it.out = mask_func(inside, mask, value);
@@ -163,8 +163,8 @@ void BoxMaskOperation::apply_mask(MemoryBuffer *output,
 
 void BoxMaskOperation::deinitExecution()
 {
-  m_inputMask = nullptr;
-  m_inputValue = nullptr;
+  inputMask_ = nullptr;
+  inputValue_ = nullptr;
 }
 
 }  // namespace blender::compositor

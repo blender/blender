@@ -24,7 +24,7 @@ namespace blender::compositor {
 
 WrapOperation::WrapOperation(DataType datatype) : ReadBufferOperation(datatype)
 {
-  m_wrappingType = CMP_NODE_WRAP_NONE;
+  wrappingType_ = CMP_NODE_WRAP_NONE;
 }
 
 inline float WrapOperation::getWrappedOriginalXPos(float x)
@@ -55,7 +55,7 @@ void WrapOperation::executePixelSampled(float output[4], float x, float y, Pixel
   nx = x;
   ny = y;
   MemoryBufferExtend extend_x = MemoryBufferExtend::Clip, extend_y = MemoryBufferExtend::Clip;
-  switch (m_wrappingType) {
+  switch (wrappingType_) {
     case CMP_NODE_WRAP_NONE:
       /* Intentionally empty, originalXPos and originalYPos have been set before. */
       break;
@@ -91,7 +91,7 @@ bool WrapOperation::determineDependingAreaOfInterest(rcti *input,
   newInput.ymin = input->ymin;
   newInput.ymax = input->ymax;
 
-  if (ELEM(m_wrappingType, CMP_NODE_WRAP_X, CMP_NODE_WRAP_XY)) {
+  if (ELEM(wrappingType_, CMP_NODE_WRAP_X, CMP_NODE_WRAP_XY)) {
     /* Wrap only on the x-axis if tile is wrapping. */
     newInput.xmin = getWrappedOriginalXPos(input->xmin);
     newInput.xmax = roundf(getWrappedOriginalXPos(input->xmax));
@@ -100,7 +100,7 @@ bool WrapOperation::determineDependingAreaOfInterest(rcti *input,
       newInput.xmax = this->getWidth();
     }
   }
-  if (ELEM(m_wrappingType, CMP_NODE_WRAP_Y, CMP_NODE_WRAP_XY)) {
+  if (ELEM(wrappingType_, CMP_NODE_WRAP_Y, CMP_NODE_WRAP_XY)) {
     /* Wrap only on the y-axis if tile is wrapping. */
     newInput.ymin = getWrappedOriginalYPos(input->ymin);
     newInput.ymax = roundf(getWrappedOriginalYPos(input->ymax));
@@ -115,7 +115,7 @@ bool WrapOperation::determineDependingAreaOfInterest(rcti *input,
 
 void WrapOperation::setWrapping(int wrapping_type)
 {
-  m_wrappingType = wrapping_type;
+  wrappingType_ = wrapping_type;
 }
 
 }  // namespace blender::compositor

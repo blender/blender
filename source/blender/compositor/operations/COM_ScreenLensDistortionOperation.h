@@ -30,22 +30,22 @@ class ScreenLensDistortionOperation : public MultiThreadedOperation {
   /**
    * Cached reference to the inputProgram
    */
-  SocketReader *m_inputProgram;
-  struct RNG *m_rng;
+  SocketReader *inputProgram_;
+  struct RNG *rng_;
 
-  bool m_fit;
-  bool m_jitter;
+  bool fit_;
+  bool jitter_;
 
-  float m_dispersion;
-  float m_distortion;
-  bool m_dispersion_const;
-  bool m_distortion_const;
-  bool m_variables_ready;
-  float m_k[3];
-  float m_k4[3];
-  float m_dk4[3];
-  float m_maxk;
-  float m_sc, m_cx, m_cy;
+  float dispersion_;
+  float distortion_;
+  bool dispersion_const_;
+  bool distortion_const_;
+  bool variables_ready_;
+  float k_[3];
+  float k4_[3];
+  float dk4_[3];
+  float maxk_;
+  float sc_, cx_, cy_;
 
  public:
   ScreenLensDistortionOperation();
@@ -70,11 +70,11 @@ class ScreenLensDistortionOperation : public MultiThreadedOperation {
 
   void setFit(bool fit)
   {
-    m_fit = fit;
+    fit_ = fit;
   }
   void setJitter(bool jitter)
   {
-    m_jitter = jitter;
+    jitter_ = jitter;
   }
 
   /** Set constant distortion value */

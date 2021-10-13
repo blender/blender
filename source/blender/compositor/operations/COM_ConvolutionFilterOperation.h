@@ -28,13 +28,13 @@ class ConvolutionFilterOperation : public MultiThreadedOperation {
   static constexpr int FACTOR_INPUT_INDEX = 1;
 
  private:
-  int m_filterWidth;
-  int m_filterHeight;
+  int filterWidth_;
+  int filterHeight_;
 
  protected:
-  SocketReader *m_inputOperation;
-  SocketReader *m_inputValueOperation;
-  float m_filter[9];
+  SocketReader *inputOperation_;
+  SocketReader *inputValueOperation_;
+  float filter_[9];
 
  public:
   ConvolutionFilterOperation();

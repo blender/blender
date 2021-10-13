@@ -37,7 +37,7 @@ class SunBeamsOperation : public MultiThreadedOperation {
 
   void setData(const NodeSunBeams &data)
   {
-    m_data = data;
+    data_ = data;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -49,10 +49,10 @@ class SunBeamsOperation : public MultiThreadedOperation {
   void calc_rays_common_data();
 
  private:
-  NodeSunBeams m_data;
+  NodeSunBeams data_;
 
-  float m_source_px[2];
-  float m_ray_length_px;
+  float source_px_[2];
+  float ray_length_px_;
 };
 
 }  // namespace blender::compositor
