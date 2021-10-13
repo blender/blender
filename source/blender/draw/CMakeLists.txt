@@ -108,6 +108,7 @@ set(SRC
   intern/draw_select_buffer.c
   intern/draw_texture_pool.cc
   intern/draw_shader.c
+  intern/smaa_textures.c
   intern/draw_view.c
   engines/basic/basic_engine.c
   engines/image/image_engine.c
