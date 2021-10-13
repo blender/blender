@@ -5772,6 +5772,7 @@ static void registerGeometryNodes()
   register_node_type_geo_input_curve_tilt();
   register_node_type_geo_input_index();
   register_node_type_geo_input_material();
+  register_node_type_geo_input_material_index();
   register_node_type_geo_input_normal();
   register_node_type_geo_input_position();
   register_node_type_geo_input_radius();
@@ -5783,7 +5784,6 @@ static void registerGeometryNodes()
   register_node_type_geo_instance_on_points();
   register_node_type_geo_is_viewport();
   register_node_type_geo_join_geometry();
-  register_node_type_geo_material_assign();
   register_node_type_geo_material_replace();
   register_node_type_geo_material_selection();
   register_node_type_geo_mesh_primitive_circle();
@@ -5815,6 +5815,8 @@ static void registerGeometryNodes()
   register_node_type_geo_set_curve_handles();
   register_node_type_geo_set_curve_radius();
   register_node_type_geo_set_curve_tilt();
+  register_node_type_geo_set_material();
+  register_node_type_geo_set_material_index();
   register_node_type_geo_set_point_radius();
   register_node_type_geo_set_position();
   register_node_type_geo_set_shade_smooth();

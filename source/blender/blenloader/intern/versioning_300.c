@@ -1746,5 +1746,20 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != GEO_NODE_SET_MATERIAL) {
+          continue;
+        }
+        if (strstr(node->idname, "SetMaterial")) {
+          /* Make sure we haven't changed this idname already. */
+          continue;
+        }
+        strcpy(node->idname, "GeometryNodeSetMaterial");
+      }
+    }
   }
 }
