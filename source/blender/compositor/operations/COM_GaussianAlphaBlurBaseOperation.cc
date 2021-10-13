@@ -39,18 +39,18 @@ void GaussianAlphaBlurBaseOperation::init_data()
   }
 }
 
-void GaussianAlphaBlurBaseOperation::initExecution()
+void GaussianAlphaBlurBaseOperation::init_execution()
 {
-  BlurBaseOperation::initExecution();
+  BlurBaseOperation::init_execution();
   if (execution_model_ == eExecutionModel::FullFrame) {
     gausstab_ = BlurBaseOperation::make_gausstab(rad_, filtersize_);
     distbuf_inv_ = BlurBaseOperation::make_dist_fac_inverse(rad_, filtersize_, falloff_);
   }
 }
 
-void GaussianAlphaBlurBaseOperation::deinitExecution()
+void GaussianAlphaBlurBaseOperation::deinit_execution()
 {
-  BlurBaseOperation::deinitExecution();
+  BlurBaseOperation::deinit_execution();
 
   if (gausstab_) {
     MEM_freeN(gausstab_);
@@ -133,7 +133,7 @@ void GaussianAlphaBlurBaseOperation::update_memory_buffer_partial(MemoryBuffer *
     float value_max = finv_test(*it.in(0), do_invert);
     float distfacinv_max = 1.0f; /* 0 to 1 */
 
-    const int step = QualityStepHelper::getStep();
+    const int step = QualityStepHelper::get_step();
     const float *in = it.in(0) + ((intptr_t)coord_min - coord) * elem_stride;
     const int in_stride = elem_stride * step;
     int index = (coord_min - coord) + filtersize_;

@@ -22,8 +22,8 @@ namespace blender::compositor {
 
 KeyingBlurOperation::KeyingBlurOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Value);
 
   size_ = 0;
   axis_ = BLUR_AXIS_X;
@@ -31,34 +31,34 @@ KeyingBlurOperation::KeyingBlurOperation()
   this->flags.complex = true;
 }
 
-void *KeyingBlurOperation::initializeTileData(rcti *rect)
+void *KeyingBlurOperation::initialize_tile_data(rcti *rect)
 {
-  void *buffer = getInputOperation(0)->initializeTileData(rect);
+  void *buffer = get_input_operation(0)->initialize_tile_data(rect);
 
   return buffer;
 }
 
-void KeyingBlurOperation::executePixel(float output[4], int x, int y, void *data)
+void KeyingBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
-  MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
-  const int bufferWidth = inputBuffer->getWidth();
-  float *buffer = inputBuffer->getBuffer();
+  MemoryBuffer *input_buffer = (MemoryBuffer *)data;
+  const int buffer_width = input_buffer->get_width();
+  float *buffer = input_buffer->get_buffer();
   int count = 0;
   float average = 0.0f;
 
   if (axis_ == 0) {
-    const int start = MAX2(0, x - size_ + 1), end = MIN2(bufferWidth, x + size_);
+    const int start = MAX2(0, x - size_ + 1), end = MIN2(buffer_width, x + size_);
     for (int cx = start; cx < end; cx++) {
-      int bufferIndex = (y * bufferWidth + cx);
-      average += buffer[bufferIndex];
+      int buffer_index = (y * buffer_width + cx);
+      average += buffer[buffer_index];
       count++;
     }
   }
   else {
-    const int start = MAX2(0, y - size_ + 1), end = MIN2(inputBuffer->getHeight(), y + size_);
+    const int start = MAX2(0, y - size_ + 1), end = MIN2(input_buffer->get_height(), y + size_);
     for (int cy = start; cy < end; cy++) {
-      int bufferIndex = (cy * bufferWidth + x);
-      average += buffer[bufferIndex];
+      int buffer_index = (cy * buffer_width + x);
+      average += buffer[buffer_index];
       count++;
     }
   }
@@ -68,26 +68,26 @@ void KeyingBlurOperation::executePixel(float output[4], int x, int y, void *data
   output[0] = average;
 }
 
-bool KeyingBlurOperation::determineDependingAreaOfInterest(rcti *input,
-                                                           ReadBufferOperation *readOperation,
-                                                           rcti *output)
+bool KeyingBlurOperation::determine_depending_area_of_interest(rcti *input,
+                                                               ReadBufferOperation *read_operation,
+                                                               rcti *output)
 {
-  rcti newInput;
+  rcti new_input;
 
   if (axis_ == BLUR_AXIS_X) {
-    newInput.xmin = input->xmin - size_;
-    newInput.ymin = input->ymin;
-    newInput.xmax = input->xmax + size_;
-    newInput.ymax = input->ymax;
+    new_input.xmin = input->xmin - size_;
+    new_input.ymin = input->ymin;
+    new_input.xmax = input->xmax + size_;
+    new_input.ymax = input->ymax;
   }
   else {
-    newInput.xmin = input->xmin;
-    newInput.ymin = input->ymin - size_;
-    newInput.xmax = input->xmax;
-    newInput.ymax = input->ymax + size_;
+    new_input.xmin = input->xmin;
+    new_input.ymin = input->ymin - size_;
+    new_input.xmax = input->xmax;
+    new_input.ymax = input->ymax + size_;
   }
 
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void KeyingBlurOperation::get_area_of_interest(const int UNUSED(input_idx),
@@ -126,12 +126,12 @@ void KeyingBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
   switch (axis_) {
     case BLUR_AXIS_X:
       get_current_coord = [&] { return it.x; };
-      coord_max = this->getWidth();
+      coord_max = this->get_width();
       elem_stride = input->elem_stride;
       break;
     case BLUR_AXIS_Y:
       get_current_coord = [&] { return it.y; };
-      coord_max = this->getHeight();
+      coord_max = this->get_height();
       elem_stride = input->row_stride;
       break;
   }

@@ -24,36 +24,36 @@ MathBaseOperation::MathBaseOperation()
 {
   /* TODO(manzanilla): after removing tiled implementation, template this class to only add needed
    * number of inputs. */
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Value);
-  inputValue1Operation_ = nullptr;
-  inputValue2Operation_ = nullptr;
-  inputValue3Operation_ = nullptr;
-  useClamp_ = false;
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Value);
+  input_value1_operation_ = nullptr;
+  input_value2_operation_ = nullptr;
+  input_value3_operation_ = nullptr;
+  use_clamp_ = false;
   this->flags.can_be_constant = true;
 }
 
-void MathBaseOperation::initExecution()
+void MathBaseOperation::init_execution()
 {
-  inputValue1Operation_ = this->getInputSocketReader(0);
-  inputValue2Operation_ = this->getInputSocketReader(1);
-  inputValue3Operation_ = this->getInputSocketReader(2);
+  input_value1_operation_ = this->get_input_socket_reader(0);
+  input_value2_operation_ = this->get_input_socket_reader(1);
+  input_value3_operation_ = this->get_input_socket_reader(2);
 }
 
-void MathBaseOperation::deinitExecution()
+void MathBaseOperation::deinit_execution()
 {
-  inputValue1Operation_ = nullptr;
-  inputValue2Operation_ = nullptr;
-  inputValue3Operation_ = nullptr;
+  input_value1_operation_ = nullptr;
+  input_value2_operation_ = nullptr;
+  input_value3_operation_ = nullptr;
 }
 
 void MathBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   NodeOperationInput *socket;
   rcti temp_area;
-  socket = this->getInputSocket(0);
+  socket = this->get_input_socket(0);
   const bool determined = socket->determine_canvas(COM_AREA_NONE, temp_area);
   if (determined) {
     this->set_canvas_input_index(0);
@@ -64,9 +64,9 @@ void MathBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_are
   NodeOperation::determine_canvas(preferred_area, r_area);
 }
 
-void MathBaseOperation::clampIfNeeded(float *color)
+void MathBaseOperation::clamp_if_needed(float *color)
 {
-  if (useClamp_) {
+  if (use_clamp_) {
     CLAMP(color[0], 0.0f, 1.0f);
   }
 }
@@ -79,70 +79,73 @@ void MathBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
   update_memory_buffer_partial(it);
 }
 
-void MathAddOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void MathAddOperation::execute_pixel_sampled(float output[4],
+                                             float x,
+                                             float y,
+                                             PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = inputValue1[0] + inputValue2[0];
+  output[0] = input_value1[0] + input_value2[0];
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
-void MathSubtractOperation::executePixelSampled(float output[4],
+void MathSubtractOperation::execute_pixel_sampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
+{
+  float input_value1[4];
+  float input_value2[4];
+
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
+
+  output[0] = input_value1[0] - input_value2[0];
+
+  clamp_if_needed(output);
+}
+
+void MathMultiplyOperation::execute_pixel_sampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
+{
+  float input_value1[4];
+  float input_value2[4];
+
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
+
+  output[0] = input_value1[0] * input_value2[0];
+
+  clamp_if_needed(output);
+}
+
+void MathDivideOperation::execute_pixel_sampled(float output[4],
                                                 float x,
                                                 float y,
                                                 PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = inputValue1[0] - inputValue2[0];
-
-  clampIfNeeded(output);
-}
-
-void MathMultiplyOperation::executePixelSampled(float output[4],
-                                                float x,
-                                                float y,
-                                                PixelSampler sampler)
-{
-  float inputValue1[4];
-  float inputValue2[4];
-
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
-
-  output[0] = inputValue1[0] * inputValue2[0];
-
-  clampIfNeeded(output);
-}
-
-void MathDivideOperation::executePixelSampled(float output[4],
-                                              float x,
-                                              float y,
-                                              PixelSampler sampler)
-{
-  float inputValue1[4];
-  float inputValue2[4];
-
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
-
-  if (inputValue2[0] == 0) { /* We don't want to divide by zero. */
+  if (input_value2[0] == 0) { /* We don't want to divide by zero. */
     output[0] = 0.0;
   }
   else {
-    output[0] = inputValue1[0] / inputValue2[0];
+    output[0] = input_value1[0] / input_value2[0];
   }
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathDivideOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -153,20 +156,20 @@ void MathDivideOperation::update_memory_buffer_partial(BuffersIterator<float> &i
   }
 }
 
-void MathSineOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+void MathSineOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = sin(inputValue1[0]);
+  output[0] = sin(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathSineOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -177,20 +180,20 @@ void MathSineOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
   }
 }
 
-void MathCosineOperation::executePixelSampled(float output[4],
-                                              float x,
-                                              float y,
-                                              PixelSampler sampler)
+void MathCosineOperation::execute_pixel_sampled(float output[4],
+                                                float x,
+                                                float y,
+                                                PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = cos(inputValue1[0]);
+  output[0] = cos(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathCosineOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -201,20 +204,20 @@ void MathCosineOperation::update_memory_buffer_partial(BuffersIterator<float> &i
   }
 }
 
-void MathTangentOperation::executePixelSampled(float output[4],
-                                               float x,
-                                               float y,
-                                               PixelSampler sampler)
+void MathTangentOperation::execute_pixel_sampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = tan(inputValue1[0]);
+  output[0] = tan(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathTangentOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -225,20 +228,20 @@ void MathTangentOperation::update_memory_buffer_partial(BuffersIterator<float> &
   }
 }
 
-void MathHyperbolicSineOperation::executePixelSampled(float output[4],
-                                                      float x,
-                                                      float y,
-                                                      PixelSampler sampler)
+void MathHyperbolicSineOperation::execute_pixel_sampled(float output[4],
+                                                        float x,
+                                                        float y,
+                                                        PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = sinh(inputValue1[0]);
+  output[0] = sinh(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathHyperbolicSineOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -249,20 +252,20 @@ void MathHyperbolicSineOperation::update_memory_buffer_partial(BuffersIterator<f
   }
 }
 
-void MathHyperbolicCosineOperation::executePixelSampled(float output[4],
-                                                        float x,
-                                                        float y,
-                                                        PixelSampler sampler)
+void MathHyperbolicCosineOperation::execute_pixel_sampled(float output[4],
+                                                          float x,
+                                                          float y,
+                                                          PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = cosh(inputValue1[0]);
+  output[0] = cosh(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathHyperbolicCosineOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -273,20 +276,20 @@ void MathHyperbolicCosineOperation::update_memory_buffer_partial(BuffersIterator
   }
 }
 
-void MathHyperbolicTangentOperation::executePixelSampled(float output[4],
-                                                         float x,
-                                                         float y,
-                                                         PixelSampler sampler)
+void MathHyperbolicTangentOperation::execute_pixel_sampled(float output[4],
+                                                           float x,
+                                                           float y,
+                                                           PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = tanh(inputValue1[0]);
+  output[0] = tanh(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathHyperbolicTangentOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -297,25 +300,25 @@ void MathHyperbolicTangentOperation::update_memory_buffer_partial(BuffersIterato
   }
 }
 
-void MathArcSineOperation::executePixelSampled(float output[4],
-                                               float x,
-                                               float y,
-                                               PixelSampler sampler)
+void MathArcSineOperation::execute_pixel_sampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  if (inputValue1[0] <= 1 && inputValue1[0] >= -1) {
-    output[0] = asin(inputValue1[0]);
+  if (input_value1[0] <= 1 && input_value1[0] >= -1) {
+    output[0] = asin(input_value1[0]);
   }
   else {
     output[0] = 0.0;
   }
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathArcSineOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -326,25 +329,25 @@ void MathArcSineOperation::update_memory_buffer_partial(BuffersIterator<float> &
   }
 }
 
-void MathArcCosineOperation::executePixelSampled(float output[4],
-                                                 float x,
-                                                 float y,
-                                                 PixelSampler sampler)
+void MathArcCosineOperation::execute_pixel_sampled(float output[4],
+                                                   float x,
+                                                   float y,
+                                                   PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  if (inputValue1[0] <= 1 && inputValue1[0] >= -1) {
-    output[0] = acos(inputValue1[0]);
+  if (input_value1[0] <= 1 && input_value1[0] >= -1) {
+    output[0] = acos(input_value1[0]);
   }
   else {
     output[0] = 0.0;
   }
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathArcCosineOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -355,20 +358,20 @@ void MathArcCosineOperation::update_memory_buffer_partial(BuffersIterator<float>
   }
 }
 
-void MathArcTangentOperation::executePixelSampled(float output[4],
-                                                  float x,
-                                                  float y,
-                                                  PixelSampler sampler)
+void MathArcTangentOperation::execute_pixel_sampled(float output[4],
+                                                    float x,
+                                                    float y,
+                                                    PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = atan(inputValue1[0]);
+  output[0] = atan(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathArcTangentOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -379,32 +382,32 @@ void MathArcTangentOperation::update_memory_buffer_partial(BuffersIterator<float
   }
 }
 
-void MathPowerOperation::executePixelSampled(float output[4],
-                                             float x,
-                                             float y,
-                                             PixelSampler sampler)
+void MathPowerOperation::execute_pixel_sampled(float output[4],
+                                               float x,
+                                               float y,
+                                               PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  if (inputValue1[0] >= 0) {
-    output[0] = pow(inputValue1[0], inputValue2[0]);
+  if (input_value1[0] >= 0) {
+    output[0] = pow(input_value1[0], input_value2[0]);
   }
   else {
-    float y_mod_1 = fmod(inputValue2[0], 1);
+    float y_mod_1 = fmod(input_value2[0], 1);
     /* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
     if (y_mod_1 > 0.999f || y_mod_1 < 0.001f) {
-      output[0] = pow(inputValue1[0], floorf(inputValue2[0] + 0.5f));
+      output[0] = pow(input_value1[0], floorf(input_value2[0] + 0.5f));
     }
     else {
       output[0] = 0.0;
     }
   }
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathPowerOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -430,25 +433,25 @@ void MathPowerOperation::update_memory_buffer_partial(BuffersIterator<float> &it
   }
 }
 
-void MathLogarithmOperation::executePixelSampled(float output[4],
-                                                 float x,
-                                                 float y,
-                                                 PixelSampler sampler)
+void MathLogarithmOperation::execute_pixel_sampled(float output[4],
+                                                   float x,
+                                                   float y,
+                                                   PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  if (inputValue1[0] > 0 && inputValue2[0] > 0) {
-    output[0] = log(inputValue1[0]) / log(inputValue2[0]);
+  if (input_value1[0] > 0 && input_value2[0] > 0) {
+    output[0] = log(input_value1[0]) / log(input_value2[0]);
   }
   else {
     output[0] = 0.0;
   }
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathLogarithmOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -466,20 +469,20 @@ void MathLogarithmOperation::update_memory_buffer_partial(BuffersIterator<float>
   }
 }
 
-void MathMinimumOperation::executePixelSampled(float output[4],
-                                               float x,
-                                               float y,
-                                               PixelSampler sampler)
+void MathMinimumOperation::execute_pixel_sampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = MIN2(inputValue1[0], inputValue2[0]);
+  output[0] = MIN2(input_value1[0], input_value2[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathMinimumOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -490,20 +493,20 @@ void MathMinimumOperation::update_memory_buffer_partial(BuffersIterator<float> &
   }
 }
 
-void MathMaximumOperation::executePixelSampled(float output[4],
-                                               float x,
-                                               float y,
-                                               PixelSampler sampler)
+void MathMaximumOperation::execute_pixel_sampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = MAX2(inputValue1[0], inputValue2[0]);
+  output[0] = MAX2(input_value1[0], input_value2[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathMaximumOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -514,20 +517,20 @@ void MathMaximumOperation::update_memory_buffer_partial(BuffersIterator<float> &
   }
 }
 
-void MathRoundOperation::executePixelSampled(float output[4],
-                                             float x,
-                                             float y,
-                                             PixelSampler sampler)
+void MathRoundOperation::execute_pixel_sampled(float output[4],
+                                               float x,
+                                               float y,
+                                               PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = round(inputValue1[0]);
+  output[0] = round(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathRoundOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -538,57 +541,57 @@ void MathRoundOperation::update_memory_buffer_partial(BuffersIterator<float> &it
   }
 }
 
-void MathLessThanOperation::executePixelSampled(float output[4],
+void MathLessThanOperation::execute_pixel_sampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
+{
+  float input_value1[4];
+  float input_value2[4];
+
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
+
+  output[0] = input_value1[0] < input_value2[0] ? 1.0f : 0.0f;
+
+  clamp_if_needed(output);
+}
+
+void MathGreaterThanOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
+{
+  float input_value1[4];
+  float input_value2[4];
+
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
+
+  output[0] = input_value1[0] > input_value2[0] ? 1.0f : 0.0f;
+
+  clamp_if_needed(output);
+}
+
+void MathModuloOperation::execute_pixel_sampled(float output[4],
                                                 float x,
                                                 float y,
                                                 PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = inputValue1[0] < inputValue2[0] ? 1.0f : 0.0f;
-
-  clampIfNeeded(output);
-}
-
-void MathGreaterThanOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
-{
-  float inputValue1[4];
-  float inputValue2[4];
-
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
-
-  output[0] = inputValue1[0] > inputValue2[0] ? 1.0f : 0.0f;
-
-  clampIfNeeded(output);
-}
-
-void MathModuloOperation::executePixelSampled(float output[4],
-                                              float x,
-                                              float y,
-                                              PixelSampler sampler)
-{
-  float inputValue1[4];
-  float inputValue2[4];
-
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
-
-  if (inputValue2[0] == 0) {
+  if (input_value2[0] == 0) {
     output[0] = 0.0;
   }
   else {
-    output[0] = fmod(inputValue1[0], inputValue2[0]);
+    output[0] = fmod(input_value1[0], input_value2[0]);
   }
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathModuloOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -600,18 +603,18 @@ void MathModuloOperation::update_memory_buffer_partial(BuffersIterator<float> &i
   }
 }
 
-void MathAbsoluteOperation::executePixelSampled(float output[4],
-                                                float x,
-                                                float y,
-                                                PixelSampler sampler)
+void MathAbsoluteOperation::execute_pixel_sampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
 {
-  float inputValue1[4];
+  float input_value1[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
 
-  output[0] = fabs(inputValue1[0]);
+  output[0] = fabs(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathAbsoluteOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -622,18 +625,18 @@ void MathAbsoluteOperation::update_memory_buffer_partial(BuffersIterator<float> 
   }
 }
 
-void MathRadiansOperation::executePixelSampled(float output[4],
-                                               float x,
-                                               float y,
-                                               PixelSampler sampler)
+void MathRadiansOperation::execute_pixel_sampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
 {
-  float inputValue1[4];
+  float input_value1[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
 
-  output[0] = DEG2RADF(inputValue1[0]);
+  output[0] = DEG2RADF(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathRadiansOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -644,18 +647,18 @@ void MathRadiansOperation::update_memory_buffer_partial(BuffersIterator<float> &
   }
 }
 
-void MathDegreesOperation::executePixelSampled(float output[4],
-                                               float x,
-                                               float y,
-                                               PixelSampler sampler)
+void MathDegreesOperation::execute_pixel_sampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
 {
-  float inputValue1[4];
+  float input_value1[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
 
-  output[0] = RAD2DEGF(inputValue1[0]);
+  output[0] = RAD2DEGF(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathDegreesOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -666,20 +669,20 @@ void MathDegreesOperation::update_memory_buffer_partial(BuffersIterator<float> &
   }
 }
 
-void MathArcTan2Operation::executePixelSampled(float output[4],
-                                               float x,
-                                               float y,
-                                               PixelSampler sampler)
+void MathArcTan2Operation::execute_pixel_sampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = atan2(inputValue1[0], inputValue2[0]);
+  output[0] = atan2(input_value1[0], input_value2[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathArcTan2Operation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -690,18 +693,18 @@ void MathArcTan2Operation::update_memory_buffer_partial(BuffersIterator<float> &
   }
 }
 
-void MathFloorOperation::executePixelSampled(float output[4],
-                                             float x,
-                                             float y,
-                                             PixelSampler sampler)
+void MathFloorOperation::execute_pixel_sampled(float output[4],
+                                               float x,
+                                               float y,
+                                               PixelSampler sampler)
 {
-  float inputValue1[4];
+  float input_value1[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
 
-  output[0] = floor(inputValue1[0]);
+  output[0] = floor(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathFloorOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -712,18 +715,18 @@ void MathFloorOperation::update_memory_buffer_partial(BuffersIterator<float> &it
   }
 }
 
-void MathCeilOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+void MathCeilOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
 {
-  float inputValue1[4];
+  float input_value1[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
 
-  output[0] = ceil(inputValue1[0]);
+  output[0] = ceil(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathCeilOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -734,18 +737,18 @@ void MathCeilOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
   }
 }
 
-void MathFractOperation::executePixelSampled(float output[4],
-                                             float x,
-                                             float y,
-                                             PixelSampler sampler)
+void MathFractOperation::execute_pixel_sampled(float output[4],
+                                               float x,
+                                               float y,
+                                               PixelSampler sampler)
 {
-  float inputValue1[4];
+  float input_value1[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
 
-  output[0] = inputValue1[0] - floor(inputValue1[0]);
+  output[0] = input_value1[0] - floor(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathFractOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -756,23 +759,23 @@ void MathFractOperation::update_memory_buffer_partial(BuffersIterator<float> &it
   }
 }
 
-void MathSqrtOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+void MathSqrtOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
 {
-  float inputValue1[4];
+  float input_value1[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
 
-  if (inputValue1[0] > 0) {
-    output[0] = sqrt(inputValue1[0]);
+  if (input_value1[0] > 0) {
+    output[0] = sqrt(input_value1[0]);
   }
   else {
     output[0] = 0.0f;
   }
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathSqrtOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -783,23 +786,23 @@ void MathSqrtOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
   }
 }
 
-void MathInverseSqrtOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void MathInverseSqrtOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
-  float inputValue1[4];
+  float input_value1[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
 
-  if (inputValue1[0] > 0) {
-    output[0] = 1.0f / sqrt(inputValue1[0]);
+  if (input_value1[0] > 0) {
+    output[0] = 1.0f / sqrt(input_value1[0]);
   }
   else {
     output[0] = 0.0f;
   }
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathInverseSqrtOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -810,18 +813,18 @@ void MathInverseSqrtOperation::update_memory_buffer_partial(BuffersIterator<floa
   }
 }
 
-void MathSignOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+void MathSignOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
 {
-  float inputValue1[4];
+  float input_value1[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
 
-  output[0] = compatible_signf(inputValue1[0]);
+  output[0] = compatible_signf(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathSignOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -832,18 +835,18 @@ void MathSignOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
   }
 }
 
-void MathExponentOperation::executePixelSampled(float output[4],
-                                                float x,
-                                                float y,
-                                                PixelSampler sampler)
+void MathExponentOperation::execute_pixel_sampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
 {
-  float inputValue1[4];
+  float input_value1[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
 
-  output[0] = expf(inputValue1[0]);
+  output[0] = expf(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathExponentOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -854,18 +857,18 @@ void MathExponentOperation::update_memory_buffer_partial(BuffersIterator<float> 
   }
 }
 
-void MathTruncOperation::executePixelSampled(float output[4],
-                                             float x,
-                                             float y,
-                                             PixelSampler sampler)
+void MathTruncOperation::execute_pixel_sampled(float output[4],
+                                               float x,
+                                               float y,
+                                               PixelSampler sampler)
 {
-  float inputValue1[4];
+  float input_value1[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
 
-  output[0] = (inputValue1[0] >= 0.0f) ? floor(inputValue1[0]) : ceil(inputValue1[0]);
+  output[0] = (input_value1[0] >= 0.0f) ? floor(input_value1[0]) : ceil(input_value1[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathTruncOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -877,25 +880,25 @@ void MathTruncOperation::update_memory_buffer_partial(BuffersIterator<float> &it
   }
 }
 
-void MathSnapOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+void MathSnapOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  if (inputValue1[0] == 0 || inputValue2[0] == 0) { /* We don't want to divide by zero. */
+  if (input_value1[0] == 0 || input_value2[0] == 0) { /* We don't want to divide by zero. */
     output[0] = 0.0f;
   }
   else {
-    output[0] = floorf(inputValue1[0] / inputValue2[0]) * inputValue2[0];
+    output[0] = floorf(input_value1[0] / input_value2[0]) * input_value2[0];
   }
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathSnapOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -913,22 +916,22 @@ void MathSnapOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
   }
 }
 
-void MathWrapOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+void MathWrapOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
-  float inputValue3[4];
+  float input_value1[4];
+  float input_value2[4];
+  float input_value3[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
-  inputValue3Operation_->readSampled(inputValue3, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
+  input_value3_operation_->read_sampled(input_value3, x, y, sampler);
 
-  output[0] = wrapf(inputValue1[0], inputValue2[0], inputValue3[0]);
+  output[0] = wrapf(input_value1[0], input_value2[0], input_value3[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathWrapOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -939,20 +942,20 @@ void MathWrapOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
   }
 }
 
-void MathPingpongOperation::executePixelSampled(float output[4],
-                                                float x,
-                                                float y,
-                                                PixelSampler sampler)
+void MathPingpongOperation::execute_pixel_sampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
+  float input_value1[4];
+  float input_value2[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = pingpongf(inputValue1[0], inputValue2[0]);
+  output[0] = pingpongf(input_value1[0], input_value2[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathPingpongOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -963,23 +966,23 @@ void MathPingpongOperation::update_memory_buffer_partial(BuffersIterator<float> 
   }
 }
 
-void MathCompareOperation::executePixelSampled(float output[4],
-                                               float x,
-                                               float y,
-                                               PixelSampler sampler)
+void MathCompareOperation::execute_pixel_sampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
-  float inputValue3[4];
+  float input_value1[4];
+  float input_value2[4];
+  float input_value3[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
-  inputValue3Operation_->readSampled(inputValue3, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
+  input_value3_operation_->read_sampled(input_value3, x, y, sampler);
 
-  output[0] = (fabsf(inputValue1[0] - inputValue2[0]) <= MAX2(inputValue3[0], 1e-5f)) ? 1.0f :
-                                                                                        0.0f;
+  output[0] = (fabsf(input_value1[0] - input_value2[0]) <= MAX2(input_value3[0], 1e-5f)) ? 1.0f :
+                                                                                           0.0f;
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathCompareOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -990,22 +993,22 @@ void MathCompareOperation::update_memory_buffer_partial(BuffersIterator<float> &
   }
 }
 
-void MathMultiplyAddOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void MathMultiplyAddOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
-  float inputValue3[4];
+  float input_value1[4];
+  float input_value2[4];
+  float input_value3[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
-  inputValue3Operation_->readSampled(inputValue3, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
+  input_value3_operation_->read_sampled(input_value3, x, y, sampler);
 
-  output[0] = inputValue1[0] * inputValue2[0] + inputValue3[0];
+  output[0] = input_value1[0] * input_value2[0] + input_value3[0];
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathMultiplyAddOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -1016,22 +1019,22 @@ void MathMultiplyAddOperation::update_memory_buffer_partial(BuffersIterator<floa
   }
 }
 
-void MathSmoothMinOperation::executePixelSampled(float output[4],
-                                                 float x,
-                                                 float y,
-                                                 PixelSampler sampler)
+void MathSmoothMinOperation::execute_pixel_sampled(float output[4],
+                                                   float x,
+                                                   float y,
+                                                   PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
-  float inputValue3[4];
+  float input_value1[4];
+  float input_value2[4];
+  float input_value3[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
-  inputValue3Operation_->readSampled(inputValue3, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
+  input_value3_operation_->read_sampled(input_value3, x, y, sampler);
 
-  output[0] = smoothminf(inputValue1[0], inputValue2[0], inputValue3[0]);
+  output[0] = smoothminf(input_value1[0], input_value2[0], input_value3[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathSmoothMinOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -1042,22 +1045,22 @@ void MathSmoothMinOperation::update_memory_buffer_partial(BuffersIterator<float>
   }
 }
 
-void MathSmoothMaxOperation::executePixelSampled(float output[4],
-                                                 float x,
-                                                 float y,
-                                                 PixelSampler sampler)
+void MathSmoothMaxOperation::execute_pixel_sampled(float output[4],
+                                                   float x,
+                                                   float y,
+                                                   PixelSampler sampler)
 {
-  float inputValue1[4];
-  float inputValue2[4];
-  float inputValue3[4];
+  float input_value1[4];
+  float input_value2[4];
+  float input_value3[4];
 
-  inputValue1Operation_->readSampled(inputValue1, x, y, sampler);
-  inputValue2Operation_->readSampled(inputValue2, x, y, sampler);
-  inputValue3Operation_->readSampled(inputValue3, x, y, sampler);
+  input_value1_operation_->read_sampled(input_value1, x, y, sampler);
+  input_value2_operation_->read_sampled(input_value2, x, y, sampler);
+  input_value3_operation_->read_sampled(input_value3, x, y, sampler);
 
-  output[0] = -smoothminf(-inputValue1[0], -inputValue2[0], inputValue3[0]);
+  output[0] = -smoothminf(-input_value1[0], -input_value2[0], input_value3[0]);
 
-  clampIfNeeded(output);
+  clamp_if_needed(output);
 }
 
 void MathSmoothMaxOperation::update_memory_buffer_partial(BuffersIterator<float> &it)

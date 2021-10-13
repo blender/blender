@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class ColorMatteNode : public Node {
  public:
-  ColorMatteNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  ColorMatteNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

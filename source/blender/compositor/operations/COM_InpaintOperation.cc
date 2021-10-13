@@ -23,37 +23,37 @@
 namespace blender::compositor {
 
 #define ASSERT_XY_RANGE(x, y) \
-  BLI_assert(x >= 0 && x < this->getWidth() && y >= 0 && y < this->getHeight())
+  BLI_assert(x >= 0 && x < this->get_width() && y >= 0 && y < this->get_height())
 
 /* In-paint (simple convolve using average of known pixels). */
 InpaintSimpleOperation::InpaintSimpleOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
   this->flags.complex = true;
-  inputImageProgram_ = nullptr;
+  input_image_program_ = nullptr;
   pixelorder_ = nullptr;
   manhattan_distance_ = nullptr;
   cached_buffer_ = nullptr;
   cached_buffer_ready_ = false;
   flags.is_fullframe_operation = true;
 }
-void InpaintSimpleOperation::initExecution()
+void InpaintSimpleOperation::init_execution()
 {
-  inputImageProgram_ = this->getInputSocketReader(0);
+  input_image_program_ = this->get_input_socket_reader(0);
 
   pixelorder_ = nullptr;
   manhattan_distance_ = nullptr;
   cached_buffer_ = nullptr;
   cached_buffer_ready_ = false;
 
-  this->initMutex();
+  this->init_mutex();
 }
 
 void InpaintSimpleOperation::clamp_xy(int &x, int &y)
 {
-  int width = this->getWidth();
-  int height = this->getHeight();
+  int width = this->get_width();
+  int height = this->get_height();
 
   if (x < 0) {
     x = 0;
@@ -72,7 +72,7 @@ void InpaintSimpleOperation::clamp_xy(int &x, int &y)
 
 float *InpaintSimpleOperation::get_pixel(int x, int y)
 {
-  int width = this->getWidth();
+  int width = this->get_width();
 
   ASSERT_XY_RANGE(x, y);
 
@@ -82,7 +82,7 @@ float *InpaintSimpleOperation::get_pixel(int x, int y)
 
 int InpaintSimpleOperation::mdist(int x, int y)
 {
-  int width = this->getWidth();
+  int width = this->get_width();
 
   ASSERT_XY_RANGE(x, y);
 
@@ -91,7 +91,7 @@ int InpaintSimpleOperation::mdist(int x, int y)
 
 bool InpaintSimpleOperation::next_pixel(int &x, int &y, int &curr, int iters)
 {
-  int width = this->getWidth();
+  int width = this->get_width();
 
   if (curr >= area_size_) {
     return false;
@@ -111,8 +111,8 @@ bool InpaintSimpleOperation::next_pixel(int &x, int &y, int &curr, int iters)
 
 void InpaintSimpleOperation::calc_manhattan_distance()
 {
-  int width = this->getWidth();
-  int height = this->getHeight();
+  int width = this->get_width();
+  int height = this->get_height();
   short *m = manhattan_distance_ = (short *)MEM_mallocN(sizeof(short) * width * height, __func__);
   int *offsets;
 
@@ -213,15 +213,15 @@ void InpaintSimpleOperation::pix_step(int x, int y)
   }
 }
 
-void *InpaintSimpleOperation::initializeTileData(rcti *rect)
+void *InpaintSimpleOperation::initialize_tile_data(rcti *rect)
 {
   if (cached_buffer_ready_) {
     return cached_buffer_;
   }
-  lockMutex();
+  lock_mutex();
   if (!cached_buffer_ready_) {
-    MemoryBuffer *buf = (MemoryBuffer *)inputImageProgram_->initializeTileData(rect);
-    cached_buffer_ = (float *)MEM_dupallocN(buf->getBuffer());
+    MemoryBuffer *buf = (MemoryBuffer *)input_image_program_->initialize_tile_data(rect);
+    cached_buffer_ = (float *)MEM_dupallocN(buf->get_buffer());
 
     this->calc_manhattan_distance();
 
@@ -234,20 +234,20 @@ void *InpaintSimpleOperation::initializeTileData(rcti *rect)
     cached_buffer_ready_ = true;
   }
 
-  unlockMutex();
+  unlock_mutex();
   return cached_buffer_;
 }
 
-void InpaintSimpleOperation::executePixel(float output[4], int x, int y, void * /*data*/)
+void InpaintSimpleOperation::execute_pixel(float output[4], int x, int y, void * /*data*/)
 {
   this->clamp_xy(x, y);
   copy_v4_v4(output, this->get_pixel(x, y));
 }
 
-void InpaintSimpleOperation::deinitExecution()
+void InpaintSimpleOperation::deinit_execution()
 {
-  inputImageProgram_ = nullptr;
-  this->deinitMutex();
+  input_image_program_ = nullptr;
+  this->deinit_mutex();
   if (cached_buffer_) {
     MEM_freeN(cached_buffer_);
     cached_buffer_ = nullptr;
@@ -265,22 +265,21 @@ void InpaintSimpleOperation::deinitExecution()
   cached_buffer_ready_ = false;
 }
 
-bool InpaintSimpleOperation::determineDependingAreaOfInterest(rcti * /*input*/,
-                                                              ReadBufferOperation *readOperation,
-                                                              rcti *output)
+bool InpaintSimpleOperation::determine_depending_area_of_interest(
+    rcti * /*input*/, ReadBufferOperation *read_operation, rcti *output)
 {
   if (cached_buffer_ready_) {
     return false;
   }
 
-  rcti newInput;
+  rcti new_input;
 
-  newInput.xmax = getWidth();
-  newInput.xmin = 0;
-  newInput.ymax = getHeight();
-  newInput.ymin = 0;
+  new_input.xmax = get_width();
+  new_input.xmin = 0;
+  new_input.ymax = get_height();
+  new_input.ymin = 0;
 
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void InpaintSimpleOperation::get_area_of_interest(const int input_idx,
@@ -305,7 +304,7 @@ void InpaintSimpleOperation::update_memory_buffer(MemoryBuffer *output,
       delete tmp;
     }
     else {
-      cached_buffer_ = (float *)MEM_dupallocN(input->getBuffer());
+      cached_buffer_ = (float *)MEM_dupallocN(input->get_buffer());
     }
 
     this->calc_manhattan_distance();
@@ -318,8 +317,8 @@ void InpaintSimpleOperation::update_memory_buffer(MemoryBuffer *output,
     cached_buffer_ready_ = true;
   }
 
-  const int num_channels = COM_data_type_num_channels(getOutputSocket()->getDataType());
-  MemoryBuffer buf(cached_buffer_, num_channels, input->getWidth(), input->getHeight());
+  const int num_channels = COM_data_type_num_channels(get_output_socket()->get_data_type());
+  MemoryBuffer buf(cached_buffer_, num_channels, input->get_width(), input->get_height());
   output->copy_from(&buf, area);
 }
 

@@ -30,9 +30,9 @@ namespace blender::compositor {
 class MapValueOperation : public MultiThreadedOperation {
  private:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *inputOperation_;
+  SocketReader *input_operation_;
   TexMapping *settings_;
 
  public:
@@ -44,22 +44,22 @@ class MapValueOperation : public MultiThreadedOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
   /**
    * \brief set the TexMapping settings
    */
-  void setSettings(TexMapping *settings)
+  void set_settings(TexMapping *settings)
   {
     settings_ = settings;
   }

@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class DisplaceNode : public Node {
  public:
-  DisplaceNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  DisplaceNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

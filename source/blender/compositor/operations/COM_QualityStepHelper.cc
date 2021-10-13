@@ -27,7 +27,7 @@ QualityStepHelper::QualityStepHelper()
   offsetadd_ = 4;
 }
 
-void QualityStepHelper::initExecution(QualityHelper helper)
+void QualityStepHelper::init_execution(QualityHelper helper)
 {
   switch (helper) {
     case COM_QH_INCREASE:

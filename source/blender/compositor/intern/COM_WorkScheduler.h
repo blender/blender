@@ -81,7 +81,7 @@ struct WorkScheduler {
    * \brief Are there OpenCL capable GPU devices initialized?
    * the result of this method is stored in the CompositorContext
    * A node can generate a different operation tree when OpenCLDevices exists.
-   * \see CompositorContext.getHasActiveOpenCLDevices
+   * \see CompositorContext.get_has_active_opencl_devices
    */
   static bool has_gpu_devices();
 

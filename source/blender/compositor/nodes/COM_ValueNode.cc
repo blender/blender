@@ -21,20 +21,20 @@
 
 namespace blender::compositor {
 
-ValueNode::ValueNode(bNode *editorNode) : Node(editorNode)
+ValueNode::ValueNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void ValueNode::convertToOperations(NodeConverter &converter,
-                                    const CompositorContext & /*context*/) const
+void ValueNode::convert_to_operations(NodeConverter &converter,
+                                      const CompositorContext & /*context*/) const
 {
   SetValueOperation *operation = new SetValueOperation();
-  NodeOutput *output = this->getOutputSocket(0);
-  operation->setValue(output->getEditorValueFloat());
-  converter.addOperation(operation);
+  NodeOutput *output = this->get_output_socket(0);
+  operation->set_value(output->get_editor_value_float());
+  converter.add_operation(operation);
 
-  converter.mapOutputSocket(output, operation->getOutputSocket());
+  converter.map_output_socket(output, operation->get_output_socket());
 }
 
 }  // namespace blender::compositor

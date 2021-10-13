@@ -28,37 +28,37 @@ namespace blender::compositor {
  */
 class KeyingNode : public Node {
  protected:
-  NodeOperationOutput *setupPreBlur(NodeConverter &converter,
-                                    NodeInput *inputImage,
-                                    int size) const;
-  NodeOperationOutput *setupPostBlur(NodeConverter &converter,
-                                     NodeOperationOutput *postBlurInput,
-                                     int size) const;
-  NodeOperationOutput *setupDilateErode(NodeConverter &converter,
-                                        NodeOperationOutput *dilateErodeInput,
-                                        int distance) const;
-  NodeOperationOutput *setupFeather(NodeConverter &converter,
-                                    const CompositorContext &context,
-                                    NodeOperationOutput *featherInput,
-                                    int falloff,
-                                    int distance) const;
-  NodeOperationOutput *setupDespill(NodeConverter &converter,
-                                    NodeOperationOutput *despillInput,
-                                    NodeInput *inputScreen,
-                                    float factor,
-                                    float colorBalance) const;
-  NodeOperationOutput *setupClip(NodeConverter &converter,
-                                 NodeOperationOutput *clipInput,
-                                 int kernelRadius,
-                                 float kernelTolerance,
-                                 float clipBlack,
-                                 float clipWhite,
-                                 bool edgeMatte) const;
+  NodeOperationOutput *setup_pre_blur(NodeConverter &converter,
+                                      NodeInput *input_image,
+                                      int size) const;
+  NodeOperationOutput *setup_post_blur(NodeConverter &converter,
+                                       NodeOperationOutput *post_blur_input,
+                                       int size) const;
+  NodeOperationOutput *setup_dilate_erode(NodeConverter &converter,
+                                          NodeOperationOutput *dilate_erode_input,
+                                          int distance) const;
+  NodeOperationOutput *setup_feather(NodeConverter &converter,
+                                     const CompositorContext &context,
+                                     NodeOperationOutput *feather_input,
+                                     int falloff,
+                                     int distance) const;
+  NodeOperationOutput *setup_despill(NodeConverter &converter,
+                                     NodeOperationOutput *despill_input,
+                                     NodeInput *input_screen,
+                                     float factor,
+                                     float color_balance) const;
+  NodeOperationOutput *setup_clip(NodeConverter &converter,
+                                  NodeOperationOutput *clip_input,
+                                  int kernel_radius,
+                                  float kernel_tolerance,
+                                  float clip_black,
+                                  float clip_white,
+                                  bool edge_matte) const;
 
  public:
-  KeyingNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  KeyingNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

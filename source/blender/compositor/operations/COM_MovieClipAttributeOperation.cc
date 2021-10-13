@@ -25,7 +25,7 @@ namespace blender::compositor {
 
 MovieClipAttributeOperation::MovieClipAttributeOperation()
 {
-  this->addOutputSocket(DataType::Value);
+  this->add_output_socket(DataType::Value);
   framenumber_ = 0;
   attribute_ = MCA_X;
   invert_ = false;
@@ -34,7 +34,7 @@ MovieClipAttributeOperation::MovieClipAttributeOperation()
   stabilization_resolution_socket_ = nullptr;
 }
 
-void MovieClipAttributeOperation::initExecution()
+void MovieClipAttributeOperation::init_execution()
 {
   if (!is_value_calculated_) {
     calc_value();
@@ -56,12 +56,12 @@ void MovieClipAttributeOperation::calc_value()
   int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip_, framenumber_);
   NodeOperation &stabilization_operation =
       stabilization_resolution_socket_ ?
-          stabilization_resolution_socket_->getLink()->getOperation() :
+          stabilization_resolution_socket_->get_link()->get_operation() :
           *this;
   BKE_tracking_stabilization_data_get(clip_,
                                       clip_framenr,
-                                      stabilization_operation.getWidth(),
-                                      stabilization_operation.getHeight(),
+                                      stabilization_operation.get_width(),
+                                      stabilization_operation.get_height(),
                                       loc,
                                       &scale,
                                       &angle);
@@ -89,10 +89,10 @@ void MovieClipAttributeOperation::calc_value()
   }
 }
 
-void MovieClipAttributeOperation::executePixelSampled(float output[4],
-                                                      float /*x*/,
-                                                      float /*y*/,
-                                                      PixelSampler /*sampler*/)
+void MovieClipAttributeOperation::execute_pixel_sampled(float output[4],
+                                                        float /*x*/,
+                                                        float /*y*/,
+                                                        PixelSampler /*sampler*/)
 {
   output[0] = value_;
 }

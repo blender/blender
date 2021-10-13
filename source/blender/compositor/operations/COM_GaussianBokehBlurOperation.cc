@@ -27,25 +27,25 @@ GaussianBokehBlurOperation::GaussianBokehBlurOperation() : BlurBaseOperation(Dat
   gausstab_ = nullptr;
 }
 
-void *GaussianBokehBlurOperation::initializeTileData(rcti * /*rect*/)
+void *GaussianBokehBlurOperation::initialize_tile_data(rcti * /*rect*/)
 {
-  lockMutex();
+  lock_mutex();
   if (!sizeavailable_) {
-    updateGauss();
+    update_gauss();
   }
-  void *buffer = getInputOperation(0)->initializeTileData(nullptr);
-  unlockMutex();
+  void *buffer = get_input_operation(0)->initialize_tile_data(nullptr);
+  unlock_mutex();
   return buffer;
 }
 
 void GaussianBokehBlurOperation::init_data()
 {
   BlurBaseOperation::init_data();
-  const float width = this->getWidth();
-  const float height = this->getHeight();
+  const float width = this->get_width();
+  const float height = this->get_height();
 
   if (!sizeavailable_) {
-    updateSize();
+    update_size();
   }
 
   radxf_ = size_ * (float)data_.sizex;
@@ -59,18 +59,18 @@ void GaussianBokehBlurOperation::init_data()
   rady_ = ceil(radyf_);
 }
 
-void GaussianBokehBlurOperation::initExecution()
+void GaussianBokehBlurOperation::init_execution()
 {
-  BlurBaseOperation::initExecution();
+  BlurBaseOperation::init_execution();
 
-  initMutex();
+  init_mutex();
 
   if (sizeavailable_) {
-    updateGauss();
+    update_gauss();
   }
 }
 
-void GaussianBokehBlurOperation::updateGauss()
+void GaussianBokehBlurOperation::update_gauss()
 {
   if (gausstab_ == nullptr) {
     int ddwidth = 2 * radx_ + 1;
@@ -109,18 +109,18 @@ void GaussianBokehBlurOperation::updateGauss()
   }
 }
 
-void GaussianBokehBlurOperation::executePixel(float output[4], int x, int y, void *data)
+void GaussianBokehBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
-  float tempColor[4];
-  tempColor[0] = 0;
-  tempColor[1] = 0;
-  tempColor[2] = 0;
-  tempColor[3] = 0;
+  float temp_color[4];
+  temp_color[0] = 0;
+  temp_color[1] = 0;
+  temp_color[2] = 0;
+  temp_color[3] = 0;
   float multiplier_accum = 0;
-  MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
-  float *buffer = inputBuffer->getBuffer();
-  int bufferwidth = inputBuffer->getWidth();
-  const rcti &input_rect = inputBuffer->get_rect();
+  MemoryBuffer *input_buffer = (MemoryBuffer *)data;
+  float *buffer = input_buffer->get_buffer();
+  int bufferwidth = input_buffer->get_width();
+  const rcti &input_rect = input_buffer->get_rect();
   int bufferstartx = input_rect.xmin;
   int bufferstarty = input_rect.ymin;
 
@@ -130,67 +130,68 @@ void GaussianBokehBlurOperation::executePixel(float output[4], int x, int y, voi
   int xmax = min_ii(x + radx_ + 1, input_rect.xmax);
 
   int index;
-  int step = QualityStepHelper::getStep();
-  int offsetadd = QualityStepHelper::getOffsetAdd();
-  const int addConst = (xmin - x + radx_);
-  const int mulConst = (radx_ * 2 + 1);
+  int step = QualityStepHelper::get_step();
+  int offsetadd = QualityStepHelper::get_offset_add();
+  const int add_const = (xmin - x + radx_);
+  const int mul_const = (radx_ * 2 + 1);
   for (int ny = ymin; ny < ymax; ny += step) {
-    index = ((ny - y) + rady_) * mulConst + addConst;
+    index = ((ny - y) + rady_) * mul_const + add_const;
     int bufferindex = ((xmin - bufferstartx) * 4) + ((ny - bufferstarty) * 4 * bufferwidth);
     for (int nx = xmin; nx < xmax; nx += step) {
       const float multiplier = gausstab_[index];
-      madd_v4_v4fl(tempColor, &buffer[bufferindex], multiplier);
+      madd_v4_v4fl(temp_color, &buffer[bufferindex], multiplier);
       multiplier_accum += multiplier;
       index += step;
       bufferindex += offsetadd;
     }
   }
 
-  mul_v4_v4fl(output, tempColor, 1.0f / multiplier_accum);
+  mul_v4_v4fl(output, temp_color, 1.0f / multiplier_accum);
 }
 
-void GaussianBokehBlurOperation::deinitExecution()
+void GaussianBokehBlurOperation::deinit_execution()
 {
-  BlurBaseOperation::deinitExecution();
+  BlurBaseOperation::deinit_execution();
 
   if (gausstab_) {
     MEM_freeN(gausstab_);
     gausstab_ = nullptr;
   }
 
-  deinitMutex();
+  deinit_mutex();
 }
 
-bool GaussianBokehBlurOperation::determineDependingAreaOfInterest(
-    rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool GaussianBokehBlurOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti newInput;
-  rcti sizeInput;
-  sizeInput.xmin = 0;
-  sizeInput.ymin = 0;
-  sizeInput.xmax = 5;
-  sizeInput.ymax = 5;
-  NodeOperation *operation = this->getInputOperation(1);
+  rcti new_input;
+  rcti size_input;
+  size_input.xmin = 0;
+  size_input.ymin = 0;
+  size_input.xmax = 5;
+  size_input.ymax = 5;
+  NodeOperation *operation = this->get_input_operation(1);
 
-  if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
+  if (operation->determine_depending_area_of_interest(&size_input, read_operation, output)) {
     return true;
   }
 
   if (sizeavailable_ && gausstab_ != nullptr) {
-    newInput.xmin = 0;
-    newInput.ymin = 0;
-    newInput.xmax = this->getWidth();
-    newInput.ymax = this->getHeight();
+    new_input.xmin = 0;
+    new_input.ymin = 0;
+    new_input.xmax = this->get_width();
+    new_input.ymax = this->get_height();
   }
   else {
     int addx = radx_;
     int addy = rady_;
-    newInput.xmax = input->xmax + addx;
-    newInput.xmin = input->xmin - addx;
-    newInput.ymax = input->ymax + addy;
-    newInput.ymin = input->ymin - addy;
+    new_input.xmax = input->xmax + addx;
+    new_input.xmin = input->xmin - addx;
+    new_input.ymax = input->ymax + addy;
+    new_input.ymin = input->ymin - addy;
   }
-  return BlurBaseOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return BlurBaseOperation::determine_depending_area_of_interest(
+      &new_input, read_operation, output);
 }
 
 void GaussianBokehBlurOperation::get_area_of_interest(const int input_idx,
@@ -224,9 +225,9 @@ void GaussianBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *outp
     const int xmin = max_ii(x - radx_, input_rect.xmin);
     const int xmax = min_ii(x + radx_ + 1, input_rect.xmax);
 
-    float tempColor[4] = {0};
+    float temp_color[4] = {0};
     float multiplier_accum = 0;
-    const int step = QualityStepHelper::getStep();
+    const int step = QualityStepHelper::get_step();
     const int elem_step = step * input->elem_stride;
     const int add_const = (xmin - x + radx_);
     const int mul_const = (radx_ * 2 + 1);
@@ -236,12 +237,12 @@ void GaussianBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *outp
       const int gauss_end = gauss_index + (xmax - xmin);
       for (; gauss_index < gauss_end; gauss_index += step, color += elem_step) {
         const float multiplier = gausstab_[gauss_index];
-        madd_v4_v4fl(tempColor, color, multiplier);
+        madd_v4_v4fl(temp_color, color, multiplier);
         multiplier_accum += multiplier;
       }
     }
 
-    mul_v4_v4fl(it.out, tempColor, 1.0f / multiplier_accum);
+    mul_v4_v4fl(it.out, temp_color, 1.0f / multiplier_accum);
   }
 }
 
@@ -256,8 +257,8 @@ GaussianBlurReferenceOperation::GaussianBlurReferenceOperation()
 void GaussianBlurReferenceOperation::init_data()
 {
   /* Setup variables for gausstab and area of interest. */
-  data_.image_in_width = this->getWidth();
-  data_.image_in_height = this->getHeight();
+  data_.image_in_width = this->get_width();
+  data_.image_in_height = this->get_height();
   if (data_.relative) {
     switch (data_.aspect) {
       case CMP_NODE_BLUR_ASPECT_NONE:
@@ -277,7 +278,7 @@ void GaussianBlurReferenceOperation::init_data()
 
   /* Horizontal. */
   filtersizex_ = (float)data_.sizex;
-  int imgx = getWidth() / 2;
+  int imgx = get_width() / 2;
   if (filtersizex_ > imgx) {
     filtersizex_ = imgx;
   }
@@ -288,7 +289,7 @@ void GaussianBlurReferenceOperation::init_data()
 
   /* Vertical. */
   filtersizey_ = (float)data_.sizey;
-  int imgy = getHeight() / 2;
+  int imgy = get_height() / 2;
   if (filtersizey_ > imgy) {
     filtersizey_ = imgy;
   }
@@ -298,20 +299,20 @@ void GaussianBlurReferenceOperation::init_data()
   rady_ = (float)filtersizey_;
 }
 
-void *GaussianBlurReferenceOperation::initializeTileData(rcti * /*rect*/)
+void *GaussianBlurReferenceOperation::initialize_tile_data(rcti * /*rect*/)
 {
-  void *buffer = getInputOperation(0)->initializeTileData(nullptr);
+  void *buffer = get_input_operation(0)->initialize_tile_data(nullptr);
   return buffer;
 }
 
-void GaussianBlurReferenceOperation::initExecution()
+void GaussianBlurReferenceOperation::init_execution()
 {
-  BlurBaseOperation::initExecution();
+  BlurBaseOperation::init_execution();
 
-  updateGauss();
+  update_gauss();
 }
 
-void GaussianBlurReferenceOperation::updateGauss()
+void GaussianBlurReferenceOperation::update_gauss()
 {
   int i;
   int x = MAX2(filtersizex_, filtersizey_);
@@ -321,23 +322,23 @@ void GaussianBlurReferenceOperation::updateGauss()
   }
 }
 
-void GaussianBlurReferenceOperation::executePixel(float output[4], int x, int y, void *data)
+void GaussianBlurReferenceOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   MemoryBuffer *memorybuffer = (MemoryBuffer *)data;
-  float *buffer = memorybuffer->getBuffer();
+  float *buffer = memorybuffer->get_buffer();
   float *gausstabx, *gausstabcenty;
   float *gausstaby, *gausstabcentx;
   int i, j;
   float *src;
   float sum, val;
   float rval, gval, bval, aval;
-  int imgx = getWidth();
-  int imgy = getHeight();
-  float tempSize[4];
-  inputSize_->read(tempSize, x, y, data);
-  float refSize = tempSize[0];
-  int refradx = (int)(refSize * radx_);
-  int refrady = (int)(refSize * rady_);
+  int imgx = get_width();
+  int imgy = get_height();
+  float temp_size[4];
+  input_size_->read(temp_size, x, y, data);
+  float ref_size = temp_size[0];
+  int refradx = (int)(ref_size * radx_);
+  int refrady = (int)(ref_size * rady_);
   if (refradx > filtersizex_) {
     refradx = filtersizex_;
   }
@@ -352,7 +353,7 @@ void GaussianBlurReferenceOperation::executePixel(float output[4], int x, int y,
   }
 
   if (refradx == 1 && refrady == 1) {
-    memorybuffer->readNoCheck(output, x, y);
+    memorybuffer->read_no_check(output, x, y);
   }
   else {
     int minxr = x - refradx < 0 ? -x : -refradx;
@@ -388,7 +389,7 @@ void GaussianBlurReferenceOperation::executePixel(float output[4], int x, int y,
   }
 }
 
-void GaussianBlurReferenceOperation::deinitExecution()
+void GaussianBlurReferenceOperation::deinit_execution()
 {
   int x, i;
   x = MAX2(filtersizex_, filtersizey_);
@@ -396,26 +397,26 @@ void GaussianBlurReferenceOperation::deinitExecution()
     MEM_freeN(maintabs_[i]);
   }
   MEM_freeN(maintabs_);
-  BlurBaseOperation::deinitExecution();
+  BlurBaseOperation::deinit_execution();
 }
 
-bool GaussianBlurReferenceOperation::determineDependingAreaOfInterest(
-    rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool GaussianBlurReferenceOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti newInput;
-  NodeOperation *operation = this->getInputOperation(1);
+  rcti new_input;
+  NodeOperation *operation = this->get_input_operation(1);
 
-  if (operation->determineDependingAreaOfInterest(input, readOperation, output)) {
+  if (operation->determine_depending_area_of_interest(input, read_operation, output)) {
     return true;
   }
 
   int addx = data_.sizex + 2;
   int addy = data_.sizey + 2;
-  newInput.xmax = input->xmax + addx;
-  newInput.xmin = input->xmin - addx;
-  newInput.ymax = input->ymax + addy;
-  newInput.ymin = input->ymin - addy;
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  new_input.xmax = input->xmax + addx;
+  new_input.xmin = input->xmin - addx;
+  new_input.ymax = input->ymax + addy;
+  new_input.ymin = input->ymin - addy;
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void GaussianBlurReferenceOperation::get_area_of_interest(const int input_idx,
@@ -465,8 +466,8 @@ void GaussianBlurReferenceOperation::update_memory_buffer_partial(MemoryBuffer *
       continue;
     }
 
-    const int w = getWidth();
-    const int height = getHeight();
+    const int w = get_width();
+    const int height = get_height();
     const int minxr = x - ref_radx < 0 ? -x : -ref_radx;
     const int maxxr = x + ref_radx > w ? w - x : ref_radx;
     const int minyr = y - ref_rady < 0 ? -y : -ref_rady;

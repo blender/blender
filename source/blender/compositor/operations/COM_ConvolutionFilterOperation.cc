@@ -22,17 +22,17 @@ namespace blender::compositor {
 
 ConvolutionFilterOperation::ConvolutionFilterOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Color);
   this->set_canvas_input_index(0);
-  inputOperation_ = nullptr;
+  input_operation_ = nullptr;
   this->flags.complex = true;
 }
-void ConvolutionFilterOperation::initExecution()
+void ConvolutionFilterOperation::init_execution()
 {
-  inputOperation_ = this->getInputSocketReader(0);
-  inputValueOperation_ = this->getInputSocketReader(1);
+  input_operation_ = this->get_input_socket_reader(0);
+  input_value_operation_ = this->get_input_socket_reader(1);
 }
 
 void ConvolutionFilterOperation::set3x3Filter(
@@ -47,17 +47,17 @@ void ConvolutionFilterOperation::set3x3Filter(
   filter_[6] = f7;
   filter_[7] = f8;
   filter_[8] = f9;
-  filterHeight_ = 3;
-  filterWidth_ = 3;
+  filter_height_ = 3;
+  filter_width_ = 3;
 }
 
-void ConvolutionFilterOperation::deinitExecution()
+void ConvolutionFilterOperation::deinit_execution()
 {
-  inputOperation_ = nullptr;
-  inputValueOperation_ = nullptr;
+  input_operation_ = nullptr;
+  input_value_operation_ = nullptr;
 }
 
-void ConvolutionFilterOperation::executePixel(float output[4], int x, int y, void * /*data*/)
+void ConvolutionFilterOperation::execute_pixel(float output[4], int x, int y, void * /*data*/)
 {
   float in1[4];
   float in2[4];
@@ -67,34 +67,34 @@ void ConvolutionFilterOperation::executePixel(float output[4], int x, int y, voi
   int y1 = y - 1;
   int y2 = y;
   int y3 = y + 1;
-  CLAMP(x1, 0, getWidth() - 1);
-  CLAMP(x2, 0, getWidth() - 1);
-  CLAMP(x3, 0, getWidth() - 1);
-  CLAMP(y1, 0, getHeight() - 1);
-  CLAMP(y2, 0, getHeight() - 1);
-  CLAMP(y3, 0, getHeight() - 1);
+  CLAMP(x1, 0, get_width() - 1);
+  CLAMP(x2, 0, get_width() - 1);
+  CLAMP(x3, 0, get_width() - 1);
+  CLAMP(y1, 0, get_height() - 1);
+  CLAMP(y2, 0, get_height() - 1);
+  CLAMP(y3, 0, get_height() - 1);
   float value[4];
-  inputValueOperation_->read(value, x2, y2, nullptr);
+  input_value_operation_->read(value, x2, y2, nullptr);
   const float mval = 1.0f - value[0];
 
   zero_v4(output);
-  inputOperation_->read(in1, x1, y1, nullptr);
+  input_operation_->read(in1, x1, y1, nullptr);
   madd_v4_v4fl(output, in1, filter_[0]);
-  inputOperation_->read(in1, x2, y1, nullptr);
+  input_operation_->read(in1, x2, y1, nullptr);
   madd_v4_v4fl(output, in1, filter_[1]);
-  inputOperation_->read(in1, x3, y1, nullptr);
+  input_operation_->read(in1, x3, y1, nullptr);
   madd_v4_v4fl(output, in1, filter_[2]);
-  inputOperation_->read(in1, x1, y2, nullptr);
+  input_operation_->read(in1, x1, y2, nullptr);
   madd_v4_v4fl(output, in1, filter_[3]);
-  inputOperation_->read(in2, x2, y2, nullptr);
+  input_operation_->read(in2, x2, y2, nullptr);
   madd_v4_v4fl(output, in2, filter_[4]);
-  inputOperation_->read(in1, x3, y2, nullptr);
+  input_operation_->read(in1, x3, y2, nullptr);
   madd_v4_v4fl(output, in1, filter_[5]);
-  inputOperation_->read(in1, x1, y3, nullptr);
+  input_operation_->read(in1, x1, y3, nullptr);
   madd_v4_v4fl(output, in1, filter_[6]);
-  inputOperation_->read(in1, x2, y3, nullptr);
+  input_operation_->read(in1, x2, y3, nullptr);
   madd_v4_v4fl(output, in1, filter_[7]);
-  inputOperation_->read(in1, x3, y3, nullptr);
+  input_operation_->read(in1, x3, y3, nullptr);
   madd_v4_v4fl(output, in1, filter_[8]);
 
   output[0] = output[0] * value[0] + in2[0] * mval;
@@ -109,18 +109,18 @@ void ConvolutionFilterOperation::executePixel(float output[4], int x, int y, voi
   output[3] = MAX2(output[3], 0.0f);
 }
 
-bool ConvolutionFilterOperation::determineDependingAreaOfInterest(
-    rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool ConvolutionFilterOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti newInput;
-  int addx = (filterWidth_ - 1) / 2 + 1;
-  int addy = (filterHeight_ - 1) / 2 + 1;
-  newInput.xmax = input->xmax + addx;
-  newInput.xmin = input->xmin - addx;
-  newInput.ymax = input->ymax + addy;
-  newInput.ymin = input->ymin - addy;
+  rcti new_input;
+  int addx = (filter_width_ - 1) / 2 + 1;
+  int addy = (filter_height_ - 1) / 2 + 1;
+  new_input.xmax = input->xmax + addx;
+  new_input.xmin = input->xmin - addx;
+  new_input.ymax = input->ymax + addy;
+  new_input.ymin = input->ymin - addy;
 
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void ConvolutionFilterOperation::get_area_of_interest(const int input_idx,
@@ -129,8 +129,8 @@ void ConvolutionFilterOperation::get_area_of_interest(const int input_idx,
 {
   switch (input_idx) {
     case IMAGE_INPUT_INDEX: {
-      const int add_x = (filterWidth_ - 1) / 2 + 1;
-      const int add_y = (filterHeight_ - 1) / 2 + 1;
+      const int add_x = (filter_width_ - 1) / 2 + 1;
+      const int add_y = (filter_height_ - 1) / 2 + 1;
       r_input_area.xmin = output_area.xmin - add_x;
       r_input_area.xmax = output_area.xmax + add_x;
       r_input_area.ymin = output_area.ymin - add_y;
@@ -149,8 +149,8 @@ void ConvolutionFilterOperation::update_memory_buffer_partial(MemoryBuffer *outp
                                                               Span<MemoryBuffer *> inputs)
 {
   const MemoryBuffer *image = inputs[IMAGE_INPUT_INDEX];
-  const int last_x = getWidth() - 1;
-  const int last_y = getHeight() - 1;
+  const int last_x = get_width() - 1;
+  const int last_y = get_height() - 1;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     const int left_offset = (it.x == 0) ? 0 : -image->elem_stride;
     const int right_offset = (it.x == last_x) ? 0 : image->elem_stride;

@@ -31,19 +31,19 @@ namespace blender::compositor {
 class ConvertDepthToRadiusOperation : public MultiThreadedOperation {
  private:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *inputOperation_;
-  float fStop_;
+  SocketReader *input_operation_;
+  float f_stop_;
   float aspect_;
-  float maxRadius_;
-  float inverseFocalDistance_;
+  float max_radius_;
+  float inverse_focal_distance_;
   float aperture_;
   float cam_lens_;
   float dof_sp_;
-  Object *cameraObject_;
+  Object *camera_object_;
 
-  FastGaussianBlurValueOperation *blurPostOperation_;
+  FastGaussianBlurValueOperation *blur_post_operation_;
 
  public:
   /**
@@ -54,34 +54,34 @@ class ConvertDepthToRadiusOperation : public MultiThreadedOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setfStop(float fStop)
+  void setf_stop(float f_stop)
   {
-    fStop_ = fStop;
+    f_stop_ = f_stop;
   }
-  void setMaxRadius(float maxRadius)
+  void set_max_radius(float max_radius)
   {
-    maxRadius_ = maxRadius;
+    max_radius_ = max_radius;
   }
-  void setCameraObject(Object *camera)
+  void set_camera_object(Object *camera)
   {
-    cameraObject_ = camera;
+    camera_object_ = camera;
   }
-  float determineFocalDistance();
-  void setPostBlur(FastGaussianBlurValueOperation *operation)
+  float determine_focal_distance();
+  void set_post_blur(FastGaussianBlurValueOperation *operation)
   {
-    blurPostOperation_ = operation;
+    blur_post_operation_ = operation;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

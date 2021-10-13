@@ -25,15 +25,15 @@ namespace blender::compositor {
 
 class BokehBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
  private:
-  SocketReader *inputProgram_;
-  SocketReader *inputBokehProgram_;
-  SocketReader *inputBoundingBoxReader_;
-  void updateSize();
+  SocketReader *input_program_;
+  SocketReader *input_bokeh_program_;
+  SocketReader *input_bounding_box_reader_;
+  void update_size();
   float size_;
   bool sizeavailable_;
 
-  float bokehMidX_;
-  float bokehMidY_;
+  float bokeh_mid_x_;
+  float bokeh_mid_y_;
   float bokehDimension_;
   bool extend_bounds_;
 
@@ -42,40 +42,40 @@ class BokehBlurOperation : public MultiThreadedOperation, public QualityStepHelp
 
   void init_data() override;
 
-  void *initializeTileData(rcti *rect) override;
+  void *initialize_tile_data(rcti *rect) override;
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
-  void setSize(float size)
+  void set_size(float size)
   {
     size_ = size;
     sizeavailable_ = true;
   }
 
-  void executeOpenCL(OpenCLDevice *device,
-                     MemoryBuffer *outputMemoryBuffer,
-                     cl_mem clOutputBuffer,
-                     MemoryBuffer **inputMemoryBuffers,
-                     std::list<cl_mem> *clMemToCleanUp,
-                     std::list<cl_kernel> *clKernelsToCleanUp) override;
+  void execute_opencl(OpenCLDevice *device,
+                      MemoryBuffer *output_memory_buffer,
+                      cl_mem cl_output_buffer,
+                      MemoryBuffer **input_memory_buffers,
+                      std::list<cl_mem> *cl_mem_to_clean_up,
+                      std::list<cl_kernel> *cl_kernels_to_clean_up) override;
 
-  void setExtendBounds(bool extend_bounds)
+  void set_extend_bounds(bool extend_bounds)
   {
     extend_bounds_ = extend_bounds;
   }

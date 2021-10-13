@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class MapUVNode : public Node {
  public:
-  MapUVNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  MapUVNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

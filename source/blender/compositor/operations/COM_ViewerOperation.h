@@ -28,105 +28,105 @@ namespace blender::compositor {
 class ViewerOperation : public MultiThreadedOperation {
  private:
   /* TODO(manzanilla): To be removed together with tiled implementation. */
-  float *outputBuffer_;
-  float *depthBuffer_;
+  float *output_buffer_;
+  float *depth_buffer_;
 
   Image *image_;
-  ImageUser *imageUser_;
+  ImageUser *image_user_;
   bool active_;
-  float centerX_;
-  float centerY_;
-  ChunkOrdering chunkOrder_;
-  bool doDepthBuffer_;
+  float center_x_;
+  float center_y_;
+  ChunkOrdering chunk_order_;
+  bool do_depth_buffer_;
   ImBuf *ibuf_;
-  bool useAlphaInput_;
+  bool use_alpha_input_;
   const RenderData *rd_;
-  const char *viewName_;
+  const char *view_name_;
 
-  const ColorManagedViewSettings *viewSettings_;
-  const ColorManagedDisplaySettings *displaySettings_;
+  const ColorManagedViewSettings *view_settings_;
+  const ColorManagedDisplaySettings *display_settings_;
 
-  SocketReader *imageInput_;
-  SocketReader *alphaInput_;
-  SocketReader *depthInput_;
+  SocketReader *image_input_;
+  SocketReader *alpha_input_;
+  SocketReader *depth_input_;
 
   int display_width_;
   int display_height_;
 
  public:
   ViewerOperation();
-  void initExecution() override;
-  void deinitExecution() override;
-  void executeRegion(rcti *rect, unsigned int tileNumber) override;
+  void init_execution() override;
+  void deinit_execution() override;
+  void execute_region(rcti *rect, unsigned int tile_number) override;
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
-  bool isOutputOperation(bool /*rendering*/) const override
+  bool is_output_operation(bool /*rendering*/) const override
   {
     if (G.background) {
       return false;
     }
-    return isActiveViewerOutput();
+    return is_active_viewer_output();
   }
-  void setImage(Image *image)
+  void set_image(Image *image)
   {
     image_ = image;
   }
-  void setImageUser(ImageUser *imageUser)
+  void set_image_user(ImageUser *image_user)
   {
-    imageUser_ = imageUser;
+    image_user_ = image_user;
   }
-  bool isActiveViewerOutput() const override
+  bool is_active_viewer_output() const override
   {
     return active_;
   }
-  void setActive(bool active)
+  void set_active(bool active)
   {
     active_ = active;
   }
   void setCenterX(float centerX)
   {
-    centerX_ = centerX;
+    center_x_ = centerX;
   }
   void setCenterY(float centerY)
   {
-    centerY_ = centerY;
+    center_y_ = centerY;
   }
-  void setChunkOrder(ChunkOrdering tileOrder)
+  void set_chunk_order(ChunkOrdering tile_order)
   {
-    chunkOrder_ = tileOrder;
+    chunk_order_ = tile_order;
   }
   float getCenterX() const
   {
-    return centerX_;
+    return center_x_;
   }
   float getCenterY() const
   {
-    return centerY_;
+    return center_y_;
   }
-  ChunkOrdering getChunkOrder() const
+  ChunkOrdering get_chunk_order() const
   {
-    return chunkOrder_;
+    return chunk_order_;
   }
-  eCompositorPriority getRenderPriority() const override;
-  void setUseAlphaInput(bool value)
+  eCompositorPriority get_render_priority() const override;
+  void set_use_alpha_input(bool value)
   {
-    useAlphaInput_ = value;
+    use_alpha_input_ = value;
   }
-  void setRenderData(const RenderData *rd)
+  void set_render_data(const RenderData *rd)
   {
     rd_ = rd;
   }
-  void setViewName(const char *viewName)
+  void set_view_name(const char *view_name)
   {
-    viewName_ = viewName;
+    view_name_ = view_name;
   }
 
-  void setViewSettings(const ColorManagedViewSettings *viewSettings)
+  void set_view_settings(const ColorManagedViewSettings *view_settings)
   {
-    viewSettings_ = viewSettings;
+    view_settings_ = view_settings;
   }
-  void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings)
+  void set_display_settings(const ColorManagedDisplaySettings *display_settings)
   {
-    displaySettings_ = displaySettings;
+    display_settings_ = display_settings;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -136,8 +136,8 @@ class ViewerOperation : public MultiThreadedOperation {
   void clear_display_buffer();
 
  private:
-  void updateImage(const rcti *rect);
-  void initImage();
+  void update_image(const rcti *rect);
+  void init_image();
 };
 
 }  // namespace blender::compositor

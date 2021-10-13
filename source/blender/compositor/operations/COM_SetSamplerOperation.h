@@ -37,7 +37,7 @@ class SetSamplerOperation : public NodeOperation {
    */
   SetSamplerOperation();
 
-  void setSampler(PixelSampler sampler)
+  void set_sampler(PixelSampler sampler)
   {
     sampler_ = sampler;
   }
@@ -45,9 +45,9 @@ class SetSamplerOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
-  void initExecution() override;
-  void deinitExecution() override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void init_execution() override;
+  void deinit_execution() override;
 };
 
 }  // namespace blender::compositor

@@ -41,11 +41,11 @@ class SetValueOperation : public ConstantOperation {
     return &value_;
   }
 
-  float getValue()
+  float get_value()
   {
     return value_;
   }
-  void setValue(float value)
+  void set_value(float value)
   {
     value_ = value;
   }
@@ -53,7 +53,7 @@ class SetValueOperation : public ConstantOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 };

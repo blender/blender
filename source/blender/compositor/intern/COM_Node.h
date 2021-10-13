@@ -41,22 +41,22 @@ class Node {
   /**
    * \brief stores the reference to the SDNA bNode struct
    */
-  bNodeTree *editorNodeTree_;
+  bNodeTree *editor_node_tree_;
 
   /**
    * \brief stores the reference to the SDNA bNode struct
    */
-  bNode *editorNode_;
+  bNode *editor_node_;
 
   /**
    * \brief Is this node part of the active group
    */
-  bool inActiveGroup_;
+  bool in_active_group_;
 
   /**
    * \brief Instance key to identify the node in an instance hash table
    */
-  bNodeInstanceKey instanceKey_;
+  bNodeInstanceKey instance_key_;
 
  protected:
   /**
@@ -70,23 +70,23 @@ class Node {
   Vector<NodeOutput *> outputs;
 
  public:
-  Node(bNode *editorNode, bool create_sockets = true);
+  Node(bNode *editor_node, bool create_sockets = true);
   virtual ~Node();
 
   /**
    * \brief get the reference to the SDNA bNode struct
    */
-  bNode *getbNode() const
+  bNode *get_bnode() const
   {
-    return editorNode_;
+    return editor_node_;
   }
 
   /**
    * \brief get the reference to the SDNA bNodeTree struct
    */
-  bNodeTree *getbNodeTree() const
+  bNodeTree *get_bnodetree() const
   {
-    return editorNodeTree_;
+    return editor_node_tree_;
   }
 
   /**
@@ -95,24 +95,24 @@ class Node {
    * node for highlight during execution.
    * \param bNode:
    */
-  void setbNode(bNode *node)
+  void set_bnode(bNode *node)
   {
-    editorNode_ = node;
+    editor_node_ = node;
   }
 
   /**
    * \brief set the reference to the bNodeTree
    * \param bNodeTree:
    */
-  void setbNodeTree(bNodeTree *nodetree)
+  void set_bnodetree(bNodeTree *nodetree)
   {
-    editorNodeTree_ = nodetree;
+    editor_node_tree_ = nodetree;
   }
 
   /**
    * \brief get access to the vector of input sockets
    */
-  const Vector<NodeInput *> &getInputSockets() const
+  const Vector<NodeInput *> &get_input_sockets() const
   {
     return this->inputs;
   }
@@ -120,7 +120,7 @@ class Node {
   /**
    * \brief get access to the vector of input sockets
    */
-  const Vector<NodeOutput *> &getOutputSockets() const
+  const Vector<NodeOutput *> &get_output_sockets() const
   {
     return this->outputs;
   }
@@ -130,22 +130,22 @@ class Node {
    * \param index:
    * the index of the needed outputsocket
    */
-  NodeOutput *getOutputSocket(const unsigned int index = 0) const;
+  NodeOutput *get_output_socket(const unsigned int index = 0) const;
 
   /**
    * get the reference to a certain inputsocket
    * \param index:
    * the index of the needed inputsocket
    */
-  NodeInput *getInputSocket(const unsigned int index) const;
+  NodeInput *get_input_socket(const unsigned int index) const;
 
   /**
    * \brief Is this node in the active group (the group that is being edited)
-   * \param isInActiveGroup:
+   * \param is_in_active_group:
    */
-  void setIsInActiveGroup(bool value)
+  void set_is_in_active_group(bool value)
   {
-    inActiveGroup_ = value;
+    in_active_group_ = value;
   }
 
   /**
@@ -154,9 +154,9 @@ class Node {
    * the active group will be the main tree (all nodes that are not part of a group will be active)
    * \return bool [false:true]
    */
-  inline bool isInActiveGroup() const
+  inline bool is_in_active_group() const
   {
-    return inActiveGroup_;
+    return in_active_group_;
   }
 
   /**
@@ -167,16 +167,16 @@ class Node {
    * \param system: the ExecutionSystem where the operations need to be added
    * \param context: reference to the CompositorContext
    */
-  virtual void convertToOperations(NodeConverter &converter,
-                                   const CompositorContext &context) const = 0;
+  virtual void convert_to_operations(NodeConverter &converter,
+                                     const CompositorContext &context) const = 0;
 
-  void setInstanceKey(bNodeInstanceKey instance_key)
+  void set_instance_key(bNodeInstanceKey instance_key)
   {
-    instanceKey_ = instance_key;
+    instance_key_ = instance_key;
   }
-  bNodeInstanceKey getInstanceKey() const
+  bNodeInstanceKey get_instance_key() const
   {
-    return instanceKey_;
+    return instance_key_;
   }
 
  protected:
@@ -185,19 +185,19 @@ class Node {
    * \note may only be called in an constructor
    * \param socket: the NodeInput to add
    */
-  void addInputSocket(DataType datatype);
-  void addInputSocket(DataType datatype, bNodeSocket *socket);
+  void add_input_socket(DataType datatype);
+  void add_input_socket(DataType datatype, bNodeSocket *socket);
 
   /**
    * \brief add an NodeOutput to the collection of output-sockets
    * \note may only be called in an constructor
    * \param socket: the NodeOutput to add
    */
-  void addOutputSocket(DataType datatype);
-  void addOutputSocket(DataType datatype, bNodeSocket *socket);
+  void add_output_socket(DataType datatype);
+  void add_output_socket(DataType datatype, bNodeSocket *socket);
 
-  bNodeSocket *getEditorInputSocket(int editorNodeInputSocketIndex);
-  bNodeSocket *getEditorOutputSocket(int editorNodeOutputSocketIndex);
+  bNodeSocket *get_editor_input_socket(int editor_node_input_socket_index);
+  bNodeSocket *get_editor_output_socket(int editor_node_output_socket_index);
 };
 
 /**
@@ -207,7 +207,7 @@ class Node {
 class NodeInput {
  private:
   Node *node_;
-  bNodeSocket *editorSocket_;
+  bNodeSocket *editor_socket_;
 
   DataType datatype_;
 
@@ -220,32 +220,32 @@ class NodeInput {
  public:
   NodeInput(Node *node, bNodeSocket *b_socket, DataType datatype);
 
-  Node *getNode() const
+  Node *get_node() const
   {
     return node_;
   }
-  DataType getDataType() const
+  DataType get_data_type() const
   {
     return datatype_;
   }
-  bNodeSocket *getbNodeSocket() const
+  bNodeSocket *get_bnode_socket() const
   {
-    return editorSocket_;
+    return editor_socket_;
   }
 
-  void setLink(NodeOutput *link);
-  bool isLinked() const
+  void set_link(NodeOutput *link);
+  bool is_linked() const
   {
     return link_;
   }
-  NodeOutput *getLink()
+  NodeOutput *get_link()
   {
     return link_;
   }
 
-  float getEditorValueFloat() const;
-  void getEditorValueColor(float *value) const;
-  void getEditorValueVector(float *value) const;
+  float get_editor_value_float() const;
+  void get_editor_value_color(float *value) const;
+  void get_editor_value_vector(float *value) const;
 };
 
 /**
@@ -255,29 +255,29 @@ class NodeInput {
 class NodeOutput {
  private:
   Node *node_;
-  bNodeSocket *editorSocket_;
+  bNodeSocket *editor_socket_;
 
   DataType datatype_;
 
  public:
   NodeOutput(Node *node, bNodeSocket *b_socket, DataType datatype);
 
-  Node *getNode() const
+  Node *get_node() const
   {
     return node_;
   }
-  DataType getDataType() const
+  DataType get_data_type() const
   {
     return datatype_;
   }
-  bNodeSocket *getbNodeSocket() const
+  bNodeSocket *get_bnode_socket() const
   {
-    return editorSocket_;
+    return editor_socket_;
   }
 
-  float getEditorValueFloat();
-  void getEditorValueColor(float *value);
-  void getEditorValueVector(float *value);
+  float get_editor_value_float();
+  void get_editor_value_color(float *value);
+  void get_editor_value_vector(float *value);
 };
 
 }  // namespace blender::compositor

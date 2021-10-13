@@ -50,29 +50,29 @@ class MovieClipAttributeOperation : public ConstantOperation {
    */
   MovieClipAttributeOperation();
 
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
   const float *get_constant_elem() override;
 
-  void setMovieClip(MovieClip *clip)
+  void set_movie_clip(MovieClip *clip)
   {
     clip_ = clip;
   }
-  void setFramenumber(int framenumber)
+  void set_framenumber(int framenumber)
   {
     framenumber_ = framenumber;
   }
-  void setAttribute(MovieClipAttribute attribute)
+  void set_attribute(MovieClipAttribute attribute)
   {
     attribute_ = attribute;
   }
-  void setInvert(bool invert)
+  void set_invert(bool invert)
   {
     invert_ = invert;
   }

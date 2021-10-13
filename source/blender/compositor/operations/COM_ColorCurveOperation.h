@@ -25,12 +25,12 @@ namespace blender::compositor {
 class ColorCurveOperation : public CurveBaseOperation {
  private:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *inputFacProgram_;
-  SocketReader *inputImageProgram_;
-  SocketReader *inputBlackProgram_;
-  SocketReader *inputWhiteProgram_;
+  SocketReader *input_fac_program_;
+  SocketReader *input_image_program_;
+  SocketReader *input_black_program_;
+  SocketReader *input_white_program_;
 
  public:
   ColorCurveOperation();
@@ -38,17 +38,17 @@ class ColorCurveOperation : public CurveBaseOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
@@ -58,10 +58,10 @@ class ColorCurveOperation : public CurveBaseOperation {
 class ConstantLevelColorCurveOperation : public CurveBaseOperation {
  private:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *inputFacProgram_;
-  SocketReader *inputImageProgram_;
+  SocketReader *input_fac_program_;
+  SocketReader *input_image_program_;
   float black_[3];
   float white_[3];
 
@@ -71,23 +71,23 @@ class ConstantLevelColorCurveOperation : public CurveBaseOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setBlackLevel(float black[3])
+  void set_black_level(float black[3])
   {
     copy_v3_v3(black_, black);
   }
-  void setWhiteLevel(float white[3])
+  void set_white_level(float white[3])
   {
     copy_v3_v3(white_, white);
   }

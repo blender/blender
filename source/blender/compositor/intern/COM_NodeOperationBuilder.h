@@ -96,27 +96,27 @@ class NodeOperationBuilder {
     return *context_;
   }
 
-  void convertToOperations(ExecutionSystem *system);
+  void convert_to_operations(ExecutionSystem *system);
 
-  void addOperation(NodeOperation *operation);
+  void add_operation(NodeOperation *operation);
   void replace_operation_with_constant(NodeOperation *operation,
                                        ConstantOperation *constant_operation);
 
   /** Map input socket of the current node to an operation socket */
-  void mapInputSocket(NodeInput *node_socket, NodeOperationInput *operation_socket);
+  void map_input_socket(NodeInput *node_socket, NodeOperationInput *operation_socket);
   /** Map output socket of the current node to an operation socket */
-  void mapOutputSocket(NodeOutput *node_socket, NodeOperationOutput *operation_socket);
+  void map_output_socket(NodeOutput *node_socket, NodeOperationOutput *operation_socket);
 
-  void addLink(NodeOperationOutput *from, NodeOperationInput *to);
-  void removeInputLink(NodeOperationInput *to);
+  void add_link(NodeOperationOutput *from, NodeOperationInput *to);
+  void remove_input_link(NodeOperationInput *to);
 
   /** Add a preview operation for a operation output */
-  void addPreview(NodeOperationOutput *output);
+  void add_preview(NodeOperationOutput *output);
   /** Add a preview operation for a node input */
-  void addNodeInputPreview(NodeInput *input);
+  void add_node_input_preview(NodeInput *input);
 
   /** Define a viewer operation as the active output, if possible */
-  void registerViewer(ViewerOperation *viewer);
+  void register_viewer(ViewerOperation *viewer);
   /** The currently active viewer output operation */
   ViewerOperation *active_viewer() const
   {

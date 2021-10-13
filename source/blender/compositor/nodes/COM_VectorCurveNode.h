@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class VectorCurveNode : public Node {
  public:
-  VectorCurveNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  VectorCurveNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

@@ -43,7 +43,7 @@ struct WorkPackage {
   eWorkPackageState state = eWorkPackageState::NotScheduled;
 
   /**
-   * \brief executionGroup with the operations-setup to be evaluated
+   * \brief execution_group with the operations-setup to be evaluated
    */
   ExecutionGroup *execution_group;
 

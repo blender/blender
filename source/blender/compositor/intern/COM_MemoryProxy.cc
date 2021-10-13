@@ -23,7 +23,7 @@ namespace blender::compositor {
 
 MemoryProxy::MemoryProxy(DataType datatype)
 {
-  writeBufferOperation_ = nullptr;
+  write_buffer_operation_ = nullptr;
   executor_ = nullptr;
   datatype_ = datatype;
 }

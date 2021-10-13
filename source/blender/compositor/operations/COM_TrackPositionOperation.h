@@ -35,18 +35,18 @@ namespace blender::compositor {
  */
 class TrackPositionOperation : public ConstantOperation {
  protected:
-  MovieClip *movieClip_;
+  MovieClip *movie_clip_;
   int framenumber_;
-  char trackingObjectName_[64];
-  char trackName_[64];
+  char tracking_object_name_[64];
+  char track_name_[64];
   int axis_;
   int position_;
-  int relativeFrame_;
+  int relative_frame_;
   bool speed_output_;
 
   int width_, height_;
-  float markerPos_[2];
-  float relativePos_[2];
+  float marker_pos_[2];
+  float relative_pos_[2];
   float track_position_;
   bool is_track_position_calculated_;
 
@@ -58,42 +58,42 @@ class TrackPositionOperation : public ConstantOperation {
  public:
   TrackPositionOperation();
 
-  void setMovieClip(MovieClip *clip)
+  void set_movie_clip(MovieClip *clip)
   {
-    movieClip_ = clip;
+    movie_clip_ = clip;
   }
-  void setTrackingObject(char *object)
+  void set_tracking_object(char *object)
   {
-    BLI_strncpy(trackingObjectName_, object, sizeof(trackingObjectName_));
+    BLI_strncpy(tracking_object_name_, object, sizeof(tracking_object_name_));
   }
-  void setTrackName(char *track)
+  void set_track_name(char *track)
   {
-    BLI_strncpy(trackName_, track, sizeof(trackName_));
+    BLI_strncpy(track_name_, track, sizeof(track_name_));
   }
-  void setFramenumber(int framenumber)
+  void set_framenumber(int framenumber)
   {
     framenumber_ = framenumber;
   }
-  void setAxis(int value)
+  void set_axis(int value)
   {
     axis_ = value;
   }
-  void setPosition(int value)
+  void set_position(int value)
   {
     position_ = value;
   }
-  void setRelativeFrame(int value)
+  void set_relative_frame(int value)
   {
-    relativeFrame_ = value;
+    relative_frame_ = value;
   }
-  void setSpeedOutput(bool speed_output)
+  void set_speed_output(bool speed_output)
   {
     speed_output_ = speed_output;
   }
 
-  void initExecution() override;
+  void init_execution() override;
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   const float *get_constant_elem() override;
 

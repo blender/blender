@@ -24,37 +24,37 @@ namespace blender::compositor {
 
 CurveBaseOperation::CurveBaseOperation()
 {
-  curveMapping_ = nullptr;
+  curve_mapping_ = nullptr;
   this->flags.can_be_constant = true;
 }
 
 CurveBaseOperation::~CurveBaseOperation()
 {
-  if (curveMapping_) {
-    BKE_curvemapping_free(curveMapping_);
-    curveMapping_ = nullptr;
+  if (curve_mapping_) {
+    BKE_curvemapping_free(curve_mapping_);
+    curve_mapping_ = nullptr;
   }
 }
 
-void CurveBaseOperation::initExecution()
+void CurveBaseOperation::init_execution()
 {
-  BKE_curvemapping_init(curveMapping_);
+  BKE_curvemapping_init(curve_mapping_);
 }
-void CurveBaseOperation::deinitExecution()
+void CurveBaseOperation::deinit_execution()
 {
-  if (curveMapping_) {
-    BKE_curvemapping_free(curveMapping_);
-    curveMapping_ = nullptr;
+  if (curve_mapping_) {
+    BKE_curvemapping_free(curve_mapping_);
+    curve_mapping_ = nullptr;
   }
 }
 
-void CurveBaseOperation::setCurveMapping(CurveMapping *mapping)
+void CurveBaseOperation::set_curve_mapping(CurveMapping *mapping)
 {
   /* duplicate the curve to avoid glitches while drawing, see bug T32374. */
-  if (curveMapping_) {
-    BKE_curvemapping_free(curveMapping_);
+  if (curve_mapping_) {
+    BKE_curvemapping_free(curve_mapping_);
   }
-  curveMapping_ = BKE_curvemapping_copy(mapping);
+  curve_mapping_ = BKE_curvemapping_copy(mapping);
 }
 
 }  // namespace blender::compositor

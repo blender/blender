@@ -23,8 +23,8 @@ namespace blender::compositor {
 
 SunBeamsOperation::SunBeamsOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
   this->set_canvas_input_index(0);
 
   this->flags.complex = true;
@@ -33,12 +33,12 @@ SunBeamsOperation::SunBeamsOperation()
 void SunBeamsOperation::calc_rays_common_data()
 {
   /* convert to pixels */
-  source_px_[0] = data_.source[0] * this->getWidth();
-  source_px_[1] = data_.source[1] * this->getHeight();
-  ray_length_px_ = data_.ray_length * MAX2(this->getWidth(), this->getHeight());
+  source_px_[0] = data_.source[0] * this->get_width();
+  source_px_[1] = data_.source[1] * this->get_height();
+  ray_length_px_ = data_.ray_length * MAX2(this->get_width(), this->get_height());
 }
 
-void SunBeamsOperation::initExecution()
+void SunBeamsOperation::init_execution()
 {
   calc_rays_common_data();
 }
@@ -145,7 +145,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
 
     falloff_factor = dist_max > dist_min ? dr / (float)(dist_max - dist_min) : 0.0f;
 
-    float *iter = input->getBuffer() + input->get_coords_offset(x, y);
+    float *iter = input->get_buffer() + input->get_coords_offset(x, y);
     return iter;
   }
 
@@ -312,13 +312,13 @@ static void accumulate_line(MemoryBuffer *input,
   }
 }
 
-void *SunBeamsOperation::initializeTileData(rcti * /*rect*/)
+void *SunBeamsOperation::initialize_tile_data(rcti * /*rect*/)
 {
-  void *buffer = getInputOperation(0)->initializeTileData(nullptr);
+  void *buffer = get_input_operation(0)->initialize_tile_data(nullptr);
   return buffer;
 }
 
-void SunBeamsOperation::executePixel(float output[4], int x, int y, void *data)
+void SunBeamsOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   const float co[2] = {(float)x, (float)y};
 
@@ -340,9 +340,9 @@ static void calc_ray_shift(rcti *rect, float x, float y, const float source[2], 
   BLI_rcti_do_minmax_v(rect, ico);
 }
 
-bool SunBeamsOperation::determineDependingAreaOfInterest(rcti *input,
-                                                         ReadBufferOperation *readOperation,
-                                                         rcti *output)
+bool SunBeamsOperation::determine_depending_area_of_interest(rcti *input,
+                                                             ReadBufferOperation *read_operation,
+                                                             rcti *output)
 {
   /* Enlarges the rect by moving each corner toward the source.
    * This is the maximum distance that pixels can influence each other
@@ -354,7 +354,7 @@ bool SunBeamsOperation::determineDependingAreaOfInterest(rcti *input,
   calc_ray_shift(&rect, input->xmax, input->ymin, source_px_, ray_length_px_);
   calc_ray_shift(&rect, input->xmax, input->ymax, source_px_, ray_length_px_);
 
-  return NodeOperation::determineDependingAreaOfInterest(&rect, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&rect, read_operation, output);
 }
 
 void SunBeamsOperation::get_area_of_interest(const int input_idx,

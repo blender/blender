@@ -22,25 +22,25 @@ namespace blender::compositor {
 
 NormalizeOperation::NormalizeOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Value);
-  imageReader_ = nullptr;
-  cachedInstance_ = nullptr;
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Value);
+  image_reader_ = nullptr;
+  cached_instance_ = nullptr;
   this->flags.complex = true;
   flags.can_be_constant = true;
 }
-void NormalizeOperation::initExecution()
+void NormalizeOperation::init_execution()
 {
-  imageReader_ = this->getInputSocketReader(0);
-  NodeOperation::initMutex();
+  image_reader_ = this->get_input_socket_reader(0);
+  NodeOperation::init_mutex();
 }
 
-void NormalizeOperation::executePixel(float output[4], int x, int y, void *data)
+void NormalizeOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   /* using generic two floats struct to store `x: min`, `y: multiply` */
   NodeTwoFloats *minmult = (NodeTwoFloats *)data;
 
-  imageReader_->read(output, x, y, nullptr);
+  image_reader_->read(output, x, y, nullptr);
 
   output[0] = (output[0] - minmult->x) * minmult->y;
 
@@ -53,30 +53,30 @@ void NormalizeOperation::executePixel(float output[4], int x, int y, void *data)
   }
 }
 
-void NormalizeOperation::deinitExecution()
+void NormalizeOperation::deinit_execution()
 {
-  imageReader_ = nullptr;
-  delete cachedInstance_;
-  cachedInstance_ = nullptr;
-  NodeOperation::deinitMutex();
+  image_reader_ = nullptr;
+  delete cached_instance_;
+  cached_instance_ = nullptr;
+  NodeOperation::deinit_mutex();
 }
 
-bool NormalizeOperation::determineDependingAreaOfInterest(rcti * /*input*/,
-                                                          ReadBufferOperation *readOperation,
-                                                          rcti *output)
+bool NormalizeOperation::determine_depending_area_of_interest(rcti * /*input*/,
+                                                              ReadBufferOperation *read_operation,
+                                                              rcti *output)
 {
-  rcti imageInput;
-  if (cachedInstance_) {
+  rcti image_input;
+  if (cached_instance_) {
     return false;
   }
 
-  NodeOperation *operation = getInputOperation(0);
-  imageInput.xmax = operation->getWidth();
-  imageInput.xmin = 0;
-  imageInput.ymax = operation->getHeight();
-  imageInput.ymin = 0;
+  NodeOperation *operation = get_input_operation(0);
+  image_input.xmax = operation->get_width();
+  image_input.xmin = 0;
+  image_input.ymax = operation->get_height();
+  image_input.ymin = 0;
 
-  if (operation->determineDependingAreaOfInterest(&imageInput, readOperation, output)) {
+  if (operation->determine_depending_area_of_interest(&image_input, read_operation, output)) {
     return true;
   }
   return false;
@@ -86,16 +86,16 @@ bool NormalizeOperation::determineDependingAreaOfInterest(rcti * /*input*/,
  */
 #define BLENDER_ZMAX 10000.0f
 
-void *NormalizeOperation::initializeTileData(rcti *rect)
+void *NormalizeOperation::initialize_tile_data(rcti *rect)
 {
-  lockMutex();
-  if (cachedInstance_ == nullptr) {
-    MemoryBuffer *tile = (MemoryBuffer *)imageReader_->initializeTileData(rect);
+  lock_mutex();
+  if (cached_instance_ == nullptr) {
+    MemoryBuffer *tile = (MemoryBuffer *)image_reader_->initialize_tile_data(rect);
     /* using generic two floats struct to store `x: min`, `y: multiply`. */
     NodeTwoFloats *minmult = new NodeTwoFloats();
 
-    float *buffer = tile->getBuffer();
-    int p = tile->getWidth() * tile->getHeight();
+    float *buffer = tile->get_buffer();
+    int p = tile->get_width() * tile->get_height();
     float *bc = buffer;
 
     float minv = 1.0f + BLENDER_ZMAX;
@@ -117,14 +117,14 @@ void *NormalizeOperation::initializeTileData(rcti *rect)
     /* The rare case of flat buffer  would cause a divide by 0 */
     minmult->y = ((maxv != minv) ? 1.0f / (maxv - minv) : 0.0f);
 
-    cachedInstance_ = minmult;
+    cached_instance_ = minmult;
   }
 
-  unlockMutex();
-  return cachedInstance_;
+  unlock_mutex();
+  return cached_instance_;
 }
 
-void NormalizeOperation::deinitializeTileData(rcti * /*rect*/, void * /*data*/)
+void NormalizeOperation::deinitialize_tile_data(rcti * /*rect*/, void * /*data*/)
 {
   /* pass */
 }
@@ -140,7 +140,7 @@ void NormalizeOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(outpu
                                                       const rcti &UNUSED(area),
                                                       Span<MemoryBuffer *> inputs)
 {
-  if (cachedInstance_ == nullptr) {
+  if (cached_instance_ == nullptr) {
     MemoryBuffer *input = inputs[0];
 
     /* Using generic two floats struct to store `x: min`, `y: multiply`. */
@@ -162,7 +162,7 @@ void NormalizeOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(outpu
     /* The case of a flat buffer would cause a divide by 0. */
     minmult->y = ((maxv != minv) ? 1.0f / (maxv - minv) : 0.0f);
 
-    cachedInstance_ = minmult;
+    cached_instance_ = minmult;
   }
 }
 
@@ -170,7 +170,7 @@ void NormalizeOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                       const rcti &area,
                                                       Span<MemoryBuffer *> inputs)
 {
-  NodeTwoFloats *minmult = cachedInstance_;
+  NodeTwoFloats *minmult = cached_instance_;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     const float input_value = *it.in(0);
 

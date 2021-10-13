@@ -27,30 +27,30 @@ namespace blender::compositor {
 
 MovieClipBaseOperation::MovieClipBaseOperation()
 {
-  movieClip_ = nullptr;
-  movieClipBuffer_ = nullptr;
-  movieClipUser_ = nullptr;
-  movieClipwidth_ = 0;
-  movieClipheight_ = 0;
+  movie_clip_ = nullptr;
+  movie_clip_buffer_ = nullptr;
+  movie_clip_user_ = nullptr;
+  movie_clipwidth_ = 0;
+  movie_clipheight_ = 0;
   framenumber_ = 0;
 }
 
-void MovieClipBaseOperation::initExecution()
+void MovieClipBaseOperation::init_execution()
 {
-  if (movieClip_) {
-    BKE_movieclip_user_set_frame(movieClipUser_, framenumber_);
+  if (movie_clip_) {
+    BKE_movieclip_user_set_frame(movie_clip_user_, framenumber_);
     ImBuf *ibuf;
 
-    if (cacheFrame_) {
-      ibuf = BKE_movieclip_get_ibuf(movieClip_, movieClipUser_);
+    if (cache_frame_) {
+      ibuf = BKE_movieclip_get_ibuf(movie_clip_, movie_clip_user_);
     }
     else {
       ibuf = BKE_movieclip_get_ibuf_flag(
-          movieClip_, movieClipUser_, movieClip_->flag, MOVIECLIP_CACHE_SKIP);
+          movie_clip_, movie_clip_user_, movie_clip_->flag, MOVIECLIP_CACHE_SKIP);
     }
 
     if (ibuf) {
-      movieClipBuffer_ = ibuf;
+      movie_clip_buffer_ = ibuf;
       if (ibuf->rect_float == nullptr || ibuf->userflags & IB_RECT_INVALID) {
         IMB_float_from_rect(ibuf);
         ibuf->userflags &= ~IB_RECT_INVALID;
@@ -59,31 +59,31 @@ void MovieClipBaseOperation::initExecution()
   }
 }
 
-void MovieClipBaseOperation::deinitExecution()
+void MovieClipBaseOperation::deinit_execution()
 {
-  if (movieClipBuffer_) {
-    IMB_freeImBuf(movieClipBuffer_);
+  if (movie_clip_buffer_) {
+    IMB_freeImBuf(movie_clip_buffer_);
 
-    movieClipBuffer_ = nullptr;
+    movie_clip_buffer_ = nullptr;
   }
 }
 
 void MovieClipBaseOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
 {
   r_area = COM_AREA_NONE;
-  if (movieClip_) {
+  if (movie_clip_) {
     int width, height;
-    BKE_movieclip_get_size(movieClip_, movieClipUser_, &width, &height);
+    BKE_movieclip_get_size(movie_clip_, movie_clip_user_, &width, &height);
     BLI_rcti_init(&r_area, 0, width, 0, height);
   }
 }
 
-void MovieClipBaseOperation::executePixelSampled(float output[4],
-                                                 float x,
-                                                 float y,
-                                                 PixelSampler sampler)
+void MovieClipBaseOperation::execute_pixel_sampled(float output[4],
+                                                   float x,
+                                                   float y,
+                                                   PixelSampler sampler)
 {
-  ImBuf *ibuf = movieClipBuffer_;
+  ImBuf *ibuf = movie_clip_buffer_;
 
   if (ibuf == nullptr) {
     zero_v4(output);
@@ -111,8 +111,8 @@ void MovieClipBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                           const rcti &area,
                                                           Span<MemoryBuffer *> UNUSED(inputs))
 {
-  if (movieClipBuffer_) {
-    output->copy_from(movieClipBuffer_, area);
+  if (movie_clip_buffer_) {
+    output->copy_from(movie_clip_buffer_, area);
   }
   else {
     output->fill(area, COM_COLOR_TRANSPARENT);
@@ -121,21 +121,21 @@ void MovieClipBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
 MovieClipOperation::MovieClipOperation() : MovieClipBaseOperation()
 {
-  this->addOutputSocket(DataType::Color);
+  this->add_output_socket(DataType::Color);
 }
 
 MovieClipAlphaOperation::MovieClipAlphaOperation() : MovieClipBaseOperation()
 {
-  this->addOutputSocket(DataType::Value);
+  this->add_output_socket(DataType::Value);
 }
 
-void MovieClipAlphaOperation::executePixelSampled(float output[4],
-                                                  float x,
-                                                  float y,
-                                                  PixelSampler sampler)
+void MovieClipAlphaOperation::execute_pixel_sampled(float output[4],
+                                                    float x,
+                                                    float y,
+                                                    PixelSampler sampler)
 {
   float result[4];
-  MovieClipBaseOperation::executePixelSampled(result, x, y, sampler);
+  MovieClipBaseOperation::execute_pixel_sampled(result, x, y, sampler);
   output[0] = result[3];
 }
 
@@ -143,8 +143,8 @@ void MovieClipAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                            const rcti &area,
                                                            Span<MemoryBuffer *> UNUSED(inputs))
 {
-  if (movieClipBuffer_) {
-    output->copy_from(movieClipBuffer_, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);
+  if (movie_clip_buffer_) {
+    output->copy_from(movie_clip_buffer_, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);
   }
   else {
     output->fill(area, COM_VALUE_ZERO);

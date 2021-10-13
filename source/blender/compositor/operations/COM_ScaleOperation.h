@@ -27,11 +27,11 @@ class BaseScaleOperation : public MultiThreadedOperation {
   static constexpr float DEFAULT_MAX_SCALE_CANVAS_SIZE = 12000;
 
  public:
-  void setSampler(PixelSampler sampler)
+  void set_sampler(PixelSampler sampler)
   {
     sampler_ = (int)sampler;
   }
-  void setVariableSize(bool variable_size)
+  void set_variable_size(bool variable_size)
   {
     variable_size_ = variable_size;
   };
@@ -41,7 +41,7 @@ class BaseScaleOperation : public MultiThreadedOperation {
  protected:
   BaseScaleOperation();
 
-  PixelSampler getEffectiveSampler(PixelSampler sampler)
+  PixelSampler get_effective_sampler(PixelSampler sampler)
   {
     return (sampler_ == -1) ? sampler : (PixelSampler)sampler_;
   }
@@ -61,9 +61,9 @@ class ScaleOperation : public BaseScaleOperation {
   static constexpr int X_INPUT_INDEX = 1;
   static constexpr int Y_INPUT_INDEX = 2;
 
-  SocketReader *inputOperation_;
-  SocketReader *inputXOperation_;
-  SocketReader *inputYOperation_;
+  SocketReader *input_operation_;
+  SocketReader *input_xoperation_;
+  SocketReader *input_yoperation_;
   float canvas_center_x_;
   float canvas_center_y_;
 
@@ -97,8 +97,8 @@ class ScaleOperation : public BaseScaleOperation {
   static void clamp_area_size_max(rcti &area, Size2f max_size);
 
   void init_data() override;
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -122,10 +122,10 @@ class ScaleRelativeOperation : public ScaleOperation {
  public:
   ScaleRelativeOperation();
   ScaleRelativeOperation(DataType data_type);
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   float get_relative_scale_x_factor(float UNUSED(width)) override
   {
@@ -140,10 +140,10 @@ class ScaleRelativeOperation : public ScaleOperation {
 
 class ScaleAbsoluteOperation : public ScaleOperation {
  public:
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   float get_relative_scale_x_factor(float width) override
   {
@@ -157,15 +157,15 @@ class ScaleAbsoluteOperation : public ScaleOperation {
 };
 
 class ScaleFixedSizeOperation : public BaseScaleOperation {
-  SocketReader *inputOperation_;
-  int newWidth_;
-  int newHeight_;
-  float relX_;
-  float relY_;
+  SocketReader *input_operation_;
+  int new_width_;
+  int new_height_;
+  float rel_x_;
+  float rel_y_;
 
   /* center is only used for aspect correction */
-  float offsetX_;
-  float offsetY_;
+  float offset_x_;
+  float offset_y_;
   bool is_aspect_;
   bool is_crop_;
   /* set from other properties on initialization,
@@ -174,34 +174,34 @@ class ScaleFixedSizeOperation : public BaseScaleOperation {
 
  public:
   ScaleFixedSizeOperation();
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution() override;
-  void deinitExecution() override;
-  void setNewWidth(int width)
+  void init_execution() override;
+  void deinit_execution() override;
+  void set_new_width(int width)
   {
-    newWidth_ = width;
+    new_width_ = width;
   }
-  void setNewHeight(int height)
+  void set_new_height(int height)
   {
-    newHeight_ = height;
+    new_height_ = height;
   }
-  void setIsAspect(bool is_aspect)
+  void set_is_aspect(bool is_aspect)
   {
     is_aspect_ = is_aspect;
   }
-  void setIsCrop(bool is_crop)
+  void set_is_crop(bool is_crop)
   {
     is_crop_ = is_crop;
   }
-  void setOffset(float x, float y)
+  void set_offset(float x, float y)
   {
-    offsetX_ = x;
-    offsetY_ = y;
+    offset_x_ = x;
+    offset_y_ = y;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

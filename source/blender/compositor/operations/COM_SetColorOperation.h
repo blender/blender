@@ -41,39 +41,39 @@ class SetColorOperation : public ConstantOperation {
     return color_;
   }
 
-  float getChannel1()
+  float get_channel1()
   {
     return color_[0];
   }
-  void setChannel1(float value)
+  void set_channel1(float value)
   {
     color_[0] = value;
   }
-  float getChannel2()
+  float get_channel2()
   {
     return color_[1];
   }
-  void setChannel2(float value)
+  void set_channel2(float value)
   {
     color_[1] = value;
   }
-  float getChannel3()
+  float get_channel3()
   {
     return color_[2];
   }
-  void setChannel3(float value)
+  void set_channel3(float value)
   {
     color_[2] = value;
   }
-  float getChannel4()
+  float get_channel4()
   {
     return color_[3];
   }
-  void setChannel4(const float value)
+  void set_channel4(const float value)
   {
     color_[3] = value;
   }
-  void setChannels(const float value[4])
+  void set_channels(const float value[4])
   {
     copy_v4_v4(color_, value);
   }
@@ -81,7 +81,7 @@ class SetColorOperation : public ConstantOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 };

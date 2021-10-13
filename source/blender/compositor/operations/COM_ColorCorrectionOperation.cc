@@ -24,20 +24,20 @@ namespace blender::compositor {
 
 ColorCorrectionOperation::ColorCorrectionOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
-  inputImage_ = nullptr;
-  inputMask_ = nullptr;
-  redChannelEnabled_ = true;
-  greenChannelEnabled_ = true;
-  blueChannelEnabled_ = true;
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Color);
+  input_image_ = nullptr;
+  input_mask_ = nullptr;
+  red_channel_enabled_ = true;
+  green_channel_enabled_ = true;
+  blue_channel_enabled_ = true;
   flags.can_be_constant = true;
 }
-void ColorCorrectionOperation::initExecution()
+void ColorCorrectionOperation::init_execution()
 {
-  inputImage_ = this->getInputSocketReader(0);
-  inputMask_ = this->getInputSocketReader(1);
+  input_image_ = this->get_input_socket_reader(0);
+  input_mask_ = this->get_input_socket_reader(1);
 }
 
 /* Calculate x^y if the function is defined. Otherwise return the given fallback value. */
@@ -49,17 +49,17 @@ BLI_INLINE float color_correct_powf_safe(const float x, const float y, const flo
   return powf(x, y);
 }
 
-void ColorCorrectionOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void ColorCorrectionOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
-  float inputImageColor[4];
-  float inputMask[4];
-  inputImage_->readSampled(inputImageColor, x, y, sampler);
-  inputMask_->readSampled(inputMask, x, y, sampler);
+  float input_image_color[4];
+  float input_mask[4];
+  input_image_->read_sampled(input_image_color, x, y, sampler);
+  input_mask_->read_sampled(input_mask, x, y, sampler);
 
-  float level = (inputImageColor[0] + inputImageColor[1] + inputImageColor[2]) / 3.0f;
+  float level = (input_image_color[0] + input_image_color[1] + input_image_color[2]) / 3.0f;
   float contrast = data_->master.contrast;
   float saturation = data_->master.saturation;
   float gamma = data_->master.gamma;
@@ -67,53 +67,53 @@ void ColorCorrectionOperation::executePixelSampled(float output[4],
   float lift = data_->master.lift;
   float r, g, b;
 
-  float value = inputMask[0];
+  float value = input_mask[0];
   value = MIN2(1.0f, value);
   const float mvalue = 1.0f - value;
 
-  float levelShadows = 0.0;
-  float levelMidtones = 0.0;
-  float levelHighlights = 0.0;
+  float level_shadows = 0.0;
+  float level_midtones = 0.0;
+  float level_highlights = 0.0;
 #define MARGIN 0.10f
 #define MARGIN_DIV (0.5f / MARGIN)
   if (level < data_->startmidtones - MARGIN) {
-    levelShadows = 1.0f;
+    level_shadows = 1.0f;
   }
   else if (level < data_->startmidtones + MARGIN) {
-    levelMidtones = ((level - data_->startmidtones) * MARGIN_DIV) + 0.5f;
-    levelShadows = 1.0f - levelMidtones;
+    level_midtones = ((level - data_->startmidtones) * MARGIN_DIV) + 0.5f;
+    level_shadows = 1.0f - level_midtones;
   }
   else if (level < data_->endmidtones - MARGIN) {
-    levelMidtones = 1.0f;
+    level_midtones = 1.0f;
   }
   else if (level < data_->endmidtones + MARGIN) {
-    levelHighlights = ((level - data_->endmidtones) * MARGIN_DIV) + 0.5f;
-    levelMidtones = 1.0f - levelHighlights;
+    level_highlights = ((level - data_->endmidtones) * MARGIN_DIV) + 0.5f;
+    level_midtones = 1.0f - level_highlights;
   }
   else {
-    levelHighlights = 1.0f;
+    level_highlights = 1.0f;
   }
 #undef MARGIN
 #undef MARGIN_DIV
-  contrast *= (levelShadows * data_->shadows.contrast) +
-              (levelMidtones * data_->midtones.contrast) +
-              (levelHighlights * data_->highlights.contrast);
-  saturation *= (levelShadows * data_->shadows.saturation) +
-                (levelMidtones * data_->midtones.saturation) +
-                (levelHighlights * data_->highlights.saturation);
-  gamma *= (levelShadows * data_->shadows.gamma) + (levelMidtones * data_->midtones.gamma) +
-           (levelHighlights * data_->highlights.gamma);
-  gain *= (levelShadows * data_->shadows.gain) + (levelMidtones * data_->midtones.gain) +
-          (levelHighlights * data_->highlights.gain);
-  lift += (levelShadows * data_->shadows.lift) + (levelMidtones * data_->midtones.lift) +
-          (levelHighlights * data_->highlights.lift);
+  contrast *= (level_shadows * data_->shadows.contrast) +
+              (level_midtones * data_->midtones.contrast) +
+              (level_highlights * data_->highlights.contrast);
+  saturation *= (level_shadows * data_->shadows.saturation) +
+                (level_midtones * data_->midtones.saturation) +
+                (level_highlights * data_->highlights.saturation);
+  gamma *= (level_shadows * data_->shadows.gamma) + (level_midtones * data_->midtones.gamma) +
+           (level_highlights * data_->highlights.gamma);
+  gain *= (level_shadows * data_->shadows.gain) + (level_midtones * data_->midtones.gain) +
+          (level_highlights * data_->highlights.gain);
+  lift += (level_shadows * data_->shadows.lift) + (level_midtones * data_->midtones.lift) +
+          (level_highlights * data_->highlights.lift);
 
   float invgamma = 1.0f / gamma;
-  float luma = IMB_colormanagement_get_luminance(inputImageColor);
+  float luma = IMB_colormanagement_get_luminance(input_image_color);
 
-  r = inputImageColor[0];
-  g = inputImageColor[1];
-  b = inputImageColor[2];
+  r = input_image_color[0];
+  g = input_image_color[1];
+  b = input_image_color[2];
 
   r = (luma + saturation * (r - luma));
   g = (luma + saturation * (g - luma));
@@ -129,29 +129,29 @@ void ColorCorrectionOperation::executePixelSampled(float output[4],
   b = color_correct_powf_safe(b * gain + lift, invgamma, b);
 
   /* Mix with mask. */
-  r = mvalue * inputImageColor[0] + value * r;
-  g = mvalue * inputImageColor[1] + value * g;
-  b = mvalue * inputImageColor[2] + value * b;
+  r = mvalue * input_image_color[0] + value * r;
+  g = mvalue * input_image_color[1] + value * g;
+  b = mvalue * input_image_color[2] + value * b;
 
-  if (redChannelEnabled_) {
+  if (red_channel_enabled_) {
     output[0] = r;
   }
   else {
-    output[0] = inputImageColor[0];
+    output[0] = input_image_color[0];
   }
-  if (greenChannelEnabled_) {
+  if (green_channel_enabled_) {
     output[1] = g;
   }
   else {
-    output[1] = inputImageColor[1];
+    output[1] = input_image_color[1];
   }
-  if (blueChannelEnabled_) {
+  if (blue_channel_enabled_) {
     output[2] = b;
   }
   else {
-    output[2] = inputImageColor[2];
+    output[2] = input_image_color[2];
   }
-  output[3] = inputImageColor[3];
+  output[3] = input_image_color[3];
 }
 
 void ColorCorrectionOperation::update_memory_buffer_row(PixelCursor &p)
@@ -224,17 +224,17 @@ void ColorCorrectionOperation::update_memory_buffer_row(PixelCursor &p)
     g = value_ * in_color[1] + value * g;
     b = value_ * in_color[2] + value * b;
 
-    p.out[0] = redChannelEnabled_ ? r : in_color[0];
-    p.out[1] = greenChannelEnabled_ ? g : in_color[1];
-    p.out[2] = blueChannelEnabled_ ? b : in_color[2];
+    p.out[0] = red_channel_enabled_ ? r : in_color[0];
+    p.out[1] = green_channel_enabled_ ? g : in_color[1];
+    p.out[2] = blue_channel_enabled_ ? b : in_color[2];
     p.out[3] = in_color[3];
   }
 }
 
-void ColorCorrectionOperation::deinitExecution()
+void ColorCorrectionOperation::deinit_execution()
 {
-  inputImage_ = nullptr;
-  inputMask_ = nullptr;
+  input_image_ = nullptr;
+  input_mask_ = nullptr;
 }
 
 }  // namespace blender::compositor

@@ -25,15 +25,15 @@ namespace blender::compositor {
 class ColorCorrectionOperation : public MultiThreadedRowOperation {
  private:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *inputImage_;
-  SocketReader *inputMask_;
+  SocketReader *input_image_;
+  SocketReader *input_mask_;
   NodeColorCorrection *data_;
 
-  bool redChannelEnabled_;
-  bool greenChannelEnabled_;
-  bool blueChannelEnabled_;
+  bool red_channel_enabled_;
+  bool green_channel_enabled_;
+  bool blue_channel_enabled_;
 
  public:
   ColorCorrectionOperation();
@@ -41,33 +41,33 @@ class ColorCorrectionOperation : public MultiThreadedRowOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setData(NodeColorCorrection *data)
+  void set_data(NodeColorCorrection *data)
   {
     data_ = data;
   }
-  void setRedChannelEnabled(bool enabled)
+  void set_red_channel_enabled(bool enabled)
   {
-    redChannelEnabled_ = enabled;
+    red_channel_enabled_ = enabled;
   }
-  void setGreenChannelEnabled(bool enabled)
+  void set_green_channel_enabled(bool enabled)
   {
-    greenChannelEnabled_ = enabled;
+    green_channel_enabled_ = enabled;
   }
-  void setBlueChannelEnabled(bool enabled)
+  void set_blue_channel_enabled(bool enabled)
   {
-    blueChannelEnabled_ = enabled;
+    blue_channel_enabled_ = enabled;
   }
 
   void update_memory_buffer_row(PixelCursor &p) override;

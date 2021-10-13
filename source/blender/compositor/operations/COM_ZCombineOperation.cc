@@ -22,11 +22,11 @@ namespace blender::compositor {
 
 ZCombineOperation::ZCombineOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Color);
 
   image1Reader_ = nullptr;
   depth1Reader_ = nullptr;
@@ -35,29 +35,29 @@ ZCombineOperation::ZCombineOperation()
   this->flags.can_be_constant = true;
 }
 
-void ZCombineOperation::initExecution()
+void ZCombineOperation::init_execution()
 {
-  image1Reader_ = this->getInputSocketReader(0);
-  depth1Reader_ = this->getInputSocketReader(1);
-  image2Reader_ = this->getInputSocketReader(2);
-  depth2Reader_ = this->getInputSocketReader(3);
+  image1Reader_ = this->get_input_socket_reader(0);
+  depth1Reader_ = this->get_input_socket_reader(1);
+  image2Reader_ = this->get_input_socket_reader(2);
+  depth2Reader_ = this->get_input_socket_reader(3);
 }
 
-void ZCombineOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+void ZCombineOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
 {
   float depth1[4];
   float depth2[4];
 
-  depth1Reader_->readSampled(depth1, x, y, sampler);
-  depth2Reader_->readSampled(depth2, x, y, sampler);
+  depth1Reader_->read_sampled(depth1, x, y, sampler);
+  depth2Reader_->read_sampled(depth2, x, y, sampler);
   if (depth1[0] < depth2[0]) {
-    image1Reader_->readSampled(output, x, y, sampler);
+    image1Reader_->read_sampled(output, x, y, sampler);
   }
   else {
-    image2Reader_->readSampled(output, x, y, sampler);
+    image2Reader_->read_sampled(output, x, y, sampler);
   }
 }
 
@@ -73,25 +73,25 @@ void ZCombineOperation::update_memory_buffer_partial(MemoryBuffer *output,
   }
 }
 
-void ZCombineAlphaOperation::executePixelSampled(float output[4],
-                                                 float x,
-                                                 float y,
-                                                 PixelSampler sampler)
+void ZCombineAlphaOperation::execute_pixel_sampled(float output[4],
+                                                   float x,
+                                                   float y,
+                                                   PixelSampler sampler)
 {
   float depth1[4];
   float depth2[4];
   float color1[4];
   float color2[4];
 
-  depth1Reader_->readSampled(depth1, x, y, sampler);
-  depth2Reader_->readSampled(depth2, x, y, sampler);
+  depth1Reader_->read_sampled(depth1, x, y, sampler);
+  depth2Reader_->read_sampled(depth2, x, y, sampler);
   if (depth1[0] <= depth2[0]) {
-    image1Reader_->readSampled(color1, x, y, sampler);
-    image2Reader_->readSampled(color2, x, y, sampler);
+    image1Reader_->read_sampled(color1, x, y, sampler);
+    image2Reader_->read_sampled(color2, x, y, sampler);
   }
   else {
-    image1Reader_->readSampled(color2, x, y, sampler);
-    image2Reader_->readSampled(color1, x, y, sampler);
+    image1Reader_->read_sampled(color2, x, y, sampler);
+    image2Reader_->read_sampled(color1, x, y, sampler);
   }
   float fac = color1[3];
   float ifac = 1.0f - fac;
@@ -127,7 +127,7 @@ void ZCombineAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,
   }
 }
 
-void ZCombineOperation::deinitExecution()
+void ZCombineOperation::deinit_execution()
 {
   image1Reader_ = nullptr;
   depth1Reader_ = nullptr;
@@ -138,35 +138,35 @@ void ZCombineOperation::deinitExecution()
 // MASK combine
 ZCombineMaskOperation::ZCombineMaskOperation()
 {
-  this->addInputSocket(DataType::Value);  // mask
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Value);  // mask
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
 
-  maskReader_ = nullptr;
+  mask_reader_ = nullptr;
   image1Reader_ = nullptr;
   image2Reader_ = nullptr;
 }
 
-void ZCombineMaskOperation::initExecution()
+void ZCombineMaskOperation::init_execution()
 {
-  maskReader_ = this->getInputSocketReader(0);
-  image1Reader_ = this->getInputSocketReader(1);
-  image2Reader_ = this->getInputSocketReader(2);
+  mask_reader_ = this->get_input_socket_reader(0);
+  image1Reader_ = this->get_input_socket_reader(1);
+  image2Reader_ = this->get_input_socket_reader(2);
 }
 
-void ZCombineMaskOperation::executePixelSampled(float output[4],
-                                                float x,
-                                                float y,
-                                                PixelSampler sampler)
+void ZCombineMaskOperation::execute_pixel_sampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
 {
   float mask[4];
   float color1[4];
   float color2[4];
 
-  maskReader_->readSampled(mask, x, y, sampler);
-  image1Reader_->readSampled(color1, x, y, sampler);
-  image2Reader_->readSampled(color2, x, y, sampler);
+  mask_reader_->read_sampled(mask, x, y, sampler);
+  image1Reader_->read_sampled(color1, x, y, sampler);
+  image2Reader_->read_sampled(color2, x, y, sampler);
 
   interp_v4_v4v4(output, color1, color2, 1.0f - mask[0]);
 }
@@ -183,18 +183,18 @@ void ZCombineMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
   }
 }
 
-void ZCombineMaskAlphaOperation::executePixelSampled(float output[4],
-                                                     float x,
-                                                     float y,
-                                                     PixelSampler sampler)
+void ZCombineMaskAlphaOperation::execute_pixel_sampled(float output[4],
+                                                       float x,
+                                                       float y,
+                                                       PixelSampler sampler)
 {
   float mask[4];
   float color1[4];
   float color2[4];
 
-  maskReader_->readSampled(mask, x, y, sampler);
-  image1Reader_->readSampled(color1, x, y, sampler);
-  image2Reader_->readSampled(color2, x, y, sampler);
+  mask_reader_->read_sampled(mask, x, y, sampler);
+  image1Reader_->read_sampled(color1, x, y, sampler);
+  image2Reader_->read_sampled(color2, x, y, sampler);
 
   float fac = (1.0f - mask[0]) * (1.0f - color1[3]) + mask[0] * color2[3];
   float mfac = 1.0f - fac;
@@ -223,10 +223,10 @@ void ZCombineMaskAlphaOperation::update_memory_buffer_partial(MemoryBuffer *outp
   }
 }
 
-void ZCombineMaskOperation::deinitExecution()
+void ZCombineMaskOperation::deinit_execution()
 {
   image1Reader_ = nullptr;
-  maskReader_ = nullptr;
+  mask_reader_ = nullptr;
   image2Reader_ = nullptr;
 }
 

@@ -39,13 +39,13 @@ class ZCombineOperation : public MultiThreadedOperation {
    */
   ZCombineOperation();
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
@@ -53,7 +53,7 @@ class ZCombineOperation : public MultiThreadedOperation {
 };
 
 class ZCombineAlphaOperation : public ZCombineOperation {
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
@@ -62,23 +62,23 @@ class ZCombineAlphaOperation : public ZCombineOperation {
 
 class ZCombineMaskOperation : public MultiThreadedOperation {
  protected:
-  SocketReader *maskReader_;
+  SocketReader *mask_reader_;
   SocketReader *image1Reader_;
   SocketReader *image2Reader_;
 
  public:
   ZCombineMaskOperation();
 
-  void initExecution() override;
-  void deinitExecution() override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void init_execution() override;
+  void deinit_execution() override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;
 };
 class ZCombineMaskAlphaOperation : public ZCombineMaskOperation {
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

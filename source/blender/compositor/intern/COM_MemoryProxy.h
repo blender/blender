@@ -42,7 +42,7 @@ class MemoryProxy {
   /**
    * \brief reference to the output operation of the executiongroup
    */
-  WriteBufferOperation *writeBufferOperation_;
+  WriteBufferOperation *write_buffer_operation_;
 
   /**
    * \brief reference to the executor. the Execution group that can fill a chunk
@@ -66,7 +66,7 @@ class MemoryProxy {
    * \brief set the ExecutionGroup that can be scheduled to calculate a certain chunk.
    * \param group: the ExecutionGroup to set
    */
-  void setExecutor(ExecutionGroup *executor)
+  void set_executor(ExecutionGroup *executor)
   {
     executor_ = executor;
   }
@@ -74,7 +74,7 @@ class MemoryProxy {
   /**
    * \brief get the ExecutionGroup that can be scheduled to calculate a certain chunk.
    */
-  ExecutionGroup *getExecutor() const
+  ExecutionGroup *get_executor() const
   {
     return executor_;
   }
@@ -83,18 +83,18 @@ class MemoryProxy {
    * \brief set the WriteBufferOperation that is responsible for writing to this MemoryProxy
    * \param operation:
    */
-  void setWriteBufferOperation(WriteBufferOperation *operation)
+  void set_write_buffer_operation(WriteBufferOperation *operation)
   {
-    writeBufferOperation_ = operation;
+    write_buffer_operation_ = operation;
   }
 
   /**
    * \brief get the WriteBufferOperation that is responsible for writing to this MemoryProxy
    * \return WriteBufferOperation
    */
-  WriteBufferOperation *getWriteBufferOperation() const
+  WriteBufferOperation *get_write_buffer_operation() const
   {
-    return writeBufferOperation_;
+    return write_buffer_operation_;
   }
 
   /**
@@ -110,12 +110,12 @@ class MemoryProxy {
   /**
    * \brief get the allocated memory
    */
-  inline MemoryBuffer *getBuffer()
+  inline MemoryBuffer *get_buffer()
   {
     return buffer_;
   }
 
-  inline DataType getDataType()
+  inline DataType get_data_type()
   {
     return datatype_;
   }

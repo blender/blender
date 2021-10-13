@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class TimeNode : public Node {
  public:
-  TimeNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  TimeNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

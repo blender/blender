@@ -25,23 +25,23 @@ GaussianAlphaYBlurOperation::GaussianAlphaYBlurOperation()
 {
 }
 
-void *GaussianAlphaYBlurOperation::initializeTileData(rcti * /*rect*/)
+void *GaussianAlphaYBlurOperation::initialize_tile_data(rcti * /*rect*/)
 {
-  lockMutex();
+  lock_mutex();
   if (!sizeavailable_) {
-    updateGauss();
+    update_gauss();
   }
-  void *buffer = getInputOperation(0)->initializeTileData(nullptr);
-  unlockMutex();
+  void *buffer = get_input_operation(0)->initialize_tile_data(nullptr);
+  unlock_mutex();
   return buffer;
 }
 
 /* TODO(manzanilla): to be removed with tiled implementation. */
-void GaussianAlphaYBlurOperation::initExecution()
+void GaussianAlphaYBlurOperation::init_execution()
 {
-  GaussianAlphaBlurBaseOperation::initExecution();
+  GaussianAlphaBlurBaseOperation::init_execution();
 
-  initMutex();
+  init_mutex();
 
   if (sizeavailable_ && execution_model_ == eExecutionModel::Tiled) {
     float rad = max_ff(size_ * data_.sizey, 0.0f);
@@ -53,10 +53,10 @@ void GaussianAlphaYBlurOperation::initExecution()
 }
 
 /* TODO(manzanilla): to be removed with tiled implementation. */
-void GaussianAlphaYBlurOperation::updateGauss()
+void GaussianAlphaYBlurOperation::update_gauss()
 {
   if (gausstab_ == nullptr) {
-    updateSize();
+    update_size();
     float rad = max_ff(size_ * data_.sizey, 0.0f);
     rad = min_ff(rad, MAX_GAUSSTAB_RADIUS);
     filtersize_ = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
@@ -65,7 +65,7 @@ void GaussianAlphaYBlurOperation::updateGauss()
   }
 
   if (distbuf_inv_ == nullptr) {
-    updateSize();
+    update_size();
     float rad = max_ff(size_ * data_.sizey, 0.0f);
     filtersize_ = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
@@ -78,13 +78,13 @@ BLI_INLINE float finv_test(const float f, const bool test)
   return (LIKELY(test == false)) ? f : 1.0f - f;
 }
 
-void GaussianAlphaYBlurOperation::executePixel(float output[4], int x, int y, void *data)
+void GaussianAlphaYBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   const bool do_invert = do_subtract_;
-  MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
-  const rcti &input_rect = inputBuffer->get_rect();
-  float *buffer = inputBuffer->getBuffer();
-  int bufferwidth = inputBuffer->getWidth();
+  MemoryBuffer *input_buffer = (MemoryBuffer *)data;
+  const rcti &input_rect = input_buffer->get_rect();
+  float *buffer = input_buffer->get_buffer();
+  int bufferwidth = input_buffer->get_width();
   int bufferstartx = input_rect.xmin;
   int bufferstarty = input_rect.ymin;
 
@@ -93,7 +93,7 @@ void GaussianAlphaYBlurOperation::executePixel(float output[4], int x, int y, vo
   int ymax = min_ii(y + filtersize_ + 1, input_rect.ymax);
 
   /* *** this is the main part which is different to 'GaussianYBlurOperation'  *** */
-  int step = getStep();
+  int step = get_step();
 
   /* gauss */
   float alpha_accum = 0.0f;
@@ -136,9 +136,9 @@ void GaussianAlphaYBlurOperation::executePixel(float output[4], int x, int y, vo
   output[0] = finv_test(value_final, do_invert);
 }
 
-void GaussianAlphaYBlurOperation::deinitExecution()
+void GaussianAlphaYBlurOperation::deinit_execution()
 {
-  GaussianAlphaBlurBaseOperation::deinitExecution();
+  GaussianAlphaBlurBaseOperation::deinit_execution();
 
   if (gausstab_) {
     MEM_freeN(gausstab_);
@@ -150,40 +150,40 @@ void GaussianAlphaYBlurOperation::deinitExecution()
     distbuf_inv_ = nullptr;
   }
 
-  deinitMutex();
+  deinit_mutex();
 }
 
-bool GaussianAlphaYBlurOperation::determineDependingAreaOfInterest(
-    rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool GaussianAlphaYBlurOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti newInput;
+  rcti new_input;
 #if 0 /* until we add size input */
-  rcti sizeInput;
-  sizeInput.xmin = 0;
-  sizeInput.ymin = 0;
-  sizeInput.xmax = 5;
-  sizeInput.ymax = 5;
+  rcti size_input;
+  size_input.xmin = 0;
+  size_input.ymin = 0;
+  size_input.xmax = 5;
+  size_input.ymax = 5;
 
-  NodeOperation *operation = this->getInputOperation(1);
-  if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
+  NodeOperation *operation = this->get_input_operation(1);
+  if (operation->determine_depending_area_of_interest(&size_input, read_operation, output)) {
     return true;
   }
   else
 #endif
   {
     if (sizeavailable_ && gausstab_ != nullptr) {
-      newInput.xmax = input->xmax;
-      newInput.xmin = input->xmin;
-      newInput.ymax = input->ymax + filtersize_ + 1;
-      newInput.ymin = input->ymin - filtersize_ - 1;
+      new_input.xmax = input->xmax;
+      new_input.xmin = input->xmin;
+      new_input.ymax = input->ymax + filtersize_ + 1;
+      new_input.ymin = input->ymin - filtersize_ - 1;
     }
     else {
-      newInput.xmax = this->getWidth();
-      newInput.xmin = 0;
-      newInput.ymax = this->getHeight();
-      newInput.ymin = 0;
+      new_input.xmax = this->get_width();
+      new_input.xmin = 0;
+      new_input.ymax = this->get_height();
+      new_input.ymin = 0;
     }
-    return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+    return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
   }
 }
 

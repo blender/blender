@@ -24,39 +24,39 @@ namespace blender::compositor {
 
 LuminanceMatteOperation::LuminanceMatteOperation()
 {
-  addInputSocket(DataType::Color);
-  addOutputSocket(DataType::Value);
+  add_input_socket(DataType::Color);
+  add_output_socket(DataType::Value);
 
-  inputImageProgram_ = nullptr;
+  input_image_program_ = nullptr;
   flags.can_be_constant = true;
 }
 
-void LuminanceMatteOperation::initExecution()
+void LuminanceMatteOperation::init_execution()
 {
-  inputImageProgram_ = this->getInputSocketReader(0);
+  input_image_program_ = this->get_input_socket_reader(0);
 }
 
-void LuminanceMatteOperation::deinitExecution()
+void LuminanceMatteOperation::deinit_execution()
 {
-  inputImageProgram_ = nullptr;
+  input_image_program_ = nullptr;
 }
 
-void LuminanceMatteOperation::executePixelSampled(float output[4],
-                                                  float x,
-                                                  float y,
-                                                  PixelSampler sampler)
+void LuminanceMatteOperation::execute_pixel_sampled(float output[4],
+                                                    float x,
+                                                    float y,
+                                                    PixelSampler sampler)
 {
-  float inColor[4];
-  inputImageProgram_->readSampled(inColor, x, y, sampler);
+  float in_color[4];
+  input_image_program_->read_sampled(in_color, x, y, sampler);
 
   const float high = settings_->t1;
   const float low = settings_->t2;
-  const float luminance = IMB_colormanagement_get_luminance(inColor);
+  const float luminance = IMB_colormanagement_get_luminance(in_color);
 
   float alpha;
 
   /* one line thread-friend algorithm:
-   * output[0] = MIN2(inputValue[3], MIN2(1.0f, MAX2(0.0f, ((luminance - low) / (high - low))));
+   * output[0] = MIN2(input_value[3], MIN2(1.0f, MAX2(0.0f, ((luminance - low) / (high - low))));
    */
 
   /* test range */
@@ -75,7 +75,7 @@ void LuminanceMatteOperation::executePixelSampled(float output[4],
    */
 
   /* don't make something that was more transparent less transparent */
-  output[0] = min_ff(alpha, inColor[3]);
+  output[0] = min_ff(alpha, in_color[3]);
 }
 
 void LuminanceMatteOperation::update_memory_buffer_partial(MemoryBuffer *output,

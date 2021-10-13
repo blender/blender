@@ -20,7 +20,7 @@
 
 namespace blender::compositor {
 
-void ConvolutionEdgeFilterOperation::executePixel(float output[4], int x, int y, void * /*data*/)
+void ConvolutionEdgeFilterOperation::execute_pixel(float output[4], int x, int y, void * /*data*/)
 {
   float in1[4], in2[4], res1[4] = {0.0}, res2[4] = {0.0};
 
@@ -30,50 +30,50 @@ void ConvolutionEdgeFilterOperation::executePixel(float output[4], int x, int y,
   int y1 = y - 1;
   int y2 = y;
   int y3 = y + 1;
-  CLAMP(x1, 0, getWidth() - 1);
-  CLAMP(x2, 0, getWidth() - 1);
-  CLAMP(x3, 0, getWidth() - 1);
-  CLAMP(y1, 0, getHeight() - 1);
-  CLAMP(y2, 0, getHeight() - 1);
-  CLAMP(y3, 0, getHeight() - 1);
+  CLAMP(x1, 0, get_width() - 1);
+  CLAMP(x2, 0, get_width() - 1);
+  CLAMP(x3, 0, get_width() - 1);
+  CLAMP(y1, 0, get_height() - 1);
+  CLAMP(y2, 0, get_height() - 1);
+  CLAMP(y3, 0, get_height() - 1);
 
   float value[4];
-  inputValueOperation_->read(value, x2, y2, nullptr);
+  input_value_operation_->read(value, x2, y2, nullptr);
   float mval = 1.0f - value[0];
 
-  inputOperation_->read(in1, x1, y1, nullptr);
+  input_operation_->read(in1, x1, y1, nullptr);
   madd_v3_v3fl(res1, in1, filter_[0]);
   madd_v3_v3fl(res2, in1, filter_[0]);
 
-  inputOperation_->read(in1, x2, y1, nullptr);
+  input_operation_->read(in1, x2, y1, nullptr);
   madd_v3_v3fl(res1, in1, filter_[1]);
   madd_v3_v3fl(res2, in1, filter_[3]);
 
-  inputOperation_->read(in1, x3, y1, nullptr);
+  input_operation_->read(in1, x3, y1, nullptr);
   madd_v3_v3fl(res1, in1, filter_[2]);
   madd_v3_v3fl(res2, in1, filter_[6]);
 
-  inputOperation_->read(in1, x1, y2, nullptr);
+  input_operation_->read(in1, x1, y2, nullptr);
   madd_v3_v3fl(res1, in1, filter_[3]);
   madd_v3_v3fl(res2, in1, filter_[1]);
 
-  inputOperation_->read(in2, x2, y2, nullptr);
+  input_operation_->read(in2, x2, y2, nullptr);
   madd_v3_v3fl(res1, in2, filter_[4]);
   madd_v3_v3fl(res2, in2, filter_[4]);
 
-  inputOperation_->read(in1, x3, y2, nullptr);
+  input_operation_->read(in1, x3, y2, nullptr);
   madd_v3_v3fl(res1, in1, filter_[5]);
   madd_v3_v3fl(res2, in1, filter_[7]);
 
-  inputOperation_->read(in1, x1, y3, nullptr);
+  input_operation_->read(in1, x1, y3, nullptr);
   madd_v3_v3fl(res1, in1, filter_[6]);
   madd_v3_v3fl(res2, in1, filter_[2]);
 
-  inputOperation_->read(in1, x2, y3, nullptr);
+  input_operation_->read(in1, x2, y3, nullptr);
   madd_v3_v3fl(res1, in1, filter_[7]);
   madd_v3_v3fl(res2, in1, filter_[5]);
 
-  inputOperation_->read(in1, x3, y3, nullptr);
+  input_operation_->read(in1, x3, y3, nullptr);
   madd_v3_v3fl(res1, in1, filter_[8]);
   madd_v3_v3fl(res2, in1, filter_[8]);
 
@@ -99,8 +99,8 @@ void ConvolutionEdgeFilterOperation::update_memory_buffer_partial(MemoryBuffer *
                                                                   Span<MemoryBuffer *> inputs)
 {
   const MemoryBuffer *image = inputs[IMAGE_INPUT_INDEX];
-  const int last_x = getWidth() - 1;
-  const int last_y = getHeight() - 1;
+  const int last_x = get_width() - 1;
+  const int last_y = get_height() - 1;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     const int left_offset = (it.x == 0) ? 0 : -image->elem_stride;
     const int right_offset = (it.x == last_x) ? 0 : image->elem_stride;

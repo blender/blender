@@ -25,7 +25,7 @@ namespace blender::compositor {
 /* TODO(manzanilla): everything to be removed with tiled implementation except the constructor. */
 class GaussianAlphaYBlurOperation : public GaussianAlphaBlurBaseOperation {
  private:
-  void updateGauss();
+  void update_gauss();
 
  public:
   GaussianAlphaYBlurOperation();
@@ -33,22 +33,22 @@ class GaussianAlphaYBlurOperation : public GaussianAlphaBlurBaseOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   /**
    * \brief initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void *initializeTileData(rcti *rect) override;
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  void *initialize_tile_data(rcti *rect) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 };
 
 }  // namespace blender::compositor

@@ -22,16 +22,16 @@ namespace blender::compositor {
 
 ChannelMatteOperation::ChannelMatteOperation()
 {
-  addInputSocket(DataType::Color);
-  addOutputSocket(DataType::Value);
+  add_input_socket(DataType::Color);
+  add_output_socket(DataType::Value);
 
-  inputImageProgram_ = nullptr;
+  input_image_program_ = nullptr;
   flags.can_be_constant = true;
 }
 
-void ChannelMatteOperation::initExecution()
+void ChannelMatteOperation::init_execution()
 {
-  inputImageProgram_ = this->getInputSocketReader(0);
+  input_image_program_ = this->get_input_socket_reader(0);
 
   limit_range_ = limit_max_ - limit_min_;
 
@@ -77,34 +77,34 @@ void ChannelMatteOperation::initExecution()
   }
 }
 
-void ChannelMatteOperation::deinitExecution()
+void ChannelMatteOperation::deinit_execution()
 {
-  inputImageProgram_ = nullptr;
+  input_image_program_ = nullptr;
 }
 
-void ChannelMatteOperation::executePixelSampled(float output[4],
-                                                float x,
-                                                float y,
-                                                PixelSampler sampler)
+void ChannelMatteOperation::execute_pixel_sampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
 {
-  float inColor[4];
+  float in_color[4];
   float alpha;
 
   const float limit_max = limit_max_;
   const float limit_min = limit_min_;
   const float limit_range = limit_range_;
 
-  inputImageProgram_->readSampled(inColor, x, y, sampler);
+  input_image_program_->read_sampled(in_color, x, y, sampler);
 
   /* matte operation */
-  alpha = inColor[ids_[0]] - MAX2(inColor[ids_[1]], inColor[ids_[2]]);
+  alpha = in_color[ids_[0]] - MAX2(in_color[ids_[1]], in_color[ids_[2]]);
 
   /* flip because 0.0 is transparent, not 1.0 */
   alpha = 1.0f - alpha;
 
   /* test range */
   if (alpha > limit_max) {
-    alpha = inColor[3]; /* Whatever it was prior. */
+    alpha = in_color[3]; /* Whatever it was prior. */
   }
   else if (alpha < limit_min) {
     alpha = 0.0f;
@@ -118,7 +118,7 @@ void ChannelMatteOperation::executePixelSampled(float output[4],
    */
 
   /* Don't make something that was more transparent less transparent. */
-  output[0] = MIN2(alpha, inColor[3]);
+  output[0] = MIN2(alpha, in_color[3]);
 }
 
 void ChannelMatteOperation::update_memory_buffer_partial(MemoryBuffer *output,

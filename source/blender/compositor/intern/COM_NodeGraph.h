@@ -71,7 +71,7 @@ class NodeGraph {
   static bNodeSocket *find_b_node_output(bNode *b_node, const char *identifier);
 
   void add_node(Node *node, bNodeTree *b_ntree, bNodeInstanceKey key, bool is_active_group);
-  void add_link(NodeOutput *fromSocket, NodeInput *toSocket);
+  void add_link(NodeOutput *from_socket, NodeInput *to_socket);
 
   void add_bNodeTree(const CompositorContext &context,
                      int nodes_start,

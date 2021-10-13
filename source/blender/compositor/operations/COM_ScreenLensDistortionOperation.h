@@ -28,9 +28,9 @@ namespace blender::compositor {
 class ScreenLensDistortionOperation : public MultiThreadedOperation {
  private:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *inputProgram_;
+  SocketReader *input_program_;
   struct RNG *rng_;
 
   bool fit_;
@@ -55,36 +55,36 @@ class ScreenLensDistortionOperation : public MultiThreadedOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
-  void *initializeTileData(rcti *rect) override;
+  void *initialize_tile_data(rcti *rect) override;
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setFit(bool fit)
+  void set_fit(bool fit)
   {
     fit_ = fit;
   }
-  void setJitter(bool jitter)
+  void set_jitter(bool jitter)
   {
     jitter_ = jitter;
   }
 
   /** Set constant distortion value */
-  void setDistortion(float distortion);
+  void set_distortion(float distortion);
   /** Set constant dispersion value */
-  void setDispersion(float dispersion);
+  void set_dispersion(float dispersion);
 
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
@@ -94,7 +94,7 @@ class ScreenLensDistortionOperation : public MultiThreadedOperation {
 
  private:
   void determineUV(float result[6], float x, float y) const;
-  void updateVariables(float distortion, float dispersion);
+  void update_variables(float distortion, float dispersion);
 
   void get_uv(const float xy[2], float uv[2]) const;
   void distort_uv(const float uv[2], float t, float xy[2]) const;

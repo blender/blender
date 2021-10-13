@@ -43,13 +43,13 @@ class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelpe
 #endif
   float *make_dist_fac_inverse(float rad, int size, int falloff);
 
-  void updateSize();
+  void update_size();
 
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *inputProgram_;
-  SocketReader *inputSize_;
+  SocketReader *input_program_;
+  SocketReader *input_size_;
   NodeBlurData data_;
 
   float size_;
@@ -63,22 +63,22 @@ class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelpe
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setData(const NodeBlurData *data);
+  void set_data(const NodeBlurData *data);
 
-  void setSize(float size)
+  void set_size(float size)
   {
     size_ = size;
     sizeavailable_ = true;
   }
 
-  void setExtendBounds(bool extend_bounds)
+  void set_extend_bounds(bool extend_bounds)
   {
     extend_bounds_ = extend_bounds;
   }

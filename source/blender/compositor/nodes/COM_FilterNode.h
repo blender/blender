@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class FilterNode : public Node {
  public:
-  FilterNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  FilterNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

@@ -64,8 +64,8 @@ namespace blender::compositor {
  * based on settings; like MixNode. based on the selected Mixtype a different operation will be
  * used. for more information see the page about creating new Nodes. [@subpage newnode]
  *
- * \see ExecutionSystem.convertToOperations
- * \see Node.convertToOperations
+ * \see ExecutionSystem.convert_to_operations
+ * \see Node.convert_to_operations
  * \see NodeOperation base class for all operations in the system
  *
  * \section EM_Step3 Step3: add additional conversions to the operation system
@@ -89,7 +89,7 @@ namespace blender::compositor {
  *       Bottom left of the images are aligned.
  *
  * \see COM_convert_data_type Datatype conversions
- * \see Converter.convertResolution Image size conversions
+ * \see Converter.convert_resolution Image size conversions
  *
  * \section EM_Step4 Step4: group operations in executions groups
  * ExecutionGroup are groups of operations that are calculated as being one bigger operation.
@@ -112,9 +112,9 @@ namespace blender::compositor {
  * |cFAA  |           |cFAA  |         |cFAA   |           |cFAA   |
  * +------+           +------+         +-------+           +-------+
  * </pre>
- * \see ExecutionSystem.groupOperations method doing this step
- * \see ExecutionSystem.addReadWriteBufferOperations
- * \see NodeOperation.isComplex
+ * \see ExecutionSystem.group_operations method doing this step
+ * \see ExecutionSystem.add_read_write_buffer_operations
+ * \see NodeOperation.is_complex
  * \see ExecutionGroup class representing the ExecutionGroup
  */
 
@@ -175,9 +175,9 @@ class ExecutionSystem {
                   bNodeTree *editingtree,
                   bool rendering,
                   bool fastcalculation,
-                  const ColorManagedViewSettings *viewSettings,
-                  const ColorManagedDisplaySettings *displaySettings,
-                  const char *viewName);
+                  const ColorManagedViewSettings *view_settings,
+                  const ColorManagedDisplaySettings *display_settings,
+                  const char *view_name);
 
   /**
    * Destructor
@@ -198,7 +198,7 @@ class ExecutionSystem {
   /**
    * \brief get the reference to the compositor context
    */
-  const CompositorContext &getContext() const
+  const CompositorContext &get_context() const
   {
     return context_;
   }

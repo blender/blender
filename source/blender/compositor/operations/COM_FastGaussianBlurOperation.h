@@ -31,16 +31,16 @@ class FastGaussianBlurOperation : public BlurBaseOperation {
 
  public:
   FastGaussianBlurOperation();
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
-  void executePixel(float output[4], int x, int y, void *data) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   static void IIR_gauss(MemoryBuffer *src, float sigma, unsigned int channel, unsigned int xy);
-  void *initializeTileData(rcti *rect) override;
+  void *initialize_tile_data(rcti *rect) override;
   void init_data() override;
-  void deinitExecution() override;
-  void initExecution() override;
+  void deinit_execution() override;
+  void init_execution() override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_started(MemoryBuffer *output,
@@ -73,21 +73,21 @@ class FastGaussianBlurValueOperation : public MultiThreadedOperation {
 
  public:
   FastGaussianBlurValueOperation();
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
-  void executePixel(float output[4], int x, int y, void *data) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
-  void *initializeTileData(rcti *rect) override;
-  void deinitExecution() override;
-  void initExecution() override;
-  void setSigma(float sigma)
+  void *initialize_tile_data(rcti *rect) override;
+  void deinit_execution() override;
+  void init_execution() override;
+  void set_sigma(float sigma)
   {
     sigma_ = sigma;
   }
 
   /* used for DOF blurring ZBuffer */
-  void setOverlay(int overlay)
+  void set_overlay(int overlay)
   {
     overlay_ = overlay;
   }

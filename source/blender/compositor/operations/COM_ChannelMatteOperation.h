@@ -28,7 +28,7 @@ namespace blender::compositor {
  */
 class ChannelMatteOperation : public MultiThreadedOperation {
  private:
-  SocketReader *inputImageProgram_;
+  SocketReader *input_image_program_;
 
   /* int color_space_; */ /* node->custom1 */ /* UNUSED */ /* TODO ? */
   int matte_channel_;                                      /* node->custom2 */
@@ -58,17 +58,17 @@ class ChannelMatteOperation : public MultiThreadedOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void setSettings(NodeChroma *nodeChroma, const int custom2)
+  void set_settings(NodeChroma *node_chroma, const int custom2)
   {
-    limit_max_ = nodeChroma->t1;
-    limit_min_ = nodeChroma->t2;
-    limit_method_ = nodeChroma->algorithm;
-    limit_channel_ = nodeChroma->channel;
+    limit_max_ = node_chroma->t1;
+    limit_min_ = node_chroma->t2;
+    limit_method_ = node_chroma->algorithm;
+    limit_channel_ = node_chroma->channel;
     matte_channel_ = custom2;
   }
 

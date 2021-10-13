@@ -22,7 +22,7 @@
 
 namespace blender::compositor {
 
-/* TODO(manzanilla): After removing tiled implementation, implement a default #determineResolution
+/* TODO(manzanilla): After removing tiled implementation, implement a default #determine_resolution
  * for all constant operations and make all initialization and deinitilization methods final. */
 /**
  * Base class for operations that are always constant. Operations that can be constant only when

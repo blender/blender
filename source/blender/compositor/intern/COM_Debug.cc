@@ -80,14 +80,14 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
   std::string fillcolor = "gainsboro";
   if (operation->get_flags().is_viewer_operation) {
     const ViewerOperation *viewer = (const ViewerOperation *)operation;
-    if (viewer->isActiveViewerOutput()) {
+    if (viewer->is_active_viewer_output()) {
       fillcolor = "lightskyblue1";
     }
     else {
       fillcolor = "lightskyblue3";
     }
   }
-  else if (operation->isOutputOperation(system->getContext().isRendering())) {
+  else if (operation->is_output_operation(system->get_context().is_rendering())) {
     fillcolor = "dodgerblue1";
   }
   else if (operation->get_flags().is_set_operation) {
@@ -112,16 +112,16 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
                   " [fillcolor=%s,style=filled,shape=record,label=\"{",
                   fillcolor.c_str());
 
-  int totinputs = operation->getNumberOfInputSockets();
+  int totinputs = operation->get_number_of_input_sockets();
   if (totinputs != 0) {
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "{");
     for (int k = 0; k < totinputs; k++) {
-      NodeOperationInput *socket = operation->getInputSocket(k);
+      NodeOperationInput *socket = operation->get_input_socket(k);
       if (k != 0) {
         len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "|");
       }
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<IN_%p>", socket);
-      switch (socket->getDataType()) {
+      switch (socket->get_data_type()) {
         case DataType::Value:
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Value");
           break;
@@ -156,20 +156,20 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
                   operation->get_id(),
                   operation->get_canvas().xmin,
                   operation->get_canvas().ymin,
-                  operation->getWidth(),
-                  operation->getHeight());
+                  operation->get_width(),
+                  operation->get_height());
 
-  int totoutputs = operation->getNumberOfOutputSockets();
+  int totoutputs = operation->get_number_of_output_sockets();
   if (totoutputs != 0) {
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "|");
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "{");
     for (int k = 0; k < totoutputs; k++) {
-      NodeOperationOutput *socket = operation->getOutputSocket(k);
+      NodeOperationOutput *socket = operation->get_output_socket(k);
       if (k != 0) {
         len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "|");
       }
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<OUT_%p>", socket);
-      switch (socket->getDataType()) {
+      switch (socket->get_data_type()) {
         case DataType::Value: {
           ConstantOperation *constant = operation->get_flags().is_constant_operation ?
                                             static_cast<ConstantOperation *>(operation) :
@@ -346,7 +346,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
   for (NodeOperation *operation : system->operations_) {
     if (operation->get_flags().is_read_buffer_operation) {
       ReadBufferOperation *read = (ReadBufferOperation *)operation;
-      WriteBufferOperation *write = read->getMemoryProxy()->getWriteBufferOperation();
+      WriteBufferOperation *write = read->get_memory_proxy()->get_write_buffer_operation();
       std::vector<std::string> &read_groups = op_groups[read];
       std::vector<std::string> &write_groups = op_groups[write];
 
@@ -366,14 +366,14 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 
   for (NodeOperation *op : system->operations_) {
     for (NodeOperationInput &to : op->inputs_) {
-      NodeOperationOutput *from = to.getLink();
+      NodeOperationOutput *from = to.get_link();
 
       if (!from) {
         continue;
       }
 
       std::string color;
-      switch (from->getDataType()) {
+      switch (from->get_data_type()) {
         case DataType::Value:
           color = "gray";
           break;
@@ -385,8 +385,8 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
           break;
       }
 
-      NodeOperation *to_op = &to.getOperation();
-      NodeOperation *from_op = &from->getOperation();
+      NodeOperation *to_op = &to.get_operation();
+      NodeOperation *from_op = &from->get_operation();
       std::vector<std::string> &from_groups = op_groups[from_op];
       std::vector<std::string> &to_groups = op_groups[to_op];
 
@@ -416,7 +416,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
     }
   }
 
-  const bool has_execution_groups = system->getContext().get_execution_model() ==
+  const bool has_execution_groups = system->get_context().get_execution_model() ==
                                         eExecutionModel::Tiled &&
                                     system->groups_.size() > 0;
   len += graphviz_legend(str + len, maxlen > len ? maxlen - len : 0, has_execution_groups);
@@ -460,8 +460,8 @@ static std::string get_operations_export_dir()
 
 void DebugInfo::export_operation(const NodeOperation *op, MemoryBuffer *render)
 {
-  const int width = render->getWidth();
-  const int height = render->getHeight();
+  const int width = render->get_width();
+  const int height = render->get_height();
   const int num_channels = render->get_num_channels();
 
   ImBuf *ibuf = IMB_allocImBuf(width, height, 8 * num_channels, IB_rectfloat);

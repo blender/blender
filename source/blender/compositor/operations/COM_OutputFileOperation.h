@@ -38,15 +38,15 @@ class OutputSingleLayerOperation : public MultiThreadedOperation {
   ImageFormatData *format_;
   char path_[FILE_MAX];
 
-  float *outputBuffer_;
+  float *output_buffer_;
   DataType datatype_;
-  SocketReader *imageInput_;
+  SocketReader *image_input_;
 
-  const ColorManagedViewSettings *viewSettings_;
-  const ColorManagedDisplaySettings *displaySettings_;
+  const ColorManagedViewSettings *view_settings_;
+  const ColorManagedDisplaySettings *display_settings_;
 
-  const char *viewName_;
-  bool saveAsRender_;
+  const char *view_name_;
+  bool save_as_render_;
 
  public:
   OutputSingleLayerOperation(const RenderData *rd,
@@ -54,19 +54,19 @@ class OutputSingleLayerOperation : public MultiThreadedOperation {
                              DataType datatype,
                              ImageFormatData *format,
                              const char *path,
-                             const ColorManagedViewSettings *viewSettings,
-                             const ColorManagedDisplaySettings *displaySettings,
-                             const char *viewName,
-                             const bool saveAsRender);
+                             const ColorManagedViewSettings *view_settings,
+                             const ColorManagedDisplaySettings *display_settings,
+                             const char *view_name,
+                             const bool save_as_render);
 
-  void executeRegion(rcti *rect, unsigned int tileNumber) override;
-  bool isOutputOperation(bool /*rendering*/) const override
+  void execute_region(rcti *rect, unsigned int tile_number) override;
+  bool is_output_operation(bool /*rendering*/) const override
   {
     return true;
   }
-  void initExecution() override;
-  void deinitExecution() override;
-  eCompositorPriority getRenderPriority() const override
+  void init_execution() override;
+  void deinit_execution() override;
+  eCompositorPriority get_render_priority() const override
   {
     return eCompositorPriority::Low;
   }
@@ -85,8 +85,8 @@ struct OutputOpenExrLayer {
   bool use_layer;
 
   /* internals */
-  float *outputBuffer;
-  SocketReader *imageInput;
+  float *output_buffer;
+  SocketReader *image_input;
 };
 
 /* Writes inputs into OpenEXR multilayer channels. */
@@ -100,9 +100,9 @@ class OutputOpenExrMultiLayerOperation : public MultiThreadedOperation {
   char exr_codec_;
   bool exr_half_float_;
   Vector<OutputOpenExrLayer> layers_;
-  const char *viewName_;
+  const char *view_name_;
 
-  StampData *createStampData() const;
+  StampData *create_stamp_data() const;
 
  public:
   OutputOpenExrMultiLayerOperation(const Scene *scene,
@@ -111,18 +111,18 @@ class OutputOpenExrMultiLayerOperation : public MultiThreadedOperation {
                                    const char *path,
                                    char exr_codec,
                                    bool exr_half_float,
-                                   const char *viewName);
+                                   const char *view_name);
 
   void add_layer(const char *name, DataType datatype, bool use_layer);
 
-  void executeRegion(rcti *rect, unsigned int tileNumber) override;
-  bool isOutputOperation(bool /*rendering*/) const override
+  void execute_region(rcti *rect, unsigned int tile_number) override;
+  bool is_output_operation(bool /*rendering*/) const override
   {
     return true;
   }
-  void initExecution() override;
-  void deinitExecution() override;
-  eCompositorPriority getRenderPriority() const override
+  void init_execution() override;
+  void deinit_execution() override;
+  eCompositorPriority get_render_priority() const override
   {
     return eCompositorPriority::Low;
   }
@@ -133,15 +133,15 @@ class OutputOpenExrMultiLayerOperation : public MultiThreadedOperation {
 };
 
 void add_exr_channels(void *exrhandle,
-                      const char *layerName,
+                      const char *layer_name,
                       const DataType datatype,
-                      const char *viewName,
+                      const char *view_name,
                       const size_t width,
                       bool use_half_float,
                       float *buf);
 void free_exr_channels(void *exrhandle,
                        const RenderData *rd,
-                       const char *layerName,
+                       const char *layer_name,
                        const DataType datatype);
 int get_datatype_size(DataType datatype);
 

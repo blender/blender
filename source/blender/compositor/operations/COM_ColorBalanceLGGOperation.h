@@ -29,10 +29,10 @@ namespace blender::compositor {
 class ColorBalanceLGGOperation : public MultiThreadedRowOperation {
  protected:
   /**
-   * Prefetched reference to the inputProgram
+   * Prefetched reference to the input_program
    */
-  SocketReader *inputValueOperation_;
-  SocketReader *inputColorOperation_;
+  SocketReader *input_value_operation_;
+  SocketReader *input_color_operation_;
 
   float gain_[3];
   float lift_[3];
@@ -47,27 +47,27 @@ class ColorBalanceLGGOperation : public MultiThreadedRowOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setGain(const float gain[3])
+  void set_gain(const float gain[3])
   {
     copy_v3_v3(gain_, gain);
   }
-  void setLift(const float lift[3])
+  void set_lift(const float lift[3])
   {
     copy_v3_v3(lift_, lift);
   }
-  void setGammaInv(const float gamma_inv[3])
+  void set_gamma_inv(const float gamma_inv[3])
   {
     copy_v3_v3(gamma_inv_, gamma_inv);
   }

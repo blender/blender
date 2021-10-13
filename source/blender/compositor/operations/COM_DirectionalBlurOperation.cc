@@ -23,17 +23,17 @@ namespace blender::compositor {
 
 DirectionalBlurOperation::DirectionalBlurOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
   flags.complex = true;
   flags.open_cl = true;
-  inputProgram_ = nullptr;
+  input_program_ = nullptr;
 }
 
-void DirectionalBlurOperation::initExecution()
+void DirectionalBlurOperation::init_execution()
 {
-  inputProgram_ = getInputSocketReader(0);
-  QualityStepHelper::initExecution(COM_QH_INCREASE);
+  input_program_ = get_input_socket_reader(0);
+  QualityStepHelper::init_execution(COM_QH_INCREASE);
   const float angle = data_->angle;
   const float zoom = data_->zoom;
   const float spin = data_->spin;
@@ -41,8 +41,8 @@ void DirectionalBlurOperation::initExecution()
   const float distance = data_->distance;
   const float center_x = data_->center_x;
   const float center_y = data_->center_y;
-  const float width = getWidth();
-  const float height = getHeight();
+  const float width = get_width();
+  const float height = get_height();
 
   const float a = angle;
   const float itsc = 1.0f / powf(2.0f, (float)iterations);
@@ -58,12 +58,12 @@ void DirectionalBlurOperation::initExecution()
   rot_ = itsc * spin;
 }
 
-void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void * /*data*/)
+void DirectionalBlurOperation::execute_pixel(float output[4], int x, int y, void * /*data*/)
 {
   const int iterations = pow(2.0f, data_->iter);
   float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float col2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  inputProgram_->readSampled(col2, x, y, PixelSampler::Bilinear);
+  input_program_->read_sampled(col2, x, y, PixelSampler::Bilinear);
   float ltx = tx_;
   float lty = ty_;
   float lsc = sc_;
@@ -76,10 +76,10 @@ void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void 
     const float v = isc * (y - center_y_pix_) + lty;
     const float u = isc * (x - center_x_pix_) + ltx;
 
-    inputProgram_->readSampled(col,
-                               cs * u + ss * v + center_x_pix_,
-                               cs * v - ss * u + center_y_pix_,
-                               PixelSampler::Bilinear);
+    input_program_->read_sampled(col,
+                                 cs * u + ss * v + center_x_pix_,
+                                 cs * v - ss * u + center_y_pix_,
+                                 PixelSampler::Bilinear);
 
     add_v4_v4(col2, col);
 
@@ -93,14 +93,15 @@ void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void 
   mul_v4_v4fl(output, col2, 1.0f / (iterations + 1));
 }
 
-void DirectionalBlurOperation::executeOpenCL(OpenCLDevice *device,
-                                             MemoryBuffer *outputMemoryBuffer,
-                                             cl_mem clOutputBuffer,
-                                             MemoryBuffer **inputMemoryBuffers,
-                                             std::list<cl_mem> *clMemToCleanUp,
-                                             std::list<cl_kernel> * /*clKernelsToCleanUp*/)
+void DirectionalBlurOperation::execute_opencl(OpenCLDevice *device,
+                                              MemoryBuffer *output_memory_buffer,
+                                              cl_mem cl_output_buffer,
+                                              MemoryBuffer **input_memory_buffers,
+                                              std::list<cl_mem> *cl_mem_to_clean_up,
+                                              std::list<cl_kernel> * /*cl_kernels_to_clean_up*/)
 {
-  cl_kernel directionalBlurKernel = device->COM_clCreateKernel("directionalBlurKernel", nullptr);
+  cl_kernel directional_blur_kernel = device->COM_cl_create_kernel("directional_blur_kernel",
+                                                                   nullptr);
 
   cl_int iterations = pow(2.0f, data_->iter);
   cl_float2 ltxy = {{tx_, ty_}};
@@ -108,38 +109,37 @@ void DirectionalBlurOperation::executeOpenCL(OpenCLDevice *device,
   cl_float lsc = sc_;
   cl_float lrot = rot_;
 
-  device->COM_clAttachMemoryBufferToKernelParameter(
-      directionalBlurKernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, inputProgram_);
-  device->COM_clAttachOutputMemoryBufferToKernelParameter(
-      directionalBlurKernel, 1, clOutputBuffer);
-  device->COM_clAttachMemoryBufferOffsetToKernelParameter(
-      directionalBlurKernel, 2, outputMemoryBuffer);
-  clSetKernelArg(directionalBlurKernel, 3, sizeof(cl_int), &iterations);
-  clSetKernelArg(directionalBlurKernel, 4, sizeof(cl_float), &lsc);
-  clSetKernelArg(directionalBlurKernel, 5, sizeof(cl_float), &lrot);
-  clSetKernelArg(directionalBlurKernel, 6, sizeof(cl_float2), &ltxy);
-  clSetKernelArg(directionalBlurKernel, 7, sizeof(cl_float2), &centerpix);
+  device->COM_cl_attach_memory_buffer_to_kernel_parameter(
+      directional_blur_kernel, 0, -1, cl_mem_to_clean_up, input_memory_buffers, input_program_);
+  device->COM_cl_attach_output_memory_buffer_to_kernel_parameter(
+      directional_blur_kernel, 1, cl_output_buffer);
+  device->COM_cl_attach_memory_buffer_offset_to_kernel_parameter(
+      directional_blur_kernel, 2, output_memory_buffer);
+  clSetKernelArg(directional_blur_kernel, 3, sizeof(cl_int), &iterations);
+  clSetKernelArg(directional_blur_kernel, 4, sizeof(cl_float), &lsc);
+  clSetKernelArg(directional_blur_kernel, 5, sizeof(cl_float), &lrot);
+  clSetKernelArg(directional_blur_kernel, 6, sizeof(cl_float2), &ltxy);
+  clSetKernelArg(directional_blur_kernel, 7, sizeof(cl_float2), &centerpix);
 
-  device->COM_clEnqueueRange(directionalBlurKernel, outputMemoryBuffer, 8, this);
+  device->COM_cl_enqueue_range(directional_blur_kernel, output_memory_buffer, 8, this);
 }
 
-void DirectionalBlurOperation::deinitExecution()
+void DirectionalBlurOperation::deinit_execution()
 {
-  inputProgram_ = nullptr;
+  input_program_ = nullptr;
 }
 
-bool DirectionalBlurOperation::determineDependingAreaOfInterest(rcti * /*input*/,
-                                                                ReadBufferOperation *readOperation,
-                                                                rcti *output)
+bool DirectionalBlurOperation::determine_depending_area_of_interest(
+    rcti * /*input*/, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti newInput;
+  rcti new_input;
 
-  newInput.xmax = this->getWidth();
-  newInput.xmin = 0;
-  newInput.ymax = this->getHeight();
-  newInput.ymin = 0;
+  new_input.xmax = this->get_width();
+  new_input.xmin = 0;
+  new_input.ymax = this->get_height();
+  new_input.ymin = 0;
 
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void DirectionalBlurOperation::get_area_of_interest(const int input_idx,

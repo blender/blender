@@ -23,22 +23,22 @@ namespace blender::compositor {
 
 ColorSpillOperation::ColorSpillOperation()
 {
-  addInputSocket(DataType::Color);
-  addInputSocket(DataType::Value);
-  addOutputSocket(DataType::Color);
+  add_input_socket(DataType::Color);
+  add_input_socket(DataType::Value);
+  add_output_socket(DataType::Color);
 
-  inputImageReader_ = nullptr;
-  inputFacReader_ = nullptr;
-  spillChannel_ = 1; /* GREEN */
-  spillMethod_ = 0;
+  input_image_reader_ = nullptr;
+  input_fac_reader_ = nullptr;
+  spill_channel_ = 1; /* GREEN */
+  spill_method_ = 0;
   flags.can_be_constant = true;
 }
 
-void ColorSpillOperation::initExecution()
+void ColorSpillOperation::init_execution()
 {
-  inputImageReader_ = this->getInputSocketReader(0);
-  inputFacReader_ = this->getInputSocketReader(1);
-  if (spillChannel_ == 0) {
+  input_image_reader_ = this->get_input_socket_reader(0);
+  input_fac_reader_ = this->get_input_socket_reader(1);
+  if (spill_channel_ == 0) {
     rmut_ = -1.0f;
     gmut_ = 1.0f;
     bmut_ = 1.0f;
@@ -50,7 +50,7 @@ void ColorSpillOperation::initExecution()
       settings_->uspillb = 0.0f;
     }
   }
-  else if (spillChannel_ == 1) {
+  else if (spill_channel_ == 1) {
     rmut_ = 1.0f;
     gmut_ = -1.0f;
     bmut_ = 1.0f;
@@ -77,30 +77,30 @@ void ColorSpillOperation::initExecution()
   }
 }
 
-void ColorSpillOperation::deinitExecution()
+void ColorSpillOperation::deinit_execution()
 {
-  inputImageReader_ = nullptr;
-  inputFacReader_ = nullptr;
+  input_image_reader_ = nullptr;
+  input_fac_reader_ = nullptr;
 }
 
-void ColorSpillOperation::executePixelSampled(float output[4],
-                                              float x,
-                                              float y,
-                                              PixelSampler sampler)
+void ColorSpillOperation::execute_pixel_sampled(float output[4],
+                                                float x,
+                                                float y,
+                                                PixelSampler sampler)
 {
   float fac[4];
   float input[4];
-  inputFacReader_->readSampled(fac, x, y, sampler);
-  inputImageReader_->readSampled(input, x, y, sampler);
+  input_fac_reader_->read_sampled(fac, x, y, sampler);
+  input_image_reader_->read_sampled(input, x, y, sampler);
   float rfac = MIN2(1.0f, fac[0]);
   float map;
 
-  switch (spillMethod_) {
+  switch (spill_method_) {
     case 0: /* simple */
-      map = rfac * (input[spillChannel_] - (settings_->limscale * input[settings_->limchan]));
+      map = rfac * (input[spill_channel_] - (settings_->limscale * input[settings_->limchan]));
       break;
     default: /* average */
-      map = rfac * (input[spillChannel_] -
+      map = rfac * (input[spill_channel_] -
                     (settings_->limscale * AVG(input[channel2_], input[channel3_])));
       break;
   }
@@ -125,12 +125,12 @@ void ColorSpillOperation::update_memory_buffer_partial(MemoryBuffer *output,
     const float factor = MIN2(1.0f, *it.in(1));
 
     float map;
-    switch (spillMethod_) {
+    switch (spill_method_) {
       case 0: /* simple */
-        map = factor * (color[spillChannel_] - (settings_->limscale * color[settings_->limchan]));
+        map = factor * (color[spill_channel_] - (settings_->limscale * color[settings_->limchan]));
         break;
       default: /* average */
-        map = factor * (color[spillChannel_] -
+        map = factor * (color[spill_channel_] -
                         (settings_->limscale * AVG(color[channel2_], color[channel3_])));
         break;
     }

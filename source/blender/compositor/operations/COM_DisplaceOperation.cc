@@ -22,55 +22,55 @@ namespace blender::compositor {
 
 DisplaceOperation::DisplaceOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Vector);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Vector);
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Color);
   this->flags.complex = true;
 
-  inputColorProgram_ = nullptr;
+  input_color_program_ = nullptr;
 }
 
-void DisplaceOperation::initExecution()
+void DisplaceOperation::init_execution()
 {
-  inputColorProgram_ = this->getInputSocketReader(0);
-  NodeOperation *vector = this->getInputSocketReader(1);
-  NodeOperation *scale_x = this->getInputSocketReader(2);
-  NodeOperation *scale_y = this->getInputSocketReader(3);
+  input_color_program_ = this->get_input_socket_reader(0);
+  NodeOperation *vector = this->get_input_socket_reader(1);
+  NodeOperation *scale_x = this->get_input_socket_reader(2);
+  NodeOperation *scale_y = this->get_input_socket_reader(3);
   if (execution_model_ == eExecutionModel::Tiled) {
     vector_read_fn_ = [=](float x, float y, float *out) {
-      vector->readSampled(out, x, y, PixelSampler::Bilinear);
+      vector->read_sampled(out, x, y, PixelSampler::Bilinear);
     };
     scale_x_read_fn_ = [=](float x, float y, float *out) {
-      scale_x->readSampled(out, x, y, PixelSampler::Nearest);
+      scale_x->read_sampled(out, x, y, PixelSampler::Nearest);
     };
     scale_y_read_fn_ = [=](float x, float y, float *out) {
-      scale_y->readSampled(out, x, y, PixelSampler::Nearest);
+      scale_y->read_sampled(out, x, y, PixelSampler::Nearest);
     };
   }
 
-  width_x4_ = this->getWidth() * 4;
-  height_x4_ = this->getHeight() * 4;
-  input_vector_width_ = vector->getWidth();
-  input_vector_height_ = vector->getHeight();
+  width_x4_ = this->get_width() * 4;
+  height_x4_ = this->get_height() * 4;
+  input_vector_width_ = vector->get_width();
+  input_vector_height_ = vector->get_height();
 }
 
-void DisplaceOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler /*sampler*/)
+void DisplaceOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler /*sampler*/)
 {
   float xy[2] = {x, y};
   float uv[2], deriv[2][2];
 
-  pixelTransform(xy, uv, deriv);
+  pixel_transform(xy, uv, deriv);
   if (is_zero_v2(deriv[0]) && is_zero_v2(deriv[1])) {
-    inputColorProgram_->readSampled(output, uv[0], uv[1], PixelSampler::Bilinear);
+    input_color_program_->read_sampled(output, uv[0], uv[1], PixelSampler::Bilinear);
   }
   else {
     /* EWA filtering (without nearest it gets blurry with NO distortion) */
-    inputColorProgram_->readFiltered(output, uv[0], uv[1], deriv[0], deriv[1]);
+    input_color_program_->read_filtered(output, uv[0], uv[1], deriv[0], deriv[1]);
   }
 }
 
@@ -92,7 +92,7 @@ bool DisplaceOperation::read_displacement(
   return true;
 }
 
-void DisplaceOperation::pixelTransform(const float xy[2], float r_uv[2], float r_deriv[2][2])
+void DisplaceOperation::pixel_transform(const float xy[2], float r_uv[2], float r_deriv[2][2])
 {
   float col[4];
   float uv[2]; /* temporary variables for derivative estimation */
@@ -151,52 +151,52 @@ void DisplaceOperation::pixelTransform(const float xy[2], float r_uv[2], float r
   }
 }
 
-void DisplaceOperation::deinitExecution()
+void DisplaceOperation::deinit_execution()
 {
-  inputColorProgram_ = nullptr;
+  input_color_program_ = nullptr;
   vector_read_fn_ = nullptr;
   scale_x_read_fn_ = nullptr;
   scale_y_read_fn_ = nullptr;
 }
 
-bool DisplaceOperation::determineDependingAreaOfInterest(rcti *input,
-                                                         ReadBufferOperation *readOperation,
-                                                         rcti *output)
+bool DisplaceOperation::determine_depending_area_of_interest(rcti *input,
+                                                             ReadBufferOperation *read_operation,
+                                                             rcti *output)
 {
-  rcti colorInput;
-  rcti vectorInput;
+  rcti color_input;
+  rcti vector_input;
   NodeOperation *operation = nullptr;
 
   /* the vector buffer only needs a 2x2 buffer. The image needs whole buffer */
   /* image */
-  operation = getInputOperation(0);
-  colorInput.xmax = operation->getWidth();
-  colorInput.xmin = 0;
-  colorInput.ymax = operation->getHeight();
-  colorInput.ymin = 0;
-  if (operation->determineDependingAreaOfInterest(&colorInput, readOperation, output)) {
+  operation = get_input_operation(0);
+  color_input.xmax = operation->get_width();
+  color_input.xmin = 0;
+  color_input.ymax = operation->get_height();
+  color_input.ymin = 0;
+  if (operation->determine_depending_area_of_interest(&color_input, read_operation, output)) {
     return true;
   }
 
   /* vector */
-  operation = getInputOperation(1);
-  vectorInput.xmax = input->xmax + 1;
-  vectorInput.xmin = input->xmin - 1;
-  vectorInput.ymax = input->ymax + 1;
-  vectorInput.ymin = input->ymin - 1;
-  if (operation->determineDependingAreaOfInterest(&vectorInput, readOperation, output)) {
+  operation = get_input_operation(1);
+  vector_input.xmax = input->xmax + 1;
+  vector_input.xmin = input->xmin - 1;
+  vector_input.ymax = input->ymax + 1;
+  vector_input.ymin = input->ymin - 1;
+  if (operation->determine_depending_area_of_interest(&vector_input, read_operation, output)) {
     return true;
   }
 
   /* scale x */
-  operation = getInputOperation(2);
-  if (operation->determineDependingAreaOfInterest(input, readOperation, output)) {
+  operation = get_input_operation(2);
+  if (operation->determine_depending_area_of_interest(input, read_operation, output)) {
     return true;
   }
 
   /* scale y */
-  operation = getInputOperation(3);
-  if (operation->determineDependingAreaOfInterest(input, readOperation, output)) {
+  operation = get_input_operation(3);
+  if (operation->determine_depending_area_of_interest(input, read_operation, output)) {
     return true;
   }
 
@@ -209,7 +209,7 @@ void DisplaceOperation::get_area_of_interest(const int input_idx,
 {
   switch (input_idx) {
     case 0: {
-      r_input_area = getInputOperation(input_idx)->get_canvas();
+      r_input_area = get_input_operation(input_idx)->get_canvas();
       break;
     }
     case 1: {
@@ -246,7 +246,7 @@ void DisplaceOperation::update_memory_buffer_partial(MemoryBuffer *output,
     float uv[2];
     float deriv[2][2];
 
-    pixelTransform(xy, uv, deriv);
+    pixel_transform(xy, uv, deriv);
     if (is_zero_v2(deriv[0]) && is_zero_v2(deriv[1])) {
       input_color->read_elem_bilinear(uv[0], uv[1], it.out);
     }

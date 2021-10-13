@@ -22,42 +22,42 @@ namespace blender::compositor {
 
 SingleThreadedOperation::SingleThreadedOperation()
 {
-  cachedInstance_ = nullptr;
+  cached_instance_ = nullptr;
   flags.complex = true;
   flags.single_threaded = true;
 }
 
-void SingleThreadedOperation::initExecution()
+void SingleThreadedOperation::init_execution()
 {
-  initMutex();
+  init_mutex();
 }
 
-void SingleThreadedOperation::executePixel(float output[4], int x, int y, void * /*data*/)
+void SingleThreadedOperation::execute_pixel(float output[4], int x, int y, void * /*data*/)
 {
-  cachedInstance_->readNoCheck(output, x, y);
+  cached_instance_->read_no_check(output, x, y);
 }
 
-void SingleThreadedOperation::deinitExecution()
+void SingleThreadedOperation::deinit_execution()
 {
-  deinitMutex();
-  if (cachedInstance_) {
-    delete cachedInstance_;
-    cachedInstance_ = nullptr;
+  deinit_mutex();
+  if (cached_instance_) {
+    delete cached_instance_;
+    cached_instance_ = nullptr;
   }
 }
-void *SingleThreadedOperation::initializeTileData(rcti *rect)
+void *SingleThreadedOperation::initialize_tile_data(rcti *rect)
 {
-  if (cachedInstance_) {
-    return cachedInstance_;
+  if (cached_instance_) {
+    return cached_instance_;
   }
 
-  lockMutex();
-  if (cachedInstance_ == nullptr) {
+  lock_mutex();
+  if (cached_instance_ == nullptr) {
     //
-    cachedInstance_ = createMemoryBuffer(rect);
+    cached_instance_ = create_memory_buffer(rect);
   }
-  unlockMutex();
-  return cachedInstance_;
+  unlock_mutex();
+  return cached_instance_;
 }
 
 }  // namespace blender::compositor

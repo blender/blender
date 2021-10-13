@@ -29,8 +29,8 @@ namespace blender::compositor {
 class ColorMatteOperation : public MultiThreadedOperation {
  private:
   NodeChroma *settings_;
-  SocketReader *inputImageProgram_;
-  SocketReader *inputKeyProgram_;
+  SocketReader *input_image_program_;
+  SocketReader *input_key_program_;
 
  public:
   /**
@@ -41,14 +41,14 @@ class ColorMatteOperation : public MultiThreadedOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void setSettings(NodeChroma *nodeChroma)
+  void set_settings(NodeChroma *node_chroma)
   {
-    settings_ = nodeChroma;
+    settings_ = node_chroma;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

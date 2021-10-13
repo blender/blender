@@ -22,14 +22,14 @@ namespace blender::compositor {
 
 SetValueOperation::SetValueOperation()
 {
-  this->addOutputSocket(DataType::Value);
+  this->add_output_socket(DataType::Value);
   flags.is_set_operation = true;
 }
 
-void SetValueOperation::executePixelSampled(float output[4],
-                                            float /*x*/,
-                                            float /*y*/,
-                                            PixelSampler /*sampler*/)
+void SetValueOperation::execute_pixel_sampled(float output[4],
+                                              float /*x*/,
+                                              float /*y*/,
+                                              PixelSampler /*sampler*/)
 {
   output[0] = value_;
 }

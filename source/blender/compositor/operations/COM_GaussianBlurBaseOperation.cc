@@ -42,9 +42,9 @@ void GaussianBlurBaseOperation::init_data()
   }
 }
 
-void GaussianBlurBaseOperation::initExecution()
+void GaussianBlurBaseOperation::init_execution()
 {
-  BlurBaseOperation::initExecution();
+  BlurBaseOperation::init_execution();
   if (execution_model_ == eExecutionModel::FullFrame) {
     gausstab_ = BlurBaseOperation::make_gausstab(rad_, filtersize_);
 #ifdef BLI_HAVE_SSE2
@@ -53,9 +53,9 @@ void GaussianBlurBaseOperation::initExecution()
   }
 }
 
-void GaussianBlurBaseOperation::deinitExecution()
+void GaussianBlurBaseOperation::deinit_execution()
 {
-  BlurBaseOperation::deinitExecution();
+  BlurBaseOperation::deinit_execution();
 
   if (gausstab_) {
     MEM_freeN(gausstab_);
@@ -126,7 +126,7 @@ void GaussianBlurBaseOperation::update_memory_buffer_partial(MemoryBuffer *outpu
     float ATTR_ALIGN(16) color_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     float multiplier_accum = 0.0f;
 
-    const int step = QualityStepHelper::getStep();
+    const int step = QualityStepHelper::get_step();
     const float *in = it.in(0) + ((intptr_t)coord_min - coord) * elem_stride;
     const int in_stride = elem_stride * step;
     int gauss_idx = (coord_min - coord) + filtersize_;

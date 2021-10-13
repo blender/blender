@@ -27,18 +27,18 @@ namespace blender::compositor {
 
 PlaneTrackCommon::PlaneTrackCommon()
 {
-  movieClip_ = nullptr;
+  movie_clip_ = nullptr;
   framenumber_ = 0;
-  trackingObjectName_[0] = '\0';
-  planeTrackName_[0] = '\0';
+  tracking_object_name_[0] = '\0';
+  plane_track_name_[0] = '\0';
 }
 
 void PlaneTrackCommon::read_and_calculate_corners(PlaneDistortBaseOperation *distort_op)
 {
   float corners[4][2];
   if (distort_op->motion_blur_samples_ == 1) {
-    readCornersFromTrack(corners, framenumber_);
-    distort_op->calculateCorners(corners, true, 0);
+    read_corners_from_track(corners, framenumber_);
+    distort_op->calculate_corners(corners, true, 0);
   }
   else {
     const float frame = (float)framenumber_ - distort_op->motion_blur_shutter_;
@@ -46,30 +46,30 @@ void PlaneTrackCommon::read_and_calculate_corners(PlaneDistortBaseOperation *dis
                              distort_op->motion_blur_samples_;
     float frame_iter = frame;
     for (int sample = 0; sample < distort_op->motion_blur_samples_; sample++) {
-      readCornersFromTrack(corners, frame_iter);
-      distort_op->calculateCorners(corners, true, sample);
+      read_corners_from_track(corners, frame_iter);
+      distort_op->calculate_corners(corners, true, sample);
       frame_iter += frame_step;
     }
   }
 }
 
-void PlaneTrackCommon::readCornersFromTrack(float corners[4][2], float frame)
+void PlaneTrackCommon::read_corners_from_track(float corners[4][2], float frame)
 {
   MovieTracking *tracking;
   MovieTrackingObject *object;
 
-  if (!movieClip_) {
+  if (!movie_clip_) {
     return;
   }
 
-  tracking = &movieClip_->tracking;
+  tracking = &movie_clip_->tracking;
 
-  object = BKE_tracking_object_get_named(tracking, trackingObjectName_);
+  object = BKE_tracking_object_get_named(tracking, tracking_object_name_);
   if (object) {
     MovieTrackingPlaneTrack *plane_track;
-    plane_track = BKE_tracking_plane_track_get_named(tracking, object, planeTrackName_);
+    plane_track = BKE_tracking_plane_track_get_named(tracking, object, plane_track_name_);
     if (plane_track) {
-      float clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movieClip_, frame);
+      float clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movie_clip_, frame);
       BKE_tracking_plane_marker_get_subframe_corners(plane_track, clip_framenr, corners);
     }
   }
@@ -78,11 +78,11 @@ void PlaneTrackCommon::readCornersFromTrack(float corners[4][2], float frame)
 void PlaneTrackCommon::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   r_area = COM_AREA_NONE;
-  if (movieClip_) {
+  if (movie_clip_) {
     int width, height;
     MovieClipUser user = {0};
     BKE_movieclip_user_set_frame(&user, framenumber_);
-    BKE_movieclip_get_size(movieClip_, &user, &width, &height);
+    BKE_movieclip_get_size(movie_clip_, &user, &width, &height);
     r_area = preferred_area;
     r_area.xmax = r_area.xmin + width;
     r_area.ymax = r_area.ymin + height;
@@ -100,9 +100,9 @@ void PlaneTrackMaskOperation::init_data()
 }
 
 /* TODO(manzanilla): to be removed with tiled implementation. */
-void PlaneTrackMaskOperation::initExecution()
+void PlaneTrackMaskOperation::init_execution()
 {
-  PlaneDistortMaskOperation::initExecution();
+  PlaneDistortMaskOperation::init_execution();
   if (execution_model_ == eExecutionModel::Tiled) {
     PlaneTrackCommon::read_and_calculate_corners(this);
   }
@@ -119,9 +119,9 @@ void PlaneTrackWarpImageOperation::init_data()
 }
 
 /* TODO(manzanilla): to be removed with tiled implementation. */
-void PlaneTrackWarpImageOperation::initExecution()
+void PlaneTrackWarpImageOperation::init_execution()
 {
-  PlaneDistortWarpImageOperation::initExecution();
+  PlaneDistortWarpImageOperation::init_execution();
   if (execution_model_ == eExecutionModel::Tiled) {
     PlaneTrackCommon::read_and_calculate_corners(this);
   }

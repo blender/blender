@@ -36,19 +36,26 @@ OutputOpenExrSingleLayerMultiViewOperation::OutputOpenExrSingleLayerMultiViewOpe
     DataType datatype,
     ImageFormatData *format,
     const char *path,
-    const ColorManagedViewSettings *viewSettings,
-    const ColorManagedDisplaySettings *displaySettings,
-    const char *viewName,
-    const bool saveAsRender)
-    : OutputSingleLayerOperation(
-          rd, tree, datatype, format, path, viewSettings, displaySettings, viewName, saveAsRender)
+    const ColorManagedViewSettings *view_settings,
+    const ColorManagedDisplaySettings *display_settings,
+    const char *view_name,
+    const bool save_as_render)
+    : OutputSingleLayerOperation(rd,
+                                 tree,
+                                 datatype,
+                                 format,
+                                 path,
+                                 view_settings,
+                                 display_settings,
+                                 view_name,
+                                 save_as_render)
 {
 }
 
 void *OutputOpenExrSingleLayerMultiViewOperation::get_handle(const char *filename)
 {
-  size_t width = this->getWidth();
-  size_t height = this->getHeight();
+  size_t width = this->get_width();
+  size_t height = this->get_height();
   SceneRenderView *srv;
 
   if (width != 0 && height != 0) {
@@ -56,7 +63,7 @@ void *OutputOpenExrSingleLayerMultiViewOperation::get_handle(const char *filenam
 
     exrhandle = IMB_exr_get_handle_name(filename);
 
-    if (!BKE_scene_multiview_is_render_view_first(rd_, viewName_)) {
+    if (!BKE_scene_multiview_is_render_view_first(rd_, view_name_)) {
       return exrhandle;
     }
 
@@ -87,10 +94,10 @@ void *OutputOpenExrSingleLayerMultiViewOperation::get_handle(const char *filenam
   return nullptr;
 }
 
-void OutputOpenExrSingleLayerMultiViewOperation::deinitExecution()
+void OutputOpenExrSingleLayerMultiViewOperation::deinit_execution()
 {
-  unsigned int width = this->getWidth();
-  unsigned int height = this->getHeight();
+  unsigned int width = this->get_width();
+  unsigned int height = this->get_height();
 
   if (width != 0 && height != 0) {
     void *exrhandle;
@@ -109,17 +116,17 @@ void OutputOpenExrSingleLayerMultiViewOperation::deinitExecution()
     add_exr_channels(exrhandle,
                      nullptr,
                      datatype_,
-                     viewName_,
+                     view_name_,
                      width,
                      format_->depth == R_IMF_CHAN_DEPTH_16,
-                     outputBuffer_);
+                     output_buffer_);
 
     /* memory can only be freed after we write all views to the file */
-    outputBuffer_ = nullptr;
-    imageInput_ = nullptr;
+    output_buffer_ = nullptr;
+    image_input_ = nullptr;
 
     /* ready to close the file */
-    if (BKE_scene_multiview_is_render_view_last(rd_, viewName_)) {
+    if (BKE_scene_multiview_is_render_view_last(rd_, view_name_)) {
       IMB_exr_write_channels(exrhandle);
 
       /* free buffer memory for all the views */
@@ -140,15 +147,15 @@ OutputOpenExrMultiLayerMultiViewOperation::OutputOpenExrMultiLayerMultiViewOpera
     const char *path,
     char exr_codec,
     bool exr_half_float,
-    const char *viewName)
-    : OutputOpenExrMultiLayerOperation(scene, rd, tree, path, exr_codec, exr_half_float, viewName)
+    const char *view_name)
+    : OutputOpenExrMultiLayerOperation(scene, rd, tree, path, exr_codec, exr_half_float, view_name)
 {
 }
 
 void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename)
 {
-  unsigned int width = this->getWidth();
-  unsigned int height = this->getHeight();
+  unsigned int width = this->get_width();
+  unsigned int height = this->get_height();
 
   if (width != 0 && height != 0) {
 
@@ -158,7 +165,7 @@ void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename
     /* get a new global handle */
     exrhandle = IMB_exr_get_handle_name(filename);
 
-    if (!BKE_scene_multiview_is_render_view_first(rd_, viewName_)) {
+    if (!BKE_scene_multiview_is_render_view_first(rd_, view_name_)) {
       return exrhandle;
     }
 
@@ -187,7 +194,7 @@ void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename
     BLI_make_existing_file(filename);
 
     /* prepare the file with all the channels for the header */
-    StampData *stamp_data = createStampData();
+    StampData *stamp_data = create_stamp_data();
     if (!IMB_exr_begin_write(exrhandle, filename, width, height, exr_codec_, stamp_data)) {
       printf("Error Writing Multilayer Multiview Openexr\n");
       IMB_exr_close(exrhandle);
@@ -202,10 +209,10 @@ void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename
   return nullptr;
 }
 
-void OutputOpenExrMultiLayerMultiViewOperation::deinitExecution()
+void OutputOpenExrMultiLayerMultiViewOperation::deinit_execution()
 {
-  unsigned int width = this->getWidth();
-  unsigned int height = this->getHeight();
+  unsigned int width = this->get_width();
+  unsigned int height = this->get_height();
 
   if (width != 0 && height != 0) {
     void *exrhandle;
@@ -226,20 +233,20 @@ void OutputOpenExrMultiLayerMultiViewOperation::deinitExecution()
       add_exr_channels(exrhandle,
                        layers_[i].name,
                        layers_[i].datatype,
-                       viewName_,
+                       view_name_,
                        width,
                        exr_half_float_,
-                       layers_[i].outputBuffer);
+                       layers_[i].output_buffer);
     }
 
     for (unsigned int i = 0; i < layers_.size(); i++) {
       /* memory can only be freed after we write all views to the file */
-      layers_[i].outputBuffer = nullptr;
-      layers_[i].imageInput = nullptr;
+      layers_[i].output_buffer = nullptr;
+      layers_[i].image_input = nullptr;
     }
 
     /* ready to close the file */
-    if (BKE_scene_multiview_is_render_view_last(rd_, viewName_)) {
+    if (BKE_scene_multiview_is_render_view_last(rd_, view_name_)) {
       IMB_exr_write_channels(exrhandle);
 
       /* free buffer memory for all the views */
@@ -260,12 +267,19 @@ OutputStereoOperation::OutputStereoOperation(const RenderData *rd,
                                              ImageFormatData *format,
                                              const char *path,
                                              const char *name,
-                                             const ColorManagedViewSettings *viewSettings,
-                                             const ColorManagedDisplaySettings *displaySettings,
-                                             const char *viewName,
-                                             const bool saveAsRender)
-    : OutputSingleLayerOperation(
-          rd, tree, datatype, format, path, viewSettings, displaySettings, viewName, saveAsRender)
+                                             const ColorManagedViewSettings *view_settings,
+                                             const ColorManagedDisplaySettings *display_settings,
+                                             const char *view_name,
+                                             const bool save_as_render)
+    : OutputSingleLayerOperation(rd,
+                                 tree,
+                                 datatype,
+                                 format,
+                                 path,
+                                 view_settings,
+                                 display_settings,
+                                 view_name,
+                                 save_as_render)
 {
   BLI_strncpy(name_, name, sizeof(name_));
   channels_ = get_datatype_size(datatype);
@@ -273,8 +287,8 @@ OutputStereoOperation::OutputStereoOperation(const RenderData *rd,
 
 void *OutputStereoOperation::get_handle(const char *filename)
 {
-  size_t width = this->getWidth();
-  size_t height = this->getHeight();
+  size_t width = this->get_width();
+  size_t height = this->get_height();
   const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
   size_t i;
 
@@ -283,7 +297,7 @@ void *OutputStereoOperation::get_handle(const char *filename)
 
     exrhandle = IMB_exr_get_handle_name(filename);
 
-    if (!BKE_scene_multiview_is_render_view_first(rd_, viewName_)) {
+    if (!BKE_scene_multiview_is_render_view_first(rd_, view_name_)) {
       return exrhandle;
     }
 
@@ -298,32 +312,32 @@ void *OutputStereoOperation::get_handle(const char *filename)
   return nullptr;
 }
 
-void OutputStereoOperation::deinitExecution()
+void OutputStereoOperation::deinit_execution()
 {
-  unsigned int width = this->getWidth();
-  unsigned int height = this->getHeight();
+  unsigned int width = this->get_width();
+  unsigned int height = this->get_height();
 
   if (width != 0 && height != 0) {
     void *exrhandle;
 
     exrhandle = this->get_handle(path_);
-    float *buf = outputBuffer_;
+    float *buf = output_buffer_;
 
     /* populate single EXR channel with view data */
     IMB_exr_add_channel(exrhandle,
                         nullptr,
                         name_,
-                        viewName_,
+                        view_name_,
                         1,
                         channels_ * width * height,
                         buf,
                         format_->depth == R_IMF_CHAN_DEPTH_16);
 
-    imageInput_ = nullptr;
-    outputBuffer_ = nullptr;
+    image_input_ = nullptr;
+    output_buffer_ = nullptr;
 
     /* create stereo ibuf */
-    if (BKE_scene_multiview_is_render_view_last(rd_, viewName_)) {
+    if (BKE_scene_multiview_is_render_view_last(rd_, view_name_)) {
       ImBuf *ibuf[3] = {nullptr};
       const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
       char filename[FILE_MAX];
@@ -341,7 +355,7 @@ void OutputStereoOperation::deinitExecution()
 
         /* do colormanagement in the individual views, so it doesn't need to do in the stereo */
         IMB_colormanagement_imbuf_for_write(
-            ibuf[i], true, false, viewSettings_, displaySettings_, format_);
+            ibuf[i], true, false, view_settings_, display_settings_, format_);
         IMB_prepare_write_ImBuf(IMB_isfloat(ibuf[i]), ibuf[i]);
       }
 

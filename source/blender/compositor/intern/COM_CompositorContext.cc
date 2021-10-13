@@ -26,13 +26,13 @@ CompositorContext::CompositorContext()
   rd_ = nullptr;
   quality_ = eCompositorQuality::High;
   hasActiveOpenCLDevices_ = false;
-  fastCalculation_ = false;
-  viewSettings_ = nullptr;
-  displaySettings_ = nullptr;
+  fast_calculation_ = false;
+  view_settings_ = nullptr;
+  display_settings_ = nullptr;
   bnodetree_ = nullptr;
 }
 
-int CompositorContext::getFramenumber() const
+int CompositorContext::get_framenumber() const
 {
   BLI_assert(rd_);
   return rd_->cfra;
@@ -40,8 +40,8 @@ int CompositorContext::getFramenumber() const
 
 Size2f CompositorContext::get_render_size() const
 {
-  return {getRenderData()->xsch * getRenderPercentageAsFactor(),
-          getRenderData()->ysch * getRenderPercentageAsFactor()};
+  return {get_render_data()->xsch * get_render_percentage_as_factor(),
+          get_render_data()->ysch * get_render_percentage_as_factor()};
 }
 
 eExecutionModel CompositorContext::get_execution_model() const

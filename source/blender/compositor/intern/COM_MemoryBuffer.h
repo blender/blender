@@ -77,7 +77,7 @@ class MemoryBuffer {
   /**
    * \brief proxy of the memory (same for all chunks in the same buffer)
    */
-  MemoryProxy *memoryProxy_;
+  MemoryProxy *memory_proxy_;
 
   /**
    * \brief the type of buffer DataType::Value, DataType::Vector, DataType::Color
@@ -125,12 +125,12 @@ class MemoryBuffer {
   /**
    * \brief construct new temporarily MemoryBuffer for an area
    */
-  MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect, MemoryBufferState state);
+  MemoryBuffer(MemoryProxy *memory_proxy, const rcti &rect, MemoryBufferState state);
 
   /**
    * \brief construct new temporarily MemoryBuffer for an area
    */
-  MemoryBuffer(DataType datatype, const rcti &rect, bool is_a_single_elem = false);
+  MemoryBuffer(DataType data_type, const rcti &rect, bool is_a_single_elem = false);
 
   MemoryBuffer(
       float *buffer, int num_channels, int width, int height, bool is_a_single_elem = false);
@@ -159,14 +159,14 @@ class MemoryBuffer {
   float &operator[](int index)
   {
     BLI_assert(is_a_single_elem_ ? index < num_channels_ :
-                                   index < get_coords_offset(getWidth(), getHeight()));
+                                   index < get_coords_offset(get_width(), get_height()));
     return buffer_[index];
   }
 
   const float &operator[](int index) const
   {
     BLI_assert(is_a_single_elem_ ? index < num_channels_ :
-                                   index < get_coords_offset(getWidth(), getHeight()));
+                                   index < get_coords_offset(get_width(), get_height()));
     return buffer_[index];
   }
 
@@ -231,7 +231,7 @@ class MemoryBuffer {
       }
 
       /* Do sampling at borders to smooth edges. */
-      const float last_x = getWidth() - 1.0f;
+      const float last_x = get_width() - 1.0f;
       const float rel_x = get_relative_x(x);
       float single_x = 0.0f;
       if (rel_x < 0.0f) {
@@ -241,7 +241,7 @@ class MemoryBuffer {
         single_x = rel_x - last_x;
       }
 
-      const float last_y = getHeight() - 1.0f;
+      const float last_y = get_height() - 1.0f;
       const float rel_y = get_relative_y(y);
       float single_y = 0.0f;
       if (rel_y < 0.0f) {
@@ -257,8 +257,8 @@ class MemoryBuffer {
 
     BLI_bilinear_interpolation_fl(buffer_,
                                   out,
-                                  getWidth(),
-                                  getHeight(),
+                                  get_width(),
+                                  get_height(),
                                   num_channels_,
                                   get_relative_x(x),
                                   get_relative_y(y));
@@ -305,7 +305,7 @@ class MemoryBuffer {
   const float *get_row_end(int y) const
   {
     BLI_assert(has_y(y));
-    return buffer_ + (is_a_single_elem() ? num_channels_ : get_coords_offset(getWidth(), y));
+    return buffer_ + (is_a_single_elem() ? num_channels_ : get_coords_offset(get_width(), y));
   }
 
   /**
@@ -314,7 +314,7 @@ class MemoryBuffer {
    */
   int get_memory_width() const
   {
-    return is_a_single_elem() ? 1 : getWidth();
+    return is_a_single_elem() ? 1 : get_width();
   }
 
   /**
@@ -323,7 +323,7 @@ class MemoryBuffer {
    */
   int get_memory_height() const
   {
-    return is_a_single_elem() ? 1 : getHeight();
+    return is_a_single_elem() ? 1 : get_height();
   }
 
   uint8_t get_num_channels() const
@@ -351,12 +351,12 @@ class MemoryBuffer {
 
   BufferArea<float> get_buffer_area(const rcti &area)
   {
-    return BufferArea<float>(buffer_, getWidth(), area, elem_stride);
+    return BufferArea<float>(buffer_, get_width(), area, elem_stride);
   }
 
   BufferArea<const float> get_buffer_area(const rcti &area) const
   {
-    return BufferArea<const float>(buffer_, getWidth(), area, elem_stride);
+    return BufferArea<const float>(buffer_, get_width(), area, elem_stride);
   }
 
   BuffersIterator<float> iterate_with(Span<MemoryBuffer *> inputs);
@@ -366,7 +366,7 @@ class MemoryBuffer {
    * \brief get the data of this MemoryBuffer
    * \note buffer should already be available in memory
    */
-  float *getBuffer()
+  float *get_buffer()
   {
     return buffer_;
   }
@@ -381,8 +381,8 @@ class MemoryBuffer {
 
   inline void wrap_pixel(int &x, int &y, MemoryBufferExtend extend_x, MemoryBufferExtend extend_y)
   {
-    const int w = getWidth();
-    const int h = getHeight();
+    const int w = get_width();
+    const int h = get_height();
     x = x - rect_.xmin;
     y = y - rect_.ymin;
 
@@ -433,8 +433,8 @@ class MemoryBuffer {
                          MemoryBufferExtend extend_x,
                          MemoryBufferExtend extend_y) const
   {
-    const float w = (float)getWidth();
-    const float h = (float)getHeight();
+    const float w = (float)get_width();
+    const float h = (float)get_height();
     x = x - rect_.xmin;
     y = y - rect_.ymin;
 
@@ -505,11 +505,11 @@ class MemoryBuffer {
   }
 
   /* TODO(manzanilla): to be removed with tiled implementation. */
-  inline void readNoCheck(float *result,
-                          int x,
-                          int y,
-                          MemoryBufferExtend extend_x = MemoryBufferExtend::Clip,
-                          MemoryBufferExtend extend_y = MemoryBufferExtend::Clip)
+  inline void read_no_check(float *result,
+                            int x,
+                            int y,
+                            MemoryBufferExtend extend_x = MemoryBufferExtend::Clip,
+                            MemoryBufferExtend extend_y = MemoryBufferExtend::Clip)
   {
     int u = x;
     int v = y;
@@ -525,19 +525,19 @@ class MemoryBuffer {
     memcpy(result, buffer, sizeof(float) * num_channels_);
   }
 
-  void writePixel(int x, int y, const float color[4]);
-  void addPixel(int x, int y, const float color[4]);
-  inline void readBilinear(float *result,
-                           float x,
-                           float y,
-                           MemoryBufferExtend extend_x = MemoryBufferExtend::Clip,
-                           MemoryBufferExtend extend_y = MemoryBufferExtend::Clip) const
+  void write_pixel(int x, int y, const float color[4]);
+  void add_pixel(int x, int y, const float color[4]);
+  inline void read_bilinear(float *result,
+                            float x,
+                            float y,
+                            MemoryBufferExtend extend_x = MemoryBufferExtend::Clip,
+                            MemoryBufferExtend extend_y = MemoryBufferExtend::Clip) const
   {
     float u = x;
     float v = y;
     this->wrap_pixel(u, v, extend_x, extend_y);
-    if ((extend_x != MemoryBufferExtend::Repeat && (u < 0.0f || u >= getWidth())) ||
-        (extend_y != MemoryBufferExtend::Repeat && (v < 0.0f || v >= getHeight()))) {
+    if ((extend_x != MemoryBufferExtend::Repeat && (u < 0.0f || u >= get_width())) ||
+        (extend_y != MemoryBufferExtend::Repeat && (v < 0.0f || v >= get_height()))) {
       copy_vn_fl(result, num_channels_, 0.0f);
       return;
     }
@@ -547,8 +547,8 @@ class MemoryBuffer {
     else {
       BLI_bilinear_interpolation_wrap_fl(buffer_,
                                          result,
-                                         getWidth(),
-                                         getHeight(),
+                                         get_width(),
+                                         get_height(),
                                          num_channels_,
                                          u,
                                          v,
@@ -562,7 +562,7 @@ class MemoryBuffer {
   /**
    * \brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)
    */
-  inline bool isTemporarily() const
+  inline bool is_temporarily() const
   {
     return state_ == MemoryBufferState::Temporary;
   }
@@ -617,8 +617,8 @@ class MemoryBuffer {
   void fill(const rcti &area, const float *value);
   void fill(const rcti &area, int channel_offset, const float *value, int value_size);
   /**
-   * \brief add the content from otherBuffer to this MemoryBuffer
-   * \param otherBuffer: source buffer
+   * \brief add the content from other_buffer to this MemoryBuffer
+   * \param other_buffer: source buffer
    *
    * \note take care when running this on a new buffer since it won't fill in
    *       uninitialized values in areas where the buffers don't overlap.
@@ -636,7 +636,7 @@ class MemoryBuffer {
   /**
    * \brief get the width of this MemoryBuffer
    */
-  const int getWidth() const
+  const int get_width() const
   {
     return BLI_rcti_size_x(&rect_);
   }
@@ -644,7 +644,7 @@ class MemoryBuffer {
   /**
    * \brief get the height of this MemoryBuffer
    */
-  const int getHeight() const
+  const int get_height() const
   {
     return BLI_rcti_size_y(&rect_);
   }

@@ -38,22 +38,22 @@ class KeyingBlurOperation : public MultiThreadedOperation {
 
   KeyingBlurOperation();
 
-  void setSize(int value)
+  void set_size(int value)
   {
     size_ = value;
   }
-  void setAxis(int value)
+  void set_axis(int value)
   {
     axis_ = value;
   }
 
-  void *initializeTileData(rcti *rect) override;
+  void *initialize_tile_data(rcti *rect) override;
 
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(const int input_idx,
                             const rcti &output_area,

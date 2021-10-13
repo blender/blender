@@ -25,23 +25,23 @@ GaussianXBlurOperation::GaussianXBlurOperation() : GaussianBlurBaseOperation(eDi
 {
 }
 
-void *GaussianXBlurOperation::initializeTileData(rcti * /*rect*/)
+void *GaussianXBlurOperation::initialize_tile_data(rcti * /*rect*/)
 {
-  lockMutex();
+  lock_mutex();
   if (!sizeavailable_) {
-    updateGauss();
+    update_gauss();
   }
-  void *buffer = getInputOperation(0)->initializeTileData(nullptr);
-  unlockMutex();
+  void *buffer = get_input_operation(0)->initialize_tile_data(nullptr);
+  unlock_mutex();
   return buffer;
 }
 
 /* TODO(manzanilla): to be removed with tiled implementation. */
-void GaussianXBlurOperation::initExecution()
+void GaussianXBlurOperation::init_execution()
 {
-  GaussianBlurBaseOperation::initExecution();
+  GaussianBlurBaseOperation::init_execution();
 
-  initMutex();
+  init_mutex();
 
   if (sizeavailable_ && execution_model_ == eExecutionModel::Tiled) {
     float rad = max_ff(size_ * data_.sizex, 0.0f);
@@ -56,10 +56,10 @@ void GaussianXBlurOperation::initExecution()
 }
 
 /* TODO(manzanilla): to be removed with tiled implementation. */
-void GaussianXBlurOperation::updateGauss()
+void GaussianXBlurOperation::update_gauss()
 {
   if (gausstab_ == nullptr) {
-    updateSize();
+    update_size();
     float rad = max_ff(size_ * data_.sizex, 0.0f);
     rad = min_ff(rad, MAX_GAUSSTAB_RADIUS);
     filtersize_ = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
@@ -71,14 +71,14 @@ void GaussianXBlurOperation::updateGauss()
   }
 }
 
-void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *data)
+void GaussianXBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   float ATTR_ALIGN(16) color_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float multiplier_accum = 0.0f;
-  MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
-  const rcti &input_rect = inputBuffer->get_rect();
-  float *buffer = inputBuffer->getBuffer();
-  int bufferwidth = inputBuffer->getWidth();
+  MemoryBuffer *input_buffer = (MemoryBuffer *)data;
+  const rcti &input_rect = input_buffer->get_rect();
+  float *buffer = input_buffer->get_buffer();
+  int bufferwidth = input_buffer->get_width();
   int bufferstartx = input_rect.xmin;
   int bufferstarty = input_rect.ymin;
 
@@ -86,8 +86,8 @@ void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *d
   int xmax = min_ii(x + filtersize_ + 1, input_rect.xmax);
   int ymin = max_ii(y, input_rect.ymin);
 
-  int step = getStep();
-  int offsetadd = getOffsetAdd();
+  int step = get_step();
+  int offsetadd = get_offset_add();
   int bufferindex = ((xmin - bufferstartx) * 4) + ((ymin - bufferstarty) * 4 * bufferwidth);
 
 #ifdef BLI_HAVE_SSE2
@@ -111,41 +111,45 @@ void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *d
   mul_v4_v4fl(output, color_accum, 1.0f / multiplier_accum);
 }
 
-void GaussianXBlurOperation::executeOpenCL(OpenCLDevice *device,
-                                           MemoryBuffer *outputMemoryBuffer,
-                                           cl_mem clOutputBuffer,
-                                           MemoryBuffer **inputMemoryBuffers,
-                                           std::list<cl_mem> *clMemToCleanUp,
-                                           std::list<cl_kernel> * /*clKernelsToCleanUp*/)
+void GaussianXBlurOperation::execute_opencl(OpenCLDevice *device,
+                                            MemoryBuffer *output_memory_buffer,
+                                            cl_mem cl_output_buffer,
+                                            MemoryBuffer **input_memory_buffers,
+                                            std::list<cl_mem> *cl_mem_to_clean_up,
+                                            std::list<cl_kernel> * /*cl_kernels_to_clean_up*/)
 {
-  cl_kernel gaussianXBlurOperationKernel = device->COM_clCreateKernel(
-      "gaussianXBlurOperationKernel", nullptr);
+  cl_kernel gaussian_xblur_operation_kernel = device->COM_cl_create_kernel(
+      "gaussian_xblur_operation_kernel", nullptr);
   cl_int filter_size = filtersize_;
 
-  cl_mem gausstab = clCreateBuffer(device->getContext(),
+  cl_mem gausstab = clCreateBuffer(device->get_context(),
                                    CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,
                                    sizeof(float) * (filtersize_ * 2 + 1),
                                    gausstab_,
                                    nullptr);
 
-  device->COM_clAttachMemoryBufferToKernelParameter(
-      gaussianXBlurOperationKernel, 0, 1, clMemToCleanUp, inputMemoryBuffers, inputProgram_);
-  device->COM_clAttachOutputMemoryBufferToKernelParameter(
-      gaussianXBlurOperationKernel, 2, clOutputBuffer);
-  device->COM_clAttachMemoryBufferOffsetToKernelParameter(
-      gaussianXBlurOperationKernel, 3, outputMemoryBuffer);
-  clSetKernelArg(gaussianXBlurOperationKernel, 4, sizeof(cl_int), &filter_size);
-  device->COM_clAttachSizeToKernelParameter(gaussianXBlurOperationKernel, 5, this);
-  clSetKernelArg(gaussianXBlurOperationKernel, 6, sizeof(cl_mem), &gausstab);
+  device->COM_cl_attach_memory_buffer_to_kernel_parameter(gaussian_xblur_operation_kernel,
+                                                          0,
+                                                          1,
+                                                          cl_mem_to_clean_up,
+                                                          input_memory_buffers,
+                                                          input_program_);
+  device->COM_cl_attach_output_memory_buffer_to_kernel_parameter(
+      gaussian_xblur_operation_kernel, 2, cl_output_buffer);
+  device->COM_cl_attach_memory_buffer_offset_to_kernel_parameter(
+      gaussian_xblur_operation_kernel, 3, output_memory_buffer);
+  clSetKernelArg(gaussian_xblur_operation_kernel, 4, sizeof(cl_int), &filter_size);
+  device->COM_cl_attach_size_to_kernel_parameter(gaussian_xblur_operation_kernel, 5, this);
+  clSetKernelArg(gaussian_xblur_operation_kernel, 6, sizeof(cl_mem), &gausstab);
 
-  device->COM_clEnqueueRange(gaussianXBlurOperationKernel, outputMemoryBuffer, 7, this);
+  device->COM_cl_enqueue_range(gaussian_xblur_operation_kernel, output_memory_buffer, 7, this);
 
   clReleaseMemObject(gausstab);
 }
 
-void GaussianXBlurOperation::deinitExecution()
+void GaussianXBlurOperation::deinit_execution()
 {
-  GaussianBlurBaseOperation::deinitExecution();
+  GaussianBlurBaseOperation::deinit_execution();
 
   if (gausstab_) {
     MEM_freeN(gausstab_);
@@ -158,40 +162,39 @@ void GaussianXBlurOperation::deinitExecution()
   }
 #endif
 
-  deinitMutex();
+  deinit_mutex();
 }
 
-bool GaussianXBlurOperation::determineDependingAreaOfInterest(rcti *input,
-                                                              ReadBufferOperation *readOperation,
-                                                              rcti *output)
+bool GaussianXBlurOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti newInput;
+  rcti new_input;
 
   if (!sizeavailable_) {
-    rcti sizeInput;
-    sizeInput.xmin = 0;
-    sizeInput.ymin = 0;
-    sizeInput.xmax = 5;
-    sizeInput.ymax = 5;
-    NodeOperation *operation = this->getInputOperation(1);
-    if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
+    rcti size_input;
+    size_input.xmin = 0;
+    size_input.ymin = 0;
+    size_input.xmax = 5;
+    size_input.ymax = 5;
+    NodeOperation *operation = this->get_input_operation(1);
+    if (operation->determine_depending_area_of_interest(&size_input, read_operation, output)) {
       return true;
     }
   }
   {
     if (sizeavailable_ && gausstab_ != nullptr) {
-      newInput.xmax = input->xmax + filtersize_ + 1;
-      newInput.xmin = input->xmin - filtersize_ - 1;
-      newInput.ymax = input->ymax;
-      newInput.ymin = input->ymin;
+      new_input.xmax = input->xmax + filtersize_ + 1;
+      new_input.xmin = input->xmin - filtersize_ - 1;
+      new_input.ymax = input->ymax;
+      new_input.ymin = input->ymin;
     }
     else {
-      newInput.xmax = this->getWidth();
-      newInput.xmin = 0;
-      newInput.ymax = this->getHeight();
-      newInput.ymin = 0;
+      new_input.xmax = this->get_width();
+      new_input.xmin = 0;
+      new_input.ymax = this->get_height();
+      new_input.ymin = 0;
     }
-    return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+    return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
   }
 }
 

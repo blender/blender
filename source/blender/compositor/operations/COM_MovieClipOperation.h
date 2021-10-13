@@ -30,13 +30,13 @@ namespace blender::compositor {
  */
 class MovieClipBaseOperation : public MultiThreadedOperation {
  protected:
-  MovieClip *movieClip_;
-  MovieClipUser *movieClipUser_;
-  ImBuf *movieClipBuffer_;
-  int movieClipheight_;
-  int movieClipwidth_;
+  MovieClip *movie_clip_;
+  MovieClipUser *movie_clip_user_;
+  ImBuf *movie_clip_buffer_;
+  int movie_clipheight_;
+  int movie_clipwidth_;
   int framenumber_;
-  bool cacheFrame_;
+  bool cache_frame_;
 
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -46,26 +46,26 @@ class MovieClipBaseOperation : public MultiThreadedOperation {
  public:
   MovieClipBaseOperation();
 
-  void initExecution() override;
-  void deinitExecution() override;
-  void setMovieClip(MovieClip *image)
+  void init_execution() override;
+  void deinit_execution() override;
+  void set_movie_clip(MovieClip *image)
   {
-    movieClip_ = image;
+    movie_clip_ = image;
   }
-  void setMovieClipUser(MovieClipUser *imageuser)
+  void set_movie_clip_user(MovieClipUser *imageuser)
   {
-    movieClipUser_ = imageuser;
+    movie_clip_user_ = imageuser;
   }
-  void setCacheFrame(bool value)
+  void set_cache_frame(bool value)
   {
-    cacheFrame_ = value;
+    cache_frame_ = value;
   }
 
-  void setFramenumber(int framenumber)
+  void set_framenumber(int framenumber)
   {
     framenumber_ = framenumber;
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
@@ -80,7 +80,7 @@ class MovieClipOperation : public MovieClipBaseOperation {
 class MovieClipAlphaOperation : public MovieClipBaseOperation {
  public:
   MovieClipAlphaOperation();
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

@@ -35,8 +35,8 @@ namespace blender::compositor {
 class PlaneDistortBaseOperation : public MultiThreadedOperation {
  protected:
   struct MotionSample {
-    float frameSpaceCorners[4][2]; /* Corners coordinates in pixel space. */
-    float perspectiveMatrix[3][3];
+    float frame_space_corners[4][2]; /* Corners coordinates in pixel space. */
+    float perspective_matrix[3][3];
   };
   MotionSample samples_[PLANE_DISTORT_MAX_SAMPLES];
   int motion_blur_samples_;
@@ -45,17 +45,17 @@ class PlaneDistortBaseOperation : public MultiThreadedOperation {
  public:
   PlaneDistortBaseOperation();
 
-  void setMotionBlurSamples(int samples)
+  void set_motion_blur_samples(int samples)
   {
     BLI_assert(samples <= PLANE_DISTORT_MAX_SAMPLES);
     motion_blur_samples_ = samples;
   }
-  void setMotionBlurShutter(float shutter)
+  void set_motion_blur_shutter(float shutter)
   {
     motion_blur_shutter_ = shutter;
   }
 
-  virtual void calculateCorners(const float corners[4][2], bool normalized, int sample);
+  virtual void calculate_corners(const float corners[4][2], bool normalized, int sample);
 
  private:
   friend class PlaneTrackCommon;
@@ -63,21 +63,21 @@ class PlaneDistortBaseOperation : public MultiThreadedOperation {
 
 class PlaneDistortWarpImageOperation : public PlaneDistortBaseOperation {
  protected:
-  SocketReader *pixelReader_;
+  SocketReader *pixel_reader_;
 
  public:
   PlaneDistortWarpImageOperation();
 
-  void calculateCorners(const float corners[4][2], bool normalized, int sample) override;
+  void calculate_corners(const float corners[4][2], bool normalized, int sample) override;
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -93,9 +93,9 @@ class PlaneDistortMaskOperation : public PlaneDistortBaseOperation {
  public:
   PlaneDistortMaskOperation();
 
-  void initExecution() override;
+  void init_execution() override;
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

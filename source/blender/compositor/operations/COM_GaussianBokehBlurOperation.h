@@ -30,26 +30,26 @@ class GaussianBokehBlurOperation : public BlurBaseOperation {
   int radx_, rady_;
   float radxf_;
   float radyf_;
-  void updateGauss();
+  void update_gauss();
 
  public:
   GaussianBokehBlurOperation();
   void init_data() override;
-  void initExecution() override;
-  void *initializeTileData(rcti *rect) override;
+  void init_execution() override;
+  void *initialize_tile_data(rcti *rect) override;
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(const int input_idx,
                             const rcti &output_area,
@@ -63,7 +63,7 @@ class GaussianBlurReferenceOperation : public BlurBaseOperation {
  private:
   float **maintabs_;
 
-  void updateGauss();
+  void update_gauss();
   int filtersizex_;
   int filtersizey_;
   float radx_;
@@ -72,21 +72,21 @@ class GaussianBlurReferenceOperation : public BlurBaseOperation {
  public:
   GaussianBlurReferenceOperation();
   void init_data() override;
-  void initExecution() override;
-  void *initializeTileData(rcti *rect) override;
+  void init_execution() override;
+  void *initialize_tile_data(rcti *rect) override;
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(const int input_idx,
                             const rcti &output_area,

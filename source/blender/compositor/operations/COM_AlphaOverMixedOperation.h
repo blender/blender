@@ -39,7 +39,7 @@ class AlphaOverMixedOperation : public MixBaseOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void setX(float x)
   {

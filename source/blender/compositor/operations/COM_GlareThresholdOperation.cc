@@ -24,9 +24,9 @@ namespace blender::compositor {
 
 GlareThresholdOperation::GlareThresholdOperation()
 {
-  this->addInputSocket(DataType::Color, ResizeMode::FitAny);
-  this->addOutputSocket(DataType::Color);
-  inputProgram_ = nullptr;
+  this->add_input_socket(DataType::Color, ResizeMode::FitAny);
+  this->add_output_socket(DataType::Color);
+  input_program_ = nullptr;
 }
 
 void GlareThresholdOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
@@ -38,19 +38,19 @@ void GlareThresholdOperation::determine_canvas(const rcti &preferred_area, rcti 
   r_area.ymax = r_area.ymin + height;
 }
 
-void GlareThresholdOperation::initExecution()
+void GlareThresholdOperation::init_execution()
 {
-  inputProgram_ = this->getInputSocketReader(0);
+  input_program_ = this->get_input_socket_reader(0);
 }
 
-void GlareThresholdOperation::executePixelSampled(float output[4],
-                                                  float x,
-                                                  float y,
-                                                  PixelSampler sampler)
+void GlareThresholdOperation::execute_pixel_sampled(float output[4],
+                                                    float x,
+                                                    float y,
+                                                    PixelSampler sampler)
 {
   const float threshold = settings_->threshold;
 
-  inputProgram_->readSampled(output, x, y, sampler);
+  input_program_->read_sampled(output, x, y, sampler);
   if (IMB_colormanagement_get_luminance(output) >= threshold) {
     output[0] -= threshold;
     output[1] -= threshold;
@@ -65,9 +65,9 @@ void GlareThresholdOperation::executePixelSampled(float output[4],
   }
 }
 
-void GlareThresholdOperation::deinitExecution()
+void GlareThresholdOperation::deinit_execution()
 {
-  inputProgram_ = nullptr;
+  input_program_ = nullptr;
 }
 
 void GlareThresholdOperation::update_memory_buffer_partial(MemoryBuffer *output,

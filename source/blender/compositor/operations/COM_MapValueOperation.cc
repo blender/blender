@@ -22,24 +22,24 @@ namespace blender::compositor {
 
 MapValueOperation::MapValueOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Value);
-  inputOperation_ = nullptr;
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Value);
+  input_operation_ = nullptr;
   flags.can_be_constant = true;
 }
 
-void MapValueOperation::initExecution()
+void MapValueOperation::init_execution()
 {
-  inputOperation_ = this->getInputSocketReader(0);
+  input_operation_ = this->get_input_socket_reader(0);
 }
 
-void MapValueOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+void MapValueOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
 {
   float src[4];
-  inputOperation_->readSampled(src, x, y, sampler);
+  input_operation_->read_sampled(src, x, y, sampler);
   TexMapping *texmap = settings_;
   float value = (src[0] + texmap->loc[0]) * texmap->size[0];
   if (texmap->flag & TEXMAP_CLIP_MIN) {
@@ -56,9 +56,9 @@ void MapValueOperation::executePixelSampled(float output[4],
   output[0] = value;
 }
 
-void MapValueOperation::deinitExecution()
+void MapValueOperation::deinit_execution()
 {
-  inputOperation_ = nullptr;
+  input_operation_ = nullptr;
 }
 
 void MapValueOperation::update_memory_buffer_partial(MemoryBuffer *output,

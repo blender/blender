@@ -31,9 +31,9 @@ class DilateErodeNode : public Node {
   NodeBlurData alpha_blur_;
 
  public:
-  DilateErodeNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  DilateErodeNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

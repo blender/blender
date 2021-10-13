@@ -26,67 +26,66 @@ namespace blender::compositor {
 
 CalculateMeanOperation::CalculateMeanOperation()
 {
-  this->addInputSocket(DataType::Color, ResizeMode::Align);
-  this->addOutputSocket(DataType::Value);
-  imageReader_ = nullptr;
+  this->add_input_socket(DataType::Color, ResizeMode::Align);
+  this->add_output_socket(DataType::Value);
+  image_reader_ = nullptr;
   iscalculated_ = false;
   setting_ = 1;
   this->flags.complex = true;
 }
-void CalculateMeanOperation::initExecution()
+void CalculateMeanOperation::init_execution()
 {
-  imageReader_ = this->getInputSocketReader(0);
+  image_reader_ = this->get_input_socket_reader(0);
   iscalculated_ = false;
-  NodeOperation::initMutex();
+  NodeOperation::init_mutex();
 }
 
-void CalculateMeanOperation::executePixel(float output[4], int /*x*/, int /*y*/, void * /*data*/)
+void CalculateMeanOperation::execute_pixel(float output[4], int /*x*/, int /*y*/, void * /*data*/)
 {
   output[0] = result_;
 }
 
-void CalculateMeanOperation::deinitExecution()
+void CalculateMeanOperation::deinit_execution()
 {
-  imageReader_ = nullptr;
-  NodeOperation::deinitMutex();
+  image_reader_ = nullptr;
+  NodeOperation::deinit_mutex();
 }
 
-bool CalculateMeanOperation::determineDependingAreaOfInterest(rcti * /*input*/,
-                                                              ReadBufferOperation *readOperation,
-                                                              rcti *output)
+bool CalculateMeanOperation::determine_depending_area_of_interest(
+    rcti * /*input*/, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti imageInput;
+  rcti image_input;
   if (iscalculated_) {
     return false;
   }
-  NodeOperation *operation = getInputOperation(0);
-  imageInput.xmax = operation->getWidth();
-  imageInput.xmin = 0;
-  imageInput.ymax = operation->getHeight();
-  imageInput.ymin = 0;
-  if (operation->determineDependingAreaOfInterest(&imageInput, readOperation, output)) {
+  NodeOperation *operation = get_input_operation(0);
+  image_input.xmax = operation->get_width();
+  image_input.xmin = 0;
+  image_input.ymax = operation->get_height();
+  image_input.ymin = 0;
+  if (operation->determine_depending_area_of_interest(&image_input, read_operation, output)) {
     return true;
   }
   return false;
 }
 
-void *CalculateMeanOperation::initializeTileData(rcti *rect)
+void *CalculateMeanOperation::initialize_tile_data(rcti *rect)
 {
-  lockMutex();
+  lock_mutex();
   if (!iscalculated_) {
-    MemoryBuffer *tile = (MemoryBuffer *)imageReader_->initializeTileData(rect);
-    calculateMean(tile);
+    MemoryBuffer *tile = (MemoryBuffer *)image_reader_->initialize_tile_data(rect);
+    calculate_mean(tile);
     iscalculated_ = true;
   }
-  unlockMutex();
+  unlock_mutex();
   return nullptr;
 }
 
-void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
+void CalculateMeanOperation::calculate_mean(MemoryBuffer *tile)
 {
   result_ = 0.0f;
-  float *buffer = tile->getBuffer();
-  int size = tile->getWidth() * tile->getHeight();
+  float *buffer = tile->get_buffer();
+  int size = tile->get_width() * tile->get_height();
   int pixels = 0;
   float sum = 0.0f;
   for (int i = 0, offset = 0; i < size; i++, offset += 4) {
@@ -128,7 +127,7 @@ void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
   result_ = sum / pixels;
 }
 
-void CalculateMeanOperation::setSetting(int setting)
+void CalculateMeanOperation::set_setting(int setting)
 {
   setting_ = setting;
   switch (setting) {

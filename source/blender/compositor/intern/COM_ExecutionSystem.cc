@@ -38,37 +38,37 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
                                  bNodeTree *editingtree,
                                  bool rendering,
                                  bool fastcalculation,
-                                 const ColorManagedViewSettings *viewSettings,
-                                 const ColorManagedDisplaySettings *displaySettings,
-                                 const char *viewName)
+                                 const ColorManagedViewSettings *view_settings,
+                                 const ColorManagedDisplaySettings *display_settings,
+                                 const char *view_name)
 {
   num_work_threads_ = WorkScheduler::get_num_cpu_threads();
-  context_.setViewName(viewName);
-  context_.setScene(scene);
-  context_.setbNodeTree(editingtree);
-  context_.setPreviewHash(editingtree->previews);
-  context_.setFastCalculation(fastcalculation);
+  context_.set_view_name(view_name);
+  context_.set_scene(scene);
+  context_.set_bnodetree(editingtree);
+  context_.set_preview_hash(editingtree->previews);
+  context_.set_fast_calculation(fastcalculation);
   /* initialize the CompositorContext */
   if (rendering) {
-    context_.setQuality((eCompositorQuality)editingtree->render_quality);
+    context_.set_quality((eCompositorQuality)editingtree->render_quality);
   }
   else {
-    context_.setQuality((eCompositorQuality)editingtree->edit_quality);
+    context_.set_quality((eCompositorQuality)editingtree->edit_quality);
   }
-  context_.setRendering(rendering);
+  context_.set_rendering(rendering);
   context_.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() &&
                                      (editingtree->flag & NTREE_COM_OPENCL));
 
-  context_.setRenderData(rd);
-  context_.setViewSettings(viewSettings);
-  context_.setDisplaySettings(displaySettings);
+  context_.set_render_data(rd);
+  context_.set_view_settings(view_settings);
+  context_.set_display_settings(display_settings);
 
   BLI_mutex_init(&work_mutex_);
   BLI_condition_init(&work_finished_cond_);
 
   {
     NodeOperationBuilder builder(&context_, editingtree, this);
-    builder.convertToOperations(this);
+    builder.convert_to_operations(this);
   }
 
   switch (context_.get_execution_model()) {
@@ -184,7 +184,7 @@ void ExecutionSystem::execute_work(const rcti &work_rect,
 
 bool ExecutionSystem::is_breaked() const
 {
-  const bNodeTree *btree = context_.getbNodeTree();
+  const bNodeTree *btree = context_.get_bnodetree();
   return btree->test_break(btree->tbh);
 }
 

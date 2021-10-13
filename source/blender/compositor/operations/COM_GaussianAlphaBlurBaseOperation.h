@@ -36,8 +36,8 @@ class GaussianAlphaBlurBaseOperation : public BlurBaseOperation {
   GaussianAlphaBlurBaseOperation(eDimension dim);
 
   virtual void init_data() override;
-  virtual void initExecution() override;
-  virtual void deinitExecution() override;
+  virtual void init_execution() override;
+  virtual void deinit_execution() override;
 
   void get_area_of_interest(const int input_idx,
                             const rcti &output_area,
@@ -49,11 +49,11 @@ class GaussianAlphaBlurBaseOperation : public BlurBaseOperation {
   /**
    * Set subtract for Dilate/Erode functionality
    */
-  void setSubtract(bool subtract)
+  void set_subtract(bool subtract)
   {
     do_subtract_ = subtract;
   }
-  void setFalloff(int falloff)
+  void set_falloff(int falloff)
   {
     falloff_ = falloff;
   }

@@ -27,22 +27,22 @@ class SplitOperation : public MultiThreadedOperation {
   SocketReader *image1Input_;
   SocketReader *image2Input_;
 
-  float splitPercentage_;
-  bool xSplit_;
+  float split_percentage_;
+  bool x_split_;
 
  public:
   SplitOperation();
-  void initExecution() override;
-  void deinitExecution() override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void init_execution() override;
+  void deinit_execution() override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
-  void setSplitPercentage(float splitPercentage)
+  void set_split_percentage(float split_percentage)
   {
-    splitPercentage_ = splitPercentage;
+    split_percentage_ = split_percentage;
   }
-  void setXSplit(bool xsplit)
+  void set_xsplit(bool xsplit)
   {
-    xSplit_ = xsplit;
+    x_split_ = xsplit;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

@@ -24,30 +24,31 @@ namespace blender::compositor {
 
 ConvertColorProfileOperation::ConvertColorProfileOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
-  inputOperation_ = nullptr;
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
+  input_operation_ = nullptr;
   predivided_ = false;
 }
 
-void ConvertColorProfileOperation::initExecution()
+void ConvertColorProfileOperation::init_execution()
 {
-  inputOperation_ = this->getInputSocketReader(0);
+  input_operation_ = this->get_input_socket_reader(0);
 }
 
-void ConvertColorProfileOperation::executePixelSampled(float output[4],
-                                                       float x,
-                                                       float y,
-                                                       PixelSampler sampler)
+void ConvertColorProfileOperation::execute_pixel_sampled(float output[4],
+                                                         float x,
+                                                         float y,
+                                                         PixelSampler sampler)
 {
   float color[4];
-  inputOperation_->readSampled(color, x, y, sampler);
-  IMB_buffer_float_from_float(output, color, 4, toProfile_, fromProfile_, predivided_, 1, 1, 0, 0);
+  input_operation_->read_sampled(color, x, y, sampler);
+  IMB_buffer_float_from_float(
+      output, color, 4, to_profile_, from_profile_, predivided_, 1, 1, 0, 0);
 }
 
-void ConvertColorProfileOperation::deinitExecution()
+void ConvertColorProfileOperation::deinit_execution()
 {
-  inputOperation_ = nullptr;
+  input_operation_ = nullptr;
 }
 
 }  // namespace blender::compositor

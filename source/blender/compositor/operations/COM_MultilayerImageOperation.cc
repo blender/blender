@@ -26,27 +26,27 @@ MultilayerBaseOperation::MultilayerBaseOperation(RenderLayer *render_layer,
                                                  RenderPass *render_pass,
                                                  int view)
 {
-  passId_ = BLI_findindex(&render_layer->passes, render_pass);
+  pass_id_ = BLI_findindex(&render_layer->passes, render_pass);
   view_ = view;
-  renderLayer_ = render_layer;
-  renderPass_ = render_pass;
+  render_layer_ = render_layer;
+  render_pass_ = render_pass;
 }
 
-ImBuf *MultilayerBaseOperation::getImBuf()
+ImBuf *MultilayerBaseOperation::get_im_buf()
 {
   /* temporarily changes the view to get the right ImBuf */
-  int view = imageUser_->view;
+  int view = image_user_->view;
 
-  imageUser_->view = view_;
-  imageUser_->pass = passId_;
+  image_user_->view = view_;
+  image_user_->pass = pass_id_;
 
-  if (BKE_image_multilayer_index(image_->rr, imageUser_)) {
-    ImBuf *ibuf = BaseImageOperation::getImBuf();
-    imageUser_->view = view;
+  if (BKE_image_multilayer_index(image_->rr, image_user_)) {
+    ImBuf *ibuf = BaseImageOperation::get_im_buf();
+    image_user_->view = view;
     return ibuf;
   }
 
-  imageUser_->view = view;
+  image_user_->view = view;
   return nullptr;
 }
 
@@ -57,14 +57,14 @@ void MultilayerBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
   output->copy_from(buffer_, area);
 }
 
-std::unique_ptr<MetaData> MultilayerColorOperation::getMetaData()
+std::unique_ptr<MetaData> MultilayerColorOperation::get_meta_data()
 {
   BLI_assert(buffer_);
   MetaDataExtractCallbackData callback_data = {nullptr};
   RenderResult *render_result = image_->rr;
   if (render_result && render_result->stamp_data) {
-    RenderLayer *render_layer = renderLayer_;
-    RenderPass *render_pass = renderPass_;
+    RenderLayer *render_layer = render_layer_;
+    RenderPass *render_pass = render_pass_;
     std::string full_layer_name =
         std::string(render_layer->name,
                     BLI_strnlen(render_layer->name, sizeof(render_layer->name))) +
@@ -72,7 +72,7 @@ std::unique_ptr<MetaData> MultilayerColorOperation::getMetaData()
         std::string(render_pass->name, BLI_strnlen(render_pass->name, sizeof(render_pass->name)));
     blender::StringRef cryptomatte_layer_name =
         blender::bke::cryptomatte::BKE_cryptomatte_extract_layer_name(full_layer_name);
-    callback_data.setCryptomatteKeys(cryptomatte_layer_name);
+    callback_data.set_cryptomatte_keys(cryptomatte_layer_name);
 
     BKE_stamp_info_callback(&callback_data,
                             render_result->stamp_data,
@@ -83,16 +83,16 @@ std::unique_ptr<MetaData> MultilayerColorOperation::getMetaData()
   return std::move(callback_data.meta_data);
 }
 
-void MultilayerColorOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void MultilayerColorOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
-  if (imageFloatBuffer_ == nullptr) {
+  if (image_float_buffer_ == nullptr) {
     zero_v4(output);
   }
   else {
-    if (numberOfChannels_ == 4) {
+    if (number_of_channels_ == 4) {
       switch (sampler) {
         case PixelSampler::Nearest:
           nearest_interpolation_color(buffer_, nullptr, output, x, y);
@@ -108,58 +108,58 @@ void MultilayerColorOperation::executePixelSampled(float output[4],
     else {
       int yi = y;
       int xi = x;
-      if (xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() ||
-          (unsigned int)yi >= this->getHeight()) {
+      if (xi < 0 || yi < 0 || (unsigned int)xi >= this->get_width() ||
+          (unsigned int)yi >= this->get_height()) {
         zero_v4(output);
       }
       else {
-        int offset = (yi * this->getWidth() + xi) * 3;
-        copy_v3_v3(output, &imageFloatBuffer_[offset]);
+        int offset = (yi * this->get_width() + xi) * 3;
+        copy_v3_v3(output, &image_float_buffer_[offset]);
       }
     }
   }
 }
 
-void MultilayerValueOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler /*sampler*/)
+void MultilayerValueOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler /*sampler*/)
 {
-  if (imageFloatBuffer_ == nullptr) {
+  if (image_float_buffer_ == nullptr) {
     output[0] = 0.0f;
   }
   else {
     int yi = y;
     int xi = x;
-    if (xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() ||
-        (unsigned int)yi >= this->getHeight()) {
+    if (xi < 0 || yi < 0 || (unsigned int)xi >= this->get_width() ||
+        (unsigned int)yi >= this->get_height()) {
       output[0] = 0.0f;
     }
     else {
-      float result = imageFloatBuffer_[yi * this->getWidth() + xi];
+      float result = image_float_buffer_[yi * this->get_width() + xi];
       output[0] = result;
     }
   }
 }
 
-void MultilayerVectorOperation::executePixelSampled(float output[4],
-                                                    float x,
-                                                    float y,
-                                                    PixelSampler /*sampler*/)
+void MultilayerVectorOperation::execute_pixel_sampled(float output[4],
+                                                      float x,
+                                                      float y,
+                                                      PixelSampler /*sampler*/)
 {
-  if (imageFloatBuffer_ == nullptr) {
+  if (image_float_buffer_ == nullptr) {
     output[0] = 0.0f;
   }
   else {
     int yi = y;
     int xi = x;
-    if (xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() ||
-        (unsigned int)yi >= this->getHeight()) {
+    if (xi < 0 || yi < 0 || (unsigned int)xi >= this->get_width() ||
+        (unsigned int)yi >= this->get_height()) {
       output[0] = 0.0f;
     }
     else {
-      int offset = (yi * this->getWidth() + xi) * 3;
-      copy_v3_v3(output, &imageFloatBuffer_[offset]);
+      int offset = (yi * this->get_width() + xi) * 3;
+      copy_v3_v3(output, &image_float_buffer_[offset]);
     }
   }
 }

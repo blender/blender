@@ -89,7 +89,7 @@ class DebugInfo {
   static void node_added(const Node *node)
   {
     if (COM_EXPORT_GRAPHVIZ) {
-      node_names_[node] = std::string(node->getbNode() ? node->getbNode()->name : "");
+      node_names_[node] = std::string(node->get_bnode() ? node->get_bnode()->name : "");
     }
   }
 

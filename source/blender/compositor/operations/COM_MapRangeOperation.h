@@ -30,15 +30,15 @@ namespace blender::compositor {
 class MapRangeOperation : public MultiThreadedOperation {
  private:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *inputOperation_;
-  SocketReader *sourceMinOperation_;
-  SocketReader *sourceMaxOperation_;
-  SocketReader *destMinOperation_;
-  SocketReader *destMaxOperation_;
+  SocketReader *input_operation_;
+  SocketReader *source_min_operation_;
+  SocketReader *source_max_operation_;
+  SocketReader *dest_min_operation_;
+  SocketReader *dest_max_operation_;
 
-  bool useClamp_;
+  bool use_clamp_;
 
  public:
   /**
@@ -49,24 +49,24 @@ class MapRangeOperation : public MultiThreadedOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
   /**
    * Clamp the output
    */
-  void setUseClamp(bool value)
+  void set_use_clamp(bool value)
   {
-    useClamp_ = value;
+    use_clamp_ = value;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

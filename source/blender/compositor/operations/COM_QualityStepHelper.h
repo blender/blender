@@ -37,13 +37,13 @@ class QualityStepHelper {
   /**
    * Initialize the execution
    */
-  void initExecution(QualityHelper helper);
+  void init_execution(QualityHelper helper);
 
-  inline int getStep() const
+  inline int get_step() const
   {
     return step_;
   }
-  inline int getOffsetAdd() const
+  inline int get_offset_add() const
   {
     return offsetadd_;
   }
@@ -51,7 +51,7 @@ class QualityStepHelper {
  public:
   QualityStepHelper();
 
-  void setQuality(eCompositorQuality quality)
+  void set_quality(eCompositorQuality quality)
   {
     quality_ = quality;
   }

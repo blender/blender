@@ -28,8 +28,8 @@ namespace blender::compositor {
 
 class MovieDistortionOperation : public MultiThreadedOperation {
  private:
-  SocketReader *inputOperation_;
-  MovieClip *movieClip_;
+  SocketReader *input_operation_;
+  MovieClip *movie_clip_;
   int margin_[2];
 
  protected:
@@ -42,23 +42,23 @@ class MovieDistortionOperation : public MultiThreadedOperation {
 
  public:
   MovieDistortionOperation(bool distortion);
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void init_data() override;
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void setMovieClip(MovieClip *clip)
+  void set_movie_clip(MovieClip *clip)
   {
-    movieClip_ = clip;
+    movie_clip_ = clip;
   }
-  void setFramenumber(int framenumber)
+  void set_framenumber(int framenumber)
   {
     framenumber_ = framenumber;
   }
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,

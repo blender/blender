@@ -26,20 +26,20 @@ namespace blender::compositor {
 
 TrackPositionOperation::TrackPositionOperation()
 {
-  this->addOutputSocket(DataType::Value);
-  movieClip_ = nullptr;
+  this->add_output_socket(DataType::Value);
+  movie_clip_ = nullptr;
   framenumber_ = 0;
-  trackingObjectName_[0] = 0;
-  trackName_[0] = 0;
+  tracking_object_name_[0] = 0;
+  track_name_[0] = 0;
   axis_ = 0;
   position_ = CMP_TRACKPOS_ABSOLUTE;
-  relativeFrame_ = 0;
+  relative_frame_ = 0;
   speed_output_ = false;
   flags.is_set_operation = true;
   is_track_position_calculated_ = false;
 }
 
-void TrackPositionOperation::initExecution()
+void TrackPositionOperation::init_execution()
 {
   if (!is_track_position_calculated_) {
     calc_track_position();
@@ -54,45 +54,45 @@ void TrackPositionOperation::calc_track_position()
   MovieTrackingObject *object;
 
   track_position_ = 0;
-  zero_v2(markerPos_);
-  zero_v2(relativePos_);
+  zero_v2(marker_pos_);
+  zero_v2(relative_pos_);
 
-  if (!movieClip_) {
+  if (!movie_clip_) {
     return;
   }
 
-  tracking = &movieClip_->tracking;
+  tracking = &movie_clip_->tracking;
 
   BKE_movieclip_user_set_frame(&user, framenumber_);
-  BKE_movieclip_get_size(movieClip_, &user, &width_, &height_);
+  BKE_movieclip_get_size(movie_clip_, &user, &width_, &height_);
 
-  object = BKE_tracking_object_get_named(tracking, trackingObjectName_);
+  object = BKE_tracking_object_get_named(tracking, tracking_object_name_);
   if (object) {
     MovieTrackingTrack *track;
 
-    track = BKE_tracking_track_get_named(tracking, object, trackName_);
+    track = BKE_tracking_track_get_named(tracking, object, track_name_);
 
     if (track) {
       MovieTrackingMarker *marker;
-      int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movieClip_, framenumber_);
+      int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movie_clip_, framenumber_);
 
       marker = BKE_tracking_marker_get(track, clip_framenr);
 
-      copy_v2_v2(markerPos_, marker->pos);
+      copy_v2_v2(marker_pos_, marker->pos);
 
       if (speed_output_) {
-        int relative_clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movieClip_,
-                                                                            relativeFrame_);
+        int relative_clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movie_clip_,
+                                                                            relative_frame_);
 
         marker = BKE_tracking_marker_get_exact(track, relative_clip_framenr);
         if (marker != nullptr && (marker->flag & MARKER_DISABLED) == 0) {
-          copy_v2_v2(relativePos_, marker->pos);
+          copy_v2_v2(relative_pos_, marker->pos);
         }
         else {
-          copy_v2_v2(relativePos_, markerPos_);
+          copy_v2_v2(relative_pos_, marker_pos_);
         }
-        if (relativeFrame_ < framenumber_) {
-          swap_v2_v2(relativePos_, markerPos_);
+        if (relative_frame_ < framenumber_) {
+          swap_v2_v2(relative_pos_, marker_pos_);
         }
       }
       else if (position_ == CMP_TRACKPOS_RELATIVE_START) {
@@ -102,23 +102,23 @@ void TrackPositionOperation::calc_track_position()
           marker = &track->markers[i];
 
           if ((marker->flag & MARKER_DISABLED) == 0) {
-            copy_v2_v2(relativePos_, marker->pos);
+            copy_v2_v2(relative_pos_, marker->pos);
 
             break;
           }
         }
       }
       else if (position_ == CMP_TRACKPOS_RELATIVE_FRAME) {
-        int relative_clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movieClip_,
-                                                                            relativeFrame_);
+        int relative_clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movie_clip_,
+                                                                            relative_frame_);
 
         marker = BKE_tracking_marker_get(track, relative_clip_framenr);
-        copy_v2_v2(relativePos_, marker->pos);
+        copy_v2_v2(relative_pos_, marker->pos);
       }
     }
   }
 
-  track_position_ = markerPos_[axis_] - relativePos_[axis_];
+  track_position_ = marker_pos_[axis_] - relative_pos_[axis_];
   if (axis_ == 0) {
     track_position_ *= width_;
   }
@@ -127,12 +127,12 @@ void TrackPositionOperation::calc_track_position()
   }
 }
 
-void TrackPositionOperation::executePixelSampled(float output[4],
-                                                 float /*x*/,
-                                                 float /*y*/,
-                                                 PixelSampler /*sampler*/)
+void TrackPositionOperation::execute_pixel_sampled(float output[4],
+                                                   float /*x*/,
+                                                   float /*y*/,
+                                                   PixelSampler /*sampler*/)
 {
-  output[0] = markerPos_[axis_] - relativePos_[axis_];
+  output[0] = marker_pos_[axis_] - relative_pos_[axis_];
 
   if (axis_ == 0) {
     output[0] *= width_;

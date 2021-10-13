@@ -27,15 +27,15 @@ class EllipseMaskOperation : public MultiThreadedOperation {
   using MaskFunc = std::function<float(bool is_inside, const float *mask, const float *value)>;
 
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *inputMask_;
-  SocketReader *inputValue_;
+  SocketReader *input_mask_;
+  SocketReader *input_value_;
 
   float sine_;
   float cosine_;
-  float aspectRatio_;
-  int maskType_;
+  float aspect_ratio_;
+  int mask_type_;
 
   NodeEllipseMask *data_;
 
@@ -45,26 +45,26 @@ class EllipseMaskOperation : public MultiThreadedOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setData(NodeEllipseMask *data)
+  void set_data(NodeEllipseMask *data)
   {
     data_ = data;
   }
 
-  void setMaskType(int maskType)
+  void set_mask_type(int mask_type)
   {
-    maskType_ = maskType;
+    mask_type_ = mask_type;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

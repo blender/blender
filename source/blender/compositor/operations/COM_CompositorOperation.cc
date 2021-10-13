@@ -27,76 +27,76 @@ namespace blender::compositor {
 
 CompositorOperation::CompositorOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
 
-  this->setRenderData(nullptr);
-  outputBuffer_ = nullptr;
-  depthBuffer_ = nullptr;
-  imageInput_ = nullptr;
-  alphaInput_ = nullptr;
-  depthInput_ = nullptr;
+  this->set_render_data(nullptr);
+  output_buffer_ = nullptr;
+  depth_buffer_ = nullptr;
+  image_input_ = nullptr;
+  alpha_input_ = nullptr;
+  depth_input_ = nullptr;
 
-  useAlphaInput_ = false;
+  use_alpha_input_ = false;
   active_ = false;
 
   scene_ = nullptr;
-  sceneName_[0] = '\0';
-  viewName_ = nullptr;
+  scene_name_[0] = '\0';
+  view_name_ = nullptr;
 
   flags.use_render_border = true;
 }
 
-void CompositorOperation::initExecution()
+void CompositorOperation::init_execution()
 {
   if (!active_) {
     return;
   }
 
   /* When initializing the tree during initial load the width and height can be zero. */
-  imageInput_ = getInputSocketReader(0);
-  alphaInput_ = getInputSocketReader(1);
-  depthInput_ = getInputSocketReader(2);
-  if (this->getWidth() * this->getHeight() != 0) {
-    outputBuffer_ = (float *)MEM_callocN(sizeof(float[4]) * this->getWidth() * this->getHeight(),
-                                         "CompositorOperation");
+  image_input_ = get_input_socket_reader(0);
+  alpha_input_ = get_input_socket_reader(1);
+  depth_input_ = get_input_socket_reader(2);
+  if (this->get_width() * this->get_height() != 0) {
+    output_buffer_ = (float *)MEM_callocN(
+        sizeof(float[4]) * this->get_width() * this->get_height(), "CompositorOperation");
   }
-  if (depthInput_ != nullptr) {
-    depthBuffer_ = (float *)MEM_callocN(sizeof(float) * this->getWidth() * this->getHeight(),
-                                        "CompositorOperation");
+  if (depth_input_ != nullptr) {
+    depth_buffer_ = (float *)MEM_callocN(sizeof(float) * this->get_width() * this->get_height(),
+                                         "CompositorOperation");
   }
 }
 
-void CompositorOperation::deinitExecution()
+void CompositorOperation::deinit_execution()
 {
   if (!active_) {
     return;
   }
 
-  if (!isBraked()) {
+  if (!is_braked()) {
     Render *re = RE_GetSceneRender(scene_);
     RenderResult *rr = RE_AcquireResultWrite(re);
 
     if (rr) {
-      RenderView *rv = RE_RenderViewGetByName(rr, viewName_);
+      RenderView *rv = RE_RenderViewGetByName(rr, view_name_);
 
       if (rv->rectf != nullptr) {
         MEM_freeN(rv->rectf);
       }
-      rv->rectf = outputBuffer_;
+      rv->rectf = output_buffer_;
       if (rv->rectz != nullptr) {
         MEM_freeN(rv->rectz);
       }
-      rv->rectz = depthBuffer_;
+      rv->rectz = depth_buffer_;
       rr->have_combined = true;
     }
     else {
-      if (outputBuffer_) {
-        MEM_freeN(outputBuffer_);
+      if (output_buffer_) {
+        MEM_freeN(output_buffer_);
       }
-      if (depthBuffer_) {
-        MEM_freeN(depthBuffer_);
+      if (depth_buffer_) {
+        MEM_freeN(depth_buffer_);
       }
     }
 
@@ -113,26 +113,26 @@ void CompositorOperation::deinitExecution()
     BLI_thread_unlock(LOCK_DRAW_IMAGE);
   }
   else {
-    if (outputBuffer_) {
-      MEM_freeN(outputBuffer_);
+    if (output_buffer_) {
+      MEM_freeN(output_buffer_);
     }
-    if (depthBuffer_) {
-      MEM_freeN(depthBuffer_);
+    if (depth_buffer_) {
+      MEM_freeN(depth_buffer_);
     }
   }
 
-  outputBuffer_ = nullptr;
-  depthBuffer_ = nullptr;
-  imageInput_ = nullptr;
-  alphaInput_ = nullptr;
-  depthInput_ = nullptr;
+  output_buffer_ = nullptr;
+  depth_buffer_ = nullptr;
+  image_input_ = nullptr;
+  alpha_input_ = nullptr;
+  depth_input_ = nullptr;
 }
 
-void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
+void CompositorOperation::execute_region(rcti *rect, unsigned int /*tile_number*/)
 {
   float color[8];  // 7 is enough
-  float *buffer = outputBuffer_;
-  float *zbuffer = depthBuffer_;
+  float *buffer = output_buffer_;
+  float *zbuffer = depth_buffer_;
 
   if (!buffer) {
     return;
@@ -141,8 +141,8 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
   int y1 = rect->ymin;
   int x2 = rect->xmax;
   int y2 = rect->ymax;
-  int offset = (y1 * this->getWidth() + x1);
-  int add = (this->getWidth() - (x2 - x1));
+  int offset = (y1 * this->get_width() + x1);
+  int add = (this->get_width() - (x2 - x1));
   int offset4 = offset * COM_DATA_TYPE_COLOR_CHANNELS;
   int x;
   int y;
@@ -183,8 +183,8 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
     int full_width = rd->xsch * rd->size / 100;
     int full_height = rd->ysch * rd->size / 100;
 
-    dx = rd->border.xmin * full_width - (full_width - this->getWidth()) / 2.0f;
-    dy = rd->border.ymin * full_height - (full_height - this->getHeight()) / 2.0f;
+    dx = rd->border.xmin * full_width - (full_width - this->get_width()) / 2.0f;
+    dy = rd->border.ymin * full_height - (full_height - this->get_height()) / 2.0f;
   }
 #endif
 
@@ -192,18 +192,18 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
     for (x = x1; x < x2 && (!breaked); x++) {
       int input_x = x + dx, input_y = y + dy;
 
-      imageInput_->readSampled(color, input_x, input_y, PixelSampler::Nearest);
-      if (useAlphaInput_) {
-        alphaInput_->readSampled(&(color[3]), input_x, input_y, PixelSampler::Nearest);
+      image_input_->read_sampled(color, input_x, input_y, PixelSampler::Nearest);
+      if (use_alpha_input_) {
+        alpha_input_->read_sampled(&(color[3]), input_x, input_y, PixelSampler::Nearest);
       }
 
       copy_v4_v4(buffer + offset4, color);
 
-      depthInput_->readSampled(color, input_x, input_y, PixelSampler::Nearest);
+      depth_input_->read_sampled(color, input_x, input_y, PixelSampler::Nearest);
       zbuffer[offset] = color[0];
       offset4 += COM_DATA_TYPE_COLOR_CHANNELS;
       offset++;
-      if (isBraked()) {
+      if (is_braked()) {
         breaked = true;
       }
     }
@@ -216,15 +216,15 @@ void CompositorOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(outp
                                                        const rcti &area,
                                                        Span<MemoryBuffer *> inputs)
 {
-  if (!outputBuffer_) {
+  if (!output_buffer_) {
     return;
   }
-  MemoryBuffer output_buf(outputBuffer_, COM_DATA_TYPE_COLOR_CHANNELS, getWidth(), getHeight());
+  MemoryBuffer output_buf(output_buffer_, COM_DATA_TYPE_COLOR_CHANNELS, get_width(), get_height());
   output_buf.copy_from(inputs[0], area);
-  if (useAlphaInput_) {
+  if (use_alpha_input_) {
     output_buf.copy_from(inputs[1], area, 0, COM_DATA_TYPE_VALUE_CHANNELS, 3);
   }
-  MemoryBuffer depth_buf(depthBuffer_, COM_DATA_TYPE_VALUE_CHANNELS, getWidth(), getHeight());
+  MemoryBuffer depth_buf(depth_buffer_, COM_DATA_TYPE_VALUE_CHANNELS, get_width(), get_height());
   depth_buf.copy_from(inputs[2], area);
 }
 

@@ -26,11 +26,11 @@ namespace blender::compositor {
 BlurBaseOperation::BlurBaseOperation(DataType data_type)
 {
   /* data_type is almost always DataType::Color except for alpha-blur */
-  this->addInputSocket(data_type);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(data_type);
+  this->add_input_socket(data_type);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(data_type);
   this->flags.complex = true;
-  inputProgram_ = nullptr;
+  input_program_ = nullptr;
   memset(&data_, 0, sizeof(NodeBlurData));
   size_ = 1.0f;
   sizeavailable_ = false;
@@ -41,11 +41,11 @@ BlurBaseOperation::BlurBaseOperation(DataType data_type)
 void BlurBaseOperation::init_data()
 {
   if (execution_model_ == eExecutionModel::FullFrame) {
-    updateSize();
+    update_size();
   }
 
-  data_.image_in_width = this->getWidth();
-  data_.image_in_height = this->getHeight();
+  data_.image_in_width = this->get_width();
+  data_.image_in_height = this->get_height();
   if (data_.relative) {
     int sizex, sizey;
     switch (data_.aspect) {
@@ -66,12 +66,12 @@ void BlurBaseOperation::init_data()
   }
 }
 
-void BlurBaseOperation::initExecution()
+void BlurBaseOperation::init_execution()
 {
-  inputProgram_ = this->getInputSocketReader(0);
-  inputSize_ = this->getInputSocketReader(1);
+  input_program_ = this->get_input_socket_reader(0);
+  input_size_ = this->get_input_socket_reader(1);
 
-  QualityStepHelper::initExecution(COM_QH_MULTIPLY);
+  QualityStepHelper::init_execution(COM_QH_MULTIPLY);
 }
 
 float *BlurBaseOperation::make_gausstab(float rad, int size)
@@ -163,13 +163,13 @@ float *BlurBaseOperation::make_dist_fac_inverse(float rad, int size, int falloff
   return dist_fac_invert;
 }
 
-void BlurBaseOperation::deinitExecution()
+void BlurBaseOperation::deinit_execution()
 {
-  inputProgram_ = nullptr;
-  inputSize_ = nullptr;
+  input_program_ = nullptr;
+  input_size_ = nullptr;
 }
 
-void BlurBaseOperation::setData(const NodeBlurData *data)
+void BlurBaseOperation::set_data(const NodeBlurData *data)
 {
   memcpy(&data_, data, sizeof(NodeBlurData));
 }
@@ -185,7 +185,7 @@ int BlurBaseOperation::get_blur_size(eDimension dim) const
   return -1;
 }
 
-void BlurBaseOperation::updateSize()
+void BlurBaseOperation::update_size()
 {
   if (sizeavailable_ || use_variable_size_) {
     return;
@@ -194,7 +194,7 @@ void BlurBaseOperation::updateSize()
   switch (execution_model_) {
     case eExecutionModel::Tiled: {
       float result[4];
-      this->getInputSocketReader(1)->readSampled(result, 0, 0, PixelSampler::Nearest);
+      this->get_input_socket_reader(1)->read_sampled(result, 0, 0, PixelSampler::Nearest);
       size_ = result[0];
       break;
     }

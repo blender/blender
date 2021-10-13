@@ -40,7 +40,7 @@ NodeOperation::NodeOperation()
 /** Get constant value when operation is constant, otherwise return default_value. */
 float NodeOperation::get_constant_value_default(float default_value)
 {
-  BLI_assert(outputs_.size() > 0 && getOutputSocket()->getDataType() == DataType::Value);
+  BLI_assert(outputs_.size() > 0 && get_output_socket()->get_data_type() == DataType::Value);
   return *get_constant_elem_default(&default_value);
 }
 
@@ -74,23 +74,23 @@ std::optional<NodeOperationHash> NodeOperation::generate_hash()
   hash_params(canvas_.ymin, canvas_.ymax);
   if (outputs_.size() > 0) {
     BLI_assert(outputs_.size() == 1);
-    hash_param(this->getOutputSocket()->getDataType());
+    hash_param(this->get_output_socket()->get_data_type());
   }
   NodeOperationHash hash;
   hash.params_hash_ = params_hash_;
 
   hash.parents_hash_ = 0;
   for (NodeOperationInput &socket : inputs_) {
-    if (!socket.isConnected()) {
+    if (!socket.is_connected()) {
       continue;
     }
 
-    NodeOperation &input = socket.getLink()->getOperation();
+    NodeOperation &input = socket.get_link()->get_operation();
     const bool is_constant = input.get_flags().is_constant_operation;
     combine_hashes(hash.parents_hash_, get_default_hash(is_constant));
     if (is_constant) {
       const float *elem = ((ConstantOperation *)&input)->get_constant_elem();
-      const int num_channels = COM_data_type_num_channels(socket.getDataType());
+      const int num_channels = COM_data_type_num_channels(socket.get_data_type());
       for (const int i : IndexRange(num_channels)) {
         combine_hashes(hash.parents_hash_, get_default_hash(elem[i]));
       }
@@ -106,22 +106,22 @@ std::optional<NodeOperationHash> NodeOperation::generate_hash()
   return hash;
 }
 
-NodeOperationOutput *NodeOperation::getOutputSocket(unsigned int index)
+NodeOperationOutput *NodeOperation::get_output_socket(unsigned int index)
 {
   return &outputs_[index];
 }
 
-NodeOperationInput *NodeOperation::getInputSocket(unsigned int index)
+NodeOperationInput *NodeOperation::get_input_socket(unsigned int index)
 {
   return &inputs_[index];
 }
 
-void NodeOperation::addInputSocket(DataType datatype, ResizeMode resize_mode)
+void NodeOperation::add_input_socket(DataType datatype, ResizeMode resize_mode)
 {
   inputs_.append(NodeOperationInput(this, datatype, resize_mode));
 }
 
-void NodeOperation::addOutputSocket(DataType datatype)
+void NodeOperation::add_output_socket(DataType datatype)
 {
   outputs_.append(NodeOperationOutput(this, datatype));
 }
@@ -157,7 +157,7 @@ void NodeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
       continue;
     }
     NodeOperationInput &input = inputs_[index];
-    if (input.isConnected()) {
+    if (input.is_connected()) {
       input.determine_canvas(local_preferred_area, unused_area);
     }
   }
@@ -172,32 +172,32 @@ void NodeOperation::init_data()
 {
   /* Pass. */
 }
-void NodeOperation::initExecution()
+void NodeOperation::init_execution()
 {
   /* pass */
 }
 
-void NodeOperation::initMutex()
+void NodeOperation::init_mutex()
 {
   BLI_mutex_init(&mutex_);
 }
 
-void NodeOperation::lockMutex()
+void NodeOperation::lock_mutex()
 {
   BLI_mutex_lock(&mutex_);
 }
 
-void NodeOperation::unlockMutex()
+void NodeOperation::unlock_mutex()
 {
   BLI_mutex_unlock(&mutex_);
 }
 
-void NodeOperation::deinitMutex()
+void NodeOperation::deinit_mutex()
 {
   BLI_mutex_end(&mutex_);
 }
 
-void NodeOperation::deinitExecution()
+void NodeOperation::deinit_execution()
 {
   /* pass */
 }
@@ -223,48 +223,48 @@ void NodeOperation::unset_canvas()
   flags.is_canvas_set = false;
 }
 
-SocketReader *NodeOperation::getInputSocketReader(unsigned int inputSocketIndex)
+SocketReader *NodeOperation::get_input_socket_reader(unsigned int index)
 {
-  return this->getInputSocket(inputSocketIndex)->getReader();
+  return this->get_input_socket(index)->get_reader();
 }
 
-NodeOperation *NodeOperation::getInputOperation(unsigned int inputSocketIndex)
+NodeOperation *NodeOperation::get_input_operation(int index)
 {
-  NodeOperationInput *input = getInputSocket(inputSocketIndex);
-  if (input && input->isConnected()) {
-    return &input->getLink()->getOperation();
+  NodeOperationInput *input = get_input_socket(index);
+  if (input && input->is_connected()) {
+    return &input->get_link()->get_operation();
   }
 
   return nullptr;
 }
 
-bool NodeOperation::determineDependingAreaOfInterest(rcti *input,
-                                                     ReadBufferOperation *readOperation,
-                                                     rcti *output)
+bool NodeOperation::determine_depending_area_of_interest(rcti *input,
+                                                         ReadBufferOperation *read_operation,
+                                                         rcti *output)
 {
   if (inputs_.size() == 0) {
     BLI_rcti_init(output, input->xmin, input->xmax, input->ymin, input->ymax);
     return false;
   }
 
-  rcti tempOutput;
+  rcti temp_output;
   bool first = true;
-  for (int i = 0; i < getNumberOfInputSockets(); i++) {
-    NodeOperation *inputOperation = this->getInputOperation(i);
-    if (inputOperation &&
-        inputOperation->determineDependingAreaOfInterest(input, readOperation, &tempOutput)) {
+  for (int i = 0; i < get_number_of_input_sockets(); i++) {
+    NodeOperation *input_operation = this->get_input_operation(i);
+    if (input_operation && input_operation->determine_depending_area_of_interest(
+                               input, read_operation, &temp_output)) {
       if (first) {
-        output->xmin = tempOutput.xmin;
-        output->ymin = tempOutput.ymin;
-        output->xmax = tempOutput.xmax;
-        output->ymax = tempOutput.ymax;
+        output->xmin = temp_output.xmin;
+        output->ymin = temp_output.ymin;
+        output->xmax = temp_output.xmax;
+        output->ymax = temp_output.ymax;
         first = false;
       }
       else {
-        output->xmin = MIN2(output->xmin, tempOutput.xmin);
-        output->ymin = MIN2(output->ymin, tempOutput.ymin);
-        output->xmax = MAX2(output->xmax, tempOutput.xmax);
-        output->ymax = MAX2(output->ymax, tempOutput.ymax);
+        output->xmin = MIN2(output->xmin, temp_output.xmin);
+        output->ymin = MIN2(output->ymin, temp_output.ymin);
+        output->xmax = MAX2(output->xmax, temp_output.xmax);
+        output->ymax = MAX2(output->ymax, temp_output.ymax);
       }
     }
   }
@@ -297,7 +297,7 @@ void NodeOperation::get_area_of_interest(const int input_idx,
   else {
     /* Non full-frame operations never implement this method. To ensure correctness assume
      * whole area is used. */
-    NodeOperation *input_op = getInputOperation(input_idx);
+    NodeOperation *input_op = get_input_operation(input_idx);
     r_input_area = input_op->get_canvas();
   }
 }
@@ -306,8 +306,8 @@ void NodeOperation::get_area_of_interest(NodeOperation *input_op,
                                          const rcti &output_area,
                                          rcti &r_input_area)
 {
-  for (int i = 0; i < getNumberOfInputSockets(); i++) {
-    if (input_op == getInputOperation(i)) {
+  for (int i = 0; i < get_number_of_input_sockets(); i++) {
+    if (input_op == get_input_operation(i)) {
       get_area_of_interest(i, output_area, r_input_area);
       return;
     }
@@ -340,11 +340,11 @@ void NodeOperation::render_full_frame(MemoryBuffer *output_buf,
                                       Span<rcti> areas,
                                       Span<MemoryBuffer *> inputs_bufs)
 {
-  initExecution();
+  init_execution();
   for (const rcti &area : areas) {
     update_memory_buffer(output_buf, area, inputs_bufs);
   }
-  deinitExecution();
+  deinit_execution();
 }
 
 /**
@@ -356,18 +356,18 @@ void NodeOperation::render_full_frame_fallback(MemoryBuffer *output_buf,
 {
   Vector<NodeOperationOutput *> orig_input_links = replace_inputs_with_buffers(inputs_bufs);
 
-  initExecution();
-  const bool is_output_operation = getNumberOfOutputSockets() == 0;
+  init_execution();
+  const bool is_output_operation = get_number_of_output_sockets() == 0;
   if (!is_output_operation && output_buf->is_a_single_elem()) {
     float *output_elem = output_buf->get_elem(0, 0);
-    readSampled(output_elem, 0, 0, PixelSampler::Nearest);
+    read_sampled(output_elem, 0, 0, PixelSampler::Nearest);
   }
   else {
     for (const rcti &rect : areas) {
       exec_system_->execute_work(rect, [=](const rcti &split_rect) {
         rcti tile_rect = split_rect;
         if (is_output_operation) {
-          executeRegion(&tile_rect, 0);
+          execute_region(&tile_rect, 0);
         }
         else {
           render_tile(output_buf, &tile_rect);
@@ -375,7 +375,7 @@ void NodeOperation::render_full_frame_fallback(MemoryBuffer *output_buf,
       });
     }
   }
-  deinitExecution();
+  deinit_execution();
 
   remove_buffers_and_restore_original_inputs(orig_input_links);
 }
@@ -383,7 +383,7 @@ void NodeOperation::render_full_frame_fallback(MemoryBuffer *output_buf,
 void NodeOperation::render_tile(MemoryBuffer *output_buf, rcti *tile_rect)
 {
   const bool is_complex = get_flags().complex;
-  void *tile_data = is_complex ? initializeTileData(tile_rect) : nullptr;
+  void *tile_data = is_complex ? initialize_tile_data(tile_rect) : nullptr;
   const int elem_stride = output_buf->elem_stride;
   for (int y = tile_rect->ymin; y < tile_rect->ymax; y++) {
     float *output_elem = output_buf->get_elem(tile_rect->xmin, y);
@@ -395,13 +395,13 @@ void NodeOperation::render_tile(MemoryBuffer *output_buf, rcti *tile_rect)
     }
     else {
       for (int x = tile_rect->xmin; x < tile_rect->xmax; x++) {
-        readSampled(output_elem, x, y, PixelSampler::Nearest);
+        read_sampled(output_elem, x, y, PixelSampler::Nearest);
         output_elem += elem_stride;
       }
     }
   }
   if (tile_data) {
-    deinitializeTileData(tile_rect, tile_data);
+    deinitialize_tile_data(tile_rect, tile_data);
   }
 }
 
@@ -411,14 +411,15 @@ void NodeOperation::render_tile(MemoryBuffer *output_buf, rcti *tile_rect)
 Vector<NodeOperationOutput *> NodeOperation::replace_inputs_with_buffers(
     Span<MemoryBuffer *> inputs_bufs)
 {
-  BLI_assert(inputs_bufs.size() == getNumberOfInputSockets());
+  BLI_assert(inputs_bufs.size() == get_number_of_input_sockets());
   Vector<NodeOperationOutput *> orig_links(inputs_bufs.size());
   for (int i = 0; i < inputs_bufs.size(); i++) {
-    NodeOperationInput *input_socket = getInputSocket(i);
-    BufferOperation *buffer_op = new BufferOperation(inputs_bufs[i], input_socket->getDataType());
-    orig_links[i] = input_socket->getLink();
-    input_socket->setLink(buffer_op->getOutputSocket());
-    buffer_op->initExecution();
+    NodeOperationInput *input_socket = get_input_socket(i);
+    BufferOperation *buffer_op = new BufferOperation(inputs_bufs[i],
+                                                     input_socket->get_data_type());
+    orig_links[i] = input_socket->get_link();
+    input_socket->set_link(buffer_op->get_output_socket());
+    buffer_op->init_execution();
   }
   return orig_links;
 }
@@ -426,14 +427,14 @@ Vector<NodeOperationOutput *> NodeOperation::replace_inputs_with_buffers(
 void NodeOperation::remove_buffers_and_restore_original_inputs(
     Span<NodeOperationOutput *> original_inputs_links)
 {
-  BLI_assert(original_inputs_links.size() == getNumberOfInputSockets());
+  BLI_assert(original_inputs_links.size() == get_number_of_input_sockets());
   for (int i = 0; i < original_inputs_links.size(); i++) {
     NodeOperation *buffer_op = get_input_operation(i);
     BLI_assert(buffer_op != nullptr);
     BLI_assert(typeid(*buffer_op) == typeid(BufferOperation));
-    buffer_op->deinitExecution();
-    NodeOperationInput *input_socket = getInputSocket(i);
-    input_socket->setLink(original_inputs_links[i]);
+    buffer_op->deinit_execution();
+    NodeOperationInput *input_socket = get_input_socket(i);
+    input_socket->set_link(original_inputs_links[i]);
     delete buffer_op;
   }
 }
@@ -444,15 +445,17 @@ void NodeOperation::remove_buffers_and_restore_original_inputs(
  **** OpInput ****
  *****************/
 
-NodeOperationInput::NodeOperationInput(NodeOperation *op, DataType datatype, ResizeMode resizeMode)
-    : operation_(op), datatype_(datatype), resizeMode_(resizeMode), link_(nullptr)
+NodeOperationInput::NodeOperationInput(NodeOperation *op,
+                                       DataType datatype,
+                                       ResizeMode resize_mode)
+    : operation_(op), datatype_(datatype), resize_mode_(resize_mode), link_(nullptr)
 {
 }
 
-SocketReader *NodeOperationInput::getReader()
+SocketReader *NodeOperationInput::get_reader()
 {
-  if (isConnected()) {
-    return &link_->getOperation();
+  if (is_connected()) {
+    return &link_->get_operation();
   }
 
   return nullptr;
@@ -481,7 +484,7 @@ NodeOperationOutput::NodeOperationOutput(NodeOperation *op, DataType datatype)
 
 void NodeOperationOutput::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  NodeOperation &operation = getOperation();
+  NodeOperation &operation = get_operation();
   if (operation.get_flags().is_canvas_set) {
     r_area = operation.get_canvas();
   }
@@ -558,9 +561,9 @@ std::ostream &operator<<(std::ostream &os, const NodeOperation &node_operation)
   os << ",flags={" << flags << "}";
   if (flags.is_read_buffer_operation) {
     const ReadBufferOperation *read_operation = (const ReadBufferOperation *)&node_operation;
-    const MemoryProxy *proxy = read_operation->getMemoryProxy();
+    const MemoryProxy *proxy = read_operation->get_memory_proxy();
     if (proxy) {
-      const WriteBufferOperation *write_operation = proxy->getWriteBufferOperation();
+      const WriteBufferOperation *write_operation = proxy->get_write_buffer_operation();
       if (write_operation) {
         os << ",write=" << (NodeOperation &)*write_operation;
       }

@@ -77,16 +77,16 @@ class CompositorContext {
   /**
    * \brief Skip slow nodes
    */
-  bool fastCalculation_;
+  bool fast_calculation_;
 
   /* \brief color management settings */
-  const ColorManagedViewSettings *viewSettings_;
-  const ColorManagedDisplaySettings *displaySettings_;
+  const ColorManagedViewSettings *view_settings_;
+  const ColorManagedDisplaySettings *display_settings_;
 
   /**
    * \brief active rendering view name
    */
-  const char *viewName_;
+  const char *view_name_;
 
  public:
   /**
@@ -97,7 +97,7 @@ class CompositorContext {
   /**
    * \brief set the rendering field of the context
    */
-  void setRendering(bool rendering)
+  void set_rendering(bool rendering)
   {
     rendering_ = rendering;
   }
@@ -105,7 +105,7 @@ class CompositorContext {
   /**
    * \brief get the rendering field of the context
    */
-  bool isRendering() const
+  bool is_rendering() const
   {
     return rendering_;
   }
@@ -113,7 +113,7 @@ class CompositorContext {
   /**
    * \brief set the scene of the context
    */
-  void setRenderData(RenderData *rd)
+  void set_render_data(RenderData *rd)
   {
     rd_ = rd;
   }
@@ -121,7 +121,7 @@ class CompositorContext {
   /**
    * \brief set the bnodetree of the context
    */
-  void setbNodeTree(bNodeTree *bnodetree)
+  void set_bnodetree(bNodeTree *bnodetree)
   {
     bnodetree_ = bnodetree;
   }
@@ -129,7 +129,7 @@ class CompositorContext {
   /**
    * \brief get the bnodetree of the context
    */
-  const bNodeTree *getbNodeTree() const
+  const bNodeTree *get_bnodetree() const
   {
     return bnodetree_;
   }
@@ -137,16 +137,16 @@ class CompositorContext {
   /**
    * \brief get the scene of the context
    */
-  const RenderData *getRenderData() const
+  const RenderData *get_render_data() const
   {
     return rd_;
   }
 
-  void setScene(Scene *scene)
+  void set_scene(Scene *scene)
   {
     scene_ = scene;
   }
-  Scene *getScene() const
+  Scene *get_scene() const
   {
     return scene_;
   }
@@ -154,7 +154,7 @@ class CompositorContext {
   /**
    * \brief set the preview image hash table
    */
-  void setPreviewHash(bNodeInstanceHash *previews)
+  void set_preview_hash(bNodeInstanceHash *previews)
   {
     previews_ = previews;
   }
@@ -162,7 +162,7 @@ class CompositorContext {
   /**
    * \brief get the preview image hash table
    */
-  bNodeInstanceHash *getPreviewHash() const
+  bNodeInstanceHash *get_preview_hash() const
   {
     return previews_;
   }
@@ -170,39 +170,39 @@ class CompositorContext {
   /**
    * \brief set view settings of color management
    */
-  void setViewSettings(const ColorManagedViewSettings *viewSettings)
+  void set_view_settings(const ColorManagedViewSettings *view_settings)
   {
-    viewSettings_ = viewSettings;
+    view_settings_ = view_settings;
   }
 
   /**
    * \brief get view settings of color management
    */
-  const ColorManagedViewSettings *getViewSettings() const
+  const ColorManagedViewSettings *get_view_settings() const
   {
-    return viewSettings_;
+    return view_settings_;
   }
 
   /**
    * \brief set display settings of color management
    */
-  void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings)
+  void set_display_settings(const ColorManagedDisplaySettings *display_settings)
   {
-    displaySettings_ = displaySettings;
+    display_settings_ = display_settings;
   }
 
   /**
    * \brief get display settings of color management
    */
-  const ColorManagedDisplaySettings *getDisplaySettings() const
+  const ColorManagedDisplaySettings *get_display_settings() const
   {
-    return displaySettings_;
+    return display_settings_;
   }
 
   /**
    * \brief set the quality
    */
-  void setQuality(eCompositorQuality quality)
+  void set_quality(eCompositorQuality quality)
   {
     quality_ = quality;
   }
@@ -210,7 +210,7 @@ class CompositorContext {
   /**
    * \brief get the quality
    */
-  eCompositorQuality getQuality() const
+  eCompositorQuality get_quality() const
   {
     return quality_;
   }
@@ -218,18 +218,18 @@ class CompositorContext {
   /**
    * \brief get the current frame-number of the scene in this context
    */
-  int getFramenumber() const;
+  int get_framenumber() const;
 
   /**
-   * \brief has this system active openclDevices?
+   * \brief has this system active opencl_devices?
    */
-  bool getHasActiveOpenCLDevices() const
+  bool get_has_active_opencl_devices() const
   {
     return hasActiveOpenCLDevices_;
   }
 
   /**
-   * \brief set has this system active openclDevices?
+   * \brief set has this system active opencl_devices?
    */
   void setHasActiveOpenCLDevices(bool hasAvtiveOpenCLDevices)
   {
@@ -239,48 +239,48 @@ class CompositorContext {
   /** Whether it has a view with a specific name and not the default one. */
   bool has_explicit_view() const
   {
-    return viewName_ && viewName_[0] != '\0';
+    return view_name_ && view_name_[0] != '\0';
   }
 
   /**
    * \brief get the active rendering view
    */
-  const char *getViewName() const
+  const char *get_view_name() const
   {
-    return viewName_;
+    return view_name_;
   }
 
   /**
    * \brief set the active rendering view
    */
-  void setViewName(const char *viewName)
+  void set_view_name(const char *view_name)
   {
-    viewName_ = viewName;
+    view_name_ = view_name;
   }
 
-  int getChunksize() const
+  int get_chunksize() const
   {
-    return this->getbNodeTree()->chunksize;
+    return this->get_bnodetree()->chunksize;
   }
 
-  void setFastCalculation(bool fastCalculation)
+  void set_fast_calculation(bool fast_calculation)
   {
-    fastCalculation_ = fastCalculation;
+    fast_calculation_ = fast_calculation;
   }
-  bool isFastCalculation() const
+  bool is_fast_calculation() const
   {
-    return fastCalculation_;
+    return fast_calculation_;
   }
-  bool isGroupnodeBufferEnabled() const
+  bool is_groupnode_buffer_enabled() const
   {
-    return (this->getbNodeTree()->flag & NTREE_COM_GROUPNODE_BUFFER) != 0;
+    return (this->get_bnodetree()->flag & NTREE_COM_GROUPNODE_BUFFER) != 0;
   }
 
   /**
    * \brief Get the render percentage as a factor.
    * The compositor uses a factor i.o. a percentage.
    */
-  float getRenderPercentageAsFactor() const
+  float get_render_percentage_as_factor() const
   {
     return rd_->size * 0.01f;
   }

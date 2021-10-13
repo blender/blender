@@ -27,9 +27,9 @@ namespace blender::compositor {
 class CurveBaseOperation : public MultiThreadedOperation {
  protected:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  CurveMapping *curveMapping_;
+  CurveMapping *curve_mapping_;
 
  public:
   CurveBaseOperation();
@@ -38,10 +38,10 @@ class CurveBaseOperation : public MultiThreadedOperation {
   /**
    * Initialize the execution
    */
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void setCurveMapping(CurveMapping *mapping);
+  void set_curve_mapping(CurveMapping *mapping);
 };
 
 }  // namespace blender::compositor

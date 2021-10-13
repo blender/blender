@@ -25,10 +25,10 @@ namespace blender::compositor {
 class InvertOperation : public MultiThreadedOperation {
  private:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *inputValueProgram_;
-  SocketReader *inputColorProgram_;
+  SocketReader *input_value_program_;
+  SocketReader *input_color_program_;
 
   bool alpha_;
   bool color_;
@@ -39,23 +39,23 @@ class InvertOperation : public MultiThreadedOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setColor(bool color)
+  void set_color(bool color)
   {
     color_ = color;
   }
-  void setAlpha(bool alpha)
+  void set_alpha(bool alpha)
   {
     alpha_ = alpha;
   }

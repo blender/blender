@@ -22,14 +22,14 @@ namespace blender::compositor {
 
 SetColorOperation::SetColorOperation()
 {
-  this->addOutputSocket(DataType::Color);
+  this->add_output_socket(DataType::Color);
   flags.is_set_operation = true;
 }
 
-void SetColorOperation::executePixelSampled(float output[4],
-                                            float /*x*/,
-                                            float /*y*/,
-                                            PixelSampler /*sampler*/)
+void SetColorOperation::execute_pixel_sampled(float output[4],
+                                              float /*x*/,
+                                              float /*y*/,
+                                              PixelSampler /*sampler*/)
 {
   copy_v4_v4(output, color_);
 }

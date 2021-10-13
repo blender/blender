@@ -24,48 +24,48 @@ namespace blender::compositor {
 
 class CombineColorNode : public Node {
  public:
-  CombineColorNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  CombineColorNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 
  protected:
-  virtual NodeOperation *getColorConverter(const CompositorContext &context) const = 0;
+  virtual NodeOperation *get_color_converter(const CompositorContext &context) const = 0;
 };
 
 class CombineRGBANode : public CombineColorNode {
  public:
-  CombineRGBANode(bNode *editorNode) : CombineColorNode(editorNode)
+  CombineRGBANode(bNode *editor_node) : CombineColorNode(editor_node)
   {
   }
 
-  NodeOperation *getColorConverter(const CompositorContext &context) const override;
+  NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 class CombineHSVANode : public CombineColorNode {
  public:
-  CombineHSVANode(bNode *editorNode) : CombineColorNode(editorNode)
+  CombineHSVANode(bNode *editor_node) : CombineColorNode(editor_node)
   {
   }
 
-  NodeOperation *getColorConverter(const CompositorContext &context) const override;
+  NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 class CombineYCCANode : public CombineColorNode {
  public:
-  CombineYCCANode(bNode *editorNode) : CombineColorNode(editorNode)
+  CombineYCCANode(bNode *editor_node) : CombineColorNode(editor_node)
   {
   }
 
-  NodeOperation *getColorConverter(const CompositorContext &context) const override;
+  NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 class CombineYUVANode : public CombineColorNode {
  public:
-  CombineYUVANode(bNode *editorNode) : CombineColorNode(editorNode)
+  CombineYUVANode(bNode *editor_node) : CombineColorNode(editor_node)
   {
   }
 
-  NodeOperation *getColorConverter(const CompositorContext &context) const override;
+  NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

@@ -22,14 +22,14 @@ namespace blender::compositor {
 
 RotateOperation::RotateOperation()
 {
-  this->addInputSocket(DataType::Color, ResizeMode::None);
-  this->addInputSocket(DataType::Value, ResizeMode::None);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color, ResizeMode::None);
+  this->add_input_socket(DataType::Value, ResizeMode::None);
+  this->add_output_socket(DataType::Color);
   this->set_canvas_input_index(0);
-  imageSocket_ = nullptr;
-  degreeSocket_ = nullptr;
-  doDegree2RadConversion_ = false;
-  isDegreeSet_ = false;
+  image_socket_ = nullptr;
+  degree_socket_ = nullptr;
+  do_degree2_rad_conversion_ = false;
+  is_degree_set_ = false;
   sampler_ = PixelSampler::Bilinear;
 }
 
@@ -127,29 +127,29 @@ void RotateOperation::get_rotation_canvas(const rcti &input_canvas,
 void RotateOperation::init_data()
 {
   if (execution_model_ == eExecutionModel::Tiled) {
-    get_rotation_center(get_canvas(), centerX_, centerY_);
+    get_rotation_center(get_canvas(), center_x_, center_y_);
   }
 }
 
-void RotateOperation::initExecution()
+void RotateOperation::init_execution()
 {
-  imageSocket_ = this->getInputSocketReader(0);
-  degreeSocket_ = this->getInputSocketReader(1);
+  image_socket_ = this->get_input_socket_reader(0);
+  degree_socket_ = this->get_input_socket_reader(1);
 }
 
-void RotateOperation::deinitExecution()
+void RotateOperation::deinit_execution()
 {
-  imageSocket_ = nullptr;
-  degreeSocket_ = nullptr;
+  image_socket_ = nullptr;
+  degree_socket_ = nullptr;
 }
 
-inline void RotateOperation::ensureDegree()
+inline void RotateOperation::ensure_degree()
 {
-  if (!isDegreeSet_) {
+  if (!is_degree_set_) {
     float degree[4];
     switch (execution_model_) {
       case eExecutionModel::Tiled:
-        degreeSocket_->readSampled(degree, 0, 0, PixelSampler::Nearest);
+        degree_socket_->read_sampled(degree, 0, 0, PixelSampler::Nearest);
         break;
       case eExecutionModel::FullFrame:
         degree[0] = get_input_operation(DEGREE_INPUT_INDEX)->get_constant_value_default(0.0f);
@@ -157,7 +157,7 @@ inline void RotateOperation::ensureDegree()
     }
 
     double rad;
-    if (doDegree2RadConversion_) {
+    if (do_degree2_rad_conversion_) {
       rad = DEG2RAD((double)degree[0]);
     }
     else {
@@ -166,51 +166,54 @@ inline void RotateOperation::ensureDegree()
     cosine_ = cos(rad);
     sine_ = sin(rad);
 
-    isDegreeSet_ = true;
+    is_degree_set_ = true;
   }
 }
 
-void RotateOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void RotateOperation::execute_pixel_sampled(float output[4],
+                                            float x,
+                                            float y,
+                                            PixelSampler sampler)
 {
-  ensureDegree();
-  const float dy = y - centerY_;
-  const float dx = x - centerX_;
-  const float nx = centerX_ + (cosine_ * dx + sine_ * dy);
-  const float ny = centerY_ + (-sine_ * dx + cosine_ * dy);
-  imageSocket_->readSampled(output, nx, ny, sampler);
+  ensure_degree();
+  const float dy = y - center_y_;
+  const float dx = x - center_x_;
+  const float nx = center_x_ + (cosine_ * dx + sine_ * dy);
+  const float ny = center_y_ + (-sine_ * dx + cosine_ * dy);
+  image_socket_->read_sampled(output, nx, ny, sampler);
 }
 
-bool RotateOperation::determineDependingAreaOfInterest(rcti *input,
-                                                       ReadBufferOperation *readOperation,
-                                                       rcti *output)
+bool RotateOperation::determine_depending_area_of_interest(rcti *input,
+                                                           ReadBufferOperation *read_operation,
+                                                           rcti *output)
 {
-  ensureDegree();
-  rcti newInput;
+  ensure_degree();
+  rcti new_input;
 
-  const float dxmin = input->xmin - centerX_;
-  const float dymin = input->ymin - centerY_;
-  const float dxmax = input->xmax - centerX_;
-  const float dymax = input->ymax - centerY_;
+  const float dxmin = input->xmin - center_x_;
+  const float dymin = input->ymin - center_y_;
+  const float dxmax = input->xmax - center_x_;
+  const float dymax = input->ymax - center_y_;
 
-  const float x1 = centerX_ + (cosine_ * dxmin + sine_ * dymin);
-  const float x2 = centerX_ + (cosine_ * dxmax + sine_ * dymin);
-  const float x3 = centerX_ + (cosine_ * dxmin + sine_ * dymax);
-  const float x4 = centerX_ + (cosine_ * dxmax + sine_ * dymax);
-  const float y1 = centerY_ + (-sine_ * dxmin + cosine_ * dymin);
-  const float y2 = centerY_ + (-sine_ * dxmax + cosine_ * dymin);
-  const float y3 = centerY_ + (-sine_ * dxmin + cosine_ * dymax);
-  const float y4 = centerY_ + (-sine_ * dxmax + cosine_ * dymax);
+  const float x1 = center_x_ + (cosine_ * dxmin + sine_ * dymin);
+  const float x2 = center_x_ + (cosine_ * dxmax + sine_ * dymin);
+  const float x3 = center_x_ + (cosine_ * dxmin + sine_ * dymax);
+  const float x4 = center_x_ + (cosine_ * dxmax + sine_ * dymax);
+  const float y1 = center_y_ + (-sine_ * dxmin + cosine_ * dymin);
+  const float y2 = center_y_ + (-sine_ * dxmax + cosine_ * dymin);
+  const float y3 = center_y_ + (-sine_ * dxmin + cosine_ * dymax);
+  const float y4 = center_y_ + (-sine_ * dxmax + cosine_ * dymax);
   const float minx = MIN2(x1, MIN2(x2, MIN2(x3, x4)));
   const float maxx = MAX2(x1, MAX2(x2, MAX2(x3, x4)));
   const float miny = MIN2(y1, MIN2(y2, MIN2(y3, y4)));
   const float maxy = MAX2(y1, MAX2(y2, MAX2(y3, y4)));
 
-  newInput.xmax = ceil(maxx) + 1;
-  newInput.xmin = floor(minx) - 1;
-  newInput.ymax = ceil(maxy) + 1;
-  newInput.ymin = floor(miny) - 1;
+  new_input.xmax = ceil(maxx) + 1;
+  new_input.xmin = floor(minx) - 1;
+  new_input.ymax = ceil(maxy) + 1;
+  new_input.ymin = floor(miny) - 1;
 
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void RotateOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
@@ -221,13 +224,13 @@ void RotateOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
   }
 
   const bool image_determined =
-      getInputSocket(IMAGE_INPUT_INDEX)->determine_canvas(preferred_area, r_area);
+      get_input_socket(IMAGE_INPUT_INDEX)->determine_canvas(preferred_area, r_area);
   if (image_determined) {
     rcti input_canvas = r_area;
     rcti unused;
-    getInputSocket(DEGREE_INPUT_INDEX)->determine_canvas(input_canvas, unused);
+    get_input_socket(DEGREE_INPUT_INDEX)->determine_canvas(input_canvas, unused);
 
-    ensureDegree();
+    ensure_degree();
 
     get_rotation_canvas(input_canvas, sine_, cosine_, r_area);
   }
@@ -242,7 +245,7 @@ void RotateOperation::get_area_of_interest(const int input_idx,
     return;
   }
 
-  ensureDegree();
+  ensure_degree();
 
   const rcti &input_image_canvas = get_input_operation(IMAGE_INPUT_INDEX)->get_canvas();
   get_rotation_area_of_interest(

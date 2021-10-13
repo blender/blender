@@ -22,45 +22,45 @@ namespace blender::compositor {
 
 MapRangeOperation::MapRangeOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Value);
-  inputOperation_ = nullptr;
-  useClamp_ = false;
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Value);
+  input_operation_ = nullptr;
+  use_clamp_ = false;
   flags.can_be_constant = true;
 }
 
-void MapRangeOperation::initExecution()
+void MapRangeOperation::init_execution()
 {
-  inputOperation_ = this->getInputSocketReader(0);
-  sourceMinOperation_ = this->getInputSocketReader(1);
-  sourceMaxOperation_ = this->getInputSocketReader(2);
-  destMinOperation_ = this->getInputSocketReader(3);
-  destMaxOperation_ = this->getInputSocketReader(4);
+  input_operation_ = this->get_input_socket_reader(0);
+  source_min_operation_ = this->get_input_socket_reader(1);
+  source_max_operation_ = this->get_input_socket_reader(2);
+  dest_min_operation_ = this->get_input_socket_reader(3);
+  dest_max_operation_ = this->get_input_socket_reader(4);
 }
 
 /* The code below assumes all data is inside range +- this, and that input buffer is single channel
  */
 #define BLENDER_ZMAX 10000.0f
 
-void MapRangeOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+void MapRangeOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
 {
   float inputs[8]; /* includes the 5 inputs + 3 pads */
   float value;
   float source_min, source_max;
   float dest_min, dest_max;
 
-  inputOperation_->readSampled(inputs, x, y, sampler);
-  sourceMinOperation_->readSampled(inputs + 1, x, y, sampler);
-  sourceMaxOperation_->readSampled(inputs + 2, x, y, sampler);
-  destMinOperation_->readSampled(inputs + 3, x, y, sampler);
-  destMaxOperation_->readSampled(inputs + 4, x, y, sampler);
+  input_operation_->read_sampled(inputs, x, y, sampler);
+  source_min_operation_->read_sampled(inputs + 1, x, y, sampler);
+  source_max_operation_->read_sampled(inputs + 2, x, y, sampler);
+  dest_min_operation_->read_sampled(inputs + 3, x, y, sampler);
+  dest_max_operation_->read_sampled(inputs + 4, x, y, sampler);
 
   value = inputs[0];
   source_min = inputs[1];
@@ -84,7 +84,7 @@ void MapRangeOperation::executePixelSampled(float output[4],
     value = dest_min;
   }
 
-  if (useClamp_) {
+  if (use_clamp_) {
     if (dest_max > dest_min) {
       CLAMP(value, dest_min, dest_max);
     }
@@ -96,13 +96,13 @@ void MapRangeOperation::executePixelSampled(float output[4],
   output[0] = value;
 }
 
-void MapRangeOperation::deinitExecution()
+void MapRangeOperation::deinit_execution()
 {
-  inputOperation_ = nullptr;
-  sourceMinOperation_ = nullptr;
-  sourceMaxOperation_ = nullptr;
-  destMinOperation_ = nullptr;
-  destMaxOperation_ = nullptr;
+  input_operation_ = nullptr;
+  source_min_operation_ = nullptr;
+  source_max_operation_ = nullptr;
+  dest_min_operation_ = nullptr;
+  dest_max_operation_ = nullptr;
 }
 
 void MapRangeOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -131,7 +131,7 @@ void MapRangeOperation::update_memory_buffer_partial(MemoryBuffer *output,
       value = dest_min;
     }
 
-    if (useClamp_) {
+    if (use_clamp_) {
       if (dest_max > dest_min) {
         CLAMP(value, dest_min, dest_max);
       }

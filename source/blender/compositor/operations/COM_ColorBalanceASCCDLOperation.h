@@ -29,10 +29,10 @@ namespace blender::compositor {
 class ColorBalanceASCCDLOperation : public MultiThreadedRowOperation {
  protected:
   /**
-   * Prefetched reference to the inputProgram
+   * Prefetched reference to the input_program
    */
-  SocketReader *inputValueOperation_;
-  SocketReader *inputColorOperation_;
+  SocketReader *input_value_operation_;
+  SocketReader *input_color_operation_;
 
   float offset_[3];
   float power_[3];
@@ -47,27 +47,27 @@ class ColorBalanceASCCDLOperation : public MultiThreadedRowOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setOffset(float offset[3])
+  void set_offset(float offset[3])
   {
     copy_v3_v3(offset_, offset);
   }
-  void setPower(float power[3])
+  void set_power(float power[3])
   {
     copy_v3_v3(power_, power);
   }
-  void setSlope(float slope[3])
+  void set_slope(float slope[3])
   {
     copy_v3_v3(slope_, slope);
   }

@@ -37,10 +37,10 @@ class TextureBaseOperation : public MultiThreadedOperation {
  private:
   Tex *texture_;
   const RenderData *rd_;
-  SocketReader *inputSize_;
-  SocketReader *inputOffset_;
+  SocketReader *input_size_;
+  SocketReader *input_offset_;
   struct ImagePool *pool_;
-  bool sceneColorManage_;
+  bool scene_color_manage_;
 
  protected:
   /**
@@ -54,21 +54,21 @@ class TextureBaseOperation : public MultiThreadedOperation {
   TextureBaseOperation();
 
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void setTexture(Tex *texture)
+  void set_texture(Tex *texture)
   {
     texture_ = texture;
   }
-  void initExecution() override;
-  void deinitExecution() override;
-  void setRenderData(const RenderData *rd)
+  void init_execution() override;
+  void deinit_execution() override;
+  void set_render_data(const RenderData *rd)
   {
     rd_ = rd;
   }
-  void setSceneColorManage(bool sceneColorManage)
+  void set_scene_color_manage(bool scene_color_manage)
   {
-    sceneColorManage_ = sceneColorManage;
+    scene_color_manage_ = scene_color_manage;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -83,7 +83,7 @@ class TextureOperation : public TextureBaseOperation {
 class TextureAlphaOperation : public TextureBaseOperation {
  public:
   TextureAlphaOperation();
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
