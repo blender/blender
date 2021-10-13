@@ -1233,7 +1233,7 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
   const int totvert = SCULPT_vertex_count_get(ss);
 
   Mesh *mesh = ob->data;
-  bool *fair_vertices = MEM_malloc_arrayN(sizeof(bool), totvert, "fair vertices");
+  bool *fair_vertices = MEM_malloc_arrayN(totvert, sizeof(bool), "fair vertices");
 
   SCULPT_boundary_info_ensure(ob);
 

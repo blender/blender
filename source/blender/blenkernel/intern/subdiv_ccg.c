@@ -1062,7 +1062,7 @@ static void subdiv_ccg_average_grids_boundary(SubdivCCG *subdiv_ccg,
   }
   if (tls->accumulators == NULL) {
     tls->accumulators = MEM_calloc_arrayN(
-        sizeof(GridElementAccumulator), grid_size2, "average accumulators");
+        grid_size2, sizeof(GridElementAccumulator), "average accumulators");
   }
   else {
     for (int i = 1; i < grid_size2 - 1; i++) {
@@ -1972,7 +1972,7 @@ const int *BKE_subdiv_ccg_start_face_grid_index_ensure(SubdivCCG *subdiv_ccg)
     const int num_coarse_faces = topology_refiner->getNumFaces(topology_refiner);
 
     subdiv_ccg->cache_.start_face_grid_index = MEM_malloc_arrayN(
-        sizeof(int), num_coarse_faces, "start_face_grid_index");
+        num_coarse_faces, sizeof(int), "start_face_grid_index");
 
     int start_grid_index = 0;
     for (int face_index = 0; face_index < num_coarse_faces; face_index++) {

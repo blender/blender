@@ -1495,13 +1495,13 @@ static void allocate_bbone_cache(bPoseChannel *pchan, int segments)
 
     runtime->bbone_segments = segments;
     runtime->bbone_rest_mats = MEM_malloc_arrayN(
-        sizeof(Mat4), 1 + (uint)segments, "bPoseChannel_Runtime::bbone_rest_mats");
+        1 + (uint)segments, sizeof(Mat4), "bPoseChannel_Runtime::bbone_rest_mats");
     runtime->bbone_pose_mats = MEM_malloc_arrayN(
-        sizeof(Mat4), 1 + (uint)segments, "bPoseChannel_Runtime::bbone_pose_mats");
+        1 + (uint)segments, sizeof(Mat4), "bPoseChannel_Runtime::bbone_pose_mats");
     runtime->bbone_deform_mats = MEM_malloc_arrayN(
-        sizeof(Mat4), 2 + (uint)segments, "bPoseChannel_Runtime::bbone_deform_mats");
+        2 + (uint)segments, sizeof(Mat4), "bPoseChannel_Runtime::bbone_deform_mats");
     runtime->bbone_dual_quats = MEM_malloc_arrayN(
-        sizeof(DualQuat), 1 + (uint)segments, "bPoseChannel_Runtime::bbone_dual_quats");
+        1 + (uint)segments, sizeof(DualQuat), "bPoseChannel_Runtime::bbone_dual_quats");
   }
 }
 

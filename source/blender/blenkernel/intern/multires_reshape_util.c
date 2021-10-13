@@ -86,7 +86,7 @@ static void context_init_lookup(MultiresReshapeContext *reshape_context)
   const int num_faces = base_mesh->totpoly;
 
   reshape_context->face_start_grid_index = MEM_malloc_arrayN(
-      sizeof(int), num_faces, "face_start_grid_index");
+      num_faces, sizeof(int), "face_start_grid_index");
   int num_grids = 0;
   int num_ptex_faces = 0;
   for (int face_index = 0; face_index < num_faces; ++face_index) {
@@ -97,9 +97,9 @@ static void context_init_lookup(MultiresReshapeContext *reshape_context)
   }
 
   reshape_context->grid_to_face_index = MEM_malloc_arrayN(
-      sizeof(int), num_grids, "grid_to_face_index");
+      num_grids, sizeof(int), "grid_to_face_index");
   reshape_context->ptex_start_grid_index = MEM_malloc_arrayN(
-      sizeof(int), num_ptex_faces, "ptex_start_grid_index");
+      num_ptex_faces, sizeof(int), "ptex_start_grid_index");
   for (int face_index = 0, grid_index = 0, ptex_index = 0; face_index < num_faces; ++face_index) {
     const int num_corners = mpoly[face_index].totloop;
     const int num_face_ptex_faces = (num_corners == 4) ? 1 : num_corners;

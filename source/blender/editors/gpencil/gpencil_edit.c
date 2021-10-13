@@ -3556,7 +3556,7 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
 
   int tot_strokes = 0;
   /** Alloc memory. */
-  tJoinStrokes *strokes_list = MEM_malloc_arrayN(sizeof(tJoinStrokes), max_join_strokes, __func__);
+  tJoinStrokes *strokes_list = MEM_malloc_arrayN(max_join_strokes, sizeof(tJoinStrokes), __func__);
   tJoinStrokes *elem = NULL;
   /* Read all selected strokes to create a list. */
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {

@@ -271,7 +271,7 @@ static void base_surface_grids_allocate(MultiresReshapeSmoothContext *reshape_sm
 
   for (int grid_index = 0; grid_index < num_grids; ++grid_index) {
     surface_grid[grid_index].points = MEM_calloc_arrayN(
-        sizeof(SurfacePoint), grid_area, "delta grid displacement");
+        grid_area, sizeof(SurfacePoint), "delta grid displacement");
   }
 
   reshape_smooth_context->base_surface_grids = surface_grid;
@@ -576,19 +576,19 @@ static bool foreach_topology_info(const SubdivForeachContext *foreach_context,
   /* NOTE: Calloc so the counters are re-set to 0 "for free". */
   reshape_smooth_context->geometry.num_vertices = num_vertices;
   reshape_smooth_context->geometry.vertices = MEM_calloc_arrayN(
-      sizeof(Vertex), num_vertices, "smooth vertices");
+      num_vertices, sizeof(Vertex), "smooth vertices");
 
   reshape_smooth_context->geometry.max_edges = max_edges;
   reshape_smooth_context->geometry.edges = MEM_malloc_arrayN(
-      sizeof(Edge), max_edges, "smooth edges");
+      max_edges, sizeof(Edge), "smooth edges");
 
   reshape_smooth_context->geometry.num_corners = num_loops;
   reshape_smooth_context->geometry.corners = MEM_malloc_arrayN(
-      sizeof(Corner), num_loops, "smooth corners");
+      num_loops, sizeof(Corner), "smooth corners");
 
   reshape_smooth_context->geometry.num_faces = num_polygons;
   reshape_smooth_context->geometry.faces = MEM_malloc_arrayN(
-      sizeof(Face), num_polygons, "smooth faces");
+      num_polygons, sizeof(Face), "smooth faces");
 
   return true;
 }
