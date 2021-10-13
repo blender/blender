@@ -18,8 +18,6 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
-
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
@@ -29,6 +27,7 @@ struct bNode;
 namespace blender::compositor {
 
 class Node;
+class NodeOperation;
 class NodeOperationInput;
 class NodeOperationOutput;
 class NodeOperationBuilder;

@@ -17,7 +17,6 @@
  */
 
 #include "COM_BlurNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_FastGaussianBlurOperation.h"
 #include "COM_GammaCorrectOperation.h"
 #include "COM_GaussianAlphaXBlurOperation.h"
@@ -27,7 +26,6 @@
 #include "COM_GaussianYBlurOperation.h"
 #include "COM_MathBaseOperation.h"
 #include "COM_SetValueOperation.h"
-#include "DNA_node_types.h"
 
 namespace blender::compositor {
 

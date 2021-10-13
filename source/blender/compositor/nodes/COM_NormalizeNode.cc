@@ -17,7 +17,6 @@
  */
 
 #include "COM_NormalizeNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_NormalizeOperation.h"
 
 namespace blender::compositor {

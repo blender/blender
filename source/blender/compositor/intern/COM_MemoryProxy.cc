@@ -17,10 +17,7 @@
  */
 
 #include "COM_MemoryProxy.h"
-
 #include "COM_MemoryBuffer.h"
-
-#include "BLI_rect.h"
 
 namespace blender::compositor {
 

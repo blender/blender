@@ -17,6 +17,7 @@
  */
 
 #include "COM_ExecutionModel.h"
+#include "COM_CompositorContext.h"
 
 namespace blender::compositor {
 

@@ -18,7 +18,6 @@
 
 #include "COM_BrightnessNode.h"
 #include "COM_BrightnessOperation.h"
-#include "COM_ExecutionSystem.h"
 
 namespace blender::compositor {
 

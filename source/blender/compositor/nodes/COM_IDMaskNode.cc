@@ -17,7 +17,6 @@
  */
 
 #include "COM_IDMaskNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_IDMaskOperation.h"
 #include "COM_SMAAOperation.h"
 

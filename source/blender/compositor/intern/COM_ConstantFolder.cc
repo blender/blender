@@ -16,10 +16,11 @@
  * Copyright 2021, Blender Foundation.
  */
 
-#include "BLI_rect.h"
+#include "BLI_map.hh"
+#include "BLI_set.hh"
 
 #include "COM_ConstantFolder.h"
-#include "COM_ConstantOperation.h"
+#include "COM_NodeOperationBuilder.h"
 #include "COM_SetColorOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"

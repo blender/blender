@@ -19,12 +19,8 @@
 #include "COM_HueSaturationValueCorrectNode.h"
 
 #include "COM_ConvertOperation.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_HueSaturationValueCorrectOperation.h"
 #include "COM_MixOperation.h"
-#include "COM_SetColorOperation.h"
-#include "COM_SetValueOperation.h"
-#include "DNA_node_types.h"
 
 namespace blender::compositor {
 

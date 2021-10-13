@@ -18,7 +18,6 @@
 
 #include "COM_ColorExposureNode.h"
 #include "COM_ColorExposureOperation.h"
-#include "COM_ExecutionSystem.h"
 
 namespace blender::compositor {
 

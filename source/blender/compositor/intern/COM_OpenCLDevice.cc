@@ -17,7 +17,9 @@
  */
 
 #include "COM_OpenCLDevice.h"
-#include "COM_WorkScheduler.h"
+
+#include "COM_ExecutionGroup.h"
+#include "COM_ReadBufferOperation.h"
 
 namespace blender::compositor {
 

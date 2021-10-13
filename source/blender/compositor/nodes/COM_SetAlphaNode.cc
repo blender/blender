@@ -17,7 +17,6 @@
  */
 
 #include "COM_SetAlphaNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 #include "COM_SetAlphaReplaceOperation.h"
 

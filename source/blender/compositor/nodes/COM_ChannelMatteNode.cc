@@ -17,7 +17,6 @@
  */
 
 #include "COM_ChannelMatteNode.h"
-#include "BKE_node.h"
 #include "COM_ChannelMatteOperation.h"
 #include "COM_ConvertOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"

@@ -17,8 +17,6 @@
  */
 
 #include "COM_BoxMaskOperation.h"
-#include "BLI_math.h"
-#include "DNA_node_types.h"
 
 namespace blender::compositor {
 

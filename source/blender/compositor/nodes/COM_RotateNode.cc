@@ -18,7 +18,6 @@
 
 #include "COM_RotateNode.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_RotateOperation.h"
 #include "COM_SetSamplerOperation.h"
 

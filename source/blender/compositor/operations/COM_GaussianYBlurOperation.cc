@@ -17,11 +17,7 @@
  */
 
 #include "COM_GaussianYBlurOperation.h"
-#include "BLI_math.h"
 #include "COM_OpenCLDevice.h"
-#include "MEM_guardedalloc.h"
-
-#include "RE_pipeline.h"
 
 namespace blender::compositor {
 

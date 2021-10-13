@@ -18,9 +18,6 @@
 
 #include "COM_MovieClipOperation.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-
 #include "BKE_image.h"
 #include "BKE_movieclip.h"
 

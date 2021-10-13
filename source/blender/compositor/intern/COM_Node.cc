@@ -16,19 +16,9 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <cstring>
-
 #include "BKE_node.h"
 
 #include "RNA_access.h"
-
-#include "COM_ExecutionSystem.h"
-#include "COM_NodeOperation.h"
-#include "COM_TranslateOperation.h"
-
-#include "COM_SocketProxyNode.h"
-
-#include "COM_defines.h"
 
 #include "COM_Node.h" /* own include */
 

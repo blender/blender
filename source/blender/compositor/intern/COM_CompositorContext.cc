@@ -17,11 +17,6 @@
  */
 
 #include "COM_CompositorContext.h"
-#include "COM_defines.h"
-#include <cstdio>
-
-#include "BLI_assert.h"
-#include "DNA_userdef_types.h"
 
 namespace blender::compositor {
 

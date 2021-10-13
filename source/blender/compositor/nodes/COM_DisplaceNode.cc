@@ -19,7 +19,6 @@
 #include "COM_DisplaceNode.h"
 #include "COM_DisplaceOperation.h"
 #include "COM_DisplaceSimpleOperation.h"
-#include "COM_ExecutionSystem.h"
 
 namespace blender::compositor {
 

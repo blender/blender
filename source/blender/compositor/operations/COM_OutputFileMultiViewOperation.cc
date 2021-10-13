@@ -17,21 +17,10 @@
  */
 
 #include "COM_OutputFileMultiViewOperation.h"
-#include "COM_OutputFileOperation.h"
 
-#include <cstring>
-
-#include "BLI_listbase.h"
-#include "BLI_path_util.h"
-#include "BLI_string.h"
-
-#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
-
-#include "DNA_color_types.h"
-#include "MEM_guardedalloc.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"

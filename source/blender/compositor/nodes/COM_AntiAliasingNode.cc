@@ -20,7 +20,6 @@
 
 #include "COM_AntiAliasingNode.h"
 #include "COM_SMAAOperation.h"
-#include "DNA_node_types.h"
 
 namespace blender::compositor {
 

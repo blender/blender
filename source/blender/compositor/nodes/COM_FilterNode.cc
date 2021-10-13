@@ -19,9 +19,6 @@
 #include "COM_FilterNode.h"
 #include "BKE_node.h"
 #include "COM_ConvolutionEdgeFilterOperation.h"
-#include "COM_ConvolutionFilterOperation.h"
-#include "COM_ExecutionSystem.h"
-#include "COM_MixOperation.h"
 
 namespace blender::compositor {
 

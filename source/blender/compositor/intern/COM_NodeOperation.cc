@@ -17,13 +17,10 @@
  */
 
 #include <cstdio>
-#include <memory>
-#include <typeinfo>
 
 #include "COM_BufferOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_ReadBufferOperation.h"
-#include "COM_defines.h"
 
 #include "COM_NodeOperation.h" /* own include */
 

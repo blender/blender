@@ -17,8 +17,6 @@
  */
 
 #include "COM_DisplaceSimpleOperation.h"
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
 
 namespace blender::compositor {
 

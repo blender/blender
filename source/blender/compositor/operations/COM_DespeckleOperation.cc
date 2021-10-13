@@ -20,8 +20,6 @@
 
 #include "COM_DespeckleOperation.h"
 
-#include "BLI_utildefines.h"
-
 namespace blender::compositor {
 
 DespeckleOperation::DespeckleOperation()

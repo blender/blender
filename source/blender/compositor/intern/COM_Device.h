@@ -18,9 +18,9 @@
 
 #pragma once
 
-#include "COM_WorkPackage.h"
-
 namespace blender::compositor {
+
+struct WorkPackage;
 
 /**
  * \brief Abstract class for device implementations to be used by the Compositor.

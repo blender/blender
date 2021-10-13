@@ -20,8 +20,6 @@
 
 #include "BKE_colortools.h"
 
-#include "MEM_guardedalloc.h"
-
 namespace blender::compositor {
 
 ColorCurveOperation::ColorCurveOperation()

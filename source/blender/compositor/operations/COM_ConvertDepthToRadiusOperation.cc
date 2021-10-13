@@ -18,7 +18,6 @@
 
 #include "COM_ConvertDepthToRadiusOperation.h"
 #include "BKE_camera.h"
-#include "BLI_math.h"
 #include "DNA_camera_types.h"
 
 namespace blender::compositor {

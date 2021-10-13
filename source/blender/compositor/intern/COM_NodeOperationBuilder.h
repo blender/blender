@@ -18,9 +18,8 @@
 
 #pragma once
 
-#include <map>
-#include <set>
-#include <vector>
+#include "BLI_map.hh"
+#include "BLI_vector.hh"
 
 #include "COM_NodeGraph.h"
 

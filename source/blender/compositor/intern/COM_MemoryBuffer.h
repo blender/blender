@@ -21,11 +21,12 @@
 #include "COM_BufferArea.h"
 #include "COM_BufferRange.h"
 #include "COM_BuffersIterator.h"
-#include "COM_ExecutionGroup.h"
-#include "COM_MemoryProxy.h"
+#include "COM_Enums.h"
 
-#include "BLI_math.h"
+#include "BLI_math_interp.h"
 #include "BLI_rect.h"
+
+struct ImBuf;
 
 namespace blender::compositor {
 

@@ -18,11 +18,6 @@
 
 #include "COM_KeyingOperation.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-
 namespace blender::compositor {
 
 static float get_pixel_saturation(const float pixelColor[4],

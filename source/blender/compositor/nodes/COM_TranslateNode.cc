@@ -18,7 +18,6 @@
 
 #include "COM_TranslateNode.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_TranslateOperation.h"
 #include "COM_WrapOperation.h"
 #include "COM_WriteBufferOperation.h"

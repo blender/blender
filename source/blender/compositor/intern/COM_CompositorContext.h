@@ -18,16 +18,13 @@
 
 #pragma once
 
-#include "BLI_rect.h"
-
 #include "COM_Enums.h"
 
 #include "DNA_color_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
-#include <string>
-#include <vector>
+struct bNodeInstanceHash;
 
 namespace blender::compositor {
 

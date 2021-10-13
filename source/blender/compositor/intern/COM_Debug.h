@@ -21,9 +21,11 @@
 #include <map>
 #include <string>
 
+#include "BLI_vector.hh"
+
 #include "COM_ExecutionSystem.h"
-#include "COM_NodeOperation.h"
-#include "COM_defines.h"
+#include "COM_MemoryBuffer.h"
+#include "COM_Node.h"
 
 namespace blender::compositor {
 
@@ -34,6 +36,7 @@ static constexpr bool COM_GRAPHVIZ_SHOW_NODE_NAME = false;
 static constexpr bool COM_EXPORT_OPERATION_BUFFERS = false;
 
 class Node;
+class NodeOperation;
 class ExecutionSystem;
 class ExecutionGroup;
 

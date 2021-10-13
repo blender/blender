@@ -18,8 +18,6 @@
 
 #include "COM_KeyingNode.h"
 
-#include "COM_ExecutionSystem.h"
-
 #include "COM_KeyingBlurOperation.h"
 #include "COM_KeyingClipOperation.h"
 #include "COM_KeyingDespillOperation.h"

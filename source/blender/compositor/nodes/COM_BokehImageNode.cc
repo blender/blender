@@ -18,7 +18,6 @@
 
 #include "COM_BokehImageNode.h"
 #include "COM_BokehImageOperation.h"
-#include "COM_ExecutionSystem.h"
 
 namespace blender::compositor {
 

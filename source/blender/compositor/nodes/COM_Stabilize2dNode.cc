@@ -17,17 +17,11 @@
  */
 
 #include "COM_Stabilize2dNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_MovieClipAttributeOperation.h"
 #include "COM_RotateOperation.h"
 #include "COM_ScaleOperation.h"
 #include "COM_SetSamplerOperation.h"
-#include "COM_TransformOperation.h"
 #include "COM_TranslateOperation.h"
-
-#include "BKE_tracking.h"
-
-#include "DNA_movieclip_types.h"
 
 namespace blender::compositor {
 

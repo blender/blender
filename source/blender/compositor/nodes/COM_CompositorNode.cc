@@ -18,7 +18,6 @@
 
 #include "COM_CompositorNode.h"
 #include "COM_CompositorOperation.h"
-#include "COM_ExecutionSystem.h"
 
 namespace blender::compositor {
 

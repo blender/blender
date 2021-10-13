@@ -18,8 +18,6 @@
 
 #include "COM_MixOperation.h"
 
-#include "BLI_math.h"
-
 namespace blender::compositor {
 
 /* ******** Mix Base Operation ******** */

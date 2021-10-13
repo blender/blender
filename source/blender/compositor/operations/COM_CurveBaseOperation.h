@@ -19,7 +19,8 @@
 #pragma once
 
 #include "COM_MultiThreadedOperation.h"
-#include "DNA_color_types.h"
+
+struct CurveMapping;
 
 namespace blender::compositor {
 

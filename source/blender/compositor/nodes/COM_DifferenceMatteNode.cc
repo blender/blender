@@ -17,7 +17,6 @@
  */
 
 #include "COM_DifferenceMatteNode.h"
-#include "BKE_node.h"
 #include "COM_DifferenceMatteOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 

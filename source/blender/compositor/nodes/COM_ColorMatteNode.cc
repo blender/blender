@@ -17,7 +17,6 @@
  */
 
 #include "COM_ColorMatteNode.h"
-#include "BKE_node.h"
 #include "COM_ColorMatteOperation.h"
 #include "COM_ConvertOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"

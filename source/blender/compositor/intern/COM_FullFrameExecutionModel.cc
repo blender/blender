@@ -17,13 +17,12 @@
  */
 
 #include "COM_FullFrameExecutionModel.h"
-#include "COM_Debug.h"
-#include "COM_ExecutionGroup.h"
-#include "COM_ReadBufferOperation.h"
-#include "COM_ViewerOperation.h"
-#include "COM_WorkScheduler.h"
 
 #include "BLT_translation.h"
+
+#include "COM_Debug.h"
+#include "COM_ViewerOperation.h"
+#include "COM_WorkScheduler.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"

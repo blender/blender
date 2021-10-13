@@ -17,14 +17,12 @@
  */
 
 #include "COM_DenoiseOperation.h"
-#include "BLI_math.h"
 #include "BLI_system.h"
 #ifdef WITH_OPENIMAGEDENOISE
 #  include "BLI_threads.h"
 #  include <OpenImageDenoise/oidn.hpp>
 static pthread_mutex_t oidn_lock = BLI_MUTEX_INITIALIZER;
 #endif
-#include <iostream>
 
 namespace blender::compositor {
 

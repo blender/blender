@@ -19,7 +19,6 @@
 #include "COM_MultilayerImageOperation.h"
 
 #include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
 
 namespace blender::compositor {
 

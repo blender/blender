@@ -17,10 +17,6 @@
  */
 
 #include "COM_EllipseMaskOperation.h"
-#include "BLI_math.h"
-#include "DNA_node_types.h"
-
-#include <functional>
 
 namespace blender::compositor {
 

@@ -17,10 +17,7 @@
  */
 
 #include "COM_MaskNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_MaskOperation.h"
-
-#include "DNA_mask_types.h"
 
 namespace blender::compositor {
 

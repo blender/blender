@@ -18,13 +18,11 @@
 
 #pragma once
 
-#include "COM_ExecutionGroup.h"
-
-#include "COM_Device.h"
-#include "COM_WorkPackage.h"
-#include "COM_defines.h"
-
 namespace blender::compositor {
+
+struct WorkPackage;
+
+class CompositorContext;
 
 /** \brief the workscheduler
  * \ingroup execution

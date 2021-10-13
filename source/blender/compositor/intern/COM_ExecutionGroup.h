@@ -22,25 +22,24 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
+#include <iostream>
+
 #include "BLI_array.hh"
-#include "BLI_rect.h"
 #include "BLI_vector.hh"
 
-#include "COM_CompositorContext.h"
-#include "COM_Device.h"
-#include "COM_MemoryProxy.h"
-#include "COM_Node.h"
-#include "COM_NodeOperation.h"
+#include "COM_Enums.h"
 #include "COM_WorkPackage.h"
-#include <vector>
+
+#include "DNA_node_types.h"
+#include "DNA_vec_types.h"
 
 namespace blender::compositor {
 
 class ExecutionSystem;
+class NodeOperation;
 class MemoryProxy;
 class MemoryBuffer;
 class ReadBufferOperation;
-class Device;
 
 struct ExecutionGroupFlags {
   bool initialized : 1;

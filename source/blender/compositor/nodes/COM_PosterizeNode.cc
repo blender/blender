@@ -17,7 +17,6 @@
  */
 
 #include "COM_PosterizeNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_PosterizeOperation.h"
 
 namespace blender::compositor {

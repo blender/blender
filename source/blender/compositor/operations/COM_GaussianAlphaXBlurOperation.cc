@@ -17,10 +17,6 @@
  */
 
 #include "COM_GaussianAlphaXBlurOperation.h"
-#include "BLI_math.h"
-#include "MEM_guardedalloc.h"
-
-#include "RE_pipeline.h"
 
 namespace blender::compositor {
 

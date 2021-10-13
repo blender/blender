@@ -24,7 +24,7 @@
 
 #include "COM_Enums.h"
 
-#include "BLI_rect.h"
+#include "DNA_vec_types.h"
 
 #include <functional>
 #include <ostream>

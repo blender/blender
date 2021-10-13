@@ -17,10 +17,7 @@
  */
 
 #include "COM_InpaintNode.h"
-#include "BLI_math.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_InpaintOperation.h"
-#include "DNA_scene_types.h"
 
 namespace blender::compositor {
 

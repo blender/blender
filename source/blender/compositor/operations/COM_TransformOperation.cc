@@ -17,11 +17,8 @@
  */
 
 #include "COM_TransformOperation.h"
-#include "COM_ConstantOperation.h"
 #include "COM_RotateOperation.h"
 #include "COM_ScaleOperation.h"
-
-#include "BLI_math.h"
 
 namespace blender::compositor {
 

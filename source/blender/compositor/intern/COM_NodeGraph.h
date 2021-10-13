@@ -18,11 +18,6 @@
 
 #pragma once
 
-#include "BLI_vector.hh"
-
-#include <map>
-#include <set>
-
 #include "DNA_node_types.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC

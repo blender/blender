@@ -17,10 +17,7 @@
  */
 
 #include "COM_ViewLevelsNode.h"
-#include "COM_CalculateMeanOperation.h"
 #include "COM_CalculateStandardDeviationOperation.h"
-#include "COM_ExecutionSystem.h"
-#include "COM_SetValueOperation.h"
 
 namespace blender::compositor {
 

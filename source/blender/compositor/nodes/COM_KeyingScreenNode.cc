@@ -17,10 +17,7 @@
  */
 
 #include "COM_KeyingScreenNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_KeyingScreenOperation.h"
-
-#include "DNA_movieclip_types.h"
 
 namespace blender::compositor {
 

@@ -17,7 +17,6 @@
  */
 
 #include "COM_GammaNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_GammaOperation.h"
 
 namespace blender::compositor {

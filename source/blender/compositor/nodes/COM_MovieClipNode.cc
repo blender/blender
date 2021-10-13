@@ -17,10 +17,8 @@
  */
 
 #include "COM_MovieClipNode.h"
-#include "COM_ConvertColorProfileOperation.h"
-#include "COM_ExecutionSystem.h"
+
 #include "COM_MovieClipOperation.h"
-#include "COM_SetValueOperation.h"
 
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"

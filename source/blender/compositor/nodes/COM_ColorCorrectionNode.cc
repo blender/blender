@@ -18,7 +18,6 @@
 
 #include "COM_ColorCorrectionNode.h"
 #include "COM_ColorCorrectionOperation.h"
-#include "COM_ExecutionSystem.h"
 
 namespace blender::compositor {
 

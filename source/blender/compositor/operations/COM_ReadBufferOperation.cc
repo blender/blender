@@ -17,8 +17,9 @@
  */
 
 #include "COM_ReadBufferOperation.h"
+
+#include "COM_ExecutionGroup.h"
 #include "COM_WriteBufferOperation.h"
-#include "COM_defines.h"
 
 namespace blender::compositor {
 

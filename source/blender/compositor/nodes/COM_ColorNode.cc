@@ -17,7 +17,6 @@
  */
 
 #include "COM_ColorNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_SetColorOperation.h"
 
 namespace blender::compositor {

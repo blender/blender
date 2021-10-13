@@ -19,9 +19,6 @@
 #include "COM_BlurBaseOperation.h"
 #include "COM_ConstantOperation.h"
 
-#include "BLI_math.h"
-#include "MEM_guardedalloc.h"
-
 #include "RE_pipeline.h"
 
 namespace blender::compositor {

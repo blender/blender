@@ -16,22 +16,23 @@
  * Copyright 2011, Blender Foundation.
  */
 
-class ExecutionGroup;
-
 #pragma once
 
-#include "BKE_text.h"
+#include <functional>
 
-#include "COM_ExecutionGroup.h"
-#include "COM_Node.h"
-#include "COM_NodeOperation.h"
+#include "atomic_ops.h"
+
+#include "BLI_index_range.hh"
+#include "BLI_threads.h"
+#include "BLI_vector.hh"
+
+#include "COM_CompositorContext.h"
 #include "COM_SharedOperationBuffers.h"
 
 #include "DNA_color_types.h"
 #include "DNA_node_types.h"
-
-#include "BLI_vector.hh"
-#include "atomic_ops.h"
+#include "DNA_scene_types.h"
+#include "DNA_vec_types.h"
 
 namespace blender::compositor {
 
@@ -118,7 +119,9 @@ namespace blender::compositor {
  */
 
 /* Forward declarations. */
+class ExecutionGroup;
 class ExecutionModel;
+class NodeOperation;
 
 /**
  * \brief the ExecutionSystem contains the whole compositor tree.

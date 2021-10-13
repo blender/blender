@@ -18,7 +18,6 @@
 
 #include "COM_MapValueNode.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_MapValueOperation.h"
 
 namespace blender::compositor {

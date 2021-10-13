@@ -17,7 +17,6 @@
  */
 
 #include "COM_MathNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_MathBaseOperation.h"
 
 namespace blender::compositor {

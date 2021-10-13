@@ -17,11 +17,7 @@
  */
 
 #include "COM_SplitViewerNode.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_scene.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_SplitOperation.h"
 #include "COM_ViewerOperation.h"
 

@@ -17,12 +17,6 @@
  */
 
 #include "COM_OutputFileNode.h"
-#include "COM_ExecutionSystem.h"
-#include "COM_OutputFileOperation.h"
-
-#include "BKE_scene.h"
-
-#include "BLI_path_util.h"
 
 namespace blender::compositor {
 

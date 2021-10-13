@@ -22,7 +22,6 @@
 
 #include "BKE_node.h"
 
-#include "COM_NodeOperation.h"
 #include "COM_NodeOperationBuilder.h"
 
 #include "COM_AlphaOverNode.h"
@@ -62,7 +61,6 @@
 #include "COM_DistanceMatteNode.h"
 #include "COM_DoubleEdgeMaskNode.h"
 #include "COM_EllipseMaskNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_FilterNode.h"
 #include "COM_FlipNode.h"
 #include "COM_GammaNode.h"

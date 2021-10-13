@@ -17,9 +17,7 @@
  */
 
 #include "COM_NormalNode.h"
-#include "BKE_node.h"
 #include "COM_DotproductOperation.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_SetVectorOperation.h"
 
 namespace blender::compositor {

@@ -17,9 +17,6 @@
  */
 
 #include "COM_RotateOperation.h"
-#include "COM_ConstantOperation.h"
-
-#include "BLI_math.h"
 
 namespace blender::compositor {
 

@@ -17,15 +17,6 @@
 
 #include "COM_PlaneCornerPinOperation.h"
 #include "COM_ConstantOperation.h"
-#include "COM_ReadBufferOperation.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-#include "BLI_math_color.h"
-
-#include "BKE_node.h"
 
 namespace blender::compositor {
 

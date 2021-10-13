@@ -18,10 +18,6 @@
 
 #include "COM_ConvolutionFilterOperation.h"
 
-#include "BLI_utildefines.h"
-
-#include "MEM_guardedalloc.h"
-
 namespace blender::compositor {
 
 ConvolutionFilterOperation::ConvolutionFilterOperation()

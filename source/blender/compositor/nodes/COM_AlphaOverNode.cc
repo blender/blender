@@ -21,10 +21,6 @@
 #include "COM_AlphaOverKeyOperation.h"
 #include "COM_AlphaOverMixedOperation.h"
 #include "COM_AlphaOverPremultiplyOperation.h"
-#include "COM_MixOperation.h"
-
-#include "COM_SetValueOperation.h"
-#include "DNA_material_types.h" /* the ramp types */
 
 namespace blender::compositor {
 

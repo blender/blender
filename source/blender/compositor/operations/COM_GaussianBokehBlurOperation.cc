@@ -17,8 +17,6 @@
  */
 
 #include "COM_GaussianBokehBlurOperation.h"
-#include "BLI_math.h"
-#include "MEM_guardedalloc.h"
 
 #include "RE_pipeline.h"
 

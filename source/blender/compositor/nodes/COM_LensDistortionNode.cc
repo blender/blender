@@ -17,7 +17,6 @@
  */
 
 #include "COM_LensDistortionNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_ProjectorLensDistortionOperation.h"
 #include "COM_ScreenLensDistortionOperation.h"
 

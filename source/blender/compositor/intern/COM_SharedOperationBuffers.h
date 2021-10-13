@@ -19,15 +19,18 @@
 #pragma once
 
 #include "BLI_map.hh"
-#include "BLI_span.hh"
 #include "BLI_vector.hh"
-#include "COM_MemoryBuffer.h"
+
+#include "DNA_vec_types.h"
+
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
-#include <memory>
 
 namespace blender::compositor {
+
+class MemoryBuffer;
+class NodeOperation;
 
 /**
  * Stores and shares operations rendered buffers including render data. Buffers are

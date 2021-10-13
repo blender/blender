@@ -17,7 +17,6 @@
  */
 
 #include "COM_VectorCurveNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_VectorCurveOperation.h"
 
 namespace blender::compositor {

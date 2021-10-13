@@ -18,9 +18,7 @@
 
 #include <climits>
 
-#include "BLI_utildefines.h"
 #include "COM_FastGaussianBlurOperation.h"
-#include "MEM_guardedalloc.h"
 
 namespace blender::compositor {
 

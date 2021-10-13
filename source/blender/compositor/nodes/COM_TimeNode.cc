@@ -17,12 +17,10 @@
  */
 
 #include "COM_TimeNode.h"
-#include "COM_ExecutionSystem.h"
+
 #include "COM_SetValueOperation.h"
 
 #include "BKE_colortools.h"
-
-#include "BLI_utildefines.h"
 
 namespace blender::compositor {
 

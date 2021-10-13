@@ -17,7 +17,6 @@
  */
 
 #include "COM_LuminanceMatteOperation.h"
-#include "BLI_math.h"
 
 #include "IMB_colormanagement.h"
 

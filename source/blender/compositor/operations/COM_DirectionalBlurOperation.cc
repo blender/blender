@@ -19,10 +19,6 @@
 #include "COM_DirectionalBlurOperation.h"
 #include "COM_OpenCLDevice.h"
 
-#include "BLI_math.h"
-
-#include "RE_pipeline.h"
-
 namespace blender::compositor {
 
 DirectionalBlurOperation::DirectionalBlurOperation()

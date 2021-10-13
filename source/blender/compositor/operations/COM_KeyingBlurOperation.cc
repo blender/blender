@@ -18,11 +18,6 @@
 
 #include "COM_KeyingBlurOperation.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-
 namespace blender::compositor {
 
 KeyingBlurOperation::KeyingBlurOperation()

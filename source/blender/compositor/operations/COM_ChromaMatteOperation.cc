@@ -17,7 +17,6 @@
  */
 
 #include "COM_ChromaMatteOperation.h"
-#include "BLI_math.h"
 
 namespace blender::compositor {
 

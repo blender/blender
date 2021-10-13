@@ -18,7 +18,6 @@
 
 #include "COM_DoubleEdgeMaskNode.h"
 #include "COM_DoubleEdgeMaskOperation.h"
-#include "COM_ExecutionSystem.h"
 
 namespace blender::compositor {
 

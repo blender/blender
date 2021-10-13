@@ -19,8 +19,6 @@
 #pragma once
 
 #include "COM_CurveBaseOperation.h"
-#include "COM_NodeOperation.h"
-#include "DNA_color_types.h"
 
 namespace blender::compositor {
 

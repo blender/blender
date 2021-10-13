@@ -18,32 +18,32 @@
 
 #pragma once
 
+#include <functional>
 #include <list>
-#include <sstream>
-#include <string>
 
 #include "BLI_ghash.h"
 #include "BLI_hash.hh"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
+#include "BLI_rect.h"
+#include "BLI_span.hh"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "COM_Enums.h"
 #include "COM_MemoryBuffer.h"
-#include "COM_MemoryProxy.h"
 #include "COM_MetaData.h"
-#include "COM_Node.h"
 
 #include "clew.h"
+
+#include "DNA_node_types.h"
 
 namespace blender::compositor {
 
 class OpenCLDevice;
 class ReadBufferOperation;
-class WriteBufferOperation;
 class ExecutionSystem;
-
 class NodeOperation;
+class NodeOperationOutput;
+
 typedef NodeOperation SocketReader;
 
 /**

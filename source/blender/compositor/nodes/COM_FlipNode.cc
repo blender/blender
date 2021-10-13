@@ -18,7 +18,6 @@
 
 #include "COM_FlipNode.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_FlipOperation.h"
 
 namespace blender::compositor {

@@ -17,7 +17,6 @@
  */
 
 #include "COM_TextureNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_TextureOperation.h"
 
 namespace blender::compositor {

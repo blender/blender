@@ -16,15 +16,14 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <cstdio>
-#include <list>
+#include "COM_WorkScheduler.h"
 
 #include "COM_CPUDevice.h"
+#include "COM_CompositorContext.h"
+#include "COM_ExecutionGroup.h"
 #include "COM_OpenCLDevice.h"
 #include "COM_OpenCLKernels.cl.h"
-#include "COM_WorkScheduler.h"
 #include "COM_WriteBufferOperation.h"
-#include "COM_compositor.h"
 
 #include "clew.h"
 
@@ -33,7 +32,6 @@
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_vector.hh"
-#include "PIL_time.h"
 
 #include "BKE_global.h"
 

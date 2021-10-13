@@ -18,8 +18,6 @@
 
 #include "COM_MathBaseOperation.h"
 
-#include "BLI_math.h"
-
 namespace blender::compositor {
 
 MathBaseOperation::MathBaseOperation()

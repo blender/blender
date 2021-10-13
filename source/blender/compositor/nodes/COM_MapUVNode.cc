@@ -17,7 +17,6 @@
  */
 
 #include "COM_MapUVNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_MapUVOperation.h"
 
 namespace blender::compositor {

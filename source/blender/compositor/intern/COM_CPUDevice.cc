@@ -19,8 +19,7 @@
 #include "COM_CPUDevice.h"
 
 #include "COM_ExecutionGroup.h"
-
-#include "BLI_rect.h"
+#include "COM_NodeOperation.h"
 
 namespace blender::compositor {
 

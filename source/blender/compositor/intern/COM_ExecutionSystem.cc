@@ -18,14 +18,13 @@
 
 #include "COM_ExecutionSystem.h"
 
-#include "BLI_utildefines.h"
-#include "PIL_time.h"
-
 #include "COM_Debug.h"
+#include "COM_ExecutionGroup.h"
 #include "COM_FullFrameExecutionModel.h"
 #include "COM_NodeOperation.h"
 #include "COM_NodeOperationBuilder.h"
 #include "COM_TiledExecutionModel.h"
+#include "COM_WorkPackage.h"
 #include "COM_WorkScheduler.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC

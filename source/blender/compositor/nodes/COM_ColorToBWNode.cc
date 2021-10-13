@@ -19,7 +19,6 @@
 #include "COM_ColorToBWNode.h"
 
 #include "COM_ConvertOperation.h"
-#include "COM_ExecutionSystem.h"
 
 namespace blender::compositor {
 

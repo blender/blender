@@ -18,7 +18,7 @@
 
 #include "COM_HueSaturationValueCorrectOperation.h"
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_colortools.h"
 

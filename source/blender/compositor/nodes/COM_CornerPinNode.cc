@@ -16,7 +16,6 @@
  */
 
 #include "COM_CornerPinNode.h"
-#include "COM_ExecutionSystem.h"
 
 #include "COM_PlaneCornerPinOperation.h"
 

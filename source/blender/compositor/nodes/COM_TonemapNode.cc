@@ -17,7 +17,6 @@
  */
 
 #include "COM_TonemapNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_TonemapOperation.h"
 
 namespace blender::compositor {

@@ -18,8 +18,6 @@
 
 #include "COM_BilateralBlurNode.h"
 #include "COM_BilateralBlurOperation.h"
-#include "COM_ExecutionSystem.h"
-#include "DNA_node_types.h"
 
 namespace blender::compositor {
 

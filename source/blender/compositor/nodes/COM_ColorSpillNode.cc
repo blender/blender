@@ -17,7 +17,6 @@
  */
 
 #include "COM_ColorSpillNode.h"
-#include "BKE_node.h"
 #include "COM_ColorSpillOperation.h"
 
 namespace blender::compositor {

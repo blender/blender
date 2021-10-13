@@ -22,9 +22,6 @@
 #include "BKE_image.h"
 #include "BKE_node.h"
 
-#include "BLI_listbase.h"
-#include "BLI_threads.h"
-
 namespace blender::compositor {
 
 TextureBaseOperation::TextureBaseOperation()

@@ -17,12 +17,9 @@
  */
 
 #include "COM_TransformNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_RotateOperation.h"
 #include "COM_ScaleOperation.h"
 #include "COM_SetSamplerOperation.h"
-#include "COM_SetValueOperation.h"
-#include "COM_TransformOperation.h"
 #include "COM_TranslateOperation.h"
 
 namespace blender::compositor {

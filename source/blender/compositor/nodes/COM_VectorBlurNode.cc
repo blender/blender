@@ -18,7 +18,6 @@
 
 #include "COM_VectorBlurNode.h"
 #include "COM_VectorBlurOperation.h"
-#include "DNA_node_types.h"
 
 namespace blender::compositor {
 

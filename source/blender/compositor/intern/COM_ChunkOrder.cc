@@ -16,9 +16,9 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include "COM_ChunkOrder.h"
+#include <cfloat>
 
-#include "BLI_math.h"
+#include "COM_ChunkOrder.h"
 
 namespace blender::compositor {
 

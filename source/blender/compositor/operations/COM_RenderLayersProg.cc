@@ -18,19 +18,7 @@
 
 #include "COM_RenderLayersProg.h"
 
-#include "COM_MetaData.h"
-
 #include "BKE_image.h"
-#include "BKE_scene.h"
-
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_string_ref.hh"
-
-#include "DNA_scene_types.h"
-
-#include "RE_pipeline.h"
-#include "RE_texture.h"
 
 namespace blender::compositor {
 

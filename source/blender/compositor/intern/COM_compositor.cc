@@ -24,10 +24,8 @@
 #include "BKE_scene.h"
 
 #include "COM_ExecutionSystem.h"
-#include "COM_MovieDistortionOperation.h"
 #include "COM_WorkScheduler.h"
 #include "COM_compositor.h"
-#include "clew.h"
 
 static struct {
   bool is_initialized = false;

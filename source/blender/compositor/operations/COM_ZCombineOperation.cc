@@ -17,7 +17,6 @@
  */
 
 #include "COM_ZCombineOperation.h"
-#include "BLI_utildefines.h"
 
 namespace blender::compositor {
 

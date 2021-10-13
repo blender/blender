@@ -22,9 +22,6 @@
 
 #include "DNA_node_types.h"
 
-#include <algorithm>
-#include <string>
-
 /* common node includes
  * added here so node files don't have to include themselves
  */

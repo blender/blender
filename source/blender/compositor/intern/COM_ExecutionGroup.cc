@@ -16,35 +16,20 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <algorithm>
-#include <cmath>
-#include <cstdlib>
-#include <sstream>
-
-#include "atomic_ops.h"
-
+#include "COM_ExecutionGroup.h"
 #include "COM_ChunkOrder.h"
 #include "COM_Debug.h"
-#include "COM_ExecutionGroup.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_ReadBufferOperation.h"
 #include "COM_ViewerOperation.h"
 #include "COM_WorkScheduler.h"
 #include "COM_WriteBufferOperation.h"
 #include "COM_defines.h"
 
-#include "BLI_math.h"
 #include "BLI_rand.hh"
-#include "BLI_string.h"
 
 #include "BLT_translation.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "PIL_time.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
 
 namespace blender::compositor {
 

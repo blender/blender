@@ -17,7 +17,6 @@
  */
 
 #include "COM_GlareFogGlowOperation.h"
-#include "MEM_guardedalloc.h"
 
 namespace blender::compositor {
 

@@ -18,12 +18,7 @@
 
 #include "COM_BokehBlurNode.h"
 #include "COM_BokehBlurOperation.h"
-#include "COM_ConvertDepthToRadiusOperation.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_VariableSizeBokehBlurOperation.h"
-#include "DNA_camera_types.h"
-#include "DNA_node_types.h"
-#include "DNA_object_types.h"
 
 namespace blender::compositor {
 

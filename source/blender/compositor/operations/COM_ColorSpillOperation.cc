@@ -17,7 +17,6 @@
  */
 
 #include "COM_ColorSpillOperation.h"
-#include "BLI_math.h"
 #define AVG(a, b) ((a + b) / 2)
 
 namespace blender::compositor {

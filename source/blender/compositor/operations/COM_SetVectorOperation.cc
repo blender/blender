@@ -17,7 +17,6 @@
  */
 
 #include "COM_SetVectorOperation.h"
-#include "COM_defines.h"
 
 namespace blender::compositor {
 

@@ -17,11 +17,7 @@
  */
 
 #include "COM_VariableSizeBokehBlurOperation.h"
-#include "BLI_math.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_OpenCLDevice.h"
-
-#include "RE_pipeline.h"
 
 namespace blender::compositor {
 

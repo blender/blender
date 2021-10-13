@@ -17,7 +17,6 @@
  */
 
 #include "COM_GlareGhostOperation.h"
-#include "BLI_math.h"
 #include "COM_FastGaussianBlurOperation.h"
 
 namespace blender::compositor {

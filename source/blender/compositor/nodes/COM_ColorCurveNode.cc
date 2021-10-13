@@ -18,7 +18,6 @@
 
 #include "COM_ColorCurveNode.h"
 #include "COM_ColorCurveOperation.h"
-#include "COM_ExecutionSystem.h"
 
 namespace blender::compositor {
 

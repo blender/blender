@@ -18,9 +18,7 @@
 
 #include "COM_MovieDistortionNode.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_MovieDistortionOperation.h"
-#include "DNA_movieclip_types.h"
 
 namespace blender::compositor {
 

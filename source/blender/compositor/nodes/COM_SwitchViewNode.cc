@@ -17,7 +17,6 @@
  */
 
 #include "COM_SwitchViewNode.h"
-#include "BLI_listbase.h"
 
 namespace blender::compositor {
 

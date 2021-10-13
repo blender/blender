@@ -19,9 +19,6 @@
 #include "COM_ProjectorLensDistortionOperation.h"
 #include "COM_ConstantOperation.h"
 
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
-
 namespace blender::compositor {
 
 ProjectorLensDistortionOperation::ProjectorLensDistortionOperation()

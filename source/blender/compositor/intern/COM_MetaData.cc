@@ -22,8 +22,6 @@
 
 #include "RE_pipeline.h"
 
-#include <string_view>
-
 namespace blender::compositor {
 
 void MetaData::add(const blender::StringRef key, const blender::StringRef value)

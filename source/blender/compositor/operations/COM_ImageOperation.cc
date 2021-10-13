@@ -18,18 +18,11 @@
 
 #include "COM_ImageOperation.h"
 
-#include "BKE_image.h"
 #include "BKE_scene.h"
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-#include "DNA_image_types.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-
-#include "RE_pipeline.h"
-#include "RE_texture.h"
 
 namespace blender::compositor {
 

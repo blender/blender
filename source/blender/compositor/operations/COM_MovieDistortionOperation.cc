@@ -19,9 +19,6 @@
 #include "COM_MovieDistortionOperation.h"
 
 #include "BKE_movieclip.h"
-#include "BKE_tracking.h"
-
-#include "BLI_linklist.h"
 
 namespace blender::compositor {
 

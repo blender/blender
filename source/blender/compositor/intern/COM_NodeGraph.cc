@@ -18,17 +18,12 @@
 
 #include <cstring>
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
-
 #include "DNA_node_types.h"
 
 #include "BKE_node.h"
 
-#include "COM_CompositorContext.h"
 #include "COM_Converter.h"
 #include "COM_Debug.h"
-#include "COM_Node.h"
 #include "COM_SocketProxyNode.h"
 
 #include "COM_NodeGraph.h" /* own include */

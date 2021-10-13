@@ -17,12 +17,6 @@
  */
 
 #include "COM_AntiAliasOperation.h"
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "RE_texture.h"
 
 namespace blender::compositor {
 

@@ -20,12 +20,19 @@ class OpenCLDevice;
 
 #pragma once
 
+#include <list>
+
 #include "COM_Device.h"
-#include "COM_ReadBufferOperation.h"
-#include "COM_WorkScheduler.h"
+
 #include "clew.h"
 
 namespace blender::compositor {
+
+class NodeOperation;
+class MemoryBuffer;
+class ReadBufferOperation;
+
+typedef NodeOperation SocketReader;
 
 /**
  * \brief device representing an GPU OpenCL device.

@@ -18,7 +18,6 @@
 
 #include "COM_InvertNode.h"
 #include "BKE_node.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_InvertOperation.h"
 
 namespace blender::compositor {

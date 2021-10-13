@@ -17,7 +17,6 @@
  */
 
 #include "COM_ValueNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_SetValueOperation.h"
 
 namespace blender::compositor {

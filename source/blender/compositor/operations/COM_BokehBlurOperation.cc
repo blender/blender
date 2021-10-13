@@ -19,10 +19,7 @@
 #include "COM_BokehBlurOperation.h"
 #include "COM_ConstantOperation.h"
 
-#include "BLI_math.h"
 #include "COM_OpenCLDevice.h"
-
-#include "RE_pipeline.h"
 
 namespace blender::compositor {
 

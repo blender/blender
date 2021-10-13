@@ -17,9 +17,6 @@
  */
 #include "COM_DenoiseNode.h"
 #include "COM_DenoiseOperation.h"
-#include "COM_MixOperation.h"
-#include "COM_SetValueOperation.h"
-#include "DNA_node_types.h"
 
 namespace blender::compositor {
 

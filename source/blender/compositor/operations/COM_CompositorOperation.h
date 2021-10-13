@@ -18,8 +18,6 @@
 
 #pragma once
 
-#include "BLI_rect.h"
-#include "BLI_string.h"
 #include "COM_MultiThreadedOperation.h"
 
 struct Scene;

@@ -17,11 +17,10 @@
  */
 
 #include "COM_ScreenLensDistortionOperation.h"
+
 #include "COM_ConstantOperation.h"
 
-#include "BLI_math.h"
 #include "BLI_rand.h"
-#include "BLI_utildefines.h"
 
 #include "PIL_time.h"
 

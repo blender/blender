@@ -17,9 +17,6 @@
  */
 
 #include "COM_BilateralBlurOperation.h"
-#include "BLI_math.h"
-
-#include "RE_pipeline.h"
 
 namespace blender::compositor {
 

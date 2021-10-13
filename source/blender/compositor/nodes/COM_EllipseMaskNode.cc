@@ -18,7 +18,6 @@
 
 #include "COM_EllipseMaskNode.h"
 #include "COM_EllipseMaskOperation.h"
-#include "COM_ExecutionSystem.h"
 
 #include "COM_ScaleOperation.h"
 #include "COM_SetValueOperation.h"

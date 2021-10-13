@@ -18,18 +18,11 @@
 
 #include "COM_CryptomatteNode.h"
 #include "BKE_node.h"
-#include "BLI_assert.h"
-#include "BLI_hash_mm3.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
 #include "COM_ConvertOperation.h"
-#include "COM_CryptomatteOperation.h"
 #include "COM_MultilayerImageOperation.h"
 #include "COM_RenderLayersProg.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 #include "COM_SetColorOperation.h"
-#include <iterator>
-#include <string>
 
 namespace blender::compositor {
 

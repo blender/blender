@@ -19,7 +19,6 @@
 #include "COM_TrackPositionNode.h"
 
 #include "COM_ConvertOperation.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_TrackPositionOperation.h"
 
 #include "DNA_movieclip_types.h"

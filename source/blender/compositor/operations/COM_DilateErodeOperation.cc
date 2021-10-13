@@ -17,10 +17,7 @@
  */
 
 #include "COM_DilateErodeOperation.h"
-#include "BLI_math.h"
 #include "COM_OpenCLDevice.h"
-
-#include "MEM_guardedalloc.h"
 
 namespace blender::compositor {
 

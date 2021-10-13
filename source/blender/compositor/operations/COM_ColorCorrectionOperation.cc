@@ -17,7 +17,6 @@
  */
 
 #include "COM_ColorCorrectionOperation.h"
-#include "BLI_math.h"
 
 #include "IMB_colormanagement.h"
 

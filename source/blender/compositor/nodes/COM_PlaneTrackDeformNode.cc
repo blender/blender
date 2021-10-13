@@ -17,13 +17,8 @@
  */
 
 #include "COM_PlaneTrackDeformNode.h"
-#include "COM_ExecutionSystem.h"
 
 #include "COM_PlaneTrackOperation.h"
-
-#include "BKE_movieclip.h"
-#include "BKE_node.h"
-#include "BKE_tracking.h"
 
 namespace blender::compositor {
 

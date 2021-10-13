@@ -19,9 +19,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "COM_InpaintOperation.h"
-#include "COM_OpenCLDevice.h"
-
-#include "BLI_math.h"
 
 namespace blender::compositor {
 

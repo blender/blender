@@ -18,7 +18,6 @@
 
 #include "COM_MapRangeNode.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_MapRangeOperation.h"
 
 namespace blender::compositor {
