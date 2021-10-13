@@ -4891,6 +4891,7 @@ static int drop_world_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  id_us_min((ID *)scene->world);
   id_us_plus(&world->id);
   scene->world = world;
 
