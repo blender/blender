@@ -862,15 +862,7 @@ ccl_device void shader_eval_displacement(INTEGRATOR_STATE_CONST_ARGS, ccl_privat
 #endif
 }
 
-/* Transparent Shadows */
-
-#ifdef __TRANSPARENT_SHADOWS__
-ccl_device bool shader_transparent_shadow(ccl_global const KernelGlobals *kg,
-                                          ccl_private Intersection *isect)
-{
-  return (intersection_get_shader_flags(kg, isect) & SD_HAS_TRANSPARENT_SHADOW) != 0;
-}
-#endif /* __TRANSPARENT_SHADOWS__ */
+/* Cryptomatte */
 
 ccl_device float shader_cryptomatte_id(ccl_global const KernelGlobals *kg, int shader)
 {

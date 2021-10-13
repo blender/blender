@@ -140,14 +140,12 @@ ccl_device_inline void sort_intersections_and_normals(ccl_private Intersection *
 /* Utility to quickly get flags from an intersection. */
 
 ccl_device_forceinline int intersection_get_shader_flags(
-    ccl_global const KernelGlobals *ccl_restrict kg,
-    ccl_private const Intersection *ccl_restrict isect)
+    ccl_global const KernelGlobals *ccl_restrict kg, const int prim, const int type)
 {
-  const int prim = isect->prim;
   int shader = 0;
 
 #ifdef __HAIR__
-  if (isect->type & PRIMITIVE_ALL_TRIANGLE)
+  if (type & PRIMITIVE_ALL_TRIANGLE)
 #endif
   {
     shader = kernel_tex_fetch(__tri_shader, prim);
@@ -193,6 +191,35 @@ ccl_device_forceinline int intersection_get_object_flags(
     ccl_private const Intersection *ccl_restrict isect)
 {
   return kernel_tex_fetch(__object_flag, isect->object);
+}
+
+/* TODO: find a better (faster) solution for this. Maybe store offset per object for
+ * attributes needed in intersection? */
+ccl_device_inline int intersection_find_attribute(ccl_global const KernelGlobals *kg,
+                                                  const int object,
+                                                  const uint id)
+{
+  uint attr_offset = kernel_tex_fetch(__objects, object).attribute_map_offset;
+  uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+
+  while (attr_map.x != id) {
+    if (UNLIKELY(attr_map.x == ATTR_STD_NONE)) {
+      if (UNLIKELY(attr_map.y == 0)) {
+        return (int)ATTR_STD_NOT_FOUND;
+      }
+      else {
+        /* Chain jump to a different part of the table. */
+        attr_offset = attr_map.z;
+      }
+    }
+    else {
+      attr_offset += ATTR_PRIM_TYPES;
+    }
+    attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+  }
+
+  /* return result */
+  return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
 }
 
 CCL_NAMESPACE_END

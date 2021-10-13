@@ -81,7 +81,7 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       kernel_embree_convert_hit(kg, ray, hit, &current_isect);
 
       /* If no transparent shadows, all light is blocked. */
-      const int flags = intersection_get_shader_flags(kg, &current_isect);
+      const int flags = intersection_get_shader_flags(kg, current_isect.prim, current_isect.type);
       if (!(flags & (SD_HAS_TRANSPARENT_SHADOW)) || ctx->max_hits == 0) {
         ctx->opaque_hit = true;
         return;
