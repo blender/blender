@@ -96,7 +96,7 @@ static void pad_pixels(const BufferParams &buffer_params,
     return;
   }
 
-  const size_t size = buffer_params.width * buffer_params.height;
+  const size_t size = static_cast<size_t>(buffer_params.width) * buffer_params.height;
   if (destination.pixels) {
     float *pixel = destination.pixels;
 
