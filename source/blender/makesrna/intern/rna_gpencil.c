@@ -906,7 +906,8 @@ static void rna_GPencil_stroke_remove(ID *id,
     return;
   }
 
-  BLI_freelinkN(&frame->strokes, stroke);
+  BLI_remlink(&frame->strokes, stroke);
+  BKE_gpencil_free_stroke(stroke);
   RNA_POINTER_INVALIDATE(stroke_ptr);
 
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
