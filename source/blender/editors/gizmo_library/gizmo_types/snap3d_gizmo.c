@@ -379,7 +379,7 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
 
     float dist_px = 12.0f * U.pixelsize;
 
-    ED_gizmotypes_snap_3d_context_ensure(scene, region, v3d, gz);
+    ED_gizmotypes_snap_3d_context_ensure(scene, gz);
     snap_elem = ED_transform_snap_object_project_view3d_ex(
         snap_gizmo->snap_context_v3d,
         depsgraph,
