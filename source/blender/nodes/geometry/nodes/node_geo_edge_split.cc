@@ -48,7 +48,7 @@ static Mesh *mesh_edge_split(const Mesh &mesh, const IndexMask selection)
 
   BM_mesh_edgesplit(bm, false, true, false);
 
-  Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, &mesh);
+  Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, &mesh);
   BM_mesh_free(bm);
 
   BKE_mesh_normals_tag_dirty(result);

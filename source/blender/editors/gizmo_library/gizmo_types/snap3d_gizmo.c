@@ -576,7 +576,7 @@ static void snap_gizmo_setup(wmGizmo *gz)
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
   wmKeyConfig *keyconf = gz->parent_gzgroup->type->keyconf;
   if (!keyconf) {
-    /* It can happen when gizmogrouptype is not linked at startup. */
+    /* It can happen when gizmo-group-type is not linked at startup. */
     keyconf = ((wmWindowManager *)G.main->wm.first)->defaultconf;
   }
   snap_gizmo->keymap = WM_modalkeymap_find(keyconf, "Generic Gizmo Tweak Modal Map");

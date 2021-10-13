@@ -1214,7 +1214,7 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 
   common_data->ray_type = EEVEE_RAY_GLOSSY;
   common_data->ray_depth = 1.0f;
-  /* Planar reflections are rendered at the hiz resolution, so no need to scalling. */
+  /* Planar reflections are rendered at the `hiz` resolution, so no need to scaling. */
   copy_v2_fl(common_data->hiz_uv_scale, 1.0f);
 
   GPU_uniformbuf_update(sldata->common_ubo, &sldata->common_data);
@@ -1240,7 +1240,7 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
   }
 
   if (DRW_state_is_image_render()) {
-    /* Sort transparents because planar reflections could have re-sorted them. */
+    /* Sort the transparent passes because planar reflections could have re-sorted them. */
     DRW_pass_sort_shgroup_z(vedata->psl->transparent_pass);
   }
 
