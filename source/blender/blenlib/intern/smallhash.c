@@ -19,12 +19,12 @@
 
 #ifdef __GNUC__
 /* I can't even *cast* signed ints in gcc's sign-conversion warning? gcc 10.3.0 -joeedh */
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#  pragma GCC diagnostic ignored "-Wsign-conversion"
 #endif
 
 #ifdef __GNUC__
 /* I can't even *cast* signed ints in gcc's sign-conversion warning? gcc 10.3.0 -joeedh */
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#  pragma GCC diagnostic ignored "-Wsign-conversion"
 #endif
 
 /** \file
@@ -335,13 +335,16 @@ bool BLI_smallhash_ensure_p(SmallHash *sh, uintptr_t key, void ***item)
   if (e->val == SMHASH_CELL_FREE || e->val == SMHASH_CELL_UNUSED) {
     sh->nentries++;
     sh->nfreecells--;
+
     ret = false;
+    e->val = NULL;
   }
   else {
     ret = true;
   }
 
   e->key = key;
+
   *item = &e->val;
 
   return ret;

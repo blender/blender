@@ -46,6 +46,20 @@ typedef struct BMLogCallbacks {
   void *userdata;
 } BMLogCallbacks;
 
+//#define DEBUG_LOG_CALL_STACKS
+
+#ifdef DEBUG_LOG_CALL_STACKS
+void _bm_logstack_pop();
+const char *_bm_logstack_head();
+void _bm_logstack_push(const char *name);
+#  define bm_logstack_push() _bm_logstack_push(__func__)
+#  define bm_logstack_pop() _bm_logstack_pop()
+#else
+#  define bm_logstack_push()
+#  define bm_logstack_head ""
+#  define bm_logstack_pop()
+#endif
+
 /* Allocate and initialize a new BMLog */
 BMLog *BM_log_create(BMesh *bm, int cd_sculpt_vert);
 void BM_log_set_cd_offsets(BMLog *log, int cd_sculpt_vert);
@@ -160,3 +174,15 @@ int BM_log_entry_size(BMLogEntry *entry);
 bool BM_log_has_vert(BMLog *log, BMVert *v);
 bool BM_log_has_edge(BMLog *log, BMEdge *e);
 bool BM_log_has_face(BMLog *log, BMFace *f);
+
+/*Log an edge before changing its topological connections*/
+void BM_log_edge_topo_pre(BMLog *log, BMEdge *f);
+
+/*Log an edge after changing its topological connections*/
+void BM_log_edge_topo_post(BMLog *log, BMEdge *f);
+
+/*Log a face before changing its topological connections*/
+void BM_log_face_topo_pre(BMLog *log, BMFace *f);
+
+/*Log a face after changing its topological connections*/
+void BM_log_face_topo_post(BMLog *log, BMFace *f);

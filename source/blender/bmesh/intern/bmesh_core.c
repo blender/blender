@@ -27,6 +27,7 @@
 #include "BLI_asan.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_math_vector.h"
+#include "BLI_smallhash.h"
 #include "BLI_utildefines_stack.h"
 
 #include "BLT_translation.h"
@@ -39,6 +40,8 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 #include "range_tree.h"
+
+#include <stdarg.h>
 
 /* use so valgrinds memcheck alerts us when undefined index is used.
  * TESTING ONLY! */
@@ -581,6 +584,41 @@ BMFace *BM_face_create_verts(BMesh *bm,
   return BM_face_create(bm, vert_arr, edge_arr, len, f_example, create_flag);
 }
 
+typedef enum {
+  IS_OK = 0,
+  IS_NULL = (1 << 0),
+  IS_WRONG_TYPE = (1 << 1),
+
+  IS_VERT_WRONG_EDGE_TYPE = (1 << 2),
+
+  IS_EDGE_NULL_DISK_LINK = (1 << 3),
+  IS_EDGE_WRONG_LOOP_TYPE = (1 << 4),
+  IS_EDGE_WRONG_FACE_TYPE = (1 << 5),
+  IS_EDGE_NULL_RADIAL_LINK = (1 << 6),
+  IS_EDGE_ZERO_FACE_LENGTH = (1 << 7),
+
+  IS_LOOP_WRONG_FACE_TYPE = (1 << 8),
+  IS_LOOP_WRONG_EDGE_TYPE = (1 << 9),
+  IS_LOOP_WRONG_VERT_TYPE = (1 << 10),
+  IS_LOOP_VERT_NOT_IN_EDGE = (1 << 11),
+  IS_LOOP_NULL_CYCLE_LINK = (1 << 12),
+  IS_LOOP_ZERO_FACE_LENGTH = (1 << 13),
+  IS_LOOP_WRONG_FACE_LENGTH = (1 << 14),
+  IS_LOOP_WRONG_RADIAL_LENGTH = (1 << 15),
+
+  IS_FACE_NULL_LOOP = (1 << 16),
+  IS_FACE_WRONG_LOOP_FACE = (1 << 17),
+  IS_FACE_NULL_EDGE = (1 << 18),
+  IS_FACE_NULL_VERT = (1 << 19),
+  IS_FACE_LOOP_VERT_NOT_IN_EDGE = (1 << 20),
+  IS_FACE_LOOP_WRONG_RADIAL_LENGTH = (1 << 21),
+  IS_FACE_LOOP_WRONG_DISK_LENGTH = (1 << 22),
+  IS_FACE_LOOP_DUPE_LOOP = (1 << 23),
+  IS_FACE_LOOP_DUPE_VERT = (1 << 24),
+  IS_FACE_LOOP_DUPE_EDGE = (1 << 25),
+  IS_FACE_WRONG_LENGTH = (1 << 26),
+} BMeshInternalError;
+
 #ifndef NDEBUG
 
 /**
@@ -592,39 +630,7 @@ BMFace *BM_face_create_verts(BMesh *bm,
 int bmesh_elem_check(void *element, const char htype)
 {
   BMHeader *head = element;
-  enum {
-    IS_NULL = (1 << 0),
-    IS_WRONG_TYPE = (1 << 1),
-
-    IS_VERT_WRONG_EDGE_TYPE = (1 << 2),
-
-    IS_EDGE_NULL_DISK_LINK = (1 << 3),
-    IS_EDGE_WRONG_LOOP_TYPE = (1 << 4),
-    IS_EDGE_WRONG_FACE_TYPE = (1 << 5),
-    IS_EDGE_NULL_RADIAL_LINK = (1 << 6),
-    IS_EDGE_ZERO_FACE_LENGTH = (1 << 7),
-
-    IS_LOOP_WRONG_FACE_TYPE = (1 << 8),
-    IS_LOOP_WRONG_EDGE_TYPE = (1 << 9),
-    IS_LOOP_WRONG_VERT_TYPE = (1 << 10),
-    IS_LOOP_VERT_NOT_IN_EDGE = (1 << 11),
-    IS_LOOP_NULL_CYCLE_LINK = (1 << 12),
-    IS_LOOP_ZERO_FACE_LENGTH = (1 << 13),
-    IS_LOOP_WRONG_FACE_LENGTH = (1 << 14),
-    IS_LOOP_WRONG_RADIAL_LENGTH = (1 << 15),
-
-    IS_FACE_NULL_LOOP = (1 << 16),
-    IS_FACE_WRONG_LOOP_FACE = (1 << 17),
-    IS_FACE_NULL_EDGE = (1 << 18),
-    IS_FACE_NULL_VERT = (1 << 19),
-    IS_FACE_LOOP_VERT_NOT_IN_EDGE = (1 << 20),
-    IS_FACE_LOOP_WRONG_RADIAL_LENGTH = (1 << 21),
-    IS_FACE_LOOP_WRONG_DISK_LENGTH = (1 << 22),
-    IS_FACE_LOOP_DUPE_LOOP = (1 << 23),
-    IS_FACE_LOOP_DUPE_VERT = (1 << 24),
-    IS_FACE_LOOP_DUPE_EDGE = (1 << 25),
-    IS_FACE_WRONG_LENGTH = (1 << 26),
-  } err = 0;
+  BMeshInternalError err = IS_OK;
 
   if (!element) {
     return IS_NULL;
@@ -799,7 +805,7 @@ int bmesh_elem_check(void *element, const char htype)
       break;
   }
 
-  BMESH_ASSERT(err == 0);
+  // BMESH_ASSERT(err == 0);
 
   return err;
 }
@@ -2150,6 +2156,331 @@ static void check_vert_faces(BMVert *v_target)
   }
 }
 
+#ifdef _
+#  undef _
+#endif
+
+#define _(s) \
+  case s: \
+    return #s;
+
+static const char *get_err_code_str(BMeshInternalError code)
+{
+  switch (code) {
+    _(IS_OK)
+    _(IS_NULL)
+    _(IS_WRONG_TYPE)
+
+    _(IS_VERT_WRONG_EDGE_TYPE)
+
+    _(IS_EDGE_NULL_DISK_LINK)
+    _(IS_EDGE_WRONG_LOOP_TYPE)
+    _(IS_EDGE_WRONG_FACE_TYPE)
+    _(IS_EDGE_NULL_RADIAL_LINK)
+    _(IS_EDGE_ZERO_FACE_LENGTH)
+
+    _(IS_LOOP_WRONG_FACE_TYPE)
+    _(IS_LOOP_WRONG_EDGE_TYPE)
+    _(IS_LOOP_WRONG_VERT_TYPE)
+    _(IS_LOOP_VERT_NOT_IN_EDGE)
+    _(IS_LOOP_NULL_CYCLE_LINK)
+    _(IS_LOOP_ZERO_FACE_LENGTH)
+    _(IS_LOOP_WRONG_FACE_LENGTH)
+    _(IS_LOOP_WRONG_RADIAL_LENGTH)
+
+    _(IS_FACE_NULL_LOOP)
+    _(IS_FACE_WRONG_LOOP_FACE)
+    _(IS_FACE_NULL_EDGE)
+    _(IS_FACE_NULL_VERT)
+    _(IS_FACE_LOOP_VERT_NOT_IN_EDGE)
+    _(IS_FACE_LOOP_WRONG_RADIAL_LENGTH)
+    _(IS_FACE_LOOP_WRONG_DISK_LENGTH)
+    _(IS_FACE_LOOP_DUPE_LOOP)
+    _(IS_FACE_LOOP_DUPE_VERT)
+    _(IS_FACE_LOOP_DUPE_EDGE)
+    _(IS_FACE_WRONG_LENGTH)
+  }
+
+  return "(unknown-code)";
+}
+#undef _
+
+static char *get_err_str(int err)
+{
+  static char buf[1024];
+  buf[0] = 0;
+
+  for (int i = 0; i < 27; i++) {
+    if (err & (1 << i)) {
+      strcat(buf, get_err_code_str(1 << i));
+    }
+  }
+
+  return buf;
+}
+
+void bm_local_obj_free(char *str, char *fixed)
+{
+  if (str != fixed) {
+    MEM_freeN(str);
+  }
+}
+
+#define LOCAL_OBJ_SIZE 512
+
+static char *obj_append_line(char *line, char *str, char *fixed, int *size, int *i)
+{
+  int len = (int)strlen(line);
+
+  if (*i + len >= *size) {
+    *size += *size >> 1;
+
+    if (str == fixed) {
+      str = MEM_mallocN(*size, "buf");
+      memcpy(str, fixed, LOCAL_OBJ_SIZE);
+    }
+    else {
+      str = MEM_reallocN(str, *size);
+    }
+  }
+
+  memcpy(str + *i, line, len);
+  str[*i + len] = 0;
+
+  *i += len;
+
+  return str;
+}
+
+static char *bm_save_local_obj_text(
+    BMesh *bm, int depth, char buf[LOCAL_OBJ_SIZE], const char *fmt, ...)
+{
+  va_list vl;
+  va_start(vl, fmt);
+
+  buf[0] = 0;
+
+  BMVert **vs = NULL;
+  BMEdge **es = NULL;
+  BMFace **fs = NULL;
+
+  BLI_array_staticdeclare(vs, 64);
+  BLI_array_staticdeclare(es, 64);
+  BLI_array_staticdeclare(fs, 64);
+
+  SmallHash visit;
+  BLI_smallhash_init(&visit);
+
+  const char *c = fmt;
+  while (*c) {
+    if (*c == ' ' || *c == '\t') {
+      c++;
+      continue;
+    }
+
+    void *ptr = va_arg(vl, void *);
+
+    switch (*c) {
+      case 'v':
+        BLI_array_append(vs, (BMVert *)ptr);
+        break;
+      case 'e':
+        BLI_array_append(es, (BMEdge *)ptr);
+        break;
+      case 'f':
+        BLI_array_append(fs, (BMFace *)ptr);
+        break;
+    }
+
+    c++;
+  }
+
+  va_end(vl);
+
+  int tag = 4;
+  for (int i = 0; i < BLI_array_len(fs); i++) {
+    BMFace *f = fs[i];
+    BMLoop *l = f->l_first;
+
+    do {
+      l->v->head.api_flag &= ~tag;
+      l->e->head.api_flag &= ~tag;
+    } while ((l = l->next) != f->l_first);
+  }
+
+  for (int i = 0; i < BLI_array_len(es); i++) {
+    BMEdge *e = es[i];
+
+    e->v1->head.api_flag &= ~tag;
+    e->v2->head.api_flag &= ~tag;
+  }
+
+  for (int i = 0; i < BLI_array_len(vs); i++) {
+    vs[i]->head.api_flag |= tag;
+  }
+  for (int i = 0; i < BLI_array_len(es); i++) {
+    BMEdge *e = es[i];
+
+    if (!(e->v1->head.api_flag & tag)) {
+      BLI_array_append(vs, e->v1);
+      e->v1->head.api_flag |= tag;
+    }
+
+    if (!(e->v2->head.api_flag & tag)) {
+      BLI_array_append(vs, e->v2);
+      e->v2->head.api_flag |= tag;
+    }
+
+    e->head.api_flag |= tag;
+  }
+
+  for (int i = 0; i < BLI_array_len(fs); i++) {
+    BMFace *f = fs[i];
+    BMLoop *l = f->l_first;
+
+    do {
+      if (!(l->v->head.api_flag & tag)) {
+        BLI_array_append(vs, l->v);
+        l->v->head.api_flag |= tag;
+      }
+
+      if (!(l->e->head.api_flag & tag)) {
+        BLI_array_append(es, l->e);
+        l->e->head.api_flag |= tag;
+      }
+    } while ((l = l->next) != f->l_first);
+  }
+
+  struct {
+    BMVert *v;
+    int depth;
+  } stack[256];
+
+  SmallHash elemset;
+  BLI_smallhash_init(&elemset);
+
+  for (int i = 0; i < BLI_array_len(vs); i++) {
+    BLI_smallhash_insert(&elemset, (uintptr_t)vs[i], NULL);
+  }
+  for (int i = 0; i < BLI_array_len(es); i++) {
+    BLI_smallhash_insert(&elemset, (uintptr_t)es[i], NULL);
+  }
+  for (int i = 0; i < BLI_array_len(fs); i++) {
+    BLI_smallhash_insert(&elemset, (uintptr_t)fs[i], NULL);
+  }
+
+  for (int i = 0; i < BLI_array_len(vs); i++) {
+    int si = 0;
+
+    // connected islands only
+    if (i > 0) {
+      break;
+    }
+
+    stack[si].v = vs[i];
+    stack[si].depth = 0;
+    si++;
+
+    while (si > 0) {
+      si--;
+
+      BMVert *v = stack[si].v;
+      int startdepth = stack[si].depth;
+
+      void **val;
+
+      if (!BLI_smallhash_ensure_p(&elemset, (uintptr_t)v, &val)) {
+        *val = NULL;
+        BLI_array_append(vs, v);
+      }
+
+      if (!v->e || stack[si].depth > depth) {
+        continue;
+      }
+
+      BMEdge *e = v->e;
+      do {
+        if (!BLI_smallhash_ensure_p(&visit, (uintptr_t)e, &val)) {
+          *val = NULL;
+          stack[si].v = e->v1;
+          stack[si].depth = startdepth + 1;
+          si++;
+
+          stack[si].v = e->v2;
+          stack[si].depth = startdepth + 1;
+          si++;
+        }
+
+        if (!e->l) {
+          continue;
+        }
+
+        BMLoop *l = e->l;
+        do {
+          if (!BLI_smallhash_ensure_p(&visit, (uintptr_t)l->f, &val)) {
+            if (!BLI_smallhash_ensure_p(&elemset, (uintptr_t)l->f, &val)) {
+              *val = NULL;
+              BLI_array_append(fs, l->f);
+            }
+
+            BMLoop *l2 = l;
+            do {
+              if (!BLI_smallhash_ensure_p(&visit, (uintptr_t)l->v, &val)) {
+                *val = NULL;
+                stack[si].v = l->v;
+                stack[si].depth = startdepth + 1;
+                si++;
+              }
+            } while ((l2 = l2->next) != l);
+          }
+        } while ((l = l->radial_next) != e->l);
+      } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+    }
+  }
+
+  char *str = buf;
+  int size = LOCAL_OBJ_SIZE - 1;
+  int stri = 0;
+
+  for (int i = 0; i < BLI_array_len(es); i++) {
+    es[i]->head.api_flag &= ~tag;
+  }
+
+  char line[256];
+
+  for (int i = 0; i < BLI_array_len(vs); i++) {
+    BMVert *v = vs[i];
+
+    v->head.index = i + 1;
+    sprintf(line, "v %.4f %.4f %.4f\n", v->co[0], v->co[1], v->co[2]);
+
+    str = obj_append_line(line, str, buf, &size, &stri);
+  }
+
+  for (int i = 0; i < BLI_array_len(fs); i++) {
+    BMFace *f = fs[i];
+    BMLoop *l = f->l_first;
+
+    sprintf(line, "f");
+    str = obj_append_line(line, str, buf, &size, &stri);
+
+    do {
+      sprintf(line, " %d", l->v->head.index);
+      str = obj_append_line(line, str, buf, &size, &stri);
+    } while ((l = l->next) != f->l_first);
+
+    str = obj_append_line("\n", str, buf, &size, &stri);
+  }
+
+  BLI_smallhash_release(&visit);
+  BLI_smallhash_release(&elemset);
+
+  BLI_array_free(vs);
+  BLI_array_free(es);
+  BLI_array_free(fs);
+
+  return str;
+}
 /**
  * \brief Join Vert Kill Edge (JVKE)
  *
@@ -2168,10 +2499,32 @@ static void check_vert_faces(BMVert *v_target)
  * +-+-+-+    +-+-+-+
  * </pre>
  */
+
+static void trigger_jvke_error(int err, char *obj_text)
+{
+  printf("========= ERROR %s============\n\n%s\n\n", get_err_str(err), obj_text);
+}
+
+#if 0
+#  define JVKE_CHECK_ELEMENT(elem) \
+    { \
+      int err = 0; \
+      if ((err = bmesh_elem_check(elem, (elem)->head.htype))) { \
+        trigger_jvke_error(err, saved_obj); \
+      } \
+    }
+#else
+#  define JVKE_CHECK_ELEMENT(elem)
+#endif
+
 BMVert *bmesh_kernel_join_vert_kill_edge(
     BMesh *bm, BMEdge *e, BMVert *v_kill, const bool do_del, const bool combine_flags)
 {
   BMVert *v_conn = BM_edge_other_vert(e, v_kill);
+
+  char buf[LOCAL_OBJ_SIZE];
+  char *saved_obj = bm_save_local_obj_text(bm, 2, buf, "e", e);
+  bm_local_obj_free(saved_obj, buf);
 
   BMFace **fs = NULL;
   BMEdge **deles = NULL;
@@ -2180,6 +2533,9 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
 
   BMVert *v_del = BM_edge_other_vert(e, v_conn);
   const int tag = _FLAG_WALK_ALT;  // using bmhead.api_flag here
+
+  JVKE_CHECK_ELEMENT(v_conn);
+  JVKE_CHECK_ELEMENT(v_del);
 
   /* first clear tags */
   for (int i = 0; i < 2; i++) {
@@ -2284,7 +2640,15 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
 
           if ((e3 = BM_edge_exists(v_conn, v_other))) {
             if (combine_flags) {
+              /* TODO: stop flagging sharp edges by the abscene of the BM_ELEM_SMOOTH flag*/
+              bool remove_smooth = !BM_elem_flag_test(l->e, BM_ELEM_SMOOTH);
+              remove_smooth = remove_smooth || !BM_elem_flag_test(e3, BM_ELEM_SMOOTH);
+
               e3->head.hflag |= l->e->head.hflag;
+
+              if (remove_smooth) {
+                BM_elem_flag_disable(e3, BM_ELEM_SMOOTH);
+              }
             }
 
             /* flag for later deletion */
@@ -2305,7 +2669,12 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
   }
 
   for (int i = 0; i < BLI_array_len(deles); i++) {
-    deles[i]->l = NULL;
+    BMEdge *e2 = deles[i];
+
+    if (e2->l != NULL) {
+      printf("%s: eek!\n", __func__);
+    }
+    e2->l = NULL;
     BM_edge_kill(bm, deles[i]);
   }
 
@@ -2316,7 +2685,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
     /* validate */
     l = f->l_first;
     do {
-      lnext = l->next;
+      lnext = l == l->next ? NULL : l->next;
 
       if (l->v == l->next->v) {
         l->prev->next = l->next;
@@ -2327,9 +2696,14 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
         }
 
         l->f->len--;
+
+        if (l == l->f->l_first) {
+          l->f->l_first = NULL;
+        }
+
         bm_kill_only_loop(bm, l);
       }
-    } while ((l = lnext) != f->l_first);
+    } while (lnext && (l = lnext) != f->l_first);
 
     if (f->len <= 2) {
       /* kill face */
@@ -2375,8 +2749,34 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
     } while ((l = l->next) != f->l_first);
   }
 
+  JVKE_CHECK_ELEMENT(v_conn);
+
+  for (int step = 0; step < 2; step++) {
+    BMVert *v = step ? v_conn : v_del;
+    BMEdge *e1 = v->e;
+
+    if (e1) {
+      do {
+        JVKE_CHECK_ELEMENT(e1);
+
+        BMLoop *l = e1->l;
+        if (!l) {
+          continue;
+        }
+
+        do {
+          JVKE_CHECK_ELEMENT(l);
+          JVKE_CHECK_ELEMENT(l->v);
+          JVKE_CHECK_ELEMENT(l->e);
+          JVKE_CHECK_ELEMENT(l->f);
+        } while ((l = l->radial_next) != e1->l);
+      } while ((e1 = BM_DISK_EDGE_NEXT(e1, v)) != v->e);
+    }
+  }
+
   // printf("v_del: %p, v_conn: %p\n", v_del->e, v_conn->e);
   if (do_del) {
+    JVKE_CHECK_ELEMENT(v_del);
     BM_vert_kill(bm, v_del);
   }
 
