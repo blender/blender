@@ -5809,6 +5809,7 @@ static void registerGeometryNodes()
   register_node_type_geo_proximity();
   register_node_type_geo_raycast();
   register_node_type_geo_realize_instances();
+  register_node_type_geo_rotate_instances();
   register_node_type_geo_sample_texture();
   register_node_type_geo_scale_instances();
   register_node_type_geo_separate_components();

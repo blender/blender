@@ -683,6 +683,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeSeparateGeometry"),
         NodeItem("GeometryNodeSetPosition"),
         NodeItem("GeometryNodeRealizeInstances"),
+        NodeItem("GeometryNodeRotateInstances"),
         NodeItem("GeometryNodeScaleInstances"),
         NodeItem("GeometryNodeTranslateInstances"),
     ]),
