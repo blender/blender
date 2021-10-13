@@ -270,6 +270,8 @@ void BlenderSession::free_session()
 
   delete session;
   session = nullptr;
+
+  display_driver_ = nullptr;
 }
 
 void BlenderSession::full_buffer_written(string_view filename)
@@ -657,8 +659,6 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
   if (!b_v3d)
     return;
 
-  ensure_display_driver_if_needed();
-
   /* on session/scene parameter changes, we recreate session entirely */
   const SessionParams session_params = BlenderSync::get_session_params(
       b_engine, b_userpref, b_scene, background);
@@ -669,6 +669,8 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
     free_session();
     create_session();
   }
+
+  ensure_display_driver_if_needed();
 
   /* increase samples and render time, but never decrease */
   session->set_samples(session_params.samples);
