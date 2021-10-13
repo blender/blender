@@ -1112,24 +1112,41 @@ static void template_ID(const bContext *C,
       UI_but_flag_enable(but, UI_BUT_REDALERT);
     }
 
-    if (!ID_IS_LINKED(id) && !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_OB, ID_WS)) &&
-        (hide_buttons == false)) {
-      uiDefIconButR(block,
-                    UI_BTYPE_ICON_TOGGLE,
-                    0,
-                    ICON_FAKE_USER_OFF,
-                    0,
-                    0,
-                    UI_UNIT_X,
-                    UI_UNIT_Y,
-                    &idptr,
-                    "use_fake_user",
-                    -1,
-                    0,
-                    0,
-                    -1,
-                    -1,
-                    NULL);
+    if (!ID_IS_LINKED(id)) {
+      if (ID_IS_ASSET(id)) {
+        uiDefIconButO(block,
+                      /* Using `_N` version allows us to get the 'active' state by default. */
+                      UI_BTYPE_ICON_TOGGLE_N,
+                      "ASSET_OT_clear",
+                      WM_OP_INVOKE_DEFAULT,
+                      /* 'active' state of a toggle button uses icon + 1, so to get proper asset
+                       * icon we need to pass its value - 1 here. */
+                      ICON_ASSET_MANAGER - 1,
+                      0,
+                      0,
+                      UI_UNIT_X,
+                      UI_UNIT_Y,
+                      NULL);
+      }
+      else if (!(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_OB, ID_WS)) &&
+               (hide_buttons == false)) {
+        uiDefIconButR(block,
+                      UI_BTYPE_ICON_TOGGLE,
+                      0,
+                      ICON_FAKE_USER_OFF,
+                      0,
+                      0,
+                      UI_UNIT_X,
+                      UI_UNIT_Y,
+                      &idptr,
+                      "use_fake_user",
+                      -1,
+                      0,
+                      0,
+                      -1,
+                      -1,
+                      NULL);
+      }
     }
   }
 
