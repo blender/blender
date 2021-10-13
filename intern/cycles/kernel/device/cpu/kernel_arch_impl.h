@@ -114,7 +114,7 @@ DEFINE_INTEGRATOR_SHADE_KERNEL(megakernel)
 
 void KERNEL_FUNCTION_FULL_NAME(shader_eval_displace)(const KernelGlobals *kg,
                                                      const KernelShaderEvalInput *input,
-                                                     float4 *output,
+                                                     float *output,
                                                      const int offset)
 {
 #ifdef KERNEL_STUB
@@ -126,7 +126,7 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_displace)(const KernelGlobals *kg,
 
 void KERNEL_FUNCTION_FULL_NAME(shader_eval_background)(const KernelGlobals *kg,
                                                        const KernelShaderEvalInput *input,
-                                                       float4 *output,
+                                                       float *output,
                                                        const int offset)
 {
 #ifdef KERNEL_STUB

@@ -85,7 +85,8 @@ ccl_device bool integrate_intersect_shadow_transparent(INTEGRATOR_STATE_ARGS,
     if (num_recorded_hits > 0) {
       sort_intersections(isect, num_recorded_hits);
 
-      /* Write intersection result into global integrator state memory. */
+      /* Write intersection result into global integrator state memory.
+       * More efficient may be to do this directly from the intersection kernel. */
       for (int hit = 0; hit < num_recorded_hits; hit++) {
         integrator_state_write_shadow_isect(INTEGRATOR_STATE_PASS, &isect[hit], hit);
       }

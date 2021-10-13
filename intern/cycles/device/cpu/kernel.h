@@ -54,7 +54,7 @@ class CPUKernels {
   /* Shader evaluation. */
 
   using ShaderEvalFunction = CPUKernelFunction<void (*)(
-      const KernelGlobals *kg, const KernelShaderEvalInput *, float4 *, const int)>;
+      const KernelGlobals *kg, const KernelShaderEvalInput *, float *, const int)>;
 
   ShaderEvalFunction shader_eval_displace;
   ShaderEvalFunction shader_eval_background;

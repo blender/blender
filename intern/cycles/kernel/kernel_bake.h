@@ -26,7 +26,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device void kernel_displace_evaluate(ccl_global const KernelGlobals *kg,
                                          ccl_global const KernelShaderEvalInput *input,
-                                         ccl_global float4 *output,
+                                         ccl_global float *output,
                                          const int offset)
 {
   /* Setup shader data. */
@@ -53,12 +53,14 @@ ccl_device void kernel_displace_evaluate(ccl_global const KernelGlobals *kg,
   D = ensure_finite3(D);
 
   /* Write output. */
-  output[offset] += make_float4(D.x, D.y, D.z, 0.0f);
+  output[offset * 3 + 0] += D.x;
+  output[offset * 3 + 1] += D.y;
+  output[offset * 3 + 2] += D.z;
 }
 
 ccl_device void kernel_background_evaluate(ccl_global const KernelGlobals *kg,
                                            ccl_global const KernelShaderEvalInput *input,
-                                           ccl_global float4 *output,
+                                           ccl_global float *output,
                                            const int offset)
 {
   /* Setup ray */
@@ -88,7 +90,9 @@ ccl_device void kernel_background_evaluate(ccl_global const KernelGlobals *kg,
   color = ensure_finite3(color);
 
   /* Write output. */
-  output[offset] += make_float4(color.x, color.y, color.z, 0.0f);
+  output[offset * 3 + 0] += color.x;
+  output[offset * 3 + 1] += color.y;
+  output[offset * 3 + 2] += color.z;
 }
 
 CCL_NAMESPACE_END

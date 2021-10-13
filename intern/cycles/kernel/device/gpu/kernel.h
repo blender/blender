@@ -615,7 +615,7 @@ KERNEL_FILM_CONVERT_DEFINE(float4, rgba)
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     kernel_gpu_shader_eval_displace(KernelShaderEvalInput *input,
-                                    float4 *output,
+                                    float *output,
                                     const int offset,
                                     const int work_size)
 {
@@ -629,7 +629,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     kernel_gpu_shader_eval_background(KernelShaderEvalInput *input,
-                                      float4 *output,
+                                      float *output,
                                       const int offset,
                                       const int work_size)
 {
