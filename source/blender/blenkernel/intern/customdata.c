@@ -2595,6 +2595,11 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
     data->layers[index] = data->layers[index - 1];
   }
 
+  /* Clear remaining data on the layer. The original data on the layer has been moved to another
+   * index. Without this, it can happen that information from the previous layer at that index
+   * leaks into the new layer. */
+  memset(data->layers + index, 0, sizeof(CustomDataLayer));
+
   data->layers[index].type = type;
   data->layers[index].flag = flag;
   data->layers[index].data = newlayerdata;
