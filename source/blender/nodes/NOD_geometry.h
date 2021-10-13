@@ -130,6 +130,7 @@ void register_node_type_geo_proximity(void);
 void register_node_type_geo_raycast(void);
 void register_node_type_geo_realize_instances(void);
 void register_node_type_geo_sample_texture(void);
+void register_node_type_geo_scale_instances(void);
 void register_node_type_geo_select_by_handle_type(void);
 void register_node_type_geo_separate_components(void);
 void register_node_type_geo_separate_geometry(void);

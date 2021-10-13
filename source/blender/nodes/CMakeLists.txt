@@ -253,6 +253,7 @@ set(SRC
   geometry/nodes/node_geo_points_to_volume.cc
   geometry/nodes/node_geo_proximity.cc
   geometry/nodes/node_geo_realize_instances.cc
+  geometry/nodes/node_geo_scale_instances.cc
   geometry/nodes/node_geo_separate_components.cc
   geometry/nodes/node_geo_separate_geometry.cc
   geometry/nodes/node_geo_set_curve_handles.cc

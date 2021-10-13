@@ -5810,6 +5810,7 @@ static void registerGeometryNodes()
   register_node_type_geo_raycast();
   register_node_type_geo_realize_instances();
   register_node_type_geo_sample_texture();
+  register_node_type_geo_scale_instances();
   register_node_type_geo_separate_components();
   register_node_type_geo_separate_geometry();
   register_node_type_geo_set_curve_handles();
