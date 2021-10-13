@@ -48,8 +48,8 @@ void BoxMaskOperation::execute_pixel_sampled(float output[4],
   float input_mask[4];
   float input_value[4];
 
-  float rx = x / this->get_width();
-  float ry = y / this->get_height();
+  float rx = x / MAX2(this->get_width() - 1.0f, FLT_EPSILON);
+  float ry = y / MAX2(this->get_height() - 1.0f, FLT_EPSILON);
 
   const float dy = (ry - data_->y) / aspect_ratio_;
   const float dx = rx - data_->x;
@@ -59,10 +59,10 @@ void BoxMaskOperation::execute_pixel_sampled(float output[4],
   input_mask_->read_sampled(input_mask, x, y, sampler);
   input_value_->read_sampled(input_value, x, y, sampler);
 
-  float half_height = data_->height / 2.0f;
-  float half_width = data_->width / 2.0f;
-  bool inside = (rx > data_->x - half_width && rx < data_->x + half_width &&
-                 ry > data_->y - half_height && ry < data_->y + half_height);
+  float half_height = data_->height / 2.0f + FLT_EPSILON;
+  float half_width = data_->width / 2.0f + FLT_EPSILON;
+  bool inside = (rx >= data_->x - half_width && rx <= data_->x + half_width &&
+                 ry >= data_->y - half_height && ry <= data_->y + half_height);
 
   switch (mask_type_) {
     case CMP_NODE_MASKTYPE_ADD:
@@ -144,20 +144,20 @@ void BoxMaskOperation::apply_mask(MemoryBuffer *output,
                                   Span<MemoryBuffer *> inputs,
                                   MaskFunc mask_func)
 {
-  const float op_w = this->get_width();
-  const float op_h = this->get_height();
-  const float half_w = data_->width / 2.0f;
-  const float half_h = data_->height / 2.0f;
+  const float op_last_x = MAX2(this->get_width() - 1.0f, FLT_EPSILON);
+  const float op_last_y = MAX2(this->get_height() - 1.0f, FLT_EPSILON);
+  const float half_w = data_->width / 2.0f + FLT_EPSILON;
+  const float half_h = data_->height / 2.0f + FLT_EPSILON;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
-    const float op_ry = it.y / op_h;
+    const float op_ry = it.y / op_last_y;
     const float dy = (op_ry - data_->y) / aspect_ratio_;
-    const float op_rx = it.x / op_w;
+    const float op_rx = it.x / op_last_x;
     const float dx = op_rx - data_->x;
     const float rx = data_->x + (cosine_ * dx + sine_ * dy);
     const float ry = data_->y + (-sine_ * dx + cosine_ * dy);
 
-    const bool inside = (rx > data_->x - half_w && rx < data_->x + half_w &&
-                         ry > data_->y - half_h && ry < data_->y + half_h);
+    const bool inside = (rx >= data_->x - half_w && rx <= data_->x + half_w &&
+                         ry >= data_->y - half_h && ry <= data_->y + half_h);
     const float *mask = it.in(0);
     const float *value = it.in(1);
     *it.out = mask_func(inside, mask, value);

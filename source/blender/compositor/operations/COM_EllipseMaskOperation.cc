@@ -48,8 +48,8 @@ void EllipseMaskOperation::execute_pixel_sampled(float output[4],
   float input_mask[4];
   float input_value[4];
 
-  float rx = x / this->get_width();
-  float ry = y / this->get_height();
+  float rx = x / MAX2(this->get_width() - 1.0f, FLT_EPSILON);
+  float ry = y / MAX2(this->get_height() - 1.0f, FLT_EPSILON);
 
   const float dy = (ry - data_->y) / aspect_ratio_;
   const float dx = rx - data_->x;
@@ -68,7 +68,7 @@ void EllipseMaskOperation::execute_pixel_sampled(float output[4],
   sy *= sy;
   const float ty = half_height * half_height;
 
-  bool inside = ((sx / tx) + (sy / ty)) < 1.0f;
+  bool inside = ((sx / tx) + (sy / ty)) <= (1.0f + FLT_EPSILON);
 
   switch (mask_type_) {
     case CMP_NODE_MASKTYPE_ADD:
@@ -152,20 +152,20 @@ void EllipseMaskOperation::apply_mask(MemoryBuffer *output,
 {
   const MemoryBuffer *input_mask = inputs[0];
   const MemoryBuffer *input_value = inputs[1];
-  const float op_w = this->get_width();
-  const float op_h = this->get_height();
+  const float op_last_x = MAX2(this->get_width() - 1.0f, FLT_EPSILON);
+  const float op_last_y = MAX2(this->get_height() - 1.0f, FLT_EPSILON);
   const float half_w = data_->width / 2.0f;
   const float half_h = data_->height / 2.0f;
   const float tx = half_w * half_w;
   const float ty = half_h * half_h;
   for (int y = area.ymin; y < area.ymax; y++) {
-    const float op_ry = y / op_h;
+    const float op_ry = y / op_last_y;
     const float dy = (op_ry - data_->y) / aspect_ratio_;
     float *out = output->get_elem(area.xmin, y);
     const float *mask = input_mask->get_elem(area.xmin, y);
     const float *value = input_value->get_elem(area.xmin, y);
     for (int x = area.xmin; x < area.xmax; x++) {
-      const float op_rx = x / op_w;
+      const float op_rx = x / op_last_x;
       const float dx = op_rx - data_->x;
       const float rx = data_->x + (cosine_ * dx + sine_ * dy);
       const float ry = data_->y + (-sine_ * dx + cosine_ * dy);
@@ -173,7 +173,7 @@ void EllipseMaskOperation::apply_mask(MemoryBuffer *output,
       sx *= sx;
       float sy = ry - data_->y;
       sy *= sy;
-      const bool inside = ((sx / tx) + (sy / ty)) < 1.0f;
+      const bool inside = ((sx / tx) + (sy / ty)) <= (1.0f + FLT_EPSILON);
       out[0] = mask_func(inside, mask, value);
 
       mask += input_mask->elem_stride;
