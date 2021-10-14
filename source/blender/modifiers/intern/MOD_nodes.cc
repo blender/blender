@@ -151,6 +151,12 @@ static void addIdsUsedBySocket(const ListBase *sockets, Set<ID *> &ids)
         ids.add(&texture->id);
       }
     }
+    else if (socket->type == SOCK_IMAGE) {
+      Image *image = ((bNodeSocketValueImage *)socket->default_value)->value;
+      if (image != nullptr) {
+        ids.add(&image->id);
+      }
+    }
   }
 }
 
@@ -236,6 +242,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
           add_collection_relation(ctx, *collection);
           break;
         }
+        case ID_IM:
         case ID_TE: {
           DEG_add_generic_id_relation(ctx->node, id, "Nodes Modifier");
         }
@@ -420,6 +427,12 @@ static IDProperty *id_property_create_from_socket(const bNodeSocket &socket)
       idprop.id = (ID *)value->value;
       return IDP_New(IDP_ID, &idprop, socket.identifier);
     }
+    case SOCK_IMAGE: {
+      bNodeSocketValueImage *value = (bNodeSocketValueImage *)socket.default_value;
+      IDPropertyTemplate idprop = {0};
+      idprop.id = (ID *)value->value;
+      return IDP_New(IDP_ID, &idprop, socket.identifier);
+    }
     case SOCK_MATERIAL: {
       bNodeSocketValueMaterial *value = (bNodeSocketValueMaterial *)socket.default_value;
       IDPropertyTemplate idprop = {0};
@@ -448,6 +461,7 @@ static bool id_property_type_matches_socket(const bNodeSocket &socket, const IDP
     case SOCK_OBJECT:
     case SOCK_COLLECTION:
     case SOCK_TEXTURE:
+    case SOCK_IMAGE:
     case SOCK_MATERIAL:
       return property.type == IDP_ID;
   }
@@ -515,6 +529,12 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
       ID *id = IDP_Id(&property);
       Tex *texture = (id && GS(id->name) == ID_TE) ? (Tex *)id : nullptr;
       *(Tex **)r_value = texture;
+      break;
+    }
+    case SOCK_IMAGE: {
+      ID *id = IDP_Id(&property);
+      Image *image = (id && GS(id->name) == ID_IM) ? (Image *)id : nullptr;
+      *(Image **)r_value = image;
       break;
     }
     case SOCK_MATERIAL: {
@@ -1143,6 +1163,10 @@ static void draw_property_for_socket(uiLayout *layout,
     }
     case SOCK_TEXTURE: {
       uiItemPointerR(layout, md_ptr, rna_path, bmain_ptr, "textures", socket.name, ICON_TEXTURE);
+      break;
+    }
+    case SOCK_IMAGE: {
+      uiItemPointerR(layout, md_ptr, rna_path, bmain_ptr, "images", socket.name, ICON_IMAGE);
       break;
     }
     default: {

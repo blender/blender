@@ -916,6 +916,9 @@ static void create_inspection_string_for_generic_value(const geo_log::GenericVal
   else if (type.is<Tex *>()) {
     id_to_inspection_string((ID *)*value.get<Tex *>(), ID_TE);
   }
+  else if (type.is<Image *>()) {
+    id_to_inspection_string((ID *)*value.get<Image *>(), ID_IM);
+  }
   else if (type.is<Collection *>()) {
     id_to_inspection_string((ID *)*value.get<Collection *>(), ID_GR);
   }

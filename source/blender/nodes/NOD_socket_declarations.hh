@@ -193,6 +193,13 @@ class Texture : public IDSocketDeclaration {
   Texture();
 };
 
+class Image : public IDSocketDeclaration {
+ public:
+  using Builder = SocketDeclarationBuilder<Image>;
+
+  Image();
+};
+
 class Geometry : public SocketDeclaration {
  public:
   using Builder = SocketDeclarationBuilder<Geometry>;
@@ -336,6 +343,10 @@ inline Collection::Collection() : IDSocketDeclaration("NodeSocketCollection")
 }
 
 inline Texture::Texture() : IDSocketDeclaration("NodeSocketTexture")
+{
+}
+
+inline Image::Image() : IDSocketDeclaration("NodeSocketImage")
 {
 }
 
