@@ -227,6 +227,10 @@ enum {
   WM_OP_EXEC_SCREEN,
 };
 
+#define WM_OP_CONTEXT_HAS_AREA(type) (!ELEM(type, WM_OP_INVOKE_SCREEN, WM_OP_EXEC_SCREEN))
+#define WM_OP_CONTEXT_HAS_REGION(type) \
+  (WM_OP_CONTEXT_HAS_AREA(type) && !ELEM(type, WM_OP_INVOKE_AREA, WM_OP_EXEC_AREA))
+
 /* property tags for RNA_OperatorProperties */
 typedef enum eOperatorPropTags {
   OP_PROP_TAG_ADVANCED = (1 << 0),

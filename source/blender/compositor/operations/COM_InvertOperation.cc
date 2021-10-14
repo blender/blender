@@ -22,53 +22,56 @@ namespace blender::compositor {
 
 InvertOperation::InvertOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
-  this->m_inputValueProgram = nullptr;
-  this->m_inputColorProgram = nullptr;
-  this->m_color = true;
-  this->m_alpha = false;
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
+  input_value_program_ = nullptr;
+  input_color_program_ = nullptr;
+  color_ = true;
+  alpha_ = false;
   set_canvas_input_index(1);
-  this->flags.can_be_constant = true;
+  flags_.can_be_constant = true;
 }
-void InvertOperation::initExecution()
+void InvertOperation::init_execution()
 {
-  this->m_inputValueProgram = this->getInputSocketReader(0);
-  this->m_inputColorProgram = this->getInputSocketReader(1);
+  input_value_program_ = this->get_input_socket_reader(0);
+  input_color_program_ = this->get_input_socket_reader(1);
 }
 
-void InvertOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void InvertOperation::execute_pixel_sampled(float output[4],
+                                            float x,
+                                            float y,
+                                            PixelSampler sampler)
 {
-  float inputValue[4];
-  float inputColor[4];
-  this->m_inputValueProgram->readSampled(inputValue, x, y, sampler);
-  this->m_inputColorProgram->readSampled(inputColor, x, y, sampler);
+  float input_value[4];
+  float input_color[4];
+  input_value_program_->read_sampled(input_value, x, y, sampler);
+  input_color_program_->read_sampled(input_color, x, y, sampler);
 
-  const float value = inputValue[0];
-  const float invertedValue = 1.0f - value;
+  const float value = input_value[0];
+  const float inverted_value = 1.0f - value;
 
-  if (this->m_color) {
-    output[0] = (1.0f - inputColor[0]) * value + inputColor[0] * invertedValue;
-    output[1] = (1.0f - inputColor[1]) * value + inputColor[1] * invertedValue;
-    output[2] = (1.0f - inputColor[2]) * value + inputColor[2] * invertedValue;
+  if (color_) {
+    output[0] = (1.0f - input_color[0]) * value + input_color[0] * inverted_value;
+    output[1] = (1.0f - input_color[1]) * value + input_color[1] * inverted_value;
+    output[2] = (1.0f - input_color[2]) * value + input_color[2] * inverted_value;
   }
   else {
-    copy_v3_v3(output, inputColor);
+    copy_v3_v3(output, input_color);
   }
 
-  if (this->m_alpha) {
-    output[3] = (1.0f - inputColor[3]) * value + inputColor[3] * invertedValue;
+  if (alpha_) {
+    output[3] = (1.0f - input_color[3]) * value + input_color[3] * inverted_value;
   }
   else {
-    output[3] = inputColor[3];
+    output[3] = input_color[3];
   }
 }
 
-void InvertOperation::deinitExecution()
+void InvertOperation::deinit_execution()
 {
-  this->m_inputValueProgram = nullptr;
-  this->m_inputColorProgram = nullptr;
+  input_value_program_ = nullptr;
+  input_color_program_ = nullptr;
 }
 
 void InvertOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -80,7 +83,7 @@ void InvertOperation::update_memory_buffer_partial(MemoryBuffer *output,
     const float inverted_value = 1.0f - value;
     const float *color = it.in(1);
 
-    if (this->m_color) {
+    if (color_) {
       it.out[0] = (1.0f - color[0]) * value + color[0] * inverted_value;
       it.out[1] = (1.0f - color[1]) * value + color[1] * inverted_value;
       it.out[2] = (1.0f - color[2]) * value + color[2] * inverted_value;
@@ -89,7 +92,7 @@ void InvertOperation::update_memory_buffer_partial(MemoryBuffer *output,
       copy_v3_v3(it.out, color);
     }
 
-    if (this->m_alpha) {
+    if (alpha_) {
       it.out[3] = (1.0f - color[3]) * value + color[3] * inverted_value;
     }
     else {

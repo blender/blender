@@ -17,73 +17,74 @@
  */
 
 #include "COM_BoxMaskOperation.h"
-#include "BLI_math.h"
-#include "DNA_node_types.h"
 
 namespace blender::compositor {
 
 BoxMaskOperation::BoxMaskOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Value);
-  this->m_inputMask = nullptr;
-  this->m_inputValue = nullptr;
-  this->m_cosine = 0.0f;
-  this->m_sine = 0.0f;
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Value);
+  input_mask_ = nullptr;
+  input_value_ = nullptr;
+  cosine_ = 0.0f;
+  sine_ = 0.0f;
 }
-void BoxMaskOperation::initExecution()
+void BoxMaskOperation::init_execution()
 {
-  this->m_inputMask = this->getInputSocketReader(0);
-  this->m_inputValue = this->getInputSocketReader(1);
-  const double rad = (double)this->m_data->rotation;
-  this->m_cosine = cos(rad);
-  this->m_sine = sin(rad);
-  this->m_aspectRatio = ((float)this->getWidth()) / this->getHeight();
+  input_mask_ = this->get_input_socket_reader(0);
+  input_value_ = this->get_input_socket_reader(1);
+  const double rad = (double)data_->rotation;
+  cosine_ = cos(rad);
+  sine_ = sin(rad);
+  aspect_ratio_ = ((float)this->get_width()) / this->get_height();
 }
 
-void BoxMaskOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void BoxMaskOperation::execute_pixel_sampled(float output[4],
+                                             float x,
+                                             float y,
+                                             PixelSampler sampler)
 {
-  float inputMask[4];
-  float inputValue[4];
+  float input_mask[4];
+  float input_value[4];
 
-  float rx = x / this->getWidth();
-  float ry = y / this->getHeight();
+  float rx = x / MAX2(this->get_width() - 1.0f, FLT_EPSILON);
+  float ry = y / MAX2(this->get_height() - 1.0f, FLT_EPSILON);
 
-  const float dy = (ry - this->m_data->y) / this->m_aspectRatio;
-  const float dx = rx - this->m_data->x;
-  rx = this->m_data->x + (this->m_cosine * dx + this->m_sine * dy);
-  ry = this->m_data->y + (-this->m_sine * dx + this->m_cosine * dy);
+  const float dy = (ry - data_->y) / aspect_ratio_;
+  const float dx = rx - data_->x;
+  rx = data_->x + (cosine_ * dx + sine_ * dy);
+  ry = data_->y + (-sine_ * dx + cosine_ * dy);
 
-  this->m_inputMask->readSampled(inputMask, x, y, sampler);
-  this->m_inputValue->readSampled(inputValue, x, y, sampler);
+  input_mask_->read_sampled(input_mask, x, y, sampler);
+  input_value_->read_sampled(input_value, x, y, sampler);
 
-  float halfHeight = this->m_data->height / 2.0f;
-  float halfWidth = this->m_data->width / 2.0f;
-  bool inside = (rx > this->m_data->x - halfWidth && rx < this->m_data->x + halfWidth &&
-                 ry > this->m_data->y - halfHeight && ry < this->m_data->y + halfHeight);
+  float half_height = data_->height / 2.0f + FLT_EPSILON;
+  float half_width = data_->width / 2.0f + FLT_EPSILON;
+  bool inside = (rx >= data_->x - half_width && rx <= data_->x + half_width &&
+                 ry >= data_->y - half_height && ry <= data_->y + half_height);
 
-  switch (this->m_maskType) {
+  switch (mask_type_) {
     case CMP_NODE_MASKTYPE_ADD:
       if (inside) {
-        output[0] = MAX2(inputMask[0], inputValue[0]);
+        output[0] = MAX2(input_mask[0], input_value[0]);
       }
       else {
-        output[0] = inputMask[0];
+        output[0] = input_mask[0];
       }
       break;
     case CMP_NODE_MASKTYPE_SUBTRACT:
       if (inside) {
-        output[0] = inputMask[0] - inputValue[0];
+        output[0] = input_mask[0] - input_value[0];
         CLAMP(output[0], 0, 1);
       }
       else {
-        output[0] = inputMask[0];
+        output[0] = input_mask[0];
       }
       break;
     case CMP_NODE_MASKTYPE_MULTIPLY:
       if (inside) {
-        output[0] = inputMask[0] * inputValue[0];
+        output[0] = input_mask[0] * input_value[0];
       }
       else {
         output[0] = 0;
@@ -91,15 +92,15 @@ void BoxMaskOperation::executePixelSampled(float output[4], float x, float y, Pi
       break;
     case CMP_NODE_MASKTYPE_NOT:
       if (inside) {
-        if (inputMask[0] > 0.0f) {
+        if (input_mask[0] > 0.0f) {
           output[0] = 0;
         }
         else {
-          output[0] = inputValue[0];
+          output[0] = input_value[0];
         }
       }
       else {
-        output[0] = inputMask[0];
+        output[0] = input_mask[0];
       }
       break;
   }
@@ -110,7 +111,7 @@ void BoxMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                     Span<MemoryBuffer *> inputs)
 {
   MaskFunc mask_func;
-  switch (m_maskType) {
+  switch (mask_type_) {
     case CMP_NODE_MASKTYPE_ADD:
       mask_func = [](const bool is_inside, const float *mask, const float *value) {
         return is_inside ? MAX2(mask[0], value[0]) : mask[0];
@@ -143,30 +144,30 @@ void BoxMaskOperation::apply_mask(MemoryBuffer *output,
                                   Span<MemoryBuffer *> inputs,
                                   MaskFunc mask_func)
 {
-  const float op_w = this->getWidth();
-  const float op_h = this->getHeight();
-  const float half_w = this->m_data->width / 2.0f;
-  const float half_h = this->m_data->height / 2.0f;
+  const float op_last_x = MAX2(this->get_width() - 1.0f, FLT_EPSILON);
+  const float op_last_y = MAX2(this->get_height() - 1.0f, FLT_EPSILON);
+  const float half_w = data_->width / 2.0f + FLT_EPSILON;
+  const float half_h = data_->height / 2.0f + FLT_EPSILON;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
-    const float op_ry = it.y / op_h;
-    const float dy = (op_ry - this->m_data->y) / m_aspectRatio;
-    const float op_rx = it.x / op_w;
-    const float dx = op_rx - this->m_data->x;
-    const float rx = this->m_data->x + (m_cosine * dx + m_sine * dy);
-    const float ry = this->m_data->y + (-m_sine * dx + m_cosine * dy);
+    const float op_ry = it.y / op_last_y;
+    const float dy = (op_ry - data_->y) / aspect_ratio_;
+    const float op_rx = it.x / op_last_x;
+    const float dx = op_rx - data_->x;
+    const float rx = data_->x + (cosine_ * dx + sine_ * dy);
+    const float ry = data_->y + (-sine_ * dx + cosine_ * dy);
 
-    const bool inside = (rx > this->m_data->x - half_w && rx < this->m_data->x + half_w &&
-                         ry > this->m_data->y - half_h && ry < this->m_data->y + half_h);
+    const bool inside = (rx >= data_->x - half_w && rx <= data_->x + half_w &&
+                         ry >= data_->y - half_h && ry <= data_->y + half_h);
     const float *mask = it.in(0);
     const float *value = it.in(1);
     *it.out = mask_func(inside, mask, value);
   }
 }
 
-void BoxMaskOperation::deinitExecution()
+void BoxMaskOperation::deinit_execution()
 {
-  this->m_inputMask = nullptr;
-  this->m_inputValue = nullptr;
+  input_mask_ = nullptr;
+  input_value_ = nullptr;
 }
 
 }  // namespace blender::compositor

@@ -17,71 +17,66 @@
  */
 
 #include "COM_ViewerNode.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_scene.h"
-#include "BLI_listbase.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_ViewerOperation.h"
 
 namespace blender::compositor {
 
-ViewerNode::ViewerNode(bNode *editorNode) : Node(editorNode)
+ViewerNode::ViewerNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void ViewerNode::convertToOperations(NodeConverter &converter,
-                                     const CompositorContext &context) const
+void ViewerNode::convert_to_operations(NodeConverter &converter,
+                                       const CompositorContext &context) const
 {
-  bNode *editorNode = this->getbNode();
-  bool do_output = (editorNode->flag & NODE_DO_OUTPUT_RECALC || context.isRendering()) &&
-                   (editorNode->flag & NODE_DO_OUTPUT);
-  bool ignore_alpha = (editorNode->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA) != 0;
+  bNode *editor_node = this->get_bnode();
+  bool do_output = (editor_node->flag & NODE_DO_OUTPUT_RECALC || context.is_rendering()) &&
+                   (editor_node->flag & NODE_DO_OUTPUT);
+  bool ignore_alpha = (editor_node->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA) != 0;
 
-  NodeInput *imageSocket = this->getInputSocket(0);
-  NodeInput *alphaSocket = this->getInputSocket(1);
-  NodeInput *depthSocket = this->getInputSocket(2);
-  Image *image = (Image *)this->getbNode()->id;
-  ImageUser *imageUser = (ImageUser *)this->getbNode()->storage;
-  ViewerOperation *viewerOperation = new ViewerOperation();
-  viewerOperation->setbNodeTree(context.getbNodeTree());
-  viewerOperation->setImage(image);
-  viewerOperation->setImageUser(imageUser);
-  viewerOperation->setChunkOrder((ChunkOrdering)editorNode->custom1);
-  viewerOperation->setCenterX(editorNode->custom3);
-  viewerOperation->setCenterY(editorNode->custom4);
+  NodeInput *image_socket = this->get_input_socket(0);
+  NodeInput *alpha_socket = this->get_input_socket(1);
+  NodeInput *depth_socket = this->get_input_socket(2);
+  Image *image = (Image *)this->get_bnode()->id;
+  ImageUser *image_user = (ImageUser *)this->get_bnode()->storage;
+  ViewerOperation *viewer_operation = new ViewerOperation();
+  viewer_operation->set_bnodetree(context.get_bnodetree());
+  viewer_operation->set_image(image);
+  viewer_operation->set_image_user(image_user);
+  viewer_operation->set_chunk_order((ChunkOrdering)editor_node->custom1);
+  viewer_operation->setCenterX(editor_node->custom3);
+  viewer_operation->setCenterY(editor_node->custom4);
   /* alpha socket gives either 1 or a custom alpha value if "use alpha" is enabled */
-  viewerOperation->setUseAlphaInput(ignore_alpha || alphaSocket->isLinked());
-  viewerOperation->setRenderData(context.getRenderData());
-  viewerOperation->setViewName(context.getViewName());
+  viewer_operation->set_use_alpha_input(ignore_alpha || alpha_socket->is_linked());
+  viewer_operation->set_render_data(context.get_render_data());
+  viewer_operation->set_view_name(context.get_view_name());
 
-  viewerOperation->setViewSettings(context.getViewSettings());
-  viewerOperation->setDisplaySettings(context.getDisplaySettings());
+  viewer_operation->set_view_settings(context.get_view_settings());
+  viewer_operation->set_display_settings(context.get_display_settings());
 
-  viewerOperation->set_canvas_input_index(0);
-  if (!imageSocket->isLinked()) {
-    if (alphaSocket->isLinked()) {
-      viewerOperation->set_canvas_input_index(1);
+  viewer_operation->set_canvas_input_index(0);
+  if (!image_socket->is_linked()) {
+    if (alpha_socket->is_linked()) {
+      viewer_operation->set_canvas_input_index(1);
     }
   }
 
-  converter.addOperation(viewerOperation);
-  converter.mapInputSocket(imageSocket, viewerOperation->getInputSocket(0));
+  converter.add_operation(viewer_operation);
+  converter.map_input_socket(image_socket, viewer_operation->get_input_socket(0));
   /* only use alpha link if "use alpha" is enabled */
   if (ignore_alpha) {
-    converter.addInputValue(viewerOperation->getInputSocket(1), 1.0f);
+    converter.add_input_value(viewer_operation->get_input_socket(1), 1.0f);
   }
   else {
-    converter.mapInputSocket(alphaSocket, viewerOperation->getInputSocket(1));
+    converter.map_input_socket(alpha_socket, viewer_operation->get_input_socket(1));
   }
-  converter.mapInputSocket(depthSocket, viewerOperation->getInputSocket(2));
+  converter.map_input_socket(depth_socket, viewer_operation->get_input_socket(2));
 
-  converter.addNodeInputPreview(imageSocket);
+  converter.add_node_input_preview(image_socket);
 
   if (do_output) {
-    converter.registerViewer(viewerOperation);
+    converter.register_viewer(viewer_operation);
   }
 }
 

@@ -205,6 +205,17 @@ class SEQUENCER_HT_header(Header):
             layout.prop(st, "display_mode", text="", icon_only=True)
             layout.prop(st, "preview_channels", text="", icon_only=True)
 
+            # Gizmo toggle & popover.
+            row = layout.row(align=True)
+            # FIXME: place-holder icon.
+            row.prop(st, "show_gizmo", text="", toggle=True, icon='GIZMO')
+            sub = row.row(align=True)
+            sub.active = st.show_gizmo
+            sub.popover(
+                panel="SEQUENCER_PT_gizmo_display",
+                text="",
+            )
+
         row = layout.row(align=True)
         row.prop(st, "show_strip_overlay", text="", icon='OVERLAY')
         sub = row.row(align=True)
@@ -228,6 +239,29 @@ class SEQUENCER_MT_editor_menus(Menu):
                 layout.menu("SEQUENCER_MT_marker")
             layout.menu("SEQUENCER_MT_add")
             layout.menu("SEQUENCER_MT_strip")
+
+
+class SEQUENCER_PT_gizmo_display(Panel):
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Gizmo"
+    bl_ui_units_x = 8
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        st = context.space_data
+
+        col = layout.column()
+        col.label(text="Viewport Gizmos")
+        col.separator()
+
+        col.active = st.show_gizmo
+        colsub = col.column()
+        colsub.prop(st, "show_gizmo_navigate", text="Navigate")
+        colsub.prop(st, "show_gizmo_tool", text="Active Tools")
+        # colsub.prop(st, "show_gizmo_context", text="Active Object")  # Currently unused.
 
 
 class SEQUENCER_PT_overlay(Panel):
@@ -1040,6 +1074,22 @@ class SEQUENCER_MT_preview_context_menu(Menu):
 
         if strip:
             pass
+
+
+class SEQUENCER_MT_pivot_pie(Menu):
+    bl_label = "Pivot Point"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        tool_settings = context.tool_settings
+        sequencer_tool_settings = context.tool_settings.sequencer_tool_settings
+
+        pie.prop_enum(sequencer_tool_settings, "pivot_point", value='CENTER')
+        pie.prop_enum(sequencer_tool_settings, "pivot_point", value='CURSOR')
+        pie.prop_enum(sequencer_tool_settings, "pivot_point", value='INDIVIDUAL_ORIGINS')
+        pie.prop_enum(sequencer_tool_settings, "pivot_point", value='MEDIAN')
 
 
 class SequencerButtonsPanel:
@@ -2185,6 +2235,22 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
             col.prop(st, "show_separate_color")
 
 
+class SEQUENCER_PT_view_cursor(SequencerButtonsPanel_Output, Panel):
+    bl_category = "View"
+    bl_label = "2D Cursor"
+
+    def draw(self, context):
+        layout = self.layout
+
+        st = context.space_data
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        col = layout.column()
+        col.prop(st, "cursor_location", text="Location")
+
+
 class SEQUENCER_PT_frame_overlay(SequencerButtonsPanel_Output, Panel):
     bl_label = "Frame Overlay"
     bl_category = "View"
@@ -2464,12 +2530,14 @@ classes = (
     SEQUENCER_MT_color_tag_picker,
     SEQUENCER_MT_context_menu,
     SEQUENCER_MT_preview_context_menu,
+    SEQUENCER_MT_pivot_pie,
 
     SEQUENCER_PT_color_tag_picker,
 
     SEQUENCER_PT_active_tool,
     SEQUENCER_PT_strip,
 
+    SEQUENCER_PT_gizmo_display,
     SEQUENCER_PT_overlay,
     SEQUENCER_PT_preview_overlay,
     SEQUENCER_PT_sequencer_overlay,
@@ -2500,6 +2568,7 @@ classes = (
     SEQUENCER_PT_custom_props,
 
     SEQUENCER_PT_view,
+    SEQUENCER_PT_view_cursor,
     SEQUENCER_PT_frame_overlay,
     SEQUENCER_PT_view_safe_areas,
     SEQUENCER_PT_view_safe_areas_center_cut,

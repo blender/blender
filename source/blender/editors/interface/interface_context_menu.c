@@ -925,6 +925,18 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     }
   }
 
+  {
+    const ARegion *region = CTX_wm_region(C);
+    uiButTreeRow *treerow_but = (uiButTreeRow *)ui_tree_row_find_mouse_over(
+        region, event->x, event->y);
+    if (treerow_but) {
+      BLI_assert(treerow_but->but.type == UI_BTYPE_TREEROW);
+      UI_tree_view_item_context_menu_build(
+          C, treerow_but->tree_item, uiLayoutColumn(layout, false));
+      uiItemS(layout);
+    }
+  }
+
   /* If the button represents an id, it can set the "id" context pointer. */
   if (U.experimental.use_extended_asset_browser && ED_asset_can_mark_single_from_context(C)) {
     ID *id = CTX_data_pointer_get_type(C, "id", &RNA_ID).data;

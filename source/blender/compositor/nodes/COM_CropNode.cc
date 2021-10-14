@@ -21,31 +21,31 @@
 
 namespace blender::compositor {
 
-CropNode::CropNode(bNode *editorNode) : Node(editorNode)
+CropNode::CropNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void CropNode::convertToOperations(NodeConverter &converter,
-                                   const CompositorContext & /*context*/) const
+void CropNode::convert_to_operations(NodeConverter &converter,
+                                     const CompositorContext & /*context*/) const
 {
-  bNode *node = getbNode();
-  NodeTwoXYs *cropSettings = (NodeTwoXYs *)node->storage;
+  bNode *node = get_bnode();
+  NodeTwoXYs *crop_settings = (NodeTwoXYs *)node->storage;
   bool relative = (bool)node->custom2;
-  bool cropImage = (bool)node->custom1;
+  bool crop_image = (bool)node->custom1;
   CropBaseOperation *operation;
-  if (cropImage) {
+  if (crop_image) {
     operation = new CropImageOperation();
   }
   else {
     operation = new CropOperation();
   }
-  operation->setCropSettings(cropSettings);
-  operation->setRelative(relative);
-  converter.addOperation(operation);
+  operation->set_crop_settings(crop_settings);
+  operation->set_relative(relative);
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-  converter.mapOutputSocket(getOutputSocket(), operation->getOutputSocket());
+  converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+  converter.map_output_socket(get_output_socket(), operation->get_output_socket());
 }
 
 }  // namespace blender::compositor

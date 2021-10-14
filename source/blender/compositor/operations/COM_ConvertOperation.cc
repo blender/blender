@@ -26,18 +26,18 @@ namespace blender::compositor {
 
 ConvertBaseOperation::ConvertBaseOperation()
 {
-  this->m_inputOperation = nullptr;
-  this->flags.can_be_constant = true;
+  input_operation_ = nullptr;
+  flags_.can_be_constant = true;
 }
 
-void ConvertBaseOperation::initExecution()
+void ConvertBaseOperation::init_execution()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
+  input_operation_ = this->get_input_socket_reader(0);
 }
 
-void ConvertBaseOperation::deinitExecution()
+void ConvertBaseOperation::deinit_execution()
 {
-  this->m_inputOperation = nullptr;
+  input_operation_ = nullptr;
 }
 
 void ConvertBaseOperation::hash_output_params()
@@ -56,17 +56,17 @@ void ConvertBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
 ConvertValueToColorOperation::ConvertValueToColorOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Color);
 }
 
-void ConvertValueToColorOperation::executePixelSampled(float output[4],
-                                                       float x,
-                                                       float y,
-                                                       PixelSampler sampler)
+void ConvertValueToColorOperation::execute_pixel_sampled(float output[4],
+                                                         float x,
+                                                         float y,
+                                                         PixelSampler sampler)
 {
   float value;
-  this->m_inputOperation->readSampled(&value, x, y, sampler);
+  input_operation_->read_sampled(&value, x, y, sampler);
   output[0] = output[1] = output[2] = value;
   output[3] = 1.0f;
 }
@@ -83,18 +83,18 @@ void ConvertValueToColorOperation::update_memory_buffer_partial(BuffersIterator<
 
 ConvertColorToValueOperation::ConvertColorToValueOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Value);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Value);
 }
 
-void ConvertColorToValueOperation::executePixelSampled(float output[4],
-                                                       float x,
-                                                       float y,
-                                                       PixelSampler sampler)
+void ConvertColorToValueOperation::execute_pixel_sampled(float output[4],
+                                                         float x,
+                                                         float y,
+                                                         PixelSampler sampler)
 {
-  float inputColor[4];
-  this->m_inputOperation->readSampled(inputColor, x, y, sampler);
-  output[0] = (inputColor[0] + inputColor[1] + inputColor[2]) / 3.0f;
+  float input_color[4];
+  input_operation_->read_sampled(input_color, x, y, sampler);
+  output[0] = (input_color[0] + input_color[1] + input_color[2]) / 3.0f;
 }
 
 void ConvertColorToValueOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -109,18 +109,18 @@ void ConvertColorToValueOperation::update_memory_buffer_partial(BuffersIterator<
 
 ConvertColorToBWOperation::ConvertColorToBWOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Value);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Value);
 }
 
-void ConvertColorToBWOperation::executePixelSampled(float output[4],
-                                                    float x,
-                                                    float y,
-                                                    PixelSampler sampler)
+void ConvertColorToBWOperation::execute_pixel_sampled(float output[4],
+                                                      float x,
+                                                      float y,
+                                                      PixelSampler sampler)
 {
-  float inputColor[4];
-  this->m_inputOperation->readSampled(inputColor, x, y, sampler);
-  output[0] = IMB_colormanagement_get_luminance(inputColor);
+  float input_color[4];
+  input_operation_->read_sampled(input_color, x, y, sampler);
+  output[0] = IMB_colormanagement_get_luminance(input_color);
 }
 
 void ConvertColorToBWOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -134,17 +134,17 @@ void ConvertColorToBWOperation::update_memory_buffer_partial(BuffersIterator<flo
 
 ConvertColorToVectorOperation::ConvertColorToVectorOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Vector);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Vector);
 }
 
-void ConvertColorToVectorOperation::executePixelSampled(float output[4],
-                                                        float x,
-                                                        float y,
-                                                        PixelSampler sampler)
+void ConvertColorToVectorOperation::execute_pixel_sampled(float output[4],
+                                                          float x,
+                                                          float y,
+                                                          PixelSampler sampler)
 {
   float color[4];
-  this->m_inputOperation->readSampled(color, x, y, sampler);
+  input_operation_->read_sampled(color, x, y, sampler);
   copy_v3_v3(output, color);
 }
 
@@ -159,17 +159,17 @@ void ConvertColorToVectorOperation::update_memory_buffer_partial(BuffersIterator
 
 ConvertValueToVectorOperation::ConvertValueToVectorOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Vector);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Vector);
 }
 
-void ConvertValueToVectorOperation::executePixelSampled(float output[4],
-                                                        float x,
-                                                        float y,
-                                                        PixelSampler sampler)
+void ConvertValueToVectorOperation::execute_pixel_sampled(float output[4],
+                                                          float x,
+                                                          float y,
+                                                          PixelSampler sampler)
 {
   float value;
-  this->m_inputOperation->readSampled(&value, x, y, sampler);
+  input_operation_->read_sampled(&value, x, y, sampler);
   output[0] = output[1] = output[2] = value;
 }
 
@@ -184,16 +184,16 @@ void ConvertValueToVectorOperation::update_memory_buffer_partial(BuffersIterator
 
 ConvertVectorToColorOperation::ConvertVectorToColorOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Vector);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Vector);
+  this->add_output_socket(DataType::Color);
 }
 
-void ConvertVectorToColorOperation::executePixelSampled(float output[4],
-                                                        float x,
-                                                        float y,
-                                                        PixelSampler sampler)
+void ConvertVectorToColorOperation::execute_pixel_sampled(float output[4],
+                                                          float x,
+                                                          float y,
+                                                          PixelSampler sampler)
 {
-  this->m_inputOperation->readSampled(output, x, y, sampler);
+  input_operation_->read_sampled(output, x, y, sampler);
   output[3] = 1.0f;
 }
 
@@ -209,17 +209,17 @@ void ConvertVectorToColorOperation::update_memory_buffer_partial(BuffersIterator
 
 ConvertVectorToValueOperation::ConvertVectorToValueOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Vector);
-  this->addOutputSocket(DataType::Value);
+  this->add_input_socket(DataType::Vector);
+  this->add_output_socket(DataType::Value);
 }
 
-void ConvertVectorToValueOperation::executePixelSampled(float output[4],
-                                                        float x,
-                                                        float y,
-                                                        PixelSampler sampler)
+void ConvertVectorToValueOperation::execute_pixel_sampled(float output[4],
+                                                          float x,
+                                                          float y,
+                                                          PixelSampler sampler)
 {
   float input[4];
-  this->m_inputOperation->readSampled(input, x, y, sampler);
+  input_operation_->read_sampled(input, x, y, sampler);
   output[0] = (input[0] + input[1] + input[2]) / 3.0f;
 }
 
@@ -235,55 +235,55 @@ void ConvertVectorToValueOperation::update_memory_buffer_partial(BuffersIterator
 
 ConvertRGBToYCCOperation::ConvertRGBToYCCOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
 }
 
-void ConvertRGBToYCCOperation::setMode(int mode)
+void ConvertRGBToYCCOperation::set_mode(int mode)
 {
   switch (mode) {
     case 0:
-      this->m_mode = BLI_YCC_ITU_BT601;
+      mode_ = BLI_YCC_ITU_BT601;
       break;
     case 2:
-      this->m_mode = BLI_YCC_JFIF_0_255;
+      mode_ = BLI_YCC_JFIF_0_255;
       break;
     case 1:
     default:
-      this->m_mode = BLI_YCC_ITU_BT709;
+      mode_ = BLI_YCC_ITU_BT709;
       break;
   }
 }
 
-void ConvertRGBToYCCOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void ConvertRGBToYCCOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
-  float inputColor[4];
+  float input_color[4];
   float color[3];
 
-  this->m_inputOperation->readSampled(inputColor, x, y, sampler);
+  input_operation_->read_sampled(input_color, x, y, sampler);
   rgb_to_ycc(
-      inputColor[0], inputColor[1], inputColor[2], &color[0], &color[1], &color[2], this->m_mode);
+      input_color[0], input_color[1], input_color[2], &color[0], &color[1], &color[2], mode_);
 
   /* divided by 255 to normalize for viewing in */
   /* R,G,B --> Y,Cb,Cr */
   mul_v3_v3fl(output, color, 1.0f / 255.0f);
-  output[3] = inputColor[3];
+  output[3] = input_color[3];
 }
 
 void ConvertRGBToYCCOperation::hash_output_params()
 {
   ConvertBaseOperation::hash_output_params();
-  hash_param(m_mode);
+  hash_param(mode_);
 }
 
 void ConvertRGBToYCCOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
 {
   for (; !it.is_end(); ++it) {
     const float *in = it.in(0);
-    rgb_to_ycc(in[0], in[1], in[2], &it.out[0], &it.out[1], &it.out[2], this->m_mode);
+    rgb_to_ycc(in[0], in[1], in[2], &it.out[0], &it.out[1], &it.out[2], mode_);
 
     /* Normalize for viewing (#rgb_to_ycc returns 0-255 values). */
     mul_v3_fl(it.out, 1.0f / 255.0f);
@@ -295,52 +295,47 @@ void ConvertRGBToYCCOperation::update_memory_buffer_partial(BuffersIterator<floa
 
 ConvertYCCToRGBOperation::ConvertYCCToRGBOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
 }
 
-void ConvertYCCToRGBOperation::setMode(int mode)
+void ConvertYCCToRGBOperation::set_mode(int mode)
 {
   switch (mode) {
     case 0:
-      this->m_mode = BLI_YCC_ITU_BT601;
+      mode_ = BLI_YCC_ITU_BT601;
       break;
     case 2:
-      this->m_mode = BLI_YCC_JFIF_0_255;
+      mode_ = BLI_YCC_JFIF_0_255;
       break;
     case 1:
     default:
-      this->m_mode = BLI_YCC_ITU_BT709;
+      mode_ = BLI_YCC_ITU_BT709;
       break;
   }
 }
 
-void ConvertYCCToRGBOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void ConvertYCCToRGBOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
-  float inputColor[4];
-  this->m_inputOperation->readSampled(inputColor, x, y, sampler);
+  float input_color[4];
+  input_operation_->read_sampled(input_color, x, y, sampler);
 
   /* need to un-normalize the data */
   /* R,G,B --> Y,Cb,Cr */
-  mul_v3_fl(inputColor, 255.0f);
+  mul_v3_fl(input_color, 255.0f);
 
-  ycc_to_rgb(inputColor[0],
-             inputColor[1],
-             inputColor[2],
-             &output[0],
-             &output[1],
-             &output[2],
-             this->m_mode);
-  output[3] = inputColor[3];
+  ycc_to_rgb(
+      input_color[0], input_color[1], input_color[2], &output[0], &output[1], &output[2], mode_);
+  output[3] = input_color[3];
 }
 
 void ConvertYCCToRGBOperation::hash_output_params()
 {
   ConvertBaseOperation::hash_output_params();
-  hash_param(m_mode);
+  hash_param(mode_);
 }
 
 void ConvertYCCToRGBOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -348,13 +343,8 @@ void ConvertYCCToRGBOperation::update_memory_buffer_partial(BuffersIterator<floa
   for (; !it.is_end(); ++it) {
     const float *in = it.in(0);
     /* Multiply by 255 to un-normalize (#ycc_to_rgb needs input values in 0-255 range). */
-    ycc_to_rgb(in[0] * 255.0f,
-               in[1] * 255.0f,
-               in[2] * 255.0f,
-               &it.out[0],
-               &it.out[1],
-               &it.out[2],
-               this->m_mode);
+    ycc_to_rgb(
+        in[0] * 255.0f, in[1] * 255.0f, in[2] * 255.0f, &it.out[0], &it.out[1], &it.out[2], mode_);
     it.out[3] = in[3];
   }
 }
@@ -363,25 +353,25 @@ void ConvertYCCToRGBOperation::update_memory_buffer_partial(BuffersIterator<floa
 
 ConvertRGBToYUVOperation::ConvertRGBToYUVOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
 }
 
-void ConvertRGBToYUVOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void ConvertRGBToYUVOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
-  float inputColor[4];
-  this->m_inputOperation->readSampled(inputColor, x, y, sampler);
-  rgb_to_yuv(inputColor[0],
-             inputColor[1],
-             inputColor[2],
+  float input_color[4];
+  input_operation_->read_sampled(input_color, x, y, sampler);
+  rgb_to_yuv(input_color[0],
+             input_color[1],
+             input_color[2],
              &output[0],
              &output[1],
              &output[2],
              BLI_YUV_ITU_BT709);
-  output[3] = inputColor[3];
+  output[3] = input_color[3];
 }
 
 void ConvertRGBToYUVOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -397,25 +387,25 @@ void ConvertRGBToYUVOperation::update_memory_buffer_partial(BuffersIterator<floa
 
 ConvertYUVToRGBOperation::ConvertYUVToRGBOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
 }
 
-void ConvertYUVToRGBOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void ConvertYUVToRGBOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
-  float inputColor[4];
-  this->m_inputOperation->readSampled(inputColor, x, y, sampler);
-  yuv_to_rgb(inputColor[0],
-             inputColor[1],
-             inputColor[2],
+  float input_color[4];
+  input_operation_->read_sampled(input_color, x, y, sampler);
+  yuv_to_rgb(input_color[0],
+             input_color[1],
+             input_color[2],
              &output[0],
              &output[1],
              &output[2],
              BLI_YUV_ITU_BT709);
-  output[3] = inputColor[3];
+  output[3] = input_color[3];
 }
 
 void ConvertYUVToRGBOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -431,19 +421,19 @@ void ConvertYUVToRGBOperation::update_memory_buffer_partial(BuffersIterator<floa
 
 ConvertRGBToHSVOperation::ConvertRGBToHSVOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
 }
 
-void ConvertRGBToHSVOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void ConvertRGBToHSVOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
-  float inputColor[4];
-  this->m_inputOperation->readSampled(inputColor, x, y, sampler);
-  rgb_to_hsv_v(inputColor, output);
-  output[3] = inputColor[3];
+  float input_color[4];
+  input_operation_->read_sampled(input_color, x, y, sampler);
+  rgb_to_hsv_v(input_color, output);
+  output[3] = input_color[3];
 }
 
 void ConvertRGBToHSVOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -459,22 +449,22 @@ void ConvertRGBToHSVOperation::update_memory_buffer_partial(BuffersIterator<floa
 
 ConvertHSVToRGBOperation::ConvertHSVToRGBOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
 }
 
-void ConvertHSVToRGBOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void ConvertHSVToRGBOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
-  float inputColor[4];
-  this->m_inputOperation->readSampled(inputColor, x, y, sampler);
-  hsv_to_rgb_v(inputColor, output);
+  float input_color[4];
+  input_operation_->read_sampled(input_color, x, y, sampler);
+  hsv_to_rgb_v(input_color, output);
   output[0] = max_ff(output[0], 0.0f);
   output[1] = max_ff(output[1], 0.0f);
   output[2] = max_ff(output[2], 0.0f);
-  output[3] = inputColor[3];
+  output[3] = input_color[3];
 }
 
 void ConvertHSVToRGBOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
@@ -493,17 +483,17 @@ void ConvertHSVToRGBOperation::update_memory_buffer_partial(BuffersIterator<floa
 
 ConvertPremulToStraightOperation::ConvertPremulToStraightOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
 }
 
-void ConvertPremulToStraightOperation::executePixelSampled(float output[4],
-                                                           float x,
-                                                           float y,
-                                                           PixelSampler sampler)
+void ConvertPremulToStraightOperation::execute_pixel_sampled(float output[4],
+                                                             float x,
+                                                             float y,
+                                                             PixelSampler sampler)
 {
   ColorSceneLinear4f<eAlpha::Premultiplied> input;
-  this->m_inputOperation->readSampled(input, x, y, sampler);
+  input_operation_->read_sampled(input, x, y, sampler);
   ColorSceneLinear4f<eAlpha::Straight> converted = input.unpremultiply_alpha();
   copy_v4_v4(output, converted);
 }
@@ -519,17 +509,17 @@ void ConvertPremulToStraightOperation::update_memory_buffer_partial(BuffersItera
 
 ConvertStraightToPremulOperation::ConvertStraightToPremulOperation() : ConvertBaseOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
 }
 
-void ConvertStraightToPremulOperation::executePixelSampled(float output[4],
-                                                           float x,
-                                                           float y,
-                                                           PixelSampler sampler)
+void ConvertStraightToPremulOperation::execute_pixel_sampled(float output[4],
+                                                             float x,
+                                                             float y,
+                                                             PixelSampler sampler)
 {
   ColorSceneLinear4f<eAlpha::Straight> input;
-  this->m_inputOperation->readSampled(input, x, y, sampler);
+  input_operation_->read_sampled(input, x, y, sampler);
   ColorSceneLinear4f<eAlpha::Premultiplied> converted = input.premultiply_alpha();
   copy_v4_v4(output, converted);
 }
@@ -545,28 +535,28 @@ void ConvertStraightToPremulOperation::update_memory_buffer_partial(BuffersItera
 
 SeparateChannelOperation::SeparateChannelOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Value);
-  this->m_inputOperation = nullptr;
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Value);
+  input_operation_ = nullptr;
 }
-void SeparateChannelOperation::initExecution()
+void SeparateChannelOperation::init_execution()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
+  input_operation_ = this->get_input_socket_reader(0);
 }
 
-void SeparateChannelOperation::deinitExecution()
+void SeparateChannelOperation::deinit_execution()
 {
-  this->m_inputOperation = nullptr;
+  input_operation_ = nullptr;
 }
 
-void SeparateChannelOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void SeparateChannelOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
   float input[4];
-  this->m_inputOperation->readSampled(input, x, y, sampler);
-  output[0] = input[this->m_channel];
+  input_operation_->read_sampled(input, x, y, sampler);
+  output[0] = input[channel_];
 }
 
 void SeparateChannelOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -574,7 +564,7 @@ void SeparateChannelOperation::update_memory_buffer_partial(MemoryBuffer *output
                                                             Span<MemoryBuffer *> inputs)
 {
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
-    it.out[0] = it.in(0)[this->m_channel];
+    it.out[0] = it.in(0)[channel_];
   }
 }
 
@@ -582,54 +572,54 @@ void SeparateChannelOperation::update_memory_buffer_partial(MemoryBuffer *output
 
 CombineChannelsOperation::CombineChannelsOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Color);
   this->set_canvas_input_index(0);
-  this->m_inputChannel1Operation = nullptr;
-  this->m_inputChannel2Operation = nullptr;
-  this->m_inputChannel3Operation = nullptr;
-  this->m_inputChannel4Operation = nullptr;
+  input_channel1_operation_ = nullptr;
+  input_channel2_operation_ = nullptr;
+  input_channel3_operation_ = nullptr;
+  input_channel4_operation_ = nullptr;
 }
 
-void CombineChannelsOperation::initExecution()
+void CombineChannelsOperation::init_execution()
 {
-  this->m_inputChannel1Operation = this->getInputSocketReader(0);
-  this->m_inputChannel2Operation = this->getInputSocketReader(1);
-  this->m_inputChannel3Operation = this->getInputSocketReader(2);
-  this->m_inputChannel4Operation = this->getInputSocketReader(3);
+  input_channel1_operation_ = this->get_input_socket_reader(0);
+  input_channel2_operation_ = this->get_input_socket_reader(1);
+  input_channel3_operation_ = this->get_input_socket_reader(2);
+  input_channel4_operation_ = this->get_input_socket_reader(3);
 }
 
-void CombineChannelsOperation::deinitExecution()
+void CombineChannelsOperation::deinit_execution()
 {
-  this->m_inputChannel1Operation = nullptr;
-  this->m_inputChannel2Operation = nullptr;
-  this->m_inputChannel3Operation = nullptr;
-  this->m_inputChannel4Operation = nullptr;
+  input_channel1_operation_ = nullptr;
+  input_channel2_operation_ = nullptr;
+  input_channel3_operation_ = nullptr;
+  input_channel4_operation_ = nullptr;
 }
 
-void CombineChannelsOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
+void CombineChannelsOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
 {
   float input[4];
-  if (this->m_inputChannel1Operation) {
-    this->m_inputChannel1Operation->readSampled(input, x, y, sampler);
+  if (input_channel1_operation_) {
+    input_channel1_operation_->read_sampled(input, x, y, sampler);
     output[0] = input[0];
   }
-  if (this->m_inputChannel2Operation) {
-    this->m_inputChannel2Operation->readSampled(input, x, y, sampler);
+  if (input_channel2_operation_) {
+    input_channel2_operation_->read_sampled(input, x, y, sampler);
     output[1] = input[0];
   }
-  if (this->m_inputChannel3Operation) {
-    this->m_inputChannel3Operation->readSampled(input, x, y, sampler);
+  if (input_channel3_operation_) {
+    input_channel3_operation_->read_sampled(input, x, y, sampler);
     output[2] = input[0];
   }
-  if (this->m_inputChannel4Operation) {
-    this->m_inputChannel4Operation->readSampled(input, x, y, sampler);
+  if (input_channel4_operation_) {
+    input_channel4_operation_->read_sampled(input, x, y, sampler);
     output[3] = input[0];
   }
 }

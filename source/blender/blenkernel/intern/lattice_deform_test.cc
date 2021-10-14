@@ -44,7 +44,7 @@ static void test_lattice_deform_init(LatticeDeformTestContext *ctx,
                                      int32_t num_items)
 {
   /* Generate random input data between -5 and 5. */
-  ctx->coords = (float(*)[3])MEM_malloc_arrayN(sizeof(float[3]), num_items, __func__);
+  ctx->coords = (float(*)[3])MEM_malloc_arrayN(num_items, sizeof(float[3]), __func__);
   for (uint32_t index = 0; index < num_items; index++) {
     ctx->coords[index][0] = (rng->get_float() - 0.5f) * 10;
     ctx->coords[index][1] = (rng->get_float() - 0.5f) * 10;

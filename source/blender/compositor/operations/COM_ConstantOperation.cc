@@ -23,13 +23,13 @@ namespace blender::compositor {
 ConstantOperation::ConstantOperation()
 {
   needs_canvas_to_get_constant_ = false;
-  flags.is_constant_operation = true;
-  flags.is_fullframe_operation = true;
+  flags_.is_constant_operation = true;
+  flags_.is_fullframe_operation = true;
 }
 
 bool ConstantOperation::can_get_constant_elem() const
 {
-  return !needs_canvas_to_get_constant_ || this->flags.is_canvas_set;
+  return !needs_canvas_to_get_constant_ || flags_.is_canvas_set;
 }
 
 void ConstantOperation::update_memory_buffer(MemoryBuffer *output,

@@ -17,7 +17,6 @@
  */
 
 #include "COM_SharedOperationBuffers.h"
-#include "BLI_rect.h"
 #include "COM_NodeOperation.h"
 
 namespace blender::compositor {

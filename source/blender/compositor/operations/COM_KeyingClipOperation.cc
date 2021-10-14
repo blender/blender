@@ -18,56 +18,51 @@
 
 #include "COM_KeyingClipOperation.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-
 namespace blender::compositor {
 
 KeyingClipOperation::KeyingClipOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Value);
 
-  this->m_kernelRadius = 3;
-  this->m_kernelTolerance = 0.1f;
+  kernel_radius_ = 3;
+  kernel_tolerance_ = 0.1f;
 
-  this->m_clipBlack = 0.0f;
-  this->m_clipWhite = 1.0f;
+  clip_black_ = 0.0f;
+  clip_white_ = 1.0f;
 
-  this->m_isEdgeMatte = false;
+  is_edge_matte_ = false;
 
-  this->flags.complex = true;
+  flags_.complex = true;
 }
 
-void *KeyingClipOperation::initializeTileData(rcti *rect)
+void *KeyingClipOperation::initialize_tile_data(rcti *rect)
 {
-  void *buffer = getInputOperation(0)->initializeTileData(rect);
+  void *buffer = get_input_operation(0)->initialize_tile_data(rect);
 
   return buffer;
 }
 
-void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data)
+void KeyingClipOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
-  const int delta = this->m_kernelRadius;
-  const float tolerance = this->m_kernelTolerance;
+  const int delta = kernel_radius_;
+  const float tolerance = kernel_tolerance_;
 
-  MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
-  float *buffer = inputBuffer->getBuffer();
+  MemoryBuffer *input_buffer = (MemoryBuffer *)data;
+  float *buffer = input_buffer->get_buffer();
 
-  int bufferWidth = inputBuffer->getWidth();
-  int bufferHeight = inputBuffer->getHeight();
+  int buffer_width = input_buffer->get_width();
+  int buffer_height = input_buffer->get_height();
 
-  float value = buffer[(y * bufferWidth + x)];
+  float value = buffer[(y * buffer_width + x)];
 
   bool ok = false;
   int start_x = max_ff(0, x - delta + 1), start_y = max_ff(0, y - delta + 1),
-      end_x = min_ff(x + delta - 1, bufferWidth - 1),
-      end_y = min_ff(y + delta - 1, bufferHeight - 1);
+      end_x = min_ff(x + delta - 1, buffer_width - 1),
+      end_y = min_ff(y + delta - 1, buffer_height - 1);
 
-  int count = 0, totalCount = (end_x - start_x + 1) * (end_y - start_y + 1) - 1;
-  int thresholdCount = ceil((float)totalCount * 0.9f);
+  int count = 0, total_count = (end_x - start_x + 1) * (end_y - start_y + 1) - 1;
+  int threshold_count = ceil((float)total_count * 0.9f);
 
   if (delta == 0) {
     ok = true;
@@ -79,19 +74,19 @@ void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data
         continue;
       }
 
-      int bufferIndex = (cy * bufferWidth + cx);
-      float currentValue = buffer[bufferIndex];
+      int buffer_index = (cy * buffer_width + cx);
+      float current_value = buffer[buffer_index];
 
-      if (fabsf(currentValue - value) < tolerance) {
+      if (fabsf(current_value - value) < tolerance) {
         count++;
-        if (count >= thresholdCount) {
+        if (count >= threshold_count) {
           ok = true;
         }
       }
     }
   }
 
-  if (this->m_isEdgeMatte) {
+  if (is_edge_matte_) {
     if (ok) {
       output[0] = 0.0f;
     }
@@ -103,31 +98,31 @@ void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data
     output[0] = value;
 
     if (ok) {
-      if (output[0] < this->m_clipBlack) {
+      if (output[0] < clip_black_) {
         output[0] = 0.0f;
       }
-      else if (output[0] >= this->m_clipWhite) {
+      else if (output[0] >= clip_white_) {
         output[0] = 1.0f;
       }
       else {
-        output[0] = (output[0] - this->m_clipBlack) / (this->m_clipWhite - this->m_clipBlack);
+        output[0] = (output[0] - clip_black_) / (clip_white_ - clip_black_);
       }
     }
   }
 }
 
-bool KeyingClipOperation::determineDependingAreaOfInterest(rcti *input,
-                                                           ReadBufferOperation *readOperation,
-                                                           rcti *output)
+bool KeyingClipOperation::determine_depending_area_of_interest(rcti *input,
+                                                               ReadBufferOperation *read_operation,
+                                                               rcti *output)
 {
-  rcti newInput;
+  rcti new_input;
 
-  newInput.xmin = input->xmin - this->m_kernelRadius;
-  newInput.ymin = input->ymin - this->m_kernelRadius;
-  newInput.xmax = input->xmax + this->m_kernelRadius;
-  newInput.ymax = input->ymax + this->m_kernelRadius;
+  new_input.xmin = input->xmin - kernel_radius_;
+  new_input.ymin = input->ymin - kernel_radius_;
+  new_input.xmax = input->xmax + kernel_radius_;
+  new_input.ymax = input->ymax + kernel_radius_;
 
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void KeyingClipOperation::get_area_of_interest(const int input_idx,
@@ -136,10 +131,10 @@ void KeyingClipOperation::get_area_of_interest(const int input_idx,
 {
   BLI_assert(input_idx == 0);
   UNUSED_VARS_NDEBUG(input_idx);
-  r_input_area.xmin = output_area.xmin - m_kernelRadius;
-  r_input_area.xmax = output_area.xmax + m_kernelRadius;
-  r_input_area.ymin = output_area.ymin - m_kernelRadius;
-  r_input_area.ymax = output_area.ymax + m_kernelRadius;
+  r_input_area.xmin = output_area.xmin - kernel_radius_;
+  r_input_area.xmax = output_area.xmax + kernel_radius_;
+  r_input_area.ymin = output_area.ymin - kernel_radius_;
+  r_input_area.ymax = output_area.ymax + kernel_radius_;
 }
 
 void KeyingClipOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -149,10 +144,10 @@ void KeyingClipOperation::update_memory_buffer_partial(MemoryBuffer *output,
   const MemoryBuffer *input = inputs[0];
   BuffersIterator<float> it = output->iterate_with(inputs, area);
 
-  const int delta = m_kernelRadius;
-  const float tolerance = m_kernelTolerance;
-  const int width = this->getWidth();
-  const int height = this->getHeight();
+  const int delta = kernel_radius_;
+  const float tolerance = kernel_tolerance_;
+  const int width = this->get_width();
+  const int height = this->get_height();
   const int row_stride = input->row_stride;
   const int elem_stride = input->elem_stride;
   for (; !it.is_end(); ++it) {
@@ -195,21 +190,21 @@ void KeyingClipOperation::update_memory_buffer_partial(MemoryBuffer *output,
       }
     }
 
-    if (m_isEdgeMatte) {
+    if (is_edge_matte_) {
       *it.out = ok ? 0.0f : 1.0f;
     }
     else {
       if (!ok) {
         *it.out = value;
       }
-      else if (value < m_clipBlack) {
+      else if (value < clip_black_) {
         *it.out = 0.0f;
       }
-      else if (value >= m_clipWhite) {
+      else if (value >= clip_white_) {
         *it.out = 1.0f;
       }
       else {
-        *it.out = (value - m_clipBlack) / (m_clipWhite - m_clipBlack);
+        *it.out = (value - clip_black_) / (clip_white_ - clip_black_);
       }
     }
   }

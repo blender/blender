@@ -72,7 +72,7 @@ ccl_device_inline float3 ray_offset(float3 P, float3 Ng)
 }
 
 #if defined(__VOLUME_RECORD_ALL__) || (defined(__SHADOW_RECORD_ALL__) && defined(__KERNEL_CPU__))
-/* ToDo: Move to another file? */
+/* TODO: Move to another file? */
 ccl_device int intersections_compare(const void *a, const void *b)
 {
   const Intersection *isect_a = (const Intersection *)a;
@@ -112,6 +112,30 @@ ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
 #  endif
 }
 #endif /* __SHADOW_RECORD_ALL__ | __VOLUME_RECORD_ALL__ */
+
+/* For subsurface scattering, only sorting a small amount of intersections
+ * so bubble sort is fine for CPU and GPU. */
+ccl_device_inline void sort_intersections_and_normals(Intersection *hits,
+                                                      float3 *Ng,
+                                                      uint num_hits)
+{
+  bool swapped;
+  do {
+    swapped = false;
+    for (int j = 0; j < num_hits - 1; ++j) {
+      if (hits[j].t > hits[j + 1].t) {
+        struct Intersection tmp_hit = hits[j];
+        struct float3 tmp_Ng = Ng[j];
+        hits[j] = hits[j + 1];
+        Ng[j] = Ng[j + 1];
+        hits[j + 1] = tmp_hit;
+        Ng[j + 1] = tmp_Ng;
+        swapped = true;
+      }
+    }
+    --num_hits;
+  } while (swapped);
+}
 
 /* Utility to quickly get flags from an intersection. */
 

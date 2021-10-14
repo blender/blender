@@ -171,7 +171,7 @@ bool ED_uvedit_udim_params_from_image_space(const SpaceImage *sima,
     int active_udim = 1001;
     /* NOTE: Presently, when UDIM grid and tiled image are present together, only active tile for
      * the tiled image is considered. */
-    Image *image = sima->image;
+    const Image *image = sima->image;
     if (image && image->source == IMA_SRC_TILED) {
       ImageTile *active_tile = BLI_findlink(&image->tiles, image->active_tile_index);
       if (active_tile) {
@@ -181,11 +181,10 @@ bool ED_uvedit_udim_params_from_image_space(const SpaceImage *sima,
     else {
       /* TODO: Support storing an active UDIM when there are no tiles present.
        * Until then, use 2D cursor to find the active tile index for the UDIM grid. */
-      const float cursor_loc[2] = {sima->cursor[0], sima->cursor[1]};
-      if (uv_coords_isect_udim(sima->image, sima->tile_grid_shape, cursor_loc)) {
+      if (uv_coords_isect_udim(sima->image, sima->tile_grid_shape, sima->cursor)) {
         int tile_number = 1001;
-        tile_number += floorf(cursor_loc[1]) * 10;
-        tile_number += floorf(cursor_loc[0]);
+        tile_number += floorf(sima->cursor[1]) * 10;
+        tile_number += floorf(sima->cursor[0]);
         active_udim = tile_number;
       }
     }

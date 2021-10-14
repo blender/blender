@@ -1292,6 +1292,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
           depsgraph, region, v3d, xy, &ray_start[0], &ray_normal[0], true);
       if (ED_transform_snap_object_project_ray(sctx,
                                                depsgraph,
+                                               v3d,
                                                &(const struct SnapObjectParams){
                                                    .snap_select = SNAP_ALL,
                                                },

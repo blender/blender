@@ -323,9 +323,18 @@ class BMeshFairingContext : public FairingContext {
     BM_mesh_elem_table_ensure(bm, BM_VERT);
     BM_mesh_elem_index_ensure(bm, BM_LOOP);
 
-    bmloop_.resize(bm->totloop);
-    vlmap_ = (MeshElemMap *)MEM_calloc_arrayN(sizeof(MeshElemMap), bm->totvert, "bmesh loop map");
-    vlmap_mem_ = (int *)MEM_malloc_arrayN(sizeof(int), bm->totloop, "bmesh loop map mempool");
+    /* Deformation coords. */
+#if 0 merge error ?
+    co_.reserve(bm->totvert);
+    for (int i = 0; i < bm->totvert; i++) {
+      BMVert *v = BM_vert_at_index(bm, i);
+      co_[i] = v->co;
+    }
+#endif
+
+    bmloop_.reserve(bm->totloop);
+    vlmap_ = (MeshElemMap *)MEM_calloc_arrayN(bm->totvert, sizeof(MeshElemMap), "bmesh loop map");
+    vlmap_mem_ = (int *)MEM_malloc_arrayN(bm->totloop, sizeof(int), "bmesh loop map mempool");
 
     BMVert *v;
     BMLoop *l;

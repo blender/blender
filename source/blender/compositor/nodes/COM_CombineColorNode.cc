@@ -22,70 +22,70 @@
 
 namespace blender::compositor {
 
-CombineColorNode::CombineColorNode(bNode *editorNode) : Node(editorNode)
+CombineColorNode::CombineColorNode(bNode *editor_node) : Node(editor_node)
 {
 }
 
-void CombineColorNode::convertToOperations(NodeConverter &converter,
-                                           const CompositorContext &context) const
+void CombineColorNode::convert_to_operations(NodeConverter &converter,
+                                             const CompositorContext &context) const
 {
-  NodeInput *inputRSocket = this->getInputSocket(0);
-  NodeInput *inputGSocket = this->getInputSocket(1);
-  NodeInput *inputBSocket = this->getInputSocket(2);
-  NodeInput *inputASocket = this->getInputSocket(3);
-  NodeOutput *outputSocket = this->getOutputSocket(0);
+  NodeInput *input_rsocket = this->get_input_socket(0);
+  NodeInput *input_gsocket = this->get_input_socket(1);
+  NodeInput *input_bsocket = this->get_input_socket(2);
+  NodeInput *input_asocket = this->get_input_socket(3);
+  NodeOutput *output_socket = this->get_output_socket(0);
 
   CombineChannelsOperation *operation = new CombineChannelsOperation();
-  if (inputRSocket->isLinked()) {
+  if (input_rsocket->is_linked()) {
     operation->set_canvas_input_index(0);
   }
-  else if (inputGSocket->isLinked()) {
+  else if (input_gsocket->is_linked()) {
     operation->set_canvas_input_index(1);
   }
-  else if (inputBSocket->isLinked()) {
+  else if (input_bsocket->is_linked()) {
     operation->set_canvas_input_index(2);
   }
   else {
     operation->set_canvas_input_index(3);
   }
-  converter.addOperation(operation);
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(inputRSocket, operation->getInputSocket(0));
-  converter.mapInputSocket(inputGSocket, operation->getInputSocket(1));
-  converter.mapInputSocket(inputBSocket, operation->getInputSocket(2));
-  converter.mapInputSocket(inputASocket, operation->getInputSocket(3));
+  converter.map_input_socket(input_rsocket, operation->get_input_socket(0));
+  converter.map_input_socket(input_gsocket, operation->get_input_socket(1));
+  converter.map_input_socket(input_bsocket, operation->get_input_socket(2));
+  converter.map_input_socket(input_asocket, operation->get_input_socket(3));
 
-  NodeOperation *color_conv = getColorConverter(context);
+  NodeOperation *color_conv = get_color_converter(context);
   if (color_conv) {
-    converter.addOperation(color_conv);
+    converter.add_operation(color_conv);
 
-    converter.addLink(operation->getOutputSocket(), color_conv->getInputSocket(0));
-    converter.mapOutputSocket(outputSocket, color_conv->getOutputSocket());
+    converter.add_link(operation->get_output_socket(), color_conv->get_input_socket(0));
+    converter.map_output_socket(output_socket, color_conv->get_output_socket());
   }
   else {
-    converter.mapOutputSocket(outputSocket, operation->getOutputSocket());
+    converter.map_output_socket(output_socket, operation->get_output_socket());
   }
 }
 
-NodeOperation *CombineRGBANode::getColorConverter(const CompositorContext & /*context*/) const
+NodeOperation *CombineRGBANode::get_color_converter(const CompositorContext & /*context*/) const
 {
   return nullptr; /* no conversion needed */
 }
 
-NodeOperation *CombineHSVANode::getColorConverter(const CompositorContext & /*context*/) const
+NodeOperation *CombineHSVANode::get_color_converter(const CompositorContext & /*context*/) const
 {
   return new ConvertHSVToRGBOperation();
 }
 
-NodeOperation *CombineYCCANode::getColorConverter(const CompositorContext & /*context*/) const
+NodeOperation *CombineYCCANode::get_color_converter(const CompositorContext & /*context*/) const
 {
   ConvertYCCToRGBOperation *operation = new ConvertYCCToRGBOperation();
-  bNode *editorNode = this->getbNode();
-  operation->setMode(editorNode->custom1);
+  bNode *editor_node = this->get_bnode();
+  operation->set_mode(editor_node->custom1);
   return operation;
 }
 
-NodeOperation *CombineYUVANode::getColorConverter(const CompositorContext & /*context*/) const
+NodeOperation *CombineYUVANode::get_color_converter(const CompositorContext & /*context*/) const
 {
   return new ConvertYUVToRGBOperation();
 }

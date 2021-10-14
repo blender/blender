@@ -66,6 +66,7 @@ AssetCatalog *ED_asset_catalog_add(::AssetLibrary *library,
   std::string unique_name = catalog_name_ensure_unique(*catalog_service, name, parent_path);
   AssetCatalogPath fullpath = AssetCatalogPath(parent_path) / unique_name;
 
+  catalog_service->undo_push();
   return catalog_service->create_catalog(fullpath);
 }
 
@@ -77,5 +78,6 @@ void ED_asset_catalog_remove(::AssetLibrary *library, const CatalogID &catalog_i
     return;
   }
 
-  catalog_service->delete_catalog(catalog_id);
+  catalog_service->undo_push();
+  catalog_service->prune_catalogs_by_id(catalog_id);
 }

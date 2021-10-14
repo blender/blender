@@ -38,17 +38,17 @@ class RenderLayersProg : public MultiThreadedOperation {
   /**
    * Reference to the scene object.
    */
-  Scene *m_scene;
+  Scene *scene_;
 
   /**
-   * layerId of the layer where this operation needs to get its data from
+   * layer_id of the layer where this operation needs to get its data from
    */
-  short m_layerId;
+  short layer_id_;
 
   /**
-   * viewName of the view to use (unless another view is specified by the node
+   * view_name of the view to use (unless another view is specified by the node
    */
-  const char *m_viewName;
+  const char *view_name_;
 
   const MemoryBuffer *layer_buffer_;
 
@@ -56,19 +56,19 @@ class RenderLayersProg : public MultiThreadedOperation {
    * Cached instance to the float buffer inside the layer.
    * TODO: To be removed with tiled implementation.
    */
-  float *m_inputBuffer;
+  float *input_buffer_;
 
   /**
    * Render-pass where this operation needs to get its data from.
    */
-  std::string m_passName;
+  std::string pass_name_;
 
-  int m_elementsize;
+  int elementsize_;
 
   /**
    * \brief render data used for active rendering
    */
-  const RenderData *m_rd;
+  const RenderData *rd_;
 
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -78,56 +78,56 @@ class RenderLayersProg : public MultiThreadedOperation {
   /**
    * retrieve the reference to the float buffer of the renderer.
    */
-  inline float *getInputBuffer()
+  inline float *get_input_buffer()
   {
-    return this->m_inputBuffer;
+    return input_buffer_;
   }
 
-  void doInterpolation(float output[4], float x, float y, PixelSampler sampler);
+  void do_interpolation(float output[4], float x, float y, PixelSampler sampler);
 
  public:
   /**
    * Constructor
    */
-  RenderLayersProg(const char *passName, DataType type, int elementsize);
+  RenderLayersProg(const char *pass_name, DataType type, int elementsize);
   /**
    * setter for the scene field. Will be called from
    * \see RenderLayerNode to set the actual scene where
    * the data will be retrieved from.
    */
-  void setScene(Scene *scene)
+  void set_scene(Scene *scene)
   {
-    this->m_scene = scene;
+    scene_ = scene;
   }
-  Scene *getScene() const
+  Scene *get_scene() const
   {
-    return this->m_scene;
+    return scene_;
   }
-  void setRenderData(const RenderData *rd)
+  void set_render_data(const RenderData *rd)
   {
-    this->m_rd = rd;
+    rd_ = rd;
   }
-  void setLayerId(short layerId)
+  void set_layer_id(short layer_id)
   {
-    this->m_layerId = layerId;
+    layer_id_ = layer_id;
   }
-  short getLayerId() const
+  short get_layer_id() const
   {
-    return this->m_layerId;
+    return layer_id_;
   }
-  void setViewName(const char *viewName)
+  void set_view_name(const char *view_name)
   {
-    this->m_viewName = viewName;
+    view_name_ = view_name;
   }
-  const char *getViewName()
+  const char *get_view_name()
   {
-    return this->m_viewName;
+    return view_name_;
   }
-  void initExecution() override;
-  void deinitExecution() override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void init_execution() override;
+  void deinit_execution() override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  std::unique_ptr<MetaData> getMetaData() override;
+  std::unique_ptr<MetaData> get_meta_data() override;
 
   virtual void update_memory_buffer_partial(MemoryBuffer *output,
                                             const rcti &area,
@@ -136,11 +136,11 @@ class RenderLayersProg : public MultiThreadedOperation {
 
 class RenderLayersAOOperation : public RenderLayersProg {
  public:
-  RenderLayersAOOperation(const char *passName, DataType type, int elementsize)
-      : RenderLayersProg(passName, type, elementsize)
+  RenderLayersAOOperation(const char *pass_name, DataType type, int elementsize)
+      : RenderLayersProg(pass_name, type, elementsize)
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
@@ -149,11 +149,11 @@ class RenderLayersAOOperation : public RenderLayersProg {
 
 class RenderLayersAlphaProg : public RenderLayersProg {
  public:
-  RenderLayersAlphaProg(const char *passName, DataType type, int elementsize)
-      : RenderLayersProg(passName, type, elementsize)
+  RenderLayersAlphaProg(const char *pass_name, DataType type, int elementsize)
+      : RenderLayersProg(pass_name, type, elementsize)
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
@@ -162,11 +162,11 @@ class RenderLayersAlphaProg : public RenderLayersProg {
 
 class RenderLayersDepthProg : public RenderLayersProg {
  public:
-  RenderLayersDepthProg(const char *passName, DataType type, int elementsize)
-      : RenderLayersProg(passName, type, elementsize)
+  RenderLayersDepthProg(const char *pass_name, DataType type, int elementsize)
+      : RenderLayersProg(pass_name, type, elementsize)
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

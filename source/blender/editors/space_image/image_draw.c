@@ -112,13 +112,6 @@ static void draw_render_info(
       GPU_matrix_translate_2f(x, y);
       GPU_matrix_scale_2f(zoomx, zoomy);
 
-      RenderData *rd = RE_engine_get_render_data(re);
-      if (rd->mode & R_BORDER) {
-        /* TODO: round or floor instead of casting to int */
-        GPU_matrix_translate_2f((int)(-rd->border.xmin * rd->xsch * rd->size * 0.01f),
-                                (int)(-rd->border.ymin * rd->ysch * rd->size * 0.01f));
-      }
-
       uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);

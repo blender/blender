@@ -378,7 +378,7 @@ void ED_image_point_pos__reverse(SpaceImage *sima,
 }
 
 /**
- * This is more a user-level functionality, for going to next/prev used slot,
+ * This is more a user-level functionality, for going to `next/prev` used slot,
  * Stepping onto the last unused slot too.
  */
 bool ED_image_slot_cycle(struct Image *image, int direction)
@@ -445,12 +445,12 @@ void ED_space_image_scopes_update(const struct bContext *C,
                     &scene->display_settings);
 }
 
-bool ED_space_image_show_render(SpaceImage *sima)
+bool ED_space_image_show_render(const SpaceImage *sima)
 {
   return (sima->image && ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE));
 }
 
-bool ED_space_image_show_paint(SpaceImage *sima)
+bool ED_space_image_show_paint(const SpaceImage *sima)
 {
   if (ED_space_image_show_render(sima)) {
     return false;
@@ -459,7 +459,7 @@ bool ED_space_image_show_paint(SpaceImage *sima)
   return (sima->mode == SI_MODE_PAINT);
 }
 
-bool ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
+bool ED_space_image_show_uvedit(const SpaceImage *sima, Object *obedit)
 {
   if (sima) {
     if (ED_space_image_show_render(sima)) {

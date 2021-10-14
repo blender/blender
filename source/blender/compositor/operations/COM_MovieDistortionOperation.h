@@ -28,37 +28,37 @@ namespace blender::compositor {
 
 class MovieDistortionOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_inputOperation;
-  MovieClip *m_movieClip;
-  int m_margin[2];
+  SocketReader *input_operation_;
+  MovieClip *movie_clip_;
+  int margin_[2];
 
  protected:
-  bool m_apply;
-  int m_framenumber;
+  bool apply_;
+  int framenumber_;
 
-  struct MovieDistortion *m_distortion;
-  int m_calibration_width, m_calibration_height;
-  float m_pixel_aspect;
+  struct MovieDistortion *distortion_;
+  int calibration_width_, calibration_height_;
+  float pixel_aspect_;
 
  public:
   MovieDistortionOperation(bool distortion);
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void init_data() override;
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void setMovieClip(MovieClip *clip)
+  void set_movie_clip(MovieClip *clip)
   {
-    this->m_movieClip = clip;
+    movie_clip_ = clip;
   }
-  void setFramenumber(int framenumber)
+  void set_framenumber(int framenumber)
   {
-    this->m_framenumber = framenumber;
+    framenumber_ = framenumber;
   }
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,

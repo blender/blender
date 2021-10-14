@@ -64,6 +64,16 @@ const std::string &AssetCatalogPath::str() const
   return this->path_;
 }
 
+StringRefNull AssetCatalogPath::name() const
+{
+  const size_t last_sep_index = this->path_.rfind(SEPARATOR);
+  if (last_sep_index == std::string::npos) {
+    return StringRefNull(this->path_);
+  }
+
+  return StringRefNull(this->path_.c_str() + last_sep_index + 1);
+}
+
 /* In-class operators, because of the implicit `AssetCatalogPath(StringRef)` constructor.
  * Otherwise `string == string` could cast both sides to `AssetCatalogPath`. */
 bool AssetCatalogPath::operator==(const AssetCatalogPath &other_path) const

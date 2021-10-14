@@ -22,25 +22,24 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
+#include <iostream>
+
 #include "BLI_array.hh"
-#include "BLI_rect.h"
 #include "BLI_vector.hh"
 
-#include "COM_CompositorContext.h"
-#include "COM_Device.h"
-#include "COM_MemoryProxy.h"
-#include "COM_Node.h"
-#include "COM_NodeOperation.h"
+#include "COM_Enums.h"
 #include "COM_WorkPackage.h"
-#include <vector>
+
+#include "DNA_node_types.h"
+#include "DNA_vec_types.h"
 
 namespace blender::compositor {
 
 class ExecutionSystem;
+class NodeOperation;
 class MemoryProxy;
 class MemoryBuffer;
 class ReadBufferOperation;
-class Device;
 
 struct ExecutionGroupFlags {
   bool initialized : 1;
@@ -87,84 +86,84 @@ class ExecutionGroup {
   /**
    * Id of the execution group. For debugging purposes.
    */
-  int m_id;
+  int id_;
 
   /**
    * \brief list of operations in this ExecutionGroup
    */
-  Vector<NodeOperation *> m_operations;
+  Vector<NodeOperation *> operations_;
 
-  ExecutionGroupFlags m_flags;
+  ExecutionGroupFlags flags_;
 
   /**
    * \brief Width of the output
    */
-  unsigned int m_width;
+  unsigned int width_;
 
   /**
    * \brief Height of the output
    */
-  unsigned int m_height;
+  unsigned int height_;
 
   /**
    * \brief size of a single chunk, being Width or of height
    * a chunk is always a square, except at the edges of the MemoryBuffer
    */
-  unsigned int m_chunkSize;
+  unsigned int chunk_size_;
 
   /**
    * \brief number of chunks in the x-axis
    */
-  unsigned int m_x_chunks_len;
+  unsigned int x_chunks_len_;
 
   /**
    * \brief number of chunks in the y-axis
    */
-  unsigned int m_y_chunks_len;
+  unsigned int y_chunks_len_;
 
   /**
    * \brief total number of chunks
    */
-  unsigned int m_chunks_len;
+  unsigned int chunks_len_;
 
   /**
    * \brief what is the maximum number field of all ReadBufferOperation in this ExecutionGroup.
    * \note this is used to construct the MemoryBuffers that will be passed during execution.
    */
-  unsigned int m_max_read_buffer_offset;
+  unsigned int max_read_buffer_offset_;
 
   /**
    * \brief All read operations of this execution group.
    */
-  Vector<ReadBufferOperation *> m_read_operations;
+  Vector<ReadBufferOperation *> read_operations_;
 
   /**
    * \brief reference to the original bNodeTree,
    * this field is only set for the 'top' execution group.
    * \note can only be used to call the callbacks for progress, status and break.
    */
-  const bNodeTree *m_bTree;
+  const bNodeTree *bTree_;
 
   /**
    * \brief total number of chunks that have been calculated for this ExecutionGroup
    */
-  unsigned int m_chunks_finished;
+  unsigned int chunks_finished_;
 
   /**
-   * \brief m_work_packages holds all unit of work.
+   * \brief work_packages_ holds all unit of work.
    */
-  Vector<WorkPackage> m_work_packages;
+  Vector<WorkPackage> work_packages_;
 
   /**
    * \brief denotes boundary for border compositing
    * \note measured in pixel space
    */
-  rcti m_viewerBorder;
+  rcti viewer_border_;
 
   /**
    * \brief start time of execution
    */
-  double m_executionStartTime;
+  double execution_start_time_;
 
   // methods
   /**
@@ -176,13 +175,14 @@ class ExecutionGroup {
   /**
    * \brief Determine the rect (minx, maxx, miny, maxy) of a chunk at a position.
    */
-  void determineChunkRect(rcti *r_rect,
-                          const unsigned int xChunk,
-                          const unsigned int yChunk) const;
+  void determine_chunk_rect(rcti *r_rect,
+                            const unsigned int x_chunk,
+                            const unsigned int y_chunk) const;
 
   /**
-   * \brief determine the number of chunks, based on the chunkSize, width and height.
-   * \note The result are stored in the fields numberOfChunks, numberOfXChunks, numberOfYChunks
+   * \brief determine the number of chunks, based on the chunk_size, width and height.
+   * \note The result are stored in the fields number_of_chunks, number_of_xchunks,
+   * number_of_ychunks
    */
   void init_number_of_chunks();
 
@@ -191,13 +191,13 @@ class ExecutionGroup {
    * \note scheduling succeeds when all input requirements are met and the chunks hasn't been
    * scheduled yet.
    * \param graph:
-   * \param xChunk:
-   * \param yChunk:
+   * \param x_chunk:
+   * \param y_chunk:
    * \return [true:false]
    * true: package(s) are scheduled
    * false: scheduling is deferred (depending workpackages are scheduled)
    */
-  bool scheduleChunkWhenPossible(ExecutionSystem *graph, const int chunk_x, const int chunk_y);
+  bool schedule_chunk_when_possible(ExecutionSystem *graph, const int chunk_x, const int chunk_y);
 
   /**
    * \brief try to schedule a specific area.
@@ -209,24 +209,24 @@ class ExecutionGroup {
    * true: package(s) are scheduled
    * false: scheduling is deferred (depending workpackages are scheduled)
    */
-  bool scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area);
+  bool schedule_area_when_possible(ExecutionSystem *graph, rcti *area);
 
   /**
    * \brief add a chunk to the WorkScheduler.
    * \param chunknumber:
    */
-  bool scheduleChunk(unsigned int chunkNumber);
+  bool schedule_chunk(unsigned int chunk_number);
 
   /**
    * \brief determine the area of interest of a certain input area
    * \note This method only evaluates a single ReadBufferOperation
    * \param input: the input area
-   * \param readOperation: The ReadBufferOperation where the area needs to be evaluated
+   * \param read_operation: The ReadBufferOperation where the area needs to be evaluated
    * \param output: the area needed of the ReadBufferOperation. Result
    */
-  void determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output);
+  void determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output);
 
   /**
    * Return the execution order of the user visible chunks.
@@ -242,12 +242,12 @@ class ExecutionGroup {
 
   int get_id() const
   {
-    return m_id;
+    return id_;
   }
 
   const ExecutionGroupFlags get_flags() const
   {
-    return m_flags;
+    return flags_;
   }
 
   // methods
@@ -259,71 +259,71 @@ class ExecutionGroup {
    * \param operation:
    * \return True if the operation was successfully added
    */
-  bool addOperation(NodeOperation *operation);
+  bool add_operation(NodeOperation *operation);
 
   /**
    * \brief set whether this ExecutionGroup is an output
-   * \param isOutput:
+   * \param is_output:
    */
-  void setOutputExecutionGroup(bool is_output)
+  void set_output_execution_group(bool is_output)
   {
-    this->m_flags.is_output = is_output;
+    flags_.is_output = is_output;
   }
 
   /**
    * \brief determine the resolution of this ExecutionGroup
    * \param resolution:
    */
-  void determineResolution(unsigned int resolution[2]);
+  void determine_resolution(unsigned int resolution[2]);
 
   /**
    * \brief set the resolution of this executiongroup
    * \param resolution:
    */
-  void setResolution(unsigned int resolution[2])
+  void set_resolution(unsigned int resolution[2])
   {
-    this->m_width = resolution[0];
-    this->m_height = resolution[1];
+    width_ = resolution[0];
+    height_ = resolution[1];
   }
 
   /**
    * \brief get the width of this execution group
    */
-  unsigned int getWidth() const
+  unsigned int get_width() const
   {
-    return m_width;
+    return width_;
   }
 
   /**
    * \brief get the height of this execution group
    */
-  unsigned int getHeight() const
+  unsigned int get_height() const
   {
-    return m_height;
+    return height_;
   }
 
   /**
    * \brief get the output operation of this ExecutionGroup
    * \return NodeOperation *output operation
    */
-  NodeOperation *getOutputOperation() const;
+  NodeOperation *get_output_operation() const;
 
   /**
    * \brief compose multiple chunks into a single chunk
    * \return Memorybuffer *consolidated chunk
    */
-  MemoryBuffer *constructConsolidatedMemoryBuffer(MemoryProxy &memoryProxy, rcti &rect);
+  MemoryBuffer *construct_consolidated_memory_buffer(MemoryProxy &memory_proxy, rcti &rect);
 
   /**
-   * \brief initExecution is called just before the execution of the whole graph will be done.
-   * \note The implementation will calculate the chunkSize of this execution group.
+   * \brief init_execution is called just before the execution of the whole graph will be done.
+   * \note The implementation will calculate the chunk_size of this execution group.
    */
-  void initExecution();
+  void init_execution();
 
   /**
    * \brief get all inputbuffers needed to calculate an chunk
    * \note all inputbuffers must be executed
-   * \param chunkNumber: the chunk to be calculated
+   * \param chunk_number: the chunk to be calculated
    * \return (MemoryBuffer **) the inputbuffers
    */
   MemoryBuffer **getInputBuffersCPU();
@@ -331,31 +331,31 @@ class ExecutionGroup {
   /**
    * \brief get all inputbuffers needed to calculate an chunk
    * \note all inputbuffers must be executed
-   * \param chunkNumber: the chunk to be calculated
+   * \param chunk_number: the chunk to be calculated
    * \return (MemoryBuffer **) the inputbuffers
    */
-  MemoryBuffer **getInputBuffersOpenCL(int chunkNumber);
+  MemoryBuffer **get_input_buffers_opencl(int chunk_number);
 
   /**
    * \brief allocate the outputbuffer of a chunk
-   * \param chunkNumber: the number of the chunk in the ExecutionGroup
+   * \param chunk_number: the number of the chunk in the ExecutionGroup
    * \param rect: the rect of that chunk
-   * \see determineChunkRect
+   * \see determine_chunk_rect
    */
-  MemoryBuffer *allocateOutputBuffer(rcti &rect);
+  MemoryBuffer *allocate_output_buffer(rcti &rect);
 
   /**
    * \brief after a chunk is executed the needed resources can be freed or unlocked.
    * \param chunknumber:
    * \param memorybuffers:
    */
-  void finalizeChunkExecution(int chunkNumber, MemoryBuffer **memoryBuffers);
+  void finalize_chunk_execution(int chunk_number, MemoryBuffer **memory_buffers);
 
   /**
-   * \brief deinitExecution is called just after execution the whole graph.
+   * \brief deinit_execution is called just after execution the whole graph.
    * \note It will release all needed resources
    */
-  void deinitExecution();
+  void deinit_execution();
 
   /**
    * \brief schedule an ExecutionGroup
@@ -378,26 +378,26 @@ class ExecutionGroup {
   /**
    * \brief Determine the rect (minx, maxx, miny, maxy) of a chunk.
    */
-  void determineChunkRect(rcti *r_rect, const unsigned int chunkNumber) const;
+  void determine_chunk_rect(rcti *r_rect, const unsigned int chunk_number) const;
 
-  void setChunksize(int chunksize)
+  void set_chunksize(int chunksize)
   {
-    this->m_chunkSize = chunksize;
+    chunk_size_ = chunksize;
   }
 
   /**
    * \brief get the Render priority of this ExecutionGroup
    * \see ExecutionSystem.execute
    */
-  eCompositorPriority getRenderPriority();
+  eCompositorPriority get_render_priority();
 
   /**
    * \brief set border for viewer operation
    * \note all the coordinates are assumed to be in normalized space
    */
-  void setViewerBorder(float xmin, float xmax, float ymin, float ymax);
+  void set_viewer_border(float xmin, float xmax, float ymin, float ymax);
 
-  void setRenderBorder(float xmin, float xmax, float ymin, float ymax);
+  void set_render_border(float xmin, float xmax, float ymin, float ymax);
 
   /* allow the DebugInfo class to look at internals */
   friend class DebugInfo;

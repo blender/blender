@@ -17,32 +17,29 @@
  */
 
 #include "COM_InpaintNode.h"
-#include "BLI_math.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_InpaintOperation.h"
-#include "DNA_scene_types.h"
 
 namespace blender::compositor {
 
-InpaintNode::InpaintNode(bNode *editorNode) : Node(editorNode)
+InpaintNode::InpaintNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void InpaintNode::convertToOperations(NodeConverter &converter,
-                                      const CompositorContext & /*context*/) const
+void InpaintNode::convert_to_operations(NodeConverter &converter,
+                                        const CompositorContext & /*context*/) const
 {
 
-  bNode *editorNode = this->getbNode();
+  bNode *editor_node = this->get_bnode();
 
-  /* if (editorNode->custom1 == CMP_NODE_INPAINT_SIMPLE) { */
+  /* if (editor_node->custom1 == CMP_NODE_INPAINT_SIMPLE) { */
   if (true) {
     InpaintSimpleOperation *operation = new InpaintSimpleOperation();
-    operation->setIterations(editorNode->custom2);
-    converter.addOperation(operation);
+    operation->set_iterations(editor_node->custom2);
+    converter.add_operation(operation);
 
-    converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-    converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+    converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+    converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
   }
 }
 

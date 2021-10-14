@@ -18,6 +18,9 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
+
+#include "COM_Enums.h"
 #include "COM_ExecutionModel.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -27,7 +30,11 @@
 namespace blender::compositor {
 
 /* Forward declarations. */
-class ExecutionGroup;
+class CompositorContext;
+class ExecutionSystem;
+class MemoryBuffer;
+class NodeOperation;
+class SharedOperationBuffers;
 
 /**
  * Fully renders operations in order from inputs to outputs.

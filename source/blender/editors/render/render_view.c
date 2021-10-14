@@ -183,8 +183,8 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
   else if (U.render_display_type == USER_RENDER_DISPLAY_SCREEN) {
     area = CTX_wm_area(C);
 
-    /* if the active screen is already in fullscreen mode, skip this and
-     * unset the area, so that the fullscreen area is just changed later */
+    /* If the active screen is already in full-screen mode, skip this and
+     * unset the area, so that the full-screen area is just changed later. */
     if (area && area->full) {
       area = NULL;
     }
@@ -216,10 +216,10 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
         ED_area_newspace(C, area, SPACE_IMAGE, true);
         sima = area->spacedata.first;
 
-        /* makes ESC go back to prev space */
+        /* Makes "Escape" go back to previous space. */
         sima->flag |= SI_PREVSPACE;
 
-        /* we already had a fullscreen here -> mark new space as a stacked fullscreen */
+        /* We already had a full-screen here -> mark new space as a stacked full-screen. */
         if (area->full) {
           area->flag |= AREA_FLAG_STACKED_FULLSCREEN;
         }
@@ -231,7 +231,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
           // XXX newspace(area, SPACE_IMAGE);
           sima = area->spacedata.first;
 
-          /* makes ESC go back to prev space */
+          /* Makes "Escape" go back to previous space. */
           sima->flag |= SI_PREVSPACE;
         }
       }
@@ -275,7 +275,7 @@ static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
   ScrArea *area = CTX_wm_area(C);
   SpaceImage *sima = area->spacedata.first;
 
-  /* ensure image editor fullscreen and area fullscreen states are in sync */
+  /* ensure image editor full-screen and area full-screen states are in sync */
   if ((sima->flag & SI_FULLWINDOW) && !area->full) {
     sima->flag &= ~SI_FULLWINDOW;
   }

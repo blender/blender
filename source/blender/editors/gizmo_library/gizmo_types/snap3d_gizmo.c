@@ -278,15 +278,11 @@ void ED_gizmotypes_snap_3d_draw_util(RegionView3D *rv3d,
   immUnbindProgram();
 }
 
-SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(Scene *scene,
-                                                        const ARegion *region,
-                                                        const View3D *v3d,
-                                                        wmGizmo *gz)
+SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(Scene *scene, wmGizmo *gz)
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
   if (snap_gizmo->snap_context_v3d == NULL) {
-    snap_gizmo->snap_context_v3d = ED_transform_snap_object_context_create_view3d(
-        scene, 0, region, v3d);
+    snap_gizmo->snap_context_v3d = ED_transform_snap_object_context_create(scene, 0);
   }
   return snap_gizmo->snap_context_v3d;
 }
@@ -383,10 +379,12 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
 
     float dist_px = 12.0f * U.pixelsize;
 
-    ED_gizmotypes_snap_3d_context_ensure(scene, region, v3d, gz);
+    ED_gizmotypes_snap_3d_context_ensure(scene, gz);
     snap_elem = ED_transform_snap_object_project_view3d_ex(
         snap_gizmo->snap_context_v3d,
         depsgraph,
+        region,
+        v3d,
         snap_elements,
         &(const struct SnapObjectParams){
             .snap_select = snap_select,
@@ -576,8 +574,12 @@ static void snap_gizmo_setup(wmGizmo *gz)
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  snap_gizmo->keymap = WM_modalkeymap_find(gz->parent_gzgroup->type->keyconf,
-                                           "Generic Gizmo Tweak Modal Map");
+  wmKeyConfig *keyconf = gz->parent_gzgroup->type->keyconf;
+  if (!keyconf) {
+    /* It can happen when gizmo-group-type is not linked at startup. */
+    keyconf = ((wmWindowManager *)G.main->wm.first)->defaultconf;
+  }
+  snap_gizmo->keymap = WM_modalkeymap_find(keyconf, "Generic Gizmo Tweak Modal Map");
   RNA_enum_value_from_id(snap_gizmo->keymap->modal_items, "SNAP_ON", &snap_gizmo->snap_on);
 #endif
 }

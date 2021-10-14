@@ -670,6 +670,8 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
   atomic_cas_float(&mv1->origco[1], y, ny);
   atomic_cas_float(&mv1->origco[2], z, nz);
 
+  PBVH_CHECK_NAN(mv1->origco);
+  PBVH_CHECK_NAN(v->co);
   // atomic_cas_int32(&mv1->stroke_id, stroke_id, pbvh->stroke_id);
 }
 
@@ -4019,6 +4021,7 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   validate_vert_faces(pbvh, pbvh->bm, v_conn, false, true);
 
   bm_logstack_pop();
+  PBVH_CHECK_NAN(v_conn->co);
 
   return v_conn;
 }
@@ -5433,6 +5436,8 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
     validate_edge(pbvh, pbvh->bm, e, true, true);
 
     BMVert *newv = BM_log_edge_split_do(pbvh->bm_log, e, e->v1, &newe, 0.5f);
+
+    PBVH_CHECK_NAN(newv->co);
 
     validate_edge(pbvh, pbvh->bm, e, true, true);
     validate_edge(pbvh, pbvh->bm, newe, true, true);

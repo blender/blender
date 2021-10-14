@@ -29,9 +29,9 @@ namespace blender::compositor {
  */
 class Stabilize2dNode : public Node {
  public:
-  Stabilize2dNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  Stabilize2dNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

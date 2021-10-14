@@ -31,24 +31,24 @@ namespace blender::compositor {
  */
 class RenderLayersNode : public Node {
  public:
-  RenderLayersNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  RenderLayersNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 
  private:
-  void testSocketLink(NodeConverter &converter,
-                      const CompositorContext &context,
-                      NodeOutput *output,
-                      RenderLayersProg *operation,
-                      Scene *scene,
-                      int layerId,
-                      bool is_preview) const;
-  void testRenderLink(NodeConverter &converter,
-                      const CompositorContext &context,
-                      Render *re) const;
+  void test_socket_link(NodeConverter &converter,
+                        const CompositorContext &context,
+                        NodeOutput *output,
+                        RenderLayersProg *operation,
+                        Scene *scene,
+                        int layer_id,
+                        bool is_preview) const;
+  void test_render_link(NodeConverter &converter,
+                        const CompositorContext &context,
+                        Render *re) const;
 
-  void missingSocketLink(NodeConverter &converter, NodeOutput *output) const;
-  void missingRenderLink(NodeConverter &converter) const;
+  void missing_socket_link(NodeConverter &converter, NodeOutput *output) const;
+  void missing_render_link(NodeConverter &converter) const;
 };
 
 }  // namespace blender::compositor

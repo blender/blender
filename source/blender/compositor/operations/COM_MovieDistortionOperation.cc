@@ -19,122 +19,117 @@
 #include "COM_MovieDistortionOperation.h"
 
 #include "BKE_movieclip.h"
-#include "BKE_tracking.h"
-
-#include "BLI_linklist.h"
 
 namespace blender::compositor {
 
 MovieDistortionOperation::MovieDistortionOperation(bool distortion)
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
   this->set_canvas_input_index(0);
-  this->m_inputOperation = nullptr;
-  this->m_movieClip = nullptr;
-  this->m_apply = distortion;
+  input_operation_ = nullptr;
+  movie_clip_ = nullptr;
+  apply_ = distortion;
 }
 
 void MovieDistortionOperation::init_data()
 {
-  if (this->m_movieClip) {
-    MovieTracking *tracking = &this->m_movieClip->tracking;
-    MovieClipUser clipUser = {0};
+  if (movie_clip_) {
+    MovieTracking *tracking = &movie_clip_->tracking;
+    MovieClipUser clip_user = {0};
     int calibration_width, calibration_height;
 
-    BKE_movieclip_user_set_frame(&clipUser, this->m_framenumber);
-    BKE_movieclip_get_size(this->m_movieClip, &clipUser, &calibration_width, &calibration_height);
+    BKE_movieclip_user_set_frame(&clip_user, framenumber_);
+    BKE_movieclip_get_size(movie_clip_, &clip_user, &calibration_width, &calibration_height);
 
     float delta[2];
     rcti full_frame;
     full_frame.xmin = full_frame.ymin = 0;
-    full_frame.xmax = this->getWidth();
-    full_frame.ymax = this->getHeight();
+    full_frame.xmax = this->get_width();
+    full_frame.ymax = this->get_height();
     BKE_tracking_max_distortion_delta_across_bound(
-        tracking, this->getWidth(), this->getHeight(), &full_frame, !this->m_apply, delta);
+        tracking, this->get_width(), this->get_height(), &full_frame, !apply_, delta);
 
     /* 5 is just in case we didn't hit real max of distortion in
      * BKE_tracking_max_undistortion_delta_across_bound
      */
-    m_margin[0] = delta[0] + 5;
-    m_margin[1] = delta[1] + 5;
+    margin_[0] = delta[0] + 5;
+    margin_[1] = delta[1] + 5;
 
-    this->m_calibration_width = calibration_width;
-    this->m_calibration_height = calibration_height;
-    this->m_pixel_aspect = tracking->camera.pixel_aspect;
+    calibration_width_ = calibration_width;
+    calibration_height_ = calibration_height;
+    pixel_aspect_ = tracking->camera.pixel_aspect;
   }
   else {
-    m_margin[0] = m_margin[1] = 0;
+    margin_[0] = margin_[1] = 0;
   }
 }
 
-void MovieDistortionOperation::initExecution()
+void MovieDistortionOperation::init_execution()
 {
-  m_inputOperation = this->getInputSocketReader(0);
-  if (m_movieClip) {
-    MovieTracking *tracking = &m_movieClip->tracking;
-    m_distortion = BKE_tracking_distortion_new(
-        tracking, m_calibration_width, m_calibration_height);
+  input_operation_ = this->get_input_socket_reader(0);
+  if (movie_clip_) {
+    MovieTracking *tracking = &movie_clip_->tracking;
+    distortion_ = BKE_tracking_distortion_new(tracking, calibration_width_, calibration_height_);
   }
   else {
-    m_distortion = nullptr;
+    distortion_ = nullptr;
   }
 }
 
-void MovieDistortionOperation::deinitExecution()
+void MovieDistortionOperation::deinit_execution()
 {
-  this->m_inputOperation = nullptr;
-  this->m_movieClip = nullptr;
-  if (this->m_distortion != nullptr) {
-    BKE_tracking_distortion_free(this->m_distortion);
+  input_operation_ = nullptr;
+  movie_clip_ = nullptr;
+  if (distortion_ != nullptr) {
+    BKE_tracking_distortion_free(distortion_);
   }
 }
 
-void MovieDistortionOperation::executePixelSampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler /*sampler*/)
+void MovieDistortionOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler /*sampler*/)
 {
-  if (this->m_distortion != nullptr) {
+  if (distortion_ != nullptr) {
     /* float overscan = 0.0f; */
-    const float pixel_aspect = this->m_pixel_aspect;
-    const float w = (float)this->getWidth() /* / (1 + overscan) */;
-    const float h = (float)this->getHeight() /* / (1 + overscan) */;
-    const float aspx = w / (float)this->m_calibration_width;
-    const float aspy = h / (float)this->m_calibration_height;
+    const float pixel_aspect = pixel_aspect_;
+    const float w = (float)this->get_width() /* / (1 + overscan) */;
+    const float h = (float)this->get_height() /* / (1 + overscan) */;
+    const float aspx = w / (float)calibration_width_;
+    const float aspy = h / (float)calibration_height_;
     float in[2];
     float out[2];
 
     in[0] = (x /* - 0.5 * overscan * w */) / aspx;
     in[1] = (y /* - 0.5 * overscan * h */) / aspy / pixel_aspect;
 
-    if (this->m_apply) {
-      BKE_tracking_distortion_undistort_v2(this->m_distortion, in, out);
+    if (apply_) {
+      BKE_tracking_distortion_undistort_v2(distortion_, in, out);
     }
     else {
-      BKE_tracking_distortion_distort_v2(this->m_distortion, in, out);
+      BKE_tracking_distortion_distort_v2(distortion_, in, out);
     }
 
     float u = out[0] * aspx /* + 0.5 * overscan * w */,
           v = (out[1] * aspy /* + 0.5 * overscan * h */) * pixel_aspect;
 
-    this->m_inputOperation->readSampled(output, u, v, PixelSampler::Bilinear);
+    input_operation_->read_sampled(output, u, v, PixelSampler::Bilinear);
   }
   else {
-    this->m_inputOperation->readSampled(output, x, y, PixelSampler::Bilinear);
+    input_operation_->read_sampled(output, x, y, PixelSampler::Bilinear);
   }
 }
 
-bool MovieDistortionOperation::determineDependingAreaOfInterest(rcti *input,
-                                                                ReadBufferOperation *readOperation,
-                                                                rcti *output)
+bool MovieDistortionOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti newInput;
-  newInput.xmin = input->xmin - m_margin[0];
-  newInput.ymin = input->ymin - m_margin[1];
-  newInput.xmax = input->xmax + m_margin[0];
-  newInput.ymax = input->ymax + m_margin[1];
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  rcti new_input;
+  new_input.xmin = input->xmin - margin_[0];
+  new_input.ymin = input->ymin - margin_[1];
+  new_input.xmax = input->xmax + margin_[0];
+  new_input.ymax = input->ymax + margin_[1];
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void MovieDistortionOperation::get_area_of_interest(const int input_idx,
@@ -143,10 +138,10 @@ void MovieDistortionOperation::get_area_of_interest(const int input_idx,
 {
   BLI_assert(input_idx == 0);
   UNUSED_VARS_NDEBUG(input_idx);
-  r_input_area.xmin = output_area.xmin - m_margin[0];
-  r_input_area.ymin = output_area.ymin - m_margin[1];
-  r_input_area.xmax = output_area.xmax + m_margin[0];
-  r_input_area.ymax = output_area.ymax + m_margin[1];
+  r_input_area.xmin = output_area.xmin - margin_[0];
+  r_input_area.ymin = output_area.ymin - margin_[1];
+  r_input_area.xmax = output_area.xmax + margin_[0];
+  r_input_area.ymax = output_area.ymax + margin_[1];
 }
 
 void MovieDistortionOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -154,28 +149,28 @@ void MovieDistortionOperation::update_memory_buffer_partial(MemoryBuffer *output
                                                             Span<MemoryBuffer *> inputs)
 {
   const MemoryBuffer *input_img = inputs[0];
-  if (this->m_distortion == nullptr) {
+  if (distortion_ == nullptr) {
     output->copy_from(input_img, area);
     return;
   }
 
   /* `float overscan = 0.0f;` */
-  const float pixel_aspect = this->m_pixel_aspect;
-  const float w = (float)this->getWidth() /* `/ (1 + overscan)` */;
-  const float h = (float)this->getHeight() /* `/ (1 + overscan)` */;
-  const float aspx = w / (float)this->m_calibration_width;
-  const float aspy = h / (float)this->m_calibration_height;
+  const float pixel_aspect = pixel_aspect_;
+  const float w = (float)this->get_width() /* `/ (1 + overscan)` */;
+  const float h = (float)this->get_height() /* `/ (1 + overscan)` */;
+  const float aspx = w / (float)calibration_width_;
+  const float aspy = h / (float)calibration_height_;
   float xy[2];
   float distorted_xy[2];
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
     xy[0] = (it.x /* `- 0.5 * overscan * w` */) / aspx;
     xy[1] = (it.y /* `- 0.5 * overscan * h` */) / aspy / pixel_aspect;
 
-    if (this->m_apply) {
-      BKE_tracking_distortion_undistort_v2(this->m_distortion, xy, distorted_xy);
+    if (apply_) {
+      BKE_tracking_distortion_undistort_v2(distortion_, xy, distorted_xy);
     }
     else {
-      BKE_tracking_distortion_distort_v2(this->m_distortion, xy, distorted_xy);
+      BKE_tracking_distortion_distort_v2(distortion_, xy, distorted_xy);
     }
 
     const float u = distorted_xy[0] * aspx /* `+ 0.5 * overscan * w` */;

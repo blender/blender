@@ -963,7 +963,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
                                               use_persistent);
             }
             else if (mp1->totloop == 4) {
-                ml1 = (ml1 + 1) % mp1->loopstart;
+              ml1 = (ml1 + 1) % mp1->loopstart;
 
               cloth_brush_add_bend_constraint(ss,
                                               data->cloth_sim,
@@ -1657,9 +1657,22 @@ static void cloth_sort_constraints_for_tasks(SculptSession *ss,
     int size = (int)constraint_types[ctype].size;
     int totelem = constraint_types[ctype].totelem;
 
-    for (int i = 0; i < totcon; i++, con = (SculptClothConstraint *)(((char *)con) + size)) {
+#if 0
+    int *order = MEM_malloc_arrayN(totcon, sizeof(*order), "rand order");
+    for (int i = 0; i < totcon; i++) {
+      order[i] = i;
+    }
+    BLI_rng_shuffle_array(rng, order, sizeof(*order), totcon);
+#endif
+
+    char *ptr = (char *)cloth_sim->constraints[ctype];
+
+    for (int _i = 0; _i < totcon; _i++) {
+      int i = _i;  // order[_i];
+      con = (SculptClothConstraint *)(ptr + size * i);
+
       bool ok = true;
-      int last = -1, same = true;
+      int last = 0, same = true;
 
       for (int j = 0; j < totelem; j++) {
         int threadnr = vthreads[con->elems[j].index];
@@ -1668,10 +1681,13 @@ static void cloth_sort_constraints_for_tasks(SculptSession *ss,
           ok = false;
         }
 
-        if (j > 0 && threadnr != last) {
+        if (j > 0 && threadnr && last && threadnr != last) {
           same = false;
         }
-        last = threadnr;
+
+        if (threadnr) {
+          last = threadnr;
+        }
       }
 
       int tasknr;
@@ -1747,7 +1763,7 @@ static void cloth_sort_constraints_for_tasks(SculptSession *ss,
   cloth_sim->constraint_tasks = tasks;
   cloth_sim->tot_constraint_tasks = totthread + 1;
 
-#if 0
+#if 1
   for (int i = 0; i < totthread + 1; i++) {
     printf("%d: ", i);
 

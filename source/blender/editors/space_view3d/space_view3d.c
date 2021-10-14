@@ -630,7 +630,9 @@ static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, ID_OB);
 
   RNA_string_set(drop->ptr, "name", id->name + 2);
-  RNA_boolean_set(drop->ptr, "duplicate", false);
+  /* Don't duplicate ID's which were just imported. Only do that for existing, local IDs. */
+  const bool is_imported_id = drag->type == WM_DRAG_ASSET;
+  RNA_boolean_set(drop->ptr, "duplicate", !is_imported_id);
 }
 
 static void view3d_collection_drop_copy(wmDrag *drag, wmDropBox *drop)
@@ -1803,6 +1805,11 @@ void ED_spacetype_view3d(void)
 
   /* regions: hud */
   art = ED_area_type_hud(st->spaceid);
+  BLI_addhead(&st->regiontypes, art);
+
+  /* regions: xr */
+  art = MEM_callocN(sizeof(ARegionType), "spacetype view3d xr region");
+  art->regionid = RGN_TYPE_XR;
   BLI_addhead(&st->regiontypes, art);
 
   BKE_spacetype_register(st);

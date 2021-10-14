@@ -20,32 +20,32 @@
 
 namespace blender::compositor {
 
-PixelateOperation::PixelateOperation(DataType datatype)
+PixelateOperation::PixelateOperation(DataType data_type)
 {
-  this->addInputSocket(datatype);
-  this->addOutputSocket(datatype);
+  this->add_input_socket(data_type);
+  this->add_output_socket(data_type);
   this->set_canvas_input_index(0);
-  this->m_inputOperation = nullptr;
+  input_operation_ = nullptr;
 }
 
-void PixelateOperation::initExecution()
+void PixelateOperation::init_execution()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
+  input_operation_ = this->get_input_socket_reader(0);
 }
 
-void PixelateOperation::deinitExecution()
+void PixelateOperation::deinit_execution()
 {
-  this->m_inputOperation = nullptr;
+  input_operation_ = nullptr;
 }
 
-void PixelateOperation::executePixelSampled(float output[4],
-                                            float x,
-                                            float y,
-                                            PixelSampler sampler)
+void PixelateOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
 {
   float nx = round(x);
   float ny = round(y);
-  this->m_inputOperation->readSampled(output, nx, ny, sampler);
+  input_operation_->read_sampled(output, nx, ny, sampler);
 }
 
 }  // namespace blender::compositor

@@ -411,6 +411,19 @@ void WM_event_ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4])
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Event XR Input Access
+ * \{ */
+
+#ifdef WITH_XR_OPENXR
+bool WM_event_is_xr(const struct wmEvent *event)
+{
+  return (event->type == EVT_XR_ACTION && event->custom == EVT_DATA_XR);
+}
+#endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Event Tablet Input Access
  * \{ */
 

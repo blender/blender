@@ -56,12 +56,12 @@ class AssetCatalogPath {
   /**
    * The path itself, such as "Agents/Secret/327".
    */
-  std::string path_;
+  std::string path_ = "";
 
  public:
   static const char SEPARATOR;
 
-  AssetCatalogPath() = delete;
+  AssetCatalogPath() = default;
   AssetCatalogPath(StringRef path);
   AssetCatalogPath(const std::string &path);
   AssetCatalogPath(const char *path);
@@ -75,6 +75,9 @@ class AssetCatalogPath {
   /** C-string representation of the path. */
   const char *c_str() const;
   const std::string &str() const;
+
+  /* The last path component, used as label in the tree view. */
+  StringRefNull name() const;
 
   /* In-class operators, because of the implicit `AssetCatalogPath(StringRef)` constructor.
    * Otherwise `string == string` could cast both sides to `AssetCatalogPath`. */

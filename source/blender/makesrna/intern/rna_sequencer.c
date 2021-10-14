@@ -2114,7 +2114,7 @@ static void rna_def_editor(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Active Strip", "Sequencer's active strip");
 
   prop = RNA_def_property(srna, "show_overlay", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "over_flag", SEQ_EDIT_OVERLAY_SHOW);
+  RNA_def_property_boolean_sdna(prop, NULL, "over_flag", SEQ_EDIT_USE_FRAME_OVERLAY);
   RNA_def_property_ui_text(
       prop, "Show Overlay", "Partial overlay on top of the sequencer with a frame offset");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);

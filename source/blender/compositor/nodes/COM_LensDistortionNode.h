@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class LensDistortionNode : public Node {
  public:
-  LensDistortionNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  LensDistortionNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

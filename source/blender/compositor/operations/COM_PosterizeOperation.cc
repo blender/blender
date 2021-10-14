@@ -22,37 +22,37 @@ namespace blender::compositor {
 
 PosterizeOperation::PosterizeOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
-  this->m_inputProgram = nullptr;
-  this->m_inputStepsProgram = nullptr;
-  flags.can_be_constant = true;
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Color);
+  input_program_ = nullptr;
+  input_steps_program_ = nullptr;
+  flags_.can_be_constant = true;
 }
 
-void PosterizeOperation::initExecution()
+void PosterizeOperation::init_execution()
 {
-  this->m_inputProgram = this->getInputSocketReader(0);
-  this->m_inputStepsProgram = this->getInputSocketReader(1);
+  input_program_ = this->get_input_socket_reader(0);
+  input_steps_program_ = this->get_input_socket_reader(1);
 }
 
-void PosterizeOperation::executePixelSampled(float output[4],
-                                             float x,
-                                             float y,
-                                             PixelSampler sampler)
+void PosterizeOperation::execute_pixel_sampled(float output[4],
+                                               float x,
+                                               float y,
+                                               PixelSampler sampler)
 {
-  float inputValue[4];
-  float inputSteps[4];
+  float input_value[4];
+  float input_steps[4];
 
-  this->m_inputProgram->readSampled(inputValue, x, y, sampler);
-  this->m_inputStepsProgram->readSampled(inputSteps, x, y, sampler);
-  CLAMP(inputSteps[0], 2.0f, 1024.0f);
-  const float steps_inv = 1.0f / inputSteps[0];
+  input_program_->read_sampled(input_value, x, y, sampler);
+  input_steps_program_->read_sampled(input_steps, x, y, sampler);
+  CLAMP(input_steps[0], 2.0f, 1024.0f);
+  const float steps_inv = 1.0f / input_steps[0];
 
-  output[0] = floor(inputValue[0] / steps_inv) * steps_inv;
-  output[1] = floor(inputValue[1] / steps_inv) * steps_inv;
-  output[2] = floor(inputValue[2] / steps_inv) * steps_inv;
-  output[3] = inputValue[3];
+  output[0] = floor(input_value[0] / steps_inv) * steps_inv;
+  output[1] = floor(input_value[1] / steps_inv) * steps_inv;
+  output[2] = floor(input_value[2] / steps_inv) * steps_inv;
+  output[3] = input_value[3];
 }
 
 void PosterizeOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -73,10 +73,10 @@ void PosterizeOperation::update_memory_buffer_partial(MemoryBuffer *output,
   }
 }
 
-void PosterizeOperation::deinitExecution()
+void PosterizeOperation::deinit_execution()
 {
-  this->m_inputProgram = nullptr;
-  this->m_inputStepsProgram = nullptr;
+  input_program_ = nullptr;
+  input_steps_program_ = nullptr;
 }
 
 }  // namespace blender::compositor

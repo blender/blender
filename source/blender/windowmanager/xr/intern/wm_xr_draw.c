@@ -24,12 +24,17 @@
 
 #include <string.h>
 
+#include "BKE_context.h"
+
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "ED_view3d_offscreen.h"
 
 #include "GHOST_C-api.h"
+#include "GPU_batch_presets.h"
+#include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "GPU_viewport.h"
 
@@ -145,7 +150,7 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
   ED_view3d_draw_offscreen_simple(draw_data->depsgraph,
                                   draw_data->scene,
                                   &settings->shading,
-                                  settings->shading.type,
+                                  (eDrawType)settings->shading.type,
                                   draw_view->width,
                                   draw_view->height,
                                   display_flags,
@@ -153,6 +158,7 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
                                   winmat,
                                   settings->clip_start,
                                   settings->clip_end,
+                                  true,
                                   false,
                                   true,
                                   NULL,
@@ -171,4 +177,201 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
   GPU_offscreen_bind(vp->offscreen, false);
 
   wm_xr_draw_viewport_buffers_to_active_framebuffer(xr_data->runtime, surface_data, draw_view);
+}
+
+static GPUBatch *wm_xr_controller_model_batch_create(GHOST_XrContextHandle xr_context,
+                                                     const char *subaction_path)
+{
+  GHOST_XrControllerModelData model_data;
+
+  if (!GHOST_XrGetControllerModelData(xr_context, subaction_path, &model_data) ||
+      model_data.count_vertices < 1) {
+    return NULL;
+  }
+
+  GPUVertFormat format = {0};
+  GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  GPU_vertbuf_data_alloc(vbo, model_data.count_vertices);
+  void *vbo_data = GPU_vertbuf_get_data(vbo);
+  memcpy(
+      vbo_data, model_data.vertices, model_data.count_vertices * sizeof(model_data.vertices[0]));
+
+  GPUIndexBuf *ibo = NULL;
+  if (model_data.count_indices > 0 && ((model_data.count_indices % 3) == 0)) {
+    GPUIndexBufBuilder ibo_builder;
+    const unsigned int prim_len = model_data.count_indices / 3;
+    GPU_indexbuf_init(&ibo_builder, GPU_PRIM_TRIS, prim_len, model_data.count_vertices);
+    for (unsigned int i = 0; i < prim_len; ++i) {
+      const uint32_t *idx = &model_data.indices[i * 3];
+      GPU_indexbuf_add_tri_verts(&ibo_builder, idx[0], idx[1], idx[2]);
+    }
+    ibo = GPU_indexbuf_build(&ibo_builder);
+  }
+
+  return GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, ibo, GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
+}
+
+static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
+                                        GHOST_XrContextHandle xr_context,
+                                        wmXrSessionState *state)
+{
+  GHOST_XrControllerModelData model_data;
+
+  float color[4];
+  switch (settings->controller_draw_style) {
+    case XR_CONTROLLER_DRAW_DARK:
+    case XR_CONTROLLER_DRAW_DARK_RAY:
+      color[0] = color[1] = color[2] = 0.0f, color[3] = 0.4f;
+      break;
+    case XR_CONTROLLER_DRAW_LIGHT:
+    case XR_CONTROLLER_DRAW_LIGHT_RAY:
+      color[0] = 0.422f, color[1] = 0.438f, color[2] = 0.446f, color[3] = 0.4f;
+      break;
+  }
+
+  GPU_depth_test(GPU_DEPTH_NONE);
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
+    GPUBatch *model = controller->model;
+    if (!model) {
+      model = controller->model = wm_xr_controller_model_batch_create(xr_context,
+                                                                      controller->subaction_path);
+    }
+
+    if (model &&
+        GHOST_XrGetControllerModelData(xr_context, controller->subaction_path, &model_data) &&
+        model_data.count_components > 0) {
+      GPU_batch_program_set_builtin(model, GPU_SHADER_3D_UNIFORM_COLOR);
+      GPU_batch_uniform_4fv(model, "color", color);
+
+      GPU_matrix_push();
+      GPU_matrix_mul(controller->grip_mat);
+      for (unsigned int component_idx = 0; component_idx < model_data.count_components;
+           ++component_idx) {
+        const GHOST_XrControllerModelComponent *component = &model_data.components[component_idx];
+        GPU_matrix_push();
+        GPU_matrix_mul(component->transform);
+        GPU_batch_draw_range(model,
+                             model->elem ? component->index_offset : component->vertex_offset,
+                             model->elem ? component->index_count : component->vertex_count);
+        GPU_matrix_pop();
+      }
+      GPU_matrix_pop();
+    }
+    else {
+      /* Fallback. */
+      const float scale = 0.05f;
+      GPUBatch *sphere = GPU_batch_preset_sphere(2);
+      GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
+      GPU_batch_uniform_4fv(sphere, "color", color);
+
+      GPU_matrix_push();
+      GPU_matrix_mul(controller->grip_mat);
+      GPU_matrix_scale_1f(scale);
+      GPU_batch_draw(sphere);
+      GPU_matrix_pop();
+    }
+  }
+}
+
+static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSessionState *state)
+{
+  bool draw_ray;
+  switch (settings->controller_draw_style) {
+    case XR_CONTROLLER_DRAW_DARK:
+    case XR_CONTROLLER_DRAW_LIGHT:
+      draw_ray = false;
+      break;
+    case XR_CONTROLLER_DRAW_DARK_RAY:
+    case XR_CONTROLLER_DRAW_LIGHT_RAY:
+      draw_ray = true;
+      break;
+  }
+
+  GPUVertFormat *format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_FLAT_COLOR);
+
+  float viewport[4];
+  GPU_viewport_size_get_f(viewport);
+  immUniform2fv("viewportSize", &viewport[2]);
+
+  immUniform1f("lineWidth", 3.0f * U.pixelsize);
+
+  if (draw_ray) {
+    const uchar color[4] = {89, 89, 255, 127};
+    const float scale = settings->clip_end;
+    float ray[3];
+
+    GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
+    GPU_blend(GPU_BLEND_ALPHA);
+
+    immBegin(GPU_PRIM_LINES, (uint)BLI_listbase_count(&state->controllers) * 2);
+
+    LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
+      const float(*mat)[4] = controller->aim_mat;
+      madd_v3_v3v3fl(ray, mat[3], mat[2], -scale);
+
+      immAttrSkip(col);
+      immVertex3fv(pos, mat[3]);
+      immAttr4ubv(col, color);
+      immVertex3fv(pos, ray);
+    }
+
+    immEnd();
+  }
+  else {
+    const uchar r[4] = {255, 51, 82, 255};
+    const uchar g[4] = {139, 220, 0, 255};
+    const uchar b[4] = {40, 144, 255, 255};
+    const float scale = 0.01f;
+    float x_axis[3], y_axis[3], z_axis[3];
+
+    GPU_depth_test(GPU_DEPTH_NONE);
+    GPU_blend(GPU_BLEND_NONE);
+
+    immBegin(GPU_PRIM_LINES, (uint)BLI_listbase_count(&state->controllers) * 6);
+
+    LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
+      const float(*mat)[4] = controller->aim_mat;
+      madd_v3_v3v3fl(x_axis, mat[3], mat[0], scale);
+      madd_v3_v3v3fl(y_axis, mat[3], mat[1], scale);
+      madd_v3_v3v3fl(z_axis, mat[3], mat[2], scale);
+
+      immAttrSkip(col);
+      immVertex3fv(pos, mat[3]);
+      immAttr4ubv(col, r);
+      immVertex3fv(pos, x_axis);
+
+      immAttrSkip(col);
+      immVertex3fv(pos, mat[3]);
+      immAttr4ubv(col, g);
+      immVertex3fv(pos, y_axis);
+
+      immAttrSkip(col);
+      immVertex3fv(pos, mat[3]);
+      immAttr4ubv(col, b);
+      immVertex3fv(pos, z_axis);
+    }
+
+    immEnd();
+  }
+
+  immUnbindProgram();
+}
+
+void wm_xr_draw_controllers(const bContext *UNUSED(C), ARegion *UNUSED(region), void *customdata)
+{
+  wmXrData *xr = customdata;
+  const XrSessionSettings *settings = &xr->session_settings;
+  GHOST_XrContextHandle xr_context = xr->runtime->context;
+  wmXrSessionState *state = &xr->runtime->session_state;
+
+  wm_xr_controller_model_draw(settings, xr_context, state);
+  wm_xr_controller_aim_draw(settings, state);
 }

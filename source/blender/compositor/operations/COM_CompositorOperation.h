@@ -18,8 +18,6 @@
 
 #pragma once
 
-#include "BLI_rect.h"
-#include "BLI_string.h"
 #include "COM_MultiThreadedOperation.h"
 
 struct Scene;
@@ -31,98 +29,98 @@ namespace blender::compositor {
  */
 class CompositorOperation : public MultiThreadedOperation {
  private:
-  const struct Scene *m_scene;
+  const struct Scene *scene_;
   /**
    * \brief Scene name, used for getting the render output, includes 'SC' prefix.
    */
-  char m_sceneName[MAX_ID_NAME];
+  char scene_name_[MAX_ID_NAME];
 
   /**
    * \brief local reference to the scene
    */
-  const RenderData *m_rd;
+  const RenderData *rd_;
 
   /**
    * \brief reference to the output float buffer
    */
-  float *m_outputBuffer;
+  float *output_buffer_;
 
   /**
    * \brief reference to the output depth float buffer
    */
-  float *m_depthBuffer;
+  float *depth_buffer_;
 
   /**
    * \brief local reference to the input image operation
    */
-  SocketReader *m_imageInput;
+  SocketReader *image_input_;
 
   /**
    * \brief local reference to the input alpha operation
    */
-  SocketReader *m_alphaInput;
+  SocketReader *alpha_input_;
 
   /**
    * \brief local reference to the depth operation
    */
-  SocketReader *m_depthInput;
+  SocketReader *depth_input_;
 
   /**
    * \brief Ignore any alpha input
    */
-  bool m_useAlphaInput;
+  bool use_alpha_input_;
 
   /**
    * \brief operation is active for calculating final compo result
    */
-  bool m_active;
+  bool active_;
 
   /**
    * \brief View name, used for multiview
    */
-  const char *m_viewName;
+  const char *view_name_;
 
  public:
   CompositorOperation();
-  bool isActiveCompositorOutput() const
+  bool is_active_compositor_output() const
   {
-    return this->m_active;
+    return active_;
   }
-  void executeRegion(rcti *rect, unsigned int tileNumber) override;
-  void setScene(const struct Scene *scene)
+  void execute_region(rcti *rect, unsigned int tile_number) override;
+  void set_scene(const struct Scene *scene)
   {
-    m_scene = scene;
+    scene_ = scene;
   }
-  void setSceneName(const char *sceneName)
+  void set_scene_name(const char *scene_name)
   {
-    BLI_strncpy(this->m_sceneName, sceneName, sizeof(this->m_sceneName));
+    BLI_strncpy(scene_name_, scene_name, sizeof(scene_name_));
   }
-  void setViewName(const char *viewName)
+  void set_view_name(const char *view_name)
   {
-    this->m_viewName = viewName;
+    view_name_ = view_name;
   }
-  void setRenderData(const RenderData *rd)
+  void set_render_data(const RenderData *rd)
   {
-    this->m_rd = rd;
+    rd_ = rd;
   }
-  bool isOutputOperation(bool /*rendering*/) const override
+  bool is_output_operation(bool /*rendering*/) const override
   {
-    return this->isActiveCompositorOutput();
+    return this->is_active_compositor_output();
   }
-  void initExecution() override;
-  void deinitExecution() override;
-  eCompositorPriority getRenderPriority() const override
+  void init_execution() override;
+  void deinit_execution() override;
+  eCompositorPriority get_render_priority() const override
   {
     return eCompositorPriority::Medium;
   }
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
-  void setUseAlphaInput(bool value)
+  void set_use_alpha_input(bool value)
   {
-    this->m_useAlphaInput = value;
+    use_alpha_input_ = value;
   }
-  void setActive(bool active)
+  void set_active(bool active)
   {
-    this->m_active = active;
+    active_ = active;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

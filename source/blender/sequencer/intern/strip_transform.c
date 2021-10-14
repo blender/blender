@@ -473,40 +473,41 @@ void SEQ_image_transform_origin_offset_pixelspace_get(const Scene *scene,
  *
  * \param scene: Scene in which strips are located
  * \param seq: Sequence to calculate image transform origin
+ * \param apply_rotation: Apply sequence rotation transform to the quad
  * \param r_origin: return value
  */
-
-void SEQ_image_transform_final_quad_get(const Scene *scene,
-                                        const Sequence *seq,
-                                        float r_quad[4][2])
+static void seq_image_transform_quad_get_ex(const Scene *scene,
+                                            const Sequence *seq,
+                                            bool apply_rotation,
+                                            float r_quad[4][2])
 {
   StripTransform *transform = seq->strip->transform;
   StripCrop *crop = seq->strip->crop;
 
-  int imgage_size[2] = {scene->r.xsch, scene->r.ysch};
+  int image_size[2] = {scene->r.xsch, scene->r.ysch};
   if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
-    imgage_size[0] = seq->strip->stripdata->orig_width;
-    imgage_size[1] = seq->strip->stripdata->orig_height;
+    image_size[0] = seq->strip->stripdata->orig_width;
+    image_size[1] = seq->strip->stripdata->orig_height;
   }
 
   float transform_matrix[3][3];
   loc_rot_size_to_mat3(transform_matrix,
                        (const float[]){transform->xofs, transform->yofs},
-                       transform->rotation,
+                       apply_rotation ? transform->rotation : 0.0f,
                        (const float[]){transform->scale_x, transform->scale_y});
-  const float origin[2] = {imgage_size[0] * transform->origin[0],
-                           imgage_size[1] * transform->origin[1]};
-  const float pivot[2] = {origin[0] - (imgage_size[0] / 2), origin[1] - (imgage_size[1] / 2)};
+  const float origin[2] = {image_size[0] * transform->origin[0],
+                           image_size[1] * transform->origin[1]};
+  const float pivot[2] = {origin[0] - (image_size[0] / 2), origin[1] - (image_size[1] / 2)};
   transform_pivot_set_m3(transform_matrix, pivot);
 
-  r_quad[0][0] = (imgage_size[0] / 2) - crop->right;
-  r_quad[0][1] = (imgage_size[1] / 2) - crop->top;
-  r_quad[1][0] = (imgage_size[0] / 2) - crop->right;
-  r_quad[1][1] = (-imgage_size[1] / 2) + crop->bottom;
-  r_quad[2][0] = (-imgage_size[0] / 2) + crop->left;
-  r_quad[2][1] = (-imgage_size[1] / 2) + crop->bottom;
-  r_quad[3][0] = (-imgage_size[0] / 2) + crop->left;
-  r_quad[3][1] = (imgage_size[1] / 2) - crop->top;
+  r_quad[0][0] = (image_size[0] / 2) - crop->right;
+  r_quad[0][1] = (image_size[1] / 2) - crop->top;
+  r_quad[1][0] = (image_size[0] / 2) - crop->right;
+  r_quad[1][1] = (-image_size[1] / 2) + crop->bottom;
+  r_quad[2][0] = (-image_size[0] / 2) + crop->left;
+  r_quad[2][1] = (-image_size[1] / 2) + crop->bottom;
+  r_quad[3][0] = (-image_size[0] / 2) + crop->left;
+  r_quad[3][1] = (image_size[1] / 2) - crop->top;
 
   mul_m3_v2(transform_matrix, r_quad[0]);
   mul_m3_v2(transform_matrix, r_quad[1]);
@@ -519,4 +520,31 @@ void SEQ_image_transform_final_quad_get(const Scene *scene,
   mul_v2_v2(r_quad[1], mirror);
   mul_v2_v2(r_quad[2], mirror);
   mul_v2_v2(r_quad[3], mirror);
+}
+
+void SEQ_image_transform_quad_get(const Scene *scene,
+                                  const Sequence *seq,
+                                  bool apply_rotation,
+                                  float r_quad[4][2])
+{
+  seq_image_transform_quad_get_ex(scene, seq, apply_rotation, r_quad);
+}
+
+void SEQ_image_transform_final_quad_get(const Scene *scene,
+                                        const Sequence *seq,
+                                        float r_quad[4][2])
+{
+  seq_image_transform_quad_get_ex(scene, seq, true, r_quad);
+}
+
+void SEQ_image_preview_unit_to_px(const Scene *scene, const float co_src[2], float co_dst[2])
+{
+  co_dst[0] = co_src[0] * scene->r.xsch;
+  co_dst[1] = co_src[1] * scene->r.ysch;
+}
+
+void SEQ_image_preview_unit_from_px(const Scene *scene, const float co_src[2], float co_dst[2])
+{
+  co_dst[0] = co_src[0] / scene->r.xsch;
+  co_dst[1] = co_src[1] / scene->r.ysch;
 }

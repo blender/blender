@@ -337,6 +337,14 @@ static void get_socket_value(const SocketRef &socket, void *r_value)
         new (r_value) Field<float3>(bke::AttributeFieldInput::Create<float3>("position"));
         return;
       }
+      if (bnode.type == GEO_NODE_SET_CURVE_HANDLES) {
+        StringRef side = ((NodeGeometrySetCurveHandlePositions *)bnode.storage)->mode ==
+                                 GEO_NODE_CURVE_HANDLE_LEFT ?
+                             "handle_left" :
+                             "handle_right";
+        new (r_value) Field<float3>(bke::AttributeFieldInput::Create<float3>(side));
+        return;
+      }
     }
     else if (bsocket.type == SOCK_INT) {
       if (ELEM(bnode.type, FN_NODE_RANDOM_VALUE, GEO_NODE_INSTANCE_ON_POINTS)) {
@@ -1100,7 +1108,7 @@ class GeometryNodesEvaluator {
       return;
     }
     bool will_be_triggered_by_other_node = false;
-    for (const DSocket origin_socket : origin_sockets) {
+    for (const DSocket &origin_socket : origin_sockets) {
       if (origin_socket->is_input()) {
         /* Load the value directly from the origin socket. In most cases this is an unlinked
          * group input. */

@@ -59,6 +59,7 @@ typedef struct TransformModeItem {
   void (*opfunc)(wmOperatorType *);
 } TransformModeItem;
 
+static const float VecZero[3] = {0, 0, 0};
 static const float VecOne[3] = {1, 1, 1};
 
 static const char OP_TRANSLATION[] = "TRANSFORM_OT_translate";
@@ -782,6 +783,19 @@ static void TRANSFORM_OT_resize(struct wmOperatorType *ot)
 
   RNA_def_float_vector(
       ot->srna, "value", 3, VecOne, -FLT_MAX, FLT_MAX, "Scale", "", -FLT_MAX, FLT_MAX);
+
+  PropertyRNA *prop;
+  prop = RNA_def_float_vector(ot->srna,
+                              "mouse_dir_constraint",
+                              3,
+                              VecZero,
+                              -FLT_MAX,
+                              FLT_MAX,
+                              "Mouse Directional Constraint",
+                              "",
+                              -FLT_MAX,
+                              FLT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   WM_operatortype_props_advanced_begin(ot);
 

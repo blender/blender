@@ -17,25 +17,24 @@
  */
 
 #include "COM_VectorCurveNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_VectorCurveOperation.h"
 
 namespace blender::compositor {
 
-VectorCurveNode::VectorCurveNode(bNode *editorNode) : Node(editorNode)
+VectorCurveNode::VectorCurveNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void VectorCurveNode::convertToOperations(NodeConverter &converter,
-                                          const CompositorContext & /*context*/) const
+void VectorCurveNode::convert_to_operations(NodeConverter &converter,
+                                            const CompositorContext & /*context*/) const
 {
   VectorCurveOperation *operation = new VectorCurveOperation();
-  operation->setCurveMapping((CurveMapping *)this->getbNode()->storage);
-  converter.addOperation(operation);
+  operation->set_curve_mapping((CurveMapping *)this->get_bnode()->storage);
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
+  converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+  converter.map_output_socket(get_output_socket(0), operation->get_output_socket());
 }
 
 }  // namespace blender::compositor

@@ -2013,7 +2013,7 @@ compile_OIIO() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=17
+  oiio_magic=18
   _init_oiio
 
   # Force having own builds for the dependencies.
@@ -2088,6 +2088,7 @@ compile_OIIO() {
     cmake_d="$cmake_d -D USE_PYTHON=OFF"
     cmake_d="$cmake_d -D USE_FFMPEG=OFF"
     cmake_d="$cmake_d -D USE_OPENCV=OFF"
+    cmake_d="$cmake_d -D USE_OPENVDB=OFF"
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
     cmake_d="$cmake_d -D OIIO_BUILD_TESTS=OFF"
     cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=OFF"

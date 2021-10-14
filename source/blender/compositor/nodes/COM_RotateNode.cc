@@ -18,45 +18,44 @@
 
 #include "COM_RotateNode.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_RotateOperation.h"
 #include "COM_SetSamplerOperation.h"
 
 namespace blender::compositor {
 
-RotateNode::RotateNode(bNode *editorNode) : Node(editorNode)
+RotateNode::RotateNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void RotateNode::convertToOperations(NodeConverter &converter,
-                                     const CompositorContext &context) const
+void RotateNode::convert_to_operations(NodeConverter &converter,
+                                       const CompositorContext &context) const
 {
-  NodeInput *inputSocket = this->getInputSocket(0);
-  NodeInput *inputDegreeSocket = this->getInputSocket(1);
-  NodeOutput *outputSocket = this->getOutputSocket(0);
+  NodeInput *input_socket = this->get_input_socket(0);
+  NodeInput *input_degree_socket = this->get_input_socket(1);
+  NodeOutput *output_socket = this->get_output_socket(0);
   RotateOperation *operation = new RotateOperation();
-  converter.addOperation(operation);
+  converter.add_operation(operation);
 
-  PixelSampler sampler = (PixelSampler)this->getbNode()->custom1;
+  PixelSampler sampler = (PixelSampler)this->get_bnode()->custom1;
   switch (context.get_execution_model()) {
     case eExecutionModel::Tiled: {
       SetSamplerOperation *sampler_op = new SetSamplerOperation();
-      sampler_op->setSampler(sampler);
-      converter.addOperation(sampler_op);
-      converter.addLink(sampler_op->getOutputSocket(), operation->getInputSocket(0));
-      converter.mapInputSocket(inputSocket, sampler_op->getInputSocket(0));
+      sampler_op->set_sampler(sampler);
+      converter.add_operation(sampler_op);
+      converter.add_link(sampler_op->get_output_socket(), operation->get_input_socket(0));
+      converter.map_input_socket(input_socket, sampler_op->get_input_socket(0));
       break;
     }
     case eExecutionModel::FullFrame: {
       operation->set_sampler(sampler);
-      converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
+      converter.map_input_socket(input_socket, operation->get_input_socket(0));
       break;
     }
   }
 
-  converter.mapInputSocket(inputDegreeSocket, operation->getInputSocket(1));
-  converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+  converter.map_input_socket(input_degree_socket, operation->get_input_socket(1));
+  converter.map_output_socket(output_socket, operation->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

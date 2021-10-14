@@ -182,17 +182,17 @@ ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
     float3 disk_P = (disk_r * cosf(phi)) * disk_T + (disk_r * sinf(phi)) * disk_B;
 
     /* Create ray. */
-    Ray *ray = &isect.ray;
-    ray->P = sd->P + disk_N * disk_height + disk_P;
-    ray->D = -disk_N;
-    ray->t = 2.0f * disk_height;
-    ray->dP = differential_zero_compact();
-    ray->dD = differential_zero_compact();
-    ray->time = sd->time;
+    Ray ray ccl_optional_struct_init;
+    ray.P = sd->P + disk_N * disk_height + disk_P;
+    ray.D = -disk_N;
+    ray.t = 2.0f * disk_height;
+    ray.dP = differential_zero_compact();
+    ray.dD = differential_zero_compact();
+    ray.time = sd->time;
 
     /* Intersect with the same object. if multiple intersections are found it
      * will use at most LOCAL_MAX_HITS hits, a random subset of all hits. */
-    scene_intersect_local(kg, ray, &isect, sd->object, &lcg_state, LOCAL_MAX_HITS);
+    scene_intersect_local(kg, &ray, &isect, sd->object, &lcg_state, LOCAL_MAX_HITS);
 
     int num_eval_hits = min(isect.num_hits, LOCAL_MAX_HITS);
 
@@ -201,14 +201,14 @@ ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
       float3 hit_P;
       if (sd->type & PRIMITIVE_TRIANGLE) {
         hit_P = triangle_refine_local(
-            kg, sd, ray->P, ray->D, ray->t, isect.hits[hit].object, isect.hits[hit].prim);
+            kg, sd, ray.P, ray.D, ray.t, isect.hits[hit].object, isect.hits[hit].prim);
       }
 #  ifdef __OBJECT_MOTION__
       else if (sd->type & PRIMITIVE_MOTION_TRIANGLE) {
         float3 verts[3];
         motion_triangle_vertices(kg, sd->object, isect.hits[hit].prim, sd->time, verts);
         hit_P = motion_triangle_refine_local(
-            kg, sd, ray->P, ray->D, ray->t, isect.hits[hit].object, isect.hits[hit].prim, verts);
+            kg, sd, ray.P, ray.D, ray.t, isect.hits[hit].object, isect.hits[hit].prim, verts);
       }
 #  endif /* __OBJECT_MOTION__ */
 

@@ -29,9 +29,9 @@ namespace blender::compositor {
  */
 class SplitViewerNode : public Node {
  public:
-  SplitViewerNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  SplitViewerNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

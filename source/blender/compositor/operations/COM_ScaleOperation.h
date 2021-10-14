@@ -27,13 +27,13 @@ class BaseScaleOperation : public MultiThreadedOperation {
   static constexpr float DEFAULT_MAX_SCALE_CANVAS_SIZE = 12000;
 
  public:
-  void setSampler(PixelSampler sampler)
+  void set_sampler(PixelSampler sampler)
   {
-    this->m_sampler = (int)sampler;
+    sampler_ = (int)sampler;
   }
-  void setVariableSize(bool variable_size)
+  void set_variable_size(bool variable_size)
   {
-    m_variable_size = variable_size;
+    variable_size_ = variable_size;
   };
 
   void set_scale_canvas_max_size(Size2f size);
@@ -41,15 +41,15 @@ class BaseScaleOperation : public MultiThreadedOperation {
  protected:
   BaseScaleOperation();
 
-  PixelSampler getEffectiveSampler(PixelSampler sampler)
+  PixelSampler get_effective_sampler(PixelSampler sampler)
   {
-    return (m_sampler == -1) ? sampler : (PixelSampler)m_sampler;
+    return (sampler_ == -1) ? sampler : (PixelSampler)sampler_;
   }
 
   Size2f max_scale_canvas_size_ = {DEFAULT_MAX_SCALE_CANVAS_SIZE, DEFAULT_MAX_SCALE_CANVAS_SIZE};
-  int m_sampler;
+  int sampler_;
   /* TODO(manzanilla): to be removed with tiled implementation. */
-  bool m_variable_size;
+  bool variable_size_;
 };
 
 class ScaleOperation : public BaseScaleOperation {
@@ -61,9 +61,9 @@ class ScaleOperation : public BaseScaleOperation {
   static constexpr int X_INPUT_INDEX = 1;
   static constexpr int Y_INPUT_INDEX = 2;
 
-  SocketReader *m_inputOperation;
-  SocketReader *m_inputXOperation;
-  SocketReader *m_inputYOperation;
+  SocketReader *input_operation_;
+  SocketReader *input_xoperation_;
+  SocketReader *input_yoperation_;
   float canvas_center_x_;
   float canvas_center_y_;
 
@@ -97,8 +97,8 @@ class ScaleOperation : public BaseScaleOperation {
   static void clamp_area_size_max(rcti &area, Size2f max_size);
 
   void init_data() override;
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -122,10 +122,10 @@ class ScaleRelativeOperation : public ScaleOperation {
  public:
   ScaleRelativeOperation();
   ScaleRelativeOperation(DataType data_type);
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   float get_relative_scale_x_factor(float UNUSED(width)) override
   {
@@ -140,10 +140,10 @@ class ScaleRelativeOperation : public ScaleOperation {
 
 class ScaleAbsoluteOperation : public ScaleOperation {
  public:
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   float get_relative_scale_x_factor(float width) override
   {
@@ -157,51 +157,51 @@ class ScaleAbsoluteOperation : public ScaleOperation {
 };
 
 class ScaleFixedSizeOperation : public BaseScaleOperation {
-  SocketReader *m_inputOperation;
-  int m_newWidth;
-  int m_newHeight;
-  float m_relX;
-  float m_relY;
+  SocketReader *input_operation_;
+  int new_width_;
+  int new_height_;
+  float rel_x_;
+  float rel_y_;
 
   /* center is only used for aspect correction */
-  float m_offsetX;
-  float m_offsetY;
-  bool m_is_aspect;
-  bool m_is_crop;
+  float offset_x_;
+  float offset_y_;
+  bool is_aspect_;
+  bool is_crop_;
   /* set from other properties on initialization,
    * check if we need to apply offset */
-  bool m_is_offset;
+  bool is_offset_;
 
  public:
   ScaleFixedSizeOperation();
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution() override;
-  void deinitExecution() override;
-  void setNewWidth(int width)
+  void init_execution() override;
+  void deinit_execution() override;
+  void set_new_width(int width)
   {
-    this->m_newWidth = width;
+    new_width_ = width;
   }
-  void setNewHeight(int height)
+  void set_new_height(int height)
   {
-    this->m_newHeight = height;
+    new_height_ = height;
   }
-  void setIsAspect(bool is_aspect)
+  void set_is_aspect(bool is_aspect)
   {
-    this->m_is_aspect = is_aspect;
+    is_aspect_ = is_aspect;
   }
-  void setIsCrop(bool is_crop)
+  void set_is_crop(bool is_crop)
   {
-    this->m_is_crop = is_crop;
+    is_crop_ = is_crop;
   }
-  void setOffset(float x, float y)
+  void set_offset(float x, float y)
   {
-    this->m_offsetX = x;
-    this->m_offsetY = y;
+    offset_x_ = x;
+    offset_y_ = y;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

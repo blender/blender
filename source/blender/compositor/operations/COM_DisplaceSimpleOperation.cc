@@ -17,115 +17,112 @@
  */
 
 #include "COM_DisplaceSimpleOperation.h"
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
 
 namespace blender::compositor {
 
 DisplaceSimpleOperation::DisplaceSimpleOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Vector);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Vector);
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Color);
 
-  this->m_inputColorProgram = nullptr;
-  this->m_inputVectorProgram = nullptr;
-  this->m_inputScaleXProgram = nullptr;
-  this->m_inputScaleYProgram = nullptr;
+  input_color_program_ = nullptr;
+  input_vector_program_ = nullptr;
+  input_scale_xprogram_ = nullptr;
+  input_scale_yprogram_ = nullptr;
 }
 
-void DisplaceSimpleOperation::initExecution()
+void DisplaceSimpleOperation::init_execution()
 {
-  this->m_inputColorProgram = this->getInputSocketReader(0);
-  this->m_inputVectorProgram = this->getInputSocketReader(1);
-  this->m_inputScaleXProgram = this->getInputSocketReader(2);
-  this->m_inputScaleYProgram = this->getInputSocketReader(3);
+  input_color_program_ = this->get_input_socket_reader(0);
+  input_vector_program_ = this->get_input_socket_reader(1);
+  input_scale_xprogram_ = this->get_input_socket_reader(2);
+  input_scale_yprogram_ = this->get_input_socket_reader(3);
 
-  this->m_width_x4 = this->getWidth() * 4;
-  this->m_height_x4 = this->getHeight() * 4;
+  width_x4_ = this->get_width() * 4;
+  height_x4_ = this->get_height() * 4;
 }
 
 /* minimum distance (in pixels) a pixel has to be displaced
  * in order to take effect */
 // #define DISPLACE_EPSILON    0.01f
 
-void DisplaceSimpleOperation::executePixelSampled(float output[4],
-                                                  float x,
-                                                  float y,
-                                                  PixelSampler sampler)
+void DisplaceSimpleOperation::execute_pixel_sampled(float output[4],
+                                                    float x,
+                                                    float y,
+                                                    PixelSampler sampler)
 {
-  float inVector[4];
-  float inScale[4];
+  float in_vector[4];
+  float in_scale[4];
 
   float p_dx, p_dy; /* main displacement in pixel space */
   float u, v;
 
-  this->m_inputScaleXProgram->readSampled(inScale, x, y, sampler);
-  float xs = inScale[0];
-  this->m_inputScaleYProgram->readSampled(inScale, x, y, sampler);
-  float ys = inScale[0];
+  input_scale_xprogram_->read_sampled(in_scale, x, y, sampler);
+  float xs = in_scale[0];
+  input_scale_yprogram_->read_sampled(in_scale, x, y, sampler);
+  float ys = in_scale[0];
 
   /* clamp x and y displacement to triple image resolution -
    * to prevent hangs from huge values mistakenly plugged in eg. z buffers */
-  CLAMP(xs, -this->m_width_x4, this->m_width_x4);
-  CLAMP(ys, -this->m_height_x4, this->m_height_x4);
+  CLAMP(xs, -width_x4_, width_x4_);
+  CLAMP(ys, -height_x4_, height_x4_);
 
-  this->m_inputVectorProgram->readSampled(inVector, x, y, sampler);
-  p_dx = inVector[0] * xs;
-  p_dy = inVector[1] * ys;
+  input_vector_program_->read_sampled(in_vector, x, y, sampler);
+  p_dx = in_vector[0] * xs;
+  p_dy = in_vector[1] * ys;
 
   /* displaced pixel in uv coords, for image sampling */
   /* clamp nodes to avoid glitches */
   u = x - p_dx + 0.5f;
   v = y - p_dy + 0.5f;
-  CLAMP(u, 0.0f, this->getWidth() - 1.0f);
-  CLAMP(v, 0.0f, this->getHeight() - 1.0f);
+  CLAMP(u, 0.0f, this->get_width() - 1.0f);
+  CLAMP(v, 0.0f, this->get_height() - 1.0f);
 
-  this->m_inputColorProgram->readSampled(output, u, v, sampler);
+  input_color_program_->read_sampled(output, u, v, sampler);
 }
 
-void DisplaceSimpleOperation::deinitExecution()
+void DisplaceSimpleOperation::deinit_execution()
 {
-  this->m_inputColorProgram = nullptr;
-  this->m_inputVectorProgram = nullptr;
-  this->m_inputScaleXProgram = nullptr;
-  this->m_inputScaleYProgram = nullptr;
+  input_color_program_ = nullptr;
+  input_vector_program_ = nullptr;
+  input_scale_xprogram_ = nullptr;
+  input_scale_yprogram_ = nullptr;
 }
 
-bool DisplaceSimpleOperation::determineDependingAreaOfInterest(rcti *input,
-                                                               ReadBufferOperation *readOperation,
-                                                               rcti *output)
+bool DisplaceSimpleOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti colorInput;
+  rcti color_input;
   NodeOperation *operation = nullptr;
 
   /* the vector buffer only needs a 2x2 buffer. The image needs whole buffer */
   /* image */
-  operation = getInputOperation(0);
-  colorInput.xmax = operation->getWidth();
-  colorInput.xmin = 0;
-  colorInput.ymax = operation->getHeight();
-  colorInput.ymin = 0;
-  if (operation->determineDependingAreaOfInterest(&colorInput, readOperation, output)) {
+  operation = get_input_operation(0);
+  color_input.xmax = operation->get_width();
+  color_input.xmin = 0;
+  color_input.ymax = operation->get_height();
+  color_input.ymin = 0;
+  if (operation->determine_depending_area_of_interest(&color_input, read_operation, output)) {
     return true;
   }
 
   /* vector */
-  if (operation->determineDependingAreaOfInterest(input, readOperation, output)) {
+  if (operation->determine_depending_area_of_interest(input, read_operation, output)) {
     return true;
   }
 
   /* scale x */
-  operation = getInputOperation(2);
-  if (operation->determineDependingAreaOfInterest(input, readOperation, output)) {
+  operation = get_input_operation(2);
+  if (operation->determine_depending_area_of_interest(input, read_operation, output)) {
     return true;
   }
 
   /* scale y */
-  operation = getInputOperation(3);
-  if (operation->determineDependingAreaOfInterest(input, readOperation, output)) {
+  operation = get_input_operation(3);
+  if (operation->determine_depending_area_of_interest(input, read_operation, output)) {
     return true;
   }
 
@@ -152,8 +149,8 @@ void DisplaceSimpleOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                            const rcti &area,
                                                            Span<MemoryBuffer *> inputs)
 {
-  const float width = this->getWidth();
-  const float height = this->getHeight();
+  const float width = this->get_width();
+  const float height = this->get_height();
   const MemoryBuffer *input_color = inputs[0];
   for (BuffersIterator<float> it = output->iterate_with(inputs.drop_front(1), area); !it.is_end();
        ++it) {
@@ -162,8 +159,8 @@ void DisplaceSimpleOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
     /* Clamp x and y displacement to triple image resolution -
      * to prevent hangs from huge values mistakenly plugged in eg. z buffers. */
-    CLAMP(scale_x, -m_width_x4, m_width_x4);
-    CLAMP(scale_y, -m_height_x4, m_height_x4);
+    CLAMP(scale_x, -width_x4_, width_x4_);
+    CLAMP(scale_y, -height_x4_, height_x4_);
 
     /* Main displacement in pixel space. */
     const float *vector = it.in(0);

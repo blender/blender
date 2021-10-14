@@ -234,42 +234,53 @@ template<typename Callback>
 static void foreach_sliced_buffer_params(const vector<unique_ptr<PathTraceWork>> &path_trace_works,
                                          const vector<WorkBalanceInfo> &work_balance_infos,
                                          const BufferParams &buffer_params,
+                                         const int overscan,
                                          const Callback &callback)
 {
   const int num_works = path_trace_works.size();
-  const int height = buffer_params.height;
+  const int window_height = buffer_params.window_height;
 
   int current_y = 0;
   for (int i = 0; i < num_works; ++i) {
     const double weight = work_balance_infos[i].weight;
-    const int slice_height = max(lround(height * weight), 1);
+    const int slice_window_full_y = buffer_params.full_y + buffer_params.window_y + current_y;
+    const int slice_window_height = max(lround(window_height * weight), 1);
 
     /* Disallow negative values to deal with situations when there are more compute devices than
      * scan-lines. */
-    const int remaining_height = max(0, height - current_y);
+    const int remaining_window_height = max(0, window_height - current_y);
 
-    BufferParams slide_params = buffer_params;
-    slide_params.full_y = buffer_params.full_y + current_y;
+    BufferParams slice_params = buffer_params;
+
+    slice_params.full_y = max(slice_window_full_y - overscan, buffer_params.full_y);
+    slice_params.window_y = slice_window_full_y - slice_params.full_y;
+
     if (i < num_works - 1) {
-      slide_params.height = min(slice_height, remaining_height);
+      slice_params.window_height = min(slice_window_height, remaining_window_height);
     }
     else {
-      slide_params.height = remaining_height;
+      slice_params.window_height = remaining_window_height;
     }
 
-    slide_params.update_offset_stride();
+    slice_params.height = slice_params.window_y + slice_params.window_height + overscan;
+    slice_params.height = min(slice_params.height,
+                              buffer_params.height + buffer_params.full_y - slice_params.full_y);
 
-    callback(path_trace_works[i].get(), slide_params);
+    slice_params.update_offset_stride();
 
-    current_y += slide_params.height;
+    callback(path_trace_works[i].get(), slice_params);
+
+    current_y += slice_params.window_height;
   }
 }
 
 void PathTrace::update_allocated_work_buffer_params()
 {
+  const int overscan = tile_manager_.get_tile_overscan();
   foreach_sliced_buffer_params(path_trace_works_,
                                work_balance_infos_,
                                big_tile_params_,
+                               overscan,
                                [](PathTraceWork *path_trace_work, const BufferParams &params) {
                                  RenderBuffers *buffers = path_trace_work->get_render_buffers();
                                  buffers->reset(params);
@@ -306,9 +317,12 @@ void PathTrace::update_effective_work_buffer_params(const RenderWork &render_wor
   const BufferParams scaled_big_tile_params = scale_buffer_params(big_tile_params_,
                                                                   resolution_divider);
 
+  const int overscan = tile_manager_.get_tile_overscan();
+
   foreach_sliced_buffer_params(path_trace_works_,
                                work_balance_infos_,
                                scaled_big_tile_params,
+                               overscan,
                                [&](PathTraceWork *path_trace_work, const BufferParams params) {
                                  path_trace_work->set_effective_buffer_params(
                                      scaled_full_params, scaled_big_tile_params, params);

@@ -357,6 +357,8 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
+  PBVH_CHECK_NAN(co);
+
   if (btot != 0.0f) {
     *b1 /= btot;
     //*b1 += (b1_orig - *b1) * 0.95f;
@@ -379,9 +381,13 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
   mul_v3_v3fl(result, avg, 1.0f / total);
 
+  PBVH_CHECK_NAN(co);
+
   if (projection > 0.0f) {
     add_v3_v3(result, co);
   }
+
+  PBVH_CHECK_NAN(co);
 
   SculptCornerType c = SCULPT_vertex_is_corner(ss, vertex, ctype);
   float corner_smooth;
@@ -398,6 +404,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   }
 
   interp_v3_v3v3(result, result, co, 1.0f - corner_smooth);
+  PBVH_CHECK_NAN(co);
 }
 
 int closest_vec_to_perp(float dir[3], float r_dir2[3], float no[3], float *buckets, float w)
@@ -651,6 +658,8 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     // zero_v3(avg);
     copy_v3_v3(avg, co1);
   }
+
+  PBVH_CHECK_NAN(avg);
 
   // do not update in do_origco
   if (do_origco) {

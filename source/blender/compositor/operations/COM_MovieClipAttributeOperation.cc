@@ -25,16 +25,16 @@ namespace blender::compositor {
 
 MovieClipAttributeOperation::MovieClipAttributeOperation()
 {
-  this->addOutputSocket(DataType::Value);
-  this->m_framenumber = 0;
-  this->m_attribute = MCA_X;
-  this->m_invert = false;
+  this->add_output_socket(DataType::Value);
+  framenumber_ = 0;
+  attribute_ = MCA_X;
+  invert_ = false;
   needs_canvas_to_get_constant_ = true;
   is_value_calculated_ = false;
   stabilization_resolution_socket_ = nullptr;
 }
 
-void MovieClipAttributeOperation::initExecution()
+void MovieClipAttributeOperation::init_execution()
 {
   if (!is_value_calculated_) {
     calc_value();
@@ -45,7 +45,7 @@ void MovieClipAttributeOperation::calc_value()
 {
   BLI_assert(this->get_flags().is_canvas_set);
   is_value_calculated_ = true;
-  if (this->m_clip == nullptr) {
+  if (clip_ == nullptr) {
     return;
   }
   float loc[2], scale, angle;
@@ -53,48 +53,48 @@ void MovieClipAttributeOperation::calc_value()
   loc[1] = 0.0f;
   scale = 1.0f;
   angle = 0.0f;
-  int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(this->m_clip, this->m_framenumber);
+  int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip_, framenumber_);
   NodeOperation &stabilization_operation =
       stabilization_resolution_socket_ ?
-          stabilization_resolution_socket_->getLink()->getOperation() :
+          stabilization_resolution_socket_->get_link()->get_operation() :
           *this;
-  BKE_tracking_stabilization_data_get(this->m_clip,
+  BKE_tracking_stabilization_data_get(clip_,
                                       clip_framenr,
-                                      stabilization_operation.getWidth(),
-                                      stabilization_operation.getHeight(),
+                                      stabilization_operation.get_width(),
+                                      stabilization_operation.get_height(),
                                       loc,
                                       &scale,
                                       &angle);
-  switch (this->m_attribute) {
+  switch (attribute_) {
     case MCA_SCALE:
-      this->m_value = scale;
+      value_ = scale;
       break;
     case MCA_ANGLE:
-      this->m_value = angle;
+      value_ = angle;
       break;
     case MCA_X:
-      this->m_value = loc[0];
+      value_ = loc[0];
       break;
     case MCA_Y:
-      this->m_value = loc[1];
+      value_ = loc[1];
       break;
   }
-  if (this->m_invert) {
-    if (this->m_attribute != MCA_SCALE) {
-      this->m_value = -this->m_value;
+  if (invert_) {
+    if (attribute_ != MCA_SCALE) {
+      value_ = -value_;
     }
     else {
-      this->m_value = 1.0f / this->m_value;
+      value_ = 1.0f / value_;
     }
   }
 }
 
-void MovieClipAttributeOperation::executePixelSampled(float output[4],
-                                                      float /*x*/,
-                                                      float /*y*/,
-                                                      PixelSampler /*sampler*/)
+void MovieClipAttributeOperation::execute_pixel_sampled(float output[4],
+                                                        float /*x*/,
+                                                        float /*y*/,
+                                                        PixelSampler /*sampler*/)
 {
-  output[0] = this->m_value;
+  output[0] = value_;
 }
 
 void MovieClipAttributeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
@@ -107,7 +107,7 @@ const float *MovieClipAttributeOperation::get_constant_elem()
   if (!is_value_calculated_) {
     calc_value();
   }
-  return &m_value;
+  return &value_;
 }
 
 }  // namespace blender::compositor

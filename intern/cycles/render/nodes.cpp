@@ -2736,6 +2736,7 @@ NODE_DEFINE(PrincipledBsdfNode)
       distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
 
   static NodeEnum subsurface_method_enum;
+  subsurface_method_enum.insert("burley", CLOSURE_BSSRDF_BURLEY_ID);
   subsurface_method_enum.insert("random_walk_fixed_radius",
                                 CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
   subsurface_method_enum.insert("random_walk", CLOSURE_BSSRDF_RANDOM_WALK_ID);
@@ -3060,6 +3061,7 @@ NODE_DEFINE(SubsurfaceScatteringNode)
   SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
   static NodeEnum method_enum;
+  method_enum.insert("burley", CLOSURE_BSSRDF_BURLEY_ID);
   method_enum.insert("random_walk_fixed_radius", CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
   method_enum.insert("random_walk", CLOSURE_BSSRDF_RANDOM_WALK_ID);
   SOCKET_ENUM(method, "Method", method_enum, CLOSURE_BSSRDF_RANDOM_WALK_ID);

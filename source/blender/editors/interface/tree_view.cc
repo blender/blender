@@ -19,6 +19,7 @@
  */
 
 #include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
 
@@ -27,6 +28,8 @@
 #include "interface_intern.h"
 
 #include "UI_interface.h"
+
+#include "WM_types.h"
 
 #include "UI_tree_view.hh"
 
@@ -88,7 +91,7 @@ void AbstractTreeView::build_layout_from_tree(const TreeViewLayoutBuilder &build
   uiLayout *prev_layout = builder.current_layout();
 
   uiLayout *box = uiLayoutBox(prev_layout);
-  uiLayoutColumn(box, true);
+  uiLayoutColumn(box, false);
 
   foreach_item([&builder](AbstractTreeViewItem &item) { builder.build_row(item); },
                IterOptions::SkipCollapsed);
@@ -172,24 +175,81 @@ void AbstractTreeViewItem::tree_row_click_fn(struct bContext * /*C*/,
                                              void * /*arg2*/)
 {
   uiButTreeRow *tree_row_but = (uiButTreeRow *)but_arg1;
-  BasicTreeViewItem &tree_item = reinterpret_cast<BasicTreeViewItem &>(*tree_row_but->tree_item);
+  AbstractTreeViewItem &tree_item = reinterpret_cast<AbstractTreeViewItem &>(
+      *tree_row_but->tree_item);
 
-  /* Let a click on an opened item activate it, a second click will close it then.
-   * TODO Should this be for asset catalogs only? */
-  if (tree_item.is_collapsed() || tree_item.is_active()) {
-    tree_item.toggle_collapsed();
-  }
   tree_item.activate();
 }
 
 void AbstractTreeViewItem::add_treerow_button(uiBlock &block)
 {
+  /* For some reason a width > (UI_UNIT_X * 2) make the layout system use all available width. */
   tree_row_but_ = (uiButTreeRow *)uiDefBut(
-      &block, UI_BTYPE_TREEROW, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
+      &block, UI_BTYPE_TREEROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
 
   tree_row_but_->tree_item = reinterpret_cast<uiTreeViewItemHandle *>(this);
   UI_but_func_set(&tree_row_but_->but, tree_row_click_fn, tree_row_but_, nullptr);
-  UI_but_treerow_indentation_set(&tree_row_but_->but, count_parents());
+}
+
+void AbstractTreeViewItem::add_indent(uiLayout &row) const
+{
+  uiBlock *block = uiLayoutGetBlock(&row);
+  uiLayout *subrow = uiLayoutRow(&row, true);
+  uiLayoutSetFixedSize(subrow, true);
+
+  const float indent_size = count_parents() * UI_DPI_ICON_SIZE;
+  uiDefBut(block, UI_BTYPE_SEPR, 0, "", 0, 0, indent_size, 0, nullptr, 0.0, 0.0, 0, 0, "");
+
+  /* Indent items without collapsing icon some more within their parent. Makes it clear that they
+   * are actually nested and not just a row at the same level without a chevron. */
+  if (!is_collapsible() && parent_) {
+    uiDefBut(block, UI_BTYPE_SEPR, 0, "", 0, 0, 0.2f * UI_UNIT_X, 0, nullptr, 0.0, 0.0, 0, 0, "");
+  }
+
+  /* Restore. */
+  UI_block_layout_set_current(block, &row);
+}
+
+void AbstractTreeViewItem::collapse_chevron_click_fn(struct bContext *C,
+                                                     void * /*but_arg1*/,
+                                                     void * /*arg2*/)
+{
+  /* There's no data we could pass to this callback. It must be either the button itself or a
+   * consistent address to match buttons over redraws. So instead of passing it somehow, just
+   * lookup the hovered item via context here. */
+
+  const wmWindow *win = CTX_wm_window(C);
+  const ARegion *region = CTX_wm_region(C);
+  uiTreeViewItemHandle *hovered_item_handle = UI_block_tree_view_find_item_at(
+      region, win->eventstate->x, win->eventstate->y);
+  AbstractTreeViewItem *hovered_item = reinterpret_cast<AbstractTreeViewItem *>(
+      hovered_item_handle);
+  BLI_assert(hovered_item != nullptr);
+
+  hovered_item->toggle_collapsed();
+}
+
+bool AbstractTreeViewItem::is_collapse_chevron_but(const uiBut *but)
+{
+  return but->type == UI_BTYPE_BUT_TOGGLE && ELEM(but->icon, ICON_TRIA_RIGHT, ICON_TRIA_DOWN) &&
+         (but->func == collapse_chevron_click_fn);
+}
+
+void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
+{
+  if (!is_collapsible()) {
+    return;
+  }
+
+  const BIFIconID icon = is_collapsed() ? ICON_TRIA_RIGHT : ICON_TRIA_DOWN;
+  uiBut *but = uiDefIconBut(
+      &block, UI_BTYPE_BUT_TOGGLE, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
+  /* Note that we're passing the tree-row button here, not the chevron one. */
+  UI_but_func_set(but, collapse_chevron_click_fn, nullptr, nullptr);
+  UI_but_flag_disable(but, UI_BUT_UNDO);
+
+  /* Check if the query for the button matches the created button. */
+  BLI_assert(is_collapse_chevron_but(but));
 }
 
 AbstractTreeViewItem *AbstractTreeViewItem::find_tree_item_from_rename_button(
@@ -226,16 +286,23 @@ void AbstractTreeViewItem::rename_button_fn(bContext *UNUSED(C), void *arg, char
   item->end_renaming();
 }
 
-void AbstractTreeViewItem::add_rename_button(uiBlock &block)
+void AbstractTreeViewItem::add_rename_button(uiLayout &row)
 {
+  uiBlock *block = uiLayoutGetBlock(&row);
+  eUIEmbossType previous_emboss = UI_block_emboss_get(block);
+
+  uiLayoutRow(&row, false);
+  /* Enable emboss for the text button. */
+  UI_block_emboss_set(block, UI_EMBOSS);
+
   AbstractTreeView &tree_view = get_tree_view();
-  uiBut *rename_but = uiDefBut(&block,
+  uiBut *rename_but = uiDefBut(block,
                                UI_BTYPE_TEXT,
                                1,
                                "",
                                0,
                                0,
-                               UI_UNIT_X,
+                               UI_UNIT_X * 10,
                                UI_UNIT_Y,
                                tree_view.rename_buffer_->data(),
                                1.0f,
@@ -247,13 +314,17 @@ void AbstractTreeViewItem::add_rename_button(uiBlock &block)
   /* Gotta be careful with what's passed to the `arg1` here. Any tree data will be freed once the
    * callback is executed. */
   UI_but_func_rename_set(rename_but, AbstractTreeViewItem::rename_button_fn, rename_but);
+  UI_but_flag_disable(rename_but, UI_BUT_UNDO);
 
-  const bContext *evil_C = static_cast<bContext *>(block.evil_C);
+  const bContext *evil_C = static_cast<bContext *>(block->evil_C);
   ARegion *region = CTX_wm_region(evil_C);
   /* Returns false if the button was removed. */
-  if (UI_but_active_only(evil_C, region, &block, rename_but) == false) {
+  if (UI_but_active_only(evil_C, region, block, rename_but) == false) {
     end_renaming();
   }
+
+  UI_block_emboss_set(block, previous_emboss);
+  UI_block_layout_set_current(block, &row);
 }
 
 void AbstractTreeViewItem::on_activate()
@@ -298,6 +369,11 @@ bool AbstractTreeViewItem::rename(StringRefNull new_name)
   return true;
 }
 
+void AbstractTreeViewItem::build_context_menu(bContext & /*C*/, uiLayout & /*column*/) const
+{
+  /* No context menu by default. */
+}
+
 void AbstractTreeViewItem::update_from_old(const AbstractTreeViewItem &old)
 {
   is_open_ = old.is_open_;
@@ -335,12 +411,7 @@ void AbstractTreeViewItem::end_renaming()
   tree_view.rename_buffer_ = nullptr;
 }
 
-const AbstractTreeView &AbstractTreeViewItem::get_tree_view() const
-{
-  return static_cast<AbstractTreeView &>(*root_);
-}
-
-AbstractTreeView &AbstractTreeViewItem::get_tree_view()
+AbstractTreeView &AbstractTreeViewItem::get_tree_view() const
 {
   return static_cast<AbstractTreeView &>(*root_);
 }
@@ -454,6 +525,11 @@ bool AbstractTreeViewItem::matches_including_parents(const AbstractTreeViewItem 
   return true;
 }
 
+uiButTreeRow *AbstractTreeViewItem::tree_row_button()
+{
+  return tree_row_but_;
+}
+
 void AbstractTreeViewItem::change_state_delayed()
 {
   if (is_active_fn_()) {
@@ -481,25 +557,56 @@ TreeViewLayoutBuilder::TreeViewLayoutBuilder(uiBlock &block) : block_(block)
 {
 }
 
+/**
+ * Moves the button following the last added chevron closer to the list item.
+ *
+ * Iterates backwards over buttons until finding the tree-row button, which is assumed to be the
+ * first button added for the row, and can act as a delimiter that way.
+ */
+void TreeViewLayoutBuilder::polish_layout(const uiBlock &block)
+{
+  LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block.buttons) {
+    if (AbstractTreeViewItem::is_collapse_chevron_but(but) && but->next &&
+        /* Embossed buttons with padding-less text padding look weird, so don't touch them. */
+        ELEM(but->next->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS)) {
+      UI_but_drawflag_enable(static_cast<uiBut *>(but->next), UI_BUT_NO_TEXT_PADDING);
+    }
+
+    if (but->type == UI_BTYPE_TREEROW) {
+      break;
+    }
+  }
+}
+
 void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
 {
-  uiLayout *prev_layout = current_layout();
-  uiLayout *row = uiLayoutRow(prev_layout, false);
-
-  uiLayoutOverlap(row);
-
   uiBlock &block_ = block();
 
+  uiLayout *prev_layout = current_layout();
+  eUIEmbossType previous_emboss = UI_block_emboss_get(&block_);
+
+  uiLayout *overlap = uiLayoutOverlap(prev_layout);
+
+  uiLayoutRow(overlap, false);
   /* Every item gets one! Other buttons can be overlapped on top. */
   item.add_treerow_button(block_);
 
+  /* After adding tree-row button (would disable hover highlighting). */
+  UI_block_emboss_set(&block_, UI_EMBOSS_NONE);
+
+  uiLayout *row = uiLayoutRow(overlap, true);
+  item.add_indent(*row);
+  item.add_collapse_chevron(block_);
+
   if (item.is_renaming()) {
-    item.add_rename_button(block_);
+    item.add_rename_button(*row);
   }
   else {
     item.build_row(*row);
   }
+  polish_layout(block_);
 
+  UI_block_emboss_set(&block_, previous_emboss);
   UI_block_layout_set_current(&block_, prev_layout);
 }
 
@@ -520,12 +627,9 @@ BasicTreeViewItem::BasicTreeViewItem(StringRef label, BIFIconID icon_) : icon(ic
   label_ = label;
 }
 
-void BasicTreeViewItem::build_row(uiLayout & /*row*/)
+void BasicTreeViewItem::build_row(uiLayout &row)
 {
-  if (BIFIconID icon = get_draw_icon()) {
-    ui_def_but_icon(&tree_row_but_->but, icon, UI_HAS_ICON);
-  }
-  tree_row_but_->but.str = BLI_strdupn(label_.c_str(), label_.length());
+  uiItemL(&row, label_.c_str(), icon);
 }
 
 void BasicTreeViewItem::on_activate()
@@ -538,24 +642,6 @@ void BasicTreeViewItem::on_activate()
 void BasicTreeViewItem::on_activate(ActivateFn fn)
 {
   activate_fn_ = fn;
-}
-
-BIFIconID BasicTreeViewItem::get_draw_icon() const
-{
-  if (icon) {
-    return icon;
-  }
-
-  if (is_collapsible()) {
-    return is_collapsed() ? ICON_TRIA_RIGHT : ICON_TRIA_DOWN;
-  }
-
-  return ICON_NONE;
-}
-
-uiBut *BasicTreeViewItem::button()
-{
-  return &tree_row_but_->but;
 }
 
 }  // namespace blender::ui
@@ -625,4 +711,12 @@ void UI_tree_view_item_begin_rename(uiTreeViewItemHandle *item_handle)
 {
   AbstractTreeViewItem &item = reinterpret_cast<AbstractTreeViewItem &>(*item_handle);
   item.begin_renaming();
+}
+
+void UI_tree_view_item_context_menu_build(bContext *C,
+                                          const uiTreeViewItemHandle *item_handle,
+                                          uiLayout *column)
+{
+  const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_handle);
+  item.build_context_menu(*C, *column);
 }

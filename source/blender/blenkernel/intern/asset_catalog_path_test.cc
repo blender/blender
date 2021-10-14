@@ -31,6 +31,16 @@ namespace blender::bke::tests {
 
 TEST(AssetCatalogPathTest, construction)
 {
+  AssetCatalogPath default_constructed;
+  /* Use `.str()` to use `std:string`'s comparison operators here, not our own (which are tested
+   * later). */
+  EXPECT_EQ(default_constructed.str(), "");
+
+  /* C++ considers this construction special, it doesn't call the default constructor but does
+   * recursive, member-wise value initialization. See https://stackoverflow.com/a/4982720. */
+  AssetCatalogPath value_initialized = AssetCatalogPath();
+  EXPECT_EQ(value_initialized.str(), "");
+
   AssetCatalogPath from_char_literal("the/path");
 
   const std::string str_const = "the/path";
@@ -56,6 +66,15 @@ TEST(AssetCatalogPathTest, length)
 
   const AssetCatalogPath utf8("some/родитель");
   EXPECT_EQ(21, utf8.length()) << "13 characters should be 21 bytes.";
+}
+
+TEST(AssetCatalogPathTest, name)
+{
+  EXPECT_EQ(StringRefNull(""), AssetCatalogPath("").name());
+  EXPECT_EQ(StringRefNull("word"), AssetCatalogPath("word").name());
+  EXPECT_EQ(StringRefNull("Пермь"), AssetCatalogPath("дорога/в/Пермь").name());
+  EXPECT_EQ(StringRefNull("windows\\paths"),
+            AssetCatalogPath("these/are/not/windows\\paths").name());
 }
 
 TEST(AssetCatalogPathTest, comparison_operators)

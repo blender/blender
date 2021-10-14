@@ -18,32 +18,32 @@
 
 #pragma once
 
+#include <functional>
 #include <list>
-#include <sstream>
-#include <string>
 
 #include "BLI_ghash.h"
 #include "BLI_hash.hh"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
+#include "BLI_rect.h"
+#include "BLI_span.hh"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "COM_Enums.h"
 #include "COM_MemoryBuffer.h"
-#include "COM_MemoryProxy.h"
 #include "COM_MetaData.h"
-#include "COM_Node.h"
 
 #include "clew.h"
+
+#include "DNA_node_types.h"
 
 namespace blender::compositor {
 
 class OpenCLDevice;
 class ReadBufferOperation;
-class WriteBufferOperation;
 class ExecutionSystem;
-
 class NodeOperation;
+class NodeOperationOutput;
+
 typedef NodeOperation SocketReader;
 
 /**
@@ -83,56 +83,56 @@ enum class ResizeMode {
 
 class NodeOperationInput {
  private:
-  NodeOperation *m_operation;
+  NodeOperation *operation_;
 
   /** Datatype of this socket. Is used for automatically data transformation.
    * \section data-conversion
    */
-  DataType m_datatype;
+  DataType datatype_;
 
   /** Resize mode of this socket */
-  ResizeMode m_resizeMode;
+  ResizeMode resize_mode_;
 
   /** Connected output */
-  NodeOperationOutput *m_link;
+  NodeOperationOutput *link_;
 
  public:
   NodeOperationInput(NodeOperation *op,
                      DataType datatype,
-                     ResizeMode resizeMode = ResizeMode::Center);
+                     ResizeMode resize_mode = ResizeMode::Center);
 
-  NodeOperation &getOperation() const
+  NodeOperation &get_operation() const
   {
-    return *m_operation;
+    return *operation_;
   }
-  DataType getDataType() const
+  DataType get_data_type() const
   {
-    return m_datatype;
-  }
-
-  void setLink(NodeOperationOutput *link)
-  {
-    m_link = link;
-  }
-  NodeOperationOutput *getLink() const
-  {
-    return m_link;
-  }
-  bool isConnected() const
-  {
-    return m_link;
+    return datatype_;
   }
 
-  void setResizeMode(ResizeMode resizeMode)
+  void set_link(NodeOperationOutput *link)
   {
-    this->m_resizeMode = resizeMode;
+    link_ = link;
   }
-  ResizeMode getResizeMode() const
+  NodeOperationOutput *get_link() const
   {
-    return this->m_resizeMode;
+    return link_;
+  }
+  bool is_connected() const
+  {
+    return link_;
   }
 
-  SocketReader *getReader();
+  void set_resize_mode(ResizeMode resize_mode)
+  {
+    resize_mode_ = resize_mode;
+  }
+  ResizeMode get_resize_mode() const
+  {
+    return resize_mode_;
+  }
+
+  SocketReader *get_reader();
 
   bool determine_canvas(const rcti &preferred_area, rcti &r_area);
 
@@ -143,23 +143,23 @@ class NodeOperationInput {
 
 class NodeOperationOutput {
  private:
-  NodeOperation *m_operation;
+  NodeOperation *operation_;
 
   /** Datatype of this socket. Is used for automatically data transformation.
    * \section data-conversion
    */
-  DataType m_datatype;
+  DataType datatype_;
 
  public:
   NodeOperationOutput(NodeOperation *op, DataType datatype);
 
-  NodeOperation &getOperation() const
+  NodeOperation &get_operation() const
   {
-    return *m_operation;
+    return *operation_;
   }
-  DataType getDataType() const
+  DataType get_data_type() const
   {
-    return m_datatype;
+    return datatype_;
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area);
@@ -314,10 +314,10 @@ struct NodeOperationHash {
  */
 class NodeOperation {
  private:
-  int m_id;
-  std::string m_name;
-  Vector<NodeOperationInput> m_inputs;
-  Vector<NodeOperationOutput> m_outputs;
+  int id_;
+  std::string name_;
+  Vector<NodeOperationInput> inputs_;
+  Vector<NodeOperationOutput> outputs_;
 
   size_t params_hash_;
   bool is_hash_output_params_implemented_;
@@ -334,16 +334,16 @@ class NodeOperation {
    * \note only use when you really know what you are doing.
    * this mutex is used to share data among chunks in the same operation
    * \see TonemapOperation for an example of usage
-   * \see NodeOperation.initMutex initializes this mutex
-   * \see NodeOperation.deinitMutex deinitializes this mutex
-   * \see NodeOperation.getMutex retrieve a pointer to this mutex.
+   * \see NodeOperation.init_mutex initializes this mutex
+   * \see NodeOperation.deinit_mutex deinitializes this mutex
+   * \see NodeOperation.get_mutex retrieve a pointer to this mutex.
    */
-  ThreadMutex m_mutex;
+  ThreadMutex mutex_;
 
   /**
    * \brief reference to the editing bNodeTree, used for break and update callback
    */
-  const bNodeTree *m_btree;
+  const bNodeTree *btree_;
 
  protected:
   /**
@@ -356,7 +356,7 @@ class NodeOperation {
   /**
    * Flags how to evaluate this operation.
    */
-  NodeOperationFlags flags;
+  NodeOperationFlags flags_;
 
   ExecutionSystem *exec_system_;
 
@@ -367,22 +367,22 @@ class NodeOperation {
 
   void set_name(const std::string name)
   {
-    m_name = name;
+    name_ = name;
   }
 
   const std::string get_name() const
   {
-    return m_name;
+    return name_;
   }
 
   void set_id(const int id)
   {
-    m_id = id;
+    id_ = id;
   }
 
   const int get_id() const
   {
-    return m_id;
+    return id_;
   }
 
   float get_constant_value_default(float default_value);
@@ -390,33 +390,28 @@ class NodeOperation {
 
   const NodeOperationFlags get_flags() const
   {
-    return flags;
+    return flags_;
   }
 
   std::optional<NodeOperationHash> generate_hash();
 
-  unsigned int getNumberOfInputSockets() const
+  unsigned int get_number_of_input_sockets() const
   {
-    return m_inputs.size();
+    return inputs_.size();
   }
-  unsigned int getNumberOfOutputSockets() const
+  unsigned int get_number_of_output_sockets() const
   {
-    return m_outputs.size();
+    return outputs_.size();
   }
-  NodeOperationOutput *getOutputSocket(unsigned int index = 0);
-  NodeOperationInput *getInputSocket(unsigned int index);
+  NodeOperationOutput *get_output_socket(unsigned int index = 0);
+  NodeOperationInput *get_input_socket(unsigned int index);
 
-  NodeOperation *get_input_operation(int index)
-  {
-    /* TODO: Rename protected getInputOperation to get_input_operation and make it public replacing
-     * this method. */
-    return getInputOperation(index);
-  }
+  NodeOperation *get_input_operation(int index);
 
   virtual void determine_canvas(const rcti &preferred_area, rcti &r_area);
 
   /**
-   * \brief isOutputOperation determines whether this operation is an output of the
+   * \brief is_output_operation determines whether this operation is an output of the
    * ExecutionSystem during rendering or editing.
    *
    * Default behavior if not overridden, this operation will not be evaluated as being an output
@@ -430,7 +425,7 @@ class NodeOperation {
    *
    * \return bool the result of this method
    */
-  virtual bool isOutputOperation(bool /*rendering*/) const
+  virtual bool is_output_operation(bool /*rendering*/) const
   {
     return false;
   }
@@ -440,9 +435,9 @@ class NodeOperation {
     execution_model_ = model;
   }
 
-  void setbNodeTree(const bNodeTree *tree)
+  void set_bnodetree(const bNodeTree *tree)
   {
-    this->m_btree = tree;
+    btree_ = tree;
   }
 
   void set_execution_system(ExecutionSystem *system)
@@ -452,20 +447,20 @@ class NodeOperation {
 
   /**
    * Initializes operation data needed after operations are linked and resolutions determined. For
-   * rendering heap memory data use initExecution().
+   * rendering heap memory data use init_execution().
    */
   virtual void init_data();
 
-  virtual void initExecution();
+  virtual void init_execution();
 
   /**
    * \brief when a chunk is executed by a CPUDevice, this method is called
    * \ingroup execution
    * \param rect: the rectangle of the chunk (location and size)
-   * \param chunkNumber: the chunkNumber to be calculated
-   * \param memoryBuffers: all input MemoryBuffer's needed
+   * \param chunk_number: the chunk_number to be calculated
+   * \param memory_buffers: all input MemoryBuffer's needed
    */
-  virtual void executeRegion(rcti * /*rect*/, unsigned int /*chunkNumber*/)
+  virtual void execute_region(rcti * /*rect*/, unsigned int /*chunk_number*/)
   {
   }
 
@@ -477,15 +472,15 @@ class NodeOperation {
    * \param program: the OpenCL program containing all compositor kernels
    * \param queue: the OpenCL command queue of the device the chunk is executed on
    * \param rect: the rectangle of the chunk (location and size)
-   * \param chunkNumber: the chunkNumber to be calculated
-   * \param memoryBuffers: all input MemoryBuffer's needed
-   * \param outputBuffer: the outputbuffer to write to
+   * \param chunk_number: the chunk_number to be calculated
+   * \param memory_buffers: all input MemoryBuffer's needed
+   * \param output_buffer: the outputbuffer to write to
    */
-  virtual void executeOpenCLRegion(OpenCLDevice * /*device*/,
-                                   rcti * /*rect*/,
-                                   unsigned int /*chunkNumber*/,
-                                   MemoryBuffer ** /*memoryBuffers*/,
-                                   MemoryBuffer * /*outputBuffer*/)
+  virtual void execute_opencl_region(OpenCLDevice * /*device*/,
+                                     rcti * /*rect*/,
+                                     unsigned int /*chunk_number*/,
+                                     MemoryBuffer ** /*memory_buffers*/,
+                                     MemoryBuffer * /*output_buffer*/)
   {
   }
 
@@ -496,23 +491,23 @@ class NodeOperation {
    * \param context: the OpenCL context
    * \param program: the OpenCL program containing all compositor kernels
    * \param queue: the OpenCL command queue of the device the chunk is executed on
-   * \param outputMemoryBuffer: the allocated memory buffer in main CPU memory
-   * \param clOutputBuffer: the allocated memory buffer in OpenCLDevice memory
-   * \param inputMemoryBuffers: all input MemoryBuffer's needed
-   * \param clMemToCleanUp: all created cl_mem references must be added to this list.
+   * \param output_memory_buffer: the allocated memory buffer in main CPU memory
+   * \param cl_output_buffer: the allocated memory buffer in OpenCLDevice memory
+   * \param input_memory_buffers: all input MemoryBuffer's needed
+   * \param cl_mem_to_clean_up: all created cl_mem references must be added to this list.
    * Framework will clean this after execution
-   * \param clKernelsToCleanUp: all created cl_kernel references must be added to this list.
+   * \param cl_kernels_to_clean_up: all created cl_kernel references must be added to this list.
    * Framework will clean this after execution
    */
-  virtual void executeOpenCL(OpenCLDevice * /*device*/,
-                             MemoryBuffer * /*outputMemoryBuffer*/,
-                             cl_mem /*clOutputBuffer*/,
-                             MemoryBuffer ** /*inputMemoryBuffers*/,
-                             std::list<cl_mem> * /*clMemToCleanUp*/,
-                             std::list<cl_kernel> * /*clKernelsToCleanUp*/)
+  virtual void execute_opencl(OpenCLDevice * /*device*/,
+                              MemoryBuffer * /*output_memory_buffer*/,
+                              cl_mem /*cl_output_buffer*/,
+                              MemoryBuffer ** /*input_memory_buffers*/,
+                              std::list<cl_mem> * /*cl_mem_to_clean_up*/,
+                              std::list<cl_kernel> * /*cl_kernels_to_clean_up*/)
   {
   }
-  virtual void deinitExecution();
+  virtual void deinit_execution();
 
   void set_canvas(const rcti &canvas_area);
   const rcti &get_canvas() const;
@@ -525,14 +520,14 @@ class NodeOperation {
    * \return [true:false]
    * \see BaseViewerOperation
    */
-  virtual bool isActiveViewerOutput() const
+  virtual bool is_active_viewer_output() const
   {
     return false;
   }
 
-  virtual bool determineDependingAreaOfInterest(rcti *input,
-                                                ReadBufferOperation *readOperation,
-                                                rcti *output);
+  virtual bool determine_depending_area_of_interest(rcti *input,
+                                                    ReadBufferOperation *read_operation,
+                                                    rcti *output);
 
   /**
    * \brief set the index of the input socket that will determine the canvas of this
@@ -554,58 +549,58 @@ class NodeOperation {
    * \note only applicable for output operations like ViewerOperation
    * \return eCompositorPriority
    */
-  virtual eCompositorPriority getRenderPriority() const
+  virtual eCompositorPriority get_render_priority() const
   {
     return eCompositorPriority::Low;
   }
 
-  inline bool isBraked() const
+  inline bool is_braked() const
   {
-    return this->m_btree->test_break(this->m_btree->tbh);
+    return btree_->test_break(btree_->tbh);
   }
 
-  inline void updateDraw()
+  inline void update_draw()
   {
-    if (this->m_btree->update_draw) {
-      this->m_btree->update_draw(this->m_btree->udh);
+    if (btree_->update_draw) {
+      btree_->update_draw(btree_->udh);
     }
   }
 
-  unsigned int getWidth() const
+  unsigned int get_width() const
   {
     return BLI_rcti_size_x(&get_canvas());
   }
 
-  unsigned int getHeight() const
+  unsigned int get_height() const
   {
     return BLI_rcti_size_y(&get_canvas());
   }
 
-  inline void readSampled(float result[4], float x, float y, PixelSampler sampler)
+  inline void read_sampled(float result[4], float x, float y, PixelSampler sampler)
   {
-    executePixelSampled(result, x, y, sampler);
+    execute_pixel_sampled(result, x, y, sampler);
   }
 
-  inline void readFiltered(float result[4], float x, float y, float dx[2], float dy[2])
+  inline void read_filtered(float result[4], float x, float y, float dx[2], float dy[2])
   {
-    executePixelFiltered(result, x, y, dx, dy);
+    execute_pixel_filtered(result, x, y, dx, dy);
   }
 
-  inline void read(float result[4], int x, int y, void *chunkData)
+  inline void read(float result[4], int x, int y, void *chunk_data)
   {
-    executePixel(result, x, y, chunkData);
+    execute_pixel(result, x, y, chunk_data);
   }
 
-  virtual void *initializeTileData(rcti * /*rect*/)
+  virtual void *initialize_tile_data(rcti * /*rect*/)
   {
     return 0;
   }
 
-  virtual void deinitializeTileData(rcti * /*rect*/, void * /*data*/)
+  virtual void deinitialize_tile_data(rcti * /*rect*/, void * /*data*/)
   {
   }
 
-  virtual MemoryBuffer *getInputMemoryBuffer(MemoryBuffer ** /*memoryBuffers*/)
+  virtual MemoryBuffer *get_input_memory_buffer(MemoryBuffer ** /*memory_buffers*/)
   {
     return 0;
   }
@@ -614,7 +609,7 @@ class NodeOperation {
    * Return the meta data associated with this branch.
    *
    * The return parameter holds an instance or is an nullptr. */
-  virtual std::unique_ptr<MetaData> getMetaData()
+  virtual std::unique_ptr<MetaData> get_meta_data()
   {
     return std::unique_ptr<MetaData>();
   }
@@ -672,28 +667,27 @@ class NodeOperation {
     combine_hashes(params_hash_, get_default_hash_3(param1, param2, param3));
   }
 
-  void addInputSocket(DataType datatype, ResizeMode resize_mode = ResizeMode::Center);
-  void addOutputSocket(DataType datatype);
+  void add_input_socket(DataType datatype, ResizeMode resize_mode = ResizeMode::Center);
+  void add_output_socket(DataType datatype);
 
   /* TODO(manzanilla): to be removed with tiled implementation. */
-  void setWidth(unsigned int width)
+  void set_width(unsigned int width)
   {
     canvas_.xmax = canvas_.xmin + width;
-    this->flags.is_canvas_set = true;
+    flags_.is_canvas_set = true;
   }
-  void setHeight(unsigned int height)
+  void set_height(unsigned int height)
   {
     canvas_.ymax = canvas_.ymin + height;
-    this->flags.is_canvas_set = true;
+    flags_.is_canvas_set = true;
   }
 
-  SocketReader *getInputSocketReader(unsigned int inputSocketindex);
-  NodeOperation *getInputOperation(unsigned int inputSocketindex);
+  SocketReader *get_input_socket_reader(unsigned int index);
 
-  void deinitMutex();
-  void initMutex();
-  void lockMutex();
-  void unlockMutex();
+  void deinit_mutex();
+  void init_mutex();
+  void lock_mutex();
+  void unlock_mutex();
 
   /**
    * \brief set whether this operation is complex
@@ -701,9 +695,9 @@ class NodeOperation {
    * Complex operations are typically doing many reads to calculate the output of a single pixel.
    * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
    */
-  void setComplex(bool complex)
+  void set_complex(bool complex)
   {
-    this->flags.complex = complex;
+    flags_.complex = complex;
   }
 
   /**
@@ -712,12 +706,12 @@ class NodeOperation {
    * \param result: is a float[4] array to store the result
    * \param x: the x-coordinate of the pixel to calculate in image space
    * \param y: the y-coordinate of the pixel to calculate in image space
-   * \param inputBuffers: chunks that can be read by their ReadBufferOperation.
+   * \param input_buffers: chunks that can be read by their ReadBufferOperation.
    */
-  virtual void executePixelSampled(float /*output*/[4],
-                                   float /*x*/,
-                                   float /*y*/,
-                                   PixelSampler /*sampler*/)
+  virtual void execute_pixel_sampled(float /*output*/[4],
+                                     float /*x*/,
+                                     float /*y*/,
+                                     PixelSampler /*sampler*/)
   {
   }
 
@@ -727,12 +721,12 @@ class NodeOperation {
    * \param result: is a float[4] array to store the result
    * \param x: the x-coordinate of the pixel to calculate in image space
    * \param y: the y-coordinate of the pixel to calculate in image space
-   * \param inputBuffers: chunks that can be read by their ReadBufferOperation.
-   * \param chunkData: chunk specific data a during execution time.
+   * \param input_buffers: chunks that can be read by their ReadBufferOperation.
+   * \param chunk_data: chunk specific data a during execution time.
    */
-  virtual void executePixel(float output[4], int x, int y, void * /*chunkData*/)
+  virtual void execute_pixel(float output[4], int x, int y, void * /*chunk_data*/)
   {
-    executePixelSampled(output, x, y, PixelSampler::Nearest);
+    execute_pixel_sampled(output, x, y, PixelSampler::Nearest);
   }
 
   /**
@@ -743,9 +737,9 @@ class NodeOperation {
    * \param y: the y-coordinate of the pixel to calculate in image space
    * \param dx:
    * \param dy:
-   * \param inputBuffers: chunks that can be read by their ReadBufferOperation.
+   * \param input_buffers: chunks that can be read by their ReadBufferOperation.
    */
-  virtual void executePixelFiltered(
+  virtual void execute_pixel_filtered(
       float /*output*/[4], float /*x*/, float /*y*/, float /*dx*/[2], float /*dy*/[2])
   {
   }

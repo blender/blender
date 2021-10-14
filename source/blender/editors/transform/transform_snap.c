@@ -374,6 +374,8 @@ void applyProject(TransInfo *t)
         if (ED_transform_snap_object_project_view3d(
                 t->tsnap.object_context,
                 t->depsgraph,
+                t->region,
+                t->view,
                 SCE_SNAP_MODE_FACE,
                 &(const struct SnapObjectParams){
                     .snap_select = t->tsnap.modeSelect,
@@ -671,8 +673,7 @@ static void initSnappingMode(TransInfo *t)
   if (t->spacetype == SPACE_VIEW3D) {
     if (t->tsnap.object_context == NULL) {
       t->tsnap.use_backface_culling = snap_use_backface_culling(t);
-      t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
-          t->scene, 0, t->region, t->view);
+      t->tsnap.object_context = ED_transform_snap_object_context_create(t->scene, 0);
 
       if (t->data_type == TC_MESH_VERTS) {
         /* Ignore elements being transformed. */
@@ -1245,6 +1246,8 @@ short snapObjectsTransform(
   return ED_transform_snap_object_project_view3d_ex(
       t->tsnap.object_context,
       t->depsgraph,
+      t->region,
+      t->view,
       t->settings->snap_mode,
       &(const struct SnapObjectParams){
           .snap_select = t->tsnap.modeSelect,
@@ -1280,6 +1283,8 @@ bool peelObjectsTransform(TransInfo *t,
   ED_transform_snap_object_project_all_view3d_ex(
       t->tsnap.object_context,
       t->depsgraph,
+      t->region,
+      t->view,
       &(const struct SnapObjectParams){
           .snap_select = t->tsnap.modeSelect,
           .edit_mode_type = (t->flag & T_EDIT) != 0 ? SNAP_GEOM_EDIT : SNAP_GEOM_FINAL,

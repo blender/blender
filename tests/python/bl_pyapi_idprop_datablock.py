@@ -16,17 +16,25 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import bpy
-import sys
-import os
-import tempfile
-import inspect
-from bpy.types import UIList
+# ./blender.bin --background -noaudio --python tests/python/bl_pyapi_idprop_datablock.py -- --verbose
 
+import contextlib
+import inspect
+import io
+import os
+import re
+import sys
+import tempfile
+
+import bpy
+
+from bpy.types import UIList
 arr_len = 100
 ob_cp_count = 100
-lib_path = os.path.join(tempfile.gettempdir(), "lib.blend")
-test_path = os.path.join(tempfile.gettempdir(), "test.blend")
+
+# Set before execution.
+lib_path = None
+test_path = None
 
 
 def print_fail_msg_and_exit(msg):
@@ -45,11 +53,38 @@ def print_fail_msg_and_exit(msg):
     os._exit(1)
 
 
-def abort_if_false(expr, msg=None):
+def expect_false_or_abort(expr, msg=None):
     if not expr:
         if not msg:
             msg = "test failed"
         print_fail_msg_and_exit(msg)
+
+
+def expect_exception_or_abort(*, fn, ex):
+    try:
+        fn()
+        exception = False
+    except ex:
+        exception = True
+    if exception:
+        return  # OK
+    print_fail_msg_and_exit("test failed")
+
+
+def expect_ouput_or_abort(*, fn, match_stderr=None, match_stdout=None):
+
+    stdout, stderr = io.StringIO(), io.StringIO()
+
+    with (contextlib.redirect_stderr(stderr), contextlib.redirect_stdout(stdout)):
+        fn()
+
+    for (handle, match) in ((stdout, match_stdout), (stderr, match_stderr)):
+        if not match:
+            continue
+        handle.seek(0)
+        output = handle.read()
+        if not re.match(match, output):
+            print_fail_msg_and_exit("%r not found in %r" % (match, output))
 
 
 class TestClass(bpy.types.PropertyGroup):
@@ -65,14 +100,6 @@ def get_scene(lib_name, sce_name):
                     (lib_name is None and s.library is None)
             ):
                 return s
-
-
-def check_crash(fnc, args=None):
-    try:
-        fnc(args) if args else fnc()
-    except:
-        return
-    print_fail_msg_and_exit("test failed")
 
 
 def init():
@@ -118,12 +145,13 @@ def make_lib():
 
 def check_lib():
     # check pointer
-    abort_if_false(bpy.data.objects["Cube"].prop == bpy.data.objects['Camera'])
+    expect_false_or_abort(bpy.data.objects["Cube"].prop == bpy.data.objects['Camera'])
 
     # check array of pointers in duplicated object
     for i in range(0, arr_len):
-        abort_if_false(bpy.data.objects["Cube.001"].prop_array[i].test_prop ==
-                       bpy.data.objects['Light'])
+        expect_false_or_abort(
+            bpy.data.objects["Cube.001"].prop_array[i].test_prop ==
+            bpy.data.objects['Light'])
 
 
 def check_lib_linking():
@@ -136,9 +164,9 @@ def check_lib_linking():
 
     o = bpy.data.scenes["Scene_lib"].objects['Unique_Cube']
 
-    abort_if_false(o.prop_array[0].test_prop == bpy.data.scenes["Scene_lib"].objects['Light'])
-    abort_if_false(o.prop == bpy.data.scenes["Scene_lib"].objects['Camera'])
-    abort_if_false(o.prop.library == o.library)
+    expect_false_or_abort(o.prop_array[0].test_prop == bpy.data.scenes["Scene_lib"].objects['Light'])
+    expect_false_or_abort(o.prop == bpy.data.scenes["Scene_lib"].objects['Camera'])
+    expect_false_or_abort(o.prop.library == o.library)
 
     bpy.ops.wm.save_as_mainfile(filepath=test_path)
 
@@ -158,9 +186,10 @@ def check_linked_scene_copying():
 
     # check node's props
     # must point to own scene camera
-    abort_if_false(intern_sce.node_tree.nodes['Render Layers']["prop"] and
-                   not (intern_sce.node_tree.nodes['Render Layers']["prop"] ==
-                        extern_sce.node_tree.nodes['Render Layers']["prop"]))
+    expect_false_or_abort(
+        intern_sce.node_tree.nodes['Render Layers']["prop"] and
+        not (intern_sce.node_tree.nodes['Render Layers']["prop"] ==
+             extern_sce.node_tree.nodes['Render Layers']["prop"]))
 
 
 def check_scene_copying():
@@ -179,8 +208,9 @@ def check_scene_copying():
 
     # check node's props
     # must point to own scene camera
-    abort_if_false(not (first_sce.node_tree.nodes['Render Layers']["prop"] ==
-                        second_sce.node_tree.nodes['Render Layers']["prop"]))
+    expect_false_or_abort(
+        not (first_sce.node_tree.nodes['Render Layers']["prop"] ==
+             second_sce.node_tree.nodes['Render Layers']["prop"]))
 
 
 # count users
@@ -190,11 +220,11 @@ def test_users_counting():
     n = 1000
     for i in range(0, n):
         bpy.data.objects["Cube"]["a%s" % i] = bpy.data.objects["Light"].data
-    abort_if_false(bpy.data.objects["Light"].data.users == Light_us + n)
+    expect_false_or_abort(bpy.data.objects["Light"].data.users == Light_us + n)
 
     for i in range(0, int(n / 2)):
         bpy.data.objects["Cube"]["a%s" % i] = 1
-    abort_if_false(bpy.data.objects["Light"].data.users == Light_us + int(n / 2))
+    expect_false_or_abort(bpy.data.objects["Light"].data.users == Light_us + int(n / 2))
 
 
 # linking
@@ -236,16 +266,22 @@ def test_restrictions1():
             self.layout.template_ID(context.scene, "prop1")
             self.layout.prop_search(context.scene, "prop2", bpy.data, "node_groups")
 
-            op = self.layout.operator("scene.test_op")
+            op = self.layout.operator(TEST_Op.bl_idname)
             op.str_prop = "test string"
 
-            def test_fnc(op):
+            def test_fn(op):
                 op["ob"] = bpy.data.objects['Unique_Cube']
-            check_crash(test_fnc, op)
-            abort_if_false(not hasattr(op, "id_prop"))
+            expect_exception_or_abort(
+                fn=lambda: test_fn(op),
+                ex=ImportError,
+            )
+            expect_false_or_abort(not hasattr(op, "id_prop"))
 
     bpy.utils.register_class(TEST_PT_DatablockProp)
-    bpy.utils.register_class(TEST_Op)
+    expect_ouput_or_abort(
+        fn=lambda: bpy.utils.register_class(TEST_Op),
+        match_stderr="^ValueError: bpy_struct \"SCENE_OT_test_op\" registration error:",
+    )
 
     def poll(self, value):
         return value.name in bpy.data.scenes["Scene_lib"].objects
@@ -266,12 +302,18 @@ def test_restrictions1():
         # NodeTree id_prop
         bpy.context.scene.prop2 = bpy.data.objects["Light.001"]
 
-    check_crash(sub_test)
+    expect_exception_or_abort(
+        fn=sub_test,
+        ex=TypeError,
+    )
 
     bpy.context.scene.prop2 = bpy.data.node_groups.new("Shader", "ShaderNodeTree")
 
-    print("Please, test GUI performance manually on the Render tab, '%s' panel" %
-          TEST_PT_DatablockProp.bl_label, file=sys.stderr)
+    # NOTE: keep since the author thought this useful information.
+    # print(
+    #     "Please, test GUI performance manually on the Render tab, '%s' panel" %
+    #     TEST_PT_DatablockProp.bl_label, file=sys.stderr,
+    # )
     sys.stderr.flush()
 
 
@@ -308,25 +350,40 @@ def test_restrictions2():
 
     bpy.types.Addon.a = bpy.props.PointerProperty(type=bpy.types.Object)
 
-    class TestUIList(UIList):
+    class TEST_UL_list(UIList):
         test: bpy.props.PointerProperty(type=bpy.types.Object)
 
         def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
             layout.prop(item, "name", text="", emboss=False, icon_value=icon)
 
-    check_crash(bpy.utils.register_class, TestPrefs)
-    check_crash(bpy.utils.register_class, TestUIList)
+    expect_exception_or_abort(
+        fn=lambda: bpy.utils.register_class(TestPrefs),
+        ex=ValueError,
+    )
+    expect_exception_or_abort(
+        fn=lambda: bpy.utils.register_class(TEST_UL_list),
+        ex=ValueError,
+    )
 
     bpy.utils.unregister_class(TestClassCollection)
 
 
 def main():
-    init()
-    test_users_counting()
-    test_linking()
-    test_restrictions1()
-    check_crash(test_regressions)
-    test_restrictions2()
+    global lib_path
+    global test_path
+    with tempfile.TemporaryDirectory() as temp_dir:
+        lib_path = os.path.join(temp_dir, "lib.blend")
+        test_path = os.path.join(temp_dir, "test.blend")
+
+        init()
+        test_users_counting()
+        test_linking()
+        test_restrictions1()
+        expect_exception_or_abort(
+            fn=test_regressions,
+            ex=AttributeError,
+        )
+        test_restrictions2()
 
 
 if __name__ == "__main__":

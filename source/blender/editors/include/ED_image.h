@@ -112,9 +112,9 @@ void ED_image_point_pos__reverse(struct SpaceImage *sima,
                                  float r_co[2]);
 bool ED_image_slot_cycle(struct Image *image, int direction);
 
-bool ED_space_image_show_render(struct SpaceImage *sima);
-bool ED_space_image_show_paint(struct SpaceImage *sima);
-bool ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit);
+bool ED_space_image_show_render(const struct SpaceImage *sima);
+bool ED_space_image_show_paint(const struct SpaceImage *sima);
+bool ED_space_image_show_uvedit(const struct SpaceImage *sima, struct Object *obedit);
 
 bool ED_space_image_paint_curve(const struct bContext *C);
 

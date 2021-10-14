@@ -301,6 +301,11 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     }
   }
 
+  if (!USER_VERSION_ATLEAST(300, 33)) {
+    /* Adjust the frame node alpha now that it is used differently. */
+    btheme->space_node.movie[3] = U_theme_default.space_node.movie[3];
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

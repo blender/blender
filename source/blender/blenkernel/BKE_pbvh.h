@@ -978,3 +978,22 @@ ATTR_NO_OPT static void MV_ADD_FLAG(MSculptVert *mv, int flag)
 #ifdef __cplusplus
 }
 #endif
+
+#include <float.h>
+#include <math.h>
+
+// for debugging NaNs that don't appear on developer's machines
+BLI_INLINE bool _pbvh_nan_check(const float *co, const char *func, const char *file, int line)
+{
+  bool bad = false;
+
+  for (int i = 0; i < 3; i++) {
+    if (isnan(co[i]) || !isfinite(co[i])) {
+      const char *type = !isfinite(co[i]) ? "infinity" : "nan";
+      printf("float corruption (vector[%d] was %s): %s:%d\n\t%s\n", i, type, func, line, file);
+    }
+  }
+
+  return bad;
+}
+#define PBVH_CHECK_NAN(co) _pbvh_nan_check(co, __func__, __FILE__, __LINE__)

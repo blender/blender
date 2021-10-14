@@ -96,9 +96,12 @@ static void pad_pixels(const BufferParams &buffer_params,
     return;
   }
 
-  const size_t size = buffer_params.width * buffer_params.height;
+  const size_t size = static_cast<size_t>(buffer_params.width) * buffer_params.height;
   if (destination.pixels) {
-    float *pixel = destination.pixels;
+    const size_t pixel_stride = destination.pixel_stride ? destination.pixel_stride :
+                                                           destination.num_components;
+
+    float *pixel = destination.pixels + pixel_stride * destination.offset;
 
     for (size_t i = 0; i < size; i++, pixel += dest_num_components) {
       if (dest_num_components >= 3 && src_num_components == 1) {
@@ -113,7 +116,7 @@ static void pad_pixels(const BufferParams &buffer_params,
 
   if (destination.pixels_half_rgba) {
     const half one = float_to_half(1.0f);
-    half4 *pixel = destination.pixels_half_rgba;
+    half4 *pixel = destination.pixels_half_rgba + destination.offset;
 
     for (size_t i = 0; i < size; i++, pixel++) {
       if (dest_num_components >= 3 && src_num_components == 1) {

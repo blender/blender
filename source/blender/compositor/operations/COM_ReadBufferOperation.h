@@ -26,51 +26,52 @@ namespace blender::compositor {
 
 class ReadBufferOperation : public NodeOperation {
  private:
-  MemoryProxy *m_memoryProxy;
-  bool m_single_value; /* single value stored in buffer, copied from associated write operation */
-  unsigned int m_offset;
-  MemoryBuffer *m_buffer;
+  MemoryProxy *memory_proxy_;
+  bool single_value_; /* single value stored in buffer, copied from associated write operation */
+  unsigned int offset_;
+  MemoryBuffer *buffer_;
 
  public:
   ReadBufferOperation(DataType datatype);
-  void setMemoryProxy(MemoryProxy *memoryProxy)
+  void set_memory_proxy(MemoryProxy *memory_proxy)
   {
-    this->m_memoryProxy = memoryProxy;
+    memory_proxy_ = memory_proxy;
   }
 
-  MemoryProxy *getMemoryProxy() const
+  MemoryProxy *get_memory_proxy() const
   {
-    return this->m_memoryProxy;
+    return memory_proxy_;
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
-  void *initializeTileData(rcti *rect) override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
-  void executePixelExtend(float output[4],
-                          float x,
-                          float y,
-                          PixelSampler sampler,
-                          MemoryBufferExtend extend_x,
-                          MemoryBufferExtend extend_y);
-  void executePixelFiltered(float output[4], float x, float y, float dx[2], float dy[2]) override;
-  void setOffset(unsigned int offset)
+  void *initialize_tile_data(rcti *rect) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_extend(float output[4],
+                            float x,
+                            float y,
+                            PixelSampler sampler,
+                            MemoryBufferExtend extend_x,
+                            MemoryBufferExtend extend_y);
+  void execute_pixel_filtered(
+      float output[4], float x, float y, float dx[2], float dy[2]) override;
+  void set_offset(unsigned int offset)
   {
-    this->m_offset = offset;
+    offset_ = offset;
   }
-  unsigned int getOffset() const
+  unsigned int get_offset() const
   {
-    return this->m_offset;
+    return offset_;
   }
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
-  MemoryBuffer *getInputMemoryBuffer(MemoryBuffer **memoryBuffers) override
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  MemoryBuffer *get_input_memory_buffer(MemoryBuffer **memory_buffers) override
   {
-    return memoryBuffers[this->m_offset];
+    return memory_buffers[offset_];
   }
-  void readResolutionFromWriteBuffer();
-  void updateMemoryBuffer();
+  void read_resolution_from_write_buffer();
+  void update_memory_buffer();
 };
 
 }  // namespace blender::compositor

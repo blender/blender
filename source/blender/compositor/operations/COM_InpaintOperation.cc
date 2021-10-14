@@ -19,44 +19,41 @@
 #include "MEM_guardedalloc.h"
 
 #include "COM_InpaintOperation.h"
-#include "COM_OpenCLDevice.h"
-
-#include "BLI_math.h"
 
 namespace blender::compositor {
 
 #define ASSERT_XY_RANGE(x, y) \
-  BLI_assert(x >= 0 && x < this->getWidth() && y >= 0 && y < this->getHeight())
+  BLI_assert(x >= 0 && x < this->get_width() && y >= 0 && y < this->get_height())
 
 /* In-paint (simple convolve using average of known pixels). */
 InpaintSimpleOperation::InpaintSimpleOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
-  this->flags.complex = true;
-  this->m_inputImageProgram = nullptr;
-  this->m_pixelorder = nullptr;
-  this->m_manhattan_distance = nullptr;
-  this->m_cached_buffer = nullptr;
-  this->m_cached_buffer_ready = false;
-  flags.is_fullframe_operation = true;
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
+  flags_.complex = true;
+  input_image_program_ = nullptr;
+  pixelorder_ = nullptr;
+  manhattan_distance_ = nullptr;
+  cached_buffer_ = nullptr;
+  cached_buffer_ready_ = false;
+  flags_.is_fullframe_operation = true;
 }
-void InpaintSimpleOperation::initExecution()
+void InpaintSimpleOperation::init_execution()
 {
-  this->m_inputImageProgram = this->getInputSocketReader(0);
+  input_image_program_ = this->get_input_socket_reader(0);
 
-  this->m_pixelorder = nullptr;
-  this->m_manhattan_distance = nullptr;
-  this->m_cached_buffer = nullptr;
-  this->m_cached_buffer_ready = false;
+  pixelorder_ = nullptr;
+  manhattan_distance_ = nullptr;
+  cached_buffer_ = nullptr;
+  cached_buffer_ready_ = false;
 
-  this->initMutex();
+  this->init_mutex();
 }
 
 void InpaintSimpleOperation::clamp_xy(int &x, int &y)
 {
-  int width = this->getWidth();
-  int height = this->getHeight();
+  int width = this->get_width();
+  int height = this->get_height();
 
   if (x < 0) {
     x = 0;
@@ -75,32 +72,32 @@ void InpaintSimpleOperation::clamp_xy(int &x, int &y)
 
 float *InpaintSimpleOperation::get_pixel(int x, int y)
 {
-  int width = this->getWidth();
+  int width = this->get_width();
 
   ASSERT_XY_RANGE(x, y);
 
-  return &this->m_cached_buffer[y * width * COM_DATA_TYPE_COLOR_CHANNELS +
-                                x * COM_DATA_TYPE_COLOR_CHANNELS];
+  return &cached_buffer_[y * width * COM_DATA_TYPE_COLOR_CHANNELS +
+                         x * COM_DATA_TYPE_COLOR_CHANNELS];
 }
 
 int InpaintSimpleOperation::mdist(int x, int y)
 {
-  int width = this->getWidth();
+  int width = this->get_width();
 
   ASSERT_XY_RANGE(x, y);
 
-  return this->m_manhattan_distance[y * width + x];
+  return manhattan_distance_[y * width + x];
 }
 
 bool InpaintSimpleOperation::next_pixel(int &x, int &y, int &curr, int iters)
 {
-  int width = this->getWidth();
+  int width = this->get_width();
 
-  if (curr >= this->m_area_size) {
+  if (curr >= area_size_) {
     return false;
   }
 
-  int r = this->m_pixelorder[curr++];
+  int r = pixelorder_[curr++];
 
   x = r % width;
   y = r / width;
@@ -114,10 +111,9 @@ bool InpaintSimpleOperation::next_pixel(int &x, int &y, int &curr, int iters)
 
 void InpaintSimpleOperation::calc_manhattan_distance()
 {
-  int width = this->getWidth();
-  int height = this->getHeight();
-  short *m = this->m_manhattan_distance = (short *)MEM_mallocN(sizeof(short) * width * height,
-                                                               __func__);
+  int width = this->get_width();
+  int height = this->get_height();
+  short *m = manhattan_distance_ = (short *)MEM_mallocN(sizeof(short) * width * height, __func__);
   int *offsets;
 
   offsets = (int *)MEM_callocN(sizeof(int) * (width + height + 1),
@@ -163,12 +159,12 @@ void InpaintSimpleOperation::calc_manhattan_distance()
     offsets[i] += offsets[i - 1];
   }
 
-  this->m_area_size = offsets[width + height];
-  this->m_pixelorder = (int *)MEM_mallocN(sizeof(int) * this->m_area_size, __func__);
+  area_size_ = offsets[width + height];
+  pixelorder_ = (int *)MEM_mallocN(sizeof(int) * area_size_, __func__);
 
   for (int i = 0; i < width * height; i++) {
     if (m[i] > 0) {
-      this->m_pixelorder[offsets[m[i] - 1]++] = i;
+      pixelorder_[offsets[m[i] - 1]++] = i;
     }
   }
 
@@ -217,74 +213,73 @@ void InpaintSimpleOperation::pix_step(int x, int y)
   }
 }
 
-void *InpaintSimpleOperation::initializeTileData(rcti *rect)
+void *InpaintSimpleOperation::initialize_tile_data(rcti *rect)
 {
-  if (this->m_cached_buffer_ready) {
-    return this->m_cached_buffer;
+  if (cached_buffer_ready_) {
+    return cached_buffer_;
   }
-  lockMutex();
-  if (!this->m_cached_buffer_ready) {
-    MemoryBuffer *buf = (MemoryBuffer *)this->m_inputImageProgram->initializeTileData(rect);
-    this->m_cached_buffer = (float *)MEM_dupallocN(buf->getBuffer());
+  lock_mutex();
+  if (!cached_buffer_ready_) {
+    MemoryBuffer *buf = (MemoryBuffer *)input_image_program_->initialize_tile_data(rect);
+    cached_buffer_ = (float *)MEM_dupallocN(buf->get_buffer());
 
     this->calc_manhattan_distance();
 
     int curr = 0;
     int x, y;
 
-    while (this->next_pixel(x, y, curr, this->m_iterations)) {
+    while (this->next_pixel(x, y, curr, iterations_)) {
       this->pix_step(x, y);
     }
-    this->m_cached_buffer_ready = true;
+    cached_buffer_ready_ = true;
   }
 
-  unlockMutex();
-  return this->m_cached_buffer;
+  unlock_mutex();
+  return cached_buffer_;
 }
 
-void InpaintSimpleOperation::executePixel(float output[4], int x, int y, void * /*data*/)
+void InpaintSimpleOperation::execute_pixel(float output[4], int x, int y, void * /*data*/)
 {
   this->clamp_xy(x, y);
   copy_v4_v4(output, this->get_pixel(x, y));
 }
 
-void InpaintSimpleOperation::deinitExecution()
+void InpaintSimpleOperation::deinit_execution()
 {
-  this->m_inputImageProgram = nullptr;
-  this->deinitMutex();
-  if (this->m_cached_buffer) {
-    MEM_freeN(this->m_cached_buffer);
-    this->m_cached_buffer = nullptr;
+  input_image_program_ = nullptr;
+  this->deinit_mutex();
+  if (cached_buffer_) {
+    MEM_freeN(cached_buffer_);
+    cached_buffer_ = nullptr;
   }
 
-  if (this->m_pixelorder) {
-    MEM_freeN(this->m_pixelorder);
-    this->m_pixelorder = nullptr;
+  if (pixelorder_) {
+    MEM_freeN(pixelorder_);
+    pixelorder_ = nullptr;
   }
 
-  if (this->m_manhattan_distance) {
-    MEM_freeN(this->m_manhattan_distance);
-    this->m_manhattan_distance = nullptr;
+  if (manhattan_distance_) {
+    MEM_freeN(manhattan_distance_);
+    manhattan_distance_ = nullptr;
   }
-  this->m_cached_buffer_ready = false;
+  cached_buffer_ready_ = false;
 }
 
-bool InpaintSimpleOperation::determineDependingAreaOfInterest(rcti * /*input*/,
-                                                              ReadBufferOperation *readOperation,
-                                                              rcti *output)
+bool InpaintSimpleOperation::determine_depending_area_of_interest(
+    rcti * /*input*/, ReadBufferOperation *read_operation, rcti *output)
 {
-  if (this->m_cached_buffer_ready) {
+  if (cached_buffer_ready_) {
     return false;
   }
 
-  rcti newInput;
+  rcti new_input;
 
-  newInput.xmax = getWidth();
-  newInput.xmin = 0;
-  newInput.ymax = getHeight();
-  newInput.ymin = 0;
+  new_input.xmax = get_width();
+  new_input.xmin = 0;
+  new_input.ymax = get_height();
+  new_input.ymin = 0;
 
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void InpaintSimpleOperation::get_area_of_interest(const int input_idx,
@@ -302,28 +297,28 @@ void InpaintSimpleOperation::update_memory_buffer(MemoryBuffer *output,
 {
   /* TODO(manzanilla): once tiled implementation is removed, run multi-threaded where possible. */
   MemoryBuffer *input = inputs[0];
-  if (!m_cached_buffer_ready) {
+  if (!cached_buffer_ready_) {
     if (input->is_a_single_elem()) {
       MemoryBuffer *tmp = input->inflate();
-      m_cached_buffer = tmp->release_ownership_buffer();
+      cached_buffer_ = tmp->release_ownership_buffer();
       delete tmp;
     }
     else {
-      m_cached_buffer = (float *)MEM_dupallocN(input->getBuffer());
+      cached_buffer_ = (float *)MEM_dupallocN(input->get_buffer());
     }
 
     this->calc_manhattan_distance();
 
     int curr = 0;
     int x, y;
-    while (this->next_pixel(x, y, curr, this->m_iterations)) {
+    while (this->next_pixel(x, y, curr, iterations_)) {
       this->pix_step(x, y);
     }
-    m_cached_buffer_ready = true;
+    cached_buffer_ready_ = true;
   }
 
-  const int num_channels = COM_data_type_num_channels(getOutputSocket()->getDataType());
-  MemoryBuffer buf(m_cached_buffer, num_channels, input->getWidth(), input->getHeight());
+  const int num_channels = COM_data_type_num_channels(get_output_socket()->get_data_type());
+  MemoryBuffer buf(cached_buffer_, num_channels, input->get_width(), input->get_height());
   output->copy_from(&buf, area);
 }
 

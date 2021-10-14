@@ -18,10 +18,7 @@
 
 #include <cstdlib>
 
-#include "BLI_math.h"
 #include "COM_DoubleEdgeMaskOperation.h"
-#include "DNA_node_types.h"
-#include "MEM_guardedalloc.h"
 
 namespace blender::compositor {
 
@@ -948,8 +945,8 @@ static void do_createEdgeLocationBuffer(unsigned int t,
                                         const unsigned int *lres,
                                         float *res,
                                         unsigned short *gbuf,
-                                        unsigned int *innerEdgeOffset,
-                                        unsigned int *outerEdgeOffset,
+                                        unsigned int *inner_edge_offset,
+                                        unsigned int *outer_edge_offset,
                                         unsigned int isz,
                                         unsigned int gsz)
 {
@@ -959,14 +956,14 @@ static void do_createEdgeLocationBuffer(unsigned int t,
   unsigned int dmin; /* Minimum edge distance. */
 
   unsigned int rsl; /* Long used for finding fast `1.0/sqrt`. */
-  unsigned int gradientFillOffset;
+  unsigned int gradient_fill_offset;
 
   /* For looping inner edge pixel indexes, represents current position from offset. */
-  unsigned int innerAccum = 0;
+  unsigned int inner_accum = 0;
   /* For looping outer edge pixel indexes, represents current position from offset. */
-  unsigned int outerAccum = 0;
+  unsigned int outer_accum = 0;
   /* For looping gradient pixel indexes, represents current position from offset. */
-  unsigned int gradientAccum = 0;
+  unsigned int gradient_accum = 0;
 
   /* Disable clang-format to prevent line-wrapping. */
   /* clang-format off */
@@ -999,7 +996,7 @@ static void do_createEdgeLocationBuffer(unsigned int t,
    * ..oooo...
    * .oggggo..
    * .oggiggo.
-   * .ogiFigo.
+   * .ogi_figo.
    * .oggiggo.
    * .oggggo..
    * ..oooo...
@@ -1012,7 +1009,7 @@ static void do_createEdgeLocationBuffer(unsigned int t,
    *
    * The memory in gbuf[] after filling will look like this:
    *
-   * gradientFillOffset (0 pixels)                   innerEdgeOffset (18 pixels)    outerEdgeOffset (22 pixels)
+   * gradient_fill_offset (0 pixels)                   inner_edge_offset (18 pixels)    outer_edge_offset (22 pixels)
    * /                                               /                              /
    * /                                               /                              /
    * |X   Y   X   Y   X   Y   X   Y   >     <X   Y   X   Y   >     <X   Y   X   Y   X   Y   >     <X   Y   X   Y   | <- (x,y)
@@ -1023,7 +1020,7 @@ static void do_createEdgeLocationBuffer(unsigned int t,
    *       /                              /                              /
    *      /                              /                              /
    *        /                              /                              /
-   * +---------- gradientAccum (18) ---------+      +--- innerAccum (22) ---+      +--- outerAccum (40) ---+
+   * +---------- gradient_accum (18) ---------+      +--- inner_accum (22) ---+      +--- outer_accum (40) ---+
    *
    *
    * Ultimately we do need the pixel's memory buffer index to set the output
@@ -1033,36 +1030,36 @@ static void do_createEdgeLocationBuffer(unsigned int t,
    */
   /* clang-format on */
 
-  gradientFillOffset = 0; /* Since there are likely "more" of these, put it first. :). */
-  *innerEdgeOffset = gradientFillOffset + gsz;    /* Set start of inner edge indexes. */
-  *outerEdgeOffset = (*innerEdgeOffset) + isz;    /* Set start of outer edge indexes. */
-  /* Set the accumulators to correct positions */ /* Set up some accumulator variables for loops.
-                                                   */
-  gradientAccum = gradientFillOffset; /* Each accumulator variable starts at its respective. */
-  innerAccum = *innerEdgeOffset;      /* Section's offset so when we start filling, each. */
-  outerAccum = *outerEdgeOffset;      /* Section fills up its allocated space in gbuf. */
+  gradient_fill_offset = 0; /* Since there are likely "more" of these, put it first. :). */
+  *inner_edge_offset = gradient_fill_offset + gsz; /* Set start of inner edge indexes. */
+  *outer_edge_offset = (*inner_edge_offset) + isz; /* Set start of outer edge indexes. */
+  /* Set the accumulators to correct positions */  /* Set up some accumulator variables for loops.
+                                                    */
+  gradient_accum = gradient_fill_offset; /* Each accumulator variable starts at its respective. */
+  inner_accum = *inner_edge_offset;      /* Section's offset so when we start filling, each. */
+  outer_accum = *outer_edge_offset;      /* Section fills up its allocated space in gbuf. */
   /* Uses `dmin=row`, `rsl=col`. */
   for (x = 0, dmin = 0; x < t; x += rw, dmin++) {
     for (rsl = 0; rsl < rw; rsl++) {
       a = x + rsl;
-      if (lres[a] == 2) {        /* It is a gradient pixel flagged by 2. */
-        ud = gradientAccum << 1; /* Double the index to reach correct unsigned short location. */
-        gbuf[ud] = dmin;         /* Insert pixel's row into gradient pixel location buffer. */
-        gbuf[ud + 1] = rsl;      /* Insert pixel's column into gradient pixel location buffer. */
-        gradientAccum++;         /* Increment gradient index buffer pointer. */
+      if (lres[a] == 2) {         /* It is a gradient pixel flagged by 2. */
+        ud = gradient_accum << 1; /* Double the index to reach correct unsigned short location. */
+        gbuf[ud] = dmin;          /* Insert pixel's row into gradient pixel location buffer. */
+        gbuf[ud + 1] = rsl;       /* Insert pixel's column into gradient pixel location buffer. */
+        gradient_accum++;         /* Increment gradient index buffer pointer. */
       }
       else if (lres[a] == 3) { /* It is an outer edge pixel flagged by 3. */
-        ud = outerAccum << 1;  /* Double the index to reach correct unsigned short location. */
+        ud = outer_accum << 1; /* Double the index to reach correct unsigned short location. */
         gbuf[ud] = dmin;       /* Insert pixel's row into outer edge pixel location buffer. */
         gbuf[ud + 1] = rsl;    /* Insert pixel's column into outer edge pixel location buffer. */
-        outerAccum++;          /* Increment outer edge index buffer pointer. */
+        outer_accum++;         /* Increment outer edge index buffer pointer. */
         res[a] = 0.0f;         /* Set output pixel intensity now since it won't change later. */
       }
       else if (lres[a] == 4) { /* It is an inner edge pixel flagged by 4. */
-        ud = innerAccum << 1;  /* Double int index to reach correct unsigned short location. */
+        ud = inner_accum << 1; /* Double int index to reach correct unsigned short location. */
         gbuf[ud] = dmin;       /* Insert pixel's row into inner edge pixel location buffer. */
         gbuf[ud + 1] = rsl;    /* Insert pixel's column into inner edge pixel location buffer. */
-        innerAccum++;          /* Increment inner edge index buffer pointer. */
+        inner_accum++;         /* Increment inner edge index buffer pointer. */
         res[a] = 1.0f;         /* Set output pixel intensity now since it won't change later. */
       }
     }
@@ -1075,8 +1072,8 @@ static void do_fillGradientBuffer(unsigned int rw,
                                   unsigned int isz,
                                   unsigned int osz,
                                   unsigned int gsz,
-                                  unsigned int innerEdgeOffset,
-                                  unsigned int outerEdgeOffset)
+                                  unsigned int inner_edge_offset,
+                                  unsigned int outer_edge_offset)
 {
   int x;                    /* Pixel loop counter. */
   int a;                    /* Temporary pixel index buffer loop counter. */
@@ -1085,7 +1082,7 @@ static void do_fillGradientBuffer(unsigned int rw,
   float rsf;                /* Float used for finding fast `1.0/sqrt`. */
   const float rsopf = 1.5f; /* Constant float used for finding fast `1.0/sqrt`. */
 
-  unsigned int gradientFillOffset;
+  unsigned int gradient_fill_offset;
   unsigned int t;
   unsigned int ud;   /* Unscaled edge distance. */
   unsigned int dmin; /* Minimum edge distance. */
@@ -1154,11 +1151,11 @@ static void do_fillGradientBuffer(unsigned int rw,
    */
 
   for (x = gsz - 1; x >= 0; x--) {
-    gradientFillOffset = x << 1;
-    t = gbuf[gradientFillOffset];       /* Calculate column of pixel indexed by `gbuf[x]`. */
-    fsz = gbuf[gradientFillOffset + 1]; /* Calculate row of pixel indexed by `gbuf[x]`. */
-    dmin = 0xffffffff;                  /* Reset min distance to edge pixel. */
-    for (a = outerEdgeOffset + osz - 1; a >= outerEdgeOffset;
+    gradient_fill_offset = x << 1;
+    t = gbuf[gradient_fill_offset];       /* Calculate column of pixel indexed by `gbuf[x]`. */
+    fsz = gbuf[gradient_fill_offset + 1]; /* Calculate row of pixel indexed by `gbuf[x]`. */
+    dmin = 0xffffffff;                    /* Reset min distance to edge pixel. */
+    for (a = outer_edge_offset + osz - 1; a >= outer_edge_offset;
          a--) { /* Loop through all outer edge buffer pixels. */
       ud = a << 1;
       dy = t - gbuf[ud];       /* Set dx to gradient pixel column - outer edge pixel row. */
@@ -1176,7 +1173,7 @@ static void do_fillGradientBuffer(unsigned int rw,
     odist = odist * (rsopf - (rsf * odist *
                               odist)); /* -- This line can be iterated for more accuracy. -- */
     dmin = 0xffffffff;                 /* Reset min distance to edge pixel. */
-    for (a = innerEdgeOffset + isz - 1; a >= innerEdgeOffset;
+    for (a = inner_edge_offset + isz - 1; a >= inner_edge_offset;
          a--) { /* Loop through all inside edge pixels. */
       ud = a << 1;
       dy = t - gbuf[ud];       /* Compute delta in Y from gradient pixel to inside edge pixel. */
@@ -1204,14 +1201,14 @@ static void do_fillGradientBuffer(unsigned int rw,
 
     /* Here we reconstruct the pixel's memory location in the CompBuf by
      * `Pixel Index = Pixel Column + ( Pixel Row * Row Width )`. */
-    res[gbuf[gradientFillOffset + 1] + (gbuf[gradientFillOffset] * rw)] =
+    res[gbuf[gradient_fill_offset + 1] + (gbuf[gradient_fill_offset] * rw)] =
         (idist / (idist + odist)); /* Set intensity. */
   }
 }
 
 /* End of copy. */
 
-void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float *res)
+void DoubleEdgeMaskOperation::do_double_edge_mask(float *imask, float *omask, float *res)
 {
   unsigned int *lres;   /* Pointer to output pixel buffer (for bit operations). */
   unsigned int *limask; /* Pointer to inner mask (for bit operations). */
@@ -1225,17 +1222,17 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
   unsigned int osz = 0;  /* Size (in pixels) of outside edge pixel index buffer. */
   unsigned int gsz = 0;  /* Size (in pixels) of gradient pixel index buffer. */
   unsigned int rsize[3]; /* Size storage to pass to helper functions. */
-  unsigned int innerEdgeOffset =
+  unsigned int inner_edge_offset =
       0; /* Offset into final buffer where inner edge pixel indexes start. */
-  unsigned int outerEdgeOffset =
+  unsigned int outer_edge_offset =
       0; /* Offset into final buffer where outer edge pixel indexes start. */
 
   unsigned short *gbuf; /* Gradient/inner/outer pixel location index buffer. */
 
   if (true) { /* If both input sockets have some data coming in... */
 
-    rw = this->getWidth();            /* Width of a row of pixels. */
-    t = (rw * this->getHeight()) - 1; /* Determine size of the frame. */
+    rw = this->get_width();            /* Width of a row of pixels. */
+    t = (rw * this->get_height()) - 1; /* Determine size of the frame. */
     memset(res,
            0,
            sizeof(float) *
@@ -1270,8 +1267,8 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
      *
      * Each version has slightly different criteria for detecting an edge pixel.
      */
-    if (this->m_adjacentOnly) { /* If "adjacent only" inner edge mode is turned on. */
-      if (this->m_keepInside) { /* If "keep inside" buffer edge mode is turned on. */
+    if (adjacent_only_) { /* If "adjacent only" inner edge mode is turned on. */
+      if (keep_inside_) { /* If "keep inside" buffer edge mode is turned on. */
         do_adjacentKeepBorders(t, rw, limask, lomask, lres, res, rsize);
       }
       else { /* "bleed out" buffer edge mode is turned on. */
@@ -1284,8 +1281,8 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
       /* Detect edges in all non-border pixels in the buffer. */
       do_adjacentEdgeDetection(t, rw, limask, lomask, lres, res, rsize, isz, osz, gsz);
     }
-    else {                      /* "all" inner edge mode is turned on. */
-      if (this->m_keepInside) { /* If "keep inside" buffer edge mode is turned on. */
+    else {                /* "all" inner edge mode is turned on. */
+      if (keep_inside_) { /* If "keep inside" buffer edge mode is turned on. */
         do_allKeepBorders(t, rw, limask, lomask, lres, res, rsize);
       }
       else { /* "bleed out" buffer edge mode is turned on. */
@@ -1312,8 +1309,8 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
     gbuf = (unsigned short *)MEM_callocN(sizeof(unsigned short) * fsz * 2, "DEM");
 
     do_createEdgeLocationBuffer(
-        t, rw, lres, res, gbuf, &innerEdgeOffset, &outerEdgeOffset, isz, gsz);
-    do_fillGradientBuffer(rw, res, gbuf, isz, osz, gsz, innerEdgeOffset, outerEdgeOffset);
+        t, rw, lres, res, gbuf, &inner_edge_offset, &outer_edge_offset, isz, gsz);
+    do_fillGradientBuffer(rw, res, gbuf, isz, osz, gsz, inner_edge_offset, outer_edge_offset);
 
     /* Free the gradient index buffer. */
     MEM_freeN(gbuf);
@@ -1322,76 +1319,75 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
 
 DoubleEdgeMaskOperation::DoubleEdgeMaskOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Value);
-  this->m_inputInnerMask = nullptr;
-  this->m_inputOuterMask = nullptr;
-  this->m_adjacentOnly = false;
-  this->m_keepInside = false;
-  this->flags.complex = true;
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Value);
+  input_inner_mask_ = nullptr;
+  input_outer_mask_ = nullptr;
+  adjacent_only_ = false;
+  keep_inside_ = false;
+  flags_.complex = true;
   is_output_rendered_ = false;
 }
 
-bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti * /*input*/,
-                                                               ReadBufferOperation *readOperation,
-                                                               rcti *output)
+bool DoubleEdgeMaskOperation::determine_depending_area_of_interest(
+    rcti * /*input*/, ReadBufferOperation *read_operation, rcti *output)
 {
-  if (this->m_cachedInstance == nullptr) {
-    rcti newInput;
-    newInput.xmax = this->getWidth();
-    newInput.xmin = 0;
-    newInput.ymax = this->getHeight();
-    newInput.ymin = 0;
-    return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  if (cached_instance_ == nullptr) {
+    rcti new_input;
+    new_input.xmax = this->get_width();
+    new_input.xmin = 0;
+    new_input.ymax = this->get_height();
+    new_input.ymin = 0;
+    return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
   }
 
   return false;
 }
 
-void DoubleEdgeMaskOperation::initExecution()
+void DoubleEdgeMaskOperation::init_execution()
 {
-  this->m_inputInnerMask = this->getInputSocketReader(0);
-  this->m_inputOuterMask = this->getInputSocketReader(1);
-  initMutex();
-  this->m_cachedInstance = nullptr;
+  input_inner_mask_ = this->get_input_socket_reader(0);
+  input_outer_mask_ = this->get_input_socket_reader(1);
+  init_mutex();
+  cached_instance_ = nullptr;
 }
 
-void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect)
+void *DoubleEdgeMaskOperation::initialize_tile_data(rcti *rect)
 {
-  if (this->m_cachedInstance) {
-    return this->m_cachedInstance;
+  if (cached_instance_) {
+    return cached_instance_;
   }
 
-  lockMutex();
-  if (this->m_cachedInstance == nullptr) {
-    MemoryBuffer *innerMask = (MemoryBuffer *)this->m_inputInnerMask->initializeTileData(rect);
-    MemoryBuffer *outerMask = (MemoryBuffer *)this->m_inputOuterMask->initializeTileData(rect);
-    float *data = (float *)MEM_mallocN(sizeof(float) * this->getWidth() * this->getHeight(),
+  lock_mutex();
+  if (cached_instance_ == nullptr) {
+    MemoryBuffer *inner_mask = (MemoryBuffer *)input_inner_mask_->initialize_tile_data(rect);
+    MemoryBuffer *outer_mask = (MemoryBuffer *)input_outer_mask_->initialize_tile_data(rect);
+    float *data = (float *)MEM_mallocN(sizeof(float) * this->get_width() * this->get_height(),
                                        __func__);
-    float *imask = innerMask->getBuffer();
-    float *omask = outerMask->getBuffer();
-    doDoubleEdgeMask(imask, omask, data);
-    this->m_cachedInstance = data;
+    float *imask = inner_mask->get_buffer();
+    float *omask = outer_mask->get_buffer();
+    do_double_edge_mask(imask, omask, data);
+    cached_instance_ = data;
   }
-  unlockMutex();
-  return this->m_cachedInstance;
+  unlock_mutex();
+  return cached_instance_;
 }
-void DoubleEdgeMaskOperation::executePixel(float output[4], int x, int y, void *data)
+void DoubleEdgeMaskOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   float *buffer = (float *)data;
-  int index = (y * this->getWidth() + x);
+  int index = (y * this->get_width() + x);
   output[0] = buffer[index];
 }
 
-void DoubleEdgeMaskOperation::deinitExecution()
+void DoubleEdgeMaskOperation::deinit_execution()
 {
-  this->m_inputInnerMask = nullptr;
-  this->m_inputOuterMask = nullptr;
-  deinitMutex();
-  if (this->m_cachedInstance) {
-    MEM_freeN(this->m_cachedInstance);
-    this->m_cachedInstance = nullptr;
+  input_inner_mask_ = nullptr;
+  input_outer_mask_ = nullptr;
+  deinit_mutex();
+  if (cached_instance_) {
+    MEM_freeN(cached_instance_);
+    cached_instance_ = nullptr;
   }
 }
 
@@ -1415,11 +1411,11 @@ void DoubleEdgeMaskOperation::update_memory_buffer(MemoryBuffer *output,
     MemoryBuffer *outer_mask = input_outer_mask->is_a_single_elem() ? input_outer_mask->inflate() :
                                                                       input_outer_mask;
 
-    BLI_assert(output->getWidth() == this->getWidth());
-    BLI_assert(output->getHeight() == this->getHeight());
+    BLI_assert(output->get_width() == this->get_width());
+    BLI_assert(output->get_height() == this->get_height());
     /* TODO(manzanilla): Once tiled implementation is removed, use execution system to run
      * multi-threaded where possible. */
-    doDoubleEdgeMask(inner_mask->getBuffer(), outer_mask->getBuffer(), output->getBuffer());
+    do_double_edge_mask(inner_mask->get_buffer(), outer_mask->get_buffer(), output->get_buffer());
     is_output_rendered_ = true;
 
     if (inner_mask != input_inner_mask) {

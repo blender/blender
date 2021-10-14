@@ -28,40 +28,40 @@ namespace blender::compositor {
 
 class PreviewOperation : public MultiThreadedOperation {
  protected:
-  unsigned char *m_outputBuffer;
+  unsigned char *output_buffer_;
 
   /**
    * \brief holds reference to the SDNA bNode, where this nodes will render the preview image for
    */
-  bNodePreview *m_preview;
-  SocketReader *m_input;
-  float m_divider;
-  unsigned int m_defaultWidth;
-  unsigned int m_defaultHeight;
+  bNodePreview *preview_;
+  SocketReader *input_;
+  float divider_;
+  unsigned int default_width_;
+  unsigned int default_height_;
 
-  const ColorManagedViewSettings *m_viewSettings;
-  const ColorManagedDisplaySettings *m_displaySettings;
+  const ColorManagedViewSettings *view_settings_;
+  const ColorManagedDisplaySettings *display_settings_;
 
  public:
-  PreviewOperation(const ColorManagedViewSettings *viewSettings,
-                   const ColorManagedDisplaySettings *displaySettings,
-                   unsigned int defaultWidth,
-                   unsigned int defaultHeight);
-  void verifyPreview(bNodeInstanceHash *previews, bNodeInstanceKey key);
+  PreviewOperation(const ColorManagedViewSettings *view_settings,
+                   const ColorManagedDisplaySettings *display_settings,
+                   unsigned int default_width,
+                   unsigned int default_height);
+  void verify_preview(bNodeInstanceHash *previews, bNodeInstanceKey key);
 
-  bool isOutputOperation(bool /*rendering*/) const override
+  bool is_output_operation(bool /*rendering*/) const override
   {
     return !G.background;
   }
-  void initExecution() override;
-  void deinitExecution() override;
-  eCompositorPriority getRenderPriority() const override;
+  void init_execution() override;
+  void deinit_execution() override;
+  eCompositorPriority get_render_priority() const override;
 
-  void executeRegion(rcti *rect, unsigned int tileNumber) override;
+  void execute_region(rcti *rect, unsigned int tile_number) override;
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,

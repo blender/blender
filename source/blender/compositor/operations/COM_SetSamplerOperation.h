@@ -28,8 +28,8 @@ namespace blender::compositor {
  */
 class SetSamplerOperation : public NodeOperation {
  private:
-  PixelSampler m_sampler;
-  SocketReader *m_reader;
+  PixelSampler sampler_;
+  SocketReader *reader_;
 
  public:
   /**
@@ -37,17 +37,17 @@ class SetSamplerOperation : public NodeOperation {
    */
   SetSamplerOperation();
 
-  void setSampler(PixelSampler sampler)
+  void set_sampler(PixelSampler sampler)
   {
-    this->m_sampler = sampler;
+    sampler_ = sampler;
   }
 
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
-  void initExecution() override;
-  void deinitExecution() override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void init_execution() override;
+  void deinit_execution() override;
 };
 
 }  // namespace blender::compositor

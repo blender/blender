@@ -17,7 +17,6 @@
  */
 
 #include "COM_Enums.h"
-#include "BLI_rect.h"
 
 namespace blender::compositor {
 

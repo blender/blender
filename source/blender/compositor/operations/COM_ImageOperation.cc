@@ -18,94 +18,87 @@
 
 #include "COM_ImageOperation.h"
 
-#include "BKE_image.h"
 #include "BKE_scene.h"
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-#include "DNA_image_types.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "RE_pipeline.h"
-#include "RE_texture.h"
-
 namespace blender::compositor {
 
 BaseImageOperation::BaseImageOperation()
 {
-  this->m_image = nullptr;
-  this->m_buffer = nullptr;
-  this->m_imageFloatBuffer = nullptr;
-  this->m_imageByteBuffer = nullptr;
-  this->m_imageUser = nullptr;
-  this->m_imagewidth = 0;
-  this->m_imageheight = 0;
-  this->m_framenumber = 0;
-  this->m_depthBuffer = nullptr;
+  image_ = nullptr;
+  buffer_ = nullptr;
+  image_float_buffer_ = nullptr;
+  image_byte_buffer_ = nullptr;
+  image_user_ = nullptr;
+  imagewidth_ = 0;
+  imageheight_ = 0;
+  framenumber_ = 0;
+  image_depth_buffer_ = nullptr;
   depth_buffer_ = nullptr;
-  this->m_numberOfChannels = 0;
-  this->m_rd = nullptr;
-  this->m_viewName = nullptr;
+  number_of_channels_ = 0;
+  rd_ = nullptr;
+  view_name_ = nullptr;
 }
 ImageOperation::ImageOperation() : BaseImageOperation()
 {
-  this->addOutputSocket(DataType::Color);
+  this->add_output_socket(DataType::Color);
 }
 ImageAlphaOperation::ImageAlphaOperation() : BaseImageOperation()
 {
-  this->addOutputSocket(DataType::Value);
+  this->add_output_socket(DataType::Value);
 }
 ImageDepthOperation::ImageDepthOperation() : BaseImageOperation()
 {
-  this->addOutputSocket(DataType::Value);
+  this->add_output_socket(DataType::Value);
 }
 
-ImBuf *BaseImageOperation::getImBuf()
+ImBuf *BaseImageOperation::get_im_buf()
 {
   ImBuf *ibuf;
-  ImageUser iuser = *this->m_imageUser;
+  ImageUser iuser = *image_user_;
 
-  if (this->m_image == nullptr) {
+  if (image_ == nullptr) {
     return nullptr;
   }
 
   /* local changes to the original ImageUser */
-  if (BKE_image_is_multilayer(this->m_image) == false) {
-    iuser.multi_index = BKE_scene_multiview_view_id_get(this->m_rd, this->m_viewName);
+  if (BKE_image_is_multilayer(image_) == false) {
+    iuser.multi_index = BKE_scene_multiview_view_id_get(rd_, view_name_);
   }
 
-  ibuf = BKE_image_acquire_ibuf(this->m_image, &iuser, nullptr);
+  ibuf = BKE_image_acquire_ibuf(image_, &iuser, nullptr);
   if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
-    BKE_image_release_ibuf(this->m_image, ibuf, nullptr);
+    BKE_image_release_ibuf(image_, ibuf, nullptr);
     return nullptr;
   }
   return ibuf;
 }
 
-void BaseImageOperation::initExecution()
+void BaseImageOperation::init_execution()
 {
-  ImBuf *stackbuf = getImBuf();
-  this->m_buffer = stackbuf;
+  ImBuf *stackbuf = get_im_buf();
+  buffer_ = stackbuf;
   if (stackbuf) {
-    this->m_imageFloatBuffer = stackbuf->rect_float;
-    this->m_imageByteBuffer = stackbuf->rect;
-    this->m_depthBuffer = stackbuf->zbuf_float;
+    image_float_buffer_ = stackbuf->rect_float;
+    image_byte_buffer_ = stackbuf->rect;
+    image_depth_buffer_ = stackbuf->zbuf_float;
     if (stackbuf->zbuf_float) {
       depth_buffer_ = new MemoryBuffer(stackbuf->zbuf_float, 1, stackbuf->x, stackbuf->y);
     }
-    this->m_imagewidth = stackbuf->x;
-    this->m_imageheight = stackbuf->y;
-    this->m_numberOfChannels = stackbuf->channels;
+    imagewidth_ = stackbuf->x;
+    imageheight_ = stackbuf->y;
+    number_of_channels_ = stackbuf->channels;
   }
 }
 
-void BaseImageOperation::deinitExecution()
+void BaseImageOperation::deinit_execution()
 {
-  this->m_imageFloatBuffer = nullptr;
-  this->m_imageByteBuffer = nullptr;
-  BKE_image_release_ibuf(this->m_image, this->m_buffer, nullptr);
+  image_float_buffer_ = nullptr;
+  image_byte_buffer_ = nullptr;
+  BKE_image_release_ibuf(image_, buffer_, nullptr);
   if (depth_buffer_) {
     delete depth_buffer_;
     depth_buffer_ = nullptr;
@@ -114,7 +107,7 @@ void BaseImageOperation::deinitExecution()
 
 void BaseImageOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
 {
-  ImBuf *stackbuf = getImBuf();
+  ImBuf *stackbuf = get_im_buf();
 
   r_area = COM_AREA_NONE;
 
@@ -122,10 +115,10 @@ void BaseImageOperation::determine_canvas(const rcti &UNUSED(preferred_area), rc
     BLI_rcti_init(&r_area, 0, stackbuf->x, 0, stackbuf->y);
   }
 
-  BKE_image_release_ibuf(this->m_image, stackbuf, nullptr);
+  BKE_image_release_ibuf(image_, stackbuf, nullptr);
 }
 
-static void sampleImageAtLocation(
+static void sample_image_at_location(
     ImBuf *ibuf, float x, float y, PixelSampler sampler, bool make_linear_rgb, float color[4])
 {
   if (ibuf->rect_float) {
@@ -161,17 +154,17 @@ static void sampleImageAtLocation(
   }
 }
 
-void ImageOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void ImageOperation::execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler)
 {
   int ix = x, iy = y;
-  if (this->m_imageFloatBuffer == nullptr && this->m_imageByteBuffer == nullptr) {
+  if (image_float_buffer_ == nullptr && image_byte_buffer_ == nullptr) {
     zero_v4(output);
   }
-  else if (ix < 0 || iy < 0 || ix >= this->m_buffer->x || iy >= this->m_buffer->y) {
+  else if (ix < 0 || iy < 0 || ix >= buffer_->x || iy >= buffer_->y) {
     zero_v4(output);
   }
   else {
-    sampleImageAtLocation(this->m_buffer, x, y, sampler, true, output);
+    sample_image_at_location(buffer_, x, y, sampler, true, output);
   }
 }
 
@@ -179,22 +172,22 @@ void ImageOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                   const rcti &area,
                                                   Span<MemoryBuffer *> UNUSED(inputs))
 {
-  output->copy_from(m_buffer, area, true);
+  output->copy_from(buffer_, area, true);
 }
 
-void ImageAlphaOperation::executePixelSampled(float output[4],
-                                              float x,
-                                              float y,
-                                              PixelSampler sampler)
+void ImageAlphaOperation::execute_pixel_sampled(float output[4],
+                                                float x,
+                                                float y,
+                                                PixelSampler sampler)
 {
   float tempcolor[4];
 
-  if (this->m_imageFloatBuffer == nullptr && this->m_imageByteBuffer == nullptr) {
+  if (image_float_buffer_ == nullptr && image_byte_buffer_ == nullptr) {
     output[0] = 0.0f;
   }
   else {
     tempcolor[3] = 1.0f;
-    sampleImageAtLocation(this->m_buffer, x, y, sampler, false, tempcolor);
+    sample_image_at_location(buffer_, x, y, sampler, false, tempcolor);
     output[0] = tempcolor[3];
   }
 }
@@ -203,24 +196,24 @@ void ImageAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                        const rcti &area,
                                                        Span<MemoryBuffer *> UNUSED(inputs))
 {
-  output->copy_from(m_buffer, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);
+  output->copy_from(buffer_, area, 3, COM_DATA_TYPE_VALUE_CHANNELS, 0);
 }
 
-void ImageDepthOperation::executePixelSampled(float output[4],
-                                              float x,
-                                              float y,
-                                              PixelSampler /*sampler*/)
+void ImageDepthOperation::execute_pixel_sampled(float output[4],
+                                                float x,
+                                                float y,
+                                                PixelSampler /*sampler*/)
 {
-  if (this->m_depthBuffer == nullptr) {
+  if (image_depth_buffer_ == nullptr) {
     output[0] = 0.0f;
   }
   else {
-    if (x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight()) {
+    if (x < 0 || y < 0 || x >= this->get_width() || y >= this->get_height()) {
       output[0] = 0.0f;
     }
     else {
-      int offset = y * getWidth() + x;
-      output[0] = this->m_depthBuffer[offset];
+      int offset = y * get_width() + x;
+      output[0] = image_depth_buffer_[offset];
     }
   }
 }

@@ -805,27 +805,27 @@ void BKE_packedfile_unpack_all(Main *bmain, ReportList *reports, enum ePF_FileSt
 }
 
 /* ID should be not NULL, return 1 if there's a packed file */
-bool BKE_packedfile_id_check(ID *id)
+bool BKE_packedfile_id_check(const ID *id)
 {
   switch (GS(id->name)) {
     case ID_IM: {
-      Image *ima = (Image *)id;
+      const Image *ima = (const Image *)id;
       return BKE_image_has_packedfile(ima);
     }
     case ID_VF: {
-      VFont *vf = (VFont *)id;
+      const VFont *vf = (const VFont *)id;
       return vf->packedfile != NULL;
     }
     case ID_SO: {
-      bSound *snd = (bSound *)id;
+      const bSound *snd = (const bSound *)id;
       return snd->packedfile != NULL;
     }
     case ID_VO: {
-      Volume *volume = (Volume *)id;
+      const Volume *volume = (const Volume *)id;
       return volume->packedfile != NULL;
     }
     case ID_LI: {
-      Library *li = (Library *)id;
+      const Library *li = (const Library *)id;
       return li->packedfile != NULL;
     }
     default:

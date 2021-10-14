@@ -49,41 +49,41 @@ class KeyingScreenOperation : public MultiThreadedOperation {
     int triangles_total;
   } TileData;
 
-  MovieClip *m_movieClip;
-  int m_framenumber;
-  TriangulationData *m_cachedTriangulation;
-  char m_trackingObject[64];
+  MovieClip *movie_clip_;
+  int framenumber_;
+  TriangulationData *cached_triangulation_;
+  char tracking_object_[64];
 
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
    */
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
-  TriangulationData *buildVoronoiTriangulation();
+  TriangulationData *build_voronoi_triangulation();
 
  public:
   KeyingScreenOperation();
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void *initializeTileData(rcti *rect) override;
-  void deinitializeTileData(rcti *rect, void *data) override;
+  void *initialize_tile_data(rcti *rect) override;
+  void deinitialize_tile_data(rcti *rect, void *data) override;
 
-  void setMovieClip(MovieClip *clip)
+  void set_movie_clip(MovieClip *clip)
   {
-    this->m_movieClip = clip;
+    movie_clip_ = clip;
   }
-  void setTrackingObject(const char *object)
+  void set_tracking_object(const char *object)
   {
-    BLI_strncpy(this->m_trackingObject, object, sizeof(this->m_trackingObject));
+    BLI_strncpy(tracking_object_, object, sizeof(tracking_object_));
   }
-  void setFramenumber(int framenumber)
+  void set_framenumber(int framenumber)
   {
-    this->m_framenumber = framenumber;
+    framenumber_ = framenumber;
   }
 
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

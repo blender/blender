@@ -2204,6 +2204,19 @@ class _defs_node_edit:
 class _defs_sequencer_generic:
 
     @ToolDef.from_fn
+    def cursor():
+        return dict(
+            idname="builtin.cursor",
+            label="Cursor",
+            description=(
+                "Set the cursor location, drag to transform"
+            ),
+            icon="ops.generic.cursor",
+            keymap="Sequencer Tool: Cursor",
+            options={'KEYMAP_FALLBACK'},
+        )
+
+    @ToolDef.from_fn
     def blade():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sequencer.split")
@@ -2253,6 +2266,18 @@ class _defs_sequencer_generic:
             operator="transform.resize",
             keymap="Sequencer Tool: Scale",)
 
+    @ToolDef.from_fn
+    def transform():
+        return dict(
+            idname="builtin.transform",
+            label="Transform",
+            description=(
+                "Supports any combination of grab, rotate, and scale at once"
+            ),
+            icon="ops.transform.transform",
+            widget="SEQUENCER_GGT_gizmo2d",
+            # No keymap default action, only for gizmo!
+       )
 
 class _defs_sequencer_select:
     @ToolDef.from_fn
@@ -2689,22 +2714,38 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_annotate.eraser,),)
 
     _tools = {
-        None: [],
-        'PREVIEW': [*_tools_select,
+        None: [
+        ],
+        'PREVIEW': [
+            *_tools_select,
+            _defs_sequencer_generic.cursor,
+            None,
             _defs_sequencer_generic.translate,
             _defs_sequencer_generic.rotate,
             _defs_sequencer_generic.scale,
+            _defs_sequencer_generic.transform,
+            None,
             _defs_sequencer_generic.sample,
-            *_tools_annotate,],
-        'SEQUENCER': [*_tools_select,
-            _defs_sequencer_generic.blade,],
-        'SEQUENCER_PREVIEW': [*_tools_select,
-            _defs_sequencer_generic.translate,
-            _defs_sequencer_generic.rotate,
-            _defs_sequencer_generic.scale,
+            *_tools_annotate,
+        ],
+        'SEQUENCER': [
+            *_tools_select,
             _defs_sequencer_generic.blade,
+        ],
+        'SEQUENCER_PREVIEW': [
+            *_tools_select,
+            _defs_sequencer_generic.cursor,
+            None,
+            _defs_sequencer_generic.translate,
+            _defs_sequencer_generic.rotate,
+            _defs_sequencer_generic.scale,
+            _defs_sequencer_generic.transform,
+            None,
             _defs_sequencer_generic.sample,
-            *_tools_annotate,],
+            *_tools_annotate,
+            None,
+            _defs_sequencer_generic.blade,
+        ],
     }
 
 

@@ -18,6 +18,7 @@
  * \ingroup bke
  */
 
+#include "BKE_asset_catalog.hh"
 #include "BKE_asset_library.hh"
 #include "BKE_callbacks.h"
 #include "BKE_main.h"
@@ -25,6 +26,7 @@
 
 #include "BLI_path_util.h"
 
+#include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -91,6 +93,13 @@ blender::bke::AssetCatalogTree *BKE_asset_library_get_catalog_tree(const ::Asset
   return catalog_service->get_catalog_tree();
 }
 
+void BKE_asset_library_refresh_catalog_simplename(struct AssetLibrary *asset_library,
+                                                  struct AssetMetaData *asset_data)
+{
+  blender::bke::AssetLibrary *lib = reinterpret_cast<blender::bke::AssetLibrary *>(asset_library);
+  lib->refresh_catalog_simplename(asset_data);
+}
+
 namespace blender::bke {
 
 void AssetLibrary::load(StringRefNull library_root_directory)
@@ -136,6 +145,23 @@ void AssetLibrary::on_save_post(struct Main *main,
   }
 
   this->catalog_service->write_to_disk_on_blendfile_save(main->name);
+}
+
+void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
+{
+  if (BLI_uuid_is_nil(asset_data->catalog_id)) {
+    asset_data->catalog_simple_name[0] = '\0';
+    return;
+  }
+
+  const AssetCatalog *catalog = this->catalog_service->find_catalog(asset_data->catalog_id);
+  if (catalog == nullptr) {
+    /* No-op if the catalog cannot be found. This could be the kind of "the catalog definition file
+     * is corrupt/lost" scenario that the simple name is meant to help recover from. */
+    return;
+  }
+
+  STRNCPY(asset_data->catalog_simple_name, catalog->simple_name.c_str());
 }
 
 }  // namespace blender::bke

@@ -448,7 +448,7 @@ static void splitlist(ScanFillContext *sf_ctx,
                       ListBase *temped,
                       unsigned short nr)
 {
-  /* everything is in templist, write only poly nr to fillist */
+  /* Everything is in temp-list, write only poly nr to fill-list. */
   ScanFillVert *eve, *eve_next;
   ScanFillEdge *eed, *eed_next;
 

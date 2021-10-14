@@ -36,11 +36,11 @@ typedef enum MovieClipAttribute {
  */
 class MovieClipAttributeOperation : public ConstantOperation {
  private:
-  MovieClip *m_clip;
-  float m_value;
-  int m_framenumber;
-  bool m_invert;
-  MovieClipAttribute m_attribute;
+  MovieClip *clip_;
+  float value_;
+  int framenumber_;
+  bool invert_;
+  MovieClipAttribute attribute_;
   bool is_value_calculated_;
   NodeOperationInput *stabilization_resolution_socket_;
 
@@ -50,31 +50,31 @@ class MovieClipAttributeOperation : public ConstantOperation {
    */
   MovieClipAttributeOperation();
 
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
   const float *get_constant_elem() override;
 
-  void setMovieClip(MovieClip *clip)
+  void set_movie_clip(MovieClip *clip)
   {
-    this->m_clip = clip;
+    clip_ = clip;
   }
-  void setFramenumber(int framenumber)
+  void set_framenumber(int framenumber)
   {
-    this->m_framenumber = framenumber;
+    framenumber_ = framenumber;
   }
-  void setAttribute(MovieClipAttribute attribute)
+  void set_attribute(MovieClipAttribute attribute)
   {
-    this->m_attribute = attribute;
+    attribute_ = attribute;
   }
-  void setInvert(bool invert)
+  void set_invert(bool invert)
   {
-    this->m_invert = invert;
+    invert_ = invert;
   }
 
   /**

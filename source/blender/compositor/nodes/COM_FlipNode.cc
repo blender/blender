@@ -18,23 +18,22 @@
 
 #include "COM_FlipNode.h"
 
-#include "COM_ExecutionSystem.h"
 #include "COM_FlipOperation.h"
 
 namespace blender::compositor {
 
-FlipNode::FlipNode(bNode *editorNode) : Node(editorNode)
+FlipNode::FlipNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void FlipNode::convertToOperations(NodeConverter &converter,
-                                   const CompositorContext & /*context*/) const
+void FlipNode::convert_to_operations(NodeConverter &converter,
+                                     const CompositorContext & /*context*/) const
 {
-  NodeInput *inputSocket = this->getInputSocket(0);
-  NodeOutput *outputSocket = this->getOutputSocket(0);
+  NodeInput *input_socket = this->get_input_socket(0);
+  NodeOutput *output_socket = this->get_output_socket(0);
   FlipOperation *operation = new FlipOperation();
-  switch (this->getbNode()->custom1) {
+  switch (this->get_bnode()->custom1) {
     case 0: /* TODO: I didn't find any constants in the old implementation,
              * should I introduce them. */
       operation->setFlipX(true);
@@ -50,9 +49,9 @@ void FlipNode::convertToOperations(NodeConverter &converter,
       break;
   }
 
-  converter.addOperation(operation);
-  converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
-  converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
+  converter.add_operation(operation);
+  converter.map_input_socket(input_socket, operation->get_input_socket(0));
+  converter.map_output_socket(output_socket, operation->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

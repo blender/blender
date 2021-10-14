@@ -33,23 +33,23 @@ namespace blender::compositor {
  */
 class MaskOperation : public MultiThreadedOperation {
  protected:
-  Mask *m_mask;
+  Mask *mask_;
 
   /* NOTE: these are used more like aspect,
    * but they _do_ impact on mask detail */
-  int m_maskWidth;
-  int m_maskHeight;
-  float m_maskWidthInv;  /* `1 / m_maskWidth` */
-  float m_maskHeightInv; /* `1 / m_maskHeight` */
-  float m_mask_px_ofs[2];
+  int mask_width_;
+  int mask_height_;
+  float mask_width_inv_;  /* `1 / mask_width_` */
+  float mask_height_inv_; /* `1 / mask_height_` */
+  float mask_px_ofs_[2];
 
-  float m_frame_shutter;
-  int m_frame_number;
+  float frame_shutter_;
+  int frame_number_;
 
-  bool m_do_feather;
+  bool do_feather_;
 
-  struct MaskRasterHandle *m_rasterMaskHandles[CMP_NODE_MASK_MBLUR_SAMPLES_MAX];
-  unsigned int m_rasterMaskHandleTot;
+  struct MaskRasterHandle *raster_mask_handles_[CMP_NODE_MASK_MBLUR_SAMPLES_MAX];
+  unsigned int raster_mask_handle_tot_;
 
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -59,44 +59,44 @@ class MaskOperation : public MultiThreadedOperation {
  public:
   MaskOperation();
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void setMask(Mask *mask)
+  void set_mask(Mask *mask)
   {
-    this->m_mask = mask;
+    mask_ = mask;
   }
-  void setMaskWidth(int width)
+  void set_mask_width(int width)
   {
-    this->m_maskWidth = width;
-    this->m_maskWidthInv = 1.0f / (float)width;
-    this->m_mask_px_ofs[0] = this->m_maskWidthInv * 0.5f;
+    mask_width_ = width;
+    mask_width_inv_ = 1.0f / (float)width;
+    mask_px_ofs_[0] = mask_width_inv_ * 0.5f;
   }
-  void setMaskHeight(int height)
+  void set_mask_height(int height)
   {
-    this->m_maskHeight = height;
-    this->m_maskHeightInv = 1.0f / (float)height;
-    this->m_mask_px_ofs[1] = this->m_maskHeightInv * 0.5f;
+    mask_height_ = height;
+    mask_height_inv_ = 1.0f / (float)height;
+    mask_px_ofs_[1] = mask_height_inv_ * 0.5f;
   }
-  void setFramenumber(int frame_number)
+  void set_framenumber(int frame_number)
   {
-    this->m_frame_number = frame_number;
+    frame_number_ = frame_number;
   }
-  void setFeather(bool feather)
+  void set_feather(bool feather)
   {
-    this->m_do_feather = feather;
-  }
-
-  void setMotionBlurSamples(int samples)
-  {
-    this->m_rasterMaskHandleTot = MIN2(MAX2(1, samples), CMP_NODE_MASK_MBLUR_SAMPLES_MAX);
-  }
-  void setMotionBlurShutter(float shutter)
-  {
-    this->m_frame_shutter = shutter;
+    do_feather_ = feather;
   }
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void set_motion_blur_samples(int samples)
+  {
+    raster_mask_handle_tot_ = MIN2(MAX2(1, samples), CMP_NODE_MASK_MBLUR_SAMPLES_MAX);
+  }
+  void set_motion_blur_shutter(float shutter)
+  {
+    frame_shutter_ = shutter;
+  }
+
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

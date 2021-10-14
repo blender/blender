@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class IDMaskNode : public Node {
  public:
-  IDMaskNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  IDMaskNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

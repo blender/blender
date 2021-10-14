@@ -979,6 +979,12 @@ class WM_OT_url_open(Operator):
         return {'FINISHED'}
 
 
+# NOTE: needed for Python 3.10 since there are name-space issues with annotations.
+# This can be moved into the class as a static-method once Python 3.9x is dropped.
+def _wm_url_open_preset_type_items(_self, _context):
+    return [item for (item, _) in WM_OT_url_open_preset.preset_items]
+
+
 class WM_OT_url_open_preset(Operator):
     """Open a preset website in the web browser"""
     bl_idname = "wm.url_open_preset"
@@ -987,9 +993,7 @@ class WM_OT_url_open_preset(Operator):
 
     type: EnumProperty(
         name="Site",
-        items=lambda self, _context: (
-            item for (item, _) in WM_OT_url_open_preset.preset_items
-        ),
+        items=_wm_url_open_preset_type_items,
     )
 
     id: StringProperty(
@@ -1419,7 +1423,7 @@ class WM_OT_properties_edit(Operator):
     # Helper method to avoid repetative code to retrieve a single value from sequences and non-sequences.
     @staticmethod
     def _convert_new_value_single(old_value, new_type):
-        if hasattr(old_value, "__len__"):
+        if hasattr(old_value, "__len__") and len(old_value) > 0:
             return new_type(old_value[0])
         return new_type(old_value)
 
@@ -1582,7 +1586,7 @@ class WM_OT_properties_edit(Operator):
                 min=self.min_int,
                 max=self.max_int,
                 soft_min=self.soft_min_int if self.use_soft_limits else self.min_int,
-                soft_max=self.soft_max_int if self.use_soft_limits else self.min_int,
+                soft_max=self.soft_max_int if self.use_soft_limits else self.max_int,
                 step=self.step_int,
                 default=self.default_int[0] if prop_type_new == 'INT' else self.default_int[:self.array_length],
                 description=self.description,
@@ -1702,7 +1706,6 @@ class WM_OT_properties_edit(Operator):
         name = self.property_name
 
         self._old_prop_name = [name]
-        self.last_property_type = self.property_type
 
         item = eval("context.%s" % data_path)
         if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
@@ -1712,6 +1715,7 @@ class WM_OT_properties_edit(Operator):
         # Set operator's property type with the type of the existing property, to display the right settings.
         old_type = self._get_property_type(item, name)
         self.property_type = old_type
+        self.last_property_type = old_type
 
         # So that the operator can do something for unsupported properties, change the property into
         # a string, just for editing in the dialog. When the operator executes, it will be converted back
@@ -1738,10 +1742,10 @@ class WM_OT_properties_edit(Operator):
             if self.min_float > self.max_float:
                 self.min_float, self.max_float = self.max_float, self.min_float
                 changed = True
-            if self.soft_min_float > self.soft_max_float:
-                self.soft_min_float, self.soft_max_float = self.soft_max_float, self.soft_min_float
-                changed = True
             if self.use_soft_limits:
+                if self.soft_min_float > self.soft_max_float:
+                    self.soft_min_float, self.soft_max_float = self.soft_max_float, self.soft_min_float
+                    changed = True
                 if self.soft_max_float > self.max_float:
                     self.soft_max_float = self.max_float
                     changed = True
@@ -1752,10 +1756,10 @@ class WM_OT_properties_edit(Operator):
             if self.min_int > self.max_int:
                 self.min_int, self.max_int = self.max_int, self.min_int
                 changed = True
-            if self.soft_min_int > self.soft_max_int:
-                self.soft_min_int, self.soft_max_int = self.soft_max_int, self.soft_min_int
-                changed = True
             if self.use_soft_limits:
+                if self.soft_min_int > self.soft_max_int:
+                    self.soft_min_int, self.soft_max_int = self.soft_max_int, self.soft_min_int
+                    changed = True
                 if self.soft_max_int > self.max_int:
                     self.soft_max_int = self.max_int
                     changed = True

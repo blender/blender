@@ -19,43 +19,28 @@
 
 #include "../node_shader_util.h"
 
-/* **************** OUTPUT ******************** */
+namespace blender::nodes {
 
-static bNodeSocketTemplate sh_node_tex_checker_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_RGBA, N_("Color1"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_("Color2"), 0.2f, 0.2f, 0.2f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT,
-     N_("Scale"),
-     5.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     -1000.0f,
-     1000.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
-    {-1, ""},
+static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
+{
+  b.is_function_node();
+  b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f).implicit_field();
+  b.add_input<decl::Color>("Color1").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Color>("Color2").default_value({0.2f, 0.2f, 0.2f, 1.0f});
+  b.add_input<decl::Float>("Scale")
+      .min(-10000.0f)
+      .max(10000.0f)
+      .default_value(5.0f)
+      .no_muted_links();
+  b.add_output<decl::Color>("Color");
+  b.add_output<decl::Float>("Fac");
 };
 
-static bNodeSocketTemplate sh_node_tex_checker_out[] = {
-    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT,
-     N_("Fac"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_FACTOR,
-     SOCK_NO_INTERNAL_LINK},
-    {-1, ""},
-};
+}  // namespace blender::nodes
 
 static void node_shader_init_tex_checker(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexChecker *tex = MEM_callocN(sizeof(NodeTexChecker), "NodeTexChecker");
+  NodeTexChecker *tex = (NodeTexChecker *)MEM_callocN(sizeof(NodeTexChecker), "NodeTexChecker");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
 
@@ -80,7 +65,7 @@ void register_node_type_sh_tex_checker(void)
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_CHECKER, "Checker Texture", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_checker_in, sh_node_tex_checker_out);
+  ntype.declare = blender::nodes::sh_node_tex_checker_declare;
   node_type_init(&ntype, node_shader_init_tex_checker);
   node_type_storage(
       &ntype, "NodeTexChecker", node_free_standard_storage, node_copy_standard_storage);

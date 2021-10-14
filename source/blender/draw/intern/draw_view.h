@@ -22,6 +22,8 @@
 
 #pragma once
 
+struct ARegion;
+
 void DRW_draw_region_info(void);
 void DRW_clear_background(void);
 void DRW_draw_cursor(void);

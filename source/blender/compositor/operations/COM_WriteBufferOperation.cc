@@ -18,54 +18,52 @@
 
 #include "COM_WriteBufferOperation.h"
 #include "COM_OpenCLDevice.h"
-#include "COM_defines.h"
-#include <cstdio>
 
 namespace blender::compositor {
 
 WriteBufferOperation::WriteBufferOperation(DataType datatype)
 {
-  this->addInputSocket(datatype);
-  this->m_memoryProxy = new MemoryProxy(datatype);
-  this->m_memoryProxy->setWriteBufferOperation(this);
-  this->m_memoryProxy->setExecutor(nullptr);
-  flags.is_write_buffer_operation = true;
+  this->add_input_socket(datatype);
+  memory_proxy_ = new MemoryProxy(datatype);
+  memory_proxy_->set_write_buffer_operation(this);
+  memory_proxy_->set_executor(nullptr);
+  flags_.is_write_buffer_operation = true;
 }
 WriteBufferOperation::~WriteBufferOperation()
 {
-  if (this->m_memoryProxy) {
-    delete this->m_memoryProxy;
-    this->m_memoryProxy = nullptr;
+  if (memory_proxy_) {
+    delete memory_proxy_;
+    memory_proxy_ = nullptr;
   }
 }
 
-void WriteBufferOperation::executePixelSampled(float output[4],
-                                               float x,
-                                               float y,
-                                               PixelSampler sampler)
+void WriteBufferOperation::execute_pixel_sampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
 {
-  this->m_input->readSampled(output, x, y, sampler);
+  input_->read_sampled(output, x, y, sampler);
 }
 
-void WriteBufferOperation::initExecution()
+void WriteBufferOperation::init_execution()
 {
-  this->m_input = this->getInputOperation(0);
-  this->m_memoryProxy->allocate(this->getWidth(), this->getHeight());
+  input_ = this->get_input_operation(0);
+  memory_proxy_->allocate(this->get_width(), this->get_height());
 }
 
-void WriteBufferOperation::deinitExecution()
+void WriteBufferOperation::deinit_execution()
 {
-  this->m_input = nullptr;
-  this->m_memoryProxy->free();
+  input_ = nullptr;
+  memory_proxy_->free();
 }
 
-void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
+void WriteBufferOperation::execute_region(rcti *rect, unsigned int /*tile_number*/)
 {
-  MemoryBuffer *memoryBuffer = this->m_memoryProxy->getBuffer();
-  float *buffer = memoryBuffer->getBuffer();
-  const uint8_t num_channels = memoryBuffer->get_num_channels();
-  if (this->m_input->get_flags().complex) {
-    void *data = this->m_input->initializeTileData(rect);
+  MemoryBuffer *memory_buffer = memory_proxy_->get_buffer();
+  float *buffer = memory_buffer->get_buffer();
+  const uint8_t num_channels = memory_buffer->get_num_channels();
+  if (input_->get_flags().complex) {
+    void *data = input_->initialize_tile_data(rect);
     int x1 = rect->xmin;
     int y1 = rect->ymin;
     int x2 = rect->xmax;
@@ -74,17 +72,17 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/
     int y;
     bool breaked = false;
     for (y = y1; y < y2 && (!breaked); y++) {
-      int offset4 = (y * memoryBuffer->getWidth() + x1) * num_channels;
+      int offset4 = (y * memory_buffer->get_width() + x1) * num_channels;
       for (x = x1; x < x2; x++) {
-        this->m_input->read(&(buffer[offset4]), x, y, data);
+        input_->read(&(buffer[offset4]), x, y, data);
         offset4 += num_channels;
       }
-      if (isBraked()) {
+      if (is_braked()) {
         breaked = true;
       }
     }
     if (data) {
-      this->m_input->deinitializeTileData(rect, data);
+      input_->deinitialize_tile_data(rect, data);
       data = nullptr;
     }
   }
@@ -98,25 +96,25 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/
     int y;
     bool breaked = false;
     for (y = y1; y < y2 && (!breaked); y++) {
-      int offset4 = (y * memoryBuffer->getWidth() + x1) * num_channels;
+      int offset4 = (y * memory_buffer->get_width() + x1) * num_channels;
       for (x = x1; x < x2; x++) {
-        this->m_input->readSampled(&(buffer[offset4]), x, y, PixelSampler::Nearest);
+        input_->read_sampled(&(buffer[offset4]), x, y, PixelSampler::Nearest);
         offset4 += num_channels;
       }
-      if (isBraked()) {
+      if (is_braked()) {
         breaked = true;
       }
     }
   }
 }
 
-void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
-                                               rcti * /*rect*/,
-                                               unsigned int /*chunkNumber*/,
-                                               MemoryBuffer **inputMemoryBuffers,
-                                               MemoryBuffer *outputBuffer)
+void WriteBufferOperation::execute_opencl_region(OpenCLDevice *device,
+                                                 rcti * /*rect*/,
+                                                 unsigned int /*chunk_number*/,
+                                                 MemoryBuffer **input_memory_buffers,
+                                                 MemoryBuffer *output_buffer)
 {
-  float *outputFloatBuffer = outputBuffer->getBuffer();
+  float *output_float_buffer = output_buffer->get_buffer();
   cl_int error;
   /*
    * 1. create cl_mem from outputbuffer
@@ -127,55 +125,55 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
    * NOTE: list of cl_mem will be filled by 2, and needs to be cleaned up by 4
    */
   /* STEP 1 */
-  const unsigned int outputBufferWidth = outputBuffer->getWidth();
-  const unsigned int outputBufferHeight = outputBuffer->getHeight();
+  const unsigned int output_buffer_width = output_buffer->get_width();
+  const unsigned int output_buffer_height = output_buffer->get_height();
 
-  const cl_image_format *imageFormat = OpenCLDevice::determineImageFormat(outputBuffer);
+  const cl_image_format *image_format = OpenCLDevice::determine_image_format(output_buffer);
 
-  cl_mem clOutputBuffer = clCreateImage2D(device->getContext(),
-                                          CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR,
-                                          imageFormat,
-                                          outputBufferWidth,
-                                          outputBufferHeight,
-                                          0,
-                                          outputFloatBuffer,
-                                          &error);
+  cl_mem cl_output_buffer = clCreateImage2D(device->get_context(),
+                                            CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR,
+                                            image_format,
+                                            output_buffer_width,
+                                            output_buffer_height,
+                                            0,
+                                            output_float_buffer,
+                                            &error);
   if (error != CL_SUCCESS) {
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
 
   /* STEP 2 */
-  std::list<cl_mem> *clMemToCleanUp = new std::list<cl_mem>();
-  clMemToCleanUp->push_back(clOutputBuffer);
-  std::list<cl_kernel> *clKernelsToCleanUp = new std::list<cl_kernel>();
+  std::list<cl_mem> *cl_mem_to_clean_up = new std::list<cl_mem>();
+  cl_mem_to_clean_up->push_back(cl_output_buffer);
+  std::list<cl_kernel> *cl_kernels_to_clean_up = new std::list<cl_kernel>();
 
-  this->m_input->executeOpenCL(device,
-                               outputBuffer,
-                               clOutputBuffer,
-                               inputMemoryBuffers,
-                               clMemToCleanUp,
-                               clKernelsToCleanUp);
+  input_->execute_opencl(device,
+                         output_buffer,
+                         cl_output_buffer,
+                         input_memory_buffers,
+                         cl_mem_to_clean_up,
+                         cl_kernels_to_clean_up);
 
   /* STEP 3 */
 
   size_t origin[3] = {0, 0, 0};
-  size_t region[3] = {outputBufferWidth, outputBufferHeight, 1};
+  size_t region[3] = {output_buffer_width, output_buffer_height, 1};
 
   //  clFlush(queue);
   //  clFinish(queue);
 
-  error = clEnqueueBarrier(device->getQueue());
+  error = clEnqueueBarrier(device->get_queue());
   if (error != CL_SUCCESS) {
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
-  error = clEnqueueReadImage(device->getQueue(),
-                             clOutputBuffer,
+  error = clEnqueueReadImage(device->get_queue(),
+                             cl_output_buffer,
                              CL_TRUE,
                              origin,
                              region,
                              0,
                              0,
-                             outputFloatBuffer,
+                             output_float_buffer,
                              0,
                              nullptr,
                              nullptr);
@@ -183,49 +181,49 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
 
-  this->getMemoryProxy()->getBuffer()->fill_from(*outputBuffer);
+  this->get_memory_proxy()->get_buffer()->fill_from(*output_buffer);
 
   /* STEP 4 */
-  while (!clMemToCleanUp->empty()) {
-    cl_mem mem = clMemToCleanUp->front();
+  while (!cl_mem_to_clean_up->empty()) {
+    cl_mem mem = cl_mem_to_clean_up->front();
     error = clReleaseMemObject(mem);
     if (error != CL_SUCCESS) {
       printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
     }
-    clMemToCleanUp->pop_front();
+    cl_mem_to_clean_up->pop_front();
   }
 
-  while (!clKernelsToCleanUp->empty()) {
-    cl_kernel kernel = clKernelsToCleanUp->front();
+  while (!cl_kernels_to_clean_up->empty()) {
+    cl_kernel kernel = cl_kernels_to_clean_up->front();
     error = clReleaseKernel(kernel);
     if (error != CL_SUCCESS) {
       printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
     }
-    clKernelsToCleanUp->pop_front();
+    cl_kernels_to_clean_up->pop_front();
   }
-  delete clKernelsToCleanUp;
+  delete cl_kernels_to_clean_up;
 }
 
 void WriteBufferOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   NodeOperation::determine_canvas(preferred_area, r_area);
   /* make sure there is at least one pixel stored in case the input is a single value */
-  m_single_value = false;
+  single_value_ = false;
   if (BLI_rcti_size_x(&r_area) == 0) {
     r_area.xmax += 1;
-    m_single_value = true;
+    single_value_ = true;
   }
   if (BLI_rcti_size_y(&r_area) == 0) {
     r_area.ymax += 1;
-    m_single_value = true;
+    single_value_ = true;
   }
 }
 
-void WriteBufferOperation::readResolutionFromInputSocket()
+void WriteBufferOperation::read_resolution_from_input_socket()
 {
-  NodeOperation *inputOperation = this->getInputOperation(0);
-  this->setWidth(inputOperation->getWidth());
-  this->setHeight(inputOperation->getHeight());
+  NodeOperation *input_operation = this->get_input_operation(0);
+  this->set_width(input_operation->get_width());
+  this->set_height(input_operation->get_height());
 }
 
 }  // namespace blender::compositor

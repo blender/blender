@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class ChannelMatteNode : public Node {
  public:
-  ChannelMatteNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  ChannelMatteNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

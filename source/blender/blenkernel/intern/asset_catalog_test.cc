@@ -55,7 +55,7 @@ class TestableAssetCatalogService : public AssetCatalogService {
 
   AssetCatalogDefinitionFile *get_catalog_definition_file()
   {
-    return catalog_definition_file_.get();
+    return AssetCatalogService::get_catalog_definition_file();
   }
 
   void create_missing_catalogs()
@@ -66,7 +66,7 @@ class TestableAssetCatalogService : public AssetCatalogService {
   int64_t count_catalogs_with_path(const CatalogFilePath &path)
   {
     int64_t count = 0;
-    for (auto &catalog_uptr : catalogs_.values()) {
+    for (auto &catalog_uptr : get_catalogs().values()) {
       if (catalog_uptr->path == path) {
         count++;
       }
@@ -91,6 +91,14 @@ class AssetCatalogTest : public testing::Test {
     temp_library_path_ = "";
   }
 
+  void TearDown() override
+  {
+    if (!temp_library_path_.empty()) {
+      BLI_delete(temp_library_path_.c_str(), true, true);
+      temp_library_path_ = "";
+    }
+  }
+
   /* Register a temporary path, which will be removed at the end of the test.
    * The returned path ends in a slash. */
   CatalogFilePath use_temp_path()
@@ -108,21 +116,23 @@ class AssetCatalogTest : public testing::Test {
     return path;
   }
 
-  struct CatalogPathInfo {
-    StringRef name;
-    int parent_count;
-  };
-
-  void assert_expected_item(const CatalogPathInfo &expected_path,
+  void assert_expected_item(const AssetCatalogPath &expected_path,
                             const AssetCatalogTreeItem &actual_item)
   {
-    char expected_filename[FILE_MAXFILE];
+    if (expected_path != actual_item.catalog_path().str()) {
+      /* This will fail, but with a nicer error message than just calling FAIL(). */
+      EXPECT_EQ(expected_path, actual_item.catalog_path());
+      return;
+    }
+
     /* Is the catalog name as expected? "character", "Ellie", ... */
-    BLI_split_file_part(expected_path.name.data(), expected_filename, sizeof(expected_filename));
-    EXPECT_EQ(expected_filename, actual_item.get_name());
+    EXPECT_EQ(expected_path.name(), actual_item.get_name());
+
     /* Does the computed number of parents match? */
-    EXPECT_EQ(expected_path.parent_count, actual_item.count_parents());
-    EXPECT_EQ(expected_path.name, actual_item.catalog_path().str());
+    const std::string expected_path_str = expected_path.str();
+    const size_t expected_parent_count = std::count(
+        expected_path_str.begin(), expected_path_str.end(), AssetCatalogPath::SEPARATOR);
+    EXPECT_EQ(expected_parent_count, actual_item.count_parents());
   }
 
   /**
@@ -130,7 +140,7 @@ class AssetCatalogTest : public testing::Test {
    * the items map exactly to \a expected_paths.
    */
   void assert_expected_tree_items(AssetCatalogTree *tree,
-                                  const std::vector<CatalogPathInfo> &expected_paths)
+                                  const std::vector<AssetCatalogPath> &expected_paths)
   {
     int i = 0;
     tree->foreach_item([&](const AssetCatalogTreeItem &actual_item) {
@@ -147,7 +157,7 @@ class AssetCatalogTest : public testing::Test {
    * #AssetCatalogTree::foreach_root_item() instead of #AssetCatalogTree::foreach_item().
    */
   void assert_expected_tree_root_items(AssetCatalogTree *tree,
-                                       const std::vector<CatalogPathInfo> &expected_paths)
+                                       const std::vector<AssetCatalogPath> &expected_paths)
   {
     int i = 0;
     tree->foreach_root_item([&](const AssetCatalogTreeItem &actual_item) {
@@ -165,7 +175,7 @@ class AssetCatalogTest : public testing::Test {
    * #AssetCatalogTreeItem::foreach_child() instead of #AssetCatalogTree::foreach_item().
    */
   void assert_expected_tree_item_child_items(AssetCatalogTreeItem *parent_item,
-                                             const std::vector<CatalogPathInfo> &expected_paths)
+                                             const std::vector<AssetCatalogPath> &expected_paths)
   {
     int i = 0;
     parent_item->foreach_child([&](const AssetCatalogTreeItem &actual_item) {
@@ -177,12 +187,74 @@ class AssetCatalogTest : public testing::Test {
     });
   }
 
-  void TearDown() override
+  /* Used by on_blendfile_save__from_memory_into_existing_asset_lib* test functions. */
+  void save_from_memory_into_existing_asset_lib(const bool should_top_level_cdf_exist)
   {
-    if (!temp_library_path_.empty()) {
-      BLI_delete(temp_library_path_.c_str(), true, true);
-      temp_library_path_ = "";
+    const CatalogFilePath target_dir = create_temp_path(); /* Has trailing slash. */
+    const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
+    const CatalogFilePath registered_asset_lib = target_dir + "my_asset_library/";
+    const CatalogFilePath asset_lib_subdir = registered_asset_lib + "subdir/";
+    CatalogFilePath cdf_toplevel = registered_asset_lib +
+                                   AssetCatalogService::DEFAULT_CATALOG_FILENAME;
+    CatalogFilePath cdf_in_subdir = asset_lib_subdir +
+                                    AssetCatalogService::DEFAULT_CATALOG_FILENAME;
+    BLI_path_slash_native(cdf_toplevel.data());
+    BLI_path_slash_native(cdf_in_subdir.data());
+
+    /* Set up a temporary asset library for testing. */
+    bUserAssetLibrary *asset_lib_pref = BKE_preferences_asset_library_add(
+        &U, "Test", registered_asset_lib.c_str());
+    ASSERT_NE(nullptr, asset_lib_pref);
+    ASSERT_TRUE(BLI_dir_create_recursive(asset_lib_subdir.c_str()));
+
+    if (should_top_level_cdf_exist) {
+      ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), cdf_toplevel.c_str()));
     }
+
+    /* Create an empty CDF to add complexity. It should not save to this, but to the top-level
+     * one.*/
+    ASSERT_TRUE(BLI_file_touch(cdf_in_subdir.c_str()));
+    ASSERT_EQ(0, BLI_file_size(cdf_in_subdir.c_str()));
+
+    /* Create the catalog service without loading the already-existing CDF. */
+    TestableAssetCatalogService service;
+    const CatalogFilePath blendfilename = asset_lib_subdir + "some_file.blend";
+    const AssetCatalog *cat = service.create_catalog("some/catalog/path");
+
+    /* Mock that the blend file is written to the directory already containing a CDF. */
+    ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename));
+
+    /* Test that the CDF still exists in the expected location. */
+    EXPECT_TRUE(BLI_exists(cdf_toplevel.c_str()));
+    const CatalogFilePath backup_filename = cdf_toplevel + "~";
+    const bool backup_exists = BLI_exists(backup_filename.c_str());
+    EXPECT_EQ(should_top_level_cdf_exist, backup_exists)
+        << "Overwritten CDF should have been backed up.";
+
+    /* Test that the in-memory CDF has the expected file path. */
+    AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
+    BLI_path_slash_native(cdf->file_path.data());
+    EXPECT_EQ(cdf_toplevel, cdf->file_path);
+
+    /* Test that the in-memory catalogs have been merged with the on-disk one. */
+    AssetCatalogService loaded_service(cdf_toplevel);
+    loaded_service.load_from_disk();
+    EXPECT_NE(nullptr, loaded_service.find_catalog(cat->catalog_id));
+
+    /* This catalog comes from a pre-existing CDF that should have been merged.
+     * However, if the file doesn't exist, so does the catalog. */
+    AssetCatalog *poses_ellie_catalog = loaded_service.find_catalog(UUID_POSES_ELLIE);
+    if (should_top_level_cdf_exist) {
+      EXPECT_NE(nullptr, poses_ellie_catalog);
+    }
+    else {
+      EXPECT_EQ(nullptr, poses_ellie_catalog);
+    }
+
+    /* Test that the "red herring" CDF has not been touched. */
+    EXPECT_EQ(0, BLI_file_size(cdf_in_subdir.c_str()));
+
+    BKE_preferences_asset_library_remove(&U, asset_lib_pref);
   }
 };
 
@@ -235,32 +307,30 @@ TEST_F(AssetCatalogTest, insert_item_into_tree)
 
     std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path("item");
     tree.insert_item(*catalog);
-    assert_expected_tree_items(&tree, {{"item", 0}});
+    assert_expected_tree_items(&tree, {"item"});
 
     /* Insert child after parent already exists. */
     std::unique_ptr<AssetCatalog> child_catalog = AssetCatalog::from_path("item/child");
     tree.insert_item(*catalog);
-    assert_expected_tree_items(&tree, {{"item", 0}, {"item/child", 1}});
+    assert_expected_tree_items(&tree, {"item", "item/child"});
 
-    std::vector<CatalogPathInfo> expected_paths;
+    std::vector<AssetCatalogPath> expected_paths;
 
     /* Test inserting multi-component sub-path. */
     std::unique_ptr<AssetCatalog> grandgrandchild_catalog = AssetCatalog::from_path(
         "item/child/grandchild/grandgrandchild");
     tree.insert_item(*catalog);
-    expected_paths = {{"item", 0},
-                      {"item/child", 1},
-                      {"item/child/grandchild", 2},
-                      {"item/child/grandchild/grandgrandchild", 3}};
+    expected_paths = {
+        "item", "item/child", "item/child/grandchild", "item/child/grandchild/grandgrandchild"};
     assert_expected_tree_items(&tree, expected_paths);
 
     std::unique_ptr<AssetCatalog> root_level_catalog = AssetCatalog::from_path("root level");
     tree.insert_item(*catalog);
-    expected_paths = {{"item", 0},
-                      {"item/child", 1},
-                      {"item/child/grandchild", 2},
-                      {"item/child/grandchild/grandgrandchild", 3},
-                      {"root level", 0}};
+    expected_paths = {"item",
+                      "item/child",
+                      "item/child/grandchild",
+                      "item/child/grandchild/grandgrandchild",
+                      "root level"};
     assert_expected_tree_items(&tree, expected_paths);
   }
 
@@ -269,7 +339,7 @@ TEST_F(AssetCatalogTest, insert_item_into_tree)
 
     std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path("item/child");
     tree.insert_item(*catalog);
-    assert_expected_tree_items(&tree, {{"item", 0}, {"item/child", 1}});
+    assert_expected_tree_items(&tree, {"item", "item/child"});
   }
 
   {
@@ -277,7 +347,7 @@ TEST_F(AssetCatalogTest, insert_item_into_tree)
 
     std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path("white space");
     tree.insert_item(*catalog);
-    assert_expected_tree_items(&tree, {{"white space", 0}});
+    assert_expected_tree_items(&tree, {"white space"});
   }
 
   {
@@ -285,7 +355,7 @@ TEST_F(AssetCatalogTest, insert_item_into_tree)
 
     std::unique_ptr<AssetCatalog> catalog = AssetCatalog::from_path("/item/white space");
     tree.insert_item(*catalog);
-    assert_expected_tree_items(&tree, {{"item", 0}, {"item/white space", 1}});
+    assert_expected_tree_items(&tree, {"item", "item/white space"});
   }
 
   {
@@ -293,11 +363,11 @@ TEST_F(AssetCatalogTest, insert_item_into_tree)
 
     std::unique_ptr<AssetCatalog> catalog_unicode_path = AssetCatalog::from_path("Ružena");
     tree.insert_item(*catalog_unicode_path);
-    assert_expected_tree_items(&tree, {{"Ružena", 0}});
+    assert_expected_tree_items(&tree, {"Ružena"});
 
     catalog_unicode_path = AssetCatalog::from_path("Ružena/Ružena");
     tree.insert_item(*catalog_unicode_path);
-    assert_expected_tree_items(&tree, {{"Ružena", 0}, {"Ružena/Ružena", 1}});
+    assert_expected_tree_items(&tree, {"Ružena", "Ružena/Ružena"});
   }
 }
 
@@ -308,19 +378,19 @@ TEST_F(AssetCatalogTest, load_single_file_into_tree)
 
   /* Contains not only paths from the CDF but also the missing parents (implicitly defined
    * catalogs). */
-  std::vector<CatalogPathInfo> expected_paths{
-      {"character", 0},
-      {"character/Ellie", 1},
-      {"character/Ellie/poselib", 2},
-      {"character/Ellie/poselib/tailslash", 3},
-      {"character/Ellie/poselib/white space", 3},
-      {"character/Ružena", 1},
-      {"character/Ružena/poselib", 2},
-      {"character/Ružena/poselib/face", 3},
-      {"character/Ružena/poselib/hand", 3},
-      {"path", 0},                    /* Implicit. */
-      {"path/without", 1},            /* Implicit. */
-      {"path/without/simplename", 2}, /* From CDF. */
+  std::vector<AssetCatalogPath> expected_paths{
+      "character",
+      "character/Ellie",
+      "character/Ellie/poselib",
+      "character/Ellie/poselib/tailslash",
+      "character/Ellie/poselib/white space",
+      "character/Ružena",
+      "character/Ružena/poselib",
+      "character/Ružena/poselib/face",
+      "character/Ružena/poselib/hand",
+      "path",                    /* Implicit. */
+      "path/without",            /* Implicit. */
+      "path/without/simplename", /* From CDF. */
   };
 
   AssetCatalogTree *tree = service.get_catalog_tree();
@@ -331,7 +401,7 @@ TEST_F(AssetCatalogTest, foreach_in_tree)
 {
   {
     AssetCatalogTree tree{};
-    const std::vector<CatalogPathInfo> no_catalogs{};
+    const std::vector<AssetCatalogPath> no_catalogs{};
 
     assert_expected_tree_items(&tree, no_catalogs);
     assert_expected_tree_root_items(&tree, no_catalogs);
@@ -346,16 +416,16 @@ TEST_F(AssetCatalogTest, foreach_in_tree)
   AssetCatalogService service(asset_library_root_);
   service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
 
-  std::vector<CatalogPathInfo> expected_root_items{{"character", 0}, {"path", 0}};
+  std::vector<AssetCatalogPath> expected_root_items{{"character", "path"}};
   AssetCatalogTree *tree = service.get_catalog_tree();
   assert_expected_tree_root_items(tree, expected_root_items);
 
   /* Test if the direct children of the root item are what's expected. */
-  std::vector<std::vector<CatalogPathInfo>> expected_root_child_items = {
+  std::vector<std::vector<AssetCatalogPath>> expected_root_child_items = {
       /* Children of the "character" root item. */
-      {{"character/Ellie", 1}, {"character/Ružena", 1}},
+      {"character/Ellie", "character/Ružena"},
       /* Children of the "path" root item. */
-      {{"path/without", 1}},
+      {"path/without"},
   };
   int i = 0;
   tree->foreach_root_item([&expected_root_child_items, &i, this](AssetCatalogTreeItem &item) {
@@ -495,8 +565,8 @@ TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_cdf_and_me
 {
   const CatalogFilePath target_dir = create_temp_path(); /* Has trailing slash. */
   const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
-  const CatalogFilePath writable_cdf_file = target_dir +
-                                            AssetCatalogService::DEFAULT_CATALOG_FILENAME;
+  CatalogFilePath writable_cdf_file = target_dir + AssetCatalogService::DEFAULT_CATALOG_FILENAME;
+  BLI_path_slash_native(writable_cdf_file.data());
   ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str()));
 
   /* Create the catalog service without loading the already-existing CDF. */
@@ -525,51 +595,21 @@ TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_cdf_and_me
   EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE));
 }
 
-/* Create some catalogs in memory, save to subdirectory of a registered asset library. */
+/* Create some catalogs in memory, save to subdirectory of a registered asset library, where the
+ * subdirectory also contains a CDF. This should still write to the top-level dir of the asset
+ * library. */
+TEST_F(AssetCatalogTest,
+       on_blendfile_save__from_memory_into_existing_asset_lib_without_top_level_cdf)
+{
+  save_from_memory_into_existing_asset_lib(true);
+}
+
+/* Create some catalogs in memory, save to subdirectory of a registered asset library, where the
+ * subdirectory contains a CDF, but the top-level directory does not. This should still write to
+ * the top-level dir of the asset library. */
 TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_asset_lib)
 {
-  const CatalogFilePath target_dir = create_temp_path(); /* Has trailing slash. */
-  const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
-  const CatalogFilePath registered_asset_lib = target_dir + "my_asset_library/";
-  CatalogFilePath writable_cdf_file = registered_asset_lib +
-                                      AssetCatalogService::DEFAULT_CATALOG_FILENAME;
-  BLI_path_slash_native(writable_cdf_file.data());
-
-  /* Set up a temporary asset library for testing. */
-  bUserAssetLibrary *asset_lib_pref = BKE_preferences_asset_library_add(
-      &U, "Test", registered_asset_lib.c_str());
-  ASSERT_NE(nullptr, asset_lib_pref);
-  ASSERT_TRUE(BLI_dir_create_recursive(registered_asset_lib.c_str()));
-  ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str()));
-
-  /* Create the catalog service without loading the already-existing CDF. */
-  TestableAssetCatalogService service;
-  const CatalogFilePath blenddirname = registered_asset_lib + "subdirectory/";
-  const CatalogFilePath blendfilename = blenddirname + "some_file.blend";
-  ASSERT_TRUE(BLI_dir_create_recursive(blenddirname.c_str()));
-  const AssetCatalog *cat = service.create_catalog("some/catalog/path");
-
-  /* Mock that the blend file is written to the directory already containing a CDF. */
-  ASSERT_TRUE(service.write_to_disk_on_blendfile_save(blendfilename));
-
-  /* Test that the CDF still exists in the expected location. */
-  EXPECT_TRUE(BLI_exists(writable_cdf_file.c_str()));
-  const CatalogFilePath backup_filename = writable_cdf_file + "~";
-  EXPECT_TRUE(BLI_exists(backup_filename.c_str()))
-      << "Overwritten CDF should have been backed up.";
-
-  /* Test that the in-memory CDF has the expected file path. */
-  AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
-  BLI_path_slash_native(cdf->file_path.data());
-  EXPECT_EQ(writable_cdf_file, cdf->file_path);
-
-  /* Test that the in-memory catalogs have been merged with the on-disk one. */
-  AssetCatalogService loaded_service(writable_cdf_file);
-  loaded_service.load_from_disk();
-  EXPECT_NE(nullptr, loaded_service.find_catalog(cat->catalog_id));
-  EXPECT_NE(nullptr, loaded_service.find_catalog(UUID_POSES_ELLIE));
-
-  BKE_preferences_asset_library_remove(&U, asset_lib_pref);
+  save_from_memory_into_existing_asset_lib(false);
 }
 
 TEST_F(AssetCatalogTest, create_first_catalog_from_scratch)
@@ -679,24 +719,76 @@ TEST_F(AssetCatalogTest, delete_catalog_leaf)
 
   /* Delete a leaf catalog, i.e. one that is not a parent of another catalog.
    * This keeps this particular test easy. */
-  service.delete_catalog(UUID_POSES_RUZENA_HAND);
+  service.prune_catalogs_by_id(UUID_POSES_RUZENA_HAND);
   EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA_HAND));
 
   /* Contains not only paths from the CDF but also the missing parents (implicitly defined
    * catalogs). This is why a leaf catalog was deleted. */
-  std::vector<CatalogPathInfo> expected_paths{
-      {"character", 0},
-      {"character/Ellie", 1},
-      {"character/Ellie/poselib", 2},
-      {"character/Ellie/poselib/tailslash", 3},
-      {"character/Ellie/poselib/white space", 3},
-      {"character/Ružena", 1},
-      {"character/Ružena/poselib", 2},
-      {"character/Ružena/poselib/face", 3},
-      // {"character/Ružena/poselib/hand", 3}, /* This is the deleted one. */
-      {"path", 0},
-      {"path/without", 1},
-      {"path/without/simplename", 2},
+  std::vector<AssetCatalogPath> expected_paths{
+      "character",
+      "character/Ellie",
+      "character/Ellie/poselib",
+      "character/Ellie/poselib/tailslash",
+      "character/Ellie/poselib/white space",
+      "character/Ružena",
+      "character/Ružena/poselib",
+      "character/Ružena/poselib/face",
+      // "character/Ružena/poselib/hand", /* This is the deleted one. */
+      "path",
+      "path/without",
+      "path/without/simplename",
+  };
+
+  AssetCatalogTree *tree = service.get_catalog_tree();
+  assert_expected_tree_items(tree, expected_paths);
+}
+
+TEST_F(AssetCatalogTest, delete_catalog_parent_by_id)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+
+  /* Delete a parent catalog. */
+  service.delete_catalog_by_id(UUID_POSES_RUZENA);
+
+  /* The catalog should have been deleted, but its children should still be there. */
+  EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA));
+  EXPECT_NE(nullptr, service.find_catalog(UUID_POSES_RUZENA_FACE));
+  EXPECT_NE(nullptr, service.find_catalog(UUID_POSES_RUZENA_HAND));
+}
+
+TEST_F(AssetCatalogTest, delete_catalog_parent_by_path)
+{
+  AssetCatalogService service(asset_library_root_);
+  service.load_from_disk(asset_library_root_ + "/" + "blender_assets.cats.txt");
+
+  /* Create an extra catalog with the to-be-deleted path, and one with a child of that.
+   * This creates some duplicates that are bound to occur in production asset libraries as well. */
+  const bUUID cat1_uuid = service.create_catalog("character/Ružena/poselib")->catalog_id;
+  const bUUID cat2_uuid = service.create_catalog("character/Ružena/poselib/body")->catalog_id;
+
+  /* Delete a parent catalog. */
+  service.prune_catalogs_by_path("character/Ružena/poselib");
+
+  /* The catalogs and their children should have been deleted. */
+  EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA));
+  EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA_FACE));
+  EXPECT_EQ(nullptr, service.find_catalog(UUID_POSES_RUZENA_HAND));
+  EXPECT_EQ(nullptr, service.find_catalog(cat1_uuid));
+  EXPECT_EQ(nullptr, service.find_catalog(cat2_uuid));
+
+  /* Contains not only paths from the CDF but also the missing parents (implicitly defined
+   * catalogs). This is why a leaf catalog was deleted. */
+  std::vector<AssetCatalogPath> expected_paths{
+      "character",
+      "character/Ellie",
+      "character/Ellie/poselib",
+      "character/Ellie/poselib/tailslash",
+      "character/Ellie/poselib/white space",
+      "character/Ružena",
+      "path",
+      "path/without",
+      "path/without/simplename",
   };
 
   AssetCatalogTree *tree = service.get_catalog_tree();
@@ -709,7 +801,7 @@ TEST_F(AssetCatalogTest, delete_catalog_write_to_disk)
   service.load_from_disk(asset_library_root_ + "/" +
                          AssetCatalogService::DEFAULT_CATALOG_FILENAME);
 
-  service.delete_catalog(UUID_POSES_ELLIE);
+  service.delete_catalog_by_id(UUID_POSES_ELLIE);
 
   const CatalogFilePath save_to_path = use_temp_path();
   AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
@@ -804,7 +896,7 @@ TEST_F(AssetCatalogTest, backups)
   /* Read a CDF, modify, and write it. */
   AssetCatalogService service(cdf_dir);
   service.load_from_disk();
-  service.delete_catalog(UUID_POSES_ELLIE);
+  service.delete_catalog_by_id(UUID_POSES_ELLIE);
   service.write_to_disk_on_blendfile_save(cdf_dir + "phony.blend");
 
   const CatalogFilePath backup_path = writable_cdf_file + "~";
@@ -960,6 +1052,189 @@ TEST_F(AssetCatalogTest, create_catalog_filter_for_unassigned_assets)
   AssetCatalogFilter filter = service.create_catalog_filter(BLI_uuid_nil());
   EXPECT_TRUE(filter.contains(BLI_uuid_nil()));
   EXPECT_FALSE(filter.contains(UUID_POSES_ELLIE));
+}
+
+TEST_F(AssetCatalogTest, cat_collection_deep_copy__empty)
+{
+  const AssetCatalogCollection empty;
+  auto copy = empty.deep_copy();
+  EXPECT_NE(&empty, copy.get());
+}
+
+class TestableAssetCatalogCollection : public AssetCatalogCollection {
+ public:
+  OwningAssetCatalogMap &get_catalogs()
+  {
+    return catalogs_;
+  }
+  OwningAssetCatalogMap &get_deleted_catalogs()
+  {
+    return deleted_catalogs_;
+  }
+  AssetCatalogDefinitionFile *get_catalog_definition_file()
+  {
+    return catalog_definition_file_.get();
+  }
+  AssetCatalogDefinitionFile *allocate_catalog_definition_file()
+  {
+    catalog_definition_file_ = std::make_unique<AssetCatalogDefinitionFile>();
+    return get_catalog_definition_file();
+  }
+};
+
+TEST_F(AssetCatalogTest, cat_collection_deep_copy__nonempty_nocdf)
+{
+  TestableAssetCatalogCollection catcoll;
+  auto cat1 = std::make_unique<AssetCatalog>(UUID_POSES_RUZENA, "poses/Henrik", "");
+  auto cat2 = std::make_unique<AssetCatalog>(UUID_POSES_RUZENA_FACE, "poses/Henrik/face", "");
+  auto cat3 = std::make_unique<AssetCatalog>(UUID_POSES_RUZENA_HAND, "poses/Henrik/hands", "");
+  cat3->flags.is_deleted = true;
+
+  AssetCatalog *cat1_ptr = cat1.get();
+  AssetCatalog *cat3_ptr = cat3.get();
+
+  catcoll.get_catalogs().add_new(cat1->catalog_id, std::move(cat1));
+  catcoll.get_catalogs().add_new(cat2->catalog_id, std::move(cat2));
+  catcoll.get_deleted_catalogs().add_new(cat3->catalog_id, std::move(cat3));
+
+  auto copy = catcoll.deep_copy();
+  EXPECT_NE(&catcoll, copy.get());
+
+  TestableAssetCatalogCollection *testcopy = reinterpret_cast<TestableAssetCatalogCollection *>(
+      copy.get());
+
+  /* Test catalogs & deleted catalogs. */
+  EXPECT_EQ(2, testcopy->get_catalogs().size());
+  EXPECT_EQ(1, testcopy->get_deleted_catalogs().size());
+
+  ASSERT_TRUE(testcopy->get_catalogs().contains(UUID_POSES_RUZENA));
+  ASSERT_TRUE(testcopy->get_catalogs().contains(UUID_POSES_RUZENA_FACE));
+  ASSERT_TRUE(testcopy->get_deleted_catalogs().contains(UUID_POSES_RUZENA_HAND));
+
+  EXPECT_NE(nullptr, testcopy->get_catalogs().lookup(UUID_POSES_RUZENA));
+  EXPECT_NE(cat1_ptr, testcopy->get_catalogs().lookup(UUID_POSES_RUZENA).get())
+      << "AssetCatalogs should be actual copies.";
+
+  EXPECT_NE(nullptr, testcopy->get_deleted_catalogs().lookup(UUID_POSES_RUZENA_HAND));
+  EXPECT_NE(cat3_ptr, testcopy->get_deleted_catalogs().lookup(UUID_POSES_RUZENA_HAND).get())
+      << "AssetCatalogs should be actual copies.";
+}
+
+class TestableAssetCatalogDefinitionFile : public AssetCatalogDefinitionFile {
+ public:
+  Map<CatalogID, AssetCatalog *> get_catalogs()
+  {
+    return catalogs_;
+  }
+};
+
+TEST_F(AssetCatalogTest, cat_collection_deep_copy__nonempty_cdf)
+{
+  TestableAssetCatalogCollection catcoll;
+  auto cat1 = std::make_unique<AssetCatalog>(UUID_POSES_RUZENA, "poses/Henrik", "");
+  auto cat2 = std::make_unique<AssetCatalog>(UUID_POSES_RUZENA_FACE, "poses/Henrik/face", "");
+  auto cat3 = std::make_unique<AssetCatalog>(UUID_POSES_RUZENA_HAND, "poses/Henrik/hands", "");
+  cat3->flags.is_deleted = true;
+
+  AssetCatalog *cat1_ptr = cat1.get();
+  AssetCatalog *cat2_ptr = cat2.get();
+  AssetCatalog *cat3_ptr = cat3.get();
+
+  catcoll.get_catalogs().add_new(cat1->catalog_id, std::move(cat1));
+  catcoll.get_catalogs().add_new(cat2->catalog_id, std::move(cat2));
+  catcoll.get_deleted_catalogs().add_new(cat3->catalog_id, std::move(cat3));
+
+  AssetCatalogDefinitionFile *cdf = catcoll.allocate_catalog_definition_file();
+  cdf->file_path = "path/to/somewhere.cats.txt";
+  cdf->add_new(cat1_ptr);
+  cdf->add_new(cat2_ptr);
+  cdf->add_new(cat3_ptr);
+
+  /* Test CDF remapping. */
+  auto copy = catcoll.deep_copy();
+  TestableAssetCatalogCollection *testable_copy = static_cast<TestableAssetCatalogCollection *>(
+      copy.get());
+
+  TestableAssetCatalogDefinitionFile *cdf_copy = static_cast<TestableAssetCatalogDefinitionFile *>(
+      testable_copy->get_catalog_definition_file());
+  EXPECT_EQ(testable_copy->get_catalogs().lookup(UUID_POSES_RUZENA).get(),
+            cdf_copy->get_catalogs().lookup(UUID_POSES_RUZENA))
+      << "AssetCatalog pointers should have been remapped to the copy.";
+
+  EXPECT_EQ(testable_copy->get_deleted_catalogs().lookup(UUID_POSES_RUZENA_HAND).get(),
+            cdf_copy->get_catalogs().lookup(UUID_POSES_RUZENA_HAND))
+      << "Deleted AssetCatalog pointers should have been remapped to the copy.";
+}
+
+TEST_F(AssetCatalogTest, undo_redo_one_step)
+{
+  TestableAssetCatalogService service(asset_library_root_);
+  service.load_from_disk();
+
+  EXPECT_FALSE(service.is_undo_possbile());
+  EXPECT_FALSE(service.is_redo_possbile());
+
+  service.create_catalog("some/catalog/path");
+  EXPECT_FALSE(service.is_undo_possbile())
+      << "Undo steps should be created explicitly, and not after creating any catalog.";
+
+  service.undo_push();
+  const bUUID other_catalog_id = service.create_catalog("other/catalog/path")->catalog_id;
+  EXPECT_TRUE(service.is_undo_possbile())
+      << "Undo should be possible after creating an undo snapshot.";
+
+  // Undo the creation of the catalog.
+  service.undo();
+  EXPECT_FALSE(service.is_undo_possbile())
+      << "Undoing the only stored step should make it impossible to undo further.";
+  EXPECT_TRUE(service.is_redo_possbile()) << "Undoing a step should make redo possible.";
+  EXPECT_EQ(nullptr, service.find_catalog_by_path("other/catalog/path"))
+      << "Undone catalog should not exist after undo.";
+  EXPECT_NE(nullptr, service.find_catalog_by_path("some/catalog/path"))
+      << "First catalog should still exist after undo.";
+  EXPECT_FALSE(service.get_catalog_definition_file()->contains(other_catalog_id))
+      << "The CDF should also not contain the undone catalog.";
+
+  // Redo the creation of the catalog.
+  service.redo();
+  EXPECT_TRUE(service.is_undo_possbile())
+      << "Undoing and then redoing a step should make it possible to undo again.";
+  EXPECT_FALSE(service.is_redo_possbile())
+      << "Undoing and then redoing a step should make redo impossible.";
+  EXPECT_NE(nullptr, service.find_catalog_by_path("other/catalog/path"))
+      << "Redone catalog should exist after redo.";
+  EXPECT_NE(nullptr, service.find_catalog_by_path("some/catalog/path"))
+      << "First catalog should still exist after redo.";
+  EXPECT_TRUE(service.get_catalog_definition_file()->contains(other_catalog_id))
+      << "The CDF should contain the redone catalog.";
+}
+
+TEST_F(AssetCatalogTest, undo_redo_more_complex)
+{
+  TestableAssetCatalogService service(asset_library_root_);
+  service.load_from_disk();
+
+  service.undo_push();
+  service.find_catalog(UUID_POSES_ELLIE_WHITESPACE)->simple_name = "Edited simple name";
+
+  service.undo_push();
+  service.find_catalog(UUID_POSES_ELLIE)->path = "poselib/EllieWithEditedPath";
+
+  service.undo();
+  service.undo();
+
+  service.undo_push();
+  service.find_catalog(UUID_POSES_ELLIE)->simple_name = "Ellie Simple";
+
+  EXPECT_FALSE(service.is_redo_possbile())
+      << "After storing an undo snapshot, the redo buffer should be empty.";
+  EXPECT_TRUE(service.is_undo_possbile())
+      << "After storing an undo snapshot, undoing should be possible";
+
+  EXPECT_EQ(service.find_catalog(UUID_POSES_ELLIE)->simple_name, "Ellie Simple"); /* Not undone. */
+  EXPECT_EQ(service.find_catalog(UUID_POSES_ELLIE_WHITESPACE)->simple_name,
+            "POSES_ELLIE WHITESPACE");                                                /* Undone. */
+  EXPECT_EQ(service.find_catalog(UUID_POSES_ELLIE)->path, "character/Ellie/poselib"); /* Undone. */
 }
 
 }  // namespace blender::bke::tests

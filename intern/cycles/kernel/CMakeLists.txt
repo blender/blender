@@ -241,6 +241,8 @@ set(SRC_INTEGRATOR_HEADERS
   integrator/integrator_state_template.h
   integrator/integrator_state_util.h
   integrator/integrator_subsurface.h
+  integrator/integrator_subsurface_disk.h
+  integrator/integrator_subsurface_random_walk.h
   integrator/integrator_volume_stack.h
 )
 

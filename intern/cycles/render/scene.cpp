@@ -228,16 +228,28 @@ void Scene::free_memory(bool final)
   }
 }
 
+void Scene::host_update(Device *device, Progress &progress)
+{
+  if (update_stats) {
+    update_stats->clear();
+  }
+
+  scoped_callback_timer timer([this](double time) {
+    if (update_stats) {
+      update_stats->scene.times.add_entry({"host_update", time});
+    }
+  });
+
+  progress.set_status("Updating Shaders");
+  shader_manager->host_update(device, this, progress);
+}
+
 void Scene::device_update(Device *device_, Progress &progress)
 {
   if (!device)
     device = device_;
 
   bool print_stats = need_data_update();
-
-  if (update_stats) {
-    update_stats->clear();
-  }
 
   scoped_callback_timer timer([this, print_stats](double time) {
     if (update_stats) {
@@ -537,11 +549,17 @@ bool Scene::update(Progress &progress)
     return false;
   }
 
-  /* Load render kernels, before device update where we upload data to the GPU. */
+  /* Update scene data on the host side.
+   * Only updates which do not depend on the kernel (including kernel features). */
+  progress.set_status("Updating Scene");
+  MEM_GUARDED_CALL(&progress, host_update, device, progress);
+
+  /* Load render kernels. After host scene update so that the required kernel features are known.
+   */
   load_kernels(progress, false);
 
-  /* Upload scene data to the GPU. */
-  progress.set_status("Updating Scene");
+  /* Upload scene data to the device. */
+  progress.set_status("Updating Scene Device");
   MEM_GUARDED_CALL(&progress, device_update, device, progress);
 
   return true;
@@ -646,29 +664,29 @@ int Scene::get_max_closure_count()
 
 int Scene::get_volume_stack_size() const
 {
+  int volume_stack_size = 0;
+
+  /* Space for background volume and terminator.
+   * Don't do optional here because camera ray initialization expects that there is space for
+   * at least those elements (avoiding extra condition to check if there is actual volume or not).
+   */
+  volume_stack_size += 2;
+
   /* Quick non-expensive check. Can over-estimate maximum possible nested level, but does not
    * require expensive calculation during pre-processing. */
-  int num_volume_objects = 0;
   for (const Object *object : objects) {
     if (object->check_is_volume()) {
-      ++num_volume_objects;
+      ++volume_stack_size;
     }
 
-    if (num_volume_objects == MAX_VOLUME_STACK_SIZE) {
+    if (volume_stack_size == MAX_VOLUME_STACK_SIZE) {
       break;
     }
   }
 
-  /* Count background world for the stack. */
-  const Shader *background_shader = background->get_shader(this);
-  if (background_shader && background_shader->has_volume_connected) {
-    ++num_volume_objects;
-  }
+  volume_stack_size = min(volume_stack_size, MAX_VOLUME_STACK_SIZE);
 
-  /* Space for terminator. */
-  ++num_volume_objects;
-
-  return min(num_volume_objects, MAX_VOLUME_STACK_SIZE);
+  return volume_stack_size;
 }
 
 bool Scene::has_shadow_catcher()

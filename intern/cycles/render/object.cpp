@@ -375,7 +375,7 @@ bool Object::check_is_volume() const
 
   for (Node *node : get_geometry()->get_used_shaders()) {
     const Shader *shader = static_cast<const Shader *>(node);
-    if (shader->has_volume_connected) {
+    if (shader->has_volume) {
       return true;
     }
   }

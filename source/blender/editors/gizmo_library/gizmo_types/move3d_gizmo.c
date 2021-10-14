@@ -289,6 +289,8 @@ static int gizmo_move_modal(bContext *C,
       if (ED_transform_snap_object_project_view3d(
               inter->snap_context_v3d,
               CTX_data_ensure_evaluated_depsgraph(C),
+              region,
+              CTX_wm_view3d(C),
               (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE),
               &(const struct SnapObjectParams){
                   .snap_select = SNAP_ALL,
@@ -381,8 +383,7 @@ static int gizmo_move_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
     if (area) {
       switch (area->spacetype) {
         case SPACE_VIEW3D: {
-          inter->snap_context_v3d = ED_transform_snap_object_context_create_view3d(
-              CTX_data_scene(C), 0, CTX_wm_region(C), CTX_wm_view3d(C));
+          inter->snap_context_v3d = ED_transform_snap_object_context_create(CTX_data_scene(C), 0);
           break;
         }
         default:

@@ -31,7 +31,7 @@ class GlareFogGlowOperation : public GlareBaseOperation {
   }
 
  protected:
-  void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings) override;
+  void generate_glare(float *data, MemoryBuffer *input_tile, NodeGlare *settings) override;
 };
 
 }  // namespace blender::compositor

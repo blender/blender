@@ -19,112 +19,46 @@
 
 #include "../node_shader_util.h"
 
-/* **************** OUTPUT ******************** */
+namespace blender::nodes {
 
-static bNodeSocketTemplate sh_node_tex_brick_in[] = {
-    {SOCK_VECTOR,
-     N_("Vector"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_HIDE_VALUE | SOCK_NO_INTERNAL_LINK},
-    {SOCK_RGBA, N_("Color1"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_("Color2"), 0.2f, 0.2f, 0.2f, 1.0f, 0.0f, 1.0f},
-    {SOCK_RGBA,
-     N_("Mortar"),
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     0.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
-    {SOCK_FLOAT,
-     N_("Scale"),
-     5.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     -1000.0f,
-     1000.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
-    {SOCK_FLOAT,
-     N_("Mortar Size"),
-     0.02f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.125f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
-    {SOCK_FLOAT,
-     N_("Mortar Smooth"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
-    {SOCK_FLOAT,
-     N_("Bias"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     -1.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
-    {SOCK_FLOAT,
-     N_("Brick Width"),
-     0.5f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.01f,
-     100.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
-    {SOCK_FLOAT,
-     N_("Row Height"),
-     0.25f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.01f,
-     100.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
-    {-1, ""},
+static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
+{
+  b.is_function_node();
+  b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f).implicit_field();
+  b.add_input<decl::Color>("Color1").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Color>("Color2").default_value({0.2f, 0.2f, 0.2f, 1.0f});
+  b.add_input<decl::Color>("Mortar").default_value({0.0f, 0.0f, 0.0f, 1.0f}).no_muted_links();
+  b.add_input<decl::Float>("Scale")
+      .min(-1000.0f)
+      .max(1000.0f)
+      .default_value(5.0f)
+      .no_muted_links();
+  b.add_input<decl::Float>("Mortar Size")
+      .min(0.0f)
+      .max(0.125f)
+      .default_value(0.02f)
+      .no_muted_links();
+  b.add_input<decl::Float>("Mortar Smooth").min(0.0f).max(1.0f).no_muted_links();
+  b.add_input<decl::Float>("Bias").min(-1.0f).max(1.0f).no_muted_links();
+  b.add_input<decl::Float>("Brick Width")
+      .min(0.01f)
+      .max(100.0f)
+      .default_value(0.5f)
+      .no_muted_links();
+  b.add_input<decl::Float>("Row Height")
+      .min(0.01f)
+      .max(100.0f)
+      .default_value(0.25f)
+      .no_muted_links();
+  b.add_output<decl::Color>("Color");
+  b.add_output<decl::Float>("Fac");
 };
 
-static bNodeSocketTemplate sh_node_tex_brick_out[] = {
-    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT,
-     N_("Fac"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_FACTOR,
-     SOCK_NO_INTERNAL_LINK},
-    {-1, ""},
-};
+}  // namespace blender::nodes
 
 static void node_shader_init_tex_brick(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexBrick *tex = MEM_callocN(sizeof(NodeTexBrick), "NodeTexBrick");
+  NodeTexBrick *tex = (NodeTexBrick *)MEM_callocN(sizeof(NodeTexBrick), "NodeTexBrick");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
 
@@ -170,7 +104,7 @@ void register_node_type_sh_tex_brick(void)
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_BRICK, "Brick Texture", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_brick_in, sh_node_tex_brick_out);
+  ntype.declare = blender::nodes::sh_node_tex_brick_declare;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, node_shader_init_tex_brick);
   node_type_storage(

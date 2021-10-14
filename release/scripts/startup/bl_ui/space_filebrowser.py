@@ -36,12 +36,6 @@ class FILEBROWSER_HT_header(Header):
         space_data = context.space_data
         params = space_data.params
 
-        row = layout.row(align=True)
-        row.prop(params, "asset_library_ref", text="")
-        # External libraries don't auto-refresh, add refresh button.
-        if params.asset_library_ref != 'LOCAL':
-            row.operator("file.refresh", text="", icon='FILE_REFRESH')
-
         layout.separator_spacer()
 
         layout.prop(params, "import_type", text="")
@@ -610,6 +604,7 @@ class ASSETBROWSER_MT_editor_menus(AssetBrowserMenu, Menu):
 
         layout.menu("ASSETBROWSER_MT_view")
         layout.menu("ASSETBROWSER_MT_select")
+        layout.menu("ASSETBROWSER_MT_edit")
 
 
 class ASSETBROWSER_MT_view(AssetBrowserMenu, Menu):
@@ -648,6 +643,16 @@ class ASSETBROWSER_MT_select(AssetBrowserMenu, Menu):
         layout.operator("file.select_box")
 
 
+class ASSETBROWSER_MT_edit(AssetBrowserMenu, Menu):
+    bl_label = "Edit"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("asset.catalog_undo", text="Undo")
+        layout.operator("asset.catalog_redo", text="Redo")
+
+
 class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
     bl_region_type = 'TOOL_PROPS'
     bl_label = "Asset Metadata"
@@ -664,25 +669,29 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         asset_library_ref = context.asset_library_ref
         asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset_file_handle, asset_library_ref)
 
+        show_developer_ui = context.preferences.view.show_developer_ui
+
         if asset_file_handle.local_id:
             # If the active file is an ID, use its name directly so renaming is possible from right here.
             layout.prop(asset_file_handle.local_id, "name", text="")
 
-            col = layout.column(align=True)
-            col.label(text="Asset Catalog:")
-            col.prop(asset_file_handle.local_id.asset_data, "catalog_id", text="UUID")
-            col.prop(asset_file_handle.local_id.asset_data, "catalog_simple_name", text="Simple Name")
+            if show_developer_ui:
+                col = layout.column(align=True)
+                col.label(text="Asset Catalog:")
+                col.prop(asset_file_handle.local_id.asset_data, "catalog_id", text="UUID")
+                col.prop(asset_file_handle.local_id.asset_data, "catalog_simple_name", text="Simple Name")
 
             row = layout.row()
             row.label(text="Source: Current File")
         else:
             layout.prop(asset_file_handle, "name", text="")
 
-            col = layout.column(align=True)
-            col.enabled = False
-            col.label(text="Asset Catalog:")
-            col.prop(asset_file_handle.asset_data, "catalog_id", text="UUID")
-            col.prop(asset_file_handle.asset_data, "catalog_simple_name", text="Simple Name")
+            if show_developer_ui:
+                col = layout.column(align=True)
+                col.enabled = False
+                col.label(text="Asset Catalog:")
+                col.prop(asset_file_handle.asset_data, "catalog_id", text="UUID")
+                col.prop(asset_file_handle.asset_data, "catalog_simple_name", text="Simple Name")
 
             col = layout.column(align=True)  # Just to reduce margin.
             col.label(text="Source:")
@@ -797,6 +806,7 @@ classes = (
     ASSETBROWSER_MT_editor_menus,
     ASSETBROWSER_MT_view,
     ASSETBROWSER_MT_select,
+    ASSETBROWSER_MT_edit,
     ASSETBROWSER_PT_metadata,
     ASSETBROWSER_PT_metadata_preview,
     ASSETBROWSER_PT_metadata_details,

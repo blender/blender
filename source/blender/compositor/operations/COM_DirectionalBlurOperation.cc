@@ -19,131 +19,127 @@
 #include "COM_DirectionalBlurOperation.h"
 #include "COM_OpenCLDevice.h"
 
-#include "BLI_math.h"
-
-#include "RE_pipeline.h"
-
 namespace blender::compositor {
 
 DirectionalBlurOperation::DirectionalBlurOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
-  flags.complex = true;
-  flags.open_cl = true;
-  this->m_inputProgram = nullptr;
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
+  flags_.complex = true;
+  flags_.open_cl = true;
+  input_program_ = nullptr;
 }
 
-void DirectionalBlurOperation::initExecution()
+void DirectionalBlurOperation::init_execution()
 {
-  this->m_inputProgram = getInputSocketReader(0);
-  QualityStepHelper::initExecution(COM_QH_INCREASE);
-  const float angle = this->m_data->angle;
-  const float zoom = this->m_data->zoom;
-  const float spin = this->m_data->spin;
-  const float iterations = this->m_data->iter;
-  const float distance = this->m_data->distance;
-  const float center_x = this->m_data->center_x;
-  const float center_y = this->m_data->center_y;
-  const float width = getWidth();
-  const float height = getHeight();
+  input_program_ = get_input_socket_reader(0);
+  QualityStepHelper::init_execution(COM_QH_INCREASE);
+  const float angle = data_->angle;
+  const float zoom = data_->zoom;
+  const float spin = data_->spin;
+  const float iterations = data_->iter;
+  const float distance = data_->distance;
+  const float center_x = data_->center_x;
+  const float center_y = data_->center_y;
+  const float width = get_width();
+  const float height = get_height();
 
   const float a = angle;
   const float itsc = 1.0f / powf(2.0f, (float)iterations);
   float D;
 
   D = distance * sqrtf(width * width + height * height);
-  this->m_center_x_pix = center_x * width;
-  this->m_center_y_pix = center_y * height;
+  center_x_pix_ = center_x * width;
+  center_y_pix_ = center_y * height;
 
-  this->m_tx = itsc * D * cosf(a);
-  this->m_ty = -itsc * D * sinf(a);
-  this->m_sc = itsc * zoom;
-  this->m_rot = itsc * spin;
+  tx_ = itsc * D * cosf(a);
+  ty_ = -itsc * D * sinf(a);
+  sc_ = itsc * zoom;
+  rot_ = itsc * spin;
 }
 
-void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void * /*data*/)
+void DirectionalBlurOperation::execute_pixel(float output[4], int x, int y, void * /*data*/)
 {
-  const int iterations = pow(2.0f, this->m_data->iter);
+  const int iterations = pow(2.0f, data_->iter);
   float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float col2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  this->m_inputProgram->readSampled(col2, x, y, PixelSampler::Bilinear);
-  float ltx = this->m_tx;
-  float lty = this->m_ty;
-  float lsc = this->m_sc;
-  float lrot = this->m_rot;
+  input_program_->read_sampled(col2, x, y, PixelSampler::Bilinear);
+  float ltx = tx_;
+  float lty = ty_;
+  float lsc = sc_;
+  float lrot = rot_;
   /* blur the image */
   for (int i = 0; i < iterations; i++) {
     const float cs = cosf(lrot), ss = sinf(lrot);
     const float isc = 1.0f / (1.0f + lsc);
 
-    const float v = isc * (y - this->m_center_y_pix) + lty;
-    const float u = isc * (x - this->m_center_x_pix) + ltx;
+    const float v = isc * (y - center_y_pix_) + lty;
+    const float u = isc * (x - center_x_pix_) + ltx;
 
-    this->m_inputProgram->readSampled(col,
-                                      cs * u + ss * v + this->m_center_x_pix,
-                                      cs * v - ss * u + this->m_center_y_pix,
-                                      PixelSampler::Bilinear);
+    input_program_->read_sampled(col,
+                                 cs * u + ss * v + center_x_pix_,
+                                 cs * v - ss * u + center_y_pix_,
+                                 PixelSampler::Bilinear);
 
     add_v4_v4(col2, col);
 
     /* double transformations */
-    ltx += this->m_tx;
-    lty += this->m_ty;
-    lrot += this->m_rot;
-    lsc += this->m_sc;
+    ltx += tx_;
+    lty += ty_;
+    lrot += rot_;
+    lsc += sc_;
   }
 
   mul_v4_v4fl(output, col2, 1.0f / (iterations + 1));
 }
 
-void DirectionalBlurOperation::executeOpenCL(OpenCLDevice *device,
-                                             MemoryBuffer *outputMemoryBuffer,
-                                             cl_mem clOutputBuffer,
-                                             MemoryBuffer **inputMemoryBuffers,
-                                             std::list<cl_mem> *clMemToCleanUp,
-                                             std::list<cl_kernel> * /*clKernelsToCleanUp*/)
+void DirectionalBlurOperation::execute_opencl(OpenCLDevice *device,
+                                              MemoryBuffer *output_memory_buffer,
+                                              cl_mem cl_output_buffer,
+                                              MemoryBuffer **input_memory_buffers,
+                                              std::list<cl_mem> *cl_mem_to_clean_up,
+                                              std::list<cl_kernel> * /*cl_kernels_to_clean_up*/)
 {
-  cl_kernel directionalBlurKernel = device->COM_clCreateKernel("directionalBlurKernel", nullptr);
+  cl_kernel directional_blur_kernel = device->COM_cl_create_kernel("directional_blur_kernel",
+                                                                   nullptr);
 
-  cl_int iterations = pow(2.0f, this->m_data->iter);
-  cl_float2 ltxy = {{this->m_tx, this->m_ty}};
-  cl_float2 centerpix = {{this->m_center_x_pix, this->m_center_y_pix}};
-  cl_float lsc = this->m_sc;
-  cl_float lrot = this->m_rot;
+  cl_int iterations = pow(2.0f, data_->iter);
+  cl_float2 ltxy = {{tx_, ty_}};
+  cl_float2 centerpix = {{center_x_pix_, center_y_pix_}};
+  cl_float lsc = sc_;
+  cl_float lrot = rot_;
 
-  device->COM_clAttachMemoryBufferToKernelParameter(
-      directionalBlurKernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputProgram);
-  device->COM_clAttachOutputMemoryBufferToKernelParameter(
-      directionalBlurKernel, 1, clOutputBuffer);
-  device->COM_clAttachMemoryBufferOffsetToKernelParameter(
-      directionalBlurKernel, 2, outputMemoryBuffer);
-  clSetKernelArg(directionalBlurKernel, 3, sizeof(cl_int), &iterations);
-  clSetKernelArg(directionalBlurKernel, 4, sizeof(cl_float), &lsc);
-  clSetKernelArg(directionalBlurKernel, 5, sizeof(cl_float), &lrot);
-  clSetKernelArg(directionalBlurKernel, 6, sizeof(cl_float2), &ltxy);
-  clSetKernelArg(directionalBlurKernel, 7, sizeof(cl_float2), &centerpix);
+  device->COM_cl_attach_memory_buffer_to_kernel_parameter(
+      directional_blur_kernel, 0, -1, cl_mem_to_clean_up, input_memory_buffers, input_program_);
+  device->COM_cl_attach_output_memory_buffer_to_kernel_parameter(
+      directional_blur_kernel, 1, cl_output_buffer);
+  device->COM_cl_attach_memory_buffer_offset_to_kernel_parameter(
+      directional_blur_kernel, 2, output_memory_buffer);
+  clSetKernelArg(directional_blur_kernel, 3, sizeof(cl_int), &iterations);
+  clSetKernelArg(directional_blur_kernel, 4, sizeof(cl_float), &lsc);
+  clSetKernelArg(directional_blur_kernel, 5, sizeof(cl_float), &lrot);
+  clSetKernelArg(directional_blur_kernel, 6, sizeof(cl_float2), &ltxy);
+  clSetKernelArg(directional_blur_kernel, 7, sizeof(cl_float2), &centerpix);
 
-  device->COM_clEnqueueRange(directionalBlurKernel, outputMemoryBuffer, 8, this);
+  device->COM_cl_enqueue_range(directional_blur_kernel, output_memory_buffer, 8, this);
 }
 
-void DirectionalBlurOperation::deinitExecution()
+void DirectionalBlurOperation::deinit_execution()
 {
-  this->m_inputProgram = nullptr;
+  input_program_ = nullptr;
 }
 
-bool DirectionalBlurOperation::determineDependingAreaOfInterest(rcti * /*input*/,
-                                                                ReadBufferOperation *readOperation,
-                                                                rcti *output)
+bool DirectionalBlurOperation::determine_depending_area_of_interest(
+    rcti * /*input*/, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti newInput;
+  rcti new_input;
 
-  newInput.xmax = this->getWidth();
-  newInput.xmin = 0;
-  newInput.ymax = this->getHeight();
-  newInput.ymin = 0;
+  new_input.xmax = this->get_width();
+  new_input.xmin = 0;
+  new_input.ymax = this->get_height();
+  new_input.ymin = 0;
 
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void DirectionalBlurOperation::get_area_of_interest(const int input_idx,
@@ -160,7 +156,7 @@ void DirectionalBlurOperation::update_memory_buffer_partial(MemoryBuffer *output
                                                             Span<MemoryBuffer *> inputs)
 {
   const MemoryBuffer *input = inputs[0];
-  const int iterations = pow(2.0f, this->m_data->iter);
+  const int iterations = pow(2.0f, data_->iter);
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
     const int x = it.x;
     const int y = it.y;
@@ -170,27 +166,27 @@ void DirectionalBlurOperation::update_memory_buffer_partial(MemoryBuffer *output
     /* Blur pixel. */
     /* TODO(manzanilla): Many values used on iterations can be calculated beforehand. Create a
      * table on operation initialization. */
-    float ltx = this->m_tx;
-    float lty = this->m_ty;
-    float lsc = this->m_sc;
-    float lrot = this->m_rot;
+    float ltx = tx_;
+    float lty = ty_;
+    float lsc = sc_;
+    float lrot = rot_;
     for (int i = 0; i < iterations; i++) {
       const float cs = cosf(lrot), ss = sinf(lrot);
       const float isc = 1.0f / (1.0f + lsc);
 
-      const float v = isc * (y - this->m_center_y_pix) + lty;
-      const float u = isc * (x - this->m_center_x_pix) + ltx;
+      const float v = isc * (y - center_y_pix_) + lty;
+      const float u = isc * (x - center_x_pix_) + ltx;
 
       float color[4];
       input->read_elem_bilinear(
-          cs * u + ss * v + this->m_center_x_pix, cs * v - ss * u + this->m_center_y_pix, color);
+          cs * u + ss * v + center_x_pix_, cs * v - ss * u + center_y_pix_, color);
       add_v4_v4(color_accum, color);
 
       /* Double transformations. */
-      ltx += this->m_tx;
-      lty += this->m_ty;
-      lrot += this->m_rot;
-      lsc += this->m_sc;
+      ltx += tx_;
+      lty += ty_;
+      lrot += rot_;
+      lsc += sc_;
     }
 
     mul_v4_v4fl(it.out, color_accum, 1.0f / (iterations + 1));

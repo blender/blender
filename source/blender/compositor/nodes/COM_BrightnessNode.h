@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class BrightnessNode : public Node {
  public:
-  BrightnessNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  BrightnessNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

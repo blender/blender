@@ -19,20 +19,17 @@
 #include "COM_ProjectorLensDistortionOperation.h"
 #include "COM_ConstantOperation.h"
 
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
-
 namespace blender::compositor {
 
 ProjectorLensDistortionOperation::ProjectorLensDistortionOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
-  this->flags.complex = true;
-  this->m_inputProgram = nullptr;
-  this->m_dispersionAvailable = false;
-  this->m_dispersion = 0.0f;
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Color);
+  flags_.complex = true;
+  input_program_ = nullptr;
+  dispersion_available_ = false;
+  dispersion_ = 0.0f;
 }
 
 void ProjectorLensDistortionOperation::init_data()
@@ -40,95 +37,94 @@ void ProjectorLensDistortionOperation::init_data()
   if (execution_model_ == eExecutionModel::FullFrame) {
     NodeOperation *dispersion_input = get_input_operation(1);
     if (dispersion_input->get_flags().is_constant_operation) {
-      this->m_dispersion =
-          static_cast<ConstantOperation *>(dispersion_input)->get_constant_elem()[0];
+      dispersion_ = static_cast<ConstantOperation *>(dispersion_input)->get_constant_elem()[0];
     }
-    this->m_kr = 0.25f * max_ff(min_ff(this->m_dispersion, 1.0f), 0.0f);
-    this->m_kr2 = this->m_kr * 20;
+    kr_ = 0.25f * max_ff(min_ff(dispersion_, 1.0f), 0.0f);
+    kr2_ = kr_ * 20;
   }
 }
 
-void ProjectorLensDistortionOperation::initExecution()
+void ProjectorLensDistortionOperation::init_execution()
 {
-  this->initMutex();
-  this->m_inputProgram = this->getInputSocketReader(0);
+  this->init_mutex();
+  input_program_ = this->get_input_socket_reader(0);
 }
 
-void *ProjectorLensDistortionOperation::initializeTileData(rcti * /*rect*/)
+void *ProjectorLensDistortionOperation::initialize_tile_data(rcti * /*rect*/)
 {
-  updateDispersion();
-  void *buffer = this->m_inputProgram->initializeTileData(nullptr);
+  update_dispersion();
+  void *buffer = input_program_->initialize_tile_data(nullptr);
   return buffer;
 }
 
-void ProjectorLensDistortionOperation::executePixel(float output[4], int x, int y, void *data)
+void ProjectorLensDistortionOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
-  float inputValue[4];
-  const float height = this->getHeight();
-  const float width = this->getWidth();
+  float input_value[4];
+  const float height = this->get_height();
+  const float width = this->get_width();
   const float v = (y + 0.5f) / height;
   const float u = (x + 0.5f) / width;
-  MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
-  inputBuffer->readBilinear(inputValue, (u * width + this->m_kr2) - 0.5f, v * height - 0.5f);
-  output[0] = inputValue[0];
-  inputBuffer->read(inputValue, x, y);
-  output[1] = inputValue[1];
-  inputBuffer->readBilinear(inputValue, (u * width - this->m_kr2) - 0.5f, v * height - 0.5f);
-  output[2] = inputValue[2];
+  MemoryBuffer *input_buffer = (MemoryBuffer *)data;
+  input_buffer->read_bilinear(input_value, (u * width + kr2_) - 0.5f, v * height - 0.5f);
+  output[0] = input_value[0];
+  input_buffer->read(input_value, x, y);
+  output[1] = input_value[1];
+  input_buffer->read_bilinear(input_value, (u * width - kr2_) - 0.5f, v * height - 0.5f);
+  output[2] = input_value[2];
   output[3] = 1.0f;
 }
 
-void ProjectorLensDistortionOperation::deinitExecution()
+void ProjectorLensDistortionOperation::deinit_execution()
 {
-  this->deinitMutex();
-  this->m_inputProgram = nullptr;
+  this->deinit_mutex();
+  input_program_ = nullptr;
 }
 
-bool ProjectorLensDistortionOperation::determineDependingAreaOfInterest(
-    rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool ProjectorLensDistortionOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti newInput;
-  if (this->m_dispersionAvailable) {
-    newInput.ymax = input->ymax;
-    newInput.ymin = input->ymin;
-    newInput.xmin = input->xmin - this->m_kr2 - 2;
-    newInput.xmax = input->xmax + this->m_kr2 + 2;
+  rcti new_input;
+  if (dispersion_available_) {
+    new_input.ymax = input->ymax;
+    new_input.ymin = input->ymin;
+    new_input.xmin = input->xmin - kr2_ - 2;
+    new_input.xmax = input->xmax + kr2_ + 2;
   }
   else {
-    rcti dispInput;
-    BLI_rcti_init(&dispInput, 0, 5, 0, 5);
-    if (this->getInputOperation(1)->determineDependingAreaOfInterest(
-            &dispInput, readOperation, output)) {
+    rcti disp_input;
+    BLI_rcti_init(&disp_input, 0, 5, 0, 5);
+    if (this->get_input_operation(1)->determine_depending_area_of_interest(
+            &disp_input, read_operation, output)) {
       return true;
     }
-    newInput.xmin = input->xmin - 7; /* (0.25f * 20 * 1) + 2 == worse case dispersion */
-    newInput.ymin = input->ymin;
-    newInput.ymax = input->ymax;
-    newInput.xmax = input->xmax + 7; /* (0.25f * 20 * 1) + 2 == worse case dispersion */
+    new_input.xmin = input->xmin - 7; /* (0.25f * 20 * 1) + 2 == worse case dispersion */
+    new_input.ymin = input->ymin;
+    new_input.ymax = input->ymax;
+    new_input.xmax = input->xmax + 7; /* (0.25f * 20 * 1) + 2 == worse case dispersion */
   }
-  if (this->getInputOperation(0)->determineDependingAreaOfInterest(
-          &newInput, readOperation, output)) {
+  if (this->get_input_operation(0)->determine_depending_area_of_interest(
+          &new_input, read_operation, output)) {
     return true;
   }
   return false;
 }
 
 /* TODO(manzanilla): to be removed with tiled implementation. */
-void ProjectorLensDistortionOperation::updateDispersion()
+void ProjectorLensDistortionOperation::update_dispersion()
 {
-  if (this->m_dispersionAvailable) {
+  if (dispersion_available_) {
     return;
   }
-  this->lockMutex();
-  if (!this->m_dispersionAvailable) {
+  this->lock_mutex();
+  if (!dispersion_available_) {
     float result[4];
-    this->getInputSocketReader(1)->readSampled(result, 1, 1, PixelSampler::Nearest);
-    this->m_dispersion = result[0];
-    this->m_kr = 0.25f * max_ff(min_ff(this->m_dispersion, 1.0f), 0.0f);
-    this->m_kr2 = this->m_kr * 20;
-    this->m_dispersionAvailable = true;
+    this->get_input_socket_reader(1)->read_sampled(result, 1, 1, PixelSampler::Nearest);
+    dispersion_ = result[0];
+    kr_ = 0.25f * max_ff(min_ff(dispersion_, 1.0f), 0.0f);
+    kr2_ = kr_ * 20;
+    dispersion_available_ = true;
   }
-  this->unlockMutex();
+  this->unlock_mutex();
 }
 
 void ProjectorLensDistortionOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
@@ -160,8 +156,8 @@ void ProjectorLensDistortionOperation::get_area_of_interest(const int input_idx,
 
   r_input_area.ymax = output_area.ymax;
   r_input_area.ymin = output_area.ymin;
-  r_input_area.xmin = output_area.xmin - this->m_kr2 - 2;
-  r_input_area.xmax = output_area.xmax + this->m_kr2 + 2;
+  r_input_area.xmin = output_area.xmin - kr2_ - 2;
+  r_input_area.xmax = output_area.xmax + kr2_ + 2;
 }
 
 void ProjectorLensDistortionOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -169,17 +165,17 @@ void ProjectorLensDistortionOperation::update_memory_buffer_partial(MemoryBuffer
                                                                     Span<MemoryBuffer *> inputs)
 {
   const MemoryBuffer *input_image = inputs[0];
-  const float height = this->getHeight();
-  const float width = this->getWidth();
+  const float height = this->get_height();
+  const float width = this->get_width();
   float color[4];
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
     const float v = (it.y + 0.5f) / height;
     const float u = (it.x + 0.5f) / width;
-    input_image->read_elem_bilinear((u * width + this->m_kr2) - 0.5f, v * height - 0.5f, color);
+    input_image->read_elem_bilinear((u * width + kr2_) - 0.5f, v * height - 0.5f, color);
     it.out[0] = color[0];
     input_image->read_elem(it.x, it.y, color);
     it.out[1] = color[1];
-    input_image->read_elem_bilinear((u * width - this->m_kr2) - 0.5f, v * height - 0.5f, color);
+    input_image->read_elem_bilinear((u * width - kr2_) - 0.5f, v * height - 0.5f, color);
     it.out[2] = color[2];
     it.out[3] = 1.0f;
   }

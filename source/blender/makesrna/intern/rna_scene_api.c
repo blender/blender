@@ -154,6 +154,7 @@ static void rna_Scene_ray_cast(Scene *scene,
 
   bool ret = ED_transform_snap_object_project_ray_ex(sctx,
                                                      depsgraph,
+                                                     NULL,
                                                      &(const struct SnapObjectParams){
                                                          .snap_select = SNAP_ALL,
                                                      },

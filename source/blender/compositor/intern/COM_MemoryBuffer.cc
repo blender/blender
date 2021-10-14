@@ -18,9 +18,10 @@
 
 #include "COM_MemoryBuffer.h"
 
+#include "COM_MemoryProxy.h"
+
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
-#include "MEM_guardedalloc.h"
 
 #define ASSERT_BUFFER_CONTAINS_AREA(buf, area) \
   BLI_assert(BLI_rcti_inside_rcti(&(buf)->get_rect(), &(area)))
@@ -43,32 +44,32 @@ static rcti create_rect(const int width, const int height)
   return rect;
 }
 
-MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect, MemoryBufferState state)
+MemoryBuffer::MemoryBuffer(MemoryProxy *memory_proxy, const rcti &rect, MemoryBufferState state)
 {
-  m_rect = rect;
-  this->m_is_a_single_elem = false;
-  this->m_memoryProxy = memoryProxy;
-  this->m_num_channels = COM_data_type_num_channels(memoryProxy->getDataType());
-  this->m_buffer = (float *)MEM_mallocN_aligned(
-      sizeof(float) * buffer_len() * this->m_num_channels, 16, "COM_MemoryBuffer");
+  rect_ = rect;
+  is_a_single_elem_ = false;
+  memory_proxy_ = memory_proxy;
+  num_channels_ = COM_data_type_num_channels(memory_proxy->get_data_type());
+  buffer_ = (float *)MEM_mallocN_aligned(
+      sizeof(float) * buffer_len() * num_channels_, 16, "COM_MemoryBuffer");
   owns_data_ = true;
-  this->m_state = state;
-  this->m_datatype = memoryProxy->getDataType();
+  state_ = state;
+  datatype_ = memory_proxy->get_data_type();
 
   set_strides();
 }
 
-MemoryBuffer::MemoryBuffer(DataType dataType, const rcti &rect, bool is_a_single_elem)
+MemoryBuffer::MemoryBuffer(DataType data_type, const rcti &rect, bool is_a_single_elem)
 {
-  m_rect = rect;
-  this->m_is_a_single_elem = is_a_single_elem;
-  this->m_memoryProxy = nullptr;
-  this->m_num_channels = COM_data_type_num_channels(dataType);
-  this->m_buffer = (float *)MEM_mallocN_aligned(
-      sizeof(float) * buffer_len() * this->m_num_channels, 16, "COM_MemoryBuffer");
+  rect_ = rect;
+  is_a_single_elem_ = is_a_single_elem;
+  memory_proxy_ = nullptr;
+  num_channels_ = COM_data_type_num_channels(data_type);
+  buffer_ = (float *)MEM_mallocN_aligned(
+      sizeof(float) * buffer_len() * num_channels_, 16, "COM_MemoryBuffer");
   owns_data_ = true;
-  this->m_state = MemoryBufferState::Temporary;
-  this->m_datatype = dataType;
+  state_ = MemoryBufferState::Temporary;
+  datatype_ = data_type;
 
   set_strides();
 }
@@ -92,55 +93,54 @@ MemoryBuffer::MemoryBuffer(float *buffer,
                            const rcti &rect,
                            const bool is_a_single_elem)
 {
-  m_rect = rect;
-  m_is_a_single_elem = is_a_single_elem;
-  m_memoryProxy = nullptr;
-  m_num_channels = num_channels;
-  m_datatype = COM_num_channels_data_type(num_channels);
-  m_buffer = buffer;
+  rect_ = rect;
+  is_a_single_elem_ = is_a_single_elem;
+  memory_proxy_ = nullptr;
+  num_channels_ = num_channels;
+  datatype_ = COM_num_channels_data_type(num_channels);
+  buffer_ = buffer;
   owns_data_ = false;
-  m_state = MemoryBufferState::Temporary;
+  state_ = MemoryBufferState::Temporary;
 
   set_strides();
 }
 
-MemoryBuffer::MemoryBuffer(const MemoryBuffer &src)
-    : MemoryBuffer(src.m_datatype, src.m_rect, false)
+MemoryBuffer::MemoryBuffer(const MemoryBuffer &src) : MemoryBuffer(src.datatype_, src.rect_, false)
 {
-  m_memoryProxy = src.m_memoryProxy;
+  memory_proxy_ = src.memory_proxy_;
   /* src may be single elem buffer */
   fill_from(src);
 }
 
 void MemoryBuffer::set_strides()
 {
-  if (m_is_a_single_elem) {
+  if (is_a_single_elem_) {
     this->elem_stride = 0;
     this->row_stride = 0;
   }
   else {
-    this->elem_stride = m_num_channels;
-    this->row_stride = getWidth() * m_num_channels;
+    this->elem_stride = num_channels_;
+    this->row_stride = get_width() * num_channels_;
   }
-  to_positive_x_stride_ = m_rect.xmin < 0 ? -m_rect.xmin + 1 : (m_rect.xmin == 0 ? 1 : 0);
-  to_positive_y_stride_ = m_rect.ymin < 0 ? -m_rect.ymin + 1 : (m_rect.ymin == 0 ? 1 : 0);
+  to_positive_x_stride_ = rect_.xmin < 0 ? -rect_.xmin + 1 : (rect_.xmin == 0 ? 1 : 0);
+  to_positive_y_stride_ = rect_.ymin < 0 ? -rect_.ymin + 1 : (rect_.ymin == 0 ? 1 : 0);
 }
 
 void MemoryBuffer::clear()
 {
-  memset(m_buffer, 0, buffer_len() * m_num_channels * sizeof(float));
+  memset(buffer_, 0, buffer_len() * num_channels_ * sizeof(float));
 }
 
 BuffersIterator<float> MemoryBuffer::iterate_with(Span<MemoryBuffer *> inputs)
 {
-  return iterate_with(inputs, m_rect);
+  return iterate_with(inputs, rect_);
 }
 
 BuffersIterator<float> MemoryBuffer::iterate_with(Span<MemoryBuffer *> inputs, const rcti &area)
 {
-  BuffersIteratorBuilder<float> builder(m_buffer, m_rect, area, elem_stride);
+  BuffersIteratorBuilder<float> builder(buffer_, rect_, area, elem_stride);
   for (MemoryBuffer *input : inputs) {
-    builder.add_input(input->getBuffer(), input->get_rect(), input->elem_stride);
+    builder.add_input(input->get_buffer(), input->get_rect(), input->elem_stride);
   }
   return builder.build();
 }
@@ -152,20 +152,20 @@ BuffersIterator<float> MemoryBuffer::iterate_with(Span<MemoryBuffer *> inputs, c
 MemoryBuffer *MemoryBuffer::inflate() const
 {
   BLI_assert(is_a_single_elem());
-  MemoryBuffer *inflated = new MemoryBuffer(this->m_datatype, this->m_rect, false);
-  inflated->copy_from(this, this->m_rect);
+  MemoryBuffer *inflated = new MemoryBuffer(datatype_, rect_, false);
+  inflated->copy_from(this, rect_);
   return inflated;
 }
 
 float MemoryBuffer::get_max_value() const
 {
-  float result = this->m_buffer[0];
+  float result = buffer_[0];
   const unsigned int size = this->buffer_len();
   unsigned int i;
 
-  const float *fp_src = this->m_buffer;
+  const float *fp_src = buffer_;
 
-  for (i = 0; i < size; i++, fp_src += this->m_num_channels) {
+  for (i = 0; i < size; i++, fp_src += num_channels_) {
     float value = *fp_src;
     if (value > result) {
       result = value;
@@ -180,10 +180,10 @@ float MemoryBuffer::get_max_value(const rcti &rect) const
   rcti rect_clamp;
 
   /* first clamp the rect by the bounds or we get un-initialized values */
-  BLI_rcti_isect(&rect, &this->m_rect, &rect_clamp);
+  BLI_rcti_isect(&rect, &rect_, &rect_clamp);
 
   if (!BLI_rcti_is_empty(&rect_clamp)) {
-    MemoryBuffer temp_buffer(this->m_datatype, rect_clamp);
+    MemoryBuffer temp_buffer(datatype_, rect_clamp);
     temp_buffer.fill_from(*this);
     return temp_buffer.get_max_value();
   }
@@ -194,9 +194,9 @@ float MemoryBuffer::get_max_value(const rcti &rect) const
 
 MemoryBuffer::~MemoryBuffer()
 {
-  if (this->m_buffer && owns_data_) {
-    MEM_freeN(this->m_buffer);
-    this->m_buffer = nullptr;
+  if (buffer_ && owns_data_) {
+    MEM_freeN(buffer_);
+    buffer_ = nullptr;
   }
 }
 
@@ -248,7 +248,7 @@ void MemoryBuffer::copy_from(const MemoryBuffer *src,
 void MemoryBuffer::copy_from(const uchar *src, const rcti &area)
 {
   const int elem_stride = this->get_num_channels();
-  const int row_stride = elem_stride * getWidth();
+  const int row_stride = elem_stride * get_width();
   copy_from(src, area, 0, this->get_num_channels(), elem_stride, row_stride, 0);
 }
 
@@ -307,7 +307,7 @@ static void colorspace_to_scene_linear(MemoryBuffer *buf, const rcti &area, Colo
   const int height = BLI_rcti_size_y(&area);
   float *out = buf->get_elem(area.xmin, area.ymin);
   /* If area allows continuous memory do conversion in one step. Otherwise per row. */
-  if (buf->getWidth() == width) {
+  if (buf->get_width() == width) {
     IMB_colormanagement_colorspace_to_scene_linear(
         out, width, height, buf->get_num_channels(), colorspace, false);
   }
@@ -397,30 +397,28 @@ void MemoryBuffer::fill(const rcti &area,
 void MemoryBuffer::fill_from(const MemoryBuffer &src)
 {
   rcti overlap;
-  overlap.xmin = MAX2(this->m_rect.xmin, src.m_rect.xmin);
-  overlap.xmax = MIN2(this->m_rect.xmax, src.m_rect.xmax);
-  overlap.ymin = MAX2(this->m_rect.ymin, src.m_rect.ymin);
-  overlap.ymax = MIN2(this->m_rect.ymax, src.m_rect.ymax);
+  overlap.xmin = MAX2(rect_.xmin, src.rect_.xmin);
+  overlap.xmax = MIN2(rect_.xmax, src.rect_.xmax);
+  overlap.ymin = MAX2(rect_.ymin, src.rect_.ymin);
+  overlap.ymax = MIN2(rect_.ymax, src.rect_.ymax);
   copy_from(&src, overlap);
 }
 
-void MemoryBuffer::writePixel(int x, int y, const float color[4])
+void MemoryBuffer::write_pixel(int x, int y, const float color[4])
 {
-  if (x >= this->m_rect.xmin && x < this->m_rect.xmax && y >= this->m_rect.ymin &&
-      y < this->m_rect.ymax) {
+  if (x >= rect_.xmin && x < rect_.xmax && y >= rect_.ymin && y < rect_.ymax) {
     const int offset = get_coords_offset(x, y);
-    memcpy(&this->m_buffer[offset], color, sizeof(float) * this->m_num_channels);
+    memcpy(&buffer_[offset], color, sizeof(float) * num_channels_);
   }
 }
 
-void MemoryBuffer::addPixel(int x, int y, const float color[4])
+void MemoryBuffer::add_pixel(int x, int y, const float color[4])
 {
-  if (x >= this->m_rect.xmin && x < this->m_rect.xmax && y >= this->m_rect.ymin &&
-      y < this->m_rect.ymax) {
+  if (x >= rect_.xmin && x < rect_.xmax && y >= rect_.ymin && y < rect_.ymax) {
     const int offset = get_coords_offset(x, y);
-    float *dst = &this->m_buffer[offset];
+    float *dst = &buffer_[offset];
     const float *src = color;
-    for (int i = 0; i < this->m_num_channels; i++, dst++, src++) {
+    for (int i = 0; i < num_channels_; i++, dst++, src++) {
       *dst += *src;
     }
   }
@@ -435,11 +433,11 @@ static void read_ewa_elem(void *userdata, int x, int y, float result[4])
 void MemoryBuffer::read_elem_filtered(
     const float x, const float y, float dx[2], float dy[2], float *out) const
 {
-  BLI_assert(this->m_datatype == DataType::Color);
+  BLI_assert(datatype_ == DataType::Color);
 
   const float deriv[2][2] = {{dx[0], dx[1]}, {dy[0], dy[1]}};
 
-  float inv_width = 1.0f / (float)this->getWidth(), inv_height = 1.0f / (float)this->getHeight();
+  float inv_width = 1.0f / (float)this->get_width(), inv_height = 1.0f / (float)this->get_height();
   /* TODO(sergey): Render pipeline uses normalized coordinates and derivatives,
    * but compositor uses pixel space. For now let's just divide the values and
    * switch compositor to normalized space for EWA later.
@@ -448,8 +446,8 @@ void MemoryBuffer::read_elem_filtered(
   float du_normal[2] = {deriv[0][0] * inv_width, deriv[0][1] * inv_height};
   float dv_normal[2] = {deriv[1][0] * inv_width, deriv[1][1] * inv_height};
 
-  BLI_ewa_filter(this->getWidth(),
-                 this->getHeight(),
+  BLI_ewa_filter(this->get_width(),
+                 this->get_height(),
                  false,
                  true,
                  uv_normal,
@@ -470,12 +468,13 @@ static void read_ewa_pixel_sampled(void *userdata, int x, int y, float result[4]
 /* TODO(manzanilla): to be removed with tiled implementation. */
 void MemoryBuffer::readEWA(float *result, const float uv[2], const float derivatives[2][2])
 {
-  if (m_is_a_single_elem) {
-    memcpy(result, m_buffer, sizeof(float) * this->m_num_channels);
+  if (is_a_single_elem_) {
+    memcpy(result, buffer_, sizeof(float) * num_channels_);
   }
   else {
-    BLI_assert(this->m_datatype == DataType::Color);
-    float inv_width = 1.0f / (float)this->getWidth(), inv_height = 1.0f / (float)this->getHeight();
+    BLI_assert(datatype_ == DataType::Color);
+    float inv_width = 1.0f / (float)this->get_width(),
+          inv_height = 1.0f / (float)this->get_height();
     /* TODO(sergey): Render pipeline uses normalized coordinates and derivatives,
      * but compositor uses pixel space. For now let's just divide the values and
      * switch compositor to normalized space for EWA later.
@@ -484,8 +483,8 @@ void MemoryBuffer::readEWA(float *result, const float uv[2], const float derivat
     float du_normal[2] = {derivatives[0][0] * inv_width, derivatives[0][1] * inv_height};
     float dv_normal[2] = {derivatives[1][0] * inv_width, derivatives[1][1] * inv_height};
 
-    BLI_ewa_filter(this->getWidth(),
-                   this->getHeight(),
+    BLI_ewa_filter(this->get_width(),
+                   this->get_height(),
                    false,
                    true,
                    uv_normal,

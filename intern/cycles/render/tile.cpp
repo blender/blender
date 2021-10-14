@@ -411,25 +411,22 @@ Tile TileManager::get_tile_for_index(int index) const
   const int tile_index_y = index / tile_state_.num_tiles_x;
   const int tile_index_x = index - tile_index_y * tile_state_.num_tiles_x;
 
-  const int tile_x = tile_index_x * tile_size_.x;
-  const int tile_y = tile_index_y * tile_size_.y;
+  const int tile_window_x = tile_index_x * tile_size_.x;
+  const int tile_window_y = tile_index_y * tile_size_.y;
 
   Tile tile;
 
-  tile.x = tile_x - overscan_;
-  tile.y = tile_y - overscan_;
-  tile.width = tile_size_.x + 2 * overscan_;
-  tile.height = tile_size_.y + 2 * overscan_;
+  tile.x = max(0, tile_window_x - overscan_);
+  tile.y = max(0, tile_window_y - overscan_);
 
-  tile.x = max(tile.x, 0);
-  tile.y = max(tile.y, 0);
-  tile.width = min(tile.width, buffer_params_.width - tile.x);
-  tile.height = min(tile.height, buffer_params_.height - tile.y);
+  tile.window_x = tile_window_x - tile.x;
+  tile.window_y = tile_window_y - tile.y;
+  tile.window_width = min(tile_size_.x, buffer_params_.width - tile_window_x);
+  tile.window_height = min(tile_size_.y, buffer_params_.height - tile_window_y);
 
-  tile.window_x = tile_x - tile.x;
-  tile.window_y = tile_y - tile.y;
-  tile.window_width = min(tile_size_.x, buffer_params_.width - (tile.x + tile.window_x));
-  tile.window_height = min(tile_size_.y, buffer_params_.height - (tile.y + tile.window_y));
+  tile.width = min(buffer_params_.width - tile.x, tile.window_x + tile.window_width + overscan_);
+  tile.height = min(buffer_params_.height - tile.y,
+                    tile.window_y + tile.window_height + overscan_);
 
   return tile;
 }

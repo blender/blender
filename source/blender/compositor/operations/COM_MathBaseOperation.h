@@ -29,13 +29,13 @@ namespace blender::compositor {
 class MathBaseOperation : public MultiThreadedOperation {
  protected:
   /**
-   * Prefetched reference to the inputProgram
+   * Prefetched reference to the input_program
    */
-  SocketReader *m_inputValue1Operation;
-  SocketReader *m_inputValue2Operation;
-  SocketReader *m_inputValue3Operation;
+  SocketReader *input_value1_operation_;
+  SocketReader *input_value2_operation_;
+  SocketReader *input_value3_operation_;
 
-  bool m_useClamp;
+  bool use_clamp_;
 
  protected:
   /**
@@ -44,11 +44,11 @@ class MathBaseOperation : public MultiThreadedOperation {
   MathBaseOperation();
 
   /* TODO(manzanilla): to be removed with tiled implementation. */
-  void clampIfNeeded(float color[4]);
+  void clamp_if_needed(float color[4]);
 
   float clamp_when_enabled(float value)
   {
-    if (this->m_useClamp) {
+    if (use_clamp_) {
       return CLAMPIS(value, 0.0f, 1.0f);
     }
     return value;
@@ -56,7 +56,7 @@ class MathBaseOperation : public MultiThreadedOperation {
 
   void clamp_when_enabled(float *out)
   {
-    if (this->m_useClamp) {
+    if (use_clamp_) {
       CLAMP(*out, 0.0f, 1.0f);
     }
   }
@@ -65,21 +65,21 @@ class MathBaseOperation : public MultiThreadedOperation {
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
   /**
    * Determine resolution
    */
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
-  void setUseClamp(bool value)
+  void set_use_clamp(bool value)
   {
-    this->m_useClamp = value;
+    use_clamp_ = value;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -104,40 +104,40 @@ class MathFunctor2Operation : public MathBaseOperation {
 
 class MathAddOperation : public MathFunctor2Operation<std::plus> {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathSubtractOperation : public MathFunctor2Operation<std::minus> {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathMultiplyOperation : public MathFunctor2Operation<std::multiplies> {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathDivideOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 class MathSineOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 class MathCosineOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 class MathTangentOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -145,21 +145,21 @@ class MathTangentOperation : public MathBaseOperation {
 
 class MathHyperbolicSineOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 class MathHyperbolicCosineOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 class MathHyperbolicTangentOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -167,72 +167,72 @@ class MathHyperbolicTangentOperation : public MathBaseOperation {
 
 class MathArcSineOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 class MathArcCosineOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 class MathArcTangentOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 class MathPowerOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 class MathLogarithmOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 class MathMinimumOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 class MathMaximumOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 class MathRoundOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 class MathLessThanOperation : public MathFunctor2Operation<std::less> {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathGreaterThanOperation : public MathFunctor2Operation<std::greater> {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathModuloOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -240,7 +240,7 @@ class MathModuloOperation : public MathBaseOperation {
 
 class MathAbsoluteOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -248,7 +248,7 @@ class MathAbsoluteOperation : public MathBaseOperation {
 
 class MathRadiansOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -256,7 +256,7 @@ class MathRadiansOperation : public MathBaseOperation {
 
 class MathDegreesOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -264,7 +264,7 @@ class MathDegreesOperation : public MathBaseOperation {
 
 class MathArcTan2Operation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -272,7 +272,7 @@ class MathArcTan2Operation : public MathBaseOperation {
 
 class MathFloorOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -280,7 +280,7 @@ class MathFloorOperation : public MathBaseOperation {
 
 class MathCeilOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -288,7 +288,7 @@ class MathCeilOperation : public MathBaseOperation {
 
 class MathFractOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -296,7 +296,7 @@ class MathFractOperation : public MathBaseOperation {
 
 class MathSqrtOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -304,7 +304,7 @@ class MathSqrtOperation : public MathBaseOperation {
 
 class MathInverseSqrtOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -312,7 +312,7 @@ class MathInverseSqrtOperation : public MathBaseOperation {
 
 class MathSignOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -320,7 +320,7 @@ class MathSignOperation : public MathBaseOperation {
 
 class MathExponentOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -328,7 +328,7 @@ class MathExponentOperation : public MathBaseOperation {
 
 class MathTruncOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -336,7 +336,7 @@ class MathTruncOperation : public MathBaseOperation {
 
 class MathSnapOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -344,7 +344,7 @@ class MathSnapOperation : public MathBaseOperation {
 
 class MathWrapOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -352,7 +352,7 @@ class MathWrapOperation : public MathBaseOperation {
 
 class MathPingpongOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -360,7 +360,7 @@ class MathPingpongOperation : public MathBaseOperation {
 
 class MathCompareOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -368,7 +368,7 @@ class MathCompareOperation : public MathBaseOperation {
 
 class MathMultiplyAddOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -376,7 +376,7 @@ class MathMultiplyAddOperation : public MathBaseOperation {
 
 class MathSmoothMinOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
@@ -384,7 +384,7 @@ class MathSmoothMinOperation : public MathBaseOperation {
 
 class MathSmoothMaxOperation : public MathBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;

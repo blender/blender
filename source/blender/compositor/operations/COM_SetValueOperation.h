@@ -28,7 +28,7 @@ namespace blender::compositor {
  */
 class SetValueOperation : public ConstantOperation {
  private:
-  float m_value;
+  float value_;
 
  public:
   /**
@@ -38,22 +38,22 @@ class SetValueOperation : public ConstantOperation {
 
   const float *get_constant_elem() override
   {
-    return &m_value;
+    return &value_;
   }
 
-  float getValue()
+  float get_value()
   {
-    return this->m_value;
+    return value_;
   }
-  void setValue(float value)
+  void set_value(float value)
   {
-    this->m_value = value;
+    value_ = value;
   }
 
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 };

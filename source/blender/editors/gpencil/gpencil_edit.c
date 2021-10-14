@@ -3556,7 +3556,7 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
 
   int tot_strokes = 0;
   /** Alloc memory. */
-  tJoinStrokes *strokes_list = MEM_malloc_arrayN(sizeof(tJoinStrokes), max_join_strokes, __func__);
+  tJoinStrokes *strokes_list = MEM_malloc_arrayN(max_join_strokes, sizeof(tJoinStrokes), __func__);
   tJoinStrokes *elem = NULL;
   /* Read all selected strokes to create a list. */
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
@@ -3758,7 +3758,6 @@ static int gpencil_strokes_reproject_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ARegion *region = CTX_wm_region(C);
   int oldframe = (int)DEG_get_ctime(depsgraph);
   const eGP_ReprojectModes mode = RNA_enum_get(op->ptr, "type");
   const bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
@@ -3767,7 +3766,7 @@ static int gpencil_strokes_reproject_exec(bContext *C, wmOperator *op)
 
   /* Init snap context for geometry projection. */
   SnapObjectContext *sctx = NULL;
-  sctx = ED_transform_snap_object_context_create_view3d(scene, 0, region, CTX_wm_view3d(C));
+  sctx = ED_transform_snap_object_context_create(scene, 0);
 
   bool changed = false;
   /* Init space conversion stuff. */

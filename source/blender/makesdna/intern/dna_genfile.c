@@ -1546,9 +1546,9 @@ DNA_ReconstructInfo *DNA_reconstruct_info_create(const SDNA *oldsdna,
   reconstruct_info->oldsdna = oldsdna;
   reconstruct_info->newsdna = newsdna;
   reconstruct_info->compare_flags = compare_flags;
-  reconstruct_info->step_counts = MEM_malloc_arrayN(sizeof(int), newsdna->structs_len, __func__);
+  reconstruct_info->step_counts = MEM_malloc_arrayN(newsdna->structs_len, sizeof(int), __func__);
   reconstruct_info->steps = MEM_malloc_arrayN(
-      sizeof(ReconstructStep *), newsdna->structs_len, __func__);
+      newsdna->structs_len, sizeof(ReconstructStep *), __func__);
 
   /* Generate reconstruct steps for all structs. */
   for (int new_struct_nr = 0; new_struct_nr < newsdna->structs_len; new_struct_nr++) {

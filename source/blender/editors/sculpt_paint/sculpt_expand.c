@@ -492,7 +492,7 @@ static float *sculpt_expand_topology_falloff_create(Sculpt *sd, Object *ob, cons
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
-  float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "topology dist");
+  float *dists = MEM_calloc_arrayN(totvert, sizeof(float), "topology dist");
 
   SculptFloodFill flood;
   SCULPT_floodfill_init(ss, &flood);
@@ -545,7 +545,7 @@ static float *sculpt_expand_normal_falloff_create(Sculpt *sd,
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
-  float *dists = MEM_malloc_arrayN(sizeof(float), totvert, "normal dist");
+  float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "normal dist");
   float *edge_factor = MEM_callocN(sizeof(float) * totvert, "mask edge factor");
   for (int i = 0; i < totvert; i++) {
     edge_factor[i] = 1.0f;
@@ -592,7 +592,7 @@ static float *sculpt_expand_spherical_falloff_create(Object *ob, const SculptVer
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  float *dists = MEM_malloc_arrayN(sizeof(float), totvert, "spherical dist");
+  float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "spherical dist");
   for (int i = 0; i < totvert; i++) {
     dists[i] = FLT_MAX;
   }
@@ -628,7 +628,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
-  float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "spherical dist");
+  float *dists = MEM_calloc_arrayN(totvert, sizeof(float), "spherical dist");
   BLI_bitmap *visited_vertices = BLI_BITMAP_NEW(totvert, "visited vertices");
   GSQueue *queue = BLI_gsqueue_new(sizeof(SculptVertRef));
 
@@ -694,7 +694,7 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const SculptVer
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
-  float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "spherical dist");
+  float *dists = MEM_calloc_arrayN(totvert, sizeof(float), "spherical dist");
 
   /* This algorithm uses mesh data (polys and loops), so this falloff type can't be initialized for
    * Multires. Also supports non-tri PBVH_BMESH, though untested until we implement that properly*/
@@ -1037,7 +1037,7 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "topology dist");
+  float *dists = MEM_calloc_arrayN(totvert, sizeof(float), "topology dist");
   BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(ss, enabled_vertices, false);
 
   SculptFloodFill flood;

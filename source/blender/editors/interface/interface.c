@@ -984,7 +984,13 @@ static bool ui_but_update_from_old_block(const bContext *C,
     found_active = true;
   }
   else {
-    const int flag_copy = UI_BUT_DRAG_MULTI;
+    int flag_copy = UI_BUT_DRAG_MULTI;
+
+    /* Stupid special case: The active button may be inside (as in, overlapped on top) a tree-row
+     * button which we also want to keep highlighted then. */
+    if (but->type == UI_BTYPE_TREEROW) {
+      flag_copy |= UI_ACTIVE;
+    }
 
     but->flag = (but->flag & ~flag_copy) | (oldbut->flag & flag_copy);
 
@@ -1237,16 +1243,21 @@ void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_str
  * \{ */
 
 static bool ui_but_event_operator_string_from_operator(const bContext *C,
-                                                       uiBut *but,
+                                                       wmOperatorCallParams *op_call_params,
                                                        char *buf,
                                                        const size_t buf_len)
 {
-  BLI_assert(but->optype != NULL);
+  BLI_assert(op_call_params->optype != NULL);
   bool found = false;
-  IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
+  IDProperty *prop = (op_call_params->opptr) ? op_call_params->opptr->data : NULL;
 
-  if (WM_key_event_operator_string(
-          C, but->optype->idname, but->opcontext, prop, true, buf, buf_len)) {
+  if (WM_key_event_operator_string(C,
+                                   op_call_params->optype->idname,
+                                   op_call_params->opcontext,
+                                   prop,
+                                   true,
+                                   buf,
+                                   buf_len)) {
     found = true;
   }
   return found;
@@ -1331,7 +1342,12 @@ static bool ui_but_event_operator_string(const bContext *C,
   bool found = false;
 
   if (but->optype != NULL) {
-    found = ui_but_event_operator_string_from_operator(C, but, buf, buf_len);
+    found = ui_but_event_operator_string_from_operator(
+        C,
+        &(wmOperatorCallParams){
+            .optype = but->optype, .opptr = but->opptr, .opcontext = but->opcontext},
+        buf,
+        buf_len);
   }
   else if (UI_but_menutype_get(but) != NULL) {
     found = ui_but_event_operator_string_from_menu(C, but, buf, buf_len);
@@ -1341,6 +1357,20 @@ static bool ui_but_event_operator_string(const bContext *C,
   }
 
   return found;
+}
+
+static bool ui_but_extra_icon_event_operator_string(const bContext *C,
+                                                    uiButExtraOpIcon *extra_icon,
+                                                    char *buf,
+                                                    const size_t buf_len)
+{
+  wmOperatorType *extra_icon_optype = UI_but_extra_operator_icon_optype_get(extra_icon);
+
+  if (extra_icon_optype) {
+    return ui_but_event_operator_string_from_operator(C, extra_icon->optype_params, buf, buf_len);
+  }
+
+  return false;
 }
 
 static bool ui_but_event_property_operator_string(const bContext *C,
@@ -1690,6 +1720,7 @@ static PointerRNA *ui_but_extra_operator_icon_add_ptr(uiBut *but,
                                     extra_op_icon->optype_params->optype);
   extra_op_icon->optype_params->opcontext = opcontext;
   extra_op_icon->highlighted = false;
+  extra_op_icon->disabled = false;
 
   BLI_addtail(&but->extra_op_icons, extra_op_icon);
 
@@ -1724,6 +1755,16 @@ PointerRNA *UI_but_extra_operator_icon_add(uiBut *but,
   }
 
   return NULL;
+}
+
+wmOperatorType *UI_but_extra_operator_icon_optype_get(uiButExtraOpIcon *extra_icon)
+{
+  return extra_icon ? extra_icon->optype_params->optype : NULL;
+}
+
+PointerRNA *UI_but_extra_operator_icon_opptr_get(uiButExtraOpIcon *extra_icon)
+{
+  return extra_icon->optype_params->opptr;
 }
 
 static bool ui_but_icon_extra_is_visible_text_clear(const uiBut *but)
@@ -1884,24 +1925,32 @@ static void ui_but_validate(const uiBut *but)
 /**
  * Check if the operator \a ot poll is successful with the context given by \a but (optionally).
  * \param but: The button that might store context. Can be NULL for convenience (e.g. if there is
- * no button to take context from, but we still want to poll the operator).
+ *             no button to take context from, but we still want to poll the operator).
  */
-bool ui_but_context_poll_operator(bContext *C, wmOperatorType *ot, const uiBut *but)
+bool ui_but_context_poll_operator_ex(bContext *C,
+                                     const uiBut *but,
+                                     const wmOperatorCallParams *optype_params)
 {
   bool result;
-  int opcontext = but ? but->opcontext : WM_OP_INVOKE_DEFAULT;
 
   if (but && but->context) {
     CTX_store_set(C, but->context);
   }
 
-  result = WM_operator_poll_context(C, ot, opcontext);
+  result = WM_operator_poll_context(C, optype_params->optype, optype_params->opcontext);
 
   if (but && but->context) {
     CTX_store_set(C, NULL);
   }
 
   return result;
+}
+
+bool ui_but_context_poll_operator(bContext *C, wmOperatorType *ot, const uiBut *but)
+{
+  const int opcontext = but ? but->opcontext : WM_OP_INVOKE_DEFAULT;
+  return ui_but_context_poll_operator_ex(
+      C, but, &(wmOperatorCallParams){.optype = ot, .opcontext = opcontext});
 }
 
 void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_xy[2])
@@ -1931,6 +1980,12 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
 
       if (ot == NULL || !ui_but_context_poll_operator((bContext *)C, ot, but)) {
         but->flag |= UI_BUT_DISABLED;
+      }
+    }
+
+    LISTBASE_FOREACH (uiButExtraOpIcon *, op_icon, &but->extra_op_icons) {
+      if (!ui_but_context_poll_operator_ex((bContext *)C, but, op_icon->optype_params)) {
+        op_icon->disabled = true;
       }
     }
 
@@ -7288,6 +7343,42 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
   if (free_items && items) {
     MEM_freeN((void *)items);
   }
+}
+
+void UI_but_extra_icon_string_info_get(struct bContext *C, uiButExtraOpIcon *extra_icon, ...)
+{
+  va_list args;
+  uiStringInfo *si;
+
+  wmOperatorType *optype = UI_but_extra_operator_icon_optype_get(extra_icon);
+  PointerRNA *opptr = UI_but_extra_operator_icon_opptr_get(extra_icon);
+
+  va_start(args, extra_icon);
+  while ((si = (uiStringInfo *)va_arg(args, void *))) {
+    char *tmp = NULL;
+
+    switch (si->type) {
+      case BUT_GET_LABEL:
+        tmp = BLI_strdup(WM_operatortype_name(optype, opptr));
+        break;
+      case BUT_GET_TIP:
+        tmp = WM_operatortype_description(C, optype, opptr);
+        break;
+      case BUT_GET_OP_KEYMAP: {
+        char buf[128];
+        if (ui_but_extra_icon_event_operator_string(C, extra_icon, buf, sizeof(buf))) {
+          tmp = BLI_strdup(buf);
+        }
+      }
+        /* Other types not supported. The caller should expect that outcome, no need to message or
+         * assert here. */
+      default:
+        break;
+    }
+
+    si->strinfo = tmp;
+  }
+  va_end(args);
 }
 
 /* Program Init/Exit */

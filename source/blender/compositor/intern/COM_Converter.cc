@@ -22,7 +22,6 @@
 
 #include "BKE_node.h"
 
-#include "COM_NodeOperation.h"
 #include "COM_NodeOperationBuilder.h"
 
 #include "COM_AlphaOverNode.h"
@@ -62,7 +61,6 @@
 #include "COM_DistanceMatteNode.h"
 #include "COM_DoubleEdgeMaskNode.h"
 #include "COM_EllipseMaskNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_FilterNode.h"
 #include "COM_FlipNode.h"
 #include "COM_GammaNode.h"
@@ -435,8 +433,8 @@ Node *COM_convert_bnode(bNode *b_node)
 /* TODO(jbakker): make this an std::optional<NodeOperation>. */
 NodeOperation *COM_convert_data_type(const NodeOperationOutput &from, const NodeOperationInput &to)
 {
-  const DataType src_data_type = from.getDataType();
-  const DataType dst_data_type = to.getDataType();
+  const DataType src_data_type = from.get_data_type();
+  const DataType dst_data_type = to.get_data_type();
 
   if (src_data_type == DataType::Value && dst_data_type == DataType::Color) {
     return new ConvertValueToColorOperation();
@@ -461,24 +459,24 @@ NodeOperation *COM_convert_data_type(const NodeOperationOutput &from, const Node
 }
 
 void COM_convert_canvas(NodeOperationBuilder &builder,
-                        NodeOperationOutput *fromSocket,
-                        NodeOperationInput *toSocket)
+                        NodeOperationOutput *from_socket,
+                        NodeOperationInput *to_socket)
 {
   /* Data type conversions are executed before resolutions to ensure convert operations have
    * resolution. This method have to ensure same datatypes are linked for new operations. */
-  BLI_assert(fromSocket->getDataType() == toSocket->getDataType());
+  BLI_assert(from_socket->get_data_type() == to_socket->get_data_type());
 
-  ResizeMode mode = toSocket->getResizeMode();
+  ResizeMode mode = to_socket->get_resize_mode();
   BLI_assert(mode != ResizeMode::None);
 
-  NodeOperation *toOperation = &toSocket->getOperation();
-  const float toWidth = toOperation->getWidth();
-  const float toHeight = toOperation->getHeight();
-  NodeOperation *fromOperation = &fromSocket->getOperation();
-  const float fromWidth = fromOperation->getWidth();
-  const float fromHeight = fromOperation->getHeight();
-  bool doCenter = false;
-  bool doScale = false;
+  NodeOperation *to_operation = &to_socket->get_operation();
+  const float to_width = to_operation->get_width();
+  const float to_height = to_operation->get_height();
+  NodeOperation *from_operation = &from_socket->get_operation();
+  const float from_width = from_operation->get_width();
+  const float from_height = from_operation->get_height();
+  bool do_center = false;
+  bool do_scale = false;
   float scaleX = 0;
   float scaleY = 0;
 
@@ -487,23 +485,23 @@ void COM_convert_canvas(NodeOperationBuilder &builder,
     case ResizeMode::Align:
       break;
     case ResizeMode::Center:
-      doCenter = true;
+      do_center = true;
       break;
     case ResizeMode::FitWidth:
-      doCenter = true;
-      doScale = true;
-      scaleX = scaleY = toWidth / fromWidth;
+      do_center = true;
+      do_scale = true;
+      scaleX = scaleY = to_width / from_width;
       break;
     case ResizeMode::FitHeight:
-      doCenter = true;
-      doScale = true;
-      scaleX = scaleY = toHeight / fromHeight;
+      do_center = true;
+      do_scale = true;
+      scaleX = scaleY = to_height / from_height;
       break;
     case ResizeMode::FitAny:
-      doCenter = true;
-      doScale = true;
-      scaleX = toWidth / fromWidth;
-      scaleY = toHeight / fromHeight;
+      do_center = true;
+      do_scale = true;
+      scaleX = to_width / from_width;
+      scaleY = to_height / from_height;
       if (scaleX < scaleY) {
         scaleX = scaleY;
       }
@@ -512,81 +510,82 @@ void COM_convert_canvas(NodeOperationBuilder &builder,
       }
       break;
     case ResizeMode::Stretch:
-      doCenter = true;
-      doScale = true;
-      scaleX = toWidth / fromWidth;
-      scaleY = toHeight / fromHeight;
+      do_center = true;
+      do_scale = true;
+      scaleX = to_width / from_width;
+      scaleY = to_height / from_height;
       break;
   }
 
-  float addX = doCenter ? (toWidth - fromWidth) / 2.0f : 0.0f;
-  float addY = doCenter ? (toHeight - fromHeight) / 2.0f : 0.0f;
+  float addX = do_center ? (to_width - from_width) / 2.0f : 0.0f;
+  float addY = do_center ? (to_height - from_height) / 2.0f : 0.0f;
   NodeOperation *first = nullptr;
-  ScaleOperation *scaleOperation = nullptr;
-  if (doScale) {
-    scaleOperation = new ScaleRelativeOperation(fromSocket->getDataType());
-    scaleOperation->getInputSocket(1)->setResizeMode(ResizeMode::None);
-    scaleOperation->getInputSocket(2)->setResizeMode(ResizeMode::None);
-    first = scaleOperation;
+  ScaleOperation *scale_operation = nullptr;
+  if (do_scale) {
+    scale_operation = new ScaleRelativeOperation(from_socket->get_data_type());
+    scale_operation->get_input_socket(1)->set_resize_mode(ResizeMode::None);
+    scale_operation->get_input_socket(2)->set_resize_mode(ResizeMode::None);
+    first = scale_operation;
     SetValueOperation *sxop = new SetValueOperation();
-    sxop->setValue(scaleX);
-    builder.addLink(sxop->getOutputSocket(), scaleOperation->getInputSocket(1));
+    sxop->set_value(scaleX);
+    builder.add_link(sxop->get_output_socket(), scale_operation->get_input_socket(1));
     SetValueOperation *syop = new SetValueOperation();
-    syop->setValue(scaleY);
-    builder.addLink(syop->getOutputSocket(), scaleOperation->getInputSocket(2));
-    builder.addOperation(sxop);
-    builder.addOperation(syop);
+    syop->set_value(scaleY);
+    builder.add_link(syop->get_output_socket(), scale_operation->get_input_socket(2));
+    builder.add_operation(sxop);
+    builder.add_operation(syop);
 
-    rcti scale_canvas = fromOperation->get_canvas();
+    rcti scale_canvas = from_operation->get_canvas();
     if (builder.context().get_execution_model() == eExecutionModel::FullFrame) {
       ScaleOperation::scale_area(scale_canvas, scaleX, scaleY);
-      scale_canvas.xmax = scale_canvas.xmin + toOperation->getWidth();
-      scale_canvas.ymax = scale_canvas.ymin + toOperation->getHeight();
+      scale_canvas.xmax = scale_canvas.xmin + to_operation->get_width();
+      scale_canvas.ymax = scale_canvas.ymin + to_operation->get_height();
       addX = 0;
       addY = 0;
     }
-    scaleOperation->set_canvas(scale_canvas);
+    scale_operation->set_canvas(scale_canvas);
     sxop->set_canvas(scale_canvas);
     syop->set_canvas(scale_canvas);
-    builder.addOperation(scaleOperation);
+    builder.add_operation(scale_operation);
   }
 
-  TranslateOperation *translateOperation = new TranslateOperation(toSocket->getDataType());
-  translateOperation->getInputSocket(1)->setResizeMode(ResizeMode::None);
-  translateOperation->getInputSocket(2)->setResizeMode(ResizeMode::None);
+  TranslateOperation *translate_operation = new TranslateOperation(to_socket->get_data_type());
+  translate_operation->get_input_socket(1)->set_resize_mode(ResizeMode::None);
+  translate_operation->get_input_socket(2)->set_resize_mode(ResizeMode::None);
   if (!first) {
-    first = translateOperation;
+    first = translate_operation;
   }
   SetValueOperation *xop = new SetValueOperation();
-  xop->setValue(addX);
-  builder.addLink(xop->getOutputSocket(), translateOperation->getInputSocket(1));
+  xop->set_value(addX);
+  builder.add_link(xop->get_output_socket(), translate_operation->get_input_socket(1));
   SetValueOperation *yop = new SetValueOperation();
-  yop->setValue(addY);
-  builder.addLink(yop->getOutputSocket(), translateOperation->getInputSocket(2));
-  builder.addOperation(xop);
-  builder.addOperation(yop);
+  yop->set_value(addY);
+  builder.add_link(yop->get_output_socket(), translate_operation->get_input_socket(2));
+  builder.add_operation(xop);
+  builder.add_operation(yop);
 
-  rcti translate_canvas = toOperation->get_canvas();
+  rcti translate_canvas = to_operation->get_canvas();
   if (mode == ResizeMode::Align) {
-    translate_canvas.xmax = translate_canvas.xmin + fromWidth;
-    translate_canvas.ymax = translate_canvas.ymin + fromHeight;
+    translate_canvas.xmax = translate_canvas.xmin + from_width;
+    translate_canvas.ymax = translate_canvas.ymin + from_height;
   }
-  translateOperation->set_canvas(translate_canvas);
+  translate_operation->set_canvas(translate_canvas);
   xop->set_canvas(translate_canvas);
   yop->set_canvas(translate_canvas);
-  builder.addOperation(translateOperation);
+  builder.add_operation(translate_operation);
 
-  if (doScale) {
-    translateOperation->getInputSocket(0)->setResizeMode(ResizeMode::None);
-    builder.addLink(scaleOperation->getOutputSocket(), translateOperation->getInputSocket(0));
+  if (do_scale) {
+    translate_operation->get_input_socket(0)->set_resize_mode(ResizeMode::None);
+    builder.add_link(scale_operation->get_output_socket(),
+                     translate_operation->get_input_socket(0));
   }
 
   /* remove previous link and replace */
-  builder.removeInputLink(toSocket);
-  first->getInputSocket(0)->setResizeMode(ResizeMode::None);
-  toSocket->setResizeMode(ResizeMode::None);
-  builder.addLink(fromSocket, first->getInputSocket(0));
-  builder.addLink(translateOperation->getOutputSocket(), toSocket);
+  builder.remove_input_link(to_socket);
+  first->get_input_socket(0)->set_resize_mode(ResizeMode::None);
+  to_socket->set_resize_mode(ResizeMode::None);
+  builder.add_link(from_socket, first->get_input_socket(0));
+  builder.add_link(translate_operation->get_output_socket(), to_socket);
 }
 
 }  // namespace blender::compositor

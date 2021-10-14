@@ -25,10 +25,10 @@ namespace blender::compositor {
 class ExposureOperation : public MultiThreadedRowOperation {
  private:
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *m_inputProgram;
-  SocketReader *m_inputExposureProgram;
+  SocketReader *input_program_;
+  SocketReader *input_exposure_program_;
 
  public:
   ExposureOperation();
@@ -36,17 +36,17 @@ class ExposureOperation : public MultiThreadedRowOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
   void update_memory_buffer_row(PixelCursor &p) override;
 };

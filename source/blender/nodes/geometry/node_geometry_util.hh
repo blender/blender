@@ -79,6 +79,17 @@ void copy_point_attributes_based_on_mask(const GeometryComponent &in_component,
                                          GeometryComponent &result_component,
                                          Span<bool> masks,
                                          const bool invert);
+/**
+ * Returns the parts of the geometry that are on the selection for the given domain. If the domain
+ * is not applicable for the component, e.g. face domain for point cloud, nothing happens to that
+ * component. If no component can work with the domain, then `error_message` is set to true.
+ */
+void separate_geometry(GeometrySet &geometry_set,
+                       const AttributeDomain domain,
+                       const GeometryNodeDeleteGeometryMode mode,
+                       const Field<bool> &selection_field,
+                       const bool invert,
+                       bool &r_is_error);
 
 struct CurveToPointsResults {
   int result_size;

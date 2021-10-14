@@ -17,57 +17,54 @@
  */
 #include "COM_DenoiseNode.h"
 #include "COM_DenoiseOperation.h"
-#include "COM_MixOperation.h"
-#include "COM_SetValueOperation.h"
-#include "DNA_node_types.h"
 
 namespace blender::compositor {
 
-DenoiseNode::DenoiseNode(bNode *editorNode) : Node(editorNode)
+DenoiseNode::DenoiseNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void DenoiseNode::convertToOperations(NodeConverter &converter,
-                                      const CompositorContext & /*context*/) const
+void DenoiseNode::convert_to_operations(NodeConverter &converter,
+                                        const CompositorContext & /*context*/) const
 {
   if (!COM_is_denoise_supported()) {
-    converter.mapOutputSocket(getOutputSocket(0),
-                              converter.addInputProxy(getInputSocket(0), false));
+    converter.map_output_socket(get_output_socket(0),
+                                converter.add_input_proxy(get_input_socket(0), false));
     return;
   }
 
-  bNode *node = this->getbNode();
+  bNode *node = this->get_bnode();
   NodeDenoise *denoise = (NodeDenoise *)node->storage;
 
   DenoiseOperation *operation = new DenoiseOperation();
-  converter.addOperation(operation);
-  operation->setDenoiseSettings(denoise);
+  converter.add_operation(operation);
+  operation->set_denoise_settings(denoise);
 
-  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
+  converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
   if (denoise && denoise->prefilter == CMP_NODE_DENOISE_PREFILTER_ACCURATE) {
     {
       DenoisePrefilterOperation *normal_prefilter = new DenoisePrefilterOperation(
           DataType::Vector);
       normal_prefilter->set_image_name("normal");
-      converter.addOperation(normal_prefilter);
-      converter.mapInputSocket(getInputSocket(1), normal_prefilter->getInputSocket(0));
-      converter.addLink(normal_prefilter->getOutputSocket(), operation->getInputSocket(1));
+      converter.add_operation(normal_prefilter);
+      converter.map_input_socket(get_input_socket(1), normal_prefilter->get_input_socket(0));
+      converter.add_link(normal_prefilter->get_output_socket(), operation->get_input_socket(1));
     }
     {
       DenoisePrefilterOperation *albedo_prefilter = new DenoisePrefilterOperation(DataType::Color);
       albedo_prefilter->set_image_name("albedo");
-      converter.addOperation(albedo_prefilter);
-      converter.mapInputSocket(getInputSocket(2), albedo_prefilter->getInputSocket(0));
-      converter.addLink(albedo_prefilter->getOutputSocket(), operation->getInputSocket(2));
+      converter.add_operation(albedo_prefilter);
+      converter.map_input_socket(get_input_socket(2), albedo_prefilter->get_input_socket(0));
+      converter.add_link(albedo_prefilter->get_output_socket(), operation->get_input_socket(2));
     }
   }
   else {
-    converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
-    converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
+    converter.map_input_socket(get_input_socket(1), operation->get_input_socket(1));
+    converter.map_input_socket(get_input_socket(2), operation->get_input_socket(2));
   }
 
-  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+  converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

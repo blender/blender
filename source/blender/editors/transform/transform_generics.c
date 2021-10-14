@@ -46,6 +46,8 @@
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
 
+#include "SEQ_transform.h"
+
 #include "ED_clip.h"
 #include "ED_image.h"
 #include "ED_object.h"
@@ -71,42 +73,56 @@
 
 void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis, short options)
 {
+  if (!ELEM(t->spacetype, SPACE_VIEW3D, SPACE_SEQ)) {
+    return;
+  }
+
   float v1[3], v2[3], v3[3];
   uchar col[3], col2[3];
 
   if (t->spacetype == SPACE_VIEW3D) {
     View3D *v3d = t->view;
 
-    GPU_matrix_push();
-
     copy_v3_v3(v3, dir);
     mul_v3_fl(v3, v3d->clip_end);
 
     sub_v3_v3v3(v2, center, v3);
     add_v3_v3v3(v1, center, v3);
-
-    if (options & DRAWLIGHT) {
-      col[0] = col[1] = col[2] = 220;
-    }
-    else {
-      UI_GetThemeColor3ubv(TH_GRID, col);
-    }
-    UI_make_axis_color(col, col2, axis);
-
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-
-    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformColor3ubv(col2);
-
-    immBegin(GPU_PRIM_LINES, 2);
-    immVertex3fv(pos, v1);
-    immVertex3fv(pos, v2);
-    immEnd();
-
-    immUnbindProgram();
-
-    GPU_matrix_pop();
   }
+  else if (t->spacetype == SPACE_SEQ) {
+    View2D *v2d = t->view;
+
+    copy_v3_v3(v3, dir);
+    float max_dist = max_ff(BLI_rctf_size_x(&v2d->cur), BLI_rctf_size_y(&v2d->cur));
+    mul_v3_fl(v3, max_dist);
+
+    sub_v3_v3v3(v2, center, v3);
+    add_v3_v3v3(v1, center, v3);
+  }
+
+  GPU_matrix_push();
+
+  if (options & DRAWLIGHT) {
+    col[0] = col[1] = col[2] = 220;
+  }
+  else {
+    UI_GetThemeColor3ubv(TH_GRID, col);
+  }
+  UI_make_axis_color(col, col2, axis);
+
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor3ubv(col2);
+
+  immBegin(GPU_PRIM_LINES, 2);
+  immVertex3fv(pos, v1);
+  immVertex3fv(pos, v2);
+  immEnd();
+
+  immUnbindProgram();
+
+  GPU_matrix_pop();
 }
 
 /**
@@ -885,11 +901,17 @@ void calculateCenterCursor(TransInfo *t, float r_center[3])
 
 void calculateCenterCursor2D(TransInfo *t, float r_center[2])
 {
+  float cursor_local_buf[2];
   const float *cursor = NULL;
 
   if (t->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = (SpaceImage *)t->area->spacedata.first;
     cursor = sima->cursor;
+  }
+  if (t->spacetype == SPACE_SEQ) {
+    SpaceSeq *sseq = (SpaceSeq *)t->area->spacedata.first;
+    SEQ_image_preview_unit_to_px(t->scene, sseq->cursor, cursor_local_buf);
+    cursor = cursor_local_buf;
   }
   else if (t->spacetype == SPACE_CLIP) {
     SpaceClip *space_clip = (SpaceClip *)t->area->spacedata.first;
@@ -1069,7 +1091,7 @@ static void calculateCenter_FromAround(TransInfo *t, int around, float r_center[
       calculateCenterMedian(t, r_center);
       break;
     case V3D_AROUND_CURSOR:
-      if (ELEM(t->spacetype, SPACE_IMAGE, SPACE_CLIP)) {
+      if (ELEM(t->spacetype, SPACE_IMAGE, SPACE_SEQ, SPACE_CLIP)) {
         calculateCenterCursor2D(t, r_center);
       }
       else if (t->spacetype == SPACE_GRAPH) {

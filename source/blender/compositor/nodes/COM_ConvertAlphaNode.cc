@@ -18,15 +18,14 @@
 
 #include "COM_ConvertAlphaNode.h"
 #include "COM_ConvertOperation.h"
-#include "COM_ExecutionSystem.h"
 
 namespace blender::compositor {
 
-void ConvertAlphaNode::convertToOperations(NodeConverter &converter,
-                                           const CompositorContext & /*context*/) const
+void ConvertAlphaNode::convert_to_operations(NodeConverter &converter,
+                                             const CompositorContext & /*context*/) const
 {
   NodeOperation *operation = nullptr;
-  bNode *node = this->getbNode();
+  bNode *node = this->get_bnode();
 
   /* value hardcoded in rna_nodetree.c */
   if (node->custom1 == 1) {
@@ -36,10 +35,10 @@ void ConvertAlphaNode::convertToOperations(NodeConverter &converter,
     operation = new ConvertStraightToPremulOperation();
   }
 
-  converter.addOperation(operation);
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
+  converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+  converter.map_output_socket(get_output_socket(0), operation->get_output_socket());
 }
 
 }  // namespace blender::compositor

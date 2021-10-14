@@ -24,26 +24,26 @@ namespace blender::compositor {
 
 class FlipOperation : public MultiThreadedOperation {
  private:
-  SocketReader *m_inputOperation;
-  bool m_flipX;
-  bool m_flipY;
+  SocketReader *input_operation_;
+  bool flip_x_;
+  bool flip_y_;
 
  public:
   FlipOperation();
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
   void setFlipX(bool flipX)
   {
-    this->m_flipX = flipX;
+    flip_x_ = flipX;
   }
   void setFlipY(bool flipY)
   {
-    this->m_flipY = flipY;
+    flip_y_ = flipY;
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;

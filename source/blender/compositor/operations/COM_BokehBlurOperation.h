@@ -25,59 +25,59 @@ namespace blender::compositor {
 
 class BokehBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
  private:
-  SocketReader *m_inputProgram;
-  SocketReader *m_inputBokehProgram;
-  SocketReader *m_inputBoundingBoxReader;
-  void updateSize();
-  float m_size;
-  bool m_sizeavailable;
+  SocketReader *input_program_;
+  SocketReader *input_bokeh_program_;
+  SocketReader *input_bounding_box_reader_;
+  void update_size();
+  float size_;
+  bool sizeavailable_;
 
-  float m_bokehMidX;
-  float m_bokehMidY;
-  float m_bokehDimension;
-  bool m_extend_bounds;
+  float bokeh_mid_x_;
+  float bokeh_mid_y_;
+  float bokehDimension_;
+  bool extend_bounds_;
 
  public:
   BokehBlurOperation();
 
   void init_data() override;
 
-  void *initializeTileData(rcti *rect) override;
+  void *initialize_tile_data(rcti *rect) override;
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
-  void setSize(float size)
+  void set_size(float size)
   {
-    this->m_size = size;
-    this->m_sizeavailable = true;
+    size_ = size;
+    sizeavailable_ = true;
   }
 
-  void executeOpenCL(OpenCLDevice *device,
-                     MemoryBuffer *outputMemoryBuffer,
-                     cl_mem clOutputBuffer,
-                     MemoryBuffer **inputMemoryBuffers,
-                     std::list<cl_mem> *clMemToCleanUp,
-                     std::list<cl_kernel> *clKernelsToCleanUp) override;
+  void execute_opencl(OpenCLDevice *device,
+                      MemoryBuffer *output_memory_buffer,
+                      cl_mem cl_output_buffer,
+                      MemoryBuffer **input_memory_buffers,
+                      std::list<cl_mem> *cl_mem_to_clean_up,
+                      std::list<cl_kernel> *cl_kernels_to_clean_up) override;
 
-  void setExtendBounds(bool extend_bounds)
+  void set_extend_bounds(bool extend_bounds)
   {
-    this->m_extend_bounds = extend_bounds;
+    extend_bounds_ = extend_bounds;
   }
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;

@@ -29,6 +29,7 @@ namespace blender::nodes {
 static void geo_node_instance_on_points_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Points").description("Points to instance on");
+  b.add_input<decl::Bool>("Selection").default_value(true).supports_field().hide_value();
   b.add_input<decl::Geometry>("Instance").description("Geometry that is instanced on the points");
   b.add_input<decl::Bool>("Pick Instance")
       .supports_field()
@@ -44,6 +45,7 @@ static void geo_node_instance_on_points_declare(NodeDeclarationBuilder &b)
       .description("Rotation of the instances");
   b.add_input<decl::Vector>("Scale")
       .default_value({1.0f, 1.0f, 1.0f})
+      .subtype(PROP_XYZ)
       .supports_field()
       .description("Scale of the instances");
   b.add_input<decl::Int>("Stable ID")
@@ -63,28 +65,38 @@ static void add_instances_from_component(InstancesComponent &dst_component,
   const AttributeDomain domain = ATTR_DOMAIN_POINT;
   const int domain_size = src_component.attribute_domain_size(domain);
 
+  GeometryComponentFieldContext field_context{src_component, domain};
+  const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
+  fn::FieldEvaluator selection_evaluator{field_context, domain_size};
+  selection_evaluator.add(selection_field);
+  selection_evaluator.evaluate();
+  const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
+
   /* The initial size of the component might be non-zero when this function is called for multiple
    * component types. */
   const int start_len = dst_component.instances_amount();
-  dst_component.resize(start_len + domain_size);
+  const int select_len = selection.index_range().size();
+  dst_component.resize(start_len + select_len);
+
   MutableSpan<int> dst_handles = dst_component.instance_reference_handles().slice(start_len,
-                                                                                  domain_size);
+                                                                                  select_len);
   MutableSpan<float4x4> dst_transforms = dst_component.instance_transforms().slice(start_len,
-                                                                                   domain_size);
-  MutableSpan<int> dst_stable_ids = dst_component.instance_ids().slice(start_len, domain_size);
+                                                                                   select_len);
+  MutableSpan<int> dst_stable_ids = dst_component.instance_ids().slice(start_len, select_len);
 
-  GeometryComponentFieldContext field_context{src_component, domain};
   FieldEvaluator field_evaluator{field_context, domain_size};
-
   const VArray<bool> *pick_instance = nullptr;
   const VArray<int> *indices = nullptr;
   const VArray<float3> *rotations = nullptr;
   const VArray<float3> *scales = nullptr;
+  /* The evaluator could use the component's stable IDs as a destination directly, but only the
+   * selected indices should be copied. */
+  const VArray<int> *stable_ids = nullptr;
   field_evaluator.add(params.get_input<Field<bool>>("Pick Instance"), &pick_instance);
   field_evaluator.add(params.get_input<Field<int>>("Instance Index"), &indices);
   field_evaluator.add(params.get_input<Field<float3>>("Rotation"), &rotations);
   field_evaluator.add(params.get_input<Field<float3>>("Scale"), &scales);
-  field_evaluator.add_with_destination(params.get_input<Field<int>>("Stable ID"), dst_stable_ids);
+  field_evaluator.add(params.get_input<Field<int>>("Stable ID"), &stable_ids);
   field_evaluator.evaluate();
 
   GVArray_Typed<float3> positions = src_component.attribute_get_for_read<float3>(
@@ -110,10 +122,13 @@ static void add_instances_from_component(InstancesComponent &dst_component,
   /* Add this reference last, because it is the most likely one to be removed later on. */
   const int empty_reference_handle = dst_component.add_reference(InstanceReference());
 
-  threading::parallel_for(IndexRange(domain_size), 1024, [&](IndexRange range) {
-    for (const int i : range) {
+  threading::parallel_for(selection.index_range(), 1024, [&](IndexRange selection_range) {
+    for (const int range_i : selection_range) {
+      const int64_t i = selection[range_i];
+      dst_stable_ids[range_i] = (*stable_ids)[i];
+
       /* Compute base transform for every instances. */
-      float4x4 &dst_transform = dst_transforms[i];
+      float4x4 &dst_transform = dst_transforms[range_i];
       dst_transform = float4x4::from_loc_eul_scale(
           positions[i], rotations->get(i), scales->get(i));
 
@@ -125,8 +140,8 @@ static void add_instances_from_component(InstancesComponent &dst_component,
         if (src_instances != nullptr) {
           const int src_instances_amount = src_instances->instances_amount();
           const int original_index = indices->get(i);
-          /* Use #mod_i instead of `%` to get the desirable wrap around behavior where -1 refers to
-           * the last element. */
+          /* Use #mod_i instead of `%` to get the desirable wrap around behavior where -1
+           * refers to the last element. */
           const int index = mod_i(original_index, std::max(src_instances_amount, 1));
           if (index < src_instances_amount) {
             /* Get the reference to the source instance. */
@@ -144,7 +159,7 @@ static void add_instances_from_component(InstancesComponent &dst_component,
         dst_handle = full_instance_handle;
       }
       /* Set properties of new instance. */
-      dst_handles[i] = dst_handle;
+      dst_handles[range_i] = dst_handle;
     }
   });
 

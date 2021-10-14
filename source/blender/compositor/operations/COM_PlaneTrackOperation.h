@@ -32,10 +32,10 @@ namespace blender::compositor {
 
 class PlaneTrackCommon {
  protected:
-  MovieClip *m_movieClip;
-  int m_framenumber;
-  char m_trackingObjectName[64];
-  char m_planeTrackName[64];
+  MovieClip *movie_clip_;
+  int framenumber_;
+  char tracking_object_name_[64];
+  char plane_track_name_[64];
 
   /* NOTE: this class is not an operation itself (to prevent virtual inheritance issues)
    * implementation classes must make wrappers to use these methods, see below.
@@ -46,25 +46,25 @@ class PlaneTrackCommon {
  public:
   PlaneTrackCommon();
 
-  void setMovieClip(MovieClip *clip)
+  void set_movie_clip(MovieClip *clip)
   {
-    this->m_movieClip = clip;
+    movie_clip_ = clip;
   }
-  void setTrackingObject(char *object)
+  void set_tracking_object(char *object)
   {
-    BLI_strncpy(this->m_trackingObjectName, object, sizeof(this->m_trackingObjectName));
+    BLI_strncpy(tracking_object_name_, object, sizeof(tracking_object_name_));
   }
-  void setPlaneTrackName(char *plane_track)
+  void set_plane_track_name(char *plane_track)
   {
-    BLI_strncpy(this->m_planeTrackName, plane_track, sizeof(this->m_planeTrackName));
+    BLI_strncpy(plane_track_name_, plane_track, sizeof(plane_track_name_));
   }
-  void setFramenumber(int framenumber)
+  void set_framenumber(int framenumber)
   {
-    this->m_framenumber = framenumber;
+    framenumber_ = framenumber;
   }
 
  private:
-  void readCornersFromTrack(float corners[4][2], float frame);
+  void read_corners_from_track(float corners[4][2], float frame);
 };
 
 class PlaneTrackMaskOperation : public PlaneDistortMaskOperation, public PlaneTrackCommon {
@@ -75,7 +75,7 @@ class PlaneTrackMaskOperation : public PlaneDistortMaskOperation, public PlaneTr
 
   void init_data() override;
 
-  void initExecution() override;
+  void init_execution() override;
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override
   {
@@ -96,7 +96,7 @@ class PlaneTrackWarpImageOperation : public PlaneDistortWarpImageOperation,
 
   void init_data() override;
 
-  void initExecution() override;
+  void init_execution() override;
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override
   {

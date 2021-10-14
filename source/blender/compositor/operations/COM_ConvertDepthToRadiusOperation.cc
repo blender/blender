@@ -18,73 +18,71 @@
 
 #include "COM_ConvertDepthToRadiusOperation.h"
 #include "BKE_camera.h"
-#include "BLI_math.h"
 #include "DNA_camera_types.h"
 
 namespace blender::compositor {
 
 ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation()
 {
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Value);
-  this->m_inputOperation = nullptr;
-  this->m_fStop = 128.0f;
-  this->m_cameraObject = nullptr;
-  this->m_maxRadius = 32.0f;
-  this->m_blurPostOperation = nullptr;
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(DataType::Value);
+  input_operation_ = nullptr;
+  f_stop_ = 128.0f;
+  camera_object_ = nullptr;
+  max_radius_ = 32.0f;
+  blur_post_operation_ = nullptr;
 }
 
-float ConvertDepthToRadiusOperation::determineFocalDistance()
+float ConvertDepthToRadiusOperation::determine_focal_distance()
 {
-  if (this->m_cameraObject && this->m_cameraObject->type == OB_CAMERA) {
-    Camera *camera = (Camera *)this->m_cameraObject->data;
-    this->m_cam_lens = camera->lens;
-    return BKE_camera_object_dof_distance(this->m_cameraObject);
+  if (camera_object_ && camera_object_->type == OB_CAMERA) {
+    Camera *camera = (Camera *)camera_object_->data;
+    cam_lens_ = camera->lens;
+    return BKE_camera_object_dof_distance(camera_object_);
   }
 
   return 10.0f;
 }
 
-void ConvertDepthToRadiusOperation::initExecution()
+void ConvertDepthToRadiusOperation::init_execution()
 {
   float cam_sensor = DEFAULT_SENSOR_WIDTH;
   Camera *camera = nullptr;
 
-  if (this->m_cameraObject && this->m_cameraObject->type == OB_CAMERA) {
-    camera = (Camera *)this->m_cameraObject->data;
+  if (camera_object_ && camera_object_->type == OB_CAMERA) {
+    camera = (Camera *)camera_object_->data;
     cam_sensor = BKE_camera_sensor_size(camera->sensor_fit, camera->sensor_x, camera->sensor_y);
   }
 
-  this->m_inputOperation = this->getInputSocketReader(0);
-  float focalDistance = determineFocalDistance();
-  if (focalDistance == 0.0f) {
-    focalDistance = 1e10f; /* If the DOF is 0.0 then set it to be far away. */
+  input_operation_ = this->get_input_socket_reader(0);
+  float focal_distance = determine_focal_distance();
+  if (focal_distance == 0.0f) {
+    focal_distance = 1e10f; /* If the DOF is 0.0 then set it to be far away. */
   }
-  this->m_inverseFocalDistance = 1.0f / focalDistance;
-  this->m_aspect = (this->getWidth() > this->getHeight()) ?
-                       (this->getHeight() / (float)this->getWidth()) :
-                       (this->getWidth() / (float)this->getHeight());
-  this->m_aperture = 0.5f * (this->m_cam_lens / (this->m_aspect * cam_sensor)) / this->m_fStop;
-  const float minsz = MIN2(getWidth(), getHeight());
-  this->m_dof_sp =
-      minsz / ((cam_sensor / 2.0f) /
-               this->m_cam_lens); /* <- == `aspect * MIN2(img->x, img->y) / tan(0.5f * fov)` */
+  inverse_focal_distance_ = 1.0f / focal_distance;
+  aspect_ = (this->get_width() > this->get_height()) ?
+                (this->get_height() / (float)this->get_width()) :
+                (this->get_width() / (float)this->get_height());
+  aperture_ = 0.5f * (cam_lens_ / (aspect_ * cam_sensor)) / f_stop_;
+  const float minsz = MIN2(get_width(), get_height());
+  dof_sp_ = minsz / ((cam_sensor / 2.0f) /
+                     cam_lens_); /* <- == `aspect * MIN2(img->x, img->y) / tan(0.5f * fov)` */
 
-  if (this->m_blurPostOperation) {
-    m_blurPostOperation->setSigma(MIN2(m_aperture * 128.0f, this->m_maxRadius));
+  if (blur_post_operation_) {
+    blur_post_operation_->set_sigma(MIN2(aperture_ * 128.0f, max_radius_));
   }
 }
 
-void ConvertDepthToRadiusOperation::executePixelSampled(float output[4],
-                                                        float x,
-                                                        float y,
-                                                        PixelSampler sampler)
+void ConvertDepthToRadiusOperation::execute_pixel_sampled(float output[4],
+                                                          float x,
+                                                          float y,
+                                                          PixelSampler sampler)
 {
-  float inputValue[4];
+  float input_value[4];
   float z;
   float radius;
-  this->m_inputOperation->readSampled(inputValue, x, y, sampler);
-  z = inputValue[0];
+  input_operation_->read_sampled(input_value, x, y, sampler);
+  z = input_value[0];
   if (z != 0.0f) {
     float iZ = (1.0f / z);
 
@@ -94,15 +92,14 @@ void ConvertDepthToRadiusOperation::executePixelSampled(float output[4],
     /* Scale crad back to original maximum and blend. */
     crad->rect[px] = bcrad + wts->rect[px] * (scf * crad->rect[px] - bcrad);
 #endif
-    radius = 0.5f * fabsf(this->m_aperture *
-                          (this->m_dof_sp * (this->m_inverseFocalDistance - iZ) - 1.0f));
+    radius = 0.5f * fabsf(aperture_ * (dof_sp_ * (inverse_focal_distance_ - iZ) - 1.0f));
     /* 'bug' T6615, limit minimum radius to 1 pixel,
      * not really a solution, but somewhat mitigates the problem. */
     if (radius < 0.0f) {
       radius = 0.0f;
     }
-    if (radius > this->m_maxRadius) {
-      radius = this->m_maxRadius;
+    if (radius > max_radius_) {
+      radius = max_radius_;
     }
     output[0] = radius;
   }
@@ -111,9 +108,9 @@ void ConvertDepthToRadiusOperation::executePixelSampled(float output[4],
   }
 }
 
-void ConvertDepthToRadiusOperation::deinitExecution()
+void ConvertDepthToRadiusOperation::deinit_execution()
 {
-  this->m_inputOperation = nullptr;
+  input_operation_ = nullptr;
 }
 
 void ConvertDepthToRadiusOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -136,10 +133,10 @@ void ConvertDepthToRadiusOperation::update_memory_buffer_partial(MemoryBuffer *o
      * `crad->rect[px] = bcrad + wts->rect[px] * (scf * crad->rect[px] - bcrad);` */
 #endif
     const float radius = 0.5f *
-                         fabsf(m_aperture * (m_dof_sp * (m_inverseFocalDistance - inv_z) - 1.0f));
+                         fabsf(aperture_ * (dof_sp_ * (inverse_focal_distance_ - inv_z) - 1.0f));
     /* Bug T6615, limit minimum radius to 1 pixel,
      * not really a solution, but somewhat mitigates the problem. */
-    *it.out = CLAMPIS(radius, 0.0f, m_maxRadius);
+    *it.out = CLAMPIS(radius, 0.0f, max_radius_);
   }
 }
 

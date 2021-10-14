@@ -155,18 +155,18 @@ static void version_idproperty_move_data_float(IDPropertyUIDataFloat *ui_data,
   IDProperty *default_value = IDP_GetPropertyFromGroup(prop_ui_data, "default");
   if (default_value != NULL) {
     if (default_value->type == IDP_ARRAY) {
-      const int size = default_value->len;
-      ui_data->default_array_len = size;
+      const int array_len = default_value->len;
+      ui_data->default_array_len = array_len;
       if (default_value->subtype == IDP_FLOAT) {
-        ui_data->default_array = MEM_malloc_arrayN(size, sizeof(double), __func__);
+        ui_data->default_array = MEM_malloc_arrayN(array_len, sizeof(double), __func__);
         const float *old_default_array = IDP_Array(default_value);
         for (int i = 0; i < ui_data->default_array_len; i++) {
           ui_data->default_array[i] = (double)old_default_array[i];
         }
       }
       else if (default_value->subtype == IDP_DOUBLE) {
-        ui_data->default_array = MEM_malloc_arrayN(size, sizeof(double), __func__);
-        memcpy(ui_data->default_array, IDP_Array(default_value), sizeof(double) * size);
+        ui_data->default_array = MEM_malloc_arrayN(array_len, sizeof(double), __func__);
+        memcpy(ui_data->default_array, IDP_Array(default_value), sizeof(double) * array_len);
       }
     }
     else if (ELEM(default_value->type, IDP_DOUBLE, IDP_FLOAT)) {
@@ -645,6 +645,19 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
       }
     }
   }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 33)) {
+    /* This was missing from #move_vertex_group_names_to_object_data. */
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
+        /* This uses the fact that the active vertex group index starts counting at 1. */
+        if (BKE_object_defgroup_active_index_get(object) == 0) {
+          BKE_object_defgroup_active_index_set(object, object->actdef);
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -657,16 +670,6 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
-
-    /* This was missing from #move_vertex_group_names_to_object_data. */
-    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-      if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
-        /* This uses the fact that the active vertex group index starts counting at 1. */
-        if (BKE_object_defgroup_active_index_get(object) == 0) {
-          BKE_object_defgroup_active_index_set(object, object->actdef);
-        }
-      }
-    }
   }
 }
 
@@ -947,12 +950,12 @@ static bool seq_transform_origin_set(Sequence *seq, void *UNUSED(user_data))
 static void do_version_subsurface_methods(bNode *node)
 {
   if (node->type == SH_NODE_SUBSURFACE_SCATTERING) {
-    if (node->custom1 != SHD_SUBSURFACE_RANDOM_WALK) {
+    if (!ELEM(node->custom1, SHD_SUBSURFACE_BURLEY, SHD_SUBSURFACE_RANDOM_WALK)) {
       node->custom1 = SHD_SUBSURFACE_RANDOM_WALK_FIXED_RADIUS;
     }
   }
   else if (node->type == SH_NODE_BSDF_PRINCIPLED) {
-    if (node->custom2 != SHD_SUBSURFACE_RANDOM_WALK) {
+    if (!ELEM(node->custom2, SHD_SUBSURFACE_BURLEY, SHD_SUBSURFACE_RANDOM_WALK)) {
       node->custom2 = SHD_SUBSURFACE_RANDOM_WALK_FIXED_RADIUS;
     }
   }
@@ -1749,6 +1752,30 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 33)) {
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          switch (sl->spacetype) {
+            case SPACE_SEQ: {
+              SpaceSeq *sseq = (SpaceSeq *)sl;
+              enum { SEQ_DRAW_SEQUENCE = 0 };
+              if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
+                sseq->mainb = SEQ_DRAW_IMG_IMBUF;
+              }
+              break;
+            }
+            case SPACE_TEXT: {
+              SpaceText *st = (SpaceText *)sl;
+              st->flags &= ~ST_FLAG_UNUSED_4;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1760,6 +1787,23 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Update the idname for the Assign Material Node to SetMaterial */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != GEO_NODE_SET_MATERIAL) {
+          continue;
+        }
+        if (strstr(node->idname, "SetMaterial")) {
+          /* Make sure we haven't changed this idname already. */
+          continue;
+        }
+        strcpy(node->idname, "GeometryNodeSetMaterial");
+      }
+    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 24)) {

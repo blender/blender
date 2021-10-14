@@ -64,12 +64,16 @@ static TransData *SeqToTransData(const Scene *scene,
   SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, origin);
   float vertex[2] = {origin[0], origin[1]};
 
-  /* Add control vertex, so rotation and scale can be calculated. */
+  /* Add control vertex, so rotation and scale can be calculated.
+   * All three vertices will form a "L" shape that is aligned to the local strip axis.
+   */
   if (vert_index == 1) {
-    vertex[0] += 1.0f;
+    vertex[0] += cosf(transform->rotation);
+    vertex[1] += sinf(transform->rotation);
   }
   else if (vert_index == 2) {
-    vertex[1] += 1.0f;
+    vertex[0] -= sinf(transform->rotation);
+    vertex[1] += cosf(transform->rotation);
   }
 
   td2d->loc[0] = vertex[0];
@@ -81,10 +85,12 @@ static TransData *SeqToTransData(const Scene *scene,
   td->center[0] = origin[0];
   td->center[1] = origin[1];
 
-  memset(td->axismtx, 0, sizeof(td->axismtx));
-  td->axismtx[2][2] = 1.0f;
   unit_m3(td->mtx);
   unit_m3(td->smtx);
+  unit_m3(td->axismtx);
+
+  rotate_m3(td->axismtx, transform->rotation);
+  normalize_m3(td->axismtx);
 
   tdseq->seq = seq;
   copy_v2_v2(tdseq->orig_origin_position, origin);
@@ -159,18 +165,18 @@ void recalcData_sequencer_image(TransInfo *t)
 
   for (i = 0, td = tc->data, td2d = tc->data_2d; i < tc->data_len; i++, td++, td2d++) {
     /* Origin. */
-    float loc[2];
-    copy_v2_v2(loc, td2d->loc);
+    float origin[2];
+    copy_v2_v2(origin, td2d->loc);
     i++, td++, td2d++;
 
     /* X and Y control points used to read scale and rotation. */
     float handle_x[2];
     copy_v2_v2(handle_x, td2d->loc);
-    sub_v2_v2(handle_x, loc);
+    sub_v2_v2(handle_x, origin);
     i++, td++, td2d++;
     float handle_y[2];
     copy_v2_v2(handle_y, td2d->loc);
-    sub_v2_v2(handle_y, loc);
+    sub_v2_v2(handle_y, origin);
 
     TransDataSeq *tdseq = td->extra;
     Sequence *seq = tdseq->seq;
@@ -181,8 +187,9 @@ void recalcData_sequencer_image(TransInfo *t)
     /* Calculate translation. */
     float translation[2];
     copy_v2_v2(translation, tdseq->orig_origin_position);
-    sub_v2_v2(translation, loc);
+    sub_v2_v2(translation, origin);
     mul_v2_v2(translation, mirror);
+
     transform->xofs = tdseq->orig_translation[0] - translation[0];
     transform->yofs = tdseq->orig_translation[1] - translation[1];
 
@@ -192,7 +199,8 @@ void recalcData_sequencer_image(TransInfo *t)
 
     /* Rotation. Scaling can cause negative rotation. */
     if (t->mode == TFM_ROTATION) {
-      float rotation = angle_signed_v2v2(handle_x, (float[]){1, 0}) * mirror[0] * mirror[1];
+      const float orig_dir[2] = {cosf(tdseq->orig_rotation), sinf(tdseq->orig_rotation)};
+      float rotation = angle_signed_v2v2(handle_x, orig_dir) * mirror[0] * mirror[1];
       transform->rotation = tdseq->orig_rotation + rotation;
       transform->rotation += DEG2RAD(360.0);
       transform->rotation = fmod(transform->rotation, DEG2RAD(360.0));

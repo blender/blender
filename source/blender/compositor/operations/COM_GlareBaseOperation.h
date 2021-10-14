@@ -40,14 +40,14 @@ typedef float fRGB[4];
 class GlareBaseOperation : public SingleThreadedOperation {
  private:
   /**
-   * \brief Cached reference to the inputProgram
+   * \brief Cached reference to the input_program
    */
-  SocketReader *m_inputProgram;
+  SocketReader *input_program_;
 
   /**
    * \brief settings of the glare node.
    */
-  NodeGlare *m_settings;
+  NodeGlare *settings_;
 
   bool is_output_rendered_;
 
@@ -55,20 +55,20 @@ class GlareBaseOperation : public SingleThreadedOperation {
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setGlareSettings(NodeGlare *settings)
+  void set_glare_settings(NodeGlare *settings)
   {
-    this->m_settings = settings;
+    settings_ = settings;
   }
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(const int input_idx,
                             const rcti &output_area,
@@ -81,9 +81,9 @@ class GlareBaseOperation : public SingleThreadedOperation {
  protected:
   GlareBaseOperation();
 
-  virtual void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings) = 0;
+  virtual void generate_glare(float *data, MemoryBuffer *input_tile, NodeGlare *settings) = 0;
 
-  MemoryBuffer *createMemoryBuffer(rcti *rect) override;
+  MemoryBuffer *create_memory_buffer(rcti *rect) override;
 };
 
 }  // namespace blender::compositor

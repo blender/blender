@@ -339,7 +339,16 @@ static void view3d_xr_mirror_setup(const wmWindowManager *wm,
   }
   view3d_main_region_setup_view(depsgraph, scene, v3d, region, viewmat, NULL, rect);
 
-  /* Reset overridden View3D data */
+  /* Set draw flags. */
+  SET_FLAG_FROM_TEST(v3d->flag2,
+                     (wm->xr.session_settings.draw_flags & V3D_OFSDRAW_XR_SHOW_CONTROLLERS) != 0,
+                     V3D_XR_SHOW_CONTROLLERS);
+  SET_FLAG_FROM_TEST(v3d->flag2,
+                     (wm->xr.session_settings.draw_flags & V3D_OFSDRAW_XR_SHOW_CUSTOM_OVERLAYS) !=
+                         0,
+                     V3D_XR_SHOW_CUSTOM_OVERLAYS);
+
+  /* Reset overridden View3D data. */
   v3d->lens = lens_old;
 }
 #endif /* WITH_XR_OPENXR */
@@ -1749,7 +1758,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
 void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      Scene *scene,
                                      View3DShading *shading_override,
-                                     int drawtype,
+                                     eDrawType drawtype,
                                      int winx,
                                      int winy,
                                      uint draw_flags,
@@ -1757,6 +1766,7 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      const float winmat[4][4],
                                      float clip_start,
                                      float clip_end,
+                                     bool is_xr_surface,
                                      bool is_image_render,
                                      bool draw_background,
                                      const char *viewname,
@@ -1786,23 +1796,37 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
     v3d.shading.flag = V3D_SHADING_SCENE_WORLD | V3D_SHADING_SCENE_LIGHTS;
   }
 
-  if (draw_flags & V3D_OFSDRAW_SHOW_ANNOTATION) {
-    v3d.flag2 |= V3D_SHOW_ANNOTATION;
+  if ((draw_flags & ~V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS) == V3D_OFSDRAW_NONE) {
+    v3d.flag2 = V3D_HIDE_OVERLAYS;
   }
-  if (draw_flags & V3D_OFSDRAW_SHOW_GRIDFLOOR) {
-    v3d.gridflag |= V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y;
-    v3d.grid = 1.0f;
-    v3d.gridlines = 16;
-    v3d.gridsubdiv = 10;
-
-    /* Show grid, disable other overlays (set all available _HIDE_ flags). */
+  else {
+    if (draw_flags & V3D_OFSDRAW_SHOW_ANNOTATION) {
+      v3d.flag2 |= V3D_SHOW_ANNOTATION;
+    }
+    if (draw_flags & V3D_OFSDRAW_SHOW_GRIDFLOOR) {
+      v3d.gridflag |= V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y;
+      v3d.grid = 1.0f;
+      v3d.gridlines = 16;
+      v3d.gridsubdiv = 10;
+    }
+    if (draw_flags & V3D_OFSDRAW_SHOW_SELECTION) {
+      v3d.flag |= V3D_SELECT_OUTLINE;
+    }
+    if (draw_flags & V3D_OFSDRAW_XR_SHOW_CONTROLLERS) {
+      v3d.flag2 |= V3D_XR_SHOW_CONTROLLERS;
+    }
+    if (draw_flags & V3D_OFSDRAW_XR_SHOW_CUSTOM_OVERLAYS) {
+      v3d.flag2 |= V3D_XR_SHOW_CUSTOM_OVERLAYS;
+    }
+    /* Disable other overlays (set all available _HIDE_ flags). */
     v3d.overlay.flag |= V3D_OVERLAY_HIDE_CURSOR | V3D_OVERLAY_HIDE_TEXT |
                         V3D_OVERLAY_HIDE_MOTION_PATHS | V3D_OVERLAY_HIDE_BONES |
                         V3D_OVERLAY_HIDE_OBJECT_XTRAS | V3D_OVERLAY_HIDE_OBJECT_ORIGINS;
     v3d.flag |= V3D_HIDE_HELPLINES;
   }
-  else {
-    v3d.flag2 = V3D_HIDE_OVERLAYS;
+
+  if (is_xr_surface) {
+    v3d.flag |= V3D_XR_SESSION_SURFACE;
   }
 
   rv3d.persp = RV3D_PERSP;
@@ -2273,8 +2297,13 @@ static ViewDepths *view3d_depths_create(ARegion *region)
   {
     GPUViewport *viewport = WM_draw_region_get_viewport(region);
     GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
-    d->depths = GPU_texture_read(depth_tx, GPU_DATA_FLOAT, 0);
-
+    uint32_t *int_depths = GPU_texture_read(depth_tx, GPU_DATA_UINT_24_8, 0);
+    d->depths = (float *)int_depths;
+    /* Convert in-place. */
+    int pixel_count = GPU_texture_width(depth_tx) * GPU_texture_height(depth_tx);
+    for (int i = 0; i < pixel_count; i++) {
+      d->depths[i] = (int_depths[i] >> 8u) / (float)0xFFFFFF;
+    }
     /* Assumed to be this as they are never changed. */
     d->depth_range[0] = 0.0;
     d->depth_range[1] = 1.0;

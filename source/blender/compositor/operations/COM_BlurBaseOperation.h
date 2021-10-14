@@ -29,7 +29,7 @@ namespace blender::compositor {
 
 class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelper {
  private:
-  bool m_extend_bounds;
+  bool extend_bounds_;
 
  protected:
   static constexpr int IMAGE_INPUT_INDEX = 0;
@@ -43,17 +43,17 @@ class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelpe
 #endif
   float *make_dist_fac_inverse(float rad, int size, int falloff);
 
-  void updateSize();
+  void update_size();
 
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *m_inputProgram;
-  SocketReader *m_inputSize;
-  NodeBlurData m_data;
+  SocketReader *input_program_;
+  SocketReader *input_size_;
+  NodeBlurData data_;
 
-  float m_size;
-  bool m_sizeavailable;
+  float size_;
+  bool sizeavailable_;
 
   /* Flags for inheriting classes. */
   bool use_variable_size_;
@@ -63,24 +63,24 @@ class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelpe
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setData(const NodeBlurData *data);
+  void set_data(const NodeBlurData *data);
 
-  void setSize(float size)
+  void set_size(float size)
   {
-    this->m_size = size;
-    this->m_sizeavailable = true;
+    size_ = size;
+    sizeavailable_ = true;
   }
 
-  void setExtendBounds(bool extend_bounds)
+  void set_extend_bounds(bool extend_bounds)
   {
-    this->m_extend_bounds = extend_bounds;
+    extend_bounds_ = extend_bounds;
   }
 
   int get_blur_size(eDimension dim) const;

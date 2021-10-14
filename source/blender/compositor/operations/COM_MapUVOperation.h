@@ -27,17 +27,17 @@ class MapUVOperation : public MultiThreadedOperation {
   static constexpr int IMAGE_INPUT_INDEX = 0;
   static constexpr int UV_INPUT_INDEX = 1;
   /**
-   * Cached reference to the inputProgram
+   * Cached reference to the input_program
    */
-  SocketReader *m_inputUVProgram;
-  SocketReader *m_inputColorProgram;
+  SocketReader *inputUVProgram_;
+  SocketReader *input_color_program_;
 
   int uv_width_;
   int uv_height_;
   int image_width_;
   int image_height_;
 
-  float m_alpha;
+  float alpha_;
 
   std::function<void(float x, float y, float *out)> uv_input_read_fn_;
 
@@ -47,32 +47,32 @@ class MapUVOperation : public MultiThreadedOperation {
   /**
    * we need a 3x3 differential filter for UV Input and full buffer for the image
    */
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void pixelTransform(const float xy[2], float r_uv[2], float r_deriv[2][2], float &r_alpha);
+  void pixel_transform(const float xy[2], float r_uv[2], float r_deriv[2][2], float &r_alpha);
 
   void init_data() override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setAlpha(float alpha)
+  void set_alpha(float alpha)
   {
-    this->m_alpha = alpha;
+    alpha_ = alpha;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

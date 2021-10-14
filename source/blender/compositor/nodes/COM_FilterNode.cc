@@ -19,26 +19,23 @@
 #include "COM_FilterNode.h"
 #include "BKE_node.h"
 #include "COM_ConvolutionEdgeFilterOperation.h"
-#include "COM_ConvolutionFilterOperation.h"
-#include "COM_ExecutionSystem.h"
-#include "COM_MixOperation.h"
 
 namespace blender::compositor {
 
-FilterNode::FilterNode(bNode *editorNode) : Node(editorNode)
+FilterNode::FilterNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void FilterNode::convertToOperations(NodeConverter &converter,
-                                     const CompositorContext & /*context*/) const
+void FilterNode::convert_to_operations(NodeConverter &converter,
+                                       const CompositorContext & /*context*/) const
 {
-  NodeInput *inputSocket = this->getInputSocket(0);
-  NodeInput *inputImageSocket = this->getInputSocket(1);
-  NodeOutput *outputSocket = this->getOutputSocket(0);
+  NodeInput *input_socket = this->get_input_socket(0);
+  NodeInput *input_image_socket = this->get_input_socket(1);
+  NodeOutput *output_socket = this->get_output_socket(0);
   ConvolutionFilterOperation *operation = nullptr;
 
-  switch (this->getbNode()->custom1) {
+  switch (this->get_bnode()->custom1) {
     case CMP_FILT_SOFT:
       operation = new ConvolutionFilterOperation();
       operation->set3x3Filter(1 / 16.0f,
@@ -88,13 +85,13 @@ void FilterNode::convertToOperations(NodeConverter &converter,
       operation->set3x3Filter(0, 0, 0, 0, 1, 0, 0, 0, 0);
       break;
   }
-  converter.addOperation(operation);
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(inputImageSocket, operation->getInputSocket(0));
-  converter.mapInputSocket(inputSocket, operation->getInputSocket(1));
-  converter.mapOutputSocket(outputSocket, operation->getOutputSocket());
+  converter.map_input_socket(input_image_socket, operation->get_input_socket(0));
+  converter.map_input_socket(input_socket, operation->get_input_socket(1));
+  converter.map_output_socket(output_socket, operation->get_output_socket());
 
-  converter.addPreview(operation->getOutputSocket(0));
+  converter.add_preview(operation->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

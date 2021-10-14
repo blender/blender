@@ -132,7 +132,7 @@ static std::unique_ptr<CurveEval> create_point_circle_curve(
      */
 
     const float theta = theta_step * i;
-    positions[i] = center + r * cos(theta) * v1 + r * sin(theta) * v4;
+    positions[i] = center + r * sin(theta) * v1 + r * cos(theta) * v4;
   }
 
   spline->radii().fill(1.0f);

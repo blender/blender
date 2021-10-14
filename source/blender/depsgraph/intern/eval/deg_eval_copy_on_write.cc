@@ -511,12 +511,6 @@ inline bool check_datablock_expanded(const ID *id_cow)
 struct RemapCallbackUserData {
   /* Dependency graph for which remapping is happening. */
   const Depsgraph *depsgraph;
-  /* Create placeholder for ID nodes for cases when we need to remap original
-   * ID to it[s CoW version but we don't have required ID node yet.
-   *
-   * This happens when expansion happens a ta construction time. */
-  DepsgraphNodeBuilder *node_builder;
-  bool create_placeholders;
 };
 
 int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
@@ -526,38 +520,11 @@ int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
     return IDWALK_RET_NOP;
   }
 
-  ID *id_self = cb_data->id_self;
   RemapCallbackUserData *user_data = (RemapCallbackUserData *)cb_data->user_data;
   const Depsgraph *depsgraph = user_data->depsgraph;
   ID *id_orig = *id_p;
   if (deg_copy_on_write_is_needed(id_orig)) {
-    ID *id_cow;
-    if (user_data->create_placeholders) {
-      /* Special workaround to stop creating temp datablocks for
-       * objects which are coming from scene's collection and which
-       * are never linked to any of layers.
-       *
-       * TODO(sergey): Ideally we need to tell ID looper to ignore
-       * those or at least make it more reliable check where the
-       * pointer is coming from. */
-      const ID_Type id_type = GS(id_orig->name);
-      const ID_Type id_type_self = GS(id_self->name);
-      if (id_type == ID_OB && id_type_self == ID_SCE) {
-        IDNode *id_node = depsgraph->find_id_node(id_orig);
-        if (id_node == nullptr) {
-          id_cow = id_orig;
-        }
-        else {
-          id_cow = id_node->id_cow;
-        }
-      }
-      else {
-        id_cow = user_data->node_builder->ensure_cow_id(id_orig);
-      }
-    }
-    else {
-      id_cow = depsgraph->get_cow_id(id_orig);
-    }
+    ID *id_cow = depsgraph->get_cow_id(id_orig);
     BLI_assert(id_cow != nullptr);
     DEG_COW_PRINT(
         "    Remapping datablock for %s: id_orig=%p id_cow=%p\n", id_orig->name, id_orig, id_cow);
@@ -834,34 +801,29 @@ int foreach_libblock_validate_callback(LibraryIDLinkCallbackData *cb_data)
   return IDWALK_RET_NOP;
 }
 
-}  // namespace
-
 /* Actual implementation of logic which "expands" all the data which was not
  * yet copied-on-write.
  *
  * NOTE: Expects that CoW datablock is empty. */
-ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
-                                       const IDNode *id_node,
-                                       DepsgraphNodeBuilder *node_builder,
-                                       bool create_placeholders)
+ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph, const IDNode *id_node)
 {
   const ID *id_orig = id_node->id_orig;
   ID *id_cow = id_node->id_cow;
   const int id_cow_recalc = id_cow->recalc;
+
   /* No need to expand such datablocks, their copied ID is same as original
    * one already. */
   if (!deg_copy_on_write_is_needed(id_orig)) {
     return id_cow;
   }
+
   DEG_COW_PRINT(
       "Expanding datablock for %s: id_orig=%p id_cow=%p\n", id_orig->name, id_orig, id_cow);
+
   /* Sanity checks. */
-  /* NOTE: Disabled for now, conflicts when re-using evaluated datablock when
-   * rebuilding dependencies. */
-  if (check_datablock_expanded(id_cow) && create_placeholders) {
-    deg_free_copy_on_write_datablock(id_cow);
-  }
-  // BLI_assert(check_datablock_expanded(id_cow) == false);
+  BLI_assert(check_datablock_expanded(id_cow) == false);
+  BLI_assert(id_cow->py_instance == nullptr);
+
   /* Copy data from original ID to a copied version. */
   /* TODO(sergey): Avoid doing full ID copy somehow, make Mesh to reference
    * original geometry arrays for until those are modified. */
@@ -914,8 +876,6 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
   /* Perform remapping of the nodes. */
   RemapCallbackUserData user_data = {nullptr};
   user_data.depsgraph = depsgraph;
-  user_data.node_builder = node_builder;
-  user_data.create_placeholders = create_placeholders;
   BKE_library_foreach_ID_link(nullptr,
                               id_cow,
                               foreach_libblock_remap_callback,
@@ -928,16 +888,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
   return id_cow;
 }
 
-/* NOTE: Depsgraph is supposed to have ID node already. */
-ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
-                                       ID *id_orig,
-                                       DepsgraphNodeBuilder *node_builder,
-                                       bool create_placeholders)
-{
-  IDNode *id_node = depsgraph->find_id_node(id_orig);
-  BLI_assert(id_node != nullptr);
-  return deg_expand_copy_on_write_datablock(depsgraph, id_node, node_builder, create_placeholders);
-}
+}  // namespace
 
 ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph, const IDNode *id_node)
 {
@@ -1065,6 +1016,7 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
       break;
   }
   discard_edit_mode_pointers(id_cow);
+  BKE_libblock_free_data_py(id_cow);
   BKE_libblock_free_datablock(id_cow, 0);
   BKE_libblock_free_data(id_cow, false);
   /* Signal datablock as not being expanded. */

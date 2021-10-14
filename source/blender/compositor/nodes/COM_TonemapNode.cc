@@ -17,28 +17,27 @@
  */
 
 #include "COM_TonemapNode.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_TonemapOperation.h"
 
 namespace blender::compositor {
 
-TonemapNode::TonemapNode(bNode *editorNode) : Node(editorNode)
+TonemapNode::TonemapNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void TonemapNode::convertToOperations(NodeConverter &converter,
-                                      const CompositorContext & /*context*/) const
+void TonemapNode::convert_to_operations(NodeConverter &converter,
+                                        const CompositorContext & /*context*/) const
 {
-  NodeTonemap *data = (NodeTonemap *)this->getbNode()->storage;
+  NodeTonemap *data = (NodeTonemap *)this->get_bnode()->storage;
 
   TonemapOperation *operation = data->type == 1 ? new PhotoreceptorTonemapOperation() :
                                                   new TonemapOperation();
-  operation->setData(data);
-  converter.addOperation(operation);
+  operation->set_data(data);
+  converter.add_operation(operation);
 
-  converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-  converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
+  converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+  converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

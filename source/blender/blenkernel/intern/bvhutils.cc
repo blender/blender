@@ -161,9 +161,11 @@ void bvhcache_free(BVHCache *bvh_cache)
   MEM_freeN(bvh_cache);
 }
 
-/* BVH tree balancing inside a mutex lock must be run in isolation. Balancing
+/**
+ * BVH-tree balancing inside a mutex lock must be run in isolation. Balancing
  * is multithreaded, and we do not want the current thread to start another task
- * that may involve acquiring the same mutex lock that it is waiting for. */
+ * that may involve acquiring the same mutex lock that it is waiting for.
+ */
 static void bvhtree_balance_isolated(void *userdata)
 {
   BLI_bvhtree_balance((BVHTree *)userdata);
@@ -233,8 +235,12 @@ float bvhtree_sphereray_tri_intersection(const BVHTreeRay *ray,
  * BVH from meshes callbacks
  */
 
-/* Callback to bvh tree nearest point. The tree must have been built using bvhtree_from_mesh_faces.
- * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree. */
+/**
+ * Callback to BVH-tree nearest point.
+ * The tree must have been built using #bvhtree_from_mesh_faces.
+ *
+ * \param userdata: Must be a #BVHMeshCallbackUserdata built from the same mesh as the tree.
+ */
 static void mesh_faces_nearest_point(void *userdata,
                                      int index,
                                      const float co[3],
@@ -325,8 +331,12 @@ static void editmesh_looptri_nearest_point(void *userdata,
   }
 }
 
-/* Callback to bvh tree raycast. The tree must have been built using bvhtree_from_mesh_faces.
- * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree. */
+/**
+ * Callback to BVH-tree ray-cast.
+ * The tree must have been built using bvhtree_from_mesh_faces.
+ *
+ * \param userdata: Must be a #BVHMeshCallbackUserdata built from the same mesh as the tree.
+ */
 static void mesh_faces_spherecast(void *userdata,
                                   int index,
                                   const BVHTreeRay *ray,
@@ -430,8 +440,12 @@ static void editmesh_looptri_spherecast(void *userdata,
   }
 }
 
-/* Callback to bvh tree nearest point. The tree must have been built using bvhtree_from_mesh_edges.
- * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree. */
+/**
+ * Callback to BVH-tree nearest point.
+ * The tree must have been built using #bvhtree_from_mesh_edges.
+ *
+ * \param userdata: Must be a #BVHMeshCallbackUserdata built from the same mesh as the tree.
+ */
 static void mesh_edges_nearest_point(void *userdata,
                                      int index,
                                      const float co[3],
@@ -491,8 +505,12 @@ static void editmesh_verts_spherecast(void *userdata,
   mesh_verts_spherecast_do(index, eve->co, ray, hit);
 }
 
-/* Callback to bvh tree raycast. The tree must have been built using bvhtree_from_mesh_verts.
- * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree. */
+/**
+ * Callback to BVH-tree ray-cast.
+ * The tree must have been built using bvhtree_from_mesh_verts.
+ *
+ * \param userdata: Must be a #BVHMeshCallbackUserdata built from the same mesh as the tree.
+ */
 static void mesh_verts_spherecast(void *userdata,
                                   int index,
                                   const BVHTreeRay *ray,
@@ -504,8 +522,12 @@ static void mesh_verts_spherecast(void *userdata,
   mesh_verts_spherecast_do(index, v, ray, hit);
 }
 
-/* Callback to bvh tree raycast. The tree must have been built using bvhtree_from_mesh_edges.
- * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree. */
+/**
+ * Callback to BVH-tree ray-cast.
+ * The tree must have been built using bvhtree_from_mesh_edges.
+ *
+ * \param userdata: Must be a #BVHMeshCallbackUserdata built from the same mesh as the tree.
+ */
 static void mesh_edges_spherecast(void *userdata,
                                   int index,
                                   const BVHTreeRay *ray,
@@ -647,7 +669,9 @@ static void bvhtree_from_mesh_verts_setup_data(BVHTreeFromMesh *data,
   data->vert_allocated = vert_allocated;
 }
 
-/* Builds a bvh tree where nodes are the vertices of the given em */
+/**
+ * Builds a BVH-tree where nodes are the vertices of the given `em`.
+ */
 BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
                                         BMEditMesh *em,
                                         const BLI_bitmap *verts_mask,
@@ -704,10 +728,10 @@ BVHTree *bvhtree_from_editmesh_verts(
 }
 
 /**
- * Builds a bvh tree where nodes are the given vertices (NOTE: does not copy given `vert`!).
+ * Builds a BVH-tree where nodes are the given vertices (NOTE: does not copy given `vert`!).
  * \param vert_allocated: if true, vert freeing will be done when freeing data.
- * \param verts_mask: if not null, true elements give which vert to add to BVH tree.
- * \param verts_num_active: if >= 0, number of active verts to add to BVH tree
+ * \param verts_mask: if not null, true elements give which vert to add to BVH-tree.
+ * \param verts_num_active: if >= 0, number of active verts to add to BVH-tree
  * (else will be computed from mask).
  */
 BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
@@ -860,7 +884,9 @@ static void bvhtree_from_mesh_edges_setup_data(BVHTreeFromMesh *data,
   data->edge_allocated = edge_allocated;
 }
 
-/* Builds a bvh tree where nodes are the edges of the given em */
+/**
+ * Builds a BVH-tree where nodes are the edges of the given `em`.
+ */
 BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
                                         BMEditMesh *em,
                                         const BLI_bitmap *edges_mask,
@@ -916,11 +942,11 @@ BVHTree *bvhtree_from_editmesh_edges(
 }
 
 /**
- * Builds a bvh tree where nodes are the given edges .
+ * Builds a BVH-tree where nodes are the given edges.
  * \param vert, vert_allocated: if true, elem freeing will be done when freeing data.
  * \param edge, edge_allocated: if true, elem freeing will be done when freeing data.
- * \param edges_mask: if not null, true elements give which vert to add to BVH tree.
- * \param edges_num_active: if >= 0, number of active edges to add to BVH tree
+ * \param edges_mask: if not null, true elements give which vert to add to BVH-tree.
+ * \param edges_num_active: if >= 0, number of active edges to add to BVH-tree
  * (else will be computed from mask).
  */
 BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
@@ -1050,12 +1076,12 @@ static void bvhtree_from_mesh_faces_setup_data(BVHTreeFromMesh *data,
 }
 
 /**
- * Builds a bvh tree where nodes are the given tessellated faces
+ * Builds a BVH-tree where nodes are the given tessellated faces
  * (NOTE: does not copy given mfaces!).
  * \param vert_allocated: if true, vert freeing will be done when freeing data.
  * \param face_allocated: if true, face freeing will be done when freeing data.
- * \param faces_mask: if not null, true elements give which faces to add to BVH tree.
- * \param faces_num_active: if >= 0, number of active faces to add to BVH tree
+ * \param faces_mask: if not null, true elements give which faces to add to BVH-tree.
+ * \param faces_num_active: if >= 0, number of active faces to add to BVH-tree
  * (else will be computed from mask).
  */
 BVHTree *bvhtree_from_mesh_faces_ex(BVHTreeFromMesh *data,
@@ -1135,7 +1161,7 @@ static BVHTree *bvhtree_from_editmesh_looptri_create_tree(float epsilon,
     if (tree) {
       const BMLoop *(*looptris)[3] = (const BMLoop *(*)[3])em->looptris;
 
-      /* Insert BMesh-tessellation triangles into the bvh tree, unless they are hidden
+      /* Insert BMesh-tessellation triangles into the BVH-tree, unless they are hidden
        * and/or selected. Even if the faces themselves are not selected for the snapped
        * transform, having a vertex selected means the face (and thus it's tessellated
        * triangles) will be moving and will not be a good snap targets. */
@@ -1232,7 +1258,7 @@ static void bvhtree_from_mesh_looptri_setup_data(BVHTreeFromMesh *data,
 }
 
 /**
- * Builds a bvh tree where nodes are the looptri faces of the given bm
+ * Builds a BVH-tree where nodes are the `looptri` faces of the given `bm`.
  */
 BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
                                           BMEditMesh *em,
@@ -1684,7 +1710,7 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
                                               mesh_eval_mutex);
       }
       else {
-        /* Setup BVHTreeFromMesh */
+        /* Setup #BVHTreeFromMesh */
         data->nearest_callback = nullptr; /* TODO */
         data->raycast_callback = nullptr; /* TODO */
       }
@@ -1704,7 +1730,7 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
                                                 mesh_eval_mutex);
       }
       else {
-        /* Setup BVHTreeFromMesh */
+        /* Setup #BVHTreeFromMesh */
         data->nearest_callback = editmesh_looptri_nearest_point;
         data->raycast_callback = editmesh_looptri_spherecast;
       }
@@ -1741,7 +1767,9 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
 
 /** \} */
 
-/* Frees data allocated by a call to bvhtree_from_editmesh_*. */
+/**
+ * Frees data allocated by a call to `bvhtree_from_editmesh_*`.
+ */
 void free_bvhtree_from_editmesh(struct BVHTreeFromEditMesh *data)
 {
   if (data->tree) {
@@ -1752,7 +1780,9 @@ void free_bvhtree_from_editmesh(struct BVHTreeFromEditMesh *data)
   }
 }
 
-/* Frees data allocated by a call to bvhtree_from_mesh_*. */
+/**
+ * Frees data allocated by a call to `bvhtree_from_mesh_*`.
+ */
 void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 {
   if (data->tree && !data->cached) {

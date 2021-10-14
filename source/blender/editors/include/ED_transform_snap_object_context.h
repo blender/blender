@@ -83,11 +83,6 @@ struct SnapObjectParams {
 
 typedef struct SnapObjectContext SnapObjectContext;
 SnapObjectContext *ED_transform_snap_object_context_create(struct Scene *scene, int flag);
-SnapObjectContext *ED_transform_snap_object_context_create_view3d(struct Scene *scene,
-                                                                  int flag,
-                                                                  /* extra args for view3d */
-                                                                  const struct ARegion *region,
-                                                                  const struct View3D *v3d);
 void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx);
 
 /* callbacks to filter how snap works */
@@ -100,6 +95,7 @@ void ED_transform_snap_object_context_set_editmesh_callbacks(
 
 bool ED_transform_snap_object_project_ray_ex(struct SnapObjectContext *sctx,
                                              struct Depsgraph *depsgraph,
+                                             const View3D *v3d,
                                              const struct SnapObjectParams *params,
                                              const float ray_start[3],
                                              const float ray_normal[3],
@@ -112,6 +108,7 @@ bool ED_transform_snap_object_project_ray_ex(struct SnapObjectContext *sctx,
                                              float r_obmat[4][4]);
 bool ED_transform_snap_object_project_ray(SnapObjectContext *sctx,
                                           struct Depsgraph *depsgraph,
+                                          const View3D *v3d,
                                           const struct SnapObjectParams *params,
                                           const float ray_origin[3],
                                           const float ray_direction[3],
@@ -121,6 +118,7 @@ bool ED_transform_snap_object_project_ray(SnapObjectContext *sctx,
 
 bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
                                               struct Depsgraph *depsgraph,
+                                              const View3D *v3d,
                                               const struct SnapObjectParams *params,
                                               const float ray_start[3],
                                               const float ray_normal[3],
@@ -130,6 +128,8 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
 
 short ED_transform_snap_object_project_view3d_ex(struct SnapObjectContext *sctx,
                                                  struct Depsgraph *depsgraph,
+                                                 const ARegion *region,
+                                                 const View3D *v3d,
                                                  const unsigned short snap_to,
                                                  const struct SnapObjectParams *params,
                                                  const float mval[2],
@@ -142,6 +142,8 @@ short ED_transform_snap_object_project_view3d_ex(struct SnapObjectContext *sctx,
                                                  float r_obmat[4][4]);
 bool ED_transform_snap_object_project_view3d(struct SnapObjectContext *sctx,
                                              struct Depsgraph *depsgraph,
+                                             const ARegion *region,
+                                             const View3D *v3d,
                                              const unsigned short snap_to,
                                              const struct SnapObjectParams *params,
                                              const float mval[2],
@@ -153,6 +155,8 @@ bool ED_transform_snap_object_project_view3d(struct SnapObjectContext *sctx,
 
 bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
                                                     struct Depsgraph *depsgraph,
+                                                    const ARegion *region,
+                                                    const View3D *v3d,
                                                     const struct SnapObjectParams *params,
                                                     const float mval[2],
                                                     float ray_depth,

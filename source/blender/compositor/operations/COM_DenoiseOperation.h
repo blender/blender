@@ -33,9 +33,9 @@ class DenoiseBaseOperation : public SingleThreadedOperation {
   DenoiseBaseOperation();
 
  public:
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
 };
@@ -45,30 +45,30 @@ class DenoiseOperation : public DenoiseBaseOperation {
   /**
    * \brief Cached reference to the input programs
    */
-  SocketReader *m_inputProgramColor;
-  SocketReader *m_inputProgramAlbedo;
-  SocketReader *m_inputProgramNormal;
+  SocketReader *input_program_color_;
+  SocketReader *input_program_albedo_;
+  SocketReader *input_program_normal_;
 
   /**
    * \brief settings of the denoise node.
    */
-  NodeDenoise *m_settings;
+  NodeDenoise *settings_;
 
  public:
   DenoiseOperation();
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
-  void setDenoiseSettings(NodeDenoise *settings)
+  void set_denoise_settings(NodeDenoise *settings)
   {
-    this->m_settings = settings;
+    settings_ = settings;
   }
 
   void update_memory_buffer(MemoryBuffer *output,
@@ -77,13 +77,13 @@ class DenoiseOperation : public DenoiseBaseOperation {
 
  protected:
   void hash_output_params() override;
-  void generateDenoise(MemoryBuffer *output,
-                       MemoryBuffer *input_color,
-                       MemoryBuffer *input_normal,
-                       MemoryBuffer *input_albedo,
-                       NodeDenoise *settings);
+  void generate_denoise(MemoryBuffer *output,
+                        MemoryBuffer *input_color,
+                        MemoryBuffer *input_normal,
+                        MemoryBuffer *input_albedo,
+                        NodeDenoise *settings);
 
-  MemoryBuffer *createMemoryBuffer(rcti *rect) override;
+  MemoryBuffer *create_memory_buffer(rcti *rect) override;
 };
 
 class DenoisePrefilterOperation : public DenoiseBaseOperation {
@@ -104,7 +104,7 @@ class DenoisePrefilterOperation : public DenoiseBaseOperation {
 
  protected:
   void hash_output_params() override;
-  MemoryBuffer *createMemoryBuffer(rcti *rect) override;
+  MemoryBuffer *create_memory_buffer(rcti *rect) override;
 
  private:
   void generate_denoise(MemoryBuffer *output, MemoryBuffer *input);

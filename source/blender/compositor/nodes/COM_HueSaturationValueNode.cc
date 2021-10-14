@@ -20,52 +20,48 @@
 
 #include "COM_ChangeHSVOperation.h"
 #include "COM_ConvertOperation.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_MixOperation.h"
-#include "COM_SetColorOperation.h"
-#include "COM_SetValueOperation.h"
-#include "DNA_node_types.h"
 
 namespace blender::compositor {
 
-HueSaturationValueNode::HueSaturationValueNode(bNode *editorNode) : Node(editorNode)
+HueSaturationValueNode::HueSaturationValueNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void HueSaturationValueNode::convertToOperations(NodeConverter &converter,
-                                                 const CompositorContext & /*context*/) const
+void HueSaturationValueNode::convert_to_operations(NodeConverter &converter,
+                                                   const CompositorContext & /*context*/) const
 {
-  NodeInput *colorSocket = this->getInputSocket(0);
-  NodeInput *hueSocket = this->getInputSocket(1);
-  NodeInput *saturationSocket = this->getInputSocket(2);
-  NodeInput *valueSocket = this->getInputSocket(3);
-  NodeInput *facSocket = this->getInputSocket(4);
-  NodeOutput *outputSocket = this->getOutputSocket(0);
+  NodeInput *color_socket = this->get_input_socket(0);
+  NodeInput *hue_socket = this->get_input_socket(1);
+  NodeInput *saturation_socket = this->get_input_socket(2);
+  NodeInput *value_socket = this->get_input_socket(3);
+  NodeInput *fac_socket = this->get_input_socket(4);
+  NodeOutput *output_socket = this->get_output_socket(0);
 
   ConvertRGBToHSVOperation *rgbToHSV = new ConvertRGBToHSVOperation();
-  converter.addOperation(rgbToHSV);
+  converter.add_operation(rgbToHSV);
 
   ConvertHSVToRGBOperation *hsvToRGB = new ConvertHSVToRGBOperation();
-  converter.addOperation(hsvToRGB);
+  converter.add_operation(hsvToRGB);
 
   ChangeHSVOperation *changeHSV = new ChangeHSVOperation();
-  converter.mapInputSocket(hueSocket, changeHSV->getInputSocket(1));
-  converter.mapInputSocket(saturationSocket, changeHSV->getInputSocket(2));
-  converter.mapInputSocket(valueSocket, changeHSV->getInputSocket(3));
-  converter.addOperation(changeHSV);
+  converter.map_input_socket(hue_socket, changeHSV->get_input_socket(1));
+  converter.map_input_socket(saturation_socket, changeHSV->get_input_socket(2));
+  converter.map_input_socket(value_socket, changeHSV->get_input_socket(3));
+  converter.add_operation(changeHSV);
 
   MixBlendOperation *blend = new MixBlendOperation();
   blend->set_canvas_input_index(1);
-  converter.addOperation(blend);
+  converter.add_operation(blend);
 
-  converter.mapInputSocket(colorSocket, rgbToHSV->getInputSocket(0));
-  converter.addLink(rgbToHSV->getOutputSocket(), changeHSV->getInputSocket(0));
-  converter.addLink(changeHSV->getOutputSocket(), hsvToRGB->getInputSocket(0));
-  converter.addLink(hsvToRGB->getOutputSocket(), blend->getInputSocket(2));
-  converter.mapInputSocket(colorSocket, blend->getInputSocket(1));
-  converter.mapInputSocket(facSocket, blend->getInputSocket(0));
-  converter.mapOutputSocket(outputSocket, blend->getOutputSocket());
+  converter.map_input_socket(color_socket, rgbToHSV->get_input_socket(0));
+  converter.add_link(rgbToHSV->get_output_socket(), changeHSV->get_input_socket(0));
+  converter.add_link(changeHSV->get_output_socket(), hsvToRGB->get_input_socket(0));
+  converter.add_link(hsvToRGB->get_output_socket(), blend->get_input_socket(2));
+  converter.map_input_socket(color_socket, blend->get_input_socket(1));
+  converter.map_input_socket(fac_socket, blend->get_input_socket(0));
+  converter.map_output_socket(output_socket, blend->get_output_socket());
 }
 
 }  // namespace blender::compositor

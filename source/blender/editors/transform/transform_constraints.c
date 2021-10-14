@@ -755,7 +755,7 @@ void drawConstraint(TransInfo *t)
 {
   TransCon *tc = &(t->con);
 
-  if (!ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_NODE)) {
+  if (!ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_NODE, SPACE_SEQ)) {
     return;
   }
   if (!(tc->mode & CON_APPLY)) {
@@ -918,6 +918,16 @@ static void drawObjectConstraint(TransInfo *t)
         /* only draw a constraint line for one point, otherwise we can't see anything */
         if ((options & DRAWLIGHT) == 0) {
           break;
+        }
+      }
+
+      if (t->options & CTX_SEQUENCER_IMAGE) {
+        /* Because we construct an "L" shape to deform the sequence, we should skip
+         * all points except the first vertex. Otherwise we will draw the same axis constraint line
+         * 3 times for each strip.
+         */
+        if (i % 3 != 0) {
+          continue;
         }
       }
 

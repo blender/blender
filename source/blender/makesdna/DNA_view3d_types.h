@@ -373,6 +373,7 @@ typedef struct View3D {
 #define V3D_HIDE_HELPLINES (1 << 2)
 #define V3D_FLAG_UNUSED_2 (1 << 3) /* cleared */
 #define V3D_XR_SESSION_MIRROR (1 << 4)
+#define V3D_XR_SESSION_SURFACE (1 << 5)
 
 #define V3D_FLAG_UNUSED_10 (1 << 10) /* cleared */
 #define V3D_SELECT_OUTLINE (1 << 11)
@@ -465,6 +466,8 @@ enum {
 #define V3D_FLAG2_UNUSED_13 (1 << 13) /* cleared */
 #define V3D_FLAG2_UNUSED_14 (1 << 14) /* cleared */
 #define V3D_FLAG2_UNUSED_15 (1 << 15) /* cleared */
+#define V3D_XR_SHOW_CONTROLLERS (1 << 16)
+#define V3D_XR_SHOW_CUSTOM_OVERLAYS (1 << 17)
 
 /** #View3D.gp_flag (short) */
 #define V3D_GP_FADE_OBJECTS (1 << 0) /* Fade all non GP objects */

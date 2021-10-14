@@ -5635,7 +5635,7 @@ static void sculpt_stroke_cache_snap_context_init(bContext *C, Object *ob)
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
 
-  cache->snap_context = ED_transform_snap_object_context_create_view3d(scene, 0, region, v3d);
+  cache->snap_context = ED_transform_snap_object_context_create(scene, 0);
   cache->depsgraph = depsgraph;
 }
 
@@ -5695,6 +5695,7 @@ static bool sculpt_scene_project_raycast(SculptSession *ss,
   bool hit = false;
   hit = ED_transform_snap_object_project_ray(ss->cache->snap_context,
                                              ss->cache->depsgraph,
+                                             ss->cache->vc->v3d,
                                              &(const struct SnapObjectParams){
                                                  .snap_select = SNAP_NOT_ACTIVE,
                                              },
@@ -5721,6 +5722,7 @@ static bool sculpt_scene_project_raycast(SculptSession *ss,
 
   hit = ED_transform_snap_object_project_ray(ss->cache->snap_context,
                                              ss->cache->depsgraph,
+                                             ss->cache->vc->v3d,
                                              &(const struct SnapObjectParams){
                                                  .snap_select = SNAP_NOT_ACTIVE,
                                              },

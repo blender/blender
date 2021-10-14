@@ -153,7 +153,7 @@ string string_remove_trademark(const string &s)
 {
   string result = s;
 
-  /* Special case, so we don;t leave sequential spaces behind. */
+  /* Special case, so we don't leave sequential spaces behind. */
   /* TODO(sergey): Consider using regex perhaps? */
   string_replace(result, " (TM)", "");
   string_replace(result, " (R)", "");

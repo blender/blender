@@ -35,18 +35,18 @@ namespace blender::compositor {
  */
 class TrackPositionOperation : public ConstantOperation {
  protected:
-  MovieClip *m_movieClip;
-  int m_framenumber;
-  char m_trackingObjectName[64];
-  char m_trackName[64];
-  int m_axis;
-  int m_position;
-  int m_relativeFrame;
-  bool m_speed_output;
+  MovieClip *movie_clip_;
+  int framenumber_;
+  char tracking_object_name_[64];
+  char track_name_[64];
+  int axis_;
+  int position_;
+  int relative_frame_;
+  bool speed_output_;
 
-  int m_width, m_height;
-  float m_markerPos[2];
-  float m_relativePos[2];
+  int width_, height_;
+  float marker_pos_[2];
+  float relative_pos_[2];
   float track_position_;
   bool is_track_position_calculated_;
 
@@ -58,42 +58,42 @@ class TrackPositionOperation : public ConstantOperation {
  public:
   TrackPositionOperation();
 
-  void setMovieClip(MovieClip *clip)
+  void set_movie_clip(MovieClip *clip)
   {
-    this->m_movieClip = clip;
+    movie_clip_ = clip;
   }
-  void setTrackingObject(char *object)
+  void set_tracking_object(char *object)
   {
-    BLI_strncpy(this->m_trackingObjectName, object, sizeof(this->m_trackingObjectName));
+    BLI_strncpy(tracking_object_name_, object, sizeof(tracking_object_name_));
   }
-  void setTrackName(char *track)
+  void set_track_name(char *track)
   {
-    BLI_strncpy(this->m_trackName, track, sizeof(this->m_trackName));
+    BLI_strncpy(track_name_, track, sizeof(track_name_));
   }
-  void setFramenumber(int framenumber)
+  void set_framenumber(int framenumber)
   {
-    this->m_framenumber = framenumber;
+    framenumber_ = framenumber;
   }
-  void setAxis(int value)
+  void set_axis(int value)
   {
-    this->m_axis = value;
+    axis_ = value;
   }
-  void setPosition(int value)
+  void set_position(int value)
   {
-    this->m_position = value;
+    position_ = value;
   }
-  void setRelativeFrame(int value)
+  void set_relative_frame(int value)
   {
-    this->m_relativeFrame = value;
+    relative_frame_ = value;
   }
-  void setSpeedOutput(bool speed_output)
+  void set_speed_output(bool speed_output)
   {
-    this->m_speed_output = speed_output;
+    speed_output_ = speed_output;
   }
 
-  void initExecution() override;
+  void init_execution() override;
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   const float *get_constant_elem() override;
 

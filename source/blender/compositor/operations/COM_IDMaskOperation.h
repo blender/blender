@@ -24,17 +24,17 @@ namespace blender::compositor {
 
 class IDMaskOperation : public MultiThreadedOperation {
  private:
-  float m_objectIndex;
+  float object_index_;
 
  public:
   IDMaskOperation();
 
-  void *initializeTileData(rcti *rect) override;
-  void executePixel(float output[4], int x, int y, void *data) override;
+  void *initialize_tile_data(rcti *rect) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
-  void setObjectIndex(float objectIndex)
+  void set_object_index(float object_index)
   {
-    this->m_objectIndex = objectIndex;
+    object_index_ = object_index;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

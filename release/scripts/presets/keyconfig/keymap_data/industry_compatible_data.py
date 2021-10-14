@@ -255,6 +255,9 @@ def km_screen(params):
         ("file.execute", {"type": 'RET', "value": 'PRESS'}, None),
         ("file.execute", {"type": 'NUMPAD_ENTER', "value": 'PRESS'}, None),
         ("file.cancel", {"type": 'ESC', "value": 'PRESS'}, None),
+        # Asset Catalog undo is only available in the asset browser, and should take priority over `ed.undo`.
+        ("asset.catalog_undo", {"type": 'Z', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
+        ("asset.catalog_redo", {"type": 'Z', "value": 'PRESS', "ctrl": True, "shift": True, "repeat": True}, None),
         # Undo
         ("ed.undo", {"type": 'Z', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("ed.redo", {"type": 'Z', "value": 'PRESS', "shift": True, "ctrl": True, "repeat": True}, None),
@@ -1254,7 +1257,6 @@ def km_file_browser(params):
         ("file.select", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
          {"properties": [("open", False), ("only_activate_if_selected", True), ("pass_through", True)]}),
         *_template_items_context_menu("FILEBROWSER_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
-        *_template_items_context_menu("ASSETBROWSER_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
     ])
 
     return keymap
@@ -1316,6 +1318,7 @@ def km_file_browser_main(params):
         ("file.highlight", {"type": 'MOUSEMOVE', "value": 'ANY', "any": True}, None),
         ("file.sort_column_ui_context", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
         ("file.view_selected", {"type": 'F', "value": 'PRESS'}, None),
+        *_template_items_context_menu("ASSETBROWSER_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
     ])
 
     return keymap

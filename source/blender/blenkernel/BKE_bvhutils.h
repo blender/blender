@@ -48,7 +48,7 @@ struct BVHCache;
 typedef struct BVHTreeFromEditMesh {
   struct BVHTree *tree;
 
-  /* default callbacks to bvh nearest and raycast */
+  /** Default callbacks to bvh nearest and ray-cast. */
   BVHTree_NearestPointCallback nearest_callback;
   BVHTree_RayCastCallback raycast_callback;
 
@@ -60,18 +60,18 @@ typedef struct BVHTreeFromEditMesh {
 } BVHTreeFromEditMesh;
 
 /**
- * Struct that stores basic information about a BVHTree built from a mesh.
+ * Struct that stores basic information about a #BVHTree built from a mesh.
  */
 typedef struct BVHTreeFromMesh {
   struct BVHTree *tree;
 
-  /* default callbacks to bvh nearest and raycast */
+  /** Default callbacks to bvh nearest and ray-cast. */
   BVHTree_NearestPointCallback nearest_callback;
   BVHTree_RayCastCallback raycast_callback;
 
   /* Vertex array, so that callbacks have instant access to data. */
   const struct MVert *vert;
-  const struct MEdge *edge; /* only used for BVHTreeFromMeshEdges */
+  const struct MEdge *edge; /* only used for #BVHTreeFromMeshEdges */
   const struct MFace *face;
   const struct MLoop *loop;
   const struct MLoopTri *looptri;

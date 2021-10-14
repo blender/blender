@@ -177,6 +177,7 @@ typedef struct WMLinkAppendDataItem {
   char append_tag;
 
   ID *new_id;
+  Library *source_library;
   void *customdata;
 } WMLinkAppendDataItem;
 
@@ -622,7 +623,8 @@ static int foreach_libblock_append_callback(LibraryIDLinkCallbackData *cb_data)
   if (item == NULL) {
     item = wm_link_append_data_item_add(data->lapp_data, id->name, GS(id->name), NULL);
     item->new_id = id;
-    /* Since we did not have an item for that ID yet, we now user did not selected it explicitly,
+    item->source_library = id->lib;
+    /* Since we did not have an item for that ID yet, we know user did not selected it explicitly,
      * it was rather linked indirectly. This info is important for instantiation of collections. */
     item->append_tag |= WM_APPEND_TAG_INDIRECT;
     BLI_ghash_insert(data->lapp_data->new_id_to_item, id, item);
@@ -1004,6 +1006,7 @@ static void wm_link_do(WMLinkAppendData *lapp_data,
          * This avoids trying to link same item with other libraries to come. */
         BLI_bitmap_set_all(item->libraries, false, lapp_data->num_libraries);
         item->new_id = new_id;
+        item->source_library = new_id->lib;
       }
     }
 

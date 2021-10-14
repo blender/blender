@@ -146,6 +146,8 @@ class BlenderSession {
    */
   void free_blender_memory_if_possible();
 
+  void ensure_display_driver_if_needed();
+
   struct {
     thread_mutex mutex;
     int last_pass_index = -1;

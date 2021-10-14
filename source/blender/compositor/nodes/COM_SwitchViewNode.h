@@ -30,9 +30,9 @@ namespace blender::compositor {
  */
 class SwitchViewNode : public Node {
  public:
-  SwitchViewNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  SwitchViewNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

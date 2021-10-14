@@ -22,42 +22,42 @@ namespace blender::compositor {
 
 SingleThreadedOperation::SingleThreadedOperation()
 {
-  this->m_cachedInstance = nullptr;
-  flags.complex = true;
-  flags.single_threaded = true;
+  cached_instance_ = nullptr;
+  flags_.complex = true;
+  flags_.single_threaded = true;
 }
 
-void SingleThreadedOperation::initExecution()
+void SingleThreadedOperation::init_execution()
 {
-  initMutex();
+  init_mutex();
 }
 
-void SingleThreadedOperation::executePixel(float output[4], int x, int y, void * /*data*/)
+void SingleThreadedOperation::execute_pixel(float output[4], int x, int y, void * /*data*/)
 {
-  this->m_cachedInstance->readNoCheck(output, x, y);
+  cached_instance_->read_no_check(output, x, y);
 }
 
-void SingleThreadedOperation::deinitExecution()
+void SingleThreadedOperation::deinit_execution()
 {
-  deinitMutex();
-  if (this->m_cachedInstance) {
-    delete this->m_cachedInstance;
-    this->m_cachedInstance = nullptr;
+  deinit_mutex();
+  if (cached_instance_) {
+    delete cached_instance_;
+    cached_instance_ = nullptr;
   }
 }
-void *SingleThreadedOperation::initializeTileData(rcti *rect)
+void *SingleThreadedOperation::initialize_tile_data(rcti *rect)
 {
-  if (this->m_cachedInstance) {
-    return this->m_cachedInstance;
+  if (cached_instance_) {
+    return cached_instance_;
   }
 
-  lockMutex();
-  if (this->m_cachedInstance == nullptr) {
+  lock_mutex();
+  if (cached_instance_ == nullptr) {
     //
-    this->m_cachedInstance = createMemoryBuffer(rect);
+    cached_instance_ = create_memory_buffer(rect);
   }
-  unlockMutex();
-  return this->m_cachedInstance;
+  unlock_mutex();
+  return cached_instance_;
 }
 
 }  // namespace blender::compositor

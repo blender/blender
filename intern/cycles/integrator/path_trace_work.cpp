@@ -134,7 +134,8 @@ void PathTraceWork::copy_from_denoised_render_buffers(const RenderBuffers *rende
 bool PathTraceWork::get_render_tile_pixels(const PassAccessor &pass_accessor,
                                            const PassAccessor::Destination &destination)
 {
-  const int offset_y = effective_buffer_params_.full_y - effective_big_tile_params_.full_y;
+  const int offset_y = (effective_buffer_params_.full_y + effective_buffer_params_.window_y) -
+                       (effective_big_tile_params_.full_y + effective_big_tile_params_.window_y);
   const int width = effective_buffer_params_.width;
 
   PassAccessor::Destination slice_destination = destination;
@@ -181,6 +182,8 @@ PassAccessor::PassAccessInfo PathTraceWork::get_display_pass_access_info(PassMod
   pass_access_info.use_approximate_shadow_catcher = kfilm.use_approximate_shadow_catcher;
   pass_access_info.use_approximate_shadow_catcher_background =
       kfilm.use_approximate_shadow_catcher && !kbackground.transparent;
+
+  pass_access_info.show_active_pixels = film_->get_show_active_pixels();
 
   return pass_access_info;
 }

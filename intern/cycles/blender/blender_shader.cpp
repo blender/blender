@@ -489,6 +489,9 @@ static ShaderNode *add_node(Scene *scene,
     SubsurfaceScatteringNode *subsurface = graph->create_node<SubsurfaceScatteringNode>();
 
     switch (b_subsurface_node.falloff()) {
+      case BL::ShaderNodeSubsurfaceScattering::falloff_BURLEY:
+        subsurface->set_method(CLOSURE_BSSRDF_BURLEY_ID);
+        break;
       case BL::ShaderNodeSubsurfaceScattering::falloff_RANDOM_WALK_FIXED_RADIUS:
         subsurface->set_method(CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
         break;
@@ -605,6 +608,9 @@ static ShaderNode *add_node(Scene *scene,
         break;
     }
     switch (b_principled_node.subsurface_method()) {
+      case BL::ShaderNodeBsdfPrincipled::subsurface_method_BURLEY:
+        principled->set_subsurface_method(CLOSURE_BSSRDF_BURLEY_ID);
+        break;
       case BL::ShaderNodeBsdfPrincipled::subsurface_method_RANDOM_WALK_FIXED_RADIUS:
         principled->set_subsurface_method(CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
         break;

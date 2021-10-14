@@ -222,22 +222,22 @@ float hash_to_float(uint32_t kx, uint32_t ky, uint32_t kz, uint32_t kw)
 
 float hash_float_to_float(float k)
 {
-  return hash_to_float(hash_float(k));
+  return uint_to_float_01(hash_float(k));
 }
 
 float hash_float_to_float(float2 k)
 {
-  return hash_to_float(hash_float(k));
+  return uint_to_float_01(hash_float(k));
 }
 
 float hash_float_to_float(float3 k)
 {
-  return hash_to_float(hash_float(k));
+  return uint_to_float_01(hash_float(k));
 }
 
 float hash_float_to_float(float4 k)
 {
-  return hash_to_float(hash_float(k));
+  return uint_to_float_01(hash_float(k));
 }
 
 /* ------------

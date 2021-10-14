@@ -18,9 +18,8 @@
 
 #pragma once
 
-#include <map>
-#include <set>
-#include <vector>
+#include "BLI_map.hh"
+#include "BLI_vector.hh"
 
 #include "COM_NodeGraph.h"
 
@@ -47,45 +46,45 @@ class NodeOperationBuilder {
  public:
   class Link {
    private:
-    NodeOperationOutput *m_from;
-    NodeOperationInput *m_to;
+    NodeOperationOutput *from_;
+    NodeOperationInput *to_;
 
    public:
-    Link(NodeOperationOutput *from, NodeOperationInput *to) : m_from(from), m_to(to)
+    Link(NodeOperationOutput *from, NodeOperationInput *to) : from_(from), to_(to)
     {
     }
 
     NodeOperationOutput *from() const
     {
-      return m_from;
+      return from_;
     }
     NodeOperationInput *to() const
     {
-      return m_to;
+      return to_;
     }
   };
 
  private:
-  const CompositorContext *m_context;
-  NodeGraph m_graph;
+  const CompositorContext *context_;
+  NodeGraph graph_;
   ExecutionSystem *exec_system_;
 
-  Vector<NodeOperation *> m_operations;
-  Vector<Link> m_links;
-  Vector<ExecutionGroup *> m_groups;
+  Vector<NodeOperation *> operations_;
+  Vector<Link> links_;
+  Vector<ExecutionGroup *> groups_;
 
   /** Maps operation inputs to node inputs */
-  Map<NodeOperationInput *, NodeInput *> m_input_map;
+  Map<NodeOperationInput *, NodeInput *> input_map_;
   /** Maps node outputs to operation outputs */
-  Map<NodeOutput *, NodeOperationOutput *> m_output_map;
+  Map<NodeOutput *, NodeOperationOutput *> output_map_;
 
-  Node *m_current_node;
+  Node *current_node_;
 
   /** Operation that will be writing to the viewer image
    *  Only one operation can occupy this place at a time,
    *  to avoid race conditions
    */
-  ViewerOperation *m_active_viewer;
+  ViewerOperation *active_viewer_;
 
  public:
   NodeOperationBuilder(const CompositorContext *context,
@@ -94,44 +93,44 @@ class NodeOperationBuilder {
 
   const CompositorContext &context() const
   {
-    return *m_context;
+    return *context_;
   }
 
-  void convertToOperations(ExecutionSystem *system);
+  void convert_to_operations(ExecutionSystem *system);
 
-  void addOperation(NodeOperation *operation);
+  void add_operation(NodeOperation *operation);
   void replace_operation_with_constant(NodeOperation *operation,
                                        ConstantOperation *constant_operation);
 
   /** Map input socket of the current node to an operation socket */
-  void mapInputSocket(NodeInput *node_socket, NodeOperationInput *operation_socket);
+  void map_input_socket(NodeInput *node_socket, NodeOperationInput *operation_socket);
   /** Map output socket of the current node to an operation socket */
-  void mapOutputSocket(NodeOutput *node_socket, NodeOperationOutput *operation_socket);
+  void map_output_socket(NodeOutput *node_socket, NodeOperationOutput *operation_socket);
 
-  void addLink(NodeOperationOutput *from, NodeOperationInput *to);
-  void removeInputLink(NodeOperationInput *to);
+  void add_link(NodeOperationOutput *from, NodeOperationInput *to);
+  void remove_input_link(NodeOperationInput *to);
 
   /** Add a preview operation for a operation output */
-  void addPreview(NodeOperationOutput *output);
+  void add_preview(NodeOperationOutput *output);
   /** Add a preview operation for a node input */
-  void addNodeInputPreview(NodeInput *input);
+  void add_node_input_preview(NodeInput *input);
 
   /** Define a viewer operation as the active output, if possible */
-  void registerViewer(ViewerOperation *viewer);
+  void register_viewer(ViewerOperation *viewer);
   /** The currently active viewer output operation */
   ViewerOperation *active_viewer() const
   {
-    return m_active_viewer;
+    return active_viewer_;
   }
 
   const Vector<NodeOperation *> &get_operations() const
   {
-    return m_operations;
+    return operations_;
   }
 
   const Vector<Link> &get_links() const
   {
-    return m_links;
+    return links_;
   }
 
  protected:

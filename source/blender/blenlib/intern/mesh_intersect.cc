@@ -2225,8 +2225,7 @@ static bool face_is_degenerate(const Face *f)
   return false;
 }
 
-/** Fast check for degenerate tris. Only tests for when verts are identical,
- * not cases where there are zero-length edges. */
+/** Fast check for degenerate tris. It is OK if it returns true for nearly degenerate triangles. */
 static bool any_degenerate_tris_fast(const Array<Face *> triangulation)
 {
   for (const Face *f : triangulation) {
@@ -2234,6 +2233,23 @@ static bool any_degenerate_tris_fast(const Array<Face *> triangulation)
     const Vert *v1 = (*f)[1];
     const Vert *v2 = (*f)[2];
     if (v0 == v1 || v0 == v2 || v1 == v2) {
+      return true;
+    }
+    double3 da = v2->co - v0->co;
+    double3 db = v2->co - v1->co;
+    double da_length_squared = da.length_squared();
+    double db_length_squared = db.length_squared();
+    if (da_length_squared == 0.0 || db_length_squared == 0.0) {
+      return true;
+    }
+    /* |da x db| = |da| |db| sin t, where t is angle between them.
+     * The triangle is almost degenerate if sin t is almost 0.
+     * sin^2 t = |da x db|^2 / (|da|^2 |db|^2)
+     */
+    double3 dab = double3::cross_high_precision(da, db);
+    double dab_length_squared = dab.length_squared();
+    double sin_squared_t = dab_length_squared / (da_length_squared * db_length_squared);
+    if (sin_squared_t < 1e-8) {
       return true;
     }
   }

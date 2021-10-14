@@ -18,8 +18,6 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
-
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
@@ -29,6 +27,7 @@ struct bNode;
 namespace blender::compositor {
 
 class Node;
+class NodeOperation;
 class NodeOperationInput;
 class NodeOperationOutput;
 class NodeOperationBuilder;
@@ -66,7 +65,7 @@ NodeOperation *COM_convert_data_type(const NodeOperationOutput &from,
  * \see InputSocketResizeMode for the possible conversions.
  */
 void COM_convert_canvas(NodeOperationBuilder &builder,
-                        NodeOperationOutput *fromSocket,
-                        NodeOperationInput *toSocket);
+                        NodeOperationOutput *from_socket,
+                        NodeOperationInput *to_socket);
 
 }  // namespace blender::compositor

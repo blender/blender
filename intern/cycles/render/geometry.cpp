@@ -1505,6 +1505,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     dscene->prim_time.tag_realloc();
 
     if (device_update_flags & DEVICE_MESH_DATA_NEEDS_REALLOC) {
+      dscene->tri_verts.tag_realloc();
       dscene->tri_vnormal.tag_realloc();
       dscene->tri_vindex.tag_realloc();
       dscene->tri_patch.tag_realloc();

@@ -306,6 +306,8 @@ static bool idp_snap_normal_from_gizmo(wmGizmo *gz, float r_normal[3])
  */
 static bool idp_poject_surface_normal(SnapObjectContext *snap_context,
                                       struct Depsgraph *depsgraph,
+                                      ARegion *region,
+                                      View3D *v3d,
                                       const float mval_fl[2],
                                       const float mat_fallback[3][3],
                                       const float normal_fallback[3],
@@ -320,6 +322,8 @@ static bool idp_poject_surface_normal(SnapObjectContext *snap_context,
 
   if (ED_transform_snap_object_project_view3d_ex(snap_context,
                                                  depsgraph,
+                                                 region,
+                                                 v3d,
                                                  SCE_SNAP_MODE_FACE,
                                                  &(const struct SnapObjectParams){
                                                      .snap_select = SNAP_ALL,
@@ -885,11 +889,9 @@ static void view3d_interactive_add_calc_plane(bContext *C,
 
   /* Set the orientation. */
   if ((plane_orient == PLACE_ORIENT_SURFACE) || (plane_depth == PLACE_DEPTH_SURFACE)) {
-    snap_context = (snap_gizmo ?
-                        ED_gizmotypes_snap_3d_context_ensure(scene, region, v3d, snap_gizmo) :
-                        NULL);
+    snap_context = (snap_gizmo ? ED_gizmotypes_snap_3d_context_ensure(scene, snap_gizmo) : NULL);
     if (snap_context == NULL) {
-      snap_context = ED_transform_snap_object_context_create_view3d(scene, 0, region, v3d);
+      snap_context = ED_transform_snap_object_context_create(scene, 0);
       snap_context_free = true;
     }
   }
@@ -908,6 +910,8 @@ static void view3d_interactive_add_calc_plane(bContext *C,
     if ((snap_context != NULL) &&
         idp_poject_surface_normal(snap_context,
                                   CTX_data_ensure_evaluated_depsgraph(C),
+                                  region,
+                                  v3d,
                                   mval_fl,
                                   use_normal_fallback ? r_matrix_orient : NULL,
                                   use_normal_fallback ? normal_fallback : NULL,
@@ -938,6 +942,8 @@ static void view3d_interactive_add_calc_plane(bContext *C,
       if ((snap_context != NULL) &&
           ED_transform_snap_object_project_view3d(snap_context,
                                                   CTX_data_ensure_evaluated_depsgraph(C),
+                                                  region,
+                                                  v3d,
                                                   SCE_SNAP_MODE_FACE,
                                                   &(const struct SnapObjectParams){
                                                       .snap_select = SNAP_ALL,

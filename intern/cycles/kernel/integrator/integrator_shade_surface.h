@@ -378,11 +378,11 @@ ccl_device bool integrate_surface(INTEGRATOR_STATE_ARGS,
     }
 
 #ifdef __SUBSURFACE__
-    if (INTEGRATOR_STATE(path, flag) & PATH_RAY_SUBSURFACE) {
+    if (path_flag & PATH_RAY_SUBSURFACE) {
       /* When coming from inside subsurface scattering, setup a diffuse
        * closure to perform lighting at the exit point. */
+      subsurface_shader_data_setup(INTEGRATOR_STATE_PASS, &sd, path_flag);
       INTEGRATOR_STATE_WRITE(path, flag) &= ~PATH_RAY_SUBSURFACE;
-      subsurface_shader_data_setup(INTEGRATOR_STATE_PASS, &sd);
     }
 #endif
 

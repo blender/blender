@@ -541,7 +541,7 @@ static void rna_ShapeKey_data_begin_mixed(CollectionPropertyIterator *iter,
   int point_count = rna_ShapeKey_curve_find_index(key, kb->totelem);
 
   ShapeKeyCurvePoint *points = MEM_malloc_arrayN(
-      sizeof(ShapeKeyCurvePoint), point_count, __func__);
+      point_count, sizeof(ShapeKeyCurvePoint), __func__);
 
   char *databuf = kb->data;
   int items_left = point_count;

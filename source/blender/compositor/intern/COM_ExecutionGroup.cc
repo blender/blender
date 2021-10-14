@@ -16,35 +16,20 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <algorithm>
-#include <cmath>
-#include <cstdlib>
-#include <sstream>
-
-#include "atomic_ops.h"
-
+#include "COM_ExecutionGroup.h"
 #include "COM_ChunkOrder.h"
 #include "COM_Debug.h"
-#include "COM_ExecutionGroup.h"
-#include "COM_ExecutionSystem.h"
 #include "COM_ReadBufferOperation.h"
 #include "COM_ViewerOperation.h"
 #include "COM_WorkScheduler.h"
 #include "COM_WriteBufferOperation.h"
 #include "COM_defines.h"
 
-#include "BLI_math.h"
 #include "BLI_rand.hh"
-#include "BLI_string.h"
 
 #include "BLT_translation.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "PIL_time.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
 
 namespace blender::compositor {
 
@@ -70,36 +55,36 @@ std::ostream &operator<<(std::ostream &os, const ExecutionGroupFlags &flags)
 
 ExecutionGroup::ExecutionGroup(int id)
 {
-  m_id = id;
-  this->m_bTree = nullptr;
-  this->m_height = 0;
-  this->m_width = 0;
-  this->m_max_read_buffer_offset = 0;
-  this->m_x_chunks_len = 0;
-  this->m_y_chunks_len = 0;
-  this->m_chunks_len = 0;
-  this->m_chunks_finished = 0;
-  BLI_rcti_init(&this->m_viewerBorder, 0, 0, 0, 0);
-  this->m_executionStartTime = 0;
+  id_ = id;
+  bTree_ = nullptr;
+  height_ = 0;
+  width_ = 0;
+  max_read_buffer_offset_ = 0;
+  x_chunks_len_ = 0;
+  y_chunks_len_ = 0;
+  chunks_len_ = 0;
+  chunks_finished_ = 0;
+  BLI_rcti_init(&viewer_border_, 0, 0, 0, 0);
+  execution_start_time_ = 0;
 }
 
 std::ostream &operator<<(std::ostream &os, const ExecutionGroup &execution_group)
 {
   os << "ExecutionGroup(id=" << execution_group.get_id();
   os << ",flags={" << execution_group.get_flags() << "}";
-  os << ",operation=" << *execution_group.getOutputOperation() << "";
+  os << ",operation=" << *execution_group.get_output_operation() << "";
   os << ")";
   return os;
 }
 
-eCompositorPriority ExecutionGroup::getRenderPriority()
+eCompositorPriority ExecutionGroup::get_render_priority()
 {
-  return this->getOutputOperation()->getRenderPriority();
+  return this->get_output_operation()->get_render_priority();
 }
 
 bool ExecutionGroup::can_contain(NodeOperation &operation)
 {
-  if (!m_flags.initialized) {
+  if (!flags_.initialized) {
     return true;
   }
 
@@ -114,7 +99,7 @@ bool ExecutionGroup::can_contain(NodeOperation &operation)
   }
 
   /* complex groups don't allow further ops (except read buffer and values, see above) */
-  if (m_flags.complex) {
+  if (flags_.complex) {
     return false;
   }
   /* complex ops can't be added to other groups (except their own, which they initialize, see
@@ -126,7 +111,7 @@ bool ExecutionGroup::can_contain(NodeOperation &operation)
   return true;
 }
 
-bool ExecutionGroup::addOperation(NodeOperation *operation)
+bool ExecutionGroup::add_operation(NodeOperation *operation)
 {
   if (!can_contain(*operation)) {
     return false;
@@ -134,34 +119,34 @@ bool ExecutionGroup::addOperation(NodeOperation *operation)
 
   if (!operation->get_flags().is_read_buffer_operation &&
       !operation->get_flags().is_write_buffer_operation) {
-    m_flags.complex = operation->get_flags().complex;
-    m_flags.open_cl = operation->get_flags().open_cl;
-    m_flags.single_threaded = operation->get_flags().single_threaded;
-    m_flags.initialized = true;
+    flags_.complex = operation->get_flags().complex;
+    flags_.open_cl = operation->get_flags().open_cl;
+    flags_.single_threaded = operation->get_flags().single_threaded;
+    flags_.initialized = true;
   }
 
-  m_operations.append(operation);
+  operations_.append(operation);
 
   return true;
 }
 
-NodeOperation *ExecutionGroup::getOutputOperation() const
+NodeOperation *ExecutionGroup::get_output_operation() const
 {
   return this
-      ->m_operations[0]; /* the first operation of the group is always the output operation. */
+      ->operations_[0]; /* the first operation of the group is always the output operation. */
 }
 
 void ExecutionGroup::init_work_packages()
 {
-  m_work_packages.clear();
-  if (this->m_chunks_len != 0) {
-    m_work_packages.resize(this->m_chunks_len);
-    for (unsigned int index = 0; index < m_chunks_len; index++) {
-      m_work_packages[index].type = eWorkPackageType::Tile;
-      m_work_packages[index].state = eWorkPackageState::NotScheduled;
-      m_work_packages[index].execution_group = this;
-      m_work_packages[index].chunk_number = index;
-      determineChunkRect(&m_work_packages[index].rect, index);
+  work_packages_.clear();
+  if (chunks_len_ != 0) {
+    work_packages_.resize(chunks_len_);
+    for (unsigned int index = 0; index < chunks_len_; index++) {
+      work_packages_[index].type = eWorkPackageType::Tile;
+      work_packages_[index].state = eWorkPackageState::NotScheduled;
+      work_packages_[index].execution_group = this;
+      work_packages_[index].chunk_number = index;
+      determine_chunk_rect(&work_packages_[index].rect, index);
     }
   }
 }
@@ -169,68 +154,68 @@ void ExecutionGroup::init_work_packages()
 void ExecutionGroup::init_read_buffer_operations()
 {
   unsigned int max_offset = 0;
-  for (NodeOperation *operation : m_operations) {
+  for (NodeOperation *operation : operations_) {
     if (operation->get_flags().is_read_buffer_operation) {
-      ReadBufferOperation *readOperation = static_cast<ReadBufferOperation *>(operation);
-      this->m_read_operations.append(readOperation);
-      max_offset = MAX2(max_offset, readOperation->getOffset());
+      ReadBufferOperation *read_operation = static_cast<ReadBufferOperation *>(operation);
+      read_operations_.append(read_operation);
+      max_offset = MAX2(max_offset, read_operation->get_offset());
     }
   }
   max_offset++;
-  this->m_max_read_buffer_offset = max_offset;
+  max_read_buffer_offset_ = max_offset;
 }
 
-void ExecutionGroup::initExecution()
+void ExecutionGroup::init_execution()
 {
   init_number_of_chunks();
   init_work_packages();
   init_read_buffer_operations();
 }
 
-void ExecutionGroup::deinitExecution()
+void ExecutionGroup::deinit_execution()
 {
-  m_work_packages.clear();
-  this->m_chunks_len = 0;
-  this->m_x_chunks_len = 0;
-  this->m_y_chunks_len = 0;
-  this->m_read_operations.clear();
-  this->m_bTree = nullptr;
+  work_packages_.clear();
+  chunks_len_ = 0;
+  x_chunks_len_ = 0;
+  y_chunks_len_ = 0;
+  read_operations_.clear();
+  bTree_ = nullptr;
 }
 
-void ExecutionGroup::determineResolution(unsigned int resolution[2])
+void ExecutionGroup::determine_resolution(unsigned int resolution[2])
 {
-  NodeOperation *operation = this->getOutputOperation();
-  resolution[0] = operation->getWidth();
-  resolution[1] = operation->getHeight();
-  this->setResolution(resolution);
-  BLI_rcti_init(&this->m_viewerBorder, 0, this->m_width, 0, this->m_height);
+  NodeOperation *operation = this->get_output_operation();
+  resolution[0] = operation->get_width();
+  resolution[1] = operation->get_height();
+  this->set_resolution(resolution);
+  BLI_rcti_init(&viewer_border_, 0, width_, 0, height_);
 }
 
 void ExecutionGroup::init_number_of_chunks()
 {
-  if (this->m_flags.single_threaded) {
-    this->m_x_chunks_len = 1;
-    this->m_y_chunks_len = 1;
-    this->m_chunks_len = 1;
+  if (flags_.single_threaded) {
+    x_chunks_len_ = 1;
+    y_chunks_len_ = 1;
+    chunks_len_ = 1;
   }
   else {
-    const float chunkSizef = this->m_chunkSize;
-    const int border_width = BLI_rcti_size_x(&this->m_viewerBorder);
-    const int border_height = BLI_rcti_size_y(&this->m_viewerBorder);
-    this->m_x_chunks_len = ceil(border_width / chunkSizef);
-    this->m_y_chunks_len = ceil(border_height / chunkSizef);
-    this->m_chunks_len = this->m_x_chunks_len * this->m_y_chunks_len;
+    const float chunk_sizef = chunk_size_;
+    const int border_width = BLI_rcti_size_x(&viewer_border_);
+    const int border_height = BLI_rcti_size_y(&viewer_border_);
+    x_chunks_len_ = ceil(border_width / chunk_sizef);
+    y_chunks_len_ = ceil(border_height / chunk_sizef);
+    chunks_len_ = x_chunks_len_ * y_chunks_len_;
   }
 }
 
 blender::Array<unsigned int> ExecutionGroup::get_execution_order() const
 {
-  blender::Array<unsigned int> chunk_order(m_chunks_len);
-  for (int chunk_index = 0; chunk_index < this->m_chunks_len; chunk_index++) {
+  blender::Array<unsigned int> chunk_order(chunks_len_);
+  for (int chunk_index = 0; chunk_index < chunks_len_; chunk_index++) {
     chunk_order[chunk_index] = chunk_index;
   }
 
-  NodeOperation *operation = this->getOutputOperation();
+  NodeOperation *operation = this->get_output_operation();
   float centerX = 0.5f;
   float centerY = 0.5f;
   ChunkOrdering order_type = ChunkOrdering::Default;
@@ -239,11 +224,11 @@ blender::Array<unsigned int> ExecutionGroup::get_execution_order() const
     ViewerOperation *viewer = (ViewerOperation *)operation;
     centerX = viewer->getCenterX();
     centerY = viewer->getCenterY();
-    order_type = viewer->getChunkOrder();
+    order_type = viewer->get_chunk_order();
   }
 
-  const int border_width = BLI_rcti_size_x(&this->m_viewerBorder);
-  const int border_height = BLI_rcti_size_y(&this->m_viewerBorder);
+  const int border_width = BLI_rcti_size_x(&viewer_border_);
+  const int border_height = BLI_rcti_size_y(&viewer_border_);
   int index;
   switch (order_type) {
     case ChunkOrdering::Random: {
@@ -256,17 +241,17 @@ blender::Array<unsigned int> ExecutionGroup::get_execution_order() const
     }
     case ChunkOrdering::CenterOut: {
       ChunkOrderHotspot hotspot(border_width * centerX, border_height * centerY, 0.0f);
-      blender::Array<ChunkOrder> chunk_orders(m_chunks_len);
-      for (index = 0; index < this->m_chunks_len; index++) {
-        const WorkPackage &work_package = m_work_packages[index];
+      blender::Array<ChunkOrder> chunk_orders(chunks_len_);
+      for (index = 0; index < chunks_len_; index++) {
+        const WorkPackage &work_package = work_packages_[index];
         chunk_orders[index].index = index;
-        chunk_orders[index].x = work_package.rect.xmin - this->m_viewerBorder.xmin;
-        chunk_orders[index].y = work_package.rect.ymin - this->m_viewerBorder.ymin;
+        chunk_orders[index].x = work_package.rect.xmin - viewer_border_.xmin;
+        chunk_orders[index].y = work_package.rect.ymin - viewer_border_.ymin;
         chunk_orders[index].update_distance(&hotspot, 1);
       }
 
-      std::sort(&chunk_orders[0], &chunk_orders[this->m_chunks_len - 1]);
-      for (index = 0; index < this->m_chunks_len; index++) {
+      std::sort(&chunk_orders[0], &chunk_orders[chunks_len_ - 1]);
+      for (index = 0; index < chunks_len_; index++) {
         chunk_order[index] = chunk_orders[index].index;
       }
 
@@ -279,7 +264,7 @@ blender::Array<unsigned int> ExecutionGroup::get_execution_order() const
       unsigned int my = border_height / 2;
       unsigned int bx = mx + 2 * tx;
       unsigned int by = my + 2 * ty;
-      float addition = this->m_chunks_len / COM_RULE_OF_THIRDS_DIVIDER;
+      float addition = chunks_len_ / COM_RULE_OF_THIRDS_DIVIDER;
 
       ChunkOrderHotspot hotspots[9]{
           ChunkOrderHotspot(mx, my, addition * 0),
@@ -293,18 +278,18 @@ blender::Array<unsigned int> ExecutionGroup::get_execution_order() const
           ChunkOrderHotspot(mx, by, addition * 8),
       };
 
-      blender::Array<ChunkOrder> chunk_orders(m_chunks_len);
-      for (index = 0; index < this->m_chunks_len; index++) {
-        const WorkPackage &work_package = m_work_packages[index];
+      blender::Array<ChunkOrder> chunk_orders(chunks_len_);
+      for (index = 0; index < chunks_len_; index++) {
+        const WorkPackage &work_package = work_packages_[index];
         chunk_orders[index].index = index;
-        chunk_orders[index].x = work_package.rect.xmin - this->m_viewerBorder.xmin;
-        chunk_orders[index].y = work_package.rect.ymin - this->m_viewerBorder.ymin;
+        chunk_orders[index].x = work_package.rect.xmin - viewer_border_.xmin;
+        chunk_orders[index].y = work_package.rect.ymin - viewer_border_.ymin;
         chunk_orders[index].update_distance(hotspots, 9);
       }
 
-      std::sort(&chunk_orders[0], &chunk_orders[this->m_chunks_len]);
+      std::sort(&chunk_orders[0], &chunk_orders[chunks_len_]);
 
-      for (index = 0; index < this->m_chunks_len; index++) {
+      for (index = 0; index < chunks_len_; index++) {
         chunk_order[index] = chunk_orders[index].index;
       }
 
@@ -323,23 +308,23 @@ blender::Array<unsigned int> ExecutionGroup::get_execution_order() const
  */
 void ExecutionGroup::execute(ExecutionSystem *graph)
 {
-  const CompositorContext &context = graph->getContext();
-  const bNodeTree *bTree = context.getbNodeTree();
-  if (this->m_width == 0 || this->m_height == 0) {
+  const CompositorContext &context = graph->get_context();
+  const bNodeTree *bTree = context.get_bnodetree();
+  if (width_ == 0 || height_ == 0) {
     return;
   } /** \note Break out... no pixels to calculate. */
   if (bTree->test_break && bTree->test_break(bTree->tbh)) {
     return;
   } /** \note Early break out for blur and preview nodes. */
-  if (this->m_chunks_len == 0) {
+  if (chunks_len_ == 0) {
     return;
   } /** \note Early break out. */
   unsigned int chunk_index;
 
-  this->m_executionStartTime = PIL_check_seconds_timer();
+  execution_start_time_ = PIL_check_seconds_timer();
 
-  this->m_chunks_finished = 0;
-  this->m_bTree = bTree;
+  chunks_finished_ = 0;
+  bTree_ = bTree;
 
   blender::Array<unsigned int> chunk_order = get_execution_order();
 
@@ -348,27 +333,26 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 
   bool breaked = false;
   bool finished = false;
-  unsigned int startIndex = 0;
-  const int maxNumberEvaluated = BLI_system_thread_count() * 2;
+  unsigned int start_index = 0;
+  const int max_number_evaluated = BLI_system_thread_count() * 2;
 
   while (!finished && !breaked) {
-    bool startEvaluated = false;
+    bool start_evaluated = false;
     finished = true;
-    int numberEvaluated = 0;
+    int number_evaluated = 0;
 
-    for (int index = startIndex;
-         index < this->m_chunks_len && numberEvaluated < maxNumberEvaluated;
+    for (int index = start_index; index < chunks_len_ && number_evaluated < max_number_evaluated;
          index++) {
       chunk_index = chunk_order[index];
-      int yChunk = chunk_index / this->m_x_chunks_len;
-      int xChunk = chunk_index - (yChunk * this->m_x_chunks_len);
-      const WorkPackage &work_package = m_work_packages[chunk_index];
+      int y_chunk = chunk_index / x_chunks_len_;
+      int x_chunk = chunk_index - (y_chunk * x_chunks_len_);
+      const WorkPackage &work_package = work_packages_[chunk_index];
       switch (work_package.state) {
         case eWorkPackageState::NotScheduled: {
-          scheduleChunkWhenPossible(graph, xChunk, yChunk);
+          schedule_chunk_when_possible(graph, x_chunk, y_chunk);
           finished = false;
-          startEvaluated = true;
-          numberEvaluated++;
+          start_evaluated = true;
+          number_evaluated++;
 
           if (bTree->update_draw) {
             bTree->update_draw(bTree->udh);
@@ -377,13 +361,13 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
         }
         case eWorkPackageState::Scheduled: {
           finished = false;
-          startEvaluated = true;
-          numberEvaluated++;
+          start_evaluated = true;
+          number_evaluated++;
           break;
         }
         case eWorkPackageState::Executed: {
-          if (!startEvaluated) {
-            startIndex = index + 1;
+          if (!start_evaluated) {
+            start_index = index + 1;
           }
         }
       };
@@ -399,139 +383,135 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
   DebugInfo::graphviz(graph);
 }
 
-MemoryBuffer **ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
+MemoryBuffer **ExecutionGroup::get_input_buffers_opencl(int chunk_number)
 {
-  WorkPackage &work_package = m_work_packages[chunkNumber];
+  WorkPackage &work_package = work_packages_[chunk_number];
 
-  MemoryBuffer **memoryBuffers = (MemoryBuffer **)MEM_callocN(
-      sizeof(MemoryBuffer *) * this->m_max_read_buffer_offset, __func__);
+  MemoryBuffer **memory_buffers = (MemoryBuffer **)MEM_callocN(
+      sizeof(MemoryBuffer *) * max_read_buffer_offset_, __func__);
   rcti output;
-  for (ReadBufferOperation *readOperation : m_read_operations) {
-    MemoryProxy *memoryProxy = readOperation->getMemoryProxy();
-    this->determineDependingAreaOfInterest(&work_package.rect, readOperation, &output);
-    MemoryBuffer *memoryBuffer = memoryProxy->getExecutor()->constructConsolidatedMemoryBuffer(
-        *memoryProxy, output);
-    memoryBuffers[readOperation->getOffset()] = memoryBuffer;
+  for (ReadBufferOperation *read_operation : read_operations_) {
+    MemoryProxy *memory_proxy = read_operation->get_memory_proxy();
+    this->determine_depending_area_of_interest(&work_package.rect, read_operation, &output);
+    MemoryBuffer *memory_buffer =
+        memory_proxy->get_executor()->construct_consolidated_memory_buffer(*memory_proxy, output);
+    memory_buffers[read_operation->get_offset()] = memory_buffer;
   }
-  return memoryBuffers;
+  return memory_buffers;
 }
 
-MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy &memoryProxy,
-                                                                rcti &rect)
+MemoryBuffer *ExecutionGroup::construct_consolidated_memory_buffer(MemoryProxy &memory_proxy,
+                                                                   rcti &rect)
 {
-  MemoryBuffer *imageBuffer = memoryProxy.getBuffer();
-  MemoryBuffer *result = new MemoryBuffer(&memoryProxy, rect, MemoryBufferState::Temporary);
-  result->fill_from(*imageBuffer);
+  MemoryBuffer *image_buffer = memory_proxy.get_buffer();
+  MemoryBuffer *result = new MemoryBuffer(&memory_proxy, rect, MemoryBufferState::Temporary);
+  result->fill_from(*image_buffer);
   return result;
 }
 
-void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memoryBuffers)
+void ExecutionGroup::finalize_chunk_execution(int chunk_number, MemoryBuffer **memory_buffers)
 {
-  WorkPackage &work_package = m_work_packages[chunkNumber];
+  WorkPackage &work_package = work_packages_[chunk_number];
   if (work_package.state == eWorkPackageState::Scheduled) {
     work_package.state = eWorkPackageState::Executed;
   }
 
-  atomic_add_and_fetch_u(&this->m_chunks_finished, 1);
-  if (memoryBuffers) {
-    for (unsigned int index = 0; index < this->m_max_read_buffer_offset; index++) {
-      MemoryBuffer *buffer = memoryBuffers[index];
+  atomic_add_and_fetch_u(&chunks_finished_, 1);
+  if (memory_buffers) {
+    for (unsigned int index = 0; index < max_read_buffer_offset_; index++) {
+      MemoryBuffer *buffer = memory_buffers[index];
       if (buffer) {
-        if (buffer->isTemporarily()) {
-          memoryBuffers[index] = nullptr;
+        if (buffer->is_temporarily()) {
+          memory_buffers[index] = nullptr;
           delete buffer;
         }
       }
     }
-    MEM_freeN(memoryBuffers);
+    MEM_freeN(memory_buffers);
   }
-  if (this->m_bTree) {
+  if (bTree_) {
     /* Status report is only performed for top level Execution Groups. */
-    float progress = this->m_chunks_finished;
-    progress /= this->m_chunks_len;
-    this->m_bTree->progress(this->m_bTree->prh, progress);
+    float progress = chunks_finished_;
+    progress /= chunks_len_;
+    bTree_->progress(bTree_->prh, progress);
 
     char buf[128];
-    BLI_snprintf(buf,
-                 sizeof(buf),
-                 TIP_("Compositing | Tile %u-%u"),
-                 this->m_chunks_finished,
-                 this->m_chunks_len);
-    this->m_bTree->stats_draw(this->m_bTree->sdh, buf);
+    BLI_snprintf(
+        buf, sizeof(buf), TIP_("Compositing | Tile %u-%u"), chunks_finished_, chunks_len_);
+    bTree_->stats_draw(bTree_->sdh, buf);
   }
 }
 
-inline void ExecutionGroup::determineChunkRect(rcti *r_rect,
-                                               const unsigned int xChunk,
-                                               const unsigned int yChunk) const
+inline void ExecutionGroup::determine_chunk_rect(rcti *r_rect,
+                                                 const unsigned int x_chunk,
+                                                 const unsigned int y_chunk) const
 {
-  const int border_width = BLI_rcti_size_x(&this->m_viewerBorder);
-  const int border_height = BLI_rcti_size_y(&this->m_viewerBorder);
+  const int border_width = BLI_rcti_size_x(&viewer_border_);
+  const int border_height = BLI_rcti_size_y(&viewer_border_);
 
-  if (this->m_flags.single_threaded) {
-    BLI_rcti_init(
-        r_rect, this->m_viewerBorder.xmin, border_width, this->m_viewerBorder.ymin, border_height);
+  if (flags_.single_threaded) {
+    BLI_rcti_init(r_rect, viewer_border_.xmin, border_width, viewer_border_.ymin, border_height);
   }
   else {
-    const unsigned int minx = xChunk * this->m_chunkSize + this->m_viewerBorder.xmin;
-    const unsigned int miny = yChunk * this->m_chunkSize + this->m_viewerBorder.ymin;
-    const unsigned int width = MIN2((unsigned int)this->m_viewerBorder.xmax, this->m_width);
-    const unsigned int height = MIN2((unsigned int)this->m_viewerBorder.ymax, this->m_height);
+    const unsigned int minx = x_chunk * chunk_size_ + viewer_border_.xmin;
+    const unsigned int miny = y_chunk * chunk_size_ + viewer_border_.ymin;
+    const unsigned int width = MIN2((unsigned int)viewer_border_.xmax, width_);
+    const unsigned int height = MIN2((unsigned int)viewer_border_.ymax, height_);
     BLI_rcti_init(r_rect,
-                  MIN2(minx, this->m_width),
-                  MIN2(minx + this->m_chunkSize, width),
-                  MIN2(miny, this->m_height),
-                  MIN2(miny + this->m_chunkSize, height));
+                  MIN2(minx, width_),
+                  MIN2(minx + chunk_size_, width),
+                  MIN2(miny, height_),
+                  MIN2(miny + chunk_size_, height));
   }
 }
 
-void ExecutionGroup::determineChunkRect(rcti *r_rect, const unsigned int chunkNumber) const
+void ExecutionGroup::determine_chunk_rect(rcti *r_rect, const unsigned int chunk_number) const
 {
-  const unsigned int yChunk = chunkNumber / this->m_x_chunks_len;
-  const unsigned int xChunk = chunkNumber - (yChunk * this->m_x_chunks_len);
-  determineChunkRect(r_rect, xChunk, yChunk);
+  const unsigned int y_chunk = chunk_number / x_chunks_len_;
+  const unsigned int x_chunk = chunk_number - (y_chunk * x_chunks_len_);
+  determine_chunk_rect(r_rect, x_chunk, y_chunk);
 }
 
-MemoryBuffer *ExecutionGroup::allocateOutputBuffer(rcti &rect)
+MemoryBuffer *ExecutionGroup::allocate_output_buffer(rcti &rect)
 {
   /* We assume that this method is only called from complex execution groups. */
-  NodeOperation *operation = this->getOutputOperation();
+  NodeOperation *operation = this->get_output_operation();
   if (operation->get_flags().is_write_buffer_operation) {
-    WriteBufferOperation *writeOperation = (WriteBufferOperation *)operation;
+    WriteBufferOperation *write_operation = (WriteBufferOperation *)operation;
     MemoryBuffer *buffer = new MemoryBuffer(
-        writeOperation->getMemoryProxy(), rect, MemoryBufferState::Temporary);
+        write_operation->get_memory_proxy(), rect, MemoryBufferState::Temporary);
     return buffer;
   }
   return nullptr;
 }
 
-bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area)
+bool ExecutionGroup::schedule_area_when_possible(ExecutionSystem *graph, rcti *area)
 {
-  if (this->m_flags.single_threaded) {
-    return scheduleChunkWhenPossible(graph, 0, 0);
+  if (flags_.single_threaded) {
+    return schedule_chunk_when_possible(graph, 0, 0);
   }
   /* Find all chunks inside the rect
    * determine `minxchunk`, `minychunk`, `maxxchunk`, `maxychunk`
    * where x and y are chunk-numbers. */
 
   int indexx, indexy;
-  int minx = max_ii(area->xmin - m_viewerBorder.xmin, 0);
-  int maxx = min_ii(area->xmax - m_viewerBorder.xmin, m_viewerBorder.xmax - m_viewerBorder.xmin);
-  int miny = max_ii(area->ymin - m_viewerBorder.ymin, 0);
-  int maxy = min_ii(area->ymax - m_viewerBorder.ymin, m_viewerBorder.ymax - m_viewerBorder.ymin);
-  int minxchunk = minx / (int)m_chunkSize;
-  int maxxchunk = (maxx + (int)m_chunkSize - 1) / (int)m_chunkSize;
-  int minychunk = miny / (int)m_chunkSize;
-  int maxychunk = (maxy + (int)m_chunkSize - 1) / (int)m_chunkSize;
+  int minx = max_ii(area->xmin - viewer_border_.xmin, 0);
+  int maxx = min_ii(area->xmax - viewer_border_.xmin, viewer_border_.xmax - viewer_border_.xmin);
+  int miny = max_ii(area->ymin - viewer_border_.ymin, 0);
+  int maxy = min_ii(area->ymax - viewer_border_.ymin, viewer_border_.ymax - viewer_border_.ymin);
+  int minxchunk = minx / (int)chunk_size_;
+  int maxxchunk = (maxx + (int)chunk_size_ - 1) / (int)chunk_size_;
+  int minychunk = miny / (int)chunk_size_;
+  int maxychunk = (maxy + (int)chunk_size_ - 1) / (int)chunk_size_;
   minxchunk = max_ii(minxchunk, 0);
   minychunk = max_ii(minychunk, 0);
-  maxxchunk = min_ii(maxxchunk, (int)m_x_chunks_len);
-  maxychunk = min_ii(maxychunk, (int)m_y_chunks_len);
+  maxxchunk = min_ii(maxxchunk, (int)x_chunks_len_);
+  maxychunk = min_ii(maxychunk, (int)y_chunks_len_);
 
   bool result = true;
   for (indexx = minxchunk; indexx < maxxchunk; indexx++) {
     for (indexy = minychunk; indexy < maxychunk; indexy++) {
-      if (!scheduleChunkWhenPossible(graph, indexx, indexy)) {
+      if (!schedule_chunk_when_possible(graph, indexx, indexy)) {
         result = false;
       }
     }
@@ -540,9 +520,9 @@ bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area
   return result;
 }
 
-bool ExecutionGroup::scheduleChunk(unsigned int chunkNumber)
+bool ExecutionGroup::schedule_chunk(unsigned int chunk_number)
 {
-  WorkPackage &work_package = m_work_packages[chunkNumber];
+  WorkPackage &work_package = work_packages_[chunk_number];
   if (work_package.state == eWorkPackageState::NotScheduled) {
     work_package.state = eWorkPackageState::Scheduled;
     WorkScheduler::schedule(&work_package);
@@ -551,20 +531,20 @@ bool ExecutionGroup::scheduleChunk(unsigned int chunkNumber)
   return false;
 }
 
-bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph,
-                                               const int chunk_x,
-                                               const int chunk_y)
+bool ExecutionGroup::schedule_chunk_when_possible(ExecutionSystem *graph,
+                                                  const int chunk_x,
+                                                  const int chunk_y)
 {
-  if (chunk_x < 0 || chunk_x >= (int)this->m_x_chunks_len) {
+  if (chunk_x < 0 || chunk_x >= (int)x_chunks_len_) {
     return true;
   }
-  if (chunk_y < 0 || chunk_y >= (int)this->m_y_chunks_len) {
+  if (chunk_y < 0 || chunk_y >= (int)y_chunks_len_) {
     return true;
   }
 
   /* Check if chunk is already executed or scheduled and not yet executed. */
-  const int chunk_index = chunk_y * this->m_x_chunks_len + chunk_x;
-  WorkPackage &work_package = m_work_packages[chunk_index];
+  const int chunk_index = chunk_y * x_chunks_len_ + chunk_x;
+  WorkPackage &work_package = work_packages_[chunk_index];
   if (work_package.state == eWorkPackageState::Executed) {
     return true;
   }
@@ -575,52 +555,45 @@ bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph,
   bool can_be_executed = true;
   rcti area;
 
-  for (ReadBufferOperation *read_operation : m_read_operations) {
+  for (ReadBufferOperation *read_operation : read_operations_) {
     BLI_rcti_init(&area, 0, 0, 0, 0);
-    MemoryProxy *memory_proxy = read_operation->getMemoryProxy();
-    determineDependingAreaOfInterest(&work_package.rect, read_operation, &area);
-    ExecutionGroup *group = memory_proxy->getExecutor();
+    MemoryProxy *memory_proxy = read_operation->get_memory_proxy();
+    determine_depending_area_of_interest(&work_package.rect, read_operation, &area);
+    ExecutionGroup *group = memory_proxy->get_executor();
 
-    if (!group->scheduleAreaWhenPossible(graph, &area)) {
+    if (!group->schedule_area_when_possible(graph, &area)) {
       can_be_executed = false;
     }
   }
 
   if (can_be_executed) {
-    scheduleChunk(chunk_index);
+    schedule_chunk(chunk_index);
   }
 
   return false;
 }
 
-void ExecutionGroup::determineDependingAreaOfInterest(rcti *input,
-                                                      ReadBufferOperation *readOperation,
-                                                      rcti *output)
+void ExecutionGroup::determine_depending_area_of_interest(rcti *input,
+                                                          ReadBufferOperation *read_operation,
+                                                          rcti *output)
 {
-  this->getOutputOperation()->determineDependingAreaOfInterest(input, readOperation, output);
+  this->get_output_operation()->determine_depending_area_of_interest(
+      input, read_operation, output);
 }
 
-void ExecutionGroup::setViewerBorder(float xmin, float xmax, float ymin, float ymax)
+void ExecutionGroup::set_viewer_border(float xmin, float xmax, float ymin, float ymax)
 {
-  const NodeOperation &operation = *this->getOutputOperation();
+  const NodeOperation &operation = *this->get_output_operation();
   if (operation.get_flags().use_viewer_border) {
-    BLI_rcti_init(&this->m_viewerBorder,
-                  xmin * this->m_width,
-                  xmax * this->m_width,
-                  ymin * this->m_height,
-                  ymax * this->m_height);
+    BLI_rcti_init(&viewer_border_, xmin * width_, xmax * width_, ymin * height_, ymax * height_);
   }
 }
 
-void ExecutionGroup::setRenderBorder(float xmin, float xmax, float ymin, float ymax)
+void ExecutionGroup::set_render_border(float xmin, float xmax, float ymin, float ymax)
 {
-  const NodeOperation &operation = *this->getOutputOperation();
-  if (operation.isOutputOperation(true) && operation.get_flags().use_render_border) {
-    BLI_rcti_init(&this->m_viewerBorder,
-                  xmin * this->m_width,
-                  xmax * this->m_width,
-                  ymin * this->m_height,
-                  ymax * this->m_height);
+  const NodeOperation &operation = *this->get_output_operation();
+  if (operation.is_output_operation(true) && operation.get_flags().use_render_border) {
+    BLI_rcti_init(&viewer_border_, xmin * width_, xmax * width_, ymin * height_, ymax * height_);
   }
 }
 

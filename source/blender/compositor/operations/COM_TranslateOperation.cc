@@ -25,68 +25,68 @@ TranslateOperation::TranslateOperation() : TranslateOperation(DataType::Color)
 }
 TranslateOperation::TranslateOperation(DataType data_type, ResizeMode resize_mode)
 {
-  this->addInputSocket(data_type, resize_mode);
-  this->addInputSocket(DataType::Value, ResizeMode::None);
-  this->addInputSocket(DataType::Value, ResizeMode::None);
-  this->addOutputSocket(data_type);
+  this->add_input_socket(data_type, resize_mode);
+  this->add_input_socket(DataType::Value, ResizeMode::None);
+  this->add_input_socket(DataType::Value, ResizeMode::None);
+  this->add_output_socket(data_type);
   this->set_canvas_input_index(0);
-  this->m_inputOperation = nullptr;
-  this->m_inputXOperation = nullptr;
-  this->m_inputYOperation = nullptr;
-  this->m_isDeltaSet = false;
-  this->m_factorX = 1.0f;
-  this->m_factorY = 1.0f;
+  input_operation_ = nullptr;
+  input_xoperation_ = nullptr;
+  input_yoperation_ = nullptr;
+  is_delta_set_ = false;
+  factor_x_ = 1.0f;
+  factor_y_ = 1.0f;
   this->x_extend_mode_ = MemoryBufferExtend::Clip;
   this->y_extend_mode_ = MemoryBufferExtend::Clip;
 }
 
-void TranslateOperation::initExecution()
+void TranslateOperation::init_execution()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
-  this->m_inputXOperation = this->getInputSocketReader(1);
-  this->m_inputYOperation = this->getInputSocketReader(2);
+  input_operation_ = this->get_input_socket_reader(0);
+  input_xoperation_ = this->get_input_socket_reader(1);
+  input_yoperation_ = this->get_input_socket_reader(2);
 }
 
-void TranslateOperation::deinitExecution()
+void TranslateOperation::deinit_execution()
 {
-  this->m_inputOperation = nullptr;
-  this->m_inputXOperation = nullptr;
-  this->m_inputYOperation = nullptr;
+  input_operation_ = nullptr;
+  input_xoperation_ = nullptr;
+  input_yoperation_ = nullptr;
 }
 
-void TranslateOperation::executePixelSampled(float output[4],
-                                             float x,
-                                             float y,
-                                             PixelSampler /*sampler*/)
+void TranslateOperation::execute_pixel_sampled(float output[4],
+                                               float x,
+                                               float y,
+                                               PixelSampler /*sampler*/)
 {
-  ensureDelta();
+  ensure_delta();
 
-  float originalXPos = x - this->getDeltaX();
-  float originalYPos = y - this->getDeltaY();
+  float original_xpos = x - this->getDeltaX();
+  float original_ypos = y - this->getDeltaY();
 
-  this->m_inputOperation->readSampled(output, originalXPos, originalYPos, PixelSampler::Bilinear);
+  input_operation_->read_sampled(output, original_xpos, original_ypos, PixelSampler::Bilinear);
 }
 
-bool TranslateOperation::determineDependingAreaOfInterest(rcti *input,
-                                                          ReadBufferOperation *readOperation,
-                                                          rcti *output)
+bool TranslateOperation::determine_depending_area_of_interest(rcti *input,
+                                                              ReadBufferOperation *read_operation,
+                                                              rcti *output)
 {
-  rcti newInput;
+  rcti new_input;
 
-  ensureDelta();
+  ensure_delta();
 
-  newInput.xmin = input->xmin - this->getDeltaX();
-  newInput.xmax = input->xmax - this->getDeltaX();
-  newInput.ymin = input->ymin - this->getDeltaY();
-  newInput.ymax = input->ymax - this->getDeltaY();
+  new_input.xmin = input->xmin - this->getDeltaX();
+  new_input.xmax = input->xmax - this->getDeltaX();
+  new_input.ymin = input->ymin - this->getDeltaY();
+  new_input.ymax = input->ymax - this->getDeltaY();
 
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void TranslateOperation::setFactorXY(float factorX, float factorY)
 {
-  m_factorX = factorX;
-  m_factorY = factorY;
+  factor_x_ = factorX;
+  factor_y_ = factorY;
 }
 
 void TranslateOperation::set_wrapping(int wrapping_type)
@@ -112,7 +112,7 @@ void TranslateOperation::get_area_of_interest(const int input_idx,
                                               rcti &r_input_area)
 {
   if (input_idx == 0) {
-    ensureDelta();
+    ensure_delta();
     r_input_area = output_area;
     if (x_extend_mode_ == MemoryBufferExtend::Clip) {
       const int delta_x = this->getDeltaX();
@@ -154,15 +154,15 @@ TranslateCanvasOperation::TranslateCanvasOperation()
 void TranslateCanvasOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   const bool determined =
-      getInputSocket(IMAGE_INPUT_INDEX)->determine_canvas(preferred_area, r_area);
+      get_input_socket(IMAGE_INPUT_INDEX)->determine_canvas(preferred_area, r_area);
   if (determined) {
-    NodeOperationInput *x_socket = getInputSocket(X_INPUT_INDEX);
-    NodeOperationInput *y_socket = getInputSocket(Y_INPUT_INDEX);
+    NodeOperationInput *x_socket = get_input_socket(X_INPUT_INDEX);
+    NodeOperationInput *y_socket = get_input_socket(Y_INPUT_INDEX);
     rcti unused;
     x_socket->determine_canvas(r_area, unused);
     y_socket->determine_canvas(r_area, unused);
 
-    ensureDelta();
+    ensure_delta();
     const float delta_x = x_extend_mode_ == MemoryBufferExtend::Clip ? getDeltaX() : 0.0f;
     const float delta_y = y_extend_mode_ == MemoryBufferExtend::Clip ? getDeltaY() : 0.0f;
     BLI_rcti_translate(&r_area, delta_x, delta_y);

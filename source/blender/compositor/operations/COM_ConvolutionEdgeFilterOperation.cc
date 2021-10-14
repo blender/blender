@@ -17,11 +17,10 @@
  */
 
 #include "COM_ConvolutionEdgeFilterOperation.h"
-#include "BLI_math.h"
 
 namespace blender::compositor {
 
-void ConvolutionEdgeFilterOperation::executePixel(float output[4], int x, int y, void * /*data*/)
+void ConvolutionEdgeFilterOperation::execute_pixel(float output[4], int x, int y, void * /*data*/)
 {
   float in1[4], in2[4], res1[4] = {0.0}, res2[4] = {0.0};
 
@@ -31,52 +30,52 @@ void ConvolutionEdgeFilterOperation::executePixel(float output[4], int x, int y,
   int y1 = y - 1;
   int y2 = y;
   int y3 = y + 1;
-  CLAMP(x1, 0, getWidth() - 1);
-  CLAMP(x2, 0, getWidth() - 1);
-  CLAMP(x3, 0, getWidth() - 1);
-  CLAMP(y1, 0, getHeight() - 1);
-  CLAMP(y2, 0, getHeight() - 1);
-  CLAMP(y3, 0, getHeight() - 1);
+  CLAMP(x1, 0, get_width() - 1);
+  CLAMP(x2, 0, get_width() - 1);
+  CLAMP(x3, 0, get_width() - 1);
+  CLAMP(y1, 0, get_height() - 1);
+  CLAMP(y2, 0, get_height() - 1);
+  CLAMP(y3, 0, get_height() - 1);
 
   float value[4];
-  this->m_inputValueOperation->read(value, x2, y2, nullptr);
+  input_value_operation_->read(value, x2, y2, nullptr);
   float mval = 1.0f - value[0];
 
-  this->m_inputOperation->read(in1, x1, y1, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[0]);
-  madd_v3_v3fl(res2, in1, this->m_filter[0]);
+  input_operation_->read(in1, x1, y1, nullptr);
+  madd_v3_v3fl(res1, in1, filter_[0]);
+  madd_v3_v3fl(res2, in1, filter_[0]);
 
-  this->m_inputOperation->read(in1, x2, y1, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[1]);
-  madd_v3_v3fl(res2, in1, this->m_filter[3]);
+  input_operation_->read(in1, x2, y1, nullptr);
+  madd_v3_v3fl(res1, in1, filter_[1]);
+  madd_v3_v3fl(res2, in1, filter_[3]);
 
-  this->m_inputOperation->read(in1, x3, y1, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[2]);
-  madd_v3_v3fl(res2, in1, this->m_filter[6]);
+  input_operation_->read(in1, x3, y1, nullptr);
+  madd_v3_v3fl(res1, in1, filter_[2]);
+  madd_v3_v3fl(res2, in1, filter_[6]);
 
-  this->m_inputOperation->read(in1, x1, y2, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[3]);
-  madd_v3_v3fl(res2, in1, this->m_filter[1]);
+  input_operation_->read(in1, x1, y2, nullptr);
+  madd_v3_v3fl(res1, in1, filter_[3]);
+  madd_v3_v3fl(res2, in1, filter_[1]);
 
-  this->m_inputOperation->read(in2, x2, y2, nullptr);
-  madd_v3_v3fl(res1, in2, this->m_filter[4]);
-  madd_v3_v3fl(res2, in2, this->m_filter[4]);
+  input_operation_->read(in2, x2, y2, nullptr);
+  madd_v3_v3fl(res1, in2, filter_[4]);
+  madd_v3_v3fl(res2, in2, filter_[4]);
 
-  this->m_inputOperation->read(in1, x3, y2, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[5]);
-  madd_v3_v3fl(res2, in1, this->m_filter[7]);
+  input_operation_->read(in1, x3, y2, nullptr);
+  madd_v3_v3fl(res1, in1, filter_[5]);
+  madd_v3_v3fl(res2, in1, filter_[7]);
 
-  this->m_inputOperation->read(in1, x1, y3, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[6]);
-  madd_v3_v3fl(res2, in1, this->m_filter[2]);
+  input_operation_->read(in1, x1, y3, nullptr);
+  madd_v3_v3fl(res1, in1, filter_[6]);
+  madd_v3_v3fl(res2, in1, filter_[2]);
 
-  this->m_inputOperation->read(in1, x2, y3, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[7]);
-  madd_v3_v3fl(res2, in1, this->m_filter[5]);
+  input_operation_->read(in1, x2, y3, nullptr);
+  madd_v3_v3fl(res1, in1, filter_[7]);
+  madd_v3_v3fl(res2, in1, filter_[5]);
 
-  this->m_inputOperation->read(in1, x3, y3, nullptr);
-  madd_v3_v3fl(res1, in1, this->m_filter[8]);
-  madd_v3_v3fl(res2, in1, this->m_filter[8]);
+  input_operation_->read(in1, x3, y3, nullptr);
+  madd_v3_v3fl(res1, in1, filter_[8]);
+  madd_v3_v3fl(res2, in1, filter_[8]);
 
   output[0] = sqrt(res1[0] * res1[0] + res2[0] * res2[0]);
   output[1] = sqrt(res1[1] * res1[1] + res2[1] * res2[1]);
@@ -100,8 +99,8 @@ void ConvolutionEdgeFilterOperation::update_memory_buffer_partial(MemoryBuffer *
                                                                   Span<MemoryBuffer *> inputs)
 {
   const MemoryBuffer *image = inputs[IMAGE_INPUT_INDEX];
-  const int last_x = getWidth() - 1;
-  const int last_y = getHeight() - 1;
+  const int last_x = get_width() - 1;
+  const int last_y = get_height() - 1;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     const int left_offset = (it.x == 0) ? 0 : -image->elem_stride;
     const int right_offset = (it.x == last_x) ? 0 : image->elem_stride;
@@ -113,44 +112,44 @@ void ConvolutionEdgeFilterOperation::update_memory_buffer_partial(MemoryBuffer *
     float res2[4] = {0};
 
     const float *color = center_color + down_offset + left_offset;
-    madd_v3_v3fl(res1, color, m_filter[0]);
+    madd_v3_v3fl(res1, color, filter_[0]);
     copy_v3_v3(res2, res1);
 
     color = center_color + down_offset;
-    madd_v3_v3fl(res1, color, m_filter[1]);
-    madd_v3_v3fl(res2, color, m_filter[3]);
+    madd_v3_v3fl(res1, color, filter_[1]);
+    madd_v3_v3fl(res2, color, filter_[3]);
 
     color = center_color + down_offset + right_offset;
-    madd_v3_v3fl(res1, color, m_filter[2]);
-    madd_v3_v3fl(res2, color, m_filter[6]);
+    madd_v3_v3fl(res1, color, filter_[2]);
+    madd_v3_v3fl(res2, color, filter_[6]);
 
     color = center_color + left_offset;
-    madd_v3_v3fl(res1, color, m_filter[3]);
-    madd_v3_v3fl(res2, color, m_filter[1]);
+    madd_v3_v3fl(res1, color, filter_[3]);
+    madd_v3_v3fl(res2, color, filter_[1]);
 
     {
       float rgb_filtered[3];
-      mul_v3_v3fl(rgb_filtered, center_color, m_filter[4]);
+      mul_v3_v3fl(rgb_filtered, center_color, filter_[4]);
       add_v3_v3(res1, rgb_filtered);
       add_v3_v3(res2, rgb_filtered);
     }
 
     color = center_color + right_offset;
-    madd_v3_v3fl(res1, color, m_filter[5]);
-    madd_v3_v3fl(res2, color, m_filter[7]);
+    madd_v3_v3fl(res1, color, filter_[5]);
+    madd_v3_v3fl(res2, color, filter_[7]);
 
     color = center_color + up_offset + left_offset;
-    madd_v3_v3fl(res1, color, m_filter[6]);
-    madd_v3_v3fl(res2, color, m_filter[2]);
+    madd_v3_v3fl(res1, color, filter_[6]);
+    madd_v3_v3fl(res2, color, filter_[2]);
 
     color = center_color + up_offset;
-    madd_v3_v3fl(res1, color, m_filter[7]);
-    madd_v3_v3fl(res2, color, m_filter[5]);
+    madd_v3_v3fl(res1, color, filter_[7]);
+    madd_v3_v3fl(res2, color, filter_[5]);
 
     {
       color = center_color + up_offset + right_offset;
       float rgb_filtered[3];
-      mul_v3_v3fl(rgb_filtered, color, m_filter[8]);
+      mul_v3_v3fl(rgb_filtered, color, filter_[8]);
       add_v3_v3(res1, rgb_filtered);
       add_v3_v3(res2, rgb_filtered);
     }
@@ -160,10 +159,10 @@ void ConvolutionEdgeFilterOperation::update_memory_buffer_partial(MemoryBuffer *
     it.out[2] = sqrt(res1[2] * res1[2] + res2[2] * res2[2]);
 
     const float factor = *it.in(FACTOR_INPUT_INDEX);
-    const float m_factor = 1.0f - factor;
-    it.out[0] = it.out[0] * factor + center_color[0] * m_factor;
-    it.out[1] = it.out[1] * factor + center_color[1] * m_factor;
-    it.out[2] = it.out[2] * factor + center_color[2] * m_factor;
+    const float factor_ = 1.0f - factor;
+    it.out[0] = it.out[0] * factor + center_color[0] * factor_;
+    it.out[1] = it.out[1] * factor + center_color[1] * factor_;
+    it.out[2] = it.out[2] * factor + center_color[2] * factor_;
 
     it.out[3] = center_color[3];
 

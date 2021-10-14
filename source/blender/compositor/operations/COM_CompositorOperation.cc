@@ -17,94 +17,86 @@
  */
 
 #include "COM_CompositorOperation.h"
+
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BLI_listbase.h"
-#include "MEM_guardedalloc.h"
-
-#include "BLI_threads.h"
 
 #include "RE_pipeline.h"
-#include "RE_texture.h"
-
-#include "render_types.h"
-
-#include "PIL_time.h"
 
 namespace blender::compositor {
 
 CompositorOperation::CompositorOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Value);
 
-  this->setRenderData(nullptr);
-  this->m_outputBuffer = nullptr;
-  this->m_depthBuffer = nullptr;
-  this->m_imageInput = nullptr;
-  this->m_alphaInput = nullptr;
-  this->m_depthInput = nullptr;
+  this->set_render_data(nullptr);
+  output_buffer_ = nullptr;
+  depth_buffer_ = nullptr;
+  image_input_ = nullptr;
+  alpha_input_ = nullptr;
+  depth_input_ = nullptr;
 
-  this->m_useAlphaInput = false;
-  this->m_active = false;
+  use_alpha_input_ = false;
+  active_ = false;
 
-  this->m_scene = nullptr;
-  this->m_sceneName[0] = '\0';
-  this->m_viewName = nullptr;
+  scene_ = nullptr;
+  scene_name_[0] = '\0';
+  view_name_ = nullptr;
 
-  flags.use_render_border = true;
+  flags_.use_render_border = true;
 }
 
-void CompositorOperation::initExecution()
+void CompositorOperation::init_execution()
 {
-  if (!this->m_active) {
+  if (!active_) {
     return;
   }
 
   /* When initializing the tree during initial load the width and height can be zero. */
-  this->m_imageInput = getInputSocketReader(0);
-  this->m_alphaInput = getInputSocketReader(1);
-  this->m_depthInput = getInputSocketReader(2);
-  if (this->getWidth() * this->getHeight() != 0) {
-    this->m_outputBuffer = (float *)MEM_callocN(
-        sizeof(float[4]) * this->getWidth() * this->getHeight(), "CompositorOperation");
+  image_input_ = get_input_socket_reader(0);
+  alpha_input_ = get_input_socket_reader(1);
+  depth_input_ = get_input_socket_reader(2);
+  if (this->get_width() * this->get_height() != 0) {
+    output_buffer_ = (float *)MEM_callocN(
+        sizeof(float[4]) * this->get_width() * this->get_height(), "CompositorOperation");
   }
-  if (this->m_depthInput != nullptr) {
-    this->m_depthBuffer = (float *)MEM_callocN(
-        sizeof(float) * this->getWidth() * this->getHeight(), "CompositorOperation");
+  if (depth_input_ != nullptr) {
+    depth_buffer_ = (float *)MEM_callocN(sizeof(float) * this->get_width() * this->get_height(),
+                                         "CompositorOperation");
   }
 }
 
-void CompositorOperation::deinitExecution()
+void CompositorOperation::deinit_execution()
 {
-  if (!this->m_active) {
+  if (!active_) {
     return;
   }
 
-  if (!isBraked()) {
-    Render *re = RE_GetSceneRender(this->m_scene);
+  if (!is_braked()) {
+    Render *re = RE_GetSceneRender(scene_);
     RenderResult *rr = RE_AcquireResultWrite(re);
 
     if (rr) {
-      RenderView *rv = RE_RenderViewGetByName(rr, this->m_viewName);
+      RenderView *rv = RE_RenderViewGetByName(rr, view_name_);
 
       if (rv->rectf != nullptr) {
         MEM_freeN(rv->rectf);
       }
-      rv->rectf = this->m_outputBuffer;
+      rv->rectf = output_buffer_;
       if (rv->rectz != nullptr) {
         MEM_freeN(rv->rectz);
       }
-      rv->rectz = this->m_depthBuffer;
+      rv->rectz = depth_buffer_;
       rr->have_combined = true;
     }
     else {
-      if (this->m_outputBuffer) {
-        MEM_freeN(this->m_outputBuffer);
+      if (output_buffer_) {
+        MEM_freeN(output_buffer_);
       }
-      if (this->m_depthBuffer) {
-        MEM_freeN(this->m_depthBuffer);
+      if (depth_buffer_) {
+        MEM_freeN(depth_buffer_);
       }
     }
 
@@ -121,26 +113,26 @@ void CompositorOperation::deinitExecution()
     BLI_thread_unlock(LOCK_DRAW_IMAGE);
   }
   else {
-    if (this->m_outputBuffer) {
-      MEM_freeN(this->m_outputBuffer);
+    if (output_buffer_) {
+      MEM_freeN(output_buffer_);
     }
-    if (this->m_depthBuffer) {
-      MEM_freeN(this->m_depthBuffer);
+    if (depth_buffer_) {
+      MEM_freeN(depth_buffer_);
     }
   }
 
-  this->m_outputBuffer = nullptr;
-  this->m_depthBuffer = nullptr;
-  this->m_imageInput = nullptr;
-  this->m_alphaInput = nullptr;
-  this->m_depthInput = nullptr;
+  output_buffer_ = nullptr;
+  depth_buffer_ = nullptr;
+  image_input_ = nullptr;
+  alpha_input_ = nullptr;
+  depth_input_ = nullptr;
 }
 
-void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
+void CompositorOperation::execute_region(rcti *rect, unsigned int /*tile_number*/)
 {
   float color[8];  // 7 is enough
-  float *buffer = this->m_outputBuffer;
-  float *zbuffer = this->m_depthBuffer;
+  float *buffer = output_buffer_;
+  float *zbuffer = depth_buffer_;
 
   if (!buffer) {
     return;
@@ -149,8 +141,8 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
   int y1 = rect->ymin;
   int x2 = rect->xmax;
   int y2 = rect->ymax;
-  int offset = (y1 * this->getWidth() + x1);
-  int add = (this->getWidth() - (x2 - x1));
+  int offset = (y1 * this->get_width() + x1);
+  int add = (this->get_width() - (x2 - x1));
   int offset4 = offset * COM_DATA_TYPE_COLOR_CHANNELS;
   int x;
   int y;
@@ -158,7 +150,7 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
   int dx = 0, dy = 0;
 
 #if 0
-  const RenderData *rd = this->m_rd;
+  const RenderData *rd = rd_;
 
   if (rd->mode & R_BORDER && rd->mode & R_CROP) {
     /**
@@ -191,8 +183,8 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
     int full_width = rd->xsch * rd->size / 100;
     int full_height = rd->ysch * rd->size / 100;
 
-    dx = rd->border.xmin * full_width - (full_width - this->getWidth()) / 2.0f;
-    dy = rd->border.ymin * full_height - (full_height - this->getHeight()) / 2.0f;
+    dx = rd->border.xmin * full_width - (full_width - this->get_width()) / 2.0f;
+    dy = rd->border.ymin * full_height - (full_height - this->get_height()) / 2.0f;
   }
 #endif
 
@@ -200,18 +192,18 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
     for (x = x1; x < x2 && (!breaked); x++) {
       int input_x = x + dx, input_y = y + dy;
 
-      this->m_imageInput->readSampled(color, input_x, input_y, PixelSampler::Nearest);
-      if (this->m_useAlphaInput) {
-        this->m_alphaInput->readSampled(&(color[3]), input_x, input_y, PixelSampler::Nearest);
+      image_input_->read_sampled(color, input_x, input_y, PixelSampler::Nearest);
+      if (use_alpha_input_) {
+        alpha_input_->read_sampled(&(color[3]), input_x, input_y, PixelSampler::Nearest);
       }
 
       copy_v4_v4(buffer + offset4, color);
 
-      this->m_depthInput->readSampled(color, input_x, input_y, PixelSampler::Nearest);
+      depth_input_->read_sampled(color, input_x, input_y, PixelSampler::Nearest);
       zbuffer[offset] = color[0];
       offset4 += COM_DATA_TYPE_COLOR_CHANNELS;
       offset++;
-      if (isBraked()) {
+      if (is_braked()) {
         breaked = true;
       }
     }
@@ -224,26 +216,26 @@ void CompositorOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(outp
                                                        const rcti &area,
                                                        Span<MemoryBuffer *> inputs)
 {
-  if (!m_outputBuffer) {
+  if (!output_buffer_) {
     return;
   }
-  MemoryBuffer output_buf(m_outputBuffer, COM_DATA_TYPE_COLOR_CHANNELS, getWidth(), getHeight());
+  MemoryBuffer output_buf(output_buffer_, COM_DATA_TYPE_COLOR_CHANNELS, get_width(), get_height());
   output_buf.copy_from(inputs[0], area);
-  if (this->m_useAlphaInput) {
+  if (use_alpha_input_) {
     output_buf.copy_from(inputs[1], area, 0, COM_DATA_TYPE_VALUE_CHANNELS, 3);
   }
-  MemoryBuffer depth_buf(m_depthBuffer, COM_DATA_TYPE_VALUE_CHANNELS, getWidth(), getHeight());
+  MemoryBuffer depth_buf(depth_buffer_, COM_DATA_TYPE_VALUE_CHANNELS, get_width(), get_height());
   depth_buf.copy_from(inputs[2], area);
 }
 
 void CompositorOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
 {
-  int width = this->m_rd->xsch * this->m_rd->size / 100;
-  int height = this->m_rd->ysch * this->m_rd->size / 100;
+  int width = rd_->xsch * rd_->size / 100;
+  int height = rd_->ysch * rd_->size / 100;
 
   /* Check actual render resolution with cropping it may differ with cropped border.rendering
    * Fix for T31777 Border Crop gives black (easy). */
-  Render *re = RE_GetSceneRender(this->m_scene);
+  Render *re = RE_GetSceneRender(scene_);
   if (re) {
     RenderResult *rr = RE_AcquireResultRead(re);
     if (rr) {

@@ -54,46 +54,46 @@ class BokehImageOperation : public MultiThreadedOperation {
   /**
    * \brief Settings of the bokeh image
    */
-  NodeBokehImage *m_data;
+  NodeBokehImage *data_;
 
   /**
    * \brief precalculate center of the image
    */
-  float m_center[2];
+  float center_[2];
 
   /**
    * \brief 1.0-rounding
    */
-  float m_inverseRounding;
+  float inverse_rounding_;
 
   /**
    * \brief distance of a full circle lens
    */
-  float m_circularDistance;
+  float circular_distance_;
 
   /**
    * \brief radius when the first flap starts
    */
-  float m_flapRad;
+  float flap_rad_;
 
   /**
    * \brief radians of a single flap
    */
-  float m_flapRadAdd;
+  float flap_rad_add_;
 
   /**
-   * \brief should the m_data field by deleted when this operation is finished
+   * \brief should the data_ field by deleted when this operation is finished
    */
-  bool m_deleteData;
+  bool delete_data_;
 
   /**
    * \brief determine the coordinate of a flap corner.
    *
    * \param r: result in bokeh-image space are stored [x,y]
-   * \param flapNumber: the flap number to calculate
+   * \param flap_number: the flap number to calculate
    * \param distance: the lens distance is used to simulate lens shifts
    */
-  void detemineStartPointOfFlap(float r[2], int flapNumber, float distance);
+  void detemine_start_point_of_flap(float r[2], int flap_number, float distance);
 
   /**
    * \brief Determine if a coordinate is inside the bokeh image
@@ -104,7 +104,7 @@ class BokehImageOperation : public MultiThreadedOperation {
    * \param y: the y coordinate of the pixel to evaluate
    * \return float range 0..1 0 is completely outside
    */
-  float isInsideBokeh(float distance, float x, float y);
+  float is_inside_bokeh(float distance, float x, float y);
 
  public:
   BokehImageOperation();
@@ -112,21 +112,21 @@ class BokehImageOperation : public MultiThreadedOperation {
   /**
    * \brief The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * \brief Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * \brief Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
   /**
    * \brief determine the resolution of this operation. currently fixed at [COM_BLUR_BOKEH_PIXELS,
-   * COM_BLUR_BOKEH_PIXELS] \param resolution: \param preferredResolution:
+   * COM_BLUR_BOKEH_PIXELS] \param resolution: \param preferred_resolution:
    */
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
@@ -134,21 +134,21 @@ class BokehImageOperation : public MultiThreadedOperation {
    * \brief set the node data
    * \param data:
    */
-  void setData(NodeBokehImage *data)
+  void set_data(NodeBokehImage *data)
   {
-    this->m_data = data;
+    data_ = data;
   }
 
   /**
-   * \brief deleteDataOnFinish
+   * \brief delete_data_on_finish
    *
    * There are cases that the compositor uses this operation on its own (see defocus node)
-   * the deleteDataOnFinish must only be called when the data has been created by the compositor.
-   *It should not be called when the data has been created by the node-editor/user.
+   * the delete_data_on_finish must only be called when the data has been created by the
+   *compositor. It should not be called when the data has been created by the node-editor/user.
    */
-  void deleteDataOnFinish()
+  void delete_data_on_finish()
   {
-    this->m_deleteData = true;
+    delete_data_ = true;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,

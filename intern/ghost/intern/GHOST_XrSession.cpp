@@ -30,6 +30,7 @@
 #include "GHOST_IXrGraphicsBinding.h"
 #include "GHOST_XrAction.h"
 #include "GHOST_XrContext.h"
+#include "GHOST_XrControllerModel.h"
 #include "GHOST_XrException.h"
 #include "GHOST_XrSwapchain.h"
 #include "GHOST_Xr_intern.h"
@@ -52,6 +53,8 @@ struct OpenXRSessionData {
   std::vector<GHOST_XrSwapchain> swapchains;
 
   std::map<std::string, GHOST_XrActionSet> action_sets;
+  /* Controller models identified by subaction path. */
+  std::map<std::string, GHOST_XrControllerModel> controller_models;
 };
 
 struct GHOST_XrDrawInfo {
@@ -916,3 +919,71 @@ void GHOST_XrSession::getActionCustomdataArray(const char *action_set_name,
 }
 
 /** \} */ /* Actions */
+
+/* -------------------------------------------------------------------- */
+/** \name Controller Model
+ *
+ * \{ */
+
+bool GHOST_XrSession::loadControllerModel(const char *subaction_path)
+{
+  if (!m_context->isExtensionEnabled(XR_MSFT_CONTROLLER_MODEL_EXTENSION_NAME)) {
+    return false;
+  }
+
+  XrSession session = m_oxr->session;
+  std::map<std::string, GHOST_XrControllerModel> &controller_models = m_oxr->controller_models;
+  std::map<std::string, GHOST_XrControllerModel>::iterator it = controller_models.find(
+      subaction_path);
+
+  if (it == controller_models.end()) {
+    XrInstance instance = m_context->getInstance();
+    it = controller_models
+             .emplace(std::piecewise_construct,
+                      std::make_tuple(subaction_path),
+                      std::make_tuple(instance, subaction_path))
+             .first;
+  }
+
+  it->second.load(session);
+
+  return true;
+}
+
+void GHOST_XrSession::unloadControllerModel(const char *subaction_path)
+{
+  std::map<std::string, GHOST_XrControllerModel> &controller_models = m_oxr->controller_models;
+  if (controller_models.find(subaction_path) != controller_models.end()) {
+    controller_models.erase(subaction_path);
+  }
+}
+
+bool GHOST_XrSession::updateControllerModelComponents(const char *subaction_path)
+{
+  XrSession session = m_oxr->session;
+  std::map<std::string, GHOST_XrControllerModel>::iterator it = m_oxr->controller_models.find(
+      subaction_path);
+  if (it == m_oxr->controller_models.end()) {
+    return false;
+  }
+
+  it->second.updateComponents(session);
+
+  return true;
+}
+
+bool GHOST_XrSession::getControllerModelData(const char *subaction_path,
+                                             GHOST_XrControllerModelData &r_data)
+{
+  std::map<std::string, GHOST_XrControllerModel>::iterator it = m_oxr->controller_models.find(
+      subaction_path);
+  if (it == m_oxr->controller_models.end()) {
+    return false;
+  }
+
+  it->second.getData(r_data);
+
+  return true;
+}
+
+/** \} */ /* Controller Model */

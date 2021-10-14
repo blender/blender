@@ -17,58 +17,57 @@
  */
 
 #include "COM_GlareBaseOperation.h"
-#include "BLI_math.h"
 
 namespace blender::compositor {
 
 GlareBaseOperation::GlareBaseOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addOutputSocket(DataType::Color);
-  this->m_settings = nullptr;
-  flags.is_fullframe_operation = true;
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
+  settings_ = nullptr;
+  flags_.is_fullframe_operation = true;
   is_output_rendered_ = false;
 }
-void GlareBaseOperation::initExecution()
+void GlareBaseOperation::init_execution()
 {
-  SingleThreadedOperation::initExecution();
-  this->m_inputProgram = getInputSocketReader(0);
+  SingleThreadedOperation::init_execution();
+  input_program_ = get_input_socket_reader(0);
 }
 
-void GlareBaseOperation::deinitExecution()
+void GlareBaseOperation::deinit_execution()
 {
-  this->m_inputProgram = nullptr;
-  SingleThreadedOperation::deinitExecution();
+  input_program_ = nullptr;
+  SingleThreadedOperation::deinit_execution();
 }
 
-MemoryBuffer *GlareBaseOperation::createMemoryBuffer(rcti *rect2)
+MemoryBuffer *GlareBaseOperation::create_memory_buffer(rcti *rect2)
 {
-  MemoryBuffer *tile = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect2);
+  MemoryBuffer *tile = (MemoryBuffer *)input_program_->initialize_tile_data(rect2);
   rcti rect;
   rect.xmin = 0;
   rect.ymin = 0;
-  rect.xmax = getWidth();
-  rect.ymax = getHeight();
+  rect.xmax = get_width();
+  rect.ymax = get_height();
   MemoryBuffer *result = new MemoryBuffer(DataType::Color, rect);
-  float *data = result->getBuffer();
-  this->generateGlare(data, tile, this->m_settings);
+  float *data = result->get_buffer();
+  this->generate_glare(data, tile, settings_);
   return result;
 }
 
-bool GlareBaseOperation::determineDependingAreaOfInterest(rcti * /*input*/,
-                                                          ReadBufferOperation *readOperation,
-                                                          rcti *output)
+bool GlareBaseOperation::determine_depending_area_of_interest(rcti * /*input*/,
+                                                              ReadBufferOperation *read_operation,
+                                                              rcti *output)
 {
-  if (isCached()) {
+  if (is_cached()) {
     return false;
   }
 
-  rcti newInput;
-  newInput.xmax = this->getWidth();
-  newInput.xmin = 0;
-  newInput.ymax = this->getHeight();
-  newInput.ymin = 0;
-  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  rcti new_input;
+  new_input.xmax = this->get_width();
+  new_input.xmin = 0;
+  new_input.ymax = this->get_height();
+  new_input.ymin = 0;
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void GlareBaseOperation::get_area_of_interest(const int input_idx,
@@ -78,9 +77,9 @@ void GlareBaseOperation::get_area_of_interest(const int input_idx,
   BLI_assert(input_idx == 0);
   UNUSED_VARS_NDEBUG(input_idx);
   r_input_area.xmin = 0;
-  r_input_area.xmax = this->getWidth();
+  r_input_area.xmax = this->get_width();
   r_input_area.ymin = 0;
-  r_input_area.ymax = this->getHeight();
+  r_input_area.ymax = this->get_height();
 }
 
 void GlareBaseOperation::update_memory_buffer(MemoryBuffer *output,
@@ -94,7 +93,7 @@ void GlareBaseOperation::update_memory_buffer(MemoryBuffer *output,
       input = input->inflate();
     }
 
-    this->generateGlare(output->getBuffer(), input, m_settings);
+    this->generate_glare(output->get_buffer(), input, settings_);
     is_output_rendered_ = true;
 
     if (is_input_inflated) {

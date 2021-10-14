@@ -27,16 +27,16 @@ class RotateOperation : public MultiThreadedOperation {
   constexpr static int IMAGE_INPUT_INDEX = 0;
   constexpr static int DEGREE_INPUT_INDEX = 1;
 
-  SocketReader *m_imageSocket;
-  SocketReader *m_degreeSocket;
+  SocketReader *image_socket_;
+  SocketReader *degree_socket_;
   /* TODO(manzanilla): to be removed with tiled implementation. */
-  float m_centerX;
-  float m_centerY;
+  float center_x_;
+  float center_y_;
 
-  float m_cosine;
-  float m_sine;
-  bool m_doDegree2RadConversion;
-  bool m_isDegreeSet;
+  float cosine_;
+  float sine_;
+  bool do_degree2_rad_conversion_;
+  bool is_degree_set_;
   PixelSampler sampler_;
 
  public:
@@ -79,17 +79,17 @@ class RotateOperation : public MultiThreadedOperation {
                                   const float cosine,
                                   rcti &r_canvas);
 
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
   void init_data() override;
-  void initExecution() override;
-  void deinitExecution() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
-  void setDoDegree2RadConversion(bool abool)
+  void set_do_degree2_rad_conversion(bool abool)
   {
-    this->m_doDegree2RadConversion = abool;
+    do_degree2_rad_conversion_ = abool;
   }
 
   void set_sampler(PixelSampler sampler)
@@ -97,7 +97,7 @@ class RotateOperation : public MultiThreadedOperation {
     sampler_ = sampler;
   }
 
-  void ensureDegree();
+  void ensure_degree();
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,

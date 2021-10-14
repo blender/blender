@@ -19,9 +19,6 @@
 #include "COM_BlurBaseOperation.h"
 #include "COM_ConstantOperation.h"
 
-#include "BLI_math.h"
-#include "MEM_guardedalloc.h"
-
 #include "RE_pipeline.h"
 
 namespace blender::compositor {
@@ -29,52 +26,52 @@ namespace blender::compositor {
 BlurBaseOperation::BlurBaseOperation(DataType data_type)
 {
   /* data_type is almost always DataType::Color except for alpha-blur */
-  this->addInputSocket(data_type);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(data_type);
-  this->flags.complex = true;
-  this->m_inputProgram = nullptr;
-  memset(&m_data, 0, sizeof(NodeBlurData));
-  this->m_size = 1.0f;
-  this->m_sizeavailable = false;
-  this->m_extend_bounds = false;
+  this->add_input_socket(data_type);
+  this->add_input_socket(DataType::Value);
+  this->add_output_socket(data_type);
+  flags_.complex = true;
+  input_program_ = nullptr;
+  memset(&data_, 0, sizeof(NodeBlurData));
+  size_ = 1.0f;
+  sizeavailable_ = false;
+  extend_bounds_ = false;
   use_variable_size_ = false;
 }
 
 void BlurBaseOperation::init_data()
 {
   if (execution_model_ == eExecutionModel::FullFrame) {
-    updateSize();
+    update_size();
   }
 
-  this->m_data.image_in_width = this->getWidth();
-  this->m_data.image_in_height = this->getHeight();
-  if (this->m_data.relative) {
+  data_.image_in_width = this->get_width();
+  data_.image_in_height = this->get_height();
+  if (data_.relative) {
     int sizex, sizey;
-    switch (this->m_data.aspect) {
+    switch (data_.aspect) {
       case CMP_NODE_BLUR_ASPECT_Y:
-        sizex = sizey = this->m_data.image_in_width;
+        sizex = sizey = data_.image_in_width;
         break;
       case CMP_NODE_BLUR_ASPECT_X:
-        sizex = sizey = this->m_data.image_in_height;
+        sizex = sizey = data_.image_in_height;
         break;
       default:
-        BLI_assert(this->m_data.aspect == CMP_NODE_BLUR_ASPECT_NONE);
-        sizex = this->m_data.image_in_width;
-        sizey = this->m_data.image_in_height;
+        BLI_assert(data_.aspect == CMP_NODE_BLUR_ASPECT_NONE);
+        sizex = data_.image_in_width;
+        sizey = data_.image_in_height;
         break;
     }
-    this->m_data.sizex = round_fl_to_int(this->m_data.percentx * 0.01f * sizex);
-    this->m_data.sizey = round_fl_to_int(this->m_data.percenty * 0.01f * sizey);
+    data_.sizex = round_fl_to_int(data_.percentx * 0.01f * sizex);
+    data_.sizey = round_fl_to_int(data_.percenty * 0.01f * sizey);
   }
 }
 
-void BlurBaseOperation::initExecution()
+void BlurBaseOperation::init_execution()
 {
-  this->m_inputProgram = this->getInputSocketReader(0);
-  this->m_inputSize = this->getInputSocketReader(1);
+  input_program_ = this->get_input_socket_reader(0);
+  input_size_ = this->get_input_socket_reader(1);
 
-  QualityStepHelper::initExecution(COM_QH_MULTIPLY);
+  QualityStepHelper::init_execution(COM_QH_MULTIPLY);
 }
 
 float *BlurBaseOperation::make_gausstab(float rad, int size)
@@ -89,7 +86,7 @@ float *BlurBaseOperation::make_gausstab(float rad, int size)
   sum = 0.0f;
   float fac = (rad > 0.0f ? 1.0f / rad : 0.0f);
   for (i = -size; i <= size; i++) {
-    val = RE_filter_value(this->m_data.filtertype, (float)i * fac);
+    val = RE_filter_value(data_.filtertype, (float)i * fac);
     sum += val;
     gausstab[i + size] = val;
   }
@@ -166,55 +163,55 @@ float *BlurBaseOperation::make_dist_fac_inverse(float rad, int size, int falloff
   return dist_fac_invert;
 }
 
-void BlurBaseOperation::deinitExecution()
+void BlurBaseOperation::deinit_execution()
 {
-  this->m_inputProgram = nullptr;
-  this->m_inputSize = nullptr;
+  input_program_ = nullptr;
+  input_size_ = nullptr;
 }
 
-void BlurBaseOperation::setData(const NodeBlurData *data)
+void BlurBaseOperation::set_data(const NodeBlurData *data)
 {
-  memcpy(&m_data, data, sizeof(NodeBlurData));
+  memcpy(&data_, data, sizeof(NodeBlurData));
 }
 
 int BlurBaseOperation::get_blur_size(eDimension dim) const
 {
   switch (dim) {
     case eDimension::X:
-      return m_data.sizex;
+      return data_.sizex;
     case eDimension::Y:
-      return m_data.sizey;
+      return data_.sizey;
   }
   return -1;
 }
 
-void BlurBaseOperation::updateSize()
+void BlurBaseOperation::update_size()
 {
-  if (this->m_sizeavailable || use_variable_size_) {
+  if (sizeavailable_ || use_variable_size_) {
     return;
   }
 
   switch (execution_model_) {
     case eExecutionModel::Tiled: {
       float result[4];
-      this->getInputSocketReader(1)->readSampled(result, 0, 0, PixelSampler::Nearest);
-      this->m_size = result[0];
+      this->get_input_socket_reader(1)->read_sampled(result, 0, 0, PixelSampler::Nearest);
+      size_ = result[0];
       break;
     }
     case eExecutionModel::FullFrame: {
       NodeOperation *size_input = get_input_operation(SIZE_INPUT_INDEX);
       if (size_input->get_flags().is_constant_operation) {
-        m_size = *static_cast<ConstantOperation *>(size_input)->get_constant_elem();
+        size_ = *static_cast<ConstantOperation *>(size_input)->get_constant_elem();
       } /* Else use default. */
       break;
     }
   }
-  this->m_sizeavailable = true;
+  sizeavailable_ = true;
 }
 
 void BlurBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  if (!m_extend_bounds) {
+  if (!extend_bounds_) {
     NodeOperation::determine_canvas(preferred_area, r_area);
     return;
   }
@@ -222,8 +219,8 @@ void BlurBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_are
   switch (execution_model_) {
     case eExecutionModel::Tiled: {
       NodeOperation::determine_canvas(preferred_area, r_area);
-      r_area.xmax += 2 * m_size * m_data.sizex;
-      r_area.ymax += 2 * m_size * m_data.sizey;
+      r_area.xmax += 2 * size_ * data_.sizex;
+      r_area.ymax += 2 * size_ * data_.sizey;
       break;
     }
     case eExecutionModel::FullFrame: {
@@ -232,8 +229,8 @@ void BlurBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_are
        * operations. */
       set_determined_canvas_modifier([=](rcti &canvas) {
         /* Rounding to even prevents jiggling in backdrop while switching size values. */
-        canvas.xmax += round_to_even(2 * m_size * m_data.sizex);
-        canvas.ymax += round_to_even(2 * m_size * m_data.sizey);
+        canvas.xmax += round_to_even(2 * size_ * data_.sizex);
+        canvas.ymax += round_to_even(2 * size_ * data_.sizey);
       });
       NodeOperation::determine_canvas(preferred_area, r_area);
       break;

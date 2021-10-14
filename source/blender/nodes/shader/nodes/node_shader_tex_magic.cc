@@ -19,33 +19,23 @@
 
 #include "../node_shader_util.h"
 
-/* **************** OUTPUT ******************** */
+namespace blender::nodes {
 
-static bNodeSocketTemplate sh_node_tex_magic_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_FLOAT, N_("Scale"), 5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Distortion"), 1.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-    {-1, ""},
+static void sh_node_tex_magic_declare(NodeDeclarationBuilder &b)
+{
+  b.is_function_node();
+  b.add_input<decl::Vector>("Vector").implicit_field();
+  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f);
+  b.add_input<decl::Float>("Distortion").min(-1000.0f).max(1000.0f).default_value(1.0f);
+  b.add_output<decl::Color>("Color").no_muted_links();
+  b.add_output<decl::Float>("Fac").no_muted_links();
 };
 
-static bNodeSocketTemplate sh_node_tex_magic_out[] = {
-    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
-    {SOCK_FLOAT,
-     N_("Fac"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_FACTOR,
-     SOCK_NO_INTERNAL_LINK},
-    {-1, ""},
-};
+}  // namespace blender::nodes
 
 static void node_shader_init_tex_magic(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexMagic *tex = MEM_callocN(sizeof(NodeTexMagic), "NodeTexMagic");
+  NodeTexMagic *tex = (NodeTexMagic *)MEM_callocN(sizeof(NodeTexMagic), "NodeTexMagic");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->depth = 2;
@@ -74,7 +64,7 @@ void register_node_type_sh_tex_magic(void)
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_MAGIC, "Magic Texture", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_magic_in, sh_node_tex_magic_out);
+  ntype.declare = blender::nodes::sh_node_tex_magic_declare;
   node_type_init(&ntype, node_shader_init_tex_magic);
   node_type_storage(
       &ntype, "NodeTexMagic", node_free_standard_storage, node_copy_standard_storage);

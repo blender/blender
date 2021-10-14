@@ -124,7 +124,7 @@ static void copy_endpoint_attributes(Span<SplinePtr> splines,
       end_data.tilts[i] = spline.tilts().last();
 
       /* Copy the point attribute data over. */
-      for (const auto &item : start_data.point_attributes.items()) {
+      for (const auto item : start_data.point_attributes.items()) {
         const AttributeIDRef attribute_id = item.key;
         GMutableSpan point_span = item.value;
 
@@ -133,7 +133,7 @@ static void copy_endpoint_attributes(Span<SplinePtr> splines,
         blender::fn::GVArray_For_GSpan(spline_span).get(0, point_span[i]);
       }
 
-      for (const auto &item : end_data.point_attributes.items()) {
+      for (const auto item : end_data.point_attributes.items()) {
         const AttributeIDRef attribute_id = item.key;
         GMutableSpan point_span = item.value;
 

@@ -642,11 +642,15 @@ typedef struct SpaceSeq {
   /** Deprecated, handled by View2D now. */
   float zoom DNA_DEPRECATED;
   /** See SEQ_VIEW_* below. */
-  int view;
-  int overlay_type;
+  char view;
+  char overlay_type;
   /** Overlay an image of the editing on below the strips. */
-  int draw_flag;
+  char draw_flag;
+  char gizmo_flag;
   char _pad[4];
+
+  /** 2D cursor for transform. */
+  float cursor[2];
 
   /** Grease-pencil data. */
   struct bGPdata *gpd;
@@ -665,7 +669,6 @@ typedef struct SpaceSeq {
 
 /* SpaceSeq.mainb */
 typedef enum eSpaceSeq_RegionType {
-  SEQ_DRAW_SEQUENCE = 0,
   SEQ_DRAW_IMG_IMBUF = 1,
   SEQ_DRAW_IMG_WAVEFORM = 2,
   SEQ_DRAW_IMG_VECTORSCOPE = 3,
@@ -727,6 +730,15 @@ typedef struct MaskSpaceInfo {
   char overlay_mode;
   char _pad3[5];
 } MaskSpaceInfo;
+
+/** #SpaceSeq.gizmo_flag */
+enum {
+  /** All gizmos. */
+  SEQ_GIZMO_HIDE = (1 << 0),
+  SEQ_GIZMO_HIDE_NAVIGATE = (1 << 1),
+  SEQ_GIZMO_HIDE_CONTEXT = (1 << 2),
+  SEQ_GIZMO_HIDE_TOOL = (1 << 3),
+};
 
 /* SpaceSeq.mainb */
 typedef enum eSpaceSeq_OverlayType {
@@ -1415,7 +1427,7 @@ typedef enum eSpaceText_Flags {
   /* scrollable */
   ST_SCROLL_SELECT = (1 << 0),
 
-  ST_FLAG_UNUSED_4 = (1 << 4), /* dirty */
+  ST_FLAG_UNUSED_4 = (1 << 4), /* Cleared. */
 
   ST_FIND_WRAP = (1 << 5),
   ST_FIND_ALL = (1 << 6),

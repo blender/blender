@@ -19,71 +19,65 @@
 #include "COM_DefocusNode.h"
 #include "COM_BokehImageOperation.h"
 #include "COM_ConvertDepthToRadiusOperation.h"
-#include "COM_ExecutionSystem.h"
-#include "COM_FastGaussianBlurOperation.h"
 #include "COM_GammaCorrectOperation.h"
 #include "COM_MathBaseOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_VariableSizeBokehBlurOperation.h"
-#include "DNA_camera_types.h"
-#include "DNA_node_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 namespace blender::compositor {
 
-DefocusNode::DefocusNode(bNode *editorNode) : Node(editorNode)
+DefocusNode::DefocusNode(bNode *editor_node) : Node(editor_node)
 {
   /* pass */
 }
 
-void DefocusNode::convertToOperations(NodeConverter &converter,
-                                      const CompositorContext &context) const
+void DefocusNode::convert_to_operations(NodeConverter &converter,
+                                        const CompositorContext &context) const
 {
-  bNode *node = this->getbNode();
+  bNode *node = this->get_bnode();
   NodeDefocus *data = (NodeDefocus *)node->storage;
-  Scene *scene = node->id ? (Scene *)node->id : context.getScene();
+  Scene *scene = node->id ? (Scene *)node->id : context.get_scene();
   Object *camob = scene ? scene->camera : nullptr;
 
-  NodeOperation *radiusOperation;
+  NodeOperation *radius_operation;
   if (data->no_zbuf) {
     MathMultiplyOperation *multiply = new MathMultiplyOperation();
     SetValueOperation *multiplier = new SetValueOperation();
-    multiplier->setValue(data->scale);
-    SetValueOperation *maxRadius = new SetValueOperation();
-    maxRadius->setValue(data->maxblur);
+    multiplier->set_value(data->scale);
+    SetValueOperation *max_radius = new SetValueOperation();
+    max_radius->set_value(data->maxblur);
     MathMinimumOperation *minimize = new MathMinimumOperation();
 
-    converter.addOperation(multiply);
-    converter.addOperation(multiplier);
-    converter.addOperation(maxRadius);
-    converter.addOperation(minimize);
+    converter.add_operation(multiply);
+    converter.add_operation(multiplier);
+    converter.add_operation(max_radius);
+    converter.add_operation(minimize);
 
-    converter.mapInputSocket(getInputSocket(1), multiply->getInputSocket(0));
-    converter.addLink(multiplier->getOutputSocket(), multiply->getInputSocket(1));
-    converter.addLink(multiply->getOutputSocket(), minimize->getInputSocket(0));
-    converter.addLink(maxRadius->getOutputSocket(), minimize->getInputSocket(1));
+    converter.map_input_socket(get_input_socket(1), multiply->get_input_socket(0));
+    converter.add_link(multiplier->get_output_socket(), multiply->get_input_socket(1));
+    converter.add_link(multiply->get_output_socket(), minimize->get_input_socket(0));
+    converter.add_link(max_radius->get_output_socket(), minimize->get_input_socket(1));
 
-    radiusOperation = minimize;
+    radius_operation = minimize;
   }
   else {
     ConvertDepthToRadiusOperation *radius_op = new ConvertDepthToRadiusOperation();
-    radius_op->setCameraObject(camob);
-    radius_op->setfStop(data->fstop);
-    radius_op->setMaxRadius(data->maxblur);
-    converter.addOperation(radius_op);
+    radius_op->set_camera_object(camob);
+    radius_op->setf_stop(data->fstop);
+    radius_op->set_max_radius(data->maxblur);
+    converter.add_operation(radius_op);
 
-    converter.mapInputSocket(getInputSocket(1), radius_op->getInputSocket(0));
+    converter.map_input_socket(get_input_socket(1), radius_op->get_input_socket(0));
 
     FastGaussianBlurValueOperation *blur = new FastGaussianBlurValueOperation();
     /* maintain close pixels so far Z values don't bleed into the foreground */
-    blur->setOverlay(FAST_GAUSS_OVERLAY_MIN);
-    converter.addOperation(blur);
+    blur->set_overlay(FAST_GAUSS_OVERLAY_MIN);
+    converter.add_operation(blur);
 
-    converter.addLink(radius_op->getOutputSocket(0), blur->getInputSocket(0));
-    radius_op->setPostBlur(blur);
+    converter.add_link(radius_op->get_output_socket(0), blur->get_input_socket(0));
+    radius_op->set_post_blur(blur);
 
-    radiusOperation = blur;
+    radius_operation = blur;
   }
 
   NodeBokehImage *bokehdata = new NodeBokehImage();
@@ -98,49 +92,49 @@ void DefocusNode::convertToOperations(NodeConverter &converter,
   bokehdata->lensshift = 0.0f;
 
   BokehImageOperation *bokeh = new BokehImageOperation();
-  bokeh->setData(bokehdata);
-  bokeh->deleteDataOnFinish();
-  converter.addOperation(bokeh);
+  bokeh->set_data(bokehdata);
+  bokeh->delete_data_on_finish();
+  converter.add_operation(bokeh);
 
 #ifdef COM_DEFOCUS_SEARCH
   InverseSearchRadiusOperation *search = new InverseSearchRadiusOperation();
-  search->setMaxBlur(data->maxblur);
-  converter.addOperation(search);
+  search->set_max_blur(data->maxblur);
+  converter.add_operation(search);
 
-  converter.addLink(radiusOperation->getOutputSocket(0), search->getInputSocket(0));
+  converter.add_link(radius_operation->get_output_socket(0), search->get_input_socket(0));
 #endif
 
   VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
   if (data->preview) {
-    operation->setQuality(eCompositorQuality::Low);
+    operation->set_quality(eCompositorQuality::Low);
   }
   else {
-    operation->setQuality(context.getQuality());
+    operation->set_quality(context.get_quality());
   }
-  operation->setMaxBlur(data->maxblur);
-  operation->setThreshold(data->bthresh);
-  converter.addOperation(operation);
+  operation->set_max_blur(data->maxblur);
+  operation->set_threshold(data->bthresh);
+  converter.add_operation(operation);
 
-  converter.addLink(bokeh->getOutputSocket(), operation->getInputSocket(1));
-  converter.addLink(radiusOperation->getOutputSocket(), operation->getInputSocket(2));
+  converter.add_link(bokeh->get_output_socket(), operation->get_input_socket(1));
+  converter.add_link(radius_operation->get_output_socket(), operation->get_input_socket(2));
 #ifdef COM_DEFOCUS_SEARCH
-  converter.addLink(search->getOutputSocket(), operation->getInputSocket(3));
+  converter.add_link(search->get_output_socket(), operation->get_input_socket(3));
 #endif
 
   if (data->gamco) {
     GammaCorrectOperation *correct = new GammaCorrectOperation();
-    converter.addOperation(correct);
+    converter.add_operation(correct);
     GammaUncorrectOperation *inverse = new GammaUncorrectOperation();
-    converter.addOperation(inverse);
+    converter.add_operation(inverse);
 
-    converter.mapInputSocket(getInputSocket(0), correct->getInputSocket(0));
-    converter.addLink(correct->getOutputSocket(), operation->getInputSocket(0));
-    converter.addLink(operation->getOutputSocket(), inverse->getInputSocket(0));
-    converter.mapOutputSocket(getOutputSocket(), inverse->getOutputSocket());
+    converter.map_input_socket(get_input_socket(0), correct->get_input_socket(0));
+    converter.add_link(correct->get_output_socket(), operation->get_input_socket(0));
+    converter.add_link(operation->get_output_socket(), inverse->get_input_socket(0));
+    converter.map_output_socket(get_output_socket(), inverse->get_output_socket());
   }
   else {
-    converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
-    converter.mapOutputSocket(getOutputSocket(), operation->getOutputSocket());
+    converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+    converter.map_output_socket(get_output_socket(), operation->get_output_socket());
   }
 }
 

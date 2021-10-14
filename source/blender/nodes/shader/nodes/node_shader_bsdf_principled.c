@@ -171,6 +171,7 @@ static void node_shader_update_principled(bNodeTree *UNUSED(ntree), bNode *node)
 {
   bNodeSocket *sock;
   int distribution = node->custom1;
+  int sss_method = node->custom2;
 
   for (sock = node->inputs.first; sock; sock = sock->next) {
     if (STREQ(sock->name, "Transmission Roughness")) {
@@ -179,6 +180,15 @@ static void node_shader_update_principled(bNodeTree *UNUSED(ntree), bNode *node)
       }
       else {
         sock->flag |= SOCK_UNAVAIL;
+      }
+    }
+
+    if (STREQ(sock->name, "Subsurface IOR") || STREQ(sock->name, "Subsurface Anisotropy")) {
+      if (sss_method == SHD_SUBSURFACE_BURLEY) {
+        sock->flag |= SOCK_UNAVAIL;
+      }
+      else {
+        sock->flag &= ~SOCK_UNAVAIL;
       }
     }
   }

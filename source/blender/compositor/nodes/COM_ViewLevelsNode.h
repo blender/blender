@@ -28,9 +28,9 @@ namespace blender::compositor {
  */
 class ViewLevelsNode : public Node {
  public:
-  ViewLevelsNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter,
-                           const CompositorContext &context) const override;
+  ViewLevelsNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
 };
 
 }  // namespace blender::compositor

@@ -21,50 +21,46 @@
 #include "COM_AlphaOverKeyOperation.h"
 #include "COM_AlphaOverMixedOperation.h"
 #include "COM_AlphaOverPremultiplyOperation.h"
-#include "COM_MixOperation.h"
-
-#include "COM_SetValueOperation.h"
-#include "DNA_material_types.h" /* the ramp types */
 
 namespace blender::compositor {
 
-void AlphaOverNode::convertToOperations(NodeConverter &converter,
-                                        const CompositorContext & /*context*/) const
+void AlphaOverNode::convert_to_operations(NodeConverter &converter,
+                                          const CompositorContext & /*context*/) const
 {
-  NodeInput *color1Socket = this->getInputSocket(1);
-  NodeInput *color2Socket = this->getInputSocket(2);
-  bNode *editorNode = this->getbNode();
+  NodeInput *color1Socket = this->get_input_socket(1);
+  NodeInput *color2Socket = this->get_input_socket(2);
+  bNode *editor_node = this->get_bnode();
 
-  MixBaseOperation *convertProg;
-  NodeTwoFloats *ntf = (NodeTwoFloats *)editorNode->storage;
+  MixBaseOperation *convert_prog;
+  NodeTwoFloats *ntf = (NodeTwoFloats *)editor_node->storage;
   if (ntf->x != 0.0f) {
-    AlphaOverMixedOperation *mixOperation = new AlphaOverMixedOperation();
-    mixOperation->setX(ntf->x);
-    convertProg = mixOperation;
+    AlphaOverMixedOperation *mix_operation = new AlphaOverMixedOperation();
+    mix_operation->setX(ntf->x);
+    convert_prog = mix_operation;
   }
-  else if (editorNode->custom1) {
-    convertProg = new AlphaOverKeyOperation();
-  }
-  else {
-    convertProg = new AlphaOverPremultiplyOperation();
-  }
-
-  convertProg->setUseValueAlphaMultiply(false);
-  if (color1Socket->isLinked()) {
-    convertProg->set_canvas_input_index(1);
-  }
-  else if (color2Socket->isLinked()) {
-    convertProg->set_canvas_input_index(2);
+  else if (editor_node->custom1) {
+    convert_prog = new AlphaOverKeyOperation();
   }
   else {
-    convertProg->set_canvas_input_index(0);
+    convert_prog = new AlphaOverPremultiplyOperation();
   }
 
-  converter.addOperation(convertProg);
-  converter.mapInputSocket(getInputSocket(0), convertProg->getInputSocket(0));
-  converter.mapInputSocket(getInputSocket(1), convertProg->getInputSocket(1));
-  converter.mapInputSocket(getInputSocket(2), convertProg->getInputSocket(2));
-  converter.mapOutputSocket(getOutputSocket(0), convertProg->getOutputSocket(0));
+  convert_prog->set_use_value_alpha_multiply(false);
+  if (color1Socket->is_linked()) {
+    convert_prog->set_canvas_input_index(1);
+  }
+  else if (color2Socket->is_linked()) {
+    convert_prog->set_canvas_input_index(2);
+  }
+  else {
+    convert_prog->set_canvas_input_index(0);
+  }
+
+  converter.add_operation(convert_prog);
+  converter.map_input_socket(get_input_socket(0), convert_prog->get_input_socket(0));
+  converter.map_input_socket(get_input_socket(1), convert_prog->get_input_socket(1));
+  converter.map_input_socket(get_input_socket(2), convert_prog->get_input_socket(2));
+  converter.map_output_socket(get_output_socket(0), convert_prog->get_output_socket(0));
 }
 
 }  // namespace blender::compositor

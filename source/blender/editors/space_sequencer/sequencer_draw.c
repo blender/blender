@@ -1342,9 +1342,9 @@ static void draw_seq_strip(const bContext *C,
 
   float text_margin_y;
   bool y_threshold;
-  if ((sseq->flag & SEQ_TIMELINE_SHOW_STRIP_NAME) ||
-      (sseq->flag & SEQ_TIMELINE_SHOW_STRIP_SOURCE) ||
-      (sseq->flag & SEQ_TIMELINE_SHOW_STRIP_DURATION)) {
+  if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_NAME) ||
+      (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_SOURCE) ||
+      (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION)) {
 
     /* Calculate height needed for drawing text on strip. */
     text_margin_y = y2 - min_ff(0.40f, 20 * U.dpi_fac * pixely);
@@ -2250,6 +2250,11 @@ void sequencer_draw_preview(const bContext *C,
   sequencer_draw_maskedit(C, scene, region, sseq);
 #endif
 
+  /* Draw registered callbacks. */
+  GPU_framebuffer_bind(framebuffer_overlay);
+  ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
+  GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
+
   /* Scope is freed in sequencer_check_scopes when `ibuf` changes and redraw is needed. */
   if (ibuf) {
     IMB_freeImBuf(ibuf);
@@ -2802,7 +2807,7 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
   if (scene->ed != NULL) {
     UI_view2d_view_ortho(v2d);
     draw_cache_view(C);
-    if (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) {
+    if (scene->ed->over_flag & SEQ_EDIT_USE_FRAME_OVERLAY) {
       draw_overlap_frame_indicator(scene, v2d);
     }
     UI_view2d_view_restore(C);

@@ -19,31 +19,21 @@
 
 #include "../node_shader_util.h"
 
-/* **************** OUTPUT ******************** */
+namespace blender::nodes {
 
-static bNodeSocketTemplate sh_node_tex_image_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {-1, ""},
+static void sh_node_tex_image_declare(NodeDeclarationBuilder &b)
+{
+  b.is_function_node();
+  b.add_input<decl::Vector>("Vector").implicit_field();
+  b.add_output<decl::Color>("Color").no_muted_links();
+  b.add_output<decl::Float>("Alpha").no_muted_links();
 };
 
-static bNodeSocketTemplate sh_node_tex_image_out[] = {
-    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
-    {SOCK_FLOAT,
-     N_("Alpha"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_NO_INTERNAL_LINK},
-    {-1, ""},
-};
+};  // namespace blender::nodes
 
 static void node_shader_init_tex_image(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexImage *tex = MEM_callocN(sizeof(NodeTexImage), "NodeTexImage");
+  NodeTexImage *tex = (NodeTexImage *)MEM_callocN(sizeof(NodeTexImage), "NodeTexImage");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   BKE_imageuser_default(&tex->iuser);
@@ -58,12 +48,12 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
                                      GPUNodeStack *out)
 {
   Image *ima = (Image *)node->id;
-  NodeTexImage *tex = node->storage;
+  NodeTexImage *tex = (NodeTexImage *)node->storage;
 
   /* We get the image user from the original node, since GPU image keeps
    * a pointer to it and the dependency refreshes the original. */
   bNode *node_original = node->original ? node->original : node;
-  NodeTexImage *tex_original = node_original->storage;
+  NodeTexImage *tex_original = (NodeTexImage *)node_original->storage;
   ImageUser *iuser = &tex_original->iuser;
 
   if (!ima) {
@@ -78,7 +68,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
 
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
-  eGPUSamplerState sampler_state = 0;
+  eGPUSamplerState sampler_state = GPU_SAMPLER_DEFAULT;
 
   switch (tex->extension) {
     case SHD_IMAGE_EXTENSION_REPEAT:
@@ -94,7 +84,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
   if (tex->interpolation != SHD_INTERP_CLOSEST) {
     sampler_state |= GPU_SAMPLER_ANISO | GPU_SAMPLER_FILTER;
     /* TODO(fclem): For now assume mipmap is always enabled. */
-    sampler_state |= true ? GPU_SAMPLER_MIPMAP : 0;
+    sampler_state |= GPU_SAMPLER_MIPMAP;
   }
   const bool use_cubic = ELEM(tex->interpolation, SHD_INTERP_CUBIC, SHD_INTERP_SMART);
 
@@ -189,7 +179,7 @@ void register_node_type_sh_tex_image(void)
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_IMAGE, "Image Texture", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_image_in, sh_node_tex_image_out);
+  ntype.declare = blender::nodes::sh_node_tex_image_declare;
   node_type_init(&ntype, node_shader_init_tex_image);
   node_type_storage(
       &ntype, "NodeTexImage", node_free_standard_storage, node_copy_standard_storage);

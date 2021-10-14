@@ -130,14 +130,13 @@ bool ED_space_sequencer_maskedit_poll(bContext *C)
 /* Are we displaying the seq output (not channels or histogram). */
 bool ED_space_sequencer_check_show_imbuf(SpaceSeq *sseq)
 {
-  return (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW) &&
-          ELEM(sseq->mainb, SEQ_DRAW_SEQUENCE, SEQ_DRAW_IMG_IMBUF));
+  return (sseq->mainb == SEQ_DRAW_IMG_IMBUF) &&
+         (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW));
 }
 
 bool ED_space_sequencer_check_show_strip(SpaceSeq *sseq)
 {
-  return (ELEM(sseq->view, SEQ_VIEW_SEQUENCE, SEQ_VIEW_SEQUENCE_PREVIEW) &&
-          ELEM(sseq->mainb, SEQ_DRAW_SEQUENCE, SEQ_DRAW_IMG_IMBUF));
+  return ELEM(sseq->view, SEQ_VIEW_SEQUENCE, SEQ_VIEW_SEQUENCE_PREVIEW);
 }
 
 static bool sequencer_fcurves_targets_color_strip(const FCurve *fcurve)
@@ -214,22 +213,38 @@ bool sequencer_strip_has_path_poll(bContext *C)
 bool sequencer_view_preview_poll(bContext *C)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
-  Editing *ed = SEQ_editing_get(CTX_data_scene(C));
-  if (ed && sseq && (sseq->mainb == SEQ_DRAW_IMG_IMBUF)) {
-    return 1;
+  if (sseq == NULL) {
+    return false;
+  }
+  if (SEQ_editing_get(CTX_data_scene(C)) == NULL) {
+    return false;
+  }
+  if (!(ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW) &&
+        (sseq->mainb == SEQ_DRAW_IMG_IMBUF))) {
+    return false;
+  }
+  ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_PREVIEW)) {
+    return false;
   }
 
-  return 0;
+  return true;
 }
 
 bool sequencer_view_strips_poll(bContext *C)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if (sseq && ED_space_sequencer_check_show_strip(sseq)) {
-    return 1;
+  if (sseq == NULL) {
+    return false;
   }
-
-  return 0;
+  if (!ED_space_sequencer_check_show_strip(sseq)) {
+    return false;
+  }
+  ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    return false;
+  }
+  return true;
 }
 
 /** \} */
@@ -3378,6 +3393,67 @@ void SEQUENCER_OT_strip_color_tag_set(struct wmOperatorType *ot)
 
   RNA_def_enum(
       ot->srna, "color", rna_enum_strip_color_items, SEQUENCE_COLOR_NONE, "Color Tag", "");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set 2D Cursor Operator
+ * \{ */
+
+static int sequencer_set_2d_cursor_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+
+  float cursor_pixel[2];
+  RNA_float_get_array(op->ptr, "location", cursor_pixel);
+
+  SEQ_image_preview_unit_from_px(scene, cursor_pixel, sseq->cursor);
+
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+static int sequencer_set_2d_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion *region = CTX_wm_region(C);
+  float cursor_pixel[2];
+  UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &cursor_pixel[0], &cursor_pixel[1]);
+
+  RNA_float_set_array(op->ptr, "location", cursor_pixel);
+
+  return sequencer_set_2d_cursor_exec(C, op);
+}
+
+void SEQUENCER_OT_cursor_set(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Set 2D Cursor";
+  ot->description = "Set 2D cursor location";
+  ot->idname = "SEQUENCER_OT_cursor_set";
+
+  /* api callbacks */
+  ot->exec = sequencer_set_2d_cursor_exec;
+  ot->invoke = sequencer_set_2d_cursor_invoke;
+  ot->poll = sequencer_view_preview_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  RNA_def_float_vector(ot->srna,
+                       "location",
+                       2,
+                       NULL,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Location",
+                       "Cursor location in normalized preview coordinates",
+                       -10.0f,
+                       10.0f);
 }
 
 /** \} */

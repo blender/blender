@@ -163,10 +163,10 @@ void BLO_blendfiledata_free(BlendFileData *bfd);
 /** \name BLO Blend File Handle API
  * \{ */
 
-struct BLODataBlockInfo {
+typedef struct BLODataBlockInfo {
   char name[64]; /* MAX_NAME */
   struct AssetMetaData *asset_data;
-};
+} BLODataBlockInfo;
 
 BlendHandle *BLO_blendhandle_from_file(const char *filepath, struct BlendFileReadReport *reports);
 BlendHandle *BLO_blendhandle_from_memory(const void *mem,

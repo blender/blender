@@ -158,15 +158,6 @@ void BlenderSession::create_session()
       b_v3d, b_rv3d, scene->camera, width, height);
   session->reset(session_params, buffer_params);
 
-  /* Create GPU display.
-   * TODO(sergey): Investigate whether DisplayDriver can be used for the preview as well. */
-  if (!b_engine.is_preview() && !headless) {
-    unique_ptr<BlenderDisplayDriver> display_driver = make_unique<BlenderDisplayDriver>(b_engine,
-                                                                                        b_scene);
-    display_driver_ = display_driver.get();
-    session->set_display_driver(move(display_driver));
-  }
-
   /* Viewport and preview (as in, material preview) does not do tiled rendering, so can inform
    * engine that no tracking of the tiles state is needed.
    * The offline rendering will make a decision when tile is being written. The penalty of asking
@@ -279,6 +270,8 @@ void BlenderSession::free_session()
 
   delete session;
   session = nullptr;
+
+  display_driver_ = nullptr;
 }
 
 void BlenderSession::full_buffer_written(string_view filename)
@@ -355,6 +348,7 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
   }
 
   /* Create driver to write out render results. */
+  ensure_display_driver_if_needed();
   session->set_output_driver(make_unique<BlenderOutputDriver>(b_engine));
 
   session->full_buffer_written_cb = [&](string_view filename) { full_buffer_written(filename); };
@@ -676,6 +670,8 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
     create_session();
   }
 
+  ensure_display_driver_if_needed();
+
   /* increase samples and render time, but never decrease */
   session->set_samples(session_params.samples);
   session->set_time_limit(session_params.time_limit);
@@ -763,8 +759,10 @@ void BlenderSession::draw(BL::SpaceImageEditor &space_image)
     draw_state_.last_pass_index = pass_index;
   }
 
-  BL::Array<float, 2> zoom = space_image.zoom();
-  display_driver_->set_zoom(zoom[0], zoom[1]);
+  if (display_driver_) {
+    BL::Array<float, 2> zoom = space_image.zoom();
+    display_driver_->set_zoom(zoom[0], zoom[1]);
+  }
 
   session->draw();
 }
@@ -977,6 +975,29 @@ void BlenderSession::free_blender_memory_if_possible()
     return;
   }
   b_engine.free_blender_memory();
+}
+
+void BlenderSession::ensure_display_driver_if_needed()
+{
+  if (display_driver_) {
+    /* Driver is already created. */
+    return;
+  }
+
+  if (headless) {
+    /* No display needed for headless. */
+    return;
+  }
+
+  if (b_engine.is_preview()) {
+    /* TODO(sergey): Investigate whether DisplayDriver can be used for the preview as well. */
+    return;
+  }
+
+  unique_ptr<BlenderDisplayDriver> display_driver = make_unique<BlenderDisplayDriver>(b_engine,
+                                                                                      b_scene);
+  display_driver_ = display_driver.get();
+  session->set_display_driver(move(display_driver));
 }
 
 CCL_NAMESPACE_END

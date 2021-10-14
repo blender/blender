@@ -415,6 +415,7 @@ typedef struct uiButExtraOpIcon {
   struct wmOperatorCallParams *optype_params;
 
   bool highlighted;
+  bool disabled;
 } uiButExtraOpIcon;
 
 typedef struct ColorPicker {
@@ -702,6 +703,9 @@ void ui_but_range_set_hard(uiBut *but);
 void ui_but_range_set_soft(uiBut *but);
 
 bool ui_but_context_poll_operator(struct bContext *C, struct wmOperatorType *ot, const uiBut *but);
+bool ui_but_context_poll_operator_ex(struct bContext *C,
+                                     const uiBut *but,
+                                     const struct wmOperatorCallParams *optype_params);
 
 extern void ui_but_update(uiBut *but);
 extern void ui_but_update_edited(uiBut *but);
@@ -1181,6 +1185,7 @@ uiBut *ui_list_row_find_from_index(const struct ARegion *region,
                                    const int index,
                                    uiBut *listbox) ATTR_WARN_UNUSED_RESULT;
 uiBut *ui_tree_row_find_mouse_over(const struct ARegion *region, const int x, const int y);
+uiBut *ui_tree_row_find_active(const struct ARegion *region);
 
 typedef bool (*uiButFindPollFn)(const uiBut *but, const void *customdata);
 uiBut *ui_but_find_mouse_over_ex(const struct ARegion *region,

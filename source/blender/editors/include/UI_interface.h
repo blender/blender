@@ -82,6 +82,7 @@ struct wmWindow;
 
 typedef struct uiBlock uiBlock;
 typedef struct uiBut uiBut;
+typedef struct uiButExtraOpIcon uiButExtraOpIcon;
 typedef struct uiLayout uiLayout;
 typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 /* C handle for C++ #ui::AbstractTreeView type. */
@@ -1432,6 +1433,8 @@ typedef struct uiStringInfo {
  *       Will fill them with translated strings, when possible.
  *       Strings in uiStringInfo must be MEM_freeN'ed by caller. */
 void UI_but_string_info_get(struct bContext *C, uiBut *but, ...) ATTR_SENTINEL(0);
+void UI_but_extra_icon_string_info_get(struct bContext *C, uiButExtraOpIcon *extra_icon, ...)
+    ATTR_SENTINEL(0);
 
 /* Edit i18n stuff. */
 /* Name of the main py op from i18n addon. */
@@ -1724,6 +1727,8 @@ struct PointerRNA *UI_but_extra_operator_icon_add(uiBut *but,
                                                   const char *opname,
                                                   short opcontext,
                                                   int icon);
+struct wmOperatorType *UI_but_extra_operator_icon_optype_get(struct uiButExtraOpIcon *extra_icon);
+struct PointerRNA *UI_but_extra_operator_icon_opptr_get(struct uiButExtraOpIcon *extra_icon);
 
 /* Autocomplete
  *
@@ -2713,6 +2718,11 @@ struct ARegion *UI_tooltip_create_from_button(struct bContext *C,
                                               struct ARegion *butregion,
                                               uiBut *but,
                                               bool is_label);
+struct ARegion *UI_tooltip_create_from_button_or_extra_icon(struct bContext *C,
+                                                            struct ARegion *butregion,
+                                                            uiBut *but,
+                                                            uiButExtraOpIcon *extra_icon,
+                                                            bool is_label);
 struct ARegion *UI_tooltip_create_from_gizmo(struct bContext *C, struct wmGizmo *gz);
 void UI_tooltip_free(struct bContext *C, struct bScreen *screen, struct ARegion *region);
 
@@ -2773,7 +2783,12 @@ char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item,
 bool UI_tree_view_item_can_rename(const uiTreeViewItemHandle *item_handle);
 void UI_tree_view_item_begin_rename(uiTreeViewItemHandle *item_handle);
 
+void UI_tree_view_item_context_menu_build(struct bContext *C,
+                                          const uiTreeViewItemHandle *item,
+                                          uiLayout *column);
+
 uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const struct ARegion *region, int x, int y);
+uiTreeViewItemHandle *UI_block_tree_view_find_active_item(const struct ARegion *region);
 
 #ifdef __cplusplus
 }

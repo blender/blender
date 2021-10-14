@@ -3539,7 +3539,9 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem pivot_points[] = {
+      {V3D_AROUND_CENTER_BOUNDS, "CENTER", ICON_PIVOT_BOUNDBOX, "Bounding Box Center", ""},
       {V3D_AROUND_CENTER_MEDIAN, "MEDIAN", ICON_PIVOT_MEDIAN, "Median Point", ""},
+      {V3D_AROUND_CURSOR, "CURSOR", ICON_PIVOT_CURSOR, "2D Cursor", "Pivot around the 2D cursor"},
       {V3D_AROUND_LOCAL_ORIGINS,
        "INDIVIDUAL_ORIGINS",
        ICON_PIVOT_INDIVIDUAL,

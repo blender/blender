@@ -51,17 +51,17 @@ class MixBaseOperation : public MultiThreadedOperation {
   };
 
   /**
-   * Prefetched reference to the inputProgram
+   * Prefetched reference to the input_program
    */
-  SocketReader *m_inputValueOperation;
-  SocketReader *m_inputColor1Operation;
-  SocketReader *m_inputColor2Operation;
-  bool m_valueAlphaMultiply;
-  bool m_useClamp;
+  SocketReader *input_value_operation_;
+  SocketReader *input_color1_operation_;
+  SocketReader *input_color2_operation_;
+  bool value_alpha_multiply_;
+  bool use_clamp_;
 
-  inline void clampIfNeeded(float color[4])
+  inline void clamp_if_needed(float color[4])
   {
-    if (m_useClamp) {
+    if (use_clamp_) {
       clamp_v4(color, 0.0f, 1.0f);
     }
   }
@@ -75,31 +75,31 @@ class MixBaseOperation : public MultiThreadedOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution() override;
+  void init_execution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution() override;
+  void deinit_execution() override;
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
-  void setUseValueAlphaMultiply(const bool value)
+  void set_use_value_alpha_multiply(const bool value)
   {
-    this->m_valueAlphaMultiply = value;
+    value_alpha_multiply_ = value;
   }
-  inline bool useValueAlphaMultiply()
+  inline bool use_value_alpha_multiply()
   {
-    return this->m_valueAlphaMultiply;
+    return value_alpha_multiply_;
   }
-  void setUseClamp(bool value)
+  void set_use_clamp(bool value)
   {
-    this->m_useClamp = value;
+    use_clamp_ = value;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -112,7 +112,7 @@ class MixBaseOperation : public MultiThreadedOperation {
 
 class MixAddOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -120,7 +120,7 @@ class MixAddOperation : public MixBaseOperation {
 
 class MixBlendOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -128,7 +128,7 @@ class MixBlendOperation : public MixBaseOperation {
 
 class MixColorBurnOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -136,7 +136,7 @@ class MixColorBurnOperation : public MixBaseOperation {
 
 class MixColorOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -144,7 +144,7 @@ class MixColorOperation : public MixBaseOperation {
 
 class MixDarkenOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -152,7 +152,7 @@ class MixDarkenOperation : public MixBaseOperation {
 
 class MixDifferenceOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -160,7 +160,7 @@ class MixDifferenceOperation : public MixBaseOperation {
 
 class MixDivideOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -168,7 +168,7 @@ class MixDivideOperation : public MixBaseOperation {
 
 class MixDodgeOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -176,7 +176,7 @@ class MixDodgeOperation : public MixBaseOperation {
 
 class MixGlareOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -184,7 +184,7 @@ class MixGlareOperation : public MixBaseOperation {
 
 class MixHueOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -192,7 +192,7 @@ class MixHueOperation : public MixBaseOperation {
 
 class MixLightenOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -200,7 +200,7 @@ class MixLightenOperation : public MixBaseOperation {
 
 class MixLinearLightOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -208,7 +208,7 @@ class MixLinearLightOperation : public MixBaseOperation {
 
 class MixMultiplyOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -216,7 +216,7 @@ class MixMultiplyOperation : public MixBaseOperation {
 
 class MixOverlayOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -224,7 +224,7 @@ class MixOverlayOperation : public MixBaseOperation {
 
 class MixSaturationOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -232,7 +232,7 @@ class MixSaturationOperation : public MixBaseOperation {
 
 class MixScreenOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -240,7 +240,7 @@ class MixScreenOperation : public MixBaseOperation {
 
 class MixSoftLightOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -248,7 +248,7 @@ class MixSoftLightOperation : public MixBaseOperation {
 
 class MixSubtractOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;
@@ -256,7 +256,7 @@ class MixSubtractOperation : public MixBaseOperation {
 
 class MixValueOperation : public MixBaseOperation {
  public:
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
  protected:
   void update_memory_buffer_row(PixelCursor &p) override;

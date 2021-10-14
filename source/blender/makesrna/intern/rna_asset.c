@@ -215,6 +215,25 @@ static void rna_AssetMetaData_catalog_id_set(PointerRNA *ptr, const char *value)
   BKE_asset_metadata_catalog_id_set(asset_data, new_uuid, "");
 }
 
+void rna_AssetMetaData_catalog_id_update(struct bContext *C, struct PointerRNA *ptr)
+{
+  SpaceFile *sfile = CTX_wm_space_file(C);
+  if (sfile == NULL) {
+    /* Until there is a proper Asset Service available, it's only possible to get the asset library
+     * from within the asset browser context. */
+    return;
+  }
+
+  AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  if (asset_library == NULL) {
+    /* The SpaceFile may not be an asset browser but a regular file browser. */
+    return;
+  }
+
+  AssetMetaData *asset_data = ptr->data;
+  BKE_asset_library_refresh_catalog_simplename(asset_library, asset_data);
+}
+
 static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)
 {
   AssetHandle *asset_handle = ptr->data;
@@ -356,6 +375,7 @@ static void rna_def_asset_data(BlenderRNA *brna)
                                 "rna_AssetMetaData_catalog_id_length",
                                 "rna_AssetMetaData_catalog_id_set");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, 0, "rna_AssetMetaData_catalog_id_update");
   RNA_def_property_ui_text(prop,
                            "Catalog UUID",
                            "Identifier for the asset's catalog, used by Blender to look up the "

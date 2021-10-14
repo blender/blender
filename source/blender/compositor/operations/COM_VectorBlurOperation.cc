@@ -16,12 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#include <cstring>
-
-#include "MEM_guardedalloc.h"
-
 #include "BLI_jitter_2d.h"
-#include "BLI_math.h"
 
 #include "COM_VectorBlurOperation.h"
 
@@ -47,76 +42,76 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove);
 /* VectorBlurOperation */
 VectorBlurOperation::VectorBlurOperation()
 {
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value); /* ZBUF */
-  this->addInputSocket(DataType::Color); /* SPEED */
-  this->addOutputSocket(DataType::Color);
-  this->m_settings = nullptr;
-  this->m_cachedInstance = nullptr;
-  this->m_inputImageProgram = nullptr;
-  this->m_inputSpeedProgram = nullptr;
-  this->m_inputZProgram = nullptr;
-  flags.complex = true;
-  flags.is_fullframe_operation = true;
+  this->add_input_socket(DataType::Color);
+  this->add_input_socket(DataType::Value); /* ZBUF */
+  this->add_input_socket(DataType::Color); /* SPEED */
+  this->add_output_socket(DataType::Color);
+  settings_ = nullptr;
+  cached_instance_ = nullptr;
+  input_image_program_ = nullptr;
+  input_speed_program_ = nullptr;
+  input_zprogram_ = nullptr;
+  flags_.complex = true;
+  flags_.is_fullframe_operation = true;
 }
-void VectorBlurOperation::initExecution()
+void VectorBlurOperation::init_execution()
 {
-  initMutex();
-  this->m_inputImageProgram = getInputSocketReader(0);
-  this->m_inputZProgram = getInputSocketReader(1);
-  this->m_inputSpeedProgram = getInputSocketReader(2);
-  this->m_cachedInstance = nullptr;
-  QualityStepHelper::initExecution(COM_QH_INCREASE);
+  init_mutex();
+  input_image_program_ = get_input_socket_reader(0);
+  input_zprogram_ = get_input_socket_reader(1);
+  input_speed_program_ = get_input_socket_reader(2);
+  cached_instance_ = nullptr;
+  QualityStepHelper::init_execution(COM_QH_INCREASE);
 }
 
-void VectorBlurOperation::executePixel(float output[4], int x, int y, void *data)
+void VectorBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   float *buffer = (float *)data;
-  int index = (y * this->getWidth() + x) * COM_DATA_TYPE_COLOR_CHANNELS;
+  int index = (y * this->get_width() + x) * COM_DATA_TYPE_COLOR_CHANNELS;
   copy_v4_v4(output, &buffer[index]);
 }
 
-void VectorBlurOperation::deinitExecution()
+void VectorBlurOperation::deinit_execution()
 {
-  deinitMutex();
-  this->m_inputImageProgram = nullptr;
-  this->m_inputSpeedProgram = nullptr;
-  this->m_inputZProgram = nullptr;
-  if (this->m_cachedInstance) {
-    MEM_freeN(this->m_cachedInstance);
-    this->m_cachedInstance = nullptr;
+  deinit_mutex();
+  input_image_program_ = nullptr;
+  input_speed_program_ = nullptr;
+  input_zprogram_ = nullptr;
+  if (cached_instance_) {
+    MEM_freeN(cached_instance_);
+    cached_instance_ = nullptr;
   }
 }
-void *VectorBlurOperation::initializeTileData(rcti *rect)
+void *VectorBlurOperation::initialize_tile_data(rcti *rect)
 {
-  if (this->m_cachedInstance) {
-    return this->m_cachedInstance;
+  if (cached_instance_) {
+    return cached_instance_;
   }
 
-  lockMutex();
-  if (this->m_cachedInstance == nullptr) {
-    MemoryBuffer *tile = (MemoryBuffer *)this->m_inputImageProgram->initializeTileData(rect);
-    MemoryBuffer *speed = (MemoryBuffer *)this->m_inputSpeedProgram->initializeTileData(rect);
-    MemoryBuffer *z = (MemoryBuffer *)this->m_inputZProgram->initializeTileData(rect);
-    float *data = (float *)MEM_dupallocN(tile->getBuffer());
-    this->generateVectorBlur(data, tile, speed, z);
-    this->m_cachedInstance = data;
+  lock_mutex();
+  if (cached_instance_ == nullptr) {
+    MemoryBuffer *tile = (MemoryBuffer *)input_image_program_->initialize_tile_data(rect);
+    MemoryBuffer *speed = (MemoryBuffer *)input_speed_program_->initialize_tile_data(rect);
+    MemoryBuffer *z = (MemoryBuffer *)input_zprogram_->initialize_tile_data(rect);
+    float *data = (float *)MEM_dupallocN(tile->get_buffer());
+    this->generate_vector_blur(data, tile, speed, z);
+    cached_instance_ = data;
   }
-  unlockMutex();
-  return this->m_cachedInstance;
+  unlock_mutex();
+  return cached_instance_;
 }
 
-bool VectorBlurOperation::determineDependingAreaOfInterest(rcti * /*input*/,
-                                                           ReadBufferOperation *readOperation,
-                                                           rcti *output)
+bool VectorBlurOperation::determine_depending_area_of_interest(rcti * /*input*/,
+                                                               ReadBufferOperation *read_operation,
+                                                               rcti *output)
 {
-  if (this->m_cachedInstance == nullptr) {
-    rcti newInput;
-    newInput.xmax = this->getWidth();
-    newInput.xmin = 0;
-    newInput.ymax = this->getHeight();
-    newInput.ymin = 0;
-    return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  if (cached_instance_ == nullptr) {
+    rcti new_input;
+    new_input.xmax = this->get_width();
+    new_input.xmin = 0;
+    new_input.ymax = this->get_height();
+    new_input.ymin = 0;
+    return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
   }
 
   return false;
@@ -134,12 +129,12 @@ void VectorBlurOperation::update_memory_buffer(MemoryBuffer *output,
                                                Span<MemoryBuffer *> inputs)
 {
   /* TODO(manzanilla): once tiled implementation is removed, run multi-threaded where possible. */
-  if (!m_cachedInstance) {
+  if (!cached_instance_) {
     MemoryBuffer *image = inputs[IMAGE_INPUT_INDEX];
     const bool is_image_inflated = image->is_a_single_elem();
     image = is_image_inflated ? image->inflate() : image;
 
-    /* Must be a copy because it's modified in #generateVectorBlur. */
+    /* Must be a copy because it's modified in #generate_vector_blur. */
     MemoryBuffer *speed = inputs[SPEED_INPUT_INDEX];
     speed = speed->is_a_single_elem() ? speed->inflate() : new MemoryBuffer(*speed);
 
@@ -147,8 +142,8 @@ void VectorBlurOperation::update_memory_buffer(MemoryBuffer *output,
     const bool is_z_inflated = z->is_a_single_elem();
     z = is_z_inflated ? z->inflate() : z;
 
-    m_cachedInstance = (float *)MEM_dupallocN(image->getBuffer());
-    this->generateVectorBlur(m_cachedInstance, image, speed, z);
+    cached_instance_ = (float *)MEM_dupallocN(image->get_buffer());
+    this->generate_vector_blur(cached_instance_, image, speed, z);
 
     if (is_image_inflated) {
       delete image;
@@ -159,29 +154,29 @@ void VectorBlurOperation::update_memory_buffer(MemoryBuffer *output,
     }
   }
 
-  const int num_channels = COM_data_type_num_channels(getOutputSocket()->getDataType());
-  MemoryBuffer buf(m_cachedInstance, num_channels, this->getWidth(), this->getHeight());
+  const int num_channels = COM_data_type_num_channels(get_output_socket()->get_data_type());
+  MemoryBuffer buf(cached_instance_, num_channels, this->get_width(), this->get_height());
   output->copy_from(&buf, area);
 }
 
-void VectorBlurOperation::generateVectorBlur(float *data,
-                                             MemoryBuffer *inputImage,
-                                             MemoryBuffer *inputSpeed,
-                                             MemoryBuffer *inputZ)
+void VectorBlurOperation::generate_vector_blur(float *data,
+                                               MemoryBuffer *input_image,
+                                               MemoryBuffer *input_speed,
+                                               MemoryBuffer *inputZ)
 {
   NodeBlurData blurdata;
-  blurdata.samples = this->m_settings->samples / QualityStepHelper::getStep();
-  blurdata.maxspeed = this->m_settings->maxspeed;
-  blurdata.minspeed = this->m_settings->minspeed;
-  blurdata.curved = this->m_settings->curved;
-  blurdata.fac = this->m_settings->fac;
+  blurdata.samples = settings_->samples / QualityStepHelper::get_step();
+  blurdata.maxspeed = settings_->maxspeed;
+  blurdata.minspeed = settings_->minspeed;
+  blurdata.curved = settings_->curved;
+  blurdata.fac = settings_->fac;
   zbuf_accumulate_vecblur(&blurdata,
-                          this->getWidth(),
-                          this->getHeight(),
+                          this->get_width(),
+                          this->get_height(),
                           data,
-                          inputImage->getBuffer(),
-                          inputSpeed->getBuffer(),
-                          inputZ->getBuffer());
+                          input_image->get_buffer(),
+                          input_speed->get_buffer(),
+                          inputZ->get_buffer());
 }
 
 /* ****************** Spans ******************************* */

@@ -17,15 +17,6 @@
 
 #include "COM_PlaneCornerPinOperation.h"
 #include "COM_ConstantOperation.h"
-#include "COM_ReadBufferOperation.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-#include "BLI_math_color.h"
-
-#include "BKE_node.h"
 
 namespace blender::compositor {
 
@@ -65,11 +56,11 @@ static bool check_corners(float corners[4][2])
 }
 
 /* TODO(manzanilla): to be removed with tiled implementation. */
-static void readCornersFromSockets(rcti *rect, SocketReader *readers[4], float corners[4][2])
+static void read_corners_from_sockets(rcti *rect, SocketReader *readers[4], float corners[4][2])
 {
   for (int i = 0; i < 4; i++) {
     float result[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    readers[i]->readSampled(result, rect->xmin, rect->ymin, PixelSampler::Nearest);
+    readers[i]->read_sampled(result, rect->xmin, rect->ymin, PixelSampler::Nearest);
     corners[i][0] = result[0];
     corners[i][1] = result[1];
   }
@@ -143,18 +134,18 @@ static void read_input_corners(NodeOperation *op, const int first_input_idx, flo
 
 /* ******** PlaneCornerPinMaskOperation ******** */
 
-PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation() : m_corners_ready(false)
+PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation() : corners_ready_(false)
 {
-  addInputSocket(DataType::Vector);
-  addInputSocket(DataType::Vector);
-  addInputSocket(DataType::Vector);
-  addInputSocket(DataType::Vector);
+  add_input_socket(DataType::Vector);
+  add_input_socket(DataType::Vector);
+  add_input_socket(DataType::Vector);
+  add_input_socket(DataType::Vector);
 
   /* XXX this is stupid: we need to make this "complex",
-   * so we can use the initializeTileData function
+   * so we can use the initialize_tile_data function
    * to read corners from input sockets ...
    */
-  flags.complex = true;
+  flags_.complex = true;
 }
 
 void PlaneCornerPinMaskOperation::init_data()
@@ -162,49 +153,49 @@ void PlaneCornerPinMaskOperation::init_data()
   if (execution_model_ == eExecutionModel::FullFrame) {
     float corners[4][2];
     read_input_corners(this, 0, corners);
-    calculateCorners(corners, true, 0);
+    calculate_corners(corners, true, 0);
   }
 }
 
-/* TODO(manzanilla): to be removed with tiled implementation. Same for #deinitExecution and do the
+/* TODO(manzanilla): to be removed with tiled implementation. Same for #deinit_execution and do the
  * same on #PlaneCornerPinWarpImageOperation. */
-void PlaneCornerPinMaskOperation::initExecution()
+void PlaneCornerPinMaskOperation::init_execution()
 {
-  PlaneDistortMaskOperation::initExecution();
+  PlaneDistortMaskOperation::init_execution();
 
-  initMutex();
+  init_mutex();
 }
 
-void PlaneCornerPinMaskOperation::deinitExecution()
+void PlaneCornerPinMaskOperation::deinit_execution()
 {
-  PlaneDistortMaskOperation::deinitExecution();
+  PlaneDistortMaskOperation::deinit_execution();
 
-  deinitMutex();
+  deinit_mutex();
 }
 
-void *PlaneCornerPinMaskOperation::initializeTileData(rcti *rect)
+void *PlaneCornerPinMaskOperation::initialize_tile_data(rcti *rect)
 {
-  void *data = PlaneDistortMaskOperation::initializeTileData(rect);
+  void *data = PlaneDistortMaskOperation::initialize_tile_data(rect);
 
   /* get corner values once, by reading inputs at (0,0)
    * XXX this assumes invariable values (no image inputs),
    * we don't have a nice generic system for that yet
    */
-  lockMutex();
-  if (!m_corners_ready) {
+  lock_mutex();
+  if (!corners_ready_) {
     SocketReader *readers[4] = {
-        getInputSocketReader(0),
-        getInputSocketReader(1),
-        getInputSocketReader(2),
-        getInputSocketReader(3),
+        get_input_socket_reader(0),
+        get_input_socket_reader(1),
+        get_input_socket_reader(2),
+        get_input_socket_reader(3),
     };
     float corners[4][2];
-    readCornersFromSockets(rect, readers, corners);
-    calculateCorners(corners, true, 0);
+    read_corners_from_sockets(rect, readers, corners);
+    calculate_corners(corners, true, 0);
 
-    m_corners_ready = true;
+    corners_ready_ = true;
   }
-  unlockMutex();
+  unlock_mutex();
 
   return data;
 }
@@ -228,12 +219,12 @@ void PlaneCornerPinMaskOperation::get_area_of_interest(const int UNUSED(input_id
 
 /* ******** PlaneCornerPinWarpImageOperation ******** */
 
-PlaneCornerPinWarpImageOperation::PlaneCornerPinWarpImageOperation() : m_corners_ready(false)
+PlaneCornerPinWarpImageOperation::PlaneCornerPinWarpImageOperation() : corners_ready_(false)
 {
-  addInputSocket(DataType::Vector);
-  addInputSocket(DataType::Vector);
-  addInputSocket(DataType::Vector);
-  addInputSocket(DataType::Vector);
+  add_input_socket(DataType::Vector);
+  add_input_socket(DataType::Vector);
+  add_input_socket(DataType::Vector);
+  add_input_socket(DataType::Vector);
 }
 
 void PlaneCornerPinWarpImageOperation::init_data()
@@ -241,57 +232,58 @@ void PlaneCornerPinWarpImageOperation::init_data()
   if (execution_model_ == eExecutionModel::FullFrame) {
     float corners[4][2];
     read_input_corners(this, 1, corners);
-    calculateCorners(corners, true, 0);
+    calculate_corners(corners, true, 0);
   }
 }
 
-void PlaneCornerPinWarpImageOperation::initExecution()
+void PlaneCornerPinWarpImageOperation::init_execution()
 {
-  PlaneDistortWarpImageOperation::initExecution();
+  PlaneDistortWarpImageOperation::init_execution();
 
-  initMutex();
+  init_mutex();
 }
 
-void PlaneCornerPinWarpImageOperation::deinitExecution()
+void PlaneCornerPinWarpImageOperation::deinit_execution()
 {
-  PlaneDistortWarpImageOperation::deinitExecution();
+  PlaneDistortWarpImageOperation::deinit_execution();
 
-  deinitMutex();
+  deinit_mutex();
 }
 
-void *PlaneCornerPinWarpImageOperation::initializeTileData(rcti *rect)
+void *PlaneCornerPinWarpImageOperation::initialize_tile_data(rcti *rect)
 {
-  void *data = PlaneDistortWarpImageOperation::initializeTileData(rect);
+  void *data = PlaneDistortWarpImageOperation::initialize_tile_data(rect);
 
   /* get corner values once, by reading inputs at (0,0)
    * XXX this assumes invariable values (no image inputs),
    * we don't have a nice generic system for that yet
    */
-  lockMutex();
-  if (!m_corners_ready) {
+  lock_mutex();
+  if (!corners_ready_) {
     /* corner sockets start at index 1 */
     SocketReader *readers[4] = {
-        getInputSocketReader(1),
-        getInputSocketReader(2),
-        getInputSocketReader(3),
-        getInputSocketReader(4),
+        get_input_socket_reader(1),
+        get_input_socket_reader(2),
+        get_input_socket_reader(3),
+        get_input_socket_reader(4),
     };
     float corners[4][2];
-    readCornersFromSockets(rect, readers, corners);
-    calculateCorners(corners, true, 0);
+    read_corners_from_sockets(rect, readers, corners);
+    calculate_corners(corners, true, 0);
 
-    m_corners_ready = true;
+    corners_ready_ = true;
   }
-  unlockMutex();
+  unlock_mutex();
 
   return data;
 }
 
-bool PlaneCornerPinWarpImageOperation::determineDependingAreaOfInterest(
-    rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool PlaneCornerPinWarpImageOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
   for (int i = 0; i < 4; i++) {
-    if (getInputOperation(i + 1)->determineDependingAreaOfInterest(input, readOperation, output)) {
+    if (get_input_operation(i + 1)->determine_depending_area_of_interest(
+            input, read_operation, output)) {
       return true;
     }
   }
@@ -302,12 +294,12 @@ bool PlaneCornerPinWarpImageOperation::determineDependingAreaOfInterest(
    */
   output->xmin = 0;
   output->ymin = 0;
-  output->xmax = getInputOperation(0)->getWidth();
-  output->ymax = getInputOperation(0)->getHeight();
+  output->xmax = get_input_operation(0)->get_width();
+  output->ymax = get_input_operation(0)->get_height();
   return true;
 #if 0
-  return PlaneDistortWarpImageOperation::determineDependingAreaOfInterest(
-      input, readOperation, output);
+  return PlaneDistortWarpImageOperation::determine_depending_area_of_interest(
+      input, read_operation, output);
 #endif
 }
 
