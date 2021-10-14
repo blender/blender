@@ -27,6 +27,7 @@
 
 #include "BLI_virtual_array.hh"
 
+#include "FN_generic_array.hh"
 #include "FN_generic_span.hh"
 
 namespace blender::fn {
@@ -395,6 +396,16 @@ template<typename T> class GVArray_For_VArray : public GVArray {
   const void *try_get_internal_varray_impl() const override
   {
     return varray_;
+  }
+};
+
+class GVArray_For_GArray : public GVArray_For_GSpan {
+ protected:
+  GArray<> array_;
+
+ public:
+  GVArray_For_GArray(GArray<> array) : GVArray_For_GSpan(array.as_span()), array_(std::move(array))
+  {
   }
 };
 
