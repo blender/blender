@@ -1800,6 +1800,9 @@ void GeometryManager::device_update(Device *device,
   size_t num_bvh = 0;
 
   {
+    /* Copy constant data needed by shader evaluation. */
+    device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
+
     scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry({"device_update (displacement)", time});

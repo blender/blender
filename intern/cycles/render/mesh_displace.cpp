@@ -191,9 +191,6 @@ bool GeometryManager::displace(
     }
   }
 
-  /* Needs to be up to data for attribute access. */
-  device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
-
   /* Evaluate shader on device. */
   ShaderEval shader_eval(device, progress);
   if (!shader_eval.eval(SHADER_EVAL_DISPLACE,
