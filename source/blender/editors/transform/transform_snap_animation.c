@@ -56,7 +56,7 @@ short getAnimEdit_SnapMode(TransInfo *t)
     }
   }
   else if (t->spacetype == SPACE_GRAPH) {
-    if ((t->data_type == TFM_TRANSLATION) && activeSnap(t)) {
+    if ((t->mode == TFM_TRANSLATION) && activeSnap(t)) {
       /* Use the translate mode snap. */
     }
     else {
