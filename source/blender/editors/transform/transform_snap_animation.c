@@ -56,10 +56,15 @@ short getAnimEdit_SnapMode(TransInfo *t)
     }
   }
   else if (t->spacetype == SPACE_GRAPH) {
-    SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+    if ((t->data_type == TFM_TRANSLATION) && activeSnap(t)) {
+      /* Use the translate mode snap. */
+    }
+    else {
+      SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
 
-    if (sipo) {
-      autosnap = sipo->autosnap;
+      if (sipo) {
+        autosnap = sipo->autosnap;
+      }
     }
   }
   else if (t->spacetype == SPACE_NLA) {

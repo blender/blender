@@ -615,7 +615,7 @@ static void initSnappingMode(TransInfo *t)
       t->tsnap.mode |= SCE_SNAP_MODE_GRID;
     }
   }
-  else if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) {
+  else if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
     /* No incremental snapping. */
     t->tsnap.mode = 0;
   }
