@@ -57,21 +57,27 @@ ccl_device_inline
   int node_addr = kernel_data.bvh.root;
 
   /* ray parameters in registers */
-  const float tmax = ray->t;
   float3 P = ray->P;
   float3 dir = bvh_clamp_direction(ray->D);
   float3 idir = bvh_inverse_direction(dir);
   int object = OBJECT_NONE;
-  float isect_t = tmax;
 
 #if BVH_FEATURE(BVH_MOTION)
   Transform ob_itfm;
 #endif
 
+  /* Max distance in world space. May be dynamically reduced when max number of
+   * recorded hits is exceeded and we no longer need to find hits beyond the max
+   * distance found. */
+  float t_max_world = ray->t;
+  /* Equal to t_max_world when traversing top level BVH, transformed into local
+   * space when entering instances. */
+  float t_max_current = t_max_world;
+  /* Conversion from world to local space for the current instance if any, 1.0
+   * otherwise. */
   float t_world_to_instance = 1.0f;
 
   *num_hits = 0;
-  ccl_private Intersection *isect = isect_array;
 
   /* traversal loop */
   do {
@@ -88,7 +94,7 @@ ccl_device_inline
                                        dir,
 #endif
                                        idir,
-                                       isect_t,
+                                       t_max_current,
                                        node_addr,
                                        visibility,
                                        dist);
@@ -144,17 +150,18 @@ ccl_device_inline
             /* todo: specialized intersect functions which don't fill in
              * isect unless needed and check SD_HAS_TRANSPARENT_SHADOW?
              * might give a few % performance improvement */
+            Intersection isect ccl_optional_struct_init;
 
             switch (type & PRIMITIVE_ALL) {
               case PRIMITIVE_TRIANGLE: {
                 hit = triangle_intersect(
-                    kg, isect, P, dir, isect_t, visibility, object, prim_addr);
+                    kg, &isect, P, dir, t_max_current, visibility, object, prim_addr);
                 break;
               }
 #if BVH_FEATURE(BVH_MOTION)
               case PRIMITIVE_MOTION_TRIANGLE: {
                 hit = motion_triangle_intersect(
-                    kg, isect, P, dir, isect_t, ray->time, visibility, object, prim_addr);
+                    kg, &isect, P, dir, t_max_current, ray->time, visibility, object, prim_addr);
                 break;
               }
 #endif
@@ -176,8 +183,15 @@ ccl_device_inline
                                              object;
                 const int curve_type = kernel_tex_fetch(__prim_type, prim_addr);
                 const int curve_prim = kernel_tex_fetch(__prim_index, prim_addr);
-                hit = curve_intersect(
-                    kg, isect, P, dir, isect_t, curve_object, curve_prim, ray->time, curve_type);
+                hit = curve_intersect(kg,
+                                      &isect,
+                                      P,
+                                      dir,
+                                      t_max_current,
+                                      curve_object,
+                                      curve_prim,
+                                      ray->time,
+                                      curve_type);
 
                 break;
               }
@@ -191,13 +205,12 @@ ccl_device_inline
             /* shadow ray early termination */
             if (hit) {
               /* Convert intersection distance to world space. */
-              isect->t /= t_world_to_instance;
+              isect.t /= t_world_to_instance;
 
               /* detect if this surface has a shader with transparent shadows */
-
               /* todo: optimize so primitive visibility flag indicates if
                * the primitive has a transparent shadow shader? */
-              const int flags = intersection_get_shader_flags(kg, isect->prim, isect->type);
+              const int flags = intersection_get_shader_flags(kg, isect.prim, isect.type);
 
               if (!(flags & SD_HAS_TRANSPARENT_SHADOW) || max_hits == 0) {
                 /* If no transparent shadows, all light is blocked and we can
@@ -207,13 +220,13 @@ ccl_device_inline
 
               /* Increase the number of hits, possibly beyond max_hits, we will
                * simply not record those and only keep the max_hits closest. */
-              (*num_hits)++;
+              uint record_index = (*num_hits)++;
 
-              if (*num_hits >= max_hits) {
+              if (record_index >= max_hits - 1) {
                 /* If maximum number of hits reached, find the intersection with
                  * the largest distance to potentially replace when another hit
                  * is found. */
-                const int num_recorded_hits = min(max_hits, *num_hits);
+                const int num_recorded_hits = min(max_hits, record_index);
                 float max_recorded_t = isect_array[0].t;
                 int max_recorded_hit = 0;
 
@@ -224,15 +237,16 @@ ccl_device_inline
                   }
                 }
 
-                isect = isect_array + max_recorded_hit;
+                if (record_index >= max_hits) {
+                  record_index = max_recorded_hit;
+                }
 
                 /* Limit the ray distance and stop counting hits beyond this. */
-                isect_t = max_recorded_t * t_world_to_instance;
+                t_max_world = max(max_recorded_t, isect.t);
+                t_max_current = t_max_world * t_world_to_instance;
               }
-              else {
-                /* Still have space for intersection, use next hit. */
-                isect = isect + 1;
-              }
+
+              isect_array[record_index] = isect;
             }
 
             prim_addr++;
@@ -250,7 +264,7 @@ ccl_device_inline
 #endif
 
           /* Convert intersection to object space. */
-          isect_t *= t_world_to_instance;
+          t_max_current *= t_world_to_instance;
 
           ++stack_ptr;
           kernel_assert(stack_ptr < BVH_STACK_SIZE);
@@ -271,10 +285,8 @@ ccl_device_inline
       bvh_instance_pop(kg, object, ray, &P, &dir, &idir, FLT_MAX);
 #endif
 
-      /* Restore world space ray length. If max number of hits exceeded this
-       * distance is reduced to recorded only the closest hits. If not use
-       * the original ray length. */
-      isect_t = (max_hits && *num_hits > max_hits) ? isect->t : tmax;
+      /* Restore world space ray length. */
+      t_max_current = t_max_world;
 
       object = OBJECT_NONE;
       t_world_to_instance = 1.0f;
