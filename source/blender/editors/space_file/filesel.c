@@ -530,7 +530,7 @@ void ED_fileselect_activate_by_id(SpaceFile *sfile, ID *asset_id, const bool def
 
 static void on_reload_select_by_relpath(SpaceFile *sfile, onReloadFnData custom_data)
 {
-  char *relative_path = (char *)custom_data;
+  const char *relative_path = custom_data;
   ED_fileselect_activate_by_relpath(sfile, relative_path);
 }
 
@@ -541,7 +541,9 @@ void ED_fileselect_activate_by_relpath(SpaceFile *sfile, const char *relative_pa
    * after these operations have completed. Defer activation until then. */
   struct FileList *files = sfile->files;
   if (files == NULL || filelist_pending(files) || filelist_needs_force_reset(files)) {
-    file_on_reload_callback_register(sfile, on_reload_select_by_relpath, relative_path);
+    /* Casting away the constness of `relative_path` is safe here, because eventually it just ends
+     * up in another call to this function, and then it's a const char* again. */
+    file_on_reload_callback_register(sfile, on_reload_select_by_relpath, (char *)relative_path);
     return;
   }
 
