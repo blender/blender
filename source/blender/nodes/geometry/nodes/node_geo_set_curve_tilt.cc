@@ -21,8 +21,8 @@ namespace blender::nodes {
 static void geo_node_set_curve_tilt_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_input<decl::Float>("Tilt").subtype(PROP_ANGLE).supports_field();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
+  b.add_input<decl::Float>("Tilt").subtype(PROP_ANGLE).supports_field();
   b.add_output<decl::Geometry>("Geometry");
 }
 
