@@ -134,6 +134,18 @@ void RNA_api_space_filebrowser(StructRNA *srna)
       0,
       "",
       "Whether to activate the ID immediately (false) or after the file browser refreshes (true)");
+
+  /* Select file by relative path. */
+  func = RNA_def_function(
+      srna, "activate_file_by_relative_path", "ED_fileselect_activate_by_relpath");
+  RNA_def_function_ui_description(func,
+                                  "Set active file and add to selection based on relative path to "
+                                  "current File Browser directory");
+  RNA_def_property(func, "relative_path", PROP_STRING, PROP_FILEPATH);
+
+  /* Deselect all files. */
+  func = RNA_def_function(srna, "deselect_all", "ED_fileselect_deselect_all");
+  RNA_def_function_ui_description(func, "Deselect all files");
 }
 
 #endif
