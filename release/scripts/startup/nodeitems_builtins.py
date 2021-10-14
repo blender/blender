@@ -101,15 +101,15 @@ def curve_node_items(context):
         yield NodeItem("GeometryNodeLegacyCurveSplineType")
         yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
 
+    yield NodeItem("GeometryNodeCurveLength")
+    yield NodeItem("GeometryNodeCurveToMesh")
     yield NodeItem("GeometryNodeCurveFill")
     yield NodeItem("GeometryNodeCurveFillet")
-    yield NodeItem("GeometryNodeCurveLength")
+    yield NodeItem("GeometryNodeCurveResample")
     yield NodeItem("GeometryNodeCurveReverse")
     yield NodeItem("GeometryNodeCurveSample")
     yield NodeItem("GeometryNodeCurveSubdivide")
-    yield NodeItem("GeometryNodeCurveToMesh")
     yield NodeItem("GeometryNodeCurveTrim")
-    yield NodeItem("GeometryNodeCurveResample")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeInputCurveHandlePositions")
     yield NodeItem("GeometryNodeCurveParameter")
@@ -128,7 +128,7 @@ def curve_node_items(context):
     yield NodeItem("GeometryNodeSetSplineResolution")
     yield NodeItem("GeometryNodeCurveSplineType")
 
-# Custom Menu for Geometry Node Curves
+# Custom Menu for Geometry Node Mesh
 def mesh_node_items(context):
     if context is None:
         return
@@ -145,8 +145,8 @@ def mesh_node_items(context):
 
     yield NodeItem("GeometryNodeEdgeSplit")
     yield NodeItem("GeometryNodeBoolean")
+    yield NodeItem("GeometryNodeMeshToPoints")
     yield NodeItem("GeometryNodeMeshSubdivide")
-    yield NodeItem("GeometryNodePointsToVertices")
     yield NodeItem("GeometryNodeTriangulate")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeInputShadeSmooth")
@@ -181,7 +181,7 @@ def geometry_input_node_items(context):
     yield NodeItem("GeometryNodeInputPosition")
     yield NodeItem("GeometryNodeInputRadius")
 
-# Custom Menu for Material Node Input Nodes
+# Custom Menu for Material Nodes
 def geometry_material_node_items(context):
     if context is None:
         return
@@ -204,7 +204,7 @@ def geometry_material_node_items(context):
     yield NodeItem("GeometryNodeSetMaterial")
     yield NodeItem("GeometryNodeSetMaterialIndex")
 
-# Custom Menu for Geometry Node Curves
+# Custom Menu for Geometry Node Points
 def point_node_items(context):
     if context is None:
         return
@@ -225,8 +225,8 @@ def point_node_items(context):
         yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
         
     yield NodeItem("GeometryNodeDistributePointsOnFaces")
-    yield NodeItem("GeometryNodeInstanceOnPoints")
-    yield NodeItem("GeometryNodeMeshToPoints")
+    yield NodeItem("GeometryNodePointsToVertices")
+    yield NodeItem("GeometryNodePointsToVolume")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeSetPointRadius")
@@ -683,12 +683,15 @@ geometry_node_categories = [
         NodeItem("GeometryNodeSeparateComponents"),
         NodeItem("GeometryNodeSeparateGeometry"),
         NodeItem("GeometryNodeSetPosition"),
+    ]),
+    GeometryNodeCategory("GEO_INPUT", "Input", items=geometry_input_node_items),
+    GeometryNodeCategory("GEO_INSTANCE", "Instances", items=[
+        NodeItem("GeometryNodeInstanceOnPoints"),
         NodeItem("GeometryNodeRealizeInstances"),
         NodeItem("GeometryNodeRotateInstances"),
         NodeItem("GeometryNodeScaleInstances"),
         NodeItem("GeometryNodeTranslateInstances"),
     ]),
-    GeometryNodeCategory("GEO_INPUT", "Input", items=geometry_input_node_items),
     GeometryNodeCategory("GEO_MATERIAL", "Material", items=geometry_material_node_items),
     GeometryNodeCategory("GEO_MESH", "Mesh", items=mesh_node_items),
     GeometryNodeCategory("GEO_PRIMITIVES_MESH", "Mesh Primitives", items=[
@@ -739,7 +742,6 @@ geometry_node_categories = [
     GeometryNodeCategory("GEO_VOLUME", "Volume", items=[
         NodeItem("GeometryNodeLegacyPointsToVolume", poll=geometry_nodes_legacy_poll),
 
-        NodeItem("GeometryNodePointsToVolume"),
         NodeItem("GeometryNodeVolumeToMesh"),
     ]),
     GeometryNodeCategory("GEO_GROUP", "Group", items=node_group_items),
