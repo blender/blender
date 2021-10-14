@@ -66,7 +66,7 @@ ENUM_OPERATORS(eGPUTextureType, GPU_TEXTURE_CUBE_ARRAY)
 #endif
 
 /* Maximum number of FBOs a texture can be attached to. */
-#define GPU_TEX_MAX_FBO_ATTACHED 16
+#define GPU_TEX_MAX_FBO_ATTACHED 32
 
 /**
  * Implementation of Textures.
