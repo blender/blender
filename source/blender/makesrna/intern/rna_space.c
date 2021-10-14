@@ -5717,7 +5717,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "cursor");
   RNA_def_property_array(prop, 2);
   RNA_def_property_ui_text(prop, "2D Cursor Location", "2D cursor location for this view");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 }
 
 static void rna_def_space_text(BlenderRNA *brna)
