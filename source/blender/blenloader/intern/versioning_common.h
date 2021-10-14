@@ -44,6 +44,8 @@ void version_node_socket_name(struct bNodeTree *ntree,
                               const char *old_name,
                               const char *new_name);
 
+void version_node_id(struct bNodeTree *ntree, const int node_type, const char *new_name);
+
 #ifdef __cplusplus
 }
 #endif

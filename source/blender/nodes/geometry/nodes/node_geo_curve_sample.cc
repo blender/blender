@@ -275,7 +275,7 @@ void register_node_type_geo_curve_sample()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_SAMPLE, " Sample Curve", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_SAMPLE_CURVE, " Sample Curve", NODE_CLASS_GEOMETRY, 0);
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_sample_exec;
   ntype.declare = blender::nodes::geo_node_curve_sample_declare;
   node_type_init(&ntype, blender::nodes::geo_node_curve_sample_type_init);

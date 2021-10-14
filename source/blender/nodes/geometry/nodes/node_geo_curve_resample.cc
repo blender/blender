@@ -266,7 +266,7 @@ void register_node_type_geo_curve_resample()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_RESAMPLE, "Resample Curve", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_RESAMPLE_CURVE, "Resample Curve", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_curve_resample_declare;
   ntype.draw_buttons = blender::nodes::geo_node_curve_resample_layout;
   node_type_storage(

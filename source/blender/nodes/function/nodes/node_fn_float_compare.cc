@@ -110,7 +110,7 @@ void register_node_type_fn_float_compare()
 {
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_FLOAT_COMPARE, "Compare Floats", NODE_CLASS_CONVERTER, 0);
+  fn_node_type_base(&ntype, FN_NODE_COMPARE_FLOATS, "Compare Floats", NODE_CLASS_CONVERTER, 0);
   ntype.declare = blender::nodes::fn_node_float_compare_declare;
   node_type_label(&ntype, node_float_compare_label);
   node_type_update(&ntype, node_float_compare_update);

@@ -357,7 +357,7 @@ void register_node_type_geo_curve_subdivide()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_SUBDIVIDE, "Subdivide Curve", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_SUBDIVIDE_CURVE, "Subdivide Curve", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_curve_subdivide_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_subdivide_exec;
   nodeRegisterType(&ntype);
