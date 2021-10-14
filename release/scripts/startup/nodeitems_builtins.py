@@ -145,6 +145,7 @@ def mesh_node_items(context):
 
     yield NodeItem("GeometryNodeEdgeSplit")
     yield NodeItem("GeometryNodeBoolean")
+    yield NodeItem("GeometryNodeMeshToCurve")
     yield NodeItem("GeometryNodeMeshToPoints")
     yield NodeItem("GeometryNodeMeshSubdivide")
     yield NodeItem("GeometryNodeTriangulate")

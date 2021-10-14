@@ -33,6 +33,7 @@ set(INC
   ../bmesh
   ../depsgraph
   ../functions
+  ../geometry
   ../gpu
   ../imbuf
   ../makesdna
@@ -248,6 +249,7 @@ set(SRC
   geometry/nodes/node_geo_mesh_primitive_line.cc
   geometry/nodes/node_geo_mesh_primitive_uv_sphere.cc
   geometry/nodes/node_geo_mesh_subdivide.cc
+  geometry/nodes/node_geo_mesh_to_curve.cc
   geometry/nodes/node_geo_mesh_to_points.cc
   geometry/nodes/node_geo_object_info.cc
   geometry/nodes/node_geo_points_to_vertices.cc
@@ -446,6 +448,7 @@ set(SRC
 set(LIB
   bf_bmesh
   bf_functions
+  bf_geometry
   bf_intern_sky
 )
 

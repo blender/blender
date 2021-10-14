@@ -34,6 +34,7 @@ void register_node_type_geo_legacy_attribute_proximity(void);
 void register_node_type_geo_legacy_attribute_randomize(void);
 void register_node_type_geo_legacy_delete_geometry(void);
 void register_node_type_geo_legacy_material_assign(void);
+void register_node_type_geo_legacy_mesh_to_curve(void);
 void register_node_type_geo_legacy_points_to_volume(void);
 void register_node_type_geo_legacy_select_by_material(void);
 void register_node_type_geo_legacy_curve_spline_type(void);

@@ -376,6 +376,7 @@ DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE, 0, "MESH_PRIMITIVE_ICO
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_LINE, def_geo_mesh_line, "MESH_PRIMITIVE_LINE", MeshLine, "Mesh Line", "")
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, 0, "MESH_PRIMITIVE_UV_SPHERE", MeshUVSphere, "UV Sphere", "")
 DefNode(GeometryNode, GEO_NODE_MESH_SUBDIVIDE, 0, "MESH_SUBDIVIDE", MeshSubdivide, "Subdivide Mesh", "")
+DefNode(GeometryNode, GEO_NODE_MESH_TO_CURVE, 0, "MESH_TO_CURVE", MeshToCurve, "Mesh to Curve", "")
 DefNode(GeometryNode, GEO_NODE_MESH_TO_POINTS, def_geo_mesh_to_points, "MESH_TO_POINTS", MeshToPoints, "Mesh to Points", "")
 DefNode(GeometryNode, GEO_NODE_OBJECT_INFO, def_geo_object_info, "OBJECT_INFO", ObjectInfo, "Object Info", "")
 DefNode(GeometryNode, GEO_NODE_POINTS_TO_VERTICES, 0, "POINTS_TO_VERTICES", PointsToVertices, "Points to Vertices", "")
