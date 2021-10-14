@@ -344,7 +344,6 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
     if (tex) {
       image_camera_background_matrix_get(cam, bgpic, draw_ctx, aspect, mat);
 
-      mul_m4_m4m4(mat, modelmat, mat);
       const bool is_foreground = (bgpic->flag & CAM_BGIMG_FLAG_FOREGROUND) != 0;
       /* Alpha is clamped just below 1.0 to fix background images to interfere with foreground
        * images. Without this a background image with 1.0 will be rendered on top of a transparent
@@ -361,6 +360,7 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
       DRW_shgroup_uniform_texture(grp, "imgTexture", tex);
       DRW_shgroup_uniform_bool_copy(grp, "imgPremultiplied", use_alpha_premult);
       DRW_shgroup_uniform_bool_copy(grp, "imgAlphaBlend", true);
+      DRW_shgroup_uniform_bool_copy(grp, "isCameraBackground", true);
       DRW_shgroup_uniform_bool_copy(grp, "depthSet", true);
       DRW_shgroup_uniform_vec4_copy(grp, "color", color_premult_alpha);
       DRW_shgroup_call_obmat(grp, DRW_cache_quad_get(), mat);
@@ -446,6 +446,7 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
     DRW_shgroup_uniform_texture(grp, "imgTexture", tex);
     DRW_shgroup_uniform_bool_copy(grp, "imgPremultiplied", use_alpha_premult);
     DRW_shgroup_uniform_bool_copy(grp, "imgAlphaBlend", use_alpha_blend);
+    DRW_shgroup_uniform_bool_copy(grp, "isCameraBackground", false);
     DRW_shgroup_uniform_bool_copy(grp, "depthSet", depth_mode != OB_EMPTY_IMAGE_DEPTH_DEFAULT);
     DRW_shgroup_uniform_vec4_copy(grp, "color", ob->color);
     DRW_shgroup_call_obmat(grp, DRW_cache_quad_get(), mat);
