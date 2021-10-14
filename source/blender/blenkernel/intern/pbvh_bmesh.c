@@ -815,7 +815,9 @@ void BKE_pbvh_bmesh_update_origvert(
   MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
 
   if (log_undo) {
+    bm_logstack_push();
     BM_log_vert_before_modified(pbvh->bm_log, v, pbvh->cd_vert_mask_offset, r_color != NULL);
+    bm_logstack_pop();
   }
 
   if (pbvh->cd_vert_mask_offset) {

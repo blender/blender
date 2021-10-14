@@ -433,15 +433,21 @@ typedef struct BmeshUndoData {
   bool is_redo;
 } BmeshUndoData;
 
-static void bmesh_undo_on_vert_kill(BMVert *v, void *userdata)
+ATTR_NO_OPT static void bmesh_undo_on_vert_kill(BMVert *v, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
+  int ni = BM_ELEM_CD_GET_INT(v, data->cd_vert_node_offset);
   // data->do_full_recalc = true;
 
-  if (BM_ELEM_CD_GET_INT(v, data->cd_vert_node_offset) < 0) {
+  if (ni < 0) {
+#if 0  // not sure this is really an error
     // something went wrong
-    printf("pbvh bmesh undo error\n");
-    data->do_full_recalc = true;
+    printf("%s: error, vertex %d is not in pbvh; ni was: %d\n",
+           __func__,
+           BM_ELEM_GET_ID(data->bm, v),
+           ni);
+    // data->do_full_recalc = true;
+#endif
     return;
   }
 
@@ -709,6 +715,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
     // pbvh_bmesh_check_nodes(ss->pbvh);
   }
   else {
+    printf("undo triggered pbvh rebuild");
     SCULPT_pbvh_clear(ob);
   }
 }
@@ -1855,7 +1862,9 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_COORDS:
       case SCULPT_UNDO_MASK:
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+          bm_logstack_push();
           BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, false);
+          bm_logstack_pop();
         }
         BKE_pbvh_vertex_iter_end;
         break;
@@ -1865,7 +1874,9 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
         BMFace *f;
 
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+          bm_logstack_push();
           BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, true);
+          bm_logstack_pop();
         }
         BKE_pbvh_vertex_iter_end;
 
@@ -1879,7 +1890,9 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_COLOR: {
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
           float *dummy;
+          bm_logstack_push();
           BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, true);
+          bm_logstack_pop();
         }
         BKE_pbvh_vertex_iter_end;
         break;

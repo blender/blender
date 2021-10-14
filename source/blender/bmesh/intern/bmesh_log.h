@@ -186,3 +186,6 @@ void BM_log_face_topo_pre(BMLog *log, BMFace *f);
 
 /*Log a face after changing its topological connections*/
 void BM_log_face_topo_post(BMLog *log, BMFace *f);
+
+void BM_log_vert_topo_pre(BMLog *log, BMVert *v);
+void BM_log_vert_topo_post(BMLog *log, BMVert *v);
