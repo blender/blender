@@ -240,6 +240,47 @@ float hash_float_to_float(float4 k)
   return uint_to_float_01(hash_float(k));
 }
 
+float2 hash_float_to_float2(float2 k)
+{
+  return float2(hash_float_to_float(k), hash_float_to_float(float3(k.x, k.y, 1.0)));
+}
+
+float3 hash_float_to_float3(float k)
+{
+  return float3(hash_float_to_float(k),
+                hash_float_to_float(float2(k, 1.0)),
+                hash_float_to_float(float2(k, 2.0)));
+}
+
+float3 hash_float_to_float3(float2 k)
+{
+  return float3(hash_float_to_float(k),
+                hash_float_to_float(float3(k.x, k.y, 1.0)),
+                hash_float_to_float(float3(k.x, k.y, 2.0)));
+}
+
+float3 hash_float_to_float3(float3 k)
+{
+  return float3(hash_float_to_float(k),
+                hash_float_to_float(float4(k.x, k.y, k.z, 1.0)),
+                hash_float_to_float(float4(k.x, k.y, k.z, 2.0)));
+}
+
+float3 hash_float_to_float3(float4 k)
+{
+  return float3(hash_float_to_float(k),
+                hash_float_to_float(float4(k.z, k.x, k.w, k.y)),
+                hash_float_to_float(float4(k.w, k.z, k.y, k.x)));
+}
+
+float4 hash_float_to_float4(float4 k)
+{
+  return float4(hash_float_to_float(k),
+                hash_float_to_float(float4(k.w, k.x, k.y, k.z)),
+                hash_float_to_float(float4(k.z, k.w, k.x, k.y)),
+                hash_float_to_float(float4(k.y, k.z, k.w, k.x)));
+}
+
 /* ------------
  * Perlin Noise
  * ------------
