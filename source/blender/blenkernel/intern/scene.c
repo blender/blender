@@ -2787,6 +2787,12 @@ bool BKE_scene_uses_cycles_experimental_features(Scene *scene)
   PointerRNA scene_ptr;
   RNA_id_pointer_create(&scene->id, &scene_ptr);
   PointerRNA cycles_ptr = RNA_pointer_get(&scene_ptr, "cycles");
+
+  if (RNA_pointer_is_null(&cycles_ptr)) {
+    /* The pointer only exists if Cycles is enabled. */
+    return false;
+  }
+
   return RNA_enum_get(&cycles_ptr, "feature_set") == CYCLES_FEATURES_EXPERIMENTAL;
 }
 
