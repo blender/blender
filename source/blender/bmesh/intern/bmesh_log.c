@@ -906,7 +906,7 @@ static void bm_log_face_bmface_copy(
       lf->customdata_f = NULL;
     }
 
-    for (int i = 0; i < lf->len; i++) {
+    for (uint i = 0; i < lf->len; i++) {
       if (lf->customdata[i]) {
         BLI_mempool_free(entry->ldata.pool, lf->customdata[i]);
         lf->customdata[i] = NULL;
@@ -1101,7 +1101,7 @@ static void bm_log_verts_unmake(
               "%s[%s]: missing vertex error, vertex id: %d\n",
               GET_TRACE(lv, entry),
               __func__,
-              id);
+              (int)id);
       continue;
     }
 
