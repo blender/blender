@@ -1200,6 +1200,9 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   if (setup_ui) {
     BKE_brush_channelset_ui_init(brush, tool);
   }
+
+  BKE_brush_channelset_check_radius(chset);
+
   namestack_pop();
 }
 

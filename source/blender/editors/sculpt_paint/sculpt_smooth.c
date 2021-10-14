@@ -74,6 +74,20 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "BLI_compiler_compat.h"
+#include "BLI_utildefines.h"
+
+MINLINE float safe_shell_angle_to_dist(const float angle)
+{
+  float th = cosf(angle);
+
+  if (th == 0.0f) {
+    return 10.0f;
+  }
+
+  return (UNLIKELY(angle < 1.e-8f)) ? 1.0f : fabsf(1.0f / th);
+}
+
 void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float result[3],
                                              SculptVertRef vertex,
@@ -317,7 +331,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       /*ok this bit smoothes the bevel edges.  why? hit on it
         by accident.*/
       float shellth = saacos(dot_v3v3(no, no2));
-      shellth = shell_angle_to_dist(shellth * 2.0);
+      shellth = safe_shell_angle_to_dist(shellth * 2.0);
       th /= 0.00001 + shellth;
 
       sub_v3_v3v3(tmp, co2, co);
