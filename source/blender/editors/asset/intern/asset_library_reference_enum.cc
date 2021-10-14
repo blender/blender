@@ -55,7 +55,6 @@ int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *librar
     return ASSET_LIBRARY_CUSTOM + library->custom_library_index;
   }
 
-  BLI_assert_unreachable();
   return ASSET_LIBRARY_LOCAL;
 }
 
