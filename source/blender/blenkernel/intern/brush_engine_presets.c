@@ -49,7 +49,7 @@
 #  pragma warning(error : 4033) /* 'function' must return a value */
 #endif
 
-struct CurveMappingCache *brush_curve_cache;
+extern struct CurveMappingCache *brush_curve_cache;
 
 #if 1
 struct {
