@@ -1997,6 +1997,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   const bool use_global = RNA_boolean_get(op->ptr, "use_global");
+  const bool confirm = op->flag & OP_IS_INVOKE;
   uint changed_count = 0;
   uint tagged_count = 0;
 
@@ -2075,7 +2076,9 @@ static int object_delete_exec(bContext *C, wmOperator *op)
     BKE_id_multi_tagged_delete(bmain);
   }
 
-  BKE_reportf(op->reports, RPT_INFO, "Deleted %u object(s)", (changed_count + tagged_count));
+  if (confirm) {
+    BKE_reportf(op->reports, RPT_INFO, "Deleted %u object(s)", (changed_count + tagged_count));
+  }
 
   /* delete has to handle all open scenes */
   BKE_main_id_tag_listbase(&bmain->scenes, LIB_TAG_DOIT, true);
