@@ -207,6 +207,7 @@ class ProximityFunction : public fn::MultiFunction {
 static void geo_node_proximity_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set_target = params.extract_input<GeometrySet>("Target");
+  geometry_set_target.ensure_owns_direct_data();
 
   auto return_default = [&]() {
     params.set_output("Position", fn::make_constant_field<float3>({0.0f, 0.0f, 0.0f}));
