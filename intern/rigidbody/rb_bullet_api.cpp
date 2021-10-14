@@ -591,6 +591,16 @@ void RB_body_get_totaltorque(rbRigidBody *object, float v_out[3])
 
 }
 
+void RB_body_get_chris_stress(rbRigidBody *object, float v1[3], float v2[3], float v3[3])
+{
+	btRigidBody *body = object->body;
+
+	copy_v3_btvec3(v1, body->getChrisStressX());
+	copy_v3_btvec3(v2, body->getChrisStressY());
+	copy_v3_btvec3(v3, body->getChrisStressZ());
+
+}
+
 void RB_body_get_ForcechainNormal(rbRigidBody *object, float v1[3], float v2[3], float v3[3])
 {
 	btRigidBody *body = object->body;

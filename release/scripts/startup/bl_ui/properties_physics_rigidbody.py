@@ -179,6 +179,7 @@ class PHYSICS_PT_rigid_body_data(PHYSICS_PT_rigidbody_panel, Panel):
         # col.prop(rbo, "rigidbody_id", text="ID")
         # col.prop(rbo, "forcechain_id", text="Chain ID")
         col.prop(rbo, "forcechain_force", text="Chain Force")
+        col.prop(rbo, "chris_stress_z", text="Christoffersen stress sigma_zi(i=x,y,z)")
         # col.prop(rbo, "forcechain_normal", text="Chain Normal")
 
 

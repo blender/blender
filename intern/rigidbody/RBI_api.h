@@ -191,6 +191,8 @@ void RB_body_set_angular_velocity(rbRigidBody *body, const float v_in[3]);
 void RB_body_get_totalforce(rbRigidBody *body, float v_out[3]);
 void RB_body_get_totaltorque(rbRigidBody *body, float v_out[3]);
 
+void RB_body_get_chris_stress(rbRigidBody *body, float v1[3], float v2[3], float v3[3]);
+
 void RB_body_get_ForcechainNormal(rbRigidBody *body, float v1[3], float v2[3], float v3[3]);
 float RB_body_get_num_contacts(rbRigidBody* body);
 float RB_body_get_rigidbodyId(rbRigidBody* body);

@@ -1025,6 +1025,20 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "forcechain_normal3");
 	RNA_def_property_ui_text(prop, "Contacts forcechain_normal3", "Contacts forcechain_normal3");
 
+	prop = RNA_def_property(srna, "chris_stress_x", PROP_FLOAT, PROP_TORQUE);
+	RNA_def_property_float_sdna(prop, NULL, "chris_stress_x");
+	RNA_def_property_ui_text(prop, "Chris_Stress_X", "Christoffersen stress sigma_xi(i=x,y,z)");
+
+	prop = RNA_def_property(srna, "chris_stress_y", PROP_FLOAT, PROP_TORQUE);
+	RNA_def_property_float_sdna(prop, NULL, "chris_stress_y");
+	RNA_def_property_ui_text(prop, "Chris_Stress_Y", "Christoffersen stress sigma_yi(i=x,y,z)");
+
+	prop = RNA_def_property(srna, "chris_stress_z", PROP_FLOAT, PROP_TORQUE);
+	RNA_def_property_float_sdna(prop, NULL, "chris_stress_z");
+	RNA_def_property_ui_text(prop, "Chris_Stress_Z", "Christoffersen stress sigma_zi(i=x,y,z)");
+
+
+
 
 
 

@@ -130,7 +130,7 @@ static int ptcache_data_size[] = {
 		3 * sizeof(float), // BPHYS_DATA_TIMES//BPHYS_DATA_FORCE
 		sizeof(BoidData), // case BPHYS_DATA_BOIDS
 		3 * sizeof(float), // BPHYS_DATA_TORQUE
-		17*sizeof(float) // BPHYS_DATA_CONTACT
+		26*sizeof(float) // BPHYS_DATA_CONTACT
 };
 
 static int ptcache_extra_datasize[] = {
@@ -1282,7 +1282,8 @@ static int  ptcache_rigidbody_write(int index, void *rb_v, void **data, int UNUS
 {
 	RigidBodyWorld *rbw = rb_v;
 	Object *ob = NULL;
-	float contacts_info[17];
+	float contacts_info[26];
+	
 	
 	if (rbw->objects)
 		ob = rbw->objects[index];
@@ -1298,7 +1299,8 @@ static int  ptcache_rigidbody_write(int index, void *rb_v, void **data, int UNUS
 			RB_body_get_angular_velocity(rbo->physics_object, rbo->an_vel);
 			RB_body_get_totalforce(rbo->physics_object, rbo->totalforce);
 			RB_body_get_totaltorque(rbo->physics_object, rbo->totaltorque);
-			
+			RB_body_get_chris_stress(rbo->physics_object, rbo->chris_stress_x, rbo->chris_stress_y, rbo->chris_stress_z);
+
 			rbo->num_contacts = RB_body_get_num_contacts(rbo->physics_object);
 			rbo->rigidbody_id = RB_body_get_rigidbodyId(rbo->physics_object);
 			RB_body_get_ForcechainId(rbo->physics_object, rbo->forcechain_id);
@@ -1322,6 +1324,18 @@ static int  ptcache_rigidbody_write(int index, void *rb_v, void **data, int UNUS
 			contacts_info[15] = rbo->forcechain_id[1];
 			contacts_info[16] = rbo->forcechain_id[2];
 
+			contacts_info[17] = rbo->chris_stress_x[0];
+			contacts_info[18] = rbo->chris_stress_x[1];
+			contacts_info[19] = rbo->chris_stress_x[2];
+			contacts_info[20] = rbo->chris_stress_y[0];
+			contacts_info[21] = rbo->chris_stress_y[1];
+			contacts_info[22] = rbo->chris_stress_y[2];
+			contacts_info[23] = rbo->chris_stress_z[0];
+			contacts_info[24] = rbo->chris_stress_z[1];
+			contacts_info[25] = rbo->chris_stress_z[2];
+
+			
+
 			
 #endif
 			
@@ -1341,7 +1355,7 @@ static void ptcache_rigidbody_read(int index, void *rb_v, void **data, float UNU
 {
 	RigidBodyWorld *rbw = rb_v;
 	Object *ob = NULL;
-	float contacts_info[17];
+	float contacts_info[26];
 
 	if (rbw->objects)
 		ob = rbw->objects[index];
@@ -1381,6 +1395,16 @@ static void ptcache_rigidbody_read(int index, void *rb_v, void **data, float UNU
 				rbo->forcechain_id[0] = contacts_info[14];
 				rbo->forcechain_id[1] = contacts_info[15];
 				rbo->forcechain_id[2] = contacts_info[16];
+
+				rbo->chris_stress_x[0] = contacts_info[17];
+				rbo->chris_stress_x[1] = contacts_info[18];
+				rbo->chris_stress_x[2] = contacts_info[19];
+				rbo->chris_stress_y[0] = contacts_info[20];
+				rbo->chris_stress_y[1] = contacts_info[21];
+				rbo->chris_stress_y[2] = contacts_info[22];
+				rbo->chris_stress_z[0] = contacts_info[23];
+				rbo->chris_stress_z[1] = contacts_info[24];
+				rbo->chris_stress_z[2] = contacts_info[25];
 
 			}
 		}

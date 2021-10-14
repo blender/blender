@@ -671,7 +671,7 @@ static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool 
 		RB_body_set_friction(rbo->physics_object, rbo->friction);
 		RB_body_set_restitution(rbo->physics_object, rbo->restitution);
 
-		RB_body_set_damping(rbo->physics_object, pow(1 - rbo->lin_damping, rbw->length_scale), pow(1 - rbo->ang_damping, rbw->length_scale));// pow(1 - rbo->lin_damping, scale_length)
+		RB_body_set_damping(rbo->physics_object, pow(1 - rbo->lin_damping, rbw->length_scale), pow(1 - rbo->ang_damping, rbw->length_scale));// pow(1 - rbo->lin_damping, scale_length),modify
 		RB_body_set_sleep_thresh(rbo->physics_object, rbo->lin_sleep_thresh, rbo->ang_sleep_thresh);
 		RB_body_set_activation_state(rbo->physics_object, rbo->flag & RBO_FLAG_USE_DEACTIVATION);
 

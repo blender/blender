@@ -1961,14 +1961,16 @@ btScalar btSequentialImpulseConstraintSolver::solveGroupCacheFriendlyFinish(btCo
 			}
 			//do a callback here?
 
-			btSolverBody* body1 = &m_tmpSolverBodyPool[solveManifold.m_solverBodyIdA];
-			btSolverBody* body2 = &m_tmpSolverBodyPool[solveManifold.m_solverBodyIdB];
+			btSolverBody *body1 = &m_tmpSolverBodyPool[solveManifold.m_solverBodyIdA];
+			btSolverBody *body2 = &m_tmpSolverBodyPool[solveManifold.m_solverBodyIdB];
+			btVector3 vec_pos;
+			vec_pos = body2->m_worldTransform.getOrigin() - body1->m_worldTransform.getOrigin();
 			if (pt->m_appliedImpulse > 0)
 			{
 				if (body1->m_originalBody) {
 					body1->m_originalBody->setRigidbodyId(solveManifold.m_solverBodyIdA);
 					body1->m_originalBody->addNumContacts();
-					body1->m_originalBody->setForceChains(pt->m_appliedImpulse / infoGlobal.m_timeStep, solveManifold.m_solverBodyIdB, solveManifold.m_contactNormal1);
+					body1->m_originalBody->setForceChains(pt->m_appliedImpulse / infoGlobal.m_timeStep, solveManifold.m_solverBodyIdB, solveManifold.m_contactNormal1,vec_pos);
 
 
 
@@ -1979,7 +1981,7 @@ btScalar btSequentialImpulseConstraintSolver::solveGroupCacheFriendlyFinish(btCo
 				if (body2->m_originalBody) {
 					body2->m_originalBody->setRigidbodyId(solveManifold.m_solverBodyIdB);
 					body2->m_originalBody->addNumContacts();
-					body2->m_originalBody->setForceChains(pt->m_appliedImpulse / infoGlobal.m_timeStep, solveManifold.m_solverBodyIdA, solveManifold.m_contactNormal2);
+					body2->m_originalBody->setForceChains(pt->m_appliedImpulse / infoGlobal.m_timeStep, solveManifold.m_solverBodyIdA, solveManifold.m_contactNormal2, vec_pos);
 
 
 				}

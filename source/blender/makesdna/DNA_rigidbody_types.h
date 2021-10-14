@@ -142,18 +142,21 @@ typedef struct RigidBodyOb {
 	
 	float orn[4];			/* rigid body orientation */
 	float pos[3];			/* rigid body position */
-	//float pad1;
+	float pad1;
 	float totalforce[3];
 	float totaltorque[3];
 	float lin_vel[3];
 	float an_vel[3];
 	float num_contacts;
 	float rigidbody_id;
+	float chris_stress_x[3];
+	float chris_stress_y[3];
+	float chris_stress_z[3];
 	float forcechain_id[3];
 	float forcechain_force[3];
 	float forcechain_normal1[3];
 	float forcechain_normal2[3];
-	float forcechain_normal3[3];/* 名字不能有大写，变量数目为偶，对齐 */
+	float forcechain_normal3[3];/* 名字不能有大写，变量名为偶，对齐 */
 
 	
 	
