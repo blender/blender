@@ -139,6 +139,16 @@ GeometryComponent &GeometrySet::get_component_for_write(GeometryComponentType co
       });
 }
 
+/**
+ * Retrieve the pointer to a component without creating it if it does not exist,
+ * unlike #get_component_for_write.
+ */
+GeometryComponent *GeometrySet::get_component_ptr(GeometryComponentType type)
+{
+  GeometryComponentPtr *component_ptr = components_.lookup_ptr(type);
+  return component_ptr == nullptr ? nullptr : component_ptr->get();
+}
+
 /* Get the component of the given type. Might return null if the component does not exist yet. */
 const GeometryComponent *GeometrySet::get_component_for_read(
     GeometryComponentType component_type) const
@@ -340,8 +350,10 @@ bool GeometrySet::is_empty() const
 GeometrySet GeometrySet::create_with_mesh(Mesh *mesh, GeometryOwnershipType ownership)
 {
   GeometrySet geometry_set;
-  MeshComponent &component = geometry_set.get_component_for_write<MeshComponent>();
-  component.replace(mesh, ownership);
+  if (mesh != nullptr) {
+    MeshComponent &component = geometry_set.get_component_for_write<MeshComponent>();
+    component.replace(mesh, ownership);
+  }
   return geometry_set;
 }
 
@@ -350,8 +362,10 @@ GeometrySet GeometrySet::create_with_pointcloud(PointCloud *pointcloud,
                                                 GeometryOwnershipType ownership)
 {
   GeometrySet geometry_set;
-  PointCloudComponent &component = geometry_set.get_component_for_write<PointCloudComponent>();
-  component.replace(pointcloud, ownership);
+  if (pointcloud != nullptr) {
+    PointCloudComponent &component = geometry_set.get_component_for_write<PointCloudComponent>();
+    component.replace(pointcloud, ownership);
+  }
   return geometry_set;
 }
 
@@ -359,65 +373,87 @@ GeometrySet GeometrySet::create_with_pointcloud(PointCloud *pointcloud,
 GeometrySet GeometrySet::create_with_curve(CurveEval *curve, GeometryOwnershipType ownership)
 {
   GeometrySet geometry_set;
-  CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
-  component.replace(curve, ownership);
+  if (curve != nullptr) {
+    CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
+    component.replace(curve, ownership);
+  }
   return geometry_set;
 }
 
 /* Clear the existing mesh and replace it with the given one. */
 void GeometrySet::replace_mesh(Mesh *mesh, GeometryOwnershipType ownership)
 {
-  MeshComponent &component = this->get_component_for_write<MeshComponent>();
-  component.replace(mesh, ownership);
+  if (mesh == nullptr) {
+    this->remove<MeshComponent>();
+  }
+  else {
+    MeshComponent &component = this->get_component_for_write<MeshComponent>();
+    component.replace(mesh, ownership);
+  }
 }
 
 /* Clear the existing curve and replace it with the given one. */
 void GeometrySet::replace_curve(CurveEval *curve, GeometryOwnershipType ownership)
 {
-  CurveComponent &component = this->get_component_for_write<CurveComponent>();
-  component.replace(curve, ownership);
+  if (curve == nullptr) {
+    this->remove<CurveComponent>();
+  }
+  else {
+    CurveComponent &component = this->get_component_for_write<CurveComponent>();
+    component.replace(curve, ownership);
+  }
 }
 
 /* Clear the existing point cloud and replace with the given one. */
 void GeometrySet::replace_pointcloud(PointCloud *pointcloud, GeometryOwnershipType ownership)
 {
-  PointCloudComponent &pointcloud_component = this->get_component_for_write<PointCloudComponent>();
-  pointcloud_component.replace(pointcloud, ownership);
+  if (pointcloud == nullptr) {
+    this->remove<PointCloudComponent>();
+  }
+  else {
+    PointCloudComponent &component = this->get_component_for_write<PointCloudComponent>();
+    component.replace(pointcloud, ownership);
+  }
 }
 
 /* Clear the existing volume and replace with the given one. */
 void GeometrySet::replace_volume(Volume *volume, GeometryOwnershipType ownership)
 {
-  VolumeComponent &volume_component = this->get_component_for_write<VolumeComponent>();
-  volume_component.replace(volume, ownership);
+  if (volume == nullptr) {
+    this->remove<VolumeComponent>();
+  }
+  else {
+    VolumeComponent &component = this->get_component_for_write<VolumeComponent>();
+    component.replace(volume, ownership);
+  }
 }
 
 /* Returns a mutable mesh or null. No ownership is transferred. */
 Mesh *GeometrySet::get_mesh_for_write()
 {
-  MeshComponent &component = this->get_component_for_write<MeshComponent>();
-  return component.get_for_write();
+  MeshComponent *component = this->get_component_ptr<MeshComponent>();
+  return component == nullptr ? nullptr : component->get_for_write();
 }
 
 /* Returns a mutable point cloud or null. No ownership is transferred. */
 PointCloud *GeometrySet::get_pointcloud_for_write()
 {
-  PointCloudComponent &component = this->get_component_for_write<PointCloudComponent>();
-  return component.get_for_write();
+  PointCloudComponent *component = this->get_component_ptr<PointCloudComponent>();
+  return component == nullptr ? nullptr : component->get_for_write();
 }
 
 /* Returns a mutable volume or null. No ownership is transferred. */
 Volume *GeometrySet::get_volume_for_write()
 {
-  VolumeComponent &component = this->get_component_for_write<VolumeComponent>();
-  return component.get_for_write();
+  VolumeComponent *component = this->get_component_ptr<VolumeComponent>();
+  return component == nullptr ? nullptr : component->get_for_write();
 }
 
 /* Returns a mutable curve or null. No ownership is transferred. */
 CurveEval *GeometrySet::get_curve_for_write()
 {
-  CurveComponent &component = this->get_component_for_write<CurveComponent>();
-  return component.get_for_write();
+  CurveComponent *component = this->get_component_ptr<CurveComponent>();
+  return component == nullptr ? nullptr : component->get_for_write();
 }
 
 void GeometrySet::attribute_foreach(const Span<GeometryComponentType> component_types,
