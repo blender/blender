@@ -268,6 +268,36 @@ ccl_device_inline float4 __int4_as_float4(int4 i)
 #endif
 }
 
+template<typename T> ccl_device_inline uint pointer_pack_to_uint_0(T *ptr)
+{
+  return ((uint64_t)ptr) & 0xFFFFFFFF;
+}
+
+template<typename T> ccl_device_inline uint pointer_pack_to_uint_1(T *ptr)
+{
+  return (((uint64_t)ptr) >> 32) & 0xFFFFFFFF;
+}
+
+template<typename T> ccl_device_inline T *pointer_unpack_from_uint(const uint a, const uint b)
+{
+  return (T *)(((uint64_t)b << 32) | a);
+}
+
+ccl_device_inline uint uint16_pack_to_uint(const uint a, const uint b)
+{
+  return (a << 16) | b;
+}
+
+ccl_device_inline uint uint16_unpack_from_uint_0(const uint i)
+{
+  return i >> 16;
+}
+
+ccl_device_inline uint uint16_unpack_from_uint_1(const uint i)
+{
+  return i & 0xFFFF;
+}
+
 /* Versions of functions which are safe for fast math. */
 ccl_device_inline bool isnan_safe(float f)
 {

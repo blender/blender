@@ -34,11 +34,11 @@
 
 template<typename T> ccl_device_forceinline T *get_payload_ptr_0()
 {
-  return (T *)(((uint64_t)optixGetPayload_1() << 32) | optixGetPayload_0());
+  return pointer_unpack_from_uint<T>(optixGetPayload_0(), optixGetPayload_1());
 }
 template<typename T> ccl_device_forceinline T *get_payload_ptr_2()
 {
-  return (T *)(((uint64_t)optixGetPayload_3() << 32) | optixGetPayload_2());
+  return pointer_unpack_from_uint<T>(optixGetPayload_2(), optixGetPayload_3());
 }
 
 ccl_device_forceinline int get_object_id()
