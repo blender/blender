@@ -45,7 +45,8 @@ typedef struct PerspectiveMotionTransform {
 
 /* Functions */
 
-ccl_device_inline float3 transform_perspective(const ProjectionTransform *t, const float3 a)
+ccl_device_inline float3 transform_perspective(ccl_private const ProjectionTransform *t,
+                                               const float3 a)
 {
   float4 b = make_float4(a.x, a.y, a.z, 1.0f);
   float3 c = make_float3(dot(t->x, b), dot(t->y, b), dot(t->z, b));
@@ -54,7 +55,7 @@ ccl_device_inline float3 transform_perspective(const ProjectionTransform *t, con
   return (w != 0.0f) ? c / w : zero_float3();
 }
 
-ccl_device_inline float3 transform_perspective_direction(const ProjectionTransform *t,
+ccl_device_inline float3 transform_perspective_direction(ccl_private const ProjectionTransform *t,
                                                          const float3 a)
 {
   float3 c = make_float3(a.x * t->x.x + a.y * t->x.y + a.z * t->x.z,

@@ -28,7 +28,7 @@ ccl_device float sky_angle_between(float thetav, float phiv, float theta, float 
  * "A Practical Analytic Model for Daylight"
  * A. J. Preetham, Peter Shirley, Brian Smits
  */
-ccl_device float sky_perez_function(float *lam, float theta, float gamma)
+ccl_device float sky_perez_function(ccl_private float *lam, float theta, float gamma)
 {
   float ctheta = cosf(theta);
   float cgamma = cosf(gamma);
@@ -37,16 +37,16 @@ ccl_device float sky_perez_function(float *lam, float theta, float gamma)
          (1.0f + lam[2] * expf(lam[3] * gamma) + lam[4] * cgamma * cgamma);
 }
 
-ccl_device float3 sky_radiance_preetham(const KernelGlobals *kg,
+ccl_device float3 sky_radiance_preetham(ccl_global const KernelGlobals *kg,
                                         float3 dir,
                                         float sunphi,
                                         float suntheta,
                                         float radiance_x,
                                         float radiance_y,
                                         float radiance_z,
-                                        float *config_x,
-                                        float *config_y,
-                                        float *config_z)
+                                        ccl_private float *config_x,
+                                        ccl_private float *config_y,
+                                        ccl_private float *config_z)
 {
   /* convert vector to spherical coordinates */
   float2 spherical = direction_to_spherical(dir);
@@ -73,7 +73,7 @@ ccl_device float3 sky_radiance_preetham(const KernelGlobals *kg,
  * "An Analytic Model for Full Spectral Sky-Dome Radiance"
  * Lukas Hosek, Alexander Wilkie
  */
-ccl_device float sky_radiance_internal(float *configuration, float theta, float gamma)
+ccl_device float sky_radiance_internal(ccl_private float *configuration, float theta, float gamma)
 {
   float ctheta = cosf(theta);
   float cgamma = cosf(gamma);
@@ -90,16 +90,16 @@ ccl_device float sky_radiance_internal(float *configuration, float theta, float 
           configuration[6] * mieM + configuration[7] * zenith);
 }
 
-ccl_device float3 sky_radiance_hosek(const KernelGlobals *kg,
+ccl_device float3 sky_radiance_hosek(ccl_global const KernelGlobals *kg,
                                      float3 dir,
                                      float sunphi,
                                      float suntheta,
                                      float radiance_x,
                                      float radiance_y,
                                      float radiance_z,
-                                     float *config_x,
-                                     float *config_y,
-                                     float *config_z)
+                                     ccl_private float *config_x,
+                                     ccl_private float *config_y,
+                                     ccl_private float *config_z)
 {
   /* convert vector to spherical coordinates */
   float2 spherical = direction_to_spherical(dir);
@@ -127,9 +127,9 @@ ccl_device float3 geographical_to_direction(float lat, float lon)
   return make_float3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
 }
 
-ccl_device float3 sky_radiance_nishita(const KernelGlobals *kg,
+ccl_device float3 sky_radiance_nishita(ccl_global const KernelGlobals *kg,
                                        float3 dir,
-                                       float *nishita_data,
+                                       ccl_private float *nishita_data,
                                        uint texture_id)
 {
   /* definitions */
@@ -209,8 +209,11 @@ ccl_device float3 sky_radiance_nishita(const KernelGlobals *kg,
   return xyz_to_rgb(kg, xyz);
 }
 
-ccl_device_noinline int svm_node_tex_sky(
-    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int offset)
+ccl_device_noinline int svm_node_tex_sky(ccl_global const KernelGlobals *kg,
+                                         ccl_private ShaderData *sd,
+                                         ccl_private float *stack,
+                                         uint4 node,
+                                         int offset)
 {
   /* Load data */
   uint dir_offset = node.y;

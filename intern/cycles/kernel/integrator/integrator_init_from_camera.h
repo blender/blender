@@ -25,12 +25,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline void integrate_camera_sample(const KernelGlobals *ccl_restrict kg,
+ccl_device_inline void integrate_camera_sample(ccl_global const KernelGlobals *ccl_restrict kg,
                                                const int sample,
                                                const int x,
                                                const int y,
                                                const uint rng_hash,
-                                               Ray *ray)
+                                               ccl_private Ray *ray)
 {
   /* Filter sampling. */
   float filter_u, filter_v;
@@ -64,7 +64,7 @@ ccl_device_inline void integrate_camera_sample(const KernelGlobals *ccl_restrict
  * Used by CPU implementation to not attempt to sample pixel for multiple samples once its known
  * that the pixel did converge. */
 ccl_device bool integrator_init_from_camera(INTEGRATOR_STATE_ARGS,
-                                            const ccl_global KernelWorkTile *ccl_restrict tile,
+                                            ccl_global const KernelWorkTile *ccl_restrict tile,
                                             ccl_global float *render_buffer,
                                             const int x,
                                             const int y,

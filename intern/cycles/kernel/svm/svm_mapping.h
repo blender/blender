@@ -18,9 +18,9 @@ CCL_NAMESPACE_BEGIN
 
 /* Mapping Node */
 
-ccl_device_noinline void svm_node_mapping(const KernelGlobals *kg,
-                                          ShaderData *sd,
-                                          float *stack,
+ccl_device_noinline void svm_node_mapping(ccl_global const KernelGlobals *kg,
+                                          ccl_private ShaderData *sd,
+                                          ccl_private float *stack,
                                           uint type,
                                           uint inputs_stack_offsets,
                                           uint result_stack_offset)
@@ -43,9 +43,9 @@ ccl_device_noinline void svm_node_mapping(const KernelGlobals *kg,
 
 /* Texture Mapping */
 
-ccl_device_noinline int svm_node_texture_mapping(const KernelGlobals *kg,
-                                                 ShaderData *sd,
-                                                 float *stack,
+ccl_device_noinline int svm_node_texture_mapping(ccl_global const KernelGlobals *kg,
+                                                 ccl_private ShaderData *sd,
+                                                 ccl_private float *stack,
                                                  uint vec_offset,
                                                  uint out_offset,
                                                  int offset)
@@ -62,9 +62,9 @@ ccl_device_noinline int svm_node_texture_mapping(const KernelGlobals *kg,
   return offset;
 }
 
-ccl_device_noinline int svm_node_min_max(const KernelGlobals *kg,
-                                         ShaderData *sd,
-                                         float *stack,
+ccl_device_noinline int svm_node_min_max(ccl_global const KernelGlobals *kg,
+                                         ccl_private ShaderData *sd,
+                                         ccl_private float *stack,
                                          uint vec_offset,
                                          uint out_offset,
                                          int offset)

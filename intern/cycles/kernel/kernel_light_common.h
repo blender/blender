@@ -32,7 +32,7 @@ CCL_NAMESPACE_BEGIN
  * Note: light_p is modified when sample_coord is true.
  */
 ccl_device_inline float rect_light_sample(float3 P,
-                                          float3 *light_p,
+                                          ccl_private float3 *light_p,
                                           float3 axisu,
                                           float3 axisv,
                                           float randu,
@@ -167,9 +167,9 @@ ccl_device float light_spread_attenuation(const float3 D,
  * reduce noise with low spread. */
 ccl_device bool light_spread_clamp_area_light(const float3 P,
                                               const float3 lightNg,
-                                              float3 *lightP,
-                                              float3 *axisu,
-                                              float3 *axisv,
+                                              ccl_private float3 *lightP,
+                                              ccl_private float3 *axisu,
+                                              ccl_private float3 *axisv,
                                               const float tan_spread)
 {
   /* Closest point in area light plane and distance to that plane. */
@@ -214,7 +214,10 @@ ccl_device bool light_spread_clamp_area_light(const float3 P,
   return true;
 }
 
-ccl_device float lamp_light_pdf(const KernelGlobals *kg, const float3 Ng, const float3 I, float t)
+ccl_device float lamp_light_pdf(ccl_global const KernelGlobals *kg,
+                                const float3 Ng,
+                                const float3 I,
+                                float t)
 {
   float cos_pi = dot(Ng, I);
 

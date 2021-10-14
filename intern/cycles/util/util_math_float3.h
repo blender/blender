@@ -411,7 +411,7 @@ ccl_device_inline float3 saturate3(float3 a)
   return make_float3(saturate(a.x), saturate(a.y), saturate(a.z));
 }
 
-ccl_device_inline float3 normalize_len(const float3 a, float *t)
+ccl_device_inline float3 normalize_len(const float3 a, ccl_private float *t)
 {
   *t = len(a);
   float x = 1.0f / *t;
@@ -424,7 +424,7 @@ ccl_device_inline float3 safe_normalize(const float3 a)
   return (t != 0.0f) ? a * (1.0f / t) : a;
 }
 
-ccl_device_inline float3 safe_normalize_len(const float3 a, float *t)
+ccl_device_inline float3 safe_normalize_len(const float3 a, ccl_private float *t)
 {
   *t = len(a);
   return (*t != 0.0f) ? a / (*t) : a;

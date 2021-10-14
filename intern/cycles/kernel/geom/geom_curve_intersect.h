@@ -86,11 +86,11 @@ ccl_device_inline bool cylinder_intersect(const float3 cylinder_start,
                                           const float3 cylinder_end,
                                           const float cylinder_radius,
                                           const float3 ray_dir,
-                                          float2 *t_o,
-                                          float *u0_o,
-                                          float3 *Ng0_o,
-                                          float *u1_o,
-                                          float3 *Ng1_o)
+                                          ccl_private float2 *t_o,
+                                          ccl_private float *u0_o,
+                                          ccl_private float3 *Ng0_o,
+                                          ccl_private float *u1_o,
+                                          ccl_private float3 *Ng1_o)
 {
   /* Calculate quadratic equation to solve. */
   const float rl = 1.0f / len(cylinder_end - cylinder_start);
@@ -169,13 +169,13 @@ ccl_device_inline float2 half_plane_intersect(const float3 P, const float3 N, co
 }
 
 ccl_device bool curve_intersect_iterative(const float3 ray_dir,
-                                          float *ray_tfar,
+                                          ccl_private float *ray_tfar,
                                           const float dt,
                                           const float4 curve[4],
                                           float u,
                                           float t,
                                           const bool use_backfacing,
-                                          Intersection *isect)
+                                          ccl_private Intersection *isect)
 {
   const float length_ray_dir = len(ray_dir);
 
@@ -265,7 +265,7 @@ ccl_device bool curve_intersect_recursive(const float3 ray_orig,
                                           const float3 ray_dir,
                                           float ray_tfar,
                                           float4 curve[4],
-                                          Intersection *isect)
+                                          ccl_private Intersection *isect)
 {
   /* Move ray closer to make intersection stable. */
   const float3 center = float4_to_float3(0.25f * (curve[0] + curve[1] + curve[2] + curve[3]));
@@ -474,9 +474,9 @@ ccl_device_inline bool ribbon_intersect_quad(const float ray_tfar,
                                              const float3 quad_v1,
                                              const float3 quad_v2,
                                              const float3 quad_v3,
-                                             float *u_o,
-                                             float *v_o,
-                                             float *t_o)
+                                             ccl_private float *u_o,
+                                             ccl_private float *v_o,
+                                             ccl_private float *t_o)
 {
   /* Calculate vertices relative to ray origin? */
   const float3 O = make_float3(0.0f, 0.0f, 0.0f);
@@ -550,7 +550,7 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
                                         float ray_tfar,
                                         const int N,
                                         float4 curve[4],
-                                        Intersection *isect)
+                                        ccl_private Intersection *isect)
 {
   /* Transform control points into ray space. */
   float3 ray_space[3];
@@ -625,8 +625,8 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
   return false;
 }
 
-ccl_device_forceinline bool curve_intersect(const KernelGlobals *kg,
-                                            Intersection *isect,
+ccl_device_forceinline bool curve_intersect(ccl_global const KernelGlobals *kg,
+                                            ccl_private Intersection *isect,
                                             const float3 P,
                                             const float3 dir,
                                             const float tmax,
@@ -679,8 +679,8 @@ ccl_device_forceinline bool curve_intersect(const KernelGlobals *kg,
   }
 }
 
-ccl_device_inline void curve_shader_setup(const KernelGlobals *kg,
-                                          ShaderData *sd,
+ccl_device_inline void curve_shader_setup(ccl_global const KernelGlobals *kg,
+                                          ccl_private ShaderData *sd,
                                           float3 P,
                                           float3 D,
                                           float t,

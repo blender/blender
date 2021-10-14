@@ -24,10 +24,11 @@
 CCL_NAMESPACE_BEGIN
 
 /* Evaluate shader on light. */
-ccl_device_noinline_cpu float3 light_sample_shader_eval(INTEGRATOR_STATE_ARGS,
-                                                        ShaderData *ccl_restrict emission_sd,
-                                                        LightSample *ccl_restrict ls,
-                                                        float time)
+ccl_device_noinline_cpu float3
+light_sample_shader_eval(INTEGRATOR_STATE_ARGS,
+                         ccl_private ShaderData *ccl_restrict emission_sd,
+                         ccl_private LightSample *ccl_restrict ls,
+                         float time)
 {
   /* setup shading at emitter */
   float3 eval = zero_float3();
@@ -89,7 +90,7 @@ ccl_device_noinline_cpu float3 light_sample_shader_eval(INTEGRATOR_STATE_ARGS,
   eval *= ls->eval_fac;
 
   if (ls->lamp != LAMP_NONE) {
-    const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, ls->lamp);
+    ccl_global const KernelLight *klight = &kernel_tex_fetch(__lights, ls->lamp);
     eval *= make_float3(klight->strength[0], klight->strength[1], klight->strength[2]);
   }
 
@@ -97,16 +98,16 @@ ccl_device_noinline_cpu float3 light_sample_shader_eval(INTEGRATOR_STATE_ARGS,
 }
 
 /* Test if light sample is from a light or emission from geometry. */
-ccl_device_inline bool light_sample_is_light(const LightSample *ccl_restrict ls)
+ccl_device_inline bool light_sample_is_light(ccl_private const LightSample *ccl_restrict ls)
 {
   /* return if it's a lamp for shadow pass */
   return (ls->prim == PRIM_NONE && ls->type != LIGHT_BACKGROUND);
 }
 
 /* Early path termination of shadow rays. */
-ccl_device_inline bool light_sample_terminate(const KernelGlobals *ccl_restrict kg,
-                                              const LightSample *ccl_restrict ls,
-                                              BsdfEval *ccl_restrict eval,
+ccl_device_inline bool light_sample_terminate(ccl_global const KernelGlobals *ccl_restrict kg,
+                                              ccl_private const LightSample *ccl_restrict ls,
+                                              ccl_private BsdfEval *ccl_restrict eval,
                                               const float rand_terminate)
 {
   if (bsdf_eval_is_zero(eval)) {
@@ -132,9 +133,10 @@ ccl_device_inline bool light_sample_terminate(const KernelGlobals *ccl_restrict 
  * of a triangle. Surface is lifted by amount h along normal n in the incident
  * point. */
 
-ccl_device_inline float3 shadow_ray_smooth_surface_offset(const KernelGlobals *ccl_restrict kg,
-                                                          const ShaderData *ccl_restrict sd,
-                                                          float3 Ng)
+ccl_device_inline float3
+shadow_ray_smooth_surface_offset(ccl_global const KernelGlobals *ccl_restrict kg,
+                                 ccl_private const ShaderData *ccl_restrict sd,
+                                 float3 Ng)
 {
   float3 V[3], N[3];
   triangle_vertices_and_normals(kg, sd->prim, V, N);
@@ -178,8 +180,8 @@ ccl_device_inline float3 shadow_ray_smooth_surface_offset(const KernelGlobals *c
 
 /* Ray offset to avoid shadow terminator artifact. */
 
-ccl_device_inline float3 shadow_ray_offset(const KernelGlobals *ccl_restrict kg,
-                                           const ShaderData *ccl_restrict sd,
+ccl_device_inline float3 shadow_ray_offset(ccl_global const KernelGlobals *ccl_restrict kg,
+                                           ccl_private const ShaderData *ccl_restrict sd,
                                            float3 L)
 {
   float NL = dot(sd->N, L);
@@ -211,10 +213,10 @@ ccl_device_inline float3 shadow_ray_offset(const KernelGlobals *ccl_restrict kg,
   return P;
 }
 
-ccl_device_inline void shadow_ray_setup(const ShaderData *ccl_restrict sd,
-                                        const LightSample *ccl_restrict ls,
+ccl_device_inline void shadow_ray_setup(ccl_private const ShaderData *ccl_restrict sd,
+                                        ccl_private const LightSample *ccl_restrict ls,
                                         const float3 P,
-                                        Ray *ray)
+                                        ccl_private Ray *ray)
 {
   if (ls->shader & SHADER_CAST_SHADOW) {
     /* setup ray */
@@ -244,21 +246,23 @@ ccl_device_inline void shadow_ray_setup(const ShaderData *ccl_restrict sd,
 }
 
 /* Create shadow ray towards light sample. */
-ccl_device_inline void light_sample_to_surface_shadow_ray(const KernelGlobals *ccl_restrict kg,
-                                                          const ShaderData *ccl_restrict sd,
-                                                          const LightSample *ccl_restrict ls,
-                                                          Ray *ray)
+ccl_device_inline void light_sample_to_surface_shadow_ray(
+    ccl_global const KernelGlobals *ccl_restrict kg,
+    ccl_private const ShaderData *ccl_restrict sd,
+    ccl_private const LightSample *ccl_restrict ls,
+    ccl_private Ray *ray)
 {
   const float3 P = shadow_ray_offset(kg, sd, ls->D);
   shadow_ray_setup(sd, ls, P, ray);
 }
 
 /* Create shadow ray towards light sample. */
-ccl_device_inline void light_sample_to_volume_shadow_ray(const KernelGlobals *ccl_restrict kg,
-                                                         const ShaderData *ccl_restrict sd,
-                                                         const LightSample *ccl_restrict ls,
-                                                         const float3 P,
-                                                         Ray *ray)
+ccl_device_inline void light_sample_to_volume_shadow_ray(
+    ccl_global const KernelGlobals *ccl_restrict kg,
+    ccl_private const ShaderData *ccl_restrict sd,
+    ccl_private const LightSample *ccl_restrict ls,
+    const float3 P,
+    ccl_private Ray *ray)
 {
   shadow_ray_setup(sd, ls, P, ray);
 }

@@ -20,9 +20,9 @@ CCL_NAMESPACE_BEGIN
 
 /* Bump Node */
 
-ccl_device_noinline void svm_node_set_bump(const KernelGlobals *kg,
-                                           ShaderData *sd,
-                                           float *stack,
+ccl_device_noinline void svm_node_set_bump(ccl_global const KernelGlobals *kg,
+                                           ccl_private ShaderData *sd,
+                                           ccl_private float *stack,
                                            uint4 node)
 {
 #ifdef __RAY_DIFFERENTIALS__
@@ -88,18 +88,18 @@ ccl_device_noinline void svm_node_set_bump(const KernelGlobals *kg,
 
 /* Displacement Node */
 
-ccl_device void svm_node_set_displacement(const KernelGlobals *kg,
-                                          ShaderData *sd,
-                                          float *stack,
+ccl_device void svm_node_set_displacement(ccl_global const KernelGlobals *kg,
+                                          ccl_private ShaderData *sd,
+                                          ccl_private float *stack,
                                           uint fac_offset)
 {
   float3 dP = stack_load_float3(stack, fac_offset);
   sd->P += dP;
 }
 
-ccl_device_noinline void svm_node_displacement(const KernelGlobals *kg,
-                                               ShaderData *sd,
-                                               float *stack,
+ccl_device_noinline void svm_node_displacement(ccl_global const KernelGlobals *kg,
+                                               ccl_private ShaderData *sd,
+                                               ccl_private float *stack,
                                                uint4 node)
 {
   uint height_offset, midlevel_offset, scale_offset, normal_offset;
@@ -127,8 +127,11 @@ ccl_device_noinline void svm_node_displacement(const KernelGlobals *kg,
   stack_store_float3(stack, node.z, dP);
 }
 
-ccl_device_noinline int svm_node_vector_displacement(
-    const KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int offset)
+ccl_device_noinline int svm_node_vector_displacement(ccl_global const KernelGlobals *kg,
+                                                     ccl_private ShaderData *sd,
+                                                     ccl_private float *stack,
+                                                     uint4 node,
+                                                     int offset)
 {
   uint4 data_node = read_node(kg, &offset);
   uint space = data_node.x;

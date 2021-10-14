@@ -49,7 +49,7 @@ ccl_device float3 integrator_eval_background_shader(INTEGRATOR_STATE_ARGS,
     /* TODO: does aliasing like this break automatic SoA in CUDA?
      * Should we instead store closures separate from ShaderData? */
     ShaderDataTinyStorage emission_sd_storage;
-    ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
+    ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
 
     PROFILING_INIT_FOR_SHADER(kg, PROFILING_SHADE_LIGHT_SETUP);
     shader_setup_from_background(kg,
@@ -155,7 +155,7 @@ ccl_device_inline void integrate_distant_lights(INTEGRATOR_STATE_ARGS,
       /* Evaluate light shader. */
       /* TODO: does aliasing like this break automatic SoA in CUDA? */
       ShaderDataTinyStorage emission_sd_storage;
-      ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
+      ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
       float3 light_eval = light_sample_shader_eval(
           INTEGRATOR_STATE_PASS, emission_sd, &ls, ray_time);
       if (is_zero(light_eval)) {

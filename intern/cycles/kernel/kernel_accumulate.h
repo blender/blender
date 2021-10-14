@@ -32,7 +32,9 @@ CCL_NAMESPACE_BEGIN
  * that only one of those can happen at a bounce, and so do not need to accumulate
  * them separately. */
 
-ccl_device_inline void bsdf_eval_init(BsdfEval *eval, const bool is_diffuse, float3 value)
+ccl_device_inline void bsdf_eval_init(ccl_private BsdfEval *eval,
+                                      const bool is_diffuse,
+                                      float3 value)
 {
   eval->diffuse = zero_float3();
   eval->glossy = zero_float3();
@@ -45,7 +47,7 @@ ccl_device_inline void bsdf_eval_init(BsdfEval *eval, const bool is_diffuse, flo
   }
 }
 
-ccl_device_inline void bsdf_eval_accum(BsdfEval *eval,
+ccl_device_inline void bsdf_eval_accum(ccl_private BsdfEval *eval,
                                        const bool is_diffuse,
                                        float3 value,
                                        float mis_weight)
@@ -60,29 +62,29 @@ ccl_device_inline void bsdf_eval_accum(BsdfEval *eval,
   }
 }
 
-ccl_device_inline bool bsdf_eval_is_zero(BsdfEval *eval)
+ccl_device_inline bool bsdf_eval_is_zero(ccl_private BsdfEval *eval)
 {
   return is_zero(eval->diffuse) && is_zero(eval->glossy);
 }
 
-ccl_device_inline void bsdf_eval_mul(BsdfEval *eval, float value)
+ccl_device_inline void bsdf_eval_mul(ccl_private BsdfEval *eval, float value)
 {
   eval->diffuse *= value;
   eval->glossy *= value;
 }
 
-ccl_device_inline void bsdf_eval_mul3(BsdfEval *eval, float3 value)
+ccl_device_inline void bsdf_eval_mul3(ccl_private BsdfEval *eval, float3 value)
 {
   eval->diffuse *= value;
   eval->glossy *= value;
 }
 
-ccl_device_inline float3 bsdf_eval_sum(const BsdfEval *eval)
+ccl_device_inline float3 bsdf_eval_sum(ccl_private const BsdfEval *eval)
 {
   return eval->diffuse + eval->glossy;
 }
 
-ccl_device_inline float3 bsdf_eval_diffuse_glossy_ratio(const BsdfEval *eval)
+ccl_device_inline float3 bsdf_eval_diffuse_glossy_ratio(ccl_private const BsdfEval *eval)
 {
   /* Ratio of diffuse and glossy to recover proportions for writing to render pass.
    * We assume reflection, transmission and volume scatter to be exclusive. */
@@ -96,7 +98,9 @@ ccl_device_inline float3 bsdf_eval_diffuse_glossy_ratio(const BsdfEval *eval)
  * to render buffers instead of using per-thread memory, and to avoid the
  * impact of clamping on other contributions. */
 
-ccl_device_forceinline void kernel_accum_clamp(const KernelGlobals *kg, float3 *L, int bounce)
+ccl_device_forceinline void kernel_accum_clamp(ccl_global const KernelGlobals *kg,
+                                               ccl_private float3 *L,
+                                               int bounce)
 {
 #ifdef __KERNEL_DEBUG_NAN__
   if (!isfinite3_safe(*L)) {

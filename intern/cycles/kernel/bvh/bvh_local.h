@@ -36,11 +36,11 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-    bool BVH_FUNCTION_FULL_NAME(BVH)(const KernelGlobals *kg,
-                                     const Ray *ray,
-                                     LocalIntersection *local_isect,
+    bool BVH_FUNCTION_FULL_NAME(BVH)(ccl_global const KernelGlobals *kg,
+                                     ccl_private const Ray *ray,
+                                     ccl_private LocalIntersection *local_isect,
                                      int local_object,
-                                     uint *lcg_state,
+                                     ccl_private uint *lcg_state,
                                      int max_hits)
 {
   /* todo:
@@ -196,11 +196,11 @@ ccl_device_inline
   return false;
 }
 
-ccl_device_inline bool BVH_FUNCTION_NAME(const KernelGlobals *kg,
-                                         const Ray *ray,
-                                         LocalIntersection *local_isect,
+ccl_device_inline bool BVH_FUNCTION_NAME(ccl_global const KernelGlobals *kg,
+                                         ccl_private const Ray *ray,
+                                         ccl_private LocalIntersection *local_isect,
                                          int local_object,
-                                         uint *lcg_state,
+                                         ccl_private uint *lcg_state,
                                          int max_hits)
 {
   return BVH_FUNCTION_FULL_NAME(BVH)(kg, ray, local_isect, local_object, lcg_state, max_hits);

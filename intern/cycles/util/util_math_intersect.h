@@ -26,8 +26,8 @@ ccl_device bool ray_sphere_intersect(float3 ray_P,
                                      float ray_t,
                                      float3 sphere_P,
                                      float sphere_radius,
-                                     float3 *isect_P,
-                                     float *isect_t)
+                                     ccl_private float3 *isect_P,
+                                     ccl_private float *isect_t)
 {
   const float3 d = sphere_P - ray_P;
   const float radiussq = sphere_radius * sphere_radius;
@@ -60,8 +60,8 @@ ccl_device bool ray_aligned_disk_intersect(float3 ray_P,
                                            float ray_t,
                                            float3 disk_P,
                                            float disk_radius,
-                                           float3 *isect_P,
-                                           float *isect_t)
+                                           ccl_private float3 *isect_P,
+                                           ccl_private float *isect_t)
 {
   /* Aligned disk normal. */
   float disk_t;
@@ -95,9 +95,9 @@ ccl_device_forceinline bool ray_triangle_intersect(float3 ray_P,
                                                    const float3 tri_b,
                                                    const float3 tri_c,
 #endif
-                                                   float *isect_u,
-                                                   float *isect_v,
-                                                   float *isect_t)
+                                                   ccl_private float *isect_u,
+                                                   ccl_private float *isect_v,
+                                                   ccl_private float *isect_t)
 {
 #if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
   typedef ssef float3;
@@ -207,10 +207,10 @@ ccl_device bool ray_quad_intersect(float3 ray_P,
                                    float3 quad_u,
                                    float3 quad_v,
                                    float3 quad_n,
-                                   float3 *isect_P,
-                                   float *isect_t,
-                                   float *isect_u,
-                                   float *isect_v,
+                                   ccl_private float3 *isect_P,
+                                   ccl_private float *isect_t,
+                                   ccl_private float *isect_u,
+                                   ccl_private float *isect_v,
                                    bool ellipse)
 {
   /* Perform intersection test. */

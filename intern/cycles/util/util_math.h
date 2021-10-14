@@ -338,7 +338,7 @@ ccl_device_inline int quick_floor_to_int(float x)
   return float_to_int(x) - ((x < 0) ? 1 : 0);
 }
 
-ccl_device_inline float floorfrac(float x, int *i)
+ccl_device_inline float floorfrac(float x, ccl_private int *i)
 {
   *i = quick_floor_to_int(x);
   return x - *i;
@@ -465,14 +465,18 @@ template<class A, class B> A lerp(const A &a, const A &b, const B &t)
 
 /* Triangle */
 
-ccl_device_inline float triangle_area(const float3 &v1, const float3 &v2, const float3 &v3)
+ccl_device_inline float triangle_area(ccl_private const float3 &v1,
+                                      ccl_private const float3 &v2,
+                                      ccl_private const float3 &v3)
 {
   return len(cross(v3 - v2, v1 - v2)) * 0.5f;
 }
 
 /* Orthonormal vectors */
 
-ccl_device_inline void make_orthonormals(const float3 N, float3 *a, float3 *b)
+ccl_device_inline void make_orthonormals(const float3 N,
+                                         ccl_private float3 *a,
+                                         ccl_private float3 *b)
 {
 #if 0
   if (fabsf(N.y) >= 0.999f) {

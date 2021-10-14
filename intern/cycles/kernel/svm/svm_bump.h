@@ -18,9 +18,9 @@ CCL_NAMESPACE_BEGIN
 
 /* Bump Eval Nodes */
 
-ccl_device_noinline void svm_node_enter_bump_eval(const KernelGlobals *kg,
-                                                  ShaderData *sd,
-                                                  float *stack,
+ccl_device_noinline void svm_node_enter_bump_eval(ccl_global const KernelGlobals *kg,
+                                                  ccl_private ShaderData *sd,
+                                                  ccl_private float *stack,
                                                   uint offset)
 {
   /* save state */
@@ -45,9 +45,9 @@ ccl_device_noinline void svm_node_enter_bump_eval(const KernelGlobals *kg,
   }
 }
 
-ccl_device_noinline void svm_node_leave_bump_eval(const KernelGlobals *kg,
-                                                  ShaderData *sd,
-                                                  float *stack,
+ccl_device_noinline void svm_node_leave_bump_eval(ccl_global const KernelGlobals *kg,
+                                                  ccl_private ShaderData *sd,
+                                                  ccl_private float *stack,
                                                   uint offset)
 {
   /* restore state */

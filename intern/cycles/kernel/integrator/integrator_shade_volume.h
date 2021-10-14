@@ -71,8 +71,8 @@ typedef struct VolumeShaderCoefficients {
 
 /* Evaluate shader to get extinction coefficient at P. */
 ccl_device_inline bool shadow_volume_shader_sample(INTEGRATOR_STATE_ARGS,
-                                                   ShaderData *ccl_restrict sd,
-                                                   float3 *ccl_restrict extinction)
+                                                   ccl_private ShaderData *ccl_restrict sd,
+                                                   ccl_private float3 *ccl_restrict extinction)
 {
   shader_eval_volume<true>(INTEGRATOR_STATE_PASS, sd, PATH_RAY_SHADOW, [=](const int i) {
     return integrator_state_read_shadow_volume_stack(INTEGRATOR_STATE_PASS, i);
@@ -89,8 +89,8 @@ ccl_device_inline bool shadow_volume_shader_sample(INTEGRATOR_STATE_ARGS,
 
 /* Evaluate shader to get absorption, scattering and emission at P. */
 ccl_device_inline bool volume_shader_sample(INTEGRATOR_STATE_ARGS,
-                                            ShaderData *ccl_restrict sd,
-                                            VolumeShaderCoefficients *coeff)
+                                            ccl_private ShaderData *ccl_restrict sd,
+                                            ccl_private VolumeShaderCoefficients *coeff)
 {
   const int path_flag = INTEGRATOR_STATE(path, flag);
   shader_eval_volume<false>(INTEGRATOR_STATE_PASS, sd, path_flag, [=](const int i) {
@@ -107,7 +107,7 @@ ccl_device_inline bool volume_shader_sample(INTEGRATOR_STATE_ARGS,
 
   if (sd->flag & SD_SCATTER) {
     for (int i = 0; i < sd->num_closure; i++) {
-      const ShaderClosure *sc = &sd->closure[i];
+      ccl_private const ShaderClosure *sc = &sd->closure[i];
 
       if (CLOSURE_IS_VOLUME(sc->type)) {
         coeff->sigma_s += sc->weight;
@@ -123,14 +123,14 @@ ccl_device_inline bool volume_shader_sample(INTEGRATOR_STATE_ARGS,
   return true;
 }
 
-ccl_device_forceinline void volume_step_init(const KernelGlobals *kg,
-                                             const RNGState *rng_state,
+ccl_device_forceinline void volume_step_init(ccl_global const KernelGlobals *kg,
+                                             ccl_private const RNGState *rng_state,
                                              const float object_step_size,
                                              float t,
-                                             float *step_size,
-                                             float *step_shade_offset,
-                                             float *steps_offset,
-                                             int *max_steps)
+                                             ccl_private float *step_size,
+                                             ccl_private float *step_shade_offset,
+                                             ccl_private float *steps_offset,
+                                             ccl_private int *max_steps)
 {
   if (object_step_size == FLT_MAX) {
     /* Homogeneous volume. */
@@ -170,9 +170,9 @@ ccl_device_forceinline void volume_step_init(const KernelGlobals *kg,
 /* homogeneous volume: assume shader evaluation at the starts gives
  * the extinction coefficient for the entire line segment */
 ccl_device void volume_shadow_homogeneous(INTEGRATOR_STATE_ARGS,
-                                          Ray *ccl_restrict ray,
-                                          ShaderData *ccl_restrict sd,
-                                          float3 *ccl_restrict throughput)
+                                          ccl_private Ray *ccl_restrict ray,
+                                          ccl_private ShaderData *ccl_restrict sd,
+                                          ccl_global float3 *ccl_restrict throughput)
 {
   float3 sigma_t = zero_float3();
 
@@ -185,9 +185,9 @@ ccl_device void volume_shadow_homogeneous(INTEGRATOR_STATE_ARGS,
 /* heterogeneous volume: integrate stepping through the volume until we
  * reach the end, get absorbed entirely, or run out of iterations */
 ccl_device void volume_shadow_heterogeneous(INTEGRATOR_STATE_ARGS,
-                                            Ray *ccl_restrict ray,
-                                            ShaderData *ccl_restrict sd,
-                                            float3 *ccl_restrict throughput,
+                                            ccl_private Ray *ccl_restrict ray,
+                                            ccl_private ShaderData *ccl_restrict sd,
+                                            ccl_private float3 *ccl_restrict throughput,
                                             const float object_step_size)
 {
   /* Load random number state. */
@@ -257,10 +257,10 @@ ccl_device void volume_shadow_heterogeneous(INTEGRATOR_STATE_ARGS,
 /* Equi-angular sampling as in:
  * "Importance Sampling Techniques for Path Tracing in Participating Media" */
 
-ccl_device float volume_equiangular_sample(const Ray *ccl_restrict ray,
+ccl_device float volume_equiangular_sample(ccl_private const Ray *ccl_restrict ray,
                                            const float3 light_P,
                                            const float xi,
-                                           float *pdf)
+                                           ccl_private float *pdf)
 {
   const float t = ray->t;
   const float delta = dot((light_P - ray->P), ray->D);
@@ -281,7 +281,7 @@ ccl_device float volume_equiangular_sample(const Ray *ccl_restrict ray,
   return min(t, delta + t_); /* min is only for float precision errors */
 }
 
-ccl_device float volume_equiangular_pdf(const Ray *ccl_restrict ray,
+ccl_device float volume_equiangular_pdf(ccl_private const Ray *ccl_restrict ray,
                                         const float3 light_P,
                                         const float sample_t)
 {
@@ -305,7 +305,7 @@ ccl_device float volume_equiangular_pdf(const Ray *ccl_restrict ray,
   return pdf;
 }
 
-ccl_device float volume_equiangular_cdf(const Ray *ccl_restrict ray,
+ccl_device float volume_equiangular_cdf(ccl_private const Ray *ccl_restrict ray,
                                         const float3 light_P,
                                         const float sample_t)
 {
@@ -332,8 +332,12 @@ ccl_device float volume_equiangular_cdf(const Ray *ccl_restrict ray,
 
 /* Distance sampling */
 
-ccl_device float volume_distance_sample(
-    float max_t, float3 sigma_t, int channel, float xi, float3 *transmittance, float3 *pdf)
+ccl_device float volume_distance_sample(float max_t,
+                                        float3 sigma_t,
+                                        int channel,
+                                        float xi,
+                                        ccl_private float3 *transmittance,
+                                        ccl_private float3 *pdf)
 {
   /* xi is [0, 1[ so log(0) should never happen, division by zero is
    * avoided because sample_sigma_t > 0 when SD_SCATTER is set */
@@ -363,7 +367,7 @@ ccl_device float3 volume_distance_pdf(float max_t, float3 sigma_t, float sample_
 
 /* Emission */
 
-ccl_device float3 volume_emission_integrate(VolumeShaderCoefficients *coeff,
+ccl_device float3 volume_emission_integrate(ccl_private VolumeShaderCoefficients *coeff,
                                             int closure_flag,
                                             float3 transmittance,
                                             float t)
@@ -410,13 +414,13 @@ typedef struct VolumeIntegrateState {
 } VolumeIntegrateState;
 
 ccl_device_forceinline void volume_integrate_step_scattering(
-    const ShaderData *sd,
-    const Ray *ray,
+    ccl_private const ShaderData *sd,
+    ccl_private const Ray *ray,
     const float3 equiangular_light_P,
-    const VolumeShaderCoefficients &ccl_restrict coeff,
+    ccl_private const VolumeShaderCoefficients &ccl_restrict coeff,
     const float3 transmittance,
-    VolumeIntegrateState &ccl_restrict vstate,
-    VolumeIntegrateResult &ccl_restrict result)
+    ccl_private VolumeIntegrateState &ccl_restrict vstate,
+    ccl_private VolumeIntegrateResult &ccl_restrict result)
 {
   /* Pick random color channel, we use the Veach one-sample
    * model with balance heuristic for the channels. */
@@ -507,14 +511,14 @@ ccl_device_forceinline void volume_integrate_step_scattering(
  * for path tracing where we don't want to branch. */
 ccl_device_forceinline void volume_integrate_heterogeneous(
     INTEGRATOR_STATE_ARGS,
-    Ray *ccl_restrict ray,
-    ShaderData *ccl_restrict sd,
-    const RNGState *rng_state,
+    ccl_private Ray *ccl_restrict ray,
+    ccl_private ShaderData *ccl_restrict sd,
+    ccl_private const RNGState *rng_state,
     ccl_global float *ccl_restrict render_buffer,
     const float object_step_size,
     const VolumeSampleMethod direct_sample_method,
     const float3 equiangular_light_P,
-    VolumeIntegrateResult &result)
+    ccl_private VolumeIntegrateResult &result)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_VOLUME_INTEGRATE);
 
@@ -666,10 +670,11 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 #  ifdef __EMISSION__
 /* Path tracing: sample point on light and evaluate light shader, then
  * queue shadow ray to be traced. */
-ccl_device_forceinline bool integrate_volume_sample_light(INTEGRATOR_STATE_ARGS,
-                                                          const ShaderData *ccl_restrict sd,
-                                                          const RNGState *ccl_restrict rng_state,
-                                                          LightSample *ccl_restrict ls)
+ccl_device_forceinline bool integrate_volume_sample_light(
+    INTEGRATOR_STATE_ARGS,
+    ccl_private const ShaderData *ccl_restrict sd,
+    ccl_private const RNGState *ccl_restrict rng_state,
+    ccl_private LightSample *ccl_restrict ls)
 {
   /* Test if there is a light or BSDF that needs direct light. */
   if (!kernel_data.integrator.use_direct_light) {
@@ -694,14 +699,14 @@ ccl_device_forceinline bool integrate_volume_sample_light(INTEGRATOR_STATE_ARGS,
 
 /* Path tracing: sample point on light and evaluate light shader, then
  * queue shadow ray to be traced. */
-ccl_device_forceinline void integrate_volume_direct_light(INTEGRATOR_STATE_ARGS,
-                                                          const ShaderData *ccl_restrict sd,
-                                                          const RNGState *ccl_restrict rng_state,
-                                                          const float3 P,
-                                                          const ShaderVolumePhases *ccl_restrict
-                                                              phases,
-                                                          const float3 throughput,
-                                                          LightSample *ccl_restrict ls)
+ccl_device_forceinline void integrate_volume_direct_light(
+    INTEGRATOR_STATE_ARGS,
+    ccl_private const ShaderData *ccl_restrict sd,
+    ccl_private const RNGState *ccl_restrict rng_state,
+    const float3 P,
+    ccl_private const ShaderVolumePhases *ccl_restrict phases,
+    ccl_private const float3 throughput,
+    ccl_private LightSample *ccl_restrict ls)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_VOLUME_DIRECT_LIGHT);
 
@@ -737,7 +742,7 @@ ccl_device_forceinline void integrate_volume_direct_light(INTEGRATOR_STATE_ARGS,
    * the light shader. This could also move to its own kernel, for
    * non-constant light sources. */
   ShaderDataTinyStorage emission_sd_storage;
-  ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
+  ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
   const float3 light_eval = light_sample_shader_eval(
       INTEGRATOR_STATE_PASS, emission_sd, ls, sd->time);
   if (is_zero(light_eval)) {
@@ -801,10 +806,11 @@ ccl_device_forceinline void integrate_volume_direct_light(INTEGRATOR_STATE_ARGS,
 #  endif
 
 /* Path tracing: scatter in new direction using phase function */
-ccl_device_forceinline bool integrate_volume_phase_scatter(INTEGRATOR_STATE_ARGS,
-                                                           ShaderData *sd,
-                                                           const RNGState *rng_state,
-                                                           const ShaderVolumePhases *phases)
+ccl_device_forceinline bool integrate_volume_phase_scatter(
+    INTEGRATOR_STATE_ARGS,
+    ccl_private ShaderData *sd,
+    ccl_private const RNGState *rng_state,
+    ccl_private const ShaderVolumePhases *phases)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_VOLUME_INDIRECT_LIGHT);
 
@@ -865,7 +871,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(INTEGRATOR_STATE_ARGS
  * between the endpoints. distance sampling is used to decide if we will
  * scatter or not. */
 ccl_device VolumeIntegrateEvent volume_integrate(INTEGRATOR_STATE_ARGS,
-                                                 Ray *ccl_restrict ray,
+                                                 ccl_private Ray *ccl_restrict ray,
                                                  ccl_global float *ccl_restrict render_buffer)
 {
   ShaderData sd;

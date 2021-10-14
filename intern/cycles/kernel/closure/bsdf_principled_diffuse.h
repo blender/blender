@@ -36,7 +36,7 @@ enum PrincipledDiffuseBsdfComponents {
   PRINCIPLED_DIFFUSE_RETRO_REFLECTION = 8,
 };
 
-typedef ccl_addr_space struct PrincipledDiffuseBsdf {
+typedef struct PrincipledDiffuseBsdf {
   SHADER_CLOSURE_BASE;
 
   float roughness;
@@ -46,14 +46,18 @@ typedef ccl_addr_space struct PrincipledDiffuseBsdf {
 static_assert(sizeof(ShaderClosure) >= sizeof(PrincipledDiffuseBsdf),
               "PrincipledDiffuseBsdf is too large!");
 
-ccl_device int bsdf_principled_diffuse_setup(PrincipledDiffuseBsdf *bsdf)
+ccl_device int bsdf_principled_diffuse_setup(ccl_private PrincipledDiffuseBsdf *bsdf)
 {
   bsdf->type = CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device float3 bsdf_principled_diffuse_compute_brdf(
-    const PrincipledDiffuseBsdf *bsdf, float3 N, float3 V, float3 L, float *pdf)
+ccl_device float3
+bsdf_principled_diffuse_compute_brdf(ccl_private const PrincipledDiffuseBsdf *bsdf,
+                                     float3 N,
+                                     float3 V,
+                                     float3 L,
+                                     ccl_private float *pdf)
 {
   const float NdotL = dot(N, L);
 
@@ -102,24 +106,25 @@ ccl_device_inline float bsdf_principled_diffuse_compute_entry_fresnel(const floa
 /* Ad-hoc weight adjustment to avoid retro-reflection taking away half the
  * samples from BSSRDF. */
 ccl_device_inline float bsdf_principled_diffuse_retro_reflection_sample_weight(
-    PrincipledDiffuseBsdf *bsdf, const float3 I)
+    ccl_private PrincipledDiffuseBsdf *bsdf, const float3 I)
 {
   return bsdf->roughness * schlick_fresnel(dot(bsdf->N, I));
 }
 
-ccl_device int bsdf_principled_diffuse_setup(PrincipledDiffuseBsdf *bsdf, int components)
+ccl_device int bsdf_principled_diffuse_setup(ccl_private PrincipledDiffuseBsdf *bsdf,
+                                             int components)
 {
   bsdf->type = CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID;
   bsdf->components = components;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device float3 bsdf_principled_diffuse_eval_reflect(const ShaderClosure *sc,
+ccl_device float3 bsdf_principled_diffuse_eval_reflect(ccl_private const ShaderClosure *sc,
                                                        const float3 I,
                                                        const float3 omega_in,
-                                                       float *pdf)
+                                                       ccl_private float *pdf)
 {
-  const PrincipledDiffuseBsdf *bsdf = (const PrincipledDiffuseBsdf *)sc;
+  ccl_private const PrincipledDiffuseBsdf *bsdf = (ccl_private const PrincipledDiffuseBsdf *)sc;
 
   float3 N = bsdf->N;
   float3 V = I;         // outgoing
@@ -135,28 +140,28 @@ ccl_device float3 bsdf_principled_diffuse_eval_reflect(const ShaderClosure *sc,
   }
 }
 
-ccl_device float3 bsdf_principled_diffuse_eval_transmit(const ShaderClosure *sc,
+ccl_device float3 bsdf_principled_diffuse_eval_transmit(ccl_private const ShaderClosure *sc,
                                                         const float3 I,
                                                         const float3 omega_in,
-                                                        float *pdf)
+                                                        ccl_private float *pdf)
 {
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device int bsdf_principled_diffuse_sample(const ShaderClosure *sc,
+ccl_device int bsdf_principled_diffuse_sample(ccl_private const ShaderClosure *sc,
                                               float3 Ng,
                                               float3 I,
                                               float3 dIdx,
                                               float3 dIdy,
                                               float randu,
                                               float randv,
-                                              float3 *eval,
-                                              float3 *omega_in,
-                                              float3 *domega_in_dx,
-                                              float3 *domega_in_dy,
-                                              float *pdf)
+                                              ccl_private float3 *eval,
+                                              ccl_private float3 *omega_in,
+                                              ccl_private float3 *domega_in_dx,
+                                              ccl_private float3 *domega_in_dy,
+                                              ccl_private float *pdf)
 {
-  const PrincipledDiffuseBsdf *bsdf = (const PrincipledDiffuseBsdf *)sc;
+  ccl_private const PrincipledDiffuseBsdf *bsdf = (ccl_private const PrincipledDiffuseBsdf *)sc;
 
   float3 N = bsdf->N;
 

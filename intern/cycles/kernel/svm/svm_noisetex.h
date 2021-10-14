@@ -55,8 +55,8 @@ ccl_device void noise_texture_1d(float co,
                                  float roughness,
                                  float distortion,
                                  bool color_is_needed,
-                                 float *value,
-                                 float3 *color)
+                                 ccl_private float *value,
+                                 ccl_private float3 *color)
 {
   float p = co;
   if (distortion != 0.0f) {
@@ -76,8 +76,8 @@ ccl_device void noise_texture_2d(float2 co,
                                  float roughness,
                                  float distortion,
                                  bool color_is_needed,
-                                 float *value,
-                                 float3 *color)
+                                 ccl_private float *value,
+                                 ccl_private float3 *color)
 {
   float2 p = co;
   if (distortion != 0.0f) {
@@ -98,8 +98,8 @@ ccl_device void noise_texture_3d(float3 co,
                                  float roughness,
                                  float distortion,
                                  bool color_is_needed,
-                                 float *value,
-                                 float3 *color)
+                                 ccl_private float *value,
+                                 ccl_private float3 *color)
 {
   float3 p = co;
   if (distortion != 0.0f) {
@@ -121,8 +121,8 @@ ccl_device void noise_texture_4d(float4 co,
                                  float roughness,
                                  float distortion,
                                  bool color_is_needed,
-                                 float *value,
-                                 float3 *color)
+                                 ccl_private float *value,
+                                 ccl_private float3 *color)
 {
   float4 p = co;
   if (distortion != 0.0f) {
@@ -140,9 +140,9 @@ ccl_device void noise_texture_4d(float4 co,
   }
 }
 
-ccl_device_noinline int svm_node_tex_noise(const KernelGlobals *kg,
-                                           ShaderData *sd,
-                                           float *stack,
+ccl_device_noinline int svm_node_tex_noise(ccl_global const KernelGlobals *kg,
+                                           ccl_private ShaderData *sd,
+                                           ccl_private float *stack,
                                            uint dimensions,
                                            uint offsets1,
                                            uint offsets2,

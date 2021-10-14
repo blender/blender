@@ -36,7 +36,9 @@ ccl_device_forceinline ccl_global float *kernel_pass_pixel_render_buffer(
 #ifdef __DENOISING_FEATURES__
 
 ccl_device_forceinline void kernel_write_denoising_features_surface(
-    INTEGRATOR_STATE_ARGS, const ShaderData *sd, ccl_global float *ccl_restrict render_buffer)
+    INTEGRATOR_STATE_ARGS,
+    ccl_private const ShaderData *sd,
+    ccl_global float *ccl_restrict render_buffer)
 {
   if (!(INTEGRATOR_STATE(path, flag) & PATH_RAY_DENOISING_FEATURES)) {
     return;
@@ -55,7 +57,7 @@ ccl_device_forceinline void kernel_write_denoising_features_surface(
   float sum_weight = 0.0f, sum_nonspecular_weight = 0.0f;
 
   for (int i = 0; i < sd->num_closure; i++) {
-    const ShaderClosure *sc = &sd->closure[i];
+    ccl_private const ShaderClosure *sc = &sd->closure[i];
 
     if (!CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
       continue;
@@ -71,11 +73,11 @@ ccl_device_forceinline void kernel_write_denoising_features_surface(
      * To account for this, we scale their weight by the average fresnel factor (the same is also
      * done for the sample weight in the BSDF setup, so we don't need to scale that here). */
     if (CLOSURE_IS_BSDF_MICROFACET_FRESNEL(sc->type)) {
-      MicrofacetBsdf *bsdf = (MicrofacetBsdf *)sc;
+      ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)sc;
       closure_albedo *= bsdf->extra->fresnel_color;
     }
     else if (sc->type == CLOSURE_BSDF_PRINCIPLED_SHEEN_ID) {
-      PrincipledSheenBsdf *bsdf = (PrincipledSheenBsdf *)sc;
+      ccl_private PrincipledSheenBsdf *bsdf = (ccl_private PrincipledSheenBsdf *)sc;
       closure_albedo *= bsdf->avg_value;
     }
     else if (sc->type == CLOSURE_BSDF_HAIR_PRINCIPLED_ID) {
@@ -151,7 +153,9 @@ ccl_device_forceinline void kernel_write_denoising_features_volume(INTEGRATOR_ST
 
 /* Write shadow catcher passes on a bounce from the shadow catcher object. */
 ccl_device_forceinline void kernel_write_shadow_catcher_bounce_data(
-    INTEGRATOR_STATE_ARGS, const ShaderData *sd, ccl_global float *ccl_restrict render_buffer)
+    INTEGRATOR_STATE_ARGS,
+    ccl_private const ShaderData *sd,
+    ccl_global float *ccl_restrict render_buffer)
 {
   if (!kernel_data.integrator.has_shadow_catcher) {
     return;
@@ -178,7 +182,7 @@ ccl_device_forceinline void kernel_write_shadow_catcher_bounce_data(
 
 #endif /* __SHADOW_CATCHER__ */
 
-ccl_device_inline size_t kernel_write_id_pass(float *ccl_restrict buffer,
+ccl_device_inline size_t kernel_write_id_pass(ccl_global float *ccl_restrict buffer,
                                               size_t depth,
                                               float id,
                                               float matte_weight)
@@ -188,7 +192,7 @@ ccl_device_inline size_t kernel_write_id_pass(float *ccl_restrict buffer,
 }
 
 ccl_device_inline void kernel_write_data_passes(INTEGRATOR_STATE_ARGS,
-                                                const ShaderData *sd,
+                                                ccl_private const ShaderData *sd,
                                                 ccl_global float *ccl_restrict render_buffer)
 {
 #ifdef __PASSES__

@@ -25,7 +25,8 @@
 CCL_NAMESPACE_BEGIN
 
 /* Normal on triangle. */
-ccl_device_inline float3 triangle_normal(const KernelGlobals *kg, ShaderData *sd)
+ccl_device_inline float3 triangle_normal(ccl_global const KernelGlobals *kg,
+                                         ccl_private ShaderData *sd)
 {
   /* load triangle vertices */
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, sd->prim);
@@ -43,14 +44,14 @@ ccl_device_inline float3 triangle_normal(const KernelGlobals *kg, ShaderData *sd
 }
 
 /* Point and normal on triangle. */
-ccl_device_inline void triangle_point_normal(const KernelGlobals *kg,
+ccl_device_inline void triangle_point_normal(ccl_global const KernelGlobals *kg,
                                              int object,
                                              int prim,
                                              float u,
                                              float v,
-                                             float3 *P,
-                                             float3 *Ng,
-                                             int *shader)
+                                             ccl_private float3 *P,
+                                             ccl_private float3 *Ng,
+                                             ccl_private int *shader)
 {
   /* load triangle vertices */
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
@@ -75,7 +76,7 @@ ccl_device_inline void triangle_point_normal(const KernelGlobals *kg,
 
 /* Triangle vertex locations */
 
-ccl_device_inline void triangle_vertices(const KernelGlobals *kg, int prim, float3 P[3])
+ccl_device_inline void triangle_vertices(ccl_global const KernelGlobals *kg, int prim, float3 P[3])
 {
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
   P[0] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 0));
@@ -85,7 +86,7 @@ ccl_device_inline void triangle_vertices(const KernelGlobals *kg, int prim, floa
 
 /* Triangle vertex locations and vertex normals */
 
-ccl_device_inline void triangle_vertices_and_normals(const KernelGlobals *kg,
+ccl_device_inline void triangle_vertices_and_normals(ccl_global const KernelGlobals *kg,
                                                      int prim,
                                                      float3 P[3],
                                                      float3 N[3])
@@ -102,7 +103,7 @@ ccl_device_inline void triangle_vertices_and_normals(const KernelGlobals *kg,
 /* Interpolate smooth vertex normal from vertices */
 
 ccl_device_inline float3
-triangle_smooth_normal(const KernelGlobals *kg, float3 Ng, int prim, float u, float v)
+triangle_smooth_normal(ccl_global const KernelGlobals *kg, float3 Ng, int prim, float u, float v)
 {
   /* load triangle vertices */
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
@@ -115,8 +116,12 @@ triangle_smooth_normal(const KernelGlobals *kg, float3 Ng, int prim, float u, fl
   return is_zero(N) ? Ng : N;
 }
 
-ccl_device_inline float3 triangle_smooth_normal_unnormalized(
-    const KernelGlobals *kg, const ShaderData *sd, float3 Ng, int prim, float u, float v)
+ccl_device_inline float3 triangle_smooth_normal_unnormalized(ccl_global const KernelGlobals *kg,
+                                                             ccl_private const ShaderData *sd,
+                                                             float3 Ng,
+                                                             int prim,
+                                                             float u,
+                                                             float v)
 {
   /* load triangle vertices */
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
@@ -138,10 +143,10 @@ ccl_device_inline float3 triangle_smooth_normal_unnormalized(
 
 /* Ray differentials on triangle */
 
-ccl_device_inline void triangle_dPdudv(const KernelGlobals *kg,
+ccl_device_inline void triangle_dPdudv(ccl_global const KernelGlobals *kg,
                                        int prim,
-                                       ccl_addr_space float3 *dPdu,
-                                       ccl_addr_space float3 *dPdv)
+                                       ccl_private float3 *dPdu,
+                                       ccl_private float3 *dPdv)
 {
   /* fetch triangle vertex coordinates */
   const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
@@ -156,11 +161,11 @@ ccl_device_inline void triangle_dPdudv(const KernelGlobals *kg,
 
 /* Reading attributes on various triangle elements */
 
-ccl_device float triangle_attribute_float(const KernelGlobals *kg,
-                                          const ShaderData *sd,
+ccl_device float triangle_attribute_float(ccl_global const KernelGlobals *kg,
+                                          ccl_private const ShaderData *sd,
                                           const AttributeDescriptor desc,
-                                          float *dx,
-                                          float *dy)
+                                          ccl_private float *dx,
+                                          ccl_private float *dy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER)) {
     float f0, f1, f2;
@@ -206,11 +211,11 @@ ccl_device float triangle_attribute_float(const KernelGlobals *kg,
   }
 }
 
-ccl_device float2 triangle_attribute_float2(const KernelGlobals *kg,
-                                            const ShaderData *sd,
+ccl_device float2 triangle_attribute_float2(ccl_global const KernelGlobals *kg,
+                                            ccl_private const ShaderData *sd,
                                             const AttributeDescriptor desc,
-                                            float2 *dx,
-                                            float2 *dy)
+                                            ccl_private float2 *dx,
+                                            ccl_private float2 *dy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER)) {
     float2 f0, f1, f2;
@@ -256,11 +261,11 @@ ccl_device float2 triangle_attribute_float2(const KernelGlobals *kg,
   }
 }
 
-ccl_device float3 triangle_attribute_float3(const KernelGlobals *kg,
-                                            const ShaderData *sd,
+ccl_device float3 triangle_attribute_float3(ccl_global const KernelGlobals *kg,
+                                            ccl_private const ShaderData *sd,
                                             const AttributeDescriptor desc,
-                                            float3 *dx,
-                                            float3 *dy)
+                                            ccl_private float3 *dx,
+                                            ccl_private float3 *dy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER)) {
     float3 f0, f1, f2;
@@ -306,11 +311,11 @@ ccl_device float3 triangle_attribute_float3(const KernelGlobals *kg,
   }
 }
 
-ccl_device float4 triangle_attribute_float4(const KernelGlobals *kg,
-                                            const ShaderData *sd,
+ccl_device float4 triangle_attribute_float4(ccl_global const KernelGlobals *kg,
+                                            ccl_private const ShaderData *sd,
                                             const AttributeDescriptor desc,
-                                            float4 *dx,
-                                            float4 *dy)
+                                            ccl_private float4 *dx,
+                                            ccl_private float4 *dy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER |
                       ATTR_ELEMENT_CORNER_BYTE)) {

@@ -36,7 +36,7 @@ CCL_NAMESPACE_BEGIN
 
 /* BACKGROUND CLOSURE */
 
-ccl_device void background_setup(ShaderData *sd, const float3 weight)
+ccl_device void background_setup(ccl_private ShaderData *sd, const float3 weight)
 {
   if (sd->flag & SD_EMISSION) {
     sd->closure_emission_background += weight;
@@ -49,7 +49,7 @@ ccl_device void background_setup(ShaderData *sd, const float3 weight)
 
 /* EMISSION CLOSURE */
 
-ccl_device void emission_setup(ShaderData *sd, const float3 weight)
+ccl_device void emission_setup(ccl_private ShaderData *sd, const float3 weight)
 {
   if (sd->flag & SD_EMISSION) {
     sd->closure_emission_background += weight;
@@ -69,8 +69,11 @@ ccl_device float emissive_pdf(const float3 Ng, const float3 I)
   return (cosNO > 0.0f) ? 1.0f : 0.0f;
 }
 
-ccl_device void emissive_sample(
-    const float3 Ng, float randu, float randv, float3 *omega_out, float *pdf)
+ccl_device void emissive_sample(const float3 Ng,
+                                float randu,
+                                float randv,
+                                ccl_private float3 *omega_out,
+                                ccl_private float *pdf)
 {
   /* todo: not implemented and used yet */
 }

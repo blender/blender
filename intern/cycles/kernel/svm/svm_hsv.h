@@ -19,9 +19,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_noinline void svm_node_hsv(const KernelGlobals *kg,
-                                      ShaderData *sd,
-                                      float *stack,
+ccl_device_noinline void svm_node_hsv(ccl_global const KernelGlobals *kg,
+                                      ccl_private ShaderData *sd,
+                                      ccl_private float *stack,
                                       uint4 node)
 {
   uint in_color_offset, fac_offset, out_color_offset;

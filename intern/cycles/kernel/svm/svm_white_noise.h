@@ -16,9 +16,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_noinline void svm_node_tex_white_noise(const KernelGlobals *kg,
-                                                  ShaderData *sd,
-                                                  float *stack,
+ccl_device_noinline void svm_node_tex_white_noise(ccl_global const KernelGlobals *kg,
+                                                  ccl_private ShaderData *sd,
+                                                  ccl_private float *stack,
                                                   uint dimensions,
                                                   uint inputs_stack_offsets,
                                                   uint ouptuts_stack_offsets)

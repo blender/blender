@@ -24,7 +24,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void kernel_displace_evaluate(const KernelGlobals *kg,
+ccl_device void kernel_displace_evaluate(ccl_global const KernelGlobals *kg,
                                          ccl_global const KernelShaderEvalInput *input,
                                          ccl_global float4 *output,
                                          const int offset)
@@ -56,7 +56,7 @@ ccl_device void kernel_displace_evaluate(const KernelGlobals *kg,
   output[offset] += make_float4(D.x, D.y, D.z, 0.0f);
 }
 
-ccl_device void kernel_background_evaluate(const KernelGlobals *kg,
+ccl_device void kernel_background_evaluate(ccl_global const KernelGlobals *kg,
                                            ccl_global const KernelShaderEvalInput *input,
                                            ccl_global float4 *output,
                                            const int offset)

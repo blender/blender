@@ -27,11 +27,11 @@ CCL_NAMESPACE_BEGIN
 
 /* Reading attributes on various curve elements */
 
-ccl_device float curve_attribute_float(const KernelGlobals *kg,
-                                       const ShaderData *sd,
+ccl_device float curve_attribute_float(ccl_global const KernelGlobals *kg,
+                                       ccl_private const ShaderData *sd,
                                        const AttributeDescriptor desc,
-                                       float *dx,
-                                       float *dy)
+                                       ccl_private float *dx,
+                                       ccl_private float *dy)
 {
   if (desc.element & (ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_CURVE_KEY_MOTION)) {
     KernelCurve curve = kernel_tex_fetch(__curves, sd->prim);
@@ -69,11 +69,11 @@ ccl_device float curve_attribute_float(const KernelGlobals *kg,
   }
 }
 
-ccl_device float2 curve_attribute_float2(const KernelGlobals *kg,
-                                         const ShaderData *sd,
+ccl_device float2 curve_attribute_float2(ccl_global const KernelGlobals *kg,
+                                         ccl_private const ShaderData *sd,
                                          const AttributeDescriptor desc,
-                                         float2 *dx,
-                                         float2 *dy)
+                                         ccl_private float2 *dx,
+                                         ccl_private float2 *dy)
 {
   if (desc.element & (ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_CURVE_KEY_MOTION)) {
     KernelCurve curve = kernel_tex_fetch(__curves, sd->prim);
@@ -115,11 +115,11 @@ ccl_device float2 curve_attribute_float2(const KernelGlobals *kg,
   }
 }
 
-ccl_device float3 curve_attribute_float3(const KernelGlobals *kg,
-                                         const ShaderData *sd,
+ccl_device float3 curve_attribute_float3(ccl_global const KernelGlobals *kg,
+                                         ccl_private const ShaderData *sd,
                                          const AttributeDescriptor desc,
-                                         float3 *dx,
-                                         float3 *dy)
+                                         ccl_private float3 *dx,
+                                         ccl_private float3 *dy)
 {
   if (desc.element & (ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_CURVE_KEY_MOTION)) {
     KernelCurve curve = kernel_tex_fetch(__curves, sd->prim);
@@ -157,11 +157,11 @@ ccl_device float3 curve_attribute_float3(const KernelGlobals *kg,
   }
 }
 
-ccl_device float4 curve_attribute_float4(const KernelGlobals *kg,
-                                         const ShaderData *sd,
+ccl_device float4 curve_attribute_float4(ccl_global const KernelGlobals *kg,
+                                         ccl_private const ShaderData *sd,
                                          const AttributeDescriptor desc,
-                                         float4 *dx,
-                                         float4 *dy)
+                                         ccl_private float4 *dx,
+                                         ccl_private float4 *dy)
 {
   if (desc.element & (ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_CURVE_KEY_MOTION)) {
     KernelCurve curve = kernel_tex_fetch(__curves, sd->prim);
@@ -201,7 +201,8 @@ ccl_device float4 curve_attribute_float4(const KernelGlobals *kg,
 
 /* Curve thickness */
 
-ccl_device float curve_thickness(const KernelGlobals *kg, const ShaderData *sd)
+ccl_device float curve_thickness(ccl_global const KernelGlobals *kg,
+                                 ccl_private const ShaderData *sd)
 {
   float r = 0.0f;
 
@@ -229,7 +230,8 @@ ccl_device float curve_thickness(const KernelGlobals *kg, const ShaderData *sd)
 /* Curve location for motion pass, linear interpolation between keys and
  * ignoring radius because we do the same for the motion keys */
 
-ccl_device float3 curve_motion_center_location(const KernelGlobals *kg, const ShaderData *sd)
+ccl_device float3 curve_motion_center_location(ccl_global const KernelGlobals *kg,
+                                               ccl_private const ShaderData *sd)
 {
   KernelCurve curve = kernel_tex_fetch(__curves, sd->prim);
   int k0 = curve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
@@ -245,7 +247,8 @@ ccl_device float3 curve_motion_center_location(const KernelGlobals *kg, const Sh
 
 /* Curve tangent normal */
 
-ccl_device float3 curve_tangent_normal(const KernelGlobals *kg, const ShaderData *sd)
+ccl_device float3 curve_tangent_normal(ccl_global const KernelGlobals *kg,
+                                       ccl_private const ShaderData *sd)
 {
   float3 tgN = make_float3(0.0f, 0.0f, 0.0f);
 
@@ -265,12 +268,12 @@ ccl_device float3 curve_tangent_normal(const KernelGlobals *kg, const ShaderData
 
 /* Curve bounds utility function */
 
-ccl_device_inline void curvebounds(float *lower,
-                                   float *upper,
-                                   float *extremta,
-                                   float *extrema,
-                                   float *extremtb,
-                                   float *extremb,
+ccl_device_inline void curvebounds(ccl_private float *lower,
+                                   ccl_private float *upper,
+                                   ccl_private float *extremta,
+                                   ccl_private float *extrema,
+                                   ccl_private float *extremtb,
+                                   ccl_private float *extremb,
                                    float p0,
                                    float p1,
                                    float p2,

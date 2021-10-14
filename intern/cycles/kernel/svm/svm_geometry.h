@@ -18,8 +18,11 @@ CCL_NAMESPACE_BEGIN
 
 /* Geometry Node */
 
-ccl_device_noinline void svm_node_geometry(
-    const KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device_noinline void svm_node_geometry(ccl_global const KernelGlobals *kg,
+                                           ccl_private ShaderData *sd,
+                                           ccl_private float *stack,
+                                           uint type,
+                                           uint out_offset)
 {
   float3 data;
 
@@ -51,8 +54,11 @@ ccl_device_noinline void svm_node_geometry(
   stack_store_float3(stack, out_offset, data);
 }
 
-ccl_device_noinline void svm_node_geometry_bump_dx(
-    const KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device_noinline void svm_node_geometry_bump_dx(ccl_global const KernelGlobals *kg,
+                                                   ccl_private ShaderData *sd,
+                                                   ccl_private float *stack,
+                                                   uint type,
+                                                   uint out_offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
   float3 data;
@@ -75,8 +81,11 @@ ccl_device_noinline void svm_node_geometry_bump_dx(
 #endif
 }
 
-ccl_device_noinline void svm_node_geometry_bump_dy(
-    const KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device_noinline void svm_node_geometry_bump_dy(ccl_global const KernelGlobals *kg,
+                                                   ccl_private ShaderData *sd,
+                                                   ccl_private float *stack,
+                                                   uint type,
+                                                   uint out_offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
   float3 data;
@@ -101,8 +110,11 @@ ccl_device_noinline void svm_node_geometry_bump_dy(
 
 /* Object Info */
 
-ccl_device_noinline void svm_node_object_info(
-    const KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device_noinline void svm_node_object_info(ccl_global const KernelGlobals *kg,
+                                              ccl_private ShaderData *sd,
+                                              ccl_private float *stack,
+                                              uint type,
+                                              uint out_offset)
 {
   float data;
 
@@ -140,8 +152,11 @@ ccl_device_noinline void svm_node_object_info(
 
 /* Particle Info */
 
-ccl_device_noinline void svm_node_particle_info(
-    const KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device_noinline void svm_node_particle_info(ccl_global const KernelGlobals *kg,
+                                                ccl_private ShaderData *sd,
+                                                ccl_private float *stack,
+                                                uint type,
+                                                uint out_offset)
 {
   switch (type) {
     case NODE_INFO_PAR_INDEX: {
@@ -199,8 +214,11 @@ ccl_device_noinline void svm_node_particle_info(
 
 /* Hair Info */
 
-ccl_device_noinline void svm_node_hair_info(
-    const KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device_noinline void svm_node_hair_info(ccl_global const KernelGlobals *kg,
+                                            ccl_private ShaderData *sd,
+                                            ccl_private float *stack,
+                                            uint type,
+                                            uint out_offset)
 {
   float data;
   float3 data3;

@@ -36,12 +36,12 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-    bool BVH_FUNCTION_FULL_NAME(BVH)(const KernelGlobals *kg,
-                                     const Ray *ray,
-                                     Intersection *isect_array,
+    bool BVH_FUNCTION_FULL_NAME(BVH)(ccl_global const KernelGlobals *kg,
+                                     ccl_private const Ray *ray,
+                                     ccl_private Intersection *isect_array,
                                      const uint visibility,
                                      const uint max_hits,
-                                     uint *num_hits)
+                                     ccl_private uint *num_hits)
 {
   /* todo:
    * - likely and unlikely for if() statements
@@ -71,7 +71,7 @@ ccl_device_inline
   float t_world_to_instance = 1.0f;
 
   *num_hits = 0;
-  Intersection *isect = isect_array;
+  ccl_private Intersection *isect = isect_array;
 
   /* traversal loop */
   do {
@@ -284,12 +284,12 @@ ccl_device_inline
   return false;
 }
 
-ccl_device_inline bool BVH_FUNCTION_NAME(const KernelGlobals *kg,
-                                         const Ray *ray,
-                                         Intersection *isect_array,
+ccl_device_inline bool BVH_FUNCTION_NAME(ccl_global const KernelGlobals *kg,
+                                         ccl_private const Ray *ray,
+                                         ccl_private Intersection *isect_array,
                                          const uint visibility,
                                          const uint max_hits,
-                                         uint *num_hits)
+                                         ccl_private uint *num_hits)
 {
   return BVH_FUNCTION_FULL_NAME(BVH)(kg, ray, isect_array, visibility, max_hits, num_hits);
 }

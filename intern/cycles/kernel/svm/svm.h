@@ -44,56 +44,56 @@ CCL_NAMESPACE_BEGIN
 
 /* Stack */
 
-ccl_device_inline float3 stack_load_float3(float *stack, uint a)
+ccl_device_inline float3 stack_load_float3(ccl_private float *stack, uint a)
 {
   kernel_assert(a + 2 < SVM_STACK_SIZE);
 
-  float *stack_a = stack + a;
+  ccl_private float *stack_a = stack + a;
   return make_float3(stack_a[0], stack_a[1], stack_a[2]);
 }
 
-ccl_device_inline void stack_store_float3(float *stack, uint a, float3 f)
+ccl_device_inline void stack_store_float3(ccl_private float *stack, uint a, float3 f)
 {
   kernel_assert(a + 2 < SVM_STACK_SIZE);
 
-  float *stack_a = stack + a;
+  ccl_private float *stack_a = stack + a;
   stack_a[0] = f.x;
   stack_a[1] = f.y;
   stack_a[2] = f.z;
 }
 
-ccl_device_inline float stack_load_float(float *stack, uint a)
+ccl_device_inline float stack_load_float(ccl_private float *stack, uint a)
 {
   kernel_assert(a < SVM_STACK_SIZE);
 
   return stack[a];
 }
 
-ccl_device_inline float stack_load_float_default(float *stack, uint a, uint value)
+ccl_device_inline float stack_load_float_default(ccl_private float *stack, uint a, uint value)
 {
   return (a == (uint)SVM_STACK_INVALID) ? __uint_as_float(value) : stack_load_float(stack, a);
 }
 
-ccl_device_inline void stack_store_float(float *stack, uint a, float f)
+ccl_device_inline void stack_store_float(ccl_private float *stack, uint a, float f)
 {
   kernel_assert(a < SVM_STACK_SIZE);
 
   stack[a] = f;
 }
 
-ccl_device_inline int stack_load_int(float *stack, uint a)
+ccl_device_inline int stack_load_int(ccl_private float *stack, uint a)
 {
   kernel_assert(a < SVM_STACK_SIZE);
 
   return __float_as_int(stack[a]);
 }
 
-ccl_device_inline int stack_load_int_default(float *stack, uint a, uint value)
+ccl_device_inline int stack_load_int_default(ccl_private float *stack, uint a, uint value)
 {
   return (a == (uint)SVM_STACK_INVALID) ? (int)value : stack_load_int(stack, a);
 }
 
-ccl_device_inline void stack_store_int(float *stack, uint a, int i)
+ccl_device_inline void stack_store_int(ccl_private float *stack, uint a, int i)
 {
   kernel_assert(a < SVM_STACK_SIZE);
 
@@ -107,14 +107,15 @@ ccl_device_inline bool stack_valid(uint a)
 
 /* Reading Nodes */
 
-ccl_device_inline uint4 read_node(const KernelGlobals *kg, int *offset)
+ccl_device_inline uint4 read_node(ccl_global const KernelGlobals *kg, ccl_private int *offset)
 {
   uint4 node = kernel_tex_fetch(__svm_nodes, *offset);
   (*offset)++;
   return node;
 }
 
-ccl_device_inline float4 read_node_float(const KernelGlobals *kg, int *offset)
+ccl_device_inline float4 read_node_float(ccl_global const KernelGlobals *kg,
+                                         ccl_private int *offset)
 {
   uint4 node = kernel_tex_fetch(__svm_nodes, *offset);
   float4 f = make_float4(__uint_as_float(node.x),
@@ -125,7 +126,7 @@ ccl_device_inline float4 read_node_float(const KernelGlobals *kg, int *offset)
   return f;
 }
 
-ccl_device_inline float4 fetch_node_float(const KernelGlobals *kg, int offset)
+ccl_device_inline float4 fetch_node_float(ccl_global const KernelGlobals *kg, int offset)
 {
   uint4 node = kernel_tex_fetch(__svm_nodes, offset);
   return make_float4(__uint_as_float(node.x),
@@ -134,20 +135,26 @@ ccl_device_inline float4 fetch_node_float(const KernelGlobals *kg, int offset)
                      __uint_as_float(node.w));
 }
 
-ccl_device_forceinline void svm_unpack_node_uchar2(uint i, uint *x, uint *y)
+ccl_device_forceinline void svm_unpack_node_uchar2(uint i,
+                                                   ccl_private uint *x,
+                                                   ccl_private uint *y)
 {
   *x = (i & 0xFF);
   *y = ((i >> 8) & 0xFF);
 }
 
-ccl_device_forceinline void svm_unpack_node_uchar3(uint i, uint *x, uint *y, uint *z)
+ccl_device_forceinline void svm_unpack_node_uchar3(uint i,
+                                                   ccl_private uint *x,
+                                                   ccl_private uint *y,
+                                                   ccl_private uint *z)
 {
   *x = (i & 0xFF);
   *y = ((i >> 8) & 0xFF);
   *z = ((i >> 16) & 0xFF);
 }
 
-ccl_device_forceinline void svm_unpack_node_uchar4(uint i, uint *x, uint *y, uint *z, uint *w)
+ccl_device_forceinline void svm_unpack_node_uchar4(
+    uint i, ccl_private uint *x, ccl_private uint *y, ccl_private uint *z, ccl_private uint *w)
 {
   *x = (i & 0xFF);
   *y = ((i >> 8) & 0xFF);

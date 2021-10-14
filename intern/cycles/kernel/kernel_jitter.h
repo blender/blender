@@ -72,7 +72,10 @@ ccl_device_inline float cmj_randfloat_simple(uint i, uint p)
   return cmj_hash_simple(i, p) * (1.0f / (float)0xFFFFFFFF);
 }
 
-ccl_device float pmj_sample_1D(const KernelGlobals *kg, uint sample, uint rng_hash, uint dimension)
+ccl_device float pmj_sample_1D(ccl_global const KernelGlobals *kg,
+                               uint sample,
+                               uint rng_hash,
+                               uint dimension)
 {
   /* Perform Owen shuffle of the sample number to reorder the samples. */
 #ifdef _SIMPLE_HASH_
@@ -115,8 +118,12 @@ ccl_device float pmj_sample_1D(const KernelGlobals *kg, uint sample, uint rng_ha
   return fx;
 }
 
-ccl_device void pmj_sample_2D(
-    const KernelGlobals *kg, uint sample, uint rng_hash, uint dimension, float *x, float *y)
+ccl_device void pmj_sample_2D(ccl_global const KernelGlobals *kg,
+                              uint sample,
+                              uint rng_hash,
+                              uint dimension,
+                              ccl_private float *x,
+                              ccl_private float *y)
 {
   /* Perform a shuffle on the sample number to reorder the samples. */
 #ifdef _SIMPLE_HASH_

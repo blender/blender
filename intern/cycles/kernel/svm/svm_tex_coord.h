@@ -22,8 +22,12 @@ CCL_NAMESPACE_BEGIN
 
 /* Texture Coordinate Node */
 
-ccl_device_noinline int svm_node_tex_coord(
-    const KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint4 node, int offset)
+ccl_device_noinline int svm_node_tex_coord(ccl_global const KernelGlobals *kg,
+                                           ccl_private ShaderData *sd,
+                                           int path_flag,
+                                           ccl_private float *stack,
+                                           uint4 node,
+                                           int offset)
 {
   float3 data;
   uint type = node.y;
@@ -99,8 +103,12 @@ ccl_device_noinline int svm_node_tex_coord(
   return offset;
 }
 
-ccl_device_noinline int svm_node_tex_coord_bump_dx(
-    const KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint4 node, int offset)
+ccl_device_noinline int svm_node_tex_coord_bump_dx(ccl_global const KernelGlobals *kg,
+                                                   ccl_private ShaderData *sd,
+                                                   int path_flag,
+                                                   ccl_private float *stack,
+                                                   uint4 node,
+                                                   int offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
   float3 data;
@@ -180,8 +188,12 @@ ccl_device_noinline int svm_node_tex_coord_bump_dx(
 #endif
 }
 
-ccl_device_noinline int svm_node_tex_coord_bump_dy(
-    const KernelGlobals *kg, ShaderData *sd, int path_flag, float *stack, uint4 node, int offset)
+ccl_device_noinline int svm_node_tex_coord_bump_dy(ccl_global const KernelGlobals *kg,
+                                                   ccl_private ShaderData *sd,
+                                                   int path_flag,
+                                                   ccl_private float *stack,
+                                                   uint4 node,
+                                                   int offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
   float3 data;
@@ -261,9 +273,9 @@ ccl_device_noinline int svm_node_tex_coord_bump_dy(
 #endif
 }
 
-ccl_device_noinline void svm_node_normal_map(const KernelGlobals *kg,
-                                             ShaderData *sd,
-                                             float *stack,
+ccl_device_noinline void svm_node_normal_map(ccl_global const KernelGlobals *kg,
+                                             ccl_private ShaderData *sd,
+                                             ccl_private float *stack,
                                              uint4 node)
 {
   uint color_offset, strength_offset, normal_offset, space;
@@ -354,9 +366,9 @@ ccl_device_noinline void svm_node_normal_map(const KernelGlobals *kg,
   stack_store_float3(stack, normal_offset, N);
 }
 
-ccl_device_noinline void svm_node_tangent(const KernelGlobals *kg,
-                                          ShaderData *sd,
-                                          float *stack,
+ccl_device_noinline void svm_node_tangent(ccl_global const KernelGlobals *kg,
+                                          ccl_private ShaderData *sd,
+                                          ccl_private float *stack,
                                           uint4 node)
 {
   uint tangent_offset, direction_type, axis;

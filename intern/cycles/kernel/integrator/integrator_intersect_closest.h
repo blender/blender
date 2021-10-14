@@ -86,7 +86,7 @@ ccl_device_forceinline bool integrator_intersect_terminate(INTEGRATOR_STATE_ARGS
 template<uint32_t current_kernel>
 ccl_device_forceinline void integrator_intersect_shader_next_kernel(
     INTEGRATOR_STATE_ARGS,
-    const Intersection *ccl_restrict isect,
+    ccl_private const Intersection *ccl_restrict isect,
     const int shader,
     const int shader_flags)
 {

@@ -636,7 +636,7 @@ typedef struct AttributeDescriptor {
   float sample_weight; \
   float3 N
 
-typedef ccl_addr_space struct ccl_align(16) ShaderClosure
+typedef struct ccl_align(16) ShaderClosure
 {
   SHADER_CLOSURE_BASE;
 
@@ -747,7 +747,7 @@ enum ShaderDataObjectFlag {
                      SD_OBJECT_HAS_VOLUME_ATTRIBUTES)
 };
 
-typedef ccl_addr_space struct ccl_align(16) ShaderData
+typedef struct ccl_align(16) ShaderData
 {
   /* position */
   float3 P;
@@ -837,27 +837,28 @@ ShaderData;
 
 /* ShaderDataTinyStorage needs the same alignment as ShaderData, or else
  * the pointer cast in AS_SHADER_DATA invokes undefined behavior. */
-typedef ccl_addr_space struct ccl_align(16) ShaderDataTinyStorage
+typedef struct ccl_align(16) ShaderDataTinyStorage
 {
   char pad[sizeof(ShaderData) - sizeof(ShaderClosure) * MAX_CLOSURE];
 }
 ShaderDataTinyStorage;
-#define AS_SHADER_DATA(shader_data_tiny_storage) ((ShaderData *)shader_data_tiny_storage)
+#define AS_SHADER_DATA(shader_data_tiny_storage) \
+  ((ccl_private ShaderData *)shader_data_tiny_storage)
 
 /* Compact volume closures storage.
  *
  * Used for decoupled direct/indirect light closure storage. */
 
-ccl_addr_space struct ShaderVolumeClosure {
+typedef struct ShaderVolumeClosure {
   float3 weight;
   float sample_weight;
   float g;
-};
+} ShaderVolumeClosure;
 
-ccl_addr_space struct ShaderVolumePhases {
+typedef struct ShaderVolumePhases {
   ShaderVolumeClosure closure[MAX_VOLUME_CLOSURE];
   int num_closure;
-};
+} ShaderVolumePhases;
 
 /* Volume Stack */
 

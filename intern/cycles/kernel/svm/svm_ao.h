@@ -25,7 +25,7 @@ extern "C" __device__ float __direct_callable__svm_node_ao(INTEGRATOR_STATE_CONS
 #  else
 ccl_device float svm_ao(INTEGRATOR_STATE_CONST_ARGS,
 #  endif
-                                                           ShaderData *sd,
+                                                           ccl_private ShaderData *sd,
                                                            float3 N,
                                                            float max_dist,
                                                            int num_samples,
@@ -96,7 +96,10 @@ ccl_device_inline
 ccl_device_noinline
 #  endif
     void
-    svm_node_ao(INTEGRATOR_STATE_CONST_ARGS, ShaderData *sd, float *stack, uint4 node)
+    svm_node_ao(INTEGRATOR_STATE_CONST_ARGS,
+                ccl_private ShaderData *sd,
+                ccl_private float *stack,
+                uint4 node)
 {
   uint flags, dist_offset, normal_offset, out_ao_offset;
   svm_unpack_node_uchar4(node.y, &flags, &dist_offset, &normal_offset, &out_ao_offset);

@@ -16,9 +16,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_noinline void svm_node_vertex_color(const KernelGlobals *kg,
-                                               ShaderData *sd,
-                                               float *stack,
+ccl_device_noinline void svm_node_vertex_color(ccl_global const KernelGlobals *kg,
+                                               ccl_private ShaderData *sd,
+                                               ccl_private float *stack,
                                                uint layer_id,
                                                uint color_offset,
                                                uint alpha_offset)
@@ -35,9 +35,9 @@ ccl_device_noinline void svm_node_vertex_color(const KernelGlobals *kg,
   }
 }
 
-ccl_device_noinline void svm_node_vertex_color_bump_dx(const KernelGlobals *kg,
-                                                       ShaderData *sd,
-                                                       float *stack,
+ccl_device_noinline void svm_node_vertex_color_bump_dx(ccl_global const KernelGlobals *kg,
+                                                       ccl_private ShaderData *sd,
+                                                       ccl_private float *stack,
                                                        uint layer_id,
                                                        uint color_offset,
                                                        uint alpha_offset)
@@ -56,9 +56,9 @@ ccl_device_noinline void svm_node_vertex_color_bump_dx(const KernelGlobals *kg,
   }
 }
 
-ccl_device_noinline void svm_node_vertex_color_bump_dy(const KernelGlobals *kg,
-                                                       ShaderData *sd,
-                                                       float *stack,
+ccl_device_noinline void svm_node_vertex_color_bump_dy(ccl_global const KernelGlobals *kg,
+                                                       ccl_private ShaderData *sd,
+                                                       ccl_private float *stack,
                                                        uint layer_id,
                                                        uint color_offset,
                                                        uint alpha_offset)

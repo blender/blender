@@ -106,7 +106,7 @@ typedef struct IntegratorQueueCounter {
  * GPU rendering path state with SoA layout. */
 typedef struct IntegratorStateGPU {
 #define KERNEL_STRUCT_BEGIN(name) struct {
-#define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) type *name;
+#define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) ccl_global type *name;
 #define KERNEL_STRUCT_ARRAY_MEMBER KERNEL_STRUCT_MEMBER
 #define KERNEL_STRUCT_END(name) \
   } \
@@ -124,13 +124,13 @@ typedef struct IntegratorStateGPU {
 #undef KERNEL_STRUCT_VOLUME_STACK_SIZE
 
   /* Count number of queued kernels. */
-  IntegratorQueueCounter *queue_counter;
+  ccl_global IntegratorQueueCounter *queue_counter;
 
   /* Count number of kernels queued for specific shaders. */
-  int *sort_key_counter[DEVICE_KERNEL_INTEGRATOR_NUM];
+  ccl_global int *sort_key_counter[DEVICE_KERNEL_INTEGRATOR_NUM];
 
   /* Index of path which will be used by a next shadow catcher split.  */
-  int *next_shadow_catcher_path_index;
+  ccl_global int *next_shadow_catcher_path_index;
 } IntegratorStateGPU;
 
 /* Abstraction
@@ -173,9 +173,10 @@ typedef IntegratorStateCPU *ccl_restrict IntegratorState;
 
 typedef int IntegratorState;
 
-#  define INTEGRATOR_STATE_ARGS const KernelGlobals *ccl_restrict kg, const IntegratorState state
+#  define INTEGRATOR_STATE_ARGS \
+    ccl_global const KernelGlobals *ccl_restrict kg, const IntegratorState state
 #  define INTEGRATOR_STATE_CONST_ARGS \
-    const KernelGlobals *ccl_restrict kg, const IntegratorState state
+    ccl_global const KernelGlobals *ccl_restrict kg, const IntegratorState state
 #  define INTEGRATOR_STATE_PASS kg, state
 
 #  define INTEGRATOR_STATE_PASS_NULL kg, -1

@@ -32,7 +32,7 @@ ccl_device_forceinline uint integrate_intersect_shadow_visibility(INTEGRATOR_STA
 }
 
 ccl_device bool integrate_intersect_shadow_opaque(INTEGRATOR_STATE_ARGS,
-                                                  const Ray *ray,
+                                                  ccl_private const Ray *ray,
                                                   const uint visibility)
 {
   /* Mask which will pick only opaque visibility bits from the `visibility`.
@@ -62,7 +62,7 @@ ccl_device_forceinline int integrate_shadow_max_transparent_hits(INTEGRATOR_STAT
 
 #ifdef __TRANSPARENT_SHADOWS__
 ccl_device bool integrate_intersect_shadow_transparent(INTEGRATOR_STATE_ARGS,
-                                                       const Ray *ray,
+                                                       ccl_private const Ray *ray,
                                                        const uint visibility)
 {
   Intersection isect[INTEGRATOR_SHADOW_ISECT_SIZE];

@@ -19,8 +19,8 @@ CCL_NAMESPACE_BEGIN
 /* Light Path Node */
 
 ccl_device_noinline void svm_node_light_path(INTEGRATOR_STATE_CONST_ARGS,
-                                             const ShaderData *sd,
-                                             float *stack,
+                                             ccl_private const ShaderData *sd,
+                                             ccl_private float *stack,
                                              uint type,
                                              uint out_offset,
                                              int path_flag)
@@ -106,7 +106,9 @@ ccl_device_noinline void svm_node_light_path(INTEGRATOR_STATE_CONST_ARGS,
 
 /* Light Falloff Node */
 
-ccl_device_noinline void svm_node_light_falloff(ShaderData *sd, float *stack, uint4 node)
+ccl_device_noinline void svm_node_light_falloff(ccl_private ShaderData *sd,
+                                                ccl_private float *stack,
+                                                uint4 node)
 {
   uint strength_offset, out_offset, smooth_offset;
 

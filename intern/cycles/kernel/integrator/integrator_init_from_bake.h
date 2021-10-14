@@ -44,7 +44,7 @@ ccl_device_inline float bake_clamp_mirror_repeat(float u, float max)
  * Used by CPU implementation to not attempt to sample pixel for multiple samples once its known
  * that the pixel did converge. */
 ccl_device bool integrator_init_from_bake(INTEGRATOR_STATE_ARGS,
-                                          const ccl_global KernelWorkTile *ccl_restrict tile,
+                                          ccl_global const KernelWorkTile *ccl_restrict tile,
                                           ccl_global float *render_buffer,
                                           const int x,
                                           const int y,

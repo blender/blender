@@ -77,7 +77,10 @@ ccl_device_forceinline float svm_bevel_cubic_quintic_root_find(float xi)
   return x;
 }
 
-ccl_device void svm_bevel_cubic_sample(const float radius, float xi, float *r, float *h)
+ccl_device void svm_bevel_cubic_sample(const float radius,
+                                       float xi,
+                                       ccl_private float *r,
+                                       ccl_private float *h)
 {
   float Rm = radius;
   float r_ = svm_bevel_cubic_quintic_root_find(xi);
@@ -100,7 +103,7 @@ extern "C" __device__ float3 __direct_callable__svm_node_bevel(INTEGRATOR_STATE_
 #  else
 ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
 #  endif
-                                                               ShaderData *sd,
+                                                               ccl_private ShaderData *sd,
                                                                float radius,
                                                                int num_samples)
 {
@@ -284,7 +287,10 @@ ccl_device_inline
 ccl_device_noinline
 #  endif
     void
-    svm_node_bevel(INTEGRATOR_STATE_CONST_ARGS, ShaderData *sd, float *stack, uint4 node)
+    svm_node_bevel(INTEGRATOR_STATE_CONST_ARGS,
+                   ccl_private ShaderData *sd,
+                   ccl_private float *stack,
+                   uint4 node)
 {
   uint num_samples, radius_offset, normal_offset, out_offset;
   svm_unpack_node_uchar4(node.y, &num_samples, &radius_offset, &normal_offset, &out_offset);

@@ -34,8 +34,8 @@ CCL_NAMESPACE_BEGIN
  * a closer distance.
  */
 
-ccl_device_inline float3 motion_triangle_refine(const KernelGlobals *kg,
-                                                ShaderData *sd,
+ccl_device_inline float3 motion_triangle_refine(ccl_global const KernelGlobals *kg,
+                                                ccl_private ShaderData *sd,
                                                 float3 P,
                                                 float3 D,
                                                 float t,
@@ -92,8 +92,8 @@ ccl_device_noinline
 ccl_device_inline
 #  endif
     float3
-    motion_triangle_refine_local(const KernelGlobals *kg,
-                                 ShaderData *sd,
+    motion_triangle_refine_local(ccl_global const KernelGlobals *kg,
+                                 ccl_private ShaderData *sd,
                                  float3 P,
                                  float3 D,
                                  float t,
@@ -145,8 +145,8 @@ ccl_device_inline
  * time and do a ray intersection with the resulting triangle.
  */
 
-ccl_device_inline bool motion_triangle_intersect(const KernelGlobals *kg,
-                                                 Intersection *isect,
+ccl_device_inline bool motion_triangle_intersect(ccl_global const KernelGlobals *kg,
+                                                 ccl_private Intersection *isect,
                                                  float3 P,
                                                  float3 dir,
                                                  float tmax,
@@ -202,8 +202,8 @@ ccl_device_inline bool motion_triangle_intersect(const KernelGlobals *kg,
  * Returns whether traversal should be stopped.
  */
 #ifdef __BVH_LOCAL__
-ccl_device_inline bool motion_triangle_intersect_local(const KernelGlobals *kg,
-                                                       LocalIntersection *local_isect,
+ccl_device_inline bool motion_triangle_intersect_local(ccl_global const KernelGlobals *kg,
+                                                       ccl_private LocalIntersection *local_isect,
                                                        float3 P,
                                                        float3 dir,
                                                        float time,
@@ -211,7 +211,7 @@ ccl_device_inline bool motion_triangle_intersect_local(const KernelGlobals *kg,
                                                        int local_object,
                                                        int prim_addr,
                                                        float tmax,
-                                                       uint *lcg_state,
+                                                       ccl_private uint *lcg_state,
                                                        int max_hits)
 {
   /* Only intersect with matching object, for instanced objects we
@@ -285,7 +285,7 @@ ccl_device_inline bool motion_triangle_intersect_local(const KernelGlobals *kg,
   }
 
   /* Record intersection. */
-  Intersection *isect = &local_isect->hits[hit];
+  ccl_private Intersection *isect = &local_isect->hits[hit];
   isect->t = t;
   isect->u = u;
   isect->v = v;

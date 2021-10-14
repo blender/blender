@@ -26,8 +26,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline bool triangle_intersect(const KernelGlobals *kg,
-                                          Intersection *isect,
+ccl_device_inline bool triangle_intersect(ccl_global const KernelGlobals *kg,
+                                          ccl_private Intersection *isect,
                                           float3 P,
                                           float3 dir,
                                           float tmax,
@@ -85,15 +85,15 @@ ccl_device_inline bool triangle_intersect(const KernelGlobals *kg,
  */
 
 #ifdef __BVH_LOCAL__
-ccl_device_inline bool triangle_intersect_local(const KernelGlobals *kg,
-                                                LocalIntersection *local_isect,
+ccl_device_inline bool triangle_intersect_local(ccl_global const KernelGlobals *kg,
+                                                ccl_private LocalIntersection *local_isect,
                                                 float3 P,
                                                 float3 dir,
                                                 int object,
                                                 int local_object,
                                                 int prim_addr,
                                                 float tmax,
-                                                uint *lcg_state,
+                                                ccl_private uint *lcg_state,
                                                 int max_hits)
 {
   /* Only intersect with matching object, for instanced objects we
@@ -169,7 +169,7 @@ ccl_device_inline bool triangle_intersect_local(const KernelGlobals *kg,
   }
 
   /* Record intersection. */
-  Intersection *isect = &local_isect->hits[hit];
+  ccl_private Intersection *isect = &local_isect->hits[hit];
   isect->prim = prim;
   isect->object = local_object;
   isect->type = PRIMITIVE_TRIANGLE;
@@ -200,8 +200,8 @@ ccl_device_inline bool triangle_intersect_local(const KernelGlobals *kg,
  * http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
  */
 
-ccl_device_inline float3 triangle_refine(const KernelGlobals *kg,
-                                         ShaderData *sd,
+ccl_device_inline float3 triangle_refine(ccl_global const KernelGlobals *kg,
+                                         ccl_private ShaderData *sd,
                                          float3 P,
                                          float3 D,
                                          float t,
@@ -256,8 +256,8 @@ ccl_device_inline float3 triangle_refine(const KernelGlobals *kg,
 /* Same as above, except that t is assumed to be in object space for
  * instancing.
  */
-ccl_device_inline float3 triangle_refine_local(const KernelGlobals *kg,
-                                               ShaderData *sd,
+ccl_device_inline float3 triangle_refine_local(ccl_global const KernelGlobals *kg,
+                                               ccl_private ShaderData *sd,
                                                float3 P,
                                                float3 D,
                                                float t,

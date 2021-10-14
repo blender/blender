@@ -61,7 +61,7 @@ struct half4 {
 
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
 
-ccl_device_inline void float4_store_half(half *h, float4 f)
+ccl_device_inline void float4_store_half(ccl_private half *h, float4 f)
 {
   h[0] = __float2half(f.x);
   h[1] = __float2half(f.y);
@@ -71,7 +71,7 @@ ccl_device_inline void float4_store_half(half *h, float4 f)
 
 #else
 
-ccl_device_inline void float4_store_half(half *h, float4 f)
+ccl_device_inline void float4_store_half(ccl_private half *h, float4 f)
 {
 
 #  ifndef __KERNEL_SSE2__

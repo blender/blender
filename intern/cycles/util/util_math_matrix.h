@@ -35,14 +35,14 @@ CCL_NAMESPACE_BEGIN
 
 /* Zeroing helpers. */
 
-ccl_device_inline void math_vector_zero(float *v, int n)
+ccl_device_inline void math_vector_zero(ccl_private float *v, int n)
 {
   for (int i = 0; i < n; i++) {
     v[i] = 0.0f;
   }
 }
 
-ccl_device_inline void math_matrix_zero(float *A, int n)
+ccl_device_inline void math_matrix_zero(ccl_private float *A, int n)
 {
   for (int row = 0; row < n; row++) {
     for (int col = 0; col <= row; col++) {
@@ -53,14 +53,18 @@ ccl_device_inline void math_matrix_zero(float *A, int n)
 
 /* Elementary vector operations. */
 
-ccl_device_inline void math_vector_add(float *a, const float *ccl_restrict b, int n)
+ccl_device_inline void math_vector_add(ccl_private float *a,
+                                       ccl_private const float *ccl_restrict b,
+                                       int n)
 {
   for (int i = 0; i < n; i++) {
     a[i] += b[i];
   }
 }
 
-ccl_device_inline void math_vector_mul(float *a, const float *ccl_restrict b, int n)
+ccl_device_inline void math_vector_mul(ccl_private float *a,
+                                       ccl_private const float *ccl_restrict b,
+                                       int n)
 {
   for (int i = 0; i < n; i++) {
     a[i] *= b[i];
@@ -68,7 +72,7 @@ ccl_device_inline void math_vector_mul(float *a, const float *ccl_restrict b, in
 }
 
 ccl_device_inline void math_vector_mul_strided(ccl_global float *a,
-                                               const float *ccl_restrict b,
+                                               ccl_private const float *ccl_restrict b,
                                                int astride,
                                                int n)
 {
@@ -77,21 +81,23 @@ ccl_device_inline void math_vector_mul_strided(ccl_global float *a,
   }
 }
 
-ccl_device_inline void math_vector_scale(float *a, float b, int n)
+ccl_device_inline void math_vector_scale(ccl_private float *a, float b, int n)
 {
   for (int i = 0; i < n; i++) {
     a[i] *= b;
   }
 }
 
-ccl_device_inline void math_vector_max(float *a, const float *ccl_restrict b, int n)
+ccl_device_inline void math_vector_max(ccl_private float *a,
+                                       ccl_private const float *ccl_restrict b,
+                                       int n)
 {
   for (int i = 0; i < n; i++) {
     a[i] = max(a[i], b[i]);
   }
 }
 
-ccl_device_inline void math_vec3_add(float3 *v, int n, float *x, float3 w)
+ccl_device_inline void math_vec3_add(ccl_private float3 *v, int n, ccl_private float *x, float3 w)
 {
   for (int i = 0; i < n; i++) {
     v[i] += w * x[i];
@@ -99,7 +105,7 @@ ccl_device_inline void math_vec3_add(float3 *v, int n, float *x, float3 w)
 }
 
 ccl_device_inline void math_vec3_add_strided(
-    ccl_global float3 *v, int n, float *x, float3 w, int stride)
+    ccl_global float3 *v, int n, ccl_private float *x, float3 w, int stride)
 {
   for (int i = 0; i < n; i++) {
     ccl_global float *elem = (ccl_global float *)(v + i * stride);
@@ -125,9 +131,9 @@ ccl_device_inline void math_trimatrix_add_diagonal(ccl_global float *A,
 
 /* Add Gramian matrix of v to A.
  * The Gramian matrix of v is vt*v, so element (i,j) is v[i]*v[j]. */
-ccl_device_inline void math_matrix_add_gramian(float *A,
+ccl_device_inline void math_matrix_add_gramian(ccl_private float *A,
                                                int n,
-                                               const float *ccl_restrict v,
+                                               ccl_private const float *ccl_restrict v,
                                                float weight)
 {
   for (int row = 0; row < n; row++) {
@@ -140,7 +146,7 @@ ccl_device_inline void math_matrix_add_gramian(float *A,
 /* Add Gramian matrix of v to A.
  * The Gramian matrix of v is vt*v, so element (i,j) is v[i]*v[j]. */
 ccl_device_inline void math_trimatrix_add_gramian_strided(
-    ccl_global float *A, int n, const float *ccl_restrict v, float weight, int stride)
+    ccl_global float *A, int n, ccl_private const float *ccl_restrict v, float weight, int stride)
 {
   for (int row = 0; row < n; row++) {
     for (int col = 0; col <= row; col++) {
@@ -151,7 +157,7 @@ ccl_device_inline void math_trimatrix_add_gramian_strided(
 
 ccl_device_inline void math_trimatrix_add_gramian(ccl_global float *A,
                                                   int n,
-                                                  const float *ccl_restrict v,
+                                                  ccl_private const float *ccl_restrict v,
                                                   float weight)
 {
   for (int row = 0; row < n; row++) {
@@ -244,7 +250,7 @@ ccl_device_inline void math_trimatrix_vec3_solve(ccl_global float *A,
  * and V will contain the eigenvectors of the original A in its rows (!),
  * so that A = V^T*D*V. Therefore, the diagonal elements of D are the (sorted) eigenvalues of A.
  */
-ccl_device void math_matrix_jacobi_eigendecomposition(float *A,
+ccl_device void math_matrix_jacobi_eigendecomposition(ccl_private float *A,
                                                       ccl_global float *V,
                                                       int n,
                                                       int v_stride)

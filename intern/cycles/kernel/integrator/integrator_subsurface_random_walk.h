@@ -31,8 +31,11 @@ CCL_NAMESPACE_BEGIN
  * Magnus Wrenninge, Ryusuke Villemin, Christophe Hery.
  * https://graphics.pixar.com/library/PathTracedSubsurface/ */
 
-ccl_device void subsurface_random_walk_remap(
-    const float albedo, const float d, float g, float *sigma_t, float *alpha)
+ccl_device void subsurface_random_walk_remap(const float albedo,
+                                             const float d,
+                                             float g,
+                                             ccl_private float *sigma_t,
+                                             ccl_private float *alpha)
 {
   /* Compute attenuation and scattering coefficients from albedo. */
   const float g2 = g * g;
@@ -78,9 +81,9 @@ ccl_device void subsurface_random_walk_remap(
 ccl_device void subsurface_random_walk_coefficients(const float3 albedo,
                                                     const float3 radius,
                                                     const float anisotropy,
-                                                    float3 *sigma_t,
-                                                    float3 *alpha,
-                                                    float3 *throughput)
+                                                    ccl_private float3 *sigma_t,
+                                                    ccl_private float3 *alpha,
+                                                    ccl_private float3 *throughput)
 {
   float sigma_t_x, sigma_t_y, sigma_t_z;
   float alpha_x, alpha_y, alpha_z;
@@ -164,7 +167,7 @@ ccl_device_forceinline float3 direction_from_cosine(float3 D, float cos_theta, f
 ccl_device_forceinline float3 subsurface_random_walk_pdf(float3 sigma_t,
                                                          float t,
                                                          bool hit,
-                                                         float3 *transmittance)
+                                                         ccl_private float3 *transmittance)
 {
   float3 T = volume_color_transmittance(sigma_t, t);
   if (transmittance) {
@@ -179,8 +182,8 @@ ccl_device_forceinline float3 subsurface_random_walk_pdf(float3 sigma_t,
 
 ccl_device_inline bool subsurface_random_walk(INTEGRATOR_STATE_ARGS,
                                               RNGState rng_state,
-                                              Ray &ray,
-                                              LocalIntersection &ss_isect)
+                                              ccl_private Ray &ray,
+                                              ccl_private LocalIntersection &ss_isect)
 {
   float bssrdf_u, bssrdf_v;
   path_state_rng_2D(kg, &rng_state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);

@@ -38,7 +38,7 @@ CCL_NAMESPACE_BEGIN
  */
 #  define SOBOL_SKIP 64
 
-ccl_device uint sobol_dimension(const KernelGlobals *kg, int index, int dimension)
+ccl_device uint sobol_dimension(ccl_global const KernelGlobals *kg, int index, int dimension)
 {
   uint result = 0;
   uint i = index + SOBOL_SKIP;
@@ -51,7 +51,7 @@ ccl_device uint sobol_dimension(const KernelGlobals *kg, int index, int dimensio
 
 #endif /* __SOBOL__ */
 
-ccl_device_forceinline float path_rng_1D(const KernelGlobals *kg,
+ccl_device_forceinline float path_rng_1D(ccl_global const KernelGlobals *kg,
                                          uint rng_hash,
                                          int sample,
                                          int dimension)
@@ -85,8 +85,12 @@ ccl_device_forceinline float path_rng_1D(const KernelGlobals *kg,
 #endif
 }
 
-ccl_device_forceinline void path_rng_2D(
-    const KernelGlobals *kg, uint rng_hash, int sample, int dimension, float *fx, float *fy)
+ccl_device_forceinline void path_rng_2D(ccl_global const KernelGlobals *kg,
+                                        uint rng_hash,
+                                        int sample,
+                                        int dimension,
+                                        ccl_private float *fx,
+                                        ccl_private float *fy)
 {
 #ifdef __DEBUG_CORRELATION__
   *fx = (float)drand48();
@@ -137,7 +141,7 @@ ccl_device_inline uint hash_iqnt2d(const uint x, const uint y)
   return n;
 }
 
-ccl_device_inline uint path_rng_hash_init(const KernelGlobals *ccl_restrict kg,
+ccl_device_inline uint path_rng_hash_init(ccl_global const KernelGlobals *ccl_restrict kg,
                                           const int sample,
                                           const int x,
                                           const int y)
@@ -182,13 +186,6 @@ ccl_device_inline uint lcg_state_init(const uint rng_hash,
                                       const uint scramble)
 {
   return lcg_init(rng_hash + rng_offset + sample * scramble);
-}
-
-ccl_device float lcg_step_float_addrspace(ccl_addr_space uint *rng)
-{
-  /* Implicit mod 2^32 */
-  *rng = (1103515245 * (*rng) + 12345);
-  return (float)*rng * (1.0f / (float)0xFFFFFFFF);
 }
 
 ccl_device_inline bool sample_is_even(int pattern, int sample)

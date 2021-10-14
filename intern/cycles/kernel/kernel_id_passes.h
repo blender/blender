@@ -92,7 +92,7 @@ ccl_device_inline void kernel_sort_id_slots(ccl_global float *buffer, int num_sl
 }
 
 /* post-sorting for Cryptomatte */
-ccl_device_inline void kernel_cryptomatte_post(const KernelGlobals *kg,
+ccl_device_inline void kernel_cryptomatte_post(ccl_global const KernelGlobals *kg,
                                                ccl_global float *render_buffer,
                                                int pixel_index)
 {

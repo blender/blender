@@ -33,8 +33,8 @@ ccl_device_inline float3 subsurface_disk_eval(const float3 radius, float disk_r,
  * nearby points on the same object. */
 ccl_device_inline bool subsurface_disk(INTEGRATOR_STATE_ARGS,
                                        RNGState rng_state,
-                                       Ray &ray,
-                                       LocalIntersection &ss_isect)
+                                       ccl_private Ray &ray,
+                                       ccl_private LocalIntersection &ss_isect)
 
 {
   float disk_u, disk_v;

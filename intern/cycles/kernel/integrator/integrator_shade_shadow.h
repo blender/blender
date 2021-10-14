@@ -39,7 +39,7 @@ ccl_device_inline float3 integrate_transparent_surface_shadow(INTEGRATOR_STATE_A
    * TODO: is it better to declare this outside the loop or keep it local
    * so the compiler can see there is no dependency between iterations? */
   ShaderDataTinyStorage shadow_sd_storage;
-  ShaderData *shadow_sd = AS_SHADER_DATA(&shadow_sd_storage);
+  ccl_private ShaderData *shadow_sd = AS_SHADER_DATA(&shadow_sd_storage);
 
   /* Setup shader data at surface. */
   Intersection isect ccl_optional_struct_init;
@@ -69,13 +69,14 @@ ccl_device_inline float3 integrate_transparent_surface_shadow(INTEGRATOR_STATE_A
 ccl_device_inline void integrate_transparent_volume_shadow(INTEGRATOR_STATE_ARGS,
                                                            const int hit,
                                                            const int num_recorded_hits,
-                                                           float3 *ccl_restrict throughput)
+                                                           ccl_private float3 *ccl_restrict
+                                                               throughput)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_SHADOW_VOLUME);
 
   /* TODO: deduplicate with surface, or does it not matter for memory usage? */
   ShaderDataTinyStorage shadow_sd_storage;
-  ShaderData *shadow_sd = AS_SHADER_DATA(&shadow_sd_storage);
+  ccl_private ShaderData *shadow_sd = AS_SHADER_DATA(&shadow_sd_storage);
 
   /* Setup shader data. */
   Ray ray ccl_optional_struct_init;

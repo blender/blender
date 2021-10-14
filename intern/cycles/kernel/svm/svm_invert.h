@@ -21,8 +21,11 @@ ccl_device float invert(float color, float factor)
   return factor * (1.0f - color) + (1.0f - factor) * color;
 }
 
-ccl_device_noinline void svm_node_invert(
-    ShaderData *sd, float *stack, uint in_fac, uint in_color, uint out_color)
+ccl_device_noinline void svm_node_invert(ccl_private ShaderData *sd,
+                                         ccl_private float *stack,
+                                         uint in_fac,
+                                         uint in_color,
+                                         uint out_color)
 {
   float factor = stack_load_float(stack, in_fac);
   float3 color = stack_load_float3(stack, in_color);

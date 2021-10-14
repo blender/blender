@@ -88,7 +88,7 @@ ccl_device int intersections_compare(const void *a, const void *b)
 #endif
 
 #if defined(__SHADOW_RECORD_ALL__)
-ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
+ccl_device_inline void sort_intersections(ccl_private Intersection *hits, uint num_hits)
 {
   kernel_assert(num_hits > 0);
 
@@ -115,8 +115,8 @@ ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
 
 /* For subsurface scattering, only sorting a small amount of intersections
  * so bubble sort is fine for CPU and GPU. */
-ccl_device_inline void sort_intersections_and_normals(Intersection *hits,
-                                                      float3 *Ng,
+ccl_device_inline void sort_intersections_and_normals(ccl_private Intersection *hits,
+                                                      ccl_private float3 *Ng,
                                                       uint num_hits)
 {
   bool swapped;
@@ -139,8 +139,9 @@ ccl_device_inline void sort_intersections_and_normals(Intersection *hits,
 
 /* Utility to quickly get flags from an intersection. */
 
-ccl_device_forceinline int intersection_get_shader_flags(const KernelGlobals *ccl_restrict kg,
-                                                         const Intersection *ccl_restrict isect)
+ccl_device_forceinline int intersection_get_shader_flags(
+    ccl_global const KernelGlobals *ccl_restrict kg,
+    ccl_private const Intersection *ccl_restrict isect)
 {
   const int prim = isect->prim;
   int shader = 0;
@@ -161,7 +162,7 @@ ccl_device_forceinline int intersection_get_shader_flags(const KernelGlobals *cc
 }
 
 ccl_device_forceinline int intersection_get_shader_from_isect_prim(
-    const KernelGlobals *ccl_restrict kg, const int prim, const int isect_type)
+    ccl_global const KernelGlobals *ccl_restrict kg, const int prim, const int isect_type)
 {
   int shader = 0;
 
@@ -180,14 +181,16 @@ ccl_device_forceinline int intersection_get_shader_from_isect_prim(
   return shader & SHADER_MASK;
 }
 
-ccl_device_forceinline int intersection_get_shader(const KernelGlobals *ccl_restrict kg,
-                                                   const Intersection *ccl_restrict isect)
+ccl_device_forceinline int intersection_get_shader(ccl_global const KernelGlobals *ccl_restrict kg,
+                                                   ccl_private const Intersection *ccl_restrict
+                                                       isect)
 {
   return intersection_get_shader_from_isect_prim(kg, isect->prim, isect->type);
 }
 
-ccl_device_forceinline int intersection_get_object_flags(const KernelGlobals *ccl_restrict kg,
-                                                         const Intersection *ccl_restrict isect)
+ccl_device_forceinline int intersection_get_object_flags(
+    ccl_global const KernelGlobals *ccl_restrict kg,
+    ccl_private const Intersection *ccl_restrict isect)
 {
   return kernel_tex_fetch(__object_flag, isect->object);
 }

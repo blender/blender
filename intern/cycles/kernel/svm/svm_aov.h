@@ -26,8 +26,8 @@ ccl_device_inline bool svm_node_aov_check(const int path_flag, ccl_global float 
 }
 
 ccl_device void svm_node_aov_color(INTEGRATOR_STATE_CONST_ARGS,
-                                   ShaderData *sd,
-                                   float *stack,
+                                   ccl_private ShaderData *sd,
+                                   ccl_private float *stack,
                                    uint4 node,
                                    ccl_global float *render_buffer)
 {
@@ -44,8 +44,8 @@ ccl_device void svm_node_aov_color(INTEGRATOR_STATE_CONST_ARGS,
 }
 
 ccl_device void svm_node_aov_value(INTEGRATOR_STATE_CONST_ARGS,
-                                   ShaderData *sd,
-                                   float *stack,
+                                   ccl_private ShaderData *sd,
+                                   ccl_private float *stack,
                                    uint4 node,
                                    ccl_global float *render_buffer)
 {

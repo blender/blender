@@ -53,7 +53,7 @@ typedef struct DecomposedTransform {
 
 /* Functions */
 
-ccl_device_inline float3 transform_point(const Transform *t, const float3 a)
+ccl_device_inline float3 transform_point(ccl_private const Transform *t, const float3 a)
 {
   /* TODO(sergey): Disabled for now, causes crashes in certain cases. */
 #if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__)
@@ -82,7 +82,7 @@ ccl_device_inline float3 transform_point(const Transform *t, const float3 a)
 #endif
 }
 
-ccl_device_inline float3 transform_direction(const Transform *t, const float3 a)
+ccl_device_inline float3 transform_direction(ccl_private const Transform *t, const float3 a)
 {
 #if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__)
   ssef x, y, z, w, aa;
@@ -108,7 +108,8 @@ ccl_device_inline float3 transform_direction(const Transform *t, const float3 a)
 #endif
 }
 
-ccl_device_inline float3 transform_direction_transposed(const Transform *t, const float3 a)
+ccl_device_inline float3 transform_direction_transposed(ccl_private const Transform *t,
+                                                        const float3 a)
 {
   float3 x = make_float3(t->x.x, t->y.x, t->z.x);
   float3 y = make_float3(t->x.y, t->y.y, t->z.y);
@@ -409,7 +410,8 @@ ccl_device_inline Transform transform_quick_inverse(Transform M)
   return R;
 }
 
-ccl_device_inline void transform_compose(Transform *tfm, const DecomposedTransform *decomp)
+ccl_device_inline void transform_compose(ccl_private Transform *tfm,
+                                         ccl_private const DecomposedTransform *decomp)
 {
   /* rotation */
   float q0, q1, q2, q3, qda, qdb, qdc, qaa, qab, qac, qbb, qbc, qcc;
@@ -449,7 +451,7 @@ ccl_device_inline void transform_compose(Transform *tfm, const DecomposedTransfo
 
 /* Interpolate from array of decomposed transforms. */
 ccl_device void transform_motion_array_interpolate(Transform *tfm,
-                                                   const ccl_global DecomposedTransform *motion,
+                                                   const DecomposedTransform *motion,
                                                    uint numsteps,
                                                    float time)
 {
@@ -458,8 +460,8 @@ ccl_device void transform_motion_array_interpolate(Transform *tfm,
   int step = min((int)(time * maxstep), maxstep - 1);
   float t = time * maxstep - step;
 
-  const ccl_global DecomposedTransform *a = motion + step;
-  const ccl_global DecomposedTransform *b = motion + step + 1;
+  const DecomposedTransform *a = motion + step;
+  const DecomposedTransform *b = motion + step + 1;
 
   /* Interpolate rotation, translation and scale. */
   DecomposedTransform decomp;
@@ -472,12 +474,12 @@ ccl_device void transform_motion_array_interpolate(Transform *tfm,
   transform_compose(tfm, &decomp);
 }
 
-ccl_device_inline bool transform_isfinite_safe(Transform *tfm)
+ccl_device_inline bool transform_isfinite_safe(ccl_private Transform *tfm)
 {
   return isfinite4_safe(tfm->x) && isfinite4_safe(tfm->y) && isfinite4_safe(tfm->z);
 }
 
-ccl_device_inline bool transform_decomposed_isfinite_safe(DecomposedTransform *decomp)
+ccl_device_inline bool transform_decomposed_isfinite_safe(ccl_private DecomposedTransform *decomp)
 {
   return isfinite4_safe(decomp->x) && isfinite4_safe(decomp->y) && isfinite4_safe(decomp->z) &&
          isfinite4_safe(decomp->w);

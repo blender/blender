@@ -36,14 +36,16 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __SUBSURFACE__
 
-ccl_device int subsurface_bounce(INTEGRATOR_STATE_ARGS, ShaderData *sd, const ShaderClosure *sc)
+ccl_device int subsurface_bounce(INTEGRATOR_STATE_ARGS,
+                                 ccl_private ShaderData *sd,
+                                 ccl_private const ShaderClosure *sc)
 {
   /* We should never have two consecutive BSSRDF bounces, the second one should
    * be converted to a diffuse BSDF to avoid this. */
   kernel_assert(!(INTEGRATOR_STATE(path, flag) & PATH_RAY_DIFFUSE_ANCESTOR));
 
   /* Setup path state for intersect_subsurface kernel. */
-  const Bssrdf *bssrdf = (const Bssrdf *)sc;
+  ccl_private const Bssrdf *bssrdf = (ccl_private const Bssrdf *)sc;
 
   /* Setup ray into surface. */
   INTEGRATOR_STATE_WRITE(ray, P) = sd->P;
@@ -89,7 +91,7 @@ ccl_device int subsurface_bounce(INTEGRATOR_STATE_ARGS, ShaderData *sd, const Sh
 }
 
 ccl_device void subsurface_shader_data_setup(INTEGRATOR_STATE_ARGS,
-                                             ShaderData *sd,
+                                             ccl_private ShaderData *sd,
                                              const uint32_t path_flag)
 {
   /* Get bump mapped normal from shader evaluation at exit point. */
@@ -107,7 +109,7 @@ ccl_device void subsurface_shader_data_setup(INTEGRATOR_STATE_ARGS,
 
 #  ifdef __PRINCIPLED__
   if (path_flag & PATH_RAY_SUBSURFACE_USE_FRESNEL) {
-    PrincipledDiffuseBsdf *bsdf = (PrincipledDiffuseBsdf *)bsdf_alloc(
+    ccl_private PrincipledDiffuseBsdf *bsdf = (ccl_private PrincipledDiffuseBsdf *)bsdf_alloc(
         sd, sizeof(PrincipledDiffuseBsdf), weight);
 
     if (bsdf) {
@@ -119,7 +121,8 @@ ccl_device void subsurface_shader_data_setup(INTEGRATOR_STATE_ARGS,
   else
 #  endif /* __PRINCIPLED__ */
   {
-    DiffuseBsdf *bsdf = (DiffuseBsdf *)bsdf_alloc(sd, sizeof(DiffuseBsdf), weight);
+    ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
+        sd, sizeof(DiffuseBsdf), weight);
 
     if (bsdf) {
       bsdf->N = N;
