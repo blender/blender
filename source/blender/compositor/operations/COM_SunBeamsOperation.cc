@@ -127,9 +127,9 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
     buffer_to_sector(source, co[0], co[1], pu, pv);
 
     /* line angle */
-    float tan_phi = pv / pu;
-    float dr = sqrtf(tan_phi * tan_phi + 1.0f);
-    float cos_phi = 1.0f / dr;
+    double tan_phi = pv / (double)pu;
+    double dr = sqrt(tan_phi * tan_phi + 1.0);
+    double cos_phi = 1.0 / dr;
 
     /* clamp u range to avoid influence of pixels "behind" the source */
     float umin = max_ff(pu - cos_phi * dist_min, 0.0f);
@@ -143,7 +143,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
 
     sector_to_buffer(source, end, (int)ceilf(v), x, y);
 
-    falloff_factor = dist_max > dist_min ? dr / (float)(dist_max - dist_min) : 0.0f;
+    falloff_factor = dist_max > dist_min ? dr / (double)(dist_max - dist_min) : 0.0f;
 
     float *iter = input->get_buffer() + input->get_coords_offset(x, y);
     return iter;
