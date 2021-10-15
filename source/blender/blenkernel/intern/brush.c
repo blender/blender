@@ -64,7 +64,7 @@ static void brush_init_data(ID *id)
 
   MEMCPY_STRUCT_AFTER(brush, DNA_struct_default_get(Brush), id);
 
-  brush->channels = BKE_brush_channelset_create();
+  brush->channels = BKE_brush_channelset_create(NULL);
 
   /* enable fake user by default */
   id_fake_user_set(&brush->id);

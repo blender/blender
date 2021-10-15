@@ -278,6 +278,7 @@ places in rna_engine_codebase are relevent:
   MAKE_FLOAT(tip_roundness, "Tip Roundness", "", 1.0f, 0.0f, 1.0f)
   MAKE_BOOL(accumulate, "Accumulate", "", false)
   MAKE_BOOL_EX(show_origco, "Show OrigCo", "", false, BRUSH_CHANNEL_INHERIT)
+  MAKE_BOOL_EX(save_temp_layers, "Save Temp Layers", "Developer option; save temporary vertex attributes", false, BRUSH_CHANNEL_INHERIT)
   MAKE_ENUM(direction, "Direction", "", 0, {\
         {0, "ADD", "ADD", "Add", "Add effect of brush"},
         {1, "SUBTRACT", "REMOVE", "Subtract", "Subtract effect of brush"},

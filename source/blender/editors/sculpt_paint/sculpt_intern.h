@@ -779,21 +779,20 @@ void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVer
 
 /* Mask the mesh boundaries smoothing only the mesh surface without using automasking. */
 
-#if 0
-void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
-                                             float result[3],
-                                             SculptVertRef vertex,
-                                             float projection,
-                                             float slide_fset,
-                                             float bound_smooth,
-                                             SculptCustomLayer *bound_scl,
-                                             bool do_origco);
-#endif
-
 void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float result[3],
                                              SculptVertRef vertex,
                                              SculptSmoothArgs *args);
+
+BLI_INLINE bool SCULPT_need_reproject(SculptSession *ss)
+{
+  return ss->bm && CustomData_has_layer(&ss->bm->ldata, CD_MLOOPUV);
+}
+
+void SCULPT_reproject_cdata(SculptSession *ss,
+                            SculptVertRef vertex,
+                            float origco[3],
+                            float origno[3]);
 
 void SCULPT_smooth_vcol_boundary(
     Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, float bstrength);

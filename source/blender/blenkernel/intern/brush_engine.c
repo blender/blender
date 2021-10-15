@@ -478,12 +478,30 @@ float BKE_brush_channel_curve_evaluate(BrushChannel *ch, float val, const float 
   return BKE_brush_curve_strength_ex(ch->curve.preset, ch->curve.curve, val, maxval);
 }
 
-BrushChannelSet *BKE_brush_channelset_create()
+BrushChannelSet *BKE_brush_channelset_create(const char *info)
 {
-  BrushChannelSet *chset = (BrushChannelSet *)MEM_callocN(sizeof(BrushChannelSet),
-                                                          "BrushChannelSet");
+  static char *tags[512] = {0};
 
-  chset->namemap = BLI_ghash_str_new("BrushChannelSet");
+  char buf[512] = "BrushChannelSet", *tag;
+
+  if (info) {
+    strcat(buf, " ");
+    strcat(buf, info);
+
+    for (int i = 0; i < ARRAY_SIZE(tags); i++) {
+      if (tags[i] && STREQ(tags[i], buf)) {
+        tag = tags[i];
+      }
+      else if (!tags[i]) {
+        tags[i] = tag = strdup(buf);
+      }
+    }
+  }
+
+  BrushChannelSet *chset = (BrushChannelSet *)MEM_callocN(sizeof(BrushChannelSet),
+                                                          info ? tag : "BrushChannelSet");
+
+  chset->namemap = BLI_ghash_str_new("BrushChannelSet ghash");
 
   return chset;
 }
@@ -807,7 +825,7 @@ BrushChannelSet *_BKE_brush_channelset_copy(BrushChannelSet *src)
 BrushChannelSet *BKE_brush_channelset_copy(BrushChannelSet *src)
 #endif
 {
-  BrushChannelSet *chset = BKE_brush_channelset_create();
+  BrushChannelSet *chset = BKE_brush_channelset_create(NULL);
 
   if (!src->totchannel) {
     return chset;
@@ -871,7 +889,7 @@ void BKE_brush_commandlist_start(BrushCommandList *list,
     if (cmd->params_final) {
       BKE_brush_channelset_free(cmd->params_final);
     }
-    cmd->params_final = BKE_brush_channelset_create();
+    cmd->params_final = BKE_brush_channelset_create("params_final");
 
     BKE_brush_channelset_merge(cmd->params_final, cmd->params, chset_final);
 
@@ -889,7 +907,7 @@ void BKE_brush_resolve_channels(Brush *brush, Sculpt *sd)
     BKE_brush_channelset_free(brush->channels_final);
   }
 
-  brush->channels_final = BKE_brush_channelset_create();
+  brush->channels_final = BKE_brush_channelset_create("channels_final");
 
   BKE_brush_channelset_merge(brush->channels_final, brush->channels, sd->channels);
 }
@@ -1346,7 +1364,7 @@ BrushCommand *BKE_brush_commandlist_add(BrushCommandList *cl,
     }
   }
   else {
-    cmd->params = BKE_brush_channelset_create();
+    cmd->params = BKE_brush_channelset_create("params");
   }
 
   cmd->params_final = NULL;
@@ -1886,7 +1904,7 @@ BrushTex *BKE_brush_tex_create()
 {
   BrushTex *bt = MEM_callocN(sizeof(BrushTex), "BrushTex");
 
-  bt->channels = BKE_brush_channelset_create();
+  bt->channels = BKE_brush_channelset_create("brush tex");
 
   return bt;
 }

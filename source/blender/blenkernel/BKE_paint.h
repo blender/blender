@@ -818,6 +818,8 @@ typedef struct SculptSession {
   */
   struct SculptCustomLayer **layers_to_free;
   int tot_layers_to_free;
+
+  bool save_temp_layers;
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);

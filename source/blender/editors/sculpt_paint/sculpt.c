@@ -514,6 +514,10 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
                                         bool autocreate,
                                         SculptLayerParams *params)
 {
+  if (ss->save_temp_layers && !params->simple_array) {
+    params->permanent = true;
+  }
+
   bool simple_array = params->simple_array;
   bool permanent = params->permanent;
   bool nocopy = params->nocopy;
@@ -4657,6 +4661,8 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   const Brush *brush = data->brush;
   PBVHNode *node = data->nodes[n];
 
+  bool do_reproject = SCULPT_need_reproject(ss);
+
   float direction[3];
   copy_v3_v3(direction, ss->cache->grab_delta_symmetry);
 
@@ -4750,7 +4756,10 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     float *co = vd.co;
 
     float oldco[3];
+    float oldno[3];
+
     copy_v3_v3(oldco, co);
+    SCULPT_vertex_normal_get(ss, vd.vertex, oldno);
 
     SCULPT_bmesh_four_neighbor_average(ss,
                                        avg,
@@ -4773,6 +4782,10 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
 
     madd_v3_v3v3fl(val, co, val, fade);
     SCULPT_clip(sd, ss, co, val);
+
+    if (do_reproject) {
+      SCULPT_reproject_cdata(ss, vd.vertex, oldco, oldno);
+    }
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -6064,6 +6077,8 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  const bool do_reproject = SCULPT_need_reproject;
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
@@ -6080,7 +6095,16 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
                                                     vd.vertex,
                                                     thread_id);
 
+    float oldco[3], oldno[3];
+
+    copy_v3_v3(oldco, vd.co);
+    SCULPT_vertex_normal_get(ss, vd.vertex, oldno);
+
     SCULPT_relax_vertex(ss, &vd, fade * bstrength, SCULPT_BOUNDARY_DEFAULT, vd.co);
+
+    if (do_reproject) {
+      SCULPT_reproject_cdata(ss, vd.vertex, oldco, oldno);
+    }
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -12171,13 +12195,13 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
     // should not happen!
     printf("had to create brush->channels for brush '%s'!", brush->id.name + 2);
 
-    brush->channels = BKE_brush_channelset_create();
+    brush->channels = BKE_brush_channelset_create("brush 0");
     BKE_brush_builtin_patch(brush, brush->sculpt_tool);
     BKE_brush_channelset_compat_load(brush->channels, brush, true);
   }
 
   if (brush->channels && sd->channels) {
-    ss->cache->channels_final = BKE_brush_channelset_create();
+    ss->cache->channels_final = BKE_brush_channelset_create("channels_final");
     BKE_brush_channelset_merge(ss->cache->channels_final, brush->channels, sd->channels);
   }
   else if (brush->channels) {

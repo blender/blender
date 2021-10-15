@@ -1700,6 +1700,9 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   ss->building_vp_handle = false;
 
   ss->scene = scene;
+  if (sd->channels) {
+    ss->save_temp_layers = BRUSHSET_GET_INT(sd->channels, save_temp_layers, NULL);
+  }
 
   if (need_mask) {
     if (mmd == NULL) {

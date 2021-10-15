@@ -559,6 +559,8 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  bool do_reproject = SCULPT_need_reproject(ss);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -579,10 +581,18 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
     CLAMP(fade, 0.0f, 1.0f);
 
+    float oldco[3], oldno[3];
+
+    copy_v3_v3(oldco, vd.co);
+    SCULPT_vertex_normal_get(ss, vd.vertex, oldno);
+
     SCULPT_relax_vertex(
         ss, &vd, fade * bstrength, SCULPT_BOUNDARY_DEFAULT | SCULPT_BOUNDARY_FACE_SET, vd.co);
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+    if (do_reproject) {
+      SCULPT_reproject_cdata(ss, vd.vertex, oldco, oldno);
     }
   }
   BKE_pbvh_vertex_iter_end;

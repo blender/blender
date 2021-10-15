@@ -25,13 +25,16 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
@@ -77,6 +80,243 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_utildefines.h"
 
+void SCULPT_reproject_cdata(SculptSession *ss,
+                            SculptVertRef vertex,
+                            float origco[3],
+                            float origno[3])
+{
+  BMVert *v = (BMVert *)vertex.i;
+
+  if (!ss->bm || !v->e) {
+    return;
+  }
+
+  // int totuv = CustomData_number_of_layers(&ss->bm->ldata, CD_MLOOPUV);
+  CustomData *ldata = &ss->bm->ldata;
+
+  int totuv = 0;
+  CustomDataLayer *uvlayer = NULL;
+
+  if (ldata->typemap[CD_MLOOPUV] != -1) {
+    for (int i = ldata->typemap[CD_MLOOPUV];
+         i < ldata->totlayer && ldata->layers[i].type == CD_MLOOPUV;
+         i++) {
+      totuv++;
+    }
+
+    uvlayer = ldata->layers + ldata->typemap[CD_MLOOPUV];
+  }
+
+  BMEdge *e;
+  int tag = BM_ELEM_TAG_ALT;
+
+  float origin[3];
+  float ray[3];
+
+  copy_v3_v3(origin, v->co);
+  copy_v3_v3(ray, v->no);
+  negate_v3(ray);
+
+  struct IsectRayPrecalc precalc;
+  isect_ray_tri_watertight_v3_precalc(&precalc, ray);
+
+  float *lastuvs = BLI_array_alloca(lastuvs, totuv * 2);
+
+  e = v->e;
+
+  /* first clear some flags */
+  do {
+    e->head.api_flag &= ~tag;
+
+    BMLoop *l = e->l;
+    do {
+      l->head.hflag &= ~tag;
+      l->next->head.hflag &= ~tag;
+      l->prev->head.hflag &= ~tag;
+    } while ((l = l->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  BMLoop **ls = NULL;
+  BLI_array_staticdeclare(ls, 32);
+
+  bool first = true;
+  bool bad = false;
+
+  do {
+    BMLoop *l = e->l;
+
+    if (!l) {
+      continue;
+    }
+#if 0
+    bool bound = l == l->radial_next;
+
+    // check for faceset boundaries
+    bound = bound || (BM_ELEM_CD_GET_INT(l->f, ss->cd_faceset_offset) !=
+                      BM_ELEM_CD_GET_INT(l->radial_next->f, ss->cd_faceset_offset));
+
+    // check for seam and sharp edges
+    bound = bound || (e->head.hflag & BM_ELEM_SEAM) || !(e->head.hflag & BM_ELEM_SMOOTH);
+
+    if (bound) {
+      continue;
+    }
+#endif
+    do {
+      BMLoop *l2 = l->v != v ? l->next : l;
+
+      if (l2->head.hflag & tag) {
+        continue;
+      }
+
+      l2->head.hflag |= tag;
+      BLI_array_append(ls, l2);
+
+      for (int i = 0; i < totuv; i++) {
+        const int cd_uv = uvlayer[i].offset;
+        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l2, cd_uv);
+
+        // check that we are not part of a uv seam
+        if (!first) {
+          const float dx = lastuvs[i * 2] - luv->uv[0];
+          const float dy = lastuvs[i * 2 + 1] - luv->uv[1];
+          const float eps = 0.00001f;
+
+          if (fabsf(dx * dx + dy * dy) > eps) {
+            bad = true;
+            break;
+          }
+        }
+
+        lastuvs[i * 2] = luv->uv[0];
+        lastuvs[i * 2 + 1] = luv->uv[1];
+      }
+
+      if (bad) {
+        break;
+      }
+    } while ((l = l->radial_next) != e->l);
+
+    if (bad) {
+      break;
+    }
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  if (bad || !BLI_array_len(ls)) {
+    return;
+  }
+
+  int totloop = BLI_array_len(ls);
+
+  const float *v_proj_axis = v->no;
+  float v_proj[3][3];
+  MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
+
+  project_plane_normalized_v3_v3v3(v_proj[1], mv->origco, v_proj_axis);
+
+  /* original (l->prev, l, l->next) projections for each loop ('l' remains unchanged) */
+
+  char *_blocks = alloca(ldata->totsize * totloop);
+  void **blocks = BLI_array_alloca(blocks, totloop);
+
+  for (int i = 0; i < totloop; i++, _blocks += ldata->totsize) {
+    blocks[i] = (void *)_blocks;
+  }
+
+  float vco[3], vno[3];
+
+  copy_v3_v3(vco, v->co);
+  copy_v3_v3(vno, v->no);
+
+  BMFace _fakef, *fakef = &_fakef;
+
+#if 0
+  BMFace *projf = NULL;
+  // find face vertex projects into
+  for (int i = 0; i < totloop; i++) {
+    BMLoop *l = ls[i];
+
+    copy_v3_v3(ray, l->f->no);
+    negate_v3(ray);
+
+    float t, uv[2];
+
+    //*
+    bool hit = isect_ray_tri_v3(origin, ray, l->prev->v->co, origco, l->next->v->co, &t, uv);
+    if (hit) {
+      projf = l->f;
+      break;
+    }  //*/
+  }
+
+  if (!projf) {
+    return;
+  }
+#endif
+
+  // build fake f with original coordinates
+  for (int i = 0; i < totloop; i++) {
+    // create fake face
+    BMLoop *l = ls[i];
+    float no[3] = {0.0f, 0.0f, 0.0f};
+
+    BMLoop *fakels = BLI_array_alloca(fakels, l->f->len);
+    BMVert *fakevs = BLI_array_alloca(fakevs, l->f->len);
+    BMLoop *l2 = l->f->l_first;
+    BMLoop *fakel = fakels;
+    BMVert *fakev = fakevs;
+    int j = 0;
+
+    do {
+      *fakel = *l2;
+      fakel->next = fakels + ((j + 1) % l->f->len);
+      fakel->prev = fakels + ((j + l->f->len - 1) % l->f->len);
+
+      *fakev = *l2->v;
+      fakel->v = fakev;
+
+      SCULPT_vertex_check_origdata(ss, (SculptVertRef){.i = (intptr_t)l2->v});
+
+      if (l2->v == v) {
+        copy_v3_v3(fakev->co, origco);
+        copy_v3_v3(fakev->no, origno);
+        add_v3_v3(no, origno);
+      }
+      else {
+        add_v3_v3(no, l2->v->no);
+      }
+
+      fakel++;
+      fakev++;
+      j++;
+    } while ((l2 = l2->next) != l->f->l_first);
+
+    *fakef = *l->f;
+    fakef->l_first = fakels;
+
+    // set original face normal
+    // normalize_v3(no);
+    // copy_v3_v3(fakef->no, no);
+
+    // interpolate
+    BMLoop _interpl, *interpl = &_interpl;
+
+    MSculptVert saved = *mv;
+
+    *interpl = *l;
+    interpl->head.data = blocks[i];
+    // memcpy(interpl->head.data, l2->head.data, ldata->totsize);
+
+    BM_loop_interp_from_face(ss->bm, interpl, fakef, false, false);
+
+    *mv = saved;
+
+    CustomData_bmesh_copy_data(&ss->bm->ldata, &ss->bm->ldata, interpl->head.data, &l->head.data);
+  }
+
+  BLI_array_free(ls);
+}
+
 MINLINE float safe_shell_angle_to_dist(const float angle)
 {
   float th = cosf(angle);
@@ -93,6 +333,11 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              SculptVertRef vertex,
                                              SculptSmoothArgs *args)
 {
+  if (args->do_origco) {
+    // copy_v3_v3(result, SCULPT_vertex_co_get(ss, vertex));
+    // return;
+  }
+
   float avg[3] = {0.0f, 0.0f, 0.0f};
 
   float projection = args->projection;
@@ -132,6 +377,10 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       SCULPT_vertex_normal_get(ss, vertex, no);
     }
   }
+
+  float startco[3], startno[3];
+  copy_v3_v3(startco, co);
+  copy_v3_v3(startno, no);
 
   const bool weighted = args->do_weighted_smooth && !is_boundary;
   float *areas = NULL;
@@ -1131,7 +1380,13 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
       // continue;
       //}
 
+      float startco[3], startno[3];
+
+      copy_v3_v3(startco, vd.co);
+      SCULPT_vertex_normal_get(ss, vd.vertex, startno);
+
       int steps = data->do_origco ? 2 : 1;
+
       for (int step = 0; step < steps; step++) {
         float *co = step ? (float *)SCULPT_vertex_origco_get(ss, vd.vertex) : vd.co;
 
@@ -1166,6 +1421,9 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
         madd_v3_v3v3fl(val, co, val, fade);
         SCULPT_clip(sd, ss, co, val);
 
+        if (step == 0) {
+          SCULPT_reproject_cdata(ss, vd.vertex, startco, startno);
+        }
         // interp_v3_v3v3(vel, vel, val, 0.5);
       }
     }
@@ -1437,6 +1695,8 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
   bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
+  bool do_reproject = SCULPT_need_reproject(ss);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
@@ -1454,6 +1714,11 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
                                                                 thread_id);
 
     float disp[3];
+    float oldco[3], oldno[3];
+
+    copy_v3_v3(oldco, vd.co);
+    SCULPT_vertex_normal_get(ss, vd.vertex, oldno);
+
     SCULPT_surface_smooth_laplacian_step(ss,
                                          disp,
                                          vd.co,
@@ -1467,6 +1732,10 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
     madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+
+    if (do_reproject) {
+      SCULPT_reproject_cdata(ss, vd.vertex, oldco, oldno);
     }
 
     modified = true;
@@ -1592,6 +1861,13 @@ static void SCULPT_do_directional_smooth_task_cb_ex(void *__restrict userdata,
     float avg[3] = {0.0f, 0.0f, 0.0f};
     int neighbor_count = 0;
 
+    float oldco[3], oldno[3];
+
+    copy_v3_v3(oldco, vd.co);
+    SCULPT_vertex_normal_get(ss, vd.vertex, oldno);
+
+    bool do_reproject = SCULPT_need_reproject(ss);
+
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
       float vertex_neighbor_disp[3];
@@ -1617,6 +1893,10 @@ static void SCULPT_do_directional_smooth_task_cb_ex(void *__restrict userdata,
     sub_v3_v3v3(final_disp, smooth_co, vd.co);
     madd_v3_v3v3fl(final_disp, vd.co, final_disp, fade);
     SCULPT_clip(data->sd, ss, vd.co, final_disp);
+
+    if (do_reproject) {
+      SCULPT_reproject_cdata(ss, vd.vertex, oldco, oldno);
+    }
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -1660,6 +1940,8 @@ static void SCULPT_do_uniform_weigths_smooth_task_cb_ex(void *__restrict userdat
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  bool do_reproject = SCULPT_need_reproject(ss);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -1676,6 +1958,11 @@ static void SCULPT_do_uniform_weigths_smooth_task_cb_ex(void *__restrict userdat
 
     float len_accum = 0;
     int tot_neighbors = 0;
+
+    float oldco[3], oldno[3];
+
+    copy_v3_v3(oldco, vd.co);
+    SCULPT_vertex_normal_get(ss, vd.vertex, oldno);
 
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
@@ -1718,6 +2005,11 @@ static void SCULPT_do_uniform_weigths_smooth_task_cb_ex(void *__restrict userdat
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
+
+    if (do_reproject) {
+      SCULPT_reproject_cdata(ss, vd.vertex, oldco, oldno);
+    }
+
     BKE_pbvh_vertex_iter_end;
   }
 }

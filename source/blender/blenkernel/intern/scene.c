@@ -1073,7 +1073,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       BKE_brush_channelset_read(reader, sce->toolsettings->sculpt->channels);
     }
     else if (sce->toolsettings->sculpt) {
-      sce->toolsettings->sculpt->channels = BKE_brush_channelset_create();
+      sce->toolsettings->sculpt->channels = BKE_brush_channelset_create("sculpt toolsettings");
     }
 
     if (sce->toolsettings->sculpt) {
@@ -1640,7 +1640,7 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
       ts->sculpt->channels = BKE_brush_channelset_copy(ts->sculpt->channels);
     }
     else {
-      ts->sculpt->channels = BKE_brush_channelset_create();
+      ts->sculpt->channels = BKE_brush_channelset_create("sculpt toolsettings");
     }
 
     BKE_paint_copy(&ts->sculpt->paint, &ts->sculpt->paint, flag);

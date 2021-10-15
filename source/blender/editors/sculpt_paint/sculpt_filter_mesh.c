@@ -346,10 +346,14 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     BKE_pbvh_check_tri_areas(ss->pbvh, node);
   }
 
+  bool do_reproject = SCULPT_need_reproject(ss);
+
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
-    float orig_co[3], val[3], avg[3], normal[3], disp[3], disp2[3], transform[3][3], final_pos[3];
+    float orig_co[3], oldco[3], oldno[3], val[3], avg[3], normal[3], disp[3];
+    float disp2[3], transform[3][3], final_pos[3];
+
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= data->filter_strength;
@@ -362,6 +366,9 @@ static void mesh_filter_task_cb(void *__restrict userdata,
        */
       continue;
     }
+
+    copy_v3_v3(oldco, vd.co);
+    SCULPT_vertex_normal_get(ss, vd.vertex, oldno);
 
     if (ELEM(filter_type, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
       copy_v3_v3(orig_co, vd.co);
@@ -548,6 +555,16 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     copy_v3_v3(vd.co, final_pos);
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+
+    if (do_reproject && ELEM(filter_type,
+                             MESH_FILTER_SMOOTH,
+                             MESH_FILTER_SURFACE_SMOOTH,
+                             MESH_FILTER_RELAX,
+                             MESH_FILTER_RELAX_FACE_SETS,
+                             MESH_FILTER_ENHANCE_DETAILS,
+                             MESH_FILTER_SHARPEN)) {
+      SCULPT_reproject_cdata(ss, vd.vertex, oldco, oldno);
     }
   }
   BKE_pbvh_vertex_iter_end;

@@ -993,7 +993,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   bool setup_ui = !brush->channels || !brush->channels->totchannel;
 
   if (!brush->channels) {
-    brush->channels = BKE_brush_channelset_create();
+    brush->channels = BKE_brush_channelset_create("brush");
   }
 
   BrushChannelSet *chset = brush->channels;
@@ -1009,6 +1009,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
 
   ADDCH(sharp_mode);
   ADDCH(show_origco);
+  ADDCH(save_temp_layers);
 
   ADDCH(use_surface_falloff);
 
@@ -1522,13 +1523,13 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
   namestack_push(__func__);
 
   if (!brush->channels) {
-    brush->channels = BKE_brush_channelset_create();
+    brush->channels = BKE_brush_channelset_create("brush 2");
   }
 
   if (brush->channels) {
     // forcibly reset all non-user-defined channels for this brush
 
-    BrushChannelSet *chset = BKE_brush_channelset_create();
+    BrushChannelSet *chset = BKE_brush_channelset_create("brush 3");
     Brush tmp = *brush;
     tmp.channels = chset;
 
@@ -1542,6 +1543,8 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
         BKE_brush_channel_copy_data(ch, ch2, false);
       }
     }
+
+    BKE_brush_channelset_free(chset);
   }
 
   BrushChannelSet *chset = brush->channels;
@@ -1851,6 +1854,7 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH(unprojected_radius);
 
   ADDCH(show_origco);
+  ADDCH(save_temp_layers);
 
   ADDCH(smooth_strength_factor);
   ADDCH(smooth_strength_projection);

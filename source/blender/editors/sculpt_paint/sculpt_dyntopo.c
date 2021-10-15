@@ -559,6 +559,10 @@ void SCULPT_dyntopo_ensure_templayer(SculptSession *ss,
                                      const char *name,
                                      bool not_temporary)
 {
+  if (ss->save_temp_layers) {
+    not_temporary = true;
+  }
+
   int li = CustomData_get_named_layer_index(&ss->bm->vdata, type, name);
 
   if (li < 0) {

@@ -191,7 +191,7 @@ void BKE_brush_channel_free(BrushChannel *ch);
 void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src, bool keep_mappings);
 void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def);
 
-BrushChannelSet *BKE_brush_channelset_create();
+BrushChannelSet *BKE_brush_channelset_create(const char *info);
 #ifdef DEBUG_CURVE_MAPPING_ALLOC
 BrushChannelSet *_BKE_brush_channelset_copy(BrushChannelSet *src);
 #  define BKE_brush_channelset_copy(src) \

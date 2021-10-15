@@ -4678,10 +4678,15 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     int custom_max_steps,
                                     bool disable_surface_relax)
 {
+  /* disable surface smooth if uv layers are present, to avoid expensive reprojection operation */
+  if (CustomData_has_layer(&pbvh->bm->ldata, CD_MLOOPUV)) {
+    disable_surface_relax = true;
+  }
 
   /* 2 is enough for edge faces - manifold edge */
   BLI_buffer_declare_static(BMLoop *, edge_loops, BLI_BUFFER_NOP, 2);
   BLI_buffer_declare_static(BMFace *, deleted_faces, BLI_BUFFER_NOP, 32);
+
   const int cd_vert_mask_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PAINT_MASK);
   const int cd_vert_node_offset = pbvh->cd_vert_node_offset;
   const int cd_face_node_offset = pbvh->cd_face_node_offset;

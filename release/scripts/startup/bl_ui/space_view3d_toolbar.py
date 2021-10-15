@@ -1285,6 +1285,12 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
             "show_origco",
             toolsettings_only=True, ui_editing=False)
 
+        UnifiedPaintPanel.channel_unified(layout.column(),
+            context,
+            brush,
+            "save_temp_layers",
+            toolsettings_only=True, ui_editing=False)
+
         col.separator()
 
         col.operator("sculpt.set_limit_surface")
