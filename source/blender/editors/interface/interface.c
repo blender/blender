@@ -1392,6 +1392,7 @@ static bool ui_but_event_property_operator_string(const bContext *C,
   const char *prop_enum_value_id = "value";
   PointerRNA *ptr = &but->rnapoin;
   PropertyRNA *prop = but->rnaprop;
+  int prop_index = but->rnaindex;
   if ((but->type == UI_BTYPE_BUT_MENU) && (but->block->handle != NULL)) {
     uiBut *but_parent = but->block->handle->popup_create_vars.but;
     if ((but->type == UI_BTYPE_BUT_MENU) && (but_parent && but_parent->rnaprop) &&
@@ -1416,28 +1417,15 @@ static bool ui_but_event_property_operator_string(const bContext *C,
     return false;
   }
 
-  /* this version is only for finding hotkeys for properties
-   * (which get set via context using operators) */
-  /* to avoid massive slowdowns on property panels, for now, we only check the
-   * hotkeys for Editor / Scene settings...
-   *
-   * TODO: userpref settings?
-   */
-  char *data_path = NULL;
+  /* This version is only for finding hotkeys for properties.
+   * These are set set via a data-path which is appended to the context,
+   * manipulated using operators (see #ctx_toggle_opnames). */
 
   if (ptr->owner_id) {
     ID *id = ptr->owner_id;
 
     if (GS(id->name) == ID_SCR) {
-      /* screen/editor property
-       * NOTE: in most cases, there is actually no info for backwards tracing
-       * how to get back to ID from the editor data we may be dealing with
-       */
-      if (RNA_struct_is_a(ptr->type, &RNA_Space)) {
-        /* data should be directly on here... */
-        data_path = BLI_sprintfN("space_data.%s", RNA_property_identifier(prop));
-      }
-      else if (RNA_struct_is_a(ptr->type, &RNA_Area)) {
+      if (RNA_struct_is_a(ptr->type, &RNA_Area)) {
         /* data should be directly on here... */
         const char *prop_id = RNA_property_identifier(prop);
         /* Hack since keys access 'type', UI shows 'ui_type'. */
@@ -1445,57 +1433,18 @@ static bool ui_but_event_property_operator_string(const bContext *C,
           prop_id = "type";
           prop_enum_value >>= 16;
           prop = RNA_struct_find_property(ptr, prop_id);
+          prop_index = -1;
 
           opnames = ctx_enum_opnames_for_Area_ui_type;
           opnames_len = ARRAY_SIZE(ctx_enum_opnames_for_Area_ui_type);
           prop_enum_value_id = "space_type";
           prop_enum_value_is_int = true;
         }
-        else {
-          data_path = BLI_sprintfN("area.%s", prop_id);
-        }
-      }
-      else {
-        /* special exceptions for common nested data in editors... */
-        if (RNA_struct_is_a(ptr->type, &RNA_DopeSheet)) {
-          /* Dope-sheet filtering options. */
-          data_path = BLI_sprintfN("space_data.dopesheet.%s", RNA_property_identifier(prop));
-        }
-        else if (RNA_struct_is_a(ptr->type, &RNA_FileSelectParams)) {
-          /* File-browser options. */
-          data_path = BLI_sprintfN("space_data.params.%s", RNA_property_identifier(prop));
-        }
       }
     }
-    else if (GS(id->name) == ID_SCE) {
-      if (RNA_struct_is_a(ptr->type, &RNA_ToolSettings)) {
-        /* Tool-settings property:
-         * NOTE: tool-settings is usually accessed directly (i.e. not through scene). */
-        data_path = RNA_path_from_ID_to_property(ptr, prop);
-      }
-      else {
-        /* scene property */
-        char *path = RNA_path_from_ID_to_property(ptr, prop);
-
-        if (path) {
-          data_path = BLI_sprintfN("scene.%s", path);
-          MEM_freeN(path);
-        }
-#if 0
-          else {
-            printf("ERROR in %s(): Couldn't get path for scene property - %s\n",
-                   __func__,
-                   RNA_property_identifier(prop));
-          }
-#endif
-      }
-    }
-    else {
-      // puts("other id");
-    }
-
-    // printf("prop shortcut: '%s' (%s)\n", RNA_property_identifier(prop), data_path);
   }
+
+  char *data_path = WM_context_path_resolve_property_full(C, ptr, prop, prop_index);
 
   /* We have a data-path! */
   bool found = false;
