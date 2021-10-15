@@ -897,7 +897,7 @@ bool BKE_node_is_connected_to_output(struct bNodeTree *ntree, struct bNode *node
 /* ************** COMMON NODES *************** */
 
 #define NODE_UNDEFINED -2 /* node type is not registered */
-#define NODE_CUSTOM -1 /* for dynamically registered custom types */
+#define NODE_CUSTOM -1    /* for dynamically registered custom types */
 #define NODE_GROUP 2
 // #define NODE_FORLOOP 3       /* deprecated */
 // #define NODE_WHILELOOP   4   /* deprecated */
@@ -1537,6 +1537,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_ROTATE_INSTANCES 1122
 #define GEO_NODE_SPLIT_EDGES 1123
 #define GEO_NODE_MESH_TO_CURVE 1124
+#define GEO_NODE_TRANSFER_ATTRIBUTE 1125
 
 /** \} */
 

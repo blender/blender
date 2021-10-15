@@ -400,6 +400,7 @@ DefNode(GeometryNode, GEO_NODE_SET_SPLINE_RESOLUTION, 0, "SET_SPLINE_RESOLUTION"
 DefNode(GeometryNode, GEO_NODE_STRING_JOIN, 0, "STRING_JOIN", StringJoin, "Join Strings", "")
 DefNode(GeometryNode, GEO_NODE_STRING_TO_CURVES, def_geo_string_to_curves, "STRING_TO_CURVES", StringToCurves, "String to Curves", "")
 DefNode(GeometryNode, GEO_NODE_SWITCH, def_geo_switch, "SWITCH", Switch, "Switch", "")
+DefNode(GeometryNode, GEO_NODE_TRANSFER_ATTRIBUTE, def_geo_transfer_attribute, "ATTRIBUTE_TRANSFER", AttributeTransfer, "Transfer Attribute", "")
 DefNode(GeometryNode, GEO_NODE_TRANSFORM, 0, "TRANSFORM", Transform, "Transform", "")
 DefNode(GeometryNode, GEO_NODE_TRANSLATE_INSTANCES, 0, "TRANSLATE_INSTANCES", TranslateInstances, "Translate Instances", "")
 DefNode(GeometryNode, GEO_NODE_TRIANGULATE, def_geo_triangulate, "TRIANGULATE", Triangulate, "Triangulate", "")

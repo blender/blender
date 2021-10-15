@@ -511,7 +511,7 @@ static void geo_node_attribute_transfer_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_attribute_transfer()
+void register_node_type_geo_legacy_attribute_transfer()
 {
   static bNodeType ntype;
 

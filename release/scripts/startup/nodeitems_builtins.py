@@ -653,6 +653,7 @@ geometry_node_categories = [
 
         NodeItem("GeometryNodeCaptureAttribute"),
         NodeItem("GeometryNodeAttributeStatistic"),
+        NodeItem("GeometryNodeAttributeTransfer"),
     ]),
     GeometryNodeCategory("GEO_COLOR", "Color", items=[
         NodeItem("ShaderNodeMixRGB"),

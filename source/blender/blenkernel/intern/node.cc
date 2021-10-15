@@ -5712,6 +5712,7 @@ static void registerGeometryNodes()
 {
   register_node_type_geo_group();
 
+  register_node_type_geo_legacy_attribute_transfer();
   register_node_type_geo_legacy_curve_set_handles();
   register_node_type_geo_legacy_attribute_proximity();
   register_node_type_geo_legacy_attribute_randomize();
@@ -5741,7 +5742,6 @@ static void registerGeometryNodes()
   register_node_type_geo_attribute_remove();
   register_node_type_geo_attribute_separate_xyz();
   register_node_type_geo_attribute_statistic();
-  register_node_type_geo_attribute_transfer();
   register_node_type_geo_attribute_vector_math();
   register_node_type_geo_attribute_vector_rotate();
   register_node_type_geo_boolean();
@@ -5833,6 +5833,7 @@ static void registerGeometryNodes()
   register_node_type_geo_string_to_curves();
   register_node_type_geo_subdivision_surface();
   register_node_type_geo_switch();
+  register_node_type_geo_transfer_attribute();
   register_node_type_geo_transform();
   register_node_type_geo_translate_instances();
   register_node_type_geo_triangulate();
