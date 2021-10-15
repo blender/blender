@@ -56,7 +56,7 @@ static void add_final_mesh_as_geometry_component(const Object &object, GeometryS
 /**
  * \note This doesn't extract instances from the "dupli" system for non-geometry-nodes instances.
  */
-static GeometrySet object_get_geometry_set_for_read(const Object &object)
+GeometrySet object_get_evaluated_geometry_set(const Object &object)
 {
   if (object.type == OB_MESH && object.mode == OB_MODE_EDIT) {
     GeometrySet geometry_set;
@@ -100,7 +100,7 @@ static void geometry_set_collect_recursive_object(const Object &object,
                                                   const float4x4 &transform,
                                                   Vector<GeometryInstanceGroup> &r_sets)
 {
-  GeometrySet instance_geometry_set = object_get_geometry_set_for_read(object);
+  GeometrySet instance_geometry_set = object_get_evaluated_geometry_set(object);
   geometry_set_collect_recursive(instance_geometry_set, transform, r_sets);
 
   if (object.type == OB_EMPTY) {
@@ -628,14 +628,14 @@ void InstancesComponent::foreach_referenced_geometry(
     switch (reference.type()) {
       case InstanceReference::Type::Object: {
         const Object &object = reference.object();
-        const GeometrySet object_geometry_set = object_get_geometry_set_for_read(object);
+        const GeometrySet object_geometry_set = object_get_evaluated_geometry_set(object);
         callback(object_geometry_set);
         break;
       }
       case InstanceReference::Type::Collection: {
         Collection &collection = reference.collection();
         FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
-          const GeometrySet object_geometry_set = object_get_geometry_set_for_read(*object);
+          const GeometrySet object_geometry_set = object_get_evaluated_geometry_set(*object);
           callback(object_geometry_set);
         }
         FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
@@ -676,7 +676,7 @@ void InstancesComponent::ensure_geometry_instances()
         /* Create a new reference that contains the geometry set of the object. We may want to
          * treat e.g. lamps and similar object types separately here. */
         const Object &object = reference.object();
-        GeometrySet object_geometry_set = object_get_geometry_set_for_read(object);
+        GeometrySet object_geometry_set = object_get_evaluated_geometry_set(object);
         if (object_geometry_set.has_instances()) {
           InstancesComponent &component =
               object_geometry_set.get_component_for_write<InstancesComponent>();

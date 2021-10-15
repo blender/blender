@@ -20,6 +20,8 @@
 
 namespace blender::bke {
 
+GeometrySet object_get_evaluated_geometry_set(const Object &object);
+
 /**
  * Used to keep track of a group of instances using the same geometry data.
  */
