@@ -1095,6 +1095,8 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
     int ni2 = BM_ELEM_CD_GET_INT(v, data->cd_vert_node_offset);
     bool bad = ni2 != node_nr || (mv->flag & SCULPTVERT_PBVH_BOUNDARY);
 
+    PBVH_CHECK_NAN(v->no);
+
     if (bad) {
       BLI_array_append(bordervs, v);
     }
@@ -1106,11 +1108,16 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
 
   TGSET_ITER (f, node->bm_faces) {
     BM_face_normal_update(f);
+
+    PBVH_CHECK_NAN(f->no);
+
     BMLoop *l = f->l_first;
     do {
       MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, l->v);
       int ni2 = BM_ELEM_CD_GET_INT(l->v, data->cd_vert_node_offset);
       bool bad = ni2 != node_nr || (mv->flag & SCULPTVERT_PBVH_BOUNDARY);
+
+      PBVH_CHECK_NAN(l->v->no);
 
       if (!bad) {
         add_v3_v3(l->v->no, f->no);
@@ -1123,6 +1130,8 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, v);
     int ni2 = BM_ELEM_CD_GET_INT(v, data->cd_vert_node_offset);
     bool bad = ni2 != node_nr || (mv->flag & SCULPTVERT_PBVH_BOUNDARY);
+
+    PBVH_CHECK_NAN(v->no);
 
     if (!bad) {
       normalize_v3(v->no);

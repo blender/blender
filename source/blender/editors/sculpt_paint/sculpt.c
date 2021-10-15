@@ -10187,6 +10187,8 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
       add_v3_v3(val, proxies[p].co[vd.i]);
     }
 
+    PBVH_CHECK_NAN(val);
+
     if (ss->filter_cache && ss->filter_cache->cloth_sim) {
       /* When there is a simulation running in the filter cache that was created by a tool, combine
        * the proxies into the simulation instead of directly into the mesh. */
