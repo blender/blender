@@ -208,7 +208,8 @@ static void blo_update_defaults_screen(bScreen *screen,
 
       LISTBASE_FOREACH (ARegion *, region, regionbase) {
         if (region->regiontype == RGN_TYPE_TOOL_HEADER) {
-          if ((sl->spacetype == SPACE_IMAGE) && hide_image_tool_header) {
+          if (((sl->spacetype == SPACE_IMAGE) && hide_image_tool_header) ||
+              sl->spacetype == SPACE_SEQ) {
             region->flag |= RGN_FLAG_HIDDEN;
           }
           else {
