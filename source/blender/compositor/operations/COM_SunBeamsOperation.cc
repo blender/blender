@@ -64,16 +64,6 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
 
   /* utility functions implementing the matrix transform to/from sector space */
 
-  static inline void buffer_to_sector(const float source[2], int x, int y, int &u, int &v)
-  {
-    int x0 = (int)source[0];
-    int y0 = (int)source[1];
-    x -= x0;
-    y -= y0;
-    u = x * fxu + y * fyu;
-    v = x * fxv + y * fyv;
-  }
-
   static inline void buffer_to_sector(const float source[2], float x, float y, float &u, float &v)
   {
     int x0 = (int)source[0];
@@ -90,14 +80,6 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
     int y0 = (int)source[1];
     x = x0 + u * fxu + v * fxv;
     y = y0 + u * fyu + v * fyv;
-  }
-
-  static inline void sector_to_buffer(const float source[2], float u, float v, float &x, float &y)
-  {
-    int x0 = (int)source[0];
-    int y0 = (int)source[1];
-    x = (float)x0 + u * fxu + v * fxv;
-    y = (float)y0 + u * fyu + v * fyv;
   }
 
   /**
