@@ -941,7 +941,7 @@ static void bm_log_face_bmface_copy(
 /************************ Helpers for undo/redo ***********************/
 
 // exec vert kill callbacks before killing faces
-ATTR_NO_OPT static void bm_log_verts_unmake_pre(
+static void bm_log_verts_unmake_pre(
     BMesh *bm, BMLog *log, GHash *verts, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   BMLogVert *lv;

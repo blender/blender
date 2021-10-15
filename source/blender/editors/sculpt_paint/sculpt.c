@@ -3165,8 +3165,9 @@ bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *bru
 
 /*** paint mesh ***/
 
-ATTR_NO_OPT static void paint_mesh_restore_co_task_cb(
-    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
+static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
+                                          const int n,
+                                          const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;

@@ -433,7 +433,7 @@ typedef struct BmeshUndoData {
   bool is_redo;
 } BmeshUndoData;
 
-ATTR_NO_OPT static void bmesh_undo_on_vert_kill(BMVert *v, void *userdata)
+static void bmesh_undo_on_vert_kill(BMVert *v, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
   int ni = BM_ELEM_CD_GET_INT(v, data->cd_vert_node_offset);
