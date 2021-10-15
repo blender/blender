@@ -3471,8 +3471,30 @@ void CustomData_interp(const CustomData *source,
     if (dest->layers[dest_i].type == source->layers[src_i].type) {
       void *src_data = source->layers[src_i].data;
 
+      if (dest->layers[dest_i].type == CD_MESH_ID) {
+        continue;  // paranoia check that we don't process id layers
+      }
+
       for (int j = 0; j < count; j++) {
         sources[j] = POINTER_OFFSET(src_data, (size_t)src_indices[j] * typeInfo->size);
+      }
+
+      if (dest->layers[dest_i].flag & CD_FLAG_ELEM_NOINTERP) {
+        if (!(dest->layers[dest_i].flag & CD_FLAG_ELEM_NOCOPY)) {
+          if (typeInfo->copy) {
+            typeInfo->copy(
+                sources[0],
+                POINTER_OFFSET(dest->layers[dest_i].data, (size_t)dest_index * typeInfo->size),
+                1);
+          }
+          else {
+            memcpy(POINTER_OFFSET(dest->layers[dest_i].data, (size_t)dest_index * typeInfo->size),
+                   sources[0],
+                   typeInfo->size);
+          }
+        }
+
+        continue;
       }
 
       typeInfo->interp(
@@ -4618,6 +4640,23 @@ void CustomData_bmesh_interp(CustomData *data,
 
     // ignore id and toolflag layers
     if (ELEM(layer->type, CD_MESH_ID, CD_TOOLFLAGS)) {
+      continue;
+    }
+
+    if (layer->flag & CD_FLAG_ELEM_NOINTERP) {
+      if (!(layer->flag & CD_FLAG_ELEM_NOCOPY)) {
+        if (typeInfo->copy) {
+          typeInfo->copy(POINTER_OFFSET(src_blocks[0], layer->offset),
+                         POINTER_OFFSET(dst_block, layer->offset),
+                         1);
+        }
+        else {
+          memcpy(POINTER_OFFSET(dst_block, layer->offset),
+                 POINTER_OFFSET(src_blocks[0], layer->offset),
+                 typeInfo->size);
+        }
+      }
+
       continue;
     }
 

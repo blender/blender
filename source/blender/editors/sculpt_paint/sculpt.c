@@ -516,6 +516,8 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
 {
   bool simple_array = params->simple_array;
   bool permanent = params->permanent;
+  bool nocopy = params->nocopy;
+  bool nointerp = params->nointerp;
 
   out->params = *params;
   out->proptype = proptype;
@@ -668,10 +670,17 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
         idx = CustomData_get_named_layer_index(cdata, proptype, name);
 
         SCULPT_dyntopo_node_layers_update_offsets(ss);
+
+        if (!permanent) {
+          cdata->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
+        }
       }
 
-      if (!permanent) {
-        cdata->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
+      if (nocopy) {
+        cdata->layers[idx].flag |= CD_FLAG_ELEM_NOCOPY;
+      }
+      if (nointerp) {
+        cdata->layers[idx].flag |= CD_FLAG_ELEM_NOINTERP;
       }
 
       out->data = NULL;
@@ -755,6 +764,13 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
         if (!permanent) {
           cdata->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
         }
+      }
+
+      if (nocopy) {
+        cdata->layers[idx].flag |= CD_FLAG_ELEM_NOCOPY;
+      }
+      if (nointerp) {
+        cdata->layers[idx].flag |= CD_FLAG_ELEM_NOINTERP;
       }
 
       out->data = NULL;
@@ -3149,68 +3165,68 @@ bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *bru
 
 /*** paint mesh ***/
 
-static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
-                                          const int n,
-                                          const TaskParallelTLS *__restrict UNUSED(tls))
+ATTR_NO_OPT static void paint_mesh_restore_co_task_cb(
+    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
 
-  SculptUndoNode *unode;
-  SculptUndoType type = (data->brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
-                                                                        SCULPT_UNDO_COORDS);
+  SculptUndoType type = 0;
 
-  SculptUndoNode tmp = {0};
-  if (ss->bm) {
-    unode = &tmp;
-    tmp.type = type;
-    // unode = SCULPT_undo_push_node(data->ob, data->nodes[n], type);
-  }
-  else {
-    unode = SCULPT_undo_get_node(data->nodes[n], type);
-
-    if (!unode) {
-      return;
-    }
+  switch (data->brush->sculpt_tool) {
+    case SCULPT_TOOL_MASK:
+      type |= SCULPT_UNDO_MASK;
+      break;
+    case SCULPT_TOOL_PAINT:
+    case SCULPT_TOOL_SMEAR:
+      type |= SCULPT_UNDO_COLOR;
+      break;
+    case SCULPT_TOOL_VCOL_BOUNDARY:
+      type |= SCULPT_UNDO_COLOR | SCULPT_UNDO_COORDS;
+      break;
+    default:
+      type |= SCULPT_UNDO_COORDS;
+      break;
   }
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
 
-  SCULPT_orig_vert_data_unode_init(&orig_data, data->ob, unode);
-
   bool modified = false;
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_vertex_check_origdata(ss, vd.vertex);
+    MSculptVert *mv = SCULPT_vertex_get_mdyntopo(ss, vd.vertex);
 
-    if (orig_data.unode->type == SCULPT_UNDO_COORDS) {
-      if (len_squared_v3v3(vd.co, orig_data.co) > FLT_EPSILON) {
+    if (type & SCULPT_UNDO_COORDS) {
+      if (len_squared_v3v3(vd.co, mv->origco) > FLT_EPSILON) {
         modified = true;
       }
 
-      copy_v3_v3(vd.co, orig_data.co);
+      copy_v3_v3(vd.co, mv->origco);
 
       if (vd.no) {
-        copy_v3_v3_short(vd.no, orig_data.no);
+        normal_float_to_short_v3(vd.no, mv->origno);
       }
       else {
-        normal_short_to_float_v3(vd.fno, orig_data.no);
+        copy_v3_v3(vd.fno, mv->origno);
       }
     }
-    else if (orig_data.unode->type == SCULPT_UNDO_MASK) {
-      if ((*vd.mask - orig_data.mask) * (*vd.mask - orig_data.mask) > FLT_EPSILON) {
+
+    if (type & SCULPT_UNDO_MASK) {
+      if ((*vd.mask - mv->origmask) * (*vd.mask - mv->origmask) > FLT_EPSILON) {
         modified = true;
       }
 
-      *vd.mask = orig_data.mask;
+      *vd.mask = mv->origmask;
     }
-    else if (orig_data.unode->type == SCULPT_UNDO_COLOR && vd.col && orig_data.col) {
-      if (len_squared_v4v4(vd.col, orig_data.col) > FLT_EPSILON) {
+
+    if (type & SCULPT_UNDO_COLOR && vd.col) {
+      if (len_squared_v4v4(vd.col, mv->origcolor) > FLT_EPSILON) {
         modified = true;
       }
 
-      copy_v4_v4(vd.col, orig_data.col);
+      copy_v4_v4(vd.col, mv->origcolor);
     }
 
     if (vd.mvert) {

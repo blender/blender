@@ -1542,6 +1542,8 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
 
   if (pbvh->type == PBVH_BMESH) {
     if (pbvh->bm) {
+      pbvh->cd_vcol_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PROP_COLOR);
+
       vdata = &pbvh->bm->vdata;
       ldata = &pbvh->bm->ldata;
     }
@@ -3415,7 +3417,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->cd_sculpt_vert = CustomData_get_offset(vi->bm_vdata, CD_DYNTOPO_VERT);
 
     // we ensure pbvh->cd_vcol_offset is up to date here too
-    vi->cd_vcol_offset = pbvh->cd_vcol_offset = CustomData_get_offset(vi->bm_vdata, CD_PROP_COLOR);
+    vi->cd_vcol_offset = CustomData_get_offset(vi->bm_vdata, CD_PROP_COLOR);
     vi->cd_vert_mask_offset = CustomData_get_offset(vi->bm_vdata, CD_PAINT_MASK);
   }
 

@@ -55,6 +55,8 @@ enum ePaintSymmetryFlags;
 typedef struct SculptLayerParams {
   int simple_array : 1;  // cannot be combined with permanent
   int permanent : 1;     // cannot be combined with simple_array
+  int nocopy : 1;
+  int nointerp : 1;
 } SculptLayerParams;
 
 typedef struct SculptCustomLayer {
@@ -848,15 +850,15 @@ void SCULPT_do_symmetrize_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 /* Undo */
 
 typedef enum {
-  SCULPT_UNDO_COORDS,
-  SCULPT_UNDO_HIDDEN,
-  SCULPT_UNDO_MASK,
-  SCULPT_UNDO_DYNTOPO_BEGIN,
-  SCULPT_UNDO_DYNTOPO_END,
-  SCULPT_UNDO_DYNTOPO_SYMMETRIZE,
-  SCULPT_UNDO_GEOMETRY,
-  SCULPT_UNDO_FACE_SETS,
-  SCULPT_UNDO_COLOR,
+  SCULPT_UNDO_COORDS = 1 << 0,
+  SCULPT_UNDO_HIDDEN = 1 << 1,
+  SCULPT_UNDO_MASK = 1 << 2,
+  SCULPT_UNDO_DYNTOPO_BEGIN = 1 << 3,
+  SCULPT_UNDO_DYNTOPO_END = 1 << 4,
+  SCULPT_UNDO_DYNTOPO_SYMMETRIZE = 1 << 5,
+  SCULPT_UNDO_GEOMETRY = 1 << 6,
+  SCULPT_UNDO_FACE_SETS = 1 << 7,
+  SCULPT_UNDO_COLOR = 1 << 8,
 } SculptUndoType;
 
 /* Storage of geometry for the undo node.

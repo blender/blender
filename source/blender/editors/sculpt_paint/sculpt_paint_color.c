@@ -120,14 +120,14 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   const Brush *brush = data->brush;
   const float bstrength = fabsf(ss->cache->bstrength);
 
+  const SculptCustomLayer *buffer_scl = data->scl;
+  const SculptCustomLayer *stroke_id_scl = data->scl2;
+
   PBVHVertexIter vd;
-  // PBVHColorBufferNode *color_buffer;
 
-  SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
-  orig_data.datatype = SCULPT_UNDO_COLOR;
-
-  // color_buffer = BKE_pbvh_node_color_buffer_get(data->nodes[n]);
+  // SculptOrigVertData orig_data;
+  // SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
+  // orig_data.datatype = SCULPT_UNDO_COLOR;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -144,7 +144,21 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
       BKE_paint_brush(&data->sd->paint)->channels, data->sd->channels, "strength", NULL);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    // SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_vertex_check_origdata(ss, vd.vertex);
+
+    // check if we have a new stroke, in which we need to zero
+    // our temp layer.  do this here before the brush check
+    // to ensure any geomtry dyntopo might subdivide has
+    // valid state.
+    int *stroke_id = (int *)SCULPT_temp_cdata_get(vd.vertex, stroke_id_scl);
+    float *color_buffer = (float *)SCULPT_temp_cdata_get(vd.vertex,
+                                                         buffer_scl);  // mv->origcolor;
+
+    if (*stroke_id != ss->stroke_id) {
+      *stroke_id = ss->stroke_id;
+      zero_v4(color_buffer);
+    }
 
     bool affect_vertex = false;
     float distance_to_stroke_location = 0.0f;
@@ -187,9 +201,6 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     float wet_mix_color[4];
     float buffer_color[4];
 
-    MSculptVert *mv = SCULPT_vertex_get_mdyntopo(ss, vd.vertex);
-    float *color_buffer = mv->origcolor;
-
     mul_v4_v4fl(paint_color, brush_color, fade * ss->cache->paint_brush.flow);
     mul_v4_v4fl(wet_mix_color, data->wet_mix_sampled_color, fade * ss->cache->paint_brush.flow);
 
@@ -201,7 +212,8 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     /* Final mix over the original color using brush alpha. */
     mul_v4_v4fl(buffer_color, color_buffer, alpha);
 
-    IMB_blend_color_float(vd.col, orig_data.col, buffer_color, brush->blend);
+    MSculptVert *mv = SCULPT_vertex_get_mdyntopo(ss, vd.vertex);
+    IMB_blend_color_float(vd.col, mv->origcolor, buffer_color, brush->blend);
 
     CLAMP4(vd.col, 0.0f, 1.0f);
 
@@ -369,6 +381,24 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     }
   }
 
+  SculptCustomLayer buffer_scl;
+  SculptCustomLayer stroke_id_scl;
+  SculptLayerParams params = {.permanent = false, .simple_array = false};
+  SculptLayerParams params_id = {
+      .permanent = false, .simple_array = false, .nocopy = false, .nointerp = true};
+
+  // reuse smear's buffer name
+
+  SCULPT_temp_customlayer_ensure(
+      ss, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &params);
+  SCULPT_temp_customlayer_ensure(
+      ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, "_paint_buffer_stroke_id", &params_id);
+
+  SCULPT_temp_customlayer_get(
+      ss, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &buffer_scl, &params);
+  SCULPT_temp_customlayer_get(
+      ss, ATTR_DOMAIN_POINT, CD_PROP_INT32, "_paint_buffer_stroke_id", &stroke_id_scl, &params_id);
+
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data = {
       .sd = sd,
@@ -377,6 +407,8 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
       .nodes = nodes,
       .wet_mix_sampled_color = wet_color,
       .mat = mat,
+      .scl = &buffer_scl,
+      .scl2 = &stroke_id_scl,
       .brush_color = brush_color,
   };
 
@@ -498,9 +530,10 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   SculptCustomLayer prev_scl;
   SculptLayerParams params = {.permanent = false, .simple_array = false};
-  SCULPT_temp_customlayer_ensure(ss, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "smear_previous", &params);
+  SCULPT_temp_customlayer_ensure(
+      ss, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &params);
   SCULPT_temp_customlayer_get(
-      ss, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "smear_previous", &prev_scl, &params);
+      ss, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &prev_scl, &params);
 
   SCULPT_vertex_random_access_ensure(ss);
 
