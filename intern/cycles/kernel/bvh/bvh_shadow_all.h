@@ -171,7 +171,9 @@ ccl_device_inline
                   }
                 }
 
-                const int curve_object = kernel_tex_fetch(__prim_object, prim_addr);
+                const int curve_object = (object == OBJECT_NONE) ?
+                                             kernel_tex_fetch(__prim_object, prim_addr) :
+                                             object;
                 const int curve_type = kernel_tex_fetch(__prim_type, prim_addr);
                 const int curve_prim = kernel_tex_fetch(__prim_index, prim_addr);
                 hit = curve_intersect(
