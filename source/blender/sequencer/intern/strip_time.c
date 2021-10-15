@@ -131,12 +131,17 @@ static void seq_update_sound_bounds_recursive_impl(Scene *scene,
           endofs = seq->start + seq->len - end;
         }
 
+        double offset_time = 0.0f;
+        if (seq->sound != NULL) {
+          offset_time = seq->sound->offset_time;
+        }
+
         BKE_sound_move_scene_sound(scene,
                                    seq->scene_sound,
                                    seq->start + startofs,
                                    seq->start + seq->len - endofs,
                                    startofs + seq->anim_startofs,
-                                   seq->sound->offset_time);
+                                   offset_time);
       }
     }
   }
