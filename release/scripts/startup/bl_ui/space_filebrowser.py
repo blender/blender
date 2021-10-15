@@ -38,7 +38,8 @@ class FILEBROWSER_HT_header(Header):
 
         layout.separator_spacer()
 
-        layout.prop(params, "import_type", text="")
+        if params.asset_library_ref != 'LOCAL':
+            layout.prop(params, "import_type", text="")
 
         layout.separator_spacer()
 
