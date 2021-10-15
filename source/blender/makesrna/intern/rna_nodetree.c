@@ -9902,10 +9902,10 @@ static void def_fn_rotate_euler(StructRNA *srna)
        ICON_NONE,
        "Object",
        "Rotate the input rotation in the local space of the object"},
-      {FN_NODE_ROTATE_EULER_SPACE_POINT,
-       "POINT",
+      {FN_NODE_ROTATE_EULER_SPACE_LOCAL,
+       "LOCAL",
        ICON_NONE,
-       "Point",
+       "Local",
        "Rotate the input rotation in its local space"},
       {0, NULL, 0, NULL, NULL},
   };
@@ -9921,7 +9921,7 @@ static void def_fn_rotate_euler(StructRNA *srna)
   prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "custom2");
   RNA_def_property_enum_items(prop, space_items);
-  RNA_def_property_ui_text(prop, "Space", "Base orientation of the points");
+  RNA_def_property_ui_text(prop, "Space", "Base orientation for rotation");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

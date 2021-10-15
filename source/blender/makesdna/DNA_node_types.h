@@ -2090,7 +2090,7 @@ typedef enum GeometryNodeRotatePointsSpace {
 
 typedef enum FunctionNodeRotateEulerSpace {
   FN_NODE_ROTATE_EULER_SPACE_OBJECT = 0,
-  FN_NODE_ROTATE_EULER_SPACE_POINT = 1,
+  FN_NODE_ROTATE_EULER_SPACE_LOCAL = 1,
 } FunctionNodeRotateEulerSpace;
 
 typedef enum GeometryNodeAlignRotationToVectorAxis {
