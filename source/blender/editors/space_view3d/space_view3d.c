@@ -30,6 +30,7 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_view3d_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -1569,10 +1570,7 @@ static void space_view3d_listener(const wmSpaceTypeListenerParams *params)
     case NC_SCENE:
       switch (wmn->data) {
         case ND_WORLD: {
-          const bool use_scene_world = ((v3d->shading.type == OB_MATERIAL) &&
-                                        (v3d->shading.flag & V3D_SHADING_SCENE_WORLD)) ||
-                                       ((v3d->shading.type == OB_RENDER) &&
-                                        (v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER));
+          const bool use_scene_world = V3D_USES_SCENE_WORLD(v3d);
           if (v3d->flag2 & V3D_HIDE_OVERLAYS || use_scene_world) {
             ED_area_tag_redraw_regiontype(area, RGN_TYPE_WINDOW);
           }
