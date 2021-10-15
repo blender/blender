@@ -456,6 +456,22 @@ static bool do_versions_sequencer_color_tags(Sequence *seq, void *UNUSED(user_da
   return true;
 }
 
+static bool do_versions_sequencer_color_balance_sop(Sequence *seq, void *UNUSED(user_data))
+{
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
+    if (smd->type == seqModifierType_ColorBalance) {
+      StripColorBalance *cb = &((ColorBalanceModifierData *)smd)->color_balance;
+      cb->method = SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN;
+      for (int i = 0; i < 3; i++) {
+        copy_v3_fl(cb->slope, 1.0f);
+        copy_v3_fl(cb->offset, 1.0f);
+        copy_v3_fl(cb->power, 1.0f);
+      }
+    }
+  }
+  return true;
+}
+
 static bNodeLink *find_connected_link(bNodeTree *ntree, bNodeSocket *in_socket)
 {
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
@@ -1707,6 +1723,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             sseq->timeline_overlay.flag |= SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG;
           }
         }
+      }
+    }
+
+    /* Set defaults for new color balance modifier parameters. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != NULL) {
+        SEQ_for_each_callback(&scene->ed->seqbase, do_versions_sequencer_color_balance_sop, NULL);
       }
     }
   }
