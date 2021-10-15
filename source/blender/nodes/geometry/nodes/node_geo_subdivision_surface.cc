@@ -14,13 +14,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
+
 #include "BKE_mesh.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_mesh.h"
 
-#include "DNA_modifier_types.h"
 #include "UI_interface.h"
 #include "UI_resources.h"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes {
@@ -29,7 +33,12 @@ static void geo_node_subdivision_surface_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
   b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
-  b.add_input<decl::Bool>("Use Creases");
+  b.add_input<decl::Float>("Crease")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .supports_field()
+      .subtype(PROP_FACTOR);
   b.add_output<decl::Geometry>("Geometry");
 }
 
@@ -60,17 +69,8 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
-  geometry_set = geometry_set_realize_instances(geometry_set);
+  Field<float> crease_field = params.extract_input<Field<float>>("Crease");
 
-  if (!geometry_set.has_mesh()) {
-    params.set_output("Geometry", geometry_set);
-    return;
-  }
-
-#ifndef WITH_OPENSUBDIV
-  params.error_message_add(NodeWarningType::Error,
-                           TIP_("Disabled, Blender was compiled without OpenSubdiv"));
-#else
   const NodeGeometrySubdivisionSurface &storage =
       *(const NodeGeometrySubdivisionSurface *)params.node().storage;
   const int uv_smooth = storage.uv_smooth;
@@ -83,57 +83,79 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
     return;
   }
 
-  const bool use_crease = params.extract_input<bool>("Use Creases");
-  const Mesh *mesh_in = geometry_set.get_mesh_for_read();
+#ifndef WITH_OPENSUBDIV
+  params.error_message_add(NodeWarningType::Error,
+                           TIP_("Disabled, Blender was compiled without OpenSubdiv"));
+#else
+  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    if (!geometry_set.has_mesh()) {
+      return;
+    }
 
-  /* Initialize mesh settings. */
-  SubdivToMeshSettings mesh_settings;
-  mesh_settings.resolution = (1 << subdiv_level) + 1;
-  mesh_settings.use_optimal_display = false;
+    MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
+    AttributeDomain domain = ATTR_DOMAIN_EDGE;
+    GeometryComponentFieldContext field_context{mesh_component, domain};
+    const int domain_size = mesh_component.attribute_domain_size(domain);
 
-  /* Initialize subdivision settings. */
-  SubdivSettings subdiv_settings;
-  subdiv_settings.is_simple = false;
-  subdiv_settings.is_adaptive = false;
-  subdiv_settings.use_creases = use_crease;
-  subdiv_settings.level = subdiv_level;
+    FieldEvaluator evaluator(field_context, domain_size);
+    evaluator.add(crease_field);
+    evaluator.evaluate();
+    const VArray<float> &creases = evaluator.get_evaluated<float>(0);
 
-  subdiv_settings.vtx_boundary_interpolation = BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
-      boundary_smooth);
-  subdiv_settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
-      uv_smooth);
+    OutputAttribute_Typed<float> crease = mesh_component.attribute_try_get_for_output_only<float>(
+        "crease", domain);
+    MutableSpan<float> crease_span = crease.as_span();
+    for (auto i : creases.index_range()) {
+      crease_span[i] = std::clamp(creases[i], 0.0f, 1.0f);
+    }
+    crease.save();
 
-  /* Apply subdivision to mesh. */
-  Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &subdiv_settings, mesh_in);
+    /* Initialize mesh settings. */
+    SubdivToMeshSettings mesh_settings;
+    mesh_settings.resolution = (1 << subdiv_level) + 1;
+    mesh_settings.use_optimal_display = false;
 
-  /* In case of bad topology, skip to input mesh. */
-  if (subdiv == nullptr) {
-    params.set_output("Geometry", std::move(geometry_set));
-    return;
-  }
+    /* Initialize subdivision settings. */
+    SubdivSettings subdiv_settings;
+    subdiv_settings.is_simple = false;
+    subdiv_settings.is_adaptive = false;
+    subdiv_settings.use_creases = !(creases.is_single() && creases.get_internal_single() == 0.0f);
+    subdiv_settings.level = subdiv_level;
 
-  Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh_in);
-  BKE_mesh_normals_tag_dirty(mesh_out);
+    subdiv_settings.vtx_boundary_interpolation =
+        BKE_subdiv_vtx_boundary_interpolation_from_subsurf(boundary_smooth);
+    subdiv_settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
+        uv_smooth);
 
-  MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-  mesh_component.replace(mesh_out);
+    Mesh *mesh_in = mesh_component.get_for_write();
 
-  // BKE_subdiv_stats_print(&subdiv->stats);
-  BKE_subdiv_free(subdiv);
+    /* Apply subdivision to mesh. */
+    Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &subdiv_settings, mesh_in);
 
+    /* In case of bad topology, skip to input mesh. */
+    if (subdiv == nullptr) {
+      return;
+    }
+
+    Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh_in);
+    BKE_mesh_normals_tag_dirty(mesh_out);
+
+    mesh_component.replace(mesh_out);
+
+    BKE_subdiv_free(subdiv);
+  });
 #endif
-
   params.set_output("Geometry", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_legacy_subdivision_surface()
+void register_node_type_geo_subdivision_surface()
 {
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_LEGACY_SUBDIVISION_SURFACE, "Subdivision Surface", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_SUBDIVISION_SURFACE, "Subdivision Surface", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = blender::nodes::geo_node_subdivision_surface_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_subdivision_surface_exec;
   ntype.draw_buttons = blender::nodes::geo_node_subdivision_surface_layout;

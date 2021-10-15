@@ -43,6 +43,7 @@ void register_node_type_geo_legacy_curve_reverse(void);
 void register_node_type_geo_legacy_select_by_handle_type(void);
 void register_node_type_geo_legacy_curve_subdivide(void);
 void register_node_type_geo_legacy_edge_split(void);
+void register_node_type_geo_legacy_subdivision_surface(void);
 
 void register_node_type_geo_align_rotation_to_vector(void);
 void register_node_type_geo_attribute_capture(void);
