@@ -423,7 +423,9 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
  * `object.data.bones["Bones"].use_deform` such paths are not useful for key-shortcuts,
  * so this function supports returning data-paths directly to context members that aren't ID types.
  */
-static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr, bool *r_is_id)
+static const char *wm_context_member_from_ptr(const bContext *C,
+                                              const PointerRNA *ptr,
+                                              bool *r_is_id)
 {
   const char *member_id = NULL;
   bool is_id = false;
@@ -607,7 +609,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 /**
  * Calculate the path to `ptr` from context `C`, or return NULL if it can't be calculated.
  */
-char *WM_context_path_resolve_property_full(bContext *C,
+char *WM_context_path_resolve_property_full(const bContext *C,
                                             const PointerRNA *ptr,
                                             PropertyRNA *prop,
                                             int index)

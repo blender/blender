@@ -592,7 +592,7 @@ void WM_operator_py_idname(char *to, const char *from);
 bool WM_operator_py_idname_ok_or_report(struct ReportList *reports,
                                         const char *classname,
                                         const char *idname);
-char *WM_context_path_resolve_property_full(struct bContext *C,
+char *WM_context_path_resolve_property_full(const struct bContext *C,
                                             const PointerRNA *ptr,
                                             PropertyRNA *prop,
                                             int index);
