@@ -1813,7 +1813,7 @@ void GeometryManager::device_update(Device *device,
       if (geom->is_modified()) {
         if (geom->is_mesh()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
-          if (displace(device, dscene, scene, mesh, progress)) {
+          if (displace(device, scene, mesh, progress)) {
             displacement_done = true;
           }
         }

@@ -163,8 +163,7 @@ static void read_shader_output(const Scene *scene,
   }
 }
 
-bool GeometryManager::displace(
-    Device *device, DeviceScene *dscene, Scene *scene, Mesh *mesh, Progress &progress)
+bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress &progress)
 {
   /* verify if we have a displacement shader */
   if (!mesh->has_true_displacement()) {

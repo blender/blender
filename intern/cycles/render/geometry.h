@@ -219,7 +219,7 @@ class GeometryManager {
   void collect_statistics(const Scene *scene, RenderStats *stats);
 
  protected:
-  bool displace(Device *device, DeviceScene *dscene, Scene *scene, Mesh *mesh, Progress &progress);
+  bool displace(Device *device, Scene *scene, Mesh *mesh, Progress &progress);
 
   void create_volume_mesh(Volume *volume, Progress &progress);
 
