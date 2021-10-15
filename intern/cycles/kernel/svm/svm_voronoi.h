@@ -1001,7 +1001,7 @@ ccl_device_noinline int svm_node_tex_voronoi(ccl_global const KernelGlobals *kg,
     }
     case 2: {
       float2 coord_2d = make_float2(coord.x, coord.y);
-      float2 position_out_2d;
+      float2 position_out_2d = zero_float2();
       switch (voronoi_feature) {
         case NODE_VORONOI_F1:
           voronoi_f1_2d(coord_2d,
