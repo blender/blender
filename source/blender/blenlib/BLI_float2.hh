@@ -115,6 +115,11 @@ struct float2 {
     return {a.x - b.x, a.y - b.y};
   }
 
+  friend float2 operator-(const float2 &a, const float &b)
+  {
+    return {a.x - b, a.y - b};
+  }
+
   friend float2 operator*(const float2 &a, float b)
   {
     return {a.x * b, a.y * b};
@@ -135,6 +140,26 @@ struct float2 {
   {
     stream << "(" << v.x << ", " << v.y << ")";
     return stream;
+  }
+
+  static float2 safe_divide(const float2 &a, const float b)
+  {
+    return (b != 0.0f) ? a / b : float2(0.0f);
+  }
+
+  static float2 floor(const float2 &a)
+  {
+    return float2(floorf(a.x), floorf(a.y));
+  }
+
+  /**
+   * Returns a normalized vector. The original vector is not changed.
+   */
+  float2 normalized() const
+  {
+    float2 result;
+    normalize_v2_v2(result, *this);
+    return result;
   }
 
   static float dot(const float2 &a, const float2 &b)

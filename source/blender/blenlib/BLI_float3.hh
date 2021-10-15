@@ -80,6 +80,11 @@ struct float3 {
     return {-a.x, -a.y, -a.z};
   }
 
+  friend float3 operator-(const float3 &a, const float &b)
+  {
+    return {a.x - b, a.y - b, a.z - b};
+  }
+
   float3 &operator-=(const float3 &b)
   {
     this->x -= b.x;
@@ -216,6 +221,16 @@ struct float3 {
     result.y = (b.y == 0.0f) ? 0.0f : a.y / b.y;
     result.z = (b.z == 0.0f) ? 0.0f : a.z / b.z;
     return result;
+  }
+
+  static float3 safe_divide(const float3 &a, const float b)
+  {
+    return (b != 0.0f) ? a / b : float3(0.0f);
+  }
+
+  static float3 floor(const float3 &a)
+  {
+    return float3(floorf(a.x), floorf(a.y), floorf(a.z));
   }
 
   void invert()

@@ -1145,6 +1145,19 @@ MINLINE float len_v3v3(const float a[3], const float b[3])
   return len_v3(d);
 }
 
+MINLINE float len_v4(const float a[4])
+{
+  return sqrtf(dot_v4v4(a, a));
+}
+
+MINLINE float len_v4v4(const float a[4], const float b[4])
+{
+  float d[4];
+
+  sub_v4_v4v4(d, b, a);
+  return len_v4(d);
+}
+
 /**
  * \note any vectors containing `nan` will be zeroed out.
  */

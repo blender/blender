@@ -720,6 +720,7 @@ geometry_node_categories = [
     GeometryNodeCategory("GEO_TEXTURE", "Texture", items=[
         NodeItem("ShaderNodeTexGradient"),
         NodeItem("ShaderNodeTexNoise"),
+        NodeItem("ShaderNodeTexVoronoi"),
         NodeItem("ShaderNodeTexWhiteNoise"),
     ]),
     GeometryNodeCategory("GEO_UTILITIES", "Utilities", items=[
