@@ -199,14 +199,14 @@ void EEVEE_occlusion_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
     DRW_stats_group_start("GTAO Horizon Scan");
 
+    GPU_framebuffer_bind(fbl->gtao_fb);
+
     /** NOTE(fclem): Kind of fragile. We need this to make sure everything lines up
      * nicely during planar reflection. */
     if (common_data->ray_type != EEVEE_RAY_GLOSSY) {
       const float *viewport_size = DRW_viewport_size_get();
       GPU_framebuffer_viewport_set(fbl->gtao_fb, 0, 0, UNPACK2(viewport_size));
     }
-
-    GPU_framebuffer_bind(fbl->gtao_fb);
 
     DRW_draw_pass(psl->ao_horizon_search);
 
