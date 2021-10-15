@@ -405,7 +405,7 @@ static void draw_vertical_scale_indicators(const ARegion *region,
   const float xpos = (rect->xmin + x_offset) * UI_DPI_FAC;
   const float ymin = rect->ymin;
   const float ymax = rect->ymax;
-  const float y_offset = (BLF_height_max(font_id) / 2.0f) - U.pixelsize;
+  const float y_offset = (BLF_height(font_id, "0", 1) / 2.0f) - U.pixelsize;
 
   for (uint i = 0; i < steps; i++) {
     const float ypos_view = start + i * distance;
