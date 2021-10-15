@@ -324,7 +324,7 @@ class BMeshFairingContext : public FairingContext {
     BM_mesh_elem_index_ensure(bm, BM_LOOP);
 
     /* Deformation coords. */
-#if 0 merge error ?
+#if 0 //merge error ?
     co_.reserve(bm->totvert);
     for (int i = 0; i < bm->totvert; i++) {
       BMVert *v = BM_vert_at_index(bm, i);
