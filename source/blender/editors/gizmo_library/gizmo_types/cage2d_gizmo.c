@@ -886,11 +886,224 @@ static int gizmo_cage2d_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int gizmo_cage2d_modal(bContext *UNUSED(C),
-                              wmGizmo *UNUSED(gz),
-                              const wmEvent *UNUSED(event),
+static void gizmo_rect_pivot_from_scale_part(int part, float r_pt[2], bool r_constrain_axis[2])
+{
+  bool x = true, y = true;
+  switch (part) {
+    case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X: {
+      ARRAY_SET_ITEMS(r_pt, 0.5, 0.0);
+      x = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X: {
+      ARRAY_SET_ITEMS(r_pt, -0.5, 0.0);
+      x = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y: {
+      ARRAY_SET_ITEMS(r_pt, 0.0, 0.5);
+      y = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y: {
+      ARRAY_SET_ITEMS(r_pt, 0.0, -0.5);
+      y = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y: {
+      ARRAY_SET_ITEMS(r_pt, 0.5, 0.5);
+      x = y = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y: {
+      ARRAY_SET_ITEMS(r_pt, 0.5, -0.5);
+      x = y = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y: {
+      ARRAY_SET_ITEMS(r_pt, -0.5, 0.5);
+      x = y = false;
+      break;
+    }
+    case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y: {
+      ARRAY_SET_ITEMS(r_pt, -0.5, -0.5);
+      x = y = false;
+      break;
+    }
+    default:
+      BLI_assert(0);
+  }
+  r_constrain_axis[0] = x;
+  r_constrain_axis[1] = y;
+}
+
+static int gizmo_cage2d_modal(bContext *C,
+                              wmGizmo *gz,
+                              const wmEvent *event,
                               eWM_GizmoFlagTweak UNUSED(tweak_flag))
 {
+  if (event->type != MOUSEMOVE) {
+    return OPERATOR_RUNNING_MODAL;
+  }
+  /* For transform logic to be manageable we operate in -0.5..0.5 2D space,
+   * no matter the size of the rectangle, mouse coords are scaled to unit space.
+   * The mouse coords have been projected into the matrix
+   * so we don't need to worry about axis alignment.
+   *
+   * - The cursor offset are multiplied by 'dims'.
+   * - Matrix translation is also multiplied by 'dims'.
+   */
+  RectTransformInteraction *data = gz->interaction_data;
+  float point_local[2];
+
+  float dims[2];
+  RNA_float_get_array(gz->ptr, "dimensions", dims);
+
+  {
+    float matrix_back[4][4];
+    copy_m4_m4(matrix_back, gz->matrix_offset);
+    copy_m4_m4(gz->matrix_offset, data->orig_matrix_offset);
+
+    bool ok = gizmo_window_project_2d(
+        C, gz, (const float[2]){UNPACK2(event->mval)}, 2, false, point_local);
+    copy_m4_m4(gz->matrix_offset, matrix_back);
+    if (!ok) {
+      return OPERATOR_RUNNING_MODAL;
+    }
+  }
+
+  const int transform_flag = RNA_enum_get(gz->ptr, "transform");
+  wmGizmoProperty *gz_prop;
+
+  gz_prop = WM_gizmo_target_property_find(gz, "matrix");
+  if (gz_prop->type != NULL) {
+    WM_gizmo_target_property_float_get_array(gz, gz_prop, &gz->matrix_offset[0][0]);
+  }
+
+  if (gz->highlight_part == ED_GIZMO_CAGE2D_PART_TRANSLATE) {
+    /* do this to prevent clamping from changing size */
+    copy_m4_m4(gz->matrix_offset, data->orig_matrix_offset);
+    gz->matrix_offset[3][0] = data->orig_matrix_offset[3][0] +
+                              (point_local[0] - data->orig_mouse[0]);
+    gz->matrix_offset[3][1] = data->orig_matrix_offset[3][1] +
+                              (point_local[1] - data->orig_mouse[1]);
+  }
+  else if (gz->highlight_part == ED_GIZMO_CAGE2D_PART_ROTATE) {
+
+#define MUL_V2_V3_M4_FINAL(test_co, mouse_co) \
+  mul_v3_m4v3( \
+      test_co, data->orig_matrix_final_no_offset, ((const float[3]){UNPACK2(mouse_co), 0.0}))
+
+    float test_co[3];
+
+    if (data->dial == NULL) {
+      MUL_V2_V3_M4_FINAL(test_co, data->orig_matrix_offset[3]);
+
+      data->dial = BLI_dial_init(test_co, FLT_EPSILON);
+
+      MUL_V2_V3_M4_FINAL(test_co, data->orig_mouse);
+      BLI_dial_angle(data->dial, test_co);
+    }
+
+    /* rotate */
+    MUL_V2_V3_M4_FINAL(test_co, point_local);
+    const float angle = BLI_dial_angle(data->dial, test_co);
+
+    float matrix_space_inv[4][4];
+    float matrix_rotate[4][4];
+    float pivot[3];
+
+    copy_v3_v3(pivot, data->orig_matrix_offset[3]);
+
+    invert_m4_m4(matrix_space_inv, gz->matrix_space);
+
+    unit_m4(matrix_rotate);
+    mul_m4_m4m4(matrix_rotate, matrix_rotate, matrix_space_inv);
+    rotate_m4(matrix_rotate, 'Z', -angle);
+    mul_m4_m4m4(matrix_rotate, matrix_rotate, gz->matrix_space);
+
+    zero_v3(matrix_rotate[3]);
+    transform_pivot_set_m4(matrix_rotate, pivot);
+
+    mul_m4_m4m4(gz->matrix_offset, matrix_rotate, data->orig_matrix_offset);
+
+#undef MUL_V2_V3_M4_FINAL
+  }
+  else {
+    /* scale */
+    copy_m4_m4(gz->matrix_offset, data->orig_matrix_offset);
+    float pivot[2];
+    bool constrain_axis[2] = {false};
+
+    if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE) {
+      gizmo_rect_pivot_from_scale_part(gz->highlight_part, pivot, constrain_axis);
+    }
+    else {
+      zero_v2(pivot);
+    }
+
+    /* Cursor deltas scaled to (-0.5..0.5). */
+    float delta_orig[2], delta_curr[2];
+    for (int i = 0; i < 2; i++) {
+      delta_orig[i] = ((data->orig_mouse[i] - data->orig_matrix_offset[3][i]) / dims[i]) -
+                      pivot[i];
+      delta_curr[i] = ((point_local[i] - data->orig_matrix_offset[3][i]) / dims[i]) - pivot[i];
+    }
+
+    float scale[2] = {1.0f, 1.0f};
+    for (int i = 0; i < 2; i++) {
+      if (constrain_axis[i] == false) {
+        if (delta_orig[i] < 0.0f) {
+          delta_orig[i] *= -1.0f;
+          delta_curr[i] *= -1.0f;
+        }
+        const int sign = signum_i(scale[i]);
+
+        scale[i] = 1.0f + ((delta_curr[i] - delta_orig[i]) / len_v3(data->orig_matrix_offset[i]));
+
+        if ((transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_SIGNED) == 0) {
+          if (sign != signum_i(scale[i])) {
+            scale[i] = 0.0f;
+          }
+        }
+      }
+    }
+
+    if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_UNIFORM) {
+      if (constrain_axis[0] == false && constrain_axis[1] == false) {
+        scale[1] = scale[0] = (scale[1] + scale[0]) / 2.0f;
+      }
+      else if (constrain_axis[0] == false) {
+        scale[1] = scale[0];
+      }
+      else if (constrain_axis[1] == false) {
+        scale[0] = scale[1];
+      }
+      else {
+        BLI_assert(0);
+      }
+    }
+
+    /* scale around pivot */
+    float matrix_scale[4][4];
+    unit_m4(matrix_scale);
+
+    mul_v3_fl(matrix_scale[0], scale[0]);
+    mul_v3_fl(matrix_scale[1], scale[1]);
+
+    transform_pivot_set_m4(matrix_scale,
+                           (const float[3]){pivot[0] * dims[0], pivot[1] * dims[1], 0.0f});
+    mul_m4_m4m4(gz->matrix_offset, data->orig_matrix_offset, matrix_scale);
+  }
+
+  if (gz_prop->type != NULL) {
+    WM_gizmo_target_property_float_set_array(C, gz, gz_prop, &gz->matrix_offset[0][0]);
+  }
+
+  /* tag the region for redraw */
+  ED_region_tag_redraw_editor_overlays(CTX_wm_region(C));
+  WM_event_add_mousemove(CTX_wm_window(C));
+
   return OPERATOR_RUNNING_MODAL;
 }
 
