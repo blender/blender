@@ -331,6 +331,7 @@ static void get_socket_value(const SocketRef &socket, void *r_value)
     if (bsocket.type == SOCK_VECTOR) {
       if (ELEM(bnode.type,
                GEO_NODE_SET_POSITION,
+               SH_NODE_TEX_GRADIENT,
                SH_NODE_TEX_NOISE,
                SH_NODE_TEX_WHITE_NOISE,
                GEO_NODE_MESH_TO_POINTS,

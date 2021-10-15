@@ -718,6 +718,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeStringToCurves"),
     ]),
     GeometryNodeCategory("GEO_TEXTURE", "Texture", items=[
+        NodeItem("ShaderNodeTexGradient"),
         NodeItem("ShaderNodeTexNoise"),
         NodeItem("ShaderNodeTexWhiteNoise"),
     ]),
