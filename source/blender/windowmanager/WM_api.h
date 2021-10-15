@@ -272,13 +272,16 @@ typedef struct wmEventHandler_KeymapResult {
 } wmEventHandler_KeymapResult;
 
 typedef void(wmEventHandler_KeymapDynamicFn)(wmWindowManager *wm,
+                                             struct wmWindow *win,
                                              struct wmEventHandler_Keymap *handler,
                                              struct wmEventHandler_KeymapResult *km_result);
 
 void WM_event_get_keymap_from_toolsystem_fallback(struct wmWindowManager *wm,
+                                                  struct wmWindow *win,
                                                   struct wmEventHandler_Keymap *handler,
                                                   wmEventHandler_KeymapResult *km_result);
 void WM_event_get_keymap_from_toolsystem(struct wmWindowManager *wm,
+                                         struct wmWindow *win,
                                          struct wmEventHandler_Keymap *handler,
                                          wmEventHandler_KeymapResult *km_result);
 
@@ -293,6 +296,7 @@ void WM_event_set_keymap_handler_post_callback(struct wmEventHandler_Keymap *han
                                                                 void *user_data),
                                                void *user_data);
 void WM_event_get_keymaps_from_handler(wmWindowManager *wm,
+                                       struct wmWindow *win,
                                        struct wmEventHandler_Keymap *handler,
                                        struct wmEventHandler_KeymapResult *km_result);
 
@@ -302,6 +306,7 @@ wmKeyMapItem *WM_event_match_keymap_item(struct bContext *C,
 
 wmKeyMapItem *WM_event_match_keymap_item_from_handlers(struct bContext *C,
                                                        struct wmWindowManager *wm,
+                                                       struct wmWindow *win,
                                                        struct ListBase *handlers,
                                                        const struct wmEvent *event);
 

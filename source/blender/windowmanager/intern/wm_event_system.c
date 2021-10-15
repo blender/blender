@@ -2977,7 +2977,7 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
 /** \name Handle Single Event (All Handler Types)
  * \{ */
 
-static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers)
+static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, ListBase *handlers)
 {
   const bool do_debug_handler =
       (G.debug & G_DEBUG_HANDLERS) &&
@@ -3020,7 +3020,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
       if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
         wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
         wmEventHandler_KeymapResult km_result;
-        WM_event_get_keymaps_from_handler(wm, handler, &km_result);
+        WM_event_get_keymaps_from_handler(wm, win, handler, &km_result);
         int action_iter = WM_HANDLER_CONTINUE;
         for (int km_index = 0; km_index < km_result.keymaps_len; km_index++) {
           wmKeyMap *keymap = km_result.keymaps[km_index];
@@ -3161,10 +3161,10 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 /* This calls handlers twice - to solve (double-)click events. */
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
-  int action = wm_handlers_do_intern(C, event, handlers);
-
   /* Will be NULL in the file read case. */
   wmWindow *win = CTX_wm_window(C);
+  int action = wm_handlers_do_intern(C, win, event, handlers);
+
   if (win == NULL) {
     return action;
   }
@@ -3188,7 +3188,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
           CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
 
-          action |= wm_handlers_do_intern(C, event, handlers);
+          action |= wm_handlers_do_intern(C, win, event, handlers);
 
           event->val = val;
           event->type = type;
@@ -3247,7 +3247,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
                 CLOG_INFO(WM_LOG_HANDLERS, 1, "handling CLICK");
 
-                action |= wm_handlers_do_intern(C, event, handlers);
+                action |= wm_handlers_do_intern(C, win, event, handlers);
 
                 event->val = KM_RELEASE;
                 event->x = x;
@@ -3259,7 +3259,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         else if (event->val == KM_DBL_CLICK) {
           /* The underlying event is a press, so try and handle this. */
           event->val = KM_PRESS;
-          action |= wm_handlers_do_intern(C, event, handlers);
+          action |= wm_handlers_do_intern(C, win, event, handlers);
 
           /* revert value if not handled */
           if (wm_action_not_handled(action)) {
@@ -4020,6 +4020,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap 
  * Follow #wmEventHandler_KeymapDynamicFn signature.
  */
 void WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
+                                                  wmWindow *win,
                                                   wmEventHandler_Keymap *handler,
                                                   wmEventHandler_KeymapResult *km_result)
 {
@@ -4028,7 +4029,13 @@ void WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
   const char *keymap_id_list[ARRAY_SIZE(km_result->keymaps)];
   int keymap_id_list_len = 0;
 
-  const Scene *scene = wm->winactive->scene;
+  /* NOTE(@campbellbarton): If `win` is NULL, this function may not behave as expected.
+   * Assert since this should not happen in practice.
+   * If it does, the window could be looked up in `wm` using the `area`.
+   * Keep NULL checks in run-time code since any crashes here are difficult to redo. */
+  BLI_assert_msg(win != NULL, "The window should always be set for tool interactions!");
+  const Scene *scene = win ? win->scene : NULL;
+
   ScrArea *area = handler->dynamic.user_data;
   handler->keymap_tool = NULL;
   bToolRef_Runtime *tref_rt = area->runtime.tool ? area->runtime.tool->runtime : NULL;
@@ -4041,7 +4048,7 @@ void WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
   bool is_gizmo_highlight = false;
 
   if ((tref_rt && tref_rt->keymap_fallback[0]) &&
-      (scene->toolsettings->workspace_tool_type == SCE_WORKSPACE_TOOL_FALLBACK)) {
+      (scene && (scene->toolsettings->workspace_tool_type == SCE_WORKSPACE_TOOL_FALLBACK))) {
     bool add_keymap = false;
     /* Support for the gizmo owning the tool keymap. */
 
@@ -4100,6 +4107,7 @@ void WM_event_get_keymap_from_toolsystem_fallback(wmWindowManager *wm,
 }
 
 void WM_event_get_keymap_from_toolsystem(wmWindowManager *wm,
+                                         wmWindow *UNUSED(win),
                                          wmEventHandler_Keymap *handler,
                                          wmEventHandler_KeymapResult *km_result)
 {
@@ -5257,11 +5265,12 @@ void WM_set_locked_interface(wmWindowManager *wm, bool lock)
  * \{ */
 
 void WM_event_get_keymaps_from_handler(wmWindowManager *wm,
+                                       wmWindow *win,
                                        wmEventHandler_Keymap *handler,
                                        wmEventHandler_KeymapResult *km_result)
 {
   if (handler->dynamic.keymap_fn != NULL) {
-    handler->dynamic.keymap_fn(wm, handler, km_result);
+    handler->dynamic.keymap_fn(wm, win, handler, km_result);
     BLI_assert(handler->keymap == NULL);
   }
   else {
@@ -5287,10 +5296,8 @@ wmKeyMapItem *WM_event_match_keymap_item(bContext *C, wmKeyMap *keymap, const wm
   return NULL;
 }
 
-wmKeyMapItem *WM_event_match_keymap_item_from_handlers(bContext *C,
-                                                       wmWindowManager *wm,
-                                                       ListBase *handlers,
-                                                       const wmEvent *event)
+wmKeyMapItem *WM_event_match_keymap_item_from_handlers(
+    bContext *C, wmWindowManager *wm, wmWindow *win, ListBase *handlers, const wmEvent *event)
 {
   LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
     /* During this loop, UI handlers for nested menus can tag multiple handlers free. */
@@ -5301,7 +5308,7 @@ wmKeyMapItem *WM_event_match_keymap_item_from_handlers(bContext *C,
       if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
         wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
         wmEventHandler_KeymapResult km_result;
-        WM_event_get_keymaps_from_handler(wm, handler, &km_result);
+        WM_event_get_keymaps_from_handler(wm, win, handler, &km_result);
         for (int km_index = 0; km_index < km_result.keymaps_len; km_index++) {
           wmKeyMap *keymap = km_result.keymaps[km_index];
           if (WM_keymap_poll(C, keymap)) {
@@ -5531,7 +5538,8 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
     wm_eventemulation(&test_event, true);
     wmKeyMapItem *kmi = NULL;
     for (int handler_index = 0; handler_index < ARRAY_SIZE(handlers); handler_index++) {
-      kmi = WM_event_match_keymap_item_from_handlers(C, wm, handlers[handler_index], &test_event);
+      kmi = WM_event_match_keymap_item_from_handlers(
+          C, wm, win, handlers[handler_index], &test_event);
       if (kmi) {
         break;
       }

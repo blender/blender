@@ -1390,6 +1390,8 @@ static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
 }
 
 static wmKeyMapItem *wm_keymap_item_find_handlers(const bContext *C,
+                                                  wmWindowManager *wm,
+                                                  wmWindow *win,
                                                   ListBase *handlers,
                                                   const char *opname,
                                                   int UNUSED(opcontext),
@@ -1398,14 +1400,12 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(const bContext *C,
                                                   const struct wmKeyMapItemFind_Params *params,
                                                   wmKeyMap **r_keymap)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
-
   /* find keymap item in handlers */
   LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
       wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
       wmEventHandler_KeymapResult km_result;
-      WM_event_get_keymaps_from_handler(wm, handler, &km_result);
+      WM_event_get_keymaps_from_handler(wm, win, handler, &km_result);
       for (int km_index = 0; km_index < km_result.keymaps_len; km_index++) {
         wmKeyMap *keymap = km_result.keymaps[km_index];
         if (WM_keymap_poll((bContext *)C, keymap)) {
@@ -1436,6 +1436,7 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
                                                const struct wmKeyMapItemFind_Params *params,
                                                wmKeyMap **r_keymap)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
@@ -1443,17 +1444,25 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
 
   /* look into multiple handler lists to find the item */
   if (win) {
-    found = wm_keymap_item_find_handlers(
-        C, &win->modalhandlers, opname, opcontext, properties, is_strict, params, r_keymap);
+    found = wm_keymap_item_find_handlers(C,
+                                         wm,
+                                         win,
+                                         &win->modalhandlers,
+                                         opname,
+                                         opcontext,
+                                         properties,
+                                         is_strict,
+                                         params,
+                                         r_keymap);
     if (found == NULL) {
       found = wm_keymap_item_find_handlers(
-          C, &win->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
+          C, wm, win, &win->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
     }
   }
 
   if (area && found == NULL) {
     found = wm_keymap_item_find_handlers(
-        C, &area->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
+        C, wm, win, &area->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
   }
 
   if (found == NULL) {
@@ -1464,8 +1473,16 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
         }
 
         if (region) {
-          found = wm_keymap_item_find_handlers(
-              C, &region->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
+          found = wm_keymap_item_find_handlers(C,
+                                               wm,
+                                               win,
+                                               &region->handlers,
+                                               opname,
+                                               opcontext,
+                                               properties,
+                                               is_strict,
+                                               params,
+                                               r_keymap);
         }
       }
     }
@@ -1475,8 +1492,16 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
       }
 
       if (region) {
-        found = wm_keymap_item_find_handlers(
-            C, &region->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
+        found = wm_keymap_item_find_handlers(C,
+                                             wm,
+                                             win,
+                                             &region->handlers,
+                                             opname,
+                                             opcontext,
+                                             properties,
+                                             is_strict,
+                                             params,
+                                             r_keymap);
       }
     }
     else if (ELEM(opcontext, WM_OP_EXEC_REGION_PREVIEW, WM_OP_INVOKE_REGION_PREVIEW)) {
@@ -1485,14 +1510,30 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
       }
 
       if (region) {
-        found = wm_keymap_item_find_handlers(
-            C, &region->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
+        found = wm_keymap_item_find_handlers(C,
+                                             wm,
+                                             win,
+                                             &region->handlers,
+                                             opname,
+                                             opcontext,
+                                             properties,
+                                             is_strict,
+                                             params,
+                                             r_keymap);
       }
     }
     else {
       if (region) {
-        found = wm_keymap_item_find_handlers(
-            C, &region->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
+        found = wm_keymap_item_find_handlers(C,
+                                             wm,
+                                             win,
+                                             &region->handlers,
+                                             opname,
+                                             opcontext,
+                                             properties,
+                                             is_strict,
+                                             params,
+                                             r_keymap);
       }
     }
   }

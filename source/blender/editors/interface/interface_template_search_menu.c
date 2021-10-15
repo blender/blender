@@ -351,7 +351,7 @@ static void menu_types_add_from_keymap_items(bContext *C,
       if (handler_base->poll == NULL || handler_base->poll(region, win->eventstate)) {
         wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
         wmEventHandler_KeymapResult km_result;
-        WM_event_get_keymaps_from_handler(wm, handler, &km_result);
+        WM_event_get_keymaps_from_handler(wm, win, handler, &km_result);
         for (int km_index = 0; km_index < km_result.keymaps_len; km_index++) {
           wmKeyMap *keymap = km_result.keymaps[km_index];
           if (keymap && WM_keymap_poll(C, keymap)) {
