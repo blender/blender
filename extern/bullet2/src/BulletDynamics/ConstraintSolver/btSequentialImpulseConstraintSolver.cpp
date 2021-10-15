@@ -1964,7 +1964,7 @@ btScalar btSequentialImpulseConstraintSolver::solveGroupCacheFriendlyFinish(btCo
 			btSolverBody *body1 = &m_tmpSolverBodyPool[solveManifold.m_solverBodyIdA];
 			btSolverBody *body2 = &m_tmpSolverBodyPool[solveManifold.m_solverBodyIdB];
 			btVector3 vec_pos;
-			vec_pos = body2->m_worldTransform.getOrigin() - body1->m_worldTransform.getOrigin();
+			vec_pos = body1->m_worldTransform.getOrigin() - body2->m_worldTransform.getOrigin();
 			if (pt->m_appliedImpulse > 0)
 			{
 				if (body1->m_originalBody) {
@@ -1981,7 +1981,7 @@ btScalar btSequentialImpulseConstraintSolver::solveGroupCacheFriendlyFinish(btCo
 				if (body2->m_originalBody) {
 					body2->m_originalBody->setRigidbodyId(solveManifold.m_solverBodyIdB);
 					body2->m_originalBody->addNumContacts();
-					body2->m_originalBody->setForceChains(pt->m_appliedImpulse / infoGlobal.m_timeStep, solveManifold.m_solverBodyIdA, solveManifold.m_contactNormal2, vec_pos);
+					body2->m_originalBody->setForceChains(pt->m_appliedImpulse / infoGlobal.m_timeStep, solveManifold.m_solverBodyIdA, solveManifold.m_contactNormal2, -vec_pos);
 
 
 				}
