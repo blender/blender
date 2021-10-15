@@ -87,9 +87,8 @@ static TransData *SeqToTransData(const Scene *scene,
 
   unit_m3(td->mtx);
   unit_m3(td->smtx);
-  unit_m3(td->axismtx);
 
-  rotate_m3(td->axismtx, transform->rotation);
+  axis_angle_to_mat3_single(td->axismtx, 'Z', transform->rotation);
   normalize_m3(td->axismtx);
 
   tdseq->seq = seq;

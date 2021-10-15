@@ -609,8 +609,7 @@ short transform_orientation_matrix_get(bContext *C,
     Scene *scene = t->scene;
     Sequence *seq = SEQ_select_active_get(scene);
     if (seq && seq->strip->transform && orient_index == V3D_ORIENT_LOCAL) {
-      unit_m3(r_spacemtx);
-      rotate_m3(r_spacemtx, seq->strip->transform->rotation);
+      axis_angle_to_mat3_single(r_spacemtx, 'Z', seq->strip->transform->rotation);
       return orient_index;
     }
   }

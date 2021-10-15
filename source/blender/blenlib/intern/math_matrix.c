@@ -2338,29 +2338,11 @@ void scale_m4_fl(float R[4][4], float scale)
   R[3][0] = R[3][1] = R[3][2] = 0.0;
 }
 
-void translate_m3(float mat[3][3], float tx, float ty)
-{
-  mat[2][0] += (tx * mat[0][0] + ty * mat[1][0]);
-  mat[2][1] += (tx * mat[0][1] + ty * mat[1][1]);
-}
-
 void translate_m4(float mat[4][4], float Tx, float Ty, float Tz)
 {
   mat[3][0] += (Tx * mat[0][0] + Ty * mat[1][0] + Tz * mat[2][0]);
   mat[3][1] += (Tx * mat[0][1] + Ty * mat[1][1] + Tz * mat[2][1]);
   mat[3][2] += (Tx * mat[0][2] + Ty * mat[1][2] + Tz * mat[2][2]);
-}
-
-void rotate_m3(float mat[3][3], const float angle)
-{
-  const float angle_cos = cosf(angle);
-  const float angle_sin = sinf(angle);
-
-  for (int col = 0; col < 3; col++) {
-    float temp = angle_cos * mat[0][col] + angle_sin * mat[1][col];
-    mat[1][col] = -angle_sin * mat[0][col] + angle_cos * mat[1][col];
-    mat[0][col] = temp;
-  }
 }
 
 /* TODO: enum for axis? */
@@ -2408,12 +2390,6 @@ void rotate_m4(float mat[4][4], const char axis, const float angle)
   }
 }
 
-void rescale_m3(float mat[3][3], const float scale[2])
-{
-  mul_v3_fl(mat[0], scale[0]);
-  mul_v3_fl(mat[1], scale[1]);
-}
-
 /** Scale a matrix in-place. */
 void rescale_m4(float mat[4][4], const float scale[3])
 {
@@ -2442,20 +2418,6 @@ void transform_pivot_set_m4(float mat[4][4], const float pivot[3])
   /* invert the matrix */
   negate_v3(tmat[3]);
   mul_m4_m4m4(mat, mat, tmat);
-}
-
-void transform_pivot_set_m3(float mat[3][3], const float pivot[2])
-{
-  float tmat[3][3];
-
-  unit_m3(tmat);
-
-  copy_v2_v2(tmat[2], pivot);
-  mul_m3_m3m3(mat, tmat, mat);
-
-  /* invert the matrix */
-  negate_v2(tmat[2]);
-  mul_m3_m3m3(mat, mat, tmat);
 }
 
 void blend_m3_m3m3(float out[3][3],
@@ -2635,21 +2597,6 @@ bool equals_m4m4(const float mat1[4][4], const float mat2[4][4])
 {
   return (equals_v4v4(mat1[0], mat2[0]) && equals_v4v4(mat1[1], mat2[1]) &&
           equals_v4v4(mat1[2], mat2[2]) && equals_v4v4(mat1[3], mat2[3]));
-}
-
-/**
- * Make a 3x3 matrix out of 3 transform components.
- * Matrices are made in the order: `loc * rot * scale`
- */
-void loc_rot_size_to_mat3(float R[3][3],
-                          const float loc[2],
-                          const float angle,
-                          const float size[2])
-{
-  unit_m3(R);
-  translate_m3(R, loc[0], loc[1]);
-  rotate_m3(R, angle);
-  rescale_m3(R, size);
 }
 
 /**

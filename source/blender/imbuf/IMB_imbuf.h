@@ -758,7 +758,7 @@ void IMB_processor_apply_threaded_scanlines(int total_scanlines,
 
 void IMB_transform(struct ImBuf *src,
                    struct ImBuf *dst,
-                   float transform_matrix[3][3],
+                   float transform_matrix[4][4],
                    struct rctf *src_crop,
                    const eIMBInterpolationFilterMode filter);
 

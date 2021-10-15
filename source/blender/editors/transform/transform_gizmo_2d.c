@@ -652,7 +652,6 @@ static void gizmo2d_xform_invoke_prepare(const bContext *C,
   float c[3] = {mid[0], mid[1], 0.0f};
 
   float orient_matrix[3][3];
-  unit_m3(orient_matrix);
 
   ScrArea *area = CTX_wm_area(C);
 
@@ -673,7 +672,7 @@ static void gizmo2d_xform_invoke_prepare(const bContext *C,
 
     rotate_around_center_v2(c, origin, ggd->rotation);
 
-    rotate_m3(orient_matrix, ggd->rotation);
+    axis_angle_to_mat3_single(orient_matrix, 'Z', ggd->rotation);
   }
 
   int orient_type = gizmo2d_calc_transform_orientation(C);

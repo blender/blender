@@ -374,36 +374,39 @@ typedef struct TransformUserData {
   rctf src_crop;
 } TransformUserData;
 
-static void imb_transform_calc_start_uv(const float transform_matrix[3][3], float r_start_uv[2])
+static void imb_transform_calc_start_uv(const float transform_matrix[4][4], float r_start_uv[2])
 {
-  float orig[2];
-  orig[0] = 0.0f;
-  orig[1] = 0.0f;
-  mul_v2_m3v2(r_start_uv, transform_matrix, orig);
+  float r_start_uv_temp[3];
+  float orig[3];
+  zero_v3(orig);
+  mul_v3_m4v3(r_start_uv_temp, transform_matrix, orig);
+  copy_v2_v2(r_start_uv, r_start_uv_temp);
 }
 
-static void imb_transform_calc_add_x(const float transform_matrix[3][3],
+static void imb_transform_calc_add_x(const float transform_matrix[4][4],
                                      const float start_uv[2],
                                      const int width,
                                      float r_add_x[2])
 {
-  float uv_max_x[2];
+  float uv_max_x[3];
+  zero_v3(uv_max_x);
   uv_max_x[0] = width;
   uv_max_x[1] = 0.0f;
-  mul_v2_m3v2(r_add_x, transform_matrix, uv_max_x);
+  mul_v3_m4v3(r_add_x, transform_matrix, uv_max_x);
   sub_v2_v2(r_add_x, start_uv);
   mul_v2_fl(r_add_x, 1.0f / width);
 }
 
-static void imb_transform_calc_add_y(const float transform_matrix[3][3],
+static void imb_transform_calc_add_y(const float transform_matrix[4][4],
                                      const float start_uv[2],
                                      const int height,
                                      float r_add_y[2])
 {
-  float uv_max_y[2];
+  float uv_max_y[3];
+  zero_v3(uv_max_y);
   uv_max_y[0] = 0.0f;
   uv_max_y[1] = height;
-  mul_v2_m3v2(r_add_y, transform_matrix, uv_max_y);
+  mul_v3_m4v3(r_add_y, transform_matrix, uv_max_y);
   sub_v2_v2(r_add_y, start_uv);
   mul_v2_fl(r_add_y, 1.0f / height);
 }
@@ -480,7 +483,7 @@ static ScanlineThreadFunc imb_transform_scanline_func(const eIMBInterpolationFil
 
 void IMB_transform(struct ImBuf *src,
                    struct ImBuf *dst,
-                   float transform_matrix[3][3],
+                   float transform_matrix[4][4],
                    struct rctf *src_crop,
                    const eIMBInterpolationFilterMode filter)
 {
