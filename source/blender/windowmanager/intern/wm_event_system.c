@@ -4724,6 +4724,7 @@ static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
    * them for better performance. */
   if (event_last && event_last->type == MOUSEMOVE) {
     event_last->type = INBETWEEN_MOUSEMOVE;
+    event_last->is_repeat = false;
   }
 
   wmEvent *event_new = wm_event_add(win, event);
