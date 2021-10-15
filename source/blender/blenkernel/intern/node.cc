@@ -4858,6 +4858,9 @@ static void propagate_field_status_from_left_to_right(
         case OutputSocketFieldType::DependentField: {
           for (const InputSocketRef *input_socket :
                gather_input_socket_dependencies(field_dependency, *node)) {
+            if (!input_socket->is_available()) {
+              continue;
+            }
             if (!field_state_by_socket_id[input_socket->id()].is_single) {
               state.is_single = false;
               break;
