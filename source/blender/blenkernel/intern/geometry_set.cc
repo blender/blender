@@ -145,8 +145,10 @@ GeometryComponent &GeometrySet::get_component_for_write(GeometryComponentType co
  */
 GeometryComponent *GeometrySet::get_component_ptr(GeometryComponentType type)
 {
-  GeometryComponentPtr *component_ptr = components_.lookup_ptr(type);
-  return component_ptr == nullptr ? nullptr : component_ptr->get();
+  if (this->has(type)) {
+    return &this->get_component_for_write(type);
+  }
+  return nullptr;
 }
 
 /* Get the component of the given type. Might return null if the component does not exist yet. */
