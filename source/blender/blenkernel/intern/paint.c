@@ -1855,13 +1855,47 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   }
 
   BKE_sculptsession_check_mdyntopo(ob->sculpt, pbvh, totvert);
+
   if (ss->bm && me->key && ob->shapenr != ss->bm->shapenr) {
     KeyBlock *actkey = BLI_findlink(&me->key->block, ss->bm->shapenr - 1);
     KeyBlock *newkey = BLI_findlink(&me->key->block, ob->shapenr - 1);
 
+    bool updatePBVH = false;
+
     if (!actkey) {
       printf("%s: failed to find active shapekey\n", __func__);
+      if (!ss->bm->shapenr || !CustomData_has_layer(&ss->bm->vdata, CD_SHAPEKEY)) {
+        printf("allocating shapekeys. . .\n");
+
+        // need to allocate customdata for keys
+        for (KeyBlock *key = (KeyBlock *)me->key->block.first; key; key = key->next) {
+
+          int idx = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, key->name);
+
+          if (idx == -1) {
+            BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_SHAPEKEY, key->name);
+            SCULPT_update_customdata_refs(ss);
+
+            idx = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, key->name);
+            ss->bm->vdata.layers[idx].uid = key->uid;
+          }
+
+          int cd_shapeco = ss->bm->vdata.layers[idx].offset;
+          BMVert *v;
+          BMIter iter;
+
+          BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+            float *keyco = BM_ELEM_CD_GET_VOID_P(v, cd_shapeco);
+
+            copy_v3_v3(keyco, v->co);
+          }
+        }
+      }
+
+      updatePBVH = true;
+      ss->bm->shapenr = ob->shapenr;
     }
+
     if (!newkey) {
       printf("%s: failed to find new active shapekey\n", __func__);
     }
@@ -1870,21 +1904,35 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       int cd_co1 = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, actkey->name);
       int cd_co2 = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, newkey->name);
 
+      BMVert *v;
+      BMIter iter;
+
       if (cd_co1 == -1) {  // non-recoverable error
         printf("%s: failed to find active shapekey in customdata.\n", __func__);
         return;
       }
       else if (cd_co2 == -1) {
+        printf("%s: failed to find new shapekey in customdata; allocating . . .\n", __func__);
+
         BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_SHAPEKEY, newkey->name);
-        cd_co2 = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, newkey->name);
+        int idx = CustomData_get_named_layer_index(&ss->bm->vdata, CD_SHAPEKEY, newkey->name);
+
+        int cd_co = ss->bm->vdata.layers[idx].offset;
+        ss->bm->vdata.layers[idx].uid = newkey->uid;
+
         SCULPT_update_customdata_refs(ss);
+
+        BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+          float *keyco = BM_ELEM_CD_GET_VOID_P(v, cd_co);
+          copy_v3_v3(keyco, v->co);
+        }
+
+        cd_co2 = idx;
       }
 
       cd_co1 = ss->bm->vdata.layers[cd_co1].offset;
       cd_co2 = ss->bm->vdata.layers[cd_co2].offset;
 
-      BMVert *v;
-      BMIter iter;
       BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
         float *co1 = BM_ELEM_CD_GET_VOID_P(v, cd_co1);
         float *co2 = BM_ELEM_CD_GET_VOID_P(v, cd_co2);
@@ -1895,15 +1943,17 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
       ss->bm->shapenr = ob->shapenr;
 
-      if (ss->pbvh) {
-        PBVHNode **nodes;
-        int totnode;
-        BKE_pbvh_get_nodes(ss->pbvh, PBVH_Leaf, &nodes, &totnode);
+      updatePBVH = true;
+    }
 
-        for (int i = 0; i < totnode; i++) {
-          BKE_pbvh_node_mark_update(nodes[i]);
-          BKE_pbvh_node_mark_update_tri_area(nodes[i]);
-        }
+    if (updatePBVH && ss->pbvh) {
+      PBVHNode **nodes;
+      int totnode;
+      BKE_pbvh_get_nodes(ss->pbvh, PBVH_Leaf, &nodes, &totnode);
+
+      for (int i = 0; i < totnode; i++) {
+        BKE_pbvh_node_mark_update(nodes[i]);
+        BKE_pbvh_node_mark_update_tri_area(nodes[i]);
       }
     }
   }
