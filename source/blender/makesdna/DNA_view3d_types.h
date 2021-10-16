@@ -501,16 +501,14 @@ enum {
 };
 
 #define V3D_USES_SCENE_LIGHTS(v3d) \
-  ((v3d) && \
-   ((((v3d)->shading.type == OB_MATERIAL) && ((v3d)->shading.flag & V3D_SHADING_SCENE_LIGHTS)) || \
-    (((v3d)->shading.type == OB_RENDER) && \
-     ((v3d)->shading.flag & V3D_SHADING_SCENE_LIGHTS_RENDER))))
+  ((((v3d)->shading.type == OB_MATERIAL) && ((v3d)->shading.flag & V3D_SHADING_SCENE_LIGHTS)) || \
+   (((v3d)->shading.type == OB_RENDER) && \
+    ((v3d)->shading.flag & V3D_SHADING_SCENE_LIGHTS_RENDER)))
 
 #define V3D_USES_SCENE_WORLD(v3d) \
-  ((v3d) && \
-   ((((v3d)->shading.type == OB_MATERIAL) && ((v3d)->shading.flag & V3D_SHADING_SCENE_WORLD)) || \
-    (((v3d)->shading.type == OB_RENDER) && \
-     ((v3d)->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER))))
+  ((((v3d)->shading.type == OB_MATERIAL) && ((v3d)->shading.flag & V3D_SHADING_SCENE_WORLD)) || \
+   (((v3d)->shading.type == OB_RENDER) && \
+    ((v3d)->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER)))
 
 /** #View3DShading.cavity_type */
 enum {
