@@ -1632,6 +1632,13 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_unode_init(&orig_data, ob, unode);
 
+  int totvert, allvert;
+  BKE_pbvh_node_num_verts(ss->pbvh, unode->node, &totvert, &allvert);
+
+  if (ss->deform_modifiers_active && !unode->orig_co) {
+    unode->orig_co = MEM_malloc_arrayN(allvert, sizeof(float) * 3, "sculpt unode undo coords");
+  }
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, unode->node, vd, PBVH_ITER_ALL) {
     copy_v3_v3(unode->co[vd.i], vd.co);
     if (vd.no) {

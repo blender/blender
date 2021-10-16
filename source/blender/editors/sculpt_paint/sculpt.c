@@ -2986,16 +2986,13 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, Scul
 
   memset(data, 0, sizeof(*data));
   data->unode = unode;
+  data->datatype = unode ? unode->type : SCULPT_UNDO_COORDS;
 
   data->pbvh = ss->pbvh;
   data->ss = ss;
 
   if (bm) {
     data->bm_log = ss->bm_log;
-  }
-
-  else {
-    // data->datatype = data->unode->type;
   }
 }
 
