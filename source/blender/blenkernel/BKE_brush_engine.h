@@ -104,6 +104,7 @@ typedef struct BrushMappingDef {
   bool inv;
   float min, max;
   int blendmode;
+  float func_cutoff;
   float factor;  // if 0, will default to 1.0
   bool no_default;
 } BrushMappingDef;

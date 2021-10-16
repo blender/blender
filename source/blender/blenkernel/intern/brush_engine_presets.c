@@ -1675,6 +1675,7 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       GETCH(slide_deform_type)->ivalue = BRUSH_SLIDE_DEFORM_DRAG;
       break;
     case SCULPT_TOOL_PAINT: {
+      BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       BRUSHSET_SET_BOOL(chset, dyntopo_disabled, true);
       BRUSHSET_SET_FLOAT(chset, hardness, 0.4f);
       BRUSHSET_SET_FLOAT(chset, spacing, 10.0f);

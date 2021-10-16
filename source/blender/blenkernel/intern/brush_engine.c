@@ -449,6 +449,7 @@ void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
     mp->blendmode = !mdef->no_default ? MA_RAMP_MULT : mdef->blendmode;
     mp->factor = mdef->factor == 0.0f ? 1.0f : mdef->factor;
     mp->premultiply = 1.0f;
+    mp->func_cutoff = mdef->func_cutoff != 0.0f ? mdef->func_cutoff : 0.5f;
 
     if (i == BRUSH_MAPPING_STROKE_T) {
       mp->mapfunc = BRUSH_MAPFUNC_COS;
@@ -956,10 +957,6 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
       switch ((BrushMappingFunc)mp->mapfunc) {
         case BRUSH_MAPFUNC_NONE:
           break;
-        case BRUSH_MAPFUNC_SQUARE:
-          inputf -= floorf(inputf);
-          inputf = (float)(inputf > 0.5f);
-          break;
         case BRUSH_MAPFUNC_SAW:
           inputf -= floorf(inputf);
           break;
@@ -976,7 +973,11 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
             user confusion we just do it here instead of making
             them check the inverse checkbox.*/
           inputf = 1.0f - inputf;
-          CLAMP(inputf, 0.0f, 1.0f);
+          CLAMP(inputf, 0.0f, mp->func_cutoff * 2.0f);
+          break;
+        case BRUSH_MAPFUNC_SQUARE:
+          inputf -= floorf(inputf);
+          inputf = inputf > mp->func_cutoff ? 1.0f : 0.0f;  //(float)(inputf > 0.5f);
           break;
         default:
           break;
@@ -1812,11 +1813,15 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
         mp->premultiply = 1.0f;
       }
 
+      if (mp->func_cutoff == 0.0f) {
+        mp->func_cutoff = 0.5f;
+      }
+
       if (mp->factor == 0.0f) {
         mp->factor = 1.0f;
       }
 
-      if (mp->min == mp->max == 0.0f) {
+      if (mp->min == mp->max) {
         mp->max = 1.0f;
       }
 

@@ -575,6 +575,9 @@ class UnifiedPaintPanel:
                         row.prop(mp, "premultiply")
                         row.prop(mp, "mapfunc")
 
+                        if mp.mapfunc in ("SQUARE", "CUTOFF"):
+                            col.prop(mp, "func_cutoff")
+
                         col.label(text="Output Mapping")
                         row = col.row()
                         row.prop(mp, "min")

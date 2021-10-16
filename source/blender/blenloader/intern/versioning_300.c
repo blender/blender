@@ -1949,6 +1949,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             ch->mappings[i].blendmode = MA_RAMP_MULT;
           }
 
+          ch->mappings[i].func_cutoff = 0.5f;
+
           if (ch->mappings[i].min == ch->mappings[i].max) {
             ch->mappings[i].min = 0.0f;
             ch->mappings[i].max = 1.0f;
@@ -1969,6 +1971,10 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         continue;
       }
 
+      if (brush->sculpt_tool == SCULPT_TOOL_PAINT) {
+        BRUSHSET_SET_BOOL(brush->channels, use_space_attenuation, false);
+      }
+
       LISTBASE_FOREACH (BrushChannel *, ch, &brush->channels->channels) {
         for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
           ch->mappings[i].premultiply = 1.0f;
@@ -1976,6 +1982,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
         BrushMapping *mp = ch->mappings + BRUSH_MAPPING_STROKE_T;
 
+        mp->func_cutoff = 0.5f;
         mp->blendmode = MA_RAMP_MULT;
         mp->max = 1.0f;
         mp->mapfunc = BRUSH_MAPFUNC_COS;

@@ -42,6 +42,8 @@ typedef struct BrushMapping {
   float min, max;
   float premultiply;  // premultiply input data
   int mapfunc;
+  float func_cutoff;
+  int _pad[1];
 } BrushMapping;
 
 typedef struct BrushCurve {

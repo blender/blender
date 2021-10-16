@@ -672,6 +672,12 @@ void RNA_def_brush_mapping(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Pre-Multiply", "Multiply input data by this amount");
 
+  prop = RNA_def_property(srna, "func_cutoff", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, "BrushMapping", "func_cutoff");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Cutoff", "Cutoff for square and cutoff modes");
+
   prop = RNA_def_property(srna, "min", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, "BrushMapping", "min");
   RNA_def_property_range(prop, -100000, 100000);
