@@ -97,6 +97,10 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
     GeometryComponentFieldContext field_context{mesh_component, domain};
     const int domain_size = mesh_component.attribute_domain_size(domain);
 
+    if (domain_size == 0) {
+      return;
+    }
+
     FieldEvaluator evaluator(field_context, domain_size);
     evaluator.add(crease_field);
     evaluator.evaluate();
