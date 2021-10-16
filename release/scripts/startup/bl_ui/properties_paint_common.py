@@ -552,12 +552,17 @@ class UnifiedPaintPanel:
                     row2.prop(mp0, "ui_expanded", text="", icon="TRIA_DOWN" if mp.ui_expanded else "TRIA_RIGHT")
 
                     if mp0.ui_expanded:
-                        layout.template_curve_mapping(mp, "curve", brush=True)
+                        #XXX why do I have to feed use_negative_slope as true here?
+                        layout.template_curve_mapping(mp, "curve", brush=True, use_negative_slope=True)
 
                         col = layout.column(align=True)
                         row = col.row(align=True)
 
-                        path2 = path + ".mappings[\"%s\"].curve" % (mp.type)
+                        if mp0.inherit or toolsettings_only:
+                            path2 = path + ".mappings[\"%s\"].curve" % (mp.type)
+                        else:
+                            brushpath = "tool_settings.sculpt.brush.channels[\"%s\"]" % ch.idname
+                            path2 = brushpath + ".mappings[\"%s\"].curve" % (mp.type)
 
                         shapes = ['SMOOTH', 'ROUND', 'ROOT', 'SHARP', 'LINE', 'MAX']
                         icons = ['SMOOTHCURVE', 'SPHERECURVE', 'ROOTCURVE', 'SHARPCURVE', 'LINCURVE', 'NOCURVE']
@@ -1012,7 +1017,7 @@ class FalloffPanel(BrushPanel):
         row.prop(brush, "curve_preset", text="")
 
         if brush.curve_preset == 'CUSTOM':
-            layout.template_curve_mapping(brush, "curve", brush=True)
+            layout.template_curve_mapping(brush, "curve", brush=True, use_negative_slope=False)
 
             col = layout.column(align=True)
             row = col.row(align=True)
