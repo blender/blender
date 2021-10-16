@@ -110,11 +110,11 @@ typedef struct BrushMappingDef {
 
 typedef struct BrushMappingPreset {
   // must match order of BRUSH_MAPPING_XXX enums
-  struct BrushMappingDef pressure, xtilt, ytilt, angle, speed, random;
+  struct BrushMappingDef pressure, xtilt, ytilt, angle, speed, random, stroke_t;
 } BrushMappingPreset;
 
 typedef struct BrushMappingData {
-  float pressure, xtilt, ytilt, angle, speed, random;
+  float pressure, xtilt, ytilt, angle, speed, random, stroke_t;
 } BrushMappingData;
 
 #define MAX_BRUSH_ENUM_DEF 32

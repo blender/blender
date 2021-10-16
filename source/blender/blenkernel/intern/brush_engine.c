@@ -448,6 +448,11 @@ void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
 
     mp->blendmode = !mdef->no_default ? MA_RAMP_MULT : mdef->blendmode;
     mp->factor = mdef->factor == 0.0f ? 1.0f : mdef->factor;
+    mp->premultiply = 1.0f;
+
+    if (i == BRUSH_MAPPING_STROKE_T) {
+      mp->mapfunc = BRUSH_MAPFUNC_COS;
+    }
 
     if (mdef->enabled) {
       mp->flag |= BRUSH_MAPPING_ENABLED;
@@ -946,10 +951,39 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
         continue;
       }
 
-      float inputf = ((float *)mapdata)[i];
+      float inputf = ((float *)mapdata)[i] * mp->premultiply;
+
+      switch ((BrushMappingFunc)mp->mapfunc) {
+        case BRUSH_MAPFUNC_NONE:
+          break;
+        case BRUSH_MAPFUNC_SQUARE:
+          inputf -= floorf(inputf);
+          inputf = (float)(inputf > 0.5f);
+          break;
+        case BRUSH_MAPFUNC_SAW:
+          inputf -= floorf(inputf);
+          break;
+        case BRUSH_MAPFUNC_TENT:
+          inputf -= floorf(inputf);
+          inputf = 1.0f - fabs(inputf - 0.5f) * 2.0f;
+          break;
+        case BRUSH_MAPFUNC_COS:
+          inputf = 1.0f - (cos(inputf * (float)M_PI * 2.0f) * 0.5f + 0.5f);
+          break;
+        case BRUSH_MAPFUNC_CUTOFF:
+          /*Cutoff is meant to create a fadeout effect,
+            which requires inverting the input.  To avoid
+            user confusion we just do it here instead of making
+            them check the inverse checkbox.*/
+          inputf = 1.0f - inputf;
+          CLAMP(inputf, 0.0f, 1.0f);
+          break;
+        default:
+          break;
+      }
 
       if (mp->flag & BRUSH_MAPPING_INVERT) {
-        inputf = 1.0 - inputf;
+        inputf = 1.0f - inputf;
       }
 
       double f2 = (float)BKE_curvemapping_evaluateF(mp->curve, 0, inputf);
@@ -1774,6 +1808,14 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
 
       CurveMapping *curve = mp->curve;
 
+      if (mp->premultiply == 0.0f) {
+        mp->premultiply = 1.0f;
+      }
+
+      if (mp->factor == 0.0f) {
+        mp->factor = 1.0f;
+      }
+
       if (mp->min == mp->max == 0.0f) {
         mp->max = 1.0f;
       }
@@ -1846,6 +1888,8 @@ const char *BKE_brush_mapping_type_to_str(BrushMappingType mapping)
       return "Y Tilt";
     case BRUSH_MAPPING_RANDOM:
       return "Random";
+    case BRUSH_MAPPING_STROKE_T:
+      return "Distance";
     case BRUSH_MAPPING_MAX:
       return "Error";
   }
@@ -1868,6 +1912,8 @@ const char *BKE_brush_mapping_type_to_typename(BrushMappingType mapping)
       return "YTILT";
     case BRUSH_MAPPING_RANDOM:
       return "RANDOM";
+    case BRUSH_MAPPING_STROKE_T:
+      return "DISTANCE";
     case BRUSH_MAPPING_MAX:
       return "Error";
   }

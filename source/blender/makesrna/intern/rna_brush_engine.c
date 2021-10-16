@@ -647,6 +647,7 @@ static EnumPropertyItem mapping_type_items[] = {
     {BRUSH_MAPPING_ANGLE, "ANGLE", ICON_NONE, "Angle"},
     {BRUSH_MAPPING_SPEED, "SPEED", ICON_NONE, "Speed"},
     {BRUSH_MAPPING_RANDOM, "RANDOM", ICON_NONE, "Random"},
+    {BRUSH_MAPPING_STROKE_T, "DISTANCE", ICON_NONE, "Distance"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -663,6 +664,13 @@ void RNA_def_brush_mapping(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, "BrushMapping", "factor");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Factor", "Mapping factor");
+
+  prop = RNA_def_property(srna, "premultiply", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, "BrushMapping", "premultiply");
+  RNA_def_property_range(prop, -100000, 100000);
+  RNA_def_property_ui_range(prop, -100, 100, 0.01, 3);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Pre-Multiply", "Multiply input data by this amount");
 
   prop = RNA_def_property(srna, "min", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, "BrushMapping", "min");
@@ -722,6 +730,20 @@ void RNA_def_brush_mapping(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, blend_items);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Blend Mode", "Input mapping blend mode");
+
+  static EnumPropertyItem mapfunc_items[] = {
+      {BRUSH_MAPFUNC_NONE, "NONE", ICON_NONE, "None", "Pass data through unmodified"},
+      {BRUSH_MAPFUNC_SQUARE, "SQUARE", ICON_NONE, "Square", "Square wave"},
+      {BRUSH_MAPFUNC_SAW, "SAW", ICON_NONE, "Saw", "Sawtooth wave"},
+      {BRUSH_MAPFUNC_TENT, "TENT", ICON_NONE, "Tent", "Tent wave"},
+      {BRUSH_MAPFUNC_COS, "COS", ICON_NONE, "Cos", "Cosine wave"},
+      {BRUSH_MAPFUNC_CUTOFF, "CUTOFF", ICON_NONE, "Cutoff", "Inverts data and cuts off at 1.0"},
+      {0, NULL, 0, NULL, NULL}};
+
+  prop = RNA_def_property(srna, "mapfunc", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, mapfunc_items);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Function", "Input data function");
 
   prop = RNA_def_property(srna, "ui_expanded", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushMapping", "flag", BRUSH_MAPPING_UI_EXPANDED);

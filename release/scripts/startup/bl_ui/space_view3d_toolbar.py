@@ -1144,7 +1144,12 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         ch = UnifiedPaintPanel.get_channel(context, brush, "dyntopo_mode")
 
         col2.use_property_split = False
-        col2.prop_enum(ch, "flags_value", "CLEANUP", icon="CHECKBOX_HLT" if "CLEANUP" in ch.flags_value else "CHECKBOX_DEHLT")
+        row2 = col2.row()
+        row2.prop_enum(ch, "flags_value", "CLEANUP", icon="CHECKBOX_HLT" if "CLEANUP" in ch.flags_value else "CHECKBOX_DEHLT")
+
+        row3 = row2.row()
+        row3.enabled = "COLLAPSE" not in ch.flags_value
+        row3.prop_enum(ch, "flags_value", "LOCAL_COLLAPSE", icon="CHECKBOX_HLT" if "LOCAL_COLLAPSE" in ch.flags_value else "CHECKBOX_DEHLT")
 
         """
         UnifiedPaintPanel.channel_unified(
@@ -1250,7 +1255,20 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
             brush,
             "smooth_strength_projection", ui_editing=False, slider=True)
 
-        #col.prop(sculpt, "smooth_strength_factor")
+        """
+        smoothbrush = None
+
+        for ts in sculpt.tool_slots:
+            if ts.brush and ts.brush.sculpt_tool == "SMOOTH":
+                smoothbrush = ts.brush
+                break
+
+        if smoothbrush:
+            UnifiedPaintPanel.channel_unified(layout.column(),
+                context,
+                smoothbrush,
+                "dyntopo_disabled", ui_editing=False, text="Disable Dyntopo For Smooth")
+        """
 
         col.separator()
 

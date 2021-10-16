@@ -569,6 +569,13 @@ class UnifiedPaintPanel:
 
                         col.prop(mp, "factor")
                         col.prop(mp, "blendmode")
+
+                        col.label(text="Input Mapping")
+                        row = col.row()
+                        row.prop(mp, "premultiply")
+                        row.prop(mp, "mapfunc")
+
+                        col.label(text="Output Mapping")
                         row = col.row()
                         row.prop(mp, "min")
                         row.prop(mp, "max")

@@ -40,6 +40,8 @@ typedef struct BrushMapping {
   int flag, type;
 
   float min, max;
+  float premultiply;  // premultiply input data
+  int mapfunc;
 } BrushMapping;
 
 typedef struct BrushCurve {
@@ -61,7 +63,7 @@ typedef struct BrushChannel {
   float vector[4];
   BrushCurve curve;
 
-  BrushMapping mappings[6];  // should always be BRUSH_MAPPING_MAX
+  BrushMapping mappings[7];  // should always be BRUSH_MAPPING_MAX
 
   short type, ui_order;
   int flag;
@@ -83,6 +85,16 @@ enum {
   BRUSH_MAPPING_INHERIT = 1 << 3,  // inherit mapping even if channel overall is not inherited
 };
 
+// BrushMapping->mapfunc
+typedef enum {
+  BRUSH_MAPFUNC_NONE,
+  BRUSH_MAPFUNC_SAW,
+  BRUSH_MAPFUNC_TENT,
+  BRUSH_MAPFUNC_COS,
+  BRUSH_MAPFUNC_CUTOFF,
+  BRUSH_MAPFUNC_SQUARE,
+} BrushMappingFunc;
+
 // mapping types
 typedef enum {
   BRUSH_MAPPING_PRESSURE = 0,
@@ -91,7 +103,8 @@ typedef enum {
   BRUSH_MAPPING_ANGLE = 3,
   BRUSH_MAPPING_SPEED = 4,
   BRUSH_MAPPING_RANDOM = 5,
-  BRUSH_MAPPING_MAX = 6  // see BrushChannel.mappings
+  BRUSH_MAPPING_STROKE_T = 6,
+  BRUSH_MAPPING_MAX = 7  // see BrushChannel.mappings
 } BrushMappingType;
 
 #ifndef __GNUC__

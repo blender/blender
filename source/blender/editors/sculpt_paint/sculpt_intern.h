@@ -1187,6 +1187,7 @@ bool SCULPT_pbvh_calc_area_normal(const struct Brush *brush,
  */
 
 #define SCULPT_CLAY_STABILIZER_LEN 10
+#define SCULPT_SPEED_MA_SIZE 4
 
 typedef struct AutomaskingSettings {
   /* Flags from eAutomasking_flag. */
@@ -1399,6 +1400,9 @@ typedef struct StrokeCache {
   bool use_plane_trim;
 
   struct NeighborCache *ncache;
+  float speed_avg[SCULPT_SPEED_MA_SIZE];  // moving average for speed
+  int speed_avg_cur;
+  double last_speed_time;
 } StrokeCache;
 
 /* Sculpt Filters */

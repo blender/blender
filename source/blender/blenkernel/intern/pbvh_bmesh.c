@@ -1901,6 +1901,11 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
     BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
     BMLoop *l_iter = l_first;
 
+    // check for currupted faceset
+    if (BM_ELEM_CD_GET_INT(f, pbvh->cd_faceset_offset) == 0) {
+      BM_ELEM_CD_SET_INT(f, pbvh->cd_faceset_offset, 1);
+    }
+
     BB_reset((BB *)bbc);
     do {
       BB_expand((BB *)bbc, l_iter->v->co);
@@ -3119,11 +3124,11 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
       /* use higher threshold for the root node and its immediate children */
       switch (BLI_array_len(stack)) {
         case 0:
-          factor = 0.75;
+          factor = 0.5;
           break;
         case 1:
         case 2:
-          factor = 0.5;
+          factor = 0.2;
           break;
         default:
           factor = 0.2;
@@ -3138,7 +3143,12 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
       printf("factor: %.3f\n", factor);
 #endif
 
-      if (overlap > volume * factor) {
+      bool bad = overlap > volume * factor;
+
+      bad |= child1->bm_faces && !BLI_table_gset_len(child1->bm_faces);
+      bad |= child2->bm_faces && !BLI_table_gset_len(child2->bm_faces);
+
+      if (bad) {
         modified = true;
         printf("  DELETE! %.4f    %.4f  %d\n", overlap, volume, BLI_array_len(stack));
 

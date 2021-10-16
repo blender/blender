@@ -10932,6 +10932,12 @@ static void sculpt_update_cache_invariants(
     zero_v2(cache->initial_mouse);
   }
 
+  /* initialize speed moving average */
+  for (int i = 0; i < SCULPT_SPEED_MA_SIZE; i++) {
+    cache->speed_avg[i] = -1.0f;
+  }
+  cache->last_speed_time = PIL_check_seconds_timer();
+
   copy_v3_v3(cache->initial_location, ss->cursor_location);
   copy_v3_v3(cache->true_initial_location, ss->cursor_location);
 
@@ -11354,6 +11360,37 @@ static void sculpt_update_cache_paint_variants(StrokeCache *cache, const Brush *
   }
 }
 
+static float sculpt_update_speed_average(SculptSession *ss, float speed)
+{
+  int tot = 0.0;
+  bool found = false;
+
+  for (int i = 0; i < SCULPT_SPEED_MA_SIZE; i++) {
+    tot++;
+
+    if (ss->cache->speed_avg[i] == -1.0f) {
+      ss->cache->speed_avg[i] = speed;
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    ss->cache->speed_avg[ss->cache->speed_avg_cur] = speed;
+    ss->cache->speed_avg_cur = (ss->cache->speed_avg_cur + 1) % SCULPT_SPEED_MA_SIZE;
+  }
+
+  speed = 0.0f;
+  tot = 0;
+  for (int i = 0; i < SCULPT_SPEED_MA_SIZE; i++) {
+    if (ss->cache->speed_avg[i] != -1.0f) {
+      speed += ss->cache->speed_avg[i];
+      tot++;
+    }
+  }
+
+  return speed / (float)tot;
+}
 /* Initialize the stroke cache variants from operator properties. */
 static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, PointerRNA *ptr)
 {
@@ -11369,9 +11406,21 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
     RNA_float_get_array(ptr, "location", cache->true_location);
   }
 
+  float last_mouse[2];
+  copy_v2_v2(last_mouse, cache->mouse);
+
   cache->pen_flip = RNA_boolean_get(ptr, "pen_flip");
   RNA_float_get_array(ptr, "mouse", cache->mouse);
   RNA_float_get_array(ptr, "mouse_event", cache->mouse_event);
+
+  float delta_mouse[2];
+
+  sub_v3_v3v3(delta_mouse, cache->mouse, cache->mouse_event);
+  float speed = len_v3(delta_mouse) / (800000.0f); /*get a reasonably usable value*/
+  speed /= PIL_check_seconds_timer() - cache->last_speed_time;
+
+  cache->input_mapping.speed = sculpt_update_speed_average(ss, speed);
+  cache->last_speed_time = PIL_check_seconds_timer();
 
   /* XXX: Use pressure value from first brush step for brushes which don't support strokes (grab,
    * thumb). They depends on initial state and brush coord/pressure/etc.
@@ -11408,7 +11457,6 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
     mul_v4_m4v4(direction, cache->projection_mat, direction);
 
     cache->input_mapping.angle = (atan2(direction[1], direction[0]) / (float)M_PI) * 0.5 + 0.5;
-
     // cache->vc
   }
 
@@ -11481,8 +11529,10 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
   }
 
   cache->special_rotation = ups->brush_rotation;
-
   cache->iteration_count++;
+
+  cache->input_mapping.stroke_t = cache->stroke_distance_t /
+                                  10.0f; /*scale to a more user-friendly value*/
 }
 
 /* Returns true if any of the smoothing modes are active (currently

@@ -299,6 +299,9 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   const bool needs_topology_info = mode == COLOR_FILTER_SMOOTH || use_automasking;
   BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_topology_info, false, true);
 
+  /*flag update for original data*/
+  ss->stroke_id++;
+
   if (BKE_pbvh_type(pbvh) == PBVH_FACES && needs_topology_info && !ob->sculpt->pmap) {
     return OPERATOR_CANCELLED;
   }

@@ -1907,8 +1907,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         BKE_brush_mapping_reset(ch, brush->sculpt_tool, BRUSH_MAPPING_PRESSURE);
       }
 
-      ch = (BrushChannel *)brush->channels->channels.first;
-      for (; ch; ch = ch->next) {
+      LISTBASE_FOREACH (BrushChannel *, ch, &brush->channels->channels) {
         if (!ch->mappings[BRUSH_MAPPING_RANDOM].factor) {
           ch->mappings[BRUSH_MAPPING_RANDOM].factor = 1.0f;
         }
@@ -1923,6 +1922,64 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             ch->mappings[i].max = 1.0f;
           }
         }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 38)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!scene->toolsettings || !scene->toolsettings->sculpt ||
+          !scene->toolsettings->sculpt->channels) {
+        continue;
+      }
+
+      Sculpt *sd = scene->toolsettings->sculpt;
+
+      LISTBASE_FOREACH (BrushChannel *, ch, &sd->channels->channels) {
+        if (!ch->mappings[BRUSH_MAPPING_RANDOM].factor) {
+          ch->mappings[BRUSH_MAPPING_RANDOM].factor = 1.0f;
+        }
+
+        for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+          if (ch->mappings[i].premultiply == 0.0f) {
+            ch->mappings[i].premultiply = 1.0f;
+          }
+
+          if (ch->mappings[i].blendmode == MA_RAMP_BLEND) {
+            ch->mappings[i].blendmode = MA_RAMP_MULT;
+          }
+
+          if (ch->mappings[i].min == ch->mappings[i].max) {
+            ch->mappings[i].min = 0.0f;
+            ch->mappings[i].max = 1.0f;
+          }
+        }
+
+        BrushMapping *mp = ch->mappings + BRUSH_MAPPING_STROKE_T;
+
+        mp->max = 1.0f;
+        mp->factor = 1.0f;
+        mp->blendmode = MA_RAMP_MULT;
+        mp->mapfunc = BRUSH_MAPFUNC_COS;
+      }
+    }
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (!brush->channels) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (BrushChannel *, ch, &brush->channels->channels) {
+        for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+          ch->mappings[i].premultiply = 1.0f;
+        }
+
+        BrushMapping *mp = ch->mappings + BRUSH_MAPPING_STROKE_T;
+
+        mp->blendmode = MA_RAMP_MULT;
+        mp->max = 1.0f;
+        mp->mapfunc = BRUSH_MAPFUNC_COS;
+        mp->factor = 1.0f;
       }
     }
   }

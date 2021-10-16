@@ -3858,6 +3858,11 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     copy_v3_v3(v_conn->co, co);
   }
 
+  if (!v_conn->e) {
+    printf("%s: pbvh error, v_conn->e was null\n", __func__);
+    return v_conn;
+  }
+
   e2 = v_conn->e;
   do {
     BMLoop *l = e2->l;

@@ -262,7 +262,7 @@ places in rna_engine_codebase are relevent:
         {DYNTOPO_COLLAPSE, "COLLAPSE", "NONE", "Collapse", ""},
         {DYNTOPO_SUBDIVIDE, "SUBDIVIDE", "NONE", "Subdivide", ""},
         {DYNTOPO_CLEANUP, "CLEANUP", "NONE", "Cleanup", ""},
-        {DYNTOPO_LOCAL_COLLAPSE, "LOCAL_COLLAPSE", "NONE", "Local Collapse", ""},
+        {DYNTOPO_LOCAL_COLLAPSE, "LOCAL_COLLAPSE", "NONE", "Local Collapse", "Cleanup edges based on local edge lengths if collapse is off."},
         {DYNTOPO_LOCAL_SUBDIVIDE, "LOCAL_SUBDIVIDE", "NONE", "Local Subdivide", ""},
         {-1}
       })
