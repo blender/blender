@@ -51,7 +51,7 @@ class ASSET_OT_tag_add(AssetBrowserMetadataOperator, Operator):
 
     def execute(self, context):
         active_asset = SpaceAssetInfo.get_active_asset(context)
-        active_asset.tags.new("Unnamed Tag")
+        active_asset.tags.new("Tag")
 
         return {'FINISHED'}
 
