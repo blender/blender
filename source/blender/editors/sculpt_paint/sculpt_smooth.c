@@ -128,6 +128,10 @@ void SCULPT_reproject_cdata(SculptSession *ss,
   do {
     e->head.api_flag &= ~tag;
 
+    if (!e->l) {
+      continue;
+    }
+
     BMLoop *l = e->l;
     do {
       l->head.hflag &= ~tag;
