@@ -3161,10 +3161,10 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
 /* This calls handlers twice - to solve (double-)click events. */
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
+  int action = wm_handlers_do_intern(C, CTX_wm_window(C), event, handlers);
+
   /* Will be NULL in the file read case. */
   wmWindow *win = CTX_wm_window(C);
-  int action = wm_handlers_do_intern(C, win, event, handlers);
-
   if (win == NULL) {
     return action;
   }
