@@ -1171,6 +1171,7 @@ typedef struct UVSmoothVert {
   BMLoop *ls[MAXUVLOOPS];
   struct UVSmoothVert *neighbors[MAXUVNEIGHBORS];
   int totloop, totneighbor;
+  float brushfade;
 } UVSmoothVert;
 
 typedef struct UVSmoothTri {
@@ -1205,6 +1206,7 @@ typedef struct UVSolver {
   double totarea2d;
 
   double strength;
+  int cd_sculpt_vert;
 } UVSolver;
 
 /*that that currently this tool is *not* threaded*/
@@ -1255,7 +1257,16 @@ void *uvsolver_calc_loop_key(UVSolver *solver, BMLoop *l)
 
   intptr_t x = (intptr_t)(uv->uv[0] * 16384.0);
   intptr_t y = (intptr_t)(uv->uv[1] * 16384.0);
-  intptr_t key = y * 16384LL + x;
+  intptr_t key;
+  MSculptVert *mv = BKE_PBVH_SCULPTVERT(solver->cd_sculpt_vert, l->v);
+
+  if ((mv->flag & SCULPTVERT_SEAM_BOUNDARY) ||
+      (l->e->head.hflag | l->prev->e->head.hflag) & BM_ELEM_SEAM) {
+    key = y * 16384LL + x;
+  }
+  else {
+    key = (intptr_t)l->v;
+  }
 
   return POINTER_FROM_INT(key);
 }
@@ -1272,9 +1283,25 @@ static UVSmoothVert *uvsolver_get_vert(UVSolver *solver, BMLoop *l)
     v = BLI_mempool_alloc(solver->verts);
     memset(v, 0, sizeof(*v));
 
+    MSculptVert *mv = BKE_PBVH_SCULPTVERT(solver->cd_sculpt_vert, l->v);
+    MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(solver->cd_sculpt_vert, l->prev->v);
+    MSculptVert *mv3 = BKE_PBVH_SCULPTVERT(solver->cd_sculpt_vert, l->next->v);
+
+    v->boundary = mv->flag & SCULPTVERT_SEAM_BOUNDARY;
+    if ((mv->flag | mv2->flag | mv3->flag) & SCULPTVERT_SHARP_CORNER) {
+      v->pinned = true;
+    }
+
     // copy_v2_v2(v->uv, uv->uv);
     v->uv[0] = (double)uv->uv[0];
     v->uv[1] = (double)uv->uv[1];
+
+    if (isnan(v->uv[0]) || !isfinite(v->uv[0])) {
+      v->uv[0] = 0.0f;
+    }
+    if (isnan(v->uv[1]) || !isfinite(v->uv[1])) {
+      v->uv[1] = 0.0f;
+    }
 
     copy_v3_v3(v->co, l->v->co);
     v->v = l->v;
@@ -1509,8 +1536,11 @@ BLI_INLINE float uvsolver_vert_weight(UVSmoothVert *sv)
 {
   double w = 1.0;
 
-  if (sv->pinned || sv->boundary) {
+  if (sv->pinned || sv->boundary || sv->brushfade == 0.0f) {
     w = 100000.0;
+  }
+  else {
+    return 1.0 / sv->brushfade;
   }
 
   return w;
@@ -1642,7 +1672,7 @@ static float uvsolver_solve_step(UVSolver *solver)
 
         sv->uv[j] = orig;
 
-        totw += 1.0 / uvsolver_vert_weight(sv);
+        totw += uvsolver_vert_weight(sv);
       }
     }
 
@@ -1651,14 +1681,23 @@ static float uvsolver_solve_step(UVSolver *solver)
     }
 
     r1 *= -solver->strength * 0.75 * con->k / totg;
-    // totw = 1.0 / totw;
+
+    if (totw == 0.0) {
+      continue;
+    }
+
+    totw = 1.0 / totw;
 
     for (int i = 0; i < con->totvert; i++) {
       UVSmoothVert *sv = con->vs[i];
-      double w = 1.0 / (uvsolver_vert_weight(sv) * totw);
+      double w = uvsolver_vert_weight(sv) * totw * sv->brushfade;
+      w = MIN2(w, 1.0);
 
       for (int j = 0; j < 2; j++) {
-        sv->uv[j] += r1 * con->gs[i][j] * w;
+        double off = r1 * con->gs[i][j] * w;
+
+        CLAMP(off, -0.1, 0.1);
+        sv->uv[j] += off;
       }
     }
   }
@@ -1815,7 +1854,7 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
 void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
   float offset[3];
   const float bstrength = ss->cache->bstrength;
 
@@ -1835,6 +1874,7 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BKE_curvemapping_init(brush->curve);
 
   UVSolver *solver = uvsolver_new(cd_uv);
+  solver->cd_sculpt_vert = ss->cd_sculpt_vert;
   solver->strength = ss->cache->bstrength;
 
   /* Threaded loop over nodes. */
@@ -1854,6 +1894,31 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BLI_task_parallel_range(0, totnode, &data, sculpt_uv_brush_cb, &settings);
 
   uvsolver_solve_begin(solver);
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, brush->falloff_shape);
+
+  BLI_mempool_iter iter;
+  BLI_mempool_iternew(solver->verts, &iter);
+  UVSmoothVert *sv = BLI_mempool_iterstep(&iter);
+
+  for (; sv; sv = BLI_mempool_iterstep(&iter)) {
+    if (!sculpt_brush_test_sq_fn(&test, sv->v->co)) {
+      sv->brushfade = 0.0f;
+      continue;
+    }
+
+    sv->brushfade = SCULPT_brush_strength_factor(ss,
+                                                 brush,
+                                                 sv->v->co,
+                                                 sqrtf(test.dist),
+                                                 NULL,
+                                                 sv->v->no,
+                                                 0.0f,
+                                                 (SculptVertRef){.i = (intptr_t)sv->v},
+                                                 0);
+  }
 
   for (int i = 0; i < 5; i++) {
     uvsolver_solve_step(solver);

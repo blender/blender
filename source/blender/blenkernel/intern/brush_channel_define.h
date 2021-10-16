@@ -302,6 +302,10 @@ MAKE_FLOAT_EX(rate, "Rate", "", 0.1f, 0.0001f, 10000.0f, 0.01f, 1.0f, false)
 MAKE_FLOAT(flow, "Flow", "Amount of paint that is applied per stroke sample", 1.0f, 0.0f, 1.0f)
 MAKE_FLOAT(wet_mix, "Wet Mix", "Amount of paint that is picked from the surface into the brush color", 0.0f, 0.0f, 1.0f)
 MAKE_FLOAT(wet_persistence, "Wet Persistence", "Amount of wet paint that stays in the brush after applying paint to the surface", 0.0f, 0.0f, 1.0f)
+MAKE_FLOAT_EX(hue_offset, "Hue", "Offset Applied To Hue", 0.5f, -3.0f, 3.0f, 0.0f, 1.0f, false)
+MAKE_FLOAT(wet_paint_radius_factor, "Wet Paint Radius",
+                           "Ratio between the brush radius and the radius that is going to be "
+                           "used to sample the color to blend in wet paint", 0.5f, 0.0f, 2.0f)
 MAKE_FLOAT(density, "Density", "Amount of random elements that are going to be affected by the brush", 1.0f, 0.0f, 1.0f)
 MAKE_FLOAT(tip_scale_x, "Tip Scale X", "Scale of the brush tip in the X axis", 1.0f, 0.0f, 1.0f)
 MAKE_FLOAT(dash_ratio, "Dash Ratio", "Ratio of samples in a cycle that the brush is enabled", 1.0f, 0.0f, 1.0f)

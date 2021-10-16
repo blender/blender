@@ -105,15 +105,16 @@ typedef struct BrushMappingDef {
   float min, max;
   int blendmode;
   float factor;  // if 0, will default to 1.0
+  bool no_default;
 } BrushMappingDef;
 
 typedef struct BrushMappingPreset {
   // must match order of BRUSH_MAPPING_XXX enums
-  struct BrushMappingDef pressure, xtilt, ytilt, angle, speed;
+  struct BrushMappingDef pressure, xtilt, ytilt, angle, speed, random;
 } BrushMappingPreset;
 
 typedef struct BrushMappingData {
-  float pressure, xtilt, ytilt, angle, speed;
+  float pressure, xtilt, ytilt, angle, speed, random;
 } BrushMappingData;
 
 #define MAX_BRUSH_ENUM_DEF 32
@@ -227,6 +228,7 @@ bool BKE_brush_channelset_has(BrushChannelSet *chset, const char *idname);
 
 BrushChannel *BKE_brush_channelset_add_builtin(BrushChannelSet *chset, const char *idname);
 BrushChannel *BKE_brush_channelset_ensure_builtin(BrushChannelSet *chset, const char *idname);
+void BKE_brush_mapping_reset(BrushChannel *ch, int tool, int mapping);
 
 void BKE_brush_channelset_merge(BrushChannelSet *dst,
                                 BrushChannelSet *child,

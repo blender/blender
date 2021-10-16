@@ -114,7 +114,6 @@ class DynamicPaintPanelGen:
         }
 
         def callback():
-            print("creating panel")
             DynamicPaintPanelGen.createPanel(group)
             pass
 
@@ -353,10 +352,13 @@ class UnifiedPaintPanel:
 
 
     @staticmethod
-    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=None, text=None,
+    def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=None, text=None, baselayout=None,
                         slider=False, header=False, show_reorder=False, expand=None, toolsettings_only=False, ui_editing=None):
         """ Generalized way of adding brush options to the UI,
             along with their pen pressure setting and global toggle"""
+
+        if baselayout is None:
+            baselayout = layout
 
         if slider is None:
             slider = False
@@ -527,6 +529,8 @@ class UnifiedPaintPanel:
             row.prop(ch, "ui_expanded", text="", icon="TRIA_DOWN" if ch.ui_expanded else "TRIA_RIGHT")
 
             if ch.ui_expanded:
+                layout = baselayout.column()
+
                 for i, mp in enumerate(ch.mappings):
                     mp0 = mp
                     if mp.inherit:
@@ -562,6 +566,12 @@ class UnifiedPaintPanel:
                             props = row.operator("brush.curve_preset_load", icon=icons[i], text="")
                             props.shape = shape
                             props.path = path2
+
+                        col.prop(mp, "factor")
+                        col.prop(mp, "blendmode")
+                        row = col.row()
+                        row.prop(mp, "min")
+                        row.prop(mp, "max")
 
                     #row2.prop(mp, "curve")
 
@@ -1341,12 +1351,12 @@ def brush_settings(layout, context, brush, popover=False):
 
         # Per sculpt tool options.
 
-        def doprop(col, prop, slider=None):
+        def doprop(col, prop, slider=None, text=None, baselayout=None):
             UnifiedPaintPanel.channel_unified(col,
                 context,
                 brush,
                 prop,
-                slider=slider)
+                slider=slider, text=text, baselayout=baselayout)
 
         if sculpt_tool == "VCOL_BOUNDARY":
             row = layout.row()
@@ -1480,17 +1490,18 @@ def brush_settings(layout, context, brush, popover=False):
 
         elif sculpt_tool == 'SCRAPE':
             row = layout.row(align=True)
-            doprop(row, "area_radius_factor")
-            doprop(row,  "use_pressure_area_radius", text="")
+            doprop(row, "area_radius_factor", baselayout=layout)
+            #doprop(row, "use_pressure_area_radius", text="",
+            #baselayout=layout)
             row = layout.row()
-            doprop(row, "invert_to_scrape_fill", text="Invert to Fill")
+            doprop(row, "invert_to_scrape_fill", text="Invert to Fill", baselayout=layout)
 
         elif sculpt_tool == 'FILL':
             row = layout.row(align=True)
-            doprop(row, "area_radius_factor")
-            doprop(row, "use_pressure_area_radius", text="")
+            doprop(row, "area_radius_factor", baselayout=layout)
+            #doprop(row, "use_pressure_area_radius", text="")
             row = layout.row()
-            doprop(row, "invert_to_scrape_fill", text="Invert to Scrape")
+            doprop(row, "invert_to_scrape_fill", text="Invert to Scrape", baselayout=layout)
 
         elif sculpt_tool == 'GRAB':
             doprop(layout, "use_grab_active_vertex")
@@ -1499,33 +1510,31 @@ def brush_settings(layout, context, brush, popover=False):
 
         elif sculpt_tool == 'PAINT':
             row = layout.row(align=True)
-            doprop(row, "flow")
-            doprop(row, "invert_flow_pressure", text="")
-            doprop(row, "use_flow_pressure", text="")
+            doprop(row, "flow", baselayout=layout)
+            row.prop(brush.channels["flow"].mappings["PRESSURE"], "invert", text="")
 
             row = layout.row(align=True)
-            row.prop(brush, "wet_mix")
-            row.prop(brush, "invert_wet_mix_pressure", text="")
-            row.prop(brush, "use_wet_mix_pressure", text="")
+            doprop(row, "wet_mix", baselayout=layout)
+            row.prop(brush.channels["wet_mix"].mappings["PRESSURE"], "invert", text="")
 
             row = layout.row(align=True)
-            doprop(row, "wet_persistence")
-            doprop(row, "invert_wet_persistence_pressure", text="")
-            doprop(row, "use_wet_persistence_pressure", text="")
+            doprop(row, "wet_persistence", baselayout=layout)
+            row.prop(brush.channels["wet_persistence"].mappings["PRESSURE"], "invert", text="")
 
             row = layout.row(align=True)
-            doprop(row, "wet_paint_radius_factor")
+            doprop(row, "wet_paint_radius_factor", baselayout=layout)
 
             row = layout.row(align=True)
-            doprop(row, "density")
-            doprop(row, "invert_density_pressure", text="")
-            doprop(row, "use_density_pressure", text="")
+            doprop(row, "density", baselayout=layout)
+            row.prop(brush.channels["density"].mappings["PRESSURE"], "invert", text="")
 
             row = layout.row()
-            doprop(row, "tip_roundness")
+            doprop(row, "tip_roundness", baselayout=layout)
 
             row = layout.row()
-            doprop(row, "tip_scale_x")
+            doprop(row, "tip_scale_x", baselayout=layout)
+
+            doprop(layout.column(), "hue_offset", baselayout=layout)
 
         elif sculpt_tool == 'SMEAR':
             col = layout.column()
@@ -1602,7 +1611,7 @@ def brush_settings(layout, context, brush, popover=False):
             doprop(col, "smear_deform_type")
 
         elif sculpt_tool == 'MASK':
-            doprop(layout.row(), "mask_tool", expand=True)
+            doprop(layout.row(), "mask_tool", expand=True, baselayout=layout)
 
         # End sculpt_tool interface.
 
@@ -1813,6 +1822,7 @@ class ReorderBrushChannel(Operator):
 
         return {'FINISHED'}
 
+classes.append(ReorderBrushChannel)
 
 def brush_settings_channels(layout, context, brush, ui_editing=False, popover=False, show_reorder=None, filterkey="show_in_workspace",
                             parent="VIEW3D_PT_tools_brush_settings_channels", prefix="VIEW3D_PT_brush_category_"):

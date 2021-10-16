@@ -853,9 +853,48 @@ bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
   return ret;
 }
 
+/* TODO: thoroughly test this function */
+bool SCULPT_temp_customlayer_has(SculptSession *ss,
+                                 AttributeDomain domain,
+                                 int proptype,
+                                 const char *name)
+{
+  CustomData *vdata = NULL, *pdata = NULL, *data = NULL;
+
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH:
+      vdata = &ss->bm->vdata;
+      pdata = &ss->bm->pdata;
+      break;
+    case PBVH_FACES:
+      pdata = ss->pdata;
+      vdata = ss->vdata;
+      break;
+    case PBVH_GRIDS:
+      pdata = ss->pdata;
+      break;
+  }
+
+  switch (domain) {
+    case ATTR_DOMAIN_POINT:
+      data = vdata;
+      break;
+    case ATTR_DOMAIN_FACE:
+      data = pdata;
+      break;
+    default:
+      return false;
+  }
+
+  if (data) {
+    return CustomData_get_named_layer_index(data, proptype, name) >= 0;
+  }
+
+  return false;
+}
+
 bool SCULPT_temp_customlayer_release(SculptSession *ss, SculptCustomLayer *scl)
 {
-  int proptype = scl->proptype;
   AttributeDomain domain = scl->domain;
 
   if (scl->released) {
@@ -1694,8 +1733,6 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSessi
 
 bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, SculptVertRef vertex)
 {
-  MSculptVert *mv = SCULPT_vertex_get_mdyntopo(ss, vertex);
-
   return !SCULPT_vertex_is_boundary(ss, vertex, SCULPT_BOUNDARY_FACE_SET);
 }
 
@@ -1906,8 +1943,6 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
 
     if (ok) {
       for (int j = 0; j < 2; j += 1) {
-        int e = 0;
-
         if (f_adj_v[j] != index) {
           sculpt_vertex_neighbor_add(
               iter, BKE_pbvh_make_vref(f_adj_v[j]), BKE_pbvh_make_eref(j ? e2 : e1), f_adj_v[j]);
@@ -2085,7 +2120,6 @@ static bool neighbor_cache_begin(const SculptSession *ss)
   }
 
   ncache->totvert = totvert;
-  NeighborCache *old = ss->cache->ncache;
 
   atomic_cas_ptr((void **)&ss->cache->ncache, NULL, ncache);
 
@@ -2413,7 +2447,6 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                          const SculptVertRef vertex,
                                          SculptCornerType cornertype)
 {
-  bool check_facesets = cornertype & SCULPT_CORNER_FACE_SET;
   SculptCornerType ret = 0;
   MSculptVert *mv = NULL;
 
@@ -2473,7 +2506,6 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
                                              const SculptVertRef vertex,
                                              SculptBoundaryType boundary_types)
 {
-  bool check_facesets = boundary_types & SCULPT_BOUNDARY_FACE_SET;
   MSculptVert *mv = NULL;
 
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -3195,7 +3227,6 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
   }
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
 
   bool modified = false;
 
@@ -4044,7 +4075,6 @@ static float brush_strength(const Sculpt *sd,
                             const float feather,
                             const UnifiedPaintSettings *ups)
 {
-  const Scene *scene = cache->vc->scene;
   const Brush *brush = cache->brush;  // BKE_paint_brush((Paint *)&sd->paint);
 
   /* Primary strength input; square it to make lower values more sensitive. */
@@ -5479,10 +5509,7 @@ static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
   const float *offset = data->offset;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
   float(*proxy)[3];
-
-  // SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
@@ -5499,13 +5526,13 @@ static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
   normalize_v3(noffset);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    // SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     SCULPT_vertex_check_origdata(ss, vd.vertex);
     MSculptVert *mv = SCULPT_vertex_get_mdyntopo(ss, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, mv->origco)) {
       continue;
     }
+
     /* Offset vertex. */
     const float fade = SCULPT_brush_strength_factor(ss,
                                                     brush,
@@ -5538,7 +5565,6 @@ static void do_draw_sharp_brush_task_cb_ex_plane(void *__restrict userdata,
   const float *offset = data->offset;
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
   float(*proxy)[3];
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
@@ -5662,8 +5688,6 @@ static void sculpt_stroke_cache_snap_context_init(bContext *C, Object *ob)
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
-  ARegion *region = CTX_wm_region(C);
-  View3D *v3d = CTX_wm_view3d(C);
 
   cache->snap_context = ED_transform_snap_object_context_create(scene, 0);
   cache->depsgraph = depsgraph;
@@ -6491,7 +6515,6 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
   const bool grab_silhouette = brush->flag2 & BRUSH_GRAB_SILHOUETTE;
   const bool use_geodesic_dists = brush->flag2 & BRUSH_USE_SURFACE_FALLOFF;
 
-  int i = 0;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
@@ -7304,7 +7327,6 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
                                                     vd.vertex,
                                                     thread_id);
 
-    const int vi = vd.index;
     float *disp_factor;
 
     if (use_persistent_base) {
@@ -9687,9 +9709,6 @@ static void get_nodes_undo(Sculpt *sd,
     BLI_task_parallel_range(0, totnode, &task_data, do_brush_action_task_cb, &settings);
   }
 
-  Brush *oldbrush = ss->cache->brush;
-  Brush _dummy = *brush, *brush2 = &_dummy;
-
   if (ss->cache->original) {
     SculptThreadedTaskData task_data = {
         .sd = sd,
@@ -9742,8 +9761,6 @@ static void SCULPT_run_command(
     brush2->curve_preset = ch->curve.preset;
     brush2->curve = ch->curve.curve;
   }
-
-  const bool use_original = sculpt_tool_needs_original(cmd->tool) ? true : ss->cache->original;
 
   // Load parameters into brush2 for compatibility with old code
   // Make sure to remove all pen pressure/tilt old code
@@ -9999,8 +10016,8 @@ static void SCULPT_run_commandlist(
     BRUSHSET_SET_FLOAT(ss->cache->channels_final, projection, projection);
   }
 
-  int totnode;
-  PBVHNode **nodes;
+  int totnode = 0;
+  PBVHNode **nodes = NULL;
 
   float start_radius = ss->cache->radius;
 
@@ -11369,6 +11386,8 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
     // printf("pressure: %f\n", cache->pressure);
   }
 
+  cache->input_mapping.random = BLI_thread_frand(0);
+
   cache->x_tilt = RNA_float_get(ptr, "x_tilt");
   cache->y_tilt = RNA_float_get(ptr, "y_tilt");
   cache->input_mapping.xtilt = cache->x_tilt;
@@ -11391,7 +11410,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
     direction[3] = 0.0f;
     mul_v4_m4v4(direction, cache->projection_mat, direction);
 
-    cache->input_mapping.angle = atan2(direction[1], direction[0]);
+    cache->input_mapping.angle = (atan2(direction[1], direction[0]) / (float)M_PI) * 0.5 + 0.5;
 
     // cache->vc
   }
@@ -12623,8 +12642,6 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
   SculptCustomLayer *scl_co, *scl_no, *scl_disp;
-
-  SculptLayerParams params = {.permanent = true, .simple_array = false};
 
   SCULPT_ensure_persistent_layers(ss);
 
@@ -14593,7 +14610,6 @@ int SCULPT_vertex_valence_get(const struct SculptSession *ss, SculptVertRef vert
 {
   SculptVertexNeighborIter ni;
   int tot = 0;
-  int mval = -1;
 
 #if 0
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {

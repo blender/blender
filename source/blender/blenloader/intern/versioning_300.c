@@ -1893,6 +1893,40 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
   }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 37)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (!brush->channels) {
+        continue;
+      }
+
+      BrushChannel *ch;
+      ch = BRUSHSET_LOOKUP(brush->channels, hue_offset);
+
+      if (ch) {
+        BKE_brush_mapping_reset(ch, brush->sculpt_tool, BRUSH_MAPPING_PRESSURE);
+      }
+
+      ch = (BrushChannel *)brush->channels->channels.first;
+      for (; ch; ch = ch->next) {
+        if (!ch->mappings[BRUSH_MAPPING_RANDOM].factor) {
+          ch->mappings[BRUSH_MAPPING_RANDOM].factor = 1.0f;
+        }
+
+        for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+          if (ch->mappings[i].blendmode == MA_RAMP_BLEND) {
+            ch->mappings[i].blendmode = MA_RAMP_MULT;
+          }
+
+          if (ch->mappings[i].min == ch->mappings[i].max) {
+            ch->mappings[i].min = 0.0f;
+            ch->mappings[i].max = 1.0f;
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

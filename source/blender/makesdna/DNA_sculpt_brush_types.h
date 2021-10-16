@@ -38,6 +38,8 @@ typedef struct BrushMapping {
   short blendmode;
   short input_channel;
   int flag, type;
+
+  float min, max;
 } BrushMapping;
 
 typedef struct BrushCurve {
@@ -59,7 +61,7 @@ typedef struct BrushChannel {
   float vector[4];
   BrushCurve curve;
 
-  BrushMapping mappings[5];  // should always be BRUSH_MAPPING_MAX
+  BrushMapping mappings[6];  // should always be BRUSH_MAPPING_MAX
 
   short type, ui_order;
   int flag;
@@ -88,7 +90,8 @@ typedef enum {
   BRUSH_MAPPING_YTILT = 2,
   BRUSH_MAPPING_ANGLE = 3,
   BRUSH_MAPPING_SPEED = 4,
-  BRUSH_MAPPING_MAX = 5  // see BrushChannel.mappings
+  BRUSH_MAPPING_RANDOM = 5,
+  BRUSH_MAPPING_MAX = 6  // see BrushChannel.mappings
 } BrushMappingType;
 
 #ifndef __GNUC__

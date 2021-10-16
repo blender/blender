@@ -416,13 +416,13 @@ void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
 
     BrushMappingDef *mdef = (&def->mappings.pressure) + i;
 
-    if (mdef->min != mdef->max) {
-      min = mdef->min;
-      max = mdef->max;
-    }
-    else {
+    if (!mdef->no_default) {
       min = 0.0f;
       max = 1.0f;
+    }
+    else {
+      min = mdef->min;
+      max = mdef->max;
     }
 
     if (mdef->inv) {
@@ -431,20 +431,22 @@ void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
 
     int slope = CURVEMAP_SLOPE_POSITIVE;
 
-    BKE_curvemapping_set_defaults(curve, 1, 0, min, 1, max);
+    BKE_curvemapping_set_defaults(curve, 1, 0, 0.0f, 1, 1.0f);
 
     for (int j = 0; j < 1; j++) {
       BKE_curvemap_reset(&curve->cm[j],
-                         &(struct rctf){.xmin = 0, .ymin = min, .xmax = 1, .ymax = max},
+                         &(struct rctf){.xmin = 0.0f, .ymin = 0.0f, .xmax = 1.0f, .ymax = 1.0f},
                          mdef->curve,
                          slope);
     }
 
     BKE_curvemapping_init(curve);
 
+    mp->min = min;
+    mp->max = max;
     mp->curve = GET_CACHE_CURVE(curve);  // frees curve and returns cached copy
 
-    mp->blendmode = mdef->blendmode;
+    mp->blendmode = !mdef->no_default ? MA_RAMP_MULT : mdef->blendmode;
     mp->factor = mdef->factor == 0.0f ? 1.0f : mdef->factor;
 
     if (mdef->enabled) {
@@ -923,7 +925,7 @@ static bool channel_has_mappings(BrushChannel *ch)
   return false;
 }
 
-// idx is used by vector channels
+/* idx is used by vector channels */
 double BKE_brush_channel_eval_mappings(BrushChannel *ch,
                                        BrushMappingData *mapdata,
                                        double f,
@@ -935,7 +937,7 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
   }
 
   if (mapdata) {
-    double factor = 1.0f;
+    double factor = f;  // 1.0f;
 
     for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
       BrushMapping *mp = ch->mappings + i;
@@ -951,7 +953,10 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
       }
 
       double f2 = (float)BKE_curvemapping_evaluateF(mp->curve, 0, inputf);
+      f2 = mp->min + (mp->max - mp->min) * f2;
 
+      /* make sure to update blend_items in rna_brush_engine.c
+        when adding new mode implementations */
       switch (mp->blendmode) {
         case MA_RAMP_BLEND:
           break;
@@ -959,7 +964,7 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
           f2 *= factor;
           break;
         case MA_RAMP_DIV:
-          f2 = factor / (0.00001f + f2);
+          f2 = factor / (f2 == 0.0f ? 0.0001f : f2);
           break;
         case MA_RAMP_ADD:
           f2 += factor;
@@ -980,7 +985,9 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
       factor += (f2 - factor) * mp->factor;
     }
 
-    f *= factor;
+    f = factor;
+    CLAMP(f, ch->def->min, ch->def->max);
+    // f *= factor;
   }
 
   return f;
@@ -1767,6 +1774,10 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
 
       CurveMapping *curve = mp->curve;
 
+      if (mp->min == mp->max == 0.0f) {
+        mp->max = 1.0f;
+      }
+
       if (curve) {
         BKE_curvemapping_blend_read(reader, curve);
         BKE_curvemapping_init(curve);
@@ -1833,6 +1844,8 @@ const char *BKE_brush_mapping_type_to_str(BrushMappingType mapping)
       return "X Tilt";
     case BRUSH_MAPPING_YTILT:
       return "Y Tilt";
+    case BRUSH_MAPPING_RANDOM:
+      return "Random";
     case BRUSH_MAPPING_MAX:
       return "Error";
   }
@@ -1853,6 +1866,8 @@ const char *BKE_brush_mapping_type_to_typename(BrushMappingType mapping)
       return "XTILT";
     case BRUSH_MAPPING_YTILT:
       return "YTILT";
+    case BRUSH_MAPPING_RANDOM:
+      return "RANDOM";
     case BRUSH_MAPPING_MAX:
       return "Error";
   }
@@ -1876,6 +1891,9 @@ void BKE_brush_mapping_copy_data(BrushMapping *dst, BrushMapping *src)
   }
 
   dst->blendmode = src->blendmode;
+
+  dst->min = src->min;
+  dst->max = src->max;
   dst->factor = src->factor;
   dst->flag = src->flag;
   dst->input_channel = src->input_channel;

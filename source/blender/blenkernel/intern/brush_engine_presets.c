@@ -94,7 +94,8 @@ To enable converting to/from old data:
    .type = BRUSH_CHANNEL_TYPE_FLOAT,\
     .subtype = BRUSH_CHANNEL_FACTOR,\
    .mappings = {\
-        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0f, .min = 0.0f, .max = 1.0f, .enabled = pressure_enabled, .inv = pressure_inv},\
+        .pressure = {.curve = CURVE_PRESET_LINE, .factor = 1.0f, .no_default=true, .blendmode = MA_RAMP_MULT, \
+        .min = 0.0f, .max = 1.0f, .enabled = pressure_enabled, .inv = pressure_inv},\
     }\
 },
 #define MAKE_FLOAT_EX(idname1, name1, tooltip1, value1, min1, max1, smin1, smax1, pressure_enabled)\
@@ -237,6 +238,8 @@ static BrushChannelType *_get_def(const char *idname)
 static bool do_builtin_init = true;
 static bool check_builtin_init()
 {
+  BrushChannelType *def;
+
   if (!do_builtin_init || !BLI_thread_is_main()) {
     return false;
   }
@@ -259,11 +262,23 @@ static bool check_builtin_init()
   SUBTYPE_SET(autosmooth_radius_scale, BRUSH_CHANNEL_PERCENT);
   SUBTYPE_SET(topology_rake_radius_scale, BRUSH_CHANNEL_PERCENT);
 
+  def = GETDEF(hue_offset);
+  for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+    BrushMappingDef *mdef = (&def->mappings.pressure) + i;
+
+    mdef->no_default = true;
+    mdef->curve = CURVE_PRESET_LINE;
+    mdef->min = i == 0 ? 0.0f : -1.0f; /* have pressure use minimum of 0.0f */
+    mdef->max = 1.0f;
+    mdef->factor = 0.5f;
+    mdef->blendmode = MA_RAMP_ADD;
+  }
+
   SETCAT(concave_mask_factor, "Automasking");
   SETCAT(automasking, "Automasking");
   SETCAT(automasking_boundary_edges_propagation_steps, "Automasking");
 
-  BrushChannelType *def = GETDEF(concave_mask_factor);
+  def = GETDEF(concave_mask_factor);
   def->mappings.pressure.inv = true;
 
   // don't group strength/radius/direction in subpanels
@@ -349,9 +364,11 @@ static bool check_builtin_init()
   SETCAT(secondary_color, "Color");
   SETCAT(blend, "Color");
   SETCAT(wet_mix, "Color");
+  SETCAT(hue_offset, "Color");
   SETCAT(wet_persistence, "Color");
   SETCAT(density, "Color");
   SETCAT(flow, "Color");
+  SETCAT(wet_paint_radius_factor, "Color");
 
   SETCAT(vcol_boundary_spacing, "Color Boundary Hardening");
   SETCAT(vcol_boundary_radius_scale, "Color Boundary Hardening");
@@ -435,6 +452,7 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(flow, flow, FLOAT, FLOAT)
   DEF(hardness, hardness, FLOAT, FLOAT)
   DEF(wet_mix, wet_mix, FLOAT, FLOAT)
+  DEF(wet_paint_radius_factor, wet_paint_radius_factor, FLOAT, FLOAT)
   DEF(wet_persistence, wet_persistence, FLOAT, FLOAT)
   DEF(density, density, FLOAT, FLOAT)
   DEF(tip_scale_x, tip_scale_x, FLOAT, FLOAT)
@@ -919,6 +937,7 @@ void BKE_brush_channelset_compat_load(BrushChannelSet *chset, Brush *brush, bool
   }
 }
 
+/* todo: move into BKE_brush_reset_mapping*/
 void reset_clay_mappings(BrushChannelSet *chset, bool strips)
 {
   BrushMapping *mp = BRUSHSET_LOOKUP(chset, radius)->mappings + BRUSH_MAPPING_PRESSURE;
@@ -1136,6 +1155,8 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       ADDCH(color);
       ADDCH(secondary_color);
       ADDCH(wet_mix);
+      ADDCH(hue_offset);
+      ADDCH(wet_paint_radius_factor);
       ADDCH(wet_persistence);
       ADDCH(density);
       ADDCH(tip_scale_x);
@@ -1470,6 +1491,8 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
 
       SHOWWRK(secondary_color);
       SHOWWRK(wet_mix);
+      SHOWWRK(hue_offset);
+      SHOWWRK(wet_paint_radius_factor);
       SHOWWRK(wet_persistence);
       SHOWWRK(density);
       SHOWWRK(tip_scale_x);
@@ -1517,6 +1540,35 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
 #undef SHOWHDR
 #undef SHOWPROPS
   namestack_pop();
+}
+
+void BKE_brush_mapping_reset(BrushChannel *ch, int tool, int mapping)
+{
+  BrushMapping *mp = ch->mappings + mapping;
+  BrushMappingDef *mdef = (&ch->def->mappings.pressure) + mapping;
+
+  BKE_brush_mapping_ensure_write(mp);
+
+  CurveMapping *curve = mp->curve;
+
+  BKE_curvemapping_set_defaults(curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
+  BKE_curvemap_reset(
+      curve->cm, &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0}, mdef->curve, 1);
+  BKE_curvemapping_init(curve);
+
+  if (STREQ(ch->idname, "hue_offset") && mapping == BRUSH_MAPPING_PRESSURE) {
+    CurveMap *cuma = curve->cm;
+    cuma->curve[0].x = 0.0f;
+    cuma->curve[0].y = 0.0f;
+
+    cuma->curve[1].x = 1.0f;
+    cuma->curve[1].y = 1.0f;
+
+    BKE_curvemap_insert(cuma, 0.65f, 0.0f);
+    cuma->curve[1].flag |= CUMA_HANDLE_VECTOR;
+  }
+
+  BKE_curvemapping_changed(curve, true);
 }
 void BKE_brush_builtin_create(Brush *brush, int tool)
 {
@@ -1622,13 +1674,17 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       GETCH(dyntopo_disabled)->ivalue = 1;
       GETCH(slide_deform_type)->ivalue = BRUSH_SLIDE_DEFORM_DRAG;
       break;
-    case SCULPT_TOOL_PAINT:
+    case SCULPT_TOOL_PAINT: {
       BRUSHSET_SET_BOOL(chset, dyntopo_disabled, true);
       BRUSHSET_SET_FLOAT(chset, hardness, 0.4f);
       BRUSHSET_SET_FLOAT(chset, spacing, 10.0f);
       BRUSHSET_SET_FLOAT(chset, strength, 0.6f);
       BRUSHSET_LOOKUP(chset, strength)->flag &= ~BRUSH_MAPPING_INHERIT;
+
+      BrushChannel *ch = BRUSHSET_LOOKUP(chset, hue_offset);
+      BKE_brush_mapping_reset(ch, SCULPT_TOOL_PAINT, BRUSH_MAPPING_PRESSURE);
       break;
+    }
     case SCULPT_TOOL_CLAY:
       GETCH(radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;
       GETCH(strength)->mappings[BRUSH_MAPPING_PRESSURE].flag |= BRUSH_MAPPING_ENABLED;

@@ -119,6 +119,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float bstrength = fabsf(ss->cache->bstrength);
+  float hue_offset = data->hue_offset;
 
   const SculptCustomLayer *buffer_scl = data->scl;
   const SculptCustomLayer *stroke_id_scl = data->scl2;
@@ -138,6 +139,18 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   copy_v4_v4(brush_color, data->brush_color);
 
   IMB_colormanagement_srgb_to_scene_linear_v3(brush_color);
+
+  if (hue_offset != 0.5f) {
+    hue_offset = (hue_offset * 2.0 - 1.0) * 0.5f;
+    float hsv[3];
+
+    rgb_to_hsv_v(brush_color, hsv);
+
+    hsv[0] += hue_offset;
+    hsv[0] -= floorf(hsv[0]);
+
+    hsv_to_rgb_v(hsv, brush_color);
+  }
 
   /* get un-pressure-mapped alpha */
   float alpha = BKE_brush_channelset_get_final_float(
@@ -349,6 +362,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
         .sd = sd,
         .ob = ob,
         .nodes = nodes,
+        .hue_offset = SCULPT_get_float(ss, hue_offset, sd, brush),
         .brush = brush,
         .brush_color = brush_color,
     };
@@ -407,6 +421,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
       .nodes = nodes,
       .wet_mix_sampled_color = wet_color,
       .mat = mat,
+      .hue_offset = SCULPT_get_float(ss, hue_offset, sd, brush),
       .scl = &buffer_scl,
       .scl2 = &stroke_id_scl,
       .brush_color = brush_color,
@@ -530,25 +545,13 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   SculptCustomLayer prev_scl;
   SculptLayerParams params = {.permanent = false, .simple_array = false};
+
   SCULPT_temp_customlayer_ensure(
       ss, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &params);
   SCULPT_temp_customlayer_get(
       ss, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &prev_scl, &params);
 
   SCULPT_vertex_random_access_ensure(ss);
-
-  const int totvert = SCULPT_vertex_count_get(ss);
-
-  if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-    if (!ss->cache->prev_colors) {
-      ss->cache->prev_colors = MEM_callocN(sizeof(float[4]) * totvert, "prev colors");
-      for (int i = 0; i < totvert; i++) {
-        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
-
-        copy_v4_v4(ss->cache->prev_colors[i], SCULPT_vertex_color_get(ss, vertex));
-      }
-    }
-  }
 
   BKE_curvemapping_init(brush->curve);
 

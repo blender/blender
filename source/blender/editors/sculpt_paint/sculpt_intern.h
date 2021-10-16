@@ -1014,6 +1014,7 @@ typedef struct SculptThreadedTaskData {
   bool any_vertex_sampled;
 
   float *wet_mix_sampled_color;
+  float hue_offset;
 
   float *prev_mask;
   float *new_mask;
@@ -1933,6 +1934,10 @@ bool SCULPT_temp_customlayer_get(SculptSession *ss,
                                  SculptCustomLayer *scl,
                                  SculptLayerParams *params);
 bool SCULPT_temp_customlayer_release(SculptSession *ss, SculptCustomLayer *scl);
+bool SCULPT_temp_customlayer_has(SculptSession *ss,
+                                 AttributeDomain domain,
+                                 int proptype,
+                                 const char *name);
 
 bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
                                      Sculpt *sd,

@@ -646,6 +646,7 @@ static EnumPropertyItem mapping_type_items[] = {
     {BRUSH_MAPPING_YTILT, "YTILT", ICON_NONE, "Y Tilt"},
     {BRUSH_MAPPING_ANGLE, "ANGLE", ICON_NONE, "Angle"},
     {BRUSH_MAPPING_SPEED, "SPEED", ICON_NONE, "Speed"},
+    {BRUSH_MAPPING_RANDOM, "RANDOM", ICON_NONE, "Random"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -657,6 +658,25 @@ void RNA_def_brush_mapping(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "BrushMapping", NULL);
   RNA_def_struct_sdna(srna, "BrushMapping");
   RNA_def_struct_ui_text(srna, "Brush Mapping", "Brush Mapping");
+
+  prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, "BrushMapping", "factor");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Factor", "Mapping factor");
+
+  prop = RNA_def_property(srna, "min", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, "BrushMapping", "min");
+  RNA_def_property_range(prop, -100000, 100000);
+  RNA_def_property_ui_range(prop, -2.0, 2.0, 0.001, 3);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Min", "");
+
+  prop = RNA_def_property(srna, "max", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, "BrushMapping", "max");
+  RNA_def_property_range(prop, -100000, 100000);
+  RNA_def_property_ui_range(prop, -2.0, 2.0, 0.001, 3);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Max", "");
 
   prop = RNA_def_property(srna, "inherit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushMapping", "flag", BRUSH_MAPPING_INHERIT);
@@ -689,6 +709,19 @@ void RNA_def_brush_mapping(BlenderRNA *brna)
   RNA_def_property_ui_icon(prop, ICON_ARROW_LEFTRIGHT, 0);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Enabled", "Input Mapping Is Enabled");
+
+  static EnumPropertyItem blend_items[] = {
+      {MA_RAMP_BLEND, "MIX", ICON_NONE, "Mix", ""},
+      {MA_RAMP_MULT, "MULTIPLY", ICON_NONE, "Multiply", ""},
+      {MA_RAMP_DIV, "DIVIDE", ICON_NONE, "Divide", ""},
+      {MA_RAMP_ADD, "ADD", ICON_NONE, "Add", ""},
+      {MA_RAMP_SUB, "SUBTRACT", ICON_NONE, "Subtract", ""},
+      {MA_RAMP_DIFF, "DIFFERENCE", ICON_NONE, "Difference", ""},
+      {0, NULL, 0, NULL, NULL}};
+  prop = RNA_def_property(srna, "blendmode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, blend_items);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Blend Mode", "Input mapping blend mode");
 
   prop = RNA_def_property(srna, "ui_expanded", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, "BrushMapping", "flag", BRUSH_MAPPING_UI_EXPANDED);
