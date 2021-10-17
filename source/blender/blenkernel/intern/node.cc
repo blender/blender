@@ -4595,12 +4595,16 @@ static FieldInferencingInterface get_node_field_inferencing_interface(const Node
  * network.
  */
 struct SocketFieldState {
-  /* This socket is currently a single value. It could become a field though. */
-  bool is_single = true;
-  /* This socket is required to be a single value. It must not be a field. */
-  bool requires_single = false;
   /* This socket starts a new field. */
   bool is_field_source = false;
+  /* This socket can never become a field, because the node itself does not support it. */
+  bool is_always_single = false;
+  /* This socket is currently a single value. It could become a field though. */
+  bool is_single = true;
+  /* This socket is required to be a single value. This can be because the node itself only
+   * supports this socket to be a single value, or because a node afterwards requires this to be a
+   * single value. */
+  bool requires_single = false;
 };
 
 static Vector<const InputSocketRef *> gather_input_socket_dependencies(
@@ -4711,6 +4715,7 @@ static void propagate_data_requirements_from_right_to_left(
       }
       if (field_dependency.field_type() == OutputSocketFieldType::None) {
         state.requires_single = true;
+        state.is_always_single = true;
         continue;
       }
 
@@ -4752,6 +4757,7 @@ static void propagate_data_requirements_from_right_to_left(
       SocketFieldState &state = field_state_by_socket_id[input_socket->id()];
       if (inferencing_interface.inputs[input_socket->index()] == InputSocketFieldType::None) {
         state.requires_single = true;
+        state.is_always_single = true;
       }
     }
   }
@@ -4817,7 +4823,7 @@ static void propagate_field_status_from_left_to_right(
     /* Update field state of input sockets, also taking into account linked origin sockets. */
     for (const InputSocketRef *input_socket : node->inputs()) {
       SocketFieldState &state = field_state_by_socket_id[input_socket->id()];
-      if (state.requires_single) {
+      if (state.is_always_single) {
         state.is_single = true;
         continue;
       }
@@ -4900,31 +4906,28 @@ static void update_socket_shapes(const NodeTreeRef &tree,
   const eNodeSocketDisplayShape data_but_can_be_field_shape = SOCK_DISPLAY_SHAPE_DIAMOND_DOT;
   const eNodeSocketDisplayShape is_field_shape = SOCK_DISPLAY_SHAPE_DIAMOND;
 
+  auto get_shape_for_state = [&](const SocketFieldState &state) {
+    if (state.is_always_single) {
+      return requires_data_shape;
+    }
+    if (!state.is_single) {
+      return is_field_shape;
+    }
+    if (state.requires_single) {
+      return requires_data_shape;
+    }
+    return data_but_can_be_field_shape;
+  };
+
   for (const InputSocketRef *socket : tree.input_sockets()) {
     bNodeSocket *bsocket = socket->bsocket();
     const SocketFieldState &state = field_state_by_socket_id[socket->id()];
-    if (state.requires_single) {
-      bsocket->display_shape = requires_data_shape;
-    }
-    else if (state.is_single) {
-      bsocket->display_shape = data_but_can_be_field_shape;
-    }
-    else {
-      bsocket->display_shape = is_field_shape;
-    }
+    bsocket->display_shape = get_shape_for_state(state);
   }
   for (const OutputSocketRef *socket : tree.output_sockets()) {
     bNodeSocket *bsocket = socket->bsocket();
     const SocketFieldState &state = field_state_by_socket_id[socket->id()];
-    if (state.requires_single) {
-      bsocket->display_shape = requires_data_shape;
-    }
-    else if (state.is_single) {
-      bsocket->display_shape = data_but_can_be_field_shape;
-    }
-    else {
-      bsocket->display_shape = is_field_shape;
-    }
+    bsocket->display_shape = get_shape_for_state(state);
   }
 }
 
