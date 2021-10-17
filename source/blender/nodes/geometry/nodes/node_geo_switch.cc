@@ -157,23 +157,43 @@ template<typename T> void switch_fields(GeoNodeExecParams &params, const StringR
   const std::string name_true = "True" + suffix;
   const std::string name_output = "Output" + suffix;
 
-  /* TODO: Allow for Laziness when the switch field is constant. */
-  const bool require_false = params.lazy_require_input(name_false);
-  const bool require_true = params.lazy_require_input(name_true);
-  if (require_false | require_true) {
-    return;
+  Field<bool> switches_field = params.get_input<Field<bool>>("Switch");
+  if (switches_field.node().depends_on_input()) {
+    /* The switch has to be incorporated into the field. Both inputs have to be evaluated. */
+    const bool require_false = params.lazy_require_input(name_false);
+    const bool require_true = params.lazy_require_input(name_true);
+    if (require_false | require_true) {
+      return;
+    }
+
+    Field<T> falses_field = params.extract_input<Field<T>>(name_false);
+    Field<T> trues_field = params.extract_input<Field<T>>(name_true);
+
+    auto switch_fn = std::make_unique<SwitchFieldsFunction<T>>();
+    auto switch_op = std::make_shared<FieldOperation>(FieldOperation(
+        std::move(switch_fn),
+        {std::move(switches_field), std::move(falses_field), std::move(trues_field)}));
+
+    params.set_output(name_output, Field<T>(switch_op, 0));
   }
-
-  Field<bool> switches_field = params.extract_input<Field<bool>>("Switch");
-  Field<T> falses_field = params.extract_input<Field<T>>(name_false);
-  Field<T> trues_field = params.extract_input<Field<T>>(name_true);
-
-  auto switch_fn = std::make_unique<SwitchFieldsFunction<T>>();
-  auto switch_op = std::make_shared<FieldOperation>(FieldOperation(
-      std::move(switch_fn),
-      {std::move(switches_field), std::move(falses_field), std::move(trues_field)}));
-
-  params.set_output(name_output, Field<T>(switch_op, 0));
+  else {
+    /* The switch input is constant, so just evaluate and forward one of the inputs. */
+    const bool switch_value = fn::evaluate_constant_field(switches_field);
+    if (switch_value) {
+      params.set_input_unused(name_false);
+      if (params.lazy_require_input(name_true)) {
+        return;
+      }
+      params.set_output(name_output, params.extract_input<Field<T>>(name_true));
+    }
+    else {
+      params.set_input_unused(name_true);
+      if (params.lazy_require_input(name_false)) {
+        return;
+      }
+      params.set_output(name_output, params.extract_input<Field<T>>(name_false));
+    }
+  }
 }
 
 template<typename T> void switch_no_fields(GeoNodeExecParams &params, const StringRef suffix)
