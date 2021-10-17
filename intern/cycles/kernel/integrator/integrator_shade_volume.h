@@ -71,7 +71,7 @@ typedef struct VolumeShaderCoefficients {
 
 /* Evaluate shader to get extinction coefficient at P. */
 ccl_device_inline bool shadow_volume_shader_sample(KernelGlobals kg,
-                                                   IntegratorState state,
+                                                   IntegratorShadowState state,
                                                    ccl_private ShaderData *ccl_restrict sd,
                                                    ccl_private float3 *ccl_restrict extinction)
 {
@@ -187,7 +187,7 @@ ccl_device void volume_shadow_homogeneous(KernelGlobals kg, IntegratorState stat
 /* heterogeneous volume: integrate stepping through the volume until we
  * reach the end, get absorbed entirely, or run out of iterations */
 ccl_device void volume_shadow_heterogeneous(KernelGlobals kg,
-                                            IntegratorState state,
+                                            IntegratorShadowState state,
                                             ccl_private Ray *ccl_restrict ray,
                                             ccl_private ShaderData *ccl_restrict sd,
                                             ccl_private float3 *ccl_restrict throughput,
@@ -775,8 +775,11 @@ ccl_device_forceinline void integrate_volume_direct_light(
   light_sample_to_volume_shadow_ray(kg, sd, ls, P, &ray);
   const bool is_light = light_sample_is_light(ls);
 
+  /* Branch off shadow kernel. */
+  INTEGRATOR_SHADOW_PATH_INIT(shadow_state, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
+
   /* Write shadow ray and associated state to global memory. */
-  integrator_state_write_shadow_ray(kg, state, &ray);
+  integrator_state_write_shadow_ray(kg, shadow_state, &ray);
 
   /* Copy state from main path to shadow path. */
   const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);
@@ -790,22 +793,34 @@ ccl_device_forceinline void integrate_volume_direct_light(
     const float3 diffuse_glossy_ratio = (bounce == 0) ?
                                             one_float3() :
                                             INTEGRATOR_STATE(state, path, diffuse_glossy_ratio);
-    INTEGRATOR_STATE_WRITE(state, shadow_path, diffuse_glossy_ratio) = diffuse_glossy_ratio;
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, diffuse_glossy_ratio) = diffuse_glossy_ratio;
   }
 
-  INTEGRATOR_STATE_WRITE(state, shadow_path, flag) = shadow_flag;
-  INTEGRATOR_STATE_WRITE(state, shadow_path, bounce) = bounce;
-  INTEGRATOR_STATE_WRITE(state, shadow_path, transparent_bounce) = transparent_bounce;
-  INTEGRATOR_STATE_WRITE(state, shadow_path, throughput) = throughput_phase;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, render_pixel_index) = INTEGRATOR_STATE(
+      state, path, render_pixel_index);
+  INTEGRATOR_STATE_WRITE(
+      shadow_state, shadow_path, rng_offset) = INTEGRATOR_STATE(state, path, rng_offset) -
+                                               PRNG_BOUNCE_NUM * transparent_bounce;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, rng_hash) = INTEGRATOR_STATE(
+      state, path, rng_hash);
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, sample) = INTEGRATOR_STATE(
+      state, path, sample);
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, flag) = shadow_flag;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, bounce) = bounce;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transparent_bounce) = transparent_bounce;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, diffuse_bounce) = INTEGRATOR_STATE(
+      state, path, diffuse_bounce);
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, glossy_bounce) = INTEGRATOR_STATE(
+      state, path, glossy_bounce);
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transmission_bounce) = INTEGRATOR_STATE(
+      state, path, transmission_bounce);
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = throughput_phase;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_PASS) {
-    INTEGRATOR_STATE_WRITE(state, shadow_path, unshadowed_throughput) = throughput;
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unshadowed_throughput) = throughput;
   }
 
-  integrator_state_copy_volume_stack_to_shadow(kg, state);
-
-  /* Branch off shadow kernel. */
-  INTEGRATOR_SHADOW_PATH_INIT(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
+  integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
 }
 #  endif
 
@@ -902,7 +917,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
 
   /* Step through volume. */
   const float step_size = volume_stack_step_size(
-      kg, state, [=](const int i) { return integrator_state_read_volume_stack(state, i); });
+      kg, [=](const int i) { return integrator_state_read_volume_stack(state, i); });
 
   /* TODO: expensive to zero closures? */
   VolumeIntegrateResult result = {};

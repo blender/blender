@@ -55,20 +55,18 @@ class OSLShader {
 
   /* eval */
   static void eval_surface(const KernelGlobalsCPU *kg,
-                           const IntegratorStateCPU *state,
+                           const void *state,
                            ShaderData *sd,
                            uint32_t path_flag);
   static void eval_background(const KernelGlobalsCPU *kg,
-                              const IntegratorStateCPU *state,
+                              const void *state,
                               ShaderData *sd,
                               uint32_t path_flag);
   static void eval_volume(const KernelGlobalsCPU *kg,
-                          const IntegratorStateCPU *state,
+                          const void *state,
                           ShaderData *sd,
                           uint32_t path_flag);
-  static void eval_displacement(const KernelGlobalsCPU *kg,
-                                const IntegratorStateCPU *state,
-                                ShaderData *sd);
+  static void eval_displacement(const KernelGlobalsCPU *kg, const void *state, ShaderData *sd);
 
   /* attributes */
   static int find_attribute(const KernelGlobalsCPU *kg,

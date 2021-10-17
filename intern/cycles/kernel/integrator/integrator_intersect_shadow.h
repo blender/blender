@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Visibility for the shadow ray. */
 ccl_device_forceinline uint integrate_intersect_shadow_visibility(KernelGlobals kg,
-                                                                  ConstIntegratorState state)
+                                                                  ConstIntegratorShadowState state)
 {
   uint visibility = PATH_RAY_SHADOW;
 
@@ -33,7 +33,7 @@ ccl_device_forceinline uint integrate_intersect_shadow_visibility(KernelGlobals 
 }
 
 ccl_device bool integrate_intersect_shadow_opaque(KernelGlobals kg,
-                                                  IntegratorState state,
+                                                  IntegratorShadowState state,
                                                   ccl_private const Ray *ray,
                                                   const uint visibility)
 {
@@ -55,7 +55,7 @@ ccl_device bool integrate_intersect_shadow_opaque(KernelGlobals kg,
 }
 
 ccl_device_forceinline int integrate_shadow_max_transparent_hits(KernelGlobals kg,
-                                                                 ConstIntegratorState state)
+                                                                 ConstIntegratorShadowState state)
 {
   const int transparent_max_bounce = kernel_data.integrator.transparent_max_bounce;
   const int transparent_bounce = INTEGRATOR_STATE(state, shadow_path, transparent_bounce);
@@ -65,7 +65,7 @@ ccl_device_forceinline int integrate_shadow_max_transparent_hits(KernelGlobals k
 
 #ifdef __TRANSPARENT_SHADOWS__
 ccl_device bool integrate_intersect_shadow_transparent(KernelGlobals kg,
-                                                       IntegratorState state,
+                                                       IntegratorShadowState state,
                                                        ccl_private const Ray *ray,
                                                        const uint visibility)
 {
@@ -106,7 +106,7 @@ ccl_device bool integrate_intersect_shadow_transparent(KernelGlobals kg,
 }
 #endif
 
-ccl_device void integrator_intersect_shadow(KernelGlobals kg, IntegratorState state)
+ccl_device void integrator_intersect_shadow(KernelGlobals kg, IntegratorShadowState state)
 {
   PROFILING_INIT(kg, PROFILING_INTERSECT_SHADOW);
 

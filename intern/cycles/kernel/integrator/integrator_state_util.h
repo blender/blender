@@ -50,7 +50,7 @@ ccl_device_forceinline void integrator_state_read_ray(KernelGlobals kg,
 /* Shadow Ray */
 
 ccl_device_forceinline void integrator_state_write_shadow_ray(
-    KernelGlobals kg, IntegratorState state, ccl_private const Ray *ccl_restrict ray)
+    KernelGlobals kg, IntegratorShadowState state, ccl_private const Ray *ccl_restrict ray)
 {
   INTEGRATOR_STATE_WRITE(state, shadow_ray, P) = ray->P;
   INTEGRATOR_STATE_WRITE(state, shadow_ray, D) = ray->D;
@@ -60,7 +60,7 @@ ccl_device_forceinline void integrator_state_write_shadow_ray(
 }
 
 ccl_device_forceinline void integrator_state_read_shadow_ray(KernelGlobals kg,
-                                                             ConstIntegratorState state,
+                                                             ConstIntegratorShadowState state,
                                                              ccl_private Ray *ccl_restrict ray)
 {
   ray->P = INTEGRATOR_STATE(state, shadow_ray, P);
@@ -122,7 +122,9 @@ ccl_device_forceinline bool integrator_state_volume_stack_is_empty(KernelGlobals
 /* Shadow Intersection */
 
 ccl_device_forceinline void integrator_state_write_shadow_isect(
-    IntegratorState state, ccl_private const Intersection *ccl_restrict isect, const int index)
+    IntegratorShadowState state,
+    ccl_private const Intersection *ccl_restrict isect,
+    const int index)
 {
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, index, t) = isect->t;
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, index, u) = isect->u;
@@ -133,7 +135,9 @@ ccl_device_forceinline void integrator_state_write_shadow_isect(
 }
 
 ccl_device_forceinline void integrator_state_read_shadow_isect(
-    ConstIntegratorState state, ccl_private Intersection *ccl_restrict isect, const int index)
+    ConstIntegratorShadowState state,
+    ccl_private Intersection *ccl_restrict isect,
+    const int index)
 {
   isect->prim = INTEGRATOR_STATE_ARRAY(state, shadow_isect, index, prim);
   isect->object = INTEGRATOR_STATE_ARRAY(state, shadow_isect, index, object);
@@ -143,8 +147,8 @@ ccl_device_forceinline void integrator_state_read_shadow_isect(
   isect->t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, index, t);
 }
 
-ccl_device_forceinline void integrator_state_copy_volume_stack_to_shadow(KernelGlobals kg,
-                                                                         IntegratorState state)
+ccl_device_forceinline void integrator_state_copy_volume_stack_to_shadow(
+    KernelGlobals kg, IntegratorShadowState shadow_state, ConstIntegratorState state)
 {
   if (kernel_data.kernel_features & KERNEL_FEATURE_VOLUME) {
     int index = 0;
@@ -152,9 +156,9 @@ ccl_device_forceinline void integrator_state_copy_volume_stack_to_shadow(KernelG
     do {
       shader = INTEGRATOR_STATE_ARRAY(state, volume_stack, index, shader);
 
-      INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_volume_stack, index, object) =
+      INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_volume_stack, index, object) =
           INTEGRATOR_STATE_ARRAY(state, volume_stack, index, object);
-      INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_volume_stack, index, shader) = shader;
+      INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_volume_stack, index, shader) = shader;
 
       ++index;
     } while (shader != OBJECT_NONE);
@@ -181,7 +185,7 @@ ccl_device_forceinline void integrator_state_copy_volume_stack(KernelGlobals kg,
 }
 
 ccl_device_forceinline VolumeStack
-integrator_state_read_shadow_volume_stack(ConstIntegratorState state, int i)
+integrator_state_read_shadow_volume_stack(ConstIntegratorShadowState state, int i)
 {
   VolumeStack entry = {INTEGRATOR_STATE_ARRAY(state, shadow_volume_stack, i, object),
                        INTEGRATOR_STATE_ARRAY(state, shadow_volume_stack, i, shader)};
@@ -189,14 +193,14 @@ integrator_state_read_shadow_volume_stack(ConstIntegratorState state, int i)
 }
 
 ccl_device_forceinline bool integrator_state_shadow_volume_stack_is_empty(
-    KernelGlobals kg, ConstIntegratorState state)
+    KernelGlobals kg, ConstIntegratorShadowState state)
 {
   return (kernel_data.kernel_features & KERNEL_FEATURE_VOLUME) ?
              INTEGRATOR_STATE_ARRAY(state, shadow_volume_stack, 0, shader) == SHADER_NONE :
              true;
 }
 
-ccl_device_forceinline void integrator_state_write_shadow_volume_stack(IntegratorState state,
+ccl_device_forceinline void integrator_state_write_shadow_volume_stack(IntegratorShadowState state,
                                                                        int i,
                                                                        VolumeStack entry)
 {
@@ -259,7 +263,6 @@ ccl_device_inline void integrator_state_move(KernelGlobals kg,
   integrator_state_copy_only(kg, to_state, state);
 
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
-  INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = 0;
 }
 
 #endif
@@ -270,12 +273,11 @@ ccl_device_inline void integrator_state_shadow_catcher_split(KernelGlobals kg,
                                                              IntegratorState state)
 {
 #if defined(__KERNEL_GPU__)
-  const IntegratorState to_state = atomic_fetch_and_add_uint32(
+  ConstIntegratorState to_state = atomic_fetch_and_add_uint32(
       &kernel_integrator_state.next_shadow_catcher_path_index[0], 1);
 
   integrator_state_copy_only(kg, to_state, state);
 #else
-
   IntegratorStateCPU *ccl_restrict to_state = state + 1;
 
   /* Only copy the required subset, since shadow intersections are big and irrelevant here. */
@@ -283,10 +285,99 @@ ccl_device_inline void integrator_state_shadow_catcher_split(KernelGlobals kg,
   to_state->ray = state->ray;
   to_state->isect = state->isect;
   integrator_state_copy_volume_stack(kg, to_state, state);
-  to_state->shadow_path = state->shadow_path;
 #endif
 
   INTEGRATOR_STATE_WRITE(to_state, path, flag) |= PATH_RAY_SHADOW_CATCHER_PASS;
 }
+
+#ifdef __KERNEL_CPU__
+ccl_device_inline int integrator_state_bounce(ConstIntegratorState state, const int)
+{
+  return INTEGRATOR_STATE(state, path, bounce);
+}
+
+ccl_device_inline int integrator_state_bounce(ConstIntegratorShadowState state, const int)
+{
+  return INTEGRATOR_STATE(state, shadow_path, bounce);
+}
+
+ccl_device_inline int integrator_state_diffuse_bounce(ConstIntegratorState state, const int)
+{
+  return INTEGRATOR_STATE(state, path, diffuse_bounce);
+}
+
+ccl_device_inline int integrator_state_diffuse_bounce(ConstIntegratorShadowState state, const int)
+{
+  return INTEGRATOR_STATE(state, shadow_path, diffuse_bounce);
+}
+
+ccl_device_inline int integrator_state_glossy_bounce(ConstIntegratorState state, const int)
+{
+  return INTEGRATOR_STATE(state, path, glossy_bounce);
+}
+
+ccl_device_inline int integrator_state_glossy_bounce(ConstIntegratorShadowState state, const int)
+{
+  return INTEGRATOR_STATE(state, shadow_path, glossy_bounce);
+}
+
+ccl_device_inline int integrator_state_transmission_bounce(ConstIntegratorState state, const int)
+{
+  return INTEGRATOR_STATE(state, path, transmission_bounce);
+}
+
+ccl_device_inline int integrator_state_transmission_bounce(ConstIntegratorShadowState state,
+                                                           const int)
+{
+  return INTEGRATOR_STATE(state, shadow_path, transmission_bounce);
+}
+
+ccl_device_inline int integrator_state_transparent_bounce(ConstIntegratorState state, const int)
+{
+  return INTEGRATOR_STATE(state, path, transparent_bounce);
+}
+
+ccl_device_inline int integrator_state_transparent_bounce(ConstIntegratorShadowState state,
+                                                          const int)
+{
+  return INTEGRATOR_STATE(state, shadow_path, transparent_bounce);
+}
+#else
+ccl_device_inline int integrator_state_bounce(ConstIntegratorShadowState state,
+                                              const uint32_t path_flag)
+{
+  return (path_flag & PATH_RAY_SHADOW) ? INTEGRATOR_STATE(state, shadow_path, bounce) :
+                                         INTEGRATOR_STATE(state, path, bounce);
+}
+
+ccl_device_inline int integrator_state_diffuse_bounce(ConstIntegratorShadowState state,
+                                                      const uint32_t path_flag)
+{
+  return (path_flag & PATH_RAY_SHADOW) ? INTEGRATOR_STATE(state, shadow_path, diffuse_bounce) :
+                                         INTEGRATOR_STATE(state, path, diffuse_bounce);
+}
+
+ccl_device_inline int integrator_state_glossy_bounce(ConstIntegratorShadowState state,
+                                                     const uint32_t path_flag)
+{
+  return (path_flag & PATH_RAY_SHADOW) ? INTEGRATOR_STATE(state, shadow_path, glossy_bounce) :
+                                         INTEGRATOR_STATE(state, path, glossy_bounce);
+}
+
+ccl_device_inline int integrator_state_transmission_bounce(ConstIntegratorShadowState state,
+                                                           const uint32_t path_flag)
+{
+  return (path_flag & PATH_RAY_SHADOW) ?
+             INTEGRATOR_STATE(state, shadow_path, transmission_bounce) :
+             INTEGRATOR_STATE(state, path, transmission_bounce);
+}
+
+ccl_device_inline int integrator_state_transparent_bounce(ConstIntegratorShadowState state,
+                                                          const uint32_t path_flag)
+{
+  return (path_flag & PATH_RAY_SHADOW) ? INTEGRATOR_STATE(state, shadow_path, transparent_bounce) :
+                                         INTEGRATOR_STATE(state, path, transparent_bounce);
+}
+#endif
 
 CCL_NAMESPACE_END

@@ -26,7 +26,9 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline void path_state_init_queues(IntegratorState state)
 {
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
-  INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = 0;
+#ifdef __KERNEL_CPU__
+  INTEGRATOR_STATE_WRITE(&state->shadow, shadow_path, queued_kernel) = 0;
+#endif
 }
 
 /* Minimalistic initialization of the path state, which is needed for early outputs in the
@@ -293,16 +295,15 @@ ccl_device_inline void path_state_rng_load(ConstIntegratorState state,
   rng_state->sample = INTEGRATOR_STATE(state, path, sample);
 }
 
-ccl_device_inline void shadow_path_state_rng_load(ConstIntegratorState state,
+ccl_device_inline void shadow_path_state_rng_load(ConstIntegratorShadowState state,
                                                   ccl_private RNGState *rng_state)
 {
-  const uint shadow_bounces = INTEGRATOR_STATE(state, shadow_path, transparent_bounce) -
-                              INTEGRATOR_STATE(state, path, transparent_bounce);
+  const uint shadow_bounces = INTEGRATOR_STATE(state, shadow_path, transparent_bounce);
 
-  rng_state->rng_hash = INTEGRATOR_STATE(state, path, rng_hash);
-  rng_state->rng_offset = INTEGRATOR_STATE(state, path, rng_offset) +
+  rng_state->rng_hash = INTEGRATOR_STATE(state, shadow_path, rng_hash);
+  rng_state->rng_offset = INTEGRATOR_STATE(state, shadow_path, rng_offset) +
                           PRNG_BOUNCE_NUM * shadow_bounces;
-  rng_state->sample = INTEGRATOR_STATE(state, path, sample);
+  rng_state->sample = INTEGRATOR_STATE(state, shadow_path, sample);
 }
 
 ccl_device_inline float path_state_rng_1D(KernelGlobals kg,

@@ -26,9 +26,9 @@ ccl_device_inline bool svm_node_aov_check(const uint32_t path_flag,
   return ((render_buffer != NULL) && is_primary);
 }
 
-template<uint node_feature_mask>
+template<uint node_feature_mask, typename ConstIntegratorGenericState>
 ccl_device void svm_node_aov_color(KernelGlobals kg,
-                                   ConstIntegratorState state,
+                                   ConstIntegratorGenericState state,
                                    ccl_private ShaderData *sd,
                                    ccl_private float *stack,
                                    uint4 node,
@@ -46,9 +46,9 @@ ccl_device void svm_node_aov_color(KernelGlobals kg,
   }
 }
 
-template<uint node_feature_mask>
+template<uint node_feature_mask, typename ConstIntegratorGenericState>
 ccl_device void svm_node_aov_value(KernelGlobals kg,
-                                   ConstIntegratorState state,
+                                   ConstIntegratorGenericState state,
                                    ccl_private ShaderData *sd,
                                    ccl_private float *stack,
                                    uint4 node,

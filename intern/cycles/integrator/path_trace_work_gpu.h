@@ -113,6 +113,12 @@ class PathTraceWorkGPU : public PathTraceWork {
   /* Count how many currently scheduled paths can still split. */
   int shadow_catcher_count_possible_splits();
 
+  /* Kernel properties. */
+  bool kernel_uses_sorting(DeviceKernel kernel);
+  bool kernel_creates_shadow_paths(DeviceKernel kernel);
+  bool kernel_is_shadow_path(DeviceKernel kernel);
+  int kernel_max_active_path_index(DeviceKernel kernel);
+
   /* Integrator queue. */
   unique_ptr<DeviceQueue> queue_;
 
@@ -131,6 +137,7 @@ class PathTraceWorkGPU : public PathTraceWork {
   device_vector<int> integrator_shader_sort_counter_;
   device_vector<int> integrator_shader_raytrace_sort_counter_;
   /* Path split. */
+  device_vector<int> integrator_next_shadow_path_index_;
   device_vector<int> integrator_next_shadow_catcher_path_index_;
 
   /* Temporary buffer to get an array of queued path for a particular kernel. */

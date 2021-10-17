@@ -98,7 +98,7 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
 }
 
 ccl_device void shadow_volume_stack_enter_exit(KernelGlobals kg,
-                                               IntegratorState state,
+                                               IntegratorShadowState state,
                                                ccl_private const ShaderData *sd)
 {
   volume_stack_enter_exit(
@@ -136,9 +136,7 @@ ccl_device_inline void volume_stack_clean(KernelGlobals kg, IntegratorState stat
 }
 
 template<typename StackReadOp>
-ccl_device float volume_stack_step_size(KernelGlobals kg,
-                                        IntegratorState state,
-                                        StackReadOp stack_read)
+ccl_device float volume_stack_step_size(KernelGlobals kg, StackReadOp stack_read)
 {
   float step_size = FLT_MAX;
 

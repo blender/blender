@@ -18,9 +18,9 @@ CCL_NAMESPACE_BEGIN
 
 /* Light Path Node */
 
-template<uint node_feature_mask>
+template<uint node_feature_mask, typename ConstIntegratorGenericState>
 ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
-                                             ConstIntegratorState state,
+                                             ConstIntegratorGenericState state,
                                              ccl_private const ShaderData *sd,
                                              ccl_private float *stack,
                                              uint type,
@@ -64,48 +64,43 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
       /* Read bounce from difference location depending if this is a shadow
        * path. It's a bit dubious to have integrate state details leak into
        * this function but hard to avoid currently. */
-      int bounce = 0;
       IF_KERNEL_NODES_FEATURE(LIGHT_PATH)
       {
-        bounce = (path_flag & PATH_RAY_SHADOW) ? INTEGRATOR_STATE(state, shadow_path, bounce) :
-                                                 INTEGRATOR_STATE(state, path, bounce);
+        info = (float)integrator_state_bounce(state, path_flag);
       }
 
       /* For background, light emission and shadow evaluation we from a
        * surface or volume we are effective one bounce further. */
       if (path_flag & (PATH_RAY_SHADOW | PATH_RAY_EMISSION)) {
-        bounce++;
+        info += 1.0f;
       }
-
-      info = (float)bounce;
       break;
     }
-      /* TODO */
     case NODE_LP_ray_transparent: {
-      int bounce = 0;
       IF_KERNEL_NODES_FEATURE(LIGHT_PATH)
       {
-        bounce = (path_flag & PATH_RAY_SHADOW) ?
-                     INTEGRATOR_STATE(state, shadow_path, transparent_bounce) :
-                     INTEGRATOR_STATE(state, path, transparent_bounce);
+        info = (float)integrator_state_transparent_bounce(state, path_flag);
       }
-
-      info = (float)bounce;
       break;
     }
-#if 0
     case NODE_LP_ray_diffuse:
-      info = (float)state->diffuse_bounce;
+      IF_KERNEL_NODES_FEATURE(LIGHT_PATH)
+      {
+        info = (float)integrator_state_diffuse_bounce(state, path_flag);
+      }
       break;
     case NODE_LP_ray_glossy:
-      info = (float)state->glossy_bounce;
+      IF_KERNEL_NODES_FEATURE(LIGHT_PATH)
+      {
+        info = (float)integrator_state_glossy_bounce(state, path_flag);
+      }
       break;
-#endif
-#if 0
     case NODE_LP_ray_transmission:
-      info = (float)state->transmission_bounce;
+      IF_KERNEL_NODES_FEATURE(LIGHT_PATH)
+      {
+        info = (float)integrator_state_transmission_bounce(state, path_flag);
+      }
       break;
-#endif
   }
 
   stack_store_float(stack, out_offset, info);

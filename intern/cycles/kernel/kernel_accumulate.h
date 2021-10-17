@@ -393,17 +393,20 @@ ccl_device_inline void kernel_accum_emission_or_background_pass(KernelGlobals kg
 
 /* Write light contribution to render buffer. */
 ccl_device_inline void kernel_accum_light(KernelGlobals kg,
-                                          ConstIntegratorState state,
+                                          ConstIntegratorShadowState state,
                                           ccl_global float *ccl_restrict render_buffer)
 {
   /* The throughput for shadow paths already contains the light shader evaluation. */
   float3 contribution = INTEGRATOR_STATE(state, shadow_path, throughput);
   kernel_accum_clamp(kg, &contribution, INTEGRATOR_STATE(state, shadow_path, bounce));
 
-  ccl_global float *buffer = kernel_accum_pixel_render_buffer(kg, state, render_buffer);
+  const uint32_t render_pixel_index = INTEGRATOR_STATE(state, shadow_path, render_pixel_index);
+  const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
+                                        kernel_data.film.pass_stride;
+  ccl_global float *buffer = render_buffer + render_buffer_offset;
 
   const uint32_t path_flag = INTEGRATOR_STATE(state, shadow_path, flag);
-  const int sample = INTEGRATOR_STATE(state, path, sample);
+  const int sample = INTEGRATOR_STATE(state, shadow_path, sample);
 
   kernel_accum_combined_pass(kg, path_flag, sample, contribution, buffer);
 

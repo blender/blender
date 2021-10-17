@@ -167,17 +167,20 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   light_sample_to_surface_shadow_ray(kg, sd, &ls, &ray);
   const bool is_light = light_sample_is_light(&ls);
 
+  /* Branch off shadow kernel. */
+  INTEGRATOR_SHADOW_PATH_INIT(shadow_state, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
+
   /* Copy volume stack and enter/exit volume. */
-  integrator_state_copy_volume_stack_to_shadow(kg, state);
+  integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
 
   if (is_transmission) {
 #  ifdef __VOLUME__
-    shadow_volume_stack_enter_exit(kg, state, sd);
+    shadow_volume_stack_enter_exit(kg, shadow_state, sd);
 #  endif
   }
 
   /* Write shadow ray and associated state to global memory. */
-  integrator_state_write_shadow_ray(kg, state, &ray);
+  integrator_state_write_shadow_ray(kg, shadow_state, &ray);
 
   /* Copy state from main path to shadow path. */
   const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);
@@ -191,20 +194,32 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
     const float3 diffuse_glossy_ratio = (bounce == 0) ?
                                             bsdf_eval_diffuse_glossy_ratio(&bsdf_eval) :
                                             INTEGRATOR_STATE(state, path, diffuse_glossy_ratio);
-    INTEGRATOR_STATE_WRITE(state, shadow_path, diffuse_glossy_ratio) = diffuse_glossy_ratio;
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, diffuse_glossy_ratio) = diffuse_glossy_ratio;
   }
 
-  INTEGRATOR_STATE_WRITE(state, shadow_path, flag) = shadow_flag;
-  INTEGRATOR_STATE_WRITE(state, shadow_path, bounce) = bounce;
-  INTEGRATOR_STATE_WRITE(state, shadow_path, transparent_bounce) = transparent_bounce;
-  INTEGRATOR_STATE_WRITE(state, shadow_path, throughput) = throughput;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, render_pixel_index) = INTEGRATOR_STATE(
+      state, path, render_pixel_index);
+  INTEGRATOR_STATE_WRITE(
+      shadow_state, shadow_path, rng_offset) = INTEGRATOR_STATE(state, path, rng_offset) -
+                                               PRNG_BOUNCE_NUM * transparent_bounce;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, rng_hash) = INTEGRATOR_STATE(
+      state, path, rng_hash);
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, sample) = INTEGRATOR_STATE(
+      state, path, sample);
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, flag) = shadow_flag;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, bounce) = bounce;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transparent_bounce) = transparent_bounce;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, diffuse_bounce) = INTEGRATOR_STATE(
+      state, path, diffuse_bounce);
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, glossy_bounce) = INTEGRATOR_STATE(
+      state, path, glossy_bounce);
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transmission_bounce) = INTEGRATOR_STATE(
+      state, path, transmission_bounce);
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = throughput;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_PASS) {
-    INTEGRATOR_STATE_WRITE(state, shadow_path, unshadowed_throughput) = throughput;
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unshadowed_throughput) = throughput;
   }
-
-  /* Branch off shadow kernel. */
-  INTEGRATOR_SHADOW_PATH_INIT(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
 }
 #endif
 

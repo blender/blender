@@ -136,13 +136,6 @@ ccl_device_forceinline void integrator_intersect_shader_next_kernel(
     else {
       INTEGRATOR_PATH_INIT_SORTED(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE, shader);
     }
-
-    /* If the split happened after bounce through a transparent object it's possible to have shadow
-     * patch. Make sure it is properly re-scheduled on the split path. */
-    const int shadow_kernel = INTEGRATOR_STATE(state, shadow_path, queued_kernel);
-    if (shadow_kernel != 0) {
-      INTEGRATOR_SHADOW_PATH_INIT(shadow_kernel);
-    }
   }
 #endif
 }

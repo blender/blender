@@ -39,14 +39,17 @@ ccl_device void integrator_megakernel(KernelGlobals kg,
    * TODO: investigate if we can use device side enqueue for GPUs to avoid
    * having to compile this big kernel. */
   while (true) {
-    if (INTEGRATOR_STATE(state, shadow_path, queued_kernel)) {
+    const uint32_t shadow_queued_kernel = INTEGRATOR_STATE(
+        &state->shadow, shadow_path, queued_kernel);
+
+    if (shadow_queued_kernel) {
       /* First handle any shadow paths before we potentially create more shadow paths. */
-      switch (INTEGRATOR_STATE(state, shadow_path, queued_kernel)) {
+      switch (shadow_queued_kernel) {
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW:
-          integrator_intersect_shadow(kg, state);
+          integrator_intersect_shadow(kg, &state->shadow);
           break;
         case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW:
-          integrator_shade_shadow(kg, state, render_buffer);
+          integrator_shade_shadow(kg, &state->shadow, render_buffer);
           break;
         default:
           kernel_assert(0);

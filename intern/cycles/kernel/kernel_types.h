@@ -812,6 +812,7 @@ typedef struct ccl_align(16) ShaderData
 #ifdef __OSL__
   const struct KernelGlobalsCPU *osl_globals;
   const struct IntegratorStateCPU *osl_path_state;
+  const struct IntegratorShadowStateCPU *osl_shadow_path_state;
 #endif
 
   /* LCG state for closures that require additional random numbers. */

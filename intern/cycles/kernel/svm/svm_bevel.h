@@ -99,15 +99,15 @@ ccl_device void svm_bevel_cubic_sample(const float radius,
  */
 
 #  ifdef __KERNEL_OPTIX__
-extern "C" __device__ float3 __direct_callable__svm_node_bevel(KernelGlobals kg,
-                                                               ConstIntegratorState state,
+extern "C" __device__ float3 __direct_callable__svm_node_bevel(
 #  else
-ccl_device float3 svm_bevel(KernelGlobals kg,
-                            ConstIntegratorState state,
+ccl_device float3 svm_bevel(
 #  endif
-                                                               ccl_private ShaderData *sd,
-                                                               float radius,
-                                                               int num_samples)
+    KernelGlobals kg,
+    ConstIntegratorState state,
+    ccl_private ShaderData *sd,
+    float radius,
+    int num_samples)
 {
   /* Early out if no sampling needed. */
   if (radius <= 0.0f || num_samples < 1 || sd->object == OBJECT_NONE) {
@@ -282,7 +282,7 @@ ccl_device float3 svm_bevel(KernelGlobals kg,
   return is_zero(N) ? sd->N : (sd->flag & SD_BACKFACING) ? -N : N;
 }
 
-template<uint node_feature_mask>
+template<uint node_feature_mask, typename ConstIntegratorGenericState>
 #  if defined(__KERNEL_OPTIX__)
 ccl_device_inline
 #  else
@@ -290,7 +290,7 @@ ccl_device_noinline
 #  endif
     void
     svm_node_bevel(KernelGlobals kg,
-                   ConstIntegratorState state,
+                   ConstIntegratorGenericState state,
                    ccl_private ShaderData *sd,
                    ccl_private float *stack,
                    uint4 node)

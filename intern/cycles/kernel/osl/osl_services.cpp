@@ -1015,31 +1015,44 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
   else if (name == u_path_ray_depth) {
     /* Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
-    int f = state->path.bounce;
+    const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
+    int f = (state) ? state->path.bounce : (shadow_state) ? shadow_state->shadow_path.bounce : 0;
     return set_attribute_int(f, type, derivatives, val);
   }
   else if (name == u_path_diffuse_depth) {
     /* Diffuse Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
-    int f = state->path.diffuse_bounce;
+    const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
+    int f = (state)        ? state->path.diffuse_bounce :
+            (shadow_state) ? shadow_state->shadow_path.diffuse_bounce :
+                             0;
     return set_attribute_int(f, type, derivatives, val);
   }
   else if (name == u_path_glossy_depth) {
     /* Glossy Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
-    int f = state->path.glossy_bounce;
+    const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
+    int f = (state)        ? state->path.glossy_bounce :
+            (shadow_state) ? shadow_state->shadow_path.glossy_bounce :
+                             0;
     return set_attribute_int(f, type, derivatives, val);
   }
   else if (name == u_path_transmission_depth) {
     /* Transmission Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
-    int f = state->path.transmission_bounce;
+    const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
+    int f = (state)        ? state->path.transmission_bounce :
+            (shadow_state) ? shadow_state->shadow_path.transmission_bounce :
+                             0;
     return set_attribute_int(f, type, derivatives, val);
   }
   else if (name == u_path_transparent_depth) {
     /* Transparent Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
-    int f = state->path.transparent_bounce;
+    const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
+    int f = (state)        ? state->path.transparent_bounce :
+            (shadow_state) ? shadow_state->shadow_path.transparent_bounce :
+                             0;
     return set_attribute_int(f, type, derivatives, val);
   }
   else if (name == u_ndc) {
@@ -1228,34 +1241,38 @@ bool OSLRenderServices::texture(ustring filename,
       /* Bevel shader hack. */
       if (nchannels >= 3) {
         const IntegratorStateCPU *state = sd->osl_path_state;
-        int num_samples = (int)s;
-        float radius = t;
-        float3 N = svm_bevel(kernel_globals, state, sd, radius, num_samples);
-        result[0] = N.x;
-        result[1] = N.y;
-        result[2] = N.z;
-        status = true;
+        if (state) {
+          int num_samples = (int)s;
+          float radius = t;
+          float3 N = svm_bevel(kernel_globals, state, sd, radius, num_samples);
+          result[0] = N.x;
+          result[1] = N.y;
+          result[2] = N.z;
+          status = true;
+        }
       }
       break;
     }
     case OSLTextureHandle::AO: {
       /* AO shader hack. */
       const IntegratorStateCPU *state = sd->osl_path_state;
-      int num_samples = (int)s;
-      float radius = t;
-      float3 N = make_float3(dsdx, dtdx, dsdy);
-      int flags = 0;
-      if ((int)dtdy) {
-        flags |= NODE_AO_INSIDE;
+      if (state) {
+        int num_samples = (int)s;
+        float radius = t;
+        float3 N = make_float3(dsdx, dtdx, dsdy);
+        int flags = 0;
+        if ((int)dtdy) {
+          flags |= NODE_AO_INSIDE;
+        }
+        if ((int)options.sblur) {
+          flags |= NODE_AO_ONLY_LOCAL;
+        }
+        if ((int)options.tblur) {
+          flags |= NODE_AO_GLOBAL_RADIUS;
+        }
+        result[0] = svm_ao(kernel_globals, state, sd, N, radius, num_samples, flags);
+        status = true;
       }
-      if ((int)options.sblur) {
-        flags |= NODE_AO_ONLY_LOCAL;
-      }
-      if ((int)options.tblur) {
-        flags |= NODE_AO_GLOBAL_RADIUS;
-      }
-      result[0] = svm_ao(kernel_globals, state, sd, N, radius, num_samples, flags);
-      status = true;
       break;
     }
     case OSLTextureHandle::SVM: {

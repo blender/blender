@@ -66,6 +66,25 @@ CCL_NAMESPACE_BEGIN
 /* Integrator State
  *
  * CPU rendering path state with AoS layout. */
+typedef struct IntegratorShadowStateCPU {
+#define KERNEL_STRUCT_BEGIN(name) struct {
+#define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) type name;
+#define KERNEL_STRUCT_ARRAY_MEMBER KERNEL_STRUCT_MEMBER
+#define KERNEL_STRUCT_END(name) \
+  } \
+  name;
+#define KERNEL_STRUCT_END_ARRAY(name, cpu_size, gpu_size) \
+  } \
+  name[cpu_size];
+#define KERNEL_STRUCT_VOLUME_STACK_SIZE MAX_VOLUME_STACK_SIZE
+#include "kernel/integrator/integrator_shadow_state_template.h"
+#undef KERNEL_STRUCT_BEGIN
+#undef KERNEL_STRUCT_MEMBER
+#undef KERNEL_STRUCT_ARRAY_MEMBER
+#undef KERNEL_STRUCT_END
+#undef KERNEL_STRUCT_END_ARRAY
+} IntegratorShadowStateCPU;
+
 typedef struct IntegratorStateCPU {
 #define KERNEL_STRUCT_BEGIN(name) struct {
 #define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) type name;
@@ -84,6 +103,8 @@ typedef struct IntegratorStateCPU {
 #undef KERNEL_STRUCT_END
 #undef KERNEL_STRUCT_END_ARRAY
 #undef KERNEL_STRUCT_VOLUME_STACK_SIZE
+
+  IntegratorShadowStateCPU shadow;
 } IntegratorStateCPU;
 
 /* Path Queue
@@ -108,7 +129,11 @@ typedef struct IntegratorStateGPU {
   } \
   name[gpu_size];
 #define KERNEL_STRUCT_VOLUME_STACK_SIZE MAX_VOLUME_STACK_SIZE
+
 #include "kernel/integrator/integrator_state_template.h"
+
+#include "kernel/integrator/integrator_shadow_state_template.h"
+
 #undef KERNEL_STRUCT_BEGIN
 #undef KERNEL_STRUCT_MEMBER
 #undef KERNEL_STRUCT_ARRAY_MEMBER
@@ -122,7 +147,10 @@ typedef struct IntegratorStateGPU {
   /* Count number of kernels queued for specific shaders. */
   ccl_global int *sort_key_counter[DEVICE_KERNEL_INTEGRATOR_NUM];
 
-  /* Index of path which will be used by a next shadow catcher split.  */
+  /* Index of shadow path which will be used by a next shadow path.  */
+  ccl_global int *next_shadow_path_index;
+
+  /* Index of main path which will be used by a next shadow catcher split.  */
   ccl_global int *next_shadow_catcher_path_index;
 } IntegratorStateGPU;
 
@@ -140,6 +168,8 @@ typedef struct IntegratorStateGPU {
 
 typedef IntegratorStateCPU *ccl_restrict IntegratorState;
 typedef const IntegratorStateCPU *ccl_restrict ConstIntegratorState;
+typedef IntegratorShadowStateCPU *ccl_restrict IntegratorShadowState;
+typedef const IntegratorShadowStateCPU *ccl_restrict ConstIntegratorShadowState;
 
 #  define INTEGRATOR_STATE_NULL nullptr
 
@@ -157,6 +187,8 @@ typedef const IntegratorStateCPU *ccl_restrict ConstIntegratorState;
 
 typedef const int IntegratorState;
 typedef const int ConstIntegratorState;
+typedef const int IntegratorShadowState;
+typedef const int ConstIntegratorShadowState;
 
 #  define INTEGRATOR_STATE_NULL -1
 

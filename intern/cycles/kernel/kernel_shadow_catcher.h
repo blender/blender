@@ -62,7 +62,7 @@ ccl_device_inline bool kernel_shadow_catcher_is_path_split_bounce(KernelGlobals 
 ccl_device_inline bool kernel_shadow_catcher_path_can_split(KernelGlobals kg,
                                                             ConstIntegratorState state)
 {
-  if (INTEGRATOR_PATH_IS_TERMINATED && INTEGRATOR_SHADOW_PATH_IS_TERMINATED) {
+  if (INTEGRATOR_PATH_IS_TERMINATED) {
     return false;
   }
 

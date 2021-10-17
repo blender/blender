@@ -575,9 +575,9 @@ ccl_device float3 shader_holdout_apply(KernelGlobals kg, ccl_private ShaderData 
 
 /* Surface Evaluation */
 
-template<uint node_feature_mask>
+template<uint node_feature_mask, typename ConstIntegratorGenericState>
 ccl_device void shader_eval_surface(KernelGlobals kg,
-                                    ConstIntegratorState state,
+                                    ConstIntegratorGenericState state,
                                     ccl_private ShaderData *ccl_restrict sd,
                                     ccl_global float *ccl_restrict buffer,
                                     uint32_t path_flag)
@@ -753,9 +753,9 @@ ccl_device int shader_phase_sample_closure(KernelGlobals kg,
 
 /* Volume Evaluation */
 
-template<const bool shadow, typename StackReadOp>
+template<const bool shadow, typename StackReadOp, typename ConstIntegratorGenericState>
 ccl_device_inline void shader_eval_volume(KernelGlobals kg,
-                                          ConstIntegratorState state,
+                                          ConstIntegratorGenericState state,
                                           ccl_private ShaderData *ccl_restrict sd,
                                           const uint32_t path_flag,
                                           StackReadOp stack_read)
@@ -831,8 +831,9 @@ ccl_device_inline void shader_eval_volume(KernelGlobals kg,
 
 /* Displacement Evaluation */
 
+template<typename ConstIntegratorGenericState>
 ccl_device void shader_eval_displacement(KernelGlobals kg,
-                                         ConstIntegratorState state,
+                                         ConstIntegratorGenericState state,
                                          ccl_private ShaderData *sd)
 {
   sd->num_closure = 0;
