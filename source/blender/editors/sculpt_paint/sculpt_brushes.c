@@ -3746,7 +3746,9 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     return;
   }
 
-  const float bstrength = clamp_f(data->strength, 0.0f, 1.0f);
+  /*take square root of strength to get stronger behavior at
+    lower values, to match previous behavior*/
+  const float bstrength = sqrtf(clamp_f(data->strength, 0.0f, 1.0f));
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -3928,7 +3930,7 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd,
       this seems desirably though?*/
   }
   /* Iterations increase both strength and quality. */
-  const int iterations = 3 + ((int)bstrength) * 2;
+  const int iterations = 1 + bstrength * 1.5f;
 
   int iteration;
   const int count = iterations * strength + 1;
@@ -3951,7 +3953,13 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd,
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
 
     BLI_task_parallel_range(0, totnode, &data, do_topology_rake_bmesh_task_cb_ex, &settings);
-    BKE_pbvh_update_normals(ss->pbvh, ss->subdiv_ccg);
+
+    /* don't update normals just yet */
+    // BKE_pbvh_update_normals(ss->pbvh, ss->subdiv_ccg);
+  }
+
+  for (int i = 0; i < totnode; i++) {
+    BKE_pbvh_node_mark_update_tri_area(nodes[i]);
   }
 }
 

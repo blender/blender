@@ -123,7 +123,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 /* Reset the copy of the mesh that is being sculpted on (currently just for the layer brush). */
 
 static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
@@ -378,7 +377,6 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
                 1.0f);
 }
 
-
 static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 {
   struct wmMsgBus *mbus = CTX_wm_message_bus(C);
@@ -443,7 +441,6 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-
 
 static int vertex_to_loop_colors_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -759,8 +756,6 @@ static void SCULPT_OT_sample_color(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER;
 }
-
-
 
 /**
  * #sculpt_mask_by_color_delta_get returns values in the (0,1) range that are used to generate the
@@ -1154,7 +1149,6 @@ static void SCULPT_OT_set_limit_surface(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-
 typedef struct BMLinkItem {
   struct BMLinkItem *next, *prev;
   BMVert *item;
@@ -1501,4 +1495,3 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_expand);
   WM_operatortype_append(SCULPT_OT_regularize_rake_directions);
 }
-
