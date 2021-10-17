@@ -68,7 +68,10 @@ static void geo_node_subdivision_surface_init(bNodeTree *UNUSED(ntree), bNode *n
 static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-
+#ifndef WITH_OPENSUBDIV
+  params.error_message_add(NodeWarningType::Error,
+                           TIP_("Disabled, Blender was compiled without OpenSubdiv"));
+#else
   Field<float> crease_field = params.extract_input<Field<float>>("Crease");
 
   const NodeGeometrySubdivisionSurface &storage =
@@ -83,10 +86,6 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
     return;
   }
 
-#ifndef WITH_OPENSUBDIV
-  params.error_message_add(NodeWarningType::Error,
-                           TIP_("Disabled, Blender was compiled without OpenSubdiv"));
-#else
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (!geometry_set.has_mesh()) {
       return;
