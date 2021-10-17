@@ -582,8 +582,6 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
     copy_v3_v3(origno1, dot_v3v3(mv1->origno, mv1->origno) == 0.0f ? v->no : mv1->origno);
   }
 
-  // BKE_pbvh_bmesh_check_origdata(pbvh, v, pbvh->stroke_id);
-
   zero_v3(co);
   zero_v3(origco);
 
@@ -2132,6 +2130,7 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
                                     const TaskParallelTLS *__restrict tls)
 {
   EdgeQueueThreadData *tdata = ((EdgeQueueThreadData *)userdata) + n;
+  PBVH *pbvh = tdata->pbvh;
   PBVHNode *node = tdata->node;
   EdgeQueueContext *eq_ctx = tdata->eq_ctx;
   RNG *rng = BLI_rng_new(_long_edge_queue_task_cb_seed++);  // I don't care if seed becomes mangled
@@ -2144,7 +2143,8 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
   BLI_array_declare(faces);
   bool do_smooth = eq_ctx->surface_smooth_fac > 0.0f;
 
-  BKE_pbvh_bmesh_check_tris(tdata->pbvh, node);
+  BKE_pbvh_bmesh_check_tris(pbvh, node);
+  int ni = node - pbvh->nodes;
 
   const char facetag = BM_ELEM_TAG_ALT;
 
@@ -2210,6 +2210,11 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
       BMLoop *l_iter = l_first;
       do {
         MSculptVert *mv = BKE_PBVH_SCULPTVERT(eq_ctx->cd_sculpt_vert, l_iter->v);
+
+        /* are we owned by this node? if so, make sure origdata is up to date */
+        if (BM_ELEM_CD_GET_INT(l_iter->v, pbvh->cd_vert_node_offset) == ni) {
+          BKE_pbvh_bmesh_check_origdata(pbvh, l_iter->v, pbvh->stroke_id);
+        }
 
         /*
           If valence is not up to date, just add it to the list;

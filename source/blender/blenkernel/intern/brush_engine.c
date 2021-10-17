@@ -1585,6 +1585,9 @@ static void bke_builtin_commandlist_create_paint(Brush *brush,
     autosmooth_spacing = BRUSHSET_GET_FLOAT(chset, spacing, NULL);
   }
 
+  bool hard_edge_mode = BRUSHSET_GET_INT(chset, hard_edge_mode, NULL);
+  commandlist_add_dyntopo(chset, cl, brush, tool, hard_edge_mode, radius);
+
   float autosmooth = BRUSHSET_GET_FLOAT(chset, autosmooth, NULL);
   if (autosmooth > 0.0f) {
     cmd = BKE_brush_command_init(BKE_brush_commandlist_add(cl, chset, true), SCULPT_TOOL_SMOOTH);
@@ -1624,9 +1627,6 @@ static void bke_builtin_commandlist_create_paint(Brush *brush,
   }
 
 #undef GETF
-
-  bool hard_edge_mode = BRUSHSET_GET_INT(chset, hard_edge_mode, NULL);
-  commandlist_add_dyntopo(chset, cl, brush, tool, hard_edge_mode, radius);
 
   // float
 }
@@ -1679,12 +1679,16 @@ void BKE_builtin_commandlist_create(Brush *brush,
     return;
   }
 
+  float radius = BKE_brush_channelset_get_float(chset, "radius", NULL);
+
+  /* build dyntopo command */
+  commandlist_add_dyntopo(chset, cl, brush, tool, hard_edge_mode, radius);
+
+  /* build main brush command */
   cmd = BKE_brush_commandlist_add(cl, chset, true);
   BKE_brush_command_init(cmd, tool);
   BKE_builtin_apply_hard_edge_mode(cmd->params, hard_edge_mode);
   BKE_brush_commandset_inherit_all_mappings(cmd->params);
-
-  float radius = BKE_brush_channelset_get_float(chset, "radius", NULL);
 
   bool no_autosmooth = ELEM(tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK);
   bool no_rake = ELEM(tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_MASK);
@@ -1787,9 +1791,6 @@ void BKE_builtin_commandlist_create(Brush *brush,
 
     BKE_brush_commandset_inherit_all_mappings(cmd->params);
   }
-
-  /* build dyntopo command */
-  commandlist_add_dyntopo(chset, cl, brush, tool, hard_edge_mode, radius);
 }
 
 void BKE_brush_channelset_read_lib(BlendLibReader *reader, ID *id, BrushChannelSet *chset)

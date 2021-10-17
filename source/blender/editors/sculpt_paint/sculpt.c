@@ -10125,7 +10125,7 @@ static void SCULPT_run_commandlist(
         &cmd->last_spacing_t[SCULPT_get_symmetry_pass(ss)]);
 
     if (!noskip) {
-      return;
+      continue;
     }
 
     BrushRunCommandData data = {
@@ -11427,8 +11427,8 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 
   float delta_mouse[2];
 
-  sub_v3_v3v3(delta_mouse, cache->mouse, cache->mouse_event);
-  float speed = len_v3(delta_mouse) / (800000.0f); /*get a reasonably usable value*/
+  sub_v2_v2v2(delta_mouse, cache->mouse, cache->mouse_event);
+  float speed = len_v2(delta_mouse) / (800000.0f); /*get a reasonably usable value*/
   speed /= PIL_check_seconds_timer() - cache->last_speed_time;
 
   cache->input_mapping.speed = sculpt_update_speed_average(ss, speed);

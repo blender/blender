@@ -799,13 +799,15 @@ void RNA_def_brush_curve(BlenderRNA *brna)
   prop = RNA_def_property(srna, "curve_preset", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, "BrushCurve", "preset");
   RNA_def_property_enum_items(prop, brush_curve_preset_items);
-  RNA_def_property_ui_text(prop, "Curve Preset", "");
+  RNA_def_property_ui_text(prop, "Curve Pre set", "");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "CurveMapping");
   RNA_def_property_ui_text(prop, "Curve Sensitivity", "Curve used for the sensitivity");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_pointer_funcs(prop, "rna_BrushCurve_curve_get", NULL, NULL, NULL);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
 void RNA_def_brush_channel(BlenderRNA *brna)
@@ -832,6 +834,7 @@ void RNA_def_brush_channel(BlenderRNA *brna)
                                 "rna_BrushChannel_category_set");
 
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, "BrushChannel", "name");
