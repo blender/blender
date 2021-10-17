@@ -80,7 +80,8 @@ class DynamicBrushCategoryPanel(Panel):
                 ch.idname,
                 slider=True,
                 ui_editing=opt["ui_editing"],
-                show_reorder=opt["show_reorder"])
+                show_reorder=opt["show_reorder"],
+                show_mappings=opt["show_mappings"])
 
 
 class DynamicPaintPanelGen:
@@ -96,7 +97,7 @@ class DynamicPaintPanelGen:
     groups = {}
 
     @staticmethod
-    def ensureCategory(idname, name=None, prefix="VIEW3D_PT_brush_category_", parent=None, show_reorder=False, ui_editing=False):
+    def ensureCategory(idname, name=None, prefix="VIEW3D_PT_brush_category_", parent=None, show_reorder=False, ui_editing=False, show_mappings=None):
         if name is None:
             name = idname
 
@@ -110,7 +111,8 @@ class DynamicPaintPanelGen:
 
         group.options = {
             "ui_editing": ui_editing,
-            "show_reorder": show_reorder
+            "show_reorder": show_reorder,
+            "show_mappings" : show_mappings
         }
 
         def callback():
@@ -194,7 +196,8 @@ classes.append(CLASSNAME)
 
 #pre create category panels in correct order
 for cat in builtin_channel_categories:
-    DynamicPaintPanelGen.ensureCategory(cat, cat, parent="VIEW3D_PT_tools_brush_settings_channels", prefix="VIEW3D_PT_brush_category_")
+    DynamicPaintPanelGen.ensureCategory(cat, cat, parent="VIEW3D_PT_tools_brush_settings_channels", prefix="VIEW3D_PT_brush_category_",
+                                        ui_editing=False, show_mappings=True)
     DynamicPaintPanelGen.ensureCategory(cat, cat,  prefix="VIEW3D_PT_brush_category_edit_",
                                 parent="VIEW3D_PT_tools_brush_settings_channels_preview")
 
@@ -353,9 +356,14 @@ class UnifiedPaintPanel:
 
     @staticmethod
     def channel_unified(layout, context, brush, prop_name, icon='NONE', pressure=None, text=None, baselayout=None,
-                        slider=False, header=False, show_reorder=False, expand=None, toolsettings_only=False, ui_editing=None):
+                        slider=False, header=False, show_reorder=False, expand=None, toolsettings_only=False, ui_editing=None,
+                        show_mappings=None):
         """ Generalized way of adding brush options to the UI,
-            along with their pen pressure setting and global toggle"""
+            along with their pen pressure setting and global toggle
+
+            note that ui_editing is no longer a bool, it can also be "mappings_only"
+            to just show the input mappings controls.
+            """
 
         if baselayout is None:
             baselayout = layout
@@ -363,16 +371,21 @@ class UnifiedPaintPanel:
         if slider is None:
             slider = False
 
-        if ui_editing is None:
+        if header:
+            ui_editing = False
+            show_mappings = False
+        elif ui_editing is None:
             ui_editing = True
-        ui_editing = ui_editing and not header
-
-        if context.mode != "SCULPT":
-            return UnifiedPaintPanel.prop_unified(layout, context, brush, prop_name, icon=icon, text=text, slider=slider, header=header, expand=expand)
 
         if not context.tool_settings.unified_paint_settings.brush_editor_mode:
             ui_editing = False
             show_reorder = False
+
+        if ui_editing and show_mappings is None:
+            show_mappings = True
+
+        if context.mode != "SCULPT":
+            return UnifiedPaintPanel.prop_unified(layout, context, brush, prop_name, icon=icon, text=text, slider=slider, header=header, expand=expand)
 
         if prop_name == "size":
             prop_name = "radius"
@@ -402,6 +415,8 @@ class UnifiedPaintPanel:
             layout = layout.column(align=True)
 
         row = layout.row(align=True)
+        row.use_property_split = False
+        row.use_property_decorate = False
 
         typeprop = "value"
 
@@ -442,9 +457,9 @@ class UnifiedPaintPanel:
             props.direction = 1
 
         if ui_editing and not header:
-            row.prop(ch, "show_in_workspace", text="", icon="HIDE_OFF")
-            row.prop(ch, "show_in_context_menu", text="", icon="MENU_PANEL")
-            #row.prop(ch, "ui_order", text="")
+            row2 = row.row(align=True)
+            row2.prop(ch, "show_in_workspace", text="", icon="HIDE_OFF")
+            row2.prop(ch, "show_in_context_menu", text="", icon="MENU_PANEL")
 
         if ch.type == "CURVE":
             row.prop(finalch.curve, "curve_preset", text=text)
@@ -523,7 +538,7 @@ class UnifiedPaintPanel:
             if ch.type in ["BITMASK", "BOOL", "CURVE", "ENUM"]:
                 return
 
-            if not ui_editing and not show_reorder:
+            if not show_mappings and not show_reorder:
                 return
 
             row.prop(ch, "ui_expanded", text="", icon="TRIA_DOWN" if ch.ui_expanded else "TRIA_RIGHT")
@@ -536,7 +551,10 @@ class UnifiedPaintPanel:
                     if mp.inherit:
                         mp = finalch.mappings[i]
 
-                    row2 = layout.row()
+                    row2 = layout.row(align=True)
+                    row2.use_property_split = False
+                    row2.use_property_decorate = False
+
                     name = mp.type.lower()
 
                     if len(name) > 0:
@@ -552,10 +570,13 @@ class UnifiedPaintPanel:
                     row2.prop(mp0, "ui_expanded", text="", icon="TRIA_DOWN" if mp.ui_expanded else "TRIA_RIGHT")
 
                     if mp0.ui_expanded:
-                        #XXX why do I have to feed use_negative_slope as true here?
-                        layout.template_curve_mapping(mp, "curve", brush=True, use_negative_slope=True)
+                        #XXX why do I have to feed use_negative_slope as true
+                        #here?
+                        box = layout.box()
 
-                        col = layout.column(align=True)
+                        box.template_curve_mapping(mp, "curve", brush=True, use_negative_slope=True)
+
+                        col = box.column(align=True)
                         row = col.row(align=True)
 
                         if mp0.inherit or toolsettings_only:
@@ -1854,14 +1875,14 @@ def brush_settings_channels(layout, context, brush, ui_editing=False, popover=Fa
         if len(ch.category) > 0:
             DynamicPaintPanelGen.ensureCategory(ch.category, ch.category, parent=parent,
                                                 prefix=prefix, ui_editing=ui_editing,
-                                                show_reorder=show_reorder)
+                                                show_reorder=show_reorder, show_mappings=True)
             continue
 
         # VIEW3D_PT_brush_category_edit_
         UnifiedPaintPanel.channel_unified(layout.column(),
             context,
             brush,
-            ch.idname, show_reorder=show_reorder, expand=False, ui_editing=ui_editing)
+            ch.idname, show_reorder=show_reorder, expand=False, ui_editing=ui_editing, show_mappings=True)
 
 
 def brush_settings_advanced(layout, context, brush, popover=False):

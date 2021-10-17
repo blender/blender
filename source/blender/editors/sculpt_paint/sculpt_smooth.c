@@ -373,6 +373,8 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   const float *co = do_origco ? mv->origco : SCULPT_vertex_co_get(ss, vertex);
   float no[3];
 
+  PBVH_CHECK_NAN(co);
+
   if (true || projection > 0.0f) {
     if (do_origco) {
       copy_v3_v3(no, mv->origno);
@@ -611,6 +613,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   PBVH_CHECK_NAN(co);
+  PBVH_CHECK_NAN(avg);
 
   if (btot != 0.0f) {
     *b1 /= btot;
@@ -1473,7 +1476,7 @@ void SCULPT_smooth(Sculpt *sd,
   const float vel_smooth_cutoff = 0.75;
   const bool do_vel_smooth = bstrength > vel_smooth_cutoff;
 
-  const int max_iterations = (int)(4.0f * ceilf(bstrength));
+  const int max_iterations = MAX2((int)(4.0f * ceilf(bstrength)), 1);
   const float fract = 1.0f / max_iterations;
   PBVHType type = BKE_pbvh_type(ss->pbvh);
   int iteration, count;

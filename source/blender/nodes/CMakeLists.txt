@@ -39,6 +39,7 @@ set(INC
   ../makesrna
   ../render
   ../../../intern/glew-mx
+  ../../../intern/atomic
   ../../../intern/guardedalloc
   ../../../intern/sky/include
 )

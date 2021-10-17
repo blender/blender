@@ -32,6 +32,7 @@ set(INC
   ../../windowmanager
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
+  ../../../../intern/atomic
   ../../../../intern/mantaflow/extern
 
   # dna_type_offsets.h

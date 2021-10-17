@@ -979,24 +979,51 @@ ATTR_NO_OPT static void MV_ADD_FLAG(MSculptVert *mv, int flag)
 }
 #endif
 
-#include <float.h>
-#include <math.h>
+#if 1
+#  include "atomic_ops.h"
+#  include <float.h>
+#  include <math.h>
+
+/*why is atomic_ops defining near & far macros?*/
+#  ifdef near
+#    undef near
+#  endif
+#  ifdef far
+#    undef far
+#  endif
+
+// static global to limit the number of reports per source file
+static int _bke_pbvh_report_count = 0;
+
+#  define PBVH_NAN_REPORT_LIMIT 16
 
 // for debugging NaNs that don't appear on developer's machines
 BLI_INLINE bool _pbvh_nan_check(const float *co, const char *func, const char *file, int line)
 {
   bool bad = false;
 
+  if (_bke_pbvh_report_count > PBVH_NAN_REPORT_LIMIT) {
+    return false;
+  }
+
   for (int i = 0; i < 3; i++) {
     if (isnan(co[i]) || !isfinite(co[i])) {
       const char *type = !isfinite(co[i]) ? "infinity" : "nan";
       printf("float corruption (vector[%d] was %s): %s:%d\n\t%s\n", i, type, func, line, file);
+      bad = true;
     }
+  }
+
+  if (bad) {
+    atomic_add_and_fetch_int32(&_bke_pbvh_report_count, 1);
   }
 
   return bad;
 }
-#define PBVH_CHECK_NAN(co) _pbvh_nan_check(co, __func__, __FILE__, __LINE__)
+#  define PBVH_CHECK_NAN(co) _pbvh_nan_check(co, __func__, __FILE__, __LINE__)
+#else
+#  define PBVH_CHECK_NAN(co)
+#endif
 
 typedef struct DynTopoState DynTopoState;
 

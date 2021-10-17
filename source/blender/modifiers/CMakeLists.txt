@@ -36,6 +36,7 @@ set(INC
   ../render
   ../windowmanager
   ../../../intern/eigen
+  ../../../intern/atomic
   ../../../intern/guardedalloc
 
   # dna_type_offsets.h in BLO_read_write.h

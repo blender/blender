@@ -256,7 +256,7 @@ int rna_BrushChannelSet_channels_assignint(struct PointerRNA *ptr,
   BrushChannel *ch = BLI_findlink(&chset->channels, key);
 
   if (ch) {
-    BKE_brush_channel_copy_data(ch, src, false);
+    BKE_brush_channel_copy_data(ch, src, false, false);
   }
 
   return 1;

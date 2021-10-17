@@ -262,6 +262,17 @@ static bool check_builtin_init()
   SUBTYPE_SET(autosmooth_radius_scale, BRUSH_CHANNEL_PERCENT);
   SUBTYPE_SET(topology_rake_radius_scale, BRUSH_CHANNEL_PERCENT);
 
+  const char *inherit_mappings_channels[] = {"smooth_strength_factor",
+                                             "smooth_strength_projection"};
+
+  for (int i = 0; i < ARRAY_SIZE(inherit_mappings_channels); i++) {
+    def = _get_def(inherit_mappings_channels[i]);
+
+    for (int j = 0; j < BRUSH_MAPPING_MAX; j++) {
+      (&def->mappings.pressure)[j].inherit = true;
+    }
+  }
+
   def = GETDEF(hue_offset);
   for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
     BrushMappingDef *mdef = (&def->mappings.pressure) + i;
@@ -1592,7 +1603,7 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       BrushChannel *ch2 = BKE_brush_channelset_lookup(brush->channels, ch->idname);
 
       if (ch2) {
-        BKE_brush_channel_copy_data(ch, ch2, false);
+        BKE_brush_channel_copy_data(ch, ch2, false, false);
       }
     }
 

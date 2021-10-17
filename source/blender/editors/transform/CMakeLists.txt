@@ -31,6 +31,7 @@ set(INC
   ../../sequencer
   ../../windowmanager
   ../../../../intern/glew-mx
+  ../../../../intern/atomic
   ../../../../intern/guardedalloc
 )
 

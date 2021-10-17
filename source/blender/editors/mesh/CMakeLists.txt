@@ -34,6 +34,7 @@ set(INC
   ../../../../intern/clog
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
+  ../../../../intern/atomic
 )
 
 set(SRC

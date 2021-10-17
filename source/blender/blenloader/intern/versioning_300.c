@@ -1991,6 +1991,35 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 39)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!scene->toolsettings || !scene->toolsettings->sculpt ||
+          !scene->toolsettings->sculpt->channels) {
+        continue;
+      }
+
+      Sculpt *sd = scene->toolsettings->sculpt;
+      BKE_brush_check_toolsettings(sd);
+
+      BKE_brush_mapping_inherit_all(BRUSHSET_LOOKUP(sd->channels, smooth_strength_factor));
+      BKE_brush_mapping_inherit_all(BRUSHSET_LOOKUP(sd->channels, smooth_strength_projection));
+    }
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (!brush->channels) {
+        continue;
+      }
+
+      BrushChannel *ch;
+      if ((ch = BRUSHSET_LOOKUP(brush->channels, smooth_strength_factor))) {
+        BKE_brush_mapping_inherit_all(ch);
+      }
+      if ((ch = BRUSHSET_LOOKUP(brush->channels, smooth_strength_projection))) {
+        BKE_brush_mapping_inherit_all(ch);
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

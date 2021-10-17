@@ -263,12 +263,16 @@ void BKE_brush_channel_free(BrushChannel *ch)
   MEM_freeN(ch);
 }
 
-static void copy_channel_data_keep_mappings(BrushChannel *dst, BrushChannel *src)
+static void copy_channel_data_keep_mappings(BrushChannel *dst,
+                                            BrushChannel *src,
+                                            bool keep_idname_and_def)
 {
-  BLI_strncpy(dst->name, src->name, sizeof(dst->name));
-  BLI_strncpy(dst->idname, src->idname, sizeof(dst->idname));
+  if (!keep_idname_and_def) {
+    BLI_strncpy(dst->name, src->name, sizeof(dst->name));
+    BLI_strncpy(dst->idname, src->idname, sizeof(dst->idname));
+    dst->def = src->def;
+  }
 
-  dst->def = src->def;
   dst->flag = src->flag;
   dst->type = src->type;
   dst->ui_order = src->ui_order;
@@ -310,10 +314,13 @@ static void copy_channel_data_keep_mappings(BrushChannel *dst, BrushChannel *src
   }
 }
 
-void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src, bool keep_mapping)
+void BKE_brush_channel_copy_data(BrushChannel *dst,
+                                 BrushChannel *src,
+                                 bool keep_mapping,
+                                 bool keep_idname_and_def)
 {
   if (keep_mapping) {
-    copy_channel_data_keep_mappings(dst, src);
+    copy_channel_data_keep_mappings(dst, src, keep_idname_and_def);
     return;
   }
 
@@ -345,8 +352,20 @@ void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src, bool keep
 
   // preserve linked list pointers
   void *next = dst->next, *prev = dst->prev;
+  char *idname = NULL;
+  BrushChannelType *def = dst->def;
+
+  if (keep_idname_and_def) {
+    idname = BLI_array_alloca(idname, sizeof(dst->idname));
+    memcpy(idname, dst->idname, sizeof(dst->idname));
+  }
 
   *dst = *src;
+
+  if (keep_idname_and_def) {
+    memcpy(dst->idname, idname, sizeof(dst->idname));
+    dst->def = def;
+  }
 
   if (dst->category) {
     dst->category = BLI_strdup(dst->category);
@@ -427,6 +446,10 @@ void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
 
     if (mdef->inv) {
       mp->flag |= BRUSH_MAPPING_INVERT;
+    }
+
+    if (mdef->inherit) {
+      mp->flag |= BRUSH_MAPPING_INHERIT;
     }
 
     int slope = CURVEMAP_SLOPE_POSITIVE;
@@ -627,7 +650,7 @@ void BKE_brush_channelset_add_duplicate(BrushChannelSet *chset, BrushChannel *ch
   BrushChannel *chnew = MEM_callocN(sizeof(*chnew), "brush channel copy");
 #endif
 
-  BKE_brush_channel_copy_data(chnew, ch, false);
+  BKE_brush_channel_copy_data(chnew, ch, false, false);
   BKE_brush_channelset_add(chset, chnew);
 
   namestack_pop(NULL);
@@ -784,7 +807,7 @@ void BKE_brush_channelset_merge(BrushChannelSet *dst,
         BKE_brush_channelset_add_duplicate(dst, ch);
       }
       else {
-        BKE_brush_channel_copy_data(ch2, ch, false);
+        BKE_brush_channel_copy_data(ch2, ch, false, false);
       }
     }
   }
@@ -800,7 +823,7 @@ void BKE_brush_channelset_merge(BrushChannelSet *dst,
     }
 
     if (ch->flag & BRUSH_CHANNEL_INHERIT) {
-      BKE_brush_channel_copy_data(mch, pch, true);
+      BKE_brush_channel_copy_data(mch, pch, true, false);
     }
 
     /*apply mapping inheritance flags, which are respected
@@ -1948,6 +1971,10 @@ void BKE_brush_mapping_copy_data(BrushMapping *dst, BrushMapping *src)
   dst->factor = src->factor;
   dst->flag = src->flag;
   dst->input_channel = src->input_channel;
+  dst->blendmode = src->blendmode;
+  dst->func_cutoff = src->func_cutoff;
+  dst->mapfunc = src->mapfunc;
+  dst->premultiply = src->premultiply;
 
   memcpy(dst->name, src->name, sizeof(dst->name));
 }
@@ -1994,6 +2021,13 @@ void BKE_brush_channel_category_set(BrushChannel *ch, const char *str)
   MEM_SAFE_FREE(ch->category);
 
   ch->category = BLI_strdup(str);
+}
+
+void BKE_brush_mapping_inherit_all(BrushChannel *ch)
+{
+  for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+    ch->mappings[i].flag |= BRUSH_MAPPING_INHERIT;
+  }
 }
 
 /* idea for building built-in preset node graphs:

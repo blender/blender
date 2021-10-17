@@ -1248,12 +1248,12 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         UnifiedPaintPanel.channel_unified(layout.column(),
             context,
             brush,
-            "smooth_strength_factor", ui_editing=False, slider=True)
+            "smooth_strength_factor", ui_editing=False, slider=True, show_mappings=True)
 
         UnifiedPaintPanel.channel_unified(layout.column(),
             context,
             brush,
-            "smooth_strength_projection", ui_editing=False, slider=True)
+            "smooth_strength_projection", ui_editing=False, slider=True, show_mappings=True)
 
         """
         smoothbrush = None
@@ -1285,7 +1285,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
             context,
             brush,
             "concave_mask_factor",
-            toolsettings_only=True, ui_editing=False, slider=True)
+            toolsettings_only=True, ui_editing=False, slider=True, show_mappings=True)
 
         """
         col = layout.column(heading="Auto-Masking", align=True)

@@ -29,6 +29,7 @@ set(INC
   ../../windowmanager
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
+  ../../../../intern/atomic
 )
 
 set(SRC

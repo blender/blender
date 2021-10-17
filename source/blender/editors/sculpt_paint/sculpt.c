@@ -6320,7 +6320,7 @@ static void do_crease_brush_task_cb_ex(void *__restrict userdata,
 static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  Brush *brush = ss->cache ? ss->cache->brush : BKE_paint_brush(&sd->paint);
   float offset[3];
   float bstrength = ss->cache->bstrength;
   float flippedbstrength, crease_correction;
@@ -6336,9 +6336,9 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
   /* We divide out the squared alpha and multiply by the squared crease
    * to give us the pinch strength. */
   crease_correction = SCULPT_get_float(ss, crease_pinch_factor, sd, brush);
-  crease_correction = crease_correction * crease_correction * 2.0f;
+  crease_correction = crease_correction * crease_correction;
 
-  brush_alpha = SCULPT_get_float(ss, strength, sd, brush);  // BKE_brush_alpha_get(scene, brush);
+  brush_alpha = BRUSHSET_GET_FINAL_FLOAT(brush->channels, sd->channels, strength, NULL);
   if (brush_alpha > 0.0f) {
     crease_correction /= brush_alpha * brush_alpha;
   }
@@ -9777,14 +9777,18 @@ static void SCULPT_run_command(
 
   ss->cache->brush = brush2;
 
-  ups->alpha = BRUSHSET_GET_FLOAT(cmd->params_mapped, strength, NULL);
+  ups->alpha = BRUSHSET_GET_FLOAT(cmd->params_final, strength, NULL);
+
   if (cmd->tool == SCULPT_TOOL_SMOOTH) {
-    ss->cache->bstrength = brush2->alpha;
+    ss->cache->bstrength = BRUSHSET_GET_FLOAT(cmd->params_mapped, strength, NULL);
   }
   else {
     ss->cache->bstrength = brush_strength(
         sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
   }
+
+  // do not pressure map brush2->alpha now that we've used it to build ss->cache->bstrength
+  brush2->alpha = BRUSHSET_GET_FLOAT(cmd->params_final, strength, NULL);
 
   if (!BRUSHSET_GET_INT(cmd->params_mapped, use_ctrl_invert, NULL)) {
     ss->cache->bstrength = fabsf(ss->cache->bstrength);
@@ -10011,6 +10015,14 @@ static void SCULPT_run_commandlist(
 
     BRUSHSET_SET_FLOAT(ss->cache->channels_final, strength, factor);
     BRUSHSET_SET_FLOAT(ss->cache->channels_final, projection, projection);
+
+    BrushChannel *ch = BRUSHSET_LOOKUP(ss->cache->channels_final, smooth_strength_factor);
+    BKE_brush_channel_copy_data(
+        BRUSHSET_LOOKUP(ss->cache->channels_final, strength), ch, false, true);
+
+    ch = BRUSHSET_LOOKUP(ss->cache->channels_final, smooth_strength_projection);
+    BKE_brush_channel_copy_data(
+        BRUSHSET_LOOKUP(ss->cache->channels_final, projection), ch, false, true);
   }
 
   int totnode = 0;

@@ -102,6 +102,7 @@ typedef struct BrushMappingDef {
   int curve;
   bool enabled;
   bool inv;
+  bool inherit;
   float min, max;
   int blendmode;
   float func_cutoff;
@@ -190,7 +191,10 @@ typedef struct BrushCommandList {
 
 void BKE_brush_channel_free_data(BrushChannel *ch);
 void BKE_brush_channel_free(BrushChannel *ch);
-void BKE_brush_channel_copy_data(BrushChannel *dst, BrushChannel *src, bool keep_mappings);
+void BKE_brush_channel_copy_data(BrushChannel *dst,
+                                 BrushChannel *src,
+                                 bool keep_mappings,
+                                 bool keep_idname_and_def);
 void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def);
 
 BrushChannelSet *BKE_brush_channelset_create(const char *info);
@@ -230,6 +234,7 @@ bool BKE_brush_channelset_has(BrushChannelSet *chset, const char *idname);
 BrushChannel *BKE_brush_channelset_add_builtin(BrushChannelSet *chset, const char *idname);
 BrushChannel *BKE_brush_channelset_ensure_builtin(BrushChannelSet *chset, const char *idname);
 void BKE_brush_mapping_reset(BrushChannel *ch, int tool, int mapping);
+void BKE_brush_mapping_inherit_all(BrushChannel *ch);
 
 void BKE_brush_channelset_merge(BrushChannelSet *dst,
                                 BrushChannelSet *child,

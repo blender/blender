@@ -34,6 +34,7 @@ set(INC
   ../sequencer
   ../windowmanager
   ../../../intern/clog
+  ../../../intern/atomic
   ../../../intern/guardedalloc
 
   # for writefile.c: dna_type_offsets.h

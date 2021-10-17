@@ -25,6 +25,7 @@ set(INC
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
+  ../../../../intern/atomic
   ../../../../intern/guardedalloc
 )
 
