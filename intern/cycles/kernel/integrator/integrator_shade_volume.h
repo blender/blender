@@ -94,7 +94,7 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals kg,
                                             ccl_private ShaderData *ccl_restrict sd,
                                             ccl_private VolumeShaderCoefficients *coeff)
 {
-  const int path_flag = INTEGRATOR_STATE(state, path, flag);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   shader_eval_volume<false>(kg, state, sd, path_flag, [=](const int i) {
     return integrator_state_read_volume_stack(state, i);
   });
@@ -686,7 +686,7 @@ ccl_device_forceinline bool integrate_volume_sample_light(
   }
 
   /* Sample position on a light. */
-  const int path_flag = INTEGRATOR_STATE(state, path, flag);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   const uint bounce = INTEGRATOR_STATE(state, path, bounce);
   float light_u, light_v;
   path_state_rng_2D(kg, rng_state, PRNG_LIGHT_U, &light_u, &light_v);
@@ -725,7 +725,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
    * TODO: decorrelate random numbers and use light_sample_new_position to
    * avoid resampling the CDF. */
   {
-    const int path_flag = INTEGRATOR_STATE(state, path, flag);
+    const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
     const uint bounce = INTEGRATOR_STATE(state, path, bounce);
     float light_u, light_v;
     path_state_rng_2D(kg, rng_state, PRNG_LIGHT_U, &light_u, &light_v);

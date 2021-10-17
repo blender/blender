@@ -79,7 +79,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
                                               ccl_private ShaderData *sd,
                                               ccl_private float *stack,
                                               uint4 node,
-                                              int path_flag,
+                                              uint32_t path_flag,
                                               int offset)
 {
   uint type, param1_offset, param2_offset;
@@ -1015,7 +1015,7 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
                                                    ccl_private float *stack,
                                                    uint4 node,
-                                                   int path_flag,
+                                                   uint32_t path_flag,
                                                    int offset)
 {
 #ifdef __VOLUME__

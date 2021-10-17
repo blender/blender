@@ -25,7 +25,7 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
                                              ccl_private float *stack,
                                              uint type,
                                              uint out_offset,
-                                             int path_flag)
+                                             uint32_t path_flag)
 {
   float info = 0.0f;
 

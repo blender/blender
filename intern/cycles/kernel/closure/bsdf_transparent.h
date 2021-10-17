@@ -36,7 +36,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device void bsdf_transparent_setup(ccl_private ShaderData *sd,
                                        const float3 weight,
-                                       int path_flag)
+                                       uint32_t path_flag)
 {
   /* Check cutoff weight. */
   float sample_weight = fabsf(average(weight));

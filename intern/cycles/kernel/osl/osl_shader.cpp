@@ -90,7 +90,7 @@ void OSLShader::thread_free(KernelGlobalsCPU *kg)
 static void shaderdata_to_shaderglobals(const KernelGlobalsCPU *kg,
                                         ShaderData *sd,
                                         const IntegratorStateCPU *state,
-                                        int path_flag,
+                                        uint32_t path_flag,
                                         OSLThreadData *tdata)
 {
   OSL::ShaderGlobals *globals = &tdata->globals;
@@ -140,7 +140,7 @@ static void shaderdata_to_shaderglobals(const KernelGlobalsCPU *kg,
 /* Surface */
 
 static void flatten_surface_closure_tree(ShaderData *sd,
-                                         int path_flag,
+                                         uint32_t path_flag,
                                          const OSL::ClosureColor *closure,
                                          float3 weight = make_float3(1.0f, 1.0f, 1.0f))
 {
@@ -177,7 +177,7 @@ static void flatten_surface_closure_tree(ShaderData *sd,
 void OSLShader::eval_surface(const KernelGlobalsCPU *kg,
                              const IntegratorStateCPU *state,
                              ShaderData *sd,
-                             int path_flag)
+                             uint32_t path_flag)
 {
   /* setup shader globals from shader data */
   OSLThreadData *tdata = kg->osl_tdata;
@@ -285,7 +285,7 @@ static void flatten_background_closure_tree(ShaderData *sd,
 void OSLShader::eval_background(const KernelGlobalsCPU *kg,
                                 const IntegratorStateCPU *state,
                                 ShaderData *sd,
-                                int path_flag)
+                                uint32_t path_flag)
 {
   /* setup shader globals from shader data */
   OSLThreadData *tdata = kg->osl_tdata;
@@ -343,7 +343,7 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 void OSLShader::eval_volume(const KernelGlobalsCPU *kg,
                             const IntegratorStateCPU *state,
                             ShaderData *sd,
-                            int path_flag)
+                            uint32_t path_flag)
 {
   /* setup shader globals from shader data */
   OSLThreadData *tdata = kg->osl_tdata;

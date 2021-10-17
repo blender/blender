@@ -58,7 +58,7 @@ ccl_device_forceinline bool integrator_intersect_terminate(KernelGlobals kg,
    * and evaluating the shader when not needed. Only for emission and transparent
    * surfaces in front of emission do we need to evaluate the shader, since we
    * perform MIS as part of indirect rays. */
-  const int path_flag = INTEGRATOR_STATE(state, path, flag);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   const float probability = path_state_continuation_probability(kg, state, path_flag);
 
   if (probability != 1.0f) {
@@ -184,7 +184,7 @@ ccl_device void integrator_intersect_closest(KernelGlobals kg, IntegratorState s
     /* NOTE: if we make lights visible to camera rays, we'll need to initialize
      * these in the path_state_init. */
     const int last_type = INTEGRATOR_STATE(state, isect, type);
-    const int path_flag = INTEGRATOR_STATE(state, path, flag);
+    const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
     hit = lights_intersect(
               kg, &ray, &isect, last_isect_prim, last_isect_object, last_type, path_flag) ||

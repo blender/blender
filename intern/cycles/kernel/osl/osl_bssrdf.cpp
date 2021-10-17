@@ -67,7 +67,7 @@ class CBSSRDFClosure : public CClosurePrimitive {
     ior = 1.4f;
   }
 
-  void setup(ShaderData *sd, int path_flag, float3 weight)
+  void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
     if (method == u_burley) {
       alloc(sd, path_flag, weight, CLOSURE_BSSRDF_BURLEY_ID);
@@ -80,7 +80,7 @@ class CBSSRDFClosure : public CClosurePrimitive {
     }
   }
 
-  void alloc(ShaderData *sd, int path_flag, float3 weight, ClosureType type)
+  void alloc(ShaderData *sd, uint32_t path_flag, float3 weight, ClosureType type)
   {
     Bssrdf *bssrdf = bssrdf_alloc(sd, weight);
 

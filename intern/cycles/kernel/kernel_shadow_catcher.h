@@ -39,7 +39,7 @@ ccl_device_inline bool kernel_shadow_catcher_is_path_split_bounce(KernelGlobals 
     return false;
   }
 
-  const int path_flag = INTEGRATOR_STATE(state, path, flag);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if ((path_flag & PATH_RAY_TRANSPARENT_BACKGROUND) == 0) {
     /* Split only on primary rays, secondary bounces are to treat shadow catcher as a regular
@@ -66,7 +66,7 @@ ccl_device_inline bool kernel_shadow_catcher_path_can_split(KernelGlobals kg,
     return false;
   }
 
-  const int path_flag = INTEGRATOR_STATE(state, path, flag);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if (path_flag & PATH_RAY_SHADOW_CATCHER_HIT) {
     /* Shadow catcher was already hit and the state was split. No further split is allowed. */
@@ -105,16 +105,14 @@ ccl_device_inline bool kernel_shadow_catcher_split(KernelGlobals kg,
 
 #ifdef __SHADOW_CATCHER__
 
-ccl_device_forceinline bool kernel_shadow_catcher_is_matte_path(KernelGlobals kg,
-                                                                ConstIntegratorState state)
+ccl_device_forceinline bool kernel_shadow_catcher_is_matte_path(const uint32_t path_flag)
 {
-  return (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_HIT) == 0;
+  return (path_flag & PATH_RAY_SHADOW_CATCHER_HIT) == 0;
 }
 
-ccl_device_forceinline bool kernel_shadow_catcher_is_object_pass(KernelGlobals kg,
-                                                                 ConstIntegratorState state)
+ccl_device_forceinline bool kernel_shadow_catcher_is_object_pass(const uint32_t path_flag)
 {
-  return INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS;
+  return path_flag & PATH_RAY_SHADOW_CATCHER_PASS;
 }
 
 #endif /* __SHADOW_CATCHER__ */

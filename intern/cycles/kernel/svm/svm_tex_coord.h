@@ -24,7 +24,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline int svm_node_tex_coord(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
-                                           int path_flag,
+                                           uint32_t path_flag,
                                            ccl_private float *stack,
                                            uint4 node,
                                            int offset)
@@ -105,7 +105,7 @@ ccl_device_noinline int svm_node_tex_coord(KernelGlobals kg,
 
 ccl_device_noinline int svm_node_tex_coord_bump_dx(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
-                                                   int path_flag,
+                                                   uint32_t path_flag,
                                                    ccl_private float *stack,
                                                    uint4 node,
                                                    int offset)
@@ -190,7 +190,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dx(KernelGlobals kg,
 
 ccl_device_noinline int svm_node_tex_coord_bump_dy(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
-                                                   int path_flag,
+                                                   uint32_t path_flag,
                                                    ccl_private float *stack,
                                                    uint4 node,
                                                    int offset)

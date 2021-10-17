@@ -197,30 +197,30 @@ enum PathRayFlag {
    * NOTE: Recalculated after a surface bounce.
    */
 
-  PATH_RAY_CAMERA = (1 << 0),
-  PATH_RAY_REFLECT = (1 << 1),
-  PATH_RAY_TRANSMIT = (1 << 2),
-  PATH_RAY_DIFFUSE = (1 << 3),
-  PATH_RAY_GLOSSY = (1 << 4),
-  PATH_RAY_SINGULAR = (1 << 5),
-  PATH_RAY_TRANSPARENT = (1 << 6),
-  PATH_RAY_VOLUME_SCATTER = (1 << 7),
+  PATH_RAY_CAMERA = (1U << 0U),
+  PATH_RAY_REFLECT = (1U << 1U),
+  PATH_RAY_TRANSMIT = (1U << 2U),
+  PATH_RAY_DIFFUSE = (1U << 3U),
+  PATH_RAY_GLOSSY = (1U << 4U),
+  PATH_RAY_SINGULAR = (1U << 5U),
+  PATH_RAY_TRANSPARENT = (1U << 6U),
+  PATH_RAY_VOLUME_SCATTER = (1U << 7U),
 
   /* Shadow ray visibility. */
-  PATH_RAY_SHADOW_OPAQUE = (1 << 8),
-  PATH_RAY_SHADOW_TRANSPARENT = (1 << 9),
+  PATH_RAY_SHADOW_OPAQUE = (1U << 8U),
+  PATH_RAY_SHADOW_TRANSPARENT = (1U << 9U),
   PATH_RAY_SHADOW = (PATH_RAY_SHADOW_OPAQUE | PATH_RAY_SHADOW_TRANSPARENT),
 
   /* Special flag to tag unaligned BVH nodes.
    * Only set and used in BVH nodes to distinguish how to interpret bounding box information stored
-   * in the node (either it should be intersected as AABB or as OBB). */
-  PATH_RAY_NODE_UNALIGNED = (1 << 10),
+   * in the node (either it should be intersected as AABB or as OBBU). */
+  PATH_RAY_NODE_UNALIGNED = (1U << 10U),
 
   /* Subset of flags used for ray visibility for intersection.
    *
    * NOTE: SHADOW_CATCHER macros below assume there are no more than
    * 16 visibility bits. */
-  PATH_RAY_ALL_VISIBILITY = ((1 << 11) - 1),
+  PATH_RAY_ALL_VISIBILITY = ((1U << 11U) - 1U),
 
   /* --------------------------------------------------------------------
    * Path flags.
@@ -228,69 +228,69 @@ enum PathRayFlag {
 
   /* Don't apply multiple importance sampling weights to emission from
    * lamp or surface hits, because they were not direct light sampled. */
-  PATH_RAY_MIS_SKIP = (1 << 11),
+  PATH_RAY_MIS_SKIP = (1U << 11U),
 
   /* Diffuse bounce earlier in the path, skip SSS to improve performance
    * and avoid branching twice with disk sampling SSS. */
-  PATH_RAY_DIFFUSE_ANCESTOR = (1 << 12),
+  PATH_RAY_DIFFUSE_ANCESTOR = (1U << 12U),
 
   /* Single pass has been written. */
-  PATH_RAY_SINGLE_PASS_DONE = (1 << 13),
+  PATH_RAY_SINGLE_PASS_DONE = (1U << 13U),
 
   /* Zero background alpha, for camera or transparent glass rays. */
-  PATH_RAY_TRANSPARENT_BACKGROUND = (1 << 14),
+  PATH_RAY_TRANSPARENT_BACKGROUND = (1U << 14U),
 
   /* Terminate ray immediately at next bounce. */
-  PATH_RAY_TERMINATE_ON_NEXT_SURFACE = (1 << 15),
-  PATH_RAY_TERMINATE_IN_NEXT_VOLUME = (1 << 16),
+  PATH_RAY_TERMINATE_ON_NEXT_SURFACE = (1U << 15U),
+  PATH_RAY_TERMINATE_IN_NEXT_VOLUME = (1U << 16U),
 
   /* Ray is to be terminated, but continue with transparent bounces and
    * emission as long as we encounter them. This is required to make the
    * MIS between direct and indirect light rays match, as shadow rays go
    * through transparent surfaces to reach emission too. */
-  PATH_RAY_TERMINATE_AFTER_TRANSPARENT = (1 << 17),
+  PATH_RAY_TERMINATE_AFTER_TRANSPARENT = (1U << 17U),
 
   /* Terminate ray immediately after volume shading. */
-  PATH_RAY_TERMINATE_AFTER_VOLUME = (1 << 18),
+  PATH_RAY_TERMINATE_AFTER_VOLUME = (1U << 18U),
 
   /* Ray is to be terminated. */
   PATH_RAY_TERMINATE = (PATH_RAY_TERMINATE_ON_NEXT_SURFACE | PATH_RAY_TERMINATE_IN_NEXT_VOLUME |
                         PATH_RAY_TERMINATE_AFTER_TRANSPARENT | PATH_RAY_TERMINATE_AFTER_VOLUME),
 
   /* Path and shader is being evaluated for direct lighting emission. */
-  PATH_RAY_EMISSION = (1 << 19),
+  PATH_RAY_EMISSION = (1U << 19U),
 
   /* Perform subsurface scattering. */
-  PATH_RAY_SUBSURFACE_RANDOM_WALK = (1 << 20),
-  PATH_RAY_SUBSURFACE_DISK = (1 << 21),
-  PATH_RAY_SUBSURFACE_USE_FRESNEL = (1 << 22),
+  PATH_RAY_SUBSURFACE_RANDOM_WALK = (1U << 20U),
+  PATH_RAY_SUBSURFACE_DISK = (1U << 21U),
+  PATH_RAY_SUBSURFACE_USE_FRESNEL = (1U << 22U),
   PATH_RAY_SUBSURFACE = (PATH_RAY_SUBSURFACE_RANDOM_WALK | PATH_RAY_SUBSURFACE_DISK |
                          PATH_RAY_SUBSURFACE_USE_FRESNEL),
 
   /* Contribute to denoising features. */
-  PATH_RAY_DENOISING_FEATURES = (1 << 23),
+  PATH_RAY_DENOISING_FEATURES = (1U << 23U),
 
   /* Render pass categories. */
-  PATH_RAY_REFLECT_PASS = (1 << 24),
-  PATH_RAY_TRANSMISSION_PASS = (1 << 25),
-  PATH_RAY_VOLUME_PASS = (1 << 26),
+  PATH_RAY_REFLECT_PASS = (1U << 24U),
+  PATH_RAY_TRANSMISSION_PASS = (1U << 25U),
+  PATH_RAY_VOLUME_PASS = (1U << 26U),
   PATH_RAY_ANY_PASS = (PATH_RAY_REFLECT_PASS | PATH_RAY_TRANSMISSION_PASS | PATH_RAY_VOLUME_PASS),
 
   /* Shadow ray is for a light or surface. */
-  PATH_RAY_SHADOW_FOR_LIGHT = (1 << 27),
+  PATH_RAY_SHADOW_FOR_LIGHT = (1U << 27U),
 
   /* A shadow catcher object was hit and the path was split into two. */
-  PATH_RAY_SHADOW_CATCHER_HIT = (1 << 28),
+  PATH_RAY_SHADOW_CATCHER_HIT = (1U << 28U),
 
   /* A shadow catcher object was hit and this path traces only shadow catchers, writing them into
    * their dedicated pass for later division.
    *
    * NOTE: Is not covered with `PATH_RAY_ANY_PASS` because shadow catcher does special handling
    * which is separate from the light passes. */
-  PATH_RAY_SHADOW_CATCHER_PASS = (1 << 29),
+  PATH_RAY_SHADOW_CATCHER_PASS = (1U << 29U),
 
   /* Path is evaluating background for an approximate shadow catcher with non-transparent film. */
-  PATH_RAY_SHADOW_CATCHER_BACKGROUND = (1 << 30),
+  PATH_RAY_SHADOW_CATCHER_BACKGROUND = (1U << 30U),
 };
 
 /* Configure ray visibility bits for rays and objects respectively,

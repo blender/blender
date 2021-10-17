@@ -201,7 +201,7 @@ ccl_device_inline void kernel_write_data_passes(KernelGlobals kg,
                                                 ccl_global float *ccl_restrict render_buffer)
 {
 #ifdef __PASSES__
-  const int path_flag = INTEGRATOR_STATE(state, path, flag);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if (!(path_flag & PATH_RAY_CAMERA)) {
     return;

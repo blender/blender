@@ -580,7 +580,7 @@ ccl_device void shader_eval_surface(KernelGlobals kg,
                                     ConstIntegratorState state,
                                     ccl_private ShaderData *ccl_restrict sd,
                                     ccl_global float *ccl_restrict buffer,
-                                    int path_flag)
+                                    uint32_t path_flag)
 {
   /* If path is being terminated, we are tracing a shadow ray or evaluating
    * emission, then we don't need to store closures. The emission and shadow
@@ -767,7 +767,7 @@ template<const bool shadow, typename StackReadOp>
 ccl_device_inline void shader_eval_volume(KernelGlobals kg,
                                           ConstIntegratorState state,
                                           ccl_private ShaderData *ccl_restrict sd,
-                                          const int path_flag,
+                                          const uint32_t path_flag,
                                           StackReadOp stack_read)
 {
   /* If path is being terminated, we are tracing a shadow ray or evaluating

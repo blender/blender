@@ -153,7 +153,7 @@ ccl_device_inline int kernel_accum_sample(KernelGlobals kg,
 }
 
 ccl_device void kernel_accum_adaptive_buffer(KernelGlobals kg,
-                                             ConstIntegratorState state,
+                                             const int sample,
                                              const float3 contribution,
                                              ccl_global float *ccl_restrict buffer)
 {
@@ -166,7 +166,6 @@ ccl_device void kernel_accum_adaptive_buffer(KernelGlobals kg,
     return;
   }
 
-  const int sample = INTEGRATOR_STATE(state, path, sample);
   if (sample_is_even(kernel_data.integrator.sampling_pattern, sample)) {
     kernel_write_pass_float4(
         buffer + kernel_data.film.pass_adaptive_aux_buffer,
@@ -186,7 +185,7 @@ ccl_device void kernel_accum_adaptive_buffer(KernelGlobals kg,
  * passes (like combined, adaptive sampling). */
 
 ccl_device bool kernel_accum_shadow_catcher(KernelGlobals kg,
-                                            ConstIntegratorState state,
+                                            const uint32_t path_flag,
                                             const float3 contribution,
                                             ccl_global float *ccl_restrict buffer)
 {
@@ -198,7 +197,7 @@ ccl_device bool kernel_accum_shadow_catcher(KernelGlobals kg,
   kernel_assert(kernel_data.film.pass_shadow_catcher_matte != PASS_UNUSED);
 
   /* Matte pass. */
-  if (kernel_shadow_catcher_is_matte_path(kg, state)) {
+  if (kernel_shadow_catcher_is_matte_path(path_flag)) {
     kernel_write_pass_float3(buffer + kernel_data.film.pass_shadow_catcher_matte, contribution);
     /* NOTE: Accumulate the combined pass and to the samples count pass, so that the adaptive
      * sampling is based on how noisy the combined pass is as if there were no catchers in the
@@ -206,7 +205,7 @@ ccl_device bool kernel_accum_shadow_catcher(KernelGlobals kg,
   }
 
   /* Shadow catcher pass. */
-  if (kernel_shadow_catcher_is_object_pass(kg, state)) {
+  if (kernel_shadow_catcher_is_object_pass(path_flag)) {
     kernel_write_pass_float3(buffer + kernel_data.film.pass_shadow_catcher, contribution);
     return true;
   }
@@ -215,7 +214,7 @@ ccl_device bool kernel_accum_shadow_catcher(KernelGlobals kg,
 }
 
 ccl_device bool kernel_accum_shadow_catcher_transparent(KernelGlobals kg,
-                                                        ConstIntegratorState state,
+                                                        const uint32_t path_flag,
                                                         const float3 contribution,
                                                         const float transparent,
                                                         ccl_global float *ccl_restrict buffer)
@@ -227,12 +226,12 @@ ccl_device bool kernel_accum_shadow_catcher_transparent(KernelGlobals kg,
   kernel_assert(kernel_data.film.pass_shadow_catcher != PASS_UNUSED);
   kernel_assert(kernel_data.film.pass_shadow_catcher_matte != PASS_UNUSED);
 
-  if (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_BACKGROUND) {
+  if (path_flag & PATH_RAY_SHADOW_CATCHER_BACKGROUND) {
     return true;
   }
 
   /* Matte pass. */
-  if (kernel_shadow_catcher_is_matte_path(kg, state)) {
+  if (kernel_shadow_catcher_is_matte_path(path_flag)) {
     kernel_write_pass_float4(
         buffer + kernel_data.film.pass_shadow_catcher_matte,
         make_float4(contribution.x, contribution.y, contribution.z, transparent));
@@ -242,7 +241,7 @@ ccl_device bool kernel_accum_shadow_catcher_transparent(KernelGlobals kg,
   }
 
   /* Shadow catcher pass. */
-  if (kernel_shadow_catcher_is_object_pass(kg, state)) {
+  if (kernel_shadow_catcher_is_object_pass(path_flag)) {
     /* NOTE: The transparency of the shadow catcher pass is ignored. It is not needed for the
      * calculation and the alpha channel of the pass contains numbers of samples contributed to a
      * pixel of the pass. */
@@ -254,7 +253,7 @@ ccl_device bool kernel_accum_shadow_catcher_transparent(KernelGlobals kg,
 }
 
 ccl_device void kernel_accum_shadow_catcher_transparent_only(KernelGlobals kg,
-                                                             ConstIntegratorState state,
+                                                             const uint32_t path_flag,
                                                              const float transparent,
                                                              ccl_global float *ccl_restrict buffer)
 {
@@ -265,7 +264,7 @@ ccl_device void kernel_accum_shadow_catcher_transparent_only(KernelGlobals kg,
   kernel_assert(kernel_data.film.pass_shadow_catcher_matte != PASS_UNUSED);
 
   /* Matte pass. */
-  if (kernel_shadow_catcher_is_matte_path(kg, state)) {
+  if (kernel_shadow_catcher_is_matte_path(path_flag)) {
     kernel_write_pass_float(buffer + kernel_data.film.pass_shadow_catcher_matte + 3, transparent);
   }
 }
@@ -278,12 +277,13 @@ ccl_device void kernel_accum_shadow_catcher_transparent_only(KernelGlobals kg,
 
 /* Write combined pass. */
 ccl_device_inline void kernel_accum_combined_pass(KernelGlobals kg,
-                                                  ConstIntegratorState state,
+                                                  const uint32_t path_flag,
+                                                  const int sample,
                                                   const float3 contribution,
                                                   ccl_global float *ccl_restrict buffer)
 {
 #ifdef __SHADOW_CATCHER__
-  if (kernel_accum_shadow_catcher(kg, state, contribution, buffer)) {
+  if (kernel_accum_shadow_catcher(kg, path_flag, contribution, buffer)) {
     return;
   }
 #endif
@@ -292,19 +292,20 @@ ccl_device_inline void kernel_accum_combined_pass(KernelGlobals kg,
     kernel_write_pass_float3(buffer + kernel_data.film.pass_combined, contribution);
   }
 
-  kernel_accum_adaptive_buffer(kg, state, contribution, buffer);
+  kernel_accum_adaptive_buffer(kg, sample, contribution, buffer);
 }
 
 /* Write combined pass with transparency. */
 ccl_device_inline void kernel_accum_combined_transparent_pass(KernelGlobals kg,
-                                                              ConstIntegratorState state,
+                                                              const uint32_t path_flag,
+                                                              const int sample,
                                                               const float3 contribution,
                                                               const float transparent,
                                                               ccl_global float *ccl_restrict
                                                                   buffer)
 {
 #ifdef __SHADOW_CATCHER__
-  if (kernel_accum_shadow_catcher_transparent(kg, state, contribution, transparent, buffer)) {
+  if (kernel_accum_shadow_catcher_transparent(kg, path_flag, contribution, transparent, buffer)) {
     return;
   }
 #endif
@@ -315,7 +316,7 @@ ccl_device_inline void kernel_accum_combined_transparent_pass(KernelGlobals kg,
         make_float4(contribution.x, contribution.y, contribution.z, transparent));
   }
 
-  kernel_accum_adaptive_buffer(kg, state, contribution, buffer);
+  kernel_accum_adaptive_buffer(kg, sample, contribution, buffer);
 }
 
 /* Write background or emission to appropriate pass. */
@@ -331,7 +332,7 @@ ccl_device_inline void kernel_accum_emission_or_background_pass(KernelGlobals kg
   }
 
 #ifdef __PASSES__
-  const int path_flag = INTEGRATOR_STATE(state, path, flag);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   int pass_offset = PASS_UNUSED;
 
   /* Denoising albedo. */
@@ -401,11 +402,14 @@ ccl_device_inline void kernel_accum_light(KernelGlobals kg,
 
   ccl_global float *buffer = kernel_accum_pixel_render_buffer(kg, state, render_buffer);
 
-  kernel_accum_combined_pass(kg, state, contribution, buffer);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, shadow_path, flag);
+  const int sample = INTEGRATOR_STATE(state, path, sample);
+
+  kernel_accum_combined_pass(kg, path_flag, sample, contribution, buffer);
 
 #ifdef __PASSES__
   if (kernel_data.film.light_pass_flag & PASS_ANY) {
-    const int path_flag = INTEGRATOR_STATE(state, shadow_path, flag);
+    const uint32_t path_flag = INTEGRATOR_STATE(state, shadow_path, flag);
     int pass_offset = PASS_UNUSED;
 
     if (path_flag & (PATH_RAY_REFLECT_PASS | PATH_RAY_TRANSMISSION_PASS)) {
@@ -467,6 +471,7 @@ ccl_device_inline void kernel_accum_light(KernelGlobals kg,
  * in many places. */
 ccl_device_inline void kernel_accum_transparent(KernelGlobals kg,
                                                 ConstIntegratorState state,
+                                                const uint32_t path_flag,
                                                 const float transparent,
                                                 ccl_global float *ccl_restrict render_buffer)
 {
@@ -476,7 +481,7 @@ ccl_device_inline void kernel_accum_transparent(KernelGlobals kg,
     kernel_write_pass_float(buffer + kernel_data.film.pass_combined + 3, transparent);
   }
 
-  kernel_accum_shadow_catcher_transparent_only(kg, state, transparent, buffer);
+  kernel_accum_shadow_catcher_transparent_only(kg, path_flag, transparent, buffer);
 }
 
 /* Write background contribution to render buffer.
@@ -493,12 +498,15 @@ ccl_device_inline void kernel_accum_background(KernelGlobals kg,
   kernel_accum_clamp(kg, &contribution, INTEGRATOR_STATE(state, path, bounce) - 1);
 
   ccl_global float *buffer = kernel_accum_pixel_render_buffer(kg, state, render_buffer);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if (is_transparent_background_ray) {
-    kernel_accum_transparent(kg, state, transparent, render_buffer);
+    kernel_accum_transparent(kg, state, path_flag, transparent, render_buffer);
   }
   else {
-    kernel_accum_combined_transparent_pass(kg, state, contribution, transparent, buffer);
+    const int sample = INTEGRATOR_STATE(state, path, sample);
+    kernel_accum_combined_transparent_pass(
+        kg, path_flag, sample, contribution, transparent, buffer);
   }
   kernel_accum_emission_or_background_pass(
       kg, state, contribution, buffer, kernel_data.film.pass_background);
@@ -515,8 +523,10 @@ ccl_device_inline void kernel_accum_emission(KernelGlobals kg,
   kernel_accum_clamp(kg, &contribution, INTEGRATOR_STATE(state, path, bounce) - 1);
 
   ccl_global float *buffer = kernel_accum_pixel_render_buffer(kg, state, render_buffer);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+  const int sample = INTEGRATOR_STATE(state, path, sample);
 
-  kernel_accum_combined_pass(kg, state, contribution, buffer);
+  kernel_accum_combined_pass(kg, path_flag, sample, contribution, buffer);
   kernel_accum_emission_or_background_pass(
       kg, state, contribution, buffer, kernel_data.film.pass_emission);
 }

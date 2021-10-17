@@ -56,7 +56,7 @@ ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
     if (kernel_data.background.transparent) {
       const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
       const float transparent = average(holdout_weight * throughput);
-      kernel_accum_transparent(kg, state, transparent, render_buffer);
+      kernel_accum_transparent(kg, state, path_flag, transparent, render_buffer);
     }
     if (isequal_float3(holdout_weight, one_float3())) {
       return false;
@@ -118,7 +118,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   /* Sample position on a light. */
   LightSample ls ccl_optional_struct_init;
   {
-    const int path_flag = INTEGRATOR_STATE(state, path, flag);
+    const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
     const uint bounce = INTEGRATOR_STATE(state, path, bounce);
     float light_u, light_v;
     path_state_rng_2D(kg, rng_state, PRNG_LIGHT_U, &light_u, &light_v);
@@ -375,7 +375,7 @@ ccl_device bool integrate_surface(KernelGlobals kg,
 #ifdef __VOLUME__
   if (!(sd.flag & SD_HAS_ONLY_VOLUME)) {
 #endif
-    const int path_flag = INTEGRATOR_STATE(state, path, flag);
+    const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
 #ifdef __SUBSURFACE__
     /* Can skip shader evaluation for BSSRDF exit point without bump mapping. */

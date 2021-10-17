@@ -50,7 +50,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
                                     const float randu,
                                     const float randv,
                                     const float3 P,
-                                    const int path_flag,
+                                    const uint32_t path_flag,
                                     ccl_private LightSample *ls)
 {
   const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
@@ -215,7 +215,7 @@ ccl_device bool lights_intersect(KernelGlobals kg,
                                  const int last_prim,
                                  const int last_object,
                                  const int last_type,
-                                 const int path_flag)
+                                 const uint32_t path_flag)
 {
   for (int lamp = 0; lamp < kernel_data.integrator.num_all_lights; lamp++) {
     const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
@@ -797,7 +797,7 @@ ccl_device_noinline bool light_distribution_sample(KernelGlobals kg,
                                                    const float time,
                                                    const float3 P,
                                                    const int bounce,
-                                                   const int path_flag,
+                                                   const uint32_t path_flag,
                                                    ccl_private LightSample *ls)
 {
   /* Sample light index from distribution. */
@@ -837,7 +837,7 @@ ccl_device_inline bool light_distribution_sample_from_volume_segment(KernelGloba
                                                                      const float time,
                                                                      const float3 P,
                                                                      const int bounce,
-                                                                     const int path_flag,
+                                                                     const uint32_t path_flag,
                                                                      ccl_private LightSample *ls)
 {
   return light_distribution_sample<true>(kg, randu, randv, time, P, bounce, path_flag, ls);
@@ -849,7 +849,7 @@ ccl_device_inline bool light_distribution_sample_from_position(KernelGlobals kg,
                                                                const float time,
                                                                const float3 P,
                                                                const int bounce,
-                                                               const int path_flag,
+                                                               const uint32_t path_flag,
                                                                ccl_private LightSample *ls)
 {
   return light_distribution_sample<false>(kg, randu, randv, time, P, bounce, path_flag, ls);
