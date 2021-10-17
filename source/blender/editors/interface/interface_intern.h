@@ -116,7 +116,7 @@ extern const char ui_radial_dir_to_numpad[8];
 extern const short ui_radial_dir_to_angle[8];
 
 /* internal panel drawing defines */
-#define PNL_HEADER (UI_UNIT_Y * 1.2) /* 24 default */
+#define PNL_HEADER (UI_UNIT_Y * 1.25) /* 24 default */
 
 /* bit button defines */
 /* Bit operations */

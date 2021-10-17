@@ -260,6 +260,7 @@ const bTheme U_theme_default = {
     .icon_modifier = RGBA(0x84b8ffff),
     .icon_shading = RGBA(0xea7581ff),
     .icon_folder = RGBA(0xe3c16eff),
+    .panel_roundness = 0.4f,
   },
   .space_properties = {
     .back = RGBA(0x42424200),

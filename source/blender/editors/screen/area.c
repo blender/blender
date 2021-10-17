@@ -2977,11 +2977,10 @@ void ED_region_panels_layout_ex(const bContext *C,
     margin_x = category_tabs_width;
   }
 
-  const int w = BLI_rctf_size_x(&v2d->cur) - margin_x;
+  const int width_no_header = BLI_rctf_size_x(&v2d->cur) - margin_x;
+  const int width = width_no_header - UI_PANEL_MARGIN_X * 2.0f;
   /* Works out to 10 * UI_UNIT_X or 20 * UI_UNIT_X. */
   const int em = (region->type->prefsizex) ? 10 : 20;
-
-  const int w_box_panel = w - UI_PANEL_BOX_STYLE_MARGIN * 2.0f;
 
   /* create panels */
   UI_panels_begin(C, region);
@@ -3018,7 +3017,7 @@ void ED_region_panels_layout_ex(const bContext *C,
                   &region->panels,
                   pt,
                   panel,
-                  (pt->flag & PANEL_TYPE_DRAW_BOX) ? w_box_panel : w,
+                  (pt->flag & PANEL_TYPE_NO_HEADER) ? width_no_header : width,
                   em,
                   NULL,
                   search_filter);
@@ -3052,7 +3051,7 @@ void ED_region_panels_layout_ex(const bContext *C,
                     &region->panels,
                     panel->type,
                     panel,
-                    (panel->type->flag & PANEL_TYPE_DRAW_BOX) ? w_box_panel : w,
+                    (panel->type->flag & PANEL_TYPE_NO_HEADER) ? width_no_header : width,
                     em,
                     unique_panel_str,
                     search_filter);

@@ -206,6 +206,10 @@ typedef struct ThemeUI {
   /** Intensity of the border icons. >0 will render an border around themed
    * icons. */
   float icon_border_intensity;
+
+  float panel_roundness;
+  char _pad2[4];
+
 } ThemeUI;
 
 /* try to put them all in one, if needed a special struct can be created as well

@@ -1112,23 +1112,14 @@ static void panel_draw_highlight_border(const Panel *panel,
                                         const rcti *rect,
                                         const rcti *header_rect)
 {
-  const bool draw_box_style = panel->type->flag & PANEL_TYPE_DRAW_BOX;
   const bool is_subpanel = panel->type->parent != NULL;
   if (is_subpanel) {
     return;
   }
 
-  float radius;
-  if (draw_box_style) {
-    /* Use the theme for box widgets. */
-    const uiWidgetColors *box_wcol = &UI_GetTheme()->tui.wcol_box;
-    UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    radius = box_wcol->roundness * U.widget_unit;
-  }
-  else {
-    UI_draw_roundbox_corner_set(UI_CNR_NONE);
-    radius = 0.0f;
-  }
+  const bTheme *btheme = UI_GetTheme();
+  const float radius = btheme->tui.panel_roundness * U.widget_unit * 0.5f;
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
 
   float color[4];
   UI_GetThemeColor4fv(TH_SELECT_ACTIVE, color);
@@ -1172,18 +1163,17 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
 
   /* Draw collapse icon. */
   {
-    rctf collapse_rect = {
-        .xmin = widget_rect.xmin,
-        .xmax = widget_rect.xmin + header_height,
-        .ymin = widget_rect.ymin,
-        .ymax = widget_rect.ymax,
-    };
-    BLI_rctf_scale(&collapse_rect, 0.25f);
-
-    float triangle_color[4];
-    rgba_uchar_to_float(triangle_color, title_color);
-
-    ui_draw_anti_tria_rect(&collapse_rect, UI_panel_is_closed(panel) ? 'h' : 'v', triangle_color);
+    const float size_y = BLI_rcti_size_y(&widget_rect);
+    GPU_blend(GPU_BLEND_ALPHA);
+    UI_icon_draw_ex(widget_rect.xmin + size_y * 0.2f,
+                    widget_rect.ymin + size_y * 0.2f,
+                    UI_panel_is_closed(panel) ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT,
+                    aspect * U.inv_dpi_fac,
+                    0.7f,
+                    0.0f,
+                    title_color,
+                    false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 
   /* Draw text label. */
@@ -1243,7 +1233,6 @@ static void panel_draw_aligned_backdrop(const Panel *panel,
                                         const rcti *rect,
                                         const rcti *header_rect)
 {
-  const bool draw_box_style = panel->type->flag & PANEL_TYPE_DRAW_BOX;
   const bool is_subpanel = panel->type->parent != NULL;
   const bool is_open = !UI_panel_is_closed(panel);
 
@@ -1251,90 +1240,52 @@ static void panel_draw_aligned_backdrop(const Panel *panel,
     return;
   }
 
-  const uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const bTheme *btheme = UI_GetTheme();
+  const float radius = btheme->tui.panel_roundness * U.widget_unit * 0.5f;
 
-  /* Draw with an opaque box backdrop for box style panels. */
-  if (draw_box_style) {
-    /* Use the theme for box widgets. */
-    const uiWidgetColors *box_wcol = &UI_GetTheme()->tui.wcol_box;
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  GPU_blend(GPU_BLEND_ALPHA);
 
-    if (is_subpanel) {
-      /* Use rounded bottom corners for the last subpanel. */
-      if (panel->next == NULL) {
-        UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
-        float color[4];
-        UI_GetThemeColor4fv(TH_PANEL_SUB_BACK, color);
-        /* Change the width a little bit to line up with sides. */
-        UI_draw_roundbox_aa(
-            &(const rctf){
-                .xmin = rect->xmin + U.pixelsize,
-                .xmax = rect->xmax - U.pixelsize,
-                .ymin = rect->ymin + U.pixelsize,
-                .ymax = rect->ymax,
-            },
-            true,
-            box_wcol->roundness * U.widget_unit,
-            color);
-      }
-      else {
-        immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-        immUniformThemeColor(TH_PANEL_SUB_BACK);
-        immRectf(pos, rect->xmin + U.pixelsize, rect->ymin, rect->xmax - U.pixelsize, rect->ymax);
-        immUnbindProgram();
-      }
-    }
-    else {
-      /* Expand the top a tiny bit to give header buttons equal size above and below. */
-      rcti box_rect = {
-          .xmin = rect->xmin,
-          .xmax = rect->xmax,
-          .ymin = is_open ? rect->ymin : header_rect->ymin,
-          .ymax = header_rect->ymax + U.pixelsize,
-      };
-      ui_draw_box_opaque(&box_rect, UI_CNR_ALL);
+  /* Panel backdrop. */
+  if (is_open || panel->type->flag & PANEL_TYPE_NO_HEADER) {
+    float panel_backcolor[4];
+    UI_draw_roundbox_corner_set(is_open ? UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT : UI_CNR_ALL);
+    UI_GetThemeColor4fv((is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK), panel_backcolor);
 
-      /* Mimic the border between aligned box widgets for the bottom of the header. */
-      if (is_open) {
-        immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-        GPU_blend(GPU_BLEND_ALPHA);
-
-        /* Top line. */
-        immUniformColor4ubv(box_wcol->outline);
-        immRectf(pos, rect->xmin, header_rect->ymin - U.pixelsize, rect->xmax, header_rect->ymin);
-
-        /* Bottom "shadow" line. */
-        immUniformThemeColor(TH_WIDGET_EMBOSS);
-        immRectf(pos,
-                 rect->xmin,
-                 header_rect->ymin - U.pixelsize,
-                 rect->xmax,
-                 header_rect->ymin - U.pixelsize - 1);
-
-        GPU_blend(GPU_BLEND_NONE);
-        immUnbindProgram();
-      }
-    }
+    UI_draw_roundbox_4fv(
+        &(const rctf){
+            .xmin = rect->xmin,
+            .xmax = rect->xmax,
+            .ymin = rect->ymin,
+            .ymax = rect->ymax,
+        },
+        true,
+        radius,
+        panel_backcolor);
   }
-  else {
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    GPU_blend(GPU_BLEND_ALPHA);
 
-    /* Panel backdrop. */
-    if (is_open || panel->type->flag & PANEL_TYPE_NO_HEADER) {
-      immUniformThemeColor(is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK);
-      immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-    }
+  /* Panel header backdrops for non sub-panels. */
+  if (!is_subpanel) {
+    float panel_headercolor[4];
+    UI_GetThemeColor4fv(UI_panel_matches_search_filter(panel) ? TH_MATCH : TH_PANEL_HEADER,
+                        panel_headercolor);
+    UI_draw_roundbox_corner_set(is_open ? UI_CNR_TOP_RIGHT | UI_CNR_TOP_LEFT : UI_CNR_ALL);
 
-    /* Panel header backdrops for non sub-panels. */
-    if (!is_subpanel) {
-      immUniformThemeColor(UI_panel_matches_search_filter(panel) ? TH_MATCH : TH_PANEL_HEADER);
-      immRectf(pos, rect->xmin, header_rect->ymin, rect->xmax, header_rect->ymax);
-    }
-
-    GPU_blend(GPU_BLEND_NONE);
-    immUnbindProgram();
+    /* Change the width a little bit to line up with the sides. */
+    UI_draw_roundbox_4fv(
+        &(const rctf){
+            .xmin = rect->xmin,
+            .xmax = rect->xmax,
+            .ymin = header_rect->ymin,
+            .ymax = header_rect->ymax,
+        },
+        true,
+        radius,
+        panel_headercolor);
   }
+
+  GPU_blend(GPU_BLEND_NONE);
+  immUnbindProgram();
 }
 
 /**
@@ -1789,9 +1740,9 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
   const int region_offset_x = panel_region_offset_x_get(region);
   for (int i = 0; i < active_panels_len; i++) {
     PanelSort *ps = &panel_sort[i];
-    const bool use_box = ps->panel->type->flag & PANEL_TYPE_DRAW_BOX;
+    const bool no_header = ps->panel->type->flag & PANEL_TYPE_NO_HEADER;
     ps->panel->runtime.region_ofsx = region_offset_x;
-    ps->new_offset_x = region_offset_x + ((use_box) ? UI_PANEL_BOX_STYLE_MARGIN : 0);
+    ps->new_offset_x = region_offset_x + (no_header ? 0 : UI_PANEL_MARGIN_X);
   }
 
   /* Y offset. */
@@ -1799,10 +1750,7 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
     PanelSort *ps = &panel_sort[i];
     y -= get_panel_real_size_y(ps->panel);
 
-    const bool use_box = ps->panel->type->flag & PANEL_TYPE_DRAW_BOX;
-    if (use_box) {
-      y -= UI_PANEL_BOX_STYLE_MARGIN;
-    }
+    y -= UI_PANEL_MARGIN_Y;
     ps->new_offset_y = y;
     /* The header still draws offset by the size of closed panels, so apply the offset here. */
     if (UI_panel_is_closed(ps->panel)) {

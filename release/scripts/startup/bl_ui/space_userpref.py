@@ -920,6 +920,7 @@ class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
         flow.prop(ui, "editor_outline")
         flow.prop(ui, "widget_text_cursor")
         flow.prop(ui, "widget_emboss")
+        flow.prop(ui, "panel_roundness")
 
 
 class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMixIn, Panel):
