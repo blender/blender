@@ -61,8 +61,11 @@ set(SRC
   sculpt_curvature.c
   sculpt_automasking.c
   sculpt_boundary.c
+  sculpt_brushes.c
   sculpt_cloth.c
   sculpt_detail.c
+  sculpt_displacement.c
+  sculpt_displacement.h
   sculpt_dyntopo.c
   sculpt_expand.c
   sculpt_face_set.c
@@ -78,14 +81,12 @@ set(SRC
   sculpt_paint_color.c
   sculpt_pose.c
   sculpt_poly_loop.c
+  sculpt_replay.c
   sculpt_symmetrize.c
   sculpt_smooth.c
   sculpt_transform.c
   sculpt_undo.c
   sculpt_uv.c
-  sculpt_displacement.c
-  sculpt_displacement.h
-  sculpt_replay.c
 
   sculpt.cc
   sculpt.hh

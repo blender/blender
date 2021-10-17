@@ -283,7 +283,6 @@ static bool boundary_floodfill_cb(
   BoundaryFloodFillData *data = userdata;
   SculptBoundary *boundary = data->boundary;
   int from_v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, from_v);
-  int to_v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, to_v);
 
   if (!SCULPT_vertex_is_boundary(ss, to_v, SCULPT_BOUNDARY_MESH)) {
     return false;
@@ -580,7 +579,7 @@ static void sculpt_boundary_indices_init(Object *ob,
       SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
       float tot = 0.0f;
 
-      StoredCotangentW *cotw = boundary->boundary_cotangents + i;
+      // StoredCotangentW *cotw = boundary->boundary_cotangents + i;
       float tan[3] = {0.0f, 0.0f, 0.0f};
 
       SculptVertexNeighborIter ni;
@@ -1232,9 +1231,6 @@ Object *sculpt_get_vis_object(bContext *C, SculptSession *ss, char *name)
   Main *bmain = CTX_data_main(C);
   Object *actob = CTX_data_active_object(C);
 
-  View3D *v3d = CTX_wm_view3d(C);
-  unsigned short local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
-
   Object *ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, name);
 
   if (!ob) {
@@ -1272,10 +1268,7 @@ void sculpt_end_vis_object(bContext *C, SculptSession *ss, Object *ob, BMesh *bm
     C = ss->cache->C;
   }
 
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *vlayer = CTX_data_view_layer(C);
   Main *bmain = CTX_data_main(C);
-  Object *actob = CTX_data_active_object(C);
 
   Mesh *me = (Mesh *)ob->data;
 
@@ -1322,9 +1315,9 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss,
   }
 
   for (int i = 0; i < totvert; i++) {
+#ifdef VISBM
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
-#ifdef VISBM
     if (boundary->boundary_dist[i] != FLT_MAX) {
       const float *co1 = SCULPT_vertex_co_get(ss, vertex);
       float *dir = boundary->boundary_tangents[i];
@@ -1375,8 +1368,6 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss,
     copy_v3_v3(olddir, dir);
 
     if (boundary->boundary_dist[i] != FLT_MAX) {
-      float f1 = boundary->boundary_dist[i];
-
       zero_v3(dir);
       copy_v3_v3(dir, boundary->boundary_tangents[i]);
 
@@ -1394,7 +1385,6 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss,
         boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex_i], dir, normal);
     normalize_v3(boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex_i]);
 
-    const float *oco = SCULPT_vertex_co_get(ss, boundary->edit_info[i].original_vertex);
     float pos[3];
 
     copy_v3_v3(pos, co1);
@@ -1627,7 +1617,6 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(data->ob);
-  const Brush *brush = data->brush;
 
   const float strength = ss->cache->bstrength;
 
@@ -1682,7 +1671,6 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(data->ob);
-  const Brush *brush = data->brush;
 
   const float strength = ss->cache->bstrength;
 
@@ -1728,7 +1716,6 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(data->ob);
-  const Brush *brush = data->brush;
 
   const float strength = ss->cache->bstrength;
 
@@ -1776,7 +1763,6 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(data->ob);
-  const Brush *brush = data->brush;
 
   const float strength = ss->cache->bstrength;
 
@@ -1819,7 +1805,6 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(data->ob);
-  const Brush *brush = data->brush;
 
   const float strength = ss->cache->bstrength;
 
@@ -1873,7 +1858,6 @@ static void do_boundary_brush_smooth_task_cb_ex(void *__restrict userdata,
   const int symmetry_pass = ss->cache->mirror_symmetry_pass;
   const SculptBoundary *boundary = ss->cache->boundaries[symmetry_pass];
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(data->ob);
-  const Brush *brush = data->brush;
 
   const float strength = ss->cache->bstrength;
 
@@ -1932,7 +1916,6 @@ static void do_boundary_brush_circle_task_cb_ex(void *__restrict userdata,
   const int symmetry_pass = ss->cache->mirror_symmetry_pass;
   const SculptBoundary *boundary = ss->cache->boundaries[symmetry_pass];
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(data->ob);
-  const Brush *brush = data->brush;
 
   const float strength = ss->cache->bstrength;
 
@@ -1979,7 +1962,6 @@ static void do_boundary_brush_circle_task_cb_ex(void *__restrict userdata,
 
 static void SCULPT_boundary_autosmooth(SculptSession *ss, SculptBoundary *boundary)
 {
-  const int totvert = SCULPT_vertex_count_get(ss);
   PBVHNode **nodes;
   int totnode;
 

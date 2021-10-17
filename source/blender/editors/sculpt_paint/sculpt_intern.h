@@ -2035,3 +2035,131 @@ void SCULPT_bound_smooth_init(SculptSession *ss, SculptCustomLayer *r_bound_scl)
 void SCULPT_undo_ensure_bmlog(struct Object *ob);
 
 enum { SCULPT_SHARP_SIMPLE, SCULPT_SHARP_PLANE };
+
+/* utility functions for brushes */
+void SCULPT_calc_area_center(
+    struct Sculpt *sd, struct Object *ob, PBVHNode **nodes, int totnode, float r_area_co[3]);
+/* This calculates flatten center and area normal together,
+ * amortizing the memory bandwidth and loop overhead to calculate both at the same time. */
+void SCULPT_calc_area_normal_and_center(struct Sculpt *sd,
+                                        struct Object *ob,
+                                        PBVHNode **nodes,
+                                        int totnode,
+                                        float r_area_no[3],
+                                        float r_area_co[3]);
+
+/* sculpt_brushes.c */
+
+void SCULPT_do_twist_brush(struct Sculpt *sd,
+                           struct Object *ob,
+                           struct PBVHNode **nodes,
+                           int totnode);
+void SCULPT_do_fill_brush(struct Sculpt *sd,
+                          struct Object *ob,
+                          struct PBVHNode **nodes,
+                          int totnode);
+void SCULPT_do_scrape_brush(struct Sculpt *sd,
+                            struct Object *ob,
+                            struct PBVHNode **nodes,
+                            int totnode);
+void SCULPT_do_clay_thumb_brush(struct Sculpt *sd,
+                                struct Object *ob,
+                                struct PBVHNode **nodes,
+                                int totnode);
+void SCULPT_do_flatten_brush(struct Sculpt *sd,
+                             struct Object *ob,
+                             struct PBVHNode **nodes,
+                             int totnode);
+void SCULPT_do_clay_brush(struct Sculpt *sd,
+                          struct Object *ob,
+                          struct PBVHNode **nodes,
+                          int totnode);
+void SCULPT_do_clay_strips_brush(struct Sculpt *sd,
+                                 struct Object *ob,
+                                 struct PBVHNode **nodes,
+                                 int totnode);
+void SCULPT_do_snake_hook_brush(struct Sculpt *sd,
+                                struct Object *ob,
+                                struct PBVHNode **nodes,
+                                int totnode);
+void SCULPT_do_thumb_brush(struct Sculpt *sd,
+                           struct Object *ob,
+                           struct PBVHNode **nodes,
+                           int totnode);
+void SCULPT_do_rotate_brush(struct Sculpt *sd,
+                            struct Object *ob,
+                            struct PBVHNode **nodes,
+                            int totnode);
+void SCULPT_do_layer_brush(struct Sculpt *sd,
+                           struct Object *ob,
+                           struct PBVHNode **nodes,
+                           int totnode);
+void SCULPT_do_inflate_brush(struct Sculpt *sd,
+                             struct Object *ob,
+                             struct PBVHNode **nodes,
+                             int totnode);
+void SCULPT_do_nudge_brush(struct Sculpt *sd,
+                           struct Object *ob,
+                           struct PBVHNode **nodes,
+                           int totnode);
+void SCULPT_do_crease_brush(struct Sculpt *sd,
+                            struct Object *ob,
+                            struct PBVHNode **nodes,
+                            int totnode);
+void SCULPT_do_pinch_brush(struct Sculpt *sd,
+                           struct Object *ob,
+                           struct PBVHNode **nodes,
+                           int totnode);
+void SCULPT_do_grab_brush(struct Sculpt *sd,
+                          struct Object *ob,
+                          struct PBVHNode **nodes,
+                          int totnode);
+void SCULPT_do_elastic_deform_brush(struct Sculpt *sd,
+                                    struct Object *ob,
+                                    struct PBVHNode **nodes,
+                                    int totnode);
+void SCULPT_do_draw_sharp_brush(struct Sculpt *sd,
+                                struct Object *ob,
+                                struct PBVHNode **nodes,
+                                int totnode);
+void SCULPT_do_scene_project_brush(struct Sculpt *sd,
+                                   struct Object *ob,
+                                   struct PBVHNode **nodes,
+                                   int totnode);
+void SCULPT_do_slide_relax_brush(struct Sculpt *sd,
+                                 struct Object *ob,
+                                 struct PBVHNode **nodes,
+                                 int totnode);
+void SCULPT_do_fairing_brush(struct Sculpt *sd,
+                             struct Object *ob,
+                             struct PBVHNode **nodes,
+                             int totnode);
+void SCULPT_do_displacement_smear_brush(struct Sculpt *sd,
+                                        struct Object *ob,
+                                        struct PBVHNode **nodes,
+                                        int totnode);
+void SCULPT_do_displacement_eraser_brush(struct Sculpt *sd,
+                                         struct Object *ob,
+                                         struct PBVHNode **nodes,
+                                         int totnode);
+void SCULPT_do_draw_brush(struct Sculpt *sd,
+                          struct Object *ob,
+                          struct PBVHNode **nodes,
+                          int totnode);
+void SCULPT_do_mask_brush_draw(struct Sculpt *sd,
+                               struct Object *ob,
+                               struct PBVHNode **nodes,
+                               int totnode);
+void SCULPT_do_mask_brush(struct Sculpt *sd,
+                          struct Object *ob,
+                          struct PBVHNode **nodes,
+                          int totnode);
+void SCULPT_bmesh_topology_rake(struct Sculpt *sd,
+                                struct Object *ob,
+                                struct PBVHNode **nodes,
+                                const int totnode,
+                                float bstrength,
+                                bool needs_origco);
+
+void SCULPT_stroke_cache_snap_context_init(struct bContext *C, struct Object *ob);
+void SCULPT_fairing_brush_exec_fairing_for_cache(struct Sculpt *sd, struct Object *ob);
