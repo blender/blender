@@ -20,10 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Interpolated lookup table access */
 
-ccl_device float lookup_table_read(ccl_global const KernelGlobals *kg,
-                                   float x,
-                                   int offset,
-                                   int size)
+ccl_device float lookup_table_read(KernelGlobals kg, float x, int offset, int size)
 {
   x = saturate(x) * (size - 1);
 
@@ -40,7 +37,7 @@ ccl_device float lookup_table_read(ccl_global const KernelGlobals *kg,
 }
 
 ccl_device float lookup_table_read_2D(
-    ccl_global const KernelGlobals *kg, float x, float y, int offset, int xsize, int ysize)
+    KernelGlobals kg, float x, float y, int offset, int xsize, int ysize)
 {
   y = saturate(y) * (ysize - 1);
 

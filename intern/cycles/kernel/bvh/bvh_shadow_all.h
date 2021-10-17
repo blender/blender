@@ -36,7 +36,7 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-    bool BVH_FUNCTION_FULL_NAME(BVH)(ccl_global const KernelGlobals *kg,
+    bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                                      ccl_private const Ray *ray,
                                      ccl_private Intersection *isect_array,
                                      const uint visibility,
@@ -298,7 +298,7 @@ ccl_device_inline
   return false;
 }
 
-ccl_device_inline bool BVH_FUNCTION_NAME(ccl_global const KernelGlobals *kg,
+ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals kg,
                                          ccl_private const Ray *ray,
                                          ccl_private Intersection *isect_array,
                                          const uint visibility,

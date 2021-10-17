@@ -41,7 +41,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Threads */
 
-void OSLShader::thread_init(KernelGlobals *kg, OSLGlobals *osl_globals)
+void OSLShader::thread_init(KernelGlobalsCPU *kg, OSLGlobals *osl_globals)
 {
   /* no osl used? */
   if (!osl_globals->use) {
@@ -67,7 +67,7 @@ void OSLShader::thread_init(KernelGlobals *kg, OSLGlobals *osl_globals)
   kg->osl_tdata = tdata;
 }
 
-void OSLShader::thread_free(KernelGlobals *kg)
+void OSLShader::thread_free(KernelGlobalsCPU *kg)
 {
   if (!kg->osl)
     return;
@@ -87,7 +87,7 @@ void OSLShader::thread_free(KernelGlobals *kg)
 
 /* Globals */
 
-static void shaderdata_to_shaderglobals(const KernelGlobals *kg,
+static void shaderdata_to_shaderglobals(const KernelGlobalsCPU *kg,
                                         ShaderData *sd,
                                         const IntegratorStateCPU *state,
                                         int path_flag,
@@ -174,7 +174,7 @@ static void flatten_surface_closure_tree(ShaderData *sd,
   }
 }
 
-void OSLShader::eval_surface(const KernelGlobals *kg,
+void OSLShader::eval_surface(const KernelGlobalsCPU *kg,
                              const IntegratorStateCPU *state,
                              ShaderData *sd,
                              int path_flag)
@@ -282,7 +282,7 @@ static void flatten_background_closure_tree(ShaderData *sd,
   }
 }
 
-void OSLShader::eval_background(const KernelGlobals *kg,
+void OSLShader::eval_background(const KernelGlobalsCPU *kg,
                                 const IntegratorStateCPU *state,
                                 ShaderData *sd,
                                 int path_flag)
@@ -340,7 +340,7 @@ static void flatten_volume_closure_tree(ShaderData *sd,
   }
 }
 
-void OSLShader::eval_volume(const KernelGlobals *kg,
+void OSLShader::eval_volume(const KernelGlobalsCPU *kg,
                             const IntegratorStateCPU *state,
                             ShaderData *sd,
                             int path_flag)
@@ -366,7 +366,7 @@ void OSLShader::eval_volume(const KernelGlobals *kg,
 
 /* Displacement */
 
-void OSLShader::eval_displacement(const KernelGlobals *kg,
+void OSLShader::eval_displacement(const KernelGlobalsCPU *kg,
                                   const IntegratorStateCPU *state,
                                   ShaderData *sd)
 {
@@ -391,7 +391,7 @@ void OSLShader::eval_displacement(const KernelGlobals *kg,
 
 /* Attributes */
 
-int OSLShader::find_attribute(const KernelGlobals *kg,
+int OSLShader::find_attribute(const KernelGlobalsCPU *kg,
                               const ShaderData *sd,
                               uint id,
                               AttributeDescriptor *desc)

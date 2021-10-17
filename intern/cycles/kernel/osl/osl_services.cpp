@@ -149,7 +149,7 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
    * a concept of shader space, so we just use object space for both. */
   if (xform) {
     const ShaderData *sd = (const ShaderData *)xform;
-    const KernelGlobals *kg = sd->osl_globals;
+    const KernelGlobalsCPU *kg = sd->osl_globals;
     int object = sd->object;
 
     if (object != OBJECT_NONE) {
@@ -187,7 +187,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
    * a concept of shader space, so we just use object space for both. */
   if (xform) {
     const ShaderData *sd = (const ShaderData *)xform;
-    const KernelGlobals *kg = sd->osl_globals;
+    const KernelGlobalsCPU *kg = sd->osl_globals;
     int object = sd->object;
 
     if (object != OBJECT_NONE) {
@@ -222,7 +222,7 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
                                    float time)
 {
   ShaderData *sd = (ShaderData *)(sg->renderstate);
-  const KernelGlobals *kg = sd->osl_globals;
+  const KernelGlobalsCPU *kg = sd->osl_globals;
 
   if (from == u_ndc) {
     copy_matrix(result, kernel_data.cam.ndctoworld);
@@ -254,7 +254,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
                                            float time)
 {
   ShaderData *sd = (ShaderData *)(sg->renderstate);
-  const KernelGlobals *kg = sd->osl_globals;
+  const KernelGlobalsCPU *kg = sd->osl_globals;
 
   if (to == u_ndc) {
     copy_matrix(result, kernel_data.cam.worldtondc);
@@ -288,7 +288,7 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
    * a concept of shader space, so we just use object space for both. */
   if (xform) {
     const ShaderData *sd = (const ShaderData *)xform;
-    const KernelGlobals *kg = sd->osl_globals;
+    const KernelGlobalsCPU *kg = sd->osl_globals;
     int object = sd->object;
 
     if (object != OBJECT_NONE) {
@@ -316,7 +316,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
    * a concept of shader space, so we just use object space for both. */
   if (xform) {
     const ShaderData *sd = (const ShaderData *)xform;
-    const KernelGlobals *kg = sd->osl_globals;
+    const KernelGlobalsCPU *kg = sd->osl_globals;
     int object = sd->object;
 
     if (object != OBJECT_NONE) {
@@ -339,7 +339,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
 bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, ustring from)
 {
   ShaderData *sd = (ShaderData *)(sg->renderstate);
-  const KernelGlobals *kg = sd->osl_globals;
+  const KernelGlobalsCPU *kg = sd->osl_globals;
 
   if (from == u_ndc) {
     copy_matrix(result, kernel_data.cam.ndctoworld);
@@ -366,7 +366,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
                                            ustring to)
 {
   ShaderData *sd = (ShaderData *)(sg->renderstate);
-  const KernelGlobals *kg = sd->osl_globals;
+  const KernelGlobalsCPU *kg = sd->osl_globals;
 
   if (to == u_ndc) {
     copy_matrix(result, kernel_data.cam.worldtondc);
@@ -745,7 +745,7 @@ static bool set_attribute_matrix(const Transform &tfm, TypeDesc type, void *val)
   return false;
 }
 
-static bool get_primitive_attribute(const KernelGlobals *kg,
+static bool get_primitive_attribute(const KernelGlobalsCPU *kg,
                                     const ShaderData *sd,
                                     const OSLGlobals::Attribute &attr,
                                     const TypeDesc &type,
@@ -806,7 +806,7 @@ static bool get_primitive_attribute(const KernelGlobals *kg,
   }
 }
 
-static bool get_mesh_attribute(const KernelGlobals *kg,
+static bool get_mesh_attribute(const KernelGlobalsCPU *kg,
                                const ShaderData *sd,
                                const OSLGlobals::Attribute &attr,
                                const TypeDesc &type,
@@ -855,7 +855,7 @@ static bool get_object_attribute(const OSLGlobals::Attribute &attr,
   }
 }
 
-bool OSLRenderServices::get_object_standard_attribute(const KernelGlobals *kg,
+bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg,
                                                       ShaderData *sd,
                                                       ustring name,
                                                       TypeDesc type,
@@ -1000,7 +1000,7 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobals *kg,
   }
 }
 
-bool OSLRenderServices::get_background_attribute(const KernelGlobals *kg,
+bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
                                                  ShaderData *sd,
                                                  ustring name,
                                                  TypeDesc type,
@@ -1091,7 +1091,7 @@ bool OSLRenderServices::get_attribute(OSL::ShaderGlobals *sg,
 bool OSLRenderServices::get_attribute(
     ShaderData *sd, bool derivatives, ustring object_name, TypeDesc type, ustring name, void *val)
 {
-  const KernelGlobals *kg = sd->osl_globals;
+  const KernelGlobalsCPU *kg = sd->osl_globals;
   int prim_type = 0;
   int object;
 
@@ -1220,7 +1220,7 @@ bool OSLRenderServices::texture(ustring filename,
   OSLTextureHandle *handle = (OSLTextureHandle *)texture_handle;
   OSLTextureHandle::Type texture_type = (handle) ? handle->type : OSLTextureHandle::OIIO;
   ShaderData *sd = (ShaderData *)(sg->renderstate);
-  const KernelGlobals *kernel_globals = sd->osl_globals;
+  KernelGlobals kernel_globals = sd->osl_globals;
   bool status = false;
 
   switch (texture_type) {
@@ -1367,7 +1367,7 @@ bool OSLRenderServices::texture3d(ustring filename,
     case OSLTextureHandle::SVM: {
       /* Packed texture. */
       ShaderData *sd = (ShaderData *)(sg->renderstate);
-      const KernelGlobals *kernel_globals = sd->osl_globals;
+      KernelGlobals kernel_globals = sd->osl_globals;
       int slot = handle->svm_slot;
       float3 P_float3 = make_float3(P.x, P.y, P.z);
       float4 rgba = kernel_tex_image_interp_3d(kernel_globals, slot, P_float3, INTERPOLATION_NONE);
@@ -1389,7 +1389,7 @@ bool OSLRenderServices::texture3d(ustring filename,
       if (handle && handle->oiio_handle) {
         if (texture_thread_info == NULL) {
           ShaderData *sd = (ShaderData *)(sg->renderstate);
-          const KernelGlobals *kernel_globals = sd->osl_globals;
+          KernelGlobals kernel_globals = sd->osl_globals;
           OSLThreadData *tdata = kernel_globals->osl_tdata;
           texture_thread_info = tdata->oiio_thread_info;
         }
@@ -1474,7 +1474,7 @@ bool OSLRenderServices::environment(ustring filename,
   if (handle && handle->oiio_handle) {
     if (thread_info == NULL) {
       ShaderData *sd = (ShaderData *)(sg->renderstate);
-      const KernelGlobals *kernel_globals = sd->osl_globals;
+      KernelGlobals kernel_globals = sd->osl_globals;
       OSLThreadData *tdata = kernel_globals->osl_tdata;
       thread_info = tdata->oiio_thread_info;
     }
@@ -1629,7 +1629,7 @@ bool OSLRenderServices::trace(TraceOpt &options,
   tracedata->hit = false;
   tracedata->sd.osl_globals = sd->osl_globals;
 
-  const KernelGlobals *kg = sd->osl_globals;
+  const KernelGlobalsCPU *kg = sd->osl_globals;
 
   /* Can't raytrace from shaders like displacement, before BVH exists. */
   if (kernel_data.bvh.bvh_layout == BVH_LAYOUT_NONE) {
@@ -1662,7 +1662,7 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg,
       }
       else {
         ShaderData *sd = &tracedata->sd;
-        const KernelGlobals *kg = sd->osl_globals;
+        const KernelGlobalsCPU *kg = sd->osl_globals;
 
         if (!tracedata->setup) {
           /* lazy shader data setup */

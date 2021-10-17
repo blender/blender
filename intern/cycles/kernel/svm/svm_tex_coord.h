@@ -22,7 +22,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Texture Coordinate Node */
 
-ccl_device_noinline int svm_node_tex_coord(ccl_global const KernelGlobals *kg,
+ccl_device_noinline int svm_node_tex_coord(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            int path_flag,
                                            ccl_private float *stack,
@@ -103,7 +103,7 @@ ccl_device_noinline int svm_node_tex_coord(ccl_global const KernelGlobals *kg,
   return offset;
 }
 
-ccl_device_noinline int svm_node_tex_coord_bump_dx(ccl_global const KernelGlobals *kg,
+ccl_device_noinline int svm_node_tex_coord_bump_dx(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
                                                    int path_flag,
                                                    ccl_private float *stack,
@@ -188,7 +188,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dx(ccl_global const KernelGlobal
 #endif
 }
 
-ccl_device_noinline int svm_node_tex_coord_bump_dy(ccl_global const KernelGlobals *kg,
+ccl_device_noinline int svm_node_tex_coord_bump_dy(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
                                                    int path_flag,
                                                    ccl_private float *stack,
@@ -273,7 +273,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dy(ccl_global const KernelGlobal
 #endif
 }
 
-ccl_device_noinline void svm_node_normal_map(ccl_global const KernelGlobals *kg,
+ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
                                              ccl_private ShaderData *sd,
                                              ccl_private float *stack,
                                              uint4 node)
@@ -366,7 +366,7 @@ ccl_device_noinline void svm_node_normal_map(ccl_global const KernelGlobals *kg,
   stack_store_float3(stack, normal_offset, N);
 }
 
-ccl_device_noinline void svm_node_tangent(ccl_global const KernelGlobals *kg,
+ccl_device_noinline void svm_node_tangent(KernelGlobals kg,
                                           ccl_private ShaderData *sd,
                                           ccl_private float *stack,
                                           uint4 node)

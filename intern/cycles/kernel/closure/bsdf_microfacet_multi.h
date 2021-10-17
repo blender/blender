@@ -476,7 +476,7 @@ ccl_device float3 bsdf_microfacet_multi_ggx_eval_reflect(ccl_private const Shade
                         bsdf->extra->cspec0);
 }
 
-ccl_device int bsdf_microfacet_multi_ggx_sample(ccl_global const KernelGlobals *kg,
+ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
                                                 ccl_private const ShaderClosure *sc,
                                                 float3 Ng,
                                                 float3 I,
@@ -639,7 +639,7 @@ ccl_device float3 bsdf_microfacet_multi_ggx_glass_eval_reflect(ccl_private const
                        bsdf->extra->cspec0);
 }
 
-ccl_device int bsdf_microfacet_multi_ggx_glass_sample(ccl_global const KernelGlobals *kg,
+ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals kg,
                                                       ccl_private const ShaderClosure *sc,
                                                       float3 Ng,
                                                       float3 I,

@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Conversion Nodes */
 
-ccl_device_noinline void svm_node_convert(ccl_global const KernelGlobals *kg,
+ccl_device_noinline void svm_node_convert(KernelGlobals kg,
                                           ccl_private ShaderData *sd,
                                           ccl_private float *stack,
                                           uint type,

@@ -37,7 +37,7 @@ ccl_device float sky_perez_function(ccl_private float *lam, float theta, float g
          (1.0f + lam[2] * expf(lam[3] * gamma) + lam[4] * cgamma * cgamma);
 }
 
-ccl_device float3 sky_radiance_preetham(ccl_global const KernelGlobals *kg,
+ccl_device float3 sky_radiance_preetham(KernelGlobals kg,
                                         float3 dir,
                                         float sunphi,
                                         float suntheta,
@@ -90,7 +90,7 @@ ccl_device float sky_radiance_internal(ccl_private float *configuration, float t
           configuration[6] * mieM + configuration[7] * zenith);
 }
 
-ccl_device float3 sky_radiance_hosek(ccl_global const KernelGlobals *kg,
+ccl_device float3 sky_radiance_hosek(KernelGlobals kg,
                                      float3 dir,
                                      float sunphi,
                                      float suntheta,
@@ -127,7 +127,7 @@ ccl_device float3 geographical_to_direction(float lat, float lon)
   return make_float3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
 }
 
-ccl_device float3 sky_radiance_nishita(ccl_global const KernelGlobals *kg,
+ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
                                        float3 dir,
                                        ccl_private float *nishita_data,
                                        uint texture_id)
@@ -209,11 +209,8 @@ ccl_device float3 sky_radiance_nishita(ccl_global const KernelGlobals *kg,
   return xyz_to_rgb(kg, xyz);
 }
 
-ccl_device_noinline int svm_node_tex_sky(ccl_global const KernelGlobals *kg,
-                                         ccl_private ShaderData *sd,
-                                         ccl_private float *stack,
-                                         uint4 node,
-                                         int offset)
+ccl_device_noinline int svm_node_tex_sky(
+    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
   /* Load data */
   uint dir_offset = node.y;

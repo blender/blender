@@ -33,7 +33,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Time interpolation of vertex positions and normals */
 
-ccl_device_inline void motion_triangle_verts_for_step(ccl_global const KernelGlobals *kg,
+ccl_device_inline void motion_triangle_verts_for_step(KernelGlobals kg,
                                                       uint4 tri_vindex,
                                                       int offset,
                                                       int numverts,
@@ -60,7 +60,7 @@ ccl_device_inline void motion_triangle_verts_for_step(ccl_global const KernelGlo
   }
 }
 
-ccl_device_inline void motion_triangle_normals_for_step(ccl_global const KernelGlobals *kg,
+ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals kg,
                                                         uint4 tri_vindex,
                                                         int offset,
                                                         int numverts,
@@ -88,7 +88,7 @@ ccl_device_inline void motion_triangle_normals_for_step(ccl_global const KernelG
 }
 
 ccl_device_inline void motion_triangle_vertices(
-    ccl_global const KernelGlobals *kg, int object, int prim, float time, float3 verts[3])
+    KernelGlobals kg, int object, int prim, float time, float3 verts[3])
 {
   /* get motion info */
   int numsteps, numverts;
@@ -116,13 +116,8 @@ ccl_device_inline void motion_triangle_vertices(
   verts[2] = (1.0f - t) * verts[2] + t * next_verts[2];
 }
 
-ccl_device_inline float3 motion_triangle_smooth_normal(ccl_global const KernelGlobals *kg,
-                                                       float3 Ng,
-                                                       int object,
-                                                       int prim,
-                                                       float u,
-                                                       float v,
-                                                       float time)
+ccl_device_inline float3 motion_triangle_smooth_normal(
+    KernelGlobals kg, float3 Ng, int object, int prim, float u, float v, float time)
 {
   /* get motion info */
   int numsteps, numverts;

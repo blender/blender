@@ -51,8 +51,8 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   const int state = ccl_gpu_global_id_x();
 
   if (state < num_states) {
-    INTEGRATOR_STATE_WRITE(path, queued_kernel) = 0;
-    INTEGRATOR_STATE_WRITE(shadow_path, queued_kernel) = 0;
+    INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
+    INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = 0;
   }
 }
 
@@ -244,7 +244,7 @@ extern "C" __global__ void __launch_bounds__(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_B
 {
   gpu_parallel_active_index_array<GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE>(
       num_states, indices, num_indices, [kernel](const int state) {
-        return (INTEGRATOR_STATE(path, queued_kernel) == kernel);
+        return (INTEGRATOR_STATE(state, path, queued_kernel) == kernel);
       });
 }
 
@@ -256,7 +256,7 @@ extern "C" __global__ void __launch_bounds__(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_B
 {
   gpu_parallel_active_index_array<GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE>(
       num_states, indices, num_indices, [kernel](const int state) {
-        return (INTEGRATOR_STATE(shadow_path, queued_kernel) == kernel);
+        return (INTEGRATOR_STATE(state, shadow_path, queued_kernel) == kernel);
       });
 }
 
@@ -265,8 +265,8 @@ extern "C" __global__ void __launch_bounds__(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_B
 {
   gpu_parallel_active_index_array<GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE>(
       num_states, indices, num_indices, [](const int state) {
-        return (INTEGRATOR_STATE(path, queued_kernel) != 0) ||
-               (INTEGRATOR_STATE(shadow_path, queued_kernel) != 0);
+        return (INTEGRATOR_STATE(state, path, queued_kernel) != 0) ||
+               (INTEGRATOR_STATE(state, shadow_path, queued_kernel) != 0);
       });
 }
 
@@ -278,8 +278,8 @@ extern "C" __global__ void __launch_bounds__(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_B
 {
   gpu_parallel_active_index_array<GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE>(
       num_states, indices + indices_offset, num_indices, [](const int state) {
-        return (INTEGRATOR_STATE(path, queued_kernel) == 0) &&
-               (INTEGRATOR_STATE(shadow_path, queued_kernel) == 0);
+        return (INTEGRATOR_STATE(state, path, queued_kernel) == 0) &&
+               (INTEGRATOR_STATE(state, shadow_path, queued_kernel) == 0);
       });
 }
 
@@ -289,8 +289,8 @@ extern "C" __global__ void __launch_bounds__(GPU_PARALLEL_SORTED_INDEX_DEFAULT_B
 {
   gpu_parallel_sorted_index_array<GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE>(
       num_states, indices, num_indices, key_prefix_sum, [kernel](const int state) {
-        return (INTEGRATOR_STATE(path, queued_kernel) == kernel) ?
-                   INTEGRATOR_STATE(path, shader_sort_key) :
+        return (INTEGRATOR_STATE(state, path, queued_kernel) == kernel) ?
+                   INTEGRATOR_STATE(state, path, shader_sort_key) :
                    GPU_PARALLEL_SORTED_INDEX_INACTIVE_KEY;
       });
 }
@@ -304,8 +304,8 @@ extern "C" __global__ void __launch_bounds__(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_B
   gpu_parallel_active_index_array<GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE>(
       num_states, indices, num_indices, [num_active_paths](const int state) {
         return (state >= num_active_paths) &&
-               ((INTEGRATOR_STATE(path, queued_kernel) != 0) ||
-                (INTEGRATOR_STATE(shadow_path, queued_kernel) != 0));
+               ((INTEGRATOR_STATE(state, path, queued_kernel) != 0) ||
+                (INTEGRATOR_STATE(state, shadow_path, queued_kernel) != 0));
       });
 }
 

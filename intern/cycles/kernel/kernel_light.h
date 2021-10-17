@@ -45,7 +45,7 @@ typedef struct LightSample {
 /* Regular Light */
 
 template<bool in_volume_segment>
-ccl_device_inline bool light_sample(ccl_global const KernelGlobals *kg,
+ccl_device_inline bool light_sample(KernelGlobals kg,
                                     const int lamp,
                                     const float randu,
                                     const float randv,
@@ -209,7 +209,7 @@ ccl_device_inline bool light_sample(ccl_global const KernelGlobals *kg,
   return (ls->pdf > 0.0f);
 }
 
-ccl_device bool lights_intersect(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device bool lights_intersect(KernelGlobals kg,
                                  ccl_private const Ray *ccl_restrict ray,
                                  ccl_private Intersection *ccl_restrict isect,
                                  const int last_prim,
@@ -298,7 +298,7 @@ ccl_device bool lights_intersect(ccl_global const KernelGlobals *ccl_restrict kg
   return isect->prim != PRIM_NONE;
 }
 
-ccl_device bool light_sample_from_distant_ray(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device bool light_sample_from_distant_ray(KernelGlobals kg,
                                               const float3 ray_D,
                                               const int lamp,
                                               ccl_private LightSample *ccl_restrict ls)
@@ -362,7 +362,7 @@ ccl_device bool light_sample_from_distant_ray(ccl_global const KernelGlobals *cc
   return true;
 }
 
-ccl_device bool light_sample_from_intersection(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device bool light_sample_from_intersection(KernelGlobals kg,
                                                ccl_private const Intersection *ccl_restrict isect,
                                                const float3 ray_P,
                                                const float3 ray_D,
@@ -464,7 +464,7 @@ ccl_device bool light_sample_from_intersection(ccl_global const KernelGlobals *c
 
 /* returns true if the triangle is has motion blur or an instancing transform applied */
 ccl_device_inline bool triangle_world_space_vertices(
-    ccl_global const KernelGlobals *kg, int object, int prim, float time, float3 V[3])
+    KernelGlobals kg, int object, int prim, float time, float3 V[3])
 {
   bool has_motion = false;
   const int object_flag = kernel_tex_fetch(__object_flag, object);
@@ -492,7 +492,7 @@ ccl_device_inline bool triangle_world_space_vertices(
   return has_motion;
 }
 
-ccl_device_inline float triangle_light_pdf_area(ccl_global const KernelGlobals *kg,
+ccl_device_inline float triangle_light_pdf_area(KernelGlobals kg,
                                                 const float3 Ng,
                                                 const float3 I,
                                                 float t)
@@ -506,7 +506,7 @@ ccl_device_inline float triangle_light_pdf_area(ccl_global const KernelGlobals *
   return t * t * pdf / cos_pi;
 }
 
-ccl_device_forceinline float triangle_light_pdf(ccl_global const KernelGlobals *kg,
+ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
                                                 ccl_private const ShaderData *sd,
                                                 float t)
 {
@@ -578,7 +578,7 @@ ccl_device_forceinline float triangle_light_pdf(ccl_global const KernelGlobals *
 }
 
 template<bool in_volume_segment>
-ccl_device_forceinline void triangle_light_sample(ccl_global const KernelGlobals *kg,
+ccl_device_forceinline void triangle_light_sample(KernelGlobals kg,
                                                   int prim,
                                                   int object,
                                                   float randu,
@@ -747,8 +747,7 @@ ccl_device_forceinline void triangle_light_sample(ccl_global const KernelGlobals
 
 /* Light Distribution */
 
-ccl_device int light_distribution_sample(ccl_global const KernelGlobals *kg,
-                                         ccl_private float *randu)
+ccl_device int light_distribution_sample(KernelGlobals kg, ccl_private float *randu)
 {
   /* This is basically std::upper_bound as used by PBRT, to find a point light or
    * triangle to emit from, proportional to area. a good improvement would be to
@@ -786,15 +785,13 @@ ccl_device int light_distribution_sample(ccl_global const KernelGlobals *kg,
 
 /* Generic Light */
 
-ccl_device_inline bool light_select_reached_max_bounces(ccl_global const KernelGlobals *kg,
-                                                        int index,
-                                                        int bounce)
+ccl_device_inline bool light_select_reached_max_bounces(KernelGlobals kg, int index, int bounce)
 {
   return (bounce > kernel_tex_fetch(__lights, index).max_bounces);
 }
 
 template<bool in_volume_segment>
-ccl_device_noinline bool light_distribution_sample(ccl_global const KernelGlobals *kg,
+ccl_device_noinline bool light_distribution_sample(KernelGlobals kg,
                                                    float randu,
                                                    const float randv,
                                                    const float time,
@@ -834,20 +831,19 @@ ccl_device_noinline bool light_distribution_sample(ccl_global const KernelGlobal
   return light_sample<in_volume_segment>(kg, lamp, randu, randv, P, path_flag, ls);
 }
 
-ccl_device_inline bool light_distribution_sample_from_volume_segment(
-    ccl_global const KernelGlobals *kg,
-    float randu,
-    const float randv,
-    const float time,
-    const float3 P,
-    const int bounce,
-    const int path_flag,
-    ccl_private LightSample *ls)
+ccl_device_inline bool light_distribution_sample_from_volume_segment(KernelGlobals kg,
+                                                                     float randu,
+                                                                     const float randv,
+                                                                     const float time,
+                                                                     const float3 P,
+                                                                     const int bounce,
+                                                                     const int path_flag,
+                                                                     ccl_private LightSample *ls)
 {
   return light_distribution_sample<true>(kg, randu, randv, time, P, bounce, path_flag, ls);
 }
 
-ccl_device_inline bool light_distribution_sample_from_position(ccl_global const KernelGlobals *kg,
+ccl_device_inline bool light_distribution_sample_from_position(KernelGlobals kg,
                                                                float randu,
                                                                const float randv,
                                                                const float time,
@@ -859,7 +855,7 @@ ccl_device_inline bool light_distribution_sample_from_position(ccl_global const 
   return light_distribution_sample<false>(kg, randu, randv, time, P, bounce, path_flag, ls);
 }
 
-ccl_device_inline bool light_distribution_sample_new_position(ccl_global const KernelGlobals *kg,
+ccl_device_inline bool light_distribution_sample_new_position(KernelGlobals kg,
                                                               const float randu,
                                                               const float randv,
                                                               const float time,

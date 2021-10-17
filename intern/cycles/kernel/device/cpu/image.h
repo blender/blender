@@ -583,7 +583,7 @@ template<typename T> struct NanoVDBInterpolator {
 
 #undef SET_CUBIC_SPLINE_WEIGHTS
 
-ccl_device float4 kernel_tex_image_interp(const KernelGlobals *kg, int id, float x, float y)
+ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, float y)
 {
   const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
 
@@ -611,7 +611,7 @@ ccl_device float4 kernel_tex_image_interp(const KernelGlobals *kg, int id, float
   }
 }
 
-ccl_device float4 kernel_tex_image_interp_3d(const KernelGlobals *kg,
+ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
                                              int id,
                                              float3 P,
                                              InterpolationType interp)

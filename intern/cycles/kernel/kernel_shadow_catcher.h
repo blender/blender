@@ -22,7 +22,8 @@
 CCL_NAMESPACE_BEGIN
 
 /* Check whether current surface bounce is where path is to be split for the shadow catcher. */
-ccl_device_inline bool kernel_shadow_catcher_is_path_split_bounce(INTEGRATOR_STATE_ARGS,
+ccl_device_inline bool kernel_shadow_catcher_is_path_split_bounce(KernelGlobals kg,
+                                                                  IntegratorState state,
                                                                   const int object_flag)
 {
 #ifdef __SHADOW_CATCHER__
@@ -38,7 +39,7 @@ ccl_device_inline bool kernel_shadow_catcher_is_path_split_bounce(INTEGRATOR_STA
     return false;
   }
 
-  const int path_flag = INTEGRATOR_STATE(path, flag);
+  const int path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if ((path_flag & PATH_RAY_TRANSPARENT_BACKGROUND) == 0) {
     /* Split only on primary rays, secondary bounces are to treat shadow catcher as a regular
@@ -58,13 +59,14 @@ ccl_device_inline bool kernel_shadow_catcher_is_path_split_bounce(INTEGRATOR_STA
 }
 
 /* Check whether the current path can still split. */
-ccl_device_inline bool kernel_shadow_catcher_path_can_split(INTEGRATOR_STATE_CONST_ARGS)
+ccl_device_inline bool kernel_shadow_catcher_path_can_split(KernelGlobals kg,
+                                                            ConstIntegratorState state)
 {
   if (INTEGRATOR_PATH_IS_TERMINATED && INTEGRATOR_SHADOW_PATH_IS_TERMINATED) {
     return false;
   }
 
-  const int path_flag = INTEGRATOR_STATE(path, flag);
+  const int path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if (path_flag & PATH_RAY_SHADOW_CATCHER_HIT) {
     /* Shadow catcher was already hit and the state was split. No further split is allowed. */
@@ -76,21 +78,23 @@ ccl_device_inline bool kernel_shadow_catcher_path_can_split(INTEGRATOR_STATE_CON
 
 /* NOTE: Leaves kernel scheduling information untouched. Use INIT semantic for one of the paths
  * after this function. */
-ccl_device_inline bool kernel_shadow_catcher_split(INTEGRATOR_STATE_ARGS, const int object_flags)
+ccl_device_inline bool kernel_shadow_catcher_split(KernelGlobals kg,
+                                                   IntegratorState state,
+                                                   const int object_flags)
 {
 #ifdef __SHADOW_CATCHER__
 
-  if (!kernel_shadow_catcher_is_path_split_bounce(INTEGRATOR_STATE_PASS, object_flags)) {
+  if (!kernel_shadow_catcher_is_path_split_bounce(kg, state, object_flags)) {
     return false;
   }
 
   /* The split is to be done. Mark the current state as such, so that it stops contributing to the
    * shadow catcher matte pass, but keeps contributing to the combined pass. */
-  INTEGRATOR_STATE_WRITE(path, flag) |= PATH_RAY_SHADOW_CATCHER_HIT;
+  INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_SHADOW_CATCHER_HIT;
 
   /* Split new state from the current one. This new state will only track contribution of shadow
    * catcher objects ignoring non-catcher objects. */
-  integrator_state_shadow_catcher_split(INTEGRATOR_STATE_PASS);
+  integrator_state_shadow_catcher_split(kg, state);
 
   return true;
 #else
@@ -101,14 +105,16 @@ ccl_device_inline bool kernel_shadow_catcher_split(INTEGRATOR_STATE_ARGS, const 
 
 #ifdef __SHADOW_CATCHER__
 
-ccl_device_forceinline bool kernel_shadow_catcher_is_matte_path(INTEGRATOR_STATE_CONST_ARGS)
+ccl_device_forceinline bool kernel_shadow_catcher_is_matte_path(KernelGlobals kg,
+                                                                ConstIntegratorState state)
 {
-  return (INTEGRATOR_STATE(path, flag) & PATH_RAY_SHADOW_CATCHER_HIT) == 0;
+  return (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_HIT) == 0;
 }
 
-ccl_device_forceinline bool kernel_shadow_catcher_is_object_pass(INTEGRATOR_STATE_CONST_ARGS)
+ccl_device_forceinline bool kernel_shadow_catcher_is_object_pass(KernelGlobals kg,
+                                                                 ConstIntegratorState state)
 {
-  return INTEGRATOR_STATE(path, flag) & PATH_RAY_SHADOW_CATCHER_PASS;
+  return INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS;
 }
 
 #endif /* __SHADOW_CATCHER__ */

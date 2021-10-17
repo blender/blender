@@ -64,7 +64,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Memory Copy */
 
-void kernel_const_copy(KernelGlobals *kg, const char *name, void *host, size_t)
+void kernel_const_copy(KernelGlobalsCPU *kg, const char *name, void *host, size_t)
 {
   if (strcmp(name, "__data") == 0) {
     kg->__data = *(KernelData *)host;
@@ -74,7 +74,7 @@ void kernel_const_copy(KernelGlobals *kg, const char *name, void *host, size_t)
   }
 }
 
-void kernel_global_memory_copy(KernelGlobals *kg, const char *name, void *mem, size_t size)
+void kernel_global_memory_copy(KernelGlobalsCPU *kg, const char *name, void *mem, size_t size)
 {
   if (0) {
   }

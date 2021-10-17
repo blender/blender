@@ -87,11 +87,8 @@ ccl_device_noinline_cpu float3 svm_magic(float3 p, int n, float distortion)
   return make_float3(0.5f - x, 0.5f - y, 0.5f - z);
 }
 
-ccl_device_noinline int svm_node_tex_magic(ccl_global const KernelGlobals *kg,
-                                           ccl_private ShaderData *sd,
-                                           ccl_private float *stack,
-                                           uint4 node,
-                                           int offset)
+ccl_device_noinline int svm_node_tex_magic(
+    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
   uint depth;
   uint scale_offset, distortion_offset, co_offset, fac_offset, color_offset;

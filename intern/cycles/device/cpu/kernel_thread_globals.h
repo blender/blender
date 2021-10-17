@@ -23,17 +23,17 @@ CCL_NAMESPACE_BEGIN
 
 class Profiler;
 
-/* A special class which extends memory ownership of the `KernelGlobals` decoupling any resource
+/* A special class which extends memory ownership of the `KernelGlobalsCPU` decoupling any resource
  * which is not thread-safe for access. Every worker thread which needs to operate on
- * `KernelGlobals` needs to initialize its own copy of this object.
+ * `KernelGlobalsCPU` needs to initialize its own copy of this object.
  *
  * NOTE: Only minimal subset of objects are copied: `KernelData` is never copied. This means that
  * there is no unnecessary data duplication happening when using this object. */
-class CPUKernelThreadGlobals : public KernelGlobals {
+class CPUKernelThreadGlobals : public KernelGlobalsCPU {
  public:
   /* TODO(sergey): Would be nice to have properly typed OSLGlobals even in the case when building
    * without OSL support. Will avoid need to those unnamed pointers and casts. */
-  CPUKernelThreadGlobals(const KernelGlobals &kernel_globals,
+  CPUKernelThreadGlobals(const KernelGlobalsCPU &kernel_globals,
                          void *osl_globals_memory,
                          Profiler &cpu_profiler);
 

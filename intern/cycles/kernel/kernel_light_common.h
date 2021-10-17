@@ -214,10 +214,7 @@ ccl_device bool light_spread_clamp_area_light(const float3 P,
   return true;
 }
 
-ccl_device float lamp_light_pdf(ccl_global const KernelGlobals *kg,
-                                const float3 Ng,
-                                const float3 I,
-                                float t)
+ccl_device float lamp_light_pdf(KernelGlobals kg, const float3 Ng, const float3 I, float t)
 {
   float cos_pi = dot(Ng, I);
 

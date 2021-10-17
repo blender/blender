@@ -27,9 +27,10 @@ CCL_NAMESPACE_BEGIN
 
 /* Not actually used, just a NULL pointer that gets passed everywhere, which we
  * hope gets optimized out by the compiler. */
-struct KernelGlobals {
+struct KernelGlobalsGPU {
   int unused[1];
 };
+typedef ccl_global const KernelGlobalsGPU *ccl_restrict KernelGlobals;
 
 /* Launch parameters */
 struct KernelParamsOptiX {

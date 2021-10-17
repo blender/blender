@@ -46,7 +46,7 @@ ccl_device float2 camera_sample_aperture(ccl_constant KernelCamera *cam, float u
   return bokeh;
 }
 
-ccl_device void camera_sample_perspective(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device void camera_sample_perspective(KernelGlobals kg,
                                           float raster_x,
                                           float raster_y,
                                           float lens_u,
@@ -185,7 +185,7 @@ ccl_device void camera_sample_perspective(ccl_global const KernelGlobals *ccl_re
 }
 
 /* Orthographic Camera */
-ccl_device void camera_sample_orthographic(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device void camera_sample_orthographic(KernelGlobals kg,
                                            float raster_x,
                                            float raster_y,
                                            float lens_u,
@@ -370,7 +370,7 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
 
 /* Common */
 
-ccl_device_inline void camera_sample(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device_inline void camera_sample(KernelGlobals kg,
                                      int x,
                                      int y,
                                      float filter_u,
@@ -444,13 +444,13 @@ ccl_device_inline void camera_sample(ccl_global const KernelGlobals *ccl_restric
 
 /* Utilities */
 
-ccl_device_inline float3 camera_position(ccl_global const KernelGlobals *kg)
+ccl_device_inline float3 camera_position(KernelGlobals kg)
 {
   Transform cameratoworld = kernel_data.cam.cameratoworld;
   return make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
 }
 
-ccl_device_inline float camera_distance(ccl_global const KernelGlobals *kg, float3 P)
+ccl_device_inline float camera_distance(KernelGlobals kg, float3 P)
 {
   Transform cameratoworld = kernel_data.cam.cameratoworld;
   float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
@@ -464,7 +464,7 @@ ccl_device_inline float camera_distance(ccl_global const KernelGlobals *kg, floa
   }
 }
 
-ccl_device_inline float camera_z_depth(ccl_global const KernelGlobals *kg, float3 P)
+ccl_device_inline float camera_z_depth(KernelGlobals kg, float3 P)
 {
   if (kernel_data.cam.type != CAMERA_PANORAMA) {
     Transform worldtocamera = kernel_data.cam.worldtocamera;
@@ -477,7 +477,7 @@ ccl_device_inline float camera_z_depth(ccl_global const KernelGlobals *kg, float
   }
 }
 
-ccl_device_inline float3 camera_direction_from_point(ccl_global const KernelGlobals *kg, float3 P)
+ccl_device_inline float3 camera_direction_from_point(KernelGlobals kg, float3 P)
 {
   Transform cameratoworld = kernel_data.cam.cameratoworld;
 
@@ -491,7 +491,7 @@ ccl_device_inline float3 camera_direction_from_point(ccl_global const KernelGlob
   }
 }
 
-ccl_device_inline float3 camera_world_to_ndc(ccl_global const KernelGlobals *kg,
+ccl_device_inline float3 camera_world_to_ndc(KernelGlobals kg,
                                              ccl_private ShaderData *sd,
                                              float3 P)
 {

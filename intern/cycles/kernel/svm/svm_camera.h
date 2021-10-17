@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_noinline void svm_node_camera(ccl_global const KernelGlobals *kg,
+ccl_device_noinline void svm_node_camera(KernelGlobals kg,
                                          ccl_private ShaderData *sd,
                                          ccl_private float *stack,
                                          uint out_vector,

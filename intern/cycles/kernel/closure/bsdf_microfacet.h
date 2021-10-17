@@ -55,7 +55,7 @@ static_assert(sizeof(ShaderClosure) >= sizeof(MicrofacetBsdf), "MicrofacetBsdf i
 
 /* Beckmann and GGX microfacet importance sampling. */
 
-ccl_device_inline void microfacet_beckmann_sample_slopes(ccl_global const KernelGlobals *kg,
+ccl_device_inline void microfacet_beckmann_sample_slopes(KernelGlobals kg,
                                                          const float cos_theta_i,
                                                          const float sin_theta_i,
                                                          float randu,
@@ -195,7 +195,7 @@ ccl_device_inline void microfacet_ggx_sample_slopes(const float cos_theta_i,
   *slope_y = S * z * safe_sqrtf(1.0f + (*slope_x) * (*slope_x));
 }
 
-ccl_device_forceinline float3 microfacet_sample_stretched(ccl_global const KernelGlobals *kg,
+ccl_device_forceinline float3 microfacet_sample_stretched(KernelGlobals kg,
                                                           const float3 omega_i,
                                                           const float alpha_x,
                                                           const float alpha_y,
@@ -549,7 +549,7 @@ ccl_device float3 bsdf_microfacet_ggx_eval_transmit(ccl_private const ShaderClos
   return make_float3(out, out, out);
 }
 
-ccl_device int bsdf_microfacet_ggx_sample(ccl_global const KernelGlobals *kg,
+ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
                                           ccl_private const ShaderClosure *sc,
                                           float3 Ng,
                                           float3 I,
@@ -977,7 +977,7 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(ccl_private const Shade
   return make_float3(out, out, out);
 }
 
-ccl_device int bsdf_microfacet_beckmann_sample(ccl_global const KernelGlobals *kg,
+ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
                                                ccl_private const ShaderClosure *sc,
                                                float3 Ng,
                                                float3 I,

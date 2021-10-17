@@ -38,7 +38,7 @@ CCL_NAMESPACE_BEGIN
  */
 #  define SOBOL_SKIP 64
 
-ccl_device uint sobol_dimension(ccl_global const KernelGlobals *kg, int index, int dimension)
+ccl_device uint sobol_dimension(KernelGlobals kg, int index, int dimension)
 {
   uint result = 0;
   uint i = index + SOBOL_SKIP;
@@ -51,7 +51,7 @@ ccl_device uint sobol_dimension(ccl_global const KernelGlobals *kg, int index, i
 
 #endif /* __SOBOL__ */
 
-ccl_device_forceinline float path_rng_1D(ccl_global const KernelGlobals *kg,
+ccl_device_forceinline float path_rng_1D(KernelGlobals kg,
                                          uint rng_hash,
                                          int sample,
                                          int dimension)
@@ -85,7 +85,7 @@ ccl_device_forceinline float path_rng_1D(ccl_global const KernelGlobals *kg,
 #endif
 }
 
-ccl_device_forceinline void path_rng_2D(ccl_global const KernelGlobals *kg,
+ccl_device_forceinline void path_rng_2D(KernelGlobals kg,
                                         uint rng_hash,
                                         int sample,
                                         int dimension,
@@ -141,7 +141,7 @@ ccl_device_inline uint hash_iqnt2d(const uint x, const uint y)
   return n;
 }
 
-ccl_device_inline uint path_rng_hash_init(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device_inline uint path_rng_hash_init(KernelGlobals kg,
                                           const int sample,
                                           const int x,
                                           const int y)

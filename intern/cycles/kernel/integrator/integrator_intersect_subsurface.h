@@ -20,12 +20,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void integrator_intersect_subsurface(INTEGRATOR_STATE_ARGS)
+ccl_device void integrator_intersect_subsurface(KernelGlobals kg, IntegratorState state)
 {
   PROFILING_INIT(kg, PROFILING_INTERSECT_SUBSURFACE);
 
 #ifdef __SUBSURFACE__
-  if (subsurface_scatter(INTEGRATOR_STATE_PASS)) {
+  if (subsurface_scatter(kg, state)) {
     return;
   }
 #endif

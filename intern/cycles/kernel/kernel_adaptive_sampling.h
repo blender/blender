@@ -22,14 +22,15 @@ CCL_NAMESPACE_BEGIN
 
 /* Check whether the pixel has converged and should not be sampled anymore. */
 
-ccl_device_forceinline bool kernel_need_sample_pixel(INTEGRATOR_STATE_CONST_ARGS,
+ccl_device_forceinline bool kernel_need_sample_pixel(KernelGlobals kg,
+                                                     ConstIntegratorState state,
                                                      ccl_global float *render_buffer)
 {
   if (kernel_data.film.pass_adaptive_aux_buffer == PASS_UNUSED) {
     return true;
   }
 
-  const uint32_t render_pixel_index = INTEGRATOR_STATE(path, render_pixel_index);
+  const uint32_t render_pixel_index = INTEGRATOR_STATE(state, path, render_pixel_index);
   const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
                                         kernel_data.film.pass_stride;
   ccl_global float *buffer = render_buffer + render_buffer_offset;
@@ -40,7 +41,7 @@ ccl_device_forceinline bool kernel_need_sample_pixel(INTEGRATOR_STATE_CONST_ARGS
 
 /* Determines whether to continue sampling a given pixel or if it has sufficiently converged. */
 
-ccl_device bool kernel_adaptive_sampling_convergence_check(ccl_global const KernelGlobals *kg,
+ccl_device bool kernel_adaptive_sampling_convergence_check(KernelGlobals kg,
                                                            ccl_global float *render_buffer,
                                                            int x,
                                                            int y,
@@ -90,7 +91,7 @@ ccl_device bool kernel_adaptive_sampling_convergence_check(ccl_global const Kern
 /* This is a simple box filter in two passes.
  * When a pixel demands more adaptive samples, let its neighboring pixels draw more samples too. */
 
-ccl_device void kernel_adaptive_sampling_filter_x(ccl_global const KernelGlobals *kg,
+ccl_device void kernel_adaptive_sampling_filter_x(KernelGlobals kg,
                                                   ccl_global float *render_buffer,
                                                   int y,
                                                   int start_x,
@@ -123,7 +124,7 @@ ccl_device void kernel_adaptive_sampling_filter_x(ccl_global const KernelGlobals
   }
 }
 
-ccl_device void kernel_adaptive_sampling_filter_y(ccl_global const KernelGlobals *kg,
+ccl_device void kernel_adaptive_sampling_filter_y(KernelGlobals kg,
                                                   ccl_global float *render_buffer,
                                                   int x,
                                                   int start_y,

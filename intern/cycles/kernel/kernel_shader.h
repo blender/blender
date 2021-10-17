@@ -104,7 +104,8 @@ ccl_device_inline void shader_copy_volume_phases(ccl_private ShaderVolumePhases 
 }
 #endif /* __VOLUME__ */
 
-ccl_device_inline void shader_prepare_surface_closures(INTEGRATOR_STATE_CONST_ARGS,
+ccl_device_inline void shader_prepare_surface_closures(KernelGlobals kg,
+                                                       ConstIntegratorState state,
                                                        ccl_private ShaderData *sd)
 {
   /* Defensive sampling.
@@ -112,7 +113,8 @@ ccl_device_inline void shader_prepare_surface_closures(INTEGRATOR_STATE_CONST_AR
    * We can likely also do defensive sampling at deeper bounces, particularly
    * for cases like a perfect mirror but possibly also others. This will need
    * a good heuristic. */
-  if (INTEGRATOR_STATE(path, bounce) + INTEGRATOR_STATE(path, transparent_bounce) == 0 &&
+  if (INTEGRATOR_STATE(state, path, bounce) + INTEGRATOR_STATE(state, path, transparent_bounce) ==
+          0 &&
       sd->num_closure > 1) {
     float sum = 0.0f;
 
@@ -136,7 +138,8 @@ ccl_device_inline void shader_prepare_surface_closures(INTEGRATOR_STATE_CONST_AR
    * Blurring of bsdf after bounces, for rays that have a small likelihood
    * of following this particular path (diffuse, rough glossy) */
   if (kernel_data.integrator.filter_glossy != FLT_MAX) {
-    float blur_pdf = kernel_data.integrator.filter_glossy * INTEGRATOR_STATE(path, min_ray_pdf);
+    float blur_pdf = kernel_data.integrator.filter_glossy *
+                     INTEGRATOR_STATE(state, path, min_ray_pdf);
 
     if (blur_pdf < 1.0f) {
       float blur_roughness = sqrtf(1.0f - blur_pdf) * 0.5f;
@@ -182,7 +185,7 @@ ccl_device_forceinline bool _shader_bsdf_exclude(ClosureType type, uint light_sh
   return false;
 }
 
-ccl_device_inline float _shader_bsdf_multi_eval(ccl_global const KernelGlobals *kg,
+ccl_device_inline float _shader_bsdf_multi_eval(KernelGlobals kg,
                                                 ccl_private ShaderData *sd,
                                                 const float3 omega_in,
                                                 const bool is_transmission,
@@ -226,7 +229,7 @@ ccl_device
 ccl_device_inline
 #endif
     float
-    shader_bsdf_eval(ccl_global const KernelGlobals *kg,
+    shader_bsdf_eval(KernelGlobals kg,
                      ccl_private ShaderData *sd,
                      const float3 omega_in,
                      const bool is_transmission,
@@ -306,7 +309,7 @@ shader_bssrdf_sample_weight(ccl_private const ShaderData *ccl_restrict sd,
 
 /* Sample direction for picked BSDF, and return evaluation and pdf for all
  * BSDFs combined using MIS. */
-ccl_device int shader_bsdf_sample_closure(ccl_global const KernelGlobals *kg,
+ccl_device int shader_bsdf_sample_closure(KernelGlobals kg,
                                           ccl_private ShaderData *sd,
                                           ccl_private const ShaderClosure *sc,
                                           float randu,
@@ -360,8 +363,7 @@ ccl_device float shader_bsdf_average_roughness(ccl_private const ShaderData *sd)
   return (sum_weight > 0.0f) ? roughness / sum_weight : 0.0f;
 }
 
-ccl_device float3 shader_bsdf_transparency(ccl_global const KernelGlobals *kg,
-                                           ccl_private const ShaderData *sd)
+ccl_device float3 shader_bsdf_transparency(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
   if (sd->flag & SD_HAS_ONLY_VOLUME) {
     return one_float3();
@@ -374,8 +376,7 @@ ccl_device float3 shader_bsdf_transparency(ccl_global const KernelGlobals *kg,
   }
 }
 
-ccl_device void shader_bsdf_disable_transparency(ccl_global const KernelGlobals *kg,
-                                                 ccl_private ShaderData *sd)
+ccl_device void shader_bsdf_disable_transparency(KernelGlobals kg, ccl_private ShaderData *sd)
 {
   if (sd->flag & SD_TRANSPARENT) {
     for (int i = 0; i < sd->num_closure; i++) {
@@ -391,8 +392,7 @@ ccl_device void shader_bsdf_disable_transparency(ccl_global const KernelGlobals 
   }
 }
 
-ccl_device float3 shader_bsdf_alpha(ccl_global const KernelGlobals *kg,
-                                    ccl_private const ShaderData *sd)
+ccl_device float3 shader_bsdf_alpha(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
   float3 alpha = one_float3() - shader_bsdf_transparency(kg, sd);
 
@@ -402,8 +402,7 @@ ccl_device float3 shader_bsdf_alpha(ccl_global const KernelGlobals *kg,
   return alpha;
 }
 
-ccl_device float3 shader_bsdf_diffuse(ccl_global const KernelGlobals *kg,
-                                      ccl_private const ShaderData *sd)
+ccl_device float3 shader_bsdf_diffuse(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
   float3 eval = zero_float3();
 
@@ -417,8 +416,7 @@ ccl_device float3 shader_bsdf_diffuse(ccl_global const KernelGlobals *kg,
   return eval;
 }
 
-ccl_device float3 shader_bsdf_glossy(ccl_global const KernelGlobals *kg,
-                                     ccl_private const ShaderData *sd)
+ccl_device float3 shader_bsdf_glossy(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
   float3 eval = zero_float3();
 
@@ -432,8 +430,7 @@ ccl_device float3 shader_bsdf_glossy(ccl_global const KernelGlobals *kg,
   return eval;
 }
 
-ccl_device float3 shader_bsdf_transmission(ccl_global const KernelGlobals *kg,
-                                           ccl_private const ShaderData *sd)
+ccl_device float3 shader_bsdf_transmission(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
   float3 eval = zero_float3();
 
@@ -447,8 +444,7 @@ ccl_device float3 shader_bsdf_transmission(ccl_global const KernelGlobals *kg,
   return eval;
 }
 
-ccl_device float3 shader_bsdf_average_normal(ccl_global const KernelGlobals *kg,
-                                             ccl_private const ShaderData *sd)
+ccl_device float3 shader_bsdf_average_normal(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
   float3 N = zero_float3();
 
@@ -461,8 +457,7 @@ ccl_device float3 shader_bsdf_average_normal(ccl_global const KernelGlobals *kg,
   return (is_zero(N)) ? sd->N : normalize(N);
 }
 
-ccl_device float3 shader_bsdf_ao_normal(ccl_global const KernelGlobals *kg,
-                                        ccl_private const ShaderData *sd)
+ccl_device float3 shader_bsdf_ao_normal(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
   float3 N = zero_float3();
 
@@ -499,7 +494,7 @@ ccl_device float3 shader_bssrdf_normal(ccl_private const ShaderData *sd)
 
 /* Constant emission optimization */
 
-ccl_device bool shader_constant_emission_eval(ccl_global const KernelGlobals *kg,
+ccl_device bool shader_constant_emission_eval(KernelGlobals kg,
                                               int shader,
                                               ccl_private float3 *eval)
 {
@@ -543,8 +538,7 @@ ccl_device float3 shader_emissive_eval(ccl_private const ShaderData *sd)
 
 /* Holdout */
 
-ccl_device float3 shader_holdout_apply(ccl_global const KernelGlobals *kg,
-                                       ccl_private ShaderData *sd)
+ccl_device float3 shader_holdout_apply(KernelGlobals kg, ccl_private ShaderData *sd)
 {
   float3 weight = zero_float3();
 
@@ -582,7 +576,8 @@ ccl_device float3 shader_holdout_apply(ccl_global const KernelGlobals *kg,
 /* Surface Evaluation */
 
 template<uint node_feature_mask>
-ccl_device void shader_eval_surface(INTEGRATOR_STATE_CONST_ARGS,
+ccl_device void shader_eval_surface(KernelGlobals kg,
+                                    ConstIntegratorState state,
                                     ccl_private ShaderData *ccl_restrict sd,
                                     ccl_global float *ccl_restrict buffer,
                                     int path_flag)
@@ -604,18 +599,17 @@ ccl_device void shader_eval_surface(INTEGRATOR_STATE_CONST_ARGS,
 #ifdef __OSL__
   if (kg->osl) {
     if (sd->object == OBJECT_NONE && sd->lamp == LAMP_NONE) {
-      OSLShader::eval_background(INTEGRATOR_STATE_PASS, sd, path_flag);
+      OSLShader::eval_background(kg, state, sd, path_flag);
     }
     else {
-      OSLShader::eval_surface(INTEGRATOR_STATE_PASS, sd, path_flag);
+      OSLShader::eval_surface(kg, state, sd, path_flag);
     }
   }
   else
 #endif
   {
 #ifdef __SVM__
-    svm_eval_nodes<node_feature_mask, SHADER_TYPE_SURFACE>(
-        INTEGRATOR_STATE_PASS, sd, buffer, path_flag);
+    svm_eval_nodes<node_feature_mask, SHADER_TYPE_SURFACE>(kg, state, sd, buffer, path_flag);
 #else
     if (sd->object == OBJECT_NONE) {
       sd->closure_emission_background = make_float3(0.8f, 0.8f, 0.8f);
@@ -632,11 +626,14 @@ ccl_device void shader_eval_surface(INTEGRATOR_STATE_CONST_ARGS,
 #endif
   }
 
-  if (KERNEL_NODES_FEATURE(BSDF) && (sd->flag & SD_BSDF_NEEDS_LCG)) {
-    sd->lcg_state = lcg_state_init(INTEGRATOR_STATE(path, rng_hash),
-                                   INTEGRATOR_STATE(path, rng_offset),
-                                   INTEGRATOR_STATE(path, sample),
-                                   0xb4bc3953);
+  IF_KERNEL_NODES_FEATURE(BSDF)
+  {
+    if (sd->flag & SD_BSDF_NEEDS_LCG) {
+      sd->lcg_state = lcg_state_init(INTEGRATOR_STATE(state, path, rng_hash),
+                                     INTEGRATOR_STATE(state, path, rng_offset),
+                                     INTEGRATOR_STATE(state, path, sample),
+                                     0xb4bc3953);
+    }
   }
 }
 
@@ -672,7 +669,7 @@ ccl_device_inline float _shader_volume_phase_multi_eval(
   return (sum_sample_weight > 0.0f) ? sum_pdf / sum_sample_weight : 0.0f;
 }
 
-ccl_device float shader_volume_phase_eval(ccl_global const KernelGlobals *kg,
+ccl_device float shader_volume_phase_eval(KernelGlobals kg,
                                           ccl_private const ShaderData *sd,
                                           ccl_private const ShaderVolumePhases *phases,
                                           const float3 omega_in,
@@ -683,7 +680,7 @@ ccl_device float shader_volume_phase_eval(ccl_global const KernelGlobals *kg,
   return _shader_volume_phase_multi_eval(sd, phases, omega_in, -1, phase_eval, 0.0f, 0.0f);
 }
 
-ccl_device int shader_volume_phase_sample(ccl_global const KernelGlobals *kg,
+ccl_device int shader_volume_phase_sample(KernelGlobals kg,
                                           ccl_private const ShaderData *sd,
                                           ccl_private const ShaderVolumePhases *phases,
                                           float randu,
@@ -742,7 +739,7 @@ ccl_device int shader_volume_phase_sample(ccl_global const KernelGlobals *kg,
   return label;
 }
 
-ccl_device int shader_phase_sample_closure(ccl_global const KernelGlobals *kg,
+ccl_device int shader_phase_sample_closure(KernelGlobals kg,
                                            ccl_private const ShaderData *sd,
                                            ccl_private const ShaderVolumeClosure *sc,
                                            float randu,
@@ -767,7 +764,8 @@ ccl_device int shader_phase_sample_closure(ccl_global const KernelGlobals *kg,
 /* Volume Evaluation */
 
 template<const bool shadow, typename StackReadOp>
-ccl_device_inline void shader_eval_volume(INTEGRATOR_STATE_CONST_ARGS,
+ccl_device_inline void shader_eval_volume(KernelGlobals kg,
+                                          ConstIntegratorState state,
                                           ccl_private ShaderData *ccl_restrict sd,
                                           const int path_flag,
                                           StackReadOp stack_read)
@@ -820,13 +818,13 @@ ccl_device_inline void shader_eval_volume(INTEGRATOR_STATE_CONST_ARGS,
 #  ifdef __SVM__
 #    ifdef __OSL__
     if (kg->osl) {
-      OSLShader::eval_volume(INTEGRATOR_STATE_PASS, sd, path_flag);
+      OSLShader::eval_volume(kg, state, sd, path_flag);
     }
     else
 #    endif
     {
       svm_eval_nodes<KERNEL_FEATURE_NODE_MASK_VOLUME, SHADER_TYPE_VOLUME>(
-          INTEGRATOR_STATE_PASS, sd, NULL, path_flag);
+          kg, state, sd, NULL, path_flag);
     }
 #  endif
 
@@ -843,7 +841,9 @@ ccl_device_inline void shader_eval_volume(INTEGRATOR_STATE_CONST_ARGS,
 
 /* Displacement Evaluation */
 
-ccl_device void shader_eval_displacement(INTEGRATOR_STATE_CONST_ARGS, ccl_private ShaderData *sd)
+ccl_device void shader_eval_displacement(KernelGlobals kg,
+                                         ConstIntegratorState state,
+                                         ccl_private ShaderData *sd)
 {
   sd->num_closure = 0;
   sd->num_closure_left = 0;
@@ -852,19 +852,19 @@ ccl_device void shader_eval_displacement(INTEGRATOR_STATE_CONST_ARGS, ccl_privat
 #ifdef __SVM__
 #  ifdef __OSL__
   if (kg->osl)
-    OSLShader::eval_displacement(INTEGRATOR_STATE_PASS, sd);
+    OSLShader::eval_displacement(kg, state, sd);
   else
 #  endif
   {
     svm_eval_nodes<KERNEL_FEATURE_NODE_MASK_DISPLACEMENT, SHADER_TYPE_DISPLACEMENT>(
-        INTEGRATOR_STATE_PASS, sd, NULL, 0);
+        kg, state, sd, NULL, 0);
   }
 #endif
 }
 
 /* Cryptomatte */
 
-ccl_device float shader_cryptomatte_id(ccl_global const KernelGlobals *kg, int shader)
+ccl_device float shader_cryptomatte_id(KernelGlobals kg, int shader)
 {
   return kernel_tex_fetch(__shaders, (shader & SHADER_MASK)).cryptomatte_id;
 }

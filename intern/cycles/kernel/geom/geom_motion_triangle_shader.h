@@ -34,7 +34,7 @@ CCL_NAMESPACE_BEGIN
  * normals */
 
 /* return 3 triangle vertex normals */
-ccl_device_noinline void motion_triangle_shader_setup(ccl_global const KernelGlobals *kg,
+ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
                                                       ccl_private ShaderData *sd,
                                                       const float3 P,
                                                       const float3 D,

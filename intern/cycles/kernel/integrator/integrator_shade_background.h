@@ -23,12 +23,13 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float3 integrator_eval_background_shader(INTEGRATOR_STATE_ARGS,
+ccl_device float3 integrator_eval_background_shader(KernelGlobals kg,
+                                                    IntegratorState state,
                                                     ccl_global float *ccl_restrict render_buffer)
 {
 #ifdef __BACKGROUND__
   const int shader = kernel_data.background.surface_shader;
-  const uint32_t path_flag = INTEGRATOR_STATE(path, flag);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   /* Use visibility flag to skip lights. */
   if (shader & SHADER_EXCLUDE_ANY) {
@@ -54,14 +55,14 @@ ccl_device float3 integrator_eval_background_shader(INTEGRATOR_STATE_ARGS,
     PROFILING_INIT_FOR_SHADER(kg, PROFILING_SHADE_LIGHT_SETUP);
     shader_setup_from_background(kg,
                                  emission_sd,
-                                 INTEGRATOR_STATE(ray, P),
-                                 INTEGRATOR_STATE(ray, D),
-                                 INTEGRATOR_STATE(ray, time));
+                                 INTEGRATOR_STATE(state, ray, P),
+                                 INTEGRATOR_STATE(state, ray, D),
+                                 INTEGRATOR_STATE(state, ray, time));
 
     PROFILING_SHADER(emission_sd->object, emission_sd->shader);
     PROFILING_EVENT(PROFILING_SHADE_LIGHT_EVAL);
     shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
-        INTEGRATOR_STATE_PASS, emission_sd, render_buffer, path_flag | PATH_RAY_EMISSION);
+        kg, state, emission_sd, render_buffer, path_flag | PATH_RAY_EMISSION);
 
     L = shader_background_eval(emission_sd);
   }
@@ -69,11 +70,12 @@ ccl_device float3 integrator_eval_background_shader(INTEGRATOR_STATE_ARGS,
   /* Background MIS weights. */
 #  ifdef __BACKGROUND_MIS__
   /* Check if background light exists or if we should skip pdf. */
-  if (!(INTEGRATOR_STATE(path, flag) & PATH_RAY_MIS_SKIP) && kernel_data.background.use_mis) {
-    const float3 ray_P = INTEGRATOR_STATE(ray, P);
-    const float3 ray_D = INTEGRATOR_STATE(ray, D);
-    const float mis_ray_pdf = INTEGRATOR_STATE(path, mis_ray_pdf);
-    const float mis_ray_t = INTEGRATOR_STATE(path, mis_ray_t);
+  if (!(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_MIS_SKIP) &&
+      kernel_data.background.use_mis) {
+    const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
+    const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
+    const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
+    const float mis_ray_t = INTEGRATOR_STATE(state, path, mis_ray_t);
 
     /* multiple importance sampling, get background light pdf for ray
      * direction, and compute weight with respect to BSDF pdf */
@@ -90,7 +92,8 @@ ccl_device float3 integrator_eval_background_shader(INTEGRATOR_STATE_ARGS,
 #endif
 }
 
-ccl_device_inline void integrate_background(INTEGRATOR_STATE_ARGS,
+ccl_device_inline void integrate_background(KernelGlobals kg,
+                                            IntegratorState state,
                                             ccl_global float *ccl_restrict render_buffer)
 {
   /* Accumulate transparency for transparent background. We can skip background
@@ -99,11 +102,11 @@ ccl_device_inline void integrate_background(INTEGRATOR_STATE_ARGS,
   float transparent = 0.0f;
 
   const bool is_transparent_background_ray = kernel_data.background.transparent &&
-                                             (INTEGRATOR_STATE(path, flag) &
+                                             (INTEGRATOR_STATE(state, path, flag) &
                                               PATH_RAY_TRANSPARENT_BACKGROUND);
 
   if (is_transparent_background_ray) {
-    transparent = average(INTEGRATOR_STATE(path, throughput));
+    transparent = average(INTEGRATOR_STATE(state, path, throughput));
 
 #ifdef __PASSES__
     eval_background = (kernel_data.film.light_pass_flag & PASSMASK(BACKGROUND));
@@ -113,32 +116,31 @@ ccl_device_inline void integrate_background(INTEGRATOR_STATE_ARGS,
   }
 
   /* Evaluate background shader. */
-  float3 L = (eval_background) ?
-                 integrator_eval_background_shader(INTEGRATOR_STATE_PASS, render_buffer) :
-                 zero_float3();
+  float3 L = (eval_background) ? integrator_eval_background_shader(kg, state, render_buffer) :
+                                 zero_float3();
 
   /* When using the ao bounces approximation, adjust background
    * shader intensity with ao factor. */
-  if (path_state_ao_bounce(INTEGRATOR_STATE_PASS)) {
+  if (path_state_ao_bounce(kg, state)) {
     L *= kernel_data.integrator.ao_bounces_factor;
   }
 
   /* Write to render buffer. */
-  kernel_accum_background(
-      INTEGRATOR_STATE_PASS, L, transparent, is_transparent_background_ray, render_buffer);
+  kernel_accum_background(kg, state, L, transparent, is_transparent_background_ray, render_buffer);
 }
 
-ccl_device_inline void integrate_distant_lights(INTEGRATOR_STATE_ARGS,
+ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
+                                                IntegratorState state,
                                                 ccl_global float *ccl_restrict render_buffer)
 {
-  const float3 ray_D = INTEGRATOR_STATE(ray, D);
-  const float ray_time = INTEGRATOR_STATE(ray, time);
+  const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
+  const float ray_time = INTEGRATOR_STATE(state, ray, time);
   LightSample ls ccl_optional_struct_init;
   for (int lamp = 0; lamp < kernel_data.integrator.num_all_lights; lamp++) {
     if (light_sample_from_distant_ray(kg, ray_D, lamp, &ls)) {
       /* Use visibility flag to skip lights. */
 #ifdef __PASSES__
-      const uint32_t path_flag = INTEGRATOR_STATE(path, flag);
+      const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
       if (ls.shader & SHADER_EXCLUDE_ANY) {
         if (((ls.shader & SHADER_EXCLUDE_DIFFUSE) && (path_flag & PATH_RAY_DIFFUSE)) ||
@@ -156,8 +158,7 @@ ccl_device_inline void integrate_distant_lights(INTEGRATOR_STATE_ARGS,
       /* TODO: does aliasing like this break automatic SoA in CUDA? */
       ShaderDataTinyStorage emission_sd_storage;
       ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
-      float3 light_eval = light_sample_shader_eval(
-          INTEGRATOR_STATE_PASS, emission_sd, &ls, ray_time);
+      float3 light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, ray_time);
       if (is_zero(light_eval)) {
         return;
       }
@@ -166,33 +167,34 @@ ccl_device_inline void integrate_distant_lights(INTEGRATOR_STATE_ARGS,
       if (!(path_flag & PATH_RAY_MIS_SKIP)) {
         /* multiple importance sampling, get regular light pdf,
          * and compute weight with respect to BSDF pdf */
-        const float mis_ray_pdf = INTEGRATOR_STATE(path, mis_ray_pdf);
+        const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
         const float mis_weight = power_heuristic(mis_ray_pdf, ls.pdf);
         light_eval *= mis_weight;
       }
 
       /* Write to render buffer. */
-      const float3 throughput = INTEGRATOR_STATE(path, throughput);
-      kernel_accum_emission(INTEGRATOR_STATE_PASS, throughput, light_eval, render_buffer);
+      const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
+      kernel_accum_emission(kg, state, throughput, light_eval, render_buffer);
     }
   }
 }
 
-ccl_device void integrator_shade_background(INTEGRATOR_STATE_ARGS,
+ccl_device void integrator_shade_background(KernelGlobals kg,
+                                            IntegratorState state,
                                             ccl_global float *ccl_restrict render_buffer)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_LIGHT_SETUP);
 
   /* TODO: unify these in a single loop to only have a single shader evaluation call. */
-  integrate_distant_lights(INTEGRATOR_STATE_PASS, render_buffer);
-  integrate_background(INTEGRATOR_STATE_PASS, render_buffer);
+  integrate_distant_lights(kg, state, render_buffer);
+  integrate_background(kg, state, render_buffer);
 
 #ifdef __SHADOW_CATCHER__
-  if (INTEGRATOR_STATE(path, flag) & PATH_RAY_SHADOW_CATCHER_BACKGROUND) {
-    INTEGRATOR_STATE_WRITE(path, flag) &= ~PATH_RAY_SHADOW_CATCHER_BACKGROUND;
+  if (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_BACKGROUND) {
+    INTEGRATOR_STATE_WRITE(state, path, flag) &= ~PATH_RAY_SHADOW_CATCHER_BACKGROUND;
 
-    const int isect_prim = INTEGRATOR_STATE(isect, prim);
-    const int isect_type = INTEGRATOR_STATE(isect, type);
+    const int isect_prim = INTEGRATOR_STATE(state, isect, prim);
+    const int isect_type = INTEGRATOR_STATE(state, isect, type);
     const int shader = intersection_get_shader_from_isect_prim(kg, isect_prim, isect_type);
     const int shader_flags = kernel_tex_fetch(__shaders, shader).flags;
 

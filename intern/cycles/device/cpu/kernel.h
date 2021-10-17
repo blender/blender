@@ -21,7 +21,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-struct KernelGlobals;
+struct KernelGlobalsCPU;
 struct IntegratorStateCPU;
 struct TileInfo;
 
@@ -30,10 +30,10 @@ class CPUKernels {
   /* Integrator. */
 
   using IntegratorFunction =
-      CPUKernelFunction<void (*)(const KernelGlobals *kg, IntegratorStateCPU *state)>;
+      CPUKernelFunction<void (*)(const KernelGlobalsCPU *kg, IntegratorStateCPU *state)>;
   using IntegratorShadeFunction = CPUKernelFunction<void (*)(
-      const KernelGlobals *kg, IntegratorStateCPU *state, ccl_global float *render_buffer)>;
-  using IntegratorInitFunction = CPUKernelFunction<bool (*)(const KernelGlobals *kg,
+      const KernelGlobalsCPU *kg, IntegratorStateCPU *state, ccl_global float *render_buffer)>;
+  using IntegratorInitFunction = CPUKernelFunction<bool (*)(const KernelGlobalsCPU *kg,
                                                             IntegratorStateCPU *state,
                                                             KernelWorkTile *tile,
                                                             ccl_global float *render_buffer)>;
@@ -54,7 +54,7 @@ class CPUKernels {
   /* Shader evaluation. */
 
   using ShaderEvalFunction = CPUKernelFunction<void (*)(
-      const KernelGlobals *kg, const KernelShaderEvalInput *, float *, const int)>;
+      const KernelGlobalsCPU *kg, const KernelShaderEvalInput *, float *, const int)>;
 
   ShaderEvalFunction shader_eval_displace;
   ShaderEvalFunction shader_eval_background;
@@ -62,7 +62,7 @@ class CPUKernels {
   /* Adaptive stopping. */
 
   using AdaptiveSamplingConvergenceCheckFunction =
-      CPUKernelFunction<bool (*)(const KernelGlobals *kg,
+      CPUKernelFunction<bool (*)(const KernelGlobalsCPU *kg,
                                  ccl_global float *render_buffer,
                                  int x,
                                  int y,
@@ -72,7 +72,7 @@ class CPUKernels {
                                  int stride)>;
 
   using AdaptiveSamplingFilterXFunction =
-      CPUKernelFunction<void (*)(const KernelGlobals *kg,
+      CPUKernelFunction<void (*)(const KernelGlobalsCPU *kg,
                                  ccl_global float *render_buffer,
                                  int y,
                                  int start_x,
@@ -81,7 +81,7 @@ class CPUKernels {
                                  int stride)>;
 
   using AdaptiveSamplingFilterYFunction =
-      CPUKernelFunction<void (*)(const KernelGlobals *kg,
+      CPUKernelFunction<void (*)(const KernelGlobalsCPU *kg,
                                  ccl_global float *render_buffer,
                                  int x,
                                  int start_y,
@@ -97,13 +97,13 @@ class CPUKernels {
   /* Cryptomatte. */
 
   using CryptomattePostprocessFunction = CPUKernelFunction<void (*)(
-      const KernelGlobals *kg, ccl_global float *render_buffer, int pixel_index)>;
+      const KernelGlobalsCPU *kg, ccl_global float *render_buffer, int pixel_index)>;
 
   CryptomattePostprocessFunction cryptomatte_postprocess;
 
   /* Bake. */
 
-  CPUKernelFunction<void (*)(const KernelGlobals *, float *, int, int, int, int, int)> bake;
+  CPUKernelFunction<void (*)(const KernelGlobalsCPU *, float *, int, int, int, int, int)> bake;
 
   CPUKernels();
 };

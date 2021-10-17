@@ -61,8 +61,21 @@ ccl_device void svm_node_glass_setup(ccl_private ShaderData *sd,
   }
 }
 
+ccl_device_inline int svm_node_closure_bsdf_skip(KernelGlobals kg, int offset, uint type)
+{
+  if (type == CLOSURE_BSDF_PRINCIPLED_ID) {
+    /* Read all principled BSDF extra data to get the right offset. */
+    read_node(kg, &offset);
+    read_node(kg, &offset);
+    read_node(kg, &offset);
+    read_node(kg, &offset);
+  }
+
+  return offset;
+}
+
 template<uint node_feature_mask, ShaderType shader_type>
-ccl_device_noinline int svm_node_closure_bsdf(ccl_global const KernelGlobals *kg,
+ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
                                               ccl_private ShaderData *sd,
                                               ccl_private float *stack,
                                               uint4 node,
@@ -80,16 +93,15 @@ ccl_device_noinline int svm_node_closure_bsdf(ccl_global const KernelGlobals *kg
   uint4 data_node = read_node(kg, &offset);
 
   /* Only compute BSDF for surfaces, transparent variable is shared with volume extinction. */
-  if ((!KERNEL_NODES_FEATURE(BSDF) || shader_type != SHADER_TYPE_SURFACE) || mix_weight == 0.0f) {
-    if (type == CLOSURE_BSDF_PRINCIPLED_ID) {
-      /* Read all principled BSDF extra data to get the right offset. */
-      read_node(kg, &offset);
-      read_node(kg, &offset);
-      read_node(kg, &offset);
-      read_node(kg, &offset);
+  IF_KERNEL_NODES_FEATURE(BSDF)
+  {
+    if ((shader_type != SHADER_TYPE_SURFACE) || mix_weight == 0.0f) {
+      return svm_node_closure_bsdf_skip(kg, offset, type);
     }
-
-    return offset;
+  }
+  else
+  {
+    return svm_node_closure_bsdf_skip(kg, offset, type);
   }
 
   float3 N = stack_valid(data_node.x) ? stack_load_float3(stack, data_node.x) : sd->N;
@@ -944,7 +956,7 @@ ccl_device_noinline int svm_node_closure_bsdf(ccl_global const KernelGlobals *kg
 }
 
 template<ShaderType shader_type>
-ccl_device_noinline void svm_node_closure_volume(ccl_global const KernelGlobals *kg,
+ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
                                                  ccl_private ShaderData *sd,
                                                  ccl_private float *stack,
                                                  uint4 node)
@@ -999,7 +1011,7 @@ ccl_device_noinline void svm_node_closure_volume(ccl_global const KernelGlobals 
 }
 
 template<ShaderType shader_type>
-ccl_device_noinline int svm_node_principled_volume(ccl_global const KernelGlobals *kg,
+ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
                                                    ccl_private float *stack,
                                                    uint4 node,
@@ -1194,7 +1206,7 @@ ccl_device void svm_node_closure_weight(ccl_private ShaderData *sd,
   svm_node_closure_store_weight(sd, weight);
 }
 
-ccl_device_noinline void svm_node_emission_weight(ccl_global const KernelGlobals *kg,
+ccl_device_noinline void svm_node_emission_weight(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
                                                   ccl_private float *stack,
                                                   uint4 node)
@@ -1232,7 +1244,7 @@ ccl_device_noinline void svm_node_mix_closure(ccl_private ShaderData *sd,
 
 /* (Bump) normal */
 
-ccl_device void svm_node_set_normal(ccl_global const KernelGlobals *kg,
+ccl_device void svm_node_set_normal(KernelGlobals kg,
                                     ccl_private ShaderData *sd,
                                     ccl_private float *stack,
                                     uint in_direction,

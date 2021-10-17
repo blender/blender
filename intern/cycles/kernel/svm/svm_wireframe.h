@@ -34,7 +34,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Wireframe Node */
 
-ccl_device_inline float wireframe(ccl_global const KernelGlobals *kg,
+ccl_device_inline float wireframe(KernelGlobals kg,
                                   ccl_private ShaderData *sd,
                                   float size,
                                   int pixel_size,
@@ -91,7 +91,7 @@ ccl_device_inline float wireframe(ccl_global const KernelGlobals *kg,
   return 0.0f;
 }
 
-ccl_device_noinline void svm_node_wireframe(ccl_global const KernelGlobals *kg,
+ccl_device_noinline void svm_node_wireframe(KernelGlobals kg,
                                             ccl_private ShaderData *sd,
                                             ccl_private float *stack,
                                             uint4 node)

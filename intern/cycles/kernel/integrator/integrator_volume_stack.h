@@ -24,7 +24,7 @@ CCL_NAMESPACE_BEGIN
  * is inside of. */
 
 template<typename StackReadOp, typename StackWriteOp>
-ccl_device void volume_stack_enter_exit(INTEGRATOR_STATE_ARGS,
+ccl_device void volume_stack_enter_exit(KernelGlobals kg,
                                         ccl_private const ShaderData *sd,
                                         StackReadOp stack_read,
                                         StackWriteOp stack_write)
@@ -84,28 +84,29 @@ ccl_device void volume_stack_enter_exit(INTEGRATOR_STATE_ARGS,
   }
 }
 
-ccl_device void volume_stack_enter_exit(INTEGRATOR_STATE_ARGS, ccl_private const ShaderData *sd)
+ccl_device void volume_stack_enter_exit(KernelGlobals kg,
+                                        IntegratorState state,
+                                        ccl_private const ShaderData *sd)
 {
   volume_stack_enter_exit(
-      INTEGRATOR_STATE_PASS,
+      kg,
       sd,
-      [=](const int i) { return integrator_state_read_volume_stack(INTEGRATOR_STATE_PASS, i); },
+      [=](const int i) { return integrator_state_read_volume_stack(state, i); },
       [=](const int i, const VolumeStack entry) {
-        integrator_state_write_volume_stack(INTEGRATOR_STATE_PASS, i, entry);
+        integrator_state_write_volume_stack(state, i, entry);
       });
 }
 
-ccl_device void shadow_volume_stack_enter_exit(INTEGRATOR_STATE_ARGS,
+ccl_device void shadow_volume_stack_enter_exit(KernelGlobals kg,
+                                               IntegratorState state,
                                                ccl_private const ShaderData *sd)
 {
   volume_stack_enter_exit(
-      INTEGRATOR_STATE_PASS,
+      kg,
       sd,
-      [=](const int i) {
-        return integrator_state_read_shadow_volume_stack(INTEGRATOR_STATE_PASS, i);
-      },
+      [=](const int i) { return integrator_state_read_shadow_volume_stack(state, i); },
       [=](const int i, const VolumeStack entry) {
-        integrator_state_write_shadow_volume_stack(INTEGRATOR_STATE_PASS, i, entry);
+        integrator_state_write_shadow_volume_stack(state, i, entry);
       });
 }
 
@@ -123,19 +124,21 @@ ccl_device void shadow_volume_stack_enter_exit(INTEGRATOR_STATE_ARGS,
  * Use this function after the last bounce to get rid of all volumes apart from
  * the world's one after the last bounce to avoid render artifacts.
  */
-ccl_device_inline void volume_stack_clean(INTEGRATOR_STATE_ARGS)
+ccl_device_inline void volume_stack_clean(KernelGlobals kg, IntegratorState state)
 {
   if (kernel_data.background.volume_shader != SHADER_NONE) {
     /* Keep the world's volume in stack. */
-    INTEGRATOR_STATE_ARRAY_WRITE(volume_stack, 1, shader) = SHADER_NONE;
+    INTEGRATOR_STATE_ARRAY_WRITE(state, volume_stack, 1, shader) = SHADER_NONE;
   }
   else {
-    INTEGRATOR_STATE_ARRAY_WRITE(volume_stack, 0, shader) = SHADER_NONE;
+    INTEGRATOR_STATE_ARRAY_WRITE(state, volume_stack, 0, shader) = SHADER_NONE;
   }
 }
 
 template<typename StackReadOp>
-ccl_device float volume_stack_step_size(INTEGRATOR_STATE_ARGS, StackReadOp stack_read)
+ccl_device float volume_stack_step_size(KernelGlobals kg,
+                                        IntegratorState state,
+                                        StackReadOp stack_read)
 {
   float step_size = FLT_MAX;
 
@@ -182,12 +185,12 @@ typedef enum VolumeSampleMethod {
   VOLUME_SAMPLE_MIS = (VOLUME_SAMPLE_DISTANCE | VOLUME_SAMPLE_EQUIANGULAR),
 } VolumeSampleMethod;
 
-ccl_device VolumeSampleMethod volume_stack_sample_method(INTEGRATOR_STATE_ARGS)
+ccl_device VolumeSampleMethod volume_stack_sample_method(KernelGlobals kg, IntegratorState state)
 {
   VolumeSampleMethod method = VOLUME_SAMPLE_NONE;
 
   for (int i = 0;; i++) {
-    VolumeStack entry = integrator_state_read_volume_stack(INTEGRATOR_STATE_PASS, i);
+    VolumeStack entry = integrator_state_read_volume_stack(state, i);
     if (entry.shader == SHADER_NONE) {
       break;
     }

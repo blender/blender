@@ -70,7 +70,7 @@ CCL_NAMESPACE_BEGIN
 #endif
 
 #define DEFINE_INTEGRATOR_KERNEL(name) \
-  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const KernelGlobals *kg, \
+  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const KernelGlobalsCPU *kg, \
                                                     IntegratorStateCPU *state) \
   { \
     KERNEL_INVOKE(name, kg, state); \
@@ -78,7 +78,7 @@ CCL_NAMESPACE_BEGIN
 
 #define DEFINE_INTEGRATOR_SHADE_KERNEL(name) \
   void KERNEL_FUNCTION_FULL_NAME(integrator_##name)( \
-      const KernelGlobals *kg, IntegratorStateCPU *state, ccl_global float *render_buffer) \
+      const KernelGlobalsCPU *kg, IntegratorStateCPU *state, ccl_global float *render_buffer) \
   { \
     KERNEL_INVOKE(name, kg, state, render_buffer); \
   }
@@ -86,7 +86,7 @@ CCL_NAMESPACE_BEGIN
 /* TODO: Either use something like get_work_pixel(), or simplify tile which is passed here, so
  * that it does not contain unused fields. */
 #define DEFINE_INTEGRATOR_INIT_KERNEL(name) \
-  bool KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const KernelGlobals *kg, \
+  bool KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const KernelGlobalsCPU *kg, \
                                                     IntegratorStateCPU *state, \
                                                     KernelWorkTile *tile, \
                                                     ccl_global float *render_buffer) \
@@ -112,7 +112,7 @@ DEFINE_INTEGRATOR_SHADE_KERNEL(megakernel)
  * Shader evaluation.
  */
 
-void KERNEL_FUNCTION_FULL_NAME(shader_eval_displace)(const KernelGlobals *kg,
+void KERNEL_FUNCTION_FULL_NAME(shader_eval_displace)(const KernelGlobalsCPU *kg,
                                                      const KernelShaderEvalInput *input,
                                                      float *output,
                                                      const int offset)
@@ -124,7 +124,7 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_displace)(const KernelGlobals *kg,
 #endif
 }
 
-void KERNEL_FUNCTION_FULL_NAME(shader_eval_background)(const KernelGlobals *kg,
+void KERNEL_FUNCTION_FULL_NAME(shader_eval_background)(const KernelGlobalsCPU *kg,
                                                        const KernelShaderEvalInput *input,
                                                        float *output,
                                                        const int offset)
@@ -141,7 +141,7 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_background)(const KernelGlobals *kg,
  */
 
 bool KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_convergence_check)(
-    const KernelGlobals *kg,
+    const KernelGlobalsCPU *kg,
     ccl_global float *render_buffer,
     int x,
     int y,
@@ -159,7 +159,7 @@ bool KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_convergence_check)(
 #endif
 }
 
-void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_x)(const KernelGlobals *kg,
+void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_x)(const KernelGlobalsCPU *kg,
                                                            ccl_global float *render_buffer,
                                                            int y,
                                                            int start_x,
@@ -174,7 +174,7 @@ void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_x)(const KernelGlobals *
 #endif
 }
 
-void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_y)(const KernelGlobals *kg,
+void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_y)(const KernelGlobalsCPU *kg,
                                                            ccl_global float *render_buffer,
                                                            int x,
                                                            int start_y,
@@ -193,7 +193,7 @@ void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_y)(const KernelGlobals *
  * Cryptomatte.
  */
 
-void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const KernelGlobals *kg,
+void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const KernelGlobalsCPU *kg,
                                                         ccl_global float *render_buffer,
                                                         int pixel_index)
 {
@@ -210,7 +210,7 @@ void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const KernelGlobals *kg,
 /* TODO(sergey): Needs to be re-implemented. Or not? Brecht did it already :) */
 
 void KERNEL_FUNCTION_FULL_NAME(bake)(
-    const KernelGlobals *kg, float *buffer, int sample, int x, int y, int offset, int stride)
+    const KernelGlobalsCPU *kg, float *buffer, int sample, int x, int y, int offset, int stride)
 {
 #if 0
 #  ifdef KERNEL_STUB

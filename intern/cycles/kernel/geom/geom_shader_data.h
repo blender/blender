@@ -25,7 +25,7 @@ CCL_NAMESPACE_BEGIN
 /* ShaderData setup from incoming ray */
 
 #ifdef __OBJECT_MOTION__
-ccl_device void shader_setup_object_transforms(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device void shader_setup_object_transforms(KernelGlobals kg,
                                                ccl_private ShaderData *ccl_restrict sd,
                                                float time)
 {
@@ -38,7 +38,7 @@ ccl_device void shader_setup_object_transforms(ccl_global const KernelGlobals *c
 
 /* TODO: break this up if it helps reduce register pressure to load data from
  * global memory as we write it to shader-data. */
-ccl_device_inline void shader_setup_from_ray(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
                                              ccl_private ShaderData *ccl_restrict sd,
                                              ccl_private const Ray *ccl_restrict ray,
                                              ccl_private const Intersection *ccl_restrict isect)
@@ -135,7 +135,7 @@ ccl_device_inline void shader_setup_from_ray(ccl_global const KernelGlobals *ccl
 
 /* ShaderData setup from position sampled on mesh */
 
-ccl_device_inline void shader_setup_from_sample(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
                                                 ccl_private ShaderData *ccl_restrict sd,
                                                 const float3 P,
                                                 const float3 Ng,
@@ -247,7 +247,7 @@ ccl_device_inline void shader_setup_from_sample(ccl_global const KernelGlobals *
 
 /* ShaderData setup for displacement */
 
-ccl_device void shader_setup_from_displace(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device void shader_setup_from_displace(KernelGlobals kg,
                                            ccl_private ShaderData *ccl_restrict sd,
                                            int object,
                                            int prim,
@@ -281,8 +281,7 @@ ccl_device void shader_setup_from_displace(ccl_global const KernelGlobals *ccl_r
 
 /* ShaderData setup from ray into background */
 
-ccl_device_inline void shader_setup_from_background(ccl_global const KernelGlobals *ccl_restrict
-                                                        kg,
+ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
                                                     ccl_private ShaderData *ccl_restrict sd,
                                                     const float3 ray_P,
                                                     const float3 ray_D,
@@ -326,7 +325,7 @@ ccl_device_inline void shader_setup_from_background(ccl_global const KernelGloba
 /* ShaderData setup from point inside volume */
 
 #ifdef __VOLUME__
-ccl_device_inline void shader_setup_from_volume(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device_inline void shader_setup_from_volume(KernelGlobals kg,
                                                 ccl_private ShaderData *ccl_restrict sd,
                                                 ccl_private const Ray *ccl_restrict ray)
 {

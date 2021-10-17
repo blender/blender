@@ -25,7 +25,8 @@ CCL_NAMESPACE_BEGIN
 
 /* Evaluate shader on light. */
 ccl_device_noinline_cpu float3
-light_sample_shader_eval(INTEGRATOR_STATE_ARGS,
+light_sample_shader_eval(KernelGlobals kg,
+                         IntegratorState state,
                          ccl_private ShaderData *ccl_restrict emission_sd,
                          ccl_private LightSample *ccl_restrict ls,
                          float time)
@@ -73,7 +74,7 @@ light_sample_shader_eval(INTEGRATOR_STATE_ARGS,
     /* No proper path flag, we're evaluating this for all closures. that's
      * weak but we'd have to do multiple evaluations otherwise. */
     shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
-        INTEGRATOR_STATE_PASS, emission_sd, NULL, PATH_RAY_EMISSION);
+        kg, state, emission_sd, NULL, PATH_RAY_EMISSION);
 
     /* Evaluate closures. */
 #ifdef __BACKGROUND_MIS__
@@ -105,7 +106,7 @@ ccl_device_inline bool light_sample_is_light(ccl_private const LightSample *ccl_
 }
 
 /* Early path termination of shadow rays. */
-ccl_device_inline bool light_sample_terminate(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device_inline bool light_sample_terminate(KernelGlobals kg,
                                               ccl_private const LightSample *ccl_restrict ls,
                                               ccl_private BsdfEval *ccl_restrict eval,
                                               const float rand_terminate)
@@ -133,10 +134,8 @@ ccl_device_inline bool light_sample_terminate(ccl_global const KernelGlobals *cc
  * of a triangle. Surface is lifted by amount h along normal n in the incident
  * point. */
 
-ccl_device_inline float3
-shadow_ray_smooth_surface_offset(ccl_global const KernelGlobals *ccl_restrict kg,
-                                 ccl_private const ShaderData *ccl_restrict sd,
-                                 float3 Ng)
+ccl_device_inline float3 shadow_ray_smooth_surface_offset(
+    KernelGlobals kg, ccl_private const ShaderData *ccl_restrict sd, float3 Ng)
 {
   float3 V[3], N[3];
   triangle_vertices_and_normals(kg, sd->prim, V, N);
@@ -180,7 +179,7 @@ shadow_ray_smooth_surface_offset(ccl_global const KernelGlobals *ccl_restrict kg
 
 /* Ray offset to avoid shadow terminator artifact. */
 
-ccl_device_inline float3 shadow_ray_offset(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device_inline float3 shadow_ray_offset(KernelGlobals kg,
                                            ccl_private const ShaderData *ccl_restrict sd,
                                            float3 L)
 {
@@ -247,7 +246,7 @@ ccl_device_inline void shadow_ray_setup(ccl_private const ShaderData *ccl_restri
 
 /* Create shadow ray towards light sample. */
 ccl_device_inline void light_sample_to_surface_shadow_ray(
-    ccl_global const KernelGlobals *ccl_restrict kg,
+    KernelGlobals kg,
     ccl_private const ShaderData *ccl_restrict sd,
     ccl_private const LightSample *ccl_restrict ls,
     ccl_private Ray *ray)
@@ -258,7 +257,7 @@ ccl_device_inline void light_sample_to_surface_shadow_ray(
 
 /* Create shadow ray towards light sample. */
 ccl_device_inline void light_sample_to_volume_shadow_ray(
-    ccl_global const KernelGlobals *ccl_restrict kg,
+    KernelGlobals kg,
     ccl_private const ShaderData *ccl_restrict sd,
     ccl_private const LightSample *ccl_restrict ls,
     const float3 P,

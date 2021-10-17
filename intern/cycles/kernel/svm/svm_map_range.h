@@ -24,7 +24,7 @@ ccl_device_inline float smootherstep(float edge0, float edge1, float x)
   return x * x * x * (x * (x * 6.0f - 15.0f) + 10.0f);
 }
 
-ccl_device_noinline int svm_node_map_range(ccl_global const KernelGlobals *kg,
+ccl_device_noinline int svm_node_map_range(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            ccl_private float *stack,
                                            uint value_stack_offset,

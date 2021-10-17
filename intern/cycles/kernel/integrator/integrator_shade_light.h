@@ -23,29 +23,30 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline void integrate_light(INTEGRATOR_STATE_ARGS,
+ccl_device_inline void integrate_light(KernelGlobals kg,
+                                       IntegratorState state,
                                        ccl_global float *ccl_restrict render_buffer)
 {
   /* Setup light sample. */
   Intersection isect ccl_optional_struct_init;
-  integrator_state_read_isect(INTEGRATOR_STATE_PASS, &isect);
+  integrator_state_read_isect(kg, state, &isect);
 
-  float3 ray_P = INTEGRATOR_STATE(ray, P);
-  const float3 ray_D = INTEGRATOR_STATE(ray, D);
-  const float ray_time = INTEGRATOR_STATE(ray, time);
+  float3 ray_P = INTEGRATOR_STATE(state, ray, P);
+  const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
+  const float ray_time = INTEGRATOR_STATE(state, ray, time);
 
   /* Advance ray beyond light. */
   /* TODO: can we make this more numerically robust to avoid reintersecting the
    * same light in some cases? */
   const float3 new_ray_P = ray_offset(ray_P + ray_D * isect.t, ray_D);
-  INTEGRATOR_STATE_WRITE(ray, P) = new_ray_P;
-  INTEGRATOR_STATE_WRITE(ray, t) -= isect.t;
+  INTEGRATOR_STATE_WRITE(state, ray, P) = new_ray_P;
+  INTEGRATOR_STATE_WRITE(state, ray, t) -= isect.t;
 
   /* Set position to where the BSDF was sampled, for correct MIS PDF. */
-  const float mis_ray_t = INTEGRATOR_STATE(path, mis_ray_t);
+  const float mis_ray_t = INTEGRATOR_STATE(state, path, mis_ray_t);
   ray_P -= ray_D * mis_ray_t;
   isect.t += mis_ray_t;
-  INTEGRATOR_STATE_WRITE(path, mis_ray_t) = mis_ray_t + isect.t;
+  INTEGRATOR_STATE_WRITE(state, path, mis_ray_t) = mis_ray_t + isect.t;
 
   LightSample ls ccl_optional_struct_init;
   const bool use_light_sample = light_sample_from_intersection(kg, &isect, ray_P, ray_D, &ls);
@@ -56,7 +57,7 @@ ccl_device_inline void integrate_light(INTEGRATOR_STATE_ARGS,
 
   /* Use visibility flag to skip lights. */
 #ifdef __PASSES__
-  const uint32_t path_flag = INTEGRATOR_STATE(path, flag);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if (ls.shader & SHADER_EXCLUDE_ANY) {
     if (((ls.shader & SHADER_EXCLUDE_DIFFUSE) && (path_flag & PATH_RAY_DIFFUSE)) ||
@@ -73,7 +74,7 @@ ccl_device_inline void integrate_light(INTEGRATOR_STATE_ARGS,
   /* TODO: does aliasing like this break automatic SoA in CUDA? */
   ShaderDataTinyStorage emission_sd_storage;
   ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
-  float3 light_eval = light_sample_shader_eval(INTEGRATOR_STATE_PASS, emission_sd, &ls, ray_time);
+  float3 light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, ray_time);
   if (is_zero(light_eval)) {
     return;
   }
@@ -82,22 +83,23 @@ ccl_device_inline void integrate_light(INTEGRATOR_STATE_ARGS,
   if (!(path_flag & PATH_RAY_MIS_SKIP)) {
     /* multiple importance sampling, get regular light pdf,
      * and compute weight with respect to BSDF pdf */
-    const float mis_ray_pdf = INTEGRATOR_STATE(path, mis_ray_pdf);
+    const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
     const float mis_weight = power_heuristic(mis_ray_pdf, ls.pdf);
     light_eval *= mis_weight;
   }
 
   /* Write to render buffer. */
-  const float3 throughput = INTEGRATOR_STATE(path, throughput);
-  kernel_accum_emission(INTEGRATOR_STATE_PASS, throughput, light_eval, render_buffer);
+  const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
+  kernel_accum_emission(kg, state, throughput, light_eval, render_buffer);
 }
 
-ccl_device void integrator_shade_light(INTEGRATOR_STATE_ARGS,
+ccl_device void integrator_shade_light(KernelGlobals kg,
+                                       IntegratorState state,
                                        ccl_global float *ccl_restrict render_buffer)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_LIGHT_SETUP);
 
-  integrate_light(INTEGRATOR_STATE_PASS, render_buffer);
+  integrate_light(kg, state, render_buffer);
 
   /* TODO: we could get stuck in an infinite loop if there are precision issues
    * and the same light is hit again.
@@ -105,8 +107,8 @@ ccl_device void integrator_shade_light(INTEGRATOR_STATE_ARGS,
    * As a workaround count this as a transparent bounce. It makes some sense
    * to interpret lights as transparent surfaces (and support making them opaque),
    * but this needs to be revisited. */
-  uint32_t transparent_bounce = INTEGRATOR_STATE(path, transparent_bounce) + 1;
-  INTEGRATOR_STATE_WRITE(path, transparent_bounce) = transparent_bounce;
+  uint32_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce) + 1;
+  INTEGRATOR_STATE_WRITE(state, path, transparent_bounce) = transparent_bounce;
 
   if (transparent_bounce >= kernel_data.integrator.transparent_max_bounce) {
     INTEGRATOR_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT);

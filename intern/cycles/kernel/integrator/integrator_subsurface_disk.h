@@ -31,7 +31,8 @@ ccl_device_inline float3 subsurface_disk_eval(const float3 radius, float disk_r,
 
 /* Subsurface scattering step, from a point on the surface to other
  * nearby points on the same object. */
-ccl_device_inline bool subsurface_disk(INTEGRATOR_STATE_ARGS,
+ccl_device_inline bool subsurface_disk(KernelGlobals kg,
+                                       IntegratorState state,
                                        RNGState rng_state,
                                        ccl_private Ray &ray,
                                        ccl_private LocalIntersection &ss_isect)
@@ -41,14 +42,14 @@ ccl_device_inline bool subsurface_disk(INTEGRATOR_STATE_ARGS,
   path_state_rng_2D(kg, &rng_state, PRNG_BSDF_U, &disk_u, &disk_v);
 
   /* Read shading point info from integrator state. */
-  const float3 P = INTEGRATOR_STATE(ray, P);
-  const float ray_dP = INTEGRATOR_STATE(ray, dP);
-  const float time = INTEGRATOR_STATE(ray, time);
-  const float3 Ng = INTEGRATOR_STATE(isect, Ng);
-  const int object = INTEGRATOR_STATE(isect, object);
+  const float3 P = INTEGRATOR_STATE(state, ray, P);
+  const float ray_dP = INTEGRATOR_STATE(state, ray, dP);
+  const float time = INTEGRATOR_STATE(state, ray, time);
+  const float3 Ng = INTEGRATOR_STATE(state, isect, Ng);
+  const int object = INTEGRATOR_STATE(state, isect, object);
 
   /* Read subsurface scattering parameters. */
-  const float3 radius = INTEGRATOR_STATE(subsurface, radius);
+  const float3 radius = INTEGRATOR_STATE(state, subsurface, radius);
 
   /* Pick random axis in local frame and point on disk. */
   float3 disk_N, disk_T, disk_B;
@@ -175,7 +176,7 @@ ccl_device_inline bool subsurface_disk(INTEGRATOR_STATE_ARGS,
 
     if (r < next_sum) {
       /* Return exit point. */
-      INTEGRATOR_STATE_WRITE(path, throughput) *= weight * sum_weights / sample_weight;
+      INTEGRATOR_STATE_WRITE(state, path, throughput) *= weight * sum_weights / sample_weight;
 
       ss_isect.hits[0] = ss_isect.hits[hit];
       ss_isect.Ng[0] = ss_isect.Ng[hit];

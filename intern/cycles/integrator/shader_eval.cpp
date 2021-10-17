@@ -113,7 +113,7 @@ bool ShaderEval::eval_cpu(Device *device,
       }
 
       const int thread_index = tbb::this_task_arena::current_thread_index();
-      KernelGlobals *kg = &kernel_thread_globals[thread_index];
+      const KernelGlobalsCPU *kg = &kernel_thread_globals[thread_index];
 
       switch (type) {
         case SHADER_EVAL_DISPLACE:

@@ -25,7 +25,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline void integrate_camera_sample(ccl_global const KernelGlobals *ccl_restrict kg,
+ccl_device_inline void integrate_camera_sample(KernelGlobals kg,
                                                const int sample,
                                                const int x,
                                                const int y,
@@ -63,7 +63,8 @@ ccl_device_inline void integrate_camera_sample(ccl_global const KernelGlobals *c
 /* Return false to indicate that this pixel is finished.
  * Used by CPU implementation to not attempt to sample pixel for multiple samples once its known
  * that the pixel did converge. */
-ccl_device bool integrator_init_from_camera(INTEGRATOR_STATE_ARGS,
+ccl_device bool integrator_init_from_camera(KernelGlobals kg,
+                                            IntegratorState state,
                                             ccl_global const KernelWorkTile *ccl_restrict tile,
                                             ccl_global float *render_buffer,
                                             const int x,
@@ -73,10 +74,10 @@ ccl_device bool integrator_init_from_camera(INTEGRATOR_STATE_ARGS,
   PROFILING_INIT(kg, PROFILING_RAY_SETUP);
 
   /* Initialize path state to give basic buffer access and allow early outputs. */
-  path_state_init(INTEGRATOR_STATE_PASS, tile, x, y);
+  path_state_init(state, tile, x, y);
 
   /* Check whether the pixel has converged and should not be sampled anymore. */
-  if (!kernel_need_sample_pixel(INTEGRATOR_STATE_PASS, render_buffer)) {
+  if (!kernel_need_sample_pixel(kg, state, render_buffer)) {
     return false;
   }
 
@@ -85,7 +86,7 @@ ccl_device bool integrator_init_from_camera(INTEGRATOR_STATE_ARGS,
    * This logic allows to both count actual number of samples per pixel, and to add samples to this
    * pixel after it was converged and samples were added somewhere else (in which case the
    * `scheduled_sample` will be different from actual number of samples in this pixel). */
-  const int sample = kernel_accum_sample(INTEGRATOR_STATE_PASS, render_buffer, scheduled_sample);
+  const int sample = kernel_accum_sample(kg, state, render_buffer, scheduled_sample);
 
   /* Initialize random number seed for path. */
   const uint rng_hash = path_rng_hash_init(kg, sample, x, y);
@@ -99,11 +100,11 @@ ccl_device bool integrator_init_from_camera(INTEGRATOR_STATE_ARGS,
     }
 
     /* Write camera ray to state. */
-    integrator_state_write_ray(INTEGRATOR_STATE_PASS, &ray);
+    integrator_state_write_ray(kg, state, &ray);
   }
 
   /* Initialize path state for path integration. */
-  path_state_init_integrator(INTEGRATOR_STATE_PASS, sample, rng_hash);
+  path_state_init_integrator(kg, state, sample, rng_hash);
 
   /* Continue with intersect_closest kernel, optionally initializing volume
    * stack before that if the camera may be inside a volume. */

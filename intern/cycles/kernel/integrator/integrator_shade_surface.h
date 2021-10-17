@@ -28,33 +28,35 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_forceinline void integrate_surface_shader_setup(INTEGRATOR_STATE_CONST_ARGS,
+ccl_device_forceinline void integrate_surface_shader_setup(KernelGlobals kg,
+                                                           ConstIntegratorState state,
                                                            ccl_private ShaderData *sd)
 {
   Intersection isect ccl_optional_struct_init;
-  integrator_state_read_isect(INTEGRATOR_STATE_PASS, &isect);
+  integrator_state_read_isect(kg, state, &isect);
 
   Ray ray ccl_optional_struct_init;
-  integrator_state_read_ray(INTEGRATOR_STATE_PASS, &ray);
+  integrator_state_read_ray(kg, state, &ray);
 
   shader_setup_from_ray(kg, sd, &ray, &isect);
 }
 
 #ifdef __HOLDOUT__
-ccl_device_forceinline bool integrate_surface_holdout(INTEGRATOR_STATE_CONST_ARGS,
+ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
+                                                      ConstIntegratorState state,
                                                       ccl_private ShaderData *sd,
                                                       ccl_global float *ccl_restrict render_buffer)
 {
   /* Write holdout transparency to render buffer and stop if fully holdout. */
-  const uint32_t path_flag = INTEGRATOR_STATE(path, flag);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if (((sd->flag & SD_HOLDOUT) || (sd->object_flag & SD_OBJECT_HOLDOUT_MASK)) &&
       (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND)) {
     const float3 holdout_weight = shader_holdout_apply(kg, sd);
     if (kernel_data.background.transparent) {
-      const float3 throughput = INTEGRATOR_STATE(path, throughput);
+      const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
       const float transparent = average(holdout_weight * throughput);
-      kernel_accum_transparent(INTEGRATOR_STATE_PASS, transparent, render_buffer);
+      kernel_accum_transparent(kg, state, transparent, render_buffer);
     }
     if (isequal_float3(holdout_weight, one_float3())) {
       return false;
@@ -66,12 +68,13 @@ ccl_device_forceinline bool integrate_surface_holdout(INTEGRATOR_STATE_CONST_ARG
 #endif /* __HOLDOUT__ */
 
 #ifdef __EMISSION__
-ccl_device_forceinline void integrate_surface_emission(INTEGRATOR_STATE_CONST_ARGS,
+ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
+                                                       ConstIntegratorState state,
                                                        ccl_private const ShaderData *sd,
                                                        ccl_global float *ccl_restrict
                                                            render_buffer)
 {
-  const uint32_t path_flag = INTEGRATOR_STATE(path, flag);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   /* Evaluate emissive closure. */
   float3 L = shader_emissive_eval(sd);
@@ -83,8 +86,8 @@ ccl_device_forceinline void integrate_surface_emission(INTEGRATOR_STATE_CONST_AR
   if (!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS))
 #  endif
   {
-    const float bsdf_pdf = INTEGRATOR_STATE(path, mis_ray_pdf);
-    const float t = sd->ray_length + INTEGRATOR_STATE(path, mis_ray_t);
+    const float bsdf_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
+    const float t = sd->ray_length + INTEGRATOR_STATE(state, path, mis_ray_t);
 
     /* Multiple importance sampling, get triangle light pdf,
      * and compute weight with respect to BSDF pdf. */
@@ -94,15 +97,16 @@ ccl_device_forceinline void integrate_surface_emission(INTEGRATOR_STATE_CONST_AR
     L *= mis_weight;
   }
 
-  const float3 throughput = INTEGRATOR_STATE(path, throughput);
-  kernel_accum_emission(INTEGRATOR_STATE_PASS, throughput, L, render_buffer);
+  const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
+  kernel_accum_emission(kg, state, throughput, L, render_buffer);
 }
 #endif /* __EMISSION__ */
 
 #ifdef __EMISSION__
 /* Path tracing: sample point on light and evaluate light shader, then
  * queue shadow ray to be traced. */
-ccl_device_forceinline void integrate_surface_direct_light(INTEGRATOR_STATE_ARGS,
+ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
+                                                           IntegratorState state,
                                                            ccl_private ShaderData *sd,
                                                            ccl_private const RNGState *rng_state)
 {
@@ -114,8 +118,8 @@ ccl_device_forceinline void integrate_surface_direct_light(INTEGRATOR_STATE_ARGS
   /* Sample position on a light. */
   LightSample ls ccl_optional_struct_init;
   {
-    const int path_flag = INTEGRATOR_STATE(path, flag);
-    const uint bounce = INTEGRATOR_STATE(path, bounce);
+    const int path_flag = INTEGRATOR_STATE(state, path, flag);
+    const uint bounce = INTEGRATOR_STATE(state, path, bounce);
     float light_u, light_v;
     path_state_rng_2D(kg, rng_state, PRNG_LIGHT_U, &light_u, &light_v);
 
@@ -135,8 +139,7 @@ ccl_device_forceinline void integrate_surface_direct_light(INTEGRATOR_STATE_ARGS
    * non-constant light sources. */
   ShaderDataTinyStorage emission_sd_storage;
   ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
-  const float3 light_eval = light_sample_shader_eval(
-      INTEGRATOR_STATE_PASS, emission_sd, &ls, sd->time);
+  const float3 light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, sd->time);
   if (is_zero(light_eval)) {
     return;
   }
@@ -165,39 +168,39 @@ ccl_device_forceinline void integrate_surface_direct_light(INTEGRATOR_STATE_ARGS
   const bool is_light = light_sample_is_light(&ls);
 
   /* Copy volume stack and enter/exit volume. */
-  integrator_state_copy_volume_stack_to_shadow(INTEGRATOR_STATE_PASS);
+  integrator_state_copy_volume_stack_to_shadow(kg, state);
 
   if (is_transmission) {
 #  ifdef __VOLUME__
-    shadow_volume_stack_enter_exit(INTEGRATOR_STATE_PASS, sd);
+    shadow_volume_stack_enter_exit(kg, state, sd);
 #  endif
   }
 
   /* Write shadow ray and associated state to global memory. */
-  integrator_state_write_shadow_ray(INTEGRATOR_STATE_PASS, &ray);
+  integrator_state_write_shadow_ray(kg, state, &ray);
 
   /* Copy state from main path to shadow path. */
-  const uint16_t bounce = INTEGRATOR_STATE(path, bounce);
-  const uint16_t transparent_bounce = INTEGRATOR_STATE(path, transparent_bounce);
-  uint32_t shadow_flag = INTEGRATOR_STATE(path, flag);
+  const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);
+  const uint16_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce);
+  uint32_t shadow_flag = INTEGRATOR_STATE(state, path, flag);
   shadow_flag |= (is_light) ? PATH_RAY_SHADOW_FOR_LIGHT : 0;
   shadow_flag |= (is_transmission) ? PATH_RAY_TRANSMISSION_PASS : PATH_RAY_REFLECT_PASS;
-  const float3 throughput = INTEGRATOR_STATE(path, throughput) * bsdf_eval_sum(&bsdf_eval);
+  const float3 throughput = INTEGRATOR_STATE(state, path, throughput) * bsdf_eval_sum(&bsdf_eval);
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
     const float3 diffuse_glossy_ratio = (bounce == 0) ?
                                             bsdf_eval_diffuse_glossy_ratio(&bsdf_eval) :
-                                            INTEGRATOR_STATE(path, diffuse_glossy_ratio);
-    INTEGRATOR_STATE_WRITE(shadow_path, diffuse_glossy_ratio) = diffuse_glossy_ratio;
+                                            INTEGRATOR_STATE(state, path, diffuse_glossy_ratio);
+    INTEGRATOR_STATE_WRITE(state, shadow_path, diffuse_glossy_ratio) = diffuse_glossy_ratio;
   }
 
-  INTEGRATOR_STATE_WRITE(shadow_path, flag) = shadow_flag;
-  INTEGRATOR_STATE_WRITE(shadow_path, bounce) = bounce;
-  INTEGRATOR_STATE_WRITE(shadow_path, transparent_bounce) = transparent_bounce;
-  INTEGRATOR_STATE_WRITE(shadow_path, throughput) = throughput;
+  INTEGRATOR_STATE_WRITE(state, shadow_path, flag) = shadow_flag;
+  INTEGRATOR_STATE_WRITE(state, shadow_path, bounce) = bounce;
+  INTEGRATOR_STATE_WRITE(state, shadow_path, transparent_bounce) = transparent_bounce;
+  INTEGRATOR_STATE_WRITE(state, shadow_path, throughput) = throughput;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_PASS) {
-    INTEGRATOR_STATE_WRITE(shadow_path, unshadowed_throughput) = throughput;
+    INTEGRATOR_STATE_WRITE(state, shadow_path, unshadowed_throughput) = throughput;
   }
 
   /* Branch off shadow kernel. */
@@ -207,7 +210,10 @@ ccl_device_forceinline void integrate_surface_direct_light(INTEGRATOR_STATE_ARGS
 
 /* Path tracing: bounce off or through surface with new direction. */
 ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
-    INTEGRATOR_STATE_ARGS, ccl_private ShaderData *sd, ccl_private const RNGState *rng_state)
+    KernelGlobals kg,
+    IntegratorState state,
+    ccl_private ShaderData *sd,
+    ccl_private const RNGState *rng_state)
 {
   /* Sample BSDF or BSSRDF. */
   if (!(sd->flag & (SD_BSDF | SD_BSSRDF))) {
@@ -221,7 +227,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
 #ifdef __SUBSURFACE__
   /* BSSRDF closure, we schedule subsurface intersection kernel. */
   if (CLOSURE_IS_BSSRDF(sc->type)) {
-    return subsurface_bounce(INTEGRATOR_STATE_PASS, sd, sc);
+    return subsurface_bounce(kg, state, sd, sc);
   }
 #endif
 
@@ -240,63 +246,64 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   }
 
   /* Setup ray. Note that clipping works through transparent bounces. */
-  INTEGRATOR_STATE_WRITE(ray, P) = ray_offset(sd->P, (label & LABEL_TRANSMIT) ? -sd->Ng : sd->Ng);
-  INTEGRATOR_STATE_WRITE(ray, D) = normalize(bsdf_omega_in);
-  INTEGRATOR_STATE_WRITE(ray, t) = (label & LABEL_TRANSPARENT) ?
-                                       INTEGRATOR_STATE(ray, t) - sd->ray_length :
-                                       FLT_MAX;
+  INTEGRATOR_STATE_WRITE(state, ray, P) = ray_offset(sd->P,
+                                                     (label & LABEL_TRANSMIT) ? -sd->Ng : sd->Ng);
+  INTEGRATOR_STATE_WRITE(state, ray, D) = normalize(bsdf_omega_in);
+  INTEGRATOR_STATE_WRITE(state, ray, t) = (label & LABEL_TRANSPARENT) ?
+                                              INTEGRATOR_STATE(state, ray, t) - sd->ray_length :
+                                              FLT_MAX;
 
 #ifdef __RAY_DIFFERENTIALS__
-  INTEGRATOR_STATE_WRITE(ray, dP) = differential_make_compact(sd->dP);
-  INTEGRATOR_STATE_WRITE(ray, dD) = differential_make_compact(bsdf_domega_in);
+  INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
+  INTEGRATOR_STATE_WRITE(state, ray, dD) = differential_make_compact(bsdf_domega_in);
 #endif
 
   /* Update throughput. */
-  float3 throughput = INTEGRATOR_STATE(path, throughput);
+  float3 throughput = INTEGRATOR_STATE(state, path, throughput);
   throughput *= bsdf_eval_sum(&bsdf_eval) / bsdf_pdf;
-  INTEGRATOR_STATE_WRITE(path, throughput) = throughput;
+  INTEGRATOR_STATE_WRITE(state, path, throughput) = throughput;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
-    if (INTEGRATOR_STATE(path, bounce) == 0) {
-      INTEGRATOR_STATE_WRITE(path,
-                             diffuse_glossy_ratio) = bsdf_eval_diffuse_glossy_ratio(&bsdf_eval);
+    if (INTEGRATOR_STATE(state, path, bounce) == 0) {
+      INTEGRATOR_STATE_WRITE(state, path, diffuse_glossy_ratio) = bsdf_eval_diffuse_glossy_ratio(
+          &bsdf_eval);
     }
   }
 
   /* Update path state */
   if (label & LABEL_TRANSPARENT) {
-    INTEGRATOR_STATE_WRITE(path, mis_ray_t) += sd->ray_length;
+    INTEGRATOR_STATE_WRITE(state, path, mis_ray_t) += sd->ray_length;
   }
   else {
-    INTEGRATOR_STATE_WRITE(path, mis_ray_pdf) = bsdf_pdf;
-    INTEGRATOR_STATE_WRITE(path, mis_ray_t) = 0.0f;
-    INTEGRATOR_STATE_WRITE(path, min_ray_pdf) = fminf(bsdf_pdf,
-                                                      INTEGRATOR_STATE(path, min_ray_pdf));
+    INTEGRATOR_STATE_WRITE(state, path, mis_ray_pdf) = bsdf_pdf;
+    INTEGRATOR_STATE_WRITE(state, path, mis_ray_t) = 0.0f;
+    INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = fminf(
+        bsdf_pdf, INTEGRATOR_STATE(state, path, min_ray_pdf));
   }
 
-  path_state_next(INTEGRATOR_STATE_PASS, label);
+  path_state_next(kg, state, label);
   return label;
 }
 
 #ifdef __VOLUME__
-ccl_device_forceinline bool integrate_surface_volume_only_bounce(INTEGRATOR_STATE_ARGS,
+ccl_device_forceinline bool integrate_surface_volume_only_bounce(IntegratorState state,
                                                                  ccl_private ShaderData *sd)
 {
-  if (!path_state_volume_next(INTEGRATOR_STATE_PASS)) {
+  if (!path_state_volume_next(state)) {
     return LABEL_NONE;
   }
 
   /* Setup ray position, direction stays unchanged. */
-  INTEGRATOR_STATE_WRITE(ray, P) = ray_offset(sd->P, -sd->Ng);
+  INTEGRATOR_STATE_WRITE(state, ray, P) = ray_offset(sd->P, -sd->Ng);
 
   /* Clipping works through transparent. */
-  INTEGRATOR_STATE_WRITE(ray, t) -= sd->ray_length;
+  INTEGRATOR_STATE_WRITE(state, ray, t) -= sd->ray_length;
 
 #  ifdef __RAY_DIFFERENTIALS__
-  INTEGRATOR_STATE_WRITE(ray, dP) = differential_make_compact(sd->dP);
+  INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
 #  endif
 
-  INTEGRATOR_STATE_WRITE(path, mis_ray_t) += sd->ray_length;
+  INTEGRATOR_STATE_WRITE(state, path, mis_ray_t) += sd->ray_length;
 
   return LABEL_TRANSMIT | LABEL_TRANSPARENT;
 }
@@ -304,17 +311,19 @@ ccl_device_forceinline bool integrate_surface_volume_only_bounce(INTEGRATOR_STAT
 
 #if defined(__AO__) && defined(__SHADER_RAYTRACE__)
 ccl_device_forceinline void integrate_surface_ao_pass(
-    INTEGRATOR_STATE_CONST_ARGS,
+    KernelGlobals kg,
+    ConstIntegratorState state,
     ccl_private const ShaderData *ccl_restrict sd,
     ccl_private const RNGState *ccl_restrict rng_state,
     ccl_global float *ccl_restrict render_buffer)
 {
 #  ifdef __KERNEL_OPTIX__
-  optixDirectCall<void>(2, INTEGRATOR_STATE_PASS, sd, rng_state, render_buffer);
+  optixDirectCall<void>(2, kg, state, sd, rng_state, render_buffer);
 }
 
 extern "C" __device__ void __direct_callable__ao_pass(
-    INTEGRATOR_STATE_CONST_ARGS,
+    KernelGlobals kg,
+    ConstIntegratorState state,
     ccl_private const ShaderData *ccl_restrict sd,
     ccl_private const RNGState *ccl_restrict rng_state,
     ccl_global float *ccl_restrict render_buffer)
@@ -339,9 +348,8 @@ extern "C" __device__ void __direct_callable__ao_pass(
 
     Intersection isect ccl_optional_struct_init;
     if (!scene_intersect(kg, &ray, PATH_RAY_SHADOW_OPAQUE, &isect)) {
-      ccl_global float *buffer = kernel_pass_pixel_render_buffer(INTEGRATOR_STATE_PASS,
-                                                                 render_buffer);
-      const float3 throughput = INTEGRATOR_STATE(path, throughput);
+      ccl_global float *buffer = kernel_pass_pixel_render_buffer(kg, state, render_buffer);
+      const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
       kernel_write_pass_float3(buffer + kernel_data.film.pass_ao, throughput);
     }
   }
@@ -349,7 +357,8 @@ extern "C" __device__ void __direct_callable__ao_pass(
 #endif /* defined(__AO__) && defined(__SHADER_RAYTRACE__) */
 
 template<uint node_feature_mask>
-ccl_device bool integrate_surface(INTEGRATOR_STATE_ARGS,
+ccl_device bool integrate_surface(KernelGlobals kg,
+                                  IntegratorState state,
                                   ccl_global float *ccl_restrict render_buffer)
 
 {
@@ -357,7 +366,7 @@ ccl_device bool integrate_surface(INTEGRATOR_STATE_ARGS,
 
   /* Setup shader data. */
   ShaderData sd;
-  integrate_surface_shader_setup(INTEGRATOR_STATE_PASS, &sd);
+  integrate_surface_shader_setup(kg, state, &sd);
   PROFILING_SHADER(sd.object, sd.shader);
 
   int continue_path_label = 0;
@@ -366,7 +375,7 @@ ccl_device bool integrate_surface(INTEGRATOR_STATE_ARGS,
 #ifdef __VOLUME__
   if (!(sd.flag & SD_HAS_ONLY_VOLUME)) {
 #endif
-    const int path_flag = INTEGRATOR_STATE(path, flag);
+    const int path_flag = INTEGRATOR_STATE(state, path, flag);
 
 #ifdef __SUBSURFACE__
     /* Can skip shader evaluation for BSSRDF exit point without bump mapping. */
@@ -375,23 +384,23 @@ ccl_device bool integrate_surface(INTEGRATOR_STATE_ARGS,
     {
       /* Evaluate shader. */
       PROFILING_EVENT(PROFILING_SHADE_SURFACE_EVAL);
-      shader_eval_surface<node_feature_mask>(INTEGRATOR_STATE_PASS, &sd, render_buffer, path_flag);
+      shader_eval_surface<node_feature_mask>(kg, state, &sd, render_buffer, path_flag);
     }
 
 #ifdef __SUBSURFACE__
     if (path_flag & PATH_RAY_SUBSURFACE) {
       /* When coming from inside subsurface scattering, setup a diffuse
        * closure to perform lighting at the exit point. */
-      subsurface_shader_data_setup(INTEGRATOR_STATE_PASS, &sd, path_flag);
-      INTEGRATOR_STATE_WRITE(path, flag) &= ~PATH_RAY_SUBSURFACE;
+      subsurface_shader_data_setup(kg, state, &sd, path_flag);
+      INTEGRATOR_STATE_WRITE(state, path, flag) &= ~PATH_RAY_SUBSURFACE;
     }
 #endif
 
-    shader_prepare_surface_closures(INTEGRATOR_STATE_PASS, &sd);
+    shader_prepare_surface_closures(kg, state, &sd);
 
 #ifdef __HOLDOUT__
     /* Evaluate holdout. */
-    if (!integrate_surface_holdout(INTEGRATOR_STATE_PASS, &sd, render_buffer)) {
+    if (!integrate_surface_holdout(kg, state, &sd, render_buffer)) {
       return false;
     }
 #endif
@@ -399,19 +408,19 @@ ccl_device bool integrate_surface(INTEGRATOR_STATE_ARGS,
 #ifdef __EMISSION__
     /* Write emission. */
     if (sd.flag & SD_EMISSION) {
-      integrate_surface_emission(INTEGRATOR_STATE_PASS, &sd, render_buffer);
+      integrate_surface_emission(kg, state, &sd, render_buffer);
     }
 #endif
 
 #ifdef __PASSES__
     /* Write render passes. */
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_PASSES);
-    kernel_write_data_passes(INTEGRATOR_STATE_PASS, &sd, render_buffer);
+    kernel_write_data_passes(kg, state, &sd, render_buffer);
 #endif
 
     /* Load random number state. */
     RNGState rng_state;
-    path_state_rng_load(INTEGRATOR_STATE_PASS, &rng_state);
+    path_state_rng_load(state, &rng_state);
 
     /* Perform path termination. Most paths have already been terminated in
      * the intersect_closest kernel, this is just for emission and for dividing
@@ -421,52 +430,50 @@ ccl_device bool integrate_surface(INTEGRATOR_STATE_ARGS,
     if (!(path_flag & PATH_RAY_SUBSURFACE)) {
       const float probability = (path_flag & PATH_RAY_TERMINATE_ON_NEXT_SURFACE) ?
                                     0.0f :
-                                    path_state_continuation_probability(INTEGRATOR_STATE_PASS,
-                                                                        path_flag);
+                                    path_state_continuation_probability(kg, state, path_flag);
       if (probability == 0.0f) {
         return false;
       }
       else if (probability != 1.0f) {
-        INTEGRATOR_STATE_WRITE(path, throughput) /= probability;
+        INTEGRATOR_STATE_WRITE(state, path, throughput) /= probability;
       }
     }
 
 #ifdef __DENOISING_FEATURES__
-    kernel_write_denoising_features_surface(INTEGRATOR_STATE_PASS, &sd, render_buffer);
+    kernel_write_denoising_features_surface(kg, state, &sd, render_buffer);
 #endif
 
 #ifdef __SHADOW_CATCHER__
-    kernel_write_shadow_catcher_bounce_data(INTEGRATOR_STATE_PASS, &sd, render_buffer);
+    kernel_write_shadow_catcher_bounce_data(kg, state, &sd, render_buffer);
 #endif
 
     /* Direct light. */
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_DIRECT_LIGHT);
-    integrate_surface_direct_light(INTEGRATOR_STATE_PASS, &sd, &rng_state);
+    integrate_surface_direct_light(kg, state, &sd, &rng_state);
 
 #if defined(__AO__) && defined(__SHADER_RAYTRACE__)
     /* Ambient occlusion pass. */
     if (node_feature_mask & KERNEL_FEATURE_NODE_RAYTRACE) {
       if ((kernel_data.film.pass_ao != PASS_UNUSED) &&
-          (INTEGRATOR_STATE(path, flag) & PATH_RAY_CAMERA)) {
+          (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_CAMERA)) {
         PROFILING_EVENT(PROFILING_SHADE_SURFACE_AO);
-        integrate_surface_ao_pass(INTEGRATOR_STATE_PASS, &sd, &rng_state, render_buffer);
+        integrate_surface_ao_pass(kg, state, &sd, &rng_state, render_buffer);
       }
     }
 #endif
 
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_INDIRECT_LIGHT);
-    continue_path_label = integrate_surface_bsdf_bssrdf_bounce(
-        INTEGRATOR_STATE_PASS, &sd, &rng_state);
+    continue_path_label = integrate_surface_bsdf_bssrdf_bounce(kg, state, &sd, &rng_state);
 #ifdef __VOLUME__
   }
   else {
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_INDIRECT_LIGHT);
-    continue_path_label = integrate_surface_volume_only_bounce(INTEGRATOR_STATE_PASS, &sd);
+    continue_path_label = integrate_surface_volume_only_bounce(state, &sd);
   }
 
   if (continue_path_label & LABEL_TRANSMIT) {
     /* Enter/Exit volume. */
-    volume_stack_enter_exit(INTEGRATOR_STATE_PASS, &sd);
+    volume_stack_enter_exit(kg, state, &sd);
   }
 #endif
 
@@ -475,15 +482,16 @@ ccl_device bool integrate_surface(INTEGRATOR_STATE_ARGS,
 
 template<uint node_feature_mask = KERNEL_FEATURE_NODE_MASK_SURFACE & ~KERNEL_FEATURE_NODE_RAYTRACE,
          int current_kernel = DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE>
-ccl_device_forceinline void integrator_shade_surface(INTEGRATOR_STATE_ARGS,
+ccl_device_forceinline void integrator_shade_surface(KernelGlobals kg,
+                                                     IntegratorState state,
                                                      ccl_global float *ccl_restrict render_buffer)
 {
-  if (integrate_surface<node_feature_mask>(INTEGRATOR_STATE_PASS, render_buffer)) {
-    if (INTEGRATOR_STATE(path, flag) & PATH_RAY_SUBSURFACE) {
+  if (integrate_surface<node_feature_mask>(kg, state, render_buffer)) {
+    if (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SUBSURFACE) {
       INTEGRATOR_PATH_NEXT(current_kernel, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE);
     }
     else {
-      kernel_assert(INTEGRATOR_STATE(ray, t) != 0.0f);
+      kernel_assert(INTEGRATOR_STATE(state, ray, t) != 0.0f);
       INTEGRATOR_PATH_NEXT(current_kernel, DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
     }
   }
@@ -493,11 +501,11 @@ ccl_device_forceinline void integrator_shade_surface(INTEGRATOR_STATE_ARGS,
 }
 
 ccl_device_forceinline void integrator_shade_surface_raytrace(
-    INTEGRATOR_STATE_ARGS, ccl_global float *ccl_restrict render_buffer)
+    KernelGlobals kg, IntegratorState state, ccl_global float *ccl_restrict render_buffer)
 {
   integrator_shade_surface<KERNEL_FEATURE_NODE_MASK_SURFACE,
-                           DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE>(INTEGRATOR_STATE_PASS,
-                                                                            render_buffer);
+                           DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE>(
+      kg, state, render_buffer);
 }
 
 CCL_NAMESPACE_END

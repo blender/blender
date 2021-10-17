@@ -813,7 +813,7 @@ typedef struct ccl_align(16) ShaderData
   float ray_dP;
 
 #ifdef __OSL__
-  const struct KernelGlobals *osl_globals;
+  const struct KernelGlobalsCPU *osl_globals;
   const struct IntegratorStateCPU *osl_path_state;
 #endif
 
@@ -1505,63 +1505,77 @@ enum KernelFeatureFlag : unsigned int {
   KERNEL_FEATURE_NODE_BUMP_STATE = (1U << 5U),
   KERNEL_FEATURE_NODE_VORONOI_EXTRA = (1U << 6U),
   KERNEL_FEATURE_NODE_RAYTRACE = (1U << 7U),
+  KERNEL_FEATURE_NODE_AOV = (1U << 8U),
+  KERNEL_FEATURE_NODE_LIGHT_PATH = (1U << 9U),
 
   /* Use denoising kernels and output denoising passes. */
-  KERNEL_FEATURE_DENOISING = (1U << 8U),
+  KERNEL_FEATURE_DENOISING = (1U << 10U),
 
   /* Use path tracing kernels. */
-  KERNEL_FEATURE_PATH_TRACING = (1U << 9U),
+  KERNEL_FEATURE_PATH_TRACING = (1U << 11U),
 
   /* BVH/sampling kernel features. */
-  KERNEL_FEATURE_HAIR = (1U << 10U),
-  KERNEL_FEATURE_HAIR_THICK = (1U << 11U),
-  KERNEL_FEATURE_OBJECT_MOTION = (1U << 12U),
-  KERNEL_FEATURE_CAMERA_MOTION = (1U << 13U),
+  KERNEL_FEATURE_HAIR = (1U << 12U),
+  KERNEL_FEATURE_HAIR_THICK = (1U << 13U),
+  KERNEL_FEATURE_OBJECT_MOTION = (1U << 14U),
+  KERNEL_FEATURE_CAMERA_MOTION = (1U << 15U),
 
   /* Denotes whether baking functionality is needed. */
-  KERNEL_FEATURE_BAKING = (1U << 14U),
+  KERNEL_FEATURE_BAKING = (1U << 16U),
 
   /* Use subsurface scattering materials. */
-  KERNEL_FEATURE_SUBSURFACE = (1U << 15U),
+  KERNEL_FEATURE_SUBSURFACE = (1U << 17U),
 
   /* Use volume materials. */
-  KERNEL_FEATURE_VOLUME = (1U << 16U),
+  KERNEL_FEATURE_VOLUME = (1U << 18U),
 
   /* Use OpenSubdiv patch evaluation */
-  KERNEL_FEATURE_PATCH_EVALUATION = (1U << 17U),
+  KERNEL_FEATURE_PATCH_EVALUATION = (1U << 19U),
 
   /* Use Transparent shadows */
-  KERNEL_FEATURE_TRANSPARENT = (1U << 18U),
+  KERNEL_FEATURE_TRANSPARENT = (1U << 20U),
 
   /* Use shadow catcher. */
-  KERNEL_FEATURE_SHADOW_CATCHER = (1U << 19U),
+  KERNEL_FEATURE_SHADOW_CATCHER = (1U << 21U),
 
   /* Per-uber shader usage flags. */
-  KERNEL_FEATURE_PRINCIPLED = (1U << 20U),
+  KERNEL_FEATURE_PRINCIPLED = (1U << 22U),
 
   /* Light render passes. */
-  KERNEL_FEATURE_LIGHT_PASSES = (1U << 21U),
+  KERNEL_FEATURE_LIGHT_PASSES = (1U << 23U),
 
   /* Shadow render pass. */
-  KERNEL_FEATURE_SHADOW_PASS = (1U << 22U),
+  KERNEL_FEATURE_SHADOW_PASS = (1U << 24U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */
 
 #define KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT \
-  (KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VORONOI_EXTRA)
+  (KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VORONOI_EXTRA | \
+   KERNEL_FEATURE_NODE_LIGHT_PATH)
 #define KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW \
   (KERNEL_FEATURE_NODE_BSDF | KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VOLUME | \
    KERNEL_FEATURE_NODE_HAIR | KERNEL_FEATURE_NODE_BUMP | KERNEL_FEATURE_NODE_BUMP_STATE | \
-   KERNEL_FEATURE_NODE_VORONOI_EXTRA)
+   KERNEL_FEATURE_NODE_VORONOI_EXTRA | KERNEL_FEATURE_NODE_LIGHT_PATH)
 #define KERNEL_FEATURE_NODE_MASK_SURFACE \
-  (KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW | KERNEL_FEATURE_NODE_RAYTRACE)
+  (KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW | KERNEL_FEATURE_NODE_RAYTRACE | \
+   KERNEL_FEATURE_NODE_AOV | KERNEL_FEATURE_NODE_LIGHT_PATH)
 #define KERNEL_FEATURE_NODE_MASK_VOLUME \
-  (KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VOLUME | KERNEL_FEATURE_NODE_VORONOI_EXTRA)
+  (KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VOLUME | \
+   KERNEL_FEATURE_NODE_VORONOI_EXTRA | KERNEL_FEATURE_NODE_LIGHT_PATH)
 #define KERNEL_FEATURE_NODE_MASK_DISPLACEMENT \
   (KERNEL_FEATURE_NODE_VORONOI_EXTRA | KERNEL_FEATURE_NODE_BUMP | KERNEL_FEATURE_NODE_BUMP_STATE)
 #define KERNEL_FEATURE_NODE_MASK_BUMP KERNEL_FEATURE_NODE_MASK_DISPLACEMENT
 
-#define KERNEL_NODES_FEATURE(feature) ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
+/* Must be constexpr on the CPU to avoid compile errors because the state types
+ * are different depending on the main, shadow or null path. For GPU we don't have
+ * C++17 everywhere so can't use it. */
+#ifdef __KERNEL_CPU__
+#  define IF_KERNEL_NODES_FEATURE(feature) \
+    if constexpr ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
+#else
+#  define IF_KERNEL_NODES_FEATURE(feature) \
+    if ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
+#endif
 
 CCL_NAMESPACE_END

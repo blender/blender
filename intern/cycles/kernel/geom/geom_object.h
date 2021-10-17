@@ -37,7 +37,7 @@ enum ObjectVectorTransform { OBJECT_PASS_MOTION_PRE = 0, OBJECT_PASS_MOTION_POST
 
 /* Object to world space transformation */
 
-ccl_device_inline Transform object_fetch_transform(ccl_global const KernelGlobals *kg,
+ccl_device_inline Transform object_fetch_transform(KernelGlobals kg,
                                                    int object,
                                                    enum ObjectTransform type)
 {
@@ -51,9 +51,7 @@ ccl_device_inline Transform object_fetch_transform(ccl_global const KernelGlobal
 
 /* Lamp to world space transformation */
 
-ccl_device_inline Transform lamp_fetch_transform(ccl_global const KernelGlobals *kg,
-                                                 int lamp,
-                                                 bool inverse)
+ccl_device_inline Transform lamp_fetch_transform(KernelGlobals kg, int lamp, bool inverse)
 {
   if (inverse) {
     return kernel_tex_fetch(__lights, lamp).itfm;
@@ -65,7 +63,7 @@ ccl_device_inline Transform lamp_fetch_transform(ccl_global const KernelGlobals 
 
 /* Object to world space transformation for motion vectors */
 
-ccl_device_inline Transform object_fetch_motion_pass_transform(ccl_global const KernelGlobals *kg,
+ccl_device_inline Transform object_fetch_motion_pass_transform(KernelGlobals kg,
                                                                int object,
                                                                enum ObjectVectorTransform type)
 {
@@ -76,9 +74,7 @@ ccl_device_inline Transform object_fetch_motion_pass_transform(ccl_global const 
 /* Motion blurred object transformations */
 
 #ifdef __OBJECT_MOTION__
-ccl_device_inline Transform object_fetch_transform_motion(ccl_global const KernelGlobals *kg,
-                                                          int object,
-                                                          float time)
+ccl_device_inline Transform object_fetch_transform_motion(KernelGlobals kg, int object, float time)
 {
   const uint motion_offset = kernel_tex_fetch(__objects, object).motion_offset;
   ccl_global const DecomposedTransform *motion = &kernel_tex_fetch(__object_motion, motion_offset);
@@ -90,7 +86,7 @@ ccl_device_inline Transform object_fetch_transform_motion(ccl_global const Kerne
   return tfm;
 }
 
-ccl_device_inline Transform object_fetch_transform_motion_test(ccl_global const KernelGlobals *kg,
+ccl_device_inline Transform object_fetch_transform_motion_test(KernelGlobals kg,
                                                                int object,
                                                                float time,
                                                                ccl_private Transform *itfm)
@@ -117,7 +113,7 @@ ccl_device_inline Transform object_fetch_transform_motion_test(ccl_global const 
 
 /* Get transform matrix for shading point. */
 
-ccl_device_inline Transform object_get_transform(ccl_global const KernelGlobals *kg,
+ccl_device_inline Transform object_get_transform(KernelGlobals kg,
                                                  ccl_private const ShaderData *sd)
 {
 #ifdef __OBJECT_MOTION__
@@ -129,7 +125,7 @@ ccl_device_inline Transform object_get_transform(ccl_global const KernelGlobals 
 #endif
 }
 
-ccl_device_inline Transform object_get_inverse_transform(ccl_global const KernelGlobals *kg,
+ccl_device_inline Transform object_get_inverse_transform(KernelGlobals kg,
                                                          ccl_private const ShaderData *sd)
 {
 #ifdef __OBJECT_MOTION__
@@ -142,7 +138,7 @@ ccl_device_inline Transform object_get_inverse_transform(ccl_global const Kernel
 }
 /* Transform position from object to world space */
 
-ccl_device_inline void object_position_transform(ccl_global const KernelGlobals *kg,
+ccl_device_inline void object_position_transform(KernelGlobals kg,
                                                  ccl_private const ShaderData *sd,
                                                  ccl_private float3 *P)
 {
@@ -159,7 +155,7 @@ ccl_device_inline void object_position_transform(ccl_global const KernelGlobals 
 
 /* Transform position from world to object space */
 
-ccl_device_inline void object_inverse_position_transform(ccl_global const KernelGlobals *kg,
+ccl_device_inline void object_inverse_position_transform(KernelGlobals kg,
                                                          ccl_private const ShaderData *sd,
                                                          ccl_private float3 *P)
 {
@@ -176,7 +172,7 @@ ccl_device_inline void object_inverse_position_transform(ccl_global const Kernel
 
 /* Transform normal from world to object space */
 
-ccl_device_inline void object_inverse_normal_transform(ccl_global const KernelGlobals *kg,
+ccl_device_inline void object_inverse_normal_transform(KernelGlobals kg,
                                                        ccl_private const ShaderData *sd,
                                                        ccl_private float3 *N)
 {
@@ -201,7 +197,7 @@ ccl_device_inline void object_inverse_normal_transform(ccl_global const KernelGl
 
 /* Transform normal from object to world space */
 
-ccl_device_inline void object_normal_transform(ccl_global const KernelGlobals *kg,
+ccl_device_inline void object_normal_transform(KernelGlobals kg,
                                                ccl_private const ShaderData *sd,
                                                ccl_private float3 *N)
 {
@@ -218,7 +214,7 @@ ccl_device_inline void object_normal_transform(ccl_global const KernelGlobals *k
 
 /* Transform direction vector from object to world space */
 
-ccl_device_inline void object_dir_transform(ccl_global const KernelGlobals *kg,
+ccl_device_inline void object_dir_transform(KernelGlobals kg,
                                             ccl_private const ShaderData *sd,
                                             ccl_private float3 *D)
 {
@@ -235,7 +231,7 @@ ccl_device_inline void object_dir_transform(ccl_global const KernelGlobals *kg,
 
 /* Transform direction vector from world to object space */
 
-ccl_device_inline void object_inverse_dir_transform(ccl_global const KernelGlobals *kg,
+ccl_device_inline void object_inverse_dir_transform(KernelGlobals kg,
                                                     ccl_private const ShaderData *sd,
                                                     ccl_private float3 *D)
 {
@@ -252,8 +248,7 @@ ccl_device_inline void object_inverse_dir_transform(ccl_global const KernelGloba
 
 /* Object center position */
 
-ccl_device_inline float3 object_location(ccl_global const KernelGlobals *kg,
-                                         ccl_private const ShaderData *sd)
+ccl_device_inline float3 object_location(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
   if (sd->object == OBJECT_NONE)
     return make_float3(0.0f, 0.0f, 0.0f);
@@ -270,7 +265,7 @@ ccl_device_inline float3 object_location(ccl_global const KernelGlobals *kg,
 
 /* Color of the object */
 
-ccl_device_inline float3 object_color(ccl_global const KernelGlobals *kg, int object)
+ccl_device_inline float3 object_color(KernelGlobals kg, int object)
 {
   if (object == OBJECT_NONE)
     return make_float3(0.0f, 0.0f, 0.0f);
@@ -281,7 +276,7 @@ ccl_device_inline float3 object_color(ccl_global const KernelGlobals *kg, int ob
 
 /* Pass ID number of object */
 
-ccl_device_inline float object_pass_id(ccl_global const KernelGlobals *kg, int object)
+ccl_device_inline float object_pass_id(KernelGlobals kg, int object)
 {
   if (object == OBJECT_NONE)
     return 0.0f;
@@ -291,7 +286,7 @@ ccl_device_inline float object_pass_id(ccl_global const KernelGlobals *kg, int o
 
 /* Per lamp random number for shader variation */
 
-ccl_device_inline float lamp_random_number(ccl_global const KernelGlobals *kg, int lamp)
+ccl_device_inline float lamp_random_number(KernelGlobals kg, int lamp)
 {
   if (lamp == LAMP_NONE)
     return 0.0f;
@@ -301,7 +296,7 @@ ccl_device_inline float lamp_random_number(ccl_global const KernelGlobals *kg, i
 
 /* Per object random number for shader variation */
 
-ccl_device_inline float object_random_number(ccl_global const KernelGlobals *kg, int object)
+ccl_device_inline float object_random_number(KernelGlobals kg, int object)
 {
   if (object == OBJECT_NONE)
     return 0.0f;
@@ -311,7 +306,7 @@ ccl_device_inline float object_random_number(ccl_global const KernelGlobals *kg,
 
 /* Particle ID from which this object was generated */
 
-ccl_device_inline int object_particle_id(ccl_global const KernelGlobals *kg, int object)
+ccl_device_inline int object_particle_id(KernelGlobals kg, int object)
 {
   if (object == OBJECT_NONE)
     return 0;
@@ -321,7 +316,7 @@ ccl_device_inline int object_particle_id(ccl_global const KernelGlobals *kg, int
 
 /* Generated texture coordinate on surface from where object was instanced */
 
-ccl_device_inline float3 object_dupli_generated(ccl_global const KernelGlobals *kg, int object)
+ccl_device_inline float3 object_dupli_generated(KernelGlobals kg, int object)
 {
   if (object == OBJECT_NONE)
     return make_float3(0.0f, 0.0f, 0.0f);
@@ -333,7 +328,7 @@ ccl_device_inline float3 object_dupli_generated(ccl_global const KernelGlobals *
 
 /* UV texture coordinate on surface from where object was instanced */
 
-ccl_device_inline float3 object_dupli_uv(ccl_global const KernelGlobals *kg, int object)
+ccl_device_inline float3 object_dupli_uv(KernelGlobals kg, int object)
 {
   if (object == OBJECT_NONE)
     return make_float3(0.0f, 0.0f, 0.0f);
@@ -344,7 +339,7 @@ ccl_device_inline float3 object_dupli_uv(ccl_global const KernelGlobals *kg, int
 
 /* Information about mesh for motion blurred triangles and curves */
 
-ccl_device_inline void object_motion_info(ccl_global const KernelGlobals *kg,
+ccl_device_inline void object_motion_info(KernelGlobals kg,
                                           int object,
                                           ccl_private int *numsteps,
                                           ccl_private int *numverts,
@@ -362,7 +357,7 @@ ccl_device_inline void object_motion_info(ccl_global const KernelGlobals *kg,
 
 /* Offset to an objects patch map */
 
-ccl_device_inline uint object_patch_map_offset(ccl_global const KernelGlobals *kg, int object)
+ccl_device_inline uint object_patch_map_offset(KernelGlobals kg, int object)
 {
   if (object == OBJECT_NONE)
     return 0;
@@ -372,7 +367,7 @@ ccl_device_inline uint object_patch_map_offset(ccl_global const KernelGlobals *k
 
 /* Volume step size */
 
-ccl_device_inline float object_volume_density(ccl_global const KernelGlobals *kg, int object)
+ccl_device_inline float object_volume_density(KernelGlobals kg, int object)
 {
   if (object == OBJECT_NONE) {
     return 1.0f;
@@ -381,7 +376,7 @@ ccl_device_inline float object_volume_density(ccl_global const KernelGlobals *kg
   return kernel_tex_fetch(__objects, object).volume_density;
 }
 
-ccl_device_inline float object_volume_step_size(ccl_global const KernelGlobals *kg, int object)
+ccl_device_inline float object_volume_step_size(KernelGlobals kg, int object)
 {
   if (object == OBJECT_NONE) {
     return kernel_data.background.volume_step_size;
@@ -392,14 +387,14 @@ ccl_device_inline float object_volume_step_size(ccl_global const KernelGlobals *
 
 /* Pass ID for shader */
 
-ccl_device int shader_pass_id(ccl_global const KernelGlobals *kg, ccl_private const ShaderData *sd)
+ccl_device int shader_pass_id(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
   return kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).pass_id;
 }
 
 /* Cryptomatte ID */
 
-ccl_device_inline float object_cryptomatte_id(ccl_global const KernelGlobals *kg, int object)
+ccl_device_inline float object_cryptomatte_id(KernelGlobals kg, int object)
 {
   if (object == OBJECT_NONE)
     return 0.0f;
@@ -407,7 +402,7 @@ ccl_device_inline float object_cryptomatte_id(ccl_global const KernelGlobals *kg
   return kernel_tex_fetch(__objects, object).cryptomatte_object;
 }
 
-ccl_device_inline float object_cryptomatte_asset_id(ccl_global const KernelGlobals *kg, int object)
+ccl_device_inline float object_cryptomatte_asset_id(KernelGlobals kg, int object)
 {
   if (object == OBJECT_NONE)
     return 0;
@@ -417,42 +412,42 @@ ccl_device_inline float object_cryptomatte_asset_id(ccl_global const KernelGloba
 
 /* Particle data from which object was instanced */
 
-ccl_device_inline uint particle_index(ccl_global const KernelGlobals *kg, int particle)
+ccl_device_inline uint particle_index(KernelGlobals kg, int particle)
 {
   return kernel_tex_fetch(__particles, particle).index;
 }
 
-ccl_device float particle_age(ccl_global const KernelGlobals *kg, int particle)
+ccl_device float particle_age(KernelGlobals kg, int particle)
 {
   return kernel_tex_fetch(__particles, particle).age;
 }
 
-ccl_device float particle_lifetime(ccl_global const KernelGlobals *kg, int particle)
+ccl_device float particle_lifetime(KernelGlobals kg, int particle)
 {
   return kernel_tex_fetch(__particles, particle).lifetime;
 }
 
-ccl_device float particle_size(ccl_global const KernelGlobals *kg, int particle)
+ccl_device float particle_size(KernelGlobals kg, int particle)
 {
   return kernel_tex_fetch(__particles, particle).size;
 }
 
-ccl_device float4 particle_rotation(ccl_global const KernelGlobals *kg, int particle)
+ccl_device float4 particle_rotation(KernelGlobals kg, int particle)
 {
   return kernel_tex_fetch(__particles, particle).rotation;
 }
 
-ccl_device float3 particle_location(ccl_global const KernelGlobals *kg, int particle)
+ccl_device float3 particle_location(KernelGlobals kg, int particle)
 {
   return float4_to_float3(kernel_tex_fetch(__particles, particle).location);
 }
 
-ccl_device float3 particle_velocity(ccl_global const KernelGlobals *kg, int particle)
+ccl_device float3 particle_velocity(KernelGlobals kg, int particle)
 {
   return float4_to_float3(kernel_tex_fetch(__particles, particle).velocity);
 }
 
-ccl_device float3 particle_angular_velocity(ccl_global const KernelGlobals *kg, int particle)
+ccl_device float3 particle_angular_velocity(KernelGlobals kg, int particle)
 {
   return float4_to_float3(kernel_tex_fetch(__particles, particle).angular_velocity);
 }
@@ -474,7 +469,7 @@ ccl_device_inline float3 bvh_inverse_direction(float3 dir)
 
 /* Transform ray into object space to enter static object in BVH */
 
-ccl_device_inline float bvh_instance_push(ccl_global const KernelGlobals *kg,
+ccl_device_inline float bvh_instance_push(KernelGlobals kg,
                                           int object,
                                           ccl_private const Ray *ray,
                                           ccl_private float3 *P,
@@ -494,7 +489,7 @@ ccl_device_inline float bvh_instance_push(ccl_global const KernelGlobals *kg,
 
 /* Transform ray to exit static object in BVH. */
 
-ccl_device_inline float bvh_instance_pop(ccl_global const KernelGlobals *kg,
+ccl_device_inline float bvh_instance_pop(KernelGlobals kg,
                                          int object,
                                          ccl_private const Ray *ray,
                                          ccl_private float3 *P,
@@ -516,7 +511,7 @@ ccl_device_inline float bvh_instance_pop(ccl_global const KernelGlobals *kg,
 
 /* Same as above, but returns scale factor to apply to multiple intersection distances */
 
-ccl_device_inline void bvh_instance_pop_factor(ccl_global const KernelGlobals *kg,
+ccl_device_inline void bvh_instance_pop_factor(KernelGlobals kg,
                                                int object,
                                                ccl_private const Ray *ray,
                                                ccl_private float3 *P,
@@ -535,7 +530,7 @@ ccl_device_inline void bvh_instance_pop_factor(ccl_global const KernelGlobals *k
 #ifdef __OBJECT_MOTION__
 /* Transform ray into object space to enter motion blurred object in BVH */
 
-ccl_device_inline float bvh_instance_motion_push(ccl_global const KernelGlobals *kg,
+ccl_device_inline float bvh_instance_motion_push(KernelGlobals kg,
                                                  int object,
                                                  ccl_private const Ray *ray,
                                                  ccl_private float3 *P,
@@ -556,7 +551,7 @@ ccl_device_inline float bvh_instance_motion_push(ccl_global const KernelGlobals 
 
 /* Transform ray to exit motion blurred object in BVH. */
 
-ccl_device_inline float bvh_instance_motion_pop(ccl_global const KernelGlobals *kg,
+ccl_device_inline float bvh_instance_motion_pop(KernelGlobals kg,
                                                 int object,
                                                 ccl_private const Ray *ray,
                                                 ccl_private float3 *P,
@@ -578,7 +573,7 @@ ccl_device_inline float bvh_instance_motion_pop(ccl_global const KernelGlobals *
 
 /* Same as above, but returns scale factor to apply to multiple intersection distances */
 
-ccl_device_inline void bvh_instance_motion_pop_factor(ccl_global const KernelGlobals *kg,
+ccl_device_inline void bvh_instance_motion_pop_factor(KernelGlobals kg,
                                                       int object,
                                                       ccl_private const Ray *ray,
                                                       ccl_private float3 *P,

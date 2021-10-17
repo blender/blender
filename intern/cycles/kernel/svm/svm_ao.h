@@ -21,9 +21,11 @@ CCL_NAMESPACE_BEGIN
 #ifdef __SHADER_RAYTRACE__
 
 #  ifdef __KERNEL_OPTIX__
-extern "C" __device__ float __direct_callable__svm_node_ao(INTEGRATOR_STATE_CONST_ARGS,
+extern "C" __device__ float __direct_callable__svm_node_ao(KernelGlobals kg,
+                                                           ConstIntegratorState state,
 #  else
-ccl_device float svm_ao(INTEGRATOR_STATE_CONST_ARGS,
+ccl_device float svm_ao(KernelGlobals kg,
+                        ConstIntegratorState state,
 #  endif
                                                            ccl_private ShaderData *sd,
                                                            float3 N,
@@ -54,7 +56,7 @@ ccl_device float svm_ao(INTEGRATOR_STATE_CONST_ARGS,
 
   /* TODO: support ray-tracing in shadow shader evaluation? */
   RNGState rng_state;
-  path_state_rng_load(INTEGRATOR_STATE_PASS, &rng_state);
+  path_state_rng_load(state, &rng_state);
 
   int unoccluded = 0;
   for (int sample = 0; sample < num_samples; sample++) {
@@ -96,7 +98,8 @@ ccl_device_inline
 ccl_device_noinline
 #  endif
     void
-    svm_node_ao(INTEGRATOR_STATE_CONST_ARGS,
+    svm_node_ao(KernelGlobals kg,
+                ConstIntegratorState state,
                 ccl_private ShaderData *sd,
                 ccl_private float *stack,
                 uint4 node)
@@ -112,11 +115,12 @@ ccl_device_noinline
 
   float ao = 1.0f;
 
-  if (KERNEL_NODES_FEATURE(RAYTRACE)) {
+  IF_KERNEL_NODES_FEATURE(RAYTRACE)
+  {
 #  ifdef __KERNEL_OPTIX__
-    ao = optixDirectCall<float>(0, INTEGRATOR_STATE_PASS, sd, normal, dist, samples, flags);
+    ao = optixDirectCall<float>(0, kg, state, sd, normal, dist, samples, flags);
 #  else
-    ao = svm_ao(INTEGRATOR_STATE_PASS, sd, normal, dist, samples, flags);
+    ao = svm_ao(kg, state, sd, normal, dist, samples, flags);
 #  endif
   }
 

@@ -36,29 +36,30 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __SUBSURFACE__
 
-ccl_device int subsurface_bounce(INTEGRATOR_STATE_ARGS,
+ccl_device int subsurface_bounce(KernelGlobals kg,
+                                 IntegratorState state,
                                  ccl_private ShaderData *sd,
                                  ccl_private const ShaderClosure *sc)
 {
   /* We should never have two consecutive BSSRDF bounces, the second one should
    * be converted to a diffuse BSDF to avoid this. */
-  kernel_assert(!(INTEGRATOR_STATE(path, flag) & PATH_RAY_DIFFUSE_ANCESTOR));
+  kernel_assert(!(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_DIFFUSE_ANCESTOR));
 
   /* Setup path state for intersect_subsurface kernel. */
   ccl_private const Bssrdf *bssrdf = (ccl_private const Bssrdf *)sc;
 
   /* Setup ray into surface. */
-  INTEGRATOR_STATE_WRITE(ray, P) = sd->P;
-  INTEGRATOR_STATE_WRITE(ray, D) = bssrdf->N;
-  INTEGRATOR_STATE_WRITE(ray, t) = FLT_MAX;
-  INTEGRATOR_STATE_WRITE(ray, dP) = differential_make_compact(sd->dP);
-  INTEGRATOR_STATE_WRITE(ray, dD) = differential_zero_compact();
+  INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
+  INTEGRATOR_STATE_WRITE(state, ray, D) = bssrdf->N;
+  INTEGRATOR_STATE_WRITE(state, ray, t) = FLT_MAX;
+  INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
+  INTEGRATOR_STATE_WRITE(state, ray, dD) = differential_zero_compact();
 
   /* Pass along object info, reusing isect to save memory. */
-  INTEGRATOR_STATE_WRITE(isect, Ng) = sd->Ng;
-  INTEGRATOR_STATE_WRITE(isect, object) = sd->object;
+  INTEGRATOR_STATE_WRITE(state, isect, Ng) = sd->Ng;
+  INTEGRATOR_STATE_WRITE(state, isect, object) = sd->object;
 
-  uint32_t path_flag = (INTEGRATOR_STATE(path, flag) & ~PATH_RAY_CAMERA) |
+  uint32_t path_flag = (INTEGRATOR_STATE(state, path, flag) & ~PATH_RAY_CAMERA) |
                        ((sc->type == CLOSURE_BSSRDF_BURLEY_ID) ? PATH_RAY_SUBSURFACE_DISK :
                                                                  PATH_RAY_SUBSURFACE_RANDOM_WALK);
 
@@ -70,27 +71,28 @@ ccl_device int subsurface_bounce(INTEGRATOR_STATE_ARGS,
   }
 #  endif
 
-  INTEGRATOR_STATE_WRITE(path, throughput) *= weight;
-  INTEGRATOR_STATE_WRITE(path, flag) = path_flag;
+  INTEGRATOR_STATE_WRITE(state, path, throughput) *= weight;
+  INTEGRATOR_STATE_WRITE(state, path, flag) = path_flag;
 
   /* Advance random number offset for bounce. */
-  INTEGRATOR_STATE_WRITE(path, rng_offset) += PRNG_BOUNCE_NUM;
+  INTEGRATOR_STATE_WRITE(state, path, rng_offset) += PRNG_BOUNCE_NUM;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
-    if (INTEGRATOR_STATE(path, bounce) == 0) {
-      INTEGRATOR_STATE_WRITE(path, diffuse_glossy_ratio) = one_float3();
+    if (INTEGRATOR_STATE(state, path, bounce) == 0) {
+      INTEGRATOR_STATE_WRITE(state, path, diffuse_glossy_ratio) = one_float3();
     }
   }
 
   /* Pass BSSRDF parameters. */
-  INTEGRATOR_STATE_WRITE(subsurface, albedo) = bssrdf->albedo;
-  INTEGRATOR_STATE_WRITE(subsurface, radius) = bssrdf->radius;
-  INTEGRATOR_STATE_WRITE(subsurface, anisotropy) = bssrdf->anisotropy;
+  INTEGRATOR_STATE_WRITE(state, subsurface, albedo) = bssrdf->albedo;
+  INTEGRATOR_STATE_WRITE(state, subsurface, radius) = bssrdf->radius;
+  INTEGRATOR_STATE_WRITE(state, subsurface, anisotropy) = bssrdf->anisotropy;
 
   return LABEL_SUBSURFACE_SCATTER;
 }
 
-ccl_device void subsurface_shader_data_setup(INTEGRATOR_STATE_ARGS,
+ccl_device void subsurface_shader_data_setup(KernelGlobals kg,
+                                             IntegratorState state,
                                              ccl_private ShaderData *sd,
                                              const uint32_t path_flag)
 {
@@ -131,21 +133,21 @@ ccl_device void subsurface_shader_data_setup(INTEGRATOR_STATE_ARGS,
   }
 }
 
-ccl_device_inline bool subsurface_scatter(INTEGRATOR_STATE_ARGS)
+ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState state)
 {
   RNGState rng_state;
-  path_state_rng_load(INTEGRATOR_STATE_PASS, &rng_state);
+  path_state_rng_load(state, &rng_state);
 
   Ray ray ccl_optional_struct_init;
   LocalIntersection ss_isect ccl_optional_struct_init;
 
-  if (INTEGRATOR_STATE(path, flag) & PATH_RAY_SUBSURFACE_RANDOM_WALK) {
-    if (!subsurface_random_walk(INTEGRATOR_STATE_PASS, rng_state, ray, ss_isect)) {
+  if (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SUBSURFACE_RANDOM_WALK) {
+    if (!subsurface_random_walk(kg, state, rng_state, ray, ss_isect)) {
       return false;
     }
   }
   else {
-    if (!subsurface_disk(INTEGRATOR_STATE_PASS, rng_state, ray, ss_isect)) {
+    if (!subsurface_disk(kg, state, rng_state, ray, ss_isect)) {
       return false;
     }
   }
@@ -157,11 +159,11 @@ ccl_device_inline bool subsurface_scatter(INTEGRATOR_STATE_ARGS)
     const int object_flag = kernel_tex_fetch(__object_flag, object);
 
     if (object_flag & SD_OBJECT_INTERSECTS_VOLUME) {
-      float3 P = INTEGRATOR_STATE(ray, P);
-      const float3 Ng = INTEGRATOR_STATE(isect, Ng);
+      float3 P = INTEGRATOR_STATE(state, ray, P);
+      const float3 Ng = INTEGRATOR_STATE(state, isect, Ng);
       const float3 offset_P = ray_offset(P, -Ng);
 
-      integrator_volume_stack_update_for_subsurface(INTEGRATOR_STATE_PASS, offset_P, ray.P);
+      integrator_volume_stack_update_for_subsurface(kg, state, offset_P, ray.P);
     }
   }
 #  endif /* __VOLUME__ */
@@ -172,11 +174,11 @@ ccl_device_inline bool subsurface_scatter(INTEGRATOR_STATE_ARGS)
   ray.P += ray.D * ray.t * 2.0f;
   ray.D = -ray.D;
 
-  integrator_state_write_isect(INTEGRATOR_STATE_PASS, &ss_isect.hits[0]);
-  integrator_state_write_ray(INTEGRATOR_STATE_PASS, &ray);
+  integrator_state_write_isect(kg, state, &ss_isect.hits[0]);
+  integrator_state_write_ray(kg, state, &ray);
 
   /* Advance random number offset for bounce. */
-  INTEGRATOR_STATE_WRITE(path, rng_offset) += PRNG_BOUNCE_NUM;
+  INTEGRATOR_STATE_WRITE(state, path, rng_offset) += PRNG_BOUNCE_NUM;
 
   const int shader = intersection_get_shader(kg, &ss_isect.hits[0]);
   const int shader_flags = kernel_tex_fetch(__shaders, shader).flags;

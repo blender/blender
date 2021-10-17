@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Attribute Node */
 
-ccl_device AttributeDescriptor svm_node_attr_init(ccl_global const KernelGlobals *kg,
+ccl_device AttributeDescriptor svm_node_attr_init(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
                                                   uint4 node,
                                                   ccl_private NodeAttributeOutputType *type,
@@ -48,7 +48,7 @@ ccl_device AttributeDescriptor svm_node_attr_init(ccl_global const KernelGlobals
 }
 
 template<uint node_feature_mask>
-ccl_device_noinline void svm_node_attr(ccl_global const KernelGlobals *kg,
+ccl_device_noinline void svm_node_attr(KernelGlobals kg,
                                        ccl_private ShaderData *sd,
                                        ccl_private float *stack,
                                        uint4 node)
@@ -58,7 +58,8 @@ ccl_device_noinline void svm_node_attr(ccl_global const KernelGlobals *kg,
   AttributeDescriptor desc = svm_node_attr_init(kg, sd, node, &type, &out_offset);
 
 #ifdef __VOLUME__
-  if (KERNEL_NODES_FEATURE(VOLUME)) {
+  IF_KERNEL_NODES_FEATURE(VOLUME)
+  {
     /* Volumes
      * NOTE: moving this into its own node type might help improve performance. */
     if (primitive_is_volume_attribute(sd, desc)) {
@@ -148,7 +149,7 @@ ccl_device_noinline void svm_node_attr(ccl_global const KernelGlobals *kg,
   }
 }
 
-ccl_device_noinline void svm_node_attr_bump_dx(ccl_global const KernelGlobals *kg,
+ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
                                                ccl_private ShaderData *sd,
                                                ccl_private float *stack,
                                                uint4 node)
@@ -244,7 +245,7 @@ ccl_device_noinline void svm_node_attr_bump_dx(ccl_global const KernelGlobals *k
   }
 }
 
-ccl_device_noinline void svm_node_attr_bump_dy(ccl_global const KernelGlobals *kg,
+ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
                                                ccl_private ShaderData *sd,
                                                ccl_private float *stack,
                                                uint4 node)

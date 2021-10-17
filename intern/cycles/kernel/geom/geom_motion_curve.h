@@ -27,7 +27,7 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __HAIR__
 
-ccl_device_inline void motion_curve_keys_for_step_linear(ccl_global const KernelGlobals *kg,
+ccl_device_inline void motion_curve_keys_for_step_linear(KernelGlobals kg,
                                                          int offset,
                                                          int numkeys,
                                                          int numsteps,
@@ -54,13 +54,8 @@ ccl_device_inline void motion_curve_keys_for_step_linear(ccl_global const Kernel
 }
 
 /* return 2 curve key locations */
-ccl_device_inline void motion_curve_keys_linear(ccl_global const KernelGlobals *kg,
-                                                int object,
-                                                int prim,
-                                                float time,
-                                                int k0,
-                                                int k1,
-                                                float4 keys[2])
+ccl_device_inline void motion_curve_keys_linear(
+    KernelGlobals kg, int object, int prim, float time, int k0, int k1, float4 keys[2])
 {
   /* get motion info */
   int numsteps, numkeys;
@@ -86,7 +81,7 @@ ccl_device_inline void motion_curve_keys_linear(ccl_global const KernelGlobals *
   keys[1] = (1.0f - t) * keys[1] + t * next_keys[1];
 }
 
-ccl_device_inline void motion_curve_keys_for_step(ccl_global const KernelGlobals *kg,
+ccl_device_inline void motion_curve_keys_for_step(KernelGlobals kg,
                                                   int offset,
                                                   int numkeys,
                                                   int numsteps,
@@ -119,7 +114,7 @@ ccl_device_inline void motion_curve_keys_for_step(ccl_global const KernelGlobals
 }
 
 /* return 2 curve key locations */
-ccl_device_inline void motion_curve_keys(ccl_global const KernelGlobals *kg,
+ccl_device_inline void motion_curve_keys(KernelGlobals kg,
                                          int object,
                                          int prim,
                                          float time,

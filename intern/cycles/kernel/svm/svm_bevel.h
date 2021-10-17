@@ -99,9 +99,11 @@ ccl_device void svm_bevel_cubic_sample(const float radius,
  */
 
 #  ifdef __KERNEL_OPTIX__
-extern "C" __device__ float3 __direct_callable__svm_node_bevel(INTEGRATOR_STATE_CONST_ARGS,
+extern "C" __device__ float3 __direct_callable__svm_node_bevel(KernelGlobals kg,
+                                                               ConstIntegratorState state,
 #  else
-ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
+ccl_device float3 svm_bevel(KernelGlobals kg,
+                            ConstIntegratorState state,
 #  endif
                                                                ccl_private ShaderData *sd,
                                                                float radius,
@@ -118,15 +120,15 @@ ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
   }
 
   /* Don't bevel for blurry indirect rays. */
-  if (INTEGRATOR_STATE(path, min_ray_pdf) < 8.0f) {
+  if (INTEGRATOR_STATE(state, path, min_ray_pdf) < 8.0f) {
     return sd->N;
   }
 
   /* Setup for multi intersection. */
   LocalIntersection isect;
-  uint lcg_state = lcg_state_init(INTEGRATOR_STATE(path, rng_hash),
-                                  INTEGRATOR_STATE(path, rng_offset),
-                                  INTEGRATOR_STATE(path, sample),
+  uint lcg_state = lcg_state_init(INTEGRATOR_STATE(state, path, rng_hash),
+                                  INTEGRATOR_STATE(state, path, rng_offset),
+                                  INTEGRATOR_STATE(state, path, sample),
                                   0x64c6a40e);
 
   /* Sample normals from surrounding points on surface. */
@@ -134,7 +136,7 @@ ccl_device float3 svm_bevel(INTEGRATOR_STATE_CONST_ARGS,
 
   /* TODO: support ray-tracing in shadow shader evaluation? */
   RNGState rng_state;
-  path_state_rng_load(INTEGRATOR_STATE_PASS, &rng_state);
+  path_state_rng_load(state, &rng_state);
 
   for (int sample = 0; sample < num_samples; sample++) {
     float disk_u, disk_v;
@@ -287,7 +289,8 @@ ccl_device_inline
 ccl_device_noinline
 #  endif
     void
-    svm_node_bevel(INTEGRATOR_STATE_CONST_ARGS,
+    svm_node_bevel(KernelGlobals kg,
+                   ConstIntegratorState state,
                    ccl_private ShaderData *sd,
                    ccl_private float *stack,
                    uint4 node)
@@ -299,11 +302,12 @@ ccl_device_noinline
 
   float3 bevel_N = sd->N;
 
-  if (KERNEL_NODES_FEATURE(RAYTRACE)) {
+  IF_KERNEL_NODES_FEATURE(RAYTRACE)
+  {
 #  ifdef __KERNEL_OPTIX__
-    bevel_N = optixDirectCall<float3>(1, INTEGRATOR_STATE_PASS, sd, radius, num_samples);
+    bevel_N = optixDirectCall<float3>(1, kg, state, sd, radius, num_samples);
 #  else
-    bevel_N = svm_bevel(INTEGRATOR_STATE_PASS, sd, radius, num_samples);
+    bevel_N = svm_bevel(kg, state, sd, radius, num_samples);
 #  endif
 
     if (stack_valid(normal_offset)) {

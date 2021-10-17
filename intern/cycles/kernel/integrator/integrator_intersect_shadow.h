@@ -19,19 +19,21 @@
 CCL_NAMESPACE_BEGIN
 
 /* Visibility for the shadow ray. */
-ccl_device_forceinline uint integrate_intersect_shadow_visibility(INTEGRATOR_STATE_CONST_ARGS)
+ccl_device_forceinline uint integrate_intersect_shadow_visibility(KernelGlobals kg,
+                                                                  ConstIntegratorState state)
 {
   uint visibility = PATH_RAY_SHADOW;
 
 #ifdef __SHADOW_CATCHER__
-  const uint32_t path_flag = INTEGRATOR_STATE(shadow_path, flag);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, shadow_path, flag);
   visibility = SHADOW_CATCHER_PATH_VISIBILITY(path_flag, visibility);
 #endif
 
   return visibility;
 }
 
-ccl_device bool integrate_intersect_shadow_opaque(INTEGRATOR_STATE_ARGS,
+ccl_device bool integrate_intersect_shadow_opaque(KernelGlobals kg,
+                                                  IntegratorState state,
                                                   ccl_private const Ray *ray,
                                                   const uint visibility)
 {
@@ -46,22 +48,24 @@ ccl_device bool integrate_intersect_shadow_opaque(INTEGRATOR_STATE_ARGS,
   const bool opaque_hit = scene_intersect(kg, ray, visibility & opaque_mask, &isect);
 
   if (!opaque_hit) {
-    INTEGRATOR_STATE_WRITE(shadow_path, num_hits) = 0;
+    INTEGRATOR_STATE_WRITE(state, shadow_path, num_hits) = 0;
   }
 
   return opaque_hit;
 }
 
-ccl_device_forceinline int integrate_shadow_max_transparent_hits(INTEGRATOR_STATE_CONST_ARGS)
+ccl_device_forceinline int integrate_shadow_max_transparent_hits(KernelGlobals kg,
+                                                                 ConstIntegratorState state)
 {
   const int transparent_max_bounce = kernel_data.integrator.transparent_max_bounce;
-  const int transparent_bounce = INTEGRATOR_STATE(shadow_path, transparent_bounce);
+  const int transparent_bounce = INTEGRATOR_STATE(state, shadow_path, transparent_bounce);
 
   return max(transparent_max_bounce - transparent_bounce - 1, 0);
 }
 
 #ifdef __TRANSPARENT_SHADOWS__
-ccl_device bool integrate_intersect_shadow_transparent(INTEGRATOR_STATE_ARGS,
+ccl_device bool integrate_intersect_shadow_transparent(KernelGlobals kg,
+                                                       IntegratorState state,
                                                        ccl_private const Ray *ray,
                                                        const uint visibility)
 {
@@ -69,7 +73,7 @@ ccl_device bool integrate_intersect_shadow_transparent(INTEGRATOR_STATE_ARGS,
 
   /* Limit the number hits to the max transparent bounces allowed and the size that we
    * have available in the integrator state. */
-  const uint max_transparent_hits = integrate_shadow_max_transparent_hits(INTEGRATOR_STATE_PASS);
+  const uint max_transparent_hits = integrate_shadow_max_transparent_hits(kg, state);
   const uint max_hits = min(max_transparent_hits, (uint)INTEGRATOR_SHADOW_ISECT_SIZE);
   uint num_hits = 0;
   bool opaque_hit = scene_intersect_shadow_all(kg, ray, isect, visibility, max_hits, &num_hits);
@@ -88,41 +92,39 @@ ccl_device bool integrate_intersect_shadow_transparent(INTEGRATOR_STATE_ARGS,
       /* Write intersection result into global integrator state memory.
        * More efficient may be to do this directly from the intersection kernel. */
       for (int hit = 0; hit < num_recorded_hits; hit++) {
-        integrator_state_write_shadow_isect(INTEGRATOR_STATE_PASS, &isect[hit], hit);
+        integrator_state_write_shadow_isect(state, &isect[hit], hit);
       }
     }
 
-    INTEGRATOR_STATE_WRITE(shadow_path, num_hits) = num_hits;
+    INTEGRATOR_STATE_WRITE(state, shadow_path, num_hits) = num_hits;
   }
   else {
-    INTEGRATOR_STATE_WRITE(shadow_path, num_hits) = 0;
+    INTEGRATOR_STATE_WRITE(state, shadow_path, num_hits) = 0;
   }
 
   return opaque_hit;
 }
 #endif
 
-ccl_device void integrator_intersect_shadow(INTEGRATOR_STATE_ARGS)
+ccl_device void integrator_intersect_shadow(KernelGlobals kg, IntegratorState state)
 {
   PROFILING_INIT(kg, PROFILING_INTERSECT_SHADOW);
 
   /* Read ray from integrator state into local memory. */
   Ray ray ccl_optional_struct_init;
-  integrator_state_read_shadow_ray(INTEGRATOR_STATE_PASS, &ray);
+  integrator_state_read_shadow_ray(kg, state, &ray);
 
   /* Compute visibility. */
-  const uint visibility = integrate_intersect_shadow_visibility(INTEGRATOR_STATE_PASS);
+  const uint visibility = integrate_intersect_shadow_visibility(kg, state);
 
 #ifdef __TRANSPARENT_SHADOWS__
   /* TODO: compile different kernels depending on this? Especially for OptiX
    * conditional trace calls are bad. */
-  const bool opaque_hit =
-      (kernel_data.integrator.transparent_shadows) ?
-          integrate_intersect_shadow_transparent(INTEGRATOR_STATE_PASS, &ray, visibility) :
-          integrate_intersect_shadow_opaque(INTEGRATOR_STATE_PASS, &ray, visibility);
+  const bool opaque_hit = (kernel_data.integrator.transparent_shadows) ?
+                              integrate_intersect_shadow_transparent(kg, state, &ray, visibility) :
+                              integrate_intersect_shadow_opaque(kg, state, &ray, visibility);
 #else
-  const bool opaque_hit = integrate_intersect_shadow_opaque(
-      INTEGRATOR_STATE_PASS, &ray, visibility);
+  const bool opaque_hit = integrate_intersect_shadow_opaque(kg, state, &ray, visibility);
 #endif
 
   if (opaque_hit) {

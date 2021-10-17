@@ -16,7 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_noinline int svm_node_combine_hsv(ccl_global const KernelGlobals *kg,
+ccl_device_noinline int svm_node_combine_hsv(KernelGlobals kg,
                                              ccl_private ShaderData *sd,
                                              ccl_private float *stack,
                                              uint hue_in,
@@ -39,7 +39,7 @@ ccl_device_noinline int svm_node_combine_hsv(ccl_global const KernelGlobals *kg,
   return offset;
 }
 
-ccl_device_noinline int svm_node_separate_hsv(ccl_global const KernelGlobals *kg,
+ccl_device_noinline int svm_node_separate_hsv(KernelGlobals kg,
                                               ccl_private ShaderData *sd,
                                               ccl_private float *stack,
                                               uint color_in,

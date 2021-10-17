@@ -31,7 +31,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Return position normalized to 0..1 in mesh bounds */
 
-ccl_device_inline float3 volume_normalized_position(ccl_global const KernelGlobals *kg,
+ccl_device_inline float3 volume_normalized_position(KernelGlobals kg,
                                                     ccl_private const ShaderData *sd,
                                                     float3 P)
 {
@@ -70,7 +70,7 @@ ccl_device float3 volume_attribute_value_to_float3(const float4 value)
   }
 }
 
-ccl_device float4 volume_attribute_float4(ccl_global const KernelGlobals *kg,
+ccl_device float4 volume_attribute_float4(KernelGlobals kg,
                                           ccl_private const ShaderData *sd,
                                           const AttributeDescriptor desc)
 {

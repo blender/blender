@@ -139,8 +139,9 @@ ccl_device_inline void sort_intersections_and_normals(ccl_private Intersection *
 
 /* Utility to quickly get flags from an intersection. */
 
-ccl_device_forceinline int intersection_get_shader_flags(
-    ccl_global const KernelGlobals *ccl_restrict kg, const int prim, const int type)
+ccl_device_forceinline int intersection_get_shader_flags(KernelGlobals kg,
+                                                         const int prim,
+                                                         const int type)
 {
   int shader = 0;
 
@@ -159,8 +160,9 @@ ccl_device_forceinline int intersection_get_shader_flags(
   return kernel_tex_fetch(__shaders, (shader & SHADER_MASK)).flags;
 }
 
-ccl_device_forceinline int intersection_get_shader_from_isect_prim(
-    ccl_global const KernelGlobals *ccl_restrict kg, const int prim, const int isect_type)
+ccl_device_forceinline int intersection_get_shader_from_isect_prim(KernelGlobals kg,
+                                                                   const int prim,
+                                                                   const int isect_type)
 {
   int shader = 0;
 
@@ -179,23 +181,21 @@ ccl_device_forceinline int intersection_get_shader_from_isect_prim(
   return shader & SHADER_MASK;
 }
 
-ccl_device_forceinline int intersection_get_shader(ccl_global const KernelGlobals *ccl_restrict kg,
-                                                   ccl_private const Intersection *ccl_restrict
-                                                       isect)
+ccl_device_forceinline int intersection_get_shader(
+    KernelGlobals kg, ccl_private const Intersection *ccl_restrict isect)
 {
   return intersection_get_shader_from_isect_prim(kg, isect->prim, isect->type);
 }
 
 ccl_device_forceinline int intersection_get_object_flags(
-    ccl_global const KernelGlobals *ccl_restrict kg,
-    ccl_private const Intersection *ccl_restrict isect)
+    KernelGlobals kg, ccl_private const Intersection *ccl_restrict isect)
 {
   return kernel_tex_fetch(__object_flag, isect->object);
 }
 
 /* TODO: find a better (faster) solution for this. Maybe store offset per object for
  * attributes needed in intersection? */
-ccl_device_inline int intersection_find_attribute(ccl_global const KernelGlobals *kg,
+ccl_device_inline int intersection_find_attribute(KernelGlobals kg,
                                                   const int object,
                                                   const uint id)
 {

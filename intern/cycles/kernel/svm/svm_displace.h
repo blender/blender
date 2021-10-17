@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Bump Node */
 
-ccl_device_noinline void svm_node_set_bump(ccl_global const KernelGlobals *kg,
+ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            ccl_private float *stack,
                                            uint4 node)
@@ -88,7 +88,7 @@ ccl_device_noinline void svm_node_set_bump(ccl_global const KernelGlobals *kg,
 
 /* Displacement Node */
 
-ccl_device void svm_node_set_displacement(ccl_global const KernelGlobals *kg,
+ccl_device void svm_node_set_displacement(KernelGlobals kg,
                                           ccl_private ShaderData *sd,
                                           ccl_private float *stack,
                                           uint fac_offset)
@@ -97,7 +97,7 @@ ccl_device void svm_node_set_displacement(ccl_global const KernelGlobals *kg,
   sd->P += dP;
 }
 
-ccl_device_noinline void svm_node_displacement(ccl_global const KernelGlobals *kg,
+ccl_device_noinline void svm_node_displacement(KernelGlobals kg,
                                                ccl_private ShaderData *sd,
                                                ccl_private float *stack,
                                                uint4 node)
@@ -127,11 +127,8 @@ ccl_device_noinline void svm_node_displacement(ccl_global const KernelGlobals *k
   stack_store_float3(stack, node.z, dP);
 }
 
-ccl_device_noinline int svm_node_vector_displacement(ccl_global const KernelGlobals *kg,
-                                                     ccl_private ShaderData *sd,
-                                                     ccl_private float *stack,
-                                                     uint4 node,
-                                                     int offset)
+ccl_device_noinline int svm_node_vector_displacement(
+    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
   uint4 data_node = read_node(kg, &offset);
   uint space = data_node.x;

@@ -34,7 +34,7 @@ CCL_NAMESPACE_BEGIN
  * a closer distance.
  */
 
-ccl_device_inline float3 motion_triangle_refine(ccl_global const KernelGlobals *kg,
+ccl_device_inline float3 motion_triangle_refine(KernelGlobals kg,
                                                 ccl_private ShaderData *sd,
                                                 float3 P,
                                                 float3 D,
@@ -92,7 +92,7 @@ ccl_device_noinline
 ccl_device_inline
 #  endif
     float3
-    motion_triangle_refine_local(ccl_global const KernelGlobals *kg,
+    motion_triangle_refine_local(KernelGlobals kg,
                                  ccl_private ShaderData *sd,
                                  float3 P,
                                  float3 D,
@@ -145,7 +145,7 @@ ccl_device_inline
  * time and do a ray intersection with the resulting triangle.
  */
 
-ccl_device_inline bool motion_triangle_intersect(ccl_global const KernelGlobals *kg,
+ccl_device_inline bool motion_triangle_intersect(KernelGlobals kg,
                                                  ccl_private Intersection *isect,
                                                  float3 P,
                                                  float3 dir,
@@ -202,7 +202,7 @@ ccl_device_inline bool motion_triangle_intersect(ccl_global const KernelGlobals 
  * Returns whether traversal should be stopped.
  */
 #ifdef __BVH_LOCAL__
-ccl_device_inline bool motion_triangle_intersect_local(ccl_global const KernelGlobals *kg,
+ccl_device_inline bool motion_triangle_intersect_local(KernelGlobals kg,
                                                        ccl_private LocalIntersection *local_isect,
                                                        float3 P,
                                                        float3 dir,

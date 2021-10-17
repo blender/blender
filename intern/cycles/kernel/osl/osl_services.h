@@ -40,7 +40,7 @@ class Scene;
 class Shader;
 struct ShaderData;
 struct float3;
-struct KernelGlobals;
+struct KernelGlobalsCPU;
 
 /* OSL Texture Handle
  *
@@ -250,13 +250,13 @@ class OSLRenderServices : public OSL::RendererServices {
                         void *data) override;
 #endif
 
-  static bool get_background_attribute(const KernelGlobals *kg,
+  static bool get_background_attribute(const KernelGlobalsCPU *kg,
                                        ShaderData *sd,
                                        ustring name,
                                        TypeDesc type,
                                        bool derivatives,
                                        void *val);
-  static bool get_object_standard_attribute(const KernelGlobals *kg,
+  static bool get_object_standard_attribute(const KernelGlobalsCPU *kg,
                                             ShaderData *sd,
                                             ustring name,
                                             TypeDesc type,

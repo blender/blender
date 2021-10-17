@@ -42,48 +42,49 @@ CCL_NAMESPACE_BEGIN
  * one of them, and only once.
  */
 
-#define INTEGRATOR_PATH_IS_TERMINATED (INTEGRATOR_STATE(path, queued_kernel) == 0)
-#define INTEGRATOR_SHADOW_PATH_IS_TERMINATED (INTEGRATOR_STATE(shadow_path, queued_kernel) == 0)
+#define INTEGRATOR_PATH_IS_TERMINATED (INTEGRATOR_STATE(state, path, queued_kernel) == 0)
+#define INTEGRATOR_SHADOW_PATH_IS_TERMINATED \
+  (INTEGRATOR_STATE(state, shadow_path, queued_kernel) == 0)
 
 #ifdef __KERNEL_GPU__
 
 #  define INTEGRATOR_PATH_INIT(next_kernel) \
     atomic_fetch_and_add_uint32(&kernel_integrator_state.queue_counter->num_queued[next_kernel], \
                                 1); \
-    INTEGRATOR_STATE_WRITE(path, queued_kernel) = next_kernel;
+    INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel;
 #  define INTEGRATOR_PATH_NEXT(current_kernel, next_kernel) \
     atomic_fetch_and_sub_uint32( \
         &kernel_integrator_state.queue_counter->num_queued[current_kernel], 1); \
     atomic_fetch_and_add_uint32(&kernel_integrator_state.queue_counter->num_queued[next_kernel], \
                                 1); \
-    INTEGRATOR_STATE_WRITE(path, queued_kernel) = next_kernel;
+    INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel;
 #  define INTEGRATOR_PATH_TERMINATE(current_kernel) \
     atomic_fetch_and_sub_uint32( \
         &kernel_integrator_state.queue_counter->num_queued[current_kernel], 1); \
-    INTEGRATOR_STATE_WRITE(path, queued_kernel) = 0;
+    INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
 
 #  define INTEGRATOR_SHADOW_PATH_INIT(next_kernel) \
     atomic_fetch_and_add_uint32(&kernel_integrator_state.queue_counter->num_queued[next_kernel], \
                                 1); \
-    INTEGRATOR_STATE_WRITE(shadow_path, queued_kernel) = next_kernel;
+    INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = next_kernel;
 #  define INTEGRATOR_SHADOW_PATH_NEXT(current_kernel, next_kernel) \
     atomic_fetch_and_sub_uint32( \
         &kernel_integrator_state.queue_counter->num_queued[current_kernel], 1); \
     atomic_fetch_and_add_uint32(&kernel_integrator_state.queue_counter->num_queued[next_kernel], \
                                 1); \
-    INTEGRATOR_STATE_WRITE(shadow_path, queued_kernel) = next_kernel;
+    INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = next_kernel;
 #  define INTEGRATOR_SHADOW_PATH_TERMINATE(current_kernel) \
     atomic_fetch_and_sub_uint32( \
         &kernel_integrator_state.queue_counter->num_queued[current_kernel], 1); \
-    INTEGRATOR_STATE_WRITE(shadow_path, queued_kernel) = 0;
+    INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = 0;
 
 #  define INTEGRATOR_PATH_INIT_SORTED(next_kernel, key) \
     { \
       const int key_ = key; \
       atomic_fetch_and_add_uint32( \
           &kernel_integrator_state.queue_counter->num_queued[next_kernel], 1); \
-      INTEGRATOR_STATE_WRITE(path, queued_kernel) = next_kernel; \
-      INTEGRATOR_STATE_WRITE(path, shader_sort_key) = key_; \
+      INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel; \
+      INTEGRATOR_STATE_WRITE(state, path, shader_sort_key) = key_; \
       atomic_fetch_and_add_uint32(&kernel_integrator_state.sort_key_counter[next_kernel][key_], \
                                   1); \
     }
@@ -94,8 +95,8 @@ CCL_NAMESPACE_BEGIN
           &kernel_integrator_state.queue_counter->num_queued[current_kernel], 1); \
       atomic_fetch_and_add_uint32( \
           &kernel_integrator_state.queue_counter->num_queued[next_kernel], 1); \
-      INTEGRATOR_STATE_WRITE(path, queued_kernel) = next_kernel; \
-      INTEGRATOR_STATE_WRITE(path, shader_sort_key) = key_; \
+      INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel; \
+      INTEGRATOR_STATE_WRITE(state, path, shader_sort_key) = key_; \
       atomic_fetch_and_add_uint32(&kernel_integrator_state.sort_key_counter[next_kernel][key_], \
                                   1); \
     }
@@ -103,39 +104,39 @@ CCL_NAMESPACE_BEGIN
 #else
 
 #  define INTEGRATOR_PATH_INIT(next_kernel) \
-    INTEGRATOR_STATE_WRITE(path, queued_kernel) = next_kernel;
+    INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel;
 #  define INTEGRATOR_PATH_INIT_SORTED(next_kernel, key) \
     { \
-      INTEGRATOR_STATE_WRITE(path, queued_kernel) = next_kernel; \
+      INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel; \
       (void)key; \
     }
 #  define INTEGRATOR_PATH_NEXT(current_kernel, next_kernel) \
     { \
-      INTEGRATOR_STATE_WRITE(path, queued_kernel) = next_kernel; \
+      INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel; \
       (void)current_kernel; \
     }
 #  define INTEGRATOR_PATH_TERMINATE(current_kernel) \
     { \
-      INTEGRATOR_STATE_WRITE(path, queued_kernel) = 0; \
+      INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0; \
       (void)current_kernel; \
     }
 #  define INTEGRATOR_PATH_NEXT_SORTED(current_kernel, next_kernel, key) \
     { \
-      INTEGRATOR_STATE_WRITE(path, queued_kernel) = next_kernel; \
+      INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel; \
       (void)key; \
       (void)current_kernel; \
     }
 
 #  define INTEGRATOR_SHADOW_PATH_INIT(next_kernel) \
-    INTEGRATOR_STATE_WRITE(shadow_path, queued_kernel) = next_kernel;
+    INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = next_kernel;
 #  define INTEGRATOR_SHADOW_PATH_NEXT(current_kernel, next_kernel) \
     { \
-      INTEGRATOR_STATE_WRITE(shadow_path, queued_kernel) = next_kernel; \
+      INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = next_kernel; \
       (void)current_kernel; \
     }
 #  define INTEGRATOR_SHADOW_PATH_TERMINATE(current_kernel) \
     { \
-      INTEGRATOR_STATE_WRITE(shadow_path, queued_kernel) = 0; \
+      INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = 0; \
       (void)current_kernel; \
     }
 

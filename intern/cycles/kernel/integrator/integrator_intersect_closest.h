@@ -29,7 +29,8 @@
 CCL_NAMESPACE_BEGIN
 
 template<uint32_t current_kernel>
-ccl_device_forceinline bool integrator_intersect_terminate(INTEGRATOR_STATE_ARGS,
+ccl_device_forceinline bool integrator_intersect_terminate(KernelGlobals kg,
+                                                           IntegratorState state,
                                                            const int shader_flags)
 {
 
@@ -37,12 +38,12 @@ ccl_device_forceinline bool integrator_intersect_terminate(INTEGRATOR_STATE_ARGS
    * We continue evaluating emissive/transparent surfaces and volumes, similar
    * to direct lighting. Only if we know there are none can we terminate the
    * path immediately. */
-  if (path_state_ao_bounce(INTEGRATOR_STATE_PASS)) {
+  if (path_state_ao_bounce(kg, state)) {
     if (shader_flags & (SD_HAS_TRANSPARENT_SHADOW | SD_HAS_EMISSION)) {
-      INTEGRATOR_STATE_WRITE(path, flag) |= PATH_RAY_TERMINATE_AFTER_TRANSPARENT;
+      INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_TERMINATE_AFTER_TRANSPARENT;
     }
-    else if (!integrator_state_volume_stack_is_empty(INTEGRATOR_STATE_PASS)) {
-      INTEGRATOR_STATE_WRITE(path, flag) |= PATH_RAY_TERMINATE_AFTER_VOLUME;
+    else if (!integrator_state_volume_stack_is_empty(kg, state)) {
+      INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_TERMINATE_AFTER_VOLUME;
     }
     else {
       return true;
@@ -51,14 +52,14 @@ ccl_device_forceinline bool integrator_intersect_terminate(INTEGRATOR_STATE_ARGS
 
   /* Load random number state. */
   RNGState rng_state;
-  path_state_rng_load(INTEGRATOR_STATE_PASS, &rng_state);
+  path_state_rng_load(state, &rng_state);
 
   /* We perform path termination in this kernel to avoid launching shade_surface
    * and evaluating the shader when not needed. Only for emission and transparent
    * surfaces in front of emission do we need to evaluate the shader, since we
    * perform MIS as part of indirect rays. */
-  const int path_flag = INTEGRATOR_STATE(path, flag);
-  const float probability = path_state_continuation_probability(INTEGRATOR_STATE_PASS, path_flag);
+  const int path_flag = INTEGRATOR_STATE(state, path, flag);
+  const float probability = path_state_continuation_probability(kg, state, path_flag);
 
   if (probability != 1.0f) {
     const float terminate = path_state_rng_1D(kg, &rng_state, PRNG_TERMINATE);
@@ -66,11 +67,11 @@ ccl_device_forceinline bool integrator_intersect_terminate(INTEGRATOR_STATE_ARGS
     if (probability == 0.0f || terminate >= probability) {
       if (shader_flags & SD_HAS_EMISSION) {
         /* Mark path to be terminated right after shader evaluation on the surface. */
-        INTEGRATOR_STATE_WRITE(path, flag) |= PATH_RAY_TERMINATE_ON_NEXT_SURFACE;
+        INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_TERMINATE_ON_NEXT_SURFACE;
       }
-      else if (!integrator_state_volume_stack_is_empty(INTEGRATOR_STATE_PASS)) {
+      else if (!integrator_state_volume_stack_is_empty(kg, state)) {
         /* TODO: only do this for emissive volumes. */
-        INTEGRATOR_STATE_WRITE(path, flag) |= PATH_RAY_TERMINATE_IN_NEXT_VOLUME;
+        INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_TERMINATE_IN_NEXT_VOLUME;
       }
       else {
         return true;
@@ -85,7 +86,8 @@ ccl_device_forceinline bool integrator_intersect_terminate(INTEGRATOR_STATE_ARGS
  * leads to poor performance with CUDA atomics. */
 template<uint32_t current_kernel>
 ccl_device_forceinline void integrator_intersect_shader_next_kernel(
-    INTEGRATOR_STATE_ARGS,
+    KernelGlobals kg,
+    IntegratorState state,
     ccl_private const Intersection *ccl_restrict isect,
     const int shader,
     const int shader_flags)
@@ -122,9 +124,9 @@ ccl_device_forceinline void integrator_intersect_shader_next_kernel(
 
 #ifdef __SHADOW_CATCHER__
   const int object_flags = intersection_get_object_flags(kg, isect);
-  if (kernel_shadow_catcher_split(INTEGRATOR_STATE_PASS, object_flags)) {
+  if (kernel_shadow_catcher_split(kg, state, object_flags)) {
     if (kernel_data.film.pass_background != PASS_UNUSED && !kernel_data.background.transparent) {
-      INTEGRATOR_STATE_WRITE(path, flag) |= PATH_RAY_SHADOW_CATCHER_BACKGROUND;
+      INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_SHADOW_CATCHER_BACKGROUND;
 
       INTEGRATOR_PATH_INIT(DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
     }
@@ -137,7 +139,7 @@ ccl_device_forceinline void integrator_intersect_shader_next_kernel(
 
     /* If the split happened after bounce through a transparent object it's possible to have shadow
      * patch. Make sure it is properly re-scheduled on the split path. */
-    const int shadow_kernel = INTEGRATOR_STATE(shadow_path, queued_kernel);
+    const int shadow_kernel = INTEGRATOR_STATE(state, shadow_path, queued_kernel);
     if (shadow_kernel != 0) {
       INTEGRATOR_SHADOW_PATH_INIT(shadow_kernel);
     }
@@ -145,21 +147,21 @@ ccl_device_forceinline void integrator_intersect_shader_next_kernel(
 #endif
 }
 
-ccl_device void integrator_intersect_closest(INTEGRATOR_STATE_ARGS)
+ccl_device void integrator_intersect_closest(KernelGlobals kg, IntegratorState state)
 {
   PROFILING_INIT(kg, PROFILING_INTERSECT_CLOSEST);
 
   /* Read ray from integrator state into local memory. */
   Ray ray ccl_optional_struct_init;
-  integrator_state_read_ray(INTEGRATOR_STATE_PASS, &ray);
+  integrator_state_read_ray(kg, state, &ray);
   kernel_assert(ray.t != 0.0f);
 
-  const uint visibility = path_state_ray_visibility(INTEGRATOR_STATE_PASS);
-  const int last_isect_prim = INTEGRATOR_STATE(isect, prim);
-  const int last_isect_object = INTEGRATOR_STATE(isect, object);
+  const uint visibility = path_state_ray_visibility(state);
+  const int last_isect_prim = INTEGRATOR_STATE(state, isect, prim);
+  const int last_isect_object = INTEGRATOR_STATE(state, isect, object);
 
   /* Trick to use short AO rays to approximate indirect light at the end of the path. */
-  if (path_state_ao_bounce(INTEGRATOR_STATE_PASS)) {
+  if (path_state_ao_bounce(kg, state)) {
     ray.t = kernel_data.integrator.ao_bounces_distance;
 
     const float object_ao_distance = kernel_tex_fetch(__objects, last_isect_object).ao_distance;
@@ -181,8 +183,8 @@ ccl_device void integrator_intersect_closest(INTEGRATOR_STATE_ARGS)
   if (kernel_data.integrator.use_lamp_mis) {
     /* NOTE: if we make lights visible to camera rays, we'll need to initialize
      * these in the path_state_init. */
-    const int last_type = INTEGRATOR_STATE(isect, type);
-    const int path_flag = INTEGRATOR_STATE(path, flag);
+    const int last_type = INTEGRATOR_STATE(state, isect, type);
+    const int path_flag = INTEGRATOR_STATE(state, path, flag);
 
     hit = lights_intersect(
               kg, &ray, &isect, last_isect_prim, last_isect_object, last_type, path_flag) ||
@@ -190,16 +192,16 @@ ccl_device void integrator_intersect_closest(INTEGRATOR_STATE_ARGS)
   }
 
   /* Write intersection result into global integrator state memory. */
-  integrator_state_write_isect(INTEGRATOR_STATE_PASS, &isect);
+  integrator_state_write_isect(kg, state, &isect);
 
 #ifdef __VOLUME__
-  if (!integrator_state_volume_stack_is_empty(INTEGRATOR_STATE_PASS)) {
+  if (!integrator_state_volume_stack_is_empty(kg, state)) {
     const bool hit_surface = hit && !(isect.type & PRIMITIVE_LAMP);
     const int shader = (hit_surface) ? intersection_get_shader(kg, &isect) : SHADER_NONE;
     const int flags = (hit_surface) ? kernel_tex_fetch(__shaders, shader).flags : 0;
 
     if (!integrator_intersect_terminate<DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST>(
-            INTEGRATOR_STATE_PASS, flags)) {
+            kg, state, flags)) {
       /* Continue with volume kernel if we are inside a volume, regardless
        * if we hit anything. */
       INTEGRATOR_PATH_NEXT(DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST,
@@ -225,9 +227,9 @@ ccl_device void integrator_intersect_closest(INTEGRATOR_STATE_ARGS)
       const int flags = kernel_tex_fetch(__shaders, shader).flags;
 
       if (!integrator_intersect_terminate<DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST>(
-              INTEGRATOR_STATE_PASS, flags)) {
+              kg, state, flags)) {
         integrator_intersect_shader_next_kernel<DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST>(
-            INTEGRATOR_STATE_PASS, &isect, shader, flags);
+            kg, state, &isect, shader, flags);
         return;
       }
       else {

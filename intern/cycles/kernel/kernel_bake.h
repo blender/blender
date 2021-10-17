@@ -24,7 +24,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void kernel_displace_evaluate(ccl_global const KernelGlobals *kg,
+ccl_device void kernel_displace_evaluate(KernelGlobals kg,
                                          ccl_global const KernelShaderEvalInput *input,
                                          ccl_global float *output,
                                          const int offset)
@@ -37,7 +37,7 @@ ccl_device void kernel_displace_evaluate(ccl_global const KernelGlobals *kg,
 
   /* Evaluate displacement shader. */
   const float3 P = sd.P;
-  shader_eval_displacement(INTEGRATOR_STATE_PASS_NULL, &sd);
+  shader_eval_displacement(kg, INTEGRATOR_STATE_NULL, &sd);
   float3 D = sd.P - P;
 
   object_inverse_dir_transform(kg, &sd, &D);
@@ -58,7 +58,7 @@ ccl_device void kernel_displace_evaluate(ccl_global const KernelGlobals *kg,
   output[offset * 3 + 2] += D.z;
 }
 
-ccl_device void kernel_background_evaluate(ccl_global const KernelGlobals *kg,
+ccl_device void kernel_background_evaluate(KernelGlobals kg,
                                            ccl_global const KernelShaderEvalInput *input,
                                            ccl_global float *output,
                                            const int offset)
@@ -77,7 +77,7 @@ ccl_device void kernel_background_evaluate(ccl_global const KernelGlobals *kg,
    * This is being evaluated for all BSDFs, so path flag does not contain a specific type. */
   const int path_flag = PATH_RAY_EMISSION;
   shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
-      INTEGRATOR_STATE_PASS_NULL, &sd, NULL, path_flag);
+      kg, INTEGRATOR_STATE_NULL, &sd, NULL, path_flag);
   float3 color = shader_background_eval(&sd);
 
 #ifdef __KERNEL_DEBUG_NAN__
