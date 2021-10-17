@@ -78,6 +78,7 @@ set(SRC
   sculpt_mask_expand.c
   sculpt_mask_init.c
   sculpt_multiplane_scrape.c
+  sculpt_ops.c
   sculpt_paint_color.c
   sculpt_pose.c
   sculpt_poly_loop.c

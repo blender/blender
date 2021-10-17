@@ -2163,3 +2163,7 @@ void SCULPT_bmesh_topology_rake(struct Sculpt *sd,
 
 void SCULPT_stroke_cache_snap_context_init(struct bContext *C, struct Object *ob);
 void SCULPT_fairing_brush_exec_fairing_for_cache(struct Sculpt *sd, struct Object *ob);
+
+/* end sculpt_brushes.c stuff */
+
+void SCULPT_OT_brush_stroke(struct wmOperatorType *ot);
