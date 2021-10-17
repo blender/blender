@@ -92,6 +92,7 @@ typedef struct IntegratorStateCPU {
 #undef KERNEL_STRUCT_VOLUME_STACK_SIZE
 
   IntegratorShadowStateCPU shadow;
+  IntegratorShadowStateCPU ao;
 } IntegratorStateCPU;
 
 /* Path Queue

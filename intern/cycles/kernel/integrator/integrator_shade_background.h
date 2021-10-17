@@ -198,7 +198,7 @@ ccl_device void integrator_shade_background(KernelGlobals kg,
     const int shader = intersection_get_shader_from_isect_prim(kg, isect_prim, isect_type);
     const int shader_flags = kernel_tex_fetch(__shaders, shader).flags;
 
-    if ((shader_flags & SD_HAS_RAYTRACE) || (kernel_data.film.pass_ao != PASS_UNUSED)) {
+    if (shader_flags & SD_HAS_RAYTRACE) {
       INTEGRATOR_PATH_NEXT_SORTED(DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND,
                                   DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE,
                                   shader);

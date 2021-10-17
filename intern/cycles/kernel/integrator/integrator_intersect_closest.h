@@ -111,8 +111,7 @@ ccl_device_forceinline void integrator_intersect_shader_next_kernel(
    * Note that the splitting leaves kernel and sorting counters as-is, so use INIT semantic for
    * the matte path. */
 
-  const bool use_raytrace_kernel = ((shader_flags & SD_HAS_RAYTRACE) ||
-                                    (kernel_data.film.pass_ao != PASS_UNUSED));
+  const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE);
 
   if (use_raytrace_kernel) {
     INTEGRATOR_PATH_NEXT_SORTED(

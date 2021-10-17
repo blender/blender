@@ -79,10 +79,12 @@ class PathTraceWorkGPU : public PathTraceWork {
                           const int num_predicted_splits);
 
   bool enqueue_path_iteration();
-  void enqueue_path_iteration(DeviceKernel kernel);
+  void enqueue_path_iteration(DeviceKernel kernel, const int num_paths_limit = INT_MAX);
 
   void compute_queued_paths(DeviceKernel kernel, DeviceKernel queued_kernel);
-  void compute_sorted_queued_paths(DeviceKernel kernel, DeviceKernel queued_kernel);
+  void compute_sorted_queued_paths(DeviceKernel kernel,
+                                   DeviceKernel queued_kernel,
+                                   const int num_paths_limit);
 
   void compact_states(const int num_active_paths);
 
@@ -116,6 +118,7 @@ class PathTraceWorkGPU : public PathTraceWork {
   /* Kernel properties. */
   bool kernel_uses_sorting(DeviceKernel kernel);
   bool kernel_creates_shadow_paths(DeviceKernel kernel);
+  bool kernel_creates_ao_paths(DeviceKernel kernel);
   bool kernel_is_shadow_path(DeviceKernel kernel);
   int kernel_max_active_path_index(DeviceKernel kernel);
 
@@ -136,6 +139,7 @@ class PathTraceWorkGPU : public PathTraceWork {
   /* Shader sorting. */
   device_vector<int> integrator_shader_sort_counter_;
   device_vector<int> integrator_shader_raytrace_sort_counter_;
+  device_vector<int> integrator_shader_sort_prefix_sum_;
   /* Path split. */
   device_vector<int> integrator_next_shadow_path_index_;
   device_vector<int> integrator_next_shadow_catcher_path_index_;

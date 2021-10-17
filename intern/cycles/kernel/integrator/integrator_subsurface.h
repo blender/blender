@@ -182,7 +182,7 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
 
   const int shader = intersection_get_shader(kg, &ss_isect.hits[0]);
   const int shader_flags = kernel_tex_fetch(__shaders, shader).flags;
-  if ((shader_flags & SD_HAS_RAYTRACE) || (kernel_data.film.pass_ao != PASS_UNUSED)) {
+  if (shader_flags & SD_HAS_RAYTRACE) {
     INTEGRATOR_PATH_NEXT_SORTED(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
                                 DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE,
                                 shader);

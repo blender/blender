@@ -35,8 +35,10 @@ CCL_NAMESPACE_BEGIN
 
 template<uint blocksize, typename GetKeyOp>
 __device__ void gpu_parallel_sorted_index_array(const uint num_states,
+                                                const int num_states_limit,
                                                 int *indices,
                                                 int *num_indices,
+                                                int *key_counter,
                                                 int *key_prefix_sum,
                                                 GetKeyOp get_key_op)
 {
@@ -46,7 +48,15 @@ __device__ void gpu_parallel_sorted_index_array(const uint num_states,
 
   if (key != GPU_PARALLEL_SORTED_INDEX_INACTIVE_KEY) {
     const uint index = atomic_fetch_and_add_uint32(&key_prefix_sum[key], 1);
-    indices[index] = state_index;
+    if (index < num_states_limit) {
+      /* Assign state index. */
+      indices[index] = state_index;
+    }
+    else {
+      /* Can't process this state now, increase the counter again so that
+       * it will be handled in another iteration. */
+      atomic_fetch_and_add_uint32(&key_counter[key], 1);
+    }
   }
 }
 
