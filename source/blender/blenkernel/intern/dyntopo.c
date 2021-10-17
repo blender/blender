@@ -612,7 +612,7 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
     BMVert *v2 = e->v1 == v ? e->v2 : e->v1;
 
     // can't check for boundary here, thread
-    pbvh_check_vert_boundary(pbvh, v2);
+    // pbvh_check_vert_boundary(pbvh, v2);
 
     MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v2);
     const bool bound2 = mv2->flag & SCULPTVERT_SMOOTH_BOUNDARY;
@@ -4668,6 +4668,11 @@ static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx,
   return modified;
 }
 
+float mask_cb_nop(SculptVertRef vertex, void *userdata)
+{
+  return 1.0f;
+}
+
 /* Collapse short edges, subdivide long edges */
 bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     PBVHTopologyUpdateMode mode,
@@ -4749,30 +4754,6 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     safe_smooth = DYNTOPO_SAFE_SMOOTH_FAC;
   }
 
-  /*
-
-
-typedef struct EdgeQueueContext {
-  EdgeQueue *q;
-  BLI_mempool *pool;
-  BMesh *bm;
-  DyntopoMaskCB mask_cb;
-  void *mask_cb_data;
-  int cd_sculpt_vert;
-  int cd_vert_mask_offset;
-  int cd_vert_node_offset;
-  int cd_face_node_offset;
-  float avg_elen;
-  float max_elen;
-  float min_elen;
-  float totedge;
-  BMVert **val34_verts;
-  int val34_verts_tot;
-  int val34_verts_size;
-  bool local_mode;
-  float surface_smooth_fac;
-} EdgeQueueContext;
-*/
   EdgeQueueContext eq_ctx = {.q = NULL,
                              .pool = NULL,
                              .bm = pbvh->bm,
@@ -5701,4 +5682,272 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
     BLI_array_free(edges);
   }
 #endif
+}
+
+extern char dyntopop_node_idx_layer_id[];
+extern char dyntopop_faces_areas_layer_id[];
+
+typedef struct DynTopoState {
+  PBVH *pbvh;
+  bool is_fake_pbvh;
+} DynTopoState;
+
+/* existing_pbvh may be NULL, if so a fake one will be created.
+Note that all the sculpt customdata layers will be created
+if they don't exist, so cd_vert/face_node_offset, cd_mask_offset,
+cd_sculpt_vert, etc*/
+DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
+{
+  PBVH *pbvh;
+  PBVHNode _node;
+  PBVH _start;
+
+  if (!existing_pbvh) {
+    pbvh = MEM_callocN(sizeof(*pbvh), "pbvh");
+
+    pbvh->nodes = MEM_callocN(sizeof(PBVHNode), "PBVHNode");
+    pbvh->type = PBVH_BMESH;
+    pbvh->totnode = 1;
+
+    PBVHNode *node = pbvh->nodes;
+
+    node->flag = PBVH_Leaf | PBVH_UpdateTris | PBVH_UpdateTriAreas;
+    node->bm_faces = BLI_table_gset_new_ex("node->bm_faces", bm->totface);
+    node->bm_unique_verts = BLI_table_gset_new_ex("node->bm_unique_verts", bm->totvert);
+  }
+  else {
+    pbvh = existing_pbvh;
+  }
+
+  const bool isfake = pbvh != existing_pbvh;
+
+  BMCustomLayerReq vlayers[] = {
+      {CD_PAINT_MASK, NULL, 0},
+      {CD_DYNTOPO_VERT, NULL, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
+      {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
+
+  BMCustomLayerReq flayers[] = {
+      {CD_PROP_FLOAT, dyntopop_faces_areas_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
+      {CD_SCULPT_FACE_SETS, NULL, 0},
+      {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
+
+  BM_data_layers_ensure(bm, &bm->vdata, vlayers, 3);
+  BM_data_layers_ensure(bm, &bm->pdata, flayers, 3);
+
+  int CustomData_get_named_offset(const CustomData *data, int type, const char *name);
+
+  pbvh->bm = bm;
+
+  pbvh->cd_vert_node_offset = CustomData_get_named_offset(
+      &bm->vdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
+
+  pbvh->cd_face_node_offset = CustomData_get_named_offset(
+      &bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
+
+  pbvh->cd_face_area = CustomData_get_named_offset(
+      &bm->pdata, CD_PROP_FLOAT, dyntopop_faces_areas_layer_id);
+
+  pbvh->cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
+  pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  pbvh->cd_faceset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+  pbvh->cd_vcol_offset = -1;
+
+  if (isfake) {
+    pbvh->bm_log = BM_log_create(bm, pbvh->cd_sculpt_vert);
+  }
+
+  BMVert *v;
+  BMFace *f;
+  BMIter iter;
+
+  if (isfake) {
+    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+      BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, 0);
+      BLI_table_gset_add(pbvh->nodes->bm_unique_verts, v);
+    }
+
+    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+      BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, 0);
+      BLI_table_gset_add(pbvh->nodes->bm_faces, f);
+    }
+
+    BKE_pbvh_bmesh_check_tris(pbvh, pbvh->nodes);
+  }
+
+  DynTopoState *ds = MEM_callocN(sizeof(DynTopoState), "DynTopoState");
+
+  ds->pbvh = pbvh;
+  ds->is_fake_pbvh = isfake;
+
+  return ds;
+}
+
+void BKE_dyntopo_default_params(DynRemeshParams *params, float edge_size)
+{
+  memset(params, 0, sizeof(*params));
+  params->detail_range = 0.45f;
+  params->edge_size = edge_size;
+}
+
+void BKE_dyntopo_free(DynTopoState *ds)
+{
+  if (ds->is_fake_pbvh) {
+    BM_log_free(ds->pbvh->bm_log, false);
+
+    PBVHNode *node = ds->pbvh->nodes;
+
+    if (node->tribuf || node->tri_buffers) {
+      BKE_pbvh_bmesh_free_tris(ds->pbvh, node);
+    }
+
+    BLI_table_gset_free(node->bm_faces, NULL);
+    BLI_table_gset_free(node->bm_unique_verts, NULL);
+
+    MEM_freeN(ds->pbvh->nodes);
+    MEM_freeN(ds->pbvh);
+  }
+
+  MEM_freeN(ds);
+}
+
+/*
+bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
+                                    PBVHTopologyUpdateMode mode,
+                                    const float center[3],
+                                    const float view_normal[3],
+                                    float radius,
+                                    const bool use_frontface,
+                                    const bool use_projected,
+                                    int sym_axis,
+                                    bool updatePBVH,
+                                    DyntopoMaskCB mask_cb,
+                                    void *mask_cb_data,
+                                    int custom_max_steps,
+                                    bool disable_surface_relax)
+*/
+void BKE_dyntopo_remesh(DynTopoState *ds,
+                        DynRemeshParams *params,
+                        int steps,
+                        PBVHTopologyUpdateMode mode)
+{
+  float cent[3] = {0.0f, 0.0f, 0.0f};
+  int totcent = 0;
+  float view[3] = {0.0f, 0.0f, 1.0f};
+
+  BMIter iter;
+  BMVert *v;
+
+  BM_ITER_MESH (v, &iter, ds->pbvh->bm, BM_VERTS_OF_MESH) {
+    MSculptVert *mv = BKE_PBVH_SCULPTVERT(ds->pbvh->cd_sculpt_vert, v);
+
+    mv->flag |= SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_TRIANGULATE;
+    mv->valence = BM_vert_edge_count(v);
+
+    pbvh_check_vert_boundary(ds->pbvh, v);
+
+    add_v3_v3(cent, v->co);
+    totcent;
+  }
+
+  if (totcent) {
+    mul_v3_fl(cent, 1.0f / (float)totcent);
+  }
+
+  ds->pbvh->bm_max_edge_len = params->edge_size;
+  ds->pbvh->bm_min_edge_len = params->edge_size * params->detail_range;
+  ds->pbvh->bm_detail_range = params->detail_range;
+
+  /* subdivide once */
+  if (mode & PBVH_Subdivide) {
+    BKE_pbvh_bmesh_update_topology(ds->pbvh,
+                                   PBVH_Subdivide,
+                                   cent,
+                                   view,
+                                   1e17,
+                                   false,
+                                   false,
+                                   0,
+                                   false,
+                                   mask_cb_nop,
+                                   NULL,
+                                   ds->pbvh->bm->totedge,
+                                   false);
+  }
+
+  for (int i = 0; i < steps; i++) {
+    for (int j = 0; j < ds->pbvh->totnode; j++) {
+      PBVHNode *node = ds->pbvh->nodes + j;
+
+      if (node->flag & PBVH_Leaf) {
+        node->flag |= PBVH_UpdateTopology;
+      }
+    }
+
+    BKE_pbvh_bmesh_update_topology(ds->pbvh,
+                                   mode,
+                                   cent,
+                                   view,
+                                   1e17,
+                                   false,
+                                   false,
+                                   0,
+                                   false,
+                                   mask_cb_nop,
+                                   NULL,
+                                   ds->pbvh->bm->totedge * 5,
+                                   true);
+
+    BKE_pbvh_update_normals(ds->pbvh, NULL);
+
+    BM_ITER_MESH (v, &iter, ds->pbvh->bm, BM_VERTS_OF_MESH) {
+      MSculptVert *mv = BKE_PBVH_SCULPTVERT(ds->pbvh->cd_sculpt_vert, v);
+      pbvh_check_vert_boundary(ds->pbvh, v);
+
+      float avg[3] = {0.0f, 0.0f, 0.0f};
+      float totw = 0.0f;
+
+      bool bound1 = mv->flag & SCULPTVERT_ALL_BOUNDARY;
+      if (bound1) {
+        continue;
+      }
+
+      if (mv->flag & SCULPTVERT_ALL_CORNER) {
+        continue;
+      }
+
+      if (!v->e) {
+        continue;
+      }
+
+      BMEdge *e = v->e;
+      do {
+        BMVert *v2 = BM_edge_other_vert(e, v);
+        MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(ds->pbvh->cd_sculpt_vert, v2);
+
+        pbvh_check_vert_boundary(ds->pbvh, v2);
+        bool bound2 = mv2->flag & SCULPTVERT_ALL_BOUNDARY;
+
+        if (bound1 && !bound2) {
+          continue;
+        }
+
+        float tmp[3];
+        float w = 1.0f;
+
+        sub_v3_v3v3(tmp, v2->co, v->co);
+        madd_v3_v3fl(tmp, v->no, -dot_v3v3(v->no, tmp) * 0.75);
+        add_v3_v3(tmp, v->co);
+        madd_v3_v3fl(avg, tmp, w);
+
+        totw += w;
+      } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+      if (totw == 0.0f) {
+        continue;
+      }
+
+      mul_v3_fl(avg, 1.0f / totw);
+      interp_v3_v3v3(v->co, v->co, avg, 0.5f);
+    }
+  }
 }

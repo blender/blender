@@ -997,3 +997,28 @@ BLI_INLINE bool _pbvh_nan_check(const float *co, const char *func, const char *f
   return bad;
 }
 #define PBVH_CHECK_NAN(co) _pbvh_nan_check(co, __func__, __FILE__, __LINE__)
+
+typedef struct DynTopoState DynTopoState;
+
+typedef struct DynRemeshParams {
+  float edge_size;
+  float detail_range;
+  float relax_strength;
+} DynRemeshParams;
+
+/*
+Simple wrapper api to use the dyntopo remesher in
+non-sculpt contexts.
+
+existing_pbvh can be NULL.
+
+Note that all the sculpt customdata layers will be created
+if they don't exist, so cd_vert/face_node_offset, cd_mask_offset,
+cd_sculpt_vert, etc*/
+DynTopoState *BKE_dyntopo_init(struct BMesh *bm, PBVH *existing_pbvh);
+void BKE_dyntopo_free(DynTopoState *ds);
+void BKE_dyntopo_default_params(DynRemeshParams *params, float edge_size);
+void BKE_dyntopo_remesh(DynTopoState *ds,
+                        DynRemeshParams *params,
+                        int steps,
+                        PBVHTopologyUpdateMode mode);

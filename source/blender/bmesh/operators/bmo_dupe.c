@@ -63,8 +63,11 @@ static BMVert *bmo_vert_copy(BMOperator *op,
 
   /* Handle Ids */
   bm_alloc_id(bm_dst, (BMElem *)v_dst);
-  bm_elem_check_toolflags(bm_dst, (BMElem *)v_dst);
+  // short **flags = BM_ELEM_CD_GET_VOID_P(
+  //    v_dst, bm_dst->vdata.layers[bm_dst->vdata.typemap[CD_TOOLFLAGS]].offset);
 
+  bm_elem_check_toolflags(bm_dst, (BMElem *)v_dst);
+  // printf("%p\n", flags);
   /* Mark the vert for output */
   BMO_vert_flag_enable(bm_dst, v_dst, DUPE_NEW);
 

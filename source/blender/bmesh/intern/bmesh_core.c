@@ -812,6 +812,8 @@ int bmesh_elem_check(void *element, const char htype)
 
 #endif /* NDEBUG */
 
+int bleh = 0;
+
 /**
  * low level function, only frees the vert,
  * doesn't change or adjust surrounding geometry
@@ -832,6 +834,11 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
         v, bm->vdata.layers[bm->vdata.typemap[CD_TOOLFLAGS]].offset);
 
     BLI_mempool_free(bm->vtoolflagpool, flags->flag);
+    flags->flag = NULL;
+
+    if (bleh) {
+      printf("eek\n");
+    }
   }
 
   if (v->head.data) {
@@ -969,7 +976,7 @@ void bm_kill_only_face(BMesh *bm, BMFace *f)
     MToolFlags *flags = BM_ELEM_CD_GET_VOID_P(
         f, bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset);
 
-    BLI_mempool_free(bm->vtoolflagpool, flags->flag);
+    BLI_mempool_free(bm->ftoolflagpool, flags->flag);
   }
 
   if (f->head.data) {

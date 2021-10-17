@@ -973,6 +973,7 @@ typedef struct SculptGestureTrimOperation {
 
   float depth_front;
   float depth_back;
+  float avg_edge_len;
 
   bool use_cursor_depth;
 
@@ -1171,6 +1172,17 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
     mul_v3_m4v3(trim_operation->true_mesh_co[i], ob_imat, new_point);
   }
 
+  float avg_elen = 0.0f;
+
+  for (int i = 0; i < tot_screen_points; i++) {
+    MVert *v1 = trim_operation->mesh->mvert + i;
+    MVert *v2 = trim_operation->mesh->mvert + ((i + 1) % tot_screen_points);
+
+    avg_elen += len_v3v3(v1->co, v2->co);
+  }
+
+  trim_operation->avg_edge_len = avg_elen / (float)tot_screen_points;
+
   /* Write vertices coordinates for the back face. */
   madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_back);
   for (int i = 0; i < tot_screen_points; i++) {
@@ -1242,8 +1254,16 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   BKE_mesh_calc_edges(trim_operation->mesh, false, false);
   sculpt_gesture_trim_normals_update(sgcontext);
-}
 
+  mp = trim_operation->mesh->mpoly + tot_tris_face * 2;
+
+  /* flag edges as sharp for dyntopo remesher */
+  for (int i = 0; i < tot_screen_points * 2; i++, mp++) {
+    ml = trim_operation->mesh->mloop + mp->loopstart;
+
+    trim_operation->mesh->medge[ml[1].e].flag |= ME_SHARP;
+  }
+}
 static void sculpt_gesture_trim_geometry_free(SculptGestureContext *sgcontext)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
@@ -1284,12 +1304,44 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                        }));
   }
 
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
+  BMesh *trimbm = BM_mesh_create(
+      &allocsize,
+      &((struct BMeshCreateParams){.use_toolflags = false,
+                                   .create_unique_ids = true,
+                                   .no_reuse_ids = false,
+                                   .temporary_ids = false,
+                                   .copy_all_layers = true,
+                                   .id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
+                                   .id_map = true}));
+
   BM_mesh_bm_from_me(NULL,
-                     bm,
+                     trimbm,
                      trim_mesh,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,
                      }));
+
+  BM_mesh_normals_update(bm);
+
+#if 0
+  // remesh
+  DynTopoState *ds = BKE_dyntopo_init(trimbm, NULL);
+  DynRemeshParams params;
+  BKE_dyntopo_default_params(&params, trim_operation->avg_edge_len * 4.0);
+  BKE_dyntopo_remesh(ds, &params, 10, PBVH_Collapse | PBVH_Cleanup | PBVH_Subdivide);
+
+  BM_mesh_toolflags_set(bm, true);
+
+  BKE_dyntopo_free(ds);
+#endif
+
+  BM_mesh_toolflags_set(bm, true);
+
+  BMO_op_callf(trimbm, BMO_FLAG_DEFAULTS, "duplicate geom=%avef dest=%p", bm, 3);
+
+  SCULPT_update_customdata_refs(sgcontext->ss);
+  BM_mesh_free(trimbm);
 
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
   BMLoop *(*looptris)[3];
@@ -1408,10 +1460,6 @@ static void sculpt_gesture_trim_end(bContext *UNUSED(C), SculptGestureContext *s
   }
 
   sculpt_gesture_trim_geometry_free(sgcontext);
-
-  if (sgcontext->ss && sgcontext->ss->bm) {
-    SCULPT_dynamic_topology_triangulate(sgcontext->ss, sgcontext->ss->bm);
-  }
 
   SCULPT_undo_push_node(sgcontext->vc.obact, NULL, SCULPT_UNDO_GEOMETRY);
   BKE_mesh_batch_cache_dirty_tag(sgcontext->vc.obact->data, BKE_MESH_BATCH_DIRTY_ALL);
@@ -1828,7 +1876,8 @@ static int sculpt_trim_gesture_lasso_exec(bContext *C, wmOperator *op)
 {
   Object *object = CTX_data_active_object(C);
   SculptSession *ss = object->sculpt;
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
     /* Not supported in Multires and Dyntopo. */
     return OPERATOR_CANCELLED;
   }

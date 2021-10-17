@@ -1438,9 +1438,24 @@ void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers
     return;
   }
 
+  CustomDataLayer **nocopy_layers = NULL;
+  BLI_array_declare(nocopy_layers);
+
+  for (int i = 0; i < data->totlayer; i++) {
+    if (data->layers[i].flag & CD_FLAG_NOCOPY) {
+      BLI_array_append(nocopy_layers, &data->layers[i]);
+    }
+  }
+
   if (modified) {
     CustomData_merge(&temp, data, mask, CD_ASSIGN, 0);
   }
+
+  for (int i = 0; i < BLI_array_len(nocopy_layers); i++) {
+    nocopy_layers[i]->flag |= CD_FLAG_NOCOPY;
+  }
+
+  BLI_array_free(nocopy_layers);
 
   for (int i = 0; i < totlayer; i++) {
     BMCustomLayerReq *req = layers + i;

@@ -59,6 +59,9 @@
 
 #define CUSTOMDATA
 
+void CustomData_bmesh_asan_unpoison(const CustomData *data, void *block);
+void CustomData_bmesh_asan_poison(const CustomData *data, void *block);
+
 //#define DEBUG_LOG_TO_FILE
 //#define DO_LOG_PRINT
 
@@ -685,6 +688,7 @@ static void bm_log_vert_customdata(
   //}
 
   if (lv->customdata) {
+    CustomData_bmesh_asan_unpoison(&entry->vdata, lv->customdata);
     BLI_mempool_free(entry->vdata.pool, lv->customdata);
     lv->customdata = NULL;
   }
@@ -701,6 +705,7 @@ static void bm_log_edge_customdata(
     BMesh *bm, BMLog *log, BMLogEntry *entry, BMEdge *e, BMLogEdge *le)
 {
   if (le->customdata) {
+    CustomData_bmesh_asan_unpoison(&entry->edata, le->customdata);
     BLI_mempool_free(entry->edata.pool, le->customdata);
     le->customdata = NULL;
   }
@@ -718,6 +723,7 @@ static void bm_log_face_customdata(BMesh *bm, BMLog *log, BMFace *f, BMLogFace *
   }
 
   if (lf->customdata_f) {
+    CustomData_bmesh_asan_unpoison(&entry->pdata, lf->customdata_f);
     BLI_mempool_free(entry->pdata.pool, lf->customdata_f);
     lf->customdata_f = NULL;
   }
@@ -731,6 +737,7 @@ static void bm_log_face_customdata(BMesh *bm, BMLog *log, BMFace *f, BMLogFace *
   int i = 0;
   do {
     if (lf->customdata[i]) {
+      CustomData_bmesh_asan_unpoison(&entry->ldata, lf->customdata[i]);
       BLI_mempool_free(entry->ldata.pool, lf->customdata[i]);
       lf->customdata[i] = NULL;
     }
@@ -902,12 +909,14 @@ static void bm_log_face_bmface_copy(
     // free existing customdata blocks
 
     if (lf->customdata_f) {
+      CustomData_bmesh_asan_unpoison(&entry->pdata, lf->customdata_f);
       BLI_mempool_free(entry->pdata.pool, lf->customdata_f);
       lf->customdata_f = NULL;
     }
 
     for (uint i = 0; i < lf->len; i++) {
       if (lf->customdata[i]) {
+        CustomData_bmesh_asan_unpoison(&entry->ldata, lf->customdata[i]);
         BLI_mempool_free(entry->ldata.pool, lf->customdata[i]);
         lf->customdata[i] = NULL;
       }
@@ -1438,7 +1447,10 @@ static void bm_log_vert_values_swap(
     if (lv->customdata) {
       if (v->head.data) {
         old_cdata = scratch;
+
+        CustomData_bmesh_asan_unpoison(&bm->vdata, v->head.data);
         memcpy(old_cdata, v->head.data, (size_t)bm->vdata.totsize);
+        CustomData_bmesh_asan_poison(&bm->vdata, v->head.data);
       }
 
       CustomData_bmesh_swap_data(&entry->vdata, &bm->vdata, lv->customdata, &v->head.data);
@@ -1471,7 +1483,9 @@ static void bm_log_edge_values_swap(
     if (le->customdata) {
       if (e->head.data) {
         old_cdata = scratch;
+        CustomData_bmesh_asan_unpoison(&bm->edata, e->head.data);
         memcpy(old_cdata, e->head.data, (size_t)bm->edata.totsize);
+        CustomData_bmesh_asan_poison(&bm->edata, e->head.data);
       }
 
       CustomData_bmesh_swap_data(&entry->edata, &bm->edata, le->customdata, &e->head.data);
@@ -1506,7 +1520,9 @@ static void bm_log_face_values_swap(BMLog *log,
 
     if (f->head.data) {
       old_cdata = scratch;
+      CustomData_bmesh_asan_unpoison(&log->bm->pdata, f->head.data);
       memcpy(old_cdata, f->head.data, (size_t)log->bm->pdata.totsize);
+      CustomData_bmesh_asan_poison(&log->bm->pdata, f->head.data);
     }
 
     if (lf->customdata_f) {
@@ -1869,16 +1885,6 @@ static bool bm_log_free_direct(BMLog *log, bool safe_mode)
   BMLogEntry *entry;
 
   if (safe_mode && log->refcount) {
-#if 0
-    if (log->frozen_full_mesh) {
-      log->frozen_full_mesh->log = NULL;
-      bm_log_entry_free(log->frozen_full_mesh);
-    }
-#endif
-
-    // log->frozen_full_mesh = bm_log_entry_create(LOG_ENTRY_FULL_MESH);
-    // bm_log_full_mesh_intern(log->bm, log, log->frozen_full_mesh);
-
     return false;
   }
 
@@ -2965,6 +2971,7 @@ void BM_log_face_topo_post(BMLog *log, BMFace *f)
   if (BLI_ghash_ensure_p(entry->topo_modified_faces_post, key, &val)) {
     BMLogFace *lf_old = (BMLogFace *)*val;
     *lf_old = *lf;
+
     BLI_mempool_free(entry->pool_faces, lf);
   }
   else {
