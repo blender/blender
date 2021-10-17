@@ -321,7 +321,7 @@ extern "C" __global__ void __launch_bounds__(GPU_PARALLEL_SORTED_INDEX_DEFAULT_B
     const int from_state = active_terminated_states[active_states_offset + global_index];
     const int to_state = active_terminated_states[terminated_states_offset + global_index];
 
-    integrator_state_move(to_state, from_state);
+    integrator_state_move(NULL, to_state, from_state);
   }
 }
 

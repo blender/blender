@@ -173,6 +173,25 @@ ccl_device_forceinline void integrator_state_copy_volume_stack_to_shadow(KernelG
   }
 }
 
+ccl_device_forceinline void integrator_state_copy_volume_stack(KernelGlobals kg,
+                                                               IntegratorState to_state,
+                                                               ConstIntegratorState state)
+{
+  if (kernel_data.kernel_features & KERNEL_FEATURE_VOLUME) {
+    int index = 0;
+    int shader;
+    do {
+      shader = INTEGRATOR_STATE_ARRAY(state, volume_stack, index, shader);
+
+      INTEGRATOR_STATE_ARRAY_WRITE(to_state, volume_stack, index, object) = INTEGRATOR_STATE_ARRAY(
+          state, volume_stack, index, object);
+      INTEGRATOR_STATE_ARRAY_WRITE(to_state, volume_stack, index, shader) = shader;
+
+      ++index;
+    } while (shader != OBJECT_NONE);
+  }
+}
+
 ccl_device_forceinline VolumeStack
 integrator_state_read_shadow_volume_stack(ConstIntegratorState state, int i)
 {
@@ -198,8 +217,9 @@ ccl_device_forceinline void integrator_state_write_shadow_volume_stack(Integrato
 }
 
 #if defined(__KERNEL_GPU__)
-ccl_device_inline void integrator_state_copy_only(const IntegratorState to_state,
-                                                  const IntegratorState state)
+ccl_device_inline void integrator_state_copy_only(KernelGlobals kg,
+                                                  ConstIntegratorState to_state,
+                                                  ConstIntegratorState state)
 {
   int index;
 
@@ -232,7 +252,8 @@ ccl_device_inline void integrator_state_copy_only(const IntegratorState to_state
     while (index < gpu_array_size) \
       ;
 
-#  define KERNEL_STRUCT_VOLUME_STACK_SIZE kernel_data.volume_stack_size
+/* Don't copy volume stack here, do it after with just the number of items needed. */
+#  define KERNEL_STRUCT_VOLUME_STACK_SIZE 0
 
 #  include "kernel/integrator/integrator_state_template.h"
 
@@ -242,12 +263,15 @@ ccl_device_inline void integrator_state_copy_only(const IntegratorState to_state
 #  undef KERNEL_STRUCT_END
 #  undef KERNEL_STRUCT_END_ARRAY
 #  undef KERNEL_STRUCT_VOLUME_STACK_SIZE
+
+  integrator_state_copy_volume_stack(kg, to_state, state);
 }
 
-ccl_device_inline void integrator_state_move(const IntegratorState to_state,
-                                             const IntegratorState state)
+ccl_device_inline void integrator_state_move(KernelGlobals kg,
+                                             ConstIntegratorState to_state,
+                                             ConstIntegratorState state)
 {
-  integrator_state_copy_only(to_state, state);
+  integrator_state_copy_only(kg, to_state, state);
 
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
   INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = 0;
@@ -264,22 +288,20 @@ ccl_device_inline void integrator_state_shadow_catcher_split(KernelGlobals kg,
   const IntegratorState to_state = atomic_fetch_and_add_uint32(
       &kernel_integrator_state.next_shadow_catcher_path_index[0], 1);
 
-  integrator_state_copy_only(to_state, state);
-
-  kernel_integrator_state.path.flag[to_state] |= PATH_RAY_SHADOW_CATCHER_PASS;
+  integrator_state_copy_only(kg, to_state, state);
 #else
 
-  IntegratorStateCPU *ccl_restrict split_state = state + 1;
+  IntegratorStateCPU *ccl_restrict to_state = state + 1;
 
   /* Only copy the required subset, since shadow intersections are big and irrelevant here. */
-  split_state->path = state->path;
-  split_state->ray = state->ray;
-  split_state->isect = state->isect;
-  memcpy(split_state->volume_stack, state->volume_stack, sizeof(state->volume_stack));
-  split_state->shadow_path = state->shadow_path;
-
-  split_state->path.flag |= PATH_RAY_SHADOW_CATCHER_PASS;
+  to_state->path = state->path;
+  to_state->ray = state->ray;
+  to_state->isect = state->isect;
+  integrator_state_copy_volume_stack(kg, to_state, state);
+  to_state->shadow_path = state->shadow_path;
 #endif
+
+  INTEGRATOR_STATE_WRITE(to_state, path, flag) |= PATH_RAY_SHADOW_CATCHER_PASS;
 }
 
 CCL_NAMESPACE_END
