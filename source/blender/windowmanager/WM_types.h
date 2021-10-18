@@ -903,6 +903,9 @@ typedef struct wmOperatorType {
   /** RNA integration */
   ExtensionRNA rna_ext;
 
+  /** Cursor to use when waiting for cursor input, see: #OPTYPE_DEPENDS_ON_CURSOR. */
+  int cursor_pending;
+
   /** Flag last for padding */
   short flag;
 

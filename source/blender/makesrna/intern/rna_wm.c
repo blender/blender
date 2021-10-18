@@ -1958,6 +1958,16 @@ static void rna_def_operator_common(StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_enum_operator_type_flag_items);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
   RNA_def_property_ui_text(prop, "Options", "Options for this operator type");
+
+  prop = RNA_def_property(srna, "bl_cursor_pending", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "type->cursor_pending");
+  RNA_def_property_enum_items(prop, rna_enum_window_cursor_items);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(
+      prop,
+      "Idle Cursor",
+      "Cursor to use when waiting for the user to select a location to activate the operator "
+      "(when ``bl_options`` has ``DEPENDS_ON_CURSOR`` set)");
 }
 
 static void rna_def_operator(BlenderRNA *brna)

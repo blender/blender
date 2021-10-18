@@ -1809,7 +1809,7 @@ void WM_operator_name_call_ptr_with_depends_on_cursor(
     }
   }
 
-  WM_cursor_modal_set(win, WM_CURSOR_PICK_AREA);
+  WM_cursor_modal_set(win, ot->cursor_pending);
 
   uiOperatorWaitForInput *opwait = MEM_callocN(sizeof(*opwait), __func__);
   opwait->optype_params.optype = ot;

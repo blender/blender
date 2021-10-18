@@ -110,6 +110,7 @@ static wmOperatorType *wm_operatortype_append__begin(void)
   /* Set the default i18n context now, so that opfunc can redefine it if needed! */
   RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   ot->translation_context = BLT_I18NCONTEXT_OPERATOR_DEFAULT;
+  ot->cursor_pending = WM_CURSOR_PICK_AREA;
 
   return ot;
 }
