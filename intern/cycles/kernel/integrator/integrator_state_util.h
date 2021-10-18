@@ -240,8 +240,7 @@ ccl_device_inline void integrator_state_copy_only(KernelGlobals kg,
     while (index < gpu_array_size) \
       ;
 
-/* Don't copy volume stack here, do it after with just the number of items needed. */
-#  define KERNEL_STRUCT_VOLUME_STACK_SIZE 0
+#  define KERNEL_STRUCT_VOLUME_STACK_SIZE kernel_data.volume_stack_size
 
 #  include "kernel/integrator/integrator_state_template.h"
 
@@ -251,8 +250,6 @@ ccl_device_inline void integrator_state_copy_only(KernelGlobals kg,
 #  undef KERNEL_STRUCT_END
 #  undef KERNEL_STRUCT_END_ARRAY
 #  undef KERNEL_STRUCT_VOLUME_STACK_SIZE
-
-  integrator_state_copy_volume_stack(kg, to_state, state);
 }
 
 ccl_device_inline void integrator_state_move(KernelGlobals kg,
