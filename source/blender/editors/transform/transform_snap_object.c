@@ -1151,9 +1151,12 @@ static bool raycastObjects(SnapObjectContext *sctx,
                            float r_obmat[4][4],
                            ListBase *r_hit_list)
 {
-  if (v3d && (params->edit_mode_type == SNAP_GEOM_EDIT) && XRAY_FLAG_ENABLED(v3d)) {
-    /* Use of occlude geometry in editing mode disabled. */
-    return false;
+  if (params->use_occlusion_test && v3d && XRAY_FLAG_ENABLED(v3d)) {
+    /* General testing of occlusion geometry is disabled if the snap is not intended for the edit
+     * cage. */
+    if (params->edit_mode_type == SNAP_GEOM_EDIT) {
+      return false;
+    }
   }
 
   sctx->runtime.depsgraph = depsgraph;
