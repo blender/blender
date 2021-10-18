@@ -339,7 +339,16 @@ typedef enum eObjectPathCalcRange {
 
 void ED_objects_recalculate_paths(struct bContext *C,
                                   struct Scene *scene,
-                                  eObjectPathCalcRange range);
+                                  eObjectPathCalcRange range,
+                                  struct ListBase *ld_objects);
+
+void ED_objects_recalculate_paths_selected(struct bContext *C,
+                                           struct Scene *scene,
+                                           eObjectPathCalcRange range);
+
+void ED_objects_recalculate_paths_visible(struct bContext *C,
+                                          struct Scene *scene,
+                                          eObjectPathCalcRange range);
 
 /* constraints */
 struct ListBase *ED_object_constraint_active_list(struct Object *ob);

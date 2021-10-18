@@ -910,7 +910,8 @@ void recalcData_objects(TransInfo *t)
 
   if (motionpath_update) {
     /* Update motion paths once for all transformed objects. */
-    ED_objects_recalculate_paths(t->context, t->scene, OBJECT_PATH_CALC_RANGE_CURRENT_FRAME);
+    ED_objects_recalculate_paths_selected(
+        t->context, t->scene, OBJECT_PATH_CALC_RANGE_CURRENT_FRAME);
   }
 
   if (t->options & CTX_OBMODE_XFORM_SKIP_CHILDREN) {
@@ -994,7 +995,7 @@ void special_aftertrans_update__object(bContext *C, TransInfo *t)
     /* Update motion paths once for all transformed objects. */
     const eObjectPathCalcRange range = canceled ? OBJECT_PATH_CALC_RANGE_CURRENT_FRAME :
                                                   OBJECT_PATH_CALC_RANGE_CHANGED;
-    ED_objects_recalculate_paths(C, t->scene, range);
+    ED_objects_recalculate_paths_selected(C, t->scene, range);
   }
 
   clear_trans_object_base_flags(t);
