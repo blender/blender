@@ -113,6 +113,105 @@ float3 perlin_float3_fractal_distorted(float4 position,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Musgrave Multi Fractal
+ * \{ */
+
+float musgrave_ridged_multi_fractal(const float co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+float musgrave_ridged_multi_fractal(const float2 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+float musgrave_ridged_multi_fractal(const float3 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+float musgrave_ridged_multi_fractal(const float4 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+
+float musgrave_hybrid_multi_fractal(const float co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+float musgrave_hybrid_multi_fractal(const float2 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+float musgrave_hybrid_multi_fractal(const float3 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+float musgrave_hybrid_multi_fractal(const float4 co,
+                                    const float H,
+                                    const float lacunarity,
+                                    const float octaves,
+                                    const float offset,
+                                    const float gain);
+
+float musgrave_fBm(const float co, const float H, const float lacunarity, const float octaves);
+float musgrave_fBm(const float2 co, const float H, const float lacunarity, const float octaves);
+float musgrave_fBm(const float3 co, const float H, const float lacunarity, const float octaves);
+float musgrave_fBm(const float4 co, const float H, const float lacunarity, const float octaves);
+
+float musgrave_multi_fractal(const float co,
+                             const float H,
+                             const float lacunarity,
+                             const float octaves);
+float musgrave_multi_fractal(const float2 co,
+                             const float H,
+                             const float lacunarity,
+                             const float octaves);
+float musgrave_multi_fractal(const float3 co,
+                             const float H,
+                             const float lacunarity,
+                             const float octaves);
+float musgrave_multi_fractal(const float4 co,
+                             const float H,
+                             const float lacunarity,
+                             const float octaves);
+
+float musgrave_hetero_terrain(const float co,
+                              const float H,
+                              const float lacunarity,
+                              const float octaves,
+                              const float offset);
+float musgrave_hetero_terrain(const float2 co,
+                              const float H,
+                              const float lacunarity,
+                              const float octaves,
+                              const float offset);
+float musgrave_hetero_terrain(const float3 co,
+                              const float H,
+                              const float lacunarity,
+                              const float octaves,
+                              const float offset);
+float musgrave_hetero_terrain(const float4 co,
+                              const float H,
+                              const float lacunarity,
+                              const float octaves,
+                              const float offset);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Voronoi Noise
  * \{ */
 
