@@ -1055,7 +1055,29 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
 
   bool exists(const GeometryComponent &component) const final
   {
-    return component.attribute_domain_size(ATTR_DOMAIN_POINT) != 0;
+    const CurveEval *curve = get_curve_from_component_for_read(component);
+    if (curve == nullptr) {
+      return false;
+    }
+
+    Span<SplinePtr> splines = curve->splines();
+    if (splines.size() == 0) {
+      return false;
+    }
+
+    bool has_point = false;
+    for (const SplinePtr &spline : curve->splines()) {
+      if (spline->size() != 0) {
+        has_point = true;
+        break;
+      }
+    }
+
+    if (!has_point) {
+      return false;
+    }
+
+    return true;
   }
 };
 
