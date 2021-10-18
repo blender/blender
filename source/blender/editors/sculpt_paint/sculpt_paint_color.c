@@ -124,6 +124,8 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   const SculptCustomLayer *buffer_scl = data->scl;
   const SculptCustomLayer *stroke_id_scl = data->scl2;
 
+  const bool do_accum = SCULPT_get_int(ss, accumulate, NULL, brush);
+
   PBVHVertexIter vd;
 
   // SculptOrigVertData orig_data;
@@ -222,11 +224,19 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
         paint_color, paint_color, wet_mix_color, ss->cache->paint_brush.wet_mix);
     blend_color_mix_float(color_buffer, color_buffer, paint_color);
 
-    /* Final mix over the original color using brush alpha. */
+    /* Final mix over the color/original-color using brush alpha. */
     mul_v4_v4fl(buffer_color, color_buffer, alpha);
 
-    MSculptVert *mv = SCULPT_vertex_get_mdyntopo(ss, vd.vertex);
-    IMB_blend_color_float(vd.col, mv->origcolor, buffer_color, brush->blend);
+    if (do_accum) {
+      mul_v4_fl(buffer_color, fade);
+
+      IMB_blend_color_float(vd.col, vd.col, buffer_color, brush->blend);
+      vd.col[3] = 1.0f;
+    }
+    else {
+      MSculptVert *mv = SCULPT_vertex_get_mdyntopo(ss, vd.vertex);
+      IMB_blend_color_float(vd.col, mv->origcolor, buffer_color, brush->blend);
+    }
 
     CLAMP4(vd.col, 0.0f, 1.0f);
 

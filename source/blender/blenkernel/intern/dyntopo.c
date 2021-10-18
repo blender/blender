@@ -1466,30 +1466,7 @@ static float maskcb_get(EdgeQueueContext *eq_ctx, BMEdge *e)
 
 static float calc_weighted_edge_split(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
 {
-#ifdef FANCY_EDGE_WEIGHTS
-  float l = len_squared_v3v3(v1->co, v2->co);
-  // float val = (float)BM_vert_edge_count(v1) + (float)BM_vert_edge_count(v2);
-  MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(eq_ctx->cd_sculpt_vert, v1);
-  MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(eq_ctx->cd_sculpt_vert, v2);
-  float val = (float)(mv1->valence + mv2->valence) * 0.5f;
-
-  val -= 6.0f;
-  val = MAX2(val, 1.0f);
-
-  // val = powf(val, 0.5);
-  l *= val;
-
-  return l;
-#elif 0  // penalize 4-valence verts
-  float l = len_squared_v3v3(v1->co, v2->co);
-  if (BM_vert_edge_count(v1) == 4 || BM_vert_edge_count(v2) == 4) {
-    l *= 0.25f;
-  }
-
-  return l;
-#else
-
-#  ifdef WITH_ADAPTIVE_CURVATURE
+#ifdef WITH_ADAPTIVE_CURVATURE
   MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(eq_ctx->cd_sculpt_vert, v1);
   MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(eq_ctx->cd_sculpt_vert, v2);
 
@@ -1499,33 +1476,25 @@ static float calc_weighted_edge_split(EdgeQueueContext *eq_ctx, BMVert *v1, BMVe
   fac = min_ff(fac, 4.0f);
 
   return fac * len_squared_v3v3(v1->co, v2->co);
-#  else
+#else
   return len_squared_v3v3(v1->co, v2->co);
-#  endif
 #endif
 }
 
 BLI_INLINE float calc_weighted_edge_collapse(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
 {
-  return calc_weighted_edge_split(eq_ctx, v1, v2);
+  float len_sq = len_squared_v3v3(v1->co, v2->co);
 
-#ifdef FANCY_EDGE_WEIGHTS
-  float l = len_squared_v3v3(v1->co, v2->co);
-  // float val = (float)BM_vert_edge_count(v1) + (float)BM_vert_edge_count(v2);
+#if 0  // this rule here seems to improve topology, but need to study it more
   MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(eq_ctx->cd_sculpt_vert, v1);
   MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(eq_ctx->cd_sculpt_vert, v2);
-  float val = (float)(mv1->valence + mv2->valence) * 0.5f;
 
-  val -= 6.0f;
-  val = MAX2(val, 1.0f);
-
-  // val = powf(val, 0.5);
-  l *= val;
-
-  return l;
-#else
-  return len_squared_v3v3(v1->co, v2->co);
+  if (mv1->valence == 5 && mv2->valence == 5) {
+    len_sq *= 0.25;
+  }
 #endif
+
+  return len_sq;
 }
 
 /* only tag'd edges are in the queue */
@@ -3625,8 +3594,6 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   bool snap = !(mv2->flag & SCULPTVERT_ALL_CORNER);
 
-  BMLoop *l;
-
   /* snap customdata */
   if (snap) {
     int ni_conn = BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset);
@@ -5704,8 +5671,6 @@ cd_sculpt_vert, etc*/
 DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
 {
   PBVH *pbvh;
-  PBVHNode _node;
-  PBVH _start;
 
   if (!existing_pbvh) {
     pbvh = MEM_callocN(sizeof(*pbvh), "pbvh");

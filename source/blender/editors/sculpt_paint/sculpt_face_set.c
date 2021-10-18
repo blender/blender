@@ -397,7 +397,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
             MVert *v = &ss->mvert[ml->v];
             float fno[3];
 
-            MSculptVert *mv = ss->mdyntopo_verts + i;
+            MSculptVert *mv = ss->mdyntopo_verts + ml->v;
 
             MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
 

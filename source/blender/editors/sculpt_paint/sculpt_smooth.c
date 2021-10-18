@@ -787,6 +787,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
 
   const float selfw = (float)mv->valence * 0.0025f;
   madd_v3_v3fl(dir3, direction, selfw);
+
   totdir3 += selfw;
 
   BMIter eiter;
@@ -800,14 +801,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     float dir2[3];
     float *col2 = BM_ELEM_CD_GET_VOID_P(v_other, cd_temp);
 
-    float bucketw = 1.0f;  // col2[3] < col[3] ? 2.0f : 1.0f;
-    // bucketw /= 0.00001f + len_v3v3(e->v1->co, e->v2->co);
-    // if (weighted) {
-    // bucketw = 1.0 / (0.000001 + areas[area_i]);
-    //}
-    // if (e == v->e) {
-    // bucketw *= 2.0;
-    //}
+    float bucketw = 1.0f;
 
     MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v_other);
     float *co2;
@@ -834,7 +828,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     int bound = SCULPT_edge_is_boundary(ss, (SculptEdgeRef){.i = (intptr_t)e}, bflag);
     float dirw = 1.0f;
 
-    if (bound) {
+    if (bound) {  // || v_other->head.hflag & BM_ELEM_SELECT) {  // XXX
       had_bound = true;
 
       sub_v3_v3v3(dir2, co2, co1);
@@ -860,7 +854,6 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
       tot_co = 0.0f;
       continue;
     }
-
     float vec[3];
     sub_v3_v3v3(vec, co2, co1);
 

@@ -1643,7 +1643,9 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
       // also check e->l->radial_next, in case we are not manifold
       // which can mess up the loop order
       if (e->l->radial_next != e->l) {
-        float th = saacos(dot_v3v3(e->l->f->no, e->l->radial_next->f->no)) * M_1_PI * 0.25f;
+        float th = saacos(dot_v3v3(e->l->f->no, e->l->radial_next->f->no));
+
+        th *= M_1_PI * 0.25f;
         // th = th * 0.5 + 0.5;
         curv += th;
         totcurv += 1.0f;

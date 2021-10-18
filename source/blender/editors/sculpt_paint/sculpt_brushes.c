@@ -3730,6 +3730,9 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   const Brush *brush = data->brush;
   PBVHNode *node = data->nodes[n];
 
+  int mode = SCULPT_get_int(ss, topology_rake_mode, sd, brush);
+  const bool use_curvature = mode == 1;
+
   bool do_reproject = SCULPT_need_reproject(ss);
 
   float direction[3];
@@ -3755,7 +3758,6 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  const bool use_curvature = data->use_curvature;
   int check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
   check_fsets = check_fsets ? SCULPT_BOUNDARY_FACE_SET : 0;
 
@@ -3801,6 +3803,10 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     if (use_curvature) {
       SCULPT_curvature_dir_get(ss, vd.vertex, direction2, false);
     }
+    else if (mode == 2) {  // zero
+      zero_v3(direction);
+      zero_v3(direction2);
+    }
     else {
       copy_v3_v3(direction2, direction);
     }
@@ -3821,7 +3827,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     }
 #endif
 
-    // check origdata to be sure we don't mess it up
+    /* check origdata to be sure we don't mess it up */
     SCULPT_vertex_check_origdata(ss, vd.vertex);
 
     float *co = vd.co;
@@ -3882,6 +3888,7 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd,
 
   // vector4, nto color
   SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_COLOR, "_rake_temp", false);
+
   int cd_temp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_COLOR, "_rake_temp");
 
 #ifdef SCULPT_DIAGONAL_EDGE_MARKS
@@ -3938,17 +3945,15 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd,
 
   for (iteration = 0; iteration <= count; iteration++) {
 
-    SculptThreadedTaskData data = {
-        .sd = sd,
-        .ob = ob,
-        .brush = brush,
-        .nodes = nodes,
-        .strength = factor,
-        .cd_temp = cd_temp,
-        .use_curvature = SCULPT_get_int(ss, topology_rake_mode, sd, brush),
-        .cd_sculpt_vert = ss->cd_sculpt_vert,
-        .rake_projection = brush->topology_rake_projection,
-        .do_origco = needs_origco};
+    SculptThreadedTaskData data = {.sd = sd,
+                                   .ob = ob,
+                                   .brush = brush,
+                                   .nodes = nodes,
+                                   .strength = factor,
+                                   .cd_temp = cd_temp,
+                                   .cd_sculpt_vert = ss->cd_sculpt_vert,
+                                   .rake_projection = brush->topology_rake_projection,
+                                   .do_origco = needs_origco};
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
 

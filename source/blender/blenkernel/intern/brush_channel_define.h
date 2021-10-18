@@ -218,6 +218,7 @@ places in rna_engine_codebase are relevent:
   MAKE_ENUM(topology_rake_mode, "Topology Rake Mode", "", 1, {
       {0, "BRUSH_DIRECTION", "NONE", "Stroke", "Stroke Direction"},
       {1, "CURVATURE", "NONE", "Curvature", "Follow mesh curvature"},
+      {2, "NONE", "NONE", "Boundary Only", "Boundaries only"},
       {-1}
   })
 

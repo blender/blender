@@ -1076,7 +1076,7 @@ typedef struct SculptThreadedTaskData {
   ThreadMutex mutex;
 
   // Layer brush
-  int cd_temp, cd_sculpt_vert;
+  int cd_temp, cd_temp2, cd_temp3, cd_sculpt_vert;
 
   float smooth_projection;
   float rake_projection;
