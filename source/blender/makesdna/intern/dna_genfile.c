@@ -1800,7 +1800,7 @@ static void sdna_expand_names(SDNA *sdna)
 
   int names_expand_index = 0;
   for (int struct_nr = 0; struct_nr < sdna->structs_len; struct_nr++) {
-    /* We can't edit this memory 'sdna->structs' points to (readonly datatoc file). */
+    /* We can't edit this memory 'sdna->structs' points to (read-only `datatoc` file). */
     const SDNA_Struct *struct_old = sdna->structs[struct_nr];
 
     const int array_size = sizeof(short) * 2 + sizeof(SDNA_StructMember) * struct_old->members_len;

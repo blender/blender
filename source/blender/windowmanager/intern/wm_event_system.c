@@ -3837,7 +3837,7 @@ void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval
 }
 
 /* Operator is supposed to have a filled "path" property. */
-/* Optional property: filetype (XXX enum?) */
+/* Optional property: file-type (XXX enum?) */
 
 /**
  * The idea here is to keep a handler alive on window queue, owning the operator.

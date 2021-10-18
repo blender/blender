@@ -112,7 +112,7 @@ static int neighStraightY[8] = {0, 1, 0, -1, 1, 1, -1, -1};
 #define SUBFRAME_RECURSION 5
 /* surface_getBrushFlags() return vals */
 #define BRUSH_USES_VELOCITY (1 << 0)
-/* brush mesh raycast status */
+/* Brush mesh ray-cast status. */
 #define HIT_VOLUME 1
 #define HIT_PROXIMITY 2
 /* dynamicPaint_findNeighborPixel() return codes */
@@ -3436,7 +3436,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
 
 /***************************** Ray / Nearest Point Utils ******************************/
 
-/* A modified callback to bvh tree raycast.
+/* A modified callback to bvh tree ray-cast.
  * The tree must have been built using bvhtree_from_mesh_looptri.
  * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree.
  *
@@ -4107,7 +4107,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
         hit.index = -1;
         hit.dist = brush_radius;
 
-        /* Do a face normal directional raycast, and use that distance */
+        /* Do a face normal directional ray-cast, and use that distance. */
         BLI_bvhtree_ray_cast(
             treeData->tree, ray_start, proj_ray, 0.0f, &hit, mesh_tris_spherecast_dp, treeData);
         if (hit.index != -1) {
@@ -4597,7 +4597,7 @@ static bool dynamicPaint_paintParticles(DynamicPaintSurface *surface,
   }
 
   /*
-   * Build a kd-tree to optimize distance search
+   * Build a KD-tree to optimize distance search
    */
   tree = BLI_kdtree_3d_new(psys->totpart);
 

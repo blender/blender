@@ -495,7 +495,7 @@ class NearestTransferFunction : public fn::MultiFunction {
     Array<int> mesh_indices;
     Array<float> mesh_distances;
 
-    /* If there is a pointcloud, find the closest points. */
+    /* If there is a point-cloud, find the closest points. */
     if (use_points_) {
       point_indices.reinitialize(tot_samples);
       if (use_mesh_) {
@@ -594,7 +594,7 @@ static const GeometryComponent *find_best_match_component(const GeometrySet &geo
 
   /* If there is no component of the same type, choose the other component based on a consistent
    * order, rather than some more complicated heuristic. This is the same order visible in the
-   * spreadsheet and used in the raycast node. */
+   * spreadsheet and used in the ray-cast node. */
   static const Array<GeometryComponentType> supported_types = {
       GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE};
   for (const GeometryComponentType src_type : supported_types) {
@@ -607,8 +607,8 @@ static const GeometryComponent *find_best_match_component(const GeometrySet &geo
 }
 
 /**
- * Use a FieldInput because it's necessary to know the field context in order to choose the
- * corresponding component type from the input geometry, and only a FieldInput receives the
+ * Use a #FieldInput because it's necessary to know the field context in order to choose the
+ * corresponding component type from the input geometry, and only a #FieldInput receives the
  * evaluation context to provide its data.
  *
  * The index-based transfer theoretically does not need realized data when there is only one

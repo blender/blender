@@ -472,8 +472,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
       return true;
     case EVT_PADPERIOD:
     case EVT_PERIODKEY:
-      /* Force numdot, some OSs/countries generate a comma char in this case,
-       * sic...  (T37992) */
+      /* Force number-pad "." since some OS's/countries generate a comma char, see: T37992 */
       ascii[0] = '.';
       utf8_buf = ascii;
       break;

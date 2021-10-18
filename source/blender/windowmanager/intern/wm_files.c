@@ -526,7 +526,7 @@ static int wm_read_exotic(const char *name)
   /* check for compressed .blend */
   FileReader *compressed_file = NULL;
   if (BLI_file_magic_is_gzip(header)) {
-    /* In earlier versions of Blender (before 3.0), compressed files used Gzip instead of Zstd.
+    /* In earlier versions of Blender (before 3.0), compressed files used `Gzip` instead of `Zstd`.
      * While these files will no longer be written, there still needs to be reading support. */
     compressed_file = BLI_filereader_new_gzip(rawfile);
   }

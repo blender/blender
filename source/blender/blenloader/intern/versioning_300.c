@@ -1770,7 +1770,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   {
     /* Keep this block, even when empty. */
 
-    /* Update the idnames for renamed geo and function nodes */
+    /* Update the `idnames` for renamed geometry and function nodes. */
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       if (ntree->type != NTREE_GEOMETRY) {
         continue;

@@ -644,7 +644,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
   /* Options about projection direction */
   float proj_axis[3] = {0.0f, 0.0f, 0.0f};
 
-  /* Raycast and tree stuff */
+  /* Ray-cast and tree stuff. */
 
   /** \note 'hit.dist' is kept in the targets space, this is only used
    * for finding the best hit, to get the real dist,

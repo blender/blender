@@ -438,9 +438,9 @@ bool isect_tri_tri_v2(const float p1[2],
                       const float q2[2],
                       const float r2[2]);
 
-/* water-tight raycast (requires pre-calculation) */
+/* water-tight ray-cast (requires pre-calculation). */
 struct IsectRayPrecalc {
-  /* Maximal dimension kz, and orthogonal dimensions. */
+  /* Maximal dimension `kz`, and orthogonal dimensions. */
   int kx, ky, kz;
 
   /* Shear constants. */

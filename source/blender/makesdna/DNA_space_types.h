@@ -772,7 +772,7 @@ typedef struct FileSelectParams {
   const ID *rename_id;
   void *_pad3;
 
-  /** List of filetypes to filter (FILE_MAXFILE). */
+  /** List of file-types to filter (#FILE_MAXFILE). */
   char filter_glob[256];
 
   /** Text items name must match to be shown. */

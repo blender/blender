@@ -2763,7 +2763,7 @@ void BKE_pose_where_is_bone(struct Depsgraph *depsgraph,
                             float ctime,
                             bool do_extra)
 {
-  /* This gives a chan_mat with actions (ipos) results. */
+  /* This gives a chan_mat with actions (F-curve) results. */
   if (do_extra) {
     BKE_pchan_calc_mat(pchan);
   }

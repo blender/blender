@@ -1325,7 +1325,7 @@ bool peelObjectsTransform(TransInfo *t,
           }
         }
       }
-      /* in this case has only one hit. treat as raycast */
+      /* In this case has only one hit. treat as ray-cast. */
       if (hit_max == NULL) {
         hit_max = hit_min;
       }

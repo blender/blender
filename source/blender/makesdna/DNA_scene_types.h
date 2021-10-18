@@ -34,7 +34,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_color_types.h"      /* color management */
-#include "DNA_customdata_types.h" /* Scene's runtime cddata masks. */
+#include "DNA_customdata_types.h" /* Scene's runtime custom-data masks. */
 #include "DNA_layer_types.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
