@@ -2873,7 +2873,7 @@ def km_sequencerpreview(params):
              {"properties": [("data_path", 'space_data.show_gizmo')]}),
             op_menu_pie("SEQUENCER_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
             ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
-             {"properties": [("data_path", "space_data.overlay.show_overlays")]}),
+             {"properties": [("data_path", "space_data.show_overlays")]}),
         ])
 
     # 2D cursor.
