@@ -30,6 +30,7 @@
 #include "BLI_gsqueue.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -8684,10 +8685,12 @@ static int vertex_to_loop_colors_exec(bContext *C, wmOperator *UNUSED(op))
     for (int j = 0; j < c_poly->totloop; j++) {
       int loop_index = c_poly->loopstart + j;
       MLoop *c_loop = &loops[c_poly->loopstart + j];
-      loopcols[loop_index].r = (char)(vertcols[c_loop->v].color[0] * 255);
-      loopcols[loop_index].g = (char)(vertcols[c_loop->v].color[1] * 255);
-      loopcols[loop_index].b = (char)(vertcols[c_loop->v].color[2] * 255);
-      loopcols[loop_index].a = (char)(vertcols[c_loop->v].color[3] * 255);
+      float srgb_color[4];
+      linearrgb_to_srgb_v4(srgb_color, vertcols[c_loop->v].color);
+      loopcols[loop_index].r = (char)(srgb_color[0] * 255);
+      loopcols[loop_index].g = (char)(srgb_color[1] * 255);
+      loopcols[loop_index].b = (char)(srgb_color[2] * 255);
+      loopcols[loop_index].a = (char)(srgb_color[3] * 255);
     }
   }
 
@@ -8751,6 +8754,7 @@ static int loop_to_vertex_colors_exec(bContext *C, wmOperator *UNUSED(op))
       vertcols[c_loop->v].color[1] = (loopcols[loop_index].g / 255.0f);
       vertcols[c_loop->v].color[2] = (loopcols[loop_index].b / 255.0f);
       vertcols[c_loop->v].color[3] = (loopcols[loop_index].a / 255.0f);
+      srgb_to_linearrgb_v4(vertcols[c_loop->v].color, vertcols[c_loop->v].color);
     }
   }
 
