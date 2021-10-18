@@ -659,7 +659,7 @@ static void cursor_snap_update(const bContext *C,
     orthogonalize_m3(omat, snap_data->plane_axis);
 
     if (orient_surface) {
-      cursor_poject_surface_normal(snap_data->face_nor, obmat, omat);
+      cursor_poject_surface_normal(face_nor, obmat, omat);
     }
   }
 
