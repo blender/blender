@@ -565,6 +565,7 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
 
   drw_viewport_data_reset(dst->vmempool);
 
+  bool do_validation = true;
   if (size == NULL && viewport == NULL) {
     /* Avoid division by 0. Engines will either override this or not use it. */
     dst->size[0] = 1.0f;
@@ -580,11 +581,15 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
     BLI_assert(size);
     dst->size[0] = size[0];
     dst->size[1] = size[1];
+    /* Fix case when used in DRW_cache_restart(). */
+    do_validation = false;
   }
   dst->inv_size[0] = 1.0f / dst->size[0];
   dst->inv_size[1] = 1.0f / dst->size[1];
 
-  DRW_view_data_texture_list_size_validate(dst->view_data_active, (int[2]){UNPACK2(dst->size)});
+  if (do_validation) {
+    DRW_view_data_texture_list_size_validate(dst->view_data_active, (int[2]){UNPACK2(dst->size)});
+  }
 
   if (viewport) {
     DRW_view_data_default_lists_from_viewport(dst->view_data_active, viewport);
