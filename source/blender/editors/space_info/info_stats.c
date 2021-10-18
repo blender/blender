@@ -372,7 +372,7 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
 
   SculptSession *ss = ob->sculpt;
 
-  if (!ss) {
+  if (ss == NULL || ss->pbvh == NULL) {
     return;
   }
 
