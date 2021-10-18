@@ -33,15 +33,15 @@ class NodeMultiFunctions;
  */
 class NodeMultiFunctionBuilder : NonCopyable, NonMovable {
  private:
-  ResourceScope &resource_scope_;
   bNode &node_;
   bNodeTree &tree_;
+  std::shared_ptr<MultiFunction> owned_built_fn_;
   const MultiFunction *built_fn_ = nullptr;
 
   friend NodeMultiFunctions;
 
  public:
-  NodeMultiFunctionBuilder(ResourceScope &resource_scope, bNode &node, bNodeTree &tree);
+  NodeMultiFunctionBuilder(bNode &node, bNodeTree &tree);
 
   /**
    * Assign a multi-function for the current node. The input and output parameters of the function
@@ -58,31 +58,33 @@ class NodeMultiFunctionBuilder : NonCopyable, NonMovable {
 
   bNode &node();
   bNodeTree &tree();
-
-  ResourceScope &resource_scope();
 };
 
 /**
  * Gives access to multi-functions for all nodes in a node tree that support them.
  */
 class NodeMultiFunctions {
+ public:
+  struct Item {
+    const MultiFunction *fn = nullptr;
+    std::shared_ptr<MultiFunction> owned_fn;
+  };
+
  private:
-  Map<const bNode *, const MultiFunction *> map_;
+  Map<const bNode *, Item> map_;
 
  public:
-  NodeMultiFunctions(const DerivedNodeTree &tree, ResourceScope &resource_scope);
+  NodeMultiFunctions(const DerivedNodeTree &tree);
 
-  const MultiFunction *try_get(const DNode &node) const;
+  const Item &try_get(const DNode &node) const;
 };
 
 /* -------------------------------------------------------------------- */
 /** \name #NodeMultiFunctionBuilder Inline Methods
  * \{ */
 
-inline NodeMultiFunctionBuilder::NodeMultiFunctionBuilder(ResourceScope &resource_scope,
-                                                          bNode &node,
-                                                          bNodeTree &tree)
-    : resource_scope_(resource_scope), node_(node), tree_(tree)
+inline NodeMultiFunctionBuilder::NodeMultiFunctionBuilder(bNode &node, bNodeTree &tree)
+    : node_(node), tree_(tree)
 {
 }
 
@@ -96,11 +98,6 @@ inline bNodeTree &NodeMultiFunctionBuilder::tree()
   return tree_;
 }
 
-inline ResourceScope &NodeMultiFunctionBuilder::resource_scope()
-{
-  return resource_scope_;
-}
-
 inline void NodeMultiFunctionBuilder::set_matching_fn(const MultiFunction *fn)
 {
   built_fn_ = fn;
@@ -108,14 +105,14 @@ inline void NodeMultiFunctionBuilder::set_matching_fn(const MultiFunction *fn)
 
 inline void NodeMultiFunctionBuilder::set_matching_fn(const MultiFunction &fn)
 {
-  this->set_matching_fn(&fn);
+  built_fn_ = &fn;
 }
 
 template<typename T, typename... Args>
 inline void NodeMultiFunctionBuilder::construct_and_set_matching_fn(Args &&...args)
 {
-  const T &fn = resource_scope_.construct<T>(std::forward<Args>(args)...);
-  this->set_matching_fn(&fn);
+  owned_built_fn_ = std::make_shared<T>(std::forward<Args>(args)...);
+  built_fn_ = &*owned_built_fn_;
 }
 
 /** \} */
@@ -124,9 +121,14 @@ inline void NodeMultiFunctionBuilder::construct_and_set_matching_fn(Args &&...ar
 /** \name #NodeMultiFunctions Inline Methods
  * \{ */
 
-inline const MultiFunction *NodeMultiFunctions::try_get(const DNode &node) const
+inline const NodeMultiFunctions::Item &NodeMultiFunctions::try_get(const DNode &node) const
 {
-  return map_.lookup_default(node->bnode(), nullptr);
+  static Item empty_item;
+  const Item *item = map_.lookup_ptr(node->bnode());
+  if (item == nullptr) {
+    return empty_item;
+  }
+  return *item;
 }
 
 /** \} */

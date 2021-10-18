@@ -534,7 +534,7 @@ const GVArray *IndexFieldInput::get_varray_for_context(const fn::FieldContext &U
  * FieldOperation.
  */
 
-FieldOperation::FieldOperation(std::unique_ptr<const MultiFunction> function,
+FieldOperation::FieldOperation(std::shared_ptr<const MultiFunction> function,
                                Vector<GField> inputs)
     : FieldOperation(*function, std::move(inputs))
 {

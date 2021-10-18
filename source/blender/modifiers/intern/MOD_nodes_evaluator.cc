@@ -882,9 +882,9 @@ class GeometryNodesEvaluator {
     }
 
     /* Use the multi-function implementation if it exists. */
-    const MultiFunction *multi_function = params_.mf_by_node->try_get(node);
-    if (multi_function != nullptr) {
-      this->execute_multi_function_node(node, *multi_function, node_state);
+    const nodes::NodeMultiFunctions::Item &fn_item = params_.mf_by_node->try_get(node);
+    if (fn_item.fn != nullptr) {
+      this->execute_multi_function_node(node, fn_item, node_state);
       return;
     }
 
@@ -905,7 +905,7 @@ class GeometryNodesEvaluator {
   }
 
   void execute_multi_function_node(const DNode node,
-                                   const MultiFunction &fn,
+                                   const nodes::NodeMultiFunctions::Item &fn_item,
                                    NodeState &node_state)
   {
     if (node->idname().find("Legacy") != StringRef::not_found) {
@@ -933,7 +933,13 @@ class GeometryNodesEvaluator {
       input_fields.append(std::move(*(GField *)single_value.value));
     }
 
-    auto operation = std::make_shared<fn::FieldOperation>(fn, std::move(input_fields));
+    std::shared_ptr<fn::FieldOperation> operation;
+    if (fn_item.owned_fn) {
+      operation = std::make_shared<fn::FieldOperation>(fn_item.owned_fn, std::move(input_fields));
+    }
+    else {
+      operation = std::make_shared<fn::FieldOperation>(*fn_item.fn, std::move(input_fields));
+    }
 
     /* Forward outputs. */
     int output_index = 0;

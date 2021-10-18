@@ -204,14 +204,14 @@ class FieldOperation : public FieldNode {
    * The multi-function used by this node. It is optionally owned.
    * Multi-functions with mutable or vector parameters are not supported currently.
    */
-  std::unique_ptr<const MultiFunction> owned_function_;
+  std::shared_ptr<const MultiFunction> owned_function_;
   const MultiFunction *function_;
 
   /** Inputs to the operation. */
   blender::Vector<GField> inputs_;
 
  public:
-  FieldOperation(std::unique_ptr<const MultiFunction> function, Vector<GField> inputs = {});
+  FieldOperation(std::shared_ptr<const MultiFunction> function, Vector<GField> inputs = {});
   FieldOperation(const MultiFunction &function, Vector<GField> inputs = {});
 
   Span<GField> inputs() const;
