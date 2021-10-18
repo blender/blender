@@ -1380,6 +1380,7 @@ static void node_free_type(void *nodetype_v)
   }
 
   delete nodetype->fixed_declaration;
+  nodetype->fixed_declaration = nullptr;
 
   /* Can be null when the type is not dynamically allocated. */
   if (nodetype->free_self) {
