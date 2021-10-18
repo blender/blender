@@ -64,6 +64,13 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
     {WM_CURSOR_NS_SCROLL, "SCROLL_Y", 0, "Scroll-Y", ""},
     {WM_CURSOR_NSEW_SCROLL, "SCROLL_XY", 0, "Scroll-XY", ""},
     {WM_CURSOR_EYEDROPPER, "EYEDROPPER", 0, "Eyedropper", ""},
+    {WM_CURSOR_PICK_AREA, "PICK_AREA", 0, "Pick Area", ""},
+    {WM_CURSOR_STOP, "STOP", 0, "Stop", ""},
+    {WM_CURSOR_COPY, "COPY", 0, "Copy", ""},
+    {WM_CURSOR_CROSS, "CROSS", 0, "Cross", ""},
+    {WM_CURSOR_MUTE, "MUTE", 0, "Mute", ""},
+    {WM_CURSOR_ZOOM_IN, "ZOOM_IN", 0, "Zoom In", ""},
+    {WM_CURSOR_ZOOM_OUT, "ZOOM_OUT", 0, "Zoom Out", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
