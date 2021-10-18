@@ -1379,6 +1379,8 @@ static void node_free_type(void *nodetype_v)
     free_dynamic_typeinfo(nodetype);
   }
 
+  delete nodetype->fixed_declaration;
+
   /* Can be null when the type is not dynamically allocated. */
   if (nodetype->free_self) {
     nodetype->free_self(nodetype);
@@ -1390,6 +1392,14 @@ void nodeRegisterType(bNodeType *nt)
   /* debug only: basic verification of registered types */
   BLI_assert(nt->idname[0] != '\0');
   BLI_assert(nt->poll != nullptr);
+
+  if (nt->declare && !nt->declaration_is_dynamic) {
+    if (nt->fixed_declaration == nullptr) {
+      nt->fixed_declaration = new blender::nodes::NodeDeclaration();
+      blender::nodes::NodeDeclarationBuilder builder{*nt->fixed_declaration};
+      nt->declare(builder);
+    }
+  }
 
   BLI_ghash_insert(nodetypes_hash, nt->idname, nt);
   /* XXX pass Main to register function? */
@@ -2254,9 +2264,6 @@ bNode *BKE_node_copy_ex(bNodeTree *ntree,
 
   *node_dst = *node_src;
 
-  /* Reset the declaration of the new node. */
-  node_dst->declaration = nullptr;
-
   /* can be called for nodes outside a node tree (e.g. clipboard) */
   if (ntree) {
     if (unique_name) {
@@ -2326,6 +2333,10 @@ bNode *BKE_node_copy_ex(bNodeTree *ntree,
   if (ntree) {
     ntree->update |= NTREE_UPDATE_NODES;
   }
+
+  /* Reset the declaration of the new node. */
+  node_dst->declaration = nullptr;
+  nodeDeclarationEnsure(ntree, node_dst);
 
   return node_dst;
 }
@@ -3144,7 +3155,9 @@ static void node_free_node(bNodeTree *ntree, bNode *node)
     MEM_freeN(node->prop);
   }
 
-  delete node->declaration;
+  if (node->typeinfo->declaration_is_dynamic) {
+    delete node->declaration;
+  }
 
   MEM_freeN(node);
 
@@ -3982,16 +3995,22 @@ int nodeSocketLinkLimit(const bNodeSocket *sock)
  */
 void nodeDeclarationEnsure(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  if (node->typeinfo->declare == nullptr) {
-    return;
-  }
   if (node->declaration != nullptr) {
     return;
   }
-
-  node->declaration = new blender::nodes::NodeDeclaration();
-  blender::nodes::NodeDeclarationBuilder builder{*node->declaration};
-  node->typeinfo->declare(builder);
+  if (node->typeinfo->declare == nullptr) {
+    return;
+  }
+  if (node->typeinfo->declaration_is_dynamic) {
+    node->declaration = new blender::nodes::NodeDeclaration();
+    blender::nodes::NodeDeclarationBuilder builder{*node->declaration};
+    node->typeinfo->declare(builder);
+  }
+  else {
+    /* Declaration should have been created in #nodeRegisterType. */
+    BLI_assert(node->typeinfo->fixed_declaration != nullptr);
+    node->declaration = node->typeinfo->fixed_declaration;
+  }
 }
 
 /* ************** Node Clipboard *********** */
