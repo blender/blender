@@ -291,20 +291,26 @@ static void sequencer_thumbnail_start_job_if_necessary(const bContext *C,
     return;
   }
 
-  /* `thumbnail_is_missing` should be set to true if missing image in strip. False when normal call
-   * to all strips done.  */
-  if (v2d->cur.xmax != sseq->runtime.last_thumbnail_area.xmax ||
-      v2d->cur.ymax != sseq->runtime.last_thumbnail_area.ymax || thumbnail_is_missing) {
-
-    /* Stop the job first as view has changed. Pointless to continue old job. */
-    if (v2d->cur.xmax != sseq->runtime.last_thumbnail_area.xmax ||
-        v2d->cur.ymax != sseq->runtime.last_thumbnail_area.ymax) {
-      WM_jobs_stop(CTX_wm_manager(C), NULL, thumbnail_start_job);
-    }
-
-    sequencer_thumbnail_init_job(C, v2d, ed);
-    sseq->runtime.last_thumbnail_area = v2d->cur;
+  /* During rendering, cache is wiped, it doesn't make sense to render thumbnails. */
+  if (G.is_rendering) {
+    return;
   }
+
+  /* Job start requested, but over area which has been processed. Unless `thumbnail_is_missing` is
+   * true, ignore this request as all images are in view. */
+  if (v2d->cur.xmax == sseq->runtime.last_thumbnail_area.xmax &&
+      v2d->cur.ymax == sseq->runtime.last_thumbnail_area.ymax && !thumbnail_is_missing) {
+    return;
+  }
+
+  /* Stop the job first as view has changed. Pointless to continue old job. */
+  if (v2d->cur.xmax != sseq->runtime.last_thumbnail_area.xmax ||
+      v2d->cur.ymax != sseq->runtime.last_thumbnail_area.ymax) {
+    WM_jobs_stop(CTX_wm_manager(C), NULL, thumbnail_start_job);
+  }
+
+  sequencer_thumbnail_init_job(C, v2d, ed);
+  sseq->runtime.last_thumbnail_area = v2d->cur;
 }
 
 void last_displayed_thumbnails_list_free(void *val)
