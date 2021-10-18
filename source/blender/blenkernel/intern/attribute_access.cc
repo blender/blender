@@ -51,6 +51,7 @@ using blender::bke::OutputAttribute;
 using blender::fn::GMutableSpan;
 using blender::fn::GSpan;
 using blender::fn::GVArray_For_GSpan;
+using blender::fn::GVMutableArray_For_GMutableSpan;
 using blender::fn::GVArray_For_SingleValue;
 
 namespace blender::bke {
@@ -388,23 +389,12 @@ ReadAttributeLookup CustomDataAttributeProvider::try_get_for_read(
     if (!custom_data_layer_matches_attribute_id(layer, attribute_id)) {
       continue;
     }
-    const CustomDataType data_type = (CustomDataType)layer.type;
-    switch (data_type) {
-      case CD_PROP_FLOAT:
-        return this->layer_to_read_attribute<float>(layer, domain_size);
-      case CD_PROP_FLOAT2:
-        return this->layer_to_read_attribute<float2>(layer, domain_size);
-      case CD_PROP_FLOAT3:
-        return this->layer_to_read_attribute<float3>(layer, domain_size);
-      case CD_PROP_INT32:
-        return this->layer_to_read_attribute<int>(layer, domain_size);
-      case CD_PROP_COLOR:
-        return this->layer_to_read_attribute<ColorGeometry4f>(layer, domain_size);
-      case CD_PROP_BOOL:
-        return this->layer_to_read_attribute<bool>(layer, domain_size);
-      default:
-        break;
+    const CPPType *type = custom_data_type_to_cpp_type((CustomDataType)layer.type);
+    if (type == nullptr) {
+      continue;
     }
+    GSpan data{*type, layer.data, domain_size};
+    return {std::make_unique<GVArray_For_GSpan>(data), domain_};
   }
   return {};
 }
@@ -429,23 +419,12 @@ WriteAttributeLookup CustomDataAttributeProvider::try_get_for_write(
       CustomData_duplicate_referenced_layer_anonymous(
           custom_data, layer.type, &attribute_id.anonymous_id(), domain_size);
     }
-    const CustomDataType data_type = (CustomDataType)layer.type;
-    switch (data_type) {
-      case CD_PROP_FLOAT:
-        return this->layer_to_write_attribute<float>(layer, domain_size);
-      case CD_PROP_FLOAT2:
-        return this->layer_to_write_attribute<float2>(layer, domain_size);
-      case CD_PROP_FLOAT3:
-        return this->layer_to_write_attribute<float3>(layer, domain_size);
-      case CD_PROP_INT32:
-        return this->layer_to_write_attribute<int>(layer, domain_size);
-      case CD_PROP_COLOR:
-        return this->layer_to_write_attribute<ColorGeometry4f>(layer, domain_size);
-      case CD_PROP_BOOL:
-        return this->layer_to_write_attribute<bool>(layer, domain_size);
-      default:
-        break;
+    const CPPType *type = custom_data_type_to_cpp_type((CustomDataType)layer.type);
+    if (type == nullptr) {
+      continue;
     }
+    GMutableSpan data{*type, layer.data, domain_size};
+    return {std::make_unique<GVMutableArray_For_GMutableSpan>(data), domain_};
   }
   return {};
 }
