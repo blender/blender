@@ -60,12 +60,21 @@ TEST_F(AssetLibraryServiceTest, get_destroy)
       << "Calling twice without destroying in between should return the same instance.";
 
   AssetLibraryService::destroy();
+
+  /* On GCC in release mode (and maybe also debug mode without ASAN enabled), allocating an
+   * #AssetLibraryService will reuse the space that should have just been freed in the above
+   * destroy() call. To see that the get() call below really allocates a new object, allocate a
+   * dummy block of memory first. */
+  AssetLibraryService *dummy_pointer = new AssetLibraryService();
+
   EXPECT_NE(service, AssetLibraryService::get())
       << "Calling twice with destroying in between should return a new instance.";
 
   /* This should not crash. */
   AssetLibraryService::destroy();
   AssetLibraryService::destroy();
+
+  delete dummy_pointer;
 }
 
 TEST_F(AssetLibraryServiceTest, library_pointers)
@@ -80,11 +89,20 @@ TEST_F(AssetLibraryServiceTest, library_pointers)
       << "Calling twice without destroying in between should return the same instance.";
 
   AssetLibraryService::destroy();
+
+  /* On GCC in release mode (and maybe also debug mode without ASAN enabled), allocating an
+   * #AssetLibraryService will reuse the space that should have just been freed in the above
+   * destroy() call. To see that the get() call below really allocates a new object, allocate a
+   * dummy block of memory first. */
+  AssetLibrary *dummy_pointer = new AssetLibrary();
+
   service = AssetLibraryService::get();
   EXPECT_NE(lib, service->get_asset_library_on_disk(asset_library_root_))
       << "Calling twice with destroying in between should return a new instance.";
   EXPECT_NE(curfile_lib, service->get_asset_library_current_file())
       << "Calling twice with destroying in between should return a new instance.";
+
+  delete dummy_pointer;
 }
 
 TEST_F(AssetLibraryServiceTest, catalogs_loaded)
