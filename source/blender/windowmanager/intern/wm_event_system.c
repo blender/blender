@@ -581,7 +581,7 @@ void wm_event_do_notifiers(bContext *C)
           if ((note->category == NC_SPACE) && note->reference) {
             /* Filter out notifiers sent to other spaces. RNA sets the reference to the owning ID
              * though, the screen, so let notifiers through that reference the entire screen. */
-            if (!ELEM(note->reference, area->spacedata.first, screen)) {
+            if (!ELEM(note->reference, area->spacedata.first, screen, scene)) {
               continue;
             }
           }
