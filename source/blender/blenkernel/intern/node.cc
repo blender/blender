@@ -5724,6 +5724,7 @@ static void registerGeometryNodes()
   register_node_type_geo_legacy_mesh_to_curve();
   register_node_type_geo_legacy_points_to_volume();
   register_node_type_geo_legacy_select_by_material();
+  register_node_type_geo_legacy_curve_endpoints();
   register_node_type_geo_legacy_curve_spline_type();
   register_node_type_geo_legacy_curve_reverse();
   register_node_type_geo_legacy_select_by_handle_type();
@@ -5752,7 +5753,7 @@ static void registerGeometryNodes()
   register_node_type_geo_bounding_box();
   register_node_type_geo_collection_info();
   register_node_type_geo_convex_hull();
-  register_node_type_geo_curve_endpoints();
+  register_node_type_geo_curve_endpoint_selection();
   register_node_type_geo_curve_fill();
   register_node_type_geo_curve_fillet();
   register_node_type_geo_curve_handle_type_selection();

@@ -198,6 +198,7 @@ set(SRC
   geometry/nodes/node_geo_collection_info.cc
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_convex_hull.cc
+  geometry/nodes/node_geo_curve_endpoint_selection.cc
   geometry/nodes/node_geo_curve_fill.cc
   geometry/nodes/node_geo_curve_fillet.cc
   geometry/nodes/node_geo_curve_handle_type_selection.cc

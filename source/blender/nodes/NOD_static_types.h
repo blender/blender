@@ -326,6 +326,7 @@ DefNode(GeometryNode, GEO_NODE_MESH_BOOLEAN, def_geo_boolean, "MESH_BOOLEAN", Me
 DefNode(GeometryNode, GEO_NODE_BOUNDING_BOX, 0, "BOUNDING_BOX", BoundBox, "Bounding Box", "")
 DefNode(GeometryNode, GEO_NODE_COLLECTION_INFO, def_geo_collection_info, "COLLECTION_INFO", CollectionInfo, "Collection Info", "")
 DefNode(GeometryNode, GEO_NODE_CONVEX_HULL, 0, "CONVEX_HULL", ConvexHull, "Convex Hull", "")
+DefNode(GeometryNode, GEO_NODE_CURVE_ENDPOINT_SELECTION, 0, "CURVE_ENDPOINT_SELECTION", CurveEndpointSelection, "Endpoint Selection", "")
 DefNode(GeometryNode, GEO_NODE_FILL_CURVE, def_geo_curve_fill, "FILL_CURVE", FillCurve, "Fill Curve", "")
 DefNode(GeometryNode, GEO_NODE_FILLET_CURVE, def_geo_curve_fillet, "FILLET_CURVE", FilletCurve, "Fillet Curve", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_HANDLE_TYPE_SELECTION, def_geo_curve_handle_type_selection, "CURVE_HANDLE_TYPE_SELECTION", CurveHandleTypeSelection, "Handle Type Selection", "")

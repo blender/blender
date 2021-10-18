@@ -115,6 +115,7 @@ def curve_node_items(context):
     yield NodeItem("GeometryNodeCurveParameter")
     yield NodeItem("GeometryNodeInputTangent")
     yield NodeItem("GeometryNodeInputCurveTilt")
+    yield NodeItem("GeometryNodeCurveEndpointSelection")
     yield NodeItem("GeometryNodeCurveHandleTypeSelection")
     yield NodeItem("GeometryNodeInputSplineCyclic")
     yield NodeItem("GeometryNodeSplineLength")
