@@ -82,9 +82,6 @@ ccl_device_forceinline void integrator_state_write_isect(
   INTEGRATOR_STATE_WRITE(state, isect, object) = isect->object;
   INTEGRATOR_STATE_WRITE(state, isect, prim) = isect->prim;
   INTEGRATOR_STATE_WRITE(state, isect, type) = isect->type;
-#ifdef __EMBREE__
-  INTEGRATOR_STATE_WRITE(state, isect, Ng) = isect->Ng;
-#endif
 }
 
 ccl_device_forceinline void integrator_state_read_isect(
@@ -96,9 +93,6 @@ ccl_device_forceinline void integrator_state_read_isect(
   isect->u = INTEGRATOR_STATE(state, isect, u);
   isect->v = INTEGRATOR_STATE(state, isect, v);
   isect->t = INTEGRATOR_STATE(state, isect, t);
-#ifdef __EMBREE__
-  isect->Ng = INTEGRATOR_STATE(state, isect, Ng);
-#endif
 }
 
 ccl_device_forceinline VolumeStack integrator_state_read_volume_stack(ConstIntegratorState state,
@@ -136,9 +130,6 @@ ccl_device_forceinline void integrator_state_write_shadow_isect(
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, index, object) = isect->object;
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, index, prim) = isect->prim;
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, index, type) = isect->type;
-#ifdef __EMBREE__
-  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, index, Ng) = isect->Ng;
-#endif
 }
 
 ccl_device_forceinline void integrator_state_read_shadow_isect(
@@ -150,9 +141,6 @@ ccl_device_forceinline void integrator_state_read_shadow_isect(
   isect->u = INTEGRATOR_STATE_ARRAY(state, shadow_isect, index, u);
   isect->v = INTEGRATOR_STATE_ARRAY(state, shadow_isect, index, v);
   isect->t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, index, t);
-#ifdef __EMBREE__
-  isect->Ng = INTEGRATOR_STATE_ARRAY(state, shadow_isect, index, Ng);
-#endif
 }
 
 ccl_device_forceinline void integrator_state_copy_volume_stack_to_shadow(KernelGlobals kg,

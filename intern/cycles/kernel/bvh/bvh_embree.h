@@ -107,7 +107,6 @@ ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
                                                  Intersection *isect)
 {
   isect->t = ray->tfar;
-  isect->Ng = make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z);
   if (hit->instID[0] != RTC_INVALID_GEOMETRY_ID) {
     RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
         rtcGetGeometry(kernel_data.bvh.scene, hit->instID[0]));
@@ -142,7 +141,6 @@ ccl_device_inline void kernel_embree_convert_sss_hit(
   isect->u = 1.0f - hit->v - hit->u;
   isect->v = hit->u;
   isect->t = ray->tfar;
-  isect->Ng = make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z);
   RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
       rtcGetGeometry(kernel_data.bvh.scene, object * 2));
   isect->prim = hit->primID +

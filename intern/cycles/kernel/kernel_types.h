@@ -489,9 +489,6 @@ typedef struct Ray {
 /* Intersection */
 
 typedef struct Intersection {
-#ifdef __EMBREE__
-  float3 Ng;
-#endif
   float t, u, v;
   int prim;
   int object;

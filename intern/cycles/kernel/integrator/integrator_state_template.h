@@ -40,13 +40,12 @@ KERNEL_STRUCT_MEMBER(path, uint16_t, volume_bounce, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(path, uint16_t, volume_bounds_bounce, KERNEL_FEATURE_PATH_TRACING)
 /* Current transparent ray bounce depth. */
 KERNEL_STRUCT_MEMBER(path, uint16_t, transparent_bounce, KERNEL_FEATURE_PATH_TRACING)
-/* DeviceKernel bit indicating queued kernels.
- * TODO: reduce size? */
-KERNEL_STRUCT_MEMBER(path, uint32_t, queued_kernel, KERNEL_FEATURE_PATH_TRACING)
+/* DeviceKernel bit indicating queued kernels. */
+KERNEL_STRUCT_MEMBER(path, uint16_t, queued_kernel, KERNEL_FEATURE_PATH_TRACING)
 /* Random number generator seed. */
 KERNEL_STRUCT_MEMBER(path, uint32_t, rng_hash, KERNEL_FEATURE_PATH_TRACING)
 /* Random number dimension offset. */
-KERNEL_STRUCT_MEMBER(path, uint32_t, rng_offset, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER(path, uint16_t, rng_offset, KERNEL_FEATURE_PATH_TRACING)
 /* enum PathRayFlag */
 KERNEL_STRUCT_MEMBER(path, uint32_t, flag, KERNEL_FEATURE_PATH_TRACING)
 /* Multiple importance sampling
@@ -89,8 +88,6 @@ KERNEL_STRUCT_MEMBER(isect, float, v, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(isect, int, prim, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(isect, int, object, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(isect, int, type, KERNEL_FEATURE_PATH_TRACING)
-/* TODO: exclude for GPU. */
-KERNEL_STRUCT_MEMBER(isect, float3, Ng, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_END(isect)
 
 /*************** Subsurface closure state for subsurface kernel ***************/
@@ -99,6 +96,7 @@ KERNEL_STRUCT_BEGIN(subsurface)
 KERNEL_STRUCT_MEMBER(subsurface, float3, albedo, KERNEL_FEATURE_SUBSURFACE)
 KERNEL_STRUCT_MEMBER(subsurface, float3, radius, KERNEL_FEATURE_SUBSURFACE)
 KERNEL_STRUCT_MEMBER(subsurface, float, anisotropy, KERNEL_FEATURE_SUBSURFACE)
+KERNEL_STRUCT_MEMBER(subsurface, float3, Ng, KERNEL_FEATURE_SUBSURFACE)
 KERNEL_STRUCT_END(subsurface)
 
 /********************************** Volume Stack ******************************/
@@ -117,9 +115,8 @@ KERNEL_STRUCT_BEGIN(shadow_path)
 KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, bounce, KERNEL_FEATURE_PATH_TRACING)
 /* Current transparent ray bounce depth. */
 KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, transparent_bounce, KERNEL_FEATURE_PATH_TRACING)
-/* DeviceKernel bit indicating queued kernels.
- * TODO: reduce size? */
-KERNEL_STRUCT_MEMBER(shadow_path, uint32_t, queued_kernel, KERNEL_FEATURE_PATH_TRACING)
+/* DeviceKernel bit indicating queued kernels. */
+KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, queued_kernel, KERNEL_FEATURE_PATH_TRACING)
 /* enum PathRayFlag */
 KERNEL_STRUCT_MEMBER(shadow_path, uint32_t, flag, KERNEL_FEATURE_PATH_TRACING)
 /* Throughput. */
@@ -152,8 +149,6 @@ KERNEL_STRUCT_ARRAY_MEMBER(shadow_isect, float, v, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_ARRAY_MEMBER(shadow_isect, int, prim, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_ARRAY_MEMBER(shadow_isect, int, object, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_ARRAY_MEMBER(shadow_isect, int, type, KERNEL_FEATURE_PATH_TRACING)
-/* TODO: exclude for GPU. */
-KERNEL_STRUCT_ARRAY_MEMBER(shadow_isect, float3, Ng, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_END_ARRAY(shadow_isect,
                         INTEGRATOR_SHADOW_ISECT_SIZE_CPU,
                         INTEGRATOR_SHADOW_ISECT_SIZE_GPU)

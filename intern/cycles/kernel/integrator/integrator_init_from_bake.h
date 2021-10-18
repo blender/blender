@@ -180,9 +180,6 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     isect.v = v;
     isect.t = 1.0f;
     isect.type = PRIMITIVE_TRIANGLE;
-#ifdef __EMBREE__
-    isect.Ng = Ng;
-#endif
     integrator_state_write_isect(kg, state, &isect);
 
     /* Setup next kernel to execute. */

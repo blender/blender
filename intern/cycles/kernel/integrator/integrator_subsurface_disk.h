@@ -45,7 +45,7 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
   const float3 P = INTEGRATOR_STATE(state, ray, P);
   const float ray_dP = INTEGRATOR_STATE(state, ray, dP);
   const float time = INTEGRATOR_STATE(state, ray, time);
-  const float3 Ng = INTEGRATOR_STATE(state, isect, Ng);
+  const float3 Ng = INTEGRATOR_STATE(state, subsurface, Ng);
   const int object = INTEGRATOR_STATE(state, isect, object);
 
   /* Read subsurface scattering parameters. */
