@@ -355,6 +355,10 @@ static void view3d_exit(wmWindowManager *UNUSED(wm), ScrArea *area)
   BLI_assert(area->spacetype == SPACE_VIEW3D);
   View3D *v3d = area->spacedata.first;
   MEM_SAFE_FREE(v3d->runtime.local_stats);
+
+  /* Be sure to release the #V3DSnapCursorData from the cursor, or it will get lost.  */
+  ED_view3d_cursor_snap_deactivate_point();
+  ED_view3d_cursor_snap_deactivate_plane();
 }
 
 static SpaceLink *view3d_duplicate(SpaceLink *sl)

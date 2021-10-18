@@ -139,7 +139,8 @@ short ED_transform_snap_object_project_view3d_ex(struct SnapObjectContext *sctx,
                                                  float r_no[3],
                                                  int *r_index,
                                                  struct Object **r_ob,
-                                                 float r_obmat[4][4]);
+                                                 float r_obmat[4][4],
+                                                 float r_face_nor[3]);
 bool ED_transform_snap_object_project_view3d(struct SnapObjectContext *sctx,
                                              struct Depsgraph *depsgraph,
                                              const ARegion *region,

@@ -52,6 +52,7 @@ struct RegionView3D;
 struct RenderEngineType;
 struct Scene;
 struct ScrArea;
+struct SnapObjectContext;
 struct View3D;
 struct ViewContext;
 struct ViewLayer;
@@ -227,6 +228,73 @@ typedef enum {
 #define V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT \
   (V3D_PROJ_TEST_CLIP_CONTENT | V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR | \
    V3D_PROJ_TEST_CLIP_WIN)
+
+/* view3d_cursor_snap.c */
+#define USE_SNAP_DETECT_FROM_KEYMAP_HACK
+typedef enum {
+  V3D_SNAPCURSOR_TOGGLE_ALWAYS_TRUE = 1 << 0,
+  V3D_SNAPCURSOR_OCCLUSION_ALWAYS_TRUE = 1 << 1,
+  V3D_SNAPCURSOR_OCCLUSION_ALWAYS_FALSE = 1 << 2, /* TODO. */
+  V3D_SNAPCURSOR_SNAP_ONLY_ACTIVE = 1 << 3,
+  V3D_SNAPCURSOR_SNAP_EDIT_GEOM_FINAL = 1 << 4,
+  V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE = 1 << 5,
+} eV3DSnapCursor;
+
+typedef enum {
+  V3D_PLACE_DEPTH_SURFACE = 0,
+  V3D_PLACE_DEPTH_CURSOR_PLANE = 1,
+  V3D_PLACE_DEPTH_CURSOR_VIEW = 2,
+} eV3DPlaceDepth;
+
+typedef enum {
+  V3D_PLACE_ORIENT_SURFACE = 0,
+  V3D_PLACE_ORIENT_DEFAULT = 1,
+} eV3DPlaceOrient;
+
+typedef struct V3DSnapCursorData {
+  /* Setup. */
+  eV3DSnapCursor flag;
+  eV3DPlaceDepth plane_depth;
+  eV3DPlaceOrient plane_orient;
+  uchar color_line[4];
+  uchar color_point[4];
+  float *prevpoint;
+  short snap_elem_force; /* If zero, use scene settings. */
+  short plane_axis;
+  bool use_plane_axis_auto;
+
+  /* Return values. */
+  short snap_elem;
+  float loc[3];
+  float nor[3];
+  float face_nor[3];
+  float obmat[4][4];
+  int elem_index[3];
+  float plane_omat[3][3];
+  bool is_snap_invert;
+
+  /** Enabled when snap is activated, even if it didn't find anything. */
+  bool is_enabled;
+} V3DSnapCursorData;
+
+V3DSnapCursorData *ED_view3d_cursor_snap_data_get(void);
+void ED_view3d_cursor_snap_activate_point(void);
+void ED_view3d_cursor_snap_activate_plane(void);
+void ED_view3d_cursor_snap_deactivate_point(void);
+void ED_view3d_cursor_snap_deactivate_plane(void);
+void ED_view3d_cursor_snap_update(const struct bContext *C,
+                                  const int x,
+                                  const int y,
+                                  V3DSnapCursorData *snap_data);
+void ED_view3d_cursor_snap_prevpoint_set(const float prev_point[3]);
+struct SnapObjectContext *ED_view3d_cursor_snap_context_ensure(struct Scene *scene);
+void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
+                                     const float loc_prev[3],
+                                     const float loc_curr[3],
+                                     const float normal[3],
+                                     const uchar color_line[4],
+                                     const uchar color_point[4],
+                                     const short snap_elem_type);
 
 /* view3d_iterators.c */
 

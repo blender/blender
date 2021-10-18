@@ -5122,7 +5122,8 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
                                                    ray_no,
                                                    NULL,
                                                    &ob_dummy,
-                                                   obmat) != 0) {
+                                                   obmat,
+                                                   NULL) != 0) {
       if (use_depth) {
         copy_v3_v3(cursor_co, ray_co);
       }

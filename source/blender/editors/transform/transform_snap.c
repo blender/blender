@@ -48,6 +48,7 @@
 #include "ED_node.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_uvedit.h"
+#include "ED_view3d.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -247,7 +248,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
         loc_cur = t->tsnap.snapPoint;
       }
 
-      ED_gizmotypes_snap_3d_draw_util(
+      ED_view3d_cursor_snap_draw_util(
           rv3d, loc_prev, loc_cur, normal, col, activeCol, t->tsnap.snapElem);
 
       GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
@@ -1243,7 +1244,7 @@ short snapObjectsTransform(
     TransInfo *t, const float mval[2], float *dist_px, float r_loc[3], float r_no[3])
 {
   float *target = (t->tsnap.status & TARGET_INIT) ? t->tsnap.snapTarget : t->center_global;
-  return ED_transform_snap_object_project_view3d_ex(
+  return ED_transform_snap_object_project_view3d(
       t->tsnap.object_context,
       t->depsgraph,
       t->region,
@@ -1259,10 +1260,7 @@ short snapObjectsTransform(
       target,
       dist_px,
       r_loc,
-      r_no,
-      NULL,
-      NULL,
-      NULL);
+      r_no);
 }
 
 /** \} */
