@@ -1862,15 +1862,15 @@ static void sequencer_preview_get_rect(rctf *preview,
   sequencer_display_size(scene, viewrect);
   BLI_rctf_init(preview, -1.0f, 1.0f, -1.0f, 1.0f);
 
-  if (draw_overlay && sseq->overlay_type == SEQ_DRAW_OVERLAY_RECT) {
+  if (draw_overlay && (sseq->overlay_frame_type == SEQ_OVERLAY_FRAME_TYPE_RECT)) {
     preview->xmax = v2d->tot.xmin +
-                    (fabsf(BLI_rctf_size_x(&v2d->tot)) * scene->ed->over_border.xmax);
+                    (fabsf(BLI_rctf_size_x(&v2d->tot)) * scene->ed->overlay_frame_rect.xmax);
     preview->xmin = v2d->tot.xmin +
-                    (fabsf(BLI_rctf_size_x(&v2d->tot)) * scene->ed->over_border.xmin);
+                    (fabsf(BLI_rctf_size_x(&v2d->tot)) * scene->ed->overlay_frame_rect.xmin);
     preview->ymax = v2d->tot.ymin +
-                    (fabsf(BLI_rctf_size_y(&v2d->tot)) * scene->ed->over_border.ymax);
+                    (fabsf(BLI_rctf_size_y(&v2d->tot)) * scene->ed->overlay_frame_rect.ymax);
     preview->ymin = v2d->tot.ymin +
-                    (fabsf(BLI_rctf_size_y(&v2d->tot)) * scene->ed->over_border.ymin);
+                    (fabsf(BLI_rctf_size_y(&v2d->tot)) * scene->ed->overlay_frame_rect.ymin);
   }
   else if (draw_backdrop) {
     float aspect = BLI_rcti_size_x(&region->winrct) / (float)BLI_rcti_size_y(&region->winrct);
@@ -1958,8 +1958,8 @@ static void sequencer_draw_display_buffer(const bContext *C,
   rctf canvas;
   sequencer_preview_get_rect(&preview, scene, region, sseq, draw_overlay, draw_backdrop);
 
-  if (draw_overlay && sseq->overlay_type == SEQ_DRAW_OVERLAY_RECT) {
-    canvas = scene->ed->over_border;
+  if (draw_overlay && (sseq->overlay_frame_type == SEQ_OVERLAY_FRAME_TYPE_RECT)) {
+    canvas = scene->ed->overlay_frame_rect;
   }
   else {
     BLI_rctf_init(&canvas, 0.0f, 1.0f, 0.0f, 1.0f);
@@ -2207,7 +2207,8 @@ void sequencer_draw_preview(const bContext *C,
   UI_view2d_view_ortho(v2d);
 
   /* Draw background. */
-  if (!draw_backdrop && (!draw_overlay || sseq->overlay_type == SEQ_DRAW_OVERLAY_REFERENCE)) {
+  if (!draw_backdrop &&
+      (!draw_overlay || (sseq->overlay_frame_type == SEQ_OVERLAY_FRAME_TYPE_REFERENCE))) {
     sequencer_preview_clear();
 
     if (sseq->flag & SEQ_USE_ALPHA) {
@@ -2685,9 +2686,9 @@ static void draw_cache_view(const bContext *C)
 /* Draw sequencer timeline. */
 static void draw_overlap_frame_indicator(const struct Scene *scene, const View2D *v2d)
 {
-  int overlap_frame = (scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS) ?
-                          scene->ed->over_cfra :
-                          scene->r.cfra + scene->ed->over_ofs;
+  int overlap_frame = (scene->ed->overlay_frame_flag & SEQ_EDIT_OVERLAY_FRAME_ABS) ?
+                          scene->ed->overlay_frame_abs :
+                          scene->r.cfra + scene->ed->overlay_frame_ofs;
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
@@ -2807,7 +2808,7 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
   if (scene->ed != NULL) {
     UI_view2d_view_ortho(v2d);
     draw_cache_view(C);
-    if (scene->ed->over_flag & SEQ_EDIT_USE_FRAME_OVERLAY) {
+    if (scene->ed->overlay_frame_flag & SEQ_EDIT_OVERLAY_FRAME_SHOW) {
       draw_overlap_frame_indicator(scene, v2d);
     }
     UI_view2d_view_restore(C);

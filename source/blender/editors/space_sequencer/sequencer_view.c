@@ -380,7 +380,7 @@ static int view_ghost_border_exec(bContext *C, wmOperator *op)
   CLAMP(rect.xmax, 0.0f, 1.0f);
   CLAMP(rect.ymax, 0.0f, 1.0f);
 
-  scene->ed->over_border = rect;
+  scene->ed->overlay_frame_rect = rect;
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
