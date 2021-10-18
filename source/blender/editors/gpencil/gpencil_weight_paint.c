@@ -29,15 +29,18 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_types.h"
 
+#include "BKE_action.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 #include "DNA_meshdata_types.h"
@@ -246,7 +249,22 @@ static bool brush_draw_apply(tGP_BrushWeightpaintData *gso,
   /* need a vertex group */
   if (gso->vrgroup == -1) {
     if (gso->object) {
-      BKE_object_defgroup_add(gso->object);
+      Object *ob_armature = BKE_modifiers_is_deformed_by_armature(gso->object);
+      if ((ob_armature != NULL)) {
+        Bone *actbone = ((bArmature *)ob_armature->data)->act_bone;
+        if (actbone != NULL) {
+          bPoseChannel *pchan = BKE_pose_channel_find_name(ob_armature->pose, actbone->name);
+          if (pchan != NULL) {
+            bDeformGroup *dg = BKE_object_defgroup_find_name(gso->object, pchan->name);
+            if (dg == NULL) {
+              dg = BKE_object_defgroup_add_name(gso->object, pchan->name);
+            }
+          }
+        }
+      }
+      else {
+        BKE_object_defgroup_add(gso->object);
+      }
       DEG_relations_tag_update(gso->bmain);
       gso->vrgroup = 0;
     }
