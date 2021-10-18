@@ -96,6 +96,9 @@ static bool gizmo2d_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
       if (sseq->gizmo_flag & (SEQ_GIZMO_HIDE | SEQ_GIZMO_HIDE_TOOL)) {
         return false;
       }
+      if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
+        return false;
+      }
       Scene *scene = CTX_data_scene(C);
       Editing *ed = SEQ_editing_get(scene);
       if (ed == NULL) {

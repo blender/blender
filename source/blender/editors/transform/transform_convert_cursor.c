@@ -111,7 +111,9 @@ void recalcData_cursor_image(TransInfo *t)
 void createTransCursor_sequencer(TransInfo *t)
 {
   SpaceSeq *sseq = t->area->spacedata.first;
-
+  if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
+    return;
+  }
   createTransCursor_2D_impl(t, sseq->cursor);
 }
 

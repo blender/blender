@@ -123,6 +123,13 @@ void createTransSeqImageData(TransInfo *t)
     return;
   }
 
+  {
+    const SpaceSeq *sseq = t->area->spacedata.first;
+    if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
+      return;
+    }
+  }
+
   ListBase *seqbase = SEQ_active_seqbase_get(ed);
   SeqCollection *strips = SEQ_query_rendered_strips(seqbase, t->scene->r.cfra, 0);
   SEQ_filter_selected_strips(strips);
