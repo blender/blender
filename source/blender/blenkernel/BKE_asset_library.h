@@ -29,9 +29,14 @@ extern "C" {
 /** Forward declaration, defined in intern/asset_library.hh */
 typedef struct AssetLibrary AssetLibrary;
 
-/** TODO(@sybren): properly have a think/discussion about the API for this. */
+/**
+ * Return the #AssetLibrary rooted at the given directory path.
+ *
+ * Will return the same pointer for repeated calls, until another blend file is loaded.
+ *
+ * To get the in-memory-only "current file" asset library, pass an empty path.
+ */
 struct AssetLibrary *BKE_asset_library_load(const char *library_path);
-void BKE_asset_library_free(struct AssetLibrary *asset_library);
 
 /**
  * Try to find an appropriate location for an asset library root from a file or directory path.

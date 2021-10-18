@@ -33,8 +33,14 @@
 
 namespace blender::bke {
 
+/**
+ * AssetLibrary provides access to an asset library's data.
+ * For now this is only for catalogs, later this can be expanded to indexes/caches/more.
+ */
 struct AssetLibrary {
   std::unique_ptr<AssetCatalogService> catalog_service;
+
+  ~AssetLibrary();
 
   void load(StringRefNull library_root_directory);
 
@@ -52,7 +58,7 @@ struct AssetLibrary {
   void on_save_post(struct Main *, struct PointerRNA **pointers, const int num_pointers);
 
  private:
-  bCallbackFuncStore on_save_callback_store_;
+  bCallbackFuncStore on_save_callback_store_{};
 };
 
 }  // namespace blender::bke

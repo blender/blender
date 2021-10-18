@@ -391,7 +391,7 @@ typedef struct FileList {
   eFileSelectType type;
   /* The library this list was created for. Stored here so we know when to re-read. */
   AssetLibraryReference *asset_library_ref;
-  struct AssetLibrary *asset_library;
+  struct AssetLibrary *asset_library; /* Non-owning pointer. */
 
   short flags;
 
@@ -1847,9 +1847,7 @@ void filelist_clear_ex(struct FileList *filelist,
   }
 
   if (do_asset_library && (filelist->asset_library != NULL)) {
-    /* There is no way to refresh the catalogs stored by the AssetLibrary struct, so instead of
-     * "clearing" it, the entire struct is freed. It will be reallocated when needed. */
-    BKE_asset_library_free(filelist->asset_library);
+    /* The AssetLibraryService owns the AssetLibrary pointer, so no need for us to free it. */
     filelist->asset_library = NULL;
   }
 }

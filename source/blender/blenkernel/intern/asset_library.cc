@@ -31,6 +31,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "asset_library_service.hh"
+
 #include <memory>
 
 /**
@@ -39,17 +41,15 @@
  */
 struct AssetLibrary *BKE_asset_library_load(const char *library_path)
 {
-  blender::bke::AssetLibrary *lib = new blender::bke::AssetLibrary();
-  lib->on_save_handler_register();
-  lib->load(library_path);
+  blender::bke::AssetLibraryService *service = blender::bke::AssetLibraryService::get();
+  blender::bke::AssetLibrary *lib;
+  if (library_path == nullptr || library_path[0] == '\0') {
+    lib = service->get_asset_library_current_file();
+  }
+  else {
+    lib = service->get_asset_library_on_disk(library_path);
+  }
   return reinterpret_cast<struct AssetLibrary *>(lib);
-}
-
-void BKE_asset_library_free(struct AssetLibrary *asset_library)
-{
-  blender::bke::AssetLibrary *lib = reinterpret_cast<blender::bke::AssetLibrary *>(asset_library);
-  lib->on_save_handler_unregister();
-  delete lib;
 }
 
 bool BKE_asset_library_find_suitable_root_path_from_path(const char *input_path,
@@ -102,6 +102,13 @@ void BKE_asset_library_refresh_catalog_simplename(struct AssetLibrary *asset_lib
 
 namespace blender::bke {
 
+AssetLibrary::~AssetLibrary()
+{
+  if (on_save_callback_store_.func) {
+    on_save_handler_unregister();
+  }
+}
+
 void AssetLibrary::load(StringRefNull library_root_directory)
 {
   auto catalog_service = std::make_unique<AssetCatalogService>(library_root_directory);
@@ -134,6 +141,8 @@ void AssetLibrary::on_save_handler_register()
 void AssetLibrary::on_save_handler_unregister()
 {
   BKE_callback_remove(&on_save_callback_store_, BKE_CB_EVT_SAVE_POST);
+  on_save_callback_store_.func = nullptr;
+  on_save_callback_store_.arg = nullptr;
 }
 
 void AssetLibrary::on_save_post(struct Main *main,
