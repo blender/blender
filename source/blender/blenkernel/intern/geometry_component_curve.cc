@@ -980,16 +980,15 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
 
  public:
   BuiltinPointAttributeProvider(std::string attribute_name,
-                                const WritableEnum writable,
                                 const GetSpan get_span,
                                 const GetMutableSpan get_mutable_span,
                                 const UpdateOnWrite update_on_write)
       : BuiltinAttributeProvider(std::move(attribute_name),
                                  ATTR_DOMAIN_POINT,
                                  bke::cpp_type_to_custom_data_type(CPPType::get<T>()),
-                                 BuiltinAttributeProvider::NonCreatable,
-                                 writable,
-                                 BuiltinAttributeProvider::NonDeletable),
+                                 CreatableEnum::NonCreatable,
+                                 WritableEnum::Writable,
+                                 DeletableEnum::NonDeletable),
         get_span_(get_span),
         get_mutable_span_(get_mutable_span),
         update_on_write_(update_on_write)
@@ -1091,7 +1090,6 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
   PositionAttributeProvider()
       : BuiltinPointAttributeProvider(
             "position",
-            BuiltinAttributeProvider::Writable,
             [](const Spline &spline) { return spline.positions(); },
             [](Spline &spline) { return spline.positions(); },
             [](Spline &spline) { spline.mark_cache_invalid(); })
@@ -1491,14 +1489,12 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
 
   static BuiltinPointAttributeProvider<float> radius(
       "radius",
-      BuiltinAttributeProvider::Writable,
       [](const Spline &spline) { return spline.radii(); },
       [](Spline &spline) { return spline.radii(); },
       nullptr);
 
   static BuiltinPointAttributeProvider<float> tilt(
       "tilt",
-      BuiltinAttributeProvider::Writable,
       [](const Spline &spline) { return spline.tilts(); },
       [](Spline &spline) { return spline.tilts(); },
       [](Spline &spline) { spline.mark_cache_invalid(); });
