@@ -165,6 +165,8 @@ static void thumbnail_start_job(void *data,
   float start_frame, frame_step;
 
   GHashIterator gh_iter;
+
+  /* First pass: render visible images. */
   BLI_ghashIterator_init(&gh_iter, tj->sequences_ghash);
   while (!BLI_ghashIterator_done(&gh_iter) & !*stop) {
     Sequence *seq_orig = BLI_ghashIterator_getKey(&gh_iter);
@@ -176,6 +178,21 @@ static void thumbnail_start_job(void *data,
       start_frame = seq_thumbnail_get_start_frame(seq_orig, frame_step, tj->view_area);
       SEQ_render_thumbnails(
           &tj->context, val->seq_dupli, seq_orig, start_frame, frame_step, tj->view_area, stop);
+      SEQ_relations_sequence_free_anim(val->seq_dupli);
+    }
+    BLI_ghashIterator_step(&gh_iter);
+  }
+
+  /* Second pass: render "guaranteed" set of images. */
+  BLI_ghashIterator_init(&gh_iter, tj->sequences_ghash);
+  while (!BLI_ghashIterator_done(&gh_iter) & !*stop) {
+    Sequence *seq_orig = BLI_ghashIterator_getKey(&gh_iter);
+    ThumbDataItem *val = BLI_ghash_lookup(tj->sequences_ghash, seq_orig);
+
+    if (check_seq_need_thumbnails(seq_orig, tj->view_area)) {
+      seq_get_thumb_image_dimensions(
+          val->seq_dupli, tj->pixelx, tj->pixely, &frame_step, NULL, NULL, NULL);
+      start_frame = seq_thumbnail_get_start_frame(seq_orig, frame_step, tj->view_area);
       SEQ_render_thumbnails_base_set(&tj->context, val->seq_dupli, seq_orig, tj->view_area, stop);
       SEQ_relations_sequence_free_anim(val->seq_dupli);
     }
