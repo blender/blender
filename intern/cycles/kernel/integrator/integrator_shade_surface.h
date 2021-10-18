@@ -56,7 +56,7 @@ ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
     if (kernel_data.background.transparent) {
       const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
       const float transparent = average(holdout_weight * throughput);
-      kernel_accum_transparent(kg, state, path_flag, transparent, render_buffer);
+      kernel_accum_holdout(kg, state, path_flag, transparent, render_buffer);
     }
     if (isequal_float3(holdout_weight, one_float3())) {
       return false;
@@ -385,6 +385,14 @@ ccl_device bool integrate_surface(KernelGlobals kg,
       /* Evaluate shader. */
       PROFILING_EVENT(PROFILING_SHADE_SURFACE_EVAL);
       shader_eval_surface<node_feature_mask>(kg, state, &sd, render_buffer, path_flag);
+
+      /* Initialize additional RNG for BSDFs. */
+      if (sd.flag & SD_BSDF_NEEDS_LCG) {
+        sd.lcg_state = lcg_state_init(INTEGRATOR_STATE(state, path, rng_hash),
+                                      INTEGRATOR_STATE(state, path, rng_offset),
+                                      INTEGRATOR_STATE(state, path, sample),
+                                      0xb4bc3953);
+      }
     }
 
 #ifdef __SUBSURFACE__

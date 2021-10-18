@@ -625,16 +625,6 @@ ccl_device void shader_eval_surface(KernelGlobals kg,
     }
 #endif
   }
-
-  IF_KERNEL_NODES_FEATURE(BSDF)
-  {
-    if (sd->flag & SD_BSDF_NEEDS_LCG) {
-      sd->lcg_state = lcg_state_init(INTEGRATOR_STATE(state, path, rng_hash),
-                                     INTEGRATOR_STATE(state, path, rng_offset),
-                                     INTEGRATOR_STATE(state, path, sample),
-                                     0xb4bc3953);
-    }
-  }
 }
 
 /* Volume */

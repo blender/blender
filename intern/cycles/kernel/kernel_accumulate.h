@@ -473,15 +473,24 @@ ccl_device_inline void kernel_accum_transparent(KernelGlobals kg,
                                                 ConstIntegratorState state,
                                                 const uint32_t path_flag,
                                                 const float transparent,
-                                                ccl_global float *ccl_restrict render_buffer)
+                                                ccl_global float *ccl_restrict buffer)
 {
-  ccl_global float *buffer = kernel_accum_pixel_render_buffer(kg, state, render_buffer);
-
   if (kernel_data.film.light_pass_flag & PASSMASK(COMBINED)) {
     kernel_write_pass_float(buffer + kernel_data.film.pass_combined + 3, transparent);
   }
 
   kernel_accum_shadow_catcher_transparent_only(kg, path_flag, transparent, buffer);
+}
+
+/* Write holdout to render buffer. */
+ccl_device_inline void kernel_accum_holdout(KernelGlobals kg,
+                                            ConstIntegratorState state,
+                                            const uint32_t path_flag,
+                                            const float transparent,
+                                            ccl_global float *ccl_restrict render_buffer)
+{
+  ccl_global float *buffer = kernel_accum_pixel_render_buffer(kg, state, render_buffer);
+  kernel_accum_transparent(kg, state, path_flag, transparent, buffer);
 }
 
 /* Write background contribution to render buffer.
@@ -501,7 +510,7 @@ ccl_device_inline void kernel_accum_background(KernelGlobals kg,
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if (is_transparent_background_ray) {
-    kernel_accum_transparent(kg, state, path_flag, transparent, render_buffer);
+    kernel_accum_transparent(kg, state, path_flag, transparent, buffer);
   }
   else {
     const int sample = INTEGRATOR_STATE(state, path, sample);
