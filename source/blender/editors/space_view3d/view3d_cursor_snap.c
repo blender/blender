@@ -86,9 +86,9 @@ typedef struct SnapCursorDataIntern {
 /**
  * Calculate a 3x3 orientation matrix from the surface under the cursor.
  */
-static void cursor_poject_surface_normal(const float normal[3],
-                                         const float obmat[4][4],
-                                         float r_mat[3][3])
+static void v3d_cursor_poject_surface_normal(const float normal[3],
+                                             const float obmat[4][4],
+                                             float r_mat[3][3])
 {
   float mat[3][3];
   copy_m3_m4(mat, obmat);
@@ -121,7 +121,7 @@ static void cursor_poject_surface_normal(const float normal[3],
  *
  * \note This could be moved to a public function.
  */
-static bool cursor_snap_calc_incremental(
+static bool v3d_cursor_snap_calc_incremental(
     Scene *scene, View3D *v3d, ARegion *region, const float co_relative[3], float co[3])
 {
   const float grid_size = ED_view3d_grid_view_scale(scene, v3d, region, NULL);
@@ -179,12 +179,12 @@ static bool mat3_align_axis_to_v3(float mat[3][3], const int axis_align, const f
 /** \name Drawings
  * \{ */
 
-static void cursor_plane_draw_grid(const int resolution,
-                                   const float scale,
-                                   const float scale_fade,
-                                   const float matrix[4][4],
-                                   const int plane_axis,
-                                   const float color[4])
+static void v3d_cursor_plane_draw_grid(const int resolution,
+                                       const float scale,
+                                       const float scale_fade,
+                                       const float matrix[4][4],
+                                       const int plane_axis,
+                                       const float color[4])
 {
   BLI_assert(scale_fade <= scale);
   const int resolution_min = resolution - 1;
@@ -274,9 +274,9 @@ static void cursor_plane_draw_grid(const int resolution,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void cursor_plane_draw(const RegionView3D *rv3d,
-                              const int plane_axis,
-                              const float matrix[4][4])
+static void v3d_cursor_plane_draw(const RegionView3D *rv3d,
+                                  const int plane_axis,
+                                  const float matrix[4][4])
 {
   /* Draw */
   float pixel_size;
@@ -326,7 +326,7 @@ static void cursor_plane_draw(const RegionView3D *rv3d,
     float color[4] = {1, 1, 1, color_alpha};
     color[3] *= square_f(1.0f - fac);
     if (color[3] > 0.0f) {
-      cursor_plane_draw_grid(
+      v3d_cursor_plane_draw_grid(
           lines * lines_subdiv, final_scale, final_scale_fade, matrix, plane_axis, color);
     }
 
@@ -336,7 +336,7 @@ static void cursor_plane_draw(const RegionView3D *rv3d,
       lines = 1;
       final_scale = final_scale_fade;
     }
-    cursor_plane_draw_grid(lines, final_scale, final_scale_fade, matrix, plane_axis, color);
+    v3d_cursor_plane_draw_grid(lines, final_scale, final_scale_fade, matrix, plane_axis, color);
   }
 }
 
@@ -437,10 +437,10 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
  * \{ */
 
 /* Checks if the current event is different from the one captured in the last update. */
-static bool eventstate_has_changed(SnapCursorDataIntern *sdata_intern,
-                                   const wmWindowManager *wm,
-                                   const int x,
-                                   const int y)
+static bool v3d_cursor_eventstate_has_changed(SnapCursorDataIntern *sdata_intern,
+                                              const wmWindowManager *wm,
+                                              const int x,
+                                              const int y)
 {
   V3DSnapCursorData *snap_data = (V3DSnapCursorData *)sdata_intern;
   if (wm && wm->winactive) {
@@ -463,14 +463,17 @@ static bool eventstate_has_changed(SnapCursorDataIntern *sdata_intern,
 }
 
 /* Copies the current eventstate. */
-static void eventstate_save_xy(SnapCursorDataIntern *cursor_snap, const int x, const int y)
+static void v3d_cursor_eventstate_save_xy(SnapCursorDataIntern *cursor_snap,
+                                          const int x,
+                                          const int y)
 {
   cursor_snap->last_eventstate.x = x;
   cursor_snap->last_eventstate.y = y;
 }
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-static bool invert_snap(SnapCursorDataIntern *sdata_intern, const wmWindowManager *wm)
+static bool v3d_cursor_is_snap_invert(SnapCursorDataIntern *sdata_intern,
+                                      const wmWindowManager *wm)
 {
   if (!wm || !wm->winactive) {
     return false;
@@ -518,7 +521,7 @@ static bool invert_snap(SnapCursorDataIntern *sdata_intern, const wmWindowManage
 /** \name Update
  * \{ */
 
-static short cursor_snap_elements(V3DSnapCursorData *cursor_snap, Scene *scene)
+static short v3d_cursor_snap_elements(V3DSnapCursorData *cursor_snap, Scene *scene)
 {
   short snap_elements = cursor_snap->snap_elem_force;
   if (!snap_elements) {
@@ -527,24 +530,24 @@ static short cursor_snap_elements(V3DSnapCursorData *cursor_snap, Scene *scene)
   return snap_elements;
 }
 
-static void wm_paint_cursor_snap_context_ensure(SnapCursorDataIntern *sdata_intern, Scene *scene)
+static void v3d_cursor_snap_context_ensure(SnapCursorDataIntern *sdata_intern, Scene *scene)
 {
   if (sdata_intern->snap_context_v3d == NULL) {
     sdata_intern->snap_context_v3d = ED_transform_snap_object_context_create(scene, 0);
   }
 }
 
-static void cursor_snap_update(const bContext *C,
-                               wmWindowManager *wm,
-                               Depsgraph *depsgraph,
-                               Scene *scene,
-                               ARegion *region,
-                               View3D *v3d,
-                               int x,
-                               int y,
-                               SnapCursorDataIntern *sdata_intern)
+static void v3d_cursor_snap_update(const bContext *C,
+                                   wmWindowManager *wm,
+                                   Depsgraph *depsgraph,
+                                   Scene *scene,
+                                   ARegion *region,
+                                   View3D *v3d,
+                                   int x,
+                                   int y,
+                                   SnapCursorDataIntern *sdata_intern)
 {
-  wm_paint_cursor_snap_context_ensure(sdata_intern, scene);
+  v3d_cursor_snap_context_ensure(sdata_intern, scene);
   V3DSnapCursorData *snap_data = (V3DSnapCursorData *)sdata_intern;
 
   float co[3], no[3], face_nor[3], obmat[4][4], omat[3][3];
@@ -557,7 +560,7 @@ static void cursor_snap_update(const bContext *C,
   zero_v3(face_nor);
   unit_m3(omat);
 
-  ushort snap_elements = cursor_snap_elements(snap_data, scene);
+  ushort snap_elements = v3d_cursor_snap_elements(snap_data, scene);
   sdata_intern->snap_elem_hidden = 0;
   const bool draw_plane = sdata_intern->draw_plane;
   if (draw_plane && !(snap_elements & SCE_SNAP_MODE_FACE)) {
@@ -568,7 +571,7 @@ static void cursor_snap_update(const bContext *C,
   snap_data->is_enabled = true;
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   if (!(snap_data->flag & V3D_SNAPCURSOR_TOGGLE_ALWAYS_TRUE)) {
-    snap_data->is_snap_invert = invert_snap(sdata_intern, wm);
+    snap_data->is_snap_invert = v3d_cursor_is_snap_invert(sdata_intern, wm);
 
     const ToolSettings *ts = scene->toolsettings;
     if (snap_data->is_snap_invert != !(ts->snap_flag & SCE_SNAP)) {
@@ -659,7 +662,7 @@ static void cursor_snap_update(const bContext *C,
     orthogonalize_m3(omat, snap_data->plane_axis);
 
     if (orient_surface) {
-      cursor_poject_surface_normal(face_nor, obmat, omat);
+      v3d_cursor_poject_surface_normal(face_nor, obmat, omat);
     }
   }
 
@@ -678,7 +681,7 @@ static void cursor_snap_update(const bContext *C,
     }
 
     if (snap_data->is_enabled && (snap_elements & SCE_SNAP_MODE_INCREMENT)) {
-      cursor_snap_calc_incremental(scene, v3d, region, snap_data->prevpoint, co);
+      v3d_cursor_snap_calc_incremental(scene, v3d, region, snap_data->prevpoint, co);
     }
   }
   else if (snap_elem == SCE_SNAP_MODE_VERTEX) {
@@ -701,7 +704,7 @@ static void cursor_snap_update(const bContext *C,
 
   copy_m3_m3(snap_data->plane_omat, omat);
 
-  eventstate_save_xy(sdata_intern, x, y);
+  v3d_cursor_eventstate_save_xy(sdata_intern, x, y);
 }
 
 /** \} */
@@ -710,7 +713,7 @@ static void cursor_snap_update(const bContext *C,
 /** \name Callbacks
  * \{ */
 
-static bool cursor_snap_pool_fn(bContext *C)
+static bool v3d_cursor_snap_pool_fn(bContext *C)
 {
   if (G.moving) {
     return false;
@@ -735,7 +738,7 @@ static bool cursor_snap_pool_fn(bContext *C)
   return true;
 }
 
-static void cursor_snap_draw_fn(bContext *C, int x, int y, void *customdata)
+static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *customdata)
 {
   V3DSnapCursorData *snap_data = customdata;
   SnapCursorDataIntern *sdata_intern = customdata;
@@ -744,11 +747,11 @@ static void cursor_snap_draw_fn(bContext *C, int x, int y, void *customdata)
   ARegion *region = CTX_wm_region(C);
   x -= region->winrct.xmin;
   y -= region->winrct.ymin;
-  if (eventstate_has_changed(sdata_intern, wm, x, y)) {
+  if (v3d_cursor_eventstate_has_changed(sdata_intern, wm, x, y)) {
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     Scene *scene = DEG_get_input_scene(depsgraph);
     View3D *v3d = CTX_wm_view3d(C);
-    cursor_snap_update(C, wm, depsgraph, scene, region, v3d, x, y, sdata_intern);
+    v3d_cursor_snap_update(C, wm, depsgraph, scene, region, v3d, x, y, sdata_intern);
   }
 
   const bool draw_plane = sdata_intern->draw_plane;
@@ -771,7 +774,7 @@ static void cursor_snap_draw_fn(bContext *C, int x, int y, void *customdata)
     copy_m4_m3(matrix, snap_data->plane_omat);
     copy_v3_v3(matrix[3], snap_data->loc);
 
-    cursor_plane_draw(rv3d, snap_data->plane_axis, matrix);
+    v3d_cursor_plane_draw(rv3d, snap_data->plane_axis, matrix);
   }
 
   if (snap_data->snap_elem && sdata_intern->draw_point) {
@@ -804,7 +807,7 @@ V3DSnapCursorData *ED_view3d_cursor_snap_data_get(void)
 {
   LISTBASE_FOREACH_MUTABLE (wmWindowManager *, wm, &G.main->wm) {
     LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->paintcursors) {
-      if (pc->draw == cursor_snap_draw_fn) {
+      if (pc->draw == v3d_cursor_snap_draw_fn) {
         return (V3DSnapCursorData *)pc->customdata;
       }
     }
@@ -812,7 +815,7 @@ V3DSnapCursorData *ED_view3d_cursor_snap_data_get(void)
   return NULL;
 }
 
-static void wm_paint_cursor_snap_data_init(SnapCursorDataIntern *sdata_intern)
+static void v3d_cursor_snap_data_init(SnapCursorDataIntern *sdata_intern)
 {
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   struct wmKeyConfig *keyconf = ((wmWindowManager *)G.main->wm.first)->defaultconf;
@@ -830,15 +833,18 @@ static void wm_paint_cursor_snap_data_init(SnapCursorDataIntern *sdata_intern)
   snap_data->color_line[3] = 128;
 }
 
-static SnapCursorDataIntern *wm_paint_cursor_snap_ensure(void)
+static SnapCursorDataIntern *v3d_cursor_snap_ensure(void)
 {
   SnapCursorDataIntern *sdata_intern = (SnapCursorDataIntern *)ED_view3d_cursor_snap_data_get();
   if (!sdata_intern) {
     sdata_intern = MEM_callocN(sizeof(*sdata_intern), __func__);
-    wm_paint_cursor_snap_data_init(sdata_intern);
+    v3d_cursor_snap_data_init(sdata_intern);
 
-    struct wmPaintCursor *pc = WM_paint_cursor_activate(
-        SPACE_VIEW3D, RGN_TYPE_WINDOW, cursor_snap_pool_fn, cursor_snap_draw_fn, sdata_intern);
+    struct wmPaintCursor *pc = WM_paint_cursor_activate(SPACE_VIEW3D,
+                                                        RGN_TYPE_WINDOW,
+                                                        v3d_cursor_snap_pool_fn,
+                                                        v3d_cursor_snap_draw_fn,
+                                                        sdata_intern);
     sdata_intern->handle = pc;
   }
   return sdata_intern;
@@ -846,17 +852,17 @@ static SnapCursorDataIntern *wm_paint_cursor_snap_ensure(void)
 
 void ED_view3d_cursor_snap_activate_point(void)
 {
-  SnapCursorDataIntern *sdata_intern = wm_paint_cursor_snap_ensure();
+  SnapCursorDataIntern *sdata_intern = v3d_cursor_snap_ensure();
   sdata_intern->draw_point = true;
 }
 
 void ED_view3d_cursor_snap_activate_plane(void)
 {
-  SnapCursorDataIntern *sdata_intern = wm_paint_cursor_snap_ensure();
+  SnapCursorDataIntern *sdata_intern = v3d_cursor_snap_ensure();
   sdata_intern->draw_plane = true;
 }
 
-static void wm_paint_cursor_snap_free(SnapCursorDataIntern *sdata_intern)
+static void v3d_cursor_snap_free(SnapCursorDataIntern *sdata_intern)
 {
   WM_paint_cursor_end(sdata_intern->handle);
   if (sdata_intern->snap_context_v3d) {
@@ -878,7 +884,7 @@ void ED_view3d_cursor_snap_deactivate_point(void)
     return;
   }
 
-  wm_paint_cursor_snap_free(sdata_intern);
+  v3d_cursor_snap_free(sdata_intern);
 }
 
 void ED_view3d_cursor_snap_deactivate_plane(void)
@@ -894,7 +900,7 @@ void ED_view3d_cursor_snap_deactivate_plane(void)
     return;
   }
 
-  wm_paint_cursor_snap_free(sdata_intern);
+  v3d_cursor_snap_free(sdata_intern);
 }
 
 void ED_view3d_cursor_snap_update(const bContext *C,
@@ -906,18 +912,18 @@ void ED_view3d_cursor_snap_update(const bContext *C,
   sdata_intern = (SnapCursorDataIntern *)ED_view3d_cursor_snap_data_get();
   if (!sdata_intern) {
     sdata_intern = &stack;
-    wm_paint_cursor_snap_data_init(sdata_intern);
+    v3d_cursor_snap_data_init(sdata_intern);
     sdata_intern->draw_plane = true;
   }
 
   wmWindowManager *wm = CTX_wm_manager(C);
-  if (eventstate_has_changed(sdata_intern, wm, x, y)) {
+  if (v3d_cursor_eventstate_has_changed(sdata_intern, wm, x, y)) {
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     Scene *scene = DEG_get_input_scene(depsgraph);
     ARegion *region = CTX_wm_region(C);
     View3D *v3d = CTX_wm_view3d(C);
 
-    cursor_snap_update(C, wm, depsgraph, scene, region, v3d, x, y, sdata_intern);
+    v3d_cursor_snap_update(C, wm, depsgraph, scene, region, v3d, x, y, sdata_intern);
   }
   if ((void *)snap_data != (void *)sdata_intern) {
     if ((sdata_intern == &stack) && sdata_intern->snap_context_v3d) {
@@ -949,6 +955,6 @@ struct SnapObjectContext *ED_view3d_cursor_snap_context_ensure(struct Scene *sce
   if (!sdata_intern) {
     return NULL;
   }
-  wm_paint_cursor_snap_context_ensure(sdata_intern, scene);
+  v3d_cursor_snap_context_ensure(sdata_intern, scene);
   return sdata_intern->snap_context_v3d;
 }
