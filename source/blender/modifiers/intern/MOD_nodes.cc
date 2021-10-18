@@ -599,7 +599,7 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
       }
     }
 
-    if (input_has_attribute_toggle(*nmd->node_group, socket_index)) {
+    if (socket_type_has_attribute_toggle(*socket)) {
       const std::string use_attribute_id = socket->identifier + use_attribute_suffix;
       const std::string attribute_name_id = socket->identifier + attribute_name_suffix;
 
