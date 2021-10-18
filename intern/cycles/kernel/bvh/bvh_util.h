@@ -71,8 +71,7 @@ ccl_device_inline float3 ray_offset(float3 P, float3 Ng)
 #endif
 }
 
-#if defined(__VOLUME_RECORD_ALL__) || (defined(__SHADOW_RECORD_ALL__) && defined(__KERNEL_CPU__))
-/* TODO: Move to another file? */
+#if defined(__KERNEL_CPU__)
 ccl_device int intersections_compare(const void *a, const void *b)
 {
   const Intersection *isect_a = (const Intersection *)a;
@@ -86,32 +85,6 @@ ccl_device int intersections_compare(const void *a, const void *b)
     return 0;
 }
 #endif
-
-#if defined(__SHADOW_RECORD_ALL__)
-ccl_device_inline void sort_intersections(ccl_private Intersection *hits, uint num_hits)
-{
-  kernel_assert(num_hits > 0);
-
-#  ifdef __KERNEL_GPU__
-  /* Use bubble sort which has more friendly memory pattern on GPU. */
-  bool swapped;
-  do {
-    swapped = false;
-    for (int j = 0; j < num_hits - 1; ++j) {
-      if (hits[j].t > hits[j + 1].t) {
-        struct Intersection tmp = hits[j];
-        hits[j] = hits[j + 1];
-        hits[j + 1] = tmp;
-        swapped = true;
-      }
-    }
-    --num_hits;
-  } while (swapped);
-#  else
-  qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
-#  endif
-}
-#endif /* __SHADOW_RECORD_ALL__ | __VOLUME_RECORD_ALL__ */
 
 /* For subsurface scattering, only sorting a small amount of intersections
  * so bubble sort is fine for CPU and GPU. */

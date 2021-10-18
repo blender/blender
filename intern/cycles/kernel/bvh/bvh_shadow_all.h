@@ -38,7 +38,7 @@ ccl_device_inline
 #endif
     bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                                      ccl_private const Ray *ray,
-                                     ccl_private Intersection *isect_array,
+                                     IntegratorShadowState state,
                                      const uint visibility,
                                      const uint max_hits,
                                      ccl_private uint *num_hits)
@@ -227,12 +227,13 @@ ccl_device_inline
                  * the largest distance to potentially replace when another hit
                  * is found. */
                 const int num_recorded_hits = min(max_hits, record_index);
-                float max_recorded_t = isect_array[0].t;
+                float max_recorded_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
                 int max_recorded_hit = 0;
 
                 for (int i = 1; i < num_recorded_hits; i++) {
-                  if (isect_array[i].t > max_recorded_t) {
-                    max_recorded_t = isect_array[i].t;
+                  const float isect_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, i, t);
+                  if (isect_t > max_recorded_t) {
+                    max_recorded_t = isect_t;
                     max_recorded_hit = i;
                   }
                 }
@@ -246,7 +247,7 @@ ccl_device_inline
                 t_max_current = t_max_world * t_world_to_instance;
               }
 
-              isect_array[record_index] = isect;
+              integrator_state_write_shadow_isect(state, &isect, record_index);
             }
 
             prim_addr++;
@@ -300,12 +301,12 @@ ccl_device_inline
 
 ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals kg,
                                          ccl_private const Ray *ray,
-                                         ccl_private Intersection *isect_array,
+                                         IntegratorShadowState state,
                                          const uint visibility,
                                          const uint max_hits,
                                          ccl_private uint *num_hits)
 {
-  return BVH_FUNCTION_FULL_NAME(BVH)(kg, ray, isect_array, visibility, max_hits, num_hits);
+  return BVH_FUNCTION_FULL_NAME(BVH)(kg, ray, state, visibility, max_hits, num_hits);
 }
 
 #undef BVH_FUNCTION_NAME

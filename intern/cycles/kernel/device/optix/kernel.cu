@@ -225,16 +225,17 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
 
   optixSetPayload_2(num_hits + 1);
 
-  Intersection *const isect_array = get_payload_ptr_0<Intersection>();
+  const IntegratorShadowState state = optixGetPayload_0();
 
   if (record_index >= max_hits) {
     /* If maximum number of hits reached, find a hit to replace. */
-    float max_recorded_t = isect_array[0].t;
+    float max_recorded_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
     int max_recorded_hit = 0;
 
     for (int i = 1; i < max_hits; i++) {
-      if (isect_array[i].t > max_recorded_t) {
-        max_recorded_t = isect_array[i].t;
+      const float isect_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, i, t);
+      if (isect_t > max_recorded_t) {
+        max_recorded_t = isect_t;
         max_recorded_hit = i;
       }
     }
@@ -248,13 +249,12 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
     record_index = max_recorded_hit;
   }
 
-  Intersection *const isect = isect_array + record_index;
-  isect->u = u;
-  isect->v = v;
-  isect->t = optixGetRayTmax();
-  isect->prim = prim;
-  isect->object = object;
-  isect->type = type;
+  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, u) = u;
+  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, v) = v;
+  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, t) = optixGetRayTmax();
+  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, prim) = prim;
+  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, object) = object;
+  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, type) = type;
 
   optixIgnoreIntersection();
 #  endif /* __TRANSPARENT_SHADOWS__ */
