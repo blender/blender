@@ -698,7 +698,6 @@ static void v3d_cursor_snap_update(const bContext *C,
   snap_data->snap_elem = snap_elem;
   copy_v3_v3(snap_data->loc, co);
   copy_v3_v3(snap_data->nor, no);
-  copy_v3_v3(snap_data->face_nor, face_nor);
   copy_m4_m4(snap_data->obmat, obmat);
   copy_v3_v3_int(snap_data->elem_index, snap_elem_index);
 
@@ -903,6 +902,21 @@ void ED_view3d_cursor_snap_deactivate_plane(void)
   v3d_cursor_snap_free(sdata_intern);
 }
 
+void ED_view3d_cursor_snap_prevpoint_set(const float prev_point[3])
+{
+  SnapCursorDataIntern *sdata_intern = (SnapCursorDataIntern *)ED_view3d_cursor_snap_data_get();
+  if (!sdata_intern) {
+    return;
+  }
+  if (prev_point) {
+    copy_v3_v3(sdata_intern->prevpoint_stack, prev_point);
+    sdata_intern->snap_data.prevpoint = sdata_intern->prevpoint_stack;
+  }
+  else {
+    sdata_intern->snap_data.prevpoint = NULL;
+  }
+}
+
 void ED_view3d_cursor_snap_update(const bContext *C,
                                   const int x,
                                   const int y,
@@ -931,21 +945,6 @@ void ED_view3d_cursor_snap_update(const bContext *C,
       sdata_intern->snap_context_v3d = NULL;
     }
     *snap_data = *(V3DSnapCursorData *)sdata_intern;
-  }
-}
-
-void ED_view3d_cursor_snap_prevpoint_set(const float prev_point[3])
-{
-  SnapCursorDataIntern *sdata_intern = (SnapCursorDataIntern *)ED_view3d_cursor_snap_data_get();
-  if (!sdata_intern) {
-    return;
-  }
-  if (prev_point) {
-    copy_v3_v3(sdata_intern->prevpoint_stack, prev_point);
-    sdata_intern->snap_data.prevpoint = sdata_intern->prevpoint_stack;
-  }
-  else {
-    sdata_intern->snap_data.prevpoint = NULL;
   }
 }
 

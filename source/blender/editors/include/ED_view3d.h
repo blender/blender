@@ -267,7 +267,6 @@ typedef struct V3DSnapCursorData {
   short snap_elem;
   float loc[3];
   float nor[3];
-  float face_nor[3];
   float obmat[4][4];
   int elem_index[3];
   float plane_omat[3][3];
@@ -282,11 +281,11 @@ void ED_view3d_cursor_snap_activate_point(void);
 void ED_view3d_cursor_snap_activate_plane(void);
 void ED_view3d_cursor_snap_deactivate_point(void);
 void ED_view3d_cursor_snap_deactivate_plane(void);
+void ED_view3d_cursor_snap_prevpoint_set(const float prev_point[3]);
 void ED_view3d_cursor_snap_update(const struct bContext *C,
                                   const int x,
                                   const int y,
                                   V3DSnapCursorData *snap_data);
-void ED_view3d_cursor_snap_prevpoint_set(const float prev_point[3]);
 struct SnapObjectContext *ED_view3d_cursor_snap_context_ensure(struct Scene *scene);
 void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
                                      const float loc_prev[3],
