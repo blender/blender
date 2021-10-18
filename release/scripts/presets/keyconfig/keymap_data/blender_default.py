@@ -5028,6 +5028,9 @@ def km_mesh(params):
             ("mesh.bevel", {"type": 'B', "value": 'PRESS', "ctrl": True},
              {"properties": [("affect", 'EDGES')]}),
             (op_tool_cycle, "builtin.bevel"), params),
+        op_tool_optional(
+            ("transform.shrink_fatten", {"type": 'S', "value": 'PRESS', "alt": True}, None),
+            (op_tool_cycle, "builtin.shrink_fatten"), params),
         ("mesh.bevel", {"type": 'B', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("affect", 'VERTICES')]}),
         # Selection modes.
@@ -5092,7 +5095,6 @@ def km_mesh(params):
         ("mesh.rip_edge_move", {"type": 'D', "value": 'PRESS', "alt": True}, None),
         op_menu("VIEW3D_MT_edit_mesh_merge", {"type": 'M', "value": 'PRESS'}),
         op_menu("VIEW3D_MT_edit_mesh_split", {"type": 'M', "value": 'PRESS', "alt": True}),
-        ("transform.shrink_fatten", {"type": 'S', "value": 'PRESS', "alt": True}, None),
         ("mesh.edge_face_add", {"type": 'F', "value": 'PRESS', "repeat": True}, None),
         ("mesh.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         op_menu("VIEW3D_MT_mesh_add", {"type": 'A', "value": 'PRESS', "shift": True}),
