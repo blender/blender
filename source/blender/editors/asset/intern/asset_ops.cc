@@ -49,7 +49,7 @@ static PointerRNAVec asset_operation_get_ids_from_context(const bContext *C);
 static PointerRNAVec asset_operation_get_nonexperimental_ids_from_context(const bContext *C);
 static bool asset_type_is_nonexperimental(const ID_Type id_type);
 
-static bool asset_operation_poll(bContext * /*C*/)
+static bool asset_operation_experimental_feature_poll(bContext * /*C*/)
 {
   /* At this moment only the pose library is non-experimental. Still, directly marking arbitrary
    * Actions as asset is not part of the stable functionality; instead, the pose library "Create
@@ -61,7 +61,7 @@ static bool asset_operation_poll(bContext * /*C*/)
 
 static bool asset_clear_poll(bContext *C)
 {
-  if (asset_operation_poll(C)) {
+  if (asset_operation_experimental_feature_poll(C)) {
     return true;
   }
 
@@ -212,7 +212,7 @@ static void ASSET_OT_mark(wmOperatorType *ot)
   ot->idname = "ASSET_OT_mark";
 
   ot->exec = asset_mark_exec;
-  ot->poll = asset_operation_poll;
+  ot->poll = asset_operation_experimental_feature_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -386,7 +386,7 @@ static void ASSET_OT_list_refresh(struct wmOperatorType *ot)
 static bool asset_catalog_operator_poll(bContext *C)
 {
   const SpaceFile *sfile = CTX_wm_space_file(C);
-  return asset_operation_poll(C) && sfile && ED_fileselect_active_asset_library_get(sfile);
+  return sfile && ED_fileselect_active_asset_library_get(sfile);
 }
 
 static int asset_catalog_new_exec(bContext *C, wmOperator *op)
@@ -463,7 +463,7 @@ static void ASSET_OT_catalog_delete(struct wmOperatorType *ot)
 static bke::AssetCatalogService *get_catalog_service(bContext *C)
 {
   const SpaceFile *sfile = CTX_wm_space_file(C);
-  if (!asset_operation_poll(C) || !sfile) {
+  if (!sfile) {
     return nullptr;
   }
 
