@@ -224,7 +224,7 @@ set(SRC
   geometry/nodes/node_geo_distribute_points_on_faces.cc
   geometry/nodes/node_geo_edge_split.cc
   geometry/nodes/node_geo_input_curve_handles.cc
-  geometry/nodes/node_geo_input_curve_tilt.cc  
+  geometry/nodes/node_geo_input_curve_tilt.cc
   geometry/nodes/node_geo_input_index.cc
   geometry/nodes/node_geo_input_material.cc
   geometry/nodes/node_geo_input_material_index.cc
@@ -264,7 +264,7 @@ set(SRC
   geometry/nodes/node_geo_separate_geometry.cc
   geometry/nodes/node_geo_set_curve_handles.cc
   geometry/nodes/node_geo_set_curve_radius.cc
-  geometry/nodes/node_geo_set_curve_tilt.cc  
+  geometry/nodes/node_geo_set_curve_tilt.cc
   geometry/nodes/node_geo_set_material.cc
   geometry/nodes/node_geo_set_material_index.cc
   geometry/nodes/node_geo_set_point_radius.cc

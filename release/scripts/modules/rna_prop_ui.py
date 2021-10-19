@@ -224,7 +224,7 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
 
         if use_edit:
             row = split.row(align=True)
-            # Do not allow editing of overridden properties (we cannot use a poll function 
+            # Do not allow editing of overridden properties (we cannot use a poll function
             # of the operators here since they's have no access to the specific property).
             row.enabled = not(is_lib_override and key in rna_item.id_data.override_library.reference)
             if is_rna:
