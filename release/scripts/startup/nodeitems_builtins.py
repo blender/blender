@@ -720,6 +720,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeStringJoin"),
         NodeItem("FunctionNodeInputSpecialCharacters"),
         NodeItem("GeometryNodeStringToCurves"),
+        NodeItem("FunctionNodeReplaceString"),
     ]),
     GeometryNodeCategory("GEO_TEXTURE", "Texture", items=[
         NodeItem("ShaderNodeTexGradient"),
