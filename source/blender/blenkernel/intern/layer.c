@@ -2380,8 +2380,12 @@ static void viewlayer_aov_make_name_unique(ViewLayer *view_layer)
   if (aov == NULL) {
     return;
   }
+
+  /* Don't allow dots, it's incompatible with OpenEXR convention to store channels
+   * as "layer.pass.channel". */
+  BLI_str_replace_char(aov->name, '.', '_');
   BLI_uniquename(
-      &view_layer->aovs, aov, DATA_("AOV"), '.', offsetof(ViewLayerAOV, name), sizeof(aov->name));
+      &view_layer->aovs, aov, DATA_("AOV"), '_', offsetof(ViewLayerAOV, name), sizeof(aov->name));
 }
 
 static void viewlayer_aov_active_set(ViewLayer *view_layer, ViewLayerAOV *aov)
