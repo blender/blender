@@ -170,7 +170,7 @@ ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const Scene *scene)
 static ViewLayer *view_layer_add(const char *name)
 {
   if (!name) {
-    name = DATA_("View Layer");
+    name = DATA_("ViewLayer");
   }
 
   ViewLayer *view_layer = MEM_callocN(sizeof(ViewLayer), "View Layer");
@@ -248,7 +248,7 @@ ViewLayer *BKE_view_layer_add(Scene *scene,
   BLI_uniquename(&scene->view_layers,
                  view_layer_new,
                  DATA_("ViewLayer"),
-                 '.',
+                 '_',
                  offsetof(ViewLayer, name),
                  sizeof(view_layer_new->name));
 

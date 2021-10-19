@@ -294,7 +294,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   }
 
   /* Rename render layers. */
-  BKE_view_layer_rename(bmain, scene, scene->view_layers.first, "View Layer");
+  BKE_view_layer_rename(bmain, scene, scene->view_layers.first, "ViewLayer");
 
   /* Disable Z pass by default. */
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
