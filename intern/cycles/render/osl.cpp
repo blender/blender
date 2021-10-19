@@ -91,7 +91,7 @@ void OSLShaderManager::reset(Scene * /*scene*/)
   shading_system_init();
 }
 
-void OSLShaderManager::host_update_specific(Device * /*device*/, Scene *scene, Progress &progress)
+void OSLShaderManager::host_update_specific(Scene *scene, Progress &progress)
 {
   if (!need_update()) {
     return;

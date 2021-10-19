@@ -69,7 +69,7 @@ static void host_compile_shader(Scene *scene,
           << summary.full_report();
 }
 
-void SVMShaderManager::host_update_specific(Device * /*device*/, Scene *scene, Progress &progress)
+void SVMShaderManager::host_update_specific(Scene *scene, Progress &progress)
 {
   if (!need_update()) {
     return;
