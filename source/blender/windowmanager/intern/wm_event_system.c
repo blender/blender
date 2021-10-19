@@ -804,7 +804,7 @@ static void wm_add_reports(ReportList *reports)
   }
 }
 
-void WM_report(ReportType type, const char *message)
+void WM_report(eReportType type, const char *message)
 {
   ReportList reports;
   BKE_reports_init(&reports, RPT_STORE);
@@ -815,7 +815,7 @@ void WM_report(ReportType type, const char *message)
   BKE_reports_clear(&reports);
 }
 
-void WM_reportf(ReportType type, const char *format, ...)
+void WM_reportf(eReportType type, const char *format, ...)
 {
   va_list args;
 

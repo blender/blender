@@ -178,12 +178,12 @@ void WM_opengl_context_dispose(void *context);
 void WM_opengl_context_activate(void *context);
 void WM_opengl_context_release(void *context);
 
-/* WM_window_open alignment */
-typedef enum WindowAlignment {
+/* #WM_window_open alignment */
+typedef enum eWindowAlignment {
   WIN_ALIGN_ABSOLUTE = 0,
   WIN_ALIGN_LOCATION_CENTER,
   WIN_ALIGN_PARENT_CENTER,
-} WindowAlignment;
+} eWindowAlignment;
 
 struct wmWindow *WM_window_open(struct bContext *C,
                                 const char *title,
@@ -195,7 +195,7 @@ struct wmWindow *WM_window_open(struct bContext *C,
                                 bool toplevel,
                                 bool dialog,
                                 bool temp,
-                                WindowAlignment alignment);
+                                eWindowAlignment alignment);
 
 void WM_window_set_dpi(const wmWindow *win);
 
@@ -372,8 +372,8 @@ void WM_main_remap_editor_id_reference(struct ID *old_id, struct ID *new_id);
 /* reports */
 void WM_report_banner_show(void);
 void WM_report_banners_cancel(struct Main *bmain);
-void WM_report(ReportType type, const char *message);
-void WM_reportf(ReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
+void WM_report(eReportType type, const char *message);
+void WM_reportf(eReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
 
 struct wmEvent *wm_event_add_ex(struct wmWindow *win,
                                 const struct wmEvent *event_to_add,

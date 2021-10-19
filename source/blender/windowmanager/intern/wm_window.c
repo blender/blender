@@ -772,7 +772,7 @@ wmWindow *WM_window_open(bContext *C,
                          bool toplevel,
                          bool dialog,
                          bool temp,
-                         WindowAlignment alignment)
+                         eWindowAlignment alignment)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);

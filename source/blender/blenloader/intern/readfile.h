@@ -31,7 +31,7 @@
 #include "BLI_filereader.h"
 #include "DNA_sdna_types.h"
 #include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h" /* for ReportType */
+#include "DNA_windowmanager_types.h" /* for eReportType */
 
 struct BLI_mmap_file;
 struct BLOCacheStorage;

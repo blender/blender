@@ -90,12 +90,12 @@ typedef struct MainIDRelationsEntry {
 } MainIDRelationsEntry;
 
 /* MainIDRelationsEntry.tags */
-typedef enum MainIDRelationsEntryTags {
+typedef enum eMainIDRelationsEntryTags {
   /* Generic tag marking the entry as to be processed. */
   MAINIDRELATIONS_ENTRY_TAGS_DOIT = 1 << 0,
   /* Generic tag marking the entry as processed. */
   MAINIDRELATIONS_ENTRY_TAGS_PROCESSED = 1 << 1,
-} MainIDRelationsEntryTags;
+} eMainIDRelationsEntryTags;
 
 typedef struct MainIDRelations {
   /* Mapping from an ID pointer to all of its parents (IDs using it) and children (IDs it uses).
@@ -209,7 +209,7 @@ void BKE_main_unlock(struct Main *bmain);
 void BKE_main_relations_create(struct Main *bmain, const short flag);
 void BKE_main_relations_free(struct Main *bmain);
 void BKE_main_relations_tag_set(struct Main *bmain,
-                                const MainIDRelationsEntryTags tag,
+                                const eMainIDRelationsEntryTags tag,
                                 const bool value);
 
 struct GSet *BKE_main_gset_create(struct Main *bmain, struct GSet *gset);

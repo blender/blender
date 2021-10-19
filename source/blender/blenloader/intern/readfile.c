@@ -222,7 +222,7 @@ typedef struct BHeadN {
  * bit kludge but better than doubling up on prints,
  * we could alternatively have a versions of a report function which forces printing - campbell
  */
-void BLO_reportf_wrap(BlendFileReadReport *reports, ReportType type, const char *format, ...)
+void BLO_reportf_wrap(BlendFileReadReport *reports, eReportType type, const char *format, ...)
 {
   char fixed_buf[1024]; /* should be long enough */
 

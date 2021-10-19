@@ -102,11 +102,11 @@ typedef enum eUndoStepDir {
   STEP_INVALID = 0,
 } eUndoStepDir;
 
-typedef enum UndoPushReturn {
+typedef enum eUndoPushReturn {
   UNDO_PUSH_RET_FAILURE = 0,
   UNDO_PUSH_RET_SUCCESS = (1 << 0),
   UNDO_PUSH_RET_OVERRIDE_CHANGED = (1 << 1),
-} UndoPushReturn;
+} eUndoPushReturn;
 
 typedef void (*UndoTypeForEachIDRefFn)(void *user_data, struct UndoRefID *id_ref);
 
@@ -156,7 +156,7 @@ typedef struct UndoType {
 } UndoType;
 
 /** #UndoType.flag bitflags. */
-typedef enum UndoTypeFlags {
+typedef enum eUndoTypeFlags {
   /**
    * This undo type `encode` callback needs a valid context, it will fail otherwise.
    * \note Callback is still supposed to properly deal with a NULL context pointer.
@@ -169,7 +169,7 @@ typedef enum UndoTypeFlags {
    * This is typically used for undo systems that store both before/after states.
    */
   UNDOTYPE_FLAG_DECODE_ACTIVE_STEP = 1 << 1,
-} UndoTypeFlags;
+} eUndoTypeFlags;
 
 /* Expose since we need to perform operations on specific undo types (rarely). */
 extern const UndoType *BKE_UNDOSYS_TYPE_IMAGE;
@@ -204,11 +204,11 @@ UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,
                                                const UndoType *ut);
 UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, struct bContext *C, const char *name);
 
-UndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
-                                               struct bContext *C,
-                                               const char *name,
-                                               const UndoType *ut);
-UndoPushReturn BKE_undosys_step_push(UndoStack *ustack, struct bContext *C, const char *name);
+eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
+                                                struct bContext *C,
+                                                const char *name,
+                                                const UndoType *ut);
+eUndoPushReturn BKE_undosys_step_push(UndoStack *ustack, struct bContext *C, const char *name);
 
 UndoStep *BKE_undosys_step_find_by_name_with_type(UndoStack *ustack,
                                                   const char *name,
