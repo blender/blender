@@ -49,6 +49,7 @@ static_assert(sizeof(ShaderClosure) >= sizeof(PrincipledDiffuseBsdf),
 ccl_device int bsdf_principled_diffuse_setup(ccl_private PrincipledDiffuseBsdf *bsdf)
 {
   bsdf->type = CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID;
+  bsdf->components = PRINCIPLED_DIFFUSE_FULL;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
