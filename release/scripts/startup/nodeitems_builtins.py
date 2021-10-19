@@ -226,7 +226,7 @@ def point_node_items(context):
         yield NodeItem("GeometryNodeLegacyPointTranslate", poll=geometry_nodes_legacy_poll)
         yield NodeItem("GeometryNodeLegacyRotatePoints", poll=geometry_nodes_legacy_poll)
         yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
-        
+
     yield NodeItem("GeometryNodeDistributePointsOnFaces")
     yield NodeItem("GeometryNodePointsToVertices")
     yield NodeItem("GeometryNodePointsToVolume")
