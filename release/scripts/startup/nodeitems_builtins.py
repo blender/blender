@@ -727,6 +727,7 @@ geometry_node_categories = [
         NodeItem("ShaderNodeTexMusgrave"),
         NodeItem("ShaderNodeTexNoise"),
         NodeItem("ShaderNodeTexVoronoi"),
+        NodeItem("ShaderNodeTexWave"),
         NodeItem("ShaderNodeTexWhiteNoise"),
     ]),
     GeometryNodeCategory("GEO_UTILITIES", "Utilities", items=[
