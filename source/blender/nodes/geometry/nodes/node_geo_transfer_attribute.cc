@@ -170,7 +170,9 @@ static void get_closest_pointcloud_points(const PointCloud &pointcloud,
     BLI_bvhtree_find_nearest(
         tree_data.tree, position, &nearest, tree_data.nearest_callback, &tree_data);
     r_indices[i] = nearest.index;
-    r_distances_sq[i] = nearest.dist_sq;
+    if (!r_distances_sq.is_empty()) {
+      r_distances_sq[i] = nearest.dist_sq;
+    }
   }
 
   free_bvhtree_from_pointcloud(&tree_data);
