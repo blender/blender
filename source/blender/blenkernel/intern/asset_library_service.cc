@@ -24,6 +24,7 @@
 #include "BKE_blender.h"
 #include "BKE_callbacks.h"
 
+#include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string_ref.hh"
 

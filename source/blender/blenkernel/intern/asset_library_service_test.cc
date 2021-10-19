@@ -19,6 +19,7 @@
 
 #include "asset_library_service.hh"
 
+#include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
 #include "CLG_log.h"
