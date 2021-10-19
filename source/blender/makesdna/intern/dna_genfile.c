@@ -525,7 +525,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
 
     sdna->pointer_size = sdna->types_size[struct_info->type] / 2;
 
-    if (struct_info->members_len != 2 || (sdna->pointer_size != 4 && sdna->pointer_size != 8)) {
+    if (struct_info->members_len != 2 || (!ELEM(sdna->pointer_size, 4, 8))) {
       *r_error_message = "ListBase struct error! Needs it to calculate pointerize.";
       /* well, at least sizeof(ListBase) is error proof! (ton) */
       return false;

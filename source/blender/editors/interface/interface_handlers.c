@@ -11129,7 +11129,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
         case EVT_XKEY:
         case EVT_YKEY:
         case EVT_ZKEY: {
-          if ((event->val == KM_PRESS || event->val == KM_DBL_CLICK) &&
+          if ((ELEM(event->val, KM_PRESS, KM_DBL_CLICK)) &&
               !IS_EVENT_MOD(event, shift, ctrl, oskey)) {
             LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
               if (but->menu_key == event->type) {

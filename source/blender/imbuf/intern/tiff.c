@@ -457,7 +457,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
   }
 
   /* simple RGBA image */
-  if (!(bitspersample == 32 || bitspersample == 16)) {
+  if (!(ELEM(bitspersample, 32, 16))) {
     success |= TIFFReadRGBAImage(image, ibuf->x, ibuf->y, tmpibuf->rect, 0);
   }
   /* contiguous channels: RGBRGBRGB */

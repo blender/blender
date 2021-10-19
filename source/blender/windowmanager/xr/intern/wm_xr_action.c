@@ -118,7 +118,7 @@ static wmXrAction *action_create(const char *action_name,
   action->states = MEM_calloc_arrayN(count, size, "XrAction_States");
   action->states_prev = MEM_calloc_arrayN(count, size, "XrAction_StatesPrev");
 
-  const bool is_float_action = (type == XR_FLOAT_INPUT || type == XR_VECTOR2F_INPUT);
+  const bool is_float_action = ELEM(type, XR_FLOAT_INPUT, XR_VECTOR2F_INPUT);
   const bool is_button_action = (is_float_action || type == XR_BOOLEAN_INPUT);
   if (is_float_action) {
     action->float_thresholds = MEM_calloc_arrayN(

@@ -388,7 +388,7 @@ static void set_trans_object_base_flags(TransInfo *t)
       if (parsel != NULL) {
         /* Rotation around local centers are allowed to propagate. */
         if ((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
-            (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)) {
+            (ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL))) {
           base->flag_legacy |= BA_TRANSFORM_CHILD;
         }
         else {
@@ -432,8 +432,7 @@ static int count_proportional_objects(TransInfo *t)
   /* Clear all flags we need. It will be used to detect dependencies. */
   trans_object_base_deps_flag_prepare(view_layer);
   /* Rotations around local centers are allowed to propagate, so we take all objects. */
-  if (!((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
-        (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL))) {
+  if (!((t->around == V3D_AROUND_LOCAL_ORIGINS) && (ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL)))) {
     /* Mark all parents. */
     LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       if (BASE_SELECTED_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base)) {

@@ -42,7 +42,7 @@ static bool blend_header_check_magic(const char header[12])
     return false;
   }
   /* Check pointer size and endianness indicators. */
-  if (((header[7] != '_') && (header[7] != '-')) || ((header[8] != 'v') && (header[8] != 'V'))) {
+  if (!ELEM(header[7], '_', '-') || !ELEM(header[8], 'v', 'V')) {
     return false;
   }
   /* Check version number. */

@@ -505,8 +505,7 @@ void wm_event_do_notifiers(bContext *C)
         }
       }
 
-      if (note->window == win ||
-          (note->window == NULL && (note->reference == NULL || note->reference == scene))) {
+      if (note->window == win || (note->window == NULL && (ELEM(note->reference, NULL, scene)))) {
         if (note->category == NC_SCENE) {
           if (note->data == ND_FRAME) {
             do_anim = true;

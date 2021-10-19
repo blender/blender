@@ -77,7 +77,7 @@ static bool colinear_f3_f3_f3(const float3 p1, const float3 p2, const float3 p3)
 {
   const float3 a = (p2 - p1).normalized();
   const float3 b = (p3 - p1).normalized();
-  return (a == b || a == b * -1.0f);
+  return (ELEM(a, b, b * -1.0f));
 }
 
 static std::unique_ptr<CurveEval> create_point_circle_curve(

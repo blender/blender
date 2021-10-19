@@ -1060,7 +1060,7 @@ std::unique_ptr<blender::fn::GVArray> GeometryComponent::attribute_try_get_for_r
   }
 
   std::unique_ptr<blender::fn::GVArray> varray = std::move(attribute.varray);
-  if (domain != ATTR_DOMAIN_AUTO && attribute.domain != domain) {
+  if (!ELEM(domain, ATTR_DOMAIN_AUTO, attribute.domain)) {
     varray = this->attribute_try_adapt_domain(std::move(varray), attribute.domain, domain);
     if (!varray) {
       return {};

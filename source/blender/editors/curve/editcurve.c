@@ -5409,7 +5409,7 @@ static int ed_editcurve_addvert(Curve *cu,
             add_v3_v3(bezt->vec[1], ofs);
             add_v3_v3(bezt->vec[2], ofs);
 
-            if (((nu->flagu & CU_NURB_CYCLIC) == 0) && (i == 0 || i == nu->pntsu - 1)) {
+            if (((nu->flagu & CU_NURB_CYCLIC) == 0) && ELEM(i, 0, nu->pntsu - 1)) {
               BKE_nurb_handle_calc_simple_auto(nu, bezt);
             }
           }

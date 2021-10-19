@@ -2431,9 +2431,9 @@ GPUBatch *DRW_cache_bone_stick_get(void)
     /* Bone rectangle */
     pos[0] = 0.0f;
     for (int i = 0; i < 6; i++) {
-      pos[1] = (ELEM(i, 0, 3)) ? 0.0f : ((i < 3) ? 1.0f : -1.0f);
-      flag = ((i < 2 || i > 4) ? POS_HEAD : POS_TAIL) | ((i == 0 || i == 3) ? 0 : COL_WIRE) |
-             COL_BONE | POS_BONE;
+      pos[1] = ELEM(i, 0, 3) ? 0.0f : ((i < 3) ? 1.0f : -1.0f);
+      flag = ((i < 2 || i > 4) ? POS_HEAD : POS_TAIL) | (ELEM(i, 0, 3) ? 0 : COL_WIRE) | COL_BONE |
+             POS_BONE;
       GPU_vertbuf_attr_set(vbo, attr_id.pos, v, pos);
       GPU_vertbuf_attr_set(vbo, attr_id.flag, v, &flag);
       GPU_indexbuf_add_generic_vert(&elb, v++);

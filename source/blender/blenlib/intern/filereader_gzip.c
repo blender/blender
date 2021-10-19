@@ -64,7 +64,7 @@ static ssize_t gzip_read(FileReader *reader, void *buffer, size_t size)
 
     int ret = inflate(&gzip->strm, Z_NO_FLUSH);
 
-    if (ret != Z_OK && ret != Z_BUF_ERROR) {
+    if (!ELEM(ret, Z_OK, Z_BUF_ERROR)) {
       break;
     }
   }

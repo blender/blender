@@ -410,7 +410,7 @@ BLI_INLINE float noise_grad(uint32_t hash, float x, float y, float z)
 {
   uint32_t h = hash & 15u;
   float u = h < 8u ? x : y;
-  float vt = ((h == 12u) || (h == 14u)) ? x : z;
+  float vt = ELEM(h, 12u, 14u) ? x : z;
   float v = h < 4u ? y : vt;
   return negate_if(u, h & 1u) + negate_if(v, h & 2u);
 }

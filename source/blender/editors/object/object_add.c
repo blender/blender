@@ -1487,7 +1487,7 @@ static void object_add_ui(bContext *UNUSED(C), wmOperator *op)
   uiItemR(layout, op->ptr, "type", 0, NULL, ICON_NONE);
 
   int type = RNA_enum_get(op->ptr, "type");
-  if (type == GP_LRT_COLLECTION || type == GP_LRT_OBJECT || type == GP_LRT_SCENE) {
+  if (ELEM(type, GP_LRT_COLLECTION, GP_LRT_OBJECT, GP_LRT_SCENE)) {
     uiItemR(layout, op->ptr, "use_lights", 0, NULL, ICON_NONE);
     uiItemR(layout, op->ptr, "use_in_front", 0, NULL, ICON_NONE);
     bool in_front = RNA_boolean_get(op->ptr, "use_in_front");
