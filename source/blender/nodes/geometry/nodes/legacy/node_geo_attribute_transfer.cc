@@ -284,7 +284,8 @@ static void transfer_attribute_nearest_face_interpolated(const GeometrySet &src_
   Array<float3> positions(tot_samples);
   get_closest_mesh_looptris(*mesh, dst_positions, looptri_indices, {}, positions);
 
-  bke::mesh_surface_sample::MeshAttributeInterpolator interp(mesh, positions, looptri_indices);
+  bke::mesh_surface_sample::MeshAttributeInterpolator interp(
+      mesh, IndexMask(tot_samples), positions, looptri_indices);
   interp.sample_attribute(
       src_attribute, dst_attribute, bke::mesh_surface_sample::eAttributeMapMode::INTERPOLATED);
 

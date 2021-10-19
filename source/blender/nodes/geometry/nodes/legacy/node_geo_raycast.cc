@@ -250,7 +250,8 @@ static void raycast_from_points(const GeoNodeExecParams &params,
   hit_distance_attribute.save();
 
   /* Custom interpolated attributes */
-  bke::mesh_surface_sample::MeshAttributeInterpolator interp(src_mesh, hit_positions, hit_indices);
+  bke::mesh_surface_sample::MeshAttributeInterpolator interp(
+      src_mesh, IndexMask(ray_origins.size()), hit_positions, hit_indices);
   for (const int i : hit_attribute_names.index_range()) {
     const std::optional<AttributeMetaData> meta_data = src_mesh_component->attribute_get_meta_data(
         hit_attribute_names[i]);
@@ -304,7 +305,7 @@ static void geo_node_raycast_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_raycast()
+void register_node_type_geo_legacy_raycast()
 {
   static bNodeType ntype;
 

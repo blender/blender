@@ -75,6 +75,7 @@ enum class eAttributeMapMode {
 class MeshAttributeInterpolator {
  private:
   const Mesh *mesh_;
+  const IndexMask mask_;
   const Span<float3> positions_;
   const Span<int> looptri_indices_;
 
@@ -83,13 +84,13 @@ class MeshAttributeInterpolator {
 
  public:
   MeshAttributeInterpolator(const Mesh *mesh,
+                            const IndexMask mask,
                             const Span<float3> positions,
                             const Span<int> looptri_indices);
 
   void sample_data(const GVArray &src,
                    const AttributeDomain domain,
                    const eAttributeMapMode mode,
-                   const IndexMask mask,
                    const GMutableSpan dst);
 
   void sample_attribute(const ReadAttributeLookup &src_attribute,

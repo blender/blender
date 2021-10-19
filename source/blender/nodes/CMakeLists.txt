@@ -255,6 +255,7 @@ set(SRC
   geometry/nodes/node_geo_points_to_vertices.cc
   geometry/nodes/node_geo_points_to_volume.cc
   geometry/nodes/node_geo_proximity.cc
+  geometry/nodes/node_geo_raycast.cc
   geometry/nodes/node_geo_realize_instances.cc
   geometry/nodes/node_geo_rotate_instances.cc
   geometry/nodes/node_geo_scale_instances.cc

@@ -1526,9 +1526,13 @@ typedef struct NodeGeometryRaycast {
   /* GeometryNodeRaycastMapMode. */
   uint8_t mapping;
 
+  /* CustomDataType. */
+  int8_t data_type;
+
+  /* Deprecated input types in new Raycast node. Can be removed when legacy nodes are no longer
+   * supported. */
   uint8_t input_type_ray_direction;
   uint8_t input_type_ray_length;
-  char _pad[1];
 } NodeGeometryRaycast;
 
 typedef struct NodeGeometryCurveFill {

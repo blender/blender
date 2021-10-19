@@ -5751,6 +5751,7 @@ static void registerGeometryNodes()
   register_node_type_geo_legacy_curve_subdivide();
   register_node_type_geo_legacy_edge_split();
   register_node_type_geo_legacy_subdivision_surface();
+  register_node_type_geo_legacy_raycast();
 
   register_node_type_geo_align_rotation_to_vector();
   register_node_type_geo_attribute_capture();
@@ -5814,7 +5815,6 @@ static void registerGeometryNodes()
   register_node_type_geo_instance_on_points();
   register_node_type_geo_is_viewport();
   register_node_type_geo_join_geometry();
-  register_node_type_geo_material_replace();
   register_node_type_geo_material_selection();
   register_node_type_geo_mesh_primitive_circle();
   register_node_type_geo_mesh_primitive_cone();

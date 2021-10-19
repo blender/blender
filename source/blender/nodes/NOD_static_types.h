@@ -315,7 +315,7 @@ DefNode(GeometryNode, GEO_NODE_LEGACY_POINT_SCALE, def_geo_point_scale, "LEGACY_
 DefNode(GeometryNode, GEO_NODE_LEGACY_POINT_SEPARATE, 0, "LEGACY_POINT_SEPARATE", LegacyPointSeparate, "Point Separate", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_POINT_TRANSLATE, def_geo_point_translate, "LEGACY_POINT_TRANSLATE", LegacyPointTranslate, "Point Translate", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_POINTS_TO_VOLUME, def_geo_legacy_points_to_volume, "LEGACY_POINTS_TO_VOLUME", LegacyPointsToVolume, "Points to Volume", "")
-DefNode(GeometryNode, GEO_NODE_LEGACY_RAYCAST, def_geo_raycast, "LEGACY_RAYCAST", LegacyRaycast, "Raycast", "")
+DefNode(GeometryNode, GEO_NODE_LEGACY_RAYCAST, def_geo_legacy_raycast, "LEGACY_RAYCAST", LegacyRaycast, "Raycast", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_SELECT_BY_MATERIAL, 0, "LEGACY_SELECT_BY_MATERIAL", LegacySelectByMaterial, "Select by Material", "")
 DefNode(GeometryNode, GEO_NODE_LEGACY_SUBDIVISION_SURFACE, def_geo_subdivision_surface, "LEGACY_SUBDIVISION_SURFACE", LegacySubdivisionSurface, "Subdivision Surface", "")
 
@@ -383,6 +383,7 @@ DefNode(GeometryNode, GEO_NODE_OBJECT_INFO, def_geo_object_info, "OBJECT_INFO", 
 DefNode(GeometryNode, GEO_NODE_POINTS_TO_VERTICES, 0, "POINTS_TO_VERTICES", PointsToVertices, "Points to Vertices", "")
 DefNode(GeometryNode, GEO_NODE_POINTS_TO_VOLUME, def_geo_points_to_volume, "POINTS_TO_VOLUME", PointsToVolume, "Points to Volume", "")
 DefNode(GeometryNode, GEO_NODE_PROXIMITY, def_geo_proximity, "PROXIMITY", Proximity, "Geometry Proximity", "")
+DefNode(GeometryNode, GEO_NODE_RAYCAST, def_geo_raycast, "RAYCAST", Raycast, "Raycast", "")
 DefNode(GeometryNode, GEO_NODE_REALIZE_INSTANCES, 0, "REALIZE_INSTANCES", RealizeInstances, "Realize Instances", "")
 DefNode(GeometryNode, GEO_NODE_ROTATE_INSTANCES, 0, "ROTATE_INSTANCES", RotateInstances, "Rotate Instances", "")
 DefNode(GeometryNode, GEO_NODE_SCALE_INSTANCES, 0, "SCALE_INSTANCES", ScaleInstances, "Scale Instances", "")

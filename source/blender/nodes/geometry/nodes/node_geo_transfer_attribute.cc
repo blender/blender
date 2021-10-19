@@ -409,8 +409,8 @@ class NearestInterpolatedTransferFunction : public fn::MultiFunction {
     Array<float3> sampled_positions(mask.min_array_size());
     get_closest_mesh_looptris(mesh, positions, mask, looptri_indices, {}, sampled_positions);
 
-    MeshAttributeInterpolator interp(&mesh, sampled_positions, looptri_indices);
-    interp.sample_data(*target_data_, domain_, eAttributeMapMode::INTERPOLATED, mask, dst);
+    MeshAttributeInterpolator interp(&mesh, mask, sampled_positions, looptri_indices);
+    interp.sample_data(*target_data_, domain_, eAttributeMapMode::INTERPOLATED, dst);
   }
 
  private:
