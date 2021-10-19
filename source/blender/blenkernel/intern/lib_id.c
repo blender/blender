@@ -1121,8 +1121,9 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
       id->us = 1;
     }
     if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
-      /* Note that 2.8x versioning has tested not to cause conflicts. */
-      BLI_assert(bmain->is_locked_for_linking == false || ELEM(type, ID_WS, ID_GR));
+      /* Note that 2.8x versioning has tested not to cause conflicts. Node trees are
+       * skipped in this check to allow adding a geometry node tree for versioning. */
+      BLI_assert(bmain->is_locked_for_linking == false || ELEM(type, ID_WS, ID_GR, ID_NT));
       ListBase *lb = which_libbase(bmain, type);
 
       BKE_main_lock(bmain);

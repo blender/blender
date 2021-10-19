@@ -55,6 +55,7 @@
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_node.h"
 
 #include "RNA_access.h"
@@ -539,6 +540,54 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
   }
 }
 
+/**
+ * The geometry nodes modifier used to realize instances for the next modifier implicitly. Now it
+ * is done with the realize instances node. It also used to convert meshes to point clouds
+ * automatically, which is also now done with a specific node.
+ */
+static bNodeTree *add_realize_node_tree(Main *bmain)
+{
+  bNodeTree *node_tree = ntreeAddTree(bmain, "Realize Instances 2.93 Legacy", "GeometryNodeTree");
+
+  ntreeAddSocketInterface(node_tree, SOCK_IN, "NodeSocketGeometry", "Geometry");
+  ntreeAddSocketInterface(node_tree, SOCK_OUT, "NodeSocketGeometry", "Geometry");
+
+  bNode *group_input = nodeAddStaticNode(NULL, node_tree, NODE_GROUP_INPUT);
+  group_input->locx = -400.0f;
+  bNode *group_output = nodeAddStaticNode(NULL, node_tree, NODE_GROUP_OUTPUT);
+  group_output->locx = 500.0f;
+  group_output->flag |= NODE_DO_OUTPUT;
+
+  bNode *join = nodeAddStaticNode(NULL, node_tree, GEO_NODE_JOIN_GEOMETRY);
+  join->locx = group_output->locx - 175.0f;
+  join->locy = group_output->locy;
+  bNode *conv = nodeAddStaticNode(NULL, node_tree, GEO_NODE_POINTS_TO_VERTICES);
+  conv->locx = join->locx - 175.0f;
+  conv->locy = join->locy - 70.0;
+  bNode *separate = nodeAddStaticNode(NULL, node_tree, GEO_NODE_SEPARATE_COMPONENTS);
+  separate->locx = join->locx - 350.0f;
+  separate->locy = join->locy + 50.0f;
+  bNode *realize = nodeAddStaticNode(NULL, node_tree, GEO_NODE_REALIZE_INSTANCES);
+  realize->locx = separate->locx - 200.0f;
+  realize->locy = join->locy;
+
+  nodeAddLink(node_tree, group_input, group_input->outputs.first, realize, realize->inputs.first);
+  nodeAddLink(node_tree, realize, realize->outputs.first, separate, separate->inputs.first);
+  nodeAddLink(node_tree, conv, conv->outputs.first, join, join->inputs.first);
+  nodeAddLink(node_tree, separate, BLI_findlink(&separate->outputs, 3), join, join->inputs.first);
+  nodeAddLink(node_tree, separate, BLI_findlink(&separate->outputs, 1), conv, conv->inputs.first);
+  nodeAddLink(node_tree, separate, BLI_findlink(&separate->outputs, 2), join, join->inputs.first);
+  nodeAddLink(node_tree, separate, separate->outputs.first, join, join->inputs.first);
+  nodeAddLink(node_tree, join, join->outputs.first, group_output, group_output->inputs.first);
+
+  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+    nodeSetSelected(node, false);
+  }
+
+  ntreeUpdateTree(bmain, node_tree);
+  return node_tree;
+}
+
 void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
 {
   if (MAIN_VERSION_ATLEAST(bmain, 300, 0) && !MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
@@ -668,6 +717,38 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
         if (BKE_object_defgroup_active_index_get(object) == 0) {
           BKE_object_defgroup_active_index_set(object, object->actdef);
         }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 35)) {
+    /* Add a new modifier to realize instances from previous modifiers.
+     * Previously that was done automatically by geometry nodes. */
+    bNodeTree *realize_instances_node_tree = NULL;
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH_MUTABLE (ModifierData *, md, &ob->modifiers) {
+        if (md->type != eModifierType_Nodes) {
+          continue;
+        }
+        if (md->next == NULL) {
+          break;
+        }
+        if (md->next->type == eModifierType_Nodes) {
+          continue;
+        }
+        NodesModifierData *nmd = (NodesModifierData *)md;
+        if (nmd->node_group == NULL) {
+          continue;
+        }
+
+        NodesModifierData *new_nmd = (NodesModifierData *)BKE_modifier_new(eModifierType_Nodes);
+        STRNCPY(new_nmd->modifier.name, "Realize Instances 2.93 Legacy");
+        BKE_modifier_unique_name(&ob->modifiers, &new_nmd->modifier);
+        BLI_insertlinkafter(&ob->modifiers, md, new_nmd);
+        if (realize_instances_node_tree == NULL) {
+          realize_instances_node_tree = add_realize_node_tree(bmain);
+        }
+        new_nmd->node_group = realize_instances_node_tree;
       }
     }
   }
