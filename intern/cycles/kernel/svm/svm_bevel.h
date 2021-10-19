@@ -298,12 +298,12 @@ ccl_device_noinline
   uint num_samples, radius_offset, normal_offset, out_offset;
   svm_unpack_node_uchar4(node.y, &num_samples, &radius_offset, &normal_offset, &out_offset);
 
-  float radius = stack_load_float(stack, radius_offset);
-
   float3 bevel_N = sd->N;
 
   IF_KERNEL_NODES_FEATURE(RAYTRACE)
   {
+    float radius = stack_load_float(stack, radius_offset);
+
 #  ifdef __KERNEL_OPTIX__
     bevel_N = optixDirectCall<float3>(1, kg, state, sd, radius, num_samples);
 #  else

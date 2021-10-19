@@ -110,13 +110,13 @@ ccl_device_noinline
   uint color_offset, out_color_offset, samples;
   svm_unpack_node_uchar3(node.z, &color_offset, &out_color_offset, &samples);
 
-  float dist = stack_load_float_default(stack, dist_offset, node.w);
-  float3 normal = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) : sd->N;
-
   float ao = 1.0f;
 
   IF_KERNEL_NODES_FEATURE(RAYTRACE)
   {
+    float dist = stack_load_float_default(stack, dist_offset, node.w);
+    float3 normal = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) : sd->N;
+
 #  ifdef __KERNEL_OPTIX__
     ao = optixDirectCall<float>(0, kg, state, sd, normal, dist, samples, flags);
 #  else

@@ -34,10 +34,9 @@ ccl_device void svm_node_aov_color(KernelGlobals kg,
                                    uint4 node,
                                    ccl_global float *render_buffer)
 {
-  float3 val = stack_load_float3(stack, node.y);
-
   IF_KERNEL_NODES_FEATURE(AOV)
   {
+    const float3 val = stack_load_float3(stack, node.y);
     const uint32_t render_pixel_index = INTEGRATOR_STATE(state, path, render_pixel_index);
     const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
                                           kernel_data.film.pass_stride;
@@ -55,10 +54,9 @@ ccl_device void svm_node_aov_value(KernelGlobals kg,
                                    uint4 node,
                                    ccl_global float *render_buffer)
 {
-  float val = stack_load_float(stack, node.y);
-
   IF_KERNEL_NODES_FEATURE(AOV)
   {
+    const float val = stack_load_float(stack, node.y);
     const uint32_t render_pixel_index = INTEGRATOR_STATE(state, path, render_pixel_index);
     const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
                                           kernel_data.film.pass_stride;
