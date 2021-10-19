@@ -64,6 +64,7 @@ class DenoiseFilter {
     BLI_mutex_lock(&oidn_lock);
 
     device = oidn::newDevice();
+    device.set("setAffinity", false);
     device.commit();
     filter = device.newFilter("RT");
     initialized_ = true;
