@@ -491,9 +491,8 @@ int ED_imbuf_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   if (sa && sa->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = CTX_wm_space_image(C);
-
     if (region->regiontype == RGN_TYPE_WINDOW) {
-      if (event->mval[1] <= 16 && ED_space_image_show_cache(sima)) {
+      if (ED_space_image_show_cache_and_mval_over(sima, region, event->mval)) {
         return OPERATOR_PASS_THROUGH;
       }
     }

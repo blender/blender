@@ -52,7 +52,7 @@
 #include "WM_types.h"
 
 /* NOTE: image_panel_properties() uses pointer to sima->image directly. */
-Image *ED_space_image(SpaceImage *sima)
+Image *ED_space_image(const SpaceImage *sima)
 {
   return sima->image;
 }
@@ -113,7 +113,7 @@ void ED_space_image_auto_set(const bContext *C, SpaceImage *sima)
   }
 }
 
-Mask *ED_space_image_get_mask(SpaceImage *sima)
+Mask *ED_space_image_get_mask(const SpaceImage *sima)
 {
   return sima->mask_info.mask;
 }
