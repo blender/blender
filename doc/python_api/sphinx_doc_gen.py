@@ -1110,6 +1110,7 @@ context_type_map = {
     "selected_editable_sequences": ("Sequence", True),
     "selected_files": ("FileSelectEntry", True),
     "selected_nla_strips": ("NlaStrip", True),
+    "selected_movieclip_tracks": ("MovieTrackingTrack", True),
     "selected_nodes": ("Node", True),
     "selected_objects": ("Object", True),
     "selected_pose_bones": ("PoseBone", True),

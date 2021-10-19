@@ -49,11 +49,13 @@
 #include "BKE_gpencil.h"
 #include "BKE_layer.h"
 #include "BKE_object.h"
+#include "BKE_tracking.h"
 
 #include "RNA_access.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
+#include "ED_clip.h"
 #include "ED_gpencil.h"
 
 #include "SEQ_select.h"
@@ -99,6 +101,7 @@ const char *screen_context_dir[] = {
     "active_nla_track",
     "active_nla_strip",
     "selected_nla_strips", /* nla editor */
+    "selected_movieclip_tracks",
     "gpencil_data",
     "gpencil_data_owner", /* grease pencil data */
     "annotation_data",
@@ -709,6 +712,33 @@ static eContextResult screen_ctx_selected_nla_strips(const bContext *C, bContext
   }
   return CTX_RESULT_NO_DATA;
 }
+static eContextResult screen_ctx_selected_movieclip_tracks(const bContext *C,
+                                                           bContextDataResult *result)
+{
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+  if (space_clip == NULL) {
+    return CTX_RESULT_NO_DATA;
+  }
+  MovieClip *clip = ED_space_clip_get_clip(space_clip);
+  if (clip == NULL) {
+    return CTX_RESULT_NO_DATA;
+  }
+  MovieTracking *tracking = &clip->tracking;
+  if (tracking == NULL) {
+    return CTX_RESULT_NO_DATA;
+  }
+
+  ListBase *tracks_list = BKE_tracking_get_active_tracks(tracking);
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracks_list) {
+    if (!TRACK_SELECTED(track)) {
+      continue;
+    }
+    CTX_data_list_add(result, &clip->id, &RNA_MovieTrackingTrack, track);
+  }
+
+  CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+  return CTX_RESULT_OK;
+}
 static eContextResult screen_ctx_gpencil_data(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -1143,6 +1173,7 @@ static void ensure_ed_screen_context_functions(void)
   register_context_function("active_nla_track", screen_ctx_active_nla_track);
   register_context_function("active_nla_strip", screen_ctx_active_nla_strip);
   register_context_function("selected_nla_strips", screen_ctx_selected_nla_strips);
+  register_context_function("selected_movieclip_tracks", screen_ctx_selected_movieclip_tracks);
   register_context_function("gpencil_data", screen_ctx_gpencil_data);
   register_context_function("gpencil_data_owner", screen_ctx_gpencil_data_owner);
   register_context_function("annotation_data", screen_ctx_annotation_data);
