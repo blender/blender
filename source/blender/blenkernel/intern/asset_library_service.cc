@@ -24,6 +24,7 @@
 #include "BKE_blender.h"
 #include "BKE_callbacks.h"
 
+#include "BLI_path_util.h"
 #include "BLI_string_ref.hh"
 
 #include "MEM_guardedalloc.h"
@@ -54,14 +55,27 @@ void AssetLibraryService::destroy()
   instance_.reset();
 }
 
+namespace {
+std::string normalize_directory_path(StringRefNull directory)
+{
+
+  char dir_normalized[PATH_MAX];
+  STRNCPY(dir_normalized, directory.c_str());
+  BLI_path_normalize_dir(NULL, dir_normalized);
+  return std::string(dir_normalized);
+}
+}  // namespace
+
 AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull top_level_directory)
 {
   BLI_assert_msg(!top_level_directory.is_empty(),
                  "top level directory must be given for on-disk asset library");
 
-  AssetLibraryPtr *lib_uptr_ptr = on_disk_libraries_.lookup_ptr(top_level_directory);
+  std::string top_dir_trailing_slash = normalize_directory_path(top_level_directory);
+
+  AssetLibraryPtr *lib_uptr_ptr = on_disk_libraries_.lookup_ptr(top_dir_trailing_slash);
   if (lib_uptr_ptr != nullptr) {
-    CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", top_level_directory.c_str());
+    CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", top_dir_trailing_slash.c_str());
     return lib_uptr_ptr->get();
   }
 
@@ -69,10 +83,10 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull top_l
   AssetLibrary *lib = lib_uptr.get();
 
   lib->on_save_handler_register();
-  lib->load(top_level_directory);
+  lib->load(top_dir_trailing_slash);
 
-  on_disk_libraries_.add_new(top_level_directory, std::move(lib_uptr));
-  CLOG_INFO(&LOG, 2, "get \"%s\" (loaded)", top_level_directory.c_str());
+  on_disk_libraries_.add_new(top_dir_trailing_slash, std::move(lib_uptr));
+  CLOG_INFO(&LOG, 2, "get \"%s\" (loaded)", top_dir_trailing_slash.c_str());
   return lib;
 }
 

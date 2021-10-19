@@ -19,6 +19,8 @@
 
 #include "asset_library_service.hh"
 
+#include "BLI_path_util.h"
+
 #include "CLG_log.h"
 
 #include "testing/testing.h"
@@ -82,6 +84,30 @@ TEST_F(AssetLibraryServiceTest, library_pointers)
   /* Note: there used to be a test for the opposite here, that after a call to
    * AssetLibraryService::destroy() the above calls should return freshly allocated objects. This
    * cannot be reliably tested by just pointer comparison, though. */
+}
+
+TEST_F(AssetLibraryServiceTest, library_path_trailing_slashes)
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+
+  char asset_lib_no_slash[PATH_MAX];
+  char asset_lib_with_slash[PATH_MAX];
+  STRNCPY(asset_lib_no_slash, asset_library_root_.c_str());
+  STRNCPY(asset_lib_with_slash, asset_library_root_.c_str());
+
+  /* Ensure #asset_lib_no_slash has no trailing slash, regardless of what was passed on the CLI to
+   * the unit test. */
+  while (strlen(asset_lib_no_slash) &&
+         ELEM(asset_lib_no_slash[strlen(asset_lib_no_slash) - 1], SEP, ALTSEP)) {
+    asset_lib_no_slash[strlen(asset_lib_no_slash) - 1] = '\0';
+  }
+
+  BLI_path_slash_ensure(asset_lib_with_slash);
+
+  AssetLibrary *const lib_no_slash = service->get_asset_library_on_disk(asset_lib_no_slash);
+
+  EXPECT_EQ(lib_no_slash, service->get_asset_library_on_disk(asset_lib_with_slash))
+      << "With or without trailing slash shouldn't matter.";
 }
 
 TEST_F(AssetLibraryServiceTest, catalogs_loaded)
