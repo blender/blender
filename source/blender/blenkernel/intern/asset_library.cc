@@ -102,6 +102,10 @@ void BKE_asset_library_refresh_catalog_simplename(struct AssetLibrary *asset_lib
 
 namespace blender::bke {
 
+AssetLibrary::AssetLibrary() : catalog_service(std::make_unique<AssetCatalogService>())
+{
+}
+
 AssetLibrary::~AssetLibrary()
 {
   if (on_save_callback_store_.func) {

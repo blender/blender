@@ -40,6 +40,7 @@ namespace blender::bke {
 struct AssetLibrary {
   std::unique_ptr<AssetCatalogService> catalog_service;
 
+  AssetLibrary();
   ~AssetLibrary();
 
   void load(StringRefNull library_root_directory);
