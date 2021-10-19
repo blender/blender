@@ -35,10 +35,9 @@ void BKE_callback_exec(struct Main *bmain,
                        const int num_pointers,
                        eCbEvent evt)
 {
+  /* Use mutable iteration so handlers are able to remove themselves. */
   ListBase *lb = &callback_slots[evt];
-  bCallbackFuncStore *funcstore;
-
-  for (funcstore = lb->first; funcstore; funcstore = funcstore->next) {
+  LISTBASE_FOREACH_MUTABLE (bCallbackFuncStore *, funcstore, lb) {
     funcstore->func(bmain, pointers, num_pointers, funcstore->arg);
   }
 }
