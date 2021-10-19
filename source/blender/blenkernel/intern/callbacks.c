@@ -82,7 +82,12 @@ void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt)
 void BKE_callback_remove(bCallbackFuncStore *funcstore, eCbEvent evt)
 {
   ListBase *lb = &callback_slots[evt];
-  BLI_remlink(lb, funcstore);
+
+  /* Be safe, as the callback may have already been removed by BKE_callback_global_finalize(), for
+   * example when removing callbacks in response to a BKE_blender_atexit_register callback
+   * function. `BKE_blender_atexit()` runs after `BKE_callback_global_finalize()`. */
+  BLI_remlink_safe(lb, funcstore);
+
   if (funcstore->alloc) {
     MEM_freeN(funcstore);
   }
