@@ -63,13 +63,21 @@ class AssetCatalogService {
   AssetCatalogService();
   explicit AssetCatalogService(const CatalogFilePath &asset_library_root);
 
+  /**
+   * Set global tag indicating that some catalog modifications are unsaved that could get lost
+   * on exit. This tag is not set by internal catalog code, the catalog service user is responsible
+   * for it. It is cleared by #write_to_disk().
+   */
+  void tag_has_unsaved_changes();
+  bool has_unsaved_changes() const;
+
   /** Load asset catalog definitions from the files found in the asset library. */
   void load_from_disk();
   /** Load asset catalog definitions from the given file or directory. */
   void load_from_disk(const CatalogFilePath &file_or_directory_path);
 
   /**
-   * Write the catalog definitions to disk in response to the blend file being saved.
+   * Write the catalog definitions to disk.
    *
    * The location where the catalogs are saved is variable, and depends on the location of the
    * blend file. The first matching rule wins:
@@ -85,7 +93,7 @@ class AssetCatalogService {
    *
    * Return true on success, which either means there were no in-memory categories to save,
    * or the save was successful. */
-  bool write_to_disk_on_blendfile_save(const CatalogFilePath &blend_file_path);
+  bool write_to_disk(const CatalogFilePath &blend_file_path);
 
   /**
    * Merge on-disk changes into the in-memory asset catalogs.
@@ -166,9 +174,14 @@ class AssetCatalogService {
 
   Vector<std::unique_ptr<AssetCatalogCollection>> undo_snapshots_;
   Vector<std::unique_ptr<AssetCatalogCollection>> redo_snapshots_;
+  bool has_unsaved_changes_ = false;
 
   void load_directory_recursive(const CatalogFilePath &directory_path);
   void load_single_file(const CatalogFilePath &catalog_definition_file_path);
+
+  /** Implementation of #write_to_disk() that doesn't clear the "has unsaved changes" tag. */
+  bool write_to_disk_ex(const CatalogFilePath &blend_file_path);
+  void untag_has_unsaved_changes();
 
   std::unique_ptr<AssetCatalogDefinitionFile> parse_catalog_file(
       const CatalogFilePath &catalog_definition_file_path);

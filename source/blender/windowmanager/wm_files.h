@@ -79,7 +79,7 @@ void wm_close_file_dialog(bContext *C, struct wmGenericCallback *post_action);
 bool wm_operator_close_file_dialog_if_needed(bContext *C,
                                              wmOperator *op,
                                              wmGenericCallbackFn exec_fn);
-bool wm_file_or_image_is_modified(const Main *bmain, const wmWindowManager *wm);
+bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWindowManager *wm);
 
 void WM_OT_save_homefile(struct wmOperatorType *ot);
 void WM_OT_save_userpref(struct wmOperatorType *ot);

@@ -22,6 +22,7 @@
 #include "BKE_asset_library.hh"
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 
 #include "BLI_string_ref.hh"
@@ -398,7 +399,8 @@ static int asset_catalog_new_exec(bContext *C, wmOperator *op)
 
   MEM_freeN(parent_path);
 
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+  WM_event_add_notifier_ex(
+      CTX_wm_manager(C), CTX_wm_window(C), NC_ASSET | ND_ASSET_CATALOGS, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -436,7 +438,8 @@ static int asset_catalog_delete_exec(bContext *C, wmOperator *op)
 
   MEM_freeN(catalog_id_str);
 
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+  WM_event_add_notifier_ex(
+      CTX_wm_manager(C), CTX_wm_window(C), NC_ASSET | ND_ASSET_CATALOGS, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -561,6 +564,55 @@ static void ASSET_OT_catalog_undo_push(struct wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 
+static bool asset_catalogs_save_poll(bContext *C)
+{
+  if (!asset_catalog_operator_poll(C)) {
+    return false;
+  }
+
+  const Main *bmain = CTX_data_main(C);
+  if (!bmain->name[0]) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot save asset catalogs before the Blender file is saved");
+    return false;
+  }
+
+  if (!BKE_asset_library_has_any_unsaved_catalogs()) {
+    CTX_wm_operator_poll_msg_set(C, "No changes to be saved");
+    return false;
+  }
+
+  return true;
+}
+
+static int asset_catalogs_save_exec(bContext *C, wmOperator * /*op*/)
+{
+  const SpaceFile *sfile = CTX_wm_space_file(C);
+  ::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+
+  ED_asset_catalogs_save_from_main_path(asset_library, CTX_data_main(C));
+
+  WM_event_add_notifier_ex(
+      CTX_wm_manager(C), CTX_wm_window(C), NC_ASSET | ND_ASSET_CATALOGS, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static void ASSET_OT_catalogs_save(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Save Asset Catalogs";
+  ot->description =
+      "Make any edits to any catalogs permanent by writing the current set up to the asset "
+      "library";
+  ot->idname = "ASSET_OT_catalogs_save";
+
+  /* api callbacks */
+  ot->exec = asset_catalogs_save_exec;
+  ot->poll = asset_catalogs_save_poll;
+}
+
+/* -------------------------------------------------------------------- */
+
 void ED_operatortypes_asset(void)
 {
   WM_operatortype_append(ASSET_OT_mark);
@@ -568,6 +620,7 @@ void ED_operatortypes_asset(void)
 
   WM_operatortype_append(ASSET_OT_catalog_new);
   WM_operatortype_append(ASSET_OT_catalog_delete);
+  WM_operatortype_append(ASSET_OT_catalogs_save);
   WM_operatortype_append(ASSET_OT_catalog_undo);
   WM_operatortype_append(ASSET_OT_catalog_redo);
   WM_operatortype_append(ASSET_OT_catalog_undo_push);

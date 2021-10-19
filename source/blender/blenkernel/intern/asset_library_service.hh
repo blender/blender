@@ -66,6 +66,9 @@ class AssetLibraryService {
   /** Get the "Current File" asset library. */
   AssetLibrary *get_asset_library_current_file();
 
+  /** Returns whether there are any known asset libraries with unsaved catalog edits. */
+  bool has_any_unsaved_catalogs() const;
+
  protected:
   static std::unique_ptr<AssetLibraryService> instance_;
 

@@ -35,6 +35,8 @@
 
 #include <memory>
 
+bool blender::bke::AssetLibrary::save_catalogs_when_file_is_saved = true;
+
 /**
  * Loading an asset library at this point only means loading the catalogs. Later on this should
  * invoke reading of asset representations too.
@@ -50,6 +52,12 @@ struct AssetLibrary *BKE_asset_library_load(const char *library_path)
     lib = service->get_asset_library_on_disk(library_path);
   }
   return reinterpret_cast<struct AssetLibrary *>(lib);
+}
+
+bool BKE_asset_library_has_any_unsaved_catalogs()
+{
+  blender::bke::AssetLibraryService *service = blender::bke::AssetLibraryService::get();
+  return service->has_any_unsaved_catalogs();
 }
 
 bool BKE_asset_library_find_suitable_root_path_from_path(const char *input_path,
@@ -109,7 +117,7 @@ AssetLibrary::AssetLibrary() : catalog_service(std::make_unique<AssetCatalogServ
 AssetLibrary::~AssetLibrary()
 {
   if (on_save_callback_store_.func) {
-    on_save_handler_unregister();
+    on_blend_save_handler_unregister();
   }
 }
 
@@ -127,11 +135,12 @@ void asset_library_on_save_post(struct Main *main,
                                 void *arg)
 {
   AssetLibrary *asset_lib = static_cast<AssetLibrary *>(arg);
-  asset_lib->on_save_post(main, pointers, num_pointers);
+  asset_lib->on_blend_save_post(main, pointers, num_pointers);
 }
+
 }  // namespace
 
-void AssetLibrary::on_save_handler_register()
+void AssetLibrary::on_blend_save_handler_register()
 {
   /* The callback system doesn't own `on_save_callback_store_`. */
   on_save_callback_store_.alloc = false;
@@ -142,22 +151,24 @@ void AssetLibrary::on_save_handler_register()
   BKE_callback_add(&on_save_callback_store_, BKE_CB_EVT_SAVE_POST);
 }
 
-void AssetLibrary::on_save_handler_unregister()
+void AssetLibrary::on_blend_save_handler_unregister()
 {
   BKE_callback_remove(&on_save_callback_store_, BKE_CB_EVT_SAVE_POST);
   on_save_callback_store_.func = nullptr;
   on_save_callback_store_.arg = nullptr;
 }
 
-void AssetLibrary::on_save_post(struct Main *main,
-                                struct PointerRNA ** /*pointers*/,
-                                const int /*num_pointers*/)
+void AssetLibrary::on_blend_save_post(struct Main *main,
+                                      struct PointerRNA ** /*pointers*/,
+                                      const int /*num_pointers*/)
 {
   if (this->catalog_service == nullptr) {
     return;
   }
 
-  this->catalog_service->write_to_disk_on_blendfile_save(main->name);
+  if (save_catalogs_when_file_is_saved) {
+    this->catalog_service->write_to_disk(main->name);
+  }
 }
 
 void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
@@ -166,15 +177,12 @@ void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
     asset_data->catalog_simple_name[0] = '\0';
     return;
   }
-
   const AssetCatalog *catalog = this->catalog_service->find_catalog(asset_data->catalog_id);
   if (catalog == nullptr) {
     /* No-op if the catalog cannot be found. This could be the kind of "the catalog definition file
      * is corrupt/lost" scenario that the simple name is meant to help recover from. */
     return;
   }
-
   STRNCPY(asset_data->catalog_simple_name, catalog->simple_name.c_str());
 }
-
 }  // namespace blender::bke

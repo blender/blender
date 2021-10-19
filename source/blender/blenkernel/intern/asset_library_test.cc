@@ -29,7 +29,7 @@
 
 namespace blender::bke::tests {
 
-class AssetLibraryServiceTest : public testing::Test {
+class AssetLibraryTest : public testing::Test {
  public:
   static void SetUpTestSuite()
   {
@@ -46,7 +46,7 @@ class AssetLibraryServiceTest : public testing::Test {
   }
 };
 
-TEST_F(AssetLibraryServiceTest, bke_asset_library_load)
+TEST_F(AssetLibraryTest, bke_asset_library_load)
 {
   const std::string test_files_dir = blender::tests::flags_test_asset_dir();
   if (test_files_dir.empty()) {
@@ -73,7 +73,7 @@ TEST_F(AssetLibraryServiceTest, bke_asset_library_load)
   EXPECT_EQ("character/Ellie/poselib", poses_ellie->path.str());
 }
 
-TEST_F(AssetLibraryServiceTest, load_nonexistent_directory)
+TEST_F(AssetLibraryTest, load_nonexistent_directory)
 {
   const std::string test_files_dir = blender::tests::flags_test_asset_dir();
   if (test_files_dir.empty()) {

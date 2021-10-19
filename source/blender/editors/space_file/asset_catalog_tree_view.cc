@@ -21,8 +21,6 @@
  * \ingroup spfile
  */
 
-#include "ED_fileselect.h"
-
 #include "DNA_space_types.h"
 
 #include "BKE_asset.h"
@@ -32,6 +30,9 @@
 #include "BLI_string_ref.hh"
 
 #include "BLT_translation.h"
+
+#include "ED_asset.h"
+#include "ED_fileselect.h"
 
 #include "RNA_access.h"
 
@@ -52,7 +53,7 @@ using namespace blender::bke;
 namespace blender::ed::asset_browser {
 
 class AssetCatalogTreeView : public ui::AbstractTreeView {
-  bke::AssetCatalogService *catalog_service_;
+  ::AssetLibrary *asset_library_;
   /** The asset catalog tree this tree-view represents. */
   bke::AssetCatalogTree *catalog_tree_;
   FileAssetSelectParams *params_;
@@ -129,7 +130,7 @@ class AssetCatalogTreeViewUnassignedItem : public ui::BasicTreeViewItem {
 AssetCatalogTreeView::AssetCatalogTreeView(::AssetLibrary *library,
                                            FileAssetSelectParams *params,
                                            SpaceFile &space_file)
-    : catalog_service_(BKE_asset_library_get_catalog_service(library)),
+    : asset_library_(library),
       catalog_tree_(BKE_asset_library_get_catalog_tree(library)),
       params_(params),
       space_file_(space_file)
@@ -353,12 +354,7 @@ bool AssetCatalogTreeViewItem::rename(StringRefNull new_name)
 
   const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
       get_tree_view());
-
-  AssetCatalogPath new_path = catalog_item_.catalog_path().parent();
-  new_path = new_path / StringRef(new_name);
-
-  tree_view.catalog_service_->undo_push();
-  tree_view.catalog_service_->update_catalog_path(catalog_item_.get_catalog_id(), new_path);
+  ED_asset_catalog_rename(tree_view.asset_library_, catalog_item_.get_catalog_id(), new_name);
   return true;
 }
 
@@ -369,6 +365,10 @@ void AssetCatalogTreeViewAllItem::build_row(uiLayout &row)
   ui::BasicTreeViewItem::build_row(row);
 
   PointerRNA *props;
+
+  UI_but_extra_operator_icon_add(
+      (uiBut *)tree_row_button(), "ASSET_OT_catalogs_save", WM_OP_INVOKE_DEFAULT, ICON_FILE_TICK);
+
   props = UI_but_extra_operator_icon_add(
       (uiBut *)tree_row_button(), "ASSET_OT_catalog_new", WM_OP_INVOKE_DEFAULT, ICON_ADD);
   /* No parent path to use the root level. */

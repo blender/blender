@@ -77,6 +77,9 @@ bool BKE_asset_library_find_suitable_root_path_from_main(
 void BKE_asset_library_refresh_catalog_simplename(struct AssetLibrary *asset_library,
                                                   struct AssetMetaData *asset_data);
 
+/** Return whether any loaded AssetLibrary has unsaved changes to its catalogs. */
+bool BKE_asset_library_has_any_unsaved_catalogs(void);
+
 #ifdef __cplusplus
 }
 #endif

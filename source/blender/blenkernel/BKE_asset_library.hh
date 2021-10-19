@@ -38,6 +38,10 @@ namespace blender::bke {
  * For now this is only for catalogs, later this can be expanded to indexes/caches/more.
  */
 struct AssetLibrary {
+  /* Controlled by #ED_asset_catalogs_set_save_catalogs_when_file_is_saved,
+   * for managing the "Save Catalog Changes" in the quit-confirmation dialog box. */
+  static bool save_catalogs_when_file_is_saved;
+
   std::unique_ptr<AssetCatalogService> catalog_service;
 
   AssetLibrary();
@@ -53,10 +57,10 @@ struct AssetLibrary {
    * meant to help recover from. */
   void refresh_catalog_simplename(struct AssetMetaData *asset_data);
 
-  void on_save_handler_register();
-  void on_save_handler_unregister();
+  void on_blend_save_handler_register();
+  void on_blend_save_handler_unregister();
 
-  void on_save_post(struct Main *, struct PointerRNA **pointers, const int num_pointers);
+  void on_blend_save_post(struct Main *, struct PointerRNA **pointers, const int num_pointers);
 
  private:
   bCallbackFuncStore on_save_callback_store_{};

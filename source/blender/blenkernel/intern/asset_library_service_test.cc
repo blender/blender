@@ -22,6 +22,8 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
+#include "BKE_appdir.h"
+
 #include "CLG_log.h"
 
 #include "testing/testing.h"
@@ -31,6 +33,7 @@ namespace blender::bke::tests {
 class AssetLibraryServiceTest : public testing::Test {
  public:
   CatalogFilePath asset_library_root_;
+  CatalogFilePath temp_library_path_;
 
   static void SetUpTestSuite()
   {
@@ -48,11 +51,34 @@ class AssetLibraryServiceTest : public testing::Test {
       FAIL();
     }
     asset_library_root_ = test_files_dir + "/" + "asset_library";
+    temp_library_path_ = "";
   }
 
   void TearDown() override
   {
     AssetLibraryService::destroy();
+
+    if (!temp_library_path_.empty()) {
+      BLI_delete(temp_library_path_.c_str(), true, true);
+      temp_library_path_ = "";
+    }
+  }
+
+  /* Register a temporary path, which will be removed at the end of the test.
+   * The returned path ends in a slash. */
+  CatalogFilePath use_temp_path()
+  {
+    BKE_tempdir_init("");
+    const CatalogFilePath tempdir = BKE_tempdir_session();
+    temp_library_path_ = tempdir + "test-temporary-path/";
+    return temp_library_path_;
+  }
+
+  CatalogFilePath create_temp_path()
+  {
+    CatalogFilePath path = use_temp_path();
+    BLI_dir_create_recursive(path.c_str());
+    return path;
   }
 };
 
@@ -120,6 +146,54 @@ TEST_F(AssetLibraryServiceTest, catalogs_loaded)
   const bUUID UUID_POSES_ELLIE("df60e1f6-2259-475b-93d9-69a1b4a8db78");
   EXPECT_NE(nullptr, cat_service->find_catalog(UUID_POSES_ELLIE))
       << "Catalogs should be loaded after getting an asset library from disk.";
+}
+
+TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs)
+{
+  AssetLibraryService *const service = AssetLibraryService::get();
+  EXPECT_FALSE(service->has_any_unsaved_catalogs())
+      << "Empty AssetLibraryService should have no unsaved catalogs";
+
+  AssetLibrary *const lib = service->get_asset_library_on_disk(asset_library_root_);
+  AssetCatalogService *const cat_service = lib->catalog_service.get();
+  EXPECT_FALSE(service->has_any_unsaved_catalogs())
+      << "Unchanged AssetLibrary should have no unsaved catalogs";
+
+  const bUUID UUID_POSES_ELLIE("df60e1f6-2259-475b-93d9-69a1b4a8db78");
+  cat_service->prune_catalogs_by_id(UUID_POSES_ELLIE);
+  EXPECT_FALSE(service->has_any_unsaved_catalogs())
+      << "Deletion of catalogs via AssetCatalogService should not tag as 'unsaved changes'.";
+
+  cat_service->tag_has_unsaved_changes();
+  EXPECT_TRUE(service->has_any_unsaved_catalogs())
+      << "Tagging as having unsaved changes of a single catalog service should result in unsaved "
+         "changes being reported.";
+}
+
+TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs_after_write)
+{
+  const CatalogFilePath writable_dir = create_temp_path(); /* Has trailing slash. */
+  const CatalogFilePath original_cdf_file = asset_library_root_ + "/blender_assets.cats.txt";
+  CatalogFilePath writable_cdf_file = writable_dir + AssetCatalogService::DEFAULT_CATALOG_FILENAME;
+  BLI_path_slash_native(writable_cdf_file.data());
+  ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str()));
+
+  AssetLibraryService *const service = AssetLibraryService::get();
+  AssetLibrary *const lib = service->get_asset_library_on_disk(writable_dir);
+
+  EXPECT_FALSE(service->has_any_unsaved_catalogs())
+      << "Unchanged AssetLibrary should have no unsaved catalogs";
+
+  AssetCatalogService *const cat_service = lib->catalog_service.get();
+  cat_service->tag_has_unsaved_changes();
+
+  EXPECT_TRUE(service->has_any_unsaved_catalogs())
+      << "Tagging as having unsaved changes of a single catalog service should result in unsaved "
+         "changes being reported.";
+
+  cat_service->write_to_disk(writable_dir + "dummy_path.blend");
+  EXPECT_FALSE(service->has_any_unsaved_catalogs())
+      << "Written AssetCatalogService should have no unsaved catalogs";
 }
 
 }  // namespace blender::bke::tests

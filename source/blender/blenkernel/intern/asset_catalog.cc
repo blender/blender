@@ -66,6 +66,21 @@ AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_ro
 {
 }
 
+void AssetCatalogService::tag_has_unsaved_changes()
+{
+  has_unsaved_changes_ = true;
+}
+
+void AssetCatalogService::untag_has_unsaved_changes()
+{
+  has_unsaved_changes_ = false;
+}
+
+bool AssetCatalogService::has_unsaved_changes() const
+{
+  return has_unsaved_changes_;
+}
+
 bool AssetCatalogService::is_empty() const
 {
   return catalog_collection_->catalogs_.is_empty();
@@ -344,7 +359,17 @@ void AssetCatalogService::merge_from_disk_before_writing()
   cdf->parse_catalog_file(cdf->file_path, catalog_parsed_callback);
 }
 
-bool AssetCatalogService::write_to_disk_on_blendfile_save(const CatalogFilePath &blend_file_path)
+bool AssetCatalogService::write_to_disk(const CatalogFilePath &blend_file_path)
+{
+  if (!write_to_disk_ex(blend_file_path)) {
+    return false;
+  }
+
+  untag_has_unsaved_changes();
+  return true;
+}
+
+bool AssetCatalogService::write_to_disk_ex(const CatalogFilePath &blend_file_path)
 {
   /* TODO(Sybren): expand to support multiple CDFs. */
 

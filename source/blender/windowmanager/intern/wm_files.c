@@ -75,6 +75,7 @@
 
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
+#include "BKE_asset_library.h"
 #include "BKE_autoexec.h"
 #include "BKE_blender.h"
 #include "BKE_blendfile.h"
@@ -105,6 +106,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
+#include "ED_asset.h"
 #include "ED_datafiles.h"
 #include "ED_fileselect.h"
 #include "ED_image.h"
@@ -168,9 +170,13 @@ void WM_file_tag_modified(void)
   }
 }
 
-bool wm_file_or_image_is_modified(const Main *bmain, const wmWindowManager *wm)
+/**
+ * Check if there is data that would be lost when closing the current file without saving.
+ */
+bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWindowManager *wm)
 {
-  return !wm->file_saved || ED_image_should_save_modified(bmain);
+  return !wm->file_saved || ED_image_should_save_modified(bmain) ||
+         BKE_asset_library_has_any_unsaved_catalogs();
 }
 
 /** \} */
@@ -3598,6 +3604,14 @@ static void wm_block_file_close_save_button(uiBlock *block, wmGenericCallback *p
 
 static const char *close_file_dialog_name = "file_close_popup";
 
+static void save_catalogs_when_file_is_closed_set_fn(bContext *UNUSED(C),
+                                                     void *arg1,
+                                                     void *UNUSED(arg2))
+{
+  char *save_catalogs_when_file_is_closed = arg1;
+  ED_asset_catalogs_set_save_catalogs_when_file_is_saved(*save_catalogs_when_file_is_closed != 0);
+}
+
 static uiBlock *block_create__close_file_dialog(struct bContext *C,
                                                 struct ARegion *region,
                                                 void *arg1)
@@ -3654,11 +3668,17 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
     MEM_freeN(message);
   }
 
+  /* Used to determine if extra separators are needed. */
+  bool has_extra_checkboxes = false;
+
   /* Modified Images Checkbox. */
   if (modified_images_count > 0) {
     char message[64];
     BLI_snprintf(message, sizeof(message), "Save %u modified image(s)", modified_images_count);
-    uiItemS(layout);
+    /* Only the first checkbox should get extra separation. */
+    if (!has_extra_checkboxes) {
+      uiItemS(layout);
+    }
     uiDefButBitC(block,
                  UI_BTYPE_CHECKBOX,
                  1,
@@ -3674,11 +3694,41 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
                  0,
                  0,
                  "");
+    has_extra_checkboxes = true;
+  }
+
+  if (BKE_asset_library_has_any_unsaved_catalogs()) {
+    static char save_catalogs_when_file_is_closed;
+
+    save_catalogs_when_file_is_closed = ED_asset_catalogs_get_save_catalogs_when_file_is_saved();
+
+    /* Only the first checkbox should get extra separation. */
+    if (!has_extra_checkboxes) {
+      uiItemS(layout);
+    }
+    uiBut *but = uiDefButBitC(block,
+                              UI_BTYPE_CHECKBOX,
+                              1,
+                              0,
+                              "Save modified asset catalogs",
+                              0,
+                              0,
+                              0,
+                              UI_UNIT_Y,
+                              &save_catalogs_when_file_is_closed,
+                              0,
+                              0,
+                              0,
+                              0,
+                              "");
+    UI_but_func_set(
+        but, save_catalogs_when_file_is_closed_set_fn, &save_catalogs_when_file_is_closed, NULL);
+    has_extra_checkboxes = true;
   }
 
   BKE_reports_clear(&reports);
 
-  uiItemS_ex(layout, modified_images_count > 0 ? 2.0f : 4.0f);
+  uiItemS_ex(layout, has_extra_checkboxes ? 2.0f : 4.0f);
 
   /* Buttons. */
 #ifdef _WIN32
@@ -3759,7 +3809,7 @@ bool wm_operator_close_file_dialog_if_needed(bContext *C,
                                              wmGenericCallbackFn post_action_fn)
 {
   if (U.uiflag & USER_SAVE_PROMPT &&
-      wm_file_or_image_is_modified(CTX_data_main(C), CTX_wm_manager(C))) {
+      wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C))) {
     wmGenericCallback *callback = MEM_callocN(sizeof(*callback), __func__);
     callback->exec = post_action_fn;
     callback->user_data = IDP_CopyProperty(op->properties);

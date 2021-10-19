@@ -15,37 +15,25 @@
  */
 
 /** \file
- * \ingroup editors
- *
- * The public API for assets is defined in dedicated headers. This is a utility file that just
- * includes all of these.
+ * \ingroup edasset
  */
 
 #pragma once
+
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Barely anything here. Just general editor level functions. Actual asset level code is in
- * dedicated headers. */
+struct Main;
+struct AssetLibrary;
 
-void ED_operatortypes_asset(void);
+void ED_asset_catalogs_save_from_main_path(struct AssetLibrary *library, const struct Main *bmain);
+
+void ED_asset_catalogs_set_save_catalogs_when_file_is_saved(bool should_save);
+bool ED_asset_catalogs_get_save_catalogs_when_file_is_saved(void);
 
 #ifdef __cplusplus
 }
-#endif
-
-#include "../asset/ED_asset_catalog.h"
-#include "../asset/ED_asset_filter.h"
-#include "../asset/ED_asset_handle.h"
-#include "../asset/ED_asset_library.h"
-#include "../asset/ED_asset_list.h"
-#include "../asset/ED_asset_mark_clear.h"
-#include "../asset/ED_asset_temp_id_consumer.h"
-
-/* C++ only headers. */
-#ifdef __cplusplus
-#  include "../asset/ED_asset_catalog.hh"
-#  include "../asset/ED_asset_list.hh"
 #endif

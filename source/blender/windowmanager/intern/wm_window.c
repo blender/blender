@@ -368,7 +368,8 @@ void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
   CTX_wm_window_set(C, win);
 
   if (U.uiflag & USER_SAVE_PROMPT) {
-    if (wm_file_or_image_is_modified(CTX_data_main(C), CTX_wm_manager(C)) && !G.background) {
+    if (wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C)) &&
+        !G.background) {
       wm_window_raise(win);
       wm_confirm_quit(C);
     }

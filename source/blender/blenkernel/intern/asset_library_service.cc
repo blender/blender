@@ -83,7 +83,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull top_l
   AssetLibraryPtr lib_uptr = std::make_unique<AssetLibrary>();
   AssetLibrary *lib = lib_uptr.get();
 
-  lib->on_save_handler_register();
+  lib->on_blend_save_handler_register();
   lib->load(top_dir_trailing_slash);
 
   on_disk_libraries_.add_new(top_dir_trailing_slash, std::move(lib_uptr));
@@ -99,7 +99,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file()
   else {
     CLOG_INFO(&LOG, 2, "get current file lib (loaded)");
     current_file_library_ = std::make_unique<AssetLibrary>();
-    current_file_library_->on_save_handler_register();
+    current_file_library_->on_blend_save_handler_register();
   }
 
   AssetLibrary *lib = current_file_library_.get();
@@ -146,6 +146,21 @@ void AssetLibraryService::app_handler_unregister()
   BKE_callback_remove(&on_load_callback_store_, BKE_CB_EVT_LOAD_PRE);
   on_load_callback_store_.func = nullptr;
   on_load_callback_store_.arg = nullptr;
+}
+
+bool AssetLibraryService::has_any_unsaved_catalogs() const
+{
+  if (current_file_library_ && current_file_library_->catalog_service->has_unsaved_changes()) {
+    return true;
+  }
+
+  for (const auto &asset_lib_uptr : on_disk_libraries_.values()) {
+    if (asset_lib_uptr->catalog_service->has_unsaved_changes()) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 }  // namespace blender::bke
