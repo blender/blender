@@ -145,7 +145,9 @@ void AssetMarkHelper::operator()(const bContext &C, PointerRNAVec &ids)
       continue;
     }
 
-    if (ED_asset_mark_id(&C, id)) {
+    if (ED_asset_mark_id(id)) {
+      ED_asset_generate_preview(&C, id);
+
       stats.last_id = id;
       stats.tot_created++;
     }
