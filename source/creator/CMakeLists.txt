@@ -516,8 +516,7 @@ if(UNIX AND NOT APPLE)
     )
 
     install(
-      PROGRAMS
-      ${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
+      TARGETS blender-thumbnailer
       DESTINATION "."
     )
 
@@ -560,7 +559,7 @@ if(UNIX AND NOT APPLE)
       DESTINATION share/icons/hicolor/symbolic/apps
     )
     install(
-      PROGRAMS ${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
+      TARGETS blender-thumbnailer
       DESTINATION bin
     )
     set(BLENDER_TEXT_FILES_DESTINATION share/doc/blender)

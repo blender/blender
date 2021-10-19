@@ -131,6 +131,7 @@ add_subdirectory(io)
 add_subdirectory(functions)
 add_subdirectory(makesdna)
 add_subdirectory(makesrna)
+add_subdirectory(blendthumb)
 
 if(WITH_COMPOSITOR)
   add_subdirectory(compositor)
@@ -158,8 +159,4 @@ endif()
 
 if(WITH_FREESTYLE)
   add_subdirectory(freestyle)
-endif()
-
-if(WIN32)
-  add_subdirectory(blendthumb)
 endif()
