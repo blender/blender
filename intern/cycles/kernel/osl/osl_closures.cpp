@@ -73,133 +73,133 @@ using namespace OSL;
 /* BSDF class definitions */
 
 BSDF_CLOSURE_CLASS_BEGIN(Diffuse, diffuse, DiffuseBsdf, LABEL_DIFFUSE)
-CLOSURE_FLOAT3_PARAM(DiffuseClosure, params.N),
-    BSDF_CLOSURE_CLASS_END(Diffuse, diffuse)
+  BSDF_CLOSURE_FLOAT3_PARAM(DiffuseClosure, params.N)
+BSDF_CLOSURE_CLASS_END(Diffuse, diffuse)
 
-        BSDF_CLOSURE_CLASS_BEGIN(Translucent, translucent, DiffuseBsdf, LABEL_DIFFUSE)
-            CLOSURE_FLOAT3_PARAM(TranslucentClosure, params.N),
-    BSDF_CLOSURE_CLASS_END(Translucent, translucent)
+BSDF_CLOSURE_CLASS_BEGIN(Translucent, translucent, DiffuseBsdf, LABEL_DIFFUSE)
+  BSDF_CLOSURE_FLOAT3_PARAM(TranslucentClosure, params.N)
+BSDF_CLOSURE_CLASS_END(Translucent, translucent)
 
-        BSDF_CLOSURE_CLASS_BEGIN(OrenNayar, oren_nayar, OrenNayarBsdf, LABEL_DIFFUSE)
-            CLOSURE_FLOAT3_PARAM(OrenNayarClosure, params.N),
-    CLOSURE_FLOAT_PARAM(OrenNayarClosure, params.roughness),
-    BSDF_CLOSURE_CLASS_END(OrenNayar, oren_nayar)
+BSDF_CLOSURE_CLASS_BEGIN(OrenNayar, oren_nayar, OrenNayarBsdf, LABEL_DIFFUSE)
+  BSDF_CLOSURE_FLOAT3_PARAM(OrenNayarClosure, params.N)
+  BSDF_CLOSURE_FLOAT_PARAM(OrenNayarClosure, params.roughness)
+BSDF_CLOSURE_CLASS_END(OrenNayar, oren_nayar)
 
-        BSDF_CLOSURE_CLASS_BEGIN(Reflection, reflection, MicrofacetBsdf, LABEL_SINGULAR)
-            CLOSURE_FLOAT3_PARAM(ReflectionClosure, params.N),
-    BSDF_CLOSURE_CLASS_END(Reflection, reflection)
+BSDF_CLOSURE_CLASS_BEGIN(Reflection, reflection, MicrofacetBsdf, LABEL_SINGULAR)
+  BSDF_CLOSURE_FLOAT3_PARAM(ReflectionClosure, params.N)
+BSDF_CLOSURE_CLASS_END(Reflection, reflection)
 
-        BSDF_CLOSURE_CLASS_BEGIN(Refraction, refraction, MicrofacetBsdf, LABEL_SINGULAR)
-            CLOSURE_FLOAT3_PARAM(RefractionClosure, params.N),
-    CLOSURE_FLOAT_PARAM(RefractionClosure, params.ior),
-    BSDF_CLOSURE_CLASS_END(Refraction, refraction)
+BSDF_CLOSURE_CLASS_BEGIN(Refraction, refraction, MicrofacetBsdf, LABEL_SINGULAR)
+  BSDF_CLOSURE_FLOAT3_PARAM(RefractionClosure, params.N)
+  BSDF_CLOSURE_FLOAT_PARAM(RefractionClosure, params.ior)
+BSDF_CLOSURE_CLASS_END(Refraction, refraction)
 
-        BSDF_CLOSURE_CLASS_BEGIN(AshikhminVelvet, ashikhmin_velvet, VelvetBsdf, LABEL_DIFFUSE)
-            CLOSURE_FLOAT3_PARAM(AshikhminVelvetClosure, params.N),
-    CLOSURE_FLOAT_PARAM(AshikhminVelvetClosure, params.sigma),
-    BSDF_CLOSURE_CLASS_END(AshikhminVelvet, ashikhmin_velvet)
+BSDF_CLOSURE_CLASS_BEGIN(AshikhminVelvet, ashikhmin_velvet, VelvetBsdf, LABEL_DIFFUSE)
+  BSDF_CLOSURE_FLOAT3_PARAM(AshikhminVelvetClosure, params.N)
+  BSDF_CLOSURE_FLOAT_PARAM(AshikhminVelvetClosure, params.sigma)
+BSDF_CLOSURE_CLASS_END(AshikhminVelvet, ashikhmin_velvet)
 
-        BSDF_CLOSURE_CLASS_BEGIN(AshikhminShirley,
-                                 ashikhmin_shirley,
-                                 MicrofacetBsdf,
-                                 LABEL_GLOSSY | LABEL_REFLECT)
-            CLOSURE_FLOAT3_PARAM(AshikhminShirleyClosure, params.N),
-    CLOSURE_FLOAT3_PARAM(AshikhminShirleyClosure, params.T),
-    CLOSURE_FLOAT_PARAM(AshikhminShirleyClosure, params.alpha_x),
-    CLOSURE_FLOAT_PARAM(AshikhminShirleyClosure, params.alpha_y),
-    BSDF_CLOSURE_CLASS_END(AshikhminShirley, ashikhmin_shirley)
+BSDF_CLOSURE_CLASS_BEGIN(AshikhminShirley,
+                         ashikhmin_shirley,
+                         MicrofacetBsdf,
+                         LABEL_GLOSSY | LABEL_REFLECT)
+  BSDF_CLOSURE_FLOAT3_PARAM(AshikhminShirleyClosure, params.N)
+  BSDF_CLOSURE_FLOAT3_PARAM(AshikhminShirleyClosure, params.T)
+  BSDF_CLOSURE_FLOAT_PARAM(AshikhminShirleyClosure, params.alpha_x)
+  BSDF_CLOSURE_FLOAT_PARAM(AshikhminShirleyClosure, params.alpha_y)
+BSDF_CLOSURE_CLASS_END(AshikhminShirley, ashikhmin_shirley)
 
-        BSDF_CLOSURE_CLASS_BEGIN(DiffuseToon, diffuse_toon, ToonBsdf, LABEL_DIFFUSE)
-            CLOSURE_FLOAT3_PARAM(DiffuseToonClosure, params.N),
-    CLOSURE_FLOAT_PARAM(DiffuseToonClosure, params.size),
-    CLOSURE_FLOAT_PARAM(DiffuseToonClosure, params.smooth),
-    BSDF_CLOSURE_CLASS_END(DiffuseToon, diffuse_toon)
+BSDF_CLOSURE_CLASS_BEGIN(DiffuseToon, diffuse_toon, ToonBsdf, LABEL_DIFFUSE)
+  BSDF_CLOSURE_FLOAT3_PARAM(DiffuseToonClosure, params.N)
+  BSDF_CLOSURE_FLOAT_PARAM(DiffuseToonClosure, params.size)
+  BSDF_CLOSURE_FLOAT_PARAM(DiffuseToonClosure, params.smooth)
+BSDF_CLOSURE_CLASS_END(DiffuseToon, diffuse_toon)
 
-        BSDF_CLOSURE_CLASS_BEGIN(GlossyToon, glossy_toon, ToonBsdf, LABEL_GLOSSY)
-            CLOSURE_FLOAT3_PARAM(GlossyToonClosure, params.N),
-    CLOSURE_FLOAT_PARAM(GlossyToonClosure, params.size),
-    CLOSURE_FLOAT_PARAM(GlossyToonClosure, params.smooth),
-    BSDF_CLOSURE_CLASS_END(GlossyToon, glossy_toon)
+BSDF_CLOSURE_CLASS_BEGIN(GlossyToon, glossy_toon, ToonBsdf, LABEL_GLOSSY)
+  BSDF_CLOSURE_FLOAT3_PARAM(GlossyToonClosure, params.N)
+  BSDF_CLOSURE_FLOAT_PARAM(GlossyToonClosure, params.size)
+  BSDF_CLOSURE_FLOAT_PARAM(GlossyToonClosure, params.smooth)
+BSDF_CLOSURE_CLASS_END(GlossyToon, glossy_toon)
 
-        BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGXIsotropic,
-                                 microfacet_ggx_isotropic,
-                                 MicrofacetBsdf,
-                                 LABEL_GLOSSY | LABEL_REFLECT)
-            CLOSURE_FLOAT3_PARAM(MicrofacetGGXIsotropicClosure, params.N),
-    CLOSURE_FLOAT_PARAM(MicrofacetGGXIsotropicClosure, params.alpha_x),
-    BSDF_CLOSURE_CLASS_END(MicrofacetGGXIsotropic, microfacet_ggx_isotropic)
+BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGXIsotropic,
+                         microfacet_ggx_isotropic,
+                         MicrofacetBsdf,
+                         LABEL_GLOSSY | LABEL_REFLECT)
+  BSDF_CLOSURE_FLOAT3_PARAM(MicrofacetGGXIsotropicClosure, params.N)
+  BSDF_CLOSURE_FLOAT_PARAM(MicrofacetGGXIsotropicClosure, params.alpha_x)
+BSDF_CLOSURE_CLASS_END(MicrofacetGGXIsotropic, microfacet_ggx_isotropic)
 
-        BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGX,
-                                 microfacet_ggx,
-                                 MicrofacetBsdf,
-                                 LABEL_GLOSSY | LABEL_REFLECT)
-            CLOSURE_FLOAT3_PARAM(MicrofacetGGXClosure, params.N),
-    CLOSURE_FLOAT3_PARAM(MicrofacetGGXClosure, params.T),
-    CLOSURE_FLOAT_PARAM(MicrofacetGGXClosure, params.alpha_x),
-    CLOSURE_FLOAT_PARAM(MicrofacetGGXClosure, params.alpha_y),
-    BSDF_CLOSURE_CLASS_END(MicrofacetGGX, microfacet_ggx)
+BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGX,
+                         microfacet_ggx,
+                         MicrofacetBsdf,
+                         LABEL_GLOSSY | LABEL_REFLECT)
+  BSDF_CLOSURE_FLOAT3_PARAM(MicrofacetGGXClosure, params.N)
+  BSDF_CLOSURE_FLOAT3_PARAM(MicrofacetGGXClosure, params.T)
+  BSDF_CLOSURE_FLOAT_PARAM(MicrofacetGGXClosure, params.alpha_x)
+  BSDF_CLOSURE_FLOAT_PARAM(MicrofacetGGXClosure, params.alpha_y)
+BSDF_CLOSURE_CLASS_END(MicrofacetGGX, microfacet_ggx)
 
-        BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmannIsotropic,
-                                 microfacet_beckmann_isotropic,
-                                 MicrofacetBsdf,
-                                 LABEL_GLOSSY | LABEL_REFLECT)
-            CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannIsotropicClosure, params.N),
-    CLOSURE_FLOAT_PARAM(MicrofacetBeckmannIsotropicClosure, params.alpha_x),
-    BSDF_CLOSURE_CLASS_END(MicrofacetBeckmannIsotropic, microfacet_beckmann_isotropic)
+BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmannIsotropic,
+                         microfacet_beckmann_isotropic,
+                         MicrofacetBsdf,
+                         LABEL_GLOSSY | LABEL_REFLECT)
+  BSDF_CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannIsotropicClosure, params.N)
+  BSDF_CLOSURE_FLOAT_PARAM(MicrofacetBeckmannIsotropicClosure, params.alpha_x)
+BSDF_CLOSURE_CLASS_END(MicrofacetBeckmannIsotropic, microfacet_beckmann_isotropic)
 
-        BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmann,
-                                 microfacet_beckmann,
-                                 MicrofacetBsdf,
-                                 LABEL_GLOSSY | LABEL_REFLECT)
-            CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannClosure, params.N),
-    CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannClosure, params.T),
-    CLOSURE_FLOAT_PARAM(MicrofacetBeckmannClosure, params.alpha_x),
-    CLOSURE_FLOAT_PARAM(MicrofacetBeckmannClosure, params.alpha_y),
-    BSDF_CLOSURE_CLASS_END(MicrofacetBeckmann, microfacet_beckmann)
+BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmann,
+                         microfacet_beckmann,
+                         MicrofacetBsdf,
+                         LABEL_GLOSSY | LABEL_REFLECT)
+  BSDF_CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannClosure, params.N)
+  BSDF_CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannClosure, params.T)
+  BSDF_CLOSURE_FLOAT_PARAM(MicrofacetBeckmannClosure, params.alpha_x)
+  BSDF_CLOSURE_FLOAT_PARAM(MicrofacetBeckmannClosure, params.alpha_y)
+BSDF_CLOSURE_CLASS_END(MicrofacetBeckmann, microfacet_beckmann)
 
-        BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGXRefraction,
-                                 microfacet_ggx_refraction,
-                                 MicrofacetBsdf,
-                                 LABEL_GLOSSY | LABEL_TRANSMIT)
-            CLOSURE_FLOAT3_PARAM(MicrofacetGGXRefractionClosure, params.N),
-    CLOSURE_FLOAT_PARAM(MicrofacetGGXRefractionClosure, params.alpha_x),
-    CLOSURE_FLOAT_PARAM(MicrofacetGGXRefractionClosure, params.ior),
-    BSDF_CLOSURE_CLASS_END(MicrofacetGGXRefraction, microfacet_ggx_refraction)
+BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGXRefraction,
+                         microfacet_ggx_refraction,
+                         MicrofacetBsdf,
+                         LABEL_GLOSSY | LABEL_TRANSMIT)
+  BSDF_CLOSURE_FLOAT3_PARAM(MicrofacetGGXRefractionClosure, params.N)
+  BSDF_CLOSURE_FLOAT_PARAM(MicrofacetGGXRefractionClosure, params.alpha_x)
+  BSDF_CLOSURE_FLOAT_PARAM(MicrofacetGGXRefractionClosure, params.ior)
+BSDF_CLOSURE_CLASS_END(MicrofacetGGXRefraction, microfacet_ggx_refraction)
 
-        BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmannRefraction,
-                                 microfacet_beckmann_refraction,
-                                 MicrofacetBsdf,
-                                 LABEL_GLOSSY | LABEL_TRANSMIT)
-            CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannRefractionClosure, params.N),
-    CLOSURE_FLOAT_PARAM(MicrofacetBeckmannRefractionClosure, params.alpha_x),
-    CLOSURE_FLOAT_PARAM(MicrofacetBeckmannRefractionClosure, params.ior),
-    BSDF_CLOSURE_CLASS_END(MicrofacetBeckmannRefraction, microfacet_beckmann_refraction)
+BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmannRefraction,
+                         microfacet_beckmann_refraction,
+                         MicrofacetBsdf,
+                         LABEL_GLOSSY | LABEL_TRANSMIT)
+  BSDF_CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannRefractionClosure, params.N)
+  BSDF_CLOSURE_FLOAT_PARAM(MicrofacetBeckmannRefractionClosure, params.alpha_x)
+  BSDF_CLOSURE_FLOAT_PARAM(MicrofacetBeckmannRefractionClosure, params.ior)
+BSDF_CLOSURE_CLASS_END(MicrofacetBeckmannRefraction, microfacet_beckmann_refraction)
 
-        BSDF_CLOSURE_CLASS_BEGIN(HairReflection, hair_reflection, HairBsdf, LABEL_GLOSSY)
-            CLOSURE_FLOAT3_PARAM(HairReflectionClosure, params.N),
-    CLOSURE_FLOAT_PARAM(HairReflectionClosure, params.roughness1),
-    CLOSURE_FLOAT_PARAM(HairReflectionClosure, params.roughness2),
-    CLOSURE_FLOAT3_PARAM(HairReflectionClosure, params.T),
-    CLOSURE_FLOAT_PARAM(HairReflectionClosure, params.offset),
-    BSDF_CLOSURE_CLASS_END(HairReflection, hair_reflection)
+BSDF_CLOSURE_CLASS_BEGIN(HairReflection, hair_reflection, HairBsdf, LABEL_GLOSSY)
+  BSDF_CLOSURE_FLOAT3_PARAM(HairReflectionClosure, params.N)
+  BSDF_CLOSURE_FLOAT_PARAM(HairReflectionClosure, params.roughness1)
+  BSDF_CLOSURE_FLOAT_PARAM(HairReflectionClosure, params.roughness2)
+  BSDF_CLOSURE_FLOAT3_PARAM(HairReflectionClosure, params.T)
+  BSDF_CLOSURE_FLOAT_PARAM(HairReflectionClosure, params.offset)
+BSDF_CLOSURE_CLASS_END(HairReflection, hair_reflection)
 
-        BSDF_CLOSURE_CLASS_BEGIN(HairTransmission, hair_transmission, HairBsdf, LABEL_GLOSSY)
-            CLOSURE_FLOAT3_PARAM(HairTransmissionClosure, params.N),
-    CLOSURE_FLOAT_PARAM(HairTransmissionClosure, params.roughness1),
-    CLOSURE_FLOAT_PARAM(HairTransmissionClosure, params.roughness2),
-    CLOSURE_FLOAT3_PARAM(HairReflectionClosure, params.T),
-    CLOSURE_FLOAT_PARAM(HairReflectionClosure, params.offset),
-    BSDF_CLOSURE_CLASS_END(HairTransmission, hair_transmission)
+BSDF_CLOSURE_CLASS_BEGIN(HairTransmission, hair_transmission, HairBsdf, LABEL_GLOSSY)
+  BSDF_CLOSURE_FLOAT3_PARAM(HairTransmissionClosure, params.N)
+  BSDF_CLOSURE_FLOAT_PARAM(HairTransmissionClosure, params.roughness1)
+  BSDF_CLOSURE_FLOAT_PARAM(HairTransmissionClosure, params.roughness2)
+  BSDF_CLOSURE_FLOAT3_PARAM(HairReflectionClosure, params.T)
+  BSDF_CLOSURE_FLOAT_PARAM(HairReflectionClosure, params.offset)
+BSDF_CLOSURE_CLASS_END(HairTransmission, hair_transmission)
 
-        BSDF_CLOSURE_CLASS_BEGIN(PrincipledDiffuse,
-                                 principled_diffuse,
-                                 PrincipledDiffuseBsdf,
-                                 LABEL_DIFFUSE)
-            CLOSURE_FLOAT3_PARAM(PrincipledDiffuseClosure, params.N),
-    CLOSURE_FLOAT_PARAM(PrincipledDiffuseClosure, params.roughness),
-    BSDF_CLOSURE_CLASS_END(PrincipledDiffuse, principled_diffuse)
+BSDF_CLOSURE_CLASS_BEGIN(PrincipledDiffuse,
+                         principled_diffuse,
+                         PrincipledDiffuseBsdf,
+                         LABEL_DIFFUSE)
+  BSDF_CLOSURE_FLOAT3_PARAM(PrincipledDiffuseClosure, params.N)
+  BSDF_CLOSURE_FLOAT_PARAM(PrincipledDiffuseClosure, params.roughness)
+BSDF_CLOSURE_CLASS_END(PrincipledDiffuse, principled_diffuse)
 
-        class PrincipledSheenClosure : public CBSDFClosure {
+class PrincipledSheenClosure : public CBSDFClosure {
  public:
   PrincipledSheenBsdf params;
 

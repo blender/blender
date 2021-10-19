@@ -268,3 +268,6 @@ ForEachMacros:
 StatementMacros:
   - PyObject_HEAD
   - PyObject_VAR_HEAD
+
+MacroBlockBegin: "^BSDF_CLOSURE_CLASS_BEGIN$"
+MacroBlockEnd: "^BSDF_CLOSURE_CLASS_END$"

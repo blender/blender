@@ -105,6 +105,9 @@ void closure_bsdf_principled_hair_prepare(OSL::RendererServices *, int id, void 
     TypeDesc::TypeVector, (int)reckless_offsetof(st, fld), NULL, sizeof(OSL::Vec3) \
   }
 
+#define BSDF_CLOSURE_FLOAT_PARAM(st, fld) CLOSURE_FLOAT_PARAM(st, fld),
+#define BSDF_CLOSURE_FLOAT3_PARAM(st, fld) CLOSURE_FLOAT3_PARAM(st, fld),
+
 #define TO_VEC3(v) OSL::Vec3(v.x, v.y, v.z)
 #define TO_COLOR3(v) OSL::Color3(v.x, v.y, v.z)
 #define TO_FLOAT3(v) make_float3(v[0], v[1], v[2])
