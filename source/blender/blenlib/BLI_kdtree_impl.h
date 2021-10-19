@@ -16,7 +16,7 @@
 
 /** \file
  * \ingroup bli
- * \brief A kd-tree for nearest neighbor search.
+ * \brief A KD-tree for nearest neighbor search.
  */
 
 #include "BLI_compiler_attrs.h"

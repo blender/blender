@@ -22,7 +22,7 @@ extern "C" {
 
 /** \file
  * \ingroup bli
- * \brief A kd-tree for nearest neighbor search.
+ * \brief A KD-tree for nearest neighbor search.
  */
 
 /* 1D version */
