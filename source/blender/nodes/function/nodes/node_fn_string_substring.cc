@@ -22,7 +22,6 @@ namespace blender::nodes {
 
 static void fn_node_string_substring_declare(NodeDeclarationBuilder &b)
 {
-  b.is_function_node();
   b.add_input<decl::String>("String");
   b.add_input<decl::Int>("Position");
   b.add_input<decl::Int>("Length").min(0);
