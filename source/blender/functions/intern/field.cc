@@ -530,6 +530,17 @@ const GVArray *IndexFieldInput::get_varray_for_context(const fn::FieldContext &U
       mask.min_array_size(), mask.min_array_size(), index_func);
 }
 
+uint64_t IndexFieldInput::hash() const
+{
+  /* Some random constant hash. */
+  return 128736487678;
+}
+
+bool IndexFieldInput::is_equal_to(const fn::FieldNode &other) const
+{
+  return dynamic_cast<const IndexFieldInput *>(&other) != nullptr;
+}
+
 /* --------------------------------------------------------------------
  * FieldOperation.
  */
