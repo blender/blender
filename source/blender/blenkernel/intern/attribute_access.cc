@@ -371,7 +371,14 @@ GVMutableArrayPtr BuiltinCustomDataLayerProvider::try_get_for_write(
     return {};
   }
   const int domain_size = component.attribute_domain_size(domain_);
-  void *data = CustomData_get_layer(custom_data, stored_type_);
+
+  void *data;
+  if (stored_as_named_attribute_) {
+    data = CustomData_get_layer_named(custom_data, stored_type_, name_.c_str());
+  }
+  else {
+    data = CustomData_get_layer(custom_data, stored_type_);
+  }
   if (data == nullptr) {
     return {};
   }
