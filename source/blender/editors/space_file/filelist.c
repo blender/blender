@@ -1470,8 +1470,6 @@ static void filelist_direntryarr_free(FileDirEntryArr *array)
 #endif
   array->nbr_entries = FILEDIR_NBR_ENTRIES_UNSET;
   array->nbr_entries_filtered = FILEDIR_NBR_ENTRIES_UNSET;
-  array->entry_idx_start = -1;
-  array->entry_idx_end = -1;
 }
 
 static void filelist_intern_entry_free(FileListInternEntry *entry)
@@ -3582,8 +3580,7 @@ static void filelist_readjob_main_assets(FileListReadJob *job_params,
 
     BLI_movelisttolist(&filelist->filelist.entries, &tmp_entries);
     filelist->filelist.nbr_entries += nbr_entries;
-    filelist->filelist.nbr_entries_filtered = filelist->filelist.entry_idx_start =
-        filelist->filelist.entry_idx_end = -1;
+    filelist->filelist.nbr_entries_filtered = -1;
   }
 }
 
