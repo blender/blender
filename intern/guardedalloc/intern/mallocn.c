@@ -40,6 +40,7 @@ const char *malloc_conf = "background_thread:true,dirty_decay_ms:4000";
 size_t (*MEM_allocN_len)(const void *vmemh) = MEM_lockfree_allocN_len;
 void (*MEM_freeN)(void *vmemh) = MEM_lockfree_freeN;
 void *(*MEM_dupallocN)(const void *vmemh) = MEM_lockfree_dupallocN;
+void *(*MEM_dupallocN_id)(const void *vmemh) = MEM_lockfree_dupallocN_id;
 void *(*MEM_reallocN_id)(void *vmemh, size_t len, const char *str) = MEM_lockfree_reallocN_id;
 void *(*MEM_recallocN_id)(void *vmemh, size_t len, const char *str) = MEM_lockfree_recallocN_id;
 void *(*MEM_callocN)(size_t len, const char *str) = MEM_lockfree_callocN;
@@ -121,6 +122,7 @@ void MEM_use_lockfree_allocator(void)
   MEM_allocN_len = MEM_lockfree_allocN_len;
   MEM_freeN = MEM_lockfree_freeN;
   MEM_dupallocN = MEM_lockfree_dupallocN;
+  MEM_dupallocN_id = MEM_lockfree_dupallocN_id;
   MEM_reallocN_id = MEM_lockfree_reallocN_id;
   MEM_recallocN_id = MEM_lockfree_recallocN_id;
   MEM_callocN = MEM_lockfree_callocN;
@@ -152,6 +154,7 @@ void MEM_use_guarded_allocator(void)
   MEM_allocN_len = MEM_guarded_allocN_len;
   MEM_freeN = MEM_guarded_freeN;
   MEM_dupallocN = MEM_guarded_dupallocN;
+  MEM_dupallocN_id = MEM_guarded_dupallocN_id;
   MEM_reallocN_id = MEM_guarded_reallocN_id;
   MEM_recallocN_id = MEM_guarded_recallocN_id;
   MEM_callocN = MEM_guarded_callocN;

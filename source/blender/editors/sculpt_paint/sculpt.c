@@ -5059,6 +5059,7 @@ static void sculpt_topology_update(Sculpt *sd,
       SCULPT_get_int(ss, dyntopo_disable_smooth, sd, brush));
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);
+  SCULPT_update_customdata_refs(ss);
 
   /* Update average stroke position. */
   copy_v3_v3(location, ss->cache->true_location);

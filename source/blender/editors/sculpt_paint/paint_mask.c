@@ -746,7 +746,7 @@ static void sculpt_gesture_face_set_begin(bContext *C, SculptGestureContext *sgc
   SCULPT_undo_push_node(sgcontext->vc.obact, NULL, SCULPT_UNDO_FACE_SETS);
 }
 
-static void face_set_gesture_apply_task_cb(void *__restrict userdata,
+static void   (void *__restrict userdata,
                                            const int i,
                                            const TaskParallelTLS *__restrict UNUSED(tls))
 {

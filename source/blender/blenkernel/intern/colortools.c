@@ -163,6 +163,15 @@ void BKE_curvemapping_copy_data_tag_ex(CurveMapping *target,
   }
 }
 
+static void *debug_dupalloc_id(const void *mem, const char *id)
+{
+  int len = MEM_allocN_len(mem);
+  void *cpy = MEM_mallocN(len, id);
+  memcpy(cpy, mem, len);
+
+  return cpy;
+}
+
 void BKE_curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
 {
   int a;
@@ -177,13 +186,14 @@ void BKE_curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
 
   for (a = 0; a < CM_TOT; a++) {
     if (cumap->cm[a].curve) {
-      target->cm[a].curve = MEM_dupallocN(cumap->cm[a].curve);
+      target->cm[a].curve = debug_dupalloc_id(cumap->cm[a].curve, "curvemapping.curve");
     }
     if (cumap->cm[a].table) {
-      target->cm[a].table = MEM_dupallocN(cumap->cm[a].table);
+      target->cm[a].table = debug_dupalloc_id(cumap->cm[a].table, "curvemapping.table");
     }
     if (cumap->cm[a].premultable) {
-      target->cm[a].premultable = MEM_dupallocN(cumap->cm[a].premultable);
+      target->cm[a].premultable = debug_dupalloc_id(cumap->cm[a].premultable,
+                                                    "curvemapping.premultable");
     }
   }
 }
@@ -191,7 +201,7 @@ void BKE_curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
 CurveMapping *BKE_curvemapping_copy(const CurveMapping *cumap)
 {
   if (cumap) {
-    CurveMapping *cumapn = MEM_dupallocN(cumap);
+    CurveMapping *cumapn = debug_dupalloc_id(cumap, "CurveMapping");
     BKE_curvemapping_copy_data(cumapn, cumap);
     cumapn->flag &= ~CUMA_PART_OF_CACHE;
     return cumapn;

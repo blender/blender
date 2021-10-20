@@ -90,6 +90,7 @@ set(SRC
   intern/kdtree_2d.c
   intern/kdtree_3d.c
   intern/kdtree_4d.c
+  intern/lockfree_mempool.cc
   intern/lasso_2d.c
   intern/listbase.c
   intern/math_base.c

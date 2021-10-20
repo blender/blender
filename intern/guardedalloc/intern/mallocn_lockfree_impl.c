@@ -29,8 +29,8 @@
 #include "MEM_guardedalloc.h"
 
 /* to ensure strict conversions */
-#include "../../source/blender/blenlib/BLI_strict_flags.h"
 #include "../../source/blender/blenlib/BLI_asan.h"
+#include "../../source/blender/blenlib/BLI_strict_flags.h"
 
 #include "atomic_ops.h"
 #include "mallocn_intern.h"
@@ -159,6 +159,29 @@ void *MEM_lockfree_dupallocN(const void *vmemh)
     }
     else {
       newp = MEM_lockfree_mallocN(prev_size, "dupli_malloc");
+    }
+
+    MEM_POISON_MEMHEAD(vmemh);
+    memcpy(newp, vmemh, prev_size);
+  }
+  return newp;
+}
+
+void *MEM_lockfree_dupallocN_id(const void *vmemh, const char *str)
+{
+  void *newp = NULL;
+  if (vmemh) {
+    MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
+    const size_t prev_size = MEM_lockfree_allocN_len(vmemh);
+
+    MEM_UNPOISON_MEMHEAD(vmemh);
+
+    if (UNLIKELY(MEMHEAD_IS_ALIGNED(memh))) {
+      MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
+      newp = MEM_lockfree_mallocN_aligned(prev_size, (size_t)memh_aligned->alignment, str);
+    }
+    else {
+      newp = MEM_lockfree_mallocN(prev_size, str);
     }
 
     MEM_POISON_MEMHEAD(vmemh);

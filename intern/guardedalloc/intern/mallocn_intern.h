@@ -110,6 +110,8 @@ extern char free_after_leak_detection_message[];
 size_t MEM_lockfree_allocN_len(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
 void MEM_lockfree_freeN(void *vmemh);
 void *MEM_lockfree_dupallocN(const void *vmemh) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
+void *MEM_lockfree_dupallocN_id(const void *vmemh,
+                                const char *str) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void *MEM_lockfree_reallocN_id(void *vmemh,
                                size_t len,
                                const char *str) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
@@ -153,6 +155,8 @@ const char *MEM_lockfree_name_ptr(void *vmemh);
 size_t MEM_guarded_allocN_len(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
 void MEM_guarded_freeN(void *vmemh);
 void *MEM_guarded_dupallocN(const void *vmemh) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
+void *MEM_guarded_dupallocN_id(const void *vmemh,
+                               const char *str) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void *MEM_guarded_reallocN_id(void *vmemh,
                               size_t len,
                               const char *str) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT

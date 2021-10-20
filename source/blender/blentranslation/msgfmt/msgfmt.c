@@ -32,6 +32,7 @@
  * Usage: msgfmt input.po output.po
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 

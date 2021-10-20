@@ -303,6 +303,31 @@ void *MEM_guarded_dupallocN(const void *vmemh)
   return newp;
 }
 
+void *MEM_guarded_dupallocN_id(const void *vmemh, const char *str)
+{
+  void *newp = NULL;
+
+  if (vmemh) {
+    const MemHead *memh = vmemh;
+    memh--;
+
+    if (LIKELY(memh->alignment == 0)) {
+      newp = MEM_guarded_mallocN(memh->len, str);
+    }
+    else {
+      newp = MEM_guarded_mallocN_aligned(memh->len, (size_t)memh->alignment, str);
+    }
+
+    if (newp == NULL) {
+      return NULL;
+    }
+
+    memcpy(newp, vmemh, memh->len);
+  }
+
+  return newp;
+}
+
 void *MEM_guarded_reallocN_id(void *vmemh, size_t len, const char *str)
 {
   void *newp = NULL;
@@ -408,7 +433,7 @@ static void print_memhead_backtrace(MemHead *memh)
   (void)memh; /* Ignored. */
 }
 #  endif /* defined(__linux__) || defined(__APPLE__) */
-#endif /* DEBUG_BACKTRACE */
+#endif   /* DEBUG_BACKTRACE */
 
 static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 {

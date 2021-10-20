@@ -82,6 +82,12 @@ extern short (*MEM_testN)(void *vmemh);
 extern void *(*MEM_dupallocN)(const void *vmemh) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT;
 
 /**
+ * Duplicates a block of memory, and returns a pointer to the
+ * newly allocated block. */
+extern void *(*MEM_dupallocN_id)(const void *vmemh,
+                                 const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT;
+
+/**
  * Reallocates a block of memory, and returns pointer to the newly
  * allocated block, the old one is freed. this is not as optimized
  * as a system realloc but just makes a new allocation and copies
@@ -252,6 +258,8 @@ void MEM_use_lockfree_allocator(void);
  *
  * NOTE: The switch between allocator types can only happen before any allocation did happen. */
 void MEM_use_guarded_allocator(void);
+
+#define MEM_dupallocN(vmemh) MEM_dupallocN_id(vmemh, __func__)
 
 #ifdef __cplusplus
 }
