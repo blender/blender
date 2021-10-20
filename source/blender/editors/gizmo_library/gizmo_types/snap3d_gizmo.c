@@ -100,7 +100,7 @@ bool ED_gizmotypes_snap_3d_invert_snap_get(struct wmGizmo *UNUSED(gz))
   return snap_data->is_snap_invert;
 }
 
-bool ED_gizmotypes_snap_3d_is_enabled(const wmGizmo *gz)
+bool ED_gizmotypes_snap_3d_is_enabled(const wmGizmo *UNUSED(gz))
 {
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get(NULL, NULL, 0, 0);
   return snap_data->is_enabled;

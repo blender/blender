@@ -754,7 +754,7 @@ static bool v3d_cursor_snap_pool_fn(bContext *C)
   return true;
 }
 
-static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *customdata)
+static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(customdata))
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   V3DSnapCursorState *state = ED_view3d_cursor_snap_state_get();

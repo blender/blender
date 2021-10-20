@@ -309,7 +309,7 @@ static double test_vec_roll_to_mat3_orthogonal(double s, double x, double z)
 {
   const float input[3] = {float(x), float(s * sqrt(1 - x * x - z * z)), float(z)};
 
-  return test_vec_roll_to_mat3_normalized(input, 0.0f, NULL);
+  return test_vec_roll_to_mat3_normalized(input, 0.0f, nullptr);
 }
 
 /** Test that the matrix is orthogonal for a range of inputs close to -Y. */

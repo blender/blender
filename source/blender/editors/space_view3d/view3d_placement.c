@@ -694,8 +694,8 @@ static void draw_primitive_view(const struct bContext *C, ARegion *UNUSED(region
  * Use by both the operator and placement cursor.
  * \{ */
 
-static bool view3d_interactive_add_calc_snap(bContext *C,
-                                             const wmEvent *event,
+static bool view3d_interactive_add_calc_snap(bContext *UNUSED(C),
+                                             const wmEvent *UNUSED(event),
                                              float r_co_src[3],
                                              float r_matrix_orient[3][3],
                                              bool *r_is_enabled,
