@@ -1104,6 +1104,10 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
       return {};
     }
 
+    if (!this->exists(component)) {
+      return {};
+    }
+
     Span<SplinePtr> splines = curve->splines();
     if (splines.size() == 1) {
       return std::make_unique<fn::GVArray_For_GSpan>(get_span_(*splines.first()));
@@ -1122,6 +1126,10 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
   {
     CurveEval *curve = get_curve_from_component_for_write(component);
     if (curve == nullptr) {
+      return {};
+    }
+
+    if (!this->exists(component)) {
       return {};
     }
 
