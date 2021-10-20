@@ -879,7 +879,7 @@ static void v3d_cursor_snap_activate(void)
 static void v3d_cursor_snap_free(void)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
-  if (data_intern->handle) {
+  if (data_intern->handle && G_MAIN->wm.first) {
     WM_paint_cursor_end(data_intern->handle);
     data_intern->handle = NULL;
   }
