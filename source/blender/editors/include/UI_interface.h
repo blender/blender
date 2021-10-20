@@ -2788,7 +2788,8 @@ void UI_tree_view_item_context_menu_build(struct bContext *C,
                                           const uiTreeViewItemHandle *item,
                                           uiLayout *column);
 
-uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const struct ARegion *region, int x, int y);
+uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const struct ARegion *region,
+                                                      const int xy[2]) ATTR_NONNULL(1, 2);
 uiTreeViewItemHandle *UI_block_tree_view_find_active_item(const struct ARegion *region);
 
 #ifdef __cplusplus

@@ -249,19 +249,20 @@ void UI_view2d_center_set(struct View2D *v2d, float x, float y);
 
 void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac);
 
-char UI_view2d_mouse_in_scrollers_ex(
-    const struct ARegion *region, const struct View2D *v2d, int x, int y, int *r_scroll);
+char UI_view2d_mouse_in_scrollers_ex(const struct ARegion *region,
+                                     const struct View2D *v2d,
+                                     const int xy[2],
+                                     int *r_scroll) ATTR_NONNULL(1, 2, 3, 4);
 char UI_view2d_mouse_in_scrollers(const struct ARegion *region,
                                   const struct View2D *v2d,
-                                  int x,
-                                  int y);
+                                  const int xy[2]) ATTR_NONNULL(1, 2, 3);
 char UI_view2d_rect_in_scrollers_ex(const struct ARegion *region,
                                     const struct View2D *v2d,
                                     const struct rcti *rect,
-                                    int *r_scroll);
+                                    int *r_scroll) ATTR_NONNULL(1, 2, 3);
 char UI_view2d_rect_in_scrollers(const struct ARegion *region,
                                  const struct View2D *v2d,
-                                 const struct rcti *rect);
+                                 const struct rcti *rect) ATTR_NONNULL(1, 2, 3);
 
 /* cached text drawing in v2d, to allow pixel-aligned draw as post process */
 void UI_view2d_text_cache_add(struct View2D *v2d,
@@ -354,7 +355,8 @@ void UI_view2d_edge_pan_init(struct bContext *C,
 void UI_view2d_edge_pan_reset(struct View2DEdgePanData *vpd);
 
 /* Apply transform to view (i.e. adjust 'cur' rect). */
-void UI_view2d_edge_pan_apply(struct bContext *C, struct View2DEdgePanData *vpd, int x, int y);
+void UI_view2d_edge_pan_apply(struct bContext *C, struct View2DEdgePanData *vpd, const int xy[2])
+    ATTR_NONNULL(1, 2, 3);
 
 /* Apply transform to view using mouse events. */
 void UI_view2d_edge_pan_apply_event(struct bContext *C,

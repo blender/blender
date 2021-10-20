@@ -1846,7 +1846,7 @@ static bool scroller_activate_poll(bContext *C)
   wmEvent *event = win->eventstate;
 
   /* check if mouse in scrollbars, if they're enabled */
-  return (UI_view2d_mouse_in_scrollers(region, v2d, event->xy[0], event->xy[1]) != 0);
+  return (UI_view2d_mouse_in_scrollers(region, v2d, event->xy) != 0);
 }
 
 /* initialize customdata for scroller manipulation operator */
@@ -2090,7 +2090,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
   View2D *v2d = &region->v2d;
 
   /* check if mouse in scrollbars, if they're enabled */
-  const char in_scroller = UI_view2d_mouse_in_scrollers(region, v2d, event->xy[0], event->xy[1]);
+  const char in_scroller = UI_view2d_mouse_in_scrollers(region, v2d, event->xy);
 
   /* if in a scroller, init customdata then set modal handler which will
    * catch mouse-down to start doing useful stuff */

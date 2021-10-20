@@ -1684,7 +1684,7 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
    */
   if (drag_info->is_xy_lock_init == false) {
     /* first store the buttons original coords */
-    uiBut *but = ui_but_find_mouse_over_ex(region, xy_input[0], xy_input[1], true, NULL, NULL);
+    uiBut *but = ui_but_find_mouse_over_ex(region, xy_input, true, NULL, NULL);
 
     if (but) {
       if (but->flag & UI_BUT_DRAG_LOCK) {
@@ -1754,8 +1754,7 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
   if (done) {
     wmWindow *win = CTX_wm_window(C);
     const ARegion *region = CTX_wm_region(C);
-    uiBut *but = ui_but_find_mouse_over_ex(
-        region, drag_info->xy_init[0], drag_info->xy_init[1], true, NULL, NULL);
+    uiBut *but = ui_but_find_mouse_over_ex(region, drag_info->xy_init, true, NULL, NULL);
 
     if (but) {
       ui_apply_but_undo(but);
@@ -3738,7 +3737,7 @@ static void ui_do_but_textedit(
       /* exit on LMB only on RELEASE for searchbox, to mimic other popups,
        * and allow multiple menu levels */
       if (data->searchbox) {
-        inbox = ui_searchbox_inside(data->searchbox, event->xy[0], event->xy[1]);
+        inbox = ui_searchbox_inside(data->searchbox, event->xy);
       }
 
       /* for double click: we do a press again for when you first click on button
@@ -4360,8 +4359,7 @@ static uiBut *ui_but_list_row_text_activate(bContext *C,
                                             uiButtonActivateType activate_type)
 {
   ARegion *region = CTX_wm_region(C);
-  uiBut *labelbut = ui_but_find_mouse_over_ex(
-      region, event->xy[0], event->xy[1], true, NULL, NULL);
+  uiBut *labelbut = ui_but_find_mouse_over_ex(region, event->xy, true, NULL, NULL);
 
   if (labelbut && labelbut->type == UI_BTYPE_TEXT && !(labelbut->flag & UI_BUT_DISABLED)) {
     /* exit listrow */
@@ -4565,8 +4563,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
 
     if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
       /* only cancel if click outside the button */
-      if (ui_but_contains_point_px(but, but->active->region, event->xy[0], event->xy[1]) ==
-          false) {
+      if (ui_but_contains_point_px(but, but->active->region, event->xy) == false) {
         /* data->cancel doesn't work, this button opens immediate */
         if (but->flag & UI_BUT_IMMEDIATE) {
           ui_but_value_set(but, 0);
@@ -8815,7 +8812,7 @@ uiBlock *UI_region_block_find_mouse_over(const struct ARegion *region,
                                          const int xy[2],
                                          bool only_clip)
 {
-  return ui_block_find_mouse_over_ex(region, xy[0], xy[1], only_clip);
+  return ui_block_find_mouse_over_ex(region, xy, only_clip);
 }
 
 /**
@@ -9214,7 +9211,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
         /* always deactivate button for pie menus,
          * else moving to blank space will leave activated */
         if ((!ui_block_is_menu(block) || ui_block_is_pie_menu(block)) &&
-            !ui_but_contains_point_px(but, region, event->xy[0], event->xy[1])) {
+            !ui_but_contains_point_px(but, region, event->xy)) {
           exit = true;
         }
         else if (but_other && ui_but_is_editable(but_other) && (but_other != but)) {
@@ -9242,7 +9239,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
           WM_event_remove_timer(data->wm, data->window, data->autoopentimer);
           data->autoopentimer = NULL;
 
-          if (ui_but_contains_point_px(but, region, event->xy[0], event->xy[1]) || but->active) {
+          if (ui_but_contains_point_px(but, region, event->xy) || but->active) {
             button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
           }
         }
@@ -9292,7 +9289,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
       case MOUSEMOVE: {
         /* deselect the button when moving the mouse away */
         /* also de-activate for buttons that only show highlights */
-        if (ui_but_contains_point_px(but, region, event->xy[0], event->xy[1])) {
+        if (ui_but_contains_point_px(but, region, event->xy)) {
 
           /* Drag on a hold button (used in the toolbar) now opens it immediately. */
           if (data->hold_action_timer) {
@@ -9350,7 +9347,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
         uiBut *bt;
 
         if (data->menu && data->menu->region) {
-          if (ui_region_contains_point_px(data->menu->region, event->xy[0], event->xy[1])) {
+          if (ui_region_contains_point_px(data->menu->region, event->xy)) {
             break;
           }
         }
@@ -9466,7 +9463,7 @@ static int ui_list_activate_hovered_row(bContext *C,
   }
 
   const int *mouse_xy = ISTWEAK(event->type) ? &event->prev_click_xy[0] : &event->xy[0];
-  uiBut *listrow = ui_list_row_find_mouse_over(region, mouse_xy[0], mouse_xy[1]);
+  uiBut *listrow = ui_list_row_find_mouse_over(region, mouse_xy);
   if (listrow) {
     wmOperatorType *custom_activate_optype = ui_list->dyn_data->custom_activate_optype;
 
@@ -9493,8 +9490,7 @@ static bool ui_list_is_hovering_draggable_but(bContext *C,
 {
   /* On a tweak event, uses the coordinates from where tweaking was started. */
   const int *mouse_xy = ISTWEAK(event->type) ? &event->prev_click_xy[0] : &event->xy[0];
-  const uiBut *hovered_but = ui_but_find_mouse_over_ex(
-      region, mouse_xy[0], mouse_xy[1], false, NULL, NULL);
+  const uiBut *hovered_but = ui_but_find_mouse_over_ex(region, mouse_xy, false, NULL, NULL);
 
   if (list->dyn_data->custom_drag_optype) {
     if (ui_but_context_poll_operator(C, list->dyn_data->custom_drag_optype, hovered_but)) {
@@ -9736,7 +9732,7 @@ static int ui_handle_tree_hover(const wmEvent *event, const ARegion *region)
 
   /* Always highlight the hovered tree-row, even if the mouse hovers another button inside of it.
    */
-  uiBut *hovered_row_but = ui_tree_row_find_mouse_over(region, event->xy[0], event->xy[1]);
+  uiBut *hovered_row_but = ui_tree_row_find_mouse_over(region, event->xy);
   if (hovered_row_but) {
     hovered_row_but->flag |= UI_ACTIVE;
   }
@@ -9779,8 +9775,7 @@ static void ui_handle_button_return_submenu(bContext *C, const wmEvent *event, u
     button_activate_exit(C, but, data, true, false);
   }
   else if (menu->menuretval & UI_RETURN_OUT) {
-    if (event->type == MOUSEMOVE &&
-        ui_but_contains_point_px(but, data->region, event->xy[0], event->xy[1])) {
+    if (event->type == MOUSEMOVE && ui_but_contains_point_px(but, data->region, event->xy)) {
       button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
     }
     else {
@@ -10119,13 +10114,13 @@ static int ui_handle_menu_button(bContext *C, const wmEvent *event, uiPopupBlock
     else if (!ui_block_is_menu(but->block) || ui_block_is_pie_menu(but->block)) {
       /* pass, skip for dialogs */
     }
-    else if (!ui_region_contains_point_px(but->active->region, event->xy[0], event->xy[1])) {
+    else if (!ui_region_contains_point_px(but->active->region, event->xy)) {
       /* Pass, needed to click-exit outside of non-floating menus. */
       ui_region_auto_open_clear(but->active->region);
     }
     else if ((!ELEM(event->type, MOUSEMOVE, WHEELUPMOUSE, WHEELDOWNMOUSE, MOUSEPAN)) &&
              ISMOUSE(event->type)) {
-      if (!ui_but_contains_point_px(but, but->active->region, event->xy[0], event->xy[1])) {
+      if (!ui_but_contains_point_px(but, but->active->region, event->xy)) {
         but = NULL;
       }
     }
@@ -10723,7 +10718,7 @@ static int ui_handle_menu_event(bContext *C,
 #ifdef USE_DRAG_POPUP
       else if ((event->type == LEFTMOUSE) && (event->val == KM_PRESS) &&
                (inside && is_floating && inside_title)) {
-        if (!but || !ui_but_contains_point_px(but, region, event->xy[0], event->xy[1])) {
+        if (!but || !ui_but_contains_point_px(but, region, event->xy)) {
           if (but) {
             UI_but_tooltip_timer_remove(C, but);
           }

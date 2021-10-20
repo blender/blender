@@ -2363,7 +2363,7 @@ int ui_handler_panel_region(bContext *C,
   }
 
   /* Scroll-bars can overlap panels now, they have handling priority. */
-  if (UI_view2d_mouse_in_scrollers(region, &region->v2d, event->xy[0], event->xy[1])) {
+  if (UI_view2d_mouse_in_scrollers(region, &region->v2d, event->xy)) {
     return WM_UI_HANDLER_CONTINUE;
   }
 

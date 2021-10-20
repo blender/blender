@@ -290,11 +290,11 @@ int ui_searchbox_find_index(ARegion *region, const char *name)
 }
 
 /* x and y in screen-coords. */
-bool ui_searchbox_inside(ARegion *region, int x, int y)
+bool ui_searchbox_inside(ARegion *region, const int xy[2])
 {
   uiSearchboxData *data = region->regiondata;
 
-  return BLI_rcti_isect_pt(&data->bbox, x - region->winrct.xmin, y - region->winrct.ymin);
+  return BLI_rcti_isect_pt(&data->bbox, xy[0] - region->winrct.xmin, xy[1] - region->winrct.ymin);
 }
 
 /* string validated to be of correct length (but->hardmax) */

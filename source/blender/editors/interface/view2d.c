@@ -1924,8 +1924,10 @@ void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac)
  * - 'v' = in vertical scroller.
  * - 0 = not in scroller.
  */
-char UI_view2d_mouse_in_scrollers_ex(
-    const ARegion *region, const View2D *v2d, int x, int y, int *r_scroll)
+char UI_view2d_mouse_in_scrollers_ex(const ARegion *region,
+                                     const View2D *v2d,
+                                     const int xy[2],
+                                     int *r_scroll)
 {
   const int scroll = view2d_scroll_mapped(v2d->scroll);
   *r_scroll = scroll;
@@ -1933,8 +1935,8 @@ char UI_view2d_mouse_in_scrollers_ex(
   if (scroll) {
     /* Move to region-coordinates. */
     const int co[2] = {
-        x - region->winrct.xmin,
-        y - region->winrct.ymin,
+        xy[0] - region->winrct.xmin,
+        xy[1] - region->winrct.ymin,
     };
     if (scroll & V2D_SCROLL_HORIZONTAL) {
       if (IN_2D_HORIZ_SCROLL(v2d, co)) {
@@ -1978,10 +1980,10 @@ char UI_view2d_rect_in_scrollers_ex(const ARegion *region,
   return 0;
 }
 
-char UI_view2d_mouse_in_scrollers(const ARegion *region, const View2D *v2d, int x, int y)
+char UI_view2d_mouse_in_scrollers(const ARegion *region, const View2D *v2d, const int xy[2])
 {
   int scroll_dummy = 0;
-  return UI_view2d_mouse_in_scrollers_ex(region, v2d, x, y, &scroll_dummy);
+  return UI_view2d_mouse_in_scrollers_ex(region, v2d, xy, &scroll_dummy);
 }
 
 char UI_view2d_rect_in_scrollers(const ARegion *region, const View2D *v2d, const rcti *rect)
