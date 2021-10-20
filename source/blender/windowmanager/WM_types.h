@@ -597,7 +597,7 @@ typedef struct wmTabletData {
  * - The previous values are only set for mouse button and keyboard events.
  *   See: #ISMOUSE_BUTTON & #ISKEYBOARD macros.
  *
- * - Previous x/y are exceptions: #wmEvent.prev
+ * - Previous x/y are exceptions: #wmEvent.prevx & #wmEvent.prevy
  *   these are set on mouse motion, see #MOUSEMOVE & track-pad events.
  *
  * - Modal key-map handling sets `prevval` & `prevtype` to `val` & `type`,
@@ -611,7 +611,7 @@ typedef struct wmEvent {
   /** Press, release, scroll-value. */
   short val;
   /** Mouse pointer position, screen coord. */
-  int xy[2];
+  int x, y;
   /** Region relative mouse position (name convention before Blender 2.5). */
   int mval[2];
   /**
@@ -638,13 +638,13 @@ typedef struct wmEvent {
   /** The time when the key is pressed, see #PIL_check_seconds_timer. */
   double prevclicktime;
   /** The location when the key is pressed (used to enforce drag thresholds). */
-  int prev_click_xy[2];
+  int prevclickx, prevclicky;
   /**
-   * The previous value of #wmEvent.xy,
+   * The previous value of #wmEvent.x #wmEvent.y,
    * Unlike other previous state variables, this is set on any mouse motion.
-   * Use `prevclick` for the value at time of pressing.
+   * Use `prevclickx` & `prevclicky` for the value at time of pressing.
    */
-  int prev_xy[2];
+  int prevx, prevy;
 
   /** Modifier states. */
   /** 'oskey' is apple or windows-key, value denotes order of pressed. */
@@ -665,7 +665,7 @@ typedef struct wmEvent {
 
   /**
    * True if the operating system inverted the delta x/y values and resulting
-   * `prev_xy` values, for natural scroll direction.
+   * `prevx`, `prevy` values, for natural scroll direction.
    * For absolute scroll direction, the delta must be negated again.
    */
   char is_direction_inverted;

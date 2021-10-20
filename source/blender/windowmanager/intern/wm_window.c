@@ -521,7 +521,7 @@ void WM_window_set_dpi(const wmWindow *win)
 static void wm_window_update_eventstate(wmWindow *win)
 {
   /* Update mouse position when a window is activated. */
-  wm_cursor_position_get(win, &win->eventstate->xy[0], &win->eventstate->xy[1]);
+  wm_cursor_position_get(win, &win->eventstate->x, &win->eventstate->y);
 }
 
 static void wm_window_ensure_eventstate(wmWindow *win)
@@ -990,8 +990,8 @@ void wm_cursor_position_to_ghost(wmWindow *win, int *x, int *y)
 void wm_cursor_position_get(wmWindow *win, int *r_x, int *r_y)
 {
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
-    *r_x = win->eventstate->xy[0];
-    *r_y = win->eventstate->xy[1];
+    *r_x = win->eventstate->x;
+    *r_y = win->eventstate->y;
     return;
   }
   GHOST_GetCursorPosition(g_system, r_x, r_y);
@@ -1266,7 +1266,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         wmEvent event;
         wm_event_init_from_window(win, &event);
         event.type = MOUSEMOVE;
-        copy_v2_v2_int(event.prev_xy, event.xy);
+        event.prevx = event.x;
+        event.prevy = event.y;
         event.is_repeat = false;
 
         wm_event_add(win, &event);
@@ -1397,7 +1398,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
         /* activate region */
         event.type = MOUSEMOVE;
-        copy_v2_v2_int(event.prev_xy, event.xy);
+        event.prevx = event.x;
+        event.prevy = event.y;
         event.is_repeat = false;
 
         /* No context change! C->wm->windrawable is drawable, or for area queues. */
@@ -2097,11 +2099,11 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
     wm_cursor_position_to_ghost(win, &x, &y);
     GHOST_SetCursorPosition(g_system, x, y);
 
-    win->eventstate->prev_xy[0] = oldx;
-    win->eventstate->prev_xy[1] = oldy;
+    win->eventstate->prevx = oldx;
+    win->eventstate->prevy = oldy;
 
-    win->eventstate->xy[0] = oldx;
-    win->eventstate->xy[1] = oldy;
+    win->eventstate->x = oldx;
+    win->eventstate->y = oldy;
   }
 }
 

@@ -390,9 +390,8 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
 
         const UVSample &sample = uv_primvars[layer_idx];
 
-        if (!(ELEM(sample.interpolation,
-                   pxr::UsdGeomTokens->faceVarying,
-                   pxr::UsdGeomTokens->vertex))) {
+        if (!(sample.interpolation == pxr::UsdGeomTokens->faceVarying ||
+              sample.interpolation == pxr::UsdGeomTokens->vertex)) {
           std::cerr << "WARNING: unexpected interpolation type " << sample.interpolation
                     << " for uv " << layer->name << std::endl;
           continue;
@@ -782,10 +781,9 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
       bool is_uv = false;
 
       /* Assume all UVs are stored in one of these primvar types */
-      if (ELEM(type,
-               pxr::SdfValueTypeNames->TexCoord2hArray,
-               pxr::SdfValueTypeNames->TexCoord2fArray,
-               pxr::SdfValueTypeNames->TexCoord2dArray)) {
+      if (type == pxr::SdfValueTypeNames->TexCoord2hArray ||
+          type == pxr::SdfValueTypeNames->TexCoord2fArray ||
+          type == pxr::SdfValueTypeNames->TexCoord2dArray) {
         is_uv = true;
       }
       /* In some cases, the st primvar is stored as float2 values. */
@@ -797,7 +795,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
 
         pxr::TfToken interp = p.GetInterpolation();
 
-        if (!(ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->vertex))) {
+        if (!(interp == pxr::UsdGeomTokens->faceVarying || interp == pxr::UsdGeomTokens->vertex)) {
           continue;
         }
 

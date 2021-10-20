@@ -311,8 +311,7 @@ static void wm_drop_operator_options(bContext *C, wmDrag *drag, const wmEvent *e
   const int winsize_y = WM_window_pixels_y(win);
 
   /* for multiwin drags, we only do this if mouse inside */
-  if (event->xy[0] < 0 || event->xy[1] < 0 || event->xy[0] > winsize_x ||
-      event->xy[1] > winsize_y) {
+  if (event->x < 0 || event->y < 0 || event->x > winsize_x || event->y > winsize_y) {
     return;
   }
 
@@ -651,8 +650,8 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
   wmWindowManager *wm = CTX_wm_manager(C);
   const int winsize_y = WM_window_pixels_y(win);
 
-  int cursorx = win->eventstate->xy[0];
-  int cursory = win->eventstate->xy[1];
+  int cursorx = win->eventstate->x;
+  int cursory = win->eventstate->y;
   if (rect) {
     rect->xmin = rect->xmax = cursorx;
     rect->ymin = rect->ymax = cursory;

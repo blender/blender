@@ -187,7 +187,7 @@ void AssetList::fetch(const bContext &C)
 
   if (filelist_needs_force_reset(files)) {
     filelist_readjob_stop(files, CTX_wm_manager(&C));
-    filelist_clear_from_reset_tag(files);
+    filelist_clear(files);
   }
 
   if (filelist_needs_reading(files)) {
@@ -295,7 +295,9 @@ int AssetList::size() const
 void AssetList::tagMainDataDirty() const
 {
   if (filelist_needs_reset_on_main_changes(filelist_)) {
-    filelist_tag_force_reset_mainfiles(filelist_);
+    /* Full refresh of the file list if local asset data was changed. Refreshing this view
+     * is cheap and users expect this to be updated immediately. */
+    filelist_tag_force_reset(filelist_);
   }
 }
 

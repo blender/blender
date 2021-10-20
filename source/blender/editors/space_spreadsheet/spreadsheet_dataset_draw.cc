@@ -81,8 +81,7 @@ DatasetDrawContext::DatasetDrawContext(const bContext *C)
 {
   const wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_region(C);
-  mval_ = {win->eventstate->xy[0] - region->winrct.xmin,
-           win->eventstate->xy[1] - region->winrct.ymin};
+  mval_ = {win->eventstate->x - region->winrct.xmin, win->eventstate->y - region->winrct.ymin};
 }
 
 GeometrySet DatasetDrawContext::geometry_set_from_component(GeometryComponentType component)

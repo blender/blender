@@ -355,6 +355,10 @@ static void view3d_exit(wmWindowManager *UNUSED(wm), ScrArea *area)
   BLI_assert(area->spacetype == SPACE_VIEW3D);
   View3D *v3d = area->spacedata.first;
   MEM_SAFE_FREE(v3d->runtime.local_stats);
+
+  /* Be sure to release the #V3DSnapCursorData from the cursor, or it will get lost.  */
+  ED_view3d_cursor_snap_deactivate_point();
+  ED_view3d_cursor_snap_deactivate_plane();
 }
 
 static SpaceLink *view3d_duplicate(SpaceLink *sl)
@@ -474,7 +478,7 @@ static void view3d_main_region_exit(wmWindowManager *wm, ARegion *region)
 static bool view3d_drop_in_main_region_poll(bContext *C, const wmEvent *event)
 {
   ScrArea *area = CTX_wm_area(C);
-  return ED_region_overlap_isect_any_xy(area, event->xy) == false;
+  return ED_region_overlap_isect_any_xy(area, &event->x) == false;
 }
 
 static ID_Type view3d_drop_id_in_main_region_poll_get_id_type(bContext *C,
@@ -483,7 +487,7 @@ static ID_Type view3d_drop_id_in_main_region_poll_get_id_type(bContext *C,
 {
   const ScrArea *area = CTX_wm_area(C);
 
-  if (ED_region_overlap_isect_any_xy(area, event->xy)) {
+  if (ED_region_overlap_isect_any_xy(area, &event->x)) {
     return 0;
   }
   if (!view3d_drop_in_main_region_poll(C, event)) {
@@ -564,7 +568,7 @@ static char *view3d_object_data_drop_tooltip(bContext *UNUSED(C),
 
 static bool view3d_ima_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
-  if (ED_region_overlap_isect_any_xy(CTX_wm_area(C), event->xy)) {
+  if (ED_region_overlap_isect_any_xy(CTX_wm_area(C), &event->x)) {
     return false;
   }
   if (drag->type == WM_DRAG_PATH) {

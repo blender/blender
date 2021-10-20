@@ -102,6 +102,10 @@ class CPUKernels {
 
   CryptomattePostprocessFunction cryptomatte_postprocess;
 
+  /* Bake. */
+
+  CPUKernelFunction<void (*)(const KernelGlobalsCPU *, float *, int, int, int, int, int)> bake;
+
   CPUKernels();
 };
 

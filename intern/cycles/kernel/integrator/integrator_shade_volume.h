@@ -776,8 +776,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
   const bool is_light = light_sample_is_light(ls);
 
   /* Branch off shadow kernel. */
-  INTEGRATOR_SHADOW_PATH_INIT(
-      shadow_state, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, shadow);
+  INTEGRATOR_SHADOW_PATH_INIT(shadow_state, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
 
   /* Write shadow ray and associated state to global memory. */
   integrator_state_write_shadow_ray(kg, shadow_state, &ray);

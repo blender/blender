@@ -515,12 +515,11 @@ if(UNIX AND NOT APPLE)
       DESTINATION "."
     )
 
-    if(WITH_BLENDER_THUMBNAILER)
-      install(
-        TARGETS blender-thumbnailer
-        DESTINATION "."
-      )
-    endif()
+    install(
+      PROGRAMS
+      ${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
+      DESTINATION "."
+    )
 
     if(EXISTS ${LIBDIR}/mesa)
       install(DIRECTORY ${LIBDIR}/mesa/lib DESTINATION ".")
@@ -560,12 +559,10 @@ if(UNIX AND NOT APPLE)
       FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/symbolic/apps/blender-symbolic.svg
       DESTINATION share/icons/hicolor/symbolic/apps
     )
-    if(WITH_BLENDER_THUMBNAILER)
-      install(
-        TARGETS blender-thumbnailer
-        DESTINATION bin
-      )
-    endif()
+    install(
+      PROGRAMS ${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
+      DESTINATION bin
+    )
     set(BLENDER_TEXT_FILES_DESTINATION share/doc/blender)
   endif()
 

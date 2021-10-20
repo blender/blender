@@ -380,7 +380,7 @@ typedef struct wmGizmoType {
 
   /**
    * Returns screen-space bounding box in the window space
-   * (compatible with #wmEvent.xy).
+   * (compatible with #wmEvent.x #wmEvent.y).
    *
    * Used for tool-tip placement (otherwise the cursor location is used).
    */

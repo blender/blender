@@ -451,7 +451,7 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
       rctf sample_rect_fl;
       BLI_rctf_init_pt_radius(
           &sample_rect_fl,
-          (float[2]){event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin},
+          (float[2]){event->x - region->winrct.xmin, event->y - region->winrct.ymin},
           (float)(info->sample_size / 2.0f) * sima->zoom);
 
       GPU_logic_op_xor_set(true);

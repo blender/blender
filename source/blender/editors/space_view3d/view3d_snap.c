@@ -58,7 +58,7 @@
 
 #include "view3d_intern.h"
 
-static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_cursor[3]);
+static bool snap_curs_to_sel_ex(bContext *C, float cursor[3]);
 static bool snap_calc_active_center(bContext *C, const bool select_only, float r_center[3]);
 
 /* -------------------------------------------------------------------- */
@@ -310,11 +310,9 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
  * and be snapped by the selection pivot point (median, active),
  * or if every object origin should be snapped to the given location.
  */
-static bool snap_selected_to_location(bContext *C,
-                                      const float snap_target_global[3],
-                                      const bool use_offset,
-                                      const int pivot_point,
-                                      const bool use_toolsettings)
+static int snap_selected_to_location(bContext *C,
+                                     const float snap_target_global[3],
+                                     const bool use_offset)
 {
   Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
@@ -328,11 +326,12 @@ static bool snap_selected_to_location(bContext *C,
   int a;
 
   if (use_offset) {
-    if ((pivot_point == V3D_AROUND_ACTIVE) && snap_calc_active_center(C, true, center_global)) {
+    if ((v3d && scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) &&
+        snap_calc_active_center(C, true, center_global)) {
       /* pass */
     }
     else {
-      snap_curs_to_sel_ex(C, pivot_point, center_global);
+      snap_curs_to_sel_ex(C, center_global);
     }
     sub_v3_v3v3(offset_global, snap_target_global, center_global);
   }
@@ -342,7 +341,7 @@ static bool snap_selected_to_location(bContext *C,
     ViewLayer *view_layer = CTX_data_view_layer(C);
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        view_layer, v3d, &objects_len);
+        view_layer, CTX_wm_view3d(C), &objects_len);
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       obedit = objects[ob_index];
 
@@ -436,23 +435,18 @@ static bool snap_selected_to_location(bContext *C,
           }
 
           /* copy new position */
-          if (use_toolsettings) {
-            if ((pchan->protectflag & OB_LOCK_LOCX) == 0) {
-              pchan->loc[0] = cursor_pose[0];
-            }
-            if ((pchan->protectflag & OB_LOCK_LOCY) == 0) {
-              pchan->loc[1] = cursor_pose[1];
-            }
-            if ((pchan->protectflag & OB_LOCK_LOCZ) == 0) {
-              pchan->loc[2] = cursor_pose[2];
-            }
+          if ((pchan->protectflag & OB_LOCK_LOCX) == 0) {
+            pchan->loc[0] = cursor_pose[0];
+          }
+          if ((pchan->protectflag & OB_LOCK_LOCY) == 0) {
+            pchan->loc[1] = cursor_pose[1];
+          }
+          if ((pchan->protectflag & OB_LOCK_LOCZ) == 0) {
+            pchan->loc[2] = cursor_pose[2];
+          }
 
-            /* auto-keyframing */
-            ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
-          }
-          else {
-            copy_v3_v3(pchan->loc, cursor_pose);
-          }
+          /* auto-keyframing */
+          ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
         }
       }
 
@@ -490,11 +484,9 @@ static bool snap_selected_to_location(bContext *C,
       objects_len = BLI_array_len(objects);
     }
 
-    const bool use_transform_skip_children = use_toolsettings &&
-                                             (scene->toolsettings->transform_flag &
+    const bool use_transform_skip_children = (scene->toolsettings->transform_flag &
                                               SCE_XFORM_SKIP_CHILDREN);
-    const bool use_transform_data_origin = use_toolsettings &&
-                                           (scene->toolsettings->transform_flag &
+    const bool use_transform_data_origin = (scene->toolsettings->transform_flag &
                                             SCE_XFORM_DATA_ORIGIN);
     struct XFormObjectSkipChild_Container *xcs = NULL;
     struct XFormObjectData_Container *xds = NULL;
@@ -546,23 +538,18 @@ static bool snap_selected_to_location(bContext *C,
         invert_m3_m3(imat, originmat);
         mul_m3_v3(imat, cursor_parent);
       }
-      if (use_toolsettings) {
-        if ((ob->protectflag & OB_LOCK_LOCX) == 0) {
-          ob->loc[0] += cursor_parent[0];
-        }
-        if ((ob->protectflag & OB_LOCK_LOCY) == 0) {
-          ob->loc[1] += cursor_parent[1];
-        }
-        if ((ob->protectflag & OB_LOCK_LOCZ) == 0) {
-          ob->loc[2] += cursor_parent[2];
-        }
+      if ((ob->protectflag & OB_LOCK_LOCX) == 0) {
+        ob->loc[0] += cursor_parent[0];
+      }
+      if ((ob->protectflag & OB_LOCK_LOCY) == 0) {
+        ob->loc[1] += cursor_parent[1];
+      }
+      if ((ob->protectflag & OB_LOCK_LOCZ) == 0) {
+        ob->loc[2] += cursor_parent[2];
+      }
 
-        /* auto-keyframing */
-        ED_autokeyframe_object(C, scene, ob, ks);
-      }
-      else {
-        add_v3_v3(ob->loc, cursor_parent);
-      }
+      /* auto-keyframing */
+      ED_autokeyframe_object(C, scene, ob, ks);
 
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
     }
@@ -583,21 +570,7 @@ static bool snap_selected_to_location(bContext *C,
 
   WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
-  return true;
-}
-
-bool ED_view3d_snap_selected_to_location(bContext *C,
-                                         const float snap_target_global[3],
-                                         const int pivot_point)
-{
-  /* These could be passed as arguments if needed. */
-  /* Always use pivot point. */
-  const bool use_offset = true;
-  /* Disable object protected flags & auto-keyframing,
-   * so this can be used as a low level function. */
-  const bool use_toolsettings = false;
-  return snap_selected_to_location(
-      C, snap_target_global, use_offset, pivot_point, use_toolsettings);
+  return OPERATOR_FINISHED;
 }
 
 /** \} */
@@ -613,12 +586,8 @@ static int snap_selected_to_cursor_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
 
   const float *snap_target_global = scene->cursor.location;
-  const int pivot_point = scene->toolsettings->transform_pivot_point;
 
-  if (snap_selected_to_location(C, snap_target_global, pivot_point, use_offset, true)) {
-    return OPERATOR_CANCELLED;
-  }
-  return OPERATOR_FINISHED;
+  return snap_selected_to_location(C, snap_target_global, use_offset);
 }
 
 void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
@@ -659,10 +628,7 @@ static int snap_selected_to_active_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (!snap_selected_to_location(C, snap_target_global, -1, false, true)) {
-    return OPERATOR_CANCELLED;
-  }
-  return OPERATOR_FINISHED;
+  return snap_selected_to_location(C, snap_target_global, false);
 }
 
 void VIEW3D_OT_snap_selected_to_active(wmOperatorType *ot)
@@ -786,7 +752,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float r_vec[3])
 }
 
 /** Snaps the 3D cursor location to the median point of the selection. */
-static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_cursor[3])
+static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
@@ -883,12 +849,12 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
     return false;
   }
 
-  if (pivot_point == V3D_AROUND_CENTER_BOUNDS) {
-    mid_v3_v3v3(r_cursor, min, max);
+  if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_BOUNDS) {
+    mid_v3_v3v3(cursor, min, max);
   }
   else {
     mul_v3_fl(centroid, 1.0f / (float)count);
-    copy_v3_v3(r_cursor, centroid);
+    copy_v3_v3(cursor, centroid);
   }
   return true;
 }
@@ -896,8 +862,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
 static int snap_curs_to_sel_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  const int pivot_point = scene->toolsettings->transform_pivot_point;
-  if (snap_curs_to_sel_ex(C, pivot_point, scene->cursor.location)) {
+  if (snap_curs_to_sel_ex(C, scene->cursor.location)) {
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
     DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 

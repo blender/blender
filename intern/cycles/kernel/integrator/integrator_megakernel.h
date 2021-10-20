@@ -34,12 +34,16 @@ ccl_device void integrator_megakernel(KernelGlobals kg,
                                       ccl_global float *ccl_restrict render_buffer)
 {
   /* Each kernel indicates the next kernel to execute, so here we simply
-   * have to check what that kernel is and execute it. */
+   * have to check what that kernel is and execute it.
+   *
+   * TODO: investigate if we can use device side enqueue for GPUs to avoid
+   * having to compile this big kernel. */
   while (true) {
-    /* Handle any shadow paths before we potentially create more shadow paths. */
     const uint32_t shadow_queued_kernel = INTEGRATOR_STATE(
         &state->shadow, shadow_path, queued_kernel);
+
     if (shadow_queued_kernel) {
+      /* First handle any shadow paths before we potentially create more shadow paths. */
       switch (shadow_queued_kernel) {
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW:
           integrator_intersect_shadow(kg, &state->shadow);
@@ -51,30 +55,10 @@ ccl_device void integrator_megakernel(KernelGlobals kg,
           kernel_assert(0);
           break;
       }
-      continue;
     }
-
-    /* Handle any AO paths before we potentially create more AO paths. */
-    const uint32_t ao_queued_kernel = INTEGRATOR_STATE(&state->ao, shadow_path, queued_kernel);
-    if (ao_queued_kernel) {
-      switch (ao_queued_kernel) {
-        case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW:
-          integrator_intersect_shadow(kg, &state->ao);
-          break;
-        case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW:
-          integrator_shade_shadow(kg, &state->ao, render_buffer);
-          break;
-        default:
-          kernel_assert(0);
-          break;
-      }
-      continue;
-    }
-
-    /* Then handle regular path kernels. */
-    const uint32_t queued_kernel = INTEGRATOR_STATE(state, path, queued_kernel);
-    if (queued_kernel) {
-      switch (queued_kernel) {
+    else if (INTEGRATOR_STATE(state, path, queued_kernel)) {
+      /* Then handle regular path kernels. */
+      switch (INTEGRATOR_STATE(state, path, queued_kernel)) {
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST:
           integrator_intersect_closest(kg, state);
           break;
@@ -103,10 +87,10 @@ ccl_device void integrator_megakernel(KernelGlobals kg,
           kernel_assert(0);
           break;
       }
-      continue;
     }
-
-    break;
+    else {
+      break;
+    }
   }
 }
 

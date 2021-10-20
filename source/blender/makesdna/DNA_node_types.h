@@ -1537,7 +1537,7 @@ typedef struct NodeGeometryRaycast {
   /* CustomDataType. */
   int8_t data_type;
 
-  /* Deprecated input types in new Ray-cast node. Can be removed when legacy nodes are no longer
+  /* Deprecated input types in new Raycast node. Can be removed when legacy nodes are no longer
    * supported. */
   uint8_t input_type_ray_direction;
   uint8_t input_type_ray_length;

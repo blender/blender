@@ -5883,7 +5883,8 @@ static void dynamic_paint_surface_pre_step_cb(void *__restrict userdata,
   }
   /* dissolve for float types */
   else if (surface->flags & MOD_DPAINT_DISSOLVE &&
-           ELEM(surface->type, MOD_DPAINT_SURFACE_T_DISPLACE, MOD_DPAINT_SURFACE_T_WEIGHT)) {
+           (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
+            surface->type == MOD_DPAINT_SURFACE_T_WEIGHT)) {
     float *point = &((float *)sData->type_data)[index];
     /* log or linear */
     value_dissolve(

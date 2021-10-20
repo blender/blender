@@ -63,7 +63,7 @@ CCL_NAMESPACE_BEGIN
         &kernel_integrator_state.queue_counter->num_queued[current_kernel], 1); \
     INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
 
-#  define INTEGRATOR_SHADOW_PATH_INIT(shadow_state, state, next_kernel, shadow_type) \
+#  define INTEGRATOR_SHADOW_PATH_INIT(shadow_state, state, next_kernel) \
     IntegratorShadowState shadow_state = atomic_fetch_and_add_uint32( \
         &kernel_integrator_state.next_shadow_path_index[0], 1); \
     atomic_fetch_and_add_uint32(&kernel_integrator_state.queue_counter->num_queued[next_kernel], \
@@ -129,8 +129,8 @@ CCL_NAMESPACE_BEGIN
       (void)current_kernel; \
     }
 
-#  define INTEGRATOR_SHADOW_PATH_INIT(shadow_state, state, next_kernel, shadow_type) \
-    IntegratorShadowState shadow_state = &state->shadow_type; \
+#  define INTEGRATOR_SHADOW_PATH_INIT(shadow_state, state, next_kernel) \
+    IntegratorShadowState shadow_state = &state->shadow; \
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, queued_kernel) = next_kernel;
 #  define INTEGRATOR_SHADOW_PATH_NEXT(current_kernel, next_kernel) \
     { \

@@ -282,22 +282,11 @@ extern "C" __global__ void __launch_bounds__(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_B
 }
 
 extern "C" __global__ void __launch_bounds__(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)
-    kernel_gpu_integrator_sorted_paths_array(int num_states,
-                                             int num_states_limit,
-                                             int *indices,
-                                             int *num_indices,
-                                             int *key_counter,
-                                             int *key_prefix_sum,
-                                             int kernel)
+    kernel_gpu_integrator_sorted_paths_array(
+        int num_states, int *indices, int *num_indices, int *key_prefix_sum, int kernel)
 {
   gpu_parallel_sorted_index_array<GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE>(
-      num_states,
-      num_states_limit,
-      indices,
-      num_indices,
-      key_counter,
-      key_prefix_sum,
-      [kernel](const int state) {
+      num_states, indices, num_indices, key_prefix_sum, [kernel](const int state) {
         return (INTEGRATOR_STATE(state, path, queued_kernel) == kernel) ?
                    INTEGRATOR_STATE(state, path, shader_sort_key) :
                    GPU_PARALLEL_SORTED_INDEX_INACTIVE_KEY;
@@ -333,10 +322,9 @@ extern "C" __global__ void __launch_bounds__(GPU_PARALLEL_SORTED_INDEX_DEFAULT_B
 }
 
 extern "C" __global__ void __launch_bounds__(GPU_PARALLEL_PREFIX_SUM_DEFAULT_BLOCK_SIZE)
-    kernel_gpu_prefix_sum(int *counter, int *prefix_sum, int num_values)
+    kernel_gpu_prefix_sum(int *values, int num_values)
 {
-  gpu_parallel_prefix_sum<GPU_PARALLEL_PREFIX_SUM_DEFAULT_BLOCK_SIZE>(
-      counter, prefix_sum, num_values);
+  gpu_parallel_prefix_sum<GPU_PARALLEL_PREFIX_SUM_DEFAULT_BLOCK_SIZE>(values, num_values);
 }
 
 /* --------------------------------------------------------------------

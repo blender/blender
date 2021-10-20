@@ -94,6 +94,7 @@ set(SRC
   intern/draw_color_management.cc
   intern/draw_common.c
   intern/draw_debug.c
+  intern/draw_view_data.cc
   intern/draw_fluid.c
   intern/draw_hair.c
   intern/draw_instance_data.c
@@ -105,11 +106,10 @@ set(SRC
   intern/draw_manager_text.c
   intern/draw_manager_texture.c
   intern/draw_select_buffer.c
-  intern/draw_shader.c
   intern/draw_texture_pool.cc
-  intern/draw_view.c
-  intern/draw_view_data.cc
+  intern/draw_shader.c
   intern/smaa_textures.c
+  intern/draw_view.c
   engines/basic/basic_engine.c
   engines/image/image_engine.c
   engines/image/image_shader.c
@@ -200,16 +200,16 @@ set(SRC
   intern/draw_color_management.h
   intern/draw_common.h
   intern/draw_debug.h
+  intern/draw_view_data.h
   intern/draw_hair_private.h
   intern/draw_instance_data.h
   intern/draw_manager.h
   intern/draw_manager_profiling.h
   intern/draw_manager_testing.h
   intern/draw_manager_text.h
-  intern/draw_shader.h
   intern/draw_texture_pool.h
+  intern/draw_shader.h
   intern/draw_view.h
-  intern/draw_view_data.h
   intern/mesh_extractors/extract_mesh.h
   intern/smaa_textures.h
   engines/basic/basic_engine.h

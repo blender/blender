@@ -231,6 +231,25 @@ void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const KernelGlobalsCPU *
 #endif
 }
 
+/* --------------------------------------------------------------------
+ * Bake.
+ */
+/* TODO(sergey): Needs to be re-implemented. Or not? Brecht did it already :) */
+
+void KERNEL_FUNCTION_FULL_NAME(bake)(
+    const KernelGlobalsCPU *kg, float *buffer, int sample, int x, int y, int offset, int stride)
+{
+#if 0
+#  ifdef KERNEL_STUB
+  STUB_ASSERT(KERNEL_ARCH, bake);
+#  else
+#    ifdef __BAKING__
+  kernel_bake_evaluate(kg, buffer, sample, x, y, offset, stride);
+#    endif
+#  endif /* KERNEL_STUB */
+#endif
+}
+
 #undef KERNEL_INVOKE
 #undef DEFINE_INTEGRATOR_KERNEL
 #undef DEFINE_INTEGRATOR_SHADE_KERNEL

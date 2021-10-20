@@ -337,8 +337,6 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   void add_indent(uiLayout &row) const;
   void add_collapse_chevron(uiBlock &block) const;
   void add_rename_button(uiLayout &row);
-
-  bool has_active_child() const;
 };
 
 /** \} */

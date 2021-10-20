@@ -85,7 +85,7 @@ static void thumbnail_endjob(void *data)
 
 static bool check_seq_need_thumbnails(Sequence *seq, rctf *view_area)
 {
-  if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
+  if (seq->type != SEQ_TYPE_MOVIE && seq->type != SEQ_TYPE_IMAGE) {
     return false;
   }
   if (min_ii(seq->startdisp, seq->start) > view_area->xmax) {

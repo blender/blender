@@ -153,12 +153,12 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
   /* Logic for setting previous value is documented on the #wmEvent struct,
    * see #wm_event_add_ghostevent for the implementation of logic this follows. */
 
-  win->eventstate->xy[0] = event->xy[0];
-  win->eventstate->xy[1] = event->xy[1];
+  win->eventstate->x = event->x;
+  win->eventstate->y = event->y;
 
   if (event->type == MOUSEMOVE) {
-    win->eventstate->prev_xy[0] = event->prev_xy[0] = win->eventstate->xy[0];
-    win->eventstate->prev_xy[1] = event->prev_xy[1] = win->eventstate->xy[1];
+    win->eventstate->prevx = event->prevx = win->eventstate->x;
+    win->eventstate->prevy = event->prevy = win->eventstate->y;
   }
   else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
     win->eventstate->prevval = event->prevval = win->eventstate->val;
@@ -169,7 +169,8 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
 
     if (event->val == KM_PRESS) {
       if (event->is_repeat == false) {
-        copy_v2_v2_int(win->eventstate->prev_click_xy, event->xy);
+        win->eventstate->prevclickx = event->x;
+        win->eventstate->prevclicky = event->y;
       }
     }
   }
@@ -504,7 +505,8 @@ void wm_event_do_notifiers(bContext *C)
         }
       }
 
-      if (note->window == win || (note->window == NULL && (ELEM(note->reference, NULL, scene)))) {
+      if (note->window == win ||
+          (note->window == NULL && (note->reference == NULL || note->reference == scene))) {
         if (note->category == NC_SCENE) {
           if (note->data == ND_FRAME) {
             do_anim = true;
@@ -1284,8 +1286,8 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
   ARegion *region = CTX_wm_region(C);
   if (region) {
     /* Compatibility convention. */
-    event->mval[0] = event->xy[0] - region->winrct.xmin;
-    event->mval[1] = event->xy[1] - region->winrct.ymin;
+    event->mval[0] = event->x - region->winrct.xmin;
+    event->mval[1] = event->y - region->winrct.ymin;
   }
   else {
     /* These values are invalid (avoid odd behavior by relying on old mval values). */
@@ -1421,10 +1423,10 @@ static int wm_operator_invoke(bContext *C,
           }
 
           if (region && region->regiontype == RGN_TYPE_WINDOW &&
-              BLI_rcti_isect_pt_v(&region->winrct, event->xy)) {
+              BLI_rcti_isect_pt_v(&region->winrct, &event->x)) {
             winrect = &region->winrct;
           }
-          else if (area && BLI_rcti_isect_pt_v(&area->totrct, event->xy)) {
+          else if (area && BLI_rcti_isect_pt_v(&area->totrct, &event->x)) {
             winrect = &area->totrct;
           }
 
@@ -1892,8 +1894,7 @@ static void wm_handler_op_context(bContext *C, wmEventHandler_Op *handler, const
       CTX_wm_area_set(C, area);
 
       if (op && (op->flag & OP_IS_MODAL_CURSOR_REGION)) {
-        region = BKE_area_find_region_xy(
-            area, handler->context.region_type, event->xy[0], event->xy[1]);
+        region = BKE_area_find_region_xy(area, handler->context.region_type, event->x, event->y);
         if (region) {
           handler->context.region = region;
         }
@@ -2491,8 +2492,7 @@ static int wm_handler_fileselect_do(bContext *C,
             wm_window_make_drawable(wm, ctx_win);
             /* Ensure correct cursor position, otherwise, popups may close immediately after
              * opening (UI_BLOCK_MOVEMOUSE_QUIT). */
-            wm_cursor_position_get(
-                ctx_win, &ctx_win->eventstate->xy[0], &ctx_win->eventstate->xy[1]);
+            wm_cursor_position_get(ctx_win, &ctx_win->eventstate->x, &ctx_win->eventstate->y);
             wm->winactive = ctx_win; /* Reports use this... */
             if (handler->context.win == win) {
               handler->context.win = NULL;
@@ -2812,7 +2812,7 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
    * noticeable for the node editor - where dragging on a node should move it, see: T73212.
    * note we still allow for starting the gizmo drag outside, then travel 'inside' the node. */
   if (region->type->clip_gizmo_events_by_ui) {
-    if (UI_region_block_find_mouse_over(region, &event->xy[0], true)) {
+    if (UI_region_block_find_mouse_over(region, &event->x, true)) {
       if (gz != NULL && event->type != EVT_GIZMO_UPDATE) {
         if (restore_highlight_unless_activated == false) {
           WM_tooltip_clear(C, CTX_wm_window(C));
@@ -3173,16 +3173,16 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
     /* Test for CLICK_DRAG events. */
     if (wm_action_not_handled(action)) {
       if (win->event_queue_check_drag) {
-        if (WM_event_drag_test(event, event->prev_click_xy)) {
+        if (WM_event_drag_test(event, &event->prevclickx)) {
           win->event_queue_check_drag_handled = true;
 
-          int x = event->xy[0];
-          int y = event->xy[1];
+          int x = event->x;
+          int y = event->y;
           short val = event->val;
           short type = event->type;
 
-          event->xy[0] = event->prev_click_xy[0];
-          event->xy[1] = event->prev_click_xy[1];
+          event->x = event->prevclickx;
+          event->y = event->prevclicky;
           event->val = KM_CLICK_DRAG;
           event->type = event->prevtype;
 
@@ -3192,8 +3192,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
           event->val = val;
           event->type = type;
-          event->xy[0] = x;
-          event->xy[1] = y;
+          event->x = x;
+          event->y = y;
 
           win->event_queue_check_click = false;
           if (!wm_action_not_handled(action)) {
@@ -3231,18 +3231,18 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         if (event->val == KM_RELEASE) {
           if (event->prevval == KM_PRESS) {
             if (win->event_queue_check_click == true) {
-              if (WM_event_drag_test(event, event->prev_click_xy)) {
+              if (WM_event_drag_test(event, &event->prevclickx)) {
                 win->event_queue_check_click = false;
                 win->event_queue_check_drag = false;
               }
               else {
                 /* Position is where the actual click happens, for more
                  * accurate selecting in case the mouse drifts a little. */
-                int x = event->xy[0];
-                int y = event->xy[1];
+                int x = event->x;
+                int y = event->y;
 
-                event->xy[0] = event->prev_click_xy[0];
-                event->xy[1] = event->prev_click_xy[1];
+                event->x = event->prevclickx;
+                event->y = event->prevclicky;
                 event->val = KM_CLICK;
 
                 CLOG_INFO(WM_LOG_HANDLERS, 1, "handling CLICK");
@@ -3250,8 +3250,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
                 action |= wm_handlers_do_intern(C, win, event, handlers);
 
                 event->val = KM_RELEASE;
-                event->xy[0] = x;
-                event->xy[1] = y;
+                event->x = x;
+                event->y = y;
               }
             }
           }
@@ -3302,7 +3302,7 @@ static bool wm_event_inside_rect(const wmEvent *event, const rcti *rect)
   if (wm_event_always_pass(event)) {
     return true;
   }
-  if (BLI_rcti_isect_pt_v(rect, event->xy)) {
+  if (BLI_rcti_isect_pt_v(rect, &event->x)) {
     return true;
   }
   return false;
@@ -3313,7 +3313,7 @@ static bool wm_event_inside_region(const wmEvent *event, const ARegion *region)
   if (wm_event_always_pass(event)) {
     return true;
   }
-  return ED_region_contains_xy(region, event->xy);
+  return ED_region_contains_xy(region, &event->x);
 }
 
 static ScrArea *area_event_inside(bContext *C, const int xy[2])
@@ -3372,11 +3372,11 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
     }
 
     /* If previous position was not in current region, we have to set a temp new context. */
-    if (region == NULL || !BLI_rcti_isect_pt_v(&region->winrct, event->prev_xy)) {
+    if (region == NULL || !BLI_rcti_isect_pt_v(&region->winrct, &event->prevx)) {
       ScrArea *area = CTX_wm_area(C);
 
-      CTX_wm_area_set(C, area_event_inside(C, event->prev_xy));
-      CTX_wm_region_set(C, region_event_inside(C, event->prev_xy));
+      CTX_wm_area_set(C, area_event_inside(C, &event->prevx));
+      CTX_wm_region_set(C, region_event_inside(C, &event->prevx));
 
       wm_paintcursor_tag(C, wm->paintcursors.first, CTX_wm_region(C));
 
@@ -3638,15 +3638,15 @@ void wm_event_do_handlers(bContext *C)
       /* Clear tool-tip on mouse move. */
       if (screen->tool_tip && screen->tool_tip->exit_on_event) {
         if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-          if (len_manhattan_v2v2_int(screen->tool_tip->event_xy, event->xy) > U.move_threshold) {
+          if (len_manhattan_v2v2_int(screen->tool_tip->event_xy, &event->x) > U.move_threshold) {
             WM_tooltip_clear(C, win);
           }
         }
       }
 
       /* We let modal handlers get active area/region, also wm_paintcursor_test needs it. */
-      CTX_wm_area_set(C, area_event_inside(C, event->xy));
-      CTX_wm_region_set(C, region_event_inside(C, event->xy));
+      CTX_wm_area_set(C, area_event_inside(C, &event->x));
+      CTX_wm_region_set(C, region_event_inside(C, &event->x));
 
       /* MVC demands to not draw in event handlers...
        * but we need to leave it for ogl selecting etc. */
@@ -3683,7 +3683,7 @@ void wm_event_do_handlers(bContext *C)
         if (event->type == MOUSEMOVE) {
           /* State variables in screen, cursors.
            * Also used in wm_draw.c, fails for modal handlers though. */
-          ED_screen_set_active_region(C, win, event->xy);
+          ED_screen_set_active_region(C, win, &event->x);
           /* For regions having custom cursors. */
           wm_paintcursor_test(C, event);
         }
@@ -3705,7 +3705,7 @@ void wm_event_do_handlers(bContext *C)
           /* Update azones if needed - done here because it needs to be independent from redraws.
            */
           if (area->flag & AREA_FLAG_ACTIONZONES_UPDATE) {
-            ED_area_azones_update(area, event->xy);
+            ED_area_azones_update(area, &event->x);
           }
 
           if (wm_event_inside_rect(event, &area->totrct)) {
@@ -3758,8 +3758,8 @@ void wm_event_do_handlers(bContext *C)
 
         if ((action & WM_HANDLER_BREAK) == 0) {
           /* Also some non-modal handlers need active area/region. */
-          CTX_wm_area_set(C, area_event_inside(C, event->xy));
-          CTX_wm_region_set(C, region_event_inside(C, event->xy));
+          CTX_wm_area_set(C, area_event_inside(C, &event->x));
+          CTX_wm_region_set(C, region_event_inside(C, &event->x));
 
           wm_region_mouse_co(C, event);
 
@@ -3788,8 +3788,8 @@ void wm_event_do_handlers(bContext *C)
       }
 
       /* Update previous mouse position for following events to use. */
-      win->eventstate->prev_xy[0] = event->xy[0];
-      win->eventstate->prev_xy[1] = event->xy[1];
+      win->eventstate->prevx = event->x;
+      win->eventstate->prevy = event->y;
 
       /* Unlink and free here, blender-quit then frees all. */
       BLI_remlink(&win->event_queue, event);
@@ -3799,10 +3799,10 @@ void wm_event_do_handlers(bContext *C)
     /* Only add mouse-move when the event queue was read entirely. */
     if (win->addmousemove && win->eventstate) {
       wmEvent tevent = *(win->eventstate);
-      // printf("adding MOUSEMOVE %d %d\n", tevent.xy[0], tevent.xy[1]);
+      // printf("adding MOUSEMOVE %d %d\n", tevent.x, tevent.y);
       tevent.type = MOUSEMOVE;
-      tevent.prev_xy[0] = tevent.xy[0];
-      tevent.prev_xy[1] = tevent.xy[1];
+      tevent.prevx = tevent.x;
+      tevent.prevy = tevent.y;
       tevent.is_repeat = false;
       wm_event_add(win, &tevent);
       win->addmousemove = 0;
@@ -4181,10 +4181,10 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *handlers,
 
 static bool event_or_prev_in_rect(const wmEvent *event, const rcti *rect)
 {
-  if (BLI_rcti_isect_pt(rect, event->xy[0], event->xy[1])) {
+  if (BLI_rcti_isect_pt(rect, event->x, event->y)) {
     return true;
   }
-  if (event->type == MOUSEMOVE && BLI_rcti_isect_pt(rect, event->prev_xy[0], event->prev_xy[1])) {
+  if (event->type == MOUSEMOVE && BLI_rcti_isect_pt(rect, event->prevx, event->prevy)) {
     return true;
   }
   return false;
@@ -4660,7 +4660,7 @@ static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *g
 /* Imperfect but probably usable... draw/enable drags to other windows. */
 static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *event)
 {
-  int mval[2] = {event->xy[0], event->xy[1]};
+  int mval[2] = {event->x, event->y};
 
   if (wm->windows.first == wm->windows.last) {
     return NULL;
@@ -4682,8 +4682,8 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 
     wmWindow *win_other = WM_window_find_under_cursor(wm, win, win, mval, mval);
     if (win_other) {
-      event->xy[0] = mval[0];
-      event->xy[1] = mval[1];
+      event->x = mval[0];
+      event->y = mval[1];
       return win_other;
     }
   }
@@ -4694,7 +4694,7 @@ static bool wm_event_is_double_click(const wmEvent *event)
 {
   if ((event->type == event->prevtype) && (event->prevval == KM_RELEASE) &&
       (event->val == KM_PRESS)) {
-    if (ISMOUSE(event->type) && WM_event_drag_test(event, event->prev_click_xy)) {
+    if (ISMOUSE(event->type) && WM_event_drag_test(event, &event->prevclickx)) {
       /* Pass. */
     }
     else {
@@ -4719,8 +4719,8 @@ static void wm_event_prev_values_set(wmEvent *event, wmEvent *event_state)
 static void wm_event_prev_click_set(wmEvent *event, wmEvent *event_state)
 {
   event->prevclicktime = event_state->prevclicktime = PIL_check_seconds_timer();
-  event->prev_click_xy[0] = event_state->prev_click_xy[0] = event_state->xy[0];
-  event->prev_click_xy[1] = event_state->prev_click_xy[1] = event_state->xy[1];
+  event->prevclickx = event_state->prevclickx = event_state->x;
+  event->prevclicky = event_state->prevclicky = event_state->y;
 }
 
 static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
@@ -4740,7 +4740,7 @@ static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
     event_last = win->eventstate;
   }
 
-  copy_v2_v2_int(event_new->prev_xy, event_last->xy);
+  copy_v2_v2_int(&event_new->prevx, &event_last->x);
   return event_new;
 }
 
@@ -4750,16 +4750,16 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
    * for painting with mouse moves, for navigation using the accumulated value is ok. */
   wmEvent *event_last = win->event_queue.last;
   if (event_last && event_last->type == event->type) {
-    deltax += event_last->xy[0] - event_last->prev_xy[0];
-    deltay += event_last->xy[1] - event_last->prev_xy[1];
+    deltax += event_last->x - event_last->prevx;
+    deltay += event_last->y - event_last->prevy;
 
     wm_event_free_last(win);
   }
 
-  /* Set prev_xy, the delta is computed from this in operators. */
+  /* Set prevx/prevy, the delta is computed from this in operators. */
   wmEvent *event_new = wm_event_add(win, event);
-  event_new->prev_xy[0] = event_new->xy[0] - deltax;
-  event_new->prev_xy[1] = event_new->xy[1] - deltay;
+  event_new->prevx = event_new->x - deltax;
+  event_new->prevy = event_new->y - deltay;
 
   return event_new;
 }
@@ -4828,14 +4828,14 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
     case GHOST_kEventCursorMove: {
       GHOST_TEventCursorData *cd = customdata;
 
-      copy_v2_v2_int(event.xy, &cd->x);
-      wm_stereo3d_mouse_offset_apply(win, &event.xy[0]);
+      copy_v2_v2_int(&event.x, &cd->x);
+      wm_stereo3d_mouse_offset_apply(win, &event.x);
       wm_tablet_data_from_ghost(&cd->tablet, &event.tablet);
 
       event.type = MOUSEMOVE;
       {
         wmEvent *event_new = wm_event_add_mousemove(win, &event);
-        copy_v2_v2_int(event_state->xy, event_new->xy);
+        copy_v2_v2_int(&event_state->x, &event_new->x);
         event_state->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
       }
 
@@ -4849,11 +4849,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         event_other.prevtype = event_other.type;
         event_other.prevval = event_other.val;
 
-        copy_v2_v2_int(event_other.xy, event.xy);
+        copy_v2_v2_int(&event_other.x, &event.x);
         event_other.type = MOUSEMOVE;
         {
           wmEvent *event_new = wm_event_add_mousemove(win_other, &event_other);
-          copy_v2_v2_int(win_other->eventstate->xy, event_new->xy);
+          copy_v2_v2_int(&win_other->eventstate->x, &event_new->x);
           win_other->eventstate->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
         }
       }
@@ -4880,8 +4880,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
           break;
       }
 
-      event.xy[0] = event_state->xy[0] = pd->x;
-      event.xy[1] = event_state->xy[1] = pd->y;
+      event.x = event_state->x = pd->x;
+      event.y = event_state->y = pd->y;
       event.val = KM_NOTHING;
 
       /* The direction is inverted from the device due to system preferences. */
@@ -4948,7 +4948,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         event_other.prevtype = event_other.type;
         event_other.prevval = event_other.val;
 
-        copy_v2_v2_int(event_other.xy, event.xy);
+        copy_v2_v2_int(&event_other.x, &event.x);
 
         event_other.type = event.type;
         event_other.val = event.val;
@@ -5126,7 +5126,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       attach_ndof_data(&event, customdata);
       wm_event_add(win, &event);
 
-      CLOG_INFO(WM_LOG_HANDLERS, 1, "sending NDOF_MOTION, prev = %d %d", event.xy[0], event.xy[1]);
+      CLOG_INFO(WM_LOG_HANDLERS, 1, "sending NDOF_MOTION, prev = %d %d", event.x, event.y);
       break;
     }
 

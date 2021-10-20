@@ -648,7 +648,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
     color_space = file_input.GetAttr().GetColorSpace();
   }
 
-  if (ELEM(color_space, usdtokens::RAW, usdtokens::raw)) {
+  if (color_space == usdtokens::RAW || color_space == usdtokens::raw) {
     STRNCPY(image->colorspace_settings.name, "Raw");
   }
 }

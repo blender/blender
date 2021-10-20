@@ -78,8 +78,12 @@ static void copy_attributes_to_points(CurveEval &curve,
       continue;
     }
 
-    if (!attribute_id.should_be_kept()) {
-      continue;
+    /* Don't copy anonymous attributes with no references anymore. */
+    if (attribute_id.is_anonymous()) {
+      const AnonymousAttributeID &anonymous_id = attribute_id.anonymous_id();
+      if (!BKE_anonymous_attribute_id_has_strong_references(&anonymous_id)) {
+        continue;
+      }
     }
 
     const fn::GVArrayPtr mesh_attribute = mesh_component.attribute_try_get_for_read(
