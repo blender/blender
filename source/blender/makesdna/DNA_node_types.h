@@ -1291,14 +1291,6 @@ typedef struct NodeAttributeCurveMap {
   CurveMapping *curve_rgb;
 } NodeAttributeCurveMap;
 
-typedef struct NodeInputBool {
-  uint8_t boolean;
-} NodeInputBool;
-
-typedef struct NodeInputInt {
-  int integer;
-} NodeInputInt;
-
 typedef struct NodeInputVector {
   float vector[3];
 } NodeInputVector;

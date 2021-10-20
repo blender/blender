@@ -150,8 +150,6 @@ set(SRC
   function/nodes/node_fn_string_length.cc
   function/nodes/node_fn_string_substring.cc
   function/nodes/node_fn_value_to_string.cc
-  function/nodes/node_fn_input_bool.cc
-  function/nodes/node_fn_input_int.cc
   function/node_function_util.cc
 
   geometry/nodes/legacy/node_geo_align_rotation_to_vector.cc

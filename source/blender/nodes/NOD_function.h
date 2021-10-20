@@ -36,8 +36,6 @@ void register_node_type_fn_rotate_euler(void);
 void register_node_type_fn_string_length(void);
 void register_node_type_fn_string_substring(void);
 void register_node_type_fn_value_to_string(void);
-void register_node_type_fn_input_bool(void);
-void register_node_type_fn_input_int(void);
 
 #ifdef __cplusplus
 }
