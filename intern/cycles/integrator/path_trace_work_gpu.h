@@ -88,7 +88,7 @@ class PathTraceWorkGPU : public PathTraceWork {
 
   void compact_states(const int num_active_paths);
 
-  int get_num_active_paths();
+  int num_active_main_paths_paths();
 
   /* Check whether graphics interop can be used for the PathTraceDisplay update. */
   bool should_use_graphics_interop();
@@ -120,7 +120,7 @@ class PathTraceWorkGPU : public PathTraceWork {
   bool kernel_creates_shadow_paths(DeviceKernel kernel);
   bool kernel_creates_ao_paths(DeviceKernel kernel);
   bool kernel_is_shadow_path(DeviceKernel kernel);
-  int kernel_max_active_path_index(DeviceKernel kernel);
+  int kernel_max_active_main_path_index(DeviceKernel kernel);
 
   /* Integrator queue. */
   unique_ptr<DeviceQueue> queue_;
@@ -141,8 +141,8 @@ class PathTraceWorkGPU : public PathTraceWork {
   device_vector<int> integrator_shader_raytrace_sort_counter_;
   device_vector<int> integrator_shader_sort_prefix_sum_;
   /* Path split. */
+  device_vector<int> integrator_next_main_path_index_;
   device_vector<int> integrator_next_shadow_path_index_;
-  device_vector<int> integrator_next_shadow_catcher_path_index_;
 
   /* Temporary buffer to get an array of queued path for a particular kernel. */
   device_vector<int> queued_paths_;
@@ -166,12 +166,12 @@ class PathTraceWorkGPU : public PathTraceWork {
 
   /* Minimum number of paths which keeps the device bust. If the actual number of paths falls below
    * this value more work will be scheduled. */
-  int min_num_active_paths_;
+  int min_num_active_main_paths_;
 
   /* Maximum path index, effective number of paths used may be smaller than
    * the size of the integrator_state_ buffer so can avoid iterating over the
    * full buffer. */
-  int max_active_path_index_;
+  int max_active_main_path_index_;
 };
 
 CCL_NAMESPACE_END
