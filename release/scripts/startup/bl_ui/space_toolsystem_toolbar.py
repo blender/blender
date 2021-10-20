@@ -185,23 +185,18 @@ class _defs_annotate:
         tool_settings = context.tool_settings
 
         if space_type == 'VIEW_3D':
-            layout.separator()
-
             row = layout.row(align=True)
             row.prop(tool_settings, "annotation_stroke_placement_view3d", text="Placement")
             if tool_settings.gpencil_stroke_placement_view3d == 'CURSOR':
                 row.prop(tool_settings.gpencil_sculpt, "lockaxis")
             elif tool_settings.gpencil_stroke_placement_view3d in {'SURFACE', 'STROKE'}:
                 row.prop(tool_settings, "use_gpencil_stroke_endpoints")
-        elif space_type in {'IMAGE_EDITOR', 'NODE_EDITOR', 'SEQUENCE_EDITOR', 'CLIP_EDITOR'}:
-            layout.separator()
 
+        elif space_type in {'IMAGE_EDITOR', 'NODE_EDITOR', 'SEQUENCE_EDITOR', 'CLIP_EDITOR'}:
             row = layout.row(align=True)
             row.prop(tool_settings, "annotation_stroke_placement_view2d", text="Placement")
 
         if tool.idname == "builtin.annotate_line":
-            layout.separator()
-
             props = tool.operator_properties("gpencil.annotate")
             if region_type == 'TOOL_HEADER':
                 row = layout.row()
@@ -223,7 +218,6 @@ class _defs_annotate:
                 subrow.prop(props, "stabilizer_radius", text="Radius", slider=True)
                 subrow.prop(props, "stabilizer_factor", text="Factor", slider=True)
             else:
-                layout.separator()
                 layout.prop(props, "use_stabilizer", text="Stabilize Stroke")
                 col = layout.column(align=False)
                 col.active = props.use_stabilizer
