@@ -53,7 +53,7 @@ int HIPDeviceQueue::num_concurrent_states(const size_t state_size) const
 
   const char *factor_str = getenv("CYCLES_CONCURRENT_STATES_FACTOR");
   if (factor_str) {
-    float factor = atof(factor_str);
+    float factor = (float)atof(factor_str);
     if (!factor)
       VLOG(3) << "CYCLES_CONCURRENT_STATES_FACTOR evaluated to 0";
     num_states = max((int)(num_states * factor), 1024);
