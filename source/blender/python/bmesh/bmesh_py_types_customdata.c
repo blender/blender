@@ -84,6 +84,8 @@ PyDoc_STRVAR(bpy_bmlayeraccess_collection__float_doc,
              "Generic float custom-data layer.\n\ntype: :class:`BMLayerCollection`");
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__int_doc,
              "Generic int custom-data layer.\n\ntype: :class:`BMLayerCollection`");
+PyDoc_STRVAR(bpy_bmlayeraccess_collection__face_set_doc,
+             "Sculpt face set custom-data layer.\n\ntype: :class:`BMLayerCollection`");
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__float_vector_doc,
              "Generic 3D vector with float precision custom-data layer.\n\ntype: "
              ":class:`BMLayerCollection`");
@@ -304,6 +306,11 @@ static PyGetSetDef bpy_bmlayeraccess_face_getseters[] = {
      (setter)NULL,
      bpy_bmlayeraccess_collection__int_doc,
      (void *)CD_PROP_INT32},
+    {"face_set",
+     (getter)bpy_bmlayeraccess_collection_get,
+     (setter)NULL,
+     bpy_bmlayeraccess_collection__face_set_doc,
+     (void *)CD_SCULPT_FACE_SETS},
     {"float_vector",
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
@@ -1131,6 +1138,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
       break;
     }
     case CD_PROP_INT32:
+    case CD_SCULPT_FACE_SETS:
     case CD_FACEMAP: {
       ret = PyLong_FromLong(*(int *)value);
       break;
@@ -1210,6 +1218,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
       break;
     }
     case CD_PROP_INT32:
+    case CD_SCULPT_FACE_SETS:
     case CD_FACEMAP: {
       const int tmp_val = PyC_Long_AsI32(py_value);
       if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {

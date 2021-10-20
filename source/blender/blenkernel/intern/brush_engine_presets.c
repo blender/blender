@@ -441,6 +441,7 @@ static BrushSettingsMap brush_settings_map[] = {
   DEF(size, radius, INT, FLOAT)
   DEF(alpha, strength, FLOAT, FLOAT)
   DEF(spacing, spacing, INT, FLOAT)
+  DEF(automasking_flags, automasking, INT, INT)
   DEF(autosmooth_factor, autosmooth, FLOAT, FLOAT)
   DEF(area_radius_factor, area_radius_factor, FLOAT, FLOAT)
   DEF(autosmooth_projection, autosmooth_projection, FLOAT, FLOAT)
@@ -1867,6 +1868,8 @@ void BKE_brush_init_toolsettings(Sculpt *sd)
   if (sd->channels) {
     BKE_brush_channelset_free(sd->channels);
   }
+
+  sd->channels = BKE_brush_channelset_create("sd");
 
   BKE_brush_check_toolsettings(sd);
   BKE_brush_channelset_check_radius(sd->channels);

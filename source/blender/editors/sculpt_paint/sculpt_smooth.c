@@ -502,7 +502,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
         madd_v3_v3v3fl(tmp, co, no, dot_v3v3(t, no));
         ok = true;
       }
-      else if (final_boundary) {
+      else if (final_boundary & is_boundary) {
         copy_v3_v3(tmp, co2);
         ok = true;
         do_diffuse = false;

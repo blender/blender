@@ -5135,6 +5135,7 @@ bool brush_uses_commandlist(Brush *brush)
     case SCULPT_TOOL_DRAW_FACE_SETS:
     case SCULPT_TOOL_CLOTH:
     case SCULPT_TOOL_SMOOTH:
+    case SCULPT_TOOL_PINCH:
     case SCULPT_TOOL_SIMPLIFY:
     case SCULPT_TOOL_SNAKE_HOOK:
     case SCULPT_TOOL_INFLATE:

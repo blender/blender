@@ -601,7 +601,7 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
 void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  Brush *brush = ss->cache->brush ? ss->cache->brush : BKE_paint_brush(&sd->paint);
 
   BKE_curvemapping_init(brush->curve);
 
@@ -617,9 +617,11 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
 
   /*for ctrl invert mode we have to set the automasking initial_face_set
     to the first non-current faceset that is found*/
+  int automasking_flags = SCULPT_get_int(ss, automasking, sd, brush);
+
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     if (ss->cache->invert && ss->cache->automasking &&
-        (brush->automasking_flags & BRUSH_AUTOMASKING_FACE_SETS)) {
+        (automasking_flags & BRUSH_AUTOMASKING_FACE_SETS)) {
       ss->cache->automasking->settings.current_face_set =
           ss->cache->automasking->settings.initial_face_set;
     }

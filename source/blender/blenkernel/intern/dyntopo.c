@@ -606,6 +606,10 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
     return;
   }
 
+  if (bound1) {
+    fac *= 0.1;
+  }
+
   do {
     BMVert *v2 = e->v1 == v ? e->v2 : e->v1;
 
@@ -1485,7 +1489,7 @@ BLI_INLINE float calc_weighted_edge_collapse(EdgeQueueContext *eq_ctx, BMVert *v
 {
   float len_sq = len_squared_v3v3(v1->co, v2->co);
 
-#if 0  // this rule here seems to improve topology, but need to study it more
+#if 1  // this rule here seems to improve topology, but need to study it more
   MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(eq_ctx->cd_sculpt_vert, v1);
   MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(eq_ctx->cd_sculpt_vert, v2);
 
