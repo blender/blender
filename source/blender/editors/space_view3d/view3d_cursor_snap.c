@@ -235,7 +235,7 @@ static void v3d_cursor_plane_draw_grid(const int resolution,
       i += 1;
     }
   }
-  BLI_assert(i == coords_len);
+  BLI_assert(i == (int)coords_len);
   immBeginAtMost(GPU_PRIM_LINES, coords_len * 4);
   i = 0;
   for (int x = 0; x < resolution_min; x++) {
@@ -661,7 +661,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     else {
       ViewLayer *view_layer = CTX_data_view_layer(C);
       Object *ob = OBACT(view_layer);
-      const short orient_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
+      const int orient_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
       const int pivot_point = scene->toolsettings->transform_pivot_point;
       ED_transform_calc_orientation_from_type_ex(
           scene, view_layer, v3d, region->regiondata, ob, ob, orient_index, pivot_point, omat);

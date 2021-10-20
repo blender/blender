@@ -1259,7 +1259,7 @@ static void idp_rna_plane_axis_set_fn(struct PointerRNA *UNUSED(ptr),
                                       int value)
 {
   V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  snap_state->plane_axis = value;
+  snap_state->plane_axis = (short)value;
   ED_view3d_cursor_snap_state_default_set(snap_state);
 }
 
