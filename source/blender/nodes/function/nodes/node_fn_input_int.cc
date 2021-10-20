@@ -28,8 +28,6 @@ static void fn_node_input_int_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Int>("Integer");
 };
 
-}  // namespace blender::nodes
-
 static void fn_node_input_int_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiLayout *col = uiLayoutColumn(layout, true);
@@ -37,17 +35,20 @@ static void fn_node_input_int_layout(uiLayout *layout, bContext *UNUSED(C), Poin
 }
 
 static void fn_node_int_input_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+    NodeMultiFunctionBuilder &builder)
 {
   bNode &bnode = builder.node();
   NodeInputInt *node_storage = static_cast<NodeInputInt *>(bnode.storage);
-  builder.construct_and_set_matching_fn<blender::fn::CustomMF_Constant<int>>(node_storage->integer);
+  builder.construct_and_set_matching_fn<fn::CustomMF_Constant<int>>(node_storage->integer);
 }
+
 static void fn_node_input_int_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeInputInt *data = (NodeInputInt *)MEM_callocN(sizeof(NodeInputInt),__func__);
   node->storage = data;
 }
+
+}  // namespace blender::nodes
 
 void register_node_type_fn_input_int()
 {
@@ -55,10 +56,10 @@ void register_node_type_fn_input_int()
 
   fn_node_type_base(&ntype, FN_NODE_INPUT_INT, "Integer", 0, 0);
   ntype.declare = blender::nodes::fn_node_input_int_declare;
-  node_type_init(&ntype, fn_node_input_int_init);
+  node_type_init(&ntype, blender::nodes::fn_node_input_int_init);
   node_type_storage(
       &ntype, "NodeInputInt", node_free_standard_storage, node_copy_standard_storage);
-  ntype.build_multi_function = fn_node_int_input_build_multi_function;
-  ntype.draw_buttons = fn_node_input_int_layout;
+  ntype.build_multi_function = blender::nodes::fn_node_int_input_build_multi_function;
+  ntype.draw_buttons = blender::nodes::fn_node_input_int_layout;
   nodeRegisterType(&ntype);
 }

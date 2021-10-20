@@ -5876,6 +5876,8 @@ static void registerFunctionNodes()
   register_node_type_fn_boolean_math();
   register_node_type_fn_float_compare();
   register_node_type_fn_float_to_int();
+  register_node_type_fn_input_bool();
+  register_node_type_fn_input_int();
   register_node_type_fn_input_special_characters();
   register_node_type_fn_input_string();
   register_node_type_fn_input_vector();
@@ -5886,8 +5888,6 @@ static void registerFunctionNodes()
   register_node_type_fn_string_length();
   register_node_type_fn_string_substring();
   register_node_type_fn_value_to_string();
-  register_node_type_fn_input_bool();
-  register_node_type_fn_input_int();
 }
 
 void BKE_node_system_init(void)

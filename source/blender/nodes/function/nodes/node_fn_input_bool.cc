@@ -28,8 +28,6 @@ static void fn_node_input_bool_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>("Boolean");
 };
 
-}  // namespace blender::nodes
-
 static void fn_node_input_bool_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiLayout *col = uiLayoutColumn(layout, true);
@@ -37,17 +35,20 @@ static void fn_node_input_bool_layout(uiLayout *layout, bContext *UNUSED(C), Poi
 }
 
 static void fn_node_bool_input_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+    NodeMultiFunctionBuilder &builder)
 {
   bNode &bnode = builder.node();
   NodeInputBool *node_storage = static_cast<NodeInputBool *>(bnode.storage);
-  builder.construct_and_set_matching_fn<blender::fn::CustomMF_Constant<bool>>(node_storage->boolean);
+  builder.construct_and_set_matching_fn<fn::CustomMF_Constant<bool>>(node_storage->boolean);
 }
+
 static void fn_node_input_bool_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeInputBool *data = (NodeInputBool *)MEM_callocN(sizeof(NodeInputBool),__func__);
   node->storage = data;
 }
+
+}  // namespace blender::nodes
 
 void register_node_type_fn_input_bool()
 {
@@ -55,10 +56,10 @@ void register_node_type_fn_input_bool()
 
   fn_node_type_base(&ntype, FN_NODE_INPUT_BOOL, "Boolean", 0, 0);
   ntype.declare = blender::nodes::fn_node_input_bool_declare;
-  node_type_init(&ntype, fn_node_input_bool_init);
+  node_type_init(&ntype, blender::nodes::fn_node_input_bool_init);
   node_type_storage(
       &ntype, "NodeInputBool", node_free_standard_storage, node_copy_standard_storage);
-  ntype.build_multi_function = fn_node_bool_input_build_multi_function;
-  ntype.draw_buttons = fn_node_input_bool_layout;
+  ntype.build_multi_function = blender::nodes::fn_node_bool_input_build_multi_function;
+  ntype.draw_buttons = blender::nodes::fn_node_input_bool_layout;
   nodeRegisterType(&ntype);
 }
