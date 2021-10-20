@@ -2970,10 +2970,16 @@ bool BKE_pose_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden
                                   BKE_object_boundbox_get(pchan->custom) :
                                   NULL;
         if (bb_custom) {
-          float mat[4][4], smat[4][4];
+          float mat[4][4], smat[4][4], rmat[4][4], tmp[4][4];
           scale_m4_fl(smat, PCHAN_CUSTOM_BONE_LENGTH(pchan));
           rescale_m4(smat, pchan->custom_scale_xyz);
-          mul_m4_series(mat, ob->obmat, pchan_tx->pose_mat, smat);
+          eulO_to_mat4(rmat, pchan->custom_rotation_euler, ROT_MODE_XYZ);
+          copy_m4_m4(tmp, pchan_tx->pose_mat);
+          translate_m4(tmp,
+                       pchan->custom_translation[0],
+                       pchan->custom_translation[1],
+                       pchan->custom_translation[2]);
+          mul_m4_series(mat, ob->obmat, tmp, rmat, smat);
           BKE_boundbox_minmax(bb_custom, mat, r_min, r_max);
         }
         else {
