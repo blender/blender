@@ -519,15 +519,20 @@ IndexFieldInput::IndexFieldInput() : FieldInput(CPPType::get<int>(), "Index")
 {
 }
 
+GVArray *IndexFieldInput::get_index_varray(IndexMask mask, ResourceScope &scope)
+{
+  auto index_func = [](int i) { return i; };
+  return &scope.construct<
+      fn::GVArray_For_EmbeddedVArray<int, VArray_For_Func<int, decltype(index_func)>>>(
+      mask.min_array_size(), mask.min_array_size(), index_func);
+}
+
 const GVArray *IndexFieldInput::get_varray_for_context(const fn::FieldContext &UNUSED(context),
                                                        IndexMask mask,
                                                        ResourceScope &scope) const
 {
   /* TODO: Investigate a similar method to IndexRange::as_span() */
-  auto index_func = [](int i) { return i; };
-  return &scope.construct<
-      fn::GVArray_For_EmbeddedVArray<int, VArray_For_Func<int, decltype(index_func)>>>(
-      mask.min_array_size(), mask.min_array_size(), index_func);
+  return get_index_varray(mask, scope);
 }
 
 uint64_t IndexFieldInput::hash() const

@@ -623,6 +623,103 @@ static void point_attribute_materialize_to_uninitialized(Span<Span<T>> data,
   }
 }
 
+static GVArrayPtr varray_from_initializer(const AttributeInit &initializer,
+                                          const CustomDataType data_type,
+                                          const Span<SplinePtr> splines)
+{
+  switch (initializer.type) {
+    case AttributeInit::Type::Default:
+      /* This function shouldn't be called in this case, since there
+       * is no need to copy anything to the new custom data array. */
+      BLI_assert_unreachable();
+      return {};
+    case AttributeInit::Type::VArray:
+      return static_cast<const AttributeInitVArray &>(initializer).varray->shallow_copy();
+    case AttributeInit::Type::MoveArray:
+      int total_size = 0;
+      for (const SplinePtr &spline : splines) {
+        total_size += spline->size();
+      }
+      return std::make_unique<fn::GVArray_For_GSpan>(
+          GSpan(*bke::custom_data_type_to_cpp_type(data_type),
+                static_cast<const AttributeInitMove &>(initializer).data,
+                total_size));
+  }
+  BLI_assert_unreachable();
+  return {};
+}
+
+static bool create_point_attribute(GeometryComponent &component,
+                                   const AttributeIDRef &attribute_id,
+                                   const AttributeInit &initializer,
+                                   const CustomDataType data_type)
+{
+  CurveEval *curve = get_curve_from_component_for_write(component);
+  if (curve == nullptr || curve->splines().size() == 0) {
+    return false;
+  }
+
+  MutableSpan<SplinePtr> splines = curve->splines();
+
+  /* First check the one case that allows us to avoid copying the input data. */
+  if (splines.size() == 1 && initializer.type == AttributeInit::Type::MoveArray) {
+    void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
+    if (!splines.first()->attributes.create_by_move(attribute_id, data_type, source_data)) {
+      MEM_freeN(source_data);
+      return false;
+    }
+    return true;
+  }
+
+  /* Otherwise just create a custom data layer on each of the splines. */
+  for (const int i : splines.index_range()) {
+    if (!splines[i]->attributes.create(attribute_id, data_type)) {
+      /* If attribute creation fails on one of the splines, we cannot leave the custom data
+       * layers in the previous splines around, so delete them before returning. However,
+       * this is not an expected case. */
+      BLI_assert_unreachable();
+      return false;
+    }
+  }
+
+  /* With a default initializer type, we can keep the values at their initial values. */
+  if (initializer.type == AttributeInit::Type::Default) {
+    return true;
+  }
+
+  WriteAttributeLookup write_attribute = component.attribute_try_get_for_write(attribute_id);
+  /* We just created the attribute, it should exist. */
+  BLI_assert(write_attribute);
+
+  GVArrayPtr source_varray = varray_from_initializer(initializer, data_type, splines);
+  /* TODO: When we can call a variant of #set_all with a virtual array argument,
+   * this theoretically unnecessary materialize step could be removed. */
+  GVArray_GSpan source_varray_span{*source_varray};
+  write_attribute.varray->set_all(source_varray_span.data());
+
+  if (initializer.type == AttributeInit::Type::MoveArray) {
+    MEM_freeN(static_cast<const AttributeInitMove &>(initializer).data);
+  }
+
+  return true;
+}
+
+static bool remove_point_attribute(GeometryComponent &component,
+                                   const AttributeIDRef &attribute_id)
+{
+  CurveEval *curve = get_curve_from_component_for_write(component);
+  if (curve == nullptr) {
+    return false;
+  }
+
+  /* Reuse the boolean for all splines; we expect all splines to have the same attributes. */
+  bool layer_freed = false;
+  for (SplinePtr &spline : curve->splines()) {
+    layer_freed = spline->attributes.remove(attribute_id);
+  }
+  return layer_freed;
+}
+
 /**
  * Virtual array for any control point data accessed with spans and an offset array.
  */
@@ -980,15 +1077,17 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
 
  public:
   BuiltinPointAttributeProvider(std::string attribute_name,
+                                const CreatableEnum creatable,
+                                const DeletableEnum deletable,
                                 const GetSpan get_span,
                                 const GetMutableSpan get_mutable_span,
                                 const UpdateOnWrite update_on_write)
       : BuiltinAttributeProvider(std::move(attribute_name),
                                  ATTR_DOMAIN_POINT,
                                  bke::cpp_type_to_custom_data_type(CPPType::get<T>()),
-                                 CreatableEnum::NonCreatable,
+                                 creatable,
                                  WritableEnum::Writable,
-                                 DeletableEnum::NonDeletable),
+                                 deletable),
         get_span_(get_span),
         get_mutable_span_(get_mutable_span),
         update_on_write_(update_on_write)
@@ -1041,15 +1140,20 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
     return point_data_gvarray(spans, offsets);
   }
 
-  bool try_delete(GeometryComponent &UNUSED(component)) const final
+  bool try_delete(GeometryComponent &component) const final
   {
-    return false;
+    if (deletable_ == DeletableEnum::NonDeletable) {
+      return false;
+    }
+    return remove_point_attribute(component, name_);
   }
 
-  bool try_create(GeometryComponent &UNUSED(component),
-                  const AttributeInit &UNUSED(initializer)) const final
+  bool try_create(GeometryComponent &component, const AttributeInit &initializer) const final
   {
-    return false;
+    if (createable_ == CreatableEnum::NonCreatable) {
+      return false;
+    }
+    return create_point_attribute(component, name_, initializer, CD_PROP_INT32);
   }
 
   bool exists(const GeometryComponent &component) const final
@@ -1061,6 +1165,10 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
 
     Span<SplinePtr> splines = curve->splines();
     if (splines.size() == 0) {
+      return false;
+    }
+
+    if (!curve->splines().first()->attributes.get_for_read(name_)) {
       return false;
     }
 
@@ -1090,6 +1198,8 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
   PositionAttributeProvider()
       : BuiltinPointAttributeProvider(
             "position",
+            BuiltinAttributeProvider::NonCreatable,
+            BuiltinAttributeProvider::NonDeletable,
             [](const Spline &spline) { return spline.positions(); },
             [](Spline &spline) { return spline.positions(); },
             [](Spline &spline) { spline.mark_cache_invalid(); })
@@ -1319,39 +1429,7 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
 
   bool try_delete(GeometryComponent &component, const AttributeIDRef &attribute_id) const final
   {
-    CurveEval *curve = get_curve_from_component_for_write(component);
-    if (curve == nullptr) {
-      return false;
-    }
-
-    /* Reuse the boolean for all splines; we expect all splines to have the same attributes. */
-    bool layer_freed = false;
-    for (SplinePtr &spline : curve->splines()) {
-      layer_freed = spline->attributes.remove(attribute_id);
-    }
-    return layer_freed;
-  }
-
-  static GVArrayPtr varray_from_initializer(const AttributeInit &initializer,
-                                            const CustomDataType data_type,
-                                            const int total_size)
-  {
-    switch (initializer.type) {
-      case AttributeInit::Type::Default:
-        /* This function shouldn't be called in this case, since there
-         * is no need to copy anything to the new custom data array. */
-        BLI_assert_unreachable();
-        return {};
-      case AttributeInit::Type::VArray:
-        return static_cast<const AttributeInitVArray &>(initializer).varray->shallow_copy();
-      case AttributeInit::Type::MoveArray:
-        return std::make_unique<fn::GVArray_For_GSpan>(
-            GSpan(*bke::custom_data_type_to_cpp_type(data_type),
-                  static_cast<const AttributeInitMove &>(initializer).data,
-                  total_size));
-    }
-    BLI_assert_unreachable();
-    return {};
+    return remove_point_attribute(component, attribute_id);
   }
 
   bool try_create(GeometryComponent &component,
@@ -1364,55 +1442,7 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
     if (domain != ATTR_DOMAIN_POINT) {
       return false;
     }
-    CurveEval *curve = get_curve_from_component_for_write(component);
-    if (curve == nullptr || curve->splines().size() == 0) {
-      return false;
-    }
-
-    MutableSpan<SplinePtr> splines = curve->splines();
-
-    /* First check the one case that allows us to avoid copying the input data. */
-    if (splines.size() == 1 && initializer.type == AttributeInit::Type::MoveArray) {
-      void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
-      if (!splines[0]->attributes.create_by_move(attribute_id, data_type, source_data)) {
-        MEM_freeN(source_data);
-        return false;
-      }
-      return true;
-    }
-
-    /* Otherwise just create a custom data layer on each of the splines. */
-    for (const int i : splines.index_range()) {
-      if (!splines[i]->attributes.create(attribute_id, data_type)) {
-        /* If attribute creation fails on one of the splines, we cannot leave the custom data
-         * layers in the previous splines around, so delete them before returning. However,
-         * this is not an expected case. */
-        BLI_assert_unreachable();
-        return false;
-      }
-    }
-
-    /* With a default initializer type, we can keep the values at their initial values. */
-    if (initializer.type == AttributeInit::Type::Default) {
-      return true;
-    }
-
-    WriteAttributeLookup write_attribute = this->try_get_for_write(component, attribute_id);
-    /* We just created the attribute, it should exist. */
-    BLI_assert(write_attribute);
-
-    const int total_size = curve->control_point_offsets().last();
-    GVArrayPtr source_varray = varray_from_initializer(initializer, data_type, total_size);
-    /* TODO: When we can call a variant of #set_all with a virtual array argument,
-     * this theoretically unnecessary materialize step could be removed. */
-    GVArray_GSpan source_varray_span{*source_varray};
-    write_attribute.varray->set_all(source_varray_span.data());
-
-    if (initializer.type == AttributeInit::Type::MoveArray) {
-      MEM_freeN(static_cast<const AttributeInitMove &>(initializer).data);
-    }
-
-    return true;
+    return create_point_attribute(component, attribute_id, initializer, data_type);
   }
 
   bool foreach_attribute(const GeometryComponent &component,
@@ -1487,14 +1517,32 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BezierHandleAttributeProvider handles_start(false);
   static BezierHandleAttributeProvider handles_end(true);
 
+  static BuiltinPointAttributeProvider<int> id(
+      "id",
+      BuiltinAttributeProvider::Creatable,
+      BuiltinAttributeProvider::Deletable,
+      [](const Spline &spline) {
+        std::optional<GSpan> span = spline.attributes.get_for_read("id");
+        return span ? span->typed<int>() : Span<int>();
+      },
+      [](Spline &spline) {
+        std::optional<GMutableSpan> span = spline.attributes.get_for_write("id");
+        return span ? span->typed<int>() : MutableSpan<int>();
+      },
+      {});
+
   static BuiltinPointAttributeProvider<float> radius(
       "radius",
+      BuiltinAttributeProvider::NonCreatable,
+      BuiltinAttributeProvider::NonDeletable,
       [](const Spline &spline) { return spline.radii(); },
       [](Spline &spline) { return spline.radii(); },
       nullptr);
 
   static BuiltinPointAttributeProvider<float> tilt(
       "tilt",
+      BuiltinAttributeProvider::NonCreatable,
+      BuiltinAttributeProvider::NonDeletable,
       [](const Spline &spline) { return spline.tilts(); },
       [](Spline &spline) { return spline.tilts(); },
       [](Spline &spline) { spline.mark_cache_invalid(); });
@@ -1502,7 +1550,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static DynamicPointAttributeProvider point_custom_data;
 
   return ComponentAttributeProviders(
-      {&position, &radius, &tilt, &handles_start, &handles_end, &resolution, &cyclic},
+      {&position, &id, &radius, &tilt, &handles_start, &handles_end, &resolution, &cyclic},
       {&spline_custom_data, &point_custom_data});
 }
 
