@@ -292,7 +292,7 @@ static int eyedropper_gpencil_modal(bContext *C, wmOperator *op, const wmEvent *
           return OPERATOR_CANCELLED;
         }
         case EYE_MODAL_SAMPLE_CONFIRM: {
-          eyedropper_gpencil_color_sample(C, eye, event->x, event->y);
+          eyedropper_gpencil_color_sample(C, eye, event->xy[0], event->xy[1]);
 
           /* Create material. */
           eyedropper_gpencil_color_set(C, event, eye);
@@ -309,7 +309,7 @@ static int eyedropper_gpencil_modal(bContext *C, wmOperator *op, const wmEvent *
     }
     case MOUSEMOVE:
     case INBETWEEN_MOUSEMOVE: {
-      eyedropper_gpencil_color_sample(C, eye, event->x, event->y);
+      eyedropper_gpencil_color_sample(C, eye, event->xy[0], event->xy[1]);
       break;
     }
     default: {

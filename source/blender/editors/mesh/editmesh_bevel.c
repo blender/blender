@@ -705,7 +705,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
   else if (etype == MOUSEPAN) {
-    float delta = 0.02f * (event->y - event->prevy);
+    float delta = 0.02f * (event->xy[1] - event->prev_xy[1]);
     if (opdata->segments >= 1 && opdata->segments + delta < 1) {
       opdata->segments = 1;
     }

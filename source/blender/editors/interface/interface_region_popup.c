@@ -803,7 +803,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
   handle->popup_create_vars.arg_free = arg_free;
   handle->popup_create_vars.but = but;
   handle->popup_create_vars.butregion = but ? butregion : NULL;
-  copy_v2_v2_int(handle->popup_create_vars.event_xy, &window->eventstate->x);
+  copy_v2_v2_int(handle->popup_create_vars.event_xy, window->eventstate->xy);
 
   /* don't allow by default, only if popup type explicitly supports it */
   handle->can_refresh = false;

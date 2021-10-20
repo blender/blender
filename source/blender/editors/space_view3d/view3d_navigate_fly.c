@@ -539,7 +539,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
 
       /* Speed adjusting with mouse-pan (track-pad). */
       case FLY_MODAL_SPEED: {
-        float fac = 0.02f * (event->prevy - event->y);
+        float fac = 0.02f * (event->prev_xy[1] - event->xy[1]);
 
         /* allowing to brake immediate */
         if (fac > 0.0f && fly->speed < 0.0f) {

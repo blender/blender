@@ -245,17 +245,17 @@ int WM_gesture_box_modal(bContext *C, wmOperator *op, const wmEvent *event)
     switch (event->type) {
       case MOUSEMOVE: {
         if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->is_active == false) {
-          rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
-          rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
+          rect->xmin = rect->xmax = event->xy[0] - gesture->winrct.xmin;
+          rect->ymin = rect->ymax = event->xy[1] - gesture->winrct.ymin;
         }
         else if (gesture->move) {
           BLI_rcti_translate(rect,
-                             (event->x - gesture->winrct.xmin) - rect->xmax,
-                             (event->y - gesture->winrct.ymin) - rect->ymax);
+                             (event->xy[0] - gesture->winrct.xmin) - rect->xmax,
+                             (event->xy[1] - gesture->winrct.ymin) - rect->ymax);
         }
         else {
-          rect->xmax = event->x - gesture->winrct.xmin;
-          rect->ymax = event->y - gesture->winrct.ymin;
+          rect->xmax = event->xy[0] - gesture->winrct.xmin;
+          rect->ymax = event->xy[1] - gesture->winrct.ymin;
         }
         gesture_box_apply_rect(op);
 
@@ -365,8 +365,8 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   if (event->type == MOUSEMOVE) {
 
-    rect->xmin = event->x - gesture->winrct.xmin;
-    rect->ymin = event->y - gesture->winrct.ymin;
+    rect->xmin = event->xy[0] - gesture->winrct.xmin;
+    rect->ymin = event->xy[1] - gesture->winrct.ymin;
 
     wm_gesture_tag_redraw(win);
 
@@ -381,7 +381,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
     switch (event->val) {
       case GESTURE_MODAL_CIRCLE_SIZE:
-        fac = 0.3f * (event->y - event->prevy);
+        fac = 0.3f * (event->xy[1] - event->prev_xy[1]);
         if (fac > 0) {
           rect->xmax += ceil(fac);
         }
@@ -500,8 +500,8 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
     case MOUSEMOVE:
     case INBETWEEN_MOUSEMOVE: {
 
-      rect->xmax = event->x - gesture->winrct.xmin;
-      rect->ymax = event->y - gesture->winrct.ymin;
+      rect->xmax = event->xy[0] - gesture->winrct.xmin;
+      rect->ymax = event->xy[1] - gesture->winrct.ymin;
 
       const int val = wm_gesture_evaluate(gesture, event);
       if (val != 0) {
@@ -510,8 +510,8 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
         wm_event_init_from_window(window, &tevent);
         /* We want to get coord from start of drag,
          * not from point where it becomes a tweak event, see T40549. */
-        tevent.x = rect->xmin + gesture->winrct.xmin;
-        tevent.y = rect->ymin + gesture->winrct.ymin;
+        tevent.xy[0] = rect->xmin + gesture->winrct.xmin;
+        tevent.xy[1] = rect->ymin + gesture->winrct.ymin;
         if (gesture->event_type == LEFTMOUSE) {
           tevent.type = EVT_TWEAK_L;
         }
@@ -696,8 +696,8 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
         {
           short(*lasso)[2] = gesture->customdata;
 
-          const int x = ((event->x - gesture->winrct.xmin) - lasso[gesture->points - 1][0]);
-          const int y = ((event->y - gesture->winrct.ymin) - lasso[gesture->points - 1][1]);
+          const int x = ((event->xy[0] - gesture->winrct.xmin) - lasso[gesture->points - 1][0]);
+          const int y = ((event->xy[1] - gesture->winrct.ymin) - lasso[gesture->points - 1][1]);
 
           /* move the lasso */
           if (gesture->move) {
@@ -709,8 +709,8 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
           /* Make a simple distance check to get a smoother lasso
            * add only when at least 2 pixels between this and previous location. */
           else if ((x * x + y * y) > pow2f(2.0f * UI_DPI_FAC)) {
-            lasso[gesture->points][0] = event->x - gesture->winrct.xmin;
-            lasso[gesture->points][1] = event->y - gesture->winrct.ymin;
+            lasso[gesture->points][0] = event->xy[0] - gesture->winrct.xmin;
+            lasso[gesture->points][1] = event->xy[1] - gesture->winrct.ymin;
             gesture->points++;
           }
         }
@@ -981,18 +981,18 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
     switch (event->type) {
       case MOUSEMOVE: {
         if (gesture->is_active == false) {
-          rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
-          rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
+          rect->xmin = rect->xmax = event->xy[0] - gesture->winrct.xmin;
+          rect->ymin = rect->ymax = event->xy[1] - gesture->winrct.ymin;
         }
         else if (gesture->move) {
           BLI_rcti_translate(rect,
-                             (event->x - gesture->winrct.xmin) - rect->xmax,
-                             (event->y - gesture->winrct.ymin) - rect->ymax);
+                             (event->xy[0] - gesture->winrct.xmin) - rect->xmax,
+                             (event->xy[1] - gesture->winrct.ymin) - rect->ymax);
           gesture_straightline_apply(C, op);
         }
         else {
-          rect->xmax = event->x - gesture->winrct.xmin;
-          rect->ymax = event->y - gesture->winrct.ymin;
+          rect->xmax = event->xy[0] - gesture->winrct.xmin;
+          rect->ymax = event->xy[1] - gesture->winrct.ymin;
           gesture_straightline_apply(C, op);
         }
 
@@ -1072,17 +1072,17 @@ int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmE
     switch (event->type) {
       case MOUSEMOVE: {
         if (gesture->is_active == false) {
-          rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
-          rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
+          rect->xmin = rect->xmax = event->xy[0] - gesture->winrct.xmin;
+          rect->ymin = rect->ymax = event->xy[1] - gesture->winrct.ymin;
         }
         else if (gesture->move) {
           BLI_rcti_translate(rect,
-                             (event->x - gesture->winrct.xmin) - rect->xmax,
-                             (event->y - gesture->winrct.ymin) - rect->ymax);
+                             (event->xy[0] - gesture->winrct.xmin) - rect->xmax,
+                             (event->xy[1] - gesture->winrct.ymin) - rect->ymax);
         }
         else {
-          rect->xmax = event->x - gesture->winrct.xmin;
-          rect->ymax = event->y - gesture->winrct.ymin;
+          rect->xmax = event->xy[0] - gesture->winrct.xmin;
+          rect->ymax = event->xy[1] - gesture->winrct.ymin;
         }
 
         if (gesture->use_snap) {

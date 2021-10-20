@@ -233,7 +233,7 @@ static int eyedropper_colorband_modal(bContext *C, wmOperator *op, const wmEvent
         return OPERATOR_CANCELLED;
       case EYE_MODAL_SAMPLE_CONFIRM: {
         const bool is_undo = eye->is_undo;
-        eyedropper_colorband_sample_segment(C, eye, event->x, event->y);
+        eyedropper_colorband_sample_segment(C, eye, event->xy[0], event->xy[1]);
         eyedropper_colorband_apply(C, op);
         eyedropper_colorband_exit(C, op);
         /* Could support finished & undo-skip. */
@@ -242,10 +242,10 @@ static int eyedropper_colorband_modal(bContext *C, wmOperator *op, const wmEvent
       case EYE_MODAL_SAMPLE_BEGIN:
         /* enable accum and make first sample */
         eye->sample_start = true;
-        eyedropper_colorband_sample_point(C, eye, event->x, event->y);
+        eyedropper_colorband_sample_point(C, eye, event->xy[0], event->xy[1]);
         eyedropper_colorband_apply(C, op);
-        eye->last_x = event->x;
-        eye->last_y = event->y;
+        eye->last_x = event->xy[0];
+        eye->last_y = event->xy[1];
         break;
       case EYE_MODAL_SAMPLE_RESET:
         break;
@@ -253,7 +253,7 @@ static int eyedropper_colorband_modal(bContext *C, wmOperator *op, const wmEvent
   }
   else if (event->type == MOUSEMOVE) {
     if (eye->sample_start) {
-      eyedropper_colorband_sample_segment(C, eye, event->x, event->y);
+      eyedropper_colorband_sample_segment(C, eye, event->xy[0], event->xy[1]);
       eyedropper_colorband_apply(C, op);
     }
   }
@@ -280,7 +280,7 @@ static int eyedropper_colorband_point_modal(bContext *C, wmOperator *op, const w
         }
         break;
       case EYE_MODAL_POINT_SAMPLE:
-        eyedropper_colorband_sample_point(C, eye, event->x, event->y);
+        eyedropper_colorband_sample_point(C, eye, event->xy[0], event->xy[1]);
         eyedropper_colorband_apply(C, op);
         if (eye->color_buffer_len == MAXCOLORBAND) {
           eyedropper_colorband_exit(C, op);

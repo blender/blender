@@ -1449,7 +1449,7 @@ static int file_highlight_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
   ARegion *region = CTX_wm_region(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
 
-  if (!file_highlight_set(sfile, region, event->x, event->y)) {
+  if (!file_highlight_set(sfile, region, event->xy[0], event->xy[1])) {
     return OPERATOR_PASS_THROUGH;
   }
 

@@ -1686,7 +1686,8 @@ static int ui_button_press_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   bScreen *screen = CTX_wm_screen(C);
   const bool skip_depressed = RNA_boolean_get(op->ptr, "skip_depressed");
   ARegion *region_prev = CTX_wm_region(C);
-  ARegion *region = screen ? BKE_screen_find_region_xy(screen, RGN_TYPE_ANY, event->x, event->y) :
+  ARegion *region = screen ? BKE_screen_find_region_xy(
+                                 screen, RGN_TYPE_ANY, event->xy[0], event->xy[1]) :
                              NULL;
 
   if (region == NULL) {
@@ -1929,7 +1930,7 @@ static bool ui_tree_view_drop_poll(bContext *C)
   const wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_region(C);
   const uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(
-      region, win->eventstate->x, win->eventstate->y);
+      region, win->eventstate->xy[0], win->eventstate->xy[1]);
 
   return hovered_tree_item != NULL;
 }
@@ -1942,7 +1943,7 @@ static int ui_tree_view_drop_invoke(bContext *C, wmOperator *UNUSED(op), const w
 
   const ARegion *region = CTX_wm_region(C);
   uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(
-      region, event->x, event->y);
+      region, event->xy[0], event->xy[1]);
 
   if (!UI_tree_view_item_drop_handle(hovered_tree_item, event->customdata)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;

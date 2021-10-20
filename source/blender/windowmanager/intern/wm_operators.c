@@ -2274,11 +2274,11 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
   float d[2] = {0, 0};
   float zoom[2] = {1, 1};
 
-  rc->initial_mouse[0] = event->x;
-  rc->initial_mouse[1] = event->y;
+  rc->initial_mouse[0] = event->xy[0];
+  rc->initial_mouse[1] = event->xy[1];
 
-  rc->initial_co[0] = event->x;
-  rc->initial_co[1] = event->y;
+  rc->initial_co[0] = event->xy[0];
+  rc->initial_co[1] = event->xy[1];
 
   switch (rc->subtype) {
     case PROP_NONE:
@@ -2954,7 +2954,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
       if (!has_numInput) {
         if (rc->slow_mode) {
           if (rc->subtype == PROP_ANGLE) {
-            const float position[2] = {event->x, event->y};
+            const float position[2] = {event->xy[0], event->xy[1]};
 
             /* calculate the initial angle here first */
             delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
@@ -2974,7 +2974,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 
             dist = len_v2(delta);
 
-            delta[0] = event->x - rc->slow_mouse[0];
+            delta[0] = event->xy[0] - rc->slow_mouse[0];
 
             if (rc->zoom_prop) {
               delta[0] /= zoom[0];
@@ -2984,8 +2984,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
           }
         }
         else {
-          delta[0] = rc->initial_mouse[0] - event->x;
-          delta[1] = rc->initial_mouse[1] - event->y;
+          delta[0] = rc->initial_mouse[0] - event->xy[0];
+          delta[1] = rc->initial_mouse[1] - event->xy[1];
           if (rc->zoom_prop) {
             RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
             delta[0] /= zoom[0];
@@ -3052,8 +3052,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
     case EVT_LEFTSHIFTKEY:
     case EVT_RIGHTSHIFTKEY: {
       if (event->val == KM_PRESS) {
-        rc->slow_mouse[0] = event->x;
-        rc->slow_mouse[1] = event->y;
+        rc->slow_mouse[0] = event->xy[0];
+        rc->slow_mouse[1] = event->xy[1];
         rc->slow_mode = true;
         if (rc->subtype == PROP_ANGLE) {
           const float initial_position[2] = {UNPACK2(rc->initial_mouse)};

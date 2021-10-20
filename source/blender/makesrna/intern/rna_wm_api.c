@@ -652,8 +652,8 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   e.type = type;
   e.val = value;
   e.is_repeat = false;
-  e.x = x;
-  e.y = y;
+  e.xy[0] = x;
+  e.xy[1] = y;
 
   e.shift = shift;
   e.ctrl = ctrl;

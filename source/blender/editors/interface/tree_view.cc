@@ -221,7 +221,7 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(struct bContext *C,
   const wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_region(C);
   uiTreeViewItemHandle *hovered_item_handle = UI_block_tree_view_find_item_at(
-      region, win->eventstate->x, win->eventstate->y);
+      region, win->eventstate->xy[0], win->eventstate->xy[1]);
   AbstractTreeViewItem *hovered_item = reinterpret_cast<AbstractTreeViewItem *>(
       hovered_item_handle);
   BLI_assert(hovered_item != nullptr);

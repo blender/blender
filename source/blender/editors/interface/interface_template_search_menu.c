@@ -1102,8 +1102,8 @@ static struct ARegion *ui_search_menu_create_tooltip(struct bContext *C,
   /* Place the fake button at the cursor so the tool-tip is places properly. */
   float tip_init[2];
   const wmEvent *event = CTX_wm_window(C)->eventstate;
-  tip_init[0] = event->x;
-  tip_init[1] = event->y - (UI_UNIT_Y / 2);
+  tip_init[0] = event->xy[0];
+  tip_init[1] = event->xy[1] - (UI_UNIT_Y / 2);
   ui_window_to_block_fl(region, block, &tip_init[0], &tip_init[1]);
 
   but->rect.xmin = tip_init[0];

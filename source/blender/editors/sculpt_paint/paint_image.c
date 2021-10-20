@@ -863,8 +863,8 @@ static int grab_clone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   cmv = MEM_callocN(sizeof(GrabClone), "GrabClone");
   copy_v2_v2(cmv->startoffset, brush->clone.offset);
-  cmv->startx = event->x;
-  cmv->starty = event->y;
+  cmv->startx = event->xy[0];
+  cmv->starty = event->xy[1];
   op->customdata = cmv;
 
   WM_event_add_modal_handler(C, op);
@@ -890,7 +890,7 @@ static int grab_clone_modal(bContext *C, wmOperator *op, const wmEvent *event)
       /* mouse moved, so move the clone image */
       UI_view2d_region_to_view(
           &region->v2d, cmv->startx - xmin, cmv->starty - ymin, &startfx, &startfy);
-      UI_view2d_region_to_view(&region->v2d, event->x - xmin, event->y - ymin, &fx, &fy);
+      UI_view2d_region_to_view(&region->v2d, event->xy[0] - xmin, event->xy[1] - ymin, &fx, &fy);
 
       delta[0] = fx - startfx;
       delta[1] = fy - startfy;

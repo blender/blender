@@ -1988,7 +1988,7 @@ void UI_block_end(const bContext *C, uiBlock *block)
 {
   wmWindow *window = CTX_wm_window(C);
 
-  UI_block_end_ex(C, block, &window->eventstate->x, NULL);
+  UI_block_end_ex(C, block, window->eventstate->xy, NULL);
 }
 
 /* ************** BLOCK DRAWING FUNCTION ************* */

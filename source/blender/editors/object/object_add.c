@@ -259,8 +259,8 @@ static bool object_add_drop_xy_get(bContext *C, wmOperator *op, int (*r_mval)[2]
 static int object_add_drop_xy_generic_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (!object_add_drop_xy_is_set(op)) {
-    RNA_int_set(op->ptr, "drop_x", event->x);
-    RNA_int_set(op->ptr, "drop_y", event->y);
+    RNA_int_set(op->ptr, "drop_x", event->xy[0]);
+    RNA_int_set(op->ptr, "drop_y", event->xy[1]);
   }
   return op->type->exec(C, op);
 }
@@ -1691,8 +1691,8 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
 static int object_instance_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (!object_add_drop_xy_is_set(op)) {
-    RNA_int_set(op->ptr, "drop_x", event->x);
-    RNA_int_set(op->ptr, "drop_y", event->y);
+    RNA_int_set(op->ptr, "drop_x", event->xy[0]);
+    RNA_int_set(op->ptr, "drop_y", event->xy[1]);
   }
 
   if (!RNA_struct_property_is_set(op->ptr, "name")) {

@@ -208,7 +208,7 @@ bool ED_time_scrub_event_in_region(const ARegion *region, const wmEvent *event)
 {
   rcti rect = region->winrct;
   rect.ymin = rect.ymax - UI_TIME_SCRUB_MARGIN_Y;
-  return BLI_rcti_isect_pt(&rect, event->x, event->y);
+  return BLI_rcti_isect_pt(&rect, event->xy[0], event->xy[1]);
 }
 
 void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDopeSheet *dopesheet)

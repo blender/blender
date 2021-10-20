@@ -276,7 +276,7 @@ static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case EYE_MODAL_SAMPLE_CONFIRM: {
         const bool is_undo = ddr->is_undo;
         if (ddr->accum_tot == 0) {
-          depthdropper_depth_sample(C, ddr, event->x, event->y);
+          depthdropper_depth_sample(C, ddr, event->xy[0], event->xy[1]);
         }
         else {
           depthdropper_depth_set_accum(C, ddr);
@@ -288,12 +288,12 @@ static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case EYE_MODAL_SAMPLE_BEGIN:
         /* enable accum and make first sample */
         ddr->accum_start = true;
-        depthdropper_depth_sample_accum(C, ddr, event->x, event->y);
+        depthdropper_depth_sample_accum(C, ddr, event->xy[0], event->xy[1]);
         break;
       case EYE_MODAL_SAMPLE_RESET:
         ddr->accum_tot = 0;
         ddr->accum_depth = 0.0f;
-        depthdropper_depth_sample_accum(C, ddr, event->x, event->y);
+        depthdropper_depth_sample_accum(C, ddr, event->xy[0], event->xy[1]);
         depthdropper_depth_set_accum(C, ddr);
         break;
     }
@@ -301,7 +301,7 @@ static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else if (event->type == MOUSEMOVE) {
     if (ddr->accum_start) {
       /* button is pressed so keep sampling */
-      depthdropper_depth_sample_accum(C, ddr, event->x, event->y);
+      depthdropper_depth_sample_accum(C, ddr, event->xy[0], event->xy[1]);
       depthdropper_depth_set_accum(C, ddr);
     }
   }

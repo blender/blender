@@ -306,7 +306,7 @@ static int sculpt_sample_detail_size_modal(bContext *C, wmOperator *op, const wm
   switch (event->type) {
     case LEFTMOUSE:
       if (event->val == KM_PRESS) {
-        const int ss_co[2] = {event->x, event->y};
+        const int ss_co[2] = {event->xy[0], event->xy[1]};
 
         int mode = RNA_enum_get(op->ptr, "mode");
         sample_detail(C, ss_co[0], ss_co[1], mode);

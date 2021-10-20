@@ -120,8 +120,8 @@ void ED_gizmotypes_snap_3d_data_get(const struct bContext *C,
     const wmEvent *event = wm->winactive ? wm->winactive->eventstate : NULL;
     if (event) {
       ARegion *region = CTX_wm_region(C);
-      int x = event->x - region->winrct.xmin;
-      int y = event->y - region->winrct.ymin;
+      int x = event->xy[0] - region->winrct.xmin;
+      int y = event->xy[1] - region->winrct.ymin;
       snap_data = ED_view3d_cursor_snap_data_get(NULL, C, x, y);
     }
   }
@@ -250,8 +250,8 @@ static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
     const wmEvent *event = wm->winactive ? wm->winactive->eventstate : NULL;
     if (event) {
       ARegion *region = CTX_wm_region(C);
-      x = event->x - region->winrct.xmin;
-      y = event->y - region->winrct.ymin;
+      x = event->xy[0] - region->winrct.xmin;
+      y = event->xy[1] - region->winrct.ymin;
     }
     else {
       x = mval[0];
