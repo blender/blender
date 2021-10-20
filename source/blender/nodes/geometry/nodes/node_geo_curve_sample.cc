@@ -237,6 +237,12 @@ static void geo_node_curve_sample_exec(GeoNodeExecParams params)
     params.set_output("Normal", fn::make_constant_field<float3>({0.0f, 0.0f, 0.0f}));
   };
 
+  if (geometry_set.has_instances()) {
+    params.error_message_add(
+        NodeWarningType::Info,
+        TIP_("The node only supports realized curve data, instances are ignored"));
+  }
+
   const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>();
   if (component == nullptr) {
     return return_default();
