@@ -1074,6 +1074,7 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
   const GetSpan get_span_;
   const GetMutableSpan get_mutable_span_;
   const UpdateOnWrite update_on_write_;
+  bool stored_in_custom_data_;
 
  public:
   BuiltinPointAttributeProvider(std::string attribute_name,
@@ -1081,7 +1082,8 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
                                 const DeletableEnum deletable,
                                 const GetSpan get_span,
                                 const GetMutableSpan get_mutable_span,
-                                const UpdateOnWrite update_on_write)
+                                const UpdateOnWrite update_on_write,
+                                const bool stored_in_custom_data)
       : BuiltinAttributeProvider(std::move(attribute_name),
                                  ATTR_DOMAIN_POINT,
                                  bke::cpp_type_to_custom_data_type(CPPType::get<T>()),
@@ -1090,7 +1092,8 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
                                  deletable),
         get_span_(get_span),
         get_mutable_span_(get_mutable_span),
-        update_on_write_(update_on_write)
+        update_on_write_(update_on_write),
+        stored_in_custom_data_(stored_in_custom_data)
   {
   }
 
@@ -1168,8 +1171,10 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
       return false;
     }
 
-    if (!curve->splines().first()->attributes.get_for_read(name_)) {
-      return false;
+    if (stored_in_custom_data_) {
+      if (!curve->splines().first()->attributes.get_for_read(name_)) {
+        return false;
+      }
     }
 
     bool has_point = false;
@@ -1202,7 +1207,8 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
             BuiltinAttributeProvider::NonDeletable,
             [](const Spline &spline) { return spline.positions(); },
             [](Spline &spline) { return spline.positions(); },
-            [](Spline &spline) { spline.mark_cache_invalid(); })
+            [](Spline &spline) { spline.mark_cache_invalid(); },
+            false)
   {
   }
 
@@ -1529,7 +1535,8 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
         std::optional<GMutableSpan> span = spline.attributes.get_for_write("id");
         return span ? span->typed<int>() : MutableSpan<int>();
       },
-      {});
+      {},
+      true);
 
   static BuiltinPointAttributeProvider<float> radius(
       "radius",
@@ -1537,7 +1544,8 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
       BuiltinAttributeProvider::NonDeletable,
       [](const Spline &spline) { return spline.radii(); },
       [](Spline &spline) { return spline.radii(); },
-      nullptr);
+      nullptr,
+      false);
 
   static BuiltinPointAttributeProvider<float> tilt(
       "tilt",
@@ -1545,7 +1553,8 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
       BuiltinAttributeProvider::NonDeletable,
       [](const Spline &spline) { return spline.tilts(); },
       [](Spline &spline) { return spline.tilts(); },
-      [](Spline &spline) { spline.mark_cache_invalid(); });
+      [](Spline &spline) { spline.mark_cache_invalid(); },
+      false);
 
   static DynamicPointAttributeProvider point_custom_data;
 
