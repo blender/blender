@@ -1056,6 +1056,8 @@ SculptPoseIKChain *SCULPT_pose_ik_chain_init(Sculpt *sd,
 
   const bool use_fake_neighbors = !(br->flag2 & BRUSH_USE_CONNECTED_ONLY);
 
+  SCULPT_boundary_info_ensure(ob);
+
   if (use_fake_neighbors) {
     SCULPT_fake_neighbors_ensure(sd, ob, br->disconnected_distance_max);
     SCULPT_fake_neighbors_enable(ob);
