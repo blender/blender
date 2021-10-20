@@ -4719,7 +4719,7 @@ static void wm_event_prev_values_set(wmEvent *event, wmEvent *event_state)
 static void wm_event_prev_click_set(wmEvent *event, wmEvent *event_state)
 {
   event->prevclicktime = event_state->prevclicktime = PIL_check_seconds_timer();
-  event->prev_click_xy[0] = event_state->prev_click_xy[0] = event_state->xy[1];
+  event->prev_click_xy[0] = event_state->prev_click_xy[0] = event_state->xy[0];
   event->prev_click_xy[1] = event_state->prev_click_xy[1] = event_state->xy[1];
 }
 
