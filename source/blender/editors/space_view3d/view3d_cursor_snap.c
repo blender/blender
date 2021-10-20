@@ -856,16 +856,7 @@ static void v3d_cursor_snap_activate(void)
       RNA_enum_value_from_id(data_intern->keymap->modal_items, "SNAP_ON", &data_intern->snap_on);
 #endif
       V3DSnapCursorState *state_default = &data_intern->state_default;
-      state_default->prevpoint = NULL;
-      state_default->snap_elem_force = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE |
-                                        SCE_SNAP_MODE_FACE | SCE_SNAP_MODE_EDGE_PERPENDICULAR |
-                                        SCE_SNAP_MODE_EDGE_MIDPOINT);
-      state_default->plane_axis = 2;
-      rgba_uchar_args_set(state_default->color_point, 255, 255, 255, 255);
-      UI_GetThemeColor3ubv(TH_TRANSFORM, state_default->color_line);
-      state_default->color_line[3] = 128;
-      state_default->draw_point = true;
-      state_default->draw_plane = false;
+      v3d_cursor_snap_state_init(state_default);
 
       data_intern->is_initiated = true;
     }
