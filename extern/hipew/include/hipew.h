@@ -24,9 +24,13 @@ extern "C" {
 #include <stdlib.h>
 
 #define HIP_IPC_HANDLE_SIZE 64
+#define hipHostMallocDefault 0x00
 #define hipHostMallocPortable 0x01
 #define hipHostMallocMapped 0x02
 #define hipHostMallocWriteCombined 0x04
+#define hipHostMallocNumaUser 0x20000000
+#define hipHostMallocCoherent 0x40000000
+#define hipHostMallocNonCoherent 0x80000000
 #define hipHostRegisterPortable 0x01
 #define hipHostRegisterMapped 0x02
 #define hipHostRegisterIoMemory 0x04
@@ -989,7 +993,7 @@ typedef hipError_t HIPAPI thipMalloc(hipDeviceptr_t* dptr, size_t bytesize);
 typedef hipError_t HIPAPI thipMemAllocPitch(hipDeviceptr_t* dptr, size_t* pPitch, size_t WidthInBytes, size_t Height, unsigned int ElementSizeBytes);
 typedef hipError_t HIPAPI thipFree(hipDeviceptr_t dptr);
 typedef hipError_t HIPAPI thipMemGetAddressRange(hipDeviceptr_t* pbase, size_t* psize, hipDeviceptr_t dptr);
-typedef hipError_t HIPAPI thipHostMalloc(void** pp, size_t bytesize);
+typedef hipError_t HIPAPI thipHostMalloc(void** pp, size_t bytesize, unsigned int flags);
 typedef hipError_t HIPAPI thipHostFree(void* p);
 typedef hipError_t HIPAPI thipMemHostAlloc(void** pp, size_t bytesize, unsigned int Flags);
 typedef hipError_t HIPAPI thipHostGetDevicePointer(hipDeviceptr_t* pdptr, void* p, unsigned int Flags);

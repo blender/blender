@@ -430,7 +430,7 @@ mark_as_advanced(WITH_CYCLES_NATIVE_ONLY)
 
 option(WITH_CYCLES_DEVICE_CUDA              "Enable Cycles CUDA compute support" ON)
 option(WITH_CYCLES_DEVICE_OPTIX             "Enable Cycles OptiX support" ON)
-option(WITH_CYCLES_DEVICE_HIP               "Enable Cycles HIP support" OFF)
+option(WITH_CYCLES_DEVICE_HIP               "Enable Cycles HIP support" ON)
 mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
 mark_as_advanced(WITH_CYCLES_DEVICE_CUDA)
 
