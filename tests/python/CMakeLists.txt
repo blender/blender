@@ -838,6 +838,15 @@ if(WITH_ALEMBIC)
   )
 endif()
 
+if(WITH_USD)
+  add_blender_test(
+    usd_import_test
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_usd_import_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/usd"
+  )
+endif()
+
 if(WITH_CODEC_FFMPEG)
   add_python_test(
     ffmpeg
