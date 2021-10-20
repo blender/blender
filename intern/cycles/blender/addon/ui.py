@@ -26,27 +26,31 @@ from bpy.types import Panel
 from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
 from bl_ui.properties_view_layer import ViewLayerCryptomattePanel, ViewLayerAOVPanel
 
+class CyclesPresetPanel(PresetPanel, Panel):
+    COMPAT_ENGINES = {'CYCLES'}
+    preset_operator = "script.execute_preset"
 
-class CYCLES_PT_sampling_presets(PresetPanel, Panel):
+    @staticmethod
+    def post_cb(context):
+        # Modify an arbitrary built-in scene property to force a depsgraph
+        # update, because add-on properties don't. (see T62325)
+        render = context.scene.render
+        render.filter_size = render.filter_size
+
+class CYCLES_PT_sampling_presets(CyclesPresetPanel):
     bl_label = "Sampling Presets"
     preset_subdir = "cycles/sampling"
-    preset_operator = "script.execute_preset"
     preset_add_operator = "render.cycles_sampling_preset_add"
-    COMPAT_ENGINES = {'CYCLES'}
 
-class CYCLES_PT_viewport_sampling_presets(PresetPanel, Panel):
+class CYCLES_PT_viewport_sampling_presets(CyclesPresetPanel):
     bl_label = "Viewport Sampling Presets"
     preset_subdir = "cycles/viewport_sampling"
-    preset_operator = "script.execute_preset"
     preset_add_operator = "render.cycles_viewport_sampling_preset_add"
-    COMPAT_ENGINES = {'CYCLES'}
 
-class CYCLES_PT_integrator_presets(PresetPanel, Panel):
+class CYCLES_PT_integrator_presets(CyclesPresetPanel):
     bl_label = "Integrator Presets"
     preset_subdir = "cycles/integrator"
-    preset_operator = "script.execute_preset"
     preset_add_operator = "render.cycles_integrator_preset_add"
-    COMPAT_ENGINES = {'CYCLES'}
 
 
 class CyclesButtonsPanel:
