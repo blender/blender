@@ -96,6 +96,7 @@ void filelist_clear_ex(struct FileList *filelist,
                        const bool do_asset_library,
                        const bool do_cache,
                        const bool do_selection);
+void filelist_clear_from_reset_tag(struct FileList *filelist);
 void filelist_free(struct FileList *filelist);
 
 const char *filelist_dir(struct FileList *filelist);
@@ -117,6 +118,7 @@ bool filelist_file_cache_block(struct FileList *filelist, const int index);
 
 bool filelist_needs_force_reset(struct FileList *filelist);
 void filelist_tag_force_reset(struct FileList *filelist);
+void filelist_tag_force_reset_mainfiles(struct FileList *filelist);
 bool filelist_pending(struct FileList *filelist);
 bool filelist_needs_reset_on_main_changes(const struct FileList *filelist);
 bool filelist_is_ready(struct FileList *filelist);

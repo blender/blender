@@ -742,6 +742,9 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
   if (but->optype != oldbut->optype) {
     return false;
   }
+  if (but->dragtype != oldbut->dragtype) {
+    return false;
+  }
 
   if ((but->type == UI_BTYPE_TREEROW) && (oldbut->type == UI_BTYPE_TREEROW)) {
     uiButTreeRow *but_treerow = (uiButTreeRow *)but;
