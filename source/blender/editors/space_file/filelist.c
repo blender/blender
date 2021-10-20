@@ -435,11 +435,14 @@ typedef struct FileList {
 /* FileList.flags */
 enum {
   FL_FORCE_RESET = 1 << 0,
-  FL_IS_READY = 1 << 1,
-  FL_IS_PENDING = 1 << 2,
-  FL_NEED_SORTING = 1 << 3,
-  FL_NEED_FILTERING = 1 << 4,
-  FL_SORT_INVERT = 1 << 5,
+  /* Don't do a full reset (unless #FL_FORCE_RESET is also set), only reset files representing main
+   * data (assets from the current file/#Main). */
+  FL_FORCE_RESET_MAIN_FILES = 1 << 1,
+  FL_IS_READY = 1 << 2,
+  FL_IS_PENDING = 1 << 3,
+  FL_NEED_SORTING = 1 << 4,
+  FL_NEED_FILTERING = 1 << 5,
+  FL_SORT_INVERT = 1 << 6,
 };
 
 /* FileList.tags */
@@ -1375,6 +1378,11 @@ int ED_file_icon(const FileDirEntry *file)
                                  filelist_geticon_ex(file, NULL, false, false);
 }
 
+static bool filelist_intern_entry_is_main_file(const FileListInternEntry *intern_entry)
+{
+  return intern_entry->local_data.id != NULL;
+}
+
 /* ********** Main ********** */
 
 static void parent_dir_until_exists_or_default_root(char *dir)
@@ -1470,8 +1478,6 @@ static void filelist_direntryarr_free(FileDirEntryArr *array)
 #endif
   array->nbr_entries = FILEDIR_NBR_ENTRIES_UNSET;
   array->nbr_entries_filtered = FILEDIR_NBR_ENTRIES_UNSET;
-  array->entry_idx_start = -1;
-  array->entry_idx_end = -1;
 }
 
 static void filelist_intern_entry_free(FileListInternEntry *entry)
@@ -1503,6 +1509,26 @@ static void filelist_intern_free(FileListIntern *filelist_intern)
   BLI_listbase_clear(&filelist_intern->entries);
 
   MEM_SAFE_FREE(filelist_intern->filtered);
+}
+
+/**
+ * \return the number of main files removed.
+ */
+static int filelist_intern_free_main_files(FileListIntern *filelist_intern)
+{
+  int removed_counter = 0;
+  LISTBASE_FOREACH_MUTABLE (FileListInternEntry *, entry, &filelist_intern->entries) {
+    if (!filelist_intern_entry_is_main_file(entry)) {
+      continue;
+    }
+
+    BLI_remlink(&filelist_intern->entries, entry);
+    filelist_intern_entry_free(entry);
+    removed_counter++;
+  }
+
+  MEM_SAFE_FREE(filelist_intern->filtered);
+  return removed_counter;
 }
 
 static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdata)
@@ -1805,6 +1831,7 @@ void filelist_settype(FileList *filelist, short type)
       filelist->read_job_fn = filelist_readjob_asset_library;
       filelist->prepare_filter_fn = prepare_filter_asset_library;
       filelist->filter_fn = is_filtered_asset_library;
+      filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA;
       break;
     case FILE_MAIN_ASSET:
       filelist->check_dir_fn = filelist_checkdir_main_assets;
@@ -1821,6 +1848,12 @@ void filelist_settype(FileList *filelist, short type)
   }
 
   filelist->flags |= FL_FORCE_RESET;
+}
+
+static void filelist_clear_asset_library(FileList *filelist)
+{
+  /* The AssetLibraryService owns the AssetLibrary pointer, so no need for us to free it. */
+  filelist->asset_library = NULL;
 }
 
 void filelist_clear_ex(struct FileList *filelist,
@@ -1846,15 +1879,62 @@ void filelist_clear_ex(struct FileList *filelist,
     BLI_ghash_clear(filelist->selection_state, NULL, NULL);
   }
 
-  if (do_asset_library && (filelist->asset_library != NULL)) {
-    /* The AssetLibraryService owns the AssetLibrary pointer, so no need for us to free it. */
-    filelist->asset_library = NULL;
+  if (do_asset_library) {
+    filelist_clear_asset_library(filelist);
   }
 }
 
-void filelist_clear(struct FileList *filelist)
+static void filelist_clear_main_files(FileList *filelist,
+                                      const bool do_asset_library,
+                                      const bool do_cache,
+                                      const bool do_selection)
+{
+  if (!filelist || !(filelist->tags & FILELIST_TAGS_USES_MAIN_DATA)) {
+    return;
+  }
+
+  filelist_tag_needs_filtering(filelist);
+
+  if (do_cache) {
+    filelist_cache_clear(&filelist->filelist_cache, filelist->filelist_cache.size);
+  }
+
+  const int removed_files = filelist_intern_free_main_files(&filelist->filelist_intern);
+
+  filelist->filelist.nbr_entries -= removed_files;
+  filelist->filelist.nbr_entries_filtered = FILEDIR_NBR_ENTRIES_UNSET;
+  BLI_assert(filelist->filelist.nbr_entries > FILEDIR_NBR_ENTRIES_UNSET);
+
+  if (do_selection && filelist->selection_state) {
+    BLI_ghash_clear(filelist->selection_state, NULL, NULL);
+  }
+
+  if (do_asset_library) {
+    filelist_clear_asset_library(filelist);
+  }
+}
+
+void filelist_clear(FileList *filelist)
 {
   filelist_clear_ex(filelist, true, true, true);
+}
+
+/**
+ * A "smarter" version of #filelist_clear() that calls partial clearing based on the filelist
+ * force-reset flags.
+ */
+void filelist_clear_from_reset_tag(FileList *filelist)
+{
+  /* Do a full clear if needed. */
+  if (filelist->flags & FL_FORCE_RESET) {
+    filelist_clear(filelist);
+    return;
+  }
+
+  if (filelist->flags & FL_FORCE_RESET_MAIN_FILES) {
+    filelist_clear_main_files(filelist, false, true, false);
+    return;
+  }
 }
 
 void filelist_free(struct FileList *filelist)
@@ -1979,12 +2059,20 @@ void filelist_setrecursion(struct FileList *filelist, const int recursion_level)
 
 bool filelist_needs_force_reset(FileList *filelist)
 {
-  return (filelist->flags & FL_FORCE_RESET) != 0;
+  return (filelist->flags & (FL_FORCE_RESET | FL_FORCE_RESET_MAIN_FILES)) != 0;
 }
 
 void filelist_tag_force_reset(FileList *filelist)
 {
   filelist->flags |= FL_FORCE_RESET;
+}
+
+void filelist_tag_force_reset_mainfiles(FileList *filelist)
+{
+  if (!(filelist->tags & FILELIST_TAGS_USES_MAIN_DATA)) {
+    return;
+  }
+  filelist->flags |= FL_FORCE_RESET_MAIN_FILES;
 }
 
 bool filelist_is_ready(struct FileList *filelist)
@@ -2716,9 +2804,10 @@ int ED_file_extension_icon(const char *path)
   }
 }
 
-int filelist_needs_reading(struct FileList *filelist)
+int filelist_needs_reading(FileList *filelist)
 {
-  return (filelist->filelist.nbr_entries == FILEDIR_NBR_ENTRIES_UNSET);
+  return (filelist->filelist.nbr_entries == FILEDIR_NBR_ENTRIES_UNSET) ||
+         filelist_needs_force_reset(filelist);
 }
 
 uint filelist_entry_select_set(const FileList *filelist,
@@ -3281,6 +3370,9 @@ typedef struct FileListReadJob {
   char main_name[FILE_MAX];
   Main *current_main;
   struct FileList *filelist;
+  /** Set to request a partial read that only adds files representing #Main data (IDs). Used when
+   * #Main may have received changes of interest (e.g. asset removed or renamed). */
+  bool only_main_data;
 
   /** Shallow copy of #filelist for thread-safe access.
    *
@@ -3294,6 +3386,26 @@ typedef struct FileListReadJob {
    * to NULL to avoid double-freeing them. */
   struct FileList *tmp_filelist;
 } FileListReadJob;
+
+static void filelist_readjob_append_entries(FileListReadJob *job_params,
+                                            ListBase *from_entries,
+                                            int nbr_from_entries,
+                                            short *do_update)
+{
+  BLI_assert(BLI_listbase_count(from_entries) == nbr_from_entries);
+  if (nbr_from_entries <= 0) {
+    *do_update = false;
+    return;
+  }
+
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+  BLI_mutex_lock(&job_params->lock);
+  BLI_movelisttolist(&filelist->filelist.entries, from_entries);
+  filelist->filelist.nbr_entries += nbr_from_entries;
+  BLI_mutex_unlock(&job_params->lock);
+
+  *do_update = true;
+}
 
 static bool filelist_readjob_should_recurse_into_entry(const int max_recursion,
                                                        const bool is_lib,
@@ -3331,11 +3443,11 @@ static bool filelist_readjob_should_recurse_into_entry(const int max_recursion,
   return true;
 }
 
-static void filelist_readjob_do(const bool do_lib,
-                                FileListReadJob *job_params,
-                                const short *stop,
-                                short *do_update,
-                                float *progress)
+static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
+                                                     FileListReadJob *job_params,
+                                                     const short *stop,
+                                                     short *do_update,
+                                                     float *progress)
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
   ListBase entries = {0};
@@ -3346,13 +3458,6 @@ static void filelist_readjob_do(const bool do_lib,
   const char *root = filelist->filelist.root;
   const int max_recursion = filelist->max_recursion;
   int nbr_done_dirs = 0, nbr_todo_dirs = 1;
-
-  //  BLI_assert(filelist->filtered == NULL);
-  BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
-             (filelist->filelist.nbr_entries == FILEDIR_NBR_ENTRIES_UNSET));
-
-  /* A valid, but empty directory from now. */
-  filelist->filelist.nbr_entries = 0;
 
   todo_dirs = BLI_stack_new(sizeof(*td_dir), __func__);
   td_dir = BLI_stack_push_r(todo_dirs);
@@ -3441,16 +3546,7 @@ static void filelist_readjob_do(const bool do_lib,
       }
     }
 
-    if (nbr_entries) {
-      BLI_mutex_lock(&job_params->lock);
-
-      *do_update = true;
-
-      BLI_movelisttolist(&filelist->filelist.entries, &entries);
-      filelist->filelist.nbr_entries += nbr_entries;
-
-      BLI_mutex_unlock(&job_params->lock);
-    }
+    filelist_readjob_append_entries(job_params, &entries, nbr_entries, do_update);
 
     nbr_done_dirs++;
     *progress = (float)nbr_done_dirs / (float)nbr_todo_dirs;
@@ -3465,6 +3561,24 @@ static void filelist_readjob_do(const bool do_lib,
     BLI_stack_discard(todo_dirs);
   }
   BLI_stack_free(todo_dirs);
+}
+
+static void filelist_readjob_do(const bool do_lib,
+                                FileListReadJob *job_params,
+                                const short *stop,
+                                short *do_update,
+                                float *progress)
+{
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+
+  //  BLI_assert(filelist->filtered == NULL);
+  BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
+             (filelist->filelist.nbr_entries == FILEDIR_NBR_ENTRIES_UNSET));
+
+  /* A valid, but empty directory from now. */
+  filelist->filelist.nbr_entries = 0;
+
+  filelist_readjob_recursive_dir_add_items(do_lib, job_params, stop, do_update, progress);
 }
 
 static void filelist_readjob_dir(FileListReadJob *job_params,
@@ -3504,56 +3618,40 @@ static void filelist_readjob_load_asset_library_data(FileListReadJob *job_params
 {
   FileList *tmp_filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
 
-  if (job_params->filelist->asset_library_ref != NULL) {
-    char library_root_path[FILE_MAX];
-    filelist_asset_library_path(job_params, library_root_path);
+  *do_update = false;
 
-    /* Load asset catalogs, into the temp filelist for thread-safety.
-     * #filelist_readjob_endjob() will move it into the real filelist. */
-    tmp_filelist->asset_library = BKE_asset_library_load(library_root_path);
-    *do_update = true;
+  if (job_params->filelist->asset_library_ref == NULL) {
+    return;
   }
+  if (tmp_filelist->asset_library != NULL) {
+    /* Asset library already loaded. */
+    return;
+  }
+
+  char library_root_path[FILE_MAX];
+  filelist_asset_library_path(job_params, library_root_path);
+
+  /* Load asset catalogs, into the temp filelist for thread-safety.
+   * #filelist_readjob_endjob() will move it into the real filelist. */
+  tmp_filelist->asset_library = BKE_asset_library_load(library_root_path);
+  *do_update = true;
 }
 
-static void filelist_readjob_asset_library(FileListReadJob *job_params,
-                                           short *stop,
-                                           short *do_update,
-                                           float *progress)
-{
-  filelist_readjob_load_asset_library_data(job_params, do_update);
-  filelist_readjob_lib(job_params, stop, do_update, progress);
-}
-
-static void filelist_readjob_main(FileListReadJob *job_params,
-                                  short *stop,
-                                  short *do_update,
-                                  float *progress)
-{
-  /* TODO! */
-  filelist_readjob_dir(job_params, stop, do_update, progress);
-}
-
-/**
- * \warning Acts on main, so NOT thread-safe!
- */
-static void filelist_readjob_main_assets(FileListReadJob *job_params,
-                                         short *UNUSED(stop),
-                                         short *do_update,
-                                         float *UNUSED(progress))
+static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
+                                                   short *UNUSED(stop),
+                                                   short *do_update,
+                                                   float *UNUSED(progress))
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
-  BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
-             (filelist->filelist.nbr_entries == FILEDIR_NBR_ENTRIES_UNSET));
-
-  filelist_readjob_load_asset_library_data(job_params, do_update);
-
-  /* A valid, but empty directory from now. */
-  filelist->filelist.nbr_entries = 0;
 
   FileListInternEntry *entry;
   ListBase tmp_entries = {0};
   ID *id_iter;
   int nbr_entries = 0;
+
+  /* Make sure no IDs are added/removed/reallocated in the main thread while this is running in
+   * parallel. */
+  BKE_main_lock(job_params->current_main);
 
   FOREACH_MAIN_ID_BEGIN (job_params->current_main, id_iter) {
     if (!id_iter->asset_data) {
@@ -3577,16 +3675,93 @@ static void filelist_readjob_main_assets(FileListReadJob *job_params,
   }
   FOREACH_MAIN_ID_END;
 
+  BKE_main_unlock(job_params->current_main);
+
   if (nbr_entries) {
     *do_update = true;
 
     BLI_movelisttolist(&filelist->filelist.entries, &tmp_entries);
     filelist->filelist.nbr_entries += nbr_entries;
-    filelist->filelist.nbr_entries_filtered = filelist->filelist.entry_idx_start =
-        filelist->filelist.entry_idx_end = -1;
+    filelist->filelist.nbr_entries_filtered = -1;
   }
 }
 
+/**
+ * Check if \a bmain is stored within the root path of \a filelist. This means either directly or
+ * in some nested directory. In other words, it checks if the \a filelist root path is contained in
+ * the path to \a bmain.
+ * This is irrespective of the recursion level displayed, it basically assumes unlimited recursion
+ * levels.
+ */
+static bool filelist_contains_main(const FileList *filelist, const Main *bmain)
+{
+  const char *main_path = BKE_main_blendfile_path(bmain);
+  return main_path[0] && BLI_path_contains(filelist->filelist.root, main_path);
+}
+
+static void filelist_readjob_asset_library(FileListReadJob *job_params,
+                                           short *stop,
+                                           short *do_update,
+                                           float *progress)
+{
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+
+  BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
+             (filelist->filelist.nbr_entries == FILEDIR_NBR_ENTRIES_UNSET));
+
+  /* A valid, but empty file-list from now. */
+  filelist->filelist.nbr_entries = 0;
+
+  /* NOP if already read. */
+  filelist_readjob_load_asset_library_data(job_params, do_update);
+
+  if (filelist_contains_main(filelist, job_params->current_main)) {
+    filelist_readjob_main_assets_add_items(job_params, stop, do_update, progress);
+  }
+  if (!job_params->only_main_data) {
+    filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);
+  }
+}
+
+static void filelist_readjob_main(FileListReadJob *job_params,
+                                  short *stop,
+                                  short *do_update,
+                                  float *progress)
+{
+  /* TODO! */
+  filelist_readjob_dir(job_params, stop, do_update, progress);
+}
+
+static void filelist_readjob_main_assets(FileListReadJob *job_params,
+                                         short *stop,
+                                         short *do_update,
+                                         float *progress)
+{
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+  BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
+             (filelist->filelist.nbr_entries == FILEDIR_NBR_ENTRIES_UNSET));
+
+  filelist_readjob_load_asset_library_data(job_params, do_update);
+
+  /* A valid, but empty file-list from now. */
+  filelist->filelist.nbr_entries = 0;
+
+  filelist_readjob_main_assets_add_items(job_params, stop, do_update, progress);
+}
+
+/**
+ * Check if the read-job is requesting a partial reread of the file list only.
+ */
+static bool filelist_readjob_is_partial_read(const FileListReadJob *read_job)
+{
+  return read_job->only_main_data;
+}
+
+/**
+ * \note This may trigger partial filelist reading. If the #FL_FORCE_RESET_MAIN_FILES flag is set,
+ *       some current entries are kept and we just call the readjob to update the main files (see
+ *       #FileListReadJob.only_main_data).
+ */
 static void filelist_readjob_startjob(void *flrjv, short *stop, short *do_update, float *progress)
 {
   FileListReadJob *flrj = flrjv;
@@ -3597,8 +3772,6 @@ static void filelist_readjob_startjob(void *flrjv, short *stop, short *do_update
   BLI_mutex_lock(&flrj->lock);
 
   BLI_assert((flrj->tmp_filelist == NULL) && flrj->filelist);
-  BLI_assert_msg(flrj->filelist->asset_library == NULL,
-                 "Asset library should not yet be assigned at start of read job");
 
   flrj->tmp_filelist = MEM_dupallocN(flrj->filelist);
 
@@ -3607,7 +3780,12 @@ static void filelist_readjob_startjob(void *flrjv, short *stop, short *do_update
 
   flrj->tmp_filelist->filelist_intern.filtered = NULL;
   BLI_listbase_clear(&flrj->tmp_filelist->filelist_intern.entries);
-  filelist_uid_unset(&flrj->tmp_filelist->filelist_intern.curr_uid);
+  if (filelist_readjob_is_partial_read(flrj)) {
+    /* Don't unset the current UID on partial read, would give duplicates otherwise. */
+  }
+  else {
+    filelist_uid_unset(&flrj->tmp_filelist->filelist_intern.curr_uid);
+  }
 
   flrj->tmp_filelist->libfiledata = NULL;
   memset(&flrj->tmp_filelist->filelist_cache, 0, sizeof(flrj->tmp_filelist->filelist_cache));
@@ -3620,6 +3798,11 @@ static void filelist_readjob_startjob(void *flrjv, short *stop, short *do_update
   flrj->tmp_filelist->read_job_fn(flrj, stop, do_update, progress);
 }
 
+/**
+ * \note This may update for a partial filelist reading job. If the #FL_FORCE_RESET_MAIN_FILES flag
+ *       is set, some current entries are kept and we just call the readjob to update the main
+ *       files (see #FileListReadJob.only_main_data).
+ */
 static void filelist_readjob_update(void *flrjv)
 {
   FileListReadJob *flrj = flrjv;
@@ -3641,7 +3824,11 @@ static void filelist_readjob_update(void *flrjv)
 
   if (flrj->tmp_filelist->asset_library) {
     flrj->filelist->asset_library = flrj->tmp_filelist->asset_library;
-    flrj->tmp_filelist->asset_library = NULL; /* MUST be NULL to avoid double-free. */
+  }
+
+  /* Important for partial reads: Copy increased UID counter back to the real list. */
+  if (flrj->tmp_filelist->filelist_intern.curr_uid > fl_intern->curr_uid) {
+    fl_intern->curr_uid = flrj->tmp_filelist->filelist_intern.curr_uid;
   }
 
   BLI_mutex_unlock(&flrj->lock);
@@ -3706,8 +3893,11 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
   flrj->filelist = filelist;
   flrj->current_main = bmain;
   BLI_strncpy(flrj->main_name, BKE_main_blendfile_path(bmain), sizeof(flrj->main_name));
+  if ((filelist->flags & FL_FORCE_RESET_MAIN_FILES) && !(filelist->flags & FL_FORCE_RESET)) {
+    flrj->only_main_data = true;
+  }
 
-  filelist->flags &= ~(FL_FORCE_RESET | FL_IS_READY);
+  filelist->flags &= ~(FL_FORCE_RESET | FL_FORCE_RESET_MAIN_FILES | FL_IS_READY);
   filelist->flags |= FL_IS_PENDING;
 
   /* Init even for single threaded execution. Called functions use it. */

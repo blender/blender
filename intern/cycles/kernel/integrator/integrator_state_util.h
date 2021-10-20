@@ -274,7 +274,7 @@ ccl_device_inline void integrator_state_shadow_catcher_split(KernelGlobals kg,
 {
 #if defined(__KERNEL_GPU__)
   ConstIntegratorState to_state = atomic_fetch_and_add_uint32(
-      &kernel_integrator_state.next_shadow_catcher_path_index[0], 1);
+      &kernel_integrator_state.next_main_path_index[0], 1);
 
   integrator_state_copy_only(kg, to_state, state);
 #else

@@ -98,7 +98,7 @@ ccl_device_inline void sort_intersections_and_normals(ccl_private Intersection *
     for (int j = 0; j < num_hits - 1; ++j) {
       if (hits[j].t > hits[j + 1].t) {
         struct Intersection tmp_hit = hits[j];
-        struct float3 tmp_Ng = Ng[j];
+        float3 tmp_Ng = Ng[j];
         hits[j] = hits[j + 1];
         Ng[j] = Ng[j + 1];
         hits[j + 1] = tmp_hit;

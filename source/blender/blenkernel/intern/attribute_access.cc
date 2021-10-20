@@ -345,11 +345,18 @@ GVArrayPtr BuiltinCustomDataLayerProvider::try_get_for_read(
     return {};
   }
 
-  const int domain_size = component.attribute_domain_size(domain_);
-  const void *data = CustomData_get_layer(custom_data, stored_type_);
+  const void *data;
+  if (stored_as_named_attribute_) {
+    data = CustomData_get_layer_named(custom_data, stored_type_, name_.c_str());
+  }
+  else {
+    data = CustomData_get_layer(custom_data, stored_type_);
+  }
   if (data == nullptr) {
     return {};
   }
+
+  const int domain_size = component.attribute_domain_size(domain_);
   return as_read_attribute_(data, domain_size);
 }
 
@@ -368,11 +375,21 @@ GVMutableArrayPtr BuiltinCustomDataLayerProvider::try_get_for_write(
   if (data == nullptr) {
     return {};
   }
-  void *new_data = CustomData_duplicate_referenced_layer(custom_data, stored_type_, domain_size);
+
+  void *new_data;
+  if (stored_as_named_attribute_) {
+    new_data = CustomData_duplicate_referenced_layer_named(
+        custom_data, stored_type_, name_.c_str(), domain_size);
+  }
+  else {
+    new_data = CustomData_duplicate_referenced_layer(custom_data, stored_type_, domain_size);
+  }
+
   if (data != new_data) {
     custom_data_access_.update_custom_data_pointers(component);
     data = new_data;
   }
+
   if (update_on_write_ != nullptr) {
     update_on_write_(component);
   }
@@ -390,7 +407,19 @@ bool BuiltinCustomDataLayerProvider::try_delete(GeometryComponent &component) co
   }
 
   const int domain_size = component.attribute_domain_size(domain_);
-  const int layer_index = CustomData_get_layer_index(custom_data, stored_type_);
+  int layer_index;
+  if (stored_as_named_attribute_) {
+    for (const int i : IndexRange(custom_data->totlayer)) {
+      if (custom_data_layer_matches_attribute_id(custom_data->layers[i], name_)) {
+        layer_index = i;
+        break;
+      }
+    }
+  }
+  else {
+    layer_index = CustomData_get_layer_index(custom_data, stored_type_);
+  }
+
   const bool delete_success = CustomData_free_layer(
       custom_data, stored_type_, domain_size, layer_index);
   if (delete_success) {
@@ -409,14 +438,25 @@ bool BuiltinCustomDataLayerProvider::try_create(GeometryComponent &component,
   if (custom_data == nullptr) {
     return false;
   }
-  if (CustomData_get_layer(custom_data, stored_type_) != nullptr) {
-    /* Exists already. */
-    return false;
-  }
 
   const int domain_size = component.attribute_domain_size(domain_);
-  const bool success = add_builtin_type_custom_data_layer_from_init(
-      *custom_data, stored_type_, domain_size, initializer);
+  bool success;
+  if (stored_as_named_attribute_) {
+    if (CustomData_get_layer_named(custom_data, data_type_, name_.c_str())) {
+      /* Exists already. */
+      return false;
+    }
+    success = add_custom_data_layer_from_attribute_init(
+        name_, *custom_data, stored_type_, domain_size, initializer);
+  }
+  else {
+    if (CustomData_get_layer(custom_data, stored_type_) != nullptr) {
+      /* Exists already. */
+      return false;
+    }
+    success = add_builtin_type_custom_data_layer_from_init(
+        *custom_data, stored_type_, domain_size, initializer);
+  }
   if (success) {
     custom_data_access_.update_custom_data_pointers(component);
   }
@@ -429,8 +469,10 @@ bool BuiltinCustomDataLayerProvider::exists(const GeometryComponent &component) 
   if (custom_data == nullptr) {
     return false;
   }
-  const void *data = CustomData_get_layer(custom_data, stored_type_);
-  return data != nullptr;
+  if (stored_as_named_attribute_) {
+    return CustomData_get_layer_named(custom_data, stored_type_, name_.c_str()) != nullptr;
+  }
+  return CustomData_get_layer(custom_data, stored_type_) != nullptr;
 }
 
 ReadAttributeLookup CustomDataAttributeProvider::try_get_for_read(
@@ -1060,7 +1102,7 @@ std::unique_ptr<blender::fn::GVArray> GeometryComponent::attribute_try_get_for_r
   }
 
   std::unique_ptr<blender::fn::GVArray> varray = std::move(attribute.varray);
-  if (domain != ATTR_DOMAIN_AUTO && attribute.domain != domain) {
+  if (!ELEM(domain, ATTR_DOMAIN_AUTO, attribute.domain)) {
     varray = this->attribute_try_adapt_domain(std::move(varray), attribute.domain, domain);
     if (!varray) {
       return {};
@@ -1351,6 +1393,54 @@ bool AttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
     return name_ == other_typed->name_ && type_ == other_typed->type_;
   }
   return false;
+}
+
+static StringRef get_random_id_attribute_name(const AttributeDomain domain)
+{
+  switch (domain) {
+    case ATTR_DOMAIN_POINT:
+      return "id";
+    default:
+      return "";
+  }
+}
+
+const GVArray *IDAttributeFieldInput::get_varray_for_context(const fn::FieldContext &context,
+                                                             IndexMask mask,
+                                                             ResourceScope &scope) const
+{
+  if (const GeometryComponentFieldContext *geometry_context =
+          dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
+    const GeometryComponent &component = geometry_context->geometry_component();
+    const AttributeDomain domain = geometry_context->domain();
+    const StringRef name = get_random_id_attribute_name(domain);
+    GVArrayPtr attribute = component.attribute_try_get_for_read(name, domain, CD_PROP_INT32);
+    if (attribute) {
+      BLI_assert(attribute->size() == component.attribute_domain_size(domain));
+      return scope.add(std::move(attribute));
+    }
+
+    /* Use the index as the fallback if no random ID attribute exists. */
+    return fn::IndexFieldInput::get_index_varray(mask, scope);
+  }
+  return nullptr;
+}
+
+std::string IDAttributeFieldInput::socket_inspection_name() const
+{
+  return TIP_("ID / Index");
+}
+
+uint64_t IDAttributeFieldInput::hash() const
+{
+  /* All random ID attribute inputs are the same within the same evaluation context. */
+  return 92386459827;
+}
+
+bool IDAttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
+{
+  /* All random ID attribute inputs are the same within the same evaluation context. */
+  return dynamic_cast<const IDAttributeFieldInput *>(&other) != nullptr;
 }
 
 const GVArray *AnonymousAttributeFieldInput::get_varray_for_context(

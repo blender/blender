@@ -1830,7 +1830,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
     if (usage == OBJECT_LRT_INTERSECTION_ONLY) {
       tri->flags |= LRT_TRIANGLE_INTERSECTION_ONLY;
     }
-    else if (usage == OBJECT_LRT_NO_INTERSECTION || usage == OBJECT_LRT_OCCLUSION_ONLY) {
+    else if (ELEM(usage, OBJECT_LRT_NO_INTERSECTION, OBJECT_LRT_OCCLUSION_ONLY)) {
       tri->flags |= LRT_TRIANGLE_NO_INTERSECTION;
     }
 
@@ -1917,8 +1917,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
       la_e->flags = use_type;
       la_e->object_ref = orig_ob;
       BLI_addtail(&la_e->segments, la_s);
-      if (usage == OBJECT_LRT_INHERIT || usage == OBJECT_LRT_INCLUDE ||
-          usage == OBJECT_LRT_NO_INTERSECTION) {
+      if (ELEM(usage, OBJECT_LRT_INHERIT, OBJECT_LRT_INCLUDE, OBJECT_LRT_NO_INTERSECTION)) {
         lineart_add_edge_to_list_thread(obi, la_e);
       }
 

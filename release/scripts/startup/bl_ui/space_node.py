@@ -757,7 +757,7 @@ class NodeTreeInterfacePanel:
                 field_socket_prefixes = {
                     "NodeSocketInt", "NodeSocketColor", "NodeSocketVector", "NodeSocketBool", "NodeSocketFloat"}
                 is_field_type = any(active_socket.bl_socket_idname.startswith(prefix) for prefix in field_socket_prefixes)
-                if in_out == "OUT" and is_field_type:
+                if in_out == 'OUT' and is_field_type:
                     layout.prop(active_socket, "attribute_domain")
             active_socket.draw(context, layout)
 

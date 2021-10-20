@@ -55,12 +55,13 @@ class HIPDeviceQueue : public DeviceQueue {
     return hip_stream_;
   }
 
-  // TODO : (Arya) Enable this after stabilizing the dev branch
   virtual unique_ptr<DeviceGraphicsInterop> graphics_interop_create() override;
 
  protected:
   HIPDevice *hip_device_;
   hipStream_t hip_stream_;
+
+  void assert_success(hipError_t result, const char *operation);
 };
 
 CCL_NAMESPACE_END

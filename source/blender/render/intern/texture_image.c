@@ -959,7 +959,7 @@ static void alpha_clip_aniso(
   /* TXF alpha: we're doing the same alpha-clip here as box-sample, but I'm doubting
    * if this is actually correct for the all the filtering algorithms. */
 
-  if (!(extflag == TXC_REPT || extflag == TXC_EXTD)) {
+  if (!(ELEM(extflag, TXC_REPT, TXC_EXTD))) {
     rf.xmin = minx * (ibuf->x);
     rf.xmax = maxx * (ibuf->x);
     rf.ymin = miny * (ibuf->y);

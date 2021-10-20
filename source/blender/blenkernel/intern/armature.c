@@ -2227,41 +2227,48 @@ void mat3_vec_to_roll(const float mat[3][3], const float vec[3], float *r_roll)
  * </pre>
  *
  * When y is close to -1, computing 1 / (1 + y) will cause severe numerical instability,
- * so we ignore it and normalize M instead.
+ * so we use a different approach based on x and z as inputs.
  * We know `y^2 = 1 - (x^2 + z^2)`, and `y < 0`, hence `y = -sqrt(1 - (x^2 + z^2))`.
  *
- * Since x and z are both close to 0, we apply the binomial expansion to the first order:
- * `y = -sqrt(1 - (x^2 + z^2)) = -1 + (x^2 + z^2) / 2`. Which gives:
+ * Since x and z are both close to 0, we apply the binomial expansion to the second order:
+ * `y = -sqrt(1 - (x^2 + z^2)) = -1 + (x^2 + z^2) / 2 + (x^2 + z^2)^2 / 8`, which allows
+ * eliminating the problematic `1` constant.
+ *
+ * A first order expansion allows simplifying to this, but second order is more precise:
  * <pre>
  *                        ┌  z^2 - x^2,  -2 * x * z ┐
  * M* = 1 / (x^2 + z^2) * │                         │
  *                        └ -2 * x * z,   x^2 - z^2 ┘
  * </pre>
+ *
+ * P.S. In the end, this basically is a heavily optimized version of Damped Track +Y.
  */
 void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float r_mat[3][3])
 {
-  const float THETA_SAFE = 1.0e-5f;     /* theta above this value are always safe to use. */
-  const float THETA_CRITICAL = 1.0e-9f; /* above this is safe under certain conditions. */
+  const float SAFE_THRESHOLD = 6.1e-3f;     /* theta above this value has good enough precision. */
+  const float CRITICAL_THRESHOLD = 2.5e-4f; /* true singularity if xz distance is below this. */
+  const float THRESHOLD_SQUARED = CRITICAL_THRESHOLD * CRITICAL_THRESHOLD;
 
   const float x = nor[0];
   const float y = nor[1];
   const float z = nor[2];
 
-  const float theta = 1.0f + y;
-  const float theta_alt = x * x + z * z;
+  float theta = 1.0f + y;                /* remapping Y from [-1,+1] to [0,2]. */
+  const float theta_alt = x * x + z * z; /* squared distance from origin in x,z plane. */
   float rMatrix[3][3], bMatrix[3][3];
 
   BLI_ASSERT_UNIT_V3(nor);
 
-  /* When theta is close to zero (nor is aligned close to negative Y Axis),
+  /* Determine if the input is far enough from the true singularity of this type of
+   * transformation at (0,-1,0), where roll becomes 0/0 undefined without a limit.
+   *
+   * When theta is close to zero (nor is aligned close to negative Y Axis),
    * we have to check we do have non-null X/Z components as well.
    * Also, due to float precision errors, nor can be (0.0, -0.99999994, 0.0) which results
    * in theta being close to zero. This will cause problems when theta is used as divisor.
    */
-  if (theta > THETA_SAFE || ((x || z) && theta > THETA_CRITICAL)) {
-    /* nor is *not* aligned to negative Y-axis (0,-1,0).
-     * We got these values for free... so be happy with it... ;)
-     */
+  if (theta > SAFE_THRESHOLD || theta_alt > THRESHOLD_SQUARED) {
+    /* nor is *not* aligned to negative Y-axis (0,-1,0). */
 
     bMatrix[0][1] = -x;
     bMatrix[1][0] = x;
@@ -2269,18 +2276,15 @@ void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float r_m
     bMatrix[1][2] = z;
     bMatrix[2][1] = -z;
 
-    if (theta > THETA_SAFE) {
-      /* nor differs significantly from negative Y axis (0,-1,0): apply the general case. */
-      bMatrix[0][0] = 1 - x * x / theta;
-      bMatrix[2][2] = 1 - z * z / theta;
-      bMatrix[2][0] = bMatrix[0][2] = -x * z / theta;
+    if (theta <= SAFE_THRESHOLD) {
+      /* When nor is close to negative Y axis (0,-1,0) the theta precision is very bad,
+       * so recompute it from x and z instead, using the series expansion for sqrt. */
+      theta = theta_alt * 0.5f + theta_alt * theta_alt * 0.125f;
     }
-    else {
-      /* nor is close to negative Y axis (0,-1,0): apply the special case. */
-      bMatrix[0][0] = (x + z) * (x - z) / -theta_alt;
-      bMatrix[2][2] = -bMatrix[0][0];
-      bMatrix[2][0] = bMatrix[0][2] = 2.0f * x * z / theta_alt;
-    }
+
+    bMatrix[0][0] = 1 - x * x / theta;
+    bMatrix[2][2] = 1 - z * z / theta;
+    bMatrix[2][0] = bMatrix[0][2] = -x * z / theta;
   }
   else {
     /* nor is very close to negative Y axis (0,-1,0): use simple symmetry by Z axis. */

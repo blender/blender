@@ -2220,8 +2220,8 @@ void node_draw_space(const bContext *C, ARegion *region)
   /* XXX `snode->runtime->cursor` set in coordinate-space for placing new nodes,
    * used for drawing noodles too. */
   UI_view2d_region_to_view(&region->v2d,
-                           win->eventstate->x - region->winrct.xmin,
-                           win->eventstate->y - region->winrct.ymin,
+                           win->eventstate->xy[0] - region->winrct.xmin,
+                           win->eventstate->xy[1] - region->winrct.ymin,
                            &snode->runtime->cursor[0],
                            &snode->runtime->cursor[1]);
   snode->runtime->cursor[0] /= UI_DPI_FAC;

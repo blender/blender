@@ -292,7 +292,7 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
         return OPERATOR_CANCELLED;
       case EYE_MODAL_SAMPLE_CONFIRM: {
         const bool is_undo = ddr->is_undo;
-        const bool success = datadropper_id_sample(C, ddr, event->x, event->y);
+        const bool success = datadropper_id_sample(C, ddr, event->xy[0], event->xy[1]);
         datadropper_exit(C, op);
         if (success) {
           /* Could support finished & undo-skip. */
@@ -309,7 +309,7 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
     wmWindow *win;
     ScrArea *area;
 
-    int mval[] = {event->x, event->y};
+    int mval[] = {event->xy[0], event->xy[1]};
     datadropper_win_area_find(C, mval, mval, &win, &area);
 
     /* Set the region for eyedropper cursor text drawing */

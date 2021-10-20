@@ -912,6 +912,19 @@ static GVMutableArrayPtr make_derived_write_attribute(void *data, const int doma
       MutableSpan<StructT>((StructT *)data, domain_size));
 }
 
+template<typename T>
+static GVArrayPtr make_array_read_attribute(const void *data, const int domain_size)
+{
+  return std::make_unique<fn::GVArray_For_Span<T>>(Span<T>((const T *)data, domain_size));
+}
+
+template<typename T>
+static GVMutableArrayPtr make_array_write_attribute(void *data, const int domain_size)
+{
+  return std::make_unique<fn::GVMutableArray_For_MutableSpan<T>>(
+      MutableSpan<T>((T *)data, domain_size));
+}
+
 static float3 get_vertex_position(const MVert &vert)
 {
   return float3(vert.co);
@@ -1274,6 +1287,18 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
 
   static NormalAttributeProvider normal;
 
+  static BuiltinCustomDataLayerProvider id("id",
+                                           ATTR_DOMAIN_POINT,
+                                           CD_PROP_INT32,
+                                           CD_PROP_INT32,
+                                           BuiltinAttributeProvider::Creatable,
+                                           BuiltinAttributeProvider::Writable,
+                                           BuiltinAttributeProvider::Deletable,
+                                           point_access,
+                                           make_array_read_attribute<int>,
+                                           make_array_write_attribute<int>,
+                                           nullptr);
+
   static BuiltinCustomDataLayerProvider material_index(
       "material_index",
       ATTR_DOMAIN_FACE,
@@ -1335,14 +1360,15 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
   static CustomDataAttributeProvider edge_custom_data(ATTR_DOMAIN_EDGE, edge_access);
   static CustomDataAttributeProvider face_custom_data(ATTR_DOMAIN_FACE, face_access);
 
-  return ComponentAttributeProviders({&position, &material_index, &shade_smooth, &normal, &crease},
-                                     {&uvs,
-                                      &vertex_colors,
-                                      &corner_custom_data,
-                                      &vertex_groups,
-                                      &point_custom_data,
-                                      &edge_custom_data,
-                                      &face_custom_data});
+  return ComponentAttributeProviders(
+      {&position, &id, &material_index, &shade_smooth, &normal, &crease},
+      {&uvs,
+       &vertex_colors,
+       &corner_custom_data,
+       &vertex_groups,
+       &point_custom_data,
+       &edge_custom_data,
+       &face_custom_data});
 }
 
 }  // namespace blender::bke

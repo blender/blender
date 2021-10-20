@@ -2139,13 +2139,13 @@ static void rna_def_event(BlenderRNA *brna)
 
   /* mouse */
   prop = RNA_def_property(srna, "mouse_x", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "x");
+  RNA_def_property_int_sdna(prop, NULL, "xy[0]");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop, "Mouse X Position", "The window relative horizontal location of the mouse");
 
   prop = RNA_def_property(srna, "mouse_y", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "y");
+  RNA_def_property_int_sdna(prop, NULL, "xy[1]");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop, "Mouse Y Position", "The window relative vertical location of the mouse");
@@ -2163,13 +2163,13 @@ static void rna_def_event(BlenderRNA *brna)
       prop, "Mouse Y Position", "The region relative vertical location of the mouse");
 
   prop = RNA_def_property(srna, "mouse_prev_x", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "prevx");
+  RNA_def_property_int_sdna(prop, NULL, "prev_xy[0]");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop, "Mouse Previous X Position", "The window relative horizontal location of the mouse");
 
   prop = RNA_def_property(srna, "mouse_prev_y", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "prevy");
+  RNA_def_property_int_sdna(prop, NULL, "prev_xy[1]");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop, "Mouse Previous Y Position", "The window relative vertical location of the mouse");

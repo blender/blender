@@ -335,8 +335,8 @@ static bool get_implicit_socket_input(const SocketRef &socket, void *r_value)
   }
   const nodes::SocketDeclaration &socket_declaration = *node_declaration->inputs()[socket.index()];
   if (socket_declaration.input_field_type() == nodes::InputSocketFieldType::Implicit) {
+    const bNode &bnode = *socket.bnode();
     if (socket.typeinfo()->type == SOCK_VECTOR) {
-      const bNode &bnode = *socket.bnode();
       if (bnode.type == GEO_NODE_SET_CURVE_HANDLES) {
         StringRef side = ((NodeGeometrySetCurveHandlePositions *)bnode.storage)->mode ==
                                  GEO_NODE_CURVE_HANDLE_LEFT ?
@@ -349,6 +349,10 @@ static bool get_implicit_socket_input(const SocketRef &socket, void *r_value)
       return true;
     }
     if (socket.typeinfo()->type == SOCK_INT) {
+      if (ELEM(bnode.type, FN_NODE_RANDOM_VALUE, GEO_NODE_INSTANCE_ON_POINTS)) {
+        new (r_value) Field<int>(std::make_shared<bke::IDAttributeFieldInput>());
+        return true;
+      }
       new (r_value) Field<int>(std::make_shared<fn::IndexFieldInput>());
       return true;
     }

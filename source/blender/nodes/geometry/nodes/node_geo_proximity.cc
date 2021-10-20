@@ -214,6 +214,12 @@ static void geo_node_proximity_exec(GeoNodeExecParams params)
     params.set_output("Distance", fn::make_constant_field<float>(0.0f));
   };
 
+  if (geometry_set_target.has_instances()) {
+    params.error_message_add(
+        NodeWarningType::Info,
+        TIP_("The node only supports realized mesh or point cloud data, instances are ignored"));
+  }
+
   if (!geometry_set_target.has_mesh() && !geometry_set_target.has_pointcloud()) {
     return return_default();
   }

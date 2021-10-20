@@ -1103,7 +1103,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
   float location[3], symm_rot_mat[4][4];
 
   for (int i = 0; i <= symm; i++) {
-    if (i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5)))) {
+    if (i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (!ELEM(i, 3, 5))))) {
 
       /* Axis Symmetry. */
       flip_v3_v3(location, true_location, (char)i);

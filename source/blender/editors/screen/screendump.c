@@ -166,7 +166,8 @@ static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if (use_crop) {
     area = CTX_wm_area(C);
     bScreen *screen = CTX_wm_screen(C);
-    ScrArea *area_test = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->x, event->y);
+    ScrArea *area_test = BKE_screen_find_area_xy(
+        screen, SPACE_TYPE_ANY, event->xy[0], event->xy[1]);
     if (area_test != NULL) {
       area = area_test;
     }

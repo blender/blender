@@ -121,7 +121,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
         pc->draw(C, x, y, pc->customdata);
       }
       else {
-        pc->draw(C, win->eventstate->x, win->eventstate->y, pc->customdata);
+        pc->draw(C, win->eventstate->xy[0], win->eventstate->xy[1], pc->customdata);
       }
 
       GPU_scissor_test(false);

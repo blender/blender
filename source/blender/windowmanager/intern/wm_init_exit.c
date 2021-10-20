@@ -119,6 +119,7 @@
 #include "ED_space_api.h"
 #include "ED_undo.h"
 #include "ED_util.h"
+#include "ED_view3d.h"
 
 #include "BLF_api.h"
 #include "BLT_lang.h"
@@ -547,6 +548,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
 
   ED_preview_free_dbase(); /* frees a Main dbase, before BKE_blender_free! */
   ED_assetlist_storage_exit();
+  ED_view3d_cursor_snap_exit();
 
   if (wm) {
     /* Before BKE_blender_free! - since the ListBases get freed there. */

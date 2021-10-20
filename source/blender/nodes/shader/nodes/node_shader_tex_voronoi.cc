@@ -157,7 +157,7 @@ static void node_shader_update_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node
   nodeSetSocketAvailability(outWSock,
                             tex->feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
                                 tex->feature != SHD_VORONOI_N_SPHERE_RADIUS &&
-                                (tex->dimensions == 1 || tex->dimensions == 4));
+                                (ELEM(tex->dimensions, 1, 4)));
   nodeSetSocketAvailability(outRadiusSock, tex->feature == SHD_VORONOI_N_SPHERE_RADIUS);
 }
 
@@ -211,7 +211,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
     if (dimensions != 1) {
       signature.single_output<float3>("Position");
     }
-    if ((dimensions == 1 || dimensions == 4)) {
+    if (ELEM(dimensions, 1, 4)) {
       signature.single_output<float>("W");
     }
 
@@ -547,7 +547,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
     if (dimensions != 1) {
       signature.single_output<float3>("Position");
     }
-    if ((dimensions == 1 || dimensions == 4)) {
+    if (ELEM(dimensions, 1, 4)) {
       signature.single_output<float>("W");
     }
 
@@ -1048,8 +1048,7 @@ static void sh_node_voronoi_build_multi_function(blender::nodes::NodeMultiFuncti
   NodeTexVoronoi *tex = (NodeTexVoronoi *)node.storage;
   bool minowski = (tex->distance == SHD_VORONOI_MINKOWSKI && tex->dimensions != 1 &&
                    !ELEM(tex->feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS));
-  bool dist_radius = (tex->feature == SHD_VORONOI_DISTANCE_TO_EDGE ||
-                      tex->feature == SHD_VORONOI_N_SPHERE_RADIUS);
+  bool dist_radius = ELEM(tex->feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS);
   if (dist_radius) {
     builder.construct_and_set_matching_fn<VoronoiEdgeFunction>(tex->dimensions, tex->feature);
   }

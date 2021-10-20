@@ -102,7 +102,7 @@ static bool gpencil_bake_grease_pencil_animation_poll(bContext *C)
   }
 
   /* Check if grease pencil or empty for dupli groups. */
-  if ((obact == NULL) || ((obact->type != OB_GPENCIL) && (obact->type != OB_EMPTY))) {
+  if ((obact == NULL) || (!ELEM(obact->type, OB_GPENCIL, OB_EMPTY))) {
     return false;
   }
 

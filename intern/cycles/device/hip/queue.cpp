@@ -39,11 +39,30 @@ HIPDeviceQueue::~HIPDeviceQueue()
   hipStreamDestroy(hip_stream_);
 }
 
-int HIPDeviceQueue::num_concurrent_states(const size_t /*state_size*/) const
+int HIPDeviceQueue::num_concurrent_states(const size_t state_size) const
 {
-  /* TODO: compute automatically. */
-  /* TODO: must have at least num_threads_per_block. */
-  return 14416128;
+  int num_states = 0;
+  const int max_num_threads = hip_device_->get_num_multiprocessors() *
+                              hip_device_->get_max_num_threads_per_multiprocessor();
+  if (max_num_threads == 0) {
+    num_states = 1048576;  // 65536 * 16
+  }
+  else {
+    num_states = max_num_threads * 16;
+  }
+
+  const char *factor_str = getenv("CYCLES_CONCURRENT_STATES_FACTOR");
+  if (factor_str) {
+    float factor = atof(factor_str);
+    if (!factor)
+      VLOG(3) << "CYCLES_CONCURRENT_STATES_FACTOR evaluated to 0";
+    num_states = max((int)(num_states * factor), 1024);
+  }
+
+  VLOG(3) << "GPU queue concurrent states: " << num_states << ", using up to "
+          << string_human_readable_size(num_states * state_size);
+
+  return num_states;
 }
 
 int HIPDeviceQueue::num_concurrent_busy_states() const
@@ -105,18 +124,19 @@ bool HIPDeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *arg
   }
 
   /* Launch kernel. */
-  hip_device_assert(hip_device_,
-                    hipModuleLaunchKernel(hip_kernel.function,
-                                          num_blocks,
-                                          1,
-                                          1,
-                                          num_threads_per_block,
-                                          1,
-                                          1,
-                                          shared_mem_bytes,
-                                          hip_stream_,
-                                          args,
-                                          0));
+  assert_success(hipModuleLaunchKernel(hip_kernel.function,
+                                       num_blocks,
+                                       1,
+                                       1,
+                                       num_threads_per_block,
+                                       1,
+                                       1,
+                                       shared_mem_bytes,
+                                       hip_stream_,
+                                       args,
+                                       0),
+                 "enqueue");
+
   return !(hip_device_->have_error());
 }
 
@@ -127,7 +147,7 @@ bool HIPDeviceQueue::synchronize()
   }
 
   const HIPContextScope scope(hip_device_);
-  hip_device_assert(hip_device_, hipStreamSynchronize(hip_stream_));
+  assert_success(hipStreamSynchronize(hip_stream_), "synchronize");
   debug_synchronize();
 
   return !(hip_device_->have_error());
@@ -150,9 +170,9 @@ void HIPDeviceQueue::zero_to_device(device_memory &mem)
   assert(mem.device_pointer != 0);
 
   const HIPContextScope scope(hip_device_);
-  hip_device_assert(
-      hip_device_,
-      hipMemsetD8Async((hipDeviceptr_t)mem.device_pointer, 0, mem.memory_size(), hip_stream_));
+  assert_success(
+      hipMemsetD8Async((hipDeviceptr_t)mem.device_pointer, 0, mem.memory_size(), hip_stream_),
+      "zero_to_device");
 }
 
 void HIPDeviceQueue::copy_to_device(device_memory &mem)
@@ -173,10 +193,10 @@ void HIPDeviceQueue::copy_to_device(device_memory &mem)
 
   /* Copy memory to device. */
   const HIPContextScope scope(hip_device_);
-  hip_device_assert(
-      hip_device_,
+  assert_success(
       hipMemcpyHtoDAsync(
-          (hipDeviceptr_t)mem.device_pointer, mem.host_pointer, mem.memory_size(), hip_stream_));
+          (hipDeviceptr_t)mem.device_pointer, mem.host_pointer, mem.memory_size(), hip_stream_),
+      "copy_to_device");
 }
 
 void HIPDeviceQueue::copy_from_device(device_memory &mem)
@@ -192,13 +212,21 @@ void HIPDeviceQueue::copy_from_device(device_memory &mem)
 
   /* Copy memory from device. */
   const HIPContextScope scope(hip_device_);
-  hip_device_assert(
-      hip_device_,
+  assert_success(
       hipMemcpyDtoHAsync(
-          mem.host_pointer, (hipDeviceptr_t)mem.device_pointer, mem.memory_size(), hip_stream_));
+          mem.host_pointer, (hipDeviceptr_t)mem.device_pointer, mem.memory_size(), hip_stream_),
+      "copy_from_device");
 }
 
-// TODO : (Arya) Enable this after stabilizing dev branch
+void HIPDeviceQueue::assert_success(hipError_t result, const char *operation)
+{
+  if (result != hipSuccess) {
+    const char *name = hipewErrorString(result);
+    hip_device_->set_error(
+        string_printf("%s in HIP queue %s (%s)", name, operation, debug_active_kernels().c_str()));
+  }
+}
+
 unique_ptr<DeviceGraphicsInterop> HIPDeviceQueue::graphics_interop_create()
 {
   return make_unique<HIPDeviceGraphicsInterop>(this);

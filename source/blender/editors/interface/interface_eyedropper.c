@@ -126,8 +126,8 @@ void eyedropper_draw_cursor_text_window(const struct wmWindow *window, const cha
     return;
   }
 
-  const int x = window->eventstate->x;
-  const int y = window->eventstate->y;
+  const int x = window->eventstate->xy[0];
+  const int y = window->eventstate->xy[1];
 
   eyedropper_draw_cursor_text_ex(x, y, name);
 }
@@ -153,8 +153,8 @@ void eyedropper_draw_cursor_text_region(const int x, const int y, const char *na
 uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event)
 {
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->x, event->y);
-  const ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, event->x, event->y);
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy[0], event->xy[1]);
+  const ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, event->xy[0], event->xy[1]);
 
   uiBut *but = ui_but_find_mouse_over(region, event);
 

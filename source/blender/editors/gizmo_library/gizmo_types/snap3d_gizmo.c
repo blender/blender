@@ -53,22 +53,18 @@
 
 typedef struct SnapGizmo3D {
   wmGizmo gizmo;
-  V3DSnapCursorData *cursor_handle;
+  V3DSnapCursorState *snap_state;
 } SnapGizmo3D;
 
 static void snap_gizmo_snap_elements_update(SnapGizmo3D *snap_gizmo)
 {
-  V3DSnapCursorData *snap_data = snap_gizmo->cursor_handle;
   wmGizmoProperty *gz_prop_snap;
   gz_prop_snap = WM_gizmo_target_property_find(&snap_gizmo->gizmo, "snap_elements");
 
   if (gz_prop_snap->prop) {
-    snap_data->snap_elem_force |= RNA_property_enum_get(&gz_prop_snap->ptr, gz_prop_snap->prop);
+    V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+    snap_state->snap_elem_force |= RNA_property_enum_get(&gz_prop_snap->ptr, gz_prop_snap->prop);
   }
-
-  UI_GetThemeColor3ubv(TH_TRANSFORM, snap_data->color_line);
-  snap_data->color_line[3] = 128;
-  rgba_float_to_uchar(snap_data->color_point, snap_gizmo->gizmo.color);
 }
 
 /* -------------------------------------------------------------------- */
@@ -77,59 +73,60 @@ static void snap_gizmo_snap_elements_update(SnapGizmo3D *snap_gizmo)
 
 SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(Scene *scene, wmGizmo *UNUSED(gz))
 {
-  ED_view3d_cursor_snap_activate_point();
   return ED_view3d_cursor_snap_context_ensure(scene);
 }
 
-void ED_gizmotypes_snap_3d_flag_set(struct wmGizmo *gz, int flag)
+void ED_gizmotypes_snap_3d_flag_set(struct wmGizmo *UNUSED(gz), int flag)
 {
-  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  snap_gizmo->cursor_handle->flag |= flag;
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  snap_state->flag |= flag;
 }
 
-void ED_gizmotypes_snap_3d_flag_clear(struct wmGizmo *gz, int flag)
+void ED_gizmotypes_snap_3d_flag_clear(struct wmGizmo *UNUSED(gz), int flag)
 {
-  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  snap_gizmo->cursor_handle->flag &= ~flag;
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  snap_state->flag &= ~flag;
 }
 
-bool ED_gizmotypes_snap_3d_flag_test(struct wmGizmo *gz, int flag)
+bool ED_gizmotypes_snap_3d_flag_test(struct wmGizmo *UNUSED(gz), int flag)
 {
-  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  return (snap_gizmo->cursor_handle->flag & flag) != 0;
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  return (snap_state->flag & flag) != 0;
 }
 
-bool ED_gizmotypes_snap_3d_invert_snap_get(struct wmGizmo *gz)
+bool ED_gizmotypes_snap_3d_invert_snap_get(struct wmGizmo *UNUSED(gz))
 {
-  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  return snap_gizmo->cursor_handle->is_snap_invert;
+  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get(NULL, NULL, 0, 0);
+  return snap_data->is_snap_invert;
 }
 
-bool ED_gizmotypes_snap_3d_is_enabled(const wmGizmo *gz)
+bool ED_gizmotypes_snap_3d_is_enabled(const wmGizmo *UNUSED(gz))
 {
-  const SnapGizmo3D *snap_gizmo = (const SnapGizmo3D *)gz;
-  return snap_gizmo->cursor_handle->is_enabled;
+  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get(NULL, NULL, 0, 0);
+  return snap_data->is_enabled;
 }
 
 void ED_gizmotypes_snap_3d_data_get(const struct bContext *C,
-                                    wmGizmo *gz,
+                                    wmGizmo *UNUSED(gz),
                                     float r_loc[3],
                                     float r_nor[3],
                                     int r_elem_index[3],
                                     int *r_snap_elem)
 {
-  V3DSnapCursorData *snap_data = ((SnapGizmo3D *)gz)->cursor_handle;
-
+  V3DSnapCursorData *snap_data = NULL;
   if (C) {
     /* Snap values are updated too late at the cursor. Be sure to update ahead of time. */
     wmWindowManager *wm = CTX_wm_manager(C);
     const wmEvent *event = wm->winactive ? wm->winactive->eventstate : NULL;
     if (event) {
       ARegion *region = CTX_wm_region(C);
-      int x = event->x - region->winrct.xmin;
-      int y = event->y - region->winrct.ymin;
-      ED_view3d_cursor_snap_update(C, x, y, snap_data);
+      int x = event->xy[0] - region->winrct.xmin;
+      int y = event->xy[1] - region->winrct.ymin;
+      snap_data = ED_view3d_cursor_snap_data_get(NULL, C, x, y);
     }
+  }
+  if (!snap_data) {
+    snap_data = ED_view3d_cursor_snap_data_get(NULL, NULL, 0, 0);
   }
 
   if (r_loc) {
@@ -155,30 +152,25 @@ void ED_gizmotypes_snap_3d_data_get(const struct bContext *C,
 static int gizmo_snap_rna_snap_elements_force_get_fn(struct PointerRNA *UNUSED(ptr),
                                                      struct PropertyRNA *UNUSED(prop))
 {
-  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
-  if (snap_data) {
-    return snap_data->snap_elem_force;
-  }
-  return 0;
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  return snap_state->snap_elem_force;
 }
 
 static void gizmo_snap_rna_snap_elements_force_set_fn(struct PointerRNA *UNUSED(ptr),
                                                       struct PropertyRNA *UNUSED(prop),
                                                       int value)
 {
-  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
-  if (snap_data) {
-    snap_data->snap_elem_force = (short)value;
-  }
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  snap_state->snap_elem_force = (short)value;
 }
 
 static void gizmo_snap_rna_prevpoint_get_fn(struct PointerRNA *UNUSED(ptr),
                                             struct PropertyRNA *UNUSED(prop),
                                             float *values)
 {
-  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
-  if (snap_data && snap_data->prevpoint) {
-    copy_v3_v3(values, snap_data->prevpoint);
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  if (snap_state->prevpoint) {
+    copy_v3_v3(values, snap_state->prevpoint);
   }
 }
 
@@ -186,47 +178,40 @@ static void gizmo_snap_rna_prevpoint_set_fn(struct PointerRNA *UNUSED(ptr),
                                             struct PropertyRNA *UNUSED(prop),
                                             const float *values)
 {
-  ED_view3d_cursor_snap_prevpoint_set(values);
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  ED_view3d_cursor_snap_prevpoint_set(snap_state, values);
 }
 
 static void gizmo_snap_rna_location_get_fn(struct PointerRNA *UNUSED(ptr),
                                            struct PropertyRNA *UNUSED(prop),
                                            float *values)
 {
-  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
-  if (snap_data) {
-    copy_v3_v3(values, snap_data->loc);
-  }
+  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get(NULL, NULL, 0, 0);
+  copy_v3_v3(values, snap_data->loc);
 }
 
 static void gizmo_snap_rna_location_set_fn(struct PointerRNA *UNUSED(ptr),
                                            struct PropertyRNA *UNUSED(prop),
                                            const float *values)
 {
-  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
-  if (snap_data) {
-    copy_v3_v3(snap_data->loc, values);
-  }
+  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get(NULL, NULL, 0, 0);
+  copy_v3_v3(snap_data->loc, values);
 }
 
 static void gizmo_snap_rna_normal_get_fn(struct PointerRNA *UNUSED(ptr),
                                          struct PropertyRNA *UNUSED(prop),
                                          float *values)
 {
-  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
-  if (snap_data) {
-    copy_v3_v3(values, snap_data->nor);
-  }
+  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get(NULL, NULL, 0, 0);
+  copy_v3_v3(values, snap_data->nor);
 }
 
 static void gizmo_snap_rna_snap_elem_index_get_fn(struct PointerRNA *UNUSED(ptr),
                                                   struct PropertyRNA *UNUSED(prop),
                                                   int *values)
 {
-  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
-  if (snap_data) {
-    copy_v3_v3_int(values, snap_data->elem_index);
-  }
+  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get(NULL, NULL, 0, 0);
+  copy_v3_v3_int(values, snap_data->elem_index);
 }
 
 /** \} */
@@ -239,8 +224,11 @@ static void snap_gizmo_setup(wmGizmo *gz)
 {
   gz->flag |= WM_GIZMO_NO_TOOLTIP;
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  ED_view3d_cursor_snap_activate_point();
-  snap_gizmo->cursor_handle = ED_view3d_cursor_snap_data_get();
+  snap_gizmo->snap_state = ED_view3d_cursor_snap_active();
+  snap_gizmo->snap_state->draw_point = true;
+  snap_gizmo->snap_state->draw_plane = false;
+
+  rgba_float_to_uchar(snap_gizmo->snap_state->color_point, gz->color);
 }
 
 static void snap_gizmo_draw(const bContext *UNUSED(C), wmGizmo *UNUSED(gz))
@@ -251,7 +239,6 @@ static void snap_gizmo_draw(const bContext *UNUSED(C), wmGizmo *UNUSED(gz))
 static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  V3DSnapCursorData *snap_data = snap_gizmo->cursor_handle;
 
   /* Snap Elements can change while the gizmo is active. Need to be updated somewhere. */
   snap_gizmo_snap_elements_update(snap_gizmo);
@@ -263,17 +250,17 @@ static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
     const wmEvent *event = wm->winactive ? wm->winactive->eventstate : NULL;
     if (event) {
       ARegion *region = CTX_wm_region(C);
-      x = event->x - region->winrct.xmin;
-      y = event->y - region->winrct.ymin;
+      x = event->xy[0] - region->winrct.xmin;
+      y = event->xy[1] - region->winrct.ymin;
     }
     else {
       x = mval[0];
       y = mval[1];
     }
   }
-  ED_view3d_cursor_snap_update(C, x, y, snap_data);
+  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get(snap_gizmo->snap_state, C, x, y);
 
-  if (snap_data && snap_data->snap_elem) {
+  if (snap_data->snap_elem) {
     return 0;
   }
   return -1;
@@ -297,10 +284,7 @@ static int snap_gizmo_invoke(bContext *UNUSED(C),
 static void snap_gizmo_free(wmGizmo *gz)
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  V3DSnapCursorData *snap_data = snap_gizmo->cursor_handle;
-  if (snap_data) {
-    ED_view3d_cursor_snap_deactivate_point();
-  }
+  ED_view3d_cursor_snap_deactive(snap_gizmo->snap_state);
 }
 
 static void GIZMO_GT_snap_3d(wmGizmoType *gzt)

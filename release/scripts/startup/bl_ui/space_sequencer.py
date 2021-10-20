@@ -1140,7 +1140,7 @@ class SEQUENCER_PT_color_tag_picker(SequencerColorTagPicker, Panel):
         layout = self.layout
 
         row = layout.row(align=True)
-        row.operator("sequencer.strip_color_tag_set", icon="X").color = 'NONE'
+        row.operator("sequencer.strip_color_tag_set", icon='X').color = 'NONE'
         for i in range(1, 10):
             icon = 'SEQUENCE_COLOR_%02d' % i
             row.operator("sequencer.strip_color_tag_set", icon=icon).color = 'COLOR_%02d' % i
@@ -1313,15 +1313,15 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         elif strip_type == 'SPEED':
             col = layout.column(align=True)
             col.prop(strip, "speed_control", text="Speed Control")
-            if strip.speed_control == "MULTIPLY":
+            if strip.speed_control == 'MULTIPLY':
                 col.prop(strip, "speed_factor", text=" ")
-            elif strip.speed_control == "LENGTH":
+            elif strip.speed_control == 'LENGTH':
                 col.prop(strip, "speed_length", text=" ")
-            elif strip.speed_control == "FRAME_NUMBER":
+            elif strip.speed_control == 'FRAME_NUMBER':
                 col.prop(strip, "speed_frame_number", text=" ")
 
             row = layout.row(align=True)
-            row.enabled = strip.speed_control != "STRETCH"
+            row.enabled = strip.speed_control != 'STRETCH'
             row = layout.row(align=True, heading="Interpolation")
             row.prop(strip, "use_frame_interpolate", text="")
 

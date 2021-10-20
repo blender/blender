@@ -209,11 +209,11 @@ static void poselib_slide_mouse_update_blendfactor(PoseBlendData *pbd, const wmE
   if (pbd->release_confirm_info.use_release_confirm) {
     /* Release confirm calculates factor based on where the dragging was started from. */
     const float range = 300 * U.pixelsize;
-    const float new_factor = (event->x - pbd->release_confirm_info.drag_start_xy[0]) / range;
+    const float new_factor = (event->xy[0] - pbd->release_confirm_info.drag_start_xy[0]) / range;
     poselib_blend_set_factor(pbd, new_factor);
   }
   else {
-    const float new_factor = (event->x - pbd->area->v1->vec.x) / ((float)pbd->area->winx);
+    const float new_factor = (event->xy[0] - pbd->area->v1->vec.x) / ((float)pbd->area->winx);
     poselib_blend_set_factor(pbd, new_factor);
   }
 }
@@ -379,8 +379,8 @@ static bool poselib_blend_init_data(bContext *C, wmOperator *op, const wmEvent *
 
   if (pbd->release_confirm_info.use_release_confirm) {
     BLI_assert(event != NULL);
-    pbd->release_confirm_info.drag_start_xy[0] = event->x;
-    pbd->release_confirm_info.drag_start_xy[1] = event->y;
+    pbd->release_confirm_info.drag_start_xy[0] = event->xy[0];
+    pbd->release_confirm_info.drag_start_xy[1] = event->xy[1];
     pbd->release_confirm_info.init_event_type = WM_userdef_event_type_from_keymap_type(
         event->type);
   }

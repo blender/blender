@@ -408,6 +408,13 @@ ccl_device_inline void kernel_accum_light(KernelGlobals kg,
   const uint32_t path_flag = INTEGRATOR_STATE(state, shadow_path, flag);
   const int sample = INTEGRATOR_STATE(state, shadow_path, sample);
 
+  /* Ambient occlusion. */
+  if (path_flag & PATH_RAY_SHADOW_FOR_AO) {
+    kernel_write_pass_float3(buffer + kernel_data.film.pass_ao, contribution);
+    return;
+  }
+
+  /* Direct light shadow. */
   kernel_accum_combined_pass(kg, path_flag, sample, contribution, buffer);
 
 #ifdef __PASSES__

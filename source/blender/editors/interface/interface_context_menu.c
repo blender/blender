@@ -928,7 +928,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   {
     const ARegion *region = CTX_wm_region(C);
     uiButTreeRow *treerow_but = (uiButTreeRow *)ui_tree_row_find_mouse_over(
-        region, event->x, event->y);
+        region, event->xy[0], event->xy[1]);
     if (treerow_but) {
       BLI_assert(treerow_but->but.type == UI_BTYPE_TREEROW);
       UI_tree_view_item_context_menu_build(
@@ -1216,8 +1216,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   ARegion *region = CTX_wm_region(C);
   const bool is_inside_listbox = ui_list_find_mouse_over(region, event) != NULL;
   const bool is_inside_listrow = is_inside_listbox ?
-                                     ui_list_row_find_mouse_over(region, event->x, event->y) !=
-                                         NULL :
+                                     ui_list_row_find_mouse_over(
+                                         region, event->xy[0], event->xy[1]) != NULL :
                                      false;
   if (is_inside_listrow) {
     MenuType *mt = WM_menutype_find("UI_MT_list_item_context_menu", true);

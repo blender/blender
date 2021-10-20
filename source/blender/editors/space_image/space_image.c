@@ -258,7 +258,7 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   ScrArea *area = CTX_wm_area(C);
-  if (ED_region_overlap_isect_any_xy(area, &event->x)) {
+  if (ED_region_overlap_isect_any_xy(area, event->xy)) {
     return false;
   }
   if (drag->type == WM_DRAG_PATH) {

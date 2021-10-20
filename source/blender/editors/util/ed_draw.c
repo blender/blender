@@ -356,12 +356,12 @@ static void slider_draw(const struct bContext *UNUSED(C), ARegion *region, void 
 
 static void slider_update_factor(tSlider *slider, const wmEvent *event)
 {
-  const float factor_delta = (event->x - slider->last_cursor[0]) / SLIDE_PIXEL_DISTANCE;
+  const float factor_delta = (event->xy[0] - slider->last_cursor[0]) / SLIDE_PIXEL_DISTANCE;
   /* Reduced factor delta in precision mode (shift held). */
   slider->raw_factor += slider->precision ? (factor_delta / 8) : factor_delta;
   slider->factor = slider->raw_factor;
-  slider->last_cursor[0] = event->x;
-  slider->last_cursor[1] = event->y;
+  slider->last_cursor[0] = event->xy[0];
+  slider->last_cursor[1] = event->xy[1];
 
   if (!slider->overshoot) {
     slider->factor = clamp_f(slider->factor, 0, 1);
@@ -403,8 +403,8 @@ tSlider *ED_slider_create(struct bContext *C)
  */
 void ED_slider_init(struct tSlider *slider, const wmEvent *event)
 {
-  slider->last_cursor[0] = event->x;
-  slider->last_cursor[1] = event->y;
+  slider->last_cursor[0] = event->xy[0];
+  slider->last_cursor[1] = event->xy[1];
 }
 
 /**
@@ -533,8 +533,8 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_
   wmWindow *win = CTX_wm_window(C);
   const float *mval_src = (float *)arg_info;
   const float mval_dst[2] = {
-      win->eventstate->x - region->winrct.xmin,
-      win->eventstate->y - region->winrct.ymin,
+      win->eventstate->xy[0] - region->winrct.xmin,
+      win->eventstate->xy[1] - region->winrct.ymin,
   };
 
   const uint shdr_pos = GPU_vertformat_attr_add(

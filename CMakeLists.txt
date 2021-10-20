@@ -156,6 +156,16 @@ get_blender_version()
 option(WITH_BLENDER "Build blender (disable to build only the blender player)" ON)
 mark_as_advanced(WITH_BLENDER)
 
+if(APPLE)
+  # Currently this causes a build error linking, disable.
+  set(WITH_BLENDER_THUMBNAILER OFF)
+elseif(WIN32)
+  # Building the thumbnail extraction DLL could be made optional.
+  set(WITH_BLENDER_THUMBNAILER ON)
+else()
+  option(WITH_BLENDER_THUMBNAILER "Build \"blender-thumbnailer\" thumbnail extraction utility" ON)
+endif()
+
 option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
 
 option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
@@ -420,7 +430,7 @@ mark_as_advanced(WITH_CYCLES_NATIVE_ONLY)
 
 option(WITH_CYCLES_DEVICE_CUDA              "Enable Cycles CUDA compute support" ON)
 option(WITH_CYCLES_DEVICE_OPTIX             "Enable Cycles OptiX support" ON)
-option(WITH_CYCLES_DEVICE_HIP               "Enable Cycles HIP support" OFF)
+option(WITH_CYCLES_DEVICE_HIP               "Enable Cycles HIP support" ON)
 mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
 mark_as_advanced(WITH_CYCLES_DEVICE_CUDA)
 

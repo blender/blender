@@ -195,7 +195,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if ((type == -1 || seq->type == type) && (seq->enddisp < timeline_frame) &&
+    if ((ELEM(type, -1, seq->type)) && (seq->enddisp < timeline_frame) &&
         (timeline_frame - seq->enddisp < proximity)) {
       tgt = seq;
       proximity = timeline_frame - seq->enddisp;

@@ -221,12 +221,17 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(struct bContext *C,
   const wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_region(C);
   uiTreeViewItemHandle *hovered_item_handle = UI_block_tree_view_find_item_at(
-      region, win->eventstate->x, win->eventstate->y);
+      region, win->eventstate->xy[0], win->eventstate->xy[1]);
   AbstractTreeViewItem *hovered_item = reinterpret_cast<AbstractTreeViewItem *>(
       hovered_item_handle);
   BLI_assert(hovered_item != nullptr);
 
   hovered_item->toggle_collapsed();
+  /* When collapsing an item with an active child, make this collapsed item active instead so the
+   * active item stays visible. */
+  if (hovered_item->has_active_child()) {
+    hovered_item->activate();
+  }
 }
 
 bool AbstractTreeViewItem::is_collapse_chevron_but(const uiBut *but)
@@ -325,6 +330,18 @@ void AbstractTreeViewItem::add_rename_button(uiLayout &row)
 
   UI_block_emboss_set(block, previous_emboss);
   UI_block_layout_set_current(block, &row);
+}
+
+bool AbstractTreeViewItem::has_active_child() const
+{
+  bool found = false;
+  foreach_item_recursive([&found](const AbstractTreeViewItem &item) {
+    if (item.is_active()) {
+      found = true;
+    }
+  });
+
+  return found;
 }
 
 void AbstractTreeViewItem::on_activate()

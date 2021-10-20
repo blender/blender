@@ -1926,7 +1926,7 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
   ARegion *region = CTX_wm_region(C);
 
   /* Keep the drag position in the region with a small pad to keep the panel visible. */
-  const int y = clamp_i(event->y, region->winrct.ymin, region->winrct.ymax + DRAG_REGION_PAD);
+  const int y = clamp_i(event->xy[1], region->winrct.ymin, region->winrct.ymax + DRAG_REGION_PAD);
 
   float dy = (float)(y - data->starty);
 
@@ -2041,7 +2041,7 @@ static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, voi
 
   switch (event->type) {
     case MOUSEMOVE:
-      ui_panel_drag_collapse(C, dragcol_data, &event->x);
+      ui_panel_drag_collapse(C, dragcol_data, &event->xy[0]);
 
       retval = WM_UI_HANDLER_BREAK;
       break;
@@ -2070,7 +2070,7 @@ static void ui_panel_drag_collapse_handler_add(const bContext *C, const bool was
   uiPanelDragCollapseHandle *dragcol_data = MEM_mallocN(sizeof(*dragcol_data), __func__);
 
   dragcol_data->was_first_open = was_open;
-  copy_v2_v2_int(dragcol_data->xy_init, &event->x);
+  copy_v2_v2_int(dragcol_data->xy_init, event->xy);
 
   WM_event_add_ui_handler(C,
                           &win->modalhandlers,
@@ -2363,7 +2363,7 @@ int ui_handler_panel_region(bContext *C,
   }
 
   /* Scroll-bars can overlap panels now, they have handling priority. */
-  if (UI_view2d_mouse_in_scrollers(region, &region->v2d, event->x, event->y)) {
+  if (UI_view2d_mouse_in_scrollers(region, &region->v2d, event->xy[0], event->xy[1])) {
     return WM_UI_HANDLER_CONTINUE;
   }
 
@@ -2406,8 +2406,8 @@ int ui_handler_panel_region(bContext *C,
       continue;
     }
 
-    int mx = event->x;
-    int my = event->y;
+    int mx = event->xy[0];
+    int my = event->xy[1];
     ui_window_to_block(region, block, &mx, &my);
 
     const uiPanelMouseState mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
@@ -2485,8 +2485,8 @@ PointerRNA *UI_region_panel_custom_data_under_cursor(const bContext *C, const wm
       continue;
     }
 
-    int mx = event->x;
-    int my = event->y;
+    int mx = event->xy[0];
+    int my = event->xy[1];
     ui_window_to_block(region, block, &mx, &my);
     const int mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
     if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
@@ -2559,8 +2559,8 @@ static void panel_handle_data_ensure(const bContext *C,
   data->animtimer = WM_event_add_timer(CTX_wm_manager(C), win, TIMER, ANIMATION_INTERVAL);
 
   data->state = state;
-  data->startx = win->eventstate->x;
-  data->starty = win->eventstate->y;
+  data->startx = win->eventstate->xy[0];
+  data->starty = win->eventstate->xy[1];
   data->startofsx = panel->ofsx;
   data->startofsy = panel->ofsy;
   data->start_cur_xmin = region->v2d.cur.xmin;

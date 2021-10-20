@@ -686,7 +686,7 @@ void ED_screens_init(Main *bmain, wmWindowManager *wm)
 
     ED_screen_refresh(wm, win);
     if (win->eventstate) {
-      ED_screen_set_active_region(NULL, win, &win->eventstate->x);
+      ED_screen_set_active_region(NULL, win, win->eventstate->xy);
     }
   }
 
@@ -959,7 +959,7 @@ int ED_screen_area_active(const bContext *C)
   ScrArea *area = CTX_wm_area(C);
 
   if (win && screen && area) {
-    AZone *az = ED_area_actionzone_find_xy(area, &win->eventstate->x);
+    AZone *az = ED_area_actionzone_find_xy(area, win->eventstate->xy);
 
     if (az && az->type == AZONE_REGION) {
       return 1;

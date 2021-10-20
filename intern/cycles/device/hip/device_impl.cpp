@@ -108,6 +108,9 @@ HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
     return;
   }
 
+  /* hipDeviceMapHost for mapping host memory when out of device memory.
+   * hipDeviceLmemResizeToMax for reserving local memory ahead of render,
+   * so we can predict which memory to map to host. */
   hip_assert(hipDeviceGetAttribute(&can_map_host, hipDeviceAttributeCanMapHostMemory, hipDevice));
 
   hip_assert(
@@ -427,7 +430,7 @@ bool HIPDevice::load_kernels(const uint kernel_features)
   return (result == hipSuccess);
 }
 
-void HIPDevice::reserve_local_memory(const uint)
+void HIPDevice::reserve_local_memory(const uint kernel_features)
 {
   /* Together with hipDeviceLmemResizeToMax, this reserves local memory
    * needed for kernel launches, so that we can reliably figure out when
@@ -441,7 +444,9 @@ void HIPDevice::reserve_local_memory(const uint)
 
   {
     /* Use the biggest kernel for estimation. */
-    const DeviceKernel test_kernel = DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE;
+    const DeviceKernel test_kernel = (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) ?
+                                         DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE :
+                                         DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE;
 
     /* Launch kernel, using just 1 block appears sufficient to reserve memory for all
      * multiprocessors. It would be good to do this in parallel for the multi GPU case
@@ -657,7 +662,8 @@ HIPDevice::HIPMem *HIPDevice::generic_alloc(device_memory &mem, size_t pitch_pad
     }
     else if (map_host_used + size < map_host_limit) {
       /* Allocate host memory ourselves. */
-      mem_alloc_result = hipHostMalloc(&shared_pointer, size);
+      mem_alloc_result = hipHostMalloc(
+          &shared_pointer, size, hipHostMallocMapped | hipHostMallocWriteCombined);
 
       assert((mem_alloc_result == hipSuccess && shared_pointer != 0) ||
              (mem_alloc_result != hipSuccess && shared_pointer == 0));
@@ -874,7 +880,6 @@ void HIPDevice::const_copy_to(const char *name, void *host, size_t size)
   size_t bytes;
 
   hip_assert(hipModuleGetGlobal(&mem, &bytes, hipModule, name));
-  assert(bytes == size);
   hip_assert(hipMemcpyHtoD(mem, host, size));
 }
 
@@ -1141,141 +1146,6 @@ void HIPDevice::tex_free(device_texture &mem)
     }
   }
 }
-
-#  if 0
-void HIPDevice::render(DeviceTask &task,
-                        RenderTile &rtile,
-                        device_vector<KernelWorkTile> &work_tiles)
-{
-  scoped_timer timer(&rtile.buffers->render_time);
-
-  if (have_error())
-    return;
-
-  HIPContextScope scope(this);
-  hipFunction_t hipRender;
-
-  /* Get kernel function. */
-  if (rtile.task == RenderTile::BAKE) {
-    hip_assert(hipModuleGetFunction(&hipRender, hipModule, "kernel_hip_bake"));
-  }
-  else {
-    hip_assert(hipModuleGetFunction(&hipRender, hipModule, "kernel_hip_path_trace"));
-  }
-
-  if (have_error()) {
-    return;
-  }
-
-  hip_assert(hipFuncSetCacheConfig(hipRender, hipFuncCachePreferL1));
-
-  /* Allocate work tile. */
-  work_tiles.alloc(1);
-
-  KernelWorkTile *wtile = work_tiles.data();
-  wtile->x = rtile.x;
-  wtile->y = rtile.y;
-  wtile->w = rtile.w;
-  wtile->h = rtile.h;
-  wtile->offset = rtile.offset;
-  wtile->stride = rtile.stride;
-  wtile->buffer = (float *)(hipDeviceptr_t)rtile.buffer;
-
-  /* Prepare work size. More step samples render faster, but for now we
-   * remain conservative for GPUs connected to a display to avoid driver
-   * timeouts and display freezing. */
-  int min_blocks, num_threads_per_block;
-  hip_assert(
-      hipModuleOccupancyMaxPotentialBlockSize(&min_blocks, &num_threads_per_block, hipRender, NULL, 0, 0));
-  if (!info.display_device) {
-    min_blocks *= 8;
-  }
-
-  uint step_samples = divide_up(min_blocks * num_threads_per_block, wtile->w * wtile->h);
-
-  /* Render all samples. */
-  uint start_sample = rtile.start_sample;
-  uint end_sample = rtile.start_sample + rtile.num_samples;
-
-  for (int sample = start_sample; sample < end_sample;) {
-    /* Setup and copy work tile to device. */
-    wtile->start_sample = sample;
-    wtile->num_samples = step_samples;
-    if (task.adaptive_sampling.use) {
-      wtile->num_samples = task.adaptive_sampling.align_samples(sample, step_samples);
-    }
-    wtile->num_samples = min(wtile->num_samples, end_sample - sample);
-    work_tiles.copy_to_device();
-
-    hipDeviceptr_t d_work_tiles = (hipDeviceptr_t)work_tiles.device_pointer;
-    uint total_work_size = wtile->w * wtile->h * wtile->num_samples;
-    uint num_blocks = divide_up(total_work_size, num_threads_per_block);
-
-    /* Launch kernel. */
-    void *args[] = {&d_work_tiles, &total_work_size};
-
-    hip_assert(
-        hipModuleLaunchKernel(hipRender, num_blocks, 1, 1, num_threads_per_block, 1, 1, 0, 0, args, 0));
-
-    /* Run the adaptive sampling kernels at selected samples aligned to step samples. */
-    uint filter_sample = sample + wtile->num_samples - 1;
-    if (task.adaptive_sampling.use && task.adaptive_sampling.need_filter(filter_sample)) {
-      adaptive_sampling_filter(filter_sample, wtile, d_work_tiles);
-    }
-
-    hip_assert(hipDeviceSynchronize());
-
-    /* Update progress. */
-    sample += wtile->num_samples;
-    rtile.sample = sample;
-    task.update_progress(&rtile, rtile.w * rtile.h * wtile->num_samples);
-
-    if (task.get_cancel()) {
-      if (task.need_finish_queue == false)
-        break;
-    }
-  }
-
-  /* Finalize adaptive sampling. */
-  if (task.adaptive_sampling.use) {
-    hipDeviceptr_t d_work_tiles = (hipDeviceptr_t)work_tiles.device_pointer;
-    adaptive_sampling_post(rtile, wtile, d_work_tiles);
-    hip_assert(hipDeviceSynchronize());
-    task.update_progress(&rtile, rtile.w * rtile.h * wtile->num_samples);
-  }
-}
-
-void HIPDevice::thread_run(DeviceTask &task)
-{
-  HIPContextScope scope(this);
-
-  if (task.type == DeviceTask::RENDER) {
-    device_vector<KernelWorkTile> work_tiles(this, "work_tiles", MEM_READ_ONLY);
-
-    /* keep rendering tiles until done */
-    RenderTile tile;
-    DenoisingTask denoising(this, task);
-
-    while (task.acquire_tile(this, tile, task.tile_types)) {
-      if (tile.task == RenderTile::PATH_TRACE) {
-        render(task, tile, work_tiles);
-      }
-      else if (tile.task == RenderTile::BAKE) {
-        render(task, tile, work_tiles);
-      }
-
-      task.release_tile(tile);
-
-      if (task.get_cancel()) {
-        if (task.need_finish_queue == false)
-          break;
-      }
-    }
-
-    work_tiles.free();
-  }
-}
-#  endif
 
 unique_ptr<DeviceQueue> HIPDevice::gpu_queue_create()
 {

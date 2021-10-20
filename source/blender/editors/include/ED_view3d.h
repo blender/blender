@@ -229,6 +229,11 @@ typedef enum {
   (V3D_PROJ_TEST_CLIP_CONTENT | V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR | \
    V3D_PROJ_TEST_CLIP_WIN)
 
+/* view3d_snap.c */
+bool ED_view3d_snap_selected_to_location(struct bContext *C,
+                                         const float snap_target_global[3],
+                                         const int pivot_point);
+
 /* view3d_cursor_snap.c */
 #define USE_SNAP_DETECT_FROM_KEYMAP_HACK
 typedef enum {
@@ -252,18 +257,6 @@ typedef enum {
 } eV3DPlaceOrient;
 
 typedef struct V3DSnapCursorData {
-  /* Setup. */
-  eV3DSnapCursor flag;
-  eV3DPlaceDepth plane_depth;
-  eV3DPlaceOrient plane_orient;
-  uchar color_line[4];
-  uchar color_point[4];
-  float *prevpoint;
-  short snap_elem_force; /* If zero, use scene settings. */
-  short plane_axis;
-  bool use_plane_axis_auto;
-
-  /* Return values. */
   short snap_elem;
   float loc[3];
   float nor[3];
@@ -276,16 +269,31 @@ typedef struct V3DSnapCursorData {
   bool is_enabled;
 } V3DSnapCursorData;
 
-V3DSnapCursorData *ED_view3d_cursor_snap_data_get(void);
-void ED_view3d_cursor_snap_activate_point(void);
-void ED_view3d_cursor_snap_activate_plane(void);
-void ED_view3d_cursor_snap_deactivate_point(void);
-void ED_view3d_cursor_snap_deactivate_plane(void);
-void ED_view3d_cursor_snap_prevpoint_set(const float prev_point[3]);
-void ED_view3d_cursor_snap_update(const struct bContext *C,
-                                  const int x,
-                                  const int y,
-                                  V3DSnapCursorData *snap_data);
+typedef struct V3DSnapCursorState {
+  /* Setup. */
+  eV3DSnapCursor flag;
+  eV3DPlaceDepth plane_depth;
+  eV3DPlaceOrient plane_orient;
+  uchar color_line[4];
+  uchar color_point[4];
+  float *prevpoint;
+  short snap_elem_force; /* If zero, use scene settings. */
+  short plane_axis;
+  bool use_plane_axis_auto;
+  bool draw_point;
+  bool draw_plane;
+} V3DSnapCursorState;
+
+void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state);
+V3DSnapCursorState *ED_view3d_cursor_snap_state_get(void);
+V3DSnapCursorState *ED_view3d_cursor_snap_active(void);
+void ED_view3d_cursor_snap_deactive(V3DSnapCursorState *state);
+void ED_view3d_cursor_snap_prevpoint_set(V3DSnapCursorState *state, const float prev_point[3]);
+V3DSnapCursorData *ED_view3d_cursor_snap_data_get(V3DSnapCursorState *state,
+                                                  const struct bContext *C,
+                                                  const int x,
+                                                  const int y);
+
 struct SnapObjectContext *ED_view3d_cursor_snap_context_ensure(struct Scene *scene);
 void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
                                      const float loc_prev[3],
@@ -294,6 +302,7 @@ void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
                                      const uchar color_line[4],
                                      const uchar color_point[4],
                                      const short snap_elem_type);
+void ED_view3d_cursor_snap_exit(void);
 
 /* view3d_iterators.c */
 

@@ -272,7 +272,7 @@ void UI_view2d_edge_pan_apply_event(bContext *C, View2DEdgePanData *vpd, const w
     return;
   }
 
-  UI_view2d_edge_pan_apply(C, vpd, event->x, event->y);
+  UI_view2d_edge_pan_apply(C, vpd, event->xy[0], event->xy[1]);
 }
 
 void UI_view2d_edge_pan_cancel(bContext *C, View2DEdgePanData *vpd)

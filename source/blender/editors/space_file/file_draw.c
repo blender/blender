@@ -465,6 +465,17 @@ static void file_draw_preview(const SpaceFile *sfile,
     UI_icon_draw_ex(icon_x, icon_y, icon, 1.0f / U.dpi_fac, 0.6f, 0.0f, light, false);
   }
 
+  const bool is_current_main_data = filelist_file_get_id(file) != NULL;
+  if (is_current_main_data) {
+    /* Smaller, fainter icon at the top-right indicating that the file represents data from the
+     * current file (from current #Main in fact). */
+    float icon_x, icon_y;
+    const uchar light[4] = {255, 255, 255, 255};
+    icon_x = xco + ex - UI_UNIT_X;
+    icon_y = yco + ey - UI_UNIT_Y;
+    UI_icon_draw_ex(icon_x, icon_y, ICON_FILE_BLEND, 1.0f / U.dpi_fac, 0.6f, 0.0f, light, false);
+  }
+
   /* Contrasting outline around some preview types. */
   if (show_outline) {
     GPUVertFormat *format = immVertexFormat();

@@ -941,7 +941,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
     /* Use cursor as fallback if it's not set by the 'ortho_axis_active'. */
     if (is_zero_v3(ggd->data.orient_axis_relative)) {
       float cursor_co[3];
-      const int mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
+      const int mval[2] = {event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin};
       float plane[4];
       plane_from_point_normal_v3(plane, plane_co, plane_no);
       if (UNLIKELY(!ED_view3d_win_to_3d_on_plane_int(region, plane, mval, false, cursor_co))) {

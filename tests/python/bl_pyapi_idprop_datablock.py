@@ -257,8 +257,8 @@ def test_restrictions1():
     # just panel for testing the poll callback with lots of objects
     class TEST_PT_DatablockProp(bpy.types.Panel):
         bl_label = "Datablock IDProp"
-        bl_space_type = "PROPERTIES"
-        bl_region_type = "WINDOW"
+        bl_space_type = 'PROPERTIES'
+        bl_region_type = 'WINDOW'
         bl_context = "render"
 
         def draw(self, context):

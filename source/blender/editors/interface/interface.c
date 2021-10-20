@@ -742,6 +742,9 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
   if (but->optype != oldbut->optype) {
     return false;
   }
+  if (but->dragtype != oldbut->dragtype) {
+    return false;
+  }
 
   if ((but->type == UI_BTYPE_TREEROW) && (oldbut->type == UI_BTYPE_TREEROW)) {
     uiButTreeRow *but_treerow = (uiButTreeRow *)but;
@@ -1985,7 +1988,7 @@ void UI_block_end(const bContext *C, uiBlock *block)
 {
   wmWindow *window = CTX_wm_window(C);
 
-  UI_block_end_ex(C, block, &window->eventstate->x, NULL);
+  UI_block_end_ex(C, block, window->eventstate->xy, NULL);
 }
 
 /* ************** BLOCK DRAWING FUNCTION ************* */

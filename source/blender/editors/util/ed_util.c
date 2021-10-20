@@ -33,6 +33,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_collection.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -121,46 +122,64 @@ void ED_editors_init(bContext *C)
       continue;
     }
 
+    /* Reset object to Object mode, so that code below can properly re-switch it to its
+     * previous mode if possible, re-creating its mode data, etc. */
     ID *ob_data = ob->data;
     ob->mode = OB_MODE_OBJECT;
     DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
-    if (obact && (ob->type == obact->type) && !ID_IS_LINKED(ob) &&
-        !(ob_data && ID_IS_LINKED(ob_data))) {
-      if (mode == OB_MODE_EDIT) {
-        ED_object_editmode_enter_ex(bmain, scene, ob, 0);
-      }
-      else if (mode == OB_MODE_POSE) {
-        ED_object_posemode_enter_ex(bmain, ob);
-      }
-      else if (mode & OB_MODE_ALL_SCULPT) {
-        if (obact == ob) {
-          if (mode == OB_MODE_SCULPT) {
-            ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, true, reports);
-          }
-          else if (mode == OB_MODE_VERTEX_PAINT) {
-            ED_object_vpaintmode_enter_ex(bmain, depsgraph, scene, ob);
-          }
-          else if (mode == OB_MODE_WEIGHT_PAINT) {
-            ED_object_wpaintmode_enter_ex(bmain, depsgraph, scene, ob);
-          }
-          else {
-            BLI_assert_unreachable();
-          }
+
+    /* Object mode is enforced if there is no active object, or if the active object's type is
+     * different. */
+    if (obact == NULL || ob->type != obact->type) {
+      continue;
+    }
+    /* Object mode is enforced for linked data (or their obdata). */
+    if (ID_IS_LINKED(ob) || (ob_data != NULL && ID_IS_LINKED(ob_data))) {
+      continue;
+    }
+
+    /* Pose mode is very similar to Object one, we can apply it even on objects not in current
+     * scene. */
+    if (mode == OB_MODE_POSE) {
+      ED_object_posemode_enter_ex(bmain, ob);
+    }
+
+    /* Other edit/paint/etc. modes are only settable for objects in active scene currently. */
+    if (!BKE_collection_has_object_recursive(scene->master_collection, ob)) {
+      continue;
+    }
+
+    if (mode == OB_MODE_EDIT) {
+      ED_object_editmode_enter_ex(bmain, scene, ob, 0);
+    }
+    else if (mode & OB_MODE_ALL_SCULPT) {
+      if (obact == ob) {
+        if (mode == OB_MODE_SCULPT) {
+          ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, true, reports);
+        }
+        else if (mode == OB_MODE_VERTEX_PAINT) {
+          ED_object_vpaintmode_enter_ex(bmain, depsgraph, scene, ob);
+        }
+        else if (mode == OB_MODE_WEIGHT_PAINT) {
+          ED_object_wpaintmode_enter_ex(bmain, depsgraph, scene, ob);
         }
         else {
-          /* Create data for non-active objects which need it for
-           * mode-switching but don't yet support multi-editing. */
-          if (mode & OB_MODE_ALL_SCULPT) {
-            ob->mode = mode;
-            BKE_object_sculpt_data_create(ob);
-          }
+          BLI_assert_unreachable();
         }
       }
       else {
-        /* TODO(campbell): avoid operator calls. */
-        if (obact == ob) {
-          ED_object_mode_set(C, mode);
+        /* Create data for non-active objects which need it for
+         * mode-switching but don't yet support multi-editing. */
+        if (mode & OB_MODE_ALL_SCULPT) {
+          ob->mode = mode;
+          BKE_object_sculpt_data_create(ob);
         }
+      }
+    }
+    else {
+      /* TODO(campbell): avoid operator calls. */
+      if (obact == ob) {
+        ED_object_mode_set(C, mode);
       }
     }
   }

@@ -760,6 +760,24 @@ class AttributeFieldInput : public fn::FieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override;
 };
 
+class IDAttributeFieldInput : public fn::FieldInput {
+ public:
+  IDAttributeFieldInput() : fn::FieldInput(CPPType::get<int>())
+  {
+  }
+
+  static fn::Field<int> Create();
+
+  const GVArray *get_varray_for_context(const fn::FieldContext &context,
+                                        IndexMask mask,
+                                        ResourceScope &scope) const override;
+
+  std::string socket_inspection_name() const override;
+
+  uint64_t hash() const override;
+  bool is_equal_to(const fn::FieldNode &other) const override;
+};
+
 class AnonymousAttributeFieldInput : public fn::FieldInput {
  private:
   /**
