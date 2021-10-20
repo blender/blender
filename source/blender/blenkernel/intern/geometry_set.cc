@@ -507,12 +507,11 @@ void GeometrySet::gather_attributes_for_propagation(
             return;
           }
         }
-        if (attribute_id.is_anonymous()) {
-          if (!BKE_anonymous_attribute_id_has_strong_references(&attribute_id.anonymous_id())) {
-            /* Don't propagate anonymous attributes that are not used anymore. */
-            return;
-          }
+
+        if (!attribute_id.should_be_kept()) {
+          return;
         }
+
         auto add_info = [&](AttributeKind *attribute_kind) {
           attribute_kind->domain = meta_data.domain;
           attribute_kind->data_type = meta_data.data_type;
